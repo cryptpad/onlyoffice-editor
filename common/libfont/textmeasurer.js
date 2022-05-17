@@ -101,7 +101,7 @@
             }
         },
 
-		GetFileFontId : function(codePoint)
+		GetFileFontId : function(codePoint, pPrefferedFont)
 		{
 			let pFont = this.m_oManager.m_pFont;
 			if (!pFont)
@@ -109,6 +109,9 @@
 
 			if (!pFont.GetGIDByUnicode(codePoint))
 			{
+				if (pPrefferedFont && pPrefferedFont.GetGIDByUnicode(codePoint))
+					return pPrefferedFont
+
 				let _pFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
 				if (_pFont)
 					pFont = _pFont;

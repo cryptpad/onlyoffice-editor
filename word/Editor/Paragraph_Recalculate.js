@@ -2498,14 +2498,8 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 
 Paragraph.prototype.ShapeText = function()
 {
-	// if (!this.RecalcInfo.ShapeText)
-	// 	return;
-
-	let nRecalcId = this.LogicDocument ? this.LogicDocument.GetRecalcId() : -1;
-	if (this.ShapeId === nRecalcId)
+	if (!this.RecalcInfo.ShapeText)
 		return;
-
-	this.ShapeId = nRecalcId;
 
 	// TODO: Сейчас мы шейпим текст целиком во всем параграфе. Для ускорения нужно отслеживать позиции, в которых
 	//       произошли изменения (далее влево и вправо найти позиции пробела/таба или другого разделителя слова)

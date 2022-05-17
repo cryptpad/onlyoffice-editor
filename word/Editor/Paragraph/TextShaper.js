@@ -158,21 +158,20 @@
 		if (this.Items.length >= AscFonts.HB_STRING_MAX_LEN)
 			this.FlushWord();
 
-		let nScript   = this.GetTextScript(nUnicode);
-		let nFontSlot = this.GetFontSlot(nUnicode);
-
+		let nScript = this.GetTextScript(nUnicode);
 		if (nScript !== this.Script
 			&& -1 !== this.Script
 			&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
 			&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
 			this.FlushWord();
 
+		let nFontSlot = this.GetFontSlot(nUnicode);
 		this.private_CheckFont(nFontSlot);
 
 		let nFontId = this.FontId;
 
 		if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.FontId)
-			nFontId = MEASURER.GetFileFontId(nUnicode);
+			nFontId = MEASURER.GetFileFontId(nUnicode, -1 !== this.FontId ? this.FontId : null);
 
 		if (this.FontId !== nFontId && -1 !== this.FontId)
 			this.FlushWord();
