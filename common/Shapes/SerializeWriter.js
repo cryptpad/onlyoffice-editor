@@ -263,6 +263,18 @@ function CBinaryFileWriter()
         this.data[this.pos++] = (val >>> 16)&0xFF;
         this.data[this.pos++] = (val >>> 24)&0xFF;
     };
+    this.WriteIntToPPTY = function (val)
+    {
+        this.WriteUChar(g_nodeAttributeStart);
+        this._WriteInt1(0, val);
+        this.WriteUChar(g_nodeAttributeEnd);
+    };
+    this.WriteByteToPPTY = function (val)
+    {
+        this.WriteUChar(g_nodeAttributeStart);
+        this._WriteChar1(0, val);
+        this.WriteUChar(g_nodeAttributeEnd);
+    };
     this.WriteDouble = function(val)
     {
         this.WriteULong((val * 100000) >> 0);
