@@ -460,7 +460,7 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	if (this.Grapheme)
 	{
 		let oFontInfo = oTextPr.GetFontInfo(this.FontSlot);
-		AscCommon.DrawGrapheme(this.Grapheme, Context, X, Y, oFontInfo.Size);
+		AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, oFontInfo.Size);
 	}
 
 	return;

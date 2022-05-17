@@ -672,37 +672,73 @@ else
         return glyphs;
     };
 
+	const STRING_MAX_LEN = AscFonts.GRAPHEME_STRING_MAX_LEN;
+	const COEF           = AscFonts.GRAPHEME_COEF;
 	let   STRING_POINTER = null;
 	let   STRING_LEN     = 0;
-	const STRING_MAX_LEN = 1024;
+	const CLUSTER        = new Uint16Array(STRING_MAX_LEN);
+	let   CLUSTER_LEN    = 0;
+	let   CLUSTER_MAX    = 0;
 	const READER         = new CBinaryReader(null, 0, 0);
+	const LIGATURE       = 2;
+
+	function GetCodePointsCount(nPrev, nCurr)
+	{
+		let nCodePointsCount = 0;
+
+		if (nPrev > nCurr)
+		{
+			// TODO: RTL
+		}
+		else
+		{
+			let nCluster = 0;
+			let nCodePointIndex = 0;
+			while (nCluster < nPrev)
+				nCluster += CLUSTER[nCodePointIndex++];
+
+			while (nCluster < nCurr)
+			{
+				nCluster += CLUSTER[nCodePointIndex + nCodePointsCount];
+				nCodePointsCount++;
+			}
+		}
+
+		return nCodePointsCount;
+	}
 
 	AscFonts.HB_BeginString = function()
 	{
 		if (!STRING_POINTER)
 			STRING_POINTER = Module["_malloc"](6 * STRING_MAX_LEN + 1);
 
-		STRING_LEN = 0;
+		STRING_LEN  = 0;
+		CLUSTER_LEN = 0;
+		CLUSTER_MAX = 0;
 	};
 	AscFonts.HB_AppendToString = function(code)
 	{
-		let arrBuffer = Module["HEAP8"];
-		let nOffset   = STRING_POINTER;
+		let arrBuffer   = Module["HEAP8"];
+		let nOffset     = STRING_POINTER;
+		let nClusterLen = -1;
 
 		if (code < 0x80)
 		{
 			arrBuffer[nOffset + STRING_LEN++] = code;
+			nClusterLen = 1;
 		}
 		else if (code < 0x0800)
 		{
 			arrBuffer[nOffset + STRING_LEN++] = (0xC0 | (code >> 6));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+			nClusterLen = 2;
 		}
 		else if (code < 0x10000)
 		{
 			arrBuffer[nOffset + STRING_LEN++] = (0xE0 | (code >> 12));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+			nClusterLen = 3;
 		}
 		else if (code < 0x1FFFFF)
 		{
@@ -710,6 +746,7 @@ else
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 12) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+			nClusterLen = 4;
 		}
 		else if (code < 0x3FFFFFF)
 		{
@@ -718,6 +755,7 @@ else
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 12) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+			nClusterLen = 5;
 		}
 		else if (code < 0x7FFFFFFF)
 		{
@@ -727,6 +765,13 @@ else
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 12) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | ((code >> 6) & 0x3F));
 			arrBuffer[nOffset + STRING_LEN++] = (0x80 | (code & 0x3F));
+			nClusterLen = 6;
+		}
+
+		if (-1 !== nClusterLen)
+		{
+			CLUSTER[CLUSTER_LEN++] = nClusterLen;
+			CLUSTER_MAX += nClusterLen;
 		}
 	};
 	AscFonts.HB_EndString = function()
@@ -737,7 +782,7 @@ else
 	{
 		return STRING_LEN;
 	};
-	AscFonts.HB_ShapeString = function(fontFile, features, script, direction, language)
+	AscFonts.HB_ShapeString = function(textShaper, fontId, fontStyle, fontFile, features, script, direction, language)
 	{
 		if (!STRING_POINTER)
 			return;
@@ -762,34 +807,44 @@ else
 
 		fontFile.m_pHBFont = reader.readPointer64();
 
-		let glyphs = [];
+		let prevCluster = -1, type, flags, gid, cluster, x_advance, y_advance, x_offset, y_offset;
+		let isLigature = false;
+		let nWidth     = 0;
 		for (let i = 0; i < glyphsCount; i++)
 		{
-			let glyph = {};
+			type      = reader.readByte();
+			flags     = reader.readByte();
+			gid       = reader.readInt();
+			cluster   = reader.readInt();
+			x_advance = reader.readInt();
+			y_advance = reader.readInt();
+			x_offset  = reader.readInt();
+			y_offset  = reader.readInt();
 
-			glyph.type = reader.readByte();
-			glyph.flags = reader.readByte();
+			if (cluster !== prevCluster && -1 !== prevCluster)
+			{
+				textShaper.FlushGrapheme(AscFonts.GetGrapheme(), nWidth, GetCodePointsCount(prevCluster, cluster), isLigature);
+				nWidth = 0;
+			}
 
-			glyph.gid = reader.readInt();
-			glyph.cluster = reader.readInt();
+			if (cluster !== prevCluster)
+			{
+				prevCluster = cluster;
+				isLigature  = LIGATURE === type;
+				AscFonts.InitGrapheme(fontId, fontStyle);
+			}
 
-			glyph.x_advance = reader.readInt();
-			glyph.y_advance = reader.readInt();
-			glyph.x_offset = reader.readInt();
-			glyph.y_offset = reader.readInt();
-
-			glyphs.push(glyph);
+			AscFonts.AddGlyphToGrapheme(gid, x_advance, y_advance, x_offset, y_offset);
+			nWidth += x_advance * COEF;
 		}
+		textShaper.FlushGrapheme(AscFonts.GetGrapheme(), nWidth, GetCodePointsCount(prevCluster, CLUSTER_MAX), isLigature);
 
 		Module["_ASC_FT_Free"](shapeData);
-
-		return glyphs;
 	};
 
     AscFonts.onLoadModule();
 
     // this memory is not freed
     AscFonts.hb_cache_languages = {};
-	AscFonts.HB_STRING_MAX_LEN = STRING_MAX_LEN;
 
 })(window, undefined);

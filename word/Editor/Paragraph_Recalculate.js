@@ -328,6 +328,8 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
 		NextRange = Range;
 	}
 
+	this.ShapeText();
+
 	// Если у нас отрезок, в котором произошли изменения является отрезком с нумерацией, тогда надо запустить
 	// обычный пересчет.
 	if (null !== this.Numbering.Item && (PrevLine < this.Numbering.Line || (PrevLine === this.Numbering.Line && PrevRange <= this.Numbering.Range)))
@@ -2496,14 +2498,20 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 
 Paragraph.prototype.ShapeText = function()
 {
-	if (!this.RecalcInfo.ShapeText)
+	// if (!this.RecalcInfo.ShapeText)
+	// 	return;
+
+	let nRecalcId = this.LogicDocument ? this.LogicDocument.GetRecalcId() : -1;
+	if (this.ShapeId === nRecalcId)
 		return;
+
+	this.ShapeId = nRecalcId;
 
 	// TODO: Сейчас мы шейпим текст целиком во всем параграфе. Для ускорения нужно отслеживать позиции, в которых
 	//       произошли изменения (далее влево и вправо найти позиции пробела/таба или другого разделителя слова)
 	//       и шейпить текст только в заданном промежутке
 
-	AscCommon.TextShaper.Shape(this);
+	AscCommonWord.TextShaper.Shape(this);
 	this.RecalcInfo.ShapeText = false;
 };
 

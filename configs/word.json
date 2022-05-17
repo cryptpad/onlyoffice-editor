@@ -45,6 +45,7 @@
 			"common/libfont/character.js",
 			"common/libfont/manager.js",
 			"common/libfont/classification.js",
+			"common/libfont/grapheme.js",
 
 			"common/stringserialize.js",
 			"common/random.js",
