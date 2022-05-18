@@ -79,9 +79,14 @@
 		for (let nPos = 0, nCount = oRun.GetElementsCount(); nPos < nCount; ++nPos)
 		{
 			let oItem = oRun.GetElement(nPos);
-			if (!oItem.IsText() || oItem.IsNBSP())
+			if (!oItem.IsText())
 			{
 				this.FlushWord();
+			}
+			else if (oItem.IsNBSP())
+			{
+				this.FlushWord();
+				this.private_HandleNBSP(oItem);
 			}
 			else
 			{
@@ -218,6 +223,13 @@
 
 		this.Parent = oRunParent;
 		this.TextPr = oTextPr;
+	};
+	CTextShaper.prototype.private_HandleNBSP = function(oItem)
+	{
+		let oFontInfo  = this.TextPr.GetFontInfo(fontslot_ASCII);
+		let oGlyphInfo = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
+		oItem.SetGrapheme(oGlyphInfo.Grapheme, fontslot_ASCII);
+		oItem.SetWidth(oGlyphInfo.Width * oFontInfo.Size);
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------

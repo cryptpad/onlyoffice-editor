@@ -103,30 +103,54 @@
 
 		CheckUnicodeInCurrentFont : function(codePoint)
 		{
-			let pFont = this.m_oManager.m_pFont;
-			if (!pFont)
+			let oFont = this.m_oManager.m_pFont;
+			if (!oFont)
 				return true;
 
-			return (!!pFont.GetGIDByUnicode(codePoint))
+			return (!!oFont.GetGIDByUnicode(codePoint))
 		},
 
 		GetFontBySymbol : function(codePoint, oPreferredFont)
 		{
-			let pFont = this.m_oManager.m_pFont;
-			if (!pFont)
+			let oFont = this.m_oManager.m_pFont;
+			if (!oFont)
 				return null;
 
-			if (!pFont.GetGIDByUnicode(codePoint))
+			if (!oFont.GetGIDByUnicode(codePoint))
 			{
 				if (oPreferredFont && oPreferredFont.GetGIDByUnicode(codePoint))
 					return oPreferredFont;
 
-				let _pFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
-				if (_pFont)
-					pFont = _pFont;
+				let _oFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
+				if (_oFont)
+					oFont = _oFont;
 			}
 
-			return pFont;
+			return oFont;
+		},
+
+		GetGraphemeByUnicode : function(codePoint, sFontName, nFontStyle)
+		{
+			this.SetFontInternal(sFontName, 72, nFontStyle);
+
+			let oFont = this.m_oManager.m_pFont;
+			if (!oFont)
+				return null;
+
+			let nGID   = oFont.GetGIDByUnicode(codePoint);
+
+			let oGlyph = this.m_oManager.MeasureChar(codePoint);
+			if (!oGlyph)
+				return null;
+
+			let nAdvanceX = oGlyph.fAdvanceX * 64;
+
+			AscFonts.InitGrapheme(AscCommon.FontNameMap.GetId(sFontName), nFontStyle);
+			AscFonts.AddGlyphToGrapheme(nGID, nAdvanceX, 0, 0, 0);
+			return {
+				Grapheme : AscFonts.GetGrapheme(),
+				Width    : nAdvanceX * AscFonts.GRAPHEME_COEF
+			};
 		},
 
         SetTextPr : function(textPr, theme)
