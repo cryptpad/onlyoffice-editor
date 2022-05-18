@@ -8511,6 +8511,7 @@
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) namespace_ = "pic";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			this.toXml2(namespace_, writer);
 		};
@@ -8580,6 +8581,164 @@
 			History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_Ph_SetType, this.type, type));
 			this.type = type;
 		};
+		Ph.prototype.GetOrientCode = function(sVal) {
+			switch (sVal) {
+				case "horz": {
+					return orientPh_horz;
+				}
+				case "vert": {
+					return orientPh_vert;
+				}
+			}
+			return null;
+		};
+		Ph.prototype.GetOrientByCode = function(nVal) {
+			switch (nVal) {
+				case orientPh_horz: {
+					return "horz";
+				}
+				case orientPh_vert: {
+					return "vert";
+				}
+			}
+			return null;
+		};
+		Ph.prototype.GetSzCode = function(sVal) {
+			switch (sVal) {
+				case "full": {
+					return szPh_full;
+				}
+				case "half": {
+					return szPh_half;
+				}
+				case "quarter": {
+					return szPh_quarter;
+				}
+			}
+			return null;
+		};
+		Ph.prototype.GetSzByCode = function(nVal) {
+			switch (nVal) {
+				case szPh_full: {
+					return "full";
+				}
+				case szPh_half: {
+					return "half";
+				}
+				case szPh_quarter: {
+					return "quarter";
+				}
+			}
+			return null;
+		};
+		Ph.prototype.GetTypeCode = function(sVal) {
+
+			switch (sVal) {
+				case "body": {
+					return AscFormat.phType_body;
+				}
+				case "chart": {
+					return AscFormat.phType_chart;
+				}
+				case "clipArt": {
+					return AscFormat.phType_clipArt;
+				}
+				case "ctrTitle": {
+					return AscFormat.phType_ctrTitle;
+				}
+				case "dgm": {
+					return AscFormat.phType_dgm;
+				}
+				case "dt": {
+					return AscFormat.phType_dt;
+				}
+				case "ftr": {
+					return AscFormat.phType_ftr;
+				}
+				case "hdr": {
+					return AscFormat.phType_hdr;
+				}
+				case "media": {
+					return AscFormat.phType_media;
+				}
+				case "obj": {
+					return AscFormat.phType_obj;
+				}
+				case "pic": {
+					return AscFormat.phType_pic;
+				}
+				case "sldImg": {
+					return AscFormat.phType_sldImg;
+				}
+				case "sldNum": {
+					return AscFormat.phType_sldNum;
+				}
+				case "subTitle": {
+					return AscFormat.phType_subTitle;
+				}
+				case "tbl": {
+					return AscFormat.phType_tbl;
+				}
+				case "title": {
+					return AscFormat.phType_title;
+				}
+			}
+			return null;
+		};
+		Ph.prototype.GetTypeByCode = function(nVal) {
+			switch (nVal) {
+
+				case AscFormat.phType_body: {
+					return "body";
+				}
+				case AscFormat.phType_chart: {
+					return "chart";
+				}
+				case AscFormat.phType_clipArt: {
+					return "clipArt";
+				}
+				case AscFormat.phType_ctrTitle: {
+					return "ctrTitle";
+				}
+				case AscFormat.phType_dgm: {
+					return "dgm";
+				}
+				case AscFormat.phType_dt: {
+					return "dt";
+				}
+				case AscFormat.phType_ftr: {
+					return "ftr";
+				}
+				case AscFormat.phType_hdr: {
+					return "hdr";
+				}
+				case AscFormat.phType_media: {
+					return "media";
+				}
+				case AscFormat.phType_obj: {
+					return "obj";
+				}
+				case AscFormat.phType_pic: {
+					return "pic";
+				}
+				case AscFormat.phType_sldImg: {
+					return "sldImg";
+				}
+				case AscFormat.phType_sldNum: {
+					return "sldNum";
+				}
+				case AscFormat.phType_subTitle: {
+					return "subTitle";
+				}
+				case AscFormat.phType_tbl: {
+					return "tbl";
+				}
+				case AscFormat.phType_title: {
+					return "title";
+				}
+			}
+			return null;
+		};
 		Ph.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "hasCustomPrompt": {
@@ -8592,105 +8751,25 @@
 				}
 				case "orient": {
 					let sVal = reader.GetValue();
-					switch (sVal) {
-						case "horz": {
-							this.setOrient(orientPh_horz)
-							break;
-						}
-						case "vert": {
-							this.setOrient(orientPh_vert)
-							break;
-						}
+					let nVal = this.GetOrientCode(sVal);
+					if(nVal !== null) {
+						this.setOrient(nVal);
 					}
 					break;
 				}
 				case "sz": {
 					let sVal = reader.GetValue();
-					switch (sVal) {
-						case "full": {
-							this.setSz(szPh_full);
-							break;
-						}
-						case "half": {
-							this.setSz(szPh_half);
-							break;
-						}
-						case "quarter": {
-							this.setSz(szPh_quarter);
-							break;
-						}
+					let nVal = this.GetSzCode(sVal);
+					if(nVal !== null) {
+						this.setSz(nVal);
 					}
 					break;
 				}
 				case "type": {
-
-
 					let sVal = reader.GetValue();
-					switch (sVal) {
-						case "body": {
-							this.setType(window['AscFormat'].phType_body);
-							break;
-						}
-						case "chart": {
-							this.setType(window['AscFormat'].phType_chart);
-							break;
-						}
-						case "clipArt": {
-							this.setType(window['AscFormat'].phType_clipArt);
-							break;
-						}
-						case "ctrTitle": {
-							this.setType(window['AscFormat'].phType_ctrTitle);
-							break;
-						}
-						case "dgm": {
-							this.setType(window['AscFormat'].phType_dgm);
-							break;
-						}
-						case "dt": {
-							this.setType(window['AscFormat'].phType_dt);
-							break;
-						}
-						case "ftr": {
-							this.setType(window['AscFormat'].phType_ftr);
-							break;
-						}
-						case "hdr": {
-							this.setType(window['AscFormat'].phType_hdr);
-							break;
-						}
-						case "media": {
-							this.setType(window['AscFormat'].phType_media);
-							break;
-						}
-						case "obj": {
-							this.setType(window['AscFormat'].phType_obj);
-							break;
-						}
-						case "pic": {
-							this.setType(window['AscFormat'].phType_pic);
-							break;
-						}
-						case "sldImg": {
-							this.setType(window['AscFormat'].phType_sldImg);
-							break;
-						}
-						case "sldNum": {
-							this.setType(window['AscFormat'].phType_sldNum);
-							break;
-						}
-						case "subTitle": {
-							this.setType(window['AscFormat'].phType_subTitle);
-							break;
-						}
-						case "tbl": {
-							this.setType(window['AscFormat'].phType_tbl);
-							break;
-						}
-						case "title": {
-							this.setType(window['AscFormat'].phType_title);
-							break;
-						}
+					let nVal = this.GetTypeCode(sVal);
+					if(nVal !== null) {
+						this.setType(nVal);
 					}
 					break;
 				}
@@ -8698,11 +8777,11 @@
 		};
 		Ph.prototype.toXml = function (writer) {
 			writer.WriteXmlNodeStart("p:ph");
-			writer.WriteXmlNullableAttributeString("type", this.type);
-			writer.WriteXmlNullableAttributeString("orient", this.orient);
-			writer.WriteXmlNullableAttributeString("sz", this.sz);
+			writer.WriteXmlNullableAttributeString("type", this.GetTypeByCode(this.type));
+			writer.WriteXmlNullableAttributeString("orient", this.GetOrientByCode(this.orient));
+			writer.WriteXmlNullableAttributeString("sz", this.GetSzByCode(this.sz));
 			writer.WriteXmlNullableAttributeString("idx", this.idx);
-			writer.WriteXmlNullableAttributeString("hasCustomPrompt", this.hasCustomPrompt);
+			writer.WriteXmlNullableAttributeBool("hasCustomPrompt", this.hasCustomPrompt);
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlNodeEnd("p:ph");
 		};
@@ -8801,14 +8880,14 @@
 					return true;
 				});
 				oNode.fromXml(reader);
-
+				this.locks = 0;
 				let oAttr = oNode.attributes;
 				for (let sAttr in oAttr) {
 					if (oAttr.hasOwnProperty(sAttr)) {
 						let sVal = oAttr[sAttr];
 						if (sVal) {
 							let bBoolVal = reader.GetBool(sVal);
-							switch (sVal) {
+							switch (sAttr) {
 
 								case "txBox": {
 									this.locks = fUpdateLocksValue(this.locks, AscFormat.LOCKS_MASKS.txBox, bBoolVal);
@@ -8944,6 +9023,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvGraphicFramePr");
 
@@ -8975,6 +9055,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			if (!fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect) === undefined &&
 				fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp) === undefined &&
@@ -9044,6 +9125,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvPicPr");
 
@@ -9090,6 +9172,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvSpPr");
 			//writer.WriteXmlAttributeBool("txBox", this.txBox);
@@ -9209,6 +9292,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":nvGraphicFramePr");
 			writer.WriteXmlAttributesEnd();
@@ -9251,6 +9335,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":nvSpPr");
 
@@ -9275,6 +9360,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":nvPicPr");
 
@@ -9307,6 +9393,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":nvGrpSpPr");
 
@@ -9603,6 +9690,7 @@
 			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) sNS = "a";
 			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) sNS = "cdr";
 			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) sNS = "dgm";
+			else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) sNS = "p";
 			let sName = sNS + ":style";
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributesEnd();
@@ -12129,7 +12217,7 @@
 			writer.WriteXmlAttributesEnd();
 
 			writer.WriteXmlNullable(this.bgPr);
-			writer.WriteXmlNullable(this.bgRef);
+			writer.WriteXmlNullable(this.bgRef, "p:bgRef");
 
 			writer.WriteXmlNodeEnd("p:bg");
 		};
@@ -12210,7 +12298,7 @@
 			writer.WriteXmlNullableAttributeString("name", this.name);
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullable(this.bg);
+			writer.WriteXmlNullable(this.Bg);
 
 			let oSpTree = new CSpTree(null);
 			oSpTree.spTree = this.spTree;
@@ -12223,7 +12311,8 @@
 		function CSpTree(oSlideObject) {
 			CBaseNoIdObject.call(this);
 			this.spTree = [];
-			this.slideObject = oSlideObject;
+
+
 		}
 
 		InitClass(CSpTree, CBaseNoIdObject, 0);
@@ -12325,6 +12414,11 @@
 					this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
 				} else
 					this.nvGrpSpPr.toXmlGrp(writer);
+			}
+			else {
+				if(writer.context.groupIndex === 0) {
+					writer.WriteXmlString("<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\" hidden=\"0\"/><p:cNvGrpSpPr/><p:nvPr isPhoto=\"0\" userDrawn=\"0\"/></p:nvGrpSpPr><p:grpSpPr bwMode=\"auto\"><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>")
+				}
 			}
 
 			if (this.spPr) {
@@ -12464,9 +12558,9 @@
 			writer.WriteXmlNodeStart("p:txStyles");
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullable(this.titleStyle);
-			writer.WriteXmlNullable(this.bodyStyle);
-			writer.WriteXmlNullable(this.otherStyle);
+			writer.WriteXmlNullable(this.titleStyle, "p:titleStyle");
+			writer.WriteXmlNullable(this.bodyStyle, "p:bodyStyle");
+			writer.WriteXmlNullable(this.otherStyle, "p:otherStyle");
 
 			writer.WriteXmlNodeEnd("p:txStyles");
 		};

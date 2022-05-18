@@ -7262,6 +7262,7 @@ CShape.prototype.getColumnNumber = function(){
     else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	name_ = "cdr:sp";
     else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			name_ = "dgm:sp";
     else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		name_ = "dsp:sp";
+    else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX)		name_ = "p:sp";
 
         writer.WriteXmlNodeStart(name_);
 
@@ -7298,14 +7299,6 @@ CShape.prototype.getColumnNumber = function(){
         }
         if (this.style)
         {
-            if		(oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-                oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	this.style.m_namespace = "wps";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			this.style.m_namespace = "xdr";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		this.style.m_namespace = "a";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	this.style.m_namespace = "cdr";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			this.style.m_namespace = "dgm";
-        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		this.style.m_namespace = "dsp";
-
             writer.WriteXmlNullable(this.style);
         }
         if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
@@ -7327,15 +7320,13 @@ CShape.prototype.getColumnNumber = function(){
 
                 if (this.bodyPr)
                 {
-                    this.bodyPr.m_namespace = "wps";
-                    this.bodyPr.toXml(writer);
+                    this.bodyPr.toXml(writer, "wps");
                     bIsWritedBodyPr = true;
                 }
             }
             else if (this.txBody)
             {
-                this.txBody.m_name = "wps:txBody";
-                writer.WriteXmlNullable(this.txBody);
+                writer.WriteXmlNullable(this.txBody, "wps:txBody");
             }
 
             if (!bIsWritedBodyPr)
@@ -7345,11 +7336,9 @@ CShape.prototype.getColumnNumber = function(){
         }
     else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)
         {
-            this.txBody.m_name = "a:txBody";
-
             writer.WriteXmlNodeStart("a:txSp");
             writer.WriteXmlAttributesEnd();
-            writer.WriteXmlNullable(this.txBody);
+            writer.WriteXmlNullable(this.txBody, "a:txBody");
             writer.WriteXmlString("<a:useSpRect/>");
             writer.WriteXmlNodeEnd("a:txSp");
         }
@@ -7357,16 +7346,21 @@ CShape.prototype.getColumnNumber = function(){
         {
             if (this.txBody)
             {
+                let sTxBodyName;
                 if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)
-                    this.txBody.m_name = "xdr:txBody";
+                    sTxBodyName = "xdr:txBody";
             else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)
-                    this.txBody.m_name = "cdr:txBody";
+                    sTxBodyName = "cdr:txBody";
             else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)
-                    this.txBody.m_name = "dgm:txBody";
+                    sTxBodyName = "dgm:txBody";
             else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)
-                    this.txBody.m_name = "dsp:txBody";
+                    sTxBodyName = "dsp:txBody";
+            else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX)
+                    sTxBodyName = "p:txBody";
+
+
+                writer.WriteXmlNullable(this.txBody, sTxBodyName);
             }
-            writer.WriteXmlNullable(this.txBody);
         }
 
         if (this.txXfrm && oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)

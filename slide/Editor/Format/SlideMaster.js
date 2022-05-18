@@ -584,9 +584,7 @@ MasterSlide.prototype.toXml = function(writer) {
     writer.WriteXmlAttributeBool("preserve", this.preserve);
     writer.WriteXmlAttributesEnd();
     this.cSld.toXml(writer);
-    if(this.clrMap) {
-        this.cSld.toXml(writer, "p:clrMap");
-    }
+    writer.WriteXmlNullable(this.clrMap, "p:clrMap");
     writer.WriteXmlNullable(this.transition, "p:transition");
     writer.WriteXmlNullable(this.timing, "p:timing");
     let oContext = writer.context;

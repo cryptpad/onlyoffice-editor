@@ -600,7 +600,7 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
                 break;
             }
             case "preserve": {
-                //TODO:
+                this.preserve = reader.GetValueBool();//TODO: create method
                 break;
             }
             case "showMasterPhAni": {

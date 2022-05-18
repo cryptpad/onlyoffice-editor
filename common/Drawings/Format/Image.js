@@ -907,6 +907,7 @@ CImageShape.prototype.Load_LinkData = function(linkData)
                  oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	namespace_ = "pic";
         else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
         else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
+        else if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX)		namespace_ = "p";
 
         if (oContext.docType !== AscFormat.XMLWRITER_DOC_TYPE_XLSX &&
             oContext.docType !== AscFormat.XMLWRITER_DOC_TYPE_DOCX &&

@@ -580,7 +580,8 @@
 	};
 	AscCommonWord.ParaRun.prototype.toDrawingML = function (writer) {
 		let nStart = -1;
-		for(let nIdx = 0; nIdx < this.Content.length; ++nIdx) {
+		let nIdx = 0;
+		for(; nIdx < this.Content.length; ++nIdx) {
 			let oItem = this.Content[nIdx];
 			if(oItem.Type === para_NewLine) {
 				this.toDrawingMLContent(writer, nStart, nIdx - 1);
@@ -593,9 +594,13 @@
 				}
 			}
 		}
+		this.toDrawingMLContent(writer, nStart, nIdx - 1);
 	};
 	AscCommonWord.ParaRun.prototype.toDrawingMLContent = function (writer, nStart, nEnd) {
-		if(nStart < 0 || nEnd < nStart) {
+		if(nStart < 0 || nEnd < nStart || nStart >= this.Content.length || nEnd < 0) {
+			return;
+		}
+		if(this.Content.length === 0) {
 			return;
 		}
 		writer.WriteXmlNodeStart("a:r");
@@ -867,18 +872,18 @@
 		//writer.Write(uFill);
 		//writer.Write(uFillTx);
 		if(this.RFonts.Ascii) 
-			writeTypeface(writer, "latin", this.RFonts.Ascii.Name);
+			writeTypeface(writer, "a:latin", this.RFonts.Ascii.Name);
 		if(this.RFonts.EastAsia)
-			writeTypeface(writer, "ea", this.RFonts.EastAsia.Name);
+			writeTypeface(writer, "a:ea", this.RFonts.EastAsia.Name);
 		if(this.RFonts.CS) 
-			writeTypeface(writer, "cs", this.RFonts.CS.Name);
+			writeTypeface(writer, "a:cs", this.RFonts.CS.Name);
 		//writer.Write(sym);
 		if(this.hlinkClick) {
-			this.hlinkClick.toXml(writer, "hlinkClick");
+			this.hlinkClick.toXml(writer, "a:hlinkClick");
 		}
 	
 		if(this.hlinkMouseOver) {
-			this.hlinkMouseOver.toXml(writer, "hlinkMouseOver");
+			this.hlinkMouseOver.toXml(writer, "a:hlinkMouseOver");
 		}
 		//writer.Write(rtl);
 
@@ -1092,8 +1097,8 @@
 	};
 	AscCommonWord.CPresentationField.prototype.toDrawingML = function(writer) {
 		writer.WriteXmlNodeStart("a:fld");
-		writer.WriteAttribute("id", this.Guid);
-		writer.WriteAttribute("type", this.FieldType);
+		writer.WriteXmlNullableAttributeString("id", this.Guid);
+		writer.WriteXmlNullableAttributeString("type", this.FieldType);
 		writer.WriteXmlAttributesEnd();
 		if(this.Pr) {
 			this.Pr.toDrawingML(writer, "a:rPr");
@@ -1528,13 +1533,13 @@
 		writer.WriteXmlAttributesEnd();
 		if(oSpacing.valPct !== undefined && oSpacing.valPct !== null) {
 			writer.WriteXmlNodeStart("a:spcPct");
-			writer.WriteXmlAttributeString("val", (oRet.valPct * 100 + 0.5 >> 0) + "");
+			writer.WriteXmlAttributeString("val", (oSpacing.valPct * 100 + 0.5 >> 0) + "");
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlNodeEnd("a:spcPct");
 		}
 		else if(oSpacing.val !== undefined && oSpacing.val !== null) {
 			writer.WriteXmlNodeStart("a:spcPts");
-			writer.WriteXmlAttributeString("val", (oRet.val / SPACING_SCALE + 0.5 >> 0) + "");
+			writer.WriteXmlAttributeString("val", (oSpacing.val / SPACING_SCALE + 0.5 >> 0) + "");
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlNodeEnd("a:spcPts");
 		}
@@ -1573,13 +1578,11 @@
 		}
 	};
 	CParaSpacing.prototype.spcAftToDrawingML = function (writer) {
-		if(this.Line !== undefined && this.Line !== null) {
-			if(this.AfterPct !== null && this.AfterPct !== undefined) {
-				writeSpacing(writer, "a:spcAft", {valPct: this.AfterPct});
-			}
-			else {
-				writeSpacing(writer, "a:spcAft", {val: this.After})
-			}
+		if(this.After !== null && this.After !== undefined) {
+			writeSpacing(writer, "a:spcAft", {val: this.After})
+		}
+		else if(this.AfterPct !== null && this.AfterPct !== undefined) {
+			writeSpacing(writer, "a:spcAft", {valPct: this.AfterPct});
 		}
 	};
 	CParaSpacing.prototype.spcBefFromDrawingML = function (reader) {
@@ -1593,13 +1596,11 @@
 		}
 	};
 	CParaSpacing.prototype.spcBefToDrawingML = function (writer) {
-		if(this.Line !== undefined && this.Line !== null) {
-			if(this.AfterPct !== null && this.AfterPct !== undefined) {
-				writeSpacing(writer, "a:spcBef", {valPct: this.BeforePct});
-			}
-			else {
-				writeSpacing(writer, "a:spcBef", {val: this.Before})
-			}
+		if(this.Before !== null && this.Before !== undefined) {
+			writeSpacing(writer, "a:spcBef", {val: this.Before})
+		}
+		else if(this.BeforePct !== null && this.BeforePct !== undefined) {
+			writeSpacing(writer, "a:spcBef", {valPct: this.BeforePct});
 		}
 	};
 

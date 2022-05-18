@@ -11796,7 +11796,9 @@ CPresentation.prototype.toZip = function(zip, context) {
     memory.context = context;
     context.document = this;
 
-    var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
+    let filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
+
+    let oUriMap = {};
 
     if (this.Core) {
         let corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
@@ -11813,12 +11815,20 @@ CPresentation.prototype.toZip = function(zip, context) {
     let presentationPart = filePart.addPart(AscCommon.openXml.Types.presentation);
 
     this.CalculateComments();
-    let commentAuthorsPart = presentationPart.part.addPart(AscCommon.openXml.Types.commentAuthors);
-    this.writeCommentAuthors(memory);
-    let commentAuthorsData = memory.GetDataUint8();
-    commentAuthorsPart.part.setData(commentAuthorsData);
-    memory.Seek(0);
-
+    let bIsCommentAuthors = false;
+    for(let sKey in this.CommentAuthors) {
+        if(this.CommentAuthors.hasOwnProperty(sKey)) {
+            bIsCommentAuthors = true;
+            break;
+        }
+    }
+    if(bIsCommentAuthors) {
+        let commentAuthorsPart = presentationPart.part.addPart(AscCommon.openXml.Types.commentAuthors);
+        this.writeCommentAuthors(memory);
+        let commentAuthorsData = memory.GetDataUint8();
+        commentAuthorsPart.part.setData(commentAuthorsData);
+        memory.Seek(0);
+    }
 
     let presentationPrPart = presentationPart.part.addPart(AscCommon.openXml.Types.presentationProperties);
     let oPresPr = new AscFormat.CPresentationProperties(this);
@@ -11832,24 +11842,99 @@ CPresentation.prototype.toZip = function(zip, context) {
     viewPrPart.part.setData(viewPrData);
     memory.Seek(0);
 
+    //collect slide masters, themes, notesMasters, notes which are used in this presentation
+    let aSlideMasters = [];
+    let aThemes = [];
+    let aNotesMasters = [];
+    let aNotes = [];
+
+    let oAddedMap = {};
     for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
-        let slidePart = presentationPart.part.addPart(AscCommon.openXml.Types.slide);
-        slidePart.part.setDataXml(this.Slides[nSlide], memory);
-        memory.context.addSlideRel(slidePart.rId)
+        let oSlide = this.Slides[nSlide];
+        let oSlideMaster = oSlide.Layout.Master;
+        let oSlideMasterTheme = oSlideMaster.Theme;
+        let oNotes = oSlide.notes;
+        let oNotesMaster = null;
+        if(oNotes) {
+            oNotesMaster = oNotes.Master;
+        }
+        if(oSlideMaster && !oAddedMap[oSlideMaster.Id]) {
+            aSlideMasters.push(oSlideMaster);
+            oAddedMap[oSlideMaster.Id] = true;
+        }
+        if(oSlideMasterTheme && !oAddedMap[oSlideMasterTheme.Id]) {
+            aThemes.push(oSlideMasterTheme);
+            oAddedMap[oSlideMasterTheme.Id] = true;
+        }
+        if(oNotes && oNotesMaster && !oAddedMap[oNotesMaster.Id]) {
+            aNotes.push(oNotes);
+            aNotesMasters.push(oNotesMaster);
+            oAddedMap[oNotesMaster.Id] = true;
+            let oNotesTheme = oNotesMaster.Theme;
+            if(oNotesTheme && !oAddedMap[oNotesTheme.Id]) {
+                aThemes.push(oNotesTheme);
+                oAddedMap[oNotesTheme.Id] = true;
+            }
+        }
+    }
+
+    for(let nTheme = 0; nTheme < aThemes.length; ++nTheme) {
+        let oTheme = aThemes[nTheme];
+        let oThemePart = presentationPart.part.addPartWithoutRels(AscCommon.openXml.Types.theme);
+        oUriMap[oTheme.Id] = oThemePart.uri;
+        oThemePart.setDataXml(oTheme, memory);
         memory.Seek(0);
     }
-    let aSlideMasters = context.sldMasters;
     for(let nSlideMaster = 0; nSlideMaster < aSlideMasters.length; ++nSlideMaster) {
         let oSlideMaster = aSlideMasters[nSlideMaster];
         let masterSlidePart = presentationPart.part.addPart(AscCommon.openXml.Types.slideMaster);
+        oUriMap[oSlideMaster.Id] = masterSlidePart.part.uri;
         let aSlideLayouts = oSlideMaster.sldLayoutLst;
         for(let nSlideLayout = 0; nSlideLayout < aSlideLayouts.length; ++nSlideLayout) {
-            let slideLayoutPart = presentationPart.part.addPartWithoutRels(AscCommon.openXml.Types.slideLayout);
+            let oSlideLayout = aSlideLayouts[nSlideLayout];
+            let oSlideLayoutPart = presentationPart.part.addPartWithoutRels(AscCommon.openXml.Types.slideLayout);
+            oUriMap[oSlideLayout.Id] = oSlideLayoutPart.uri;
+            oSlideLayoutPart.setDataXml(oSlideLayout, memory);
+            memory.Seek(0);
+            let sSlideLayoutRel = masterSlidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, oSlideLayoutPart.uri);
+            context.addSlideLayoutRel(sSlideLayoutRel);
         }
+        masterSlidePart.part.setDataXml(oSlideMaster, memory);
+        memory.Seek(0);
+        context.clearSlideLayoutRels();
+        masterSlidePart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[oSlideMaster.Theme.Id]);
+        memory.context.addSlideMasterRel(masterSlidePart.rId);
+    }
+    for(let nNotesMaster = 0; nNotesMaster < aNotesMasters.length; ++nNotesMaster) {
+        let oNotesMaster = aNotesMasters[nNotesMaster];
+        let oNotesMasterPart = presentationPart.part.addPart(AscCommon.openXml.Types.notesMaster);
+        oNotesMasterPart.part.setDataXml(oNotesMaster, memory);
+        memory.Seek(0);
+        oUriMap[oNotesMaster.Id] = oNotesMasterPart.part.uri;
+        oNotesMasterPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[oNotesMaster.Theme.Id]);
+    }
 
+    for(let nNotes = 0; nNotes < aNotes.length; ++nNotes) {
+        let oNotes = aNotes[nNotes];
+        let oNotesPart = presentationPart.part.addPart(AscCommon.openXml.Types.notesSlide);
+        oNotesPart.part.setDataXml(oNotes, memory);
+        memory.Seek(0);
+        oUriMap[oNotes.Id] = oNotesPart.part.uri;
+        oNotesPart.part.addRelationship(AscCommon.openXml.Types.notesMaster.relationType, oUriMap[oNotes.Master.Id]);
+    }
+
+
+    for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
+        let oSlide = this.Slides[nSlide];
+        let slidePart = presentationPart.part.addPart(AscCommon.openXml.Types.slide);
+        slidePart.part.setDataXml(oSlide, memory);
+        memory.Seek(0);
+        memory.context.addSlideRel(slidePart.rId);
+        slidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, oUriMap[oSlide.Layout.Id]);
     }
 
     presentationPart.part.setDataXml(this, memory);
+    presentationPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[aThemes[0].Id]);
     memory.Seek(0);
 
 };
@@ -11865,13 +11950,11 @@ CPresentation.prototype.toXml = function (writer) {
     writer.WriteXmlNullableAttributeBool("autoCompressPictures", oAttributes.attrAutoCompressPictures);
     writer.WriteXmlNullableAttributeInt("bookmarkIdSeed", oAttributes.attrBookmarkIdSeed);
     writer.WriteXmlNullableAttributeBool("compatMode", oAttributes.attrCompatMode);
-    if(oAttributes.attrConformance !== null) {
-        if(oAttributes.attrConformance === CONFORMANCE_STRICT) {
-            writer.WriteXmlNullableAttributeString("conformance", "strict");
-        }
-        else if(oAttributes.attrConformance === CONFORMANCE_TRANSITIONAL) {
-            writer.WriteXmlNullableAttributeString("conformance", "transitional");
-        }
+    if(oAttributes.attrConformance === CONFORMANCE_STRICT) {
+        writer.WriteXmlNullableAttributeString("conformance", "strict");
+    }
+    else if(oAttributes.attrConformance === CONFORMANCE_TRANSITIONAL) {
+        writer.WriteXmlNullableAttributeString("conformance", "transitional");
     }
     writer.WriteXmlNullableAttributeBool("embedTrueTypeFonts", oAttributes.attrEmbedTrueTypeFonts);
     writer.WriteXmlNullableAttributeInt("firstSlideNum", oAttributes.attrFirstSlideNum);
@@ -12013,16 +12096,34 @@ IdList.prototype.toXml = function(writer) {
     }
     writer.WriteXmlNodeEnd(this.name);
 };
+let MIN_SLD_MASTER_ID = 2147483648;
+let MIN_SLD_ID = 256;
+let MIN_SLD_LAYOUT_ID = 2147483648;
 IdList.prototype.fillFromRIdList = function(aRId, sEntryName) {
+    let nCounter = null;
+    if(sEntryName === "p:sldMasterId") {
+        nCounter = MIN_SLD_MASTER_ID;
+    }
+    else if(sEntryName === "p:sldId") {
+        nCounter = MIN_SLD_ID;
+    }
+    else if(sEntryName === "p:sldLayoutId") {
+        nCounter = MIN_SLD_LAYOUT_ID;
+    }
     for(let nItem = 0; nItem < aRId.length; ++nItem) {
         let oItem = new IdEntry(sEntryName);
         oItem.rId = aRId[nItem];
+        if(nCounter !== null) {
+            oItem.id = nCounter++;
+        }
         this.list.push(oItem);
     }
 };
 IdList.prototype.writeRIdList = function(writer, aRId, sEntryName) {
-    this.fillFromRIdList(aRId, sEntryName);
-    this.toXml(writer);
+    if(aRId.length > 0) {
+        this.fillFromRIdList(aRId, sEntryName);
+        this.toXml(writer);
+    }
 };
 
 

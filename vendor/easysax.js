@@ -1710,6 +1710,12 @@ XmlWriterContext.prototype.addSlideRel = function(sRel) {
 XmlWriterContext.prototype.addSlideLayoutRel = function(sRel) {
     this.sldLayoutIdLst.push(sRel);
 };
+XmlWriterContext.prototype.addSlideMasterRel = function(sRel) {
+    this.sldMasterIdLst.push(sRel);
+};
+XmlWriterContext.prototype.clearSlideLayoutRels = function() {
+    this.sldLayoutIdLst.length = 0;
+};
 function CT_XmlNode(opt_elemReader) {
     this.attributes = {};
     this.attributes = {};

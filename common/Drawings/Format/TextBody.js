@@ -598,14 +598,13 @@
         }
     };
     CTextBody.prototype.toXml = function (writer, sName) {
-        let sName_ = this.m_name || sName || "txBody";
+        let sName_ = sName || "a:txBody";
         writer.WriteXmlNodeStart(sName_);
         writer.WriteXmlAttributesEnd();
 
         if (this.bodyPr)
         {
-            this.bodyPr.m_namespace = "a";
-            this.bodyPr.toXml(writer);
+            this.bodyPr.toXml(writer, "a");
         }
         // if (sp3d)
         // {
