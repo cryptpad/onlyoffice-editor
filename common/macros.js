@@ -101,7 +101,7 @@ function (window, undefined)
 				if (true !== obj["macrosArray"][i]["autostart"])
 					continue;
 
-                var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"].replace(/\\/g, "\\\\") + "\n})();";
+                var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"] + "\n})();";
                 eval(script);
 			}
 		}
@@ -120,7 +120,7 @@ function (window, undefined)
 			{
 				if (sGuid === obj["macrosArray"][i]["guid"])
 				{
-					var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"].replace(/\\/g, "\\\\") + "\n})();";
+					var script = "(function(){ var Api = window.g_asc_plugins.api;\n" + obj["macrosArray"][i]["value"] + "\n})();";
 					eval(script);
 					break;
 				}
