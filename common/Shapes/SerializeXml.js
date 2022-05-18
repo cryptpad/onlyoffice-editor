@@ -579,6 +579,9 @@
 		}
 	};
 	AscCommonWord.ParaRun.prototype.toDrawingML = function (writer) {
+		if(this.IsParaEndRun()) {
+			return;
+		}
 		let nStart = -1;
 		let nIdx = 0;
 		for(; nIdx < this.Content.length; ++nIdx) {
@@ -597,7 +600,7 @@
 		this.toDrawingMLContent(writer, nStart, nIdx - 1);
 	};
 	AscCommonWord.ParaRun.prototype.toDrawingMLContent = function (writer, nStart, nEnd) {
-		if(nStart < 0 || nEnd < nStart || nStart >= this.Content.length || nEnd < 0) {
+		if(nStart < 0 || nEnd < nStart || nEnd >= this.Content.length || nStart < 0) {
 			return;
 		}
 		if(this.Content.length === 0) {
@@ -801,8 +804,7 @@
 		}
 		writer.WriteXmlNullableAttributeBool("b", this.Bold);
 		writer.WriteXmlNullableAttributeBool("i", this.Italic);
-		if(!this.Underline !== undefined && this.Underline !== null) {
-
+		if(this.Underline !== undefined && this.Underline !== null) {
 			if(!this.Underline) {
 				writer.WriteXmlAttributeString("u", "none");
 			}
@@ -1059,6 +1061,9 @@
 		}
 		if(this.DefaultRunPr) {
 			this.DefaultRunPr.toDrawingML(writer, "a:defRPr");
+		}
+		else {
+			writer.WriteXmlString("<a:defRPr/>");
 		}
 		writer.WriteXmlNodeEnd(sName);
 	};
@@ -1533,7 +1538,7 @@
 		writer.WriteXmlAttributesEnd();
 		if(oSpacing.valPct !== undefined && oSpacing.valPct !== null) {
 			writer.WriteXmlNodeStart("a:spcPct");
-			writer.WriteXmlAttributeString("val", (oSpacing.valPct * 100 + 0.5 >> 0) + "");
+			writer.WriteXmlAttributeString("val", (oSpacing.valPct * 100000 + 0.5 >> 0) + "");
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlNodeEnd("a:spcPct");
 		}

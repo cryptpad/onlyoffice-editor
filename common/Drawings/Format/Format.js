@@ -11039,10 +11039,10 @@
 		};
 		ClrMap.prototype.toXml = function (writer, sName) {
 			writer.WriteXmlNodeStart(sName);
-
-			for (let i = 0; i < this.color_map.length; ++i) {
-				if (AscFormat.isRealNumber(this.color_map[i])) {
-					writer.WriteXmlNullableAttributeString(this.SchemeClr_GetStringCode(i), this.getColorName(this.color_map[i]));
+			let aIdx = [6, 15, 7, 16, 0, 1, 2, 3, 4, 5, 11, 10];
+			for (let i = 0; i < aIdx.length; ++i) {
+				if (AscFormat.isRealNumber(this.color_map[aIdx[i]])) {
+					writer.WriteXmlNullableAttributeString(this.SchemeClr_GetStringCode(aIdx[i]), this.getColorName(this.color_map[aIdx[i]]));
 				}
 			}
 			writer.WriteXmlAttributesEnd(true);

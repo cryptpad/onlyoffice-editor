@@ -11901,6 +11901,7 @@ CPresentation.prototype.toZip = function(zip, context) {
             oSlideLayoutPart.setDataXml(oSlideLayout, memory);
             memory.Seek(0);
             let sSlideLayoutRel = masterSlidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, fGetRelPath(oSlideLayoutPart.uri));
+            oSlideLayoutPart.addRelationship(AscCommon.openXml.Types.slideMaster.relationType, fGetRelPath(oUriMap[oSlideMaster.Id]));
             context.addSlideLayoutRel(sSlideLayoutRel);
         }
         masterSlidePart.part.setDataXml(oSlideMaster, memory);
@@ -11938,7 +11939,7 @@ CPresentation.prototype.toZip = function(zip, context) {
     }
 
     presentationPart.part.setDataXml(this, memory);
-    presentationPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[aThemes[0].Id].replace("/ppt", ""));
+    presentationPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[aThemes[0].Id].replace("/ppt/", ""));
     memory.Seek(0);
 
 };
@@ -12100,9 +12101,9 @@ IdList.prototype.toXml = function(writer) {
     }
     writer.WriteXmlNodeEnd(this.name);
 };
-let MIN_SLD_MASTER_ID = 2147483648;
+let MIN_SLD_MASTER_ID = 2147483649;
 let MIN_SLD_ID = 256;
-let MIN_SLD_LAYOUT_ID = 2147483648;
+let MIN_SLD_LAYOUT_ID = 2147483649;
 IdList.prototype.fillFromRIdList = function(aRId, sEntryName) {
     let nCounter = null;
     if(sEntryName === "p:sldMasterId") {

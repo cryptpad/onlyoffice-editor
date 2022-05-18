@@ -1929,8 +1929,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         this.cSld.toXml(writer);
 
         AscFormat.CClrMapOvr.prototype.static_WriteCrlMapAsOvr(writer, this.clrMap);
-        writer.WriteXmlNullable(this.transition, "p:transition");
-        writer.WriteXmlNullable(this.timing, "p:timing");
+        writer.WriteXmlString("<mc:AlternateContent xmlns:mc=\"http://schemas.openxmlformats.org/markup-compatibility/2006\"><mc:Choice xmlns:p14=\"http://schemas.microsoft.com/office/powerpoint/2010/main\" Requires=\"p14\"><p:transition p14:dur=\"2000\" advClick=\"1\"/></mc:Choice><mc:Fallback><p:transition advClick=\"1\"/></mc:Fallback></mc:AlternateContent>");
+        //writer.WriteXmlNullable(this.transition, "p:transition");
+        //writer.WriteXmlNullable(this.timing, "p:timing");
         writer.WriteXmlNodeEnd("p:sld");
 
         let oContext = writer.context;
