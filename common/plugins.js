@@ -592,13 +592,11 @@
 							data:     "",
 							pushData: function (format, value)
 									  {
-										  this.data = value;
+										  this.data = value ? value.replace(/class="[a-zA-Z0-9-:;+"\/=]*/g,"") : "";
 									  }
 						};
 
 						this.api.asc_CheckCopy(text_data, 2);
-						if (text_data.data == null)
-							text_data.data = "";
 						runObject.startData.setAttribute("data", text_data.data);
 						break;
 					}
