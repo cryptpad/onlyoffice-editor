@@ -43,12 +43,13 @@
 	 */
 	function CTextShaper()
 	{
-		this.Parent   = null;
-		this.Items    = [];
-		this.TextPr   = null;
-		this.Script   = -1;
-		this.FontId   = -1;
-		this.FontSlot = fontslot_None;
+		this.Parent    = null;
+		this.Items     = [];
+		this.TextPr    = null;
+		this.Script    = -1;
+		this.FontId    = -1;
+		this.FontSubst = false;
+		this.FontSlot  = fontslot_None;
 	}
 	CTextShaper.prototype.Init = function()
 	{
@@ -169,16 +170,25 @@
 		this.private_CheckFont(nFontSlot);
 
 		let nFontId = this.FontId;
+		let isSubst = !MEASURER.CheckUnicodeInCurrentFont(nUnicode);
 
 		if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.FontId)
-			nFontId = MEASURER.GetFileFontId(nUnicode, -1 !== this.FontId ? this.FontId : null);
+			nFontId = MEASURER.GetFontBySymbol(nUnicode, -1 !== this.FontId ? this.FontId : null);
+
+		if (this.FontId !== nFontId
+			&& -1 !== this.FontId
+			&& this.FontSubst
+			&& isSubst
+			&& this.private_CheckBufferInFont(nFontId))
+			this.FontId = nFontId;
 
 		if (this.FontId !== nFontId && -1 !== this.FontId)
 			this.FlushWord();
 
-		this.Script   = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.Script ? nScript : this.Script;
-		this.FontSlot = fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
-		this.FontId   = nFontId;
+		this.Script    = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.Script ? nScript : this.Script;
+		this.FontSlot  = fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
+		this.FontId    = nFontId;
+		this.FontSubst = isSubst;
 	};
 	CTextShaper.prototype.private_CheckFont = function(nFontSlot)
 	{
@@ -187,6 +197,16 @@
 			let oFontInfo = this.TextPr.GetFontInfo(nFontSlot);
 			MEASURER.SetFontInternal(oFontInfo.Name, 72, oFontInfo.Style);
 		}
+	};
+	CTextShaper.prototype.private_CheckBufferInFont = function(nFontId)
+	{
+		for (let nPos = 0, nCount = this.Items.length; nPos < nCount; ++nPos)
+		{
+			if (!nFontId.GetGIDByUnicode(this.Items[nPos].GetCodePoint()))
+				return false;
+		}
+
+		return true;
 	};
 	CTextShaper.prototype.private_CheckRun = function(oRun)
 	{

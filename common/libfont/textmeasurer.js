@@ -101,16 +101,25 @@
             }
         },
 
-		GetFileFontId : function(codePoint, pPrefferedFont)
+		CheckUnicodeInCurrentFont : function(codePoint)
 		{
 			let pFont = this.m_oManager.m_pFont;
 			if (!pFont)
-				return -1;
+				return true;
+
+			return (!!pFont.GetGIDByUnicode(codePoint))
+		},
+
+		GetFontBySymbol : function(codePoint, oPreferredFont)
+		{
+			let pFont = this.m_oManager.m_pFont;
+			if (!pFont)
+				return null;
 
 			if (!pFont.GetGIDByUnicode(codePoint))
 			{
-				if (pPrefferedFont && pPrefferedFont.GetGIDByUnicode(codePoint))
-					return pPrefferedFont
+				if (oPreferredFont && oPreferredFont.GetGIDByUnicode(codePoint))
+					return oPreferredFont;
 
 				let _pFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
 				if (_pFont)
