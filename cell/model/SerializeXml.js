@@ -1724,6 +1724,7 @@
 		return res;
 	}
 
+	//additional functions
 	function prepareCommentsToWrite(m_mapComments, personList) {
 		var mapByAuthors = [];
 		var pComments = null;
@@ -1908,7 +1909,6 @@
 		return res;
 	}
 
-	//additional functions
 	//возможно стоит перенести в writer, пока не расширяю интерфейс
 	function toXML2(writer, sName, m_sText) {
 		if (m_sText) {
@@ -1997,23 +1997,27 @@
 		memory.context = context;
 		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
 
+		//core
 		if (this.Core) {
 			var corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
 			corePart.part.setDataXml(this.Core, memory);
 			memory.Seek(0);
 		}
 
+		//app
 		if (this.App) {
 			var appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
 			appPart.part.setDataXml(this.App, memory);
 			memory.Seek(0);
 		}
 
+		//wb
 		var wbXml = new CT_Workbook(this);
 		var wbPart = filePart.addPart(AscCommon.openXml.Types.workbook);
 		wbPart.part.setDataXml(wbXml, memory);
 		memory.Seek(0);
 
+		//SharedStrings
 		if (context.oSharedStrings.index > 0) {
 			var sharedString = new CT_SharedStrings();
 			sharedString.initFromMap(this, context.oSharedStrings);
@@ -2022,15 +2026,18 @@
 			memory.Seek(0);
 		}
 
+		//styles
 		//на чтение используется CT_Stylesheet, на запись StylesForWrite
 		var stylesheetPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookStyles);
 		stylesheetPart.part.setDataXml(context.stylesForWrite, memory);
 		memory.Seek(0);
 
+		//theme
 		var themePart = wbPart.part.addPart(AscCommon.openXml.Types.theme);
 		themePart.part.setDataXml(this.theme, memory);
 		memory.Seek(0);
 
+		//jsaMacros
 		var jsaMacros = this.oApi.macros.GetData();
 		if (jsaMacros) {
 			memory.WriteXmlString(jsaMacros);
@@ -2039,6 +2046,8 @@
 			jsaPart.part.setData(jsaData);
 			memory.Seek(0);
 		}
+
+		//vbaMacros
 		var vbaMacros = this.oApi.vbaMacros;
 		if (vbaMacros) {
 			var vbaPart = wbPart.part.addPart(AscCommon.openXml.Types.vbaProject);
@@ -2055,6 +2064,7 @@
 			memory.Seek(0);
 		}
 
+		//connections
 		if (this.connections) {
 			memory.WriteXmlString(this.connections);
 			var connectionsData = memory.GetDataUint8();
@@ -2063,6 +2073,7 @@
 			memory.Seek(0);
 		}
 
+		//customXmls
 		if (this.customXmls) {
 			for (var i = 0; i < this.customXmls.length; i++) {
 				if (this.customXmls[i].item) {
@@ -2077,6 +2088,7 @@
 			}
 		}
 
+		//comments wb
 		if (this.aComments) {
 			var binaryComments = AscCommonExcel.WriteWbComments(this);
 			if (binaryComments) {
