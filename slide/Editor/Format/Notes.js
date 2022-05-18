@@ -363,6 +363,7 @@
         }
     };
     CNotes.prototype.toXml = function(writer) {
+        writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
         writer.WriteXmlNodeStart("p:notes");
         writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
         writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");

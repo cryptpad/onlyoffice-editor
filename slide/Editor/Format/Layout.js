@@ -664,6 +664,7 @@ AscFormat.InitClass(SlideLayout, AscFormat.CBaseFormatObject, AscDFH.historyitem
     };
     SlideLayout.prototype.toXml = function(writer) {
 
+        writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
         writer.WriteXmlNodeStart("p:sldLayout");
 
         writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");

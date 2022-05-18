@@ -342,7 +342,7 @@
 	};
 
 	openXml.OpenXmlPackage.prototype.getRelationshipById = function(rId) {
-		return this.getRootPart().getRelationshipById(contentType);
+		return this.getRootPart().getRelationshipById(rId);
 	};
 
 	openXml.OpenXmlPackage.prototype.getPartById = function(rId) {

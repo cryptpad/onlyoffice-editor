@@ -11878,6 +11878,10 @@ CPresentation.prototype.toZip = function(zip, context) {
         }
     }
 
+    let fGetRelPath = function (sAbsPath) {
+        return sAbsPath.replace("/ppt", "..");
+    };
+
     for(let nTheme = 0; nTheme < aThemes.length; ++nTheme) {
         let oTheme = aThemes[nTheme];
         let oThemePart = presentationPart.part.addPartWithoutRels(AscCommon.openXml.Types.theme);
@@ -11896,13 +11900,13 @@ CPresentation.prototype.toZip = function(zip, context) {
             oUriMap[oSlideLayout.Id] = oSlideLayoutPart.uri;
             oSlideLayoutPart.setDataXml(oSlideLayout, memory);
             memory.Seek(0);
-            let sSlideLayoutRel = masterSlidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, oSlideLayoutPart.uri);
+            let sSlideLayoutRel = masterSlidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, fGetRelPath(oSlideLayoutPart.uri));
             context.addSlideLayoutRel(sSlideLayoutRel);
         }
         masterSlidePart.part.setDataXml(oSlideMaster, memory);
         memory.Seek(0);
         context.clearSlideLayoutRels();
-        masterSlidePart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[oSlideMaster.Theme.Id]);
+        masterSlidePart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, fGetRelPath(oUriMap[oSlideMaster.Theme.Id]));
         memory.context.addSlideMasterRel(masterSlidePart.rId);
     }
     for(let nNotesMaster = 0; nNotesMaster < aNotesMasters.length; ++nNotesMaster) {
@@ -11911,7 +11915,7 @@ CPresentation.prototype.toZip = function(zip, context) {
         oNotesMasterPart.part.setDataXml(oNotesMaster, memory);
         memory.Seek(0);
         oUriMap[oNotesMaster.Id] = oNotesMasterPart.part.uri;
-        oNotesMasterPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[oNotesMaster.Theme.Id]);
+        oNotesMasterPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, fGetRelPath(oUriMap[oNotesMaster.Theme.Id]));
     }
 
     for(let nNotes = 0; nNotes < aNotes.length; ++nNotes) {
@@ -11920,7 +11924,7 @@ CPresentation.prototype.toZip = function(zip, context) {
         oNotesPart.part.setDataXml(oNotes, memory);
         memory.Seek(0);
         oUriMap[oNotes.Id] = oNotesPart.part.uri;
-        oNotesPart.part.addRelationship(AscCommon.openXml.Types.notesMaster.relationType, oUriMap[oNotes.Master.Id]);
+        oNotesPart.part.addRelationship(AscCommon.openXml.Types.notesMaster.relationType, fGetRelPath(oUriMap[oNotes.Master.Id]));
     }
 
 
@@ -11930,11 +11934,11 @@ CPresentation.prototype.toZip = function(zip, context) {
         slidePart.part.setDataXml(oSlide, memory);
         memory.Seek(0);
         memory.context.addSlideRel(slidePart.rId);
-        slidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, oUriMap[oSlide.Layout.Id]);
+        slidePart.part.addRelationship(AscCommon.openXml.Types.slideLayout.relationType, fGetRelPath(oUriMap[oSlide.Layout.Id]));
     }
 
     presentationPart.part.setDataXml(this, memory);
-    presentationPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[aThemes[0].Id]);
+    presentationPart.part.addRelationship(AscCommon.openXml.Types.theme.relationType, oUriMap[aThemes[0].Id].replace("/ppt", ""));
     memory.Seek(0);
 
 };
