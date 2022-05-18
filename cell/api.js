@@ -4524,7 +4524,7 @@ var editor;
 
   // Cell interface
   spreadsheet_api.prototype.asc_getCellInfo = function() {
-    return this.wb.getSelectionInfo();
+    return this.wb && this.wb.getSelectionInfo();
   };
 
   // Получить координаты активной ячейки
