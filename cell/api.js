@@ -1476,6 +1476,7 @@ var editor;
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
 
+		//core
 		var coreXmlPart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
 		if (coreXmlPart) {
 			var contentCore = coreXmlPart.getDocumentContent();
@@ -1486,6 +1487,7 @@ var editor;
 			}
 		}
 
+		//app
 		var appXmlPart = doc.getPartByRelationshipType(openXml.Types.extendedFileProperties.relationType);
 		if (appXmlPart) {
 			var contentApp = appXmlPart.getDocumentContent();
@@ -1496,7 +1498,7 @@ var editor;
 			}
 		}
 
-
+		//workbook
 		wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 		var contentWorkbook = wbPart.getDocumentContent();
 		AscCommonExcel.executeInR1C1Mode(false, function () {
@@ -1561,11 +1563,6 @@ var editor;
 										oSlicerCacheDefinition.fromXml(reader);
 
 										xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
-
-										//TODO add / flag fromStream
-										/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
-										this.stream.FromFileStream(fileStream);
-										this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
 									}
 								}
 							}
@@ -1587,11 +1584,6 @@ var editor;
 								oSlicerCacheDefinition.fromXml(reader);
 
 								xmlParserContext.InitOpenManager.oReadResult.slicerCaches[oSlicerCacheDefinition.name] = oSlicerCacheDefinition;
-
-								//TODO add / flag fromStream
-								/*slicerCacheDefinition.fromStream(fileStream, oThis.bwtr.InitOpenManager.copyPasteObj && oThis.bwtr.InitOpenManager.copyPasteObj.isCopyPaste);
-								this.stream.FromFileStream(fileStream);
-								this.InitOpenManager.oReadResult.slicerCaches[slicerCacheDefinition.name] = slicerCacheDefinition;*/
 							}
 						}
 					}
@@ -1648,6 +1640,7 @@ var editor;
 				}
 			}
 
+			//vbaProject
 			var vbaProjectPart = wbPart.getPartByRelationshipType(openXml.Types.vbaProject.relationType);
 			if (vbaProjectPart) {
 				var contentVbaProject = vbaProjectPart.getDocumentContent(true);
@@ -1657,7 +1650,6 @@ var editor;
 			}
 
 			//person list
-			//TODO ReadThreadedComment
 			var personListPart = wbPart.getPartByRelationshipType(openXml.Types.person.relationType);
 			if (personListPart) {
 				var contentPersonList = personListPart.getDocumentContent();
@@ -1679,6 +1671,7 @@ var editor;
 			}
 		}
 
+		//pivotCaches
 		if (wbXml.pivotCaches) {
 			wbXml.pivotCaches.forEach(function (wbPivotCacheXml) {
 				var pivotTableCacheDefinitionPart;
@@ -1708,6 +1701,8 @@ var editor;
 				}
 			});
 		}
+
+		//sharedString
 		if (window['OPEN_IN_BROWSER']) {
 			var sharedStringPart = wbPart.getPartByRelationshipType(openXml.Types.sharedStringTable.relationType);
 			if (sharedStringPart) {
@@ -1721,7 +1716,6 @@ var editor;
 		}
 
 		//TODO CalcChain - из бинарника не читается, и не пишется в бинарник. реализовать позже
-
 
 		//Custom xml
 		if (window['OPEN_IN_BROWSER']) {
@@ -1750,6 +1744,7 @@ var editor;
 			}
 		}
 
+		//sheets
 		if (window['OPEN_IN_BROWSER'] && wbXml.sheets) {
 			var wsParts = [];
 
@@ -1792,6 +1787,7 @@ var editor;
 							drawingWS.fromXml(reader);
 						}
 						if (wsPart) {
+							//pivot
 							var pivotParts = wsPart.getPartsByRelationshipType(openXml.Types.pivotTable.relationType);
 							for (i = 0; i < pivotParts.length; ++i) {
 								var contentPivotTable = pivotParts[i].getDocumentContent();
@@ -1804,6 +1800,7 @@ var editor;
 								}
 							}
 
+							//tables
 							var tableParts = wsPart.getPartsByRelationshipType(openXml.Types.tableDefinition.relationType);
 							for (i = 0; i < tableParts.length; ++i) {
 								var contentTable = tableParts[i].getDocumentContent();
@@ -1826,6 +1823,7 @@ var editor;
 								ws.TableParts.push(oNewTable);
 							}
 
+							//namedSheetViews
 							var namedSheetViews = wsPart.getPartsByRelationshipType(openXml.Types.namedSheetViews.relationType);
 							for (i = 0; i < namedSheetViews.length; ++i) {
 								var contentSheetView = namedSheetViews[i].getDocumentContent();
@@ -1846,6 +1844,7 @@ var editor;
 								oSlicers.fromXml(reader);
 							}
 
+							//COMMENTS
 							var m_mapComments = {};
 							var PrepareComments = function () {
 								var pVmlDrawing = xmlParserContext.InitOpenManager.legacyDrawing;
@@ -2106,7 +2105,7 @@ var editor;
 									}
 								};
 
-								for (var i in m_mapComments) {
+								for (i in m_mapComments) {
 
 									if (m_mapComments[i].asc_getDocumentFlag()) {
 										m_mapComments[i].nId = "doc_" + (wb.aComments.length + 1);
@@ -2124,8 +2123,6 @@ var editor;
 								}
 							};
 
-
-							//COMMENTS
 							//буду читать по формату, далее преобразовывать
 							var comments, pThreadedComments;
 							var commentsFile = wsPart.getPartsByRelationshipType(openXml.Types.worksheetComments.relationType);
@@ -2145,7 +2142,6 @@ var editor;
 							}
 
 							PrepareComments();
-
 						}
 					}
 				}
@@ -2241,7 +2237,6 @@ var editor;
 		}
 
 		initOpenManager.readDefStyles(wb, wb.CellStyles.DefaultStyles);
-
 
 		wb.initPostOpenZip(pivotCaches, xmlParserContext);
 		jsZipWrapper.close();

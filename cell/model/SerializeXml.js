@@ -39,307 +39,7 @@
 (function (window, undefined) {
 	var CellValueType = AscCommon.CellValueType;
 
-	AscCommonExcel.Workbook.prototype.toZip = function (zip, context) {
-		context.wb = this;
-		context.InitSaveManager = new AscCommonExcel.InitSaveManager(this);
-
-		//функция дёргается в serialize перед записью ws
-		context.InitSaveManager._prepeareStyles(context.stylesForWrite);
-
-		var memory = new AscCommon.CMemory();
-		memory.context = context;
-		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
-
-		if (this.Core) {
-			var corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
-			corePart.part.setDataXml(this.Core, memory);
-			memory.Seek(0);
-		}
-
-		if (this.App) {
-			var appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
-			appPart.part.setDataXml(this.App, memory);
-			memory.Seek(0);
-		}
-
-		var wbXml = new CT_Workbook(this);
-		var wbPart = filePart.addPart(AscCommon.openXml.Types.workbook);
-		wbPart.part.setDataXml(wbXml, memory);
-		memory.Seek(0);
-
-		if (context.oSharedStrings.index > 0) {
-			var sharedString = new CT_SharedStrings();
-			sharedString.initFromMap(this, context.oSharedStrings);
-			var sharedStringPart = wbPart.part.addPart(AscCommon.openXml.Types.sharedStringTable);
-			sharedStringPart.part.setDataXml(sharedString, memory);
-			memory.Seek(0);
-		}
-
-		//на чтение используется CT_Stylesheet, на запись StylesForWrite
-		var stylesheetPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookStyles);
-		stylesheetPart.part.setDataXml(context.stylesForWrite, memory);
-		memory.Seek(0);
-
-		var themePart = wbPart.part.addPart(AscCommon.openXml.Types.theme);
-		themePart.part.setDataXml(this.theme, memory);
-		memory.Seek(0);
-
-		var jsaMacros = this.oApi.macros.GetData();
-		if (jsaMacros) {
-			memory.WriteXmlString(jsaMacros);
-			var jsaData = memory.GetDataUint8();
-			var jsaPart = wbPart.part.addPart(AscCommon.openXml.Types.jsaProject);
-			jsaPart.part.setData(jsaData);
-			memory.Seek(0);
-		}
-		var vbaMacros = this.oApi.vbaMacros;
-		if (vbaMacros) {
-			var vbaPart = wbPart.part.addPart(AscCommon.openXml.Types.vbaProject);
-			vbaPart.part.setData(vbaMacros);
-			memory.Seek(0);
-		}
-
-		//person list
-		if (context.InitSaveManager.personList && context.InitSaveManager.personList.length) {
-			var oPerson = new CT_PersonList();
-			var personPart = wbPart.part.addPart(AscCommon.openXml.Types.person);
-			oPerson.personList = context.InitSaveManager.personList;
-			personPart.part.setDataXml(oPerson, memory);
-			memory.Seek(0);
-		}
-
-		if (this.connections) {
-			memory.WriteXmlString(this.connections);
-			var connectionsData = memory.GetDataUint8();
-			var connectionsPart = wbPart.part.addPart(AscCommon.openXml.Types.connections);
-			connectionsPart.part.setData(connectionsData);
-			memory.Seek(0);
-		}
-
-		if (this.customXmls) {
-			for (var i = 0; i < this.customXmls.length; i++) {
-				if (this.customXmls[i].item) {
-					var customXmlPart = wbPart.part.addPart(AscCommon.openXml.Types.customXml);
-					customXmlPart.part.setData(this.customXmls[i].item);
-					memory.Seek(0);
-
-					var customXmlPartProps = customXmlPart.part.addPart(AscCommon.openXml.Types.customXmlProps);
-					customXmlPartProps.part.setData(this.customXmls[i].itemProps);
-					memory.Seek(0);
-				}
-			}
-		}
-
-		if (this.aComments) {
-			var binaryComments = AscCommonExcel.WriteWbComments(this);
-			if (binaryComments) {
-				var wbCommentsPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookComment);
-				wbCommentsPart.part.setData(binaryComments);
-				memory.Seek(0);
-			}
-		}
-	};
-
-	function prepareCommentsToWrite(m_mapComments, personList) {
-		var mapByAuthors = [];
-		var pComments = null;
-		var pThreadedComments = null;
-		var aComments;
-
-		var getThreadedComment = function (oCommentData) {
-			var res = new CT_CThreadedComment();
-
-			var sOOTime = oCommentData.asc_getOnlyOfficeTime();
-			if (sOOTime) {
-				res.dT = new Date(sOOTime - 0).toISOString().slice(0, 22) + "Z";
-			}
-			var userId = oCommentData.asc_getUserId();
-			var displayName = oCommentData.asc_getUserName();
-			var providerId = oCommentData.asc_getProviderId();
-			var person = personList.find(function isPrime(element) {
-				return userId === element.userId && displayName === element.displayName && providerId === element.providerId;
-			});
-
-			if (!person) {
-				person = {id: AscCommon.CreateGUID(), userId: userId, displayName: displayName, providerId: providerId};
-				personList.push(person);
-			}
-
-			res.personId = person.id;
-			var guid = oCommentData.asc_getGuid();
-			if (guid) {
-				res.id = guid;
-			}
-			var solved = oCommentData.asc_getSolved();
-			if (null != solved) {
-				res.done = solved;
-			}
-
-			var text = oCommentData.asc_getText();
-			if (text) {
-				res.text = text;
-			}
-
-			if (oCommentData.aReplies && oCommentData.aReplies.length > 0) {
-				for (i = 0; i < oCommentData.aReplies.length; ++i) {
-					res.m_arrReplies.push(getThreadedComment(oCommentData.aReplies[i]));
-				}
-			}
-
-			return res;
-		};
-
-		for (var it = 0; it < m_mapComments.length; it++) {
-			var pCommentItem = m_mapComments[it];
-			if (/*pCommentItem.IsValid()*/pCommentItem) {
-				var pNewComment = new CT_CComment();
-				if (null != pCommentItem.nRow && null != pCommentItem.nCol) {
-					pNewComment.ref = new Asc.Range(pCommentItem.nCol, pCommentItem.nRow, pCommentItem.nCol, pCommentItem.nRow).getName();
-				}
-
-				var saveThreadedComments = true;
-				if (saveThreadedComments/*pCommentItem.pThreadedComment*/) {
-					if (null === pThreadedComments) {
-						pThreadedComments = new CT_CThreadedComments();
-					}
-
-					var pThreadedComment = getThreadedComment(pCommentItem)//pCommentItem->m_pThreadedComment;
-					if (pNewComment.ref) {
-						pThreadedComment.ref = pNewComment.ref;
-					}
-
-					if (!pThreadedComment.id) {
-						pThreadedComment.id = AscCommon.CreateGUID();
-					}
-
-					pNewComment.uid = pThreadedComment.id;
-					pCommentItem.m_sAuthor = "tc=" + pThreadedComment.id;
-
-					//pThreadedComment.m_arrReplies = pCommentItem.aReplies;
-
-					//pCommentItem->m_oText.Init();
-
-
-					//var mapPersonList = this.InitSaveManager.personList;
-					/*if (m_oWorkbook.m_pPersonList)
-					{
-						mapPersonList = m_oWorkbook.m_pPersonList->GetPersonList();
-					}*/
-					//BinaryCommentReader::addThreadedComment(pCommentItem.text, pThreadedComment, mapPersonList);
-
-					pNewComment.generateText(pCommentItem, personList);
-
-
-					pThreadedComments.arr.push(pThreadedComment);
-					for (var i = 0; i < pThreadedComment.m_arrReplies.length; ++i) {
-						pThreadedComment.m_arrReplies[i].parentId = pThreadedComment.id;
-						pThreadedComment.m_arrReplies[i].ref = pThreadedComment.ref;
-						if (null === pThreadedComment.m_arrReplies[i].id) {
-							pThreadedComment.m_arrReplies[i].id = AscCommon.CreateGUID();
-						}
-						pThreadedComments.arr.push(pThreadedComment.m_arrReplies[i]);
-					}
-				}
-
-				if (null !== pCommentItem.m_sAuthor) {
-					var sAuthor = pCommentItem.m_sAuthor;
-					var pFind;
-					for (var j = 0; j < mapByAuthors.length; j++) {
-						if (mapByAuthors[j] === sAuthor) {
-							pFind = j;
-							break;
-						}
-					}
-
-					var nAuthorId;
-					if (null != pFind) {
-						nAuthorId = pFind;
-					} else {
-						nAuthorId = mapByAuthors.length;
-						mapByAuthors.push(sAuthor);
-						if (pComments === null) {
-							pComments = new CT_CComments();
-							pComments.commentList = new CT_CCommentList();
-							aComments = pComments.commentList.arr;
-							pComments.authors = new CT_CAuthors();
-						}
-						pComments.authors.arr.push(sAuthor);
-					}
-
-					pNewComment.authorId = nAuthorId;
-				}
-
-
-				//pNewComment.generateText(pCommentItem);
-
-				if (pComments === null) {
-					pComments = new CT_CComments();
-					pComments.commentList = new CT_CCommentList();
-					aComments = pComments.commentList.arr;
-					pComments.authors = new CT_CAuthors();
-				}
-				aComments.push(pNewComment);
-			}
-			/*else if (NULL != pCommentItem->m_pThreadedComment)
-			{
-				RELEASEOBJECT(pCommentItem->m_pThreadedComment);
-				for (size_t i = 0; i < pCommentItem->m_pThreadedComment->m_arrReplies.size(); ++i)
-				{
-					RELEASEOBJECT(pCommentItem->m_pThreadedComment->m_arrReplies[i]);
-				}
-			}*/
-		}
-
-		/*NSCommon::smart_ptr<OOX::File> pCommentsFile(pComments);
-		m_pCurWorksheet->Add(pCommentsFile);*/
-
-		return pComments || pThreadedComments ? {comments: pComments, threadedComments: pThreadedComments} : null;
-	}
-
-	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
-		var res = [];
-		var depth = reader.GetDepth();
-		while (reader.ReadNextSiblingNode(depth)) {
-			var name2 = reader.GetNameNoNS();
-			if (childName === name2) {
-				while (reader.MoveToNextAttribute()) {
-					if (attrName === reader.GetNameNoNS()) {
-						res.push(reader.GetValue());
-					}
-				}
-			}
-		}
-		return res;
-	}
-
-	function readOneAttr(reader, attrName, func) {
-		var res = null;
-
-		while (reader.MoveToNextAttribute()) {
-			if (attrName === reader.GetNameNoNS()) {
-				func();
-			}
-		}
-
-		return res;
-	}
-
-	//возможно стоит перенести в writer, пока не расширяю интерфейс
-	function toXML2(writer, sName, m_sText) {
-		if (m_sText) {
-			writer.WriteXmlString("<");
-			writer.WriteXmlString(sName);
-			writer.WriteXmlString(">");
-
-			writer.WriteXmlStringEncode(m_sText);
-
-			writer.WriteXmlString("</");
-			writer.WriteXmlString(sName);
-			writer.WriteXmlString(">");
-		}
-	}
-
-
+	//convert const functions
 	function FromXml_ST_IconSetType(val) {
 		//в пивотах есть функция FromXml_ST_IconSetType, но там корвенртирцем в другие константы. пока оставляю так, нужно сделать общие
 		var res = undefined;
@@ -1352,7 +1052,6 @@
 		return res;
 	}
 
-
 	function FromXml_ST_SparklineAxisMinMax(val) {
 		var res = null;
 		switch (val) {
@@ -2025,6 +1724,206 @@
 		return res;
 	}
 
+	function prepareCommentsToWrite(m_mapComments, personList) {
+		var mapByAuthors = [];
+		var pComments = null;
+		var pThreadedComments = null;
+		var aComments;
+
+		var getThreadedComment = function (oCommentData) {
+			var res = new CT_CThreadedComment();
+
+			var sOOTime = oCommentData.asc_getOnlyOfficeTime();
+			if (sOOTime) {
+				res.dT = new Date(sOOTime - 0).toISOString().slice(0, 22) + "Z";
+			}
+			var userId = oCommentData.asc_getUserId();
+			var displayName = oCommentData.asc_getUserName();
+			var providerId = oCommentData.asc_getProviderId();
+			var person = personList.find(function isPrime(element) {
+				return userId === element.userId && displayName === element.displayName && providerId === element.providerId;
+			});
+
+			if (!person) {
+				person = {id: AscCommon.CreateGUID(), userId: userId, displayName: displayName, providerId: providerId};
+				personList.push(person);
+			}
+
+			res.personId = person.id;
+			var guid = oCommentData.asc_getGuid();
+			if (guid) {
+				res.id = guid;
+			}
+			var solved = oCommentData.asc_getSolved();
+			if (null != solved) {
+				res.done = solved;
+			}
+
+			var text = oCommentData.asc_getText();
+			if (text) {
+				res.text = text;
+			}
+
+			if (oCommentData.aReplies && oCommentData.aReplies.length > 0) {
+				for (i = 0; i < oCommentData.aReplies.length; ++i) {
+					res.m_arrReplies.push(getThreadedComment(oCommentData.aReplies[i]));
+				}
+			}
+
+			return res;
+		};
+
+		for (var it = 0; it < m_mapComments.length; it++) {
+			var pCommentItem = m_mapComments[it];
+			if (/*pCommentItem.IsValid()*/pCommentItem) {
+				var pNewComment = new CT_CComment();
+				if (null != pCommentItem.nRow && null != pCommentItem.nCol) {
+					pNewComment.ref = new Asc.Range(pCommentItem.nCol, pCommentItem.nRow, pCommentItem.nCol, pCommentItem.nRow).getName();
+				}
+
+				var saveThreadedComments = true;
+				if (saveThreadedComments/*pCommentItem.pThreadedComment*/) {
+					if (null === pThreadedComments) {
+						pThreadedComments = new CT_CThreadedComments();
+					}
+
+					var pThreadedComment = getThreadedComment(pCommentItem)//pCommentItem->m_pThreadedComment;
+					if (pNewComment.ref) {
+						pThreadedComment.ref = pNewComment.ref;
+					}
+
+					if (!pThreadedComment.id) {
+						pThreadedComment.id = AscCommon.CreateGUID();
+					}
+
+					pNewComment.uid = pThreadedComment.id;
+					pCommentItem.m_sAuthor = "tc=" + pThreadedComment.id;
+
+					//pThreadedComment.m_arrReplies = pCommentItem.aReplies;
+
+					//pCommentItem->m_oText.Init();
+
+
+					//var mapPersonList = this.InitSaveManager.personList;
+					/*if (m_oWorkbook.m_pPersonList)
+					{
+						mapPersonList = m_oWorkbook.m_pPersonList->GetPersonList();
+					}*/
+					//BinaryCommentReader::addThreadedComment(pCommentItem.text, pThreadedComment, mapPersonList);
+
+					pNewComment.generateText(pCommentItem, personList);
+
+
+					pThreadedComments.arr.push(pThreadedComment);
+					for (var i = 0; i < pThreadedComment.m_arrReplies.length; ++i) {
+						pThreadedComment.m_arrReplies[i].parentId = pThreadedComment.id;
+						pThreadedComment.m_arrReplies[i].ref = pThreadedComment.ref;
+						if (null === pThreadedComment.m_arrReplies[i].id) {
+							pThreadedComment.m_arrReplies[i].id = AscCommon.CreateGUID();
+						}
+						pThreadedComments.arr.push(pThreadedComment.m_arrReplies[i]);
+					}
+				}
+
+				if (null !== pCommentItem.m_sAuthor) {
+					var sAuthor = pCommentItem.m_sAuthor;
+					var pFind;
+					for (var j = 0; j < mapByAuthors.length; j++) {
+						if (mapByAuthors[j] === sAuthor) {
+							pFind = j;
+							break;
+						}
+					}
+
+					var nAuthorId;
+					if (null != pFind) {
+						nAuthorId = pFind;
+					} else {
+						nAuthorId = mapByAuthors.length;
+						mapByAuthors.push(sAuthor);
+						if (pComments === null) {
+							pComments = new CT_CComments();
+							pComments.commentList = new CT_CCommentList();
+							aComments = pComments.commentList.arr;
+							pComments.authors = new CT_CAuthors();
+						}
+						pComments.authors.arr.push(sAuthor);
+					}
+
+					pNewComment.authorId = nAuthorId;
+				}
+
+
+				//pNewComment.generateText(pCommentItem);
+
+				if (pComments === null) {
+					pComments = new CT_CComments();
+					pComments.commentList = new CT_CCommentList();
+					aComments = pComments.commentList.arr;
+					pComments.authors = new CT_CAuthors();
+				}
+				aComments.push(pNewComment);
+			}
+			/*else if (NULL != pCommentItem->m_pThreadedComment)
+			{
+				RELEASEOBJECT(pCommentItem->m_pThreadedComment);
+				for (size_t i = 0; i < pCommentItem->m_pThreadedComment->m_arrReplies.size(); ++i)
+				{
+					RELEASEOBJECT(pCommentItem->m_pThreadedComment->m_arrReplies[i]);
+				}
+			}*/
+		}
+
+		/*NSCommon::smart_ptr<OOX::File> pCommentsFile(pComments);
+		m_pCurWorksheet->Add(pCommentsFile);*/
+
+		return pComments || pThreadedComments ? {comments: pComments, threadedComments: pThreadedComments} : null;
+	}
+
+	function getSimpleArrayFromXml(reader, childName, attrName, attrType) {
+		var res = [];
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			var name2 = reader.GetNameNoNS();
+			if (childName === name2) {
+				while (reader.MoveToNextAttribute()) {
+					if (attrName === reader.GetNameNoNS()) {
+						res.push(reader.GetValue());
+					}
+				}
+			}
+		}
+		return res;
+	}
+
+	function readOneAttr(reader, attrName, func) {
+		var res = null;
+
+		while (reader.MoveToNextAttribute()) {
+			if (attrName === reader.GetNameNoNS()) {
+				func();
+			}
+		}
+
+		return res;
+	}
+
+	//additional functions
+	//возможно стоит перенести в writer, пока не расширяю интерфейс
+	function toXML2(writer, sName, m_sText) {
+		if (m_sText) {
+			writer.WriteXmlString("<");
+			writer.WriteXmlString(sName);
+			writer.WriteXmlString(">");
+
+			writer.WriteXmlStringEncode(m_sText);
+
+			writer.WriteXmlString("</");
+			writer.WriteXmlString(sName);
+			writer.WriteXmlString(">");
+		}
+	}
+
 	function boolToNumber(val) {
 		return val ? 1 : 0;
 	}
@@ -2051,7 +1950,6 @@
 		return val;
 	}
 
-
 	function prepareTextToXml(val) {
 		//x2t пишет &#xA; , но в WriteXmlValueStringEncode & заменяется
 		//val = val.replace(/\n/g, "\&#xA;");
@@ -2061,6 +1959,7 @@
 		return val;
 	}
 
+	//for uri/namespaces
 	var extUri = {
 		conditionalFormattings: "{78C0D931-6437-407d-A8EE-F0AAD7539E65}",
 		dataValidations: "{CCE6A557-97BC-4b89-ADB6-D9C93CAAB3DF}",
@@ -2086,6 +1985,107 @@
 		slicerListExt: " xmlns:x15=\"http://schemas.microsoft.com/office/spreadsheetml/2010/11/main\""
 	};
 
+	//START READ/WRITE functions
+	AscCommonExcel.Workbook.prototype.toZip = function (zip, context) {
+		context.wb = this;
+		context.InitSaveManager = new AscCommonExcel.InitSaveManager(this);
+
+		//функция дёргается в serialize перед записью ws
+		context.InitSaveManager._prepeareStyles(context.stylesForWrite);
+
+		var memory = new AscCommon.CMemory();
+		memory.context = context;
+		var filePart = new AscCommon.openXml.OpenXmlPackage(zip, memory);
+
+		if (this.Core) {
+			var corePart = filePart.addPart(AscCommon.openXml.Types.coreFileProperties);
+			corePart.part.setDataXml(this.Core, memory);
+			memory.Seek(0);
+		}
+
+		if (this.App) {
+			var appPart = filePart.addPart(AscCommon.openXml.Types.extendedFileProperties);
+			appPart.part.setDataXml(this.App, memory);
+			memory.Seek(0);
+		}
+
+		var wbXml = new CT_Workbook(this);
+		var wbPart = filePart.addPart(AscCommon.openXml.Types.workbook);
+		wbPart.part.setDataXml(wbXml, memory);
+		memory.Seek(0);
+
+		if (context.oSharedStrings.index > 0) {
+			var sharedString = new CT_SharedStrings();
+			sharedString.initFromMap(this, context.oSharedStrings);
+			var sharedStringPart = wbPart.part.addPart(AscCommon.openXml.Types.sharedStringTable);
+			sharedStringPart.part.setDataXml(sharedString, memory);
+			memory.Seek(0);
+		}
+
+		//на чтение используется CT_Stylesheet, на запись StylesForWrite
+		var stylesheetPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookStyles);
+		stylesheetPart.part.setDataXml(context.stylesForWrite, memory);
+		memory.Seek(0);
+
+		var themePart = wbPart.part.addPart(AscCommon.openXml.Types.theme);
+		themePart.part.setDataXml(this.theme, memory);
+		memory.Seek(0);
+
+		var jsaMacros = this.oApi.macros.GetData();
+		if (jsaMacros) {
+			memory.WriteXmlString(jsaMacros);
+			var jsaData = memory.GetDataUint8();
+			var jsaPart = wbPart.part.addPart(AscCommon.openXml.Types.jsaProject);
+			jsaPart.part.setData(jsaData);
+			memory.Seek(0);
+		}
+		var vbaMacros = this.oApi.vbaMacros;
+		if (vbaMacros) {
+			var vbaPart = wbPart.part.addPart(AscCommon.openXml.Types.vbaProject);
+			vbaPart.part.setData(vbaMacros);
+			memory.Seek(0);
+		}
+
+		//person list
+		if (context.InitSaveManager.personList && context.InitSaveManager.personList.length) {
+			var oPerson = new CT_PersonList();
+			var personPart = wbPart.part.addPart(AscCommon.openXml.Types.person);
+			oPerson.personList = context.InitSaveManager.personList;
+			personPart.part.setDataXml(oPerson, memory);
+			memory.Seek(0);
+		}
+
+		if (this.connections) {
+			memory.WriteXmlString(this.connections);
+			var connectionsData = memory.GetDataUint8();
+			var connectionsPart = wbPart.part.addPart(AscCommon.openXml.Types.connections);
+			connectionsPart.part.setData(connectionsData);
+			memory.Seek(0);
+		}
+
+		if (this.customXmls) {
+			for (var i = 0; i < this.customXmls.length; i++) {
+				if (this.customXmls[i].item) {
+					var customXmlPart = wbPart.part.addPart(AscCommon.openXml.Types.customXml);
+					customXmlPart.part.setData(this.customXmls[i].item);
+					memory.Seek(0);
+
+					var customXmlPartProps = customXmlPart.part.addPart(AscCommon.openXml.Types.customXmlProps);
+					customXmlPartProps.part.setData(this.customXmls[i].itemProps);
+					memory.Seek(0);
+				}
+			}
+		}
+
+		if (this.aComments) {
+			var binaryComments = AscCommonExcel.WriteWbComments(this);
+			if (binaryComments) {
+				var wbCommentsPart = wbPart.part.addPart(AscCommon.openXml.Types.workbookComment);
+				wbCommentsPart.part.setData(binaryComments);
+				memory.Seek(0);
+			}
+		}
+	};
 
 	//****workbook****
 	function CT_Workbook(wb) {
