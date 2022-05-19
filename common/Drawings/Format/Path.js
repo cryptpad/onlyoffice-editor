@@ -364,9 +364,21 @@ Path.prototype = {
         this.addPathCommand({id:close});
     },
 
+    calculateCommandCoord: function(oGdLst, sFormula, dFormulaCoeff, dNumberCoeff)
+    {
+        let dVal;
+        dVal = oGdLst[sFormula];
+        if(dVal !== undefined)
+        {
+            return dVal*dFormulaCoeff;
+        }
+        return parseInt(sFormula, 10)*dNumberCoeff;
+    },
+
     recalculate: function(gdLst, bResetPathsInfo)
     {
         var ch, cw;
+        var dCustomPathCoeffW, dCustomPathCoeffH;
         if(this.pathW!=undefined)
         {
             if(this.pathW > MOVE_DELTA)
@@ -377,10 +389,12 @@ Path.prototype = {
             {
                 cw = 0;
             }
+            dCustomPathCoeffW = cw;
         }
         else
         {
-            cw=1;
+            cw = 1;
+            dCustomPathCoeffW = 1/36000;
         }
         if(this.pathH!=undefined)
         {
@@ -392,10 +406,12 @@ Path.prototype = {
             {
                 ch = 0;
             }
+            dCustomPathCoeffH = ch;
         }
         else
         {
-            ch=1;
+            ch = 1;
+            dCustomPathCoeffH = 1/36000;
         }
         var APCI=this.ArrPathCommandInfo, n = APCI.length, cmd;
         var x0, y0, x1, y1, x2, y2, wR, hR, stAng, swAng, lastX, lastY;
@@ -407,127 +423,49 @@ Path.prototype = {
                 case moveTo:
                 case lineTo:
                 {
-                    x0=gdLst[cmd.X];
-                    if(x0 === undefined)
-                    {
-                        x0 = parseInt(cmd.X, 10);
-                    }
-
-                    y0=gdLst[cmd.Y];
-                    if(y0===undefined)
-                    {
-                        y0=parseInt(cmd.Y, 10);
-                    }
-
-                    this.ArrPathCommand[i] ={id:cmd.id, X:x0*cw, Y:y0*ch};
-
-                    lastX=x0*cw;
-                    lastY=y0*ch;
-
+                    x0 = this.calculateCommandCoord(gdLst, cmd.X, cw, dCustomPathCoeffW);
+                    y0 = this.calculateCommandCoord(gdLst, cmd.Y, ch, dCustomPathCoeffH);
+                    this.ArrPathCommand[i] ={id:cmd.id, X:x0, Y:y0};
+                    lastX = x0;
+                    lastY = y0;
                     break;
                 }
                 case bezier3:
                 {
-
-                    x0=gdLst[cmd.X0];
-                    if(x0===undefined)
-                    {
-                        x0=parseInt(cmd.X0, 10);
-                    }
-
-                    y0=gdLst[cmd.Y0];
-                    if(y0===undefined)
-                    {
-                        y0=parseInt(cmd.Y0, 10);
-                    }
-
-                    x1=gdLst[cmd.X1];
-                    if(x1===undefined)
-                    {
-                        x1=parseInt(cmd.X1, 10);
-                    }
-
-                    y1=gdLst[cmd.Y1];
-                    if(y1===undefined)
-                    {
-                        y1=parseInt(cmd.Y1, 10);
-                    }
-
-                    this.ArrPathCommand[i]={id:bezier3, X0:x0*cw, Y0: y0*ch, X1:x1*cw, Y1:y1*ch};
-
-                    lastX=x1*cw;
-                    lastY=y1*ch;
+                    x0 = this.calculateCommandCoord(gdLst, cmd.X0, cw, dCustomPathCoeffW);
+                    y0 = this.calculateCommandCoord(gdLst, cmd.Y0, ch, dCustomPathCoeffH);
+                    x1 = this.calculateCommandCoord(gdLst, cmd.X1, cw, dCustomPathCoeffW);
+                    y1 = this.calculateCommandCoord(gdLst, cmd.Y1, ch, dCustomPathCoeffH);
+                    this.ArrPathCommand[i] = {id:bezier3, X0: x0, Y0: y0, X1: x1, Y1: y1};
+                    lastX = x1;
+                    lastY = y1;
                     break;
                 }
                 case bezier4:
                 {
-                    x0=gdLst[cmd.X0];
-                    if(x0===undefined)
-                    {
-                        x0=parseInt(cmd.X0, 10);
-                    }
-
-                    y0=gdLst[cmd.Y0];
-                    if(y0===undefined)
-                    {
-                        y0=parseInt(cmd.Y0, 10);
-                    }
-
-                    x1=gdLst[cmd.X1];
-                    if(x1===undefined)
-                    {
-                        x1=parseInt(cmd.X1, 10);
-                    }
-
-                    y1=gdLst[cmd.Y1];
-                    if(y1===undefined)
-                    {
-                        y1=parseInt(cmd.Y1, 10);
-                    }
-
-                    x2=gdLst[cmd.X2];
-                    if(x2===undefined)
-                    {
-                        x2=parseInt(cmd.X2, 10);
-                    }
-
-                    y2=gdLst[cmd.Y2];
-                    if(y2===undefined)
-                    {
-                        y2=parseInt(cmd.Y2, 10);
-                    }
-
-                    this.ArrPathCommand[i]={id:bezier4, X0:x0*cw, Y0: y0*ch, X1:x1*cw, Y1:y1*ch, X2:x2*cw, Y2:y2*ch};
-
-                    lastX=x2*cw;
-                    lastY=y2*ch;
-
+                    x0 = this.calculateCommandCoord(gdLst, cmd.X0, cw, dCustomPathCoeffW);
+                    y0 = this.calculateCommandCoord(gdLst, cmd.Y0, ch, dCustomPathCoeffH);
+                    x1 = this.calculateCommandCoord(gdLst, cmd.X1, cw, dCustomPathCoeffW);
+                    y1 = this.calculateCommandCoord(gdLst, cmd.Y1, ch, dCustomPathCoeffH);
+                    x2 = this.calculateCommandCoord(gdLst, cmd.X2, cw, dCustomPathCoeffW);
+                    y2 = this.calculateCommandCoord(gdLst, cmd.Y2, ch, dCustomPathCoeffH);
+                    this.ArrPathCommand[i] = {id:bezier4, X0:x0, Y0: y0, X1:x1, Y1:y1, X2:x2, Y2:y2};
+                    lastX = x2;
+                    lastY = y2;
                     break;
                 }
                 case arcTo:
                 {
-                    hR=gdLst[cmd.hR];
+                    wR = this.calculateCommandCoord(gdLst, cmd.wR, cw, dCustomPathCoeffW);
+                    hR = this.calculateCommandCoord(gdLst, cmd.hR, ch, dCustomPathCoeffH);
 
-                    if(hR===undefined)
-                    {
-                        hR=parseInt(cmd.hR, 10);
-                    }
-
-
-                    wR=gdLst[cmd.wR];
-                    if(wR===undefined)
-                    {
-                        wR=parseInt(cmd.wR, 10);
-                    }
-
-                    stAng=gdLst[cmd.stAng];
+                    stAng = gdLst[cmd.stAng];
                     if(stAng===undefined)
                     {
                         stAng=parseInt(cmd.stAng, 10);
                     }
 
-
-                    swAng=gdLst[cmd.swAng];
+                    swAng = gdLst[cmd.swAng];
                     if(swAng===undefined)
                     {
                         swAng=parseInt(cmd.swAng, 10);
@@ -545,8 +483,8 @@ Path.prototype = {
                     if((swAng < 0) && (a3 > 0)) swAng += 21600000;
                     if(swAng == 0 && a3 != 0) swAng = 21600000;
 
-                    var a = wR*cw;
-                    var b = hR*ch;
+                    var a = wR;
+                    var b = hR;
                     var sin2 = Math.sin(stAng*cToRad);
                     var cos2 = Math.cos(stAng*cToRad);
                     var _xrad = cos2 / a;
@@ -564,8 +502,8 @@ Path.prototype = {
                     this.ArrPathCommand[i]={id: arcTo,
                         stX: lastX,
                         stY: lastY,
-                        wR: wR*cw,
-                        hR: hR*ch,
+                        wR: wR,
+                        hR: hR,
                         stAng: stAng*cToRad,
                         swAng: swAng*cToRad};
 
