@@ -466,43 +466,43 @@
 
 		IC(CDiagram, CBaseNoId, 0);
 		CDiagram.prototype.readAttrXml = function (name, reader) {
-			if (("autoformat") === name) {
+			if ("autoformat" === name) {
 				this.m_oAutoFormat = reader.GetValueBool();
 				return;
 			}
-			if (("autolayout") === name) {
+			if ("autolayout" === name) {
 				this.m_oAutoLayout = reader.GetValueBool();
 				return;
 			}
-			if (("constrainbounds") === name) {
+			if ("constrainbounds" === name) {
 				this.m_sConstrainbounds = reader.GetValue();
 				return;
 			}
-			if (("dgmbasetextscale") === name) {
+			if ("dgmbasetextscale" === name) {
 				this.m_oDmgBaseTextScale = reader.GetValueInt();
 				return;
 			}
-			if (("dgmfontsize") === name) {
+			if ("dgmfontsize" === name) {
 				this.m_oDmgFontSize = reader.GetValueInt();
 				return;
 			}
-			if (("dgmscalex") === name) {
+			if ("dgmscalex" === name) {
 				this.m_oDmgScaleX = reader.GetValueInt();
 				return;
 			}
-			if (("dgmscaley") === name) {
+			if ("dgmscaley" === name) {
 				this.m_oDmgScaleY = reader.GetValueInt();
 				return;
 			}
-			if (("dgmstyle") === name) {
+			if ("dgmstyle" === name) {
 				this.m_oDmgStyle = reader.GetValueInt();
 				return;
 			}
-			if (("ext") === name) {
+			if ("ext" === name) {
 				this.m_oExt = readExt(reader);
 				return;
 			}
-			if (("reverse") === name) {
+			if ("reverse" === name) {
 				this.m_oReverse = reader.GetValueBool();
 			}
 		};
@@ -926,11 +926,11 @@
 
 		function readOLELinkType(reader) {
 			let sValue = reader.GetValue();
-			if (("Bitmap") === sValue) return EOLELinkType.olelinktypeBitmap;
-			if (("EnhancedMetaFile") === sValue) return EOLELinkType.olelinktypeEmf;
-			if (("Jpeg") === sValue) return EOLELinkType.olelinktypeJpeg;
-			if (("Picture") === sValue) return EOLELinkType.olelinktypePicture;
-			else if (("Png") === sValue) return EOLELinkType.olelinktypePng;
+			if ("Bitmap" === sValue) return EOLELinkType.olelinktypeBitmap;
+			if ("EnhancedMetaFile" === sValue) return EOLELinkType.olelinktypeEmf;
+			if ("Jpeg" === sValue) return EOLELinkType.olelinktypeJpeg;
+			if ("Picture" === sValue) return EOLELinkType.olelinktypePicture;
+			else if ("Png" === sValue) return EOLELinkType.olelinktypePng;
 			return EOLELinkType.olelinktypeBitmap;
 		}
 
@@ -1829,31 +1829,31 @@
 		};
 		CVmlCommonElements.prototype.writeAttrXmlImpl = function (writer) {
 
-			writer.WriteXmlNullableAttributeString(("id"), this.m_sId);
+			writer.WriteXmlNullableAttributeString("id", this.m_sId);
 			if (this.m_oStyle)
-				writer.WriteXmlNullableAttributeString(("style"), this.m_oStyle.ToString());
-			writer.WriteXmlNullableAttributeString(("href"), this.m_sHref);
-			writer.WriteXmlNullableAttributeString(("target"), this.m_sTarget);
-			writer.WriteXmlNullableAttributeString(("class"), this.m_sClass);
-			writer.WriteXmlNullableAttributeString(("title"), this.m_sTitle);
-			writer.WriteXmlNullableAttributeString(("alt"), this.m_sAlt);
+				writer.WriteXmlNullableAttributeString("style", this.m_oStyle.ToString());
+			writer.WriteXmlNullableAttributeString("href", this.m_sHref);
+			writer.WriteXmlNullableAttributeString("target", this.m_sTarget);
+			writer.WriteXmlNullableAttributeString("class", this.m_sClass);
+			writer.WriteXmlNullableAttributeString("title", this.m_sTitle);
+			writer.WriteXmlNullableAttributeString("alt", this.m_sAlt);
 
 			if (this.m_oCoordSize)
-				writer.WriteXmlNullableAttributeString(("coordsize"), this.m_oCoordSize.ToString());
+				writer.WriteXmlNullableAttributeString("coordsize", this.m_oCoordSize.ToString());
 			if (this.m_oCoordOrigin)
-				writer.WriteXmlNullableAttributeString(("coordorigin"), this.m_oCoordOrigin.ToString());
+				writer.WriteXmlNullableAttributeString("coordorigin", this.m_oCoordOrigin.ToString());
 			if (this.m_oWrapCoords)
-				writer.WriteXmlNullableAttributeString(("wrapcoords"), this.m_oWrapCoords.ToString());
+				writer.WriteXmlNullableAttributeString("wrapcoords", this.m_oWrapCoords.ToString());
 
 			// if (true !== this.m_oPrint)
 			// 	writer.WriteXmlNullableAttributeString("print", "false");
 
-			writer.WriteXmlNullableAttributeString(("o:spid"), this.m_sSpId);
+			writer.WriteXmlNullableAttributeString("o:spid", this.m_sSpId);
 
 			if (false !== this.m_oOned)
 				writer.WriteXmlNullableAttributeString("o:oned", "true");
 
-			writer.WriteXmlNullableAttributeInt(("o:regroupid"), this.m_oRegroupId);
+			writer.WriteXmlNullableAttributeInt("o:regroupid", this.m_oRegroupId);
 
 			if (false !== this.m_oDoubleClickNotify)
 				writer.WriteXmlNullableAttributeString("o:doubleclicknotify", "true");
@@ -1877,20 +1877,20 @@
 				writer.WriteXmlNullableAttributeString("o:hrnoshade", "true");
 
 			if (0 !== this.m_oHrPct)
-				writer.WriteXmlNullableAttributeDouble(("o:hrpct"), this.m_oHrPct);
+				writer.WriteXmlNullableAttributeDouble("o:hrpct", this.m_oHrPct);
 
 			if (this.m_oHrAlign !== null && AscCommon.align_Left !== this.m_oHrAlign) {
 				switch (this.m_oHrAlign) {
 					case AscCommon.align_Center: {
-						writer.WriteXmlNullableAttributeString(("o:hralign"), "center");
+						writer.WriteXmlNullableAttributeString("o:hralign", "center");
 						break;
 					}
 					case AscCommon.align_Left: {
-						writer.WriteXmlNullableAttributeString(("o:hralign"), "left");
+						writer.WriteXmlNullableAttributeString("o:hralign", "left");
 						break;
 					}
 					case AscCommon.align_Right: {
-						writer.WriteXmlNullableAttributeString(("o:hralign"), "right");
+						writer.WriteXmlNullableAttributeString("o:hralign", "right");
 						break;
 					}
 				}
@@ -1905,44 +1905,44 @@
 			if (false !== this.m_oUserDrawn)
 				writer.WriteXmlNullableAttributeString("o:userdrawn", "true");
 
-			writer.WriteXmlNullableAttributeString(("o:bordertopcolor"), getBooleanTrueFalse(this.m_oBorderTopColor));
-			writer.WriteXmlNullableAttributeString(("o:borderleftcolor"), getBooleanTrueFalse(this.m_oBorderLeftColor));
-			writer.WriteXmlNullableAttributeString(("o:borderbottomcolor"), getBooleanTrueFalse(this.m_oBorderBottomColor));
-			writer.WriteXmlNullableAttributeString(("o:borderrightcolor"), getBooleanTrueFalse(this.m_oBorderRightColor));
+			writer.WriteXmlNullableAttributeString("o:bordertopcolor", getBooleanTrueFalse(this.m_oBorderTopColor));
+			writer.WriteXmlNullableAttributeString("o:borderleftcolor", getBooleanTrueFalse(this.m_oBorderLeftColor));
+			writer.WriteXmlNullableAttributeString("o:borderbottomcolor", getBooleanTrueFalse(this.m_oBorderBottomColor));
+			writer.WriteXmlNullableAttributeString("o:borderrightcolor", getBooleanTrueFalse(this.m_oBorderRightColor));
 
-			writer.WriteXmlNullableAttributeInt(("o:dgmlayout"), this.m_oDgmLayout);
-			writer.WriteXmlNullableAttributeInt(("o:dgmlayoutmru"), this.m_oDgmLayoutMru);
-			writer.WriteXmlNullableAttributeString(("o:dgmnodekind"), this.m_oDgmNodeKind);
+			writer.WriteXmlNullableAttributeInt("o:dgmlayout", this.m_oDgmLayout);
+			writer.WriteXmlNullableAttributeInt("o:dgmlayoutmru", this.m_oDgmLayoutMru);
+			writer.WriteXmlNullableAttributeString("o:dgmnodekind", this.m_oDgmNodeKind);
 
 			if (EInsetMode.insetmodeCustom !== this.m_oInsetMode)
-				writer.WriteXmlNullableAttributeString(("o:insetmode"), getInsetMode(this.m_oInsetMode));
+				writer.WriteXmlNullableAttributeString("o:insetmode", getInsetMode(this.m_oInsetMode));
 
-			writer.WriteXmlNullableAttributeString(("chromakey"), getColorType(this.m_oChromaKey));
+			writer.WriteXmlNullableAttributeString("chromakey", getColorType(this.m_oChromaKey));
 
-			writer.WriteXmlNullableAttributeString(("filled"), getBooleanTrueFalse(this.m_oFilled));
+			writer.WriteXmlNullableAttributeString("filled", getBooleanTrueFalse(this.m_oFilled));
 
-			writer.WriteXmlNullableAttributeString(("fillcolor"), getColorType(this.m_oFillColor));
-			writer.WriteXmlNullableAttributeString(("opacity"), getCVml_1_65536(this.m_oOpacity));
+			writer.WriteXmlNullableAttributeString("fillcolor", getColorType(this.m_oFillColor));
+			writer.WriteXmlNullableAttributeString("opacity", getCVml_1_65536(this.m_oOpacity));
 
-			writer.WriteXmlNullableAttributeString(("stroked"), getBooleanTrueFalse(this.m_oStroked));
+			writer.WriteXmlNullableAttributeString("stroked", getBooleanTrueFalse(this.m_oStroked));
 
-			writer.WriteXmlNullableAttributeString(("strokecolor"), getColorType(this.m_oStrokeColor));
+			writer.WriteXmlNullableAttributeString("strokecolor", getColorType(this.m_oStrokeColor));
 
 			if (this.m_oStrokeWeight !== null)
-				writer.WriteXmlNullableAttributeInt(("strokeweight"), this.m_oStrokeWeight);
+				writer.WriteXmlNullableAttributeInt("strokeweight", this.m_oStrokeWeight);
 
-			writer.WriteXmlNullableAttributeString(("insetpen"), getBooleanTrueFalse(this.m_oInsetPen));
+			writer.WriteXmlNullableAttributeString("insetpen", getBooleanTrueFalse(this.m_oInsetPen));
 
 			if (this.m_oSpt !== null)
-				writer.WriteXmlNullableAttributeInt(("o:spt"), this.m_oSpt);
+				writer.WriteXmlNullableAttributeInt("o:spt", this.m_oSpt);
 
 			if (this.m_oConnectorType !== null) {
-				writer.WriteXmlNullableAttributeString(("o:connectortype"), this.m_oConnectorType);
+				writer.WriteXmlNullableAttributeString("o:connectortype", this.m_oConnectorType);
 			}
 
-			writer.WriteXmlNullableAttributeString(("o:bwmode"), getBWMode(this.m_oBwMode));
-			writer.WriteXmlNullableAttributeString(("o:bwpure"), getBWMode(this.m_oBwPure));
-			writer.WriteXmlNullableAttributeString(("o:bwnormal"), getBWMode(this.m_oBwNormal));
+			writer.WriteXmlNullableAttributeString("o:bwmode", getBWMode(this.m_oBwMode));
+			writer.WriteXmlNullableAttributeString("o:bwpure", getBWMode(this.m_oBwPure));
+			writer.WriteXmlNullableAttributeString("o:bwnormal", getBWMode(this.m_oBwNormal));
 
 			if (false !== this.m_oForceDash)
 				writer.WriteXmlNullableAttributeString("o:forcedash", "true");
@@ -1959,7 +1959,7 @@
 			if (false !== this.m_oClipToWrap)
 				writer.WriteXmlNullableAttributeString("o:cliptowrap", "true");
 
-			writer.WriteXmlNullableAttributeString(("o:clip"), getBooleanTrueFalse(this.m_oClip));
+			writer.WriteXmlNullableAttributeString("o:clip", getBooleanTrueFalse(this.m_oClip));
 		};
 		CVmlCommonElements.prototype.writeChildren = function (writer) {
 
@@ -2035,8 +2035,8 @@
 		};
 		CArc.prototype.writeAttrXmlImpl = function (writer) {
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
-			writer.WriteXmlNullableAttributeInt(("startangle"), this.m_oStartAngle);
-			writer.WriteXmlNullableAttributeInt(("endangle"), this.m_oEndAngle);
+			writer.WriteXmlNullableAttributeInt("startangle", this.m_oStartAngle);
+			writer.WriteXmlNullableAttributeInt("endangle", this.m_oEndAngle);
 		};
 
 		function CCurve() {
@@ -2066,10 +2066,10 @@
 		};
 		CCurve.prototype.writeAttrXmlImpl = function (writer) {
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
-			this.m_oFrom && writer.WriteXmlNullableAttributeString(("from"), this.m_oFrom.ToString());
-			this.m_oControl1 && writer.WriteXmlNullableAttributeString(("control1"), this.m_oControl1.ToString());
-			this.m_oControl2 && writer.WriteXmlNullableAttributeString(("control2"), this.m_oControl2.ToString());
-			this.m_oTo && writer.WriteXmlNullableAttributeString(("to"), this.m_oTo.ToString());
+			this.m_oFrom && writer.WriteXmlNullableAttributeString("from", this.m_oFrom.ToString());
+			this.m_oControl1 && writer.WriteXmlNullableAttributeString("control1", this.m_oControl1.ToString());
+			this.m_oControl2 && writer.WriteXmlNullableAttributeString("control2", this.m_oControl2.ToString());
+			this.m_oTo && writer.WriteXmlNullableAttributeString("to", this.m_oTo.ToString());
 
 		};
 
@@ -2088,7 +2088,7 @@
 			}
 		};
 		CF.prototype.writeAttrXmlImpl = function (writer) {
-			writer.WriteXmlNullableAttributeString(("eqn"), this.m_sEqn);
+			writer.WriteXmlNullableAttributeString("eqn", this.m_sEqn);
 
 		};
 
@@ -2104,11 +2104,11 @@
 
 		function readFillMethod(reader) {
 			let sValue = reader.GetValue();
-			if (("any") === sValue) return EFillMethod.fillmethodAny;
-			else if (("linear") === sValue) return EFillMethod.fillmethodLinear;
-			else if (("linear sigma") === sValue) return EFillMethod.fillmethodLinearSigma;
-			else if (("sigma") === sValue) return EFillMethod.fillmethodSigma;
-			else if (("none") === sValue) return EFillMethod.fillmethodNone;
+			if ("any" === sValue) return EFillMethod.fillmethodAny;
+			else if ("linear" === sValue) return EFillMethod.fillmethodLinear;
+			else if ("linear sigma" === sValue) return EFillMethod.fillmethodLinearSigma;
+			else if ("sigma" === sValue) return EFillMethod.fillmethodSigma;
+			else if ("none" === sValue) return EFillMethod.fillmethodNone;
 			else return EFillMethod.fillmethodNone;
 		}
 
@@ -2230,50 +2230,50 @@
 			}
 		};
 		CFillVml.prototype.writeAttrXmlImpl = function (writer) {
-			writer.WriteXmlNullableAttributeString(("id"), this.m_sId);
-			writer.WriteXmlNullableAttributeString(("type"), getFillType(this.m_oType));
+			writer.WriteXmlNullableAttributeString("id", this.m_sId);
+			writer.WriteXmlNullableAttributeString("type", getFillType(this.m_oType));
 
 			if ((this.m_oOn !== null) && (true !== this.m_oOn))
 				writer.WriteXmlNullableAttributeString("on", "false");
 
 			if (this.m_oOpacity !== null)
-				writer.WriteXmlNullableAttributeString(("opacity"), getCVml_1_65536(this.m_oOpacity));
+				writer.WriteXmlNullableAttributeString("opacity", getCVml_1_65536(this.m_oOpacity));
 
-			writer.WriteXmlNullableAttributeString(("color"), getColorType(this.m_oColor));
-			writer.WriteXmlNullableAttributeString(("color2"), getColorType(this.m_oColor2));
-			writer.WriteXmlNullableAttributeString(("src"), this.m_sSrc);
-			writer.WriteXmlNullableAttributeString(("o:href"), this.m_sHref);
-			writer.WriteXmlNullableAttributeString(("o:althref"), this.m_sAltHref);
-			this.m_oSize && writer.WriteXmlNullableAttributeString(("size"), this.m_oSize.ToString());
-			this.m_oOrigin && writer.WriteXmlNullableAttributeString(("origin"), this.m_oOrigin.ToString());
-			this.m_oPosition && writer.WriteXmlNullableAttributeString(("position"), this.m_oPosition.ToString());
+			writer.WriteXmlNullableAttributeString("color", getColorType(this.m_oColor));
+			writer.WriteXmlNullableAttributeString("color2", getColorType(this.m_oColor2));
+			writer.WriteXmlNullableAttributeString("src", this.m_sSrc);
+			writer.WriteXmlNullableAttributeString("o:href", this.m_sHref);
+			writer.WriteXmlNullableAttributeString("o:althref", this.m_sAltHref);
+			this.m_oSize && writer.WriteXmlNullableAttributeString("size", this.m_oSize.ToString());
+			this.m_oOrigin && writer.WriteXmlNullableAttributeString("origin", this.m_oOrigin.ToString());
+			this.m_oPosition && writer.WriteXmlNullableAttributeString("position", this.m_oPosition.ToString());
 
 			if ((this.m_oAspect !== null) && (EImageAspect.imageaspectIgnore !== this.m_oAspect))
-				writer.WriteXmlNullableAttributeString(("aspect"), getImageAspect(this.m_oAspect));
+				writer.WriteXmlNullableAttributeString("aspect", getImageAspect(this.m_oAspect));
 
 
-			writer.WriteXmlNullableAttributeInt(("angle"), this.m_oAngle);
+			writer.WriteXmlNullableAttributeInt("angle", this.m_oAngle);
 
 			if ((this.m_oAlignShape !== null) && (true !== this.m_oAlignShape))
 				writer.WriteXmlNullableAttributeString("alignshape", "false");
 
 			if ((this.m_oFocus !== null) && (0 !== this.m_oFocus))
-				writer.WriteXmlNullableAttributeString(("focus"), this.m_oFocus.ToString());
+				writer.WriteXmlNullableAttributeString("focus", this.m_oFocus.ToString());
 
 			if ((this.m_oFocusPosition !== null) && (0 !== this.m_oFocusPosition.GetX() || 0 !== this.m_oFocusPosition.GetY()))
-				writer.WriteXmlNullableAttributeString(("focusposition"), this.m_oFocusPosition.ToString());
+				writer.WriteXmlNullableAttributeString("focusposition", this.m_oFocusPosition.ToString());
 
 			if ((this.m_oFocusSize !== null) && (0 !== this.m_oFocusSize.GetX() || 0 !== this.m_oFocusSize.GetY()))
-				writer.WriteXmlNullableAttributeString(("focussize"), this.m_oFocusSize.ToString());
+				writer.WriteXmlNullableAttributeString("focussize", this.m_oFocusSize.ToString());
 
 			if ((this.m_oMethod !== null) && (EFillMethod.fillmethodSigma !== this.m_oMethod))
-				writer.WriteXmlNullableAttributeString(("method"), getFillMethod(this.m_oMethod));
+				writer.WriteXmlNullableAttributeString("method", getFillMethod(this.m_oMethod));
 
-			writer.WriteXmlNullableAttributeString(("o:detectmouseclick"), getBooleanTrueFalse(this.m_oDetectMouseClick));
-			writer.WriteXmlNullableAttributeString(("o:title"), this.m_sTitle);
+			writer.WriteXmlNullableAttributeString("o:detectmouseclick", getBooleanTrueFalse(this.m_oDetectMouseClick));
+			writer.WriteXmlNullableAttributeString("o:title", this.m_sTitle);
 
 			if (this.m_oOpacity2 !== null)
-				writer.WriteXmlNullableAttributeString(("o:opacity2"), getCVml_1_65536(this.m_oOpacity2));
+				writer.WriteXmlNullableAttributeString("o:opacity2", getCVml_1_65536(this.m_oOpacity2));
 
 			if ((this.m_oRecolor !== null) && (false !== this.m_oRecolor))
 				writer.WriteXmlNullableAttributeString("recolor", "true");
@@ -2281,8 +2281,8 @@
 			if ((this.m_oRotate !== null) && (false !== this.m_oRotate))
 				writer.WriteXmlNullableAttributeString("rotate", "true");
 
-			writer.WriteXmlNullableAttributeString(("r:id"), this.m_oRelId);
-			writer.WriteXmlNullableAttributeString(("o:relid"), this.m_oRelId);
+			writer.WriteXmlNullableAttributeString("r:id", this.m_oRelId);
+			writer.WriteXmlNullableAttributeString("o:relid", this.m_oRelId);
 		};
 		CFillVml.prototype.writeChildren = function (writer) {
 			this.m_oFill && this.m_oFill.toXml(writer, "o:fill");
@@ -2300,12 +2300,12 @@
 
 		function readScreenSize(reader) {
 			let sValue = reader.GetValue();
-			if (("1024,768") === sValue) return EScreenSize.screensize1024x768;
-			else if (("1152,862") === sValue) return EScreenSize.screensize1152x862;
-			else if (("544,376") === sValue) return EScreenSize.screensize544x376;
-			else if (("640,480") === sValue) return EScreenSize.screensize640x480;
-			else if (("720,512") === sValue) return EScreenSize.screensize720x512;
-			else if (("800,600") === sValue) return EScreenSize.screensize800x600;
+			if ("1024,768" === sValue) return EScreenSize.screensize1024x768;
+			else if ("1152,862" === sValue) return EScreenSize.screensize1152x862;
+			else if ("544,376" === sValue) return EScreenSize.screensize544x376;
+			else if ("640,480" === sValue) return EScreenSize.screensize640x480;
+			else if ("720,512" === sValue) return EScreenSize.screensize720x512;
+			else if ("800,600" === sValue) return EScreenSize.screensize800x600;
 			return EScreenSize.screensize640x480;
 		}
 
@@ -2333,7 +2333,7 @@
 		};
 		CBackground.prototype.writeAttrXmlImpl = function (writer) {
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
-			writer.WriteXmlNullableAttributeString(("o:targetscreensize"), getScreenSize(this.m_oTargetScreenSize));
+			writer.WriteXmlNullableAttributeString("o:targetscreensize", getScreenSize(this.m_oTargetScreenSize));
 		};
 
 		function CFormulas() {
@@ -2391,14 +2391,14 @@
 		CH.prototype.writeAttrXmlImpl = function (writer) {
 			if (this.m_oPosition) {
 				if (EVml_Vector2D_Position.vmlvector2dposConstant !== this.m_oPosition.GetTypeX() || EVml_Vector2D_Position.vmlvector2dposConstant !== this.m_oPosition.GetTypeY() || 0 !== this.m_oPosition.GetX() || 0 !== this.m_oPosition.GetY())
-					writer.WriteXmlNullableAttributeString(("position"), this.m_oPosition.ToString());
+					writer.WriteXmlNullableAttributeString("position", this.m_oPosition.ToString());
 			}
 
-			this.m_oPolar && writer.WriteXmlNullableAttributeString(("polar"), this.m_oPolar.ToString());
+			this.m_oPolar && writer.WriteXmlNullableAttributeString("polar", this.m_oPolar.ToString());
 
 			if (this.m_oMap) {
 				if (0 !== this.m_oMap.GetX() || 1000 !== this.m_oMap.GetY())
-					writer.WriteXmlNullableAttributeString(("map"), this.m_oMap.ToString());
+					writer.WriteXmlNullableAttributeString("map", this.m_oMap.ToString());
 			}
 
 			if (false !== this.m_oInvX)
@@ -2412,15 +2412,15 @@
 
 			if (this.m_oXRange) {
 				if (0 !== this.m_oXRange.GetX() || 0 !== this.m_oXRange.GetY())
-					writer.WriteXmlNullableAttributeString(("xrange"), this.m_oXRange.ToString());
+					writer.WriteXmlNullableAttributeString("xrange", this.m_oXRange.ToString());
 			}
 			if (this.m_oYRange) {
 				if (0 !== this.m_oYRange.GetX() || 0 !== this.m_oYRange.GetY())
-					writer.WriteXmlNullableAttributeString(("yrange"), this.m_oYRange.ToString());
+					writer.WriteXmlNullableAttributeString("yrange", this.m_oYRange.ToString());
 			}
 			if (this.m_oRadiusRange) {
 				if (0 !== this.m_oRadiusRange.GetX() || 0 !== this.m_oRadiusRange.GetY())
-					writer.WriteXmlNullableAttributeString(("radiusrange"), this.m_oRadiusRange.ToString());
+					writer.WriteXmlNullableAttributeString("radiusrange", this.m_oRadiusRange.ToString());
 			}
 
 
@@ -2467,34 +2467,34 @@
 
 		IC(CImage, CVmlCommonElements, AscDFH.historyitem_type_VMLImage);
 		CImage.prototype.readAttrXml = function (name, reader) {
-			if (("bilevel") === name) {
+			if ("bilevel" === name) {
 				this.m_oBiLevel = reader.GetValueBool();
 				return;
-			} else if (("blacklevel") === name) {
+			} else if ("blacklevel" === name) {
 				this.m_oBlackLevel = reader.GetValueDouble();
 				return;
-			} else if (("cropleft") === name) {
+			} else if ("cropleft" === name) {
 				this.m_oCropLeft = readCVml_1_65536(reader);
 				return;
-			} else if (("croptop") === name) {
+			} else if ("croptop" === name) {
 				this.m_oCropTop = readCVml_1_65536(reader);
 				return;
-			} else if (("cropright") === name) {
+			} else if ("cropright" === name) {
 				this.m_oCropRight = readCVml_1_65536(reader);
 				return;
-			} else if (("cropbottom") === name) {
+			} else if ("cropbottom" === name) {
 				this.m_oCropBottom = readCVml_1_65536(reader);
 				return;
-			} else if (("gain") === name) {
+			} else if ("gain" === name) {
 				this.m_oGain = reader.GetValueDouble();
 				return;
-			} else if (("gamma") === name) {
+			} else if ("gamma" === name) {
 				this.m_oGamma = reader.GetValueDouble();
 				return;
-			} else if (("grayscale") === name) {
+			} else if ("grayscale" === name) {
 				this.m_oGrayscale = reader.GetValueBool();
 				return;
-			} else if (("src") === name) {
+			} else if ("src" === name) {
 				this.m_sSrc = reader.GetValue();
 				return;
 			}
@@ -2504,29 +2504,29 @@
 
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 
-			if (("") !== this.m_sSrc)
-				writer.WriteXmlNullableAttributeString(("src"), this.m_sSrc);
+			if ("" !== this.m_sSrc)
+				writer.WriteXmlNullableAttributeString("src", this.m_sSrc);
 
 			if (0 !== this.m_oCropLeft)
-				writer.WriteXmlNullableAttributeString(("cropleft"), getCVml_1_65536(this.m_oCropLeft));
+				writer.WriteXmlNullableAttributeString("cropleft", getCVml_1_65536(this.m_oCropLeft));
 
 			if (0 !== this.m_oCropTop)
-				writer.WriteXmlNullableAttributeString(("croptop"), getCVml_1_65536(this.m_oCropTop));
+				writer.WriteXmlNullableAttributeString("croptop", getCVml_1_65536(this.m_oCropTop));
 
 			if (0 !== this.m_oCropRight)
-				writer.WriteXmlNullableAttributeString(("cropright"), getCVml_1_65536(this.m_oCropRight));
+				writer.WriteXmlNullableAttributeString("cropright", getCVml_1_65536(this.m_oCropRight));
 
 			if (0 !== this.m_oCropBottom)
-				writer.WriteXmlNullableAttributeString(("cropbottom"), getCVml_1_65536(this.m_oCropBottom));
+				writer.WriteXmlNullableAttributeString("cropbottom", getCVml_1_65536(this.m_oCropBottom));
 
 			if (1 !== this.m_oGain)
-				writer.WriteXmlNullableAttributeDouble(("gain"), this.m_oGain);
+				writer.WriteXmlNullableAttributeDouble("gain", this.m_oGain);
 
 			if (0 !== this.m_oBlackLevel)
-				writer.WriteXmlNullableAttributeDouble(("blacklevel"), this.m_oBlackLevel);
+				writer.WriteXmlNullableAttributeDouble("blacklevel", this.m_oBlackLevel);
 
 			if (1 !== this.m_oGamma)
-				writer.WriteXmlNullableAttributeDouble(("gamma"), this.m_oGamma);
+				writer.WriteXmlNullableAttributeDouble("gamma", this.m_oGamma);
 
 			if (false !== this.m_oGrayscale)
 				writer.WriteXmlNullableAttributeString("grayscale", "true");
@@ -2601,7 +2601,7 @@
 
 			writer.WriteXmlNullableAttributeString("id", this.m_oId);
 
-			if (("") !== this.m_sSrc)
+			if ("" !== this.m_sSrc)
 				writer.WriteXmlNullableAttributeString("src", this.m_sSrc);
 
 			writer.WriteXmlNullableAttributeString("cropleft", getCVml_1_65536(this.m_oCropLeft));
@@ -2610,13 +2610,13 @@
 			writer.WriteXmlNullableAttributeString("cropbottom", getCVml_1_65536(this.m_oCropBottom));
 
 			if (1 !== this.m_oGain)
-				writer.WriteXmlNullableAttributeDouble(("gain"), this.m_oGain);
+				writer.WriteXmlNullableAttributeDouble("gain", this.m_oGain);
 
 			if (0 !== this.m_oBlackLevel)
-				writer.WriteXmlNullableAttributeDouble(("blacklevel"), this.m_oBlackLevel);
+				writer.WriteXmlNullableAttributeDouble("blacklevel", this.m_oBlackLevel);
 
 			if (1 !== this.m_oGamma)
-				writer.WriteXmlNullableAttributeDouble(("gamma"), this.m_oGamma);
+				writer.WriteXmlNullableAttributeDouble("gamma", this.m_oGamma);
 
 			if (false !== this.m_oGrayscale)
 				writer.WriteXmlNullableAttributeString("grayscale", "true");
@@ -2624,20 +2624,20 @@
 			if (false !== this.m_oBiLevel)
 				writer.WriteXmlNullableAttributeString("bilevel", "true");
 
-			//	writer.WriteXmlNullableAttributeString(("chromakey"),    this.m_oChromaKey );
-			writer.WriteXmlNullableAttributeString(("embosscolor"), getColorType(this.m_oEmbossColor));
+			//	writer.WriteXmlNullableAttributeString("chromakey",    this.m_oChromaKey );
+			writer.WriteXmlNullableAttributeString("embosscolor", getColorType(this.m_oEmbossColor));
 
-			writer.WriteXmlNullableAttributeString(("o:href"), this.m_oHref);
-			writer.WriteXmlNullableAttributeString(("o:althref"), this.m_sAltHref);
-			writer.WriteXmlNullableAttributeString(("o:title"), this.m_sTitle);
-			writer.WriteXmlNullableAttributeString(("o:oleid"), this.m_oOleId);
-			writer.WriteXmlNullableAttributeString(("o:detectmouseclick"), this.m_oDetectMouseClick);
-			//writer.WriteXmlNullableAttributeString(("o:movie"),            this.m_oMovie );
-			//writer.WriteXmlNullableAttributeString(("o:relid"),            this.m_oRelId );
+			writer.WriteXmlNullableAttributeString("o:href", this.m_oHref);
+			writer.WriteXmlNullableAttributeString("o:althref", this.m_sAltHref);
+			writer.WriteXmlNullableAttributeString("o:title", this.m_sTitle);
+			writer.WriteXmlNullableAttributeString("o:oleid", this.m_oOleId);
+			writer.WriteXmlNullableAttributeString("o:detectmouseclick", this.m_oDetectMouseClick);
+			//writer.WriteXmlNullableAttributeString("o:movie",            this.m_oMovie );
+			//writer.WriteXmlNullableAttributeString("o:relid",            this.m_oRelId );
 
-			writer.WriteXmlNullableAttributeString(("r:id"), this.m_rId);
-			writer.WriteXmlNullableAttributeString(("r:pict"), this.m_rPict);
-			writer.WriteXmlNullableAttributeString(("r:href"), this.m_rHref);
+			writer.WriteXmlNullableAttributeString("r:id", this.m_rId);
+			writer.WriteXmlNullableAttributeString("r:pict", this.m_rPict);
+			writer.WriteXmlNullableAttributeString("r:href", this.m_rHref);
 		};
 
 
@@ -2662,8 +2662,8 @@
 		CLine.prototype.writeAttrXmlImpl = function (writer) {
 
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
-			this.m_oFrom && writer.WriteXmlNullableAttributeString(("from"), this.m_oFrom.ToString());
-			this.m_oTo && writer.WriteXmlNullableAttributeString(("to"), this.m_oTo.ToString());
+			this.m_oFrom && writer.WriteXmlNullableAttributeString("from", this.m_oFrom.ToString());
+			this.m_oTo && writer.WriteXmlNullableAttributeString("to", this.m_oTo.ToString());
 
 		};
 
@@ -2713,16 +2713,16 @@
 		CPath.prototype.writeAttrXmlImpl = function (writer) {
 
 
-			writer.WriteXmlNullableAttributeString(("id"), this.m_oId);
-			writer.WriteXmlNullableAttributeString(("v"), this.m_oV);
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
+			writer.WriteXmlNullableAttributeString("v", this.m_oV);
 
 			if (this.m_oLimo) {
 				if (0 !== this.m_oLimo.GetX() || 0 !== this.m_oLimo.GetY())
-					writer.WriteXmlNullableAttributeString(("limo"), this.m_oLimo.ToString());
+					writer.WriteXmlNullableAttributeString("limo", this.m_oLimo.ToString());
 			}
 
 			if (this.m_oTextBoxRect) {
-				writer.WriteXmlNullableAttributeString(("textboxrect"), this.m_oTextBoxRect.ToString());
+				writer.WriteXmlNullableAttributeString("textboxrect", this.m_oTextBoxRect.ToString());
 			}
 
 			if (true !== this.m_oFillOk)
@@ -2747,10 +2747,10 @@
 				writer.WriteXmlNullableAttributeString("insetpenok", "true");
 
 			if (EConnectType.connecttypeNone !== this.m_oConnectType)
-				writer.WriteXmlNullableAttributeString(("o:connecttype"), getConnectType(this.m_oConnectType));
+				writer.WriteXmlNullableAttributeString("o:connecttype", getConnectType(this.m_oConnectType));
 
-			writer.WriteXmlNullableAttributeString(("o:connectlocs"), this.m_oConnectLocs);
-			writer.WriteXmlNullableAttributeString(("o:connectangles"), this.m_oConnectAngles);
+			writer.WriteXmlNullableAttributeString("o:connectlocs", this.m_oConnectLocs);
+			writer.WriteXmlNullableAttributeString("o:connectangles", this.m_oConnectAngles);
 
 			if (true !== this.m_oExtrusionOk)
 				writer.WriteXmlNullableAttributeString("extrusionok", "false");
@@ -2774,7 +2774,7 @@
 
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 
-			this.m_oPoints && writer.WriteXmlNullableAttributeString(("points"), this.m_oPoints.ToString());
+			this.m_oPoints && writer.WriteXmlNullableAttributeString("points", this.m_oPoints.ToString());
 
 		};
 
@@ -2802,7 +2802,7 @@
 		CRoundRect.prototype.writeAttrXmlImpl = function (writer) {
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 
-			this.m_oArcSize && writer.WriteXmlNullableAttributeString(("arcsize"), this.m_oArcSize.ToString());
+			this.m_oArcSize && writer.WriteXmlNullableAttributeString("arcsize", this.m_oArcSize.ToString());
 		};
 
 		function CShadow() {
@@ -2841,34 +2841,34 @@
 				writer.WriteXmlNullableAttributeString("on", "false");
 
 			if (EShadowType.shadowtypeSingle !== this.m_oType)
-				writer.WriteXmlNullableAttributeString(("type"), getShadowType(this.m_oType));
+				writer.WriteXmlNullableAttributeString("type", getShadowType(this.m_oType));
 
 			if (false !== this.m_oObscured)
 				writer.WriteXmlNullableAttributeString("obscured", "true");
 
 			if (this.m_oColor) {
 				if (128 !== this.m_oColor.Get_R() || 128 !== this.m_oColor.Get_G() || 128 !== this.m_oColor.Get_B())
-					writer.WriteXmlNullableAttributeString(("color"), this.m_oColor.ToString());
+					writer.WriteXmlNullableAttributeString("color", this.m_oColor.ToString());
 			}
 
 			if (this.m_oOpacity !== null)
-				writer.WriteXmlNullableAttributeString(("opacity"), getCVml_1_65536(this.m_oOpacity));
+				writer.WriteXmlNullableAttributeString("opacity", getCVml_1_65536(this.m_oOpacity));
 
-			this.m_oOffset && writer.WriteXmlNullableAttributeString(("offset"), this.m_oOffset.ToString());
+			this.m_oOffset && writer.WriteXmlNullableAttributeString("offset", this.m_oOffset.ToString());
 
 			if (this.m_oColor2) {
 				if (203 !== this.m_oColor2.Get_R() || 203 !== this.m_oColor2.Get_G() || 203 !== this.m_oColor2.Get_B())
-					writer.WriteXmlNullableAttributeString(("color2"), this.m_oColor2.ToString());
+					writer.WriteXmlNullableAttributeString("color2", this.m_oColor2.ToString());
 			}
 
-			this.m_oOffset2 && writer.WriteXmlNullableAttributeString(("offset2"), this.m_oOffset2.ToString());
+			this.m_oOffset2 && writer.WriteXmlNullableAttributeString("offset2", this.m_oOffset2.ToString());
 
 			if (this.m_oOrigin) {
 				if (0 !== this.m_oOrigin.GetX() || 0 !== this.m_oOrigin.GetY())
-					writer.WriteXmlNullableAttributeString(("origin"), this.m_oOrigin.ToString());
+					writer.WriteXmlNullableAttributeString("origin", this.m_oOrigin.ToString());
 			}
 
-			this.m_oMatrix && writer.WriteXmlNullableAttributeString(("matrix"), this.m_oMatrix.ToString());
+			this.m_oMatrix && writer.WriteXmlNullableAttributeString("matrix", this.m_oMatrix.ToString());
 		};
 
 		function CShapeType() {
@@ -2881,15 +2881,15 @@
 		IC(CShapeType, CVmlCommonElements, AscDFH.historyitem_type_VMLShapeType);
 		CShapeType.prototype.readAttrXml = function (name, reader) {
 
-			if (("adj") === name) {
+			if ("adj" === name) {
 				this.m_sAdj = reader.GetValue();
 				return;
 			}
-			if (("path") === name) {
+			if ("path" === name) {
 				this.m_oPath = reader.GetValue();
 				return;
 			}
-			if (("master") === name) {
+			if ("master" === name) {
 				this.m_oMaster = reader.GetValueBool();
 				return;
 			}
@@ -2903,7 +2903,7 @@
 			}
 
 			if (this.m_oPath !== null)
-				writer.WriteXmlNullableAttributeString(("path"), this.m_oPath.ToString());
+				writer.WriteXmlNullableAttributeString("path", this.m_oPath.ToString());
 
 			if (false !== this.m_oMaster)
 				writer.WriteXmlNullableAttributeString("o:master", "true");
@@ -2920,23 +2920,23 @@
 
 		IC(CShape, CVmlCommonElements, AscDFH.historyitem_type_VMLShape);
 		CShape.prototype.readAttrXml = function (name, reader) {
-			if (("adj") === name) {
+			if ("adj" === name) {
 				this.m_sAdj = reader.GetValue();
 				return;
 			}
-			if (("equationxml") === name) {
+			if ("equationxml" === name) {
 				this.m_sEquationXML = reader.GetValue();
 				return;
 			}
-			if (("gfxdata") === name) {
+			if ("gfxdata" === name) {
 				this.m_sGfxData = reader.GetValue();
 				return;
 			}
-			if (("path") === name) {
+			if ("path" === name) {
 				this.m_oPath = reader.GetValue();
 				return;
 			}
-			if (("type") === name) {
+			if ("type" === name) {
 				this.m_sType = reader.GetValue();
 				return;
 			}
@@ -3491,75 +3491,75 @@
 		CStroke.prototype.writeAttrXmlImpl = function (writer) {
 
 
-			writer.WriteXmlNullableAttributeString(("id"), this.m_oId);
+			writer.WriteXmlNullableAttributeString("id", this.m_oId);
 			if (true !== this.m_oOn)
 				writer.WriteXmlNullableAttributeString("on", "false");
 
 			if (1 !== this.m_oWeight)
-				writer.WriteXmlNullableAttributeDouble(("weight"), this.m_oWeight);
+				writer.WriteXmlNullableAttributeDouble("weight", this.m_oWeight);
 
-			writer.WriteXmlNullableAttributeString(("color"), getColorType(this.m_oColor));
+			writer.WriteXmlNullableAttributeString("color", getColorType(this.m_oColor));
 
 			if (this.m_oOpacity !== null)
-				writer.WriteXmlNullableAttributeDouble(("opacity"), this.m_oOpacity);
+				writer.WriteXmlNullableAttributeDouble("opacity", this.m_oOpacity);
 
-			writer.WriteXmlNullableAttributeString(("linestyle"), getLineStyle(this.m_oLineStyle));
+			writer.WriteXmlNullableAttributeString("linestyle", getLineStyle(this.m_oLineStyle));
 
 			if (8 !== this.m_oMiterLimit)
-				writer.WriteXmlNullableAttributeInt(("miterlimit"), this.m_oMiterLimit);
+				writer.WriteXmlNullableAttributeInt("miterlimit", this.m_oMiterLimit);
 
 			if (EStrokeJoinStyle.strokejoinstyleRound !== this.m_oJoinStyle)
-				writer.WriteXmlNullableAttributeString(("joinstyle"), getJoinStyle(this.m_oJoinStyle));
+				writer.WriteXmlNullableAttributeString("joinstyle", getJoinStyle(this.m_oJoinStyle));
 
 			if (EStrokeEndCap.strokeendcapFlat !== this.m_oEndCap)
-				writer.WriteXmlNullableAttributeString(("endcap"), getEndCap(this.m_oEndCap));
+				writer.WriteXmlNullableAttributeString("endcap", getEndCap(this.m_oEndCap));
 
 			if (EVmlDashStyle.vmldashstyleSolid !== this.m_oDahsStyle)
-				writer.WriteXmlNullableAttributeString(("dashstyle"), getDashStyle(this.m_oDahsStyle));
+				writer.WriteXmlNullableAttributeString("dashstyle", getDashStyle(this.m_oDahsStyle));
 
 			if (EFillType.filltypeSolid !== this.m_oFillType)
-				writer.WriteXmlNullableAttributeString(("filltype"), getFillType(this.m_oFillType));
+				writer.WriteXmlNullableAttributeString("filltype", getFillType(this.m_oFillType));
 
-			writer.WriteXmlNullableAttributeString(("src"), this.m_sSrc);
+			writer.WriteXmlNullableAttributeString("src", this.m_sSrc);
 
 			if (EImageAspect.imageaspectIgnore !== this.m_oImageAspect)
-				writer.WriteXmlNullableAttributeString(("imageaspect"), getImageAspect(this.m_oImageAspect));
+				writer.WriteXmlNullableAttributeString("imageaspect", getImageAspect(this.m_oImageAspect));
 
-			this.m_oImageSize && writer.WriteXmlNullableAttributeString(("imagesize"), this.m_oImageSize.ToString());
+			this.m_oImageSize && writer.WriteXmlNullableAttributeString("imagesize", this.m_oImageSize.ToString());
 
 			if (true !== this.m_oOn)
 				writer.WriteXmlNullableAttributeString("imagealignshape", "false");
 
-			writer.WriteXmlNullableAttributeString(("color2"), getColorType(this.m_oColor2));
+			writer.WriteXmlNullableAttributeString("color2", getColorType(this.m_oColor2));
 
 			if (EStrokeArrowType.strokearrowtypeNone !== this.m_oStartArrow)
-				writer.WriteXmlNullableAttributeString(("startarrow"), getArrowType(this.m_oStartArrow));
+				writer.WriteXmlNullableAttributeString("startarrow", getArrowType(this.m_oStartArrow));
 
 			if (EStrokeArrowWidth.strokearrowwidthMedium !== this.m_oStartArrowWidth)
-				writer.WriteXmlNullableAttributeString(("startarrowwidth"), getArrowWidth(this.m_oStartArrowWidth));
+				writer.WriteXmlNullableAttributeString("startarrowwidth", getArrowWidth(this.m_oStartArrowWidth));
 
 			if (EStrokeArrowLength.strokearrowlengthMedium !== this.m_oStartArrowLength)
-				writer.WriteXmlNullableAttributeString(("startarrowlength"), getArrowLength(this.m_oStartArrowLength));
+				writer.WriteXmlNullableAttributeString("startarrowlength", getArrowLength(this.m_oStartArrowLength));
 
 			if (EStrokeArrowType.strokearrowtypeNone !== this.m_oEndArrow)
-				writer.WriteXmlNullableAttributeString(("endarrow"), getArrowType(this.m_oEndArrow));
+				writer.WriteXmlNullableAttributeString("endarrow", getArrowType(this.m_oEndArrow));
 
 			if (EStrokeArrowWidth.strokearrowwidthMedium !== this.m_oEndArrowWidth)
-				writer.WriteXmlNullableAttributeString(("endarrowwidth"), getArrowWidth(this.m_oEndArrowWidth));
+				writer.WriteXmlNullableAttributeString("endarrowwidth", getArrowWidth(this.m_oEndArrowWidth));
 
 			if (EStrokeArrowLength.strokearrowlengthMedium !== this.m_oEndArrowLength)
-				writer.WriteXmlNullableAttributeString(("endarrowlength"), getArrowLength(this.m_oEndArrowLength));
+				writer.WriteXmlNullableAttributeString("endarrowlength", getArrowLength(this.m_oEndArrowLength));
 
-			writer.WriteXmlNullableAttributeString(("o:href"), this.m_sHref);
-			writer.WriteXmlNullableAttributeString(("o:althref"), this.m_sAltHref);
-			writer.WriteXmlNullableAttributeString(("o:title"), this.m_sTitle);
+			writer.WriteXmlNullableAttributeString("o:href", this.m_sHref);
+			writer.WriteXmlNullableAttributeString("o:althref", this.m_sAltHref);
+			writer.WriteXmlNullableAttributeString("o:title", this.m_sTitle);
 
 			if (false !== this.m_oForceDash)
 				writer.WriteXmlNullableAttributeString("o:forcedash", "true");
 
-			writer.WriteXmlNullableAttributeString(("r:id"), this.m_rId);
-			writer.WriteXmlNullableAttributeString(("insetpen"), getBooleanTrueFalse(this.m_oInsetPen));
-			writer.WriteXmlNullableAttributeString(("o:relid"), this.m_oRelId);
+			writer.WriteXmlNullableAttributeString("r:id", this.m_rId);
+			writer.WriteXmlNullableAttributeString("insetpen", getBooleanTrueFalse(this.m_oInsetPen));
+			writer.WriteXmlNullableAttributeString("o:relid", this.m_oRelId);
 		};
 		CStroke.prototype.writeChildren = function (writer) {
 			if (this.m_oLeft !== null)
@@ -3650,24 +3650,24 @@
 			let wsChar = name.charCodeAt(0);
 			switch (wsChar) {
 				case 'f':
-					if (("fitpath") === name) this.m_oFitPath = reader.GetValueBool();
-					else if (("fitshape") === name) this.m_oFitShape = reader.GetValueBool();
+					if ("fitpath" === name) this.m_oFitPath = reader.GetValueBool();
+					else if ("fitshape" === name) this.m_oFitShape = reader.GetValueBool();
 					break;
 				case 'i':
-					if (("id") === name) this.m_oId = reader.GetValue();
+					if ("id" === name) this.m_oId = reader.GetValue();
 					break;
 				case 'o':
-					if (("on") === name) this.m_oOn = reader.GetValueBool();
+					if ("on" === name) this.m_oOn = reader.GetValueBool();
 					break;
 				case 's':
-					if (("string") === name) this.m_sString = reader.GetValue();
-					else if (("style") === name) this.m_oStyle = new CCssStyle(reader.GetValue());
+					if ("string" === name) this.m_sString = reader.GetValue();
+					else if ("style" === name) this.m_oStyle = new CCssStyle(reader.GetValue());
 					break;
 				case 't':
-					if (("trim") === name) this.m_oTrim = reader.GetValueBool();
+					if ("trim" === name) this.m_oTrim = reader.GetValueBool();
 					break;
 				case 'x':
-					if (("xscale") === name) this.m_oXScale = reader.GetValueBool();
+					if ("xscale" === name) this.m_oXScale = reader.GetValueBool();
 					break;
 			}
 		};
@@ -3690,7 +3690,7 @@
 			if ((this.m_oXScale !== null) && (false !== this.m_oXScale))
 				writer.WriteXmlNullableAttributeString("xscale", "true");
 
-			writer.WriteXmlNullableAttributeString(("string"), this.m_sString);
+			writer.WriteXmlNullableAttributeString("string", this.m_sString);
 		};
 
 		function CGroup() {
@@ -3703,13 +3703,13 @@
 		IC(CGroup, CVmlCommonElements, AscDFH.historyitem_type_VMLGroup);
 
 		CGroup.prototype.readAttrXml = function (name, reader) {
-			if (("editas") === name) {
+			if ("editas" === name) {
 				this.m_oEditAs = readEditAs(reader);
 				return;
-			} else if (("tableproperties") === name) {
+			} else if ("tableproperties" === name) {
 				this.m_oTableProperties = new CVml_TableProperties(reader.GetValue());
 				return;
-			} else if (("tablelimits") === name) {
+			} else if ("tablelimits" === name) {
 				this.m_oTableLimits = new CVml_TableLimits(reader.GetValue());
 				return;
 			}
@@ -3717,73 +3717,73 @@
 		};
 		CGroup.prototype.readChildXml = function (name, reader) {
 			let oItem = null;
-			if (("callout") === name)
+			if ("callout" === name)
 				oItem = new CCallout();
-			else if (("clippath") === name)
+			else if ("clippath" === name)
 				oItem = new CClipPath();
-			else if (("diagram") === name)
+			else if ("diagram" === name)
 				oItem = new CDiagram();
-			else if (("extrusion") === name)
+			else if ("extrusion" === name)
 				oItem = new CExtrusion();
-			else if (("lock") === name)
+			else if ("lock" === name)
 				oItem = new CLock();
-			else if (("signatureline") === name)
+			else if ("signatureline" === name)
 				oItem = new CSignatureLine();
-			else if (("skew") === name)
+			else if ("skew" === name)
 				oItem = new CSkew();
-			else if (("arc") === name)
+			else if ("arc" === name)
 				oItem = new CArc();
-			else if (("curve") === name)
+			else if ("curve" === name)
 				oItem = new CCurve();
-			else if (("fill") === name)
+			else if ("fill" === name)
 				oItem = new CFillVml();
-			else if (("formulas") === name)
+			else if ("formulas" === name)
 				oItem = new CFormulas();
-			else if (("group") === name)
+			else if ("group" === name)
 				oItem = new CGroup();
-			else if (("handles") === name)
+			else if ("handles" === name)
 				oItem = new CHandles();
-			else if (("imagedata") === name)
+			else if ("imagedata" === name)
 				oItem = new CImageData();
-			else if (("image") === name)
+			else if ("image" === name)
 				oItem = new CImage();
-			else if (("line") === name)
+			else if ("line" === name)
 				oItem = new CLine();
-			else if (("oval") === name)
+			else if ("oval" === name)
 				oItem = new COval();
-			else if (("path") === name)
+			else if ("path" === name)
 				oItem = new CPath();
-			else if (("polyline") === name)
+			else if ("polyline" === name)
 				oItem = new CPolyLine();
-			else if (("rect") === name)
+			else if ("rect" === name)
 				oItem = new CRect();
-			else if (("roundrect") === name)
+			else if ("roundrect" === name)
 				oItem = new CRoundRect();
-			else if (("shadow") === name)
+			else if ("shadow" === name)
 				oItem = new CShadow();
-			else if (("shape") === name)
+			else if ("shape" === name)
 				oItem = new CShape();
-			else if (("shapetype") === name)
+			else if ("shapetype" === name)
 				oItem = new CShapeType();
-			else if (("stroke") === name)
+			else if ("stroke" === name)
 				oItem = new CStroke();
-			else if (("textbox") === name)
+			else if ("textbox" === name)
 				oItem = new CTextbox();
-			else if (("textpath") === name)
+			else if ("textpath" === name)
 				oItem = new CTextPath();
-			else if (("anchorLock") === name)
+			else if ("anchorLock" === name)
 				oItem = new CAnchorLock();
-			else if (("borderbottom") === name)
+			else if ("borderbottom" === name)
 				oItem = new CBorder("borderbottom");
-			else if (("borderleft") === name)
+			else if ("borderleft" === name)
 				oItem = new CBorder("borderleft");
-			else if (("borderright") === name)
+			else if ("borderright" === name)
 				oItem = new CBorder("borderright");
-			else if (("bordertop") === name)
+			else if ("bordertop" === name)
 				oItem = new CBorder("bordertop");
-			else if (("wrap") === name)
+			else if ("wrap" === name)
 				oItem = new CWrap();
-			else if (("ClientData") === name)
+			else if ("ClientData" === name)
 				oItem = new CClientData();
 
 			if (oItem) {
@@ -3793,10 +3793,10 @@
 		};
 		CGroup.prototype.writeAttrXmlImpl = function (writer) {
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
-			writer.WriteXmlNullableAttributeString(("editas"), getEditAs(this.m_oEditAs));
+			writer.WriteXmlNullableAttributeString("editas", getEditAs(this.m_oEditAs));
 			if (this.m_oTableProperties)
-				writer.WriteXmlNullableAttributeString(("o:tableproperties"), this.m_oTableProperties.ToString());
-			this.m_oTableLimits && writer.WriteXmlNullableAttributeString(("o:tablelimits"), this.m_oTableLimits.ToString());
+				writer.WriteXmlNullableAttributeString("o:tableproperties", this.m_oTableProperties.ToString());
+			this.m_oTableLimits && writer.WriteXmlNullableAttributeString("o:tablelimits", this.m_oTableLimits.ToString());
 		};
 		CGroup.prototype.writeChildren = function (writer) {
 
@@ -3900,75 +3900,75 @@
 
 		IC(CShapeDefaults, CBaseNoId, 0);
 		CShapeDefaults.prototype.readAttrXml = function (name, reader) {
-			if (("fill") === name) this.m_oFill = reader.GetValueBool();
-			else if (("fillcolor") === name) this.m_oFillColor = readColorType(reader);
-			else if (("allowincell") === name) this.m_oAllowInCell = reader.GetValueBool();
-			else if (("spidmax") === name) this.m_oSpIdMax = reader.GetValueInt();
-			else if (("style") === name) this.m_oStyle = new CCssStyle(reader.GetValue());
-			else if (("stroke") === name) this.m_oStroke = reader.GetValueBool();
-			else if (("strokecolor") === name) this.m_oStrokeColor = readColorType(reader);
-			else if (("ext") === name) this.m_oExt = readExt(reader);
+			if ("fill" === name) this.m_oFill = reader.GetValueBool();
+			else if ("fillcolor" === name) this.m_oFillColor = readColorType(reader);
+			else if ("allowincell" === name) this.m_oAllowInCell = reader.GetValueBool();
+			else if ("spidmax" === name) this.m_oSpIdMax = reader.GetValueInt();
+			else if ("style" === name) this.m_oStyle = new CCssStyle(reader.GetValue());
+			else if ("stroke" === name) this.m_oStroke = reader.GetValueBool();
+			else if ("strokecolor" === name) this.m_oStrokeColor = readColorType(reader);
+			else if ("ext" === name) this.m_oExt = readExt(reader);
 		};
 		CShapeDefaults.prototype.readChildXml = function (name, reader) {
-			if (("fill") === name) {
+			if ("fill" === name) {
 
 				this.m_oVmlFill = new CFillVml();
 				this.m_oVmlFill.fromXml(reader);
-			} else if (("stroke") === name) {
+			} else if ("stroke" === name) {
 
 				this.m_oVmlStroke = new CStroke();
 				this.m_oVmlStroke.fromXml(reader);
-			} else if (("textbox") === name) {
+			} else if ("textbox" === name) {
 
 				this.m_oVmlTextbox = new CTextbox();
 				this.m_oVmlTextbox.fromXml(reader);
-			} else if (("shadow") === name) {
+			} else if ("shadow" === name) {
 
 				this.m_oVmlShadow = new CShadow();
 				this.m_oVmlShadow.fromXml(reader);
-			} else if (("skew") === name) {
+			} else if ("skew" === name) {
 
 				this.m_oSkew = new CSkew();
 				this.m_oSkew.fromXml(reader);
-			} else if (("extrusion") === name) {
+			} else if ("extrusion" === name) {
 
 				this.m_oExtrusion = new CExtrusion();
 				this.m_oExtrusion.fromXml(reader);
-			} else if (("callout") === name) {
+			} else if ("callout" === name) {
 
 				this.m_oCallout = new CCallout();
 				this.m_oCallout.fromXml(reader);
-			} else if (("lock") === name) {
+			} else if ("lock" === name) {
 				this.m_oLock = new CLock();
 				this.m_oLock.fromXml(reader);
-			} else if (("colormru") === name) {
+			} else if ("colormru" === name) {
 
 				this.m_oColorMru = new CColorMru();
 				this.m_oColorMru.fromXml(reader);
-			} else if (("colormenu") === name) {
+			} else if ("colormenu" === name) {
 
 				this.m_oColorMenu = new CColorMenu();
 				this.m_oColorMenu.fromXml(reader);
 			}
 		};
 		CShapeDefaults.prototype.writeAttrXmlImpl = function (writer) {
-			writer.WriteXmlNullableAttributeString(("v:ext"), this.m_oExt);
+			writer.WriteXmlNullableAttributeString("v:ext", this.m_oExt);
 
 			if (0 !== this.m_oSpIdMax)
-				writer.WriteXmlNullableAttributeInt(("spidmax"), this.m_oSpIdMax);
+				writer.WriteXmlNullableAttributeInt("spidmax", this.m_oSpIdMax);
 
-			this.m_oStyle && writer.WriteXmlNullableAttributeString(("style"), this.m_oStyle.ToString());
+			this.m_oStyle && writer.WriteXmlNullableAttributeString("style", this.m_oStyle.ToString());
 
 			if (true !== this.m_oFill)
 				writer.WriteXmlNullableAttributeString("fill", "false");
 
-			writer.WriteXmlNullableAttributeString(("fillcolor"), getColorType(this.m_oFillColor));
+			writer.WriteXmlNullableAttributeString("fillcolor", getColorType(this.m_oFillColor));
 
 			if (true !== this.m_oStroke)
 				writer.WriteXmlNullableAttributeString("stroke", "false");
 
 			if (this.m_oStrokeColor && EColorType.colortypeBlack !== this.m_oStrokeColor.type)
-				writer.WriteXmlNullableAttributeString(("strokecolor"), getColorType(this.m_oStrokeColor));
+				writer.WriteXmlNullableAttributeString("strokecolor", getColorType(this.m_oStrokeColor));
 
 			if (false !== this.m_oAllowInCell)
 				writer.WriteXmlNullableAttributeString("o:allowincell", "true");
@@ -4042,13 +4042,13 @@
 		CBorder.prototype.writeAttrXmlImpl = function (writer) {
 
 			if (this.m_oType !== null)
-				writer.WriteXmlNullableAttributeString(("wd:type"), getBorderType(this.m_oType));
+				writer.WriteXmlNullableAttributeString("wd:type", getBorderType(this.m_oType));
 
 			if (this.m_oWidth !== null)
-				writer.WriteXmlNullableAttributeInt(("wd:width"), this.m_oWidth);
+				writer.WriteXmlNullableAttributeInt("wd:width", this.m_oWidth);
 
 			if (this.m_oShadow !== null)
-				writer.WriteXmlNullableAttributeString(("wd:shadow"), getBorderShadow(this.m_oShadow));
+				writer.WriteXmlNullableAttributeString("wd:shadow", getBorderShadow(this.m_oShadow));
 		};
 
 
@@ -4081,16 +4081,16 @@
 		CWrap.prototype.writeAttrXmlImpl = function (writer) {
 
 			if (this.m_oType !== null)
-				writer.WriteXmlNullableAttributeString(("type"), getWrapType(this.m_oType));
+				writer.WriteXmlNullableAttributeString("type", getWrapType(this.m_oType));
 
 			if (this.m_oSide !== null)
-				writer.WriteXmlNullableAttributeString(("side"), getWrapSide(this.m_oSide));
+				writer.WriteXmlNullableAttributeString("side", getWrapSide(this.m_oSide));
 
 			if (this.m_oAnchorX !== null)
-				writer.WriteXmlNullableAttributeString(("anchorx"), getHorizontalAnchor(this.m_oAnchorX));
+				writer.WriteXmlNullableAttributeString("anchorx", getHorizontalAnchor(this.m_oAnchorX));
 
 			if (this.m_oAnchorY !== null)
-				writer.WriteXmlNullableAttributeString(("anchory"), getVerticalAnchor(this.m_oAnchorY));
+				writer.WriteXmlNullableAttributeString("anchory", getVerticalAnchor(this.m_oAnchorY));
 
 		};
 
@@ -5835,13 +5835,13 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 
 		function readEditAs(reader) {
 			let sValue = reader.GetValue();
-			if (("bullseye") === sValue) return EEditAs.editasBullseye;
-			else if (("canvas") === sValue) return EEditAs.editasCanvas;
-			else if (("cycle") === sValue) return EEditAs.editasCycle;
-			else if (("orgchart") === sValue) return EEditAs.editasOrgchart;
-			else if (("radial") === sValue) return EEditAs.editasRadial;
-			else if (("stacked") === sValue) return EEditAs.editasStacked;
-			else if (("venn") === sValue) return EEditAs.editasVenn;
+			if ("bullseye" === sValue) return EEditAs.editasBullseye;
+			else if ("canvas" === sValue) return EEditAs.editasCanvas;
+			else if ("cycle" === sValue) return EEditAs.editasCycle;
+			else if ("orgchart" === sValue) return EEditAs.editasOrgchart;
+			else if ("radial" === sValue) return EEditAs.editasRadial;
+			else if ("stacked" === sValue) return EEditAs.editasStacked;
+			else if ("venn" === sValue) return EEditAs.editasVenn;
 			return EEditAs.editasCanvas;
 		}
 
@@ -7203,57 +7203,57 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 					return;
 				}
 
-				if (("direction") === sProperty) this.m_eType = ECssPropertyType.cssptDirection;
-				if (("flip") === sProperty) this.m_eType = ECssPropertyType.cssptFlip;
-				if (("font") === sProperty) this.m_eType = ECssPropertyType.cssptFont;
-				else if (("font-family") === sProperty) this.m_eType = ECssPropertyType.cssptFontFamily;
-				else if (("font-size") === sProperty) this.m_eType = ECssPropertyType.cssptFontSize;
-				else if (("font-style") === sProperty) this.m_eType = ECssPropertyType.cssptFontStyle;
-				else if (("font-variant") === sProperty) this.m_eType = ECssPropertyType.cssptFontVariant;
-				else if (("font-weight") === sProperty) this.m_eType = ECssPropertyType.cssptFontWeight;
-				if (("height") === sProperty) this.m_eType = ECssPropertyType.cssptHeight;
-				if (("layout-flow") === sProperty) this.m_eType = ECssPropertyType.cssptLayoutFlow;
-				else if (("left") === sProperty) this.m_eType = ECssPropertyType.cssptLeft;
-				if (("margin-bottom") === sProperty) this.m_eType = ECssPropertyType.cssptMarginBottom;
-				else if (("margin-left") === sProperty) this.m_eType = ECssPropertyType.cssptMarginLeft;
-				else if (("margin-right") === sProperty) this.m_eType = ECssPropertyType.cssptMarginRight;
-				else if (("margin-top") === sProperty) this.m_eType = ECssPropertyType.cssptMarginTop;
-				if (("mso-direction-alt") === sProperty) this.m_eType = ECssPropertyType.cssptMsoDirectionAlt;
-				else if (("mso-fit-shape-to-text") === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitShapeToText;
-				else if (("mso-fit-text-to-shape") === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitTextToShape;
-				else if (("mso-layout-flow-alt") === sProperty) this.m_eType = ECssPropertyType.cssptMsoLayoutFlowAlt;
-				else if (("mso-next-textbox") === sProperty) this.m_eType = ECssPropertyType.cssptMsoNextTextbox;
-				else if (("mso-position-horizontal") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionHorizontal;
-				else if (("mso-position-horizontal-relative") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionHorizontalRelative;
-				else if (("mso-position-vertical") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionVertical;
-				else if (("mso-position-vertical-relative") === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionVerticalRelative;
-				else if (("mso-rotate") === sProperty) this.m_eType = ECssPropertyType.cssptMsoRotate;
-				else if (("mso-text-scale") === sProperty) this.m_eType = ECssPropertyType.cssptMsoTextScale;
-				else if (("mso-text-shadow") === sProperty) this.m_eType = ECssPropertyType.cssptMsoTextShadow;
-				else if (("mso-wrap-distance-bottom") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceBottom;
-				else if (("mso-wrap-distance-left") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceLeft;
-				else if (("mso-wrap-distance-right") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceRight;
-				else if (("mso-wrap-distance-top") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceTop;
-				else if (("mso-wrap-edited") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapEdited;
-				else if (("mso-wrap-style") === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapStyle;
-				else if (("mso-height-percent") === sProperty) this.m_eType = ECssPropertyType.csspctMsoHeightPercent;
-				else if (("mso-width-percent") === sProperty) this.m_eType = ECssPropertyType.csspctMsoWidthPercent;
-				if (("position") === sProperty) this.m_eType = ECssPropertyType.cssptPosition;
-				if (("rotation") === sProperty) this.m_eType = ECssPropertyType.cssptRotation;
-				if (("text-decoration") === sProperty) this.m_eType = ECssPropertyType.cssptTextDecoration;
-				else if (("top") === sProperty) this.m_eType = ECssPropertyType.cssptTop;
-				else if (("text-align") === sProperty) this.m_eType = ECssPropertyType.cssptHTextAlign;
-				if (("visibility") === sProperty) this.m_eType = ECssPropertyType.cssptVisibility;
-				else if (("v-rotate-letters") === sProperty) this.m_eType = ECssPropertyType.cssptVRotateLetters;
-				else if (("v-same-letter-heights") === sProperty) this.m_eType = ECssPropertyType.cssptVSameLetterHeights;
-				else if (("v-text-align") === sProperty) this.m_eType = ECssPropertyType.cssptVTextAlign;
-				else if (("v-text-anchor") === sProperty) this.m_eType = ECssPropertyType.cssptVTextAnchor;
-				else if (("v-text-kern") === sProperty) this.m_eType = ECssPropertyType.cssptVTextKern;
-				else if (("v-text-reverse") === sProperty) this.m_eType = ECssPropertyType.cssptVTextReverse;
-				else if (("v-text-spacing-mode") === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacingMode;
-				else if (("v-text-spacing") === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacing;
-				if (("width") === sProperty) this.m_eType = ECssPropertyType.cssptWidth;
-				if (("z-index") === sProperty) this.m_eType = ECssPropertyType.cssptZIndex;
+				if ("direction" === sProperty) this.m_eType = ECssPropertyType.cssptDirection;
+				if ("flip" === sProperty) this.m_eType = ECssPropertyType.cssptFlip;
+				if ("font" === sProperty) this.m_eType = ECssPropertyType.cssptFont;
+				else if ("font-family" === sProperty) this.m_eType = ECssPropertyType.cssptFontFamily;
+				else if ("font-size" === sProperty) this.m_eType = ECssPropertyType.cssptFontSize;
+				else if ("font-style" === sProperty) this.m_eType = ECssPropertyType.cssptFontStyle;
+				else if ("font-variant" === sProperty) this.m_eType = ECssPropertyType.cssptFontVariant;
+				else if ("font-weight" === sProperty) this.m_eType = ECssPropertyType.cssptFontWeight;
+				if ("height" === sProperty) this.m_eType = ECssPropertyType.cssptHeight;
+				if ("layout-flow" === sProperty) this.m_eType = ECssPropertyType.cssptLayoutFlow;
+				else if ("left" === sProperty) this.m_eType = ECssPropertyType.cssptLeft;
+				if ("margin-bottom" === sProperty) this.m_eType = ECssPropertyType.cssptMarginBottom;
+				else if ("margin-left" === sProperty) this.m_eType = ECssPropertyType.cssptMarginLeft;
+				else if ("margin-right" === sProperty) this.m_eType = ECssPropertyType.cssptMarginRight;
+				else if ("margin-top" === sProperty) this.m_eType = ECssPropertyType.cssptMarginTop;
+				if ("mso-direction-alt" === sProperty) this.m_eType = ECssPropertyType.cssptMsoDirectionAlt;
+				else if ("mso-fit-shape-to-text" === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitShapeToText;
+				else if ("mso-fit-text-to-shape" === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitTextToShape;
+				else if ("mso-layout-flow-alt" === sProperty) this.m_eType = ECssPropertyType.cssptMsoLayoutFlowAlt;
+				else if ("mso-next-textbox" === sProperty) this.m_eType = ECssPropertyType.cssptMsoNextTextbox;
+				else if ("mso-position-horizontal" === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionHorizontal;
+				else if ("mso-position-horizontal-relative" === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionHorizontalRelative;
+				else if ("mso-position-vertical" === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionVertical;
+				else if ("mso-position-vertical-relative" === sProperty) this.m_eType = ECssPropertyType.cssptMsoPositionVerticalRelative;
+				else if ("mso-rotate" === sProperty) this.m_eType = ECssPropertyType.cssptMsoRotate;
+				else if ("mso-text-scale" === sProperty) this.m_eType = ECssPropertyType.cssptMsoTextScale;
+				else if ("mso-text-shadow" === sProperty) this.m_eType = ECssPropertyType.cssptMsoTextShadow;
+				else if ("mso-wrap-distance-bottom" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceBottom;
+				else if ("mso-wrap-distance-left" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceLeft;
+				else if ("mso-wrap-distance-right" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceRight;
+				else if ("mso-wrap-distance-top" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapDistanceTop;
+				else if ("mso-wrap-edited" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapEdited;
+				else if ("mso-wrap-style" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapStyle;
+				else if ("mso-height-percent" === sProperty) this.m_eType = ECssPropertyType.csspctMsoHeightPercent;
+				else if ("mso-width-percent" === sProperty) this.m_eType = ECssPropertyType.csspctMsoWidthPercent;
+				if ("position" === sProperty) this.m_eType = ECssPropertyType.cssptPosition;
+				if ("rotation" === sProperty) this.m_eType = ECssPropertyType.cssptRotation;
+				if ("text-decoration" === sProperty) this.m_eType = ECssPropertyType.cssptTextDecoration;
+				else if ("top" === sProperty) this.m_eType = ECssPropertyType.cssptTop;
+				else if ("text-align" === sProperty) this.m_eType = ECssPropertyType.cssptHTextAlign;
+				if ("visibility" === sProperty) this.m_eType = ECssPropertyType.cssptVisibility;
+				else if ("v-rotate-letters" === sProperty) this.m_eType = ECssPropertyType.cssptVRotateLetters;
+				else if ("v-same-letter-heights" === sProperty) this.m_eType = ECssPropertyType.cssptVSameLetterHeights;
+				else if ("v-text-align" === sProperty) this.m_eType = ECssPropertyType.cssptVTextAlign;
+				else if ("v-text-anchor" === sProperty) this.m_eType = ECssPropertyType.cssptVTextAnchor;
+				else if ("v-text-kern" === sProperty) this.m_eType = ECssPropertyType.cssptVTextKern;
+				else if ("v-text-reverse" === sProperty) this.m_eType = ECssPropertyType.cssptVTextReverse;
+				else if ("v-text-spacing-mode" === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacingMode;
+				else if ("v-text-spacing" === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacing;
+				if ("width" === sProperty) this.m_eType = ECssPropertyType.cssptWidth;
+				if ("z-index" === sProperty) this.m_eType = ECssPropertyType.cssptZIndex;
 
 				switch (this.m_eType) {
 					case ECssPropertyType.cssptUnknown :
@@ -7422,60 +7422,60 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		CCssProperty.prototype.ReadValue_Unknown = function (sValue) {
 		};
 		CCssProperty.prototype.ReadValue_Flip = function (sValue) {
-			if (("x") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipX;
-			else if (("y") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipY;
-			else if (("xy") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipXY;
-			else if (("yx") === sValue) this.m_oValue.eFlip = ECssFlip.cssflipYX;
+			if ("x" === sValue) this.m_oValue.eFlip = ECssFlip.cssflipX;
+			else if ("y" === sValue) this.m_oValue.eFlip = ECssFlip.cssflipY;
+			else if ("xy" === sValue) this.m_oValue.eFlip = ECssFlip.cssflipXY;
+			else if ("yx" === sValue) this.m_oValue.eFlip = ECssFlip.cssflipYX;
 			else
 				this.m_eType = ECssPropertyType.cssptUnknown;
 		};
 		CCssProperty.prototype.ReadValue_Units = function (sValue) {
 			let nPos;
-			if (-1 !== (nPos = sValue.indexOf(("auto")))) {
+			if (-1 !== (nPos = sValue.indexOf("auto"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAuto;
-			} else if (-1 !== (nPos = sValue.indexOf(("in")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("in"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
 
 				let strValue = sValue.substr(0, nPos);
 				let dValue = parseFloat(sValue);
 
 				this.m_oValue.oValue.dValue = Inch_To_Pt(dValue);
-			} else if (-1 !== (nPos = sValue.indexOf(("cm")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("cm"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
 
 				let strValue = sValue.substr(0, nPos);
 				let dValue = parseFloat(sValue);
 
 				this.m_oValue.oValue.dValue = Cm_To_Pt(dValue);
-			} else if (-1 !== (nPos = sValue.indexOf(("mm")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("mm"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
 
 				let strValue = sValue.substr(0, nPos);
 				let dValue = parseFloat(sValue);
 
 				this.m_oValue.oValue.dValue = Mm_To_Pt(dValue);
-			} else if (-1 !== (nPos = sValue.indexOf(("em")))) {
-			} else if (-1 !== (nPos = sValue.indexOf(("ex")))) {
-			} else if (-1 !== (nPos = sValue.indexOf(("pt")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("em"))) {
+			} else if (-1 !== (nPos = sValue.indexOf("ex"))) {
+			} else if (-1 !== (nPos = sValue.indexOf("pt"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
 
 				let strValue = sValue.substr(0, nPos);
 				let dValue = parseFloat(sValue);
 
 				this.m_oValue.oValue.dValue = dValue;
-			} else if (-1 !== (nPos = sValue.indexOf(("pc")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("pc"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
 
 				let strValue = sValue.substr(0, nPos);
 				let dValue = parseFloat(sValue);
 
 				this.m_oValue.oValue.dValue = dValue * 12;
-			} else if (-1 !== (nPos = sValue.indexOf(("%")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("%"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypePerc;
 
 				let strValue = sValue.substr(0, nPos);
 				this.m_oValue.oValue.dValue = strValue.length === 0 ? 0 : parseFloat(strValue);
-			} else if (-1 !== (nPos = sValue.indexOf(("px")))) {
+			} else if (-1 !== (nPos = sValue.indexOf("px"))) {
 				this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeUnits;
 
 				let strValue = sValue.substr(0, nPos);
@@ -7489,42 +7489,42 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		};
 
 		CCssProperty.prototype.ReadValue_MsoPosHor = function (sValue) {
-			if (("absolute") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
-			else if (("left") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorLeft;
-			else if (("center") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorCenter;
-			else if (("right") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorRight;
-			else if (("inside") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorInside;
-			else if (("outside") === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorOutside;
+			if ("absolute" === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
+			else if ("left" === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorLeft;
+			else if ("center" === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorCenter;
+			else if ("right" === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorRight;
+			else if ("inside" === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorInside;
+			else if ("outside" === sValue) this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorOutside;
 			else
 				this.m_oValue.eMsoPosHor = ECssMsoPosHor.cssmsoposhorAbsolute;
 		};
 		CCssProperty.prototype.ReadValue_MsoPosHorRel = function (sValue) {
-			if (("left-margin-area") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelLeftMargin;
-			else if (("right-margin-area") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelRightMargin;
-			else if (("margin") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelMargin;
-			else if (("page") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelPage;
-			else if (("text") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelText;
-			else if (("char") === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelChar;
+			if ("left-margin-area" === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelLeftMargin;
+			else if ("right-margin-area" === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelRightMargin;
+			else if ("margin" === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelMargin;
+			else if ("page" === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelPage;
+			else if ("text" === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelText;
+			else if ("char" === sValue) this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelChar;
 			else
 				this.m_oValue.eMsoPosHorRel = ECssMsoPosHorRel.cssmsoposhorrelText;
 		};
 		CCssProperty.prototype.ReadValue_MsoPosVer = function (sValue) {
-			if (("absolute") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
-			else if (("top") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverTop;
-			else if (("center") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverCenter;
-			else if (("bottom") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverBottom;
-			else if (("inside") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverInside;
-			else if (("outside") === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverOutside;
+			if ("absolute" === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
+			else if ("top" === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverTop;
+			else if ("center" === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverCenter;
+			else if ("bottom" === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverBottom;
+			else if ("inside" === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverInside;
+			else if ("outside" === sValue) this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverOutside;
 			else
 				this.m_oValue.eMsoPosVer = ECssMsoPosVer.cssmsoposverAbsolute;
 		};
 		CCssProperty.prototype.ReadValue_MsoPosVerRel = function (sValue) {
-			if (("bottom-margin-area") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelBottomMargin;
-			else if (("top-margin-area") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelTopMargin;
-			else if (("margin") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelMargin;
-			else if (("page") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelPage;
-			else if (("text") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelText;
-			else if (("line") === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelLine;
+			if ("bottom-margin-area" === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelBottomMargin;
+			else if ("top-margin-area" === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelTopMargin;
+			else if ("margin" === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelMargin;
+			else if ("page" === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelPage;
+			else if ("text" === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelText;
+			else if ("line" === sValue) this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelLine;
 			else
 				this.m_oValue.eMsoPosVerRel = ECssMsoPosVerRel.cssmsoposverrelText;
 		};
@@ -7533,39 +7533,39 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			this.m_oValue.oValue.m_eType = ECssUnitsType.cssunitstypeAbsolute;
 			this.m_oValue.oValue.dValue = sValue.length === 0 ? 0 : parseFloat(sValue);
 
-			if (sValue.indexOf(("fd")) !== -1) {
+			if (sValue.indexOf("fd") !== -1) {
 				this.m_oValue.oValue.dValue /= 6000.;
-			} else if (sValue.indexOf(("f")) === sValue.length - 1) {
+			} else if (sValue.indexOf("f") === sValue.length - 1) {
 				this.m_oValue.oValue.dValue /= 65536.;
 			}
 		};
 		CCssProperty.prototype.ReadValue_Boolean = function (sValue) {
-			if (("true") === sValue || ("t") === sValue || ("1") === sValue)
+			if ("true" === sValue || "t" === sValue || "1" === sValue)
 				this.m_oValue.bValue = true;
 			else
 				this.m_oValue.bValue = false;
 		};
 		CCssProperty.prototype.ReadValue_MsoWrapStyle = function (sValue) {
-			if (("square") === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
-			else if (("none") === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleNone;
+			if ("square" === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
+			else if ("none" === sValue) this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleNone;
 			else
 				this.m_oValue.eMsoWrapStyle = ECssMsoWrapStyle.cssmsowrapstyleSqaure;
 		};
 		CCssProperty.prototype.ReadValue_Position = function (sValue) {
-			if (("static") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionStatic;
-			else if (("absolute") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
-			else if (("relative") === sValue) this.m_oValue.ePosition = ECssPosition.csspositionRelative;
+			if ("static" === sValue) this.m_oValue.ePosition = ECssPosition.csspositionStatic;
+			else if ("absolute" === sValue) this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
+			else if ("relative" === sValue) this.m_oValue.ePosition = ECssPosition.csspositionRelative;
 			else
 				this.m_oValue.ePosition = ECssPosition.csspositionAbsolute;
 		};
 		CCssProperty.prototype.ReadValue_Visibility = function (sValue) {
-			if (("hidden") === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityHidden;
-			else if (("inherit") === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
+			if ("hidden" === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityHidden;
+			else if ("inherit" === sValue) this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
 			else
 				this.m_oValue.eVisibility = ECssVisibility.cssvisibilityInherit;
 		};
 		CCssProperty.prototype.ReadValue_ZIndex = function (sValue) {
-			if (("auto") === sValue) this.m_oValue.oZIndex.m_eType = ECssZIndexType.csszindextypeAuto;
+			if ("auto" === sValue) this.m_oValue.oZIndex.m_eType = ECssZIndexType.csszindextypeAuto;
 			else {
 				this.m_oValue.oZIndex.m_eType = ECssZIndexType.csszindextypeOrder;
 				this.m_oValue.oZIndex.nOrder = parseInt(sValue);
@@ -7573,16 +7573,16 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			}
 		};
 		CCssProperty.prototype.ReadValue_Direction = function (sValue) {
-			if (("ltr") === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
-			else if (("rtl") === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionRTL;
+			if ("ltr" === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
+			else if ("rtl" === sValue) this.m_oValue.eDirection = ECssDirection.cssdirectionRTL;
 			else
 				this.m_oValue.eDirection = ECssDirection.cssdirectionLTR;
 		};
 		CCssProperty.prototype.ReadValue_LayoutFlow = function (sValue) {
-			if (("horizontal") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
-			else if (("vertical") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVertical;
-			else if (("vertical-ideographic") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVerticalIdeographic;
-			else if (("horizontal-ideographic") === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontalIdeographic;
+			if ("horizontal" === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
+			else if ("vertical" === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVertical;
+			else if ("vertical-ideographic" === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowVerticalIdeographic;
+			else if ("horizontal-ideographic" === sValue) this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontalIdeographic;
 			else
 				this.m_oValue.eLayoutFlow = ECssLayoutFlow.csslayoutflowHorizontal;
 		};
@@ -7597,79 +7597,79 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		};
 
 		CCssProperty.prototype.ReadValue_MsoRotate = function (sValue) {
-			if (("0") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
-			else if (("90") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate90;
-			else if (("180") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate180;
-			else if (("-90") === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate270;
+			if ("0" === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
+			else if ("90" === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate90;
+			else if ("180" === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate180;
+			else if ("-90" === sValue) this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate270;
 			else
 				this.m_oValue.eRotate = ECssMsoRotate.cssmsorotate0;
 		};
 		CCssProperty.prototype.ReadValue_VTextAnchor = function (sValue) {
-			if (("top") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
-			else if (("middle") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddle;
-			else if (("bottom") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottom;
-			else if (("top-center") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopCenter;
-			else if (("middle-center") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddleCenter;
-			else if (("bottom-center") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenter;
-			else if (("top-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopBaseline;
-			else if (("bottom-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomBaseline;
-			else if (("top-center-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopCenterBaseline;
-			else if (("bottom-center-baseline") === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenterBaseline;
+			if ("top" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
+			else if ("middle" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddle;
+			else if ("bottom" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottom;
+			else if ("top-center" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopCenter;
+			else if ("middle-center" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorMiddleCenter;
+			else if ("bottom-center" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenter;
+			else if ("top-baseline" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopBaseline;
+			else if ("bottom-baseline" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomBaseline;
+			else if ("top-center-baseline" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTopCenterBaseline;
+			else if ("bottom-center-baseline" === sValue) this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorBottomCenterBaseline;
 			else
 				this.m_oValue.eVTextAnchor = ECssVTextAnchor.cssvtextanchorTop;
 		};
 		CCssProperty.prototype.ReadValue_FontStyle = function (sValue) {
-			if (("normal") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
-			else if (("italic") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleItalic;
-			else if (("oblique") === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleOblique;
+			if ("normal" === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
+			else if ("italic" === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleItalic;
+			else if ("oblique" === sValue) this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleOblique;
 			else
 				this.m_oValue.eFontStyle = ECssFontStyle.cssfontstyleNormal;
 		};
 		CCssProperty.prototype.ReadValue_FontVariant = function (sValue) {
-			if (("normal") === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
-			else if (("small-caps") === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantSmallCaps;
+			if ("normal" === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
+			else if ("small-caps" === sValue) this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantSmallCaps;
 			else
 				this.m_oValue.eFontVariant = ECssFontVarian.cssfontvariantNormal;
 		};
 		CCssProperty.prototype.ReadValue_FontWeight = function (sValue) {
-			if (("normal") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
-			else if (("lighter") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightLighter;
-			else if (("100") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight100;
-			else if (("200") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight200;
-			else if (("300") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight300;
-			else if (("400") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight400;
-			else if (("bold") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightBold;
-			else if (("bolder") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightBolder;
-			else if (("500") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight500;
-			else if (("600") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight600;
-			else if (("700") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight700;
-			else if (("800") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight800;
-			else if (("900") === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight900;
+			if ("normal" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
+			else if ("lighter" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightLighter;
+			else if ("100" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight100;
+			else if ("200" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight200;
+			else if ("300" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight300;
+			else if ("400" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight400;
+			else if ("bold" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightBold;
+			else if ("bolder" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightBolder;
+			else if ("500" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight500;
+			else if ("600" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight600;
+			else if ("700" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight700;
+			else if ("800" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight800;
+			else if ("900" === sValue) this.m_oValue.eFontWeight = ECssFontWeight.cssfontweight900;
 			else
 				this.m_oValue.eFontWeight = ECssFontWeight.cssfontweightNormal;
 		};
 		CCssProperty.prototype.ReadValue_TextDecoration = function (sValue) {
-			if (("none") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
-			else if (("underline") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationUnderline;
-			else if (("overline") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationOverline;
-			else if (("line-through") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationLineThrough;
-			else if (("blink") === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationBlink;
+			if ("none" === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
+			else if ("underline" === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationUnderline;
+			else if ("overline" === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationOverline;
+			else if ("line-through" === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationLineThrough;
+			else if ("blink" === sValue) this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationBlink;
 			else
 				this.m_oValue.eTextDecoration = ECssTextDecoration.csstextdecorationNone;
 		};
 		CCssProperty.prototype.ReadValue_VTextAlign = function (sValue) {
-			if (("left") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
-			else if (("right") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignRight;
-			else if (("center") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignCenter;
-			else if (("justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignJustify;
-			else if (("letter-justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLetterJustify;
-			else if (("stretch-justify") === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignStretchJustify;
+			if ("left" === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
+			else if ("right" === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignRight;
+			else if ("center" === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignCenter;
+			else if ("justify" === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignJustify;
+			else if ("letter-justify" === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLetterJustify;
+			else if ("stretch-justify" === sValue) this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignStretchJustify;
 			else
 				this.m_oValue.eVTextAlign = ECssVTextAlign.cssvtextalignLeft;
 		};
 		CCssProperty.prototype.ReadValue_VTextSpacingMode = function (sValue) {
-			if (("tightening") === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
-			else if (("tracking") === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTracking;
+			if ("tightening" === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
+			else if ("tracking" === sValue) this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTracking;
 			else
 				this.m_oValue.eVTextSpacingMode = ECssVTextSpacingMode.cssvtextspacingmodeTightening;
 		};
@@ -7712,50 +7712,50 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			let wChar = sValue.charAt(0);
 			switch (wChar) {
 				case 'd':
-					if (("dash") === sValue) return EBorderType.bordertypeDash;
-					else if (("dashDotDot") === sValue) return EBorderType.bordertypeDashDotDot;
-					else if (("dashDotStroked") === sValue) return EBorderType.bordertypeDashDotStroked;
-					else if (("dashedSmall") === sValue) return EBorderType.bordertypeDashedSmall;
-					else if (("dot") === sValue) return EBorderType.bordertypeDot;
-					else if (("dotDash") === sValue) return EBorderType.bordertypeDotDash;
-					else if (("double") === sValue) return EBorderType.bordertypeDouble;
-					else if (("doubleWave") === sValue) return EBorderType.bordertypeDoubleWave;
+					if ("dash" === sValue) return EBorderType.bordertypeDash;
+					else if ("dashDotDot" === sValue) return EBorderType.bordertypeDashDotDot;
+					else if ("dashDotStroked" === sValue) return EBorderType.bordertypeDashDotStroked;
+					else if ("dashedSmall" === sValue) return EBorderType.bordertypeDashedSmall;
+					else if ("dot" === sValue) return EBorderType.bordertypeDot;
+					else if ("dotDash" === sValue) return EBorderType.bordertypeDotDash;
+					else if ("double" === sValue) return EBorderType.bordertypeDouble;
+					else if ("doubleWave" === sValue) return EBorderType.bordertypeDoubleWave;
 					break;
 				case 'h':
-					if (("hairline") === sValue) return EBorderType.bordertypeHairline;
+					if ("hairline" === sValue) return EBorderType.bordertypeHairline;
 					break;
 
 				case 'H':
-					if (("HTMLInset") === sValue) return EBorderType.bordertypeHTMLInset;
-					else if (("HTMLOutset") === sValue) return EBorderType.bordertypeHTMLOutset;
+					if ("HTMLInset" === sValue) return EBorderType.bordertypeHTMLInset;
+					else if ("HTMLOutset" === sValue) return EBorderType.bordertypeHTMLOutset;
 					break;
 
 				case 'n':
-					if (("none") === sValue) return EBorderType.bordertypeNone;
+					if ("none" === sValue) return EBorderType.bordertypeNone;
 					break;
 
 				case 's':
-					if (("single") === sValue) return EBorderType.bordertypeSingle;
+					if ("single" === sValue) return EBorderType.bordertypeSingle;
 					break;
 
 				case 't':
-					if (("thick") === sValue) return EBorderType.bordertypeThick;
-					else if (("thickBetweenThin") === sValue) return EBorderType.bordertypeThickBetweenThin;
-					else if (("thickBetweenThinLarge") === sValue) return EBorderType.bordertypeThickBetweenThinLarge;
-					else if (("thickBetweenThinSmall") === sValue) return EBorderType.bordertypeThickBetweenThinSmall;
-					else if (("thickThin") === sValue) return EBorderType.bordertypeThickThin;
-					else if (("thickThinLarge") === sValue) return EBorderType.bordertypeThickThinLarge;
-					else if (("thickThinSmall") === sValue) return EBorderType.bordertypeThickThinSmall;
-					else if (("thinThick") === sValue) return EBorderType.bordertypeThinThick;
-					else if (("thinThickLarge") === sValue) return EBorderType.bordertypeThinThickLarge;
-					else if (("thinThickSmall") === sValue) return EBorderType.bordertypeThinThickSmall;
-					else if (("threeDEmboss") === sValue) return EBorderType.bordertypeThreeDEmboss;
-					else if (("threeDEngrave") === sValue) return EBorderType.bordertypeThreeDEngrave;
-					else if (("triple") === sValue) return EBorderType.bordertypeTriple;
+					if ("thick" === sValue) return EBorderType.bordertypeThick;
+					else if ("thickBetweenThin" === sValue) return EBorderType.bordertypeThickBetweenThin;
+					else if ("thickBetweenThinLarge" === sValue) return EBorderType.bordertypeThickBetweenThinLarge;
+					else if ("thickBetweenThinSmall" === sValue) return EBorderType.bordertypeThickBetweenThinSmall;
+					else if ("thickThin" === sValue) return EBorderType.bordertypeThickThin;
+					else if ("thickThinLarge" === sValue) return EBorderType.bordertypeThickThinLarge;
+					else if ("thickThinSmall" === sValue) return EBorderType.bordertypeThickThinSmall;
+					else if ("thinThick" === sValue) return EBorderType.bordertypeThinThick;
+					else if ("thinThickLarge" === sValue) return EBorderType.bordertypeThinThickLarge;
+					else if ("thinThickSmall" === sValue) return EBorderType.bordertypeThinThickSmall;
+					else if ("threeDEmboss" === sValue) return EBorderType.bordertypeThreeDEmboss;
+					else if ("threeDEngrave" === sValue) return EBorderType.bordertypeThreeDEngrave;
+					else if ("triple" === sValue) return EBorderType.bordertypeTriple;
 					break;
 
 				case 'w':
-					if (("wave") === sValue) return EBorderType.bordertypeWave;
+					if ("wave" === sValue) return EBorderType.bordertypeWave;
 					break;
 			}
 			return EBorderType.bordertypeNone;
@@ -7945,25 +7945,25 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 
 		function readClientDataObjectType(reader) {
 			let sValue = reader.GetValue();
-			if (("Button") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
-			else if (("Checkbox") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeCheckbox;
-			else if (("Dialog") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeDialog;
-			else if (("Drop") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeDrop;
-			else if (("Edit") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeEdit;
-			else if (("GBox") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeGBox;
-			else if (("Group") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeGroup;
-			else if (("Label") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeLabel;
-			else if (("LineA") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeLineA;
-			else if (("List") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeList;
-			else if (("Movie") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeMovie;
-			else if (("Note") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeNote;
-			else if (("Pict") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypePict;
-			else if (("Radio") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRadio;
-			else if (("Rect") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRect;
-			else if (("RectA") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRectA;
-			else if (("Scroll") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeScroll;
-			else if (("Shape") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeShape;
-			else if (("Spin") === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeSpin;
+			if ("Button" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
+			else if ("Checkbox" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeCheckbox;
+			else if ("Dialog" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeDialog;
+			else if ("Drop" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeDrop;
+			else if ("Edit" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeEdit;
+			else if ("GBox" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeGBox;
+			else if ("Group" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeGroup;
+			else if ("Label" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeLabel;
+			else if ("LineA" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeLineA;
+			else if ("List" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeList;
+			else if ("Movie" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeMovie;
+			else if ("Note" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeNote;
+			else if ("Pict" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypePict;
+			else if ("Radio" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRadio;
+			else if ("Rect" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRect;
+			else if ("RectA" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeRectA;
+			else if ("Scroll" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeScroll;
+			else if ("Shape" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeShape;
+			else if ("Spin" === sValue) return EVmlClientDataObjectType.vmlclientdataobjecttypeSpin;
 			return EVmlClientDataObjectType.vmlclientdataobjecttypeButton;
 		}
 
