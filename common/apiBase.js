@@ -3389,13 +3389,7 @@
     {
 		var bNeedCallback = this.editorId === AscCommon.c_oEditorId.Spreadsheet ? this.handlers.hasTrigger('asc_onMacrosPermissionRequest') : this.asc_checkNeedCallback('asc_onMacrosPermissionRequest');
 		if (bNeedCallback) {
-			var t = this;
-			function _callback(permission) {
-				t.asc_unregisterCallback('asc_onMacrosPermissionAnswer', _callback);
-				callback(permission);
-			};
-			this.asc_registerCallback("asc_onMacrosPermissionAnswer", _callback);
-			this.sendEvent('asc_onMacrosPermissionRequest', url);
+			this.sendEvent('asc_onMacrosPermissionRequest', url, callback);
 		} else {
 			var permission = confirm("Allow a request to such url: '" + url +"' ?");
 			callback(permission);
