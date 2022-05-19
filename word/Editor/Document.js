@@ -28898,7 +28898,20 @@ CDocumentChangeTextCaseEngine.prototype.CheckWords = function(oEngine)
 			}
 		}
 		var elem1 = wordsInSentece[0].slice(1);
-		if (!(wordsInSentece[0][0] === wordsInSentece[0][0].toUpperCase() && elem1 === elem1.toLowerCase()))
+		var bElem1IsEmpty;
+		if (elem1 === "")
+		{
+			bElem1IsEmpty = false;
+		}
+		else if (elem1 != "" && elem1 === elem1.toLowerCase())
+		{
+			bElem1IsEmpty = true;
+		}
+		else 
+		{
+			bElem1IsEmpty = false;
+		}
+		if (!(wordsInSentece[0][0] === wordsInSentece[0][0].toUpperCase() && bElem1IsEmpty))
 		{
 			sett.allUpperWithoutFirst = false;
 		}

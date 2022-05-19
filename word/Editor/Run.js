@@ -12587,7 +12587,7 @@ ParaRun.prototype.CheckTextForTextCase = function(oEngine)
                         var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
                         var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
 
-                        if (AscCommon.IsSpace(nCharCode))
+                        if (AscCommon.IsSpace(nCharCode) || AscCommon.IsAnotherSpace(nCharCode))
                             oEngine.word += " ";
                         if (nLowerCode !== nCharCode || nUpperCode !== nCharCode || oItem.IsNumber())
                             oEngine.word += String.fromCharCode(nCharCode);
@@ -12649,7 +12649,7 @@ ParaRun.prototype.ChangeTextCase = function(oEngine)
 				{
 					if (!oItem.IsPunctuation())
 					{
-                        if (!AscCommon.IsSpace(oItem.Value))
+                        if (!(AscCommon.IsSpace(oItem.Value) || AscCommon.IsAnotherSpace(oItem.Value)))
 						    oEngine.AddLetter(this, nPos, nPos >= nStartPos && nPos < nEndPos);
                         else
                             oEngine.FlushWord();  
