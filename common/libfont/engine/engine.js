@@ -707,7 +707,7 @@ else
 		return nCodePointsCount;
 	}
 
-	AscFonts.HB_BeginString = function()
+	AscFonts.HB_StartString = function()
 	{
 		if (!STRING_POINTER)
 			STRING_POINTER = Module["_malloc"](6 * STRING_MAX_LEN + 1);

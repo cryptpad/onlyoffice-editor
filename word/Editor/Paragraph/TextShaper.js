@@ -37,6 +37,7 @@
 	const MEASURER = AscCommon.g_oTextMeasurer;
 	const FONTSIZE = 72;
 
+
 	/**
 	 *
 	 * @constructor
@@ -65,7 +66,23 @@
 		this.FontId   = -1;
 		this.FontSlot = fontslot_None;
 
-		AscFonts.HB_BeginString();
+		this.StartString();
+	};
+	CTextShaper.prototype.StartString = function()
+	{
+		AscFonts.HB_StartString();
+	};
+	CTextShaper.prototype.AppendToString = function(nUnicode)
+	{
+		let u = nUnicode;
+		if (this.TextPr.Caps || this.TextPr.SmallCaps)
+			u = (String.fromCharCode(u).toUpperCase()).charCodeAt(0);
+
+		AscFonts.HB_AppendToString(u);
+	};
+	CTextShaper.prototype.EndString = function()
+	{
+		AscFonts.HB_EndString();
 	};
 	CTextShaper.prototype.Shape = function(oParagraph)
 	{
@@ -92,8 +109,7 @@
 			{
 				let nUnicode = oItem.GetCodePoint();
 				this.private_CheckNewSegment(nUnicode);
-
-				AscFonts.HB_AppendToString(nUnicode);
+				this.AppendToString(nUnicode);
 
 				this.Items.push(oItem);
 				if (oItem.IsSpaceAfter())
@@ -106,7 +122,7 @@
 		if (!this.Items.length || !this.TextPr)
 			return;
 
-		AscFonts.HB_EndString();
+		this.EndString();
 
 		let nScript = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === this.Script ? AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON : this.Script;
 
@@ -130,18 +146,21 @@
 
 		let _isLigature = isLigature && nCodePointsCount > 1;
 
-		let _nWidth = (_isLigature ? nWidth / nCodePointsCount : nWidth) * this.FontSize;
-		this.Items[this.ItemIndex].SetGrapheme(oGrapheme, this.FontSlot);
-		this.Items[this.ItemIndex].SetWidth(_nWidth);
+		let _nWidth = (_isLigature ? nWidth / nCodePointsCount : nWidth);
+
+		let oItem = this.Items[this.ItemIndex++];
+		oItem.SetGrapheme(oGrapheme);
+		oItem.UpdateMetrics(this.FontSize, this.FontSlot, this.TextPr);
+		oItem.SetWidth(_nWidth);
 
 		_nWidth = _isLigature ? _nWidth : 0;
 		for (let nIndex = 1; nIndex < nCodePointsCount; ++nIndex)
 		{
-			this.Items[this.ItemIndex + nIndex].SetGrapheme(null, 0);
-			this.Items[this.ItemIndex + nIndex].SetWidth(_nWidth);
+			oItem = this.Items[this.ItemIndex++];
+			oItem.SetGrapheme(null, 0);
+			oItem.UpdateMetrics(this.FontSize);
+			oItem.SetWidth(_nWidth);
 		}
-
-		this.ItemIndex += nCodePointsCount;
 	};
 	CTextShaper.prototype.GetTextScript = function(nUnicode)
 	{
@@ -175,20 +194,23 @@
 		this.private_CheckFont(nFontSlot);
 
 		let nFontId = this.FontId;
-		let isSubst = !MEASURER.CheckUnicodeInCurrentFont(nUnicode);
+		let isSubst = this.FontSubst;
+		if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === nFontId)
+		{
+			isSubst = !MEASURER.CheckUnicodeInCurrentFont(nUnicode);
+			if (-1 === nFontId || isSubst)
+				nFontId = MEASURER.GetFontBySymbol(nUnicode, -1 !== nFontId ? nFontId : null);
 
-		if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.FontId)
-			nFontId = MEASURER.GetFontBySymbol(nUnicode, -1 !== this.FontId ? this.FontId : null);
+			if (this.FontId !== nFontId
+				&& -1 !== this.FontId
+				&& this.FontSubst
+				&& isSubst
+				&& this.private_CheckBufferInFont(nFontId))
+				this.FontId = nFontId;
 
-		if (this.FontId !== nFontId
-			&& -1 !== this.FontId
-			&& this.FontSubst
-			&& isSubst
-			&& this.private_CheckBufferInFont(nFontId))
-			this.FontId = nFontId;
-
-		if (this.FontId !== nFontId && -1 !== this.FontId)
-			this.FlushWord();
+			if (this.FontId !== nFontId && -1 !== this.FontId)
+				this.FlushWord();
+		}
 
 		this.Script    = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.Script ? nScript : this.Script;
 		this.FontSlot  = fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
@@ -228,8 +250,9 @@
 	{
 		let oFontInfo  = this.TextPr.GetFontInfo(fontslot_ASCII);
 		let oGlyphInfo = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
-		oItem.SetGrapheme(oGlyphInfo.Grapheme, fontslot_ASCII);
-		oItem.SetWidth(oGlyphInfo.Width * oFontInfo.Size);
+		oItem.SetGrapheme(oGlyphInfo.Grapheme);
+		oItem.UpdateMetrics(oFontInfo.Size, fontslot_ASCII, this.TextPr);
+		oItem.SetWidth(oGlyphInfo.Width);
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------
