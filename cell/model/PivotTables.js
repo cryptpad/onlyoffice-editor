@@ -1635,14 +1635,16 @@ CT_PivotCacheDefinition.prototype.onEndNode = function(prevContext, elem) {
 	}
 };
 CT_PivotCacheDefinition.prototype.toXml = function(writer, stylesForWrite) {
+	if(!stylesForWrite && writer.context && writer.context.stylesForWrite) {
+		stylesForWrite = writer.context.stylesForWrite;
+	}
 	writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
 	writer.WriteXmlNodeStart("pivotCacheDefinition");
 	writer.WriteXmlString(
 		" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"");
-	//todo
-	// if (null !== this.id) {
-		// writer.WriteXmlAttributeStringEncode("r:id", this.id);
-	// }
+	if (null !== this.id) {
+		writer.WriteXmlAttributeStringEncode("r:id", this.id);
+	}
 	if (false !== this.invalid) {
 		writer.WriteXmlAttributeBool("invalid", this.invalid);
 	}

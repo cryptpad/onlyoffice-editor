@@ -1180,15 +1180,17 @@ var editor;
       oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
       dataContainer.data = last.data;
     } else {
-		var title = this.documentTitle;
-		this.saveDocumentToZip(this.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
-			var blob = new Blob([data], {type: openXml.GetMimeType("xlsx")});
-			var link = document.createElement("a");
-			link.href = window.URL.createObjectURL(blob);
-			link.download = title;
-			link.click();
-		});
-		return;
+		if (c_oAscFileType.XLSX === fileType) {
+			var title = this.documentTitle;
+			this.saveDocumentToZip(this.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
+				var blob = new Blob([data], {type: openXml.GetMimeType("xlsx")});
+				var link = document.createElement("a");
+				link.href = window.URL.createObjectURL(blob);
+				link.download = title;
+				link.click();
+			});
+			return;
+		}
 
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
       if (c_oAscFileType.CSV === fileType) {
@@ -2142,6 +2144,38 @@ var editor;
 							}
 
 							PrepareComments();
+						}
+					}
+				}
+			});
+		} else if(wbXml.sheets) {
+			var wsParts = [];
+
+			//вначале беру все листы, потом запрашиваю контент каждого из них.
+			//связано с проблемой внтури парсера, на примере файла Read_Only_part_of_lists.xlsx
+			wbXml.sheets.forEach(function (wbSheetXml) {
+				if (null !== wbSheetXml.id && wbSheetXml.name) {
+					var wsPart = wbPart.getPartById(wbSheetXml.id);
+					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name, bHidden: wbSheetXml.bHidden});
+				}
+			});
+
+			wsParts.forEach(function(wbSheetXml, wsIndex) {
+				var ws = t.wbModel.getWorksheet(wsIndex);
+				if (null !== wbSheetXml.id && wbSheetXml.name) {
+					var wsPart = wbSheetXml.wsPart;
+					if (wsPart) {
+						//pivot
+						var pivotParts = wsPart.getPartsByRelationshipType(openXml.Types.pivotTable.relationType);
+						for (i = 0; i < pivotParts.length; ++i) {
+							var contentPivotTable = pivotParts[i].getDocumentContent();
+							var pivotTable = new Asc.CT_pivotTableDefinition(true);
+							new openXml.SaxParserBase().parse(contentPivotTable, pivotTable);
+							var cacheDefinition = pivotCaches[pivotTable.cacheId];
+							if (cacheDefinition) {
+								pivotTable.cacheDefinition = cacheDefinition;
+								ws.insertPivotTable(pivotTable);
+							}
 						}
 					}
 				}

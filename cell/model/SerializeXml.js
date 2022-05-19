@@ -2207,6 +2207,14 @@
 		writer.WriteXmlString(' xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
 		writer.WriteXmlAttributesEnd();
 
+		let pivotCaches = {};
+		let pivotCacheIndex = this.wb.preparePivotForSerialization(pivotCaches, null);
+		let ct_pivotCaches = null;
+		if (pivotCacheIndex > 0) {
+			ct_pivotCaches = new CT_PivotCaches();
+			ct_pivotCaches.initFromPivotCaches(writer.context.part, writer, pivotCaches);
+		}
+
 		//WorkbookPr
 		if (this.wb.WorkbookPr) {
 			var workbookPr = new CT_WorkbookPr(this.wb.WorkbookPr);
@@ -2285,8 +2293,9 @@
 			calcPr.toXml(writer, "calcPr");
 		}
 
-		/*if(m_oPivotCachesXml.IsInit())
-			writer.WriteString(m_oPivotCachesXml.get());*/
+		if (ct_pivotCaches) {
+			ct_pivotCaches.toXml(writer, "pivotCaches");
+		}
 
 		if (officeArtExtensionList) {
 			officeArtExtensionList.toXml(writer);
@@ -2533,7 +2542,7 @@
 		writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.val.HidePivotFieldList);
 		writer.WriteXmlNullableAttributeBool("hidePivotFieldList", this.val.HidePivotFieldList);
 		writer.WriteXmlNullableAttributeBool("showPivotChartFilter", this.val.ShowPivotChartFilter);
-		writer.WriteXmlAttributesEnd(true);
+		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNodeEnd(ns + name/*'workbookPr'*/);
 	};
 
@@ -3130,6 +3139,20 @@
 		officeArtExtensionList.toXml(writer);
 
 		writer.WriteXmlNodeEnd("worksheet");
+
+		for (i = 0; i < this.pivotTables.length; ++i) {
+			let pivotTable = this.pivotTables[i];
+			let pivotTablePart = context.part.addPart(AscCommon.openXml.Types.pivotTable);
+			pivotTablePart.part.setDataXml(this.pivotTables[i], writer);
+			if (pivotTable.cacheDefinition) {
+				let uri = writer.context.oUriMap[pivotTable.cacheDefinition.Get_Id()];
+				if (uri) {
+					let type = AscCommon.openXml.Types.pivotTableCacheDefinition;
+					let name = uri.substring(uri.lastIndexOf('/') + 1);
+					pivotTablePart.part.addRelationship(type.relationType, type.dir + "/" + name);
+				}
+			}
+		}
 
 		context.ws = null;
 	};
@@ -4236,6 +4259,35 @@
 			}
 		}
 	};
+	CT_PivotCaches.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlAttributesEnd();
+		this.pivotCaches.forEach(function (pivotCache) {
+			pivotCache.toXml(writer, "pivotCache");
+		});
+		writer.WriteXmlNodeEnd(name);
+	};
+	CT_PivotCaches.prototype.initFromPivotCaches = function(part, writer, pivotCaches) {
+		for (let i in pivotCaches) {
+			if (pivotCaches.hasOwnProperty(i)) {
+				let pivotCache = pivotCaches[i];
+				let pivotCacheDefinitionPart = part.addPart(AscCommon.openXml.Types.pivotTableCacheDefinitionWorkbook);
+				pivotCacheDefinitionPart.part.setDataXml(pivotCache.cache, writer);
+
+				if (pivotCache.cache.cacheRecords) {
+					let cacheRecordsPart = pivotCacheDefinitionPart.part.addPart(AscCommon.openXml.Types.pivotTableCacheRecords);
+					cacheRecordsPart.part.setDataXml(pivotCache.cache.cacheRecords, writer);
+				}
+
+				writer.context.oUriMap[pivotCache.cache.Get_Id()] = pivotCacheDefinitionPart.part.uri;
+
+				let elem = new CT_PivotCache();
+				elem.cacheId = pivotCache.id;
+				elem.id = pivotCacheDefinitionPart.rId;
+				this.pivotCaches.push(elem);
+			}
+		}
+	};
 
 	function CT_DrawingWSRef() {
 		this.id = null;
@@ -4587,6 +4639,12 @@
 		if (undefined !== val) {
 			this.id = AscCommon.unleakString(uq(val));
 		}
+	};
+	CT_PivotCache.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeUInt("cacheId", this.cacheId);
+		writer.WriteXmlNullableAttributeStringEncode("r:id", this.id);
+		writer.WriteXmlAttributesEnd(true);
 	};
 
 

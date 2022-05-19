@@ -2113,6 +2113,40 @@
 			}
 		}
 	};
+	Workbook.prototype.preparePivotForSerialization=function(pivotCaches, isCopyPaste){
+		var pivotCacheIndex = 0;
+		this.forEach(function(ws) {
+			for (var i = 0; i < ws.pivotTables.length; ++i) {
+				var pivotTable = ws.pivotTables[i];
+				if (isCopyPaste && !pivotTable.isInRange(isCopyPaste)) {
+					continue;
+				}
+				if (pivotTable.cacheDefinition) {
+					var pivotCache = pivotCaches[pivotTable.cacheDefinition.Get_Id()];
+					if (!pivotCache) {
+						pivotCache = {id: pivotCacheIndex++, cache: pivotTable.cacheDefinition};
+						pivotCaches[pivotTable.cacheDefinition.Get_Id()] = pivotCache;
+					}
+					pivotTable.cacheId = pivotCache.id;
+				}
+			}
+			for (var i = 0; i < ws.aSlicers.length; ++i) {
+				var slicer = ws.aSlicers[i];
+				if (isCopyPaste) {
+					continue;
+				}
+				var cacheDefinition = slicer.getPivotCache();
+				if (cacheDefinition) {
+					var pivotCache = pivotCaches[cacheDefinition.Get_Id()];
+					if (!pivotCache) {
+						pivotCache = {id: pivotCacheIndex++, cache: cacheDefinition};
+						pivotCaches[cacheDefinition.Get_Id()] = pivotCache;
+					}
+				}
+			}
+		}, isCopyPaste);
+		return pivotCacheIndex;
+	};
 	Workbook.prototype.isChartOleObject = function () {
 		return this.aWorksheets.length === 2;
 	}

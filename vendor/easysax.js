@@ -1633,6 +1633,7 @@ function XmlWriterContext(editorId){
     this.zip = null;
     this.part = null;
     this.imageMap = {};
+    this.oUriMap = {};
     this.objectId = 1;
     this.groupIndex = 0;
     this.flag = 0;
