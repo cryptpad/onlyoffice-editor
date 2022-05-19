@@ -427,12 +427,13 @@ function ParaText(nCharCode)
 	this.Width        = 0x00000000 | 0;
 	this.WidthVisible = 0x00000000 | 0;
 	this.Flags        = 0x00000000 | 0;
-	this.Grapheme     = null;
+	this.Grapheme     = AscFonts.NO_GRAPHEME;
 
 	this.Set_SpaceAfter(this.private_IsSpaceAfter());
 
 	if (AscFonts.IsCheckSymbols)
 		AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
+
 }
 ParaText.prototype = Object.create(CRunElementBase.prototype);
 ParaText.prototype.constructor = ParaText;
@@ -514,10 +515,6 @@ ParaText.prototype.SetWidth = function(nWidth)
 {
 	this.Width = ((nWidth * (((this.Flags >> 16) & 0xFFFF) / 64)) * TEXTWIDTH_DIVIDER) | 0;
 };
-ParaText.prototype.Set_WidthVisible = function()
-{
-
-};
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
 	// if (undefined !== this.LGap)
@@ -526,7 +523,7 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	// 	X += this.LGap;
 	// }
 
-	if (this.Grapheme && (!this.IsNBSP() || (editor && editor.ShowParaMarks)))
+	if (AscFonts.NO_GRAPHEME !== this.Grapheme && (!this.IsNBSP() || (editor && editor.ShowParaMarks)))
 	{
 		let nFontSize = (((this.Flags >> 16) & 0xFFFF) / 64);
 		AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, nFontSize);

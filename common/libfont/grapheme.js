@@ -40,12 +40,16 @@
 	const COEF            = 25.4 / 72 / 64 / 72;
 	const GRAPHEME_BUFFER = new Uint32Array(STRING_MAX_LEN);
 	let   GRAPHEME_LEN    = 0;
-	const GRAPHEMES_CACHE = {};
+	const GRAPHEMES_CACHE = {};                      // FontId + [GID] -> GraphemeId
+	const GRAPHEMES       = [[0, 0, 0, 0, 0, 0, 0]]; // GraphemeId -> Grapheme
+	let   GRAPHEME_INDEX  = 0;
+	const NO_GRAPHEME     = 0;
 
 	function InitGrapheme(nFontId, nFontStyle)
 	{
-		GRAPHEME_LEN = 1;
+		GRAPHEME_LEN = 2;
 		GRAPHEME_BUFFER[0] = nFontId << 8 | nFontStyle;
+		GRAPHEME_BUFFER[1] = 0;
 	}
 	function AddGlyphToGrapheme(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
 	{
@@ -54,9 +58,15 @@
 		GRAPHEME_BUFFER[GRAPHEME_LEN++] = nAdvanceY;
 		GRAPHEME_BUFFER[GRAPHEME_LEN++] = nOffsetX;
 		GRAPHEME_BUFFER[GRAPHEME_LEN++] = nOffsetY;
+
+		GRAPHEME_BUFFER[1] += nAdvanceX;
 	}
-	function DrawGrapheme(oGrapheme, oContext, nX, nY, nFontSize)
+	function DrawGrapheme(nGraphemeId, oContext, nX, nY, nFontSize)
 	{
+		let oGrapheme = GRAPHEMES[nGraphemeId];
+		if (!oGrapheme)
+			return;
+
 		let nFontId = oGrapheme[0] >> 8;
 		let nStyle  = oGrapheme[0] & 0xF;
 
@@ -64,7 +74,7 @@
 		oContext.SetFontInternal(sFontName, nFontSize, nStyle);
 
 		let nKoef = COEF * nFontSize;
-		let nPos = 1, nCount = oGrapheme.length;
+		let nPos = 2, nCount = oGrapheme.length;
 		while (nPos < nCount)
 		{
 			let nGID      = oGrapheme[nPos++];
@@ -91,13 +101,14 @@
 
 		return true;
 	}
-	function GetGraphemeBuffer()
+	function GetGraphemeIndex()
 	{
 		let arrBuffer = new Uint32Array(GRAPHEME_LEN);
 		for (let nIndex = 0; nIndex < GRAPHEME_LEN; ++nIndex)
 			arrBuffer[nIndex] = GRAPHEME_BUFFER[nIndex];
 
-		return arrBuffer;
+		GRAPHEMES[++GRAPHEME_INDEX] = arrBuffer;
+		return GRAPHEME_INDEX;
 	}
 	function GetGrapheme()
 	{
@@ -107,7 +118,7 @@
 
 		let result = GRAPHEMES_CACHE[nFontId];
 
-		let nPos = 1;
+		let nPos = 2;
 		while (nPos < GRAPHEME_LEN)
 		{
 			let nGID = GRAPHEME_BUFFER[nPos];
@@ -120,12 +131,20 @@
 		}
 
 		// TODO: Для скорости проверку совпадения отключили (всегда совпадает)
-		if (!result.Buffer)
-			result.Buffer = GetGraphemeBuffer();
+		if (!result.Grapheme)
+			result.Grapheme = GetGraphemeIndex();
 		// else if (!CompareGraphemes(result.Buffer))
-		// 	return GetGraphemeBuffer();
+		// 	return GetGraphemeIndex();
 
-		return result.Buffer;
+		return result.Grapheme;
+	}
+	function GetGraphemeWidth(nGraphemeId)
+	{
+		let oGrapheme = GRAPHEMES[nGraphemeId];
+		if (!oGrapheme)
+			return 0;
+
+		return oGrapheme[1] * COEF;
 	}
 	//--------------------------------------------------------export----------------------------------------------------
 	AscFonts.GRAPHEME_STRING_MAX_LEN = STRING_MAX_LEN;
@@ -134,5 +153,9 @@
 	AscFonts.AddGlyphToGrapheme      = AddGlyphToGrapheme;
 	AscFonts.GetGrapheme             = GetGrapheme;
 	AscFonts.DrawGrapheme            = DrawGrapheme;
+	AscFonts.GetGraphemeWidth        = GetGraphemeWidth;
+	AscFonts.GRAPHEMES               = GRAPHEMES;
+	AscFonts.GRAPHEMES_CACHE         = GRAPHEMES_CACHE;
+	AscFonts.NO_GRAPHEME             = NO_GRAPHEME;
 
 })(window);
