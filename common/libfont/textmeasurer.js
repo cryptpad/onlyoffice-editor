@@ -147,10 +147,7 @@
 
 			AscFonts.InitGrapheme(AscCommon.FontNameMap.GetId(sFontName), nFontStyle);
 			AscFonts.AddGlyphToGrapheme(nGID, nAdvanceX, 0, 0, 0);
-			return {
-				Grapheme : AscFonts.GetGrapheme(),
-				Width    : nAdvanceX * AscFonts.GRAPHEME_COEF
-			};
+			return AscFonts.GetGrapheme();
 		},
 
         SetTextPr : function(textPr, theme)

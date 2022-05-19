@@ -139,7 +139,7 @@
 
 		this.ClearBuffer();
 	};
-	CTextShaper.prototype.FlushGrapheme = function(oGrapheme, nWidth, nCodePointsCount, isLigature)
+	CTextShaper.prototype.FlushGrapheme = function(nGrapheme, nWidth, nCodePointsCount, isLigature)
 	{
 		if (this.ItemIndex + nCodePointsCount - 1 >= this.Items.length)
 			return;
@@ -149,7 +149,7 @@
 		let _nWidth = (_isLigature ? nWidth / nCodePointsCount : nWidth);
 
 		let oItem = this.Items[this.ItemIndex++];
-		oItem.SetGrapheme(oGrapheme);
+		oItem.SetGrapheme(nGrapheme);
 		oItem.UpdateMetrics(this.FontSize, this.FontSlot, this.TextPr);
 		oItem.SetWidth(_nWidth);
 
@@ -248,11 +248,11 @@
 	};
 	CTextShaper.prototype.private_HandleNBSP = function(oItem)
 	{
-		let oFontInfo  = this.TextPr.GetFontInfo(fontslot_ASCII);
-		let oGlyphInfo = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
-		oItem.SetGrapheme(oGlyphInfo.Grapheme);
+		let oFontInfo = this.TextPr.GetFontInfo(fontslot_ASCII);
+		let nGrapheme = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
+		oItem.SetGrapheme(nGrapheme);
 		oItem.UpdateMetrics(oFontInfo.Size, fontslot_ASCII, this.TextPr);
-		oItem.SetWidth(oGlyphInfo.Width);
+		oItem.SetWidth(AscFonts.GetGraphemeWidth(nGrapheme));
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------

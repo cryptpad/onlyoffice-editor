@@ -455,9 +455,9 @@ ParaText.prototype.GetCodePoint = function()
 {
 	return this.Value;
 };
-ParaText.prototype.SetGrapheme = function(oGrapheme)
+ParaText.prototype.SetGrapheme = function(nGrapheme)
 {
-	this.Grapheme = oGrapheme;
+	this.Grapheme = nGrapheme;
 };
 ParaText.prototype.UpdateMetrics = function(nFontSize, nFontSlot, oTextPr)
 {
