@@ -9901,6 +9901,7 @@ Because of this, the display is sometimes not correct.
       this.styleDef = null;
       this.parent = null;
       this.type = null;
+      this.bNeedUpdatePosition = true;
 
       this.calcGeometry = null;
     }
@@ -9914,12 +9915,21 @@ Because of this, the display is sometimes not correct.
       return 'SmartArt';
     };
 
+    SmartArt.prototype.hasSmartArt = function (bRetSmartArt) {
+      return bRetSmartArt ? this : true;
+    }
+
     SmartArt.prototype.recalculate = function () {
     var oldParaMarks = editor && editor.ShowParaMarks;
       if (oldParaMarks) {
         editor.ShowParaMarks = false;
       }
       CGroupShape.prototype.recalculate.call(this);
+      if (this.group && this.bNeedUpdatePosition) {
+        this.bNeedUpdatePosition = false;
+        var group = this.getMainGroup();
+        group.updateCoordinatesAfterInternalResize();
+      }
       if (oldParaMarks) {
         editor.ShowParaMarks = oldParaMarks;
       }
