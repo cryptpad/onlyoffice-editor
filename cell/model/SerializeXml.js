@@ -14963,8 +14963,11 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 
 		writer.WriteXmlNodeStart(sName);
 
-		if (this.tabIdOpen) {
-			writer.WriteXmlAttributeString("tabId", this.tabIdOpen);
+		var sheetIds = writer.context.InitSaveManager.getSheetIds();
+		var tabId = sheetIds[this.sheetId];
+
+		if (tabId != null) {
+			writer.WriteXmlAttributeString("tabId", tabId);
 		}
 		if (this.name) {
 			writer.WriteXmlAttributeStringEncode("name", this.name);

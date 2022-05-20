@@ -1755,7 +1755,7 @@ var editor;
 			wbXml.sheets.forEach(function (wbSheetXml) {
 				if (null !== wbSheetXml.id && wbSheetXml.name) {
 					var wsPart = wbPart.getPartById(wbSheetXml.id);
-					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name, bHidden: wbSheetXml.bHidden});
+					wsParts.push({wsPart: wsPart, id: wbSheetXml.id, name: wbSheetXml.name, bHidden: wbSheetXml.bHidden, sheetId: wbSheetXml.sheetId});
 				}
 			});
 
@@ -1780,6 +1780,7 @@ var editor;
 						}
 
 						xmlParserContext.InitOpenManager.putSheetAfterRead(wb, ws);
+						xmlParserContext.InitOpenManager.oReadResult.sheetIds[wbSheetXml.sheetId] = ws;
 
 						var drawingPart = wsPart.getPartById(xmlParserContext.drawingId);
 						if (drawingPart) {
