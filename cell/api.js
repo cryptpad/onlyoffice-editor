@@ -6262,11 +6262,17 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_checkProtectedRangeName = function(checkName) {
-  	var ws = this.wbModel.getActiveWs();
+  	if (!this.wbModel) {
+		return;
+	}
+	var ws = this.wbModel.getActiveWs();
   	return ws.checkProtectedRangeName(checkName);
   };
 
   spreadsheet_api.prototype.asc_getProtectedSheet = function () {
+    if (!this.wbModel) {
+    	return;
+    }
     var ws = this.wbModel.getActiveWs();
     var res = null;
     if (ws) {
@@ -6281,6 +6287,9 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_isProtectedSheet = function (index) {
+    if (!this.wbModel) {
+    	return;
+    }
     var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
     var ws = this.wb.getWorksheet(sheetIndex);
     var res = null;
@@ -6397,6 +6406,9 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_isProtectedWorkbook = function (type) {
+		if (!this.wbModel) {
+			return;
+		}
 		var wb = this.wbModel;
 		return wb && wb.getWorkbookProtection(type);
 	};
