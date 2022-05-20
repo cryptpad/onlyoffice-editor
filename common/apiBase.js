@@ -187,6 +187,7 @@
 		this.disableAutostartMacros = false;
 		this.macros = null;
 		this.vbaMacros = null;
+		this.vbaMacrosXml = null;
 
         this.openFileCryptBinary = null;
 

@@ -7969,9 +7969,8 @@
                         }
                         case 1:
                         {
-                            //todo
                             let _len = this.stream.GetULong();
-                            let xml = this.stream.GetString2LE(_len);
+                            this.oReadResult.vbaMacrosXml = this.stream.GetString2LE(_len);
                             break;
                         }
                         default:
@@ -11101,6 +11100,9 @@
 			if (this.oReadResult.vbaMacros) {
 				wb.oApi.vbaMacros = this.oReadResult.vbaMacros;
 			}
+            if (this.oReadResult.vbaMacrosXml) {
+                wb.oApi.vbaMacrosXml = this.oReadResult.vbaMacrosXml;
+            }
             wb.checkCorrectTables();
 		}
 		this.PostLoadPrepareDefNames = function(wb)
