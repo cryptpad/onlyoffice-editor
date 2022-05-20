@@ -104,6 +104,27 @@ function CGroupShape()
             }
         }
     };
+    CGroupShape.prototype.getRelativePosition = function (obj) {
+        let result = obj || {x: 0, y: 0};
+        result.x += this.x;
+        result.y += this.y;
+        if (this.group) {
+            this.group.getRelativePosition(result);
+        }
+        return result;
+    };
+    CGroupShape.prototype.hasSmartArt = function (bRetSmartArt) {
+        let hasSmartArt = false;
+        for (let i = 0; i < this.spTree.length; i += 1) {
+            if (hasSmartArt) {
+                return hasSmartArt;
+            }
+            if (this.spTree[i].hasSmartArt) {
+                hasSmartArt = this.spTree[i].hasSmartArt(bRetSmartArt);
+            }
+        }
+        return hasSmartArt;
+    };
 
     CGroupShape.prototype.documentGetAllFontNames = function(allFonts)
     {
@@ -898,14 +919,14 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.checkExtentsByDocContent = function()
+    CGroupShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
     {
         var bRet = false;
         for(var i = 0; i < this.spTree.length; ++i)
         {
             if(typeof this.spTree[i].checkExtentsByDocContent === "function")
             {
-                if(this.spTree[i].checkExtentsByDocContent())
+                if(this.spTree[i].checkExtentsByDocContent(bForce, bNeedRecalc))
                 {
                     bRet = true;
                 }
