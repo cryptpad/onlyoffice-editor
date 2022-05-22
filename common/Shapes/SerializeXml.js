@@ -759,25 +759,6 @@
 				this.TextOutline = new AscFormat.CLn();
 				this.TextOutline.fromXml(reader);
 			}
-			else if(name === "cs") {
-				let sName = readTypeface(reader);
-				if(sName) {
-					this.RFonts.CS = { Name: sName, Index : -1 };
-				}
-			}
-			else if(name === "ea") {
-				let sName = readTypeface(reader);
-				if(sName) {
-					this.RFonts.EastAsia = { Name: sName, Index : -1 };
-				}
-			}
-			else if(name === "latin") {
-				let sName = readTypeface(reader);
-				if(sName) {
-					this.RFonts.Ascii = { Name: sName, Index : -1 };
-					this.RFonts.HAnsi = { Name: sName, Index : -1 };
-				}
-			}
 			else if(name === "hlinkClick" || name === "hlinkMouseOver") {
 				let oHLink = new AscFormat.CT_Hyperlink();
 				oHLink.fromXml(reader);
@@ -790,6 +771,9 @@
 			}
 			else if(name === "highlight") {
 				this.HighlightColor = readHighlightColor(reader);
+			}
+			else {
+				readRFont(this, reader, name);
 			}
 		}
 	};
@@ -1225,7 +1209,11 @@
 				this.Shd.Unifill = oFill;
 			}
 			if(name === "tableStyleId") {
-				this.style = reader.GetTextDecodeXml();
+				let sStyleGUID =  reader.GetTextDecodeXml();
+				let oStyle = reader.context.getTableStyle(sStyleGUID);
+				if(oStyle) {
+					oTable.Set_TableStyle2(oStyle.Id);
+				}
 			}
 		}
 	};
@@ -1673,6 +1661,245 @@
 		writer.WriteXmlNodeEnd("a:tab");
 	};
 
+
+	CStyles.prototype.fromDrawingML = function(reader) {
+		if (!reader.ReadNextNode()) {
+			return null;
+		}
+		let sDefaultTableStyleGuid = null;
+		while (reader.MoveToNextAttribute()) {
+			let sName = reader.GetNameNoNS();
+			if(sName === "def") {
+				sDefaultTableStyleGuid = reader.GetValue();
+			}
+		}
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			let sName = reader.GetNameNoNS();
+			if(sName === "tblStyle") {
+				let oTableStyle = new AscCommonWord.CStyle("", null, null, styletype_Table);
+				oTableStyle.fromDrawingMLTableStyle(reader);
+				this.Add(oTableStyle);
+			}
+			//this.readChildXml(name, reader);
+		}
+		return sDefaultTableStyleGuid;
+	};
+
+	AscCommonWord.CStyle.prototype.fromDrawingMLTableStyle = function(reader) {
+		let sStyleGuid = null;
+		while (reader.MoveToNextAttribute()) {
+			let sName = reader.GetNameNoNS();
+			if(sName === "styleId") {
+				sStyleGuid = reader.GetValue();
+				reader.context.addTableStyle(sStyleGuid, this);
+			}
+			else if(sName === "styleName") {
+				this.Set_Name(reader.GetValue());
+			}
+		}
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			let sName = reader.GetNameNoNS();
+			switch (sName) {
+				case "band1H": {
+					this.Set_TableBand1Horz(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "band1V": {
+					this.Set_TableBand1Vert(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "band2H": {
+					this.Set_TableBand2Horz(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "band2V": {
+					this.Set_TableBand2Vert(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "firstCol": {
+					this.Set_TableFirstCol(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "firstRow": {
+					this.Set_TableFirstRow(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "lastCol": {
+					this.Set_TableLastCol(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "wholeTbl": {
+					this.Set_TableWholeTable(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "neCell": {
+					this.Set_TableTRCell(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "nwCell": {
+					this.Set_TableTLCell(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "seCell": {
+					this.Set_TableBRCell(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "swCell": {
+					this.Set_TableBLCell(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+				case "tblBg": {
+					this.Set_TableBLCell(this.readDrawingMLTableStylePart(reader));
+					break;
+				}
+			}
+		}
+	};
+	AscCommonWord.CStyle.prototype.readDrawingMLTableStylePart = function(reader) {
+		let oPart =  new CTableStylePr();
+		let oCellPr = oPart.TableCellPr;
+		let oBorders = oCellPr.TableCellBorders;
+		let oTextPr = oPart.TextPr;
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			let sName = reader.GetNameNoNS();
+			switch (sName) {
+				case "tcStyle": {
+					let oNode = new CT_XmlNode(function(reader, name) {
+						if(name === "cell3D") {
+							//TODO: implement
+						}
+						else if(name === "fill") {
+							let oFillNode = new CT_XmlNode(function(reader, name) {
+								if(AscFormat.CUniFill.prototype.isFillName(name)) {
+									let oFill = new AscFormat.CUniFill();
+									oFill.fromXml(reader, name);
+									if(!oCellPr.Shd) {
+										oCellPr.Shd = new AscCommonWord.CDocumentShd();
+										oCellPr.Shd.Value = c_oAscShdClear;
+									}
+									oCellPr.Shd.Unifill = oFill;
+								}
+								return true;
+							});
+							oFillNode.fromXml(reader);
+						}
+						else if(name === "fillRef") {
+							let oStyleRef = new AscFormat.StyleRef();
+							oStyleRef.fromXml(reader);
+							if(!oCellPr.Shd) {
+								oCellPr.Shd = new AscCommonWord.CDocumentShd();
+								oCellPr.Shd.Value = c_oAscShdClear;
+							}
+							oCellPr.Shd.FillRef = oStyleRef;
+						}
+						else if(name === "tcBdr") {
+							let oBordersNode = new CT_XmlNode(function(reader, name) {
+								let oBorder = new CDocumentBorder();
+								let oBorderNode = new CT_XmlNode(function(reader, name) {
+									if(name === "ln") {
+										let oLn = new AscFormat.CLn();
+										oLn.fromXml(reader);
+										oLn.fillDocumentBorder(oBorder)
+									}
+									else if(name === "lnRef") {
+										let oStyleRef = new AscFormat.StyleRef();
+										oStyleRef.fromXml(reader);
+										oBorder.LineRef = oStyleRef;
+										oBorder.Value = AscCommonWord.border_Single;
+									}
+									return true;
+								});
+								oBorderNode.fromXml(reader);
+								switch (name) {
+									case "bottom": {
+										oBorders.Bottom = oBorder;
+										break;
+									}
+									case "insideH": {
+										oBorders.InsideH = oBorder;
+										break;
+									}
+									case "insideV": {
+										oBorders.InsideV = oBorder;
+										break;
+									}
+									case "left": {
+										oBorders.Left = oBorder;
+										break;
+									}
+									case "right": {
+										oBorders.Right = oBorder;
+										break;
+									}
+									case "tl2br": {
+										break;
+									}
+									case "top": {
+										oBorders.Top = oBorder;
+										break;
+									}
+									case "tr2bl": {
+										break;
+									}
+								}
+								return true;
+							});
+							oBordersNode.fromXml(reader);
+						}
+						return true;
+					});
+					oNode.fromXml(reader);
+					break;
+				}
+				case "tcTxStyle": {
+					let oTxStyleNode = new CT_XmlNode(function(reader, name) {
+						if(AscFormat.CUniColor.prototype.isUnicolor(name)) {
+							let oColor = new AscFormat.CUniColor();
+							oColor.fromXml(reader, name);
+							oTextPr.Unifill = AscFormat.CreateUniFillByUniColor(oColor);
+						}
+						else if(name === "fontRef") {
+							let oFontRef = new AscFormat.FontRef();
+							oFontRef.fromXml(reader);
+							oTextPr.FontRef = oFontRef;
+						}
+						else if(name === "font") {
+							let oFontNode = new CT_XmlNode(function(reader, name) {
+								readRFont(this, reader, name);
+								return true;
+							});
+							oFontNode.fromXml(reader);
+						}
+						return true;
+					});
+					oTxStyleNode.fromXml(reader);
+					break;
+				}
+			}
+		}
+		return oPart;
+	};
+	AscCommonWord.CStyle.prototype.readDrawingMLTableCellStyle = function(reader) {
+		let oPart =  new CTableStylePr();
+		let depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			let sName = reader.GetNameNoNS();
+			switch (sName) {
+				case "tcStyle": {
+					break;
+				}
+				case "tcTxStyle": {
+					break;
+				}
+			}
+			//this.readChildXml(name, reader);
+		}
+		return oPart;
+	};
+
 	function readTypeface(reader) {
 		let sName;
 		while (reader.MoveToNextAttribute()) {
@@ -1684,6 +1911,28 @@
 			}
 		}
 		return null;
+	}
+
+	function readRFont(oTextPr, reader, name) {
+		if(name === "cs") {
+			let sName = readTypeface(reader);
+			if(sName) {
+				oTextPr.RFonts.CS = { Name: sName, Index : -1 };
+			}
+		}
+		else if(name === "ea") {
+			let sName = readTypeface(reader);
+			if(sName) {
+				oTextPr.RFonts.EastAsia = { Name: sName, Index : -1 };
+			}
+		}
+		else if(name === "latin") {
+			let sName = readTypeface(reader);
+			if(sName) {
+				oTextPr.RFonts.Ascii = { Name: sName, Index : -1 };
+				oTextPr.RFonts.HAnsi = { Name: sName, Index : -1 };
+			}
+		}
 	}
 
 	

@@ -11607,8 +11607,8 @@ CPresentation.prototype.createNecessaryObjectsIfNoPresent = function() {
 
     if(this.notesMasters.length === 0) {
         let oNotesMaster = AscCommonSlide.CreateNotesMaster();
-        this.notesMasters.addNotesMaster(oNotesMaster);
-        let oNotesTheme = this.slideMasters[0].theme.createDuplicate();
+        this.addNotesMaster(0, oNotesMaster);
+        let oNotesTheme = this.slideMasters[0].Theme.createDuplicate();
         oNotesTheme.presentation = this;
         oNotesMaster.setTheme(oNotesTheme);
     }
@@ -11623,16 +11623,6 @@ CPresentation.prototype.createNecessaryObjectsIfNoPresent = function() {
         if(!oSlide.notes.Master){
             oSlide.notes.setNotesMaster(this.notesMasters[0]);
         }
-    }
-};
-CPresentation.prototype.createNotesMasterIfNoPresent = function() {
-    if(this.notesMasters.length === 0) {
-
-        this.addNotesMaster(0, AscCommonSlide.CreateNotesMaster());
-        var oNotesTheme = this.themes[0].createDuplicate();
-        oNotesTheme.presentation = this;
-        this.aThemes.push(oNotesTheme);
-        this.notesMasters[0].setTheme(oNotesTheme);
     }
 };
 
@@ -11676,6 +11666,16 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
     }
     this.createNecessaryObjectsIfNoPresent();
     reader.context.clearSlideRelations();
+};
+CPresentation.prototype.readTableStylesFromXml = function(reader) {
+    let sDefTblStyleGUID = this.globalTableStyles.fromDrawingML(reader);
+    let oStyle = reader.context.getTableStyle(sDefTblStyleGUID);
+    if(oStyle) {
+        this.DefaultTableStyleId = oStyle.Id;
+    }
+};
+CPresentation.prototype.readTableStyleFromXml = function(reader) {
+
 };
 CPresentation.prototype.readAttrXml = function(name, reader) {
     switch (name) {

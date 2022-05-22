@@ -1627,6 +1627,12 @@ XmlParserContext.prototype.clearSlideRelations = function() {
     this.layoutsMap = {};
     this.notesMastersMap = {};
 };
+XmlParserContext.prototype.addTableStyle = function(sGuid, oStyle) {
+    this.TableStylesMap[sGuid] = oStyle;
+};
+XmlParserContext.prototype.getTableStyle = function(sGuid) {
+    return this.TableStylesMap[sGuid] || null;
+};
 function XmlWriterContext(editorId){
     //common
     this.editorId = editorId;

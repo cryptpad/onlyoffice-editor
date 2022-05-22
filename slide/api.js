@@ -1586,19 +1586,28 @@ background-repeat: no-repeat;\
 		this.DocumentType = 2;
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+
+		let oTableStylesPart = doc.getPartByUri("/ppt/tableStyles.xml");
+		if(oTableStylesPart) {
+			let oContentTableStyles = oTableStylesPart.getDocumentContent();
+			if(oContentTableStyles) {
+				let oTableStylesReader = new StaxParser(oContentTableStyles, oTableStylesPart, xmlParserContext);
+				this.WordControl.m_oLogicDocument.readTableStylesFromXml(oTableStylesReader);
+			}
+		}
 		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
 		var contentDocument = documentPart.getDocumentContent();
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 		this.WordControl.m_oLogicDocument.fromXml(reader, true);
-		var oAppPart = doc.getPartByRelationshipType(openXml.Types.extendedFileProperties.relationType);
-		var oContentApp = oAppPart.getDocumentContent();
-		var oAppReader = new StaxParser(oContentApp, oAppPart, xmlParserContext);
+		let oAppPart = doc.getPartByRelationshipType(openXml.Types.extendedFileProperties.relationType);
+		let oContentApp = oAppPart.getDocumentContent();
+		let oAppReader = new StaxParser(oContentApp, oAppPart, xmlParserContext);
 		this.WordControl.m_oLogicDocument.App = new AscCommon.CApp();
 		this.WordControl.m_oLogicDocument.App.fromXml(oAppReader, true);
 
 		let oPresentationPrPart = doc.getPartByRelationshipType(openXml.Types.presentationProperties.relationType);
 		if(oPresentationPrPart) {
-			var oContentPresentationPr = oPresentationPrPart.getDocumentContent();
+			let oContentPresentationPr = oPresentationPrPart.getDocumentContent();
 			if(oContentPresentationPr) {
 				let oPresentationReader = new StaxParser(oContentPresentationPr, oPresentationPrPart, xmlParserContext);
 				let oPresPr = new AscFormat.CPresentationProperties(this.WordControl.m_oLogicDocument);
@@ -1606,25 +1615,26 @@ background-repeat: no-repeat;\
 			}
 		}
 
-		var oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
+		let oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
 		if(oCorePart) {
-			var oContentCore = oCorePart.getDocumentContent();
+			let oContentCore = oCorePart.getDocumentContent();
 			if(oContentCore) {
-				var oCoreReader = new StaxParser(oContentCore, oCorePart, xmlParserContext);
+				let oCoreReader = new StaxParser(oContentCore, oCorePart, xmlParserContext);
 				this.WordControl.m_oLogicDocument.Core = new AscCommon.CCore();
 				this.WordControl.m_oLogicDocument.Core.fromXml(oCoreReader, true);
 			}
 		}
 
-		var oCustomPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
+		let oCustomPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
 		if(oCustomPrPart) {
-			var oContentCustomPr = oCustomPrPart.getDocumentContent();
+			let oContentCustomPr = oCustomPrPart.getDocumentContent();
 			if(oContentCustomPr) {
-				var oCustomPrReader = new StaxParser(oContentCustomPr, oCustomPrPart, xmlParserContext);
+				let oCustomPrReader = new StaxParser(oContentCustomPr, oCustomPrPart, xmlParserContext);
 				this.WordControl.m_oLogicDocument.CustomPr = new AscCommon.CCustomProperties();
 				this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
 			}
 		}
+
 
 		this.WordControl.m_oLogicDocument.ImageMap = {};
 		var _cur_ind = 0;
@@ -1632,9 +1642,9 @@ background-repeat: no-repeat;\
 		for (var path in context.imageMap) {
 			if (context.imageMap.hasOwnProperty(path)) {
 				this.WordControl.m_oLogicDocument.ImageMap[_cur_ind++] = path;
-				var data = context.zip.files[path].sync('uint8array');
-				var blob = new Blob([data], {type: "image/png"});
-				var url = window.URL.createObjectURL(blob);
+				let data = context.zip.files[path].sync('uint8array');
+				let blob = new Blob([data], {type: "image/png"});
+				let url = window.URL.createObjectURL(blob);
 				AscCommon.g_oDocumentUrls.addImageUrl(path, url);
 				context.imageMap[path].forEach(function(blipFill) {
 					AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);

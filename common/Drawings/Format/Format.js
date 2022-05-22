@@ -8093,6 +8093,14 @@
 			}
 			writer.WriteXmlNodeEnd(_name);
 		};
+		CLn.prototype.fillDocumentBorder = function(oBorder) {
+			if(this.Fill) {
+				oBorder.Unifill = this.Fill;
+			}
+			oBorder.Size = (this.w === null) ? 12700 : ((this.w) >> 0);
+			oBorder.Size /= 36000;
+			oBorder.Value = AscCommonWord.border_Single;
+		};
 
 // -----------------------------
 
