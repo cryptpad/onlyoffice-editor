@@ -1933,9 +1933,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         //writer.WriteXmlNullable(this.transition, "p:transition");
         //writer.WriteXmlNullable(this.timing, "p:timing");
         writer.WriteXmlNodeEnd("p:sld");
-
-        let oContext = writer.context;
-        oContext.addSlideLinkedObjects(this);
     };
 function fLoadComments(oObject, authors)
 {

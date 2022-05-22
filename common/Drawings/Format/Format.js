@@ -12311,7 +12311,7 @@
 		function CSpTree(oSlideObject) {
 			CBaseNoIdObject.call(this);
 			this.spTree = [];
-
+			this.slideObject = oSlideObject;
 
 		}
 
@@ -12386,6 +12386,9 @@
 				}
 				if (oSp) {
 					oSp.setBDeleted(false);
+					if(this.slideObject) {
+						oSp.setParent(this.slideObject);
+					}
 					this.spTree.push(oSp);
 				}
 			}

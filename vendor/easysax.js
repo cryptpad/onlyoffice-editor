@@ -1672,12 +1672,6 @@ function XmlWriterContext(editorId){
     this.notesMasterIdLst = [];
     this.handoutMasterIdLst = [];
     this.sldIdLst = [];
-    this.sldMasters = [];
-    this.notes = [];
-    this.notesMasters = [];
-    this.handoutMasters = [];
-    this.sldLayouts = [];
-
 }
 XmlWriterContext.prototype.initFromWS = function(ws) {
     this.ws = ws;
@@ -1685,24 +1679,6 @@ XmlWriterContext.prototype.initFromWS = function(ws) {
     this.cellValue = new AscCommonExcel.CT_Value();
     this.cellBase = new AscCommon.CellBase(0,0);
     this.drawingId = null;
-};
-XmlWriterContext.prototype.addSlideLinkedObjects = function(oSlide) {
-    let oLayout = oSlide.Layout;
-    if(oLayout) {
-        AscFormat.checkObjectInArray(this.sldLayouts, oLayout);
-        let oMaster = oLayout.Master;
-        if(oMaster) {
-            AscFormat.checkObjectInArray(this.sldMasters, oMaster);
-        }
-    }
-    let oNotes = oSlide.notes;
-    if(oNotes) {
-        AscFormat.checkObjectInArray(this.notes, oNotes);
-        let oNotesMaster = oNotes.Master;
-        if(oNotesMaster) {
-            AscFormat.checkObjectInArray(this.notesMasters, oNotesMaster);
-        }
-    }
 };
 
 XmlWriterContext.prototype.addSlideRel = function(sRel) {

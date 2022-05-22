@@ -11596,6 +11596,46 @@ CPresentation.prototype.StopAnimation = function()
         }
     }
 };
+
+CPresentation.prototype.createNecessaryObjectsIfNoPresent = function() {
+    if (this.slideMasters.length === 0) {
+        this.addSlideMaster(0, AscFormat.GenerateDefaultMasterSlide(AscFormat.GenerateDefaultTheme(this)));
+    }
+    if(this.slideMasters[0].sldLayoutLst.length === 0) {
+        this.slideMasters[0].addLayout(AscFormat.GenerateDefaultSlideLayout(this.slideMasters[0]));
+    }
+
+    if(this.notesMasters.length === 0) {
+        let oNotesMaster = AscCommonSlide.CreateNotesMaster();
+        this.notesMasters.addNotesMaster(oNotesMaster);
+        let oNotesTheme = this.slideMasters[0].theme.createDuplicate();
+        oNotesTheme.presentation = this;
+        oNotesMaster.setTheme(oNotesTheme);
+    }
+    for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide)
+    {
+        let oSlide = this.Slides[nSlide];
+        if(!oSlide.notes){
+            oSlide.setNotes(AscCommonSlide.CreateNotes());
+            oSlide.notes.setSlide(oSlide);
+            oSlide.notes.setNotesMaster(this.notesMasters[0]);
+        }
+        if(!oSlide.notes.Master){
+            oSlide.notes.setNotesMaster(this.notesMasters[0]);
+        }
+    }
+};
+CPresentation.prototype.createNotesMasterIfNoPresent = function() {
+    if(this.notesMasters.length === 0) {
+
+        this.addNotesMaster(0, AscCommonSlide.CreateNotesMaster());
+        var oNotesTheme = this.themes[0].createDuplicate();
+        oNotesTheme.presentation = this;
+        this.aThemes.push(oNotesTheme);
+        this.notesMasters[0].setTheme(oNotesTheme);
+    }
+};
+
 CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
     this.pres = new AscCommon.CPres();
     reader.context.clearSlideRelations();
@@ -11612,7 +11652,7 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
     this.defaultTextStyle = pres.defaultTextStyle;
     //set layouts
     let dWidth = this.GetWidthMM();
-    let dHeight = this.GetHeightMM()
+    let dHeight = this.GetHeightMM();
     for(let nSlide = 0; nSlide < this.Slides.length; ++nSlide) {
         let oSlide = this.Slides[nSlide];
         let oLayout = reader.context.layoutsMap[oSlide.layoutTarget];
@@ -11634,6 +11674,7 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
             oLayout.setSlideSize(dWidth, dHeight);
         }
     }
+    this.createNecessaryObjectsIfNoPresent();
     reader.context.clearSlideRelations();
 };
 CPresentation.prototype.readAttrXml = function(name, reader) {
