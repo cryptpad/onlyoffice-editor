@@ -685,11 +685,9 @@
 			switch (reader.GetNameNoNS()) {
 				case "tblStyle" : {
 					if (opt_table) {
-						elem = new CT_StringW();
-						elem.fromXml(reader);
-						if (elem.getVal(undefined)) {
-							reader.context.oReadResult.tableStyles.push(
-								{pPr: opt_table, style: elem.getVal(undefined)});
+						elem = CT_StringW.prototype.toVal(reader, undefined);
+						if (elem) {
+							reader.context.oReadResult.tableStyles.push({pPr: opt_table, style: elem});
 						}
 					}
 					break;
@@ -1640,27 +1638,20 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "pStyle" : {
-					var pStyle = new CT_StringW();
-					pStyle.fromXml(reader);
-					this.PStyle = pStyle.getVal(undefined);
+					this.PStyle = CT_StringW.prototype.toVal(reader, this.PStyle);
+					reader.context.oReadResult.paraStyles.push({pPr: this, style: this.PStyle});
 					break;
 				}
 				case "keepNext" : {
-					var keepNext = new CT_BoolW();
-					keepNext.fromXml(reader);
-					this.KeepNext = keepNext.getVal(undefined);
+					this.KeepNext = CT_BoolW.prototype.toVal(reader, this.KeepNext);
 					break;
 				}
 				case "keepLines" : {
-					var keepLines = new CT_BoolW();
-					keepLines.fromXml(reader);
-					this.KeepLines = keepLines.getVal(undefined);
+					this.KeepLines = CT_BoolW.prototype.toVal(reader, this.KeepLines);
 					break;
 				}
 				case "pageBreakBefore" : {
-					var pageBreakBefore = new CT_BoolW();
-					pageBreakBefore.fromXml(reader);
-					this.PageBreakBefore = pageBreakBefore.getVal(undefined);
+					this.PageBreakBefore = CT_BoolW.prototype.toVal(reader, this.PageBreakBefore);
 					break;
 				}
 				case "framePr" : {
@@ -1669,9 +1660,7 @@
 					break;
 				}
 				case "widowControl" : {
-					var widowControl = new CT_BoolW();
-					widowControl.fromXml(reader);
-					this.WidowControl = widowControl.getVal(undefined);
+					this.WidowControl = CT_BoolW.prototype.toVal(reader, this.WidowControl);
 					break;
 				}
 				case "numPr" : {
@@ -1682,9 +1671,7 @@
 					break;
 				}
 				case "suppressLineNumbers" : {
-					var suppressLineNumbers = new CT_BoolW();
-					suppressLineNumbers.fromXml(reader);
-					this.SuppressLineNumbers = suppressLineNumbers.getVal(undefined);
+					this.SuppressLineNumbers = CT_BoolW.prototype.toVal(reader, this.SuppressLineNumbers);
 					break;
 				}
 				case "pBdr" : {
@@ -1773,9 +1760,7 @@
 					break;
 				}
 				case "contextualSpacing" : {
-					var contextualSpacing = new CT_BoolW();
-					contextualSpacing.fromXml(reader);
-					this.ContextualSpacing = contextualSpacing.getVal(undefined);
+					this.ContextualSpacing = CT_BoolW.prototype.toVal(reader, this.ContextualSpacing);
 					break;
 				}
 				// case "mirrorIndents" : {
@@ -1789,9 +1774,7 @@
 				// 	break;
 				// }
 				case "jc" : {
-					var jc = new CT_StringW();
-					jc.fromXml(reader);
-					this.Jc = fromXml_ST_Jc1(jc.getVal(undefined));
+					this.Jc = fromXml_ST_Jc1(CT_StringW.prototype.toVal(reader, this.Jc), this.Jc);
 					break;
 				}
 				// case "textDirection" : {
@@ -1810,9 +1793,7 @@
 				// 	break;
 				// }
 				case "outlineLvl" : {
-					var outlineLvl = new CT_IntW();
-					outlineLvl.fromXml(reader);
-					this.OutlineLvl = outlineLvl.getVal(undefined);
+					this.OutlineLvl = CT_IntW.prototype.toVal(reader, this.OutlineLvl);
 					break;
 				}
 				// case "divId" : {
@@ -2678,6 +2659,7 @@
 			switch (reader.GetNameNoNS()) {
 				case "rStyle" : {
 					this.RStyle = CT_StringW.prototype.toVal(reader, this.RStyle);
+					reader.context.oReadResult.runStyles.push({pPr: this, style: this.RStyle});
 					break;
 				}
 				case "rFonts" : {
@@ -3948,37 +3930,23 @@
 				// 	break;
 				// }
 				case "pPr" : {
-					elem = new CParaPr();
-					elem.fromXml(reader);
-					//todo aPostOpenStyleNumCallbacks
-					reader.context.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-						t.Set_ParaPr(elem);
-					});
-					// this.Set_ParaPr(elem);
+					this.ParaPr.fromXml(reader);
 					break;
 				}
 				case "rPr" : {
-					elem = new CTextPr();
-					elem.fromXml(reader);
-					this.Set_TextPr(elem);
+					this.TextPr.fromXml(reader);
 					break;
 				}
 				case "tblPr" : {
-					elem = new CTablePr();
-					elem.fromXml(reader);
-					this.Set_TablePr(elem);
+					this.TablePr.fromXml(reader);
 					break;
 				}
 				case "trPr" : {
-					elem = new CTableRowPr();
-					elem.fromXml(reader);
-					this.Set_TableRowPr(elem);
+					this.TableRowPr.fromXml(reader);
 					break;
 				}
 				case "tcPr" : {
-					elem = new CTableCellPr();
-					elem.fromXml(reader);
-					this.Set_TableCellPr(elem);
+					this.TableCellPr.fromXml(reader);
 					break;
 				}
 				case "tblStylePr" : {
