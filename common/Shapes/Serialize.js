@@ -12694,7 +12694,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                                 }
                                 case 5:
                                 {
-                                    var _chart = this.Reader.ReadChartDataInGroup(shape);
+                                    var _chart = null;
+                                    if ("undefined" != typeof(AscFormat.CGraphicFrame))
+                                        _chart = this.Reader.ReadGrFrame();
+                                    else
+                                        _chart = this.Reader.ReadChartDataInGroup(shape);
                                     if (null != _chart)
                                     {
                                         _chart.setGroup(shape);
