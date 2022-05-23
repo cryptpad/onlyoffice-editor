@@ -107,6 +107,7 @@ function (window, undefined)
 		}
 		catch (err)
 		{
+			console.error(err);
 		}
 	};
 	CDocumentMacros.prototype.run = function(sGuid)
@@ -128,6 +129,7 @@ function (window, undefined)
 		}
 		catch (err)
 		{
+			console.error(err);
 		}
 	};
 	CDocumentMacros.prototype.getGuidByName = function(sName)
