@@ -1849,12 +1849,99 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         }
         return oTransition.SlideAdvanceDuration;
     };
+    Slide.prototype.readCommentsXml = function(reader) {
+        if (!reader.ReadNextNode()) {
+            return;
+        }
+        let depth = reader.GetDepth();
+        while (reader.ReadNextSiblingNode(depth)) {
+            let name = reader.GetNameNoNS();
+            if(name === "cm") {
+                this.readCommentXml(reader);
+            }
+        }
+    };
+Slide.prototype.readCommentXml = function(reader) {
+    let oComment = new AscCommon.CWriteCommentData();
+    this.writecomments.push(oComment);
+    let oNode = new CT_XmlNode(function(reader, name) {
+        if(name === "pos") {
+            let oPosNode = new CT_XmlNode(function (reader, name) {
+                return true;
+            });
+            oPosNode.fromXml(reader);
+            oComment.x = parseInt(oPosNode.attributes["x"]);
+            oComment.y = parseInt(oPosNode.attributes["y"]);
+        }
+        else if(name === "text") {
+            oComment.WriteText = reader.GetTextDecodeXml();
+        }
+        else if(name === "extLst") {
+            let oExtLstNode = new CT_XmlNode(function (reader, name) {
+                if(name === "ext") {
+                    let oExtNode = new CT_XmlNode(function (reader, name) {
+                        if(name === "threadingInfo") {
+                            let oThreadingInfoNode = new CT_XmlNode(function (reader, name) {
+                                if(name === "parentCm") {
+                                    let oParentCmNode = new CT_XmlNode(function (reader, name) {
+                                        return true;
+                                    });
+                                    oParentCmNode.fromXml(reader);
+                                    let nParentId = parseInt(oParentCmNode.attributes["authorId"]);
+                                    if(AscFormat.isRealNumber(nParentId)) {
+                                        oComment.WriteParentAuthorId = nParentId;
+                                    }
+                                    let nParentIdx = parseInt(oParentCmNode.attributes["idx"]);
+                                    if(AscFormat.isRealNumber(nParentId)) {
+                                        oComment.WriteParentCommentId = nParentIdx;
+                                    }
+                                }
+                                return true;
+                            });
+                            oThreadingInfoNode.fromXml(reader);
+                            let timeZoneBias = parseInt(oThreadingInfoNode.attributes["timeZoneBias"]);
+                            if(AscFormat.isRealNumber(timeZoneBias)) {
+                                oComment.timeZoneBias = timeZoneBias;
+                            }
+                        }
+                        else if(name === "presenceInfo") {
+                            let oPresenceInfoNode = new CT_XmlNode(function (reader, name) {
+                                return true;
+                            });
+                            oPresenceInfoNode.fromXml(reader);
+                            oComment.AdditionalData = oPresenceInfoNode.attributes["userId"] || null;
+                        }
+                        return true;
+                    });
+                    oExtNode.fromXml(reader);
+                }
+                return true;
+            });
+            oExtLstNode.fromXml(reader);
+
+            //check comment guid
+            if(!(oComment.AdditionalData && 0 === oComment.AdditionalData.indexOf("teamlab_data:") && -1 !== oComment.AdditionalData.indexOf("4;38;"))) {
+                if(!oComment.AdditionalData) {
+                    oComment.AdditionalData = "teamlab_data:";
+                }
+                if(':' !== oComment.AdditionalData.charAt(oComment.AdditionalData.length - 1) && ';' !== oComment.AdditionalData.charAt(oComment.AdditionalData.length - 1)) {
+                    oComment.AdditionalData = oComment.AdditionalData + ";";
+                }
+                oComment.AdditionalData = oComment.AdditionalData + ("4;38;{" + AscCommon.GUID() + "}");
+            }
+        }
+        return true;
+    });
+    oNode.fromXml(reader);
+    oComment.WriteAuthorId = parseInt(oNode.attributes["authorId"]);
+    oComment.WriteCommentId = parseInt(oNode.attributes["idx"]);
+};
     Slide.prototype.fromXml = function(reader, bSkipFirstNode) {
         AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
         //read notes
-        var oNotesPart = reader.rels.getPartByRelationshipType(openXml.Types.notesSlide.relationType);
+        let oNotesPart = reader.rels.getPartByRelationshipType(openXml.Types.notesSlide.relationType);
         if(oNotesPart) {
-            var oNotesContent = oNotesPart.getDocumentContent();
+            let oNotesContent = oNotesPart.getDocumentContent();
             let oNotesReader = new StaxParser(oNotesContent, oNotesPart, reader.context);
             let oNotes = new AscCommonSlide.CNotes();
             oNotes.fromXml(oNotesReader, true);
@@ -1862,6 +1949,14 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             if(oRel) {
                 oNotes.masterTarget = oRel.uri;
                 this.setNotes(oNotes);
+            }
+        }
+        let oCommentsPart = reader.rels.getPartByRelationshipType(openXml.Types.slideComments.relationType);
+        if(oCommentsPart) {
+            let oCommentsPartContent = oCommentsPart.getDocumentContent();
+            if(oCommentsPartContent) {
+                let oCommentsReader = new StaxParser(oCommentsPartContent, oCommentsPart, reader.context);
+                this.readCommentsXml(oCommentsReader);
             }
         }
     };

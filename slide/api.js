@@ -1582,7 +1582,7 @@ background-repeat: no-repeat;\
 		}
 
 		this.InitEditor();
-		var reader, openParams = {};
+		var reader;
 		this.DocumentType = 2;
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
@@ -1595,6 +1595,17 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.readTableStylesFromXml(oTableStylesReader);
 			}
 		}
+		let oCommentAuthorsPart = doc.getPartByUri("/ppt/commentAuthors.xml");
+		if(oCommentAuthorsPart) {
+
+			let oContentCommentAuthors = oCommentAuthorsPart.getDocumentContent();
+			if(oContentCommentAuthors) {
+				let oCommentAuthorsReader = new StaxParser(oContentCommentAuthors, oCommentAuthorsPart, xmlParserContext);
+				this.WordControl.m_oLogicDocument.readCommentAuthors(oCommentAuthorsReader);
+			}
+		}
+
+
 		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
 		var contentDocument = documentPart.getDocumentContent();
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);

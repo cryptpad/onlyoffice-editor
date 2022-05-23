@@ -11655,6 +11655,7 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
         }
         oSlide.setSlideSize(dWidth, dHeight);
         delete oSlide.layoutTarget;
+        oSlide.Load_Comments(this.CommentAuthors);
     }
     for(let nMaster = 0; nMaster < this.slideMasters.length; ++nMaster) {
         let oMaster = this.slideMasters[nMaster];
@@ -11665,6 +11666,7 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
         }
     }
     this.createNecessaryObjectsIfNoPresent();
+    this.Load_Comments(this.CommentAuthors);
     reader.context.clearSlideRelations();
 };
 CPresentation.prototype.readTableStylesFromXml = function(reader) {
@@ -11674,7 +11676,26 @@ CPresentation.prototype.readTableStylesFromXml = function(reader) {
         this.DefaultTableStyleId = oStyle.Id;
     }
 };
-CPresentation.prototype.readTableStyleFromXml = function(reader) {
+CPresentation.prototype.readCommentAuthors = function(reader) {
+    if (!reader.ReadNextNode()) {
+        return;
+    }
+    let depth = reader.GetDepth();
+    while (reader.ReadNextSiblingNode(depth)) {
+        let name = reader.GetNameNoNS();
+        if(name === "cmAuthor") {
+            let oAuthor = new AscCommon.CCommentAuthor();
+            let oAuthorNode = new CT_XmlNode(function() {
+                return true;
+            });
+            oAuthorNode.fromXml(reader);
+            oAuthor.Name = oAuthorNode.attributes["name"];
+            oAuthor.Id = parseInt(oAuthorNode.attributes["id"]);
+            oAuthor.LastId = parseInt(oAuthorNode.attributes["lastIdx"]);
+            oAuthor.Initials = oAuthorNode.attributes["initials"];
+            this.CommentAuthors[oAuthor.Name] = oAuthor;
+        }
+    }
 
 };
 CPresentation.prototype.readAttrXml = function(name, reader) {
