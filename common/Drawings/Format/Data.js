@@ -8896,6 +8896,10 @@ Because of this, the display is sometimes not correct.
       }
     };
 
+    Drawing.prototype.getResultScaleCoefficients = function() {
+      return {cx: 1, cy: 1};
+    };
+
     Drawing.prototype.setXfrmByParent = function () {
       var oXfrm = this.spPr.xfrm;
       if (oXfrm.isZero()) {
