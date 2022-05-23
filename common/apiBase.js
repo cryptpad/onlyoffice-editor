@@ -3386,16 +3386,15 @@
 		return this.macros.getNameByGuid(sGuid);
     };
 	baseEditorsApi.prototype.asc_getUserPermissionToMakeRequestFromMacros = function(url, callback)
-    {
+	{
 		var bNeedCallback = this.editorId === AscCommon.c_oEditorId.Spreadsheet ? this.handlers.hasTrigger('asc_onMacrosPermissionRequest') : this.asc_checkNeedCallback('asc_onMacrosPermissionRequest');
 		if (bNeedCallback) {
 			this.sendEvent('asc_onMacrosPermissionRequest', url, callback);
 		} else {
-			var permission = confirm("Allow a request to such url: '" + url +"' ?");
+			var permission = confirm("A macro makes a request to URL. Do you want to allow the request to the '" + url +"' ?");
 			callback(permission);
-
-		}		
-    };
+		}
+	};
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
