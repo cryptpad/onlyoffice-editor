@@ -5985,8 +5985,8 @@ Paragraph.prototype.Get_LeftPos = function(SearchPos, ContentPos)
 	var Depth  = 0;
 	var CurPos = ContentPos.Get(Depth);
 
-	this.Content[CurPos].Get_LeftPos(SearchPos, ContentPos, Depth + 1, true);
 	SearchPos.Pos.Update(CurPos, Depth);
+	this.Content[CurPos].Get_LeftPos(SearchPos, ContentPos, Depth + 1, true);
 
 	if (true === SearchPos.Found)
 		return true;
@@ -5996,16 +5996,16 @@ Paragraph.prototype.Get_LeftPos = function(SearchPos, ContentPos)
 	if (CurPos >= 0 && this.Content[CurPos + 1].IsStopCursorOnEntryExit())
 	{
 		// При выходе из формулы встаем в конец рана
-		this.Content[CurPos].Get_EndPos(false, SearchPos.Pos, Depth + 1);
 		SearchPos.Pos.Update(CurPos, Depth);
+		this.Content[CurPos].Get_EndPos(false, SearchPos.Pos, Depth + 1);
 		SearchPos.Found = true;
 		return true;
 	}
 
 	while (CurPos >= 0)
 	{
-		this.Content[CurPos].Get_LeftPos(SearchPos, ContentPos, Depth + 1, false);
 		SearchPos.Pos.Update(CurPos, Depth);
+		this.Content[CurPos].Get_LeftPos(SearchPos, ContentPos, Depth + 1, false);
 
 		if (true === SearchPos.Found)
 			return true;
@@ -6035,8 +6035,8 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 	{
 		SearchPos.Found = false;
 
-		this.Content[CurPos].Get_RightPos(SearchPos, ContentPos, Depth + 1, true, StepEnd);
 		SearchPos.Pos.Update(CurPos, Depth);
+		this.Content[CurPos].Get_RightPos(SearchPos, ContentPos, Depth + 1, true, StepEnd);
 
 		if (SearchPos.Found)
 		{
@@ -6057,16 +6057,16 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 	if (CurPos < Count && this.Content[CurPos - 1].IsStopCursorOnEntryExit())
 	{
 		// При выходе из формулы встаем в конец рана
-		this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
 		SearchPos.Pos.Update(CurPos, Depth);
+		this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
 		SearchPos.Found = true;
 		return true;
 	}
 
 	while (CurPos < Count)
 	{
-		this.Content[CurPos].Get_RightPos(SearchPos, ContentPos, Depth + 1, false, StepEnd);
 		SearchPos.Pos.Update(CurPos, Depth);
+		this.Content[CurPos].Get_RightPos(SearchPos, ContentPos, Depth + 1, false, StepEnd);
 
 		if (true === SearchPos.Found)
 		{
@@ -16895,13 +16895,21 @@ Paragraph.prototype.RemoveElement = function(oElement)
 /**
  * Пробегаемся по все ранам с заданной функцией
  * @param fCheck - функция проверки содержимого рана
+ * @param {CParagraphContentPos} oStartPos
+ * @param {CParagraphContentPos} oEndPos
  * @returns {boolean}
  */
-Paragraph.prototype.CheckRunContent = function(fCheck)
+Paragraph.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos)
 {
-	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	let nStartPos = oStartPos ? oStartPos.Get(0) : 0;
+	let nEndPos   = oEndPos ? oEndPos.Get(0) : this.Content.length - 1;
+
+	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
 	{
-		if (this.Content[nPos].CheckRunContent(fCheck))
+		let _s = oStartPos && nPos === nStartPos ? oStartPos : null;
+		let _e = oEndPos && nPos === nEndPos ? oEndPos : null;
+
+		if (this.Content[nPos].CheckRunContent(fCheck, _s, _e, 1))
 			return true;
 	}
 

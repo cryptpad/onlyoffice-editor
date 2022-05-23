@@ -51,11 +51,13 @@
 		this.FontId    = -1;
 		this.FontSubst = false;
 		this.FontSlot  = fontslot_None;
+		this.Temporary = false;
 	}
-	CTextShaper.prototype.Init = function()
+	CTextShaper.prototype.Init = function(isTemporary)
 	{
-		this.Parent = null;
-		this.TextPr = null;
+		this.Parent    = null;
+		this.TextPr    = null;
+		this.Temporary = isTemporary;
 
 		this.ClearBuffer();
 	};
@@ -86,14 +88,29 @@
 	};
 	CTextShaper.prototype.Shape = function(oParagraph)
 	{
-		this.Init();
-		oParagraph.CheckRunContent((o) => this.ShapeRun(o));
+		this.Init(false);
+		let oThis = this;
+		oParagraph.CheckRunContent(function(oRun, nStartPos, nEndPos)
+		{
+			oThis.ShapeRun(oRun, nStartPos, nEndPos);
+		});
+		this.FlushWord();
 	};
-	CTextShaper.prototype.ShapeRun = function(oRun)
+	CTextShaper.prototype.ShapeRange = function(oParagraph, oStart, oEnd, isTemporary)
+	{
+		this.Init(isTemporary);
+		let oThis = this;
+		oParagraph.CheckRunContent(function(oRun, nStartPos, nEndPos)
+		{
+			oThis.ShapeRun(oRun, nStartPos, nEndPos);
+		}, oStart, oEnd);
+		this.FlushWord();
+	};
+	CTextShaper.prototype.ShapeRun = function(oRun, nStartPos, nEndPos)
 	{
 		this.private_CheckRun(oRun);
 
-		for (let nPos = 0, nCount = oRun.GetElementsCount(); nPos < nCount; ++nPos)
+		for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
 		{
 			let oItem = oRun.GetElement(nPos);
 			if (!oItem.IsText())
@@ -148,18 +165,12 @@
 
 		let _nWidth = (_isLigature ? nWidth / nCodePointsCount : nWidth);
 
-		let oItem = this.Items[this.ItemIndex++];
-		oItem.SetGrapheme(nGrapheme);
-		oItem.UpdateMetrics(this.FontSize, this.FontSlot, this.TextPr);
-		oItem.SetWidth(_nWidth);
+		this.private_HandleItem(this.Items[this.ItemIndex++], nGrapheme, _nWidth, this.FontSize, this.FontSlot, _isLigature, false);
 
 		_nWidth = _isLigature ? _nWidth : 0;
 		for (let nIndex = 1; nIndex < nCodePointsCount; ++nIndex)
 		{
-			oItem = this.Items[this.ItemIndex++];
-			oItem.SetGrapheme(null, 0);
-			oItem.UpdateMetrics(this.FontSize);
-			oItem.SetWidth(_nWidth);
+			this.private_HandleItem(this.Items[this.ItemIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, false, _isLigature);
 		}
 	};
 	CTextShaper.prototype.GetTextScript = function(nUnicode)
@@ -250,9 +261,22 @@
 	{
 		let oFontInfo = this.TextPr.GetFontInfo(fontslot_ASCII);
 		let nGrapheme = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
-		oItem.SetGrapheme(nGrapheme);
-		oItem.UpdateMetrics(oFontInfo.Size, fontslot_ASCII, this.TextPr);
-		oItem.SetWidth(AscFonts.GetGraphemeWidth(nGrapheme));
+		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, fontslot_ASCII, false, false);
+	};
+	CTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, isLigature, isLigatureContinue)
+	{
+		if (this.Temporary)
+		{
+			oItem.SetTemporaryGrapheme(nGrapheme);
+		}
+		else
+		{
+			oItem.SetGrapheme(nGrapheme);
+			oItem.UpdateMetrics(nFontSize, nFontSlot, this.TextPr);
+		}
+
+		oItem.UpdateLigatureInfo(isLigature, isLigatureContinue);
+		oItem.SetWidth(nWidth);
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------

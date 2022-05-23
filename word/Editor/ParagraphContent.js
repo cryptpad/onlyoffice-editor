@@ -146,16 +146,27 @@ g_aSpecialSymbols[0x00AE] = 1;
 var g_aCCNBAEL = [];
 
 
-var PARATEXT_FLAGS_MASK               = 0xFFFFFFFF; // 4 байта
-var PARATEXT_FLAGS_FONTKOEF_SCRIPT    = 0x00000001; // 0 бит
-var PARATEXT_FLAGS_FONTKOEF_SMALLCAPS = 0x00000002; // 1 бит
-var PARATEXT_FLAGS_SPACEAFTER         = 0x00010000; // 16 бит
-var PARATEXT_FLAGS_CAPITALS           = 0x00020000; // 17 бит
+var PARATEXT_FLAGS_MASK                        = 0xFFFFFFFF; // 4 байта
+var PARATEXT_FLAGS_FONTKOEF_SCRIPT             = 0x00000004; // 2 бит
+var PARATEXT_FLAGS_FONTKOEF_SMALLCAPS          = 0x00000008; // 3 бит
+var PARATEXT_FLAGS_SPACEAFTER                  = 0x00000010; // 4 бит
+var PARATEXT_FLAGS_CAPITALS                    = 0x00000020; // 5 бит
+var PARATEXT_FLAGS_LIGATURE                    = 0x00000040; // 6 бит
+var PARATEXT_FLAGS_LIGATURE_CONTINUE           = 0x00000080; // 7 бит
+var PARATEXT_FLAGS_TEMPORARY                   = 0x00000100; // 8 бит
+var PARATEXT_FLAGS_TEMPORARY_LIGATURE          = 0x00000200; // 9 бит
+var PARATEXT_FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00000400; // 10 бит
 
-var PARATEXT_FLAGS_NON_FONTKOEF_SCRIPT    = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_FONTKOEF_SCRIPT;
-var PARATEXT_FLAGS_NON_FONTKOEF_SMALLCAPS = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_FONTKOEF_SMALLCAPS;
-var PARATEXT_FLAGS_NON_SPACEAFTER         = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_SPACEAFTER;
-var PARATEXT_FLAGS_NON_CAPITALS           = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_CAPITALS;
+var PARATEXT_FLAGS_NON_FONTKOEF_SCRIPT             = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_FONTKOEF_SCRIPT;
+var PARATEXT_FLAGS_NON_FONTKOEF_SMALLCAPS          = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_FONTKOEF_SMALLCAPS;
+var PARATEXT_FLAGS_NON_SPACEAFTER                  = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_SPACEAFTER;
+var PARATEXT_FLAGS_NON_CAPITALS                    = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_CAPITALS;
+var PARATEXT_FLAGS_NON_LIGATURE                    = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_LIGATURE;
+var PARATEXT_FLAGS_NON_LIGATURE_CONTINUE           = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_LIGATURE_CONTINUE;
+var PARATEXT_FLAGS_NON_TEMPORARY                   = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_TEMPORARY;
+var PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE          = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_TEMPORARY_LIGATURE;
+var PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_TEMPORARY_LIGATURE_CONTINUE;
+
 
 const PARATEXT_FLAGS_ASCII    = 0;
 const PARATEXT_FLAGS_CS       = 1;
@@ -411,6 +422,13 @@ CRunElementBase.prototype.IsBreak = function()
 {
 	return false;
 };
+/**
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsLigature = function()
+{
+	return false;
+};
 
 
 /**
@@ -458,6 +476,15 @@ ParaText.prototype.GetCodePoint = function()
 ParaText.prototype.SetGrapheme = function(nGrapheme)
 {
 	this.Grapheme = nGrapheme;
+};
+ParaText.prototype.SetTemporaryGrapheme = function(nGrapheme)
+{
+	this.Flags |= PARATEXT_FLAGS_TEMPORARY;
+	this.TempGrapheme = nGrapheme;
+};
+ParaText.prototype.ResetTemporaryGrapheme = function()
+{
+	this.Flags &= PARATEXT_FLAGS_NON_TEMPORARY;
 };
 ParaText.prototype.UpdateMetrics = function(nFontSize, nFontSlot, oTextPr)
 {
@@ -511,9 +538,55 @@ ParaText.prototype.UpdateMetrics = function(nFontSize, nFontSlot, oTextPr)
 
 	this.Flags = (this.Flags & 0xFFFF) | (((_nFontSize * 64) & 0xFFFF) << 16);
 };
+ParaText.prototype.UpdateLigatureInfo = function(isLigature, isLigatureContinue)
+{
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+	{
+		if (isLigature)
+			this.Flags |= PARATEXT_FLAGS_TEMPORARY_LIGATURE;
+		else
+			this.Flags &= PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE;
+
+		if (isLigatureContinue)
+			this.Flags |= PARATEXT_FLAGS_TEMPORARY_LIGATURE_CONTINUE;
+		else
+			this.Flags &= PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE;
+	}
+	else
+	{
+		if (isLigature)
+			this.Flags |= PARATEXT_FLAGS_LIGATURE;
+		else
+			this.Flags &= PARATEXT_FLAGS_NON_LIGATURE;
+
+		if (isLigatureContinue)
+			this.Flags |= PARATEXT_FLAGS_LIGATURE_CONTINUE;
+		else
+			this.Flags &= PARATEXT_FLAGS_NON_LIGATURE_CONTINUE;
+	}
+};
+ParaText.prototype.IsLigature = function()
+{
+	return (this.Flags & PARATEXT_FLAGS_LIGATURE);
+};
+ParaText.prototype.GetLigatureWidth = function()
+{
+	return (AscFonts.GetGraphemeWidth(this.Grapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
+};
 ParaText.prototype.SetWidth = function(nWidth)
 {
-	this.Width = ((nWidth * (((this.Flags >> 16) & 0xFFFF) / 64)) * TEXTWIDTH_DIVIDER) | 0;
+	let nValue = ((nWidth * (((this.Flags >> 16) & 0xFFFF) / 64)) * TEXTWIDTH_DIVIDER) | 0;
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+		this.TempWidth = nValue;
+	else
+		this.Width = nValue;
+};
+ParaText.prototype.Get_Width = function()
+{
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+		return (this.TempWidth / TEXTWIDTH_DIVIDER);
+
+	return (this.Width / TEXTWIDTH_DIVIDER);
 };
 ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 {
@@ -523,9 +596,14 @@ ParaText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	// 	X += this.LGap;
 	// }
 
-	if (AscFonts.NO_GRAPHEME !== this.Grapheme && (!this.IsNBSP() || (editor && editor.ShowParaMarks)))
+	let nFontSize = (((this.Flags >> 16) & 0xFFFF) / 64);
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
 	{
-		let nFontSize = (((this.Flags >> 16) & 0xFFFF) / 64);
+		if (AscFonts.NO_GRAPHEME !== this.TempGrapheme)
+			AscFonts.DrawGrapheme(this.TempGrapheme, Context, X, Y, nFontSize);
+	}
+	else if (AscFonts.NO_GRAPHEME !== this.Grapheme && (!this.IsNBSP() || (editor && editor.ShowParaMarks)))
+	{
 		AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, nFontSize);
 	}
 };
@@ -793,6 +871,10 @@ ParaText.prototype.IsText = function()
 ParaText.prototype.IsCombiningMark = function()
 {
 	return (this.Width < 0.001);
+};
+ParaText.prototype.IsLigatureContinue = function()
+{
+	return !!(this.Flags & PARATEXT_FLAGS_LIGATURE_CONTINUE);
 };
 
 

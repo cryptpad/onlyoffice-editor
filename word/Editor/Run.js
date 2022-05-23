@@ -3515,6 +3515,8 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 					if (para_ContinuationSeparator === ItemType || para_Separator === ItemType)
 						Item.UpdateWidth(PRS);
+					else if (para_Text === ItemType)
+						Item.ResetTemporaryGrapheme();
 
 					if (true !== PRS.IsFastRecalculate())
 					{
@@ -3617,8 +3619,34 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     }
                     else
                     {
-                        if(X + SpaceLen + WordLen + LetterLen > XEnd)
-                        {
+						if (FirstItemOnLine
+							&& Item.IsLigature()
+							&& X + SpaceLen + WordLen + Item.GetLigatureWidth() > XEnd)
+						{
+
+							if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
+							{
+								let oLigaturePos = PRS.CurPos.Copy();
+								oLigaturePos.Update(Pos, Depth);
+
+								PRS.LineBreakPos = Para.FindLineBreakOnShapeText(XEnd - (X + SpaceLen + WordLen), oLigaturePos);
+
+								// console.log("Break on ligature");
+								// console.log("Pos " + (X + SpaceLen + WordLen));
+								// console.log("End " + XEnd);
+								// console.log("Space " + (XEnd - (X + SpaceLen + WordLen)));
+								// console.log("LigatureW " + nLigatureWidth);
+								// console.log("LetterW " + LetterLen);
+								// console.log(PRS.LineBreakPos);
+								// console.log(Para.CollectLigatureInfo(oLigaturePos));
+
+							}
+
+							MoveToLBP = true;
+							NewRange  = true;
+						}
+						else if (X + SpaceLen + WordLen + LetterLen > XEnd)
+						{
                             if(true === FirstItemOnLine)
                             {
                                 // Слово оказалось единственным элементом в промежутке, и, все равно,
@@ -12381,9 +12409,12 @@ ParaRun.prototype.UpdateBookmarks = function(oManager)
 			this.Content[nIndex].UpdateBookmarks(oManager);
 	}
 };
-ParaRun.prototype.CheckRunContent = function(fCheck)
+ParaRun.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth)
 {
-	return fCheck(this);
+	let nStartPos = oStartPos && oStartPos.GetDepth() <= nDepth ? oStartPos.Get(nDepth) : 0;
+	let nEndPos   = oEndPos && oEndPos.GetDepth() <= nDepth ? oEndPos.Get(nDepth) : this.Content.length;
+
+	return fCheck(this, nStartPos, nEndPos);
 };
 ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 {

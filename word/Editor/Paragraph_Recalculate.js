@@ -2501,12 +2501,98 @@ Paragraph.prototype.ShapeText = function()
 	if (!this.RecalcInfo.ShapeText)
 		return;
 
+	// TODO: Код для теста скорости функции ShapeText
+	// let nRecalcId = this.LogicDocument ? this.LogicDocument.GetRecalcId() : -1;
+	// if (this.ShapeId === nRecalcId)
+	// 	return;
+	//
+	// this.ShapeId = nRecalcId;
+
 	// TODO: Сейчас мы шейпим текст целиком во всем параграфе. Для ускорения нужно отслеживать позиции, в которых
 	//       произошли изменения (далее влево и вправо найти позиции пробела/таба или другого разделителя слова)
 	//       и шейпить текст только в заданном промежутке
 
 	AscCommonWord.TextShaper.Shape(this);
 	this.RecalcInfo.ShapeText = false;
+};
+
+Paragraph.prototype.ShapeTextInRange = function(oStartPos, oEndPos)
+{
+	AscCommonWord.TextShaper.ShapeRange(this, oStartPos, oEndPos);
+};
+Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
+{
+	let oLigature = this.GetNextRunElement(oContentPos);
+
+	let arrPositions = [oContentPos];
+	let arrItems     = [oLigature];
+
+	if (!oLigature || !oLigature.IsLigature())
+	{
+		return {
+			Positions : arrPositions,
+			Items     : arrItems
+		};
+	}
+
+	let oCurrentPos = oContentPos;
+	let oSearchPos = new CParagraphSearchPos();
+	this.Get_RightPos(oSearchPos, oCurrentPos, false);
+
+	while (oSearchPos.IsFound())
+	{
+		oCurrentPos = oSearchPos.GetPos().Copy();
+
+		let oNext = this.GetNextRunElement(oCurrentPos);
+		let oPrev = this.GetPrevRunElement(oCurrentPos);
+
+		if (!oPrev
+			|| !oNext
+			|| !oPrev.IsText()
+			|| !oNext.IsText()
+			|| !oNext.IsLigatureContinue())
+			break;
+
+		arrItems.push(oNext);
+		arrPositions.push(oCurrentPos);
+
+		oSearchPos.Reset();
+		this.Get_RightPos(oSearchPos, oCurrentPos, false);
+
+		if (!oSearchPos.IsFound())
+			break;
+	}
+
+	return {
+		Positions : arrPositions,
+		Items     : arrItems
+	};
+};
+Paragraph.prototype.FindLineBreakOnShapeText = function(nWidth, oLigaturePos)
+{
+	let oInfo = this.CollectLigatureInfo(oLigaturePos);
+
+	let arrPositions = oInfo.Positions;
+	let arrItems     = oInfo.Items;
+
+	let nLastPos = arrPositions.length - 1;
+	while (nLastPos > 0)
+	{
+		this.ShapeTextInRange(arrPositions[0], arrPositions[nLastPos]);
+
+		let nTempWidth = 0;
+		for (let nPos = 0; nPos <= nLastPos; ++ nPos)
+		{
+			nTempWidth += arrItems[nPos].GetWidth();
+		}
+
+		if (nTempWidth < nWidth)
+			return arrPositions[nLastPos];
+
+		nLastPos--;
+	}
+
+	return arrPositions[0];
 };
 
 var ERecalcPageType =
