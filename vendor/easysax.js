@@ -1678,6 +1678,7 @@ function XmlWriterContext(editorId){
     this.notesMasterIdLst = [];
     this.handoutMasterIdLst = [];
     this.sldIdLst = [];
+    this.tableStylesIdToGuid = {};
 }
 XmlWriterContext.prototype.initFromWS = function(ws) {
     this.ws = ws;

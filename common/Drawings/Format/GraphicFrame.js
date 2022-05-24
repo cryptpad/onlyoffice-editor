@@ -1413,19 +1413,31 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
 		}
 	};
 	CGraphicFrame.prototype.toXml = function(writer, name) {
+        let sName = name || "p:graphicFrame";
 		var context = writer.context;
 		var objectId = context.objectId++;
-		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNodeStart(sName);
 		writer.WriteXmlAttributesEnd();
 
-		var ns = StaxParser.prototype.GetNSFromNodeName(name);
+		var ns = StaxParser.prototype.GetNSFromNodeName(sName);
 
 		writer.WriteXmlString('<'+ns+'nvGraphicFramePr>');
 		writer.WriteXmlString('<'+ns+'cNvPr id="' + objectId + '" name="GraphicFrame ' + objectId + '"/>');
 		writer.WriteXmlString('<'+ns+'cNvGraphicFramePr/></'+ns+'nvGraphicFramePr>');
 		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + "xfrm");
-		writer.WriteXmlNullable(this.graphicObject, "a:graphic");
-		writer.WriteXmlNodeEnd(name);
+
+        let oGraphicObject;
+        if(this.graphicObject instanceof AscCommonWord.CTable) {
+            oGraphicObject =  new AscFormat.CT_GraphicalObject(this);
+            oGraphicObject.GraphicData = new  AscFormat.CT_GraphicalObjectData(this);
+            oGraphicObject.GraphicData.graphicObject = this.graphicObject;
+            oGraphicObject.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/table";
+        }
+        else {
+            oGraphicObject = this.graphicObject;
+        }
+		writer.WriteXmlNullable(oGraphicObject, "a:graphic");
+		writer.WriteXmlNodeEnd(sName);
 	};
 
     function ConvertToWordTableBorder(oBorder) {

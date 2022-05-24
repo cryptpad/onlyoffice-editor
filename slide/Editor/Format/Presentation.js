@@ -11897,6 +11897,16 @@ CPresentation.prototype.toZip = function(zip, context) {
     presentationPrPart.part.setDataXml(oPresPr, memory);
     memory.Seek(0);
 
+
+    let oTableStylesPart = presentationPart.part.addPart(AscCommon.openXml.Types.tableStyles);
+    let oTableStyleIdMap = {};
+    this.GetTableStyleIdMap(oTableStyleIdMap);
+    oTableStyleIdMap[this.DefaultTableStyleId] = true;
+    this.globalTableStyles.toDrawingML(memory, oTableStyleIdMap, this.DefaultTableStyleId);
+    let oTableStylesData = memory.GetDataUint8();
+    oTableStylesPart.part.setData(oTableStylesData);
+    memory.Seek(0);
+
     let sViewPropsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><p:viewPr xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\"><p:normalViewPr><p:restoredLeft sz=\"15620\"></p:restoredLeft><p:restoredTop sz=\"94660\"></p:restoredTop></p:normalViewPr><p:slideViewPr><p:cSldViewPr><p:cViewPr varScale=\"1\"><p:scale><a:sx n=\"104\" d=\"100\"></a:sx><a:sy n=\"104\" d=\"100\"></a:sy></p:scale><p:origin x=\"-1236\" y=\"-90\"></p:origin></p:cViewPr><p:guideLst><p:guide pos=\"2160\" orient=\"horz\"></p:guide><p:guide pos=\"2880\"></p:guide></p:guideLst></p:cSldViewPr></p:slideViewPr><p:notesTextViewPr><p:cViewPr><p:scale><a:sx n=\"100\" d=\"100\"></a:sx><a:sy n=\"100\" d=\"100\"></a:sy></p:scale><p:origin x=\"0\" y=\"0\"></p:origin></p:cViewPr></p:notesTextViewPr><p:gridSpacing cx=\"72008\" cy=\"72008\"></p:gridSpacing></p:viewPr>";
     let viewPrPart = presentationPart.part.addPart(AscCommon.openXml.Types.viewProperties);
     memory.WriteXmlString(sViewPropsXml);

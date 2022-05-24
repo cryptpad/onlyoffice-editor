@@ -8101,6 +8101,13 @@
 			oBorder.Size /= 36000;
 			oBorder.Value = AscCommonWord.border_Single;
 		};
+		CLn.prototype.fromDocumentBorder = function(oBorder) {
+			this.Fill = oBorder.Unifill;
+			this.w = null;
+			if(AscFormat.isRealNumber(oBorder.Size)) {
+				this.w = oBorder.Size * 36000 >> 0;
+			}
+		};
 
 // -----------------------------
 
