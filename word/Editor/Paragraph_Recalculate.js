@@ -1239,6 +1239,9 @@ Paragraph.prototype.private_RecalculateLineInfo        = function(CurLine, CurPa
 
     if (true === PRS.BreakLine)
     	this.Lines[CurLine].Info |= paralineinfo_BreakLine;
+
+	if (PRS.LongWord)
+		this.Lines[CurLine].Info |= paralineinfo_LongWord;
 };
 
 Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPage, PRS, ParaPr)
@@ -2518,7 +2521,7 @@ Paragraph.prototype.ShapeText = function()
 
 Paragraph.prototype.ShapeTextInRange = function(oStartPos, oEndPos)
 {
-	AscCommonWord.TextShaper.ShapeRange(this, oStartPos, oEndPos);
+	AscCommonWord.TextShaper.ShapeRange(this, oStartPos, oEndPos, true);
 };
 Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
 {
@@ -2568,7 +2571,7 @@ Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
 		Items     : arrItems
 	};
 };
-Paragraph.prototype.FindLineBreakOnShapeText = function(nWidth, oLigaturePos)
+Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLigaturePos)
 {
 	let oInfo = this.CollectLigatureInfo(oLigaturePos);
 
@@ -2635,6 +2638,7 @@ var paralineinfo_BadLeftTab    = 0x0020; // В строке есть левый 
 var paralineinfo_Notes         = 0x0040; // В строке есть сноски
 var paralineinfo_TextOnLine    = 0x0080; // Есть ли в строке текст
 var paralineinfo_BreakLine     = 0x0100; // Строка закончилась переносом строки
+var paralineinfo_LongWord      = 0x0200; // В строке длинное слово, которое не убралось
 
 function CParaLine()
 {
@@ -3084,6 +3088,7 @@ function CParagraphRecalculateStateWrap(Para)
     this.BreakRealPageLine  = false; // Разрыв страницы документа (не только параграфа) в данной строке
     this.BadLeftTab         = false; // Левый таб правее правой границы
 	this.BreakLine          = false; // Строка закончилась принудительным разрывом
+	this.LongWord           = false;
 
 	this.ComplexFields = new CParagraphComplexFieldsInfo();
 
@@ -3209,6 +3214,7 @@ CParagraphRecalculateStateWrap.prototype =
         this.EmptyLine           = true;
         this.BreakPageLine       = false;
         this.BreakLine           = false;
+		this.LongWord            = false;
         this.End                 = false;
         this.UseFirstLine        = false;
         this.BreakRealPageLine   = false;
@@ -3875,6 +3881,36 @@ CParagraphRecalculateStateWrap.prototype.CheckUpdateLBP = function(nInRunPos)
 		 this.LineBreakPos.Set(this.CurPos);
 		 this.LineBreakPos.Add(nInRunPos);
 	 }
+};
+CParagraphRecalculateStateWrap.prototype.CheckNeedShapeFirstWord = function(nCurLine, oRun, nPos)
+{
+	let arrLines = this.Paragraph.Lines;
+	let oItem    = oRun.GetElement(nPos)
+
+	if (0 === nCurLine
+		|| arrLines.length <= nCurLine
+		|| !(arrLines[nCurLine - 1].Info & paralineinfo_LongWord)
+		|| !oItem
+		|| oItem.IsSpaceAfter())
+		return false;
+
+	let oParent      = oRun.GetParent();
+	let nInParentPos = oRun.GetPosInParent(oParent);
+	if (!oParent || -1 === nInParentPos)
+		return false;
+
+	let oNextItem  = oRun.GetElement(nPos + 1);
+	let nParentLen = oParent.GetElementsCount();
+	while (!oNextItem && nInParentPos < nParentLen - 1)
+	{
+		oRun = oParent.GetElement(++nInParentPos);
+		if (!oRun || !(oRun instanceof ParaRun))
+			return false;
+
+		oNextItem = oRun.GetElement(0);
+	}
+
+	return (!oNextItem || !oNextItem.IsText());
 };
 
 function CParagraphRecalculateStateCounter()

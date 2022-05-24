@@ -3623,32 +3623,22 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							&& Item.IsLigature()
 							&& X + SpaceLen + WordLen + Item.GetLigatureWidth() > XEnd)
 						{
-
 							if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
 							{
 								let oLigaturePos = PRS.CurPos.Copy();
 								oLigaturePos.Update(Pos, Depth);
-
-								PRS.LineBreakPos = Para.FindLineBreakOnShapeText(XEnd - (X + SpaceLen + WordLen), oLigaturePos);
-
-								// console.log("Break on ligature");
-								// console.log("Pos " + (X + SpaceLen + WordLen));
-								// console.log("End " + XEnd);
-								// console.log("Space " + (XEnd - (X + SpaceLen + WordLen)));
-								// console.log("LigatureW " + nLigatureWidth);
-								// console.log("LetterW " + LetterLen);
-								// console.log(PRS.LineBreakPos);
-								// console.log(Para.CollectLigatureInfo(oLigaturePos));
-
+								PRS.LineBreakPos = Para.FindLineBreakInLigature(XEnd - (X + SpaceLen + WordLen), oLigaturePos);
 							}
 
 							MoveToLBP = true;
 							NewRange  = true;
+
+							PRS.LongWord = true;
 						}
 						else if (X + SpaceLen + WordLen + LetterLen > XEnd)
 						{
-                            if(true === FirstItemOnLine)
-                            {
+							if (FirstItemOnLine)
+							{
                                 // Слово оказалось единственным элементом в промежутке, и, все равно,
                                 // не умещается целиком. Делаем следующее:
                                 //
@@ -3668,6 +3658,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                                 }
                                 else
                                 {
+									let oBreakPos = PRS.CurPos.Copy();
+									oBreakPos.Update(Pos, Depth);
+									Para.ShapeTextInRange(PRS.LineBreakPos, oBreakPos);
+
                                     EmptyLine = false;
 									TextOnLine = true;
                                     X += WordLen;
@@ -3676,18 +3670,26 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                                     // делим слово в данном месте
                                     NewRange = true;
                                     RangeEndPos = Pos;
+
+									PRS.LongWord = true;
                                 }
                             }
-                            else
-                            {
+							else
+							{
 								if (!PRS.TryCondenseSpaces(SpaceLen + WordLen + LetterLen, WordLen + LetterLen, X, XEnd))
 								{
 									// Слово не убирается в отрезке. Переносим слово в следующий отрезок
 									MoveToLBP = true;
 									NewRange  = true;
 								}
-                            }
+							}
                         }
+						else if (FirstItemOnLine && PRS.CheckNeedShapeFirstWord(PRS.Line, this, Pos))
+						{
+							let oBreakPos = PRS.CurPos.Copy();
+							oBreakPos.Update(Pos, Depth);
+							Para.ShapeTextInRange(PRS.LineBreakPos, oBreakPos);
+						}
 
                         if (true !== NewRange)
                         {
