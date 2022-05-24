@@ -1149,6 +1149,9 @@
 				History.Add(new CChangesTableAddRow(this, nIdx, [this.Content[nIdx]]));
 			}
 		}
+
+		this.SetTableLayout(tbllayout_Fixed);
+
 	};
 	AscCommonWord.CTable.prototype.toDrawingML = function (writer) {
 
@@ -1184,14 +1187,14 @@
 					if(!oTableLook) {
 						oTableLook = new AscCommon.CTableLook();
 					}
-					oTableLook.BandHor = reader.GetValueBool();
+					oTableLook.BandVer = reader.GetValueBool();
 					break;
 				}
 				case "bandRow": {
 					if(!oTableLook) {
 						oTableLook = new AscCommon.CTableLook();
 					}
-					oTableLook.BandVer = reader.GetValueBool();
+					oTableLook.BandHor = reader.GetValueBool();
 					break;
 				}
 				case "firstCol": {
