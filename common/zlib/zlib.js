@@ -50,7 +50,8 @@
 
 	window["AscCommon"].zlib_load = function(onSuccess, onError)
 	{
-		AscCommon.loadScript(scriptSrc, onSuccess, onError);
+		window["ZLibModule_onLoad"] = onSuccess;
+		AscCommon.loadScript(scriptSrc, function(){}, onError);
 	};
 
 })(window, undefined);

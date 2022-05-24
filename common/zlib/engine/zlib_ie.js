@@ -532,9 +532,10 @@ if(Module["preInit"]){if(typeof Module["preInit"]=="function")Module["preInit"]=
 	};
 
 window.nativeZlibEngine = new ZLib();
-window.onEngineInit = function()
+window.onZlibEngineInit = function()
 {
 	window.nativeZlibEngine.isModuleInit = true;
+	window["ZLibModule_onLoad"] && window["ZLibModule_onLoad"]();
 };
 
 })(window, undefined);
