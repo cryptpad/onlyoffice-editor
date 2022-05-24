@@ -208,6 +208,9 @@ function CGroupShape()
     {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GroupShapeSetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(pr) {
+            pr.setParent(this);
+        }
     };
 
     CGroupShape.prototype.addToSpTree = function(pos, item)

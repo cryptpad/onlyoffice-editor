@@ -108,6 +108,10 @@ CImageShape.prototype.setSpPr = function(pr)
 {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ImageShapeSetSpPr, this.spPr, pr));
     this.spPr = pr;
+
+    if(pr) {
+        pr.setParent(this);
+    }
 };
 
 CImageShape.prototype.setBlipFill = function(pr)

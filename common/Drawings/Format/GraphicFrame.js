@@ -203,6 +203,9 @@ CGraphicFrame.prototype.setSpPr= function(spPr)
 {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GraphicFrameSetSpPr, this.spPr, spPr));
         this.spPr = spPr;
+        if(spPr) {
+            spPr.setParent(this);
+        }
 };
 
 CGraphicFrame.prototype.setGraphicObject= function(graphicObject)

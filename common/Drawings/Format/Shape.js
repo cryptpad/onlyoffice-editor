@@ -1349,6 +1349,9 @@ CShape.prototype.setModelId = function (pr) {
 CShape.prototype.setSpPr = function (spPr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ShapeSetSpPr, this.spPr, spPr));
     this.spPr = spPr;
+    if(spPr) {
+        spPr.setParent(this);
+    }
 };
 
 CShape.prototype.setStyle = function (style) {

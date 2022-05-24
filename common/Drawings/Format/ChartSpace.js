@@ -3713,6 +3713,10 @@ var GLOBAL_PATH_COUNT = 0;
     CChartSpace.prototype.setSpPr = function(spPr) {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartSpace_SetSpPr, this.spPr, spPr));
         this.spPr = spPr;
+
+        if(spPr) {
+            spPr.setParent(this);
+        }
         this.recalcInfo.recalculateBrush = true;
         this.recalcInfo.recalculatePen = true;
         this.addToRecalculate();
