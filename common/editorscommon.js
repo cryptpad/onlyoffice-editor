@@ -8911,35 +8911,6 @@
 		return !!(c_oAscSpaces[nUnicode]);
 	}
 
-	// Все остальные пробелы
-	var c_oAscAnotherSpaces = [];
-	c_oAscAnotherSpaces[0x00A0] = 1; // Non-breaking-space
-	c_oAscAnotherSpaces[0x2007] = 1; // FIGURE SPACE
-	c_oAscAnotherSpaces[0x202F] = 1; // NARROW NO-BREAK SPACE
-	c_oAscAnotherSpaces[0x2060] = 1; // WORD JOINER
-	c_oAscAnotherSpaces[0x2000] = 1; // EN QUAD
-	c_oAscAnotherSpaces[0x2001] = 1; // EM QUAD
-	c_oAscAnotherSpaces[0x2004] = 1; // THREE-PER-EM SPACE
-	c_oAscAnotherSpaces[0x2006] = 1; // SIX-PER-EM SPACE
-	c_oAscAnotherSpaces[0x2008] = 1; // PUNCTUATION SPACE
-	c_oAscAnotherSpaces[0x2009] = 1; // THIN SPACE
-	c_oAscAnotherSpaces[0x200A] = 1; // HAIR SPACE
-	c_oAscAnotherSpaces[0x200B] = 1; // ZERO-WIDTH SPACE
-	c_oAscAnotherSpaces[0x202F] = 1; // NARROW NO-BREAK SPACE
-	c_oAscAnotherSpaces[0x205F] = 1; // MEDIUM MATHEMATICAL SPACE
-	c_oAscAnotherSpaces[0x2060] = 1; // WORD JOINER
-
-	/**
-	 * Проверяем является ли заданный юникод пробелом, который не подходит под обычное описание пробела
-	 * @param nUnicode {number}
-	 * @returns {boolean}
-	 */
-	function IsAnotherSpace(nUnicode)
-	{
-		return !!(c_oAscAnotherSpaces[nUnicode]);
-	}
-
-
 	/**
 	 * Переводим числовое значение в Hex строку
 	 * @param nValue
@@ -12060,7 +12031,6 @@
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
-	window["AscCommon"].IsAnotherSpace = IsAnotherSpace;
 	window["AscCommon"].IntToHex = IntToHex;
 	window["AscCommon"].IsDigit = IsDigit;
 	window["AscCommon"].IsLetter = IsLetter;
