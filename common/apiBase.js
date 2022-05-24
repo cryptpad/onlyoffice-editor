@@ -50,7 +50,8 @@
 	{
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
-        this.isLoadFonts = false;
+        this.modulesCount  = 0;
+		this.modulesLoaded = 0;
 		this.openResult    = null;
 
 		this.HtmlElementName = config['id-view'] || '';
@@ -254,13 +255,7 @@
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
 
-        AscFonts.load(t, function()
-        {
-            t.isLoadFonts = true;
-            t.onEndLoadFile(null);
-        }, function() {
-            t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
-        });
+		this._loadModules();
 
 		AscCommon.loadChartStyles(function() {}, function(err) {
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
@@ -344,6 +339,29 @@
 	{
 		return this.editorId;
 	};
+
+	// modules
+	baseEditorsApi.prototype._loadModules = function()
+	{
+		this.modulesCount = 2;
+		AscFonts.load(this, this._onSuccessLoadModule.bind(this), this._onErrorLoadModule.bind(this));
+		AscCommon.zlib_load(this._onSuccessLoadModule.bind(this), this._onErrorLoadModule.bind(this));
+	};
+	baseEditorsApi.prototype._onSuccessLoadModule = function()
+	{
+		this.modulesLoaded++;
+		if (this.modulesLoaded === this.modulesCount)
+			this.onEndLoadFile(null);
+	};
+	baseEditorsApi.prototype._onErrorLoadModule = function()
+	{
+		this.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+	};
+	baseEditorsApi.prototype._isLoadedModules = function()
+	{
+		return (this.modulesLoaded === this.modulesCount) ? true : false;
+	};
+
 	baseEditorsApi.prototype.asc_loadFontsFromServer             = function (fonts)
 	{
 		if (!fonts)
@@ -2297,7 +2315,7 @@
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this._isLoadedModules())
 		{
 			this.openDocument(this.openResult);
 			this.sendEvent("asc_onDocumentPassword", ("" !== this.currentPassword));
