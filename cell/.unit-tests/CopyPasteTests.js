@@ -67,6 +67,9 @@ $(function () {
 	var api = new Asc.spreadsheet_api({
 		'id-view': 'editor_sdk'
 	});
+	api.FontLoader = {
+		LoadDocumentFonts: function() {}
+	};
 	window["Asc"]["editor"] = api;
 	AscCommon.g_oTableId.init();
 	api._onEndLoadSdk();
