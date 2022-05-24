@@ -475,6 +475,7 @@ ParaText.prototype.GetCodePoint = function()
 };
 ParaText.prototype.SetGrapheme = function(nGrapheme)
 {
+	this.Flags &= PARATEXT_FLAGS_NON_TEMPORARY;
 	this.Grapheme = nGrapheme;
 };
 ParaText.prototype.SetTemporaryGrapheme = function(nGrapheme)
