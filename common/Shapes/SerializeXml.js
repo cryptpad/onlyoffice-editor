@@ -550,7 +550,6 @@
 			}
 		}
 	};
-
 	AscCommonWord.Paragraph.prototype.toDrawingML = function(writer) {
 		writer.WriteXmlNodeStart("a:p");
 		writer.WriteXmlAttributesEnd();
@@ -1831,6 +1830,7 @@
 			}
 		}
 
+		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 		writer.WriteXmlNodeStart("a:tblStyleLst");
 		writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
 		writer.WriteXmlAttributeString("def", oTableStylesIdToGuid[sDefault]);
@@ -2083,52 +2083,65 @@
 	};
 	AscCommonWord.CStyle.prototype.writeTcTxStyle = function (writer, oTextPr) {
 
-		writer.WriteXmlNodeStart("a:tcTxStyle");
-		if(oTextPr.Italic === true || oTextPr.Italic === false) {
-			writer.WriteXmlAttributeString("i", oTextPr.Italic ? "on" : "off");
-		}
-		if(oTextPr.Bold === true || oTextPr.Bold === false) {
-			writer.WriteXmlAttributeString("b", oTextPr.Bold ? "on" : "off");
-		}
-		writer.WriteXmlAttributesEnd();
-
-		if(oTextPr.FontRef) {
-			oTextPr.FontRef.toXml(writer, "a:fontRef")
-		}
 		let oUnicolor = oTextPr.Unifill && oTextPr.Unifill.fill && oTextPr.Unifill.fill.color;
-		if(oUnicolor) {
-			oUnicolor.toXml(writer);
+		if(oTextPr.Italic === true || oTextPr.Italic === false ||
+			oTextPr.Bold === true || oTextPr.Bold === false ||
+			oTextPr.FontRef || oUnicolor) {
+			writer.WriteXmlNodeStart("a:tcTxStyle");
+			if(oTextPr.Italic === true || oTextPr.Italic === false) {
+				writer.WriteXmlAttributeString("i", oTextPr.Italic ? "on" : "off");
+			}
+			if(oTextPr.Bold === true || oTextPr.Bold === false) {
+				writer.WriteXmlAttributeString("b", oTextPr.Bold ? "on" : "off");
+			}
+			writer.WriteXmlAttributesEnd();
+
+			if(oTextPr.FontRef) {
+				oTextPr.FontRef.toXml(writer, "a:fontRef")
+			}
+			if(oUnicolor) {
+				oUnicolor.toXml(writer);
+			}
+			writer.WriteXmlNodeEnd("a:tcTxStyle");
 		}
-		writer.WriteXmlNodeEnd("a:tcTxStyle");
+
 
 	};
 	AscCommonWord.CStyle.prototype.writeTcStyle = function (writer, oCellPr, sName) {
-		writer.WriteXmlNodeStart(sName);
-		writer.WriteXmlAttributesEnd();
-		if(oCellPr.TableCellBorders) {
-			let oBorders = oCellPr.TableCellBorders;
-			writer.WriteXmlNodeStart("a:tcBdr");
-			writer.WriteXmlAttributesEnd();
-			this.writeTcBorder(oBorders.Left);
-			this.writeTcBorder(oBorders.Right);
-			this.writeTcBorder(oBorders.Top);
-			this.writeTcBorder(oBorders.Bottom);
-			this.writeTcBorder(oBorders.InsideH);
-			this.writeTcBorder(oBorders.InsideV);
-			writer.WriteXmlNodeEnd("a:tcBdr");
-		}
-		if(oCellPr.Shd) {
-			let oShd = oCellPr.Shd;
-			if(oShd.FillRef) {
-				oShd.FillRef.toXml(writer, "a:fillRef");
-			}
-			if(oShd.Unifill) {
-				oShd.Unifill.toXml(writer);
-			}
-		}
-		//writer.Write(cell3D);
 
-		writer.WriteXmlNodeEnd(sName);
+		let oBorders = oCellPr.TableCellBorders;
+		let oShd = oCellPr.Shd;
+		if(oBorders && (oBorders.Left || oBorders.Right || oBorders.Top ||  oBorders.Bottom ||  oBorders.InsideH || oBorders.InsideV) ||
+			oCellPr.Shd && (oShd.FillRef || oShd.Unifill)) {
+
+			writer.WriteXmlNodeStart(sName);
+			writer.WriteXmlAttributesEnd();
+			if(oBorders) {
+				writer.WriteXmlNodeStart("a:tcBdr");
+				writer.WriteXmlAttributesEnd();
+				this.writeTcBorder(oBorders.Left);
+				this.writeTcBorder(oBorders.Right);
+				this.writeTcBorder(oBorders.Top);
+				this.writeTcBorder(oBorders.Bottom);
+				this.writeTcBorder(oBorders.InsideH);
+				this.writeTcBorder(oBorders.InsideV);
+				writer.WriteXmlNodeEnd("a:tcBdr");
+			}
+			if(oShd) {
+				if(oShd.FillRef) {
+					oShd.FillRef.toXml(writer, "a:fillRef");
+				}
+				if(oShd.Unifill) {
+					writer.WriteXmlNodeStart("a:fill");
+					writer.WriteXmlAttributesEnd();
+					oShd.Unifill.toXml(writer);
+					writer.WriteXmlNodeEnd("a:fill");
+				}
+			}
+			//writer.Write(cell3D);
+
+			writer.WriteXmlNodeEnd(sName);
+		}
 
 	};
 

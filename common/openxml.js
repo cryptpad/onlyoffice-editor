@@ -726,7 +726,7 @@
 		slideSyncData: {dir: "", filename: "slideSyncData.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.slideUpdateInfo+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideUpdateInfo"},
 		styles: {dir: "", filename: "styles.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"},
 		tableDefinition: {dir: "../tables", filename: "table[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/table"},
-		tableStyles: {dir: "ppt", filename: "tableStyles.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles"},
+		tableStyles: {dir: "", filename: "tableStyles.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles"},
 		theme: {dir: "theme", filename: "theme[N].xml", contentType: "application/vnd.openxmlformats-officedocument.theme+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"},
 		themeOverride: {dir: "", filename: "themeOverride.xml", contentType: "application/vnd.openxmlformats-officedocument.themeOverride+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride"},
 		tiff: {dir: "", filename: "tiff.xml", contentType: "image/tiff"},
