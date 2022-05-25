@@ -344,11 +344,11 @@ var editor;
       }
     }
   };
-  spreadsheet_api.prototype._openDocument = function(data) {
+  spreadsheet_api.prototype._openDocument = function(data, isBin) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
 	  AscFonts.IsCheckSymbols = true;
-	  if(window['OPEN_IN_BROWSER']) {
+	  if(window['OPEN_IN_BROWSER'] && !isBin) {
 		  this.openingEnd.xlsx = true;
 		  this.openingEnd.xlsxStart = true;
 		  this.openingEnd.data = data;
