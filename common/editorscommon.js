@@ -38,7 +38,6 @@
  */
 	function (window, undefined)
 {
-	window['OPEN_IN_BROWSER'] = '.docx.xlsx.pptx';
 // Import
 	var AscBrowser = AscCommon.AscBrowser;
 	var locktype_None = AscCommon.locktype_None;
@@ -698,6 +697,7 @@
 		this.data = null;
 		this.url = null;
 		this.changes = null;
+		this.isOpenOOXInBrowser = false;
 	}
 
 	function saveWithParts(fSendCommand, fCallback, fCallbackRequest, oAdditionalData, dataContainer)
@@ -837,9 +837,12 @@
 					url = (-1 !== nIndex) ? sFileUrl.substring(0, nIndex + 1) : sFileUrl;
 					if (httpRequest)
 					{
-						if(window['OPEN_IN_BROWSER']) {
+						let data = new Uint8Array(httpRequest.response);
+						oResult.bSerFormat = checkStreamSignature(data, Signature);
+						oResult.isOpenOOXInBrowser = !oResult.bSerFormat;
+						if (oResult.isOpenOOXInBrowser) {
 							oResult.bSerFormat = true;
-							oResult.data = new Uint8Array(httpRequest.response);
+							oResult.data = data;
 						} else {
 							var stream = initStreamFromResponse(httpRequest);
 							if (stream) {

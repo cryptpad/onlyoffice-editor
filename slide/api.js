@@ -5751,7 +5751,7 @@ background-repeat: no-repeat;\
 			this.VersionHistory.changes = file.changes;
 			this.VersionHistory.applyChanges(this);
 		}
-		if(window['OPEN_IN_BROWSER']) {
+		if(this.isOpenOOXInBrowser) {
 			this.OpenDocumentFromZip(file.data);
 		} else {
 			this.OpenDocumentFromBin(file.url, file.data);
@@ -7643,15 +7643,22 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			var title = this.documentTitle;
-			this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation, function(data) {
-				var blob = new Blob([data], {type: openXml.GetMimeType("pptx")});
-				var link = document.createElement("a");
-				link.href = window.URL.createObjectURL(blob);
-				link.download = title;
-				link.click();
-			});
-			return;
+			if (c_oAscFileType.POTX === fileType) {
+				var title = this.documentTitle;
+				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation,
+					function(data) {
+						var blob = new Blob([data], {type: openXml.GetMimeType("pptx")});
+						var link = document.createElement("a");
+						link.href = window.URL.createObjectURL(blob);
+						link.download = title;
+						link.click();
+					});
+				if (actionType)
+				{
+					this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+				}
+				return true;
+			}
 			dataContainer.data = this.WordControl.SaveDocument(oAdditionalData["nobase64"]);
 		}
 

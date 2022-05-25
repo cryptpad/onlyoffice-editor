@@ -73,7 +73,8 @@ $(function () {
 	window["Asc"]["editor"] = api;
 	AscCommon.g_oTableId.init();
 	api._onEndLoadSdk();
-	api._openDocument(AscCommon.getEmpty(), true);
+	api.isOpenOOXInBrowser = false;
+	api._openDocument(AscCommon.getEmpty());
 	api._openOnClient();
 	api.collaborativeEditing = new AscCommonExcel.CCollaborativeEditing({});
 	api.wb = new AscCommonExcel.WorkbookView(api.wbModel, api.controller, api.handlers, api.HtmlElement,

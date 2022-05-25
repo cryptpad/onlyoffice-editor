@@ -53,6 +53,7 @@
         this.modulesCount  = 0;
 		this.modulesLoaded = 0;
 		this.openResult    = null;
+		this.isOpenOOXInBrowser = false;
 
 		this.HtmlElementName = config['id-view'] || '';
 		this.HtmlElement     = null;
@@ -316,12 +317,9 @@
 		}
 		return res;
 	};
-	baseEditorsApi.prototype._editorPathById                = function()
+	baseEditorsApi.prototype._editorDefaultExt                = function()
 	{
-		if (!window['OPEN_IN_BROWSER']) {
-			return 'Editor.bin';
-		}
-		var res = 'Editor.';
+		let res = '';
 		switch (this.editorId)
 		{
 			case c_oEditorId.Word:
@@ -821,6 +819,7 @@
 					locale = undefined;
 				}
 			}
+			let convertToOrigin = 'view' === this.DocInfo.get_Mode() ? '.docx.xlsx.pptx' : '';
 			rData = {
 				"c"             : 'open',
 				"id"            : this.documentId,
@@ -830,7 +829,7 @@
 				"title"         : this.documentTitle,
 				"lcid"          : locale,
 				"nobase64"      : true,
-				"convertToOrigin" : window['OPEN_IN_BROWSER']
+				"convertToOrigin" : convertToOrigin
 			};
 
 			if (this.isUseNativeViewer)
@@ -889,6 +888,7 @@
 		var t = this;
 		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
+			t.isOpenOOXInBrowser = result.isOpenOOXInBrowser;
 			var signature = result.data && String.fromCharCode(result.data[0], result.data[1], result.data[2], result.data[3]);
 			if (c_oAscError.ID.No !== error || (!result.bSerFormat && (t.editorId !== c_oEditorId.Word || 'XLSY' === signature || 'PPTY' === signature)))
 			{
@@ -1457,8 +1457,7 @@
 								t.setOpenedAt(input["openedAt"]);
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
-								var editorPath = t._editorPathById();
-								var documentUrl = urls[editorPath];
+								var documentUrl = urls['Editor.bin'] || urls['Editor.' + t._editorDefaultExt()];
 								if (t.isUseNativeViewer && !documentUrl)
 									documentUrl = urls['origin.' + t.documentFormat] || urls['origin.pdf'] || urls['origin.xps'] || urls['origin.oxps'] || urls['origin.djvu'];
 								if (null != documentUrl) {

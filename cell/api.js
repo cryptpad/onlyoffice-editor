@@ -344,11 +344,11 @@ var editor;
       }
     }
   };
-  spreadsheet_api.prototype._openDocument = function(data, isBin) {
+  spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
 	  AscFonts.IsCheckSymbols = true;
-	  if(window['OPEN_IN_BROWSER'] && !isBin) {
+	  if(this.isOpenOOXInBrowser) {
 		  this.openingEnd.xlsx = true;
 		  this.openingEnd.xlsxStart = true;
 		  this.openingEnd.data = data;
@@ -1127,7 +1127,7 @@ var editor;
 		}
 	};
 	spreadsheet_api.prototype._openOnClient = function() {
-		if(window['OPEN_IN_BROWSER']) {
+		if(this.isOpenOOXInBrowser) {
 			return;
 		}
 		var t = this;
@@ -1180,7 +1180,7 @@ var editor;
       oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
       dataContainer.data = last.data;
     } else {
-		if (c_oAscFileType.XLSX === fileType) {
+		if (c_oAscFileType.XLTX === fileType) {
 			var title = this.documentTitle;
 			this.saveDocumentToZip(this.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
 				var blob = new Blob([data], {type: openXml.GetMimeType("xlsx")});
@@ -1189,7 +1189,11 @@ var editor;
 				link.download = title;
 				link.click();
 			});
-			return;
+			if (actionType)
+			{
+				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+			}
+			return true;
 		}
 
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
@@ -1510,7 +1514,7 @@ var editor;
 		});
 
 		var reader, i, j;
-		if (window['OPEN_IN_BROWSER']) {
+		if (this.isOpenOOXInBrowser) {
 
 			//theme
 			var workbookThemePart = wbPart.getPartByRelationshipType(openXml.Types.theme.relationType);
@@ -1705,7 +1709,7 @@ var editor;
 		}
 
 		//sharedString
-		if (window['OPEN_IN_BROWSER']) {
+		if (this.isOpenOOXInBrowser) {
 			var sharedStringPart = wbPart.getPartByRelationshipType(openXml.Types.sharedStringTable.relationType);
 			if (sharedStringPart) {
 				var contentSharedStrings = sharedStringPart.getDocumentContent();
@@ -1720,7 +1724,7 @@ var editor;
 		//TODO CalcChain - из бинарника не читается, и не пишется в бинарник. реализовать позже
 
 		//Custom xml
-		if (window['OPEN_IN_BROWSER']) {
+		if (this.isOpenOOXInBrowser) {
 			//папка customXml, в неё лежат item[n].xml, itemProps[n].xml + rels
 
 			//в Content_Types пишется только ссылка на itemProps в слудующем виде:
@@ -1747,7 +1751,7 @@ var editor;
 		}
 
 		//sheets
-		if (window['OPEN_IN_BROWSER'] && wbXml.sheets) {
+		if (this.isOpenOOXInBrowser && wbXml.sheets) {
 			var wsParts = [];
 
 			//вначале беру все листы, потом запрашиваю контент каждого из них.
@@ -2183,7 +2187,7 @@ var editor;
 			});
 		}
 
-		if (window['OPEN_IN_BROWSER']) {
+		if (this.isOpenOOXInBrowser) {
 			//defined names
 			if (wbXml.newDefinedNames) {
 				xmlParserContext.InitOpenManager.oReadResult.defNames = wbXml.newDefinedNames;
@@ -2256,7 +2260,7 @@ var editor;
 
 		//TODO общий код с serialize
 		//ReadSheetDataExternal
-		if (window['OPEN_IN_BROWSER']) {
+		if (this.isOpenOOXInBrowser) {
 			if (!initOpenManager.copyPasteObj.isCopyPaste || initOpenManager.copyPasteObj.selectAllSheet) {
 				readSheetDataExternal(false);
 				if (!initOpenManager.copyPasteObj.isCopyPaste) {
