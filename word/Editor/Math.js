@@ -134,6 +134,9 @@ CMathPropertiesSettings.prototype.Merge = function(Pr)
     if(Pr.brkBin !== null && Pr.brkBin !== undefined)
         this.brkBin = Pr.brkBin;
 
+    if(Pr.brkBinSub !== null && Pr.brkBinSub !== undefined)
+        this.brkBinSub = Pr.brkBinSub;
+
     if(Pr.dispDef !== null && Pr.dispDef !== undefined)
         this.dispDef = Pr.dispDef;
 	

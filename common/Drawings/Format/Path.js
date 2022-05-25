@@ -197,8 +197,9 @@ function CChangesDrawingsAddPathCommand(Class, oCommand, nIndex, bReverse){
     AscDFH.drawingsChangesMap[AscDFH.historyitem_PathSetPathW] = function(oClass, value){oClass.pathW = value;};
 
 
-    function Path()
+function Path()
 {
+    AscFormat.CBaseFormatObject.call(this);
     this.stroke      = null;
     this.extrusionOk = null;
     this.fill        = null;
@@ -207,38 +208,11 @@ function CChangesDrawingsAddPathCommand(Class, oCommand, nIndex, bReverse){
 
     this.ArrPathCommandInfo = [];
     this.ArrPathCommand = [];
-
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
 }
-
-Path.prototype = {
-
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-    getObjectType: function()
-    {
-        return AscDFH.historyitem_type_Path;
-    },
-
-    Write_ToBinary2: function(w)
-    {
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Get_Id());
-    },
-
-    Read_FromBinary2: function(r)
-    {
-        this.Id = r.GetString2();
-    },
-
-    Refresh_RecalcData: function()
-    {},
-
-    createDuplicate: function()
+AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_Path);
+    Path.prototypeRefresh_RecalcData = function()
+    {};
+    Path.prototype.createDuplicate = function()
     {
         var p = new Path();
         p.setStroke(this.stroke);
@@ -296,75 +270,62 @@ Path.prototype = {
             }
         }
         return p;
-    },
-
-    setStroke: function(pr)
+    };
+    Path.prototype.setStroke = function(pr)
     {
         History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_PathSetStroke, this.stroke, pr));
         this.stroke = pr;
-    },
-
-    setExtrusionOk: function(pr)
+    };
+    Path.prototype.setExtrusionOk = function(pr)
     {
         History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_PathSetExtrusionOk, this.extrusionOk, pr));
         this.extrusionOk = pr;
-    },
-
-    setFill: function(pr)
+    };
+    Path.prototype.setFill = function(pr)
     {
         History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PathSetFill, this.fill, pr));
         this.fill = pr;
-    },
-
-    setPathH: function(pr)
+    };
+    Path.prototype.setPathH = function(pr)
     {
         History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_PathSetPathH, this.pathH, pr));
         this.pathH = pr;
-    },
-
-    setPathW: function(pr)
+    };
+    Path.prototype.setPathW = function(pr)
     {
         History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_PathSetPathW, this.pathW, pr));
         this.pathW = pr;
-    },
-
-    addPathCommand: function(cmd)
+    };
+    Path.prototype.addPathCommand = function(cmd)
     {
         History.CanAddChanges() && History.Add(new CChangesDrawingsAddPathCommand(this, cmd, this.ArrPathCommandInfo.length));
         this.ArrPathCommandInfo.push(cmd);
-    },
-
-    moveTo: function(x, y)
+    };
+    Path.prototype.moveTo = function(x, y)
     {
         this.addPathCommand({id:moveTo, X:x, Y:y});
-    },
-
-    lnTo: function(x, y)
+    };
+    Path.prototype.lnTo = function(x, y)
     {
         this.addPathCommand({id:lineTo, X:x, Y:y});
-    },
-
-    arcTo: function(wR, hR, stAng, swAng)
+    };
+    Path.prototype.arcTo = function(wR, hR, stAng, swAng)
     {
         this.addPathCommand({id: arcTo, wR: wR, hR: hR, stAng: stAng, swAng: swAng});
-    },
-
-    quadBezTo: function(x0, y0, x1, y1)
+    };
+    Path.prototype.quadBezTo = function(x0, y0, x1, y1)
     {
         this.addPathCommand({id:bezier3, X0:x0, Y0:y0, X1:x1, Y1:y1});
-    },
-
-    cubicBezTo: function(x0, y0, x1, y1, x2, y2)
+    };
+    Path.prototype.cubicBezTo = function(x0, y0, x1, y1, x2, y2)
     {
         this.addPathCommand({id:bezier4, X0:x0, Y0:y0, X1:x1, Y1:y1, X2:x2, Y2:y2});
-    },
-
-    close: function()
+    };
+    Path.prototype.close = function()
     {
         this.addPathCommand({id:close});
-    },
-
-    calculateCommandCoord: function(oGdLst, sFormula, dFormulaCoeff, dNumberCoeff)
+    };
+	Path.prototype.calculateCommandCoord = function(oGdLst, sFormula, dFormulaCoeff, dNumberCoeff)
     {
         let dVal;
         dVal = oGdLst[sFormula];
@@ -373,9 +334,8 @@ Path.prototype = {
             return dVal*dFormulaCoeff;
         }
         return parseInt(sFormula, 10)*dNumberCoeff;
-    },
-
-    recalculate: function(gdLst, bResetPathsInfo)
+    };
+    Path.prototype.recalculate = function(gdLst, bResetPathsInfo)
     {
         var ch, cw;
         var dCustomPathCoeffW, dCustomPathCoeffH;
@@ -527,8 +487,8 @@ Path.prototype = {
         if(bResetPathsInfo){
             delete this.ArrPathCommandInfo;
         }
-    },
-    recalculate2: function(gdLst, bResetPathsInfo)
+    };
+    Path.prototype.recalculate2 = function(gdLst, bResetPathsInfo)
     {
         var k = 10e-10;
         var APCI=this.ArrPathCommandInfo, n = APCI.length, cmd;
@@ -625,9 +585,8 @@ Path.prototype = {
         {
             delete this.ArrPathCommandInfo;
         }
-    },
-
-    draw: function(shape_drawer)
+    };
+    Path.prototype.draw = function(shape_drawer)
     {
         if (shape_drawer.bIsCheckBounds === true && this.fill == "none")
         {
@@ -686,9 +645,8 @@ Path.prototype = {
         }
 
         shape_drawer._e();
-    },
-
-    check_bounds: function(checker, geom)
+    };
+    Path.prototype.check_bounds = function(checker, geom)
     {
         var path=this.ArrPathCommand;
         for(var j=0, l=path.length; j<l; ++j)
@@ -728,9 +686,8 @@ Path.prototype = {
                 }
             }
         }
-    },
-
-    hitInInnerArea: function(canvasContext, x, y)
+    };
+    Path.prototype.hitInInnerArea = function(canvasContext, x, y)
     {
         if(this.fill === "none")
             return false;
@@ -781,9 +738,8 @@ Path.prototype = {
             }
         }
         return false;
-    },
-
-    hitInPath: function(canvasContext, x, y, oAddingPoint, _path_index)
+    };
+    Path.prototype.hitInPath = function(canvasContext, x, y, oAddingPoint, _path_index)
     {
         var _arr_commands = this.ArrPathCommand;
         var _commands_count = _arr_commands.length;
@@ -849,9 +805,8 @@ Path.prototype = {
             }
         }
         return false;
-    },
-
-    isSmartLine : function()
+    };
+    Path.prototype.isSmartLine  = function()
     {
         if (this.ArrPathCommand.length != 2)
             return false;
@@ -866,9 +821,8 @@ Path.prototype = {
         }
 
         return false;
-    },
-
-    isSmartRect : function()
+    };
+    Path.prototype.isSmartRect  = function()
     {
         if (this.ArrPathCommand.length != 5)
             return false;
@@ -919,9 +873,8 @@ Path.prototype = {
         }
 
         return false;
-    },
-
-    drawSmart : function(shape_drawer)
+    };
+    Path.prototype.drawSmart  = function(shape_drawer)
     {
         var _graphics   = shape_drawer.Graphics;
         var _full_trans = _graphics.m_oFullTransform;
@@ -1069,22 +1022,17 @@ Path.prototype = {
 
         if (false == _old_int)
             _graphics.SetIntegerGrid(false);
-    },
-
-    isEmpty : function () {
+    };
+    Path.prototype.isEmpty  = function () {
         return this.ArrPathCommandInfo.length <= 0;
-    },
-
-    checkBetweenPolygons: function (oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
-    },
-
-    checkByPolygon: function (oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds) {
-    },
-
-    transform: function (oTransform, dKoeff) {
-    },
-
-    getSVGPath: function(oTransform, dStartX, dStartY) {
+    };
+    Path.prototype.checkBetweenPolygons = function (oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
+    };
+    Path.prototype.checkByPolygon = function (oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds) {
+    };
+    Path.prototype.transform = function (oTransform, dKoeff) {
+    };
+    Path.prototype.getSVGPath = function(oTransform, dStartX, dStartY) {
         var aCmds = this.ArrPathCommand;
         var sSVG = "";
         var oPresentation = editor.WordControl.m_oLogicDocument;
@@ -1143,9 +1091,165 @@ Path.prototype = {
             }
         }
         return sSVG;
-    }
-};
+    };
+    Path.prototype.readAttrXml = function (name, reader) {
+        switch (name) {
+            case "extrusionOk": {
+                this.setExtrusionOk(reader.GetValueBool());
+                break;
+            }
+            case "fill": {
+                this.setFill(reader.GetValue());
+                break;
+            }
+            case "stroke": {
+                this.setStroke(reader.GetValue());
+                break;
+            }
+            case "w": {
+                this.setPathW(reader.GetValueInt());
+                break;
+            }
+            case "h": {
+                this.setPathH(reader.GetValueInt());
+                break;
+            }
+        }
+    };
+    Path.prototype.readChildXml = function (name, reader) {
+        switch (name) {
+            case "arcTo": {
+                let oCmd = new AscFormat.CBaseAttrObject();
+                oCmd.fromXml(reader);
+                this.arcTo(oCmd["wR"], oCmd["hR"], oCmd["stAng"], oCmd["swAng"]);
+                break;
+            }
+            case "close": {
+                this.close();
+                break;
+            }
+            case "cubicBezTo": {
+                let oCmd = new CPathCmd();
+                oCmd.fromXml(reader);
+                if(oCmd.pts.length === 3) {
+                    let pt0 = oCmd.pts[0];
+                    let pt1 = oCmd.pts[1];
+                    let pt2 = oCmd.pts[2];
+                    this.cubicBezTo(pt0.x, pt0.y, pt1.x, pt1.y, pt2.x, pt2.y);
+                }
+                break;
+            }
+            case "lnTo": {
+                let oCmd = new CPathCmd();
+                oCmd.fromXml(reader);
+                if(oCmd.pts.length === 1) {
+                    let pt0 = oCmd.pts[0];
+                    this.lnTo(pt0.x, pt0.y);
+                }
+                break;
+            }
+            case "moveTo": {
+                let oCmd = new CPathCmd();
+                oCmd.fromXml(reader);
+                if(oCmd.pts.length === 1) {
+                    let pt0 = oCmd.pts[0];
+                    this.moveTo(pt0.x, pt0.y);
+                }
+                break;
+            }
+            case "quadBezTo": {
+                let oCmd = new CPathCmd();
+                oCmd.fromXml(reader);
+                if(oCmd.pts.length === 2) {
+                    let pt0 = oCmd.pts[0];
+                    let pt1 = oCmd.pts[1];
+                    this.quadBezTo(pt0.x, pt0.y, pt1.x, pt1.y);
+                }
+                break;
+            }
+        }
+    };
+    Path.prototype.toXml = function (writer) {
+        writer.WriteXmlNodeStart("a:path");
 
+        writer.WriteXmlNullableAttributeUInt("w", this.w);
+        writer.WriteXmlNullableAttributeUInt("h", this.h);
+        writer.WriteXmlNullableAttributeString("fill", this.fill);
+        writer.WriteXmlNullableAttributeString("stroke", this.stroke);
+        writer.WriteXmlNullableAttributeBool("extrusionOk", this.extrusionOk);
+        writer.WriteXmlAttributesEnd();
+
+        let nCount = this.ArrPathCommandInfo.length;
+        for (let i = 0; i < nCount; ++i) {
+            let oCmd = this.ArrPathCommandInfo[i];
+            switch (oCmd.id) {
+                case moveTo: {
+                    writer.WriteXmlNodeStart("a:moveTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X, oCmd.Y);
+                    writer.WriteXmlNodeEnd("a:moveTo");
+                    break;
+                }
+                case lineTo: {
+                    writer.WriteXmlNodeStart("a:lnTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X, oCmd.Y);
+                    writer.WriteXmlNodeEnd("a:lnTo");
+                    break;
+                }
+                case arcTo: {
+                    writer.WriteXmlNodeStart("a:arcTo");
+                    writer.WriteXmlNullableAttributeString("wR", oCmd.wR);
+                    writer.WriteXmlNullableAttributeString("hR", oCmd.hR);
+                    writer.WriteXmlNullableAttributeString("stAng", oCmd.stAng);
+                    writer.WriteXmlNullableAttributeString("swAng", oCmd.swAng);
+                    writer.WriteXmlAttributesEnd();
+                    writer.WriteXmlNodeEnd("a:arcTo");
+                    break;
+                }
+                case bezier3: {
+                    writer.WriteXmlNodeStart("a:quadBezTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X0, oCmd.Y0);
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X1, oCmd.Y1);
+                    writer.WriteXmlNodeEnd("a:quadBezTo");
+                    break;
+                }
+                case bezier4: {
+                    writer.WriteXmlNodeStart("a:cubicBezTo");
+                    writer.WriteXmlAttributesEnd();
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X0, oCmd.Y0);
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X1, oCmd.Y1);
+                    AscFormat.CGeomPt.prototype.toXml(writer, "a:pt", oCmd.X2, oCmd.Y2);
+                    writer.WriteXmlNodeEnd("a:cubicBezTo");
+                    break;
+                }
+                case close: {
+                    writer.WriteXmlNodeStart("a:close");
+                    writer.WriteXmlAttributesEnd(true);
+                    break;
+                }
+            }
+        }
+        writer.WriteXmlNodeEnd("a:path");
+    };
+    function CPathCmd() {
+        AscFormat.CBaseNoIdObject.call(this);
+        this.pts = [];
+    }
+    AscFormat.InitClass(CPathCmd, AscFormat.CBaseNoIdObject, 0);
+    CPathCmd.prototype.readAttrXml = function (name, reader) {
+    };
+    CPathCmd.prototype.readChildXml = function (name, reader) {
+        switch (name) {
+            case "pt": {
+                let oPt = new AscFormat.CGeomPt();
+                oPt.fromXml(reader);
+                this.pts.push(oPt);
+                break;
+            }
+        }
+    };
 
     function CheckPointByPaths(dX, dY, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2)
     {

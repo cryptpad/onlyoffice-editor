@@ -184,6 +184,8 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
 
     this.CollPrChange = false;
 
+	this.ParaId = null;//for comment xml serialization
+
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
     if(bFromPresentation === true && History.Is_On())
@@ -9615,12 +9617,12 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 		var oColorMap = this.Get_ColorMap();
 		var oUndefParaPr = this.Get_CompiledPr2(false).ParaPr;
 		var NewType      = oBullet2.getBulletType();
-		var UndefType    = oUndefParaPr.Bullet ? oUndefParaPr.Bullet.getBulletType(oTheme, oColorMap) : numbering_presentationnumfrmt_None;
+		var UndefType    = oUndefParaPr.Bullet ? oUndefParaPr.Bullet.getBulletType(oTheme, oColorMap) : AscFormat.numbering_presentationnumfrmt_None;
 		var LeftInd;
 
 		if (NewType === UndefType)
 		{
-			if (NewType === numbering_presentationnumfrmt_Char || NewType === numbering_presentationnumfrmt_Blip)//буллеты
+			if (NewType === AscFormat.numbering_presentationnumfrmt_Char || NewType === AscFormat.numbering_presentationnumfrmt_Blip)//буллеты
 			{
 				var oUndefPresentationBullet = oUndefParaPr.Bullet.getPresentationBullet(oTheme, oColorMap);
 				var oNewPresentationBullet   = oBullet2.getPresentationBullet(oTheme, oColorMap);
@@ -9678,7 +9680,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 			}
 			if(!oBullet2.isEqual(this.Pr.Bullet))
 			{
-				if (NewType === numbering_presentationnumfrmt_Blip && !oBullet2.getImageBulletURL())
+				if (NewType === AscFormat.numbering_presentationnumfrmt_Blip && !oBullet2.getImageBulletURL())
 				{
 					var oldUrl = this.Pr.Bullet && this.Pr.Bullet.getImageBulletURL()
 					if (oldUrl)
@@ -9701,11 +9703,11 @@ Paragraph.prototype.Add_PresentationNumbering = function(Bullet)
 					var oFirstRunPr = this.Get_FirstTextPr2();
 
 					var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
-					if (NewType === numbering_presentationnumfrmt_Char || NewType === numbering_presentationnumfrmt_Blip)
+					if (NewType === AscFormat.numbering_presentationnumfrmt_Char || NewType === AscFormat.numbering_presentationnumfrmt_Blip)
 					{
 						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
 					}
-					else if (NewType === numbering_presentationnumfrmt_None)
+					else if (NewType === AscFormat.numbering_presentationnumfrmt_None)
 					{
 						this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
 					}

@@ -50,8 +50,10 @@
 	{
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
-        this.isLoadFonts = false;
+        this.modulesCount  = 0;
+		this.modulesLoaded = 0;
 		this.openResult    = null;
+		this.isOpenOOXInBrowser = false;
 
 		this.HtmlElementName = config['id-view'] || '';
 		this.HtmlElement     = null;
@@ -255,13 +257,7 @@
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
 
-        AscFonts.load(t, function()
-        {
-            t.isLoadFonts = true;
-            t.onEndLoadFile(null);
-        }, function() {
-            t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
-        });
+		this._loadModules();
 
 		AscCommon.loadChartStyles(function() {}, function(err) {
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
@@ -321,10 +317,50 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype._editorDefaultExt                = function()
+	{
+		let res = '';
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+				res += 'docx';
+				break;
+			case c_oEditorId.Spreadsheet:
+				res += 'xlsx';
+				break;
+			case c_oEditorId.Presentation:
+				res += 'pptx';
+				break;
+		}
+		return res;
+	};
 	baseEditorsApi.prototype.getEditorId                     = function()
 	{
 		return this.editorId;
 	};
+
+	// modules
+	baseEditorsApi.prototype._loadModules = function()
+	{
+		this.modulesCount = 2;
+		AscFonts.load(this, this._onSuccessLoadModule.bind(this), this._onErrorLoadModule.bind(this));
+		AscCommon.zlib_load(this._onSuccessLoadModule.bind(this), this._onErrorLoadModule.bind(this));
+	};
+	baseEditorsApi.prototype._onSuccessLoadModule = function()
+	{
+		this.modulesLoaded++;
+		if (this.modulesLoaded === this.modulesCount)
+			this.onEndLoadFile(null);
+	};
+	baseEditorsApi.prototype._onErrorLoadModule = function()
+	{
+		this.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+	};
+	baseEditorsApi.prototype._isLoadedModules = function()
+	{
+		return (this.modulesLoaded === this.modulesCount) ? true : false;
+	};
+
 	baseEditorsApi.prototype.asc_loadFontsFromServer             = function (fonts)
 	{
 		if (!fonts)
@@ -783,6 +819,7 @@
 					locale = undefined;
 				}
 			}
+			let convertToOrigin = 'view' === this.DocInfo.get_Mode() ? '.docx.xlsx.pptx' : '';
 			rData = {
 				"c"             : 'open',
 				"id"            : this.documentId,
@@ -791,12 +828,13 @@
 				"url"           : this.documentUrl,
 				"title"         : this.documentTitle,
 				"lcid"          : locale,
-				"nobase64"      : true
+				"nobase64"      : true,
+				"convertToOrigin" : convertToOrigin
 			};
 
 			if (this.isUseNativeViewer)
 			{
-				rData["convertToOrigin"] = '.pdf.xps.oxps.djvu';
+				rData["convertToOrigin"] += '.pdf.xps.oxps.djvu';
 			}
 
 			if (versionHistory)
@@ -850,6 +888,7 @@
 		var t = this;
 		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
+			t.isOpenOOXInBrowser = result.isOpenOOXInBrowser;
 			var signature = result.data && String.fromCharCode(result.data[0], result.data[1], result.data[2], result.data[3]);
 			if (c_oAscError.ID.No !== error || (!result.bSerFormat && (t.editorId !== c_oEditorId.Word || 'XLSY' === signature || 'PPTY' === signature)))
 			{
@@ -1418,7 +1457,7 @@
 								t.setOpenedAt(input["openedAt"]);
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
-								var documentUrl = urls['Editor.bin'];
+								var documentUrl = urls['Editor.bin'] || urls['Editor.' + t._editorDefaultExt()];
 								if (t.isUseNativeViewer && !documentUrl)
 									documentUrl = urls['origin.' + t.documentFormat] || urls['origin.pdf'] || urls['origin.xps'] || urls['origin.oxps'] || urls['origin.djvu'];
 								if (null != documentUrl) {
@@ -2234,6 +2273,31 @@
 	baseEditorsApi.prototype.openDocumentFromZip  = function()
 	{
 	};
+	baseEditorsApi.prototype.saveDocumentToZip  = function(model, editorType, callback)
+	{
+		var context = new XmlWriterContext(editorType);
+		var jsZipWrapper = new AscCommon.JSZipWrapper();
+		jsZipWrapper.create();
+		model.toZip(jsZipWrapper, context);
+		var imageMapKeys = Object.keys(context.imageMap);
+		var downloadImages = function (imageMapKeys) {
+			if (imageMapKeys.length > 0) {
+				var elem = imageMapKeys.pop();
+				var url = AscCommon.g_oDocumentUrls.getImageUrl(elem);
+				AscCommon.loadFileContent(url, function (httpRequest) {
+					if (httpRequest && httpRequest.response) {
+						context.imageMap[elem].part.setData(httpRequest.response);
+					}
+					downloadImages(imageMapKeys);
+				}, "arraybuffer");
+			} else {
+				var data = jsZipWrapper.save();
+				jsZipWrapper.close();
+				callback(data);
+			}
+		};
+		downloadImages(imageMapKeys);
+	};
 	baseEditorsApi.prototype.onEndLoadDocInfo = function()
 	{
 		if (this.isLoadFullApi && this.DocInfo)
@@ -2251,7 +2315,7 @@
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this._isLoadedModules())
 		{
 			this.openDocument(this.openResult);
 			this.sendEvent("asc_onDocumentPassword", ("" !== this.currentPassword));
