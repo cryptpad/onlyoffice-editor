@@ -7911,18 +7911,11 @@ CPresentation.prototype.ChangeTextCase = function(nCaseType) {
                 this.SelectAll();
             }
             if(this.IsSelectionUse() && !this.IsSelectionEmpty()) {
-                var oChangeEngine = new CDocumentChangeTextCaseEngine(nCaseType);
                 var aParagraphs = [];
                 this.GetCurrentParagraph(false, aParagraphs, {});
-                for (var nIndex = 0, nCount = aParagraphs.length; nIndex < nCount; ++nIndex) {
-                    oChangeEngine.Reset();
-                    oParagraph = aParagraphs[nIndex];
-                    oParagraph.CheckRunContent(function(oRun)
-                    {
-                        oRun.ChangeTextCase(oChangeEngine);
-                    });
-                    oChangeEngine.FlushWord();
-                }
+
+				let oChangeEngine = new AscCommonWord.CChangeTextCaseEngine(nCaseType);
+				oChangeEngine.ProcessParagraphs(aParagraphs);
             }
         };
         oController.applyDocContentFunction(fCallback, [], fCallback);

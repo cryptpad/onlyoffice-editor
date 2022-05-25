@@ -522,6 +522,10 @@
             return new CGraphicBounds(xc - vc, yc - hc, xc + vc, yc + hc);
         }
     };
+
+    CGraphicObjectBase.prototype.hasSmartArt = function (bReturnSmartArt) {
+        return bReturnSmartArt ? null : false;
+    }
     /**
      * Normalize a size object in group
      * @memberof CGraphicObjectBase
@@ -1303,6 +1307,7 @@
     CGraphicObjectBase.prototype.recalcTransform = function() {};
     CGraphicObjectBase.prototype.recalcTransformText = function() {};
     CGraphicObjectBase.prototype.recalcBounds = function() {};
+    CGraphicObjectBase.prototype.recalcSmartArtCoords = function () {};
     CGraphicObjectBase.prototype.recalcGeometry = function() {};
     CGraphicObjectBase.prototype.recalcStyle = function() {};
     CGraphicObjectBase.prototype.recalcFill = function() {};

@@ -200,6 +200,7 @@
 			"word/Editor/Paragraph_Recalculate.js",
 			"word/Editor/DocumentContentBase.js",
 			"word/Editor/Document.js",
+			"word/Editor/ChangeCase.js",
 			"word/Editor/SelectedContent.js",
 			"word/Editor/DocumentOutline.js",
 			"word/Editor/DocumentChanges.js",

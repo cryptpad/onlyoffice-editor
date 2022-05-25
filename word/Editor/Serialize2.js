@@ -7705,9 +7705,25 @@ function BinaryFileReader(doc, openParams)
                     break;
 				case c_oSerTableTypes.VbaProject:
 					this.stream.Seek2(mtiOffBits);
-					this.stream.Skip2(1);//type
-					var _len = this.stream.GetULong();
-					this.Document.DrawingDocument.m_oWordControl.m_oApi.vbaMacros = this.stream.GetBuffer(_len);
+					let _end_rec = this.stream.cur + length;
+					while (this.stream.cur < _end_rec)
+					{
+						var _at = this.stream.GetUChar();
+						switch (_at)
+						{
+							case 0:
+							{
+								let _len = this.stream.GetULong();
+								this.Document.DrawingDocument.m_oWordControl.m_oApi.vbaMacros = this.stream.GetBuffer(_len);
+								break;
+							}
+							default:
+							{
+								this.stream.SkipRecord();
+								break;
+							}
+						}
+					}
 					break;
                 // case c_oSerTableTypes.Numbering:
                     // res = (new Binary_NumberingTableReader(this.Document, this.stream, oDocxNum)).Read();

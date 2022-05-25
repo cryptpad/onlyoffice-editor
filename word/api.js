@@ -625,7 +625,20 @@
 				else if (_current["Script"] !== undefined)
 				{
 					// insert/replace script
-					var _script = "(function(){ var Api = window.g_asc_plugins.api;\n" + _current["Script"] + "\n})();";
+					function customXMLHttpRequest() {
+				
+						this.open = function() {
+							console.error("XMLHttpRequest doesn't allow this.");
+						};
+
+						this.setRequestHeader = function() {};
+				
+						this.send = function() {
+							this.onerror && this.onerror("XMLHttpRequest doesn't allow this.");
+						};
+					};
+
+					var _script = "(function(Api, window, alert, document, XMLHttpRequest){ \n" + "\"use strict\"" + ";\n" + _current["Script"] + "\n})(window.g_asc_plugins.api, {}, function(){}, {}," + customXMLHttpRequest.toString() + ");";
 					eval(_script);
 
 					if (c_oAscSdtLevelType.Block === _blockStd.GetContentControlType())

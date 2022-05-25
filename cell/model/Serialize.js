@@ -7301,9 +7301,31 @@
 			}
             else if (c_oSerWorkbookTypes.VbaProject == type)
             {
-                this.stream.Skip2(1);//type
-                var _len = this.stream.GetULong();
-                this.InitOpenManager.oReadResult.vbaMacros = this.stream.GetBuffer(_len);
+                let _end_rec = this.stream.cur + length;
+                while (this.stream.cur < _end_rec)
+                {
+                    var _at = this.stream.GetUChar();
+                    switch (_at)
+                    {
+                        case 0:
+                        {
+                            let _len = this.stream.GetULong();
+                            this.InitOpenManager.oReadResult.vbaMacros = this.stream.GetBuffer(_len);
+                            break;
+                        }
+                        case 1:
+                        {
+                            let _len = this.stream.GetULong();
+                            this.InitOpenManager.oReadResult.vbaMacrosXml = this.stream.GetString2LE(_len);
+                            break;
+                        }
+                        default:
+                        {
+                            this.stream.SkipRecord();
+                            break;
+                        }
+                    }
+                }
             }
 			else if (c_oSerWorkbookTypes.JsaProject == type)
 			{
@@ -10218,6 +10240,35 @@
             }
             return res;
         };
+		this.PostLoadPrepare = function(wb)
+		{
+			if (wb.WorkbookPr && null != wb.WorkbookPr.Date1904) {
+				AscCommon.bDate1904 = wb.WorkbookPr.Date1904;
+				AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
+			}
+			if (this.InitOpenManager.oReadResult.macros) {
+                wb.oApi.macros.SetData(this.InitOpenManager.oReadResult.macros);
+            }
+			if (this.InitOpenManager.oReadResult.vbaMacros) {
+				wb.oApi.vbaMacros = this.InitOpenManager.oReadResult.vbaMacros;
+			}
+            if (this.InitOpenManager.oReadResult.vbaMacrosXml) {
+                wb.oApi.vbaMacrosXml = this.InitOpenManager.oReadResult.vbaMacrosXml;
+            }
+            wb.checkCorrectTables();
+		}
+		this.PostLoadPrepareDefNames = function(wb)
+		{
+			this.InitOpenManager.oReadResult.defNames.forEach(function (defName) {
+				if (null != defName.Name && null != defName.Ref) {
+					var _type = Asc.c_oAscDefNameType.none;
+					if (wb.getSlicerCacheByName(defName.Name)) {
+						_type = Asc.c_oAscDefNameType.slicer;
+					}
+					wb.dependencyFormulas.addDefNameOpen(defName.Name, defName.Ref, defName.LocalSheetId, defName.Hidden, _type);
+				}
+			});
+		}
 	}
     function CSlicerStyles()
     {
