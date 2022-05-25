@@ -11,14 +11,15 @@
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/xregexp/3.2.0/xregexp-all.min.js"></script>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
 
-		<script type="text/javascript" src="../../develop/sdkjs/cell/scripts.js"></script>
+		<script type="text/javascript" src="../../../develop/sdkjs/cell/scripts.js"></script>
 		<script type="text/javascript">
+			window["WebAssembly"] = undefined
 			window.sdk_scripts.forEach(function(item){
-				document.write('<script type="text/javascript" src="' + item.substring('../'.length) + '"><\/script>');
+				document.write('<script type="text/javascript" src="' + item + '"><\/script>');
 			});
     	</script>
 
-		<script type="text/javascript" src="../document/empty.js"></script>
+		<script type="text/javascript" src="../../document/empty.js"></script>
 		<script type="text/javascript" src="PivotTests.js"></script>
 	</head>
 	<body>
