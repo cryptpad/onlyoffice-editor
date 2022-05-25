@@ -6458,17 +6458,14 @@ function BinaryPPTYLoader()
         }
 
         var _path = geom.pathLst[geom.pathLst.length - 1];
-        if (isKoords && undefined === _path.pathW && undefined === _path.pathH)
-        {
-            _path.pathW = _xfrm.extX * c_dScalePPTXSizes;
-            _path.pathH = _xfrm.extY * c_dScalePPTXSizes;
-
-            if(_path.pathW != undefined)
-            {
-                _path.divPW = 100/_path.pathW;
-                _path.divPH = 100/_path.pathH;
-            }
-        }
+        // if (isKoords && undefined === _path.pathW && undefined === _path.pathH)
+        // {
+        //     if(_xfrm)
+        //     {
+        //         _path.pathW = _xfrm.extX * c_dScalePPTXSizes;
+        //         _path.pathH = _xfrm.extY * c_dScalePPTXSizes;
+        //     }
+        // }
 
         s.Seek2(_end_rec);
     };
@@ -12720,7 +12717,11 @@ CCore.prototype.Refresh_RecalcData2 = function(){
                                 }
                                 case 5:
                                 {
-                                    var _chart = this.Reader.ReadChartDataInGroup(shape);
+                                    var _chart = null;
+                                    if ("undefined" != typeof(AscFormat.CGraphicFrame))
+                                        _chart = this.Reader.ReadGrFrame();
+                                    else
+                                        _chart = this.Reader.ReadChartDataInGroup(shape);
                                     if (null != _chart)
                                     {
                                         _chart.setGroup(shape);
