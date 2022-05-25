@@ -2600,6 +2600,20 @@ Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLineStartPos, oL
 
 	return arrPositions[0];
 };
+Paragraph.prototype.Recalculate_SetRangeBounds = function(CurLine, CurRange, oStartPos, oEndPos)
+{
+	let nStartPos = oStartPos.Get(0);
+	let nEndPos   = oEndPos.Get(0);
+
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (nPos !== nStartPos)
+			oItem.Recalculate_Reset(CurRange, CurLine);
+
+		oItem.Recalculate_SetRangeBounds(CurLine, CurRange, nPos === nStartPos ? oStartPos : null, nPos === nEndPos ? oEndPos : null, 1);
+	}
+};
 
 var ERecalcPageType =
 {

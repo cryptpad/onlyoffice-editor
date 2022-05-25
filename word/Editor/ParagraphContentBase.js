@@ -306,6 +306,9 @@ CParagraphContentBase.prototype.Recalculate_Range = function(PRS, ParaPr)
 CParagraphContentBase.prototype.Recalculate_Set_RangeEndPos = function(PRS, PRP, Depth)
 {
 };
+CParagraphContentBase.prototype.Recalculate_SetRangeBounds = function(_CurLine, _CurRange, oStartPos, oEndPos, nDepth)
+{
+};
 CParagraphContentBase.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _CurRange)
 {
 };
@@ -2571,6 +2574,36 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalculate_Set_RangeEndPos 
     this.protected_FillRangeEndPos(CurLine, CurRange, CurPos);
 
     this.Content[CurPos].Recalculate_Set_RangeEndPos( PRS, PRP, Depth + 1 );
+};
+CParagraphContentWithParagraphLikeContent.prototype.Recalculate_SetRangeBounds = function(_CurLine, _CurRange, oStartPos, oEndPos, nDepth)
+{
+	let isStartPos = oStartPos && nDepth <= oStartPos.GetDepth();
+	let isEndPos   = oEndPos && nDepth <= oEndPos.GetDepth();
+
+	let nStartPos = isStartPos ?  oStartPos.Get(nDepth) : 0;
+	let nEndPos   = isEndPos ? oEndPos.Get(nDepth) : this.Content.length - 1;
+
+	var CurLine  = _CurLine - this.StartLine;
+	var CurRange = 0 === CurLine ? _CurRange - this.StartRange : _CurRange;
+
+	if (isStartPos)
+	{
+		this.protected_FillRangeEndPos(CurLine, CurRange, nEndPos);
+	}
+	else
+	{
+		this.protected_AddRange(CurLine, CurRange);
+		this.protected_FillRange(CurLine, CurRange, nStartPos, nEndPos);
+	}
+
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (nPos !== nStartPos)
+			oItem.Recalculate_Reset(_CurRange, _CurLine);
+
+		oItem.Recalculate_SetRangeBounds(_CurLine, _CurRange, nPos === nStartPos ? oStartPos : null, nPos === nEndPos ? oEndPos : null, nDepth + 1);
+	}
 };
 CParagraphContentWithParagraphLikeContent.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _CurRange)
 {

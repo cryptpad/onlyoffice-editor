@@ -3625,9 +3625,21 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						{
 							if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
 							{
+								let oPrevPos     = PRS.LineBreakPos.Copy();
 								let oLigaturePos = PRS.CurPos.Copy();
 								oLigaturePos.Update(Pos, Depth);
-								PRS.LineBreakPos = Para.FindLineBreakInLigature(XEnd - (X + SpaceLen + WordLen), PRS.LineBreakPos, oLigaturePos);
+
+								PRS.LineBreakPos = Para.FindLineBreakInLigature(XEnd - (X + SpaceLen + WordLen), oPrevPos, oLigaturePos);
+
+								this.protected_FillRange(CurLine, CurRange, RangeStartPos, RangeStartPos);
+								Para.Recalculate_SetRangeBounds(ParaLine, ParaRange, oPrevPos, PRS.LineBreakPos);
+
+								if (oLigaturePos.Compare(PRS.LineBreakPos) < 0)
+								{
+									RangeStartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+									RangeEndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+								}
+
 							}
 
 							MoveToLBP = true;
@@ -4598,6 +4610,28 @@ ParaRun.prototype.Recalculate_Set_RangeEndPos = function(PRS, PRP, Depth)
     var CurPos   = PRP.Get(Depth);
 
     this.protected_FillRangeEndPos(CurLine, CurRange, CurPos);
+};
+ParaRun.prototype.Recalculate_SetRangeBounds = function(_CurLine, _CurRange, oStartPos, oEndPos, nDepth)
+{
+	let isStartPos = oStartPos && nDepth <= oStartPos.GetDepth();
+	let isEndPos   = oEndPos && nDepth <= oEndPos.GetDepth();
+
+	let nStartPos = isStartPos ?  oStartPos.Get(nDepth) : 0;
+	let nEndPos   = isEndPos ? oEndPos.Get(nDepth) : this.Content.length;
+
+	var CurLine  = _CurLine - this.StartLine;
+	var CurRange = 0 === CurLine ? _CurRange - this.StartRange : _CurRange;
+
+
+	if (isStartPos)
+	{
+		this.protected_FillRangeEndPos(CurLine, CurRange, nEndPos);
+	}
+	else
+	{
+		this.protected_AddRange(CurLine, CurRange);
+		this.protected_FillRange(CurLine, CurRange, nStartPos, nEndPos);
+	}
 };
 
 ParaRun.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _CurRange, ContentMetrics)
