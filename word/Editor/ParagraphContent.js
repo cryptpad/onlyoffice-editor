@@ -584,6 +584,10 @@ ParaText.prototype.SetWidth = function(nWidth)
 };
 ParaText.prototype.Get_Width = function()
 {
+	return this.Get_Width();
+};
+ParaText.prototype.GetWidth = function()
+{
 	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
 		return (this.TempWidth / TEXTWIDTH_DIVIDER);
 

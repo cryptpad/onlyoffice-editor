@@ -2571,8 +2571,11 @@ Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
 		Items     : arrItems
 	};
 };
-Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLigaturePos)
+Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLineStartPos, oLigaturePos)
 {
+	// TODO: Когда будут прокидываться типы HB_GLYPH_FLAG_UNSAFE_TO_BREAK, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
+	//       переделать здесь поиск начальной точки для формирования текста
+
 	let oInfo = this.CollectLigatureInfo(oLigaturePos);
 
 	let arrPositions = oInfo.Positions;
@@ -2581,10 +2584,10 @@ Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLigaturePos)
 	let nLastPos = arrPositions.length - 1;
 	while (nLastPos > 0)
 	{
-		this.ShapeTextInRange(arrPositions[0], arrPositions[nLastPos]);
+		this.ShapeTextInRange(oLineStartPos, arrPositions[nLastPos]);
 
 		let nTempWidth = 0;
-		for (let nPos = 0; nPos <= nLastPos; ++ nPos)
+		for (let nPos = 0; nPos < nLastPos; ++nPos)
 		{
 			nTempWidth += arrItems[nPos].GetWidth();
 		}

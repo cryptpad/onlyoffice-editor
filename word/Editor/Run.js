@@ -3551,7 +3551,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					}
 
                     // При проверке, убирается ли слово, мы должны учитывать ширину предшествующих пробелов.
-                    var LetterLen = Item.Width / TEXTWIDTH_DIVIDER;//var LetterLen = Item.Get_Width();
+                    var LetterLen = Item.GetWidth();
 
                     if (true !== Word)
                     {
@@ -3627,7 +3627,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							{
 								let oLigaturePos = PRS.CurPos.Copy();
 								oLigaturePos.Update(Pos, Depth);
-								PRS.LineBreakPos = Para.FindLineBreakInLigature(XEnd - (X + SpaceLen + WordLen), oLigaturePos);
+								PRS.LineBreakPos = Para.FindLineBreakInLigature(XEnd - (X + SpaceLen + WordLen), PRS.LineBreakPos, oLigaturePos);
 							}
 
 							MoveToLBP = true;
@@ -3793,7 +3793,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 					if (Word && PRS.LastItem && para_Text === PRS.LastItem.Type && !PRS.LastItem.CanBeAtEndOfLine())
 					{
-						WordLen += Item.Width / TEXTWIDTH_DIVIDER;//SpaceLen += Item.Get_Width();
+						WordLen += Item.GetWidth();
 						break;
 					}
 
@@ -3814,7 +3814,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
                     // На пробеле не делаем перенос. Перенос строки или внутристрочный
                     // перенос делаем при добавлении любого непробельного символа
-                    SpaceLen += Item.Width / TEXTWIDTH_DIVIDER;//SpaceLen += Item.Get_Width();
+                    SpaceLen += Item.GetWidth();
 
                     break;
                 }
@@ -4769,7 +4769,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
                     PRSC.Words++;
                 }
 
-                PRSC.Range.W += Item.Width / TEXTWIDTH_DIVIDER;//Item.Get_Width();
+                PRSC.Range.W += Item.GetWidth();
                 PRSC.Range.W += PRSC.SpaceLen;
 
                 PRSC.SpaceLen = 0;
@@ -4804,12 +4804,12 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
                 {
                     PRSC.Word        = false;
                     PRSC.SpacesCount = 1;
-                    PRSC.SpaceLen    = Item.Width / TEXTWIDTH_DIVIDER;//Item.Get_Width();
+                    PRSC.SpaceLen    = Item.GetWidth();
                 }
                 else
                 {
                     PRSC.SpacesCount++;
-                    PRSC.SpaceLen += Item.Width / TEXTWIDTH_DIVIDER;//Item.Get_Width();
+                    PRSC.SpaceLen += Item.GetWidth();
                 }
 
                 break;
@@ -4981,11 +4981,11 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 
                 if ( 0 !== PRSA.LettersSkip )
                 {
-                    WidthVisible = Item.Width / TEXTWIDTH_DIVIDER;//WidthVisible = Item.Get_Width();
+                    WidthVisible = Item.GetWidth();
                     PRSA.LettersSkip--;
                 }
                 else
-                    WidthVisible = Item.Width / TEXTWIDTH_DIVIDER + PRSA.JustifyWord;//WidthVisible = Item.Get_Width() + PRSA.JustifyWord;
+                    WidthVisible = Item.GetWidth() + PRSA.JustifyWord;
 
                 Item.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER) | 0;//Item.Set_WidthVisible(WidthVisible);
 
@@ -5015,7 +5015,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             }
             case para_Space:
             {
-                var WidthVisible = Item.Width / TEXTWIDTH_DIVIDER;//WidthVisible = Item.Get_Width();
+                var WidthVisible = Item.GetWidth();
 
                 if ( 0 !== PRSA.SpacesSkip )
                 {
@@ -5663,7 +5663,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
         {
             case para_Text:
             {
-                var ItemWidth = Item.Width / TEXTWIDTH_DIVIDER;//var ItemWidth = Item.Get_Width();
+                var ItemWidth = Item.GetWidth();
                 if ( false === bWord )
                 {
                     bWord    = true;
@@ -5738,7 +5738,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                 // Мы сразу не добавляем ширину пробелов к максимальной ширине, потому что
                 // пробелы, идущие в конце параграфа или перед переносом строки(явным), не
                 // должны учитываться.
-                nSpaceLen += Item.Width / TEXTWIDTH_DIVIDER;//nSpaceLen += Item.Get_Width();
+                nSpaceLen += Item.GetWidth();
                 bCheckTextHeight = true;
                 break;
             }
