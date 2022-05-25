@@ -967,7 +967,7 @@
 				if(!this.Bullet) {
 					this.Bullet = new AscFormat.CBullet();
 				}
-				this.Bullet.readChildXml(reader, name);
+				this.Bullet.readChildXml(name, reader);
 			}
 			else if(name === "defRPr") {
 				let oRPr = new AscCommonWord.CTextPr();
