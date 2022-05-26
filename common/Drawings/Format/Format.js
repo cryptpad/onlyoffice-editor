@@ -73,52 +73,49 @@
 		var CChangesDrawingsContent = AscDFH.CChangesDrawingsContent;
 
 
-		function CBaseObject() {
-			this.Id = null;
-			if (AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) {
-				this.Id = AscCommon.g_oIdCounter.Get_NewId();
-				AscCommon.g_oTableId.Add(this, this.Id);
-			}
+
+		function CBaseNoIdObject() {
 		}
 
-		CBaseObject.prototype.classType = AscDFH.historyitem_type_Unknown;
-		CBaseObject.prototype.notAllowedWithoutId = function () {
+
+		CBaseNoIdObject.prototype.classType = AscDFH.historyitem_type_Unknown;
+		CBaseNoIdObject.prototype.notAllowedWithoutId = function () {
 			return false;
 		};
-		CBaseObject.prototype.getObjectType = function () {
+		CBaseNoIdObject.prototype.getObjectType = function () {
 			return this.classType;
 		};
-		CBaseObject.prototype.Get_Id = function () {
+		CBaseNoIdObject.prototype.Get_Id = function () {
 			return this.Id;
 		};
-		CBaseObject.prototype.Write_ToBinary2 = function (oWriter) {
+		CBaseNoIdObject.prototype.Write_ToBinary2 = function (oWriter) {
 			oWriter.WriteLong(this.getObjectType());
 			oWriter.WriteString2(this.Get_Id());
 		};
-		CBaseObject.prototype.Read_FromBinary2 = function (oReader) {
+		CBaseNoIdObject.prototype.Read_FromBinary2 = function (oReader) {
 			this.Id = oReader.GetString2();
 		};
-		CBaseObject.prototype.Refresh_RecalcData = function (oChange) {
+		CBaseNoIdObject.prototype.Refresh_RecalcData = function (oChange) {
 		};
 		//open/save from/to xml
-		CBaseObject.prototype.readAttr = function (reader) {
+		CBaseNoIdObject.prototype.readAttr = function (reader) {
 			while (reader.MoveToNextAttribute()) {
 				this.readAttrXml(reader.GetNameNoNS(), reader);
 			}
 		};
-		CBaseObject.prototype.readAttrXml = function (name, reader) {
+		CBaseNoIdObject.prototype.readAttrXml = function (name, reader) {
 			//TODO:Implement in children
 		};
-		CBaseObject.prototype.readChildXml = function (name, reader) {
+		CBaseNoIdObject.prototype.readChildXml = function (name, reader) {
 			//TODO:Implement in children
 		};
-		CBaseObject.prototype.writeAttrXmlImpl = function (writer) {
+		CBaseNoIdObject.prototype.writeAttrXmlImpl = function (writer) {
 			//TODO:Implement in children
 		};
-		CBaseObject.prototype.writeChildren = function (writer) {
+		CBaseNoIdObject.prototype.writeChildren = function (writer) {
 			//TODO:Implement in children
 		};
-		CBaseObject.prototype.fromXml = function (reader, bSkipFirstNode) {
+		CBaseNoIdObject.prototype.fromXml = function (reader, bSkipFirstNode) {
 			if (bSkipFirstNode) {
 				if (!reader.ReadNextNode()) {
 					return;
@@ -131,16 +128,27 @@
 				this.readChildXml(name, reader);
 			}
 		};
-		CBaseObject.prototype.toXml = function (writer, name) {
+		CBaseNoIdObject.prototype.toXml = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
 			this.writeAttrXml(writer);
 			this.writeChildren(writer);
 			writer.WriteXmlNodeEnd(name);
 		};
-		CBaseObject.prototype.writeAttrXml = function (writer) {
+		CBaseNoIdObject.prototype.writeAttrXml = function (writer) {
 			this.writeAttrXmlImpl(writer);
 			writer.WriteXmlAttributesEnd();
 		};
+
+
+		function CBaseObject() {
+			CBaseNoIdObject.call(this);
+			this.Id = null;
+			if (AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) {
+				this.Id = AscCommon.g_oIdCounter.Get_NewId();
+				AscCommon.g_oTableId.Add(this, this.Id);
+			}
+		}
+		InitClass(CBaseObject, CBaseNoIdObject, AscDFH.historyitem_type_Unknown);
 
 		function InitClassWithoutType(fClass, fBase) {
 			fClass.prototype = Object.create(fBase.prototype);
@@ -153,14 +161,6 @@
 			fClass.prototype.classType = nType;
 		}
 
-
-		function CBaseNoIdObject() {
-			AscFormat.ExecuteNoHistory(function () {
-				CBaseObject.call(this);
-			}, this, []);
-		}
-
-		InitClass(CBaseNoIdObject, CBaseObject, AscDFH.historyitem_type_Unknown);
 
 		function CBaseFormatObject() {
 			CBaseObject.call(this);
@@ -8076,7 +8076,9 @@
 			writer.WriteXmlNullableAttributeString(sAttrNamespace + "algn", this.GetAlgnByCode(this.algn));
 			writer.WriteXmlAttributesEnd();
 
-			this.Fill.toXml(writer);
+			if(this.Fill) {
+				this.Fill.toXml(writer);
+			}
 
 			let nDashCode = this.GetDashByCode(this.prstDash);
 			if(nDashCode !== null) {
@@ -8976,6 +8978,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":cNvCxnSpPr");
 
@@ -9024,18 +9027,15 @@
 
 			writer.WriteXmlNodeEnd(namespace_ + ":cNvCxnSpPr");
 		};
-
 		CNvUniSpPr.prototype.toXmlGrFrame = function (writer) {
 
 			let namespace_ = "a";
 			let namespaceLock_ = "a";
-			let namespaceLockLink_ = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"";
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) namespace_ = "xdr";
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
 				namespaceLock_ = "a";
-				namespaceLockLink_ = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\"";
 				namespace_ = "wp";
 			} else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
@@ -9049,8 +9049,7 @@
 
 			writer.WriteXmlNodeStart(namespaceLock_ + ":graphicFrameLocks");
 
-
-			writer.WriteXmlNullableAttributeString("xmlns:" + namespaceLock_, namespaceLockLink_);
+			writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
 			writer.WriteXmlNullableAttributeBool("noChangeAspect", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noChangeAspect));
 			writer.WriteXmlNullableAttributeBool("noDrilldown", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noDrilldown));
 			writer.WriteXmlNullableAttributeBool("noGrp", fGetLockValue(this.locks, AscFormat.LOCKS_MASKS.noGrp));
@@ -9278,6 +9277,10 @@
 					this.cNvPr.fromXml(reader);
 					break;
 				}
+				case "cNvCxnSpPr":
+				case "cNvGraphicFramePr":
+				case "cNvGrpSpPr":
+				case "cNvPicPr":
 				case "cNvSpPr": {
 					this.nvUniSpPr.fromXml(reader);
 					break;
@@ -9287,6 +9290,12 @@
 					break;
 				}
 			}
+		};
+		UniNvPr.prototype.getLocks = function() {
+			if(this.nvUniSpPr) {
+				return this.nvUniSpPr.locks;
+			}
+			return 0;
 		};
 		UniNvPr.prototype.toXmlGrFrame = function (writer) {
 			let namespace_ = "a";
@@ -9330,6 +9339,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) namespace_ = "a";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) namespace_ = "cdr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM) namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) namespace_ = "p";
 
 			writer.WriteXmlNodeStart(namespace_ + ":nvCxnSpPr");
 			writer.WriteXmlAttributesEnd();
@@ -10548,6 +10558,9 @@
 		CSpPr.prototype.setXfrm = function (pr) {
 			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SpPr_SetXfrm, this.xfrm, pr));
 			this.xfrm = pr;
+			if(pr) {
+				pr.setParent(this);
+			}
 		};
 		CSpPr.prototype.setGeometry = function (pr) {
 			History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SpPr_SetGeometry, this.geometry, pr));
@@ -10665,6 +10678,7 @@
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING) name_ = "dsp:spPr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART) name_ = "c:spPr";
 			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS) name_ = "a:spPr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_STYLE) name_ = "cs:spPr";
 			else {//theme
 				if (0 !== (writer.context.flag & 0x04)) name_ = "a:spPr";
 				else name_ = "p:spPr";
@@ -12448,8 +12462,15 @@
 
 			writer.context.groupIndex++;
 
-			for (let i = 0; i < this.spTree.length; ++i)
-				this.spTree[i].toXml(writer);
+			for (let i = 0; i < this.spTree.length; ++i) {
+				let oSp = this.spTree[i];
+				let nType = oSp.getObjectType();
+				let oElement = oSp;
+				if(nType === AscDFH.historyitem_type_ChartSpace || nType === AscDFH.historyitem_type_SmartArt) {
+					oElement = AscFormat.CGraphicFrame.prototype.static_CreateGraphicFrameFromDrawing(oSp);
+				}
+				oElement.toXml(writer);
+			}
 
 			writer.context.groupIndex--;
 
@@ -13964,7 +13985,7 @@
 			writer.WriteXmlNullableAttributeBool("compatLnSpc", this.compatLnSpc);
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullable(this.prstTxWarp, "prstTxWarp");
+			writer.WriteXmlNullable(this.prstTxWarp, sNamespace_ + ":prstTxWarp");
 			writer.WriteXmlNullable(this.textFit);
 			//writer.WriteXmlNullable(this.scene3d);
 			//writer.WriteXmlNullable(this.sp3d);

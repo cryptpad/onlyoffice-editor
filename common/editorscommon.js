@@ -10005,7 +10005,7 @@
 			for (let i = 0; i < infoOfDrawings.length; i += 1) {
 				const drawInfo = infoOfDrawings[i];
 				const type = drawInfo.type;
-				const bullet = new CPresentationBullet();
+				const bullet = new AscCommonWord.CPresentationBullet();
 				const textPr = new CTextPr();
 				textPr.Color = g_oDocumentDefaultStrokeColor;
 				switch (type)

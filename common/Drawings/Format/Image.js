@@ -886,6 +886,7 @@ CImageShape.prototype.Load_LinkData = function(linkData)
                 let prop = new AscFormat.UniNvPr();
                 prop.fromXml(reader);
                 this.setNvPicPr(prop);
+                this.setLocks(prop.getLocks());
                 break;
             }
             case "style": {

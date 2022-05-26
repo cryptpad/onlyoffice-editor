@@ -1861,19 +1861,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         switch (this.graphicObject.getObjectType()) {
             case AscDFH.historyitem_type_ChartSpace:
             case AscDFH.historyitem_type_SlicerView:
-                let Graphic = new AscFormat.CT_GraphicalObject();
-                Graphic.Namespace = ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
-                Graphic.GraphicData = new AscFormat.CT_GraphicalObjectData();
-                if(this.graphicObject.getObjectType() === AscDFH.historyitem_type_ChartSpace)
-                    Graphic.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/chart";
-                else
-                    Graphic.GraphicData.Uri = "http://schemas.microsoft.com/office/drawing/2010/slicer";
-                Graphic.GraphicData.graphicObject = graphicObject;
-
-                let newGraphicObject = new AscFormat.CGraphicFrame();
-                newGraphicObject.spPr = graphicObject.spPr;
-                newGraphicObject.graphicObject = Graphic;
-                graphicObject = newGraphicObject;
+                graphicObject = AscFormat.CGraphicFrame.prototype.static_CreateGraphicFrameFromDrawing(graphicObject);
                 break;
         }
         writer.WriteXmlNodeStart(name);
