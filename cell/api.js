@@ -1431,7 +1431,7 @@ var editor;
   	if (file.changes && this.VersionHistory) {
   		this.VersionHistory.changes = file.changes;
 	}
-
+	this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(file.data);
 	this._openDocument(file.data);
 	this._openOnClient();
   };

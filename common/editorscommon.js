@@ -697,7 +697,6 @@
 		this.data = null;
 		this.url = null;
 		this.changes = null;
-		this.isOpenOOXInBrowser = false;
 	}
 
 	function saveWithParts(fSendCommand, fCallback, fCallbackRequest, oAdditionalData, dataContainer)
@@ -812,6 +811,34 @@
 		}
 		return false;
 	}
+	function checkOOXMLSignature(stream, Signature) {
+		let jsZipWrapper = new AscCommon.JSZipWrapper();
+		if(!jsZipWrapper.loadSync(stream)) {
+			return false;
+		}
+		if(!jsZipWrapper.files["[Content_Types].xml"]) {
+			return false;
+		}
+		let contentTypes = jsZipWrapper.files["[Content_Types].xml"].sync("string");
+		jsZipWrapper.close();
+		return -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-word.document.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-word.template.macroEnabledTemplate.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.oform") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.docxf") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.template.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.binary.macroEnabled.main") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.template.macroEnabled.main+xml");
+	}
 	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
 		var nError = Asc.c_oAscError.ID.No, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
@@ -837,20 +864,12 @@
 					url = (-1 !== nIndex) ? sFileUrl.substring(0, nIndex + 1) : sFileUrl;
 					if (httpRequest)
 					{
-						let data = new Uint8Array(httpRequest.response);
-						oResult.bSerFormat = checkStreamSignature(data, Signature);
-						oResult.isOpenOOXInBrowser = !oResult.bSerFormat;
-						if (oResult.isOpenOOXInBrowser) {
-							oResult.bSerFormat = true;
-							oResult.data = data;
+						var stream = initStreamFromResponse(httpRequest);
+						if (stream) {
+							oResult.bSerFormat = checkStreamSignature(stream, Signature);
+							oResult.data = stream;
 						} else {
-							var stream = initStreamFromResponse(httpRequest);
-							if (stream) {
-								oResult.bSerFormat = checkStreamSignature(stream, Signature);
-								oResult.data = stream;
-							} else {
-								nError = c_oAscError.ID.Unknown;
-							}
+							nError = c_oAscError.ID.Unknown;
 						}
 					}
 					else
@@ -883,8 +902,9 @@
 							}
 						}
 					}
+					jsZipWrapper.close();
 				} else {
-					bError = true;
+					nError = c_oAscError.ID.Unknown;
 				}
 				bEndLoadChanges = true;
 				onEndOpen();
@@ -12936,6 +12956,7 @@
 	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 	window["AscCommon"].checkStreamSignature = checkStreamSignature;
+	window["AscCommon"].checkOOXMLSignature = checkOOXMLSignature;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
 	window["AscCommon"].OpenFileResult = OpenFileResult;

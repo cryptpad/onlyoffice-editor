@@ -1684,6 +1684,7 @@ background-repeat: no-repeat;\
 		if (AscCommon.AscBrowser.isSafariMacOs)
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 
+		jsZipWrapper.close();
 		return true;
 	};
 
@@ -5751,7 +5752,8 @@ background-repeat: no-repeat;\
 			this.VersionHistory.changes = file.changes;
 			this.VersionHistory.applyChanges(this);
 		}
-		if(this.isOpenOOXInBrowser) {
+		this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(file.data);
+		if (this.isOpenOOXInBrowser) {
 			this.OpenDocumentFromZip(file.data);
 		} else {
 			this.OpenDocumentFromBin(file.url, file.data);

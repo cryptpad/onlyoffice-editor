@@ -7812,15 +7812,14 @@ background-repeat: no-repeat;\
 
 		if (file.bSerFormat)
 		{
-			if(this.isOpenOOXInBrowser) {
-				this.OpenDocumentFromZip(file.data);
-			} else {
-				this.OpenDocumentFromBin(file.url, file.data);
-			}
+			this.OpenDocumentFromBin(file.url, file.data);
 		}
 		else
 		{
-			if (this.isUseNativeViewer)
+			this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(file.data);
+			if (this.isOpenOOXInBrowser)
+				this.OpenDocumentFromZip(file.data);
+			else if (this.isUseNativeViewer)
 				this.OpenDocument3(file.url, file.data);
 			else
 				this.OpenDocument(file.url, file.data);
