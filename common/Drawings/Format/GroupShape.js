@@ -2038,6 +2038,7 @@ function CGroupShape()
             res = new AscFormat.UniNvPr();
             res.fromXml(reader);
             this.setNvSpPr(res);
+            this.setLocks(res.getLocks());
         }
     };
     CGroupShape.prototype.fromXml = function(reader) {

@@ -1671,20 +1671,19 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
                 break;
             }
         }
-        if(bEmptyLst) {
-            if (bEmptyLst)
-                writer.WriteXmlString("<" + name + "/>");
-            else {
-                writer.WriteXmlNodeStart(name);
-                writer.WriteXmlAttributesEnd();
-                for(let nGd = 0; nGd < this.gdLstInfo.length; ++nGd) {
-                    let oGd = this.gdLstInfo[nGd];
-                    if(!this.avLst[oGd.name]) {
-                        CGuide.prototype.toXml(writer, oGd);
-                    }
+
+        if (bEmptyLst)
+            writer.WriteXmlString("<" + name + "/>");
+        else {
+            writer.WriteXmlNodeStart(name);
+            writer.WriteXmlAttributesEnd();
+            for(let nGd = 0; nGd < this.gdLstInfo.length; ++nGd) {
+                let oGd = this.gdLstInfo[nGd];
+                if(!this.avLst[oGd.name]) {
+                    CGuide.prototype.toXml(writer, oGd);
                 }
-                writer.WriteXmlNodeEnd(name);
             }
+            writer.WriteXmlNodeEnd(name);
         }
     };
     Geometry.prototype.writeAhLst = function(writer) {
@@ -1709,7 +1708,7 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
     };
     Geometry.prototype.writeCxnLst = function(writer) {
         let name = "a:cxnLst";
-        if(this.rectS) {
+        if(this.cnxLstInfo.length === 0) {
             writer.WriteXmlString("<" + name + "/>");
         }
         else {
@@ -1723,10 +1722,7 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
         }
     };
     Geometry.prototype.writeRect = function(writer) {
-        let bEmptyLst = true;
-        let name = "a:rect";
-        bEmptyLst = this.cnxLstInfo.length === 0 ;
-        if(bEmptyLst) {
+        if(!this.rectS) {
             writer.WriteXmlString("<a:rect l=\"0\" t=\"0\" r=\"r\" b=\"b\"/>");
         }
         else {
@@ -1751,14 +1747,15 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
             writer.WriteXmlNodeEnd(name);
         }
     };
-    Geometry.prototype.toXml = function (writer) {
+    Geometry.prototype.toXml = function (writer, sName) {
         if(this.preset !== null && this.preset !== "") {
-            writer.WriteXmlNodeStart("a:prstGeom");
+            let sName_ = sName || "a:prstGeom";
+            writer.WriteXmlNodeStart(sName_);
 
             writer.WriteXmlNullableAttributeString("prst", this.preset);
             writer.WriteXmlAttributesEnd();
             this.writeAvLst(writer);
-            writer.WriteXmlNodeEnd("a:prstGeom");
+            writer.WriteXmlNodeEnd(sName_);
         }
         else {
             writer.WriteXmlNodeStart("a:custGeom");
@@ -2085,7 +2082,7 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
         }
     };
     CGuide.prototype.toXml = function(writer, oGd) {
-        let sFmla = MAP_TYPE_TO_FMLA[oGd.fmla];
+        let sFmla = MAP_TYPE_TO_FMLA[oGd.formula];
         if(sFmla) {
             writer.WriteXmlNodeStart("a:gd");
             writer.WriteXmlNullableAttributeString("name", oGd.name);

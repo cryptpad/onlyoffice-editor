@@ -7221,10 +7221,12 @@ CShape.prototype.getColumnNumber = function(){
     CShape.prototype.readChildXml = function(name, reader) {
         let oPr;
         switch(name) {
+            case "nvCxnSpPr":
             case "nvSpPr": {
                 oPr = new AscFormat.UniNvPr();
                 oPr.fromXml(reader);
                 this.setNvSpPr(oPr);
+                this.setLocks(oPr.getLocks());
                 break;
             }
             case "cNvSpPr": {
@@ -7232,6 +7234,7 @@ CShape.prototype.getColumnNumber = function(){
                     this.setNvSpPr(new AscFormat.UniNvPr());
                 }
                 this.nvSpPr.nvUniSpPr.fromXml(reader);
+                this.setLocks(this.nvSpPr.nvUniSpPr.getLocks());
                 break;
             }
             case "spPr": {
@@ -7262,6 +7265,12 @@ CShape.prototype.getColumnNumber = function(){
                     return new CT_XmlNode();
                 });
                 elem.fromXml(reader);
+                break;
+            }
+            case "bodyPr": {
+                let oBodyPr = new AscFormat.CBodyPr();
+                oBodyPr.fromXml(reader);
+                this.setBodyPr(oBodyPr);
                 break;
             }
         }
