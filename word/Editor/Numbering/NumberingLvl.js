@@ -723,6 +723,16 @@ CNumberingLvl.prototype.SetByFormat = function(nLvl, nType, sFormatText, nAlign)
 {
 	this.Jc      = nAlign;
 	this.SetFormat(nType);
+	this.SetLvlTextFormat(nLvl, sFormatText);
+	this.TextPr = new CTextPr();
+};
+/**
+ * Выставляем LvlText по заданному формату
+ * @param nLvl {number} 0..8
+ * @param sFormatText
+ */
+CNumberingLvl.prototype.SetLvlTextFormat = function(nLvl, sFormatText)
+{
 	this.LvlText = [];
 
 	var nLastPos = 0;
@@ -754,8 +764,21 @@ CNumberingLvl.prototype.SetByFormat = function(nLvl, nType, sFormatText, nAlign)
 		for (var nSubIndex = 0, nSubLen = sSubString.length; nSubIndex < nSubLen; ++nSubIndex)
 			this.LvlText.push(new CNumberingLvlTextString(sSubString.charAt(nSubIndex)));
 	}
-
-	this.TextPr = new CTextPr();
+};
+/**
+ * Получаем LvlText в виде строки для записи в xml
+ * @returns {string}
+ */
+CNumberingLvl.prototype.GetLvlTextFormat = function() {
+	var res = "";
+	for (var i = 0; i < this.LvlText.length; ++i) {
+		if (this.LvlText[i].IsLvl()) {
+			res += "%" + (this.LvlText[i].Value + 1)
+		} else {
+			res += this.LvlText[i].Value
+		}
+	}
+	return res;
 };
 /**
  * Собираем статистику документа о количестве слов, букв и т.д.
@@ -1095,6 +1118,9 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			{
 				break;
 			}
+			case Asc.c_oAscNumberingFormat.CustomDecimalTwoZero:
+			case Asc.c_oAscNumberingFormat.CustomDecimalThreeZero:
+			case Asc.c_oAscNumberingFormat.CustomDecimalFourZero:
 			case Asc.c_oAscNumberingFormat.Custom:
 			case Asc.c_oAscNumberingFormat.BahtText:
 			case Asc.c_oAscNumberingFormat.Decimal:
@@ -1105,7 +1131,41 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 				pickDecimal();
 				break;
 			}
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese: {
+			case Asc.c_oAscNumberingFormat.CustomGreece:
+			{
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B1);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B2);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B3);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B4);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B5);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C3);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C4);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B6);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B7);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B8);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B9);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BA);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BB);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BC);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BD);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BE);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BF);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C0);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03DF);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C1);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C3);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C4);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C5);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C6);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C7);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C8);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C9);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03E1);
+				AscFonts.FontPickerByCharacter.getFontBySymbol(0x002C);
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
+			{
 				pickDecimal();
 				for (var nValue = 0; nValue < 10; ++nValue)
 				{

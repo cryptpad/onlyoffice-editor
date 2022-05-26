@@ -748,39 +748,39 @@ CopyProcessor.prototype =
                 var _presentation_bullet = Item.PresentationPr.Bullet;
                 switch(_presentation_bullet.m_nType)
                 {
-                    case numbering_presentationnumfrmt_ArabicParenBoth:
-                    case numbering_presentationnumfrmt_ArabicParenR:
-                    case numbering_presentationnumfrmt_ArabicPeriod:
-                    case numbering_presentationnumfrmt_ArabicPlain:
+                    case AscFormat.numbering_presentationnumfrmt_ArabicParenBoth:
+                    case AscFormat.numbering_presentationnumfrmt_ArabicParenR:
+                    case AscFormat.numbering_presentationnumfrmt_ArabicPeriod:
+                    case AscFormat.numbering_presentationnumfrmt_ArabicPlain:
                     {
                         sListStyle = "decimal";
                         break;
                     }
-                    case numbering_presentationnumfrmt_RomanLcParenBoth:
-                    case numbering_presentationnumfrmt_RomanLcParenR:
-                    case numbering_presentationnumfrmt_RomanLcPeriod:
+                    case AscFormat.numbering_presentationnumfrmt_RomanLcParenBoth:
+                    case AscFormat.numbering_presentationnumfrmt_RomanLcParenR:
+                    case AscFormat.numbering_presentationnumfrmt_RomanLcPeriod:
                     {
                         sListStyle = "lower-roman";
                         break;
                     }
-                    case numbering_presentationnumfrmt_RomanUcParenBoth:
-                    case numbering_presentationnumfrmt_RomanUcParenR:
-                    case numbering_presentationnumfrmt_RomanUcPeriod:
+                    case AscFormat.numbering_presentationnumfrmt_RomanUcParenBoth:
+                    case AscFormat.numbering_presentationnumfrmt_RomanUcParenR:
+                    case AscFormat.numbering_presentationnumfrmt_RomanUcPeriod:
                     {
                         sListStyle = "upper-roman";
                         break;
                     }
 
-                    case numbering_presentationnumfrmt_AlphaLcParenBoth:
-                    case numbering_presentationnumfrmt_AlphaLcParenR:
-                    case numbering_presentationnumfrmt_AlphaLcPeriod:
+                    case AscFormat.numbering_presentationnumfrmt_AlphaLcParenBoth:
+                    case AscFormat.numbering_presentationnumfrmt_AlphaLcParenR:
+                    case AscFormat.numbering_presentationnumfrmt_AlphaLcPeriod:
                     {
                         sListStyle = "lower-alpha";
                         break;
                     }
-                    case numbering_presentationnumfrmt_AlphaUcParenR:
-                    case numbering_presentationnumfrmt_AlphaUcPeriod:
-                    case numbering_presentationnumfrmt_AlphaUcParenBoth:
+                    case AscFormat.numbering_presentationnumfrmt_AlphaUcParenR:
+                    case AscFormat.numbering_presentationnumfrmt_AlphaUcPeriod:
+                    case AscFormat.numbering_presentationnumfrmt_AlphaUcParenBoth:
                     {
                         sListStyle = "upper-alpha";
                         break;
@@ -3866,11 +3866,8 @@ PasteProcessor.prototype =
 			if (oObjectsForDownload.aUrls.length > 0) {
 				AscCommon.sendImgUrls(oThis.api, oObjectsForDownload.aUrls, function (data) {
 					var oImageMap = {};
-
-					History.TurnOff();
 					ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 					oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
-					History.TurnOn();
 				}, null, true);
 			} else {
 				var im_arr = [];
@@ -4880,15 +4877,25 @@ PasteProcessor.prototype =
 
 			var executePastePresentation = function () {
 				//PREPARE CONTENT
+				var i, w, h;
+
 				//если не добавили даные внутрь arrShapes - удаляем пустой CShape
 				if (arrShapes.length === 1 && arrShapes[0].txBody && arrShapes[0].txBody.content && arrShapes[0].txBody.content.Content && arrShapes[0].txBody.content.Content.length === 1) {
 					var txBodyContent = arrShapes[0].txBody.content.Content[0].Content;
-					if (txBodyContent && txBodyContent.length === 2 && txBodyContent[0].Content && txBodyContent[0].Content.length === 0) {
-						arrShapes = [];
+					if (txBodyContent) {
+						for (i = 0; i < txBodyContent.length; i++) {
+							if (i === txBodyContent.length - 1) {
+								if (txBodyContent[i].Content.length === 1 && txBodyContent[i].Content[0] && para_End === txBodyContent[3].Content[0].Get_Type()) {
+									arrShapes = [];
+								}
+							}
+							if (!(txBodyContent[i].Content && txBodyContent[i].Content.length === 0)) {
+								break;
+							}
+						}
 					}
 				}
 
-				var i, w, h;
 				for (i = 0; i < arrShapes.length; ++i) {
 					shape = arrShapes[i];
 
@@ -4926,9 +4933,7 @@ PasteProcessor.prototype =
 					oBodyPr.anchorCtr = false;
 					oBodyPr.forceAA = false;
 					oBodyPr.compatLnSpc = true;
-					oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function () {
-						return AscFormat.CreatePrstTxWarpGeometry("textNoShape");
-					}, this, []);
+					oBodyPr.prstTxWarp = AscFormat.CreatePrstTxWarpGeometry("textNoShape");
 					oBodyPr.textFit = new AscFormat.CTextFit();
 					oBodyPr.textFit.type = AscFormat.text_fit_Auto;
 					shape.txBody.setBodyPr(oBodyPr);
@@ -7116,7 +7121,7 @@ PasteProcessor.prototype =
 			}
 		} else {
 			if (true === pNoHtmlPr.bNum) {
-				var num = numbering_presentationnumfrmt_Char;
+				var num = AscFormat.numbering_presentationnumfrmt_Char;
 				if (null != pNoHtmlPr.numType)
 					num = pNoHtmlPr.numType;
 				var type = pNoHtmlPr["list-style-type"];
@@ -9171,10 +9176,10 @@ PasteProcessor.prototype =
 						}
 					} else {
 						if ("ul" === sNodeName) {
-							pPr.numType = numbering_presentationnumfrmt_Char;
+							pPr.numType = AscFormat.numbering_presentationnumfrmt_Char;
 						} else if ("ol" ===
 							sNodeName) {
-							pPr.numType = numbering_presentationnumfrmt_ArabicPeriod;
+							pPr.numType = AscFormat.numbering_presentationnumfrmt_ArabicPeriod;
 						}
 					}
 				} else {
@@ -9192,10 +9197,10 @@ PasteProcessor.prototype =
 						}
 					} else {
 						if ("ul" === sNodeName) {
-							pPr.numType = numbering_presentationnumfrmt_Char;
+							pPr.numType = AscFormat.numbering_presentationnumfrmt_Char;
 						} else if ("ol" ===
 							sNodeName) {
-							pPr.numType = numbering_presentationnumfrmt_ArabicPeriod;
+							pPr.numType = AscFormat.numbering_presentationnumfrmt_ArabicPeriod;
 						}
 					}
 				}
@@ -10094,7 +10099,7 @@ PasteProcessor.prototype =
 		document.Comments.Add(oNewComment);
 
 		//посылаем событие о добавлении комментариев
-		this.api.sync_AddComment(oNewComment.Id, oNewComment.Data);
+		this.api.sync_AddComment && this.api.sync_AddComment(oNewComment.Id, oNewComment.Data);
 
 		return oNewComment.Id;
 	}

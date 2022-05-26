@@ -203,6 +203,9 @@ CGraphicFrame.prototype.setSpPr= function(spPr)
 {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GraphicFrameSetSpPr, this.spPr, spPr));
         this.spPr = spPr;
+        if(spPr) {
+            spPr.setParent(this);
+        }
 };
 
 CGraphicFrame.prototype.setGraphicObject= function(graphicObject)
@@ -239,11 +242,11 @@ CGraphicFrame.prototype.getObjectType= function()
         return AscDFH.historyitem_type_GraphicFrame;
 };
 
-CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
+CGraphicFrame.prototype.Search = function(SearchEngine, Type)
     {
         if(this.graphicObject)
         {
-            this.graphicObject.Search(Str, Props, SearchEngine, Type);
+            this.graphicObject.Search(SearchEngine, Type);
         }
 };
 
@@ -1385,6 +1388,60 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             this.graphicObject.Document_CreateFontMap(oMap);
         }
     };
+
+    CGraphicFrame.prototype.fromXml = function(reader) {
+		var depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			if ("xfrm" === reader.GetNameNoNS()) {
+				var xfrm = new AscFormat.CXfrm();
+				xfrm.fromXml(reader);
+				this.setSpPr(new AscFormat.CSpPr());
+				this.spPr.setParent(this);
+				this.spPr.setXfrm(xfrm);
+				this.spPr.xfrm.setParent(this.spPr);
+			} else if ("graphic" === reader.GetNameNoNS()) {
+				let graphic = new AscFormat.CT_GraphicalObject(this);
+				graphic.fromXml(reader);
+				let graphicObject = graphic.GraphicData && graphic.GraphicData.graphicObject;
+				if (graphicObject) {
+                    if(!(graphicObject instanceof AscCommonWord.CTable)) {
+                        //todo init in graphic.fromXml
+                        graphicObject.setBDeleted(false);
+                        graphicObject.setParent(this);
+                        this.setGraphicObject(graphicObject);
+                    }
+				}
+			}
+			//todo
+		}
+	};
+	CGraphicFrame.prototype.toXml = function(writer, name) {
+        let sName = name || "p:graphicFrame";
+		var context = writer.context;
+		var objectId = context.objectId++;
+		writer.WriteXmlNodeStart(sName);
+		writer.WriteXmlAttributesEnd();
+
+		var ns = StaxParser.prototype.GetNSFromNodeName(sName);
+
+		writer.WriteXmlString('<'+ns+'nvGraphicFramePr>');
+		writer.WriteXmlString('<'+ns+'cNvPr id="' + objectId + '" name="GraphicFrame ' + objectId + '"/>');
+		writer.WriteXmlString('<'+ns+'cNvGraphicFramePr/></'+ns+'nvGraphicFramePr>');
+		writer.WriteXmlNullable(this.spPr && this.spPr.xfrm, ns + "xfrm");
+
+        let oGraphicObject;
+        if(this.graphicObject instanceof AscCommonWord.CTable) {
+            oGraphicObject =  new AscFormat.CT_GraphicalObject(this);
+            oGraphicObject.GraphicData = new  AscFormat.CT_GraphicalObjectData(this);
+            oGraphicObject.GraphicData.graphicObject = this.graphicObject;
+            oGraphicObject.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/table";
+        }
+        else {
+            oGraphicObject = this.graphicObject;
+        }
+		writer.WriteXmlNullable(oGraphicObject, "a:graphic");
+		writer.WriteXmlNodeEnd(sName);
+	};
 
     function ConvertToWordTableBorder(oBorder) {
         if(!oBorder) {

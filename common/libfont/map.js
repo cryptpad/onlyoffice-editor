@@ -147,7 +147,8 @@ function FD_FontDictionary()
 
     this.ChangeGlyphsMap = {
         "Symbol" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0xB7, 0xA8], MapDst : [0xE12C, 0xE442] },
-        "Wingdings" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0x76, 0x77, 0xD8, 0xA7, 0xFC, 0x71], MapDst : [0xE441, 0xE442, 0xE25F, 0xE46F, 0xE330, 0x2751] }
+        "Wingdings" : { Name : "OpenSymbol", IsSymbolSrc : true, MapSrc : [0x76, 0x77, 0xD8, 0xA7, 0xFC, 0x71, 0x6C, 0x6F, 0x6E, 0xA1],
+            MapDst : [0xE441, 0xE442, 0xE25F, 0xE46F, 0xE330, 0x2751, 0xE12C, 0xE43A, 0xE439, 0xE469] }
     };
 	
 	this.MainUnicodeRanges = {
@@ -500,6 +501,9 @@ FD_FontDictionary.prototype =
         if (null == pFont)
             return false;
 
+        // может исходный шрифт (pFont) - не содержит такого имени - тогда допишем
+        if (oFormat.wsName !== pFont.m_wsFontName && !oFormat.wsAltName)
+            oFormat.wsAltName = oFormat.wsName;
         oFormat.wsName = pFont.m_wsFontName;
 
         // fixed
@@ -535,38 +539,55 @@ FD_FontDictionary.prototype =
         var nMinIndex   = 0; // Номер шрифта в списке с минимальным весом
         var nMinPenalty = 0; // Минимальный вес
 
+        var bIsFoundName0 = false;
+
         var nDefPenalty = 2147483647;
 
         var nFontsCount = oList.length;
-        for ( var nIndex = 0; nIndex < nFontsCount; nIndex++ )
+        for (var nIndex = 0; nIndex < nFontsCount; nIndex++)
         {
-            var nCurPenalty = oList[nIndex].GetPenalty(oSelect, isName0, this.MainUnicodeRanges);
+            var CurPenalty = oList[nIndex].GetPenalty(oSelect, this.MainUnicodeRanges);
 
-            if ( 0 == nIndex )
+            if (undefined !== DefaultIndex && nIndex === DefaultIndex)
+                nDefPenalty = CurPenalty.Penalty;
+
+            if (isName0 === true && 0 === CurPenalty.NamePenalty && !bIsFoundName0)
+            {
+                // встретился первый шрифт с точно таким именем - и запрос с флагом isName0 -
+                // ставим его в минимальный и теперь будем смотреть ТОЛЬКО с NamePenalty === 0
+                bIsFoundName0 = true;
+                nMinIndex = nIndex;
+                nMinPenalty = CurPenalty.Penalty;
+
+                if (0 === nMinPenalty)
+                    break;
+
+                continue;
+            }
+
+            if (bIsFoundName0 && 0 !== CurPenalty.NamePenalty)
+                continue;
+
+            if (0 === nIndex)
             {
                 nMinIndex   = 0;
-                nMinPenalty = nCurPenalty;
+                nMinPenalty = CurPenalty.Penalty;
             }
-            else if ( nCurPenalty < nMinPenalty )
+            else if (CurPenalty.Penalty < nMinPenalty)
             {
                 nMinIndex   = nIndex;
-                nMinPenalty = nCurPenalty;
-            }
-
-            if ( undefined != DefaultIndex && nIndex == DefaultIndex )
-            {
-                nDefPenalty = nCurPenalty;
+                nMinPenalty = CurPenalty.Penalty;
             }
 
             // Нашелся шрифт, удовлетворяющий всем параметрам, дальше искать нет смысла
-            if ( 0 == nCurPenalty )
+            if (0 === CurPenalty.Penalty)
                 break;
         }
 
-        if ( undefined != DefaultIndex && nDefPenalty == nMinPenalty )
+        if (undefined !== DefaultIndex && nDefPenalty === nMinPenalty)
             nMinIndex = DefaultIndex;
 
-		if (undefined == DefaultIndex)
+		if (undefined === DefaultIndex)
 			return nMinIndex;
 			
         return oList[nMinIndex];
@@ -823,7 +844,7 @@ CFontSelect.prototype =
             return 0;
     },
 
-    GetPenalty : function(oSelect, isName0, _main_ranges)
+    GetPenalty : function(oSelect, _main_ranges)
     {
         var nCurPenalty = 0;
 
@@ -861,9 +882,6 @@ CFontSelect.prototype =
             nNamePenalty += this.GetFaceNamePenalty(oSelect.wsName);
         else if (oSelect.wsAltName !== undefined)
             nNamePenalty += this.GetFaceNamePenalty(oSelect.wsAltName);
-
-        if (true === isName0 && 0 == nNamePenalty)
-            return 0;
 
         nCurPenalty += nNamePenalty;
 
@@ -904,7 +922,7 @@ CFontSelect.prototype =
         if (undefined !== oSelect.shCapHeight)
             nCurPenalty += this.GetCapHeightPenalty(oSelect.shCapHeight);
 
-        return nCurPenalty;
+        return { Penalty : nCurPenalty, NamePenalty : nNamePenalty };
     },
 
     // penalty detect functions
