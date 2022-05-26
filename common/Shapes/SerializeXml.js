@@ -1257,14 +1257,14 @@
 
 
 		//writer.WriteXmlAttributeString("rtl", Rtl);
-		let oTableLook = this.TableLook;
+		let oTableLook = oTable.TableLook;
 		if(oTableLook) {
 			writer.WriteXmlAttributeBool("firstRow", oTableLook.FirstRow);
 			writer.WriteXmlAttributeBool("firstCol", oTableLook.FirstCol);
 			writer.WriteXmlAttributeBool("lastRow", oTableLook.LastRow);
 			writer.WriteXmlAttributeBool("lastCol", oTableLook.LastCol);
-			writer.WriteXmlAttributeBool("bandRow", oTableLook.BandVer);
-			writer.WriteXmlAttributeBool("bandCol", oTableLook.BandHor);
+			writer.WriteXmlAttributeBool("bandRow", oTableLook.BandHor);
+			writer.WriteXmlAttributeBool("bandCol", oTableLook.BandVer);
 		}
 
 		writer.WriteXmlAttributesEnd();
@@ -1861,51 +1861,55 @@
 			let sName = reader.GetNameNoNS();
 			switch (sName) {
 				case "band1H": {
-					this.Set_TableBand1Horz(this.readDrawingMLTableStylePart(reader));
+					this.TableBand1Horz = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "band1V": {
-					this.Set_TableBand1Vert(this.readDrawingMLTableStylePart(reader));
+					this.TableBand1Vert = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "band2H": {
-					this.Set_TableBand2Horz(this.readDrawingMLTableStylePart(reader));
+					this.TableBand2Horz = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "band2V": {
-					this.Set_TableBand2Vert(this.readDrawingMLTableStylePart(reader));
+					this.TableBand2Vert = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "firstCol": {
-					this.Set_TableFirstCol(this.readDrawingMLTableStylePart(reader));
+					this.TableFirstCol = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "firstRow": {
-					this.Set_TableFirstRow(this.readDrawingMLTableStylePart(reader));
+					this.TableFirstRow = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "lastCol": {
-					this.Set_TableLastCol(this.readDrawingMLTableStylePart(reader));
+					this.TableLastCol = this.readDrawingMLTableStylePart(reader);
+					break;
+				}
+				case "lastRow": {
+					this.TableLastRow = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "wholeTbl": {
-					this.Set_TableWholeTable(this.readDrawingMLTableStylePart(reader));
+					this.TableWholeTable = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "neCell": {
-					this.Set_TableTRCell(this.readDrawingMLTableStylePart(reader));
+					this.TableTRCell = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "nwCell": {
-					this.Set_TableTLCell(this.readDrawingMLTableStylePart(reader));
+					this.TableTLCell = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "seCell": {
-					this.Set_TableBRCell(this.readDrawingMLTableStylePart(reader));
+					this.TableBRCell = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "swCell": {
-					this.Set_TableBLCell(this.readDrawingMLTableStylePart(reader));
+					this.TableBLCell = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
 				case "tblBg": {
@@ -2105,27 +2109,31 @@
 			writer.WriteXmlNodeEnd("a:tcTxStyle");
 		}
 
-
 	};
 	AscCommonWord.CStyle.prototype.writeTcStyle = function (writer, oCellPr, sName) {
 
 		let oBorders = oCellPr.TableCellBorders;
 		let oShd = oCellPr.Shd;
-		if(oBorders && (oBorders.Left || oBorders.Right || oBorders.Top ||  oBorders.Bottom ||  oBorders.InsideH || oBorders.InsideV) ||
+		let bBorders = oBorders && (oBorders.Left || oBorders.Right || oBorders.Top ||  oBorders.Bottom ||  oBorders.InsideH || oBorders.InsideV);
+		if(bBorders ||
 			oCellPr.Shd && (oShd.FillRef || oShd.Unifill)) {
 
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributesEnd();
-			if(oBorders) {
+			if(bBorders) {
 				writer.WriteXmlNodeStart("a:tcBdr");
 				writer.WriteXmlAttributesEnd();
-				this.writeTcBorder(oBorders.Left);
-				this.writeTcBorder(oBorders.Right);
-				this.writeTcBorder(oBorders.Top);
-				this.writeTcBorder(oBorders.Bottom);
-				this.writeTcBorder(oBorders.InsideH);
-				this.writeTcBorder(oBorders.InsideV);
+				this.writeTcBorder(writer, oBorders.Left, "a:left");
+				this.writeTcBorder(writer, oBorders.Right, "a:right");
+				this.writeTcBorder(writer, oBorders.Top, "a:top");
+				this.writeTcBorder(writer, oBorders.Bottom, "a:bottom");
+				this.writeTcBorder(writer, oBorders.InsideH, "a:insideH");
+				this.writeTcBorder(writer, oBorders.InsideV, "a:insideV");
 				writer.WriteXmlNodeEnd("a:tcBdr");
+			}
+			else {
+				writer.WriteXmlNodeStart("a:tcBdr");
+				writer.WriteXmlAttributesEnd(true);
 			}
 			if(oShd) {
 				if(oShd.FillRef) {
@@ -2141,6 +2149,15 @@
 			//writer.Write(cell3D);
 
 			writer.WriteXmlNodeEnd(sName);
+		}
+		else {
+			if(sName !== "a:tblBg") {
+				writer.WriteXmlNodeStart(sName);
+				writer.WriteXmlAttributesEnd();
+				writer.WriteXmlNodeStart("a:tcBdr");
+				writer.WriteXmlAttributesEnd(true);
+				writer.WriteXmlNodeEnd(sName);
+			}
 		}
 
 	};

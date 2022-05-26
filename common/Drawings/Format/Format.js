@@ -7865,7 +7865,7 @@
 					return "sq";
 				}
 			}
-			return "flat";
+			return null;
 		};
 		CLn.prototype.GetAlgnCode = function (sVal) {
 			switch (sVal) {
@@ -7887,7 +7887,7 @@
 					return "in";
 				}
 			}
-			return "ctr";
+			return null;
 		};
 		CLn.prototype.GetCmpdCode = function (sVal) {
 			switch (sVal) {
@@ -7927,7 +7927,7 @@
 					return "tri";
 				}
 			}
-			return "sng";
+			return null;
 		};
 		CLn.prototype.GetDashCode = function (sVal) {
 			switch (sVal) {
@@ -8003,7 +8003,7 @@
 					return "sysDot";
 				}
 			}
-			return "solid";
+			return null;
 		};
 		CLn.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
@@ -8078,10 +8078,12 @@
 
 			this.Fill.toXml(writer);
 
-
-			let oNode = new CT_XmlNode();
-			oNode.attributes["val"] = this.GetDashByCode(this.prstDash);
-			writer.WriteXmlNullable(oNode, "a:prstDash");
+			let nDashCode = this.GetDashByCode(this.prstDash);
+			if(nDashCode !== null) {
+				writer.WriteXmlNodeStart("a:prstDash");
+				writer.WriteXmlNullableAttributeString("val", this.GetDashByCode(this.prstDash));
+				writer.WriteXmlAttributesEnd(true);
+			}
 			if (this.Join) {
 				this.Join.toXml(writer);
 			}
@@ -8107,6 +8109,7 @@
 			if(AscFormat.isRealNumber(oBorder.Size)) {
 				this.w = oBorder.Size * 36000 >> 0;
 			}
+			this.cmpd = 1;
 		};
 
 // -----------------------------
@@ -14389,9 +14392,8 @@
 			}
 		};
 		CBullet.prototype.toXml = function (writer) {
-
-			if (this.bulletType) {
-				this.bulletType.toXml(writer);
+			if (this.bulletColor) {
+				this.bulletColor.toXml(writer);
 			}
 			if (this.bulletSize) {
 				this.bulletSize.toXml(writer);
@@ -14399,8 +14401,8 @@
 			if (this.bulletTypeface) {
 				this.bulletTypeface.toXml(writer);
 			}
-			if (this.bulletColor) {
-				this.bulletColor.toXml(writer);
+			if (this.bulletType) {
+				this.bulletType.toXml(writer);
 			}
 		};
 //interface methods
