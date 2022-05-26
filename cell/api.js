@@ -1792,6 +1792,11 @@ var editor;
 							var contentDrawing = drawingPart.getDocumentContent();
 							reader = new StaxParser(contentDrawing, drawingPart, xmlParserContext);
 							drawingWS.fromXml(reader);
+							let aSpTree = [];
+							for(let nDrawing = 0; nDrawing < ws.Drawings.length; ++nDrawing) {
+								aSpTree.push(ws.Drawings[nDrawing].graphicObject);
+							}
+							reader.context.assignConnectors(aSpTree);
 						}
 						if (wsPart) {
 							//pivot

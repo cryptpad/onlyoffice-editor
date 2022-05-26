@@ -1647,14 +1647,10 @@ function CChangesGeometryAddAdj(Class, Name, OldValue, NewValue, OldAvValue, bRe
             writer.WriteXmlAttributesEnd();
             for(let sKey in oLst) {
                 if(oLst.hasOwnProperty(sKey)) {
-                    for(let nGd = 0; nGd < this.gdLstInfo.length; ++nGd) {
-                        let oGd = this.gdLstInfo[nGd];
-                        if(oGd) {
-                            if(oGd.name === sKey) {
-                                CGuide.prototype.toXml(writer, oGd);
-                                break;
-                            }
-                        }
+                    let nAdj = this.gdLst[sKey];
+                    if(AscFormat.isRealNumber(nAdj)) {
+                        let oGd = {name: sKey, formula: FORMULA_TYPE_VALUE, x: '' + nAdj, y: undefined, z: undefined};
+                        CGuide.prototype.toXml(writer, oGd);
                     }
                 }
             }
