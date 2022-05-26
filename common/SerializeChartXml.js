@@ -274,6 +274,8 @@
 		this.correctAxes();
 	};
 	CChartSpace.prototype.toXml = function(writer) {
+		let nOldDocType = writer.context.docType;
+		writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_CHART;
 		var name = "c:chartSpace";
 
 		let style;
@@ -311,6 +313,8 @@
 		// writer.WriteXmlNullable(this.userShapes, "c:userShapes");
 		// writer.WriteXmlNullable(this.themeOverride, "c:themeOverride");
 		writer.WriteXmlNodeEnd(name);
+
+		writer.context.docType = nOldDocType;
 	};
 
 	CPivotSource.prototype.fromXml = function(reader) {
@@ -4233,6 +4237,9 @@
 	};
 	CChartStyle.prototype.toXml = function(writer) {
 		let name = "cs:chartStyle";
+
+		let nOldDocType = writer.context.docType;
+		writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_CHART_STYLE;
 		writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlString(AscCommonWord.g_sXmlChartStyleNamespaces);
@@ -4270,6 +4277,7 @@
 		writer.WriteXmlNullable(this.valueAxis, "cs:valueAxis");
 		writer.WriteXmlNullable(this.wall, "cs:wall");
 		writer.WriteXmlNodeEnd(name);
+		writer.context.docType = nOldDocType;
 	};
 	CStyleEntry.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
@@ -4413,29 +4421,7 @@
 		writer.WriteXmlAttributesEnd();
 		this.items.forEach(function(item){
 			if (item instanceof AscFormat.CUniColor) {
-				let color = item.color;
-				switch (color.type) {
-					case Asc.c_oAscColor.COLOR_TYPE_PRST: {
-						writer.WriteXmlNullable(color, "a:prstClr");
-						break;
-					}
-					case Asc.c_oAscColor.COLOR_TYPE_SCHEME: {
-						writer.WriteXmlNullable(color, "a:schemeClr");
-						break;
-					}
-					case Asc.c_oAscColor.COLOR_TYPE_SRGB: {
-						writer.WriteXmlNullable(color, "a:srgbClr");
-						break;
-					}
-					case Asc.c_oAscColor.COLOR_TYPE_SYS: {
-						writer.WriteXmlNullable(color, "a:sysClr");
-						break;
-					}
-					case Asc.c_oAscColor.COLOR_TYPE_STYLE: {
-						writer.WriteXmlNullable(color, "a:hslClr");
-						break;
-					}
-				}
+				item.toXml(writer);
 			}
 			else {
 				//todo

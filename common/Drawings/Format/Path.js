@@ -1172,8 +1172,8 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
     Path.prototype.toXml = function (writer) {
         writer.WriteXmlNodeStart("a:path");
 
-        writer.WriteXmlNullableAttributeUInt("w", this.w);
-        writer.WriteXmlNullableAttributeUInt("h", this.h);
+        writer.WriteXmlNullableAttributeUInt("w", this.pathW);
+        writer.WriteXmlNullableAttributeUInt("h", this.pathH);
         writer.WriteXmlNullableAttributeString("fill", this.fill);
         writer.WriteXmlNullableAttributeString("stroke", this.stroke);
         writer.WriteXmlNullableAttributeBool("extrusionOk", this.extrusionOk);

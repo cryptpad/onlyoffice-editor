@@ -425,7 +425,8 @@ module.exports = function(grunt) {
 								'Native/*.js',
 								'libfont/engine/fonts*',
 								'spell/spell/*',
-								'hash/hash/*'
+								'hash/hash/*',
+								'zlib/engine/*'
 							],
 							dest: path.join(deploy, 'common')
 						},
