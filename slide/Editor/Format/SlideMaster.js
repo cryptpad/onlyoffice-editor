@@ -587,9 +587,9 @@ MasterSlide.prototype.toXml = function(writer) {
     this.cSld.toXml(writer);
     writer.WriteXmlNullable(this.clrMap, "p:clrMap");
     writer.WriteXmlNullable(this.transition, "p:transition");
-    writer.WriteXmlNullable(this.timing, "p:timing");
     let oContext = writer.context;
     (new IdList("p:sldLayoutIdLst")).writeRIdList(writer, oContext.sldLayoutIdLst, "p:sldLayoutId");
+    writer.WriteXmlNullable(this.timing, "p:timing");
     writer.WriteXmlNullable(this.hf, "p:hf");
     writer.WriteXmlNullable(this.txStyles, "p:txStyles");
     writer.WriteXmlNodeEnd("p:sldMaster");
