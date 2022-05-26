@@ -13090,12 +13090,12 @@
         this.recalcInfo.recalculatePen = true;
         this.Refresh_RecalcData();
     };
-    CTitle.prototype.Search = function(Str, Props, SearchEngine, Type) {
+    CTitle.prototype.Search = function(SearchEngine, Type) {
         var content = this.getDocContent();
         if(content && this.tx && this.tx.rich) {
             var dd = this.getDrawingDocument();
             dd.StartSearchTransform && dd.StartSearchTransform(this.transformText);
-            content.Search(Str, Props, SearchEngine, Type);
+            content.Search(SearchEngine, Type);
             dd.EndSearchTransform && dd.EndSearchTransform();
         }
     };

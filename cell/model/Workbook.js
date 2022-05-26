@@ -3208,10 +3208,10 @@
 		this.lastFindOptions = null;
 		this.lastFindCells = {};
 	};
-	Workbook.prototype.findCellText = function (options) {
+	Workbook.prototype.findCellText = function (options, searchEngine) {
 		var ws = this.getActiveWs();
-		var result = ws.findCellText(options), result2 = null;
-		if (!options.scanOnOnlySheet) {
+		var result = ws.findCellText(options, searchEngine), result2 = null;
+		if (Asc.c_oAscSearchBy.Workbook === options.scanOnOnlySheet) {
 			// Search on workbook
 			var key = result && (result.col + "-" + result.row);
 			if (!key || (options.isEqual(this.lastFindOptions) && this.lastFindCells[key])) {
@@ -3223,12 +3223,12 @@
 					if (ws.getHidden()) {
 						continue;
 					}
-					result2 = ws.findCellText(options);
+					result2 = ws.findCellText(options, searchEngine);
 					if (result2) {
 						break;
 					}
 				}
-				if (!result2) {
+				if (!result2 || searchEngine) {
 					// Мы дошли до конца или начала (в зависимости от направления, теперь пойдем до активного)
 					if (options.scanForward) {
 						i = 0;
@@ -3243,24 +3243,28 @@
 						if (ws.getHidden()) {
 							continue;
 						}
-						result2 = ws.findCellText(options);
-						if (result2) {
+						result2 = ws.findCellText(options, searchEngine);
+						if (result2 && !searchEngine) {
 							break;
 						}
 					}
 				}
 
-				if (result2) {
+				if (result2 && !searchEngine) {
 					this.handlers.trigger('undoRedoHideSheet', i);
 					key = result2.col + "-" + result2.row;
 				}
 			}
 
-			if (key) {
+			if (key && !searchEngine) {
 				this.lastFindOptions = options.clone();
 				this.lastFindCells[key] = true;
 			}
 		}
+		if (searchEngine) {
+			return;
+		}
+
 		if (!result2 && !result) {
 			this.cleanFindResults();
 		}
@@ -8547,10 +8551,15 @@
 	// ----- Search -----
 	Worksheet.prototype.clearFindResults = function () {
 		this.lastFindOptions = null;
+		this.workbook.handlers.trigger("clearFindResults", this.index);
 	};
-	Worksheet.prototype._findAllCells = function (options) {
+	Worksheet.prototype._findAllCells = function (options, searchEngine) {
+		//***searchEngine
 		if (true !== options.isMatchCase) {
 			options.findWhat = options.findWhat.toLowerCase();
+		}
+		if (options.findWhat == null) {
+			options.findWhat = "";
 		}
 
 		var findEmptyStr = options.findWhat === "";
@@ -8572,8 +8581,15 @@
 		var lastRange = selectionRange.getLast();
 		var activeCell = selectionRange.activeCell;
 		var merge = this.getMergedByCell(activeCell.row, activeCell.col);
-		options.findInSelection = options.scanOnOnlySheet &&
+		options.findInSelection = Asc.c_oAscSearchBy.Sheet === options.scanOnOnlySheet &&
 			!(selectionRange.isSingleRange() && (lastRange.isOneCell() || lastRange.isEqual(merge)));
+
+		if (options.specificRange) {
+			lastRange = AscCommonExcel.g_oRangeCache.getAscRange(options.specificRange);
+			if (lastRange) {
+				options.findInSelection = true;
+			}
+		}
 
 		var findRange;
 		var maxRowsCount = this.getRowsCount();
@@ -8601,7 +8617,7 @@
 			func = findRange._foreachNoEmpty;
 		}
 
-		if (this.lastFindOptions && this.lastFindOptions.findResults && options.isEqual2(this.lastFindOptions) &&
+		if (!searchEngine && this.lastFindOptions && this.lastFindOptions.findResults && options.isEqual2(this.lastFindOptions) &&
 			findRange.getBBox0().isEqual(this.lastFindOptions.findRange)) {
 			return;
 		}
@@ -8622,9 +8638,11 @@
 					r = c;
 					c = tmp;
 				}
-				result.add(r, c, cell);
+				searchEngine ? searchEngine.Add(r, c, cell, !options.scanByRows ? result : null) : result.add(r, c, cell);
 			}
 		}]);
+		!options.scanByRows && searchEngine && searchEngine.endAdd(result);
+
 		if (isWholeWordTrue !== null) {
 			options.isWholeWord = isWholeWordTrue;
 		}
@@ -8636,13 +8654,17 @@
 		this.lastFindOptions.findRange = findRange.getBBox0().clone();
 		this.lastFindOptions.findResults = result;
 
-		if (!options.isReplaceAll && this.workbook.oApi.selectSearchingResults && (oldResults || result.isNotEmpty()) &&
+		if (!options.isReplaceAll && this.workbook.oApi.selectSearchingResults && (oldResults || result.isNotEmpty() || (searchEngine && searchEngine.isNotEmpty())) &&
 			this === this.workbook.getActiveWs()) {
 			this.workbook.handlers.trigger("drawWS");
 		}
 	};
-	Worksheet.prototype.findCellText = function (options) {
-		this._findAllCells(options);
+	Worksheet.prototype.findCellText = function (options, searchEngine) {
+		this._findAllCells(options, searchEngine);
+		if (searchEngine) {
+			return;
+		}
+		//CDocumentSearchExcel.prototype.SetCurrent
 
 		var selectionRange = options.selectionRange || this.selectionRange;
 		var activeCell = selectionRange.activeCell;

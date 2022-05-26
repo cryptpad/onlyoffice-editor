@@ -3788,9 +3788,19 @@ var editor;
         result = [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
       }
     } else {
-      var d = this.wb.findCellText(options);
-      this.controller.scroll(d);
-      result = !!d;
+		//***searchEngine
+		var SearchEngine = this.wb.Search(options);
+		var Id = this.wb.GetSearchElementId(!options || options.scanForward);
+
+		if (null != Id) {
+			this.wb.SelectSearchElement(Id);
+		}
+
+		result = SearchEngine.Count;
+
+		/* var d = this.wb.findCellText(options);
+		 this.controller.scroll(d);
+		 result = !!d;*/
     }
 
     if (callback)
@@ -3817,6 +3827,42 @@ var editor;
     // Нужно очистить поиск
     this.wb._cleanFindResults();
   };
+
+	//***searchEngine
+  spreadsheet_api.prototype.sync_setSearchCurrent = function (nCurrent, nOverallCount) {
+    this.sendEvent("asc_onSetSearchCurrent", nCurrent, nOverallCount);
+  };
+
+	spreadsheet_api.prototype.sync_startTextAroundSearch = function () {
+		this.sendEvent("asc_onStartTextAroundSearch");
+	};
+	spreadsheet_api.prototype.sync_endTextAroundSearch = function () {
+		this.sendEvent("asc_onEndTextAroundSearch");
+	};
+	spreadsheet_api.prototype.sync_getTextAroundSearchPack = function (arrElements) {
+		this.sendEvent("asc_onGetTextAroundSearchPack", arrElements);
+	};
+	spreadsheet_api.prototype.sync_removeTextAroundSearch = function (sId) {
+		this.sendEvent("asc_onRemoveTextAroundSearch", [sId]);
+	};
+
+	spreadsheet_api.prototype.asc_StartTextAroundSearch = function()
+	{
+		let wb = this.wb;
+		if (!wb || !wb.SearchEngine)
+			return;
+
+		wb.SearchEngine.StartTextAround();
+	};
+
+	spreadsheet_api.prototype.asc_SelectSearchElement = function(sId)
+	{
+		let wb = this.wb;
+		if (!wb || !wb.SearchEngine)
+			return;
+
+		wb.SelectSearchElement(sId);
+	};
 
   /**
    * Делает активной указанную ячейку
@@ -6547,9 +6593,11 @@ var editor;
 		return false;
 	};
 
-	spreadsheet_api.prototype._selectSearchingResults = function () {
+	spreadsheet_api.prototype._selectSearchingResults = function (bShow) {
 	  var ws = this.wbModel.getActiveWs();
-	  if (ws && ws.lastFindOptions) {
+	  if (!bShow) {
+		  this.wb.drawWS();
+	  } else if (ws && ws.lastFindOptions) {
 	    this.wb.drawWS();
       }
 	};

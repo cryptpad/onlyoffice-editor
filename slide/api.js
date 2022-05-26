@@ -2545,12 +2545,12 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onSearchEnd");
 	};
 
-	asc_docs_api.prototype.asc_replaceText = function(text, replaceWith, isReplaceAll, isMatchCase)
+	asc_docs_api.prototype.asc_replaceText = function(oProps, replaceWith, isReplaceAll)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
 			return;
 
-		this.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
+		this.WordControl.m_oLogicDocument.Search(oProps);
 
 		if (true === isReplaceAll)
 			this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, true, -1);
@@ -2585,9 +2585,9 @@ background-repeat: no-repeat;\
 		// пустой метод
 	};
 
-	asc_docs_api.prototype.asc_findText = function(text, isNext, isMatchCase, callback)
+	asc_docs_api.prototype.asc_findText = function(oProps, isNext, callback)
 	{
-		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
+		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(oProps);
 
 		var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(isNext);
 
@@ -2616,6 +2616,42 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.sync_SearchEndCallback   = function()
 	{
 		this.sendEvent("asc_onSearchEnd");
+	};
+	asc_docs_api.prototype.sync_setSearchCurrent = function(nCurrent, nOverallCount)
+	{
+		this.sendEvent("asc_onSetSearchCurrent", nCurrent, nOverallCount);
+	};
+	asc_docs_api.prototype.asc_StartTextAroundSearch = function()
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument || !oLogicDocument.SearchEngine)
+			return;
+
+		oLogicDocument.SearchEngine.StartTextAround();
+	};
+	asc_docs_api.prototype.asc_SelectSearchElement = function(sId)
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument || !oLogicDocument.SearchEngine)
+			return;
+
+		oLogicDocument.SelectSearchElement(sId);
+	};
+	asc_docs_api.prototype.sync_startTextAroundSearch = function()
+	{
+		this.sendEvent("asc_onStartTextAroundSearch");
+	};
+	asc_docs_api.prototype.sync_endTextAroundSearch = function()
+	{
+		this.sendEvent("asc_onEndTextAroundSearch");
+	};
+	asc_docs_api.prototype.sync_getTextAroundSearchPack = function(arrElements)
+	{
+		this.sendEvent("asc_onGetTextAroundSearchPack", arrElements);
+	};
+	asc_docs_api.prototype.sync_removeTextAroundSearch = function(sId)
+	{
+		this.sendEvent("asc_onRemoveTextAroundSearch", [sId]);
 	};
 	/*----------------------------------------------------------------*/
 	/*functions for working with font*/
@@ -2824,6 +2860,9 @@ background-repeat: no-repeat;\
 		if (!this.TableStylesPreviewGenerator)
 			this.TableStylesPreviewGenerator = new AscCommon.CTableStylesPreviewGenerator(this.private_GetLogicDocument())
 	};
+	/**
+	 * @returns {?CPresentation}
+	 */
 	asc_docs_api.prototype.private_GetLogicDocument = function()
 	{
 		if (!this.WordControl || !this.WordControl.m_oLogicDocument)

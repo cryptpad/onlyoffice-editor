@@ -3004,7 +3004,7 @@ function CPresentation(DrawingDocument) {
 
     this.DrawingDocument = DrawingDocument;
 
-    this.SearchEngine = new CDocumentSearch();
+    this.SearchEngine = new AscCommonWord.CDocumentSearch(this);
 
     this.NeedUpdateTarget = false;
 
@@ -4862,15 +4862,16 @@ CPresentation.prototype.AddNewParagraph = function (bRecalculate) {
     this.Document_UpdateInterfaceState();
 };
 
-CPresentation.prototype.Search = function (Str, Props) {
-    if (true === this.SearchEngine.Compare(Str, Props))
+CPresentation.prototype.Search = function (oProps) {
+    if (true === this.SearchEngine.Compare(oProps))
         return this.SearchEngine;
     this.SearchEngine.Clear();
-    this.SearchEngine.Set(Str, Props);
+    this.SearchEngine.Set(oProps);
 
     for (var i = 0; i < this.Slides.length; ++i) {
-        this.Slides[i].Search(Str, Props, this.SearchEngine, search_Common);
+        this.Slides[i].Search(this.SearchEngine, search_Common);
     }
+
     this.DrawingDocument.ClearCachePages();
     this.DrawingDocument.FirePaint();
     this.SearchEngine.ClearOnRecalc = true;
@@ -6389,7 +6390,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
     }
     // Сбрасываем текущий элемент в поиске
     if (this.SearchEngine.Count > 0)
-        this.SearchEngine.Reset_Current();
+        this.SearchEngine.ResetCurrent();
 
 
     var oController = this.GetCurrentController();
@@ -7249,7 +7250,7 @@ CPresentation.prototype.OnMouseDown = function (e, X, Y, PageIndex) {
 
     // Сбрасываем текущий элемент в поиске
     if (this.SearchEngine.Count > 0)
-        this.SearchEngine.Reset_Current();
+        this.SearchEngine.ResetCurrent();
 
     this.CurPage = PageIndex;
     e.ctrlKey = e.CtrlKey;
@@ -7496,7 +7497,7 @@ CPresentation.prototype.IsFocusOnNotes = function () {
 CPresentation.prototype.Notes_OnMouseDown = function (e, X, Y) {
     // Сбрасываем текущий элемент в поиске
     if (this.SearchEngine.Count > 0)
-        this.SearchEngine.Reset_Current();
+        this.SearchEngine.ResetCurrent();
     var bFocusOnSlide = !this.FocusOnNotes;
     this.FocusOnNotes = true;
     var oCurSlide = this.Slides[this.CurPage];

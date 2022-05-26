@@ -1220,14 +1220,14 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.Search  = function(Str, Props, SearchEngine, Type)
+    CGroupShape.prototype.Search  = function(SearchEngine, Type)
     {
         var Len = this.arrGraphicObjects.length;
         for(var i = 0; i < Len; ++i)
         {
             if(this.arrGraphicObjects[i].Search)
             {
-                this.arrGraphicObjects[i].Search(Str, Props, SearchEngine, Type);
+                this.arrGraphicObjects[i].Search(SearchEngine, Type);
             }
         }
     };

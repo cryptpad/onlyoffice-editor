@@ -1577,17 +1577,17 @@ CShape.prototype.GetRevisionsChangeElement = function(SearchEngine){
     }
 };
 
-CShape.prototype.Search = function (Str, Props, SearchEngine, Type) {
+CShape.prototype.Search = function (SearchEngine, Type) {
     if (this.textBoxContent) {
         var dd = this.getDrawingDocument();
         dd.StartSearchTransform(this.transformText);
-        this.textBoxContent.Search(Str, Props, SearchEngine, Type);
+        this.textBoxContent.Search(SearchEngine, Type);
         dd.EndSearchTransform();
     }
     else if (this.txBody && this.txBody.content) {
         //var dd = this.getDrawingDocument();
         //dd.StartSearchTransform(this.transformText);
-        this.txBody.content.Search(Str, Props, SearchEngine, Type);
+        this.txBody.content.Search(SearchEngine, Type);
         //dd.EndSearchTransform();
     }
 };

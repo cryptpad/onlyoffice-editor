@@ -242,11 +242,11 @@ CGraphicFrame.prototype.getObjectType= function()
         return AscDFH.historyitem_type_GraphicFrame;
 };
 
-CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
+CGraphicFrame.prototype.Search = function(SearchEngine, Type)
     {
         if(this.graphicObject)
         {
-            this.graphicObject.Search(Str, Props, SearchEngine, Type);
+            this.graphicObject.Search(SearchEngine, Type);
         }
 };
 

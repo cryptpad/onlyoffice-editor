@@ -322,15 +322,15 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             this.notesShape.handleAllContents(fCallback);
         }
     };
-    Slide.prototype.Search = function( Str, Props, Engine, Type ){
+    Slide.prototype.Search = function(Engine, Type ){
         var sp_tree = this.cSld.spTree;
         for(var i = 0; i < sp_tree.length; ++i){
             if (sp_tree[i].Search){
-                sp_tree[i].Search(Str, Props, Engine, Type);
+                sp_tree[i].Search(Engine, Type);
             }
         }
         if(this.notesShape){
-            this.notesShape.Search(Str, Props, Engine, Type);
+            this.notesShape.Search(Engine, Type);
         }
     };
 	Slide.prototype.GetSearchElementId = function(isNext, StartPos)

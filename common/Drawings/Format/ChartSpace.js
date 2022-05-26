@@ -8285,10 +8285,10 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
     };
-    CChartSpace.prototype.Search = function(Str, Props, SearchEngine, Type) {
+    CChartSpace.prototype.Search = function(SearchEngine, Type) {
         var titles = this.getAllTitles();
         for(var i = 0; i < titles.length; ++i) {
-            titles[i].Search(Str, Props, SearchEngine, Type)
+            titles[i].Search(SearchEngine, Type)
         }
     };
     CChartSpace.prototype.GetSearchElementId = function(bNext, bCurrent) {

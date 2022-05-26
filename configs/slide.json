@@ -227,7 +227,11 @@
 			"word/Editor/StructuredDocumentTags/InlineLevel.js",
 			"word/Editor/StructuredDocumentTags/SdtPr.js",
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
-			"word/Editor/Search.js",
+			"common/api/searchSettings.js",
+			"word/Editor/Search/DocumentSearch.js",
+			"word/Editor/Search/ParagraphSearch.js",
+			"word/Editor/Search/SearchItem.js",
+			"word/Editor/Search/Pattern.js",
 			"word/Editor/GlossaryDocument.js",
 			"word/Editor/GlossaryDocumentChanges.js",
 
