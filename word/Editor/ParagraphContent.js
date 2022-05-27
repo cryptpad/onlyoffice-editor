@@ -161,6 +161,7 @@ var PARATEXT_FLAGS_LIGATURE_CONTINUE           = 0x00000080; // 7 бит
 var PARATEXT_FLAGS_TEMPORARY                   = 0x00000100; // 8 бит
 var PARATEXT_FLAGS_TEMPORARY_LIGATURE          = 0x00000200; // 9 бит
 var PARATEXT_FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00000400; // 10 бит
+var PARATEXT_FLAGS_VISIBLE_WIDTH               = 0x00000800; // 11 бит
 
 var PARATEXT_FLAGS_NON_FONTKOEF_SCRIPT             = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_FONTKOEF_SCRIPT;
 var PARATEXT_FLAGS_NON_FONTKOEF_SMALLCAPS          = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_FONTKOEF_SMALLCAPS;
@@ -171,6 +172,7 @@ var PARATEXT_FLAGS_NON_LIGATURE_CONTINUE           = PARATEXT_FLAGS_MASK ^ PARAT
 var PARATEXT_FLAGS_NON_TEMPORARY                   = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_TEMPORARY;
 var PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE          = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_TEMPORARY_LIGATURE;
 var PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_TEMPORARY_LIGATURE_CONTINUE;
+var PARATEXT_FLAGS_NON_VISIBLE_WIDTH               = PARATEXT_FLAGS_MASK ^ PARATEXT_FLAGS_VISIBLE_WIDTH;
 
 
 const PARATEXT_FLAGS_ASCII    = 0;
@@ -494,7 +496,6 @@ ParaText.prototype.GetCodePoint = function()
 };
 ParaText.prototype.SetGrapheme = function(nGrapheme)
 {
-	this.Flags &= PARATEXT_FLAGS_NON_TEMPORARY;
 	this.Grapheme = nGrapheme;
 };
 ParaText.prototype.SetTemporaryGrapheme = function(nGrapheme)
@@ -913,6 +914,53 @@ ParaText.prototype.IsCombiningMark = function()
 ParaText.prototype.IsLigatureContinue = function()
 {
 	return !!(this.Flags & PARATEXT_FLAGS_LIGATURE_CONTINUE);
+};
+ParaText.prototype.IsTemporary = function()
+{
+	return !!(this.Flags & PARATEXT_FLAGS_TEMPORARY);
+};
+ParaText.prototype.IsNeedSaveRecalculateObject = function()
+{
+	return true;
+};
+ParaText.prototype.SaveRecalculateObject = function()
+{
+	let state = [this.Flags, this.Grapheme, this.Width];
+
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+	{
+		state.push(this.TempGrapheme);
+		state.push(this.TempWidth);
+	}
+
+	if (this.Flags & PARATEXT_FLAGS_VISIBLE_WIDTH)
+	{
+		state.push(this.WidthVisible);
+	}
+
+	return state;
+};
+ParaText.prototype.LoadRecalculateObject = function(oState)
+{
+	if (!oState || oState.length < 3)
+		return;
+
+	let nPos = 0;
+
+	this.Flags    = oState[nPos++];
+	this.Grapheme = oState[nPos++];
+	this.Width    = oState[nPos++];
+
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+	{
+		this.TempGrapheme = oState[nPos++];
+		this.TempWidth    = oState[nPos++];
+	}
+
+	if (this.Flags & PARATEXT_FLAGS_VISIBLE_WIDTH)
+	{
+		this.WidthVisible = oState[nPos++];
+	}
 };
 
 
