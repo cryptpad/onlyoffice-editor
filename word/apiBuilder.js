@@ -3498,7 +3498,7 @@
 
 	/**
 	 * The types of elements that can be added to the paragraph structure.
-	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt | ApiHyperlink)} ParagraphContent
+	 * @typedef {(ApiUnsupported | ApiRun | ApiInlineLvlSdt | ApiHyperlink | ApiFormBase)} ParagraphContent
 	 */
 
 	/**
@@ -15484,6 +15484,7 @@
 	};
 	/**
 	 * Returns the text from the current form.
+	 * *This method is used only for text and combo box forms.*
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @returns {string}
@@ -15543,6 +15544,7 @@
 	};
 	/**
 	 * Sets the text properties to the current form.
+	 * *This method is used only for text and combo box forms.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @param {ApiTextPr} oTextPr - The text properties that will be set to the current form.
@@ -15560,6 +15562,7 @@
 	};
 	/**
 	 * Returns the text properties from the current form.
+	 * *This method is used only for text and combo box forms.
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @return {ApiTextPr}  
@@ -15570,7 +15573,8 @@
 	};
 	/**
 	 * Copies the current form (copies with the shape if it exists).
-	 * @constructor
+	 * @memberof ApiFormBase
+	 * @typeofeditors ["CDE"]
 	 * @returns {null | ApiTextForm| ApiCheckBoxForm | ApiComboBoxForm | ApiPictureForm}
 	 */
 	ApiFormBase.prototype.Copy = function()
