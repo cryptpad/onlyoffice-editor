@@ -2617,6 +2617,20 @@ Paragraph.prototype.Recalculate_SetRangeBounds = function(CurLine, CurRange, oSt
 		oItem.Recalculate_SetRangeBounds(CurLine, CurRange, nPos === nStartPos ? oStartPos : null, nPos === nEndPos ? oEndPos : null, 1);
 	}
 };
+Paragraph.prototype.GetContentWidthInRange = function(oStartPos, oEndPos)
+{
+	let nWidth = 0;
+
+	let nStartPos = oStartPos && 0 <= oStartPos.GetDepth()? oStartPos.Get(0) : 0;
+	let nEndPos   = oEndPos && 0 <= oEndPos.GetDepth() ? oEndPos.Get(0) : this.Content.length - 1;
+
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		nWidth += this.Content[nPos].GetContentWidthInRange(nPos === nStartPos ? oStartPos : null, nPos === nEndPos ? oEndPos : null, 1);
+	}
+
+	return nWidth;
+};
 
 var ERecalcPageType =
 {
@@ -3902,17 +3916,22 @@ CParagraphRecalculateStateWrap.prototype.CheckUpdateLBP = function(nInRunPos)
 		 this.LineBreakPos.Add(nInRunPos);
 	 }
 };
-CParagraphRecalculateStateWrap.prototype.CheckNeedShapeFirstWord = function(nCurLine, oRun, nPos)
+CParagraphRecalculateStateWrap.prototype.IsNeedShapeFirstWord = function(nCurLine)
 {
 	let arrLines = this.Paragraph.Lines;
-	let oItem    = oRun.GetElement(nPos)
 
-	if (0 === nCurLine
-		|| arrLines.length <= nCurLine
-		|| !(arrLines[nCurLine - 1].Info & paralineinfo_LongWord)
-		|| !oItem
-		|| oItem.IsSpaceAfter())
+	return (0 !== nCurLine
+		&& arrLines.length > nCurLine
+		&& arrLines[nCurLine - 1].Info & paralineinfo_LongWord);
+};
+CParagraphRecalculateStateWrap.prototype.IsLastElementInWord = function(oRun, nPos)
+{
+	let oItem = oRun.GetElement(nPos)
+	if (!oItem)
 		return false;
+
+	if (oItem.IsSpaceAfter())
+		return true;
 
 	let oParent      = oRun.GetParent();
 	let nInParentPos = oRun.GetPosInParent(oParent);
@@ -3925,7 +3944,7 @@ CParagraphRecalculateStateWrap.prototype.CheckNeedShapeFirstWord = function(nCur
 	{
 		oRun = oParent.GetElement(++nInParentPos);
 		if (!oRun || !(oRun instanceof ParaRun))
-			return false;
+			return true;
 
 		oNextItem = oRun.GetElement(0);
 	}

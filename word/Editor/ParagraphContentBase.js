@@ -309,6 +309,10 @@ CParagraphContentBase.prototype.Recalculate_Set_RangeEndPos = function(PRS, PRP,
 CParagraphContentBase.prototype.Recalculate_SetRangeBounds = function(_CurLine, _CurRange, oStartPos, oEndPos, nDepth)
 {
 };
+CParagraphContentBase.prototype.GetContentWidthInRange = function(oStartPos, oEndPos, nDepth)
+{
+	return 0;
+};
 CParagraphContentBase.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _CurRange)
 {
 };
@@ -2611,6 +2615,20 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalculate_SetRangeBounds =
 
 		oItem.Recalculate_SetRangeBounds(_CurLine, _CurRange, nPos === nStartPos ? oStartPos : null, nPos === nEndPos ? oEndPos : null, nDepth + 1);
 	}
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetContentWidthInRange = function(oStartPos, oEndPos, nDepth)
+{
+	let nWidth = 0;
+
+	let nStartPos = oStartPos && nDepth <= oStartPos.GetDepth() ? oStartPos.Get(nDepth) : 0;
+	let nEndPos   = oEndPos && nDepth <= oEndPos.GetDepth() ? oEndPos.Get(nDepth) : this.Content.length - 1;
+
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		nWidth += this.Content[nPos].GetContentWidthInRange(nPos === nStartPos ? oStartPos : null, nPos === nEndPos ? oEndPos : null, nDepth + 1);
+	}
+
+	return nWidth;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _CurRange)
 {

@@ -212,6 +212,10 @@ CRunElementBase.prototype.GetWidth = function()
 {
 	return (this.Width / TEXTWIDTH_DIVIDER);
 };
+CRunElementBase.prototype.GetInlineWidth = function()
+{
+	return this.GetWidth();
+};
 CRunElementBase.prototype.Get_WidthVisible = function()
 {
 	return (this.WidthVisible / TEXTWIDTH_DIVIDER);
@@ -588,11 +592,14 @@ ParaText.prototype.UpdateLigatureInfo = function(isLigature, isLigatureContinue)
 };
 ParaText.prototype.IsLigature = function()
 {
-	return (this.Flags & PARATEXT_FLAGS_LIGATURE);
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+		return !!(this.Flags & PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE);
+	else
+		return !!(this.Flags & PARATEXT_FLAGS_LIGATURE);
 };
 ParaText.prototype.GetLigatureWidth = function()
 {
-	return (AscFonts.GetGraphemeWidth(this.Grapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
+	return (AscFonts.GetGraphemeWidth(this.Flags & PARATEXT_FLAGS_TEMPORARY ? this.Grapheme : this.TempGrapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
 };
 ParaText.prototype.SetWidth = function(nWidth)
 {
@@ -913,7 +920,10 @@ ParaText.prototype.IsCombiningMark = function()
 };
 ParaText.prototype.IsLigatureContinue = function()
 {
-	return !!(this.Flags & PARATEXT_FLAGS_LIGATURE_CONTINUE);
+	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+		return !!(this.Flags & PARATEXT_FLAGS_TEMPORARY_LIGATURE_CONTINUE);
+	else
+		return !!(this.Flags & PARATEXT_FLAGS_LIGATURE_CONTINUE);
 };
 ParaText.prototype.IsTemporary = function()
 {

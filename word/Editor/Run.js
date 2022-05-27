@@ -3607,6 +3607,23 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     else
                     {
 						if (FirstItemOnLine
+							&& PRS.IsNeedShapeFirstWord(PRS.Line)
+							&& ((Item.IsLigature() && X + SpaceLen + WordLen + Item.GetLigatureWidth() > XEnd)
+								|| X + SpaceLen + WordLen + LetterLen > XEnd
+								|| PRS.IsLastElementInWord(this, Pos)))
+						{
+							let oCurrentPos = PRS.CurPos.Copy();
+							oCurrentPos.Update(Pos, Depth);
+							Para.ShapeTextInRange(PRS.LineBreakPos, oCurrentPos);
+
+							SpaceLen = 0;
+							WordLen  = Para.GetContentWidthInRange(PRS.LineBreakPos, oCurrentPos);
+							
+							// TODO: Обработать ситуацию с откатом назад
+						}
+
+
+						if (FirstItemOnLine
 							&& Item.IsLigature()
 							&& X + SpaceLen + WordLen + Item.GetLigatureWidth() > XEnd)
 						{
@@ -3683,12 +3700,14 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								}
 							}
                         }
-						else if (FirstItemOnLine && PRS.CheckNeedShapeFirstWord(PRS.Line, this, Pos))
-						{
-							let oBreakPos = PRS.CurPos.Copy();
-							oBreakPos.Update(Pos, Depth);
-							Para.ShapeTextInRange(PRS.LineBreakPos, oBreakPos);
-						}
+						// else if (FirstItemOnLine
+						// 	&& PRS.IsNeedShapeFirstWord(PRS.Line)
+						// 	&& PRS.IsLastElementInWord(this, Pos))
+						// {
+						// 	let oBreakPos = PRS.CurPos.Copy();
+						// 	oBreakPos.Update(Pos, Depth);
+						// 	Para.ShapeTextInRange(PRS.LineBreakPos, oBreakPos);
+						// }
 
                         if (true !== NewRange)
                         {
@@ -4620,7 +4639,20 @@ ParaRun.prototype.Recalculate_SetRangeBounds = function(_CurLine, _CurRange, oSt
 		this.protected_FillRange(CurLine, CurRange, nStartPos, nEndPos);
 	}
 };
+ParaRun.prototype.GetContentWidthInRange = function(oStartPos, oEndPos, nDepth)
+{
+	let nWidth = 0;
 
+	let nStartPos = oStartPos && nDepth <= oStartPos.GetDepth() ? oStartPos.Get(nDepth) : 0;
+	let nEndPos   = oEndPos && nDepth <= oEndPos.GetDepth() ? oEndPos.Get(nDepth) : this.Content.length;
+
+	for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
+	{
+		nWidth += this.Content[nPos].GetInlineWidth();
+	}
+
+	return nWidth;
+};
 ParaRun.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _CurRange, ContentMetrics)
 {
 	var Para = PRS.Paragraph;

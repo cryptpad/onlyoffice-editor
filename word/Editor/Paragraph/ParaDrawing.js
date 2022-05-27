@@ -220,6 +220,13 @@ ParaDrawing.prototype.Get_Width = function()
 {
 	return this.Width;
 };
+ParaDrawing.prototype.GetInlineWidth = function()
+{
+	if (!this.IsInline())
+		return 0;
+
+	return this.Width;
+};
 ParaDrawing.prototype.Get_Height = function()
 {
 	return this.Height;
