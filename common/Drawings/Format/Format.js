@@ -854,7 +854,7 @@
 
 		function CreatePresetColor(id) {
 			var ret = new CPrstColor();
-			ret.idx = id;
+			ret.id = id;
 			return ret;
 		}
 
@@ -8885,6 +8885,25 @@
 				this.endCnxId = null;
 			}
 		};
+		CNvUniSpPr.prototype.assignConnectors = function(aSpTree) {
+			let bNeedSetStart = AscFormat.isRealNumber(this.stCnxIdFormat);
+			let bNeedSetEnd = AscFormat.isRealNumber(this.endCnxIdFormat);
+			if(bNeedSetStart || bNeedSetEnd) {
+				for(let nSp = 0; nSp < aSpTree.length && (bNeedSetEnd || bNeedSetStart); ++nSp) {
+					let oSp = aSpTree[nSp];
+					if(bNeedSetStart && oSp.getFormatId() === this.stCnxIdFormat) {
+						this.stCnxId = oSp.Get_Id();
+						this.stCnxIdFormat = undefined;
+						bNeedSetStart = false;
+					}
+					if(bNeedSetEnd && oSp.getFormatId() === this.endCnxIdFormat) {
+						this.endCnxId = oSp.Get_Id();
+						this.endCnxIdFormat = undefined;
+						bNeedSetEnd = false;
+					}
+				}
+			}
+		};
 		CNvUniSpPr.prototype.copy = function () {
 			var _ret = new CNvUniSpPr();
 			_ret.locks = this.locks;
@@ -8966,6 +8985,15 @@
 					return true;
 				});
 				oNode.fromXml(reader);
+				if(name === "stCxn") {
+					this.stCnxIdx = parseInt(oNode.attributes["idx"]);
+					this.stCnxIdFormat = parseInt(oNode.attributes["id"]);
+				}
+				if(name === "endCxn") {
+					this.endCnxIdx = parseInt(oNode.attributes["idx"]);
+					this.endCnxIdFormat = parseInt(oNode.attributes["id"]);
+				}
+				reader.context.addConnectorsPr(this);
 				//TODO: connections
 			}
 		};
@@ -9002,28 +9030,35 @@
 			writer.WriteXmlNodeEnd("a:cxnSpLocks");
 
 
-			this.stCnxIdx = null;
-			this.stCnxId = null;
-
-			this.endCnxIdx = null;
-			this.endCnxId = null;
-			if (this.stCnxIdx || this.stCnxId) {
-				// writer.WriteXmlNodeStart("a:stCxn");
-				//
-				// writer.WriteXmlNullableAttributeString("id", this.stCnxId);
-				// writer.WriteXmlNullableAttributeString("idx", this.stCnxIdx);
-				// writer.WriteXmlAttributesEnd();
-				// writer.WriteXmlNodeEnd("a:stCxn");
+			if (AscFormat.isRealNumber(this.stCnxIdx) && this.stCnxId) {
+				let nId = null;
+				let oSp = AscCommon.g_oTableId.Get_ById(this.stCnxId);
+				if(oSp) {
+					nId = oSp.getFormatId && oSp.getFormatId();
+				}
+				if(AscFormat.isRealNumber(nId)) {
+					writer.WriteXmlNodeStart("a:stCxn");
+					writer.WriteXmlAttributeUInt("id", nId);
+					writer.WriteXmlAttributeUInt("idx", this.stCnxIdx);
+					writer.WriteXmlAttributesEnd();
+					writer.WriteXmlNodeEnd("a:stCxn");
+				}
 			}
 
-			// if (this.endCnxId || this.endCnxIdx) {
-			// 	writer.WriteXmlNodeStart("a:endCxn");
-			//
-			// 	writer.WriteXmlNullableAttributeString("id", this.endCnxId);
-			// 	writer.WriteXmlNullableAttributeString("idx", this.endCnxIdx);
-			// 	writer.WriteXmlAttributesEnd();
-			// 	writer.WriteXmlNodeEnd("a:endCxn");
-			// }
+			if (AscFormat.isRealNumber(this.endCnxIdx) && this.endCnxId) {
+				let nId = null;
+				let oSp = AscCommon.g_oTableId.Get_ById(this.endCnxId);
+				if(oSp) {
+					nId = oSp.getFormatId && oSp.getFormatId();
+				}
+				if(AscFormat.isRealNumber(nId)) {
+					writer.WriteXmlNodeStart("a:endCxn");
+					writer.WriteXmlAttributeUInt("id", nId);
+					writer.WriteXmlAttributeUInt("idx", this.endCnxIdx);
+					writer.WriteXmlAttributesEnd();
+					writer.WriteXmlNodeEnd("a:endCxn");
+				}
+			}
 
 			writer.WriteXmlNodeEnd(namespace_ + ":cNvCxnSpPr");
 		};
@@ -10077,11 +10112,11 @@
 		};
 		CXfrm.prototype.toXml = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
-			writer.WriteXmlNullableAttributeBool("flipH", this.flipH);
-			writer.WriteXmlNullableAttributeBool("flipV", this.flipV);
 			if (null !== this.rot) {
 				writer.WriteXmlAttributeNumber("rot", Math.round(this.rot * 180 * 60000 / Math.PI));
 			}
+			writer.WriteXmlNullableAttributeBool("flipH", this.flipH);
+			writer.WriteXmlNullableAttributeBool("flipV", this.flipV);
 			writer.WriteXmlAttributesEnd();
 
 			if (null !== this.offX || null !== this.offY) {
@@ -12348,6 +12383,12 @@
 		}
 
 		InitClass(CSpTree, CBaseNoIdObject, 0);
+		CSpTree.prototype.fromXml = function(reader) {
+			CBaseNoIdObject.prototype.fromXml.call(this, reader);
+			if(!(this instanceof AscFormat.CGroupShape)) {
+				reader.context.assignConnectors(this.spTree);
+			}
+		};
 		CSpTree.prototype.readChildXml = function (name, reader) {
 			let oSp = null;
 			switch (name) {

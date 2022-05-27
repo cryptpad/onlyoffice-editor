@@ -10308,7 +10308,7 @@
 		}
 
 		const fonts = [];
-		for (const familyName in fontsDict)
+		for (let familyName in fontsDict)
 		{
 			fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
 		}
