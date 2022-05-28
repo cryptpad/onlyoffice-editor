@@ -17112,19 +17112,25 @@ Paragraph.prototype.RemoveElement = function(oElement)
  * @param fCheck - функция проверки содержимого рана
  * @param {CParagraphContentPos} oStartPos
  * @param {CParagraphContentPos} oEndPos
+ * @param {boolean} [isCurrentPos=false]
  * @returns {boolean}
  */
-Paragraph.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos)
+Paragraph.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, isCurrentPos)
 {
 	let nStartPos = oStartPos ? oStartPos.Get(0) : 0;
 	let nEndPos   = oEndPos ? oEndPos.Get(0) : this.Content.length - 1;
+
+	let oCurrentPos = isCurrentPos ? new CParagraphContentPos() : null;
 
 	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
 	{
 		let _s = oStartPos && nPos === nStartPos ? oStartPos : null;
 		let _e = oEndPos && nPos === nEndPos ? oEndPos : null;
 
-		if (this.Content[nPos].CheckRunContent(fCheck, _s, _e, 1))
+		if (oCurrentPos)
+			oCurrentPos.Update(nPos, 0);
+
+		if (this.Content[nPos].CheckRunContent(fCheck, _s, _e, 1, oCurrentPos))
 			return true;
 	}
 

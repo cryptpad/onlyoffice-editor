@@ -3616,10 +3616,39 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							oCurrentPos.Update(Pos, Depth);
 							Para.ShapeTextInRange(PRS.LineBreakPos, oCurrentPos);
 
+							let oPrevPos     = PRS.LineBreakPos.Copy();
+							let oLigaturePos = PRS.CurPos.Copy();
+							oLigaturePos.Update(Pos, Depth);
+
 							SpaceLen = 0;
 							WordLen  = Para.GetContentWidthInRange(PRS.LineBreakPos, oCurrentPos);
-							
-							// TODO: Обработать ситуацию с откатом назад
+
+							if (X + WordLen > XEnd)
+							{
+								if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
+								{
+									let oPrevPos     = PRS.LineBreakPos.Copy();
+									let oLigaturePos = PRS.CurPos.Copy();
+									oLigaturePos.Update(Pos, Depth);
+
+									PRS.LineBreakPos = Para.FindLineBreakInLongWord(XEnd - X, PRS.LineBreakPos, oCurrentPos);
+
+									this.protected_FillRange(CurLine, CurRange, RangeStartPos, RangeStartPos);
+									Para.Recalculate_SetRangeBounds(ParaLine, ParaRange, oPrevPos, PRS.LineBreakPos);
+
+									if (oLigaturePos.Compare(PRS.LineBreakPos) < 0)
+									{
+										RangeStartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
+										RangeEndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
+									}
+
+									PRS.LongWord = true;
+								}
+
+								MoveToLBP = true;
+								NewRange  = true;
+								break;
+							}
 						}
 
 
@@ -3670,7 +3699,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                                 {
                                     // Слово не убирается в отрезке. Переносим слово в следующий отрезок
                                     MoveToLBP = true;
-                                    NewRange = true;
+                                    NewRange  = true;
                                 }
                                 else
                                 {
@@ -12472,12 +12501,12 @@ ParaRun.prototype.UpdateBookmarks = function(oManager)
 			this.Content[nIndex].UpdateBookmarks(oManager);
 	}
 };
-ParaRun.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth)
+ParaRun.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos)
 {
 	let nStartPos = oStartPos && oStartPos.GetDepth() <= nDepth ? oStartPos.Get(nDepth) : 0;
 	let nEndPos   = oEndPos && oEndPos.GetDepth() <= nDepth ? oEndPos.Get(nDepth) : this.Content.length;
 
-	return fCheck(this, nStartPos, nEndPos);
+	return fCheck(this, nStartPos, nEndPos, oCurrentPos);
 };
 ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 {

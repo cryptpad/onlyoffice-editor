@@ -2574,6 +2574,28 @@ Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
 		Items     : arrItems
 	};
 };
+Paragraph.prototype.CollectRunItemsInRange = function(oStartPos, oEndPos)
+{
+	let arrPositions = [];
+	let arrItems     = [];
+
+	this.CheckRunContent(function(oRun, nStartPos, nEndPos, oCurrentPos)
+	{
+		for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
+		{
+			let oParaPos = oCurrentPos.Copy();
+			oParaPos.Add(nPos);
+
+			arrItems.push(oRun.GetElement(nPos));
+			arrPositions.push(oParaPos);
+		}
+	}, oStartPos, oEndPos, true);
+
+	return {
+		Positions : arrPositions,
+		Items     : arrItems
+	};
+};
 Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLineStartPos, oLigaturePos)
 {
 	// TODO: Когда будут прокидываться типы HB_GLYPH_FLAG_UNSAFE_TO_BREAK, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
@@ -2603,6 +2625,40 @@ Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLineStartPos, oL
 
 	return arrPositions[0];
 };
+Paragraph.prototype.FindLineBreakInLongWord = function(nWidth, oLineStartPos, oCurPos)
+{
+	// TODO: Когда будут прокидываться типы HB_GLYPH_FLAG_UNSAFE_TO_BREAK, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
+	//       переделать здесь поиск начальной точки для формирования текста
+
+	let oInfo = this.CollectRunItemsInRange(oLineStartPos, oCurPos);
+
+	let arrPositions = oInfo.Positions;
+	let arrItems     = oInfo.Items;
+
+	// По логике первая позиция ДОЛЖНА совпадать с oLineStartPos, поэтому
+	// мы не отдаем разрыв в первой позиции, чтобы как минимум 1 символ был на строке
+	if (arrPositions.length <= 1)
+		return oCurPos;
+
+	let nLastPos = arrPositions.length - 1;
+	while (nLastPos > 1)
+	{
+		this.ShapeTextInRange(oLineStartPos, arrPositions[nLastPos]);
+
+		let nTempWidth = 0;
+		for (let nPos = 0; nPos < nLastPos; ++nPos)
+		{
+			nTempWidth += arrItems[nPos].GetWidth();
+		}
+
+		if (nTempWidth < nWidth)
+			return arrPositions[nLastPos];
+
+		nLastPos--;
+	}
+
+	return arrPositions[1];
+};
 Paragraph.prototype.Recalculate_SetRangeBounds = function(CurLine, CurRange, oStartPos, oEndPos)
 {
 	let nStartPos = oStartPos.Get(0);
@@ -2631,6 +2687,7 @@ Paragraph.prototype.GetContentWidthInRange = function(oStartPos, oEndPos)
 
 	return nWidth;
 };
+
 
 var ERecalcPageType =
 {

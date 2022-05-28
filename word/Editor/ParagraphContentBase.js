@@ -801,9 +801,10 @@ CParagraphContentBase.prototype.IsStartFromNewLine = function()
  * @param {CParagraphContentPos} oStartPos
  * @param {CParagraphContentPos} oEndPos
  * @param {number} nDepth
+ * @param {?CParagraphContentPos} oCurrentPos
  * @returns {boolean}
  */
-CParagraphContentBase.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth)
+CParagraphContentBase.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos)
 {
 	return false;
 };
@@ -4531,7 +4532,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CanAddComment = function()
 
 	return true;
 };
-CParagraphContentWithParagraphLikeContent.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth)
+CParagraphContentWithParagraphLikeContent.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos)
 {
 	let nStartPos = oStartPos && oStartPos.GetDepth() <= nDepth ? oStartPos.Get(nDepth) : 0;
 	let nEndPos   = oEndPos && oEndPos.GetDepth() <= nDepth ? oEndPos.Get(nDepth) : this.Content.length - 1;
@@ -4541,7 +4542,10 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckRunContent = function(f
 		let _s = oStartPos && nPos === nStartPos ? oStartPos : null;
 		let _e = oEndPos && nPos === nEndPos ? oEndPos : null;
 
-		if (this.Content[nPos].CheckRunContent(fCheck, _s, _e, nDepth + 1))
+		if (oCurrentPos)
+			oCurrentPos.Update(nPos, nDepth);
+
+		if (this.Content[nPos].CheckRunContent(fCheck, _s, _e, nDepth + 1, oCurrentPos))
 			return true;
 	}
 };
