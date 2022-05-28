@@ -6700,10 +6700,10 @@
 		return false;
 	};
 	/**
-	 * Return all font names from all elenemts inside it.
+	 * Returns all font names from all elements inside the current paragraph.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @returns {string[]} The font names used for the current paragraph.
+	 * @returns {string[]} - The font names used for the current paragraph.
 	 */
 	ApiParagraph.prototype.GetFontNames = function()
 	{
@@ -7745,10 +7745,10 @@
 	};
 
 	/**
-     * Gets the paragraph position in parent.
+     * Returns the paragraph position in its parent element.
      * @memberof ApiParagraph
      * @typeofeditors ["CDE"]
-     * @returns {Number} - returns -1 if paragraph's parent doesn't exist. 
+     * @returns {Number} - returns -1 if the paragraph parent doesn't exist. 
      */
 	ApiParagraph.prototype.GetPosInParent = function()
 	{
@@ -7756,10 +7756,10 @@
 	};
 
 	/**
-     * Replaces the current paragraph by new element.
+     * Replaces the current paragraph with a new element.
      * @memberof ApiParagraph
      * @typeofeditors ["CDE"]
-     * @param {DocumentElement} oElement - element to which the paragraph will be replaced.
+     * @param {DocumentElement} oElement - The element to replace the current paragraph with.
      * @returns {boolean}
      */
 	ApiParagraph.prototype.ReplaceByElement = function(oElement)
@@ -8209,10 +8209,10 @@
 		return oTextPr;
 	};
 	/**
-	 * Return all font names from all elenemts inside it.
+	 * Returns all font names from all elements inside the current run.
 	 * @memberof ApiRun
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @returns {string[]} The font names used for the current run.
+	 * @returns {string[]} - The font names used for the current run.
 	 */
 	ApiRun.prototype.GetFontNames = function()
 	{
@@ -9620,10 +9620,10 @@
 	};
 
 	/**
-     * Gets the table position in parent.
+     * Returns the table position in its parent element.
      * @memberof ApiTable
      * @typeofeditors ["CDE"]
-     * @returns {Number} - returns -1 if table's parent doesn't exist. 
+     * @returns {Number} - returns -1 if the table parent doesn't exist. 
      */
 	ApiTable.prototype.GetPosInParent = function()
 	{
@@ -9631,10 +9631,10 @@
 	};
  
 	/**
-	 * Replaces the current table by new element.
+	 * Replaces the current table with a new element.
 	 * @memberof ApiTable
 	 * @typeofeditors ["CDE"]
-	 * @param {DocumentElement} oElement - element to which the table will be replaced.
+	 * @param {DocumentElement} oElement - The element to replace the current table with.
 	 * @returns {boolean}
 	 */
 	ApiTable.prototype.ReplaceByElement = function(oElement)
@@ -15184,10 +15184,10 @@
 	};
 
 	/**
-     * Gets the content control position in parent.
+     * Returns the content control position in its parent element.
      * @memberof ApiBlockLvlSdt
      * @typeofeditors ["CDE"]
-     * @returns {Number} - returns -1 if content control's parent doesn't exist. 
+     * @returns {Number} - returns -1 if the content control parent doesn't exist. 
      */
 	ApiBlockLvlSdt.prototype.GetPosInParent = function()
 	{
@@ -15195,10 +15195,10 @@
 	};
 
 	/**
-	 * Replaces the current content control by new element.
+	 * Replaces the current content control with a new element.
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @param {DocumentElement} oElement - element to which the table will be replaced.
+	 * @param {DocumentElement} oElement - The element to replace the current content control with.
 	 * @returns {boolean}
 	 */
 	ApiBlockLvlSdt.prototype.ReplaceByElement = function(oElement)

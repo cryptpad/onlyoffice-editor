@@ -1241,7 +1241,7 @@
 	};
 
     /**
-     * Gets the width of the current presentation.
+     * Returns the presentation width in English measure units.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @returns {EMU}
@@ -1253,7 +1253,7 @@
     };
 
     /**
-     * Gets the height of the current presentation.
+     * Returns the presentation height in English measure units.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @returns {EMU}
