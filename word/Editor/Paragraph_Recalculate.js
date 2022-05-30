@@ -2526,22 +2526,20 @@ Paragraph.prototype.ShapeTextInRange = function(oStartPos, oEndPos)
 {
 	AscCommonWord.TextShaper.ShapeRange(this, oStartPos, oEndPos, true);
 };
-Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
+Paragraph.prototype.GetLigatureEndPos = function(oStartPos)
 {
-	let oLigature = this.GetNextRunElement(oContentPos);
+	let oLigature = this.GetNextRunElement(oStartPos);
+	if (!oLigature || !oLigature.IsText())
+		return oStartPos;
 
-	let arrPositions = [oContentPos];
-	let arrItems     = [oLigature];
-
-	if (!oLigature || !oLigature.IsLigature())
+	if (!oLigature.IsLigature())
 	{
-		return {
-			Positions : arrPositions,
-			Items     : arrItems
-		};
+		let oResultPos = oStartPos.Copy();
+		oResultPos.Update(oStartPos.GetPos(oStartPos.GetDepth()) + 1, oStartPos.GetDepth());
+		return oStartPos;
 	}
 
-	let oCurrentPos = oContentPos;
+	let oCurrentPos = oStartPos;
 	let oSearchPos = new CParagraphSearchPos();
 	this.Get_RightPos(oSearchPos, oCurrentPos, false);
 
@@ -2559,9 +2557,6 @@ Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
 			|| !oNext.IsLigatureContinue())
 			break;
 
-		arrItems.push(oNext);
-		arrPositions.push(oCurrentPos);
-
 		oSearchPos.Reset();
 		this.Get_RightPos(oSearchPos, oCurrentPos, false);
 
@@ -2569,10 +2564,7 @@ Paragraph.prototype.CollectLigatureInfo = function(oContentPos)
 			break;
 	}
 
-	return {
-		Positions : arrPositions,
-		Items     : arrItems
-	};
+	return oCurrentPos;
 };
 Paragraph.prototype.CollectRunItemsInRange = function(oStartPos, oEndPos)
 {
@@ -2595,35 +2587,6 @@ Paragraph.prototype.CollectRunItemsInRange = function(oStartPos, oEndPos)
 		Positions : arrPositions,
 		Items     : arrItems
 	};
-};
-Paragraph.prototype.FindLineBreakInLigature = function(nWidth, oLineStartPos, oLigaturePos)
-{
-	// TODO: Когда будут прокидываться типы HB_GLYPH_FLAG_UNSAFE_TO_BREAK, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
-	//       переделать здесь поиск начальной точки для формирования текста
-
-	let oInfo = this.CollectLigatureInfo(oLigaturePos);
-
-	let arrPositions = oInfo.Positions;
-	let arrItems     = oInfo.Items;
-
-	let nLastPos = arrPositions.length - 1;
-	while (nLastPos > 0)
-	{
-		this.ShapeTextInRange(oLineStartPos, arrPositions[nLastPos]);
-
-		let nTempWidth = 0;
-		for (let nPos = 0; nPos < nLastPos; ++nPos)
-		{
-			nTempWidth += arrItems[nPos].GetWidth();
-		}
-
-		if (nTempWidth < nWidth)
-			return arrPositions[nLastPos];
-
-		nLastPos--;
-	}
-
-	return arrPositions[0];
 };
 Paragraph.prototype.FindLineBreakInLongWord = function(nWidth, oLineStartPos, oCurPos)
 {

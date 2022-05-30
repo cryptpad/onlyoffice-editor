@@ -3606,43 +3606,58 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     }
                     else
                     {
+						let nGraphemeWidth = Item.IsLigature() ? Item.GetLigatureWidth() : LetterLen;
+
 						if (FirstItemOnLine
-							&& PRS.IsNeedShapeFirstWord(PRS.Line)
-							&& ((Item.IsLigature() && X + SpaceLen + WordLen + Item.GetLigatureWidth() > XEnd)
-								|| X + SpaceLen + WordLen + LetterLen > XEnd
-								|| PRS.IsLastElementInWord(this, Pos)))
+							&& (X + SpaceLen + WordLen + nGraphemeWidth > XEnd
+								|| (PRS.IsNeedShapeFirstWord(PRS.Line) && PRS.IsLastElementInWord(this, Pos))))
 						{
 							let oCurrentPos = PRS.CurPos.Copy();
 							oCurrentPos.Update(Pos, Depth);
+
+							if (Item.IsLigature())
+								oCurrentPos = PRS.GetLigatureEndPos(oCurrentPos);
+							else
+								oCurrentPos.Update(Pos + 1, Depth);
+
 							Para.ShapeTextInRange(PRS.LineBreakPos, oCurrentPos);
 
-							let oPrevPos     = PRS.LineBreakPos.Copy();
-							let oLigaturePos = PRS.CurPos.Copy();
-							oLigaturePos.Update(Pos, Depth);
+							SpaceLen  = 0;
+							LetterLen = 0;
+							WordLen   = Para.GetContentWidthInRange(PRS.LineBreakPos, oCurrentPos);
 
-							SpaceLen = 0;
-							WordLen  = Para.GetContentWidthInRange(PRS.LineBreakPos, oCurrentPos);
+							nGraphemeWidth = 0;
 
 							if (X + WordLen > XEnd)
 							{
+								// Слово оказалось единственным элементом в промежутке, и, все равно,
+								// не умещается целиком. Делаем следующее:
+								//
+								// 1) Если у нас строка с вырезами, тогда ставим перенос внутри строки в начале слова
+								// 2) Если у нас строка без вырезов, тогда мы ищем перенос строки, начиная с текущего
+								//    места в обратном направлении, при этом решейпим текст в заданном промежутке
+
 								if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
 								{
-									let oPrevPos     = PRS.LineBreakPos.Copy();
-									let oLigaturePos = PRS.CurPos.Copy();
-									oLigaturePos.Update(Pos, Depth);
-
-									PRS.LineBreakPos = Para.FindLineBreakInLongWord(XEnd - X, PRS.LineBreakPos, oCurrentPos);
+									let oLineStartPos = PRS.LineBreakPos.Copy();
+									PRS.LineBreakPos  = Para.FindLineBreakInLongWord(XEnd - X, PRS.LineBreakPos, oCurrentPos);
 
 									this.protected_FillRange(CurLine, CurRange, RangeStartPos, RangeStartPos);
-									Para.Recalculate_SetRangeBounds(ParaLine, ParaRange, oPrevPos, PRS.LineBreakPos);
+									Para.Recalculate_SetRangeBounds(ParaLine, ParaRange, oLineStartPos, PRS.LineBreakPos);
 
-									if (oLigaturePos.Compare(PRS.LineBreakPos) < 0)
+									if (oCurrentPos.Compare(PRS.LineBreakPos) < 0)
 									{
 										RangeStartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
 										RangeEndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 									}
 
 									PRS.LongWord = true;
+
+									EmptyLine  = false;
+									TextOnLine = true;
+
+									WordLen = 0;
+									X += WordLen;
 								}
 
 								MoveToLBP = true;
@@ -3652,91 +3667,12 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						}
 
 
-						if (FirstItemOnLine
-							&& Item.IsLigature()
-							&& X + SpaceLen + WordLen + Item.GetLigatureWidth() > XEnd)
+						if (X + SpaceLen + WordLen + nGraphemeWidth > XEnd
+							&& !PRS.TryCondenseSpaces(SpaceLen + WordLen + LetterLen, WordLen + LetterLen, X, XEnd))
 						{
-							if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
-							{
-								let oPrevPos     = PRS.LineBreakPos.Copy();
-								let oLigaturePos = PRS.CurPos.Copy();
-								oLigaturePos.Update(Pos, Depth);
-
-								PRS.LineBreakPos = Para.FindLineBreakInLigature(XEnd - (X + SpaceLen + WordLen), oPrevPos, oLigaturePos);
-
-								this.protected_FillRange(CurLine, CurRange, RangeStartPos, RangeStartPos);
-								Para.Recalculate_SetRangeBounds(ParaLine, ParaRange, oPrevPos, PRS.LineBreakPos);
-
-								if (oLigaturePos.Compare(PRS.LineBreakPos) < 0)
-								{
-									RangeStartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
-									RangeEndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
-								}
-
-							}
-
 							MoveToLBP = true;
 							NewRange  = true;
-
-							PRS.LongWord = true;
 						}
-						else if (X + SpaceLen + WordLen + LetterLen > XEnd)
-						{
-							if (FirstItemOnLine)
-							{
-                                // Слово оказалось единственным элементом в промежутке, и, все равно,
-                                // не умещается целиком. Делаем следующее:
-                                //
-                                //
-                                // 1) Если у нас строка без вырезов, тогда ставим перенос строки на
-                                //    текущей позиции.
-                                // 2) Если у нас строка с вырезом, и данный вырез не последний, тогда
-                                //    ставим перенос внутри строки в начале слова.
-                                // 3) Если у нас строка с вырезом и вырез последний, тогда ставим перенос
-                                //    строки в начале слова.
-
-                                if (false === Para.Internal_Check_Ranges(ParaLine, ParaRange))
-                                {
-                                    // Слово не убирается в отрезке. Переносим слово в следующий отрезок
-                                    MoveToLBP = true;
-                                    NewRange  = true;
-                                }
-                                else
-                                {
-									let oBreakPos = PRS.CurPos.Copy();
-									oBreakPos.Update(Pos, Depth);
-									Para.ShapeTextInRange(PRS.LineBreakPos, oBreakPos);
-
-                                    EmptyLine = false;
-									TextOnLine = true;
-                                    X += WordLen;
-
-                                    // Слово не убирается в отрезке, но, поскольку, слово 1 на строке и отрезок тоже 1,
-                                    // делим слово в данном месте
-                                    NewRange = true;
-                                    RangeEndPos = Pos;
-
-									PRS.LongWord = true;
-                                }
-                            }
-							else
-							{
-								if (!PRS.TryCondenseSpaces(SpaceLen + WordLen + LetterLen, WordLen + LetterLen, X, XEnd))
-								{
-									// Слово не убирается в отрезке. Переносим слово в следующий отрезок
-									MoveToLBP = true;
-									NewRange  = true;
-								}
-							}
-                        }
-						// else if (FirstItemOnLine
-						// 	&& PRS.IsNeedShapeFirstWord(PRS.Line)
-						// 	&& PRS.IsLastElementInWord(this, Pos))
-						// {
-						// 	let oBreakPos = PRS.CurPos.Copy();
-						// 	oBreakPos.Update(Pos, Depth);
-						// 	Para.ShapeTextInRange(PRS.LineBreakPos, oBreakPos);
-						// }
 
                         if (true !== NewRange)
                         {
