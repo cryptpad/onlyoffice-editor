@@ -593,13 +593,13 @@ ParaText.prototype.UpdateLigatureInfo = function(isLigature, isLigatureContinue)
 ParaText.prototype.IsLigature = function()
 {
 	if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
-		return !!(this.Flags & PARATEXT_FLAGS_NON_TEMPORARY_LIGATURE);
+		return !!(this.Flags & PARATEXT_FLAGS_TEMPORARY_LIGATURE);
 	else
 		return !!(this.Flags & PARATEXT_FLAGS_LIGATURE);
 };
 ParaText.prototype.GetLigatureWidth = function()
 {
-	return (AscFonts.GetGraphemeWidth(this.Flags & PARATEXT_FLAGS_TEMPORARY ? this.Grapheme : this.TempGrapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
+	return (AscFonts.GetGraphemeWidth(this.Flags & PARATEXT_FLAGS_TEMPORARY ? this.TempGrapheme : this.Grapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
 };
 ParaText.prototype.SetWidth = function(nWidth)
 {
@@ -611,7 +611,7 @@ ParaText.prototype.SetWidth = function(nWidth)
 };
 ParaText.prototype.Get_Width = function()
 {
-	return this.Get_Width();
+	return this.GetWidth();
 };
 ParaText.prototype.GetWidth = function()
 {

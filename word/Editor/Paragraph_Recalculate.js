@@ -2620,6 +2620,7 @@ Paragraph.prototype.FindLineBreakInLongWord = function(nWidth, oLineStartPos, oC
 		nLastPos--;
 	}
 
+	this.ShapeTextInRange(oLineStartPos, arrPositions[1]);
 	return arrPositions[1];
 };
 Paragraph.prototype.Recalculate_SetRangeBounds = function(CurLine, CurRange, oStartPos, oEndPos)
