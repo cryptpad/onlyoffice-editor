@@ -2596,6 +2596,13 @@
 						sCurText += AscCommon.encodeSurrogateChar(item.Value);
 					}
 					break;
+				case para_Math_Ampersand:
+					sCurText += "&";
+					break;
+				case para_Math_BreakOperator:
+				case para_Math_Text:
+					sCurText += AscCommon.encodeSurrogateChar(item.value);
+					break;
 				case para_Space:
 					sCurText += AscCommon.encodeSurrogateChar(item.Value);
 					break;
