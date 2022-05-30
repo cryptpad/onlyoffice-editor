@@ -2570,7 +2570,7 @@
 			if (this.Paragraph.bFromDocument) {
 				this.Pr.toXml(writer, "w:rPr");
 			} else {
-				// this.Pr.toXml(writer, "a:rPr");
+				this.Pr.toDrawingML(writer, "a:rPr");
 			}
 		}
 		let textNs = para_Math_Run !== this.Type ? "w:" : "m:";
