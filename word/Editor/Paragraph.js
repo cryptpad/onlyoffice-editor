@@ -1661,37 +1661,28 @@ Paragraph.prototype.Internal_Is_NullBorders = function(Borders)
 
 	return true;
 };
-Paragraph.prototype.Internal_Check_Ranges = function(CurLine, CurRange)
+Paragraph.prototype.IsSingleRangeOnLine = function(nCurLine, nCurRange)
 {
-	var Ranges      = this.Lines[CurLine].Ranges;
-	var RangesCount = Ranges.length;
+	let arrRanges    = this.Lines[nCurLine].Ranges;
+	let nRangesCount = arrRanges.length;
 
-	if (RangesCount <= 1)
+	if (nRangesCount <= 1)
 		return true;
-	else if (2 === RangesCount)
-	{
-		var Range0 = Ranges[0];
-		var Range1 = Ranges[1];
 
-		if (Range0.XEnd - Range0.X < 0.001 && 1 === CurRange && Range1.XEnd - Range1.X >= 0.001)
-			return true;
-		else if (Range1.XEnd - Range1.X < 0.001 && 0 === CurRange && Range0.XEnd - Range0.X >= 0.001)
-			return true;
-		else
-			return false
-	}
-	else if (3 === RangesCount && 1 === CurRange)
+	if (2 === nRangesCount)
 	{
-		var Range0 = Ranges[0];
-		var Range2 = Ranges[2];
-
-		if (Range0.XEnd - Range0.X < 0.001 && Range2.XEnd - Range2.X < 0.001)
-			return true;
-		else
-			return false;
+		return ((0 === nCurRange && !arrRanges[0].IsZeroRange() && arrRanges[1].IsZeroRange())
+			|| (1 === nCurRange && arrRanges[0].IsZeroRange() && !arrRanges[1].IsZeroRange()))
 	}
-	else
-		return false;
+	else if (3 === RangesCount)
+	{
+		return (1 === nCurRange
+			&& arrRanges[0].IsZeroRange()
+			&& !arrRanges[1].IsZeroRange()
+			&& arrRanges[2].IsZeroRange());
+	}
+
+	return false;
 };
 /**
  * Получаем текущие текстовые настройки нумерации

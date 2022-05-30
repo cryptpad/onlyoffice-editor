@@ -3004,6 +3004,10 @@ CParaLineRange.prototype.CorrectX = function(nX)
 
 	return x;
 };
+CParaLineRange.prototype.IsZeroRange = function()
+{
+	return ((this.XEnd - this.X) < 0.001);
+};
 
 function CParaPage(X, Y, XLimit, YLimit, FirstLine)
 {

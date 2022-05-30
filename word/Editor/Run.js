@@ -3548,7 +3548,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         // 2) В противном случае, проверяем убирается ли слово в промежутке.
 
                         // Если слово только началось, и до него на строке ничего не было, и в строке нет разрывов, тогда не надо проверять убирается ли оно на строке.
-                        if (true !== FirstItemOnLine || false === Para.Internal_Check_Ranges(ParaLine, ParaRange))
+                        if (true !== FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange))
 						{
 							if (X + SpaceLen + LetterLen > XEnd)
 							{
@@ -3637,7 +3637,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								// 2) Если у нас строка без вырезов, тогда мы ищем перенос строки, начиная с текущего
 								//    места в обратном направлении, при этом решейпим текст в заданном промежутке
 
-								if (Para.Internal_Check_Ranges(ParaLine, ParaRange))
+								if (Para.IsSingleRangeOnLine(ParaLine, ParaRange))
 								{
 									let oLineStartPos = PRS.LineBreakPos.Copy();
 									PRS.LineBreakPos  = Para.FindLineBreakInLongWord(XEnd - X, PRS.LineBreakPos, oCurrentPos);
@@ -3710,7 +3710,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     if (true !== Word)
                     {
                         // Если слово только началось, и до него на строке ничего не было, и в строке нет разрывов, тогда не надо проверять убирается ли оно на строке.
-                        if (true !== FirstItemOnLine /*|| false === Para.Internal_Check_Ranges(ParaLine, ParaRange)*/)
+                        if (true !== FirstItemOnLine /*|| false === Para.IsSingleRangeOnLine(ParaLine, ParaRange)*/)
                         {
                             if (X + SpaceLen + LetterLen > XEnd)
                             {
@@ -3739,7 +3739,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     {
                         if(X + SpaceLen + WordLen + LetterLen > XEnd)
                         {
-                            if(true === FirstItemOnLine /*&& true === Para.Internal_Check_Ranges(ParaLine, ParaRange)*/)
+                            if(true === FirstItemOnLine /*&& true === Para.IsSingleRangeOnLine(ParaLine, ParaRange)*/)
                             {
                                 // Слово оказалось единственным элементом в промежутке, и, все равно, не умещается целиком.
                                 // для Формулы слово не разбиваем, перенос не делаем, пишем в одну строку (слово выйдет за границу как в Ворде)
@@ -4042,7 +4042,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         }
 
                         var DrawingWidth = Item.Get_Width();
-                        if (X + SpaceLen + DrawingWidth > XEnd && ( false === FirstItemOnLine || false === Para.Internal_Check_Ranges(ParaLine, ParaRange) ))
+                        if (X + SpaceLen + DrawingWidth > XEnd && ( false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange) ))
                         {
                             // Автофигура не убирается, ставим перенос перед ней
                             NewRange = true;
@@ -4157,7 +4157,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         FirstItemOnLine = false;
 
                     var PageNumWidth = Item.Get_Width();
-                    if (X + SpaceLen + PageNumWidth > XEnd && ( false === FirstItemOnLine || false === Para.Internal_Check_Ranges(ParaLine, ParaRange) ))
+                    if (X + SpaceLen + PageNumWidth > XEnd && ( false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange) ))
                     {
                         // Данный элемент не убирается, ставим перенос перед ним
                         NewRange = true;
@@ -4247,7 +4247,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						}
 
 						if (!PRS.BadLeftTab
-							&& (false === FirstItemOnLine || false === Para.Internal_Check_Ranges(ParaLine, ParaRange))
+							&& (false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange))
 							&& (((TabPos.DefaultTab || PRS.Range < PRS.RangesCount - 1) && twNewX > twXEnd)
 							|| (!TabPos.DefaultTab && twNewX > AscCommon.MMToTwips(TabPos.PageXLimit))))
 						{
@@ -4463,7 +4463,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								FirstItemOnLine = false;
 
 							var PageNumWidth = Item.Get_Width();
-							if (X + SpaceLen + PageNumWidth > XEnd && ( false === FirstItemOnLine || false === Para.Internal_Check_Ranges(ParaLine, ParaRange) ))
+							if (X + SpaceLen + PageNumWidth > XEnd && ( false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange) ))
 							{
 								// Данный элемент не убирается, ставим перенос перед ним
 								NewRange = true;
