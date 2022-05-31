@@ -345,19 +345,10 @@
 	}
 
 	JSZipWrapper.prototype.loadSync = function(data) {
-		var res = false;
-		var files;
 		if (window.nativeZlibEngine && window.nativeZlibEngine.open(data)) {
-			files = window.nativeZlibEngine.files;
-		}
-		if (window["native"]) {
-			files = window["native"]["ZipOpen"](data);
-		}
-		if (files) {
-			for (var path in files) {
-				if (files.hasOwnProperty(path)) {
-					this.files[path] = new JSZipObjectWrapper(path);
-				}
+			var files = window.nativeZlibEngine.files;
+			for (let i = 0, len = files.length; i < len; i++) {
+				this.files[files[i]] = new JSZipObjectWrapper(files[i]);
 			}
 			return true;
 		}
@@ -371,67 +362,36 @@
 				if (!window.nativeZlibEngine.open(data)) {
 					reject(new Error("Failed archive"));
 				}
-				var files = window.nativeZlibEngine.files;
-
-				if (null != files) {
-					for (var _path in files) {
-						t.files[_path] = new JSZipObjectWrapper(_path);
-					}
+				let files = window.nativeZlibEngine.files;
+				if (0 !== files.length) {
+					for (let i = 0, len = files.length; i < len; i++)
+						this.files[files[i]] = new JSZipObjectWrapper(files[i]);
 					resolve(t);
-				}
-				else {
+				} else {
 					reject(new Error("Failed archive"));
 				}
 			});
 		}
 
-		if (window["native"]) {
-			return new Promise(function(resolve, reject) {
-
-				var retFiles = null;
-				if (options && options["base64"] === true)
-					retFiles = window["native"]["ZipOpenBase64"](data);
-				else
-					retFiles = window["native"]["ZipOpen"](data);
-
-				if (null != retFiles)
-				{
-					for (var id in retFiles) {
-						t.files[id] = new JSZipObjectWrapper(retFiles[id]);
-					}
-
-					resolve(t);
-				}
-				else
-				{
-					reject(new Error("Failed archive"));
-				}
-
-			});
-		}
 		return Promise.reject();
 	};
 	JSZipWrapper.prototype.create = function() {
-		return window.nativeZlibEngine.create();
+		return window.nativeZlibEngine ? window.nativeZlibEngine.create() : false;
 	};
 	JSZipWrapper.prototype.save = function() {
-		return window.nativeZlibEngine.save();
+		return window.nativeZlibEngine ? window.nativeZlibEngine.save() : null;
 	};
 	JSZipWrapper.prototype.getFile = function() {
-		return window.nativeZlibEngine.getFile.apply(window.nativeZlibEngine, arguments);
+		return window.nativeZlibEngine ? window.nativeZlibEngine.getFile.apply(window.nativeZlibEngine, arguments) : null;
 	};
 	JSZipWrapper.prototype.addFile = function() {
-		return window.nativeZlibEngine.addFile.apply(window.nativeZlibEngine, arguments);
+		return window.nativeZlibEngine ? window.nativeZlibEngine.addFile.apply(window.nativeZlibEngine, arguments) : false;
 	};
 	JSZipWrapper.prototype.removeFile = function() {
-		return window.nativeZlibEngine.removeFile.apply(window.nativeZlibEngine, arguments);
+		return window.nativeZlibEngine ? window.nativeZlibEngine.removeFile.apply(window.nativeZlibEngine, arguments) : false;
 	};
 	JSZipWrapper.prototype.close = function() {
-		if (window.nativeZlibEngine) {
-			window.nativeZlibEngine.close();
-		}
-		if (window["native"])
-			window["native"]["ZipClose"]();
+		return window.nativeZlibEngine ? window.nativeZlibEngine.close() : false;
 	};
 
 	function JSZipObjectWrapper(data) {
@@ -446,15 +406,6 @@
 				return data;
 			}
 		}
-
-		if (window["native"]) {
-			if ("string" === type) {
-				return window["native"]["ZipFileAsString"](this.data);
-			} else {
-				return window["native"]["ZipFileAsBinary"](this.data);
-			}
-		}
-
 		return null;
 	};
 	JSZipObjectWrapper.prototype.async = function(type) {
@@ -470,27 +421,7 @@
 				}
 			});
 		}
-
-		if (window["native"]) {
-			var t = this;
-
-			return new Promise(function(resolve, reject) {
-
-				var ret = window["native"]["ZipFileAsString"](t.data);
-
-				if (null != ret)
-				{
-					resolve(ret);
-				}
-				else
-				{
-					reject(new Error("Failed file in archive"));
-				}
-
-			});
-		}
-
-		return this.data.async(type);
+		return null;
 	};
 
 	function getBaseUrl()

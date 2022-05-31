@@ -164,18 +164,30 @@
 			res = res.graphicObject;
 		} else if ("AlternateContent" === name) {
 			let elem = new CT_XmlNode(function(reader, name) {
-				if ("Choice" === name) {
-					let elem = new CT_XmlNode(function(reader, name) {
-						if ("graphicFrame" === name) {
-							res = new AscFormat.CGraphicFrame();
-							res.fromXml(reader);
-							res = res.graphicObject;
-						}
-						return new CT_XmlNode();
-					});
-					elem.fromXml(reader);
-					return elem;
+				let oThis = this;
+				if(!res) {
+					if ("Choice" === name) {
+						let elem = new CT_XmlNode(function(reader, name) {
+							if(!res) {
+								res = window['AscFormat'].CGraphicObjectBase.prototype.fromXmlElem.call(oThis, reader, name, graphicFrame);
+							}
+							return true;
+						});
+						elem.fromXml(reader);
+						return elem;
+					}
+					else if("Fallback" === name) {
+						let elem = new CT_XmlNode(function(reader, name) {
+							if(!res) {
+								res = window['AscFormat'].CGraphicObjectBase.prototype.fromXmlElem.call(oThis, reader, name, graphicFrame);
+							}
+							return true;
+						});
+						elem.fromXml(reader);
+						return elem;
+					}
 				}
+				return true;
 			});
 			elem.fromXml(reader);
 		}  else if ("slicer" === name) {
@@ -549,8 +561,62 @@
 					}
 					break;
 				}
+				case "m": {
+					let oThis = this;
+					let oMathNode = new CT_XmlNode(function (reader, name) {
+						switch (name) {
+							case "oMath":
+								CParagraphContentWithParagraphLikeContent.prototype.fromXmlElem.call(oThis, reader, name);
+								break;
+							case "oMathPara":
+								CParagraphContentWithParagraphLikeContent.prototype.fromXmlElem.call(oThis, reader, name);
+								break;
+						}
+						return true;
+					});
+					oMathNode.fromXml(reader);
+					break;
+				}
 			}
 		}
+	};
+	AscCommonWord.ParaHyperlink.prototype.toDrawingML = function(writer) {
+		for(let nIdx = 0; nIdx < this.Content.length; ++nIdx) {
+			let oElement = this.Content[nIdx];
+			if(oElement.toDrawingML) {
+				oElement.toDrawingML(writer, nIdx, this.Paragraph);
+			}
+		}
+	};
+	ParaMath.prototype.toDrawingML = function(writer, index, paragraph) {
+		writer.WriteXmlNodeStart("mc:AlternateContent");
+		writer.WriteXmlAttributeString("xmlns:mc", "http://schemas.openxmlformats.org/markup-compatibility/2006");
+		writer.WriteXmlAttributeString("xmlns:m", "http://schemas.openxmlformats.org/officeDocument/2006/math");
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeStart("mc:Choice");
+		writer.WriteXmlAttributeString("xmlns:a14", "http://schemas.microsoft.com/office/drawing/2010/main");
+		writer.WriteXmlAttributeString("Requires", "a14");
+		writer.WriteXmlAttributesEnd();
+
+		writer.WriteXmlNodeStart("a14:m");
+		writer.WriteXmlAttributesEnd();
+		if (paragraph.CheckMathPara(index)) {
+			let mathPara = new AscCommon.CT_OMathPara();
+			mathPara.setMath(this);
+			mathPara.toXml(writer, "m:oMathPara");
+		} else {
+			this.toXml(writer, "m:oMath");
+		}
+		writer.WriteXmlNodeEnd("a14:m");
+
+		writer.WriteXmlNodeEnd("mc:Choice");
+
+
+		writer.WriteXmlNodeStart("mc:Fallback");
+		writer.WriteXmlAttributesEnd(true);
+
+		writer.WriteXmlNodeEnd("mc:AlternateContent");
 	};
 	AscCommonWord.Paragraph.prototype.toDrawingML = function(writer) {
 		writer.WriteXmlNodeStart("a:p");
@@ -562,7 +628,9 @@
 
 		let nCount = this.Content.length;
 		for (let i = 0; i < nCount; ++i)
-			this.Content[i].toDrawingML(writer);
+			if(this.Content[i].toDrawingML) {
+				this.Content[i].toDrawingML(writer, i, this);
+			}
 
 		if(this.TextPr && this.TextPr.Value) {
 			this.TextPr.Value.toDrawingML(writer, "a:endParaRPr")
@@ -620,7 +688,7 @@
 		writer.WriteXmlAttributesEnd();
 
 		if (this.Pr) {
-			this.Pr.toDrawingML(writer, "a:rPr");
+			this.Pr.toDrawingML(writer, "a:rPr", this);
 		}
 		this.toDrawingMLText(writer, nStart, nEnd);
 		writer.WriteXmlNodeEnd("a:r");
@@ -787,7 +855,7 @@
 			}
 		}
 	};
-	AscCommonWord.CTextPr.prototype.toDrawingML = function (writer, sName) {
+	AscCommonWord.CTextPr.prototype.toDrawingML = function (writer, sName, oRun) {
 		writer.WriteXmlNodeStart(sName);
 		//writer.WriteXmlAttributeString("kumimoji", kumimoji);
 		
@@ -874,13 +942,28 @@
 		if(this.RFonts.CS) 
 			writeTypeface(writer, "a:cs", this.RFonts.CS.Name);
 		//writer.Write(sym);
-		if(this.hlinkClick) {
-			this.hlinkClick.toXml(writer, "a:hlinkClick");
+
+		if(oRun) {
+			let oParaHyperlink = null;
+			if(oRun.Parent instanceof ParaHyperlink) {
+				oParaHyperlink = oRun.Parent;
+			}
+			if(oParaHyperlink) {
+				let oHyperlink = new AscFormat.CT_Hyperlink();
+				oHyperlink.id = oParaHyperlink.Value;
+				if (oParaHyperlink.tooltip) {
+					oHyperlink.tooltip = oParaHyperlink.tooltip;
+				}
+				oHyperlink.toXml(writer, "a:hlinkClick");
+			}
 		}
-	
-		if(this.hlinkMouseOver) {
-			this.hlinkMouseOver.toXml(writer, "a:hlinkMouseOver");
-		}
+		// if(this.hlinkClick) {
+		// 	this.hlinkClick.toXml(writer, "a:hlinkClick");
+		// }
+		//
+		// if(this.hlinkMouseOver) {
+		// 	this.hlinkMouseOver.toXml(writer, "a:hlinkMouseOver");
+		// }
 		//writer.Write(rtl);
 
 		writer.WriteXmlNodeEnd(sName);
@@ -1105,7 +1188,9 @@
 		if(this.PPr) {
 			this.PPr.toDrawingML(writer, "a:pPr");
 		}
-		this.toDrawingMLText(writer, 0, this.Content.length - 1);
+		if(this.Content.length > 0) {
+			this.toDrawingMLText(writer, 0, this.Content.length - 1);
+		}
 		writer.WriteXmlNodeEnd("a:fld");
 	};
 	AscCommonWord.CTable.prototype.fromDrawingML = function(reader) {
@@ -1660,22 +1745,22 @@
 
 		if(oBorders.Left) {
 			let oLn = new AscFormat.CLn();
-			oLn.fromDrawingMLTableStyle(oBorders.Left);
+			oLn.fromDocumentBorder(oBorders.Left);
 			oLn.toXml(writer, "a:lnL");
 		}
 		if(oBorders.Right) {
 			let oLn = new AscFormat.CLn();
-			oLn.fromDrawingMLTableStyle(oBorders.Right);
+			oLn.fromDocumentBorder(oBorders.Right);
 			oLn.toXml(writer, "a:lnR");
 		}
 		if(oBorders.Top) {
 			let oLn = new AscFormat.CLn();
-			oLn.fromDrawingMLTableStyle(oBorders.Top);
+			oLn.fromDocumentBorder(oBorders.Top);
 			oLn.toXml(writer, "a:lnT");
 		}
 		if(oBorders.Bottom) {
 			let oLn = new AscFormat.CLn();
-			oLn.fromDrawingMLTableStyle(oBorders.Bottom);
+			oLn.fromDocumentBorder(oBorders.Bottom);
 			oLn.toXml(writer, "a:lnB");
 		}
 		if(this.Shd && this.Shd.Unifill) {
