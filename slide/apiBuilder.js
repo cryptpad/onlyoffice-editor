@@ -3940,7 +3940,7 @@
     /**
 	 * Sets the specified numeric format to the axis values.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, "CPE", "CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
 	 * @param {AxisPos} - Axis position.
 	 * @returns {boolean}
@@ -3972,7 +3972,7 @@
 	/**
 	 * Sets the specified numeric format to the chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
 	 * @param {Number} nSeria - Series index.
 	 * @returns {boolean}
