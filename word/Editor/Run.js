@@ -4999,7 +4999,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             case para_Separator:
             case para_ContinuationSeparator:
             {
-                var WidthVisible = 0;
+                let WidthVisible = 0;
 
                 if ( 0 !== PRSA.LettersSkip )
                 {
@@ -5009,7 +5009,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                 else
                     WidthVisible = Item.GetWidth() + PRSA.JustifyWord;
 
-                Item.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER) | 0;//Item.Set_WidthVisible(WidthVisible);
+                Item.SetWidthVisible(WidthVisible);
 
 				if (para_FootnoteReference === ItemType || para_EndnoteReference === ItemType)
 				{

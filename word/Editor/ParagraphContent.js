@@ -188,8 +188,7 @@ var TEXTWIDTH_DIVIDER = 16384;
  */
 function CRunElementBase()
 {
-	this.Width        = 0x00000000 | 0;
-	this.WidthVisible = 0x00000000 | 0;
+	this.Width = 0x00000000 | 0;
 }
 CRunElementBase.prototype.Type             = para_RunBase;
 CRunElementBase.prototype.Get_Type         = function()
@@ -223,6 +222,10 @@ CRunElementBase.prototype.Get_WidthVisible = function()
 CRunElementBase.prototype.Set_WidthVisible = function(WidthVisible)
 {
 	this.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER) | 0;
+};
+CRunElementBase.prototype.SetWidthVisible = function(nWidth)
+{
+	this.Set_WidthVisible(nWidth);
 };
 CRunElementBase.prototype.Set_Width        = function(Width)
 {
@@ -466,11 +469,10 @@ function ParaText(nCharCode)
 {
 	CRunElementBase.call(this);
 
-	this.Value        = undefined !== nCharCode ? nCharCode : 0x00;
-	this.Width        = 0x00000000 | 0;
-	this.WidthVisible = 0x00000000 | 0;
-	this.Flags        = 0x00000000 | 0;
-	this.Grapheme     = AscFonts.NO_GRAPHEME;
+	this.Value    = undefined !== nCharCode ? nCharCode : 0x00;
+	this.Width    = 0x00000000 | 0;
+	this.Flags    = 0x00000000 | 0;
+	this.Grapheme = AscFonts.NO_GRAPHEME;
 
 	this.Set_SpaceAfter(this.private_IsSpaceAfter());
 
@@ -608,6 +610,36 @@ ParaText.prototype.SetWidth = function(nWidth)
 		this.TempWidth = nValue;
 	else
 		this.Width = nValue;
+};
+ParaText.prototype.SetWidthVisible = function(nWidth)
+{
+	let nW = (nWidth * TEXTWIDTH_DIVIDER) | 0;
+
+	let isTemporary = this.IsTemporary();
+
+	if ((isTemporary && this.TempWidth !== nW)
+		|| (!isTemporary && this.Width !== nW))
+	{
+		this.Flags |= PARATEXT_FLAGS_VISIBLE_WIDTH;
+		this.WidthVisible = nW;
+	}
+	else
+	{
+		this.Flags &= PARATEXT_FLAGS_NON_VISIBLE_WIDTH;
+	}
+};
+ParaText.prototype.Get_WidthVisible = function()
+{
+	return this.GetWidthVisible();
+};
+ParaText.prototype.GetWidthVisible = function()
+{
+	if (this.Flags & PARATEXT_FLAGS_VISIBLE_WIDTH)
+		return (this.WidthVisible / TEXTWIDTH_DIVIDER);
+	else if (this.Flags & PARATEXT_FLAGS_TEMPORARY)
+		return (this.TempWidth / TEXTWIDTH_DIVIDER);
+	else
+		return (this.Width / TEXTWIDTH_DIVIDER);
 };
 ParaText.prototype.Get_Width = function()
 {
