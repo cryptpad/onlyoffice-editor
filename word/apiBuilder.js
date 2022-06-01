@@ -5692,7 +5692,7 @@
 
 	/**
 	 * Updates all tables of contents in the current document.
-	 * @memberof Api
+	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} [bOnlyPageNumbers=false] - Specifies that only page numbers will be updated.
 	 */
@@ -5748,7 +5748,7 @@
 	};
 	/**
 	 * Updates all tables of figures in the current document.
-	 * @memberof Api
+	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param {boolean} [bOnlyPageNumbers=false] - Specifies that only page numbers will be updated.
 	 */
