@@ -3453,7 +3453,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                                     oGraphicObject.extY = oldExtY;
                                     aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
                             }
-                        } else if (oGraphicObject.isSmartArtObject()) { // fixme: this is a crutch for resizing columns and rows, fix after normal recalculate smartart
+                        } else if (oGraphicObject.hasSmartArt && oGraphicObject.hasSmartArt()) { // fixme: this is a crutch for resizing columns and rows, fix after normal recalculate smartart
                             if (oGraphicObject.spPr.xfrm.isZeroCh()) {
                                 oGraphicObject.updateCoordinatesAfterInternalResize();
                             }
@@ -3516,7 +3516,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                             oC.Pos.X, oC.Pos.Y, oC.ext.cx, oC.ext.cy);
                     }
                     oGraphicObject.handleUpdateExtents();
-                    if (oGraphicObject.isSmartArtObject()) {
+                    if (oGraphicObject.hasSmartArt && oGraphicObject.hasSmartArt()) {
                         oGraphicObject.checkExtentsByDocContent(true, true);
                     }
                     oGraphicObject.recalculate();

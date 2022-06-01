@@ -130,6 +130,11 @@ var c_oSerShdType = {
 		ColLast: 4
 	};
 
+  var c_nodeAttribute = {
+    nodeAttributeStart: 0xFA,
+    nodeAttributeEnd: 0xFB
+  };
+
 function BinaryCommonWriter(memory)
 {
     this.memory = memory;
@@ -1259,6 +1264,47 @@ function isRealObject(obj)
       return r;
     }
 
+    this.ReadIntFromPPTY = function ()
+    {
+      var value = 0;
+      var end = this.cur + this.GetULong() + 4;
+      this.Skip2(1);
+      while (true)
+      {
+        var _at = this.GetUChar();
+        if (_at === c_nodeAttribute.nodeAttributeEnd)
+        {
+          break;
+        }
+        else if (0 === _at)
+        {
+          value = this.GetULong();
+        }
+      }
+      this.Seek2(end);
+      return value;
+    }
+    
+    this.ReadByteFromPPTY = function ()
+    {
+      var value = 0;
+      var end = this.cur + this.GetULong() + 4;
+      this.Skip2(1);
+      while (true)
+      {
+        var _at = this.GetUChar();
+        if (_at === c_nodeAttribute.nodeAttributeEnd)
+        {
+          break;
+        } else if (0 === _at)
+        {
+          value = this.GetUChar();
+        }
+      }
+      this.Seek2(end);
+      return value;
+    }
+
     this.GetLong = function()
     {
       if (this.cur + 3 >= this.size)
@@ -1476,6 +1522,6 @@ function isRealObject(obj)
   window['AscCommon'].isRealObject = isRealObject;
   window['AscCommon'].FileStream = FileStream;
 	window['AscCommon'].GetStringUtf8 = GetStringUtf8;
-  window['AscCommon'].g_nodeAttributeStart = 0xFA;
-  window['AscCommon'].g_nodeAttributeEnd = 0xFB;
+  window['AscCommon'].g_nodeAttributeStart = c_nodeAttribute.nodeAttributeStart;
+  window['AscCommon'].g_nodeAttributeEnd = c_nodeAttribute.nodeAttributeEnd;
 })(window);

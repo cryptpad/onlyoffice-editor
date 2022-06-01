@@ -3486,6 +3486,7 @@
 	AscDFH.historyitem_IfVal = AscDFH.historyitem_type_If | 5;
 	AscDFH.historyitem_IfAddList = AscDFH.historyitem_type_If | 6;
 	AscDFH.historyitem_IfRemoveList = AscDFH.historyitem_type_If | 7;
+	AscDFH.historyitem_IfRef = AscDFH.historyitem_type_If | 8;
 
 	AscDFH.historyitem_ConstrFact = AscDFH.historyitem_type_Constr | 1;
 	AscDFH.historyitem_ConstrFor = AscDFH.historyitem_type_Constr | 2;
@@ -3843,6 +3844,8 @@
 
 	AscDFH.historyitem_CCommonDataClrListAdd    = AscDFH.historyitem_type_CCommonDataClrList | 1;
 	AscDFH.historyitem_CCommonDataClrListRemove = AscDFH.historyitem_type_CCommonDataClrList | 2;
+	AscDFH.historyitem_CCommonDataClrListHueDir = AscDFH.historyitem_type_CCommonDataClrList | 3;
+	AscDFH.historyitem_CCommonDataClrListMeth   = AscDFH.historyitem_type_CCommonDataClrList | 4;
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2226,9 +2226,21 @@ CShape.prototype.getTextRect = function () {
         b: this.extY
     };
 };
-
     CShape.prototype.checkTransformTextMatrixSmartArt = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
         if (this.txXfrm) {
+            var oSmartArt = this.group.group;
+            var diffX = 0;
+            var diffY = 0;
+            if (oSmartArt.group) {
+                if ((this.parent && this.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet)) {
+                    var mainGroup = oSmartArt.group.getRelativePosition();
+                    diffX = mainGroup.x;
+                    diffY = mainGroup.y;
+                } else {
+                    diffX = oSmartArt.bounds.x;
+                    diffY = oSmartArt.bounds.y;
+                }
+            }
             var oRect = this.getTextRect();
             var oRectShape = new AscFormat.CShape();
             oRectShape.setBDeleted(false);
@@ -2245,8 +2257,8 @@ CShape.prototype.getTextRect = function () {
             deltaShape.spPr.setParent(deltaShape);
             deltaShape.spPr.setXfrm(new AscFormat.CXfrm());
             deltaShape.spPr.xfrm.setParent(deltaShape.spPr);
-            deltaShape.spPr.xfrm.setOffX(this.spPr.xfrm.offX);
-            deltaShape.spPr.xfrm.setOffY(this.spPr.xfrm.offY);
+            deltaShape.spPr.xfrm.setOffX(this.spPr.xfrm.offX - diffX);
+            deltaShape.spPr.xfrm.setOffY(this.spPr.xfrm.offY - diffY);
             deltaShape.spPr.xfrm.setExtX(this.spPr.xfrm.extX);
             deltaShape.spPr.xfrm.setExtY(this.spPr.xfrm.extY);
             if (deltaRot) {
