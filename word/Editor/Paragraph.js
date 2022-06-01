@@ -965,6 +965,10 @@ Paragraph.prototype.Add_ToContent = function(Pos, Item)
 {
 	this.Internal_Content_Add(Pos, Item);
 };
+Paragraph.prototype.AddToContentToEnd = function(Item)
+{
+	this.Internal_Content_Add(this.GetElementsCount(), Item);
+};
 Paragraph.prototype.AddToContent = function(nPos, oItem)
 {
 	this.Add_ToContent(nPos, oItem);
@@ -16667,6 +16671,10 @@ Paragraph.prototype.GetLastParagraph = function()
 	return this;
 };
 Paragraph.prototype.GetFirstParagraph = function()
+{
+	return this;
+};
+Paragraph.prototype.GetParagraph = function()
 {
 	return this;
 };
