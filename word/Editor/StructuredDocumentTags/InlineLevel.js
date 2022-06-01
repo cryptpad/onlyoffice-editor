@@ -3162,7 +3162,7 @@ CInlineLevelSdt.prototype.TrimCombForm = function()
 
 	let oRun = this.MakeSingleRunElement(false);
 	if (oRun.GetElementsCount() > nMax)
-		oRun.RemoveFromContent(nMax, oRun.GetElementsCount() - nMax);
+		oRun.RemoveFromContent(nMax, oRun.GetElementsCount() - nMax, true);
 };
 
 //--------------------------------------------------------export--------------------------------------------------------
