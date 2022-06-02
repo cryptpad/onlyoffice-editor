@@ -1574,6 +1574,7 @@ background-repeat: no-repeat;\
 		if (!data) {
 			return false;
 		}
+		var openXml = AscCommon.openXml;
 		var xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
@@ -1606,7 +1607,7 @@ background-repeat: no-repeat;\
 		}
 
 
-		var documentPart = doc.getPartByRelationshipType(openXml.Types.mainDocument.relationType);
+		var documentPart = doc.getPartByRelationshipType(openXml.Types.presentation.relationType);
 		var contentDocument = documentPart.getDocumentContent();
 		reader = new StaxParser(contentDocument, documentPart, xmlParserContext);
 		this.WordControl.m_oLogicDocument.fromXml(reader, true);
@@ -7688,7 +7689,7 @@ background-repeat: no-repeat;\
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation,
 					function(data) {
-						var blob = new Blob([data], {type: openXml.GetMimeType("pptx")});
+						var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("pptx")});
 						var link = document.createElement("a");
 						link.href = window.URL.createObjectURL(blob);
 						link.download = title;
@@ -8821,6 +8822,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_setHeaderFooterProperties"]       = asc_docs_api.prototype.asc_setHeaderFooterProperties;
 
 	asc_docs_api.prototype["asc_startEditCurrentOleObject"]       = asc_docs_api.prototype.asc_startEditCurrentOleObject;
+	asc_docs_api.prototype["asc_doubleClickOnTableOleObject"]     = asc_docs_api.prototype.asc_doubleClickOnTableOleObject;
+	asc_docs_api.prototype["asc_editOleObjectAction"]             = asc_docs_api.prototype.asc_editOleObjectAction;
+	asc_docs_api.prototype["asc_addOleObjectAction"]              = asc_docs_api.prototype.asc_addOleObjectAction;
 	asc_docs_api.prototype["asc_InputClearKeyboardElement"]       = asc_docs_api.prototype.asc_InputClearKeyboardElement;
 
 	asc_docs_api.prototype["asc_getCurrentFocusObject"]           = asc_docs_api.prototype.asc_getCurrentFocusObject;
