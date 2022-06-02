@@ -1613,7 +1613,7 @@ function XmlParserContext(){
     this.notesMastersMap = {};
     this.TablesMap = {};
     this.TableStylesMap = {};
-    this.ConnectorsMap = {};
+    this.ConnectorsPr = [];
     this.DrawingIdsMap = {};
 }
 XmlParserContext.prototype.initFromWS = function(ws) {
@@ -1632,6 +1632,20 @@ XmlParserContext.prototype.addTableStyle = function(sGuid, oStyle) {
 };
 XmlParserContext.prototype.getTableStyle = function(sGuid) {
     return this.TableStylesMap[sGuid] || null;
+};
+XmlParserContext.prototype.addConnectorsPr = function(oPr) {
+    for(let nIdx = 0; nIdx < this.ConnectorsPr.length; ++nIdx) {
+        if(oPr === this.ConnectorsPr[nIdx]) {
+            return;
+        }
+    }
+    this.ConnectorsPr.push(oPr);
+};
+XmlParserContext.prototype.assignConnectors = function(aSpTree) {
+    for(let nIdx = 0; nIdx < this.ConnectorsPr.length; ++nIdx) {
+        this.ConnectorsPr[nIdx].assignConnectors(aSpTree);
+    }
+    this.ConnectorsPr.length = 0;
 };
 function XmlWriterContext(editorId){
     //common
@@ -1696,6 +1710,9 @@ XmlWriterContext.prototype.addSlideLayoutRel = function(sRel) {
 };
 XmlWriterContext.prototype.addSlideMasterRel = function(sRel) {
     this.sldMasterIdLst.push(sRel);
+};
+XmlWriterContext.prototype.addNotesMasterRel = function(sRel) {
+    this.notesMasterIdLst.push(sRel);
 };
 XmlWriterContext.prototype.clearSlideLayoutRels = function() {
     this.sldLayoutIdLst.length = 0;
@@ -1767,3 +1784,7 @@ CT_XmlNode.prototype.toXml = function(writer, name) {
     }
     writer.WriteXmlNodeEnd(name);
 };
+
+window['AscCommon'] = window['AscCommon'] || {};
+window['AscCommon'].XmlParserContext = XmlParserContext;
+window["AscCommon"].XmlWriterContext = XmlWriterContext;

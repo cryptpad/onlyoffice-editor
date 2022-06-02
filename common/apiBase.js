@@ -683,18 +683,11 @@
 						var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary.binary);
 						var sizes = AscCommon.getSourceImageSize(blipUrl);
 						var mmExtX, mmExtY, adaptSizeHeight, adaptSizeWidth;
-						if (window["Asc"]["spreadsheet_api"] && this instanceof window["Asc"]["spreadsheet_api"]) {
-							adaptSizeWidth = (sizes.width || 0);
-							adaptSizeHeight = (sizes.height || 0);
-							mmExtY = adaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
-							mmExtX = adaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
-						} else {
-							mmExtX = selectedOleObject.spPr.xfrm.extX;
-							var koef = (mmExtX / sizes.width) || 0;
-							mmExtY = sizes.height * koef;
-							adaptSizeHeight = mmExtY * AscCommon.g_dKoef_mm_to_pix;
-							adaptSizeWidth = mmExtX * AscCommon.g_dKoef_mm_to_pix;
-						}
+						adaptSizeWidth = (sizes.width || 0);
+						adaptSizeHeight = (sizes.height || 0);
+						mmExtY = adaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
+						mmExtX = adaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
+
 						this.asc_editOleObjectAction(false, selectedOleObject, blipUrl, binaryDataOfSheet, mmExtX, mmExtY, adaptSizeWidth, adaptSizeHeight);
 					}
 				}
@@ -1456,7 +1449,7 @@
 								t.setOpenedAt(input["openedAt"]);
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
-								var documentUrl = urls['Editor.bin'] || urls['Editor.' + t._editorDefaultExt()];
+								var documentUrl = urls['Editor.bin'] || urls['origin.' + t._editorDefaultExt()];
 								if (t.isUseNativeViewer && !documentUrl)
 									documentUrl = urls['origin.' + t.documentFormat] || urls['origin.pdf'] || urls['origin.xps'] || urls['origin.oxps'] || urls['origin.djvu'];
 								if (null != documentUrl) {
@@ -2274,7 +2267,7 @@
 	};
 	baseEditorsApi.prototype.saveDocumentToZip  = function(model, editorType, callback)
 	{
-		var context = new XmlWriterContext(editorType);
+		var context = new AscCommon.XmlWriterContext(editorType);
 		var jsZipWrapper = new AscCommon.JSZipWrapper();
 		jsZipWrapper.create();
 		model.toZip(jsZipWrapper, context);
@@ -3882,6 +3875,8 @@
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
+	prot['asc_addTableOleObject'] = prot.asc_addTableOleObject;
+	prot['asc_editTableOleObject'] = prot.asc_editTableOleObject;
 	prot['setOpenedAt'] = prot.setOpenedAt;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;

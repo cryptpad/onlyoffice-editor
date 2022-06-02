@@ -761,7 +761,7 @@ function ConvertGraphicFrameToWordTable(oGraphicFrame, oDocument){
 }
 function ConvertTableToGraphicFrame(oTable, oPresentation){
     var oGraphicFrame = new AscFormat.CGraphicFrame();
-    var oTable2 = new CTable(oPresentation.DrawingDocument, oGraphicFrame, true, 0, [].concat(oTable.TableGrid), oTable.TableGrid.length, true);
+    var oTable2 = new CTable(oPresentation.DrawingDocument, oGraphicFrame, false, 0, [].concat(oTable.TableGrid), oTable.TableGrid.length, true);
     oTable2.Reset(0, 0, 50, 100000, 0, 0, 1);
     oTable2.SetTableLayout(tbllayout_Fixed);
     oTable2.Set_Pr(oTable.Pr.Copy());
@@ -4413,16 +4413,27 @@ CShape.prototype.getSmartArtShapePoint = function () {
                 {
                     return;
                 }
-                var text;
-                if(typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
-                    text = AscCommon.translateManager.getValue("Click to add notes");
-                } else if (this.isObjectInSmartArt()) {
-                    text = AscCommon.translateManager.getValue(pointContent[0].prSet.phldrT);
-                } else {
-                    text = this.getPlaceholderName();
+                let aHierarchy = this.getHierarchy();
+                for (let nPlaceholder = 0; nPlaceholder < aHierarchy.length; ++nPlaceholder) {
+                    let oHSp = aHierarchy[nPlaceholder];
+                    if (isRealObject(oHSp) && oHSp.hasCustomPrompt()) {
+                        if(oHSp.txBody && oHSp.txBody.content) {
+                            this.txBody.content2 = oHSp.txBody.content.Copy(this.txBody, this.getDrawingDocument(), {});
+                        }
+                    }
                 }
 
+
+
                 if (!this.txBody.content2){
+                    var text;
+                    if(typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
+                        text = AscCommon.translateManager.getValue("Click to add notes");
+                    } else if (this.isObjectInSmartArt()) {
+                        text = AscCommon.translateManager.getValue(pointContent[0].prSet.phldrT);
+                    } else {
+                        text = this.getPlaceholderName();
+                    }
                     this.txBody.content2 = AscFormat.CreateDocContentFromString(text, this.getDrawingDocument(), this.txBody);
                     if (this.txBody.content && this.isObjectInSmartArt()) {
                         var oContent = this.txBody.content;
