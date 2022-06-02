@@ -205,11 +205,11 @@ CParaRevisionMove.prototype.GetSelectedElementsInfo = function(oInfo)
 /**
  * Класс для обозначения элемента начала/конца переноса текста во время рецензирования внутри рана
  * @constructor
- * @extends {CRunElementBase}
+ * @extends {AscWord.CRunElementBase}
  */
 function CRunRevisionMove(isStart, isFrom, sName, oInfo)
 {
-	CRunElementBase.call(this);
+	AscWord.CRunElementBase.call(this);
 
 	this.Start = isStart;
 	this.From  = isFrom;
@@ -229,7 +229,7 @@ function CRunRevisionMove(isStart, isFrom, sName, oInfo)
 	}
 }
 
-CRunRevisionMove.prototype = Object.create(CRunElementBase.prototype);
+CRunRevisionMove.prototype = Object.create(AscWord.CRunElementBase.prototype);
 CRunRevisionMove.prototype.constructor = CRunRevisionMove;
 CRunRevisionMove.prototype.Type = para_RevisionMove;
 

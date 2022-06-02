@@ -331,7 +331,7 @@ CChangesRunAddItem.prototype.private_WriteItem = function(Writer, Item)
 };
 CChangesRunAddItem.prototype.private_ReadItem = function(Reader)
 {
-	return ParagraphContent_Read_FromBinary(Reader);
+	return AscWord.ReadRunElementFromBinary(Reader);
 };
 CChangesRunAddItem.prototype.Load = function(Color)
 {
@@ -420,7 +420,7 @@ CChangesRunRemoveItem.prototype.private_WriteItem = function(Writer, Item)
 };
 CChangesRunRemoveItem.prototype.private_ReadItem = function(Reader)
 {
-	return ParagraphContent_Read_FromBinary(Reader);
+	return AscWord.ReadRunElementFromBinary(Reader);
 };
 CChangesRunRemoveItem.prototype.Load = function()
 {

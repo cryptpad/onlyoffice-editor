@@ -54,11 +54,11 @@ var c_oAscAlignV         = Asc.c_oAscAlignV;
 /**
  * Оберточный класс для автофигур и картинок. Именно он непосредственно лежит в ране.
  * @constructor
- * @extends {CRunElementBase}
+ * @extends {AscWord.CRunElementBase}
  */
 function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 {
-	CRunElementBase.call(this);
+	AscWord.CRunElementBase.call(this);
 
 	this.Id          = AscCommon.g_oIdCounter.Get_NewId();
 	this.DrawingType = drawing_Inline;
@@ -194,7 +194,7 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 		}
 	}
 }
-ParaDrawing.prototype = Object.create(CRunElementBase.prototype);
+ParaDrawing.prototype = Object.create(AscWord.CRunElementBase.prototype);
 ParaDrawing.prototype.constructor = ParaDrawing;
 
 ParaDrawing.prototype.Type = para_Drawing;
@@ -231,11 +231,11 @@ ParaDrawing.prototype.Get_Height = function()
 {
 	return this.Height;
 };
-ParaDrawing.prototype.Get_WidthVisible = function()
+ParaDrawing.prototype.GetWidthVisible = function()
 {
 	return this.WidthVisible;
 };
-ParaDrawing.prototype.Set_WidthVisible = function(WidthVisible)
+ParaDrawing.prototype.SetWidthVisible = function(WidthVisible)
 {
 	this.WidthVisible = WidthVisible;
 };
@@ -1317,10 +1317,6 @@ ParaDrawing.prototype.Reassign_ImageUrls = function(mapUrls)
 };
 ParaDrawing.prototype.PrepareRecalculateObject = function()
 {
-};
-ParaDrawing.prototype.Is_RealContent = function()
-{
-	return true;
 };
 ParaDrawing.prototype.CanAddNumbering = function()
 {

@@ -3909,7 +3909,7 @@ CParagraphRecalculateStateWrap.prototype.TryCondenseSpaces = function(nWidth1, n
 	var nSumSpaces = 0;
 	for (var nIndex = 0, nCount = this.RangeSpaces.length; nIndex < nCount; ++nIndex)
 	{
-		nSumSpaces += this.RangeSpaces[nIndex].WidthOrigin / TEXTWIDTH_DIVIDER;
+		nSumSpaces += this.RangeSpaces[nIndex].WidthOrigin / AscWord.TEXTWIDTH_DIVIDER;
 	}
 
 	var nSpace = nSumSpaces * (1 - nKoef);

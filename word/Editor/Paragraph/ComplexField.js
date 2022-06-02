@@ -43,7 +43,7 @@ var fldchartype_End      = 2;
 
 function ParaFieldChar(Type, LogicDocument)
 {
-	CRunElementBase.call(this);
+	AscWord.CRunElementBase.call(this);
 
 	this.LogicDocument = LogicDocument;
 	this.Use           = true;
@@ -60,7 +60,7 @@ function ParaFieldChar(Type, LogicDocument)
 	this.String        = "";
 	this.NumValue      = null;
 }
-ParaFieldChar.prototype = Object.create(CRunElementBase.prototype);
+ParaFieldChar.prototype = Object.create(AscWord.CRunElementBase.prototype);
 ParaFieldChar.prototype.constructor = ParaFieldChar;
 ParaFieldChar.prototype.Type = para_FieldChar;
 ParaFieldChar.prototype.Init = function(Type, LogicDocument)
@@ -221,7 +221,7 @@ ParaFieldChar.prototype.private_UpdateWidth = function()
 		RealWidth += this.NumWidths[Char];
 	}
 
-	RealWidth = (RealWidth * TEXTWIDTH_DIVIDER) | 0;
+	RealWidth = (RealWidth * AscWord.TEXTWIDTH_DIVIDER) | 0;
 
 	this.Width        = RealWidth;
 	this.WidthVisible = RealWidth;
@@ -276,7 +276,7 @@ ParaFieldChar.prototype.PreDelete = function()
  */
 function ParaInstrText(nCharCode)
 {
-	CRunElementBase.call(this);
+	AscWord.CRunElementBase.call(this);
 
 	this.Value        = (undefined !== nCharCode ? nCharCode : 0x00);
 	this.Width        = 0x00000000 | 0;
@@ -284,7 +284,7 @@ function ParaInstrText(nCharCode)
 	this.Run          = null;
 	this.Replacement  = null; // Используется, когда InstrText идет в неположенном месте и должно восприниматься как обычный текст
 }
-ParaInstrText.prototype = Object.create(CRunElementBase.prototype);
+ParaInstrText.prototype = Object.create(AscWord.CRunElementBase.prototype);
 ParaInstrText.prototype.constructor = ParaInstrText;
 ParaInstrText.prototype.Type = para_InstrText;
 ParaInstrText.prototype.Copy = function()

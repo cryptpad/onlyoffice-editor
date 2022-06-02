@@ -852,7 +852,7 @@ function RecalculateDocContentByMaxLine(oDocContent, dMaxWidth, bNeedRecalcAllDr
         {
             if(oDocContent.Content[0] && oDocContent.Content[0].Content[0] && oDocContent.Content[0].Content[0].Content[0])
             {
-                return oDocContent.Content[0].Content[0].Content[0].WidthVisible/TEXTWIDTH_DIVIDER;
+                return oDocContent.Content[0].Content[0].Content[0].GetWidthVisible();
             }
         }
         return 0.001;

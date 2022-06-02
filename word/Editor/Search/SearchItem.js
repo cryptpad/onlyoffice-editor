@@ -61,7 +61,7 @@
 	/**
 	 * Конвертируем данный элемент в элемент рана для вставки в документ
 	 * @param {boolean} isMathRun
-	 * @returns {?CRunElementBase}
+	 * @returns {?AscWord.CRunElementBase}
 	 */
 	CSearchTextItemBase.prototype.ToRunElement = function(isMathRun)
 	{

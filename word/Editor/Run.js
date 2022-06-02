@@ -595,7 +595,7 @@ ParaRun.prototype.IsStartFromNewLine = function()
 };
 /**
  * Добавляем новый элменет в текущую позицию
- * @param {CRunElementBase} oItem
+ * @param {AscWord.CRunElementBase} oItem
  */
 ParaRun.prototype.Add = function(oItem)
 {
@@ -757,7 +757,7 @@ ParaRun.prototype.private_CheckLanguageBeforeAdd = function(oNewRun, oLogicDocum
 /**
  * Провяеряем добавление ссылки на сноску или добавление текста рядом с ссылкой на сноску
  * @param {!ParaRun} oNewRun
- * @param {CRunElementBase} oItem
+ * @param {AscWord.CRunElementBase} oItem
  * @param {CDocument} oLogicDocument
  * @returns {?ParaRun}
  */
@@ -900,7 +900,7 @@ ParaRun.prototype.private_CheckMathBreakOperatorBeforeAdd = function(oNewRun)
 /**
  * Функция проверяет настройки рана, перед добавлением внутрь элементов
  * Если необходимо, то добавляется новый ран с необходимыми настройками
- * @param {?CRunElementBase} oItem
+ * @param {?AscWord.CRunElementBase} oItem
  * @returns {?ParaRun}
  */
 ParaRun.prototype.CheckRunBeforeAdd = function(oItem)
@@ -1919,7 +1919,7 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
             var Letter = this.Content[Pos - 1];
             loc = Letter.GetLocationOfLetter();
 
-            X += loc.x + Letter.Get_WidthVisible();
+            X += loc.x + Letter.GetWidthVisible();
             Y += loc.y;
         }
 
@@ -1934,7 +1934,7 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
             if (para_Drawing === ItemType && drawing_Inline !== Item.DrawingType)
                 continue;
 
-            X += Item.Get_WidthVisible();
+            X += Item.GetWidthVisible();
         }
 
         if (CurrentRun && this.Content.length > 0)
@@ -2784,7 +2784,7 @@ ParaRun.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPos
 
         var Item         = this.Content[CurPos];
         var ItemType     = Item.Type;
-        var WidthVisible = Item.Get_WidthVisible();
+        var WidthVisible = Item.GetWidthVisible();
 
         switch ( ItemType )
         {
@@ -3708,7 +3708,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     StartWord = true;
 
                     // При проверке, убирается ли слово, мы должны учитывать ширину предшествующих пробелов.
-                    var LetterLen = Item.Get_Width2() / TEXTWIDTH_DIVIDER;//var LetterLen = Item.Get_Width();
+                    var LetterLen = Item.Get_Width2() / AscWord.TEXTWIDTH_DIVIDER;//var LetterLen = Item.Get_Width();
 
                     if (true !== Word)
                     {
@@ -3806,7 +3806,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                 }
                 case para_Math_BreakOperator:
                 {
-                    var BrkLen = Item.Get_Width2()/TEXTWIDTH_DIVIDER;
+                    var BrkLen = Item.Get_Width2()/AscWord.TEXTWIDTH_DIVIDER;
 
                     var bCompareOper = Item.Is_CompareOperator();
                     var bOperBefore = this.ParaMath.Is_BrkBinBefore() == true;
@@ -4817,7 +4817,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             {
                 PRSC.Letters++;
 
-                PRSC.Range.W += Item.Get_Width() / TEXTWIDTH_DIVIDER; // Get_Width рассчитываем ширину с учетом состояний Gaps
+                PRSC.Range.W += Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER; // Get_Width рассчитываем ширину с учетом состояний Gaps
                 break;
             }
             case para_Space:
@@ -4903,7 +4903,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
                 PRSC.SpacesCount = 0;
                 PRSC.Word        = false;
 
-                PRSC.Range.WBreak = Item.Get_WidthVisible();
+                PRSC.Range.WBreak = Item.GetWidthVisible();
 
                 break;
             }
@@ -4912,7 +4912,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
                 if ( true === PRSC.Word )
                     PRSC.Spaces += PRSC.SpacesCount;
 
-				PRSC.Range.WEnd = Item.Get_WidthVisible();
+				PRSC.Range.WEnd = Item.GetWidthVisible();
 
                 break;
             }
@@ -5027,8 +5027,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             case para_Math_BreakOperator:
             case para_Math_Ampersand:
             {
-                var WidthVisible = Item.Get_Width() / TEXTWIDTH_DIVIDER; // Get_Width рассчитываем ширину с учетом состояний Gaps
-                Item.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER)| 0;//Item.Set_WidthVisible(WidthVisible);
+                var WidthVisible = Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER; // Get_Width рассчитываем ширину с учетом состояний Gaps
+                Item.WidthVisible = (WidthVisible * AscWord.TEXTWIDTH_DIVIDER)| 0;//Item.SetWidthVisible(WidthVisible);
 
                 PRSA.X    += WidthVisible;
                 PRSA.LastW = WidthVisible;
@@ -5049,7 +5049,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     PRSA.SpacesCounter--;
                 }
 
-                Item.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER) | 0;//Item.Set_WidthVisible(WidthVisible);
+                Item.SetWidthVisible(WidthVisible);
 
                 PRSA.X    += WidthVisible;
                 PRSA.LastW = WidthVisible;
@@ -5357,8 +5357,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 
 				if (Item.IsNumValue())
 				{
-					PRSA.X    += Item.Get_WidthVisible();
-					PRSA.LastW = Item.Get_WidthVisible();
+					PRSA.X    += Item.GetWidthVisible();
+					PRSA.LastW = Item.GetWidthVisible();
 				}
 
 				break;
@@ -5731,7 +5731,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
             case para_Math_Ampersand:
             case para_Math_Placeholder:
             {
-                var ItemWidth = Item.Get_Width() / TEXTWIDTH_DIVIDER;
+                var ItemWidth = Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER;
                 if ( false === bWord )
                 {
                     bWord    = true;
@@ -5775,7 +5775,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                     nWordLen = 0;
                 }
 
-                nCurMaxWidth += Item.Get_Width() / TEXTWIDTH_DIVIDER;
+                nCurMaxWidth += Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER;
                 bCheckTextHeight = true;
                 break;
             }
@@ -5941,7 +5941,7 @@ ParaRun.prototype.Get_Range_VisibleWidth = function(RangeW, _CurLine, _CurRange)
             case para_Math_Placeholder:
             case para_Math_BreakOperator:
             {
-                RangeW.W += Item.Get_WidthVisible();
+                RangeW.W += Item.GetWidthVisible();
                 break;
             }
             case para_Drawing:
@@ -5966,16 +5966,14 @@ ParaRun.prototype.Get_Range_VisibleWidth = function(RangeW, _CurLine, _CurRange)
             }
             case para_End:
             {
-                RangeW.W += Item.Get_WidthVisible();
+                RangeW.W += Item.GetWidthVisible();
                 RangeW.End = true;
 
                 break;
             }
 			default:
 			{
-				if (Item.Get_WidthVisible())
-					RangeW.W += Item.Get_WidthVisible();
-
+				RangeW.W += Item.GetWidthVisible();
 				break;
 			}
         }
@@ -6081,7 +6079,7 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType         = Item.Type;
-        var ItemWidthVisible = Item.Get_WidthVisible();
+        var ItemWidthVisible = Item.GetWidthVisible();
 
         if ((PDSH.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
         	continue;
@@ -6404,7 +6402,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                 if (para_Drawing != ItemType || Item.Is_Inline())
                 {
                     Item.Draw(X, Y - this.YOffset, pGraphics, PDSE, CurTextPr);
-                    X += Item.Get_WidthVisible();
+                    X += Item.GetWidthVisible();
                 }
 
                 // Внутри отрисовки инлайн-автофигур могут изменится цвета и шрифт, поэтому восстанавливаем настройки
@@ -6442,7 +6440,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             {
                 Item.Draw( X, Y - this.YOffset, pGraphics, PDSE, CurTextPr );
 
-                X += Item.Get_WidthVisible();
+                X += Item.GetWidthVisible();
 
                 break;
             }
@@ -6545,7 +6543,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             {
                 var PosLine = this.ParaMath.GetLinePosition(PDSE.Line, PDSE.Range);
                 Item.Draw(PosLine.x, PosLine.y, pGraphics, InfoMathText);
-                X += Item.Get_WidthVisible();
+                X += Item.GetWidthVisible();
                 break;
             }
             case para_Math_Placeholder:
@@ -6554,7 +6552,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                 {
                     var PosLine = this.ParaMath.GetLinePosition(PDSE.Line, PDSE.Range);
                     Item.Draw(PosLine.x, PosLine.y, pGraphics, InfoMathText);
-                    X += Item.Get_WidthVisible();
+                    X += Item.GetWidthVisible();
                 }
                 break;
             }
@@ -6590,7 +6588,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 					}
 
 					Item.Draw(X, Y - this.YOffset, pGraphics, PDSE);
-					X += Item.Get_WidthVisible();
+					X += Item.GetWidthVisible();
 				}
 
 				break;
@@ -6775,7 +6773,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 	{
 		var Item             = this.private_CheckInstrText(this.Content[Pos]);
 		var ItemType         = Item.Type;
-		var ItemWidthVisible = Item.Get_WidthVisible();
+		var ItemWidthVisible = Item.GetWidthVisible();
 
 		if ((PDSL.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
 			continue;
@@ -7137,7 +7135,7 @@ ParaRun.prototype.SkipDraw = function(PDS)
 		if (para_End === nItemType)
 			X += oItem.Get_Width();
 		else if (para_Drawing !== nItemType || oItem.Is_Inline())
-			X += oItem.Get_WidthVisible();
+			X += oItem.GetWidthVisible();
 	}
 
 	// Обновим позицию X
@@ -7296,7 +7294,7 @@ ParaRun.prototype.Get_ParaContentPosByXY = function(SearchPos, Depth, _CurLine, 
 
 			if (para_Drawing != ItemType || true === Item.Is_Inline())
 			{
-				TempDx = Item.Get_WidthVisible();
+				TempDx = Item.GetWidthVisible();
 			}
 
 			if (this.Type == para_Math_Run)
@@ -8202,7 +8200,7 @@ ParaRun.prototype.Selection_DrawRange = function(_CurLine, _CurRange, SelectionD
             else
             {
                 if ( para_Drawing !== ItemType || true === Item.Is_Inline() )
-                    SelectionDraw.StartX += Item.Get_WidthVisible();
+                    SelectionDraw.StartX += Item.GetWidthVisible();
             }
         }
         else
@@ -8221,7 +8219,7 @@ ParaRun.prototype.Selection_DrawRange = function(_CurLine, _CurRange, SelectionD
                     Item.Draw_Selection();
             }
             else
-                SelectionDraw.W += Item.Get_WidthVisible();
+                SelectionDraw.W += Item.GetWidthVisible();
         }
     }
 
@@ -10091,7 +10089,7 @@ ParaRun.prototype.Read_FromBinary2 = function(Reader)
         this.Content = [];
         for ( var Index = 0; Index < Count; Index++ )
         {
-            var Element = ParagraphContent_Read_FromBinary( Reader );
+            var Element = AscWord.ReadRunElementFromBinary(Reader);
             if ( null !== Element )
                 this.Content.push( Element );
         }
@@ -10127,7 +10125,7 @@ ParaRun.prototype.private_GetCollPrChangeOther = function()
 /**
  * Специальная функция-заглушка, добавляем элементы за знаком конца параграфа, для поддержки разделителей, лежащих
  * между параграфами
- * @param {CRunElementBase} oElement
+ * @param {AscWord.CRunElementBase} oElement
  */
 ParaRun.prototype.AddAfterParaEnd = function(oElement)
 {
@@ -10596,8 +10594,8 @@ ParaRun.prototype.Math_SetPosition = function(pos, PosInfo)
         }
 
         this.Content[Pos].setPosition(pos);
-        pos.x += this.Content[Pos].Get_WidthVisible(); // Get_Width => Get_WidthVisible
-                                                     // Get_WidthVisible - Width + Gaps с учетом настроек состояния
+        pos.x += this.Content[Pos].GetWidthVisible(); // GetWidth => GetWidthVisible
+                                                      // GetWidthVisible - Width + Gaps с учетом настроек состояния
     }
 };
 ParaRun.prototype.Math_Get_StartRangePos = function(_CurLine, _CurRange, SearchPos, Depth, bStartLine)
@@ -10702,8 +10700,8 @@ ParaRun.prototype.Math_RecalculateContent = function(PRS)
         var size = Item.size,
             Type = Item.Type;
 
-        var WidthItem = Item.Get_WidthVisible(); // Get_Width => Get_WidthVisible
-                                                 // Get_WidthVisible - Width + Gaps с учетом настроек состояния
+        var WidthItem = Item.GetWidthVisible(); // GetWidth => GetWidthVisible
+                                                // GetWidthVisible - Width + Gaps с учетом настроек состояния
         width += WidthItem;
 
         if(ascent < size.ascent)
@@ -11178,8 +11176,8 @@ ParaRun.prototype.ApplyPoints = function(PointsInfo)
                 Item.size.width = PointsInfo.GetAlign();
             }
 
-            this.size.width += this.Content[Pos].Get_WidthVisible(); // Get_Width => Get_WidthVisible
-                                                                     // Get_WidthVisible - Width + Gaps с учетом настроек состояния
+            this.size.width += this.Content[Pos].GetWidthVisible(); // GetWidth => GetWidthVisible
+                                                                    // GetWidthVisible - Width + Gaps с учетом настроек состояния
         }
     }
 };
@@ -12328,7 +12326,7 @@ ParaRun.prototype.GetElementsCount = function()
 /**
  * Получаем элемент по заданной позиции
  * @param nPos {number}
- * @returns {?CRunElementBase}
+ * @returns {?AscWord.CRunElementBase}
  */
 ParaRun.prototype.GetElement = function(nPos)
 {
@@ -12802,7 +12800,7 @@ ParaRun.prototype.private_IsUseAscFont = function(oTextPr)
 /**
  * Получаем предыдущий элемент, с учетом предыдущих классов внутри параграфа
  * @param nPos {number} позиция внутри данного рана
- * @returns {?CRunElementBase}
+ * @returns {?AscWord.CRunElementBase}
  */
 ParaRun.prototype.GetPrevRunElement = function(nPos)
 {
@@ -12825,7 +12823,7 @@ ParaRun.prototype.GetPrevRunElement = function(nPos)
 /**
  * Получаем следующий элемент, с учетом следующих классов внутри параграфа
  * @param nPos {number} позиция внутри данного рана
- * @returns {?CRunElementBase}
+ * @returns {?AscWord.CRunElementBase}
  */
 ParaRun.prototype.GetNextRunElement = function(nPos)
 {
@@ -12848,7 +12846,7 @@ ParaRun.prototype.GetNextRunElement = function(nPos)
 /**
  * Получаем позицию следующего элемента внутри параграфа
  * @param nPos {number} позиция внутри данного рана
- * @returns {?{Element : CRunElementBase, Pos : CParagraphContentPos}}
+ * @returns {?{Element : AscWord.CRunElementBase, Pos : CParagraphContentPos}}
  */
 ParaRun.prototype.GetNextRunElementEx = function(nPos)
 {

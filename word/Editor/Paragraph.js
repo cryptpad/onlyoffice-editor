@@ -6409,7 +6409,7 @@ Paragraph.prototype.GetPrevRunElements = function(oRunElements)
 /**
  * Получаем следующий за курсором элемент рана
  * @param {CParagraphContentPos} [oParaPos=undefined]
- * @returns {?CRunElementBase}
+ * @returns {?AscWord.CRunElementBase}
  */
 Paragraph.prototype.GetNextRunElement = function(oParaPos)
 {
@@ -6426,7 +6426,7 @@ Paragraph.prototype.GetNextRunElement = function(oParaPos)
 /**
  * Получаем идущий до курсора элемент рана
  * @param {CParagraphContentPos} [oParaPos=undefined]
- * @returns {?CRunElementBase}
+ * @returns {?AscWord.CRunElementBase}
  */
 Paragraph.prototype.GetPrevRunElement = function(oParaPos)
 {
@@ -15463,7 +15463,7 @@ Paragraph.prototype.GetAutoWidthForDropCap = function()
 		if (!oParaEnd)
 			return 0;
 
-		return oParaEnd.Get_WidthVisible();
+		return oParaEnd.GetWidthVisible();
 	}
 	else
 	{
@@ -19492,7 +19492,7 @@ CParagraphRunElements.prototype.CheckType = function(nType)
 };
 /**
  * Добавляем данный элемент
- * @param oElement {CRunElementBase}
+ * @param oElement {AscWord.CRunElementBase}
  * @param oRun {ParaRun}
  */
 CParagraphRunElements.prototype.Add = function(oElement, oRun)
