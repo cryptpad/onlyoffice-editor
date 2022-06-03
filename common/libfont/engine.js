@@ -40,6 +40,17 @@ function onLoadFontsModule(window, undefined)
 
 	AscFonts.CopyStreamToMemory = AscFonts["CopyStreamToMemory"];
 
+	AscFonts.AllocString2 = AscFonts["AllocString"];
+	AscFonts.AllocString = function(size)
+	{
+		var pointer = AscFonts.AllocString2(size);
+		pointer.pointer = pointer["pointer"];
+		pointer.getBuffer = pointer["getBuffer"];
+		pointer.free = pointer["free"];
+		pointer.set = pointer["set"];
+		return pointer;
+	};
+
 	AscFonts.FT_CreateLibrary = AscFonts["FT_CreateLibrary"];
 	AscFonts.FT_Done_Library = AscFonts["FT_Done_Library"];
 	AscFonts.FT_Set_TrueType_HintProp = AscFonts["FT_Set_TrueType_HintProp"];
@@ -397,7 +408,7 @@ function onLoadFontsModule(window, undefined)
 		}
 	};
 
-	const STRING_MAX_LEN = AscFonts.GRAPHEME_STRING_MAX_LEN;
+	const STRING_MAX_LEN = AscFonts.GRAPHEME_STRING_MAX_LEN || 1024;
 	const COEF           = AscFonts.GRAPHEME_COEF;
 	let   STRING_POINTER = null;
 	let   STRING_LEN     = 0;
@@ -441,7 +452,7 @@ function onLoadFontsModule(window, undefined)
 	AscFonts.HB_StartString = function()
 	{
 		if (!STRING_POINTER)
-			STRING_POINTER = Module.AllocString(6 * STRING_MAX_LEN + 1);
+			STRING_POINTER = AscFonts.AllocString(6 * STRING_MAX_LEN + 1);
 
 		STRING_LEN  = 0;
 		CLUSTER_LEN = 0;
@@ -449,7 +460,7 @@ function onLoadFontsModule(window, undefined)
 	};
 	AscFonts.HB_AppendToString = function(code)
 	{
-		let arrBuffer   = STRING_POINTER.buffer;
+		let arrBuffer   = STRING_POINTER.getBuffer();
 		let nClusterLen = -1;
 
 		if (code < 0x80)
@@ -506,7 +517,7 @@ function onLoadFontsModule(window, undefined)
 	};
 	AscFonts.HB_EndString = function()
 	{
-		STRING_POINTER.buffer[STRING_LEN++] = 0;
+		STRING_POINTER.set(STRING_LEN++, 0);
 	};
 	AscFonts.HB_GetStringLength = function()
 	{
@@ -575,6 +586,7 @@ function onLoadFontsModule(window, undefined)
 		if (retObj.error)
 			return;
 
+		let reader = READER;
 		let glyphs = [];
 		let glyphsCount = retObj.count;
 		for (let i = 0; i < glyphsCount; i++)
@@ -598,16 +610,17 @@ function onLoadFontsModule(window, undefined)
 		let utf8_start = 0;
 		let utf8_end = 0;
 
+		let arBuffer = STRING_POINTER.getBuffer();
 		if (direction === AscFonts.HB_DIRECTION.HB_DIRECTION_RTL)
 		{
 			for (let i = glyphsCount - 1; i >= 0; i--)
 			{
 				if (i === 0)
-					utf8_end = textBuffer.length - 1;
+					utf8_end = CLUSTER_MAX;
 				else
 					utf8_end = glyphs[i - 1].cluster;
 
-				glyphs[i].text = String.prototype.fromUtf8(STRING_POINTER.buffer, utf8_start, utf8_end - utf8_start);
+				glyphs[i].text = String.prototype.fromUtf8(arBuffer, utf8_start, utf8_end - utf8_start);
 				utf8_start = utf8_end;
 			}
 		}
@@ -616,11 +629,11 @@ function onLoadFontsModule(window, undefined)
 			for (let i = 0; i < glyphsCount; i++)
 			{
 				if (i === (glyphsCount - 1))
-					utf8_end = textBuffer.length - 1;
+					utf8_end = CLUSTER_MAX;
 				else
 					utf8_end = glyphs[i + 1].cluster;
 
-				glyphs[i].text = String.prototype.fromUtf8(STRING_POINTER.buffer, utf8_start, utf8_end - utf8_start);
+				glyphs[i].text = String.prototype.fromUtf8(arBuffer, utf8_start, utf8_end - utf8_start);
 				utf8_start = utf8_end;
 			}
 		}
