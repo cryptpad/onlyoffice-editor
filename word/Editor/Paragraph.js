@@ -19367,8 +19367,9 @@ CRunRecalculateObject.prototype =
         if ( ThisSP !== OtherSP || ThisEP !== OtherEP )
             return false;
 
-        if ( ( (OLI.Content === undefined || para_Run === OLI.Type || para_Math_Run === OLI.Type) && this.Content.length > 0 ) || ( OLI.Content !== undefined && para_Run !== OLI.Type && para_Math_Run !== OLI.Type && OLI.Content.length !== this.Content.length) )
-            return false;
+		if (((OLI.Content === undefined || para_Run === OLI.Type || para_Math_Run === OLI.Type) && this.Content.length > 0)
+			|| (OLI.Content !== undefined && para_Run !== OLI.Type && para_Math_Run !== OLI.Type && OLI.Content.length !== this.Content.length))
+			return false;
 
         var ContentLen = this.Content.length;
         var StartPos = ThisSP;

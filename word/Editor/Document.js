@@ -9149,7 +9149,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				this.StartAction(AscDFH.historydescription_Document_Shortcut_AddNonBreakingSpace);
 				this.DrawingDocument.TargetStart();
 				this.DrawingDocument.TargetShow();
-				this.AddToParagraph(new ParaText(0x00A0));
+				this.AddToParagraph(new AscWord.CRunText(0x00A0));
 				this.FinalizeAction();
 			}
 			bRetValue = keydownresult_PreventNothing;
@@ -9474,7 +9474,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				this.DrawingDocument.TargetStart();
 				this.DrawingDocument.TargetShow();
 
-				var oItem = new ParaText(0x002D);
+				var oItem = new AscWord.CRunText(0x002D);
 				oItem.Set_SpaceAfter(false);
 
 				this.AddToParagraph(oItem);
@@ -10123,7 +10123,7 @@ CDocument.prototype.OnKeyDown = function(e)
 									}
 									else
 									{
-										newAddRun.private_AddItemToRun(0, new ParaText(textAfterChange));
+										newAddRun.private_AddItemToRun(0, new AscWord.CRunText(textAfterChange));
 									}
 									newDelRun.SetReviewType(reviewtype_Remove, true);
 									newAddRun.SetReviewType(reviewtype_Add, true);
@@ -10154,7 +10154,7 @@ CDocument.prototype.OnKeyDown = function(e)
 									else if (AscCommon.IsSpace(textAfterChange))
 										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, new ParaSpace(textAfterChange));
 									else
-										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, new ParaText(textAfterChange));
+										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, new AscWord.CRunText(textAfterChange));
 									if (ListForUnicode[0].oRun.ReviewType === 2)
 									{
 										var oPosItem = oParagraph.Get_PosByElement(ListForUnicode[0].oRun);
@@ -10232,7 +10232,7 @@ CDocument.prototype.OnKeyDown = function(e)
 									newDelRun.private_AddItemToRun(0, ListForUnicode[0].oRun.Content[ListForUnicode[0].currentPos]);
 									for (var i = 0; i < textAfterChange.length; i++)
 									{
-										newAddRun.private_AddItemToRun(i, new ParaText(textAfterChange.charCodeAt(i)));
+										newAddRun.private_AddItemToRun(i, new AscWord.CRunText(textAfterChange.charCodeAt(i)));
 									}
 									newDelRun.SetReviewType(reviewtype_Remove, true);
 									newAddRun.SetReviewType(reviewtype_Add, true);
@@ -10253,7 +10253,7 @@ CDocument.prototype.OnKeyDown = function(e)
 										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos + i, oItem);
 									}
 									else
-										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos + i, new ParaText(textAfterChange.charCodeAt(i)));
+										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos + i, new AscWord.CRunText(textAfterChange.charCodeAt(i)));
 								}
 								
 								ListForUnicode[0].oRun.Selection.Use = true;
@@ -10349,7 +10349,7 @@ CDocument.prototype.private_AddSymbolByShortcut = function(nCode)
 		this.StartAction(AscDFH.historydescription_Document_AddEuroLetter);
 		this.DrawingDocument.TargetStart();
 		this.DrawingDocument.TargetShow();
-		this.AddToParagraph(new ParaText(nCode));
+		this.AddToParagraph(new AscWord.CRunText(nCode));
 		this.FinalizeAction();
 	}
 };
@@ -10375,7 +10375,7 @@ CDocument.prototype.OnKeyPress = function(e)
 			this.DrawingDocument.TargetShow();
 
 			this.CheckLanguageOnTextAdd = true;
-			this.AddToParagraph(new ParaText(Code));
+			this.AddToParagraph(new AscWord.CRunText(Code));
 			this.CheckLanguageOnTextAdd = false;
 
 			this.FinalizeAction();
@@ -17674,7 +17674,7 @@ CDocument.prototype.private_AddCompositeText = function(nCharCode)
 		if (AscCommon.IsSpace(nCharCode))
 			oChar = new ParaSpace(nCharCode);
 		else
-			oChar = new ParaText(nCharCode);
+			oChar = new AscWord.CRunText(nCharCode);
 	}
 
 	oRun.AddToContent(nPos, oChar, true);
@@ -22978,7 +22978,7 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 					if (AscCommon.IsSpace(nCharCode))
 						oParagraph.Add(new ParaSpace(nCharCode));
 					else
-						oParagraph.Add(new ParaText(nCharCode));
+						oParagraph.Add(new AscWord.CRunText(nCharCode));
 				}
 				oSdt.AddNewParagraph(false, true);
 			}
@@ -24615,7 +24615,7 @@ CDocument.prototype.AddSpecialSymbol = function(oPr)
 	{
 		if (true === oPr["NonBreakingHyphen"])
 		{
-			oItem = new ParaText(0x002D);
+			oItem = new AscWord.CRunText(0x002D);
 			oItem.Set_SpaceAfter(false);
 		}
 	}
@@ -25910,7 +25910,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 							NewContent.content.push(oNewParagraph);
 							break;
 						default:
-							oText = new ParaText(oProps.separator);
+							oText = new AscWord.CRunText(oProps.separator);
 							break;
 					}
 					if (oText)

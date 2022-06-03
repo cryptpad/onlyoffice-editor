@@ -4145,7 +4145,7 @@ CPresentation.prototype.addCompositeText = function (nCharCode) {
         if (32 == nCharCode || 12288 == nCharCode)
             oChar = new ParaSpace();
         else
-            oChar = new ParaText(nCharCode);
+            oChar = new AscWord.CRunText(nCharCode);
     }
     oRun.AddToContent(nPos, oChar, true);
     this.CompositeInput.Length++;
@@ -6897,7 +6897,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                 {
                     if (true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
                         History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                        this.AddToParagraph(new ParaText("€".charCodeAt(0)));
+                        this.AddToParagraph(new AscWord.CRunText("€".charCodeAt(0)));
                     }
                 }
             }
@@ -7057,7 +7057,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
 
                     History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
 
-                    var Item = new ParaText(0x2013);
+                    var Item = new AscWord.CRunText(0x2013);
                     Item.SpaceAfter = false;
 
                     this.AddToParagraph(Item);
@@ -7167,7 +7167,7 @@ CPresentation.prototype.OnKeyPress = function (e) {
                 target_doc_content1 = oController.getTargetDocContent();
             }
             this.CheckLanguageOnTextAdd = true;
-            this.AddToParagraph(new ParaText(Code), false, true);
+            this.AddToParagraph(new AscWord.CRunText(Code), false, true);
             this.CheckLanguageOnTextAdd = false;
             if (oController) {
                 target_doc_content2 = oController.getTargetDocContent();
@@ -7190,7 +7190,7 @@ CPresentation.prototype.OnKeyPress = function (e) {
             if (true === this.CollaborativeEditing.Is_Fast() || this.Document_Is_SelectionLocked(changestype_Drawing_Props) === false) {
                 if (oController && oController.selectedObjects.length !== 0) {
                     History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                    this.AddToParagraph(new ParaText(0x00A0));
+                    this.AddToParagraph(new AscWord.CRunText(0x00A0));
                 }
             }
         } else if (true === e.CtrlKey) {
@@ -10854,7 +10854,7 @@ CPresentation.prototype.TextBox_Put = function (sText, rFonts) {
                 if (0x0020 === nCharCode)
                     this.AddToParagraph(new ParaSpace());
                 else
-                    this.AddToParagraph(new ParaText(nCharCode));
+                    this.AddToParagraph(new AscWord.CRunText(nCharCode));
 
             }
 

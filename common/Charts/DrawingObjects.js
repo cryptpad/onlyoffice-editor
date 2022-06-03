@@ -4464,7 +4464,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
             if (32 == nCharCode || 12288 == nCharCode)
                 oChar = new ParaSpace();
             else
-                oChar = new ParaText(nCharCode);
+                oChar = new AscWord.CRunText(nCharCode);
         }
 
         oRun.Add_ToContent(nPos, oChar, true);

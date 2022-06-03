@@ -180,7 +180,7 @@
 			if (AscCommon.IsSpace(this.Value))
 				return new ParaSpace(this.Value);
 			else
-				return new ParaText(this.Value);
+				return new AscWord.CRunText(this.Value);
 		}
 	};
 	CSearchTextItemChar.prototype.IsChar = function()
@@ -456,7 +456,7 @@
 		}
 		else
 		{
-			var oElement = new ParaText(0x2D);
+			var oElement = new AscWord.CRunText(0x2D);
 			oElement.Set_SpaceAfter(false);
 			return oElement;
 		}
@@ -486,7 +486,7 @@
 		if (isMathRun)
 			return null;
 
-		return new ParaText(0x00A0);
+		return new AscWord.CRunText(0x00A0);
 	};
 	CSearchTextSpecialNonBreakingSpace.prototype.IsNonBreakingSpace = function()
 	{
@@ -538,7 +538,7 @@
 		}
 		else
 		{
-			return new ParaText(0x2014);
+			return new AscWord.CRunText(0x2014);
 		}
 	};
 	CSearchTextSpecialEmDash.prototype.IsEmDash = function()
@@ -571,7 +571,7 @@
 		}
 		else
 		{
-			return new ParaText(0x2013);
+			return new AscWord.CRunText(0x2013);
 		}
 	};
 	CSearchTextSpecialEnDash.prototype.IsEnDash = function()

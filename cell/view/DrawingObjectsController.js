@@ -634,7 +634,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
             }
             else
             {
-                oItem = new ParaText(Code);
+                oItem = new AscWord.CRunText(Code);
             }
             this.paragraphAdd(oItem, false);
             this.checkMobileCursorPosition();

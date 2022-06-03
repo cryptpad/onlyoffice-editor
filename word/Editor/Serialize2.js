@@ -11739,7 +11739,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 					} else if (0x09 === nUnicode) {
 						oParStruct.addElemToContent(new ParaTab());
 					} else {
-						oParStruct.addElemToContent(new ParaText(nUnicode));
+						oParStruct.addElemToContent(new AscWord.CRunText(nUnicode));
 					}
 				}
 			}
@@ -11874,7 +11874,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
         else if (c_oSerRunType.nonBreakHyphen === type)
         {
-            oNewElem = new ParaText(0x002D);
+            oNewElem = new AscWord.CRunText(0x002D);
             oNewElem.Set_SpaceAfter(false);
         }
         else if (c_oSerRunType.softHyphen === type)
@@ -13177,7 +13177,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 					} else if (0x09 === nUnicode) {
 						oPos.run.AddToContent(oPos.pos, new ParaTab(), false);
 					} else {
-						oPos.run.AddToContent(oPos.pos, new ParaText(nUnicode), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunText(nUnicode), false);
 					}
 					oPos.pos++;
 			    }
@@ -13221,7 +13221,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
         else if (c_oSerRunType.nonBreakHyphen === type)
         {
-            oNewElem = new ParaText(0x002D);
+            oNewElem = new AscWord.CRunText(0x002D);
             oNewElem.Set_SpaceAfter(false);
         }
         else if (c_oSerRunType.softHyphen === type)

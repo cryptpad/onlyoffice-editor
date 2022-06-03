@@ -6774,13 +6774,13 @@ DrawingObjectsController.prototype =
                     var Item = null;
                     if ( true === ctrlKey && true === e.shiftKey )
                     {
-                        Item = new ParaText(0x2013);
+                        Item = new AscWord.CRunText(0x2013);
                         Item.SpaceAfter = false;
                     }
                     else if ( true === e.shiftKey )
-                        Item = new ParaText("_".charCodeAt(0));
+                        Item = new AscWord.CRunText("_".charCodeAt(0));
                     else
-                        Item = new ParaText("-".charCodeAt(0));
+                        Item = new AscWord.CRunText("-".charCodeAt(0));
                     oThis.paragraphAdd(Item);
                 };
                 this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());

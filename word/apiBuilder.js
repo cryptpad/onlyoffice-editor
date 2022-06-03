@@ -6681,7 +6681,7 @@
 			{
 				for (var Index = 0; Index < Element.Run.GetElementsCount(); Index++)
 				{
-					if (Element.Run.GetElement(Index) instanceof ParaText)
+					if (Element.Run.GetElement(Index).IsText())
 					{
 						return Element;
 					}
@@ -16581,7 +16581,7 @@
 							else if (oChange.insert[nChar] === '\t')
 								itemText = new ParaTab();
 							else
-								itemText = new AscCommonWord.ParaText(oChange.insert[nChar]);
+								itemText = new AscWord.CRunText(oChange.insert[nChar]);
 
 							itemText.Parent = oInfo.Run.GetParagraph();
 							if (oInfo.Run.Content.length === 0 && infoToAdd)

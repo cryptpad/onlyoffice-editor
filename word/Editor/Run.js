@@ -1753,7 +1753,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			else
 			{
 				nLettersCount++;
-				arrLetters.push(new ParaText(nCharCode));
+				arrLetters.push(new AscWord.CRunText(nCharCode));
 			}
 		}
 
@@ -1780,7 +1780,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			else if (AscCommon.IsSpace(nCharCode)) // space
 				this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
 			else
-				this.AddToContent(nCharPos++, new ParaText(nCharCode), true);
+				this.AddToContent(nCharPos++, new AscWord.CRunText(nCharCode), true);
 		}
 	}
 };
@@ -3469,7 +3469,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					}
 					else
 					{
-						Item     = new ParaText(Item.Value);
+						Item     = new AscWord.CRunText(Item.Value);
 						ItemType = para_Text;
 					}
 					Item.Measure(g_oTextMeasurer, this.Get_CompiledPr(false));
@@ -10663,7 +10663,7 @@ ParaRun.prototype.Recalculate_Range_OneLine = function(PRS, ParaPr, Depth)
 {
     // данная функция используется только для мат объектов, которые на строки не разбиваются
 
-    // ParaText (ParagraphContent.js)
+    // AscWord.CRunText (ParagraphContent.js)
     // для настройки TextPr
     // Measure
 

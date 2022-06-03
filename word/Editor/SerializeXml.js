@@ -2490,7 +2490,7 @@
 				case "monthShort":
 					break;
 				case "noBreakHyphen":
-					newItem = new ParaText(0x002D);
+					newItem = new AscWord.CRunText(0x002D);
 					newItem.Set_SpaceAfter(false);
 					break;
 				case "object":

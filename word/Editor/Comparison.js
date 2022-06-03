@@ -333,9 +333,9 @@
         var sResultString = "";
         for(var i = 0; i < this.elements.length; ++i)
         {
-            if(this.elements[i] instanceof ParaText)
+            if(this.elements[i] instanceof AscWord.CRunText)
             {
-                sResultString += String.fromCharCode(this.elements[i].Value);
+                sResultString += String.fromCharCode(this.elements[i].GetCodePoint());
             }
             else if(this.elements[i] instanceof ParaSpace)
             {

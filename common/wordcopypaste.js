@@ -5237,7 +5237,7 @@ PasteProcessor.prototype =
                             else if (AscCommon.IsSpace(nUnicode)) // space
                                 oCurRun.AddToContent(nCharPos++, new ParaSpace(nUnicode), true);
                             else
-                                oCurRun.AddToContent(nCharPos++, new ParaText(nUnicode), true);
+                                oCurRun.AddToContent(nCharPos++, new AscWord.CRunText(nUnicode), true);
                         }
                     }
 				}
@@ -5306,7 +5306,7 @@ PasteProcessor.prototype =
 			if (0x2009 === _nUnicode || 9 === _nUnicode) {
 				Item = new ParaTab();
 			} else if (0x20 !== _nUnicode && 0xA0 !== _nUnicode) {
-				Item = new ParaText(_nUnicode);
+				Item = new AscWord.CRunText(_nUnicode);
 			} else {
 				Item = new ParaSpace();
 			}
@@ -5728,7 +5728,7 @@ PasteProcessor.prototype =
 							if (0x0A === nUnicode || 0x0D === nUnicode) {
 								Item = new ParaNewLine(break_Line);
 							} else if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 							} else {
 								Item = new ParaSpace();
 							}
@@ -5842,7 +5842,7 @@ PasteProcessor.prototype =
 
 						var Item;
 						if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-							Item = new ParaText(nUnicode);
+							Item = new AscWord.CRunText(nUnicode);
 						} else {
 							Item = new ParaSpace();
 						}
@@ -9076,7 +9076,7 @@ PasteProcessor.prototype =
 					if (bPresentation) {
 						if (null !== nUnicode) {
 							if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode)
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 							else
 								Item = new ParaSpace();
 
@@ -9091,7 +9091,7 @@ PasteProcessor.prototype =
 							} else if (whiteSpacing && (0x9 === nUnicode || 0x2009 === nUnicode)) {
 								Item = new ParaTab();
 							} else if (0x20 !== nUnicode && 0x2009 !== nUnicode) {
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 								bIsPreviousSpace = false;
 							} else {
 								Item = new ParaSpace();
@@ -10231,7 +10231,7 @@ function addTextIntoRun(oCurRun, value, bIsAddTabBefore, dNotAddLastSpace, bIsAd
 		if (0x2009 === nUnicode || 9 === nUnicode) {
 			Item = new ParaTab();
 		} else if (0x20 !== nUnicode && 0xA0 !== nUnicode) {
-			Item = new ParaText(nUnicode);
+			Item = new AscWord.CRunText(nUnicode);
 			bIsSpace = false;
 		} else {
 			Item = new ParaSpace();

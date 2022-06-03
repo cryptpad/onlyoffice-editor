@@ -98,7 +98,7 @@ var para_EndnoteRef                = 0x004a; // Номер сноски (дол�
 				return oElement;
 			}
 			case para_RunBase               : oElement = new AscWord.CRunElementBase(); break;
-			case para_Text                  : oElement = new ParaText(); break;
+			case para_Text                  : oElement = new AscWord.CRunText(); break;
 			case para_Space                 : oElement = new ParaSpace(); break;
 			case para_End                   : oElement = new ParaEnd(); break;
 			case para_NewLine               : oElement = new ParaNewLine(); break;

@@ -3244,7 +3244,7 @@
 						if (null != nUnicode) {
 							var Item;
 							if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 							} else {
 								Item = new ParaSpace();
 							}
