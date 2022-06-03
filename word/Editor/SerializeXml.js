@@ -2445,16 +2445,19 @@
 				case "AlternateContent":
 					let oRun = this;
 					let elem = new CT_XmlNode(function(reader, name) {
-						if ("Choice" === name) {
-							let elem = new CT_XmlNode(function(reader, name) {
-								if ("drawing" === name) {
-									newItem = oRun.readDrawing(reader);
-								}
-								return new CT_XmlNode();
-							});
-							elem.fromXml(reader);
-							return elem;
+						if(!newItem) {
+							if ("Choice" === name || "Fallback" === name) {
+								let elem = new CT_XmlNode(function(reader, name) {
+									if ("drawing" === name) {
+										newItem = oRun.readDrawing(reader);
+									}
+									return true;
+								});
+								elem.fromXml(reader);
+								return elem;
+							}
 						}
+						return true;
 					});
 					elem.fromXml(reader);
 					break;
@@ -2889,6 +2892,24 @@
 					// this.Rprchange.fromXml(reader);
 					break;
 				}
+				case "textOutline" : {
+					let oLn = new AscFormat.CLn();
+					oLn.fromXml(reader);
+					this.TextOutline = oLn;
+					break;
+				}
+				case "textFill" : {
+					let oThis = this;
+					let oNode = new CT_XmlNode(function (reader, name) {
+						if(AscFormat.CUniFill.prototype.isFillName(name)) {
+							oThis.TextFill = new AscFormat.CUniFill();
+							oThis.TextFill.fromXml(reader, name);
+						}
+						return true;
+					});
+					oNode.fromXml(reader);
+					break;
+				}
 					//c_oSerProp_rPrType.TextOutline
 					//c_oSerProp_rPrType.TextFill
 					//c_oSerProp_rPrType.Del
@@ -2955,6 +2976,20 @@
 		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.CS), "w:cs");
 		// writer.WriteXmlNullable(this.Em, "w:em");
 		writer.WriteXmlNullable(Lang, "w:lang");
+		if(this.TextFill) {
+			writer.WriteXmlString("<w14:textFill>");
+			let nOldDocType = writer.context.docType;
+			writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_WORDART;
+			this.TextFill.toXml(writer)
+			writer.context.docType = nOldDocType;
+			writer.WriteXmlString("</w14:textFill>");
+		}
+		if(this.TextOutline) {
+			let nOldDocType = writer.context.docType;
+			writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_WORDART;
+			this.TextFill.toXml(writer, "w14:textOutline");
+			writer.context.docType = nOldDocType;
+		}
 		// writer.WriteXmlNullable(this.EastAsianLayout, "w:eastAsianLayout");
 		// writer.WriteXmlNullable(Vanish, "w:specVanish");
 		// writer.WriteXmlNullable(this.OMath, "w:oMath");
