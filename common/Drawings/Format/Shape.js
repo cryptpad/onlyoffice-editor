@@ -7245,7 +7245,7 @@ CShape.prototype.getColumnNumber = function(){
                     this.setNvSpPr(new AscFormat.UniNvPr());
                 }
                 this.nvSpPr.nvUniSpPr.fromXml(reader);
-                this.setLocks(this.nvSpPr.nvUniSpPr.getLocks());
+                this.setLocks(this.nvSpPr.getLocks());
                 break;
             }
             case "spPr": {

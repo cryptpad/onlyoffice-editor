@@ -9240,7 +9240,12 @@
 
 			writer.WriteXmlNodeEnd(namespace_ + ":cNvSpPr");
 		};
-
+		CNvUniSpPr.prototype.getLocks = function() {
+			if(!AscFormat.isRealNumber(this.locks)) {
+				return 0;
+			}
+			return this.locks;
+		};
 		function UniNvPr() {
 
 			CBaseFormatObject.call(this);
@@ -9308,7 +9313,7 @@
 		};
 		UniNvPr.prototype.getLocks = function() {
 			if(this.nvUniSpPr) {
-				return this.nvUniSpPr.locks;
+				return this.nvUniSpPr.getLocks();
 			}
 			return 0;
 		};
