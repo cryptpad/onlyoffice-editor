@@ -16009,14 +16009,11 @@
 				return oCopy;
 			}, this, []);
 		};
-		CCore.prototype.writeDate = function(writer, sName, oDate, sDefault) {
-			let sToWrite;
-			if(oDate) {
-				sToWrite = oDate.toISOString().slice(0, 19) + 'Z'
+		CCore.prototype.writeDate = function(writer, sName, oDate) {
+			if (!oDate) {
+				return;
 			}
-			else {
-				sToWrite = sDefault;
-			}
+			let sToWrite = oDate.toISOString().slice(0, 19) + 'Z';
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributeString("xsi:type", "dcterms:W3CDTF");
 			writer.WriteXmlAttributesEnd();
@@ -16113,8 +16110,8 @@
 			if (this.lastPrinted && this.lastPrinted.length > 0) {
 				writer.WriteXmlNullableValueString("cp:lastPrinted", this.lastPrinted);
 			}
-			this.writeDate(writer, "dcterms:created", this.created, DEFAULT_CREATED);
-			this.writeDate(writer, "dcterms:modified", this.modified, DEFAULT_MODIFIED);
+			this.writeDate(writer, "dcterms:created", this.created);
+			this.writeDate(writer, "dcterms:modified", this.modified);
 			writer.WriteXmlNullableValueString("cp:category", this.category);
 			writer.WriteXmlNullableValueString("cp:contentStatus", this.contentStatus);
 			writer.WriteXmlNullableValueString("cp:version", this.version);
@@ -16135,10 +16132,8 @@
 			this.lastModifiedBy = "";
 		};
 
-		let DEFAULT_CREATED = "CREATED";
 		let DEFAULT_CREATOR = "CREATOR";
 		let DEFAULT_LAST_MODIFIED_BY = "CREATOR";
-		let DEFAULT_MODIFIED = "MODIFIED";
 		CCore.prototype.setRequiredDefaultsPresentationEditor = function() {
 			if(!this.creator) {
 				this.creator = DEFAULT_CREATOR;

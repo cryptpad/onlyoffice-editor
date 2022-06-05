@@ -5985,15 +5985,16 @@ var editor;
       AscCommon.CurFileVersion = version;
     }
 
-    this._openDocument(base64File);
-	if (this.openDocumentFromZip(t.wbModel, xlsxPath)) {
-		Asc.ReadDefTableStyles(t.wbModel);
-		g_oIdCounter.Set_Load(false);
-		AscCommon.checkCultureInfoFontPicker();
-		AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
-		t._coAuthoringInit();
-		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
-	}
+	  this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(base64File);
+	  this._openDocument(base64File);
+	  if (this.openDocumentFromZip(t.wbModel, xlsxPath)) {
+		  Asc.ReadDefTableStyles(t.wbModel);
+		  g_oIdCounter.Set_Load(false);
+		  AscCommon.checkCultureInfoFontPicker();
+		  AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
+		  t._coAuthoringInit();
+		  t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
+	  }
   };
 
   spreadsheet_api.prototype.asc_nativeCalculateFile = function() {
@@ -6047,13 +6048,25 @@ var editor;
       return { data: oBinaryFileWriter.Write(true, true), header: oBinaryFileWriter.WriteFileHeader(oBinaryFileWriter.Memory.GetCurPosition(), Asc.c_nVersionNoBase64) };
   };
   spreadsheet_api.prototype.asc_nativeGetFileData = function() {
-    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
-    oBinaryFileWriter.Write(true);
+	  if (this.isOpenOOXInBrowser) {
+		  let res;
+		  this.saveDocumentToZip(this.wb.model, this.editorId, function(data) {
+			  res = data;
+		  });
+		  if (res) {
+			  window["native"]["Save_End"](";v10;", res.length);
+			  return res;
+		  }
+		  return new Uint8Array(0);
+	  } else {
+		  var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+		  oBinaryFileWriter.Write(true);
 
-    var _header = oBinaryFileWriter.WriteFileHeader(oBinaryFileWriter.Memory.GetCurPosition(), Asc.c_nVersionNoBase64);
-    window["native"]["Save_End"](_header, oBinaryFileWriter.Memory.GetCurPosition());
+		  var _header = oBinaryFileWriter.WriteFileHeader(oBinaryFileWriter.Memory.GetCurPosition(), Asc.c_nVersionNoBase64);
+		  window["native"]["Save_End"](_header, oBinaryFileWriter.Memory.GetCurPosition());
 
-    return oBinaryFileWriter.Memory.ImData.data;
+		  return oBinaryFileWriter.Memory.ImData.data;
+	  }
   };
   spreadsheet_api.prototype.asc_nativeCalculate = function() {
   };
