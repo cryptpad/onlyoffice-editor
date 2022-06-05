@@ -332,6 +332,7 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
 	// Temporary c элементов текста не снимаем, т.к. он рассчитывается уже в процессе Recalculate_Range,
 	// а для всех строк, не учавствующих в быстром пересчете, мы должны все сохранить как есть
 	this.ShapeText();
+	this.ShapeTextInRange(this.Get_StartRangePos2(Line, Range), this.Get_EndRangePos2(Line, Range));
 
 	// Если у нас отрезок, в котором произошли изменения является отрезком с нумерацией, тогда надо запустить
 	// обычный пересчет.
@@ -370,7 +371,7 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
 	// 	arrLinesMetrics.push(this.Lines[CurLine + nLineIndex].Metrics.Copy());
 	// }
 
-    var Result;
+	var Result;
     while ( ( CurLine < NextLine ) || ( CurLine === NextLine && CurRange <= NextRange ) )
     {
         var TempResult = this.private_RecalculateFastRange(CurRange, CurLine);
@@ -590,53 +591,66 @@ Paragraph.prototype.private_RecalculateFastRange       = function(CurRange, CurL
 
     PRS.Paragraph = this;
 
-    var RangesCount = PRS.RangesCount;
-
     var Line  = this.Lines[CurLine];
     var Range = Line.Ranges[CurRange];
 
-    var StartPos = Range.StartPos;
-    var EndPos   = Range.EndPos;
+    let nStartPos = Range.StartPos;
+    let nEndPos   = Range.EndPos;
 
     // Обновляем состояние пересчета
-    PRS.Reset_Range(Range.X, Range.XEnd);
+	PRS.Reset_Range(Range.X, Range.XEnd);
 
-    var ContentLen = this.Content.length;
+	let arrSavedLines = [];
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		arrSavedLines.push(this.Content[nPos].SaveRecalculateObject(true));
+	}
 
-    for ( var Pos = StartPos; Pos <= EndPos; Pos++ )
-    {
-        var Item = this.Content[Pos];
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (para_Math === oItem.Type)
+		{
+			// TODO: Надо бы перенести эту проверку на изменение контента параграфа
+			oItem.Set_Inline(true !== this.CheckMathPara(nPos));
+			PRS.bFastRecalculate = true; // чтобы не обновить случайно StartLine (Recalculate_Reset)
+		}
 
-        if ( para_Math === Item.Type )
-        {
-            // TODO: Надо бы перенести эту проверку на изменение контента параграфа
-            Item.Set_Inline(true !== this.CheckMathPara(Pos));
-            PRS.bFastRecalculate = true; // чтобы не обновить случайно StartLine (Recalculate_Reset)
-        }
+		PRS.Update_CurPos(nPos, 0);
 
-        PRS.Update_CurPos( Pos, 0 );
+		oItem.Recalculate_Range(PRS, ParaPr, 1);
 
-        var SavedLines = Item.SaveRecalculateObject(true);
+		if (PRS.NewRange && PRS.MoveToLBP && PRS.LongWord)
+		{
+			if (PRS.LineBreakPos.Get(0) !== nEndPos)
+				return -1;
 
-        Item.Recalculate_Range( PRS, ParaPr, 1 );
+			break;
+		}
+		else if ((true === PRS.NewRange && nPos !== nEndPos) || (nPos === nEndPos && true !== PRS.NewRange))
+		{
+			return -1;
+		}
+		else if (nPos === nEndPos && true === PRS.NewRange && true === PRS.MoveToLBP)
+		{
+			var BreakPos = PRS.LineBreakPos.Get(0);
+			if (BreakPos !== nPos)
+				return -1;
+			else
+				oItem.Recalculate_Set_RangeEndPos(PRS, PRS.LineBreakPos, 1);
+		}
+	}
 
-        if ( ( true === PRS.NewRange && Pos !== EndPos ) || ( Pos === EndPos && true !== PRS.NewRange ) )
-            return -1;
-        else if ( Pos === EndPos && true === PRS.NewRange && true === PRS.MoveToLBP )
-        {
-            var BreakPos = PRS.LineBreakPos.Get(0);
-            if (BreakPos !== Pos)
-                return -1;
-            else
-                Item.Recalculate_Set_RangeEndPos(PRS, PRS.LineBreakPos, 1);
-        }
+	for (let nPos = nStartPos; nPos <= nEndPos; ++nPos)
+	{
+		let oLines = arrSavedLines[nPos - nStartPos];
+		let oItem  = this.Content[nPos];
 
-        // Нам нужно проверить только строку с номером CurLine
-        if (false === SavedLines.Compare(CurLine, CurRange, Item))
-            return -1;
+		if (!oLines.Compare(CurLine, CurRange, oItem))
+			return -1;
 
-        Item.LoadRecalculateObject(SavedLines, this);
-    }
+		oItem.LoadRecalculateObject(arrSavedLines[nPos - nStartPos], this);
+	}
 
     // TODO: Здесь пересчеты идут целиком для строки, а не для конкретного отрезка.
     if (!(this.private_RecalculateLineAlign(CurLine, CurPage, PRS, ParaPr, true) & recalcresult_NextElement))

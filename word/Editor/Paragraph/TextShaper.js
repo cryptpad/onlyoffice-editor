@@ -267,16 +267,24 @@
 	{
 		if (this.Temporary)
 		{
-			oItem.SetTemporaryGrapheme(nGrapheme);
+			oItem.ResetTemporaryGrapheme();
+			if (nGrapheme !== oItem.GetGrapheme()
+				|| isLigature !== oItem.IsLigature()
+				|| isLigatureContinue !== oItem.IsLigatureContinue()
+				|| Math.abs(nWidth - oItem.GetMeasuredWidth()) > 0.001)
+			{
+				oItem.SetTemporaryGrapheme(nGrapheme);
+				oItem.UpdateTemporaryLigatureInfo(isLigature, isLigatureContinue);
+				oItem.SetTemporaryWidth(nWidth);
+			}
 		}
 		else
 		{
 			oItem.SetGrapheme(nGrapheme);
 			oItem.UpdateMetrics(nFontSize, nFontSlot, this.TextPr);
+			oItem.UpdateLigatureInfo(isLigature, isLigatureContinue);
+			oItem.SetWidth(nWidth);
 		}
-
-		oItem.UpdateLigatureInfo(isLigature, isLigatureContinue);
-		oItem.SetWidth(nWidth);
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------

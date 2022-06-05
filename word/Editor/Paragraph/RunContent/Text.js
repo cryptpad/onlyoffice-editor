@@ -35,16 +35,21 @@
 (function(window)
 {
 	const FLAGS_MASK                        = 0xFFFFFFFF; // 4 байта
-	const FLAGS_FONTKOEF_SCRIPT             = 0x00000400; // 2 бит
-	const FLAGS_FONTKOEF_SMALLCAPS          = 0x00000800; // 3 бит
-	const FLAGS_SPACEAFTER                  = 0x00001000; // 4 бит
-	const FLAGS_CAPITALS                    = 0x00002000; // 5 бит
-	const FLAGS_LIGATURE                    = 0x00004000; // 6 бит
-	const FLAGS_LIGATURE_CONTINUE           = 0x00008000; // 7 бит
-	const FLAGS_TEMPORARY                   = 0x00010000; // 8 бит
-	const FLAGS_TEMPORARY_LIGATURE          = 0x00020000; // 9 бит
-	const FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00040000; // 10 бит
-	const FLAGS_VISIBLE_WIDTH               = 0x00080000; // 11 бит
+	const FLAGS_ASCII                       = 0x00000000; // В 0-1 битах записан
+	const FLAGS_CS                          = 0x00000001; // FontSlot (не флагами, а значением
+	const FLAGS_HANSI                       = 0x00000002; // от 0 до 3)
+	const FLAGS_EASTASIA                    = 0x00000003; //
+	const FLAGS_FONTKOEF_SCRIPT             = 0x00000004; // 2 бит
+	const FLAGS_FONTKOEF_SMALLCAPS          = 0x00000008; // 3 бит
+	const FLAGS_SPACEAFTER                  = 0x00000010; // 4 бит
+	const FLAGS_CAPITALS                    = 0x00000020; // 5 бит
+	const FLAGS_LIGATURE                    = 0x00000040; // 6 бит
+	const FLAGS_LIGATURE_CONTINUE           = 0x00000080; // 7 бит
+	const FLAGS_TEMPORARY                   = 0x00000100; // 8 бит
+	const FLAGS_TEMPORARY_LIGATURE          = 0x00000200; // 9 бит
+	const FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00000400; // 10 бит
+	const FLAGS_VISIBLE_WIDTH               = 0x00000800; // 11 бит
+	// 16-31 биты зарезервированы под FontSize
 
 	const FLAGS_NON_FONTKOEF_SCRIPT             = FLAGS_MASK ^ FLAGS_FONTKOEF_SCRIPT;
 	const FLAGS_NON_FONTKOEF_SMALLCAPS          = FLAGS_MASK ^ FLAGS_FONTKOEF_SMALLCAPS;
@@ -56,12 +61,6 @@
 	const FLAGS_NON_TEMPORARY_LIGATURE          = FLAGS_MASK ^ FLAGS_TEMPORARY_LIGATURE;
 	const FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE = FLAGS_MASK ^ FLAGS_TEMPORARY_LIGATURE_CONTINUE;
 	const FLAGS_NON_VISIBLE_WIDTH               = FLAGS_MASK ^ FLAGS_VISIBLE_WIDTH;
-
-	const FLAGS_ASCII    = 0;
-	const FLAGS_CS       = 1;
-	const FLAGS_HANSI    = 2;
-	const FLAGS_EASTASIA = 3;
-
 
 	/**
 	 * Класс представляющий текстовый символ
@@ -113,6 +112,10 @@
 		this.Flags |= FLAGS_TEMPORARY;
 		this.TempGrapheme = nGrapheme;
 	};
+	CRunText.prototype.GetGrapheme = function()
+	{
+		return (this.Flags & FLAGS_TEMPORARY ? this.TempGrapheme : this.Grapheme);
+	};
 	CRunText.prototype.ResetTemporaryGrapheme = function()
 	{
 		this.Flags &= FLAGS_NON_TEMPORARY;
@@ -131,7 +134,7 @@
 			else if (nFontSlot & fontslot_CS)
 				nFS = FLAGS_CS;
 
-			this.Flags = (this.Flags & 0xFFFFFF00) | nFS;
+			this.Flags = (this.Flags & 0xFFFFFFFC) | nFS;
 
 			if (oTextPr.Caps || oTextPr.SmallCaps)
 			{
@@ -171,30 +174,27 @@
 	};
 	CRunText.prototype.UpdateLigatureInfo = function(isLigature, isLigatureContinue)
 	{
-		if (this.Flags & FLAGS_TEMPORARY)
-		{
-			if (isLigature)
-				this.Flags |= FLAGS_TEMPORARY_LIGATURE;
-			else
-				this.Flags &= FLAGS_NON_TEMPORARY_LIGATURE;
-
-			if (isLigatureContinue)
-				this.Flags |= FLAGS_TEMPORARY_LIGATURE_CONTINUE;
-			else
-				this.Flags &= FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE;
-		}
+		if (isLigature)
+			this.Flags |= FLAGS_LIGATURE;
 		else
-		{
-			if (isLigature)
-				this.Flags |= FLAGS_LIGATURE;
-			else
-				this.Flags &= FLAGS_NON_LIGATURE;
+			this.Flags &= FLAGS_NON_LIGATURE;
 
-			if (isLigatureContinue)
-				this.Flags |= FLAGS_LIGATURE_CONTINUE;
-			else
-				this.Flags &= FLAGS_NON_LIGATURE_CONTINUE;
-		}
+		if (isLigatureContinue)
+			this.Flags |= FLAGS_LIGATURE_CONTINUE;
+		else
+			this.Flags &= FLAGS_NON_LIGATURE_CONTINUE;
+	};
+	CRunText.prototype.UpdateTemporaryLigatureInfo = function(isLigature, isLigatureContinue)
+	{
+		if (isLigature)
+			this.Flags |= FLAGS_TEMPORARY_LIGATURE;
+		else
+			this.Flags &= FLAGS_NON_TEMPORARY_LIGATURE;
+
+		if (isLigatureContinue)
+			this.Flags |= FLAGS_TEMPORARY_LIGATURE_CONTINUE;
+		else
+			this.Flags &= FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE;
 	};
 	CRunText.prototype.IsLigature = function()
 	{
@@ -209,11 +209,11 @@
 	};
 	CRunText.prototype.SetWidth = function(nWidth)
 	{
-		let nValue = ((nWidth * (((this.Flags >> 16) & 0xFFFF) / 64)) * AscWord.TEXTWIDTH_DIVIDER) | 0;
-		if (this.Flags & FLAGS_TEMPORARY)
-			this.TempWidth = nValue;
-		else
-			this.Width = nValue;
+		this.Width = ((nWidth * (((this.Flags >> 16) & 0xFFFF) / 64)) * AscWord.TEXTWIDTH_DIVIDER) | 0;
+	};
+	CRunText.prototype.SetTemporaryWidth = function(nWidth)
+	{
+		this.TempWidth = ((nWidth * (((this.Flags >> 16) & 0xFFFF) / 64)) * AscWord.TEXTWIDTH_DIVIDER) | 0;
 	};
 	CRunText.prototype.SetWidthVisible = function(nWidth)
 	{
@@ -251,6 +251,10 @@
 			return (this.TempWidth / AscWord.TEXTWIDTH_DIVIDER);
 
 		return (this.Width / AscWord.TEXTWIDTH_DIVIDER);
+	};
+	CRunText.prototype.GetMeasuredWidth = function()
+	{
+		return (this.GetWidth() / (((this.Flags >> 16) & 0xFFFF) / 64));
 	};
 	CRunText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	{

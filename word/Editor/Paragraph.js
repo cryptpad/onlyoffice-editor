@@ -4322,11 +4322,8 @@ Paragraph.prototype.Internal_GetTextPr = function(LetterPos)
  */
 Paragraph.prototype.Add = function(Item)
 {
-	// Выставляем родительский класс
-	Item.Parent = this;
-
-	if (Item.SetParagraph)
-		Item.SetParagraph(this);
+	Item.SetParent(this);
+	Item.SetParagraph(this);
 
 	switch (Item.Get_Type())
 	{
@@ -19239,6 +19236,9 @@ function CParagraphGetDropCapText()
 //
 //----------------------------------------------------------------------------------------------------------------------
 
+// TODO: Данный класс используется для разнородных объектов: ранов, полей, комментариев. Из-за этого при проверке стоит
+//       куча заглушек. Нужно сделать общий базовый и для каждого класса создать свой без заглушек. Кроме этого,
+//       работа с массивом Lines должна быть общей тут и в тех классах, где он используется
 function CRunRecalculateObject(StartLine, StartRange)
 {
     this.StartLine   = StartLine;
@@ -19367,22 +19367,41 @@ CRunRecalculateObject.prototype =
         if ( ThisSP !== OtherSP || ThisEP !== OtherEP )
             return false;
 
-		if (((OLI.Content === undefined || para_Run === OLI.Type || para_Math_Run === OLI.Type) && this.Content.length > 0)
-			|| (OLI.Content !== undefined && para_Run !== OLI.Type && para_Math_Run !== OLI.Type && OLI.Content.length !== this.Content.length))
-			return false;
+		var ContentLen = this.Content.length;
+		var StartPos = ThisSP;
+		var EndPos   = Math.min( ContentLen - 1, ThisEP );
 
-        var ContentLen = this.Content.length;
-        var StartPos = ThisSP;
-        var EndPos   = Math.min( ContentLen - 1, ThisEP );
+		if (para_Run === OLI.Type)
+		{
+			return this.CheckRun(OLI, StartPos, EndPos);
+		}
+		else
+		{
+			if (((OLI.Content === undefined || para_Run === OLI.Type || para_Math_Run === OLI.Type) && this.Content.length > 0)
+				|| (OLI.Content !== undefined && para_Run !== OLI.Type && para_Math_Run !== OLI.Type && OLI.Content.length !== this.Content.length))
+				return false;
 
-        for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-        {
-            if ( false === this.Content[CurPos].Compare( _CurLine, _CurRange, OLI.Content[CurPos] ) )
-                return false;
-        }
+			for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+			{
+				if (false === this.Content[CurPos].Compare(_CurLine, _CurRange, OLI.Content[CurPos]))
+					return false;
+			}
+		}
 
         return true;
     },
+
+	CheckRun : function(oRun, nStartPos, nEndPos)
+	{
+		for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
+		{
+			let oItem = oRun.GetElement(nPos);
+			if (oItem.IsNeedSaveRecalculateObject() && !oItem.IsText())
+				return false;
+		}
+
+		return true;
+	},
 
     private_Get_RangeOffset : function(LineIndex, RangeIndex)
     {

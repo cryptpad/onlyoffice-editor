@@ -99,6 +99,12 @@
 	{
 		return true;
 	};
+	CRunElementBase.prototype.SetParent = function(oParent)
+	{
+	};
+	CRunElementBase.prototype.SetParagraph = function(oParagraph)
+	{
+	};
 	CRunElementBase.prototype.Copy = function()
 	{
 		return new CRunElementBase();
