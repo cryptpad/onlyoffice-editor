@@ -6368,7 +6368,7 @@ DrawingObjectsController.prototype =
                     var oThis = this;
                     var callBack = function()
                     {
-                        oThis.paragraphAdd(new ParaTab());
+                        oThis.paragraphAdd(new AscWord.CRunTab());
                     };
                     this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddTab, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
                 }

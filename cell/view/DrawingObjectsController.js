@@ -630,7 +630,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
             var oItem;
             if(AscCommon.IsSpace(Code))
             {
-                oItem = new ParaSpace(Code);
+                oItem = new AscWord.CRunSpace(Code);
             }
             else
             {

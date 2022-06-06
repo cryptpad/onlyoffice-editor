@@ -98,7 +98,7 @@ CInlineLevelSdt.prototype.Add = function(Item)
 	if (this.IsTextForm())
 	{
 		if (para_Tab === Item.Type)
-			return CParagraphContentWithParagraphLikeContent.prototype.Add.call(this, new ParaSpace());
+			return CParagraphContentWithParagraphLikeContent.prototype.Add.call(this, new AscWord.CRunSpace());
 		else if (Item.Type !== para_Text && Item.Type !== para_Space)
 			return;
 
@@ -1115,7 +1115,7 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 		}
 		else
 		{
-			// TODO: Последний Run с ParaEnd не добавляем
+			// TODO: Последний Run с ParagraphMark не добавляем
 			for (var nPos = 0, nCount = oFirstParagraph.Content.length; nPos < nCount - 1; ++nPos)
 			{
 				this.AddToContent(0, oFirstParagraph.Content[nPos].Copy());

@@ -9624,7 +9624,7 @@ CDocument.prototype.OnKeyDown = function(e)
 						else if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 						{
 							this.StartAction(AscDFH.historydescription_Document_AddTab);
-							this.AddToParagraph(new ParaTab());
+							this.AddToParagraph(new AscWord.CRunTab());
 							this.FinalizeAction();
 						}
 					}
@@ -9811,7 +9811,7 @@ CDocument.prototype.OnKeyDown = function(e)
 						this.DrawingDocument.TargetShow();
 
 						this.CheckLanguageOnTextAdd = true;
-						this.AddToParagraph(new ParaSpace());
+						this.AddToParagraph(new AscWord.CRunSpace());
 						this.CheckLanguageOnTextAdd = false;
 					}
 					this.FinalizeAction();
@@ -10154,7 +10154,7 @@ CDocument.prototype.OnKeyDown = function(e)
 										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, oItem);
 									}
 									else if (AscCommon.IsSpace(textAfterChange))
-										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, new ParaSpace(textAfterChange));
+										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, new AscWord.CRunSpace(textAfterChange));
 									else
 										ListForUnicode[0].oRun.private_AddItemToRun(ListForUnicode[0].currentPos, new AscWord.CRunText(textAfterChange));
 									if (ListForUnicode[0].oRun.ReviewType === 2)
@@ -10318,7 +10318,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				this.DrawingDocument.TargetShow();
 
 				this.CheckLanguageOnTextAdd = true;
-				this.AddToParagraph(new ParaSpace());
+				this.AddToParagraph(new AscWord.CRunSpace());
 				this.CheckLanguageOnTextAdd = false;
 
 				this.FinalizeAction();
@@ -17674,7 +17674,7 @@ CDocument.prototype.private_AddCompositeText = function(nCharCode)
 	else
 	{
 		if (AscCommon.IsSpace(nCharCode))
-			oChar = new ParaSpace(nCharCode);
+			oChar = new AscWord.CRunSpace(nCharCode);
 		else
 			oChar = new AscWord.CRunText(nCharCode);
 	}
@@ -18813,7 +18813,7 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 
 				if (-1 !== nSpaceCharCode)
 				{
-					this.AddToParagraph(new ParaSpace(nSpaceCharCode));
+					this.AddToParagraph(new AscWord.CRunSpace(nSpaceCharCode));
 					this.MoveCursorLeft(false, false);
 				}
 
@@ -22978,7 +22978,7 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 				{
 					var nCharCode = oIterator.value();
 					if (AscCommon.IsSpace(nCharCode))
-						oParagraph.Add(new ParaSpace(nCharCode));
+						oParagraph.Add(new AscWord.CRunSpace(nCharCode));
 					else
 						oParagraph.Add(new AscWord.CRunText(nCharCode));
 				}
@@ -25903,7 +25903,7 @@ CDocument.prototype.private_ConvertTableToText = function(oTable, oProps)
 					var oText;
 					switch (oProps.type) {
 						case 2:
-							oText = new ParaTab();
+							oText = new AscWord.CRunTab();
 							var pos = (oCell.Metrics.X_cell_end >> 0) + 2;
 							Tabs.Add(new CParaTab(tab_Left, pos, Asc.c_oAscTabLeader.None));
 							break;

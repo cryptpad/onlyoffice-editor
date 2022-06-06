@@ -272,7 +272,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 			{
 				if (oPr.Paragraph && true !== oPr.Paragraph.IsEmpty())
 				{
-					aCopyContent.push( new ParaSpace());
+					aCopyContent.push( new AscWord.CRunSpace());
 				}
 			}
 			else
@@ -304,7 +304,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 			{
 				if (oPr.Paragraph && true !== oPr.Paragraph.IsEmpty())
 				{
-					NewRun.Add_ToContent(AddedPos, new ParaSpace(), false);
+					NewRun.Add_ToContent(AddedPos, new AscWord.CRunSpace(), false);
 					AddedPos++;
 				}
 			}
@@ -1748,7 +1748,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			else if (AscCommon.IsSpace(nCharCode)) // space
 			{
 				nLettersCount++;
-				arrLetters.push(new ParaSpace(nCharCode));
+				arrLetters.push(new AscWord.CRunSpace(nCharCode));
 			}
 			else
 			{
@@ -1772,13 +1772,13 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			var nCharCode = oIterator.value();
 
 			if (9 === nCharCode) // \t
-				this.AddToContent(nCharPos++, new ParaTab(), true);
+				this.AddToContent(nCharPos++, new AscWord.CRunTab(), true);
 			else if (10 === nCharCode) // \n
 				this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true);
 			else if (13 === nCharCode) // \r
 				continue;
 			else if (AscCommon.IsSpace(nCharCode)) // space
-				this.AddToContent(nCharPos++, new ParaSpace(nCharCode), true);
+				this.AddToContent(nCharPos++, new AscWord.CRunSpace(nCharCode), true);
 			else
 				this.AddToContent(nCharPos++, new AscWord.CRunText(nCharCode), true);
 		}
@@ -3464,7 +3464,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 				{
 					if (32 === Item.Value)
 					{
-						Item     = new ParaSpace();
+						Item     = new AscWord.CRunSpace();
 						ItemType = para_Space;
 					}
 					else
@@ -3682,8 +3682,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                             // Мы убираемся в пределах данной строки. Прибавляем ширину буквы к ширине слова
                             WordLen += LetterLen;
 
-                            // Если текущий символ с переносом, например, дефис, тогда на нем заканчивается слово
-                            if (Item.Flags & PARATEXT_FLAGS_SPACEAFTER)//if ( true === Item.IsSpaceAfter() )
+							if (Item.IsSpaceAfter())
                             {
                                 // Добавляем длину пробелов до слова и ширину самого слова.
                                 X += SpaceLen + WordLen;
@@ -4804,9 +4803,8 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 
                 PRSC.SpacesCount = 0;
 
-                // Если текущий символ, например, дефис, тогда на нем заканчивается слово
-                if (Item.Flags & PARATEXT_FLAGS_SPACEAFTER)//if ( true === Item.IsSpaceAfter() )
-                    PRSC.Word = false;
+				if (Item.IsSpaceAfter())
+					PRSC.Word = false;
 
                 break;
             }
@@ -5695,7 +5693,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                 {
                     nWordLen += ItemWidth;
 
-                    if (Item.Flags & PARATEXT_FLAGS_SPACEAFTER)
+                    if (Item.IsSpaceAfter())
                     {
                         if ( nMinWidth < nWordLen )
                             nMinWidth = nWordLen;

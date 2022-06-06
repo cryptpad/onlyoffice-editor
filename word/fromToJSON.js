@@ -8263,7 +8263,7 @@
 
 		if (oParsedRun.type === "endRun")
 		{
-			oRun.Add_ToContent( 0, new ParaEnd() );
+			oRun.Add_ToContent( 0, new AscWord.CRunParagraphMark() );
 			return oRun;
 		}
 
@@ -8334,7 +8334,7 @@
 					oRun.AddToContent(-1, new ParaPageNum());
 					break;
 				case "tab":
-					oRun.AddToContent(-1, new ParaTab());
+					oRun.AddToContent(-1, new AscWord.CRunTab());
 					break;
 				case "fldChar":
 					switch (aContent[nElm].fldCharType)

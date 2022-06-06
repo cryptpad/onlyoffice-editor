@@ -105,7 +105,7 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     {
         Line  : 0,
         Range : 0
-    }; //new ParaEnd();
+    };
 
     this.CurPos    = new CParagraphCurPos();
     this.Selection = new CParagraphSelection();
@@ -170,7 +170,7 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     // Добавляем в контент элемент "конец параграфа"
     this.Content = [];
     var EndRun = new ParaRun(this);
-    EndRun.Add_ToContent( 0, new ParaEnd() );
+    EndRun.Add_ToContent( 0, new AscWord.CRunParagraphMark() );
 
     this.Content[0] = EndRun;
 
@@ -316,7 +316,7 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	// Поскольку в ране не копируется элемент para_End добавим его здесь отдельно
 
 	var EndRun = new ParaRun(Para);
-	EndRun.Add_ToContent(0, new ParaEnd());
+	EndRun.Add_ToContent(0, new AscWord.CRunParagraphMark());
 	Para.Internal_Content_Add(Para.Content.length, EndRun, false);
 
 	EndRun.Set_Pr(this.TextPr.Value.Copy(undefined, oPr));
@@ -4732,7 +4732,7 @@ Paragraph.prototype.Extend_ToPos = function(_X)
 	this.Set_Tabs(Tabs);
 
 	this.Set_ParaContentPos(this.Get_EndPos(false), false, -1, -1);
-	this.Add(new ParaTab());
+	this.Add(new AscWord.CRunTab());
 
 	return true;
 };
@@ -15597,7 +15597,7 @@ Paragraph.prototype.CheckParaEnd = function()
 	{
 		var oEndRun = new ParaRun(this);
 		oEndRun.Set_Pr(this.TextPr.Value.Copy());
-		oEndRun.Add_ToContent(0, new ParaEnd());
+		oEndRun.Add_ToContent(0, new AscWord.CRunParagraphMark());
 		this.Add_ToContent(this.Content.length, oEndRun);
 	}
 };
@@ -17773,7 +17773,7 @@ Paragraph.prototype.CheckOrAddSpaceAtStartPos = function(isAddToEmpty)
 		&& !oFirstRunElement.IsDrawing()
 		&& (!oFirstRunElement.IsParaEnd() || isAddToEmpty))
 	{
-		this.Add(new ParaSpace());
+		this.Add(new AscWord.CRunSpace());
 	}
 };
 Paragraph.prototype.CheckTextShape = function()

@@ -879,13 +879,13 @@ CComplexField.prototype.private_UpdateTOC = function()
 
 				if (Asc.c_oAscNumberingSuff.Space === nNumSuff)
 				{
-					oNumTabRun.Add_ToContent(0, new ParaSpace());
+					oNumTabRun.Add_ToContent(0, new AscWord.CRunSpace());
 					oContainer.Add_ToContent(1, oNumTabRun);
 					nContainerPos++;
 				}
 				else if (Asc.c_oAscNumberingSuff.Tab === nNumSuff)
 				{
-					oNumTabRun.Add_ToContent(0, new ParaTab());
+					oNumTabRun.Add_ToContent(0, new AscWord.CRunTab());
 					isAddTabForNumbering = true;
 					oContainer.Add_ToContent(1, oNumTabRun);
 					nContainerPos++;
@@ -923,7 +923,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 			{
 				var oSeparatorRun = new ParaRun(oPara, false);
 				if (!sSeparator || "" === sSeparator)
-					oSeparatorRun.AddToContent(0, new ParaTab());
+					oSeparatorRun.AddToContent(0, new AscWord.CRunTab());
 				else
 					oSeparatorRun.AddText(sSeparator.charAt(0));
 

@@ -2541,7 +2541,7 @@
 					this.AddText(reader.GetTextDecodeXml(), -1);
 					break;
 				case "tab":
-					newItem = new ParaTab();
+					newItem = new AscWord.CRunTab();
 					break;
 				case "yearLong":
 					break;

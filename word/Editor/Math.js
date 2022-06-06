@@ -2617,7 +2617,7 @@ ParaMath.prototype.ConvertToInlineMode = function()
 	if (!oAfterItem || !oAfterItem.IsSpace())
 	{
 		let oRun = new ParaRun(oParagraph, false);
-		oRun.Add(new ParaSpace());
+		oRun.Add(new AscWord.CRunSpace());
 		oParent.AddToContent(nPosInParent + 1, oRun);
 	}
 
@@ -2625,7 +2625,7 @@ ParaMath.prototype.ConvertToInlineMode = function()
 	if (oBeforeItem && oBeforeItem.IsText())
 	{
 		let oRun = new ParaRun(oParagraph, false);
-		oRun.Add(new ParaSpace());
+		oRun.Add(new AscWord.CRunSpace());
 		oParent.AddToContent(nPosInParent, oRun);
 	}
 

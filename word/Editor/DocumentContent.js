@@ -3302,7 +3302,7 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 
 					if (-1 !== nSpaceCharCode)
 					{
-						this.AddToParagraph(new ParaSpace(nSpaceCharCode));
+						this.AddToParagraph(new AscWord.CRunSpace(nSpaceCharCode));
 						this.MoveCursorLeft(false, false);
 					}
 

@@ -5172,7 +5172,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (par.Content && par.Content.length > 0) {
 			var lastRun = par.Content[par.Content.length - 1];
 			if (para_Run === lastRun.Type) {
-				//first elem is ParaEnd
+				//first elem is AscWord.CRunParagraphMark
 				for (var i = 1; i < lastRun.Content.length; ++i) {
 					var runRevision = lastRun.Content[i];
 					if (para_RevisionMove === runRevision.Type) {
@@ -11730,14 +11730,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 					oParStruct.addElemToContent(new ParaInstrText(nUnicode));
 				} else {
 					if (AscCommon.IsSpace(nUnicode)) {
-						oParStruct.addElemToContent(new ParaSpace(nUnicode));
+						oParStruct.addElemToContent(new AscWord.CRunSpace(nUnicode));
 					} else if (0x0D === nUnicode) {
 						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
 							i++;
 						}
-						oParStruct.addElemToContent(new ParaSpace());
+						oParStruct.addElemToContent(new AscWord.CRunSpace());
 					} else if (0x09 === nUnicode) {
-						oParStruct.addElemToContent(new ParaTab());
+						oParStruct.addElemToContent(new AscWord.CRunTab());
 					} else {
 						oParStruct.addElemToContent(new AscWord.CRunText(nUnicode));
 					}
@@ -11763,7 +11763,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
         else if (c_oSerRunType.tab === type)
         {
-            oNewElem = new ParaTab();
+            oNewElem = new AscWord.CRunTab();
         }
         else if (c_oSerRunType.pagenum === type)
         {
@@ -13168,14 +13168,14 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 
 			    if (null != nUnicode) {
 					if (AscCommon.IsSpace(nUnicode)) {
-						oPos.run.AddToContent(oPos.pos, new ParaSpace(nUnicode), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunSpace(nUnicode), false);
 					} else if (0x0D === nUnicode) {
 						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
 							i++;
 						}
-						oPos.run.AddToContent(oPos.pos, new ParaSpace(), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunSpace(), false);
 					} else if (0x09 === nUnicode) {
-						oPos.run.AddToContent(oPos.pos, new ParaTab(), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunTab(), false);
 					} else {
 						oPos.run.AddToContent(oPos.pos, new AscWord.CRunText(nUnicode), false);
 					}
@@ -13185,7 +13185,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
         else if (c_oSerRunType.tab === type)
         {
-            oNewElem = new ParaTab();
+            oNewElem = new AscWord.CRunTab();
         }
         else if (c_oSerRunType.pagenum === type)
         {

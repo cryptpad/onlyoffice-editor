@@ -178,7 +178,7 @@
 		else
 		{
 			if (AscCommon.IsSpace(this.Value))
-				return new ParaSpace(this.Value);
+				return new AscWord.CRunSpace(this.Value);
 			else
 				return new AscWord.CRunText(this.Value);
 		}
@@ -228,7 +228,7 @@
 		if (isMathRun)
 			return null;
 
-		return new ParaTab();
+		return new AscWord.CRunTab();
 	};
 	CSearchTextSpecialTab.prototype.IsTab = function()
 	{

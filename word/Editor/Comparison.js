@@ -308,11 +308,11 @@
                         aCheckArray.push(0x21A1);
                     }
                 }
-                else if(oElement instanceof ParaTab)
+                else if(oElement instanceof AscWord.CRunTab)
                 {
                     aCheckArray.push(0x0009);
                 }
-                else if(oElement instanceof ParaSpace)
+                else if(oElement instanceof AscWord.CRunSpace)
                 {
                     aCheckArray.push(0x20);
                 }
@@ -337,7 +337,7 @@
             {
                 sResultString += String.fromCharCode(this.elements[i].GetCodePoint());
             }
-            else if(this.elements[i] instanceof ParaSpace)
+            else if(this.elements[i] instanceof AscWord.CRunSpace)
             {
                 sResultString += " ";
             }

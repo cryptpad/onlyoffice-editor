@@ -136,7 +136,7 @@ CFootEndnote.prototype.AddDefaultFootnoteContent = function(sText)
 
 	oParagraph.AddToContent(0, oRun);
 	oRun = new ParaRun(oParagraph, false);
-	oRun.AddToContent(0, new ParaSpace());
+	oRun.AddToContent(0, new AscWord.CRunSpace());
 	oParagraph.AddToContent(1, oRun);
 
 	this.MoveCursorToEndPos(false);
@@ -156,7 +156,7 @@ CFootEndnote.prototype.AddDefaultEndnoteContent = function(sText)
 
 	oParagraph.AddToContent(0, oRun);
 	oRun = new ParaRun(oParagraph, false);
-	oRun.AddToContent(0, new ParaSpace());
+	oRun.AddToContent(0, new AscWord.CRunSpace());
 	oParagraph.AddToContent(1, oRun);
 
 	this.MoveCursorToEndPos(false);

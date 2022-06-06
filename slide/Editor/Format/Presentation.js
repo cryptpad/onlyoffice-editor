@@ -4148,7 +4148,7 @@ CPresentation.prototype.addCompositeText = function (nCharCode) {
         oChar.add(nCharCode);
     } else {
         if (32 == nCharCode || 12288 == nCharCode)
-            oChar = new ParaSpace();
+            oChar = new AscWord.CRunSpace();
         else
             oChar = new AscWord.CRunText(nCharCode);
     }
@@ -6517,7 +6517,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                                     }
                                 } else {
                                     History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
-                                    this.AddToParagraph(new ParaTab());
+                                    this.AddToParagraph(new AscWord.CRunTab());
                                 }
 
 
@@ -7205,7 +7205,7 @@ CPresentation.prototype.OnKeyPress = function (e) {
                 if (oController && oController.selectedObjects.length !== 0) {
                     History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
                     this.CheckLanguageOnTextAdd = true;
-                    this.AddToParagraph(new ParaSpace());
+                    this.AddToParagraph(new AscWord.CRunSpace());
                     this.CheckLanguageOnTextAdd = false;
                 }
             }
@@ -10857,7 +10857,7 @@ CPresentation.prototype.TextBox_Put = function (sText, rFonts) {
 
                 var nCharCode = oIterator.value();
                 if (0x0020 === nCharCode)
-                    this.AddToParagraph(new ParaSpace());
+                    this.AddToParagraph(new AscWord.CRunSpace());
                 else
                     this.AddToParagraph(new AscWord.CRunText(nCharCode));
 

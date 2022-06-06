@@ -6499,7 +6499,7 @@
 	ApiParagraph.prototype.AddTabStop = function()
 	{
 		var oRun = new ParaRun(this.Paragraph, false);
-		oRun.Add_ToContent(0, new ParaTab());
+		oRun.Add_ToContent(0, new AscWord.CRunTab());
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		return new ApiRun(oRun);
 	};
@@ -8002,7 +8002,7 @@
 	 */
 	ApiRun.prototype.AddTabStop = function()
 	{
-		this.Run.Add_ToContent(this.Run.Content.length, new ParaTab());
+		this.Run.Add_ToContent(this.Run.Content.length, new AscWord.CRunTab());
 	};
 	/**
 	 * Adds a drawing object (image, shape or chart) to the current text run.
@@ -16577,9 +16577,9 @@
 								oChange.insert[nChar] = 32;
 
 							if (AscCommon.IsSpace(oChange.insert[nChar]))
-								itemText = new AscCommonWord.ParaSpace(oChange.insert[nChar]);
+								itemText = new AscWord.CRunSpace(oChange.insert[nChar]);
 							else if (oChange.insert[nChar] === '\t')
-								itemText = new ParaTab();
+								itemText = new AscWord.CRunTab();
 							else
 								itemText = new AscWord.CRunText(oChange.insert[nChar]);
 
