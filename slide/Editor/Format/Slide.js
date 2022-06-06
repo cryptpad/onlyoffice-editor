@@ -1173,7 +1173,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         {
             return this.Layout.Master.clrMap;
         }
-        return AscFormat.G_O_DEFAULT_COLOR_MAP;
+        return AscFormat.DEFAULT_COLOR_MAP;
     };
 
     Slide.prototype.recalculate = function()

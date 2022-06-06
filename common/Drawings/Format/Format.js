@@ -1065,7 +1065,7 @@
 			} else if (master.clrMap) {
 				color_map = master.clrMap;
 			} else {
-				color_map = AscFormat.G_O_DEFAULT_COLOR_MAP;
+				color_map = AscFormat.DEFAULT_COLOR_MAP;
 			}
 
 			checkObjectUnifill(cellPr.Shd, theme, color_map);
@@ -10912,6 +10912,9 @@
 		InitClass(ClrMap, CBaseFormatObject, AscDFH.historyitem_type_ClrMap);
 		ClrMap.prototype.Refresh_RecalcData = function () {
 		};
+		ClrMap.prototype.notAllowedWithoutId = function () {
+			return false;
+		};
 		ClrMap.prototype.createDuplicate = function () {
 			var _copy = new ClrMap();
 			for (var _color_index = g_clr_MIN; _color_index <= this.color_map.length; ++_color_index) {
@@ -11762,6 +11765,9 @@
 
 		InitClass(CTheme, CBaseFormatObject, 0);
 
+		CTheme.prototype.notAllowedWithoutId = function () {
+			return false;
+		};
 		CTheme.prototype.createDuplicate = function () {
 			var oTheme = new CTheme();
 			oTheme.setName(this.name);

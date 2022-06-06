@@ -1569,8 +1569,10 @@ background-repeat: no-repeat;\
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 	};
 
-	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
+
+	asc_docs_api.prototype.OpenDocumentFromZipNoInit = function(data)
 	{
+
 		if (!data) {
 			return false;
 		}
@@ -1582,9 +1584,7 @@ background-repeat: no-repeat;\
 			return false;
 		}
 
-		this.InitEditor();
 		var reader;
-		this.DocumentType = 2;
 		xmlParserContext.zip = jsZipWrapper;
 		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
 
@@ -1626,7 +1626,6 @@ background-repeat: no-repeat;\
 				oPresPr.fromXml(oPresentationReader, true);
 			}
 		}
-
 		let oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
 		if(oCorePart) {
 			let oContentCore = oCorePart.getDocumentContent();
@@ -1636,7 +1635,6 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.Core.fromXml(oCoreReader, true);
 			}
 		}
-
 		let oCustomPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
 		if(oCustomPrPart) {
 			let oContentCustomPr = oCustomPrPart.getDocumentContent();
@@ -1646,8 +1644,7 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
 			}
 		}
-
-
+		jsZipWrapper.close();
 		this.WordControl.m_oLogicDocument.ImageMap = {};
 		var _cur_ind = 0;
 		var context = reader.context;
@@ -1663,17 +1660,26 @@ background-repeat: no-repeat;\
 				});
 			}
 		}
+		return true;
+	};
 
+	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
+	{
+
+		this.InitEditor();
+		this.DocumentType = 2;
+
+		g_oIdCounter.Set_Load(true);
+		this.OpenDocumentFromZipNoInit(data);
+		g_oIdCounter.Set_Load(false);
 		this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(true);
 
 		this.LoadedObject = 1;
-		g_oIdCounter.Set_Load(false);
 		AscFonts.IsCheckSymbols = false;
 
 		this.WordControl.m_oDrawingDocument.CheckFontNeeds();
 		this.FontLoader.LoadDocumentFonts(this.WordControl.m_oLogicDocument.Fonts, false);
 
-		g_oIdCounter.Set_Load(false);
 
 		if (this.isMobileVersion)
 		{
@@ -1681,11 +1687,9 @@ background-repeat: no-repeat;\
 			PasteElementsId.PASTE_ELEMENT_ID     = "wrd_pastebin";
 			PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
 		}
-
 		if (AscCommon.AscBrowser.isSafariMacOs)
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 
-		jsZipWrapper.close();
 		return true;
 	};
 
@@ -7967,7 +7971,7 @@ background-repeat: no-repeat;\
 
 		this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(base64File);
 		if (this.isOpenOOXInBrowser) {
-			this.OpenDocumentFromZip(base64File);
+			this.OpenDocumentFromZipNoInit(base64File);
 		} else {
 			var _loader = new AscCommon.BinaryPPTYLoader();
 			_loader.Api = this;
