@@ -9448,7 +9448,7 @@
 			writer.WriteXmlAttributesEnd();
 
 			this.cNvPr.toXml(writer, namespace_ + ":cNvPr");
-			this.nvUniSpPr.toXmlSp(writer);
+			this.nvUniSpPr.toXmlGrSp(writer);
 
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) {
@@ -10729,6 +10729,28 @@
 			else {
 				writer.WriteXmlAttributesEnd(true);
 			}
+		};
+		CSpPr.prototype.toXmlGroup = function(writer) {
+			let namespace_ = "a";
+			if		(writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	namespace_ = "wpg";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			namespace_ = "xdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX)		namespace_ = "p";
+
+			writer.WriteXmlNodeStart(namespace_ + ":grpSpPr");
+			writer.WriteXmlAttributeString("bwMode", "auto");
+			writer.WriteXmlAttributesEnd();
+
+			writer.WriteXmlNullable(this.xfrm, "a:xfrm");
+			writer.WriteXmlNullable(this.Fill);
+			writer.WriteXmlNullable(this.effectProps);
+			//writer.Write(scene3d);
+
+			writer.WriteXmlNodeEnd(namespace_ + ":grpSpPr");
 		};
 // ----------------------------------
 
@@ -12513,7 +12535,7 @@
 			}
 			return oSp;
 		};
-		CSpTree.prototype.toXml = function (writer) {
+		CSpTree.prototype.toXml = function (writer, bGroup) {
 			let name_;
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
@@ -12545,7 +12567,13 @@
 			}
 
 			if (this.spPr) {
-				this.spPr.toXml(writer);
+				if(bGroup) {
+					this.spPr.toXmlGroup(writer);
+				}
+				else {
+
+					this.spPr.toXml(writer);
+				}
 			}
 
 			writer.context.groupIndex++;
@@ -14864,7 +14892,7 @@
 			switch (name) {
 				case "val": {
 					if (this.type === AscFormat.BULLET_TYPE_SIZE_PCT) {
-						this.val = getPercentageValue(reader.GetValue());
+						this.val = reader.GetValueInt();
 					} else if (this.type === AscFormat.BULLET_TYPE_SIZE_PTS) {
 						this.val = reader.GetValueInt();
 					}
@@ -14877,7 +14905,7 @@
 			if (this.type === AscFormat.BULLET_TYPE_SIZE_PCT) {
 				writer.WriteXmlNodeStart("a:buSzPct");
 
-				writer.WriteXmlNullableAttributeInt("val", getPercentageValueForWrite(this.val));
+				writer.WriteXmlNullableAttributeInt("val", this.val);
 				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlNodeEnd("a:buSzPct");
 			} else if (this.type === AscFormat.BULLET_TYPE_SIZE_PTS) {
