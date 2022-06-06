@@ -9347,7 +9347,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
 				this.StartAction(AscDFH.historydescription_Document_AddPageNumHotKey);
-				this.AddToParagraph(new ParaPageNum());
+				this.AddToParagraph(new AscWord.CRunPageNum());
 				this.FinalizeAction();
 			}
 			bRetValue = keydownresult_PreventAll;
@@ -11276,7 +11276,7 @@ CDocument.prototype.Document_AddPageNum = function(AlignV, AlignH)
 	}
 	else
 	{
-		this.AddToParagraph(new ParaPageNum());
+		this.AddToParagraph(new AscWord.CRunPageNum());
 	}
 
 	this.Document_UpdateInterfaceState();
@@ -16032,7 +16032,7 @@ CDocument.prototype.AddPageCount = function()
 	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddPageCount);
-		this.AddToParagraph(new ParaPageCount(this.Pages.length));
+		this.AddToParagraph(new AscWord.CRunPagesCount(this.Pages.length));
 		this.FinalizeAction();
 	}
 };
@@ -17782,9 +17782,9 @@ CDocument.prototype.AddFootnote = function(sText)
 			}
 
 			if (sText)
-				this.AddToParagraph(new ParaFootnoteReference(oFootnote, sText));
+				this.AddToParagraph(new AscWord.CRunFootnoteReference(oFootnote, sText));
 			else
-				this.AddToParagraph(new ParaFootnoteReference(oFootnote));
+				this.AddToParagraph(new AscWord.CRunFootnoteReference(oFootnote));
 
 			this.SetDocPosType(docpostype_Footnotes);
 			this.Footnotes.Set_CurrentElement(true, 0, oFootnote);
@@ -18015,9 +18015,9 @@ CDocument.prototype.AddEndnote = function(sText)
 			}
 
 			if (sText)
-				this.AddToParagraph(new ParaEndnoteReference(oEndnote, sText));
+				this.AddToParagraph(new AscWord.CRunEndnoteReference(oEndnote, sText));
 			else
-				this.AddToParagraph(new ParaEndnoteReference(oEndnote));
+				this.AddToParagraph(new AscWord.CRunEndnoteReference(oEndnote));
 
 			this.SetDocPosType(docpostype_Endnotes);
 			this.Endnotes.Set_CurrentElement(true, 0, oEndnote);
@@ -23206,7 +23206,7 @@ CDocument.prototype.GetAllTablesOfFigures = function(isCurrent)
 }
 /**
  * Получаем текущее сложное поле
- * @returns {CComplexField | ParaPageNum | ParaPageCount | null}
+ * @returns {CComplexField | AscWord.CRunPageNum | AscWord.CRunPagesCount | null}
  */
 CDocument.prototype.GetCurrentComplexField = function()
 {

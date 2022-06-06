@@ -8326,7 +8326,7 @@
 					}
 					break;
 				case "pgNum":
-					oRun.AddToContent(-1, new ParaPageNum());
+					oRun.AddToContent(-1, new AscWord.CRunPageNum());
 					break;
 				case "tab":
 					oRun.AddToContent(-1, new AscWord.CRunTab());
@@ -8396,16 +8396,16 @@
 		switch (oParsedFootEndnoteRef.type)
 		{
 			case "footnoteRef":
-				oFootEndnoteRef = new ParaFootnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunFootnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 			case "footnoteNum":
-				oFootEndnoteRef = new ParaFootnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunFootnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 			case "endnoteRef":
-				oFootEndnoteRef = new ParaEndnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunEndnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 			case "endnoteNum":
-				oFootEndnoteRef = new ParaEndnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunEndnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 		}
 		

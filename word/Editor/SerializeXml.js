@@ -2418,7 +2418,7 @@
 				case "contentPart":
 					break;
 				case "continuationSeparator":
-					newItem = new ParaContinuationSeparator();
+					newItem = new AscWord.CRunContinuationSeparator();
 					break;
 				case "cr":
 					newItem = new AscWord.CRunBreak(AscWord.break_Line);
@@ -2453,7 +2453,7 @@
 					elem.fromXml(reader);
 					break;
 				case "endnoteRef":
-					newItem = new ParaEndnoteRef(null);
+					newItem = new AscWord.CRunEndnoteRef(null);
 					break;
 				case "endnoteReference":
 					let ednRef = new CT_FtnEdnRef();
@@ -2461,7 +2461,7 @@
 					let endnote = endnotes[ednRef.id];
 					if (endnote) {
 						oReadResult.logicDocument.Endnotes.AddEndnote(endnote.content);
-						newItem = new ParaEndnoteReference(endnote.content, ednRef.customMarkFollows);
+						newItem = new AscWord.CRunEndnoteReference(endnote.content, ednRef.customMarkFollows);
 					}
 					break;
 				case "fldChar":
@@ -2469,7 +2469,7 @@
 					newItem.fromXml(reader);
 					break;
 				case "footnoteRef":
-					newItem = new ParaFootnoteRef(null);
+					newItem = new AscWord.CRunFootnoteRef(null);
 					break;
 				case "footnoteReference":
 					let ftnRef = new CT_FtnEdnRef();
@@ -2477,7 +2477,7 @@
 					let footnote = footnotes[ftnRef.id];
 					if (footnote) {
 						oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-						newItem = new ParaFootnoteReference(footnote.content, ftnRef.customMarkFollows);
+						newItem = new AscWord.CRunFootnoteReference(footnote.content, ftnRef.customMarkFollows);
 					}
 					break;
 				case "instrText":
@@ -2497,7 +2497,7 @@
 					//todo
 					break;
 				case "pgNum":
-					newItem = new ParaPageNum();
+					newItem = new AscWord.CRunPageNum();
 					break;
 				case "pict":
 					break;
@@ -2526,7 +2526,7 @@
 				case "ruby":
 					break;
 				case "separator":
-					newItem = new ParaSeparator();
+					newItem = new AscWord.CRunSeparator();
 					break;
 				case "softHyphen":
 					break;
@@ -5627,7 +5627,7 @@
 		};
 		CCommentData.prototype.WriteTextToRunReference = function(paragraph) {
 			let run = new ParaRun(paragraph, false);
-			run.Add_ToContent(0, new ParaPageNum());
+			run.Add_ToContent(0, new AscWord.CRunPageNum());
 			run.Pr.RFonts.SetAll('Arial');
 			run.Pr.FontSize = 11;
 			run.AddText(text, -1);

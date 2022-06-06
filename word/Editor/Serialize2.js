@@ -11767,7 +11767,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
         else if (c_oSerRunType.pagenum === type)
         {
-            oNewElem = new ParaPageNum();
+            oNewElem = new AscWord.CRunPageNum();
         }
         else if (c_oSerRunType.pagebreak === type)
         {
@@ -11883,15 +11883,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
 		else if (c_oSerRunType.separator === type)
 		{
-			oNewElem = new ParaSeparator();
+			oNewElem = new AscWord.CRunSeparator();
 		}
 		else if (c_oSerRunType.continuationSeparator === type)
 		{
-			oNewElem = new ParaContinuationSeparator();
+			oNewElem = new AscWord.CRunContinuationSeparator();
 		}
 		else if (c_oSerRunType.footnoteRef === type)
 		{
-			oNewElem = new ParaFootnoteRef(null);
+			oNewElem = new AscWord.CRunFootnoteRef(null);
 		}
 		else if (c_oSerRunType.footnoteReference === type)
 		{
@@ -11902,12 +11902,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var footnote = this.oReadResult.footnotes[ref.id];
 			if (footnote && this.oReadResult.logicDocument) {
 				this.oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-				oNewElem = new ParaFootnoteReference(footnote.content, ref.customMark);
+				oNewElem = new AscWord.CRunFootnoteReference(footnote.content, ref.customMark);
 			}
 		}
 		else if (c_oSerRunType.endnoteRef === type)
 		{
-			oNewElem = new ParaEndnoteRef(null);
+			oNewElem = new AscWord.CRunEndnoteRef(null);
 		}
 		else if (c_oSerRunType.endnoteReference === type)
 		{
@@ -11918,7 +11918,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var endnote = this.oReadResult.endnotes[ref.id];
 			if (endnote && this.oReadResult.logicDocument) {
 				this.oReadResult.logicDocument.Endnotes.AddEndnote(endnote.content);
-				oNewElem = new ParaEndnoteReference(endnote.content, ref.customMark);
+				oNewElem = new AscWord.CRunEndnoteReference(endnote.content, ref.customMark);
 			}
 		}
         else
@@ -13189,7 +13189,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
         else if (c_oSerRunType.pagenum === type)
         {
-            oNewElem = new ParaPageNum();
+            oNewElem = new AscWord.CRunPageNum();
         }
         else if (c_oSerRunType.pagebreak === type)
         {
@@ -13230,16 +13230,16 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
 		else if (c_oSerRunType.separator === type)
 		{
-			oNewElem = new ParaSeparator();
+			oNewElem = new AscWord.CRunSeparator();
 		}
 		else if (c_oSerRunType.continuationSeparator === type)
 		{
-			oNewElem = new ParaContinuationSeparator();
+			oNewElem = new AscWord.CRunContinuationSeparator();
 		}
 		else if (c_oSerRunType.footnoteRef === type)
 		{
 			if (this.curNote) {
-				oNewElem = new ParaFootnoteRef(this.curNote);
+				oNewElem = new AscWord.CRunFootnoteRef(this.curNote);
 			}
 		}
 		else if (c_oSerRunType.footnoteReference === type)
@@ -13251,13 +13251,13 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 			var footnote = this.oReadResult.footnotes[ref.id];
 			if (footnote) {
 				this.oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-				oNewElem = new ParaFootnoteReference(footnote.content, ref.customMark);
+				oNewElem = new AscWord.CRunFootnoteReference(footnote.content, ref.customMark);
 			}
 		}
 		else if (c_oSerRunType.endnoteRef === type)
 		{
 			if (this.curNote) {
-				oNewElem = new ParaEndnoteRef(this.curNote);
+				oNewElem = new AscWord.CRunEndnoteRef(this.curNote);
 			}
 		}
 		else if (c_oSerRunType.endnoteReference === type)
@@ -13269,7 +13269,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 			var note = this.oReadResult.endnotes[ref.id];
 			if (note) {
 				this.oReadResult.logicDocument.Endnotes.AddEndnote(note.content);
-				oNewElem = new ParaEndnoteReference(note.content, ref.customMark);
+				oNewElem = new AscWord.CRunEndnoteReference(note.content, ref.customMark);
 			}
 		}
         else if (c_oSerRunType._LastRun === type)
@@ -17107,10 +17107,10 @@ OpenParStruct.prototype = {
                         oNewRun.Set_Pr(rPr);
                     }
 					if (fieldtype_PAGENUM == elem.Get_FieldType()) {
-						oNewRun.Add_ToContent(0, new ParaPageNum());
+						oNewRun.Add_ToContent(0, new AscWord.CRunPageNum());
 					} else {
 						var pageCount = parseInt(elem.GetSelectedText(true));
-						oNewRun.Add_ToContent(0, new ParaPageCount(isNaN(pageCount) ? undefined : pageCount));
+						oNewRun.Add_ToContent(0, new AscWord.CRunPagesCount(isNaN(pageCount) ? undefined : pageCount));
 					}
                     this.addToContent(oNewRun);
                 } else if(elem.Content.length > 0) {

@@ -236,7 +236,7 @@ ParaFieldChar.prototype.IsNeedSaveRecalculateObject = function()
 };
 ParaFieldChar.prototype.SaveRecalculateObject = function(Copy)
 {
-	return new CPageNumRecalculateObject(this.Type, this.Widths, this.String, this.Width, Copy);
+	return new AscWord.CPageNumRecalculateObject(this.Type, this.Widths, this.String, this.Width, Copy);
 };
 ParaFieldChar.prototype.LoadRecalculateObject = function(RecalcObj)
 {

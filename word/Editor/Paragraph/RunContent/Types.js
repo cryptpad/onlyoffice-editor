@@ -104,22 +104,22 @@ var para_EndnoteRef                = 0x004a; // Номер сноски (дол�
 			case para_NewLine               : oElement = new AscWord.CRunBreak(); break;
 			case para_Numbering             : oElement = new ParaNumbering(); break;
 			case para_Tab                   : oElement = new AscWord.CRunTab(); break;
-			case para_PageNum               : oElement = new ParaPageNum(); break;
+			case para_PageNum               : oElement = new AscWord.CRunPageNum(); break;
 			case para_Math_Placeholder      : oElement = new CMathText(); break;
 			case para_Math_Text             : oElement = new CMathText(); break;
 			case para_Math_BreakOperator    : oElement = new CMathText(); break;
 			case para_Math_Ampersand        : oElement = new CMathAmp(); break;
 			case para_PresentationNumbering : oElement = new ParaPresentationNumbering(); break;
-			case para_FootnoteReference     : oElement = new ParaFootnoteReference(); break;
-			case para_FootnoteRef           : oElement = new ParaFootnoteRef(); break;
-			case para_Separator             : oElement = new ParaSeparator(); break;
-			case para_ContinuationSeparator : oElement = new ParaContinuationSeparator(); break;
-			case para_PageCount             : oElement = new ParaPageCount(); break;
+			case para_FootnoteReference     : oElement = new AscWord.CRunFootnoteReference(); break;
+			case para_FootnoteRef           : oElement = new AscWord.CRunFootnoteRef(); break;
+			case para_Separator             : oElement = new AscWord.CRunSeparator(); break;
+			case para_ContinuationSeparator : oElement = new AscWord.CRunContinuationSeparator(); break;
+			case para_PageCount             : oElement = new AscWord.CRunPagesCount(); break;
 			case para_FieldChar             : oElement = new ParaFieldChar(); break;
 			case para_InstrText             : oElement = new ParaInstrText(); break;
 			case para_RevisionMove          : oElement = new AscWord.CRunRevisionMove(); break;
-			case para_EndnoteReference      : oElement = new ParaEndnoteReference(); break;
-			case para_EndnoteRef            : oElement = new ParaEndnoteRef(); break;
+			case para_EndnoteReference      : oElement = new AscWord.CRunEndnoteReference(); break;
+			case para_EndnoteRef            : oElement = new AscWord.CRunEndnoteRef(); break;
 		}
 
 		if (oElement)

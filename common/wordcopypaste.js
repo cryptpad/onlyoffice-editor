@@ -9672,11 +9672,11 @@ PasteProcessor.prototype =
 								var oAddedRun = new ParaRun(oThis.oCurPar, false);
 								oAddedRun.SetRStyle(oThis.oLogicDocument.GetStyles().GetDefaultFootnoteReference());
 								if (sText) {
-									oAddedRun.AddToContent(0, new ParaFootnoteReference(oFootnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunFootnoteReference(oFootnote));
 									oAddedRun.AddText(sText, 1);
 								}
 								else {
-									oAddedRun.AddToContent(0, new ParaFootnoteReference(oFootnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunFootnoteReference(oFootnote));
 								}
 								oThis._CommitElemToParagraph(oAddedRun);
 								if (oThis.AddedFootEndNotes) {
@@ -9698,11 +9698,11 @@ PasteProcessor.prototype =
 								var oAddedRun = new ParaRun(oThis.oCurPar, false);
 								oAddedRun.SetRStyle(oThis.oLogicDocument.GetStyles().GetDefaultEndnoteReference());
 								if (sText) {
-									oAddedRun.AddToContent(0, new ParaEndnoteReference(oEndnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunEndnoteReference(oEndnote));
 									oAddedRun.AddText(sText, 1);
 								}
 								else {
-									oAddedRun.AddToContent(0, new ParaEndnoteReference(oEndnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunEndnoteReference(oEndnote));
 								}
 								oThis._CommitElemToParagraph(oAddedRun);
 								if (oThis.AddedFootEndNotes) {

@@ -6261,7 +6261,7 @@
 	ApiParagraph.prototype.AddPageNumber = function()
 	{
 		var oRun = new ParaRun(this.Paragraph, false);
-		oRun.Add_ToContent(0, new ParaPageNum());
+		oRun.Add_ToContent(0, new AscWord.CRunPageNum());
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		return new ApiRun(oRun);
 	};
@@ -6275,7 +6275,7 @@
 	ApiParagraph.prototype.AddPagesCount = function()
 	{
 		var oRun = new ParaRun(this.Paragraph, false);
-		oRun.Add_ToContent(0, new ParaPageCount());
+		oRun.Add_ToContent(0, new AscWord.CRunPagesCount());
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		return new ApiRun(oRun);
 	};
