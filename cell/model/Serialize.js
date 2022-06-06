@@ -4955,7 +4955,7 @@
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
                 this.memory.WriteBool(coords.bSizeWithCells);
             }
-            if (this.saveThreadedComments) {
+            if (this.saveThreadedComments && comment.isValidThreadComment()) {
                 this.memory.WriteByte(c_oSer_Comments.ThreadedComment);
                 this.memory.WriteByte(c_oSerPropLenType.Variable);
                 this.bs.WriteItemWithLength(function(){oThis.WriteThreadedComment(comment);});

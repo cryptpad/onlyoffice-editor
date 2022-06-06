@@ -408,10 +408,11 @@
 		}
 		name = reader.GetNameNoNS();
 		if ("glossaryDocument" === name) {
+			reader.ReadNextNode();//docParts
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				name = reader.GetNameNoNS();
-				if ("docParts" === name) {
+				if ("docPart" === name) {
 					var docPart = new CDocPart(this);
 					docPart.fromXml(reader);
 					this.AddDocPart(docPart);
@@ -443,11 +444,14 @@
 		writer.WriteXmlNodeStart("w:glossaryDocument");
 		writer.WriteXmlString(AscCommonWord.g_sXmlDocumentNamespaces);
 		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNodeStart("w:docParts");
+		writer.WriteXmlAttributesEnd();
 		for (var sId in this.DocParts) {
 			if(this.DocParts.hasOwnProperty(sId)) {
 				this.DocParts[sId].toXml(writer, "w:docPart");
 			}
 		}
+		writer.WriteXmlNodeEnd("w:docParts");
 		writer.WriteXmlNodeEnd("w:glossaryDocument");
 	};
 	CDocPart.prototype.fromXml = function(reader) {
@@ -500,7 +504,7 @@
 					break;
 				}
 				case "types" : {
-					reader.readXmlArray("types", function() {
+					reader.readXmlArray("type", function() {
 						t.Types = fromXml_ST_DocPartType(CT_StringW.prototype.toVal(reader, t.Types), t.Types);
 					});
 					break;
@@ -537,7 +541,7 @@
 		if (null !== this.Behaviors) {
 			writer.WriteXmlNodeStart("w:behaviors");
 			writer.WriteXmlAttributesEnd();
-			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_DocPartBehavior(this.Types)), "w:behavior");
+			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_DocPartBehavior(this.Behaviors)), "w:behavior");
 			writer.WriteXmlNodeEnd("w:behaviors");
 		}
 		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Description), "w:description");
@@ -1412,7 +1416,7 @@
 	};
 //Paragraph
 	CParagraphContentWithParagraphLikeContent.prototype.fromXmlElem = function (reader, name) {
-		let paragraph = this.GetParagraph && this.GetParagraph() || this;
+		let paragraph = this.GetParagraph();
 		let elem, context = reader.context;
 		switch (name) {
 			case "bdo":
@@ -1501,6 +1505,7 @@
 				elem = new AscCommon.CT_OMathPara();
 				elem.fromXml(reader);
 				if (elem.OMath) {
+					elem.OMath.Correct_Content(true);
 					this.AddToContent(this.GetElementsCount(), elem.OMath);
 				}
 				break;
@@ -1514,9 +1519,14 @@
 				elem = new ParaRun(paragraph, false);
 				elem.fromXml(reader);
 				this.AddToContent(this.GetElementsCount(), elem);
+				//todo
+				// if (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength && !(oParStruct.cur instanceof CInlineLevelSdt && oParStruct.cur.IsForm())) {
+				// 	this.oReadResult.runsToSplit.push(run);
+				// }
 				break;
 			case "sdt" : {
 				elem = new AscCommonWord.CInlineLevelSdt();
+				elem.RemoveFromContent(0, elem.GetElementsCount());
 				elem.SetParagraph(paragraph);
 				elem.fromXml(reader);
 				if (elem.IsEmpty())
@@ -2439,16 +2449,19 @@
 				case "AlternateContent":
 					let oRun = this;
 					let elem = new CT_XmlNode(function(reader, name) {
-						if ("Choice" === name) {
-							let elem = new CT_XmlNode(function(reader, name) {
-								if ("drawing" === name) {
-									newItem = oRun.readDrawing(reader);
-								}
-								return new CT_XmlNode();
-							});
-							elem.fromXml(reader);
-							return elem;
+						if(!newItem) {
+							if ("Choice" === name || "Fallback" === name) {
+								let elem = new CT_XmlNode(function(reader, name) {
+									if ("drawing" === name) {
+										newItem = oRun.readDrawing(reader);
+									}
+									return true;
+								});
+								elem.fromXml(reader);
+								return elem;
+							}
 						}
+						return true;
 					});
 					elem.fromXml(reader);
 					break;
@@ -2513,15 +2526,11 @@
 							this.Set_MathPr(mrPr);
 							continue;
 						} else if ("a:rPr" === fullName) {
-							let textPr = new CTextPr();
-							textPr.fromDrawingML(reader);
-							this.Set_Pr(textPr);
+							this.Pr.fromDrawingML(reader);
 							continue;
 						}
 					}
-					var textPr = new CTextPr();
-					textPr.fromXml(reader);
-					this.Set_Pr(textPr);
+					this.Pr.fromXml(reader);
 					break;
 				case "ruby":
 					break;
@@ -2887,6 +2896,24 @@
 					// this.Rprchange.fromXml(reader);
 					break;
 				}
+				case "textOutline" : {
+					let oLn = new AscFormat.CLn();
+					oLn.fromXml(reader);
+					this.TextOutline = oLn;
+					break;
+				}
+				case "textFill" : {
+					let oThis = this;
+					let oNode = new CT_XmlNode(function (reader, name) {
+						if(AscFormat.CUniFill.prototype.isFillName(name)) {
+							oThis.TextFill = new AscFormat.CUniFill();
+							oThis.TextFill.fromXml(reader, name);
+						}
+						return true;
+					});
+					oNode.fromXml(reader);
+					break;
+				}
 					//c_oSerProp_rPrType.TextOutline
 					//c_oSerProp_rPrType.TextFill
 					//c_oSerProp_rPrType.Del
@@ -2953,6 +2980,20 @@
 		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.CS), "w:cs");
 		// writer.WriteXmlNullable(this.Em, "w:em");
 		writer.WriteXmlNullable(Lang, "w:lang");
+		if(this.TextFill) {
+			writer.WriteXmlString("<w14:textFill>");
+			let nOldDocType = writer.context.docType;
+			writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_WORDART;
+			this.TextFill.toXml(writer)
+			writer.context.docType = nOldDocType;
+			writer.WriteXmlString("</w14:textFill>");
+		}
+		if(this.TextOutline) {
+			let nOldDocType = writer.context.docType;
+			writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_WORDART;
+			this.TextFill.toXml(writer, "w14:textOutline");
+			writer.context.docType = nOldDocType;
+		}
 		// writer.WriteXmlNullable(this.EastAsianLayout, "w:eastAsianLayout");
 		// writer.WriteXmlNullable(Vanish, "w:specVanish");
 		// writer.WriteXmlNullable(this.OMath, "w:oMath");
@@ -5150,7 +5191,12 @@
 					break;
 				}
 				case "placeholder" : {
-					this.Placeholder = CT_StringW.prototype.toVal(reader, this.Placeholder);
+					var subDepth = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(subDepth)) {
+						if ("docPart" === reader.GetNameNoNS()) {
+							this.Placeholder = CT_StringW.prototype.toVal(reader, this.Placeholder);
+						}
+					}
 					break;
 				}
 				case "temporary" : {
@@ -5257,7 +5303,12 @@
 		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Tag), "w:tag");
 		writer.WriteXmlNullable(CT_IntW.prototype.fromVal(this.Id), "w:id");
 		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_Lock(this.Lock)), "w:lock");
-		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Placeholder), "w:placeholder");
+		if (this.Placeholder) {
+			writer.WriteXmlNodeStart("w:placeholder");
+			writer.WriteXmlAttributesEnd();
+			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Placeholder), "w:docPart");
+			writer.WriteXmlNodeEnd("w:placeholder");
+		}
 		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.Temporary), "w:temporary");
 		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.ShowingPlcHdr), "w:showingPlcHdr");
 		// writer.WriteXmlNullable(this.dataBinding, "w:dataBinding");
@@ -5369,7 +5420,9 @@
 	};
 	CSdtListItem.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeStringEncode("w:displayText", this.DisplayText);
+		if (this.DisplayText) {
+			writer.WriteXmlNullableAttributeStringEncode("w:displayText", this.DisplayText);
+		}
 		writer.WriteXmlNullableAttributeStringEncode("w:value", this.Value);
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -5468,11 +5521,11 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_BoolW14.prototype.fromVal(this.Checked), "w14:checked");
 		writer.WriteXmlNodeStart("w14:checkedState");
-		writer.WriteXmlNullableAttributeString("w14:val", AscCommon.Int32ToHexOrNull(this.CheckedSymbol));
+		writer.WriteXmlNullableAttributeString("w14:val", AscCommon.Int16ToHex(this.CheckedSymbol));
 		writer.WriteXmlNullableAttributeString("w14:font", this.CheckedFont);
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNodeStart("w14:uncheckedState");
-		writer.WriteXmlNullableAttributeString("w14:val", AscCommon.Int32ToHexOrNull(this.UncheckedSymbol));
+		writer.WriteXmlNullableAttributeString("w14:val", AscCommon.Int16ToHex(this.UncheckedSymbol));
 		writer.WriteXmlNullableAttributeString("w14:font", this.UncheckedFont);
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNullable(CT_StringW14.prototype.fromVal(this.GroupKey), "w14:groupKey");
@@ -5624,14 +5677,6 @@
 			run.AddText(text, -1);
 			paragraph.AddToContent(paragraph.GetElementsCount(), run);
 			return paragraph;
-		};
-		CCommentData.prototype.WriteTextToRunReference = function(paragraph) {
-			let run = new ParaRun(paragraph, false);
-			run.Add_ToContent(0, new ParaPageNum());
-			run.Pr.RFonts.SetAll('Arial');
-			run.Pr.FontSize = 11;
-			run.AddText(text, -1);
-			return run;
 		};
 		CCommentData.prototype.WriteToXml = function(ct_comment, paraIdParent, context, ct_comments, ct_people, ct_commentsExt, ct_commentsIds, ct_commentsExtensible) {
 			let id = context.commentIdIndex++;
