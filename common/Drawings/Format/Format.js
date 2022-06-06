@@ -12117,7 +12117,7 @@
 					break;
 				}
 				case "sldNum": {
-					this.setSlideNum(reader.GetValueBool());
+					this.setSldNum(reader.GetValueBool());
 					break;
 				}
 			}

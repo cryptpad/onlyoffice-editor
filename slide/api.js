@@ -1644,7 +1644,6 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
 			}
 		}
-		jsZipWrapper.close();
 		this.WordControl.m_oLogicDocument.ImageMap = {};
 		var _cur_ind = 0;
 		var context = reader.context;
@@ -1660,6 +1659,7 @@ background-repeat: no-repeat;\
 				});
 			}
 		}
+		jsZipWrapper.close();
 		return true;
 	};
 

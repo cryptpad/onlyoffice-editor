@@ -1504,8 +1504,8 @@
 			case "oMathPara":
 				elem = new AscCommon.CT_OMathPara();
 				elem.fromXml(reader);
-				if (elem.OMath) {
-					elem.OMath.Correct_Content(true);
+				if (elem.OMath && elem.OMath.Root) {
+					elem.OMath.Root.Correct_Content(true);
 					this.AddToContent(this.GetElementsCount(), elem.OMath);
 				}
 				break;
