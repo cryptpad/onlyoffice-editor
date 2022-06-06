@@ -2426,6 +2426,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	};
 	cArray.prototype.getElement = function (index) {
 		for (var i = 0; i < this.rowCount; i++) {
+			//TODO length
 			if (index > this.countElementInRow[i].length) {
 				index -= this.countElementInRow[i].length;
 			} else {
