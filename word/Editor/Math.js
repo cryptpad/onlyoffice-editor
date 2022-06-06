@@ -3656,9 +3656,8 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
 	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
-	var oLaTeXParser = new CLaTeXParser(strLaTeX, this);
+    ConvertLaTeXToTokensList(strLaTeX, this.Root);
 	this.Root.Correct_Content(true);
-	oLaTeXParser.Start();
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
@@ -3673,6 +3672,7 @@ ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
 	// TODO: Функция конвертации UnicodeMath -> MathML
 	var strUnicode = this.GetText();
+    console.log(CUnicodeConverter(strLaTeX));
 	this.Root.Remove_Content(0,this.Root.Content.length);
 	var Unicode = new CUnicodeParser(strUnicode, this);
 	this.Root.Correct_Content(true);
@@ -3701,10 +3701,10 @@ ParaMath.prototype.ConvertView = function(isToLinear)
 	}
 	else
 	{
-		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
-			this.ConvertFromUnicodeMath();
-		}
-		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+		// if (Asc.c_oAscMathInputType.Unicode === nInputType) {
+		// 	this.ConvertFromUnicodeMath();
+		// }
+		// else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
 			this.ConvertFromLaTeX();
 	}
 };
