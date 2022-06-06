@@ -4946,7 +4946,7 @@ Asc['asc_docs_api'].prototype.put_AddPageBreak = function()
         if ( null === Document.IsCursorInHyperlink(false) )
         {
             Document.StartAction();
-            Document.AddToParagraph( new ParaNewLine( break_Page ) );
+            Document.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 			Document.FinalizeAction();
         }
     }
@@ -4971,7 +4971,7 @@ Asc['asc_docs_api'].prototype.put_AddLineBreak = function()
         if ( null === Document.IsCursorInHyperlink(false) )
         {
             Document.StartAction();
-            Document.AddToParagraph( new ParaNewLine( para_NewLine ) );
+            Document.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
 			Document.FinalizeAction();
         }
     }

@@ -1774,7 +1774,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			if (9 === nCharCode) // \t
 				this.AddToContent(nCharPos++, new AscWord.CRunTab(), true);
 			else if (10 === nCharCode) // \n
-				this.AddToContent(nCharPos++, new ParaNewLine(break_Line), true);
+				this.AddToContent(nCharPos++, new AscWord.CRunBreak(AscWord.break_Line), true);
 			else if (13 === nCharCode) // \r
 				continue;
 			else if (AscCommon.IsSpace(nCharCode)) // space
@@ -4304,10 +4304,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         SpaceLen = 0;
                     }
 
-                    if (break_Page === Item.BreakType || break_Column === Item.BreakType)
+                    if (Item.IsPageBreak() || Item.IsColumnBreak())
                     {
                         PRS.BreakPageLine = true;
-                        if (break_Page === Item.BreakType)
+                        if (Item.IsPageBreak())
                             PRS.BreakRealPageLine = true;
 
 						// Учитываем разрыв страницы/колонки, только если мы находимся в главной части документа, либо
@@ -4325,7 +4325,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							continue;
 						}
 
-						if (break_Page === Item.BreakType && !Para.CheckSplitPageOnPageBreak(Item))
+						if (Item.IsPageBreak() && !Para.CheckSplitPageOnPageBreak(Item))
                             continue;
 
                         Item.Flags.NewLine = true;
@@ -5341,7 +5341,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             }
             case para_NewLine:
             {
-				if (break_Page === Item.BreakType || break_Column === Item.BreakType)
+				if (Item.IsPageBreak() || Item.IsColumnBreak())
 					Item.Update_String(PRSA.XEnd - PRSA.X);
 
                 PRSA.X += Item.WidthVisible;
@@ -5629,7 +5629,7 @@ ParaRun.prototype.Check_PageBreak = function()
     for (var Pos = 0; Pos < Count; Pos++)
     {
         var Item = this.Content[Pos];
-        if (para_NewLine === Item.Type && (break_Page === Item.BreakType || break_Column === Item.BreakType))
+        if (Item.IsBreak() && (Item.IsPageBreak() || Item.IsColumnBreak()))
             return true;
     }
 
@@ -7874,7 +7874,7 @@ ParaRun.prototype.Get_EndRangePos = function(_CurLine, _CurRange, SearchPos, Dep
     {
         var Item = this.Content[CurPos];
         var ItemType = Item.Type;
-        if ( !((para_Drawing === ItemType && true !== Item.Is_Inline()) || para_End === ItemType || (para_NewLine === ItemType && break_Line === Item.BreakType)))
+        if ( !((para_Drawing === ItemType && true !== Item.Is_Inline()) || para_End === ItemType || (Item.IsBreak() && Item.IsLineBreak())))
             LastPos = CurPos + 1;
     }
 

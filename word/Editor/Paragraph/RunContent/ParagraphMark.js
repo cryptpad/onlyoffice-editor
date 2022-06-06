@@ -54,6 +54,10 @@
 	CRunParagraphMark.prototype.constructor = CRunParagraphMark;
 
 	CRunParagraphMark.prototype.Type = para_End;
+	CRunParagraphMark.prototype.IsParaEnd = function()
+	{
+		return true;
+	};
 	CRunParagraphMark.prototype.Draw = function(X, Y, Context, bEndCell, bForceDraw)
 	{
 		if ((undefined !== editor && editor.ShowParaMarks) || true === bForceDraw)
@@ -201,10 +205,6 @@
 	CRunParagraphMark.prototype.ToSearchElement = function(oProps)
 	{
 		return new AscCommonWord.CSearchTextSpecialParaEnd();
-	};
-	CRunParagraphMark.prototype.IsParaEnd = function()
-	{
-		return true;
 	};
 	CRunParagraphMark.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{

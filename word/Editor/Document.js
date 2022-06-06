@@ -9108,7 +9108,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, false))
 			{
 				this.StartAction(AscDFH.historydescription_Document_EnterButton);
-				this.AddToParagraph(new ParaNewLine(break_Page));
+				this.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 				this.FinalizeAction();
 			}
 			break;
@@ -9118,7 +9118,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, this.IsFormFieldEditing()))
 			{
 				this.StartAction(AscDFH.historydescription_Document_EnterButton);
-				this.AddToParagraph(new ParaNewLine(break_Line));
+				this.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
 				this.FinalizeAction();
 			}
 			break;
@@ -9128,7 +9128,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, false))
 			{
 				this.StartAction(AscDFH.historydescription_Document_EnterButton);
-				this.AddToParagraph(new ParaNewLine(break_Column));
+				this.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Column));
 				this.FinalizeAction();
 			}
 			break;
@@ -18983,7 +18983,7 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 				var oNewPara  = new Paragraph(this.DrawingDocument, this);
 
 				if (ParaItem.IsPageBreak())
-					oNewPara.AddToParagraph(new ParaNewLine(break_Page));
+					oNewPara.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 
 				var nCurPos = this.CurPos.ContentPos;
 				if (oNewTable)
@@ -23813,7 +23813,7 @@ CDocument.prototype.AddBlankPage = function()
 					var oBreakParagraph = oElement.Split();
 					var oEmptyParagraph = oElement.Split();
 
-					oBreakParagraph.AddToParagraph(new ParaNewLine(break_Page));
+					oBreakParagraph.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 					this.AddToContent(this.CurPos.ContentPos + 1, oBreakParagraph);
 					this.AddToContent(this.CurPos.ContentPos + 2, oEmptyParagraph);
 
@@ -23826,8 +23826,8 @@ CDocument.prototype.AddBlankPage = function()
 					var oBreak2 = oElement.Split();
 					var oEmpty  = oElement.Split();
 
-					oBreak1.AddToParagraph(new ParaNewLine(break_Page));
-					oBreak2.AddToParagraph(new ParaNewLine(break_Page));
+					oBreak1.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
+					oBreak2.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 
 					this.AddToContent(this.CurPos.ContentPos + 1, oNext);
 					this.AddToContent(this.CurPos.ContentPos + 1, oBreak2);
@@ -23846,8 +23846,8 @@ CDocument.prototype.AddBlankPage = function()
 				var oEmpty    = new Paragraph(this.DrawingDocument, this);
 				var oBreak2   = new Paragraph(this.DrawingDocument, this);
 
-				oBreak1.AddToParagraph(new ParaNewLine(break_Page));
-				oBreak2.AddToParagraph(new ParaNewLine(break_Page));
+				oBreak1.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
+				oBreak2.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 
 				if (!oNewTable)
 				{
@@ -24271,7 +24271,7 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChan
 		{
 			return oMark.GetDocumentPositionFromObject();
 		}
-		else if (oMark instanceof CRunRevisionMove && oMark.GetRun())
+		else if (oMark instanceof AscWord.CRunRevisionMove && oMark.GetRun())
 		{
 			var oRun      = oMark.GetRun();
 			var arrPos    = oRun.GetDocumentPositionFromObject();

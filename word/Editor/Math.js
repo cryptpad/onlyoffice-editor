@@ -2665,7 +2665,7 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 	if (oAfterItem && !oAfterItem.IsParaEnd())
 	{
 		let oRun = new ParaRun(oParagraph, false);
-		oRun.Add(new ParaNewLine(break_Line));
+		oRun.Add(new AscWord.CRunBreak(AscWord.break_Line));
 		oParent.AddToContent(nPosInParent + 1, oRun);
 	}
 
@@ -2673,7 +2673,7 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 	if (oBeforeItem || oParagraph.HaveNumbering())
 	{
 		let oRun = new ParaRun(oParagraph, false);
-		oRun.Add(new ParaNewLine(break_Line));
+		oRun.Add(new AscWord.CRunBreak(AscWord.break_Line));
 		oParent.AddToContent(nPosInParent, oRun);
 	}
 

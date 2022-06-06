@@ -172,6 +172,7 @@
 			"word/Editor/RevisionsChange.js",
 			"word/Editor/Paragraph/RunContent/Types.js",
 			"word/Editor/Paragraph/RunContent/Base.js",
+			"word/Editor/Paragraph/RunContent/Break.js",
 			"word/Editor/Paragraph/RunContent/Text.js",
 			"word/Editor/Paragraph/RunContent/Space.js",
 			"word/Editor/Paragraph/RunContent/Tab.js",

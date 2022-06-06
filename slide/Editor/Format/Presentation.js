@@ -6591,7 +6591,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                                             if (oMath.Handle_AddNewLine())
                                                 this.Recalculate();
                                         } else {
-                                            this.AddToParagraph(new ParaNewLine(break_Line));
+                                            this.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
                                         }
                                     }
                                 }
@@ -6609,7 +6609,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                                                 if (oMath.Handle_AddNewLine())
                                                     this.Recalculate();
                                             } else {
-                                                this.AddToParagraph(new ParaNewLine(break_Line));
+                                                this.AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
                                             }
                                         }
                                     } else {

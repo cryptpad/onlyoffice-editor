@@ -4892,18 +4892,13 @@
 				return oParaNewLine;
 				
 			var sBreakType = "";
-			switch (oParaNewLine.BreakType)
-			{
-				case AscCommonWord.break_Line:
-					sBreakType = "textWrapping";
-					break;
-				case AscCommonWord.break_Page:
-					sBreakType = "page";
-					break;
-				case AscCommonWord.break_Column:
-					sBreakType = "column";
-					break;
-			}
+			if (oParaNewLine.IsLineBreak())
+				sBreakType = "textWrapping";
+			else if (oParaNewLine.IsPageBreak())
+				sBreakType = "page";
+			else if (oParaNewLine.IsColumnBreak())
+				sBreakType = "column";
+
 			return {
 				type: "break",
 				breakType: sBreakType
@@ -8320,13 +8315,13 @@
 					switch(aContent[nElm].breakType)
 					{
 						case "textWrapping":
-							oRun.AddToContent(-1, new AscCommonWord.ParaNewLine(AscCommonWord.break_Line));
+							oRun.AddToContent(-1, new AscWord.CRunBreak(AscWord.break_Line));
 							break;
 						case "page":
-							oRun.AddToContent(-1, new AscCommonWord.ParaNewLine(AscCommonWord.break_Page));
+							oRun.AddToContent(-1, new AscWord.CRunBreak(AscWord.break_Page));
 							break;
 						case "column":
-							oRun.AddToContent(-1, new AscCommonWord.ParaNewLine(AscCommonWord.break_Column));
+							oRun.AddToContent(-1, new AscWord.CRunBreak(AscWord.break_Column));
 							break;
 					}
 					break;
@@ -8381,7 +8376,7 @@
 						this.MoveMap[aContent[nElm].name] = sMoveName;
 					}
 
-					var oRevisionMove = new CRunRevisionMove(aContent[nElm].start, aContent[nElm].from, this.MoveMap[aContent[nElm].name], aContent[nElm].reviewInfo);
+					var oRevisionMove = new AscWord.CRunRevisionMove(aContent[nElm].start, aContent[nElm].from, this.MoveMap[aContent[nElm].name], aContent[nElm].reviewInfo);
 					oRun.Add_ToContent(-1, oRevisionMove);
 					break;
 				case "footnoteRef":

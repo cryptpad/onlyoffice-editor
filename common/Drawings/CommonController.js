@@ -6413,7 +6413,7 @@ DrawingObjectsController.prototype =
                                 var oThis = this;
                                 var callBack = function()
                                 {
-                                    oThis.paragraphAdd(new ParaNewLine(AscCommonWord.break_Line));
+                                    oThis.paragraphAdd(new AscWord.CRunBreak(AscWord.break_Line));
                                 };
                                 this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
                             }

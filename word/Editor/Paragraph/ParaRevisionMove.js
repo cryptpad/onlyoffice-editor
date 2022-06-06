@@ -339,6 +339,7 @@ CRunRevisionMove.prototype.RemoveThisMarkFromDocument = function()
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
+window['AscWord'] = window['AscWord'] || {};
 
 window['AscCommon'].CParaRevisionMove = CParaRevisionMove;
-window['AscCommon'].CRunRevisionMove  = CRunRevisionMove;
+window['AscWord'].CRunRevisionMove  = CRunRevisionMove;

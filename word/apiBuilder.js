@@ -6220,7 +6220,7 @@
 	ApiParagraph.prototype.AddPageBreak = function()
 	{
 		var oRun = new ParaRun(this.Paragraph, false);
-		oRun.Add_ToContent(0, new ParaNewLine(break_Page));
+		oRun.Add_ToContent(0, new AscWord.CRunBreak(AscWord.break_Page));
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		return new ApiRun(oRun);
 	};
@@ -6233,7 +6233,7 @@
 	ApiParagraph.prototype.AddLineBreak = function()
 	{
 		var oRun = new ParaRun(this.Paragraph, false);
-		oRun.Add_ToContent(0, new ParaNewLine(break_Line));
+		oRun.Add_ToContent(0, new AscWord.CRunBreak(AscWord.break_Line));
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		return new ApiRun(oRun);
 	};
@@ -6247,7 +6247,7 @@
 	ApiParagraph.prototype.AddColumnBreak = function()
 	{
 		var oRun = new ParaRun(this.Paragraph, false);
-		oRun.Add_ToContent(0, new ParaNewLine(break_Column));
+		oRun.Add_ToContent(0, new AscWord.CRunBreak(AscWord.break_Column));
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		return new ApiRun(oRun);
 	};
@@ -7975,7 +7975,7 @@
 	 */
 	ApiRun.prototype.AddPageBreak = function()
 	{
-		this.Run.Add_ToContent(this.Run.Content.length, new ParaNewLine(break_Page));
+		this.Run.Add_ToContent(this.Run.Content.length, new AscWord.CRunBreak(AscWord.break_Page));
 	};
 	/**
 	 * Adds a line break to the current run position and starts the next element from a new line.
@@ -7984,7 +7984,7 @@
 	 */
 	ApiRun.prototype.AddLineBreak = function()
 	{
-		this.Run.Add_ToContent(this.Run.Content.length, new ParaNewLine(break_Line));
+		this.Run.Add_ToContent(this.Run.Content.length, new AscWord.CRunBreak(AscWord.break_Line));
 	};
 	/**
 	 * Adds a column break to the current run position and starts the next element from a new column.
@@ -7993,7 +7993,7 @@
 	 */
 	ApiRun.prototype.AddColumnBreak = function()
 	{
-		this.Run.Add_ToContent(this.Run.Content.length, new ParaNewLine(break_Column));
+		this.Run.Add_ToContent(this.Run.Content.length, new AscWord.CRunBreak(AscWord.break_Column));
 	};
 	/**
 	 * Adds a tab stop to the current run.
@@ -12878,16 +12878,16 @@
 		if (breakType === 0)
 		{
 			if (position === "before")
-				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing), new ParaNewLine(break_Page));
+				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing), new AscWord.CRunBreak(AscWord.break_Page));
 			else if (position === "after")
-				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing) + 1, new ParaNewLine(break_Page));
+				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing) + 1, new AscWord.CRunBreak(AscWord.break_Page));
 		}
 		else if (breakType === 1)
 		{
 			if (position === "before")
-				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing), new ParaNewLine(break_Line));
+				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing), new AscWord.CRunBreak(AscWord.break_Line));
 			else if (position === "after")
-				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing) + 1, new ParaNewLine(break_Line));
+				ParentRun.Run.Add_ToContent(ParentRun.Run.Content.indexOf(this.Drawing) + 1, new AscWord.CRunBreak(AscWord.break_Line));
 		}
 
 		return true;

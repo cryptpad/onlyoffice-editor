@@ -101,7 +101,7 @@ var para_EndnoteRef                = 0x004a; // Номер сноски (дол�
 			case para_Text                  : oElement = new AscWord.CRunText(); break;
 			case para_Space                 : oElement = new AscWord.CRunSpace(); break;
 			case para_End                   : oElement = new AscWord.CRunParagraphMark(); break;
-			case para_NewLine               : oElement = new ParaNewLine(); break;
+			case para_NewLine               : oElement = new AscWord.CRunBreak(); break;
 			case para_Numbering             : oElement = new ParaNumbering(); break;
 			case para_Tab                   : oElement = new AscWord.CRunTab(); break;
 			case para_PageNum               : oElement = new ParaPageNum(); break;
@@ -117,7 +117,7 @@ var para_EndnoteRef                = 0x004a; // Номер сноски (дол�
 			case para_PageCount             : oElement = new ParaPageCount(); break;
 			case para_FieldChar             : oElement = new ParaFieldChar(); break;
 			case para_InstrText             : oElement = new ParaInstrText(); break;
-			case para_RevisionMove          : oElement = new CRunRevisionMove(); break;
+			case para_RevisionMove          : oElement = new AscWord.CRunRevisionMove(); break;
 			case para_EndnoteReference      : oElement = new ParaEndnoteReference(); break;
 			case para_EndnoteRef            : oElement = new ParaEndnoteRef(); break;
 		}

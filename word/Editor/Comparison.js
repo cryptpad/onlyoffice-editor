@@ -297,17 +297,17 @@
             }
             else
             {
-                if(oElement instanceof ParaNewLine)
-                {
-                    if(oElement.BreakType === AscCommonWord.break_Line)
-                    {
-                        aCheckArray.push(0x000A);
-                    }
-                    else
-                    {
-                        aCheckArray.push(0x21A1);
-                    }
-                }
+				if (oElement instanceof AscWord.CRunBreak)
+				{
+					if (oElement.IsLineBreak())
+					{
+						aCheckArray.push(0x000A);
+					}
+					else
+					{
+						aCheckArray.push(0x21A1);
+					}
+				}
                 else if(oElement instanceof AscWord.CRunTab)
                 {
                     aCheckArray.push(0x0009);

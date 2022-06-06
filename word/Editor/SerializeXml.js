@@ -2410,7 +2410,7 @@
 				case "annotationRef":
 					break;
 				case "br":
-					newItem = new ParaNewLine();
+					newItem = new AscWord.CRunBreak();
 					newItem.fromXml(reader);
 					break;
 				case "commentReference":
@@ -2421,7 +2421,7 @@
 					newItem = new ParaContinuationSeparator();
 					break;
 				case "cr":
-					newItem = new ParaNewLine(break_Line);
+					newItem = new AscWord.CRunBreak(AscWord.break_Line);
 					break;
 				case "dayLong":
 					break;
@@ -3048,7 +3048,7 @@
 		writer.WriteXmlNullableAttributeStringEncode("w:bidi", Asc.g_oLcidIdToNameMap[this.Bidi]);
 		writer.WriteXmlAttributesEnd(true);
 	};
-	ParaNewLine.prototype.readAttr = function(reader) {
+	AscWord.CRunBreak.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "type": {
@@ -3061,11 +3061,11 @@
 			}
 		}
 	};
-	ParaNewLine.prototype.fromXml = function(reader) {
+	AscWord.CRunBreak.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	ParaNewLine.prototype.toXml = function(writer, name) {
+	AscWord.CRunBreak.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_BrType(this.BreakType));
 		// writer.WriteXmlNullableAttributeString("w:clear", toXml_ST_BrClear(this.clear));
@@ -9909,21 +9909,21 @@
 	function fromXml_ST_BrType(val, def) {
 		switch (val) {
 			case "page":
-				return break_Page;
+				return AscWord.break_Page;
 			case "column":
-				return break_Column;
+				return AscWord.break_Column;
 			case "textWrapping":
-				return break_Line;
+				return AscWord.break_Line;
 		}
 		return def;
 	}
 	function toXml_ST_BrType(val) {
 		switch (val) {
-			case break_Page:
+			case AscWord.break_Page:
 				return "page";
-			case break_Column:
+			case AscWord.break_Column:
 				return "column";
-			case break_Line:
+			case AscWord.break_Line:
 				return "textWrapping";
 		}
 		return null;

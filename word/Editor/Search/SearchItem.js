@@ -204,7 +204,7 @@
 		if (isMathRun)
 			return null;
 
-		return new ParaNewLine(break_Line);
+		return new AscWord.CRunBreak(AscWord.break_Line);
 	};
 	CSearchTextSpecialLineBreak.prototype.IsNewLine = function()
 	{
@@ -333,7 +333,7 @@
 		if (isMathRun)
 			return null;
 
-		return new ParaNewLine(break_Column);
+		return new AscWord.CRunBreak(AscWord.break_Column);
 	};
 	CSearchTextSpecialColumnBreak.prototype.IsColumnBreak = function()
 	{
@@ -426,7 +426,7 @@
 		if (isMathRun)
 			return null;
 
-		return new ParaNewLine(break_Page);
+		return new AscWord.CRunBreak(AscWord.break_Page);
 	};
 	CSearchTextSpecialPageBreak.prototype.IsPageBreak = function()
 	{

@@ -1536,7 +1536,7 @@ Paragraph.prototype.Check_PageBreak = function()
 };
 /**
  * Проверяем нужно ли разрывать страницу после заданного PageBreak элемента
- * @param oPageBreakItem {ParaNewLine}
+ * @param oPageBreakItem {AscWord.CRunBreak}
  * @returns {boolean}
  */
 Paragraph.prototype.CheckSplitPageOnPageBreak = function(oPageBreakItem)
@@ -17027,7 +17027,7 @@ Paragraph.prototype.AddTrackMoveMark = function(isFrom, isStart, sMarkId)
 		if (true === this.Selection_CheckParaEnd())
 		{
 			var oEndRun = this.GetParaEndRun();
-			oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, isFrom, sMarkId));
+			oEndRun.AddAfterParaEnd(new AscWord.CRunRevisionMove(false, isFrom, sMarkId));
 			return;
 		}
 		else
