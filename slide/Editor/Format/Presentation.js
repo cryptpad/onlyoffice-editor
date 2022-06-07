@@ -11928,14 +11928,16 @@ CPresentation.prototype.toZip = function(zip, context) {
             aThemes.push(oSlideMasterTheme);
             oAddedMap[oSlideMasterTheme.Id] = true;
         }
-        if(oNotes && oNotesMaster && !oAddedMap[oNotesMaster.Id]) {
+        if(oNotes && oNotesMaster) {
             aNotes.push(oNotes);
-            aNotesMasters.push(oNotesMaster);
-            oAddedMap[oNotesMaster.Id] = true;
-            let oNotesTheme = oNotesMaster.Theme;
-            if(oNotesTheme && !oAddedMap[oNotesTheme.Id]) {
-                aThemes.push(oNotesTheme);
-                oAddedMap[oNotesTheme.Id] = true;
+            if(!oAddedMap[oNotesMaster.Id]) {
+                aNotesMasters.push(oNotesMaster);
+                oAddedMap[oNotesMaster.Id] = true;
+                let oNotesTheme = oNotesMaster.Theme;
+                if(oNotesTheme && !oAddedMap[oNotesTheme.Id]) {
+                    aThemes.push(oNotesTheme);
+                    oAddedMap[oNotesTheme.Id] = true;
+                }
             }
         }
     }

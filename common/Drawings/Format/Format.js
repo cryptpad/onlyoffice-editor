@@ -2874,8 +2874,8 @@
 			writer.WriteXmlNodeStart(sName_);
 			writer.WriteXmlNullableAttributeUInt("l", getPercentageValueForWrite(this.l));
 			writer.WriteXmlNullableAttributeUInt("t", getPercentageValueForWrite(this.t));
-			writer.WriteXmlNullableAttributeUInt("r", getPercentageValueForWrite(this.r));
-			writer.WriteXmlNullableAttributeUInt("b", getPercentageValueForWrite(this.b));
+			writer.WriteXmlNullableAttributeUInt("r", 100000 - getPercentageValueForWrite(this.r));
+			writer.WriteXmlNullableAttributeUInt("b", 100000 - getPercentageValueForWrite(this.b));
 			writer.WriteXmlAttributesEnd(true);
 		};
 
@@ -3222,25 +3222,11 @@
 		CBlip.prototype.toXml = function (writer, sNamespace, sRasterImageId) {
 			let sNamespace_ = sNamespace || "a";
 			let strName = ("" === sNamespace_) ? ("blip") : (sNamespace_ + (":blip"));
-			var context = writer.context;
-			var imagePart = context.imageMap[sRasterImageId];
-			if (!imagePart) {
-				if (context.part) {
-					var ext = AscCommon.GetFileExtension(sRasterImageId);
-					var type = context.editorId === AscCommon.c_oEditorId.Word ? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
-					type = Object.assign({}, type);
-					type.filename += ext;
-					type.contentType = AscCommon.openXml.GetMimeType(ext);
-					imagePart = context.part.addPart(type);
-					if (imagePart) {
-						context.imageMap[sRasterImageId] = imagePart;
-					}
-				}
-			}
+			let context = writer.context;
 			//writer.WriteXmlNullable(blip);
 			writer.WriteXmlNodeStart(strName);
 			writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
-			writer.WriteXmlAttributeString("r:embed", imagePart && imagePart.rId || "");
+			writer.WriteXmlAttributeString("r:embed", context.getImageRId(sRasterImageId));
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlString('<a:extLst><a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/></a:ext></a:extLst>');
 			writer.WriteXmlNodeEnd(strName);
