@@ -4322,8 +4322,11 @@ Paragraph.prototype.Internal_GetTextPr = function(LetterPos)
  */
 Paragraph.prototype.Add = function(Item)
 {
-	Item.SetParent(this);
-	Item.SetParagraph(this);
+	if (Item.SetParent)
+		Item.SetParent(this);
+
+	if (Item.SetParagraph)
+		Item.SetParagraph(this);
 
 	switch (Item.Get_Type())
 	{

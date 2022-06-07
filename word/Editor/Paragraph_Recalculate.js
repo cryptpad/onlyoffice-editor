@@ -2532,13 +2532,13 @@ Paragraph.prototype.ShapeText = function()
 	//       произошли изменения (далее влево и вправо найти позиции пробела/таба или другого разделителя слова)
 	//       и шейпить текст только в заданном промежутке
 
-	AscCommonWord.TextShaper.Shape(this);
+	AscWord.TextShaper.Shape(this);
 	this.RecalcInfo.ShapeText = false;
 };
 
 Paragraph.prototype.ShapeTextInRange = function(oStartPos, oEndPos)
 {
-	AscCommonWord.TextShaper.ShapeRange(this, oStartPos, oEndPos, true);
+	AscWord.TextShaper.ShapeRange(this, oStartPos, oEndPos, true);
 };
 Paragraph.prototype.GetLigatureEndPos = function(oStartPos)
 {

@@ -77,6 +77,12 @@ var AscCommonWord = window["AscCommonWord"];
 window["AscCommonSlide"] = {};
 var AscCommonSlide = window["AscCommonSlide"];
 
+window["AscBuilder"] = {};
+var AscBuilder = window["AscBuilder"];
+
+window["AscWord"] = {};
+var AscWord = window["AscWord"];
+
 function Image()
 {
 	this.src = "";

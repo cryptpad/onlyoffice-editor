@@ -45,10 +45,13 @@
 	const FLAGS_CAPITALS                    = 0x00000020; // 5 бит
 	const FLAGS_LIGATURE                    = 0x00000040; // 6 бит
 	const FLAGS_LIGATURE_CONTINUE           = 0x00000080; // 7 бит
-	const FLAGS_TEMPORARY                   = 0x00000100; // 8 бит
-	const FLAGS_TEMPORARY_LIGATURE          = 0x00000200; // 9 бит
-	const FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00000400; // 10 бит
-	const FLAGS_VISIBLE_WIDTH               = 0x00000800; // 11 бит
+	const FLAGS_COMBINING_MARK              = 0x00000100; // 8 бит
+	const FLAGS_TEMPORARY                   = 0x00000200; // 9 бит
+	const FLAGS_TEMPORARY_LIGATURE          = 0x00000400; // 10 бит
+	const FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00000800; // 11 бит
+	const FLAGS_TEMPORARY_COMBINING_MARK    = 0x00001000; // 12 бит
+	const FLAGS_VISIBLE_WIDTH               = 0x00002000; // 13 бит
+
 	// 16-31 биты зарезервированы под FontSize
 
 	const FLAGS_NON_FONTKOEF_SCRIPT             = FLAGS_MASK ^ FLAGS_FONTKOEF_SCRIPT;
@@ -57,10 +60,12 @@
 	const FLAGS_NON_CAPITALS                    = FLAGS_MASK ^ FLAGS_CAPITALS;
 	const FLAGS_NON_LIGATURE                    = FLAGS_MASK ^ FLAGS_LIGATURE;
 	const FLAGS_NON_LIGATURE_CONTINUE           = FLAGS_MASK ^ FLAGS_LIGATURE_CONTINUE;
+	const FLAGS_NON_COMBINING_MARK              = FLAGS_MASK ^ FLAGS_COMBINING_MARK;
 	const FLAGS_NON_TEMPORARY                   = FLAGS_MASK ^ FLAGS_TEMPORARY;
 	const FLAGS_NON_TEMPORARY_LIGATURE          = FLAGS_MASK ^ FLAGS_TEMPORARY_LIGATURE;
 	const FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE = FLAGS_MASK ^ FLAGS_TEMPORARY_LIGATURE_CONTINUE;
 	const FLAGS_NON_VISIBLE_WIDTH               = FLAGS_MASK ^ FLAGS_VISIBLE_WIDTH;
+	const FLAGS_NON_TEMPORARY_COMBINING_MARK    = FLAGS_MASK ^ FLAGS_TEMPORARY_COMBINING_MARK;
 
 	/**
 	 * Класс представляющий текстовый символ
@@ -120,7 +125,7 @@
 	{
 		this.Flags &= FLAGS_NON_TEMPORARY;
 	};
-	CRunText.prototype.UpdateMetrics = function(nFontSize, nFontSlot, oTextPr)
+	CRunText.prototype.SetMetrics = function(nFontSize, nFontSlot, oTextPr)
 	{
 		let nFontCoef = 1;
 
@@ -172,29 +177,62 @@
 
 		this.Flags = (this.Flags & 0xFFFF) | (((_nFontSize * 64) & 0xFFFF) << 16);
 	};
-	CRunText.prototype.UpdateLigatureInfo = function(isLigature, isLigatureContinue)
+	CRunText.prototype.SetCodePointType = function(nType)
 	{
-		if (isLigature)
+		if (nType === AscWord.CODEPOINT_TYPE.LIGATURE)
 			this.Flags |= FLAGS_LIGATURE;
 		else
 			this.Flags &= FLAGS_NON_LIGATURE;
 
-		if (isLigatureContinue)
+		if (nType === AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE)
 			this.Flags |= FLAGS_LIGATURE_CONTINUE;
 		else
 			this.Flags &= FLAGS_NON_LIGATURE_CONTINUE;
+
+		if (nType === AscWord.CODEPOINT_TYPE.COMBINING_MARK)
+			this.Flags |= FLAGS_COMBINING_MARK;
+		else
+			this.Flags &= FLAGS_NON_COMBINING_MARK;
 	};
-	CRunText.prototype.UpdateTemporaryLigatureInfo = function(isLigature, isLigatureContinue)
+	CRunText.prototype.SetTemporaryCodePointType = function(nType)
 	{
-		if (isLigature)
+		if (nType === AscWord.CODEPOINT_TYPE.LIGATURE)
 			this.Flags |= FLAGS_TEMPORARY_LIGATURE;
 		else
 			this.Flags &= FLAGS_NON_TEMPORARY_LIGATURE;
 
-		if (isLigatureContinue)
+		if (nType === AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE)
 			this.Flags |= FLAGS_TEMPORARY_LIGATURE_CONTINUE;
 		else
 			this.Flags &= FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE;
+
+		if (nType === AscWord.CODEPOINT_TYPE.COMBINING_MARK)
+			this.Flags |= FLAGS_TEMPORARY_COMBINING_MARK;
+		else
+			this.Flags &= FLAGS_NON_TEMPORARY_COMBINING_MARK;
+	};
+	CRunText.prototype.GetCodePointType = function()
+	{
+		if (this.Flags & FLAGS_TEMPORARY)
+		{
+			if (this.Flag & FLAGS_TEMPORARY_LIGATURE)
+				return AscWord.CODEPOINT_TYPE.LIGATURE;
+			else if (this.Flags & FLAGS_TEMPORARY_LIGATURE_CONTINUE)
+				return AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE;
+			else if (this.Flags & FLAGS_TEMPORARY_COMBINING_MARK)
+				return AscWord.CODEPOINT_TYPE.COMBINING_MARK;
+		}
+		else
+		{
+			if (this.Flag & FLAGS_LIGATURE)
+				return AscWord.CODEPOINT_TYPE.LIGATURE;
+			else if (this.Flags & FLAGS_LIGATURE_CONTINUE)
+				return AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE;
+			else if (this.Flags & FLAGS_COMBINING_MARK)
+				return AscWord.CODEPOINT_TYPE.COMBINING_MARK;
+		}
+
+		return AscWord.CODEPOINT_TYPE.BASE;
 	};
 	CRunText.prototype.IsLigature = function()
 	{
@@ -548,7 +586,7 @@
 	};
 	CRunText.prototype.IsCombiningMark = function()
 	{
-		return (this.Width < 0.001);
+		return !!(this.Flags & FLAGS_TEMPORARY ? this.Flags & FLAGS_TEMPORARY_COMBINING_MARK : this.Flags & FLAGS_COMBINING_MARK);
 	};
 	CRunText.prototype.IsLigatureContinue = function()
 	{

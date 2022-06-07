@@ -37,6 +37,12 @@
 	const MEASURER = AscCommon.g_oTextMeasurer;
 	const FONTSIZE = 72;
 
+	const CODEPOINT_TYPE = {
+		BASE              : 0,
+		LIGATURE          : 1,
+		LIGATURE_CONTINUE : 2,
+		COMBINING_MARK    : 3
+	};
 
 	/**
 	 *
@@ -163,14 +169,12 @@
 
 		let _isLigature = isLigature && nCodePointsCount > 1;
 
-		let _nWidth = (_isLigature ? nWidth / nCodePointsCount : nWidth);
+		let _nWidth = nWidth / nCodePointsCount;
+		this.private_HandleItem(this.Items[this.ItemIndex++], nGrapheme, _nWidth, this.FontSize, this.FontSlot, _isLigature ? CODEPOINT_TYPE.LIGATURE : CODEPOINT_TYPE.BASE);
 
-		this.private_HandleItem(this.Items[this.ItemIndex++], nGrapheme, _nWidth, this.FontSize, this.FontSlot, _isLigature, false);
-
-		_nWidth = _isLigature ? _nWidth : 0;
 		for (let nIndex = 1; nIndex < nCodePointsCount; ++nIndex)
 		{
-			this.private_HandleItem(this.Items[this.ItemIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, false, _isLigature);
+			this.private_HandleItem(this.Items[this.ItemIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, _isLigature ? CODEPOINT_TYPE.LIGATURE_CONTINUE : CODEPOINT_TYPE.COMBINING_MARK);
 		}
 	};
 	CTextShaper.prototype.GetTextScript = function(nUnicode)
@@ -261,35 +265,34 @@
 	{
 		let oFontInfo = this.TextPr.GetFontInfo(fontslot_ASCII);
 		let nGrapheme = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
-		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, fontslot_ASCII, false, false);
+		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, fontslot_ASCII, false, false, false);
 	};
-	CTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, isLigature, isLigatureContinue)
+	CTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, nCodePointType)
 	{
 		if (this.Temporary)
 		{
 			oItem.ResetTemporaryGrapheme();
 			if (nGrapheme !== oItem.GetGrapheme()
-				|| isLigature !== oItem.IsLigature()
-				|| isLigatureContinue !== oItem.IsLigatureContinue()
+				|| nCodePointType !== oItem.GetCodePointType()
 				|| Math.abs(nWidth - oItem.GetMeasuredWidth()) > 0.001)
 			{
 				oItem.SetTemporaryGrapheme(nGrapheme);
-				oItem.UpdateTemporaryLigatureInfo(isLigature, isLigatureContinue);
+				oItem.SetTemporaryCodePointType(nCodePointType);
 				oItem.SetTemporaryWidth(nWidth);
 			}
 		}
 		else
 		{
 			oItem.SetGrapheme(nGrapheme);
-			oItem.UpdateMetrics(nFontSize, nFontSlot, this.TextPr);
-			oItem.UpdateLigatureInfo(isLigature, isLigatureContinue);
+			oItem.SetMetrics(nFontSize, nFontSlot, this.TextPr);
+			oItem.SetCodePointType(nCodePointType);
 			oItem.SetWidth(nWidth);
 		}
 	};
 
 	//--------------------------------------------------------export----------------------------------------------------
-	window['AscCommonWord'] = window['AscCommonWord'] || {};
-	window['AscCommonWord'].CTextShaper = CTextShaper;
-	window['AscCommonWord'].TextShaper  = new CTextShaper();
+	window['AscWord'] = window['AscWord'] || {};
+	window['AscWord'].TextShaper     = new CTextShaper();
+	window['AscWord'].CODEPOINT_TYPE = CODEPOINT_TYPE;
 
 })(window);
