@@ -305,6 +305,7 @@ CChangesRunAddItem.prototype.Undo = function()
 	oRun.RecalcInfo.Measure = true;
 	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
+	oRun.private_UpdatePositionsOnRemove(this.Pos, this.Items.length);
 };
 CChangesRunAddItem.prototype.Redo = function()
 {
@@ -321,6 +322,7 @@ CChangesRunAddItem.prototype.Redo = function()
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
+		oRun.private_UpdatePositionsOnAdd(this.Pos + nIndex);
 		if (this.Items[nIndex].SetParent)
 			this.Items[nIndex].SetParent(oRun);
 	}
@@ -401,6 +403,7 @@ CChangesRunRemoveItem.prototype.Undo = function()
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
+		oRun.private_UpdatePositionsOnAdd(this.Pos + nIndex);
 		if (this.Items[nIndex].SetParent)
 			this.Items[nIndex].SetParent(oRun);
 	}
@@ -413,6 +416,7 @@ CChangesRunRemoveItem.prototype.Redo = function()
 	oRun.RecalcInfo.Measure = true;
 	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
+	oRun.private_UpdatePositionsOnRemove(this.Pos, this.Items.length);
 };
 CChangesRunRemoveItem.prototype.private_WriteItem = function(Writer, Item)
 {
