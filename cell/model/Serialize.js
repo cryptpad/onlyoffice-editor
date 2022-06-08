@@ -10715,7 +10715,7 @@
             var content = jsZipWrapper.files["presetTableStyles.xml"].sync("string");
             jsZipWrapper.close();
             var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
-            new openXml.SaxParserBase().parse(content, stylesXml);
+            new AscCommon.openXml.SaxParserBase().parse(content, stylesXml);
             wb.TableStyles.concatStyles();
         }
     }
