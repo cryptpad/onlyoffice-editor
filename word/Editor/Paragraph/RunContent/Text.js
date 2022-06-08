@@ -215,7 +215,7 @@
 	{
 		if (this.Flags & FLAGS_TEMPORARY)
 		{
-			if (this.Flag & FLAGS_TEMPORARY_LIGATURE)
+			if (this.Flags & FLAGS_TEMPORARY_LIGATURE)
 				return AscWord.CODEPOINT_TYPE.LIGATURE;
 			else if (this.Flags & FLAGS_TEMPORARY_LIGATURE_CONTINUE)
 				return AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE;
@@ -224,7 +224,7 @@
 		}
 		else
 		{
-			if (this.Flag & FLAGS_LIGATURE)
+			if (this.Flags & FLAGS_LIGATURE)
 				return AscWord.CODEPOINT_TYPE.LIGATURE;
 			else if (this.Flags & FLAGS_LIGATURE_CONTINUE)
 				return AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE;
