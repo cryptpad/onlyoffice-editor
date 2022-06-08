@@ -327,7 +327,22 @@
 	};
 	CRunText.prototype.Copy = function()
 	{
-		return new CRunText(this.Value);
+		let t = new CRunText(this.Value);
+
+		t.Width    = this.Width;
+		t.Flags    = this.Flags;
+		t.Grapheme = this.Grapheme;
+
+		if (this.Flags & FLAGS_TEMPORARY)
+		{
+			t.TempWidth    = this.TempWidth;
+			t.TempGrapheme = this.TempGrapheme;
+		}
+
+		if (this.Flags & FLAGS_VISIBLE_WIDTH)
+			t.WidthVisible = this.WidthVisible;
+
+		return t;
 	};
 	CRunText.prototype.IsEqual = function(oElement)
 	{

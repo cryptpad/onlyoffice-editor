@@ -1025,27 +1025,34 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 			{
 				var CurPos = this.State.ContentPos;
 
-				// Просто перешагиваем через элемент
 				if (Direction < 0)
 				{
-					// Пропускаем все Flow-объекты
-					while (CurPos > 0 && para_Drawing === this.Content[CurPos - 1].Type && false === this.Content[CurPos - 1].Is_Inline())
+					while (CurPos > 0 && this.Content[CurPos - 1].IsDrawing() && !this.Content[CurPos - 1].IsInline())
 						CurPos--;
 
 					if (CurPos <= 0)
 						return false;
 
 					this.State.ContentPos--;
+					this.Make_ThisElementCurrent();
 				}
 				else
 				{
 					if (CurPos >= this.Content.length || para_End === this.Content[CurPos].Type)
 						return false;
 
-					this.State.ContentPos++;
+					let oItem = this.Content[CurPos];
+					if (oItem.IsText())
+					{
+						let oInfo = this.RemoveTextCluster(CurPos);
+						oInfo.SetDocumentPositionHere();
+					}
+					else
+					{
+						this.State.ContentPos++;
+						this.Make_ThisElementCurrent();
+					}
 				}
-
-				this.Make_ThisElementCurrent();
 			}
 			else
 			{
@@ -1096,121 +1103,36 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 			}
 			else
 			{
-				var Parent = this.Get_Parent();
-				var RunPos = this.private_GetPosInParent(Parent);
-
 				var CurPos = this.State.ContentPos;
+				let oInfo;
 				if (Direction < 0)
 				{
-					// Пропускаем все Flow-объекты
-					while (CurPos > 0 && para_Drawing === this.Content[CurPos - 1].Type && false === this.Content[CurPos - 1].Is_Inline())
+					while (CurPos > 0 && this.Content[CurPos - 1].IsDrawing() && !this.Content[CurPos - 1].IsInline())
 						CurPos--;
 
 					if (CurPos <= 0)
 						return false;
 
-					// Проверяем, возможно предыдущий элемент - инлайн картинка, тогда мы его не удаляем, а выделяем как картинку
-					if (para_Drawing == this.Content[CurPos - 1].Type && true === this.Content[CurPos - 1].Is_Inline())
-					{
-						return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos - 1].Get_Id());
-					}
+					if (this.Content[CurPos - 1].IsDrawing() && this.Content[CurPos - 1].IsInline())
+						return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos - 1].GetId());
 
-					if (1 === CurPos && 1 === this.Content.length)
-					{
-						this.SetReviewType(reviewtype_Remove, true);
-						this.State.ContentPos = CurPos - 1;
-						this.Make_ThisElementCurrent();
-						return true;
-					}
-					else if (1 === CurPos && Parent && RunPos > 0)
-					{
-						var PrevElement = Parent.Content[RunPos - 1];
-						if (para_Run === PrevElement.Type && reviewtype_Remove === PrevElement.GetReviewType() && true === this.Pr.Is_Equal(PrevElement.Pr))
-						{
-							var Item = this.Content[CurPos - 1];
-							this.Remove_FromContent(CurPos - 1, 1, true);
-							PrevElement.Add_ToContent(PrevElement.Content.length, Item);
-							PrevElement.State.ContentPos = PrevElement.Content.length - 1;
-							PrevElement.Make_ThisElementCurrent();
-							return true;
-						}
-					}
-					else if (CurPos === this.Content.length && Parent && RunPos < Parent.Content.length - 1)
-					{
-						var NextElement = Parent.Content[RunPos + 1];
-						if (para_Run === NextElement.Type && reviewtype_Remove === NextElement.GetReviewType() && true === this.Pr.Is_Equal(NextElement.Pr))
-						{
-							var Item = this.Content[CurPos - 1];
-							this.Remove_FromContent(CurPos - 1, 1, true);
-							NextElement.Add_ToContent(0, Item);
-							this.State.ContentPos = CurPos - 1;
-							this.Make_ThisElementCurrent();
-							return true;
-						}
-					}
-
-					// Если мы дошли до сюда, значит данный элемент нужно выделять в отдельный ран
-					var RRun = this.Split2(CurPos, Parent, RunPos);
-					var CRun = this.Split2(CurPos - 1, Parent, RunPos);
-
-					CRun.SetReviewType(reviewtype_Remove, true);
-					this.State.ContentPos = CurPos - 1;
-					this.Make_ThisElementCurrent();
+					oInfo = this.RemoveItemInReview(CurPos, Direction);
 				}
 				else
 				{
 					if (CurPos >= this.Content.length || para_End === this.Content[CurPos].Type)
 						return false;
 
-					// Проверяем, возможно следующий элемент - инлайн картинка, тогда мы его не удаляем, а выделяем как картинку
-					if (para_Drawing == this.Content[CurPos].Type && true === this.Content[CurPos].Is_Inline())
-					{
-						return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos].Get_Id());
-					}
+					if (this.Content[CurPos].IsDrawing() && this.Content[CurPos].IsInline())
+						return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos].GetId());
 
-					if (CurPos === this.Content.length - 1 && 0 === CurPos)
-					{
-						this.SetReviewType(reviewtype_Remove, true);
-						this.State.ContentPos = 1;
-						this.Make_ThisElementCurrent();
-						return true;
-					}
-					else if (0 === CurPos && Parent && RunPos > 0)
-					{
-						var PrevElement = Parent.Content[RunPos - 1];
-						if (para_Run === PrevElement.Type && reviewtype_Remove === PrevElement.GetReviewType() && true === this.Pr.Is_Equal(PrevElement.Pr))
-						{
-							var Item = this.Content[CurPos];
-							this.Remove_FromContent(CurPos, 1, true);
-							PrevElement.Add_ToContent(PrevElement.Content.length, Item);
-							this.State.ContentPos = CurPos;
-							this.Make_ThisElementCurrent();
-							return true;
-						}
-					}
-					else if (CurPos === this.Content.length - 1 && Parent && RunPos < Parent.Content.length - 1)
-					{
-						var NextElement = Parent.Content[RunPos + 1];
-						if (para_Run === NextElement.Type && reviewtype_Remove === NextElement.GetReviewType() && true === this.Pr.Is_Equal(NextElement.Pr))
-						{
-							var Item = this.Content[CurPos];
-							this.Remove_FromContent(CurPos, 1, true);
-							NextElement.Add_ToContent(0, Item);
-							NextElement.State.ContentPos = 1;
-							NextElement.Make_ThisElementCurrent();
-							return true;
-						}
-					}
-
-					// Если мы дошли до сюда, значит данный элемент нужно выделять в отдельный ран
-					var RRun = this.Split2(CurPos + 1, Parent, RunPos);
-					var CRun = this.Split2(CurPos, Parent, RunPos);
-
-					CRun.SetReviewType(reviewtype_Remove, true);
-
-					RRun.State.ContentPos = 0;
-					RRun.Make_ThisElementCurrent();
+					if (this.Content[CurPos].IsText())
+						oInfo = this.RemoveTextCluster(CurPos);
+					else
+						oInfo = this.RemoveItemInReview(CurPos, Direction);
 				}
+
+				oInfo.SetDocumentPositionHere();
 			}
 		}
     }
@@ -1251,17 +1173,15 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
             if (Direction < 0)
             {
-                // Пропускаем все Flow-объекты
-                while (CurPos > 0 && para_Drawing === this.Content[CurPos - 1].Type && false === this.Content[CurPos - 1].Is_Inline())
-                    CurPos--;
+				while (CurPos > 0 && this.Content[CurPos - 1].IsDrawing() && !this.Content[CurPos - 1].IsInline())
+					CurPos--;
 
                 if (CurPos <= 0)
                     return false;
 
-                // Проверяем, возможно предыдущий элемент - инлайн картинка, тогда мы его не удаляем, а выделяем как картинку
-                if (para_Drawing == this.Content[CurPos - 1].Type && true === this.Content[CurPos - 1].Is_Inline())
+                if (this.Content[CurPos - 1].IsDrawing() && this.Content[CurPos - 1].IsInline())
                 {
-                    return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos - 1].Get_Id());
+                    return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos - 1].GetId());
                 }
                 else if (para_FieldChar === this.Content[CurPos - 1].Type)
 				{
@@ -1288,16 +1208,15 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
             }
             else
             {
-            	while (CurPos < this.Content.length && para_Drawing === this.Content[CurPos].Type && false === this.Content[CurPos].Is_Inline())
+				while (CurPos < this.Content.length && this.Content[CurPos].IsDrawing() && !this.Content[CurPos].IsInline())
 					CurPos++;
 
                 if (CurPos >= this.Content.length || para_End === this.Content[CurPos].Type)
                     return false;
 
-                // Проверяем, возможно следующий элемент - инлайн картинка, тогда мы его не удаляем, а выделяем как картинку
-                if (para_Drawing == this.Content[CurPos].Type && true === this.Content[CurPos].Is_Inline())
+				if (this.Content[CurPos].IsDrawing() && this.Content[CurPos].IsInline())
                 {
-                    return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos].Get_Id());
+                    return this.Paragraph.Parent.Select_DrawingObject(this.Content[CurPos].GetId());
                 }
 				else if (para_FieldChar === this.Content[CurPos].Type)
 				{
@@ -1320,24 +1239,16 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					this.SetRStyle(undefined);
 
 				let oItem = this.Content[CurPos];
-				let oParagraph = this.Paragraph;
-				if (oParagraph && oItem.IsText())
+				if (oItem.IsText())
 				{
-					oParagraph.CheckTextShape();
-					let oNextInfo;
-					while (oNextInfo = this.GetNextRunElementEx(CurPos + 1))
-					{
-						let oNext = oNextInfo.Element;
-						if (!oNext || !oNext.IsText() || !oNext.IsCombiningMark())
-							break;
-
-						oParagraph.RemoveRunElement(oNextInfo.Pos);
-					}
-
+					let oInfo = this.RemoveTextCluster(CurPos);
+					oInfo.SetDocumentPositionHere();
 				}
-
-				this.RemoveFromContent(CurPos, 1, true);
-                this.State.ContentPos = CurPos;
+				else
+				{
+					this.RemoveFromContent(CurPos, 1, true);
+					this.State.ContentPos = CurPos;
+				}
             }
         }
     }
@@ -1362,6 +1273,153 @@ ParaRun.prototype.RemoveParaEnd = function()
 
 	this.RemoveFromContent(nEndPos, nCount - nEndPos, true);
 	return true;
+};
+ParaRun.prototype.RemoveTextCluster = function(nPos)
+{
+	let oParagraph     = this.GetParagraph();
+	let oLogicDocument = this.GetLogicDocument();
+	let isTrack        = oLogicDocument && oLogicDocument.IsTrackRevisions() && !this.CanDeleteInReviewMode();
+	if (!oParagraph || nPos >= this.Content.length || !this.Content[nPos].IsText())
+		return new CRunWithPosition(this, nPos);
+
+	let oCurRun = this;
+	if (!isTrack)
+	{
+		this.RemoveFromContent(nPos, 1);
+	}
+	else if (reviewtype_Remove !== this.GetReviewType())
+	{
+		let oInfo = this.RemoveItemInReview(nPos, 1);
+		oCurRun   = oInfo.Run;
+		nPos      = oInfo.Pos;
+	}
+	else
+	{
+		nPos++;
+	}
+
+	let oNextInfo = oCurRun.GetNextRunElementEx(nPos);
+	let oNext     = oNextInfo.Element;
+	if (!oNext || !oNext.IsText() || !oNext.IsCombiningMark())
+		return new CRunWithPosition(oCurRun, nPos);
+
+	let oContentPos = oNextInfo.Pos;
+	let nInRunPos   = oContentPos.Get(oContentPos.GetDepth());
+	oContentPos.DecreaseDepth(1);
+	let oRun = oParagraph.GetElementByPos(oContentPos);
+	if (!(oRun instanceof ParaRun))
+		return new CRunWithPosition(oCurRun, nPos);
+
+	return oRun.RemoveTextCluster(nInRunPos);
+};
+ParaRun.prototype.RemoveItemInReview = function(nPos, nDirection)
+{
+	let nResultPos = nPos + 1;
+	let oResultRun = this;
+
+	let oParent      = this.GetParent();
+	let nInParentPos = this.GetPosInParent(oParent);
+	if (!oParent || -1 === nInParentPos)
+		return new CRunWithPosition(oResultRun, nResultPos)
+
+	let oPrev, oNext;
+	if (nDirection > 0)
+	{
+		if (0 === nPos && 1 === this.Content.length)
+		{
+			this.SetReviewType(reviewtype_Remove, true);
+
+			oResultRun = this;
+			nResultPos = 1;
+		}
+		else if (0 === nPos
+			&& this.Content.length > 0
+			&& nInParentPos > 0
+			&& (oPrev = oParent.GetElement(nInParentPos - 1)).IsRun()
+			&& reviewtype_Remove === oPrev.GetReviewType()
+			&& this.Pr.IsEqual(oPrev.GetDirectTextPr()))
+		{
+			let oItem = this.Content[0];
+			this.RemoveFromContent(0, 1, true);
+			oPrev.AddToContent(oPrev.GetElementsCount(), oItem);
+
+			oResultRun = this;
+			nResultPos = 0;
+		}
+		else if (this.Content.length - 1 === nPos
+			&& this.Content.length > 0
+			&& nInParentPos < oParent.GetElementsCount() - 1
+			&& (oNext = oParent.GetElement(nInParentPos + 1)).IsRun()
+			&& reviewtype_Remove === oNext.GetReviewType()
+			&& this.Pr.IsEqual(oNext.GetDirectTextPr()))
+		{
+			let oItem = this.Content[nPos];
+			this.RemoveFromContent(nPos, 1, true);
+			oNext.AddToContent(0, oItem, true);
+
+			oResultRun = oNext;
+			nResultPos = 1;
+		}
+		else
+		{
+			let oRRun = this.Split2(nPos + 1, oParent, nInParentPos);
+			var oCRun = this.Split2(nPos, oParent, nInParentPos);
+			oCRun.SetReviewType(reviewtype_Remove, true);
+
+			oResultRun = oRRun;
+			nResultPos = 0;
+		}
+	}
+	else
+	{
+		if (1 === this.Content.length && 1 === nPos)
+		{
+			this.SetReviewType(reviewtype_Remove, true);
+
+			oResultRun = this;
+			nResultPos = 0;
+		}
+		else if (1 === nPos
+			&& this.Content.length > 0
+			&& nInParentPos > 0
+			&& (oPrev = oParent.GetElement(nInParentPos - 1)).IsRun()
+			&& reviewtype_Remove === oPrev.GetReviewType()
+			&& this.Pr.IsEqual(oPrev.GetDirectTextPr()))
+		{
+			let nPrevLen = oPrev.GetElementsCount();
+			let oItem    = this.Content[0];
+			this.RemoveFromContent(0, 1, true);
+			oPrev.AddToContent(nPrevLen, oItem);
+
+			oResultRun = oPrev;
+			nResultPos = nPrevLen;
+		}
+		else if (this.Content.length === nPos
+			&& this.Content.length > 0
+			&& nInParentPos < oParent.GetElementsCount() - 1
+			&& (oNext = oParent.GetElement(nInParentPos + 1)).IsRun()
+			&& reviewtype_Remove === oNext.GetReviewType()
+			&& this.Pr.IsEqual(oNext.GetDirectTextPr()))
+		{
+			let oItem = this.Content[nPos - 1];
+			this.RemoveFromContent(nPos - 1, 1, true);
+			oNext.AddToContent(0, oItem);
+
+			oResultRun = this;
+			nResultPos = nPos - 1;
+		}
+		else
+		{
+			let oRRun = this.Split2(nPos, oParent, nInParentPos);
+			let oCRun = this.Split2(nPos - 1, oParent, nInParentPos);
+			oCRun.SetReviewType(reviewtype_Remove, true);
+
+			oResultRun = this;
+			nResultPos = nPos - 1;
+		}
+	}
+
+	return new CRunWithPosition(oResultRun, nResultPos);
 };
 
 /**
@@ -13390,6 +13448,23 @@ CReviewInfo.prototype.IsMovedFrom = function()
 	return this.MoveType === Asc.c_oAscRevisionsMove.MoveFrom;
 };
 
+/**
+ * @constructor
+ */
+function CRunWithPosition(oRun, nPos)
+{
+	this.Run = oRun;
+	this.Pos = nPos;
+}
+CRunWithPosition.prototype.SetDocumentPositionHere = function()
+{
+	this.Run.State.ContentPos = this.Pos;
+	this.Run.Make_ThisElementCurrent();
+
+	// Не корректируем позицию внутри параграфа в данной функции, либо надо переделывать удаление в обратном
+	// порядке в ране в случае рецензирования, т.к. в такой ситуации можно оставлять курсор между CombiningMarks,
+	// в то время как в обычной ситуации мы не даем туда поставить курсор
+};
 
 function CanUpdatePosition(Para, Run) {
     return (Para && true === Para.Is_UseInDocument() && true === Run.Is_UseInParagraph());
