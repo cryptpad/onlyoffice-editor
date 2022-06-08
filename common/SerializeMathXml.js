@@ -1280,7 +1280,7 @@
 							let count = 0;
 							let mcJc = MCJC_CENTER;
 							if (elem.members["mcPr"].members["count"]) {
-								count = StaxParser.prototype.GetUInt(elem.members["mcPr"].members["count"].attributes["val"], count);
+								count = AscCommon.StaxParser.prototype.GetUInt(elem.members["mcPr"].members["count"].attributes["val"], count);
 							}
 							if (elem.members["mcPr"].members["mcJc"]) {
 								mcJc = fromXml_ST_XAlignMath(elem.members["mcPr"].members["mcJc"].attributes["val"], mcJc);

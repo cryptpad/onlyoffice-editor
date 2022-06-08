@@ -366,7 +366,6 @@
 	openXml.OpenXmlPackage.prototype.getXmlBytes = function(part, data, writer) {
 		var oldPart = writer.context.part;
 		writer.context.part = part;
-
 		var oldPos = writer.GetCurPosition();
 		data.toXml(writer);
 		var pos = writer.GetCurPosition();
@@ -417,6 +416,7 @@
 		this.pkg.zip.addFile(this.getUriRelative(), data);
 	};
 	openXml.OpenXmlPart.prototype.setDataXml = function (xmlObj, writer) {
+		writer.context.clearCurrentPartImageMap();
 		var data = this.pkg.getXmlBytes(this, xmlObj, writer);
 		this.pkg.zip.addFile(this.getUriRelative(), data);
 	};
@@ -777,7 +777,6 @@
 		external: "External"
 	};
 
-	window.openXml = openXml;
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].openXml = openXml;

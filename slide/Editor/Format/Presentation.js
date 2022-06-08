@@ -6125,7 +6125,7 @@ CPresentation.prototype.Get_Theme = function () {
 };
 
 CPresentation.prototype.Get_ColorMap = function () {
-    return AscFormat.G_O_DEFAULT_COLOR_MAP;
+    return AscFormat.DEFAULT_COLOR_MAP;
 };
 
 CPresentation.prototype.Get_PageFields = function () {
@@ -11928,14 +11928,16 @@ CPresentation.prototype.toZip = function(zip, context) {
             aThemes.push(oSlideMasterTheme);
             oAddedMap[oSlideMasterTheme.Id] = true;
         }
-        if(oNotes && oNotesMaster && !oAddedMap[oNotesMaster.Id]) {
+        if(oNotes && oNotesMaster) {
             aNotes.push(oNotes);
-            aNotesMasters.push(oNotesMaster);
-            oAddedMap[oNotesMaster.Id] = true;
-            let oNotesTheme = oNotesMaster.Theme;
-            if(oNotesTheme && !oAddedMap[oNotesTheme.Id]) {
-                aThemes.push(oNotesTheme);
-                oAddedMap[oNotesTheme.Id] = true;
+            if(!oAddedMap[oNotesMaster.Id]) {
+                aNotesMasters.push(oNotesMaster);
+                oAddedMap[oNotesMaster.Id] = true;
+                let oNotesTheme = oNotesMaster.Theme;
+                if(oNotesTheme && !oAddedMap[oNotesTheme.Id]) {
+                    aThemes.push(oNotesTheme);
+                    oAddedMap[oNotesTheme.Id] = true;
+                }
             }
         }
     }
@@ -12193,7 +12195,7 @@ IdList.prototype.readList = function(reader, fConstructor) {
         oRel = reader.rels.getRelationship(aList[nItem].rId);
         oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
         let oContent = oRelPart.getDocumentContent();
-        let oReader = new StaxParser(oContent, oRelPart, reader.context);
+        let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
         let oElement = fConstructor(oReader);
         if(oElement) {
             oElement.fromXml(oReader, true);

@@ -676,8 +676,8 @@ CMathMatrix.prototype.init = function(props)
     this.setProperties(props);
 	this.Pr.initByContent(props.mrs);
 
+	this.column = this.Pr.Get_ColumnsCount();
 	if (props.mrs) {
-		this.column = this.Pr.Get_ColumnsCount();
 		props.content = this.flatContent(props.mrs, this.column);
 	}
 

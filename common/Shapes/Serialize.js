@@ -10407,7 +10407,7 @@ function BinaryPPTYLoader()
 									});
 								} else {
 									var oMath = new ParaMath();
-                                    par.AddToContentEnd(oMath);
+                                    par.AddToContentToEnd(oMath);
 									boMathr.bcr.Read1(nDocLength, function(t, l){
 										return boMathr.ReadMathArg(t,l,oMath.Root,par);
 									});
