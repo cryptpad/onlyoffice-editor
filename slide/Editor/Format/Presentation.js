@@ -12195,7 +12195,7 @@ IdList.prototype.readList = function(reader, fConstructor) {
         oRel = reader.rels.getRelationship(aList[nItem].rId);
         oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
         let oContent = oRelPart.getDocumentContent();
-        let oReader = new StaxParser(oContent, oRelPart, reader.context);
+        let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
         let oElement = fConstructor(oReader);
         if(oElement) {
             oElement.fromXml(oReader, true);

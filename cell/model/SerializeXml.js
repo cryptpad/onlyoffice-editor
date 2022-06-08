@@ -2683,7 +2683,7 @@
 					let oRel = reader.rels.getRelationship(context.InitOpenManager.legacyDrawingId);
 					let oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
 					let oContent = oRelPart.getDocumentContent();
-					let oReader = new StaxParser(oContent, oRelPart, reader.context);
+					let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
 					let oElement = new AscFormat.CVMLDrawing();
 					if (oElement) {
 						oElement.fromXml(oReader, true);

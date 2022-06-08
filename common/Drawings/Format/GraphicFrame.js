@@ -1460,7 +1460,7 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
 		writer.WriteXmlNodeStart(sName);
 		writer.WriteXmlAttributesEnd();
 
-		var ns = StaxParser.prototype.GetNSFromNodeName(sName);
+		var ns = AscCommon.StaxParser.prototype.GetNSFromNodeName(sName);
 
 
         let oSpTreeDrawing = this.getSpTreeDrawing();

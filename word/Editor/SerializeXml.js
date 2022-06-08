@@ -34,6 +34,7 @@
 
 (function(window, undefined) {
 	let openXml = AscCommon.openXml;
+	let StaxParser = AscCommon.StaxParser;
 	let CT_BoolW = window['AscCommon'].CT_BoolW;
 	let CT_StringW = window['AscCommon'].CT_StringW;
 	let CT_IntW = window['AscCommon'].CT_IntW;

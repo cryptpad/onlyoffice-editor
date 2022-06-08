@@ -7417,10 +7417,10 @@
 			if ( c_oSer_PivotTypes.id == type ) {
 				pivotCache.id = this.stream.GetLong();
 			} else if ( c_oSer_PivotTypes.cache == type ) {
-				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), pivotCache);
+				new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), pivotCache);
 			} else if ( c_oSer_PivotTypes.record == type ) {
 				var cacheRecords = new Asc.CT_PivotCacheRecords();
-				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), cacheRecords);
+				new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), cacheRecords);
 				pivotCache.cacheRecords = cacheRecords;
 			} else
 				res = c_oSerConstants.ReadUnknown;
@@ -8010,7 +8010,7 @@
 				data.cacheId = this.stream.GetLong();
 			} else if (c_oSer_PivotTypes.table == type) {
 				data.table = new Asc.CT_pivotTableDefinition(true);
-				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), data.table);
+				new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), data.table);
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -10372,7 +10372,7 @@
 					newContext.readAttributes(attr, uq);
 				}
 				this.CustomStyles[newContext.name] = newContext;
-				openXml.SaxParserDataTransfer.curTableStyle = newContext;
+				AscCommon.openXml.SaxParserDataTransfer.curTableStyle = newContext;
 			} else {
 				newContext = null;
 			}
@@ -10631,7 +10631,7 @@
 			var val;
 			val = vals["type"];
 			if(undefined !== val){
-				var tableStyle = openXml.SaxParserDataTransfer.curTableStyle;
+				var tableStyle = AscCommon.openXml.SaxParserDataTransfer.curTableStyle;
 				if("wholeTable"===val)
 					tableStyle.wholeTable = this;
 				else if("headerRow"===val)
@@ -10695,7 +10695,7 @@
 			}
 			val = vals["dxfId"];
 			if (undefined !== val) {
-				this.dxf = openXml.SaxParserDataTransfer.dxfs[tableStyle.pivot ? val - 0 : val - 1] || null;
+				this.dxf = AscCommon.openXml.SaxParserDataTransfer.dxfs[tableStyle.pivot ? val - 0 : val - 1] || null;
 			}
 		}
 	};
@@ -10962,7 +10962,7 @@
 			}
 			this.fonts.push(newContext);
 		} else if ("fills" === elem) {
-			openXml.SaxParserDataTransfer.priorityBg = false;
+			AscCommon.openXml.SaxParserDataTransfer.priorityBg = false;
 		} else if ("fill" === elem) {
 			newContext = new AscCommonExcel.Fill();
 			if (newContext.readAttributes) {
@@ -10996,8 +10996,8 @@
 			// 	}
 			// 	this.cellStyles = newContext;
 		} else if ("dxfs" === elem) {
-			openXml.SaxParserDataTransfer.dxfs = this.dxfs;
-			openXml.SaxParserDataTransfer.priorityBg = true;
+			AscCommon.openXml.SaxParserDataTransfer.dxfs = this.dxfs;
+			AscCommon.openXml.SaxParserDataTransfer.priorityBg = true;
 		} else if ("dxf" === elem) {
 			newContext = new CT_Dxf();
 			if (newContext.readAttributes) {

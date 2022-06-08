@@ -1577,6 +1577,7 @@ background-repeat: no-repeat;\
 			return false;
 		}
 		var openXml = AscCommon.openXml;
+		var StaxParser = AscCommon.StaxParser;
 		var xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
 		var jsZipWrapper = new AscCommon.JSZipWrapper();

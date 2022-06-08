@@ -777,7 +777,6 @@
 		external: "External"
 	};
 
-	window.openXml = openXml;
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].openXml = openXml;

@@ -8265,7 +8265,7 @@
 			//writer.WriteXmlNullableAttributeBool("title", this.form);
 			if(this.hlinkClick || this.hlinkHover) {
 
-				let sNS = StaxParser.prototype.GetNSFromNodeName(name);
+				let sNS = AscCommon.StaxParser.prototype.GetNSFromNodeName(name);
 				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlNullable(this.hlinkClick, sNS + ":hlinkClick");
 				writer.WriteXmlNullable(this.hlinkHover, sNS + ":hlinkHover");
@@ -11244,7 +11244,7 @@
 		};
 		ClrMap.prototype.toXmlWord = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
-			let ns = StaxParser.prototype.GetNSFromNodeName(name);
+			let ns = AscCommon.StaxParser.prototype.GetNSFromNodeName(name);
 			for (let i in this.color_map) {
 				if (this.color_map.hasOwnProperty(i)) {
 					let name = this.SchemeClr_GetStringCodeWord(parseInt(i));

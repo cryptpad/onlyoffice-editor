@@ -1475,6 +1475,7 @@ var editor;
 		}
 
 		var openXml = AscCommon.openXml;
+		var StaxParser = AscCommon.StaxParser;
 		var pivotCaches = {};
 		var xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.wbModel.DrawingDocument;
