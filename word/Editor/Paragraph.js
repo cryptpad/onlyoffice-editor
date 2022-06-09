@@ -6346,6 +6346,9 @@ Paragraph.prototype.Get_StartRangePos = function(SearchPos, ContentPos)
 };
 Paragraph.prototype.Get_StartRangePos2 = function(CurLine, CurRange)
 {
+	if (!this.Lines[CurLine] || !this.Lines[CurLine].Ranges[CurRange])
+		return new CParagraphContentPos();
+
 	var ContentPos = new CParagraphContentPos();
 	var Depth      = 0;
 
@@ -6766,16 +6769,31 @@ Paragraph.prototype.MoveCursorToEndOfLine = function(AddToSelect)
 	{
 		var SearchPos  = new CParagraphSearchPos();
 		var ContentPos = this.Get_ParaContentPos(false, false);
-		this.Get_EndRangePos(SearchPos, ContentPos);
+
+		let oResultPos, nLine, nRange;
+		let oParaPos = this.GetCurrentParaPos();
+		if (oParaPos.IsValid(this))
+		{
+			oResultPos = this.Get_EndRangePos2(oParaPos.Line, oParaPos.Range);
+			nLine      = oParaPos.Line;
+			nRange     = oParaPos.Range;
+		}
+		else
+		{
+			this.Get_EndRangePos(SearchPos, ContentPos);
+			oResultPos = SearchPos.Pos;
+			nLine      = SearchPos.Line;
+			nRange     = SearchPos.Range;
+		}
 
 		if (true === AddToSelect)
 		{
 			this.Selection.Use = true;
-			this.Set_SelectionContentPos(ContentPos, SearchPos.Pos);
+			this.Set_SelectionContentPos(ContentPos, oResultPos);
 		}
 		else
 		{
-			this.Set_ParaContentPos(SearchPos.Pos, false, SearchPos.Line, SearchPos.Range);
+			this.Set_ParaContentPos(oResultPos, false, nLine, nRange);
 		}
 	}
 
@@ -6824,16 +6842,29 @@ Paragraph.prototype.MoveCursorToStartOfLine = function(AddToSelect)
 		var SearchPos  = new CParagraphSearchPos();
 		var ContentPos = this.Get_ParaContentPos(false, false);
 
-		this.Get_StartRangePos(SearchPos, ContentPos);
-
-		if (true === AddToSelect)
+		let oResultPos, nLine, nRange;
+		let oParaPos = this.GetCurrentParaPos();
+		if (oParaPos.IsValid(this))
 		{
-			this.Selection.Use = true;
-			this.Set_SelectionContentPos(ContentPos, SearchPos.Pos);
+			oResultPos = this.Get_StartRangePos2(oParaPos.Line, oParaPos.Range);
+			nLine      = oParaPos.Line;
+			nRange     = oParaPos.Range;
 		}
 		else
 		{
-			this.Set_ParaContentPos(SearchPos.Pos, false, SearchPos.Line, SearchPos.Range);
+			this.Get_StartRangePos(SearchPos, ContentPos);
+			oResultPos = SearchPos.Pos;
+			nLine      = SearchPos.Line;
+			nRange     = SearchPos.Range;
+		}
+		if (true === AddToSelect)
+		{
+			this.Selection.Use = true;
+			this.Set_SelectionContentPos(ContentPos, oResultPos);
+		}
+		else
+		{
+			this.Set_ParaContentPos(oResultPos, false, nLine, nRange);
 		}
 	}
 
@@ -18024,6 +18055,13 @@ function CParaPos(Range, Line, Page, Pos)
     this.Page  = Page;  // Номер страницы
     this.Pos   = Pos;   // Позиция в общем массиве
 }
+CParaPos.prototype.IsValid = function(oParagraph)
+{
+	if (-1 === this.Line)
+		return false;
+
+	return (oParagraph.Lines[this.Line] && oParagraph.Lines[this.Line].Ranges[this.Range]);
+};
 
 
 // используется в Internal_Draw_3 и Internal_Draw_5
