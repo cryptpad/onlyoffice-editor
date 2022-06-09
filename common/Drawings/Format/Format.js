@@ -6275,7 +6275,7 @@
 		};
 		CPattFill.prototype.toXml = function (writer, sNamespace) {
 			let sNamespace_ = sNamespace || "a";
-			let strName = ("" === sNamespace_) ? "pattFill" : (sNamespace_ + "pattFill");
+			let strName = ("" === sNamespace_) ? "pattFill" : (sNamespace_ + ":pattFill");
 			writer.WriteXmlNodeStart(strName);
 
 
@@ -9314,7 +9314,7 @@
 				writer.WriteXmlNodeStart("xdr:nvGraphicFramePr");
 				writer.WriteXmlAttributesEnd();
 
-				this.cNvPr.toXml(writer, namespace_ + ":cNvPr");
+				this.cNvPr.toXml(writer, "xdr:cNvPr");
 				this.nvUniSpPr.toXmlGrFrame(writer);
 
 				writer.WriteXmlNodeEnd("xdr:nvGraphicFramePr");
@@ -9459,6 +9459,9 @@
 			if (this.idx !== styleRef.idx) {
 				return false;
 			}
+			if(this.Color && !styleRef.Color || !this.Color && styleRef.Color) {
+				return false;
+			}
 			if (!this.Color.IsIdentical(styleRef.Color)) {
 				return false;
 			}
@@ -9522,7 +9525,9 @@
 			writer.WriteXmlNullableAttributeUInt("idx", this.idx);
 			writer.WriteXmlAttributesEnd();
 
-			this.Color.toXml(writer);
+			if (this.Color) {
+				this.Color.toXml(writer);
+			}
 
 			writer.WriteXmlNodeEnd(sName);
 		};
