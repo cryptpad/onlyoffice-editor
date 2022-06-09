@@ -718,12 +718,12 @@
 							oResult.bSerFormat = checkStreamSignature(stream, Signature);
 							oResult.data = stream;
 						} else {
-							nError = c_oAscError.ID.Unknown;
+							nError = Asc.c_oAscError.ID.Unknown;
 						}
 					}
 					else
 					{
-						nError = c_oAscError.ID.DownloadError;
+						nError = Asc.c_oAscError.ID.DownloadError;
 					}
 					bEndLoadFile = true;
 					onEndOpen();
@@ -735,7 +735,7 @@
 			oZipImages = {};
 			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
 				bEndLoadChanges = true;
-				nError = c_oAscError.ID.DownloadError;
+				nError = Asc.c_oAscError.ID.DownloadError;
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
@@ -753,7 +753,7 @@
 					});
 					window.nativeZlibEngine.close();
 				} else {
-					nError = c_oAscError.ID.Unknown;
+					nError = Asc.c_oAscError.ID.Unknown;
 				}
 				bEndLoadChanges = true;
 				onEndOpen();
@@ -778,7 +778,7 @@
                 oResult.bSerFormat = checkStreamSignature(stream, Signature);
 				oResult.data = stream;
             } else {
-				nError = c_oAscError.ID.Unknown;
+				nError = Asc.c_oAscError.ID.Unknown;
             }
  
             bEndLoadFile = true;
@@ -3315,7 +3315,7 @@
 			else if (Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
 			{
 				if (!Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRange)) {
-					return c_oAscError.ID.PivotLabledColumns;
+					return Asc.c_oAscError.ID.PivotLabledColumns;
 				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
@@ -13245,7 +13245,7 @@ window["NativeFileOpen_error"] = function(error, _file_hash, _docInfo)
     }
     else if ("error" == error)
     {
-        _api.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        _api.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationOpenError, Asc.c_oAscError.Level.Critical);
         return;
     }
 };
