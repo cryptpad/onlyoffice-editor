@@ -1679,27 +1679,6 @@ function initMathRevisions(elem ,props, reader) {
 	}
 	return reader.oReadResult.checkReadRevisions();
 };
-function setNestedReviewType(elem, type, reviewInfo) {
-	if (elem && elem.SetReviewTypeWithInfo && elem.GetReviewType) {
-		//coping prevents self reference in case of setting one reviewInfo to multiple elems (<ins><ins><r/><r/></ins></ins>)
-		reviewInfo = reviewInfo.Copy();
-		if (reviewtype_Common !== elem.GetReviewType()) {
-			elem.GetReviewInfo().SetPrevReviewTypeWithInfoRecursively(type, reviewInfo);
-		} else {
-			elem.SetReviewTypeWithInfo(type, reviewInfo, false);
-		}
-	}
-}
-function writeNestedReviewType(type, reviewInfo, fWriteRecord, fCallback) {
-	if (reviewInfo.PrevInfo) {
-		writeNestedReviewType(reviewInfo.PrevType, reviewInfo.PrevInfo, fWriteRecord, function(delText) {
-			fWriteRecord(type, reviewInfo, delText, fCallback);
-		});
-	} else {
-		fWriteRecord(type, reviewInfo, false, fCallback);
-	}
-}
-
 function ReadDocumentShd(length, bcr, oShd) {
 	var themeColor = { Auto: null, Color: null, Tint: null, Shade: null };
 	var themeFill = { Auto: null, Color: null, Tint: null, Shade: null };
@@ -3333,7 +3312,7 @@ function Binary_oMathWriter(memory, oMathPara, saveParams)
 		var oThis = this;
 		var reviewType = oMRun.GetReviewType();
 		if (reviewtype_Common !== reviewType) {
-			writeNestedReviewType(reviewType, oMRun.GetReviewInfo(), function(reviewType, reviewInfo, delText, fCallback){
+			this.saveParams.writeNestedReviewType(reviewType, oMRun.GetReviewInfo(), function(reviewType, reviewInfo, delText, fCallback){
 				var recordType = reviewtype_Remove === reviewType ? c_oSer_OMathContentType.Del : c_oSer_OMathContentType.Ins;
 				oThis.bs.WriteItem(recordType, function () {WriteTrackRevision(oThis.bs, oThis.saveParams.trackRevisionId++, reviewInfo, {runContent: function(){fCallback();}});});
 			}, function() {
@@ -5081,7 +5060,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                 this.memory.WriteByte(c_oSerParType.Par);
                 this.bs.WriteItemWithLength(function(){oThis.WriteParapraph(item);});
 
-                this.WriteRunRevisionMove(item);
+				this.saveParams.WriteRunRevisionMove(item, function(runRevisionMove) {
+					WiteMoveRange(oThis.bs, oThis.saveParams, runRevisionMove);
+				});
             }
             else if(type_Table === item.GetType())
             {
@@ -5109,21 +5090,6 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			}
 		}
     };
-	this.WriteRunRevisionMove = function(par) {
-		var oThis = this;
-		if (par.Content && par.Content.length > 0) {
-			var paraEnd = par.Content[par.Content.length - 1];
-			if (para_Run === paraEnd.Type) {
-				//first elem is ParaEnd
-				for (var i = 1; i < paraEnd.Content.length; ++i) {
-					var runRevision = paraEnd.Content[i];
-					if (para_RevisionMove === runRevision.Type) {
-						WiteMoveRange(oThis.bs, oThis.saveParams, runRevision);
-					}
-				}
-			}
-		}
-	};
 	this.WriteBackground = function(oBackground) {
 		var oThis = this;
 		var color = null;
@@ -5236,7 +5202,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                 case para_Run:
                     var reviewType = item.GetReviewType();
                     if (reviewtype_Common !== reviewType) {
-						writeNestedReviewType(reviewType, item.GetReviewInfo(), function(reviewType, reviewInfo, delText, fCallback){
+						this.saveParams.writeNestedReviewType(reviewType, item.GetReviewInfo(), function(reviewType, reviewInfo, delText, fCallback){
 							var recordType;
 							if (reviewtype_Remove === reviewType) {
 								if (reviewInfo.IsMovedFrom()) {
@@ -8252,7 +8218,8 @@ function BinaryFileReader(doc, openParams)
 		}
 		//remove bookmarks without end
 		this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.bookmarksStarted);
-		this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.moveRanges);
+		//todo crush
+		// this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.moveRanges);
 
 		if (this.oReadResult.DocumentContent.length > 0) {
 			this.Document.ReplaceContent(this.oReadResult.DocumentContent);
@@ -8610,7 +8577,8 @@ function BinaryFileReader(doc, openParams)
 		}
 		//remove bookmarks without end
 		this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.bookmarksStarted);
-		this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.moveRanges);
+		//todo crush
+		// this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.moveRanges);
 
 		if (editor && !editor.isDocumentEditor) {
 			this.PostLoadPrepareCorrectContent(this.oReadResult.DocumentContent, this.Document.Styles);
@@ -8987,14 +8955,6 @@ function Binary_pPrReader(doc, oReadResult, stream)
                     var EndRun = this.paragraph.GetParaEndRun();
                     var rPr = this.paragraph.TextPr.Value;
                     res = this.brPrr.Read(length, rPr, EndRun);
-                    var trackRevision = this.brPrr.trackRevision;
-                    if (trackRevision) {
-                        if(trackRevision.del) {
-                            EndRun.SetReviewTypeWithInfo(reviewtype_Remove, trackRevision.del, false);
-                        } else if(trackRevision.ins) {
-                            EndRun.SetReviewTypeWithInfo(reviewtype_Add, trackRevision.ins, false);
-                        } 
-                    }
                     //this.paragraph.TextPr.Apply_TextPr(rPr);
 				}
 				else
@@ -9751,12 +9711,10 @@ function Binary_rPrReader(doc, oReadResult, stream)
 	this.oReadResult = oReadResult;
     this.stream = stream;
     this.rPr;
-    this.trackRevision = null;
     this.bcr = new Binary_CommonReader(this.stream);
     this.Read = function(stLen, rPr, run)
     {
         this.rPr = rPr;
-        this.trackRevision = null;
         var oThis = this;
         var res = c_oSerConstants.ReadOk;
         res = this.bcr.Read2(stLen, function(type, length){
@@ -9935,35 +9893,47 @@ function Binary_rPrReader(doc, oReadResult, stream)
 					res = c_oSerConstants.ReadUnknown;
 				break;
             case c_oSerProp_rPrType.Del:
-                this.trackRevision = {del: new CReviewInfo()};
+				var reviewInfo = new CReviewInfo();
                 res = this.bcr.Read1(length, function(t, l){
-                    return ReadTrackRevision(t, l, oThis.stream, oThis.trackRevision.del, null);
+                    return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
                 });
+				if (run) {
+					run.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
+				}
 				break;
             case c_oSerProp_rPrType.Ins:
 				if (this.oReadResult.checkReadRevisions()) {
-					this.trackRevision = {ins: new CReviewInfo()};
+					var reviewInfo = new CReviewInfo();
 					res = this.bcr.Read1(length, function(t, l){
-						return ReadTrackRevision(t, l, oThis.stream, oThis.trackRevision.ins, null);
+						return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
 					});
+					if (run) {
+						run.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
+					}
 				} else {
 					res = c_oSerConstants.ReadUnknown;
 				}
 				break;
 			case c_oSerProp_rPrType.MoveFrom:
-				this.trackRevision = {del: new CReviewInfo()};
-				this.trackRevision.del.SetMove(Asc.c_oAscRevisionsMove.MoveFrom);
+				var reviewInfo = new CReviewInfo();
+				reviewInfo.SetMove(Asc.c_oAscRevisionsMove.MoveFrom);
 				res = this.bcr.Read1(length, function(t, l){
-					return ReadTrackRevision(t, l, oThis.stream, oThis.trackRevision.del, null);
+					return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
 				});
+				if (run) {
+					run.SetReviewTypeWithInfo(reviewtype_Remove, reviewInfo, false);
+				}
 				break;
 			case c_oSerProp_rPrType.MoveTo:
 				if (this.oReadResult.checkReadRevisions()) {
-					this.trackRevision = {ins: new CReviewInfo()};
-					this.trackRevision.ins.SetMove(Asc.c_oAscRevisionsMove.MoveTo);
+					var reviewInfo = new CReviewInfo();
+					reviewInfo.SetMove(Asc.c_oAscRevisionsMove.MoveTo);
 					res = this.bcr.Read1(length, function(t, l){
-						return ReadTrackRevision(t, l, oThis.stream, oThis.trackRevision.ins, null);
+						return ReadTrackRevision(t, l, oThis.stream, reviewInfo, null);
 					});
+					if (run) {
+						run.SetReviewTypeWithInfo(reviewtype_Add, reviewInfo, false);
+					}
 				} else {
 					res = c_oSerConstants.ReadUnknown;
 				}
@@ -11331,7 +11301,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			});
             var endPos = paragraphContent.GetElementsCount();
             for(var i = startPos; i < endPos; ++i) {
-				setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Remove, reviewInfo);
+				this.oReadResult.setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Remove, reviewInfo);
             }
         } else if (c_oSerParType.Ins == type) {
             var reviewInfo = new CReviewInfo();
@@ -11342,7 +11312,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			if (this.oReadResult.checkReadRevisions()) {
 				var endPos = paragraphContent.GetElementsCount();
 				for(var i = startPos; i < endPos; ++i) {
-					setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Add, reviewInfo);
+					this.oReadResult.setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Add, reviewInfo);
 				}
 			}
 		} else if (c_oSerParType.MoveFrom == type && this.oReadResult.checkReadRevisions()) {
@@ -11354,7 +11324,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			});
 			var endPos = paragraphContent.GetElementsCount();
 			for(var i = startPos; i < endPos; ++i) {
-				setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Remove, reviewInfo);
+				this.oReadResult.setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Remove, reviewInfo);
 			}
 		} else if (c_oSerParType.MoveTo == type) {
 			var reviewInfo = new CReviewInfo();
@@ -11366,7 +11336,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			if (this.oReadResult.checkReadRevisions()) {
 				var endPos = paragraphContent.GetElementsCount();
 				for(var i = startPos; i < endPos; ++i) {
-					setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Add, reviewInfo);
+					this.oReadResult.setNestedReviewType(paragraphContent.GetElement(i), reviewtype_Add, reviewInfo);
 				}
 			}
 		} else if ( c_oSerParType.Sdt === type) {
@@ -13306,7 +13276,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 			if (oElem) {
 				for (var i = 0; i < oSdt.GetElementsCount(); ++i) {
 					var elem = oSdt.GetElement(i);
-					setNestedReviewType(elem, reviewtype_Remove, reviewInfo);
+					this.oReadResult.setNestedReviewType(elem, reviewtype_Remove, reviewInfo);
 					oElem.addElementToContent(elem);
 				}
 			}
@@ -13363,7 +13333,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 				for (var i = 0; i < oSdt.GetElementsCount(); ++i) {
 					var elem = oSdt.GetElement(i);
 					if (this.oReadResult.checkReadRevisions()) {
-						setNestedReviewType(elem, reviewtype_Add, reviewInfo);
+						this.oReadResult.setNestedReviewType(elem, reviewtype_Add, reviewInfo);
 					}
 					oElem.addElementToContent(elem);
 				}
@@ -16891,18 +16861,6 @@ CFontsCharMap.prototype =
             this.CurrentFontInfo.CharArray[_find] = true;
     }
 }
-function getStyleFirstRun(oField){
-    var res = null;
-    //берем первый с непустым Content, потому что в случае fldstart первым будет run fldstart
-    for (var i = 0 ; i < oField.Content.length; ++i) {
-        var run = oField.Content[i];
-        if (run.Content.length > 0) {
-            res = run.Get_FirstTextPr();
-            break;
-        }
-    }
-    return res;
-}
 function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts) {
 	this.bMailMergeDocx = bMailMergeDocx;
 	this.bMailMergeHtml = bMailMergeHtml;
@@ -16918,6 +16876,27 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts) {
 	this.isCompatible = isCompatible;
 	this.placeholders = {};
 	this.docParts = docParts;
+};
+DocSaveParams.prototype.WriteRunRevisionMove = function(par, callback) {
+	let oEndRun = par.GetParaEndRun();
+	if(!oEndRun) {
+		return;
+	}
+	for (let nPos = 0, nCount = oEndRun.Content.length; nPos < nCount; ++nPos) {
+		let oItem = oEndRun.Content[nPos];
+		if (para_RevisionMove === oItem.GetType()) {
+			callback(oItem);
+		}
+	}
+};
+DocSaveParams.prototype.writeNestedReviewType = function(type, reviewInfo, fWriteRecord, fCallback) {
+	if (reviewInfo.PrevInfo) {
+		this.writeNestedReviewType(reviewInfo.PrevType, reviewInfo.PrevInfo, fWriteRecord, function(delText) {
+			fWriteRecord(type, reviewInfo, delText, fCallback);
+		});
+	} else {
+		fWriteRecord(type, reviewInfo, false, fCallback);
+	}
 };
 function DocReadResult(doc) {
 	this.logicDocument = doc;
@@ -17063,6 +17042,33 @@ DocReadResult.prototype = {
 						break;
 					}
 				}
+			}
+		}
+	},
+	readMoveRangeStartXml: function (oReadResult, reader, paragraphContent, isFrom) {
+		let options = {id: null};
+		let move = new CParaRevisionMove(true, isFrom, undefined, new CReviewInfo());
+		move.fromXml(reader, options);
+		if (null !== options.id) {
+			oReadResult.addMoveRangeStart(paragraphContent, move, options.id, true);
+		}
+	},
+	readMoveRangeEndXml: function (oReadResult, reader, paragraphContent, isRun) {
+		let options = {id: null};
+		let move = isRun ? new CRunRevisionMove(false) : new CParaRevisionMove(false);
+		move.fromXml(reader, options);
+		if (null !== options.id) {
+			oReadResult.addMoveRangeEnd(paragraphContent, move, options.id, true);
+		}
+	},
+	setNestedReviewType: function(elem, type, reviewInfo) {
+		if (elem && elem.SetReviewTypeWithInfo && elem.GetReviewType) {
+			//coping prevents self reference in case of setting one reviewInfo to multiple elems (<ins><ins><r/><r/></ins></ins>)
+			reviewInfo = reviewInfo.Copy();
+			if (reviewtype_Common !== elem.GetReviewType()) {
+				elem.GetReviewInfo().SetPrevReviewTypeWithInfoRecursively(type, reviewInfo);
+			} else {
+				elem.SetReviewTypeWithInfo(type, reviewInfo, false);
 			}
 		}
 	}

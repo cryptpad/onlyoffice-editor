@@ -1092,6 +1092,12 @@
 				this.WriteXmlAttributeStringEncode(name, val)
 			}
 		};
+		this.WriteXmlNonEmptyAttributeStringEncode = function(name, val)
+		{
+			if (val) {
+				this.WriteXmlAttributeStringEncode(name, val)
+			}
+		};
 		this.WriteXmlNullableAttributeBool = function(name, val)
 		{
 			if (null !== val && undefined !== val) {
