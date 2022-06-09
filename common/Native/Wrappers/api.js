@@ -38,7 +38,6 @@ var _internalStorage = {
 };
 
 window['SockJS'] = createSockJS();
-window['JSZipUtils'] = JSZipUtils();
 
 Asc['asc_docs_api'].prototype.Update_ParaInd = function( Ind )
 {

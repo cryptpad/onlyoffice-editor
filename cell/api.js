@@ -520,6 +520,7 @@ var editor;
 	};
 
 	spreadsheet_api.prototype._getTextFromUrl = function (url, options, callback) {
+		var t = this;
 		if (this.canEdit()) {
 			var document = {url: url, format: "TXT"};
 			this.insertDocumentUrlsData = {
@@ -532,15 +533,14 @@ var editor;
 					}
 
 					if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-						AscCommon.getJSZipUtils().getBinaryContent(url['output.txt'], function (err, data) {
+						AscCommon.loadFileContent(url['output.txt'], function (httpRequest) {
 							var cp = {
 								'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
 								'encodings': AscCommon.getEncodingParams()
 							};
 
-							if (err) {
-								t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-							} else {
+							if (httpRequest && httpRequest.response) {
+								let data = httpRequest.response;
 								var dataUint = new Uint8Array(data);
 								var bom = AscCommon.getEncodingByBOM(dataUint);
 								if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
@@ -549,9 +549,11 @@ var editor;
 								}
 								cp['data'] = data;
 								callback(new AscCommon.asc_CAdvancedOptions(cp));
+							} else {
+								t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 							}
 							_api.endInsertDocumentUrls();
-						});
+						}, "arraybuffer");
 					}
 				}, endCallback: function (_api) {
 				}
@@ -1088,10 +1090,9 @@ var editor;
 				'encodings': AscCommon.getEncodingParams()
 			};
 			if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-					if (err) {
-						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-					} else {
+				AscCommon.loadFileContent(data, function(httpRequest) {
+					if (httpRequest && httpRequest.response) {
+						let data = httpRequest.response;
 						var dataUint = new Uint8Array(data);
 						var bom = AscCommon.getEncodingByBOM(dataUint);
 						if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
@@ -1100,8 +1101,10 @@ var editor;
 						}
 						cp['data'] = data;
 						t.handlers.trigger("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.CSV, new AscCommon.asc_CAdvancedOptions(cp));
+					} else {
+						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 					}
-				});
+				}, "arraybuffer");
 			} else {
 				t.handlers.trigger("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.CSV, new AscCommon.asc_CAdvancedOptions(cp));
 			}
@@ -1139,18 +1142,15 @@ var editor;
 		this.openingEnd.xlsxStart = true;
 		var url = AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx');
 		if (url) {
-			AscCommon.getJSZipUtils().getBinaryContent(url, function(err, data) {
-				if (err) {
-					if (window.console && window.console.log) {
-						window.console.log(err);
-					}
-					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-				} else {
+			AscCommon.loadFileContent(url, function(httpRequest) {
+				if (httpRequest && httpRequest.response) {
 					t.openingEnd.xlsx = true;
-					t.openingEnd.data = data;
+					t.openingEnd.data = httpRequest.response;
 					t._onEndOpen();
+				} else {
+					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 				}
-			});
+			}, "arraybuffer");
 		} else {
 			t.openingEnd.xlsx = true;
 			t._onEndOpen();
