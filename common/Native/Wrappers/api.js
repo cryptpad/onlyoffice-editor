@@ -6217,9 +6217,8 @@ function initSpellCheckApi() {
 
 function NativeOpenFile3(_params, documentInfo)
 {
-    window.g_file_path = "native_open_file";
     window.NATIVE_DOCUMENT_TYPE = window["native"]["GetEditorType"]();
-    var doc_bin = window["native"]["GetFileString"](window.g_file_path);
+    window.NATIVE_DOCUMENT_TYPE = window["native"]["GetEditorType"]();
     if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
     {
         sdkCheck = documentInfo["sdkCheck"];
@@ -6357,7 +6356,7 @@ function NativeOpenFile3(_params, documentInfo)
 
 
         } else {
-            var doc_bin = window["native"]["GetFileString"](window.g_file_path);
+            var doc_bin = window["native"]["GetFileString"]("native_open_file");
             _api["asc_nativeOpenFile"](doc_bin);
 
            	if (window.documentInfo["viewmode"]) {
