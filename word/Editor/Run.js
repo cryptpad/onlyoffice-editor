@@ -1360,14 +1360,22 @@ ParaRun.prototype.RemoveItemInReview = function(nPos, nDirection)
 			oResultRun = oNext;
 			nResultPos = 1;
 		}
-		else
+		else if (nPos < this.Content.length)
 		{
-			let oRRun = this.Split2(nPos + 1, oParent, nInParentPos);
-			var oCRun = this.Split2(nPos, oParent, nInParentPos);
+			let oRRun = nPos < this.Content.length - 1 ? this.Split2(nPos + 1, oParent, nInParentPos) : null;
+			let oCRun = nPos > 0 ? this.Split2(nPos, oParent, nInParentPos) : this;
 			oCRun.SetReviewType(reviewtype_Remove, true);
 
-			oResultRun = oRRun;
-			nResultPos = 0;
+			if (oRRun)
+			{
+				oResultRun = oRRun;
+				nResultPos = 0;
+			}
+			else
+			{
+				oResultRun = this;
+				nResultPos = this.Content.length;
+			}
 		}
 	}
 	else
@@ -1408,14 +1416,16 @@ ParaRun.prototype.RemoveItemInReview = function(nPos, nDirection)
 			oResultRun = this;
 			nResultPos = nPos - 1;
 		}
-		else
+		else if (nPos > 0)
 		{
-			let oRRun = this.Split2(nPos, oParent, nInParentPos);
-			let oCRun = this.Split2(nPos - 1, oParent, nInParentPos);
+			if (nPos < this.Content.length)
+				this.Split2(nPos, oParent, nInParentPos);
+
+			let oCRun = nPos > 1 ? this.Split2(nPos - 1, oParent, nInParentPos) : this;
 			oCRun.SetReviewType(reviewtype_Remove, true);
 
-			oResultRun = this;
-			nResultPos = nPos - 1;
+			oResultRun = oCRun;
+			nResultPos = 0;
 		}
 	}
 
