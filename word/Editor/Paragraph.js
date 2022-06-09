@@ -3886,17 +3886,14 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 				}
 			}
 
-			if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions())
+			if (this.LogicDocument && true === this.LogicDocument.IsTrackRevisions() && this.IsSelectionUse())
 			{
-				var _StartPos = Math.max(0, StartPos);
-				var _EndPos   = Math.min(this.Content.length - 1, EndPos);
-
-				for (var Pos = _StartPos; Pos <= _EndPos; ++Pos)
-				{
-					this.Content[Pos].RemoveSelection();
-				}
-
-				this.CurPos.ContentPos = StartPos;
+				// TODO: Используем данные функции для сброса селекта, по-хорошему надо сделать для
+				//       этого отдельные методы
+				if (Direction < 0)
+					this.MoveCursorLeft(false, false);
+				else
+					this.MoveCursorRight(false, false);
 			}
 
 			if (isStartDeleted && isEndDeleted)

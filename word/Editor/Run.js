@@ -1099,6 +1099,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					}
 
 					DeletedRun.SetReviewType(reviewtype_Remove, true);
+					DeletedRun.SelectAll(Selection.EndPos - Selection.StartPos);
 				}
 			}
 			else
