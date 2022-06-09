@@ -1185,6 +1185,9 @@ var editor;
 		if (c_oAscFileType.XLTX === fileType) {
 			var title = this.documentTitle;
 			this.saveDocumentToZip(this.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
+				if (!data) {
+					return;
+				}
 				var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("xlsx")});
 				var link = document.createElement("a");
 				link.href = window.URL.createObjectURL(blob);
@@ -1482,12 +1485,11 @@ var editor;
 		var initOpenManager = xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
 		var wbPart = null;
 		var wbXml = null;
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (!jsZipWrapper.loadSync(data)) {
+		if (!window.nativeZlibEngine.open(data)) {
 			return false;
 		}
-		xmlParserContext.zip = jsZipWrapper;
-		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+		xmlParserContext.zip = window.nativeZlibEngine;
+		var doc = new openXml.OpenXmlPackage(window.nativeZlibEngine, null);
 
 		//core
 		var coreXmlPart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
@@ -2290,7 +2292,7 @@ var editor;
 		initOpenManager.readDefStyles(wb, wb.CellStyles.DefaultStyles);
 
 		wb.initPostOpenZip(pivotCaches, xmlParserContext);
-		jsZipWrapper.close();
+		window.nativeZlibEngine.close();
 		//clean up
 		openXml.SaxParserDataTransfer = {};
 		return true;

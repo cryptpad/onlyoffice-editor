@@ -1580,14 +1580,13 @@ background-repeat: no-repeat;\
 		var StaxParser = AscCommon.StaxParser;
 		var xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (!jsZipWrapper.loadSync(data)) {
+		if (!window.nativeZlibEngine.open(data)) {
 			return false;
 		}
 
 		var reader;
-		xmlParserContext.zip = jsZipWrapper;
-		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+		xmlParserContext.zip = window.nativeZlibEngine;
+		var doc = new openXml.OpenXmlPackage(window.nativeZlibEngine, null);
 
 		let oTableStylesPart = doc.getPartByUri("/ppt/tableStyles.xml");
 		if(oTableStylesPart) {
@@ -1651,16 +1650,18 @@ background-repeat: no-repeat;\
 		for (var path in context.imageMap) {
 			if (context.imageMap.hasOwnProperty(path)) {
 				this.WordControl.m_oLogicDocument.ImageMap[_cur_ind++] = path;
-				let data = context.zip.files[path].sync('uint8array');
-				let blob = new Blob([data], {type: "image/png"});
-				let url = window.URL.createObjectURL(blob);
-				AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-				context.imageMap[path].forEach(function(blipFill) {
-					AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
-				});
+				let data = context.zip.getFile(path);
+				if (data) {
+					let blob = new Blob([data], {type: "image/png"});
+					let url = window.URL.createObjectURL(blob);
+					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+					context.imageMap[path].forEach(function(blipFill) {
+						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+					});
+				}
 			}
 		}
-		jsZipWrapper.close();
+		window.nativeZlibEngine.close();
 		return true;
 	};
 
@@ -7694,6 +7695,9 @@ background-repeat: no-repeat;\
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation,
 					function(data) {
+						if (!data) {
+							return;
+						}
 						var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("pptx")});
 						var link = document.createElement("a");
 						link.href = window.URL.createObjectURL(blob);

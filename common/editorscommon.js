@@ -340,94 +340,6 @@
 		return window['JSZipUtils'] || require('jsziputils');
 	}
 
-	function JSZipWrapper() {
-		this.files = {};
-	}
-
-	JSZipWrapper.prototype.loadSync = function(data) {
-		if (window.nativeZlibEngine && window.nativeZlibEngine.open(data)) {
-			var files = window.nativeZlibEngine.files;
-			for (let i = 0, len = files.length; i < len; i++) {
-				if (files[i].startsWith('/')) {
-					this.files[files[i].substring(1)] = new JSZipObjectWrapper(files[i].substring(1));
-				} else {
-					this.files[files[i]] = new JSZipObjectWrapper(files[i]);
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-	JSZipWrapper.prototype.loadAsync = function(data, options) {
-		var t = this;
-
-		if (window.nativeZlibEngine) {
-			return new Promise(function(resolve, reject) {
-				if (!window.nativeZlibEngine.open(data)) {
-					reject(new Error("Failed archive"));
-				}
-				let files = window.nativeZlibEngine.files;
-				if (0 !== files.length) {
-					for (let i = 0, len = files.length; i < len; i++)
-						this.files[files[i]] = new JSZipObjectWrapper(files[i]);
-					resolve(t);
-				} else {
-					reject(new Error("Failed archive"));
-				}
-			});
-		}
-
-		return Promise.reject();
-	};
-	JSZipWrapper.prototype.create = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.create() : false;
-	};
-	JSZipWrapper.prototype.save = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.save() : null;
-	};
-	JSZipWrapper.prototype.getFile = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.getFile.apply(window.nativeZlibEngine, arguments) : null;
-	};
-	JSZipWrapper.prototype.addFile = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.addFile.apply(window.nativeZlibEngine, arguments) : false;
-	};
-	JSZipWrapper.prototype.removeFile = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.removeFile.apply(window.nativeZlibEngine, arguments) : false;
-	};
-	JSZipWrapper.prototype.close = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.close() : false;
-	};
-
-	function JSZipObjectWrapper(data) {
-		this.data = data;
-	}
-	JSZipObjectWrapper.prototype.sync = function(type) {
-		if (window.nativeZlibEngine) {
-			var data = window.nativeZlibEngine.getFile(this.data);
-			if ("string" === type && data) {
-				return UTF8ArrayToString(data, 0, data.length);
-			} else {
-				return data;
-			}
-		}
-		return null;
-	};
-	JSZipObjectWrapper.prototype.async = function(type) {
-
-		if (window.nativeZlibEngine) {
-			var t = this;
-			return new Promise(function(resolve, reject) {
-				var data = window.nativeZlibEngine.getFile(t.data);
-				if("string" === type) {
-					resolve(UTF8ArrayToString(data, 0, data.length));
-				} else {
-					resolve(data);
-				}
-			});
-		}
-		return null;
-	};
-
 	function getBaseUrl()
 	{
 		var indexHtml = window["location"]["href"];
@@ -747,19 +659,17 @@
 		return false;
 	}
 	function checkOOXMLSignature(stream, Signature) {
-		if(!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] && 0x04 === stream[3])) {
+		if (!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] && 0x04 === stream[3])) {
 			//Local file header signature = 0x04034b50 (PK♥♦ or "PK\3\4")
 			return false;
 		}
-		let jsZipWrapper = new AscCommon.JSZipWrapper();
-		if(!jsZipWrapper.loadSync(stream)) {
+		if (!window.nativeZlibEngine.open(stream)) {
 			return false;
 		}
-		if(!jsZipWrapper.files["[Content_Types].xml"]) {
-			return false;
-		}
-		let contentTypes = jsZipWrapper.files["[Content_Types].xml"].sync("string");
-		jsZipWrapper.close();
+		let contentTypesBytes = window.nativeZlibEngine.getFile("[Content_Types].xml");
+		let contentTypes = contentTypesBytes ? AscCommon.UTF8ArrayToString(contentTypesBytes, 0, contentTypesBytes.length) : "";
+		window.nativeZlibEngine.close();
+
 		return -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-word.document.macroEnabled.main+xml") ||
@@ -829,19 +739,19 @@
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
-				var jsZipWrapper = new AscCommon.JSZipWrapper();
-				if (jsZipWrapper.loadSync(data)) {
-					for (var relativePath in jsZipWrapper.files) {
-						if (jsZipWrapper.files.hasOwnProperty(relativePath)) {
-							var file = jsZipWrapper.files[relativePath];
-							if ((relativePath).endsWith('.json')) {
-								oResult.changes[parseInt(relativePath.slice('changes'.length))] = JSON.parse(file.sync('string'));
+				if (window.nativeZlibEngine.open(data)) {
+					window.nativeZlibEngine.files.forEach(function(path){
+						let data = window.nativeZlibEngine.getFile(path);
+						if (data) {
+							if (path.endsWith('.json')) {
+								let text = AscCommon.UTF8ArrayToString(data, 0, data.length);
+								oResult.changes[parseInt(path.slice('changes'.length))] = JSON.parse(text);
 							} else {
-								oZipImages[relativePath] = file.sync('uint8array')
+								oZipImages[path] = data;
 							}
 						}
-					}
-					jsZipWrapper.close();
+					});
+					window.nativeZlibEngine.close();
 				} else {
 					nError = c_oAscError.ID.Unknown;
 				}
@@ -12966,7 +12876,6 @@
 	window["AscCommon"].CPolygon = CPolygon;
 	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;
 
-	window["AscCommon"].JSZipWrapper = JSZipWrapper;
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
 	window["AscCommon"].FormulaTablePartInfo = FormulaTablePartInfo;
 	window["AscCommon"].cBoolLocal = cBoolLocal;

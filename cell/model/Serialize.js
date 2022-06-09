@@ -10710,13 +10710,15 @@
         var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
         oBinaryFileReader.getbase64DecodedData2(stylesZip, 0, stream, 0);
 
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-        if(jsZipWrapper.loadSync(new Uint8Array(pointer.data))) {
-            var content = jsZipWrapper.files["presetTableStyles.xml"].sync("string");
-            jsZipWrapper.close();
-            var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
-            new AscCommon.openXml.SaxParserBase().parse(content, stylesXml);
-            wb.TableStyles.concatStyles();
+        if (window.nativeZlibEngine.open(new Uint8Array(pointer.data))) {
+            let contentBytes = window.nativeZlibEngine.getFile("presetTableStyles.xml");
+            if (contentBytes) {
+                let content = AscCommon.UTF8ArrayToString(contentBytes, 0, contentBytes.length);
+                window.nativeZlibEngine.close();
+                var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
+                new AscCommon.openXml.SaxParserBase().parse(content, stylesXml);
+                wb.TableStyles.concatStyles();
+            }
         }
     }
     function ReadDefCellStyles(wb, oOutput)

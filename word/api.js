@@ -1561,8 +1561,7 @@ background-repeat: no-repeat;\
 		}
 		let xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
-		let jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (!jsZipWrapper.loadSync(data)) {
+		if (!window.nativeZlibEngine.open(data)) {
 			return false;
 		}
 
@@ -1570,10 +1569,10 @@ background-repeat: no-repeat;\
 		let oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
 		oBinaryFileReader.PreLoadPrepare();
 
-		this.WordControl.m_oLogicDocument.fromZip(jsZipWrapper, xmlParserContext, oBinaryFileReader.oReadResult);
+		this.WordControl.m_oLogicDocument.fromZip(window.nativeZlibEngine, xmlParserContext, oBinaryFileReader.oReadResult);
 
 		oBinaryFileReader.PostLoadPrepare(xmlParserContext);
-		jsZipWrapper.close();
+		window.nativeZlibEngine.close();
 		return true;
 	};
 	// Callbacks
@@ -8613,6 +8612,9 @@ background-repeat: no-repeat;\
 			if (c_oAscFileType.DOTX === fileType) {
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Word, function(data) {
+					if (!data) {
+						return;
+					}
 					var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("docx")});
 					var link = document.createElement("a");
 					link.href = window.URL.createObjectURL(blob);

@@ -2104,13 +2104,15 @@
 			var context = xmlParserContext;
 			for (var path in context.imageMap) {
 				if (context.imageMap.hasOwnProperty(path)) {
-					var data = context.zip.files[path].sync('uint8array');
-					var blob = new Blob([data], {type: "image/png"});
-					var url = window.URL.createObjectURL(blob);
-					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-					context.imageMap[path].forEach(function(blipFill) {
-						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
-					});
+					var data = context.zip.getFile(path);
+					if (data) {
+						var blob = new Blob([data], {type: "image/png"});
+						var url = window.URL.createObjectURL(blob);
+						AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+						context.imageMap[path].forEach(function(blipFill) {
+							AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+						});
+					}
 				}
 			}
 		}
