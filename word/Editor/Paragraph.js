@@ -5409,6 +5409,74 @@ Paragraph.prototype.SetSelectionContentPos = function(oStartPos, oEndPos, isCorr
 {
 	return this.Set_SelectionContentPos(oStartPos, oEndPos, isCorrectAnchor);
 };
+Paragraph.prototype.private_GetClosestPosInCombiningMark = function(oContentPos, nDiff)
+{
+	if (undefined === nDiff)
+		nDiff = 0;
+
+	let oSearchPos;
+	let oCurrentPos  = oContentPos;
+
+	let nBefore = 0, nAfter = 0;
+	while (true)
+	{
+		let oNext = this.GetNextRunElement(oCurrentPos);
+		let oPrev = this.GetPrevRunElement(oCurrentPos);
+
+		if (!oPrev
+			|| !oNext
+			|| !oPrev.IsText()
+			|| !oNext.IsText()
+			|| !oNext.IsCombiningMark())
+			break;
+
+		nBefore += oNext.GetWidthVisible();
+
+		if (!oSearchPos)
+			oSearchPos = new CParagraphSearchPos();
+		else
+			oSearchPos.Reset();
+
+		this.Get_LeftPos(oSearchPos, oCurrentPos);
+
+		if (!oSearchPos.IsFound())
+			break;
+
+		oCurrentPos = oSearchPos.GetPos().Copy();
+	}
+
+	let oBeforePos = oCurrentPos.Copy();
+
+	oCurrentPos  = oContentPos;
+	while (true)
+	{
+		let oNext = this.GetNextRunElement(oCurrentPos);
+		let oPrev = this.GetPrevRunElement(oCurrentPos);
+
+		if (!oPrev
+			|| !oNext
+			|| !oPrev.IsText()
+			|| !oNext.IsText()
+			|| !oNext.IsCombiningMark())
+			break;
+
+		nAfter += oNext.GetWidthVisible();
+
+		if (!oSearchPos)
+			oSearchPos = new CParagraphSearchPos();
+		else
+			oSearchPos.Reset();
+
+		this.Get_RightPos(oSearchPos, oCurrentPos, false);
+
+		if (!oSearchPos.IsFound())
+			break;
+
+		oCurrentPos = oSearchPos.GetPos().Copy();
+	}
+
+	return (nBefore + nDiff < nAfter - nDiff ? oBeforePos : oCurrentPos);
+};
 Paragraph.prototype.private_CorrectPosInCombiningMark = function(oContentPos, isForward)
 {
 	let oSearchPos;
@@ -5601,8 +5669,7 @@ Paragraph.prototype.Get_ParaContentPosByXY = function(X, Y, PageIndex, bYLine, S
 		SearchPos.Range = CurRange;
 	}
 
-	SearchPos.Pos = this.private_CorrectPosInCombiningMark(SearchPos.Pos, SearchPos.DiffAbs < 0);
-
+	SearchPos.Pos = this.private_GetClosestPosInCombiningMark(SearchPos.Pos, SearchPos.DiffAbs);
 	return SearchPos;
 };
 Paragraph.prototype.GetCursorPosXY = function()
