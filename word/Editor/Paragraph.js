@@ -4009,21 +4009,25 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 				return true;
 			}
 
-			// TODO: Как только избавимся от para_End переделать здесь
-			// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
-			if (ContentPos < this.Content.length - 2 && true === this.Content[ContentPos].Is_Empty())
+			// TODO: В режиме рецензии элементы не удаляются, а позиция меняется прямо в ранах
+			//       Возможно стоит пересмотреть подход в выставлении позиции в данной функции, чтобы
+			//       не делать таких заглушек
+			if (!this.LogicDocument || !this.LogicDocument.IsTrackRevisions())
 			{
-				this.Internal_Content_Remove(ContentPos);
+				// TODO: Как только избавимся от para_End переделать здесь
+				// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
+				if (ContentPos < this.Content.length - 2 && true === this.Content[ContentPos].Is_Empty())
+				{
+					this.Internal_Content_Remove(ContentPos);
 
-				this.CurPos.ContentPos = ContentPos;
-				this.Content[ContentPos].MoveCursorToStartPos();
-				this.Correct_ContentPos2();
-			}
-			else
-			{
-				// TODO: В режиме рецензии элементы не удаляются, а позиция меняется прямо в ранах
-				if (!this.LogicDocument || true !== this.LogicDocument.IsTrackRevisions())
 					this.CurPos.ContentPos = ContentPos;
+					this.Content[ContentPos].MoveCursorToStartPos();
+					this.Correct_ContentPos2();
+				}
+				else
+				{
+					this.CurPos.ContentPos = ContentPos;
+				}
 			}
 		}
 
