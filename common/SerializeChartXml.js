@@ -125,8 +125,10 @@
 	function readTxPrPlain(reader) {
 		//todo CTextBody
 		let elem = new AscFormat.CTextBody();
-		elem.setContent(new AscFormat.CDrawingDocContent(elem, reader.context.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
 		elem.fromXml(reader);
+		if(!elem.content) {
+			elem.setContent(new AscFormat.CDrawingDocContent(elem, reader.context.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
+		}
 		return elem;
 	}
 
@@ -2499,7 +2501,7 @@
 					break;
 				}
 				case "axId" : {
-					aChartWithAxis.push({ axisId: CT_UInt.prototype.toVal(reader, this.axId), chart: this });
+					aChartWithAxis.push({ axisId: CT_Int.prototype.toVal(reader, this.axId), chart: this });
 					break;
 				}
 				// case "extLst" : {
@@ -4476,7 +4478,7 @@
 		let elem;
 		switch (name) {
 			case "axId" : {
-				ax.setAxId(CT_UInt.prototype.toVal(reader, ax.axId));
+				ax.setAxId(CT_Int.prototype.toVal(reader, ax.axId));
 				break;
 			}
 			case "scaling" : {
@@ -4539,7 +4541,7 @@
 				break;
 			}
 			case "crossAx" : {
-				ax.crossAxId = CT_UInt.prototype.toVal(reader, ax.crossAxId);
+				ax.crossAxId = CT_Int.prototype.toVal(reader, ax.crossAxId);
 				break;
 			}
 			case "crosses" : {
@@ -5366,26 +5368,26 @@
 	function fromXml_ST_TickLblPos(val, def) {
 		switch (val) {
 			case "high":
-				return AscFormat.TICK_LABEL_POSITION_HIGH;
+				return Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_HIGH;
 			case "low":
-				return AscFormat.TICK_LABEL_POSITION_LOW;
+				return Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_LOW;
 			case "nextTo":
-				return AscFormat.TICK_LABEL_POSITION_NEXT_TO;
+				return Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO;
 			case "none":
-				return AscFormat.TICK_LABEL_POSITION_NONE;
+				return Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NONE;
 		}
 		return def;
 	}
 
 	function toXml_ST_TickLblPos(val) {
 		switch (val) {
-			case AscFormat.TICK_LABEL_POSITION_HIGH:
+			case Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_HIGH:
 				return "high";
-			case AscFormat.TICK_LABEL_POSITION_LOW:
+			case Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_LOW:
 				return "low";
-			case AscFormat.TICK_LABEL_POSITION_NEXT_TO:
+			case Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO:
 				return "nextTo";
-			case AscFormat.TICK_LABEL_POSITION_NONE:
+			case Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NONE:
 				return "none";
 		}
 		return null;
