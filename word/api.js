@@ -1561,7 +1561,7 @@ background-repeat: no-repeat;\
 		}
 		let xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
-		if (!window.nativeZlibEngine.open(data)) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
 			return false;
 		}
 

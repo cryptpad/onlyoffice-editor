@@ -659,7 +659,7 @@
 			//Local file header signature = 0x04034b50 (PK♥♦ or "PK\3\4")
 			return false;
 		}
-		if (!window.nativeZlibEngine.open(stream)) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(stream)) {
 			return false;
 		}
 		let contentTypesBytes = window.nativeZlibEngine.getFile("[Content_Types].xml");
@@ -735,7 +735,7 @@
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
-				if (window.nativeZlibEngine.open(data)) {
+				if (window.nativeZlibEngine && window.nativeZlibEngine.open(data)) {
 					window.nativeZlibEngine.files.forEach(function(path){
 						let data = window.nativeZlibEngine.getFile(path);
 						if (data) {

@@ -1485,7 +1485,7 @@ var editor;
 		var initOpenManager = xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
 		var wbPart = null;
 		var wbXml = null;
-		if (!window.nativeZlibEngine.open(data)) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
 			return false;
 		}
 		xmlParserContext.zip = window.nativeZlibEngine;
