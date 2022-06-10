@@ -34,9 +34,6 @@
 
 (function(window)
 {
-	const MEASURER = AscCommon.g_oTextMeasurer;
-	const FONTSIZE = 72;
-
 	const CODEPOINT_TYPE = {
 		BASE              : 0,
 		LIGATURE          : 1,
@@ -48,18 +45,20 @@
 	 *
 	 * @constructor
 	 */
-	function CTextShaper()
+	function CParagraphTextShaper()
 	{
+		AscFonts.CTextShaper.call(this);
+
 		this.Parent    = null;
-		this.Items     = [];
 		this.TextPr    = null;
-		this.Script    = -1;
-		this.FontId    = -1;
-		this.FontSubst = false;
-		this.FontSlot  = fontslot_None;
 		this.Temporary = false;
+		this.Items     = [];
+		this.ItemIndex = 0;
 	}
-	CTextShaper.prototype.Init = function(isTemporary)
+	CParagraphTextShaper.prototype = Object.create(AscFonts.CTextShaper.prototype);
+	CParagraphTextShaper.prototype.constructor = CParagraphTextShaper;
+
+	CParagraphTextShaper.prototype.Init = function(isTemporary)
 	{
 		this.Parent    = null;
 		this.TextPr    = null;
@@ -67,32 +66,31 @@
 
 		this.ClearBuffer();
 	};
-	CTextShaper.prototype.ClearBuffer = function()
+	CParagraphTextShaper.prototype.OnClearBuffer = function()
 	{
 		this.Items.length = 0;
-		this.Script   = -1;
-		this.FontId   = -1;
-		this.FontSlot = fontslot_None;
+		this.ItemIndex    = 0;
+	};
+	CParagraphTextShaper.prototype.GetFontInfo = function(nFontSlot)
+	{
+		return this.TextPr.GetFontInfo(nFontSlot);
+	};
+	CParagraphTextShaper.prototype.GetFontSlot = function(nUnicode)
+	{
+		let oTextPr = this.TextPr;
+		if (!oTextPr)
+			return fontslot_None;
 
-		this.StartString();
+		return g_font_detector.Get_FontClass(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
 	};
-	CTextShaper.prototype.StartString = function()
+	CParagraphTextShaper.prototype.GetBufferLength = function()
 	{
-		AscFonts.HB_StartString();
-	};
-	CTextShaper.prototype.AppendToString = function(nUnicode)
-	{
-		let u = nUnicode;
-		if (this.TextPr.Caps || this.TextPr.SmallCaps)
-			u = (String.fromCharCode(u).toUpperCase()).charCodeAt(0);
+		if (!this.TextPr)
+			return 0;
 
-		AscFonts.HB_AppendToString(u);
+		return this.Items.length;
 	};
-	CTextShaper.prototype.EndString = function()
-	{
-		AscFonts.HB_EndString();
-	};
-	CTextShaper.prototype.Shape = function(oParagraph)
+	CParagraphTextShaper.prototype.Shape = function(oParagraph)
 	{
 		this.Init(false);
 		let oThis = this;
@@ -102,7 +100,7 @@
 		});
 		this.FlushWord();
 	};
-	CTextShaper.prototype.ShapeRange = function(oParagraph, oStart, oEnd, isTemporary)
+	CParagraphTextShaper.prototype.ShapeRange = function(oParagraph, oStart, oEnd, isTemporary)
 	{
 		this.Init(isTemporary);
 		let oThis = this;
@@ -112,7 +110,7 @@
 		}, oStart, oEnd);
 		this.FlushWord();
 	};
-	CTextShaper.prototype.ShapeRun = function(oRun, nStartPos, nEndPos)
+	CParagraphTextShaper.prototype.ShapeRun = function(oRun, nStartPos, nEndPos)
 	{
 		this.private_CheckRun(oRun);
 
@@ -131,7 +129,9 @@
 			else
 			{
 				let nUnicode = oItem.GetCodePoint();
-				this.private_CheckNewSegment(nUnicode);
+				if (this.TextPr.Caps || this.TextPr.SmallCaps)
+					nUnicode = (String.fromCharCode(nUnicode).toUpperCase()).charCodeAt(0);
+
 				this.AppendToString(nUnicode);
 
 				this.Items.push(oItem);
@@ -140,29 +140,7 @@
 			}
 		}
 	};
-	CTextShaper.prototype.FlushWord = function()
-	{
-		if (!this.Items.length || !this.TextPr)
-			return;
-
-		this.EndString();
-
-		let nScript = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === this.Script ? AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON : this.Script;
-
-		let nDirection = AscFonts.HB_DIRECTION.HB_DIRECTION_LTR;//this.GetDirection(nScript);
-
-		let oFontInfo = this.TextPr.GetFontInfo(this.FontSlot);
-		let nFontId   = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
-		MEASURER.SetFontInternal(this.FontId.m_pFaceInfo.family_name, FONTSIZE, oFontInfo.Style);
-
-		this.ItemIndex = 0;
-		this.FontSize  = oFontInfo.Size;
-
-		AscFonts.HB_ShapeString(this, nFontId, oFontInfo.Style, this.FontId, 15, nScript, nDirection, "en");
-
-		this.ClearBuffer();
-	};
-	CTextShaper.prototype.FlushGrapheme = function(nGrapheme, nWidth, nCodePointsCount, isLigature)
+	CParagraphTextShaper.prototype.FlushGrapheme = function(nGrapheme, nWidth, nCodePointsCount, isLigature)
 	{
 		if (this.ItemIndex + nCodePointsCount - 1 >= this.Items.length)
 			return;
@@ -177,80 +155,7 @@
 			this.private_HandleItem(this.Items[this.ItemIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, _isLigature ? CODEPOINT_TYPE.LIGATURE_CONTINUE : CODEPOINT_TYPE.COMBINING_MARK);
 		}
 	};
-	CTextShaper.prototype.GetTextScript = function(nUnicode)
-	{
-		return AscFonts.hb_get_script_by_unicode(nUnicode);
-	};
-	CTextShaper.prototype.GetFontSlot = function(nUnicode)
-	{
-		let oTextPr = this.TextPr;
-		if (!oTextPr)
-			return fontslot_None;
-
-		return g_font_detector.Get_FontClass(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
-	};
-	CTextShaper.prototype.GetDirection = function(nScript)
-	{
-		return AscFonts.hb_get_script_horizontal_direction(nScript);
-	};
-	CTextShaper.prototype.private_CheckNewSegment = function(nUnicode)
-	{
-		if (this.Items.length >= AscFonts.HB_STRING_MAX_LEN)
-			this.FlushWord();
-
-		let nScript = this.GetTextScript(nUnicode);
-		if (nScript !== this.Script
-			&& -1 !== this.Script
-			&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript
-			&& AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== this.Script)
-			this.FlushWord();
-
-		let nFontSlot = this.GetFontSlot(nUnicode);
-		this.private_CheckFont(nFontSlot);
-
-		let nFontId = this.FontId;
-		let isSubst = this.FontSubst;
-		if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === nFontId)
-		{
-			isSubst = !MEASURER.CheckUnicodeInCurrentFont(nUnicode);
-			if (-1 === nFontId || isSubst)
-				nFontId = MEASURER.GetFontBySymbol(nUnicode, -1 !== nFontId ? nFontId : null);
-
-			if (this.FontId !== nFontId
-				&& -1 !== this.FontId
-				&& this.FontSubst
-				&& isSubst
-				&& this.private_CheckBufferInFont(nFontId))
-				this.FontId = nFontId;
-
-			if (this.FontId !== nFontId && -1 !== this.FontId)
-				this.FlushWord();
-		}
-
-		this.Script    = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.Script ? nScript : this.Script;
-		this.FontSlot  = fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
-		this.FontId    = nFontId;
-		this.FontSubst = isSubst;
-	};
-	CTextShaper.prototype.private_CheckFont = function(nFontSlot)
-	{
-		if (this.FontSlot !== nFontSlot)
-		{
-			let oFontInfo = this.TextPr.GetFontInfo(nFontSlot);
-			MEASURER.SetFontInternal(oFontInfo.Name, 72, oFontInfo.Style);
-		}
-	};
-	CTextShaper.prototype.private_CheckBufferInFont = function(nFontId)
-	{
-		for (let nPos = 0, nCount = this.Items.length; nPos < nCount; ++nPos)
-		{
-			if (!nFontId.GetGIDByUnicode(this.Items[nPos].GetCodePoint()))
-				return false;
-		}
-
-		return true;
-	};
-	CTextShaper.prototype.private_CheckRun = function(oRun)
+	CParagraphTextShaper.prototype.private_CheckRun = function(oRun)
 	{
 		let oRunParent = oRun.GetParent();
 		let oTextPr    = oRun.Get_CompiledPr(false);
@@ -261,13 +166,13 @@
 		this.Parent = oRunParent;
 		this.TextPr = oTextPr;
 	};
-	CTextShaper.prototype.private_HandleNBSP = function(oItem)
+	CParagraphTextShaper.prototype.private_HandleNBSP = function(oItem)
 	{
 		let oFontInfo = this.TextPr.GetFontInfo(fontslot_ASCII);
 		let nGrapheme = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
 		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, fontslot_ASCII, false, false, false);
 	};
-	CTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, nCodePointType)
+	CParagraphTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, nCodePointType)
 	{
 		if (this.Temporary)
 		{
@@ -289,10 +194,9 @@
 			oItem.SetWidth(nWidth);
 		}
 	};
-
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
-	window['AscWord'].TextShaper     = new CTextShaper();
 	window['AscWord'].CODEPOINT_TYPE = CODEPOINT_TYPE;
+	window['AscWord'].ParagraphTextShaper = new CParagraphTextShaper();
 
 })(window);
