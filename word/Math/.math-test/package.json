@@ -6,6 +6,6 @@
     "webpack": "^5.72.1"
   },
   "scripts": {
-    "test": "mocha runAutoTests.js --no-diff -R min --timeout 5000"
+    "test": "mocha runAutoTests.js -R min --timeout 5000"
   }
 }
