@@ -15195,11 +15195,7 @@ CTextPr.prototype.GetFontInfo = function(nFontSlot)
 		}
 	}
 
-	return {
-		Name  : sFontName,
-		Size  : nFontSize,
-		Style : (isBold ? 1  : 0) | (isItalic ? 2 : 0)
-	};
+	return new AscFonts.CTextFontInfo(sFontName, (isBold ? 1  : 0) | (isItalic ? 2 : 0), nFontSize);
 };
 
 function CTextMetrics()

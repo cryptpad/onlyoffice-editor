@@ -52,8 +52,6 @@
 		this.Parent    = null;
 		this.TextPr    = null;
 		this.Temporary = false;
-		this.Items     = [];
-		this.ItemIndex = 0;
 	}
 	CParagraphTextShaper.prototype = Object.create(AscFonts.CTextShaper.prototype);
 	CParagraphTextShaper.prototype.constructor = CParagraphTextShaper;
@@ -63,16 +61,21 @@
 		this.Parent    = null;
 		this.TextPr    = null;
 		this.Temporary = isTemporary;
-
-		this.ClearBuffer();
 	};
-	CParagraphTextShaper.prototype.OnClearBuffer = function()
+	CParagraphTextShaper.prototype.GetCodePoint = function(oItem)
 	{
-		this.Items.length = 0;
-		this.ItemIndex    = 0;
+		let nCodePoint = oItem.GetCodePoint();
+
+		if (this.TextPr && (this.TextPr.Caps || this.TextPr.SmallCaps))
+			nCodePoint = (String.fromCharCode(nCodePoint).toUpperCase()).charCodeAt(0);
+
+		return nCodePoint;
 	};
 	CParagraphTextShaper.prototype.GetFontInfo = function(nFontSlot)
 	{
+		if (!this.TextPr)
+			return AscFonts.DEFAULT_TEXTFONTINFO;
+
 		return this.TextPr.GetFontInfo(nFontSlot);
 	};
 	CParagraphTextShaper.prototype.GetFontSlot = function(nUnicode)
@@ -82,13 +85,6 @@
 			return fontslot_None;
 
 		return g_font_detector.Get_FontClass(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
-	};
-	CParagraphTextShaper.prototype.GetBufferLength = function()
-	{
-		if (!this.TextPr)
-			return 0;
-
-		return this.Items.length;
 	};
 	CParagraphTextShaper.prototype.Shape = function(oParagraph)
 	{
@@ -128,13 +124,8 @@
 			}
 			else
 			{
-				let nUnicode = oItem.GetCodePoint();
-				if (this.TextPr.Caps || this.TextPr.SmallCaps)
-					nUnicode = (String.fromCharCode(nUnicode).toUpperCase()).charCodeAt(0);
+				this.AppendToString(oItem);
 
-				this.AppendToString(nUnicode);
-
-				this.Items.push(oItem);
 				if (oItem.IsSpaceAfter())
 					this.FlushWord();
 			}
@@ -142,17 +133,17 @@
 	};
 	CParagraphTextShaper.prototype.FlushGrapheme = function(nGrapheme, nWidth, nCodePointsCount, isLigature)
 	{
-		if (this.ItemIndex + nCodePointsCount - 1 >= this.Items.length)
+		if (this.BufferIndex + nCodePointsCount - 1 >= this.Buffer.length)
 			return;
 
 		let _isLigature = isLigature && nCodePointsCount > 1;
 
 		let _nWidth = nWidth / nCodePointsCount;
-		this.private_HandleItem(this.Items[this.ItemIndex++], nGrapheme, _nWidth, this.FontSize, this.FontSlot, _isLigature ? CODEPOINT_TYPE.LIGATURE : CODEPOINT_TYPE.BASE);
+		this.private_HandleItem(this.Buffer[this.BufferIndex++], nGrapheme, _nWidth, this.FontSize, this.FontSlot, _isLigature ? CODEPOINT_TYPE.LIGATURE : CODEPOINT_TYPE.BASE);
 
 		for (let nIndex = 1; nIndex < nCodePointsCount; ++nIndex)
 		{
-			this.private_HandleItem(this.Items[this.ItemIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, _isLigature ? CODEPOINT_TYPE.LIGATURE_CONTINUE : CODEPOINT_TYPE.COMBINING_MARK);
+			this.private_HandleItem(this.Buffer[this.BufferIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, _isLigature ? CODEPOINT_TYPE.LIGATURE_CONTINUE : CODEPOINT_TYPE.COMBINING_MARK);
 		}
 	};
 	CParagraphTextShaper.prototype.private_CheckRun = function(oRun)
@@ -196,7 +187,7 @@
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
-	window['AscWord'].CODEPOINT_TYPE = CODEPOINT_TYPE;
+	window['AscWord'].CODEPOINT_TYPE      = CODEPOINT_TYPE;
 	window['AscWord'].ParagraphTextShaper = new CParagraphTextShaper();
 
 })(window);

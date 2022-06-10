@@ -34,10 +34,9 @@
 
 (function(window)
 {
-	const AscFonts = window["AscFonts"];
-
+	const FONTSIZE        = 72;
 	const STRING_MAX_LEN  = 1024;
-	const COEF            = 25.4 / 72 / 64 / 72;
+	const COEF            = 25.4 / 72 / 64 / FONTSIZE;
 	const GRAPHEME_BUFFER = new Uint32Array(STRING_MAX_LEN);
 	let   GRAPHEME_LEN    = 0;
 	const GRAPHEMES_CACHE = {};                      // FontId + [GID] -> GraphemeId
@@ -147,15 +146,16 @@
 		return oGrapheme[1] * COEF;
 	}
 	//--------------------------------------------------------export----------------------------------------------------
-	AscFonts.GRAPHEME_STRING_MAX_LEN = STRING_MAX_LEN;
-	AscFonts.GRAPHEME_COEF           = COEF;
-	AscFonts.InitGrapheme            = InitGrapheme;
-	AscFonts.AddGlyphToGrapheme      = AddGlyphToGrapheme;
-	AscFonts.GetGrapheme             = GetGrapheme;
-	AscFonts.DrawGrapheme            = DrawGrapheme;
-	AscFonts.GetGraphemeWidth        = GetGraphemeWidth;
-	AscFonts.GRAPHEMES               = GRAPHEMES;
-	AscFonts.GRAPHEMES_CACHE         = GRAPHEMES_CACHE;
-	AscFonts.NO_GRAPHEME             = NO_GRAPHEME;
+	window['AscFonts'] = window['AscFonts'] || {};
+	window['AscFonts'].GRAPHEME_STRING_MAX_LEN = STRING_MAX_LEN;
+	window['AscFonts'].GRAPHEME_COEF           = COEF;
+	window['AscFonts'].NO_GRAPHEME             = NO_GRAPHEME;
+	window['AscFonts'].MEASURE_FONTSIZE        = FONTSIZE;
+	window['AscFonts'].InitGrapheme            = InitGrapheme;
+	window['AscFonts'].DrawGrapheme            = DrawGrapheme;
+	window['AscFonts'].CompareGraphemes        = CompareGraphemes;
+	window['AscFonts'].AddGlyphToGrapheme      = AddGlyphToGrapheme;
+	window['AscFonts'].GetGrapheme             = GetGrapheme;
+	window['AscFonts'].GetGraphemeWidth        = GetGraphemeWidth;
 
 })(window);

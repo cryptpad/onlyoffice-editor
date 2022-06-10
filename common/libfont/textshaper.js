@@ -37,39 +37,38 @@
 	/**
 	 * @constructor
 	 */
-	function CFontInfo(sName, nStyle, nSize)
+	function CTextFontInfo(sName, nStyle, nSize)
 	{
 		this.Name  = undefined !== sName ? sName : "Arial";
 		this.Style = undefined !== nStyle ? nStyle : 0;
 		this.Size  = undefined !== nSize ? nSize : 10;
 	}
 
-	const DEFAULT_FONTINFO = new CFontInfo();
+	const DEFAULT_TEXTFONTINFO = new CTextFontInfo();
 
-	const MEASURER = AscCommon.g_oTextMeasurer;
-	const FONTSIZE = 72;
-
-	// Функции для перегрузки
-	// 1. Shape - основная функция
-	// 2. GetFontInfo - получаем информацию о шрифте
-	// 3. PreShape - перегружаем, если перед шейпом слова нужно выполнить дополнительные действия
-	// 4. OnClearBuffer
+	// Функции для воможной перегрузки
+	// 1. FlushGrapheme - основная функция, которую нужно ОБЯЗАТЕЛЬНО реализовывать в дочернем классе
+	// 2. Shape - простая функция для шейпинга текста
+	// 3. GetFontInfo - получаем информацию о шрифте на момент составления графем
+	// 4. GetCodePoint - данная функция нужна, чтобы в буфере можно было хранить не сам юникод, а его содержащий класс
 
 	/**
-	 *
 	 * @constructor
 	 */
 	function CTextShaper()
 	{
-		this.Script    = -1;
-		this.FontId    = -1;
-		this.FontSubst = false;
-		this.FontSlot  = fontslot_None;
-		this.FontSize  = 10;
+		this.Buffer      = [];
+		this.BufferIndex = 0;
+		this.Script      = -1;
+		this.FontId      = -1;
+		this.FontSubst   = false;
+		this.FontSlot    = fontslot_None;
+		this.FontSize    = 10;
 	}
 	CTextShaper.prototype.ClearBuffer = function()
 	{
-		this.OnClearBuffer();
+		this.Buffer.length = 0;
+		this.BufferIndex   = 0;
 
 		this.Script   = -1;
 		this.FontId   = -1;
@@ -77,14 +76,20 @@
 
 		this.StartString();
 	};
+	CTextShaper.prototype.AddToBuffer = function(oItem)
+	{
+		this.Buffer.push(oItem);
+		return this.GetCodePoint(oItem);
+	};
 	CTextShaper.prototype.StartString = function()
 	{
 		AscFonts.HB_StartString();
 	};
-	CTextShaper.prototype.AppendToString = function(nUnicode)
+	CTextShaper.prototype.AppendToString = function(oItem)
 	{
-		this.private_CheckNewSegment(nUnicode);
-		AscFonts.HB_AppendToString(nUnicode);
+		let nCodePoint = this.AddToBuffer(oItem);
+		this.private_CheckNewSegment(nCodePoint);
+		AscFonts.HB_AppendToString(nCodePoint);
 	};
 	CTextShaper.prototype.EndString = function()
 	{
@@ -92,7 +97,7 @@
 	};
 	CTextShaper.prototype.FlushWord = function()
 	{
-		if (this.GetBufferLength())
+		if (this.Buffer.length <= 0)
 			return this.ClearBuffer();
 
 		this.EndString();
@@ -103,7 +108,7 @@
 
 		let oFontInfo = this.GetFontInfo(this.FontSlot);
 		let nFontId   = AscCommon.FontNameMap.GetId(this.FontId.m_pFaceInfo.family_name);
-		AscCommon.g_oTextMeasurer.SetFontInternal(this.FontId.m_pFaceInfo.family_name, FONTSIZE, oFontInfo.Style);
+		AscCommon.g_oTextMeasurer.SetFontInternal(this.FontId.m_pFaceInfo.family_name, AscFonts.MEASURE_FONTSIZE, oFontInfo.Style);
 
 		this.FontSize = oFontInfo.Size;
 
@@ -125,7 +130,7 @@
 	};
 	CTextShaper.prototype.private_CheckNewSegment = function(nUnicode)
 	{
-		if (this.GetBufferLength() >= AscFonts.HB_STRING_MAX_LEN)
+		if (this.Buffer.length >= AscFonts.HB_STRING_MAX_LEN)
 			this.FlushWord();
 
 		let nScript = this.GetTextScript(nUnicode);
@@ -167,14 +172,14 @@
 		if (this.FontSlot !== nFontSlot)
 		{
 			let oFontInfo = this.GetFontInfo(nFontSlot);
-			AscCommon.g_oTextMeasurer.SetFontInternal(oFontInfo.Name, 72, oFontInfo.Style);
+			AscCommon.g_oTextMeasurer.SetFontInternal(oFontInfo.Name, AscFonts.MEASURE_FONTSIZE, oFontInfo.Style);
 		}
 	};
 	CTextShaper.prototype.private_CheckBufferInFont = function(nFontId)
 	{
-		for (let nPos = 0, nCount = this.Items.length; nPos < nCount; ++nPos)
+		for (let nPos = 0, nCount = this.Buffer.length; nPos < nCount; ++nPos)
 		{
-			if (!nFontId.GetGIDByUnicode(this.Items[nPos].GetCodePoint()))
+			if (!nFontId.GetGIDByUnicode(this.GetCodePoint(this.Buffer[nPos])))
 				return false;
 		}
 
@@ -182,22 +187,28 @@
 	};
 	CTextShaper.prototype.GetFontInfo = function(nFontSlot)
 	{
-		return DEFAULT_FONTINFO;
+		return DEFAULT_TEXTFONTINFO;
 	};
-	CTextShaper.prototype.OnClearBuffer = function()
+	CTextShaper.prototype.Shape = function(sString)
 	{
+		for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+		{
+			let nCodePoint = oIterator.value();
+			this.AppendToString(nCodePoint);
+		}
+	};
+	CTextShaper.prototype.GetCodePoint = function(oItem)
+	{
+		return oItem;
 	};
 	CTextShaper.prototype.FlushGrapheme = function(nGrapheme, nWidth, nCodePointsCount, isLigature)
 	{
-	};
-	CTextShaper.prototype.GetBufferLength = function()
-	{
-		return 0;
+		this.BufferIndex += nCodePointsCount;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscFonts'] = window['AscFonts'] || {};
-	window['AscFonts'].CFontInfo   = CFontInfo;
-	window['AscFonts'].CTextShaper = CTextShaper;
-	window['AscFonts'].DEFAULT_FONTINFO = DEFAULT_FONTINFO;
+	window['AscFonts'].CTextFontInfo        = CTextFontInfo;
+	window['AscFonts'].CTextShaper          = CTextShaper;
+	window['AscFonts'].DEFAULT_TEXTFONTINFO = DEFAULT_TEXTFONTINFO;
 
 })(window);
