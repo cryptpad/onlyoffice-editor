@@ -4562,7 +4562,7 @@
 	}
 
 	function writeAxBase(writer, ax) {
-		writer.WriteXmlNullable(CT_UInt.prototype.fromVal(ax.axId), "c:axId");
+		writer.WriteXmlNullable(CT_Int.prototype.fromVal(ax.axId), "c:axId");
 		writer.WriteXmlNullable(ax.scaling, "c:scaling");
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(ax.bDelete), "c:delete");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_AxPos(ax.axPos)), "c:axPos");
