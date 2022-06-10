@@ -3400,6 +3400,9 @@
     	if (!this.macros || this.disableAutostartMacros)
     		return;
 
+		if (this.DocInfo && !this.DocInfo.asc_getIsEnabledMacroses())
+			return;
+
     	if (!this.asc_canPaste())
     		return;
 
@@ -3411,6 +3414,9 @@
     {
     	if (!this.macros)
     		return;
+
+		if (this.DocInfo && !this.DocInfo.asc_getIsEnabledMacroses())
+			return;
 
     	if (!this.asc_canPaste())
     		return;
