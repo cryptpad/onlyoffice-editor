@@ -311,6 +311,80 @@
 	{
 		return false;
 	};
+	/**
+	 * @return {number}
+	 */
+	CRunElementBase.prototype.GetCombWidth = function()
+	{
+		return this.GetWidth();
+	};
+	CRunElementBase.prototype.SetGaps = function(nLeftGap, nRightGap)
+	{
+	};
+	CRunElementBase.prototype.ResetGapBackground = function()
+	{
+		this.RGapCount     = undefined;
+		this.RGapCharCode  = undefined;
+		this.RGapCharWidth = undefined;
+		this.RGapShift     = undefined;
+		this.RGapFontSlot  = undefined;
+		this.RGapFont      = undefined;
+	};
+	CRunElementBase.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oContext, sFont, oTextPr, oTheme, nCombBorderW)
+	{
+		this.RGapCount    = nCount;
+		this.RGapCharCode = nCharCode;
+		this.RGapFontSlot = g_font_detector.Get_FontClass(nCharCode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+
+		if (sFont)
+		{
+			this.RGapFont = sFont;
+
+			var oCurTextPr = oTextPr.Copy();
+			oCurTextPr.SetFontFamily(sFont);
+
+			oContext.SetTextPr(oCurTextPr, oTheme);
+			oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
+		}
+
+		this.RGapCharWidth = !nCharCode ? nCombBorderW : Math.max(oContext.MeasureCode(nCharCode).Width + oTextPr.Spacing + nCombBorderW, nCombBorderW);
+		this.RGapShift     = Math.max(nCombWidth, this.RGapCharWidth);
+
+		if (sFont)
+			oContext.SetTextPr(oTextPr, oTheme);
+	};
+	CRunElementBase.prototype.DrawGapsBackground = function(X, Y, oGraphics, PDSE, oTextPr)
+	{
+		if (!this.RGapCharCode)
+			return;
+
+		if (this.RGapFont)
+		{
+			var oCurTextPr = oTextPr.Copy();
+			oCurTextPr.SetFontFamily(this.RGapFont);
+
+			oGraphics.SetTextPr(oCurTextPr, PDSE.Theme);
+			oGraphics.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
+		}
+
+		if (this.RGap && this.RGapCount)
+		{
+			X += this.Width / AscWord.TEXTWIDTH_DIVIDER;
+			var nShift = (this.RGapShift - this.RGapCharWidth) / 2;
+
+			for (var nIndex = 0; nIndex < this.RGapCount; ++nIndex)
+			{
+				X -= nShift + this.RGapCharWidth;
+
+				oGraphics.FillTextCode(X, Y, this.RGapCharCode);
+
+				X -= nShift;
+			}
+		}
+
+		if (this.RGapFont)
+			oGraphics.SetTextPr(oTextPr, PDSE.Theme);
+	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
 	window['AscWord'].CRunElementBase   = CRunElementBase;

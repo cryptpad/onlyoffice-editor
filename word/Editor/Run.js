@@ -3231,6 +3231,8 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	if (!this.RecalcInfo.IsMeasureNeed())
 		return;
 
+	this.Paragraph.ShapeText();
+
 	var oTextPr = this.Get_CompiledPr(false);
 	var oTheme  = this.Paragraph.GetTheme();
 
@@ -3307,42 +3309,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	{
 		var oCombBorder  = oTextForm.GetCombBorder();
 		var nCombBorderW = oCombBorder? oCombBorder.GetWidth() : 0;
-
-		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
-		{
-			this.private_MeasureElement(nPos, oTextPr, oTheme, oInfoMathText);
-			var Item = this.Content[nPos];
-			if (para_Space === this.Content[nPos].Type || para_Text === this.Content[nPos].Type)
-			{
-				var nLeftGap  = nCombBorderW / 2;
-				var nRightGap = nCombBorderW / 2;
-
-				var nWidth = Item.Get_Width() + nLeftGap + nRightGap;
-
-				if (nWidth < nCombWidth)
-				{
-					nLeftGap  += (nCombWidth - nWidth) / 2;
-					nRightGap += (nCombWidth - nWidth) / 2;
-				}
-
-				Item.ResetGapBackground();
-				if (nPos === nCount - 1 && nCount < nMaxComb)
-				{
-					if (oTextForm.CombPlaceholderSymbol)
-					{
-						Item.SetGapBackground(nMaxComb - nCount, oTextForm.CombPlaceholderSymbol, nCombWidth, g_oTextMeasurer, oTextForm.CombPlaceholderFont, oTextPr, oTheme, nCombBorderW);
-						nRightGap += (nMaxComb - nCount) * Item.RGapShift;
-					}
-					else
-					{
-						Item.SetGapBackground(nMaxComb - nCount, 0, nCombWidth, g_oTextMeasurer, null, oTextPr, oTheme, nCombBorderW);
-						nRightGap += (nMaxComb - nCount) * Math.max(nCombWidth, nCombBorderW);
-					}
-				}
-
-				Item.SetGaps(nLeftGap, nRightGap);
-			}
-		}
+		this.private_MeasureCombForm(nCombBorderW, nCombWidth, nMaxComb, oTextForm, oTextPr, oTheme, oInfoMathText);
 	}
 	else if (this.RecalcInfo.Measure)
 	{
@@ -3365,6 +3332,86 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
+};
+ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, nMaxComb, oTextForm, oTextPr, oTheme, oInfoMathText)
+{
+	// Пока у нас сделан вариант при котором, если элемент шире ячейки, тогда мы увеличиваем ширину ячейки под него
+	// Если поставить параметр true, то ширина не будет меняться, но при этом глифы могут залазить друг на друга
+	const isKeepWidth = true;
+
+	let nCharsCount = 0;
+	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+		if (!oItem.IsText() && !oItem.IsSpace())
+			continue;
+
+		nCharsCount++;
+
+		while (oItem.IsText()
+			&& nPos < nCount - 1
+			&& this.Content[nPos + 1].IsText()
+			&& this.Content[nPos + 1].IsCombiningMark())
+		{
+			nPos++;
+		}
+	}
+
+	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.private_MeasureElement(nPos, oTextPr, oTheme, oInfoMathText);
+
+		let oItem = this.Content[nPos];
+		if (!oItem.IsText() && !oItem.IsSpace())
+			continue;
+
+		let nLeftGap  = nCombBorderW / 2;
+		let nRightGap = nCombBorderW / 2;
+
+		var nWidth = oItem.GetCombWidth() + nLeftGap + nRightGap;
+
+		if (isKeepWidth || nWidth < nCombWidth)
+		{
+			nLeftGap += (nCombWidth - nWidth) / 2;
+			nRightGap += (nCombWidth - nWidth) / 2;
+		}
+
+		oItem.ResetGapBackground();
+
+		if (oItem.IsText()
+			&& nPos < nCount - 1
+			&& this.Content[nPos + 1].IsText()
+			&& this.Content[nPos + 1].IsCombiningMark())
+		{
+			let nFirstPos = nPos;
+			oItem.SetGaps(nLeftGap, 0);
+			while (this.Content[nPos].IsText() && nPos < nCount - 1 && this.Content[nPos + 1].IsText() && this.Content[nPos + 1].IsCombiningMark())
+			{
+				if (nPos !== nFirstPos)
+					this.Content[nPos].SetGaps(0, 0);
+
+				nPos++;
+			}
+			oItem    = this.Content[nPos];
+			nLeftGap = 0;
+		}
+
+		if (nPos === nCount - 1 && nCharsCount < nMaxComb)
+		{
+			if (oTextForm.CombPlaceholderSymbol)
+			{
+				oItem.SetGapBackground(nMaxComb - nCharsCount, oTextForm.CombPlaceholderSymbol, nCombWidth, g_oTextMeasurer, oTextForm.CombPlaceholderFont, oTextPr, oTheme, nCombBorderW);
+				nRightGap += (nMaxComb - nCharsCount) * oItem.RGapShift;
+			}
+			else
+			{
+				oItem.SetGapBackground(nMaxComb - nCharsCount, 0, nCombWidth, g_oTextMeasurer, null, oTextPr, oTheme, nCombBorderW);
+				nRightGap += (nMaxComb - nCharsCount) * Math.max(nCombWidth, nCombBorderW);
+			}
+		}
+
+		oItem.SetGaps(nLeftGap, nRightGap);
+	}
 };
 ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfoMathText)
 {

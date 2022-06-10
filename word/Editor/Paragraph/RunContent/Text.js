@@ -51,6 +51,7 @@
 	const FLAGS_TEMPORARY_LIGATURE_CONTINUE = 0x00000800; // 11 бит
 	const FLAGS_TEMPORARY_COMBINING_MARK    = 0x00001000; // 12 бит
 	const FLAGS_VISIBLE_WIDTH               = 0x00002000; // 13 бит
+	const FLAGS_GAPS                        = 0x00004000; // 14 бит
 
 	// 16-31 биты зарезервированы под FontSize
 
@@ -66,6 +67,7 @@
 	const FLAGS_NON_TEMPORARY_LIGATURE_CONTINUE = FLAGS_MASK ^ FLAGS_TEMPORARY_LIGATURE_CONTINUE;
 	const FLAGS_NON_VISIBLE_WIDTH               = FLAGS_MASK ^ FLAGS_VISIBLE_WIDTH;
 	const FLAGS_NON_TEMPORARY_COMBINING_MARK    = FLAGS_MASK ^ FLAGS_TEMPORARY_COMBINING_MARK;
+	const FLAGS_NON_GAPS                        = FLAGS_MASK ^ FLAGS_GAPS;
 
 	/**
 	 * Класс представляющий текстовый символ
@@ -285,22 +287,30 @@
 	};
 	CRunText.prototype.GetWidth = function()
 	{
-		if (this.Flags & FLAGS_TEMPORARY)
-			return (this.TempWidth / AscWord.TEXTWIDTH_DIVIDER);
+		let nWidth = (this.Flags & FLAGS_TEMPORARY ?
+			this.TempWidth / AscWord.TEXTWIDTH_DIVIDER :
+			this.Width / AscWord.TEXTWIDTH_DIVIDER);
 
-		return (this.Width / AscWord.TEXTWIDTH_DIVIDER);
+		if (this.Flags & FLAGS_GAPS)
+			nWidth += this.LGap + this.RGap;
+
+		return nWidth;
 	};
 	CRunText.prototype.GetMeasuredWidth = function()
 	{
-		return (this.GetWidth() / (((this.Flags >> 16) & 0xFFFF) / 64));
+		let nWidth = (this.Flags & FLAGS_TEMPORARY ?
+			this.TempWidth / AscWord.TEXTWIDTH_DIVIDER :
+			this.Width / AscWord.TEXTWIDTH_DIVIDER);
+
+		return (nWidth / (((this.Flags >> 16) & 0xFFFF) / 64));
 	};
 	CRunText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	{
-		// if (undefined !== this.LGap)
-		// {
-		// 	this.private_DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
-		// 	X += this.LGap;
-		// }
+		if (this.Flags & FLAGS_GAPS)
+		{
+			this.DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
+			X += this.LGap;
+		}
 
 		let nFontSize = (((this.Flags >> 16) & 0xFFFF) / 64);
 		if (this.Flags & FLAGS_TEMPORARY)
@@ -313,13 +323,14 @@
 			AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, nFontSize);
 		}
 	};
-	CRunText.prototype.Measure = function(Context, TextPr)
+	CRunText.prototype.Measure = function(oMeasurer, oTextPr)
 	{
-		// if (this.LGap || this.RGap)
-		// {
-		// 	delete this.LGap;
-		// 	delete this.RGap;
-		// }
+		if (this.Flags & FLAGS_GAPS)
+		{
+			this.Flags &= FLAGS_NON_GAPS;
+			this.LGap = 0;
+			this.RGap = 0;
+		}
 	};
 	CRunText.prototype.CanAddNumbering = function()
 	{
@@ -482,78 +493,6 @@
 	{
 		return (this.Value === 0x002D);
 	};
-	CRunText.prototype.SetGaps = function(nLeftGap, nRightGap)
-	{
-		this.LGap = nLeftGap;
-		this.RGap = nRightGap;
-
-		this.Width        += ((nLeftGap + nRightGap) * AscWord.TEXTWIDTH_DIVIDER) | 0;
-		this.WidthVisible += ((nLeftGap + nRightGap) * AscWord.TEXTWIDTH_DIVIDER) | 0;
-	};
-	CRunText.prototype.ResetGapBackground = function()
-	{
-		this.RGapCount     = undefined;
-		this.RGapCharCode  = undefined;
-		this.RGapCharWidth = undefined;
-		this.RGapShift     = undefined;
-		this.RGapFontSlot  = undefined;
-		this.RGapFont      = undefined;
-	};
-	CRunText.prototype.SetGapBackground = function(nCount, nCharCode, nCombWidth, oContext, sFont, oTextPr, oTheme, nCombBorderW)
-	{
-		this.RGapCount    = nCount;
-		this.RGapCharCode = nCharCode;
-		this.RGapFontSlot = g_font_detector.Get_FontClass(nCharCode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
-
-		if (sFont)
-		{
-			this.RGapFont = sFont;
-
-			var oCurTextPr = oTextPr.Copy();
-			oCurTextPr.SetFontFamily(sFont);
-
-			oContext.SetTextPr(oCurTextPr, oTheme);
-			oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
-		}
-
-		this.RGapCharWidth = !nCharCode ? nCombBorderW : Math.max(oContext.MeasureCode(nCharCode).Width + oTextPr.Spacing + nCombBorderW, nCombBorderW);
-		this.RGapShift     = Math.max(nCombWidth, this.RGapCharWidth);
-
-		if (sFont)
-			oContext.SetTextPr(oTextPr, oTheme);
-	};
-	CRunText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, oTextPr)
-	{
-		if (!this.RGapCharCode)
-			return;
-
-		if (this.RGapFont)
-		{
-			var oCurTextPr = oTextPr.Copy();
-			oCurTextPr.SetFontFamily(this.RGapFont);
-
-			oContext.SetTextPr(oCurTextPr, PDSE.Theme);
-			oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
-		}
-
-		if (this.RGap && this.RGapCount)
-		{
-			X += this.Width / AscWord.TEXTWIDTH_DIVIDER;
-			var nShift = (this.RGapShift - this.RGapCharWidth) / 2;
-
-			for (var nIndex = 0; nIndex < this.RGapCount; ++nIndex)
-			{
-				X -= nShift + this.RGapCharWidth;
-
-				oContext.FillTextCode(X, Y, this.RGapCharCode);
-
-				X -= nShift;
-			}
-		}
-
-		if (this.RGapFont)
-			oContext.SetTextPr(oTextPr, PDSE.Theme);
-	};
 	CRunText.prototype.IsLetter = function()
 	{
 		return (!this.IsPunctuation() && !this.IsNumber() && !this.IsNBSP());
@@ -656,6 +595,19 @@
 		{
 			this.WidthVisible = oState[nPos++];
 		}
+	};
+	CRunText.prototype.GetCombWidth = function()
+	{
+		return (AscFonts.GetGraphemeWidth(this.Grapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
+	};
+	CRunText.prototype.SetGaps = function(nLeftGap, nRightGap)
+	{
+		this.Flags &= FLAGS_NON_TEMPORARY;
+		this.Flags &= FLAGS_NON_VISIBLE_WIDTH;
+		this.Flags |= FLAGS_GAPS;
+
+		this.LGap = nLeftGap;
+		this.RGap = nRightGap;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};

@@ -37,9 +37,11 @@
 	const FLAGS_MASK               = 0xFF;
 	const FLAGS_FONTKOEF_SCRIPT    = 0x01;
 	const FLAGS_FONTKOEF_SMALLCAPS = 0x02;
+	const FLAGS_GAPS               = 0x04;
 
 	const FLAGS_NON_FONTKOEF_SCRIPT    = FLAGS_MASK ^ FLAGS_FONTKOEF_SCRIPT;
 	const FLAGS_NON_FONTKOEF_SMALLCAPS = FLAGS_MASK ^ FLAGS_FONTKOEF_SMALLCAPS;
+	const FLAGS_NON_GAPS               = FLAGS_MASK ^ FLAGS_GAPS;
 
 	/**
 	 * Класс представляющий пробелбный символ
@@ -68,16 +70,29 @@
 	{
 		return true;
 	};
+	CRunSpace.prototype.Get_Width = function()
+	{
+		return this.GetWidth();
+	};
+	CRunSpace.prototype.GetWidth = function()
+	{
+		let nWidth = (this.Width / AscWord.TEXTWIDTH_DIVIDER);
+
+		if (this.Flags & FLAGS_GAPS)
+			nWidth += this.LGap + this.RGap;
+
+		return nWidth;
+	};
 	CRunSpace.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	{
+		if (this.Flags & FLAGS_GAPS)
+		{
+			this.DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
+			X += this.LGap;
+		}
+
 		if (undefined !== editor && editor.ShowParaMarks)
 		{
-			if (undefined !== this.LGap)
-			{
-				this.private_DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
-				X += this.LGap;
-			}
-
 			Context.SetFontSlot(fontslot_ASCII, this.GetFontCoef());
 
 			if (this.SpaceGap)
@@ -135,10 +150,11 @@
 
 		// Не меняем здесь WidthVisible, это значение для пробела высчитывается отдельно, и не должно меняться при пересчете
 
-		if (this.LGap || this.RGap)
+		if (this.Flags & FLAGS_GAPS)
 		{
-			delete this.LGap;
-			delete this.RGap;
+			this.Flags &= FLAGS_NON_GAPS;
+			this.LGap = 0;
+			this.RGap = 0;
 		}
 	};
 	CRunSpace.prototype.GetFontCoef = function()
@@ -204,15 +220,11 @@
 	};
 	CRunSpace.prototype.SetGaps = function(nLeftGap, nRightGap)
 	{
+		this.Flags |= FLAGS_GAPS;
+
 		this.LGap = nLeftGap;
 		this.RGap = nRightGap;
-
-		this.Width       += ((nLeftGap + nRightGap) * AscWord.TEXTWIDTH_DIVIDER) | 0;
-		this.WidthOrigin += ((nLeftGap + nRightGap) * AscWord.TEXTWIDTH_DIVIDER) | 0;
 	};
-	CRunSpace.prototype.ResetGapBackground         = AscWord.CRunText.prototype.ResetGapBackground;
-	CRunSpace.prototype.SetGapBackground           = AscWord.CRunText.prototype.SetGapBackground;
-	CRunSpace.prototype.private_DrawGapsBackground = AscWord.CRunText.prototype.private_DrawGapsBackground;
 	CRunSpace.prototype.ToSearchElement = function(oProps)
 	{
 		return new AscCommonWord.CSearchTextItemChar(0x20);
