@@ -46,7 +46,7 @@
 
 	const DEFAULT_TEXTFONTINFO = new CTextFontInfo();
 
-	// Функции для воможной перегрузки
+	// Функции для возможной перегрузки
 	// 1. FlushGrapheme - основная функция, которую нужно ОБЯЗАТЕЛЬНО реализовывать в дочернем классе
 	// 2. Shape - простая функция для шейпинга текста
 	// 3. GetFontInfo - получаем информацию о шрифте на момент составления графем
@@ -76,19 +76,15 @@
 
 		this.StartString();
 	};
-	CTextShaper.prototype.AddToBuffer = function(oItem)
-	{
-		this.Buffer.push(oItem);
-		return this.GetCodePoint(oItem);
-	};
 	CTextShaper.prototype.StartString = function()
 	{
 		AscFonts.HB_StartString();
 	};
 	CTextShaper.prototype.AppendToString = function(oItem)
 	{
-		let nCodePoint = this.AddToBuffer(oItem);
+		let nCodePoint = this.GetCodePoint(oItem);
 		this.private_CheckNewSegment(nCodePoint);
+		this.Buffer.push(oItem);
 		AscFonts.HB_AppendToString(nCodePoint);
 	};
 	CTextShaper.prototype.EndString = function()
@@ -196,6 +192,7 @@
 			let nCodePoint = oIterator.value();
 			this.AppendToString(nCodePoint);
 		}
+		this.FlushWord();
 	};
 	CTextShaper.prototype.GetCodePoint = function(oItem)
 	{
@@ -205,6 +202,7 @@
 	{
 		this.BufferIndex += nCodePointsCount;
 	};
+
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].CTextFontInfo        = CTextFontInfo;
