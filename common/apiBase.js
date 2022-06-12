@@ -2268,9 +2268,8 @@
 	baseEditorsApi.prototype.saveDocumentToZip  = function(model, editorType, callback)
 	{
 		var context = new AscCommon.XmlWriterContext(editorType);
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		jsZipWrapper.create();
-		model.toZip(jsZipWrapper, context);
+		window.nativeZlibEngine.create();
+		model.toZip(window.nativeZlibEngine, context);
 		var imageMapKeys = Object.keys(context.imageMap);
 		var downloadImages = function (imageMapKeys) {
 			if (imageMapKeys.length > 0) {
@@ -2283,8 +2282,8 @@
 					downloadImages(imageMapKeys);
 				}, "arraybuffer");
 			} else {
-				var data = jsZipWrapper.save();
-				jsZipWrapper.close();
+				var data = window.nativeZlibEngine.save();
+				window.nativeZlibEngine.close();
 				callback(data);
 			}
 		};
@@ -3401,6 +3400,9 @@
     	if (!this.macros || this.disableAutostartMacros)
     		return;
 
+		if (this.DocInfo && !this.DocInfo.asc_getIsEnabledMacroses())
+			return;
+
     	if (!this.asc_canPaste())
     		return;
 
@@ -3412,6 +3414,9 @@
     {
     	if (!this.macros)
     		return;
+
+		if (this.DocInfo && !this.DocInfo.asc_getIsEnabledMacroses())
+			return;
 
     	if (!this.asc_canPaste())
     		return;

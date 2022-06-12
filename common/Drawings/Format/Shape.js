@@ -6789,9 +6789,6 @@ CShape.prototype.checkTextWarp = function(oContent, oBodyPr, dWidth, dHeight, bN
 {
     return AscFormat.ExecuteNoHistory(function(){
         var oRet = {oTxWarpStruct: null, oTxWarpStructParamarks: null, oTxWarpStructNoTransform: null, oTxWarpStructParamarksNoTransform: null};
-        if(window["IS_NATIVE_EDITOR"]){
-            return oRet;
-        }
         //return oRet;
         var bTransform = this.chekBodyPrTransform(oBodyPr) && bNeedWarp;
         var warpGeometry = oBodyPr.prstTxWarp;
@@ -7245,7 +7242,7 @@ CShape.prototype.getColumnNumber = function(){
                     this.setNvSpPr(new AscFormat.UniNvPr());
                 }
                 this.nvSpPr.nvUniSpPr.fromXml(reader);
-                this.setLocks(this.nvSpPr.nvUniSpPr.getLocks());
+                this.setLocks(this.nvSpPr.getLocks());
                 break;
             }
             case "spPr": {

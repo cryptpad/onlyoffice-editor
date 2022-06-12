@@ -203,7 +203,7 @@
 					var chartPart = reader.rels.pkg.getPartByUri(rel.targetFullName);
 					if (chartPart) {
 						var chartContent = chartPart.getDocumentContent();
-						var chartReader = new StaxParser(chartContent, chartPart, reader.context);
+						var chartReader = new AscCommon.StaxParser(chartContent, chartPart, reader.context);
 						res = new AscFormat.CChartSpace();
 						res.fromXml(chartReader);
 
@@ -214,7 +214,7 @@
 								let chartStyleContent = chartStylePart.getDocumentContent();
 								if (chartStyleContent) {
 									let chartStyle = new AscFormat.CChartStyle();
-									let readerStyle = new StaxParser(chartStyleContent, chartStylePart, reader.context);
+									let readerStyle = new AscCommon.StaxParser(chartStyleContent, chartStylePart, reader.context);
 									chartStyle.fromXml(readerStyle);
 									res.setChartStyle(chartStyle);
 								}
@@ -224,7 +224,7 @@
 								let chartColorStyleContent = chartColorStylePart.getDocumentContent();
 								if (chartColorStyleContent) {
 									let chartStyle = new AscFormat.CChartColors();
-									let readerStyle = new StaxParser(chartColorStyleContent, chartColorStylePart, reader.context);
+									let readerStyle = new AscCommon.StaxParser(chartColorStyleContent, chartColorStylePart, reader.context);
 									chartStyle.fromXml(readerStyle);
 									res.setChartColors(chartStyle);
 								}

@@ -1561,8 +1561,7 @@ background-repeat: no-repeat;\
 		}
 		let xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
-		let jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (!jsZipWrapper.loadSync(data)) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
 			return false;
 		}
 
@@ -1570,10 +1569,10 @@ background-repeat: no-repeat;\
 		let oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
 		oBinaryFileReader.PreLoadPrepare();
 
-		this.WordControl.m_oLogicDocument.fromZip(jsZipWrapper, xmlParserContext, oBinaryFileReader.oReadResult);
+		this.WordControl.m_oLogicDocument.fromZip(window.nativeZlibEngine, xmlParserContext, oBinaryFileReader.oReadResult);
 
 		oBinaryFileReader.PostLoadPrepare(xmlParserContext);
-		jsZipWrapper.close();
+		window.nativeZlibEngine.close();
 		return true;
 	};
 	// Callbacks
@@ -5755,7 +5754,7 @@ background-repeat: no-repeat;\
 	/*
 	 Добавляем картинку на заданную страницу. Преполагаем, что картинка уже доступна по ссылке.
 	 */
-	asc_docs_api.prototype.AddImageToPage = function(sUrl, nPageIndex, dX, dY, dW, dH)
+	asc_docs_api.prototype.AddImageToPage = function(sUrl, nPageIndex, dX, dY, dW, dH, nWrappingStyle)
 	{
 		var LogicDocument = this.WordControl.m_oLogicDocument;
 
@@ -5778,7 +5777,16 @@ background-repeat: no-repeat;\
 			oPosV.put_Align(false);
 			oPosV.put_Value(dY);
 			var oImageProps = new asc_CImgProperty();
-			oImageProps.asc_putWrappingStyle(c_oAscWrapStyle2.Square);
+			let nWrappingStyleToSet;
+			if(nWrappingStyle !== undefined && nWrappingStyle !== null)
+			{
+				nWrappingStyleToSet = nWrappingStyle;
+			}
+			else
+			{
+				nWrappingStyleToSet = c_oAscWrapStyle2.Square;
+			}
+			oImageProps.asc_putWrappingStyle(nWrappingStyleToSet);
 			oImageProps.asc_putPositionH(oPosH);
 			oImageProps.asc_putPositionV(oPosV);
 
@@ -8504,14 +8512,14 @@ background-repeat: no-repeat;\
 			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
 				var cp = {'codepage': AscCommon.c_oAscCodePageUtf8, 'encodings': AscCommon.getEncodingParams()};
 				if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-					AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-						if (err) {
-							t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-						} else {
-							cp['data'] = data;
+					AscCommon.loadFileContent(data, function(httpRequest) {
+						if (httpRequest && httpRequest.response) {
+							cp['data'] = httpRequest.response;
 							t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.TXT, new AscCommon.asc_CAdvancedOptions(cp));
+						} else {
+							t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 						}
-					});
+					}, "arraybuffer");
 				} else {
 					t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.TXT, new AscCommon.asc_CAdvancedOptions(cp));
 				}
@@ -8613,6 +8621,9 @@ background-repeat: no-repeat;\
 			if (c_oAscFileType.DOTX === fileType) {
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Word, function(data) {
+					if (!data) {
+						return;
+					}
 					var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("docx")});
 					var link = document.createElement("a");
 					link.href = window.URL.createObjectURL(blob);
@@ -11812,14 +11823,12 @@ background-repeat: no-repeat;\
 		} else {
 			let openParams        = {};
 			let oBinaryFileReader = new AscCommonWord.BinaryFileReader(this.WordControl.m_oLogicDocument, openParams);
-			if (oBinaryFileReader.Read(base64File))
-			{
-				g_oIdCounter.Set_Load(false);
-				this.LoadedObject = 1;
-			}
-			else
+			if (!oBinaryFileReader.Read(base64File))
 				this.sendEvent("asc_onError", c_oAscError.ID.MobileUnexpectedCharCount, c_oAscError.Level.Critical);
 		}
+
+		g_oIdCounter.Set_Load(false);
+		this.LoadedObject = 1;
 
 		if (window["NATIVE_EDITOR_ENJINE"] === true && undefined != window["native"])
 		{

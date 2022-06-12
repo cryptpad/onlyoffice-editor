@@ -335,98 +335,6 @@
 	{
 		return window['SockJS'] || require('sockjs');
 	}
-	function getJSZipUtils()
-	{
-		return window['JSZipUtils'] || require('jsziputils');
-	}
-
-	function JSZipWrapper() {
-		this.files = {};
-	}
-
-	JSZipWrapper.prototype.loadSync = function(data) {
-		if (window.nativeZlibEngine && window.nativeZlibEngine.open(data)) {
-			var files = window.nativeZlibEngine.files;
-			for (let i = 0, len = files.length; i < len; i++) {
-				if (files[i].startsWith('/')) {
-					this.files[files[i].substring(1)] = new JSZipObjectWrapper(files[i].substring(1));
-				} else {
-					this.files[files[i]] = new JSZipObjectWrapper(files[i]);
-				}
-			}
-			return true;
-		}
-		return false;
-	}
-	JSZipWrapper.prototype.loadAsync = function(data, options) {
-		var t = this;
-
-		if (window.nativeZlibEngine) {
-			return new Promise(function(resolve, reject) {
-				if (!window.nativeZlibEngine.open(data)) {
-					reject(new Error("Failed archive"));
-				}
-				let files = window.nativeZlibEngine.files;
-				if (0 !== files.length) {
-					for (let i = 0, len = files.length; i < len; i++)
-						this.files[files[i]] = new JSZipObjectWrapper(files[i]);
-					resolve(t);
-				} else {
-					reject(new Error("Failed archive"));
-				}
-			});
-		}
-
-		return Promise.reject();
-	};
-	JSZipWrapper.prototype.create = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.create() : false;
-	};
-	JSZipWrapper.prototype.save = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.save() : null;
-	};
-	JSZipWrapper.prototype.getFile = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.getFile.apply(window.nativeZlibEngine, arguments) : null;
-	};
-	JSZipWrapper.prototype.addFile = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.addFile.apply(window.nativeZlibEngine, arguments) : false;
-	};
-	JSZipWrapper.prototype.removeFile = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.removeFile.apply(window.nativeZlibEngine, arguments) : false;
-	};
-	JSZipWrapper.prototype.close = function() {
-		return window.nativeZlibEngine ? window.nativeZlibEngine.close() : false;
-	};
-
-	function JSZipObjectWrapper(data) {
-		this.data = data;
-	}
-	JSZipObjectWrapper.prototype.sync = function(type) {
-		if (window.nativeZlibEngine) {
-			var data = window.nativeZlibEngine.getFile(this.data);
-			if ("string" === type && data) {
-				return UTF8ArrayToString(data, 0, data.length);
-			} else {
-				return data;
-			}
-		}
-		return null;
-	};
-	JSZipObjectWrapper.prototype.async = function(type) {
-
-		if (window.nativeZlibEngine) {
-			var t = this;
-			return new Promise(function(resolve, reject) {
-				var data = window.nativeZlibEngine.getFile(t.data);
-				if("string" === type) {
-					resolve(UTF8ArrayToString(data, 0, data.length));
-				} else {
-					resolve(data);
-				}
-			});
-		}
-		return null;
-	};
 
 	function getBaseUrl()
 	{
@@ -747,15 +655,17 @@
 		return false;
 	}
 	function checkOOXMLSignature(stream, Signature) {
-		let jsZipWrapper = new AscCommon.JSZipWrapper();
-		if(!jsZipWrapper.loadSync(stream)) {
+		if (!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] && 0x04 === stream[3])) {
+			//Local file header signature = 0x04034b50 (PK♥♦ or "PK\3\4")
 			return false;
 		}
-		if(!jsZipWrapper.files["[Content_Types].xml"]) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(stream)) {
 			return false;
 		}
-		let contentTypes = jsZipWrapper.files["[Content_Types].xml"].sync("string");
-		jsZipWrapper.close();
+		let contentTypesBytes = window.nativeZlibEngine.getFile("[Content_Types].xml");
+		let contentTypes = contentTypesBytes ? AscCommon.UTF8ArrayToString(contentTypesBytes, 0, contentTypesBytes.length) : "";
+		window.nativeZlibEngine.close();
+
 		return -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-word.document.macroEnabled.main+xml") ||
@@ -804,12 +714,12 @@
 							oResult.bSerFormat = checkStreamSignature(stream, Signature);
 							oResult.data = stream;
 						} else {
-							nError = c_oAscError.ID.Unknown;
+							nError = Asc.c_oAscError.ID.Unknown;
 						}
 					}
 					else
 					{
-						nError = c_oAscError.ID.DownloadError;
+						nError = Asc.c_oAscError.ID.DownloadError;
 					}
 					bEndLoadFile = true;
 					onEndOpen();
@@ -821,25 +731,25 @@
 			oZipImages = {};
 			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
 				bEndLoadChanges = true;
-				nError = c_oAscError.ID.DownloadError;
+				nError = Asc.c_oAscError.ID.DownloadError;
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
-				var jsZipWrapper = new AscCommon.JSZipWrapper();
-				if (jsZipWrapper.loadSync(data)) {
-					for (var relativePath in jsZipWrapper.files) {
-						if (jsZipWrapper.files.hasOwnProperty(relativePath)) {
-							var file = jsZipWrapper.files[relativePath];
-							if ((relativePath).endsWith('.json')) {
-								oResult.changes[parseInt(relativePath.slice('changes'.length))] = JSON.parse(file.sync('string'));
+				if (window.nativeZlibEngine && window.nativeZlibEngine.open(data)) {
+					window.nativeZlibEngine.files.forEach(function(path){
+						let data = window.nativeZlibEngine.getFile(path);
+						if (data) {
+							if (path.endsWith('.json')) {
+								let text = AscCommon.UTF8ArrayToString(data, 0, data.length);
+								oResult.changes[parseInt(path.slice('changes'.length))] = JSON.parse(text);
 							} else {
-								oZipImages[relativePath] = file.sync('uint8array')
+								oZipImages[path] = data;
 							}
 						}
-					}
-					jsZipWrapper.close();
+					});
+					window.nativeZlibEngine.close();
 				} else {
-					nError = c_oAscError.ID.Unknown;
+					nError = Asc.c_oAscError.ID.Unknown;
 				}
 				bEndLoadChanges = true;
 				onEndOpen();
@@ -864,7 +774,7 @@
                 oResult.bSerFormat = checkStreamSignature(stream, Signature);
 				oResult.data = stream;
             } else {
-				nError = c_oAscError.ID.Unknown;
+				nError = Asc.c_oAscError.ID.Unknown;
             }
  
             bEndLoadFile = true;
@@ -3401,7 +3311,7 @@
 			else if (Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
 			{
 				if (!Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRange)) {
-					return c_oAscError.ID.PivotLabledColumns;
+					return Asc.c_oAscError.ID.PivotLabledColumns;
 				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
@@ -9016,6 +8926,28 @@
 	 * @param nValue
 	 * @returns {string}
 	 */
+	function Int16ToHex(nValue)
+	{
+		return nValue.toString(16).padStart(4, "0").toUpperCase();
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function Int16ToHexOrNull(nValue)
+	{
+		if(null === nValue || undefined === nValue) {
+			return nValue;
+		} else {
+			return Int16ToHex(nValue);
+		}
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
 	function ByteToHex(nValue)
 	{
 		return nValue.toString(16).padStart(2, "0").toUpperCase();
@@ -9467,7 +9399,11 @@
 			var nIndex = GetDefaultIndexByRGBA(color.getR(), color.getG(), color.getB(), 255);
 			if (-1 === nIndex) {
 				//TODO проверить rgb
-				writer.WriteXmlAttributeString("rgb", "FF" + IntToHex(color.getRgb()).toUpperCase());
+				var hex = IntToHex(color.getRgb()).toUpperCase();
+				if (hex.length === 4) {
+					hex = "00" + hex;
+				}
+				writer.WriteXmlAttributeString("rgb", "FF" + hex);
 			} else {
 				writer.WriteXmlAttributeNumber("indexed", nIndex);
 			}
@@ -9948,7 +9884,7 @@
 				const drawInfo = infoOfDrawings[i];
 				const type = drawInfo.type;
 				const bullet = new AscCommonWord.CPresentationBullet();
-				const textPr = new CTextPr();
+				const textPr = new AscCommonWord.CTextPr();
 				textPr.Color = g_oDocumentDefaultStrokeColor;
 				switch (type)
 				{
@@ -10141,9 +10077,9 @@
 		oNewShape.createTextBody();
 		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
 		par.MoveCursorToStartPos();
-		par.Pr = new CParaPr();
+		par.Pr = new AscCommonWord.CParaPr();
 
-		const parRun = new ParaRun(par);
+		const parRun = new AscCommonWord.ParaRun(par);
 		const textPr = lvl.textPr.Copy();
 		textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
 		parRun.Set_Pr(textPr);
@@ -10180,11 +10116,11 @@
 		par.MoveCursorToStartPos();
 
 		//par.Pr = level.ParaPr.Copy();
-		par.Pr = new CParaPr();
+		par.Pr = new AscCommonWord.CParaPr();
 		textPr = textPr.Copy();
 		textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
 
-		const parRun = new ParaRun(par);
+		const parRun = new AscCommonWord.ParaRun(par);
 		parRun.Set_Pr(textPr);
 		parRun.AddText(text);
 		par.AddToContent(0, parRun);
@@ -12847,7 +12783,6 @@
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
-	window["AscCommon"].getJSZipUtils = getJSZipUtils;
 	window["AscCommon"].getBaseUrl = getBaseUrl;
 	window["AscCommon"].getEncodingParams = getEncodingParams;
 	window["AscCommon"].getEncodingByBOM = getEncodingByBOM;
@@ -12916,6 +12851,8 @@
 	window["AscCommon"].IntToHex = IntToHex;
 	window["AscCommon"].Int32ToHex = Int32ToHex;
 	window["AscCommon"].Int32ToHexOrNull = Int32ToHexOrNull;
+	window["AscCommon"].Int16ToHex = Int16ToHex;
+	window["AscCommon"].Int16ToHexOrNull = Int16ToHexOrNull;
 	window["AscCommon"].ByteToHex = ByteToHex;
 	window["AscCommon"].IsDigit = IsDigit;
 	window["AscCommon"].IsLetter = IsLetter;
@@ -12938,7 +12875,6 @@
 	window["AscCommon"].CPolygon = CPolygon;
 	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;
 
-	window["AscCommon"].JSZipWrapper = JSZipWrapper;
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
 	window["AscCommon"].FormulaTablePartInfo = FormulaTablePartInfo;
 	window["AscCommon"].cBoolLocal = cBoolLocal;
@@ -13308,7 +13244,7 @@ window["NativeFileOpen_error"] = function(error, _file_hash, _docInfo)
     }
     else if ("error" == error)
     {
-        _api.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        _api.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationOpenError, Asc.c_oAscError.Level.Critical);
         return;
     }
 };

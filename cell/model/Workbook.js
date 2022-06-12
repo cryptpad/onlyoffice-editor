@@ -2104,13 +2104,15 @@
 			var context = xmlParserContext;
 			for (var path in context.imageMap) {
 				if (context.imageMap.hasOwnProperty(path)) {
-					var data = context.zip.files[path].sync('uint8array');
-					var blob = new Blob([data], {type: "image/png"});
-					var url = window.URL.createObjectURL(blob);
-					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-					context.imageMap[path].forEach(function(blipFill) {
-						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
-					});
+					var data = context.zip.getFile(path);
+					if (data) {
+						var blob = new Blob([data], {type: "image/png"});
+						var url = window.URL.createObjectURL(blob);
+						AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+						context.imageMap[path].forEach(function(blipFill) {
+							AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+						});
+					}
 				}
 			}
 		}
@@ -10410,11 +10412,16 @@
 		var t = this;
 		if (this.aProtectedRanges && this.aProtectedRanges.length) {
 			var aCheckHash = [];
+			var checkRanges = [];
 			for (var i = 0; i < this.aProtectedRanges.length; i++) {
+				if (!this.aProtectedRanges[i].contains(data.col, data.row)) {
+					continue;
+				}
 				if (!this.aProtectedRanges[i].asc_isPassword() || this.aProtectedRanges[i]._isEnterPassword) {
 					callback && callback(true);
 					return;
-				} else if (this.aProtectedRanges[i].asc_isPassword() && this.aProtectedRanges[i].contains(data.col, data.row)) {
+				} else if (this.aProtectedRanges[i].asc_isPassword()) {
+					checkRanges.push(this.aProtectedRanges[i]);
 					aCheckHash.push({
 						password: val,
 						salt: this.aProtectedRanges[i].saltValue,
@@ -10426,8 +10433,8 @@
 			if (aCheckHash && aCheckHash.length) {
 				AscCommon.calculateProtectHash(aCheckHash, function (aHash) {
 					for (var i = 0; i < aHash.length; i++) {
-						if (aHash[i] === t.aProtectedRanges[i].hashValue) {
-							t.aProtectedRanges[i]._isEnterPassword = true;
+						if (aHash[i] === checkRanges[i].hashValue) {
+							checkRanges[i]._isEnterPassword = true;
 							callback && callback(true);
 							return;
 						}

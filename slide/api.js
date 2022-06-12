@@ -1569,24 +1569,24 @@ background-repeat: no-repeat;\
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 	};
 
-	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
+
+	asc_docs_api.prototype.OpenDocumentFromZipNoInit = function(data)
 	{
+
 		if (!data) {
 			return false;
 		}
 		var openXml = AscCommon.openXml;
+		var StaxParser = AscCommon.StaxParser;
 		var xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.WordControl.m_oDrawingDocument;
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (!jsZipWrapper.loadSync(data)) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
 			return false;
 		}
 
-		this.InitEditor();
 		var reader;
-		this.DocumentType = 2;
-		xmlParserContext.zip = jsZipWrapper;
-		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+		xmlParserContext.zip = window.nativeZlibEngine;
+		var doc = new openXml.OpenXmlPackage(window.nativeZlibEngine, null);
 
 		let oTableStylesPart = doc.getPartByUri("/ppt/tableStyles.xml");
 		if(oTableStylesPart) {
@@ -1626,7 +1626,6 @@ background-repeat: no-repeat;\
 				oPresPr.fromXml(oPresentationReader, true);
 			}
 		}
-
 		let oCorePart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
 		if(oCorePart) {
 			let oContentCore = oCorePart.getDocumentContent();
@@ -1636,7 +1635,6 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.Core.fromXml(oCoreReader, true);
 			}
 		}
-
 		let oCustomPrPart = doc.getPartByRelationshipType(openXml.Types.customFileProperties.relationType);
 		if(oCustomPrPart) {
 			let oContentCustomPr = oCustomPrPart.getDocumentContent();
@@ -1646,34 +1644,44 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.CustomPr.fromXml(oCustomPrReader, true);
 			}
 		}
-
-
 		this.WordControl.m_oLogicDocument.ImageMap = {};
 		var _cur_ind = 0;
 		var context = reader.context;
 		for (var path in context.imageMap) {
 			if (context.imageMap.hasOwnProperty(path)) {
 				this.WordControl.m_oLogicDocument.ImageMap[_cur_ind++] = path;
-				let data = context.zip.files[path].sync('uint8array');
-				let blob = new Blob([data], {type: "image/png"});
-				let url = window.URL.createObjectURL(blob);
-				AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-				context.imageMap[path].forEach(function(blipFill) {
-					AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
-				});
+				let data = context.zip.getFile(path);
+				if (data) {
+					let blob = new Blob([data], {type: "image/png"});
+					let url = window.URL.createObjectURL(blob);
+					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+					context.imageMap[path].forEach(function(blipFill) {
+						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
+					});
+				}
 			}
 		}
+		window.nativeZlibEngine.close();
+		return true;
+	};
 
+	asc_docs_api.prototype.OpenDocumentFromZip = function(data)
+	{
+
+		this.InitEditor();
+		this.DocumentType = 2;
+
+		g_oIdCounter.Set_Load(true);
+		this.OpenDocumentFromZipNoInit(data);
+		g_oIdCounter.Set_Load(false);
 		this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(true);
 
 		this.LoadedObject = 1;
-		g_oIdCounter.Set_Load(false);
 		AscFonts.IsCheckSymbols = false;
 
 		this.WordControl.m_oDrawingDocument.CheckFontNeeds();
 		this.FontLoader.LoadDocumentFonts(this.WordControl.m_oLogicDocument.Fonts, false);
 
-		g_oIdCounter.Set_Load(false);
 
 		if (this.isMobileVersion)
 		{
@@ -1681,11 +1689,9 @@ background-repeat: no-repeat;\
 			PasteElementsId.PASTE_ELEMENT_ID     = "wrd_pastebin";
 			PasteElementsId.ELEMENT_DISPAY_STYLE = "none";
 		}
-
 		if (AscCommon.AscBrowser.isSafariMacOs)
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 
-		jsZipWrapper.close();
 		return true;
 	};
 
@@ -7689,6 +7695,9 @@ background-repeat: no-repeat;\
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation,
 					function(data) {
+						if (!data) {
+							return;
+						}
 						var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("pptx")});
 						var link = document.createElement("a");
 						link.href = window.URL.createObjectURL(blob);
@@ -7965,10 +7974,15 @@ background-repeat: no-repeat;\
 
 		g_oIdCounter.Set_Load(true);
 
-		var _loader = new AscCommon.BinaryPPTYLoader();
-		_loader.Api = this;
+		this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(base64File);
+		if (this.isOpenOOXInBrowser) {
+			this.OpenDocumentFromZipNoInit(base64File);
+		} else {
+			var _loader = new AscCommon.BinaryPPTYLoader();
+			_loader.Api = this;
 
-		_loader.Load(base64File, this.WordControl.m_oLogicDocument);
+			_loader.Load(base64File, this.WordControl.m_oLogicDocument);
+		}
 
 		this.LoadedObject = 1;
 		g_oIdCounter.Set_Load(false);
@@ -8099,14 +8113,26 @@ background-repeat: no-repeat;\
 
 	window["asc_docs_api"].prototype["asc_nativeGetFileData"] = function()
 	{
-		var writer = new AscCommon.CBinaryFileWriter();
-		this.WordControl.m_oLogicDocument.CalculateComments();
-		writer.WriteDocument3(this.WordControl.m_oLogicDocument);
+		if (this.isOpenOOXInBrowser) {
+			let res;
+			this.saveDocumentToZip(this.WordControl.m_oLogicDocument, this.editorId, function(data) {
+				res = data;
+			});
+			if (res) {
+				window["native"]["Save_End"](";v10;", res.length);
+				return res;
+			}
+			return new Uint8Array(0);
+		} else {
+			var writer = new AscCommon.CBinaryFileWriter();
+			this.WordControl.m_oLogicDocument.CalculateComments();
+			writer.WriteDocument3(this.WordControl.m_oLogicDocument);
 
-		var _header = "PPTY;v10;" + writer.pos + ";";
-		window["native"]["Save_End"](_header, writer.pos);
+			var _header = "PPTY;v10;" + writer.pos + ";";
+			window["native"]["Save_End"](_header, writer.pos);
 
-		return writer.ImData.data;
+			return writer.ImData.data;
+		}
 	};
 
 	window["asc_docs_api"].prototype["asc_nativeCalculate"] = function()

@@ -1065,7 +1065,7 @@
 			} else if (master.clrMap) {
 				color_map = master.clrMap;
 			} else {
-				color_map = AscFormat.G_O_DEFAULT_COLOR_MAP;
+				color_map = AscFormat.DEFAULT_COLOR_MAP;
 			}
 
 			checkObjectUnifill(cellPr.Shd, theme, color_map);
@@ -2874,8 +2874,8 @@
 			writer.WriteXmlNodeStart(sName_);
 			writer.WriteXmlNullableAttributeUInt("l", getPercentageValueForWrite(this.l));
 			writer.WriteXmlNullableAttributeUInt("t", getPercentageValueForWrite(this.t));
-			writer.WriteXmlNullableAttributeUInt("r", getPercentageValueForWrite(this.r));
-			writer.WriteXmlNullableAttributeUInt("b", getPercentageValueForWrite(this.b));
+			writer.WriteXmlNullableAttributeUInt("r", 100000 - getPercentageValueForWrite(this.r));
+			writer.WriteXmlNullableAttributeUInt("b", 100000 - getPercentageValueForWrite(this.b));
 			writer.WriteXmlAttributesEnd(true);
 		};
 
@@ -3222,25 +3222,11 @@
 		CBlip.prototype.toXml = function (writer, sNamespace, sRasterImageId) {
 			let sNamespace_ = sNamespace || "a";
 			let strName = ("" === sNamespace_) ? ("blip") : (sNamespace_ + (":blip"));
-			var context = writer.context;
-			var imagePart = context.imageMap[sRasterImageId];
-			if (!imagePart) {
-				if (context.part) {
-					var ext = AscCommon.GetFileExtension(sRasterImageId);
-					var type = context.editorId === AscCommon.c_oEditorId.Word ? AscCommon.openXml.Types.imageWord : AscCommon.openXml.Types.image;
-					type = Object.assign({}, type);
-					type.filename += ext;
-					type.contentType = AscCommon.openXml.GetMimeType(ext);
-					imagePart = context.part.addPart(type);
-					if (imagePart) {
-						context.imageMap[sRasterImageId] = imagePart;
-					}
-				}
-			}
+			let context = writer.context;
 			//writer.WriteXmlNullable(blip);
 			writer.WriteXmlNodeStart(strName);
 			writer.WriteXmlString(' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"');
-			writer.WriteXmlAttributeString("r:embed", imagePart && imagePart.rId || "");
+			writer.WriteXmlAttributeString("r:embed", context.getImageRId(sRasterImageId));
 			writer.WriteXmlAttributesEnd();
 			writer.WriteXmlString('<a:extLst><a:ext uri="{28A0092B-C50C-407E-A947-70E740481C1C}"><a14:useLocalDpi xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main" val="0"/></a:ext></a:extLst>');
 			writer.WriteXmlNodeEnd(strName);
@@ -6289,7 +6275,7 @@
 		};
 		CPattFill.prototype.toXml = function (writer, sNamespace) {
 			let sNamespace_ = sNamespace || "a";
-			let strName = ("" === sNamespace_) ? "pattFill" : (sNamespace_ + "pattFill");
+			let strName = ("" === sNamespace_) ? "pattFill" : (sNamespace_ + ":pattFill");
 			writer.WriteXmlNodeStart(strName);
 
 
@@ -8279,7 +8265,7 @@
 			//writer.WriteXmlNullableAttributeBool("title", this.form);
 			if(this.hlinkClick || this.hlinkHover) {
 
-				let sNS = StaxParser.prototype.GetNSFromNodeName(name);
+				let sNS = AscCommon.StaxParser.prototype.GetNSFromNodeName(name);
 				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlNullable(this.hlinkClick, sNS + ":hlinkClick");
 				writer.WriteXmlNullable(this.hlinkHover, sNS + ":hlinkHover");
@@ -9240,7 +9226,12 @@
 
 			writer.WriteXmlNodeEnd(namespace_ + ":cNvSpPr");
 		};
-
+		CNvUniSpPr.prototype.getLocks = function() {
+			if(!AscFormat.isRealNumber(this.locks)) {
+				return 0;
+			}
+			return this.locks;
+		};
 		function UniNvPr() {
 
 			CBaseFormatObject.call(this);
@@ -9308,7 +9299,7 @@
 		};
 		UniNvPr.prototype.getLocks = function() {
 			if(this.nvUniSpPr) {
-				return this.nvUniSpPr.locks;
+				return this.nvUniSpPr.getLocks();
 			}
 			return 0;
 		};
@@ -9323,7 +9314,7 @@
 				writer.WriteXmlNodeStart("xdr:nvGraphicFramePr");
 				writer.WriteXmlAttributesEnd();
 
-				this.cNvPr.toXml(writer, namespace_ + ":cNvPr");
+				this.cNvPr.toXml(writer, "xdr:cNvPr");
 				this.nvUniSpPr.toXmlGrFrame(writer);
 
 				writer.WriteXmlNodeEnd("xdr:nvGraphicFramePr");
@@ -9443,7 +9434,7 @@
 			writer.WriteXmlAttributesEnd();
 
 			this.cNvPr.toXml(writer, namespace_ + ":cNvPr");
-			this.nvUniSpPr.toXmlSp(writer);
+			this.nvUniSpPr.toXmlGrSp(writer);
 
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX) {
@@ -9466,6 +9457,9 @@
 				return false;
 			}
 			if (this.idx !== styleRef.idx) {
+				return false;
+			}
+			if(this.Color && !styleRef.Color || !this.Color && styleRef.Color) {
 				return false;
 			}
 			if (!this.Color.IsIdentical(styleRef.Color)) {
@@ -9531,7 +9525,9 @@
 			writer.WriteXmlNullableAttributeUInt("idx", this.idx);
 			writer.WriteXmlAttributesEnd();
 
-			this.Color.toXml(writer);
+			if (this.Color) {
+				this.Color.toXml(writer);
+			}
 
 			writer.WriteXmlNodeEnd(sName);
 		};
@@ -10725,6 +10721,28 @@
 				writer.WriteXmlAttributesEnd(true);
 			}
 		};
+		CSpPr.prototype.toXmlGroup = function(writer) {
+			let namespace_ = "a";
+			if		(writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)	namespace_ = "wpg";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_XLSX)			namespace_ = "xdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)		namespace_ = "a";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)	namespace_ = "cdr";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)			namespace_ = "dgm";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)		namespace_ = "dsp";
+			else if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_PPTX)		namespace_ = "p";
+
+			writer.WriteXmlNodeStart(namespace_ + ":grpSpPr");
+			writer.WriteXmlAttributeString("bwMode", "auto");
+			writer.WriteXmlAttributesEnd();
+
+			writer.WriteXmlNullable(this.xfrm, "a:xfrm");
+			writer.WriteXmlNullable(this.Fill);
+			writer.WriteXmlNullable(this.effectProps);
+			//writer.Write(scene3d);
+
+			writer.WriteXmlNodeEnd(namespace_ + ":grpSpPr");
+		};
 // ----------------------------------
 
 // THEME ----------------------------
@@ -10906,6 +10924,9 @@
 
 		InitClass(ClrMap, CBaseFormatObject, AscDFH.historyitem_type_ClrMap);
 		ClrMap.prototype.Refresh_RecalcData = function () {
+		};
+		ClrMap.prototype.notAllowedWithoutId = function () {
+			return false;
 		};
 		ClrMap.prototype.createDuplicate = function () {
 			var _copy = new ClrMap();
@@ -11228,7 +11249,7 @@
 		};
 		ClrMap.prototype.toXmlWord = function (writer, name) {
 			writer.WriteXmlNodeStart(name);
-			let ns = StaxParser.prototype.GetNSFromNodeName(name);
+			let ns = AscCommon.StaxParser.prototype.GetNSFromNodeName(name);
 			for (let i in this.color_map) {
 				if (this.color_map.hasOwnProperty(i)) {
 					let name = this.SchemeClr_GetStringCodeWord(parseInt(i));
@@ -11757,6 +11778,9 @@
 
 		InitClass(CTheme, CBaseFormatObject, 0);
 
+		CTheme.prototype.notAllowedWithoutId = function () {
+			return false;
+		};
 		CTheme.prototype.createDuplicate = function () {
 			var oTheme = new CTheme();
 			oTheme.setName(this.name);
@@ -12106,7 +12130,7 @@
 					break;
 				}
 				case "sldNum": {
-					this.setSlideNum(reader.GetValueBool());
+					this.setSldNum(reader.GetValueBool());
 					break;
 				}
 			}
@@ -12502,7 +12526,7 @@
 			}
 			return oSp;
 		};
-		CSpTree.prototype.toXml = function (writer) {
+		CSpTree.prototype.toXml = function (writer, bGroup) {
 			let name_;
 
 			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
@@ -12534,7 +12558,13 @@
 			}
 
 			if (this.spPr) {
-				this.spPr.toXml(writer);
+				if(bGroup) {
+					this.spPr.toXmlGroup(writer);
+				}
+				else {
+
+					this.spPr.toXml(writer);
+				}
 			}
 
 			writer.context.groupIndex++;
@@ -14853,7 +14883,7 @@
 			switch (name) {
 				case "val": {
 					if (this.type === AscFormat.BULLET_TYPE_SIZE_PCT) {
-						this.val = getPercentageValue(reader.GetValue());
+						this.val = reader.GetValueInt();
 					} else if (this.type === AscFormat.BULLET_TYPE_SIZE_PTS) {
 						this.val = reader.GetValueInt();
 					}
@@ -14866,7 +14896,7 @@
 			if (this.type === AscFormat.BULLET_TYPE_SIZE_PCT) {
 				writer.WriteXmlNodeStart("a:buSzPct");
 
-				writer.WriteXmlNullableAttributeInt("val", getPercentageValueForWrite(this.val));
+				writer.WriteXmlNullableAttributeInt("val", this.val);
 				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlNodeEnd("a:buSzPct");
 			} else if (this.type === AscFormat.BULLET_TYPE_SIZE_PTS) {
@@ -16004,14 +16034,11 @@
 				return oCopy;
 			}, this, []);
 		};
-		CCore.prototype.writeDate = function(writer, sName, oDate, sDefault) {
-			let sToWrite;
-			if(oDate) {
-				sToWrite = oDate.toISOString().slice(0, 19) + 'Z'
+		CCore.prototype.writeDate = function(writer, sName, oDate) {
+			if (!oDate) {
+				return;
 			}
-			else {
-				sToWrite = sDefault;
-			}
+			let sToWrite = oDate.toISOString().slice(0, 19) + 'Z';
 			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributeString("xsi:type", "dcterms:W3CDTF");
 			writer.WriteXmlAttributesEnd();
@@ -16108,8 +16135,8 @@
 			if (this.lastPrinted && this.lastPrinted.length > 0) {
 				writer.WriteXmlNullableValueString("cp:lastPrinted", this.lastPrinted);
 			}
-			this.writeDate(writer, "dcterms:created", this.created, DEFAULT_CREATED);
-			this.writeDate(writer, "dcterms:modified", this.modified, DEFAULT_MODIFIED);
+			this.writeDate(writer, "dcterms:created", this.created);
+			this.writeDate(writer, "dcterms:modified", this.modified);
 			writer.WriteXmlNullableValueString("cp:category", this.category);
 			writer.WriteXmlNullableValueString("cp:contentStatus", this.contentStatus);
 			writer.WriteXmlNullableValueString("cp:version", this.version);
@@ -16130,10 +16157,8 @@
 			this.lastModifiedBy = "";
 		};
 
-		let DEFAULT_CREATED = "CREATED";
 		let DEFAULT_CREATOR = "CREATOR";
 		let DEFAULT_LAST_MODIFIED_BY = "CREATOR";
-		let DEFAULT_MODIFIED = "MODIFIED";
 		CCore.prototype.setRequiredDefaultsPresentationEditor = function() {
 			if(!this.creator) {
 				this.creator = DEFAULT_CREATOR;

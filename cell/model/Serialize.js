@@ -3265,7 +3265,8 @@
                 if (this.wb.aComments.length > 0) {
                     this.bs.WriteItem(c_oSerWorkbookTypes.Comments, function() {oThis.WriteComments(oThis.wb.aComments);});
                 }
-				if (this.wb.connections) {
+                //TODO при чтении на клиенте - здесь строка, не пишем пока
+				if (this.wb.connections && Array.isArray(oThis.wb.connections)) {
 					this.bs.WriteItem(c_oSerWorkbookTypes.Connections, function() {oThis.memory.WriteBuffer(oThis.wb.connections, 0, oThis.wb.connections.length)});
 				}
 			}
@@ -4955,7 +4956,7 @@
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
                 this.memory.WriteBool(coords.bSizeWithCells);
             }
-            if (this.saveThreadedComments) {
+            if (this.saveThreadedComments && comment.isValidThreadComment()) {
                 this.memory.WriteByte(c_oSer_Comments.ThreadedComment);
                 this.memory.WriteByte(c_oSerPropLenType.Variable);
                 this.bs.WriteItemWithLength(function(){oThis.WriteThreadedComment(comment);});
@@ -7417,10 +7418,10 @@
 			if ( c_oSer_PivotTypes.id == type ) {
 				pivotCache.id = this.stream.GetLong();
 			} else if ( c_oSer_PivotTypes.cache == type ) {
-				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), pivotCache);
+				new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), pivotCache);
 			} else if ( c_oSer_PivotTypes.record == type ) {
 				var cacheRecords = new Asc.CT_PivotCacheRecords();
-				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), cacheRecords);
+				new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), cacheRecords);
 				pivotCache.cacheRecords = cacheRecords;
 			} else
 				res = c_oSerConstants.ReadUnknown;
@@ -8010,7 +8011,7 @@
 				data.cacheId = this.stream.GetLong();
 			} else if (c_oSer_PivotTypes.table == type) {
 				data.table = new Asc.CT_pivotTableDefinition(true);
-				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), data.table);
+				new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), data.table);
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -10372,7 +10373,7 @@
 					newContext.readAttributes(attr, uq);
 				}
 				this.CustomStyles[newContext.name] = newContext;
-				openXml.SaxParserDataTransfer.curTableStyle = newContext;
+				AscCommon.openXml.SaxParserDataTransfer.curTableStyle = newContext;
 			} else {
 				newContext = null;
 			}
@@ -10631,7 +10632,7 @@
 			var val;
 			val = vals["type"];
 			if(undefined !== val){
-				var tableStyle = openXml.SaxParserDataTransfer.curTableStyle;
+				var tableStyle = AscCommon.openXml.SaxParserDataTransfer.curTableStyle;
 				if("wholeTable"===val)
 					tableStyle.wholeTable = this;
 				else if("headerRow"===val)
@@ -10695,7 +10696,7 @@
 			}
 			val = vals["dxfId"];
 			if (undefined !== val) {
-				this.dxf = openXml.SaxParserDataTransfer.dxfs[tableStyle.pivot ? val - 0 : val - 1] || null;
+				this.dxf = AscCommon.openXml.SaxParserDataTransfer.dxfs[tableStyle.pivot ? val - 0 : val - 1] || null;
 			}
 		}
 	};
@@ -10710,13 +10711,15 @@
         var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
         oBinaryFileReader.getbase64DecodedData2(stylesZip, 0, stream, 0);
 
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-        if(jsZipWrapper.loadSync(new Uint8Array(pointer.data))) {
-            var content = jsZipWrapper.files["presetTableStyles.xml"].sync("string");
-            jsZipWrapper.close();
-            var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
-            new openXml.SaxParserBase().parse(content, stylesXml);
-            wb.TableStyles.concatStyles();
+        if (window.nativeZlibEngine && window.nativeZlibEngine.open(new Uint8Array(pointer.data))) {
+            let contentBytes = window.nativeZlibEngine.getFile("presetTableStyles.xml");
+            if (contentBytes) {
+                let content = AscCommon.UTF8ArrayToString(contentBytes, 0, contentBytes.length);
+                window.nativeZlibEngine.close();
+                var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
+                new AscCommon.openXml.SaxParserBase().parse(content, stylesXml);
+                wb.TableStyles.concatStyles();
+            }
         }
     }
     function ReadDefCellStyles(wb, oOutput)
@@ -10962,7 +10965,7 @@
 			}
 			this.fonts.push(newContext);
 		} else if ("fills" === elem) {
-			openXml.SaxParserDataTransfer.priorityBg = false;
+			AscCommon.openXml.SaxParserDataTransfer.priorityBg = false;
 		} else if ("fill" === elem) {
 			newContext = new AscCommonExcel.Fill();
 			if (newContext.readAttributes) {
@@ -10996,8 +10999,8 @@
 			// 	}
 			// 	this.cellStyles = newContext;
 		} else if ("dxfs" === elem) {
-			openXml.SaxParserDataTransfer.dxfs = this.dxfs;
-			openXml.SaxParserDataTransfer.priorityBg = true;
+			AscCommon.openXml.SaxParserDataTransfer.dxfs = this.dxfs;
+			AscCommon.openXml.SaxParserDataTransfer.priorityBg = true;
 		} else if ("dxf" === elem) {
 			newContext = new CT_Dxf();
 			if (newContext.readAttributes) {

@@ -520,6 +520,7 @@ var editor;
 	};
 
 	spreadsheet_api.prototype._getTextFromUrl = function (url, options, callback) {
+		var t = this;
 		if (this.canEdit()) {
 			var document = {url: url, format: "TXT"};
 			this.insertDocumentUrlsData = {
@@ -532,15 +533,14 @@ var editor;
 					}
 
 					if (typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-						AscCommon.getJSZipUtils().getBinaryContent(url['output.txt'], function (err, data) {
+						AscCommon.loadFileContent(url['output.txt'], function (httpRequest) {
 							var cp = {
 								'codepage': AscCommon.c_oAscCodePageUtf8, "delimiter": AscCommon.c_oAscCsvDelimiter.Comma,
 								'encodings': AscCommon.getEncodingParams()
 							};
 
-							if (err) {
-								t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-							} else {
+							if (httpRequest && httpRequest.response) {
+								let data = httpRequest.response;
 								var dataUint = new Uint8Array(data);
 								var bom = AscCommon.getEncodingByBOM(dataUint);
 								if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
@@ -549,9 +549,11 @@ var editor;
 								}
 								cp['data'] = data;
 								callback(new AscCommon.asc_CAdvancedOptions(cp));
+							} else {
+								t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 							}
 							_api.endInsertDocumentUrls();
-						});
+						}, "arraybuffer");
 					}
 				}, endCallback: function (_api) {
 				}
@@ -1088,10 +1090,9 @@ var editor;
 				'encodings': AscCommon.getEncodingParams()
 			};
 			if (data && typeof Blob !== 'undefined' && typeof FileReader !== 'undefined') {
-				AscCommon.getJSZipUtils().getBinaryContent(data, function(err, data) {
-					if (err) {
-						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-					} else {
+				AscCommon.loadFileContent(data, function(httpRequest) {
+					if (httpRequest && httpRequest.response) {
+						let data = httpRequest.response;
 						var dataUint = new Uint8Array(data);
 						var bom = AscCommon.getEncodingByBOM(dataUint);
 						if (AscCommon.c_oAscCodePageNone !== bom.encoding) {
@@ -1100,8 +1101,10 @@ var editor;
 						}
 						cp['data'] = data;
 						t.handlers.trigger("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.CSV, new AscCommon.asc_CAdvancedOptions(cp));
+					} else {
+						t.handlers.trigger("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 					}
-				});
+				}, "arraybuffer");
 			} else {
 				t.handlers.trigger("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.CSV, new AscCommon.asc_CAdvancedOptions(cp));
 			}
@@ -1139,18 +1142,15 @@ var editor;
 		this.openingEnd.xlsxStart = true;
 		var url = AscCommon.g_oDocumentUrls.getUrl('Editor.xlsx');
 		if (url) {
-			AscCommon.getJSZipUtils().getBinaryContent(url, function(err, data) {
-				if (err) {
-					if (window.console && window.console.log) {
-						window.console.log(err);
-					}
-					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
-				} else {
+			AscCommon.loadFileContent(url, function(httpRequest) {
+				if (httpRequest && httpRequest.response) {
 					t.openingEnd.xlsx = true;
-					t.openingEnd.data = data;
+					t.openingEnd.data = httpRequest.response;
 					t._onEndOpen();
+				} else {
+					t.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 				}
-			});
+			}, "arraybuffer");
 		} else {
 			t.openingEnd.xlsx = true;
 			t._onEndOpen();
@@ -1185,6 +1185,9 @@ var editor;
 		if (c_oAscFileType.XLTX === fileType) {
 			var title = this.documentTitle;
 			this.saveDocumentToZip(this.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
+				if (!data) {
+					return;
+				}
 				var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("xlsx")});
 				var link = document.createElement("a");
 				link.href = window.URL.createObjectURL(blob);
@@ -1475,18 +1478,18 @@ var editor;
 		}
 
 		var openXml = AscCommon.openXml;
+		var StaxParser = AscCommon.StaxParser;
 		var pivotCaches = {};
 		var xmlParserContext = new AscCommon.XmlParserContext();
 		xmlParserContext.DrawingDocument = this.wbModel.DrawingDocument;
 		var initOpenManager = xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
 		var wbPart = null;
 		var wbXml = null;
-		var jsZipWrapper = new AscCommon.JSZipWrapper();
-		if (!jsZipWrapper.loadSync(data)) {
+		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
 			return false;
 		}
-		xmlParserContext.zip = jsZipWrapper;
-		var doc = new openXml.OpenXmlPackage(jsZipWrapper, null);
+		xmlParserContext.zip = window.nativeZlibEngine;
+		var doc = new openXml.OpenXmlPackage(window.nativeZlibEngine, null);
 
 		//core
 		var coreXmlPart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
@@ -1743,16 +1746,21 @@ var editor;
 			//<Relationship  Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" Target="../customXml/item1.xml"/>
 
 			//TODO проверить когда несколько ссылок на customXml
-			var customXmlPart = wbPart.getPartByRelationshipType(openXml.Types.customXml.relationType);
-			if (customXmlPart) {
-				var customXml = customXmlPart.getDocumentContent(true);
-				var customXmlPropsPart = customXmlPart.getPartByRelationshipType(openXml.Types.customXmlProps.relationType);
-				var customXmlProps = customXmlPropsPart && customXmlPropsPart.getDocumentContent(true);
+			var customXmlParts = wbPart.getPartsByRelationshipType(openXml.Types.customXml.relationType);
+			if (customXmlParts) {
+				for (var i = 0; i < customXmlParts.length; i++) {
+					var customXmlPart = customXmlParts[i];
+					var customXml = customXmlPart.getDocumentContent("string");
+					var customXmlPropsPart = customXmlPart.getPartByRelationshipType(openXml.Types.customXmlProps.relationType);
+					var customXmlProps = customXmlPropsPart && customXmlPropsPart.getDocumentContent("string");
 
-				//в бинарник не будем писать, для совместимости оставляю поля, добавляю ещё новые
-				var custom = {Uri: [], ItemId: null, Content: null, item: customXml, itemProps: customXmlProps};
-				wb.customXmls = [];
-				wb.customXmls.push(custom);
+					//в бинарник не будем писать, для совместимости оставляю поля, добавляю ещё новые
+					var custom = {Uri: [], ItemId: null, Content: null, item: customXml, itemProps: customXmlProps};
+					if (!wb.customXmls) {
+						wb.customXmls = [];
+					}
+					wb.customXmls.push(custom);
+				}
 			}
 		}
 
@@ -2289,7 +2297,7 @@ var editor;
 		initOpenManager.readDefStyles(wb, wb.CellStyles.DefaultStyles);
 
 		wb.initPostOpenZip(pivotCaches, xmlParserContext);
-		jsZipWrapper.close();
+		window.nativeZlibEngine.close();
 		//clean up
 		openXml.SaxParserDataTransfer = {};
 		return true;
@@ -5985,15 +5993,16 @@ var editor;
       AscCommon.CurFileVersion = version;
     }
 
-    this._openDocument(base64File);
-	if (this.openDocumentFromZip(t.wbModel, xlsxPath)) {
-		Asc.ReadDefTableStyles(t.wbModel);
-		g_oIdCounter.Set_Load(false);
-		AscCommon.checkCultureInfoFontPicker();
-		AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
-		t._coAuthoringInit();
-		t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
-	}
+	  this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(base64File);
+	  this._openDocument(base64File);
+	  if (this.openDocumentFromZip(t.wbModel, xlsxPath)) {
+		  Asc.ReadDefTableStyles(t.wbModel);
+		  g_oIdCounter.Set_Load(false);
+		  AscCommon.checkCultureInfoFontPicker();
+		  AscCommonExcel.checkStylesNames(t.wbModel.CellStyles);
+		  t._coAuthoringInit();
+		  t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers, window["_null_object"], window["_null_object"], t, t.collaborativeEditing, t.fontRenderingMode);
+	  }
   };
 
   spreadsheet_api.prototype.asc_nativeCalculateFile = function() {
@@ -6047,13 +6056,25 @@ var editor;
       return { data: oBinaryFileWriter.Write(true, true), header: oBinaryFileWriter.WriteFileHeader(oBinaryFileWriter.Memory.GetCurPosition(), Asc.c_nVersionNoBase64) };
   };
   spreadsheet_api.prototype.asc_nativeGetFileData = function() {
-    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
-    oBinaryFileWriter.Write(true);
+	  if (this.isOpenOOXInBrowser) {
+		  let res;
+		  this.saveDocumentToZip(this.wb.model, this.editorId, function(data) {
+			  res = data;
+		  });
+		  if (res) {
+			  window["native"]["Save_End"](";v10;", res.length);
+			  return res;
+		  }
+		  return new Uint8Array(0);
+	  } else {
+		  var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+		  oBinaryFileWriter.Write(true);
 
-    var _header = oBinaryFileWriter.WriteFileHeader(oBinaryFileWriter.Memory.GetCurPosition(), Asc.c_nVersionNoBase64);
-    window["native"]["Save_End"](_header, oBinaryFileWriter.Memory.GetCurPosition());
+		  var _header = oBinaryFileWriter.WriteFileHeader(oBinaryFileWriter.Memory.GetCurPosition(), Asc.c_nVersionNoBase64);
+		  window["native"]["Save_End"](_header, oBinaryFileWriter.Memory.GetCurPosition());
 
-    return oBinaryFileWriter.Memory.ImData.data;
+		  return oBinaryFileWriter.Memory.ImData.data;
+	  }
   };
   spreadsheet_api.prototype.asc_nativeCalculate = function() {
   };
