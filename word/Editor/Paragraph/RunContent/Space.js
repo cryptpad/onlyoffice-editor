@@ -83,6 +83,10 @@
 
 		return nWidth;
 	};
+	CRunSpace.prototype.GetCodePoint = function()
+	{
+		return this.Value;
+	};
 	CRunSpace.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	{
 		if (this.Flags & FLAGS_GAPS)

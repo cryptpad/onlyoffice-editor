@@ -1782,7 +1782,8 @@ ParaRun.prototype.AddText = function(sString, nPos)
 {
 	var nCharPos = undefined !== nPos && null !== nPos && -1 !== nPos ? nPos : this.Content.length;
 
-	var oTextForm = this.GetTextForm();
+	let oForm     = this.GetParentForm();
+	var oTextForm = oForm ? oForm.GetTextFormPr() : null;
 	var nMax      = oTextForm ? oTextForm.MaxCharacters : 0;
 
 	if (this.IsMathRun())
@@ -1798,14 +1799,9 @@ ParaRun.prototype.AddText = function(sString, nPos)
 	}
 	else if (nMax > 0)
 	{
-		var nMaxLetters = nMax - nPos;
-
 		var arrLetters = [], nLettersCount = 0;
 		for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
 		{
-			if (nLettersCount >= nMaxLetters)
-				break;
-
 			var nCharCode = oIterator.value();
 
 			if (9 === nCharCode) // \t
@@ -1831,8 +1827,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 			this.AddToContent(nCharPos++, arrLetters[nIndex], true);
 		}
 
-		if (this.Content.length > nMax)
-			this.RemoveFromContent(nMax, this.Content.length - nMax, true);
+		oForm.TrimTextForm();
 	}
 	else
 	{
@@ -3337,7 +3332,7 @@ ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, n
 {
 	// Пока у нас сделан вариант при котором, если элемент шире ячейки, тогда мы увеличиваем ширину ячейки под него
 	// Если поставить параметр true, то ширина не будет меняться, но при этом глифы могут залазить друг на друга
-	const isKeepWidth = true;
+	const isKeepWidth = false;
 
 	let nCharsCount = 0;
 	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)

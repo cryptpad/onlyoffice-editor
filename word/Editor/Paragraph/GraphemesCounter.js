@@ -44,6 +44,8 @@
 
 		this.TextPr     = null;
 		this.CharsCount = 0;
+		this.TrimResult = null;
+		this.TrimLength = 0;
 	}
 	CGraphemesCounter.prototype = Object.create(AscFonts.CTextShaper.prototype);
 	CGraphemesCounter.prototype.constructor = CGraphemesCounter;
@@ -55,8 +57,55 @@
 			this.TextPr = null;
 
 		this.CharsCount = 0;
+		this.TrimResult = null;
+
 		this.Shape(sString);
 		return this.CharsCount;
+	};
+	CGraphemesCounter.prototype.Trim = function(sString, nLen, oTextPr)
+	{
+		if (oTextPr)
+			this.TextPr = oTextPr;
+		else
+			this.TextPr = null;
+
+		this.CharsCount = 0;
+		this.TrimResult = [];
+		this.TrimLength = nLen;
+
+		this.Shape(sString);
+		return (typeof(sString) === "string" ? String.fromCodePoint.apply(String, this.TrimResult) : this.TrimResult);
+	};
+	CGraphemesCounter.prototype.Shape = function(sString)
+	{
+		if (typeof(sString) === "string")
+		{
+			for (let oIter = sString.getUnicodeIterator(); oIter.check(); oIter.next())
+			{
+				this.HandleCodePoint(oIter.value());
+			}
+		}
+		else if (Array.isArray(sString))
+		{
+			for (let nPos = 0, nCount = sString.length; nPos < nCount; ++nPos)
+			{
+				this.HandleCodePoint(sString[nPos]);
+			}
+		}
+
+		this.FlushWord();
+	};
+	CGraphemesCounter.prototype.HandleCodePoint = function(nCodePoint)
+	{
+		if (AscCommon.IsSpace(nCodePoint))
+		{
+			this.FlushWord();
+			this.CharsCount++;
+		}
+		else
+		{
+			this.AppendToString(nCodePoint);
+		}
 	};
 	CGraphemesCounter.prototype.GetFontInfo = function(nFontSlot)
 	{
@@ -67,7 +116,22 @@
 	};
 	CGraphemesCounter.prototype.FlushGrapheme = function(nGrapheme, nWidth, nCodePointsCount, isLigature)
 	{
+		if (this.TrimResult && this.CharsCount < this.TrimLength)
+		{
+			let nCount = 0;
+			if (isLigature)
+				nCount = Math.min(this.TrimLength - this.CharsCount, nCodePointsCount);
+			else
+				nCount = nCodePointsCount;
+
+			for (let nPos = 0; nPos < nCount; ++nPos)
+			{
+				this.TrimResult.push(this.GetCodePoint(this.Buffer[this.BufferIndex + nPos]));
+			}
+		}
+
 		this.CharsCount += isLigature ? nCodePointsCount : 1;
+		this.BufferIndex += nCodePointsCount;
 	}
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};

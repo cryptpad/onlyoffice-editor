@@ -19413,6 +19413,10 @@ CRunRecalculateObject.prototype =
 
 	SaveRunContent : function(oRun, isCopy)
 	{
+		// Для Comb формы нам не нужно сохранять состояние текста, т.к. он весь должен быть независимым от положения
+		if (oRun.GetTextForm() && oRun.GetTextForm().IsComb())
+			return;
+
 		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
 		{
 			var oItem = oRun.Content[nIndex];
@@ -19423,6 +19427,9 @@ CRunRecalculateObject.prototype =
 
 	LoadRunContent : function(oRun)
 	{
+		if (oRun.GetTextForm() && oRun.GetTextForm().IsComb())
+			return;
+
 		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
 		{
 			var oItem = oRun.Content[nIndex];

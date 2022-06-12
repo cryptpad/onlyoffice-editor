@@ -17570,14 +17570,20 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	{
 		this.private_AddCompositeText(arrCharCodes[nIndex]);
 	}
+
 	this.End_SilentMode(false);
 
-	var oRun = this.CompositeInput.Run;
-	var oForm;
-	if (oRun.IsEmpty() && (oForm = oRun.GetParentForm()))
+	var oRun  = this.CompositeInput.Run;
+	var oForm = oRun.GetParentForm();
+	if (oForm)
 	{
-		oForm.ReplaceContentWithPlaceHolder();
-		AscCommon.g_inputContext.externalEndCompositeInput();
+		oForm.TrimTextForm();
+
+		if (oRun.IsEmpty())
+		{
+			oForm.ReplaceContentWithPlaceHolder();
+			AscCommon.g_inputContext.externalEndCompositeInput();
+		}
 	}
 
 	this.CheckCurrentTextObjectExtends();
@@ -17660,11 +17666,6 @@ CDocument.prototype.private_AddCompositeText = function(nCharCode)
 	var oRun = this.CompositeInput.Run;
 	var nPos = this.CompositeInput.Pos + this.CompositeInput.Length;
 	var oChar;
-
-	var oTextForm = oRun.GetTextForm();
-	var nMax = oTextForm ? oTextForm.MaxCharacters : 0;
-	if (nMax > 0 && oRun.GetElementsCount() >= nMax)
-		return;
 
 	if (para_Math_Run === oRun.Type)
 	{

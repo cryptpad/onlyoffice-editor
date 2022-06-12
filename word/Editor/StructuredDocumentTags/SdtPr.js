@@ -530,7 +530,7 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 		oContentControl.SetTextFormPr(this.TextFormPr);
 
 		if (this.TextFormPr.Comb && (isCombChanged || isMaxChanged))
-			oContentControl.TrimCombForm();
+			oContentControl.TrimTextForm();
 
 		if (oContentControl.IsFixedForm() && !isCombChanged)
 			oContentControl.UpdateFixedFormSizeByCombWidth();

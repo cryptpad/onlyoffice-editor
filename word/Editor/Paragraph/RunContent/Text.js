@@ -572,6 +572,19 @@
 			state.push(this.WidthVisible);
 		}
 
+		if (this.Flags & FLAGS_GAPS)
+		{
+			state.push(this.LGap);
+			state.push(this.RGap);
+
+			state.push(this.RGapCount);
+			state.push(this.RGapCharCode);
+			state.push(this.RGapCharWidth);
+			state.push(this.RGapShift);
+			state.push(this.RGapFontSlot);
+			state.push(this.RGapFont);
+		}
+
 		return state;
 	};
 	CRunText.prototype.LoadRecalculateObject = function(oState)
@@ -594,6 +607,19 @@
 		if (this.Flags & FLAGS_VISIBLE_WIDTH)
 		{
 			this.WidthVisible = oState[nPos++];
+		}
+
+		if (this.Flags & FLAGS_GAPS)
+		{
+			this.LGap = oState[nPos++];
+			this.RGap = oState[nPos++];
+
+			this.RGapCount     = oState[nPos++];
+			this.RGapCharCode  = oState[nPos++];
+			this.RGapCharWidth = oState[nPos++];
+			this.RGapShift     = oState[nPos++];
+			this.RGapFontSlot  = oState[nPos++];
+			this.RGapFont      = oState[nPos++];
 		}
 	};
 	CRunText.prototype.GetCombWidth = function()
