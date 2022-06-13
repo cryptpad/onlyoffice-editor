@@ -2617,9 +2617,22 @@ Paragraph.prototype.FindLineBreakInLongWord = function(nWidth, oLineStartPos, oC
 	if (arrPositions.length <= 1)
 		return oCurPos;
 
-	let nLastPos = arrPositions.length - 1;
+	let oBreakPosition = oCurPos;
+	let nLastPos       = arrPositions.length - 1;
 	while (nLastPos > 1)
 	{
+		// TODO: Возможно здесь проверку стоит изменить (или дополнить) на проверку может ли символ находится
+		//       в начале строки и может ли предыдущий находится в конце строки
+		while (arrItems[nLastPos].IsCombiningMark() && nLastPos > 0)
+		{
+			nLastPos--;
+		}
+
+		if (0 === nLastPos)
+			return oBreakPosition;
+
+		oBreakPosition = arrPositions[nLastPos];
+
 		this.ShapeTextInRange(oLineStartPos, arrPositions[nLastPos]);
 
 		let nTempWidth = 0;
