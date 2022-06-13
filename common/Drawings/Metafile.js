@@ -2243,6 +2243,22 @@
 			this.Memory.WriteBool(bIsEnabled);
 		},
 
+		SetFontInternal : function(name, size, style)
+		{
+			// TODO: remove m_oFontSlotFont
+			var _lastFont = this.m_oFontSlotFont;
+			_lastFont.Name = name;
+			_lastFont.Size = size;
+			_lastFont.Bold = (style & AscFonts.FontStyle.FontStyleBold) ? true : false;
+			_lastFont.Italic = (style & AscFonts.FontStyle.FontStyleItalic) ? true : false;
+
+			this.m_oFontTmp.FontFamily.Name = _lastFont.Name;
+			this.m_oFontTmp.Bold = _lastFont.Bold;
+			this.m_oFontTmp.Italic = _lastFont.Italic;
+			this.m_oFontTmp.FontSize = _lastFont.Size;
+			this.SetFont(this.m_oFontTmp);
+		},
+
 		SetFontSlot : function(slot, fontSizeKoef)
 		{
 			var _rfonts   = this.m_oGrFonts;
@@ -3323,6 +3339,12 @@
 				else
 					_page.m_oGrFonts = _page.m_oTextPr.RFonts;
 			}
+		},
+
+		SetFontInternal : function(name, size, style)
+		{
+			if (0 != this.m_lPagesCount)
+				this.m_arrayPages[this.m_lPagesCount - 1].SetFontInternal(name, size, style);
 		},
 
 		SetFontSlot : function(slot, fontSizeKoef)
