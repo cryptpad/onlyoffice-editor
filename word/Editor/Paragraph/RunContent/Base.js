@@ -360,7 +360,7 @@
 
 		if (this.RGapFont)
 		{
-			var oCurTextPr = oTextPr.Copy();
+			let oCurTextPr = oTextPr.Copy();
 			oCurTextPr.SetFontFamily(this.RGapFont);
 
 			oGraphics.SetTextPr(oCurTextPr, PDSE.Theme);
@@ -369,15 +369,13 @@
 
 		if (this.RGap && this.RGapCount)
 		{
-			X += this.Width / AscWord.TEXTWIDTH_DIVIDER;
-			var nShift = (this.RGapShift - this.RGapCharWidth) / 2;
+			X += this.GetWidth();
 
-			for (var nIndex = 0; nIndex < this.RGapCount; ++nIndex)
+			let nShift = (this.RGapShift - this.RGapCharWidth) / 2;
+			for (let nIndex = 0; nIndex < this.RGapCount; ++nIndex)
 			{
 				X -= nShift + this.RGapCharWidth;
-
 				oGraphics.FillTextCode(X, Y, this.RGapCharCode);
-
 				X -= nShift;
 			}
 		}
