@@ -3386,6 +3386,7 @@ ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, n
 					this.Content[nPos].SetGaps(0, 0);
 
 				nPos++;
+				this.Content[nPos].ResetGapBackground();
 			}
 			oItem    = this.Content[nPos];
 			nLeftGap = 0;
