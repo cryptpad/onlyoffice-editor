@@ -6897,10 +6897,19 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
 			var oFormBounds = oForm.GetRangeBounds(PDSL.Line, PDSL.Range);
 			var oFormAdditional = {
-				Form : oForm,
-				Comb : nCombMax,
-				Y    : oFormBounds.Y,
-				H    : oFormBounds.H
+				Form    : oForm,
+				Comb    : nCombMax,
+				Y       : oFormBounds.Y,
+				H       : oFormBounds.H,
+				BorderL : 0 === Pos
+					|| Item.IsSpace()
+					|| (Item.IsText() && !Item.IsCombiningMark()),
+				BorderR : this.Content.length - 1 === Pos
+					|| Item.IsSpace()
+					|| (Item.IsText()
+						&& Pos < this.Content.length - 1
+						&& (this.Content[Pos + 1].IsSpace()
+							|| (this.Content[Pos + 1].IsText() && !this.Content[Pos + 1].IsCombiningMark())))
 			};
 
 			if (Item.RGapCount)
