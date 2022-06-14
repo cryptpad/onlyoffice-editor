@@ -2,14 +2,8 @@ function numeric(test) {
 	test(
 		"\\exp_a b = a^b, \\exp b = e^b, 10^m, \\exp_{a}^x {b}",
 		{
-			"type": "LaTeXEquation",
 			"body": [
 				{
-					"type": "SubSupLiteral",
-					"value": {
-						"type": "FunctionLiteral",
-						"value": "\\exp"
-					},
 					"down": {
 						"type": "CharLiteral",
 						"value": "a"
@@ -17,6 +11,11 @@ function numeric(test) {
 					"third": {
 						"type": "CharLiteral",
 						"value": "b"
+					},
+					"type": "SubSupLiteral",
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\exp"
 					}
 				},
 				{
@@ -24,7 +23,7 @@ function numeric(test) {
 					"value": " "
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "="
 				},
 				{
@@ -33,17 +32,17 @@ function numeric(test) {
 				},
 				{
 					"type": "SubSupLiteral",
+					"up": {
+						"type": "CharLiteral",
+						"value": "b"
+					},
 					"value": {
 						"type": "CharLiteral",
 						"value": "a"
-					},
-					"up": {
-						"type": "CharLiteral",
-						"value": "b"
 					}
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "opDecimal",
 					"value": ","
 				},
 				{
@@ -51,19 +50,19 @@ function numeric(test) {
 					"value": " "
 				},
 				{
-					"type": "FunctionLiteral",
-					"value": "\\exp",
 					"third": {
 						"type": "CharLiteral",
 						"value": "b"
-					}
+					},
+					"type": "opNaryLiteral",
+					"value": "\\exp"
 				},
 				{
 					"type": "SpaceLiteral",
 					"value": " "
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "="
 				},
 				{
@@ -72,17 +71,17 @@ function numeric(test) {
 				},
 				{
 					"type": "SubSupLiteral",
-					"value": {
-						"type": "CharLiteral",
-						"value": "e"
-					},
 					"up": {
 						"type": "CharLiteral",
 						"value": "b"
+					},
+					"value": {
+						"type": "CharLiteral",
+						"value": "e"
 					}
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "opDecimal",
 					"value": ","
 				},
 				{
@@ -91,17 +90,17 @@ function numeric(test) {
 				},
 				{
 					"type": "SubSupLiteral",
-					"value": {
-						"type": "NumberLiteral",
-						"value": "10"
-					},
 					"up": {
 						"type": "CharLiteral",
 						"value": "m"
+					},
+					"value": {
+						"type": "NumberLiteral",
+						"value": "10"
 					}
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "opDecimal",
 					"value": ","
 				},
 				{
@@ -109,43 +108,43 @@ function numeric(test) {
 					"value": " "
 				},
 				{
-					"type": "SubSupLiteral",
-					"value": {
-						"type": "FunctionLiteral",
-						"value": "\\exp"
+					"down": {
+						"type": "CharLiteral",
+						"value": "a"
 					},
+					"third": {
+						"type": "CharLiteral",
+						"value": "b"
+					},
+					"type": "SubSupLiteral",
 					"up": {
 						"type": "CharLiteral",
 						"value": "x"
 					},
-					"down": {
-						"type": "CharLiteral",
-						"value": "a"
-					},
-					"third": {
-						"type": "CharLiteral",
-						"value": "b"
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\exp"
 					}
 				}
-			]
+			],
+			"type": "LaTeXEquation"
 		},
 		"Check \\exp_a b = a^b, \\exp b = e^b, 10^m, \\exp_{a}^x {b}"
 	);
 	test(
 		"\\ln c, \\lg d = \\log e, \\log_{10} f",
 		{
-			"type": "LaTeXEquation",
 			"body": [
 				{
-					"type": "FunctionLiteral",
-					"value": "\\ln",
 					"third": {
 						"type": "CharLiteral",
 						"value": "c"
-					}
+					},
+					"type": "opNaryLiteral",
+					"value": "\\ln"
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "opDecimal",
 					"value": ","
 				},
 				{
@@ -153,19 +152,19 @@ function numeric(test) {
 					"value": " "
 				},
 				{
-					"type": "FunctionLiteral",
-					"value": "\\lg",
 					"third": {
 						"type": "CharLiteral",
 						"value": "d"
-					}
+					},
+					"type": "opNaryLiteral",
+					"value": "\\lg"
 				},
 				{
 					"type": "SpaceLiteral",
 					"value": " "
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "="
 				},
 				{
@@ -173,15 +172,15 @@ function numeric(test) {
 					"value": " "
 				},
 				{
-					"type": "FunctionLiteral",
-					"value": "\\log",
 					"third": {
 						"type": "CharLiteral",
 						"value": "e"
-					}
+					},
+					"type": "opNaryLiteral",
+					"value": "\\log"
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "opDecimal",
 					"value": ","
 				},
 				{
@@ -189,11 +188,6 @@ function numeric(test) {
 					"value": " "
 				},
 				{
-					"type": "SubSupLiteral",
-					"value": {
-						"type": "FunctionLiteral",
-						"value": "\\log"
-					},
 					"down": {
 						"type": "NumberLiteral",
 						"value": "10"
@@ -201,9 +195,15 @@ function numeric(test) {
 					"third": {
 						"type": "CharLiteral",
 						"value": "f"
+					},
+					"type": "SubSupLiteral",
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\log"
 					}
 				}
-			]
+			],
+			"type": "LaTeXEquation"
 		},
 		"Check \\ln c, \\lg d = \\log e, \\log_{10} f"
 	);
@@ -587,6 +587,291 @@ function numeric(test) {
 			]
 		},
 		"Check \\min(x,y), \\max(x,y)"
+	);
+	test(
+		"0 \\leq \\lim_{n\\to \\infty}\\frac{n!}{(2n)!} \\leq \\lim_{n\\to \\infty} \\frac{n!}{(n!)^2} = \\lim_{k \\to \\infty, k = n!}\\frac{k}{k^2} = \\lim_{k \\to \\infty} \\frac{1}{k} = 0",
+		{
+			"type": "LaTeXEquation",
+			"body": [
+				{
+					"type": "NumberLiteral",
+					"value": "0"
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "CharLiteral",
+					"value": "≤"
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "SubSupLiteral",
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\lim"
+					},
+					"down": [
+						{
+							"type": "CharLiteral",
+							"value": "n→"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "∞"
+						}
+					],
+					"third": {
+						"type": "FractionLiteral",
+						"up": {
+							"type": "CharLiteral",
+							"value": "n!"
+						},
+						"down": [
+							{
+								"type": "BracketBlock",
+								"left": "(",
+								"right": ")",
+								"value": [
+									{
+										"type": "NumberLiteral",
+										"value": "2"
+									},
+									{
+										"type": "CharLiteral",
+										"value": "n"
+									}
+								]
+							},
+							{
+								"type": "CharLiteral",
+								"value": "!"
+							}
+						]
+					}
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "CharLiteral",
+					"value": "≤"
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "SubSupLiteral",
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\lim"
+					},
+					"down": [
+						{
+							"type": "CharLiteral",
+							"value": "n→"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "∞"
+						}
+					],
+					"third": {
+						"type": "FractionLiteral",
+						"up": {
+							"type": "CharLiteral",
+							"value": "n!"
+						},
+						"down": {
+							"type": "SubSupLiteral",
+							"value": {
+								"type": "BracketBlock",
+								"left": "(",
+								"right": ")",
+								"value": {
+									"type": "CharLiteral",
+									"value": "n!"
+								}
+							},
+							"up": {
+								"type": "NumberLiteral",
+								"value": "2"
+							}
+						}
+					}
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "OperatorLiteral",
+					"value": "="
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "SubSupLiteral",
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\lim"
+					},
+					"down": [
+						{
+							"type": "CharLiteral",
+							"value": "k"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "→"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "∞"
+						},
+						{
+							"type": "opDecimal",
+							"value": ","
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "k"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "OperatorLiteral",
+							"value": "="
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "n!"
+						}
+					],
+					"third": {
+						"type": "FractionLiteral",
+						"up": {
+							"type": "CharLiteral",
+							"value": "k"
+						},
+						"down": {
+							"type": "SubSupLiteral",
+							"value": {
+								"type": "CharLiteral",
+								"value": "k"
+							},
+							"up": {
+								"type": "NumberLiteral",
+								"value": "2"
+							}
+						}
+					}
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "OperatorLiteral",
+					"value": "="
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "SubSupLiteral",
+					"value": {
+						"type": "opNaryLiteral",
+						"value": "\\lim"
+					},
+					"down": [
+						{
+							"type": "CharLiteral",
+							"value": "k"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "→"
+						},
+						{
+							"type": "SpaceLiteral",
+							"value": " "
+						},
+						{
+							"type": "CharLiteral",
+							"value": "∞"
+						}
+					],
+					"third": {
+						"type": "FractionLiteral",
+						"up": {
+							"type": "NumberLiteral",
+							"value": "1"
+						},
+						"down": {
+							"type": "CharLiteral",
+							"value": "k"
+						}
+					}
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "OperatorLiteral",
+					"value": "="
+				},
+				{
+					"type": "SpaceLiteral",
+					"value": " "
+				},
+				{
+					"type": "NumberLiteral",
+					"value": "0"
+				}
+			]
+		},
+		"Check: 0 \\leq \\lim_{n\\to \\infty}\\frac{n!}{(2n)!} \\leq \\lim_{n\\to \\infty} \\frac{n!}{(n!)^2} = \\lim_{k \\to \\infty, k = n!}\\frac{k}{k^2} = \\lim_{k \\to \\infty} \\frac{1}{k} = 0"
 	);
 }
 window["AscCommonWord"].numericFunctions = numeric;

@@ -2,192 +2,141 @@ function testsAboveBelow(test) {
 	test(
 		`base┴2+2`,
 		{
-			type: "UnicodeEquation",
 			body: [
 				{
-					type: "expAbove",
 					base: {
-						CharLiteral: "base",
+						type: "CharLiteral",
+						value: "base"
 					},
-					up: {
-						type: "soperandLiteral",
-						operand: {
-							NumberLiteral: "2",
-						},
-					},
+					down: undefined,
+					type: "expAbove",
+					up: [
+						{
+							type: "NumberLiteral",
+							value: "2"
+						}
+					]
 				},
 				{
-					Operator: "+",
+					type: "OperatorLiteral",
+					value: "+"
 				},
-				{
-					NumberLiteral: "2",
-				},
+				[
+					{
+						type: "NumberLiteral",
+						value: "2"
+					}
+				]
 			],
+			type: "UnicodeEquation"
 		},
-		"Проверка base┴2+2"
+		"Check base┴2+2"
 	);
 	test(
 		`base┴2┴x+2`,
 		{
-			type: "UnicodeEquation",
-			body: [
+			"body": [
 				{
-					type: "expAbove",
-					base: {
-						CharLiteral: "base",
+					"base": {
+						"type": "CharLiteral",
+						"value": "base"
 					},
-					up: {
-						type: "soperandLiteral",
-						operand: {
-							type: "expAbove",
-							base: [
-								{
-									NumberLiteral: "2",
-								},
-							],
-							up: {
-								type: "soperandLiteral",
-								operand: {
-									CharLiteral: "x",
-								},
-							},
-						},
-					},
+					"down": undefined,
+					"type": "expAbove",
+					"up": {
+						"base": [
+							{
+								"type": "NumberLiteral",
+								"value": "2"
+							}
+						],
+						"down": undefined,
+						"type": "expAbove",
+						"up": {
+							"type": "CharLiteral",
+							"value": "x"
+						}
+					}
 				},
 				{
-					Operator: "+",
+					"type": "OperatorLiteral",
+					"value": "+"
 				},
-				{
-					NumberLiteral: "2",
-				},
+				[
+					{
+						"type": "NumberLiteral",
+						"value": "2"
+					}
+				]
 			],
+			"type": "UnicodeEquation"
 		},
-		"Проверка base┴2┴x+2"
+		"Check base┴2┴x+2"
 	);
 	test(
 		`base┴2┴(x/y+6)+2`,
 		{
-			type: "UnicodeEquation",
-			body: [
+			"body": [
 				{
-					type: "expAbove",
-					base: {
-						CharLiteral: "base",
+					"base": {
+						"type": "CharLiteral",
+						"value": "base"
 					},
-					up: {
-						type: "soperandLiteral",
-						operand: {
-							type: "expAbove",
-							base: [
+					"down": undefined,
+					"type": "expAbove",
+					"up": {
+						"base": [
+							{
+								"type": "NumberLiteral",
+								"value": "2"
+							}
+						],
+						"down": undefined,
+						"type": "expAbove",
+						"up": {
+							"close": ")",
+							"exp": [
 								{
-									NumberLiteral: "2",
+									"down": {
+										"type": "CharLiteral",
+										"value": "y"
+									},
+									"type": "FractionLiteral",
+									"up": {
+										"type": "CharLiteral",
+										"value": "x"
+									}
 								},
-							],
-							up: {
-								type: "soperandLiteral",
-								operand: {
-									type: "expBracketLiteral",
-									exp: [
-										{
-											type: "fractionLiteral",
-											up: {
-												CharLiteral: "x",
-											},
-											opOver: "/",
-											down: {
-												CharLiteral: "y",
-											},
-										},
-										{
-											Operator: "+",
-										},
-										{
-											NumberLiteral: "6",
-										},
-									],
-									open: "(",
-									close: ")",
-								},
-							},
-						},
-					},
-				},
-				{
-					Operator: "+",
-				},
-				{
-					NumberLiteral: "2",
-				},
-			],
-		},
-		"Проверка base┴2┴(x/y+6)+2"
-	);
-	test(
-		`base┴2┴(x┴2/y+6)+2`,
-		{
-			type: "UnicodeEquation",
-			body: [
-				{
-					type: "expAbove",
-					base: {
-						CharLiteral: "base",
-					},
-					up: {
-						type: "soperandLiteral",
-						operand: {
-							type: "expAbove",
-							base: [
 								{
-									NumberLiteral: "2",
+									"type": "OperatorLiteral",
+									"value": "+"
 								},
+									[
+									{
+										"type": "NumberLiteral",
+										"value": "6"
+									}
+									]
 							],
-							up: {
-								type: "soperandLiteral",
-								operand: {
-									type: "expBracketLiteral",
-									exp: [
-										{
-											type: "fractionLiteral",
-											up: {
-												type: "expAbove",
-												base: {
-													CharLiteral: "x",
-												},
-												up: {
-													type: "soperandLiteral",
-													operand: {
-														NumberLiteral: "2",
-													},
-												},
-											},
-											opOver: "/",
-											down: {
-												CharLiteral: "y",
-											},
-										},
-										{
-											Operator: "+",
-										},
-										{
-											NumberLiteral: "6",
-										},
-									],
-									open: "(",
-									close: ")",
-								},
-							},
-						},
-					},
+							"open": "(",
+							"type": "expBracketLiteral"
+						}
+					}
 				},
 				{
-					Operator: "+",
+					"type": "OperatorLiteral",
+					"value": "+"
 				},
-				{
-					NumberLiteral: "2",
-				},
+					[
+					{
+						"type": "NumberLiteral",
+						"value": "2"
+					}
+					]
 			],
+			"type": "UnicodeEquation"
 		},
-		"Проверка base┴2┴(x┴2/y+6)+2"
+		"Check base┴2┴(x/y+6)+2"
 	);
 	test(
 		`x^23┴2/y`,
@@ -224,7 +173,7 @@ function testsAboveBelow(test) {
 				},
 			},
 		},
-		"Проверка x^23┴2/y"
+		"Check x^23┴2/y"
 	);
 	test(
 		`(x^23)┴2/y`,
@@ -264,7 +213,7 @@ function testsAboveBelow(test) {
 				},
 			},
 		},
-		"Проверка (x^23)┴2/y"
+		"Check (x^23)┴2/y"
 	);
 
 	test(
@@ -294,7 +243,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка 4┴2+2"
+		"Check 4┴2+2"
 	);
 	test(
 		`base┴exp*xz`,
@@ -321,7 +270,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка base┴exp*xz"
+		"Check base┴exp*xz"
 	);
 	test(
 		`2┴exp-p`,
@@ -350,7 +299,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка 2┴exp-p"
+		"Check 2┴exp-p"
 	);
 	test(
 		`base┬2*x`,
@@ -377,7 +326,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка base┬2*x"
+		"Check base┬2*x"
 	);
 	test(
 		`4┬2+x/y`,
@@ -413,7 +362,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка 4┬2+x/y"
+		"Check 4┬2+x/y"
 	);
 	test(
 		`base┬exp*x^2`,
@@ -449,7 +398,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка base┬exp*x^2"
+		"Check base┬exp*x^2"
 	);
 	test(
 		`2┬exp-x_i`,
@@ -487,7 +436,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка 2┬exp-x_i"
+		"Check 2┬exp-x_i"
 	);
 	test(
 		`2┬(exp+2)+(2+1)`,
@@ -542,7 +491,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка 2┬(exp+2)+(2+1)"
+		"Check 2┬(exp+2)+(2+1)"
 	);
 	test(
 		`2┬(exp+2+x/2)^2 - 1`,
@@ -614,7 +563,7 @@ function testsAboveBelow(test) {
 				},
 			],
 		},
-		"Проверка 2┬(exp+2+x/2)^2 - 1"
+		"Check 2┬(exp+2+x/2)^2 - 1"
 	);
 	test(
 		`(2+x)┬exp`,
@@ -646,7 +595,7 @@ function testsAboveBelow(test) {
 				},
 			},
 		},
-		"Проверка `(2+x)┬exp`"
+		"Check `(2+x)┬exp`"
 	);
 	test(
 		`(2+y)┬(exp+2+x/2)`,
@@ -704,7 +653,7 @@ function testsAboveBelow(test) {
 				},
 			},
 		},
-		"Проверка `(2+y)┬(exp+2+x/2)`"
+		"Check `(2+y)┬(exp+2+x/2)`"
 	);
 	test(
 		`(2+y^2)┬(exp_3+2+x/2)`,
@@ -780,7 +729,7 @@ function testsAboveBelow(test) {
 				},
 			},
 		},
-		"Проверка `(2+y^2)┬(exp_3+2+x/2)`"
+		"Check `(2+y^2)┬(exp_3+2+x/2)`"
 	);
 }
 window["AscCommonWord"].aboveBelow = testsAboveBelow;

@@ -29,7 +29,7 @@ function fraction(test) {
 						"value": "1"
 					},
 					{
-						"type": "MathOperatorLiteral",
+						"type": "OperatorLiteral",
 						"value": "+"
 					},
 					{
@@ -87,17 +87,7 @@ function fraction(test) {
 	test(
 		`\\sum^{2}_{x}4`,
 		{
-			"type": "LaTeXEquation",
 			"body": {
-				"type": "SubSupLiteral",
-				"value": {
-					"type": "FunctionLiteral",
-					"value": "\\sum"
-				},
-				"up": {
-					"type": "NumberLiteral",
-					"value": "2"
-				},
 				"down": {
 					"type": "CharLiteral",
 					"value": "x"
@@ -105,25 +95,25 @@ function fraction(test) {
 				"third": {
 					"type": "NumberLiteral",
 					"value": "4"
+				},
+				"type": "SubSupLiteral",
+				"up": {
+					"type": "NumberLiteral",
+					"value": "2"
+				},
+				"value": {
+					"type": "opNaryLiteral",
+					"value": "∑"
 				}
-			}
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\sum^{2}_{x}4"
 	);
 	test(
 		`\\int^2_x{4}`,
 		{
-			"type": "LaTeXEquation",
 			"body": {
-				"type": "SubSupLiteral",
-				"value": {
-					"type": "FunctionLiteral",
-					"value": "\\int"
-				},
-				"up": {
-					"type": "NumberLiteral",
-					"value": "2"
-				},
 				"down": {
 					"type": "CharLiteral",
 					"value": "x"
@@ -131,8 +121,18 @@ function fraction(test) {
 				"third": {
 					"type": "NumberLiteral",
 					"value": "4"
+				},
+				"type": "SubSupLiteral",
+				"up": {
+					"type": "NumberLiteral",
+					"value": "2"
+				},
+				"value": {
+					"type": "opNaryLiteral",
+					"value": "∫"
 				}
-			}
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\int^2_x{4}"
 	);
@@ -157,24 +157,14 @@ function fraction(test) {
 	test(
 		`\\sum_{i=1}^{10} t_i`,
 		{
-			"type": "LaTeXEquation",
 			"body": {
-				"type": "SubSupLiteral",
-				"value": {
-					"type": "FunctionLiteral",
-					"value": "\\sum"
-				},
-				"up": {
-					"type": "NumberLiteral",
-					"value": "10"
-				},
 				"down": [
 					{
 						"type": "CharLiteral",
 						"value": "i"
 					},
 					{
-						"type": "MathOperatorLiteral",
+						"type": "OperatorLiteral",
 						"value": "="
 					},
 					{
@@ -183,19 +173,30 @@ function fraction(test) {
 					}
 				],
 				"third": {
+					"down": {
+						"type": "CharLiteral",
+						"value": "i"
+					},
 					"type": "SubSupLiteral",
 					"value": {
 						"type": "CharLiteral",
 						"value": "t"
-					},
-					"down": {
-						"type": "CharLiteral",
-						"value": "i"
 					}
+				},
+				"type": "SubSupLiteral",
+				"up": {
+					"type": "NumberLiteral",
+					"value": "10"
+				},
+				"value": {
+					"type": "opNaryLiteral",
+					"value": "∑"
 				}
-			}
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\sum_{i=1}^{10} t_i"
 	);
 }
+
 window["AscCommonWord"].fraction = fraction;

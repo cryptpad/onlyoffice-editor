@@ -160,7 +160,7 @@ function degree(test) {
 							"value": "n"
 						},
 						{
-							"type": "MathOperatorLiteral",
+							"type": "OperatorLiteral",
 							"value": "+"
 						},
 						{
@@ -174,7 +174,7 @@ function degree(test) {
 					"value": " "
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "="
 				},
 				{
@@ -197,7 +197,7 @@ function degree(test) {
 					"value": " "
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "+"
 				},
 				{
@@ -224,7 +224,7 @@ function degree(test) {
 					"value": " "
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "-"
 				},
 				{
@@ -243,7 +243,7 @@ function degree(test) {
 							"value": "n"
 						},
 						{
-							"type": "MathOperatorLiteral",
+							"type": "OperatorLiteral",
 							"value": "-"
 						},
 						{
@@ -570,4 +570,5 @@ function degree(test) {
 		"Check \\frac{1}{2}^1^2^3^4^5^6^7_x"
 	);
 }
+
 window["AscCommonWord"].degree = degree;

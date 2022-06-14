@@ -9,7 +9,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "a"
 				},
-				"value": 775
+				"value": "̇"
 			}
 		},
 		"Check \\dot{a}"
@@ -24,7 +24,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "b"
 				},
-				"value": 776
+				"value": "̈"
 			}
 		},
 		"Check \\ddot{b}"
@@ -39,7 +39,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "c"
 				},
-				"value": 769
+				"value": "́"
 			}
 		},
 		"Check \\acute{c}"
@@ -54,7 +54,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "d"
 				},
-				"value": 768
+				"value": "̀"
 			}
 		},
 		"Check \\grave{d}"
@@ -69,7 +69,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "e"
 				},
-				"value": 780
+				"value": "̌"
 			}
 		},
 		"Check \\check{e}"
@@ -84,7 +84,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "f"
 				},
-				"value": 774
+				"value": "̆"
 			}
 		},
 		"Check \\breve{f}"
@@ -99,7 +99,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "g"
 				},
-				"value": 771
+				"value": "̃"
 			}
 		},
 		"Check \\tilde{g}"
@@ -114,7 +114,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "h"
 				},
-				"value": 772
+				"value": "̅"
 			}
 		},
 		"Check \\bar{h}"
@@ -129,8 +129,7 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "j"
 				},
-				"value": 770,
-				"isWidth": true
+				"value": "̂"
 			}
 		},
 		"Check \\widehat{j}"
@@ -145,163 +144,28 @@ function accents(test) {
 					"type": "CharLiteral",
 					"value": "k"
 				},
-				"value": 8407
+				"value": "⃗"
 			}
 		}
 		,
 		"Check \\vec{k}"
 	);
-	test(
-		"\\not{l}",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "l"
-				},
-				"value": 824
-			}
-		},
-		"Check \\not{l}"
-	);
-	test(
-		"\\dota",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "a"
-				},
-				"value": 775
-			}
-		},
-		"Check \\dota"
-	);
-	test(
-		"\\ddotb",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "b"
-				},
-				"value": 776
-			}
-		},
-		"Check \\ddotb"
-	);
-	test(
-		"\\acutec",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "c"
-				},
-				"value": 769
-			}
-		},
-		"Check \\acutec"
-	);
-	test(
-		"\\graved",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "d"
-				},
-				"value": 768
-			}
-		},
-		"Check \\graved"
-	);
-	test(
-		"\\checke",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "e"
-				},
-				"value": 780
-			}
-		},
-		"Check \\checke"
-	);
-	test(
-		"\\brevef",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "f"
-				},
-				"value": 774
-			}
-		},
-		"Check \\brevef"
-	);
-	test(
-		"\\tildeg",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "g"
-				},
-				"value": 771
-			}
-		},
-		"Check \\tildeg"
-	);
-	test(
-		"\\barh",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "h"
-				},
-				"value": 772
-			}
-		},
-		"Check \\barh"
-	);
-	test(
-		"\\widehatj",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "AccentLiteral",
-				"base": {
-					"type": "CharLiteral",
-					"value": "j"
-				},
-				"value": 770,
-				"isWidth": true
-			}
-		},
-		"Check \\widehatj"
-	);
+	//doesn't implement in word
+	// test(
+	// 	"\\not{l}",
+	// 	{
+	// 		"type": "LaTeXEquation",
+	// 		"body": {
+	// 			"type": "AccentLiteral",
+	// 			"base": {
+	// 				"type": "CharLiteral",
+	// 				"value": "l"
+	// 			},
+	// 			"value": 824
+	// 		}
+	// 	},
+	// 	"Check \\not{l}"
+	// );
 	test(
 		"\\vec \\frac{k}{2}",
 		{
@@ -319,38 +183,36 @@ function accents(test) {
 						"value": "2"
 					}
 				},
-				"value": 8407
+				"value": "⃗"
 			}
-		}
-		,
+		},
 		"Check \\vec \\frac{k}{2}"
 	);
-	test(
-		"\\not\\notl2",
-		{
-			"type": "LaTeXEquation",
-			"body": [
-				{
-					"type": "AccentLiteral",
-					"base": {
-						"type": "AccentLiteral",
-						"base": {
-							"type": "CharLiteral",
-							"value": "l"
-						},
-						"value": 824
-					},
-					"value": 824
-				},
-				{
-					"type": "NumberLiteral",
-					"value": "2"
-				}
-			]
-		},
-		"Check \\notl"
-	);
-
+	// test(
+	// 	"\\not\\notl2",
+	// 	{
+	// 		"type": "LaTeXEquation",
+	// 		"body": [
+	// 			{
+	// 				"type": "AccentLiteral",
+	// 				"base": {
+	// 					"type": "AccentLiteral",
+	// 					"base": {
+	// 						"type": "CharLiteral",
+	// 						"value": "l"
+	// 					},
+	// 					"value": 824
+	// 				},
+	// 				"value": 824
+	// 			},
+	// 			{
+	// 				"type": "NumberLiteral",
+	// 				"value": "2"
+	// 			}
+	// 		]
+	// 	},
+	// 	"Check \\notl"
+	// );
 	test(
 		"5''",
 		{
@@ -386,7 +248,7 @@ function accents(test) {
 				"value": "''"
 			}
 		},
-		"\\frac{4}{5}''"
+		"Check \\frac{4}{5}''"
 	);
 }
 window["AscCommonWord"].accents = accents;

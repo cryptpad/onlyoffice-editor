@@ -2,109 +2,109 @@ function sqrt(test) {
 	test(
 		"\\sqrt5",
 		{
-			"type": "LaTeXEquation",
 			"body": {
 				"type": "SqrtLiteral",
-				"base": {
+				"value": {
 					"type": "NumberLiteral",
 					"value": "5"
 				}
-			}
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\sqrt5"
 	);
 	test(
 		"\\sqrt\\frac{1}{2}",
 		{
-			"type": "LaTeXEquation",
 			"body": {
 				"type": "SqrtLiteral",
-				"base": {
+				"value": {
+					"down": {
+						"type": "NumberLiteral",
+						"value": "2"
+					},
 					"type": "FractionLiteral",
 					"up": {
 						"type": "NumberLiteral",
 						"value": "1"
-					},
-					"down": {
-						"type": "NumberLiteral",
-						"value": "2"
 					}
 				}
-			}
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\sqrt\\frac{1}{2}"
 	);
 	test(
 		"\\sqrt[2^2]\\frac{1}{2}",
 		{
-			"type": "LaTeXEquation",
 			"body": {
-				"type": "SqrtLiteral",
-				"base": {
-					"type": "FractionLiteral",
+				"index": {
+					"type": "SubSupLiteral",
 					"up": {
 						"type": "NumberLiteral",
-						"value": "1"
+						"value": "2"
 					},
-					"down": {
+					"value": {
 						"type": "NumberLiteral",
 						"value": "2"
 					}
 				},
-				"index": {
-					"type": "SubSupLiteral",
-					"value": {
+				"type": "SqrtLiteral",
+				"value": {
+					"down": {
 						"type": "NumberLiteral",
 						"value": "2"
 					},
+					"type": "FractionLiteral",
 					"up": {
 						"type": "NumberLiteral",
-						"value": "2"
+						"value": "1"
 					}
 				}
-			}
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\sqrt[2^2]\\frac{1}{2}"
 	);
 	test(
 		"\\sqrt[2^2] {\\frac{1}{2}+3}",
 		{
-			"type": "LaTeXEquation",
 			"body": {
+				"index": {
+					"type": "SubSupLiteral",
+					"up": {
+						"type": "NumberLiteral",
+						"value": "2"
+					},
+					"value": {
+						"type": "NumberLiteral",
+						"value": "2"
+					}
+				},
 				"type": "SqrtLiteral",
-				"base": [
+				"value": [
 					{
+						"down": {
+							"type": "NumberLiteral",
+							"value": "2"
+						},
 						"type": "FractionLiteral",
 						"up": {
 							"type": "NumberLiteral",
 							"value": "1"
-						},
-						"down": {
-							"type": "NumberLiteral",
-							"value": "2"
 						}
 					},
 					{
-						"type": "MathOperatorLiteral",
+						"type": "OperatorLiteral",
 						"value": "+"
 					},
 					{
 						"type": "NumberLiteral",
 						"value": "3"
 					}
-				],
-				"index": {
-					"type": "SubSupLiteral",
-					"value": {
-						"type": "NumberLiteral",
-						"value": "2"
-					},
-					"up": {
-						"type": "NumberLiteral",
-						"value": "2"
-					}
-				}
-			}
+				]
+			},
+			"type": "LaTeXEquation"
 		},
 		"Check \\sqrt[2^2] {\\frac{1}{2}+3}"
 	);

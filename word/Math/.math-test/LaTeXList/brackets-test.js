@@ -85,15 +85,17 @@ function brackets (test) {
 						"value": "i"
 					}
 				},
-				{
-					"type": "BracketBlock",
-					"left": "/",
-					"right": "\\",
-					"value": {
-						"type": "CharLiteral",
-						"value": "j"
-					}
-				}
+
+				//Word doesn't implement it brackets
+				// {
+				// 	"type": "BracketBlock",
+				// 	"left": "/",
+				// 	"right": "\\",
+				// 	"value": {
+				// 		"type": "CharLiteral",
+				// 		"value": "j"
+				// 	}
+				// }
 			]
 		},
 		"Check brackets (a)[b]\\{c\\}|d|\\|e\\|\\langlef\\rangle\\lfloorg\\rfloor\\lceilh\\rceil\\ulcorneri\\urcorner/j\\backslash"
@@ -112,7 +114,7 @@ function brackets (test) {
 						"value": "2"
 					},
 					{
-						"type": "MathOperatorLiteral",
+						"type": "OperatorLiteral",
 						"value": "+"
 					},
 					{
@@ -124,32 +126,33 @@ function brackets (test) {
 		},
 		"Check (2+1]"
 	);
-	test(
-		"\\{2+1\\backslash",
-		{
-			"type": "LaTeXEquation",
-			"body": {
-				"type": "BracketBlock",
-				"left": "\\{",
-				"right": "\\",
-				"value": [
-					{
-						"type": "NumberLiteral",
-						"value": "2"
-					},
-					{
-						"type": "MathOperatorLiteral",
-						"value": "+"
-					},
-					{
-						"type": "NumberLiteral",
-						"value": "1"
-					}
-				]
-			}
-		},
-		"Check \\{2+1\\backslash"
-	);
+	//Word doesn't support \backslash bracket
+	// test(
+	// 	"\\{2+1\\backslash",
+	// 	{
+	// 		"type": "LaTeXEquation",
+	// 		"body": {
+	// 			"type": "BracketBlock",
+	// 			"left": "\\{",
+	// 			"right": "\\",
+	// 			"value": [
+	// 				{
+	// 					"type": "NumberLiteral",
+	// 					"value": "2"
+	// 				},
+	// 				{
+	// 					"type": "OperatorLiteral",
+	// 					"value": "+"
+	// 				},
+	// 				{
+	// 					"type": "NumberLiteral",
+	// 					"value": "1"
+	// 				}
+	// 			]
+	// 		}
+	// 	},
+	// 	"Check \\{2+1\\backslash"
+	// );
 	test(
 		"\\left.1+2\\right)",
 		{
@@ -164,7 +167,7 @@ function brackets (test) {
 						"value": "1"
 					},
 					{
-						"type": "MathOperatorLiteral",
+						"type": "OperatorLiteral",
 						"value": "+"
 					},
 					{
@@ -177,7 +180,7 @@ function brackets (test) {
 		"Check \\left.1+2\\right)"
 	);
 	test(
-		"|2|+\\{1\\backslash+|2|",
+		"|2|+\\{1\\}+|2|",
 		{
 			"type": "LaTeXEquation",
 			"body": [
@@ -191,20 +194,20 @@ function brackets (test) {
 					}
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "+"
 				},
 				{
 					"type": "BracketBlock",
 					"left": "\\{",
-					"right": "\\",
+					"right": "\\}",
 					"value": {
 						"type": "NumberLiteral",
 						"value": "1"
 					}
 				},
 				{
-					"type": "MathOperatorLiteral",
+					"type": "OperatorLiteral",
 					"value": "+"
 				},
 				{
@@ -218,7 +221,7 @@ function brackets (test) {
 				}
 			]
 		},
-		"Check |2|+\\{1\\backslash+|2|"
+		"Check |2|+\\{1\\}+|2|"
 	);
 }
 window["AscCommonWord"].brackets = brackets;

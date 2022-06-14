@@ -3659,35 +3659,32 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
 	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
-    ConvertLaTeXToTokensList(strLaTeX, this.Root);
+    window["AscCommonWord"].ConvertLaTeXToTokensList(strLaTeX, this.Root);
 	this.Root.Correct_Content(true);
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
 	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
-	var strin = this.GetText(true);
+	var strLatex = this.GetText(true);
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	console.log('LaTeX string:', strin);
-	this.Root.Add_Text(strin, this.Paragraph);
-	
+	console.log('LaTeX string:', strLatex);
+	this.Root.Add_Text(strLatex, this.Paragraph);
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
 	// TODO: Функция конвертации UnicodeMath -> MathML
 	var strUnicode = this.GetText();
-    console.log(CUnicodeConverter(strLaTeX));
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	var Unicode = new CUnicodeParser(strUnicode, this);
+    window["AscCommonWord"].CUnicodeConverter(strUnicode, this.Root);
 	this.Root.Correct_Content(true);
-	Unicode.Start();
 };
 ParaMath.prototype.ConvertToUnicodeMath = function()
 {
 	// TODO: Функция конвертации MathML -> UnicodeMath
-	var strin = this.GetText();
+	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	console.log('Unicode string:', strin);
-	this.Root.Add_Text(strin, this.Paragraph);
+	console.log('Unicode string:', strUnicode);
+	this.Root.Add_Text(strUnicode, this.Paragraph);
 };
 ParaMath.prototype.ConvertView = function(isToLinear)
 {
@@ -3704,11 +3701,12 @@ ParaMath.prototype.ConvertView = function(isToLinear)
 	}
 	else
 	{
-		// if (Asc.c_oAscMathInputType.Unicode === nInputType) {
-		// 	this.ConvertFromUnicodeMath();
-		// }
-		// else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
-			this.ConvertFromLaTeX();
+		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
+			this.ConvertFromUnicodeMath();
+		}
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType) {
+            this.ConvertFromLaTeX();
+        }
 	}
 };
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
