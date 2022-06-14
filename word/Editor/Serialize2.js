@@ -2071,7 +2071,7 @@ function BinaryStyleTableWriter(memory, doc, oNumIdMap, copyParams, saveParams)
 			if (!style) {
 				continue;
 			}
-			var bDefault = styles.Is_StyleDefault(style.Name);
+			var bDefault = styles.Is_StyleDefaultOOXML(style.Name);
             this.bs.WriteItem(c_oSer_sts.Style, function(){oThis.WriteStyle(styleId, style, bDefault);});
         }
     };
@@ -5224,7 +5224,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                     break;
 				case para_Field:
 					let Instr = item.GetInstr();
-					var oFFData = null;//todo
+					var oFFData = fieldtype_FORMTEXT === item.Get_FieldType() ? {} : null;
 					if (Instr) {
 						if(this.saveParams && this.saveParams.bMailMergeDocx)
 							oThis.WriteParagraphContent(item, bUseSelection, false);
@@ -7716,27 +7716,6 @@ function BinaryFileReader(doc, openParams)
 			}
 		}
 	};
-	this.PostLoadPrepareCorrectContent = function(Content, Styles) {
-		for (var i = 0; i < Content.length; ++i) {
-			var elem = Content[i];
-			var type = elem.GetType();
-			if (type_Paragraph === type) {
-				elem.Set_Pr(elem.Pr);//after style initialization
-			}
-			else if (type_Table === type) {
-				elem.Set_Pr(elem.Pr);//after style initialization
-				elem.ReIndexing(0);
-				if (Styles && !elem.Parent.Styles) {
-					var oldStyles = elem.Parent.Styles;
-					elem.Parent.Styles = Styles;
-					elem.Correct_BadTable();
-					elem.Parent.Styles = oldStyles;
-				} else {
-					elem.Correct_BadTable();
-				}
-			}
-		}
-	};
     this.PostLoadPrepare = function(opt_xmlParserContext)
     {
 		this.Document.UpdateDefaultsDependingOnCompatibility();
@@ -8224,7 +8203,6 @@ function BinaryFileReader(doc, openParams)
 		if (this.oReadResult.DocumentContent.length > 0) {
 			this.Document.ReplaceContent(this.oReadResult.DocumentContent);
 		}
-		this.PostLoadPrepareCorrectContent(this.Document.Content);
 		// for(var i = 0, length = this.oReadResult.aPostOpenStyleNumCallbacks.length; i < length; ++i)
 			// this.oReadResult.aPostOpenStyleNumCallbacks[i].call();
 		if(null !== this.oReadResult.defaultTabStop && this.oReadResult.defaultTabStop > 0) {
@@ -8236,7 +8214,11 @@ function BinaryFileReader(doc, openParams)
 		for (var i = 0; i < this.oReadResult.drawingToMath.length; ++i) {
 			this.oReadResult.drawingToMath[i].ConvertToMath();
 		}
-
+		for (var i = 0, length = this.oReadResult.aTableCorrect.length; i < length; ++i) {
+			var table = this.oReadResult.aTableCorrect[i];
+			table.ReIndexing(0);
+			table.Correct_BadTable();
+		}
 		if (opt_xmlParserContext) {
 			AscCommon.pptx_content_loader.Reader.ImageMapChecker = AscCommon.pptx_content_loader.ImageMapChecker;
 			var context = opt_xmlParserContext;
@@ -8582,12 +8564,23 @@ function BinaryFileReader(doc, openParams)
 		//todo crush
 		// this.oReadResult.deleteMarkupStartWithoutEnd(this.oReadResult.moveRanges);
 
-		if (editor && !editor.isDocumentEditor) {
-			this.PostLoadPrepareCorrectContent(this.oReadResult.DocumentContent, this.Document.Styles);
-		} else {
-			this.PostLoadPrepareCorrectContent(this.oReadResult.DocumentContent);
-		}
-		//чтобы удалялся stream с бинарником
+		for (var i = 0, length = this.oReadResult.aTableCorrect.length; i < length; ++i) {
+			var table = this.oReadResult.aTableCorrect[i];
+			table.ReIndexing(0);
+
+			//при вставке вложенных таблиц из документов в презентации и создании cDocumentContent не проставляется CStyles
+			if(editor && !editor.isDocumentEditor && !table.Parent.Styles)
+			{
+				var oldStyles = table.Parent.Styles;
+				table.Parent.Styles = this.Document.Styles;
+				table.Correct_BadTable();
+				table.Parent.Styles = oldStyles;
+			}
+			else
+			{
+				table.Correct_BadTable();
+			}
+		}		//чтобы удалялся stream с бинарником
 		pptx_content_loader.Clear(true);
         return { content: aContent, fonts: aPrepeareFonts, images: aPrepeareImages, bAddNewStyles: addNewStyles, aPastedImages: aPastedImages, bInBlock: bInBlock };
     }
@@ -9159,9 +9152,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
                         return oThis.ReadTabItem(t, l, oNewTab);
                     });
 			if (oNewTab.IsValid()) {
-				if (4 === oNewTab.Value) {
+				if (4 === oNewTab.Value) {//End
 					oNewTab.Value = tab_Right;
-				} else if (6 === oNewTab.Value) {
+				} else if (6 === oNewTab.Value) {//Start
 					oNewTab.Value = tab_Left;
 				}
                 Tabs.Add(oNewTab);
@@ -10971,6 +10964,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
                 return oThis.ReadDocTable(t, l, oNewTable);
             });
             if (oNewTable.Content.length > 0) {
+				this.oReadResult.aTableCorrect.push(oNewTable);
               if(2 == AscCommon.CurFileVersion && false == oNewTable.Inline)
               {
                   //делаем смещение левой границы
@@ -11173,6 +11167,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         {
 			var oNewParaPr = paragraph.Pr;
             res = this.bpPrr.Read(length, oNewParaPr, paragraph);
+			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+				paragraph.Set_Pr(oNewParaPr);
+			});
         }
         else if ( c_oSerParType.Content === type )
         {
@@ -12458,6 +12455,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
                 return oThis.btblPrr.Read_tblPr(t,l, oNewTablePr, table);
             });
 			table.Pr = oNewTablePr;
+			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+				table.Set_Pr(oNewTablePr);
+			});
         }
         else if( c_oSerDocTableType.tblGrid === type )
         {
@@ -16927,6 +16927,7 @@ function DocReadResult(doc) {
 	this.hasRevisions = false;
 	this.disableRevisions = false;
 	this.drawingToMath = [];
+	this.aTableCorrect = [];
 	this.footnotes = {};
 	this.footnoteRefs = [];
 	this.endnotes = {};

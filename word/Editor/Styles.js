@@ -9614,6 +9614,21 @@ CStyles.prototype.Is_StyleDefault = function(sStyleName)
 
 	return false;
 };
+CStyles.prototype.Is_StyleDefaultOOXML = function(sStyleName)
+{
+	var StyleId = this.GetStyleIdByName(sStyleName);
+	if (null === StyleId)
+		return false;
+
+	if (StyleId == this.Default.Paragraph
+		|| StyleId == this.Default.Character
+		|| StyleId == this.Default.Numbering
+		|| StyleId == this.Default.Table)
+	{
+		return true;
+	}
+	return false;
+};
 CStyles.prototype.Is_DefaultStyleChanged = function(sStyleName)
 {
 	if (true != this.Is_StyleDefault(sStyleName))
@@ -15278,25 +15293,7 @@ CParaTab.prototype.GetLeader = function()
 CParaTab.prototype.IsValid = function()
 {
 	return null != this.Pos && null != this.Value;
-}
-CParaTab.prototype.Correct_Content = function()
-{
-	if(null != oNewTab.Pos && null != oNewTab.Value)
-	{
-		if (4 === this.Value) {
-			oNewTab.Value = tab_Right;
-		} else if (6 === this.Value) {
-			oNewTab.Value = tab_Left;
-		} else if (tab_Bar === this.Value || tab_Decimal) {
-			oNewTab.Value = tab_Left;
-		} else if (6 === this.Value) {
-			oNewTab.Value = tab_Left;
-		}
-
-		Tabs.Add(oNewTab);
-	}
 };
-
 
 function CParaTabs()
 {

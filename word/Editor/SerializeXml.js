@@ -325,7 +325,10 @@
 				elem = new Paragraph(DrawingDocument, Parent);
 				oReadResult.addToNextPar(elem);
 				elem.fromXml(reader);
-				Content.push(elem);
+				if (reviewtype_Common === elem.GetReviewType() || oReadResult.checkReadRevisions()) {
+					elem.Correct_Content();
+					Content.push(elem);
+				}
 				break;
 			case "permStart":
 				break;
@@ -347,6 +350,7 @@
 				table.Set_TableStyle2(null);
 				table.fromXml(reader);
 				if (table.Get_RowsCount() > 0) {
+					oReadResult.aTableCorrect.push(table);
 					res = table;
 					Content.push(table);
 				}
@@ -3369,15 +3373,15 @@
 					break;
 				}
 				case "hAnsi": {
-					this.Hansi = {Name: reader.GetValueDecodeXml(), Index: -1};
+					this.HAnsi = {Name: reader.GetValueDecodeXml(), Index: -1};
 					break;
 				}
 				case "eastAsia": {
-					this.Eastasia = {Name: reader.GetValueDecodeXml(), Index: -1};
+					this.EastAsia = {Name: reader.GetValueDecodeXml(), Index: -1};
 					break;
 				}
 				case "cs": {
-					this.Cs = {Name: reader.GetValueDecodeXml(), Index: -1};
+					this.CS = {Name: reader.GetValueDecodeXml(), Index: -1};
 					break;
 				}
 				case "asciiTheme": {
@@ -3408,11 +3412,11 @@
 		writer.WriteXmlNullableAttributeString("w:hint", toXml_ST_Hint(this.Hint));
 		writer.WriteXmlNullableAttributeStringEncode("w:ascii", this.Ascii && this.Ascii.Name);
 		writer.WriteXmlNullableAttributeString("w:asciiTheme", this.AsciiTheme);
-		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", this.Eastasia && this.Eastasia.Name);
+		writer.WriteXmlNullableAttributeStringEncode("w:eastAsia", this.EastAsia && this.EastAsia.Name);
 		writer.WriteXmlNullableAttributeString("w:eastAsiaTheme", this.EastAsiaTheme);
-		writer.WriteXmlNullableAttributeStringEncode("w:hAnsi", this.Hansi && this.Hansi.Name);
+		writer.WriteXmlNullableAttributeStringEncode("w:hAnsi", this.HAnsi && this.HAnsi.Name);
 		writer.WriteXmlNullableAttributeString("w:hAnsiTheme", this.HAnsiTheme);
-		writer.WriteXmlNullableAttributeStringEncode("w:cs", this.Cs && this.Cs.Name);
+		writer.WriteXmlNullableAttributeStringEncode("w:cs", this.CS && this.CS.Name);
 		writer.WriteXmlNullableAttributeString("w:cstheme", this.CSTheme);
 		writer.WriteXmlAttributesEnd(true);
 	};
@@ -4214,7 +4218,7 @@
 		for (var id in this.Style) {
 			if (this.Style.hasOwnProperty(id)) {
 				var style = this.Style[id];
-				var addition = {id: id, def: this.Is_StyleDefault(style.Name)};
+				var addition = {id: id, def: this.Is_StyleDefaultOOXML(style.Name)};
 				style.toXml(writer, "w:style", addition);
 			}
 		}
@@ -4234,11 +4238,13 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "rPrDefault" : {
+					reader.ReadNextNode();//rPr
 					this.RPrDefault = new CTextPr();
 					this.RPrDefault.fromXml(reader);
 					break;
 				}
 				case "pPrDefault" : {
+					reader.ReadNextNode();//pPr
 					this.PPrDefault = new CParaPr();
 					this.PPrDefault.fromXml(reader);
 					break;
@@ -4249,8 +4255,14 @@
 	CT_DocDefaults.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlNullable(this.RPrDefault, "w:rPrDefault");
-		writer.WriteXmlNullable(this.PPrDefault, "w:pPrDefault");
+		writer.WriteXmlNodeStart("w:rPrDefault");
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.RPrDefault, "w:rPr");
+		writer.WriteXmlNodeEnd("w:rPrDefault");
+		writer.WriteXmlNodeStart("w:pPrDefault");
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.PPrDefault, "w:pPr");
+		writer.WriteXmlNodeEnd("w:pPrDefault");
 		writer.WriteXmlNodeEnd(name);
 	};
 	CStyle.prototype.readAttr = function(reader, opt_addition) {
@@ -8987,7 +8999,7 @@
 			case "right":
 				return AscCommon.align_Right;
 			case "both":
-				return AscCommon.align_Left;
+				return AscCommon.align_Justify;
 			case "mediumKashida":
 				return AscCommon.align_Left;
 			case "distribute":
@@ -8999,7 +9011,7 @@
 			case "lowKashida":
 				return AscCommon.align_Left;
 			case "thaiDistribute":
-				return AscCommon.align_Left;
+				return AscCommon.align_Distributed;
 		}
 		return def;
 	}
@@ -9012,8 +9024,8 @@
 				return "center";
 			case AscCommon.align_Right:
 				return "right";
-			// case AscCommon.align_Justify:
-			// 	return "both";
+			case AscCommon.align_Justify:
+				return "both";
 			case AscCommon.align_Distributed:
 				return "distribute";
 			// case AscCommon.align_CenterContinuous:
