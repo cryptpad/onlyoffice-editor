@@ -475,6 +475,7 @@ function asc_menu_ReadAscFill_grad(_params, _cursor){
                         }
                     }
                 }
+                _cursor.pos++;
                 break;
             }
             case 255:
@@ -2754,8 +2755,6 @@ function OfflineEditor () {
 
         window['AscFormat'].DrawingArea.prototype.drawSelection = function(drawingDocument) {
             
-            AscCommon.g_oTextMeasurer.Flush();
-            
             var canvas = this.worksheet.objectRender.getDrawingCanvas();
             var shapeCtx = canvas.shapeCtx;
             var shapeOverlayCtx = canvas.shapeOverlayCtx;
@@ -2998,8 +2997,6 @@ function OfflineEditor () {
             }
             
             window["native"]["SwitchMemoryLayer"]();
-            
-            AscCommon.g_oTextMeasurer.Flush();
             
             this.objectRender.showDrawingObjectsEx();
             
@@ -3569,7 +3566,8 @@ function OfflineEditor () {
             	}
             };
 
-            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
+            _api.asc_nativeOpenFile(window["native"]["GetFileString"](), undefined, true, window["native"]["GetXlsxPath"]());
+            thenCallback();
            
             // TODO: Implement frozen places
             // TODO: Implement Text Art Styles
@@ -4425,14 +4423,10 @@ var _s = new OfflineEditor();
 
 window["native"]["offline_of"] = function(arg) {_s.openFile(arg);}
 window["native"]["offline_stz"] = function(v) {_s.zoom = v; _api.asc_setZoom(v);}
-window["native"]["offline_ds"] = function(x, y, width, height, ratio, istoplayer) {
-    AscCommon.g_oTextMeasurer.Flush();
-    
+window["native"]["offline_ds"] = function(x, y, width, height, ratio, istoplayer) {    
     _s.drawSheet(x, y, width, height, ratio, istoplayer);
 }
 window["native"]["offline_dh"] = function(x, y, width, height, ratio, type) {
-    AscCommon.g_oTextMeasurer.Flush();
-    
     _s.drawHeader(x, y, width, height, type, ratio);
 }
 
@@ -4728,8 +4722,6 @@ window["native"]["offline_complete_cell"] = function(x, y) {return _s.getNearCel
 window["native"]["offline_keyboard_down"] = function(inputKeys) {
     var wb = _api.wb;
     var ws = _api.wb.getWorksheet();
-    
-    AscCommon.g_oTextMeasurer.Flush();
     
     var isFormulaEditMode = wb.isFormulaEditMode;
     wb.isFormulaEditMode = false;
@@ -5407,17 +5399,13 @@ window["native"]["offline_apply_event"] = function(type,params) {
             // document interface
             
         case 3: // ASC_MENU_EVENT_TYPE_UNDO
-        {
-            AscCommon.g_oTextMeasurer.Flush();
-            
+        {   
             _api.asc_Undo();
             _s.asc_WriteAllWorksheets(true);
             break;
         }
         case 4: // ASC_MENU_EVENT_TYPE_REDO
         {
-            AscCommon.g_oTextMeasurer.Flush();
-            
             _api.asc_Redo();
             _s.asc_WriteAllWorksheets(true);
             break;
@@ -7140,87 +7128,89 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
     
     setTimeout(function() {
                
-        //console.log("JS - openDocument()");
+               //console.log("JS - openDocument()");
                
-        t._openDocument(file.data);
+               t._openDocument(file.data);
 
-        var thenCallback = function() {
-            t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers,
-                                                window["_null_object"], window["_null_object"], t,
-                                                t.collaborativeEditing, t.fontRenderingMode);
+               var thenCallback = function() {
+               Asc.ReadDefTableStyles(t.wbModel);
+               t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers,
+                                                      window["_null_object"], window["_null_object"], t,
+                                                      t.collaborativeEditing, t.fontRenderingMode);
 
-            if (!sdkCheck) {
+               if (!sdkCheck) {
 
-                //console.log("OPEN FILE ONLINE");
+               //console.log("OPEN FILE ONLINE");
 
-                t.wb.showWorksheet(undefined, true);
+               t.wb.showWorksheet(undefined, true);
 
-                var ws = t.wb.getWorksheet();
-                window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
+               var ws = t.wb.getWorksheet();
+               window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
 
-                _s.asc_WriteAllWorksheets(true);
-                _s.asc_WriteCurrentCell();
+               _s.asc_WriteAllWorksheets(true);
+               _s.asc_WriteCurrentCell();
 
-                return;
-            }
+               return;
+               }
 
-            t.asc_CheckGuiControlColors();
-            t.sendColorThemes(_api.wbModel.theme);
-            t.asc_ApplyColorScheme(false);
+               t.asc_CheckGuiControlColors();
+               t.sendColorThemes(_api.wbModel.theme);
+               t.asc_ApplyColorScheme(false);
 
-            t.sendStandartTextures();
+               t.sendStandartTextures();
 
-            //console.log("JS - applyFirstLoadChanges() before");
+               //console.log("JS - applyFirstLoadChanges() before");
 
-            t._applyPreOpenLocks();
-            // Применяем пришедшие при открытии изменения
-            t._applyFirstLoadChanges();
-            // Go to if sent options
-            t.goTo();
+               t._applyPreOpenLocks();
+               // Применяем пришедшие при открытии изменения
+               t._applyFirstLoadChanges();
+               // Go to if sent options
+               t.goTo();
 
-            t.isDocumentLoadComplete = true;
+               t.isDocumentLoadComplete = true;
 
-            // Меняем тип состояния (на никакое)
-            t.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
+               // Меняем тип состояния (на никакое)
+               t.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
 
-            // Были ошибки при открытии, посылаем предупреждение
-            if (0 < t.wbModel.openErrors.length) {
-                t.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
-            }
+               // Были ошибки при открытии, посылаем предупреждение
+               if (0 < t.wbModel.openErrors.length) {
+               t.sendEvent('asc_onError', c_oAscError.ID.OpenWarning, c_oAscError.Level.NoCritical);
+               }
 
-            //console.log("JS - applyFirstLoadChanges() after");
+               //console.log("JS - applyFirstLoadChanges() after");
 
-            setTimeout(function() {
+               setTimeout(function() {
 
-                t.wb.showWorksheet(undefined, true);
-                //console.log("JS - showWorksheet()");
+                          t.wb.showWorksheet(undefined, true);
+                          //console.log("JS - showWorksheet()");
 
-                var ws = t.wb.getWorksheet();
-                //console.log("JS - getWorksheet()");
+                          var ws = t.wb.getWorksheet();
+                          //console.log("JS - getWorksheet()");
 
                 window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
                 window["native"]["onEndLoadingFile"](ws.headersWidth, ws.headersHeight);
                 //console.log("JS - onEndLoadingFile()");
 
-                _s.asc_WriteAllWorksheets(true);
-                _s.asc_WriteCurrentCell();
+                          _s.asc_WriteAllWorksheets(true);
+                          _s.asc_WriteCurrentCell();
 
-                setInterval(function() {
+                          setInterval(function() {
 
-                    _api._autoSave();
+                                      _api._autoSave();
 
-                    testLockedObjects();
+                                      testLockedObjects();
 
-                }, 100);
+                                      }, 100);
 
-                //console.log("JS - openDocument()");
+                          //console.log("JS - openDocument()");
 
-            }, 5);
+                          }, 5);
         };
 
-        t.openDocumentFromZip(t.wbModel, window["native"]["GetXlsxPath"]()).then(thenCallback, thenCallback);
+        t.openDocumentFromZip(t.wbModel, window["native"]["GetXlsxPath"]());
+        thenCallback();
 
-    }, 5);
+               }, 5);
 };
 
 // The helper function, called from the native application,

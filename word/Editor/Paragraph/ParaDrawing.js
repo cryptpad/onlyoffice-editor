@@ -188,10 +188,8 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	if (this.graphicObjects)
 	{
 		this.Set_RelativeHeight(this.graphicObjects.getZIndex());
-		if (History.Is_On() && !g_oTableId.m_bTurnOff)
-		{
+		if (History.CanRegisterClasses())
 			this.graphicObjects.addGraphicObject(this);
-		}
 	}
 }
 ParaDrawing.prototype = Object.create(CRunElementBase.prototype);
@@ -298,6 +296,11 @@ ParaDrawing.prototype.GetParagraph = function()
 ParaDrawing.prototype.GetRun = function()
 {
 	return this.Get_Run();
+};
+ParaDrawing.prototype.GetDocumentContent = function()
+{
+	let oParagraph = this.GetParagraph();
+	return (oParagraph ? oParagraph.GetParent() : null);
 };
 ParaDrawing.prototype.Get_Run = function()
 {
@@ -901,11 +904,11 @@ ParaDrawing.prototype.Get_Bounds = function()
 	return {Left : X - this.EffectExtent.L - InsL, Top : Y - this.EffectExtent.T - InsT, Bottom : Y + H + this.EffectExtent.B +  InsB, Right : X + W + this.EffectExtent.R + InsR};
 
 };
-ParaDrawing.prototype.Search = function(Str, Props, SearchEngine, Type)
+ParaDrawing.prototype.Search = function(SearchEngine, Type)
 {
 	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.Search === "function")
 	{
-		this.GraphicObj.Search(Str, Props, SearchEngine, Type)
+		this.GraphicObj.Search(SearchEngine, Type)
 	}
 };
 ParaDrawing.prototype.Set_Props = function(Props)
@@ -3262,7 +3265,7 @@ ParaDrawing.prototype.IsComparable = function(oDrawing)
 ParaDrawing.prototype.ToSearchElement = function(oProps)
 {
 	if (this.IsInline())
-		return new CSearchTextSpecialGraphicObject();
+		return new AscCommonWord.CSearchTextSpecialGraphicObject();
 
 	return null;
 };

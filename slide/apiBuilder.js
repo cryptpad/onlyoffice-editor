@@ -331,7 +331,7 @@
 	 * Standard numeric format.
 	 * @typedef {("General" | "0" | "0.00" | "#,##0" | "#,##0.00" | "0%" | "0.00%" |
 	 * "0.00E+00" | "# ?/?" | "# ??/??" | "m/d/yyyy" | "d-mmm-yy" | "d-mmm" | "mmm-yy" | "h:mm AM/PM" |
-	 * | "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
+	 * "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
 	 * "#,##0.00_);(#,##0.00)" | "#,##0.00_);[Red](#,##0.00)" | "mm:ss" | "[h]:mm:ss" | "mm:ss.0" | "##0.0E+0" | "@")} NumFormat
 	 */
 
@@ -363,13 +363,15 @@
      * Creates a new slide master.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {ApiTheme} [oTheme    = ApiPresentation.GetMaster(0).GetTheme()] - The presentation theme object.
+     * @param {ApiTheme} [oTheme = ApiPresentation.GetMaster(0).GetTheme()] - The presentation theme object.
      * @returns {?ApiMaster} - returns null if presentation theme doesn't exist.
      */
     Api.prototype.CreateMaster = function(oTheme){
         if (!oTheme || !oTheme.GetClassType || oTheme.GetClassType() !== "theme")
+        {
             if (editor.GetPresentation().GetMaster(0))
                 oTheme = editor.GetPresentation().GetMaster(0).GetTheme();
+        }
         
         if (!oTheme)
             return null;
@@ -465,7 +467,7 @@
     /**
      * Creates a new theme color scheme.
      * @typeofeditors ["CPE"]
-     * @memberof Api.
+     * @memberof Api
      * @param {(ApiUniColor[] | ApiRGBColor[])} arrColors - Set of colors which are referred to as a color scheme.
      * The color scheme is responsible for defining a list of twelve colors.
      * The array should contain a sequence of colors: 2 dark, 2 light, 6 primary, a color for a hyperlink and a color for the followed hyperlink.
@@ -788,7 +790,7 @@
         {
             oTempPlaceholder = allDrawings[nDrawing].GetPlaceholder();
 
-            if (oTempPlaceholder.Placeholder.type === oPlaceholder.Placeholder.type)
+            if (oTempPlaceholder && oTempPlaceholder.Placeholder.type === oPlaceholder.Placeholder.type)
             {
                 if (oTempPlaceholder.Placeholder.idx && +oTempPlaceholder.Placeholder.idx > maxIndex)
                     maxIndex  = +oTempPlaceholder.Placeholder.idx;
@@ -1146,7 +1148,7 @@
      */
     ApiPresentation.prototype.GetSlidesCount = function()
     {
-        return this.Presentation.Slides.length;
+        return this.Presentation.GetSlidesCount();
     };
 
     /**
@@ -1182,7 +1184,7 @@
      */
     ApiPresentation.prototype.AddMaster = function(nPos, oApiMaster)
     {
-        if (oApiMaster && oApiMaster.GetClassType && oApiMaster.GetClassType() !== "master")
+        if (oApiMaster && oApiMaster.GetClassType && oApiMaster.GetClassType() === "master")
         {
             if (!nPos || nPos < 0 || nPos > this.Presentation.slideMasters.length)
                 nPos = this.Presentation.slideMasters.length;
@@ -1202,11 +1204,11 @@
      * @returns {boolean} - returns false if param isn't theme or presentation doesn't exist.
      * */
     ApiPresentation.prototype.ApplyTheme = function(oApiTheme){
-       if (!this.Presentation || !oApiTheme.GetClassType || oApiTheme.GetClassType() !== "theme")
-       {
+       if (this.Presentation && oApiTheme.GetClassType && oApiTheme.GetClassType() === "theme")
+        {
            this.Presentation.changeTheme(oApiTheme.ThemeInfo);
            return true;
-       }
+        }
 
        return false;
     };
@@ -1239,7 +1241,7 @@
 	};
 
     /**
-     * Gets the width of the current presentation.
+     * Returns the presentation width in English measure units.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @returns {EMU}
@@ -1251,7 +1253,7 @@
     };
 
     /**
-     * Gets the height of the current presentation.
+     * Returns the presentation height in English measure units.
      * @typeofeditors ["CPE"]
      * @memberof ApiPresentation
      * @returns {EMU}
@@ -1795,6 +1797,7 @@
 
     /**
      * Creates a copy of the specified slide layout object.
+     * Copies without master slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiLayout | null} - returns new ApiLayout object that represents the copy of slide layout. 
      * Returns null if slide layout doesn't exist.
@@ -2092,7 +2095,7 @@
     {
         if (oApiColorScheme && oApiColorScheme.GetClassType && oApiColorScheme.GetClassType() === "themeColorScheme")
         {
-            this.ThemeInfo.Theme.themeElements.clrScheme = oApiColorScheme.ColorScheme;
+            this.ThemeInfo.Theme.setColorScheme(oApiColorScheme.ColorScheme);
             return true;
         }
 
@@ -2122,9 +2125,9 @@
      */
     ApiTheme.prototype.SetFormatScheme = function(oApiFormatScheme)
     {
-        if (oApiFormatScheme && oApiFormatScheme.GetClassType && oApiFormatScheme.GetClassType() === "themeColorScheme")
+        if (oApiFormatScheme && oApiFormatScheme.GetClassType && oApiFormatScheme.GetClassType() === "themeFormatScheme")
         {
-            this.ThemeInfo.Theme.themeElements.fmtScheme = oApiFormatScheme.FormatScheme;
+            this.ThemeInfo.Theme.setFormatScheme(oApiFormatScheme.FormatScheme);
             return true;
         }
 
@@ -2154,9 +2157,9 @@
      */
     ApiTheme.prototype.SetFontScheme = function(oApiFontScheme)
     {
-        if (oApiFontScheme && oApiFontScheme.GetClassType && oApiFontScheme.GetClassType() === "themeColorScheme")
+        if (oApiFontScheme && oApiFontScheme.GetClassType && oApiFontScheme.GetClassType() === "themeFontScheme")
         {
-            this.ThemeInfo.Theme.themeElements.fontScheme = oApiFontScheme.FontScheme;
+            this.ThemeInfo.Theme.setFontScheme(oApiFontScheme.FontScheme);
             return true;
         }
 
@@ -2599,42 +2602,16 @@
 
     /**
      * Applies the specified layout to the current slide.
+     * The layout must be in slide master.
      * @typeofeditors ["CPE"]
      * @param {ApiLayout} oLayout - Layout to be applied.
      * @returns {boolean} - returns false if slide doesn't exist.
      * */
     ApiSlide.prototype.ApplyLayout = function(oLayout){
-        if (!this.Slide)
+        if (!this.Slide || !oLayout || !oLayout.Layout.Master)
             return false;
 
-        this.RemoveAllObjects();
-        this.Slide.setLayout(oLayout.Layout);
-
-        var oPresentation = editor.GetPresentation().Presentation;
-        var layout, i, _ph_type, sp, hf, bIsSpecialPh;
-
-        layout = oLayout.Layout;
-        hf = oLayout.Layout.Master.hf;
-        this.Slide.setNotes(AscCommonSlide.CreateNotes());
-        this.Slide.notes.setNotesMaster(oPresentation.notesMasters[0]);
-        this.Slide.notes.setSlide(this.Slide);
-        for (i = 0; i < layout.cSld.spTree.length; ++i) {
-            if (layout.cSld.spTree[i].isPlaceholder()) {
-                _ph_type = layout.cSld.spTree[i].getPhType();
-                bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
-                if (!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
-                    (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
-                    (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
-                    (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
-                    sp = layout.cSld.spTree[i].copy(undefined);
-                    sp.setParent(this.Slide);
-                    !bIsSpecialPh && sp.clearContent && sp.clearContent();
-                    this.Slide.addToSpTreeToPos(this.Slide.cSld.spTree.length, sp);
-                }
-            }
-        }
-        this.Slide.setSlideSize(oPresentation.Width, oPresentation.Height);
-
+        this.Slide.changeLayout(oLayout.Layout);
         return true;
     };
 
@@ -2808,10 +2785,10 @@
      * @returns {boolean} - returns false if master is null or master hasn't background.
      * */
     ApiSlide.prototype.ApplyTheme = function(oApiTheme){
-        if (!this.Slide || !oApiTheme || !oApiTheme.GetClassType ||oApiTheme.GetClassType() !== "theme")
+        if (!this.Slide || !oApiTheme || !oApiTheme.GetClassType || oApiTheme.GetClassType() !== "theme")
             return false;
 
-        var oPresentation = editor.GetPresentation().Presentation;
+        var oPresentation = private_GetPresentation();
         var i;
     
         oPresentation.clearThemeTimeouts();
@@ -2826,7 +2803,7 @@
         var oldMaster = this.Slide && this.Slide.Layout && this.Slide.Layout.Master;
         var _new_master = oApiTheme.ThemeInfo.Master;
         _new_master.presentation = oPresentation;
-        oApiTheme.ThemeInfo.Master.changeSize(oPresentation.Width, oPresentation.Height);
+        oApiTheme.ThemeInfo.Master.changeSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
         var oContent, oMasterSp, oMasterContent, oSp;
         if (oldMaster && oldMaster.hf) {
             oApiTheme.ThemeInfo.Master.setHF(oldMaster.hf.createDuplicate());
@@ -2892,7 +2869,7 @@
             }
         }
         for (i = 0; i < oApiTheme.ThemeInfo.Master.sldLayoutLst.length; ++i) {
-            oApiTheme.ThemeInfo.Master.sldLayoutLst[i].changeSize(oPresentation.Width, oPresentation.Height);
+            oApiTheme.ThemeInfo.Master.sldLayoutLst[i].changeSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
         }
         
         var new_layout;
@@ -3280,7 +3257,7 @@
     /**
 	 * Returns the width of the current drawing.
 	 * @memberof ApiDrawing
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @returns {EMU}
 	 */
 	ApiDrawing.prototype.GetWidth = function()
@@ -3290,7 +3267,7 @@
 	/**
 	 * Returns the height of the current drawing.
 	 * @memberof ApiDrawing
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @returns {EMU}
 	 */
 	ApiDrawing.prototype.GetHeight = function()
@@ -3676,7 +3653,7 @@
     /**
 	 * Removes the specified series from the current chart.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
 	 */
@@ -3688,7 +3665,7 @@
     /**
 	 * Sets values to the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {number[]} aValues - The array of the data which will be set to the specified chart series.
 	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
@@ -3701,7 +3678,7 @@
 	/**
 	 * Sets the x-axis values to all chart series. It is used with the scatter charts only.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {string[]} aValues - The array of the data which will be set to the x-axis data points.
 	 * @returns {boolean}
 	 */
@@ -3715,7 +3692,7 @@
 	/**
 	 * Sets a name to the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {string} sName - The name which will be set to the specified chart series.
 	 * @param {number} nSeria - The index of the chart series.
 	 * @returns {boolean}
@@ -3728,7 +3705,7 @@
 	/**
 	 * Sets a name to the specified chart category.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {string} sName - The name which will be set to the specified chart category.
 	 * @param {number} nCategory - The index of the chart category.
 	 * @returns {boolean}
@@ -3741,7 +3718,7 @@
     /**
 	 * Sets a style to the current chart by style ID.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param nStyleId - One of the styles available in the editor.
 	 * @returns {boolean}
 	 */
@@ -3765,7 +3742,7 @@
 	/**
 	 * Sets the fill to the chart plot area.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the plot area.
 	 * @returns {boolean}
 	 */
@@ -3781,7 +3758,7 @@
 	/**
 	 * Sets the outline to the chart plot area.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the plot area outline.
 	 * @returns {boolean}
 	 */
@@ -3797,7 +3774,7 @@
 	/**
 	 * Sets the fill to the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the series.
 	 * @param {number} nSeries - The index of the chart series.
 	 * @param {boolean} [bAll=false] - Specifies if the fill will be applied to all series.
@@ -3814,7 +3791,7 @@
 	/**
 	 * Sets the outline to the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the series outline.
 	 * @param {number} nSeries - The index of the chart series.
 	 * @param {boolean} [bAll=false] - Specifies if the outline will be applied to all series.
@@ -3831,7 +3808,7 @@
 	/**
 	 * Sets the fill to the data point in the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the data point.
 	 * @param {number} nSeries - The index of the chart series.
 	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
@@ -3849,7 +3826,7 @@
 	/**
 	 * Sets the outline to the data point in the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the data point outline.
 	 * @param {number} nSeries - The index of the chart series.
 	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
@@ -3867,7 +3844,7 @@
 	/**
 	 * Sets the fill to the marker in the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the marker.
 	 * @param {number} nSeries - The index of the chart series.
 	 * @param {number} nMarker - The index of the marker in the specified chart series.
@@ -3885,7 +3862,7 @@
 	/**
 	 * Sets the outline to the marker in the specified chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the marker outline.
 	 * @param {number} nSeries - The index of the chart series.
 	 * @param {number} nMarker - The index of the marker in the specified chart series.
@@ -3903,7 +3880,7 @@
 	/**
 	 * Sets the fill to the chart title.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the title.
 	 * @returns {boolean}
 	 */
@@ -3918,7 +3895,7 @@
 	/**
 	 * Sets the outline to the chart title.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the title outline.
 	 * @returns {boolean}
 	 */
@@ -3933,7 +3910,7 @@
 	/**
 	 * Sets the fill to the chart legend.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiFill} oFill - The fill type used to fill the legend.
 	 * @returns {boolean}
 	 */
@@ -3948,7 +3925,7 @@
 	/**
 	 * Sets the outline to the chart legend.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, CPE, CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {ApiStroke} oStroke - The stroke used to create the legend outline.
 	 * @returns {boolean}
 	 */
@@ -3963,7 +3940,7 @@
     /**
 	 * Sets the specified numeric format to the axis values.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, "CPE", "CSE"]
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
 	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
 	 * @param {AxisPos} - Axis position.
 	 * @returns {boolean}
@@ -3995,7 +3972,7 @@
 	/**
 	 * Sets the specified numeric format to the chart series.
 	 * @memberof ApiChart
-	 * @typeofeditors ["CDE, "CPE"]
+	 * @typeofeditors ["CDE", "CPE"]
 	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
 	 * @param {Number} nSeria - Series index.
 	 * @returns {boolean}
@@ -4752,6 +4729,7 @@
     ApiSlide.prototype["GetClassType"]                    = ApiSlide.prototype.GetClassType;
     ApiSlide.prototype["RemoveAllObjects"]                = ApiSlide.prototype.RemoveAllObjects;
     ApiSlide.prototype["AddObject"]                       = ApiSlide.prototype.AddObject;
+    ApiSlide.prototype["RemoveObject"]                    = ApiSlide.prototype.RemoveObject;
     ApiSlide.prototype["SetBackground"]                   = ApiSlide.prototype.SetBackground;
     ApiSlide.prototype["GetWidth"]                        = ApiSlide.prototype.GetWidth;
     ApiSlide.prototype["GetHeight"]                       = ApiSlide.prototype.GetHeight;

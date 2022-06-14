@@ -68,8 +68,9 @@ function CHistory(Document)
 		Update       : true
 	};
 
-	this.TurnOffHistory = 0;
-    this.MinorChanges   = false; // Данный параметр нужен, чтобы определить влияют ли добавленные изменения на пересчет
+	this.TurnOffHistory  = 0;
+	this.RegisterClasses = 0;
+    this.MinorChanges    = false; // Данный параметр нужен, чтобы определить влияют ли добавленные изменения на пересчет
 
     this.BinaryWriter = new AscCommon.CMemory();
 
@@ -100,11 +101,8 @@ CHistory.prototype =
         return this.UserSaveMode;
     },
 
-    Update_FileDescription : function(oStream)
+    Update_FileDescription : function(pData, nSize)
     {
-        var pData = oStream.data;
-        var nSize = oStream.size;
-
         this.FileCheckSum = AscCommon.g_oCRC32.Calculate_ByByteArray(pData, nSize);
         this.FileSize     = nSize;
     },
@@ -797,18 +795,6 @@ CHistory.prototype =
         return true;
     },
 
-    TurnOff : function()
-    {
-		this.TurnOffHistory++;
-    },
-
-    TurnOn : function()
-    {
-		this.TurnOffHistory--;
-		if(this.TurnOffHistory < 0)
-			this.TurnOffHistory = 0;
-    },
-
 	/** @returns {boolean} */
     Is_On : function()
     {
@@ -989,14 +975,43 @@ CHistory.prototype =
         }
     }
 };
-/**
- * Проверяем, можно ли добавить изменение
- * @returns {boolean}
- */
-CHistory.prototype.CanAddChanges = function()
-{
-	return (0 === this.TurnOffHistory && this.Index >= 0);
-};
+	/**
+	 * Проверяем, можно ли добавить изменение
+	 * @returns {boolean}
+	 */
+	CHistory.prototype.CanAddChanges = function()
+	{
+		return (0 === this.TurnOffHistory && this.Index >= 0);
+	};
+	CHistory.prototype.CanRegisterClasses = function()
+	{
+		return (0 === this.TurnOffHistory || this.RegisterClasses >= this.TurnOffHistory);
+	};
+	CHistory.prototype.TurnOff = function()
+	{
+		this.TurnOffHistory++;
+	};
+	CHistory.prototype.TurnOn = function()
+	{
+		this.TurnOffHistory--;
+		if(this.TurnOffHistory < 0)
+			this.TurnOffHistory = 0;
+	};
+	CHistory.prototype.TurnOffChanges = function()
+	{
+		this.TurnOffHistory++;
+		this.RegisterClasses++;
+	};
+	CHistory.prototype.TurnOnChanges = function()
+	{
+		this.TurnOffHistory--;
+		if(this.TurnOffHistory < 0)
+			this.TurnOffHistory = 0;
+
+		this.RegisterClasses--;
+		if (this.RegisterClasses < 0)
+			this.RegisterClasses = 0;
+	};
 CHistory.prototype.ClearAdditional = function()
 {
 	if (this.Index >= 0)

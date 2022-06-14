@@ -39,7 +39,7 @@ var CShape = AscFormat.CShape;
 
 var History = AscCommon.History;
 
-var G_O_DEFAULT_COLOR_MAP = AscFormat.GenerateDefaultColorMap();
+
 
     CShape.prototype.getEditorType = function()
     {
@@ -120,13 +120,15 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
 {
 
     var drawingObjects;
-    var wsViews = Asc["editor"].wb.wsViews;
-    for(var i = 0; i < wsViews.length; ++i)
-    {
-        if(wsViews[i] && wsViews[i].model === worksheet)
+    var wsViews = Asc["editor"].wb && Asc["editor"].wb.wsViews;
+    if(wsViews) {
+        for(var i = 0; i < wsViews.length; ++i)
         {
-            drawingObjects = wsViews[i].objectRender;
-            break;
+            if(wsViews[i] && wsViews[i].model === worksheet)
+            {
+                drawingObjects = wsViews[i].objectRender;
+                break;
+            }
         }
     }
     if(!drawingObjects)
@@ -835,7 +837,7 @@ CShape.prototype.recalculateContent = function()
 
 CShape.prototype.Get_ColorMap = function()
 {
-    return G_O_DEFAULT_COLOR_MAP;
+    return AscFormat.DEFAULT_COLOR_MAP;
 };
 
 CShape.prototype.getStyles = function(index)
@@ -893,6 +895,5 @@ AscFormat.CTextBody.prototype.getDrawingDocument = function()
 
     //------------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
-    window['AscFormat'].G_O_DEFAULT_COLOR_MAP = G_O_DEFAULT_COLOR_MAP;
     window['AscFormat'].addToDrawings = addToDrawings;
 })(window);

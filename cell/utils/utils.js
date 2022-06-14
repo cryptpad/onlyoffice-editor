@@ -520,6 +520,18 @@
 			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r2);
 		};
 
+		Range.prototype.containsRanges = function (ranges) {
+			if (ranges && ranges.length) {
+				for (var i = 0; i < ranges.length; i++) {
+					if (!this.containsRange(ranges[i])) {
+						return false;
+					}
+				}
+				return true;
+			}
+			return false;
+		};
+
 		Range.prototype.containsFirstLineRange = function (range) {
 			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r1);
 		};
@@ -1153,7 +1165,7 @@
 			});
 		};
 		SelectionRange.prototype.clone = function (worksheet) {
-			var res = new SelectionRange();
+			var res = new this.constructor();
 			res.ranges = this.ranges.map(function (range) {
 				return range.clone();
 			});
@@ -1211,7 +1223,7 @@
 			}
 		};
 		SelectionRange.prototype.getUnion = function () {
-			var result = new SelectionRange(this.worksheet);
+			var result = new this.constructor(this.worksheet);
 			var unionRanges = function (ranges, res) {
 				for (var i = 0; i < ranges.length; ++i) {
 					if (0 === i) {
@@ -1225,7 +1237,7 @@
 
 			var isUnion = true, resultTmp;
 			while (isUnion && !result.isSingleRange()) {
-				resultTmp = new SelectionRange(this.worksheet);
+				resultTmp = new this.constructor(this.worksheet);
 				unionRanges(result.ranges, resultTmp);
 				isUnion = result.ranges.length !== resultTmp.ranges.length;
 				result = resultTmp;
@@ -1434,6 +1446,35 @@
 			return res;
 		};
 
+		/**
+		 *
+		 * @param ws
+		 * @param range
+		 * @constructor
+		 * @extends {SelectionRange}
+		 */
+		function OleSizeSelectionRange(ws, range) {
+			SelectionRange.call(this, ws);
+			if (range) {
+				this.ranges = [range];
+				this.activeCell = new AscCommon.CellBase(range.r1, range.c1);
+			}
+		}
+		OleSizeSelectionRange.prototype = Object.create(SelectionRange.prototype);
+		OleSizeSelectionRange.prototype.constructor = OleSizeSelectionRange;
+
+		OleSizeSelectionRange.prototype.validActiveCell = function () {
+			return true;
+		};
+		OleSizeSelectionRange.prototype.clean = function () {
+			this.ranges = [new Range(0, 0, 10, 10)];
+			this.activeCellId = 0;
+			this.activeCell.clean();
+		};
+		OleSizeSelectionRange.prototype.getName = function () {
+			var range = this.getLast();
+			return range.getName();
+		};
     /**
      *
      * @constructor
@@ -2942,7 +2983,7 @@
 			this.isWholeCell = false;
 			this.isWholeWord = false;
 			this.isSpellCheck = false;		    // изменение вызванное в проверке орфографии
-			this.scanOnOnlySheet = true;				// искать только на листе/в книге
+			this.scanOnOnlySheet = Asc.c_oAscSearchBy.Sheet;				// искать только на листе/в книге c_oAscSearchBy
 			this.lookIn = Asc.c_oAscFindLookIn.Formulas;	// искать в формулах/значениях/примечаниях
 
 			this.findRegExp = null;
@@ -2961,6 +3002,8 @@
 			this.countReplaceAll = 0;
 			this.sheetIndex = -1;
 			this.error = false;
+
+			this.specificRange = null;
 		}
 
 		asc_CFindOptions.prototype.clone = function () {
@@ -2976,6 +3019,7 @@
 			result.scanOnOnlySheet = this.scanOnOnlySheet;
 			result.lookIn = this.lookIn;
 
+
 			result.replaceWith = this.replaceWith;
 			result.isReplaceAll = this.isReplaceAll;
 
@@ -2989,6 +3033,8 @@
 			result.countReplaceAll = this.countReplaceAll;
 			result.sheetIndex = this.sheetIndex;
 			result.error = this.error;
+
+			result.specificRange = this.specificRange;
 			return result;
 		};
 
@@ -3010,6 +3056,15 @@
 			this.countFindAll += this.countFind;
 			this.countReplaceAll += this.countReplace;
 		};
+		asc_CFindOptions.prototype.GetText = function () {
+			return this.findWhat;
+		};
+		asc_CFindOptions.prototype.IsMatchCase = function () {
+			return this.isMatchCase;
+		};
+		asc_CFindOptions.prototype.IsWholeWords = function () {
+			return this.isWholeWord;
+		};
 
 		asc_CFindOptions.prototype.asc_setFindWhat = function (val) {this.findWhat = val;};
 		asc_CFindOptions.prototype.asc_setScanByRows = function (val) {this.scanByRows = val;};
@@ -3022,6 +3077,7 @@
 		asc_CFindOptions.prototype.asc_setLookIn = function (val) {this.lookIn = val;};
 		asc_CFindOptions.prototype.asc_setReplaceWith = function (val) {this.replaceWith = val;};
 		asc_CFindOptions.prototype.asc_setIsReplaceAll = function (val) {this.isReplaceAll = val;};
+		asc_CFindOptions.prototype.asc_setSpecificRange = function (val) {this.specificRange = val;};
 
 		/** @constructor */
 		function findResults() {
@@ -3475,6 +3531,7 @@
 		window["Asc"].Range = Range;
 		window["AscCommonExcel"].Range3D = Range3D;
 		window["AscCommonExcel"].SelectionRange = SelectionRange;
+		window["AscCommonExcel"].OleSizeSelectionRange = OleSizeSelectionRange;
 		window["AscCommonExcel"].ActiveRange = ActiveRange;
 		window["AscCommonExcel"].FormulaRange = FormulaRange;
 		window["AscCommonExcel"].MultiplyRange = MultiplyRange;

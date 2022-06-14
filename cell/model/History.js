@@ -354,6 +354,7 @@ function CHistory()
     this.Index    = -1;
     this.Points   = [];
     this.TurnOffHistory = 0;
+	this.RegisterClasses = 0;
     this.Transaction = 0;
     this.LocalChange = false;//если true все добавленный изменения не пойдут в совместное редактирование.
 	this.RecIndex = -1;
@@ -476,13 +477,15 @@ CHistory.prototype.UndoRedoPrepare = function (oRedoObjectParam, bUndo) {
 		this.workbook.bRedoChanges = true;
 
 	if (!window["NATIVE_EDITOR_ENJINE"]) {
-		var wsViews = Asc["editor"].wb.wsViews;
-		for (var i = 0; i < wsViews.length; ++i) {
-			if (wsViews[i]) {
-				if (wsViews[i].objectRender && wsViews[i].objectRender.controller) {
-					wsViews[i].objectRender.controller.resetSelection(undefined, true);
+		if(Asc["editor"].wb) {
+			var wsViews = Asc["editor"].wb.wsViews;
+			for (var i = 0; i < wsViews.length; ++i) {
+				if (wsViews[i]) {
+					if (wsViews[i].objectRender && wsViews[i].objectRender.controller) {
+						wsViews[i].objectRender.controller.resetSelection(undefined, true);
+					}
+					wsViews[i].endEditChart();
 				}
-				wsViews[i].endEditChart();
 			}
 		}
 	}
@@ -709,7 +712,10 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 
 	if (oRedoObjectParam.bIsOn)
 		this.TurnOn();
-		
+
+	if (!bUndo) {
+		this.workbook.handlers.trigger("updatePrintPreview");
+	}
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 	this.workbook.handlers.trigger("toggleAutoCorrectOptions", null, true);
@@ -1090,12 +1096,30 @@ CHistory.prototype.TurnOff = function()
 {
 	this.TurnOffHistory++;
 };
-
 CHistory.prototype.TurnOn = function()
 {
 	this.TurnOffHistory--;
 	if(this.TurnOffHistory < 0)
 		this.TurnOffHistory = 0;
+};
+CHistory.prototype.CanRegisterClasses = function()
+{
+	return (0 === this.TurnOffHistory || this.RegisterClasses >= this.TurnOffHistory);
+};
+CHistory.prototype.TurnOffChanges = function()
+{
+	this.TurnOffHistory++;
+	this.RegisterClasses++;
+};
+CHistory.prototype.TurnOnChanges = function()
+{
+	this.TurnOffHistory--;
+	if(this.TurnOffHistory < 0)
+		this.TurnOffHistory = 0;
+
+	this.RegisterClasses--;
+	if (this.RegisterClasses < 0)
+		this.RegisterClasses = 0;
 };
 
 CHistory.prototype.StartTransaction = function()

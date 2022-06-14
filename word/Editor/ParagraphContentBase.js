@@ -654,7 +654,7 @@ CParagraphContentBase.prototype.ApplyTextPr = function(oTextPr, isIncFontSize, i
 };
 /**
  * Функция для поиска внутри элементов параграфа
- * @param {CParagraphSearch} oParaSearch
+ * @param {AscCommonWord.CParagraphSearch} oParaSearch
  */
 CParagraphContentBase.prototype.Search = function(oParaSearch)
 {
@@ -1609,6 +1609,13 @@ CParagraphContentWithParagraphLikeContent.prototype.Add_ToContent = function(Pos
     if (Item.SetParagraph)
     	Item.SetParagraph(this.GetParagraph());
 };
+CParagraphContentWithParagraphLikeContent.prototype.ConcatContent = function (Items)
+{
+	let Pos = this.GetElementsCount();
+	for (let i = 0; i < Items.length; ++i) {
+		this.Add_ToContent(Pos + i, Items[i]);
+	}
+};
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
 	for (var nIndex = Pos; nIndex < Pos + Count; ++nIndex)
@@ -2474,6 +2481,10 @@ CParagraphContentWithParagraphLikeContent.prototype.private_UpdateSelectionPosOn
 CParagraphContentWithParagraphLikeContent.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
 	return this.Add_ToContent(nPos, oItem, isUpdatePositions);
+};
+CParagraphContentWithParagraphLikeContent.prototype.AddToContentToEnd = function(oItem, isUpdatePositions)
+{
+	return this.Add_ToContent(this.GetElementsCount(), oItem, isUpdatePositions);
 };
 CParagraphContentWithParagraphLikeContent.prototype.RemoveFromContent = function(nPos, nCount, isUpdatePositions)
 {
@@ -3858,7 +3869,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search = function(oParaSearc
 CParagraphContentWithParagraphLikeContent.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
 	oSearchResult.RegisterClass(isStart, this);
-	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, nDepth));
+	this.SearchMarks.push(new AscCommonWord.CParagraphSearchMark(oSearchResult, isStart, nDepth));
 	this.Content[oContentPos.Get(nDepth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
 };
 CParagraphContentWithParagraphLikeContent.prototype.ClearSearchResults = function()

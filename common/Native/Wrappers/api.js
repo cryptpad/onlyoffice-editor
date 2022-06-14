@@ -3922,6 +3922,7 @@ function asc_menu_ReadAscFill_grad(_params, _cursor)
                         }
                     }
                 }
+                _cursor.pos++;
                 break;
             }
             case 255:
@@ -5448,7 +5449,11 @@ Asc['asc_docs_api'].prototype.SetDocumentModified = function(bValue)
 // find -------------------------------------------------------------------------------------------------
 Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase, callback)
 {
-    var SearchEngine = editor.WordControl.m_oLogicDocument.Search( text, { MatchCase : isMatchCase } );
+	let oProps = AscCommon.CSearchSettings();
+	oProps.SetText(text);
+	oProps.SetMatchCase(isMatchCase);
+
+    var SearchEngine = editor.WordControl.m_oLogicDocument.Search(oProps);
 
     var Id = this.WordControl.m_oLogicDocument.GetSearchElementId( isNext );
 
@@ -5457,12 +5462,17 @@ Asc['asc_docs_api'].prototype.asc_findText = function(text, isNext, isMatchCase,
 
     if (callback)
         callback(SearchEngine.Count);
+
     return SearchEngine.Count;
 };
 
 Asc['asc_docs_api'].prototype.asc_replaceText = function(text, replaceWith, isReplaceAll, isMatchCase)
 {
-    this.WordControl.m_oLogicDocument.Search( text, { MatchCase : isMatchCase } );
+	let oProps = AscCommon.CSearchSettings();
+	oProps.SetText(text);
+	oProps.SetMatchCase(isMatchCase);
+
+    this.WordControl.m_oLogicDocument.Search(oProps);
 
     if ( true === isReplaceAll )
     {
@@ -5565,12 +5575,6 @@ FontStyleBoldItalic: 3,
 FontStyleUnderline:  4,
 FontStyleStrikeout:  8
 };
-
-function CFontManager()
-{
-    this.m_oLibrary = {};
-    this.Initialize = function(){};
-}
 
 function CStylesPainter()
 {
@@ -6214,8 +6218,6 @@ function initSpellCheckApi() {
 
 function NativeOpenFile3(_params, documentInfo)
 {
-    window["CreateMainTextMeasurerWrapper"]();
-
     window.g_file_path = "native_open_file";
     window.NATIVE_DOCUMENT_TYPE = window["native"]["GetEditorType"]();
     var doc_bin = window["native"]["GetFileString"](window.g_file_path);
