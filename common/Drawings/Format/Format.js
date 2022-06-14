@@ -9235,10 +9235,14 @@
 		function UniNvPr() {
 
 			CBaseFormatObject.call(this);
-			this.cNvPr = new CNvPr();
+			this.cNvPr = null;
 			this.UniPr = null;
-			this.nvPr = new NvPr();
-			this.nvUniSpPr = new CNvUniSpPr();
+			this.nvPr = null;
+			this.nvUniSpPr = null;
+
+			this.setCNvPr(new CNvPr());
+			this.setNvPr(new NvPr());
+			this.setUniSpPr(new CNvUniSpPr());
 
 		}
 
