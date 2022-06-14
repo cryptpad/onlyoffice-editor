@@ -10658,6 +10658,9 @@ CSlideBoundsChecker.prototype =
     {
         this.m_oTextPr = textPr;
     },
+    SetFontInternal : function(name, size, style)
+    {
+    },
     SetFontSlot : function(slot, fontSizeKoef)
     {
     },
