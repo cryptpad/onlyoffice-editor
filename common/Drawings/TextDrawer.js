@@ -1664,6 +1664,23 @@ CTextDrawer.prototype =
     {
     },
 
+    SetFontInternal : function(name, size, style)
+    {
+        var fontinfo = g_fontApplication.GetFontInfo(name, style);
+        if (this.m_oFont.Name !== fontinfo.Name)
+        {
+            this.m_oFont.Name = fontinfo.Name;
+        }
+        if (this.m_oFont.FontSize !== size)
+        {
+            this.m_oFont.FontSize = size;
+        }
+        if (this.m_oFont.Style != style)
+        {
+            this.m_oFont.Style = style;
+        }
+    },
+
     SetFontSlot : function(slot, fontSizeKoef)
     {
         var _rfonts = this.m_oGrFonts;
