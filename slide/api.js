@@ -1652,9 +1652,12 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.ImageMap[_cur_ind++] = path;
 				let data = context.zip.getFile(path);
 				if (data) {
-					let blob = new Blob([data], {type: "image/png"});
-					let url = window.URL.createObjectURL(blob);
-					AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+					if (!window["NATIVE_EDITOR_ENJINE"]) {
+						let mime = AscCommon.openXml.GetMimeType(AscCommon.GetFileExtension(path));
+						let blob = new Blob([data], {type: mime});
+						let url = window.URL.createObjectURL(blob);
+						AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+					}
 					context.imageMap[path].forEach(function(blipFill) {
 						AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
 					});
@@ -7695,14 +7698,9 @@ background-repeat: no-repeat;\
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation,
 					function(data) {
-						if (!data) {
-							return;
+						if (data) {
+							AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("pptx"));
 						}
-						var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("pptx")});
-						var link = document.createElement("a");
-						link.href = window.URL.createObjectURL(blob);
-						link.download = title;
-						link.click();
 					});
 				if (actionType)
 				{

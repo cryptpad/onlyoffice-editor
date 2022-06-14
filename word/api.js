@@ -8621,14 +8621,9 @@ background-repeat: no-repeat;\
 			if (c_oAscFileType.DOTX === fileType) {
 				var title = this.documentTitle;
 				this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Word, function(data) {
-					if (!data) {
-						return;
+					if (data) {
+						AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("docx"));
 					}
-					var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("docx")});
-					var link = document.createElement("a");
-					link.href = window.URL.createObjectURL(blob);
-					link.download = title;
-					link.click();
 				});
 				if (actionType)
 				{

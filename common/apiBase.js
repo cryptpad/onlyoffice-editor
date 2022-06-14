@@ -2274,13 +2274,22 @@
 		var downloadImages = function (imageMapKeys) {
 			if (imageMapKeys.length > 0) {
 				var elem = imageMapKeys.pop();
-				var url = AscCommon.g_oDocumentUrls.getImageUrl(elem);
-				AscCommon.loadFileContent(url, function (httpRequest) {
-					if (httpRequest && httpRequest.response) {
-						context.imageMap[elem].part.setData(httpRequest.response);
+				if (window["NATIVE_EDITOR_ENJINE"] === true && window["native"]["getImagesDirectory"] && window["native"]["GetFontBinary"]) {
+					let path = window["native"]["getImagesDirectory"]() + '/' + elem;
+					let data = window["native"]["GetFileBinary"](path);
+					if (data) {
+						context.imageMap[elem].part.setData(data);
 					}
 					downloadImages(imageMapKeys);
-				}, "arraybuffer");
+				} else {
+					var url = AscCommon.g_oDocumentUrls.getImageUrl(elem);
+					AscCommon.loadFileContent(url, function (httpRequest) {
+						if (httpRequest && httpRequest.response) {
+							context.imageMap[elem].part.setData(httpRequest.response);
+						}
+						downloadImages(imageMapKeys);
+					}, "arraybuffer");
+				}
 			} else {
 				var data = window.nativeZlibEngine.save();
 				window.nativeZlibEngine.close();

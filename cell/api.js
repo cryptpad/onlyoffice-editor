@@ -1187,14 +1187,9 @@ var editor;
 			var title = this.documentTitle;
 			AscCommonExcel.executeInR1C1Mode(false, function () {
 				t.saveDocumentToZip(t.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
-					if (!data) {
-						return;
+					if (data) {
+						AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("xlsx"));
 					}
-					var blob = new Blob([data], {type: AscCommon.openXml.GetMimeType("xlsx")});
-					var link = document.createElement("a");
-					link.href = window.URL.createObjectURL(blob);
-					link.download = title;
-					link.click();
 				});
 				if (actionType)
 				{

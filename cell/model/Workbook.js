@@ -2106,9 +2106,12 @@
 				if (context.imageMap.hasOwnProperty(path)) {
 					var data = context.zip.getFile(path);
 					if (data) {
-						var blob = new Blob([data], {type: "image/png"});
-						var url = window.URL.createObjectURL(blob);
-						AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+						if (!window["NATIVE_EDITOR_ENJINE"]) {
+							let mime = AscCommon.openXml.GetMimeType(AscCommon.GetFileExtension(path));
+							let blob = new Blob([data], {type: mime});
+							let url = window.URL.createObjectURL(blob);
+							AscCommon.g_oDocumentUrls.addImageUrl(path, url);
+						}
 						context.imageMap[path].forEach(function(blipFill) {
 							AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
 						});
