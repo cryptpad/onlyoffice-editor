@@ -108,7 +108,7 @@
 
 		this.FontSize = oFontInfo.Size;
 
-		AscFonts.HB_ShapeString(this, nFontId, oFontInfo.Style, this.FontId, 15, nScript, nDirection, "en");
+		AscFonts.HB_ShapeString(this, nFontId, oFontInfo.Style, this.FontId, 0, nScript, nDirection, "en");
 
 		this.ClearBuffer();
 	};
