@@ -479,7 +479,7 @@ CopyProcessor.prototype =
 				break;
             case para_NewLine:
 				var oBr = new CopyElement("br");
-                if( break_Page === ParaItem.BreakType)
+                if(ParaItem.IsPageBreak())
                 {
 					oBr.oAttributes["clear"] = "all";
 					oBr.oAttributes["style"] = "mso-special-character:line-break;page-break-before:always;";
@@ -2737,7 +2737,7 @@ PasteProcessor.prototype =
 					for(var j = 0; j < elem.Content[i].Content.length; j++)
 					{
 						var contentElem = elem.Content[i].Content[j];
-						if(!(contentElem instanceof ParaEnd))
+						if(!(contentElem instanceof AscWord.CRunParagraphMark))
 						{
 							var typeElem = contentElem.GetType ? contentElem.GetType() : null;
 							if(para_Drawing === typeElem)
@@ -5229,15 +5229,15 @@ PasteProcessor.prototype =
                                 bAddParagraph = true;
                             }
                             else if (9 === nUnicode) // \t
-                                oCurRun.AddToContent(nCharPos++, new ParaTab(), true);
+                                oCurRun.AddToContent(nCharPos++, new AscWord.CRunTab(), true);
                             else if (10 === nUnicode) // \n
-                                oCurRun.AddToContent(nCharPos++, new ParaNewLine(break_Line), true);
+                                oCurRun.AddToContent(nCharPos++, new AscWord.CRunBreak(AscWord.break_Line), true);
                             else if (13 === nUnicode) // \r
                                 continue;
                             else if (AscCommon.IsSpace(nUnicode)) // space
-                                oCurRun.AddToContent(nCharPos++, new ParaSpace(nUnicode), true);
+                                oCurRun.AddToContent(nCharPos++, new AscWord.CRunSpace(nUnicode), true);
                             else
-                                oCurRun.AddToContent(nCharPos++, new ParaText(nUnicode), true);
+                                oCurRun.AddToContent(nCharPos++, new AscWord.CRunText(nUnicode), true);
                         }
                     }
 				}
@@ -5304,11 +5304,11 @@ PasteProcessor.prototype =
 		var _addToRun = function (_nUnicode) {
 			var Item;
 			if (0x2009 === _nUnicode || 9 === _nUnicode) {
-				Item = new ParaTab();
+				Item = new AscWord.CRunTab();
 			} else if (0x20 !== _nUnicode && 0xA0 !== _nUnicode) {
-				Item = new ParaText(_nUnicode);
+				Item = new AscWord.CRunText(_nUnicode);
 			} else {
-				Item = new ParaSpace();
+				Item = new AscWord.CRunSpace();
 			}
 
 			//add text
@@ -5718,7 +5718,7 @@ PasteProcessor.prototype =
 
 					//text
 					if (true === format.skip || true === format.repeat) {
-						oCurRun.AddToContent(-1, new ParaSpace(), false);
+						oCurRun.AddToContent(-1, new AscWord.CRunSpace(), false);
 					} else {
 						var value = value2[n].text;
 						for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
@@ -5726,11 +5726,11 @@ PasteProcessor.prototype =
 
 							var Item;
 							if (0x0A === nUnicode || 0x0D === nUnicode) {
-								Item = new ParaNewLine(break_Line);
+								Item = new AscWord.CRunBreak(AscWord.break_Line);
 							} else if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 							} else {
-								Item = new ParaSpace();
+								Item = new AscWord.CRunSpace();
 							}
 
 							//add text
@@ -5842,9 +5842,9 @@ PasteProcessor.prototype =
 
 						var Item;
 						if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-							Item = new ParaText(nUnicode);
+							Item = new AscWord.CRunText(nUnicode);
 						} else {
-							Item = new ParaSpace();
+							Item = new AscWord.CRunSpace();
 						}
 
 						//add text
@@ -5852,7 +5852,7 @@ PasteProcessor.prototype =
 					}
 
 					if (i !== diffRow || j !== diffCol) {
-						oCurRun.Add_ToContent(oIterator.position(), new ParaSpace(), false);
+						oCurRun.Add_ToContent(oIterator.position(), new AscWord.CRunSpace(), false);
 					}
 
 					//add run
@@ -8103,10 +8103,10 @@ PasteProcessor.prototype =
 	_Commit_Br: function (nIgnore, node, pPr) {
 		for (var i = 0, length = this.nBrCount - nIgnore; i < length; i++) {
 			if ("always" === pPr["mso-column-break-before"])
-				this._AddToParagraph(new ParaNewLine(break_Page));
+				this._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 			else {
 				if (this.bInBlock)
-					this._AddToParagraph(new ParaNewLine(break_Line));
+					this._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
 				else
 					this._Execute_AddParagraph(node, pPr);
 			}
@@ -9075,9 +9075,9 @@ PasteProcessor.prototype =
 					if (bPresentation) {
 						if (null !== nUnicode) {
 							if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode)
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 							else
-								Item = new ParaSpace();
+								Item = new AscWord.CRunSpace();
 
 							shape.paragraphAdd(Item, false);
 						}
@@ -9088,12 +9088,12 @@ PasteProcessor.prototype =
 								bAddParagraph = oThis._Decide_AddParagraph(oTargetNode, pPr, true);
 								oThis._commit_rPr(oTargetNode, bUseOnlyInherit);
 							} else if (whiteSpacing && (0x9 === nUnicode || 0x2009 === nUnicode)) {
-								Item = new ParaTab();
+								Item = new AscWord.CRunTab();
 							} else if (0x20 !== nUnicode && 0x2009 !== nUnicode) {
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 								bIsPreviousSpace = false;
 							} else {
-								Item = new ParaSpace();
+								Item = new AscWord.CRunSpace();
 								if (bIsPreviousSpace) {
 									continue;
 								}
@@ -9366,7 +9366,7 @@ PasteProcessor.prototype =
 			if (bPresentation) {
 				//Добавляем linebreak, если он не разделяет блочные элементы и до этого был блочный элемент
 				if ("br" === sNodeName || "always" === node.style.pageBreakBefore) {
-                    shape.paragraphAdd(new ParaNewLine(break_Line), false);
+                    shape.paragraphAdd(new AscWord.CRunBreak(AscWord.break_Line), false);
 				}
 			} else {
 				//Добавляем linebreak, если он не разделяет блочные элементы и до этого был блочный элемент
@@ -9413,14 +9413,14 @@ PasteProcessor.prototype =
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph);
 						bAddParagraph = true;
 						oThis._Commit_Br(0, node, pPr);
-						oThis._AddToParagraph(new ParaNewLine(break_Page));
+						oThis._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
 					} else if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph);
 						oThis._Commit_Br(0, node, pPr);
-						oThis._AddToParagraph(new ParaNewLine(break_Line));
+						oThis._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
 					} else {
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph, false);
-						oThis.nBrCount++;//oThis._AddToParagraph( new ParaNewLine( break_Line ) );
+						oThis.nBrCount++;//oThis._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
 						if ("line-break" === pPr["mso-special-character"] ||
 							"always" === pPr["mso-column-break-before"]) {
 							oThis._Commit_Br(0, node, pPr);
@@ -9443,7 +9443,7 @@ PasteProcessor.prototype =
 						shape.paragraphAdd(Item, false);
 					}
 					for (var i = 0; i < nTabCount; i++) {
-						shape.paragraphAdd(new ParaTab(), false);
+						shape.paragraphAdd(new AscWord.CRunTab(), false);
 					}
 					return;
 				}
@@ -9453,7 +9453,7 @@ PasteProcessor.prototype =
 					bAddParagraph = oThis._Decide_AddParagraph(node, pPr, bAddParagraph);
 					oThis._commit_rPr(node);
 					for (var i = 0; i < nTabCount; i++) {
-						oThis._AddToParagraph(new ParaTab());
+						oThis._AddToParagraph(new AscWord.CRunTab());
 					}
 					return bAddParagraph;
 				}
@@ -9671,11 +9671,11 @@ PasteProcessor.prototype =
 								var oAddedRun = new ParaRun(oThis.oCurPar, false);
 								oAddedRun.SetRStyle(oThis.oLogicDocument.GetStyles().GetDefaultFootnoteReference());
 								if (sText) {
-									oAddedRun.AddToContent(0, new ParaFootnoteReference(oFootnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunFootnoteReference(oFootnote));
 									oAddedRun.AddText(sText, 1);
 								}
 								else {
-									oAddedRun.AddToContent(0, new ParaFootnoteReference(oFootnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunFootnoteReference(oFootnote));
 								}
 								oThis._CommitElemToParagraph(oAddedRun);
 								if (oThis.AddedFootEndNotes) {
@@ -9697,11 +9697,11 @@ PasteProcessor.prototype =
 								var oAddedRun = new ParaRun(oThis.oCurPar, false);
 								oAddedRun.SetRStyle(oThis.oLogicDocument.GetStyles().GetDefaultEndnoteReference());
 								if (sText) {
-									oAddedRun.AddToContent(0, new ParaEndnoteReference(oEndnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunEndnoteReference(oEndnote));
 									oAddedRun.AddText(sText, 1);
 								}
 								else {
-									oAddedRun.AddToContent(0, new ParaEndnoteReference(oEndnote));
+									oAddedRun.AddToContent(0, new AscWord.CRunEndnoteReference(oEndnote));
 								}
 								oThis._CommitElemToParagraph(oAddedRun);
 								if (oThis.AddedFootEndNotes) {
@@ -10219,7 +10219,7 @@ function Check_LoadingDataBeforePrepaste(_api, _fonts, _images, _callback)
 
 function addTextIntoRun(oCurRun, value, bIsAddTabBefore, dNotAddLastSpace, bIsAddTabAfter) {
 	if (bIsAddTabBefore) {
-		oCurRun.AddToContent(-1, new ParaTab(), false);
+		oCurRun.AddToContent(-1, new AscWord.CRunTab(), false);
 	}
 
 	for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
@@ -10228,12 +10228,12 @@ function addTextIntoRun(oCurRun, value, bIsAddTabBefore, dNotAddLastSpace, bIsAd
 		var bIsSpace = true;
 		var Item;
 		if (0x2009 === nUnicode || 9 === nUnicode) {
-			Item = new ParaTab();
+			Item = new AscWord.CRunTab();
 		} else if (0x20 !== nUnicode && 0xA0 !== nUnicode) {
-			Item = new ParaText(nUnicode);
+			Item = new AscWord.CRunText(nUnicode);
 			bIsSpace = false;
 		} else {
-			Item = new ParaSpace();
+			Item = new AscWord.CRunSpace();
 		}
 
 		//add text
@@ -10243,7 +10243,7 @@ function addTextIntoRun(oCurRun, value, bIsAddTabBefore, dNotAddLastSpace, bIsAd
 	}
 
 	if (bIsAddTabAfter) {
-		oCurRun.AddToContent(-1, new ParaTab(), false);
+		oCurRun.AddToContent(-1, new AscWord.CRunTab(), false);
 	}
 }
 

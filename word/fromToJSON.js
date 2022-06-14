@@ -4892,18 +4892,13 @@
 				return oParaNewLine;
 				
 			var sBreakType = "";
-			switch (oParaNewLine.BreakType)
-			{
-				case AscCommonWord.break_Line:
-					sBreakType = "textWrapping";
-					break;
-				case AscCommonWord.break_Page:
-					sBreakType = "page";
-					break;
-				case AscCommonWord.break_Column:
-					sBreakType = "column";
-					break;
-			}
+			if (oParaNewLine.IsLineBreak())
+				sBreakType = "textWrapping";
+			else if (oParaNewLine.IsPageBreak())
+				sBreakType = "page";
+			else if (oParaNewLine.IsColumnBreak())
+				sBreakType = "column";
+
 			return {
 				type: "break",
 				breakType: sBreakType
@@ -8263,7 +8258,7 @@
 
 		if (oParsedRun.type === "endRun")
 		{
-			oRun.Add_ToContent( 0, new ParaEnd() );
+			oRun.Add_ToContent( 0, new AscWord.CRunParagraphMark() );
 			return oRun;
 		}
 
@@ -8320,21 +8315,21 @@
 					switch(aContent[nElm].breakType)
 					{
 						case "textWrapping":
-							oRun.AddToContent(-1, new AscCommonWord.ParaNewLine(AscCommonWord.break_Line));
+							oRun.AddToContent(-1, new AscWord.CRunBreak(AscWord.break_Line));
 							break;
 						case "page":
-							oRun.AddToContent(-1, new AscCommonWord.ParaNewLine(AscCommonWord.break_Page));
+							oRun.AddToContent(-1, new AscWord.CRunBreak(AscWord.break_Page));
 							break;
 						case "column":
-							oRun.AddToContent(-1, new AscCommonWord.ParaNewLine(AscCommonWord.break_Column));
+							oRun.AddToContent(-1, new AscWord.CRunBreak(AscWord.break_Column));
 							break;
 					}
 					break;
 				case "pgNum":
-					oRun.AddToContent(-1, new ParaPageNum());
+					oRun.AddToContent(-1, new AscWord.CRunPageNum());
 					break;
 				case "tab":
-					oRun.AddToContent(-1, new ParaTab());
+					oRun.AddToContent(-1, new AscWord.CRunTab());
 					break;
 				case "fldChar":
 					switch (aContent[nElm].fldCharType)
@@ -8381,7 +8376,7 @@
 						this.MoveMap[aContent[nElm].name] = sMoveName;
 					}
 
-					var oRevisionMove = new CRunRevisionMove(aContent[nElm].start, aContent[nElm].from, this.MoveMap[aContent[nElm].name], aContent[nElm].reviewInfo);
+					var oRevisionMove = new AscWord.CRunRevisionMove(aContent[nElm].start, aContent[nElm].from, this.MoveMap[aContent[nElm].name], aContent[nElm].reviewInfo);
 					oRun.Add_ToContent(-1, oRevisionMove);
 					break;
 				case "footnoteRef":
@@ -8401,16 +8396,16 @@
 		switch (oParsedFootEndnoteRef.type)
 		{
 			case "footnoteRef":
-				oFootEndnoteRef = new ParaFootnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunFootnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 			case "footnoteNum":
-				oFootEndnoteRef = new ParaFootnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunFootnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 			case "endnoteRef":
-				oFootEndnoteRef = new ParaEndnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunEndnoteReference(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 			case "endnoteNum":
-				oFootEndnoteRef = new ParaEndnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
+				oFootEndnoteRef = new AscWord.CRunEndnoteRef(this.FootEndNoteMap[oParsedFootEndnoteRef.footnote]);
 				break;
 		}
 		

@@ -86,6 +86,9 @@ AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_Ascii_Theme]    = CChang
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_HAnsi_Theme]    = CChangesRunRFontsHAnsiTheme;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_CS_Theme]       = CChangesRunRFontsCSTheme;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme] = CChangesRunRFontsEastAsiaTheme;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_BoldCS]                = CChangesRunBoldCS;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_ItalicCS]              = CChangesRunItalicCS;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_FontSizeCS]            = CChangesRunFontSizeCS;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -300,8 +303,9 @@ CChangesRunAddItem.prototype.Undo = function()
 	oRun.Content.splice(this.Pos, this.Items.length);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
+	oRun.private_UpdatePositionsOnRemove(this.Pos, this.Items.length);
 };
 CChangesRunAddItem.prototype.Redo = function()
 {
@@ -313,11 +317,12 @@ CChangesRunAddItem.prototype.Redo = function()
 	oRun.Content = Array_start.concat(this.Items, Array_end);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
+		oRun.private_UpdatePositionsOnAdd(this.Pos + nIndex);
 		if (this.Items[nIndex].SetParent)
 			this.Items[nIndex].SetParent(oRun);
 	}
@@ -328,7 +333,7 @@ CChangesRunAddItem.prototype.private_WriteItem = function(Writer, Item)
 };
 CChangesRunAddItem.prototype.private_ReadItem = function(Reader)
 {
-	return ParagraphContent_Read_FromBinary(Reader);
+	return AscWord.ReadRunElementFromBinary(Reader);
 };
 CChangesRunAddItem.prototype.Load = function(Color)
 {
@@ -357,7 +362,7 @@ CChangesRunAddItem.prototype.Load = function(Color)
 	}
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 	oRun.private_UpdateDocumentOutline();
 };
@@ -393,11 +398,12 @@ CChangesRunRemoveItem.prototype.Undo = function()
 	oRun.Content = Array_start.concat(this.Items, Array_end);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
+		oRun.private_UpdatePositionsOnAdd(this.Pos + nIndex);
 		if (this.Items[nIndex].SetParent)
 			this.Items[nIndex].SetParent(oRun);
 	}
@@ -408,8 +414,9 @@ CChangesRunRemoveItem.prototype.Redo = function()
 	oRun.Content.splice(this.Pos, this.Items.length);
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
+	oRun.private_UpdatePositionsOnRemove(this.Pos, this.Items.length);
 };
 CChangesRunRemoveItem.prototype.private_WriteItem = function(Writer, Item)
 {
@@ -417,7 +424,7 @@ CChangesRunRemoveItem.prototype.private_WriteItem = function(Writer, Item)
 };
 CChangesRunRemoveItem.prototype.private_ReadItem = function(Reader)
 {
-	return ParagraphContent_Read_FromBinary(Reader);
+	return AscWord.ReadRunElementFromBinary(Reader);
 };
 CChangesRunRemoveItem.prototype.Load = function()
 {
@@ -467,7 +474,7 @@ CChangesRunRemoveItem.prototype.Load = function()
 	}
 
 	oRun.RecalcInfo.Measure = true;
-	oRun.private_UpdateSpellChecking();
+	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 	oRun.private_UpdateDocumentOutline();
 };
@@ -1122,6 +1129,7 @@ CChangesRunLang.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLang.prototype.Load = function(Color)
@@ -1588,6 +1596,7 @@ CChangesRunLangBidi.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLangBidi.prototype.Load = function(Color)
@@ -1616,6 +1625,7 @@ CChangesRunLangEastAsia.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLangEastAsia.prototype.Load = function(Color)
@@ -1644,6 +1654,7 @@ CChangesRunLangVal.prototype.private_SetValue = function(Value)
 
 	oRun.Recalc_CompiledPr(true);
 	oRun.private_UpdateSpellChecking();
+	oRun.private_UpdateShapeText();
 	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 CChangesRunLangVal.prototype.Load = function(Color)
@@ -1879,7 +1890,7 @@ CChangesRunTextPr.prototype.Merge = function(oChange)
 		}
 		case AscDFH.historyitem_ParaRun_TextFill:
 		{
-			this.New.TextFil = oChange.New;
+			this.New.TextFill = oChange.New;
 			break;
 		}
 		case AscDFH.historyitem_ParaRun_TextOutline:
@@ -1890,6 +1901,21 @@ CChangesRunTextPr.prototype.Merge = function(oChange)
 		case AscDFH.historyitem_ParaRun_PrReviewInfo:
 		{
 			this.New.ReviewInfo = oChange.New;
+			break;
+		}
+		case AscDFH.historyitem_ParaRun_BoldCS:
+		{
+			this.New.BoldCS = oChange.New;
+			break;
+		}
+		case AscDFH.historyitem_ParaRun_ItalicCS:
+		{
+			this.New.ItalicCS = oChange.New;
+			break;
+		}
+		case AscDFH.historyitem_ParaRun_FontSizeCS:
+		{
+			this.New.FontSizeCS = oChange.New;
 			break;
 		}
 	}
@@ -2755,3 +2781,84 @@ CChangesRunRFontsEastAsiaTheme.prototype.private_SetRFontsValue = function(sValu
 {
 	this.Class.Pr.RFonts.EastAsiaTheme = sValue;
 };
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesRunBoldCS(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunBoldCS.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesRunBoldCS.prototype.constructor = CChangesRunBoldCS;
+CChangesRunBoldCS.prototype.Type = AscDFH.historyitem_ParaRun_BoldCS;
+CChangesRunBoldCS.prototype.private_SetValue = function(Value)
+{
+	let oRun = this.Class;
+	oRun.Pr.BoldCS = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunBoldCS.prototype.Load = function(Color)
+{
+	this.Redo();
+
+	if (this.Color && Color)
+		this.Class.private_AddCollPrChangeOther(Color);
+};
+CChangesRunBoldCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesRunItalicCS(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunItalicCS.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesRunItalicCS.prototype.constructor = CChangesRunItalicCS;
+CChangesRunItalicCS.prototype.Type = AscDFH.historyitem_ParaRun_ItalicCS;
+CChangesRunItalicCS.prototype.private_SetValue = function(Value)
+{
+	var oRun = this.Class;
+	oRun.Pr.ItalicCS = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunItalicCS.prototype.Load = function(Color)
+{
+	this.Redo();
+
+	if (this.Color && Color)
+		this.Class.private_AddCollPrChangeOther(Color);
+};
+CChangesRunItalicCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseDoubleProperty}
+ */
+function CChangesRunFontSizeCS(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseDoubleProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunFontSizeCS.prototype = Object.create(AscDFH.CChangesBaseDoubleProperty.prototype);
+CChangesRunFontSizeCS.prototype.constructor = CChangesRunFontSizeCS;
+CChangesRunFontSizeCS.prototype.Type = AscDFH.historyitem_ParaRun_FontSizeCS;
+CChangesRunFontSizeCS.prototype.private_SetValue = function(Value)
+{
+	let oRun = this.Class;
+	oRun.Pr.FontSizeCS = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunFontSizeCS.prototype.Load = function(Color)
+{
+	this.Redo();
+
+	if (this.Color && Color)
+		this.Class.private_AddCollPrChangeOther(Color);
+};
+CChangesRunFontSizeCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;

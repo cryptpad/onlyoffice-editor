@@ -2663,7 +2663,7 @@
 				case "annotationRef":
 					break;
 				case "br":
-					newItem = new ParaNewLine();
+					newItem = new AscWord.CRunBreak(AscWord.break_Line);
 					newItem.fromXml(reader);
 					break;
 				case "commentReference":
@@ -2671,10 +2671,10 @@
 				case "contentPart":
 					break;
 				case "continuationSeparator":
-					newItem = new ParaContinuationSeparator();
+					newItem = new AscWord.CRunContinuationSeparator();
 					break;
 				case "cr":
-					newItem = new ParaNewLine(break_Line);
+					newItem = new AscWord.CRunBreak(AscWord.break_Line);
 					break;
 				case "dayLong":
 					break;
@@ -2709,7 +2709,7 @@
 					elem.fromXml(reader);
 					break;
 				case "endnoteRef":
-					newItem = new ParaEndnoteRef(null);
+					newItem = new AscWord.CRunEndnoteRef(null);
 					break;
 				case "endnoteReference":
 					let ednRef = new CT_FtnEdnRef();
@@ -2717,7 +2717,7 @@
 					let endnote = endnotes[ednRef.id];
 					if (endnote) {
 						oReadResult.logicDocument.Endnotes.AddEndnote(endnote.content);
-						newItem = new ParaEndnoteReference(endnote.content, ednRef.customMarkFollows);
+						newItem = new AscWord.CRunEndnoteReference(endnote.content, ednRef.customMarkFollows);
 					}
 					break;
 				case "fldChar":
@@ -2725,7 +2725,7 @@
 					newItem.fromXml(reader);
 					break;
 				case "footnoteRef":
-					newItem = new ParaFootnoteRef(null);
+					newItem = new AscWord.CRunFootnoteRef(null);
 					break;
 				case "footnoteReference":
 					let ftnRef = new CT_FtnEdnRef();
@@ -2733,7 +2733,7 @@
 					let footnote = footnotes[ftnRef.id];
 					if (footnote) {
 						oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-						newItem = new ParaFootnoteReference(footnote.content, ftnRef.customMarkFollows);
+						newItem = new AscWord.CRunFootnoteReference(footnote.content, ftnRef.customMarkFollows);
 					}
 					break;
 				case "instrText":
@@ -2746,14 +2746,14 @@
 				case "monthShort":
 					break;
 				case "noBreakHyphen":
-					newItem = new ParaText(0x002D);
+					newItem = new AscWord.CRunText(0x002D);
 					newItem.Set_SpaceAfter(false);
 					break;
 				case "object":
 					//todo
 					break;
 				case "pgNum":
-					newItem = new ParaPageNum();
+					newItem = new AscWord.CRunPageNum();
 					break;
 				case "pict":
 					break;
@@ -2778,7 +2778,7 @@
 				case "ruby":
 					break;
 				case "separator":
-					newItem = new ParaSeparator();
+					newItem = new AscWord.CRunSeparator();
 					break;
 				case "softHyphen":
 					break;
@@ -2793,7 +2793,7 @@
 					this.AddText(reader.GetTextDecodeXml(), -1);
 					break;
 				case "tab":
-					newItem = new ParaTab();
+					newItem = new AscWord.CRunTab();
 					break;
 				case "yearLong":
 					break;
@@ -3449,7 +3449,7 @@
 		writer.WriteXmlNullableAttributeStringEncode("w:bidi", Asc.g_oLcidIdToNameMap[this.Bidi]);
 		writer.WriteXmlAttributesEnd(true);
 	};
-	ParaNewLine.prototype.readAttr = function(reader) {
+	AscWord.CRunBreak.prototype.readAttr = function(reader) {
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "type": {
@@ -3462,11 +3462,11 @@
 			}
 		}
 	};
-	ParaNewLine.prototype.fromXml = function(reader) {
+	AscWord.CRunBreak.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	ParaNewLine.prototype.toXml = function(writer, name) {
+	AscWord.CRunBreak.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:type", toXml_ST_BrType(this.BreakType));
 		// writer.WriteXmlNullableAttributeString("w:clear", toXml_ST_BrClear(this.clear));
@@ -10432,21 +10432,21 @@
 	function fromXml_ST_BrType(val, def) {
 		switch (val) {
 			case "page":
-				return break_Page;
+				return AscWord.break_Page;
 			case "column":
-				return break_Column;
+				return AscWord.break_Column;
 			case "textWrapping":
-				return break_Line;
+				return AscWord.break_Line;
 		}
 		return def;
 	}
 	function toXml_ST_BrType(val) {
 		switch (val) {
-			case break_Page:
+			case AscWord.break_Page:
 				return "page";
-			case break_Column:
+			case AscWord.break_Column:
 				return "column";
-			case break_Line:
+			case AscWord.break_Line:
 				return "textWrapping";
 		}
 		return null;

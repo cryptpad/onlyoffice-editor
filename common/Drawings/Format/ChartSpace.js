@@ -2069,7 +2069,7 @@ var GLOBAL_PATH_COUNT = 0;
              }*/
             this.applyLabelsFunction(CheckObjectTextPr, _paraItem.Value);
         }
-        else if(paraItem.Type === para_Text || paraItem.Type === para_Space) {
+        else if(paraItem.IsText() || paraItem.IsSpace()) {
             if(this.selection.title) {
                 this.selection.textSelection = this.selection.title;
                 this.selection.textSelection.checkDocContent();

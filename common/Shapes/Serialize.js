@@ -10373,7 +10373,7 @@ function BinaryPPTYLoader()
                                     text_pr.Set_FromObject(_run);
                                     new_run.Set_Pr(text_pr);
                                 }
-                                new_run.Add_ToContent( 0, new ParaNewLine(break_Line));
+                                new_run.Add_ToContent( 0, new AscWord.CRunBreak(AscWord.break_Line));
                                 if (hyperlink !== null)
                                 {
                                     hyperlink.Add_ToContent(0, new_run, false);

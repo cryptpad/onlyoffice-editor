@@ -1934,7 +1934,7 @@ CDocumentContent.prototype.SetHdrFtrPageNum = function(nAlignType, sStyleId)
 
 	oPara1.SetParagraphAlign(nAlignType);
 	var oRun = new ParaRun(oPara1, false);
-	oRun.AddToContent(0, new ParaPageNum());
+	oRun.AddToContent(0, new AscWord.CRunPageNum());
 	oPara1.AddToContent(0, oRun);
 };
 CDocumentContent.prototype.Clear_Content                 = function()
@@ -3302,7 +3302,7 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 
 					if (-1 !== nSpaceCharCode)
 					{
-						this.AddToParagraph(new ParaSpace(nSpaceCharCode));
+						this.AddToParagraph(new AscWord.CRunSpace(nSpaceCharCode));
 						this.MoveCursorLeft(false, false);
 					}
 

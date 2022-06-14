@@ -5189,7 +5189,7 @@
 
 						var sCustomText = oRunS['text'];
 						if(sCustomText === "<%br%>"){
-							oRun.AddToContent(0, new AscCommonWord.ParaNewLine(AscCommonWord.break_Line), false);
+							oRun.AddToContent(0, new AscWord.CRunBreak(AscWord.break_Line), false);
 						}
 						else{
 							oRun.AddText(sCustomText);

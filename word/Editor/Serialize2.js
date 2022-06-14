@@ -5725,21 +5725,21 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                     break;
                 case para_NewLine:
                     switch (item.BreakType) {
-                        case break_Column:
+                        case AscWord.break_Column:
                             oThis.memory.WriteByte(c_oSerRunType.columnbreak);
                             break;
-                        case break_Page:
+                        case AscWord.break_Page:
                             oThis.memory.WriteByte(c_oSerRunType.pagebreak);
                             break;
                         default:
 							switch(item.Clear) {
-								case break_Clear_All:
+								case AscWord.break_Clear_All:
 									oThis.memory.WriteByte(c_oSerRunType.linebreakClearAll);
 									break;
-								case break_Clear_Left:
+								case AscWord.break_Clear_Left:
 									oThis.memory.WriteByte(c_oSerRunType.linebreakClearLeft);
 									break;
-								case break_Clear_Right:
+								case AscWord.break_Clear_Right:
 									oThis.memory.WriteByte(c_oSerRunType.linebreakClearRight);
 									break;
 								default:
@@ -11599,16 +11599,16 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 					run.AddToContentToEnd(new ParaInstrText(nUnicode));
 				} else {
 					if (AscCommon.IsSpace(nUnicode)) {
-						run.AddToContentToEnd(new ParaSpace(nUnicode));
+						run.AddToContentToEnd(new AscWord.CRunSpace(nUnicode));
 					} else if (0x0D === nUnicode) {
 						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
 							i++;
 						}
-						run.AddToContentToEnd(new ParaSpace());
+						run.AddToContentToEnd(new AscWord.CRunSpace());
 					} else if (0x09 === nUnicode) {
-						run.AddToContentToEnd(new ParaTab());
+						run.AddToContentToEnd(new AscWord.CRunTab());
 					} else {
-						run.AddToContentToEnd(new ParaText(nUnicode));
+						run.AddToContentToEnd(new AscWord.CRunText(nUnicode));
 					}
 				}
 			}
@@ -11633,35 +11633,35 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
         else if (c_oSerRunType.tab === type)
         {
-            oNewElem = new ParaTab();
+            oNewElem = new AscWord.CRunTab();
         }
         else if (c_oSerRunType.pagenum === type)
         {
-            oNewElem = new ParaPageNum();
+            oNewElem = new AscWord.CRunPageNum();
         }
         else if (c_oSerRunType.pagebreak === type)
         {
-            oNewElem = new ParaNewLine( break_Page );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Page);
         }
 		else if (c_oSerRunType.linebreak === type)
 		{
-			oNewElem = new ParaNewLine(break_Line);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line);
 		}
 		else if (c_oSerRunType.linebreakClearAll === type)
 		{
-			oNewElem = new ParaNewLine(break_Line, break_Clear_All);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line, AscWord.break_Clear_All);
 		}
 		else if (c_oSerRunType.linebreakClearLeft === type)
 		{
-			oNewElem = new ParaNewLine(break_Line, break_Clear_Left);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line, AscWord.break_Clear_Left);
 		}
 		else if (c_oSerRunType.linebreakClearRight === type)
 		{
-			oNewElem = new ParaNewLine(break_Line, break_Clear_Right);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line, AscWord.break_Clear_Right);
 		}
         else if (c_oSerRunType.columnbreak === type)
         {
-            oNewElem = new ParaNewLine( break_Column );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Column);
         }
         else if(c_oSerRunType.image === type)
         {
@@ -11740,11 +11740,11 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		}
         else if (c_oSerRunType.cr === type)
         {
-            oNewElem = new ParaNewLine( break_Line );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Line);
         }
         else if (c_oSerRunType.nonBreakHyphen === type)
         {
-            oNewElem = new ParaText(0x002D);
+            oNewElem = new AscWord.CRunText(0x002D);
             oNewElem.Set_SpaceAfter(false);
         }
         else if (c_oSerRunType.softHyphen === type)
@@ -11753,15 +11753,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
 		else if (c_oSerRunType.separator === type)
 		{
-			oNewElem = new ParaSeparator();
+			oNewElem = new AscWord.CRunSeparator();
 		}
 		else if (c_oSerRunType.continuationSeparator === type)
 		{
-			oNewElem = new ParaContinuationSeparator();
+			oNewElem = new AscWord.CRunContinuationSeparator();
 		}
 		else if (c_oSerRunType.footnoteRef === type)
 		{
-			oNewElem = new ParaFootnoteRef(null);
+			oNewElem = new AscWord.CRunFootnoteRef(null);
 		}
 		else if (c_oSerRunType.footnoteReference === type)
 		{
@@ -11772,12 +11772,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var footnote = this.oReadResult.footnotes[ref.id];
 			if (footnote && this.oReadResult.logicDocument) {
 				this.oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-				oNewElem = new ParaFootnoteReference(footnote.content, ref.customMark);
+				oNewElem = new AscWord.CRunFootnoteReference(footnote.content, ref.customMark);
 			}
 		}
 		else if (c_oSerRunType.endnoteRef === type)
 		{
-			oNewElem = new ParaEndnoteRef(null);
+			oNewElem = new AscWord.CRunEndnoteRef(null);
 		}
 		else if (c_oSerRunType.endnoteReference === type)
 		{
@@ -11788,7 +11788,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			var endnote = this.oReadResult.endnotes[ref.id];
 			if (endnote && this.oReadResult.logicDocument) {
 				this.oReadResult.logicDocument.Endnotes.AddEndnote(endnote.content);
-				oNewElem = new ParaEndnoteReference(endnote.content, ref.customMark);
+				oNewElem = new AscWord.CRunEndnoteReference(endnote.content, ref.customMark);
 			}
 		}
         else
@@ -13009,16 +13009,16 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 
 			    if (null != nUnicode) {
 					if (AscCommon.IsSpace(nUnicode)) {
-						oPos.run.AddToContent(oPos.pos, new ParaSpace(nUnicode), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunSpace(nUnicode), false);
 					} else if (0x0D === nUnicode) {
 						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
 							i++;
 						}
-						oPos.run.AddToContent(oPos.pos, new ParaSpace(), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunSpace(), false);
 					} else if (0x09 === nUnicode) {
-						oPos.run.AddToContent(oPos.pos, new ParaTab(), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunTab(), false);
 					} else {
-						oPos.run.AddToContent(oPos.pos, new ParaText(nUnicode), false);
+						oPos.run.AddToContent(oPos.pos, new AscWord.CRunText(nUnicode), false);
 					}
 					oPos.pos++;
 			    }
@@ -13026,43 +13026,43 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
         else if (c_oSerRunType.tab === type)
         {
-            oNewElem = new ParaTab();
+            oNewElem = new AscWord.CRunTab();
         }
         else if (c_oSerRunType.pagenum === type)
         {
-            oNewElem = new ParaPageNum();
+            oNewElem = new AscWord.CRunPageNum();
         }
         else if (c_oSerRunType.pagebreak === type)
         {
-            oNewElem = new ParaNewLine( break_Page );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Page);
         }
 		else if (c_oSerRunType.linebreak === type)
 		{
-			oNewElem = new ParaNewLine(break_Line);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line);
 		}
 		else if (c_oSerRunType.linebreakClearAll === type)
 		{
-			oNewElem = new ParaNewLine(break_Line, break_Clear_All);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line, AscWord.break_Clear_All);
 		}
 		else if (c_oSerRunType.linebreakClearLeft === type)
 		{
-			oNewElem = new ParaNewLine(break_Line, break_Clear_Left);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line, AscWord.break_Clear_Left);
 		}
 		else if (c_oSerRunType.linebreakClearRight === type)
 		{
-			oNewElem = new ParaNewLine(break_Line, break_Clear_Right);
+			oNewElem = new AscWord.CRunBreak(AscWord.break_Line, AscWord.break_Clear_Right);
 		}
         else if (c_oSerRunType.columnbreak === type)
         {
-            oNewElem = new ParaNewLine( break_Column );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Column );
         }
         else if (c_oSerRunType.cr === type)
         {
-            oNewElem = new ParaNewLine( break_Line );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Line );
         }
         else if (c_oSerRunType.nonBreakHyphen === type)
         {
-            oNewElem = new ParaText(0x002D);
+            oNewElem = new AscWord.CRunText(0x002D);
             oNewElem.Set_SpaceAfter(false);
         }
         else if (c_oSerRunType.softHyphen === type)
@@ -13071,16 +13071,16 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
 		else if (c_oSerRunType.separator === type)
 		{
-			oNewElem = new ParaSeparator();
+			oNewElem = new AscWord.CRunSeparator();
 		}
 		else if (c_oSerRunType.continuationSeparator === type)
 		{
-			oNewElem = new ParaContinuationSeparator();
+			oNewElem = new AscWord.CRunContinuationSeparator();
 		}
 		else if (c_oSerRunType.footnoteRef === type)
 		{
 			if (this.curNote) {
-				oNewElem = new ParaFootnoteRef(this.curNote);
+				oNewElem = new AscWord.CRunFootnoteRef(this.curNote);
 			}
 		}
 		else if (c_oSerRunType.footnoteReference === type)
@@ -13092,13 +13092,13 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 			var footnote = this.oReadResult.footnotes[ref.id];
 			if (footnote) {
 				this.oReadResult.logicDocument.Footnotes.AddFootnote(footnote.content);
-				oNewElem = new ParaFootnoteReference(footnote.content, ref.customMark);
+				oNewElem = new AscWord.CRunFootnoteReference(footnote.content, ref.customMark);
 			}
 		}
 		else if (c_oSerRunType.endnoteRef === type)
 		{
 			if (this.curNote) {
-				oNewElem = new ParaEndnoteRef(this.curNote);
+				oNewElem = new AscWord.CRunEndnoteRef(this.curNote);
 			}
 		}
 		else if (c_oSerRunType.endnoteReference === type)
@@ -13110,7 +13110,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 			var note = this.oReadResult.endnotes[ref.id];
 			if (note) {
 				this.oReadResult.logicDocument.Endnotes.AddEndnote(note.content);
-				oNewElem = new ParaEndnoteReference(note.content, ref.customMark);
+				oNewElem = new AscWord.CRunEndnoteReference(note.content, ref.customMark);
 			}
 		}
         else if (c_oSerRunType._LastRun === type)
@@ -14723,15 +14723,15 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 		}
 		else if (c_oSer_OMathContentType.pagebreak === type)
         {
-            oNewElem = new ParaNewLine( break_Page );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Page);
         }
         else if (c_oSer_OMathContentType.linebreak === type)
         {
-            oNewElem = new ParaNewLine();
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Line);
         }
         else if (c_oSer_OMathContentType.columnbreak === type)
         {
-            oNewElem = new ParaNewLine( break_Column );
+            oNewElem = new AscWord.CRunBreak(AscWord.break_Column);
         } else if (c_oSer_OMathContentType.Del === type && this.oReadResult.checkReadRevisions()) {
 			var reviewInfo = new CReviewInfo();
 			res = this.bcr.Read1(length, function(t, l){
