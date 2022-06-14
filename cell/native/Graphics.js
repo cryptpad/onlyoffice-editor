@@ -957,48 +957,9 @@ CGraphics.prototype =
 
         this.Native["PD_FillText"](x,y,lUnicode);
     },
-
-    tg : function(text,x,y)
+    tg : function(gid,x,y)
     {
-//        if (this.m_bIsBreak)
-//            return;
-//
-//        var _x = this.m_oInvertFullTransform.TransformPointX(x,y);
-//        var _y = this.m_oInvertFullTransform.TransformPointY(x,y);
-//
-//        var _font_manager = this.IsUseFonts2 ? this.m_oFontManager2 : this.m_oFontManager;
-//
-//        try
-//        {
-//            _font_manager.LoadString3C(text,_x,_y);
-//        }
-//        catch(err)
-//        {
-//        }
-//
-//        if (false === this.m_bIntegerGrid)
-//        {
-//            this.m_oContext.setTransform(1,0,0,1,0,0);
-//        }
-//        var pGlyph = _font_manager.m_oGlyphString.m_pGlyphsBuffer[0];
-//        if (null == pGlyph)
-//            return;
-//
-//        if (null != pGlyph.oBitmap)
-//        {
-//            var _a = this.m_oBrush.Color1.A;
-//            if (255 != _a)
-//                this.m_oContext.globalAlpha = _a / 255;
-//            this.private_FillGlyph(pGlyph);
-//
-//            if (255 != _a)
-//                this.m_oContext.globalAlpha = 1.0;
-//        }
-//        if (false === this.m_bIntegerGrid)
-//        {
-//            this.m_oContext.setTransform(this.m_oFullTransform.sx,this.m_oFullTransform.shy,this.m_oFullTransform.shx,
-//                this.m_oFullTransform.sy,this.m_oFullTransform.tx,this.m_oFullTransform.ty);
-//        }
+        this.Native["PD_FillTextG"](x,y,gid);
     },
     charspace : function(space)
     {

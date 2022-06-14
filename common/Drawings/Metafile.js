@@ -2170,29 +2170,25 @@
             this.Memory.WriteDouble(x);
             this.Memory.WriteDouble(y);
 		},
-		tg           : function(gid, x, y)
+		tg           : function(gid, x, y, codepoints)
 		{
-			if (window["native"] !== undefined)
-			{
-				// TODO:
-				return;
-			}
-
+			/*
 			var _old_pos = this.Memory.pos;
-
 			g_fontApplication.LoadFont(this.m_oFont.Name, AscCommon.g_font_loader, AscCommon.g_oTextMeasurer.m_oManager, this.m_oFont.FontSize, Math.max(this.m_oFont.Style, 0), 72, 72);
 			AscCommon.g_oTextMeasurer.m_oManager.LoadStringPathCode(gid, true, x, y, this);
-
 			// start (1) + draw(1) + typedraw(4) + end(1) = 7!
 			if ((this.Memory.pos - _old_pos) < 8)
 				this.Memory.pos = _old_pos;
+			*/
 
-			/*
-			 this.Memory.WriteByte(CommandType.ctDrawTextCodeGid);
-			 this.Memory.WriteLong(gid);
-			 this.Memory.WriteDouble(x);
-			 this.Memory.WriteDouble(y);
-			 */
+			this.Memory.WriteByte(CommandType.ctDrawTextCodeGid);
+			this.Memory.WriteLong(gid);
+			this.Memory.WriteDouble(x);
+			this.Memory.WriteDouble(y);
+			var count = codepoints ? codepoints.length : 0;
+			this.Memory.WriteLong(count);
+			for (var i = 0; i < count; i++)
+				this.Memory.WriteLong(codepoints[i]);
 		},
 		charspace    : function(space)
 		{
