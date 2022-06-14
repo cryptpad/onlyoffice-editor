@@ -34,21 +34,22 @@
 
 (function(window)
 {
-	const FONTSIZE        = 72;
-	const STRING_MAX_LEN  = 1024;
-	const COEF            = 25.4 / 72 / 64 / FONTSIZE;
-	const GRAPHEME_BUFFER = new Uint32Array(STRING_MAX_LEN);
+	const FONTSIZE        = AscFonts.MEASURE_FONTSIZE || 72;
+	const STRING_MAX_LEN  = AscFonts.GRAPHEME_STRING_MAX_LEN || 1024;
+	const COEF            = AscFonts.GRAPHEME_COEF|| 25.4 / 72 / 64 / FONTSIZE;
+	const GRAPHEME_BUFFER = new Array(STRING_MAX_LEN);
 	let   GRAPHEME_LEN    = 0;
-	const GRAPHEMES_CACHE = {};                      // FontId + [GID] -> GraphemeId
-	const GRAPHEMES       = [[0, 0, 0, 0, 0, 0, 0]]; // GraphemeId -> Grapheme
+	const GRAPHEMES_CACHE = {};                                 // FontId + [GID] -> GraphemeId
+	const GRAPHEMES       = [[0, 0, 0, 0, 0, 0, 0, 0, [0x20]]]; // GraphemeId -> Grapheme
 	let   GRAPHEME_INDEX  = 0;
 	const NO_GRAPHEME     = 0;
 
 	function InitGrapheme(nFontId, nFontStyle)
 	{
-		GRAPHEME_LEN = 2;
+		GRAPHEME_LEN = 3;
 		GRAPHEME_BUFFER[0] = nFontId << 8 | nFontStyle;
 		GRAPHEME_BUFFER[1] = 0;
+		GRAPHEME_BUFFER[2] = 0;
 	}
 	function AddGlyphToGrapheme(nGID, nAdvanceX, nAdvanceY, nOffsetX, nOffsetY)
 	{
@@ -57,8 +58,10 @@
 		GRAPHEME_BUFFER[GRAPHEME_LEN++] = nAdvanceY;
 		GRAPHEME_BUFFER[GRAPHEME_LEN++] = nOffsetX;
 		GRAPHEME_BUFFER[GRAPHEME_LEN++] = nOffsetY;
+		GRAPHEME_LEN++; // CodePoints
 
 		GRAPHEME_BUFFER[1] += nAdvanceX;
+		GRAPHEME_BUFFER[2] += 1;
 	}
 	function DrawGrapheme(nGraphemeId, oContext, nX, nY, nFontSize)
 	{
@@ -73,16 +76,17 @@
 		oContext.SetFontInternal(sFontName, nFontSize, nStyle);
 
 		let nKoef = COEF * nFontSize;
-		let nPos = 2, nCount = oGrapheme.length;
-		while (nPos < nCount)
+		let nPos  = 3;
+		for (let nIndex = 0, nCount = oGrapheme[2]; nIndex < nCount; ++nIndex)
 		{
-			let nGID      = oGrapheme[nPos++];
-			let nAdvanceX = oGrapheme[nPos++];
-			let nAdvanceY = oGrapheme[nPos++];
-			let nOffsetX  = oGrapheme[nPos++];
-			let nOffsetY  = oGrapheme[nPos++];
+			let nGID          = oGrapheme[nPos++];
+			let nAdvanceX     = oGrapheme[nPos++];
+			let nAdvanceY     = oGrapheme[nPos++];
+			let nOffsetX      = oGrapheme[nPos++];
+			let nOffsetY      = oGrapheme[nPos++];
+			let arrCodePoints = oGrapheme[nPos++];
 
-			oContext.tg(nGID, nX + nOffsetX * nKoef, nY + nOffsetY * nKoef);
+			oContext.tg(nGID, nX + nOffsetX * nKoef, nY + nOffsetY * nKoef, arrCodePoints);
 			nX += nAdvanceX * nKoef;
 			nY += nAdvanceY * nKoef;
 		}
@@ -100,16 +104,54 @@
 
 		return true;
 	}
-	function GetGraphemeIndex()
+	function FillCodePoints(codePoints)
 	{
-		let arrBuffer = new Uint32Array(GRAPHEME_LEN);
+		// Пишем по схеме: распределяем везде по 1, если есть лишние, то все они уходят в первый глиф, если
+		// последним глифам не хватает, тогда им проставляем пробелы
+
+		let nCount = GRAPHEME_BUFFER[2];
+		if (nCount <= 0)
+			return;
+
+		let nPos = 8;
+		let nCodePointPos = 0;
+		let nCodePointsCount = codePoints ? codePoints.getCount() : 0;
+
+		if (nCodePointPos >= nCodePointsCount)
+		{
+			GRAPHEME_BUFFER[nPos] = [0x20];
+		}
+		else
+		{
+			GRAPHEME_BUFFER[nPos] = [];
+			let nStoreCount = Math.max(1, nCodePointsCount - nCount + 1);
+			for (;nCodePointPos < nStoreCount; ++nCodePointPos)
+			{
+				GRAPHEME_BUFFER[nPos].push(codePoints.get(nCodePointPos));
+			}
+		}
+
+		nPos += 6;
+		for (let nIndex = 1; nIndex < nCount; ++nIndex, nPos += 6, nCodePointPos++)
+		{
+			if (nCodePointPos >= nCodePointsCount)
+				GRAPHEME_BUFFER[nPos] = [0x20];
+			else
+				GRAPHEME_BUFFER[nPos] = [codePoints.get(nCodePointPos)];
+		}
+	}
+	function GetGraphemeIndex(codePoints)
+	{
+		FillCodePoints(codePoints);
+
+		let arrBuffer = new Array(GRAPHEME_LEN);
 		for (let nIndex = 0; nIndex < GRAPHEME_LEN; ++nIndex)
 			arrBuffer[nIndex] = GRAPHEME_BUFFER[nIndex];
 
 		GRAPHEMES[++GRAPHEME_INDEX] = arrBuffer;
 		return GRAPHEME_INDEX;
 	}
-	function GetGrapheme()
+	function GetGrapheme(codePoints)
 	{
 		let nFontId = GRAPHEME_BUFFER[0];
 		if (!GRAPHEMES_CACHE[nFontId])
@@ -117,11 +159,11 @@
 
 		let result = GRAPHEMES_CACHE[nFontId];
 
-		let nPos = 2;
+		let nPos = 3;
 		while (nPos < GRAPHEME_LEN)
 		{
 			let nGID = GRAPHEME_BUFFER[nPos];
-			nPos += 5;
+			nPos += 6;
 
 			if (!result[nGID])
 				result[nGID] = {};
@@ -131,9 +173,9 @@
 
 		// TODO: Для скорости проверку совпадения отключили (всегда совпадает)
 		if (!result.Grapheme)
-			result.Grapheme = GetGraphemeIndex();
+			result.Grapheme = GetGraphemeIndex(codePoints);
 		// else if (!CompareGraphemes(result.Buffer))
-		// 	return GetGraphemeIndex();
+		// 	return GetGraphemeIndex(codePoints);
 
 		return result.Grapheme;
 	}
@@ -147,15 +189,12 @@
 	}
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscFonts'] = window['AscFonts'] || {};
-	window['AscFonts'].GRAPHEME_STRING_MAX_LEN = STRING_MAX_LEN;
-	window['AscFonts'].GRAPHEME_COEF           = COEF;
-	window['AscFonts'].NO_GRAPHEME             = NO_GRAPHEME;
-	window['AscFonts'].MEASURE_FONTSIZE        = FONTSIZE;
-	window['AscFonts'].InitGrapheme            = InitGrapheme;
-	window['AscFonts'].DrawGrapheme            = DrawGrapheme;
-	window['AscFonts'].CompareGraphemes        = CompareGraphemes;
-	window['AscFonts'].AddGlyphToGrapheme      = AddGlyphToGrapheme;
-	window['AscFonts'].GetGrapheme             = GetGrapheme;
-	window['AscFonts'].GetGraphemeWidth        = GetGraphemeWidth;
+	window['AscFonts'].NO_GRAPHEME        = NO_GRAPHEME;
+	window['AscFonts'].InitGrapheme       = InitGrapheme;
+	window['AscFonts'].DrawGrapheme       = DrawGrapheme;
+	window['AscFonts'].CompareGraphemes   = CompareGraphemes;
+	window['AscFonts'].AddGlyphToGrapheme = AddGlyphToGrapheme;
+	window['AscFonts'].GetGrapheme        = GetGrapheme;
+	window['AscFonts'].GetGraphemeWidth   = GetGraphemeWidth;
 
 })(window);

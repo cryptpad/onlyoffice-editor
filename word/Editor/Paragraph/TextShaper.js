@@ -160,7 +160,7 @@
 	CParagraphTextShaper.prototype.private_HandleNBSP = function(oItem)
 	{
 		let oFontInfo = this.TextPr.GetFontInfo(fontslot_ASCII);
-		let nGrapheme = MEASURER.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
+		let nGrapheme = AscCommon.g_oTextMeasurer.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
 		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, fontslot_ASCII, false, false, false);
 	};
 	CParagraphTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, nCodePointType)
