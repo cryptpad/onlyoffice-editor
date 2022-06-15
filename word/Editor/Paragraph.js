@@ -1678,7 +1678,7 @@ Paragraph.prototype.IsSingleRangeOnLine = function(nCurLine, nCurRange)
 		return ((0 === nCurRange && !arrRanges[0].IsZeroRange() && arrRanges[1].IsZeroRange())
 			|| (1 === nCurRange && arrRanges[0].IsZeroRange() && !arrRanges[1].IsZeroRange()))
 	}
-	else if (3 === RangesCount)
+	else if (3 === nRangesCount)
 	{
 		return (1 === nCurRange
 			&& arrRanges[0].IsZeroRange()
