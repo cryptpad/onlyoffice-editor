@@ -128,7 +128,7 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	this.AllowOverlap = true;
 
 	//привязка к параграфу
-	this.Locked = null;
+	this.Locked = false;
 
 	//скрытые drawing'и
 	this.Hidden = null;

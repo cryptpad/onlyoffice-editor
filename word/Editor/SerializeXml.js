@@ -5059,7 +5059,7 @@
 				}
 				case "inline" : {
 					this.Set_DrawingType(drawing_Inline);
-					elem = new CT_Anchor(this);
+					elem = new CT_Inline(this);
 					elem.fromXml(reader);
 					break;
 				}
@@ -5068,6 +5068,11 @@
 	};
 	ParaDrawing.prototype.toXml = function(writer, name) {
 		if(drawing_Inline == this.DrawingType) {
+			writer.WriteXmlNodeStart(name);
+			writer.WriteXmlAttributesEnd();
+			var anchor = new CT_Inline(this);
+			anchor.toXml(writer, "wp:inline");
+			writer.WriteXmlNodeEnd(name);
 		} else {
 			writer.WriteXmlNodeStart(name);
 			writer.WriteXmlAttributesEnd();
@@ -7138,37 +7143,27 @@
 					elem.fromXml(reader);
 					var cx = parseInt(elem.attributes["cx"]);
 					var cy = parseInt(elem.attributes["cy"]);
-					if(!isNaN(cx)) {
-						drawing.Extent.W = g_dKoef_emu_to_mm * cx;
-					}
-					if(!isNaN(cy)) {
-						drawing.Extent.H = g_dKoef_emu_to_mm * cy;
-					}
+					cx = !isNaN(cx) ? g_dKoef_emu_to_mm * cx : null;
+					cy = !isNaN(cy) ? g_dKoef_emu_to_mm * cy : null;
+					this.drawing.setExtent(cx, cy);
 					break;
 				}
 				case "effectExtent" : {
 					elem = new CT_XmlNode();
 					elem.fromXml(reader);
-					var L = parseInt(elem.attributes["l"]);
-					var T = parseInt(elem.attributes["t"]);
-					var R = parseInt(elem.attributes["r"]);
-					var B = parseInt(elem.attributes["b"]);
-					if(!isNaN(L)) {
-						drawing.EffectExtent.L = g_dKoef_emu_to_mm * L;
-					}
-					if(!isNaN(T)) {
-						drawing.EffectExtent.T = g_dKoef_emu_to_mm * T;
-					}
-					if(!isNaN(R)) {
-						drawing.EffectExtent.R = g_dKoef_emu_to_mm * R;
-					}
-					if(!isNaN(B)) {
-						drawing.EffectExtent.B = g_dKoef_emu_to_mm * B;
-					}
+					let L = parseInt(elem.attributes["l"]);
+					let T = parseInt(elem.attributes["t"]);
+					let R = parseInt(elem.attributes["r"]);
+					let B = parseInt(elem.attributes["b"]);
+					L = !isNaN(L) ? L : null;
+					T = !isNaN(T) ? T : null;
+					R = !isNaN(R) ? R : null;
+					B = !isNaN(B) ? B : null;
+					this.drawing.setEffectExtent(L, T, R, B);
 					break;
 				}
 				case "docPr" : {
-					drawing.docPr.fromXml(reader);
+					this.drawing.docPr.fromXml(reader);
 					break;
 				}
 				case "cNvGraphicFramePr" : {
@@ -7184,7 +7179,7 @@
 						//todo init in graphic.fromXml
 						graphicObject.setBDeleted(false);
 						graphicObject.setParent(drawing);
-						drawing.Set_GraphicObject(graphicObject);
+						this.drawing.Set_GraphicObject(graphicObject);
 					}
 					break;
 				}
