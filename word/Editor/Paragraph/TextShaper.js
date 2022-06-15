@@ -86,6 +86,14 @@
 
 		return g_font_detector.Get_FontClass(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
 	};
+	CParagraphTextShaper.prototype.GetLigaturesType = function()
+	{
+		let oTextPr = this.TextPr;
+		if (!oTextPr)
+			return Asc.LigaturesType.None;
+
+		return oTextPr.GetLigatures();
+	};
 	CParagraphTextShaper.prototype.Shape = function(oParagraph)
 	{
 		this.Init(false);

@@ -13184,6 +13184,7 @@ function CTextPr()
 
     this.Shd        = undefined;
     this.Vanish     = undefined;
+	this.Ligatures  = undefined;
 
     this.TextOutline    = undefined;
     this.TextFill       = undefined;
@@ -13225,6 +13226,7 @@ CTextPr.prototype.Clear = function()
 	this.FontRef        = undefined;
 	this.Shd            = undefined;
 	this.Vanish         = undefined;
+	this.Ligatures      = undefined;
 	this.TextOutline    = undefined;
 	this.TextFill       = undefined;
 	this.HighlightColor = undefined;
@@ -13288,7 +13290,8 @@ CTextPr.prototype.Copy = function(bCopyPrChange, oPr)
 	if (undefined !== this.FontScale)
 		TextPr.FontScale = this.FontScale;
 
-	TextPr.Vanish = this.Vanish;
+	TextPr.Vanish    = this.Vanish;
+	TextPr.Ligatures = this.Ligatures;
 
 	if (true === bCopyPrChange && undefined !== this.PrChange)
 	{
@@ -13310,8 +13313,8 @@ CTextPr.prototype.Copy = function(bCopyPrChange, oPr)
 
 	return TextPr;
 };
-
-CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
+CTextPr.prototype.createDuplicateForSmartArt = function(oPr)
+{
 	var TextPr       = new CTextPr();
 
 	TextPr.Bold      = this.Bold;
@@ -13326,7 +13329,8 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 	TextPr.Spacing    = this.Spacing;
 	TextPr.RFonts     = this.RFonts.Copy()
 
-	TextPr.Vanish = this.Vanish;
+	TextPr.Vanish    = this.Vanish;
+	TextPr.Ligatures = this.Ligatures;
 
 	if (oPr.custT) {
 		TextPr.FontSize = this.FontSize;
@@ -13477,6 +13481,9 @@ CTextPr.prototype.Merge = function(TextPr)
 	if (undefined !== TextPr.Vanish)
 		this.Vanish = TextPr.Vanish;
 
+	if (undefined !== TextPr.Ligatures)
+		this.Ligatures = TextPr.Ligatures;
+
 	if (TextPr.TextOutline)
 		this.TextOutline = TextPr.TextOutline.createDuplicate();
 
@@ -13524,6 +13531,7 @@ CTextPr.prototype.InitDefault = function(nCompatibilityMode)
 	this.FontRef = undefined;
 	this.Shd     = undefined;
 	this.Vanish  = false;
+	this.Ligatures  = Asc.LigaturesType.None;
 
 	this.TextOutline    = undefined;
 	this.TextFill       = undefined;
@@ -13602,6 +13610,7 @@ CTextPr.prototype.Set_FromObject = function(TextPr, isUndefinedToNull)
 	}
 
 	this.Vanish         = CheckUndefinedToNull(isUndefinedToNull, TextPr.Vanish);
+	this.Ligatures      = CheckUndefinedToNull(isUndefinedToNull, TextPr.Ligatures);
 	this.Unifill        = CheckUndefinedToNull(isUndefinedToNull, TextPr.Unifill);
 	this.FontRef        = CheckUndefinedToNull(isUndefinedToNull, TextPr.FontRef);
 	this.TextFill       = CheckUndefinedToNull(isUndefinedToNull, TextPr.TextFill);
@@ -13715,6 +13724,10 @@ CTextPr.prototype.Compare = function(TextPr)
 	// Vanish
 	if (undefined !== this.Vanish && this.Vanish !== TextPr.Vanish)
 		this.Vanish = undefined;
+
+	if (undefined !== this.Ligatures && this.Ligatures !== TextPr.Ligatures)
+		this.Ligatures = undefined;
+
 	if (undefined !== this.FontScale && this.FontScale !== TextPr.FontScale)
 		this.FontScale = undefined;
 
@@ -13837,30 +13850,6 @@ CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
 		this.FontFamily.Index = -1;
 	}
 };
-CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
-{
-	var FontSize = this.FontSize;
-	if(this.FontScale !== null &&
-		this.FontScale !== undefined &&
-		this.FontSizeOrig !== null &&
-		this.FontSizeOrig !== undefined)
-	{
-		FontSize = this.FontSizeOrig;
-	}
-	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
-};
-CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
-{
-	var FontSize = this.FontSizeCS;
-	if(this.FontScale !== null &&
-		this.FontScale !== undefined &&
-		this.FontSizeCSOrig !== null &&
-		this.FontSizeCSOrig !== undefined)
-	{
-		FontSize = this.FontSizeCSOrig;
-	}
-	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
-};
 CTextPr.prototype.GetSimpleTextColor = function(oTheme, oColorMap)
 {
 	if (this.Unifill)
@@ -13878,7 +13867,6 @@ CTextPr.prototype.GetSimpleTextColor = function(oTheme, oColorMap)
 
 	return new CDocumentColor();
 }
-
 CTextPr.prototype.GetIncDecFontSize = function(IncFontSize)
 {
 	var FontSize = this.FontSize;
@@ -13903,22 +13891,20 @@ CTextPr.prototype.GetIncDecFontSizeCS = function(IncFontSize)
 	}
 	return FontSize_IncreaseDecreaseValue(IncFontSize, FontSize);
 };
-
-CTextPr.prototype.CheckFontScale =  function()
+CTextPr.prototype.CheckFontScale = function()
 {
-	if(this.FontScale !== null && this.FontScale !== undefined)
+	if (this.FontScale !== null && this.FontScale !== undefined)
 	{
 		this.FontSizeOrig   = this.FontSize;
 		this.FontSizeCSOrig = this.FontSizeCS;
-		this.FontSize *= 	this.FontScale;
-		this.FontSize = (this.FontSize + 0.5) >> 0;
-		this.FontSize = Math.max(1, this.FontSize);
-		this.FontSizeCS *= this.FontScale;
-		this.FontSizeCS = (this.FontSizeCS + 0.5) >> 0;
-		this.FontSizeCS = Math.max(1, this.FontSizeCS);
+		this.FontSize      *= this.FontScale;
+		this.FontSize       = (this.FontSize + 0.5) >> 0;
+		this.FontSize       = Math.max(1, this.FontSize);
+		this.FontSizeCS    *= this.FontScale;
+		this.FontSizeCS     = (this.FontSizeCS + 0.5) >> 0;
+		this.FontSizeCS     = Math.max(1, this.FontSizeCS);
 	}
 };
-
 CTextPr.prototype.Write_ToBinary = function(Writer)
 {
 	var StartPos = Writer.GetCurPosition();
@@ -14119,6 +14105,12 @@ CTextPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 1073741824;
 	}
 
+	if (undefined !== this.Ligatures)
+	{
+		Writer.WriteByte(this.Ligatures);
+		Flags |= (1 << 31);
+	}
+
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
 	Writer.WriteLong(Flags);
@@ -14283,6 +14275,9 @@ CTextPr.prototype.Read_FromBinary = function(Reader)
 		this.HighlightColor = new AscFormat.CUniColor();
 		this.HighlightColor.Read_FromBinary(Reader);
 	}
+
+	if (Flags & (1 << 31))
+		this.Ligatures = Reader.GetByte();
 };
 CTextPr.prototype.Check_NeedRecalc = function()
 {
@@ -14561,6 +14556,9 @@ CTextPr.prototype.Is_Equal = function(TextPr)
 	if (this.Vanish !== TextPr.Vanish)
 		return false;
 
+	if (this.Ligatures !== TextPr.Ligatures)
+		return false;
+
 	if (!IsEqualStyleObjects(this.Shd, TextPr.Shd))
 		return false;
 	if (undefined != TextPr.AscLine)
@@ -14610,6 +14608,7 @@ CTextPr.prototype.Is_Empty = function()
 		|| undefined !== this.FontRef
 		|| undefined !== this.Shd
 		|| undefined !== this.Vanish
+		|| undefined !== this.Ligatures
 		|| undefined !== this.TextOutline
 		|| undefined !== this.TextFill
 		|| undefined !== this.HighlightColor)
@@ -14716,6 +14715,9 @@ CTextPr.prototype.GetDiff = function(oTextPr)
 	if (this.Vanish !== oTextPr.Vanish)
 		oResultTextPr.Vanish = this.Vanish;
 
+	if (this.Ligatures !== oTextPr.Ligatures)
+		oResultTextPr.Ligatures = this.Ligatures;
+
 	if (this.Shd && !this.Shd.IsEqual(oTextPr.Shd))
 		oResultTextPr.Shd = this.Shd.Copy();
 
@@ -14802,24 +14804,30 @@ CTextPr.prototype.SetAscColor = function(oAscColor)
 
 	}
 };
-CTextPr.prototype.SetUnifill = function(oUnifill) {
+CTextPr.prototype.SetUnifill = function(oUnifill)
+{
 	this.Unifill = oUnifill;
 };
-CTextPr.prototype.FillFromExcelFont = function(oFont) {
-	if(!oFont) {
+CTextPr.prototype.FillFromExcelFont = function(oFont)
+{
+	if (!oFont)
 		return;
-	}
+
 	var nSchemeFont = oFont.getScheme();
-	switch (nSchemeFont) {
-		case Asc.EFontScheme.fontschemeMajor: {
+	switch (nSchemeFont)
+	{
+		case Asc.EFontScheme.fontschemeMajor:
+		{
 			this.RFonts.SetFontStyle(AscFormat.fntStyleInd_major);
 			break;
 		}
-		case Asc.EFontScheme.fontschemeMinor: {
+		case Asc.EFontScheme.fontschemeMinor:
+		{
 			this.RFonts.SetFontStyle(AscFormat.fntStyleInd_minor);
 			break;
 		}
-		case Asc.EFontScheme.fontschemeNone: {
+		case Asc.EFontScheme.fontschemeNone:
+		{
 			this.RFonts.SetAll(oFont.getName(), -1);
 			break;
 		}
@@ -14938,6 +14946,14 @@ CTextPr.prototype.SetShd = function(nType, nR, nG, nB)
 		return;
 
 	this.Shd.Color.Set(nR, nG, nB);
+};
+CTextPr.prototype.SetLigatures = function(nType)
+{
+	this.Ligatures = nType;
+};
+CTextPr.prototype.GetLigatures = function()
+{
+	return this.Ligatures;
 };
 CTextPr.prototype.WriteToBinary = function(oWriter)
 {
@@ -15280,6 +15296,8 @@ CTextPr.prototype['get_Lang']       = CTextPr.prototype.get_Lang       = CTextPr
 CTextPr.prototype['put_Lang']       = CTextPr.prototype.put_Lang       = CTextPr.prototype.SetLang;
 CTextPr.prototype['get_Shd']        = CTextPr.prototype.get_Shd        = CTextPr.prototype['Get_Shd']        = CTextPr.prototype.GetShd;
 CTextPr.prototype['put_Shd']        = CTextPr.prototype.put_Shd        = CTextPr.prototype.SetShd;
+CTextPr.prototype['get_Ligatures']  = CTextPr.prototype.GetLigatures;
+CTextPr.prototype['put_Ligatures']  = CTextPr.prototype.SetLigatures;
 //----------------------------------------------------------------------------------------------------------------------
 
 function CParaTab(Value, Pos, Leader)

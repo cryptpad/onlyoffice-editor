@@ -51,6 +51,7 @@
 	// 2. Shape - простая функция для шейпинга текста
 	// 3. GetFontInfo - получаем информацию о шрифте на момент составления графем
 	// 4. GetCodePoint - данная функция нужна, чтобы в буфере можно было хранить не сам юникод, а его содержащий класс
+	// 5. GetLigaturesType - какие лигатуры поддерживать
 
 	/**
 	 * @constructor
@@ -108,9 +109,13 @@
 
 		this.FontSize = oFontInfo.Size;
 
-		AscFonts.HB_ShapeString(this, nFontId, oFontInfo.Style, this.FontId, 0, nScript, nDirection, "en");
+		AscFonts.HB_ShapeString(this, nFontId, oFontInfo.Style, this.FontId, this.GetLigaturesType(), nScript, nDirection, "en");
 
 		this.ClearBuffer();
+	};
+	CTextShaper.prototype.GetLigaturesType = function()
+	{
+		return Asc.LigaturesType.None;
 	};
 	CTextShaper.prototype.GetTextScript = function(nUnicode)
 	{
