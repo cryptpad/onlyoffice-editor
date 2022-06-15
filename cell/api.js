@@ -8158,6 +8158,7 @@ var editor;
 
   prot['asc_isOffline'] = prot.asc_isOffline;
   prot['asc_getUrlType'] = prot.asc_getUrlType;
+  prot['asc_prepareUrl'] = prot.asc_prepareUrl;
 
   prot['asc_getSessionToken'] = prot.asc_getSessionToken;
   // Builder
