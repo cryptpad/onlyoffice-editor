@@ -2949,10 +2949,10 @@
 			if (0 != this.m_lPagesCount)
 				this.m_arrayPages[this.m_lPagesCount - 1].FillTextCode(x, y, text);
 		},
-		tg                       : function(gid, x, y)
+		tg                       : function(gid, x, y, codePoints)
 		{
 			if (0 != this.m_lPagesCount)
-				this.m_arrayPages[this.m_lPagesCount - 1].tg(gid, x, y);
+				this.m_arrayPages[this.m_lPagesCount - 1].tg(gid, x, y, codePoints);
 		},
 		FillText2                : function(x, y, text)
 		{
