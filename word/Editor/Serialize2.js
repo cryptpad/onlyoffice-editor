@@ -12770,7 +12770,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			});
 			oSdt.SetFormPr(formPr);
 		} else if (c_oSerSdt.TextFormPr === type && oSdt.SetTextFormPr) {
-			var textFormPr = new CSdtTextFormPr();
+			var textFormPr = new AscWord.CSdtTextFormPr();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtTextFormPr(t, l, textFormPr);
 			});

@@ -657,7 +657,7 @@ CChangesSdtPrTextForm.prototype.private_SetValue = function(Value)
 };
 CChangesSdtPrTextForm.prototype.private_CreateObject = function()
 {
-	return new CSdtTextFormPr();
+	return new AscWord.CSdtTextFormPr();
 };
 /**
  * @constructor

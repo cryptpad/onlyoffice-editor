@@ -239,6 +239,9 @@
 	window['AscCommon'].CSdtTextFormPr    = CSdtTextFormPr;
 	window['AscCommon']['CSdtTextFormPr'] = CSdtTextFormPr;
 
+	window['AscWord'] = window['AscWord'] || {};
+	window['AscWord'].CSdtTextFormPr= CSdtTextFormPr;
+
 	CSdtTextFormPr.prototype['get_MaxCharacters']     = CSdtTextFormPr.prototype.GetMaxCharacters;
 	CSdtTextFormPr.prototype['put_MaxCharacters']     = CSdtTextFormPr.prototype.SetMaxCharacters;
 	CSdtTextFormPr.prototype['get_Comb']              = CSdtTextFormPr.prototype.GetComb;

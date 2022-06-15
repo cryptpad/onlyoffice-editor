@@ -346,7 +346,7 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 
 	if (Flags & 1048576)
 	{
-		this.TextForm = new CSdtTextFormPr();
+		this.TextForm = new AscWord.CSdtTextFormPr();
 		this.TextForm.ReadFromBinary(oReader);
 	}
 
