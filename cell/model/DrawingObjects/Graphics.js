@@ -1144,7 +1144,7 @@ CGraphics.prototype =
         }
     },
 
-    tg : function(text,x,y)
+    tg : function(text,x,y,codepoints)
     {
         if (this.m_bIsBreak)
             return;
@@ -1156,7 +1156,7 @@ CGraphics.prototype =
 
         try
         {
-            _font_manager.LoadString3C(text,_x,_y);
+            _font_manager.LoadString3C(text,_x,_y,codepoints);
         }
         catch(err)
         {
