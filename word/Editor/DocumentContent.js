@@ -318,7 +318,7 @@ CDocumentContent.prototype.Get_Theme = function()
 	if (this.LogicDocument)
 		return this.LogicDocument.GetTheme();
 
-	return AscFormat.DEFAULT_THEME;
+	return AscFormat.GetDefaultTheme();
 };
 CDocumentContent.prototype.Get_ColorMap = function()
 {
@@ -328,7 +328,7 @@ CDocumentContent.prototype.Get_ColorMap = function()
 	if (this.LogicDocument)
 		return this.LogicDocument.GetColorMap();
 
-	return AscFormat.DEFAULT_COLOR_MAP;
+	return AscFormat.GetDefaultColorMap();
 };
 CDocumentContent.prototype.Get_PageLimits = function(nCurPage)
 {

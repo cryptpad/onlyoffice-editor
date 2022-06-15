@@ -2254,7 +2254,7 @@ CTextDrawer.prototype =
                 var oColor = oTextPr.Color;
                 if(oColor.Auto && oTextPr.FontRef && oTextPr.FontRef.Color && this.m_oTheme)
                 {
-                    var oColorMap = AscFormat.DEFAULT_COLOR_MAP;
+                    var oColorMap = AscFormat.GetDefaultColorMap();
                     var oApi = window && window.editor;
                     if(oApi)
                     {

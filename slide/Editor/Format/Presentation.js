@@ -6125,7 +6125,7 @@ CPresentation.prototype.Get_Theme = function () {
 };
 
 CPresentation.prototype.Get_ColorMap = function () {
-    return AscFormat.DEFAULT_COLOR_MAP;
+    return AscFormat.GetDefaultColorMap();
 };
 
 CPresentation.prototype.Get_PageFields = function () {

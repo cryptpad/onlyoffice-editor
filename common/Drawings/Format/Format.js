@@ -1065,7 +1065,7 @@
 			} else if (master.clrMap) {
 				color_map = master.clrMap;
 			} else {
-				color_map = AscFormat.DEFAULT_COLOR_MAP;
+				color_map = AscFormat.GetDefaultColorMap();
 			}
 
 			checkObjectUnifill(cellPr.Shd, theme, color_map);
@@ -2187,7 +2187,7 @@
 					} else if (masterSlide != null && masterSlide.clrMap != null) {
 						clrMap = masterSlide.clrMap.color_map;
 					} else {
-						clrMap = AscFormat.DEFAULT_COLOR_MAP.color_map;
+						clrMap = AscFormat.GetDefaultColorMap().color_map;
 					}
 					if (clrMap[this.id] != null && theme.themeElements.clrScheme.colors[clrMap[this.id]] != null && theme.themeElements.clrScheme.colors[clrMap[this.id]].color != null)
 						this.RGBA = theme.themeElements.clrScheme.colors[clrMap[this.id]].color.RGBA;
@@ -18399,6 +18399,13 @@
 			}, this, []);
 		}
 
+		function GetDefaultTheme() {
+			if(!AscFormat.DEFAULT_THEME) {
+				AscFormat.DEFAULT_THEME = GenerateDefaultTheme(null);
+			}
+			return AscFormat.DEFAULT_THEME;
+		}
+
 		function GenerateDefaultMasterSlide(theme) {
 			var master = new MasterSlide(theme.presentation, theme);
 			master.Theme = theme;
@@ -18487,6 +18494,13 @@
 				clrMap.color_map[16] = 9;
 				return clrMap;
 			}, [], null);
+		}
+
+		function GetDefaultColorMap() {
+			if(!AscFormat.DEFAULT_COLOR_MAP) {
+				AscFormat.DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
+			}
+			return AscFormat.DEFAULT_COLOR_MAP;
 		}
 
 		function CreateAscFill(unifill) {
@@ -20183,7 +20197,10 @@
 		window['AscFormat'].CBaseNoIdObject = CBaseNoIdObject;
 		window['AscFormat'].checkRasterImageId = checkRasterImageId;
 
-		window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
+		window['AscFormat'].DEFAULT_COLOR_MAP = null;
+		window['AscFormat'].DEFAULT_THEME = null;
+		window['AscFormat'].GetDefaultColorMap = GetDefaultColorMap;
+		window['AscFormat'].GetDefaultTheme = GetDefaultTheme;
 		window['AscFormat'].getPercentageValue = getPercentageValue;
 		window['AscFormat'].getPercentageValueForWrite = getPercentageValueForWrite;
 		window['AscFormat'].CSpTree = CSpTree;

@@ -7570,6 +7570,5 @@ function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr
     window['AscFormat'].SaveContentSourceFormatting = SaveContentSourceFormatting;
     window['AscFormat'].hitToHandles = hitToHandles;
     window['AscFormat'].pHText = pHText;
-	window['AscFormat'].DEFAULT_THEME = AscFormat.GenerateDefaultTheme(null);
     window['AscFormat'].fReadTxBoxContentXML = fReadTxBoxContentXML;
 })(window);
