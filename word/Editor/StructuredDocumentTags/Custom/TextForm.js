@@ -43,7 +43,7 @@
 		this.MaxCharacters         = undefined !== nMax ? nMax : -1;
 		this.Comb                  = undefined !== isComb ? isComb : false;
 		this.Width                 = nWidth;
-		this.WidthRule             = Asc.CombFormWidthRule.Exact;
+		this.WidthRule             = Asc.CombFormWidthRule.Auto;
 		this.CombPlaceholderSymbol = nSymbol;
 		this.CombPlaceholderFont   = sFont;
 		this.CombBorder            = undefined !== oCombBorder ? oCombBorder.Copy() : undefined;
@@ -253,7 +253,7 @@
 	window['AscCommon']['CSdtTextFormPr'] = CSdtTextFormPr;
 
 	window['AscWord'] = window['AscWord'] || {};
-	window['AscWord'].CSdtTextFormPr= CSdtTextFormPr;
+	window['AscWord'].CSdtTextFormPr = CSdtTextFormPr;
 
 	CSdtTextFormPr.prototype['get_MaxCharacters']     = CSdtTextFormPr.prototype.GetMaxCharacters;
 	CSdtTextFormPr.prototype['put_MaxCharacters']     = CSdtTextFormPr.prototype.SetMaxCharacters;

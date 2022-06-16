@@ -3275,12 +3275,15 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	var nMaxComb    = -1;
 	var nCombWidth  = null;
 	var oTextForm   = this.GetTextForm();
-	let isFixedForm = false;
+	let isKeepWidth = false;
 	if (oTextForm && oTextForm.IsComb())
 	{
+		const nWRule = oTextForm.GetWidthRule();
+		isKeepWidth  = Asc.CombFormWidthRule.Exact === nWRule;
+
 		nMaxComb = oTextForm.MaxCharacters;
 
-		if (undefined === oTextForm.Width)
+		if (undefined === oTextForm.Width || nWRule === Asc.CombFormWidthRule.Auto)
 			nCombWidth = 0;
 		else if (oTextForm.Width < 0)
 			nCombWidth = this.TextAscent * (Math.abs(oTextForm.Width) / 100);
@@ -3293,20 +3296,21 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		let oParagraph = this.GetParagraph();
 		if (oParagraph && oParagraph.IsInFixedForm())
 		{
-			isFixedForm = true;
+			isKeepWidth = true;
 			var oShape  = oParagraph.Parent.Is_DrawingShape(true);
 			var oBounds = oShape.getFormRelRect();
 
 			if (nMaxComb > 0)
 				nCombWidth = oBounds.W / nMaxComb;
 		}
+
 	}
 
 	if (nCombWidth && nMaxComb > 0)
 	{
 		var oCombBorder  = oTextForm.GetCombBorder();
 		var nCombBorderW = oCombBorder? oCombBorder.GetWidth() : 0;
-		this.private_MeasureCombForm(nCombBorderW, nCombWidth, nMaxComb, oTextForm, isFixedForm, oTextPr, oTheme, oInfoMathText);
+		this.private_MeasureCombForm(nCombBorderW, nCombWidth, nMaxComb, oTextForm, isKeepWidth, oTextPr, oTheme, oInfoMathText);
 	}
 	else if (this.RecalcInfo.Measure)
 	{
@@ -3330,11 +3334,8 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
 };
-ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, nMaxComb, oTextForm, isFixedForm, oTextPr, oTheme, oInfoMathText)
+ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, nMaxComb, oTextForm, isKeepWidth, oTextPr, oTheme, oInfoMathText)
 {
-	const nWRule = oTextForm.GetWidthRule();
-	const isKeepWidth = (Asc.CombFormWidthRule.Exact === nWRule || isFixedForm);
-
 	let nCharsCount = 0;
 	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
