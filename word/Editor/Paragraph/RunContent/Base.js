@@ -318,7 +318,7 @@
 	{
 		return this.GetWidth();
 	};
-	CRunElementBase.prototype.SetGaps = function(nLeftGap, nRightGap)
+	CRunElementBase.prototype.SetGaps = function(nLeftGap, nRightGap, nCellWidth)
 	{
 	};
 	CRunElementBase.prototype.ResetGapBackground = function()

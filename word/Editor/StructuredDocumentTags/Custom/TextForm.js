@@ -35,7 +35,7 @@
 (function(window)
 {
 	/**
-	 * Клосс с настройками для текстовой формы
+	 * Класс с настройками для текстовой формы
 	 * @constructor
 	 */
 	function CSdtTextFormPr(nMax, isComb, nWidth, nSymbol, sFont, oCombBorder)
@@ -43,6 +43,7 @@
 		this.MaxCharacters         = undefined !== nMax ? nMax : -1;
 		this.Comb                  = undefined !== isComb ? isComb : false;
 		this.Width                 = nWidth;
+		this.WidthRule             = Asc.CombFormWidthRule.Exact;
 		this.CombPlaceholderSymbol = nSymbol;
 		this.CombPlaceholderFont   = sFont;
 		this.CombBorder            = undefined !== oCombBorder ? oCombBorder.Copy() : undefined;
@@ -56,6 +57,7 @@
 		oText.MaxCharacters         = this.MaxCharacters;
 		oText.Comb                  = this.Comb;
 		oText.Width                 = this.Width;
+		oText.WidthRule             = this.WidthRule;
 		oText.CombPlaceholderSymbol = this.CombPlaceholderSymbol;
 		oText.CombPlaceholderFont   = this.CombPlaceholderFont;
 		oText.CombBorder            = this.CombBorder ? this.CombBorder.Copy() : undefined;
@@ -70,6 +72,7 @@
 			&& this.MaxCharacters === oOther.MaxCharacters
 			&& this.Comb === oOther.Comb
 			&& this.Width === oOther.Width
+			&& this.WidthRule === oOther.WidthRule
 			&& this.CombPlaceholderSymbol === oOther.CombPlaceholderSymbol
 			&& this.CombPlaceholderFont === oOther.CombPlaceholderFont
 			&& ((!this.CombBorder && !oOther) || (this.CombBorder && this.CombBorder.IsEqual(oOther)))
@@ -115,6 +118,7 @@
 
 		oWriter.WriteBool(this.MultiLine);
 		oWriter.WriteBool(this.AutoFit);
+		oWriter.WriteLong(this.WidthRule);
 	};
 	CSdtTextFormPr.prototype.ReadFromBinary = function(oReader)
 	{
@@ -136,6 +140,7 @@
 
 		this.MultiLine = oReader.GetBool();
 		this.AutoFit   = oReader.GetBool();
+		this.WidthRule = oReader.GetLong();
 	};
 	CSdtTextFormPr.prototype.Write_ToBinary = function(oWriter)
 	{
@@ -234,6 +239,14 @@
 	{
 		this.AutoFit = isAutoFit;
 	};
+	CSdtTextFormPr.prototype.GetWidthRule = function()
+	{
+		return this.WidthRule;
+	};
+	CSdtTextFormPr.prototype.SetWidthRule = function(nRule)
+	{
+		this.WidthRule = nRule;
+	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].CSdtTextFormPr    = CSdtTextFormPr;
@@ -258,5 +271,7 @@
 	CSdtTextFormPr.prototype['put_MultiLine']         = CSdtTextFormPr.prototype.SetMultiLine;
 	CSdtTextFormPr.prototype['get_AutoFit']           = CSdtTextFormPr.prototype.GetAutoFit;
 	CSdtTextFormPr.prototype['put_AutoFit']           = CSdtTextFormPr.prototype.SetAutoFit;
+	CSdtTextFormPr.prototype['get_WidthRule']         = CSdtTextFormPr.prototype.GetWidthRule;
+	CSdtTextFormPr.prototype['put_WidthRule']         = CSdtTextFormPr.prototype.SetWidthRule;
 
 })(window);

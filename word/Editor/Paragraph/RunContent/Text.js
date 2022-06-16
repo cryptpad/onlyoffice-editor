@@ -308,6 +308,9 @@
 	{
 		if (this.Flags & FLAGS_GAPS)
 		{
+			Context.SaveGrState();
+			Context.AddClipRect(X, PDSE.LineTop, this.CellW, PDSE.LineBottom - PDSE.LineTop);
+
 			this.DrawGapsBackground(X, Y, Context, PDSE, oTextPr);
 			X += this.LGap;
 		}
@@ -322,14 +325,18 @@
 		{
 			AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, nFontSize);
 		}
+
+		if (this.Flags & FLAGS_GAPS)
+			Context.RestoreGrState();
 	};
 	CRunText.prototype.Measure = function(oMeasurer, oTextPr)
 	{
 		if (this.Flags & FLAGS_GAPS)
 		{
 			this.Flags &= FLAGS_NON_GAPS;
-			this.LGap = 0;
-			this.RGap = 0;
+			this.LGap  = 0;
+			this.RGap  = 0;
+			this.CellW = 0;
 		}
 	};
 	CRunText.prototype.CanAddNumbering = function()
@@ -576,6 +583,7 @@
 		{
 			state.push(this.LGap);
 			state.push(this.RGap);
+			state.push(this.CellW);
 
 			state.push(this.RGapCount);
 			state.push(this.RGapCharCode);
@@ -611,8 +619,9 @@
 
 		if (this.Flags & FLAGS_GAPS)
 		{
-			this.LGap = oState[nPos++];
-			this.RGap = oState[nPos++];
+			this.LGap  = oState[nPos++];
+			this.RGap  = oState[nPos++];
+			this.CellW = oState[nPos++];
 
 			this.RGapCount     = oState[nPos++];
 			this.RGapCharCode  = oState[nPos++];
@@ -626,14 +635,15 @@
 	{
 		return (AscFonts.GetGraphemeWidth(this.Grapheme) * (((this.Flags >> 16) & 0xFFFF) / 64));
 	};
-	CRunText.prototype.SetGaps = function(nLeftGap, nRightGap)
+	CRunText.prototype.SetGaps = function(nLeftGap, nRightGap, nCellWidth)
 	{
 		this.Flags &= FLAGS_NON_TEMPORARY;
 		this.Flags &= FLAGS_NON_VISIBLE_WIDTH;
 		this.Flags |= FLAGS_GAPS;
 
-		this.LGap = nLeftGap;
-		this.RGap = nRightGap;
+		this.LGap  = nLeftGap;
+		this.RGap  = nRightGap;
+		this.CellW = nCellWidth;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
