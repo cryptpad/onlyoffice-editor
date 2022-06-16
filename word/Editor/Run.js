@@ -1286,7 +1286,7 @@ ParaRun.prototype.RemoveTextCluster = function(nPos)
 	let oCurRun = this;
 	if (!isTrack)
 	{
-		this.RemoveFromContent(nPos, 1);
+		this.RemoveFromContent(nPos, 1, true);
 	}
 	else if (reviewtype_Remove !== this.GetReviewType())
 	{
