@@ -1947,34 +1947,34 @@ CopyProcessor.prototype =
 				var shd = compilePr.Shd;
 				var color = shd.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 				if(color) {
-					cell.Pr.Shd.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
+					cell.Pr.Shd.Unifill = AscFormat.CreateSolidFillRGB(color.r, color.g, color.b);
 				}
 
 				if (compilePr.TableCellBorders.Bottom) {
 					color = compilePr.TableCellBorders.Bottom.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					if(color) {
-						cell.Pr.TableCellBorders.Bottom.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
+						cell.Pr.TableCellBorders.Bottom.Unifill = AscFormat.CreateSolidFillRGB(color.r, color.g, color.b);
 					}
 				}
 
 				if (compilePr.TableCellBorders.Top) {
 					color = compilePr.TableCellBorders.Top.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					if(color) {
-						cell.Pr.TableCellBorders.Top.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
+						cell.Pr.TableCellBorders.Top.Unifill = AscFormat.CreateSolidFillRGB(color.r, color.g, color.b);
 					}
 				}
 
 				if (compilePr.TableCellBorders.Left) {
 					color = compilePr.TableCellBorders.Left.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					if(color) {
-						cell.Pr.TableCellBorders.Left.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
+						cell.Pr.TableCellBorders.Left.Unifill = AscFormat.CreateSolidFillRGB(color.r, color.g, color.b);
 					}
 				}
 
 				if (compilePr.TableCellBorders.Right) {
 					color = compilePr.TableCellBorders.Right.Get_Color2(this.oDocument.Get_Theme(), this.oDocument.Get_ColorMap());
 					if(color) {
-						cell.Pr.TableCellBorders.Right.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
+						cell.Pr.TableCellBorders.Right.Unifill = AscFormat.CreateSolidFillRGB(color.r, color.g, color.b);
 					}
 				}
 			}
@@ -8494,7 +8494,7 @@ PasteProcessor.prototype =
 				var color = this._getStyle(node, computedStyle, "border-" + type + "-color");
 				if (null != color && (color = this._ParseColor(color))) {
 					if (setUnifill && color) {
-						res.Unifill = AscFormat.CreteSolidFillRGB(color.r, color.g, color.b);
+						res.Unifill = AscFormat.CreateSolidFillRGB(color.r, color.g, color.b);
 					} else {
 						res.Color = color;
 					}

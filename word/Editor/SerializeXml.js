@@ -2651,6 +2651,10 @@
 		}
 		return null;
 	};
+	ParaRun.prototype.readVMLDrawing = function(reader, name) {
+		let oVMLConverter = new AscFormat.CVMLToDrawingMLConverter();
+		return oVMLConverter.createParaDrawingMLFromVMLNode(reader, name, this.Paragraph);
+	};
 	ParaRun.prototype.fromXml = function(reader) {
 		let oReadResult = reader.context.oReadResult;
 		let footnotes = oReadResult.footnotes;
@@ -2750,12 +2754,13 @@
 					newItem.Set_SpaceAfter(false);
 					break;
 				case "object":
-					//todo
+					newItem = this.readVMLDrawing(reader, name);
 					break;
 				case "pgNum":
 					newItem = new AscWord.CRunPageNum();
 					break;
 				case "pict":
+					newItem = this.readVMLDrawing(reader, name);
 					break;
 				case "ptab":
 					break;
