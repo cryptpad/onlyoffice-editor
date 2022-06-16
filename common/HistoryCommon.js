@@ -2066,6 +2066,7 @@
 	window['AscDFH'].historyitem_ParaRun_BoldCS                = window['AscDFH'].historyitem_type_ParaRun | 49;
 	window['AscDFH'].historyitem_ParaRun_ItalicCS              = window['AscDFH'].historyitem_type_ParaRun | 50;
 	window['AscDFH'].historyitem_ParaRun_FontSizeCS            = window['AscDFH'].historyitem_type_ParaRun | 51;
+	window['AscDFH'].historyitem_ParaRun_Ligatures             = window['AscDFH'].historyitem_type_ParaRun | 52;
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSectionPr

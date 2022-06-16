@@ -9310,6 +9310,9 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	if (undefined !== TextPr.Shd)
 		this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
 
+	if (undefined !== TextPr.Ligatures)
+		this.SetLigatures(null === TextPr.Ligatures ? undefined : TextPr.Ligatures);
+
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		if (para_End === this.Content[nPos].Type)
@@ -10103,6 +10106,17 @@ ParaRun.prototype.Set_Shd = function(Shd)
     History.Add(new CChangesRunShd(this, OldShd, this.Pr.Shd, this.private_IsCollPrChangeMine()));
     this.Recalc_CompiledPr(false);
     this.private_UpdateTrackRevisionOnChangeTextPr(true);
+};
+ParaRun.prototype.SetLigatures = function(nType)
+{
+	if (this.Pr.Ligatures === nType)
+		return;
+
+	AscCommon.History.Add(new CChangesRunLigatures(this, this.Pr.Ligatures, nType));
+	this.Pr.Ligatures = nType;
+	this.Recalc_CompiledPr(true);
+	this.private_UpdateShapeText();
+	this.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 
 //-----------------------------------------------------------------------------------

@@ -89,6 +89,7 @@ AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme] = CChang
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_BoldCS]                = CChangesRunBoldCS;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_ItalicCS]              = CChangesRunItalicCS;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_FontSizeCS]            = CChangesRunFontSizeCS;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_Ligatures]             = CChangesRunLigatures;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -180,7 +181,8 @@ AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_TextPr]            = [
 	AscDFH.historyitem_ParaRun_RFonts_Ascii_Theme,
 	AscDFH.historyitem_ParaRun_RFonts_HAnsi_Theme,
 	AscDFH.historyitem_ParaRun_RFonts_CS_Theme,
-	AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme
+	AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme,
+	AscDFH.historyitem_ParaRun_Ligatures
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_Unifill]           = [AscDFH.historyitem_ParaRun_TextPr, AscDFH.historyitem_ParaRun_Unifill];
 AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_Shd]               = [AscDFH.historyitem_ParaRun_TextPr, AscDFH.historyitem_ParaRun_Shd];
@@ -231,7 +233,10 @@ AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_RFonts_Ascii_Theme]      = 
 AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_RFonts_HAnsi_Theme]      = [AscDFH.historyitem_ParaRun_TextPr, AscDFH.historyitem_ParaRun_RFonts, AscDFH.historyitem_ParaRun_RFonts_HAnsi_Theme];
 AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_RFonts_CS_Theme]         = [AscDFH.historyitem_ParaRun_TextPr, AscDFH.historyitem_ParaRun_RFonts, AscDFH.historyitem_ParaRun_RFonts_CS_Theme];
 AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme]   = [AscDFH.historyitem_ParaRun_TextPr, AscDFH.historyitem_ParaRun_RFonts, AscDFH.historyitem_ParaRun_RFonts_EastAsia_Theme];
-
+AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_Ligatures]   = [
+	AscDFH.historyitem_ParaRun_TextPr,
+	AscDFH.historyitem_ParaRun_Ligatures
+];
 
 
 /**
@@ -1918,6 +1923,11 @@ CChangesRunTextPr.prototype.Merge = function(oChange)
 			this.New.FontSizeCS = oChange.New;
 			break;
 		}
+		case AscDFH.historyitem_ParaRun_Ligatures:
+		{
+			this.New.Ligatures = oChange.New;
+			break
+		}
 	}
 
 	return true;
@@ -2862,3 +2872,24 @@ CChangesRunFontSizeCS.prototype.Load = function(Color)
 		this.Class.private_AddCollPrChangeOther(Color);
 };
 CChangesRunFontSizeCS.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesRunLigatures(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
+}
+CChangesRunLigatures.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesRunLigatures.prototype.constructor = CChangesRunLigatures;
+CChangesRunLigatures.prototype.Type = AscDFH.historyitem_ParaRun_Ligatures;
+CChangesRunLigatures.prototype.private_SetValue = function(Value)
+{
+	let oRun = this.Class;
+	oRun.Pr.Ligatures = Value;
+
+	oRun.Recalc_CompiledPr(true);
+	oRun.private_UpdateShapeText();
+	oRun.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+CChangesRunLigatures.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
