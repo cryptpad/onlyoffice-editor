@@ -7181,7 +7181,12 @@ CShape.prototype.getColumnNumber = function(){
 	};
 	CShape.prototype.getFormHorPadding = function() {
 		let oInnerForm;
-		if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+		if (this.isForm
+			&& this.isForm()
+			&& (oInnerForm = this.getInnerForm())
+			&& !oInnerForm.IsPictureForm()
+			&& !oInnerForm.IsCheckBox()
+			&& (!oInnerForm.IsTextForm() || !oInnerForm.GetTextFormPr().IsComb()))
 			return 2 * 25.4 / 72; // 2pt
 
 		return 0;
