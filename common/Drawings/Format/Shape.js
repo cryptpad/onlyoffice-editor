@@ -5488,7 +5488,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
     if (graphics.IsSlideBoundsCheckerType === true) {
 
         graphics.transform3(_transform);
-        if (!this.spPr || null == geometry || geometry.pathLst.length === 0 || (geometry.pathLst.length === 1 && geometry.pathLst[0].ArrPathCommandInfo.length === 0) || !graphics.IsShapeNeedBounds(geometry.preset)) {
+        if (!this.spPr || null == geometry || geometry.isEmpty() || !graphics.IsShapeNeedBounds(geometry.preset)) {
             graphics._s();
             graphics._m(0, 0);
             graphics._l(this.extX, 0);
@@ -7181,7 +7181,12 @@ CShape.prototype.getColumnNumber = function(){
 	};
 	CShape.prototype.getFormHorPadding = function() {
 		let oInnerForm;
-		if (this.isForm && this.isForm() && (oInnerForm = this.getInnerForm()) && !oInnerForm.IsPictureForm() && !oInnerForm.IsCheckBox())
+		if (this.isForm
+			&& this.isForm()
+			&& (oInnerForm = this.getInnerForm())
+			&& !oInnerForm.IsPictureForm()
+			&& !oInnerForm.IsCheckBox()
+			&& (!oInnerForm.IsTextForm() || !oInnerForm.GetTextFormPr().IsComb()))
 			return 2 * 25.4 / 72; // 2pt
 
 		return 0;

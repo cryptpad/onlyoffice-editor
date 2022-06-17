@@ -2202,6 +2202,7 @@ background-repeat: no-repeat;\
 		ParaPr.SmallCaps   = TextPr.SmallCaps;
 		ParaPr.TextSpacing = TextPr.Spacing;
 		ParaPr.Position    = TextPr.Position;
+		ParaPr.Ligatures   = TextPr.Ligatures;
 		//-----------------------------------------------------------------------------
 
 		if (true === ParaPr.Spacing.AfterAutoSpacing)
@@ -3894,6 +3895,9 @@ background-repeat: no-repeat;\
 
 			if (undefined != Props.Position)
 				TextPr.Position = Props.Position;
+
+			if (undefined !== Props.Ligatures)
+				TextPr.Ligatures = Props.Ligatures;
 
 			oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(TextPr));
 			oLogicDocument.Recalculate();

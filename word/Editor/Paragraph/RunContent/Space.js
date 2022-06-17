@@ -222,7 +222,7 @@
 	{
 		this.Width = this.WidthEn;
 	};
-	CRunSpace.prototype.SetGaps = function(nLeftGap, nRightGap)
+	CRunSpace.prototype.SetGaps = function(nLeftGap, nRightGap, nCellWidth)
 	{
 		this.Flags |= FLAGS_GAPS;
 

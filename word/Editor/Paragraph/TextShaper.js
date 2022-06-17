@@ -52,6 +52,7 @@
 		this.Parent    = null;
 		this.TextPr    = null;
 		this.Temporary = false;
+		this.Ligatures = Asc.LigaturesType.None;
 	}
 	CParagraphTextShaper.prototype = Object.create(AscFonts.CTextShaper.prototype);
 	CParagraphTextShaper.prototype.constructor = CParagraphTextShaper;
@@ -61,6 +62,7 @@
 		this.Parent    = null;
 		this.TextPr    = null;
 		this.Temporary = isTemporary;
+		this.Ligatures = Asc.LigaturesType.None;
 	};
 	CParagraphTextShaper.prototype.GetCodePoint = function(oItem)
 	{
@@ -88,11 +90,7 @@
 	};
 	CParagraphTextShaper.prototype.GetLigaturesType = function()
 	{
-		let oTextPr = this.TextPr;
-		if (!oTextPr)
-			return Asc.LigaturesType.None;
-
-		return oTextPr.GetLigatures();
+		return this.Ligatures;
 	};
 	CParagraphTextShaper.prototype.Shape = function(oParagraph)
 	{
@@ -162,8 +160,12 @@
 		if (this.Parent !== oRunParent || !this.TextPr || !this.TextPr.IsEqual(oTextPr))
 			this.FlushWord();
 
-		this.Parent = oRunParent;
-		this.TextPr = oTextPr;
+		let oForm      = oRun.GetParentForm();
+		let isCombForm = oForm && oForm.IsTextForm() && oForm.GetTextFormPr().IsComb();
+
+		this.Parent    = oRunParent;
+		this.TextPr    = oTextPr;
+		this.Ligatures = isCombForm ? Asc.LigaturesType.None : oTextPr.Ligatures;
 	};
 	CParagraphTextShaper.prototype.private_HandleNBSP = function(oItem)
 	{

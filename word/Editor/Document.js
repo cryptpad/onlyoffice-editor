@@ -16273,13 +16273,13 @@ CDocument.prototype.AddContentControlDatePicker = function(oPr)
 };
 /**
  * Добавляем специальную текстовую форму
- * @param oPr {?CSdtTextFormPr}
+ * @param oPr {?AscWord.CSdtTextFormPr}
  * @returns {CInlineLevelSdt | CBlockLevelSdt | null}
  */
 CDocument.prototype.AddContentControlTextForm = function(oPr)
 {
 	if (!oPr)
-		oPr = new CSdtTextFormPr();
+		oPr = new AscWord.CSdtTextFormPr();
 
 	var sText   = this.GetSelectedText();
 	var oTextPr = this.GetDirectTextPr();

@@ -3359,6 +3359,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		All                              : LigaturesFlags.Standard | LigaturesFlags.Contextual | LigaturesFlags.Historical | LigaturesFlags.Discretional
 	};
 
+	const CombFormWidthRule = {
+		Auto    : 0,
+		AtLeast : 1,
+		Exact   : 2
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -4661,4 +4667,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['ContextualHistoricalDiscretional'] = prot.ContextualHistoricalDiscretional;
 	prot['All']                              = prot.All;
 
-	})(window);
+	prot = window['Asc']['CombFormWidthRule'] = window['Asc'].CombFormWidthRule = CombFormWidthRule;
+	prot['Auto']    = prot.Auto;
+	prot['AtLeast'] = prot.AtLeast;
+	prot['Exact']   = prot.Exact;
+
+})(window);

@@ -2871,6 +2871,7 @@
 			if(oBullet) {
 				oBullet.FirstTextPr = obj.FirstTextPr;
 			}
+			this.Ligatures = undefined !== obj.Ligatures ? obj.Ligatures : undefined;
 
 			this.CanDeleteBlockCC  = undefined !== obj.CanDeleteBlockCC ? obj.CanDeleteBlockCC : true;
 			this.CanEditBlockCC    = undefined !== obj.CanEditBlockCC ? obj.CanEditBlockCC : true;
@@ -2922,6 +2923,7 @@
 			this.OutlineLvlStyle = false;
 			this.SuppressLineNumbers = false;
 			this.Bullet = undefined;
+			this.Ligatures = undefined;
 
 			this.CanDeleteBlockCC  = true;
 			this.CanEditBlockCC    = true;
@@ -3162,6 +3164,12 @@
 		},
 		asc_canEditInlineContentControl: function() {
 			return this.CanEditInlineCC;
+		},
+		asc_getLigatures: function(){
+			return this.Ligatures;
+		},
+		asc_putLigatures: function(v){
+			this.Ligatures = v;
 		}
 	};
 
@@ -6418,6 +6426,8 @@
 	prot["can_EditBlockContentControl"] = prot["asc_canEditBlockContentControl"] = prot.asc_canEditBlockContentControl;
 	prot["can_DeleteInlineContentControl"] = prot["asc_canDeleteInlineContentControl"] = prot.asc_canDeleteInlineContentControl;
 	prot["can_EditInlineContentControl"] = prot["asc_canEditInlineContentControl"] = prot.asc_canEditInlineContentControl;
+	prot["get_Ligatures"] = prot["asc_getLigatures"] = prot.asc_getLigatures;
+	prot["put_Ligatures"] = prot["asc_putLigatures"] = prot.asc_putLigatures;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;

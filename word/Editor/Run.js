@@ -1286,7 +1286,7 @@ ParaRun.prototype.RemoveTextCluster = function(nPos)
 	let oCurRun = this;
 	if (!isTrack)
 	{
-		this.RemoveFromContent(nPos, 1);
+		this.RemoveFromContent(nPos, 1, true);
 	}
 	else if (reviewtype_Remove !== this.GetReviewType())
 	{
@@ -3272,14 +3272,18 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		});
 	}
 
-	var nMaxComb   = -1;
-	var nCombWidth = null;
-	var oTextForm  = this.GetTextForm();
+	var nMaxComb    = -1;
+	var nCombWidth  = null;
+	var oTextForm   = this.GetTextForm();
+	let isKeepWidth = false;
 	if (oTextForm && oTextForm.IsComb())
 	{
+		const nWRule = oTextForm.GetWidthRule();
+		isKeepWidth  = Asc.CombFormWidthRule.Exact === nWRule;
+
 		nMaxComb = oTextForm.MaxCharacters;
 
-		if (undefined === oTextForm.Width)
+		if (undefined === oTextForm.Width || nWRule === Asc.CombFormWidthRule.Auto)
 			nCombWidth = 0;
 		else if (oTextForm.Width < 0)
 			nCombWidth = this.TextAscent * (Math.abs(oTextForm.Width) / 100);
@@ -3292,19 +3296,21 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		let oParagraph = this.GetParagraph();
 		if (oParagraph && oParagraph.IsInFixedForm())
 		{
+			isKeepWidth = true;
 			var oShape  = oParagraph.Parent.Is_DrawingShape(true);
 			var oBounds = oShape.getFormRelRect();
 
 			if (nMaxComb > 0)
 				nCombWidth = oBounds.W / nMaxComb;
 		}
+
 	}
 
 	if (nCombWidth && nMaxComb > 0)
 	{
 		var oCombBorder  = oTextForm.GetCombBorder();
 		var nCombBorderW = oCombBorder? oCombBorder.GetWidth() : 0;
-		this.private_MeasureCombForm(nCombBorderW, nCombWidth, nMaxComb, oTextForm, oTextPr, oTheme, oInfoMathText);
+		this.private_MeasureCombForm(nCombBorderW, nCombWidth, nMaxComb, oTextForm, isKeepWidth, oTextPr, oTheme, oInfoMathText);
 	}
 	else if (this.RecalcInfo.Measure)
 	{
@@ -3328,12 +3334,8 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
 };
-ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, nMaxComb, oTextForm, oTextPr, oTheme, oInfoMathText)
+ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, nMaxComb, oTextForm, isKeepWidth, oTextPr, oTheme, oInfoMathText)
 {
-	// Пока у нас сделан вариант при котором, если элемент шире ячейки, тогда мы увеличиваем ширину ячейки под него
-	// Если поставить параметр true, то ширина не будет меняться, но при этом глифы могут залазить друг на друга
-	const isKeepWidth = false;
-
 	let nCharsCount = 0;
 	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
@@ -3363,13 +3365,14 @@ ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, n
 		let nLeftGap  = nCombBorderW / 2;
 		let nRightGap = nCombBorderW / 2;
 
-		var nWidth = oItem.GetCombWidth() + nLeftGap + nRightGap;
+		let nWidth = oItem.GetCombWidth() + nLeftGap + nRightGap;
 
 		if (isKeepWidth || nWidth < nCombWidth)
 		{
 			nLeftGap += (nCombWidth - nWidth) / 2;
 			nRightGap += (nCombWidth - nWidth) / 2;
 		}
+		let nCellWidth = Math.max(oItem.GetCombWidth() + nLeftGap + nRightGap, nCombWidth);
 
 		oItem.ResetGapBackground();
 
@@ -3379,11 +3382,11 @@ ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, n
 			&& this.Content[nPos + 1].IsCombiningMark())
 		{
 			let nFirstPos = nPos;
-			oItem.SetGaps(nLeftGap, 0);
+			oItem.SetGaps(nLeftGap, 0, nCellWidth);
 			while (this.Content[nPos].IsText() && nPos < nCount - 1 && this.Content[nPos + 1].IsText() && this.Content[nPos + 1].IsCombiningMark())
 			{
 				if (nPos !== nFirstPos)
-					this.Content[nPos].SetGaps(0, 0);
+					this.Content[nPos].SetGaps(0, 0, nCellWidth);
 
 				nPos++;
 				this.Content[nPos].ResetGapBackground();
@@ -3406,7 +3409,7 @@ ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, n
 			}
 		}
 
-		oItem.SetGaps(nLeftGap, nRightGap);
+		oItem.SetGaps(nLeftGap, nRightGap, nCellWidth);
 	}
 };
 ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfoMathText)
@@ -9307,6 +9310,9 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	if (undefined !== TextPr.Shd)
 		this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
 
+	if (undefined !== TextPr.Ligatures)
+		this.SetLigatures(null === TextPr.Ligatures ? undefined : TextPr.Ligatures);
+
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		if (para_End === this.Content[nPos].Type)
@@ -10100,6 +10106,17 @@ ParaRun.prototype.Set_Shd = function(Shd)
     History.Add(new CChangesRunShd(this, OldShd, this.Pr.Shd, this.private_IsCollPrChangeMine()));
     this.Recalc_CompiledPr(false);
     this.private_UpdateTrackRevisionOnChangeTextPr(true);
+};
+ParaRun.prototype.SetLigatures = function(nType)
+{
+	if (this.Pr.Ligatures === nType)
+		return;
+
+	AscCommon.History.Add(new CChangesRunLigatures(this, this.Pr.Ligatures, nType));
+	this.Pr.Ligatures = nType;
+	this.Recalc_CompiledPr(true);
+	this.private_UpdateShapeText();
+	this.private_UpdateTrackRevisionOnChangeTextPr(false);
 };
 
 //-----------------------------------------------------------------------------------
