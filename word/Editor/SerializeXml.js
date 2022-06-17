@@ -7155,10 +7155,10 @@
 					let T = parseInt(elem.attributes["t"]);
 					let R = parseInt(elem.attributes["r"]);
 					let B = parseInt(elem.attributes["b"]);
-					L = !isNaN(L) ? L : null;
-					T = !isNaN(T) ? T : null;
-					R = !isNaN(R) ? R : null;
-					B = !isNaN(B) ? B : null;
+					L = !isNaN(L) ? AscCommonWord.g_dKoef_emu_to_mm * L : null;
+					T = !isNaN(T) ? AscCommonWord.g_dKoef_emu_to_mm * T : null;
+					R = !isNaN(R) ? AscCommonWord.g_dKoef_emu_to_mm * R : null;
+					B = !isNaN(B) ? AscCommonWord.g_dKoef_emu_to_mm * B : null;
 					this.drawing.setEffectExtent(L, T, R, B);
 					break;
 				}
@@ -7386,22 +7386,15 @@
 				case "effectExtent" : {
 					elem = new CT_XmlNode();
 					elem.fromXml(reader);
-					var L = parseInt(elem.attributes["l"]);
-					var T = parseInt(elem.attributes["t"]);
-					var R = parseInt(elem.attributes["r"]);
-					var B = parseInt(elem.attributes["b"]);
-					if(!isNaN(L)) {
-						drawing.EffectExtent.L = g_dKoef_emu_to_mm * L;
-					}
-					if(!isNaN(T)) {
-						drawing.EffectExtent.T = g_dKoef_emu_to_mm * T;
-					}
-					if(!isNaN(R)) {
-						drawing.EffectExtent.R = g_dKoef_emu_to_mm * R;
-					}
-					if(!isNaN(B)) {
-						drawing.EffectExtent.B = g_dKoef_emu_to_mm * B;
-					}
+					let L = parseInt(elem.attributes["l"]);
+					let T = parseInt(elem.attributes["t"]);
+					let R = parseInt(elem.attributes["r"]);
+					let B = parseInt(elem.attributes["b"]);
+					L = !isNaN(L) ? AscCommonWord.g_dKoef_emu_to_mm * L : null;
+					T = !isNaN(T) ? AscCommonWord.g_dKoef_emu_to_mm * T : null;
+					R = !isNaN(R) ? AscCommonWord.g_dKoef_emu_to_mm * R : null;
+					B = !isNaN(B) ? AscCommonWord.g_dKoef_emu_to_mm * B : null;
+					this.drawing.setEffectExtent(L, T, R, B);
 					break;
 				}
 				case "wrapNone" : {
