@@ -8395,7 +8395,7 @@ PasteProcessor.prototype =
 			var oPr;
 			var checkBox = node.attributes["checkbox"];
 			if (checkBox && checkBox.value === "t") {
-				oPr = new CSdtCheckBoxPr();
+				oPr = new AscWord.CSdtCheckBoxPr();
 				var checked = node.attributes["checkboxischecked"];
 				if (checked) {
 					oPr.Checked = checked.value === "t";
@@ -8427,12 +8427,12 @@ PasteProcessor.prototype =
 
 			var comboBox = node.attributes["combobox"];
 			if (comboBox && comboBox.value === "t") {
-				oPr = new CSdtComboBoxPr();
+				oPr = new AscWord.CSdtComboBoxPr();
 			}
 
 			var dropdown = node.attributes["dropdown"];
 			if (dropdown && dropdown.value === "t") {
-				oPr = new CSdtComboBoxPr();
+				oPr = new AscWord.CSdtComboBoxPr();
 			}
 
 			if (comboBox || dropdown) {

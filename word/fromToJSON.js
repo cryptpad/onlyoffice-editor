@@ -10998,13 +10998,13 @@
 		// comboboxPr
 		if (oParsedSdtPr.comboBox)
 		{
-			var oComboboxPr   = new AscCommon.CSdtComboBoxPr();
+			var oComboboxPr   = new AscWord.CSdtComboBoxPr();
 			oTempListItem = null;
 
 			oComboboxPr.LastValue = oParsedSdtPr.comboBox.lastValue;
 			for (var nItem = 0; nItem < oParsedSdtPr.comboBox.listItem.length; nItem++)
 			{
-				oTempListItem             = new CSdtListItem();
+				oTempListItem             = new AscWord.CSdtListItem();
 				oTempListItem.DisplayText = oParsedSdtPr.comboBox.listItem[nItem].displayText;
 				oTempListItem.Value       = oParsedSdtPr.comboBox.listItem[nItem].value;
 				
@@ -11017,7 +11017,7 @@
 		// date
 		if (oParsedSdtPr.date)
 		{
-			var oDate = new AscCommon.CSdtDatePickerPr();
+			var oDate = new AscWord.CSdtDatePickerPr();
 
 			oDate.FullDate   = oParsedSdtPr.date.fullDate;
 			oDate.LangId     = oParsedSdtPr.date.lid;
@@ -11035,13 +11035,13 @@
 		// dropdown
 		if (oParsedSdtPr.comboBox)
 		{
-			var oDropDownPr   = new AscCommon.CSdtComboBoxPr();
+			var oDropDownPr   = new AscWord.CSdtComboBoxPr();
 			oTempListItem = null;
 
 			oDropDownPr.LastValue = oParsedSdtPr.dropDownList.lastValue;
 			for (var nItem = 0; nItem < oParsedSdtPr.dropDownList.listItem.length; nItem++)
 			{
-				oTempListItem             = new CSdtListItem();
+				oTempListItem             = new AscWord.CSdtListItem();
 				oTempListItem.DisplayText = oParsedSdtPr.dropDownList.listItem[nItem].displayText;
 				oTempListItem.Value       = oParsedSdtPr.dropDownList.listItem[nItem].value;
 				

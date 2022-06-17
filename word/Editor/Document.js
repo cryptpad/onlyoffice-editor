@@ -16169,7 +16169,7 @@ CDocument.prototype.private_SetCurrentSpecialForm = function(oForm)
 };
 /**
  * Добавляем специальный контейнер в виде чекбокса
- * @param oPr {?CSdtCheckBoxPr}
+ * @param oPr {?AscWord.CSdtCheckBoxPr}
  * @returns {CInlineLevelSdt | CBlockLevelSdt}
  */
 CDocument.prototype.AddContentControlCheckBox = function(oPr)
@@ -16177,7 +16177,7 @@ CDocument.prototype.AddContentControlCheckBox = function(oPr)
 	this.RemoveTextSelection();
 
 	if (!oPr)
-		oPr = new CSdtCheckBoxPr();
+		oPr = new AscWord.CSdtCheckBoxPr();
 
 	var oTextPr = this.GetDirectTextPr();
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
@@ -16210,7 +16210,7 @@ CDocument.prototype.AddContentControlPicture = function()
 };
 /**
  * Добавляем контйенер с полем для спискам
- * @param oPr {?CSdtComboBoxPr}
+ * @param oPr {?AscWord.CSdtComboBoxPr}
  */
 CDocument.prototype.AddContentControlComboBox = function(oPr)
 {
@@ -16218,7 +16218,7 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 
 	if (!oPr)
 	{
-		oPr = new CSdtComboBoxPr();
+		oPr = new AscWord.CSdtComboBoxPr();
 		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item"), "");
 	}
 
@@ -16232,7 +16232,7 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 };
 /**
  * Добавляем контейнер с выпалающим списком
- * @param oPr {?CSdtComboBoxPr}
+ * @param oPr {?AscWord.CSdtComboBoxPr}
  */
 CDocument.prototype.AddContentControlDropDownList = function(oPr)
 {
@@ -16240,7 +16240,7 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 
 	if (!oPr)
 	{
-		oPr = new CSdtComboBoxPr();
+		oPr = new AscWord.CSdtComboBoxPr();
 		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item"), "");
 	}
 
@@ -16254,14 +16254,14 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 };
 /**
  * Добавляем специальный контейнер с выбором даты
- * @param oPr {?CSdtDatePickerPr}
+ * @param oPr {?AscWord.CSdtDatePickerPr}
  */
 CDocument.prototype.AddContentControlDatePicker = function(oPr)
 {
 	this.RemoveTextSelection();
 
 	if (!oPr)
-		oPr = new CSdtDatePickerPr();
+		oPr = new AscWord.CSdtDatePickerPr();
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	if (!oCC)

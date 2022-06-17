@@ -12692,7 +12692,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				oSdtPr.Appearance = Appearance;
 			}
 		} else if (c_oSerSdt.ComboBox === type) {
-			var comboBox = new CSdtComboBoxPr();
+			var comboBox = new AscWord.CSdtComboBoxPr();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtComboBox(t, l, comboBox);
 			});
@@ -12709,7 +12709,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		// 		return oThis.ReadSdtPrDataBinding(t, l, oSdtPr.DataBinding);
 		// 	});
 		} else if (c_oSerSdt.PrDate === type) {
-			var datePicker = new CSdtDatePickerPr();
+			var datePicker = new AscWord.CSdtDatePickerPr();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtPrDate(t, l, datePicker);
 			});
@@ -12724,7 +12724,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				return oThis.ReadDocPartList(t, l, oSdtPr.DocPartObj);
 			});
 		} else if (c_oSerSdt.DropDownList === type) {
-			var comboBox = new CSdtComboBoxPr();
+			var comboBox = new AscWord.CSdtComboBoxPr();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtComboBox(t, l, comboBox);
 			});
@@ -12752,13 +12752,13 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		// } else if (c_oSerSdt.MultiLine === type) {
 		// 	oSdtPr.MultiLine = (this.stream.GetUChar() != 0);
 		} else if (c_oSerSdt.Checkbox === type && oSdt.SetCheckBoxPr) {
-			var checkBoxPr = new CSdtCheckBoxPr();
+			var checkBoxPr = new AscWord.CSdtCheckBoxPr();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtCheckBox(t, l, checkBoxPr);
 			});
 			oSdt.SetCheckBoxPr(checkBoxPr);
 		} else if (c_oSerSdt.PictureFormPr === type && oSdt.SetPictureFormPr) {
-			var oPicFormPr = new CSdtPictureFormPr();
+			var oPicFormPr = new AscWord.CSdtPictureFormPr();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtPictureFormPr(t, l, oPicFormPr);
 			});
@@ -12805,7 +12805,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		/*if (c_oSerSdt.LastValue === type) {
 			val.LastValue = this.stream.GetString2LE(length);
 		} else */if (c_oSerSdt.SdtListItem === type) {
-			var listItem = new CSdtListItem();
+			var listItem = new AscWord.CSdtListItem();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtListItem(t, l, listItem);
 			});

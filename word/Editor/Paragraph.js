@@ -17854,7 +17854,7 @@ Paragraph.prototype.AddCheckBoxToStartPos = function(oCheckBoxPr)
 		return null;
 
 	if (!oCheckBoxPr)
-		oCheckBoxPr = new CSdtCheckBoxPr();
+		oCheckBoxPr = new AscWord.CSdtCheckBoxPr();
 
 	oCC.ApplyCheckBoxPr(oCheckBoxPr, oTextPr);
 	oCC.MoveCursorToStartPos();

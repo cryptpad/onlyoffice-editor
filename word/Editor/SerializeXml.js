@@ -5631,12 +5631,12 @@
 					break;
 				}
 				case "comboBox" : {
-					this.ComboBox = new CSdtComboBoxPr();
+					this.ComboBox = new AscWord.CSdtComboBoxPr();
 					this.ComboBox.fromXml(reader);
 					break;
 				}
 				case "date" : {
-					this.Date = new CSdtDatePickerPr();
+					this.Date = new AscWord.CSdtDatePickerPr();
 					this.Date.fromXml(reader);
 					break;
 				}
@@ -5648,7 +5648,7 @@
 					break;
 				}
 				case "dropDownList" : {
-					this.DropDown = new CSdtComboBoxPr();
+					this.DropDown = new AscWord.CSdtComboBoxPr();
 					this.DropDown.fromXml(reader);
 					break;
 				}
@@ -5675,7 +5675,7 @@
 					break;
 				}
 				case "checkbox" : {
-					this.CheckBox = new CSdtCheckBoxPr();
+					this.CheckBox = new AscWord.CSdtCheckBoxPr();
 					this.CheckBox.fromXml(reader);
 					break;
 				}
@@ -5779,7 +5779,7 @@
 		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(docPartObj.Unique), "w:docPartUnique");
 		writer.WriteXmlNodeEnd(name);
 	};
-	CSdtComboBoxPr.prototype.readAttr = function (reader) {
+	AscWord.CSdtComboBoxPr.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "lastValue": {
@@ -5788,13 +5788,13 @@
 			}
 		}
 	};
-	CSdtComboBoxPr.prototype.fromXml = function (reader) {
+	AscWord.CSdtComboBoxPr.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "listItem" : {
-					elem = new CSdtListItem();
+					elem = new AscWord.CSdtListItem();
 					elem.fromXml(reader);
 					this.ListItems.push(elem);
 					break;
@@ -5802,14 +5802,14 @@
 			}
 		}
 	};
-	CSdtComboBoxPr.prototype.toXml = function (writer, name) {
+	AscWord.CSdtComboBoxPr.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
 		// writer.WriteXmlNullableAttributeStringEncode("w:lastValue", this.LastValue);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlArray(this.ListItems, "w:listItem");
 		writer.WriteXmlNodeEnd(name);
 	};
-	CSdtListItem.prototype.readAttr = function (reader) {
+	AscWord.CSdtListItem.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "displayText": {
@@ -5823,11 +5823,11 @@
 			}
 		}
 	};
-	CSdtListItem.prototype.fromXml = function (reader) {
+	AscWord.CSdtListItem.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
 	};
-	CSdtListItem.prototype.toXml = function (writer, name) {
+	AscWord.CSdtListItem.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
 		if (this.DisplayText) {
 			writer.WriteXmlNullableAttributeStringEncode("w:displayText", this.DisplayText);
@@ -5835,7 +5835,7 @@
 		writer.WriteXmlNullableAttributeStringEncode("w:value", this.Value);
 		writer.WriteXmlAttributesEnd(true);
 	};
-	CSdtDatePickerPr.prototype.readAttr = function (reader) {
+	AscWord.CSdtDatePickerPr.prototype.readAttr = function (reader) {
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "fullDate": {
@@ -5845,7 +5845,7 @@
 			}
 		}
 	};
-	CSdtDatePickerPr.prototype.fromXml = function (reader) {
+	AscWord.CSdtDatePickerPr.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
@@ -5868,7 +5868,7 @@
 			}
 		}
 	};
-	CSdtDatePickerPr.prototype.toXml = function (writer, name) {
+	AscWord.CSdtDatePickerPr.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeString("w:fullDate", this.FullDate);
 		writer.WriteXmlAttributesEnd();
@@ -5878,7 +5878,7 @@
 		// writer.WriteXmlNullable(this.StoreMappedDataAs, "w:storeMappedDataAs");
 		writer.WriteXmlNodeEnd(name);
 	};
-	CSdtCheckBoxPr.prototype.fromXml = function (reader) {
+	AscWord.CSdtCheckBoxPr.prototype.fromXml = function (reader) {
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -5925,7 +5925,7 @@
 			}
 		}
 	};
-	CSdtCheckBoxPr.prototype.toXml = function (writer, name) {
+	AscWord.CSdtCheckBoxPr.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_BoolW14.prototype.fromVal(this.Checked), "w14:checked");

@@ -1782,7 +1782,7 @@ CInlineLevelSdt.prototype.IsPictureForm = function()
 };
 /**
  * Выставляем настройк для формы с картинкой
- * @param oPr {CSdtPictureFormPr}
+ * @param oPr {AscWord.CSdtPictureFormPr}
  */
 CInlineLevelSdt.prototype.SetPictureFormPr = function(oPr)
 {
@@ -1795,7 +1795,7 @@ CInlineLevelSdt.prototype.SetPictureFormPr = function(oPr)
 };
 /**
  * Получаем настройки для картиночной формы
- * @returns {?CSdtPictureFormPr}
+ * @returns {?AscWord.CSdtPictureFormPr}
  */
 CInlineLevelSdt.prototype.GetPictureFormPr = function()
 {
@@ -1810,7 +1810,7 @@ CInlineLevelSdt.prototype.IsComboBox = function()
 	return (undefined !== this.Pr.ComboBox);
 };
 /**
- * @param oPr {CSdtComboBoxPr}
+ * @param oPr {AscWord.CSdtComboBoxPr}
  */
 CInlineLevelSdt.prototype.SetComboBoxPr = function(oPr)
 {
@@ -1822,7 +1822,7 @@ CInlineLevelSdt.prototype.SetComboBoxPr = function(oPr)
 	}
 };
 /**
- * @returns {?CSdtComboBoxPr}
+ * @returns {?AscWord.CSdtComboBoxPr}
  */
 CInlineLevelSdt.prototype.GetComboBoxPr = function()
 {
@@ -1837,7 +1837,7 @@ CInlineLevelSdt.prototype.IsDropDownList = function()
 	return (undefined !== this.Pr.DropDown);
 };
 /**
- * @param oPr {CSdtComboBoxPr}
+ * @param oPr {AscWord.CSdtComboBoxPr}
  */
 CInlineLevelSdt.prototype.SetDropDownListPr = function(oPr)
 {
@@ -1849,7 +1849,7 @@ CInlineLevelSdt.prototype.SetDropDownListPr = function(oPr)
 	}
 };
 /**
- * @returns {?CSdtComboBoxPr}
+ * @returns {?AscWord.CSdtComboBoxPr}
  */
 CInlineLevelSdt.prototype.GetDropDownListPr = function()
 {
@@ -1857,7 +1857,7 @@ CInlineLevelSdt.prototype.GetDropDownListPr = function()
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для поля со списком
- * @param oPr {CSdtComboBoxPr}
+ * @param oPr {AscWord.CSdtComboBoxPr}
  */
 CInlineLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
 {
@@ -1870,7 +1870,7 @@ CInlineLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контейнер для выпадающего списка
- * @param oPr {CSdtComboBoxPr}
+ * @param oPr {AscWord.CSdtComboBoxPr}
  */
 CInlineLevelSdt.prototype.ApplyDropDownListPr = function(oPr)
 {
@@ -1977,7 +1977,7 @@ CInlineLevelSdt.prototype.IsDatePicker = function()
 	return (undefined !== this.Pr.Date);
 };
 /**
- * @param oPr {CSdtDatePickerPr}
+ * @param oPr {AscWord.CSdtDatePickerPr}
  */
 CInlineLevelSdt.prototype.SetDatePickerPr = function(oPr)
 {
@@ -1989,7 +1989,7 @@ CInlineLevelSdt.prototype.SetDatePickerPr = function(oPr)
 	}
 };
 /**
- * @returns {?CSdtDatePickerPr}
+ * @returns {?AscWord.CSdtDatePickerPr}
  */
 CInlineLevelSdt.prototype.GetDatePickerPr = function()
 {
@@ -1997,7 +1997,7 @@ CInlineLevelSdt.prototype.GetDatePickerPr = function()
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
- * @param oPr {CSdtDatePickerPr}
+ * @param oPr {AscWord.CSdtDatePickerPr}
  */
 CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
 {
@@ -2099,7 +2099,7 @@ CInlineLevelSdt.prototype.GetTextFormPr = function()
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
- * @param oPr {CSdtDatePickerPr}
+ * @param oPr {AscWord.CSdtDatePickerPr}
  */
 CInlineLevelSdt.prototype.ApplyTextFormPr = function(oPr)
 {
