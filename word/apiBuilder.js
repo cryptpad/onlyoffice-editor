@@ -6176,6 +6176,35 @@
 		return false;
 	};
 
+	/**
+	 * Adds footnote for selected text (or current position if selection doesn't exist).
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiDocumentContent}
+	 */
+	ApiDocument.prototype.AddFootnote = function()
+	{
+		let oResult = this.Document.AddFootnote();
+		if (!oResult)
+			return null;
+
+		return new ApiDocumentContent(oResult);
+	};
+
+	/**
+	 * Adds endnote for selected text (or current position if selection doesn't exist).
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @returns {?ApiDocumentContent}
+	 */
+	ApiDocument.prototype.AddEndnote = function()
+	{
+		let oResult = this.Document.AddEndnote();
+		if (!oResult)
+			return null;
+
+		return new ApiDocumentContent(oResult);
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -16920,6 +16949,8 @@
 	ApiDocument.prototype["GetEndNotesFirstParagraphs"]  = ApiDocument.prototype.GetEndNotesFirstParagraphs;
 	ApiDocument.prototype["GetAllCaptionParagraphs"]     = ApiDocument.prototype.GetAllCaptionParagraphs;
 	ApiDocument.prototype["GetAllBookmarksNames"]        = ApiDocument.prototype.GetAllBookmarksNames;
+	ApiDocument.prototype["AddFootnote"]                 = ApiDocument.prototype.AddFootnote;
+	ApiDocument.prototype["AddEndnote"]                  = ApiDocument.prototype.AddEndnote;
 	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
 	ApiDocument.prototype["ReplaceDrawing"]              = ApiDocument.prototype.ReplaceDrawing;
