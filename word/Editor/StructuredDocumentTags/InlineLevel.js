@@ -2672,6 +2672,16 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function(nW, nH)
 	if (this.IsAutoFitContent())
 		oLogicDocument.CheckFormAutoFit(this);
 
+	let oTextFormPr;
+	if (this.IsTextForm()
+		&& (oTextFormPr = this.GetTextFormPr())
+		&& oTextFormPr.IsComb())
+	{
+		let oNewPr = oTextFormPr.Copy();
+		oNewPr.SetWidthRule(Asc.CombFormWidthRule.Exact);
+		this.SetTextFormPr(oNewPr);
+	}
+
 	return oParaDrawing;
 };
 CInlineLevelSdt.prototype.private_ConvertFormToFixed = function(nW, nH)
@@ -2815,6 +2825,9 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 		oNewTextPr.SetMultiLine(false);
 		this.SetTextFormPr(oNewTextPr);
 	}
+
+	let oInlineRun = this.MakeSingleRunElement(false);
+	oInlineRun.RecalcMeasure();
 
 	return this;
 };

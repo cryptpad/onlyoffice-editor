@@ -8498,17 +8498,17 @@ ParaRun.prototype.Recalc_CompiledPr = function(RecalcMeasure)
 {
     this.RecalcInfo.TextPr  = true;
 
-    // Если изменение какой-то текстовой настройки требует пересчета элементов
-    if ( true === RecalcMeasure )
-	{
-		this.RecalcInfo.Measure = true;
-		this.private_UpdateShapeText();
-	}
+	if (RecalcMeasure)
+		this.RecalcMeasure();
 
     // Если мы в формуле, тогда ее надо пересчитывать
     this.private_RecalcCtrPrp();
 };
-
+ParaRun.prototype.RecalcMeasure = function()
+{
+	this.RecalcInfo.Measure = true;
+	this.private_UpdateShapeText();
+};
 ParaRun.prototype.Recalc_RunsCompiledPr = function()
 {
     this.Recalc_CompiledPr(true);
