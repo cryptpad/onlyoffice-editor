@@ -1291,7 +1291,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
+                                if(oLastObjectToDraw.geometry.isEmpty())
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.GetFillFromTextPr(this.m_oTextPr), this.GetPenFromTextPr(this.m_oTextPr), x, y)
                                 }
@@ -1313,7 +1313,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
+                                if(oLastObjectToDraw.geometry.isEmpty())
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                                 }
@@ -1335,7 +1335,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
+                                if(oLastObjectToDraw.geometry.isEmpty())
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                                 }
@@ -1359,7 +1359,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
+                                if(oLastObjectToDraw.geometry.isEmpty())
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.GetFillFromTextPr(this.m_oTextPr), this.GetPenFromTextPr(this.m_oTextPr), x, y);
                                 }
@@ -1381,7 +1381,7 @@ CTextDrawer.prototype =
 
                             if(bStart2)
                             {
-                                if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
+                                if(oLastObjectToDraw.geometry.isEmpty())
                                 {
                                     oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                                 }
@@ -1408,7 +1408,7 @@ CTextDrawer.prototype =
 
                     if(bStart2)
                     {
-                        if(oLastObjectToDraw.geometry.pathLst.length === 0 || (oLastObjectToDraw.geometry.pathLst.length === 1 && oLastObjectToDraw.geometry.pathLst[0].isEmpty()))
+                        if(oLastObjectToDraw.geometry.isEmpty())
                         {
                             oLastObjectToDraw.resetBrushPen(this.m_oFill, this.m_oLine, x, y);
                         }

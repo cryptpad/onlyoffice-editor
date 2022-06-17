@@ -5488,7 +5488,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
     if (graphics.IsSlideBoundsCheckerType === true) {
 
         graphics.transform3(_transform);
-        if (!this.spPr || null == geometry || geometry.pathLst.length === 0 || (geometry.pathLst.length === 1 && geometry.pathLst[0].ArrPathCommandInfo.length === 0) || !graphics.IsShapeNeedBounds(geometry.preset)) {
+        if (!this.spPr || null == geometry || geometry.isEmpty() || !graphics.IsShapeNeedBounds(geometry.preset)) {
             graphics._s();
             graphics._m(0, 0);
             graphics._l(this.extX, 0);
