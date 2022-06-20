@@ -323,7 +323,19 @@ var c_oSerProp_rPrType = {
 	FontAsciiTheme: 40,
 	FontHAnsiTheme: 41,
 	FontAETheme: 42,
-	FontCSTheme: 43
+	FontCSTheme: 43,
+	CompressText: 44,
+	SnapToGrid: 45,
+	Ligatures: 46,
+	NumSpacing: 47,
+	NumForm: 48,
+	StylisticSets: 49,
+	CntxtAlts: 50,
+	ShadowExt: 51,
+	Reflection: 52,
+	Glow: 53,
+	Props3d: 54,
+	Scene3d: 55
 };
 var c_oSerProp_rowPrType = {
     CantSplit:0,
@@ -1097,7 +1109,9 @@ var c_oSerSdt = {
 	PictureFormPrShiftY          : 65,
 
 	FormPrBorder : 70,
-	FormPrShd    : 71
+	FormPrShd    : 71,
+	TextFormPrCombWRule : 72
+
 };
 var c_oSerFFData = {
 	CalcOnExit: 0,
@@ -3210,6 +3224,13 @@ function Binary_rPrWriter(memory, saveParams)
 				this.bs.WriteItemWithLength(function() {WriteTrackRevision(_this.bs, _this.saveParams.trackRevisionId++, EndRun.ReviewInfo);});
 			}
         }
+
+		if (undefined !== rPr.Ligatures)
+		{
+			this.memory.WriteByte(c_oSerProp_rPrType.Ligatures);
+			this.memory.WriteByte(c_oSerPropLenType.Byte);
+			this.memory.WriteByte(rPr.Ligatures);
+		}
     };
 };
 function Binary_oMathWriter(memory, oMathPara, saveParams)
@@ -6631,6 +6652,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (null != val.CombPlaceholderFont) {
 			oThis.bs.WriteItem(c_oSerSdt.TextFormPrCombFont, function (){oThis.memory.WriteString3(val.CombPlaceholderFont);});
 		}
+		if (null != val.WidthRule) {
+			oThis.bs.WriteItem(c_oSerSdt.TextFormPrCombWRule, function (){oThis.memory.WriteByte(val.WidthRule);});
+		}
 	};
 	this.WriteSdtPictureFormPr = function(val)
 	{
@@ -9951,6 +9975,9 @@ function Binary_rPrReader(doc, oReadResult, stream)
 					res = c_oSerConstants.ReadUnknown;
 				}
 				break;
+			case c_oSerProp_rPrType.Ligatures:
+				rPr.Ligatures = this.stream.GetByte();
+				break;
             default:
                 res = c_oSerConstants.ReadUnknown;
                 break;
@@ -12929,6 +12956,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			val.CombPlaceholderSymbol = this.stream.GetString2LE(length);
 		} else if (c_oSerSdt.TextFormPrCombFont === type) {
 			val.CombPlaceholderFont = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.TextFormPrCombWRule === type) {
+			val.WidthRule = this.stream.GetByte();
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
