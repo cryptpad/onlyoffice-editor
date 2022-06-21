@@ -121,8 +121,14 @@ ParaTextPr.prototype.Apply_TextPr = function(TextPr)
 	if (undefined !== TextPr.Bold)
 		this.Set_Bold(TextPr.Bold);
 
+	if (undefined !== TextPr.BoldCS)
+		this.SetBoldCS(TextPr.BoldCS);
+
 	if (undefined !== TextPr.Italic)
 		this.Set_Italic(TextPr.Italic);
+
+	if (undefined !== TextPr.ItalicCS)
+		this.SetItalicCS(TextPr.ItalicCS);
 
 	if (undefined !== TextPr.Strikeout)
 		this.Set_Strikeout(TextPr.Strikeout);
@@ -212,6 +218,9 @@ ParaTextPr.prototype.Apply_TextPr = function(TextPr)
 			this.Set_Unifill(undefined);
 		}
 	}
+
+	if (undefined !== TextPr.Ligatures)
+		this.SetLigatures(TextPr.Ligatures);
 };
 ParaTextPr.prototype.Clear_Style = function()
 {
@@ -676,6 +685,33 @@ ParaTextPr.prototype.Set_TextFill = function(Value)
 {
 	History.Add(new CChangesParaTextPrTextFill(this, this.Value.TextFill, Value));
 	this.Value.TextFill = Value;
+};
+ParaTextPr.prototype.SetBoldCS = function(isBold)
+{
+	if (this.Value.BoldCS === isBold)
+		return;
+
+	let oChange = new CChangesParaTextPrBoldCS(this, this.Value.BoldCS, isBold);
+	AscCommon.History.Add(oChange);
+	oChange.Redo();
+};
+ParaTextPr.prototype.SetItalicCS = function(isItalic)
+{
+	if (this.Value.ItalicCS === isItalic)
+		return;
+
+	let oChange = new CChangesParaTextPrBoldCS(this, this.Value.ItalicCS, isItalic);
+	AscCommon.History.Add(oChange);
+	oChange.Redo();
+};
+ParaTextPr.prototype.SetLigatures = function(nType)
+{
+	if (this.Value.Ligatures === nType)
+		return;
+
+	let oChange = new CChangesParaTextPrLigatures(this, this.Value.Ligatures, nType);
+	AscCommon.History.Add(oChange);
+	oChange.Redo();
 };
 /**
  * Выставляем настройки (если какая-либо undefined, то такая настройка удаляется)
