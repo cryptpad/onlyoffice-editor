@@ -3361,8 +3361,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 
 	const CombFormWidthRule = {
-		Auto    : 0,
-		AtLeast : 1,
+		AtLeast : 0,
+		Auto    : 1,
 		Exact   : 2
 	};
 
