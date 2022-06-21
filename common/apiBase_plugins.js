@@ -621,7 +621,116 @@
                 case "disableAutostartMacros":
                 {
                     this.disableAutostartMacros = true;
+					break;
                 }
+				case "fillForms":
+				{
+					if (this.editorId !== AscCommon.c_oEditorId.Word
+						|| !this.WordControl
+						|| !this.WordControl.m_oLogicDocument)
+						break;
+
+					let oLogicDocument = this.WordControl.m_oLogicDocument;
+
+					let oMap;
+					try
+					{
+						oMap = (typeof obj[prop] === "string") ? JSON.parse(obj[prop]) : obj[prop];
+					}
+					catch (err)
+					{
+						oMap = {};
+					}
+
+					if (oMap["tags"])
+					{
+						let arrControls = oLogicDocument.GetAllContentControls();
+
+						let oTags         = {};
+						let arrCheckLocks = [];
+						let arrUrls       = [];
+
+						for (let sTag in oMap["tags"])
+						{
+							oTags[sTag] = [];
+							for (let nIndex = 0, nCount = arrControls.length; nIndex < nCount; ++nIndex)
+							{
+								let oForm = arrControls[nIndex];
+								if (oForm
+									&& oForm.IsForm()
+									&& sTag === oForm.GetTag())
+								{
+									oTags[sTag].push(oForm);
+
+									let oElement;
+									if (oForm.IsInlineLevel())
+										oElement = oForm.GetParagraph();
+									else
+										oElement = oForm;
+
+									if (oElement && -1 === arrCheckLocks.indexOf(oElement))
+										arrCheckLocks.push(oElement);
+
+									if (oMap["tags"][sTag]["picture"])
+										arrUrls.push(oMap["tags"][sTag]["picture"]);
+								}
+							}
+						}
+
+						function FillForms()
+						{
+							if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
+								Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+								Elements  : arrCheckLocks,
+								CheckType : AscCommon.changestype_Paragraph_Content
+							}))
+							{
+								oLogicDocument.StartAction(AscDFH.historydescription_Document_FillFormsByTags);
+
+								for (let sTag in oTags)
+								{
+									let oValue = oMap["tags"][sTag];
+									for (let nFormIndex = 0, nFormsCount = oTags[sTag].length; nFormIndex < nFormsCount; ++nFormIndex)
+									{
+										let oForm = oTags[sTag][nFormIndex];
+										if (oForm.IsComboBox() || oForm.IsDropDownList())
+										{
+											if (oValue["comboBox"])
+												oForm.SelectListItem(oValue["comboBox"]);
+											else if (oForm.IsComboBox() && oValue["text"])
+												oForm.SetInnerText(oValue["text"]);
+										}
+										else if (oForm.IsPictureForm())
+										{
+											let oPicture = oForm.GetPicture();
+											if (oValue["picture"] && oPicture)
+												oPicture.setBlipFill(AscFormat.CreateBlipFillRasterImageId(oValue["picture"]));
+										}
+										else if (oForm.IsCheckBox())
+										{
+											if (oValue["checkBox"])
+												oForm.SetCheckBoxChecked(!!oValue["checkBox"]);
+										}
+										else
+										{
+											oForm.SetInnerText(oValue["text"]);
+										}
+									}
+								}
+
+								oLogicDocument.Recalculate();
+								oLogicDocument.FinalizeAction();
+							}
+						}
+
+						if (this.ImageLoader && arrUrls.length)
+							this.ImageLoader.LoadImagesWithCallback(arrUrls, FillForms, []);
+						else
+							FillForms();
+					}
+
+					break
+				}
                 default:
                     break;
             }

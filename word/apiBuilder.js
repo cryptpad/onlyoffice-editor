@@ -15932,16 +15932,11 @@
 	 */
 	ApiTextForm.prototype.SetText = function(sText)
 	{
-		if (typeof (sText) !== "string" || sText === "")
+		let _sText = GetStringParameter(sText, null);
+		if (!_sText)
 			return false;
 
-		if (this.Sdt.IsPlaceHolder())
-			this.Sdt.ReplacePlaceHolderWithContent();
-
-		let oRun = this.Sdt.MakeSingleRunElement();
-		oRun.ClearContent();
-		oRun.AddText(sText);
-
+		this.Sdt.SetInnerText(_sText);
 		return true;
 	};
 

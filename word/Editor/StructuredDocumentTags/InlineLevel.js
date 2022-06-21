@@ -3252,6 +3252,27 @@ CInlineLevelSdt.prototype.TrimTextForm = function()
 		}
 	}
 };
+CInlineLevelSdt.prototype.SetInnerText = function(sText)
+{
+	if (this.IsPlaceHolder())
+		this.ReplacePlaceHolderWithContent();
+
+	let oRun = this.MakeSingleRunElement(true);
+	oRun.AddText(sText);
+};
+CInlineLevelSdt.prototype.GetPicture = function()
+{
+	let oImage;
+	let arrDrawings = this.GetAllDrawingObjects();
+	for (let nDrawing = 0, nDrawingsCount = arrDrawings.length; nDrawing < nDrawingsCount; ++nDrawing)
+	{
+		oImage = arrDrawings[nDrawing].GetPicture();
+		if (oImage)
+			return oImage;
+	}
+
+	return null;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

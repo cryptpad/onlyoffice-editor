@@ -4290,6 +4290,7 @@
 	window['AscDFH'].historydescription_Document_ConvertMathDisplayMode             = 0x0190;
 	window['AscDFH'].historydescription_Document_RemoveHdrFtr                       = 0x0191;
 	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
+	window['AscDFH'].historydescription_Document_FillFormsByTags                    = 0x0193;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
