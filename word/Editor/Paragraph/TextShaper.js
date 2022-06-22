@@ -53,6 +53,7 @@
 		this.TextPr    = null;
 		this.Temporary = false;
 		this.Ligatures = Asc.LigaturesType.None;
+		this.Spacing   = 0;
 	}
 	CParagraphTextShaper.prototype = Object.create(AscFonts.CTextShaper.prototype);
 	CParagraphTextShaper.prototype.constructor = CParagraphTextShaper;
@@ -63,6 +64,7 @@
 		this.TextPr    = null;
 		this.Temporary = isTemporary;
 		this.Ligatures = Asc.LigaturesType.None;
+		this.Spacing   = 0;
 	};
 	CParagraphTextShaper.prototype.GetCodePoint = function(oItem)
 	{
@@ -144,7 +146,7 @@
 
 		let _isLigature = isLigature && nCodePointsCount > 1;
 
-		let _nWidth = nWidth / nCodePointsCount;
+		let _nWidth = (nWidth + (this.Spacing / this.FontSize)) / nCodePointsCount;
 		this.private_HandleItem(this.Buffer[this.BufferIndex++], nGrapheme, _nWidth, this.FontSize, this.FontSlot, _isLigature ? CODEPOINT_TYPE.LIGATURE : CODEPOINT_TYPE.BASE);
 
 		for (let nIndex = 1; nIndex < nCodePointsCount; ++nIndex)
@@ -165,7 +167,8 @@
 
 		this.Parent    = oRunParent;
 		this.TextPr    = oTextPr;
-		this.Ligatures = isCombForm ? Asc.LigaturesType.None : oTextPr.Ligatures;
+		this.Spacing   = isCombForm ? 0 : oTextPr.Spacing;
+		this.Ligatures = isCombForm || Math.abs(this.Spacing) > 0.001 ? Asc.LigaturesType.None : oTextPr.Ligatures;
 	};
 	CParagraphTextShaper.prototype.private_HandleNBSP = function(oItem)
 	{
