@@ -89,7 +89,10 @@
 	};
 	CRunElementBase.prototype.GetWidthVisible = function()
 	{
-		return (this.WidthVisible / TEXTWIDTH_DIVIDER);
+		if (undefined !== this.WidthVisible)
+			return (this.WidthVisible / TEXTWIDTH_DIVIDER);
+
+		return (this.Width / TEXTWIDTH_DIVIDER);
 	};
 	CRunElementBase.prototype.SetWidthVisible = function(nWidthVisible)
 	{

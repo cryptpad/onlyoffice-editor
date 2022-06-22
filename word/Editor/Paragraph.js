@@ -1886,7 +1886,6 @@ Paragraph.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 };
 Paragraph.prototype.Draw = function(CurPage, pGraphics)
 {
-	// Параграф начинается с новой страницы
 	if (!this.Pages[CurPage] || this.Pages[CurPage].EndLine < 0)
 		return;
 
