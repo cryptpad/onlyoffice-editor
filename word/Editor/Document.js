@@ -3841,8 +3841,12 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		}
 		else
 		{
-			nEndnoteSectionIndex = this.Endnotes.GetLastSectionIndexOnPage(PageIndex - 1);
-			oEndnoteSectPr       = this.SectionsInfo.Get(nEndnoteSectionIndex).SectPr;
+			if (ColumnIndex > 0)
+				nEndnoteSectionIndex = this.Endnotes.GetLastSectionIndexOnPage(PageIndex);
+			else
+				nEndnoteSectionIndex = this.Endnotes.GetLastSectionIndexOnPage(PageIndex - 1);
+
+			oEndnoteSectPr = this.SectionsInfo.Get(nEndnoteSectionIndex).SectPr;
 		}
 
 		var nEndnoteRecalcResult = this.Endnotes.Recalculate(X, Y, XLimit, YLimit - this.Footnotes.GetHeight(PageIndex, ColumnIndex), PageIndex, ColumnIndex, ColumnsCount, oEndnoteSectPr, nEndnoteSectionIndex, StartIndex >= Count);
