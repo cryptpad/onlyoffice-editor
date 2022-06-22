@@ -1100,4 +1100,219 @@
 		}
 		this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, opts);
 	};
+
+	function getLocalStorageItem(key)
+	{
+		try
+		{
+			return JSON.parse(window.localStorage.getItem(key));
+		}
+		catch (e)
+		{
+			return null;
+		}
+	}
+	function setLocalStorageItem(key, value)
+	{
+		try
+		{
+			window.localStorage.setItem(key, JSON.stringify(value));
+			return true;
+		}
+		catch (e)
+		{
+		}
+		return false;
+	}
+
+	function installPlugin(config, loadFuncName)
+	{
+		if (!config)
+		{
+			return {
+				"type" : loadFuncName,
+				"guid" : ""
+			};
+		}
+
+		window.g_asc_plugins.loadExtensionPlugins([config], true);
+
+		let currentInstalledPlugins = getLocalStorageItem("asc_plugins_installed");
+		if (!currentInstalledPlugins)
+			currentInstalledPlugins = {};
+		currentInstalledPlugins[config["guid"]] = config;
+		setLocalStorageItem("asc_plugins_installed", currentInstalledPlugins);
+
+		let currentRemovedPlugins = getLocalStorageItem("asc_plugins_removed");
+		if (currentRemovedPlugins && currentRemovedPlugins[config["guid"]])
+		{
+			delete currentRemovedPlugins[config["guid"]];
+			setLocalStorageItem("asc_plugins_removed", currentRemovedPlugins);
+		}
+
+		return {
+			"type" : loadFuncName,
+			"guid" : config["guid"]
+		};
+	}
+
+	Api.prototype.checkInstalledPlugins = function()
+	{
+		if (this.disableCheckInstalledPlugins)
+			return;
+
+		let arrayPlugins = [];
+
+		let currentInstalledPlugins = getLocalStorageItem("asc_plugins_installed");
+		if (currentInstalledPlugins)
+		{
+			for (let item in currentInstalledPlugins)
+			{
+				if (currentInstalledPlugins[item]["guid"])
+					arrayPlugins.push(currentInstalledPlugins[item]);
+			}
+		}
+
+		if (window["Asc"]["extensionPlugins"] && window["Asc"]["extensionPlugins"].length)
+		{
+			let arrayExtensions = window["Asc"]["extensionPlugins"];
+			for (let i = 0, len = arrayExtensions.length; i < len; i++)
+				arrayPlugins.push(arrayExtensions[i]);
+		}
+
+		let isInstalledPresent = window.g_asc_plugins.loadExtensionPlugins(arrayPlugins, undefined, true);
+
+		let isRemovedPresent = false;
+		let currentRemovedPlugins = getLocalStorageItem("asc_plugins_removed");
+
+		if (currentRemovedPlugins)
+		{
+			for (let guid in currentRemovedPlugins)
+			{
+				if (guid)
+				{
+					if (window.g_asc_plugins.unregister(guid))
+						isRemovedPresent = true;
+				}
+			}
+		}
+
+		// этот метод может быть вызван из интерфейса - нужен таймаут для web-apps
+		if (isRemovedPresent || isInstalledPresent) {
+
+			setTimeout(function () {
+
+				// в принципе можно не удалять, так как если ничего не поменялось - то не зайдем второй раз сюда.
+				// но зачем еще раз парсить
+				window.g_asc_plugins.api.disableCheckInstalledPlugins = true;
+
+				if (isRemovedPresent)
+					window.g_asc_plugins.api.sendEvent("asc_onPluginsReset");
+
+				if (isInstalledPresent || isRemovedPresent)
+					window.g_asc_plugins.updateInterface();
+
+				delete window.g_asc_plugins.api.disableCheckInstalledPlugins;
+
+			}, 10);
+
+		}
+	};
+
+	/**
+    * Returns all installed plugins.
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @alias GetInstalledPlugins
+     * @returns {[]} - Array of all installed plugins.
+     */
+	Api.prototype["pluginMethod_GetInstalledPlugins"] = function()
+	{
+		/*
+			формат объекта 
+			{
+				url: url на конфиг (хотя по факту он не нужен, так как конфиг есть в этом объекте и внутри маркетплейса тоже),
+				guid: guid плагина,
+				canRemoved: флаг, может ли быть удалён плагин или нет (true/false),
+				obj: конфиг установленного плагина (от туда берется версия и сравнивается с текущей для проверки обновлений)
+			}
+		*/
+
+		let pluginsArray = window.g_asc_plugins.plugins.concat(window.g_asc_plugins.systemPlugins);
+		let returnArray = [];
+
+		for (let i = 0, len = pluginsArray.length; i < len; i++)
+		{
+			returnArray.push({
+				"url" : "",
+				"guid" : pluginsArray[i].guid,
+				"canRemoved" : true,
+				"obj" : pluginsArray[i].serialize()
+			});
+		}
+
+		return returnArray;
+	};
+	/**
+    * Remove plugin with such guid.
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @param {string} [guid] - The guid of plugins for removing.
+     * @alias RemovePlugin
+     * @returns {object} - Object with result.
+     */
+	Api.prototype["pluginMethod_RemovePlugin"] = function(guid)
+	{
+		let removedGuid = window.g_asc_plugins.unregister(guid) ? guid : "";
+
+		if ("" !== removedGuid)
+		{
+			let currentRemovedPlugins = getLocalStorageItem("asc_plugins_removed");
+			if (!currentRemovedPlugins)
+				currentRemovedPlugins = {};
+			currentRemovedPlugins[guid] = true;
+			setLocalStorageItem("asc_plugins_removed", currentRemovedPlugins);
+
+			let currentInstalledPlugins = getLocalStorageItem("asc_plugins_installed");
+			if (currentInstalledPlugins && currentInstalledPlugins[removedGuid])
+			{
+				delete currentInstalledPlugins[removedGuid];
+				setLocalStorageItem("asc_plugins_installed", currentInstalledPlugins);
+			}
+
+			this.sendEvent("asc_onPluginsReset");
+			window.g_asc_plugins.updateInterface();
+		}
+
+		return {
+			type : "Removed",
+			guid : removedGuid
+		};
+	};
+	/**
+    * Install plugin with by url to config.
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @param {string} [url] - The url to plugin config for installing.
+     * @alias pluginMethod_InstallPlugin
+     * @returns {object} - Object with result.
+	 * 
+     */
+	Api.prototype["pluginMethod_InstallPlugin"] = function(config)
+	{
+		return installPlugin(config, "Installed");
+	};
+	/**
+    * Update plugin with by url to config.
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @param {string} [url] - The url to plugin config for updating.
+     * @alias pluginMethod_UpdatePlugin
+     * @returns {object} - Object with result.
+	 * 
+     */
+	Api.prototype["pluginMethod_UpdatePlugin"] = function(url, guid)
+	{
+		return installPlugin(config, "Updated");
+	};
 })(window);
