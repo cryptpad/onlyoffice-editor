@@ -3659,6 +3659,7 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
 	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
+    this.Root.Correct_Content(true);
     window["AscCommonWord"].ConvertLaTeXToTokensList(strLaTeX, this.Root);
 	this.Root.Correct_Content(true);
 };

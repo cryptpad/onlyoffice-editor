@@ -1665,6 +1665,23 @@
 		'9': {0: '𝟗', 12: '𝟡', 3: '𝟫', 4: '𝟵', 11: '𝟿'},
 	};
 
+	function GetBracketCode(code) {
+		const oBrackets = {
+			".": -1,
+			"\{": "{".charCodeAt(0),
+			"\}": "}".charCodeAt(0),
+			"\|": "|".charCodeAt(0),
+			"||": "‖".charCodeAt(0)
+		}
+		if (code) {
+			let strBracket = oBrackets[code];
+			if (strBracket) {
+				return strBracket
+			}
+			return code.charCodeAt(0)
+		}
+	}
+
 	// \\above -> empty above block (up and down)
 	// \\sqrt ->   empty sqrt
 	// / -> empty frac
@@ -1727,6 +1744,7 @@
 	}
 
 	function ConvertTokens(oTokens, oContext) {
+		let Paragraph = oContext.Paragraph;
 		let Proceed = function (oTokens, oContext) {
 			if (oTokens) {
 				switch (oTokens.type) {
@@ -1737,7 +1755,7 @@
 					case oNamesOfLiterals.mathOperatorLiteral[num]:
 					case oNamesOfLiterals.opNaryLiteral[num]:
 					case oNamesOfLiterals.numberLiteral[num]:
-						oContext.Add_Text(oTokens.value);
+						oContext.Add_Text(oTokens.value, Paragraph);
 						break;
 					case oNamesOfLiterals.preScriptLiteral[num]:
 						let oPreSubSup = oContext.Add_Script(
@@ -1767,7 +1785,7 @@
 					case oNamesOfLiterals.accentLiteral[num]:
 						let oAccent = oContext.Add_Accent(
 							new CTextPr(),
-							oTokens.value,
+							oTokens.value.charCodeAt(0),
 							null
 						);
 						ConvertTokens(
@@ -1904,8 +1922,8 @@
 							new CTextPr(),
 							1,
 							[null],
-							oTokens.left,
-							oTokens.right,
+							GetBracketCode(oTokens.left),
+							GetBracketCode(oTokens.right),
 						);
 						ConvertTokens(
 							oTokens.value,

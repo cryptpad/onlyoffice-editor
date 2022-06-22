@@ -143,9 +143,12 @@
 		if (this.oLookahead.data === "'" || this.oLookahead.data === "''") {
 			strAccent = this.EatToken(this.oLookahead.class).data;
 			oResultAccent = {
-				type: oLiteralNames.accentLiteral[num],
-				base: oBase,
-				value: strAccent,
+				type: oLiteralNames.subSupLiteral[num],
+				value: oBase,
+				up: {
+					type: oLiteralNames.charLiteral[num],
+					value: strAccent,
+				}
 			};
 		}
 		else {
@@ -200,16 +203,17 @@
 		}
 		else if (this.oLookahead.class === oLiteralNames.opOpenBracket[0] || this.oLookahead.class === oLiteralNames.opOpenCloseBracket[0]) {
 			this.SaveState();
-			this.oPrevLookahead = strLeftSymbol = this.EatToken(this.oLookahead.class).data;
+			this.oPrevLookahead = this.EatToken(this.oLookahead.class);
+			strLeftSymbol = this.oPrevLookahead.data;
 			this.isWaitCloseBracket = true;
 			arrBracketContent = this.GetExpressionLiteral();
 
-			if (!this.oTokenizer.IsHasMoreTokens()) {
+			if (this.oLookahead.class === null) {
 				this.RestoreState();
 				this.EatToken(this.oLookahead.class)
 				return {
 					type: oLiteralNames.charLiteral[num],
-					value: strLeftSymbol,
+					value: strLeftSymbol.data,
 				}
 			}
 
@@ -552,7 +556,6 @@
 
 	}
 
-
 	CLaTeXParser.prototype.IsMatrixLiteral = function () {
 		return (
 			this.oLookahead.class === oLiteralNames.matrixLiteral[0]
@@ -597,13 +600,6 @@
 		}
 		this.SkipFreeSpace();
 		return element
-	}
-
-	CLaTeXParser.prototype.IsArrayLitetal = function () {
-
-	}
-	CLaTeXParser.prototype.GetArrayLitetal = function () {
-
 	}
 
 	CLaTeXParser.prototype.GetExpressionLiteral = function (strBreakSymbol, strBreakType) {
