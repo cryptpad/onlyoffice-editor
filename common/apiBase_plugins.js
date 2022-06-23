@@ -1238,17 +1238,43 @@
 			}
 		*/
 
+		let baseUrl = window.location.href;
+		let posQ = baseUrl.indexOf("?");
+		if (-1 !== posQ)
+			baseUrl = baseUrl.substr(0, posQ);
+
 		let pluginsArray = window.g_asc_plugins.plugins.concat(window.g_asc_plugins.systemPlugins);
 		let returnArray = [];
 
 		for (let i = 0, len = pluginsArray.length; i < len; i++)
 		{
 			returnArray.push({
-				"url" : "",
+				"baseUrl" : baseUrl,
 				"guid" : pluginsArray[i].guid,
 				"canRemoved" : true,
-				"obj" : pluginsArray[i].serialize()
+				"obj" : pluginsArray[i].serialize(),
+				"removed" : false
 			});
+		}
+
+		// нужно послать и удаленные. так как удаленный может не быть в сторе. тогда его никак не установить обратно
+		let currentRemovedPlugins = getLocalStorageItem("asc_plugins_removed");
+
+		if (currentRemovedPlugins)
+		{
+			for (let guid in currentRemovedPlugins)
+			{
+				if (currentRemovedPlugins[guid])
+				{
+					returnArray.push({
+						"baseUrl" : baseUrl,
+						"guid": currentRemovedPlugins[guid]["guid"],
+						"canRemoved": true,
+						"obj": currentRemovedPlugins[guid],
+						"removed" : true
+					});
+				}
+			}
 		}
 
 		return returnArray;
@@ -1263,20 +1289,20 @@
      */
 	Api.prototype["pluginMethod_RemovePlugin"] = function(guid)
 	{
-		let removedGuid = window.g_asc_plugins.unregister(guid) ? guid : "";
+		let removedPlugin = window.g_asc_plugins.unregister(guid);
 
-		if ("" !== removedGuid)
+		if (removedPlugin)
 		{
 			let currentRemovedPlugins = getLocalStorageItem("asc_plugins_removed");
 			if (!currentRemovedPlugins)
 				currentRemovedPlugins = {};
-			currentRemovedPlugins[guid] = true;
+			currentRemovedPlugins[removedPlugin.guid] = removedPlugin.serialize();
 			setLocalStorageItem("asc_plugins_removed", currentRemovedPlugins);
 
 			let currentInstalledPlugins = getLocalStorageItem("asc_plugins_installed");
-			if (currentInstalledPlugins && currentInstalledPlugins[removedGuid])
+			if (currentInstalledPlugins && currentInstalledPlugins[removedPlugin.guid])
 			{
-				delete currentInstalledPlugins[removedGuid];
+				delete currentInstalledPlugins[removedPlugin.guid];
 				setLocalStorageItem("asc_plugins_installed", currentInstalledPlugins);
 			}
 
@@ -1286,7 +1312,7 @@
 
 		return {
 			type : "Removed",
-			guid : removedGuid
+			guid : removedPlugin ? removedPlugin.guid : ""
 		};
 	};
 	/**

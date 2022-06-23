@@ -134,7 +134,9 @@
 		unregister : function(guid)
 		{
 			if (!this.pluginsMap[guid])
-				return false;
+				return null;
+
+			let removedPlugin = null;
 
 			this.close(guid);
 
@@ -148,6 +150,7 @@
 				{
 					if (guid === currentArray[i].guid)
 					{
+						removedPlugin = currentArray[i];
 						currentArray.splice(i, 1);
 						break;
 					}
@@ -155,7 +158,7 @@
 				currentArray = this.systemPlugins;
 			}
 
-			return true;
+			return removedPlugin;
 		},
 
 		register : function(basePath, plugins, isDelayRun)
