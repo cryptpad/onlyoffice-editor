@@ -413,7 +413,7 @@
 		["\\bmatrix", undefined, oNamesOfLiterals.matrixLiteral[0]],
 
 
-		["\\bmod", "mod", oNamesOfLiterals.charLiteral[0]],
+		["\\bmod", " mod ", oNamesOfLiterals.charLiteral[0]],
 		["\\bigcap", "⋂", oNamesOfLiterals.opNaryLiteral[0]], // todo in unicode NaryOp REFACTOR ["⋂", oNamesOfLiterals.opNaryLiteral[0]],
 		["\\bigcup", "⋃", oNamesOfLiterals.opNaryLiteral[0]], // 	["⋃", oNamesOfLiterals.opNaryLiteral[0]],
 		["\\bigodot", "⨀", oNamesOfLiterals.opNaryLiteral[0]], //["⨀", oNamesOfLiterals.opNaryLiteral[0]],
@@ -1808,6 +1808,21 @@
 							oFraction.getDenominatorMathContent()
 						);
 						break;
+					case oNamesOfLiterals.binomLiteral[num]:
+						let oBinom = oContext.Add_Fraction(
+							{ctrPrp : new CTextPr(), type : NO_BAR_FRACTION},
+							null,
+							null
+						);
+						ConvertTokens(
+							oTokens.up,
+							oBinom.getNumeratorMathContent()
+						);
+						ConvertTokens(
+							oTokens.down,
+							oBinom.getDenominatorMathContent()
+						);
+						break;
 					case oNamesOfLiterals.subSupLiteral[num]:
 						if (oTokens.value.type === oNamesOfLiterals.functionLiteral[num]) {
 							let oFunc = oContext.Add_Function({}, null, null);
@@ -1819,7 +1834,7 @@
 								null,
 								null
 							);
-							SubSup.getBase().Add_Text(oTokens.value.value.slice(1))
+							SubSup.getBase().Add_Text(oTokens.value.value)
 
 							if (oTokens.up) {
 								ConvertTokens(
@@ -1849,7 +1864,7 @@
 								.getFName()
 								.Content[0]
 								.getFName()
-								.Add_Text(oTokens.value.value.slice(1));
+								.Add_Text(oTokens.value.value);
 
 							let oLimitIterator = oFuncWithLimit
 								.getFName()
@@ -2036,23 +2051,18 @@
 			if (tokenValue === null && autoCorrectRule.length >= 2 && autoCorrectRule[1] !== undefined) {
 				tokenValue = this.MatchToken(autoCorrectRule[1], string);
 			}
-			//console.log(autoCorrectRule[0])
 
 			if (tokenValue === null) {
 				continue
 			}
-
 			else if (autoCorrectRule.length === 2) {
 				tokenClass = oNamesOfLiterals.charLiteral[0];
 				tokenValue = autoCorrectRule[1];
 			}
-
 			else if (autoCorrectRule.length === 3) {
-
 				if (typeof autoCorrectRule[0] === "function") {
 					tokenClass = autoCorrectRule[2];
 				}
-
 				else {
 					tokenValue = (autoCorrectRule[1] === undefined)
 						? autoCorrectRule[0]
@@ -2137,6 +2147,7 @@
 	window["AscCommonWord"].Tokenizer = Tokenizer;
 	window["AscCommonWord"].UnicodeSpecialScript = UnicodeSpecialScript;
 	window["AscCommonWord"].LimitFunctions = limitFunctions;
+	window["AscCommonWord"].functionNames = functionNames;
 	window["AscCommonWord"].GetTypeFont = GetTypeFont;
 	window["AscCommonWord"].GetMathFontChar = GetMathFontChar;
 

@@ -41,6 +41,7 @@
 	const ConvertTokens = window.AscCommonWord.ConvertTokens;
 	const Tokenizer = window.AscCommonWord.Tokenizer;
 	const LimitFunctions = window.AscCommonWord.LimitFunctions;
+	const FunctionNames = window.AscCommonWord.functionNames;
 	const GetTypeFont = window.AscCommonWord.GetTypeFont;
 	const GetMathFontChar = window.AscCommonWord.GetMathFontChar;
 
@@ -247,7 +248,8 @@
 			this.IsReactLiteral() ||
 			this.IsBoxLiteral() ||
 			this.oLookahead.class === oLiteralNames.opDecimal[0] ||
-			this.IsMatrixLiteral()
+			this.IsMatrixLiteral() ||
+			this.oLookahead.class === "\\begin{equation}" || this.oLookahead.class === "\\end{equation}"
 		);
 	};
 	CLaTeXParser.prototype.GetElementLiteral = function () {
@@ -316,6 +318,9 @@
 		else if (this.IsMatrixLiteral()) {
 			return this.GetMatrixLiteral();
 		}
+		else if (this.oLookahead.class === "\\begin{equation}" || this.oLookahead.class === "\\end{equation}") {
+			this.EatToken(this.oLookahead.class)
+		}
 	};
 	CLaTeXParser.prototype.IsFuncLiteral = function () {
 		return this.oLookahead.class === oLiteralNames.functionLiteral[0] || this.oLookahead.class === oLiteralNames.opNaryLiteral[0]
@@ -334,7 +339,7 @@
 		if (LimitFunctions.includes(name)) {
 			oOutput = {
 				type: oLiteralNames.functionWithLimitLiteral[num],
-				value: oFuncContent.data,
+				value: name,
 			}
 		}
 		else if (oFuncContent.class === oLiteralNames.opNaryLiteral[0]) {
@@ -344,6 +349,9 @@
 			}
 		}
 		else {
+			if (FunctionNames.includes(name)) {
+				oFuncContent.data = name;
+			}
 			oOutput = {
 				type: oLiteralNames.functionLiteral[num],
 				value: oFuncContent.data,
