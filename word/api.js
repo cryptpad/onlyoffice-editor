@@ -11499,6 +11499,14 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.AddBlankPage();
 	};
+	asc_docs_api.prototype.asc_EditSelectAll = function()
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return null;
+
+		oLogicDocument.SelectAll();
+	};
 
 	// input
 	asc_docs_api.prototype.Begin_CompositeInput = function()
@@ -13234,6 +13242,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_ReplaceCurrentWord']                    = asc_docs_api.prototype.asc_ReplaceCurrentWord;
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
+	asc_docs_api.prototype['asc_EditSelectAll']                         = asc_docs_api.prototype.asc_EditSelectAll;
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
 	asc_docs_api.prototype['asc_setSkin']								= asc_docs_api.prototype.asc_setSkin;
 
