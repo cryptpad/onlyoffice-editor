@@ -2957,7 +2957,11 @@ function Binary_rPrWriter(memory, saveParams)
         {
             this.memory.WriteByte(c_oSerProp_rPrType.Underline);
             this.memory.WriteByte(c_oSerPropLenType.Byte);
-            this.memory.WriteBool(rPr.Underline);
+
+			if (rPr.Underline)
+				this.memory.WriteByte(Asc.UnderlineType.Single);
+			else
+				this.memory.WriteByte(Asc.UnderlineType.None);
         }
         //Strikeout
         if(null != rPr.Strikeout)
@@ -9758,7 +9762,7 @@ function Binary_rPrReader(doc, oReadResult, stream)
                 rPr.Italic = (this.stream.GetUChar() != 0);
                 break;
             case c_oSerProp_rPrType.Underline:
-                rPr.Underline = (this.stream.GetUChar() != 0);
+                rPr.Underline = (this.stream.GetUChar() !== Asc.UnderlineType.None);
                 break;
             case c_oSerProp_rPrType.Strikeout:
                 rPr.Strikeout = (this.stream.GetUChar() != 0);
