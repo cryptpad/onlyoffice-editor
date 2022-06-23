@@ -1977,6 +1977,35 @@
 							oContext,
 						);
 						break;
+					case oNamesOfLiterals.matrixLiteral[num]:
+						let strStartBracket, strEndBracket;
+						if (oTokens.strMatrixType){
+							if (oTokens.strMatrixType.length === 2) {
+								strStartBracket = oTokens.strMatrixType[0].charCodeAt(0)
+								strEndBracket = oTokens.strMatrixType[1].charCodeAt(0)
+							}
+							else {
+								strEndBracket = strStartBracket = oTokens.strMatrixType[0].charCodeAt(0)
+							}
+						}
+						let rows = oTokens.value.length;
+						let cols = oTokens.value[0].length;
+						if (strEndBracket && strStartBracket) {
+							let Delimiter = oContext.Add_DelimiterEx(new CTextPr(), 1, [null], strStartBracket, strEndBracket);
+							oContext = Delimiter.getElementMathContent(0);
+						}
+						let oMatrix = oContext.Add_Matrix(new CTextPr(), rows, cols, false, []);
+
+						for (let intRow = 0; intRow < rows; intRow++) {
+							for (let intCol = 0; intCol < cols; intCol++) {
+								let oContent = oMatrix.getContentElement(intRow, intCol);
+								ConvertTokens(
+									oTokens.value[intRow][intCol],
+									oContent,
+								);
+							}
+						}
+						break;
 				}
 			}
 		}

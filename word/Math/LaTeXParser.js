@@ -570,6 +570,16 @@
 		)
 	}
 	CLaTeXParser.prototype.GetMatrixLiteral = function () {
+		let strMatrixType;
+		if (this.oLookahead.data !== "\\begin{matrix}") {
+			switch (this.oLookahead.data) {
+				case "\\begin{pmatrix}": strMatrixType = "()";  break;
+				case "\\begin{bmatrix}": strMatrixType = "[]"; break;
+				case "\\begin{Bmatrix}": strMatrixType = "{}"; break;
+				case "\\begin{vmatrix}": strMatrixType = "|"; break;
+				case "\\begin{Vmatrix}": strMatrixType = "‖"; break;
+			}
+		}
 		this.EatToken(this.oLookahead.class);
 		this.SkipFreeSpace();
 		if (this.oLookahead.data === "{") {
@@ -585,8 +595,9 @@
 		}
 
 		return {
-			class: oLiteralNames.matrixLiteral[num],
+			type: oLiteralNames.matrixLiteral[num],
 			value: matrix,
+			strMatrixType,
 		}
 	}
 	CLaTeXParser.prototype.GetRayOfMatrixLiteral = function () {
