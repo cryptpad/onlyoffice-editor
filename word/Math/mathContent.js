@@ -7472,47 +7472,62 @@ CMathContent.prototype.Refresh_ContentChanges = function()
 {
 	this.m_oContentChanges.Refresh();
 };
-CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(Element, TempElements, bReplaceBrackets, bskipCoreect) {
-    if (TempElements.length === undefined) {
-        Element.Internal_Content_Add(0, TempElements);        
-    } else {
-        var len = TempElements.length - 1;
-        var isBrackets = ( (TempElements[0].value == 40 && TempElements[len].value == 41) || (TempElements[0].value == 0x3016 && TempElements[len].value == 0x3017) );
-        if ( (len >= 2) && (bReplaceBrackets && isBrackets) ) {
-            TempElements.splice(0,1);
-            TempElements.length--;
-        }
-        if (!bskipCoreect)
-            this.private_AutoCorrectEquation(TempElements);
+CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(oMathContent, arrBuffer, isTrimBrackets, isSkipCorrect)
+{
+	if (arrBuffer && para_Math_Composition === arrBuffer.Type)
+	{
+		oMathContent.AddToContent(0, arrBuffer);
+	}
+	else if (Array.isArray(arrBuffer) && arrBuffer.length)
+	{
+		if (isTrimBrackets)
+			this.private_TrimBrackets(arrBuffer);
 
-        var bNewRun = true;
-        var MathRun = null;
-        var PosElemnt = 0;
-        var PosInRun = 0;
-        var Parent = null;
-        for (var nPos = 0; nPos < TempElements.length; nPos++) {
-            if (TempElements[nPos].value === undefined) {
-                Element.Internal_Content_Add(PosElemnt, TempElements[nPos]);
-                bNewRun = true;
-                Parent = null;
-                PosElemnt++;
-                PosInRun = 0;
-            } else {
-                if (bNewRun || (Parent && Parent !== TempElements[nPos].Parent)) {
-                    Parent = TempElements[nPos].Parent;
-                    MathRun = new ParaRun(this.Paragraph, true);
-                    MathRun.Set_Pr(Parent.Pr.Copy(undefined, {}));
-                    MathRun.Set_MathPr(Parent.MathPrp.Copy());
-                    Element.Internal_Content_Add(PosElemnt, MathRun);
-                    bNewRun = false;
-                    PosElemnt++;
-                    PosInRun = 0;
-                }
-                MathRun.Add_ToContent(PosInRun, TempElements[nPos]);
-                PosInRun++;
-            }
-        }
-    }  
+		if (!isSkipCorrect)
+			this.private_AutoCorrectEquation(arrBuffer);
+
+		let oMathRun      = null;
+		let nInContentPos = 0;
+		let nInRunPos     = 0;
+		let oParent       = null;
+
+		for (var nPos = 0, nLen = arrBuffer.length; nPos < nLen; ++nPos)
+		{
+			let oItem = arrBuffer[nPos];
+			if (para_Math_Composition === oItem.Type)
+			{
+				oMathContent.AddToContent(nInContentPos++, oItem);
+				oMathRun = null;
+			}
+			else if (para_Math_Text === oItem.Type || para_Math_Ampersand === oItem.Type)
+			{
+				if (!oMathRun || (oParent && oParent !== oItem.Parent))
+				{
+					oParent  = oItem.Parent;
+					oMathRun = new ParaRun(this.Paragraph, true);
+					oMathRun.Set_Pr(oParent.Pr.Copy(undefined, {}));
+					oMathRun.Set_MathPr(oParent.MathPrp.Copy());
+					oMathContent.AddToContent(nInContentPos++, oMathRun);
+					nInRunPos = 0;
+				}
+
+				oMathRun.AddToContent(nInRunPos++, oItem);
+			}
+		}
+	}
+};
+CMathAutoCorrectEngine.prototype.private_TrimBrackets = function(arrBuffer)
+{
+	let nLen = arrBuffer.length;
+	if (nLen < 3)
+		return;
+
+	if ((arrBuffer[0].value === 40 && arrBuffer[nLen - 1].value === 41)
+		|| (arrBuffer[0].value === 0x3016 && arrBuffer[nLen - 1].value === 0x3017))
+	{
+		arrBuffer.splice(0, 1);
+		arrBuffer.length--;
+	}
 };
 CMathAutoCorrectEngine.prototype.private_AutoCorrectDelimiter = function() {
     var Elements = this.Elements.slice();
