@@ -101,6 +101,8 @@
 		functionWithLimitLiteral: [51, "functionWithLimitLiteral"],
 		functionNameLiteral: [52, "functionNameLiteral"],
 		matrixLiteral: [53, "matrixLiteral"],
+
+		arrayLiteral: [53, "arrayLiteral"],
 	};
 	const wordAutoCorrection = [
 		// Если массив правила состоит из:
@@ -553,7 +555,7 @@
 		["\\lmoust", "⎰", oNamesOfLiterals.opOpenBracket[0]],
 		["\\lrhar", "⇋"],
 		["\\lvec", "⃖", oNamesOfLiterals.accentLiteral[0]],
-		["\\lvert", "∣", oNamesOfLiterals.opOpenCloseBracket[0]],
+		["\\lvert", "|", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\mapsto", "↦"],
 		["\\matrix", "■", oNamesOfLiterals.matrixLiteral[0]],
 		["\\medsp", " ", oNamesOfLiterals.spaceLiteral[0]], //[" ", oNamesOfLiterals.spaceLiteral[0]], // 4/18em space medium math space
@@ -629,7 +631,7 @@
 		["\\rightharpoonup", "⇀"],
 		["\\rmoust", "⎱", oNamesOfLiterals.opCloseBracket[0]],
 		["\\root", "⒭", true], //check
-		["\\rvert", "∣", oNamesOfLiterals.opOpenCloseBracket[0]],
+		["\\rvert", "|", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\sdiv", "⁄", oNamesOfLiterals.overLiteral[0]],
 		["\\sdivide", "⁄", oNamesOfLiterals.overLiteral[0]], //Script
 		["\\searrow", "↘"],
@@ -738,6 +740,14 @@
 		// ["\\qquad", [8193, 8193], oNamesOfLiterals.spaceLiteral[0]], // 2em
 		//["\\text{", "text{"],
 
+		["\\,", " ", oNamesOfLiterals.spaceLiteral[0]], // 3/18em space thin math space
+		["\\:", " ", oNamesOfLiterals.spaceLiteral[0]], // 4/18em space thin math space
+		["\\;", " ", oNamesOfLiterals.spaceLiteral[0]], // 5/18em space thin math space
+		//["\!", " ", oNamesOfLiterals.spaceLiteral[0]], // -3/18 of \quad (= -3 mu)
+		["\\ ", " ", oNamesOfLiterals.spaceLiteral[0]], // equivalent of space in normal text
+		["\\qquad", "  ", oNamesOfLiterals.spaceLiteral[0]], // equivalent of space in normal text
+
+		["\\\\", undefined, true],
 		// ["\\lim", oNamesOfLiterals.opNaryLiteral[0]], LaTeX
 		// ["\\lg", oNamesOfLiterals.opNaryLiteral[0]],
 	];
@@ -1668,10 +1678,10 @@
 	function GetBracketCode(code) {
 		const oBrackets = {
 			".": -1,
-			"\{": "{".charCodeAt(0),
-			"\}": "}".charCodeAt(0),
-			"\|": "|".charCodeAt(0),
-			"||": "‖".charCodeAt(0)
+			"\\{": "{".charCodeAt(0),
+			"\\}": "}".charCodeAt(0),
+			"\\|": "‖".charCodeAt(0),
+			"|": 124,
 		}
 		if (code) {
 			let strBracket = oBrackets[code];
@@ -1809,6 +1819,8 @@
 						);
 						break;
 					case oNamesOfLiterals.binomLiteral[num]:
+						let Delimiter = oContext.Add_DelimiterEx(new CTextPr(), 1, [null], null, null);
+						oContext = Delimiter.getElementMathContent(0);
 						let oBinom = oContext.Add_Fraction(
 							{ctrPrp : new CTextPr(), type : NO_BAR_FRACTION},
 							null,
@@ -2006,6 +2018,17 @@
 							}
 						}
 						break;
+					case oNamesOfLiterals.arrayLiteral[num]:
+						let intCountOfRows = oTokens.value.length
+						let oEqArray = oContext.Add_EqArray({ctrPrp: new CTextPr(), row : intCountOfRows}, null, null);
+						for (let i = 0; i < oTokens.value.length; i++) {
+							let oMathContent = oEqArray.getElementMathContent(i);
+							ConvertTokens(
+								oTokens.value[i],
+								oMathContent,
+							);
+						}
+
 				}
 			}
 		}
