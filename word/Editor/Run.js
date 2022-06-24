@@ -700,6 +700,37 @@ ParaRun.prototype.private_CheckTrackRevisionsBeforeAdd = function(oNewRun)
 	return oNewRun;
 };
 /**
+ * Проверяем корректность настроек рана перед добавлением элемента
+ * @param {?ParaRun} oNewRun
+ * @param oItem
+ */
+ParaRun.prototype.private_CheckTextScriptBeforeAdd = function(oNewRun, oItem)
+{
+	if (!oItem)
+		return null;
+
+	let oPr = this.Pr;
+
+	// TODO: Когда будет обрабатывать RTL добавить тут
+	let isAddRTL = false, isRemoveRTL = false;
+
+	let isAddCS    = (oItem.IsText() && AscCommon.IsComplexScript(oItem.GetCodePoint()) && !oPr.CS);
+	let isRemoveCS = (oItem.IsText() && !AscCommon.IsComplexScript(oItem.GetCodePoint()) && oPr.CS);
+
+	if (!oNewRun
+		&& (isAddCS || isRemoveCS || isAddRTL || isRemoveRTL))
+	{
+		oNewRun = this.private_SplitRunInCurPos();
+
+		if (isAddCS)
+			oNewRun.SetCS(true);
+		else if (isRemoveCS)
+			oNewRun.SetCS(undefined);
+	}
+
+	return oNewRun;
+};
+/**
  * Проверяем, не является ли это ран с символом конца параграфа
  * @param {!ParaRun} oNewRun
  * @returns {?ParaRun}
@@ -914,6 +945,7 @@ ParaRun.prototype.CheckRunBeforeAdd = function(oItem)
 	oNewRun = this.private_CheckHighlightBeforeAdd(oNewRun);
 	oNewRun = this.private_CheckHighlightColorBeforeAdd(oNewRun);
 	oNewRun = this.private_CheckMathBreakOperatorBeforeAdd(oNewRun);
+	oNewRun = this.private_CheckTextScriptBeforeAdd(oNewRun, oItem);
 
 	if (oNewRun)
 		oNewRun.MoveCursorToStartPos();
@@ -10117,6 +10149,32 @@ ParaRun.prototype.SetLigatures = function(nType)
 	this.Recalc_CompiledPr(true);
 	this.private_UpdateShapeText();
 	this.private_UpdateTrackRevisionOnChangeTextPr(false);
+};
+ParaRun.prototype.IsCS = function()
+{
+	return this.Get_CompiledPr(false).CS;
+};
+ParaRun.prototype.SetCS = function(isCS)
+{
+	if (this.Pr.CS === isCS)
+		return;
+
+	let oChange = new CChangesRunCS(this, this.Pr.CS, isCS);
+	AscCommon.History.Add(oChange);
+	oChange.Redo();
+};
+ParaRun.prototype.IsRTL = function()
+{
+	return this.Get_CompiledPr(false).RTL;
+};
+ParaRun.prototype.SetRTL = function(isRTL)
+{
+	if (this.Pr.RTL === isRTL)
+		return;
+
+	let oChange = new CChangesRunRTL(this, this.Pr.RTL, isRTL);
+	AscCommon.History.Add(oChange);
+	oChange.Redo();
 };
 
 //-----------------------------------------------------------------------------------

@@ -17522,7 +17522,10 @@ CDocument.prototype.Begin_CompositeInput = function()
 
 			if (oRun instanceof ParaRun)
 			{
-				var oNewRun = oRun.CheckRunBeforeAdd();
+				let oNewRun = oRun.CheckRunBeforeAdd();
+				if (!oNewRun)
+					oNewRun = oRun.private_SplitRunInCurPos();
+
 				if (oNewRun)
 				{
 					oRun = oNewRun;
@@ -17533,7 +17536,8 @@ CDocument.prototype.Begin_CompositeInput = function()
 					Run     : oRun,
 					Pos     : oRun.State.ContentPos,
 					Length  : 0,
-					CanUndo : true
+					CanUndo : true,
+					Check   : true
 				};
 
 				oRun.Set_CompositeInput(this.CompositeInput);
@@ -17568,6 +17572,17 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 		return;
 
 	this.StartAction(AscDFH.historydescription_Document_CompositeInputReplace);
+
+	if (this.CompositeInput.Check && arrCharCodes.length)
+	{
+		if (AscCommon.IsComplexScript(arrCharCodes[0]))
+			this.CompositeInput.Run.SetCS(true);
+		else
+			this.CompositeInput.Run.SetCS(undefined);
+
+		this.CompositeInput.Check = false;
+	}
+
 	this.Start_SilentMode();
 	this.private_RemoveCompositeText(this.CompositeInput.Length);
 	for (var nIndex = 0, nCount = arrCharCodes.length; nIndex < nCount; ++nIndex)
@@ -17577,8 +17592,8 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 
 	this.End_SilentMode(false);
 
-	var oRun  = this.CompositeInput.Run;
-	var oForm = oRun.GetParentForm();
+	let oRun  = this.CompositeInput.Run;
+	let oForm = oRun.GetParentForm();
 	if (oForm)
 	{
 		oForm.TrimTextForm();
