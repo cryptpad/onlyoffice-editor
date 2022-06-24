@@ -1135,8 +1135,6 @@
 			};
 		}
 
-		window.g_asc_plugins.loadExtensionPlugins([config], true);
-
 		let currentInstalledPlugins = getLocalStorageItem("asc_plugins_installed");
 		if (!currentInstalledPlugins)
 			currentInstalledPlugins = {};
@@ -1149,6 +1147,10 @@
 			delete currentRemovedPlugins[config["guid"]];
 			setLocalStorageItem("asc_plugins_removed", currentRemovedPlugins);
 		}
+
+		window.g_asc_plugins.api.disableCheckInstalledPlugins = true;
+		window.g_asc_plugins.loadExtensionPlugins([config], true);
+		delete window.g_asc_plugins.api.disableCheckInstalledPlugins;
 
 		return {
 			"type" : loadFuncName,
@@ -1306,8 +1308,12 @@
 				setLocalStorageItem("asc_plugins_installed", currentInstalledPlugins);
 			}
 
+			this.disableCheckInstalledPlugins = true;
+
 			this.sendEvent("asc_onPluginsReset");
 			window.g_asc_plugins.updateInterface();
+
+			delete this.disableCheckInstalledPlugins;
 		}
 
 		return {
