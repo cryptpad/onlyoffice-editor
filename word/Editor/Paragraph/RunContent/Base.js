@@ -337,7 +337,7 @@
 	{
 		this.RGapCount    = nCount;
 		this.RGapCharCode = nCharCode;
-		this.RGapFontSlot = g_font_detector.Get_FontClass(nCharCode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+		this.RGapFontSlot = AscWord.GetFontSlot(nCharCode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
 
 		if (sFont)
 		{

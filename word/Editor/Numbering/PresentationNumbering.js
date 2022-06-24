@@ -443,7 +443,7 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Them
 	var sT = this.m_sString;
 	if (sT)
 	{
-		FontSlot = g_font_detector.Get_FontClass( sT.getUnicodeIterator().value(), Hint, lcid, bCS, bRTL );
+		FontSlot = AscWord.GetFontSlot( sT.getUnicodeIterator().value(), Hint, lcid, bCS, bRTL );
 	}
 	Context.SetTextPr( this.m_oTextPr, Theme );
 	Context.SetFontSlot( FontSlot );
@@ -524,7 +524,7 @@ CPresentationBullet.prototype.Draw = function(X, Y, Context, PDSE)
 	var FontSlot;
 		if (sT)
 		{
-			FontSlot = g_font_detector.Get_FontClass( sT.getUnicodeIterator().value(), Hint, lcid, bCS, bRTL );
+			FontSlot = AscWord.GetFontSlot( sT.getUnicodeIterator().value(), Hint, lcid, bCS, bRTL );
 		}
 
 		if(this.m_oTextPr.Unifill){

@@ -1231,7 +1231,7 @@ CMathInfoTextPr.prototype.GetFontSlot = function(code)
     var bRTL = this.TextPr.RTL;
     var lcid = this.TextPr.Lang.EastAsia;
 
-    return g_font_detector.Get_FontClass(code, Hint, lcid, bCS, bRTL);
+    return AscWord.GetFontSlot(code, Hint, lcid, bCS, bRTL);
 };
 CMathInfoTextPr.prototype.IsSpecilalOperator = function(val)
 {

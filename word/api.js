@@ -10663,6 +10663,7 @@ background-repeat: no-repeat;\
 			return null;
 
 		oLogicDocument.DocumentOutline.SetUse(true);
+		return oLogicDocument.DocumentOutline;
 	};
 	asc_docs_api.prototype.asc_HideDocumentOutline = function()
 	{

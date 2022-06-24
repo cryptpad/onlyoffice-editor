@@ -491,7 +491,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 				var bRTL = oNumTextPr.RTL;
 				var lcid = oNumTextPr.Lang.EastAsia;
 
-				var FontSlot = g_font_detector.Get_FontClass(arrText[nTextIndex].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
+				var FontSlot = AscWord.GetFontSlot(arrText[nTextIndex].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
 
 				oContext.SetFontSlot(FontSlot, dKoef);
 				g_oTextMeasurer.SetFontSlot(FontSlot, dKoef);
@@ -557,7 +557,7 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 				var bRTL = oNumTextPr.RTL;
 				var lcid = oNumTextPr.Lang.EastAsia;
 
-				var FontSlot = g_font_detector.Get_FontClass(arrText[nTextIndex].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
+				var FontSlot = AscWord.GetFontSlot(arrText[nTextIndex].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
 
 				oContext.SetFontSlot(FontSlot, dKoef);
 				nX += oContext.Measure(arrText[nTextIndex].Value).Width;

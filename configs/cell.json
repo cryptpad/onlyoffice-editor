@@ -48,7 +48,6 @@
 			"common/libfont/rasterheap.js",
 			"common/libfont/glyphstring.js",
 			"common/libfont/character.js",
-			"common/libfont/classification.js",
 			"common/libfont/grapheme.js",
 			"common/libfont/textshaper.js",
 			"common/libfont/file.js",
@@ -63,6 +62,7 @@
 			"common/Drawings/WorkEvents.js",
 
 			"cell/model/History.js",
+			"word/Editor/Paragraph/Run/FontClassification.js",
 
 			"common/Shapes/EditorSettings.js",
 			"common/Shapes/Serialize.js",

@@ -533,7 +533,7 @@
 	};
 	CRunText.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		let fontSlot = g_font_detector.Get_FontClass(this.Value, nHint, nEA_lcid, isCS, isRTL);
+		let fontSlot = AscWord.GetFontSlot(this.Value, nHint, nEA_lcid, isCS, isRTL);
 		if (fontSlot === fontslot_ASCII)
 			return rfont_ASCII;
 		else if (fontSlot === fontslot_HAnsi)
