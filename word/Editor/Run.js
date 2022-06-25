@@ -723,9 +723,9 @@ ParaRun.prototype.private_CheckTextScriptBeforeAdd = function(oNewRun, oItem)
 		oNewRun = this.private_SplitRunInCurPos();
 
 		if (isAddCS)
-			oNewRun.SetCS(true);
+			oNewRun.ApplyComplexScript(true);
 		else if (isRemoveCS)
-			oNewRun.SetCS(undefined);
+			oNewRun.ApplyComplexScript(false);
 	}
 
 	return oNewRun;
@@ -10176,7 +10176,35 @@ ParaRun.prototype.SetRTL = function(isRTL)
 	AscCommon.History.Add(oChange);
 	oChange.Redo();
 };
+ParaRun.prototype.ApplyComplexScript = function(isCS)
+{
+	if (isCS && !this.Pr.CS)
+	{
+		this.SetCS(true);
 
+		if (undefined === this.Pr.BoldCS && undefined !== this.Pr.Bold)
+			this.SetBoldCS(this.Pr.Bold);
+
+		if (undefined === this.Pr.ItalicCS && undefined !== this.Pr.Italic)
+			this.SetItalicCS(this.Pr.Italic);
+
+		if (undefined === this.Pr.FontSizeCS && undefined !== this.Pr.FontSize)
+			this.SetFontSizeCS(this.Pr.FontSize);
+	}
+	else if (!isCS && this.Pr.CS)
+	{
+		this.SetCS(undefined);
+
+		if (undefined === this.Pr.Bold && undefined !== this.Pr.BoldCS)
+			this.SetBold(this.Pr.BoldCS);
+
+		if (undefined === this.Pr.Italic && undefined !== this.Pr.ItalicCS)
+			this.SetItalic(this.Pr.ItalicCS);
+
+		if (undefined === this.Pr.FontSize && undefined !== this.Pr.FontSizeCS)
+			this.SetFontSize(this.Pr.FontSizeCS);
+	}
+};
 //-----------------------------------------------------------------------------------
 // Undo/Redo функции
 //-----------------------------------------------------------------------------------

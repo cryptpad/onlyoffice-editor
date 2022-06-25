@@ -17576,9 +17576,9 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	if (this.CompositeInput.Check && arrCharCodes.length)
 	{
 		if (AscCommon.IsComplexScript(arrCharCodes[0]))
-			this.CompositeInput.Run.SetCS(true);
+			this.CompositeInput.Run.ApplyComplexScript(true);
 		else
-			this.CompositeInput.Run.SetCS(undefined);
+			this.CompositeInput.Run.ApplyComplexScript(false);
 
 		this.CompositeInput.Check = false;
 	}
