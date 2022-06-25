@@ -6250,9 +6250,14 @@ window["native"]["offline_apply_event"] = function(type,params) {
             
         case 4020: // ASC_SPREADSHEETS_EVENT_TYPE_GET_FORMULAS
         {
+            if (undefined !== params) {
+                var localizeData = JSON.parse(params);
+                _api.asc_setLocalization(localizeData);
+            }
+
             _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            
+
             var info = _api.asc_getFormulasInfo();
             if (info) {
                 _stream["WriteLong"](info.length);
@@ -6270,11 +6275,6 @@ window["native"]["offline_apply_event"] = function(type,params) {
                 }
             } else {
                 _stream["WriteLong"](0);
-            }
-            
-            if (undefined !== params) {
-                var localizeData = JSON.parse(params);
-                _api.asc_setLocalization(localizeData);
             }
             
             _return = _stream;
