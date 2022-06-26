@@ -1134,7 +1134,7 @@
 		IC(COLEObject, CBaseNoId, 0);
 		COLEObject.prototype.readAttrXml = function (name, reader) {
 
-			if (name === "DrawAspect") this.m_oDrawAspect = readOLEDrawAspect(reader.GetValue());
+			if (name === "DrawAspect") this.m_oDrawAspect = readOLEDrawAspect(reader);
 			if (name === "id") this.m_oId = reader.GetValue();
 			if (name === "ObjectID") this.m_sObjectId = reader.GetValue();
 			if (name === "ProgID") this.m_sProgId = reader.GetValue();
@@ -9120,8 +9120,56 @@
 		CVmlCommonElements.prototype.convertFillStrokeTransformToOOXML = function(oSpPr) {
 			return this.convertTransformToOOXML(this.convertFillStrokeToOOXML(oSpPr));
 		};
+
 		CVmlCommonElements.prototype.convertToOOXML = function(aOtherElements, oOOXMLGroup, oContext) {
-			return null;
+			let oShapeType = CLegacyDrawing.prototype.static_GetShapeTypeForShape(this, aOtherElements);
+			let oOOXMLShape = new AscFormat.CShape();
+			let oSpPr = this.convertFillStrokeTransformToOOXML(null);
+
+			let oGeometryData = new CVmlGeometryData();
+			oGeometryData.fillByType(this.getFinalShapeType(aOtherElements));
+			let sAdj = this.m_sAdj || oShapeType && oShapeType.m_sAdj;
+			if(sAdj) {
+				let aAdj = sAdj.split(",");
+				for(let nAdj = 0; nAdj < aAdj.length; ++nAdj) {
+					let nAdjVal = parseInt(aAdj[nAdj]);
+					if(AscFormat.isRealNumber(nAdjVal)) {
+						oGeometryData.adjustments[nAdj] = nAdjVal;
+					}
+				}
+			}
+			let sPath = this.m_oPath || oShapeType && oShapeType.m_oPath;
+			if(sPath) {
+				oGeometryData.loadPath(sPath);
+			}
+			oSpPr.setGeometry(oGeometryData.convertToOOXML());
+			oOOXMLShape.setWordShape(true);
+			oOOXMLShape.setSpPr(oSpPr);
+			let oTextbox = this.getTextbox();
+			if(oTextbox) {
+				if(oTextbox.m_oTxtbxContent) {
+					var body_pr = new AscFormat.CBodyPr();
+					body_pr.setAnchor(1);
+					oOOXMLShape.setBodyPr(body_pr);
+					oOOXMLShape.setTextBoxContent(oTextbox.m_oTxtbxContent.Copy(oOOXMLShape));
+				}
+				else if(oTextbox.m_oText) {
+					var body_pr = new AscFormat.CBodyPr();
+					body_pr.setAnchor(1);
+					oOOXMLShape.setBodyPr(body_pr);
+					let oDocConent = new CDocumentContent(this, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
+					oDocConent.MoveCursorToStartPos(false);
+					oDocConent.AddText(oTextbox.m_oText);
+					oOOXMLShape.setTextBoxContent(oDocConent);
+					if(oTextbox.m_oTextStyle) {
+						let sCSSFont = oTextbox.m_oTextStyle.GetFontStyle();
+						if(sCSSFont) {
+							//TODO: parse CSS
+						}
+					}
+				}
+			}
+			return oOOXMLShape;
 		};
 		CVmlCommonElements.prototype.getFinalShapeType = function(aOtherElements) {
 			let oShapeType = null;
@@ -9557,9 +9605,6 @@
 		CBackground.prototype.writeAttrXmlImpl = function (writer) {
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 			writer.WriteXmlNullableAttributeString("o:targetscreensize", getScreenSize(this.m_oTargetScreenSize));
-		};
-		CBackground.prototype.convertToOOXML = function(aOtherElements, oOOXMLGroup, oContext) {
-			return CRect.prototype.convertToOOXML.call(this, aOtherElements, oOOXMLGroup, oContext);
 		};
 
 		function CFormulas() {
@@ -10030,18 +10075,6 @@
 		}
 
 		IC(CRect, CVmlCommonElements, AscDFH.historyitem_type_VMLRect);
-		CRect.prototype.convertToOOXML = function(aOtherElements, oOOXMLGroup, oContext) {
-			let oShape = new AscFormat.CShape();
-
-			let oSpPr = new AscFormat.CSpPr();
-			oShape.setSpPr(oSpPr);
-			oSpPr.setFill(this.getOOXMLFill());
-			oSpPr.setLn(this.getOOXMLStroke());
-			oSpPr.setXfrm(this.gerOOXMLXfrm());
-			oSpPr.setGeometry(AscFormat.CreateGeometry("rect", null));
-			oShape.setBDeleted(false);
-			return oShape;
-		};
 
 		function CRoundRect() {
 			CVmlCommonElements.call(this);
@@ -10228,52 +10261,6 @@
 		};
 		CShape.prototype.getShapeType = function() {
 			return parseShapeType(this.m_sType);
-		};
-		CShape.prototype.convertToOOXML = function(aOtherElements, oOOXMLGroup, oContext) {
-			let oShapeType = CLegacyDrawing.prototype.static_GetShapeTypeForShape(this, aOtherElements);
-			let oOOXMLShape = new AscFormat.CShape();
-			let oSpPr = this.convertFillStrokeTransformToOOXML(null);
-
-			let oGeometryData = new CVmlGeometryData();
-			oGeometryData.fillByType(this.getFinalShapeType(aOtherElements));
-			let sAdj = this.m_sAdj || oShapeType && oShapeType.m_sAdj;
-			if(sAdj) {
-				let aAdj = sAdj.split(",");
-				for(let nAdj = 0; nAdj < aAdj.length; ++nAdj) {
-					let nAdjVal = parseInt(aAdj[nAdj]);
-					if(AscFormat.isRealNumber(nAdjVal)) {
-						oGeometryData.adjustments[nAdj] = nAdjVal;
-					}
-				}
-			}
-			oSpPr.setGeometry(oGeometryData.convertToOOXML());
-			oOOXMLShape.setWordShape(true);
-			oOOXMLShape.setSpPr(oSpPr);
-			let oTextbox = this.getTextbox();
-			if(oTextbox) {
-				if(oTextbox.m_oTxtbxContent) {
-					var body_pr = new AscFormat.CBodyPr();
-					body_pr.setAnchor(1);
-					oOOXMLShape.setBodyPr(body_pr);
-					oOOXMLShape.setTextBoxContent(oTextbox.m_oTxtbxContent.Copy(oOOXMLShape));
-				}
-				else if(oTextbox.m_oText) {
-					var body_pr = new AscFormat.CBodyPr();
-					body_pr.setAnchor(1);
-					oOOXMLShape.setBodyPr(body_pr);
-					let oDocConent = new CDocumentContent(this, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
-					oDocConent.MoveCursorToStartPos(false);
-					oDocConent.AddText(oTextbox.m_oText);
-					oOOXMLShape.setTextBoxContent(oDocConent);
-					if(oTextbox.m_oTextStyle) {
-						let sCSSFont = oTextbox.m_oTextStyle.GetFontStyle();
-						if(sCSSFont) {
-							//TODO: parse CSS
-						}
-					}
-				}
-			}
-			return oOOXMLShape;
 		};
 
 
@@ -12989,6 +12976,9 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 
 
 		CLegacyDrawing.prototype.static_GetShapeTypeForShape = function(oShape, aOtherItems) {
+			if(oShape instanceof CShape) {
+				return null;
+			}
 			let nType = oShape.getShapeType();
 			if(nType !== null) {
 				for(let nItem = 0; nItem < aOtherItems.length; ++nItem) {
