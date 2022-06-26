@@ -7178,7 +7178,7 @@
 					if (graphicObject) {
 						//todo init in graphic.fromXml
 						graphicObject.setBDeleted(false);
-						graphicObject.setParent(drawing);
+						graphicObject.setParent(this.drawing);
 						this.drawing.Set_GraphicObject(graphicObject);
 					}
 					break;
