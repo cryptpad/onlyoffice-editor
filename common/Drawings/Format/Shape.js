@@ -7309,15 +7309,22 @@ CShape.prototype.getColumnNumber = function(){
         writer.WriteXmlNullableAttributeBool("fLocksText", this.fLocksText);
         writer.WriteXmlAttributesEnd();
 
-        if(this.nvSpPr) {
-            if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-                oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)
-            {
+
+        if (oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+            oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY)
+        {
+            if(this.nvSpPr) {
                 this.nvSpPr.cNvPr.toXml2("wps", writer);
                 this.nvSpPr.nvUniSpPr.toXmlSp(writer);
             }
-            else
+            else {
+                writer.WriteXmlString("<wps:cNvPr id=\"0\" name=\"\"></wps:cNvPr><wps:cNvSpPr></wps:cNvSpPr>");
+            }
+        }
+        else {
+            if(this.nvSpPr) {
                 this.nvSpPr.toXmlSp(writer);
+            }
         }
 
         let bIsPresentStyle = false;

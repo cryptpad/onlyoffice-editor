@@ -8329,8 +8329,8 @@
 
 			if(this.hlinkClick || this.hlinkHover) {
 				writer.WriteXmlAttributesEnd();
-				writer.WriteXmlNullable(this.hlinkClick);
-				writer.WriteXmlNullable(this.hlinkHover);
+				writer.WriteXmlNullable(this.hlinkClick, "a:hlinkClick");
+				writer.WriteXmlNullable(this.hlinkHover, "a:hlinkHover");
 
 				writer.WriteXmlNodeEnd(sName);
 			}

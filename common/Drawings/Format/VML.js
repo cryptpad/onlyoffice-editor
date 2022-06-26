@@ -1550,6 +1550,306 @@
 		const ShapeSize = 43200.0;
 		const ShapeSizeVML = 21600;
 		const RadKoef = Math.PI/10800000.0;
+		const pow3_16 = 60000;//?!! from core
+
+		const PPTFormulaType = {
+			ftSum: 0,
+			ftProduct: 1,
+			ftMid: 2,
+			ftAbsolute: 3,
+			ftMin: 4,
+			ftMax: 5,
+			ftIf: 6,
+			ftSqrt: 7,
+			ftMod: 8,
+			ftSin: 9,
+			ftCos: 10,
+			ftTan: 11,
+			ftAtan2: 12,
+			ftSinatan2: 13,
+			ftCosatan2: 14,
+			ftSumangle: 15,
+			ftEllipse: 16,
+			ftVal: 17
+		};
+
+		const ParamType =
+		{
+			ptFormula	: 0,
+			ptAdjust	: 1,
+			ptValue		: 2
+		};
+
+		function GetValue(strParam, oRes, lShapeWidth, lShapeHeight) {
+			oRes.ptType = ParamType.ptValue;
+			oRes.bRes		= true;
+			let val	= 0;
+			let lShapeWidth_ = AscFormat.isRealNumber(lShapeWidth) ? lShapeWidth : ShapeSizeVML;
+			let lShapeHeight_ = AscFormat.isRealNumber(lShapeHeight) ? lShapeHeight : ShapeSizeVML;
+			if ('#' === strParam[0]) {
+				oRes.ptType = ParamType.ptAdjust;
+				val = parseInt(strParam.substring(1));
+			}
+			else if ('@' === strParam[0]) {
+				oRes.ptType = ParamType.ptFormula;
+				val = parseInt(strParam.substring(1));
+			}
+			else {
+				let nNumVal = parseInt(strParam);
+				if (!AscFormat.isRealNumber(nNumVal)) {
+					if ("width" === strParam) {
+						val = lShapeWidth_;
+					}
+					else if ("height" === strParam) {
+						val = lShapeHeight_;
+					}
+					else if ("pixelWidth" === strParam) {
+						val = lShapeWidth_;
+					}
+					else if ("pixelHeight" === strParam) {
+						val = lShapeHeight_;
+					}
+					else if ("pixelLineWidth" === strParam || "lineDrawn" === strParam) {
+						val = 1;
+					}
+					else {
+						oRes.bRes = false;
+						return 0;
+					}
+				}
+				else {
+					oRes.ptType = ParamType.ptValue;
+					val = parseInt(strParam);
+				}
+			}
+			return val;
+		}
+
+
+		function GetRuler(strName, oRes)
+		{
+			oRes.bRes = true;
+			if		("moveTo"		=== strName)	return RulesType.rtOOXMLMoveTo;
+			else if ("lnTo"			=== strName)	return RulesType.rtOOXMLLineTo;
+			else if ("cubicBezTo"	=== strName)	return RulesType.rtOOXMLCubicBezTo;
+			else if ("close"		=== strName)	return RulesType.rtOOXMLClose;
+			else if ("end"			=== strName)	return RulesType.rtOOXMLEnd;
+			else if ("arcTo"		=== strName)	return RulesType.rtOOXMLArcTo;
+			else if ("quadBezTo"	=== strName)	return RulesType.rtOOXMLQuadBezTo;
+
+			//bRes = true;
+			else if	(("m" === strName) || ("M" === strName))		return RulesType.rtMoveTo;
+			else if (("l" === strName) || ("L" === strName))		return RulesType.rtLineTo;
+			else if (("c" === strName) || ("C" === strName))		return RulesType.rtCurveTo;
+			else if (("x" === strName) || ("Z" === strName))		return RulesType.rtClose;
+			else if (("e" === strName) || ("N" === strName))		return RulesType.rtEnd;
+			else if ("t" === strName)								return RulesType.rtRMoveTo;
+			else if ("r" === strName)								return RulesType.rtRLineTo;
+			else if ("v" === strName)								return RulesType.rtRCurveTo;
+			else if (("nf" === strName) || ("F" === strName))		return RulesType.rtNoFill;
+			else if (("ns" === strName) || ("S" === strName))		return RulesType.rtNoStroke;
+			else if (("ae" === strName) || ("T" === strName))		return RulesType.rtAngleEllipseTo;
+			else if (("al" === strName) || ("U" === strName))		return RulesType.rtAngleEllipse;
+			else if (("at" === strName) || ("A" === strName))		return RulesType.rtArcTo;
+			else if (("ar" === strName) || ("B" === strName))		return RulesType.rtArc;
+			else if (("wa" === strName) || ("W" === strName))		return RulesType.rtClockwiseArcTo;
+			else if (("wr" === strName) || ("V" === strName))		return RulesType.rtClockwiseArc;
+			else if (("qx" === strName) || ("X" === strName))		return RulesType.rtEllipticalQuadrX;
+			else if (("qy" === strName) || ("Y" === strName))		return RulesType.rtEllipticalQuadrY;
+			else if (("qb" === strName) || ("Q" === strName))		return RulesType.rtQuadrBesier;
+			else oRes.bRes = false;
+
+			return RulesType.rtEnd;
+		}
+		function CPPTFormula(sFormula) {
+			this.m_eFormulaType = PPTFormulaType.ftSum;
+			this.m_lIndex = 0;
+
+			this.m_lParam1 = 0;
+			this.m_eType1 = ParamType.ptValue;
+
+			this.m_lParam2 = 0;
+			this.m_eType2 = ParamType.ptValue;
+
+			this.m_lParam3 = 0;
+			this.m_eType3 = ParamType.ptValue;
+
+			this.m_lCountRecurs = 0;
+
+			this.FromString(sFormula);
+		}
+		CPPTFormula.prototype.FromString = function(sFormula, lShapeWidth, lShapeHeight) {
+			if(!sFormula) {
+				return;
+			}
+			let aParams = sFormula.split(" ");
+			let nCount = aParams.length;
+			let oRes = {};
+			this.m_eFormulaType = this.GetFormula(aParams[0]);
+
+			oRes.ptType = ParamType.ptValue;
+			if (1 < nCount) {
+				this.m_lParam1 = this.GetValue(aParams[1], oRes, lShapeWidth, lShapeHeight);
+				this.m_eType1 = oRes.ptType;
+			}
+			if (2 < nCount) {
+				this.m_lParam2 = this.GetValue(aParams[2], oRes, lShapeWidth, lShapeHeight);
+				this.m_eType2 = oRes.ptType;
+			}
+			if (3 < nCount) {
+				this.m_lParam3 = this.GetValue(aParams[3], oRes, lShapeWidth, lShapeHeight);
+				this.m_eType3 = oRes.ptType;
+			}
+		};
+		CPPTFormula.prototype.GetFormula = function(strName) {
+			if		("sum" === strName)									return PPTFormulaType.ftSum;
+			else if (("prod" === strName) || ("product" === strName)) return PPTFormulaType.ftProduct;
+			else if ("mid" === strName)									return PPTFormulaType.ftMid;
+			else if (("absolute" === strName) || ("abs" === strName)) return PPTFormulaType.ftAbsolute;
+			else if ("min" === strName)									return PPTFormulaType.ftMin;
+			else if ("max" === strName)									return PPTFormulaType.ftMax;
+			else if ("if" === strName)									return PPTFormulaType.ftIf;
+			else if ("sqrt" === strName)									return PPTFormulaType.ftSqrt;
+			else if ("mod" === strName)									return PPTFormulaType.ftMod;
+			else if ("sin" === strName)									return PPTFormulaType.ftSin;
+			else if ("cos" === strName)									return PPTFormulaType.ftCos;
+			else if ("tan" === strName)									return PPTFormulaType.ftTan;
+			else if ("atan2" === strName)								return PPTFormulaType.ftAtan2;
+			else if ("sinatan2" === strName)								return PPTFormulaType.ftSinatan2;
+			else if ("cosatan2" === strName)								return PPTFormulaType.ftCosatan2;
+			else if ("sumangle" === strName)								return PPTFormulaType.ftSumangle;
+			else if ("ellipse" === strName)								return PPTFormulaType.ftEllipse;
+			else if ("val" === strName)									return PPTFormulaType.ftVal;
+		};
+		CPPTFormula.prototype.GetValue = function(strParam, oRes, lShapeWidth, lShapeHeight) {
+			return GetValue(strParam, oRes, lShapeWidth, lShapeHeight);
+		};
+
+
+		function IS_ALPHA(c) {
+			return (((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')));
+		}
+		function IS_DIGIT(c) {
+			return (((c >= '0') && (c <= '9')) || (c === '-'));
+		}
+
+		const RulesType =
+		{
+			// VML
+				rtLineTo			: 0,	// 2*
+				rtCurveTo			: 1,	// 6*
+				rtMoveTo			: 2,	// 2
+
+				rtClose				: 3,	// 0
+				rtEnd				: 4,	// 0
+
+				rtRMoveTo			: 5,	// 2*
+				rtRLineTo			: 6,	// 2*
+				rtRCurveTo			: 7,	// 6*
+
+				rtNoFill			: 8,	// 0
+				rtNoStroke			: 9,	// 0
+
+				rtAngleEllipseTo	: 10,	// 6*
+				rtAngleEllipse		: 11,	// 6*
+
+				rtArc				: 12,	// 8*
+				rtArcTo				: 13,	// 8*
+
+				rtClockwiseArcTo	: 14,	// 8*
+				rtClockwiseArc		: 15,	// 8*
+
+				rtEllipticalQuadrX	: 16,	// 2*
+				rtEllipticalQuadrY	: 17,	// 2*
+
+				rtQuadrBesier		: 18,	// 2 + 2*
+
+				rtFillColor			: 20,
+				rtLineColor			: 21,
+
+				// OOXML
+				rtOOXMLMoveTo		: 0 + 100,	// 2
+				rtOOXMLLineTo		: 1 + 100,	// 2*
+				rtOOXMLCubicBezTo	: 2 + 100,	// 6*
+				rtOOXMLArcTo		: 3 + 100,	// 8*
+				rtOOXMLQuadBezTo	: 4 + 100,	// 2 + 2*
+				rtOOXMLClose		: 5 + 100,	// 0
+				rtOOXMLEnd			: 6	+ 100	// 0
+		};
+
+		function CSlicePath(eRuler) {
+			this.m_nCountElementsPoint = 0;
+			this.m_lX = 0;
+			this.m_lY = 0;
+			this.m_eRuler = AscFormat.isRealNumber(eRuler) ? eRuler : RulesType.rtMoveTo;
+			this.m_arPoints = [];
+			this.m_arPointsType = [];
+		}
+		CSlicePath.prototype.AddParam = function(lParam, eParType) {
+			let lPoint = this.m_nCountElementsPoint % 2;
+			if (0 === lPoint)
+			{
+				let point = {};
+				let pointType = {};
+				point.x = lParam;
+				if (this.m_eRuler !==  RulesType.rtRMoveTo && this.m_eRuler !==  RulesType.rtRLineTo && this.m_eRuler !==  RulesType.rtRCurveTo)
+				{
+					point.x -= this.m_lX;
+				}
+				point.y = 0;
+				pointType.x = eParType;
+				pointType.y = ParamType.ptValue;
+				this.m_arPoints.push(point);
+				this.m_arPointsType.push(pointType);
+			}
+			else
+			{
+				this.m_arPoints[this.m_arPoints.length - 1].y = lParam;
+				if (this.m_eRuler !==  RulesType.rtRMoveTo && this.m_eRuler !==  RulesType.rtRLineTo && this.m_eRuler !==  RulesType.rtRCurveTo)
+				{
+					this.m_arPoints[this.m_arPoints.length - 1].y -= this.m_lY;
+				}
+
+				this.m_arPointsType[this.m_arPointsType.length - 1].y = eParType;
+			}
+			++this.m_nCountElementsPoint;
+		};
+
+
+		function SPointType()
+		{
+			this.x = 0;
+			this.y = 0;
+		}
+		function SPointExist()
+		{
+			this.x = false;
+			this.y = false;
+		}
+
+		function SHandle()
+		{
+			this.gdRef = new SPointType();
+			this.gdRefType = new SPointType();
+			this.bRefExist = new SPointExist();
+			this.bRefPolarExist = new SPointExist();
+
+			this.Max = new SPointType();
+			this.MaxType = new SPointType();
+			this.bMaxExist = new SPointExist();
+			this.bMaxPolarExist = new SPointExist();
+
+			this.Min  = new SPointType();
+			this.MinType  = new SPointType();
+			this.bMinExist = new SPointExist();
+			this.bMinPolarExist = new SPointExist();
+
+			this.Pos = new SPointType();
+			this.PosType = new SPointType();
+
+			this.PolarCentre = new SPointType();
+			this.PolarCentreType = new SPointType();
+		}
 
 		function CVmlGeometryData() {
 			this.type = null;
@@ -1558,7 +1858,7 @@
 			this.path = null;
 			this.guides = [];
 			this.connectors = [];
-			this.textRect = new AscFormat.CSrcRect();
+			this.textRect = null;
 			this.handles = [];
 			this.connectorsAngles = [];
 
@@ -1567,6 +1867,28 @@
 
 			this.limoX = null;
 			this.limoY = null;
+
+			this.m_lWidth = 0;
+			this.m_lHeight = 0;
+
+			this.m_lIndexDst = 0;
+			this.m_lIndexSrc = -1;
+			this.m_arIndexDst = [];
+			this.m_lMaxAdjUse = -1;
+
+			this.m_lCoordSizeX = 21600;//TODO: take from shape
+			this.m_lCoordSizeY = 21600;//TODO: take from shape
+
+			this.pCurPoint = {};
+			this.pCurPointType = {};
+			this.pCurPoint1 = {};
+			this.pCurPointType1 = {};
+			this.pTmpPoint = {};
+			this.m_oParam = {};
+			this.m_oParam.m_lParam = 65536;
+			this.m_oParam.m_lCoef = 65536;
+			this.m_oParam.m_eType = ParamType.ptValue;
+			this.geometry = null;
 		}
 		CVmlGeometryData.prototype.fillByType = function(nType) {
 			this.type = nType;
@@ -1806,11 +2128,7 @@
 			this.connectors = sList.split(";");
 		};
 		CVmlGeometryData.prototype.loadTextRect = function(sRect) {
-			let aRect = sRect.split(",");
-			this.textRect.l = aRect[0];
-			this.textRect.t = aRect[1];
-			this.textRect.r = aRect[2];
-			this.textRect.b = aRect[3];
+			this.textRect = sRect;
 		};
 		CVmlGeometryData.prototype.addConnectorAngle = function(nAngle) {
 			this.connectorsAngles.push(nAngle);
@@ -1824,12 +2142,1802 @@
 		CVmlGeometryData.prototype.loadPath = function(sPath) {
 			this.path = sPath;
 		};
+		CVmlGeometryData.prototype.parseFormula = function(sFormula) {
+			return new CPPTFormula(sFormula);
+		};
 		CVmlGeometryData.prototype.addGuide = function(sGuide) {
-			this.guides.push(sGuide);
+			this.guides.push(this.parseFormula(sGuide));
 		};
 		CVmlGeometryData.prototype.addHandle = function(oHandle) {
 			this.handles.push(oHandle);
 		};
+
+		CVmlGeometryData.prototype.convertToOOXML = function() {
+			if(this.type === ShapeType.sptCRect || this.type === ShapeType.sptCFrame ||  this.type === ShapeType.sptCTextBox || this.type === null) {
+				return AscFormat.CreateGeometry("rect");
+			}
+			this.m_lIndexDst = 0;
+			this.geometry = new AscFormat.Geometry();
+			this.convertGuides();
+			this.convertPaths();
+			this.convertTextRect();
+			this.convertHandles();
+			return this.geometry;
+		};
+		CVmlGeometryData.prototype.convertPaths = function() {
+			let aStringPaths = this.path.split('e');
+			let nPathsCount = aStringPaths.length;
+			for(let nPath = 0; nPath < nPathsCount; nPath++) {
+				this.convertPath(aStringPaths[nPath]);
+			}
+		};
+		CVmlGeometryData.prototype.parsePath = function (strSource) {
+
+			let pArrayResults = [];
+			let strPath = strSource;
+			let nLength = strPath.length;
+			if (-1 !== strPath.indexOf('h'))
+			{
+				let pBuff = "";
+
+				let nCur = 0;
+				for (let i = 1; i < nLength; ++i)
+				{
+					let _c = strPath.charAt(i - 1);
+					if (_c !== 'h') {
+						pBuff += _c;
+					}
+					else
+					{
+						let _c1 = strPath.charAt(i);
+						if (_c1 === 'a' ||
+							_c1 === 'b' ||
+							_c1 === 'c' ||
+							_c1 === 'd' ||
+							_c1 === 'e' ||
+							_c1 === 'f' ||
+							_c1 === 'g' ||
+							_c1 === 'h' ||
+							_c1 === 'i')
+						{
+							++i;
+						}
+					}
+				}
+
+				if (nLength > 0)
+					pBuff += strPath.charAt(nLength - 1);
+
+
+				strPath = pBuff;
+				nLength = strPath.length;
+			}
+
+			if (nLength > 0 && strPath.charAt(nLength - 1) === ',') {
+				strPath += "0";
+				++nLength;
+			}
+
+			let nIndexOld = 0;
+			for (let nIndex = 0; nIndex < nLength; ++nIndex)
+			{
+				if (nIndex === (nLength - 1))
+				{
+					pArrayResults.push(strPath.substring(nIndexOld));
+					//continue;
+				}
+
+				let _c	= strPath[nIndex];
+				let _c1	= strPath[nIndex + 1];
+
+				if (_c1 === ',')
+				{
+					if (',' === _c)
+					{
+						pArrayResults.push("0");
+					}
+					else if (IS_ALPHA(_c))
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+						pArrayResults.push("0");
+					}
+					else if (IS_DIGIT(_c))
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+					}
+				}
+				else if (',' === _c)
+				{
+					if (IS_ALPHA(_c1))
+					{
+						pArrayResults.push("0");
+						nIndexOld = nIndex + 1;
+					}
+					else if (IS_DIGIT(_c1))
+					{
+						nIndexOld = nIndex + 1;
+					}
+				}
+				else
+				{
+					let _isA = IS_ALPHA(_c);
+					let _isD = _isA ? false : IS_DIGIT(_c);
+
+					let _isA1 = IS_ALPHA(_c1);
+					let _isD1 = _isA1 ? false : IS_DIGIT(_c1);
+
+					if (_isA && _isD1)
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+						nIndexOld = nIndex + 1;
+					}
+					else if (_isD && _isA1)
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+						nIndexOld = nIndex + 1;
+					}
+					else if (_isD && ('@' === _c1))
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+
+						++nIndex;
+						nIndexOld = nIndex;
+					}
+					else if (_isD && ('#' === _c1))
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+
+						++nIndex;
+						nIndexOld = nIndex;
+					}
+					else if (_isA && ('@' === _c1))
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+
+						++nIndex;
+						nIndexOld = nIndex;
+					}
+					else if (_isA && ('#' === _c1))
+					{
+						pArrayResults.push(strPath.substring(nIndexOld, nIndex + 1));
+
+						++nIndex;
+						nIndexOld = nIndex;
+					}
+					else if (('x' === _c) && _isA1)
+					{
+						pArrayResults.push("x");
+						nIndexOld = nIndex + 1;
+					}
+				}
+			}
+			return pArrayResults;
+		};
+		CVmlGeometryData.prototype.convertPath = function(sPath) {
+			let oArray = this.parsePath(sPath);
+			let oRes = {};
+			let arSlicesPath = [];
+			let bFill = true;
+			let bStroke = true;
+			let nIndex = sPath.indexOf("nf");
+			if (-1 !== nIndex)
+			{
+				bFill = false;
+			}
+			nIndex = sPath.indexOf("ns");
+			if (-1 !== nIndex)
+			{
+				bStroke = false;
+			}
+
+			nIndex = sPath.indexOf("F");
+			if (-1 !== nIndex)
+			{
+				bFill = false;
+			}
+
+			nIndex = sPath.indexOf("S");
+			if (-1 !== nIndex)
+			{
+				bStroke = false;
+			}
+
+
+			for (let nIndex = 0; nIndex < oArray.length; ++nIndex)
+			{
+				let str = oArray[nIndex];
+				let lValue = GetValue(str, oRes);
+				if (oRes.bRes)
+				{
+					if (0 !== arSlicesPath.length)
+					{
+						arSlicesPath[arSlicesPath.length - 1].AddParam(lValue, oRes.ptType);
+					}
+				}
+				else
+				{
+
+					let eRuler = GetRuler(str, oRes);
+					if (oRes.bRes)
+					{
+						if (RulesType.rtNoFill === eRuler)
+						{
+							bFill = false;
+						}
+						else if (RulesType.rtNoStroke === eRuler)
+						{
+							bStroke = false;
+						}
+						else
+						{
+							let oSlice = new CSlicePath(eRuler);
+							arSlicesPath.push(oSlice);
+						}
+					}
+				}
+			}
+			let oOOXMLPath = new AscFormat.Path();
+			oOOXMLPath.setPathW(this.m_lCoordSizeX);
+			oOOXMLPath.setPathH(this.m_lCoordSizeY);
+			if(!bFill) {
+				oOOXMLPath.setFill("none");
+			}
+			else {
+				oOOXMLPath.setFill("norm");
+			}
+			if(!bStroke) {
+				oOOXMLPath.setStroke(false);
+			}
+			else {
+				oOOXMLPath.setStroke(true);
+			}
+			oOOXMLPath.setExtrusionOk(false);
+			for(let nSlice = 0; nSlice < arSlicesPath.length; ++nSlice) {
+				let oSlice = arSlicesPath[nSlice];
+				switch (oSlice.m_eRuler)
+				{
+					case RulesType.rtMoveTo:
+					{
+						this.ConvertSlice_MoveTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtRMoveTo:
+					{
+						this.ConvertSlice_RMoveTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtClose:
+					{
+						oOOXMLPath.close();
+						break;
+					}
+					case RulesType.rtLineTo:
+					{
+						this.ConvertSlice_LineTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtRLineTo:
+					{
+						this.ConvertSlice_RLineTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtArcTo:
+					case RulesType.rtArc:
+					{
+						this.ConvertSlice_ArcTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtClockwiseArcTo:
+					case RulesType.rtClockwiseArc:
+					{
+						this.ConvertSlice_ClockwiseTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtQuadrBesier:
+					{
+						this.ConvertSlice_QuadrBesier(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtCurveTo:
+					{
+						this.ConvertSlice_CurveTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtRCurveTo:
+					{
+						this.ConvertSlice_RCurveTo(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtAngleEllipse:
+					case RulesType.rtAngleEllipseTo:
+					{
+						this.ConvertSlice_AngleEllipse(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtEllipticalQuadrX:
+					{
+						this.ConvertSlice_EllipticalQuadrX(oSlice, oOOXMLPath);
+						break;
+					}
+					case RulesType.rtEllipticalQuadrY:
+					{
+						this.ConvertSlice_EllipticalQuadrY(oSlice, oOOXMLPath);
+						break;
+					}
+					default:
+						break;
+				}
+			}
+
+			if(oOOXMLPath.ArrPathCommandInfo.length > 0) {
+				this.geometry.AddPath(oOOXMLPath);
+			}
+
+ 		};
+		CVmlGeometryData.prototype.addGeomGuide = function(name, formula, x, y, z) {
+			this.geometry.AddGuide(name, AscFormat.MAP_FMLA_TO_TYPE[formula], x, y, z)
+		};
+		CVmlGeometryData.prototype.convertProdString = function(strParam1, strParam2, lParam3)
+		{
+			let lRes;
+			if ('#' === strParam2[0])
+			{
+				lRes = parseInt(strParam2.substring(1));
+				strParam2 = this.GetValue(lRes, ParamType.ptAdjust, false);
+			}
+			else if ('@' === strParam2[0])
+			{
+				lRes = parseInt(strParam2.substring(1));
+				strParam2 = this.GetValue(lRes, ParamType.ptFormula, false);
+			}
+			this.addGeomGuide(this.getNextGdName(), "*/", strParam1, strParam2, this.GetValue(lParam3, ParamType.ptValue, false));
+		};
+		CVmlGeometryData.prototype.convertTextRect = function() {
+			let strRect = this.textRect;
+			if (!strRect || strRect.length === 0)
+				return;
+
+			let arBorder = strRect.split(",");
+
+			this.m_lIndexSrc++;
+			if (arBorder.length > 0 && !arBorder[0].length !== 0)
+				this.convertProdString("w",  arBorder[0], this.m_lCoordSizeX);
+		else
+			this.convertProdString("w",  "0", this.m_lCoordSizeX);
+
+			if (arBorder.length > 1 && !arBorder[1].length !== 0)
+				this.convertProdString("h",  arBorder[1], this.m_lCoordSizeY);
+		else
+			this.convertProdString("h",  "0", this.m_lCoordSizeY);
+
+			if (arBorder.length > 2 && !arBorder[2].length !== 0)
+				this.convertProdString("w",  arBorder[2], this.m_lCoordSizeX);
+		else
+			this.convertProdString("w",  "" + (this.m_lCoordSizeX), this.m_lCoordSizeX);
+
+			if (arBorder.length > 3 && !arBorder[3].length !== 0)
+				this.convertProdString("h",  arBorder[3], this.m_lCoordSizeY);
+		else
+			this.convertProdString("h",  "" + (this.m_lCoordSizeY), this.m_lCoordSizeY);
+
+			this.m_arIndexDst.push(this.m_lIndexDst);
+
+			let l = this.GetValue(this.m_lIndexDst - 4, ParamType.ptFormula, true) + "";
+			let t = this.GetValue(this.m_lIndexDst - 3, ParamType.ptFormula, true) + "";
+			let r = this.GetValue(this.m_lIndexDst - 2, ParamType.ptFormula, true) + "";
+			let b = this.GetValue(this.m_lIndexDst - 1, ParamType.ptFormula, true) + "";
+			this.geometry.AddRect(l, t, r, b);
+		};
+
+		CVmlGeometryData.prototype.GetHandleValue = function(strParam, lVal, oRes)
+		{
+			oRes.ptType = ParamType.ptValue;
+			if ('#' === strParam[0])
+			{
+				oRes.ptType = ParamType.ptAdjust;
+				return parseInt(strParam.substring(1));
+			}
+			else if ('@' === strParam[0])
+			{
+				oRes.ptType = ParamType.ptFormula;
+				return parseInt(strParam.substr(1));
+			}
+			else if (!AscFormat.isRealNumber(parseInt(strParam)))
+			{
+				if ("center" === strParam)
+				return lVal/2;
+			else if ("bottomRight" === strParam)
+				return lVal;
+			else
+				return 0;
+			}
+			else
+			{
+				oRes.ptType = ParamType.ptValue;
+				return parseInt(strParam);
+			}
+		};
+		CVmlGeometryData.prototype.GetHandlePos = function( strParam,  strBase,  lSize)
+		{
+			let lRes;
+			let strSize;
+			let strFrmla;
+
+			strSize = " " + lSize;
+
+			if ('#' === strParam[0])
+			{
+				lRes = parseInt(strParam.substring(1));
+				strFrmla = this.GetValue(lRes, ParamType.ptAdjust, false) + strSize;
+			}
+			else if ('&' === strParam[0])
+			{
+				lRes = parseInt(strParam.substring(1));
+				strFrmla = this.GetValue(lRes, ParamType.ptFormula, true) + strSize;
+			}
+			else if ('@' === strParam[0])
+			{
+				lRes = parseInt(strParam.substring(1));
+				strFrmla = this.GetValue(lRes, ParamType.ptFormula, false) + strSize;
+			}
+			else if (!AscFormat.isRealNumber(parseInt(strParam)))
+			{
+				if ("center" === strParam)
+				strFrmla = "1 2";
+			else if ("topLeft" === strParam)
+				strFrmla = "0 1";
+			else if ("bottomRight" === strParam)
+				strFrmla = "1 1";
+			}
+			else
+			{
+				lRes = parseInt(strParam);
+				strFrmla = this.GetValue(lRes, ParamType.ptValue, false) + strSize;
+			}
+			let aParams = strFrmla.split(' ');
+			let x = aParams[0];
+			let y = aParams[1];
+			this.addGeomGuide(this.getNextGdName(), "*/", strBase, x, y);
+			this.m_arIndexDst.push(this.m_lIndexDst);
+			//this.m_lIndexDst++;
+
+			return this.m_lIndexDst-1;
+		};
+		CVmlGeometryData.prototype.convertHandles = function() {
+			if (this.type === ShapeType.sptCArc) {
+				return;
+			}
+			let nHandlesCount = this.handles.length;
+			for (let i = 0; i < nHandlesCount; ++i)
+			{
+				let pHnPoint = this.handles[i];
+				let arPos = [];
+				let arRangeX = [];
+				let arRangeY = [];
+				let arPolar = [];
+				let oHandle = new SHandle();
+				let ptType;
+				let oRes = {};
+
+				if (pHnPoint.position !== null && pHnPoint.position !== "")
+				{
+					arPos = pHnPoint.position.split(",");
+
+					oHandle.gdRef.x = this.GetHandleValue(arPos[0], this.m_lCoordSizeX, oRes);
+					oHandle.gdRefType.x = oRes.ptType;
+					if ( oHandle.gdRefType.x === ParamType.ptAdjust)
+						oHandle.bRefExist.x = true;
+
+					oHandle.gdRef.y = this.GetHandleValue(arPos[1], this.m_lCoordSizeX, oRes);
+					oHandle.gdRefType.y = oRes.ptType;
+					if ( oHandle.gdRefType.y === ParamType.ptAdjust)
+						oHandle.bRefExist.y = true;
+
+
+					if (pHnPoint.polar !== null && pHnPoint.polar !== "")
+					{
+						oHandle.bRefExist.y = false;
+
+						oHandle.bRefPolarExist.y = true;
+						oHandle.bMinPolarExist.y = true;
+						arPolar = pHnPoint.polar.split(",");
+
+						oHandle.PolarCentre.x = this.GetHandleValue(arPolar[0], this.m_lCoordSizeX, oRes);
+						oHandle.PolarCentreType.x = oRes.ptType;
+
+						oHandle.PolarCentre.y = this.GetHandleValue(arPolar[1], this.m_lCoordSizeX, oRes);
+						oHandle.PolarCentreType.y = oRes.ptType;
+
+						if (oHandle.gdRefType.y === ParamType.ptAdjust )
+						{
+							let strNewFmla = this.GetValue (this.m_lIndexDst, ParamType.ptFormula, true);
+							let strOldFmla = this.GetValue (oHandle.gdRef.y, oHandle.gdRefType.y, false);
+							let nIndex = this.m_lIndexDst;
+
+							//replace guide to adjustment
+							let oOldGeometry = this.geometry;
+							let aOldGdLst = oOldGeometry.gdLstInfo;
+							oOldGeometry.gdLstInfo.length = 0;
+							let oNewGeometry = oOldGeometry.createDuplicate();
+							this.geometry = oNewGeometry;
+							this.m_lIndexSrc++;
+							this.convertProd (oHandle.gdRef.y, oHandle.gdRefType.y, this.m_oParam.m_lCoef, ParamType.ptValue, pow3_16, ParamType.ptValue, false, true, false);
+							this.m_arIndexDst.push(this.m_lIndexDst-1);
+							for(let nGd = 0; nGd < aOldGdLst.length; ++nGd) {
+								let oGd = aOldGdLst[nGd];
+								let x = oGd.x;
+								if(x === strOldFmla) {
+									x = strNewFmla;
+								}
+								let y = oGd.y;
+								if(y === strOldFmla) {
+									y = strNewFmla;
+								}
+								let z = oGd.z;
+								if(z === strOldFmla) {
+									z = strNewFmla;
+								}
+								this.addGeomGuide(oGd.name, oGd.formula, x, y, z)
+							}
+							oOldGeometry.gdLstInfo = aOldGdLst;
+
+							if (oHandle.gdRefType.y === ParamType.ptAdjust )
+							{
+								let lVal = this.adjustments[oHandle.gdRef.y];
+								lVal = (lVal * pow3_16 / this.m_oParam.m_lCoef + 0.5) >> 0;
+								this.adjustments[oHandle.gdRef.y] = lVal;
+							}
+
+							this.m_lIndexSrc++;
+							this.convertCos(oHandle.gdRef.x, oHandle.gdRefType.x, oHandle.gdRef.y, oHandle.gdRefType.y, false, false);
+							this.convertSin(oHandle.gdRef.x, oHandle.gdRefType.x, oHandle.gdRef.y, oHandle.gdRefType.y, false, false);
+							this.convertSum(oHandle.PolarCentre.x, oHandle.PolarCentreType.x, this.m_lIndexDst-2, ParamType.ptFormula, 0, ParamType.ptValue, false, true, false);
+							this.convertSum(oHandle.PolarCentre.y, oHandle.PolarCentreType.y, this.m_lIndexDst-2, ParamType.ptFormula, 0, ParamType.ptValue, false, true, false);
+							this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+							oHandle.Pos.x = this.GetHandlePos ((this.m_lIndexDst-2) + "", "w",  this.m_lCoordSizeX);
+							oHandle.PosType.x = ParamType.ptFormula;
+
+							oHandle.Pos.y = this.GetHandlePos ((this.m_lIndexDst-2) + "", "h",  this.m_lCoordSizeY);
+							oHandle.PosType.y = ParamType.ptFormula;
+						}
+
+					}
+				else//если пришли обычные координаты
+					{
+						if ((pHnPoint.xrange !== null && pHnPoint.xrange !== "" && oHandle.gdRefType.x !== ParamType.ptAdjust && oHandle.gdRefType.y === ParamType.ptAdjust) ||
+						(pHnPoint.yrange !== null && pHnPoint.yrange !== "" && oHandle.gdRefType.x === ParamType.ptAdjust && oHandle.gdRefType.y !== ParamType.ptAdjust))
+						{
+							oHandle.Pos.x = this.GetHandlePos(arPos[1], "w",  this.m_lCoordSizeX);
+							oHandle.PosType.x = ParamType.ptFormula;
+
+							oHandle.Pos.y = this.GetHandlePos(arPos[0], "h",  this.m_lCoordSizeY);
+							oHandle.PosType.y = ParamType.ptFormula;
+						}
+					else
+						{
+							oHandle.Pos.x = this.GetHandlePos(arPos[0], "w",  this.m_lCoordSizeX);
+							oHandle.PosType.x = ParamType.ptFormula;
+
+							oHandle.Pos.y = this.GetHandlePos(arPos[1], "h",  this.m_lCoordSizeY);
+							oHandle.PosType.y = ParamType.ptFormula;
+						}
+					}
+				}
+
+				if (pHnPoint.xrange !== null && pHnPoint.xrange !== "")
+				{
+					if ( oHandle.gdRefType.x !== ParamType.ptAdjust && oHandle.gdRefType.y === ParamType.ptAdjust)
+					{
+						oHandle.gdRef.x = this.GetHandleValue(arPos[1], this.m_lCoordSizeX, oRes);
+						oHandle.gdRefType.x = oRes.ptType;
+						oHandle.bRefExist.x = true;
+
+						oHandle.gdRef.y = this.GetHandleValue(arPos[0], this.m_lCoordSizeY, oRes);
+						oHandle.gdRefType.y = oRes.ptType;
+						oHandle.bRefExist.y = false;
+					}
+
+					arRangeX = pHnPoint.xrange.split(",");
+					oHandle.Min.x = this.GetHandleValue(arRangeX[0], this.m_lCoordSizeX, oRes);
+					oHandle.MinType.x = oRes.ptType;
+					if ( oHandle.bRefExist.x)
+						oHandle.bMinExist.x = true;
+
+					oHandle.Max.x = this.GetHandleValue(arRangeX[1], this.m_lCoordSizeX, oRes);
+					oHandle.MaxType.x = oRes.ptType;
+					if ( oHandle.bRefExist.x)
+						oHandle.bMaxExist.x = true;
+				}
+
+				if (pHnPoint.yrange !== null &&  pHnPoint.yrange !== "")
+				{
+					if ( oHandle.gdRefType.x === ParamType.ptAdjust && oHandle.gdRefType.y !== ParamType.ptAdjust)
+					{
+						oHandle.gdRef.x = this.GetHandleValue(arPos[1], this.m_lCoordSizeX, oRes);
+						oHandle.gdRefType.x = oRes.ptType;
+						oHandle.bRefExist.x = false;
+
+						oHandle.gdRef.y = this.GetHandleValue(arPos[0], this.m_lCoordSizeY, oRes);
+						oHandle.gdRefType.y = oRes.ptType;
+						oHandle.bRefExist.y = true;
+					}
+
+					arRangeY = pHnPoint.yrange.split(",");
+					oHandle.Min.y = this.GetHandleValue(arRangeY[0], this.m_lCoordSizeY, oRes);
+					oHandle.MinType.y = oRes.ptType;
+					if ( oHandle.bRefExist.y )
+						oHandle.bMinExist.y = true;
+
+					oHandle.Max.y = this.GetHandleValue(arRangeY[1], this.m_lCoordSizeY, oRes);
+					oHandle.MaxType.y = oRes.ptType;
+					if ( oHandle.bRefExist.y )
+						oHandle.bMaxExist.y = true;
+				}
+
+				if (pHnPoint.radiusrange !== null && pHnPoint.radiusrange !== "")
+				{
+					arPos = pHnPoint.radiusrange.split(",");
+					oHandle.Min.x = this.GetHandleValue(arPos[0], this.m_lCoordSizeY, oRes);
+					oHandle.MinType.x = oRes.ptType;
+					oHandle.bMinPolarExist.x = true;
+
+					oHandle.Max.x = this.GetHandleValue(arPos[1], this.m_lCoordSizeY, oRes);
+					oHandle.MaxType.x = oRes.ptType;
+					oHandle.bMinPolarExist.y = true;
+
+					if ( oHandle.gdRefType.x === ptAdjust)
+					{
+						oHandle.bRefPolarExist.x = true;
+						oHandle.bRefExist.x = false;
+					}
+				}
+
+				this.CreateHandle(oHandle);
+
+			}
+			this.ConvertAdj ();
+		};
+		CVmlGeometryData.prototype.CreateHandle = function(oHnd) {
+			if (oHnd.bRefPolarExist.x || oHnd.bRefPolarExist.y) {
+				let gdRefR, gdRefAng, minR, maxR, minAng, maxAng, posX, posY;
+				if (oHnd.bRefPolarExist.x)
+				{
+					gdRefR = this.GetValue(oHnd.gdRef.x, oHnd.gdRefType.x, false) + "";
+				}
+				if (oHnd.bRefPolarExist.y)
+				{
+					gdRefAng = this.GetValue(oHnd.gdRef.y, oHnd.gdRefType.y, true) + "";
+				}
+				if (oHnd.bMinPolarExist.x)
+				{
+					minR = this.GetValue(oHnd.Min.x, oHnd.MinType.x, false) + "";
+					maxR = this.GetValue(oHnd.Max.x, oHnd.MaxType.x, false) + "";
+				}
+				if (oHnd.bMinPolarExist.y)
+				{
+					minAng = "0";
+					maxAng = "21600000";
+				}
+
+				posX = this.GetValue(oHnd.Pos.x, oHnd.PosType.x, true) + "";
+				posY = this.GetValue(oHnd.Pos.y, oHnd.PosType.y, true) + "";
+				this.geometry.AddHandlePolar(gdRefAng, minAng, maxAng, gdRefR, minR, maxR, posX, posY)
+			}
+			else if (oHnd.bRefExist.x || oHnd.bRefExist.y) {
+
+				let gdRefX, gdRefY, minX, maxX, minY, maxY, posX, posY;
+				if (oHnd.bRefExist.x)
+				{
+					gdRefX = this.GetValue(oHnd.gdRef.x, oHnd.gdRefType.x, false) + "";
+				}
+				if (oHnd.bRefExist.y)
+				{
+					gdRefY = this.GetValue(oHnd.gdRef.y, oHnd.gdRefType.y, false) + "";
+				}
+				if (oHnd.bMinExist.x)
+				{
+					minX = this.GetValue(oHnd.Min.x, oHnd.MinType.x, false) + "";
+					maxX = this.GetValue(oHnd.Max.x, oHnd.MaxType.x, false) + "";
+				}
+				else if (oHnd.bRefExist.x)
+				{
+					minX="-21474836";
+					maxX="21474836";
+				}
+				if (oHnd.bMinExist.y)
+				{
+					minY = this.GetValue(oHnd.Min.y, oHnd.MinType.y, false) + "";
+					maxY = this.GetValue(oHnd.Max.y, oHnd.MaxType.y, false) + "";
+				}
+				else if (oHnd.bRefExist.y)
+				{
+					minY="-21474836";
+					maxY="21474836";
+				}
+				posX = this.GetValue(oHnd.Pos.x, oHnd.PosType.x, true) + "";
+				posY = this.GetValue(oHnd.Pos.y, oHnd.PosType.y, true) + "";
+				this.geometry.AddHandleXY(gdRefX, minX, maxX, gdRefY, minY, maxY, posX, posY);
+			}
+
+		};
+		CVmlGeometryData.prototype.ConvertAdj = function() {
+			for(let nAdj = 0; nAdj < this.adjustments.length; ++nAdj) {
+				this.geometry.AddAdj("adj" + nAdj, "val", this.adjustments[nAdj] + "");
+			}
+		};
+		CVmlGeometryData.prototype.GetValue = function(lParam, eParamType, bExtShape) {
+			let strValue;
+
+			switch (eParamType)
+			{
+				case ParamType.ptFormula:
+				{
+					if (bExtShape)
+						strValue = "" + lParam;
+					else
+						strValue = "" + this.m_arIndexDst[lParam];
+						strValue = "gd" + strValue;
+						break;
+				}
+				case ParamType.ptAdjust:
+				{
+					strValue = "adj" + lParam;
+					break;
+				}
+				case ParamType.ptValue:
+				{
+					strValue = "" + lParam;
+					break;
+				}
+				default: break;
+			}
+			return strValue;
+		};
+		CVmlGeometryData.prototype.ConvertQuadrX = function(pPoint, pPointType, oOOXMLPath)
+		{
+			let nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+			this.m_lIndexSrc++;
+
+			this.convertSum(pPoint.x, pPointType.x, 0, ParamType.ptValue, nIndex-1, ParamType.ptFormula, false, true, true);
+			this.convertSum(pPoint.y, pPointType.y, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, false, true, true);
+			this.convertIf (this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+			this.convertIf (this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+			this.convertProd (this.m_lIndexDst-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+			this.convertIf (this.m_lIndexDst-4, ParamType.ptFormula, 16200000, ParamType.ptValue, 5400000, ParamType.ptValue, true, true, true);	//stAng
+			this.convertIf (this.m_lIndexDst-2, ParamType.ptFormula, 5400000, ParamType.ptValue, -5400000, ParamType.ptValue, true, true, true);	//swAng
+			this.convertProd (this.m_lIndexDst-7, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+			this.convertProd (this.m_lIndexDst-7, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+			this.convertIf (this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, true, true, true);//wR
+			this.convertIf (this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, true, true, true);//hR
+
+			this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+			nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+			let wR = this.GetValue(nIndex-1, ParamType.ptFormula, true) + "";
+			let hR = this.GetValue(nIndex, ParamType.ptFormula, true) + "";
+			let stAng = this.GetValue(nIndex-5, ParamType.ptFormula, true) + "";
+			let swAng = this.GetValue(nIndex-4, ParamType.ptFormula, true) + "";
+			oOOXMLPath.arcTo(wR, hR, stAng, swAng);
+			this.m_lIndexSrc++;
+			this.convertVal(pPoint.x, pPointType.x, false);
+			this.convertVal(pPoint.y, pPointType.y, false);
+			this.m_arIndexDst.push(this.m_lIndexDst-1);
+			return;
+		};
+
+		CVmlGeometryData.prototype.ConvertQuadrY = function(pPoint, pPointType, oOOXMLPath)
+		{
+			let nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+			this.m_lIndexSrc++;
+
+			this.convertSum(pPoint.x, pPointType.x, 0, ParamType.ptValue, nIndex-1, ParamType.ptFormula, false, true, true);
+			this.convertSum(pPoint.y, pPointType.y, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, false, true, true);
+			this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+			this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+			this.convertProd(this.m_lIndexDst-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+			this.convertIf(this.m_lIndexDst-5, ParamType.ptFormula, 10800000, ParamType.ptValue, 0, ParamType.ptValue, true, true, true);	//stAng
+			this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, -5400000, ParamType.ptValue, 5400000, ParamType.ptValue, true, true, true);	//swAng
+			this.convertProd(this.m_lIndexDst-7, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+			this.convertProd(this.m_lIndexDst-7, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+			this.convertIf(this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, true, true, true);//wR
+			this.convertIf(this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-9, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, true, true, true);//hR
+			this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+			nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+			let wR = this.GetValue(nIndex-1, ParamType.ptFormula, true);
+			let hR = this.GetValue(nIndex, ParamType.ptFormula, true);
+			let stAng = this.GetValue(nIndex-5, ParamType.ptFormula, true);
+			let swAng = this.GetValue(nIndex-4, ParamType.ptFormula, true);
+			oOOXMLPath.arcTo(wR, hR, stAng, swAng);
+			this.m_lIndexSrc++;
+			this.convertVal(pPoint.x, pPointType.x, false);
+			this.convertVal(pPoint.y, pPointType.y, false);
+			this.m_arIndexDst.push(this.m_lIndexDst-1);
+		};
+		//-------------------------------------
+
+		CVmlGeometryData.prototype.ConvertSlice_MoveTo = function(oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; ++j)
+			{
+				this.pCurPoint		= oSlice.m_arPoints[j];
+				this.pCurPointType	= oSlice.m_arPointsType[j];
+
+				this.m_lIndexSrc++;
+				this.convertVal(this.pCurPoint.x, this.pCurPointType.x, false);
+				this.convertVal(this.pCurPoint.y, this.pCurPointType.y, false);
+
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				let x = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+				let y = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+				oOOXMLPath.moveTo(x, y);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_RMoveTo = function( oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; j++)
+			{
+				this.pCurPoint		= oSlice.m_arPoints[j];
+				this.pCurPointType	= oSlice.m_arPointsType[j];
+				this.m_lIndexSrc ++;
+				this.convertSum(this.m_lIndexDst-2, ParamType.ptFormula, this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, true, false, true);
+				this.convertSum(this.m_lIndexDst-2, ParamType.ptFormula, this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, true, false, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				let x = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+				let y = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+				oOOXMLPath.moveTo(x, y);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_LineTo = function( oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; j++)
+			{
+				this.pCurPoint = oSlice.m_arPoints[j];
+				this.pCurPointType = oSlice.m_arPointsType[j];
+
+				this.m_lIndexSrc++;
+				this.convertVal(this.pCurPoint.x, this.pCurPointType.x, false);
+				this.convertVal(this.pCurPoint.y, this.pCurPointType.y, false);
+
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				let x = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+				let y = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+				oOOXMLPath.lnTo(x, y);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_RLineTo = function( oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; j++)
+			{
+				this.pCurPoint = oSlice.m_arPoints[j];
+				this.pCurPointType = oSlice.m_arPointsType[j];
+				this.m_lIndexSrc++;
+				this.convertSum(this.m_lIndexDst-2, ParamType.ptFormula, this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, true, false, true);
+				this.convertSum(this.m_lIndexDst-2, ParamType.ptFormula, this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, true, false, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				let x = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+				let y = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+				oOOXMLPath.lnTo(x, y);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_ArcTo = function(oSlice, oOOXMLPath)
+		{
+			let nIndex = 0;
+			let nIndex1 = 0;
+			let nIndex2 = 0;
+
+			for (let j = 0; j < oSlice.m_arPoints.length; j+=4)
+			{
+				this.pCurPoint		= oSlice.m_arPoints[j];
+				this.pCurPointType	= oSlice.m_arPointsType[j];
+				this.pCurPoint1		= oSlice.m_arPoints[j+1];
+				this.pCurPointType1	= oSlice.m_arPointsType[j+1];
+
+				this.m_lIndexSrc++;
+				this.convertSum(this.pCurPoint1.x, this.pCurPointType1.x, 0, ParamType.ptValue, this.pCurPoint.x, this.pCurPointType.x, false, true, false);
+				this.convertSum(this.pCurPoint1.y, this.pCurPointType1.y, 0, ParamType.ptValue, this.pCurPoint.y, this.pCurPointType.y, false, true, false);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-1, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true); //a=wR
+				this.convertProd(nIndex, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true); //b=hR
+
+				this.convertSum(this.pCurPoint.x, this.pCurPointType.x, this.m_lIndexDst-2, ParamType.ptFormula, 0, ParamType.ptValue, false, true, true);
+				this.convertSum(this.pCurPoint.y, this.pCurPointType.y, this.m_lIndexDst-2, ParamType.ptFormula, 0, ParamType.ptValue, false, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				this.pCurPoint = oSlice.m_arPoints[j+2];
+				this.pCurPointType = oSlice.m_arPointsType[j+2];
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertSum(this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, nIndex-1, ParamType.ptFormula, false, true, true);
+				this.convertSum(this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, false, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-2, ParamType.ptFormula, 1, ParamType.ptValue, nIndex-3, ParamType.ptFormula, true, true, true);
+				this.convertAt2(1, ParamType.ptValue, this.m_lIndexDst-1, ParamType.ptFormula, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-2];
+
+				this.m_lIndexSrc++;
+				this.convertCos(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-2, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//(b*cos(u))^2
+
+				this.convertSin(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//(a*sin(u))^2
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-5, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertSqrt(this.m_lIndexDst-1, ParamType.ptFormula, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);//r
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+
+				this.m_lIndexSrc++;
+				this.convertIf(nIndex-3, ParamType.ptFormula, 0, ParamType.ptValue, 10800000, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-3];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc ++;
+				this.convertProd(nIndex1-1, ParamType.ptFormula, nIndex1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex, ParamType.ptFormula, nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, nIndex2, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-4];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-5];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex, ParamType.ptFormula, nIndex-10, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true); //x
+
+				this.convertProd(nIndex-6, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex-6, ParamType.ptFormula, nIndex-6, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*sin
+				this.convertProd(nIndex1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);//y
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				this.pCurPoint = oSlice.m_arPoints[j+3];
+				this.pCurPointType = oSlice.m_arPointsType[j+3];
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-6];
+
+				this.m_lIndexSrc++;
+				this.convertSum(this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, nIndex-1, ParamType.ptFormula, false, true, true);
+				this.convertSum(this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, false, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-2, ParamType.ptFormula, 1, ParamType.ptValue, nIndex-3, ParamType.ptFormula, true, true, true);
+				this.convertAt2(1, ParamType.ptValue, this.m_lIndexDst-1, ParamType.ptFormula, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-8];
+
+				this.m_lIndexSrc++;
+				this.convertCos(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-2, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSin(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-5, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertSqrt(this.m_lIndexDst-1, ParamType.ptFormula, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+
+				this.m_lIndexSrc++;
+				this.convertIf(nIndex-3, ParamType.ptFormula, 0, ParamType.ptValue, 10800000, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-3];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex1-1, ParamType.ptFormula, nIndex1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex, ParamType.ptFormula, nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, nIndex2, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-4];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-11];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex, ParamType.ptFormula, nIndex-10, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*cos(a)
+				this.convertProd(nIndex1-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);//x
+
+				this.convertProd(nIndex-6, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex-6, ParamType.ptFormula, nIndex-6, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*sin(a)
+				this.convertProd(nIndex1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);//y
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-1];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-7];
+
+				this.m_lIndexSrc++;
+				this.convertSum(nIndex1, ParamType.ptFormula, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum(nIndex1, ParamType.ptFormula, 21600000, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true); // -1*((1)+360-(2))
+
+				this.convertIf(this.m_lIndexDst-4, ParamType.ptFormula, this.m_lIndexDst-3, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-14];
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-1, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				//---------------------------------------------------------
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-8];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-9];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-1];
+
+				if (oSlice.m_eRuler === RulesType.rtArc && j === 0)
+				{
+					let x = this.GetValue(nIndex-5, ParamType.ptFormula, true) + "";
+					let y = this.GetValue(nIndex, ParamType.ptFormula, true) + "";
+					oOOXMLPath.moveTo(x, y);
+					let wR = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+					let hR = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+					let stAng = this.GetValue(nIndex1, ParamType.ptFormula, true) + "";
+					let swAng = this.GetValue(nIndex2, ParamType.ptFormula, true) + "";
+					oOOXMLPath.arcTo(wR, hR, stAng, swAng);
+				}
+				else
+				{
+					let x = this.GetValue(nIndex-5, ParamType.ptFormula, true) + "";
+					let y = this.GetValue(nIndex, ParamType.ptFormula, true) + "";
+					let wR = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+					let hR = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+					let stAng = this.GetValue(nIndex1, ParamType.ptFormula, true) + "";
+					let swAng = this.GetValue(nIndex2, ParamType.ptFormula, true) + "";
+					oOOXMLPath.lnTo(x, y);
+					oOOXMLPath.arcTo(wR, hR, stAng, swAng);
+				}
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				this.convertVal(nIndex-5, ParamType.ptFormula, true);
+				this.convertVal(nIndex, ParamType.ptFormula, true);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_ClockwiseTo = function( oSlice, oOOXMLPath)
+		{
+			let nIndex = 0;
+			let nIndex1 = 0;
+			let nIndex2 = 0;
+
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 4)
+			{
+				this.pCurPoint		= oSlice.m_arPoints[j];
+				this.pCurPointType	= oSlice.m_arPointsType[j];
+				this.pCurPoint1		= oSlice.m_arPoints[j+1];
+				this.pCurPointType1	= oSlice.m_arPointsType[j+1];
+
+				this.m_lIndexSrc++;
+				this.convertSum(this.pCurPoint1.x, this.pCurPointType1.x, 0, ParamType.ptValue, this.pCurPoint.x, this.pCurPointType.x, false, true, false);
+				this.convertSum(this.pCurPoint1.y, this.pCurPointType1.y, 0, ParamType.ptValue, this.pCurPoint.y, this.pCurPointType.y, false, true, false);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-1, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true); //a=wR
+				this.convertProd(nIndex, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true); //b=hR
+
+				this.convertSum(this.pCurPoint.x, this.pCurPointType.x, this.m_lIndexDst-2, ParamType.ptFormula, 0, ParamType.ptValue, false, true, true);
+				this.convertSum(this.pCurPoint.y, this.pCurPointType.y, this.m_lIndexDst-2, ParamType.ptFormula, 0, ParamType.ptValue, false, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+
+				this.pCurPoint = oSlice.m_arPoints[j+2];
+				this.pCurPointType = oSlice.m_arPointsType[j+2];
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertSum(this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, nIndex-1, ParamType.ptFormula, false, true, true);
+				this.convertSum(this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, false, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-2, ParamType.ptFormula, 1, ParamType.ptValue, nIndex-3, ParamType.ptFormula, true, true, true);
+				this.convertAt2(1, ParamType.ptValue, this.m_lIndexDst-1, ParamType.ptFormula, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-2];
+
+				this.m_lIndexSrc++;
+				this.convertCos(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-2, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//(b*cos(u))^2
+
+				this.convertSin(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//(a*sin(u))^2
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-5, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertSqrt(this.m_lIndexDst-1, ParamType.ptFormula, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);//r
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+
+				this.m_lIndexSrc++;
+				this.convertIf(nIndex-3, ParamType.ptFormula, 0, ParamType.ptValue, 10800000, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-3];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex1-1, ParamType.ptFormula, nIndex1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex, ParamType.ptFormula, nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd( this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum( this.m_lIndexDst-1, ParamType.ptFormula, nIndex2, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-4];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-5];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex, ParamType.ptFormula, nIndex-10, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*cos(a)
+				this.convertProd(nIndex1-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true); //x
+
+				this.convertProd(nIndex-6, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex-6, ParamType.ptFormula, nIndex-6, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*sin
+				this.convertProd(nIndex1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);//y
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+
+				this.pCurPoint = oSlice.m_arPoints[j+3];
+				this.pCurPointType = oSlice.m_arPointsType[j+3];
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-6];
+
+				this.m_lIndexSrc++;
+				this.convertSum(this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, nIndex-1, ParamType.ptFormula, false, true, true);
+				this.convertSum(this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, nIndex, ParamType.ptFormula, false, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, -1, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-2, ParamType.ptFormula, 1, ParamType.ptValue, nIndex-3, ParamType.ptFormula, true, true, true);
+				this.convertAt2(1, ParamType.ptValue, this.m_lIndexDst-1, ParamType.ptFormula, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-8];
+
+				this.m_lIndexSrc++;
+				this.convertCos(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-2, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSin(1, ParamType.ptValue, nIndex, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-5, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertSqrt(this.m_lIndexDst-1, ParamType.ptFormula, true);
+				this.convertProd(nIndex1-3, ParamType.ptFormula, nIndex1-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+
+				this.m_lIndexSrc++;
+				this.convertIf(nIndex-3, ParamType.ptFormula, 0, ParamType.ptValue, 10800000, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-3];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc ++;
+				this.convertProd(nIndex1-1, ParamType.ptFormula, nIndex1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex, ParamType.ptFormula, nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-3, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, nIndex2, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-4];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-11];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex, ParamType.ptFormula, nIndex-10, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*cos(a)
+				this.convertProd(nIndex1-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);//x
+
+				this.convertProd(nIndex-6, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);
+				this.convertIf(nIndex-6, ParamType.ptFormula, nIndex-6, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+
+				this.convertProd(nIndex, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//r*sin(a)
+				this.convertProd(nIndex1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertSum(nIndex2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);//y
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-1];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-7];
+
+				this.m_lIndexSrc++;
+				this.convertSum(nIndex, ParamType.ptFormula, 0, ParamType.ptValue, nIndex1, ParamType.ptFormula, true, true, true);
+				this.convertSum(21600000, ParamType.ptValue, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertIf(this.m_lIndexDst-2, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);//swAng
+
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-14];
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-1, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				//---------------------------------------------------------
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-8];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-9];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-1];
+
+				if (oSlice.m_eRuler === RulesType.rtClockwiseArc && j === 0)
+				{
+					let x = this.GetValue(nIndex-5, ParamType.ptFormula, true) + "";
+					let y = this.GetValue(nIndex, ParamType.ptFormula, true) + "";
+					oOOXMLPath.moveTo(x, y);
+					let wR = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true);
+					let hR = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true);
+					let stAng = this.GetValue(nIndex1, ParamType.ptFormula, true);
+					let swAng = this.GetValue(nIndex2, ParamType.ptFormula, true);
+					oOOXMLPath.arcTo(wR, hR, stAng, swAng);
+				}
+				else
+				{
+					let x = this.GetValue(nIndex-5, ParamType.ptFormula, true) + "";
+					let y = this.GetValue(nIndex, ParamType.ptFormula, true) + "";
+					oOOXMLPath.lnTo(x, y);
+					let wR = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+					let hR = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+					let stAng = this.GetValue(nIndex1, ParamType.ptFormula, true) + "";
+					let swAng = this.GetValue(nIndex2, ParamType.ptFormula, true) + "";
+					oOOXMLPath.arcTo(wR, hR, stAng, swAng);
+				}
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-2];
+				this.convertVal(nIndex-5, ParamType.ptFormula, true);
+				this.convertVal(nIndex, ParamType.ptFormula, true);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_QuadrBesier = function( oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 2)
+			{
+				let l = (oSlice.m_arPoints.length - j - 3);
+				if (l >= 0)
+				{
+					let aPoints = []
+					for (let  k = 0; k < 2; ++k)
+					{
+						this.pCurPoint = oSlice.m_arPoints[j+k];
+						this.pCurPointType = oSlice.m_arPointsType[j+k];
+						let oPt = {x: "0", y: "0"};
+						oPt.x = this.GetValue(this.pCurPoint.x, this.pCurPointType.x, false) + "";
+						oPt.y = this.GetValue(this.pCurPoint.y, this.pCurPointType.y, false) + "";
+						aPoints.push(oPt);
+					}
+					oOOXMLPath.quadBezTo(aPoints[0].x, aPoints[0].y, aPoints[1].x, aPoints[1].y);
+				}
+				else
+				{
+					for (let k = 0; k < oSlice.m_arPoints.length - j; ++k)
+					{
+						this.pCurPoint = oSlice.m_arPoints[j+k];
+						this.pCurPointType = oSlice.m_arPointsType[j+k];
+						let x = this.GetValue(this.pCurPoint.x, this.pCurPointType.x, false) + "";
+						let y = this.GetValue(this.pCurPoint.y, this.pCurPointType.y, false) + "";
+						oOOXMLPath.lnTo(x, y);
+					}
+				}
+
+				this.m_lIndexSrc++;
+				this.convertVal(this.pCurPoint.x, this.pCurPointType.x, false);
+				this.convertVal(this.pCurPoint.y, this.pCurPointType.y, false);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_CurveTo = function(oSlice, oOOXMLPath)
+		{
+			let nIndex = 0;
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 3)
+			{
+				let l = (oSlice.m_arPoints.length - j - 3);
+				if ( l >= 0 )
+				{
+					let aPoints = [];
+					for (let k = 0; k < 3; ++k)
+					{
+						this.pCurPoint = oSlice.m_arPoints[j+k];
+						this.pCurPointType = oSlice.m_arPointsType[j+k];
+
+						let oPt = {};
+						oPt.x = this.GetValue(this.pCurPoint.x, this.pCurPointType.x, false) + "";
+						oPt.y = this.GetValue(this.pCurPoint.y, this.pCurPointType.y, false) + "";
+						aPoints.push(oPt);
+					}
+					oOOXMLPath.cubicBezTo(aPoints[0].x, aPoints[0].y, aPoints[1].x, aPoints[1].y, aPoints[2].x, aPoints[2].y)
+				}
+				else
+				{
+					for (let k = 0; k < oSlice.m_arPoints.length - j; ++k)
+					{
+						this.pCurPoint = oSlice.m_arPoints[j+k];
+						this.pCurPointType = oSlice.m_arPointsType[j+k];
+						let x = this.GetValue(this.pCurPoint.x, this.pCurPointType.x, false) + "";
+						let y = this.GetValue(this.pCurPoint.y, this.pCurPointType.y, false) + "";
+						oOOXMLPath.lnTo(x, y);
+					}
+				}
+
+				this.m_lIndexSrc++;
+				this.convertVal(this.pCurPoint.x, this.pCurPointType.x, false);
+				this.convertVal(this.pCurPoint.y, this.pCurPointType.y, false);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_RCurveTo = function( oSlice, oOOXMLPath)
+		{
+			let nIndex = 0;
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 3)
+			{
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				let l = (oSlice.m_arPoints.length - j - 3);
+				if (l >= 0)
+				{
+					let aPoints = [];
+					for (let k = 0; k < 3; ++k)
+					{
+						this.pCurPoint = oSlice.m_arPoints[j+k];
+						this.pCurPointType = oSlice.m_arPointsType[j+k];
+
+						this.m_lIndexSrc++;
+						this.convertSum(nIndex-1, ParamType.ptFormula, this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, true, false, true);
+						this.convertSum(nIndex, ParamType.ptFormula, this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, true, false, true);
+						this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+						let oPt = {};
+						oPt.x = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+						oPt.y = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+						aPoints.push(oPt);
+					}
+					oOOXMLPath.cubicBezTo(aPoints[0].x, aPoints[0].y, aPoints[1].x, aPoints[1].y, aPoints[2].x, aPoints[2].y)
+				}
+				else
+				{
+					for (let k=0; k < oSlice.m_arPoints.length - j; ++k)
+					{
+						this.pCurPoint		= oSlice.m_arPoints[j+k];
+						this.pCurPointType	= oSlice.m_arPointsType[j+k];
+
+						this.m_lIndexSrc++;
+						this.convertSum(nIndex-1, ParamType.ptFormula, this.pCurPoint.x, this.pCurPointType.x, 0, ParamType.ptValue, true, false, true);
+						this.convertSum(nIndex, ParamType.ptFormula, this.pCurPoint.y, this.pCurPointType.y, 0, ParamType.ptValue, true, false, true);
+						this.m_arIndexDst.push(this.m_lIndexDst-1);
+						let x = this.GetValue(this.m_lIndexDst-2, ParamType.ptFormula, true) + "";
+						let y = this.GetValue(this.m_lIndexDst-1, ParamType.ptFormula, true) + "";
+						oOOXMLPath.lnTo(x, y);
+					}
+				}
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertVal(nIndex-1, ParamType.ptFormula, true);
+				this.convertVal(nIndex, ParamType.ptFormula, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_AngleEllipse = function( oSlice, oOOXMLPath)
+		{
+			let nIndex = 0;
+			let nIndex1 = 0;
+			let nIndex2 = 0;
+
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 3)
+			{
+				this.pCurPoint		= oSlice.m_arPoints[j+1];
+				this.pCurPointType	= oSlice.m_arPointsType[j+1];
+				this.pCurPoint1		= oSlice.m_arPoints[j+2];
+				this.pCurPointType1	= oSlice.m_arPointsType[j+2];
+
+				this.m_lIndexSrc++;
+				this.convertProd(this.pCurPoint1.x, this.pCurPointType1.x, pow3_16, ParamType.ptValue, m_oParam.m_lParam, m_oParam.m_eType, false, true, true);
+				this.convertProd(this.pCurPoint1.y, this.pCurPointType1.y, pow3_16, ParamType.ptValue, m_oParam.m_lParam, m_oParam.m_eType, false, true, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertVal(this.pCurPoint.x, this.pCurPointType.x, false);//wr=a
+				this.convertVal(this.pCurPoint.y, this.pCurPointType.y, false);//hr=b
+
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-1];
+
+				this.m_lIndexSrc++;
+				this.convertProd(nIndex-1, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true); //stAng
+				this.convertSum(nIndex-1, ParamType.ptFormula, nIndex, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex, ParamType.ptFormula, -1, ParamType.ptValue, 1, ParamType.ptValue, true, true, true);//swAng
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc]; //stang
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-1]; //wr hr
+
+				this.m_lIndexSrc++;
+				this.convertCos(1, ParamType.ptValue, nIndex-2, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1, ParamType.ptFormula, nIndex1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//(b*cos(u))^2
+
+				this.convertSin(1, ParamType.ptValue, nIndex-2, ParamType.ptFormula, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(nIndex1-1, ParamType.ptFormula, nIndex1-1, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);
+				this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);//(a*sin(u))^2
+
+				this.convertSum(this.m_lIndexDst-1, ParamType.ptFormula, this.m_lIndexDst-5, ParamType.ptFormula, 0, ParamType.ptValue, true, true, true);
+				this.convertSqrt(this.m_lIndexDst-1, ParamType.ptFormula, true);
+				this.convertProd(nIndex1, ParamType.ptFormula, nIndex1-1, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);//r
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+
+
+				this.pCurPoint1 = oSlice.m_arPoints[j];
+				this.pCurPointType1 = oSlice.m_arPointsType[j];
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc-1]; //stang
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc]; //r
+
+				this.m_lIndexSrc++;
+
+				this.convertProd(nIndex1, ParamType.ptFormula, nIndex1-10, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);  //r*cos
+				this.convertSum(this.pCurPoint1.x, this.pCurPointType1.x, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, false, true, true);//x
+
+				this.convertProd(nIndex1, ParamType.ptFormula, nIndex1-6, ParamType.ptFormula, 1, ParamType.ptValue, true, true, true);// r*sin
+				this.convertSum(this.pCurPoint1.y, this.pCurPointType1.y, this.m_lIndexDst-1, ParamType.ptFormula, 0, ParamType.ptValue, false, true, true);//y
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+				//---------------------
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+				nIndex1 = this.m_arIndexDst[this.m_lIndexSrc-2];
+				nIndex2 = this.m_arIndexDst[this.m_lIndexSrc-3];
+
+
+				let x = this.GetValue(nIndex-2, ParamType.ptFormula, true) + "";
+				let y = this.GetValue(nIndex, ParamType.ptFormula, true) + "";
+				let wR =this.GetValue(nIndex2-1, ParamType.ptFormula, true) + "";
+				let hR = this.GetValue(nIndex2, ParamType.ptFormula, true) + "";
+				let stAng = this.GetValue(nIndex1-2, ParamType.ptFormula, true) + "";
+				let swAng = this.GetValue(nIndex1, ParamType.ptFormula, true) + "";
+				if (j === 0)
+				{
+					oOOXMLPath.moveTo(x, y);
+				}
+				else
+				{
+					oOOXMLPath.lineTo(x, y);
+				}
+				oOOXMLPath.arcTo(wR, hR, swAng, swAng);
+
+
+				nIndex = this.m_arIndexDst[this.m_lIndexSrc];
+
+				this.m_lIndexSrc++;
+				this.convertVal(nIndex-2, ParamType.ptFormula, true);
+				this.convertVal(nIndex, ParamType.ptFormula, true);
+				this.m_arIndexDst.push(this.m_lIndexDst-1);
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_EllipticalQuadrX = function( oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 2)
+			{
+				this.pCurPoint		= oSlice.m_arPoints[j];
+				this.pCurPointType	= oSlice.m_arPointsType[j];
+
+				this.ConvertQuadrX(this.pCurPoint, this.pCurPointType, oOOXMLPath);
+
+				if (j + 1 < oSlice.m_arPoints.length)
+				{
+					this.pCurPoint1 = oSlice.m_arPoints[j+1];
+					this.pCurPointType1 = oSlice.m_arPointsType[j+1];
+					this.ConvertQuadrY(this.pCurPoint1, this.pCurPointType1, oOOXMLPath);
+				}
+			}
+		};
+
+		CVmlGeometryData.prototype.ConvertSlice_EllipticalQuadrY = function( oSlice, oOOXMLPath)
+		{
+			for (let j = 0; j < oSlice.m_arPoints.length; j += 2)
+			{
+				this.pCurPoint = oSlice.m_arPoints[j];
+				this.pCurPointType = oSlice.m_arPointsType[j];
+				this.ConvertQuadrY(this.pCurPoint, this.pCurPointType, oOOXMLPath);
+
+				if (j + 1 < oSlice.m_arPoints.length)
+				{
+					this.pCurPoint1 = oSlice.m_arPoints[j+1];
+					this.pCurPointType1 = oSlice.m_arPointsType[j+1];
+					this.ConvertQuadrX(this.pCurPoint1, this.pCurPointType1, oOOXMLPath);
+				}
+			}
+		};
+
+
+		CVmlGeometryData.prototype.convertGuides = function() {
+
+			this.convertVal(this.m_oParam.m_lCoef, ParamType.ptValue, false);
+			for(let nGuide = 0; nGuide < this.guides.length; ++nGuide) {
+				let oGuide = this.guides[nGuide];
+				this.m_lIndexSrc++;
+				switch (oGuide.m_eFormulaType) {
+					case PPTFormulaType.ftVal: {
+						this.convertVal(oGuide.m_lParam1, oGuide.m_eType1, false);
+						break;
+					}
+					case PPTFormulaType.ftSum: {
+						this.convertSum(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam3, oGuide.m_eType3, false, false, false);
+						break;
+					}
+					case PPTFormulaType.ftProduct: {
+						this.convertProd(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam3, oGuide.m_eType3, false, false, false);
+						break;
+					}
+					case PPTFormulaType.ftMid: {
+						this.convertSum(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, 0, ParamType.ptValue, false, false, false);
+						this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, 2, ParamType.ptValue, true, false, false);
+						break;
+					}
+					case PPTFormulaType.ftAbsolute: {
+						this.convertAbs(oGuide.m_lParam1, oGuide.m_eType1, false);
+						break;
+					}
+					case PPTFormulaType.ftMin: {
+						this.convertMin(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, false, false);
+						break;
+					}
+					case PPTFormulaType.ftMax: {
+						this.convertMax(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, false, false);
+						break;
+					}
+					case PPTFormulaType.ftIf: {
+						this.convertIf(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam3, oGuide.m_eType3, false, false, false);
+						break;
+					}
+					case PPTFormulaType.ftSqrt: {
+						this.convertSqrt(oGuide.m_lParam1, oGuide.m_eType1, false);
+						break;
+					}
+					case PPTFormulaType.ftMod: {
+						this.convertMod(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam3, oGuide.m_eType3, false, false, false);
+						break;
+					}
+					case PPTFormulaType.ftSin: {
+						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, pow3_16, ParamType.ptValue, this.m_oParam.m_lParam, this.m_oParam.m_eType, false, false, true);
+						this.convertSin(oGuide.m_lParam1, oGuide.m_eType1, this.m_lIndexDst-1, ParamType.ptFormula, false, true);
+						break;
+					}
+					case PPTFormulaType.ftCos: {
+						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, pow3_16, ParamType.ptValue, oGuide.m_lParam, oGuide.m_eType, false, false, true);
+						this.convertCos(oGuide.m_lParam1, oGuide.m_eType1, this.m_lIndexDst-1, ParamType.ptFormula, false, true);
+						break;
+					}
+					case PPTFormulaType.ftTan: {
+						this.convertTan(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, false, false);
+						break;
+					}
+					case PPTFormulaType.ftAtan2: {
+						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, pow3_16, ParamType.ptValue, oGuide.m_lParam, oGuide.m_eType, false, false, true);
+						this.convertSin(oGuide.m_lParam1, oGuide.m_eType1, this.m_lIndexDst-1, ParamType.ptFormula, false, true);
+						break;
+					}
+					case PPTFormulaType.ftSinatan2: {
+						this.convertSat2(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam3, oGuide.m_eType3, false, false, false);
+						this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_oParam.m_lParam, this.m_oParam.m_eType, pow3_16, ParamType.ptValue, true, true, false);
+						break;
+					}
+					case PPTFormulaType.ftCosatan2: {
+						this.convertCat2(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam3, oGuide.m_eType3, false, false, false);
+						this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_oParam.m_lParam, this.m_oParam.m_eType, pow3_16, ParamType.ptValue, true, true, false);
+						break;
+					}
+					case PPTFormulaType.ftSumangle: {
+						this.convertProd(oGuide.m_lParam1, oGuide.m_eType1, pow3_16, ParamType.ptValue, this.m_oParam.m_lParam, this.m_oParam.m_eType, false, false, true);
+						this.convertProd(pow3_16, ParamType.ptValue, oGuide.m_lParam2, oGuide.m_eType2, 1, ParamType.ptValue, false, false, false);
+						this.convertProd(pow3_16, ParamType.ptValue, oGuide.m_lParam3, oGuide.m_eType3, 1, ParamType.ptValue, false, false, false);
+						this.convertSum(this.m_lIndexDst-3, ParamType.ptFormula, this.m_lIndexDst-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, true, true, true);
+						this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_oParam.m_lParam, this.m_oParam.m_eType, pow3_16, ParamType.ptValue, true, true, false);
+						break;
+					}
+					case PPTFormulaType.ftEllipse: {
+						this.convertProd(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam1, oGuide.m_eType1, 1, ParamType.ptValue , false, false, false);
+						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, oGuide.m_lParam2, oGuide.m_eType2, 1, ParamType.ptValue , false, false, false);
+						this.convertProd(1, ParamType.ptValue, this.m_lIndexDst-2, ParamType.ptFormula, this.m_lIndexDst-1, ParamType.ptFormula, false, true, true);
+						this.convertSum(0, ParamType.ptValue, 1, ParamType.ptValue, this.m_lIndexDst-1, ParamType.ptFormula, false, false, true);
+						this.convertSqrt(this.m_lIndexDst-1, ParamType.ptFormula, true);
+						this.convertProd(oGuide.m_lParam3, oGuide.m_eType3, this.m_lIndexDst-1, ParamType.ptFormula, 1, ParamType.ptValue, false, true, false);
+						break;
+					}
+				}
+				this.m_arIndexDst.push(this.m_lIndexDst - 1);
+			}
+		};
+		CVmlGeometryData.prototype.getNextGdName = function() {
+			return "gd" + (this.m_lIndexDst++);
+		};
+		CVmlGeometryData.prototype.getValue = function(lParam, eParamType, bExtShape) {
+			switch (eParamType)
+			{
+				case ParamType.ptFormula: {
+					if (bExtShape || lParam < this.m_arIndexDst.length) {
+						if(bExtShape) {
+							return "gd" + lParam;
+						}
+						else {
+							return "gd" + this.m_arIndexDst[lParam];
+						}
+					}
+					break;
+				}
+				case ParamType.ptAdjust: {
+					if (lParam > this.m_lMaxAdjUse)
+						this.m_lMaxAdjUse = lParam;
+					return "adj" + lParam;
+				}
+				case ParamType.ptValue:
+				{
+					return "" + lParam;
+				}
+				return "";
+			}
+		};
+		CVmlGeometryData.prototype.convert1ParamFmla = function(sOOXMLFmla, lParam1, eType1, bExtShape1) {
+			let sParam1 = this.getValue(lParam1, eType1, bExtShape1);
+			this.addGeomGuide(this.getNextGdName(), sOOXMLFmla, sParam1);
+		};
+		CVmlGeometryData.prototype.convert2ParamFmla = function(sOOXMLFmla, lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			let sParam1 = this.getValue(lParam1, eType1, bExtShape1);
+			let sParam2 = this.getValue(lParam2, eType2, bExtShape2);
+			this.addGeomGuide(this.getNextGdName(), sOOXMLFmla, sParam1, sParam2);
+		};
+		CVmlGeometryData.prototype.convert3ParamFmla = function(sOOXMLFmla, lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			let sParam1 = this.getValue(lParam1, eType1, bExtShape1);
+			let sParam2 = this.getValue(lParam2, eType2, bExtShape2);
+			let sParam3 = this.getValue(lParam3, eType3, bExtShape3);
+			this.addGeomGuide(this.getNextGdName(), sOOXMLFmla, sParam1, sParam2, sParam3);
+		};
+		CVmlGeometryData.prototype.convertVal = function (lParam1, eType1, bExtShape1) {
+			this.convert1ParamFmla("val", lParam1, eType1, bExtShape1);
+		};
+		CVmlGeometryData.prototype.convertSum = function(lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("+-", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertProd = function(lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("*/", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertAbs = function (lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("abs", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertMin = function(lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			this.convert2ParamFmla("min", lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2);
+		};
+		CVmlGeometryData.prototype.convertMax = function(lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			this.convert2ParamFmla("min", lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2);
+		};
+		CVmlGeometryData.prototype.convertIf = function(lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("?:", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertSqrt = function (lParam1, eType1, bExtShape1) {
+			this.convert1ParamFmla("sqrt", lParam1, eType1, bExtShape1);
+		};
+		CVmlGeometryData.prototype.convertAt2 = function(lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			this.convert2ParamFmla("at2", lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2);
+		};
+		CVmlGeometryData.prototype.convertSin = function(lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			this.convert2ParamFmla("sin", lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2);
+		};
+		CVmlGeometryData.prototype.convertCos = function(lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			this.convert2ParamFmla("cos", lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2);
+		};
+		CVmlGeometryData.prototype.convertCat2 = function (lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("cat2", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertSat2 = function (lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("sat2", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertMod = function (lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3) {
+			this.convert3ParamFmla("mod", lParam1, eType1, lParam2, eType2, lParam3, eType3, bExtShape1, bExtShape2, bExtShape3);
+		};
+		CVmlGeometryData.prototype.convertTan = function(lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2) {
+			this.convert2ParamFmla("tan", lParam1, eType1, lParam2, eType2, bExtShape1, bExtShape2);
+		};
+
+
+
 		CVmlGeometryData.prototype.fillCAccentBorderCallout90Type = function() {
 			this.concentricFill = true;
 			this.join = ODRAW.lineJoinMiter;
@@ -2016,7 +4124,6 @@
 			this.addHandle(oHandle2);
 		};
 		CVmlGeometryData.prototype.fillCAccentCallout2Type = function() {
-
 			this.concentricFill = true;
 			this.join = ODRAW.lineJoinMiter;
 			//Encaps: Flat
@@ -3893,7 +6000,7 @@
 			oHandle1.xrange = ("0,10800");
 			this.addHandle(oHandle1);
 		};
-		CVmlGeometryData.prototype.fillCDownArrowCalloutType = function() {{
+		CVmlGeometryData.prototype.fillCDownArrowCalloutType = function() {
 			this.concentricFill = false;
 			this.join = ODRAW.lineJoinMiter;
 			this.loadPath("m,l21600,,21600@0@5@0@5@2@4@2,10800,21600@1@2@3@2@3@0,0@0xe");
@@ -3937,230 +6044,229 @@
 			this.addHandle(oHandle3);
 
 		};
-			CVmlGeometryData.prototype.fillCDownArrowType = function() {
-				this.concentricFill = false;
-				this.join = ODRAW.lineJoinMiter;
+		CVmlGeometryData.prototype.fillCDownArrowType = function() {
+			this.concentricFill = false;
+			this.join = ODRAW.lineJoinMiter;
 
-				this.loadPath("m0@0l@1@0@1,0@2,0@2@0,21600@0,10800,21600xe");
+			this.loadPath("m0@0l@1@0@1,0@2,0@2@0,21600@0,10800,21600xe");
 
-				this.addGuide("val #0");
-				this.addGuide("val #1");
-				this.addGuide("sum height 0 #1");
-				this.addGuide("sum 10800 0 #1");
-				this.addGuide("sum width 0 #0");
-				this.addGuide("prod @4 @3 10800");
-				this.addGuide("sum width 0 @5");
+			this.addGuide("val #0");
+			this.addGuide("val #1");
+			this.addGuide("sum height 0 #1");
+			this.addGuide("sum 10800 0 #1");
+			this.addGuide("sum width 0 #0");
+			this.addGuide("prod @4 @3 10800");
+			this.addGuide("sum width 0 @5");
 
-				this.addAdjustment(16200);
-				this.addAdjustment(5400);
+			this.addAdjustment(16200);
+			this.addAdjustment(5400);
 
-				this.loadConnectorsList("10800,0;0,@0;10800,21600;21600,@0");
+			this.loadConnectorsList("10800,0;0,@0;10800,21600;21600,@0");
 
-				this.addConnectorAngle(270);
-				this.addConnectorAngle(180);
-				this.addConnectorAngle(90);
-				this.addConnectorAngle(0);
+			this.addConnectorAngle(270);
+			this.addConnectorAngle(180);
+			this.addConnectorAngle(90);
+			this.addConnectorAngle(0);
 
-				this.loadTextRect("@1,0,@2,@6");
+			this.loadTextRect("@1,0,@2,@6");
 
-				let oHandle1 = new CVmlHandle();
-				oHandle1.position = ("#1,#0");
-				oHandle1.xrange = ("0,10800");
-				oHandle1.yrange = ("0,21600");
-				this.addHandle(oHandle1);
-			};
-			CVmlGeometryData.prototype.fillCEllipseType = function() {
-				this.concentricFill = true;
-				this.join = ODRAW.lineJoinMiter;
-				this.loadPath("m,10800qy10800,,21600,10800,10800,21600,,10800xe");
-				this.loadTextRect("3233,3233,18367,18367");
-			};
-			CVmlGeometryData.prototype.fillCEllipseRibbonType = function() {this.concentricFill = false;
-				this.join = ODRAW.lineJoinMiter;
-				//Encaps: Flat
+			let oHandle1 = new CVmlHandle();
+			oHandle1.position = ("#1,#0");
+			oHandle1.xrange = ("0,10800");
+			oHandle1.yrange = ("0,21600");
+			this.addHandle(oHandle1);
+		};
+		CVmlGeometryData.prototype.fillCEllipseType = function() {
+			this.concentricFill = true;
+			this.join = ODRAW.lineJoinMiter;
+			this.loadPath("m,10800qy10800,,21600,10800,10800,21600,,10800xe");
+			this.loadTextRect("3233,3233,18367,18367");
+		};
+		CVmlGeometryData.prototype.fillCEllipseRibbonType = function() {this.concentricFill = false;
+			this.join = ODRAW.lineJoinMiter;
+			//Encaps: Flat
 
-				this.loadPath("ar@9@38@8@37,0@27@0@26@9@13@8@4@0@25@22@25@9@38@8@37@22@26@3@27l@7@40@3,wa@9@35@8@10@3,0@21@33@9@36@8@1@21@31@20@31@9@35@8@10@20@33,,l@5@40xewr@9@36@8@1@20@31@0@32nfl@20@33ear@9@36@8@1@21@31@22@32nfl@21@33em@0@26nfl@0@32em@22@26nfl@22@32e");
+			this.loadPath("ar@9@38@8@37,0@27@0@26@9@13@8@4@0@25@22@25@9@38@8@37@22@26@3@27l@7@40@3,wa@9@35@8@10@3,0@21@33@9@36@8@1@21@31@20@31@9@35@8@10@20@33,,l@5@40xewr@9@36@8@1@20@31@0@32nfl@20@33ear@9@36@8@1@21@31@22@32nfl@21@33em@0@26nfl@0@32em@22@26nfl@22@32e");
 
-				this.addGuide("val #0");
-				this.addGuide("val #1");
-				this.addGuide("val #2");
-				this.addGuide("val width");
-				this.addGuide("val height");
-				this.addGuide("prod width 1 8");
-				this.addGuide("prod width 1 2");
-				this.addGuide("prod width 7 8");
-				this.addGuide("prod width 3 2");
-				this.addGuide("sum 0 0 @6");
-				this.addGuide("sum height 0 #2");
-				this.addGuide("prod @10 30573 4096");
-				this.addGuide("prod @11 2 1");
-				this.addGuide("sum height 0 @12");
-				this.addGuide("sum @11 #2 0");
-				this.addGuide("sum @11 height #1");
-				this.addGuide("sum height 0 #1");
-				this.addGuide("prod @16 1 2");
-				this.addGuide("sum @11 @17 0");
-				this.addGuide("sum @14 #1 height");
-				this.addGuide("sum #0 @5 0");
-				this.addGuide("sum width 0 @20");
-				this.addGuide("sum width 0 #0");
-				this.addGuide("sum @6 0 #0");
-				this.addGuide("ellipse @23 width @11");
-				this.addGuide("sum @24 height @11");
-				this.addGuide("sum @25 @11 @19");
-				this.addGuide("sum #2 @11 @19");
-				this.addGuide("prod @11 2391 32768");
-				this.addGuide("sum @6 0 @20");
-				this.addGuide("ellipse @29 width @11");
-				this.addGuide("sum #1 @30 @11");
-				this.addGuide("sum @25 #1 height");
-				this.addGuide("sum height @30 @14");
-				this.addGuide("sum @11 @14 0");
-				this.addGuide("sum height 0 @34");
-				this.addGuide("sum @35 @19 @11");
-				this.addGuide("sum @10 @15 @11");
-				this.addGuide("sum @35 @15 @11");
-				this.addGuide("sum @28 @14 @18");
-				this.addGuide("sum height 0 @39");
-				this.addGuide("sum @19 0 @18");
-				this.addGuide("prod @41 2 3");
-				this.addGuide("sum #1 0 @42");
-				this.addGuide("sum #2 0 @42");
-				this.addGuide("min @44 20925");
-				this.addGuide("prod width 3 8");
-				this.addGuide("sum @46 0 4");
+			this.addGuide("val #0");
+			this.addGuide("val #1");
+			this.addGuide("val #2");
+			this.addGuide("val width");
+			this.addGuide("val height");
+			this.addGuide("prod width 1 8");
+			this.addGuide("prod width 1 2");
+			this.addGuide("prod width 7 8");
+			this.addGuide("prod width 3 2");
+			this.addGuide("sum 0 0 @6");
+			this.addGuide("sum height 0 #2");
+			this.addGuide("prod @10 30573 4096");
+			this.addGuide("prod @11 2 1");
+			this.addGuide("sum height 0 @12");
+			this.addGuide("sum @11 #2 0");
+			this.addGuide("sum @11 height #1");
+			this.addGuide("sum height 0 #1");
+			this.addGuide("prod @16 1 2");
+			this.addGuide("sum @11 @17 0");
+			this.addGuide("sum @14 #1 height");
+			this.addGuide("sum #0 @5 0");
+			this.addGuide("sum width 0 @20");
+			this.addGuide("sum width 0 #0");
+			this.addGuide("sum @6 0 #0");
+			this.addGuide("ellipse @23 width @11");
+			this.addGuide("sum @24 height @11");
+			this.addGuide("sum @25 @11 @19");
+			this.addGuide("sum #2 @11 @19");
+			this.addGuide("prod @11 2391 32768");
+			this.addGuide("sum @6 0 @20");
+			this.addGuide("ellipse @29 width @11");
+			this.addGuide("sum #1 @30 @11");
+			this.addGuide("sum @25 #1 height");
+			this.addGuide("sum height @30 @14");
+			this.addGuide("sum @11 @14 0");
+			this.addGuide("sum height 0 @34");
+			this.addGuide("sum @35 @19 @11");
+			this.addGuide("sum @10 @15 @11");
+			this.addGuide("sum @35 @15 @11");
+			this.addGuide("sum @28 @14 @18");
+			this.addGuide("sum height 0 @39");
+			this.addGuide("sum @19 0 @18");
+			this.addGuide("prod @41 2 3");
+			this.addGuide("sum #1 0 @42");
+			this.addGuide("sum #2 0 @42");
+			this.addGuide("min @44 20925");
+			this.addGuide("prod width 3 8");
+			this.addGuide("sum @46 0 4");
 
-				this.addAdjustment(5400);
-				this.addAdjustment(5400);
-				this.addAdjustment(18900);
+			this.addAdjustment(5400);
+			this.addAdjustment(5400);
+			this.addAdjustment(18900);
 
-				this.loadConnectorsList("@6,0;@5,@36;@6,@1;@7,@36");
-				this.loadTextRect("@0,@22,@19,@1");
+			this.loadConnectorsList("@6,0;@5,@36;@6,@1;@7,@36");
+			this.loadTextRect("@0,@22,@19,@1");
 
-				this.addConnectorAngle(270);
-				this.addConnectorAngle(180);
-				this.addConnectorAngle(90);
-				this.addConnectorAngle(0);
+			this.addConnectorAngle(270);
+			this.addConnectorAngle(180);
+			this.addConnectorAngle(90);
+			this.addConnectorAngle(0);
 
-				let oHandle1 = new CVmlHandle();
-				oHandle1.position = ("#0,bottomRight");
-				oHandle1.xrange = ("@5,@47");
-				this.addHandle(oHandle1);
+			let oHandle1 = new CVmlHandle();
+			oHandle1.position = ("#0,bottomRight");
+			oHandle1.xrange = ("@5,@47");
+			this.addHandle(oHandle1);
 
-				let oHandle2 = new CVmlHandle();
-				oHandle2.position = ("center,#1");
-				oHandle2.yrange = ("@10,@43");
-				this.addHandle(oHandle2);
+			let oHandle2 = new CVmlHandle();
+			oHandle2.position = ("center,#1");
+			oHandle2.yrange = ("@10,@43");
+			this.addHandle(oHandle2);
 
-				let oHandle3 = new CVmlHandle();
-				oHandle3.position = ("topLeft,#2");
-				oHandle3.yrange = ("@27,@45");
-				this.addHandle(oHandle3);
-			};
-			CVmlGeometryData.prototype.fillCEllipseRibbon2Type = function() {
-				this.concentricFill = false;
-				this.join = ODRAW.lineJoinMiter;
-				//Encaps: Flat
+			let oHandle3 = new CVmlHandle();
+			oHandle3.position = ("topLeft,#2");
+			oHandle3.yrange = ("@27,@45");
+			this.addHandle(oHandle3);
+		};
+		CVmlGeometryData.prototype.fillCEllipseRibbon2Type = function() {
+			this.concentricFill = false;
+			this.join = ODRAW.lineJoinMiter;
+			//Encaps: Flat
 
-				this.loadPath("wr@9@34@8@35,0@24@0@23@9,0@8@11@0@22@19@22@9@34@8@35@19@23@3@24l@7@36@3@4at@9@31@8@32@3@4@18@30@9@1@8@33@18@28@17@28@9@31@8@32@17@30,0@4l@5@36xear@9@1@8@33@17@28@0@29nfl@17@30ewr@9@1@8@33@18@28@19@29nfl@18@30em@0@23nfl@0@29em@19@23nfl@19@29e");
+			this.loadPath("wr@9@34@8@35,0@24@0@23@9,0@8@11@0@22@19@22@9@34@8@35@19@23@3@24l@7@36@3@4at@9@31@8@32@3@4@18@30@9@1@8@33@18@28@17@28@9@31@8@32@17@30,0@4l@5@36xear@9@1@8@33@17@28@0@29nfl@17@30ewr@9@1@8@33@18@28@19@29nfl@18@30em@0@23nfl@0@29em@19@23nfl@19@29e");
 
-				this.addGuide("val #0");
-				this.addGuide("val #1");
-				this.addGuide("val #2");
-				this.addGuide("val width");
-				this.addGuide("val height");
-				this.addGuide("prod width 1 8");
-				this.addGuide("prod width 1 2");
-				this.addGuide("prod width 7 8");
-				this.addGuide("prod width 3 2");
-				this.addGuide("sum 0 0 @6");
-				this.addGuide("prod #2 30573 4096");
-				this.addGuide("prod @10 2 1");
-				this.addGuide("sum @10 height #2");
-				this.addGuide("sum @10 #1 0");
-				this.addGuide("prod #1 1 2");
-				this.addGuide("sum @10 @14 0");
-				this.addGuide("sum @12 0 #1");
-				this.addGuide("sum #0 @5 0");
-				this.addGuide("sum width 0 @17");
-				this.addGuide("sum width 0 #0");
-				this.addGuide("sum @6 0 #0");
-				this.addGuide("ellipse @20 width @10");
-				this.addGuide("sum @10 0 @21");
-				this.addGuide("sum @22 @16 @10");
-				this.addGuide("sum #2 @16 @10");
-				this.addGuide("prod @10 2391 32768");
-				this.addGuide("sum @6 0 @17");
-				this.addGuide("ellipse @26 width @10");
-				this.addGuide("sum @10 #1 @27");
-				this.addGuide("sum @22 #1 0");
-				this.addGuide("sum @12 0 @27");
-				this.addGuide("sum height 0 #2");
-				this.addGuide("sum @10 @12 0");
-				this.addGuide("sum @32 @10 @16");
-				this.addGuide("sum @31 @10 @13");
-				this.addGuide("sum @32 @10 @13");
-				this.addGuide("sum @25 @12 @15");
-				this.addGuide("sum @16 0 @15");
-				this.addGuide("prod @37 2 3");
-				this.addGuide("sum @1 @38 0");
-				this.addGuide("sum #2 @38 0");
-				this.addGuide("max @40 675");
-				this.addGuide("prod width 3 8");
-				this.addGuide("sum @42 0 4");
+			this.addGuide("val #0");
+			this.addGuide("val #1");
+			this.addGuide("val #2");
+			this.addGuide("val width");
+			this.addGuide("val height");
+			this.addGuide("prod width 1 8");
+			this.addGuide("prod width 1 2");
+			this.addGuide("prod width 7 8");
+			this.addGuide("prod width 3 2");
+			this.addGuide("sum 0 0 @6");
+			this.addGuide("prod #2 30573 4096");
+			this.addGuide("prod @10 2 1");
+			this.addGuide("sum @10 height #2");
+			this.addGuide("sum @10 #1 0");
+			this.addGuide("prod #1 1 2");
+			this.addGuide("sum @10 @14 0");
+			this.addGuide("sum @12 0 #1");
+			this.addGuide("sum #0 @5 0");
+			this.addGuide("sum width 0 @17");
+			this.addGuide("sum width 0 #0");
+			this.addGuide("sum @6 0 #0");
+			this.addGuide("ellipse @20 width @10");
+			this.addGuide("sum @10 0 @21");
+			this.addGuide("sum @22 @16 @10");
+			this.addGuide("sum #2 @16 @10");
+			this.addGuide("prod @10 2391 32768");
+			this.addGuide("sum @6 0 @17");
+			this.addGuide("ellipse @26 width @10");
+			this.addGuide("sum @10 #1 @27");
+			this.addGuide("sum @22 #1 0");
+			this.addGuide("sum @12 0 @27");
+			this.addGuide("sum height 0 #2");
+			this.addGuide("sum @10 @12 0");
+			this.addGuide("sum @32 @10 @16");
+			this.addGuide("sum @31 @10 @13");
+			this.addGuide("sum @32 @10 @13");
+			this.addGuide("sum @25 @12 @15");
+			this.addGuide("sum @16 0 @15");
+			this.addGuide("prod @37 2 3");
+			this.addGuide("sum @1 @38 0");
+			this.addGuide("sum #2 @38 0");
+			this.addGuide("max @40 675");
+			this.addGuide("prod width 3 8");
+			this.addGuide("sum @42 0 4");
 
-				this.addAdjustment(5400);
-				this.addAdjustment(16200);
-				this.addAdjustment(2700);
+			this.addAdjustment(5400);
+			this.addAdjustment(16200);
+			this.addAdjustment(2700);
 
-				this.loadConnectorsList("@6,0;@5,@36;@6,@1;@7,@36");
-				this.loadTextRect("@0,@22,@19,@1");
+			this.loadConnectorsList("@6,0;@5,@36;@6,@1;@7,@36");
+			this.loadTextRect("@0,@22,@19,@1");
 
-				this.addConnectorAngle(270);
-				this.addConnectorAngle(180);
-				this.addConnectorAngle(90);
-				this.addConnectorAngle(0);
+			this.addConnectorAngle(270);
+			this.addConnectorAngle(180);
+			this.addConnectorAngle(90);
+			this.addConnectorAngle(0);
 
-				let oHandle1 = new CVmlHandle();
-				oHandle1.position = ("topLeft,#0");
-				oHandle1.xrange = ("@5,@43");
-				this.addHandle(oHandle1);
+			let oHandle1 = new CVmlHandle();
+			oHandle1.position = ("topLeft,#0");
+			oHandle1.xrange = ("@5,@43");
+			this.addHandle(oHandle1);
 
-				let oHandle2 = new CVmlHandle();
-				oHandle2.position = ("center,#1");
-				oHandle2.yrange = ("@39,@31");
-				this.addHandle(oHandle2);
+			let oHandle2 = new CVmlHandle();
+			oHandle2.position = ("center,#1");
+			oHandle2.yrange = ("@39,@31");
+			this.addHandle(oHandle2);
 
-				let oHandle3 = new CVmlHandle();
-				oHandle3.position = ("topLeft,#2");
-				oHandle3.yrange = ("@41,@24 ");
-				this.addHandle(oHandle3);
-			};
-			CVmlGeometryData.prototype.fillCFlowChartAlternateProcessType = function() {
-				this.concentricFill = true;
-				this.join = ODRAW.lineJoinMiter;
+			let oHandle3 = new CVmlHandle();
+			oHandle3.position = ("topLeft,#2");
+			oHandle3.yrange = ("@41,@24 ");
+			this.addHandle(oHandle3);
+		};
+		CVmlGeometryData.prototype.fillCFlowChartAlternateProcessType = function() {
+			this.concentricFill = true;
+			this.join = ODRAW.lineJoinMiter;
 
-				this.loadPath("m@0,qx0@0l0@2qy@0,21600l@1,21600qx21600@2l21600@0qy@1,xe");
+			this.loadPath("m@0,qx0@0l0@2qy@0,21600l@1,21600qx21600@2l21600@0qy@1,xe");
 
-				this.addGuide("val #0");
-				this.addGuide("sum width 0 #0");
-				this.addGuide("sum height 0 #0");
-				this.addGuide("prod @0 2929 10000");
-				this.addGuide("sum width 0 @3");
-				this.addGuide("sum height 0 @3");
-				this.addGuide("val width");
-				this.addGuide("val height");
-				this.addGuide("prod width 1 2");
-				this.addGuide("prod height 1 2");
+			this.addGuide("val #0");
+			this.addGuide("sum width 0 #0");
+			this.addGuide("sum height 0 #0");
+			this.addGuide("prod @0 2929 10000");
+			this.addGuide("sum width 0 @3");
+			this.addGuide("sum height 0 @3");
+			this.addGuide("val width");
+			this.addGuide("val height");
+			this.addGuide("prod width 1 2");
+			this.addGuide("prod height 1 2");
 
-				this.addAdjustment(2700);
+			this.addAdjustment(2700);
 
-				this.loadConnectorsList("@8,0;0,@9;@8,@7;@6,@9");
-				this.loadTextRect("@3,@3,@4,@5");
+			this.loadConnectorsList("@8,0;0,@9;@8,@7;@6,@9");
+			this.loadTextRect("@3,@3,@4,@5");
 
-				this.limoX = 10800;
-				this.limoY = 10800;
-			}
+			this.limoX = 10800;
+			this.limoY = 10800;
 		};
 		CVmlGeometryData.prototype.fillCFlowChartCollateType = function() {
 			this.concentricFill = true;
@@ -6330,9 +8436,6 @@
 
 			this.loadConnectorsList("0,0;21600,21600");
 		};
-		CVmlGeometryData.prototype.convertToOOXML = function() {
-
-		};
 
 		function getBWMode(nType) {
 
@@ -6809,15 +8912,6 @@
 				}
 			}
 		};
-		CVmlCommonElements.prototype.getImageData = function() {
-			for(let nItem = 0; nItem < this.items.length; ++nItem) {
-				let oItem = this.items[nItem];
-				if(oItem instanceof CImageData) {
-					return oItem;
-				}
-			}
-			return null;
-		};
 		CVmlCommonElements.prototype.findItemByConstructor = function(fConstructor) {
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
@@ -6826,6 +8920,15 @@
 				}
 			}
 			return null;
+		};
+		CVmlCommonElements.prototype.getShadow = function() {
+			return this.findItemByConstructor(CShadow);
+		};
+		CVmlCommonElements.prototype.getWrap = function() {
+			return this.findItemByConstructor(CWrap);
+		};
+		CVmlCommonElements.prototype.getImageData = function() {
+			return this.findItemByConstructor(CImageData);
 		};
 		CVmlCommonElements.prototype.getFill = function() {
 			return this.findItemByConstructor(CFillVml);
@@ -7057,9 +9160,7 @@
 					nShapeType = oShapeType.getShapeType();
 				}
 				else {
-					if(this.getShapeType() === ShapeType.sptCFrame) {
-						nShapeType = ShapeType.sptCFrame;
-					}
+					nShapeType = this.getShapeType();
 				}
 			}
 			if(nShapeType === null) {
@@ -7071,33 +9172,10 @@
 			return nShapeType;
 		};
 		CVmlCommonElements.prototype.fillGeometryAdjustments = function(oData) {};
-		CVmlCommonElements.prototype.createVmlGeometryData = function (aOtherElements) {
+		CVmlCommonElements.prototype.convertGeometryToOOXML = function(aOtherElements) {
 			let oData = new CVmlGeometryData();
 			oData.fillByType(this.getFinalShapeType(aOtherElements));
-			oData.adjustments = [];
-			oData.absMaxAdjustments = [];
-			oData.path = null;
-			oData.guides = [];
-			oData.connectors = [];
-			oData.textRect = new AscFormat.CSrcRect();
-			oData.handles = [];
-			oData.connectorsAngles = [];
-			oData.concentricFill = null;
-			oData.join = null;
-			oData.limoX = null;
-			oData.limoY = null;
-
-			return oData;
-		};
-		CVmlCommonElements.prototype.convertGeometryToOOXML = function(aOtherElements) {
-			let nShapeType = this.getFinalShapeType(aOtherElements);
-			if(nShapeType === ShapeType.sptCRect || nShapeType === ShapeType.sptCFrame) {
-				return AscFormat.CreateGeometry("rect");
-			}
-			else {
-				let oData = this.createVmlGeometryData(aOtherElements);
-				return oData.convertToOOXML();
-			}
+			return oData.convertToOOXML();
 		};
 
 		function CArc() {
@@ -8156,13 +10234,19 @@
 			let oOOXMLShape = new AscFormat.CShape();
 			let oSpPr = this.convertFillStrokeTransformToOOXML(null);
 
-			if(this.getShapeType() === ShapeType.sptCRect || oShapeType.getShapeType() === ShapeType.sptCRect) {
-				oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
+			let oGeometryData = new CVmlGeometryData();
+			oGeometryData.fillByType(this.getFinalShapeType(aOtherElements));
+			let sAdj = this.m_sAdj || oShapeType && oShapeType.m_sAdj;
+			if(sAdj) {
+				let aAdj = sAdj.split(",");
+				for(let nAdj = 0; nAdj < aAdj.length; ++nAdj) {
+					let nAdjVal = parseInt(aAdj[nAdj]);
+					if(AscFormat.isRealNumber(nAdjVal)) {
+						oGeometryData.adjustments[nAdj] = nAdjVal;
+					}
+				}
 			}
-			else {
-				let oGeometry = new AscFormat.Geometry();
-				oSpPr.setGeometry(oGeometry);
-			}
+			oSpPr.setGeometry(oGeometryData.convertToOOXML());
 			oOOXMLShape.setWordShape(true);
 			oOOXMLShape.setSpPr(oSpPr);
 			let oTextbox = this.getTextbox();
@@ -10030,8 +12114,10 @@
 				this.m_dValue = parseFloat(sValue) / dKoef;
 
 			}
+			return this.m_dValue;
 		}
 
+		
 		function CUniversalMeasureOrPercent() {
 			CUniversalMeasure.call(this);
 			this.m_bTrailingPercentSign = null;
@@ -10410,15 +12496,23 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
 				if(oItem instanceof CGroup) {
+					oContext.sourceItem = oItem;
 					oOOXMLDrawing = this.static_ConvertGroup(oItem, oContext);
 				}
 				else if(oItem instanceof COLEObject) {
+					oContext.sourceItem = oItem;
 					oOOXMLDrawing = this.static_ConvertOle(oItem, oContext);
 				}
 				else if(oItem instanceof CShapeType) {
+					oContext.sourceShapeType = oItem;
+					continue;
+				}
+				else if(oItem instanceof CShadow) {
+					oContext.sourceShadow = oItem;
 					continue;
 				}
 				else {
+					oContext.sourceItem = oItem;
 					oOOXMLDrawing = this.static_ConvertShape(oItem, this.items, oContext);
 				}
 				if(oOOXMLDrawing) {
@@ -10428,6 +12522,471 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			}
 			return oOOXMLDrawing;
 		};
+		CLegacyDrawing.prototype.GetDrawingMainProps = function(oParaDrawing, oReaderContext)
+		{
+				let oNode, oCssStyles, oProps;
+				oNode = oReaderContext.sourceItem;
+				if(!oNode) {
+					return;
+				}
+			oCssStyles = oNode.m_oStyle;
+			if(!oCssStyles) {
+				return;
+			}
+			let EM = Emu_To_Mm;
+			 oProps = {IsTop: true};
+				let pFind;
+
+			let bIsInline = false;
+			let bIsMargin = false;
+			let bZIndex = false;
+			let nZIndex = oCssStyles.GetZIndex();
+			if (nZIndex !== null)
+				bZIndex = true;
+			
+			let dLeft = oCssStyles.GetLeftInMM();
+			let dMarginLeft = oCssStyles.GetMarginLeftInMM();
+			let dTop = oCssStyles.GetTopInMM();
+			let dMarginTop = oCssStyles.GetMarginTopInMM();
+
+			if (oProps.IsTop === true)
+			{
+				if (dLeft === null && dMarginLeft === null && dTop === null && dMarginTop === null) 
+				{
+					bIsInline = true;
+				}
+				if (dMarginLeft !== null && dMarginTop !== null || dLeft !== null	&& dTop !== null)
+				{
+					bIsMargin = true;
+				}
+				pFind = oCssStyles.GetPropertyValueString("mso-position-horizontal-relative");
+				if (null !== pFind && ((pFind === "text" && !bIsMargin) || pFind === "char"))
+				{
+					pFind = oCssStyles.GetPropertyValueString("mso-position-vertical-relative");
+					if (null !== pFind && ((pFind === "text" && !bIsMargin) || pFind === "line"))
+					{
+						if (!bZIndex || !bIsMargin) //Liturgie Homberg 2017 mit Abendmahlsteil.docx
+							bIsInline = true;
+					}
+				}
+
+				if (!bIsInline)
+				{
+					pFind = oCssStyles.GetPropertyValueString("position");
+					if (null !== pFind && pFind === "static")
+					{
+						bIsInline = true;
+					}
+				}
+			}
+
+			let parserPoint = new CPoint();
+			let dKoef = 25.4 * 36000 / 72.0;
+			let dKoefSize = oProps.IsTop ? dKoef : 1;
+
+			let left	= 0;
+			let top	= 0;
+			let width	= 0;
+			let height = 0;
+
+			pFind = oCssStyles.GetPropertyValueString("polyline_correct");
+			let bIsPolyCorrect = (null !== pFind);
+			if (bIsPolyCorrect)
+				dKoefSize = 1;
+
+			if (!bIsInline)
+			{
+				pFind = oCssStyles.GetPropertyValueString("margin-left");
+				if (null === pFind)
+					pFind = oCssStyles.GetPropertyValueString("left");
+
+				if (null !== pFind)
+				{
+					let oArray1 = pFind.split(",");
+
+					for (let i = 0; i < oArray1.length; i++)
+					{
+						left += (dKoefSize * parserPoint.FromString(oArray1[i]) + 0.5) >> 0;
+					}
+				}
+
+				pFind = oCssStyles.GetPropertyValueString("margin-top");
+
+				if (null === pFind)
+					pFind = oCssStyles.GetPropertyValueString("top");
+
+				if (null !== pFind)
+				{
+					let oArray1 = pFind.split(",");
+					for (let i = 0; i < oArray1.length; i++)
+					{
+						top += (dKoefSize * parserPoint.FromString(oArray1[i]) + 0.5) >> 0;
+					}
+				}
+			}
+
+			pFind = oCssStyles.GetPropertyValueString("width");
+			if (null !== pFind)
+			{
+				width = (dKoefSize * parserPoint.FromString(pFind) + 0.5) >> 0;
+			}
+			else
+			{
+				pFind = oCssStyles.GetPropertyValueString("margin-right");
+				if (null !== pFind)
+					width = ((dKoefSize * parserPoint.FromString(pFind) + 0.5) >> 0) - left;
+			}
+
+			pFind = oCssStyles.GetPropertyValueString("height");
+			if (null !== pFind)
+			{
+				height = (dKoefSize * parserPoint.FromString(pFind) + 0.5) >> 0;
+			}
+			else
+			{
+				pFind = oCssStyles.GetPropertyValueString("margin-bottom");
+				if (null !== pFind)
+					height = ((dKoefSize * parserPoint.FromString(pFind) + 0.5) >> 0) - top;
+			}
+
+			let margL = (9 * dKoef + 0.5) >> 0;
+			let margT = 0;
+			let margR = (9 * dKoef + 0.5) >> 0;
+			let margB = 0;
+
+			pFind = oCssStyles.GetPropertyValueString("mso-wrap-distance-left");
+			if (null !== pFind)
+				margL = (dKoef * parserPoint.FromString(pFind) + 0.5) >> 0;
+
+			pFind = oCssStyles.GetPropertyValueString("mso-wrap-distance-top");
+			if (null !== pFind)
+				margT = (dKoef * parserPoint.FromString(pFind) + 0.5) >> 0;
+
+			pFind = oCssStyles.GetPropertyValueString("mso-wrap-distance-right");
+			if (null !== pFind)
+				margR = (dKoef * parserPoint.FromString(pFind) + 0.5) >> 0;
+
+			pFind = oCssStyles.GetPropertyValueString("mso-wrap-distance-bottom");
+			if (null !== pFind)
+				margB = (dKoef * parserPoint.FromString(pFind) + 0.5) >> 0;
+
+			let rel_width = null;
+			let rel_height = null;
+			let rel_top = null;
+			let rel_left = null;
+
+			pFind = oCssStyles.GetPropertyValueString("mso-width-percent");
+			if (null !== pFind)
+			{
+				rel_width = parserPoint.FromString(pFind) / 1000.;
+			}
+			pFind = oCssStyles.GetPropertyValueString("mso-height-percent");
+			if (null !== pFind)
+			{
+				rel_height = parserPoint.FromString(pFind) / 1000.;
+			}
+			pFind = oCssStyles.GetPropertyValueString("mso-top-percent");
+			if (null !== pFind)
+			{
+				rel_top = parserPoint.FromString(pFind) / 1000.;
+			}
+			pFind = oCssStyles.GetPropertyValueString("mso-left-percent");
+			if (null !== pFind)
+			{
+				rel_left = parserPoint.FromString(pFind) / 1000.;
+			}
+
+			oProps.X		= left;
+			oProps.Y		= top;
+			oProps.Width	= width;
+			oProps.Height	= height;
+
+
+			let bExtendedSize = false;
+			let shadow = oNode.getShadow();
+			if (shadow)
+			{
+				if (shadow.m_oOn)
+				{
+					bExtendedSize = true;
+				}
+
+			}
+			if (bIsInline)
+			{
+				oParaDrawing.Set_DrawingType(drawing_Inline);
+				oParaDrawing.Set_Distance(EM(margL), EM(margT), EM(margR), EM(margB));
+				oParaDrawing.setExtent(EM(width), EM(height));
+
+				if(bExtendedSize) {
+					oParaDrawing.setEffectExtent(EM(10795), EM(5080), EM(28575), EM(26670));
+				}
+				else {
+					oParaDrawing.setEffectExtent(0, 0, 0, 0);
+				}
+
+
+				if (rel_width !== null)
+				{
+					oParaDrawing.SetSizeRelH({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : rel_width});
+				}
+				if (rel_height !== null)
+				{
+					oParaDrawing.SetSizeRelV({RelativeFrom : AscCommon.c_oAscSizeRelFromH.sizerelfromhPage, Percent : rel_width});
+				}
+				return;
+			}
+//------------------------------------------------------------------------------------
+
+
+			oParaDrawing.Set_DrawingType(drawing_Anchor);
+			oParaDrawing.Set_Distance(EM(margL), EM(margT), EM(margR), EM(margB));
+
+			pFind = oCssStyles.GetPropertyValueString("z-index");
+			let zIndex = null;
+
+			if (null !== pFind)
+			{
+				zIndex = parserPoint.FromString(pFind);
+
+				let zIndex_ = zIndex;// >= 0 ? *zIndex : -*zIndex;
+
+				if (oReaderContext.maxZIndex === 0 && ((zIndex_ < 0xF000000 && zIndex_ > 0x80000) ||
+					(zIndex_ > -0xF000000 && zIndex_ < -0x80000)))
+				{
+					zIndex_ = 0xF000000 - 0x80000 + zIndex_;
+				}
+				else
+				{
+					zIndex_ = Math.abs(zIndex_);
+				}
+				oParaDrawing.Set_RelativeHeight(zIndex_);
+			}
+
+			let isAllowInCell = null;
+			let isAllowOverlap = null;
+			if(oNode.m_oAllowInCell !== null) {
+				isAllowInCell = oNode.m_oAllowInCell;
+			}
+			if(oNode.m_oAllowOverlap !== null) {
+				isAllowOverlap = oNode.m_oAllowOverlap;
+			}
+			let bWrapPolygon = false;
+			if(oNode.m_oWrapCoords) {
+				let oWrapPolygon = oParaDrawing.wrappingPolygon;
+				oWrapPolygon.setEdited(true);
+				oWrapPolygon.setArrRelPoints(oNode.m_oWrapCoords.pts);
+				bWrapPolygon = oNode.m_oWrapCoords.pts.length > 0;
+			}
+			if (zIndex !== null)
+			{
+				if (zIndex > 0)
+				{
+					oParaDrawing.Set_BehindDoc(false);
+				}
+			else if (zIndex < 0)
+				{
+					oParaDrawing.Set_BehindDoc(true);
+				}
+			}
+			if (isAllowOverlap !== null)
+			{
+				oParaDrawing.Set_AllowOverlap(isAllowOverlap);
+			}
+			if (isAllowInCell !== null)
+			{
+				oParaDrawing.Set_LayoutInCell(isAllowInCell);
+			}
+			pFind = oCssStyles.GetPropertyValueString("mso-position-horizontal-relative");
+
+			let nHRelativeFrom;
+			let nVRelativeFrom;
+
+			if (pFind !== null)
+			{
+				if ("char" === pFind)				nHRelativeFrom = Asc.c_oAscRelativeFromH.Character;
+			else if ("page" === pFind)				nHRelativeFrom = Asc.c_oAscRelativeFromH.Page;
+			else if ("margin" === pFind)			nHRelativeFrom = Asc.c_oAscRelativeFromH.Margin;
+			else if ("left-margin-area" === pFind)	nHRelativeFrom = Asc.c_oAscRelativeFromH.LeftMargin;
+			else if ("right-margin-area" === pFind)	nHRelativeFrom = Asc.c_oAscRelativeFromH.RightMargin;
+			else if ("inner-margin-area" === pFind)	nHRelativeFrom = Asc.c_oAscRelativeFromH.InsideMargin;
+			else if ("outer-margin-area" === pFind)	nHRelativeFrom = Asc.c_oAscRelativeFromH.OutsideMargin;
+			else
+				nHRelativeFrom = Asc.c_oAscRelativeFromH.Column;
+			}
+			else
+			{
+				nHRelativeFrom = Asc.c_oAscRelativeFromH.Column;
+			}
+			let strPosH = "absolute";
+			pFind = oCssStyles.GetPropertyValueString("mso-position-horizontal");
+			if (null !== pFind)
+				strPosH = pFind;
+
+			if (strPosH === "absolute")
+			{
+				if (rel_left !== null)
+				{
+					oParaDrawing.Set_PositionH(nHRelativeFrom, false, EM(rel_left), true);
+				}
+				else
+				{
+					oParaDrawing.Set_PositionH(nHRelativeFrom , false , EM(left), false);
+				}
+			}
+		else
+			{
+				switch (strPosH) {
+					case "left": {
+						oParaDrawing.Set_PositionH(nHRelativeFrom , true, Asc.c_oAscAlignH.Left, false);
+						break;
+					}
+					case "right": {
+						oParaDrawing.Set_PositionH(nHRelativeFrom , true, Asc.c_oAscAlignH.Right, false);
+						break;
+					}
+					case "center": {
+						oParaDrawing.Set_PositionH(nHRelativeFrom , true, Asc.c_oAscAlignH.Center, false);
+						break;
+					}
+					case "inside": {
+						oParaDrawing.Set_PositionH(nHRelativeFrom , true, Asc.c_oAscAlignH.Inside, false);
+						break;
+					}
+					case "outside": {
+						oParaDrawing.Set_PositionH(nHRelativeFrom , true, Asc.c_oAscAlignH.Outside, false);
+						break;
+					}
+				}
+			}
+
+			c_oAscRelativeFromV = {
+				BottomMargin  : 0x00,
+				InsideMargin  : 0x01,
+				Line          : 0x02,
+				Margin        : 0x03,
+				OutsideMargin : 0x04,
+				Page          : 0x05,
+				Paragraph     : 0x06,
+				TopMargin     : 0x07
+			};
+
+			pFind = oCssStyles.GetPropertyValueString("mso-position-vertical-relative");
+			if (pFind !== null)
+			{
+				if ("margin" === pFind)				nVRelativeFrom = Asc.c_oAscRelativeFromV.Margin;
+			else if ("text" === pFind)					nVRelativeFrom = Asc.c_oAscRelativeFromV.Paragraph;
+			else if ("page" === pFind)					nVRelativeFrom = Asc.c_oAscRelativeFromV.Page;
+			else if ("top-margin-area" === pFind)		nVRelativeFrom = Asc.c_oAscRelativeFromV.TopMargin;
+			else if ("bottom-margin-area" === pFind)	nVRelativeFrom = Asc.c_oAscRelativeFromV.BottomMargin;
+			else if ("inner-margin-area" === pFind)		nVRelativeFrom = Asc.c_oAscRelativeFromV.InsideMargin;
+			else if ("outer-margin-area" === pFind)		nVRelativeFrom = Asc.c_oAscRelativeFromV.OutsideMargin;
+			else
+				nVRelativeFrom = Asc.c_oAscRelativeFromV.Line;
+			}
+			else
+			{
+				nVRelativeFrom = Asc.c_oAscRelativeFromV.Paragraph;
+			}
+
+			let strPosV = "absolute";
+			pFind = oCssStyles.GetPropertyValueString("mso-position-vertical");
+			if (null !== pFind)
+				strPosV = pFind;
+
+			if (strPosV === "absolute")
+			{
+				if (rel_left !== null)
+				{
+					oParaDrawing.Set_PositionV(nVRelativeFrom, false, EM(rel_top), true);
+				}
+				else
+				{
+					oParaDrawing.Set_PositionV(nVRelativeFrom , false , EM(top), false);
+				}
+			}
+		else
+			{
+
+				switch (strPosV) {
+					case "top": {
+						oParaDrawing.Set_PositionV(nVRelativeFrom , true, Asc.c_oAscAlignV.Top, false);
+						break;
+					}
+					case "bottom": {
+						oParaDrawing.Set_PositionV(nVRelativeFrom , true, Asc.c_oAscAlignV.Bottom, false);
+						break;
+					}
+					case "center": {
+						oParaDrawing.Set_PositionV(nVRelativeFrom , true, Asc.c_oAscAlignV.Center, false);
+						break;
+					}
+					case "inside": {
+						oParaDrawing.Set_PositionV(nVRelativeFrom , true, Asc.c_oAscAlignV.Inside, false);
+						break;
+					}
+					case "outside": {
+						oParaDrawing.Set_PositionV(nVRelativeFrom , true, Asc.c_oAscAlignV.Outside, false);
+						break;
+					}
+				}
+			}
+
+			oParaDrawing.setExtent(EM(width), EM(height));
+			if(bExtendedSize) {
+				oParaDrawing.setEffectExtent(EM(10795), EM(5080), EM(28575), EM(26670));
+			}
+			else {
+				oParaDrawing.setEffectExtent(0, 0, 0, 0);
+			}
+
+			let oWrap = oNode.getWrap();
+			if (oWrap)
+			{
+				if (oWrap.m_oType === EWrapType.wraptypeNone || oWrap.m_oType === null) {
+					oParaDrawing.Set_WrappingType(WRAPPING_TYPE_NONE);
+				}
+				else if (oWrap.m_oType === EWrapType.wraptypeSquare) {
+					oParaDrawing.Set_WrappingType(WRAPPING_TYPE_SQUARE);
+				}
+				else if (oWrap.m_oType === EWrapType.wraptypeTopAndBottom) {
+					oParaDrawing.Set_WrappingType(WRAPPING_TYPE_TOP_AND_BOTTOM);
+				}
+				else if (oWrap.m_oType === EWrapType.wraptypeTight)
+				{
+					oParaDrawing.Set_WrappingType(WRAPPING_TYPE_TIGHT);
+				}
+			else if (oWrap.m_oType === EWrapType.wraptypeThrough)
+				{
+					oParaDrawing.Set_WrappingType(WRAPPING_TYPE_THROUGH);
+				}
+			else {
+
+					oParaDrawing.Set_WrappingType(WRAPPING_TYPE_SQUARE);
+				}
+			}
+			else
+			{
+				oParaDrawing.Set_WrappingType(WRAPPING_TYPE_NONE);
+			}
+			let bHidden = false;
+			pFind = oCssStyles.GetPropertyValueString("visibility");
+			if (null !== pFind)
+			{
+				if ("hidden" === pFind)
+					bHidden = true;
+			}
+			if (rel_width !== null)
+			{
+				oParaDrawing.SetSizeRelH({RelativeFrom: nHRelativeFrom, Percent: rel_width});
+			}
+			if (rel_height !== null)
+			{
+				oParaDrawing.SetSizeRelV({RelativeFrom: nVRelativeFrom, Percent: rel_height});
+			}
+			oParaDrawing.docPr.setIsHidden(bHidden);
+		}
+
 
 		CLegacyDrawing.prototype.static_GetShapeTypeForShape = function(oShape, aOtherItems) {
 			let nType = oShape.getShapeType();
@@ -10834,7 +13393,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		CColor.prototype.getOOXMLColor = function() {
 			return AscFormat.CreateUniColorRGB(this.r, this.g, this.b);
 			//todo: fill
-			// if (sColor2->find(L"fill") != -1)
+			// if (sColor2->find("fill") != -1)
 			// {
 			// 	std::wstring sColorEffect = *sColor2;
 			// 	if (sColorEffect.length() > 5)
@@ -12105,7 +14664,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			return this.m_arrPoints[nIndex].nY;
 		}
 
-		CVml_Polygon2D.prototype.AddPoint = function (nX, nY) {
+		CVml_Polygon2D.prototype.AddPolet = function (nX, nY) {
 			let oPt = new TPoint(nX, nY);
 			this.m_arrPoints.push(oPt);
 		}
@@ -12618,16 +15177,11 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 				let nPos = sTemp.indexOf(';');
 				if (-1 === nPos) {
 					let oProperty = new CCssProperty(sTemp);
-					if ((ECssPropertyType.cssptUnknown !== oProperty.get_Type())) {
-						this.m_arrProperties.push(oProperty);
-					}
+					this.m_arrProperties.push(oProperty);
 					sTemp = "";
-
 				} else {
 					let oProperty = new CCssProperty(sTemp.substring(0, nPos));
-					if ((ECssPropertyType.cssptUnknown !== oProperty.get_Type())) {
-						this.m_arrProperties.push(oProperty);
-					}
+					this.m_arrProperties.push(oProperty);
 					sTemp = sTemp.substring(nPos + 1);
 				}
 			}
@@ -12641,13 +15195,31 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			}
 			return null;
 		};
+		
+		CCssStyle.prototype.GetPropertyByStringType = function(sType) {
+			for(let nPr = 0; nPr < this.m_arrProperties.length; ++nPr) {
+				if(this.m_arrProperties[nPr].m_sType === sType) {
+					return this.m_arrProperties[nPr];
+				}
+			}
+			return null;
+		};
+		CCssStyle.prototype.GetPropertyValueString = function(sType) {
+			let oPr = this.GetPropertyByStringType(sType);
+			if(oPr) {
+				return oPr.m_sValue;
+			}
+			return null;
+		};
 		CCssStyle.prototype.GetZIndex = function() {
 			let oPr = this.GetProperty(ECssPropertyType.cssptZIndex);
 			if(oPr === null) {
 				return null;
 			}
-			if(oPr && oPr.oZIndex && AscFormat.isRealNumber(oPr.oZIndex.nOrder)) {
-				return oPr.oZIndex.nOrder;
+
+			let oZIndex = oPr && oPr.m_oValue && oPr.m_oValue.oZIndex;
+			if(oZIndex && oZIndex && AscFormat.isRealNumber(oZIndex.nOrder)) {
+				return oZIndex.nOrder;
 			}
 		};
 
@@ -12970,6 +15542,8 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		function CCssProperty(sBuffer) {
 			this.m_eType = ECssPropertyType.cssptUnknown;
 			this.m_oValue = new UCssValue();
+			this.m_sType = "unknown";
+			this.m_sValue = "";
 			if (sBuffer) {
 				this.Parse(sBuffer);
 			}
@@ -13000,23 +15574,25 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 					this.m_eType = ECssPropertyType.cssptUnknown;
 					return;
 				}
+				this.m_sType = sProperty;
+				this.m_sValue = sValue;
 
 				if ("direction" === sProperty) this.m_eType = ECssPropertyType.cssptDirection;
-				if ("flip" === sProperty) this.m_eType = ECssPropertyType.cssptFlip;
-				if ("font" === sProperty) this.m_eType = ECssPropertyType.cssptFont;
+				else if ("flip" === sProperty) this.m_eType = ECssPropertyType.cssptFlip;
+				else if ("font" === sProperty) this.m_eType = ECssPropertyType.cssptFont;
 				else if ("font-family" === sProperty) this.m_eType = ECssPropertyType.cssptFontFamily;
 				else if ("font-size" === sProperty) this.m_eType = ECssPropertyType.cssptFontSize;
 				else if ("font-style" === sProperty) this.m_eType = ECssPropertyType.cssptFontStyle;
 				else if ("font-variant" === sProperty) this.m_eType = ECssPropertyType.cssptFontVariant;
 				else if ("font-weight" === sProperty) this.m_eType = ECssPropertyType.cssptFontWeight;
-				if ("height" === sProperty) this.m_eType = ECssPropertyType.cssptHeight;
-				if ("layout-flow" === sProperty) this.m_eType = ECssPropertyType.cssptLayoutFlow;
+				else if ("height" === sProperty) this.m_eType = ECssPropertyType.cssptHeight;
+				else if ("layout-flow" === sProperty) this.m_eType = ECssPropertyType.cssptLayoutFlow;
 				else if ("left" === sProperty) this.m_eType = ECssPropertyType.cssptLeft;
-				if ("margin-bottom" === sProperty) this.m_eType = ECssPropertyType.cssptMarginBottom;
+				else if ("margin-bottom" === sProperty) this.m_eType = ECssPropertyType.cssptMarginBottom;
 				else if ("margin-left" === sProperty) this.m_eType = ECssPropertyType.cssptMarginLeft;
 				else if ("margin-right" === sProperty) this.m_eType = ECssPropertyType.cssptMarginRight;
 				else if ("margin-top" === sProperty) this.m_eType = ECssPropertyType.cssptMarginTop;
-				if ("mso-direction-alt" === sProperty) this.m_eType = ECssPropertyType.cssptMsoDirectionAlt;
+				else if ("mso-direction-alt" === sProperty) this.m_eType = ECssPropertyType.cssptMsoDirectionAlt;
 				else if ("mso-fit-shape-to-text" === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitShapeToText;
 				else if ("mso-fit-text-to-shape" === sProperty) this.m_eType = ECssPropertyType.cssptMsoFitTextToShape;
 				else if ("mso-layout-flow-alt" === sProperty) this.m_eType = ECssPropertyType.cssptMsoLayoutFlowAlt;
@@ -13036,12 +15612,12 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 				else if ("mso-wrap-style" === sProperty) this.m_eType = ECssPropertyType.cssptMsoWrapStyle;
 				else if ("mso-height-percent" === sProperty) this.m_eType = ECssPropertyType.csspctMsoHeightPercent;
 				else if ("mso-width-percent" === sProperty) this.m_eType = ECssPropertyType.csspctMsoWidthPercent;
-				if ("position" === sProperty) this.m_eType = ECssPropertyType.cssptPosition;
-				if ("rotation" === sProperty) this.m_eType = ECssPropertyType.cssptRotation;
-				if ("text-decoration" === sProperty) this.m_eType = ECssPropertyType.cssptTextDecoration;
+				else if ("position" === sProperty) this.m_eType = ECssPropertyType.cssptPosition;
+				else if ("rotation" === sProperty) this.m_eType = ECssPropertyType.cssptRotation;
+				else if ("text-decoration" === sProperty) this.m_eType = ECssPropertyType.cssptTextDecoration;
 				else if ("top" === sProperty) this.m_eType = ECssPropertyType.cssptTop;
 				else if ("text-align" === sProperty) this.m_eType = ECssPropertyType.cssptHTextAlign;
-				if ("visibility" === sProperty) this.m_eType = ECssPropertyType.cssptVisibility;
+				else if ("visibility" === sProperty) this.m_eType = ECssPropertyType.cssptVisibility;
 				else if ("v-rotate-letters" === sProperty) this.m_eType = ECssPropertyType.cssptVRotateLetters;
 				else if ("v-same-letter-heights" === sProperty) this.m_eType = ECssPropertyType.cssptVSameLetterHeights;
 				else if ("v-text-align" === sProperty) this.m_eType = ECssPropertyType.cssptVTextAlign;
@@ -13050,8 +15626,8 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 				else if ("v-text-reverse" === sProperty) this.m_eType = ECssPropertyType.cssptVTextReverse;
 				else if ("v-text-spacing-mode" === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacingMode;
 				else if ("v-text-spacing" === sProperty) this.m_eType = ECssPropertyType.cssptVTextSpacing;
-				if ("width" === sProperty) this.m_eType = ECssPropertyType.cssptWidth;
-				if ("z-index" === sProperty) this.m_eType = ECssPropertyType.cssptZIndex;
+				else if ("width" === sProperty) this.m_eType = ECssPropertyType.cssptWidth;
+				else if ("z-index" === sProperty) this.m_eType = ECssPropertyType.cssptZIndex;
 
 				switch (this.m_eType) {
 					case ECssPropertyType.cssptUnknown :
@@ -13884,6 +16460,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 					oXfrm.setOffX(0);
 					oXfrm.setOffY(0);
 				}
+				CLegacyDrawing.prototype.GetDrawingMainProps(oParaDrawing, reader.context);
 				return oParaDrawing;
 			}
 			return null;
