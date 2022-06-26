@@ -191,12 +191,25 @@ const fonthint_EastAsia = 0x02;
 		// Все, что ниже, получено опытным путем
 
 		// Devanagari
-		FillRange(0x0900, 0x097F, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
-
+		// Bengali
+		// Gurmukhi
+		// Gujarati
+		// Oriya
+		// Tamil
+		// Telegu
+		// Kannada
 		// Malayalam
 		// Sinhala
-		FillRange(0x0D00, 0x0DFF, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
+		// Thai
+		// Lao
+		// Tibetan
+		// Myanmar
+		// Georgian
+		FillRange(0x0900, 0x10FF, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
 
+		// Ethiopic
+		// Cherokee
+		FillRange(0x1200, 0x13FF, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
 
 	})();
 
