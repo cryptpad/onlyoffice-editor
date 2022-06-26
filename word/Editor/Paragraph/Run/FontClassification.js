@@ -94,11 +94,9 @@ const fonthint_EastAsia = 0x02;
 
 		// Spacing Modifier Letters
 		// Combining Diacritical Marks
-		// Greek
-		FillRange(0x02B0, 0x03CF, [fontslot_HAnsi, fontslot_EastAsia, fontslot_EastAsia]);
-
+		// Greek and Coptic
 		// Cyrillic
-		FillRange(0x0400, 0x04FF, [fontslot_HAnsi, fontslot_EastAsia, fontslot_EastAsia]);
+		FillRange(0x02B0, 0x04FF, [fontslot_HAnsi, fontslot_EastAsia, fontslot_EastAsia]);
 
 		// Hebrew
 		// Arabic
@@ -114,7 +112,7 @@ const fonthint_EastAsia = 0x02;
 		FillRange(0x1E00, 0x1EFF,  [fontslot_HAnsi, fontslot_HAnsi, fontslot_EastAsia]);
 
 		// Greek Extended
-		FillRange(0x1F00, 0x1FFF, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
+		FillRange(0x1F00, 0x1FFF, [fontslot_ASCII, fontslot_HAnsi, fontslot_HAnsi]);
 
 		// General Punctuation
 		// Superscripts and Subscripts
@@ -144,10 +142,12 @@ const fonthint_EastAsia = 0x02;
 		// Bopomofo
 		// Hangul Compatibility Jamo
 		// Kanbun
+		FillRange(0x2E80, 0x319F, [fontslot_EastAsia, fontslot_EastAsia, fontslot_EastAsia]);
+
 		// Enclosed CJK Letters and Months
 		// CJK Compatibility
 		// CJK Unified Ideographs Extension A
-		FillRange(0x2E80, 0x4DBF, [fontslot_EastAsia, fontslot_EastAsia, fontslot_EastAsia]);
+		FillRange(0x3200, 0x4DBF, [fontslot_EastAsia, fontslot_EastAsia, fontslot_EastAsia]);
 
 		// CJK Unified Ideographs
 		FillRange(0x4E00, 0x9FAF, [fontslot_EastAsia, fontslot_EastAsia, fontslot_EastAsia]);
@@ -186,6 +186,18 @@ const fonthint_EastAsia = 0x02;
 
 		// Halfwidth and Fullwidth Forms
 		FillRange(0xFF00, 0xFFEF, [fontslot_EastAsia, fontslot_EastAsia, fontslot_EastAsia]);
+
+		// Все, что выше, сделано согласно документу DR 09-0040
+		// Все, что ниже, получено опытным путем
+
+		// Devanagari
+		FillRange(0x0900, 0x097F, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
+
+		// Malayalam
+		// Sinhala
+		FillRange(0x0D00, 0x0DFF, [fontslot_HAnsi, fontslot_HAnsi, fontslot_HAnsi]);
+
+
 	})();
 
 	function GetFontSlot(nUnicode, nHint, nLangId, isCS, isRTL)
