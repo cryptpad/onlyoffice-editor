@@ -2651,6 +2651,10 @@
 		}
 		return null;
 	};
+	ParaRun.prototype.readVMLDrawing = function(reader, name) {
+		let oVMLConverter = new AscFormat.CVMLToDrawingMLConverter();
+		return oVMLConverter.createParaDrawingMLFromVMLNode(reader, name, this.Paragraph);
+	};
 	ParaRun.prototype.fromXml = function(reader) {
 		let oReadResult = reader.context.oReadResult;
 		let footnotes = oReadResult.footnotes;
@@ -2750,12 +2754,13 @@
 					newItem.Set_SpaceAfter(false);
 					break;
 				case "object":
-					//todo
+					newItem = this.readVMLDrawing(reader, name);
 					break;
 				case "pgNum":
 					newItem = new AscWord.CRunPageNum();
 					break;
 				case "pict":
+					newItem = this.readVMLDrawing(reader, name);
 					break;
 				case "ptab":
 					break;
@@ -7105,28 +7110,28 @@
 				case "distT": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(null, Math.abs(g_dKoef_emu_to_mm * val), null, null);
+						this.drawing.Set_Distance(null, Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val), null, null);
 					}
 					break;
 				}
 				case "distB": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(null, null, null, Math.abs(g_dKoef_emu_to_mm * val));
+						this.drawing.Set_Distance(null, null, null, Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val));
 					}
 					break;
 				}
 				case "distL": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(Math.abs(g_dKoef_emu_to_mm * val), null, null, null);
+						this.drawing.Set_Distance(Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val), null, null, null);
 					}
 					break;
 				}
 				case "distR": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(null, null, Math.abs(g_dKoef_emu_to_mm * val), null);
+						this.drawing.Set_Distance(null, null, Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val), null);
 					}
 					break;
 				}
@@ -7143,8 +7148,8 @@
 					elem.fromXml(reader);
 					var cx = parseInt(elem.attributes["cx"]);
 					var cy = parseInt(elem.attributes["cy"]);
-					cx = !isNaN(cx) ? g_dKoef_emu_to_mm * cx : null;
-					cy = !isNaN(cy) ? g_dKoef_emu_to_mm * cy : null;
+					cx = !isNaN(cx) ? AscCommonWord.g_dKoef_emu_to_mm * cx : null;
+					cy = !isNaN(cy) ? AscCommonWord.g_dKoef_emu_to_mm * cy : null;
 					this.drawing.setExtent(cx, cy);
 					break;
 				}
@@ -7202,7 +7207,7 @@
 			Graphic = new AscFormat.CT_GraphicalObject();
 			Graphic.Namespace = ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
 			Graphic.GraphicData = new AscFormat.CT_GraphicalObjectData();
-			Graphic.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+			Graphic.GraphicData.Uri = GetDrawingUri(drawing.GraphicObj);
 			Graphic.GraphicData.graphicObject = drawing.GraphicObj;
 
 			nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
@@ -7256,28 +7261,28 @@
 				case "distT": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(null, Math.abs(g_dKoef_emu_to_mm * val), null, null);
+						this.drawing.Set_Distance(null, Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val), null, null);
 					}
 					break;
 				}
 				case "distB": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(null, null, null, Math.abs(g_dKoef_emu_to_mm * val));
+						this.drawing.Set_Distance(null, null, null, Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val));
 					}
 					break;
 				}
 				case "distL": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(Math.abs(g_dKoef_emu_to_mm * val), null, null, null);
+						this.drawing.Set_Distance(Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val), null, null, null);
 					}
 					break;
 				}
 				case "distR": {
 					val = reader.GetValueUInt64();
 					if (undefined !== val) {
-						this.drawing.Set_Distance(null, null, Math.abs(g_dKoef_emu_to_mm * val), null);
+						this.drawing.Set_Distance(null, null, Math.abs(AscCommonWord.g_dKoef_emu_to_mm * val), null);
 					}
 					break;
 				}
@@ -7287,6 +7292,7 @@
 				}
 				case "relativeHeight": {
 					this.drawing.Set_RelativeHeight(reader.GetValueUInt(this.RelativeHeight));
+					reader.context.checkZIndex(this.RelativeHeight);
 					break;
 				}
 				case "behindDoc": {
@@ -7341,7 +7347,7 @@
 						PosH.Value = align;
 					} else if (!isNaN(posOffset)) {
 						PosH.Align = false;
-						PosH.Value = g_dKoef_emu_to_mm * posOffset;
+						PosH.Value = AscCommonWord.g_dKoef_emu_to_mm * posOffset;
 					} else if (!isNaN(pctPosHOffset)) {
 						PosH.Percent = true;
 						PosH.Value = pctPosHOffset;
@@ -7362,7 +7368,7 @@
 						PosV.Value = align;
 					} else if (!isNaN(posOffset)) {
 						PosV.Align = false;
-						PosV.Value = g_dKoef_emu_to_mm * posOffset;
+						PosV.Value = AscCommonWord.g_dKoef_emu_to_mm * posOffset;
 					} else if (!isNaN(pctPosVOffset)) {
 						PosV.Percent = true;
 						PosV.Value = pctPosVOffset;
@@ -7376,10 +7382,10 @@
 					var cx = parseInt(elem.attributes["cx"]);
 					var cy = parseInt(elem.attributes["cy"]);
 					if(!isNaN(cx)) {
-						drawing.Extent.W = g_dKoef_emu_to_mm * cx;
+						drawing.Extent.W = AscCommonWord.g_dKoef_emu_to_mm * cx;
 					}
 					if(!isNaN(cy)) {
-						drawing.Extent.H = g_dKoef_emu_to_mm * cy;
+						drawing.Extent.H = AscCommonWord.g_dKoef_emu_to_mm * cy;
 					}
 					break;
 				}
@@ -7545,7 +7551,7 @@
 			Graphic = new AscFormat.CT_GraphicalObject();
 			Graphic.Namespace = ' xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
 			Graphic.GraphicData = new AscFormat.CT_GraphicalObjectData();
-			Graphic.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+			Graphic.GraphicData.Uri = GetDrawingUri(drawing.GraphicObj);
 			Graphic.GraphicData.graphicObject = drawing.GraphicObj;
 
 			nvGraphicFramePr = new CT_NonVisualGraphicFrameProperties();
@@ -7596,6 +7602,24 @@
 		writer.WriteXmlNullable(SizeRelV, "wp14:sizeRelV");
 		writer.WriteXmlNodeEnd(name);
 	};
+
+	function GetDrawingUri(oDrawing) {
+		if (!oDrawing) {
+			return "";
+		}
+		else if (oDrawing instanceof AscFormat.CLockedCanvas) {
+			return "http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas";
+		}
+		else if (oDrawing instanceof AscFormat.CGroupShape) {
+			return "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup";
+		}
+		else if (oDrawing instanceof AscFormat.CImageShape) {
+			return "http://schemas.openxmlformats.org/drawingml/2006/picture";
+		}
+		else {
+			return "http://schemas.microsoft.com/office/word/2010/wordprocessingShape";
+		}
+	}
 	function CT_PosH() {
 		this.RelativeFrom = null;
 //todo Item

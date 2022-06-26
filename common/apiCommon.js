@@ -5120,15 +5120,15 @@
 				oShape.spPr.xfrm.setRot(AscFormat.normalizeRotate(obj['rotate'] ? (obj['rotate'] * Math.PI / 180) : 0));
 				oShape.spPr.setGeometry(AscFormat.CreateGeometry(obj['type']));
 				if(obj['fill'] && obj['fill'].length === 3){
-					oShape.spPr.setFill(AscFormat.CreteSolidFillRGB(obj['fill'][0], obj['fill'][1], obj['fill'][2]));
+					oShape.spPr.setFill(AscFormat.CreateSolidFillRGB(obj['fill'][0], obj['fill'][1], obj['fill'][2]));
 				}
 				if(AscFormat.isRealNumber(obj['stroke-width']) || Array.isArray(obj['stroke']) && obj['stroke'].length === 3){
 					var oUnifill;
 					if(Array.isArray(obj['stroke']) && obj['stroke'].length === 3){
-						oUnifill = AscFormat.CreteSolidFillRGB(obj['stroke'][0], obj['stroke'][1], obj['stroke'][2]);
+						oUnifill = AscFormat.CreateSolidFillRGB(obj['stroke'][0], obj['stroke'][1], obj['stroke'][2]);
 					}
 					else{
-						oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
+						oUnifill = AscFormat.CreateSolidFillRGB(0, 0, 0);
 					}
 					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0));
 				}
@@ -5178,7 +5178,7 @@
 						var oRunS = aRunsS[j];
 						var oRun = new AscCommonWord.ParaRun(oNewParagraph, false);
 						if(Array.isArray(oRunS['fill']) && oRunS['fill'].length === 3){
-							oRun.Set_Unifill(AscFormat.CreteSolidFillRGB(oRunS['fill'][0], oRunS['fill'][1], oRunS['fill'][2]));
+							oRun.Set_Unifill(AscFormat.CreateSolidFillRGB(oRunS['fill'][0], oRunS['fill'][1], oRunS['fill'][2]));
 						}
 						var fontFamilyName = oRunS['font-family'] ? oRunS['font-family'] : "Arial";
 						var fontSize = (oRunS['font-size'] != null) ? oRunS['font-size'] : 50;
