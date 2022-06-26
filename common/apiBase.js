@@ -54,6 +54,7 @@
 		this.modulesLoaded = 0;
 		this.openResult    = null;
 		this.isOpenOOXInBrowser = false;
+		this.isOpenOOXInBrowserDoctImages = {};
 
 		this.HtmlElementName = config['id-view'] || '';
 		this.HtmlElement     = null;
@@ -2272,6 +2273,7 @@
 	};
 	baseEditorsApi.prototype.saveDocumentToZip  = function(model, editorType, callback)
 	{
+		let t = this;
 		var context = new AscCommon.XmlWriterContext(editorType);
 		window.nativeZlibEngine.create();
 		model.toZip(window.nativeZlibEngine, context);
@@ -2280,10 +2282,14 @@
 			if (imageMapKeys.length > 0) {
 				var elem = imageMapKeys.pop();
 				if (window["NATIVE_EDITOR_ENJINE"] === true && window["native"]["getImagesDirectory"] && window["native"]["GetFontBinary"]) {
-					let path = window["native"]["getImagesDirectory"]() + '/' + elem;
-					let data = window["native"]["GetFileBinary"](path);
-					if (data) {
-						context.imageMap[elem].part.setData(data);
+					if (t.isOpenOOXInBrowserDoctImages[elem]) {
+						context.imageMap[elem].part.setData(t.isOpenOOXInBrowserDoctImages[elem]);
+					} else {
+						let path = window["native"]["getImagesDirectory"]() + '/' + elem;
+						let data = window["native"]["GetFileBinary"](path);
+						if (data) {
+							context.imageMap[elem].part.setData(data);
+						}
 					}
 					downloadImages(imageMapKeys);
 				} else {

@@ -1652,7 +1652,10 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.ImageMap[_cur_ind++] = path;
 				let data = context.zip.getFile(path);
 				if (data) {
-					if (!window["NATIVE_EDITOR_ENJINE"]) {
+					if (window["NATIVE_EDITOR_ENJINE"]) {
+						//slice because array contains garbage after zip.close
+						this.isOpenOOXInBrowserDoctImages[path] = data.slice();
+					} else {
 						let mime = AscCommon.openXml.GetMimeType(AscCommon.GetFileExtension(path));
 						let blob = new Blob([data], {type: mime});
 						let url = window.URL.createObjectURL(blob);

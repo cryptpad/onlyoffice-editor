@@ -12551,7 +12551,9 @@
 			if (this.nvGrpSpPr) {
 				if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 					writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-					this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
+					if (this.nvGrpSpPr.cNvGrpSpPr) {
+						this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
+					}
 				} else
 					this.nvGrpSpPr.toXmlGrp(writer);
 			}

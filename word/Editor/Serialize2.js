@@ -7746,6 +7746,7 @@ function BinaryFileReader(doc, openParams)
 	};
     this.PostLoadPrepare = function(opt_xmlParserContext)
     {
+		let api = this.Document.DrawingDocument && this.Document.DrawingDocument.m_oWordControl && this.Document.DrawingDocument.m_oWordControl.m_oApi;
 		this.Document.UpdateDefaultsDependingOnCompatibility();
 		//списки
 		for(var i in this.oReadResult.numToANumClass) {
@@ -8220,7 +8221,7 @@ function BinaryFileReader(doc, openParams)
 			for(var i in allComments)
 			{
 				var oNewComment = allComments[i];
-				this.Document.DrawingDocument.m_oWordControl.m_oApi.sync_AddComment( oNewComment.Id, oNewComment.Data );
+				api.sync_AddComment( oNewComment.Id, oNewComment.Data );
 			}
 		}
 		//remove bookmarks without end
@@ -8254,7 +8255,10 @@ function BinaryFileReader(doc, openParams)
 				if (context.imageMap.hasOwnProperty(path)) {
 					var data = context.zip.getFile(path);
 					if (data) {
-						if (!window["NATIVE_EDITOR_ENJINE"]) {
+						if (api && window["NATIVE_EDITOR_ENJINE"]) {
+							//slice because array contains garbage after zip.close
+							api.isOpenOOXInBrowserDoctImages[path] = data.slice();
+						} else {
 							let mime = AscCommon.openXml.GetMimeType(AscCommon.GetFileExtension(path));
 							let blob = new Blob([data], {type: mime});
 							let url = window.URL.createObjectURL(blob);
@@ -8273,8 +8277,7 @@ function BinaryFileReader(doc, openParams)
 		var docProtection = this.Document.Settings && this.Document.Settings.DocumentProtection;
 		if (docProtection) {
 			if (docProtection.isOnlyView() && false !== docProtection.getEnforcment()) {
-				var _api = this.Document.DrawingDocument && this.Document.DrawingDocument.m_oWordControl && this.Document.DrawingDocument.m_oWordControl.m_oApi;
-				_api && _api.asc_addRestriction(Asc.c_oAscRestrictionType.View);
+				api && api.asc_addRestriction(Asc.c_oAscRestrictionType.View);
 			}
 		}
 		

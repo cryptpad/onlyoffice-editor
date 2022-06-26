@@ -2106,7 +2106,10 @@
 				if (context.imageMap.hasOwnProperty(path)) {
 					var data = context.zip.getFile(path);
 					if (data) {
-						if (!window["NATIVE_EDITOR_ENJINE"]) {
+						if (window["NATIVE_EDITOR_ENJINE"]) {
+							//slice because array contains garbage after zip.close
+							t.oApi.isOpenOOXInBrowserDoctImages[path] = data.slice();
+						} else {
 							let mime = AscCommon.openXml.GetMimeType(AscCommon.GetFileExtension(path));
 							let blob = new Blob([data], {type: mime});
 							let url = window.URL.createObjectURL(blob);
