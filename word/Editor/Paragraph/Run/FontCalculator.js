@@ -78,7 +78,7 @@
 			if (oRun.IsEmpty())
 				return false;
 
-			let nFontSlot = oRun.GetFontSlot(nStartPos, nEndPos);
+			let nFontSlot = oThis.CorrectFontSlot(oRun.GetFontSlot(nStartPos, nEndPos));
 			let oTextPr   = oRun.Get_CompiledPr(false);
 
 			if (nFontSlot & AscWord.fontslot_CS)
@@ -138,6 +138,8 @@
 		let nFontSlot = AscWord.fontslot_ASCII;
 		if (oItem && oItem.IsText())
 			nFontSlot = AscWord.GetFontSlot(oItem.GetCodePoint(), oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+
+		nFontSlot = this.CorrectFontSlot(nFontSlot);
 
 		if (nFontSlot & AscWord.fontslot_ASCII)
 			this.FontName = oTextPr.RFonts.Ascii.Name;
@@ -206,6 +208,15 @@
 			this.FontName = sFontName;
 		else if (this.FontName !== sFontName)
 			this.FontName = undefined;
+	};
+	CFontCalculator.prototype.CorrectFontSlot = function(nFontSlot)
+	{
+		if (AscWord.fontslot_Unknown === nFontSlot)
+			return AscWord.fontslot_ASCII;
+		else if ((AscWord.fontslot_Unknown | AscWord.fontslot_CS) === nFontSlot)
+			return AscWord.fontslot_CS;
+
+		return nFontSlot;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
