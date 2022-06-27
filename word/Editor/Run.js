@@ -13405,8 +13405,13 @@ ParaRun.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPo
 	return NearElementId;
 };
 //----------------------------------------------------------------------------------------------------------------------
-ParaRun.prototype.GetFontSlot = function(nStartPos, nEndPos)
+ParaRun.prototype.GetFontSlotInRange = function(nStartPos, nEndPos)
 {
+	if (nStartPos >= nEndPos
+		|| nStartPos >= this.Content.length
+		|| nEndPos <= 0)
+		return AscWord.fontslot_None;
+
 	let oTextPr = this.Get_CompiledPr(false);
 	if (oTextPr.RTL || oTextPr.CS)
 		return AscWord.fontslot_CS;
@@ -13421,6 +13426,31 @@ ParaRun.prototype.GetFontSlot = function(nStartPos, nEndPos)
 		else
 			nFontSlot |= oItem.GetFontSlot();
 	}
+
+	return nFontSlot;
+};
+ParaRun.prototype.GetFontSlotByPosition = function(nPos)
+{
+	if (nPos > this.Content.length
+		|| nPos < 0
+		|| this.Content.length <= 0)
+		return AscWord.fontslot_None;
+
+	let oTextPr = this.Get_CompiledPr(false);
+	if (oTextPr.RTL || oTextPr.CS)
+		return AscWord.fontslot_CS;
+
+	let oPrev, oNext;
+	if (nPos > 0)
+		oPrev = this.GetElement(nPos - 1);
+	if (nPos < this.Content.length)
+		oNext = this.GetElement(nPos);
+
+	let nFontSlot = AscWord.fontslot_None;
+	if (oPrev)
+		nFontSlot = oPrev.GetFontSlot(oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+	else if (oNext)
+		nFontSlot = oNext.GetFontSlot(oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
 
 	return nFontSlot;
 };

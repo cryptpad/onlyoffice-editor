@@ -78,9 +78,13 @@
 			if (oRun.IsEmpty())
 				return false;
 
-			let nFontSlot = oThis.CorrectFontSlot(oRun.GetFontSlot(nStartPos, nEndPos));
-			let oTextPr   = oRun.Get_CompiledPr(false);
+			let nFontSlot = oRun.GetFontSlotInRange(nStartPos, nEndPos);
+			if (AscWord.fontslot_None === nFontSlot)
+				return false;
 
+			nFontSlot = oThis.CorrectFontSlot(nFontSlot);
+
+			let oTextPr = oRun.Get_CompiledPr(false);
 			if (nFontSlot & AscWord.fontslot_CS)
 			{
 				oThis.CheckBold(oTextPr.BoldCS);
@@ -128,19 +132,9 @@
 			return;
 
 		let nInRunPos = oParaContentPos.Get(oParaContentPos.GetDepth());
-		let oItem;
-		if (nInRunPos > 0)
-			oItem = oRun.GetElement(nInRunPos - 1);
-		else
-			oItem = oRun.GetElement(nInRunPos);
+		let nFontSlot = this.CorrectFontSlot(oRun.GetFontSlotByPosition(nInRunPos));
 
-		let oTextPr   = oRun.Get_CompiledPr(false);
-		let nFontSlot = AscWord.fontslot_ASCII;
-		if (oItem && oItem.IsText())
-			nFontSlot = AscWord.GetFontSlot(oItem.GetCodePoint(), oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
-
-		nFontSlot = this.CorrectFontSlot(nFontSlot);
-
+		let oTextPr = oRun.Get_CompiledPr(false);
 		if (nFontSlot & AscWord.fontslot_ASCII)
 			this.FontName = oTextPr.RFonts.Ascii.Name;
 		else if (nFontSlot & AscWord.fontslot_HAnsi)
