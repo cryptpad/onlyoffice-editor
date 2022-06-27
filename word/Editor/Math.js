@@ -3676,6 +3676,7 @@ ParaMath.prototype.ConvertFromUnicodeMath = function()
 	// TODO: Функция конвертации UnicodeMath -> MathML
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
+    this.Root.Correct_Content(true);
     window["AscCommonWord"].CUnicodeConverter(strUnicode, this.Root);
 	this.Root.Correct_Content(true);
 };

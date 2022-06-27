@@ -251,7 +251,10 @@
 			this.IsBoxLiteral() ||
 			this.oLookahead.class === oLiteralNames.opDecimal[0] ||
 			this.IsMatrixLiteral() ||
-			this.IsSkipLiteral()
+			this.IsSkipLiteral() ||
+			this.IsHBracket() ||
+			this.oLookahead.data === "┬" ||
+			this.oLookahead.data === "┴"
 		);
 	};
 	CLaTeXParser.prototype.GetElementLiteral = function () {
@@ -323,6 +326,28 @@
 		else if (this.IsSkipLiteral()) {
 			this.SkipLiteral();
 		}
+		else if (this.oLookahead.data === "┬") {
+			this.EatToken(this.oLookahead.class);
+			let oContent = this.GetArguments(2);
+			return {
+				type: oLiteralNames.functionWithLimitLiteral[num],
+				value: oContent[0],
+				down: oContent[1]
+			}
+		}
+		else if (this.oLookahead.data === "┴") {
+			this.EatToken(this.oLookahead.class);
+			let oContent = this.GetArguments(2);
+			return {
+				type: oLiteralNames.functionWithLimitLiteral[num],
+				value: oContent[0],
+				up: oContent[1]
+			}
+		}
+		else if (this.IsHBracket) {
+			return this.GetHBracketLiteral()
+		}
+
 
 	};
 	CLaTeXParser.prototype.IsSkipLiteral = function () {
@@ -377,10 +402,10 @@
 		return oOutput;
 	};
 	CLaTeXParser.prototype.IsReactLiteral = function () {
-		return this.oLookahead.class === "\\rect"
+		return this.oLookahead.class === oLiteralNames.rectLiteral[0]
 	}
 	CLaTeXParser.prototype.GetRectLiteral = function () {
-		this.EatToken("\\rect");
+		this.EatToken(this.oLookahead.class);
 		let oContent = this.GetArguments(1);
 		return {
 			type: oLiteralNames.rectLiteral[num],
@@ -388,13 +413,24 @@
 		}
 	}
 	CLaTeXParser.prototype.IsBoxLiteral = function () {
-		return this.oLookahead.class === "\\box";
+		return this.oLookahead.class === oLiteralNames.boxLiteral[0];
 	}
 	CLaTeXParser.prototype.GetBoxLiteral = function () {
-		this.EatToken("\\box");
+		this.EatToken(this.oLookahead.class);
 		let oContent = this.GetArguments(1);
 		return {
 			type: oLiteralNames.boxLiteral[num],
+			value: oContent,
+		}
+	}
+	CLaTeXParser.prototype.IsHBracket = function () {
+		return this.oLookahead.class === oLiteralNames.hBracketLiteral[0]
+	}
+	CLaTeXParser.prototype.GetHBracketLiteral = function () {
+		this.EatToken(this.oLookahead.class);
+		let oContent = this.GetArguments(1);
+		return {
+			type: oLiteralNames.hBracketLiteral[num],
 			value: oContent,
 		}
 	}
