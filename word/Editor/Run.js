@@ -13644,3 +13644,6 @@ function CanUpdatePosition(Para, Run) {
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].ParaRun = ParaRun;
 window['AscCommonWord'].CanUpdatePosition = CanUpdatePosition;
+
+window['AscWord'] = window['AscWord'] || {};
+window['AscWord'].ParaRun = ParaRun;

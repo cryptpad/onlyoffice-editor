@@ -2270,7 +2270,7 @@ CDocumentContent.prototype.Document_UpdateInterfaceState = function()
 		else
 		{
 			this.Interface_Update_ParaPr();
-			this.Interface_Update_TextPr();
+			this.UpdateInterfaceTextPr();
 
 			// Если у нас в выделении находится 1 параграф, или курсор находится в параграфе
 			if ((true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph == this.Content[this.Selection.StartPos].GetType())
@@ -6129,22 +6129,6 @@ CDocumentContent.prototype.Interface_Update_ParaPr    = function()
 
 		oApi.UpdateParagraphProp(oParaPr);
 	}
-};
-// Обновляем данные в интерфейсе о свойствах текста
-CDocumentContent.prototype.Interface_Update_TextPr    = function()
-{
-    var TextPr = this.GetCalculatedTextPr();
-
-
-    if (null != TextPr)
-    {
-        var theme = this.Get_Theme();
-        if (theme && theme.themeElements && theme.themeElements.fontScheme)
-        {
-			TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
-        }
-        editor.UpdateTextPr(TextPr);
-    }
 };
 CDocumentContent.prototype.Interface_Update_DrawingPr = function(Flag)
 {

@@ -1798,6 +1798,10 @@ CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
 {
 	return this.Content.CheckRunContent(fCheck);
 };
+CBlockLevelSdt.prototype.CheckSelectedRunContent = function(fCheck)
+{
+	return this.Content.CheckSelectedRunContent(fCheck);
+};
 CBlockLevelSdt.prototype.IsTableCellSelection = function()
 {
 	return this.Content.IsTableCellSelection();

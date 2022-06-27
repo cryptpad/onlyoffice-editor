@@ -17235,7 +17235,23 @@ Paragraph.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, isCur
 
 	return false;
 };
+Paragraph.prototype.CheckSelectedRunContent = function(fCheck)
+{
+	if (!this.Selection.Use)
+		return false;
 
+	let oStartPos = this.Get_ParaContentPos(true, true, false);
+	let oEndPos   = this.Get_ParaContentPos(true, false, false);
+
+	if (oStartPos.Compare(oEndPos) > 0)
+	{
+		let oTemp = oStartPos;
+		oStartPos = oEndPos;
+		oEndPos   = oTemp;
+	}
+
+	return this.CheckRunContent(fCheck, oStartPos, oEndPos, false);
+};
 /**
 * Check signature lines are present in the content and send asc_onAddSignature event
  */

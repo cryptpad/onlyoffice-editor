@@ -2291,7 +2291,7 @@ CDocument.prototype.LoadEmptyDocument              = function()
     this.Recalculate();
 
     this.Interface_Update_ParaPr();
-    this.Interface_Update_TextPr();
+    this.UpdateInterfaceTextPr();
 };
 CDocument.prototype.Set_CurrentElement = function(Index, bUpdateStates)
 {
@@ -7769,35 +7769,6 @@ CDocument.prototype.Interface_Update_ParaPr = function()
 
 
 		this.Api.UpdateParagraphProp(ParaPr);
-	}
-};
-/**
- * Обновляем данные в интерфейсе о свойствах текста.
- */
-CDocument.prototype.Interface_Update_TextPr = function()
-{
-	if (!this.Api)
-		return;
-
-	var TextPr = this.GetCalculatedTextPr();
-
-	if (null != TextPr)
-	{
-		var theme = this.Get_Theme();
-		if (theme && theme.themeElements && theme.themeElements.fontScheme)
-		{
-            TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
-		}
-		if (TextPr.Unifill)
-		{
-			var RGBAColor = TextPr.Unifill.getRGBAColor();
-			TextPr.Color  = new CDocumentColor(RGBAColor.R, RGBAColor.G, RGBAColor.B, false);
-		}
-		if (TextPr.Shd && TextPr.Shd.Unifill)
-		{
-			TextPr.Shd.Unifill.check(this.theme, this.Get_ColorMap());
-		}
-		this.Api.UpdateTextPr(TextPr);
 	}
 };
 /**
@@ -21088,7 +21059,7 @@ CDocument.prototype.controller_UpdateInterfaceState = function()
 	else
 	{
 		this.Interface_Update_ParaPr();
-		this.Interface_Update_TextPr();
+		this.UpdateInterfaceTextPr();
 
 		// Если у нас в выделении находится 1 параграф, или курсор находится в параграфе
 		if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph == this.Content[this.Selection.StartPos].GetType() ) || ( false == this.Selection.Use && type_Paragraph == this.Content[this.CurPos.ContentPos].GetType() ) ))

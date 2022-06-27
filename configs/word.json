@@ -58,7 +58,6 @@
 			"common/libfont/textmeasurer.js",
 			"common/Drawings/WorkEvents.js",
 
-			"word/Editor/Paragraph/Run/FontClassification.js",
 			"word/Editor/History.js",
 
 			"common/Shapes/EditorSettings.js",
@@ -124,6 +123,9 @@
 			"cell/model/Serialize.js",
 			"cell/model/CellInfo.js",
 
+			"word/Editor/Paragraph/Run/FontClassification.js",
+			"word/Editor/Paragraph/Run/FontCalculator.js",
+			"word/Editor/Paragraph/Run/RunAutoCorrect.js",
 			"word/Drawing/translations.js",
 			"word/Editor/GraphicObjects/Format/ShapePrototype.js",
 			"word/Editor/GraphicObjects/Format/ImagePrototype.js",
@@ -174,7 +176,6 @@
 			"word/Editor/Field.js",
 			"word/Editor/FieldChanges.js",
 			"word/Editor/Run.js",
-			"word/Editor/Paragraph/Run/RunAutoCorrect.js",
 			"word/Editor/PresentationField.js",
 			"word/Editor/RunChanges.js",
 			"word/Editor/Math.js",

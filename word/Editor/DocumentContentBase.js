@@ -56,6 +56,10 @@ CDocumentContentBase.prototype.GetId = function()
 {
 	return this.Id;
 };
+CDocumentContentBase.prototype.GetApi = function()
+{
+	return editor;
+};
 /**
  * Получаем ссылку на основной объект документа
  * @returns {CDocument}
@@ -1873,6 +1877,25 @@ CDocumentContentBase.prototype.CheckRunContent = function(fCheck)
 
 	return false;
 };
+CDocumentContentBase.prototype.CheckSelectedRunContent = function(fCheck)
+{
+	let nStartPos = this.Selection.StartPos;
+	let nEndPos   = this.Selection.EndPos;
+
+	if (nStartPos > nEndPos)
+	{
+		nStartPos = this.Selection.EndPos;
+		nEndPos   = this.Selection.StartPos;
+	}
+
+	for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+	{
+		if (this.Content[nIndex].CheckSelectedRunContent(fCheck))
+			return true;
+	}
+
+	return false;
+};
 CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, bAll)
 {
 	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
@@ -2288,5 +2311,18 @@ CDocumentContentBase.prototype.ProcessComplexFields = function()
 	for (let nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		this.Content[nIndex].ProcessComplexFields();
+	}
+};
+CDocumentContentBase.prototype.UpdateInterfaceTextPr = function()
+{
+	let oApi = this.GetApi();
+	if (!oApi)
+		return;
+
+	let oTextPr = this.GetCalculatedTextPr();
+	if (oTextPr)
+	{
+		AscWord.FontCalculator.Calculate(this, oTextPr);
+		oApi.UpdateTextPr(oTextPr);
 	}
 };
