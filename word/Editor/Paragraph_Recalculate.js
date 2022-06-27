@@ -1293,7 +1293,7 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 			oTextPr.Merge(this.TextPr.Value);
 			oTextPr.CheckFontScale();
 
-            let oMetrics = oTextPr.GetTextMetrics(this.GetTheme(), rfont_ASCII);
+            let oMetrics = oTextPr.GetTextMetrics(this.GetTheme(), AscWord.fontslot_ASCII);
 			let EndTextDescent = oMetrics.Descent;
 			let EndTextAscent  = oMetrics.Ascent + oMetrics.LineGap;
 			let EndTextAscent2 = oMetrics.Ascent;
@@ -1355,7 +1355,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 				// Адобовский вариант отступа первой строки для многострочных форм
 				var oTextPr = oRun.Get_CompiledTextPr(false);
 				g_oTextMeasurer.SetTextPr(oTextPr, this.GetTheme());
-				g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+				g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, 1);
 				var oLimits = g_oTextMeasurer.GetLimitsY();
 				var nBBoxH  = oLimits.max - oLimits.min + 2 * 25.4 / 72;
 
@@ -3647,7 +3647,7 @@ CParagraphRecalculateStateWrap.prototype =
 
 							var Theme = Para.Get_Theme();
 							g_oTextMeasurer.SetTextPr(oNumTextPr, Theme);
-							g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+							g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 							NumberingItem.WidthSuff = g_oTextMeasurer.Measure(" ").Width;
 							g_oTextMeasurer.SetTextPr(OldTextPr, Theme);
 							break;

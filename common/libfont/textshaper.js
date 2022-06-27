@@ -63,7 +63,7 @@
 		this.Script      = -1;
 		this.FontId      = -1;
 		this.FontSubst   = false;
-		this.FontSlot    = fontslot_None;
+		this.FontSlot    = AscWord.fontslot_None;
 		this.FontSize    = 10;
 	}
 	CTextShaper.prototype.ClearBuffer = function()
@@ -73,7 +73,7 @@
 
 		this.Script   = -1;
 		this.FontId   = -1;
-		this.FontSlot = fontslot_None;
+		this.FontSlot = AscWord.fontslot_None;
 
 		this.StartString();
 	};
@@ -164,7 +164,7 @@
 		}
 
 		this.Script    = AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED !== nScript || -1 === this.Script ? nScript : this.Script;
-		this.FontSlot  = fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
+		this.FontSlot  = AscWord.fontslot_None !== nFontSlot ? nFontSlot : this.FontSlot;
 		this.FontId    = nFontId;
 		this.FontSubst = isSubst;
 	};

@@ -342,7 +342,7 @@ CInlineLevelSdt.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _C
 		var oTextPr = oRun.Get_CompiledPr(false);
 
 		g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
-		g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+		g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 
 		var nTextHeight  = g_oTextMeasurer.GetHeight();
 		var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
@@ -461,7 +461,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			var oTextPr = oRun.Get_CompiledPr(false);
 
 			g_oTextMeasurer.SetTextPr(oTextPr, PDSH.Paragraph.GetTheme());
-			g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+			g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 
 			var nTextHeight  = g_oTextMeasurer.GetHeight();
 			var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
@@ -470,7 +470,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			var oColor = oTextPr.GetSimpleTextColor(PDSH.Paragraph.GetTheme(), PDSH.Paragraph.GetColorMap());
 			oGraphics.SetTextPr(oTextPr, PDSH.Paragraph.GetTheme());
 			oGraphics.b_color1(oColor.r, oColor.g, oColor.b, this.IsPlaceHolder() ? 127 : 255);
-			oGraphics.SetFontSlot(fontslot_ASCII); // Именно на этой функции записываются настройки шрифта в метафайл
+			oGraphics.SetFontSlot(AscWord.fontslot_ASCII); // Именно на этой функции записываются настройки шрифта в метафайл
 
 			// TODO: Заглушка для AdobeReader
 			//       Середина по вертикали у поля совпадает со средней точкой bbox, поэтому меняем сдвиги по вертикали
@@ -2659,7 +2659,7 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function(nW, nH)
 	// 	var oTextPr   = oInnerRun.Get_CompiledPr(false);
 	//
 	// 	g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
-	// 	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+	// 	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 	//
 	// 	var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
 	// 	oRun.Set_Position(oTextPr.Position - nTextDescent);
@@ -2859,7 +2859,7 @@ CInlineLevelSdt.prototype.OnChangeFixedFormTrack = function(nW, nH)
 		var oTextPr = oRun.Get_CompiledPr(false);
 
 		g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
-		g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+		g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 
 		var nTextHeight = g_oTextMeasurer.GetHeight();
 
@@ -2912,7 +2912,7 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 	var oShapeBounds = oShape.getFormRelRect(true);
 
 	g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 
 	var nTextHeight = g_oTextMeasurer.GetHeight();
 	var nMaxWidth   = oParagraph.RecalculateMinMaxContentWidth(false).Max;

@@ -97,7 +97,7 @@
 
 		if (undefined !== editor && editor.ShowParaMarks)
 		{
-			Context.SetFontSlot(fontslot_ASCII, this.GetFontCoef());
+			Context.SetFontSlot(AscWord.fontslot_ASCII, this.GetFontCoef());
 
 			if (this.SpaceGap)
 				X += this.SpaceGap;
@@ -122,7 +122,7 @@
 		if (1 !== FontKoef)
 			FontKoef = (((FontSize * FontKoef * 2 + 0.5) | 0) / 2) / FontSize;
 
-		Context.SetFontSlot(fontslot_ASCII, FontKoef);
+		Context.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
 
 		var Temp  = Context.MeasureCode(this.Value).Width;
 
@@ -235,7 +235,7 @@
 	};
 	CRunSpace.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		return rfont_ASCII;
+		return AscWord.fontslot_Unknown;
 	};
 	CRunSpace.prototype.ToMathElement = function()
 	{

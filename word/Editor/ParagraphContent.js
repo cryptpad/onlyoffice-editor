@@ -240,7 +240,7 @@ ParaNumbering.prototype.GetSourceWidth = function()
 };
 ParaNumbering.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 {
-	return rfont_ASCII;
+	return AscWord.fontslot_Unknown;
 };
 
 

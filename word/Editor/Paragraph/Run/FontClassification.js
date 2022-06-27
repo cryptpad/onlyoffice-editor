@@ -37,6 +37,7 @@ const fontslot_ASCII    = 0x01;
 const fontslot_EastAsia = 0x02;
 const fontslot_CS       = 0x04;
 const fontslot_HAnsi    = 0x08;
+const fontslot_Unknown  = 0x10;
 
 const fonthint_Default  = 0x00;
 const fonthint_CS       = 0x01;
@@ -255,6 +256,13 @@ const fonthint_EastAsia = 0x02;
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
 	window['AscWord'].GetFontSlot = GetFontSlot;
+
+	window['AscWord'].fontslot_None     = fontslot_None;
+	window['AscWord'].fontslot_ASCII    = fontslot_ASCII;
+	window['AscWord'].fontslot_EastAsia = fontslot_EastAsia;
+	window['AscWord'].fontslot_CS       = fontslot_CS;
+	window['AscWord'].fontslot_HAnsi    = fontslot_HAnsi;
+	window['AscWord'].fontslot_Unknown  = fontslot_Unknown;
 
 })(window);
 

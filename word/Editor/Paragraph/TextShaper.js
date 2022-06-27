@@ -86,7 +86,7 @@
 	{
 		let oTextPr = this.TextPr;
 		if (!oTextPr)
-			return fontslot_None;
+			return AscWord.fontslot_None;
 
 		return AscWord.GetFontSlot(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
 	};
@@ -151,7 +151,7 @@
 
 		for (let nIndex = 1; nIndex < nCodePointsCount; ++nIndex)
 		{
-			this.private_HandleItem(this.Buffer[this.BufferIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, fontslot_ASCII, _isLigature ? CODEPOINT_TYPE.LIGATURE_CONTINUE : CODEPOINT_TYPE.COMBINING_MARK);
+			this.private_HandleItem(this.Buffer[this.BufferIndex++], AscFonts.NO_GRAPHEME, _nWidth, this.FontSize, AscWord.fontslot_ASCII, _isLigature ? CODEPOINT_TYPE.LIGATURE_CONTINUE : CODEPOINT_TYPE.COMBINING_MARK);
 		}
 	};
 	CParagraphTextShaper.prototype.private_CheckRun = function(oRun)
@@ -172,9 +172,9 @@
 	};
 	CParagraphTextShaper.prototype.private_HandleNBSP = function(oItem)
 	{
-		let oFontInfo = this.TextPr.GetFontInfo(fontslot_ASCII);
+		let oFontInfo = this.TextPr.GetFontInfo(AscWord.fontslot_ASCII);
 		let nGrapheme = AscCommon.g_oTextMeasurer.GetGraphemeByUnicode(0x00B0, oFontInfo.Name, oFontInfo.Style);
-		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, fontslot_ASCII, false, false, false);
+		this.private_HandleItem(oItem, nGrapheme, AscFonts.GetGraphemeWidth(nGrapheme), oFontInfo.Size, AscWord.fontslot_ASCII, false, false, false);
 	};
 	CParagraphTextShaper.prototype.private_HandleItem = function(oItem, nGrapheme, nWidth, nFontSize, nFontSlot, nCodePointType)
 	{

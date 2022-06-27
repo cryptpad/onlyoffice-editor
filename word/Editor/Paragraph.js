@@ -671,7 +671,7 @@ Paragraph.prototype.Get_EmptyHeight = function()
 	EndTextPr.Merge(this.TextPr.Value);
 
 	g_oTextMeasurer.SetTextPr(EndTextPr, this.Get_Theme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 
 	return g_oTextMeasurer.GetHeight();
 };
@@ -742,7 +742,7 @@ Paragraph.prototype.private_RecalculateColumnLimits = function()
 		var oParaPr      = this.Get_CompiledPr2(false).ParaPr;
 		var oFirstTextPr = this.Get_FirstTextPr();
 		g_oTextMeasurer.SetTextPr(oFirstTextPr, this.Get_Theme());
-		g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+		g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 		YLimit = Y + g_oTextMeasurer.GetHeight() + oParaPr.Spacing.Before + oParaPr.Spacing.After;
 
 		// Эти значения нужны для правильного рассчета положения картинок, смотри баг #34392
@@ -3635,7 +3635,7 @@ Paragraph.prototype.private_DrawLineNumber = function(X, Y, oContext, nLineNumbe
 		nFontKoef = AscCommon.vaKSize;
 
 	oContext.SetTextPr(oTextPr, Theme);
-	oContext.SetFontSlot(fontslot_ASCII, nFontKoef);
+	oContext.SetFontSlot(AscWord.fontslot_ASCII, nFontKoef);
 
 	if (oTextPr.VertAlign === AscCommon.vertalign_SubScript)
 		Y -= AscCommon.vaKSub * oTextPr.FontSize * g_dKoef_pt_to_mm;
@@ -12745,7 +12745,7 @@ Paragraph.prototype.Update_DropCapByLines = function(TextPr, Count, LineH, LineT
 	TextPr.FontSize = FontSize;
 
 	g_oTextMeasurer.SetTextPr(TextPr, this.Get_Theme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, 1);
 
 	var TMetrics = {Ascent : null, Descent : null};
 	this.private_RecalculateTextMetrics(TMetrics);
@@ -12768,7 +12768,7 @@ Paragraph.prototype.Update_DropCapByLines = function(TextPr, Count, LineH, LineT
 	TextPr.FontSize = parseInt(NewFontSize * 2) / 2;
 
 	g_oTextMeasurer.SetTextPr(TextPr, this.Get_Theme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, 1);
 
 	var TNewMetrics = {Ascent : null, Descent : null};
 	this.private_RecalculateTextMetrics(TNewMetrics);
@@ -12818,7 +12818,7 @@ Paragraph.prototype.Update_DropCapByHeight = function(_Height)
 
 	var TextPr = this.Internal_CalculateTextPr(this.Internal_GetStartPos());
 	g_oTextMeasurer.SetTextPr(TextPr, this.Get_Theme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, 1);
 
 	var TMetrics = {Ascent : null, Descent : null};
 	this.private_RecalculateTextMetrics(TMetrics);
@@ -12838,7 +12838,7 @@ Paragraph.prototype.Update_DropCapByHeight = function(_Height)
 	TextPr.FontSize = parseInt(NewFontSize * 2) / 2;
 
 	g_oTextMeasurer.SetTextPr(TextPr, this.Get_Theme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, 1);
 
 	var TNewMetrics = {Ascent : null, Descent : null};
 	this.private_RecalculateTextMetrics(TNewMetrics);

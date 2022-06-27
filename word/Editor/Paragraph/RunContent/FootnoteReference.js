@@ -76,7 +76,7 @@
 		if (TextPr.VertAlign !== AscCommon.vertalign_Baseline)
 			FontKoef = AscCommon.vaKSize;
 
-		Context.SetFontSlot(fontslot_ASCII, FontKoef);
+		Context.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
 
 		var _X = X;
 		var T  = this.private_GetString();
@@ -217,7 +217,7 @@
 			FontKoef = AscCommon.vaKSize;
 
 		oMeasurer.SetTextPr(TextPr, Theme);
-		oMeasurer.SetFontSlot(fontslot_ASCII, FontKoef);
+		oMeasurer.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
 
 		var X = 0;
 		var T = this.private_GetString();
@@ -300,7 +300,7 @@
 	};
 	CRunFootnoteReference.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		return rfont_ASCII;
+		return AscWord.fontslot_Unknown;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};

@@ -294,11 +294,11 @@
 		return false;
 	};
 	/**
-	 * @returns {rfont_None}
+	 * @returns {AscWord.fontslot_Unknown}
 	 */
 	CRunElementBase.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		return rfont_None;
+		return AscWord.fontslot_Unknown;
 	};
 	/**
 	 * @returns {boolean}

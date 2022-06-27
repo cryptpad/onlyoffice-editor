@@ -78,28 +78,10 @@
 			if (oRun.IsEmpty())
 				return false;
 
-			let oTextPr = oRun.Get_CompiledPr(false);
+			let nFontSlot = oRun.GetFontSlot(nStartPos, nEndPos);
+			let oTextPr   = oRun.Get_CompiledPr(false);
 
-			let nFontSlot = fontslot_None;
-			if (oTextPr.CS || oTextPr.RTL)
-			{
-				nFontSlot = fontslot_CS;
-			}
-			else
-			{
-				for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
-				{
-					let oItem = oRun.GetElement(nPos);
-
-					if (oItem && (oItem.IsText() || oItem.IsText()))
-						nFontSlot |= AscWord.GetFontSlot(oItem.GetCodePoint(), oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
-					else
-						nFontSlot |= oItem.GetFontSlot();
-
-				}
-			}
-
-			if (nFontSlot & fontslot_CS)
+			if (nFontSlot & AscWord.fontslot_CS)
 			{
 				oThis.CheckBold(oTextPr.BoldCS);
 				oThis.CheckItalic(oTextPr.ItalicCS);
@@ -107,20 +89,20 @@
 				oThis.CheckFontName(oTextPr.RFonts.CS.Name);
 			}
 
-			if (nFontSlot !== fontslot_CS && nFontSlot !== fontslot_None)
+			if (nFontSlot !== AscWord.fontslot_CS && nFontSlot !== AscWord.fontslot_None)
 			{
 				oThis.CheckBold(oTextPr.Bold);
 				oThis.CheckItalic(oTextPr.Italic);
 				oThis.CheckFontSize(oTextPr.FontSize);
 			}
 
-			if (nFontSlot & fontslot_ASCII)
+			if (nFontSlot & AscWord.fontslot_ASCII)
 				oThis.CheckFontName(oTextPr.RFonts.Ascii.Name);
 
-			if (nFontSlot & fontslot_HAnsi)
+			if (nFontSlot & AscWord.fontslot_HAnsi)
 				oThis.CheckFontName(oTextPr.RFonts.HAnsi.Name);
 
-			if (nFontSlot & fontslot_EastAsia)
+			if (nFontSlot & AscWord.fontslot_EastAsia)
 				oThis.CheckFontName(oTextPr.RFonts.EastAsia.Name);
 
 			return false;
@@ -153,18 +135,18 @@
 			oItem = oRun.GetElement(nInRunPos);
 
 		let oTextPr   = oRun.Get_CompiledPr(false);
-		let nFontSlot = fontslot_ASCII;
+		let nFontSlot = AscWord.fontslot_ASCII;
 		if (oItem && oItem.IsText())
 			nFontSlot = AscWord.GetFontSlot(oItem.GetCodePoint(), oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
 
-		if (nFontSlot & fontslot_ASCII)
+		if (nFontSlot & AscWord.fontslot_ASCII)
 			this.FontName = oTextPr.RFonts.Ascii.Name;
-		else if (nFontSlot & fontslot_HAnsi)
+		else if (nFontSlot & AscWord.fontslot_HAnsi)
 			this.FontName = oTextPr.RFonts.HAnsi.Name;
-		else if (nFontSlot & fontslot_EastAsia)
+		else if (nFontSlot & AscWord.fontslot_EastAsia)
 			this.FontName = oTextPr.RFonts.EastAsia.Name;
 
-		if (nFontSlot & fontslot_CS)
+		if (nFontSlot & AscWord.fontslot_CS)
 		{
 			this.Bold     = oTextPr.BoldCS;
 			this.Italic   = oTextPr.ItalicCS;

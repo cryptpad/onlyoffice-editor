@@ -69,7 +69,7 @@
 		var _X = X;
 		var _Y = Y;
 
-		Context.SetFontSlot(fontslot_ASCII, this.FontKoef);
+		Context.SetFontSlot(AscWord.fontslot_ASCII, this.FontKoef);
 		for (var Index = 0; Index < Len; Index++)
 		{
 			var Char = this.String.charAt(Index);
@@ -80,7 +80,7 @@
 	CRunPageNum.prototype.Measure = function (Context, TextPr)
 	{
 		this.FontKoef = TextPr.Get_FontKoef();
-		Context.SetFontSlot(fontslot_ASCII, this.FontKoef);
+		Context.SetFontSlot(AscWord.fontslot_ASCII, this.FontKoef);
 
 		for (var Index = 0; Index < 10; Index++)
 		{
@@ -196,7 +196,7 @@
 	};
 	CRunPageNum.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		return rfont_ASCII;
+		return AscWord.fontslot_Unknown;
 	};
 
 	/**

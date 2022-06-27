@@ -208,7 +208,7 @@ function CMathText(bJDraw)
     this.rasterOffsetX  = 0;
     this.rasterOffsetY  = 0;
 
-    this.FontSlot       = fontslot_ASCII;
+    this.FontSlot       = AscWord.fontslot_ASCII;
 
 
     // TO DO
@@ -720,7 +720,7 @@ CMathText.prototype.Measure = function(oMeasure, TextPr, InfoMathText)
 
         var letter = this.private_getCode();
 
-        this.FontSlot = InfoMathText.GetFontSlot(letter); // возвращает fontslot_ASCII || fontslot_EastAsia || fontslot_CS || fontslot_HAnsi
+        this.FontSlot = InfoMathText.GetFontSlot(letter); // возвращает AscWord.fontslot_ASCII || AscWord.fontslot_EastAsia || AscWord.fontslot_CS || AscWord.fontslot_HAnsi
 
         // в не математическом тексте i и j не подменяются на i и j без точек
         var bAccentIJ = !InfoMathText.bNormalText && this.Parent.IsAccent() && (this.value == 0x69 || this.value == 0x6A);
@@ -1006,7 +1006,7 @@ CMathText.prototype.Read_FromBinary = function(Reader)
 };
 CMathText.prototype.Is_LetterCS = function()
 {
-    return this.FontSlot == fontslot_CS;
+    return this.FontSlot == AscWord.fontslot_CS;
 };
 CMathText.prototype.ToSearchElement = function(oProps)
 {
@@ -1169,10 +1169,10 @@ function CMathInfoTextPr(InfoTextPr)
     // скопируем эти свойства для SetFontSlot
     // для SpecialOperator нужны уже скомпилированные для мат текста текстовые настройки, поэтому важно эи свойства скопировать именно здесь, а не передавать в MathText обычные текст. настройки
 
-    this.RFontsCompare[fontslot_ASCII]    = undefined !== this.TextPr.RFonts.Ascii && this.TextPr.RFonts.Ascii.Name == "Cambria Math";
-    this.RFontsCompare[fontslot_HAnsi]    = undefined !== this.TextPr.RFonts.HAnsi && this.TextPr.RFonts.HAnsi.Name == "Cambria Math";
-    this.RFontsCompare[fontslot_CS]       = undefined !== this.TextPr.RFonts.CS && this.TextPr.RFonts.CS.Name == "Cambria Math";
-    this.RFontsCompare[fontslot_EastAsia] = undefined !== this.TextPr.RFonts.EastAsia && this.TextPr.RFonts.EastAsia.Name == "Cambria Math";
+    this.RFontsCompare[AscWord.fontslot_ASCII]    = undefined !== this.TextPr.RFonts.Ascii && this.TextPr.RFonts.Ascii.Name == "Cambria Math";
+    this.RFontsCompare[AscWord.fontslot_HAnsi]    = undefined !== this.TextPr.RFonts.HAnsi && this.TextPr.RFonts.HAnsi.Name == "Cambria Math";
+    this.RFontsCompare[AscWord.fontslot_CS]       = undefined !== this.TextPr.RFonts.CS && this.TextPr.RFonts.CS.Name == "Cambria Math";
+    this.RFontsCompare[AscWord.fontslot_EastAsia] = undefined !== this.TextPr.RFonts.EastAsia && this.TextPr.RFonts.EastAsia.Name == "Cambria Math";
 }
 CMathInfoTextPr.prototype.NeedUpdateFont = function(code, fontSlot, IsPlaceholder, IsApostrophe)
 {
@@ -1217,7 +1217,7 @@ CMathInfoTextPr.prototype.NeedUpdateFont = function(code, fontSlot, IsPlaceholde
 };
 CMathInfoTextPr.prototype.private_GetFontSize = function(fontSlot)
 {
-    return fontSlot == fontslot_CS ? this.TextPr.FontSizeCS : this.TextPr.FontSize;
+    return fontSlot == AscWord.fontslot_CS ? this.TextPr.FontSizeCS : this.TextPr.FontSize;
 };
 CMathInfoTextPr.prototype.GetFontKoef = function(fontSlot)
 {

@@ -134,11 +134,11 @@
 		if (undefined !== nFontSlot)
 		{
 			let nFS = FLAGS_ASCII;
-			if (nFontSlot & fontslot_EastAsia)
+			if (nFontSlot & AscWord.fontslot_EastAsia)
 				nFS = FLAGS_EASTASIA;
-			else if (nFontSlot & fontslot_HAnsi)
+			else if (nFontSlot & AscWord.fontslot_HAnsi)
 				nFS = FLAGS_HANSI;
-			else if (nFontSlot & fontslot_CS)
+			else if (nFontSlot & AscWord.fontslot_CS)
 				nFS = FLAGS_CS;
 
 			this.Flags = (this.Flags & 0xFFFFFFFC) | nFS;
@@ -533,17 +533,7 @@
 	};
 	CRunText.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		let fontSlot = AscWord.GetFontSlot(this.Value, nHint, nEA_lcid, isCS, isRTL);
-		if (fontSlot === fontslot_ASCII)
-			return rfont_ASCII;
-		else if (fontSlot === fontslot_HAnsi)
-			return rfont_HAnsi;
-		else if (fontSlot === fontslot_CS)
-			return rfont_CS;
-		else if (fontSlot === fontslot_EastAsia)
-			return rfont_EastAsia;
-
-		return rfont_None;
+		return AscWord.GetFontSlot(this.Value, nHint, nEA_lcid, isCS, isRTL);
 	};
 	CRunText.prototype.IsCombiningMark = function()
 	{

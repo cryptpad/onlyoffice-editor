@@ -2074,7 +2074,7 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 				var dFontKoef = bNearFootnoteReference ? 1 : CurTextPr.Get_FontKoef();
 
 				g_oTextMeasurer.SetTextPr(CurTextPr, this.Paragraph.Get_Theme());
-				g_oTextMeasurer.SetFontSlot(fontslot_ASCII, dFontKoef);
+				g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, dFontKoef);
 				var Height    = g_oTextMeasurer.GetHeight();
 				var Descender = Math.abs(g_oTextMeasurer.GetDescender());
 				var Ascender  = Height - Descender;
@@ -2224,7 +2224,7 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
 			var dFontKoef = bNearFootnoteReference ? 1 : CurTextPr.Get_FontKoef();
 
 			g_oTextMeasurer.SetTextPr(CurTextPr, this.Paragraph.Get_Theme());
-			g_oTextMeasurer.SetFontSlot(fontslot_ASCII, dFontKoef);
+			g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, dFontKoef);
 
 			var Height    = g_oTextMeasurer.GetHeight();
 			var Descender = Math.abs(g_oTextMeasurer.GetDescender());
@@ -3278,7 +3278,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	var lcid = _oTextPr.Lang.EastAsia;
 
 	// TODO: Пока для формул сделаем, чтобы работало по-старому, в дальнейшем надо будет переделать на fontslot
-	let nRFontsFlags = isMathRun ? rfont_ASCII : 0;
+	let nRFontsFlags = isMathRun ? AscWord.fontslot_ASCII : AscWord.fontslot_None;
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		nRFontsFlags |= this.Content[nPos].GetFontSlot(Hint, lcid, bCS, bRTL);
@@ -3473,7 +3473,7 @@ ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfo
 	{
 		// После автофигур надо заново выставлять настройки
 		g_oTextMeasurer.SetTextPr(oTextPr, oTheme);
-		g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+		g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII);
 	}
 };
 ParaRun.prototype.Recalculate_Measure2 = function(Metrics)
@@ -13182,7 +13182,6 @@ ParaRun.prototype.ClearSpellingMarks = function()
 {
 	this.SpellingMarks = [];
 };
-//----------------------------------------------------------------------------------------------------------------------
 ParaRun.prototype.GetSelectedDrawingObjectsInText = function(arrDrawings)
 {
 	if (!this.IsSelectionUse())
@@ -13206,7 +13205,7 @@ ParaRun.prototype.GetSelectedDrawingObjectsInText = function(arrDrawings)
 
 	return arrDrawings;
 };
-
+//----------------------------------------------------------------------------------------------------------------------
 // Search
 //----------------------------------------------------------------------------------------------------------------------
 ParaRun.prototype.Search = function(ParaSearch)
@@ -13406,7 +13405,25 @@ ParaRun.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPo
 	return NearElementId;
 };
 //----------------------------------------------------------------------------------------------------------------------
+ParaRun.prototype.GetFontSlot = function(nStartPos, nEndPos)
+{
+	let oTextPr = this.Get_CompiledPr(false);
+	if (oTextPr.RTL || oTextPr.CS)
+		return AscWord.fontslot_CS;
 
+	let nFontSlot = AscWord.fontslot_None;
+	for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
+	{
+		let oItem = this.Content[nPos];
+
+		if (oItem && (oItem.IsText() || oItem.IsText()))
+			nFontSlot |= AscWord.GetFontSlot(oItem.GetCodePoint(), oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+		else
+			nFontSlot |= oItem.GetFontSlot();
+	}
+
+	return nFontSlot;
+};
 
 function CParaRunStartState(Run)
 {

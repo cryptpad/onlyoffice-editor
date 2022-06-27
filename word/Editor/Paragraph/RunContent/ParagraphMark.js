@@ -63,7 +63,7 @@
 		if ((undefined !== editor && editor.ShowParaMarks) || true === bForceDraw)
 		{
 			var FontKoef = (this.Flags & FLAGS_FONTKOEF_SCRIPT ? AscCommon.vaKSize : 1);
-			Context.SetFontSlot(fontslot_ASCII, FontKoef);
+			Context.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
 
 			if (this.SectionEnd)
 				this.private_DrawSectionEnd(X, Y, Context);
@@ -86,7 +86,7 @@
 			this.Flags &= FLAGS_NON_FONTKOEF_SCRIPT;
 		}
 
-		Context.SetFontSlot(fontslot_ASCII, dFontKoef);
+		Context.SetFontSlot(AscWord.fontslot_ASCII, dFontKoef);
 
 		if (true === bEndCell)
 			this.WidthVisible = (Context.Measure(String.fromCharCode(0x00A4)).Width * AscWord.TEXTWIDTH_DIVIDER) | 0;
@@ -208,7 +208,7 @@
 	};
 	CRunParagraphMark.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
 	{
-		return rfont_ASCII;
+		return AscWord.fontslot_Unknown;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};

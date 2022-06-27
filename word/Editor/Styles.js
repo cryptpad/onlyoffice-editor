@@ -12649,12 +12649,6 @@ CTableCellPr.prototype.RemovePrChange = function()
 	delete this.ReviewInfo;
 };
 
-const rfont_None     = 0x00;
-const rfont_ASCII    = 0x01;
-const rfont_EastAsia = 0x02;
-const rfont_CS       = 0x04;
-const rfont_HAnsi    = 0x08;
-
 function CRFonts()
 {
     this.Ascii    = undefined;
@@ -15183,17 +15177,17 @@ CTextPr.prototype.GetTextMetrics = function(oTheme, nFontFlags)
 
 	g_oTextMeasurer.SetTextPr(this, oTheme);
 
-	if ((nFontFlags & rfont_ASCII) && this.RFonts.Ascii)
-		oMetrics.Update(this.RFonts.Ascii.Name, fontslot_ASCII);
+	if ((nFontFlags & AscWord.fontslot_ASCII) && this.RFonts.Ascii)
+		oMetrics.Update(this.RFonts.Ascii.Name, AscWord.fontslot_ASCII);
 
-	if ((nFontFlags & rfont_CS) && this.RFonts.CS)
-		oMetrics.Update(this.RFonts.CS.Name, fontslot_CS);
+	if ((nFontFlags & AscWord.fontslot_CS) && this.RFonts.CS)
+		oMetrics.Update(this.RFonts.CS.Name, AscWord.fontslot_CS);
 
-	if ((nFontFlags & rfont_HAnsi) && this.RFonts.HAnsi)
-		oMetrics.Update(this.RFonts.HAnsi.Name, fontslot_HAnsi);
+	if ((nFontFlags & AscWord.fontslot_HAnsi) && this.RFonts.HAnsi)
+		oMetrics.Update(this.RFonts.HAnsi.Name, AscWord.fontslot_HAnsi);
 
-	if ((nFontFlags & rfont_EastAsia) && this.RFonts.EastAsia)
-		oMetrics.Update(this.RFonts.EastAsia.Name, fontslot_EastAsia);
+	if ((nFontFlags & AscWord.fontslot_EastAsia) && this.RFonts.EastAsia)
+		oMetrics.Update(this.RFonts.EastAsia.Name, AscWord.fontslot_EastAsia);
 
 	return oMetrics;
 };
@@ -15206,7 +15200,7 @@ CTextPr.prototype.GetFontInfo = function(nFontSlot)
 
 	switch (nFontSlot)
 	{
-		case fontslot_CS:
+		case AscWord.fontslot_CS:
 		{
 			sFontName = this.RFonts.CS.Name;
 			isBold    = this.BoldCS;
@@ -15214,12 +15208,12 @@ CTextPr.prototype.GetFontInfo = function(nFontSlot)
 			nFontSize = this.FontSizeCS;
 			break;
 		}
-		case fontslot_EastAsia:
+		case AscWord.fontslot_EastAsia:
 		{
 			sFontName = this.RFonts.EastAsia.Name;
 			break;
 		}
-		case fontslot_HAnsi:
+		case AscWord.fontslot_HAnsi:
 		{
 			sFontName = this.RFonts.HAnsi.Name;
 			break;

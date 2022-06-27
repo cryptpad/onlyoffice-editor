@@ -29172,7 +29172,7 @@ CDocumentLineNumbersInfo.prototype.private_Update = function()
 		nFontKoef = AscCommon.vaKSize;
 
 	g_oTextMeasurer.SetTextPr(this.TextPr, this.LogicDocument.GetTheme());
-	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, nFontKoef);
+	g_oTextMeasurer.SetFontSlot(AscWord.fontslot_ASCII, nFontKoef);
 	for (var nDigit = 0; nDigit < 10; ++nDigit)
 	{
 		this.Widths[nDigit] = g_oTextMeasurer.MeasureCode(0x0030 + nDigit).Width;
