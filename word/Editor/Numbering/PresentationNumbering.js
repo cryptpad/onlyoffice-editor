@@ -408,7 +408,7 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Them
 		}
 		else
 		{
-			this.Unifill = AscFormat.CreteSolidFillRGB(FirstTextPr.Color.r, FirstTextPr.Color.g, FirstTextPr.Color.b);
+			this.Unifill = AscFormat.CreateSolidFillRGB(FirstTextPr.Color.r, FirstTextPr.Color.g, FirstTextPr.Color.b);
 		}
 	}
 
