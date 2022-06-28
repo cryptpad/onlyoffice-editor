@@ -8784,37 +8784,14 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
         if (true === bReview && true !== this.HavePrChange())
             this.AddPrChange();
 
-        if ( undefined === IncFontSize )
-        {
-            this.Apply_Pr(TextPr);
-        }
-        else
-        {
-            var _TextPr = new CTextPr();
-            var CurTextPr = this.Get_CompiledPr( false );
+		if (undefined === IncFontSize)
+			this.Apply_Pr(TextPr);
+		else
+			this.IncreaseDecreaseFontSize(IncFontSize);
 
-            this.private_AddCollPrChangeMine();
-            this.Set_FontSize( CurTextPr.GetIncDecFontSize(IncFontSize));
-        }
-
-        // Дополнительно проверим, если у нас para_End лежит в данном ране и попадает в выделение, тогда
-        // применим заданные настроки к символу конца параграфа
-
-        // TODO: Возможно, стоит на этапе пересчета запонимать, лежит ли para_End в данном ране. Чтобы в каждом
-        //       ране потом не бегать каждый раз по всему массиву в поисках para_End.
-
-        var bEnd = false;
-        var Count = this.Content.length;
-        for ( var Pos = 0; Pos < Count; Pos++ )
-        {
-            if ( para_End === this.Content[Pos].Type )
-            {
-                bEnd = true;
-                break;
-            }
-        }
-
-        if ( true === bEnd )
+		// TODO: Возможно, стоит на этапе пересчета запонимать, лежит ли para_End в данном ране. Чтобы в каждом
+		//       ране потом не бегать каждый раз по всему массиву в поисках para_End.
+		if (this.IsParaEndRun())
 		{
 			if (undefined === IncFontSize)
 			{
@@ -8841,10 +8818,8 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 			}
 			else
 			{
-				var oEndTextPr = this.Paragraph.GetParaEndCompiledPr();
-
 				// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-				this.Paragraph.TextPr.Set_FontSize(oEndTextPr.GetIncDecFontSize(IncFontSize));
+				this.Paragraph.TextPr.IncreaseDecreaseFontSize(IncFontSize);
 			}
 		}
     }
@@ -8913,13 +8888,7 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 				if (undefined === IncFontSize)
 					CRun.Apply_Pr(TextPr);
 				else
-				{
-					var _TextPr   = new CTextPr();
-					var CurTextPr = this.Get_CompiledPr(false);
-
-					CRun.private_AddCollPrChangeMine();
-					CRun.Set_FontSize(CurTextPr.GetIncDecFontSize(IncFontSize));
-				}
+					CRun.IncreaseDecreaseFontSize(IncFontSize);
 
 				if (null !== RRun)
 				{
@@ -8961,10 +8930,8 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 					}
 					else
 					{
-						var oEndTextPr = this.Paragraph.GetParaEndCompiledPr();
-
 						// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-						this.Paragraph.TextPr.Set_FontSize(oEndTextPr.GetIncDecFontSize(IncFontSize));
+						this.Paragraph.TextPr.IncreaseDecreaseFontSize(IncFontSize);
 					}
 				}
 			}
@@ -9004,17 +8971,10 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
             if (true === bReview && true !== CRun.HavePrChange())
                 CRun.AddPrChange();
 
-            if ( undefined === IncFontSize )
-            {
-                CRun.Apply_Pr( TextPr );
-            }
-            else
-            {
-                var _TextPr = new CTextPr();
-                var CurTextPr = this.Get_CompiledPr( false );
-                CRun.private_AddCollPrChangeMine();
-                CRun.Set_FontSize(CurTextPr.GetIncDecFontSize(IncFontSize));
-            }
+			if (undefined === IncFontSize)
+				CRun.Apply_Pr(TextPr);
+			else
+				CRun.IncreaseDecreaseFontSize(IncFontSize);
 
 
             if ( null !== RRun )
@@ -9195,8 +9155,6 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			this.SetItalicCS(null === TextPr.Italic ? undefined : TextPr.Italic);
 		}
 	}
-
-	// TODO: Пока временно сделали, что при выставлении Bold, Italic, FontSize выставляются и их дублеры BoldCS, ItalicCS, FontSizeCS
 
 	if (undefined !== TextPr.Strikeout)
 		this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
@@ -10204,6 +10162,13 @@ ParaRun.prototype.ApplyComplexScript = function(isCS)
 		if (undefined === this.Pr.FontSize && undefined !== this.Pr.FontSizeCS)
 			this.SetFontSize(this.Pr.FontSizeCS);
 	}
+};
+ParaRun.prototype.IncreaseDecreaseFontSize = function(isIncrease)
+{
+	let oTextPr = this.Get_CompiledPr(false);
+	this.private_AddCollPrChangeMine();
+	this.SetFontSizeCS(oTextPr.GetIncDecFontSizeCS(isIncrease));
+	this.SetFontSize(oTextPr.GetIncDecFontSize(isIncrease));
 };
 //-----------------------------------------------------------------------------------
 // Undo/Redo функции
