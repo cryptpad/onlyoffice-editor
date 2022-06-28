@@ -123,7 +123,7 @@
 	};
 	CTextShaper.prototype.GetFontSlot = function(nUnicode)
 	{
-		return AscWord.GetFontSlot(nUnicode, fonthint_Default, lcid_unknown, false, false);
+		return AscWord.GetFontSlot(nUnicode, AscWord.fonthint_Default, lcid_unknown, false, false);
 	};
 	CTextShaper.prototype.GetDirection = function(nScript)
 	{

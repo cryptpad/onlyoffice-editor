@@ -10125,6 +10125,7 @@ ParaRun.prototype.ApplyComplexScript = function(isCS)
 	if (isCS && !this.Pr.CS)
 	{
 		this.SetCS(true);
+		this.Set_RFonts_Hint(AscWord.fonthint_CS);
 
 		if (undefined === this.Pr.BoldCS && undefined !== this.Pr.Bold)
 			this.SetBoldCS(this.Pr.Bold);
@@ -10138,6 +10139,7 @@ ParaRun.prototype.ApplyComplexScript = function(isCS)
 	else if (!isCS && this.Pr.CS)
 	{
 		this.SetCS(undefined);
+		this.Set_RFonts_Hint(undefined);
 
 		if (undefined === this.Pr.Bold && undefined !== this.Pr.BoldCS)
 			this.SetBold(this.Pr.BoldCS);

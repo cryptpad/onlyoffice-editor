@@ -9076,22 +9076,22 @@
 	function fromXml_ST_Hint(val) {
 		switch (val) {
 			case "default":
-				return fonthint_Default;
+				return AscWord.fonthint_Default;
 			case "cs":
-				return fonthint_CS;
+				return AscWord.fonthint_CS;
 			case "eastAsia":
-				return fonthint_EastAsia;
+				return AscWord.fonthint_EastAsia;
 		}
 		return undefined;
 	}
 
 	function toXml_ST_Hint(val) {
 		switch (val) {
-			case fonthint_Default:
+			case AscWord.fonthint_Default:
 				return "default";
-			case fonthint_CS:
+			case AscWord.fonthint_CS:
 				return "cs";
-			case fonthint_EastAsia:
+			case AscWord.fonthint_EastAsia:
 				return "eastAsia";
 		}
 		return null;

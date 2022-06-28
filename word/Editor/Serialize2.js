@@ -3023,8 +3023,8 @@ function Binary_rPrWriter(memory, saveParams)
 				var nHint;
 				switch(font.Hint)
 				{
-					case fonthint_CS:nHint = EHint.hintCs;break;
-					case fonthint_EastAsia:nHint = EHint.hintEastAsia;break;
+					case AscWord.fonthint_CS:nHint = EHint.hintCs;break;
+					case AscWord.fonthint_EastAsia:nHint = EHint.hintEastAsia;break;
 					default :nHint = EHint.hintDefault;break;
 				}
 				this.memory.WriteByte(c_oSerProp_rPrType.FontHint);
@@ -9848,9 +9848,9 @@ function Binary_rPrReader(doc, oReadResult, stream)
 				var nHint;
 				switch(this.stream.GetUChar())
 				{
-					case EHint.hintCs: nHint = fonthint_CS;break;
-					case EHint.hintEastAsia: nHint = fonthint_EastAsia;break;
-					default : nHint = fonthint_Default;break;
+					case EHint.hintCs: nHint = AscWord.fonthint_CS;break;
+					case EHint.hintEastAsia: nHint = AscWord.fonthint_EastAsia;break;
+					default : nHint = AscWord.fonthint_Default;break;
 				}
 				rPr.RFonts.Hint = nHint;
                 break;

@@ -12790,7 +12790,7 @@ CRFonts.prototype.InitDefault = function()
 		Index : -1
 	};
 
-	this.Hint          = fonthint_Default;
+	this.Hint          = AscWord.fonthint_Default;
 	this.AsciiTheme    = undefined;
 	this.EastAsiaTheme = undefined;
 	this.HAnsiTheme    = undefined;
@@ -12877,7 +12877,7 @@ CRFonts.prototype.SetAll = function(sFontName, nFontIndex)
 		Index : nFontIndex
 	};
 
-	this.Hint = fonthint_Default;
+	this.Hint = AscWord.fonthint_Default;
 
 	this.AsciiTheme    = undefined;
 	this.EastAsiaTheme = undefined;

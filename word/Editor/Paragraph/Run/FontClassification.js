@@ -39,12 +39,13 @@ const fontslot_CS       = 0x04;
 const fontslot_HAnsi    = 0x08;
 const fontslot_Unknown  = 0x10;
 
-const fonthint_Default  = 0x00;
-const fonthint_CS       = 0x01;
-const fonthint_EastAsia = 0x02;
-
 (function(window)
 {
+
+	const fonthint_Default  = 0x00;
+	const fonthint_CS       = 0x01;
+	const fonthint_EastAsia = 0x02;
+	
 	const TABLE_CHUNK_LEN = 0x10000;
 	const TABLE_CHUNKS    = 3;
 	let   LOOKUP_TABLE    = null;
@@ -263,6 +264,10 @@ const fonthint_EastAsia = 0x02;
 	window['AscWord'].fontslot_CS       = fontslot_CS;
 	window['AscWord'].fontslot_HAnsi    = fontslot_HAnsi;
 	window['AscWord'].fontslot_Unknown  = fontslot_Unknown;
+
+	window['AscWord'].fonthint_Default  = fonthint_Default;
+	window['AscWord'].fonthint_CS       = fonthint_CS;
+	window['AscWord'].fonthint_EastAsia = fonthint_EastAsia;
 
 })(window);
 
