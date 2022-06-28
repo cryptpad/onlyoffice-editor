@@ -269,18 +269,10 @@ ParaTextPr.prototype.Clear_Style = function()
 	if (undefined != this.Value.Position)
 		this.Set_Position(undefined);
 
-	if (undefined != this.Value.RFonts.Ascii)
-		this.Set_RFonts_Ascii(undefined);
-
-	if (undefined != this.Value.RFonts.HAnsi)
-		this.Set_RFonts_HAnsi(undefined);
-
-	if (undefined != this.Value.RFonts.CS)
-		this.Set_RFonts_CS(undefined);
-
-	if (undefined != this.Value.RFonts.EastAsia)
-		this.Set_RFonts_EastAsia(undefined);
-
+	this.SetRFontsAscii(undefined);
+	this.SetRFontsHAnsi(undefined);
+	this.SetRFontsCS(undefined);
+	this.SetRFontsEastAsia(undefined);
 	this.SetRFontsHint(undefined);
 
 	if (undefined != this.Value.TextFill)
@@ -465,18 +457,18 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 	{
 		if (oRFonts.AsciiTheme)
 		{
-			this.Set_RFonts_Ascii(undefined);
+			this.SetRFontsAscii(undefined);
 			this.SetRFontsAsciiTheme(oRFonts.AsciiTheme);
 		}
 		else if (oRFonts.Ascii)
 		{
-			this.Set_RFonts_Ascii(oRFonts.Ascii);
+			this.SetRFontsAscii(oRFonts.Ascii);
 			this.SetRFontsAsciiTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.Ascii)
-				this.Set_RFonts_Ascii(undefined);
+				this.SetRFontsAscii(undefined);
 
 			if (null === oRFonts.AsciiTheme)
 				this.SetRFontsAsciiTheme(undefined);
@@ -484,18 +476,18 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 
 		if (oRFonts.HAnsiTheme)
 		{
-			this.Set_RFonts_HAnsi(undefined);
+			this.SetRFontsHAnsi(undefined);
 			this.SetRFontsHAnsiTheme(oRFonts.HAnsiTheme);
 		}
 		else if (oRFonts.HAnsi)
 		{
-			this.Set_RFonts_HAnsi(oRFonts.HAnsi);
+			this.SetRFontsHAnsi(oRFonts.HAnsi);
 			this.SetRFontsHAnsiTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.HAnsi)
-				this.Set_RFonts_HAnsi(undefined);
+				this.SetRFontsHAnsi(undefined);
 
 			if (null === oRFonts.HAnsiTheme)
 				this.SetRFontsHAnsiTheme(undefined);
@@ -503,18 +495,18 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 
 		if (oRFonts.CSTheme)
 		{
-			this.Set_RFonts_CS(undefined);
+			this.SetRFontsCS(undefined);
 			this.SetRFontsCSTheme(oRFonts.CSTheme);
 		}
 		else if (oRFonts.CS)
 		{
-			this.Set_RFonts_CS(oRFonts.CS);
+			this.SetRFontsCS(oRFonts.CS);
 			this.SetRFontsCSTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.CS)
-				this.Set_RFonts_CS(undefined);
+				this.SetRFontsCS(undefined);
 
 			if (null === oRFonts.CSTheme)
 				this.SetRFontsCSTheme(undefined);
@@ -522,18 +514,18 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 
 		if (oRFonts.EastAsiaTheme)
 		{
-			this.Set_RFonts_EastAsia(undefined);
+			this.SetRFontsEastAsia(undefined);
 			this.SetRFontsEastAsiaTheme(oRFonts.EastAsiaTheme);
 		}
 		else if (oRFonts.EastAsia)
 		{
-			this.Set_RFonts_EastAsia(oRFonts.EastAsia);
+			this.SetRFontsEastAsia(oRFonts.EastAsia);
 			this.SetRFontsEastAsiaTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.EastAsia)
-				this.Set_RFonts_EastAsia(undefined);
+				this.SetRFontsEastAsia(undefined);
 
 			if (null === oRFonts.EastAsiaTheme)
 				this.SetRFontsEastAsiaTheme(undefined);
@@ -544,18 +536,18 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 	}
 	else
 	{
-		this.Set_RFonts_Ascii(undefined);
+		this.SetRFontsAscii(undefined);
 		this.SetRFontsAsciiTheme(undefined);
-		this.Set_RFonts_HAnsi(undefined);
+		this.SetRFontsHAnsi(undefined);
 		this.SetRFontsHAnsiTheme(undefined);
-		this.Set_RFonts_CS(undefined);
+		this.SetRFontsCS(undefined);
 		this.SetRFontsCSTheme(undefined);
-		this.Set_RFonts_EastAsia(undefined);
+		this.SetRFontsEastAsia(undefined);
 		this.SetRFontsEastAsiaTheme(undefined);
 		this.SetRFontsHint(undefined);
 	}
 };
-ParaTextPr.prototype.Set_RFonts_Ascii = function(Value)
+ParaTextPr.prototype.SetRFontsAscii = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -563,7 +555,7 @@ ParaTextPr.prototype.Set_RFonts_Ascii = function(Value)
 	History.Add(new CChangesParaTextPrRFontsAscii(this, this.Value.RFonts.Ascii, Value));
 	this.Value.RFonts.Ascii = Value;
 };
-ParaTextPr.prototype.Set_RFonts_HAnsi = function(Value)
+ParaTextPr.prototype.SetRFontsHAnsi = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -571,7 +563,7 @@ ParaTextPr.prototype.Set_RFonts_HAnsi = function(Value)
 	History.Add(new CChangesParaTextPrRFontsHAnsi(this, this.Value.RFonts.HAnsi, Value));
 	this.Value.RFonts.HAnsi = Value;
 };
-ParaTextPr.prototype.Set_RFonts_CS = function(Value)
+ParaTextPr.prototype.SetRFontsCS = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -579,7 +571,7 @@ ParaTextPr.prototype.Set_RFonts_CS = function(Value)
 	History.Add(new CChangesParaTextPrRFontsCS(this, this.Value.RFonts.CS, Value));
 	this.Value.RFonts.CS = Value;
 };
-ParaTextPr.prototype.Set_RFonts_EastAsia = function(Value)
+ParaTextPr.prototype.SetRFontsEastAsia = function(Value)
 {
 	if (null === Value)
 		Value = undefined;

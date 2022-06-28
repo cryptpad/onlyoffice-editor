@@ -1234,7 +1234,7 @@ CMathBase.prototype.SetItalic = function(Value)
 		this.raw_SetItalic(Value);
 	}
 };
-CMathBase.prototype.Set_RFonts_Ascii = function(Value)
+CMathBase.prototype.SetRFontsAscii = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1245,7 +1245,7 @@ CMathBase.prototype.Set_RFonts_Ascii = function(Value)
 		this.raw_SetRFontsAscii(Value);
 	}
 };
-CMathBase.prototype.Set_RFonts_HAnsi = function(Value)
+CMathBase.prototype.SetRFontsHAnsi = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1256,7 +1256,7 @@ CMathBase.prototype.Set_RFonts_HAnsi = function(Value)
 		this.raw_SetRFontsHAnsi(Value);
 	}
 };
-CMathBase.prototype.Set_RFonts_CS = function(Value)
+CMathBase.prototype.SetRFontsCS = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1267,7 +1267,7 @@ CMathBase.prototype.Set_RFonts_CS = function(Value)
 		this.raw_SetRFontsCS(Value);
 	}
 };
-CMathBase.prototype.Set_RFonts_EastAsia = function(Value)
+CMathBase.prototype.SetRFontsEastAsia = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1365,31 +1365,31 @@ CMathBase.prototype.raw_SetHighlightColor = function(Value)
 };
 CMathBase.prototype.raw_SetRFonts = function(RFonts)
 {
-    if ( undefined != RFonts )
-    {
-        if ( undefined != RFonts.Ascii )
-            this.Set_RFonts_Ascii( RFonts.Ascii );
+	if (RFonts)
+	{
+		if (undefined !== RFonts.Ascii)
+			this.SetRFontsAscii(RFonts.Ascii);
 
-        if ( undefined != RFonts.HAnsi )
-            this.Set_RFonts_HAnsi( RFonts.HAnsi );
+		if (undefined !== RFonts.HAnsi)
+			this.SetRFontsHAnsi(RFonts.HAnsi);
 
-        if ( undefined != RFonts.CS )
-            this.Set_RFonts_CS( RFonts.CS );
+		if (undefined !== RFonts.CS)
+			this.SetRFontsCS(RFonts.CS);
 
-        if ( undefined != RFonts.EastAsia )
-            this.Set_RFonts_EastAsia( RFonts.EastAsia );
+		if (undefined !== RFonts.EastAsia)
+			this.SetRFontsEastAsia(RFonts.EastAsia);
 
-        if ( undefined != RFonts.Hint )
-            this.SetRFontsHint( RFonts.Hint );
-    }
-    else
-    {
-        this.Set_RFonts_Ascii( undefined );
-        this.Set_RFonts_HAnsi( undefined );
-        this.Set_RFonts_CS( undefined );
-        this.Set_RFonts_EastAsia( undefined );
-        this.SetRFontsHint( undefined );
-    }
+		if (undefined !== RFonts.Hint)
+			this.SetRFontsHint(RFonts.Hint);
+	}
+	else
+	{
+		this.SetRFontsAscii(undefined);
+		this.SetRFontsHAnsi(undefined);
+		this.SetRFontsCS(undefined);
+		this.SetRFontsEastAsia(undefined);
+		this.SetRFontsHint(undefined);
+	}
 };
 CMathBase.prototype.raw_SetRFontsAscii = function(Value)
 {

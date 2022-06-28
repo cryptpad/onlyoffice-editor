@@ -9779,18 +9779,18 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 	{
 		if (oRFonts.AsciiTheme)
 		{
-			this.Set_RFonts_Ascii(undefined);
+			this.SetRFontsAscii(undefined);
 			this.SetRFontsAsciiTheme(oRFonts.AsciiTheme);
 		}
 		else if (oRFonts.Ascii)
 		{
-			this.Set_RFonts_Ascii(oRFonts.Ascii);
+			this.SetRFontsAscii(oRFonts.Ascii);
 			this.SetRFontsAsciiTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.Ascii)
-				this.Set_RFonts_Ascii(undefined);
+				this.SetRFontsAscii(undefined);
 
 			if (null === oRFonts.AsciiTheme)
 				this.SetRFontsAsciiTheme(undefined);
@@ -9798,18 +9798,18 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 
 		if (oRFonts.HAnsiTheme)
 		{
-			this.Set_RFonts_HAnsi(undefined);
+			this.SetRFontsHAnsi(undefined);
 			this.SetRFontsHAnsiTheme(oRFonts.HAnsiTheme);
 		}
 		else if (oRFonts.HAnsi)
 		{
-			this.Set_RFonts_HAnsi(oRFonts.HAnsi);
+			this.SetRFontsHAnsi(oRFonts.HAnsi);
 			this.SetRFontsHAnsiTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.HAnsi)
-				this.Set_RFonts_HAnsi(undefined);
+				this.SetRFontsHAnsi(undefined);
 
 			if (null === oRFonts.HAnsiTheme)
 				this.SetRFontsHAnsiTheme(undefined);
@@ -9817,18 +9817,18 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 
 		if (oRFonts.CSTheme)
 		{
-			this.Set_RFonts_CS(undefined);
+			this.SetRFontsCS(undefined);
 			this.SetRFontsCSTheme(oRFonts.CSTheme);
 		}
 		else if (oRFonts.CS)
 		{
-			this.Set_RFonts_CS(oRFonts.CS);
+			this.SetRFontsCS(oRFonts.CS);
 			this.SetRFontsCSTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.CS)
-				this.Set_RFonts_CS(undefined);
+				this.SetRFontsCS(undefined);
 
 			if (null === oRFonts.CSTheme)
 				this.SetRFontsCSTheme(undefined);
@@ -9836,18 +9836,18 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 
 		if (oRFonts.EastAsiaTheme)
 		{
-			this.Set_RFonts_EastAsia(undefined);
+			this.SetRFontsEastAsia(undefined);
 			this.SetRFontsEastAsiaTheme(oRFonts.EastAsiaTheme);
 		}
 		else if (oRFonts.EastAsia)
 		{
-			this.Set_RFonts_EastAsia(oRFonts.EastAsia);
+			this.SetRFontsEastAsia(oRFonts.EastAsia);
 			this.SetRFontsEastAsiaTheme(undefined);
 		}
 		else
 		{
 			if (null === oRFonts.EastAsia)
-				this.Set_RFonts_EastAsia(undefined);
+				this.SetRFontsEastAsia(undefined);
 
 			if (null === oRFonts.EastAsiaTheme)
 				this.SetRFontsEastAsiaTheme(undefined);
@@ -9858,25 +9858,25 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 	}
 	else
 	{
-		this.Set_RFonts_Ascii(undefined);
+		this.SetRFontsAscii(undefined);
 		this.SetRFontsAsciiTheme(undefined);
-		this.Set_RFonts_HAnsi(undefined);
+		this.SetRFontsHAnsi(undefined);
 		this.SetRFontsHAnsiTheme(undefined);
-		this.Set_RFonts_CS(undefined);
+		this.SetRFontsCS(undefined);
 		this.SetRFontsCSTheme(undefined);
-		this.Set_RFonts_EastAsia(undefined);
+		this.SetRFontsEastAsia(undefined);
 		this.SetRFontsEastAsiaTheme(undefined);
 		this.SetRFontsHint(undefined);
 	}
 };
 ParaRun.prototype.Set_RFont_ForMathRun = function()
 {
-    this.Set_RFonts_Ascii({Name : "Cambria Math", Index : -1});
-    this.Set_RFonts_CS({Name : "Cambria Math", Index : -1});
-    this.Set_RFonts_EastAsia({Name : "Cambria Math", Index : -1});
-    this.Set_RFonts_HAnsi({Name : "Cambria Math", Index : -1});
+    this.SetRFontsAscii({Name : "Cambria Math", Index : -1});
+    this.SetRFontsCS({Name : "Cambria Math", Index : -1});
+    this.SetRFontsEastAsia({Name : "Cambria Math", Index : -1});
+    this.SetRFontsHAnsi({Name : "Cambria Math", Index : -1});
 };
-ParaRun.prototype.Set_RFonts_Ascii = function(Value)
+ParaRun.prototype.SetRFontsAscii = function(Value)
 {
 	var _Value = (null === Value ? undefined : Value);
 
@@ -9890,7 +9890,7 @@ ParaRun.prototype.Set_RFonts_Ascii = function(Value)
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
 	}
 };
-ParaRun.prototype.Set_RFonts_HAnsi = function(Value)
+ParaRun.prototype.SetRFontsHAnsi = function(Value)
 {
 	var _Value = (null === Value ? undefined : Value);
 
@@ -9904,7 +9904,7 @@ ParaRun.prototype.Set_RFonts_HAnsi = function(Value)
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
 	}
 };
-ParaRun.prototype.Set_RFonts_CS = function(Value)
+ParaRun.prototype.SetRFontsCS = function(Value)
 {
 	var _Value = (null === Value ? undefined : Value);
 
@@ -9918,7 +9918,7 @@ ParaRun.prototype.Set_RFonts_CS = function(Value)
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
 	}
 };
-ParaRun.prototype.Set_RFonts_EastAsia = function(Value)
+ParaRun.prototype.SetRFontsEastAsia = function(Value)
 {
 	var _Value = (null === Value ? undefined : Value);
 

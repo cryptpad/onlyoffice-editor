@@ -5183,10 +5183,10 @@
 						var fontFamilyName = oRunS['font-family'] ? oRunS['font-family'] : "Arial";
 						var fontSize = (oRunS['font-size'] != null) ? oRunS['font-size'] : 50;
 
-						oRun.Set_RFonts_Ascii({Name : fontFamilyName, Index : -1});
-						oRun.Set_RFonts_CS({Name : fontFamilyName, Index : -1});
-						oRun.Set_RFonts_EastAsia({Name : fontFamilyName, Index : -1});
-						oRun.Set_RFonts_HAnsi({Name : fontFamilyName, Index : -1});
+						oRun.SetRFontsAscii({Name : fontFamilyName, Index : -1});
+						oRun.SetRFontsCS({Name : fontFamilyName, Index : -1});
+						oRun.SetRFontsEastAsia({Name : fontFamilyName, Index : -1});
+						oRun.SetRFontsHAnsi({Name : fontFamilyName, Index : -1});
 
 						oRun.SetFontSize(fontSize);
 
