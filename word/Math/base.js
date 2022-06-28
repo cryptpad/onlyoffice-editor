@@ -1278,7 +1278,7 @@ CMathBase.prototype.Set_RFonts_EastAsia = function(Value)
 		this.raw_SetRFontsEastAsia(Value);
 	}
 };
-CMathBase.prototype.Set_RFonts_Hint = function(Value)
+CMathBase.prototype.SetRFontsHint = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1380,7 +1380,7 @@ CMathBase.prototype.raw_SetRFonts = function(RFonts)
             this.Set_RFonts_EastAsia( RFonts.EastAsia );
 
         if ( undefined != RFonts.Hint )
-            this.Set_RFonts_Hint( RFonts.Hint );
+            this.SetRFontsHint( RFonts.Hint );
     }
     else
     {
@@ -1388,7 +1388,7 @@ CMathBase.prototype.raw_SetRFonts = function(RFonts)
         this.Set_RFonts_HAnsi( undefined );
         this.Set_RFonts_CS( undefined );
         this.Set_RFonts_EastAsia( undefined );
-        this.Set_RFonts_Hint( undefined );
+        this.SetRFontsHint( undefined );
     }
 };
 CMathBase.prototype.raw_SetRFontsAscii = function(Value)

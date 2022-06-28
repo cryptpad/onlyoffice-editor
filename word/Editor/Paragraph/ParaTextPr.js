@@ -281,8 +281,7 @@ ParaTextPr.prototype.Clear_Style = function()
 	if (undefined != this.Value.RFonts.EastAsia)
 		this.Set_RFonts_EastAsia(undefined);
 
-	if (undefined != this.Value.RFonts.Hint)
-		this.Set_RFonts_Hint(undefined);
+	this.SetRFontsHint(undefined);
 
 	if (undefined != this.Value.TextFill)
 		this.Set_TextFill(undefined);
@@ -541,7 +540,7 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 		}
 
 		if (undefined !== oRFonts.Hint)
-			this.Set_RFonts_Hint(null === oRFonts.Hint ? undefined : oRFonts.Hint);
+			this.SetRFontsHint(null === oRFonts.Hint ? undefined : oRFonts.Hint);
 	}
 	else
 	{
@@ -553,7 +552,7 @@ ParaTextPr.prototype.Set_RFonts2 = function(oRFonts)
 		this.SetRFontsCSTheme(undefined);
 		this.Set_RFonts_EastAsia(undefined);
 		this.SetRFontsEastAsiaTheme(undefined);
-		this.Set_RFonts_Hint(undefined);
+		this.SetRFontsHint(undefined);
 	}
 };
 ParaTextPr.prototype.Set_RFonts_Ascii = function(Value)
@@ -588,7 +587,7 @@ ParaTextPr.prototype.Set_RFonts_EastAsia = function(Value)
 	History.Add(new CChangesParaTextPrRFontsEastAsia(this, this.Value.RFonts.EastAsia, Value));
 	this.Value.RFonts.EastAsia = Value;
 };
-ParaTextPr.prototype.Set_RFonts_Hint = function(Value)
+ParaTextPr.prototype.SetRFontsHint = function(Value)
 {
 	if (null === Value)
 		Value = undefined;

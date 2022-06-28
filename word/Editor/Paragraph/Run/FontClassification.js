@@ -45,7 +45,7 @@ const fontslot_Unknown  = 0x10;
 	const fonthint_Default  = 0x00;
 	const fonthint_CS       = 0x01;
 	const fonthint_EastAsia = 0x02;
-	
+
 	const TABLE_CHUNK_LEN = 0x10000;
 	const TABLE_CHUNKS    = 3;
 	let   LOOKUP_TABLE    = null;

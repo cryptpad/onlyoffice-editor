@@ -9854,7 +9854,7 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 		}
 
 		if (undefined !== oRFonts.Hint)
-			this.Set_RFonts_Hint(null === oRFonts.Hint ? undefined : oRFonts.Hint);
+			this.SetRFontsHint(null === oRFonts.Hint ? undefined : oRFonts.Hint);
 	}
 	else
 	{
@@ -9866,7 +9866,7 @@ ParaRun.prototype.Set_RFonts2 = function(oRFonts)
 		this.SetRFontsCSTheme(undefined);
 		this.Set_RFonts_EastAsia(undefined);
 		this.SetRFontsEastAsiaTheme(undefined);
-		this.Set_RFonts_Hint(undefined);
+		this.SetRFontsHint(undefined);
 	}
 };
 ParaRun.prototype.Set_RFont_ForMathRun = function()
@@ -9932,7 +9932,7 @@ ParaRun.prototype.Set_RFonts_EastAsia = function(Value)
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
 	}
 };
-ParaRun.prototype.Set_RFonts_Hint = function(Value)
+ParaRun.prototype.SetRFontsHint = function(Value)
 {
 	var _Value = (null === Value ? undefined : Value);
 
@@ -10125,7 +10125,7 @@ ParaRun.prototype.ApplyComplexScript = function(isCS)
 	if (isCS && !this.Pr.CS)
 	{
 		this.SetCS(true);
-		this.Set_RFonts_Hint(AscWord.fonthint_CS);
+		this.SetRFontsHint(AscWord.fonthint_CS);
 
 		if (undefined === this.Pr.BoldCS && undefined !== this.Pr.Bold)
 			this.SetBoldCS(this.Pr.Bold);
@@ -10139,7 +10139,7 @@ ParaRun.prototype.ApplyComplexScript = function(isCS)
 	else if (!isCS && this.Pr.CS)
 	{
 		this.SetCS(undefined);
-		this.Set_RFonts_Hint(undefined);
+		this.SetRFontsHint(undefined);
 
 		if (undefined === this.Pr.Bold && undefined !== this.Pr.BoldCS)
 			this.SetBold(this.Pr.BoldCS);
