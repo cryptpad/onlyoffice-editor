@@ -233,7 +233,7 @@
 	{
 		return new AscCommonWord.CSearchTextItemChar(0x20);
 	};
-	CRunSpace.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunSpace.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};
