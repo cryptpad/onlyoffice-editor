@@ -5830,10 +5830,10 @@ PasteProcessor.prototype =
 						oCurRun.Set_RFonts_EastAsia({Name: oFontItem.Name, Index: oFontItem.Index});
 					}
 
-					oCurRun.Set_FontSize(format.getSize());
-					oCurRun.Set_Italic(format.getItalic());
-					oCurRun.Set_Strikeout(format.getStrikeout());
-					oCurRun.Set_Underline(format.getUnderline() !== 2);
+					oCurRun.SetFontSize(format.getSize());
+					oCurRun.SetItalic(format.getItalic());
+					oCurRun.SetStrikeout(format.getStrikeout());
+					oCurRun.SetUnderline(format.getUnderline() !== 2);
 
 					//text
 					var value = value2[n].text;

@@ -4978,7 +4978,7 @@ Paragraph.prototype.Increase_Level = function(bIncrease)
 		}
 		if (AscFormat.isRealNumber(this.TextPr.FontSize))
 		{
-			this.TextPr.Set_FontSize(this.TextPr.FontSize + DeltaFontSize);
+			this.TextPr.SetFontSize(this.TextPr.FontSize + DeltaFontSize);
 		}
 		for (i = 0; i < this.Content.length; ++i)
 		{
@@ -4986,7 +4986,7 @@ Paragraph.prototype.Increase_Level = function(bIncrease)
 			{
 				if (AscFormat.isRealNumber(this.Content[i].Pr.FontSize))
 				{
-					this.Content[i].Set_FontSize(this.Content[i].Pr.FontSize + DeltaFontSize);
+					this.Content[i].SetFontSize(this.Content[i].Pr.FontSize + DeltaFontSize);
 				}
 			}
 			else if (this.Content[i].Type === para_Hyperlink)
@@ -4997,7 +4997,7 @@ Paragraph.prototype.Increase_Level = function(bIncrease)
 					{
 						if (AscFormat.isRealNumber(this.Content[i].Content[j].Pr.FontSize))
 						{
-							this.Content[i].Content[j].Set_FontSize(this.Content[i].Content[j].Pr.FontSize + DeltaFontSize);
+							this.Content[i].Content[j].SetFontSize(this.Content[i].Content[j].Pr.FontSize + DeltaFontSize);
 						}
 					}
 				}
@@ -7300,12 +7300,8 @@ Paragraph.prototype.Apply_TextPr = function(TextPr, IncFontSize)
 			}
 			else
 			{
-				// Выставляем настройки для символа параграфа
-				var EndTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-				EndTextPr.Merge(this.TextPr.Value);
-
 				// TODO: Как только перенесем историю изменений TextPr в сам класс CTextPr, переделать тут
-				this.TextPr.Set_FontSize(EndTextPr.GetIncDecFontSize(IncFontSize));
+				this.TextPr.IncreaseDecreaseFontSize(IncFontSize);
 			}
 
 			// TODO (ParaEnd): Переделать
@@ -7608,7 +7604,7 @@ Paragraph.prototype.AddHyperlink = function(HyperProps)
 			var Styles = editor.WordControl.m_oLogicDocument.Get_Styles();
 			HyperRun.Set_Pr(TextPr.Copy());
 			HyperRun.Set_Color(undefined);
-			HyperRun.Set_Underline(undefined);
+			HyperRun.SetUnderline(undefined);
 			HyperRun.Set_RStyle(Styles.GetDefaultHyperlink());
 		}
 		else
@@ -7616,7 +7612,7 @@ Paragraph.prototype.AddHyperlink = function(HyperProps)
 			HyperRun.Set_Pr(TextPr.Copy());
 			HyperRun.Set_Color(undefined);
 			//HyperRun.Set_Unifill(AscFormat.CreateUniFillSchemeColorWidthTint(11, 0));
-			HyperRun.Set_Underline(true);
+			HyperRun.SetUnderline(true);
 		}
 
 		// Заполняем ран гиперссылки текстом
@@ -7719,7 +7715,7 @@ Paragraph.prototype.ModifyHyperlink = function(HyperProps)
 				var Styles = editor.WordControl.m_oLogicDocument.Get_Styles();
 				HyperRun.Set_Pr(TextPr.Copy());
 				HyperRun.Set_Color(undefined);
-				HyperRun.Set_Underline(undefined);
+				HyperRun.SetUnderline(undefined);
 				HyperRun.Set_RStyle(Styles.GetDefaultHyperlink());
 			}
 			else
@@ -7727,7 +7723,7 @@ Paragraph.prototype.ModifyHyperlink = function(HyperProps)
 				HyperRun.Set_Pr(TextPr.Copy());
 				HyperRun.Set_Color(undefined);
 				HyperRun.Set_Unifill(AscFormat.CreateUniFillSchemeColorWidthTint(11, 0));
-				HyperRun.Set_Underline(true);
+				HyperRun.SetUnderline(true);
 			}
 
 

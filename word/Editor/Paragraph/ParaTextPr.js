@@ -133,10 +133,10 @@ ParaTextPr.prototype.Apply_TextPr = function(TextPr)
 	}
 
 	if (undefined !== TextPr.Strikeout)
-		this.Set_Strikeout(TextPr.Strikeout);
+		this.SetStrikeout(TextPr.Strikeout);
 
 	if (undefined !== TextPr.Underline)
-		this.Set_Underline(TextPr.Underline);
+		this.SetUnderline(TextPr.Underline);
 
 	if (undefined !== TextPr.FontSize)
 	{
@@ -227,21 +227,14 @@ ParaTextPr.prototype.Apply_TextPr = function(TextPr)
 };
 ParaTextPr.prototype.Clear_Style = function()
 {
-	// Пока удаляем все кроме настроек языка
-	if (undefined != this.Value.Bold)
-		this.Set_Bold(undefined);
-
-	if (undefined != this.Value.Italic)
-		this.Set_Italic(undefined);
-
-	if (undefined != this.Value.Strikeout)
-		this.Set_Strikeout(undefined);
-
-	if (undefined != this.Value.Underline)
-		this.Set_Underline(undefined);
-
-	if (undefined != this.Value.FontSize)
-		this.Set_FontSize(undefined);
+	this.SetBold(undefined);
+	this.SetBoldCS(undefined);
+	this.SetItalic(undefined);
+	this.SetItalicCS(undefined);
+	this.SetStrikeout(undefined);
+	this.SetUnderline(undefined);
+	this.SetFontSize(undefined);
+	this.SetFontSizeCS(undefined);
 
 	if (undefined != this.Value.Color)
 		this.Set_Color(undefined);
@@ -297,7 +290,7 @@ ParaTextPr.prototype.Clear_Style = function()
 	if (undefined != this.Value.TextOutline)
 		this.Set_TextOutline(undefined);
 };
-ParaTextPr.prototype.Set_Bold = function(Value)
+ParaTextPr.prototype.SetBold = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -308,11 +301,7 @@ ParaTextPr.prototype.Set_Bold = function(Value)
 	History.Add(new CChangesParaTextPrBold(this, this.Value.Bold, Value));
 	this.Value.Bold = Value;
 };
-ParaTextPr.prototype.SetBold = function(isBold)
-{
-	this.Set_Bold(isBold);
-};
-ParaTextPr.prototype.Set_Italic = function(Value)
+ParaTextPr.prototype.SetItalic = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -323,11 +312,7 @@ ParaTextPr.prototype.Set_Italic = function(Value)
 	History.Add(new CChangesParaTextPrItalic(this, this.Value.Italic, Value));
 	this.Value.Italic = Value;
 };
-ParaTextPr.prototype.SetItalic = function(isItalic)
-{
-	this.Set_Italic(isItalic);
-};
-ParaTextPr.prototype.Set_Strikeout = function(Value)
+ParaTextPr.prototype.SetStrikeout = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -338,7 +323,7 @@ ParaTextPr.prototype.Set_Strikeout = function(Value)
 	History.Add(new CChangesParaTextPrStrikeout(this, this.Value.Strikeout, Value));
 	this.Value.Strikeout = Value;
 };
-ParaTextPr.prototype.Set_Underline = function(Value)
+ParaTextPr.prototype.SetUnderline = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -349,7 +334,7 @@ ParaTextPr.prototype.Set_Underline = function(Value)
 	History.Add(new CChangesParaTextPrUnderline(this, this.Value.Underline, Value));
 	this.Value.Underline = Value;
 };
-ParaTextPr.prototype.Set_FontSize = function(Value)
+ParaTextPr.prototype.SetFontSize = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -359,10 +344,6 @@ ParaTextPr.prototype.Set_FontSize = function(Value)
 
 	History.Add(new CChangesParaTextPrFontSize(this, this.Value.FontSize, Value));
 	this.Value.FontSize = Value;
-};
-ParaTextPr.prototype.SetFontSize = function(nFontSize)
-{
-	this.Set_FontSize(nFontSize);
 };
 ParaTextPr.prototype.Set_Color = function(Value)
 {

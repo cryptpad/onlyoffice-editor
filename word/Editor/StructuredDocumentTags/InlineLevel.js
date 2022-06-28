@@ -2867,7 +2867,7 @@ CInlineLevelSdt.prototype.OnChangeFixedFormTrack = function(nW, nH)
 
 		var nFontSize    = oTextPr.FontSize;
 		var nNewFontSize = nFontSize * nKoef;
-		oRun.Set_FontSize(nNewFontSize);
+		oRun.SetFontSize(nNewFontSize);
 	}
 	else if (this.IsPicture())
 	{
@@ -2935,7 +2935,7 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 			nNewFontSize = AscCommon.CorrectFontSize(nFontSize, true);
 			while (nNewFontSize > 1)
 			{
-				oRun.Set_FontSize(nNewFontSize);
+				oRun.SetFontSize(nNewFontSize);
 				oParagraph.Recalculate_Page(0);
 
 				oContentBounds = oParagraph.GetContentBounds(0);
@@ -2954,14 +2954,14 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 			//nNewFontSize = AscCommon.CorrectFontSize(nFontSize, true);
 			while (nNewFontSize <= nMaxFontSize)
 			{
-				oRun.Set_FontSize(nNewFontSize);
+				oRun.SetFontSize(nNewFontSize);
 				oParagraph.Recalculate_Page(0);
 
 				var oContentBounds = oParagraph.GetContentBounds(0);
 				if (oContentBounds.Bottom - oContentBounds.Top > oShapeBounds.H)
 				{
 					nNewFontSize -= nFontStep;
-					oRun.Set_FontSize(nNewFontSize);
+					oRun.SetFontSize(nNewFontSize);
 					break;
 				}
 
@@ -2981,25 +2981,25 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 
 		if (!isFastRecalc)
 		{
-			oRun.Set_FontSize(nNewFontSize);
+			oRun.SetFontSize(nNewFontSize);
 			oParagraph.Recalculate_Page(0);
 			oShape.recalcContent();
 			oShape.recalculateText();
 		}
 		else if (AscCommon.align_Left !== oParagraph.GetParagraphAlign())
 		{
-			oRun.Set_FontSize(nNewFontSize);
+			oRun.SetFontSize(nNewFontSize);
 			oParagraph.private_RecalculateFastRange(0, 0);
 		}
 	}
 	// Восстанавливаем старое значение, чтобы в историю все правильно записалось
-	oRun.Set_FontSize(nFontSize);
+	oRun.SetFontSize(nFontSize);
 
 	nNewFontSize = ((nNewFontSize * 100) | 0) / 100;
 	History.TurnOn();
 
 	if (Math.abs(nNewFontSize - nFontSize) > 0.001)
-		oRun.Set_FontSize(nNewFontSize);
+		oRun.SetFontSize(nNewFontSize);
 };
 CInlineLevelSdt.prototype.UpdatePictureFormLayout = function()
 {

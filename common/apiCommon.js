@@ -5188,12 +5188,12 @@
 						oRun.Set_RFonts_EastAsia({Name : fontFamilyName, Index : -1});
 						oRun.Set_RFonts_HAnsi({Name : fontFamilyName, Index : -1});
 
-						oRun.Set_FontSize(fontSize);
+						oRun.SetFontSize(fontSize);
 
-						oRun.Set_Bold(oRunS['bold'] === true);
-						oRun.Set_Italic(oRunS['italic'] === true);
-						oRun.Set_Strikeout(oRunS['strikeout'] === true);
-						oRun.Set_Underline(oRunS['underline'] === true);
+						oRun.SetBold(oRunS['bold'] === true);
+						oRun.SetItalic(oRunS['italic'] === true);
+						oRun.SetStrikeout(oRunS['strikeout'] === true);
+						oRun.SetUnderline(oRunS['underline'] === true);
 
 						var sCustomText = oRunS['text'];
 						if(sCustomText === "<%br%>"){

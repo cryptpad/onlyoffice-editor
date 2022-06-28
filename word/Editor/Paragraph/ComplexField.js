@@ -956,7 +956,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 
 		oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
 		oRun  = new ParaRun(oPara, false);
-		oRun.Set_Bold(true);
+		oRun.SetBold(true);
 		oRun.AddText(sReplacementText);
 		oPara.AddToContent(0, oRun);
 		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, true));

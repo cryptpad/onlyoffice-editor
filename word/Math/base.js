@@ -996,7 +996,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	else
 	{
 		if (undefined !== TextPr.Bold)
-			this.Set_Bold(null === TextPr.Bold ? undefined : TextPr.Bold);
+			this.SetBold(null === TextPr.Bold ? undefined : TextPr.Bold);
 
 		if (TextPr.AscFill || TextPr.AscLine || TextPr.AscUnifill)
 		{
@@ -1059,13 +1059,13 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 			this.SetHighlightColor(null === TextPr.HighlightColor ? undefined : TextPr.HighlightColor);
 
 		if (undefined !== TextPr.Underline)
-			this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
+			this.SetUnderline(null === TextPr.Underline ? undefined : TextPr.Underline);
 
 		if (undefined !== TextPr.Strikeout)
-			this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
+			this.SetStrikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
 
 		if (undefined !== TextPr.DStrikeout)
-			this.Set_DoubleStrikeout(null === TextPr.DStrikeout ? undefined : TextPr.DStrikeout);
+			this.SetDoubleStrikeout(null === TextPr.DStrikeout ? undefined : TextPr.DStrikeout);
 
 		if (undefined !== TextPr.RFonts)
 		{
@@ -1179,7 +1179,7 @@ CMathBase.prototype.Set_Shd = function(Shd)
 		this.raw_SetShd(Shd);
 	}
 };
-CMathBase.prototype.Set_Underline = function(Value)
+CMathBase.prototype.SetUnderline = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1190,7 +1190,7 @@ CMathBase.prototype.Set_Underline = function(Value)
 		this.raw_SetUnderline(Value);
 	}
 };
-CMathBase.prototype.Set_Strikeout = function(Value)
+CMathBase.prototype.SetStrikeout = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1201,7 +1201,7 @@ CMathBase.prototype.Set_Strikeout = function(Value)
 		this.raw_SetStrikeout(Value);
 	}
 };
-CMathBase.prototype.Set_DoubleStrikeout = function(Value)
+CMathBase.prototype.SetDoubleStrikeout = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1212,7 +1212,7 @@ CMathBase.prototype.Set_DoubleStrikeout = function(Value)
 		this.raw_Set_DoubleStrikeout(Value);
 	}
 };
-CMathBase.prototype.Set_Bold = function(Value)
+CMathBase.prototype.SetBold = function(Value)
 {
 	if (null === Value)
 		Value = undefined;
@@ -1223,7 +1223,7 @@ CMathBase.prototype.Set_Bold = function(Value)
 		this.raw_SetBold(Value);
 	}
 };
-CMathBase.prototype.Set_Italic = function(Value)
+CMathBase.prototype.SetItalic = function(Value)
 {
 	if (null === Value)
 		Value = undefined;

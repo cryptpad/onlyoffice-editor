@@ -3139,7 +3139,7 @@
 			if (!(HyperRun instanceof ParaRun))
 				continue;
 
-			HyperRun.Set_Underline(undefined);
+			HyperRun.SetUnderline(undefined);
 			HyperRun.Set_Color(undefined);
 			HyperRun.Set_Unifill(undefined);
 			HyperRun.Set_RStyle(Styles.GetDefaultHyperlink());

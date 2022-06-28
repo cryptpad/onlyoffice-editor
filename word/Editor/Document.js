@@ -12801,7 +12801,7 @@ CDocument.prototype.ModifyHyperlink = function(oHyperProps)
 			var oHyperRun = new ParaRun(oHyperlink.GetParagraph());
 			oHyperRun.Set_Pr(oHyperlink.GetTextPr().Copy());
 			oHyperRun.Set_Color(undefined);
-			oHyperRun.Set_Underline(undefined);
+			oHyperRun.SetUnderline(undefined);
 			oHyperRun.Set_RStyle(this.GetStyles().GetDefaultHyperlink());
 			oHyperRun.AddText(sText);
 

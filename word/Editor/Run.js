@@ -8463,31 +8463,34 @@ ParaRun.prototype.Selection_CheckParaContentPos = function(ContentPos, Depth, bS
 //-----------------------------------------------------------------------------------
 // Функции для работы с настройками текста свойств
 //-----------------------------------------------------------------------------------
-ParaRun.prototype.Clear_TextFormatting = function( DefHyper )
+ParaRun.prototype.Clear_TextFormatting = function(DefHyper)
 {
-    // Highlight и Lang не сбрасываются при очистке текстовых настроек
+	// Highlight и Lang не сбрасываются при очистке текстовых настроек
 
-    this.Set_Bold( undefined );
-    this.Set_Italic( undefined );
-    this.Set_Strikeout( undefined );
-    this.Set_Underline( undefined );
-    this.Set_FontSize( undefined );
-    this.Set_Color( undefined );
-    this.Set_Unifill( undefined );
-    this.Set_VertAlign( undefined );
-    this.Set_Spacing( undefined );
-    this.Set_DStrikeout( undefined );
-    this.Set_Caps( undefined );
-    this.Set_SmallCaps( undefined );
-    this.Set_Position( undefined );
-    this.Set_RFonts2( undefined );
-    this.Set_RStyle( undefined );
-    this.Set_Shd( undefined );
-    this.Set_TextFill( undefined );
-    this.Set_TextOutline( undefined );
+	this.SetBold(undefined);
+	this.SetBoldCS(undefined);
+	this.SetItalic(undefined);
+	this.SetItalicCS(undefined);
+	this.SetStrikeout(undefined);
+	this.SetUnderline(undefined);
+	this.SetFontSize(undefined);
+	this.SetFontSizeCS(undefined);
+	this.Set_Color(undefined);
+	this.Set_Unifill(undefined);
+	this.Set_VertAlign(undefined);
+	this.Set_Spacing(undefined);
+	this.Set_DStrikeout(undefined);
+	this.Set_Caps(undefined);
+	this.Set_SmallCaps(undefined);
+	this.Set_Position(undefined);
+	this.Set_RFonts2(undefined);
+	this.Set_RStyle(undefined);
+	this.Set_Shd(undefined);
+	this.Set_TextFill(undefined);
+	this.Set_TextOutline(undefined);
 
-    // Насильно заставим пересчитать стиль, т.к. как данная функция вызывается у параграфа, у которого мог смениться стиль
-    this.Recalc_CompiledPr(true);
+	// Насильно заставим пересчитать стиль, т.к. как данная функция вызывается у параграфа, у которого мог смениться стиль
+	this.Recalc_CompiledPr(true);
 };
 
 ParaRun.prototype.Get_TextPr = function()
@@ -9157,10 +9160,10 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	}
 
 	if (undefined !== TextPr.Strikeout)
-		this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
+		this.SetStrikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
 
 	if (undefined !== TextPr.Underline)
-		this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
+		this.SetUnderline(null === TextPr.Underline ? undefined : TextPr.Underline);
 
 	if (undefined !== TextPr.FontSize)
 	{
@@ -9400,11 +9403,6 @@ ParaRun.prototype.GetDiffPrChange = function()
 {
     return this.Pr.GetDiffPrChange();
 };
-
-ParaRun.prototype.Set_Bold = function(Value)
-{
-	return this.SetBold(Value);
-};
 ParaRun.prototype.SetBold = function(isBold)
 {
 	if (isBold !== this.Pr.Bold)
@@ -9434,10 +9432,6 @@ ParaRun.prototype.GetBoldCS = function()
 {
 	return this.Get_CompiledPr(false).BoldCS;
 };
-ParaRun.prototype.Set_Italic = function(Value)
-{
-	this.SetItalic(Value);
-};
 ParaRun.prototype.SetItalic = function(isItalic)
 {
 	if (isItalic !== this.Pr.Italic)
@@ -9466,7 +9460,7 @@ ParaRun.prototype.GetItalicCS = function()
 {
 	return this.Get_CompiledPr(false).ItalicCS;
 };
-ParaRun.prototype.Set_Strikeout = function(Value)
+ParaRun.prototype.SetStrikeout = function(Value)
 {
     if ( Value !== this.Pr.Strikeout )
     {
@@ -9479,13 +9473,11 @@ ParaRun.prototype.Set_Strikeout = function(Value)
         this.private_UpdateTrackRevisionOnChangeTextPr(true);
     }
 };
-
 ParaRun.prototype.Get_Strikeout = function()
 {
     return this.Get_CompiledPr(false).Strikeout;
 };
-
-ParaRun.prototype.Set_Underline = function(Value)
+ParaRun.prototype.SetUnderline = function(Value)
 {
     if ( Value !== this.Pr.Underline )
     {
@@ -9498,15 +9490,9 @@ ParaRun.prototype.Set_Underline = function(Value)
         this.private_UpdateTrackRevisionOnChangeTextPr(true);
     }
 };
-
 ParaRun.prototype.Get_Underline = function()
 {
     return this.Get_CompiledPr(false).Underline;
-};
-
-ParaRun.prototype.Set_FontSize = function(Value)
-{
-	this.SetFontSize(Value);
 };
 ParaRun.prototype.SetFontSize = function(nFontSize)
 {
