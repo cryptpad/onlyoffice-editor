@@ -9276,7 +9276,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	if (undefined !== TextPr.Position)
 		this.Set_Position(null === TextPr.Position ? undefined : TextPr.Position);
 
-	if (undefined !== TextPr.RFonts && !this.IsInCheckBox())
+	if (TextPr.RFonts && !this.IsInCheckBox())
 	{
 		if (para_Math_Run === this.Type && !this.IsNormalText()) // при смене Font в этом случае (даже на Cambria Math) cs, eastAsia не меняются
 		{
@@ -9292,7 +9292,10 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 		}
 		else
 		{
-			this.Set_RFonts2(TextPr.RFonts);
+			if (TextPr.FontFamily)
+				this.ApplyFontFamily(TextPr.FontFamily.Name);
+			else
+				this.Set_RFonts2(TextPr.RFonts);
 		}
 	}
 
@@ -10157,6 +10160,20 @@ ParaRun.prototype.IncreaseDecreaseFontSize = function(isIncrease)
 	this.private_AddCollPrChangeMine();
 	this.SetFontSizeCS(oTextPr.GetIncDecFontSizeCS(isIncrease));
 	this.SetFontSize(oTextPr.GetIncDecFontSize(isIncrease));
+};
+ParaRun.prototype.ApplyFontFamily = function(sFontName)
+{
+	let nFontSlot = this.GetFontSlotInRange(0, this.Content.length);
+	if (nFontSlot & AscWord.fontslot_EastAsia)
+		this.SetRFontsEastAsia({Name : sFontName, Index : -1});
+
+	this.SetRFontsAscii({Name : sFontName, Index : -1});
+	this.SetRFontsHAnsi({Name : sFontName, Index : -1});
+	this.SetRFontsCS({Name : sFontName, Index : -1});
+
+	this.SetRFontsAsciiTheme(undefined);
+	this.SetRFontsHAnsiTheme(undefined);
+	this.SetRFontsCSTheme(undefined);
 };
 //-----------------------------------------------------------------------------------
 // Undo/Redo функции

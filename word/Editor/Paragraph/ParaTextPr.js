@@ -187,8 +187,13 @@ ParaTextPr.prototype.Apply_TextPr = function(TextPr)
 	if (undefined !== TextPr.Position)
 		this.Set_Position(TextPr.Position);
 
-	if (undefined != TextPr.RFonts)
-		this.Set_RFonts2(TextPr.RFonts);
+	if (TextPr.RFonts)
+	{
+		if (TextPr.FontFamily)
+			this.ApplyFontFamily(TextPr.FontFamily.Name);
+		else
+			this.Set_RFonts2(TextPr.RFonts);
+	}
 
 	if (undefined != TextPr.Lang)
 		this.Set_Lang(TextPr.Lang);
@@ -720,6 +725,19 @@ ParaTextPr.prototype.IncreaseDecreaseFontSize = function(isIncrease)
 	let oTextPr = oParagraph.GetParaEndCompiledPr();
 	this.SetFontSizeCS(oTextPr.GetIncDecFontSizeCS(isIncrease));
 	this.SetFontSize(oTextPr.GetIncDecFontSize(isIncrease));
+};
+ParaTextPr.prototype.ApplyFontFamily = function(sFontName)
+{
+	this.SetRFontsAscii({Name : sFontName, Index : -1});
+	this.SetRFontsHAnsi({Name : sFontName, Index : -1});
+	this.SetRFontsCS({Name : sFontName, Index : -1});
+
+	this.SetRFontsAsciiTheme(undefined);
+	this.SetRFontsHAnsiTheme(undefined);
+	this.SetRFontsCSTheme(undefined);
+
+	this.SetRFontsEastAsia(undefined);
+	this.SetRFontsEastAsiaTheme(undefined);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
