@@ -4615,6 +4615,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Original'] = prot.Original;
 	prot['Simple']   = prot.Simple;
 
+	prot = window['Asc']['c_oAscMathInputType'] = window['Asc'].c_oAscMathInputType = c_oAscMathInputType;
+	prot['Unicode'] = prot.Unicode;
+	prot['LaTeX']   = prot.LaTeX;
+
 	window['AscFormat'] = window['AscFormat'] || {};
 
 	window['AscFormat'].text_fit_No         = window['AscFormat']['text_fit_No']         = 0;

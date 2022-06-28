@@ -120,8 +120,8 @@
 			if (this.oLookahead.class === oLiteralNames.numberLiteral[0]) {
 				oRightNumber = this.ReadTokensWhileEnd(oLiteralNames.numberLiteral);
 				return {
-					type: oLiteralNames.numberLiteral[0],
-					value: strDecimal,
+					type: oLiteralNames.numberLiteral[num],
+					decimal: strDecimal,
 					left: oLeftNumber,
 					right: oRightNumber,
 				}
@@ -344,7 +344,7 @@
 				up: oContent[1]
 			}
 		}
-		else if (this.IsHBracket) {
+		else if (this.IsHBracket()) {
 			return this.GetHBracketLiteral()
 		}
 
@@ -712,20 +712,22 @@
 		return this.GetContentOfLiteral(arrExpList)
 	};
 	CLaTeXParser.prototype.EatToken = function (tokenType) {
-		const oToken = this.oLookahead;
-		if (oToken === null) {
-			throw new SyntaxError(
-				`Unexpected end of input, expected: "${tokenType}"`
-			);
+		if (tokenType) {
+			const oToken = this.oLookahead;
+			if (oToken === null) {
+				throw new SyntaxError(
+					`Unexpected end of input, expected: "${tokenType}"`
+				);
+			}
+			if (oToken.class !== tokenType) {
+				throw new SyntaxError(
+					`Unexpected token: "${oToken.class}", expected: "${tokenType}"`
+				);
+			}
+			this.oPrevLookahead = this.oLookahead;
+			this.oLookahead = this.oTokenizer.GetNextToken();
+			return oToken;
 		}
-		if (oToken.class !== tokenType) {
-			throw new SyntaxError(
-				`Unexpected token: "${oToken.class}", expected: "${tokenType}"`
-			);
-		}
-		this.oPrevLookahead = this.oLookahead;
-		this.oLookahead = this.oTokenizer.GetNextToken();
-		return oToken;
 	};
 	CLaTeXParser.prototype.SkipFreeSpace = function () {
 		while (this.oLookahead.class === oLiteralNames.spaceLiteral[0]) {
