@@ -46,7 +46,8 @@
 	{
 		AscWord.CRunElementBase.call(this);
 
-		this.SectionEnd    = null;
+		this.Grapheme     = AscFonts.NO_GRAPHEME;
+		this.SectionEnd   = null;
 		this.WidthVisible = 0x00000000 | 0;
 		this.Flags        = 0x00000000 | 0;
 	}
@@ -60,38 +61,33 @@
 	};
 	CRunParagraphMark.prototype.Draw = function(X, Y, Context, bEndCell, bForceDraw)
 	{
-		if ((undefined !== editor && editor.ShowParaMarks) || true === bForceDraw)
-		{
-			var FontKoef = (this.Flags & FLAGS_FONTKOEF_SCRIPT ? AscCommon.vaKSize : 1);
-			Context.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
+		if ((!editor || !editor.ShowParaMarks) && !bForceDraw)
+			return;
 
-			if (this.SectionEnd)
-				this.private_DrawSectionEnd(X, Y, Context);
-			else if (true === bEndCell)
-				Context.FillText(X, Y, String.fromCharCode(0x00A4));
-			else
-				Context.FillText(X, Y, String.fromCharCode(0x00B6));
-		}
+		if (this.SectionEnd)
+			return this.private_DrawSectionEnd(X, Y, Context);
+
+		if (!this.Grapheme)
+			return;
+
+		let nFontSize = (((this.Flags >> 16) & 0xFFFF) / 64);
+		AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, nFontSize);
 	};
-	CRunParagraphMark.prototype.Measure = function(Context, oTextPr, bEndCell)
+	CRunParagraphMark.prototype.Measure = function(oMeasurer, oTextPr, isEndCell)
 	{
-		var dFontKoef = 1;
+		let nUnicode  = isEndCell ? 0x00A4 : 0x00B6;
+		let nFontSlot = oTextPr.RTL || oTextPr.CS ? AscWord.fontslot_CS : AscWord.fontslot_ASCII;
+		let oFontInfo = oTextPr.GetFontInfo(nFontSlot);
+		this.Grapheme = oMeasurer.GetGraphemeByUnicode(nUnicode, oFontInfo.Name, oFontInfo.Style);
+
+		let nFontSize = oFontInfo.Size;
 		if (oTextPr.VertAlign !== AscCommon.vertalign_Baseline)
-		{
-			this.Flags |= FLAGS_FONTKOEF_SCRIPT;
-			dFontKoef = AscCommon.vaKSize;
-		}
-		else
-		{
-			this.Flags &= FLAGS_NON_FONTKOEF_SCRIPT;
-		}
+			nFontSize = AscWord.AlignFontSize(nFontSize, AscCommon.vaKSize);
 
-		Context.SetFontSlot(AscWord.fontslot_ASCII, dFontKoef);
+		this.Flags = (this.Flags & 0xFFFF) | (((nFontSize * 64) & 0xFFFF) << 16);
 
-		if (true === bEndCell)
-			this.WidthVisible = (Context.Measure(String.fromCharCode(0x00A4)).Width * AscWord.TEXTWIDTH_DIVIDER) | 0;
-		else
-			this.WidthVisible = (Context.Measure(String.fromCharCode(0x00B6)).Width * AscWord.TEXTWIDTH_DIVIDER) | 0;
+		this.Width        = 0;
+		this.WidthVisible = ((AscFonts.GetGraphemeWidth(this.Grapheme) * nFontSize) * AscWord.TEXTWIDTH_DIVIDER) | 0;
 	};
 	CRunParagraphMark.prototype.Get_Width = function()
 	{
@@ -206,7 +202,7 @@
 	{
 		return new AscCommonWord.CSearchTextSpecialParaEnd();
 	};
-	CRunParagraphMark.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunParagraphMark.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};

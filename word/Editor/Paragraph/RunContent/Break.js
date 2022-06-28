@@ -349,7 +349,7 @@
 		else
 			return new AscCommonWord.CSearchTextSpecialLineBreak();
 	};
-	CRunBreak.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunBreak.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};

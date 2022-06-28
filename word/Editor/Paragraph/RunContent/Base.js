@@ -296,7 +296,7 @@
 	/**
 	 * @returns {AscWord.fontslot_Unknown}
 	 */
-	CRunElementBase.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunElementBase.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};
@@ -337,7 +337,7 @@
 	{
 		this.RGapCount    = nCount;
 		this.RGapCharCode = nCharCode;
-		this.RGapFontSlot = AscWord.GetFontSlot(nCharCode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+		this.RGapFontSlot = AscWord.GetFontSlotByTextPr(nCharCode, oTextPr);
 
 		if (sFont)
 		{

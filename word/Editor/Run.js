@@ -3272,16 +3272,11 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 	let isMathRun = this.IsMathRun();
 
-	var Hint = _oTextPr.RFonts.Hint;
-	var bCS  = _oTextPr.CS;
-	var bRTL = _oTextPr.RTL;
-	var lcid = _oTextPr.Lang.EastAsia;
-
 	// TODO: Пока для формул сделаем, чтобы работало по-старому, в дальнейшем надо будет переделать на fontslot
 	let nRFontsFlags = isMathRun ? AscWord.fontslot_ASCII : AscWord.fontslot_None;
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
-		nRFontsFlags |= this.Content[nPos].GetFontSlot(Hint, lcid, bCS, bRTL);
+		nRFontsFlags |= this.Content[nPos].GetFontSlot(_oTextPr);
 	}
 
 	let oMetrics = _oTextPr.GetTextMetrics(oTheme, nRFontsFlags);
@@ -13390,11 +13385,7 @@ ParaRun.prototype.GetFontSlotInRange = function(nStartPos, nEndPos)
 	for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
 	{
 		let oItem = this.Content[nPos];
-
-		if (oItem && (oItem.IsText() || oItem.IsText()))
-			nFontSlot |= AscWord.GetFontSlot(oItem.GetCodePoint(), oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
-		else
-			nFontSlot |= oItem.GetFontSlot();
+		nFontSlot |= oItem.GetFontSlot(oTextPr)
 	}
 
 	return nFontSlot;
@@ -13418,9 +13409,9 @@ ParaRun.prototype.GetFontSlotByPosition = function(nPos)
 
 	let nFontSlot = AscWord.fontslot_None;
 	if (oPrev)
-		nFontSlot = oPrev.GetFontSlot(oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+		nFontSlot = oPrev.GetFontSlot(oTextPr);
 	else if (oNext)
-		nFontSlot = oNext.GetFontSlot(oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+		nFontSlot = oNext.GetFontSlot(oTextPr);
 
 	return nFontSlot;
 };

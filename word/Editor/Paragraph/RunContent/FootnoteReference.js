@@ -298,7 +298,7 @@
 	{
 		return true;
 	};
-	CRunFootnoteReference.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunFootnoteReference.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};

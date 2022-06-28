@@ -254,9 +254,14 @@ const fontslot_Unknown  = 0x10;
 
 		return nSlot ? nSlot : fontslot_ASCII;
 	}
+	function GetFontSlotByTextPr(nUnicode, oTextPr)
+	{
+		return GetFontSlot(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+	}
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
-	window['AscWord'].GetFontSlot = GetFontSlot;
+	window['AscWord'].GetFontSlot         = GetFontSlot;
+	window['AscWord'].GetFontSlotByTextPr = GetFontSlotByTextPr;
 
 	window['AscWord'].fontslot_None     = fontslot_None;
 	window['AscWord'].fontslot_ASCII    = fontslot_ASCII;

@@ -531,9 +531,9 @@
 	{
 		return true;
 	};
-	CRunText.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunText.prototype.GetFontSlot = function(oTextPr)
 	{
-		return AscWord.GetFontSlot(this.Value, nHint, nEA_lcid, isCS, isRTL);
+		return AscWord.GetFontSlotByTextPr(this.Value, oTextPr);
 	};
 	CRunText.prototype.IsCombiningMark = function()
 	{

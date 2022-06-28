@@ -238,7 +238,7 @@ ParaNumbering.prototype.GetSourceWidth = function()
 {
 	return this.Internal.SourceWidth;
 };
-ParaNumbering.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+ParaNumbering.prototype.GetFontSlot = function(oTextPr)
 {
 	return AscWord.fontslot_Unknown;
 };

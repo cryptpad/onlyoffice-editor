@@ -1226,12 +1226,7 @@ CMathInfoTextPr.prototype.GetFontKoef = function(fontSlot)
 };
 CMathInfoTextPr.prototype.GetFontSlot = function(code)
 {
-    var Hint = this.TextPr.RFonts.Hint;
-    var bCS  = this.TextPr.CS;
-    var bRTL = this.TextPr.RTL;
-    var lcid = this.TextPr.Lang.EastAsia;
-
-    return AscWord.GetFontSlot(code, Hint, lcid, bCS, bRTL);
+    return AscWord.GetFontSlotByTextPr(code, this.TextPr);
 };
 CMathInfoTextPr.prototype.IsSpecilalOperator = function(val)
 {

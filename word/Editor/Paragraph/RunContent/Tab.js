@@ -185,7 +185,7 @@ var tab_Symbol = 0x0022;//0x2192;
 	{
 		return new AscCommonWord.CSearchTextSpecialTab();
 	};
-	CRunTab.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunTab.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};

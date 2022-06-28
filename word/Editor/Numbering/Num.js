@@ -486,12 +486,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 		{
 			case numbering_lvltext_Text:
 			{
-				var Hint = oNumTextPr.RFonts.Hint;
-				var bCS  = oNumTextPr.CS;
-				var bRTL = oNumTextPr.RTL;
-				var lcid = oNumTextPr.Lang.EastAsia;
-
-				var FontSlot = AscWord.GetFontSlot(arrText[nTextIndex].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
+				var FontSlot = AscWord.GetFontSlotByTextPr(arrText[nTextIndex].Value.charCodeAt(0), oNumTextPr);
 
 				oContext.SetFontSlot(FontSlot, dKoef);
 				g_oTextMeasurer.SetFontSlot(FontSlot, dKoef);
@@ -552,12 +547,7 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 		{
 			case numbering_lvltext_Text:
 			{
-				var Hint = oNumTextPr.RFonts.Hint;
-				var bCS  = oNumTextPr.CS;
-				var bRTL = oNumTextPr.RTL;
-				var lcid = oNumTextPr.Lang.EastAsia;
-
-				var FontSlot = AscWord.GetFontSlot(arrText[nTextIndex].Value.charCodeAt(0), Hint, lcid, bCS, bRTL);
+				var FontSlot = AscWord.GetFontSlotByTextPr(arrText[nTextIndex].Value.charCodeAt(0), oNumTextPr);
 
 				oContext.SetFontSlot(FontSlot, dKoef);
 				nX += oContext.Measure(arrText[nTextIndex].Value).Width;

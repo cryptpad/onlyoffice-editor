@@ -157,7 +157,7 @@
 	{
 		return this.Parent;
 	};
-	CRunPagesCount.prototype.GetFontSlot = function(nHint, nEA_lcid, isCS, isRTL)
+	CRunPagesCount.prototype.GetFontSlot = function(oTextPr)
 	{
 		return AscWord.fontslot_Unknown;
 	};

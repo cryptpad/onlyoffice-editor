@@ -88,7 +88,7 @@
 		if (!oTextPr)
 			return AscWord.fontslot_None;
 
-		return AscWord.GetFontSlot(nUnicode, oTextPr.RFonts.Hint, oTextPr.Lang.EastAsia, oTextPr.CS, oTextPr.RTL);
+		return AscWord.GetFontSlotByTextPr(nUnicode, oTextPr);
 	};
 	CParagraphTextShaper.prototype.GetLigaturesType = function()
 	{
