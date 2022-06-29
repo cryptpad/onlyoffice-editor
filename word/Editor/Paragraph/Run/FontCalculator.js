@@ -158,6 +158,9 @@
 
 		oTextPr.ReplaceThemeFonts(oParagraph.GetTheme().themeElements.fontScheme);
 
+		if (AscWord.fontslot_None === nFontSlot)
+			nFontSlot = AscWord.fontslot_ASCII;
+
 		if (nFontSlot & AscWord.fontslot_ASCII)
 			this.FontName = oTextPr.RFonts.Ascii.Name;
 		else if (nFontSlot & AscWord.fontslot_HAnsi)
