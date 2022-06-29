@@ -104,6 +104,7 @@
 
 		arrayLiteral: [53, "arrayLiteral"],
 		skewedFractionLiteral: [54, "skewedFractionLiteral"],
+		EqArrayliteral: [55, "EqArrayliteral"],
 	};
 	const wordAutoCorrection = [
 		// Если массив правила состоит из:
@@ -668,6 +669,7 @@
 		["\\star", "⋆"],
 		["\\subset", "⊂", oNamesOfLiterals.operatorLiteral[0]],
 		["\\subseteq", "⊆", oNamesOfLiterals.operatorLiteral[0]],
+		["\\substack", "█", "█"],
 		["\\succ", "≻", oNamesOfLiterals.operatorLiteral[0]],
 		["\\succeq", "≽", oNamesOfLiterals.operatorLiteral[0]],
 		["\\sum", "∑", oNamesOfLiterals.opNaryLiteral[0]],
@@ -1796,10 +1798,12 @@
 			if (oTokens) {
 				switch (oTokens.type) {
 					case undefined:
-						ConvertTokens(
-							oTokens[0],
-							oContext,
-						);
+						for (let i = 0; i < oTokens.length; i++) {
+							ConvertTokens(
+								oTokens[i],
+								oContext,
+							);
+						}
 						break;
 					case oNamesOfLiterals.functionNameLiteral[num]:
 					case oNamesOfLiterals.specialScriptNumberLiteral[num]:

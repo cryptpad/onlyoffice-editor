@@ -54,6 +54,7 @@
 		this.isNowMatrix = false;
 		this.EscapeSymbol = "";
 	}
+
 	CLaTeXParser.prototype.IsNotEscapeSymbol = function () {
 		return this.oLookahead.data !== this.EscapeSymbol;
 	}
@@ -173,10 +174,10 @@
 	};
 	CLaTeXParser.prototype.GetFractionLiteral = function () {
 		let type;
-		if (this.oLookahead.class === "\\binom"){
+		if (this.oLookahead.class === "\\binom") {
 			type = oLiteralNames.binomLiteral[num];
 		}
-		else if (this.oLookahead.class === "\\sfrac"){
+		else if (this.oLookahead.class === "\\sfrac") {
 			type = oLiteralNames.skewedFractionLiteral[num]
 		}
 		else {
@@ -220,7 +221,8 @@
 			strLeftSymbol = this.oPrevLookahead.data;
 			if (strLeftSymbol === "|") {
 				arrBracketContent = this.GetExpressionLiteral("|");
-			} else {
+			}
+			else {
 				arrBracketContent = this.GetExpressionLiteral();
 			}
 
@@ -265,7 +267,8 @@
 			this.IsSkipLiteral() ||
 			this.IsHBracket() ||
 			this.oLookahead.data === "┬" ||
-			this.oLookahead.data === "┴"
+			this.oLookahead.data === "┴" ||
+			this.IsEqArrayLiteral()
 		);
 	};
 	CLaTeXParser.prototype.GetElementLiteral = function () {
@@ -358,7 +361,9 @@
 		else if (this.IsHBracket()) {
 			return this.GetHBracketLiteral()
 		}
-
+		else if (this.IsEqArrayLiteral()) {
+			return this.GetEqArrayLiteral();
+		}
 
 	};
 	CLaTeXParser.prototype.IsSkipLiteral = function () {
@@ -712,10 +717,29 @@
 		this.SkipFreeSpace();
 		return element
 	}
-
+	CLaTeXParser.prototype.IsEqArrayLiteral = function () {
+		return this.oLookahead.data === "█"
+	};
+	CLaTeXParser.prototype.GetEqArrayLiteral = function () {
+		this.EatToken(this.oLookahead.class);
+		if (this.oLookahead.data === "{") {
+			this.EatToken(this.oLookahead.class);
+			let oContent = [];
+			while (this.oLookahead.data !== "}") {
+				oContent.push(this.GetRayOfMatrixLiteral());
+			}
+			if (this.oLookahead.data === "}") {
+				this.EatToken(this.oLookahead.class);
+				return {
+					type: oLiteralNames.arrayLiteral[num],
+					value: oContent,
+				}
+			}
+		}
+	}
 	CLaTeXParser.prototype.GetExpressionLiteral = function (strBreakSymbol, strBreakType) {
 		this.EscapeSymbol = strBreakSymbol;
-		const arrEndOfExpression = ["}", "\\endgroup", "\\end", "┤", "\\\\"];
+		const arrEndOfExpression = ["}", "\\endgroup", "\\end", "┤"];
 		const arrExpList = [];
 		while (
 			this.IsElementLiteral() &&
@@ -726,18 +750,6 @@
 			}
 			else {
 				arrExpList.push(this.GetWrapperElementLiteral());
-			}
-		}
-
-		if (this.oLookahead.data === "\\\\" && !this.isNowMatrix) {
-			let data = [arrExpList];
-			while (this.oLookahead.data === "\\\\") {
-				this.EatToken(this.oLookahead.class);
-				data.push(this.GetExpressionLiteral());
-			}
-			return {
-				type: oLiteralNames.arrayLiteral[num],
-				value: data,
 			}
 		}
 
