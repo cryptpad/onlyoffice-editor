@@ -1326,13 +1326,12 @@
 				if (oElement !== null) {
 					oExpLiteral.push(oElement);
 				}
+				else if (this.isOtherLiteral()) {
+					oExpLiteral.push(this.otherLiteral());
+				}
 			}
 			if (this._lookahead.class === oLiteralNames.operatorLiteral[0]) {
 				oExpLiteral.push(this.GetOperatorLiteral())
-			}
-
-			else if (this.isOtherLiteral()) {
-				oExpLiteral.push(this.otherLiteral());
 			}
 		}
 

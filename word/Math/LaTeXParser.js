@@ -645,24 +645,32 @@
 	}
 	CLaTeXParser.prototype.GetMatrixLiteral = function () {
 		let strMatrixType;
-		if (this.oLookahead.data !== "\\begin{matrix}") {
-			switch (this.oLookahead.data) {
-				case "\\begin{pmatrix}":
-					strMatrixType = "()";
-					break;
-				case "\\begin{bmatrix}":
-					strMatrixType = "[]";
-					break;
-				case "\\begin{Bmatrix}":
-					strMatrixType = "{}";
-					break;
-				case "\\begin{vmatrix}":
-					strMatrixType = "|";
-					break;
-				case "\\begin{Vmatrix}":
-					strMatrixType = "‖";
-					break;
-			}
+		switch (this.oLookahead.data) {
+			case "\\begin{pmatrix}":
+			case "\\pmatrix":
+			case "⒨":
+				strMatrixType = "()";
+				break;
+			case "\\begin{bmatrix}":
+			case "\\bmatrix":
+				strMatrixType = "[]";
+				break;
+			case "\\begin{Bmatrix}":
+			case "\\Bmatrix":
+				strMatrixType = "{}";
+				break;
+			case "\\begin{vmatrix}":
+			case "\\vmatrix":
+				strMatrixType = "|";
+				break;
+			case "\\begin{Vmatrix}":
+			case "⒩":
+			case "\\Vmatrix":
+				strMatrixType = "‖";
+				break;
+			case "■":
+			default:
+				strMatrixType = "";
 		}
 		this.isNowMatrix = true;
 		this.EatToken(this.oLookahead.class);
@@ -670,7 +678,6 @@
 		if (this.oLookahead.data === "{") {
 			this.EatToken(this.oLookahead.class);
 		}
-
 		let matrix = [];
 		while (this.oLookahead.data !== "}" && this.oLookahead.class !== "endOfMatrix") {
 			matrix.push(this.GetRayOfMatrixLiteral());

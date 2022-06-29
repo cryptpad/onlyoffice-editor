@@ -1104,25 +1104,43 @@ CMathMatrix.prototype.Get_DeletedItemsThroughInterface = function()
 {
     return [];
 };
-CMathMatrix.prototype.GetTextOfElement = function(isLaTex) {
-	var strMatrixSymbol = (true === isLaTex)
-		? strMatrixSymbol = '\\matrix'
-		: strMatrixSymbol = String.fromCharCode(9632); //■
+CMathMatrix.prototype.GetTextOfElement = function(isLaTeX, strBrackets) {
+   var strMatrixSymbol;
+    if (isLaTeX) {
+        switch (strBrackets) {
+            case undefined: strMatrixSymbol = "\\matrix"; break;
+            case "()": strMatrixSymbol = "\\pmatrix"; break;
+            case "[]": strMatrixSymbol = "\\bmatrix"; break;
+            case "{}": strMatrixSymbol = "\\Bmatrix"; break;
+            case "||": strMatrixSymbol = "\\vmatrix"; break;
+            case "||": strMatrixSymbol = "\\vmatrix"; break;
+            case "‖‖": strMatrixSymbol = "\\Vmatrix"; break;
+        }
+    } else {
+        strMatrixSymbol = "■";
+    }
 
-	var strTemp = strMatrixSymbol + '(';
+    var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
+    var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
+
+	var strTemp = strMatrixSymbol + strStartBracet;
 
 	for (var nRow = 0; nRow < this.nRow; nRow++) {
 		for (var nCol = 0; nCol < this.nCol; nCol++) {
-			strTemp += this.getContentElement(nRow, nCol).GetTextOfElement(isLaTex);
-			if (nCol < this.nCol - 1) {
+
+			strTemp += this.getContentElement(nRow, nCol).GetTextOfElement(isLaTeX);
+
+            if (nCol < this.nCol - 1) {
 				strTemp += '&'
 			}
+
 			else if (nRow < this.nRow - 1) {
-				strTemp += '@'
+				strTemp += isLaTeX ? "\\\\" : '@'
 			}
 		}
 	}
-	strTemp += ')'
+    strTemp += strCloseBracet;
+
 	return strTemp;
 };
 
