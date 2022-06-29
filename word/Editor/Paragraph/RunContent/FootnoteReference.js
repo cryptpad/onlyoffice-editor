@@ -300,7 +300,7 @@
 	};
 	CRunFootnoteReference.prototype.GetFontSlot = function(oTextPr)
 	{
-		return AscWord.fontslot_Unknown;
+		return AscWord.fontslot_ASCII;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
