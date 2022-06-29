@@ -932,7 +932,7 @@ CMathText.prototype.IsAlignPoint = function()
 {
     return false;
 };
-CMathText.prototype.IsText = function()
+CMathText.prototype.IsMathText = function()
 {
     return true;
 };
@@ -1095,7 +1095,7 @@ CMathAmp.prototype.getCodeChr = function()
 
     return code;
 };
-CMathAmp.prototype.IsText = function()
+CMathAmp.prototype.IsMathText = function()
 {
     return !this.bAlignPoint;
 };

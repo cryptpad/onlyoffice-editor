@@ -932,7 +932,7 @@ CMathBase.prototype.IsPlaceholder = function()
 {
     return false;
 };
-CMathBase.prototype.IsText = function()
+CMathBase.prototype.IsMathText = function()
 {
     return false;
 };

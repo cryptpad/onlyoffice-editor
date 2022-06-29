@@ -828,7 +828,7 @@ CMathGapsInfo.prototype =
             var leftCode;
 
 
-            if(this.Current.IsText())
+            if(this.Current.IsMathText())
             {
                 var currCode = this.Current.getCodeChr();
 
@@ -842,7 +842,7 @@ CMathGapsInfo.prototype =
                         if(leftCoeff > rightCoeff)
                             leftCoeff -= rightCoeff;
                     }
-                    else if(this.Left.IsText())
+                    else if(this.Left.IsMathText())
                     {
                         leftCode = this.Left.getCodeChr();
                         leftCoeff = COEFF_GAPS.getCoeff(currCode, leftCode, -1);
@@ -873,7 +873,7 @@ CMathGapsInfo.prototype =
                         else
                             leftCoeff -= rightCoeff/2;
                     }
-                    else if(this.Left.IsText())
+                    else if(this.Left.IsMathText())
                     {
                         leftCode = this.Left.getCodeChr();
                         rightCoeff = COEFF_GAPS.getCoeff(leftCode, -1, 1);
@@ -5648,7 +5648,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) 
         var Found = true;
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
             var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd + IndexSkip];
-            if (!LastEl.Element.IsText()) {
+            if (!LastEl.Element.IsMathText()) {
                 FlagEnd = true;
                 Found = false;
                 break;
@@ -5733,7 +5733,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectText = function(Elements) {
         var Found = true;
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
             var LastEl = Elements[ElCount - nStringPos - 1];
-            if (!LastEl.IsText()) {
+            if (!LastEl.IsMathText()) {
                 Found = false;
                 break;
             }
@@ -5767,7 +5767,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectTextFunc = function(Elements
         var Found = true;
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
             var LastEl = Elements[ElCount - nStringPos - 1];
-            if (!LastEl.IsText()) {
+            if (!LastEl.IsMathText()) {
                 Found = false;
                 break;
             }
@@ -5777,7 +5777,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectTextFunc = function(Elements
             }
             if (nStringPos === (CheckStringLen - 1) && (ElCount - CheckStringLen) > 0) {
                 LastEl = Elements[ElCount - nStringPos - 2];
-                if ((LastEl.IsText() && LastEl.value !== 32)) {
+                if ((LastEl.IsMathText() && LastEl.value !== 32)) {
                     Found = false;
                 }
             }
@@ -7201,7 +7201,7 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
                         if (oCurElem.value == 0x40) {  // @
                             row++;
                             arrContent[row] = [];
-                        } else if (oCurElem.IsText()) {
+                        } else if (oCurElem.IsMathText()) {
                             arrContent[row].push(oCurElem);
                         } else {
                             arrContent[row].push(oCurElem);
@@ -7383,7 +7383,7 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
         // Начинаем проверять с конца строки
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
             var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - 1];
-            if (!LastEl.Element.IsText()) {
+            if (!LastEl.Element.IsMathText()) {
                 FlagEnd = true;
                 Found = false;
                 break;
