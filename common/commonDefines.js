@@ -921,8 +921,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 
 	var vertalign_Baseline    = 0;
-	var vertalign_SuperScript = 1;
-	var vertalign_SubScript   = 2;
+	var vertalign_SubScript   = 1;
+	var vertalign_SuperScript = 2;
+
 	var hdrftr_Header         = 0x01;
 	var hdrftr_Footer         = 0x02;
 
@@ -4201,7 +4202,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot["cellanchorOneCell"] = prot.cellanchorOneCell;
 	prot["cellanchorTwoCell"] = prot.cellanchorTwoCell;
 
-    window['AscCommon']                             = window['AscCommon'] || {};
+	prot = window['Asc'];
+	prot["vertalign_Baseline"]    = vertalign_Baseline;
+	prot["vertalign_SuperScript"] = vertalign_SuperScript;
+	prot["vertalign_SubScript"]   = vertalign_SubScript;
+
+	window['AscCommon']                             = window['AscCommon'] || {};
 	window["AscCommon"].g_cCharDelimiter            = g_cCharDelimiter;
 	window["AscCommon"].g_cGeneralFormat            = g_cGeneralFormat;
 	window["AscCommon"].bDate1904                   = false;
