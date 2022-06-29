@@ -444,7 +444,7 @@
 
         this.viewPrintLines = false;
 
-        this.cutRange = null;
+        this.copyCutRange = null;
 
         this.usePrintScale = false;//флаг нужен для того, чтобы возвращался scale только в случае печати, а при отрисовке, допустим сектки, он был равен 1
 
@@ -4820,8 +4820,8 @@
 	};
 
 	WorksheetView.prototype._drawCutRange = function () {
-		if(this.cutRange) {
-			this._drawElements(this._drawSelectionElement, this.cutRange, AscCommonExcel.selectionLineType.DashThick, this.settings.activeCellBorderColor);
+		if(this.copyCutRange) {
+			this._drawElements(this._drawSelectionElement, this.copyCutRange, AscCommonExcel.selectionLineType.DashThick, this.settings.activeCellBorderColor);
 		}
 	};
 
@@ -6312,7 +6312,7 @@
 
 		//TODO пересмотреть! возможно стоит очищать частями в зависимости от print_area
 		//print lines view
-		if(this.viewPrintLines || this.cutRange) {
+		if(this.viewPrintLines || this.copyCutRange) {
 			this.overlayCtx.clear();
 		}
 		if(pageBreakPreviewModeOverlay) {
@@ -11588,6 +11588,7 @@
         }
 
 		this.model.workbook.handlers.trigger("cleanCutData", null, true);
+		this.model.workbook.handlers.trigger("cleanCopyData");
 
         var arnFrom = this.model.selectionRange.getLast();
         var arnTo = this.activeMoveRange.clone(true);
@@ -12242,6 +12243,9 @@
             });
 
 			t.model.workbook.handlers.trigger("cleanCutData", true, true);
+			if (prop !== "paste") {
+				t.model.workbook.handlers.trigger("cleanCopyData", true);
+			}
 
 			//в случае, если вставляем из глобального буфера, транзакцию закрываем внутри функции _loadDataBeforePaste на callbacks от загрузки шрифтов и картинок
 			if (prop !== "paste") {
@@ -15076,6 +15080,8 @@
 				}
 
 				t.model.workbook.handlers.trigger("cleanCutData", true, true);
+				t.model.workbook.handlers.trigger("cleanCopyData", true);
+
 				range = t.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
 				switch (val) {
 					case c_oAscInsertOptions.InsertCellsAndShiftRight:
@@ -15231,6 +15237,8 @@
 				}
 
 				t.model.workbook.handlers.trigger("cleanCutData", true, true);
+				t.model.workbook.handlers.trigger("cleanCopyData", true);
+
 				range = t.model.getRange3(checkRange.r1, checkRange.c1, checkRange.r2, checkRange.c2);
 				switch (val) {
 					case c_oAscDeleteOptions.DeleteCellsAndShiftLeft:
@@ -16403,6 +16411,7 @@
 		var arrAutoCompleteLC = asc.arrayToLowerCase(arrAutoComplete);
 
 		this.model.workbook.handlers.trigger("cleanCutData", true, true);
+		this.model.workbook.handlers.trigger("cleanCopyData", true);
 
 		editor.open({
 			enterOptions: enterOptions,
@@ -16722,6 +16731,7 @@
 		}
 
 		this.model.workbook.handlers.trigger("cleanCutData", true, true);
+		this.model.workbook.handlers.trigger("cleanCopyData", true);
 
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
@@ -16910,6 +16920,7 @@
 		}
 
 		this.model.workbook.handlers.trigger("cleanCutData", true, true);
+		this.model.workbook.handlers.trigger("cleanCopyData", true);
 
 		var t = this;
 		var ar = this.model.selectionRange.getLast().clone();
