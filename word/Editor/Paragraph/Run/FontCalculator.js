@@ -105,6 +105,10 @@
 			else
 				oTextPr = oRun.Get_CompiledPr(false);
 
+			let oParagraph = oRun.GetParagraph();
+			if (oParagraph)
+				oTextPr.ReplaceThemeFonts(oParagraph.GetTheme().themeElements.fontScheme);
+
 			nFontSlot = oThis.CheckUnknownFontSlot(nFontSlot, oTextPr);
 
 			if (nFontSlot & AscWord.fontslot_CS)
@@ -151,6 +155,8 @@
 		let oTextPr   = oRun.Get_CompiledPr(false);
 		let nInRunPos = oParaContentPos.Get(oParaContentPos.GetDepth());
 		let nFontSlot = this.CheckUnknownFontSlot(oRun.GetFontSlotByPosition(nInRunPos), oTextPr);
+
+		oTextPr.ReplaceThemeFonts(oParagraph.GetTheme().themeElements.fontScheme);
 
 		if (nFontSlot & AscWord.fontslot_ASCII)
 			this.FontName = oTextPr.RFonts.Ascii.Name;
