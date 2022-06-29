@@ -521,7 +521,8 @@
 			this.isRectLiteral() ||
 			this.IsOverBarLiteral() ||
 			this.IsUnderBarLiteral() ||
-			this.IsHBracketLiteral()
+			this.IsHBracketLiteral() ||
+			this.IsGetNameOfFunction()
 		);
 	};
 	CUnicodeParser.prototype.GetFunctionLiteral = function () {
@@ -562,7 +563,26 @@
 		else if (this.IsHBracketLiteral()) {
 			oFunctionContent = this.GetHBracketLiteral();
 		}
+		else if (this.IsGetNameOfFunction()){
+			return this.GetNameOfFunction()
+		}
 		return oFunctionContent;
+	};
+	CUnicodeParser.prototype.IsGetNameOfFunction = function () {
+		return this._lookahead.class === oLiteralNames.functionLiteral[0]
+	};
+	CUnicodeParser.prototype.GetNameOfFunction = function () {
+		let oContent;
+		let oName = this.EatToken(this._lookahead.class).data;
+		if (!this.IsExpSubSupLiteral()) {
+			oContent = this.GetElementLiteral();
+		}
+
+		return {
+			type: oLiteralNames.functionLiteral[num],
+			value: oName,
+			third: oContent
+		}
 	};
 	CUnicodeParser.prototype.IsExpBracketLiteral = function () {
 		return (
@@ -1136,6 +1156,7 @@
 		else if (this.IsTextLiteral()) {
 			return this.GetTextLiteral()
 		}
+
 	};
 	CUnicodeParser.prototype.IsEntityLiteral = function () {
 		return (
@@ -1215,7 +1236,6 @@
 				arrFactorList[arrFactorList.length - 1] = oContent;
 			}
 		}
-
 		return this.GetContentOfLiteral(arrFactorList);
 	};
 	CUnicodeParser.prototype.IsOperandLiteral = function () {
@@ -1296,7 +1316,7 @@
 		}
 	};
 	CUnicodeParser.prototype.IsExpLiteral = function () {
-		return this.IsElementLiteral();
+		return this.IsElementLiteral() || this._lookahead.class === oLiteralNames.operatorLiteral[0];
 	};
 	CUnicodeParser.prototype.GetExpLiteral = function () {
 		const oExpLiteral = [];
@@ -1307,9 +1327,10 @@
 					oExpLiteral.push(oElement);
 				}
 			}
-			else if (this._lookahead.class === oLiteralNames.operatorLiteral[0]) {
+			if (this._lookahead.class === oLiteralNames.operatorLiteral[0]) {
 				oExpLiteral.push(this.GetOperatorLiteral())
 			}
+
 			else if (this.isOtherLiteral()) {
 				oExpLiteral.push(this.otherLiteral());
 			}
@@ -1366,15 +1387,11 @@
 		const token = this._lookahead;
 
 		if (token === null) {
-			throw new SyntaxError(
-				`Unexpected end of input, expected: "${tokenType}"`
-			);
+			console.log(`Unexpected end of input, expected: "${tokenType}"`)
 		}
 
 		if (token.class !== tokenType) {
-			throw new SyntaxError(
-				`Unexpected token: "${token.class}", expected: "${tokenType}"`
-			);
+			console.log(`Unexpected token: "${token.class}", expected: "${tokenType}"`)
 		}
 		this._lookahead = this.oTokenizer.GetNextToken();
 		return token;

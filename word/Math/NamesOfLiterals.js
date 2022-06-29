@@ -103,6 +103,7 @@
 		matrixLiteral: [53, "matrixLiteral"],
 
 		arrayLiteral: [53, "arrayLiteral"],
+		skewedFractionLiteral: [54, "skewedFractionLiteral"],
 	};
 	const wordAutoCorrection = [
 		// Если массив правила состоит из:
@@ -326,8 +327,19 @@
 						strOutput += str[index];
 						index++;
 					}
-					if (functionNames.includes(strOutput.slice(1))) {
+					if (functionNames.includes(strOutput.slice(1)) || limitFunctions.includes(strOutput.slice(1))) {
 						return strOutput;
+					}
+				}
+				else {
+					let index = 0;
+					let strOutput = "";
+					while (str[index] && /[a-zA-Z]/.test(str[index])) {
+						strOutput += str[index];
+						index++;
+					}
+					if (limitFunctions.includes(strOutput) || functionNames.includes(strOutput)) {
+						return strOutput
 					}
 				}
 			},
@@ -735,6 +747,8 @@
 		["\\fraktur", undefined, oNamesOfLiterals.mathFontLiteral[0]],
 		["\\frak", undefined, oNamesOfLiterals.mathFontLiteral[0]],
 		["\\double", undefined, oNamesOfLiterals.mathFontLiteral[0]],
+
+		["\\sfrac", undefined, true],
 
 		// ["\""],
 		// ["\'"],
@@ -1846,38 +1860,40 @@
 							oAccent.getBase()
 						)
 						break;
+					case oNamesOfLiterals.skewedFractionLiteral[num]:
 					case oNamesOfLiterals.fractionLiteral[num]:
-						let oFraction = oContext.Add_Fraction(
-							{ctrPrp : new CTextPr(), type : oTokens.fracType},
-							null,
-							null
-						);
+					case oNamesOfLiterals.binomLiteral[num]:
+						let oFraction;
+						if (oTokens.type === oNamesOfLiterals.binomLiteral[num]) {
+							oFraction = oContext.Add_Fraction(
+								{ctrPrp : new CTextPr(), type : NO_BAR_FRACTION},
+								null,
+								null
+							);
+						}
+						else if (oTokens.type === oNamesOfLiterals.fractionLiteral[num]) {
+							oFraction = oContext.Add_Fraction(
+								{ctrPrp : new CTextPr(), type : oTokens.fracType},
+								null,
+								null
+							);
+						}
+						else if (oTokens.type === oNamesOfLiterals.skewedFractionLiteral[num]) {
+							oFraction = oContext.Add_Fraction(
+								{ctrPrp : new CTextPr(), type : SKEWED_FRACTION},
+								null,
+								null
+							);
+						}
 						UnicodeArgument(
 							oTokens.up,
 							oNamesOfLiterals.bracketBlockLiteral[num],
 							oFraction.getNumeratorMathContent()
-						)
+						);
 						UnicodeArgument(
 							oTokens.down,
 							oNamesOfLiterals.bracketBlockLiteral[num],
 							oFraction.getDenominatorMathContent()
-						)
-						break;
-					case oNamesOfLiterals.binomLiteral[num]:
-						let oBinom = oContext.Add_Fraction(
-							{ctrPrp : new CTextPr(), type : NO_BAR_FRACTION},
-							null,
-							null
-						);
-						UnicodeArgument(
-							oTokens.up,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oBinom.getNumeratorMathContent()
-						);
-						UnicodeArgument(
-							oTokens.down,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oBinom.getDenominatorMathContent()
 						);
 						break;
 					case oNamesOfLiterals.subSupLiteral[num]:

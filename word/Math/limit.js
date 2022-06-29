@@ -446,16 +446,16 @@ CMathFunc.prototype.fillContent = function()
 CMathFunc.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
 	var strFuncName = this.CheckIsEmpty(this.getFName().GetTextOfElement(isLaTeX));
-	var strArgument = this.CheckIsEmpty(this.getArgument().GetTextOfElement(isLaTeX));
+	var strArgument = " "+this.CheckIsEmpty(this.getArgument().GetTextOfElement(isLaTeX));
 	var strStartBracet = "";
 	var strCloseBracet = "";
 
 	if (isLaTeX) {
-		strStartBracet = strArgument.length > 1 ? "{" : "";
-		strCloseBracet = strArgument.length > 1 ? "}" : "";
+		strStartBracet = strArgument.trim().length > 1 ? " {" : "";
+		strCloseBracet = strArgument.trim().length > 1 ? "}" : "";
 	} else {
-		strStartBracet = strArgument.length > 1 ? "〖" : "";
-		strCloseBracet = strArgument.length > 1 ? "〗" : "";
+		strStartBracet = strArgument.trim().length > 1 ? " 〖" : "";
+		strCloseBracet = strArgument.trim().length > 1 ? "〗" : "";
 	}
 
 	//	Unicode

@@ -4052,8 +4052,8 @@ CDelimiter.prototype.GetTextOfElement = function(isLaTeX) {
 	//if start and close braketets non-standart add \open, \close
 
 	var strTemp = "";
-	var strStartSymbol = String.fromCharCode((this.begOper.code || this.Pr.begChr) || 40);
-	var strEndSymbol = String.fromCharCode((this.endOper.code || this.Pr.endChr) || 41);
+	var strStartSymbol = this.Pr.begChr === -1 ? "" : String.fromCharCode((this.begOper.code || this.Pr.begChr) || 40);
+	var strEndSymbol = this.Pr.begChr === -1 ? "" : String.fromCharCode((this.endOper.code || this.Pr.endChr) || 41);
 	var strSeparatorSymbol = String.fromCharCode(this.sepOper.code) || '';
 	var strStartCaseSymbol = '├';
 	var strEndCaseSymbol = '┤';
@@ -4066,8 +4066,7 @@ CDelimiter.prototype.GetTextOfElement = function(isLaTeX) {
 	var arrStartBracets = ['(', '{', '[', '|'];
 	var arrCloseBracets = [')', '}', ']', '|'];
 
-	strTemp += this.Pr.begChr === -1 || this.Pr.begChr === 32 || !arrStartBracets.includes(strStartSymbol) ? (isStartClose = true, strStartCaseSymbol) + strStartSymbol : strStartSymbol;
-
+   strTemp += strStartSymbol;
 	for (var intCount = 0; intCount < this.Content.length; intCount++) {
 		strTemp += this.CheckIsEmpty(this.Content[intCount].GetTextOfElement(isLaTeX));
 
@@ -4075,7 +4074,7 @@ CDelimiter.prototype.GetTextOfElement = function(isLaTeX) {
 			strTemp += strSeparatorSymbol;
 		}
 	}
-	strTemp += this.Pr.endChr === -1 || this.Pr.endChr === 32 || this.Pr.begChr === -1 || this.Pr.begChr === 32 || isStartClose ? strEndCaseSymbol + strEndSymbol : strEndSymbol;
+    strTemp += strEndSymbol;
 	return strTemp;
 }
 

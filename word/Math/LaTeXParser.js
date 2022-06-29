@@ -169,14 +169,25 @@
 		return oResultAccent;
 	};
 	CLaTeXParser.prototype.IsFractionLiteral = function () {
-		return (this.oLookahead.class === "\\frac" || this.oLookahead.class === "\\binom" || this.oLookahead.class === "\\cfrac");
+		return (this.oLookahead.class === "\\frac" || this.oLookahead.class === "\\binom" || this.oLookahead.class === "\\cfrac" || this.oLookahead.class === "\\sfrac");
 	};
 	CLaTeXParser.prototype.GetFractionLiteral = function () {
-		const isBinom = this.oLookahead.class === "\\binom";
+		let type;
+		if (this.oLookahead.class === "\\binom"){
+			type = oLiteralNames.binomLiteral[num];
+		}
+		else if (this.oLookahead.class === "\\sfrac"){
+			type = oLiteralNames.skewedFractionLiteral[num]
+		}
+		else {
+			type = oLiteralNames.fractionLiteral[num]
+		}
 		this.EatToken(this.oLookahead.class);
 		const oResult = this.GetArguments(2);
+
+
 		return {
-			type: isBinom ? oLiteralNames.binomLiteral[num] : oLiteralNames.fractionLiteral[num],
+			type: type,
 			up: oResult[0],
 			down: oResult[1],
 		};
@@ -427,11 +438,25 @@
 		return this.oLookahead.class === oLiteralNames.hBracketLiteral[0]
 	}
 	CLaTeXParser.prototype.GetHBracketLiteral = function () {
-		this.EatToken(this.oLookahead.class);
+		let oDown, oUp;
+		let hBrack = this.EatToken(this.oLookahead.class).data;
 		let oContent = this.GetArguments(1);
+		this.SkipFreeSpace();
+		if (this.oLookahead.data === "_" || this.oLookahead.data === "^") {
+			this.EatToken(this.oLookahead.class);
+			if (this.oLookahead.class === "_") {
+				oDown = this.GetElementLiteral();
+			}
+			else {
+				oUp = this.GetElementLiteral();
+			}
+		}
 		return {
 			type: oLiteralNames.hBracketLiteral[num],
 			value: oContent,
+			hBrack: hBrack,
+			down: oDown,
+			up: oUp,
 		}
 	}
 	//todo if over
