@@ -3441,12 +3441,10 @@ ParaRun.prototype.private_MeasureCombForm = function(nCombBorderW, nCombWidth, n
 };
 ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfoMathText)
 {
-	var oParagraph = this.GetParagraph();
+	let oParagraph = this.GetParagraph();
 
-	var oItem     = this.Content[nPos];
-	var nItemType = oItem.Type;
-
-	if (para_Drawing === nItemType && oParagraph)
+	let oItem = this.Content[nPos];
+	if (oItem.IsDrawing())
 	{
 		oItem.Parent          = oParagraph;
 		oItem.DocumentContent = oParagraph.Parent;
@@ -3454,17 +3452,18 @@ ParaRun.prototype.private_MeasureElement = function(nPos, oTextPr, oTheme, oInfo
 	}
 
 	// TODO: Как только избавимся от para_End переделать здесь
-	if (para_End === nItemType && oParagraph)
+	if (oItem.IsParaEnd())
 	{
 		var oEndTextPr = oParagraph.GetParaEndCompiledPr();
 		g_oTextMeasurer.SetTextPr(oEndTextPr, oTheme);
-		oItem.Measure(g_oTextMeasurer, oEndTextPr);
-		return;
+		oItem.Measure(g_oTextMeasurer, oEndTextPr, oParagraph.IsLastParagraphInCell());
+	}
+	else
+	{
+		oItem.Measure(g_oTextMeasurer, oTextPr, oInfoMathText, this);
 	}
 
-	oItem.Measure(g_oTextMeasurer, oTextPr, oInfoMathText, this);
-
-	if (para_Drawing === nItemType)
+	if (oItem.IsDrawing())
 	{
 		// После автофигур надо заново выставлять настройки
 		g_oTextMeasurer.SetTextPr(oTextPr, oTheme);
@@ -6590,7 +6589,8 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                 if (!Para.LogicDocument || Para.LogicDocument !== Para.Parent)
                     SectPr = undefined;
 
-				if (!Para.IsInFixedForm())
+				if (!Para.IsInFixedForm()
+					&& ((editor && editor.ShowParaMarks) || (!SectPr && reviewtype_Common !== ReviewType)))
 				{
 					if (undefined === SectPr)
 					{
@@ -6648,23 +6648,9 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 								break;
 							}
 						}
-
-						var bEndCell = false;
-
-						var oDocContent = Para.GetParent();
-						var oCell       = oDocContent.IsTableCellContent(true);
-						if (oCell)
-						{
-							var oCellContent = oCell.GetContent();
-							bEndCell         = Para === oCellContent.GetLastParagraph();
-						}
-
-						Item.Draw(X, Y - this.YOffset, pGraphics, bEndCell, reviewtype_Common !== ReviewType);
 					}
-					else
-					{
-						Item.Draw(X, Y - this.YOffset, pGraphics, false, false);
-					}
+
+					Item.Draw(X, Y - this.YOffset, pGraphics);
 				}
 
                 X += Item.Get_Width();

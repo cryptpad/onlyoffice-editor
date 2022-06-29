@@ -59,11 +59,8 @@
 	{
 		return true;
 	};
-	CRunParagraphMark.prototype.Draw = function(X, Y, Context, bEndCell, bForceDraw)
+	CRunParagraphMark.prototype.Draw = function(X, Y, Context)
 	{
-		if ((!editor || !editor.ShowParaMarks) && !bForceDraw)
-			return;
-
 		if (this.SectionEnd)
 			return this.private_DrawSectionEnd(X, Y, Context);
 

@@ -16755,6 +16755,23 @@ Paragraph.prototype.IsTableCellContent = function()
 	return (this.Parent && this.Parent.IsTableCellContent() ? true : false);
 };
 /**
+ * Проверяем является ли данный параграф последним в ячейке (возвращаем false, если параграф не лежит в таблице вообще)
+ * @returns {boolean}
+ */
+Paragraph.prototype.IsLastParagraphInCell = function()
+{
+	let oDocContent = this.GetParent();
+	if (!oDocContent)
+		return false;
+
+	let oCell = oDocContent.IsTableCellContent(true);
+	if (!oCell)
+		return false;
+
+	let oCellContent = oCell.GetContent();
+	return (this === oCellContent.GetLastParagraph());
+};
+/**
  * Получаем элемент содержимого параграфа
  * @param nIndex
  * @returns {?CParagraphContentBase}
