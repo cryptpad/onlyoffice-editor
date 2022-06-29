@@ -13378,8 +13378,6 @@ ParaRun.prototype.GetFontSlotInRange = function(nStartPos, nEndPos)
 		return AscWord.fontslot_None;
 
 	let oTextPr = this.Get_CompiledPr(false);
-	if (oTextPr.RTL || oTextPr.CS)
-		return AscWord.fontslot_CS;
 
 	let nFontSlot = AscWord.fontslot_None;
 	for (let nPos = nStartPos; nPos < nEndPos; ++nPos)
@@ -13387,6 +13385,12 @@ ParaRun.prototype.GetFontSlotInRange = function(nStartPos, nEndPos)
 		let oItem = this.Content[nPos];
 		nFontSlot |= oItem.GetFontSlot(oTextPr)
 	}
+
+	if (AscWord.fontslot_Unknown === nFontSlot)
+		return AscWord.fontslot_Unknown;
+
+	if (oTextPr.RTL || oTextPr.CS)
+		return AscWord.fontslot_CS;
 
 	return nFontSlot;
 };

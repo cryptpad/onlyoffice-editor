@@ -44,6 +44,13 @@
 		this.Italic   = null;
 		this.FontSize = null;
 		this.FontName = null;
+
+		// Для случая, когда в выделение попали только элементы со слотом AscWord.fontslot_Unknown
+		// (например, только знак конца параграфа)
+		this.BoldUnknown     = null;
+		this.ItalicUnkown    = null;
+		this.FontSizeUnknown = null;
+		this.FontNameUnknown = null;
 	}
 	CFontCalculator.prototype.Calculate = function(oDocContent, oTextPr)
 	{
@@ -53,6 +60,8 @@
 			this.HandleSelectionCase(oDocContent);
 		else
 			this.HandleCursorCase(oDocContent);
+
+		this.CheckResult();
 
 		oTextPr.Bold       = this.Bold;
 		oTextPr.Italic     = this.Italic;
@@ -66,6 +75,11 @@
 		this.Italic   = null;
 		this.FontSize = null;
 		this.FontName = null;
+
+		this.BoldUnknown     = null;
+		this.ItalicUnkown    = null;
+		this.FontSizeUnknown = null;
+		this.FontNameUnknown = null;
 	};
 	CFontCalculator.prototype.HandleSelectionCase = function(oDocContent)
 	{
@@ -82,9 +96,17 @@
 			if (AscWord.fontslot_None === nFontSlot)
 				return false;
 
-			nFontSlot = oThis.CorrectFontSlot(nFontSlot);
+			// TODO: Пока оставим эту проверку здесь. Проблема в том, что настройки в последнем ране не совпадают
+			//       с настройками конца параграфа (если это исправится, тогда здесь можно просто оставить
+			//       простое получение компилированных настроек рана)
+			let oTextPr;
+			if (oRun.IsParaEndRun() && oRun.GetParagraph())
+				oTextPr = oRun.GetParagraph().GetParaEndCompiledPr();
+			else
+				oTextPr = oRun.Get_CompiledPr(false);
 
-			let oTextPr = oRun.Get_CompiledPr(false);
+			nFontSlot = oThis.CheckUnknownFontSlot(nFontSlot, oTextPr);
+
 			if (nFontSlot & AscWord.fontslot_CS)
 			{
 				oThis.CheckBold(oTextPr.BoldCS);
@@ -114,11 +136,6 @@
 	};
 	CFontCalculator.prototype.HandleCursorCase = function(oDocContent)
 	{
-		this.Bold     = undefined;
-		this.Italic   = undefined;
-		this.FontSize = undefined;
-		this.FontName = undefined;
-
 		let oParagraph = oDocContent.GetCurrentParagraph();
 		if (!oParagraph)
 			return;
@@ -131,10 +148,10 @@
 		if (!oRun || !(oRun instanceof AscWord.ParaRun))
 			return;
 
+		let oTextPr   = oRun.Get_CompiledPr(false);
 		let nInRunPos = oParaContentPos.Get(oParaContentPos.GetDepth());
-		let nFontSlot = this.CorrectFontSlot(oRun.GetFontSlotByPosition(nInRunPos));
+		let nFontSlot = this.CheckUnknownFontSlot(oRun.GetFontSlotByPosition(nInRunPos), oTextPr);
 
-		let oTextPr = oRun.Get_CompiledPr(false);
 		if (nFontSlot & AscWord.fontslot_ASCII)
 			this.FontName = oTextPr.RFonts.Ascii.Name;
 		else if (nFontSlot & AscWord.fontslot_HAnsi)
@@ -149,7 +166,9 @@
 			this.FontSize = oTextPr.FontSizeCS;
 			this.FontName = oTextPr.RFonts.CS.Name;
 		}
-		else
+		else if (nFontSlot & AscWord.fontslot_ASCII
+			|| nFontSlot & AscWord.fontslot_HAnsi
+			|| nFontSlot & AscWord.fontslot_EastAsia)
 		{
 			this.Bold     = oTextPr.Bold;
 			this.Italic   = oTextPr.Italic;
@@ -203,14 +222,74 @@
 		else if (this.FontName !== sFontName)
 			this.FontName = undefined;
 	};
-	CFontCalculator.prototype.CorrectFontSlot = function(nFontSlot)
+	CFontCalculator.prototype.CheckBoldUnknown = function(isBold)
 	{
+		if (null === this.BoldUnknown)
+			this.BoldUnknown = isBold;
+	};
+	CFontCalculator.prototype.CheckItalicUnknown = function(isItalic)
+	{
+		if (null === this.ItalicUnkown)
+			this.ItalicUnkown = isItalic;
+	};
+	CFontCalculator.prototype.CheckFontSizeUnknown = function(nFontSize)
+	{
+		if (null === this.FontSizeUnknown)
+			this.FontSizeUnknown = nFontSize;
+	};
+	CFontCalculator.prototype.CheckFontNameUnknown = function(sFontName)
+	{
+		if (null === this.FontNameUnknown)
+			this.FontNameUnknown = sFontName;
+	};
+	CFontCalculator.prototype.CheckUnknownFontSlot = function(nFontSlot, oTextPr)
+	{
+		let _nFontSlot = nFontSlot;
 		if (AscWord.fontslot_Unknown === nFontSlot)
-			return AscWord.fontslot_ASCII;
-		else if ((AscWord.fontslot_Unknown | AscWord.fontslot_CS) === nFontSlot)
-			return AscWord.fontslot_CS;
+		{
+			if (oTextPr.CS || oTextPr.RTL)
+			{
+				this.CheckBoldUnknown(oTextPr.BoldCS);
+				this.CheckItalicUnknown(oTextPr.ItalicCS);
+				this.CheckFontSizeUnknown(oTextPr.FontSizeCS);
+				this.CheckFontNameUnknown(oTextPr.RFonts.CS.Name);
+			}
+			else
+			{
+				this.CheckBoldUnknown(oTextPr.Bold);
+				this.CheckItalicUnknown(oTextPr.Italic);
+				this.CheckFontSizeUnknown(oTextPr.FontSize);
+				this.CheckFontNameUnknown(oTextPr.RFonts.Ascii.Name);
+			}
 
-		return nFontSlot;
+			_nFontSlot = AscWord.fontslot_None;
+		}
+		else if ((AscWord.fontslot_Unknown | AscWord.fontslot_CS) === nFontSlot)
+		{
+			_nFontSlot = AscWord.fontslot_CS;
+		}
+
+		return _nFontSlot;
+	};
+	CFontCalculator.prototype.CheckResult = function()
+	{
+		if (null === this.Bold)
+		{
+			if (null !== this.BoldUnknown)
+			{
+				this.Bold     = this.BoldUnknown;
+				this.Italic   = this.ItalicUnkown;
+				this.FontSize = this.FontSizeUnknown;
+				this.FontName = this.FontNameUnknown;
+			}
+			else
+			{
+				this.Bold     = undefined;
+				this.Italic   = undefined;
+				this.FontSize = undefined;
+				this.FontName = undefined;
+			}
+		}
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
