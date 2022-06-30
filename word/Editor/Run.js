@@ -3282,7 +3282,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	if (AscWord.fontslot_Unknown === nFontsFlags)
 		nFontsFlags = oTextPr.CS || oTextPr.RTL ? AscWord.fontslot_CS : AscWord.fontslot_ASCII;
 
-	let oMetrics = _oTextPr.GetTextMetrics(nFontsFlags);
+	let oMetrics = _oTextPr.GetTextMetrics(nFontsFlags, oTheme);
 
 	// Под TextAscent мы будем понимать ascent + linegap (которые записаны в шрифте)
 	this.TextHeight  = oMetrics.Height;

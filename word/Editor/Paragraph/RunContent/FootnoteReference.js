@@ -214,7 +214,7 @@
 		if (oTextPr.VertAlign !== AscCommon.vertalign_Baseline)
 			FontKoef = AscCommon.vaKSize;
 
-		this.TextAscent = oTextPr.GetTextMetrics(AscWord.fontslot_ASCII).Ascent;
+		this.TextAscent = oTextPr.GetTextMetrics(AscWord.fontslot_ASCII, this.Run.GetParagraph().GetTheme()).Ascent;
 		let oFontInfo   = oTextPr.GetFontInfo(AscWord.fontslot_ASCII);
 		oMeasurer.SetFontInternal(oFontInfo.Name, oFontInfo.Size * FontKoef, oFontInfo.Style);
 

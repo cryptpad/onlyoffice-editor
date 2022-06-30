@@ -13023,6 +13023,13 @@ CRFonts.prototype.Read_FromBinary = function(oReader)
 	if (nFlags & 256)
 		this.CSTheme = oReader.GetString2();
 };
+CRFonts.prototype.HaveThemeFonts = function()
+{
+	return (undefined !== this.AsciiTheme
+		|| undefined !== this.EastAsiaTheme
+		|| undefined !== this.HAnsiTheme
+		|| undefined !== this.CSTheme);
+};
 
 function CLang()
 {
@@ -15171,21 +15178,28 @@ CTextPr.prototype.GetDescription = function()
 
 	return Description;
 };
-CTextPr.prototype.GetTextMetrics = function(nFontFlags)
+CTextPr.prototype.GetTextMetrics = function(nFontFlags, oTheme)
 {
 	let oMetrics = new CTextMetrics();
 
-	if ((nFontFlags & AscWord.fontslot_ASCII) && this.RFonts.Ascii)
-		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_ASCII));
+	let oTextPr = this;
+	if (this.RFonts.HaveThemeFonts())
+	{
+		oTextPr = this.Copy();
+		oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
+	}
 
-	if ((nFontFlags & AscWord.fontslot_CS) && this.RFonts.CS)
-		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_CS));
+	if ((nFontFlags & AscWord.fontslot_ASCII) && oTextPr.RFonts.Ascii)
+		oMetrics.Update(oTextPr.GetFontInfo(AscWord.fontslot_ASCII));
 
-	if ((nFontFlags & AscWord.fontslot_HAnsi) && this.RFonts.HAnsi)
-		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_HAnsi));
+	if ((nFontFlags & AscWord.fontslot_CS) && oTextPr.RFonts.CS)
+		oMetrics.Update(oTextPr.GetFontInfo(AscWord.fontslot_CS));
 
-	if ((nFontFlags & AscWord.fontslot_EastAsia) && this.RFonts.EastAsia)
-		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_EastAsia));
+	if ((nFontFlags & AscWord.fontslot_HAnsi) && oTextPr.RFonts.HAnsi)
+		oMetrics.Update(oTextPr.GetFontInfo(AscWord.fontslot_HAnsi));
+
+	if ((nFontFlags & AscWord.fontslot_EastAsia) && oTextPr.RFonts.EastAsia)
+		oMetrics.Update(oTextPr.GetFontInfo(AscWord.fontslot_EastAsia));
 
 	return oMetrics;
 };
