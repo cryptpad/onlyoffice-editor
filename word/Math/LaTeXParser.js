@@ -31,9 +31,6 @@
  */
 
 "use strict";
-//Since (La)TeX isn't context-free
-//LaTeX have 2 modes: text and math(spaces are ignored)
-
 (function (window) {
 	const num = 1;//needs for debug, default value: 0
 
@@ -91,6 +88,7 @@
 	CLaTeXParser.prototype.RestoreState = function () {
 		this.oTokenizer.RestoreState();
 		this.oLookahead = this.oTokenizer.GetNextToken()
+		this.oLookahead = this.oTokenizer.GetNextToken()
 		this.oPrevLookahead = undefined;
 	}
 	CLaTeXParser.prototype.Parse = function (string) {
@@ -99,9 +97,28 @@
 		return this.GetASTTree();
 	};
 	CLaTeXParser.prototype.GetASTTree = function () {
+		let arrExp = [];
+		while (this.oLookahead.data) {
+			if (this.IsElementLiteral()) {
+				arrExp.push(this.GetExpressionLiteral())
+			}
+			else {
+				let strValue = this.oTokenizer.GetTextOfToken(this.oLookahead.index, true);
+				if (undefined === strValue) {
+					strValue = this.EatToken(this.oLookahead.class).data
+				}
+				else {
+					this.EatToken(this.oLookahead.class);
+				}
+				arrExp.push({
+					type: oLiteralNames.charLiteral[num],
+					value: strValue
+				})
+			}
+		}
 		return {
 			type: "LaTeXEquation",
-			body: this.GetExpressionLiteral(),
+			body: arrExp,
 		};
 	};
 	CLaTeXParser.prototype.GetCharLiteral = function () {
@@ -111,27 +128,7 @@
 		return this.ReadTokensWhileEnd(oLiteralNames.spaceLiteral);
 	};
 	CLaTeXParser.prototype.GetNumberLiteral = function () {
-		let strDecimal,
-			oRightNumber,
-			oLeftNumber = this.ReadTokensWhileEnd(oLiteralNames.numberLiteral);
-
-		this.SaveState();
-		if (this.oLookahead.class === oLiteralNames.opDecimal[0]) {
-			strDecimal = this.EatToken(this.oLookahead.class).data;
-			if (this.oLookahead.class === oLiteralNames.numberLiteral[0]) {
-				oRightNumber = this.ReadTokensWhileEnd(oLiteralNames.numberLiteral);
-				return {
-					type: oLiteralNames.numberLiteral[num],
-					decimal: strDecimal,
-					left: oLeftNumber,
-					right: oRightNumber,
-				}
-			}
-			else {
-				this.RestoreState();
-			}
-		}
-		return oLeftNumber;
+		return this.ReadTokensWhileEnd(oLiteralNames.numberLiteral);
 	};
 	CLaTeXParser.prototype.GetOperatorLiteral = function () {
 		const strToken = this.EatToken(oLiteralNames.operatorLiteral[0]);
@@ -186,12 +183,25 @@
 		this.EatToken(this.oLookahead.class);
 		const oResult = this.GetArguments(2);
 
+		if (type === oLiteralNames.binomLiteral[num]) {
+			return {
+				type: oLiteralNames.bracketBlockLiteral[num],
+				left: "(",
+				right: ")",
+				value: {
+					type: type,
+					up: oResult[0],
+					down: oResult[1],
+				}
+			}
+		}
 
 		return {
 			type: type,
 			up: oResult[0],
 			down: oResult[1],
 		};
+
 	};
 	CLaTeXParser.prototype.IsExpBracket = function () {
 		return (

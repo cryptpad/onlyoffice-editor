@@ -454,7 +454,7 @@
 		["\\breve", "̆", oNamesOfLiterals.accentLiteral[0]],
 		["\\bullet", "∙"],
 		["\\cap", "∩"],
-		["\\cases", "Ⓒ", true],
+		["\\cases", "█", true],//Ⓒ
 		["\\cbrt", "∛", oNamesOfLiterals.sqrtLiteral[0]], //oNamesOfLiterals.opBuildupLiteral[0] to functionLiteral?
 		["\\cdot", "⋅", oNamesOfLiterals.operatorLiteral[0]],
 		["\\cdots", "⋯"],
@@ -1700,6 +1700,7 @@
 	};
 
 	let type = false;
+
 	function GetBracketCode(code) {
 		const oBrackets = {
 			".": -1,
@@ -1718,16 +1719,25 @@
 			return code.charCodeAt(0)
 		}
 	}
+
 	function GetHBracket(code) {
 		switch (code) {
-			case "⏜": return VJUST_TOP;
-			case "⏝": return VJUST_BOT;
-			case "⏞": return VJUST_TOP;
-			case "⏟": return VJUST_BOT;
-			case "⏠": return VJUST_TOP;
-			case "⏡": return VJUST_BOT;
-			case "⎴": return VJUST_BOT;
-			case "⎵": return VJUST_TOP;
+			case "⏜":
+				return VJUST_BOT;
+			case "⏝":
+				return VJUST_TOP;
+			case "⏞":
+				return VJUST_BOT;
+			case "⏟":
+				return VJUST_TOP;
+			case "⏠":
+				return VJUST_BOT;
+			case "⏡":
+				return VJUST_TOP;
+			case "⎴":
+				return VJUST_TOP;
+			case "⎵":
+				return VJUST_BOT;
 		}
 	}
 
@@ -1793,436 +1803,454 @@
 	}
 
 	function ConvertTokens(oTokens, oContext) {
-		let Paragraph = oContext.Paragraph;
-		let Proceed = function (oTokens, oContext) {
-			if (oTokens) {
-				switch (oTokens.type) {
-					case undefined:
-						for (let i = 0; i < oTokens.length; i++) {
-							ConvertTokens(
-								oTokens[i],
-								oContext,
-							);
-						}
-						break;
-					case oNamesOfLiterals.functionNameLiteral[num]:
-					case oNamesOfLiterals.specialScriptNumberLiteral[num]:
-					case oNamesOfLiterals.specialScriptCharLiteral[num]:
-					case oNamesOfLiterals.specialScriptBracketLiteral[num]:
-					case oNamesOfLiterals.specialScriptOperatorLiteral[num]:
-					case oNamesOfLiterals.specialIndexNumberLiteral[num]:
-					case oNamesOfLiterals.specialIndexCharLiteral[num]:
-					case oNamesOfLiterals.specialIndexBracketLiteral[num]:
-					case oNamesOfLiterals.specialIndexOperatorLiteral[num]:
-					case oNamesOfLiterals.opDecimal[num]:
-					case oNamesOfLiterals.charLiteral[num]:
-					case oNamesOfLiterals.operatorLiteral[num]:
-					case oNamesOfLiterals.mathOperatorLiteral[num]:
-					case oNamesOfLiterals.opNaryLiteral[num]:
-					case oNamesOfLiterals.numberLiteral[num]:
-						if (oTokens.decimal) {
-							ConvertTokens(
-								oTokens.left,
-								oContext,
-							);
-							oContext.Add_Text(oTokens.decimal, Paragraph)
-							ConvertTokens(
-								oTokens.right,
-								oContext,
-							);
-						} else {
-							oContext.Add_Text(oTokens.value, Paragraph);
-						}
-						break;
-					case oNamesOfLiterals.preScriptLiteral[num]:
-						let oPreSubSup = oContext.Add_Script(
-							oTokens.up && oTokens.down,
-							{ctrPrp: new CTextPr(), type: DEGREE_PreSubSup},
-							null,
-							null,
-							null
-						);
-						ConvertTokens(
-							oTokens.value,
-							oPreSubSup.getBase(),
-						);
-						UnicodeArgument(
-							oTokens.up,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oPreSubSup.getUpperIterator()
-						)
-						UnicodeArgument(
-							oTokens.down,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oPreSubSup.getLowerIterator()
-						)
-						break;
-					case oNamesOfLiterals.accentLiteral[num]:
-						let oAccent = oContext.Add_Accent(
-							new CTextPr(),
-							oTokens.value.charCodeAt(0),
-							null
-						);
-						UnicodeArgument(
-							oTokens.base,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oAccent.getBase()
-						)
-						break;
-					case oNamesOfLiterals.skewedFractionLiteral[num]:
-					case oNamesOfLiterals.fractionLiteral[num]:
-					case oNamesOfLiterals.binomLiteral[num]:
-						let oFraction;
-						if (oTokens.type === oNamesOfLiterals.binomLiteral[num]) {
-							oFraction = oContext.Add_Fraction(
-								{ctrPrp : new CTextPr(), type : NO_BAR_FRACTION},
-								null,
-								null
-							);
-						}
-						else if (oTokens.type === oNamesOfLiterals.fractionLiteral[num]) {
-							oFraction = oContext.Add_Fraction(
-								{ctrPrp : new CTextPr(), type : oTokens.fracType},
-								null,
-								null
-							);
-						}
-						else if (oTokens.type === oNamesOfLiterals.skewedFractionLiteral[num]) {
-							oFraction = oContext.Add_Fraction(
-								{ctrPrp : new CTextPr(), type : SKEWED_FRACTION},
-								null,
-								null
-							);
-						}
-						UnicodeArgument(
-							oTokens.up,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oFraction.getNumeratorMathContent()
-						);
-						UnicodeArgument(
-							oTokens.down,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oFraction.getDenominatorMathContent()
-						);
-						break;
-					case oNamesOfLiterals.subSupLiteral[num]:
-						if (oTokens.value.type === oNamesOfLiterals.functionLiteral[num]) {
-							let oFunc = oContext.Add_Function({}, null, null);
-							let oFuncName = oFunc.getFName();
-							let SubSup = oFuncName.Add_Script(
+		if (oTokens) {
+			let Paragraph = oContext.Paragraph;
+			let Proceed = function (oTokens, oContext) {
+				if (oTokens) {
+					switch (oTokens.type) {
+						case undefined:
+							for (let i = 0; i < oTokens.length; i++) {
+								ConvertTokens(
+									oTokens[i],
+									oContext,
+								);
+							}
+							break;
+						case oNamesOfLiterals.functionNameLiteral[num]:
+						case oNamesOfLiterals.specialScriptNumberLiteral[num]:
+						case oNamesOfLiterals.specialScriptCharLiteral[num]:
+						case oNamesOfLiterals.specialScriptBracketLiteral[num]:
+						case oNamesOfLiterals.specialScriptOperatorLiteral[num]:
+						case oNamesOfLiterals.specialIndexNumberLiteral[num]:
+						case oNamesOfLiterals.specialIndexCharLiteral[num]:
+						case oNamesOfLiterals.specialIndexBracketLiteral[num]:
+						case oNamesOfLiterals.specialIndexOperatorLiteral[num]:
+						case oNamesOfLiterals.opDecimal[num]:
+						case oNamesOfLiterals.charLiteral[num]:
+						case oNamesOfLiterals.operatorLiteral[num]:
+						case oNamesOfLiterals.mathOperatorLiteral[num]:
+						case oNamesOfLiterals.opNaryLiteral[num]:
+						case oNamesOfLiterals.numberLiteral[num]:
+							if (oTokens.decimal) {
+								ConvertTokens(
+									oTokens.left,
+									oContext,
+								);
+								oContext.Add_Text(oTokens.decimal, Paragraph)
+								ConvertTokens(
+									oTokens.right,
+									oContext,
+								);
+							}
+							else {
+								oContext.Add_Text(oTokens.value, Paragraph);
+							}
+							break;
+						case oNamesOfLiterals.preScriptLiteral[num]:
+							let oPreSubSup = oContext.Add_Script(
 								oTokens.up && oTokens.down,
-								{},
+								{ctrPrp: new CTextPr(), type: DEGREE_PreSubSup},
 								null,
 								null,
 								null
 							);
-							SubSup.getBase().Add_Text(oTokens.value.value)
-
+							ConvertTokens(
+								oTokens.value,
+								oPreSubSup.getBase(),
+							);
 							UnicodeArgument(
 								oTokens.up,
 								oNamesOfLiterals.bracketBlockLiteral[num],
-								SubSup.getUpperIterator()
+								oPreSubSup.getUpperIterator()
 							)
 							UnicodeArgument(
 								oTokens.down,
 								oNamesOfLiterals.bracketBlockLiteral[num],
-								SubSup.getLowerIterator()
+								oPreSubSup.getLowerIterator()
 							)
-
-							let oFuncArgument = oFunc.getArgument();
+							break;
+						case oNamesOfLiterals.accentLiteral[num]:
+							let oAccent = oContext.Add_Accent(
+								new CTextPr(),
+								oTokens.value.charCodeAt(0),
+								null
+							);
 							UnicodeArgument(
-								oTokens.third,
+								oTokens.base,
 								oNamesOfLiterals.bracketBlockLiteral[num],
-								oFuncArgument
+								oAccent.getBase()
 							)
-						}
-						else if (oTokens.value.type === oNamesOfLiterals.functionWithLimitLiteral[num]) {
-							let oFuncWithLimit = oContext.Add_FunctionWithLimit(
-								{},
+							break;
+						case oNamesOfLiterals.skewedFractionLiteral[num]:
+						case oNamesOfLiterals.fractionLiteral[num]:
+						case oNamesOfLiterals.binomLiteral[num]:
+							let oFraction;
+							if (oTokens.type === oNamesOfLiterals.binomLiteral[num]) {
+								oFraction = oContext.Add_Fraction(
+									{ctrPrp: new CTextPr(), type: NO_BAR_FRACTION},
+									null,
+									null
+								);
+							}
+							else if (oTokens.type === oNamesOfLiterals.fractionLiteral[num]) {
+								oFraction = oContext.Add_Fraction(
+									{ctrPrp: new CTextPr(), type: oTokens.fracType},
+									null,
+									null
+								);
+							}
+							else if (oTokens.type === oNamesOfLiterals.skewedFractionLiteral[num]) {
+								oFraction = oContext.Add_Fraction(
+									{ctrPrp: new CTextPr(), type: SKEWED_FRACTION},
+									null,
+									null
+								);
+							}
+							UnicodeArgument(
+								oTokens.up,
+								oNamesOfLiterals.bracketBlockLiteral[num],
+								oFraction.getNumeratorMathContent()
+							);
+							UnicodeArgument(
+								oTokens.down,
+								oNamesOfLiterals.bracketBlockLiteral[num],
+								oFraction.getDenominatorMathContent()
+							);
+							break;
+						case oNamesOfLiterals.subSupLiteral[num]:
+							if (oTokens.value.type === oNamesOfLiterals.functionLiteral[num]) {
+								let oFunc = oContext.Add_Function({}, null, null);
+								let oFuncName = oFunc.getFName();
+								let SubSup = oFuncName.Add_Script(
+									oTokens.up && oTokens.down,
+									{},
+									null,
+									null,
+									null
+								);
+								SubSup.getBase().Add_Text(oTokens.value.value)
+
+								UnicodeArgument(
+									oTokens.up,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									SubSup.getUpperIterator()
+								)
+								UnicodeArgument(
+									oTokens.down,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									SubSup.getLowerIterator()
+								)
+
+								let oFuncArgument = oFunc.getArgument();
+								UnicodeArgument(
+									oTokens.third,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oFuncArgument
+								)
+							}
+							else if (oTokens.value.type === oNamesOfLiterals.functionWithLimitLiteral[num]) {
+								let oFuncWithLimit = oContext.Add_FunctionWithLimit(
+									{},
+									null,
+									null,
+								);
+								oFuncWithLimit
+									.getFName()
+									.Content[0]
+									.getFName()
+									.Add_Text(oTokens.value.value);
+
+								let oLimitIterator = oFuncWithLimit
+									.getFName()
+									.Content[0]
+									.getIterator();
+
+								if (oTokens.up || oTokens.down) {
+									UnicodeArgument(
+										oTokens.up === undefined ? oTokens.down : oTokens.up,
+										oNamesOfLiterals.bracketBlockLiteral[num],
+										oLimitIterator
+									)
+								}
+								UnicodeArgument(
+									oTokens.third,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oFuncWithLimit.getArgument()
+								)
+							}
+							else if (oTokens.value.type === oNamesOfLiterals.opNaryLiteral[num]) {
+								let oNary = oContext.Add_NAry({chr: oTokens.value.value.charCodeAt(0)}, null, null, null);
+								ConvertTokens(
+									oTokens.third,
+									oNary.getBase(),
+								);
+								UnicodeArgument(
+									oTokens.up,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oNary.getSupMathContent()
+								)
+								UnicodeArgument(
+									oTokens.down,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oNary.getSubMathContent()
+								)
+							}
+							else {
+								let isSubSup = ((Array.isArray(oTokens.up) && oTokens.up.length > 0) || (!Array.isArray(oTokens.up) && oTokens.up !== undefined)) &&
+									((Array.isArray(oTokens.down) && oTokens.down.length > 0) || (!Array.isArray(oTokens.down) && oTokens.down !== undefined))
+
+								let Pr = {ctrPrp: new CTextPr()};
+								if (!isSubSup) {
+									if (oTokens.up) {
+										Pr.type = DEGREE_SUPERSCRIPT
+									}
+									else if (oTokens.down) {
+										Pr.type = DEGREE_SUBSCRIPT
+									}
+								}
+
+								let SubSup = oContext.Add_Script(
+									isSubSup,
+									Pr,
+									null,
+									null,
+									null
+								);
+								ConvertTokens(
+									oTokens.value,
+									SubSup.getBase(),
+								);
+								UnicodeArgument(
+									oTokens.up,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									SubSup.getUpperIterator()
+								)
+								UnicodeArgument(
+									oTokens.down,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									SubSup.getLowerIterator()
+								)
+							}
+							break;
+						case oNamesOfLiterals.functionWithLimitLiteral[num]:
+							let Pr = {ctrPrp: new CTextPr()};
+							Pr.type = (oTokens.up === undefined)
+								? LIMIT_LOW
+								: LIMIT_UP;
+
+							let oLimit = oContext.Add_Limit(
+								Pr,
 								null,
 								null,
 							);
-							oFuncWithLimit
-								.getFName()
-								.Content[0]
-								.getFName()
-								.Add_Text(oTokens.value.value);
-
-							let oLimitIterator = oFuncWithLimit
-								.getFName()
-								.Content[0]
-								.getIterator();
-
+							ConvertTokens(
+								oTokens.value,
+								oLimit.getFName()
+							);
 							if (oTokens.up || oTokens.down) {
 								UnicodeArgument(
 									oTokens.up === undefined ? oTokens.down : oTokens.up,
 									oNamesOfLiterals.bracketBlockLiteral[num],
-									oLimitIterator
+									oLimit.getIterator()
 								)
 							}
-							UnicodeArgument(
-								oTokens.third,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								oFuncWithLimit.getArgument()
-							)
-						}
-						else if (oTokens.value.type === oNamesOfLiterals.opNaryLiteral[num]) {
-							let oNary = oContext.Add_NAry({chr: oTokens.value.value.charCodeAt(0)}, null, null, null);
-							ConvertTokens(
-								oTokens.third,
-								oNary.getBase(),
-							);
-							UnicodeArgument(
-								oTokens.up,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								oNary.getSupMathContent()
-							)
-							UnicodeArgument(
-								oTokens.down,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								oNary.getSubMathContent()
-							)
-						}
-						else {
-							let isSubSup = ((Array.isArray(oTokens.up) && oTokens.up.length > 0) || (!Array.isArray(oTokens.up) && oTokens.up !== undefined)) &&
-								((Array.isArray(oTokens.down) && oTokens.down.length > 0) || (!Array.isArray(oTokens.down) && oTokens.down !== undefined))
+							break;
+						case oNamesOfLiterals.hBracketLiteral[num]:
+							let o1 = GetHBracket(oTokens.hBrack);
+							let o2 = o1 === 0 ? 1 : 0;
+							let on = oTokens.up === undefined ? LIMIT_LOW : LIMIT_UP;
 
-							let Pr = {ctrPrp : new CTextPr()};
-							if (!isSubSup) {
-								if (oTokens.up) {
-									Pr.type = DEGREE_SUPERSCRIPT
-								} else if (oTokens.down) {
-									Pr.type = DEGREE_SUBSCRIPT
+							if (!(oTokens.up || oTokens.down)) {
+								let oGroup = oContext.Add_GroupCharacter({
+									ctrPrp: new CTextPr(),
+									chr: oTokens.hBrack.charCodeAt(0),
+									pos: o2,
+									vertJc: o1
+								}, null);
+								UnicodeArgument(
+									oTokens.value,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oGroup.getBase()
+								)
+							}
+							else {
+								let Limit = oContext.Add_Limit({ctrPrp: new CTextPr(), type: on}, null, null);
+								let MathContent = Limit.getFName();
+								let oGroup = MathContent.Add_GroupCharacter({
+									ctrPrp: new CTextPr(),
+									chr: oTokens.hBrack.charCodeAt(0),
+									vertJc: o2,
+									pos: o1
+								}, null);
+
+								UnicodeArgument(
+									oTokens.value,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oGroup.getBase()
+								)
+
+								if (oTokens.down || oTokens.up) {
+									UnicodeArgument(
+										oTokens.up === undefined ? oTokens.down : oTokens.up,
+										oNamesOfLiterals.bracketBlockLiteral[num],
+										Limit.getIterator()
+									)
 								}
 							}
 
-							let SubSup = oContext.Add_Script(
-								isSubSup,
-								Pr,
-								null,
+							break;
+						case oNamesOfLiterals.bracketBlockLiteral[num]:
+							let oBracket = oContext.Add_DelimiterEx(
+								new CTextPr(),
+								1,
+								[null],
+								GetBracketCode(oTokens.left),
+								GetBracketCode(oTokens.right),
+							);
+							ConvertTokens(
+								oTokens.value,
+								oBracket.getElementMathContent(0)
+							);
+							break;
+						case oNamesOfLiterals.sqrtLiteral[num]:
+							let oRadical = oContext.Add_Radical(
+								{},
 								null,
 								null
 							);
 							ConvertTokens(
 								oTokens.value,
-								SubSup.getBase(),
+								oRadical.getBase()
 							);
-							UnicodeArgument(
-								oTokens.up,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								SubSup.getUpperIterator()
-							)
-							UnicodeArgument(
-								oTokens.down,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								SubSup.getLowerIterator()
-							)
-						}
-						break;
-					case oNamesOfLiterals.functionWithLimitLiteral[num]:
-						let Pr = {ctrPrp : new CTextPr()};
-						Pr.type = (oTokens.up === undefined)
-							? LIMIT_LOW
-							: LIMIT_UP;
-
-						let oLimit = oContext.Add_Limit(
-							Pr,
-							null,
-							null,
-						);
-						ConvertTokens(
-							oTokens.value,
-							oLimit.getFName()
-						);
-						if (oTokens.up || oTokens.down) {
-							UnicodeArgument(
-								oTokens.up === undefined ? oTokens.down : oTokens.up,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								oLimit.getIterator()
-							)
-						}
-						break;
-					case oNamesOfLiterals.hBracketLiteral[num]:
-						let o1 = GetHBracket(oTokens.hBrack);
-						let o2 = o1 === 0 ? 1 : 0;
-						let on = oTokens.up === undefined ? LIMIT_LOW : LIMIT_UP;
-
-						if (!(oTokens.up || oTokens.down)) {
-							let oGroup = oContext.Add_GroupCharacter({ctrPrp : new CTextPr(), chr : oTokens.hBrack.charCodeAt(0), pos : o2, vertJc : o1}, null );
-							UnicodeArgument(
+							ConvertTokens(
+								oTokens.index,
+								oRadical.getDegree()
+							);
+							break;
+						case oNamesOfLiterals.functionLiteral[num]:
+							let oFunc = oContext.Add_Function({}, null, null);
+							oFunc.getFName().Add_Text(oTokens.value);
+							ConvertTokens(
+								oTokens.third,
+								oFunc.getArgument()
+							);
+							break;
+						case oNamesOfLiterals.spaceLiteral[num]:
+							oContext.Add_Text(oTokens.value);
+							break;
+						case oNamesOfLiterals.mathFontLiteral[num]:
+							ConvertTokens(
 								oTokens.value,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								oGroup.getBase()
-							)
-						} else {
-							let Limit = oContext.Add_Limit({ctrPrp : new CTextPr(), type : on}, null, null);
-							let MathContent = Limit.getFName();
-							let oGroup = MathContent.Add_GroupCharacter({ctrPrp : new CTextPr(), chr : oTokens.hBrack.charCodeAt(0), vertJc : o2, pos: o1}, null );
-
-							UnicodeArgument(
-								oTokens.value,
-								oNamesOfLiterals.bracketBlockLiteral[num],
-								oGroup.getBase()
-							)
-
-							if (oTokens.down || oTokens.up) {
-								UnicodeArgument(
-									oTokens.up === undefined ? oTokens.down : oTokens.up,
-									oNamesOfLiterals.bracketBlockLiteral[num],
-									Limit.getIterator()
-								)
+								oContext,
+							);
+							break;
+						case oNamesOfLiterals.matrixLiteral[num]:
+							let strStartBracket, strEndBracket;
+							if (oTokens.strMatrixType) {
+								if (oTokens.strMatrixType.length === 2) {
+									strStartBracket = oTokens.strMatrixType[0].charCodeAt(0)
+									strEndBracket = oTokens.strMatrixType[1].charCodeAt(0)
+								}
+								else {
+									strEndBracket = strStartBracket = oTokens.strMatrixType[0].charCodeAt(0)
+								}
 							}
-						}
-
-						break;
-					case oNamesOfLiterals.bracketBlockLiteral[num]:
-						let oBracket = oContext.Add_DelimiterEx(
-							new CTextPr(),
-							1,
-							[null],
-							GetBracketCode(oTokens.left),
-							GetBracketCode(oTokens.right),
-						);
-						ConvertTokens(
-							oTokens.value,
-							oBracket.getElementMathContent(0)
-						);
-						break;
-					case oNamesOfLiterals.sqrtLiteral[num]:
-						let oRadical = oContext.Add_Radical(
-							{},
-							null,
-							null
-						);
-						ConvertTokens(
-							oTokens.value,
-							oRadical.getBase()
-						);
-						ConvertTokens(
-							oTokens.index,
-							oRadical.getDegree()
-						);
-						break;
-					case oNamesOfLiterals.functionLiteral[num]:
-						let oFunc = oContext.Add_Function({}, null, null);
-						oFunc.getFName().Add_Text(oTokens.value);
-						ConvertTokens(
-							oTokens.third,
-							oFunc.getArgument()
-						);
-						break;
-					case oNamesOfLiterals.spaceLiteral[num]:
-						oContext.Add_Text(oTokens.value);
-						break;
-					case oNamesOfLiterals.mathFontLiteral[num]:
-						ConvertTokens(
-							oTokens.value,
-							oContext,
-						);
-						break;
-					case oNamesOfLiterals.matrixLiteral[num]:
-						let strStartBracket, strEndBracket;
-						if (oTokens.strMatrixType){
-							if (oTokens.strMatrixType.length === 2) {
-								strStartBracket = oTokens.strMatrixType[0].charCodeAt(0)
-								strEndBracket = oTokens.strMatrixType[1].charCodeAt(0)
+							let rows = oTokens.value.length;
+							let cols = oTokens.value[0].length;
+							if (strEndBracket && strStartBracket) {
+								let Delimiter = oContext.Add_DelimiterEx(new CTextPr(), 1, [null], strStartBracket, strEndBracket);
+								oContext = Delimiter.getElementMathContent(0);
 							}
-							else {
-								strEndBracket = strStartBracket = oTokens.strMatrixType[0].charCodeAt(0)
-							}
-						}
-						let rows = oTokens.value.length;
-						let cols = oTokens.value[0].length;
-						if (strEndBracket && strStartBracket) {
-							let Delimiter = oContext.Add_DelimiterEx(new CTextPr(), 1, [null], strStartBracket, strEndBracket);
-							oContext = Delimiter.getElementMathContent(0);
-						}
-						let oMatrix = oContext.Add_Matrix(new CTextPr(), rows, cols, false, []);
+							let oMatrix = oContext.Add_Matrix(new CTextPr(), rows, cols, false, []);
 
-						for (let intRow = 0; intRow < rows; intRow++) {
-							for (let intCol = 0; intCol < cols; intCol++) {
-								let oContent = oMatrix.getContentElement(intRow, intCol);
+							for (let intRow = 0; intRow < rows; intRow++) {
+								for (let intCol = 0; intCol < cols; intCol++) {
+									let oContent = oMatrix.getContentElement(intRow, intCol);
+									ConvertTokens(
+										oTokens.value[intRow][intCol],
+										oContent,
+									);
+								}
+							}
+							break;
+						case oNamesOfLiterals.arrayLiteral[num]:
+							let intCountOfRows = oTokens.value.length
+							let oEqArray = oContext.Add_EqArray({
+								ctrPrp: new CTextPr(),
+								row: intCountOfRows
+							}, null, null);
+							for (let i = 0; i < oTokens.value.length; i++) {
+								let oMathContent = oEqArray.getElementMathContent(i);
 								ConvertTokens(
-									oTokens.value[intRow][intCol],
-									oContent,
+									oTokens.value[i],
+									oMathContent,
 								);
 							}
-						}
-						break;
-					case oNamesOfLiterals.arrayLiteral[num]:
-						let intCountOfRows = oTokens.value.length
-						let oEqArray = oContext.Add_EqArray({ctrPrp: new CTextPr(), row : intCountOfRows}, null, null);
-						for (let i = 0; i < oTokens.value.length; i++) {
-							let oMathContent = oEqArray.getElementMathContent(i);
-							ConvertTokens(
-								oTokens.value[i],
-								oMathContent,
-							);
-						}
-						break;
-					case oNamesOfLiterals.boxLiteral[num]:
-						let oBox = oContext.Add_Box({}, null);
-						UnicodeArgument(
-							oTokens.value,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oBox.getBase(),
-						)
-						break;
-					case oNamesOfLiterals.rectLiteral[num]:
-						let oBorderBox = oContext.Add_BorderBox({}, null);
-						UnicodeArgument(
-							oTokens.value,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oBorderBox.getBase(),
-						)
-						break;
-					case oNamesOfLiterals.overBarLiteral[num]:
-						let oBar = oContext.Add_Bar({ctrPrp : new CTextPr(), pos : LOCATION_BOT}, null);
-						UnicodeArgument(
-							oTokens.value,
-							oNamesOfLiterals.bracketBlockLiteral[num],
-							oBar.getBase(),
-						)
-						break;
-				}
-			}
-		}
-
-		const UnicodeArgument = function(oInput, oComparison, oContext) {
-			if (oInput && type === 0 && oInput.type === oComparison) {
-				ConvertTokens(
-					oInput.value,
-					oContext,
-				)
-			}
-			else if (oInput) {
-				ConvertTokens(
-					oInput,
-					oContext,
-				)
-			}
-		}
-
-
-		let num = 1;
-		if (oTokens !== undefined && (oTokens.type === "LaTeXEquation" || oTokens.type === "UnicodeEquation")) {
-			oTokens = oTokens.body;
-			type = oTokens.type === "LaTeXEquation" ? 1 : 0;
-		}
-		if (oTokens !== undefined && Array.isArray(oTokens)) {
-			for (let i = 0; i < oTokens.length; i++) {
-				if (Array.isArray(oTokens[i])) {
-					let oToken = oTokens[i];
-					for (let j = 0; j < oTokens[i].length; j++) {
-						Proceed(oToken[j], oContext);
+							break;
+						case oNamesOfLiterals.boxLiteral[num]:
+							let oBox = oContext.Add_Box({}, null);
+							UnicodeArgument(
+								oTokens.value,
+								oNamesOfLiterals.bracketBlockLiteral[num],
+								oBox.getBase(),
+							)
+							break;
+						case oNamesOfLiterals.rectLiteral[num]:
+							let oBorderBox = oContext.Add_BorderBox({}, null);
+							UnicodeArgument(
+								oTokens.value,
+								oNamesOfLiterals.bracketBlockLiteral[num],
+								oBorderBox.getBase(),
+							)
+							break;
+						case oNamesOfLiterals.overBarLiteral[num]:
+							let oBar = oContext.Add_Bar({ctrPrp: new CTextPr(), pos: LOCATION_BOT}, null);
+							UnicodeArgument(
+								oTokens.value,
+								oNamesOfLiterals.bracketBlockLiteral[num],
+								oBar.getBase(),
+							)
+							break;
 					}
-				} else {
-					Proceed(oTokens[i], oContext);
 				}
 			}
-		}
-		else {
-			Proceed(oTokens, oContext)
+
+			const UnicodeArgument = function (oInput, oComparison, oContext) {
+				if (oInput && type === 0 && oInput.type === oComparison && oInput.left === "(" && oInput.right === ")") {
+					ConvertTokens(
+						oInput.value,
+						oContext,
+					)
+				}
+				else if (oInput) {
+					ConvertTokens(
+						oInput,
+						oContext,
+					)
+				}
+			}
+
+			let num = 1; // debug
+			if (oTokens.type === "LaTeXEquation" || oTokens.type === "UnicodeEquation") {
+				type = oTokens.type === "LaTeXEquation" ? 1 : 0;
+				oTokens = oTokens.body;
+			}
+			if (Array.isArray(oTokens)) {
+				for (let i = 0; i < oTokens.length; i++) {
+					if (Array.isArray(oTokens[i])) {
+						let oToken = oTokens[i];
+						for (let j = 0; j < oTokens[i].length; j++) {
+							Proceed(oToken[j], oContext);
+						}
+					}
+					else {
+						Proceed(oTokens[i], oContext);
+					}
+				}
+			}
+			else {
+				Proceed(oTokens, oContext)
+			}
 		}
 	}
 
@@ -2260,6 +2288,17 @@
 	}
 	Tokenizer.prototype.IsHasMoreTokens = function () {
 		return this._cursor < this._string.length;
+	}
+	Tokenizer.prototype.GetTextOfToken = function (intIndex, isLaTeX) {
+		let arrToken = wordAutoCorrection[intIndex];
+		if (typeof arrToken[0] !== "function") {
+			if (isLaTeX && arrToken[1] !== undefined) {
+				return arrToken[0];
+			}
+			else if (!isLaTeX && arrToken[1] !== undefined) {
+				return arrToken[1];
+			}
+		}
 	}
 	Tokenizer.prototype.GetNextToken = function () {
 		if (!this.IsHasMoreTokens()) {
@@ -2308,6 +2347,7 @@
 			return {
 				class: tokenClass,
 				data: tokenValue,
+				index: i,
 			}
 		}
 
