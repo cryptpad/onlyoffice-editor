@@ -138,7 +138,7 @@
 			undefined,
 			oNamesOfLiterals.charLiteral[0],
 		],
-		//Diacritics
+		//Accent
 		[
 			function (str) {
 				const code = GetFixedCharCodeAt(str[0]);
@@ -147,7 +147,7 @@
 				}
 			},
 			undefined,
-			oNamesOfLiterals.diacriticLiteral[0],
+			oNamesOfLiterals.accentLiteral[0],
 		],
 		//Numbers
 		[
@@ -246,8 +246,8 @@
 		["@", undefined, true],
 		["array(", undefined, oNamesOfLiterals.matrixLiteral[0]], // unicode
 
-		[",", undefined, oNamesOfLiterals.opDecimal[0]],
-		[".", undefined, oNamesOfLiterals.opDecimal[0]],
+		[",", undefined, oNamesOfLiterals.charLiteral[0]],
+		[".", undefined, oNamesOfLiterals.charLiteral[0]],
 
 		["⁰", undefined, oNamesOfLiterals.specialScriptNumberLiteral[0]],
 		["¹", undefined, oNamesOfLiterals.specialScriptNumberLiteral[0]],
@@ -774,6 +774,32 @@
 		["\\\\", undefined, true],
 		// ["\\lim", oNamesOfLiterals.opNaryLiteral[0]], LaTeX
 		// ["\\lg", oNamesOfLiterals.opNaryLiteral[0]],
+
+		["/<", "≮", oNamesOfLiterals.operatorLiteral[0]],
+		["/=", "≠", oNamesOfLiterals.operatorLiteral[0]],
+		["/>", "≯", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\exists", "∄", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\in", "∉", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\ni", "∌", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\simeq", "≄", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\cong", "≇", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\approx", "≉", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\asymp", "≭", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\equiv", "≢", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\le", "≰", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\ge", "≱", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\lessgtr", "≸", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\gtrless", "≹", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\succeq", "⋡", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\prec", "⊀", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\succ", "⊁", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\preceq", "⋠", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\subset", "⊄", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\supset", "⊅", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\subseteq", "⊈", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\supseteq", "⊉", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\sqsubseteq", "⋢", oNamesOfLiterals.operatorLiteral[0]],
+		["/\\sqsupseteq", "⋣", oNamesOfLiterals.operatorLiteral[0]],
 	];
 	const functionNames = [
 		"tan", "tanh", "sup", "sinh", "sin", "sec", "ker", "hom",
