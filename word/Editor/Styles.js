@@ -15171,23 +15171,21 @@ CTextPr.prototype.GetDescription = function()
 
 	return Description;
 };
-CTextPr.prototype.GetTextMetrics = function(oTheme, nFontFlags)
+CTextPr.prototype.GetTextMetrics = function(nFontFlags)
 {
 	let oMetrics = new CTextMetrics();
 
-	g_oTextMeasurer.SetTextPr(this, oTheme);
-
 	if ((nFontFlags & AscWord.fontslot_ASCII) && this.RFonts.Ascii)
-		oMetrics.Update(this.RFonts.Ascii.Name, AscWord.fontslot_ASCII);
+		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_ASCII));
 
 	if ((nFontFlags & AscWord.fontslot_CS) && this.RFonts.CS)
-		oMetrics.Update(this.RFonts.CS.Name, AscWord.fontslot_CS);
+		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_CS));
 
 	if ((nFontFlags & AscWord.fontslot_HAnsi) && this.RFonts.HAnsi)
-		oMetrics.Update(this.RFonts.HAnsi.Name, AscWord.fontslot_HAnsi);
+		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_HAnsi));
 
 	if ((nFontFlags & AscWord.fontslot_EastAsia) && this.RFonts.EastAsia)
-		oMetrics.Update(this.RFonts.EastAsia.Name, AscWord.fontslot_EastAsia);
+		oMetrics.Update(this.GetFontInfo(AscWord.fontslot_EastAsia));
 
 	return oMetrics;
 };
@@ -15230,9 +15228,12 @@ function CTextMetrics()
 	this.LineGap = 0;
 	this.Height  = 0;
 }
-CTextMetrics.prototype.Update = function(fontName, fontSlot)
+/**
+ * @param {AscFonts.CTextFontInfo} oFontInfo
+ */
+CTextMetrics.prototype.Update = function(oFontInfo)
 {
-	g_oTextMeasurer.SetFontSlot(fontSlot);
+	g_oTextMeasurer.SetFontInternal(oFontInfo.Name, oFontInfo.Size, oFontInfo.Style);
 
 	let nHeight  = g_oTextMeasurer.GetHeight();
 	let nAscent  = g_oTextMeasurer.GetAscender();

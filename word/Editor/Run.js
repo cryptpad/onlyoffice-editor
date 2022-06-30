@@ -3279,7 +3279,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		nRFontsFlags |= this.Content[nPos].GetFontSlot(_oTextPr);
 	}
 
-	let oMetrics = _oTextPr.GetTextMetrics(oTheme, nRFontsFlags);
+	let oMetrics = _oTextPr.GetTextMetrics(nRFontsFlags);
 
 	// Под TextAscent мы будем понимать ascent + linegap (которые записаны в шрифте)
 	this.TextHeight  = oMetrics.Height;
@@ -3287,6 +3287,8 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.TextAscent  = oMetrics.Ascent + oMetrics.LineGap;
 	this.TextAscent2 = oMetrics.Ascent;
 	this.YOffset     = oTextPr.Position;
+
+	g_oTextMeasurer.SetTextPr(_oTextPr, oTheme);
 
 	var oInfoMathText;
 	if (isMathRun)

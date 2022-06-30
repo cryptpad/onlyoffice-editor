@@ -1289,7 +1289,7 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 		{
 			// TODO: Как только переделаем para_End переделать тут
 			let oTextPr  = this.GetParaEndCompiledPr();
-			let oMetrics = oTextPr.GetTextMetrics(this.GetTheme(), oTextPr.CS || oTextPr.RTL ? AscWord.fontslot_CS : AscWord.fontslot_ASCII);
+			let oMetrics = oTextPr.GetTextMetrics(oTextPr.CS || oTextPr.RTL ? AscWord.fontslot_CS : AscWord.fontslot_ASCII);
 
 			let EndTextDescent = oMetrics.Descent;
 			let EndTextAscent  = oMetrics.Ascent + oMetrics.LineGap;
