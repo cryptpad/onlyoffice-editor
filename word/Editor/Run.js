@@ -2516,6 +2516,14 @@ ParaRun.prototype.Split = function (ContentPos, Depth)
 
 ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
 {
+	// Данная функция специальная, расчитана на то, что в параграфе данный ран делится в заданной позиции на 2 рана
+	// Поэтому ВСЕ метки (поиск, орфографии, позиций и остального) обновляются именно здесь, а не через
+	// стандартный механизм AddToContent/RemoveFromContent. Чтобы все работало правильно, делаем в следующей
+	// последовательности:
+	// 1 Создаем новый ран и добавляем туда КОПИИ элементов после точки разделения
+	// 2 Переносим все метки, попадающие после точки разделения, в новый ран
+	// 3 Удаляем из текущего рана элементы после точки разделения
+
     History.Add(new CChangesRunOnStartSplit(this, CurPos));
     AscCommon.CollaborativeEditing.OnStart_SplitRun(this, CurPos);
 
@@ -2585,41 +2593,54 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
         OldSelectionEndPos   = this.Selection.EndPos;
     }
 
-    if (true === UpdateParent)
-    {
-        Parent.Add_ToContent(ParentPos + 1, NewRun);
+    // ВСЕГДА копируем элементы, для корректной работы не надо переносить имеющиеся элементы в новый ран
+	for (var nIndex = CurPos, nNewIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex, ++nNewIndex)
+	{
+		var oNewItem = this.Content[nIndex].Copy();
+		NewRun.AddToContent(nNewIndex, oNewItem, false);
+		if (para_FieldChar === this.Content[nIndex].Type)
+		{
+			var oComplexField = this.Content[nIndex].GetComplexField();
+			if (oComplexField)
+				oComplexField.ReplaceChar(oNewItem);
+		}
+	}
 
-        // Обновим массив NearPosArray
-        for (var Index = 0, Count = this.NearPosArray.length; Index < Count; Index++)
-        {
-            var RunNearPos = this.NearPosArray[Index];
-            var ContentPos = RunNearPos.NearPos.ContentPos;
-            var Depth      = RunNearPos.Depth;
+	if (UpdateParent)
+	{
+		Parent.Add_ToContent(ParentPos + 1, NewRun);
 
-            var Pos = ContentPos.Get(Depth);
+		// Обновим массив NearPosArray
+		for (var Index = 0, Count = this.NearPosArray.length; Index < Count; Index++)
+		{
+			var RunNearPos = this.NearPosArray[Index];
+			var ContentPos = RunNearPos.NearPos.ContentPos;
+			var Depth      = RunNearPos.Depth;
 
-            if (Pos >= CurPos)
-            {
-                ContentPos.Update2(Pos - CurPos, Depth);
-                ContentPos.Update2(ParentPos + 1, Depth - 1);
+			var Pos = ContentPos.Get(Depth);
 
-                this.NearPosArray.splice(Index, 1);
-                Count--;
-                Index--;
+			if (Pos >= CurPos)
+			{
+				ContentPos.Update2(Pos - CurPos, Depth);
+				ContentPos.Update2(ParentPos + 1, Depth - 1);
 
-                NewRun.NearPosArray.push(RunNearPos);
+				this.NearPosArray.splice(Index, 1);
+				Count--;
+				Index--;
 
-                if (this.Paragraph)
-                {
-                    for (var ParaIndex = 0, ParaCount = this.Paragraph.NearPosArray.length; ParaIndex < ParaCount; ParaIndex++)
-                    {
-                        var ParaNearPos = this.Paragraph.NearPosArray[ParaIndex];
-                        if (ParaNearPos.Classes[ParaNearPos.Classes.length - 1] === this)
-                            ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = NewRun;
-                    }
-                }
-            }
-        }
+				NewRun.NearPosArray.push(RunNearPos);
+
+				if (this.Paragraph)
+				{
+					for (var ParaIndex = 0, ParaCount = this.Paragraph.NearPosArray.length; ParaIndex < ParaCount; ParaIndex++)
+					{
+						var ParaNearPos = this.Paragraph.NearPosArray[ParaIndex];
+						if (ParaNearPos.Classes[ParaNearPos.Classes.length - 1] === this)
+							ParaNearPos.Classes[ParaNearPos.Classes.length - 1] = NewRun;
+					}
+				}
+			}
+		}
 
 		// Обновляем позиции в поиске
 		for (var nIndex = 0, nSearchMarksCount = this.SearchMarks.length; nIndex < nSearchMarksCount; ++nIndex)
@@ -2644,48 +2665,36 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
 				nIndex--;
 			}
 		}
-    }
+	}
 
-    // ВСЕГДА копируем элементы, для корректной работы не надо переносить имеющиеся элементы в новый ран
-	for (var nIndex = CurPos, nNewIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex, ++nNewIndex)
+	// Если были точки орфографии, тогда переместим их в новый ран
+	var SpellingMarksCount = this.SpellingMarks.length;
+	for ( var Index = 0; Index < SpellingMarksCount; Index++ )
 	{
-		var oNewItem = this.Content[nIndex].Copy();
-		NewRun.AddToContent(nNewIndex, oNewItem);
-		if (para_FieldChar === this.Content[nIndex].Type)
+		var Mark    = this.SpellingMarks[Index];
+		var MarkPos = ( true === Mark.Start ? Mark.Element.StartPos.Get(Mark.Depth) : Mark.Element.EndPos.Get(Mark.Depth) );
+
+		if ( MarkPos >= CurPos )
 		{
-			var oComplexField = this.Content[nIndex].GetComplexField();
-			if (oComplexField)
-				oComplexField.ReplaceChar(oNewItem);
+			var MarkElement = Mark.Element;
+			if ( true === Mark.Start )
+			{
+				MarkElement.StartPos.Data[Mark.Depth] -= CurPos;
+			}
+			else
+			{
+				MarkElement.EndPos.Data[Mark.Depth] -= CurPos;
+			}
+
+			NewRun.SpellingMarks.push( Mark );
+
+			this.SpellingMarks.splice( Index, 1 );
+			SpellingMarksCount--;
+			Index--;
 		}
 	}
-    this.RemoveFromContent(CurPos, this.Content.length - CurPos, true);
 
-    // Если были точки орфографии, тогда переместим их в новый ран
-    var SpellingMarksCount = this.SpellingMarks.length;
-    for ( var Index = 0; Index < SpellingMarksCount; Index++ )
-    {
-        var Mark    = this.SpellingMarks[Index];
-        var MarkPos = ( true === Mark.Start ? Mark.Element.StartPos.Get(Mark.Depth) : Mark.Element.EndPos.Get(Mark.Depth) );
-
-        if ( MarkPos >= CurPos )
-        {
-            var MarkElement = Mark.Element;
-            if ( true === Mark.Start )
-            {
-                MarkElement.StartPos.Data[Mark.Depth] -= CurPos;
-            }
-            else
-            {
-                MarkElement.EndPos.Data[Mark.Depth] -= CurPos;
-            }
-
-            NewRun.SpellingMarks.push( Mark );
-
-            this.SpellingMarks.splice( Index, 1 );
-            SpellingMarksCount--;
-            Index--;
-        }
-    }
+	this.RemoveFromContent(CurPos, this.Content.length - CurPos, true);
 
     if (true === UpdateSelection)
     {
