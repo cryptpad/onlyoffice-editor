@@ -7229,6 +7229,7 @@ window["Asc"]["spreadsheet_api"].prototype["asc_nativeGetCoreProps"] = function(
         coreProps["asc_getTitle"] = props.asc_getTitle();
         coreProps["asc_getSubject"] = props.asc_getSubject();
         coreProps["asc_getDescription"] = props.asc_getDescription();
+        coreProps["asc_getCreated"] = props.asc_getCreated();
 
         var authors = [];
         value = props.asc_getCreator();//"123\"\"\"\<\>,456";
