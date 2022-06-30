@@ -3273,13 +3273,16 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	let isMathRun = this.IsMathRun();
 
 	// TODO: Пока для формул сделаем, чтобы работало по-старому, в дальнейшем надо будет переделать на fontslot
-	let nRFontsFlags = isMathRun ? AscWord.fontslot_ASCII : AscWord.fontslot_None;
-	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	let nFontsFlags = isMathRun ? AscWord.fontslot_ASCII : AscWord.fontslot_None;
+	for (let nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
-		nRFontsFlags |= this.Content[nPos].GetFontSlot(_oTextPr);
+		nFontsFlags |= this.Content[nPos].GetFontSlot(_oTextPr);
 	}
 
-	let oMetrics = _oTextPr.GetTextMetrics(nRFontsFlags);
+	if (AscWord.fontslot_Unknown === nFontsFlags)
+		nFontsFlags = oTextPr.CS || oTextPr.RTL ? AscWord.fontslot_CS : AscWord.fontslot_ASCII;
+
+	let oMetrics = _oTextPr.GetTextMetrics(nFontsFlags);
 
 	// Под TextAscent мы будем понимать ascent + linegap (которые записаны в шрифте)
 	this.TextHeight  = oMetrics.Height;
