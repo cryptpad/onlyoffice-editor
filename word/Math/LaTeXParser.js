@@ -294,10 +294,17 @@
 			this.IsHBracket() ||
 			this.oLookahead.data === "┬" ||
 			this.oLookahead.data === "┴" ||
-			this.IsEqArrayLiteral()
+			this.IsEqArrayLiteral() ||
+			this.oLookahead.data === "." || this.oLookahead.data === ","
 		);
 	};
 	CLaTeXParser.prototype.GetElementLiteral = function () {
+		if  (this.oLookahead.data === "." || this.oLookahead.data === ",") {
+			return {
+				type: oLiteralNames.charLiteral[num],
+				value: this.EatToken(this.oLookahead.class).data
+			}
+		}
 		if (this.IsFractionLiteral()) {
 			return this.GetFractionLiteral();
 		}
@@ -751,7 +758,7 @@
 			this.IsElementLiteral() &&
 			this.oLookahead.data !== strBreakSymbol &&
 			!arrEndOfExpression.includes(this.oLookahead.data) &&
-			((strBreakType && !strBreakType.includes(this.oLookahead.data)) || !strBreakType)) {
+			((this.EscapeSymbol && !this.EscapeSymbol.includes(this.oLookahead.data)) || !strBreakType)) {
 			if (this.IsPreScript()) {
 				arrExpList.push(this.GetPreScriptLiteral());
 			} else {

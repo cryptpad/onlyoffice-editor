@@ -4054,7 +4054,7 @@ CDelimiter.prototype.GetTextOfElement = function(isLaTeX) {
 	var strTemp = "";
 	var strStartSymbol = this.Pr.begChr === -1 ? "" : String.fromCharCode((this.begOper.code || this.Pr.begChr) || 40);
 	var strEndSymbol = this.Pr.begChr === -1 ? "" : String.fromCharCode((this.endOper.code || this.Pr.endChr) || 41);
-	var strSeparatorSymbol = String.fromCharCode(this.sepOper.code) || '';
+	var strSeparatorSymbol = isLaTeX ? "\\mid" : "∣";
 	if (strStartSymbol === "\uffff") {
 		strStartSymbol = ' '
 	}

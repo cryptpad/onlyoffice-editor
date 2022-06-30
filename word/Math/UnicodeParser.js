@@ -209,7 +209,6 @@
 	CUnicodeParser.prototype.GetNumberLiteral = function () {
 		return this.GetDigitsLiteral();
 	};
-
 	CUnicodeParser.prototype.IsNumberLiteral = function () {
 		return this.IsDigitsLiteral();
 	};
@@ -1087,12 +1086,19 @@
 		else if (this.oLookahead.class === oLiteralNames.numberLiteral[0]) {
 			return this.GetNumberLiteral();
 		}
+		else if (this.oLookahead.data === "." || this.oLookahead.data === ",") {
+			return {
+				type: oLiteralNames.charLiteral[num],
+				value: this.EatToken(this.oLookahead.class).data,
+			}
+		}
 	};
 	CUnicodeParser.prototype.IsAnOtherLiteral = function () {
 		return (
 			this.oLookahead.class === oLiteralNames.otherLiteral[0] ||
 			this.oLookahead.class === oLiteralNames.charLiteral[0] ||
-			this.oLookahead.class === oLiteralNames.numberLiteral[0]
+			this.oLookahead.class === oLiteralNames.numberLiteral[0] ||
+			this.oLookahead.data === "." || this.oLookahead.data === ","
 		);
 	};
 	CUnicodeParser.prototype.GetAnLiteral = function () {

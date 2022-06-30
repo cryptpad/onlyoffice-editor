@@ -246,9 +246,6 @@
 		["@", undefined, true],
 		["array(", undefined, oNamesOfLiterals.matrixLiteral[0]], // unicode
 
-		[",", undefined, oNamesOfLiterals.charLiteral[0]],
-		[".", undefined, oNamesOfLiterals.charLiteral[0]],
-
 		["⁰", undefined, oNamesOfLiterals.specialScriptNumberLiteral[0]],
 		["¹", undefined, oNamesOfLiterals.specialScriptNumberLiteral[0]],
 		["²", undefined, oNamesOfLiterals.specialScriptNumberLiteral[0]],
@@ -318,34 +315,6 @@
 			},
 			undefined,
 			oNamesOfLiterals.charLiteral[0]
-		],
-		[
-			function (str) {
-				if (str[0] === "\\") {
-					let strOutput = "\\";
-					let index = 1;
-					while (str[index] && /[a-zA-Z]/.test(str[index])) {
-						strOutput += str[index];
-						index++;
-					}
-					if (functionNames.includes(strOutput.slice(1)) || limitFunctions.includes(strOutput.slice(1))) {
-						return strOutput;
-					}
-				}
-				else {
-					let index = 0;
-					let strOutput = "";
-					while (str[index] && /[a-zA-Z]/.test(str[index])) {
-						strOutput += str[index];
-						index++;
-					}
-					if (limitFunctions.includes(strOutput) || functionNames.includes(strOutput)) {
-						return strOutput
-					}
-				}
-			},
-			undefined,
-			oNamesOfLiterals.functionLiteral[0]
 		],
 
 		["\\above", "┴", true],
@@ -800,15 +769,47 @@
 		["/\\supseteq", "⊉", oNamesOfLiterals.operatorLiteral[0]],
 		["/\\sqsubseteq", "⋢", oNamesOfLiterals.operatorLiteral[0]],
 		["/\\sqsupseteq", "⋣", oNamesOfLiterals.operatorLiteral[0]],
+
+		[",", undefined, true],
+		[".", undefined, true],
+
+		[
+			function (str) {
+				if (str[0] === "\\") {
+					let strOutput = "\\";
+					let index = 1;
+					while (str[index] && /[a-zA-Z]/.test(str[index])) {
+						strOutput += str[index];
+						index++;
+					}
+					if (functionNames.includes(strOutput.slice(1)) || limitFunctions.includes(strOutput.slice(1))) {
+						return strOutput;
+					}
+				}
+				else {
+					let index = 0;
+					let strOutput = "";
+					while (str[index] && /[a-zA-Z]/.test(str[index])) {
+						strOutput += str[index];
+						index++;
+					}
+					if (limitFunctions.includes(strOutput) || functionNames.includes(strOutput)) {
+						return strOutput
+					}
+				}
+			},
+			undefined,
+			oNamesOfLiterals.functionLiteral[0]
+		],
 	];
 	const functionNames = [
 		"tan", "tanh", "sup", "sinh", "sin", "sec", "ker", "hom",
 		"arg", "arctan", "arcsin", "arcsec", "arccsc", "arccot", "arccos",
 		"inf", "gcd", "exp", "dim", "det", "deg", "csc", "coth", "cot",
-		"cosh", "cos", "Pr", "lg"
+		"cosh", "cos", "Pr", "lg", "ln", "log"
 	];
 	const limitFunctions = [
-		"log", "lim", "min", "max", "ln",
+		"lim", "min", "max",
 	];
 	const UnicodeSpecialScript = {
 		"⁰": "0",
@@ -1829,9 +1830,9 @@
 	}
 
 	function ConvertTokens(oTokens, oContext) {
-		if (oTokens) {
-			let Paragraph = oContext.Paragraph;
-			let Proceed = function (oTokens, oContext) {
+		if (typeof oTokens === "object") {
+			const Paragraph = oContext.Paragraph;
+			const Proceed = function (oTokens, oContext) {
 				if (oTokens) {
 					switch (oTokens.type) {
 						case undefined:
@@ -2059,27 +2060,34 @@
 							}
 							break;
 						case oNamesOfLiterals.functionWithLimitLiteral[num]:
-							let Pr = {ctrPrp: new CTextPr()};
-							Pr.type = (oTokens.up === undefined)
-								? LIMIT_LOW
-								: LIMIT_UP;
+							let oFuncWithLimit = oContext.Add_FunctionWithLimit(
+								{},
+								null,
+								null,
+							);
+							oFuncWithLimit
+								.getFName()
+								.Content[0]
+								.getFName()
+								.Add_Text(oTokens.value);
 
-							let oLimit = oContext.Add_Limit(
-								Pr,
-								null,
-								null,
-							);
-							ConvertTokens(
-								oTokens.value,
-								oLimit.getFName()
-							);
+							let oLimitIterator = oFuncWithLimit
+								.getFName()
+								.Content[0]
+								.getIterator();
+
 							if (oTokens.up || oTokens.down) {
 								UnicodeArgument(
 									oTokens.up === undefined ? oTokens.down : oTokens.up,
 									oNamesOfLiterals.bracketBlockLiteral[num],
-									oLimit.getIterator()
+									oLimitIterator
 								)
 							}
+							UnicodeArgument(
+								oTokens.third,
+								oNamesOfLiterals.bracketBlockLiteral[num],
+								oFuncWithLimit.getArgument()
+							)
 							break;
 						case oNamesOfLiterals.hBracketLiteral[num]:
 							let o1 = GetHBracket(oTokens.hBrack);
@@ -2128,15 +2136,17 @@
 						case oNamesOfLiterals.bracketBlockLiteral[num]:
 							let oBracket = oContext.Add_DelimiterEx(
 								new CTextPr(),
-								1,
+								(oTokens.value.length > 0) ? oTokens.value.length : 1,
 								[null],
 								GetBracketCode(oTokens.left),
 								GetBracketCode(oTokens.right),
 							);
-							ConvertTokens(
-								oTokens.value,
-								oBracket.getElementMathContent(0)
-							);
+							for (let intCount = 0; intCount < oTokens.value.length; intCount++) {
+								ConvertTokens(
+									oTokens.value[intCount],
+									oBracket.getElementMathContent(intCount)
+								);
+							}
 							break;
 						case oNamesOfLiterals.sqrtLiteral[num]:
 							let oRadical = oContext.Add_Radical(
@@ -2240,7 +2250,6 @@
 					}
 				}
 			}
-
 			const UnicodeArgument = function (oInput, oComparison, oContext) {
 				if (oInput && type === 0 && oInput.type === oComparison && oInput.left === "(" && oInput.right === ")") {
 					ConvertTokens(
@@ -2277,6 +2286,9 @@
 			else {
 				Proceed(oTokens, oContext)
 			}
+		}
+		else {
+			oContext.Add_Text(oTokens, oContext.Paragraph);
 		}
 	}
 

@@ -1568,7 +1568,7 @@ CEqArray.prototype.IsEqArray = function () {
 	return true;
 };
 CEqArray.prototype.GetTextOfElement = function (isLaTeX) {
-	let strStart = isLaTeX ? "\\subtrack" : "█";
+	let strStart = isLaTeX ? "\\substack" : "█";
 	var strStartBracet = this.GetStartBracetForGetTextContent(isLaTeX);
 	var strCloseBracet = this.GetEndBracetForGetTextContent(isLaTeX);
 
