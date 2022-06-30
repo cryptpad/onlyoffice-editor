@@ -2714,8 +2714,14 @@ CInlineLevelSdt.prototype.private_ConvertFormToFixed = function(nW, nH)
 
 	oInnerParagraph.MoveCursorToStartPos();
 	oInnerParagraph.Add(this);
-	oInnerParagraph.SetParagraphAlign(this.IsCheckBox() ? AscCommon.align_Center : AscCommon.align_Left);
-	oInnerParagraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
+
+	let oParaPr;
+	if (this.IsCheckBox())
+		oParaPr = AscWord.DEFAULT_PARAPR_FIXED_CHECKBOXFORM.Copy();
+	else
+		oParaPr = AscWord.DEFAULT_PARAPR_FIXED_TEXTFORM.Copy();
+
+	oInnerParagraph.SetDirectParaPr(oParaPr);
 
 	var oBodyPr = oShape.getBodyPr().createDuplicate();
 

@@ -16843,6 +16843,10 @@ CParaPr.prototype.Set_FromObject = function(ParaPr)
 	if (undefined !== ParaPr.SuppressLineNumbers)
 		this.SuppressLineNumbers = ParaPr.SuppressLineNumbers;
 };
+CParaPr.prototype.SetFromObject = function(oPr)
+{
+	return this.Set_FromObject(oPr);
+};
 CParaPr.prototype.Compare = function(ParaPr)
 {
 	// При сравнении добавляем 1 элемент Locked

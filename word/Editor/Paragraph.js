@@ -10398,10 +10398,17 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 		// Копируем прямые настройки параграфа.
 		Pr.ParaPr.Merge(this.Pr);
 
+		if (this.IsInFixedForm())
+		{
+			let oForm = this.GetInnerForm();
+			Pr.ParaPr.Merge(oForm && oForm.IsCheckBox() ? AscWord.DEFAULT_PARAPR_FIXED_CHECKBOXFORM : AscWord.DEFAULT_PARAPR_FIXED_TEXTFORM);
+		}
+
 		if (-1 != Lvl && undefined != Pr.ParaPr.NumPr)
 			Pr.ParaPr.NumPr.Lvl = Lvl;
 		else
 			Pr.ParaPr.NumPr = undefined;
+
 
 		return Pr;
 	}

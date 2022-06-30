@@ -271,6 +271,7 @@
 			"word/Math/operators.js",
 			"word/Math/accent.js",
 			"word/Math/borderBox.js",
+			"word/Editor/Styles/FixedFormDefaults.js",
 
 			"word/apiBuilder.js",
 
