@@ -1121,20 +1121,25 @@ CBar.prototype.raw_SetLinePos = function(Value)
     this.RecalcInfo.bProps = true;
     this.ApplyProperties();
 };
-CBar.prototype.GetTextOfElement = function() {
-	var strTemp = "";
+CBar.prototype.GetTextOfElement = function(isLaTeX) {
+	var strTemp = "",
+        strSymbol,
+        strBase,
+        strStartBracket = this.GetStartBracetForGetTextContent(isLaTeX),
+        strCloseBracket = this.GetEndBracetForGetTextContent(isLaTeX);
 
-	var strSymbol = String.fromCharCode((this.Pr.pos) ? 9601 : 175);
-	var Base = this.getBase().GetTextOfElement();
-
-	var StartBracet = Base.length > 1 ? "(" : "";
-	var CloseBracet = Base.length > 1 ? ")" : "";
+    if (!isLaTeX) {
+        strSymbol = (this.Pr.pos) ? "▁" : "¯";
+    } else {
+        strSymbol = (this.Pr.pos) ? "\\underline" : "\\overline";
+    }
+	strBase = this.CheckIsEmpty(this.getBase().GetTextOfElement(isLaTeX));
 	
 	strTemp =
 		strSymbol
-		+ StartBracet
-		+ Base
-		+ CloseBracet;
+		+ strStartBracket
+		+ strBase
+		+ strCloseBracket;
 
 	return strTemp;
 }

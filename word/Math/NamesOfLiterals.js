@@ -378,6 +378,7 @@
 		["\\atop", "¦", oNamesOfLiterals.overLiteral[0]], //LateX true
 		["\\array", "■", oNamesOfLiterals.matrixLiteral[0]],
 
+		["\\backprime", "‵", oNamesOfLiterals.accentLiteral[0]],
 		["\\bar", "̅", oNamesOfLiterals.accentLiteral[0]],
 		["\\because", "∵"],
 		["\\begin", "〖", oNamesOfLiterals.opOpenBracket[0]], //Unicode  LaTeX: ["\\begin{"],
@@ -579,7 +580,7 @@
 		["\\overbar", "¯", oNamesOfLiterals.hBracketLiteral[0]],
 		["\\overbrace", "⏞", oNamesOfLiterals.hBracketLiteral[0]],
 		["\\overbracket", "⎴", oNamesOfLiterals.hBracketLiteral[0]],
-		["\\overline", "¯", oNamesOfLiterals.hBracketLiteral[0]],
+		["\\overline", "¯", true],
 		["\\overparen", "⏜", oNamesOfLiterals.hBracketLiteral[0]],
 		["\\overset", "┴", true],
 
@@ -660,7 +661,7 @@
 		["\\underbar", "▁", oNamesOfLiterals.hBracketLiteral[0]],
 		["\\underbrace", "⏟", oNamesOfLiterals.hBracketLiteral[0]],
 		["\\underbracket", "⎵", oNamesOfLiterals.hBracketLiteral[0]],
-		["\\underline", "▱", oNamesOfLiterals.hBracketLiteral[0]],
+		["\\underline", "▁", true],
 		["\\underparen", "⏝", oNamesOfLiterals.hBracketLiteral[0]],
 		["\\underset", "┬", true],
 		["\\uparrow", "↑"],
@@ -806,7 +807,7 @@
 		"tan", "tanh", "sup", "sinh", "sin", "sec", "ker", "hom",
 		"arg", "arctan", "arcsin", "arcsec", "arccsc", "arccot", "arccos",
 		"inf", "gcd", "exp", "dim", "det", "deg", "csc", "coth", "cot",
-		"cosh", "cos", "Pr", "lg", "ln", "log"
+		"cosh", "cos", "Pr", "lg", "ln", "log", "sgn",
 	];
 	const limitFunctions = [
 		"lim", "min", "max",
@@ -1750,21 +1751,21 @@
 	function GetHBracket(code) {
 		switch (code) {
 			case "⏜":
-				return VJUST_BOT;
+				return VJUST_TOP;
 			case "⏝":
-				return VJUST_TOP;
+				return VJUST_BOT;
 			case "⏞":
-				return VJUST_BOT;
+				return VJUST_TOP;
 			case "⏟":
-				return VJUST_TOP;
+				return VJUST_BOT;
 			case "⏠":
-				return VJUST_BOT;
+				return VJUST_TOP;
 			case "⏡":
-				return VJUST_TOP;
-			case "⎴":
-				return VJUST_TOP;
-			case "⎵":
 				return VJUST_BOT;
+			case "⎴":
+				return VJUST_BOT;
+			case "⎵":
+				return VJUST_TOP;
 		}
 	}
 
@@ -1899,7 +1900,7 @@
 						case oNamesOfLiterals.accentLiteral[num]:
 							let oAccent = oContext.Add_Accent(
 								new CTextPr(),
-								oTokens.value.charCodeAt(0),
+								GetFixedCharCodeAt(oTokens.value),
 								null
 							);
 							UnicodeArgument(
@@ -2065,11 +2066,19 @@
 								null,
 								null,
 							);
-							oFuncWithLimit
-								.getFName()
-								.Content[0]
-								.getFName()
-								.Add_Text(oTokens.value);
+							if (typeof oTokens.value === "object") {
+								UnicodeArgument(
+									oTokens.value,
+									oNamesOfLiterals.bracketBlockLiteral[num],
+									oFuncWithLimit.getFName().Content[0].getFName()
+								)
+							} else {
+								oFuncWithLimit
+									.getFName()
+									.Content[0]
+									.getFName()
+									.Add_Text(oTokens.value);
+							}
 
 							let oLimitIterator = oFuncWithLimit
 								.getFName()
@@ -2089,17 +2098,17 @@
 								oFuncWithLimit.getArgument()
 							)
 							break;
+
 						case oNamesOfLiterals.hBracketLiteral[num]:
-							let o1 = GetHBracket(oTokens.hBrack);
-							let o2 = o1 === 0 ? 1 : 0;
-							let on = oTokens.up === undefined ? LIMIT_LOW : LIMIT_UP;
+							let intBracketPos = GetHBracket(oTokens.hBrack);
+							let intIndexPos = oTokens.up === undefined ? LIMIT_LOW : LIMIT_UP;
 
 							if (!(oTokens.up || oTokens.down)) {
 								let oGroup = oContext.Add_GroupCharacter({
 									ctrPrp: new CTextPr(),
 									chr: oTokens.hBrack.charCodeAt(0),
-									pos: o2,
-									vertJc: o1
+									pos: intBracketPos,
+									vertJc: 1
 								}, null);
 								UnicodeArgument(
 									oTokens.value,
@@ -2108,13 +2117,13 @@
 								)
 							}
 							else {
-								let Limit = oContext.Add_Limit({ctrPrp: new CTextPr(), type: on}, null, null);
+								let Limit = oContext.Add_Limit({ctrPrp: new CTextPr(), type: intIndexPos}, null, null);
 								let MathContent = Limit.getFName();
 								let oGroup = MathContent.Add_GroupCharacter({
 									ctrPrp: new CTextPr(),
 									chr: oTokens.hBrack.charCodeAt(0),
-									vertJc: o2,
-									pos: o1
+									vertJc: 1,
+									pos: intBracketPos
 								}, null);
 
 								UnicodeArgument(
@@ -2136,17 +2145,25 @@
 						case oNamesOfLiterals.bracketBlockLiteral[num]:
 							let oBracket = oContext.Add_DelimiterEx(
 								new CTextPr(),
-								(oTokens.value.length > 0) ? oTokens.value.length : 1,
+								oTokens.value.length ? oTokens.value.length : 1,
 								[null],
 								GetBracketCode(oTokens.left),
 								GetBracketCode(oTokens.right),
 							);
-							for (let intCount = 0; intCount < oTokens.value.length; intCount++) {
+							if (oTokens.value.length) {
+								for (let intCount = 0; intCount < oTokens.value.length; intCount++) {
+									ConvertTokens(
+										oTokens.value[intCount],
+										oBracket.getElementMathContent(intCount)
+									);
+								}
+							} else {
 								ConvertTokens(
-									oTokens.value[intCount],
-									oBracket.getElementMathContent(intCount)
+									oTokens.value,
+									oBracket.getElementMathContent(0)
 								);
 							}
+
 							break;
 						case oNamesOfLiterals.sqrtLiteral[num]:
 							let oRadical = oContext.Add_Radical(
@@ -2166,10 +2183,11 @@
 						case oNamesOfLiterals.functionLiteral[num]:
 							let oFunc = oContext.Add_Function({}, null, null);
 							oFunc.getFName().Add_Text(oTokens.value);
-							ConvertTokens(
+							UnicodeArgument(
 								oTokens.third,
+								oNamesOfLiterals.bracketBlockLiteral[num],
 								oFunc.getArgument()
-							);
+							)
 							break;
 						case oNamesOfLiterals.spaceLiteral[num]:
 							oContext.Add_Text(oTokens.value);
@@ -2240,7 +2258,8 @@
 							)
 							break;
 						case oNamesOfLiterals.overBarLiteral[num]:
-							let oBar = oContext.Add_Bar({ctrPrp: new CTextPr(), pos: LOCATION_BOT}, null);
+							let intLocation = oTokens.overUnder === "▁" ? LOCATION_BOT : LOCATION_TOP;
+							let oBar = oContext.Add_Bar({ctrPrp: new CTextPr(), pos: intLocation}, null);
 							UnicodeArgument(
 								oTokens.value,
 								oNamesOfLiterals.bracketBlockLiteral[num],

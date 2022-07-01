@@ -295,7 +295,8 @@
 			this.oLookahead.data === "┬" ||
 			this.oLookahead.data === "┴" ||
 			this.IsEqArrayLiteral() ||
-			this.oLookahead.data === "." || this.oLookahead.data === ","
+			this.oLookahead.data === "." || this.oLookahead.data === "," ||
+			this.IsOverUnderBarLiteral()
 		);
 	};
 	CLaTeXParser.prototype.GetElementLiteral = function () {
@@ -397,7 +398,9 @@
 		else if (this.IsEqArrayLiteral()) {
 			return this.GetEqArrayLiteral();
 		}
-
+		else if (this.IsOverUnderBarLiteral()) {
+			return this.GetUnderOverBarLiteral();
+		}
 	};
 	CLaTeXParser.prototype.IsSkipLiteral = function () {
 		return (
@@ -461,6 +464,18 @@
 			value: oContent,
 		}
 	}
+	CLaTeXParser.prototype.IsOverUnderBarLiteral = function () {
+		return this.oLookahead.class === "▁" || this.oLookahead.class === "¯"
+	}
+	CLaTeXParser.prototype.GetUnderOverBarLiteral = function () {
+		let strUnderOverLine = this.EatToken(this.oLookahead.class).data;
+		let oOperand = this.GetArguments(1);
+		return {
+			type: oLiteralNames.overBarLiteral[num],
+			overUnder: strUnderOverLine,
+			value: oOperand,
+		};
+	}
 	CLaTeXParser.prototype.IsBoxLiteral = function () {
 		return this.oLookahead.class === oLiteralNames.boxLiteral[0];
 	}
@@ -481,12 +496,13 @@
 		let oContent = this.GetArguments(1);
 		this.SkipFreeSpace();
 		if (this.oLookahead.data === "_" || this.oLookahead.data === "^") {
-			this.EatToken(this.oLookahead.class);
 			if (this.oLookahead.class === "_") {
-				oDown = this.GetElementLiteral();
+				this.EatToken(this.oLookahead.class);
+				oDown = this.GetArguments(1);
 			}
 			else {
-				oUp = this.GetElementLiteral();
+				this.EatToken(this.oLookahead.class);
+				oUp = this.GetArguments(1);
 			}
 		}
 		return {
