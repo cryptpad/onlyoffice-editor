@@ -955,6 +955,10 @@
 					? this.GetSoOperandLiteral("custom")
 					: this.GetSoOperandLiteral("^");
 
+				if (oSecondElement.value === "′" || oSecondElement.value === "′′" || oSecondElement === "‵") {
+					oSecondElement = oSecondElement.value;
+				}
+
 				if (this.oLookahead.data === "_") {
 					this.EatToken(this.oLookahead.class);
 					if (this.IsSoOperandLiteral()) {
@@ -1225,7 +1229,14 @@
 		return this.WriteSavedTokens();
 	};
 	CUnicodeParser.prototype.GetFactorLiteral = function () {
-		if (this.IsEntityLiteral() && !this.IsFunctionLiteral()) {
+		if (this.IsDiacriticsLiteral()) {
+			const oDiacritic = this.GetDiacriticsLiteral();
+			return {
+				type: oLiteralNames.accentLiteral[num],
+				value: oDiacritic,
+			};
+		}
+		else if (this.IsEntityLiteral() && !this.IsFunctionLiteral()) {
 			let oEntity = this.GetEntityLiteral();
 
 			if (this.oLookahead.data === "!" || this.oLookahead.data === "‼") {
@@ -1238,6 +1249,13 @@
 			}
 			else if (this.IsDiacriticsLiteral()) {
 				const oDiacritic = this.GetDiacriticsLiteral();
+				if (oDiacritic === "''" || oDiacritic === "'") {
+					return {
+						type: oLiteralNames.subSupLiteral[num],
+						value: oEntity,
+						up: oDiacritic,
+					}
+				}
 				return {
 					type: oLiteralNames.accentLiteral[num],
 					base: oEntity,
@@ -1254,7 +1272,7 @@
 		}
 	};
 	CUnicodeParser.prototype.IsFactorLiteral = function () {
-		return this.IsEntityLiteral() || this.IsFunctionLiteral()
+		return this.IsEntityLiteral() || this.IsFunctionLiteral() || this.IsDiacriticsLiteral()
 	};
 	CUnicodeParser.prototype.IsSpecial = function (isNoSubSup) {
 		return this.oLookahead.data === isNoSubSup || (

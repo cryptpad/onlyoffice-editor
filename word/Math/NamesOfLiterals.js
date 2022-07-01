@@ -385,6 +385,7 @@
 		["\\begin{", undefined, true],
 		["\\begin{equation}", undefined, true],
 		["\\begin{array}", undefined, oNamesOfLiterals.matrixLiteral[0]],
+		["\\begin{cases}", "█", "█"],
 		["\\begin{matrix}", undefined, oNamesOfLiterals.matrixLiteral[0]],
 		["\\begin{pmatrix}", undefined, oNamesOfLiterals.matrixLiteral[0]],
 		["\\begin{bmatrix}", undefined, oNamesOfLiterals.matrixLiteral[0]],
@@ -468,6 +469,7 @@
 		["\\end", "〗", oNamesOfLiterals.opCloseBracket[0]], //LaTeX ["\\end{"],
 		["\\end{equation}", undefined, true],
 		["\\end{array}", undefined, "endOfMatrix"],
+		["\\end{cases}", undefined, true],
 		["\\end{matrix}", undefined, "endOfMatrix"],
 		["\\end{pmatrix}", undefined, "endOfMatrix"],
 		["\\end{bmatrix}", undefined, "endOfMatrix"],
@@ -645,6 +647,7 @@
 		["\\sum", "∑", oNamesOfLiterals.opNaryLiteral[0]],
 		["\\superset", "⊃", oNamesOfLiterals.operatorLiteral[0]],
 		["\\superseteq", "⊇", oNamesOfLiterals.operatorLiteral[0]],
+		["\\surd,", "√", oNamesOfLiterals.sqrtLiteral[0]],
 		["\\swarrow", "↙"],
 		["\\tau", "τ"],
 		["\\therefore", "∴"],
@@ -697,8 +700,7 @@
 		["√(", undefined, oNamesOfLiterals.sqrtLiteral[0]],
 		["\\sqrt(", "√(", oNamesOfLiterals.sqrtLiteral[0]],
 		["\\}", undefined, oNamesOfLiterals.opCloseBracket[0]],
-		["\\|", undefined, oNamesOfLiterals.opOpenCloseBracket[0]],
-
+		["\\|", "‖", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\\\", undefined, true],
 
 		["\\sf", undefined, oNamesOfLiterals.mathFontLiteral[0]],
@@ -2072,7 +2074,8 @@
 									oNamesOfLiterals.bracketBlockLiteral[num],
 									oFuncWithLimit.getFName().Content[0].getFName()
 								)
-							} else {
+							}
+							else {
 								oFuncWithLimit
 									.getFName()
 									.Content[0]
@@ -2157,7 +2160,8 @@
 										oBracket.getElementMathContent(intCount)
 									);
 								}
-							} else {
+							}
+							else {
 								ConvertTokens(
 									oTokens.value,
 									oBracket.getElementMathContent(0)
@@ -2437,16 +2441,23 @@
 		this._cursor += this.GetSymbols(oMatched).length;
 		return oMatched;
 	}
-	Tokenizer.prototype.SaveState = function () {
+	Tokenizer.prototype.SaveState = function (oLookahead) {
+		let strClass = oLookahead.class;
+		let data = oLookahead.data;
 		this.state.push({
 			_string: this._string,
 			_cursor: this._cursor,
+			oLookahead: {
+				class: strClass,
+				data: data,
+			},
 		})
 	}
 	Tokenizer.prototype.RestoreState = function () {
 		let oState = this.state.shift();
 		this._cursor = oState._cursor;
 		this._string = oState._string;
+		return oState.oLookahead;
 	}
 
 	function GetFixedCharCodeAt(str) {

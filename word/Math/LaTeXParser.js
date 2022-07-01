@@ -81,14 +81,11 @@
 		}
 		return this.GetContentOfLiteral(arrLiterals);
 	};
-	CLaTeXParser.prototype.SaveState = function () {
-		this.oTokenizer.SaveState();
+	CLaTeXParser.prototype.SaveState = function (oLookahead) {
+		this.oTokenizer.SaveState(oLookahead);
 	}
 	CLaTeXParser.prototype.RestoreState = function () {
-		this.oTokenizer.RestoreState();
-		this.oLookahead = this.oTokenizer.GetNextToken()
-		this.oLookahead = this.oTokenizer.GetNextToken()
-		this.oPrevLookahead = undefined;
+		this.oLookahead = this.oTokenizer.RestoreState();
 	}
 	CLaTeXParser.prototype.Parse = function (string) {
 		this.oTokenizer.Init(string);
@@ -216,7 +213,7 @@
 			if (this.oLookahead.class === oLiteralNames.opOpenBracket[0] || this.oLookahead.data === "." || this.oLookahead.class === oLiteralNames.opOpenCloseBracket[0]) {
 				strLeftSymbol = this.EatToken(this.oLookahead.class).data;
 			}
-			arrBracketContent = this.GetExpressionLiteral();
+			arrBracketContent = this.GetContentOfBracket();
 			if (this.oLookahead.data === "┤") {
 				this.EatToken("┤");
 				if (this.oLookahead.class === oLiteralNames.opCloseBracket[0] || this.oLookahead.data === "." || this.oLookahead.class === oLiteralNames.opOpenCloseBracket[0]) {
@@ -225,10 +222,9 @@
 			}
 		}
 		else if (this.oLookahead.class === oLiteralNames.opOpenBracket[0] || this.oLookahead.class === oLiteralNames.opOpenCloseBracket[0]) {
-			this.SaveState();
-			this.oPrevLookahead = this.EatToken(this.oLookahead.class);
-			strLeftSymbol = this.oPrevLookahead.data;
+			strLeftSymbol = this.EatToken(this.oLookahead.class).data;
 			if (strLeftSymbol === "|" || strLeftSymbol === "‖") {
+				this.SaveState(this.oLookahead);
 				this.isWaitCloseBracket = true;
 				arrBracketContent = this.GetContentOfBracket(strLeftSymbol)
 			}
@@ -259,7 +255,7 @@
 		let arrContent = [];
 		while (this.IsElementLiteral() || this.oLookahead.data === "∣" || this.oLookahead.data === "ⓜ") {
 			if (this.IsElementLiteral()) {
-				let oToken = this.GetExpressionLiteral(strLeftSymbol);
+				let oToken = [this.GetExpressionLiteral(strLeftSymbol)];
 				if ((oToken && !Array.isArray(oToken)) || Array.isArray(oToken) && oToken.length > 0) {
 					arrContent.push(oToken)
 				}
@@ -728,7 +724,7 @@
 	}
 	CLaTeXParser.prototype.GetRayOfMatrixLiteral = function () {
 		let arrRayContent = [];
-		while (this.oLookahead.class !== "\\\\" && this.oLookahead.data !== "}" && this.oLookahead.class !== "endOfMatrix") {
+		while (this.oLookahead.class !== "\\\\" && this.oLookahead.data !== "}" && this.oLookahead.class !== "endOfMatrix" && this.oLookahead.data !== "\\end{cases}") {
 			arrRayContent.push(this.GetElementOfMatrix());
 		}
 		if (this.oLookahead.class === "\\\\") {
@@ -738,7 +734,7 @@
 		return arrRayContent
 	}
 	CLaTeXParser.prototype.GetElementOfMatrix = function () {
-		let element = this.GetExpressionLiteral(["&", "\\\\"]);
+		let element = this.GetExpressionLiteral("&");
 		this.SkipFreeSpace();
 		if (this.oLookahead.class === "&") {
 			this.EatToken("&");
@@ -753,18 +749,20 @@
 		this.EatToken(this.oLookahead.class);
 		if (this.oLookahead.data === "{") {
 			this.EatToken(this.oLookahead.class);
-			let oContent = [];
-			while (this.oLookahead.data !== "}") {
-				oContent.push(this.GetRayOfMatrixLiteral());
-			}
-			if (this.oLookahead.data === "}") {
-				this.EatToken(this.oLookahead.class);
-				return {
-					type: oLiteralNames.arrayLiteral[num],
-					value: oContent,
-				}
+		}
+
+		let oContent = [];
+		while (this.oLookahead.data !== "}" && this.oLookahead.data !== "\\end{cases}") {
+			oContent.push(this.GetRayOfMatrixLiteral());
+		}
+		if (this.oLookahead.data === "}" || this.oLookahead.data === "\\end{cases}") {
+			this.EatToken(this.oLookahead.class);
+			return {
+				type: oLiteralNames.arrayLiteral[num],
+				value: oContent,
 			}
 		}
+
 	}
 	CLaTeXParser.prototype.GetExpressionLiteral = function (strBreakSymbol, strBreakType) {
 		this.EscapeSymbol = strBreakSymbol;
