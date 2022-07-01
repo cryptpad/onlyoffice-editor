@@ -159,7 +159,7 @@
 		let oRunParent = oRun.GetParent();
 		let oTextPr    = oRun.Get_CompiledPr(false);
 
-		if (this.Parent !== oRunParent || !this.TextPr || !this.TextPr.IsEqual(oTextPr))
+		if (this.Parent !== oRunParent || !this.IsEqualTextPr(oTextPr))
 			this.FlushWord();
 
 		let oForm      = oRun.GetParentForm();
@@ -197,6 +197,32 @@
 			oItem.SetCodePointType(nCodePointType);
 			oItem.SetWidth(nWidth);
 		}
+	};
+	CParagraphTextShaper.prototype.IsEqualTextPr = function(oTextPr)
+	{
+		// Здесь мы не используем стандартную функцию CTextPr.IsEqual, потому что она сравнивает на полное
+		// совпадение объектов, а нас интересует только совпадение настроек, которые не мешают сборке текста
+
+		if (!oTextPr || !this.TextPr)
+			return false;
+
+		let t = this.TextPr;
+
+		return (t.Bold === oTextPr.Bold
+			&& t.BoldCS === oTextPr.BoldCS
+			&& t.Italic === oTextPr.Italic
+			&& t.ItalicCS === oTextPr.ItalicCS
+			&& IsEqualNullableFloatNumbers(t.FontSize, oTextPr.FontSize)
+			&& IsEqualNullableFloatNumbers(t.FontSizeCS, oTextPr.FontSizeCS)
+			&& t.VertAlign === oTextPr.VertAlign
+			&& IsEqualNullableFloatNumbers(t.Spacing, oTextPr.Spacing)
+			&& t.SmallCaps === oTextPr.SmallCaps
+			&& t.Position === oTextPr.Position
+			&& t.CS === oTextPr.CS
+			&& t.RTL === oTextPr.RTL
+			&& t.Vanish === oTextPr.Vanish
+			&& t.Ligatures === oTextPr.Ligatures
+			&& t.RFonts.IsEqual(oTextPr.RFonts));
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
