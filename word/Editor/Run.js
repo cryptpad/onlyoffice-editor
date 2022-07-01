@@ -12543,7 +12543,7 @@ ParaRun.prototype.IsFootEndnoteReferenceRun = function()
  */
 ParaRun.prototype.ProcessAutoCorrect = function(nPos, nFlags, nHistoryActions)
 {
-	return (new AscCommonWord.CRunAutoCorrect(this, nPos).DoAutoCorrect(nFlags, nHistoryActions));
+	return (new AscWord.CRunAutoCorrect(this, nPos).DoAutoCorrect(nFlags, nHistoryActions));
 };
 /**
  * Выполняем автозамену в конце параграфа

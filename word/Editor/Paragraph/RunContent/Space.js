@@ -208,7 +208,7 @@
 	};
 	CRunSpace.prototype.GetAutoCorrectFlags = function()
 	{
-		return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
+		return AscWord.AUTOCORRECT_FLAGS_ALL;
 	};
 	CRunSpace.prototype.SetCondensedWidth = function(nKoef)
 	{

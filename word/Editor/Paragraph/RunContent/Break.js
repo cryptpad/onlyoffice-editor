@@ -337,8 +337,8 @@
 	};
 	CRunBreak.prototype.GetAutoCorrectFlags = function()
 	{
-		return (AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-			| AscCommonWord.AUTOCORRECT_FLAGS_HYPERLINK);
+		return (AscWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+			| AscWord.AUTOCORRECT_FLAGS_HYPERLINK);
 	};
 	CRunBreak.prototype.ToSearchElement = function(oProps)
 	{

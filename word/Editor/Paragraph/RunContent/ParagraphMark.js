@@ -191,9 +191,9 @@
 	};
 	CRunParagraphMark.prototype.GetAutoCorrectFlags = function()
 	{
-		return (AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
-			| AscCommonWord.AUTOCORRECT_FLAGS_HYPERLINK
-			| AscCommonWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
+		return (AscWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE
+			| AscWord.AUTOCORRECT_FLAGS_HYPERLINK
+			| AscWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH);
 	};
 	CRunParagraphMark.prototype.ToSearchElement = function(oProps)
 	{

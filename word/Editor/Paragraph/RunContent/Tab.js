@@ -179,7 +179,7 @@ var tab_Symbol = 0x0022;//0x2192;
 	};
 	CRunTab.prototype.GetAutoCorrectFlags = function()
 	{
-		return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
+		return AscWord.AUTOCORRECT_FLAGS_ALL;
 	};
 	CRunTab.prototype.ToSearchElement = function(oProps)
 	{

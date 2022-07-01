@@ -472,13 +472,13 @@
 			|| 58 === this.Value
 			|| 59 === this.Value
 			|| 63 === this.Value)
-			return AscCommonWord.AUTOCORRECT_FLAGS_ALL;
+			return AscWord.AUTOCORRECT_FLAGS_ALL;
 
 		// /,\,@  - исключения, на них мы не должны стартовать атозамену первой буквы предложения
 		if ((this.IsPunctuation() || this.IsNumber()) && 92 !== this.Value && 47 !== this.Value && 64 !== this.Value)
-			return AscCommonWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AscCommonWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
+			return AscWord.AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE | AscWord.AUTOCORRECT_FLAGS_HYPHEN_WITH_DASH;
 
-		return AscCommonWord.AUTOCORRECT_FLAGS_NONE;
+		return AscWord.AUTOCORRECT_FLAGS_NONE;
 	};
 	CRunText.prototype.IsDiacriticalSymbol = function()
 	{

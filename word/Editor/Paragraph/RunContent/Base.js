@@ -146,11 +146,11 @@
 	};
 	/**
 	 * Какие мы можем выполнять автозамены на вводе данного элемента
-	 * @returns {boolean}
+	 * @returns {number}
 	 */
 	CRunElementBase.prototype.GetAutoCorrectFlags = function()
 	{
-		return AscCommonWord.AUTOCORRECT_FLAGS_NONE;
+		return AscWord.AUTOCORRECT_FLAGS_NONE;
 	};
 	/**
 	 * Является ли данный элемент символом пунктуации
