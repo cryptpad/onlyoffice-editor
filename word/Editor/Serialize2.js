@@ -11558,13 +11558,13 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         var oThis = this;
 		let paragraph = paragraphContent.GetParagraph();
         if (c_oSer_HyperlinkType.Link === type) {
-			oNewHyperlink.Value = this.stream.GetString2LE(length);
+			oNewHyperlink.SetValue(this.stream.GetString2LE(length));
         }
         else if (c_oSer_HyperlinkType.Anchor === type) {
-			oNewHyperlink.Anchor = this.stream.GetString2LE(length);
+			oNewHyperlink.SetAnchor(this.stream.GetString2LE(length));
         }
         else if (c_oSer_HyperlinkType.Tooltip === type) {
-			oNewHyperlink.Tooltip = this.stream.GetString2LE(length);
+			oNewHyperlink.SetToolTip(this.stream.GetString2LE(length));
         }
         // else if (c_oSer_HyperlinkType.History === type) {
         //     oNewHyperlink.History = this.stream.GetBool();
