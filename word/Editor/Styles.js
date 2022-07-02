@@ -8995,20 +8995,22 @@ CStyles.prototype =
 
 		// Копируем свойства из стиля нумерации
 		var oLogicDocument = this.private_GetLogicDocument();
-		if ((styletype_Paragraph === Type || styletype_Table === Type) && undefined != Style.ParaPr.NumPr && oLogicDocument)
+		if (oLogicDocument
+			&& Style.ParaPr.NumPr
+			&& (styletype_Paragraph === Type || styletype_Table === Type))
 		{
-			var oNumbering = oLogicDocument.GetNumbering();
-			if (0 !== Style.ParaPr.NumPr.NumId)
+			let oNumbering = oLogicDocument.GetNumbering();
+			let sNumId     = Style.ParaPr.NumPr.NumId;
+			if (0 !== sNumId && "0" !== sNumId)
 			{
-				var sNumId = Style.ParaPr.NumPr.NumId;
 				if (undefined === sNumId && Pr.ParaPr.NumPr)
 					sNumId = Pr.ParaPr.NumPr.NumId;
 
-				var oNum = oNumbering.GetNum(sNumId);
+				let oNum = oNumbering.GetNum(sNumId);
 				if (oNum)
 				{
 					var nLvl = oNum.GetLvlByStyle(StyleId);
-					if (-1 != nLvl)
+					if (-1 !== nLvl)
 						Pr.ParaPr.Merge(oNumbering.GetParaPr(sNumId, nLvl));
 					else if (undefined !== Style.ParaPr.NumPr.Lvl)
 						Pr.ParaPr.Merge(oNumbering.GetParaPr(sNumId, Style.ParaPr.NumPr.Lvl));
