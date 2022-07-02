@@ -2473,7 +2473,9 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 			oPrevElement = oPrevElement.GetPrevDocumentElement();
 		}
 
-		return (!oPrevElement || oPrevElement.GetAbsolutePage(oPrevElement.GetPagesCount() - 1) >= PageAbs);
+		return (!oPrevElement
+			|| oPrevElement.GetAbsolutePage(oPrevElement.GetPagesCount() - 1) >= PageAbs
+			|| oPrevElement.Get_SectionPr());
 	}
 
 	if (!this.Check_FirstPage(CurPage))
