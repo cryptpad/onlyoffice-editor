@@ -3502,12 +3502,12 @@
 		CParagraphContentWithParagraphLikeContent.prototype.fromXml.call(this, reader);
 	};
 	ParaField.prototype.toXml = function(writer, name) {
-		let instr = this.GetInstr();
+		let instr = this.GetInstructionLine();
 		if (!instr) {
 			return;
 		}
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeStringEncode("w:instr", this.GetInstr());
+		writer.WriteXmlNullableAttributeStringEncode("w:instr", instr);
 		// writer.WriteXmlNullableAttributeBool("w:fldLock", this.fldLock);
 		// writer.WriteXmlNullableAttributeBool("w:dirty", this.dirty);
 		writer.WriteXmlAttributesEnd();

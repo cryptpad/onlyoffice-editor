@@ -2221,11 +2221,6 @@ CDocument.prototype.UpdateDefaultsDependingOnCompatibility = function()
 };
 CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 {
-	let openedAt = this.Api.openedAt;
-	if (undefined === openedAt) {
-		return;
-	}
-
 	//let nTime = performance.now();
 
 	let arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
@@ -2236,6 +2231,24 @@ CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 		oContent.ProcessComplexFields();
 		oContent.GetAllFields(false, arrFields);
 	}
+
+	// Мы пока не умеем обрабытывать атоматически обновляющиеся FldSimple поля в колонтитулах, поэтому
+	// преобразуем их в состатовное поле
+	for (let nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+	{
+		let oField = arrFields[nFieldIndex];
+		if (oField instanceof ParaField
+			&& (fieldtype_PAGECOUNT === oField.GetFieldType() || fieldtype_PAGENUM === oField.GetFieldType()))
+		{
+			let oComplexField = oField.ReplaceWithComplexField();
+			if (oComplexField)
+				arrFields[nFieldIndex] = oComplexField;
+		}
+	}
+
+	let openedAt = this.Api.openedAt;
+	if (undefined === openedAt)
+		return;
 
 	this.ProcessComplexFields();
 	this.controller_GetAllFields(false, arrFields);
