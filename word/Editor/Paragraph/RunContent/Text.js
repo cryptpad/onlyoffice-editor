@@ -378,13 +378,6 @@
 	{
 		return this.IsDigit();
 	};
-	CRunText.prototype.Is_SpecialSymbol = function()
-	{
-		if (1 === g_aSpecialSymbols[this.Value])
-			return true;
-
-		return false;
-	};
 	CRunText.prototype.IsSpaceAfter = function()
 	{
 		return !!(this.Flags & FLAGS_SPACEAFTER);

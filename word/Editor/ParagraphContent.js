@@ -65,13 +65,6 @@ g_oSRCFPSC[para_FieldChar] = 1;
 g_oSRCFPSC[para_InstrText] = 1;
 g_oSRCFPSC[para_Bookmark]  = 1;
 
-
-var g_aSpecialSymbols     = [];
-g_aSpecialSymbols[0x00AE] = 1;
-
-
-
-
 /**
  * Класс представляющий символ(текст) нумерации параграфа
  * @constructor
