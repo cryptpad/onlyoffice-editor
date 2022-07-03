@@ -2326,3 +2326,28 @@ CDocumentContentBase.prototype.UpdateInterfaceTextPr = function()
 		oApi.UpdateTextPr(oTextPr);
 	}
 };
+/**
+ * Считаем количество элементов в рамке, начиная с заданного
+ * @param nStartIndex
+ * @returns {number}
+ */
+CDocumentContentBase.prototype.CountElementsInFrame = function(nStartIndex)
+{
+	let oFramePr = this.Content[nStartIndex].GetFramePr();
+	if (!oFramePr)
+		return 0;
+
+	let nFlowsCount = 1;
+	for (let nIndex = nStartIndex + 1, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		let oElement = this.Content[nIndex];
+
+		let oTempFramePr = oElement.GetFramePr();
+		if (oTempFramePr && oFramePr.IsEqual(oTempFramePr) && (!oElement.IsParagraph() || !oElement.IsInline()))
+			nFlowsCount++;
+		else
+			break;
+	}
+
+	return nFlowsCount;
+};

@@ -826,7 +826,8 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
 
         var RecalcResult = recalcresult_NextElement;
         var bFlow        = false;
-        if (type_Table === Element.GetType() && true != Element.Is_Inline())
+		let oFramePr;
+        if (Element.IsTable() && !Element.IsInline())
         {
             bFlow = true;
 
@@ -906,33 +907,15 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                 RecalcResult = recalcresult_NextElement;
             }
         }
-        else if (type_Paragraph === Element.GetType() && true != Element.Is_Inline())
+		else if (this.CanCalculateFrames() && (!Element.IsInline() || (!Element.IsParagraph() && (oFramePr = Element.GetFramePr()) && !oFramePr.IsInline())))
         {
-            // TODO: Пока обрабатываем рамки только внутри верхнего класса внутри колонтитулов. Разобраться как и
-            //       главное когда они работают внутри таблиц и автофигур.
-
             bFlow = true;
 
             if (true === oRecalcInfo.Can_RecalcObject())
             {
-                var FramePr = Element.Get_FramePr();
+                var FramePr = Element.GetFramePr();
 
-                // Рассчитаем количество подряд идущих параграфов с одинаковыми FramePr
-                var FlowCount = 1;
-                for (var TempIndex = Index + 1; TempIndex < Count; TempIndex++)
-                {
-                    var TempElement = this.Content[TempIndex];
-                    if (type_Paragraph === TempElement.GetType() && true != TempElement.Is_Inline())
-                    {
-                        var TempFramePr = TempElement.Get_FramePr();
-                        if (true === FramePr.Compare(TempFramePr))
-                            FlowCount++;
-                        else
-                            break;
-                    }
-                    else
-                        break;
-                }
+                var FlowCount = this.CountElementsInFrame(Index);
 
                 var LD_PageLimits = this.LogicDocument.Get_PageLimits(PageIndex + this.Get_StartPage_Absolute());
                 var LD_PageFields = this.LogicDocument.Get_PageFields(PageIndex + this.Get_StartPage_Absolute());
@@ -1210,7 +1193,11 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                 if (FrameY < 0)
                     FrameY = 0;
 
-                var FrameBounds = this.Content[Index].Get_FrameBounds(FrameX, FrameY, FrameW, FrameH);
+				var FrameBounds;
+				if (this.Content[Index].IsParagraph())
+					FrameBounds = this.Content[Index].Get_FrameBounds(FrameX, FrameY, FrameW, FrameH);
+				else
+					FrameBounds = this.Content[Index].GetFirstParagraph().Get_FrameBounds(FrameX, FrameY, FrameW, FrameH);
 
 				var FrameX2 = FrameBounds.X - nGapLeft,
 					FrameY2 = FrameBounds.Y,
@@ -1329,6 +1316,10 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
         this.Pages[PageIndex].EndPos = Count - 1;
 
     return Result;
+};
+CDocumentContent.prototype.CanCalculateFrames = function()
+{
+	return (this.Parent && this.Parent instanceof CHeaderFooter);
 };
 /**
  * Получаем верхний док контент, который используется для пересчета плавающих объектов и различных переносов.

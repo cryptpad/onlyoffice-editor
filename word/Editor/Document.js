@@ -4709,8 +4709,7 @@ CDocument.prototype.private_RecalculateFlowParagraph         = function(RecalcIn
     {
         var FramePr = Element.GetFramePr();
 
-        // Рассчитаем количество подряд идущих параграфов с одинаковыми FramePr
-        var FlowCount = this.private_RecalculateFlowParagraphCount(Index);
+        var FlowCount = this.CountElementsInFrame(Index);
 
         var Page_W = Page.Width;
         var Page_H = Page.Height;
@@ -5081,7 +5080,7 @@ CDocument.prototype.private_RecalculateFlowParagraph         = function(RecalcIn
     {
         // В случае колонок может так случится, что логическое место окажется в другой колонке, поэтому мы делаем
         // Reset для обновления логической позиции, но физическую позицию не меняем.
-        var FlowCount = this.private_RecalculateFlowParagraphCount(Index);
+        var FlowCount = this.CountElementsInFrame(Index);
         for (var TempIndex = Index; TempIndex < Index + FlowCount; ++TempIndex)
         {
             var TempElement = this.Content[TempIndex];
@@ -5093,24 +5092,6 @@ CDocument.prototype.private_RecalculateFlowParagraph         = function(RecalcIn
 
     RecalcInfo.Index        = Index;
     RecalcInfo.RecalcResult = RecalcResult;
-};
-CDocument.prototype.private_RecalculateFlowParagraphCount = function(nStartIndex)
-{
-	var oElement    = this.Content[nStartIndex];
-	var oFramePr    = oElement.GetFramePr();
-	var nFlowsCount = 1;
-	for (var nIndex = nStartIndex + 1, nCount = this.Content.length; nIndex < nCount; ++nIndex)
-	{
-		var oTempElement = this.Content[nIndex];
-
-		var oTempFramePr = oTempElement.GetFramePr();
-		if (oTempFramePr && oFramePr.IsEqual(oTempFramePr) && (!oTempElement.IsParagraph() || !oTempElement.IsInline()))
-			nFlowsCount++;
-		else
-			break;
-	}
-
-	return nFlowsCount;
 };
 CDocument.prototype.private_RecalculateHdrFtrPageCountUpdate = function()
 {
