@@ -86,7 +86,7 @@
 		this.Width        = 0;
 		this.WidthVisible = ((AscFonts.GetGraphemeWidth(this.Grapheme) * nFontSize) * AscWord.TEXTWIDTH_DIVIDER) | 0;
 	};
-	CRunParagraphMark.prototype.Get_Width = function()
+	CRunParagraphMark.prototype.GetWidth = function()
 	{
 		return 0;
 	};

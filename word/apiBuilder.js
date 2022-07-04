@@ -13174,7 +13174,7 @@
 	 */
 	ApiDrawing.prototype.GetWidth = function()
 	{
-		return private_MM2EMU(this.Drawing.Get_Width());
+		return private_MM2EMU(this.Drawing.GetWidth());
 	};
 	/**
 	 * Returns the height of the current drawing.

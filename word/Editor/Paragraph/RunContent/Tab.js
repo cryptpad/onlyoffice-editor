@@ -142,7 +142,7 @@ var tab_Symbol = 0x0022;//0x2192;
 	{
 		this.Leader = nLeaderType;
 	};
-	CRunTab.prototype.Get_Width = function()
+	CRunTab.prototype.GetWidth = function()
 	{
 		return this.Width;
 	};

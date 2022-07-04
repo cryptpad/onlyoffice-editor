@@ -325,7 +325,7 @@ ParaInstrText.prototype.GetValue = function()
 {
 	return String.fromCharCode(this.Value);
 };
-ParaInstrText.prototype.Set_CharCode = function(CharCode)
+ParaInstrText.prototype.SetCharCode = function(CharCode)
 {
 	this.Value = CharCode;
 };

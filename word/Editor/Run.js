@@ -3862,7 +3862,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     StartWord = true;
 
                     // При проверке, убирается ли слово, мы должны учитывать ширину предшествующих пробелов.
-                    var LetterLen = Item.Get_Width2() / AscWord.TEXTWIDTH_DIVIDER;//var LetterLen = Item.Get_Width();
+                    var LetterLen = Item.Get_Width2() / AscWord.TEXTWIDTH_DIVIDER;//var LetterLen = Item.GetWidth();
 
                     if (true !== Word)
                     {
@@ -4198,7 +4198,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                             WordLen = 0;
                         }
 
-                        var DrawingWidth = Item.Get_Width();
+                        var DrawingWidth = Item.GetWidth();
                         if (X + SpaceLen + DrawingWidth > XEnd && ( false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange) ))
                         {
                             // Автофигура не убирается, ставим перенос перед ней
@@ -4313,7 +4313,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     if (true === StartWord)
                         FirstItemOnLine = false;
 
-                    var PageNumWidth = Item.Get_Width();
+                    var PageNumWidth = Item.GetWidth();
                     if (X + SpaceLen + PageNumWidth > XEnd && ( false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange) ))
                     {
                         // Данный элемент не убирается, ставим перенос перед ним
@@ -4619,7 +4619,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							if (true === StartWord)
 								FirstItemOnLine = false;
 
-							var PageNumWidth = Item.Get_Width();
+							var PageNumWidth = Item.GetWidth();
 							if (X + SpaceLen + PageNumWidth > XEnd && ( false === FirstItemOnLine || false === Para.IsSingleRangeOnLine(ParaLine, ParaRange) ))
 							{
 								// Данный элемент не убирается, ставим перенос перед ним
@@ -4970,7 +4970,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             {
                 PRSC.Letters++;
 
-                PRSC.Range.W += Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER; // Get_Width рассчитываем ширину с учетом состояний Gaps
+                PRSC.Range.W += Item.GetWidth() / AscWord.TEXTWIDTH_DIVIDER; // GetWidth рассчитываем ширину с учетом состояний Gaps
                 break;
             }
             case para_Space:
@@ -5004,7 +5004,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
                 PRSC.SpaceLen    = 0;
 
                 if ( true === Item.Is_Inline() || true === PRSC.Paragraph.Parent.Is_DrawingShape() )
-                    PRSC.Range.W += Item.Get_Width();
+                    PRSC.Range.W += Item.GetWidth();
 
                 break;
             }
@@ -5023,13 +5023,13 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
                 PRSC.SpacesCount = 0;
                 PRSC.SpaceLen    = 0;
 
-                PRSC.Range.W += Item.Get_Width();
+                PRSC.Range.W += Item.GetWidth();
 
                 break;
             }
             case para_Tab:
             {
-                PRSC.Range.W += Item.Get_Width();
+                PRSC.Range.W += Item.GetWidth();
                 PRSC.Range.W += PRSC.SpaceLen;
 
 				// Учитываем только слова и пробелы, идущие после последнего таба
@@ -5092,7 +5092,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 					PRSC.SpacesCount = 0;
 					PRSC.SpaceLen    = 0;
 
-					PRSC.Range.W += Item.Get_Width();
+					PRSC.Range.W += Item.GetWidth();
 				}
 
 				break;
@@ -5180,7 +5180,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             case para_Math_BreakOperator:
             case para_Math_Ampersand:
             {
-                var WidthVisible = Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER; // Get_Width рассчитываем ширину с учетом состояний Gaps
+                var WidthVisible = Item.GetWidth() / AscWord.TEXTWIDTH_DIVIDER; // GetWidth рассчитываем ширину с учетом состояний Gaps
                 Item.WidthVisible = (WidthVisible * AscWord.TEXTWIDTH_DIVIDER)| 0;//Item.SetWidthVisible(WidthVisible);
 
                 PRSA.X    += WidthVisible;
@@ -5490,7 +5490,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 					Item.ClearSectionEnd();
 				}
 
-                PRSA.X += Item.Get_Width();
+                PRSA.X += Item.GetWidth();
 
                 break;
             }
@@ -5884,7 +5884,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
             case para_Math_Ampersand:
             case para_Math_Placeholder:
             {
-                var ItemWidth = Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER;
+                var ItemWidth = Item.GetWidth() / AscWord.TEXTWIDTH_DIVIDER;
                 if ( false === bWord )
                 {
                     bWord    = true;
@@ -5928,7 +5928,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                     nWordLen = 0;
                 }
 
-                nCurMaxWidth += Item.Get_Width() / AscWord.TEXTWIDTH_DIVIDER;
+                nCurMaxWidth += Item.GetWidth() / AscWord.TEXTWIDTH_DIVIDER;
                 bCheckTextHeight = true;
                 break;
             }
@@ -5991,7 +5991,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                 }
 
                 if ( Item.Width > nMinWidth )
-                    nMinWidth = Item.Get_Width();
+                    nMinWidth = Item.GetWidth();
 
                 if ( nSpaceLen > 0 )
                 {
@@ -5999,7 +5999,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                     nSpaceLen     = 0;
                 }
 
-                nCurMaxWidth += Item.Get_Width();
+                nCurMaxWidth += Item.GetWidth();
                 bCheckTextHeight = true;
                 break;
             }
@@ -6326,7 +6326,7 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
                 if ( null !== DrawColl )
                     aColl.Add( Y0, Y1, X, X + ItemWidthVisible, 0, DrawColl.r, DrawColl.g, DrawColl.b  );
 
-                X += Item.Get_Width();
+                X += Item.GetWidth();
                 break;
             }
             case para_NewLine:
@@ -6667,7 +6667,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 					Item.Draw(X, Y - this.YOffset, pGraphics);
 				}
 
-                X += Item.Get_Width();
+                X += Item.GetWidth();
 
                 break;
             }
@@ -7282,7 +7282,7 @@ ParaRun.prototype.SkipDraw = function(PDS)
 		var nItemType = oItem.Type;
 
 		if (para_End === nItemType)
-			X += oItem.Get_Width();
+			X += oItem.GetWidth();
 		else if (para_Drawing !== nItemType || oItem.Is_Inline())
 			X += oItem.GetWidthVisible();
 	}

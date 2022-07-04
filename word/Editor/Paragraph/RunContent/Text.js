@@ -94,7 +94,7 @@
 	CRunText.prototype.constructor = CRunText;
 
 	CRunText.prototype.Type = para_Text;
-	CRunText.prototype.Set_CharCode = function(CharCode)
+	CRunText.prototype.SetCharCode = function(CharCode)
 	{
 		this.Value = CharCode;
 		this.Set_SpaceAfter(this.private_IsSpaceAfter());
@@ -281,10 +281,6 @@
 		else
 			return (this.Width / AscWord.TEXTWIDTH_DIVIDER);
 	};
-	CRunText.prototype.Get_Width = function()
-	{
-		return this.GetWidth();
-	};
 	CRunText.prototype.GetWidth = function()
 	{
 		let nWidth = (this.Flags & FLAGS_TEMPORARY ?
@@ -422,7 +418,7 @@
 	};
 	CRunText.prototype.Read_FromBinary = function(Reader)
 	{
-		this.Set_CharCode(Reader.GetLong());
+		this.SetCharCode(Reader.GetLong());
 	};
 	CRunText.prototype.private_IsSpaceAfter = function()
 	{

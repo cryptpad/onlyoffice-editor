@@ -95,7 +95,7 @@ function CMathBaseText()
 }
 CMathBaseText.prototype = Object.create(AscWord.CRunElementBase.prototype);
 CMathBaseText.prototype.constructor = CMathBaseText;
-CMathBaseText.prototype.Get_Width = function() // работаем через функцию, т.к. поля  GapLeft и GapRight могут измениться из-за изменения переноса, а пересчет (Measure) в этом случае не прийдет
+CMathBaseText.prototype.GetWidth = function() // работаем через функцию, т.к. поля  GapLeft и GapRight могут измениться из-за изменения переноса, а пересчет (Measure) в этом случае не прийдет
 {
     var Width = this.size.width;
 

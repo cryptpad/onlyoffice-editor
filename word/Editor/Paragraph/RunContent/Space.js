@@ -70,10 +70,6 @@
 	{
 		return true;
 	};
-	CRunSpace.prototype.Get_Width = function()
-	{
-		return this.GetWidth();
-	};
 	CRunSpace.prototype.GetWidth = function()
 	{
 		let nWidth = (this.Width / AscWord.TEXTWIDTH_DIVIDER);

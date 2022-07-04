@@ -1458,23 +1458,23 @@ CMathBase.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRang
 
     if ( 0 !== PRSA.LettersSkip )
     {
-        WidthVisible = this.Bounds.Get_Width(CurLine, CurRange);
+        WidthVisible = this.Bounds.GetWidth(CurLine, CurRange);
         PRSA.LettersSkip--;
     }
     else
     {
-        WidthVisible = this.Bounds.Get_Width(CurLine, CurRange) + PRSA.JustifyWord;
+        WidthVisible = this.Bounds.GetWidth(CurLine, CurRange) + PRSA.JustifyWord;
     }
 
     PRSA.X    += WidthVisible;
     PRSA.LastW = WidthVisible;
 };
-CMathBase.prototype.Get_Width = function(_CurLine, _CurRange)
+CMathBase.prototype.GetWidth = function(_CurLine, _CurRange)
 {
     var CurLine  = _CurLine - this.StartLine,
         CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
 
-    return this.Bounds.Get_Width(CurLine, CurRange);
+    return this.Bounds.GetWidth(CurLine, CurRange);
 };
 CMathBase.prototype.SaveRecalculateObject = function(Copy)
 {
@@ -1856,7 +1856,7 @@ CMathBase.prototype.Selection_DrawRange = function(_CurLine, _CurRange, Selectio
     }
     else if(SelectionDraw.FindStart == true)
     {
-        SelectionDraw.StartX += this.Bounds.Get_Width(CurLine, CurRange);
+        SelectionDraw.StartX += this.Bounds.GetWidth(CurLine, CurRange);
     }
 
 };
@@ -3053,7 +3053,7 @@ CMathBounds.prototype.SetPage = function(Line, Range, Page)
     this.CheckLineBound(Line);
     this.Bounds[Line][Range].SetPage(Page);
 };
-CMathBounds.prototype.Get_Width = function(Line, Range)
+CMathBounds.prototype.GetWidth = function(Line, Range)
 {
     this.CheckLineBound(Line);
     return this.Bounds[Line][Range].W;

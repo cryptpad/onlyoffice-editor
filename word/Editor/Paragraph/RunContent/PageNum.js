@@ -91,7 +91,7 @@
 		this.Height       = 0;
 		this.WidthVisible = 0;
 	};
-	CRunPageNum.prototype.Get_Width = function()
+	CRunPageNum.prototype.GetWidth = function()
 	{
 		return this.Width;
 	};

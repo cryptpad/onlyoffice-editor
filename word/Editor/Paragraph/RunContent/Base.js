@@ -62,10 +62,6 @@
 	{
 		this.Width = 0x00000000 | 0;
 	};
-	CRunElementBase.prototype.Get_Width = function()
-	{
-		return (this.Width / TEXTWIDTH_DIVIDER);
-	};
 	CRunElementBase.prototype.GetWidth = function()
 	{
 		return (this.Width / TEXTWIDTH_DIVIDER);

@@ -161,7 +161,7 @@
 			}
 		}
 	};
-	CRunBreak.prototype.Get_Width = function()
+	CRunBreak.prototype.GetWidth = function()
 	{
 		return this.Width;
 	};

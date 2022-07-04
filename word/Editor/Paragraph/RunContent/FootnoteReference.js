@@ -94,7 +94,7 @@
 		if (editor && editor.ShowParaMarks && Context.DrawFootnoteRect && this.Run)
 		{
 			Context.p_color(0, 0, 0, 255);
-			Context.DrawFootnoteRect(X, PDSE.BaseLine - this.TextAscent, this.Get_Width(), this.TextAscent);
+			Context.DrawFootnoteRect(X, PDSE.BaseLine - this.TextAscent, this.GetWidth(), this.TextAscent);
 		}
 	};
 	CRunFootnoteReference.prototype.Measure = function(Context, TextPr, MathInfo, Run)

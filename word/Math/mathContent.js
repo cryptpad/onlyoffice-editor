@@ -4198,7 +4198,7 @@ CMathContent.prototype.Selection_DrawRange = function(_CurLine, _CurRange, Selec
         if(Item.Type == para_Math_Composition && bSelectAll)
         {
             SelectionDraw.FindStart = false;
-            SelectionDraw.W += Item.Get_Width(_CurLine, _CurRange);
+            SelectionDraw.W += Item.GetWidth(_CurLine, _CurRange);
         }
         else
         {
@@ -4935,12 +4935,12 @@ CMathContent.prototype.GetPos = function(_CurLine, _CurRange)
 
     return this.Bounds.GetPos(CurLine, CurRange);
 };
-CMathContent.prototype.Get_Width = function(_CurLine, _CurRange)
+CMathContent.prototype.GetWidth = function(_CurLine, _CurRange)
 {
     var CurLine  = _CurLine - this.StartLine,
         CurRange = ( 0 === CurLine ? _CurRange - this.StartRange : _CurRange );
 
-    return this.Bounds.Get_Width(CurLine, CurRange);
+    return this.Bounds.GetWidth(CurLine, CurRange);
 };
 CMathContent.prototype.GetAscent = function(_CurLine, _CurRange)
 {
