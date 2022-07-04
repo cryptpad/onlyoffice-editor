@@ -251,4 +251,4 @@ function accents(test) {
 		"Check \\frac{4}{5}''"
 	);
 }
-window["AscCommonWord"].accents = accents;
+window["AscMath"].accents = accents;

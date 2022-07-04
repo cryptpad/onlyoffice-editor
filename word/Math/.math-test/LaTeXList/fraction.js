@@ -199,4 +199,4 @@ function fraction(test) {
 	);
 }
 
-window["AscCommonWord"].fraction = fraction;
+window["AscMath"].fraction = fraction;

@@ -109,4 +109,4 @@ function sqrt(test) {
 		"Check \\sqrt[2^2] {\\frac{1}{2}+3}"
 	);
 }
-window["AscCommonWord"].sqrt = sqrt;
+window["AscMath"].sqrt = sqrt;

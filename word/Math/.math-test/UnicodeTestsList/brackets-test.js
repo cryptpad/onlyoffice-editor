@@ -705,4 +705,4 @@ function bracketsTests(test) {
 	)
 }
 
-window["AscCommonWord"].bracket = bracketsTests;
+window["AscMath"].bracket = bracketsTests;

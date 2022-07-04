@@ -732,4 +732,4 @@ function testsAboveBelow(test) {
 		"Check `(2+y^2)┬(exp_3+2+x/2)`"
 	);
 }
-window["AscCommonWord"].aboveBelow = testsAboveBelow;
+window["AscMath"].aboveBelow = testsAboveBelow;

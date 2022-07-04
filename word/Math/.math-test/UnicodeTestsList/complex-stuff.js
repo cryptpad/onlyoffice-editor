@@ -653,4 +653,4 @@ function complexTest(test) {
 		"Проверка простого литерала: 𝑎┴→"
 	);
 }
-window["AscCommonWord"].complex = complexTest;
+window["AscMath"].complex = complexTest;

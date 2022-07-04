@@ -3772,4 +3772,4 @@ function literalTests(test) {
 		"Check: \\\\swarrow"
 	)
 }
-window["AscCommonWord"].literal = literalTests;
+window["AscMath"].literal = literalTests;

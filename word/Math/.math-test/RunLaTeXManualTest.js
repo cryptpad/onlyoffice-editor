@@ -3,7 +3,7 @@ import "../NamesOfLiterals.js";
 import  "../LaTeXParser.js";
 import { createRequire } from "module";
 
-const parser = window.AscCommonWord.ConvertLaTeXToTokensList;
+const parser = window.AscMath.ConvertLaTeXToTokensList;
 const require = createRequire(import.meta.url);
 const fs = require("fs");
 const storeData = (data, path) => {

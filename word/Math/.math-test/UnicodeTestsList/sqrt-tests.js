@@ -613,4 +613,4 @@ function sqrtTests(test) {
 	// 	"Check \\root n+1\\of(b+c)+x"
 	// );
 }
-window["AscCommonWord"].sqrt = sqrtTests;
+window["AscMath"].sqrt = sqrtTests;

@@ -985,4 +985,4 @@ function style(test) {
 	);
 }
 
-window["AscCommonWord"].style = style;
+window["AscMath"].style = style;

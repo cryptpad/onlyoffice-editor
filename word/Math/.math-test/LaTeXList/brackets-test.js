@@ -224,4 +224,4 @@ function brackets (test) {
 		"Check |2|+\\{1\\}+|2|"
 	);
 }
-window["AscCommonWord"].brackets = brackets;
+window["AscMath"].brackets = brackets;

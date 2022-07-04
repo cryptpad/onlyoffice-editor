@@ -571,4 +571,4 @@ function degree(test) {
 	);
 }
 
-window["AscCommonWord"].degree = degree;
+window["AscMath"].degree = degree;

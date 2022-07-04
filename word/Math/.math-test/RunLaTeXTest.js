@@ -10,14 +10,14 @@ import "./LaTeXList/sqrt-tests.js";
 import "./LaTeXList/style-test.js";
 import { assert } from "chai";
 
-const parser = window.AscCommonWord.ConvertLaTeXToTokensList;
-const accent = window.AscCommonWord.accents;
-const fraction = window.AscCommonWord.fraction;
-const degree = window.AscCommonWord.degree;
-const brackets = window.AscCommonWord.brackets;
-const numericFunctions = window.AscCommonWord.numericFunctions;
-const sqrt = window.AscCommonWord.sqrt;
-const style = window.AscCommonWord.style;
+const parser = window.AscMath.ConvertLaTeXToTokensList;
+const accent = window.AscMath.accents;
+const fraction = window.AscMath.fraction;
+const degree = window.AscMath.degree;
+const brackets = window.AscMath.brackets;
+const numericFunctions = window.AscMath.numericFunctions;
+const sqrt = window.AscMath.sqrt;
+const style = window.AscMath.style;
 
 describe("Сhecking the health of fractions", function () {
 	fraction(test);

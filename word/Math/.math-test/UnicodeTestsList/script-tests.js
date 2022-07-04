@@ -832,4 +832,4 @@ function scriptTests(test) {
 		"Check script/index: '(_(453+2)^(345432+y+x/z))zyu'"
 	);
 }
-window["AscCommonWord"].script = scriptTests;
+window["AscMath"].script = scriptTests;

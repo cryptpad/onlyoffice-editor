@@ -45,15 +45,3 @@ jobs:
                       -v $PWD/deploy/sdkjs/cell:/opt/onlyoffice/documentbuilder/sdkjs/cell \
                       -v $PWD/deploy/sdkjs/slide:/opt/onlyoffice/documentbuilder/sdkjs/slide \
                       onlyofficeqa/doc-builder-testing:next-release rake rspec_critical
-  Unicode-LaTeX-tokenizer-test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js 12
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - run: npm ci
-      working-directory: ./word/Math/.math-test
-    - run: npm test
-      working-directory: ./word/Math/.math-test

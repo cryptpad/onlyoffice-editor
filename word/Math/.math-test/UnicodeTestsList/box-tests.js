@@ -279,5 +279,5 @@ function boxTests(test) {
 	);
 }
 
-window["AscCommonWord"].box = boxTests;
+window["AscMath"].box = boxTests;
 

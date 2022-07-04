@@ -204,4 +204,4 @@ function hbrackTests(test) {
 		"Проверка работы hBrack: ⏞(x+⋯+x)_2^2" // WORD воспринимает hBrack как обычный элемент!
 	);
 }
-window["AscCommonWord"].hbrack = hbrackTests;
+window["AscMath"].hbrack = hbrackTests;

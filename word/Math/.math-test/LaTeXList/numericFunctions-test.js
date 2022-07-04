@@ -874,4 +874,4 @@ function numeric(test) {
 		"Check: 0 \\leq \\lim_{n\\to \\infty}\\frac{n!}{(2n)!} \\leq \\lim_{n\\to \\infty} \\frac{n!}{(n!)^2} = \\lim_{k \\to \\infty, k = n!}\\frac{k}{k^2} = \\lim_{k \\to \\infty} \\frac{1}{k} = 0"
 	);
 }
-window["AscCommonWord"].numericFunctions = numeric;
+window["AscMath"].numericFunctions = numeric;

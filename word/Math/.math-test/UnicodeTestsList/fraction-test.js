@@ -481,4 +481,4 @@ function fractionTests(test) {
 		"Проверка работы деления: (1¦2)"
 	);
 }
-window["AscCommonWord"].fraction = fractionTests;
+window["AscMath"].fraction = fractionTests;

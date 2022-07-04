@@ -1007,4 +1007,4 @@ function specialTest(test) {
 		"Проверка `x₂₃₄₊₍₆₇₋₀₌₆₇₎⁴ⁱⁿ⁽⁵⁻⁶⁺⁷⁼⁸⁾⁹+45`"
 	);
 }
-window["AscCommonWord"].special = specialTest;
+window["AscMath"].special = specialTest;

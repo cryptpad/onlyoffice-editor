@@ -13,18 +13,18 @@ import "./UnicodeTestsList/script-tests.js";
 import "./UnicodeTestsList/special_scripts-tests.js";
 import { assert } from "chai";
 
-const parser = window.AscCommonWord.CUnicodeConverter;
+const parser = window.AscMath.CUnicodeConverter;
 
-const sqrt = window.AscCommonWord.sqrt;
-const box = window.AscCommonWord.box;
-const bracket = window.AscCommonWord.bracket;
-const fraction = window.AscCommonWord.fraction;
-const literal = window.AscCommonWord.literal;
-const aboveBelow = window.AscCommonWord.aboveBelow;
-const complex = window.AscCommonWord.complex;
-const hbrack = window.AscCommonWord.hbrack;
-const script = window.AscCommonWord.script;
-const special = window.AscCommonWord.special;
+const sqrt = window.AscMath.sqrt;
+const box = window.AscMath.box;
+const bracket = window.AscMath.bracket;
+const fraction = window.AscMath.fraction;
+const literal = window.AscMath.literal;
+const aboveBelow = window.AscMath.aboveBelow;
+const complex = window.AscMath.complex;
+const hbrack = window.AscMath.hbrack;
+const script = window.AscMath.script;
+const special = window.AscMath.special;
 
 // const CUnicodeConverter = eval(text)
 // const assert = require("chai").assert;

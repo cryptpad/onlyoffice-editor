@@ -2,7 +2,7 @@ import "./node.js";
 import "../NamesOfLiterals.js";
 import "../UnicodeParser.js";
 import { createRequire } from "module";
-const parser = window.AscCommonWord.CUnicodeConverter;
+const parser = window.AscMath.CUnicodeConverter;
 
 const require = createRequire(import.meta.url);
 const fs = require("fs");
