@@ -8912,6 +8912,9 @@
 				}
 			}
 		};
+		CVmlCommonElements.prototype.getShapeType = function () {
+			return null;
+		};
 		CVmlCommonElements.prototype.findItemByConstructor = function(fConstructor) {
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
@@ -9252,6 +9255,9 @@
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 			writer.WriteXmlNullableAttributeInt("startangle", this.m_oStartAngle);
 			writer.WriteXmlNullableAttributeInt("endangle", this.m_oEndAngle);
+		};
+		CArc.prototype.getShapeType = function () {
+			return ShapeType.sptCArc;
 		};
 
 		function CCurve() {
@@ -9606,6 +9612,9 @@
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 			writer.WriteXmlNullableAttributeString("o:targetscreensize", getScreenSize(this.m_oTargetScreenSize));
 		};
+		CBackground.prototype.getShapeType = function () {
+			return ShapeType.sptCRect;
+		};
 
 		function CFormulas() {
 			CBaseNoId.call(this);
@@ -9805,7 +9814,9 @@
 			if (false !== this.m_oBiLevel)
 				writer.WriteXmlNullableAttributeString("bilevel", "true");
 		};
-
+		CImage.prototype.getShapeType = function () {
+			return ShapeType.sptCFrame;
+		};
 
 		function CImageData() {
 			CBaseNoId.call(this);
@@ -9958,12 +9969,18 @@
 			this.m_oTo && writer.WriteXmlNullableAttributeString("to", this.m_oTo.ToString());
 
 		};
+		CLine.prototype.getShapeType = function () {
+			return ShapeType.sptCLine;
+		};
 
 		function COval() {
 			CVmlCommonElements.call(this);
 		}
 
 		IC(COval, CVmlCommonElements, AscDFH.historyitem_type_VMLOval);
+		COval.prototype.getShapeType = function () {
+			return ShapeType.sptCEllipse;
+		};
 
 		function CPath() {
 			CBaseNoId.call(this);
@@ -10063,11 +10080,12 @@
 			CVmlCommonElements.prototype.readAttrXml.call(this, name, reader);
 		};
 		CPolyLine.prototype.writeAttrXmlImpl = function (writer) {
-
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
-
 			this.m_oPoints && writer.WriteXmlNullableAttributeString("points", this.m_oPoints.ToString());
 
+		};
+		CPolyLine.prototype.getShapeType = function () {
+			return ShapeType.sptCustom;
 		};
 
 		function CRect() {
@@ -10075,6 +10093,9 @@
 		}
 
 		IC(CRect, CVmlCommonElements, AscDFH.historyitem_type_VMLRect);
+		CRect.prototype.getShapeType = function () {
+			return ShapeType.sptCRect;
+		};
 
 		function CRoundRect() {
 			CVmlCommonElements.call(this);
@@ -10095,6 +10116,9 @@
 			CVmlCommonElements.prototype.writeAttrXmlImpl.call(this, writer);
 
 			this.m_oArcSize && writer.WriteXmlNullableAttributeString("arcsize", this.m_oArcSize.ToString());
+		};
+		CRoundRect.prototype.getShapeType = function () {
+			return ShapeType.sptCRoundRect;
 		};
 
 		function CShadow() {
