@@ -5170,8 +5170,8 @@
 		};
 	}
 //settings
-	if(typeof CDocumentSettings !== "undefined") {
-		CDocumentSettings.prototype.fromXml = function(reader, doc) {
+	if(typeof AscWord.CDocumentSettings !== "undefined") {
+		AscWord.CDocumentSettings.prototype.fromXml = function(reader, doc) {
 			let name;
 			if (!reader.ReadNextNode()) {
 				return;
@@ -5257,7 +5257,7 @@
 				}
 			}
 		};
-		CDocumentSettings.prototype.toXml = function(writer) {
+		AscWord.CDocumentSettings.prototype.toXml = function(writer) {
 			let name = 'w:settings';
 			let doc = writer.context.document;
 
@@ -5286,7 +5286,7 @@
 			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.ListSeparator), "w:listSeparator");
 			writer.WriteXmlNodeEnd(name);
 		};
-		CDocumentSettings.prototype.fromXmlCompat = function(reader) {
+		AscWord.CDocumentSettings.prototype.fromXmlCompat = function(reader) {
 			let elem, depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				switch (reader.GetNameNoNS()) {
@@ -5321,7 +5321,7 @@
 				}
 			}
 		};
-		CDocumentSettings.prototype.toXmlCompat = function(writer, name) {
+		AscWord.CDocumentSettings.prototype.toXmlCompat = function(writer, name) {
 			let CompatibilityMode = false === writer.context.docSaveParams.isCompatible ? AscCommon.document_compatibility_mode_Word15 : this.CompatibilityMode;
 			writer.WriteXmlNodeStart(name);
 			writer.WriteXmlAttributesEnd();
