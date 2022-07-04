@@ -236,7 +236,7 @@
 	CRunSpace.prototype.ToMathElement = function()
 	{
 		let oSpace = new CMathText();
-		oSpace.add(0x0032);
+		oSpace.add(0x0020);
 		return oSpace;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
