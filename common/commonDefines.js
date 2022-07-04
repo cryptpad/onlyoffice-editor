@@ -921,8 +921,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 
 	var vertalign_Baseline    = 0;
-	var vertalign_SuperScript = 1;
-	var vertalign_SubScript   = 2;
+	var vertalign_SubScript   = 1;
+	var vertalign_SuperScript = 2;
+
 	var hdrftr_Header         = 0x01;
 	var hdrftr_Footer         = 0x02;
 
@@ -3366,9 +3367,30 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 
 	const CombFormWidthRule = {
-		Auto    : 0,
-		AtLeast : 1,
+		AtLeast : 0,
+		Auto    : 1,
 		Exact   : 2
+	};
+
+	const UnderlineType = {
+		Dash            : 0,
+		DashDotDotHeavy : 1,
+		DashDotHeavy    : 2,
+		DashedHeavy     : 3,
+		DashLong        : 4,
+		DashLongHeavy   : 5,
+		DotDash         : 6,
+		DotDotDash      : 7,
+		Dotted          : 8,
+		DottedHeavy     : 9,
+		Double          : 10,
+		None            : 11,
+		Single          : 12,
+		Thick           : 13,
+		Wave            : 14,
+		WavyDouble      : 15,
+		WavyHeavy       : 16,
+		Words           : 17
 	};
 
 	//------------------------------------------------------------export--------------------------------------------------
@@ -4185,7 +4207,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot["cellanchorOneCell"] = prot.cellanchorOneCell;
 	prot["cellanchorTwoCell"] = prot.cellanchorTwoCell;
 
-    window['AscCommon']                             = window['AscCommon'] || {};
+	prot = window['Asc'];
+	prot["vertalign_Baseline"]    = vertalign_Baseline;
+	prot["vertalign_SuperScript"] = vertalign_SuperScript;
+	prot["vertalign_SubScript"]   = vertalign_SubScript;
+
+	window['AscCommon']                             = window['AscCommon'] || {};
 	window["AscCommon"].g_cCharDelimiter            = g_cCharDelimiter;
 	window["AscCommon"].g_cGeneralFormat            = g_cGeneralFormat;
 	window["AscCommon"].bDate1904                   = false;
@@ -4686,5 +4713,25 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Auto']    = prot.Auto;
 	prot['AtLeast'] = prot.AtLeast;
 	prot['Exact']   = prot.Exact;
+
+	prot = window['Asc']['UnderlineType'] = window['Asc'].UnderlineType = UnderlineType;
+	prot['Dash']            = prot.Dash;
+	prot['DashDotDotHeavy'] = prot.DashDotDotHeavy;
+	prot['DashDotHeavy']    = prot.DashDotHeavy;
+	prot['DashedHeavy']     = prot.DashedHeavy;
+	prot['DashLong']        = prot.DashLong;
+	prot['DashLongHeavy']   = prot.DashLongHeavy;
+	prot['DotDash']         = prot.DotDash;
+	prot['DotDotDash']      = prot.DotDotDash;
+	prot['Dotted']          = prot.Dotted;
+	prot['DottedHeavy']     = prot.DottedHeavy;
+	prot['Double']          = prot.Double;
+	prot['None']            = prot.None;
+	prot['Single']          = prot.Single;
+	prot['Thick']           = prot.Thick;
+	prot['Wave']            = prot.Wave;
+	prot['WavyDouble']      = prot.WavyDouble;
+	prot['WavyHeavy']       = prot.WavyHeavy;
+	prot['Words']           = prot.Words;
 
 })(window);
