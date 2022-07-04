@@ -3762,7 +3762,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_setZoom = function(scale) {
-    this.wb.changeZoom(scale);
+	  this.wb && this.wb.changeZoom(scale);
   };
 
   spreadsheet_api.prototype.asc_enableKeyEvents = function(isEnabled, isFromInput) {
@@ -3861,6 +3861,9 @@ var editor;
 	};
 	spreadsheet_api.prototype.sync_removeTextAroundSearch = function (sId) {
 		this.sendEvent("asc_onRemoveTextAroundSearch", [sId]);
+	};
+	spreadsheet_api.prototype.sync_SearchEndCallback = function () {
+		this.sendEvent("asc_onSearchEnd");
 	};
 
 	spreadsheet_api.prototype.asc_StartTextAroundSearch = function()
@@ -5978,6 +5981,7 @@ var editor;
 		AscCommon.build_local_rx(oLocalizedData ? oLocalizedData["LocalFormulaOperands"] : null);
 		if (this.wb) {
 			this.wb.initFormulasList();
+			this.wb._onWSSelectionChanged()
 		}
 		if (this.wbModel) {
 			this.wbModel.rebuildColors();
@@ -7743,6 +7747,13 @@ var editor;
 		ws.handlers.trigger("selectionMathInfoChanged", ws.getSelectionMathInfo());
 	};
 
+
+	spreadsheet_api.prototype.asc_EditSelectAll = function() {
+		if (this.wb) {
+			this.wb.selectAll();
+		}
+	};
+
 	spreadsheet_api.prototype.asc_addCellWatches = function (sRange) {
 		var t = this;
 		if (this.wb && this.wb.model) {
@@ -8308,6 +8319,8 @@ var editor;
   prot["asc_getActiveNamedSheetView"] = prot.asc_getActiveNamedSheetView;
 
   prot["getPrintOptionsJson"] = prot.getPrintOptionsJson;
+
+  prot["asc_EditSelectAll"] = prot.asc_EditSelectAll;
 
   prot["asc_addCellWatches"]               = prot.asc_addCellWatches;
   prot["asc_deleteCellWatches"]            = prot.asc_deleteCellWatches;

@@ -4538,8 +4538,8 @@ CParagraphContentWithParagraphLikeContent.prototype.CanAddComment = function()
 };
 CParagraphContentWithParagraphLikeContent.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos)
 {
-	let nStartPos = oStartPos && oStartPos.GetDepth() <= nDepth ? oStartPos.Get(nDepth) : 0;
-	let nEndPos   = oEndPos && oEndPos.GetDepth() <= nDepth ? oEndPos.Get(nDepth) : this.Content.length - 1;
+	let nStartPos = oStartPos && oStartPos.GetDepth() >= nDepth ? oStartPos.Get(nDepth) : 0;
+	let nEndPos   = oEndPos && oEndPos.GetDepth() >= nDepth ? oEndPos.Get(nDepth) : this.Content.length - 1;
 
 	for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
 	{

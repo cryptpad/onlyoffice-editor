@@ -2987,7 +2987,7 @@ ParaMath.prototype.Draw_Elements = function(PDSE)
 
     this.Root.Draw_Elements(PDSE);
 
-    PDSE.X = X + this.Root.Get_Width(PDSE.Line, PDSE.Range);
+    PDSE.X = X + this.Root.GetWidth(PDSE.Line, PDSE.Range);
 
     /*PDSE.Graphics.p_color(255,0,0, 255);
      PDSE.Graphics.drawHorLine(0, PDSE.Y - this.Ascent + this.Height, PDSE.X - 30, PDSE.X + this.Width + 30 , 1);*/
@@ -3096,7 +3096,7 @@ ParaMath.prototype.Get_ParaContentPosByXY = function(SearchPos, Depth, _CurLine,
 	var CurX = SearchPos.CurX;
 
 	var MathX = SearchPos.CurX;
-	var MathW = this.Root.Get_Width(_CurLine, _CurRange);
+	var MathW = this.Root.GetWidth(_CurLine, _CurRange);
 
 	// Если мы попадаем четко в формулу, тогда ищем внутри нее, если нет, тогда не заходим внутрь
 	if ((SearchPos.X > MathX && SearchPos.X < MathX + MathW) || SearchPos.DiffX > 1000000 - 1)
