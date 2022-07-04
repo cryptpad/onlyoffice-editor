@@ -2316,8 +2316,8 @@
 	}
 
 	function Tokenizer() {
-		this._string = undefined;
-		this._cursor = undefined;
+		this._string = [];
+		this._cursor = 0;
 		this.state = [];
 	}
 
@@ -2325,27 +2325,19 @@
 		this._string = this.GetSymbols(string);
 		this._cursor = 0;
 	}
-	/**
-	 * Iterate through all characters in a string to account for surrogate pairs
-	 * https://mathiasbynens.be/notes/javascript-unicode
-	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt#fixing_charcodeat_to_handle_non-basic-multilingual-plane_characters_if_their_presence_earlier_in_the_string_is_known
-	 */
 	Tokenizer.prototype.GetSymbols = function (string) {
-		let index = 0;
 		let output = [];
-		for (; index < string.length; ++index) {
-			let charCode = string.charCodeAt(index);
-			if (charCode >= 0xd800 && charCode <= 0xdbff) {
-				charCode = string.charCodeAt(index + 1);
-				if (charCode >= 0xdc00 && charCode <= 0xdfff) {
-					output.push(string.slice(index, index + 2));
-					++index;
-					continue;
-				}
-			}
-			output.push(string.charAt(index));
+		for (let oIter = string.getUnicodeIterator(); oIter.check(); oIter.next()) {
+			output.push(String.fromCodePoint(oIter.value()));
 		}
 		return output;
+	}
+	Tokenizer.prototype.GetStringLength = function (string) {
+		let len = 0;
+		for (let oIter = string.getUnicodeIterator(); oIter.check(); oIter.next()) {
+			len++;
+		}
+		return len;
 	}
 	Tokenizer.prototype.IsHasMoreTokens = function () {
 		return this._cursor < this._string.length;
@@ -2438,7 +2430,7 @@
 		if (oMatched === null || oMatched === undefined) {
 			return null;
 		}
-		this._cursor += this.GetSymbols(oMatched).length;
+		this._cursor += this.GetStringLength(oMatched);
 		return oMatched;
 	}
 	Tokenizer.prototype.SaveState = function (oLookahead) {

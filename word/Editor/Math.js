@@ -3656,36 +3656,32 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 };
 ParaMath.prototype.ConvertFromLaTeX = function()
 {
-	// TODO: Функция конвертации всей текущей формулы LaTeX -> MathML
 	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
     this.Root.Correct_Content(true);
-    window["AscMath"].ConvertLaTeXToTokensList(strLaTeX, this.Root);
+    AscMath.ConvertLaTeXToTokensList(strLaTeX, this.Root);
 	this.Root.Correct_Content(true);
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
-	// TODO: Функция конвертации всей текущей формулы MathML -> LaTeX
 	var strLatex = this.GetText(true);
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	console.log('LaTeX string:', strLatex);
+	//console.log('LaTeX string:', strLatex);
 	this.Root.Add_Text(strLatex, this.Paragraph);
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
-	// TODO: Функция конвертации UnicodeMath -> MathML
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
     this.Root.Correct_Content(true);
-    window["AscMath"].CUnicodeConverter(strUnicode, this.Root);
+	AscMath.CUnicodeConverter(strUnicode, this.Root);
 	this.Root.Correct_Content(true);
 };
 ParaMath.prototype.ConvertToUnicodeMath = function()
 {
-	// TODO: Функция конвертации MathML -> UnicodeMath
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	console.log('Unicode string:', strUnicode);
+	//console.log('Unicode string:', strUnicode);
 	this.Root.Add_Text(strUnicode, this.Paragraph);
 };
 ParaMath.prototype.ConvertView = function(isToLinear)

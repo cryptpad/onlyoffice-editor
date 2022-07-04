@@ -26592,6 +26592,7 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 		}
 		this.Recalculate();
 		this.UpdateInterface();
+		this.UpdateTracks();
 		this.FinalizeAction();
 	}
 };
