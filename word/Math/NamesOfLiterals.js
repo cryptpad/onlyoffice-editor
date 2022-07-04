@@ -2479,15 +2479,15 @@
 	}
 
 	//--------------------------------------------------------export----------------------------------------------------
-	window["AscCommonWord"] = window["AscCommonWord"] || {};
-	window["AscCommonWord"].oNamesOfLiterals = oNamesOfLiterals;
-	window["AscCommonWord"].GetUnicodeAutoCorrectionToken = GetUnicodeAutoCorrectionToken;
-	window["AscCommonWord"].ConvertTokens = ConvertTokens;
-	window["AscCommonWord"].Tokenizer = Tokenizer;
-	window["AscCommonWord"].UnicodeSpecialScript = UnicodeSpecialScript;
-	window["AscCommonWord"].LimitFunctions = limitFunctions;
-	window["AscCommonWord"].functionNames = functionNames;
-	window["AscCommonWord"].GetTypeFont = GetTypeFont;
-	window["AscCommonWord"].GetMathFontChar = GetMathFontChar;
+	window["AscMath"] = window["AscMath"] || {};
+	window["AscMath"].oNamesOfLiterals = oNamesOfLiterals;
+	window["AscMath"].GetUnicodeAutoCorrectionToken = GetUnicodeAutoCorrectionToken;
+	window["AscMath"].ConvertTokens = ConvertTokens;
+	window["AscMath"].Tokenizer = Tokenizer;
+	window["AscMath"].UnicodeSpecialScript = UnicodeSpecialScript;
+	window["AscMath"].LimitFunctions = limitFunctions;
+	window["AscMath"].functionNames = functionNames;
+	window["AscMath"].GetTypeFont = GetTypeFont;
+	window["AscMath"].GetMathFontChar = GetMathFontChar;
 
 })(window);

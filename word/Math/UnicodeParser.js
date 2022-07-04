@@ -35,12 +35,12 @@
 (function (window) {
 	const num = 1; //needs for debug, default value: 0
 
-	const oLiteralNames = window.AscCommonWord.oNamesOfLiterals;
-	const UnicodeSpecialScript = window.AscCommonWord.UnicodeSpecialScript;
-	const ConvertTokens = window.AscCommonWord.ConvertTokens;
-	const Tokenizer = window.AscCommonWord.Tokenizer;
-	const FunctionNames = window.AscCommonWord.functionNames;
-	const LimitNames = window.AscCommonWord.LimitFunctions;
+	const oLiteralNames = window.AscMath.oNamesOfLiterals;
+	const UnicodeSpecialScript = window.AscMath.UnicodeSpecialScript;
+	const ConvertTokens = window.AscMath.ConvertTokens;
+	const Tokenizer = window.AscMath.Tokenizer;
+	const FunctionNames = window.AscMath.functionNames;
+	const LimitNames = window.AscMath.LimitFunctions;
 
 	function CUnicodeParser() {
 		this.oTokenizer = new Tokenizer(false);
@@ -1542,6 +1542,6 @@
 	}
 
 	//--------------------------------------------------------export----------------------------------------------------
-	window["AscCommonWord"] = window["AscCommonWord"] || {};
-	window["AscCommonWord"].CUnicodeConverter = CUnicodeConverter;
+	window["AscMath"] = window["AscMath"] || {};
+	window["AscMath"].CUnicodeConverter = CUnicodeConverter;
 })(window);

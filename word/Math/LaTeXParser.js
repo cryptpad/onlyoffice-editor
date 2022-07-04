@@ -34,13 +34,13 @@
 (function (window) {
 	const num = 1;//needs for debug, default value: 0
 
-	const oLiteralNames = window.AscCommonWord.oNamesOfLiterals;
-	const ConvertTokens = window.AscCommonWord.ConvertTokens;
-	const Tokenizer = window.AscCommonWord.Tokenizer;
-	const LimitFunctions = window.AscCommonWord.LimitFunctions;
-	const FunctionNames = window.AscCommonWord.functionNames;
-	const GetTypeFont = window.AscCommonWord.GetTypeFont;
-	const GetMathFontChar = window.AscCommonWord.GetMathFontChar;
+	const oLiteralNames = window.AscMath.oNamesOfLiterals;
+	const ConvertTokens = window.AscMath.ConvertTokens;
+	const Tokenizer = window.AscMath.Tokenizer;
+	const LimitFunctions = window.AscMath.LimitFunctions;
+	const FunctionNames = window.AscMath.functionNames;
+	const GetTypeFont = window.AscMath.GetTypeFont;
+	const GetMathFontChar = window.AscMath.GetMathFontChar;
 
 	function CLaTeXParser() {
 		this.oTokenizer = new Tokenizer(true);
@@ -846,6 +846,6 @@
 	}
 
 	//---------------------------------------export----------------------------------------------------
-	window["AscCommonWord"] = window["AscCommonWord"] || {};
-	window["AscCommonWord"].ConvertLaTeXToTokensList = ConvertLaTeXToTokensList;
+	window["AscMath"] = window["AscMath"] || {};
+	window["AscMath"].ConvertLaTeXToTokensList = ConvertLaTeXToTokensList;
 })(window);

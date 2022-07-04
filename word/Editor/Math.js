@@ -3660,7 +3660,7 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
     this.Root.Correct_Content(true);
-    window["AscCommonWord"].ConvertLaTeXToTokensList(strLaTeX, this.Root);
+    window["AscMath"].ConvertLaTeXToTokensList(strLaTeX, this.Root);
 	this.Root.Correct_Content(true);
 };
 ParaMath.prototype.ConvertToLaTeX = function()
@@ -3677,7 +3677,7 @@ ParaMath.prototype.ConvertFromUnicodeMath = function()
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
     this.Root.Correct_Content(true);
-    window["AscCommonWord"].CUnicodeConverter(strUnicode, this.Root);
+    window["AscMath"].CUnicodeConverter(strUnicode, this.Root);
 	this.Root.Correct_Content(true);
 };
 ParaMath.prototype.ConvertToUnicodeMath = function()
