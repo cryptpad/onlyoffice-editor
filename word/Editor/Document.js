@@ -26541,52 +26541,61 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 	{
 		this.StartAction(AscDFH.historydescription_Document_ConvertMathView);
 
+		var oLogicDocument = this.GetLogicDocument()
+		var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+
 		if (isAll || !this.IsTextSelectionUse())
 		{
 			this.RemoveTextSelection();
-			oMath.ConvertView(isToLinear);
+			oMath.ConvertView(isToLinear, nInputType);
 		}
 		else
 		{
-			//получаем только выделенный контент как новый объект
+			//получаем выделенный контент как новый объект
 			var oTempSelectedObject = oMath.Copy(true);
-			
-			//получаем выделенный Content
-			var Selection = oMath.GetSelectContent(false);
-			var Content = Selection.Content;
-			var Start = Selection.Start;
-			var End = Selection.End;
+			//получаем ссылку на выделенный Content
+			var oSelection = oMath.GetSelectContent(false);
+			var oContent = oSelection.Content;
+			var intStart = oSelection.Start;
+			var intEnd = oSelection.End;
+			var oSplitContent;
 
-			var SplitContent;
+			//если intStart === intEnd значит элемент был выделен полностью
+			if (intStart === intEnd) {
+				var oTempContent = oContent.getElem(intStart);
+				var intTempEnd =  oTempContent.Selection.EndPos;
+				var intTempStart = oTempContent.Selection.StartPos;
 
-			//если Start === End значит элемент был выделен полностью 
-			//нужно проверить так это или нет, внутри
-			
-			if (Start === End) {
-				var tempContent = Content.getElem(Start);
-				var tempStart = tempContent.Selection.StartPos;
-				tempContent.Remove(1, false);
+				if (intTempEnd < intTempStart) {
+					var intTemp = intTempStart;
+					intTempStart = intTempEnd;
+					intTempEnd = intTemp;
+				}
 
-				if (End - Start < tempContent.Content.length) {
-					if (tempContent.Type === 49) {
-						SplitContent = tempContent.Split_Run(tempStart);
+				oTempContent.RemoveFromContent(intTempStart, intTempEnd - intTempStart, false)
+
+				if (intEnd - intStart < oTempContent.Content.length) {
+					if (oTempContent.Type === 49) {
+						oSplitContent = oTempContent.Split_Run(intTempStart);
 					}
 				}
-			} else {
+			}
+			else {
 				oMath.Remove(1, false);
 			}
 
-			//console.log('Что осталость в oMath: ', oMath.GetText());
-			oTempSelectedObject.ConvertView(isToLinear);
-			//console.log('Что конвертнулось: ', oTempSelectedObject.GetText());
-
-			Start++;
-			for (var i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
-				Content.Add_ToContent(Start, oTempSelectedObject.Root.Content[i]);
-				Start++;
+			if (!(intStart === 0 && intEnd !== intStart)) {
+				intStart++;
 			}
-			if (SplitContent) {
-				Content.Add_ToContent(Start, SplitContent);
+
+			oTempSelectedObject.ConvertView(isToLinear, nInputType);
+			
+			for (var i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
+				oContent.Add_ToContent(intStart, oTempSelectedObject.Root.Content[i]);
+				intStart++;
+			}
+			if (oSplitContent && oSplitContent.Content.length > 0) {
+				oContent.Add_ToContent(intStart, oSplitContent);
 			}
 			oMath.Root.Correct_Content(true);
 		}

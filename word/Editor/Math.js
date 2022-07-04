@@ -3684,11 +3684,12 @@ ParaMath.prototype.ConvertToUnicodeMath = function()
 	//console.log('Unicode string:', strUnicode);
 	this.Root.Add_Text(strUnicode, this.Paragraph);
 };
-ParaMath.prototype.ConvertView = function(isToLinear)
+ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 {
-	var oLogicDocument = this.GetLogicDocument()
-
-	var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+	if (undefined === nInputType) {
+		var oLogicDocument = this.GetLogicDocument()
+		nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+	}
 
 	if (isToLinear)
 	{
@@ -3703,8 +3704,8 @@ ParaMath.prototype.ConvertView = function(isToLinear)
 			this.ConvertFromUnicodeMath();
 		}
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType) {
-            this.ConvertFromLaTeX();
-        }
+			this.ConvertFromLaTeX();
+		}
 	}
 };
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
