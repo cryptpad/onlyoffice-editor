@@ -11297,11 +11297,11 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		else if ( c_oSerParType.OMath == type )
 		{	
 			var oMath = new ParaMath();
+			paragraphContent.AddToContentToEnd(oMath);
 			res = this.bcr.Read1(length, function(t, l){
                 return oThis.boMathr.ReadMathArg(t,l,oMath.Root, paragraphContent);
 			});
             oMath.Root.Correct_Content(true);
-			paragraphContent.AddToContentToEnd(oMath);
 		}
 		else if ( c_oSerParType.MRun == type )
 		{
@@ -14986,12 +14986,12 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 		if (c_oSer_OMathContentType.OMath === type)
         {
 			var oMath = new ParaMath();
+			paragraphContent.AddToContentToEnd(oMath);
             oMath.Set_Align(props.mJc === JC_CENTER ? align_Center : props.mJc === JC_CENTERGROUP ? align_Justify : (props.mJc === JC_LEFT ? align_Left : (props.mJc === JC_RIGHT ? align_Right : props.mJc)));
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathArg(t,l,oMath.Root, paragraphContent);
             });
             oMath.Root.Correct_Content(true);
-			paragraphContent.AddToContentToEnd(oMath);
         }
 		else if (c_oSer_OMathContentType.OMathParaPr === type)
 		{

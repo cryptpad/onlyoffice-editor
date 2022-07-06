@@ -1642,15 +1642,12 @@
 				break;
 			case "oMath":
 				elem = new ParaMath();
+				this.AddToContentToEnd(elem);
 				elem.fromXml(reader);
-				this.AddToContent(this.GetElementsCount(), elem);
 				break;
 			case "oMathPara":
 				elem = new AscCommon.CT_OMathPara();
-				elem.fromXml(reader);
-				if (elem.OMath) {
-					this.AddToContent(this.GetElementsCount(), elem.OMath);
-				}
+				elem.fromXml(reader, this);
 				break;
 			// case "permEnd":
 			// 	break;
@@ -1786,8 +1783,8 @@
 				case para_Math:
 					if (t.CheckMathPara(index)) {
 						let mathPara = new AscCommon.CT_OMathPara();
-						mathPara.setMath(item);
-						mathPara.toXml(writer, "m:oMathPara");
+						mathPara.initMathParaPr(item);
+						mathPara.toXml(writer, "m:oMathPara", item);
 					} else {
 						item.toXml(writer, "m:oMath");
 					}
@@ -2655,10 +2652,11 @@
 		let oVMLConverter = new AscFormat.CVMLToDrawingMLConverter();
 		return oVMLConverter.createParaDrawingMLFromVMLNode(reader, name, this.Paragraph);
 	};
-	ParaRun.prototype.fromXml = function(reader) {
+	ParaRun.prototype.fromXml = function(reader, opt_paragraphContent) {
 		let oReadResult = reader.context.oReadResult;
 		let footnotes = oReadResult.footnotes;
 		let endnotes = oReadResult.endnotes;
+		let isMathRun = this.IsMathRun();
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
@@ -2822,7 +2820,13 @@
 				}
 			}
 			if (newItem) {
-				this.Add_ToContent(this.GetElementsCount(), newItem, false);
+				if (!isMathRun) {
+					this.Add_ToContent(this.GetElementsCount(), newItem, false);
+				} else if (opt_paragraphContent) {
+					let oNewRun = new ParaRun(opt_paragraphContent.GetParagraph());
+					oNewRun.Add_ToContent(0, newItem, false);
+					opt_paragraphContent.AddToContentToEnd(oNewRun);
+				}
 			}
 		}
 	};
@@ -4834,7 +4838,7 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(AbstractNumId, "w:abstractNumId");
 		for (var i = 0; i < this.LvlOverride.length; ++i) {
-			if (this.LvlOverride[nLvl]) {
+			if (this.LvlOverride[i]) {
 				this.LvlOverride[i].toXml(writer, "w:lvlOverride", i);
 			}
 		}

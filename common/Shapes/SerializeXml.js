@@ -603,8 +603,8 @@
 		writer.WriteXmlAttributesEnd();
 		if (paragraph.CheckMathPara(index)) {
 			let mathPara = new AscCommon.CT_OMathPara();
-			mathPara.setMath(this);
-			mathPara.toXml(writer, "m:oMathPara");
+			mathPara.initMathParaPr(this);
+			mathPara.toXml(writer, "m:oMathPara", this);
 		} else {
 			this.toXml(writer, "m:oMath");
 		}
