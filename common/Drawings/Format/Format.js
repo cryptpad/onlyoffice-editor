@@ -3185,6 +3185,21 @@
 		InitClass(CBaseFill, CBaseNoIdObject, 0);
 		CBaseFill.prototype.type = c_oAscFill.FILL_TYPE_NONE;
 
+
+		function fReadXmlRasterImageId(reader, rId, blipFill) {
+			var rel = reader.rels.getRelationship(rId);
+			if (rel) {
+				var context = reader.context;
+				if ("Internal" === rel.targetMode) {
+					var blipFills = context.imageMap[rel.targetFullName.substring(1)];
+					if (!blipFills) {
+						context.imageMap[rel.targetFullName.substring(1)] = blipFills = [];
+					}
+					blipFills.push(blipFill);
+				}
+			}
+		}
+
 		function CBlip(oBlipFill) {
 			CBaseNoIdObject.call(this);
 			this.blipFill = oBlipFill;
@@ -3196,17 +3211,7 @@
 			switch (name) {
 				case "embed" : {
 					var rId = reader.GetValue();
-					var rel = reader.rels.getRelationship(rId);
-					if (rel) {
-						var context = reader.context;
-						if ("Internal" === rel.targetMode) {
-							var blipFills = context.imageMap[rel.targetFullName.substring(1)];
-							if (!blipFills) {
-								context.imageMap[rel.targetFullName.substring(1)] = blipFills = [];
-							}
-							blipFills.push(this.blipFill);
-						}
-					}
+					fReadXmlRasterImageId(reader, rId, this.blipFill);
 					break;
 				}
 			}
@@ -6805,6 +6810,11 @@
 			// oMod.name = "alpha";
 			// oMod.val = nPctValue;
 			// this.addColorMod(oMod);
+		};
+		CUniFill.prototype.isBlipFill = function() {
+			if(this.fill && this.fill.type === c_oAscFill.FILL_TYPE_BLIP) {
+				return true;
+			}
 		};
 
 		function CBuBlip() {
@@ -20166,5 +20176,6 @@
 		window['AscFormat'].getPercentageValueForWrite = getPercentageValueForWrite;
 		window['AscFormat'].CSpTree = CSpTree;
 		window['AscFormat'].CClrMapOvr = CClrMapOvr;
+		window['AscFormat'].fReadXmlRasterImageId = fReadXmlRasterImageId;
 	})
 (window);

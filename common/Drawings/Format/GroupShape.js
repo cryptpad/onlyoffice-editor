@@ -233,7 +233,9 @@ function CGroupShape()
             pr.setParent(this);
         }
     };
-
+    CGroupShape.prototype.getSpCount = function() {
+        return this.spTree.length;
+    };
     CGroupShape.prototype.addToSpTree = function(pos, item)
     {
         if(!AscFormat.isRealNumber(pos))
