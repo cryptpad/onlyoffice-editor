@@ -7254,7 +7254,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 	if (true === this.Pr.HavePrChange() && para_Math_Run !== this.Type)
     {
         var ReviewColor = this.GetPrReviewColor();
-        PDSL.RunReview.Add(0, 0, PDSL.X, X, 0, ReviewColor.r, ReviewColor.g, ReviewColor.b, {RunPr: this.Pr});
+        PDSL.RunReview.Add(0, 0, PDSL.X, X, 0, ReviewColor.r, ReviewColor.g, ReviewColor.b, {RunPr: this.Get_CompiledPr(false)});
     }
 
     var CollPrChangeColor = this.private_GetCollPrChangeOther();
