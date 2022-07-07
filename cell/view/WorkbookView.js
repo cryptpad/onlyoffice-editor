@@ -4592,6 +4592,8 @@
 			return this.SearchEngine;
 		}
 
+		this.SearchEngine._lastNotEmpty = this.SearchEngine.isNotEmpty();
+
 		this.SearchEngine.Clear();
 		this.SearchEngine.Set(oProps);
 
@@ -4683,6 +4685,7 @@
 		this.isReplacingText = null;
 
 		this.changedSelection = null;
+		this._lastNotEmpty = null;
 	}
 
 	CDocumentSearchExcel.prototype.Reset = function () {
