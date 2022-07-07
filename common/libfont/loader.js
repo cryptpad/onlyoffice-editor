@@ -58,22 +58,27 @@
 		return { data : window['AscFonts'].allocate(size) };
 	};
 
+	function private_endLoadModule()
+	{
+		onLoadFontsModule(window, undefined);
+
+		window['AscFonts'].isEngineReady = true;
+		window['AscFonts'].onSuccess && window['AscFonts'].onSuccess.call(window['AscFonts'].api);
+
+		delete window['AscFonts'].curLoadingIndex;
+		delete window['AscFonts'].maxLoadingIndex;
+		delete window['AscFonts'].api;
+		delete window['AscFonts'].onSuccess;
+		delete window['AscFonts'].onError;
+	}
+
 	window['AscFonts']['onLoadModule'] = function()
 	{
 		++window['AscFonts'].curLoadingIndex;
 
 		if (window['AscFonts'].curLoadingIndex === window['AscFonts'].maxLoadingIndex)
 		{
-			onLoadFontsModule(window, undefined);
-
-			window['AscFonts'].isEngineReady = true;
-			window['AscFonts'].onSuccess && window['AscFonts'].onSuccess.call(window['AscFonts'].api);
-
-			delete window['AscFonts'].curLoadingIndex;
-			delete window['AscFonts'].maxLoadingIndex;
-			delete window['AscFonts'].api;
-			delete window['AscFonts'].onSuccess;
-			delete window['AscFonts'].onError;
+			private_endLoadModule();
 		}
 	};
 
@@ -84,7 +89,10 @@
 		window['AscFonts'].onError = onError;
 
 		if (window["NATIVE_EDITOR_ENJINE"] === true || window["IS_NATIVE_EDITOR"] === true || window["Native"] !== undefined)
+		{
+			private_endLoadModule();
 			return;
+		}
 
 		var url = "../../../../sdkjs/common/libfont/engine/";
 		var useWasm = false;
