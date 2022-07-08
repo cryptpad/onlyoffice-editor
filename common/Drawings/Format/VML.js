@@ -8959,6 +8959,9 @@
 		CVmlCommonElements.prototype.getTextbox = function() {
 			return this.findItemByConstructor(CTextbox);
 		};
+		CVmlCommonElements.prototype.getTextPath = function() {
+			return this.findItemByConstructor(CTextPath);
+		};
 		CVmlCommonElements.prototype.getLeftBorder = function() {
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
@@ -8988,6 +8991,7 @@
 					return oFill;
 				}
 			}
+
 			if(this.m_oFillColor) {
 				oFill = this.m_oFillColor.getOOXMLFill(oContext);
 				this.correctFillOpacity(oFill);
@@ -8998,7 +9002,6 @@
 				return oFillVML.getOOXMLFill(oContext);
 			}
 			return AscFormat.CreateSolidFillRGB(0xFF, 0xFF, 0xFF);
-			return oFill;
 		};
 		CVmlCommonElements.prototype.getOOXMLStroke = function() {
 			let oStroke = null;
@@ -9210,9 +9213,11 @@
 
 
 			let oOOXMLDrawing;
-			let oSignatureLine = this.getSignatureLine()
+			let oSignatureLine = this.getSignatureLine();
+			let bIsPicture = false;
 			if(nType === ShapeType.sptCFrame && !oSignatureLine) {
 				oOOXMLDrawing = new AscFormat.CImageShape();
+				bIsPicture = true;
 				if(oSpPr.Fill && oSpPr.Fill.isBlipFill()) {
 					oOOXMLDrawing.setBlipFill(oSpPr.Fill.fill);
 					oSpPr.setFill(null);
@@ -9230,28 +9235,160 @@
 			let oNvPr = new AscFormat.UniNvPr();
 			oOOXMLDrawing.setNvSpPr(oNvPr);
 			oOOXMLDrawing.setSpPr(oSpPr);
-			let oTextbox = this.getTextbox();
-			if(oTextbox) {
-				if(oTextbox.m_oTxtbxContent) {
-					var body_pr = new AscFormat.CBodyPr();
-					body_pr.setAnchor(1);
-					oOOXMLDrawing.setBodyPr(body_pr);
-					oOOXMLDrawing.setTextBoxContent(oTextbox.m_oTxtbxContent.Copy(oOOXMLDrawing));
+			if(!bIsPicture) {
+				let bIsWordArt = this.isWordArt(oContext.aOtherElements);
+				let oDocContent = null;
+				let oCSSStyle = null;
+				let sFontName = "Arial";
+				let bBold = false;
+				let bItalic = false;
+				let nFontSize = 11;
+				let sText = "";
+				let oTextFill, oTextStroke;
+				if(bIsWordArt) {
+					let eTextShapeType;
+					var oBodyPr = new AscFormat.CBodyPr();
+					let oTextPath = this.getTextPath();
+					switch (nType)
+					{
+						case ShapeType.sptCTextPlain:					eTextShapeType = "textPlain"; break;
+						case ShapeType.sptCTextArchUp:					eTextShapeType = "textArchUp"; break;
+						case ShapeType.sptCTextArchDown:				eTextShapeType = "textArchDown"; break;
+						case ShapeType.sptCTextButton:					eTextShapeType = "textButton"; break;
+						case ShapeType.sptCTextCurveUp:					eTextShapeType = "textCurveUp"; break;
+						case ShapeType.sptCTextCurveDown:				eTextShapeType = "textCurveDown"; break;
+						case ShapeType.sptCTextCanUp:					eTextShapeType = "textCanUp"; break;
+						case ShapeType.sptCTextCanDown:					eTextShapeType = "textCanDown"; break;
+						case ShapeType.sptCTextWave1:					eTextShapeType = "textWave1"; break;
+						case ShapeType.sptCTextWave2:					eTextShapeType = "textWave2"; break;
+						case ShapeType.sptCTextWave3:					eTextShapeType = "textDoubleWave1"; break;
+						case ShapeType.sptCTextWave4:					eTextShapeType = "textWave4"; break;
+						case ShapeType.sptCTextInflate:					eTextShapeType = "textInflate"; break;
+						case ShapeType.sptCTextDeflate:					eTextShapeType = "textDeflate"; break;
+						case ShapeType.sptCTextInflateBottom:			eTextShapeType = "textInflateBottom"; break;
+						case ShapeType.sptCTextDeflateBottom:			eTextShapeType = "textDeflateBottom"; break;
+						case ShapeType.sptCTextInflateTop:				eTextShapeType = "textInflateTop"; break;
+						case ShapeType.sptCTextDeflateTop:				eTextShapeType = "textDeflateTop"; break;
+						case ShapeType.sptCTextDeflateInflate:			eTextShapeType = "textDeflateInflate"; break;
+						case ShapeType.sptCTextDeflateInflateDeflate:	eTextShapeType = "textDeflateInflateDeflate"; break;
+						case ShapeType.sptCTextFadeRight:				eTextShapeType = "textFadeRight"; break;
+						case ShapeType.sptCTextFadeLeft:				eTextShapeType = "textFadeLeft"; break;
+						case ShapeType.sptCTextFadeUp:					eTextShapeType = "textFadeUp"; break;
+						case ShapeType.sptCTextFadeDown:				eTextShapeType = "textFadeDown"; break;
+						case ShapeType.sptCTextSlantUp:					eTextShapeType = "textSlantUp"; break;
+						case ShapeType.sptCTextSlantDown:				eTextShapeType = "textSlantDown"; break;
+						case ShapeType.sptCTextCascadeUp:				eTextShapeType = "textCascadeUp"; break;
+						case ShapeType.sptCTextCascadeDown:				eTextShapeType = "textCascadeDown"; break;
+						case ShapeType.sptCTextButtonPour:				eTextShapeType = "textButtonPour"; break;
+						case ShapeType.sptCTextStop:					eTextShapeType = "textStop"; break;
+						case ShapeType.sptCTextTriangle:				eTextShapeType = "textTriangle"; break;
+						case ShapeType.sptCTextTriangleInverted:		eTextShapeType = "textTriangleInverted"; break;
+						case ShapeType.sptCTextChevron:					eTextShapeType = "textChevron"; break;
+						case ShapeType.sptCTextChevronInverted:			eTextShapeType = "textChevronInverted"; break;
+						case ShapeType.sptCTextRingInside:				eTextShapeType = "textRingInside"; break;
+						case ShapeType.sptCTextRingOutside:				eTextShapeType = "textRingOutside"; break;
+						case ShapeType.sptCTextCirclePour:				eTextShapeType = "textCirclePour"; break;
+						case ShapeType.sptCTextArchUpPour:				eTextShapeType = "textArchUpPour"; break;
+						case ShapeType.sptCTextArchDownPour:			eTextShapeType = "textArchDownPour"; break;
+						default:										eTextShapeType = "textNoShape"; break;
+					}
+					oBodyPr.prstTxWarp = AscFormat.CreatePrstTxWarpGeometry(eTextShapeType);
+					oTextFill = this.getOOXMLFill(oContext);
+					oTextStroke = this.getOOXMLStroke();
+					oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
+					oSpPr.setFill(AscFormat.CreateNoFillUniFill());
+					oSpPr.setFill(AscFormat.CreateNoFillLine());
+					oBodyPr.lIns = 0;
+					oBodyPr.tIns = 0;
+					oBodyPr.rIns = 0;
+					oBodyPr.bIns = 0;
+
+
+					if(oTextPath) {
+						sText = oTextPath.m_sString || "";
+						oCSSStyle = oTextPath.m_oStyle;
+
+					}
+
+
+					if (oTextPath && (oTextPath.m_oFitShape || oTextPath.m_oFitPath)) {
+						oBodyPr.textFit = new AscFormat.CTextFit();
+						oBodyPr.textFit.type = AscFormat.text_fit_NormAuto;
+					}
+					oBodyPr.wrap = AscFormat.nTWTSquare;
+					oBodyPr.fromWordArt = true;
+					oOOXMLDrawing.setBodyPr(oBodyPr);
+
+					oOOXMLDrawing.setBodyPr(oBodyPr);
+					oDocContent = new CDocumentContent(oOOXMLDrawing, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
+					oDocContent.MoveCursorToStartPos(false);
+					oDocContent.AddText(sText);
+					oOOXMLDrawing.setTextBoxContent(oDocContent);
 				}
-				else if(oTextbox.m_oText) {
-					var body_pr = new AscFormat.CBodyPr();
-					body_pr.setAnchor(1);
-					oOOXMLDrawing.setBodyPr(body_pr);
-					let oDocConent = new CDocumentContent(this, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
-					oDocConent.MoveCursorToStartPos(false);
-					oDocConent.AddText(oTextbox.m_oText);
-					oOOXMLDrawing.setTextBoxContent(oDocConent);
-					if(oTextbox.m_oTextStyle) {
-						let sCSSFont = oTextbox.m_oTextStyle.GetFontStyle();
-						if(sCSSFont) {
-							//TODO: parse CSS
+				else {
+					let oTextbox = this.getTextbox();
+					if(oTextbox) {
+						if(oTextbox.m_oTxtbxContent) {
+							oBodyPr.setAnchor(1);
+							oOOXMLDrawing.setBodyPr(oBodyPr);
+							oOOXMLDrawing.setTextBoxContent(oTextbox.m_oTxtbxContent.Copy(oOOXMLDrawing));
+						}
+						else if(oTextbox.m_oText) {
+							oBodyPr.setAnchor(1);
+							oOOXMLDrawing.setBodyPr(oBodyPr);
+							oDocContent = new CDocumentContent(oOOXMLDrawing, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
+							oDocContent.MoveCursorToStartPos(false);
+							oDocContent.AddText(oTextbox.m_oText);
+							oOOXMLDrawing.setTextBoxContent(oDocContent);
+							if(oTextbox.m_oTextStyle) {
+								oCSSStyle = oTextbox.m_oTextStyle;
+							}
 						}
 					}
+				}
+				if(oDocContent) {
+					if(oCSSStyle) {
+						let sCSSFont = oCSSStyle.GetStringValue(ECssPropertyType.cssptFontFamily);
+						if(typeof sCSSFont === "string" && sCSSFont.length > 0) {
+							sFontName = sCSSFont.replace(new RegExp("\"", 'g'), "");
+						}
+						let nCSSFontSize = oCSSStyle.GetNumberValue(ECssPropertyType.cssptFontSize);
+						if(nCSSFontSize !== null) {
+							nFontSize = nCSSFontSize * 2;
+						}
+						let oFontStylePr = oCSSStyle.GetProperty(ECssPropertyType.cssptFontStyle);
+						if(oFontStylePr) {
+							let oValue = oFontStylePr.m_oValue;
+							if(oValue.eFontStyle === ECssFontStyle.cssfontstyleItalic) {
+								bItalic = true;
+							}
+						}
+						let oFontWeightPr = oCSSStyle.GetProperty(ECssPropertyType.cssptFontWeight);
+						if(oFontWeightPr) {
+							let oValue = oFontWeightPr.m_oValue;
+							if(oValue.eFontWeight >= ECssFontStyle.cssfontweight400) {
+								bBold = true;
+							}
+						}
+					}
+					let oParaPr = new AscCommonWord.CParaPr();
+					let oTextPr = new AscCommonWord.CTextPr();
+					oParaPr.Jc = AscCommon.align_Center;
+					oTextPr.RFonts.Ascii = { Name: sFontName, Index : -1 };
+					oTextPr.RFonts.HAnsi = { Name: sFontName, Index : -1 };
+					if(bBold) {
+						oTextPr.Bold = bBold;
+					}
+					if(bItalic) {
+						oTextPr.Italic = bItalic;
+					}
+					oTextPr.TextFill = oTextFill;
+					oTextPr.TextOutline = oTextStroke;
+					oTextPr.FontSize = nFontSize;
+					oDocContent.SetApplyToAll(true);
+					oDocContent.SetParagraphPr(oParaPr);
+					oDocContent.AddToParagraph(new AscCommonWord.ParaTextPr(oTextPr));
+					oDocContent.SetApplyToAll(false);
 				}
 			}
 			oOOXMLDrawing.setBDeleted(false);
@@ -9305,13 +9442,17 @@
 			}
 			return nShapeType;
 		};
-		CVmlCommonElements.prototype.fillGeometryAdjustments = function(oData) {};
-		CVmlCommonElements.prototype.convertGeometryToOOXML = function(aOtherElements) {
-			let oData = new CVmlGeometryData();
-			oData.fillByType(this.getFinalShapeType(aOtherElements));
-			return oData.convertToOOXML();
+		CVmlCommonElements.prototype.isWordArt = function(aOtherElements) {
+			let nType = this.getFinalShapeType(aOtherElements);
+			if (nType >= ShapeType.sptCTextPlain && nType <= ShapeType.sptCTextCanDown) {
+				return true;
+			}
+			let oTextPath = this.getTextPath();
+			if(oTextPath) {
+				return true;
+			}
+			return false;
 		};
-
 		function CArc() {
 			CVmlCommonElements.call(this);
 
@@ -11386,7 +11527,7 @@
 
 		IC(CTextPath, CBaseNoId, 0);
 		CTextPath.prototype.readAttrXml = function (name, reader) {
-			let wsChar = name.charCodeAt(0);
+			let wsChar = name.charAt(0);
 			switch (wsChar) {
 				case 'f':
 					if ("fitpath" === name) this.m_oFitPath = reader.GetValueBool();
@@ -11615,6 +11756,8 @@
 			let oGroup = new AscFormat.CGroupShape();
 			let bIsTop = oContext.bIsTopDrawing;
 			oContext.bIsTopDrawing = false;
+			let aOldOtherElemensts = oContext.aOtherElements;
+			oContext.aOtherElements = this.items;
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
 				if(oItem instanceof CShape ||
@@ -11632,6 +11775,7 @@
 				}
 			}
 			oContext.bIsTopDrawing = bIsTop;
+			oContext.aOtherElements = aOldOtherElemensts;
 			if(oGroup.getSpCount() > 0) {
 				if(oOOXMLGroup) {
 					oGroup.setGroup(oOOXMLGroup);
@@ -12682,6 +12826,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			let oContext = reader.context;
 			oContext.reader = reader;
 			oContext.bIsTopDrawing = true;
+			oContext.aOtherElements = this.items;
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
 				if(oItem instanceof CGroup) {
@@ -15404,6 +15549,15 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		};
 
 
+		function CorrectXmlString2(strText) {
+			strText = strText.replace(new RegExp("&apos;", 'g'), "'");
+			strText = strText.replace(new RegExp("&lt;", 'g'), "<");
+			strText = strText.replace(new RegExp("&gt;", 'g'), ">");
+			strText = strText.replace(new RegExp("&quot;", 'g'), "\"");
+			strText = strText.replace(new RegExp("&amp;", 'g'), "&");
+			return strText;
+		}
+
 		function CCssStyle(sValue) {
 			this.m_arrProperties = [];
 			this.m_sCss = null;
@@ -15419,7 +15573,8 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 		CCssStyle.prototype.FromString = function (sValue) {
 			this.Clear();
 
-			this.m_sCss = sValue;
+			let sValue_ = CorrectXmlString2(sValue);
+			this.m_sCss = sValue_;
 			this.ParseProperties();
 
 			return this.m_sCss;
@@ -15505,7 +15660,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">";
 			if(oPr === null) {
 				return null;
 			}
-			let oValue = oPr && oPr.m_oValue && oPr.m_oValue.oValue;
+			let oValue = oPr && oPr.m_oValue;
 			if(oValue && oValue.wsValue) {
 				return oValue.wsValue;
 			}
