@@ -598,7 +598,7 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 	CTable.prototype.fromXml = function(reader) {
-		let elem, oReadResult = reader.context.oReadResult;
+		let elem, t = this, oReadResult = reader.context.oReadResult;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -655,8 +655,12 @@
 					break;
 				}
 				case "tblPr" : {
-					this.Pr = new CTablePr();
-					this.Pr.fromXml(reader, this);
+					let tablePr = new CTablePr();
+					tablePr.fromXml(reader, this);
+					this.Set_Pr(tablePr);
+					oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+						t.Set_Pr(tablePr);
+					});
 					break;
 				}
 				case "tblGrid" : {
@@ -1845,12 +1849,18 @@
 		}
 	};
 	Paragraph.prototype.fromXml = function(reader) {
+		let t = this, oReadResult = reader.context.oReadResult;
 		this.readAttr(reader);
 		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("pPr" === name) {
-				this.Pr.fromXml(reader, this);
+				var paraPr = new CParaPr();
+				paraPr.fromXml(reader, this);
+				this.Set_Pr(paraPr);
+				oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+					t.Set_Pr(paraPr);
+				});
 			} else {
 				CParagraphContentWithParagraphLikeContent.prototype.fromXmlElem.call(this, reader, name);
 			}
@@ -2043,7 +2053,9 @@
 				case "rPr" : {
 					if (opt_paragraph) {
 						let EndRun = opt_paragraph.GetParaEndRun();
-						opt_paragraph.TextPr.Value.fromXml(reader, EndRun);
+						var rPr = new CTextPr();
+						rPr.fromXml(reader, EndRun);
+						opt_paragraph.TextPr.Apply_TextPr(rPr);
 					}
 					break;
 				}
@@ -2776,7 +2788,9 @@
 							continue;
 						}
 					}
-					this.Pr.fromXml(reader, this);
+					let rPr = new CTextPr();
+					rPr.fromXml(reader, this);
+					this.Set_Pr(rPr);
 					break;
 				case "ruby":
 					break;
@@ -4302,7 +4316,7 @@
 	};
 	CStyle.prototype.fromXml = function(reader, opt_addition) {
 		this.readAttr(reader, opt_addition);
-		var elem, depth = reader.GetDepth();
+		var elem, depth = reader.GetDepth(), oReadResult = reader.context.oReadResult;
 		let t = this;
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -4396,23 +4410,36 @@
 				// 	break;
 				// }
 				case "pPr" : {
-					this.ParaPr.fromXml(reader);
+					let paraPr = new CParaPr();
+					paraPr.fromXml(reader);
+					this.Set_ParaPr(paraPr);
+					oReadResult.aPostOpenStyleNumCallbacks.push(function(){
+						t.Set_ParaPr(paraPr);
+					});
 					break;
 				}
 				case "rPr" : {
-					this.TextPr.fromXml(reader);
+					let textPr = new CTextPr();
+					textPr.fromXml(reader);
+					this.Set_TextPr(textPr);
 					break;
 				}
 				case "tblPr" : {
-					this.TablePr.fromXml(reader);
+					let tblPr = new CTablePr();
+					tblPr.fromXml(reader);
+					this.Set_TablePr(tblPr);
 					break;
 				}
 				case "trPr" : {
-					this.TableRowPr.fromXml(reader);
+					let rowPr = new CTableRowPr();
+					rowPr.fromXml(reader);
+					this.Set_TableRowPr(rowPr);
 					break;
 				}
 				case "tcPr" : {
-					this.TableCellPr.fromXml(reader);
+					let cellPr = new CTableCellPr();
+					cellPr.fromXml(reader);
+					this.Set_TableCellPr(cellPr);
 					break;
 				}
 				case "tblStylePr" : {

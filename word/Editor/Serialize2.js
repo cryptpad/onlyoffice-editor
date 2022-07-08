@@ -8729,7 +8729,7 @@ function BinaryStyleTableReader(doc, oReadResult, stream)
         {
 			var oNewParaPr = new CParaPr();
             res = this.bpPrr.Read(length, oNewParaPr, null);
-			style.ParaPr = oNewParaPr;
+			style.Set_ParaPr(oNewParaPr);
 			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
 				style.Set_ParaPr(oNewParaPr);
 			});
@@ -8982,9 +8982,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 if(null != this.paragraph)
 				{
                     var EndRun = this.paragraph.GetParaEndRun();
-                    var rPr = this.paragraph.TextPr.Value;
+                    var rPr = new CTextPr();
                     res = this.brPrr.Read(length, rPr, EndRun);
-                    //this.paragraph.TextPr.Apply_TextPr(rPr);
+                    this.paragraph.TextPr.Apply_TextPr(rPr);
 				}
 				else
 					res = c_oSerConstants.ReadUnknown;
@@ -11202,10 +11202,11 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         var oThis = this;
         if ( c_oSerParType.pPr === type )
         {
-			var oNewParaPr = paragraph.Pr;
-            res = this.bpPrr.Read(length, oNewParaPr, paragraph);
+			var paraPr = new CParaPr();
+            res = this.bpPrr.Read(length, paraPr, paragraph);
+			paragraph.Set_Pr(paraPr);
 			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-				paragraph.Set_Pr(oNewParaPr);
+				paragraph.Set_Pr(paraPr);
 			});
         }
         else if ( c_oSerParType.Content === type )
@@ -11599,7 +11600,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         var oThis = this;
         if (c_oSerRunType.rPr === type)
         {
-            res = this.brPrr.Read(length, run.Pr, run);
+			let rPr = new CTextPr();
+			res = this.brPrr.Read(length, rPr, run);
+			run.Set_Pr(rPr);
         }
         else if (c_oSerRunType.Content === type)
         {
@@ -12491,7 +12494,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.btblPrr.Read_tblPr(t,l, oNewTablePr, table);
             });
-			table.Pr = oNewTablePr;
+			table.Set_Pr(oNewTablePr);
 			this.oReadResult.aPostOpenStyleNumCallbacks.push(function(){
 				table.Set_Pr(oNewTablePr);
 			});
