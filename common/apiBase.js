@@ -3210,6 +3210,10 @@
 		if (this.isUseNativeViewer && this.isDocumentRenderer && this.isDocumentRenderer())
 			return 0;
 
+		//viewer
+		if (this.isViewMode)
+			return 0;
+
 		return new Date().getTime() - this.lastWorkTime;
 	};
 
