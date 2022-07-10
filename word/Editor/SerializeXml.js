@@ -655,12 +655,8 @@
 					break;
 				}
 				case "tblPr" : {
-					let tablePr = new CTablePr();
-					tablePr.fromXml(reader, this);
-					this.Set_Pr(tablePr);
-					oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-						t.Set_Pr(tablePr);
-					});
+					this.Pr = new CTablePr();
+					this.Pr.fromXml(reader, this);
 					break;
 				}
 				case "tblGrid" : {
@@ -1855,12 +1851,8 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("pPr" === name) {
-				var paraPr = new CParaPr();
-				paraPr.fromXml(reader, this);
-				this.Set_Pr(paraPr);
-				oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-					t.Set_Pr(paraPr);
-				});
+				this.Pr = new CParaPr();
+				this.Pr.fromXml(reader, this);
 			} else {
 				CParagraphContentWithParagraphLikeContent.prototype.fromXmlElem.call(this, reader, name);
 			}
@@ -1878,12 +1870,12 @@
 		writer.WriteXmlNodeEnd(name);
 	};
 	CParaPr.prototype.fromXml = function(reader, opt_paragraph) {
-		var depth = reader.GetDepth();
+		var depth = reader.GetDepth(), oReadResult = reader.context.oReadResult;
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "pStyle" : {
 					this.PStyle = CT_StringW.prototype.toVal(reader, this.PStyle);
-					reader.context.oReadResult.paraStyles.push({pPr: this, style: this.PStyle});
+					oReadResult.paraStyles.push({pPr: this, style: this.PStyle});
 					break;
 				}
 				case "keepNext" : {
@@ -1911,7 +1903,9 @@
 					this.NumPr = new CNumPr();
 					this.NumPr.Set(undefined, undefined);
 					this.NumPr.fromXml(reader);
-					reader.context.oReadResult.paraNumPrs.push(this.NumPr);
+					if (null != this.NumPr.NumId) {
+						oReadResult.paraNumPrs.push(this.NumPr);
+					}
 					break;
 				}
 				case "suppressLineNumbers" : {
@@ -2053,9 +2047,8 @@
 				case "rPr" : {
 					if (opt_paragraph) {
 						let EndRun = opt_paragraph.GetParaEndRun();
-						var rPr = new CTextPr();
-						rPr.fromXml(reader, EndRun);
-						opt_paragraph.TextPr.Apply_TextPr(rPr);
+						opt_paragraph.TextPr.Value = new CTextPr();
+						opt_paragraph.TextPr.Value.fromXml(reader, EndRun);
 					}
 					break;
 				}
@@ -2068,7 +2061,7 @@
 					break;
 				}
 				case "pPrChange" : {
-					if (reader.context.oReadResult.checkReadRevisions()) {
+					if (oReadResult.checkReadRevisions()) {
 						let trackChange = new CT_TrackChange();
 						trackChange.fromXml(reader);
 						this.SetPrChange(trackChange.pPrChange, trackChange.ReviewInfo);
@@ -2788,9 +2781,8 @@
 							continue;
 						}
 					}
-					let rPr = new CTextPr();
-					rPr.fromXml(reader, this);
-					this.Set_Pr(rPr);
+					this.Pr = new CTextPr();
+					this.Pr.fromXml(reader, this);
 					break;
 				case "ruby":
 					break;
@@ -4410,36 +4402,28 @@
 				// 	break;
 				// }
 				case "pPr" : {
-					let paraPr = new CParaPr();
-					paraPr.fromXml(reader);
-					this.Set_ParaPr(paraPr);
-					oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-						t.Set_ParaPr(paraPr);
-					});
+					this.ParaPr = new CParaPr();
+					this.ParaPr.fromXml(reader);
 					break;
 				}
 				case "rPr" : {
-					let textPr = new CTextPr();
-					textPr.fromXml(reader);
-					this.Set_TextPr(textPr);
+					this.TextPr = new CTextPr();
+					this.TextPr.fromXml(reader);
 					break;
 				}
 				case "tblPr" : {
-					let tblPr = new CTablePr();
-					tblPr.fromXml(reader);
-					this.Set_TablePr(tblPr);
+					this.TablePr = new CTablePr();
+					this.TablePr.fromXml(reader);
 					break;
 				}
 				case "trPr" : {
-					let rowPr = new CTableRowPr();
-					rowPr.fromXml(reader);
-					this.Set_TableRowPr(rowPr);
+					this.TableRowPr = new CTableRowPr();
+					this.TableRowPr.fromXml(reader);
 					break;
 				}
 				case "tcPr" : {
-					let cellPr = new CTableCellPr();
-					cellPr.fromXml(reader);
-					this.Set_TableCellPr(cellPr);
+					this.TableCellPr = new CTableCellPr();
+					this.TableCellPr.fromXml(reader);
 					break;
 				}
 				case "tblStylePr" : {
@@ -4532,9 +4516,10 @@
 						var ANum = aNumsMap[additional.aNumId];
 						if (ANum) {
 							elem.SetAbstractNumId(ANum.GetId());
-							oReadResult.numToANumClass[ANum.GetId()] = ANum;
+							oReadResult.logicDocument.Numbering.AddAbstractNum(ANum);
 						}
 						if (null !== additional.numId) {
+							oReadResult.logicDocument.Numbering.AddNum(elem);
 							oReadResult.numToNumClass[additional.numId] = elem;
 						}
 						break;
@@ -4640,11 +4625,6 @@
 						elem.fromXml(reader, additionalLvl);
 						index = additionalLvl.ilvl || index;
 						this.Lvl[index] = elem;
-						let postIndex = index;
-						let postElem = elem;
-						oReadResult.aPostOpenStyleNumCallbacks.push(function(){
-							this.SetLvl(postIndex, postElem);
-						});
 						index++;
 					}
 					break;
