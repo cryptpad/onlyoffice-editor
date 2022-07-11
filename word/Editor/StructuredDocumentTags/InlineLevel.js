@@ -581,7 +581,11 @@ CInlineLevelSdt.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, U
 
 	var bResult = CParagraphContentWithParagraphLikeContent.prototype.Get_LeftPos.call(this, SearchPos, ContentPos, Depth, UseContentPos);
 
-	if (true !== bResult && this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsFillingFormMode())
+	if (true !== bResult
+		&& this.Paragraph
+		&& this.Paragraph.LogicDocument
+		&& true === this.Paragraph.LogicDocument.IsFillingFormMode()
+		&& this === this.GetMainForm())
 	{
 		this.Get_StartPos(SearchPos.Pos, Depth);
 		SearchPos.Found = true;
@@ -606,7 +610,11 @@ CInlineLevelSdt.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, 
 
 	var bResult = CParagraphContentWithParagraphLikeContent.prototype.Get_RightPos.call(this, SearchPos, ContentPos, Depth, UseContentPos, StepEnd);
 
-	if (true !== bResult && this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsFillingFormMode())
+	if (true !== bResult
+		&& this.Paragraph
+		&& this.Paragraph.LogicDocument
+		&& true === this.Paragraph.LogicDocument.IsFillingFormMode()
+		&& this === this.GetMainForm())
 	{
 		this.Get_EndPos(false, SearchPos.Pos, Depth);
 		SearchPos.Found = true;
@@ -665,7 +673,11 @@ CInlineLevelSdt.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Dep
 {
 	CParagraphContentWithParagraphLikeContent.prototype.Get_WordStartPos.call(this, SearchPos, ContentPos, Depth, UseContentPos);
 
-	if (true !== SearchPos.Found && this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsFillingFormMode())
+	if (true !== SearchPos.Found
+		&& this.Paragraph
+		&& this.Paragraph.LogicDocument
+		&& true === this.Paragraph.LogicDocument.IsFillingFormMode()
+		&& this === this.GetMainForm())
 	{
 		this.Get_StartPos(SearchPos.Pos, Depth);
 		SearchPos.UpdatePos = true;
@@ -677,7 +689,11 @@ CInlineLevelSdt.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth
 {
 	CParagraphContentWithParagraphLikeContent.prototype.Get_WordEndPos.call(this, SearchPos, ContentPos, Depth, UseContentPos, StepEnd);
 
-	if (true !== SearchPos.Found && this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsFillingFormMode())
+	if (true !== SearchPos.Found
+		&& this.Paragraph
+		&& this.Paragraph.LogicDocument
+		&& true === this.Paragraph.LogicDocument.IsFillingFormMode()
+		&& this === this.GetMainForm())
 	{
 		this.Get_EndPos(false, SearchPos.Pos, Depth);
 		SearchPos.UpdatePos = true;
@@ -1009,8 +1025,14 @@ CInlineLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isSt
 };
 CInlineLevelSdt.prototype.GetAllContentControls = function(arrContentControls)
 {
-	arrContentControls.push(this);
-	CParagraphContentWithParagraphLikeContent.prototype.GetAllContentControls.apply(this, arguments);
+	if (!arrContentControls)
+		arrContentControls = [];
+	else
+		arrContentControls.push(this);
+
+	CParagraphContentWithParagraphLikeContent.prototype.GetAllContentControls.call(this, arrContentControls);
+
+	return arrContentControls;
 };
 CInlineLevelSdt.prototype.Document_UpdateInterfaceState = function()
 {
@@ -1246,7 +1268,7 @@ CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect)
 };
 CInlineLevelSdt.prototype.CorrectContent = function()
 {
-	if (this.IsForm())
+	if (this.IsForm() && !this.IsComplexForm())
 	{
 		this.MakeSingleRunElement(false);
 	}
@@ -3295,3 +3317,4 @@ CInlineLevelSdt.prototype.GetPicture = function()
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CInlineLevelSdt = CInlineLevelSdt;
+window["AscWord"].CInlineLevelSdt = CInlineLevelSdt;
