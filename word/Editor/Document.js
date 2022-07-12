@@ -26551,53 +26551,108 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 		}
 		else
 		{
-			//получаем выделенный контент как новый объект
+			//получаем копию выделенного контента для конвертации
 			var oTempSelectedObject = oMath.Copy(true);
-			//получаем ссылку на выделенный Content
-			var oSelection = oMath.GetSelectContent(false);
-			var oContent = oSelection.Content;
-			var intStart = oSelection.Start;
-			var intEnd = oSelection.End;
-			var oSplitContent;
+			
+			//ссылка на выделенный контент
+			let z = oMath.GetSelectContent()
+			var oContent = z.Content; // oMath.Root;
+			var intStart = z.Start;// oMath.Root.Selection.StartPos;
+			var intEnd = z.End; // oMath.Root.Selection.EndPos;
+			
+			//корректировка selection
+			if (intEnd < intStart) {
+				var intTemp = intStart;
+				intStart = intEnd;
+				intEnd = intTemp;
+			}
 
-			//если intStart === intEnd значит элемент был выделен полностью
-			if (intStart === intEnd) {
-				var oTempContent = oContent.getElem(intStart);
-				var intTempEnd =  oTempContent.Selection.EndPos;
-				var intTempStart = oTempContent.Selection.StartPos;
-
-				if (intTempEnd < intTempStart) {
-					var intTemp = intTempStart;
-					intTempStart = intTempEnd;
-					intTempEnd = intTemp;
-				}
-
-				oTempContent.RemoveFromContent(intTempStart, intTempEnd - intTempStart, false)
-
-				if (intEnd - intStart < oTempContent.Content.length) {
-					if (oTempContent.Type === 49) {
-						oSplitContent = oTempContent.Split_Run(intTempStart);
+			if (intStart !== intEnd) {
+				for (let nPos = intStart; nPos <= intEnd; nPos++) {
+					let one = oContent.Content[nPos].Copy(true);
+					if (one.Content.length === 0 || (oContent.Content[nPos].Selection.Use === false && one.Type === 49)) {
+						if (nPos === intStart) {
+							intStart++;
+						} else if (nPos === intEnd) {
+							intEnd--;
+						}
 					}
 				}
 			}
-			else {
-				oMath.Remove(1, false);
-			}
 
-			if (!(intStart === 0 && intEnd !== intStart)) {
-				intStart++;
-			}
-
-			oTempSelectedObject.ConvertView(isToLinear, nInputType);
+			//if text - split ParaRun
+			for (let i = intStart; i <= intEnd; i++) {
+				
+				let oParaRun = oContent.Content[i];
 			
-			for (var i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
-				oContent.Add_ToContent(intStart, oTempSelectedObject.Root.Content[i]);
-				intStart++;
+				if (oParaRun.Type === 49  && oParaRun.Selection.StartPos < oParaRun.Selection.EndPos && oParaRun.Content.length > 1) {
+
+					if (oParaRun.Content.length > 1) {
+					
+						if (oParaRun.Selection.EndPos < oParaRun.Selection.StartPos) {
+							var intTemp = oParaRun.Selection.StartPos;
+							oParaRun.Selection.StartPos = oParaRun.Selection.EndPos;
+							oParaRun.Selection.EndPos = intTemp;
+						}
+					
+						if (oParaRun.Selection.StartPos !== 0 && oParaRun.Content.length >= oParaRun.Selection.StartPos) {
+	
+							let isEndPosSplit = oParaRun.Selection.EndPos !== oParaRun.Content.length;
+	
+							var oNewRun = oParaRun.Split_Run(oParaRun.Selection.StartPos);
+							oContent.Add_ToContent(i + 1, oNewRun);
+							intStart++;
+							intEnd++;
+	
+							if (isEndPosSplit) {
+								i++;
+								oParaRun = oContent.Content[i];
+								var oNewRun = oParaRun.Split_Run(oParaRun.Selection.EndPos);
+								oContent.Add_ToContent(i + 1, oNewRun);
+							}
+						}
+						else if (oParaRun.Selection.EndPos !== oParaRun.Content.length && oParaRun.Selection.EndPos!== 0 ) {
+							var oNewRun = oParaRun.Split_Run(oParaRun.Selection.EndPos);
+							oContent.Add_ToContent(i + 1, oNewRun);
+						}
+					}
+				}
 			}
-			if (oSplitContent && oSplitContent.Content.length > 0) {
-				oContent.Add_ToContent(intStart, oSplitContent);
+		
+			//конвертация
+			oTempSelectedObject.ConvertView(isToLinear, nInputType);
+
+			//удаление лишних данных после конвертации
+			while (oTempSelectedObject.Root.Content[0].Content.length < 1) {
+				oTempSelectedObject.Root.RemoveFromContent(0, 1, false);
 			}
+			while (oTempSelectedObject.Root.Content[oTempSelectedObject.Root.Content.length - 1].Content.length < 1) {
+				oTempSelectedObject.Root.RemoveFromContent(oTempSelectedObject.Root.Content.length - 1, 1, false);
+			}
+
+			//удаление оригинального контента
+			oContent.RemoveFromContent(intStart, intEnd - intStart + 1, false);
+
+			//вставка нового контента
+			let oOutput = [];
+			for (let i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
+				let o = oTempSelectedObject.Root.Content[i];
+				oContent.Add_ToContent(intStart + i, o, false);
+				oOutput.push(o);
+			}
+
 			oMath.Root.Correct_Content(true);
+
+			//выделение
+			for (let i = oOutput.length - 1; i >= 0; i--) {
+				let oConte = oOutput[i].Id;
+				for (let j = 0; j < oContent.Content.length; j++) {
+					if (oContent.Content[j].Id === oConte) {
+						oContent.SelectElementByPos(j)
+						break;
+					}
+				}
+			}
 		}
 		this.Recalculate();
 		this.UpdateInterface();
