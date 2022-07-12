@@ -2913,7 +2913,9 @@
 				nCurOffset = oBinaryFileReader.getbase64DecodedData2(sChange, aIndexes[i], stream, nCurOffset);
 				var item = new UndoRedoItemSerializable();
 				item.Deserialize(stream);
-				aUndoRedoElems.push(item);
+				if (!oThis.needSkipChange(item)) {
+					aUndoRedoElems.push(item);
+				}
 			}
 			var wsViews = window["Asc"]["editor"].wb && window["Asc"]["editor"].wb.wsViews;
 			if(oThis.oApi.collaborativeEditing.getFast()){
@@ -3076,6 +3078,43 @@
 			this.bCollaborativeChanges = false;
 		}
 		return oRedoObjectParam;
+	};
+	Workbook.prototype.needSkipChange = function(change){
+		var res = false;
+		var aSkipChanges = [[AscCommonExcel.g_oUndoRedoWorkbook.getClassType(), AscCH.historyitem_Workbook_Date1904]];
+
+		//при десериализации пропускаем изменение, если такое же есть в списке текущих у данного юзера
+		var isNeededChange = function (_change, _actionType, _classType) {
+			if (_change && _change.oClass) {
+				if (_actionType === undefined || _classType === undefined) {
+					for (var j = 0; j < aSkipChanges.length; j++) {
+						if (aSkipChanges[j][0] === _change.oClass.getClassType() && aSkipChanges[j][1] === _change.nActionType) {
+							return true;
+						}
+					}
+				} else {
+					if (_change && _change.oClass && _change.oClass.getClassType() === _classType && _change.nActionType === _actionType) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		};
+
+		if (this.aCollaborativeActions && this.aCollaborativeActions.length) {
+			if (isNeededChange(change)) {
+				var actionType = change.nActionType;
+				var classType = change.oClass && change.oClass.getClassType();
+				for (var i = 0, length = this.aCollaborativeActions.length; i < length; ++i) {
+					if (isNeededChange(change, actionType, classType)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return res;
 	};
 	Workbook.prototype.getTableRangeForFormula = function(name, objectParam){
 		var res = null;
@@ -3839,6 +3878,22 @@
 			res[i] = this.aWorksheets[i].getPrintOptionsJson();
 		}
 		return res;
+	};
+
+	Workbook.prototype.setDate1904 = function (val, addToHistory) {
+		var oldVal = AscCommon.bDate1904;
+
+		AscCommon.bDate1904 = val;
+		AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904 ? AscCommonExcel.c_Date1904Const : AscCommonExcel.c_Date1900Const;
+		this.WorkbookPr.Date1904 = val;
+
+		if (addToHistory) {
+			var updateSheet = this.getActiveWs();
+			var updateRange = new Asc.Range(0, 0, updateSheet.getColsCount(), updateSheet.getRowsCount());
+
+			History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_Date1904,
+				updateSheet.getId(), updateRange, new UndoRedoData_FromTo(oldVal, val));
+		}
 	};
 
 

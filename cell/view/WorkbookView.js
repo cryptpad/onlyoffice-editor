@@ -4666,6 +4666,34 @@
 		}
 	};
 
+	WorkbookView.prototype.setDate1904 = function (val) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock() || !window["Asc"]["editor"].canEdit()) {
+			return;
+		}
+
+		if (this.model.WorkbookPr.Date1904 == val) {
+			return;
+		}
+
+		var ws = this.getWorksheet(), t = this;
+		var callback = function (isSuccess) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			t.model.setDate1904(val, true);
+
+			History.EndTransaction();
+
+			AscCommon.oNumFormatCache.cleanCache();
+
+			ws._updateRange(new Asc.Range(0, 0, ws.model.getColsCount(), ws.model.getRowsCount()), true);
+			ws.draw();
+		};
+
+		callback();
+	};
+
 	//временно добавляю сюда. в идеале - использовать общий класс из документов(или сделать базовый, от него наследоваться) - CDocumentSearch
 	function CDocumentSearchExcel(wb) {
 		this.wb = wb;

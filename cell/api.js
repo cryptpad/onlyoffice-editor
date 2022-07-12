@@ -4111,6 +4111,11 @@ var editor;
 		this.wb.getWorksheet().changeSheetViewSettings(AscCH.historyitem_Worksheet_SetShowZeros, value);
 	};
 
+	spreadsheet_api.prototype.asc_setDate1904 = function (value) {
+		this.wb.setDate1904(value);
+	};
+
+
   // Images & Charts
 
   spreadsheet_api.prototype.asc_drawingObjectsExist = function() {
@@ -8277,5 +8282,9 @@ var editor;
   prot["getPrintOptionsJson"] = prot.getPrintOptionsJson;
 
   prot["asc_EditSelectAll"] = prot.asc_EditSelectAll;
+
+  prot["asc_setDate1904"] = prot.asc_setDate1904;
+
+
 
 })(window);
