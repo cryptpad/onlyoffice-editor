@@ -811,7 +811,7 @@
 				oPictureCC.SelectContentControl();
 
 				if (oLogicDocument.IsDocumentEditor() && arrParaDrawings[0].IsPicture())
-					oLogicDocument.OnChangeForm(oPictureCC, arrParaDrawings[0].GraphicObj.getImageUrl());
+					oLogicDocument.OnChangeForm(oPictureCC);
 			}
 		}
 	};

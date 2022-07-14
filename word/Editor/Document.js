@@ -2846,10 +2846,8 @@ CDocument.prototype.private_FinalizeFormChange = function()
 
 	for (var sKey in this.Action.Additional.FormChange)
 	{
-		var oForm = this.Action.Additional.FormChange[sKey].Form;
-		var oPr   = this.Action.Additional.FormChange[sKey].Pr;
-
-		this.FormsManager.OnChange(oForm, oPr);
+		let oForm = this.Action.Additional.FormChange[sKey];
+		this.FormsManager.OnChange(oForm);
 		this.Action.Recalculate = true;
 	}
 
@@ -24838,11 +24836,13 @@ CDocument.prototype.GetFormsManager = function()
 /**
  * Сохраняем информацию о том, что форма с заданным ключом была изменена
  * @param {CInlineLevelSdt | CBlockLevelSdt} oForm
- * @param oPr
  */
-CDocument.prototype.OnChangeForm = function(oForm, oPr)
+CDocument.prototype.OnChangeForm = function(oForm)
 {
-	if (!this.Action.Start || (this.Action.Additional && true === this.Action.Additional.FormChangeStart))
+	if (!oForm
+		|| !oForm.IsForm()
+		|| !this.Action.Start
+		|| (this.Action.Additional && true === this.Action.Additional.FormChangeStart))
 		return;
 
 	let sKey = oForm.IsRadioButton() ? oForm.GetRadioButtonGroupKey() : oForm.GetFormKey();
@@ -24852,7 +24852,6 @@ CDocument.prototype.OnChangeForm = function(oForm, oPr)
 	{
 		sKey  = oMainForm.GetFormKey();
 		oForm = oMainForm;
-		oPr   = undefined;
 	}
 
 	if (!sKey)
@@ -24865,7 +24864,7 @@ CDocument.prototype.OnChangeForm = function(oForm, oPr)
 	if (this.Action.Additional.FormChange[sKey])
 		return;
 
-	this.Action.Additional.FormChange[sKey] = {Form : oForm, Pr : oPr};
+	this.Action.Additional.FormChange[sKey] = oForm;
 };
 /**
  * Сохраняем изменение, что радиогруппа должна иметь заданный статус Required
