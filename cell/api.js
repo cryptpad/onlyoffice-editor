@@ -1436,6 +1436,9 @@ var editor;
   		this.VersionHistory.changes = file.changes;
 	}
 	this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(file.data);
+	if (this.isOpenOOXInBrowser) {
+		this.openOOXInBrowserZip = file.data;
+	}
 	this._openDocument(file.data);
 	this._openOnClient();
   };
@@ -1484,13 +1487,14 @@ var editor;
 		var initOpenManager = xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
 		var wbPart = null;
 		var wbXml = null;
-		if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
+		let jsZlib = new AscCommon.ZLib();
+		if (!jsZlib.open(data)) {
 			return false;
 		}
-		xmlParserContext.zip = window.nativeZlibEngine;
+		xmlParserContext.zip = jsZlib;
 
 		AscCommonExcel.executeInR1C1Mode(false, function () {
-			var doc = new openXml.OpenXmlPackage(window.nativeZlibEngine, null);
+			var doc = new openXml.OpenXmlPackage(jsZlib, null);
 
 			//core
 			var coreXmlPart = doc.getPartByRelationshipType(openXml.Types.coreFileProperties.relationType);
@@ -2295,7 +2299,7 @@ var editor;
 			wb.initPostOpenZip(pivotCaches, xmlParserContext);
 		});
 
-		window.nativeZlibEngine.close();
+		jsZlib.close();
 		//clean up
 		openXml.SaxParserDataTransfer = {};
 		return true;
@@ -6009,6 +6013,10 @@ var editor;
     }
 
 	  this.isOpenOOXInBrowser = AscCommon.checkOOXMLSignature(base64File);
+	  if (this.isOpenOOXInBrowser) {
+		  //slice because array contains garbage after end of function
+		  this.openOOXInBrowserZip = base64File.slice();
+	  }
 	  this._openDocument(base64File);
 	  if (this.openDocumentFromZip(t.wbModel, xlsxPath)) {
 		  Asc.ReadDefTableStyles(t.wbModel);

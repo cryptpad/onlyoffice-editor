@@ -8248,10 +8248,7 @@ function BinaryFileReader(doc, openParams)
 				if (context.imageMap.hasOwnProperty(path)) {
 					var data = context.zip.getFile(path);
 					if (data) {
-						if (api && window["NATIVE_EDITOR_ENJINE"]) {
-							//slice because array contains garbage after zip.close
-							api.isOpenOOXInBrowserDoctImages[path] = data.slice();
-						} else {
+						if (!window["NATIVE_EDITOR_ENJINE"]) {
 							let mime = AscCommon.openXml.GetMimeType(AscCommon.GetFileExtension(path));
 							let blob = new Blob([data], {type: mime});
 							let url = window.URL.createObjectURL(blob);

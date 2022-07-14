@@ -10698,11 +10698,12 @@
         var oBinaryFileReader = new AscCommonExcel.BinaryFileReader();
         oBinaryFileReader.getbase64DecodedData2(stylesZip, 0, stream, 0);
 
-        if (window.nativeZlibEngine && window.nativeZlibEngine.open(new Uint8Array(pointer.data))) {
-            let contentBytes = window.nativeZlibEngine.getFile("presetTableStyles.xml");
+        let jsZlib = new AscCommon.ZLib();
+        if (jsZlib.open(new Uint8Array(pointer.data))) {
+            let contentBytes = jsZlib.getFile("presetTableStyles.xml");
             if (contentBytes) {
                 let content = AscCommon.UTF8ArrayToString(contentBytes, 0, contentBytes.length);
-                window.nativeZlibEngine.close();
+                jsZlib.close();
                 var stylesXml = new CT_PresetTableStyles(wb.TableStyles.DefaultStyles, wb.TableStyles.DefaultStylesPivot);
                 new AscCommon.openXml.SaxParserBase().parse(content, stylesXml);
                 wb.TableStyles.concatStyles();
