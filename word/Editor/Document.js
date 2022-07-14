@@ -26555,18 +26555,18 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 			var oTempSelectedObject = oMath.Copy(true);
 			
 			//ссылка на выделенный контент
-			let z = oMath.GetSelectContent()
-			var oContent = z.Content; // oMath.Root;
-			var intStart = z.Start;// oMath.Root.Selection.StartPos;
-			var intEnd = z.End; // oMath.Root.Selection.EndPos;
+			var oSelection = oMath.GetSelectContent()
+			var oContent = oSelection.Content;
+			var intStart = oSelection.Start;
+			var intEnd = oSelection.End;
 			
-			//корректировка selection
 			if (intEnd < intStart) {
 				var intTemp = intStart;
 				intStart = intEnd;
 				intEnd = intTemp;
 			}
 
+			//корректировка стартовой и конечной позиции selection
 			if (intStart !== intEnd) {
 				for (let nPos = intStart; nPos <= intEnd; nPos++) {
 					let one = oContent.Content[nPos].Copy(true);
@@ -26580,7 +26580,7 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 				}
 			}
 
-			//if text - split ParaRun
+			//если выделение затрагивает ParaRun не полностью - его нужно разделить
 			for (let i = intStart; i <= intEnd; i++) {
 				
 				let oParaRun = oContent.Content[i];
@@ -26618,19 +26618,8 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 					}
 				}
 			}
-		
-			//конвертация
+
 			oTempSelectedObject.ConvertView(isToLinear, nInputType);
-
-			//удаление лишних данных после конвертации
-			while (oTempSelectedObject.Root.Content[0].Content.length < 1) {
-				oTempSelectedObject.Root.RemoveFromContent(0, 1, false);
-			}
-			while (oTempSelectedObject.Root.Content[oTempSelectedObject.Root.Content.length - 1].Content.length < 1) {
-				oTempSelectedObject.Root.RemoveFromContent(oTempSelectedObject.Root.Content.length - 1, 1, false);
-			}
-
-			//удаление оригинального контента
 			oContent.RemoveFromContent(intStart, intEnd - intStart + 1, false);
 
 			//вставка нового контента
@@ -26641,12 +26630,14 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 				oOutput.push(o);
 			}
 
-			oMath.Root.Correct_Content(true);
+			//oMath.Root.RemoveSelection()
 
-			//выделение
 			for (let i = oOutput.length - 1; i >= 0; i--) {
+				
 				let oConte = oOutput[i].Id;
+
 				for (let j = 0; j < oContent.Content.length; j++) {
+			
 					if (oContent.Content[j].Id === oConte) {
 						oContent.SelectElementByPos(j)
 						break;
@@ -26656,6 +26647,7 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 		}
 		this.Recalculate();
 		this.UpdateInterface();
+		//this.UpdateSelection()
 		this.UpdateTracks();
 		this.FinalizeAction();
 	}
