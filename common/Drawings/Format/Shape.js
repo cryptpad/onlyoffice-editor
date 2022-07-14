@@ -7213,6 +7213,10 @@ CShape.prototype.getColumnNumber = function(){
                 //this.setUseBgFill(reader.GetValueBool());
                 break;
             }
+            case "modelId": {
+                this.setModelId(reader.GetValue());
+                break;
+            }
         }
     };
     CShape.prototype.readChildXml = function(name, reader) {
@@ -7268,6 +7272,12 @@ CShape.prototype.getColumnNumber = function(){
                 let oBodyPr = new AscFormat.CBodyPr();
                 oBodyPr.fromXml(reader);
                 this.setBodyPr(oBodyPr);
+                break;
+            }
+            case "txXfrm": {
+                let oTxXfrm = new AscFormat.CXfrm();
+                oTxXfrm.fromXml(reader);
+                this.setTxXfrm(oTxXfrm);
                 break;
             }
         }
@@ -7393,7 +7403,7 @@ CShape.prototype.getColumnNumber = function(){
 
         if (this.txXfrm && oContext.docType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)
         {
-            this.txXfrm.toXml(writer);
+            this.txXfrm.toXml(writer, "dsp:txXfrm");
         }
         writer.WriteXmlNodeEnd(name_);
     };
