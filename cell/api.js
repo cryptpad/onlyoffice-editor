@@ -4119,6 +4119,9 @@ var editor;
 		this.wb.setDate1904(value);
 	};
 
+	spreadsheet_api.prototype.asc_getDate1904 = function () {
+		return AscCommon.bDate1904;
+	};
 
   // Images & Charts
 
@@ -8292,6 +8295,7 @@ var editor;
   prot["asc_EditSelectAll"] = prot.asc_EditSelectAll;
 
   prot["asc_setDate1904"] = prot.asc_setDate1904;
+  prot["asc_getDate1904"] = prot.asc_getDate1904;
 
 
 
