@@ -10604,6 +10604,36 @@ background-repeat: no-repeat;\
 		oLogicDocument.DrawingDocument.ClearCachePages();
 		oLogicDocument.DrawingDocument.FirePaint();
 	}
+	asc_docs_api.prototype.asc_OnChangeContentControl = function(oControl)
+	{
+		if (!oControl)
+			return;
+
+		this.sendEvent("onChangeContentControl", oControl.GetContentControlPr().GetEventObject());
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onChangeContentControl", oControl.GetContentControlPr().GetEventObject());
+	};
+	asc_docs_api.prototype.asc_OnFocusContentControl = function(oControl)
+	{
+		if (!oControl)
+			return;
+
+		this.sendEvent("onFocusContentControl", oControl.GetContentControlPr().GetEventObject());
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onFocusContentControl", oControl.GetContentControlPr().GetEventObject());
+	};
+	asc_docs_api.prototype.asc_OnBlurContentControl = function(oControl)
+	{
+		if (!oControl)
+			return;
+
+		this.sendEvent("onBlurContentControl", oControl.GetContentControlPr().GetEventObject());
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onBlurContentControl", oControl.GetContentControlPr().GetEventObject());
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
