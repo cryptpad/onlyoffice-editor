@@ -16,7 +16,7 @@
  *
  */
 
-var connector = new Asc.EditorConnector("frameEditor");
+var connector = new Asc.EditorConnector({frame : "frameEditor"});
 
 document.getElementById("buttonConnect").onclick = function()
 {

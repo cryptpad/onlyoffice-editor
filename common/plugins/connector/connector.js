@@ -39,12 +39,12 @@
 		}
 	}
 
-	function EditorConnector(frameId, autoconnect) {
-		this.frameId = frameId;
+	function EditorConnector(config) {
+		this.frame = config.frame;
 		this.guid = "asc.{" + generateGuid() + "}";
 		this.isConnected = false;
 
-		if (autoconnect)
+		if (config.autoconnect)
 			this.connect();
 
 		this.callbacks = [];
@@ -115,7 +115,10 @@
 		e.data = message;
 		e.data.guid = this.guid;
 
-		var frame = document.getElementById(this.frameId);
+		var frame = this.frame;
+		if (typeof frame === "string")
+			frame = document.getElementById(this.frameId);
+
 		if (frame)
 			frame.contentWindow.postMessage(JSON.stringify(e), "*");
 	};
