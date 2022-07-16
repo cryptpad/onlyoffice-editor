@@ -577,7 +577,7 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 	}
 
 	if (undefined !== this.ComplexFormPr)
-		oContentControl.SetComplexFormPr(this.ComboBoxPr);
+		oContentControl.SetComplexFormPr(this.ComplexFormPr);
 };
 CContentControlPr.prototype.GetId = function()
 {
