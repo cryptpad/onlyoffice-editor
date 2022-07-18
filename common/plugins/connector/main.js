@@ -65,45 +65,37 @@ document.getElementById("buttonTest1").onclick = function()
 
 	connector.attachEvent("onBlurContentControl", function(oPr)
 	{
-		let sTag = oPr["Tag"];
-		console.log(oPr);
-		console.log(sTag);
-		if ("BankBIC" === sTag)
+		if (oPr && "BankBIC" === oPr["Tag"])
 		{
-			connector.callCommand(function() {
+			connector.executeMethod("GetFormValue", [oPr["InternalId"]], function(value)
+			{
+				if ("12345678" !== value)
+					return;
 
-				let oDocument = Api.GetDocument();
-
-				let arrForms  = oDocument.GetFormsByTag("BankBIC");
-				if (1 === arrForms.length &&  arrForms[0].GetText() === "12345678")
+				connector.executeMethod("GetFormsByTag", ["BankAccount"], function(forms)
 				{
-					arrForms = oDocument.GetFormsByTag("BankAccount");
-					for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
+					for (let i = 0; i < forms.length; ++i)
 					{
-						let oForm = arrForms[nIndex];
-						if (oForm.GetFormType() === "textForm")
-							oForm.SetText("10101110100000000123");
+						connector.executeMethod("SetFormValue", [forms[i]["InternalId"], "10101110100000000123"], null);
 					}
+				});
 
-					arrForms = oDocument.GetFormsByTag("BankName");
-					for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
+				connector.executeMethod("GetFormsByTag", ["BankName"], function(forms)
+				{
+					for (let i = 0; i < forms.length; ++i)
 					{
-						let oForm = arrForms[nIndex];
-						if (oForm.GetFormType() === "textForm")
-							oForm.SetText("OnlyOffice BANK");
+						connector.executeMethod("SetFormValue", [forms[i]["InternalId"], "OnlyOffice BANK"], null);
 					}
+				});
 
-					arrForms = oDocument.GetFormsByTag("BankPlace");
-					for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
+				connector.executeMethod("GetFormsByTag", ["BankPlace"], function(forms)
+				{
+					for (let i = 0; i < forms.length; ++i)
 					{
-						let oForm = arrForms[nIndex];
-						if (oForm.GetFormType() === "textForm")
-							oForm.SetText("Himalayas");
+						connector.executeMethod("SetFormValue", [forms[i]["InternalId"], "Himalayas"], null);
 					}
-				}
-			}, function() { console.log("callback command"); });
-
-
+				});
+			});
 		}
 		console.log("event: onBlurContentControl");
 	});
