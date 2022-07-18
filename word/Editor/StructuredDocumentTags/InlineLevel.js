@@ -3318,6 +3318,16 @@ CInlineLevelSdt.prototype.SetInnerText = function(sText)
 	let oRun = this.MakeSingleRunElement(true);
 	oRun.AddText(sText);
 };
+CInlineLevelSdt.prototype.GetInnerText = function()
+{
+	var oText = {
+		Text: ""
+	};
+
+	this.Get_Text(oText);
+
+	return oText.Text;
+};
 CInlineLevelSdt.prototype.GetPicture = function()
 {
 	let oImage;

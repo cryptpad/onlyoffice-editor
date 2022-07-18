@@ -15852,13 +15852,7 @@
 	 */
 	ApiFormBase.prototype.GetText = function()
 	{
-		var oText = {
-			Text: ""
-		};
-
-		this.Sdt.Get_Text(oText);
-
-		return oText.Text;
+		return this.Sdt.GetInnerText();
 	};
 	/**
 	 * Clears the current form.
