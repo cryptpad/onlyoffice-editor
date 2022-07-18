@@ -117,7 +117,7 @@
 
 		var frame = this.frame;
 		if (typeof frame === "string")
-			frame = document.getElementById(this.frameId);
+			frame = document.getElementById(this.frame);
 
 		if (frame)
 			frame.contentWindow.postMessage(JSON.stringify(e), "*");
@@ -143,18 +143,36 @@
 		this.sendMessage({type: "unregister"});
 	};
 
-	EditorConnector.prototype.callCommand = function (command, callback, scope, isNoCalc) {
+	/**
+	 * callCommand
+	 * @memberof EditorConnector
+	 * @alias callCommand
+	 * @description Defines the method used to send the data back to the editor.
+	 * It allows the plugin to send structured data that can be inserted to the resulting document file (formatted paragraphs, tables, text parts and separate words, etc.).
+	 * The callback is the result that the command returns. It is an optional parameter.
+	 * ONLYOFFICE Document Builder commands can be only used to create content and insert it to the document editor (using the Api.GetDocument().InsertContent(...)).
+	 * This limitation exists due to the co-editing feature in the online editors. If it is necessary to create a plugin for desktop editors to work with local files, no such limitation is applied.
+	 * This method is executed in its own context isolated from other JavaScript data. If some parameters or other data need to be passed to this method, use Asc.scope object.
+	 * @param {Function} command - Defines the command written in JavaScript which purpose is to form structured data which can be inserted to the resulting document file
+	 * (formatted paragraphs, tables, text parts and separate words, etc.). Then the data is sent to the editors.
+	 * The command must be compatible with ONLYOFFICE Document Builder syntax.
+	 * @param {Function} callback - The result that the method returns.
+	 * @param {boolean} isNoCalc - Defines whether the document will be recalculated or not.
+	 * The true value is used to recalculate the document after executing the function in the func parameter.
+	 * The false value will not recalculate the document (use it only when your edits surely will not require document recalculation).
+	 */
+	EditorConnector.prototype.callCommand = function (command, callback, isNoCalc) {
 		if (!this.isConnected) {
 			console.log("Connector is not connected with editor");
 			return;
 		}
 
 		this.callbacks.push(callback);
-		var txtFunc = "var Asc = {}; Asc.scope = " + JSON.stringify(scope || {}) + "; var scope = Asc.scope; (" + command.toString() + ")();";
+		var txtFunc = "var Asc = {}; Asc.scope = " + JSON.stringify(window.Asc.scope || {}) + "; var scope = Asc.scope; (" + command.toString() + ")();";
 
 		var message = {
 			type : "command",
-			recalculate : isNoCalc ? false : true,
+			recalculate : (isNoCalc === true) ? false : true,
 			data : txtFunc
 		};
 
@@ -166,6 +184,16 @@
 		this.sendMessage(message);
 	};
 
+	/**
+	 * callMethod
+	 * @memberof EditorConnector
+	 * @alias callMethod
+	 * @description Defines the method used to execute certain editor methods using the connector.
+	 * The callback is the result that the method returns. It is an optional parameter.
+	 * @param {string} name - The name of the specific method that must be executed.
+	 * @param {Array} params - The arguments that the method in use has (if it has any).
+	 * @param {Function} callback - The result that the method returns.
+	 */
 	EditorConnector.prototype.callMethod = function(name, params, callback) {
 		if (!this.isConnected) {
 			console.log("Connector is not connected with editor");
@@ -188,6 +216,15 @@
 		this.sendMessage(message);
 	};
 
+	/**
+	 * attachEvent
+	 * @memberof EditorConnector
+	 * @alias attachEvent
+	 * @description Add event listener.
+	 * Add the function that will be called whenever the specified event is delivered to the target.
+	 * @param {string} name - The name of the event.
+	 * @param {Function} callback - Listener.
+	 */
 	EditorConnector.prototype.attachEvent = function(name, callback) {
 		if (!this.isConnected) {
 			console.log("Connector is not connected with editor");
@@ -201,6 +238,14 @@
 		});
 	};
 
+	/**
+	 * detachEvent
+	 * @memberof EditorConnector
+	 * @alias detachEvent
+	 * @description Remove event listener.
+	 * Remove listener for event.
+	 * @param {string} name - The name of the event.
+	 */
 	EditorConnector.prototype.detachEvent = function(name) {
 		if (!this.events[name])
 			return;

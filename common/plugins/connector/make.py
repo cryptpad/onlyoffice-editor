@@ -7,12 +7,6 @@ import os
 
 params = sys.argv[1:]
 
-if (1 > len(params)):
-  print("use: make.py path_to_api.js")
-  exit(0)
-
-api_file = params[0]
-
 #compilation_level = "WHITESPACE_ONLY"
 compilation_level = "SIMPLE_OPTIMIZATIONS"
 base.cmd("java", ["-jar", "../../../build/node_modules/google-closure-compiler-java/compiler.jar", 
@@ -21,8 +15,12 @@ base.cmd("java", ["-jar", "../../../build/node_modules/google-closure-compiler-j
                   "--js", "connector.js"])
 
 min_content = base.readFile("./connector.min.js")
-base.delete_file("./connector.min.js")
 
+if (1 > len(params)):
+  exit(0)
+
+api_file = params[0]
+base.delete_file("./connector.min.js")
 api_content = base.readFile(api_file)
 
 pos_return_editor_obj = api_content.find("return {")
