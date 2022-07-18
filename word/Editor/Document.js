@@ -26627,27 +26627,37 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 			for (let i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
 				let o = oTempSelectedObject.Root.Content[i];
 				oContent.Add_ToContent(intStart + i, o, false);
-				oOutput.push(o);
+				if (o.Content.length !== 0) {
+					oOutput.push(o);
+				}
 			}
 
-			//oMath.Root.RemoveSelection()
+			oContent.RemoveSelection();
 
-			for (let i = oOutput.length - 1; i >= 0; i--) {
-				
-				let oConte = oOutput[i].Id;
-
+			for (let i = 0; i < oOutput.length; i++) {
+				let strId = oOutput[i].Id;
 				for (let j = 0; j < oContent.Content.length; j++) {
-			
-					if (oContent.Content[j].Id === oConte) {
-						oContent.SelectElementByPos(j)
+					if (oContent.Content[j].Id === strId) {
+						
+						oContent.Content[j].SelectAll();
+						
+						if (i === 0) {
+							oContent.Selection.Use      = true;
+							oContent.Selection.StartPos = j;
+							oContent.Selection.EndPos   = j;
+						} else {
+							oContent.Selection.EndPos = j;
+						}
+
 						break;
 					}
 				}
 			}
+			oContent.Correct_Selection();
 		}
+
 		this.Recalculate();
 		this.UpdateInterface();
-		//this.UpdateSelection()
 		this.UpdateTracks();
 		this.FinalizeAction();
 	}
