@@ -26568,9 +26568,9 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 
 			//корректировка стартовой и конечной позиции selection
 			if (intStart !== intEnd) {
-				for (let nPos = intStart; nPos <= intEnd; nPos++) {
-					let one = oContent.Content[nPos].Copy(true);
-					if (one.Content.length === 0 || (oContent.Content[nPos].Selection.Use === false && one.Type === 49)) {
+				for (var nPos = intStart; nPos <= intEnd; nPos++) {
+					var oElement = oContent.Content[nPos].Copy(true);
+					if (oElement.Content.length === 0 || (oContent.Content[nPos].Selection.Use === false && oElement.Type === 49)) {
 						if (nPos === intStart) {
 							intStart++;
 						} else if (nPos === intEnd) {
@@ -26581,9 +26581,8 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 			}
 
 			//если выделение затрагивает ParaRun не полностью - его нужно разделить
-			for (let i = intStart; i <= intEnd; i++) {
-				
-				let oParaRun = oContent.Content[i];
+			for (var i = intStart; i <= intEnd; i++) {
+				var oParaRun = oContent.Content[i];
 			
 				if (oParaRun.Type === 49  && oParaRun.Selection.StartPos < oParaRun.Selection.EndPos && oParaRun.Content.length > 1) {
 
@@ -26597,7 +26596,7 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 					
 						if (oParaRun.Selection.StartPos !== 0 && oParaRun.Content.length >= oParaRun.Selection.StartPos) {
 	
-							let isEndPosSplit = oParaRun.Selection.EndPos !== oParaRun.Content.length;
+							var isEndPosSplit = oParaRun.Selection.EndPos !== oParaRun.Content.length;
 	
 							var oNewRun = oParaRun.Split_Run(oParaRun.Selection.StartPos);
 							oContent.Add_ToContent(i + 1, oNewRun);
@@ -26623,20 +26622,20 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 			oContent.RemoveFromContent(intStart, intEnd - intStart + 1, false);
 
 			//вставка нового контента
-			let oOutput = [];
-			for (let i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
-				let o = oTempSelectedObject.Root.Content[i];
-				oContent.Add_ToContent(intStart + i, o, false);
-				if (o.Content.length !== 0) {
-					oOutput.push(o);
+			var oOutput = [];
+			for (var i = 0; i < oTempSelectedObject.Root.Content.length; i++) {
+				var oElement = oTempSelectedObject.Root.Content[i];
+				oContent.Add_ToContent(intStart + i, oElement, false);
+				if (oElement.Content.length !== 0) {
+					oOutput.push(oElement);
 				}
 			}
 
 			oContent.RemoveSelection();
 
-			for (let i = 0; i < oOutput.length; i++) {
-				let strId = oOutput[i].Id;
-				for (let j = 0; j < oContent.Content.length; j++) {
+			for (var i = 0; i < oOutput.length; i++) {
+				var strId = oOutput[i].Id;
+				for (var j = 0; j < oContent.Content.length; j++) {
 					if (oContent.Content[j].Id === strId) {
 						
 						oContent.Content[j].SelectAll();
