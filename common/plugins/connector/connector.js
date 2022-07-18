@@ -60,14 +60,14 @@
 		this.guid = "asc.{" + generateGuid() + "}";
 		this.isConnected = false;
 
-		if (config.autoconnect)
-			this.connect();
-
 		this.callbacks = [];
 		this.events = {};
 		this.tasks = [];
 
 		this.onMessageBound = this.onMessage.bind(this);
+
+		if (config.autoconnect)
+			this.connect();
 	}
 
 	EditorConnector.prototype.onMessage = function (e) {
@@ -201,16 +201,16 @@
 	};
 
 	/**
-	 * callMethod
+	 * executeMethod
 	 * @memberof EditorConnector
-	 * @alias callMethod
+	 * @alias executeMethod
 	 * @description Defines the method used to execute certain editor methods using the connector.
 	 * The callback is the result that the method returns. It is an optional parameter.
 	 * @param {string} name - The name of the specific method that must be executed.
 	 * @param {Array} params - The arguments that the method in use has (if it has any).
 	 * @param {Function} callback - The result that the method returns.
 	 */
-	EditorConnector.prototype.callMethod = function(name, params, callback) {
+	EditorConnector.prototype.executeMethod = function(name, params, callback) {
 		if (!this.isConnected) {
 			console.log("Connector is not connected with editor");
 			return;

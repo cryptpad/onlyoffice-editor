@@ -42,7 +42,7 @@ document.getElementById("buttonDisconnect").onclick = function()
 };
 document.getElementById("buttonTest1").onclick = function()
 {
-	connector.callMethod("GetVersion", [], function(version)
+	connector.executeMethod("GetVersion", [], function(version)
 	{
 		console.log(version);
 	});

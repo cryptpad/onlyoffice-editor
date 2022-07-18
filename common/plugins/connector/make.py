@@ -33,7 +33,7 @@ pos_return_editor_obj = api_content.find("return {")
 new_content = ""
 new_content += min_content
 new_content += "\n        "
-new_content += "function _createConnector() { return new Asc.EditorConnector({frame : iframe}); }"
+new_content += "function _createConnector(settings) { return new Asc.EditorConnector({frame : iframe, autoconnect : (settings ? settings.autoconnect : true)}); }"
 new_content += "\n\n"
 
 new_content += "        return {"
