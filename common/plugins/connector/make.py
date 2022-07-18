@@ -17,6 +17,11 @@ base.cmd("java", ["-jar", "../../../build/node_modules/google-closure-compiler-j
 min_content = base.readFile("./connector.min.js")
 
 if (1 > len(params)):
+  io_base = "./../../../../onlyoffice.github.io/sdkjs-plugins/"
+  licence_file = base.readFile(io_base + "v1/plugins.js")
+  licence = licence_file[:licence_file.find("(function(")]
+  base.delete_file(io_base + "connector/connector.js")
+  base.writeFile(io_base + "connector/connector.js", licence + min_content)
   exit(0)
 
 api_file = params[0]
