@@ -173,7 +173,7 @@
 	 * (formatted paragraphs, tables, text parts and separate words, etc.). Then the data is sent to the editors.
 	 * The command must be compatible with ONLYOFFICE Document Builder syntax.
 	 * @param {Function} callback - The result that the method returns.
-	 * @param {boolean} isNoCalc - Defines whether the document will be recalculated or not.
+	 * @param {boolean} [isNoCalc=false] - Defines whether the document will be recalculated or not.
 	 * The true value is used to recalculate the document after executing the function in the command parameter.
 	 * The false value will not recalculate the document (use it only when your edits surely will not require document recalculation).
 	 */
