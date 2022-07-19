@@ -5769,8 +5769,6 @@
 			this.group.rank = (_object["group"]["rank"] != null) ? _object["group"]["rank"] : 0;
 		}
 
-
-		this.group      = (_object["group"] != null) ? _object["group"] : this.group;
 		this.variations = [];
 		for (var i = 0; i < _object["variations"].length; i++)
 		{
