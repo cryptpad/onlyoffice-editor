@@ -1341,75 +1341,69 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         return this.showMasterSp !== false;
     };
 
-    Slide.prototype.draw = function(graphics)
-    {
-        //For animation testing
-        if (graphics.IsSlideBoundsCheckerType) {
-            if(editor.WordControl.DemonstrationManager && editor.WordControl.DemonstrationManager.Mode) {
+    Slide.prototype.draw = function(graphics) {
+        let bCheckBounds = graphics.IsSlideBoundsCheckerType;
+        let bSlideShow = this.graphicObjects.isSlideShow();
+        let bClipBySlide = !this.graphicObjects.canEdit();
+        if (bCheckBounds) {
+            if(bSlideShow || bClipBySlide) {
                 graphics.rect(0, 0, this.Width, this.Height);
-                return;
             }
+            return;
         }
-        var _bounds, i;
+        if(bClipBySlide) {
+            graphics.SaveGrState();
+            graphics.AddClipRect(0, 0, this.Width, this.Height);
+        }
+        let _bounds, i;
         DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
-        if(this.needMasterSpDraw())
-        {
-            if (graphics.IsSlideBoundsCheckerType === undefined)
-                this.Layout.Master.draw(graphics, this);
-            else if(graphics.IsSlideBoundsCheckerType)
-            {
+        if(this.needMasterSpDraw()) {
+            if (bCheckBounds) {
                 _bounds =  this.Layout.Master.bounds;
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
             }
+            else {
+                this.Layout.Master.draw(graphics, this);
+            }
         }
-        if(this.needLayoutSpDraw())
-        {
-            if (graphics && graphics.IsSlideBoundsCheckerType === undefined)
-                this.Layout.draw(graphics, this);
-            else
-            {
+        if(this.needLayoutSpDraw()) {
+            if (bCheckBounds) {
                 _bounds =  this.Layout.bounds;
                 graphics.rect(_bounds.l, _bounds.t, _bounds.w, _bounds.h);
             }
+            else {
+                this.Layout.draw(graphics, this);
+            }
         }
         this.collaborativeMarks.Init_Drawing();
-        var oCollColor;
-        var fDist = 3;
-        var oIdentityMtx = new AscCommon.CMatrix();
-        
-        for(i = 0; i < this.cSld.spTree.length; ++i)
-        {
-            var oSp = this.cSld.spTree[i];
-            if(this.collaborativeMarks)
-            {
+        let oCollColor;
+        let fDist = 3;
+        let oIdentityMtx = new AscCommon.CMatrix();
+        for(i = 0; i < this.cSld.spTree.length; ++i) {
+            let oSp = this.cSld.spTree[i];
+            if(this.collaborativeMarks) {
                 oCollColor = this.collaborativeMarks.Check(i);
-                if(oCollColor)
-                {
+                if(oCollColor) {
                     var oBounds = oSp.bounds;
                     graphics.transform3(oIdentityMtx);
-                    if(graphics.put_GlobalAlpha)
-                    {
+                    if(graphics.put_GlobalAlpha) {
                         graphics.put_GlobalAlpha(true, 0.5);
                     }
-                    var dX = oBounds.l - fDist;
-                    var dY = oBounds.t - fDist;
-                    var dW = oBounds.r - oBounds.l + 2*fDist;
-                    var dH = oBounds.b - oBounds.t + 2*fDist;
+                    let dX = oBounds.l - fDist;
+                    let dY = oBounds.t - fDist;
+                    let dW = oBounds.r - oBounds.l + 2*fDist;
+                    let dH = oBounds.b - oBounds.t + 2*fDist;
                     graphics.drawCollaborativeChanges(dX, dY, dW, dH, oCollColor);
-                    if(graphics.put_GlobalAlpha)
-                    {
+                    if(graphics.put_GlobalAlpha) {
                         graphics.put_GlobalAlpha(false, 1);
                     }
-                    //graphics.b_color1(oCollColor.r, oCollColor.g, oCollColor.b, 127);
-                    //graphics.rect(oBounds.l - fDist, oBounds.t - fDist, oBounds.r - oBounds.l + 2*fDist, oBounds.b - oBounds.t + 2*fDist);
-                    //graphics.df();
                 }
             }
             oSp.draw(graphics);
         }
 
         if(this.timing) {
-            var aShapes = this.timing.getMoveEffectsShapes();
+            let aShapes = this.timing.getMoveEffectsShapes();
             if(aShapes) {
                 for(i = 0; i < aShapes.length; ++i) {
                     aShapes[i].draw(graphics);
@@ -1417,17 +1411,17 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             }
             this.timing.drawEffectsLabels(graphics);
         }
-        if(this.slideComments)
-        {
-            var comments = this.slideComments.comments;
-            for(i = 0; i < comments.length; ++i)
-            {
-                var oComment = comments[i];
-                if(AscCommon.UserInfoParser.canViewComment(oComment.GetUserName()) !== false)
-                {
+        if(this.slideComments) {
+            let aComments = this.slideComments.comments;
+            for(i = 0; i < aComments.length; ++i) {
+                var oComment = aComments[i];
+                if(AscCommon.UserInfoParser.canViewComment(oComment.GetUserName()) !== false) {
                     oComment.draw(graphics);
                 }
             }
+        }
+        if(bClipBySlide) {
+            graphics.RestoreGrState();
         }
     };
 
