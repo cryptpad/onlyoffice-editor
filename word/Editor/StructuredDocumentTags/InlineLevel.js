@@ -2778,8 +2778,8 @@ CInlineLevelSdt.prototype.private_ConvertFormToFixed = function(nW, nH)
 	var oBodyPr = oShape.getBodyPr().createDuplicate();
 
 	oBodyPr.spcFirstLastPara = false;
-	oBodyPr.vertOverflow     = AscFormat.nOTOwerflow;
-	oBodyPr.horzOverflow     = AscFormat.nOTOwerflow;
+	oBodyPr.vertOverflow     = AscFormat.nVOTOverflow;
+	oBodyPr.horzOverflow     = AscFormat.nHOTOverflow;
 	oBodyPr.vert             = AscFormat.nVertTThorz;
 
 	oBodyPr.rot         = 0;

@@ -15318,8 +15318,8 @@
             this.bodyPr.rIns = 0;
             this.bodyPr.tIns = 0;
             this.bodyPr.bIns = 0;
-            this.bodyPr.horzOverflow = AscFormat.nOTClip;
-            this.bodyPr.vertOverflow = AscFormat.nOTClip;
+            this.bodyPr.horzOverflow = AscFormat.nHOTClip;
+            this.bodyPr.vertOverflow = AscFormat.nVOTClip;
         }, this, []);
     }
     InitClass(CLabel, CControl, CONTROL_TYPE_LABEL);

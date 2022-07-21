@@ -1394,8 +1394,8 @@ CShape.prototype.createTextBody = function () {
     tx_body.setContent(new AscFormat.CDrawingDocContent(tx_body, this.getDrawingDocument(), 0, 0, 0, 20000, false, false, true));
     var oBodyPr = new AscFormat.CBodyPr();
     if(this.worksheet){
-        oBodyPr.vertOverflow = AscFormat.nOTClip;
-        oBodyPr.horzOverflow = AscFormat.nOTClip;
+        oBodyPr.vertOverflow = AscFormat.nVOTClip;
+        oBodyPr.horzOverflow = AscFormat.nHOTClip;
     }
     tx_body.setBodyPr(oBodyPr);
     tx_body.content.Content[0].Set_DocumentIndex(0);
@@ -2505,7 +2505,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 _vertical_shift = 0;
             }
             else {
-                if ((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nOTOwerflow) || _content_height < _text_rect_height) {
+                if ((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nVOTOverflow) || _content_height < _text_rect_height) {
                     switch (oBodyPr.anchor) {
                         case 0: //b
                         { // (Text Anchor Enum ( Bottom ))
@@ -2540,7 +2540,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 else {
 
 
-                    if((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nOTClip)
+                    if((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nVOTClip)
                         && oContent.Content[0] && oContent.Content[0].Lines[0]  && oContent.Content[0].Lines[0].Bottom > _text_rect_height )
                     {
                         var _content_first_line = oContent.Content[0].Lines[0].Bottom;
@@ -2605,7 +2605,7 @@ CShape.prototype.checkTransformTextMatrix = function (oMatrix, oContent, oBodyPr
                 _vertical_shift = 0;
             }
             else {
-                if ((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nOTOwerflow) || _content_height <= _text_rect_width) {
+                if ((!this.bWordShape && oBodyPr.vertOverflow === AscFormat.nVOTOverflow) || _content_height <= _text_rect_width) {
                     switch (oBodyPr.anchor) {
                         case 0: //b
                         { // (Text Anchor Enum ( Bottom ))
@@ -5407,7 +5407,7 @@ CShape.prototype.clipTextRect = function(graphics, transform, transformText, pag
         var oBodyPr = this.getBodyPr();
         if(!this.bWordShape)
         {
-            if(oBodyPr.vertOverflow === AscFormat.nOTOwerflow)
+            if(oBodyPr.vertOverflow === AscFormat.nVOTOverflow)
             {
                 return;
             }
@@ -6974,7 +6974,7 @@ CShape.prototype.getColumnNumber = function(){
         {
             return oBodyPr.vertOverflow;
         }
-        return AscFormat.nOTOwerflow;
+        return AscFormat.nVOTOverflow;
     };
 
 

@@ -13375,7 +13375,7 @@
 			this.compatLnSpc = false;
 			this.forceAA = false;
 			this.fromWordArt = false;
-			this.horzOverflow = AscFormat.nOTOwerflow;
+			this.horzOverflow = AscFormat.nHOTOverflow;
 			this.lIns = 91440 / 36000;
 			this.numCol = 1;
 			this.rIns = 91440 / 36000;
@@ -13386,7 +13386,7 @@
 			this.tIns = 45720 / 36000;
 			this.upright = false;
 			this.vert = AscFormat.nVertTThorz;
-			this.vertOverflow = AscFormat.nOTOwerflow;
+			this.vertOverflow = AscFormat.nVOTOverflow;
 			this.wrap = AscFormat.nTWTSquare;
 			this.prstTxWarp = null;
 			this.textFit = null;
@@ -13832,28 +13832,48 @@
 			}
 			return null;
 		};
-		CBodyPr.prototype.GetOverFlowCode = function (sVal) {
+		CBodyPr.prototype.GetVertOverFlowCode = function (sVal) {
 			switch (sVal) {
 				case "clip": {
-					return AscFormat.nOTClip;
+					return AscFormat.nVOTClip;
 				}
 				case "ellipsis": {
-					return AscFormat.nOTEllipsis;
+					return AscFormat.nVOTEllipsis;
 				}
 				case "overflow": {
-					return AscFormat.nOTOwerflow;
+					return AscFormat.nVOTOverflow;
 				}
 			}
 		};
-		CBodyPr.prototype.GetOverFlowByCode = function (nCode) {
+		CBodyPr.prototype.GetHorOverFlowCode = function (sVal) {
+			switch (sVal) {
+				case "clip": {
+					return AscFormat.nHOTClip;
+				}
+				case "overflow": {
+					return AscFormat.nHOTOverflow;
+				}
+			}
+		};
+		CBodyPr.prototype.GetVertOverFlowByCode = function (nCode) {
 			switch (nCode) {
-				case AscFormat.nOTClip: {
+				case AscFormat.nVOTClip: {
 					return "clip";
 				}
-				case AscFormat.nOTEllipsis : {
+				case AscFormat.nVOTEllipsis : {
 					return "ellipsis";
 				}
-				case AscFormat.nOTOwerflow: {
+				case AscFormat.nVOTOverflow: {
+					return "overflow";
+				}
+			}
+		};
+		CBodyPr.prototype.GetHorOverFlowByCode = function (nCode) {
+			switch (nCode) {
+				case AscFormat.nHOTClip: {
+					return "clip";
+				}
+				case AscFormat.nHOTOverflow: {
 					return "overflow";
 				}
 			}
@@ -13961,7 +13981,7 @@
 				}
 				case "horzOverflow": {
 					let sVal = reader.GetValue();
-					this.horzOverflow = this.GetOverFlowCode(sVal);
+					this.horzOverflow = this.GetHorOverFlowCode(sVal);
 					break;
 				}
 				case "lIns": {
@@ -14007,7 +14027,7 @@
 				}
 				case "vertOverflow": {
 					let sVal = reader.GetValue();
-					this.vertOverflow = this.GetOverFlowCode(sVal);
+					this.vertOverflow = this.GetVertOverFlowCode(sVal);
 					break;
 				}
 				case "wrap": {
@@ -14054,14 +14074,12 @@
 			}
 		};
 		CBodyPr.prototype.toXml = function (writer, sNamespace) {
-
 			let sNamespace_ = sNamespace || "a";
-
 			writer.WriteXmlNodeStart(sNamespace_ + ":bodyPr");
 			writer.WriteXmlNullableAttributeString("rot", this.rot);
 			writer.WriteXmlNullableAttributeBool("spcFirstLastPara", this.spcFirstLastPara);
-			writer.WriteXmlNullableAttributeString("vertOverflow", this.GetOverFlowByCode(this.vertOverflow));
-			writer.WriteXmlNullableAttributeString("horzOverflow", this.GetOverFlowByCode(this.horzOverflow));
+			writer.WriteXmlNullableAttributeString("vertOverflow", this.GetVertOverFlowByCode(this.vertOverflow));
+			writer.WriteXmlNullableAttributeString("horzOverflow", this.GetHorOverFlowByCode(this.horzOverflow));
 			writer.WriteXmlNullableAttributeString("vert", this.GetVertByCode(this.vert));
 			writer.WriteXmlNullableAttributeString("wrap", this.GetWrapByCode(this.wrap));
 			writer.WriteXmlNullableAttributeInt("lIns", this.getXmlInset(this.lIns));
@@ -14077,7 +14095,6 @@
 			writer.WriteXmlNullableAttributeBool("forceAA", this.forceAA);
 			writer.WriteXmlNullableAttributeBool("upright", this.upright);
 			writer.WriteXmlNullableAttributeBool("compatLnSpc", this.compatLnSpc);
-
 			if(this.prstTxWarp || this.textFit || AscFormat.isRealNumber(this.flatTx)) {
 				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlNullable(this.prstTxWarp, "a:prstTxWarp");
