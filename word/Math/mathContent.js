@@ -5500,12 +5500,13 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     oA = AscMath.GetTextForAutoCorrection(oTempObject);
     intStart= oA.len;
 
-    if (!PrevObj || intStart !== oTempObject.GetTextOfElement().length) {
-        strUnicode = oA.str;
-    } else {
-        strUnicode = oTempObject.GetTextOfElement()
-    }
-  
+	
+	if (!PrevObj || intStart !== oTempObject.GetTextOfElement().length) {
+		strUnicode = oA.str;
+	} else {
+		strUnicode = oTempObject.GetTextOfElement()
+	}
+	
 
     let isOnlyNumbersAndLetter = /^[A-Za-z0-9 ]+/.test(strUnicode);
     if (!isOnlyNumbersAndLetter && PrevObj && strUnicode.length > 0 && intStart === oTempObject.GetTextOfElement().length) {
@@ -5520,20 +5521,23 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
             oCurrentObj.RemoveFromContent(oCurrentObj.Content.length - intStart, oCurrentObj.Content.length, false);
             this.CurPos++;
         }
-        
+
         oTempObject.Remove_Content(0, oTempObject.Content.length, false);
 
-        var oLogicDocument = this.GetLogicDocument()
-        var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+		if (oA.isOneSymbol) {
+			oTempObject.Add_Text(strUnicode)
+		} else {
+			var oLogicDocument = this.GetLogicDocument()
+			var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+	
+			if (nInputType ===  Asc.c_oAscMathInputType.Unicode) {
+				AscMath.CUnicodeConverter(strUnicode, oTempObject);
+			}
+			else {
+				AscMath.ConvertLaTeXToTokensList(strUnicode, oTempObject);
+			}
+		}
 
-        if (nInputType ===  Asc.c_oAscMathInputType.Unicode) {
-            AscMath.CUnicodeConverter(strUnicode, oTempObject);
-        }
-        else {
-            AscMath.ConvertLaTeXToTokensList(strUnicode, oTempObject);
-        }
-        
-        
         for (let i = 0; i < oTempObject.Content.length; i++) {
             this.Add_ToContent(this.CurPos, oTempObject.Content[i].Copy(false), false);
         }

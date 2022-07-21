@@ -2526,9 +2526,23 @@
 			}
 		}
 
+		let isOneSymbol = false;
+
+		for (let i = wordAutoCorrection.length - 1; i >= 0; i--) {
+			let autoCorrectRule = wordAutoCorrection[i];
+
+			if (typeof autoCorrectRule[0] !== "function" && autoCorrectRule[0] === strWord) {
+				strWord = autoCorrectRule[1];
+				intStart = autoCorrectRule[0].length;
+				isOneSymbol = true;
+				break;
+			}
+		}
+
 		return {
 			len: intStart + 1,
-			str: strWord
+			str: strWord,
+			isOneSymbol: isOneSymbol,
 		};
 	}
 
