@@ -459,7 +459,7 @@ CDocumentContent.prototype.Is_PointInFlowTable = function(X, Y, PageAbs)
 };
 CDocumentContent.prototype.Get_Numbering = function()
 {
-	return this.Get_Numbering();
+	return this.GetNumbering();
 };
 CDocumentContent.prototype.GetNumbering = function()
 {
