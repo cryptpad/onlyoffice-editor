@@ -1283,7 +1283,8 @@ ParaMath.prototype.Add = function(Item)
         this.bFastRecalculate = oContent.bOneLine == false; // многострочный контент => можно осуществлять быстрый пересчет
 
         // Пробуем произвести автозамену
-        oContent.Process_AutoCorrect(NewElement);
+        //oContent.Process_AutoCorrect(NewElement);
+        oContent.New_AutoCorrect(NewElement);
     }
 
     // Корректируем данный контент

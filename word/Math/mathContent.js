@@ -5459,6 +5459,87 @@ CMathContent.prototype.private_IsMenuPropsForContent = function(Action)
 
     return bDecreaseArgSize || bIncreaseArgSize || bInsertForcedBreak || bDeleteForcedBreak;
 };
+
+CMathContent.prototype.New_AutoCorrect = function (oElement) {
+    if (oElement.value !== 32) {
+        return
+    }
+
+    this.Correct_ContentCurPos()
+    //получаем копию для обработки
+    var oCurrentObj = this.Content[this.CurPos];
+
+    if (oCurrentObj.Type !== 49 || oCurrentObj.Content[0].value === 32) {
+        return
+    }
+
+    var CursorPos = oCurrentObj.State.ContentPos;
+    var oTempObject = new CMathContent();
+
+    //выделяем все после веделенного контента в отдельный ран
+    if (CursorPos < oCurrentObj.Content.length) {
+        var oNewRun = oCurrentObj.Split_Run(CursorPos);
+        this.Add_ToContent(this.CurPos + 1, oNewRun);
+    }
+
+    //добавляем выделенный элемент для конвертации
+    oTempObject.Add_ToContent(0, oCurrentObj.Copy(false));
+
+    var oOne = this.Content[this.CurPos - 1];
+    var PrevObj;
+
+    if (this.CurPos > 0 && oOne.Content.length > 0 && (oCurrentObj.Type !== oOne.Type || oCurrentObj.Type === oOne.Type && oCurrentObj.Type === 49)) {
+        PrevObj = oOne.GetTextOfElement();
+    }
+
+    //корректируем что будем конвертировать
+    let oA;
+    var strUnicode;
+    let intStart;
+
+    oA = AscMath.GetTextForAutoCorrection(oTempObject);
+    intStart= oA.len;
+
+    if (!PrevObj || intStart !== oTempObject.GetTextOfElement().length) {
+        strUnicode = oA.str;
+    } else {
+        strUnicode = oTempObject.GetTextOfElement()
+    }
+  
+
+    let isOnlyNumbersAndLetter = /^[A-Za-z0-9 ]+/.test(strUnicode);
+    if (!isOnlyNumbersAndLetter && PrevObj && strUnicode.length > 0 && intStart === oTempObject.GetTextOfElement().length) {
+        strUnicode = PrevObj + "" + strUnicode;
+    }
+
+    if (strUnicode.length > 0) {
+        //удялем лишнее
+        if (PrevObj && intStart === oTempObject.GetTextOfElement().length && !isOnlyNumbersAndLetter) {
+            this.Remove_FromContent(this.CurPos - 1, 2)
+        } else {
+            oCurrentObj.RemoveFromContent(oCurrentObj.Content.length - intStart, oCurrentObj.Content.length, false);
+            this.CurPos++;
+        }
+        
+        oTempObject.Remove_Content(0, oTempObject.Content.length, false);
+
+        var oLogicDocument = this.GetLogicDocument()
+        var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+
+        if (nInputType ===  Asc.c_oAscMathInputType.Unicode) {
+            AscMath.CUnicodeConverter(strUnicode, oTempObject);
+        }
+        else {
+            AscMath.ConvertLaTeXToTokensList(strUnicode, oTempObject);
+        }
+        
+        
+        for (let i = 0; i < oTempObject.Content.length; i++) {
+            this.Add_ToContent(this.CurPos, oTempObject.Content[i].Copy(false), false);
+        }
+    }
+    this.Correct_Content(true);
+};
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     //при закрытии скобки делать автозамену до открывающейся скобки (добавить)
     var bNeedAutoCorrect = this.private_NeedAutoCorrect(ActionElement);

@@ -2453,6 +2453,85 @@
 		return oState.oLookahead;
 	}
 
+	function GetTextForAutoCorrection(oContent) {
+		let oElement;
+		let strWord = "";
+		let intStart = 0;
+		let oTokenizer = new Tokenizer();
+
+		oTokenizer.Init(oContent.GetTextOfElement().trim().split("").reverse().join(""));
+
+		const ProceedBracketsBlock = function() {
+			let str = oElement.data;
+			intStart++;
+			let isEnd = false;
+
+			while (oTokenizer.IsHasMoreTokens() && !isEnd) {
+				GetNext();
+
+				if (oElement.class === 24 || oElement.class === 25) { //закрывающая скобка (так как читаем справа на лево, то обрабатывается как открывающая)
+					str += ProceedBracketsBlock();
+					intStart++;
+				} else if (oElement.class === 23 || oElement.class === 25) { //открывающая скобка (закрывает)
+					str += oElement.data;
+					isEnd = true;
+					intStart++;
+				} else {
+					str += oElement.data;
+					intStart++;
+				}
+			}
+			return str;
+		}
+		const GetNext = function() {
+			oElement = oTokenizer.GetNextToken();
+		}
+		const WriteNow = function() {
+			strWord += oElement.data;
+			intStart++;
+		}
+
+		for (let i = oContent.Content.length; i >= 0 && oTokenizer.IsHasMoreTokens(); i++) {
+			GetNext();
+
+			if (oElement.class === 24 || oElement.class === 25) {
+				strWord += ProceedBracketsBlock();
+			}
+			else if (oElement.class === 23 || oElement.class === 25) {
+				WriteNow()
+			}
+			else if (oElement.class === 5) {
+				//strWord += oElement.data;
+				//intStart--;
+				break;
+			} else {
+				WriteNow()
+			}
+		}
+
+		strWord = strWord.split("").reverse().join("").trim();
+
+		if (strWord.includes("\\")) {
+			let arrOfStringBlocks = strWord.split("\\");
+			for (let i = 0; i < arrOfStringBlocks.length; i++) {
+				if (arrOfStringBlocks[i] === "") {
+					arrOfStringBlocks.splice(i, 1);
+				}
+			}
+			if (arrOfStringBlocks.length > 1) {
+				let lastitem = arrOfStringBlocks[arrOfStringBlocks.length - 1];
+				let intLength = lastitem.length;
+				intStart -= intLength;
+				strWord = "\\" + lastitem;
+			}
+		}
+
+		return {
+			len: intStart + 1,
+			str: strWord
+		};
+	}
+
 	function GetFixedCharCodeAt(str) {
 		let code = str.charCodeAt(0);
 		let hi, low;
@@ -2482,5 +2561,6 @@
 	window["AscMath"].functionNames = functionNames;
 	window["AscMath"].GetTypeFont = GetTypeFont;
 	window["AscMath"].GetMathFontChar = GetMathFontChar;
+	window["AscMath"].GetTextForAutoCorrection = GetTextForAutoCorrection;
 
 })(window);
