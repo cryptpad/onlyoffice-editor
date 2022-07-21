@@ -1351,12 +1351,12 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             }
             return;
         }
+        let _bounds, i;
+        DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
         if(bClipBySlide) {
             graphics.SaveGrState();
             graphics.AddClipRect(0, 0, this.Width, this.Height);
         }
-        let _bounds, i;
-        DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
         if(this.needMasterSpDraw()) {
             if (bCheckBounds) {
                 _bounds =  this.Layout.Master.bounds;
