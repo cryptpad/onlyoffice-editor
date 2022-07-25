@@ -19048,19 +19048,20 @@ CDocument.prototype.controller_MoveCursorLeft = function(AddToSelect, Word)
 	{
 		if (true === AddToSelect)
 		{
-			if (false === this.Content[this.Selection.EndPos].MoveCursorLeft(true, Word))
+			if (!this.Content[this.Selection.EndPos].MoveCursorLeft(true, Word)
+				&& 0 !== this.Selection.EndPos)
 			{
-				if (0 !== this.Selection.EndPos)
-				{
-					this.Selection.EndPos--;
-					this.CurPos.ContentPos = this.Selection.EndPos;
+				if (this.Selection.EndPos > this.Selection.StartPos)
+					this.Content[this.Selection.EndPos].RemoveSelection();
 
-					var Item = this.Content[this.Selection.EndPos];
-					if (this.Selection.StartPos <= this.Selection.EndPos)
-						Item.MoveCursorLeft(true, Word);
-					else
-						Item.MoveCursorLeftWithSelectionFromEnd(Word);
-				}
+				this.Selection.EndPos--;
+				this.CurPos.ContentPos = this.Selection.EndPos;
+
+				var Item = this.Content[this.Selection.EndPos];
+				if (this.Selection.StartPos <= this.Selection.EndPos)
+					Item.MoveCursorLeft(true, Word);
+				else
+					Item.MoveCursorLeftWithSelectionFromEnd(Word);
 			}
 
 			// Проверяем не обнулился ли селект в последнем элементе. Такое могло быть, если была
@@ -19151,19 +19152,20 @@ CDocument.prototype.controller_MoveCursorRight = function(AddToSelect, Word)
 	{
 		if (true === AddToSelect)
 		{
-			if (false === this.Content[this.Selection.EndPos].MoveCursorRight(true, Word))
+			if (!this.Content[this.Selection.EndPos].MoveCursorRight(true, Word)
+				&& this.Content.length - 1 !== this.Selection.EndPos)
 			{
-				if (this.Content.length - 1 !== this.Selection.EndPos)
-				{
-					this.Selection.EndPos++;
-					this.CurPos.ContentPos = this.Selection.EndPos;
+				if (this.Selection.EndPos < this.Selection.StartPos)
+					this.Content[this.Selection.EndPos].RemoveSelection();
 
-					var Item = this.Content[this.Selection.EndPos];
-					if (this.Selection.StartPos >= this.Selection.EndPos)
-						Item.MoveCursorRight(true, Word);
-					else
-						Item.MoveCursorRightWithSelectionFromStart(Word);
-				}
+				this.Selection.EndPos++;
+				this.CurPos.ContentPos = this.Selection.EndPos;
+
+				var Item = this.Content[this.Selection.EndPos];
+				if (this.Selection.StartPos >= this.Selection.EndPos)
+					Item.MoveCursorRight(true, Word);
+				else
+					Item.MoveCursorRightWithSelectionFromStart(Word);
 			}
 
 			// Проверяем не обнулился ли селект в последнем параграфе. Такое могло быть, если была
