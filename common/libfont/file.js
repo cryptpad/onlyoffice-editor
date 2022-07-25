@@ -1606,6 +1606,11 @@
 			return this.m_pFaceInfo.style_name;
 		};
 
+		this.GetFamilyName = function()
+		{
+			return this.m_pFaceInfo.family_name;
+		};
+
 		this.UpdateStyles = function(bBold, bItalic)
 		{
 			var sStyle = this.GetStyleName();
