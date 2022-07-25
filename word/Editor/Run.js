@@ -5491,22 +5491,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             }
             case para_End:
             {
-                var SectPr = PRSA.Paragraph.Get_SectionPr();
-                if (!PRSA.Paragraph.LogicDocument || PRSA.Paragraph.LogicDocument !== PRSA.Paragraph.Parent || !PRSA.Paragraph.bFromDocument)
-                    SectPr = undefined;
-
-				if (undefined !== SectPr)
-				{
-					// Нас интересует тип следующей секции
-					var LogicDocument = PRSA.Paragraph.LogicDocument;
-					var NextSectPr    = LogicDocument.SectionsInfo.Get_SectPr(PRSA.Paragraph.Index + 1).SectPr;
-					Item.UpdateSectionEnd(NextSectPr.Type, PRSA.XEnd - PRSA.X, LogicDocument);
-				}
-				else
-				{
-					Item.ClearSectionEnd();
-				}
-
+				Item.CheckMark(PRSA.Paragraph, PRSA.XEnd - PRSA.X);
                 PRSA.X += Item.GetWidth();
 
                 break;
