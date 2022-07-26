@@ -7040,6 +7040,26 @@ CDocument.prototype.private_SetParagraphNumberingCustomNumbered = function(arrPa
 			oNum.SetLvlByType(nChangeLvl, c_oAscNumberingLevel.LowerRomanDot_Right);
 			break;
 		}
+		case 8:
+		{
+			oNum.SetLvlByType(nChangeLvl, c_oAscNumberingLevel.UpperRussian_Dot_Left);
+			break;
+		}
+		case 9:
+		{
+			oNum.SetLvlByType(nChangeLvl, c_oAscNumberingLevel.UpperRussian_Bracket_Left);
+			break;
+		}
+		case 10:
+		{
+			oNum.SetLvlByType(nChangeLvl, c_oAscNumberingLevel.LowerRussian_Dot_Left);
+			break;
+		}
+		case 11:
+		{
+			oNum.SetLvlByType(nChangeLvl, c_oAscNumberingLevel.LowerRussian_Bracket_Left);
+			break;
+		}
 	}
 
 	if (isCheckPrev)
