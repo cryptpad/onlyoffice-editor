@@ -89,5 +89,3 @@ $(function () {
 		assert.deepEqual(p2.GetPageBounds(0), new AscWord.CDocumentBounds(0, test_FontHeight + 35, pageWidth, test_FontHeight * 2 + 45), "Check page bounds of the second paragraph");
 	});
 });
-
-
