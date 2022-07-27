@@ -2213,6 +2213,8 @@ CDocument.prototype.On_EndLoad                     = function()
     // Обновляем информацию о секциях
     this.UpdateAllSectionsInfo();
 
+	this.SectionsInfo.RemoveEmptyHdrFtrs();
+
     // Проверяем последний параграф на наличие секции
     this.Check_SectionLastParagraph();
 
@@ -26986,6 +26988,14 @@ CDocumentSectionsInfo.prototype.RestartSpellCheck = function()
 
 		if (null != SectPr.FooterDefault)
 			SectPr.FooterDefault.RestartSpellCheck();
+	}
+};
+CDocumentSectionsInfo.prototype.RemoveEmptyHdrFtrs = function()
+{
+	for (let nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
+	{
+		let oSectPr = this.Elements[nIndex].SectPr;
+		oSectPr.RemoveEmptyHdrFtrs();
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------
