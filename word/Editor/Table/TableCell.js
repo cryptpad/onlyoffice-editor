@@ -125,6 +125,11 @@ CTableCell.prototype =
         return this.Id;
     },
 
+	GetId : function()
+	{
+		return this.Id;
+	},
+
     Get_Theme : function()
     {
         return this.Row.Table.Get_Theme();
@@ -560,10 +565,10 @@ CTableCell.prototype =
 
 	IsUseInDocument : function(Id)
     {
-		if ( null != this.Row )
-            return this.Row.IsUseInDocument(this.GetId());
+		if (!this.Row)
+			return false;
 
-        return false;
+		return this.Row.IsUseInDocument(this.GetId());
     },
 
     Get_PageContentStartPos : function(PageNum)
