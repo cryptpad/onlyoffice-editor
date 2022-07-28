@@ -26008,7 +26008,7 @@ CDocument.prototype.ReplaceSearchElement = function(NewStr, bAll, Id, bInterface
 		if (this.StartSelectionLockCheck())
 		{
 			this.ProcessSelectionLockCheck(AscCommon.changestype_Paragraph_Content);
-			if (!this.EndSelectionLockCheck())
+			if (!this.EndSelectionLockCheck(true))
 				arrReplaceId.push(Id);
 		}
 	}
