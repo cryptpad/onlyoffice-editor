@@ -8591,7 +8591,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		}
 	}
 
-	if (this.Type == para_Math_Run)
+	if (this.Type === para_Math_Run)
 	{
 		if (undefined === this.Parent || null === this.Parent)
 		{
@@ -8683,6 +8683,12 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		TextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
 	}
 
+	if(this.Paragraph.bFromDocument === false)
+	{
+		TextPr.BoldCS     = TextPr.Bold;
+		TextPr.ItalicCS   = TextPr.Italic;
+		TextPr.FontSizeCS = TextPr.FontSize;
+	}
 	TextPr.CheckFontScale();
 
 	// Для совместимости со старыми версиями запишем FontFamily

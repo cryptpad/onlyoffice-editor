@@ -843,6 +843,7 @@
 					nSz = ((nSz * 2) + 0.5) >> 0;
 					nSz /= 2;
 					this.FontSize = nSz;
+					this.FontSizeCS = nSz;
 					break;
 				}
 				case "u": {

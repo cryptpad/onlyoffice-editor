@@ -8581,6 +8581,7 @@ function BinaryPPTYLoader()
                     _size = ((_size * 2) + 0.5) >> 0;
                     _size /= 2;
                     rPr.FontSize = _size;
+                    rPr.FontSizeCS = _size;
                     break;
                 }
                 case 18:
