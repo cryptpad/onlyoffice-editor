@@ -204,7 +204,7 @@ ParaField.prototype.IsUseInDocument = function()
 {
 	return (this.Paragraph && true === this.Paragraph.IsUseInDocument() && true === this.IsUseInDocument() ? true : false);
 };
-ParaField.prototype.Is_UseInParagraph = function()
+ParaField.prototype.IsUseInParagraph = function()
 {
 	if (!this.Paragraph)
 		return false;

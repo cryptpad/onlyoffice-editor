@@ -11955,7 +11955,7 @@ ParaRun.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
 {
     Classes.push(this);
 };
-ParaRun.prototype.Is_UseInParagraph = function()
+ParaRun.prototype.IsUseInParagraph = function()
 {
     if (!this.Paragraph)
         return false;
@@ -12068,7 +12068,7 @@ ParaRun.prototype.GetFootnotesList = function(oEngine)
 };
 ParaRun.prototype.IsUseInDocument = function()
 {
-	return (this.Paragraph && true === this.Paragraph.IsUseInDocument() && true === this.IsUseInDocument() ? true : false);
+	return (this.Paragraph && true === this.Paragraph.IsUseInDocument() && true === this.IsUseInParagraph() ? true : false);
 };
 ParaRun.prototype.GetParaEnd = function()
 {
