@@ -200,21 +200,6 @@ ParaField.prototype.Draw_HighLights = function(PDSH)
         PDSH.MMFields.Add(Y0, Y1, X0, X1, 0, 0, 0, 0  );
     }
 };
-ParaField.prototype.IsUseInDocument = function()
-{
-	return (this.Paragraph && true === this.Paragraph.IsUseInDocument() && true === this.IsUseInDocument() ? true : false);
-};
-ParaField.prototype.IsUseInParagraph = function()
-{
-	if (!this.Paragraph)
-		return false;
-
-	var ContentPos = this.Paragraph.Get_PosByElement(this);
-	if (!ContentPos)
-		return false;
-
-	return true;
-};
 ParaField.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, UseContentPos)
 {
 	if (false === UseContentPos && this.Content.length > 0)

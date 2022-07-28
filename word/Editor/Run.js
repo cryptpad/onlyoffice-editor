@@ -11955,17 +11955,6 @@ ParaRun.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
 {
     Classes.push(this);
 };
-ParaRun.prototype.IsUseInParagraph = function()
-{
-    if (!this.Paragraph)
-        return false;
-
-    var ContentPos = this.Paragraph.Get_PosByElement(this);
-    if (!ContentPos)
-        return false;
-
-    return true;
-};
 /**
  * Получаем позицию данного рана в родительском параграфе
  * @param nInObjectPos {?number}
@@ -12065,10 +12054,6 @@ ParaRun.prototype.GetFootnotesList = function(oEngine)
 			oEngine.Add(oItem.GetFootnote(), oItem, this);
 		}
 	}
-};
-ParaRun.prototype.IsUseInDocument = function()
-{
-	return (this.Paragraph && true === this.Paragraph.IsUseInDocument() && true === this.IsUseInParagraph() ? true : false);
 };
 ParaRun.prototype.GetParaEnd = function()
 {
@@ -13658,7 +13643,7 @@ CRunWithPosition.prototype.SetDocumentPositionHere = function()
 };
 
 function CanUpdatePosition(Para, Run) {
-    return (Para && true === Para.IsUseInDocument() && true === Run.IsUseInDocument());
+    return (Para && true === Para.IsUseInDocument() && true === Run.IsUseInParagraph());
 }
 
 //--------------------------------------------------------export----------------------------------------------------

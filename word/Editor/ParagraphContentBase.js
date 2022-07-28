@@ -1041,23 +1041,15 @@ CParagraphContentWithContentBase.prototype.private_UpdateShapeText = function()
 	if (this.Paragraph)
 		this.Paragraph.RecalcInfo.NeedShapeText();
 };
-CParagraphContentWithContentBase.prototype.IsUseInDocument = function(Id)
+CParagraphContentWithContentBase.prototype.IsUseInDocument = function()
 {
-    if(this.Paragraph)
-    {
-        for(var i = 0; i < this.Content.length; ++i)
-        {
-            if(this.Content[i].Get_Id && this.Content[i].Get_Id() === Id)
-            {
-                break;
-            }
-        }
-        if(i < this.Content.length)
-        {
-            return this.Paragraph.IsUseInDocument(this.Get_Id());
-        }
-    }
-    return false;
+	return (this.Paragraph
+		&& this.Paragraph.IsUseInDocument()
+		&& this.IsUseInParagraph());
+};
+CParagraphContentWithContentBase.prototype.IsUseInParagraph = function()
+{
+	return (this.Paragraph && this.Paragraph.Get_PosByElement(this));
 };
 CParagraphContentWithContentBase.prototype.SelectThisElement = function(nDirection, isUseInnerSelection)
 {
@@ -4266,22 +4258,6 @@ CParagraphContentWithParagraphLikeContent.prototype.GetAllContentControls = func
 	}
 
 	return arrContentControls;
-};
-CParagraphContentWithParagraphLikeContent.prototype.IsUseInDocument = function()
-{
-	return (this.Paragraph && true === this.Paragraph.IsUseInDocument() && true === this.IsUseInDocument() ? true : false);
-};
-
-CParagraphContentWithParagraphLikeContent.prototype.IsUseInParagraph = function()
-{
-	if (!this.Paragraph)
-		return false;
-
-	var ContentPos = this.Paragraph.Get_PosByElement(this);
-	if (!ContentPos)
-		return false;
-
-	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContentControls = function(arrContentControls)
 {
