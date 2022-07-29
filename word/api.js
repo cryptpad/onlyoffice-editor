@@ -1433,6 +1433,7 @@ background-repeat: no-repeat;\
 			_t.sendEvent("asc_onCountPages", pagesCount);
 		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onZoom", function(value, type){
+			_t.WordControl.m_nZoomValue = (value * 100) >> 0;
 			_t.sendEvent("asc_onZoomChange", (value * 100) >> 0, type);
 		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.open(gObject);
