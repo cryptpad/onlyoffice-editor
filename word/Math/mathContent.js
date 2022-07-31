@@ -5460,21 +5460,47 @@ CMathContent.prototype.private_IsMenuPropsForContent = function(Action)
     return bDecreaseArgSize || bIncreaseArgSize || bInsertForcedBreak || bDeleteForcedBreak;
 };
 
+CMathContent.prototype.MergeParaRuns = function () {
+	if (this.Content.length > 0) {
+
+		for(let i = 0; i < this.Content.length; i++) {
+
+			if (this.Content[i].Type === 49) {
+
+				let CurrentRun = this.Content[i];
+
+				while (this.Content[i+1] && this.Content[i+1].Type === 49) {
+
+					let FutureRun = this.Content[i+1];
+					CurrentRun.ConcatToContent(FutureRun.Content.slice(0, FutureRun.Content.length));
+					this.Remove_Content(i + 1, 1);
+				}
+			}
+		}
+	}
+}
+
 CMathContent.prototype.New_AutoCorrect = function (oElement) {
     if (oElement.value !== 32) {
         return
     }
+	this.Correct_Content(true)
 
-    this.Correct_ContentCurPos()
     //получаем копию для обработки
     var oCurrentObj = this.Content[this.CurPos];
+	var oPrevObject;
 
-    if (oCurrentObj.Type !== 49 || oCurrentObj.Content[0].value === 32) {
-        return
-    }
+	let intCount =0;
+	if (this.CurPos > 0) {
+		oPrevObject = this.Content[this.CurPos - 1];
+	}
+
+	var oLogicDocument = this.GetLogicDocument()
+	var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
 
     var CursorPos = oCurrentObj.State.ContentPos;
-    var oTempObject = new CMathContent();
+
+    var oTempObject = new CMathContent(); //контент в который пишем, что нужно конвертнуть
 
     //выделяем все после веделенного контента в отдельный ран
     if (CursorPos < oCurrentObj.Content.length) {
@@ -5482,44 +5508,80 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
         this.Add_ToContent(this.CurPos + 1, oNewRun);
     }
 
-    //добавляем выделенный элемент для конвертации
     oTempObject.Add_ToContent(0, oCurrentObj.Copy(false));
+	intCount++;
 
-    var oOne = this.Content[this.CurPos - 1];
-    var PrevObj;
+	var PrevObj;
+	if (oPrevObject) {
 
-    if (this.CurPos > 0 && oOne.Content.length > 0 && (oCurrentObj.Type !== oOne.Type || oCurrentObj.Type === oOne.Type && oCurrentObj.Type === 49)) {
-        PrevObj = oOne.GetTextOfElement();
-    }
+		var oPrev = new CMathContent();
+			oPrev.Add_ToContent(0, oPrevObject.Copy(false));
+			intCount++;
+
+			if (this.CurPos - 2 >= 0) {
+				let oTemp = this.Content[this.CurPos - 2];
+				if (oTemp.Type === 49) {
+					oPrev.Add_ToContent(0, oTemp.Copy(false));
+					intCount++;
+				}
+			}
+
+			if (oPrev.Content.length > 0) {
+				PrevObj = AscMath.GetTextForAutoCorrection(oPrev, nInputType);
+			}
+	}
+
 
     //корректируем что будем конвертировать
     let oA;
     var strUnicode;
     let intStart;
 
-    oA = AscMath.GetTextForAutoCorrection(oTempObject);
-    intStart= oA.len;
+    oA = AscMath.GetTextForAutoCorrection(oTempObject, nInputType); //получили текст для конвертации
 
-	
-	if (!PrevObj || intStart !== oTempObject.GetTextOfElement().length) {
+	//если длина не совпадает значит нужно лишнее вынести в отдельный ран
+	let intAfter = 0; 
+	if (oA.len < oCurrentObj.Content.length) {
+		var bMathRun = oCurrentObj.Type == para_Math_Run;
+		var NewRun = new ParaRun(oCurrentObj.Paragraph, bMathRun);
+
+		//todo history and points, as in splitRun
+		NewRun.ConcatToContent(oCurrentObj.Content.slice(0, oCurrentObj.Content.length - oA.len));
+		oCurrentObj.Remove_FromContent(0, oCurrentObj.Content.length - oA.len, true);
+        this.Add_ToContent(
+			(this.CurPos > 0)
+				? this.CurPos
+				: 0,
+			NewRun
+			);
+
+		intAfter++;
+    }
+
+	if (oA.str !== "") {
+		intStart = oA.len;
+	}
+
+	if (!PrevObj || oA.isOneSymbol || intStart !== oTempObject.GetTextOfElement().length) {
 		strUnicode = oA.str;
 	} else {
-		strUnicode = oTempObject.GetTextOfElement()
+		strUnicode = oTempObject.GetTextOfElement().trim()
 	}
-	
 
-    let isOnlyNumbersAndLetter = /^[A-Za-z0-9 ]+/.test(strUnicode);
-    if (!isOnlyNumbersAndLetter && PrevObj && strUnicode.length > 0 && intStart === oTempObject.GetTextOfElement().length) {
-        strUnicode = PrevObj + "" + strUnicode;
+    if (!oA.isOneSymbol && PrevObj && oA.len <= oCurrentObj.Content.length) {
+        strUnicode = PrevObj.str + "" + strUnicode;
     }
 
     if (strUnicode.length > 0) {
         //удялем лишнее
-        if (PrevObj && intStart === oTempObject.GetTextOfElement().length && !isOnlyNumbersAndLetter) {
-            this.Remove_FromContent(this.CurPos - 1, 2)
+        if (!oA.isOneSymbol && PrevObj && intStart === oTempObject.GetTextOfElement().length) {
+            this.Remove_FromContent(this.CurPos-1, 2);
+			//this.MoveCursorToEndPos(true)
         } else {
-            oCurrentObj.RemoveFromContent(oCurrentObj.Content.length - intStart, oCurrentObj.Content.length, false);
-            this.CurPos++;
+            oCurrentObj.RemoveFromContent(0, oCurrentObj.Content.length, false);
+        	//this.MoveCursorToEndPos(true)
+			if (intCount > 1) {
+			}
         }
 
         oTempObject.Remove_Content(0, oTempObject.Content.length, false);
@@ -5527,10 +5589,8 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 		if (oA.isOneSymbol) {
 			oTempObject.Add_Text(strUnicode)
 		} else {
-			var oLogicDocument = this.GetLogicDocument()
-			var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
-	
-			if (nInputType ===  Asc.c_oAscMathInputType.Unicode) {
+
+			if (nInputType === Asc.c_oAscMathInputType.Unicode) {
 				AscMath.CUnicodeConverter(strUnicode, oTempObject);
 			}
 			else {
@@ -5539,9 +5599,15 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 		}
 
         for (let i = 0; i < oTempObject.Content.length; i++) {
-            this.Add_ToContent(this.CurPos, oTempObject.Content[i].Copy(false), false);
+			let intNow = this.CurPos - 1 + intAfter;
+            this.Add_ToContent(
+				intNow < 0 ? 0 : intNow,
+				oTempObject.Content[i].Copy(false),
+				false
+			);
         }
     }
+	this.MergeParaRuns()
     this.Correct_Content(true);
 };
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
