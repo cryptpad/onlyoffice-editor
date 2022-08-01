@@ -2289,43 +2289,28 @@ function CEditorPage(api)
 
 		this.TransformDivUseAnimation(this.ReaderModeDivWrapper, 0);
 
-		var __hasTouch = 'ontouchstart' in window;
+		var hasPointer = AscCommon.AscBrowser.isIE ? ((!('ontouchstart' in window)) &&  (!!(window.PointerEvent || window.MSPointerEvent))) : false;
+		if (AscCommon.AscBrowser.isAppleDevices && AscCommon.AscBrowser.iosVersion >= 13)
+			hasPointer = true;
 
-		if (__hasTouch)
-		{
-			this.ReaderModeDivWrapper["ontouchcancel"] = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchEnd(e);
-			}
+		var eventNames = hasPointer ? ["onpointerdown", "onpointermove", "onpointerup", "onpointercancel"] : ["ontouchstart", "ontouchmove", "ontouchend", "ontouchcancel"];
 
-			this.ReaderModeDivWrapper["ontouchstart"] = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchStart(e);
-			}
-			this.ReaderModeDivWrapper["ontouchmove"]  = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchMove(e);
-			}
-			this.ReaderModeDivWrapper["ontouchend"]   = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchEnd(e);
-			}
-		}
-		else
+		this.ReaderModeDivWrapper[eventNames[0]] = function(e)
 		{
-			this.ReaderModeDivWrapper["onmousedown"] = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchStart(e);
-			}
-			this.ReaderModeDivWrapper["onmousemove"] = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchMove(e);
-			}
-			this.ReaderModeDivWrapper["onmouseup"]   = function(e)
-			{
-				return oThis.ReaderTouchManager.onTouchEnd(e);
-			}
-		}
+			return oThis.ReaderTouchManager.onTouchStart(e);
+		};
+		this.ReaderModeDivWrapper[eventNames[1]]  = function(e)
+		{
+			return oThis.ReaderTouchManager.onTouchMove(e);
+		};
+		this.ReaderModeDivWrapper[eventNames[2]] = function(e)
+		{
+			return oThis.ReaderTouchManager.onTouchEnd(e);
+		};
+		this.ReaderModeDivWrapper[eventNames[3]] = function(e)
+		{
+			return oThis.ReaderTouchManager.onTouchEnd(e);
+		};
 
 		//this.m_oEditor.HtmlElement.style.display = "none";
 		//this.m_oOverlay.HtmlElement.style.display = "none";
