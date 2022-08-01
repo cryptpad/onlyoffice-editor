@@ -161,6 +161,8 @@ function CEditorPage(api)
 
 	this.MouseDownDocumentCounter = 0;
 
+	this.isNewReaderMode = false;
+
 	this.bIsUseKeyPress = true;
 	this.bIsEventPaste  = false;
 	this.bIsDoublePx    = true;//поддерживает ли браузер нецелые пикселы
@@ -2205,34 +2207,53 @@ function CEditorPage(api)
 			this.EnableReaderMode();
 	};
 
+	this.SetNewMobileMode = function()
+	{
+		if (this.m_oLogicDocument)
+		{
+			const nPageW = 210 / AscCommon.AscBrowser.retinaPixelRatio;
+			const nPageH = 297 / AscCommon.AscBrowser.retinaPixelRatio;
+			const nScale = this.ReaderFontSizes[this.ReaderFontSizeCur] / 16;
+			this.m_oLogicDocument.SetDocumentReadMode(nPageW, nPageH, nScale);
+			return true;
+		}
+		return false;
+	};
+
 	this.IncreaseReaderFontSize = function()
 	{
-		if (null == this.ReaderModeDiv)
-			return;
-
 		if (this.ReaderFontSizeCur >= (this.ReaderFontSizes.length - 1))
 		{
 			this.ReaderFontSizeCur = this.ReaderFontSizes.length - 1;
 			return;
 		}
 		this.ReaderFontSizeCur++;
-		this.ReaderModeDiv.style.fontSize = this.ReaderFontSizes[this.ReaderFontSizeCur] + "pt";
 
+		if (this.isNewReaderMode && this.SetNewMobileMode())
+			return;
+
+		if (null == this.ReaderModeDiv)
+			return;
+
+		this.ReaderModeDiv.style.fontSize = this.ReaderFontSizes[this.ReaderFontSizeCur] + "pt";
 		this.ReaderTouchManager.ChangeFontSize();
 	};
 	this.DecreaseReaderFontSize = function()
 	{
-		if (null == this.ReaderModeDiv)
-			return;
-
 		if (this.ReaderFontSizeCur <= 0)
 		{
 			this.ReaderFontSizeCur = 0;
 			return;
 		}
 		this.ReaderFontSizeCur--;
-		this.ReaderModeDiv.style.fontSize = this.ReaderFontSizes[this.ReaderFontSizeCur] + "pt";
 
+		if (this.isNewReaderMode && this.SetNewMobileMode())
+			return;
+
+		if (null == this.ReaderModeDiv)
+			return;
+
+		this.ReaderModeDiv.style.fontSize = this.ReaderFontSizes[this.ReaderFontSizeCur] + "pt";
 		this.ReaderTouchManager.ChangeFontSize();
 	};
 
@@ -2252,6 +2273,12 @@ function CEditorPage(api)
 
 	this.EnableReaderMode = function()
 	{
+		if (this.isNewReaderMode && this.SetNewMobileMode())
+		{
+			this.ReaderModeCurrent = 1;
+			return;
+		}
+
 		this.ReaderModeCurrent = 1;
 		if (this.ReaderTouchManager)
 		{
@@ -2318,6 +2345,13 @@ function CEditorPage(api)
 
 	this.DisableReaderMode = function()
 	{
+		if (this.isNewReaderMode && this.m_oLogicDocument)
+		{
+			this.m_oLogicDocument.SetDocumentPrintMode();
+			this.ReaderModeCurrent = 0;
+			return;
+		}
+
 		this.ReaderModeCurrent = 0;
 		if (null == this.ReaderModeDivWrapper)
 			return;
