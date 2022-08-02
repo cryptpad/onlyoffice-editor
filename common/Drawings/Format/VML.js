@@ -9298,9 +9298,9 @@
 				let nFontSize = 11;
 				let sText = "";
 				let oTextFill, oTextStroke;
+				var oBodyPr = new AscFormat.CBodyPr();
 				if(bIsWordArt) {
 					let eTextShapeType;
-					var oBodyPr = new AscFormat.CBodyPr();
 					let oTextPath = this.getTextPath();
 					switch (nType)
 					{
