@@ -2402,6 +2402,15 @@
 				}
 			}
 
+			if (isNotChange) {
+				return {
+					class: tokenClass,
+					data: tokenValue,
+					convert: autoCorrectRule[1],
+					index: i,
+				}
+			}
+
 			return {
 				class: tokenClass,
 				data: tokenValue,
@@ -2458,13 +2467,6 @@
 	}
 
 	function GetTextForAutoCorrection(oContent, isUnicode) {
-		let oTokenizer = new Tokenizer();
-		oTokenizer.Init(
-			oContent.GetTextOfElement()
-			.trim()
-			.split("")
-			.join("")
-		);
 		function ProceedAutoCorection() {
 			this.str = [];
 			this.len = [];
@@ -2472,9 +2474,10 @@
 
 			this.arrOutputStr = [];
 			this.intOutputCount = 0;
-			this.isOperator = false;
 
+			this.intAllContentLen = 0;
 
+			this.isOneWord = false;
 		}
 		ProceedAutoCorection.prototype.Init = function(Parent) {
 			this.Parent = Parent;
@@ -2485,15 +2488,9 @@
 			}
 			return false;
 		}
-		ProceedAutoCorection.prototype.pushStr = function(str, len) {
-			if (this.str !== " ") {
-				
+		ProceedAutoCorection.prototype.pushStr = function(str) {
+			if (this.str !== undefined) {
 				this.str.push(str);
-
-				(len !== undefined)
-					? this.len.push(len)
-					: this.len.push(1);
-
 			}
 		}
 		ProceedAutoCorection.prototype.setInnerLevel = function() {
@@ -2503,46 +2500,60 @@
 
 			return innerOne;
 		}
-		ProceedAutoCorection.prototype.GetText = function(isWithoutOperators) {
-			let oTextOfLevel = this.GetTextOfLevel(isWithoutOperators);
+		ProceedAutoCorection.prototype.GetLength = function() {
+			let intLen = 0;
+			for (let i = 0; i < this.str.length; i++) {
+				if (this.str[i] instanceof ProceedAutoCorection) {
+					intLen += this.str[i].GetLength();
+				} else {
+					intLen += this.str[i].data.length;
+				}
+			}
+			return intLen;
+		}
+		ProceedAutoCorection.prototype.GetText = function() {
+			this.intAllContentLen = this.GetLength();
+
+			this.ProcessingOperators();
+			this.ProcessingAutoCorrectWord();
+
+			let oTextOfLevel = this.GetTextOfLevel();
 			this.arrOutputStr = oTextOfLevel.str;
-			this.intOutputCount = oTextOfLevel.str.length;
-			this.isOperator = oTextOfLevel.isOperator;
+			this.intOutputCount = oTextOfLevel.len;
 
 			return {
 				str: oTextOfLevel.str,
-				len: oTextOfLevel.str.length,
-				isOperator: oTextOfLevel.isOperator,
+				len: oTextOfLevel.len,
+				isOneWord: this.isOneWord,
 			}
 		}
-		ProceedAutoCorection.prototype.GetTextOfLevel = function(isWithoutOperators) {
+		ProceedAutoCorection.prototype.GetTextOfLevel = function() {
 			let strOutput = [];
-			let isOperator = false;
+			let intLen = 0;
 
 			for (let i = 0; i < this.str.length; i++) {
 
-				if (typeof this.str[i] !== "object") {
-					strOutput.push(this.str[i]);
+				let oElement = this.str[i];
+
+				if (oElement instanceof ProceedAutoCorection) {
+					let Content = oElement.GetTextOfLevel();
+					strOutput = strOutput.concat(Content.str);
+					intLen += Content.len;
 				}
-
-				else if (this.str[i] instanceof ProceedAutoCorection) {
-					let innerContent = this.str[i].GetTextOfLevel();
-
-					strOutput = strOutput.concat(innerContent.str);
-					isOperator = innerContent.isOperator;
-				}
-
-				else if (this.Parent === null && isWithoutOperators) {
-					return {str: strOutput, isOperator: true};
-				} else {
-					strOutput.push(this.str[i].data);
+				else {
+					strOutput.push(
+						oElement.convert
+							? oElement.convert
+							: oElement.data,
+					)
+					
+					intLen += oElement.data.length;
 				}
 			}
-
-			return {str: strOutput, isOperator: isOperator};
+			return {str: strOutput, len: intLen};
 		}
 		ProceedAutoCorection.prototype.GetCorrectionWord = function() {
-			let indexOfSlashes = arrOutputStr.lastIndexOf("\\");
+			let indexOfSlashes = this.arrOutputStr.lastIndexOf("\\");
 			let arrSearchedArray = [];
 
 			if (-1 !== indexOfSlashes) {
@@ -2563,7 +2574,7 @@
 				if (isOnlyLettersAndNumbers) {
 
 					let strAutoCorrection = arrSearchedArray.join("");
-					let NewAutoCorrection = this.FindInAutoCorrectionRules(strAutoCorrection);
+					let NewAutoCorrection = this.FindInAutoCorrectionRules(str[this.str.length - 1]);
 
 					if (NewAutoCorrection) {
 						strAutoCorrection = NewAutoCorrection;
@@ -2598,73 +2609,147 @@
 			}
 			return true;
 		}
+		ProceedAutoCorection.prototype.ProcessingOperators = function() {
+			for (let i = this.str.length - 1; i >= 0; i--) {
+				if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
+					this.str.splice(0, i + 1);
+					break;
+				}
+			}
+		}
+		ProceedAutoCorection.prototype.ProcessingAutoCorrectWord = function() {
+			for (let i = this.str.length - 1; i >= 0; i--) {
+				if (this.str[i].convert && this.str[i].data !== this.str[i].convert) {
+					this.str.splice(0, i);
+					this.isOneWord = true;
+					break;
+				}
+			}
+		}
 
-		let oRootContext = new ProceedAutoCorection();
-		let Context = oRootContext;
-		let oElement;
+		function ProceedContent(oContent) {
+			this.Content = oContent;
+			
+			this.oRootContext = new ProceedAutoCorection();
+			this.Context = this.oRootContext;
 
-		const ProceedBracketsBlock = function() {
-			Context = Context.setInnerLevel();
+			this.oElement;
+			this.oTokenizer = new Tokenizer();
 
-			WriteNow();
+			this.oTokenizer.Init(
+				oContent.GetTextOfElement()
+				.trim()
+				.split("")
+				.join("")
+			);
+		}
+		ProceedContent.prototype.ProceedBracketsBlock = function() {
+			this.Context = this.Context.setInnerLevel();
+			this.WriteNow();
+
 			let isEnd = false;
 			
-			while (oTokenizer.IsHasMoreTokens() && !isEnd) {
-				GetNext();
+			while (this.oTokenizer.IsHasMoreTokens() && !isEnd) {
+
+				this.GetNext();
 	
-				if (oElement.class === 23 || oElement.class === 25) { //открывающая скобка (закрывает)
-					WriteNow(ProceedBracketsBlock());
-				} else if (oElement.class === 24 || oElement.class === 25) { //закрывающая скобка (так как читаем справа на лево, то обрабатывается как открывающая)
-					WriteNow();
+				if (this.oElement.class === 23 || this.oElement.class === 25) {
+					this.WriteNow(this.ProceedBracketsBlock());
+				}
+				else if (this.oElement.class === 24 || this.oElement.class === 25) {
+					this.WriteNow();
 					isEnd = true;
-				} else {
-					WriteNow();
+				}
+				else {
+					this.WriteNow();
 				}
 			}
 
-			Context = Context.GetParent();
-			oElement = undefined;
+			this.Context = this.Context.GetParent();
+			this.oElement = undefined;
 		}
-		const GetNext = function() {
-			oElement = oTokenizer.GetNextToken(true);
+		ProceedContent.prototype.GetNext = function() {
+			this.oElement = this.oTokenizer.GetNextToken(true);
 		}
-		const WriteNow = function(str) {
+		ProceedContent.prototype.WriteNow = function(str) {
 			if (str) {
-				Context.pushStr(str);
+				this.Context.pushStr(str);
 			}
-			else if (oElement) {
-				if (oElement.class === 5)
-					Context.pushStr({data: oElement.data}, oElement.data.length);
-				else
-					Context.pushStr(oElement.data, oElement.data.length);
+			else if (this.oElement) {
+				this.Context.pushStr(this.oElement);
+			}
+		}
+		ProceedContent.prototype.Proceed = function() {
+			for (let i = this.Content.Content.length; i >= 0 && this.oTokenizer.IsHasMoreTokens(); i++) {
+				
+				this.GetNext();
+	
+				if ((this.oElement.class === 23 || this.oElement.class === 25) && !(isUnicode === 1 && oElement.data === "{")) {
+					this.ProceedBracketsBlock()
+				}
+				else if ((this.oElement.class === 24 || this.oElement.class === 25) && !(isUnicode === 1 && oElement.data === "}")) {
+					this.WriteNow()
+				}
+				else {
+					this.WriteNow()
+				}
 			}
 		}
 
-		for (let i = oContent.Content.length; i >= 0 && oTokenizer.IsHasMoreTokens(); i++) {
-			GetNext();
+		let Con = [];
+		let arrDelCount = [] // true, удаляем полностью, 2 до какаого символа срезать
+		for (let i = 0; i < oContent.length; i++) {
+			if (undefined !== oContent[i] && oContent[i].Content.length > 0) {
 
-			if ((oElement.class === 23 || oElement.class === 25) && !(isUnicode === 1 && oElement.data === "{")) {
-				ProceedBracketsBlock()
-			}
-			else if ((oElement.class === 24 || oElement.class === 25) && !(isUnicode === 1 && oElement.data === "}")) {
-				WriteNow()
-			}
-			
-			else {
-				WriteNow()
+				if (i === 0) {
+					let oTemp = new ProceedContent(oContent[i]);
+					oTemp.Proceed();
+	
+					let oStrForConvert = oTemp.oRootContext.GetText();
+					let intLen = oTemp.oRootContext.intAllContentLen;
+
+					if (oStrForConvert.len === intLen) {
+						arrDelCount.push(true);
+					} else {
+						arrDelCount.push(oStrForConvert.len);
+					}
+					Con.push(oStrForConvert);
+				}
+
+				else if (i === 1 && arrDelCount[i-1] === true && Con[i-1].isOneWord === false) {
+					let oTemp = new ProceedContent(oContent[i]);
+					oTemp.Proceed();
+	
+					let oStrForConvert = oTemp.oRootContext.GetText();
+					let intLen = oTemp.oRootContext.intAllContentLen;
+
+					if (oStrForConvert.len === intLen) {
+						arrDelCount.push(true);
+					} else {
+						arrDelCount.push(oStrForConvert.len);
+					}
+					Con.push(oStrForConvert);
+				}
+
+				else if (i === 2 && arrDelCount[i-1] === true && Con[i-1].isOneWord === false) {
+					let oTemp = new ProceedContent(oContent[i]);
+					oTemp.Proceed();
+	
+					let oStrForConvert = oTemp.oRootContext.GetText();
+					let intLen = oTemp.oRootContext.intAllContentLen;
+
+					if (oStrForConvert.len === intLen) {
+						arrDelCount.push(true);
+					} else {
+						arrDelCount.push(oStrForConvert.len);
+					}
+					Con.push(oStrForConvert);
+				}
 			}
 		}
 
-		let oStrForConvert = oRootContext.GetText(true);
-		let oStr = oStrForConvert.str.join("");
-		let oLen = oStrForConvert.len;
-		let isOperator = oStrForConvert.isOperator;
-
-		return {
-			len: oLen,
-			str: oStr,
-			isOneSymbol: isOperator,
-		};
+		console.log(Con, arrDelCount);
+		return Con;
 	}
 
 	function GetFixedCharCodeAt(str) {

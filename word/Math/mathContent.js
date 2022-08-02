@@ -5484,129 +5484,142 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     if (oElement.value !== 32) {
         return
     }
+
 	this.Correct_Content(true)
-
-    //получаем копию для обработки
-    var oCurrentObj = this.Content[this.CurPos];
-	var oPrevObject;
-
-	let intCount =0;
-	if (this.CurPos > 0) {
-		oPrevObject = this.Content[this.CurPos - 1];
-	}
 
 	var oLogicDocument = this.GetLogicDocument()
 	var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
 
+    var oCurrentObj = this.Content[this.CurPos];
+	var oPrevObject = (this.CurPos > 0) ? this.Content[this.CurPos - 1] : undefined;
+	var oPrevPrevObject = (this.CurPos > 1) ? this.Content[this.CurPos - 2] : undefined;
+
     var CursorPos = oCurrentObj.State.ContentPos;
+  
+	var oTempObject = new CMathContent(); //контент в который пишем, что нужно конвертнуть
+	var oPrev = new CMathContent();
+	var oPrevPrev = new CMathContent();
 
-    var oTempObject = new CMathContent(); //контент в который пишем, что нужно конвертнуть
 
-    //выделяем все после веделенного контента в отдельный ран
+    //выделяем все после CurPos в отдельный ран
     if (CursorPos < oCurrentObj.Content.length) {
         var oNewRun = oCurrentObj.Split_Run(CursorPos);
         this.Add_ToContent(this.CurPos + 1, oNewRun);
     }
 
-    oTempObject.Add_ToContent(0, oCurrentObj.Copy(false));
-	intCount++;
-
-	var PrevObj;
-	if (oPrevObject) {
-
-		var oPrev = new CMathContent();
-			oPrev.Add_ToContent(0, oPrevObject.Copy(false));
-			intCount++;
-
-			if (this.CurPos - 2 >= 0) {
-				let oTemp = this.Content[this.CurPos - 2];
-				if (oTemp.Type === 49) {
-					oPrev.Add_ToContent(0, oTemp.Copy(false));
-					intCount++;
-				}
-			}
-
-			if (oPrev.Content.length > 0) {
-				PrevObj = AscMath.GetTextForAutoCorrection(oPrev, nInputType);
-			}
-	}
-
+	if (oCurrentObj)
+    	oTempObject.Add_ToContent(0, oCurrentObj.Copy(false));
+	if (oPrevObject && oPrevObject.Content.length > 0)
+		oPrev.Add_ToContent(0, oPrevObject.Copy(false));
+	if (oPrevPrevObject && oPrevPrevObject.Content.length > 0)
+		oPrevPrev.Add_ToContent(0, oPrevPrevObject.Copy(false));
 
     //корректируем что будем конвертировать
     let oA;
-    var strUnicode;
-    let intStart;
 
-    oA = AscMath.GetTextForAutoCorrection(oTempObject, nInputType); //получили текст для конвертации
+    oA = AscMath.GetTextForAutoCorrection(
+		[
+			oTempObject,
+			oPrev,
+			oPrevPrev,
+		],
+		nInputType
+	); //получили текст для конвертации
 
-	//если длина не совпадает значит нужно лишнее вынести в отдельный ран
-	let intAfter = 0; 
-	if (oA.len < oCurrentObj.Content.length) {
-		var bMathRun = oCurrentObj.Type == para_Math_Run;
-		var NewRun = new ParaRun(oCurrentObj.Paragraph, bMathRun);
+	let arrOutputContent = [];
+	let intOutputLength = 0;
 
-		//todo history and points, as in splitRun
-		NewRun.ConcatToContent(oCurrentObj.Content.slice(0, oCurrentObj.Content.length - oA.len));
-		oCurrentObj.Remove_FromContent(0, oCurrentObj.Content.length - oA.len, true);
-        this.Add_ToContent(
-			(this.CurPos > 0)
-				? this.CurPos
-				: 0,
-			NewRun
-			);
+	let intLength = 0;
+	let isOneWord = false;
 
-		intAfter++;
-    }
+	let intlen = oA.length;
 
-	if (oA.str !== "") {
-		intStart = oA.len;
+	for (let i = oA.length - 1; i >= 0; i--) {
+		if (oA[i].str.length === 0) {
+			oA.pop();
+		}
 	}
 
-	if (!PrevObj || oA.isOneSymbol || intStart !== oTempObject.GetTextOfElement().length) {
-		strUnicode = oA.str;
+	intlen = oA.length;
+ 
+	if (intlen === 1 && oA[0].isOneWord === true) {
+		arrOutputContent = oA[0].str;
+		intOutputLength += oA[0].len + 1;
+
+		intLength++;
+		isOneWord = true;
+
 	} else {
-		strUnicode = oTempObject.GetTextOfElement().trim()
-	}
-
-    if (!oA.isOneSymbol && PrevObj && oA.len <= oCurrentObj.Content.length) {
-        strUnicode = PrevObj.str + "" + strUnicode;
-    }
-
-    if (strUnicode.length > 0) {
-        //удялем лишнее
-        if (!oA.isOneSymbol && PrevObj && intStart === oTempObject.GetTextOfElement().length) {
-            this.Remove_FromContent(this.CurPos-1, 2);
-			//this.MoveCursorToEndPos(true)
-        } else {
-            oCurrentObj.RemoveFromContent(0, oCurrentObj.Content.length, false);
-        	//this.MoveCursorToEndPos(true)
-			if (intCount > 1) {
-			}
-        }
-
-        oTempObject.Remove_Content(0, oTempObject.Content.length, false);
-
-		if (oA.isOneSymbol) {
-			oTempObject.Add_Text(strUnicode)
-		} else {
-
-			if (nInputType === Asc.c_oAscMathInputType.Unicode) {
-				AscMath.CUnicodeConverter(strUnicode, oTempObject);
-			}
-			else {
-				AscMath.ConvertLaTeXToTokensList(strUnicode, oTempObject);
+		for (let i = 0; i < oA.length; i++) {
+			let Content = oA[i];
+	
+			if (Content.str.length > 0 && Content.len > 0) {
+				if (i === 1) {
+					arrOutputContent.unshift("〗")
+				}
+				arrOutputContent = Content.str.concat(arrOutputContent);
+				if (i === 1) {
+					arrOutputContent.unshift("〖")
+				}
+				intOutputLength += Content.len;
+		
+				intLength++;
 			}
 		}
+	}
 
-        for (let i = 0; i < oTempObject.Content.length; i++) {
-			let intNow = this.CurPos - 1 + intAfter;
-            this.Add_ToContent(
-				intNow < 0 ? 0 : intNow,
-				oTempObject.Content[i].Copy(false),
-				false
-			);
-        }
-    }
+	if (isOneWord) {
+		let Content = this.Content[this.CurPos]
+		Content.Remove_FromContent(Content.Content.length - intOutputLength, intOutputLength);
+	} else {
+		let Content = this.Content[this.CurPos];
+		if (intLength === 1 && Content.Content.length > intOutputLength + 1) {
+			intOutputLength +=1;
+			Content.Remove_FromContent(Content.Content.length - intOutputLength, intOutputLength);
+			this.CurPos++
+		} else {
+			this.Remove_FromContent(this.CurPos, 1); //удалаем первый элмент
+		}
+	}
+
+	oTempObject.Remove_Content(0, oTempObject.Content.length, false);
+
+	let strStringForCOnversion = arrOutputContent.join("");
+	
+	if (isOneWord) {
+		oTempObject.Add_Text(strStringForCOnversion);
+	}
+	else {
+		if (nInputType === Asc.c_oAscMathInputType.Unicode) {
+			AscMath.CUnicodeConverter(strStringForCOnversion, oTempObject);
+		}
+		else {
+			AscMath.ConvertLaTeXToTokensList(strStringForCOnversion, oTempObject);
+		}
+	}
+
+	//выбор предыдущего элемента был бессмысленен
+	if (oTempObject.Content.length > 1) {
+		oTempObject.Content.slice(0);
+	} else {
+		if (intLength === 3) {
+			let Content = this.Content[this.CurPos - 2];
+			this.Remove_FromContent(this.CurPos - 1, 1);
+			Content.Remove_FromContent(Content.Content.length - oA[2].len, oA[2].len)
+		}
+		if (intLength === 2) {
+			this.Remove_FromContent(this.CurPos -1, 1);
+		}
+	}
+
+	for (let i = 0; i < oTempObject.Content.length; i++) {
+		this.Add_ToContent(
+			isOneWord ? this.CurPos + 1 + i : this.CurPos + i,
+			oTempObject.Content[i].Copy(false),
+			false
+		);
+	}
+
 	this.MergeParaRuns()
     this.Correct_Content(true);
 };
