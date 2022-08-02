@@ -3966,7 +3966,7 @@ StyleManager.prototype =
 				} else {
 					newVal.setIndexNumber(container.count++);
 				}
-				if (!res) {
+				if (!res || forceAdd) {
 					container.vals[hash] = newVal;
 				}
 				res = newVal;
