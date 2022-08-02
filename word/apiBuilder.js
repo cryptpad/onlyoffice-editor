@@ -3787,6 +3787,31 @@
 	 * @typedef {ApiTextForm | ApiComboBoxForm | ApiCheckBoxForm | ApiPictureForm | ApiComplexForm} ApiForm
 	 */
 
+	/**
+     * Possible values for the caption numbering format.
+     * * **"ALPHABETIC"** - upper letter.
+     * * **"alphabetic"** - lower letter.
+     * * **"Roman"**      - upper Roman.
+     * * **"roman"**      - lower Roman.
+	 * * **"Arabic"**     - arabic.
+	 * @typedef {("ALPHABETIC" | "alphabetic" | "Roman" | "roman" | "Arabic")} CaptionNumberingFormat
+	 * **/
+
+	/**
+     * Possible values for the caption separator.
+     * * **"hyphen"**   - "-".
+     * * **"period"**   - ".".
+     * * **"colon"**    - ":".
+     * * **"longDash"** - "—".
+	 * * **"dash"**     - "-".
+	 * @typedef {("hyphen" | "period" | "colon" | "longDash" | "dash")} CaptionSep
+	 * **/
+
+	/**
+     * Possible values for the caption label.
+     * @typedef {("Table" | "Equation" | "Figure")} CaptionLabel
+	 * **/
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// Base Api
@@ -8011,6 +8036,102 @@
 
 		return false;
 	};
+
+	/**
+     * Adds caption paragraph after (or before) current paragraph.
+	 * Note: 
+	 * 1. Current paragraph must be in document (not in footer/header).
+	 * 2. If current paragraph placed in shape, then adds caption like a shape after (or before) parent shape.
+     * @memberof ApiParagraph
+     * @typeofeditors ["CDE"]
+     * @param {string} sAdditional - the additional text.
+	 * @param {CaptionLabel | String} [sLabel="Table"] - caption label.
+	 * @param {boolean} [bExludeLabel=false] - wheter exclude label from caption.
+	 * @param {CaptionNumberingFormat} [sNumberingFormat="Arabic"] - the possible caption numbering format.
+	 * @param {boolean} [bBefore=false] - whether insert caption before current paragraph (after/before shape, if placed in shape).
+	 * @param {Number} [nHeadingLvl=undefined] - heading level (use if need to include chapter number).
+	 * Note: if need "Heading 1" then nHeadingLvl === 0 and etc.
+	 * @param {CaptionSep} [sCaptionSep="hyphen"] - separator (use if need to include chapter number).
+     * @returns {boolean}
+     */
+	ApiParagraph.prototype.AddCaption = function(sAdditional, sLabel, bExludeLabel, sNumberingFormat, bBefore, nHeadingLvl, sCaptionSep)
+	{
+		var oParaParent = this.Paragraph.GetParent();
+		if (this.Paragraph.IsUseInDocument() === false || !oParaParent || oParaParent.Is_TopDocument(true) !== private_GetLogicDocument())
+			return false;
+		if (typeof(sAdditional) !== "string" || sAdditional.trim() === "")
+			sAdditional = "";
+		if (typeof(bExludeLabel) !== "boolean")
+			bExludeLabel = false;
+		if (typeof(bBefore) !== "boolean")
+			bBefore = false;
+		if (typeof(sLabel) !== "string" || sLabel.trim() === "")
+			sLabel = "Table";
+		
+		let oCapPr = new Asc.CAscCaptionProperties();
+		let oDoc = private_GetLogicDocument();
+
+		let nNumFormat;
+		switch (sNumberingFormat)
+		{
+			case "ALPHABETIC":
+				nNumFormat = Asc.c_oAscNumberingFormat.UpperLetter;
+				break;
+			case "alphabetic":
+				nNumFormat = Asc.c_oAscNumberingFormat.LowerLetter;
+				break;
+			case "Roman":
+				nNumFormat = Asc.c_oAscNumberingFormat.UpperRoman;
+				break;
+			case "roman":
+				nNumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+				break;
+			default:
+				nNumFormat = Asc.c_oAscNumberingFormat.Decimal;
+				break;
+		}
+		switch (sCaptionSep)
+		{
+			case "hyphen":
+				sCaptionSep = "-";
+				break;
+			case "period":
+				sCaptionSep = ".";
+				break;
+			case "colon":
+				sCaptionSep = ":";
+				break;
+			case "longDash":
+				sCaptionSep = "—";
+				break;
+			case "dash":
+				sCaptionSep = "-";
+				break;
+			default:
+				sCaptionSep = "-";
+				break;
+		}
+
+		oCapPr.Label = sLabel;
+		oCapPr.Before = bBefore;
+		oCapPr.ExcludeLabel = bExludeLabel;
+		oCapPr.NumFormat = nNumFormat;
+		oCapPr.Separator = sCaptionSep;
+		oCapPr.Additional = sAdditional;
+
+		if (nHeadingLvl >= 0 && nHeadingLvl <= 8)
+		{
+			oCapPr.HeadingLvl = nHeadingLvl;
+			oCapPr.IncludeChapterNumber = true;
+		}
+		else oCapPr.HeadingLvl = 0;
+
+		this.Paragraph.Document_SetThisElementCurrent();
+
+		oDoc.AddCaption(oCapPr);
+		return true;
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiRun
@@ -17166,8 +17287,6 @@
 	ApiDocument.prototype["Search"]                      = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]                  = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                      = ApiDocument.prototype.ToHtml;
-	ApiDocument.prototype["ClearAllForms"]               = ApiDocument.prototype.ClearAllForms;
-	ApiDocument.prototype["SetFormsHighlight"]           = ApiDocument.prototype.SetFormsHighlight;
 	ApiDocument.prototype["GetAllNumberedParagraphs"]    = ApiDocument.prototype.GetAllNumberedParagraphs;
 	ApiDocument.prototype["GetAllHeadingParagraphs"]     = ApiDocument.prototype.GetAllHeadingParagraphs;
 	ApiDocument.prototype["GetFootnotesFirstParagraphs"] = ApiDocument.prototype.GetFootnotesFirstParagraphs;
@@ -17260,6 +17379,7 @@
 	ApiParagraph.prototype["AddCaptionCrossRef"]     = ApiParagraph.prototype.AddCaptionCrossRef;
 	ApiParagraph.prototype["GetPosInParent"]         = ApiParagraph.prototype.GetPosInParent;
 	ApiParagraph.prototype["ReplaceByElement"]       = ApiParagraph.prototype.ReplaceByElement;
+	ApiParagraph.prototype["AddCaption"]             = ApiParagraph.prototype.AddCaption;
 
 	ApiParagraph.prototype["ToJSON"]                 = ApiParagraph.prototype.ToJSON;
 
