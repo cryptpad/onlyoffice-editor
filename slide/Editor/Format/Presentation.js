@@ -5774,6 +5774,9 @@ CPresentation.prototype.GetAllMyComments = function (aAllComments) {
     }
 };
 
+CPresentation.prototype.CheckFormAutoFit = function(oForm) {};
+CPresentation.prototype.OnChangeForm = function(oForm) {};
+CPresentation.prototype.OnChangeContentControl = function(oCC) {};
 
 CPresentation.prototype.RemoveAllComments = function () {
     var aAllMyComments = [];
