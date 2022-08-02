@@ -8565,6 +8565,10 @@ background-repeat: no-repeat;\
 		else if (!this.WordControl.m_oLogicDocument)
 		{
 			oAdditionalData["c"] = 'savefromorigin';
+			if (this.currentPassword) {
+				oAdditionalData["password"] = this.currentPassword;
+				oAdditionalData["savepassword"] = this.currentPassword;
+			}
 		}
 
 		if ('savefromorigin' === oAdditionalData["c"])
