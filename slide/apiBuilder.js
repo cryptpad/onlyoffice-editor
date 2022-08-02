@@ -2235,7 +2235,7 @@
     {
         if (oApiFontScheme && oApiFontScheme.GetClassType && oApiFontScheme.GetClassType() === "themeFontScheme")
         {
-            this.ThemeInfo.Theme.setFontScheme(oApiFontScheme.FontScheme);
+            this.ThemeInfo.Theme.changeFontScheme(oApiFontScheme.FontScheme);
             return true;
         }
 

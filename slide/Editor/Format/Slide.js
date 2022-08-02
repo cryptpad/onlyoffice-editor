@@ -1479,9 +1479,8 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             this.timing.onAnimPaneMouseWheel(e, deltaY, X, Y);
         }
     };
-
     Slide.prototype.getTheme = function(){
-        return this.Layout.Master.Theme;
+        return this.Layout && this.Layout.Master && this.Layout.Master.Theme || null;
     };
 
     Slide.prototype.drawSelect = function(_type)
