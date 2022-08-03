@@ -1181,25 +1181,23 @@ var editor;
       // ToDo select txt params
       oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
       dataContainer.data = last.data;
-    } else {
+    } else if(this.isOpenOOXInBrowser) {
 		var t = this;
-		if (c_oAscFileType.XLTX === fileType) {
-			var title = this.documentTitle;
-			AscCommonExcel.executeInR1C1Mode(false, function () {
-				t.saveDocumentToZip(t.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
-					if (data) {
-						AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("xlsx"));
-					}
-				});
-				if (actionType)
-				{
-					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+		var title = this.documentTitle;
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			t.saveDocumentToZip(t.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
+				if (data) {
+					AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("xlsx"));
 				}
 			});
+			if (actionType)
+			{
+				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+			}
+		});
 
-			return true;
-		}
-
+		return true;
+	} else {
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
       if (c_oAscFileType.CSV === fileType) {
         if (options.advancedOptions instanceof asc.asc_CTextOptions) {
