@@ -4839,7 +4839,7 @@
 			this.color = new CUniColor();
 			this.prst = null;
 			this.dir = null;
-			this.dis = null;
+			this.dist = null;
 		}
 
 		InitClass(CPrstShdw, CBaseNoIdObject, 0);
@@ -4849,20 +4849,20 @@
 			this.color.Write_ToBinary(w);
 			writeLong(w, this.prst);
 			writeLong(w, this.dir);
-			writeLong(w, this.dis);
+			writeLong(w, this.dist);
 		};
 		CPrstShdw.prototype.Read_FromBinary = function (r) {
 			this.color.Read_FromBinary(r);
 			this.prst = readLong(r);
 			this.dir = readLong(r);
-			this.dis = readLong(r);
+			this.dist = readLong(r);
 		};
 		CPrstShdw.prototype.createDuplicate = function () {
 			var oCopy = new CPrstShdw();
 			oCopy.color = this.color.createDuplicate();
 			oCopy.prst = this.prst;
 			oCopy.dir = this.dir;
-			oCopy.dis = this.dis;
+			oCopy.dist = this.dist;
 			return oCopy;
 		};
 		CPrstShdw.prototype.readAttrXml = function (name, reader) {
@@ -5781,6 +5781,7 @@
 			if (isRealObject(this.path)) {
 				this.path.Write_ToBinary(w);
 			}
+			writeBool(w, this.rotateWithShape);
 		};
 		CGradFill.prototype.Read_FromBinary = function (r) {
 			var len = r.GetLong();
@@ -5800,6 +5801,7 @@
 			} else {
 				this.path = null;
 			}
+			this.rotateWithShape = readBool(r);
 		};
 		CGradFill.prototype.IsIdentical = function (fill) {
 			if (fill == null) {
@@ -5822,6 +5824,10 @@
 
 			if (!this.lin && fill.lin || !fill.lin && this.lin || (this.lin && fill.lin && !this.lin.IsIdentical(fill.lin)))
 				return false;
+
+			if(this.rotateWithShape !== fill.rotateWithShape) {
+				return false;
+			}
 
 			return true;
 		};
@@ -5868,6 +5874,9 @@
 					}
 					_ret.colors[i] = compare_unicolor;
 				}
+			}
+			if(this.rotateWithShape === fill.rotateWithShape) {
+				_ret.rotateWithShape = this.rotateWithShape;
 			}
 			return _ret;
 		};

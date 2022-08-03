@@ -2341,7 +2341,7 @@
 			oElm = {
 				color: this.SerColor(oEffect.color),
 				dir:   oEffect.dir,
-				dist:  oEffect.dis,
+				dist:  oEffect.dist,
 				prst:  sPrstType,
 				type:  "prstShdw"
 			}
@@ -11575,7 +11575,7 @@
 				oEffect              = new AscFormat.CPrstShdw();
 				oEffect.color        = this.ColorFromJSON(oParsedEff.color);
 				oEffect.dir          = oParsedEff.dir;
-				oEffect.dis          = oParsedEff.dist;
+				oEffect.dist          = oParsedEff.dist;
 				oEffect.prst         = nPrstType;
 				return oEffect;
 			case "reflection":
