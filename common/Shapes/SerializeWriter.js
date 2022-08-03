@@ -51,7 +51,7 @@ var c_oMainTables = {
     VmlDrawing		: 5,
     TableStyles		: 6,
     PresProps		: 7,
-	JsaProject		: 8,
+    Customs 		: 8,
 
     Themes			: 20,
     ThemeOverride	: 21,
@@ -612,6 +612,9 @@ function CBinaryFileWriter()
         // PresProps
 		this.WritePresProps(presentation);
 
+        //Customs
+        this.WriteCustomXml(presentation);
+
         // presentation
         this.WritePresentation(presentation);
 
@@ -1113,6 +1116,16 @@ function CBinaryFileWriter()
             this.EndRecord();
         }
         this.EndRecord();
+    };
+
+    this.WriteCustomXml = function(presentation)
+    {
+        if(!presentation.CustomXmlData)
+        {
+            return;
+        }
+        this.StartMainRecord(c_oMainTables.Customs);
+        this.WriteBuffer(presentation.CustomXmlData, 0, presentation.CustomXmlData.length);
     };
 
     this.WritePresentation = function(presentation)
