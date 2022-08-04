@@ -4633,7 +4633,7 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = fL;
                 if(fDiff < 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.x -= fDiff;
-                    //oCorrectedRect.w -= fDiff;
+                    oCorrectedRect.w += fDiff;
                     bCorrected = true;
                 }
                 fDiff = fR - this.extX;
@@ -4644,12 +4644,12 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = fT;
                 if(fDiff < 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.y -= fDiff;
-                    //oCorrectedRect.h -= fDiff;
+                    oCorrectedRect.h += fDiff;
                     bCorrected = true;
                 }
                 fDiff = fB - this.extY;
                 if(fDiff > 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
-                    oCorrectedRect.h -= (fB - this.extY);
+                    oCorrectedRect.h -= fDiff;
                     bCorrected = true;
                 }
             }
