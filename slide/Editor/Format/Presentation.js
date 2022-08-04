@@ -7127,7 +7127,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
     if (bRetValue & keydownflags_PreventKeyPress && true === bUpdateSelection)
         this.Document_UpdateSelectionState();
 
-        
+    oController = this.GetCurrentController();
     if(oController) {
         oController.checkRedrawAnimLabels(aStartAnims);
     }
