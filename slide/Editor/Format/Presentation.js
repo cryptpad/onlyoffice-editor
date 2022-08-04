@@ -4509,7 +4509,8 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
             }
         }
         this.bNeedUpdateChartPreview = true;
-        if (_RecalcData.Drawings.ThemeInfo) {
+        let oThemeInfo = _RecalcData.Drawings.ThemeInfo;
+        if (oThemeInfo && oThemeInfo.ArrInd.length > 0) {
             this.clearThemeTimeouts();
 
             if (_RecalcData.Drawings && _RecalcData.Drawings.Map) {
@@ -4517,27 +4518,27 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
                     if (_RecalcData.Drawings.Map.hasOwnProperty(key)) {
                         var oSlide = _RecalcData.Drawings.Map[key];
                         if (oSlide instanceof AscCommonSlide.Slide && AscFormat.isRealNumber(oSlide.num)) {
-                            var ArrInd = _RecalcData.Drawings.ThemeInfo.ArrInd;
+                            var ArrInd = oThemeInfo.ArrInd;
                             for (i = 0; i < ArrInd.length; ++i) {
                                 if (oSlide.num === ArrInd[i]) {
                                     break;
                                 }
                             }
                             if (i === ArrInd.length) {
-                                _RecalcData.Drawings.ThemeInfo.ArrInd.push(oSlide.num);
+                                oThemeInfo.ArrInd.push(oSlide.num);
                             }
                         }
                     }
                 }
             }
-            var startRecalcIndex = _RecalcData.Drawings.ThemeInfo.ArrInd.indexOf(this.CurPage);
+            var startRecalcIndex = oThemeInfo.ArrInd.indexOf(this.CurPage);
             if (startRecalcIndex === -1) {
                 startRecalcIndex = 0;
             }
             var oThis = this;
             bSync = false;
-            aToRedrawSlides = [].concat(_RecalcData.Drawings.ThemeInfo.ArrInd);
-            AscFormat.redrawSlide(oThis.Slides[_RecalcData.Drawings.ThemeInfo.ArrInd[startRecalcIndex]], oThis, aToRedrawSlides, startRecalcIndex, 0, oThis.Slides);
+            aToRedrawSlides = [].concat(oThemeInfo.ArrInd);
+            AscFormat.redrawSlide(oThis.Slides[oThemeInfo.ArrInd[startRecalcIndex]], oThis, aToRedrawSlides, startRecalcIndex, 0, oThis.Slides);
         } else {
             bRedrawAllSlides = true;
             for (key = 0; key < this.Slides.length; ++key) {
