@@ -8140,7 +8140,10 @@
 			}
 		};
 		DefaultShapeDefinition.prototype.toXml = function (writer, sName) {
-			writer.WriteXmlNodeStart("a:" + sName);
+			let oContext = writer.context;
+			let nOldDocType = oContext.docType;
+			oContext.docType = AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS;
+			writer.WriteXmlNodeStart(sName);
 			writer.WriteXmlAttributesEnd();
 
 			if (this.spPr) {
@@ -8152,13 +8155,14 @@
 			if (this.bodyPr)
 				this.bodyPr.toXml(writer);
 			if (this.lstStyle) {
-				this.lstStyle.toXml(writer);
+				this.lstStyle.toXml(writer, "a:lstStyle");
 			}
 			if (this.style) {
 				this.style.toXml(writer);
 			}
 
-			writer.WriteXmlNodeEnd("a:" + sName);
+			writer.WriteXmlNodeEnd(sName);
+			oContext.docType = nOldDocType;
 		};
 
 
@@ -15494,10 +15498,12 @@
 					break;
 				}
 				case AscFormat.BULLET_TYPE_BULLET_BLIP: {
-					writer.WriteXmlNodeStart("a:buBlip");
-					writer.WriteXmlAttributesEnd();
-					this.blip.toXml(writer);
-					writer.WriteXmlNodeEnd("a:buBlip");
+					if(this.Blip) {
+						writer.WriteXmlNodeStart("a:blip");
+						writer.WriteXmlAttributesEnd();
+						this.Blip.toXml(writer);
+						writer.WriteXmlNodeEnd("a:blip");
+					}
 					break;
 				}
 			}
@@ -16183,24 +16189,24 @@
 
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullableValueString("dc:title", this.title);
-			writer.WriteXmlNullableValueString("dc:subject", this.subject);
-			writer.WriteXmlNullableValueString("dc:creator", this.creator);
-			writer.WriteXmlNullableValueString("cp:keywords", this.keywords);
-			writer.WriteXmlNullableValueString("dc:description", this.description);
-			writer.WriteXmlNullableValueString("dc:identifier", this.identifier);
-			writer.WriteXmlNullableValueString("dc:language", this.language);
-			writer.WriteXmlNullableValueString("cp:lastModifiedBy", this.lastModifiedBy);
-			writer.WriteXmlNullableValueString("cp:revision", this.revision);
+			writer.WriteXmlNullableValueStringEncode2("dc:title", this.title);
+			writer.WriteXmlNullableValueStringEncode2("dc:subject", this.subject);
+			writer.WriteXmlNullableValueStringEncode2("dc:creator", this.creator);
+			writer.WriteXmlNullableValueStringEncode2("cp:keywords", this.keywords);
+			writer.WriteXmlNullableValueStringEncode2("dc:description", this.description);
+			writer.WriteXmlNullableValueStringEncode2("dc:identifier", this.identifier);
+			writer.WriteXmlNullableValueStringEncode2("dc:language", this.language);
+			writer.WriteXmlNullableValueStringEncode2("cp:lastModifiedBy", this.lastModifiedBy);
+			writer.WriteXmlNullableValueStringEncode2("cp:revision", this.revision);
 
 			if (this.lastPrinted && this.lastPrinted.length > 0) {
-				writer.WriteXmlNullableValueString("cp:lastPrinted", this.lastPrinted);
+				writer.WriteXmlNullableValueStringEncode2("cp:lastPrinted", this.lastPrinted);
 			}
 			this.writeDate(writer, "dcterms:created", this.created);
 			this.writeDate(writer, "dcterms:modified", this.modified);
-			writer.WriteXmlNullableValueString("cp:category", this.category);
-			writer.WriteXmlNullableValueString("cp:contentStatus", this.contentStatus);
-			writer.WriteXmlNullableValueString("cp:version", this.version);
+			writer.WriteXmlNullableValueStringEncode2("cp:category", this.category);
+			writer.WriteXmlNullableValueStringEncode2("cp:contentStatus", this.contentStatus);
+			writer.WriteXmlNullableValueStringEncode2("cp:version", this.version);
 
 			writer.WriteXmlNodeEnd("cp:coreProperties");
 		};
@@ -16739,15 +16745,15 @@
 			writer.WriteXmlNullableAttributeString("xmlns:vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes");
 			writer.WriteXmlAttributesEnd();
 
-			writer.WriteXmlNullableValueString("Template", this.Template);
+			writer.WriteXmlNullableValueStringEncode2("Template", this.Template);
 			writer.WriteXmlNullableValueUInt("TotalTime", this.TotalTime);
 			writer.WriteXmlNullableValueUInt("Pages", this.Pages);
 			writer.WriteXmlNullableValueUInt("Words", this.Words);
 			writer.WriteXmlNullableValueUInt("Characters", this.Characters);
 			writer.WriteXmlNullableValueUInt("CharactersWithSpaces", this.CharactersWithSpaces);
-			writer.WriteXmlNullableValueString("Application", this.Application);
+			writer.WriteXmlNullableValueStringEncode2("Application", this.Application);
 			writer.WriteXmlNullableValueInt("DocSecurity", this.DocSecurity);
-			writer.WriteXmlNullableValueString("PresentationFormat", this.PresentationFormat);
+			writer.WriteXmlNullableValueStringEncode2("PresentationFormat", this.PresentationFormat);
 			writer.WriteXmlNullableValueUInt("Lines", this.Lines);
 			writer.WriteXmlNullableValueUInt("Paragraphs", this.Paragraphs);
 			writer.WriteXmlNullableValueUInt("Slides", this.Slides);
@@ -16788,13 +16794,13 @@
 			writer.WriteXmlNodeEnd("vt:vector");
 			writer.WriteXmlNodeEnd("TitlesOfParts");
 
-			writer.WriteXmlNullableValueString("Manager", this.Manager);
-			writer.WriteXmlNullableValueString("Company", this.Company);
-			writer.WriteXmlNullableValueString("LinksUpToDate", this.LinksUpToDate);
-			writer.WriteXmlNullableValueString("SharedDoc", this.SharedDoc);
-			writer.WriteXmlNullableValueString("HyperlinkBase", this.HyperlinkBase);
-			writer.WriteXmlNullableValueString("HyperlinksChanged", this.HyperlinksChanged);
-			writer.WriteXmlNullableValueString("AppVersion", this.AppVersion);
+			writer.WriteXmlNullableValueStringEncode2("Manager", this.Manager);
+			writer.WriteXmlNullableValueStringEncode2("Company", this.Company);
+			writer.WriteXmlNullableValueStringEncode2("LinksUpToDate", this.LinksUpToDate);
+			writer.WriteXmlNullableValueStringEncode2("SharedDoc", this.SharedDoc);
+			writer.WriteXmlNullableValueStringEncode2("HyperlinkBase", this.HyperlinkBase);
+			writer.WriteXmlNullableValueStringEncode2("HyperlinksChanged", this.HyperlinksChanged);
+			writer.WriteXmlNullableValueStringEncode2("AppVersion", this.AppVersion);
 
 			writer.WriteXmlNodeEnd("Properties");
 		};
@@ -17482,7 +17488,7 @@
 			writer.WriteXmlNodeStart("vt:vstream");
 			writer.WriteXmlNullableAttributeString("version", this.version);
 			writer.WriteXmlAttributesEnd();
-			writer.WriteXmlNullableValueString(this.content);
+			writer.WriteXmlNullableValueStringEncode2(this.content);
 			writer.WriteXmlNodeEnd("vt:vstream");
 		};
 
@@ -17997,10 +18003,10 @@
 				writer.WriteXmlAttributesEnd();
 				writer.WriteXmlNodeEnd(strNodeName);
 			}
-			writer.WriteXmlNullableValueString(strNodeName, this.strContent);
-			writer.WriteXmlNullableValueString(strNodeName, this.iContent);
-			writer.WriteXmlNullableValueString(strNodeName, this.uContent);
-			writer.WriteXmlNullableValueString(strNodeName, this.dContent);
+			writer.WriteXmlNullableValueStringEncode2(strNodeName, this.strContent);
+			writer.WriteXmlNullableValueStringEncode2(strNodeName, this.iContent);
+			writer.WriteXmlNullableValueStringEncode2(strNodeName, this.uContent);
+			writer.WriteXmlNullableValueStringEncode2(strNodeName, this.dContent);
 			if (this.bContent) {
 				writer.WriteXmlNodeStart(strNodeName);
 				writer.WriteXmlAttributesEnd();
