@@ -2514,6 +2514,7 @@
 		ProceedAutoCorection.prototype.GetText = function() {
 			this.intAllContentLen = this.GetLength();
 
+			this.ProcessingBrackets()
 			this.ProcessingOperators();
 			this.ProcessingAutoCorrectWord();
 
@@ -2609,6 +2610,15 @@
 			}
 			return true;
 		}
+		ProceedAutoCorection.prototype.ProcessingBrackets = function() {
+			let str = this.str[0];
+			for (let i = str.length - 1; i >= 0; i--) {
+			if (str[i].class === oNamesOfLiterals.opOpenCloseBracket[0] || str[i].class === oNamesOfLiterals.opOpenBracket[0]) {
+					str.splice(0, 1);
+					return true;
+				}
+			}
+		}
 		ProceedAutoCorection.prototype.ProcessingOperators = function() {
 			for (let i = this.str.length - 1; i >= 0; i--) {
 				if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
@@ -2685,7 +2695,7 @@
 				this.GetNext();
 	
 				if ((this.oElement.class === 23 || this.oElement.class === 25) && !(isUnicode === 1 && oElement.data === "{")) {
-					this.ProceedBracketsBlock()
+					this.ProceedBracketsBlock();
 				}
 				else if ((this.oElement.class === 24 || this.oElement.class === 25) && !(isUnicode === 1 && oElement.data === "}")) {
 					this.WriteNow()
@@ -2696,60 +2706,30 @@
 			}
 		}
 
-		let Con = [];
-		let arrDelCount = [] // true, удаляем полностью, 2 до какаого символа срезать
-		for (let i = 0; i < oContent.length; i++) {
-			if (undefined !== oContent[i] && oContent[i].Content.length > 0) {
+		let arrOutputContent = [];
 
-				if (i === 0) {
-					let oTemp = new ProceedContent(oContent[i]);
-					oTemp.Proceed();
+		for (let i = oContent.length - 1; i >= 0; i--) {
+			let oCurrentContent = oContent[i];
+
+			if (oCurrentContent !== undefined && oCurrentContent.Content.length > 0) {
+				let oTemp = new ProceedContent(oCurrentContent);
+				oTemp.Proceed();
 	
-					let oStrForConvert = oTemp.oRootContext.GetText();
-					let intLen = oTemp.oRootContext.intAllContentLen;
+				let oStrForConvert = oTemp.oRootContext.GetText();
+				let intLen = oTemp.oRootContext.intAllContentLen;
 
-					if (oStrForConvert.len === intLen) {
-						arrDelCount.push(true);
-					} else {
-						arrDelCount.push(oStrForConvert.len);
-					}
-					Con.push(oStrForConvert);
-				}
-
-				else if (i === 1 && arrDelCount[i-1] === true && Con[i-1].isOneWord === false) {
-					let oTemp = new ProceedContent(oContent[i]);
-					oTemp.Proceed();
-	
-					let oStrForConvert = oTemp.oRootContext.GetText();
-					let intLen = oTemp.oRootContext.intAllContentLen;
-
-					if (oStrForConvert.len === intLen) {
-						arrDelCount.push(true);
-					} else {
-						arrDelCount.push(oStrForConvert.len);
-					}
-					Con.push(oStrForConvert);
-				}
-
-				else if (i === 2 && arrDelCount[i-1] === true && Con[i-1].isOneWord === false) {
-					let oTemp = new ProceedContent(oContent[i]);
-					oTemp.Proceed();
-	
-					let oStrForConvert = oTemp.oRootContext.GetText();
-					let intLen = oTemp.oRootContext.intAllContentLen;
-
-					if (oStrForConvert.len === intLen) {
-						arrDelCount.push(true);
-					} else {
-						arrDelCount.push(oStrForConvert.len);
-					}
-					Con.push(oStrForConvert);
+				if (oStrForConvert.len === intLen) {
+					arrOutputContent.push(oStrForConvert);
+					arrOutputContent[arrOutputContent.length - 1].DelCount = true;
+				} else if (oStrForConvert.str.length > 0) {
+					arrOutputContent.push(oStrForConvert);
+					arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
+					break;
 				}
 			}
 		}
-
-		console.log(Con, arrDelCount);
-		return Con;
+		
+		return arrOutputContent;
 	}
 
 	function GetFixedCharCodeAt(str) {
