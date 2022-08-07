@@ -2564,8 +2564,7 @@
 
 			var fill = new AscCommonExcel.Fill();
 			if (colors.length === 1) {
-				fill.patternFill = new AscCommonExcel.PatternFill();
-				fill.patternFill.fromColor(colors[0]);
+				fill.fromColor(colors[0]);
 			} else {
 				fill.gradientFill = new AscCommonExcel.GradientFill();
 				var arrColors = [];
