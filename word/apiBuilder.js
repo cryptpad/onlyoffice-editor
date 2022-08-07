@@ -2975,6 +2975,19 @@
 	ApiPictureForm.prototype.constructor = ApiPictureForm;
 
 	/**
+	 * Class representing a complex form
+	 * @param oSdt
+	 * @constructor
+	 * @extends {ApiFormBase}
+	 */
+	function ApiComplexForm(oSdt)
+	{
+		ApiFormBase.call(this, oSdt);
+	}
+	ApiComplexForm.prototype = Object.create(ApiFormBase.prototype);
+	ApiComplexForm.prototype.constructor = ApiComplexForm;
+
+	/**
 	 * Sets the hyperlink address.
 	 * @typeofeditors ["CDE"]
 	 * @param {string} sLink - The hyperlink address.
@@ -3768,6 +3781,36 @@
 	 * "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
 	 * "#,##0.00_);(#,##0.00)" | "#,##0.00_);[Red](#,##0.00)" | "mm:ss" | "[h]:mm:ss" | "mm:ss.0" | "##0.0E+0" | "@")} NumFormat
 	 */
+
+	/**
+	 * Types of all supported forms
+	 * @typedef {ApiTextForm | ApiComboBoxForm | ApiCheckBoxForm | ApiPictureForm | ApiComplexForm} ApiForm
+	 */
+
+	/**
+     * Possible values for the caption numbering format.
+     * * **"ALPHABETIC"** - upper letter.
+     * * **"alphabetic"** - lower letter.
+     * * **"Roman"**      - upper Roman.
+     * * **"roman"**      - lower Roman.
+	 * * **"Arabic"**     - arabic.
+	 * @typedef {("ALPHABETIC" | "alphabetic" | "Roman" | "roman" | "Arabic")} CaptionNumberingFormat
+	 * **/
+
+	/**
+     * Possible values for the caption separator.
+     * * **"hyphen"**   - "-".
+     * * **"period"**   - ".".
+     * * **"colon"**    - ":".
+     * * **"longDash"** - "—".
+	 * * **"dash"**     - "-".
+	 * @typedef {("hyphen" | "period" | "colon" | "longDash" | "dash")} CaptionSep
+	 * **/
+
+	/**
+     * Possible values for the caption label.
+     * @typedef {("Table" | "Equation" | "Figure")} CaptionLabel
+	 * **/
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -4774,7 +4817,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 			this.Document.Internal_Content_Add(nPos, oElm);
 		}
@@ -4791,7 +4834,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 
 			this.Document.Internal_Content_Add(this.Document.Content.length, oElm);
@@ -5178,7 +5221,7 @@
 			if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 			{
 				oElm = oElement.private_GetImpl();
-				if (oElm.Is_UseInDocument())
+				if (oElm.IsUseInDocument())
 					continue;
 
 				oSelectedContent.Add(new AscCommonWord.CSelectedElement(oElm, true));
@@ -5424,21 +5467,18 @@
 	 */
 	ApiDocument.prototype.GetTagsOfAllForms = function()
 	{
-		let oTags       = {};
-		let arrResult   = [];
-		let arrControls = this.Document.GetAllContentControls();
-		for (let nIndex = 0, nCount = arrControls.length; nIndex < nCount; ++nIndex)
+		let oTags     = {};
+		let arrResult = [];
+		let arrForms  = this.Document.GetFormsManager().GetAllForms();
+		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
-			let oControl = arrControls[nIndex];
-			if (oControl.IsForm())
-			{
-				let sTag = oControl.GetTag();
+			let oForm = arrForms[nIndex];
+			let sTag  = oForm.GetTag();
 
-				if (sTag && !oTags[sTag])
-				{
-					oTags[sTag] = 1;
-					arrResult.push(sTag);
-				}
+			if (sTag && !oTags[sTag])
+			{
+				oTags[sTag] = 1;
+				arrResult.push(sTag);
 			}
 		}
 
@@ -5482,11 +5522,11 @@
 		if (!_sTag)
 			return [];
 
-		let arrResult   = [];
-		let arrControls = this.Document.GetAllContentControls();
-		for (let nIndex = 0, nCount = arrControls.length; nIndex < nCount; ++nIndex)
+		let arrResult = [];
+		let arrForms  = this.Document.GetFormsManager().GetAllForms();
+		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
-			let oControl = arrControls[nIndex];
+			let oControl = arrForms[nIndex];
 			let oForm    = ToApiForm(oControl);
 			if (oControl.IsForm() && _sTag === oControl.GetTag() && oForm)
 				arrResult.push(oForm);
@@ -5979,24 +6019,21 @@
 	 * Returns all existing forms in the document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @returns {ApiTextForm[] | ApiPictureForm[] | ApiComboBoxForm[] | ApiCheckBoxForm[]}
+	 * @returns {ApiForm[]}
 	 */
 	ApiDocument.prototype.GetAllForms = function()
 	{
-		var aForms = [];
-		var allControls = this.Document.GetAllContentControls();
-		for (var nElm = 0; nElm < allControls.length; nElm++)
+		let arrApiForms = [];
+		let arrForms    = this.Document.GetFormsManager().GetAllForms();
+		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
-			let oControl = allControls[nElm];
-			if (oControl.IsForm())
-			{
-				let oForm = ToApiForm(oControl);
-				if (oForm)
-					aForms.push(oForm);
-			}
+			let oForm    = arrForms[nIndex];
+			let oApiForm = ToApiForm(oForm);
+			if (oApiForm)
+				arrApiForms.push(oApiForm);
 		}
 
-		return aForms;
+		return arrApiForms;
 	};
 
 	/**
@@ -6094,7 +6131,7 @@
 	 * Returns all caption paragraphs of the specified type from the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param {captionType} - Caption type (equation, figure or table).
+	 * @param {captionType} sCaption Caption type (equation, figure or table).
 	 * @returns {ApiParagraph[]}
 	 */
 	ApiDocument.prototype.GetAllCaptionParagraphs = function(sCaption) 
@@ -6563,7 +6600,7 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
-		if (oParaElement.Is_UseInDocument())
+		if (oParaElement.IsUseInDocument())
 			return false;
 
 		if (undefined !== nPos)
@@ -6723,7 +6760,7 @@
 	 */
 	ApiParagraph.prototype.Push = function(oElement)
 	{
-		if (oElement.private_GetImpl().Is_UseInDocument())
+		if (oElement.private_GetImpl().IsUseInDocument())
 			return false;
 
 		if (private_IsSupportedParaElement(oElement))
@@ -7620,7 +7657,7 @@
 				nRefTo = 5;
 				break;
 		}
-		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.Is_UseInDocument())
+		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.IsUseInDocument())
 			return false;
 		if (typeof(bLink) !== "boolean")
 			bLink = true;
@@ -7684,7 +7721,7 @@
 				nRefTo = 5;
 				break;
 		}
-		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !oParaTo.Paragraph.Is_UseInDocument() || !this.Paragraph.Is_UseInDocument())
+		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !oParaTo.Paragraph.IsUseInDocument() || !this.Paragraph.IsUseInDocument())
 			return false;
 		if (typeof(bLink) !== "boolean")
 			bLink = true;
@@ -7741,7 +7778,7 @@
 				nRefTo = 5;
 				break;
 		}
-		if (nRefTo === -1 || typeof(sBookmarkName) !== "string" || sBookmarkName.length === 0 || !this.Paragraph.Is_UseInDocument())
+		if (nRefTo === -1 || typeof(sBookmarkName) !== "string" || sBookmarkName.length === 0 || !this.Paragraph.IsUseInDocument())
 			return false;
 		if (typeof(bLink) !== "boolean")
 			bLink = true;
@@ -7801,7 +7838,7 @@
 				nRefTo = 9;
 				break;
 		}
-		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.Is_UseInDocument())
+		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.IsUseInDocument())
 			return false;
 		if (typeof(bLink) !== "boolean")
 			bLink = true;
@@ -7857,7 +7894,7 @@
 				nRefTo = 9;
 				break;
 		}
-		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.Is_UseInDocument())
+		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.IsUseInDocument())
 			return false;
 		if (typeof(bLink) !== "boolean")
 			bLink = true;
@@ -7920,7 +7957,7 @@
 				nRefTo = 5;
 				break;
 		}
-		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.Is_UseInDocument())
+		if (nRefTo === -1 || !(oParaTo instanceof ApiParagraph) || !this.Paragraph.IsUseInDocument())
 			return false;
 		if (typeof(bLink) !== "boolean")
 			bLink = true;
@@ -7984,7 +8021,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 
 			var oParent = this.Paragraph.GetParent();
@@ -7999,6 +8036,102 @@
 
 		return false;
 	};
+
+	/**
+     * Adds caption paragraph after (or before) current paragraph.
+	 * Note: 
+	 * 1. Current paragraph must be in document (not in footer/header).
+	 * 2. If current paragraph placed in shape, then adds caption like a shape after (or before) parent shape.
+     * @memberof ApiParagraph
+     * @typeofeditors ["CDE"]
+     * @param {string} sAdditional - the additional text.
+	 * @param {CaptionLabel | String} [sLabel="Table"] - caption label.
+	 * @param {boolean} [bExludeLabel=false] - wheter exclude label from caption.
+	 * @param {CaptionNumberingFormat} [sNumberingFormat="Arabic"] - the possible caption numbering format.
+	 * @param {boolean} [bBefore=false] - whether insert caption before current paragraph (after/before shape, if placed in shape).
+	 * @param {Number} [nHeadingLvl=undefined] - heading level (use if need to include chapter number).
+	 * Note: if need "Heading 1" then nHeadingLvl === 0 and etc.
+	 * @param {CaptionSep} [sCaptionSep="hyphen"] - separator (use if need to include chapter number).
+     * @returns {boolean}
+     */
+	ApiParagraph.prototype.AddCaption = function(sAdditional, sLabel, bExludeLabel, sNumberingFormat, bBefore, nHeadingLvl, sCaptionSep)
+	{
+		var oParaParent = this.Paragraph.GetParent();
+		if (this.Paragraph.IsUseInDocument() === false || !oParaParent || oParaParent.Is_TopDocument(true) !== private_GetLogicDocument())
+			return false;
+		if (typeof(sAdditional) !== "string" || sAdditional.trim() === "")
+			sAdditional = "";
+		if (typeof(bExludeLabel) !== "boolean")
+			bExludeLabel = false;
+		if (typeof(bBefore) !== "boolean")
+			bBefore = false;
+		if (typeof(sLabel) !== "string" || sLabel.trim() === "")
+			sLabel = "Table";
+		
+		let oCapPr = new Asc.CAscCaptionProperties();
+		let oDoc = private_GetLogicDocument();
+
+		let nNumFormat;
+		switch (sNumberingFormat)
+		{
+			case "ALPHABETIC":
+				nNumFormat = Asc.c_oAscNumberingFormat.UpperLetter;
+				break;
+			case "alphabetic":
+				nNumFormat = Asc.c_oAscNumberingFormat.LowerLetter;
+				break;
+			case "Roman":
+				nNumFormat = Asc.c_oAscNumberingFormat.UpperRoman;
+				break;
+			case "roman":
+				nNumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+				break;
+			default:
+				nNumFormat = Asc.c_oAscNumberingFormat.Decimal;
+				break;
+		}
+		switch (sCaptionSep)
+		{
+			case "hyphen":
+				sCaptionSep = "-";
+				break;
+			case "period":
+				sCaptionSep = ".";
+				break;
+			case "colon":
+				sCaptionSep = ":";
+				break;
+			case "longDash":
+				sCaptionSep = "—";
+				break;
+			case "dash":
+				sCaptionSep = "-";
+				break;
+			default:
+				sCaptionSep = "-";
+				break;
+		}
+
+		oCapPr.Label = sLabel;
+		oCapPr.Before = bBefore;
+		oCapPr.ExcludeLabel = bExludeLabel;
+		oCapPr.NumFormat = nNumFormat;
+		oCapPr.Separator = sCaptionSep;
+		oCapPr.Additional = sAdditional;
+
+		if (nHeadingLvl >= 0 && nHeadingLvl <= 8)
+		{
+			oCapPr.HeadingLvl = nHeadingLvl;
+			oCapPr.IncludeChapterNumber = true;
+		}
+		else oCapPr.HeadingLvl = 0;
+
+		this.Paragraph.Document_SetThisElementCurrent();
+
+		oDoc.AddCaption(oCapPr);
+		return true;
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiRun
@@ -9297,7 +9430,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 			apiCellContent.Document.Internal_Content_Add(nPos, oElm);
 
@@ -9859,7 +9992,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 
 			var oParent = this.Table.GetParent();
@@ -10471,7 +10604,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 			apiCellContent.Document.Internal_Content_Add(nPos, oElm);
 
@@ -12191,6 +12324,64 @@
 			this.TablePr.TableLayout = tbllayout_Fixed;
 
 		this.private_OnChange();
+	};
+	/**
+	 * Sets the table title (caption).
+	 * @memberof ApiTablePr
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sTitle - the table title to be set.
+	 * @return {boolean}
+	 */
+	ApiTablePr.prototype.SetTableTitle = function(sTitle)
+	{
+		if (typeof(sTitle) !== "string" || sTitle === "")
+			return false;
+
+		this.TablePr.TableCaption = sTitle;
+		this.private_OnChange();
+		return true;
+	};
+	/**
+	 * Gets the table title (caption).
+	 * @memberof ApiTablePr
+	 * @typeofeditors ["CDE"]
+	 * @return {string}
+	 */
+	ApiTablePr.prototype.GetTableTitle = function()
+	{
+		if (this.TablePr.TableCaption)
+			return this.TablePr.TableCaption;
+
+		return "";
+	};
+	/**
+	 * Sets the table description.
+	 * @memberof ApiTablePr
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sDescr - the table description to be set.
+	 * @return {boolean}
+	 */
+	ApiTablePr.prototype.SetTableDescription = function(sDescr)
+	{
+		if (typeof(sDescr) !== "string" || sDescr === "")
+			return false;
+
+		this.TablePr.TableDescription = sDescr;
+		this.private_OnChange();
+		return true;
+	};
+	/**
+	 * Gets the table description.
+	 * @memberof ApiTablePr
+	 * @typeofeditors ["CDE"]
+	 * @return {string}
+	 */
+	ApiTablePr.prototype.GetTableDescription = function()
+	{
+		if (this.TablePr.TableDescription)
+			return this.TablePr.TableDescription;
+
+		return "";
 	};
 	/**
 	 * Converts the ApiTablePr object into the JSON object.
@@ -14652,7 +14843,7 @@
 	 * Removes all the elements from the current inline text content control.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
-	 * @returns {boolean} - returns false if control haven't elements.
+	 * @returns {boolean} - returns false if control has not elements.
 	 */
 	ApiInlineLvlSdt.prototype.RemoveAllElements = function()
 	{
@@ -14685,7 +14876,7 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
-		if (oParaElement.Is_UseInDocument())
+		if (oParaElement.IsUseInDocument())
 			return false;
 
 		if (this.Sdt.IsShowingPlcHdr())
@@ -14719,7 +14910,7 @@
 			return false;
 
 		var oParaElement = oElement.private_GetImpl();
-		if (oParaElement.Is_UseInDocument())
+		if (oParaElement.IsUseInDocument())
 			return false;
 
 		if (this.Sdt.IsShowingPlcHdr())
@@ -15188,8 +15379,7 @@
 	 */
 	ApiBlockLvlSdt.prototype.RemoveAllElements = function()
 	{
-		this.Sdt.Content.ClearContent(true);
-
+		this.Sdt.ReplaceContentWithPlaceHolder(false);
 		return true;
 	};
 
@@ -15323,7 +15513,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 
 			if (this.Sdt.IsShowingPlcHdr())
@@ -15352,7 +15542,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 
 			if (this.Sdt.IsShowingPlcHdr())
@@ -15377,16 +15567,27 @@
 	 */
 	ApiBlockLvlSdt.prototype.AddText = function(sText)
 	{
-		if (typeof sText === "string")
-		{
-			var oParagraph = editor.CreateParagraph();
-			oParagraph.AddText(sText);
-			this.Sdt.Content.Internal_Content_Add(this.Sdt.Content.Content.length, oParagraph.private_GetImpl());
+		let _sText = GetStringParameter(sText, null);
+		if (null === _sText)
+			return false;
 
-			return true;
+		let oParagraph;
+		if (this.Sdt.IsPlaceHolder())
+		{
+			this.Sdt.ReplacePlaceHolderWithContent();
+			let oDocContent = this.GetContent();
+			if (oDocContent.GetElementsCount() && oDocContent.GetElement(0) instanceof ApiParagraph)
+				oParagraph = oDocContent.GetElement(0);
 		}
 
-		return false;
+		if (!oParagraph)
+		{
+			oParagraph = Api.prototype.CreateParagraph();
+			this.GetContent().Push(oParagraph);
+		}
+
+		oParagraph.AddText(_sText);
+		return true;
 	};
 
 	/**
@@ -15497,7 +15698,7 @@
 		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
 		{
 			var oElm = oElement.private_GetImpl();
-			if (oElm.Is_UseInDocument())
+			if (oElm.IsUseInDocument())
 				return false;
 
 			var oParent = this.Sdt.GetParent();
@@ -15782,13 +15983,7 @@
 	 */
 	ApiFormBase.prototype.GetText = function()
 	{
-		var oText = {
-			Text: ""
-		};
-
-		this.Sdt.Get_Text(oText);
-
-		return oText.Text;
+		return this.Sdt.GetInnerText();
 	};
 	/**
 	 * Clears the current form.
@@ -15866,7 +16061,7 @@
 	 * Copies the current form (copies with the shape if it exists).
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
-	 * @returns {null | ApiTextForm| ApiCheckBoxForm | ApiComboBoxForm | ApiPictureForm}
+	 * @returns {?ApiForm}
 	 */
 	ApiFormBase.prototype.Copy = function()
 	{
@@ -17092,8 +17287,6 @@
 	ApiDocument.prototype["Search"]                      = ApiDocument.prototype.Search;
 	ApiDocument.prototype["ToMarkdown"]                  = ApiDocument.prototype.ToMarkdown;
 	ApiDocument.prototype["ToHtml"]                      = ApiDocument.prototype.ToHtml;
-	ApiDocument.prototype["ClearAllForms"]               = ApiDocument.prototype.ClearAllForms;
-	ApiDocument.prototype["SetFormsHighlight"]           = ApiDocument.prototype.SetFormsHighlight;
 	ApiDocument.prototype["GetAllNumberedParagraphs"]    = ApiDocument.prototype.GetAllNumberedParagraphs;
 	ApiDocument.prototype["GetAllHeadingParagraphs"]     = ApiDocument.prototype.GetAllHeadingParagraphs;
 	ApiDocument.prototype["GetFootnotesFirstParagraphs"] = ApiDocument.prototype.GetFootnotesFirstParagraphs;
@@ -17186,6 +17379,7 @@
 	ApiParagraph.prototype["AddCaptionCrossRef"]     = ApiParagraph.prototype.AddCaptionCrossRef;
 	ApiParagraph.prototype["GetPosInParent"]         = ApiParagraph.prototype.GetPosInParent;
 	ApiParagraph.prototype["ReplaceByElement"]       = ApiParagraph.prototype.ReplaceByElement;
+	ApiParagraph.prototype["AddCaption"]             = ApiParagraph.prototype.AddCaption;
 
 	ApiParagraph.prototype["ToJSON"]                 = ApiParagraph.prototype.ToJSON;
 
@@ -17443,6 +17637,11 @@
 	ApiTablePr.prototype["SetTableInd"]              = ApiTablePr.prototype.SetTableInd;
 	ApiTablePr.prototype["SetWidth"]                 = ApiTablePr.prototype.SetWidth;
 	ApiTablePr.prototype["SetTableLayout"]           = ApiTablePr.prototype.SetTableLayout;
+	ApiTablePr.prototype["SetTableTitle"]            = ApiTablePr.prototype.SetTableTitle;
+	ApiTablePr.prototype["GetTableTitle"]            = ApiTablePr.prototype.GetTableTitle;
+	ApiTablePr.prototype["SetTableDescription"]      = ApiTablePr.prototype.SetTableDescription;
+	ApiTablePr.prototype["GetTableDescription"]      = ApiTablePr.prototype.GetTableDescription;
+
 	ApiTablePr.prototype["ToJSON"]                   = ApiTablePr.prototype.ToJSON;
 
 	ApiTableRowPr.prototype["GetClassType"]          = ApiTableRowPr.prototype.GetClassType;
@@ -17754,6 +17953,7 @@
 	window['AscBuilder'].ApiPictureForm     = ApiPictureForm;
 	window['AscBuilder'].ApiComboBoxForm    = ApiComboBoxForm;
 	window['AscBuilder'].ApiCheckBoxForm    = ApiCheckBoxForm;
+	window['AscBuilder'].ApiComplexForm     = ApiComplexForm;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Area for internal usage
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -17797,7 +17997,9 @@
 		if (!oForm)
 			return null;
 
-		if (oForm.IsTextForm())
+		if (oForm.IsComplexForm())
+			return new ApiComplexForm(oForm);
+		else if (oForm.IsTextForm())
 			return new ApiTextForm(oForm);
 		else if (oForm.IsComboBox() || oForm.IsDropDownList())
 			return new ApiComboBoxForm(oForm);
@@ -17871,7 +18073,9 @@
 		if (!oSdt)
 			return new ApiUnsupported();
 
-		if (oSdt.IsTextForm())
+		if (oSdt.IsComplexForm())
+			return new ApiComplexForm(oSdt);
+		else if (oSdt.IsTextForm())
 			return new ApiTextForm(oSdt);
 		else if (oSdt.IsComboBox() || oSdt.IsDropDownList())
 			return new ApiComboBoxForm(oSdt);
@@ -18631,6 +18835,10 @@
 	Api.prototype.private_CreatePictureForm = function(oCC){
 		return new ApiPictureForm(oCC);
 	};
+	Api.prototype.private_CreateComplexForm = function(oCC)
+	{
+		return new ApiComplexForm(oCC);
+	};
 	
 
 	Api.prototype.private_createWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight) {
@@ -18705,8 +18913,8 @@
         var oBodyPr = oArt.getBodyPr().createDuplicate();
         oBodyPr.rot = 0;
         oBodyPr.spcFirstLastPara = false;
-        oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
-        oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
+        oBodyPr.vertOverflow = AscFormat.nVOTOverflow;
+        oBodyPr.horzOverflow = AscFormat.nHOTOverflow;
         oBodyPr.vert = AscFormat.nVertTThorz;
         oBodyPr.wrap = AscFormat.nTWTNone;
         oBodyPr.lIns = 2.54;
