@@ -1576,24 +1576,11 @@ var GLOBAL_PATH_COUNT = 0;
             else if(this.selection.axis) {
                 var oAxObj;
                 var oChartObj = this.chartObj;
-                if(this.selection.axis.getObjectType() === AscDFH.historyitem_type_CatAx || this.selection.axis.getObjectType() === AscDFH.historyitem_type_DateAx) {
-
-                    if(Array.isArray(oChartObj.catAxisChart)) {
-                        for(i = 0; i < oChartObj.catAxisChart.length; ++i) {
-                            if(oChartObj.catAxisChart[i] && oChartObj.catAxisChart[i].catAx === this.selection.axis) {
-                                oAxObj = oChartObj.catAxisChart[i];
-                                break;
-                            }
-                        }
-                    }
-                }
-                else if(this.selection.axis.getObjectType() === AscDFH.historyitem_type_ValAx) {
-                    if(Array.isArray(oChartObj.valAxisChart)) {
-                        for(i = 0; i < oChartObj.valAxisChart.length; ++i) {
-                            if(oChartObj.valAxisChart[i] && oChartObj.valAxisChart[i].valAx === this.selection.axis) {
-                                oAxObj = oChartObj.valAxisChart[i];
-                                break;
-                            }
+                if(Array.isArray(oChartObj.axesChart)) {
+                    for(i = 0; i < oChartObj.axesChart.length; ++i) {
+                        if(oChartObj.axesChart[i] && oChartObj.axesChart[i].axis === this.selection.axis) {
+                            oAxObj = oChartObj.axesChart[i];
+                            break;
                         }
                     }
                 }
