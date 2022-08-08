@@ -698,8 +698,8 @@
 		["\\zwnj", "‌"],
 		["\\zwsp", "​", oNamesOfLiterals.spaceLiteral[0]], //["​", oNamesOfLiterals.spaceLiteral[0]], // zero-width space
 
-		["√(", undefined, oNamesOfLiterals.sqrtLiteral[0]],
-		["\\sqrt(", "√(", oNamesOfLiterals.sqrtLiteral[0]],
+		["√", undefined, oNamesOfLiterals.sqrtLiteral[0]],
+		["\\sqrt", "√", oNamesOfLiterals.sqrtLiteral[0]],
 		["\\}", undefined, oNamesOfLiterals.opCloseBracket[0]],
 		["\\|", "‖", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\\\", undefined, true],
@@ -2467,6 +2467,7 @@
 	}
 
 	function GetTextForAutoCorrection(oContent, isUnicode) {
+		let intCount;
 		function ProceedAutoCorection() {
 			this.str = [];
 			this.len = [];
@@ -2514,7 +2515,6 @@
 		ProceedAutoCorection.prototype.GetText = function() {
 			this.intAllContentLen = this.GetLength();
 
-			this.ProcessingBrackets()
 			this.ProcessingOperators();
 			this.ProcessingAutoCorrectWord();
 
@@ -2610,20 +2610,13 @@
 			}
 			return true;
 		}
-		ProceedAutoCorection.prototype.ProcessingBrackets = function() {
-			let str = this.str[0];
-			for (let i = str.length - 1; i >= 0; i--) {
-			if (str[i].class === oNamesOfLiterals.opOpenCloseBracket[0] || str[i].class === oNamesOfLiterals.opOpenBracket[0]) {
-					str.splice(0, 1);
-					return true;
-				}
-			}
-		}
 		ProceedAutoCorection.prototype.ProcessingOperators = function() {
-			for (let i = this.str.length - 1; i >= 0; i--) {
-				if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
-					this.str.splice(0, i + 1);
-					break;
+			if (intCount === undefined) {
+				for (let i = this.str.length - 1; i >= 0; i--) {
+					if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
+						this.str.splice(0, i + 1);
+						break;
+					}
 				}
 			}
 		}
@@ -2636,8 +2629,58 @@
 				}
 			}
 		}
+		ProceedAutoCorection.prototype.GetBracketCount = function() {
+			let intLocalCount = 0
 
-		function ProceedContent(oContent) {
+			for (let i = this.str.length - 1; i >= 0; i--) {
+				let oContent = this.str[i];
+
+				if (oContent instanceof ProceedAutoCorection) {
+					intLocalCount += oContent.GetBracketCount();
+				} else {
+
+					if (oContent.class === oNamesOfLiterals.opOpenBracket[0] || (oContent.class === oNamesOfLiterals.opOpenCloseBracket[0] && intLocalCount !== 1)) {
+						intLocalCount++;
+						if (intCount + intLocalCount === 0 && i !== 0) {
+							this.str.splice(0, i)
+							break;
+						}
+						// else if (rawData[rawData.length - 1].oRootContext === this && intLocalCount === 1 && i === 0) {
+						// 	this.str.splice(0, i + 1)
+						// 	break;
+						// }
+					} 
+					else if (oContent.class === oNamesOfLiterals.opCloseBracket[0] || oContent.class === oNamesOfLiterals.opOpenCloseBracket[0]) {
+						intLocalCount--;
+					} 
+				}
+			}
+
+			return intLocalCount;
+		}
+		ProceedAutoCorection.prototype.FlatData = function() {
+			for (let i = 0; i < this.str.length; i++) {
+				let Content = this.str[i];
+				let data;
+
+				if (Content instanceof ProceedAutoCorection) {
+					data = Content.FlatData();
+				}
+
+				if (data) {
+					this.str.splice(i, 1, ...data)
+				} 
+
+				if (this.Parent !== null) {
+					return this.str;
+				}
+			}
+		}
+		ProceedAutoCorection.prototype.SetEmpty = function() {
+			this.str = [];
+		}
+
+		function ProceedContent(oContent, Parent) {
 			this.Content = oContent;
 			
 			this.oRootContext = new ProceedAutoCorection();
@@ -2660,7 +2703,7 @@
 			let isEnd = false;
 			
 			while (this.oTokenizer.IsHasMoreTokens() && !isEnd) {
-
+				
 				this.GetNext();
 	
 				if (this.oElement.class === 23 || this.oElement.class === 25) {
@@ -2694,41 +2737,66 @@
 				
 				this.GetNext();
 	
-				if ((this.oElement.class === 23 || this.oElement.class === 25) && !(isUnicode === 1 && oElement.data === "{")) {
+				if ((this.oElement.class === 23 || this.oElement.class === 25)) {
 					this.ProceedBracketsBlock();
 				}
-				else if ((this.oElement.class === 24 || this.oElement.class === 25) && !(isUnicode === 1 && oElement.data === "}")) {
-					this.WriteNow()
+				else if ((this.oElement.class === 24 || this.oElement.class === 25)) {
+					this.WriteNow();
+				}
+				else if (this.Context === this.oRootContext && this.oElement.class === oNamesOfLiterals.operatorLiteral[0]) {
+					isStop = true;
+					this.Context.SetEmpty();
+					continue;
 				}
 				else {
-					this.WriteNow()
+					this.WriteNow();
 				}
 			}
 		}
 
+		let isStop = false;
+		let rawData = [];
+		let intBracket = 0;
 		let arrOutputContent = [];
 
 		for (let i = oContent.length - 1; i >= 0; i--) {
 			let oCurrentContent = oContent[i];
 
-			if (oCurrentContent !== undefined && oCurrentContent.Content.length > 0) {
+			if (oCurrentContent !== undefined && oCurrentContent.Content.length > 0 && !isStop) {
 				let oTemp = new ProceedContent(oCurrentContent);
 				oTemp.Proceed();
+
+				if (oTemp.oRootContext.str.length === 0) {
+					break
+				}
+
+				rawData.push(oTemp);
 	
 				let oStrForConvert = oTemp.oRootContext.GetText();
 				let intLen = oTemp.oRootContext.intAllContentLen;
 
-				if (oStrForConvert.len === intLen) {
-					arrOutputContent.push(oStrForConvert);
-					arrOutputContent[arrOutputContent.length - 1].DelCount = true;
-				} else if (oStrForConvert.str.length > 0) {
-					arrOutputContent.push(oStrForConvert);
-					arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
-					break;
-				}
+				arrOutputContent.push(oStrForConvert);
+				arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
 			}
 		}
-		
+ 	// 	arrOutputContent = [];
+
+ 	// 	// дополнительная обработка скобок
+ 	// 	let isSearchedOpenBracked = false;
+		// intCount = 0;
+		// for (let i = 0; i < rawData.length; i++) {
+		// 	let Data = rawData[i].oRootContext;
+
+		// 	Data.FlatData()
+		// 	intCount += Data.GetBracketCount();
+
+		// 	let oStrForConvert = Data.GetText();
+		// 	let intLen = Data.intAllContentLen;
+			
+		// 	arrOutputContent.push(oStrForConvert);
+		// 	arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
+		// }
+
 		return arrOutputContent;
 	}
 

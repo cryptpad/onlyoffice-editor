@@ -5487,8 +5487,10 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
 	this.Correct_Content(true)
 
-	var oLogicDocument = this.GetLogicDocument()
-	var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+	var oLogicDocument = this.GetLogicDocument();
+	var nInputType = oLogicDocument 
+        ? oLogicDocument.GetMathInputType()
+        : Asc.c_oAscMathInputType.Unicode;
 
     var oCurrentObj = this.Content[this.CurPos];
     var CursorPos = oCurrentObj.State.ContentPos;
@@ -5501,91 +5503,81 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
 	var oTempObject = new CMathContent(); //контент в который пишем, что нужно конвертнуть
 
-    let oA;
-    let Copy = this.Content.slice();
+    let Copy = this.Content.slice(); 
     Copy.length = this.CurPos + 1;
-
-    oA = AscMath.GetTextForAutoCorrection(Copy, nInputType); //получили текст для конвертации
+    let oA = AscMath.GetTextForAutoCorrection(Copy, nInputType); //получили текст для конвертации
 
     let arrOutputContent = [];
-	let intOutputLength = 0;
-	let intLength = 0;
-	let isOneWord = false;
-	let intLen = oA.length;
-
     let arrDelData = [];
- 
+	let isOneWord = false;
 	
-	for (let i = 0; i < oA.length; i++) {
-		let Content = oA[i];
+    let isPrecContent = false;
+    if (this.CurPos > 0) {
+        isPrecContent = this.Content[this.CurPos - 1].Type !== 49;
+    }
 
-		if (Content.str.length > 0 && Content.len > 0) {
-			if (i === 1 && intLen > 1) 
-				arrOutputContent.unshift("〗");
-			
-			arrOutputContent = Content.str.concat(arrOutputContent);
+    for (let i = 0; i < oA.length; i++) {
+        let Content = oA[i];
 
-			if (i === 1 && intLen > 1) 
-				arrOutputContent.unshift("〖");
-			
-			intOutputLength += Content.len + 1;
-	
-            if (oA[i].isOneWord === true && intLen === 1)
+        if (Content.str.length > 0 && Content.len > 0) {
+            if (i === 1 && oA.length > 1 && isPrecContent) 
+                arrOutputContent.unshift("〗");
+            
+            arrOutputContent = Content.str.concat(arrOutputContent);
+
+            if (i === 1 && oA.length > 1 && isPrecContent) 
+                arrOutputContent.unshift("〖");
+    
+            if (oA[i].isOneWord === true && oA.length === 1)
                 isOneWord = true;
             
-			intLength++;
-
             arrDelData.push(
                 Content.DelCount
             );
-		}
-	}
-	
-
-    //удаляем первый элемент
-    if (intLen === 1 && oA[0].DelCount !== this.Content[this.CurPos].Content.length) {
-        this.Content[this.CurPos].Remove_FromContent(this.Content[this.CurPos].Content.length - oA[0].DelCount, oA[0].DelCount);
-        this.CurPos++;
-    } else {
-        this.Remove_FromContent(this.CurPos, 1)
+        }
     }
-	
 
-	oTempObject.Remove_Content(0, oTempObject.Content.length, false);
-
-	let strStringForCOnversion = arrOutputContent.join("");
+	let strStringForConversion = arrOutputContent.join("");
 	
-	if (isOneWord)
-		oTempObject.Add_Text(strStringForCOnversion);
-	else
-		(nInputType === Asc.c_oAscMathInputType.Unicode)
-			? AscMath.CUnicodeConverter(strStringForCOnversion, oTempObject)
-		    : AscMath.ConvertLaTeXToTokensList(strStringForCOnversion, oTempObject);
+	if (isOneWord) {
+		oTempObject.Add_Text(strStringForConversion);
+    }
+	else {
+		nInputType === Asc.c_oAscMathInputType.Unicode
+			? AscMath.CUnicodeConverter(strStringForConversion, oTempObject)
+		    : AscMath.ConvertLaTeXToTokensList(strStringForConversion, oTempObject);
+    }
 
 	//выбор предыдущего элемента был бессмысленен
-	if (oTempObject.Content.length > 1) {
+	if (oA.length === 2 && oTempObject.Content.length > 1) {
 		oTempObject.Content.slice(0);
-	} else if (intLen > 1) {
-        let LastObjectLength = arrDelData[arrDelData.length - 1];
-        if (LastObjectLength < 0 && LastObjectLength !== true) {
-            LastObjectLength = 0;
-        }
-        if (LastObjectLength !== true) {
-            let o = this.CurPos - (arrDelData.length);
-            if (o < 0) {
-                o = 0;
-            }
-            let oLastObject = this.Content[o];
-            this.Remove_FromContent(this.CurPos - (intLength - 1), intLength - 1);
-            oLastObject.Remove_FromContent(oLastObject.Content.length - LastObjectLength, LastObjectLength)
-        } else {
-            this.Remove_FromContent(this.CurPos - (intLength), intLength - 1);
-        }
 	}
+
+    for (let i = 0; i < arrDelData.length; i++) {
+        let oContent = this.Content[this.CurPos - i];
+        let intLengthOfContent = oContent.Content.length;
+        let intDeleteCount = arrDelData[i];
+
+        if (intLengthOfContent <= intDeleteCount) 
+        {
+            this.Remove_FromContent(this.CurPos - i, 1, true);
+        }
+        else 
+        {
+            if (i === 0) {
+                intDeleteCount++;
+            }
+            oContent.Remove_FromContent(intLengthOfContent - intDeleteCount , intDeleteCount);
+            if (i === arrDelData.length - 1) {
+                this.CurPos++
+            }
+            
+        }       
+    }
 
 	for (let i = 0; i < oTempObject.Content.length; i++) {
 		this.Add_ToContent(
-			isOneWord ? this.CurPos + 1 + i : this.CurPos + i,
+			this.CurPos + i,
 			oTempObject.Content[i].Copy(false),
 			false
 		);

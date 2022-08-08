@@ -185,6 +185,10 @@
 		oOpLiteral = this.EatToken(oLiteralNames.opOpenBracket[0]);
 		return oOpLiteral.data;
 	};
+	CUnicodeParser.prototype.IsOpOpenLiteral = function () {
+		return this.oLookahead.class === oLiteralNames.opOpenCloseBracket[0] || 
+				this.oLookahead.class === oLiteralNames.opOpenBracket[0];
+	}
 	// CUnicodeParser.prototype.GetOpOpenerLiteral = function () {
 	// 	switch (this.oLookahead.class) {
 	// 		case "\\open":
@@ -426,21 +430,6 @@
 			value: oBase,
 		}
 	};
-	CUnicodeParser.prototype.GetSqrtLiteral = function () {
-		let oToken;
-		this.EatToken(oLiteralNames.sqrtLiteral[0]);
-		this.SkipSpace();
-		if (this.IsOperandLiteral()) {
-			oToken = this.GetElementLiteral();
-		}
-		return {
-			type: oLiteralNames.sqrtLiteral[num],
-			value: oToken ? oToken : undefined,
-		};
-	};
-	CUnicodeParser.prototype.IsSqrtLiteral = function () {
-		return this.oLookahead.data === "√";
-	};
 	CUnicodeParser.prototype.GetCubertLiteral = function () {
 		let oToken;
 		this.EatToken(oLiteralNames.sqrtLiteral[0]);
@@ -480,6 +469,11 @@
 	CUnicodeParser.prototype.GetNthrtLiteral = function () {
 		let oIndex, oContent;
 		this.EatToken(this.oLookahead.class);
+
+		if (this.IsOpOpenLiteral()) {
+			this.GetOpOpenLiteral();
+		}
+
 		if (this.IsOperandLiteral()) {
 			oIndex = this.GetExpLiteral();
 			if (this.oLookahead.data === "&") {
@@ -506,7 +500,7 @@
 		}
 	};
 	CUnicodeParser.prototype.IsNthrtLiteral = function () {
-		return this.oLookahead.data === "√(" && this.oLookahead.class !== oLiteralNames.operatorLiteral[0];
+		return this.oLookahead.data === "√" && this.oLookahead.class !== oLiteralNames.operatorLiteral[0] || this.oLookahead.data === "√(";
 	};
 	CUnicodeParser.prototype.ProceedSqrt = function () {
 		if (this.oLookahead.class === "▒") {
@@ -517,7 +511,6 @@
 	CUnicodeParser.prototype.IsFunctionLiteral = function () {
 		return (
 			this.IsRootLiteral() ||
-			this.IsSqrtLiteral() ||
 			this.IsCubertLiteral() ||
 			this.IsFourthrtLiteral() ||
 			this.IsNthrtLiteral() ||
@@ -531,15 +524,8 @@
 	CUnicodeParser.prototype.GetFunctionLiteral = function () {
 		let oFunctionContent;
 
-		if (this.IsSqrtLiteral()) {
-			oFunctionContent = this.GetSqrtLiteral();
-
-			let temp = this.ProceedSqrt();
-			if (temp) {
-				oFunctionContent.index = temp;
-			}
-		}
-		else if (this.IsRootLiteral()) {
+		
+	    if (this.IsRootLiteral()) {
 			oFunctionContent = this.GetRootLiteral()
 		}
 		else if (this.IsCubertLiteral()) {
@@ -723,9 +709,6 @@
 		}
 		else if (this.oLookahead.class === oLiteralNames.charLiteral[0]) {
 			return this.GetCharLiteral();
-		}
-		else if (this.IsSqrtLiteral()) {
-			return this.GetSqrtLiteral();
 		}
 		else if (this.IsCubertLiteral()) {
 			return this.GetCubertLiteral();
