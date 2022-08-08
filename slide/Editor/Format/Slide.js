@@ -1345,10 +1345,8 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         let bCheckBounds = graphics.IsSlideBoundsCheckerType;
         let bSlideShow = this.graphicObjects.isSlideShow();
         let bClipBySlide = !this.graphicObjects.canEdit();
-        if (bCheckBounds) {
-            if(bSlideShow || bClipBySlide) {
-                graphics.rect(0, 0, this.Width, this.Height);
-            }
+        if (bCheckBounds && (bSlideShow || bClipBySlide)) {
+            graphics.rect(0, 0, this.Width, this.Height);
             return;
         }
         let _bounds, i;
