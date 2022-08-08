@@ -740,15 +740,20 @@ function CGroupShape()
     CGroupShape.prototype.recalculateArrGraphicObjects = function()
     {
         this.arrGraphicObjects.length = 0;
-        for(var i = 0; i < this.spTree.length; ++i)
+        for(let nSp = 0; nSp < this.spTree.length; ++nSp)
         {
-            if(!this.spTree[i].isGroup())
-                this.arrGraphicObjects.push(this.spTree[i]);
+            let oSp = this.spTree[nSp];
+            if(oSp.isGroup() || oSp.isSmartArtObject())
+            {
+                let aGraphicObjets = oSp.getArrGraphicObjects();
+                for(let nGr = 0; nGr < aGraphicObjets.length; ++nGr)
+                {
+                    this.arrGraphicObjects.push(aGraphicObjets[nGr]);
+                }
+            }
             else
             {
-                var arr_graphic_objects = this.spTree[i].getArrGraphicObjects();
-                for(var j = 0; j < arr_graphic_objects.length; ++j)
-                    this.arrGraphicObjects.push(arr_graphic_objects[j]);
+                this.arrGraphicObjects.push(oSp);
             }
         }
     };
