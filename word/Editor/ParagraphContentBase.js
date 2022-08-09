@@ -183,7 +183,7 @@ CParagraphContentBase.prototype.CanAddDropCap = function()
 /**
  * Проверяем можно ли использовать селект для добавления буквицы
  * @param isUsePos {boolean}
- * @param oEndPos {CParagraphContentPos}
+ * @param oEndPos {AscWord.CParagraphContentPos}
  * @param nDepth {number}
  * @returns {boolean}
  */
@@ -251,10 +251,10 @@ CParagraphContentBase.prototype.GetParent = function()
 		return null;
 
 	var oContentPos = this.Paragraph.Get_PosByElement(this);
-	if (!oContentPos || oContentPos.Get_Depth() < 0)
+	if (!oContentPos || oContentPos.GetDepth() < 0)
 		return null;
 
-	oContentPos.Decrease_Depth(1);
+	oContentPos.DecreaseDepth(1);
 	return this.Paragraph.Get_ElementByPos(oContentPos);
 };
 CParagraphContentBase.prototype.GetPosInParent = function(_oParent)
@@ -798,10 +798,10 @@ CParagraphContentBase.prototype.IsStartFromNewLine = function()
 /**
  * Пробегаемся по все ранам с заданной функцией
  * @param fCheck - функция проверки содержимого рана
- * @param {CParagraphContentPos} oStartPos
- * @param {CParagraphContentPos} oEndPos
+ * @param {AscWord.CParagraphContentPos} oStartPos
+ * @param {AscWord.CParagraphContentPos} oEndPos
  * @param {number} nDepth
- * @param {?CParagraphContentPos} oCurrentPos
+ * @param {?AscWord.CParagraphContentPos} oCurrentPos
  * @returns {boolean}
  */
 CParagraphContentBase.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos)
@@ -864,8 +864,8 @@ CParagraphContentBase.prototype.ClearContent = function()
 /**
  * Получаем позиции до и после первого элемента у рана заданного типа
  * @param nType {number}
- * @param oStartPos {CParagraphContentPos}
- * @param oEndPos {CParagraphContentPos}
+ * @param oStartPos {AscWord.CParagraphContentPos}
+ * @param oEndPos {AscWord.CParagraphContentPos}
  * @param nDepth {number} глубина данного элемента
  * @returns {boolean}
  */
@@ -1070,8 +1070,8 @@ CParagraphContentWithContentBase.prototype.SelectThisElement = function(nDirecti
 	}
 	else
 	{
-		this.Get_StartPos(StartPos, StartPos.Get_Depth() + 1);
-		this.Get_EndPos(true, EndPos, EndPos.Get_Depth() + 1);
+		this.Get_StartPos(StartPos, StartPos.GetDepth() + 1);
+		this.Get_EndPos(true, EndPos, EndPos.GetDepth() + 1);
 	}
 
 	if (nDirection < 0)
@@ -1096,7 +1096,7 @@ CParagraphContentWithContentBase.prototype.SetThisElementCurrent = function()
 		return;
 
 	var StartPos = ContentPos.Copy();
-	this.Get_StartPos(StartPos, StartPos.Get_Depth() + 1);
+	this.Get_StartPos(StartPos, StartPos.GetDepth() + 1);
 
 	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
 	this.Paragraph.Document_SetThisElementCurrent(false);
@@ -1111,7 +1111,7 @@ CParagraphContentWithContentBase.prototype.GetStartPosInParagraph = function()
 		return null;
 
 	let oResultPos = oContentPos.Copy();
-	this.Get_StartPos(oResultPos, oResultPos.Get_Depth() + 1);
+	this.Get_StartPos(oResultPos, oResultPos.GetDepth() + 1);
 	return oResultPos;
 };
 CParagraphContentWithContentBase.prototype.GetEndPosInParagraph = function()
@@ -1124,7 +1124,7 @@ CParagraphContentWithContentBase.prototype.GetEndPosInParagraph = function()
 		return null;
 
 	let oResultPos = oContentPos.Copy();
-	this.Get_EndPos(true, oResultPos, oResultPos.Get_Depth() + 1);
+	this.Get_EndPos(true, oResultPos, oResultPos.GetDepth() + 1);
 	return oResultPos;
 };
 CParagraphContentWithContentBase.prototype.protected_GetPrevRangeEndPos = function(LineIndex, RangeIndex)
@@ -2345,10 +2345,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_Parent = function()
         return null;
 
     var ContentPos = this.Paragraph.Get_PosByElement(this);
-    if (null == ContentPos || undefined == ContentPos || ContentPos.Get_Depth() < 0)
+    if (!ContentPos || ContentPos.GetDepth() < 0)
         return null;
 
-    ContentPos.Decrease_Depth(1);
+    ContentPos.DecreaseDepth(1);
     return this.Paragraph.Get_ElementByPos(ContentPos);
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_PosInParent = function(Parent)
@@ -4747,7 +4747,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Add = function(Item)
 		}
 		case para_Math :
 		{
-			var ContentPos = new CParagraphContentPos();
+			var ContentPos = new AscWord.CParagraphContentPos();
 			this.Get_ParaContentPos(false, false, ContentPos);
 			var CurPos = ContentPos.Get(0);
 
