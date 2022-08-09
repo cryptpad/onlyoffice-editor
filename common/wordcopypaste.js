@@ -6507,52 +6507,78 @@ PasteProcessor.prototype =
 
 		return res;
 	},
+
 	_ParseColor: function (color) {
-		if (!color || color.length == 0)
+		if (!color || color.length == 0) {
 			return null;
-		if ("transparent" === color)
+		}
+		if ("transparent" === color) {
 			return null;
-		if ("aqua" === color)
+		}
+
+		if ("aqua" === color) {
 			return new CDocumentColor(0, 255, 255);
-		else if ("black" === color)
+		} else if ("black" === color) {
 			return new CDocumentColor(0, 0, 0);
-		else if ("blue" === color)
+		} else if ("blue" === color) {
 			return new CDocumentColor(0, 0, 255);
-		else if ("fuchsia" === color)
+		} else if ("fuchsia" === color) {
 			return new CDocumentColor(255, 0, 255);
-		else if ("gray" === color)
+		} else if ("gray" === color) {
 			return new CDocumentColor(128, 128, 128);
-		else if ("green" === color)
+		} else if ("green" === color) {
 			return new CDocumentColor(0, 128, 0);
-		else if ("lime" === color)
+		} else if ("lime" === color) {
 			return new CDocumentColor(0, 255, 0);
-		else if ("maroon" === color)
+		} else if ("maroon" === color) {
 			return new CDocumentColor(128, 0, 0);
-		else if ("navy" === color)
+		} else if ("navy" === color) {
 			return new CDocumentColor(0, 0, 128);
-		else if ("olive" === color)
+		} else if ("olive" === color) {
 			return new CDocumentColor(128, 128, 0);
-		else if ("purple" === color)
+		} else if ("purple" === color) {
 			return new CDocumentColor(128, 0, 128);
-		else if ("red" === color)
+		} else if ("red" === color) {
 			return new CDocumentColor(255, 0, 0);
-		else if ("silver" === color)
+		} else if ("silver" === color) {
 			return new CDocumentColor(192, 192, 192);
-		else if ("teal" === color)
+		} else if ("teal" === color) {
 			return new CDocumentColor(0, 128, 128);
-		else if ("white" === color)
+		} else if ("white" === color) {
 			return new CDocumentColor(255, 255, 255);
-		else if ("yellow" === color)
+		} else if ("yellow" === color) {
 			return new CDocumentColor(255, 255, 0);
-		else {
+		} else if ("cyan" === color) {
+			return new CDocumentColor(0, 255, 255);
+		} else if ("magenta" === color) {
+			return new CDocumentColor(255, 0, 255);
+		} else if ("darkblue" === color) {
+			return new CDocumentColor(0, 0, 139);
+		} else if ("darkcyan" === color) {
+			return new CDocumentColor(0, 139, 139);
+		} else if ("darkGreen" === color) {
+			return new CDocumentColor(0, 100, 0);
+		} else if ("darkmagenta" === color) {
+			return new CDocumentColor(128, 0, 128);
+		} else if ("darkRed" === color) {
+			return new CDocumentColor(139, 0, 0);
+		} else if ("darkyellow" === color) {
+			return new CDocumentColor(128, 128, 0);
+		} else if ("darkgray" === color) {
+			return new CDocumentColor(169, 169, 169);
+		} else if ("lightgray" === color) {
+			return new CDocumentColor(211, 211, 211);
+		} else {
+			var r, g, b;
 			if (0 === color.indexOf("#")) {
 				var hex = color.substring(1);
-				if (hex.length === 3)
+				if (hex.length === 3) {
 					hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+				}
 				if (hex.length === 6) {
-					var r = parseInt("0x" + hex.substring(0, 2));
-					var g = parseInt("0x" + hex.substring(2, 4));
-					var b = parseInt("0x" + hex.substring(4, 6));
+					r = parseInt("0x" + hex.substring(0, 2));
+					g = parseInt("0x" + hex.substring(2, 4));
+					b = parseInt("0x" + hex.substring(4, 6));
 					return new CDocumentColor(r, g, b);
 				}
 			}
@@ -6566,32 +6592,35 @@ PasteProcessor.prototype =
 						if (aParems.length >= 4) {
 							var oA = AscCommon.valueToMmType(aParems[3]);
 							if (0 == oA.val)//полностью прозрачный
+							{
 								return null;
+							}
 						}
 						var oR = AscCommon.valueToMmType(aParems[0]);
 						var oG = AscCommon.valueToMmType(aParems[1]);
 						var oB = AscCommon.valueToMmType(aParems[2]);
-						var r, g, b;
-						if (oR && "%" === oR.type)
+						if (oR && "%" === oR.type) {
 							r = parseInt(255 * oR.val / 100);
-						else
+						} else {
 							r = oR.val;
-						if (oG && "%" === oG.type)
+						}
+						if (oG && "%" === oG.type) {
 							g = parseInt(255 * oG.val / 100);
-						else
+						} else {
 							g = oG.val;
-						if (oB && "%" === oB.type)
+						}
+						if (oB && "%" === oB.type) {
 							b = parseInt(255 * oB.val / 100);
-						else
+						} else {
 							b = oB.val;
+						}
 						return new CDocumentColor(r, g, b);
 					}
 				}
 			}
 		}
 		return null;
-	},
-	_isEmptyProperty: function (prop) {
+	}, _isEmptyProperty: function (prop) {
 		var bIsEmpty = true;
 		for (var i in prop) {
 			if (null != prop[i]) {
@@ -10635,6 +10664,7 @@ function ParseHtmlMathContent(paragraph, opt_textPr) {
 
 ParseHtmlMathContent.prototype.fromXml = function (reader) {
 	var state = reader.getState();
+	CMathBase.prototype.fromHtmlCtrlPr.call(this, reader, this.cTextPr);
 	this.getXmlRunsRecursive(reader);
 	reader.setState(state);
 };
