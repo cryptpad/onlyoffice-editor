@@ -5459,33 +5459,29 @@ CMathContent.prototype.private_IsMenuPropsForContent = function(Action)
 
     return bDecreaseArgSize || bIncreaseArgSize || bInsertForcedBreak || bDeleteForcedBreak;
 };
-
 CMathContent.prototype.MergeParaRuns = function () {
 	if (this.Content.length > 0) {
-
-		for(let i = 0; i < this.Content.length; i++) {
+		
+        for(let i = 0; i < this.Content.length; i++) {
 
 			if (this.Content[i].Type === 49) {
-
 				let CurrentRun = this.Content[i];
-
 				while (this.Content[i+1] && this.Content[i+1].Type === 49) {
-
-					let FutureRun = this.Content[i+1];
-					CurrentRun.ConcatToContent(FutureRun.Content.slice(0, FutureRun.Content.length));
+					let oFutureRun = this.Content[i+1];
+                    let oContent = oFutureRun.Content.slice(0, oFutureRun.Content.length);
+					CurrentRun.ConcatToContent(oContent);
 					this.Remove_Content(i + 1, 1);
 				}
 			}
 		}
 	}
-}
-
+};
 CMathContent.prototype.New_AutoCorrect = function (oElement) {
-    if (oElement.value !== 32) {
+
+    //пока срабатывает только по пробелу
+    if (oElement.value !== 32) { 
         return
     }
-
-	this.Correct_Content(true)
 
 	var oLogicDocument = this.GetLogicDocument();
 	var nInputType = oLogicDocument 
@@ -5501,91 +5497,108 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
         this.Add_ToContent(this.CurPos + 1, oNewRun);
     }
 
-	var oTempObject = new CMathContent(); //контент в который пишем, что нужно конвертнуть
+	var oTempObject = new CMathContent();
 
-    let Copy = this.Content.slice(); 
-    Copy.length = this.CurPos + 1;
-    let oA = AscMath.GetTextForAutoCorrection(Copy, nInputType); //получили текст для конвертации
+    var oContentCopy = this.Content.slice(); 
+    oContentCopy.length = this.CurPos + 1;
+    var oContentForAutoCorrection = AscMath.GetTextForAutoCorrection(oContentCopy);
 
-    let arrOutputContent = [];
-    let arrDelData = [];
-	let isOneWord = false;
-	
-    let isPrecContent = false;
-    if (this.CurPos > 0) {
+    var arrOutputContent = [];
+    var arrDelData = [];
+	var isOneWord = false;
+
+    var isPrecContent = false;
+    var isDegree = false;
+
+    if (this.CurPos > 0)
+    {
         isPrecContent = this.Content[this.CurPos - 1].Type !== 49;
+        isDegree = this.Content[this.CurPos - 1].Type === 51;
     }
 
-    for (let i = 0; i < oA.length; i++) {
-        let Content = oA[i];
+    for (var i = 0; i < oContentForAutoCorrection.length; i++) {
+        var Content = oContentForAutoCorrection[i];
 
         if (Content.str.length > 0 && Content.len > 0) {
-            if (i === 1 && oA.length > 1 && isPrecContent) 
+            if (i === 1 && oContentForAutoCorrection.length > 1 && isPrecContent && !isDegree) 
                 arrOutputContent.unshift("〗");
-            
+
             arrOutputContent = Content.str.concat(arrOutputContent);
 
-            if (i === 1 && oA.length > 1 && isPrecContent) 
+            if (i === 1 && oContentForAutoCorrection.length > 1 && isPrecContent && !isDegree) 
                 arrOutputContent.unshift("〖");
-    
-            if (oA[i].isOneWord === true && oA.length === 1)
+
+            if (oContentForAutoCorrection[i].isOneWord === true && oContentForAutoCorrection.length === 1)
                 isOneWord = true;
-            
-            arrDelData.push(
-                Content.DelCount
-            );
+
+            arrDelData.push(Content.DelCount);
+        } else {
+            oContentForAutoCorrection.splice(i, 1);
         }
     }
 
-	let strStringForConversion = arrOutputContent.join("");
-	
-	if (isOneWord) {
+    //обрабатываем полученный текст
+	var strStringForConversion = arrOutputContent.join("");
+	if (isOneWord) 
+    {
 		oTempObject.Add_Text(strStringForConversion);
     }
-	else {
-		nInputType === Asc.c_oAscMathInputType.Unicode
+	else 
+    {
+		(nInputType === Asc.c_oAscMathInputType.Unicode)
 			? AscMath.CUnicodeConverter(strStringForConversion, oTempObject)
 		    : AscMath.ConvertLaTeXToTokensList(strStringForConversion, oTempObject);
     }
 
-	//выбор предыдущего элемента был бессмысленен
-	if (oA.length === 2 && oTempObject.Content.length > 1) {
-		oTempObject.Content.slice(0);
+    //при автокорекции мы всегда имеем дело с одним блоком контента
+	//если длина больше 1, то выбор предыдущих элементов был бессмысленен - удаляем лишнее
+	if (oContentForAutoCorrection.length > 1 && oTempObject.Content.length > 1) {
+		oTempObject.length = 1;
 	}
 
-    for (let i = 0; i < arrDelData.length; i++) {
-        let oContent = this.Content[this.CurPos - i];
-        let intLengthOfContent = oContent.Content.length;
-        let intDeleteCount = arrDelData[i];
+    //удаляем лишний контент
+    for (var i = 0; i < arrDelData.length; i++) {
+
+        var intIndex = this.CurPos - i >= 0 ? this.CurPos - i : 0;
+        var oContent = this.Content[intIndex];
+        var intLengthOfContent = oContent.Content.length;
+        var intDeleteCount = arrDelData[i];
 
         if (intLengthOfContent <= intDeleteCount) 
         {
-            this.Remove_FromContent(this.CurPos - i, 1, true);
+            this.Remove_FromContent(intIndex, 1, true);
         }
         else 
         {
             if (i === 0) {
                 intDeleteCount++;
             }
+
             oContent.Remove_FromContent(intLengthOfContent - intDeleteCount , intDeleteCount);
-            if (i === arrDelData.length - 1) {
-                this.CurPos++
+
+            if (i === arrDelData.length - 1){
+                this.CurPos++;
             }
-            
-        }       
+        }
     }
 
-	for (let i = 0; i < oTempObject.Content.length; i++) {
+    //пишем новый контент
+    var oCurrentContentForPaste;
+	for (var i = 0; i < oTempObject.Content.length; i++) {
+
+        var oCurrentContentForPaste = oTempObject.Content[i].Copy(false);
+
 		this.Add_ToContent(
 			this.CurPos + i,
-			oTempObject.Content[i].Copy(false),
+			oCurrentContentForPaste,
 			false
 		);
 	}
 
-	this.MergeParaRuns()
+	this.MergeParaRuns();
     this.Correct_Content(true);
 };
+
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     //при закрытии скобки делать автозамену до открывающейся скобки (добавить)
     var bNeedAutoCorrect = this.private_NeedAutoCorrect(ActionElement);
@@ -5737,7 +5750,6 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 CMathContent.prototype.private_UpdateAutoCorrectMathSymbols = function() {
     g_AutoCorrectMathSymbols = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols;
     g_AutoCorrectMathFuncs = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs;
-
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
     var CharCode = ActionElement.value;

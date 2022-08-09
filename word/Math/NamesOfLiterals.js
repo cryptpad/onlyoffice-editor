@@ -698,8 +698,8 @@
 		["\\zwnj", "‌"],
 		["\\zwsp", "​", oNamesOfLiterals.spaceLiteral[0]], //["​", oNamesOfLiterals.spaceLiteral[0]], // zero-width space
 
-		["√", undefined, oNamesOfLiterals.sqrtLiteral[0]],
 		["\\sqrt", "√", oNamesOfLiterals.sqrtLiteral[0]],
+		["√(", undefined, oNamesOfLiterals.sqrtLiteral[0]],
 		["\\}", undefined, oNamesOfLiterals.opCloseBracket[0]],
 		["\\|", "‖", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\\\", undefined, true],
@@ -2460,24 +2460,27 @@
 		})
 	}
 	Tokenizer.prototype.RestoreState = function () {
-		let oState = this.state.shift();
-		this._cursor = oState._cursor;
-		this._string = oState._string;
-		return oState.oLookahead;
+		if (this.state.length > 0) {
+			let oState = this.state.shift();
+			this._cursor = oState._cursor;
+			this._string = oState._string;
+			return oState.oLookahead;
+		}
 	}
 
-	function GetTextForAutoCorrection(oContent, isUnicode) {
-		let intCount;
+	function GetTextForAutoCorrection(oContent) {
+		let intCount = 0;
+		let isStop = false;
+		let rawData = [];
+		let arrOutputContent = [];
+
 		function ProceedAutoCorection() {
 			this.str = [];
 			this.len = [];
 			this.Parent = null;
-
 			this.arrOutputStr = [];
 			this.intOutputCount = 0;
-
 			this.intAllContentLen = 0;
-
 			this.isOneWord = false;
 		}
 		ProceedAutoCorection.prototype.Init = function(Parent) {
@@ -2489,17 +2492,16 @@
 			}
 			return false;
 		}
-		ProceedAutoCorection.prototype.pushStr = function(str) {
+		ProceedAutoCorection.prototype.PushToStr = function(str) {
 			if (this.str !== undefined) {
 				this.str.push(str);
 			}
 		}
 		ProceedAutoCorection.prototype.setInnerLevel = function() {
-			let innerOne = new ProceedAutoCorection();
-			innerOne.Init(this);
-			this.str.push(innerOne);
-
-			return innerOne;
+			let oInnerObj = new ProceedAutoCorection();
+			oInnerObj.Init(this);
+			this.str.push(oInnerObj);
+			return oInnerObj;
 		}
 		ProceedAutoCorection.prototype.GetLength = function() {
 			let intLen = 0;
@@ -2507,7 +2509,7 @@
 				if (this.str[i] instanceof ProceedAutoCorection) {
 					intLen += this.str[i].GetLength();
 				} else {
-					intLen += this.str[i].data.length;
+					intLen += this.str[i].length;
 				}
 			}
 			return intLen;
@@ -2536,12 +2538,15 @@
 
 				let oElement = this.str[i];
 
-				if (oElement instanceof ProceedAutoCorection) {
+				if (oElement instanceof ProceedAutoCorection)
+				{
 					let Content = oElement.GetTextOfLevel();
 					strOutput = strOutput.concat(Content.str);
 					intLen += Content.len;
 				}
-				else {
+
+				else 
+				{
 					strOutput.push(
 						oElement.convert
 							? oElement.convert
@@ -2629,26 +2634,29 @@
 				}
 			}
 		}
-		ProceedAutoCorection.prototype.GetBracketCount = function() {
+		ProceedAutoCorection.prototype.TrimUnnecessaryBrackets = function() {
+			intCount += this.GetBracketCountAndCut();
+		} 
+		ProceedAutoCorection.prototype.GetBracketCountAndCut = function() {
 			let intLocalCount = 0
 
 			for (let i = this.str.length - 1; i >= 0; i--) {
 				let oContent = this.str[i];
 
 				if (oContent instanceof ProceedAutoCorection) {
-					intLocalCount += oContent.GetBracketCount();
-				} else {
-
+					intLocalCount += oContent.GetBracketCountAndCut();
+				} 
+				else {
 					if (oContent.class === oNamesOfLiterals.opOpenBracket[0] || (oContent.class === oNamesOfLiterals.opOpenCloseBracket[0] && intLocalCount !== 1)) {
 						intLocalCount++;
-						if (intCount + intLocalCount === 0 && i !== 0) {
+						if (intCount + intLocalCount > 0 && i !== 0) {
 							this.str.splice(0, i)
 							break;
 						}
-						// else if (rawData[rawData.length - 1].oRootContext === this && intLocalCount === 1 && i === 0) {
-						// 	this.str.splice(0, i + 1)
-						// 	break;
-						// }
+						else if (rawData.length === 1 && intCount + intLocalCount > 0) {
+							this.str.splice(0, i + 1)
+							break;
+						}
 					} 
 					else if (oContent.class === oNamesOfLiterals.opCloseBracket[0] || oContent.class === oNamesOfLiterals.opOpenCloseBracket[0]) {
 						intLocalCount--;
@@ -2660,16 +2668,21 @@
 		}
 		ProceedAutoCorection.prototype.FlatData = function() {
 			for (let i = 0; i < this.str.length; i++) {
-				let Content = this.str[i];
-				let data;
+				let oContent = this.str[i];
 
-				if (Content instanceof ProceedAutoCorection) {
-					data = Content.FlatData();
+				if (oContent instanceof ProceedAutoCorection) {
+					let arrData = oContent.FlatData();
+					
+					if (arrData) {
+						this.str.splice(
+							i,
+							1,
+						);
+						for (let j = 0; j < arrData.length; j++) {
+							this.str.splice(i+j, 0, arrData[j]);
+						}
+					}
 				}
-
-				if (data) {
-					this.str.splice(i, 1, ...data)
-				} 
 
 				if (this.Parent !== null) {
 					return this.str;
@@ -2679,7 +2692,6 @@
 		ProceedAutoCorection.prototype.SetEmpty = function() {
 			this.str = [];
 		}
-
 		function ProceedContent(oContent, Parent) {
 			this.Content = oContent;
 			
@@ -2726,10 +2738,10 @@
 		}
 		ProceedContent.prototype.WriteNow = function(str) {
 			if (str) {
-				this.Context.pushStr(str);
+				this.Context.PushToStr(str);
 			}
 			else if (this.oElement) {
-				this.Context.pushStr(this.oElement);
+				this.Context.PushToStr(this.oElement);
 			}
 		}
 		ProceedContent.prototype.Proceed = function() {
@@ -2737,65 +2749,58 @@
 				
 				this.GetNext();
 	
-				if ((this.oElement.class === 23 || this.oElement.class === 25)) {
+				//todo: выделить sqrt и т.п в отдельную абстракцию
+				if ((this.oElement.class === 23 || this.oElement.class === 25 || this.oElement.data === "√("))
+				{
 					this.ProceedBracketsBlock();
 				}
-				else if ((this.oElement.class === 24 || this.oElement.class === 25)) {
-					this.WriteNow();
-				}
-				else if (this.Context === this.oRootContext && this.oElement.class === oNamesOfLiterals.operatorLiteral[0]) {
-					isStop = true;
+
+				//если мы нашли оператор вне скобок, то удалеям все, что было до этого момента считано
+				else if (this.Context === this.oRootContext && this.oElement.class === oNamesOfLiterals.operatorLiteral[0])
+				{
+					
 					this.Context.SetEmpty();
+					isStop = true;
 					continue;
 				}
-				else {
+				else
+				{
 					this.WriteNow();
 				}
 			}
 		}
 
-		let isStop = false;
-		let rawData = [];
-		let intBracket = 0;
-		let arrOutputContent = [];
-
+		//получаем данные из контента, прогоняя его через токенизатор
 		for (let i = oContent.length - 1; i >= 0; i--) {
-			let oCurrentContent = oContent[i];
+			//контент берется справа на лево
+			let oCurrentContent = oContent[i]; // (1/2)+2 --> [2+, (1/2)]
 
 			if (oCurrentContent !== undefined && oCurrentContent.Content.length > 0 && !isStop) {
 				let oTemp = new ProceedContent(oCurrentContent);
 				oTemp.Proceed();
-
-				if (oTemp.oRootContext.str.length === 0) {
-					break
-				}
-
 				rawData.push(oTemp);
-	
-				let oStrForConvert = oTemp.oRootContext.GetText();
-				let intLen = oTemp.oRootContext.intAllContentLen;
 
-				arrOutputContent.push(oStrForConvert);
-				arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
+				let o = oTemp.oRootContext.GetText();
+				if (o.isOneWord) {
+					break;
+				}
 			}
 		}
- 	// 	arrOutputContent = [];
 
- 	// 	// дополнительная обработка скобок
- 	// 	let isSearchedOpenBracked = false;
-		// intCount = 0;
-		// for (let i = 0; i < rawData.length; i++) {
-		// 	let Data = rawData[i].oRootContext;
+		//дополнительная обработка скобок
+		//(если открывающих и закрывающих скобок разное количество, то происходит обрезка)
+		for (let i = 0; i < rawData.length; i++) {
+			let Data = rawData[i].oRootContext;
 
-		// 	Data.FlatData()
-		// 	intCount += Data.GetBracketCount();
+			Data.FlatData()
+			Data.TrimUnnecessaryBrackets();
 
-		// 	let oStrForConvert = Data.GetText();
-		// 	let intLen = Data.intAllContentLen;
+			let oStrForConvert = Data.GetText();
+			let intLen = Data.intAllContentLen;
 			
-		// 	arrOutputContent.push(oStrForConvert);
-		// 	arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
-		// }
+			arrOutputContent.push(oStrForConvert);
+			arrOutputContent[arrOutputContent.length - 1].DelCount = oStrForConvert.len;
+		}
 
 		return arrOutputContent;
 	}
