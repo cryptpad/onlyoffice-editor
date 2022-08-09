@@ -2943,7 +2943,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 				{
 					var bIsEmpty = this.IsEmpty();
 					if (!bIsEmpty ||
-						this.Is_ThisElementCurrent() ||
+						this.IsThisElementCurrent() ||
 						this.Parent.IsSelectionUse() && this.Parent.IsSelectionEmpty() && this.Parent.Selection.StartPos === this.Index)
 					{
 						if (Pr.ParaPr.Ind.FirstLine < 0)
@@ -12169,13 +12169,13 @@ Paragraph.prototype.Document_SetThisElementCurrent = function(bUpdateStates)
 	this.Parent.Update_ContentIndexing();
 	this.Parent.Set_CurrentElement(this.Index, bUpdateStates);
 };
-Paragraph.prototype.Is_ThisElementCurrent = function()
+Paragraph.prototype.IsThisElementCurrent = function()
 {
 	var Parent = this.Parent;
 
 	Parent.Update_ContentIndexing();
 	if (docpostype_Content === Parent.GetDocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos && Parent.Content[this.Index] === this)
-		return this.Parent.Is_ThisElementCurrent();
+		return this.Parent.IsThisElementCurrent();
 
 	return false;
 };

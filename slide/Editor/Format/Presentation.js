@@ -3218,7 +3218,7 @@ CPresentation.prototype.changeSlideSize = function (width, height, nType) {
  * @returns {boolean} Начался или нет составной ввод.
  */
 
-CPresentation.prototype.Is_ThisElementCurrent = function () {
+CPresentation.prototype.IsThisElementCurrent = function () {
     return false;
 };
 

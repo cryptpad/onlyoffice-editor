@@ -402,7 +402,7 @@ CHeaderFooter.prototype =
         }
     },
 
-    Is_ThisElementCurrent : function()
+	IsThisElementCurrent : function()
     {
         if (this === this.Parent.CurHdrFtr && docpostype_HdrFtr === this.LogicDocument.GetDocPosType())
             return true;

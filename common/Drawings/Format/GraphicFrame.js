@@ -1194,7 +1194,7 @@ CGraphicFrame.prototype.checkTypeCorrect = function()
         }
         return true;
     };
-CGraphicFrame.prototype.Is_ThisElementCurrent = function()
+CGraphicFrame.prototype.IsThisElementCurrent = function()
     {
         if(this.parent && this.parent.graphicObjects)
         {

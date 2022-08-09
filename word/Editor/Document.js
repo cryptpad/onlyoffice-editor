@@ -2369,7 +2369,7 @@ CDocument.prototype.Set_CurrentElement = function(Index, bUpdateStates)
 		this.DrawingDocument.FirePaint();
 	}
 };
-CDocument.prototype.Is_ThisElementCurrent          = function()
+CDocument.prototype.IsThisElementCurrent          = function()
 {
     return true;
 };
