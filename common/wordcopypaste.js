@@ -9603,9 +9603,11 @@ PasteProcessor.prototype =
 						} else if (-1 !== child.nodeValue.indexOf("[if gte msEquation 12]") && !oThis.pasteInExcel) {
 							//TODO пока только в документы разрешаю вставку математики математику
 							var oPar = new Paragraph(oThis.oLogicDocument.DrawingDocument);
+							//TODO отключаю историю, затем делаю копию. иначе проблемы при сборке. пересмотреть!
+							History.TurnOff();
 							oThis._parseMathContent(child, oPar);
-
-							oThis.aContent.push(oPar)
+							History.TurnOn();
+							oThis.aContent.push(oPar.Copy())
 						}
 					}
 					return;
