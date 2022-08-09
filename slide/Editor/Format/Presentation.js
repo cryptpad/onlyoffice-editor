@@ -6428,7 +6428,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
 
 
     var oController = this.GetCurrentController();
-    var aStartAnims;
+    var aStartAnims = [];
     if(oController) {
         aStartAnims = oController.getAnimSelectionState();
     }
