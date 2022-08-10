@@ -3444,7 +3444,7 @@
 			if (typeof sRasterImageId !== "string" || sRasterImageId.length === 0) {
 				return null;
 			}
-			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.index("base64") > 0) {
+			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.indexOf("base64") > 0) {
 				return sRasterImageId;
 			}
 			var oApi = Asc.editor || editor;
