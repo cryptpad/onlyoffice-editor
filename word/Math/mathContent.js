@@ -5477,7 +5477,6 @@ CMathContent.prototype.MergeParaRuns = function () {
 	}
 };
 CMathContent.prototype.New_AutoCorrect = function (oElement) {
-
     //пока срабатывает только по пробелу
     if (oElement.value !== 32) { 
         return
@@ -5558,7 +5557,6 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
     //удаляем лишний контент
     for (var i = 0; i < arrDelData.length; i++) {
-
         var intIndex = this.CurPos - i >= 0 ? this.CurPos - i : 0;
         var oContent = this.Content[intIndex];
         var intLengthOfContent = oContent.Content.length;
@@ -5583,18 +5581,22 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     }
 
     //пишем новый контент
-    var oCurrentContentForPaste;
+    var intPos;
 	for (var i = 0; i < oTempObject.Content.length; i++) {
 
         var oCurrentContentForPaste = oTempObject.Content[i].Copy(false);
-
+        intPos = this.CurPos + i;
 		this.Add_ToContent(
-			this.CurPos + i,
+			intPos,
 			oCurrentContentForPaste,
 			false
 		);
 	}
 
+	if (intPos + 1 <= this.Content.length) {
+		this.CurPos = intPos + 1;
+	}
+	
 	this.MergeParaRuns();
     this.Correct_Content(true);
 };
