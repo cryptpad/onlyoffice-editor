@@ -90,14 +90,7 @@ function CImageShape()
     this.shdwSp = null;
 }
 
-	CImageShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
-	CImageShape.prototype.constructor = CImageShape;
-
-CImageShape.prototype.getObjectType = function()
-{
-    return AscDFH.historyitem_type_ImageShape;
-};
-
+AscFormat.InitClass(CImageShape, AscFormat.CGraphicObjectBase, AscDFH.historyitem_type_ImageShape);
 CImageShape.prototype.setNvPicPr = function(pr)
 {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_ImageShapeSetNvPicPr, this.nvPicPr, pr));
@@ -196,10 +189,6 @@ CImageShape.prototype.getSnapArrays = function(snapX, snapY)
     snapY.push(transform.ty + this.extY*0.5);
     snapY.push(transform.ty + this.extY);
 };
-
-CImageShape.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
-
-CImageShape.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
 
 CImageShape.prototype.isPlaceholder  = function()
 {
@@ -339,8 +328,6 @@ CImageShape.prototype.hitInTextRect = function(x, y)
 {
     return false;
 };
-
-CImageShape.prototype.getBase64Img = CShape.prototype.getBase64Img;
 
 CImageShape.prototype.convertToWord = function(document)
 {
@@ -824,6 +811,106 @@ CImageShape.prototype.Load_LinkData = function(linkData)
 
     CImageShape.prototype.getTypeName = function() {
         return AscCommon.translateManager.getValue("Picture");
+    };
+
+    CImageShape.prototype.getPictureBase64Data = function() {
+        if(!this.blipFill) {
+            return null;
+        }
+        //check tile
+        if(this.blipFill.tile) {
+            return null;
+        }
+        //check crop
+        let oSrcRect = this.blipFill.srcRect;
+        if(oSrcRect) {
+            let fAE = AscFormat.fApproxEqual;
+            if(!fAE(oSrcRect.l, 0) || !fAE(oSrcRect.t, 0) ||
+            !fAE(oSrcRect.r, 100) || fAE(oSrcRect.b, 100)) {
+                return null;
+            }
+        }
+        //check geometry
+        if(this.calcGeometry && this.calcGeometry.preset !== "rect") {
+            return null;
+        }
+        //check outline
+        if(this.pen && this.pen.isVisible()) {
+            return null;
+        }
+
+        //try draw source image
+        let sRasterImageId = this.blipFill.RasterImageId;
+        if(!sRasterImageId) {
+            return null;
+        }
+        let oApi = Asc.editor || editor;
+        if(!oApi) {
+            return null;
+        }
+        let oBase64Data = this.blipFill.getBase64Data(false, false);
+        let isNum = AscFormat.isRealNumber;
+        if(oBase64Data.img && isNum(oBase64Data.w) && isNum(oBase64Data.h)) {
+            return {ImageUrl: oBase64Data.img, width: oBase64Data.w, height: oBase64Data.h};
+        }
+        return null;
+    };
+    CImageShape.prototype.replacePictureData = function (sData, dW, dH, bWord) {
+        this.setBlipFill(AscFormat.CreateBlipFillRasterImageId(sData));
+        let oXfrm = this.spPr && this.spPr.xfrm;
+        if(!oXfrm) {
+            return;
+        }
+        let dW_ = dW;
+        let dH_ = dH;
+        let dNewAspect = dW_ / dH_;
+        if(AscFormat.isRealNumber(dNewAspect) && isFinite(dNewAspect)) {
+            let oOldPictureData = this.getPictureBase64Data();
+            if(oOldPictureData) {
+                let dOldAspect = oOldPictureData.w / oOldPictureData.h;
+                if(AscFormat.fApproxEqual(dOldAspect, dNewAspect)) {
+                    dW_ *= (dOldAspect/dNewAspect);
+                }
+            }
+            let dWKoef = this.extX / dW_;
+            let dHKoef = this.extY / dH_;
+            if(AscFormat.isRealNumber(dWKoef) && isFinite(dWKoef) &&
+                AscFormat.isRealNumber(dHKoef) && isFinite(dHKoef)) {
+                if(AscFormat.fApproxEqual(dWKoef, dHKoef)) {
+                    return;
+                }
+
+                let oMainGroup = this.getMainGroup();
+                if(oMainGroup) {
+                    oMainGroup.normalize();
+                }
+                let dExtX = this.extX;
+                let dExtY = this.extY;
+                let dX = oXfrm.offX;
+                let dY = oXfrm.offY;
+                let bFlipH = oXfrm.flipH;
+                let bFlipV = oXfrm.flipV;
+                let nRot = oXfrm.rot;
+                let dCenterX = dX + dExtX / 2.0;
+                let dCenterY = dY + dExtY / 2.0;
+                let bChangePosition = !bWord || !!this.group;
+                if(dWKoef < dHKoef) {
+                    dExtY = dH_ * dWKoef;
+                }
+                else {
+                    dExtX = dW_ * dHKoef;
+                }
+                if(bChangePosition) {
+                    dX = dCenterX - dExtX / 2.0;
+                    dY = dCenterY - dExtY / 2.0;
+                }
+                this.setTransformParams(dX, dY, dExtX, dExtY, nRot, bFlipH, bFlipV);
+                this.checkDrawingBaseCoords();
+                if(this.parent && this.parent.CheckWH) {
+                    this.parent.CheckWH();
+                }
+            }
+        }
     };
 	
 	

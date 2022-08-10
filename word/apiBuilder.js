@@ -6203,6 +6203,53 @@
 	};
 
 	/**
+	 * Replaces the current image with an image specified.
+	 * @typeofeditors ["CDE"]
+	 * @memberof ApiPresentation
+	 * @param {string} sImageUrl - The image source where the image to be inserted should be taken from (currently, only internet URL or Base64 encoded images are supported).
+	 * @param {EMU} Width - The image width in English measure units.
+	 * @param {EMU} Height - The image height in English measure units.
+	 */
+	ApiDocument.prototype.ReplaceCurrentImage = function(sImageUrl, Width, Height)
+	{
+		let oLogicDocument = private_GetLogicDocument();
+		let oDrawingObjects = oLogicDocument.DrawingObjects;
+		let oDrawingSelection = oDrawingObjects.selection;
+		let aSelectedObjects;
+		if(oDrawingSelection.groupSelection)
+		{
+			aSelectedObjects = oDrawingSelection.groupSelection.selectedObjects;
+		}
+		else
+		{
+			aSelectedObjects = oDrawingObjects.selectedObjects;
+		}
+		if(aSelectedObjects.length === 1 && aSelectedObjects[0].isImage())
+		{
+			let dWidth = private_EMU2MM(Width);
+			let dHeight = private_EMU2MM(Height);
+			let oSp = aSelectedObjects[0];
+			oSp.replacePictureData(sImageUrl, dWidth, dHeight);
+			if(oSp.group){
+				oDrawingObjects.selection.groupSelection.resetInternalSelection();
+				oSp.group.selectObject(oSp, 0);
+			}
+			else{
+				oDrawingObjects.resetSelection();
+				oDrawingObjects.selectObject(oSp, 0);
+			}
+		}
+		else
+		{
+			let oParagraph, arrInsertResult = [], oImage;
+			oParagraph = Api.CreateParagraph();
+			oImage = Api.CreateImage(sImageUrl, Width, Height);
+			oParagraph.AddDrawing(oImage);
+			this.InsertContent(arrInsertResult);
+		}
+	};
+
+	/**
 	 * Replaces a drawing with a new drawing.
 	 * @memberof ApiDocument
 	 * @param {ApiDrawing} oOldDrawing - A drawing which will be replaced.
@@ -17179,6 +17226,7 @@
 	ApiDocument.prototype["AddEndnote"]                  = ApiDocument.prototype.AddEndnote;
 	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
+	ApiDocument.prototype["ReplaceCurrentImage"]         = ApiDocument.prototype.ReplaceCurrentImage;
 	ApiDocument.prototype["ReplaceDrawing"]              = ApiDocument.prototype.ReplaceDrawing;
 	ApiDocument.prototype["AcceptAllRevisionChanges"]    = ApiDocument.prototype.AcceptAllRevisionChanges;
 	ApiDocument.prototype["RejectAllRevisionChanges"]    = ApiDocument.prototype.RejectAllRevisionChanges;

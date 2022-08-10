@@ -86,13 +86,8 @@ function CGroupShape()
         textSelection: null
     };
 }
-	CGroupShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
-	CGroupShape.prototype.constructor = CGroupShape;
 
-    CGroupShape.prototype.getObjectType = function()
-    {
-        return AscDFH.historyitem_type_GroupShape;
-    };
+AscFormat.InitClass(CGroupShape, AscFormat.CGraphicObjectBase, AscDFH.historyitem_type_GroupShape);
 
     CGroupShape.prototype.GetAllDrawingObjects = function(DrawingObjects)
     {
@@ -373,8 +368,6 @@ function CGroupShape()
             }
         }
     };
-
-    CGroupShape.prototype.getBase64Img = CShape.prototype.getBase64Img;
 
     CGroupShape.prototype.convertToWord = function(document)
     {
@@ -1637,10 +1630,6 @@ function CGroupShape()
     CGroupShape.prototype.loadDocumentStateAfterLoadChanges = AscFormat.DrawingObjectsController.prototype.loadDocumentStateAfterLoadChanges;
     CGroupShape.prototype.getAllConnectors = AscFormat.DrawingObjectsController.prototype.getAllConnectors;
     CGroupShape.prototype.getAllShapes = AscFormat.DrawingObjectsController.prototype.getAllShapes;
-
-    CGroupShape.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
-
-    CGroupShape.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
 
 
     CGroupShape.prototype.calculateSnapArrays = function(snapArrayX, snapArrayY)

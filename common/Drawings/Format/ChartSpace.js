@@ -1159,12 +1159,9 @@ var GLOBAL_PATH_COUNT = 0;
             textSelection: null
         };
     }
-    CChartSpace.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
-    CChartSpace.prototype.constructor = CChartSpace;
-    CChartSpace.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
-    CChartSpace.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
+    AscFormat.InitClass(CChartSpace, AscFormat.CGraphicObjectBase, AscDFH.historyitem_type_ChartSpace);
+
     CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
-    CChartSpace.prototype.getBase64Img = CShape.prototype.getBase64Img;
     CChartSpace.prototype.getDataRefs = function() {
         if(!this.dataRefs) {
             this.dataRefs = new AscFormat.CChartDataRefs(this);
@@ -3460,9 +3457,6 @@ var GLOBAL_PATH_COUNT = 0;
                 break;
             }
         }
-    };
-    CChartSpace.prototype.getObjectType = function() {
-        return AscDFH.historyitem_type_ChartSpace;
     };
     CChartSpace.prototype.getAllRasterImages = function(images) {
         if(this.spPr) {
