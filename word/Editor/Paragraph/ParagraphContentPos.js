@@ -125,10 +125,8 @@
 
 		let nDepth = 0;
 
-		// let nLen1   = this.Depth;
-		// let nLen2   = oPos.Depth;
-		let nLen1   = this.Data.length;
-		let nLen2   = oPos.Data.length;
+		let nLen1   = this.Depth;
+		let nLen2   = oPos.Depth;
 		let nLenMin = Math.min(nLen1, nLen2);
 
 		while (nDepth < nLenMin)
