@@ -856,59 +856,62 @@ CImageShape.prototype.Load_LinkData = function(linkData)
         return null;
     };
     CImageShape.prototype.replacePictureData = function (sData, dW, dH, bWord) {
+        let sOldRasterImageId = this.blipFill && this.blipFill.RasterImageId;
         this.setBlipFill(AscFormat.CreateBlipFillRasterImageId(sData));
         let oXfrm = this.spPr && this.spPr.xfrm;
         if(!oXfrm) {
             return;
         }
-        let dW_ = dW;
-        let dH_ = dH;
-        let dNewAspect = dW_ / dH_;
-        if(AscFormat.isRealNumber(dNewAspect) && isFinite(dNewAspect)) {
-            let oOldPictureData = this.getPictureBase64Data();
-            if(oOldPictureData) {
-                let dOldAspect = oOldPictureData.w / oOldPictureData.h;
-                if(AscFormat.fApproxEqual(dOldAspect, dNewAspect)) {
-                    dW_ *= (dOldAspect/dNewAspect);
-                }
-            }
-            let dWKoef = this.extX / dW_;
-            let dHKoef = this.extY / dH_;
-            if(AscFormat.isRealNumber(dWKoef) && isFinite(dWKoef) &&
-                AscFormat.isRealNumber(dHKoef) && isFinite(dHKoef)) {
-                if(AscFormat.fApproxEqual(dWKoef, dHKoef)) {
-                    return;
-                }
+        if(!sOldRasterImageId) {
+            return;
+        }
+        let oApi = Asc.editor || editor;
+        if(!oApi) {
+            return null;
+        }
+        let oImageLoader = oApi.ImageLoader;
+        if (!oImageLoader) {
+            return;
+        }
+        let oImage = oImageLoader.map_image_index[AscCommon.getFullImageSrc2(sOldRasterImageId)];
+        if (!oImage || !oImage.Image || oImage.Status !== AscFonts.ImageLoadStatus.Complete) {
+            return;
+        }
+        let nPixWOld = Math.max(oImage.Image.width, 1);
+        let nPixHOld = Math.max(oImage.Image.height, 1);
 
-                let oMainGroup = this.getMainGroup();
-                if(oMainGroup) {
-                    oMainGroup.normalize();
-                }
-                let dExtX = this.extX;
-                let dExtY = this.extY;
-                let dX = oXfrm.offX;
-                let dY = oXfrm.offY;
-                let bFlipH = oXfrm.flipH;
-                let bFlipV = oXfrm.flipV;
-                let nRot = oXfrm.rot;
-                let dCenterX = dX + dExtX / 2.0;
-                let dCenterY = dY + dExtY / 2.0;
-                let bChangePosition = !bWord || !!this.group;
-                if(dWKoef < dHKoef) {
-                    dExtY = dH_ * dWKoef;
-                }
-                else {
-                    dExtX = dW_ * dHKoef;
-                }
-                if(bChangePosition) {
-                    dX = dCenterX - dExtX / 2.0;
-                    dY = dCenterY - dExtY / 2.0;
-                }
-                this.setTransformParams(dX, dY, dExtX, dExtY, nRot, bFlipH, bFlipV);
-                this.checkDrawingBaseCoords();
-                if(this.parent && this.parent.CheckWH) {
-                    this.parent.CheckWH();
-                }
+        let nPixW = dW / AscCommon.g_dKoef_pix_to_mm;
+        let nPixH = dH / AscCommon.g_dKoef_pix_to_mm;
+
+        let dWKoeff = nPixW / nPixWOld;
+        let dHKoeff = nPixH / nPixHOld;
+        if(!AscFormat.fApproxEqual(dWKoeff, 1.0, 0.01) ||
+            !AscFormat.fApproxEqual(dHKoeff, 1.0, 0.01)) {
+
+            let oMainGroup = this.getMainGroup();
+            if(oMainGroup) {
+                oMainGroup.normalize();
+            }
+            let dExtX = this.extX;
+            let dExtY = this.extY;
+            let dX = oXfrm.offX;
+            let dY = oXfrm.offY;
+            let bFlipH = oXfrm.flipH;
+            let bFlipV = oXfrm.flipV;
+            let nRot = oXfrm.rot;
+            let dCenterX = dX + dExtX / 2.0;
+            let dCenterY = dY + dExtY / 2.0;
+            dExtX *= dWKoeff;
+            dExtY *= dHKoeff;
+            let bChangePosition = !bWord || !!this.group;
+            if(bChangePosition) {
+                dX = dCenterX - dExtX / 2.0;
+                dY = dCenterY - dExtY / 2.0;
+            }
+            this.setTransformParams(dX, dY, dExtX, dExtY, nRot, bFlipH, bFlipV);
+            this.checkDrawingBaseCoords();
+            if(this.parent && this.parent.CheckWH) {
+                this.parent.CheckWH();
             }
         }
     };

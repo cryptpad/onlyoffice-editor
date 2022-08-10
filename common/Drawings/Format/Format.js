@@ -3449,7 +3449,7 @@
 			}
 			var oApi = Asc.editor || editor;
 			var sDefaultResult = sRasterImageId;
-			if(bReturnOrigIfCantDraw == false) {
+			if(bReturnOrigIfCantDraw === false) {
 				sDefaultResult = null;
 			}
 			if (!oApi) {
