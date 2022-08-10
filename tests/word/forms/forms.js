@@ -32,7 +32,7 @@
 
 $(function () {
 
-	let logicDocument = CreateLogicDocument();
+	let logicDocument = AscTest.CreateLogicDocument();
 	logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
 
 	let formsManager = logicDocument.GetFormsManager();
