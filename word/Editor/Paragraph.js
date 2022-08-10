@@ -12171,13 +12171,17 @@ Paragraph.prototype.Document_SetThisElementCurrent = function(bUpdateStates)
 };
 Paragraph.prototype.IsThisElementCurrent = function()
 {
-	var Parent = this.Parent;
+	let oParent = this.Parent;
+	let nIndex  = this.GetIndex();
+	if (-1 === nIndex || docpostype_Content !== oParent.GetDocPosType())
+		return false;
 
-	Parent.Update_ContentIndexing();
-	if (docpostype_Content === Parent.GetDocPosType() && false === Parent.Selection.Use && this.Index === Parent.CurPos.ContentPos && Parent.Content[this.Index] === this)
-		return this.Parent.IsThisElementCurrent();
+	if ((oParent.IsSelectionUse() && (oParent.Selection.StartPos !== oParent.Selection.EndPos
+			|| nIndex !== oParent.Selection.StartPos))
+		|| (!oParent.IsSelectionUse() && nIndex !== oParent.CurPos.ContentPos))
+		return false;
 
-	return false;
+	return oParent.IsThisElementCurrent();
 };
 Paragraph.prototype.Is_Inline = function()
 {

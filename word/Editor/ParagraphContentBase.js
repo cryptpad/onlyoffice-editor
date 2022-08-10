@@ -91,6 +91,10 @@ CParagraphContentBase.prototype.GetParagraph = function()
 {
 	return this.Paragraph;
 };
+CParagraphContentBase.prototype.IsThisElementCurrent = function()
+{
+	return false;
+};
 CParagraphContentBase.prototype.IsRun = function()
 {
 	return false;
@@ -1100,6 +1104,33 @@ CParagraphContentWithContentBase.prototype.SetThisElementCurrent = function()
 
 	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
 	this.Paragraph.Document_SetThisElementCurrent(false);
+};
+CParagraphContentWithContentBase.prototype.IsThisElementCurrent = function()
+{
+	if (!this.Paragraph)
+		return false;
+
+	let oParaPos = this.Paragraph.GetPosByElement(this);
+	if (!oParaPos)
+		return false;
+
+	if (!this.Paragraph.IsSelectionUse())
+	{
+		let oCurPos = this.Paragraph.Get_ParaContentPos(false, false, false);
+
+		if (!oParaPos.IsPartOf(oCurPos))
+			return false;
+	}
+	else
+	{
+		let oStartPos = this.Paragraph.Get_ParaContentPos(true, true, false);
+		let oEndPos   = this.Paragraph.Get_ParaContentPos(true, false, false);
+
+		if (!oParaPos.IsPartOf(oStartPos) || !oParaPos.IsPartOf(oEndPos))
+			return false;
+	}
+
+	return this.Paragraph.IsThisElementCurrent();
 };
 CParagraphContentWithContentBase.prototype.GetStartPosInParagraph = function()
 {

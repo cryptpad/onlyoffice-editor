@@ -32,7 +32,9 @@
 
 $(function () {
 
-	let logicDocument = CreateLogicDocument();
+	let logicDocument = AscTest.CreateLogicDocument();
+	logicDocument.Start_SilentMode();
+
 	logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
 
 	let formsManager = logicDocument.GetFormsManager();
@@ -52,20 +54,114 @@ $(function () {
 	r2.AddText("Абракадабра");
 
 
-	QUnit.module("Check forms");
+	QUnit.module("Check complex forms");
 
 
-	QUnit.test("Test: \"Complex Form\"", function (assert)
+	QUnit.test("Test: \"positioning, moving cursor and adding/removing text\"", function (assert)
 	{
 		let complexForm = logicDocument.AddComplexForm();
 		complexForm.SetFormPr(new AscWord.CSdtFormPr());
 
 		assert.strictEqual(formsManager.GetAllForms().length, 1, "Add complex form to document (check forms count)");
 
-		complexForm.MoveCursorToStartPos();
+		r2.SetThisElementCurrent();
+		r2.MoveCursorToStartPos();
+
+		assert.strictEqual(complexForm.IsThisElementCurrent(), false, "Check cursor position in complex field");
+		assert.strictEqual(r2.IsThisElementCurrent(), true, "Check cursor position in run");
+
 		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToStartPos();
 
+		assert.strictEqual(complexForm.IsThisElementCurrent(), true, "Check cursor position in complex field");
+		assert.strictEqual(r2.IsThisElementCurrent(), false, "Check cursor position in run");
 
+		assert.strictEqual(complexForm.IsPlaceHolder(), true, "Is placeholder in complexForm");
+
+		// Наполняем нашу форму: 111<textForm>222<textForm>333
+
+		let tempRun1 = new AscWord.CRun();
+		tempRun1.AddText("111");
+		complexForm.Add(tempRun1);
+		assert.strictEqual(complexForm.IsCursorAtEnd(), true, "Check cursor after adding text");
+		assert.strictEqual(complexForm.IsPlaceHolder(), false, "Check placeholder in complexForm after adding text run");
+
+		let textForm1 = logicDocument.AddContentControlTextForm();
+		textForm1.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun2 = new AscWord.CRun();
+		tempRun2.AddText("222");
+		complexForm.Add(tempRun2);
+
+		let textForm2 = logicDocument.AddContentControlTextForm();
+		textForm2.SetFormPr(new AscWord.CSdtFormPr());
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun3 = new AscWord.CRun();
+		tempRun3.AddText("333");
+		complexForm.Add(tempRun3);
+
+		assert.strictEqual(formsManager.GetAllForms().length, 1, "Check forms count after adding 2 subforms");
+
+		logicDocument.RemoveSelection();
+		textForm1.SetThisElementCurrent();
+		assert.strictEqual(textForm1.IsThisElementCurrent(), true, "Check cursor position in textForm1");
+		assert.strictEqual(complexForm.IsThisElementCurrent(), true, "Check cursor position in complex field");
+		assert.strictEqual(textForm1.IsPlaceHolder(), true, "Is placeholder in textForm1");
+
+		textForm1.Add(new AscWord.CRunText(0x61));
+		textForm1.Add(new AscWord.CRunText(0x62));
+		textForm1.Add(new AscWord.CRunText(0x63));
+		assert.strictEqual(textForm1.IsPlaceHolder(), false, "Is placeholder in textForm1 after adding text");
+
+		textForm2.Add(new AscWord.CRunText(0x64));
+		textForm2.Add(new AscWord.CRunText(0x65));
+		textForm2.Add(new AscWord.CRunText(0x66));
+		assert.strictEqual(textForm2.IsPlaceHolder(), false, "Is placeholder in textForm2 after adding text");
+
+		AscTest.SetEditingMode(logicDocument);
+		assert.strictEqual(logicDocument.IsFillingFormMode(), false, "Check normal editing mode");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToStartPos();
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), true, "Move cursor at the start of textForm2");
+
+		// Делаем два смещения, потому что после одинарного мы могли попасть в пустой ран между tempRun2 и textForm2
+		// везде далее проверяем также
+		logicDocument.MoveCursorLeft(false, false);
+		logicDocument.MoveCursorLeft(false, false);
+		assert.strictEqual(tempRun2.IsThisElementCurrent(), true, "Cursor must be in run2");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToEndPos();
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Move cursor at the end of textForm2");
+
+		logicDocument.MoveCursorRight(false, false, false);
+		logicDocument.MoveCursorRight(false, false, false);
+		assert.strictEqual(tempRun3.IsThisElementCurrent(), true, "Cursor must be in run3");
+
+		AscTest.SetFillingFormMode(logicDocument);
+		assert.strictEqual(logicDocument.IsFillingFormMode(), true, "Check filling form mode");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToStartPos();
+
+		logicDocument.MoveCursorLeft(false, false);
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtEnd(), true, "Cursor must be at the end of text form1");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToEndPos();
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Move cursor at the end of textForm2");
+
+		logicDocument.MoveCursorRight(false, false, false);
+		logicDocument.MoveCursorRight(false, false, false);
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Cursor must be at the end of text form2");
 
 	});
 });

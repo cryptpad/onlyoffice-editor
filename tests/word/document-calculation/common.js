@@ -61,6 +61,8 @@ const test_LETTER = {
 
 var drawingDocument = {
 	OnStartRecalculate : function(){},
+	OnRecalculatePage : function(){},
+	OnEndRecalculate : function(){},
 	UpdateTargetTransform : function(){},
 	SelectEnabled : function(){},
 	SelectShow : function(){},
@@ -72,7 +74,10 @@ var drawingDocument = {
 	Set_RulerState_End : function(){},
 	Update_MathTrack : function(){},
 	OnDrawContentControl : function(){},
-	Update_FieldTrack : function(){}
+	Update_FieldTrack : function(){},
+	SetTargetColor : function(){},
+	SetTargetSize : function(){},
+	UpdateTarget : function(){}
 };
 
 var editor = {
@@ -92,16 +97,6 @@ if (!AscCommon.g_oIdCounter)
 	};
 }
 
-function CreateLogicDocument()
-{
-	let logicDocument = new AscWord.CDocument(drawingDocument, true);
-	logicDocument.Api = null;
-	logicDocument.On_EndLoad();
-
-	drawingDocument.m_oLogicDocument = logicDocument;
-
-	return logicDocument;
-}
 
 AscCommon.g_oTableId = {
 	Add : function(c, id) {},
@@ -184,3 +179,48 @@ g_oTextMeasurer.GetHeight = function() {return test_FontHeight;};
 g_oTextMeasurer.GetAscender = function() {return test_FontAscent;};
 g_oTextMeasurer.GetDescender = function() {return test_FontDescent;};
 g_oTextMeasurer.MeasureCode = function() {return {fAdvanceX : test_CharWidth};};
+
+var AscTest = AscTest || {};
+
+(function(window)
+{
+	function CreateLogicDocument()
+	{
+		let logicDocument = new AscWord.CDocument(drawingDocument, true);
+		logicDocument.Api = null;
+		logicDocument.On_EndLoad();
+
+		drawingDocument.m_oLogicDocument = logicDocument;
+
+		return logicDocument;
+	}
+	function SetFillingFormMode(oLogicDocument)
+	{
+		oLogicDocument.IsFillingOFormMode = function()
+		{
+			return true;
+		}
+		oLogicDocument.IsFillingFormMode = function()
+		{
+			return true;
+		}
+	}
+	function SetEditingMode(oLogicDocument)
+	{
+		oLogicDocument.IsFillingOFormMode = function()
+		{
+			return false;
+		}
+		oLogicDocument.IsFillingFormMode = function()
+		{
+			return false;
+		}
+	}
+	//--------------------------------------------------------export----------------------------------------------------
+	AscTest.CreateLogicDocument = CreateLogicDocument;
+	AscTest.SetFillingFormMode  = SetFillingFormMode;
+	AscTest.SetEditingMode      = SetEditingMode;
+
+})(window);
+
+
