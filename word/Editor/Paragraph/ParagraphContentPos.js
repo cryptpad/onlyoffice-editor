@@ -116,12 +116,17 @@
 	/**
 	 * Сравниваем текущую позицию с заданной
 	 * @param {CParagraphContentPos} oPos
-	 * @returns {number} 0 - позиции совпадают, 1 - текущая позиция дальше заданной, -1 - текущая позиция до заданной.
+	 * @returns {number} 0 - позиции совпадают, 1 - текущая позиция дальше заданной, -1 - текущая позиция до заданной
 	 */
 	CParagraphContentPos.prototype.Compare = function(oPos)
 	{
+		if (!this.IsValid() || !oPos || !oPos.IsValid())
+			return -2;
+
 		let nDepth = 0;
 
+		// let nLen1   = this.Depth;
+		// let nLen2   = oPos.Depth;
 		let nLen1   = this.Data.length;
 		let nLen2   = oPos.Data.length;
 		let nLenMin = Math.min(nLen1, nLen2);
@@ -169,6 +174,41 @@
 	CParagraphContentPos.prototype.IsEqual = function(oPos)
 	{
 		return (oPos && 0 === this.Compare(oPos));
+	};
+	/**
+	 * Проверяем, что текущая позиция является частью заданной
+	 * @param oPos {CParagraphContentPos}
+	 * @returns {boolean}
+	 */
+	CParagraphContentPos.prototype.IsPartOf = function(oPos)
+	{
+		if (!oPos
+			|| this.IsEmpty()
+			|| oPos.IsEmpty()
+			|| !this.IsValid()
+			|| !oPos.IsValid()
+			|| this.Depth > oPos.Depth)
+			return false;
+
+		let nDepth = 0;
+		let nLen   = this.Depth;
+		while (nDepth < nLen)
+		{
+			if (this.Data[nDepth] !== oPos.Data[nDepth])
+				return false;
+
+			++nDepth;
+		}
+
+		return true;
+	};
+	CParagraphContentPos.prototype.IsValid = function()
+	{
+		return (this.Depth <= this.Data.length);
+	};
+	CParagraphContentPos.prototype.IsEmpty = function()
+	{
+		return (0 === this.Depth);
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'].CParagraphContentPos = CParagraphContentPos;
