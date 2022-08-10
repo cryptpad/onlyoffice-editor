@@ -8158,6 +8158,7 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
     editor.sendEvent("asc_canDecreaseIndent", this.Can_IncreaseParagraphLevel(false));
     editor.sendEvent("asc_onCanGroup", this.canGroup());
     editor.sendEvent("asc_onCanUnGroup", this.canUnGroup());
+    editor.sendEvent("asc_onCanCopyCut", this.Can_CopyCut());
     AscCommon.g_specialPasteHelper.SpecialPasteButton_Update_Position();
 };
 
@@ -10955,21 +10956,16 @@ CPresentation.prototype.StartEditGeometry = function() {
 };
 
 CPresentation.prototype.Can_CopyCut = function () {
+    if(this.GetFocusObjType() === FOCUS_OBJECT_THUMBNAILS) {
+        return this.GetSelectedSlides().length > 0;
+    }
     var oController = this.GetCurrentController();
     if (!oController) {
         return false;
     }
-    var oTargetContent = oController.getTargetDocContent();
-
-
+    var oTargetContent = oController.getTargetDocContent(false, true);
     if (oTargetContent) {
-        if (true === oTargetContent.IsSelectionUse() && true !== oTargetContent.IsSelectionEmpty(true)) {
-            if (oTargetContent.Selection.StartPos !== oTargetContent.Selection.EndPos || type_Paragraph === oTargetContent.Content[oTargetContent.Selection.StartPos].Get_Type())
-                return true;
-            else
-                return oTargetContent.Content[oTargetContent.Selection.StartPos].Can_CopyCut();
-        }
-        return false;
+        return oTargetContent.Can_CopyCut();
     } else {
         return oController.selectedObjects.length > 0;
     }
