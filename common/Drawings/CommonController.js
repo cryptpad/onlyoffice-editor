@@ -4983,6 +4983,10 @@ DrawingObjectsController.prototype =
         {
             oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth);
         }
+        let oView3D = oProps.getView3d();
+        if(oView3D) {
+            oChartSpace.changeView3d(oProps.getView3d());
+        }
     },
 
     checkDlblsPosition: function(chart, chart_type, position){
@@ -5162,6 +5166,7 @@ DrawingObjectsController.prototype =
             ret.smooth = oFirstChart.isSmooth();
             ret.showMarker = oFirstChart.isMarkerChart();
         }
+        ret.putView3d(chart_space.getView3d());
         return ret;
     },
 
@@ -6984,6 +6989,7 @@ DrawingObjectsController.prototype =
                 }
                 ret.theme = this.getTheme();
                 ret.colorMapOverride = this.getColorMapOverride();
+                options.putView3d(ret.getView3d());
                 return ret;
             }, this, []);
         }

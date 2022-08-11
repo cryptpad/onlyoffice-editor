@@ -1270,6 +1270,8 @@
 		this.horizontalAxes = [];
 		this.verticalAxes = [];
 		this.depthAxes = [];
+
+		this.view3D = null;
 	}
 
 	//TODO:remove this---------------------
@@ -1384,6 +1386,28 @@
 	asc_ChartSettings.prototype.getDepthAxesProps = function() {
 		return this.depthAxes;
 	};
+	asc_ChartSettings.prototype.getView3d = function() {
+		if(this.chartSpace) {
+			return this.chartSpace.getView3d();
+		}
+		return this.view3D ? this.view3D.createDuplicate() : null;
+	};
+	asc_ChartSettings.prototype.putView3d = function(v) {
+		this.view3D = v;
+	};
+	asc_ChartSettings.prototype.setView3d = function(v) {
+		this.putView3d(v);
+		if(this.chartSpace) {
+			if(v) {
+				this.chartSpace.changeView3d(v.createDuplicate());
+			}
+			else {
+				this.chartSpace.changeView3d(null);
+			}
+			this.updateChart();
+		}
+	};
+
 	asc_ChartSettings.prototype.addHorAxesProps = function(v) {
 		this.horizontalAxes.push(v);
 	};
@@ -6259,6 +6283,10 @@
 	prot["getHorAxesProps"] = prot.getHorAxesProps;
 	prot["getVertAxesProps"] = prot.getVertAxesProps;
 	prot["getDepthAxesProps"] = prot.getDepthAxesProps;
+	prot["getView3d"] = prot.getView3d;
+	prot["putView3d"] = prot.putView3d;
+	prot["setView3d"] = prot.setView3d;
+
 
 	window["AscCommon"].asc_CRect = asc_CRect;
 	prot = asc_CRect.prototype;

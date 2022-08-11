@@ -14558,6 +14558,74 @@
         History.CanAddChanges() && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_View3d_SetRotY, this.rotY, pr));
         this.rotY = pr;
     };
+    CView3d.prototype.isEqual = function(pr) {
+        return this.depthPercent === pr.depthPercent &&
+                this.hPercent === pr.hPercent &&
+                this.perspective === pr.perspective &&
+                this.rAngAx === pr.rAngAx &&
+                this.rotX === pr.rotX &&
+                this.rotY === pr.rotY;
+    };
+    CView3d.prototype.asc_getRotX = function() {
+        return this.rotX;
+    };
+    CView3d.prototype["asc_getRotX"] = CView3d.prototype.asc_getRotX;
+    CView3d.prototype.asc_getRotY = function() {
+        return this.rotY;
+    };
+    CView3d.prototype["asc_getRotY"] = CView3d.prototype.asc_getRotY;
+    CView3d.prototype.asc_getPerspective = function() {
+        if(this.asc_getRightAngleAxes()) {
+            return null;
+        }
+        if(AscFormat.isRealNumber(this.perspective)) {
+            return this.perspective;
+        }
+        return AscFormat.global3DPersperctive;
+    };
+    CView3d.prototype["asc_getPerspective"] = CView3d.prototype.asc_getPerspective;
+    CView3d.prototype.asc_getRightAngleAxes = function() {
+        return this.getRAngAx();
+    };
+    CView3d.prototype["asc_getRightAngleAxes"] = CView3d.prototype.asc_getRightAngleAxes;
+    CView3d.prototype.asc_getDepth = function() {
+        return AscFormat.isRealNumber(this.depthPercent) ? this.depthPercent : AscFormat.globalBasePercent;
+    };
+    CView3d.prototype["asc_getDepth"] = CView3d.prototype.asc_getDepth;
+
+    CView3d.prototype.asc_getHeight = function() {
+        return this.hPercent || null;
+    };
+    CView3d.prototype["asc_getHeight"] = CView3d.prototype.asc_getHeight;
+
+    CView3d.prototype.asc_setRotX = function(pr) {
+        this.rotX = pr;
+    };
+    CView3d.prototype["asc_setRotX"] = CView3d.prototype.asc_setRotX;
+    CView3d.prototype.asc_setRotY = function(pr) {
+        this.rotY = pr;
+    };
+    CView3d.prototype["asc_setRotY"] = CView3d.prototype.asc_setRotY;
+    CView3d.prototype.asc_setPerspective = function(pr) {
+        this.perspective = pr;
+    };
+    CView3d.prototype["asc_setPerspective"] = CView3d.prototype.asc_setPerspective;
+    CView3d.prototype.asc_setRightAngleAxes = function(pr) {
+        this.rAngAx = pr;
+        if(pr) {
+            this.asc_setPerspective(null);
+        }
+    };
+    CView3d.prototype["asc_setRightAngleAxes"] = CView3d.prototype.asc_setRightAngleAxes;
+    CView3d.prototype.asc_setDepth = function(v) {
+        this.depthPercent = v;
+    };
+    CView3d.prototype["asc_setDepth"] = CView3d.prototype.asc_setDepth;
+    CView3d.prototype.asc_setHeight = function(v) {
+        this.hPercent = v;
+    };
+    CView3d.prototype["asc_setHeight"] = CView3d.prototype.asc_setHeight;
+
 
     function CExternalData() {
         CBaseChartObject.call(this);

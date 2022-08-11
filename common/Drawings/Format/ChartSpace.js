@@ -4343,6 +4343,20 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
     };
+    CChartSpace.prototype.getView3d = function() {
+        return this.chart.getView3d();
+    };
+    CChartSpace.prototype.changeView3d = function(oView3D) {
+        let oCurView3D = this.getView3d();
+        if(!oCurView3D && !oView3D) {
+            return;
+        }
+        if(oCurView3D && oView3D && oView3D.isEqual(oCurView3D)) {
+            return;
+        }
+        this.chart.setView3D(oView3D);
+        this.setRecalculateInfo();
+    };
     CChartSpace.prototype.getDepthPerspective = function() {
         var oProcessor3D = this.chartObj && this.chartObj.processor3D;
         var dDepth = 0;
