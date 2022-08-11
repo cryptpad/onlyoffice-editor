@@ -57,7 +57,7 @@ $(function () {
 	QUnit.module("Check complex forms");
 
 
-	QUnit.test("Test: \"positioning, moving cursor and adding/removing text\"", function (assert)
+	QUnit.test("Positioning, moving cursor and adding/removing text", function (assert)
 	{
 		let complexForm = logicDocument.AddComplexForm();
 		complexForm.SetFormPr(new AscWord.CSdtFormPr());
@@ -162,6 +162,42 @@ $(function () {
 		logicDocument.MoveCursorRight(false, false, false);
 		logicDocument.MoveCursorRight(false, false, false);
 		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Cursor must be at the end of text form2");
+
+		// Проверяем перемещение из текстовых форм с плейсхолдером
+
+		textForm1.ClearContentControlExt();
+		assert.strictEqual(textForm1.IsPlaceHolder(), true, "Is placeholder in text form 1 after clearing form");
+
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), true, "Move cursor to the text form1");
+
+		logicDocument.MoveCursorLeft(false, false);
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), true, "Check cursor position after moving left");
+
+
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+		logicDocument.MoveCursorRight(false, false, false);
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), false, "Check form1 after moving cursor right");
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), true, "Check form2 after moving cursor right");
+
+
+		textForm2.ClearContentControlExt();
+		assert.strictEqual(textForm2.IsPlaceHolder(), true, "Is placeholder in text form 1 after clearing form");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToEndPos();
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), true, "Move cursor to the text form2");
+
+		logicDocument.MoveCursorLeft(false, false);
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), true, "Check cursor position after moving left");
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), false, "Check form2 after moving cursor right");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToEndPos();
+		logicDocument.MoveCursorRight(false, false, false);
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Check cursor position after moving cursor right");
 
 	});
 });
