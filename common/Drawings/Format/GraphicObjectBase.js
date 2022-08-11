@@ -3022,7 +3022,7 @@
             if(_xfrm.chExtX === null) {
                 _xfrm.setChExtX(_xfrm.extX);
             }
-            if(_xfrm.chExtX === null) {
+            if(_xfrm.chExtY === null) {
                 _xfrm.setChExtY(_xfrm.extY);
             }
         }
