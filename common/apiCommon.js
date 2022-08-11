@@ -5663,6 +5663,7 @@
 		this.minVersion = "";
 		this.version = "";
 		this.isConnector = false;
+		this.loader;
 
 		this.variations = [];
 	}
@@ -5745,6 +5746,15 @@
 		this.variations = value;
 	};
 
+	CPlugin.prototype["get_Loader"] = function()
+	{
+		return this.loader;
+	};
+	CPlugin.prototype["set_Loader"] = function(value)
+	{
+		this.loader = value;
+	};
+
 	CPlugin.prototype["serialize"]   = function()
 	{
 		var _object           = {};
@@ -5755,6 +5765,7 @@
 		_object["baseUrl"]    = this.baseUrl;
 		_object["minVersion"] = this.minVersion;
 		_object["isConnector"] = this.isConnector;
+		_object["loader"]     = this.loader;
 
 		if (this.group)
 		{
@@ -5779,6 +5790,7 @@
 		this.baseUrl    = (_object["baseUrl"] != null) ? _object["baseUrl"] : this.baseUrl;
 		this.minVersion = (_object["minVersion"] != null) ? _object["minVersion"] : this.minVersion;
 		this.isConnector = (_object["isConnector"] != null) ? _object["isConnector"] : this.isConnector;
+		this.loader     = (_object["loader"] != null) ? _object["loader"] : this.loader;
 
 		if (true)
 		{

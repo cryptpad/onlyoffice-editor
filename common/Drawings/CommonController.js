@@ -7520,6 +7520,10 @@ DrawingObjectsController.prototype =
                 this.changeCurrentState(new AscFormat.AddPolyLine2State(this));
                 break;
             }
+            case "customAnimPath": {
+                this.changeCurrentState(new AscFormat.AddPolyLine2State(this, true));
+                break;
+            }
             default :
             {
                 this.changeCurrentState(new AscFormat.StartAddNewShape(this, presetGeom));
