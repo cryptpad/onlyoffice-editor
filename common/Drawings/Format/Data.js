@@ -12027,8 +12027,14 @@ Because of this, the display is sometimes not correct.
     };
 
     Drawing.prototype.setXfrmByParent = function () {
+      if (!this.spPr) {
+        this.setSpPr(new AscFormat.CSpPr());
+      }
+      if (!this.spPr.xfrm) {
+        this.spPr.setXfrm(new AscFormat.CXfrm());
+      }
       var oXfrm = this.spPr.xfrm;
-      if (oXfrm.isZero && oXfrm.isZero()) {
+      if (oXfrm.isZero()) {
         var parent = this.group;
         if (parent && parent.spPr.xfrm) {
           oXfrm.setExtX(parent.spPr.xfrm.extX);

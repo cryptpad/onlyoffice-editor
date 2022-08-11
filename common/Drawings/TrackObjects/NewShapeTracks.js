@@ -257,7 +257,7 @@ function NewShapeTrack(presetGeom, startX, startY, theme, master, layout, slide,
             }
         }
 
-        var geometry = AscFormat.CreateGeometry(presetGeom !== "textRect" ? presetGeom : "rect");
+        var geometry = AscFormat.CreateGeometry(presetGeom !== "textRect" ? presetGeom : "rect", undefined, true);
 
         this.startGeom = geometry;
         if(pen.Fill)

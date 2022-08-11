@@ -4308,6 +4308,7 @@
 	window['AscDFH'].historydescription_Document_FillFormsByTags                    = 0x0193;
 	window['AscDFH'].historydescription_Document_FillFormInPlugin                   = 0x0194;
 	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0195;
+	window['AscDFH'].historydescription_Document_AddSmartArt                        = 0x0196;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

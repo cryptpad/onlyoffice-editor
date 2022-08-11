@@ -11793,6 +11793,16 @@ background-repeat: no-repeat;\
 			}
 		});
 	};
+	asc_docs_api.prototype.getDrawingObjects = function () {
+		return null;
+	}
+
+	asc_docs_api.prototype.getDrawingDocument = function () {
+		const oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetDrawingDocument();
+	}
+	asc_docs_api.prototype.getLogicDocument = asc_docs_api.prototype.private_GetLogicDocument;
+
 	asc_docs_api.prototype.asc_CompareDocumentFile_local = function (oOptions) {
 		var t = this;
 		window["AscDesktopEditor"]["OpenFilenameDialog"]("word", false, function(_file){

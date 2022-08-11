@@ -264,6 +264,10 @@
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
 		});
 
+		AscCommon.loadSmartArtPresets(function() {}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
+		});
+
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
 			//send only first error to reduce number of requests. also following error may be consequences of first
@@ -980,6 +984,93 @@
 		{
 			AscCommon.getFile(url);
 		}
+	};
+	baseEditorsApi.prototype.getDrawingObjects = function () {};
+	baseEditorsApi.prototype.getDrawingDocument = function () {};
+	baseEditorsApi.prototype.getLogicDocument = function () {};
+	baseEditorsApi.prototype.createSmartArt = function (bFromWord, nSmartArtType) {
+		History.Create_NewPoint(AscDFH.historydescription_Document_AddSmartArt);
+		const oSmartArt = new AscFormat.SmartArt();
+		oSmartArt.setDataModel(new AscFormat.DiagramData());
+		oSmartArt.setColorsDef(new AscFormat.ColorsDef());
+		oSmartArt.setLayoutDef(new AscFormat.LayoutDef());
+		oSmartArt.setStyleDef(new AscFormat.StyleDef());
+		oSmartArt.setDrawing(new AscFormat.Drawing());
+
+
+		const pReader = new AscCommon.BinaryPPTYLoader();
+		const drawingDocument = this.getDrawingDocument();
+		const logicDocument = this.getLogicDocument();
+		pReader.presentation = logicDocument;
+		pReader.DrawingDocument = drawingDocument;
+
+		let sData = AscCommon.g_oSmartArtStyleDef[nSmartArtType];
+		let data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+		pReader.stream = new AscCommon.FileStream(data, data.length);
+		oSmartArt.styleDef.fromPPTY(pReader);
+
+		sData = AscCommon.g_oSmartArtLayoutDef[nSmartArtType];
+		data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+		pReader.stream = new AscCommon.FileStream(data, data.length);
+		oSmartArt.layoutDef.fromPPTY(pReader);
+
+		sData = AscCommon.g_oSmartArtDrawings[nSmartArtType];
+		data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+		pReader.stream = new AscCommon.FileStream(data, data.length);
+		pReader.ReadSmartArtGroup(oSmartArt.drawing);
+		oSmartArt.drawing.setGroup(oSmartArt);
+		oSmartArt.addToSpTree(0, oSmartArt.drawing);
+
+		sData = AscCommon.g_oSmartArtColorsDef[nSmartArtType];
+		data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+		pReader.stream = new AscCommon.FileStream(data, data.length);
+		oSmartArt.colorsDef.fromPPTY(pReader);
+
+		sData = AscCommon.g_oSmartArtData[nSmartArtType];
+		data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+		pReader.stream = new AscCommon.FileStream(data, data.length);
+		oSmartArt.dataModel.fromPPTY(pReader);
+		oSmartArt.setConnections2();
+
+		oSmartArt.setSpPr(new AscFormat.CSpPr());
+		oSmartArt.spPr.setParent(oSmartArt);
+		const smXfrm = AscCommon.g_oXfrmSmartArt.createDuplicate();
+		if (bFromWord) {
+			smXfrm.setOffX(0);
+			smXfrm.setOffY(0);
+		}
+		oSmartArt.spPr.setXfrm(smXfrm);
+		oSmartArt.setBDeleted2(false);
+		oSmartArt.x = AscCommon.g_oXfrmSmartArt.offX;
+		oSmartArt.y = AscCommon.g_oXfrmSmartArt.offY;
+		oSmartArt.extX = AscCommon.g_oXfrmSmartArt.extX;
+		oSmartArt.extY = AscCommon.g_oXfrmSmartArt.extY;
+		oSmartArt.drawing.setXfrmByParent();
+		if (!bFromWord) {
+			const drawingObjects = this.getDrawingObjects();
+			if (drawingObjects) {
+				oSmartArt.setDrawingObjects(drawingObjects);
+			}
+			if (drawingObjects.cSld) {
+				oSmartArt.setParent(drawingObjects);
+				oSmartArt.setRecalculateInfo();
+			}
+
+			if (drawingObjects.getWorksheetModel) {
+				oSmartArt.setWorksheet(drawingObjects.getWorksheetModel());
+			}
+			oSmartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+			oSmartArt.checkDrawingBaseCoords();
+			const oController = this.getGraphicController();
+			if (oController) {
+				oController.checkChartTextSelection();
+				oController.resetSelection();
+				oSmartArt.select(oController, 0);
+			}
+			oController.startRecalculate();
+			drawingObjects.sendGraphicObjectProps();
+		}
+		return oSmartArt;
 	};
 	baseEditorsApi.prototype.forceSave = function()
 	{

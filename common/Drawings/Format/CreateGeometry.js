@@ -39,7 +39,10 @@
 */
 function (window, undefined) {
 
-function CreateGeometry(prst, oGeom){
+function CreateGeometry(prst, oGeom, skipDebug){
+    if (!skipDebug) {
+        const c =1;
+    }
     var f = oGeom || (new AscFormat.Geometry());
     switch(prst){
         case 'accentBorderCallout1':{
