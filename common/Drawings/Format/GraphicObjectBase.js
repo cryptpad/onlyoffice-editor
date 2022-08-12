@@ -1151,7 +1151,7 @@
     };
 
     CGraphicObjectBase.prototype.isGroup = function() {
-        return this.getObjectType() === AscDFH.historyitem_type_GroupShape;
+        return false;
     };
 
     CGraphicObjectBase.prototype.isChart = function() {
