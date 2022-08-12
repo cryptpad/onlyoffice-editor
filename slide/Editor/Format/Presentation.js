@@ -11045,7 +11045,16 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
     var oSlide = this.GetCurrentSlide();
     if(oSlide) {
         if(nPresetClass === AscFormat.PRESET_CLASS_PATH && nPresetId === AscFormat.MOTION_CUSTOM_PATH) {
-            oSlide.graphicObjects.changeCurrentState(new AscFormat.AddPolyLine2State(oSlide.graphicObjects, true, bReplace, bPreview));
+            if(nPresetSubtype === AscFormat.MOTION_CUSTOM_PATH_CURVE) {
+
+                oSlide.graphicObjects.changeCurrentState(new AscFormat.SplineBezierState(oSlide.graphicObjects, true, bReplace, bPreview));
+            }
+            else if(nPresetSubtype === AscFormat.MOTION_CUSTOM_PATH_SCRIBBLE) {
+                oSlide.graphicObjects.changeCurrentState(new AscFormat.PolyLineAddState(oSlide.graphicObjects, true, bReplace, bPreview));
+            }
+            else {
+                oSlide.graphicObjects.changeCurrentState(new AscFormat.AddPolyLine2State(oSlide.graphicObjects, true, bReplace, bPreview));
+            }
             return;
         }
         if(this.IsSelectionLocked(AscCommon.changestype_Timing) === false) {

@@ -16461,7 +16461,7 @@
         }
         return oPath.getSVGPath(this.transform, dStartX, dStartY);
     };
-    MoveAnimationDrawObject.prototype.updateAnimation = function(x, y, extX, extY, rot, geometry) {
+    MoveAnimationDrawObject.prototype.updateAnimation = function(x, y, extX, extY, rot, geometry, bResetPreset) {
         var sPath = AscFormat.ExecuteNoHistory(function() {
             if(this.spPr.geometry) {
                 var oXfrm = this.spPr.xfrm;
@@ -16480,6 +16480,13 @@
         }, this, []);
         if(typeof sPath === "string" && sPath.length > 0) {
             this.anim.setPath(sPath);
+            if(bResetPreset) {
+                let oParentNode = this.anim.getParentTimeNode();
+                if(oParentNode && oParentNode.cTn) {
+                    oParentNode.cTn.setPresetID(AscFormat.MOTION_CUSTOM_PATH);
+                    oParentNode.cTn.setPresetSubtype(0);
+                }
+            }
         }
     };
     MoveAnimationDrawObject.prototype.checkDrawingTexture = function(oGraphics) {
