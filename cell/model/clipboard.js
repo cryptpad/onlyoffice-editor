@@ -795,6 +795,12 @@
 					var byCol = null;
 					for (var i = 1; i < ws.model.selectionRange.ranges.length; i++) {
 						var nextRange = ws.model.selectionRange.ranges[i];
+
+						if (nextRange.isIntersectWithRanges(ws.model.selectionRange.ranges, i)) {
+							res = false;
+							break;
+						}
+
 						if (byCol === null && firstRange.r1 === nextRange.r1 && firstRange.r2 === nextRange.r2) {
 							byCol = false;
 						} else if (byCol === null && firstRange.c1 === nextRange.c1 && firstRange.c2 === nextRange.c2) {
@@ -2726,7 +2732,7 @@
 						oOldEditor = editor;
 					}
 					editor = {WordControl: oTempDrawingDocument, isDocumentEditor: true};
-					var oPasteProcessor = new AscCommon.PasteProcessor({WordControl: {m_oLogicDocument: newCDocument}, FontLoader: {}}, false, false);
+					var oPasteProcessor = new AscCommon.PasteProcessor({WordControl: {m_oLogicDocument: newCDocument}, FontLoader: {}}, false, false, null, true);
 					oPasteProcessor._Prepeare_recursive(node, true, true);
 
 					//при специальной вставке в firefox _getComputedStyle возвращает null
