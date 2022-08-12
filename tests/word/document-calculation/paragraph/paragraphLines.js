@@ -34,7 +34,7 @@
 
 $(function () {
 
-	const charWidth = AscTest.CharWidth * test_FontSize;
+	const charWidth = AscTest.CharWidth * AscTest.FontSize;
 
 	let dc = new AscWord.CDocumentContent();
 	dc.ClearContent(false);
