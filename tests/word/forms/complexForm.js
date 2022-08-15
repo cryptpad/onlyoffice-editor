@@ -341,4 +341,101 @@ $(function () {
 		AscTest.ClickMouseButton(x, y, 0, false, 3);
 		assert.strictEqual(logicDocument.GetSelectedText(), "111abc def222ABC DEF333 444", "Check triple click outside all subforms");
 	});
+
+	QUnit.test("Check is all required form filled", function (assert)
+	{
+		// Составная формы заполнена, если все её подформы заполнены
+
+		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
+
+		let paragraph = new AscWord.CParagraph(editor.WordControl);
+		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph);
+		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
+
+		let complexForm = logicDocument.AddComplexForm();
+		let complexFormPr = new AscWord.CSdtFormPr();
+		complexForm.SetFormPr(complexFormPr);
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToStartPos();
+
+		// Наполняем нашу форму: 111<textForm>222<textForm>333
+		let tempRun1 = new AscWord.CRun();
+		tempRun1.AddText("111");
+		complexForm.Add(tempRun1);
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let textForm1 = logicDocument.AddContentControlTextForm();
+		textForm1.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun2 = new AscWord.CRun();
+		tempRun2.AddText("222");
+		complexForm.Add(tempRun2);
+
+		let comboForm = logicDocument.AddContentControlComboBox();
+		comboForm.SetFormPr(new AscWord.CSdtFormPr());
+		let comboPr = comboForm.GetComboBoxPr();
+		comboPr.AddItem("123", "123");
+		comboPr.AddItem("zxc", "zxc");
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun3 = new AscWord.CRun();
+		tempRun3.AddText("333");
+		complexForm.Add(tempRun3);
+
+
+		assert.strictEqual(formsManager.GetAllForms().length, 1, "Add complex form to document (check forms count)");
+		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), true, "Check is all required filled");
+
+		complexFormPr.SetRequired(true);
+		assert.strictEqual(complexForm.IsFormFilled(), false, "Check complex field is filled");
+		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), false, "Check is all required filled");
+
+		comboForm.SelectListItem("zxc");
+		assert.strictEqual(complexForm.IsFormFilled(), false, "Fill combo box and check form completion");
+
+		AscTest.AddTextToInlineSdt(textForm1, "abc");
+		assert.strictEqual(complexForm.IsFormFilled(), true, "Fill text form and check form completion");
+		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), true, "Check is all required filled");
+
+		comboForm.ClearContentControlExt();
+		assert.strictEqual(complexForm.IsFormFilled(), false, "Clear combo box and and check form completion");
+
+
+		let paragraph2 = new AscWord.CParagraph(editor.WordControl);
+		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph2);
+
+		let complexForm2 = logicDocument.AddComplexForm();
+		complexFormPr = new AscWord.CSdtFormPr();
+		complexForm2.SetFormPr(complexFormPr);
+
+		complexForm2.SetThisElementCurrent();
+		complexForm2.MoveCursorToStartPos();
+
+		let tempRun = new AscWord.CRun();
+		tempRun.AddText("Check box label");
+		complexForm2.Add(tempRun);
+
+		logicDocument.RemoveSelection();
+		complexForm2.SetThisElementCurrent();
+		complexForm2.MoveCursorToEndPos();
+
+		let checkBox = logicDocument.AddContentControlCheckBox();
+		checkBox.SetFormPr(new AscWord.CSdtFormPr());
+		checkBox.SetCheckBoxChecked(false);
+
+		assert.strictEqual(formsManager.GetAllForms().length, 2, "Add check box with label and check forms count");
+		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), false, "Check is all required filled");
+		checkBox.SetCheckBoxChecked(true);
+		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), true, "Toggle checkbox and check form completion");
+	});
 });
