@@ -13147,6 +13147,13 @@
 		};
 		CBodyPr.prototype.Refresh_RecalcData = function () {
 		};
+		CBodyPr.prototype.setVertOpen = function (nVert) {
+			let nVert_ = nVert;
+			if(nVert === AscFormat.nVertTTwordArtVert) {
+				nVert_ = AscFormat.nVertTTvert;
+			}
+			this.vert = nVert_;
+		};
 		CBodyPr.prototype.getLnSpcReduction = function () {
 			if (this.textFit
 				&& this.textFit.type === AscFormat.text_fit_NormAuto
@@ -14160,7 +14167,7 @@
 				}
 				case "vert": {
 					let sVal = reader.GetValue();
-					this.vert = this.GetVertCode(sVal);
+					this.setVertOpen(this.GetVertCode(sVal));
 					break;
 				}
 				case "vertOverflow": {

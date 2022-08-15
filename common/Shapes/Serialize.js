@@ -8934,9 +8934,7 @@ function BinaryPPTYLoader()
                 }
                 case 17:
                 {
-                    bodyPr.vert = s.GetUChar();
-                    if(bodyPr.vert === AscFormat.nVertTTwordArtVert)
-                        bodyPr.vert = AscFormat.nVertTTvert;
+                    bodyPr.setVertOpen(s.GetUChar());
                     break;
                 }
                 case 18:
