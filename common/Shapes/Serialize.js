@@ -4528,7 +4528,9 @@ function BinaryPPTYLoader()
                 }
                 case 1:
                 {
-                    this.ReadClrMap(oNotesMaster.clrMap);
+                    let clrMap = new AscFormat.ClrMap();
+                    this.ReadClrMap(clrMap);
+                    oNotesMaster.setClrMap(clrMap);
                     break;
                 }
                 case 2:
@@ -4538,7 +4540,6 @@ function BinaryPPTYLoader()
                 }
                 case 3:
                 {
-
                     oNotesMaster.setNotesStyle(this.ReadTextListStyle());
                     break;
                 }
