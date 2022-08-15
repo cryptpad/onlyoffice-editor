@@ -5622,7 +5622,17 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
         shape_drawer.fromShape2(this, graphics, geometry);
         shape_drawer.draw(geometry);
     }
-    if (!this.bWordShape && this.isEmptyPlaceholder() && !(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES) && !(this.pen && this.pen.Fill && this.pen.Fill.fill && !(this.pen.Fill.fill instanceof AscFormat.CNoFill)) && graphics.IsNoDrawingEmptyPlaceholder !== true  && !AscCommon.IsShapeToImageConverter)
+    if (graphics.isSmartArtPreviewDrawer && this.isActiveBlipFillPlaceholder()) {
+        const cx = this.spPr.xfrm.extX / 2;
+        const cy = this.spPr.xfrm.extY / 2;
+        const minSide = Math.min(this.spPr.xfrm.extX, this.spPr.xfrm.extY);
+        if (graphics.imagePlaceholder) {
+            const img = graphics.imagePlaceholder;
+            graphics.drawImage2(img, cx - minSide / 6, cy - minSide / 6, minSide / 3, minSide / 3);
+        }
+    }
+
+    if (!graphics.isSmartArtPreviewDrawer && !this.bWordShape && this.isEmptyPlaceholder() && !(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES) && !(this.pen && this.pen.Fill && this.pen.Fill.fill && !(this.pen.Fill.fill instanceof AscFormat.CNoFill)) && graphics.IsNoDrawingEmptyPlaceholder !== true  && !AscCommon.IsShapeToImageConverter)
     {
         var drawingObjects = this.getDrawingObjectsController();
         if (typeof editor !== "undefined" && editor && graphics.m_oContext !== undefined && graphics.m_oContext !== null && graphics.IsTrack === undefined && (!drawingObjects || AscFormat.getTargetTextObject(drawingObjects) !== this ))
