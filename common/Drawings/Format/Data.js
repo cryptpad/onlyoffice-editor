@@ -13795,6 +13795,94 @@ Because of this, the display is sometimes not correct.
       }
     }
 
+    SmartArt.prototype.fillByPreset = function (nSmartArtType) {
+      this.setDataModel(new AscFormat.DiagramData());
+      this.setColorsDef(new AscFormat.ColorsDef());
+      this.setLayoutDef(new AscFormat.LayoutDef());
+      this.setStyleDef(new AscFormat.StyleDef());
+      this.setDrawing(new AscFormat.Drawing());
+
+      const oApi = Asc.editor || editor;
+      if (oApi) {
+        const bFromWord = oApi.isDocumentEditor;
+        const pReader = new AscCommon.BinaryPPTYLoader();
+        const drawingDocument = oApi.getDrawingDocument();
+        const logicDocument = oApi.getLogicDocument();
+        pReader.presentation = logicDocument;
+        pReader.DrawingDocument = drawingDocument;
+
+        let sData = AscCommon.g_oSmartArtStyleDef[nSmartArtType];
+        let data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+        pReader.stream = new AscCommon.FileStream(data, data.length);
+        this.styleDef.fromPPTY(pReader);
+
+        sData = AscCommon.g_oSmartArtLayoutDef[nSmartArtType];
+        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+        pReader.stream = new AscCommon.FileStream(data, data.length);
+        this.layoutDef.fromPPTY(pReader);
+
+        sData = AscCommon.g_oSmartArtDrawings[nSmartArtType];
+        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+        pReader.stream = new AscCommon.FileStream(data, data.length);
+        pReader.ReadSmartArtGroup(this.drawing);
+        this.drawing.setGroup(this);
+        this.addToSpTree(0, this.drawing);
+
+        sData = AscCommon.g_oSmartArtColorsDef[nSmartArtType];
+        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+        pReader.stream = new AscCommon.FileStream(data, data.length);
+        this.colorsDef.fromPPTY(pReader);
+
+        sData = AscCommon.g_oSmartArtData[nSmartArtType];
+        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+        pReader.stream = new AscCommon.FileStream(data, data.length);
+        this.dataModel.fromPPTY(pReader);
+        this.setConnections2();
+
+        this.setSpPr(new AscFormat.CSpPr());
+        this.spPr.setParent(this);
+        const smXfrm = AscCommon.g_oXfrmSmartArt.createDuplicate();
+        if (bFromWord) {
+          smXfrm.setOffX(0);
+          smXfrm.setOffY(0);
+        }
+        this.spPr.setXfrm(smXfrm);
+        this.setBDeleted2(false);
+        this.x = AscCommon.g_oXfrmSmartArt.offX;
+        this.y = AscCommon.g_oXfrmSmartArt.offY;
+        this.extX = AscCommon.g_oXfrmSmartArt.extX;
+        this.extY = AscCommon.g_oXfrmSmartArt.extY;
+        this.drawing.setXfrmByParent();
+      }
+      return this;
+    };
+
+    SmartArt.prototype.fitToPageSize = function () {
+      const oApi = Asc.editor || editor;
+      if (oApi) {
+        const bFromWord = oApi.isDocumentEditor;
+        if (bFromWord) {
+          const logicDocument = oApi.getLogicDocument();
+          const curPage = logicDocument.Pages[logicDocument.controller_GetCurPage()];
+          const heightPage = curPage.Height - curPage.Margins.Top - (curPage.Height - curPage.Margins.Bottom);
+          const widthPage = curPage.Width - curPage.Margins.Left - (curPage.Width - curPage.Margins.Right);
+          const cH = widthPage / this.extX;
+          const cW = heightPage / this.extY;
+          if (cH < 1 || cW < 1) {
+            const minCoefficient = Math.min(cH, cW);
+            this.changeSize(minCoefficient, minCoefficient);
+          }
+        }
+      }
+    };
+
+    SmartArt.prototype.fitFontSize = function () {
+      this.spTree[0] &&  this.spTree[0].spTree.forEach(function (oShape) {
+        oShape.recalculateContent2()
+        oShape.findFitFontSizeForSmartArt();
+      });
+    };
+
     SmartArt.prototype.handleUpdateExtents = function(bExt)
     {
       this.recalcTransform();
