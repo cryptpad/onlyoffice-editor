@@ -689,8 +689,19 @@
 		drawingsChangesMap[AscDFH.historyitem_ThemeSetFontScheme] = function (oClass, value) {
 			oClass.themeElements.fontScheme = value;
 		};
-		drawingsChangesMap[AscDFH.historyitem_ThemeSetFmtScheme] = function (oClass, value) {
+		drawingsChangesMap[AscDFH.historyitem_ThemeSetFmtScheme] = function (oClass, value, bFromLoad) {
 			oClass.themeElements.fmtScheme = value;
+			if(bFromLoad) {
+				if(typeof AscCommon.CollaborativeEditing !== "undefined") {
+					if(value) {
+						let aImages = [];
+						value.getAllRasterImages(aImages);
+						for(let nImage = 0; nImage < aImages.length; ++nImage) {
+							AscCommon.CollaborativeEditing.Add_NewImage(aImages[nImage]);
+						}
+					}
+				}
+			}
 		};
 		drawingsChangesMap[AscDFH.historyitem_ThemeSetName] = function (oClass, value) {
 			oClass.name = value;
@@ -14663,7 +14674,6 @@
 				this.bulletType.toXml(writer);
 			}
 		};
-//interface methods
 		//interface methods
 		var prot = CBullet.prototype;
 		prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
