@@ -86,6 +86,8 @@ Because of this, the display is sometimes not correct.
     var CGroupShape = AscFormat.CGroupShape;
 
     // consts
+    const GRAYSCALE_TRESHHOLD = 150;
+
     var Point_type_asst = 1;
     var Point_type_doc = 2;
     var Point_type_node = 0;
@@ -13777,6 +13779,34 @@ Because of this, the display is sometimes not correct.
 
     SmartArt.prototype.hasSmartArt = function (bRetSmartArt) {
       return bRetSmartArt ? this : true;
+    }
+
+    SmartArt.prototype.getContrastDrawing = function () {
+      const shapes = this.spTree[0] && this.spTree[0].spTree;
+      shapes.forEach(function (oShape) {
+        oShape.recalculateBrush();
+        oShape.recalculatePen();
+        if ((oShape.pen && oShape.pen.Fill && oShape.pen.Fill.fill && !(oShape.pen.Fill.fill instanceof AscFormat.CNoFill)) ||
+            (oShape.brush && oShape.brush.fill && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill))) {
+          const pen = new AscFormat.CreateSolidFillRGB(136, 136, 136);
+          oShape.spPr.ln.setFill(pen);
+          console.log(oShape.spPr)
+
+          if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
+            const brush = oShape.brush;
+            const grayscale = brush.getGrayscaleValue();
+            if (grayscale < GRAYSCALE_TRESHHOLD) {
+              const heavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
+              oShape.spPr.setFill(heavyBrush);
+            } else {
+              const lightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
+              oShape.spPr.setFill(lightBrush);
+            }
+          }
+        }
+        oShape.recalcLine();
+        oShape.recalcFill();
+      });
     }
 
     SmartArt.prototype.recalculate = function () {
