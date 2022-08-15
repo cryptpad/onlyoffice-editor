@@ -11471,10 +11471,12 @@
 		FontScheme.prototype.Write_ToBinary = function (w) {
 			this.majorFont.Write_ToBinary(w);
 			this.minorFont.Write_ToBinary(w);
+			writeString(w, this.name);
 		};
 		FontScheme.prototype.Read_FromBinary = function (r) {
 			this.majorFont.Read_FromBinary(r);
 			this.minorFont.Read_FromBinary(r);
+			this.name = readString(r);
 		};
 		FontScheme.prototype.checkFromFontCollection = function (font, fontCollection, region) {
 			if (fontCollection === this.majorFont) {
