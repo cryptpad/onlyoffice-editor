@@ -65,13 +65,20 @@
 
 		return logicDocument;
 	}
-	function SetFillingFormMode()
+	function SetFillingFormMode(isOForm)
 	{
 		editor.restrictions = Asc.c_oAscRestrictionType.OnlyForms;
+
+		if (isOForm)
+			editor.DocInfo = {Format : "oform"};
+		else
+			editor.DocInfo = {Format : "docx"};
 	}
 	function SetEditingMode()
 	{
 		editor.restrictions = Asc.c_oAscRestrictionType.None;
+
+		editor.DocInfo = {Format : "docx"};
 	}
 	function PressKey(keyCode, isCtrl, isShift, isAlt)
 	{
@@ -102,6 +109,29 @@
 
 		logicDocument.MoveCursorRight(!!isShift, !!isCtrl, false);
 	}
+	function ClickMouseButton(x, y, page, isRight, count)
+	{
+		if (!logicDocument)
+			return;
+
+		let e = new AscCommon.CMouseEventHandler();
+
+		e.Button     = isRight ? AscCommon.g_mouse_button_right : AscCommon.g_mouse_button_left;
+		e.ClickCount = count ? count : 1;
+
+		e.Type = AscCommon.g_mouse_event_type_down;
+		logicDocument.OnMouseDown(e, x, y, page);
+
+		e.Type = AscCommon.g_mouse_event_type_up;
+		logicDocument.OnMouseUp(e, x, y, page);
+	}
+	function Recalculate()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.RecalculateFromStart(false);
+	}
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.CreateLogicDocument = CreateLogicDocument;
 	AscTest.SetFillingFormMode  = SetFillingFormMode;
@@ -109,6 +139,8 @@
 	AscTest.PressKey            = PressKey;
 	AscTest.MoveCursorLeft      = MoveCursorLeft;
 	AscTest.MoveCursorRight     = MoveCursorRight;
+	AscTest.Recalculate         = Recalculate;
+	AscTest.ClickMouseButton    = ClickMouseButton;
 	AscTest.KeyCode             = KeyCode;
 
 })(window);

@@ -47,7 +47,7 @@ var AscTest = AscTest || {};
 
 	AscCommon.g_oTableId = {
 		Add : function(c, id) {},
-
+		Get_ById : function(id){return null;},
 		TurnOff : function(){},
 		TurnOn : function(){}
 	};
@@ -55,7 +55,17 @@ var AscTest = AscTest || {};
 	AscCommon.g_oIdCounter.m_bLoad = false;
 	AscCommon.g_oIdCounter.m_bRead = false;
 
+	function AddTextToInlineSdt(control, text)
+	{
+		AscWord.TextToRunElements(text, function(runElement)
+		{
+			control.Add(runElement);
+		});
+	}
+
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.Letter = Letter;
+
+	AscTest.AddTextToInlineSdt = AddTextToInlineSdt;
 
 })(window);

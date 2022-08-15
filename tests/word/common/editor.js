@@ -52,7 +52,9 @@
 		Update_FieldTrack : function(){},
 		SetTargetColor : function(){},
 		SetTargetSize : function(){},
-		UpdateTarget : function(){}
+		UpdateTarget : function(){},
+		ClearCachePages : function(){},
+		FirePaint : function(){}
 	};
 
 	const editor = new AscCommon.baseEditorsApi({});
@@ -64,6 +66,7 @@
 	editor.asc_OnChangeContentControl = function(){};
 	editor.sync_OnAllRequiredFormsFilled = function(){};
 	editor.asc_OnFocusContentControl = function(){};
+	editor.asc_OnBlurContentControl = function(){};
 
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.DrawingDocument = drawingDocument;

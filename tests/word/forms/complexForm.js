@@ -253,4 +253,92 @@ $(function () {
 		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Check cursor position after entering text");
 		assert.strictEqual(complexForm.GetInnerText(), "111abc222def333", "Check text of all complex form");
 	});
+
+	QUnit.test("Check mouse clicks", function (assert)
+	{
+		// Внутри составной формы тройной клик должен выделять всю составную форму целиком, где бы мы не кликали
+		// Двойной клик внутри простой подформы выделяет целиком подформу, а двойно клик вне простой подфоры выделяет
+		// слово (по обычному) в рамках составной формы
+
+		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
+
+		let paragraph = new AscWord.CParagraph(editor.WordControl);
+		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph);
+		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
+
+		paragraph.SetThisElementCurrent();
+		assert.strictEqual(paragraph.IsThisElementCurrent(), true, "Check current position");
+
+		let complexForm = logicDocument.AddComplexForm();
+		complexForm.SetFormPr(new AscWord.CSdtFormPr());
+
+		assert.strictEqual(formsManager.GetAllForms().length, 1, "Add complex form to document (check forms count)");
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToStartPos();
+
+		// Наполняем нашу форму: 111<textForm>222<textForm>333
+		let tempRun1 = new AscWord.CRun();
+		tempRun1.AddText("111");
+		complexForm.Add(tempRun1);
+
+		assert.strictEqual(complexForm.IsCursorAtEnd(), true, "Check cursor after adding text");
+		assert.strictEqual(complexForm.IsPlaceHolder(), false, "Check placeholder in complexForm after adding text run");
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let textForm1 = logicDocument.AddContentControlTextForm();
+		textForm1.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun2 = new AscWord.CRun();
+		tempRun2.AddText("222");
+		complexForm.Add(tempRun2);
+
+		let textForm2 = logicDocument.AddContentControlTextForm();
+		textForm2.SetFormPr(new AscWord.CSdtFormPr());
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun3 = new AscWord.CRun();
+		tempRun3.AddText("333 444");
+		complexForm.Add(tempRun3);
+
+		AscTest.AddTextToInlineSdt(textForm1, "abc def");
+		AscTest.AddTextToInlineSdt(textForm2, "ABC DEF");
+
+		assert.strictEqual(complexForm.GetInnerText(), "111abc def222ABC DEF333 444", "Check text of all complex form");
+
+		logicDocument.End_SilentMode();
+		AscTest.Recalculate();
+
+		assert.strictEqual(paragraph.GetLinesCount(0), 1, "Check lines count");
+		assert.deepEqual(paragraph.GetPageBounds(0), new AscWord.CDocumentBounds(30, 20, 195, 20 + AscTest.FontHeight), "Check page bounds of the paragraph");
+
+		const charWidth = AscTest.CharWidth * AscTest.FontSize;
+
+		let y = 20 + AscTest.FontHeight / 2;
+		let x = 30 + charWidth * 4.5;
+
+		AscTest.SetFillingFormMode(false);
+
+		AscTest.ClickMouseButton(x, y, 0, false, 2);
+		assert.strictEqual(logicDocument.GetSelectedText(), "abc def", "Check double click in first subform");
+
+		AscTest.ClickMouseButton(x, y, 0, false, 3);
+		assert.strictEqual(logicDocument.GetSelectedText(), "111abc def222ABC DEF333 444", "Check triple click in first subform");
+
+		x = 30 + charWidth * 22.5;
+		AscTest.ClickMouseButton(x, y, 0, false, 2);
+		assert.strictEqual(logicDocument.GetSelectedText(), "333 ", "Check double click outside all subforms");
+
+		AscTest.ClickMouseButton(x, y, 0, false, 3);
+		assert.strictEqual(logicDocument.GetSelectedText(), "111abc def222ABC DEF333 444", "Check triple click outside all subforms");
+	});
 });
