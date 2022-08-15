@@ -13795,6 +13795,16 @@ Because of this, the display is sometimes not correct.
       }
     }
 
+    SmartArt.prototype.decorateParaDrawing = function (drawingObjects) {
+      var drawing = new ParaDrawing(this.spPr.xfrm.extX, this.spPr.xfrm.extY, this, drawingObjects.drawingDocument, drawingObjects.document, null);
+      drawing.setExtent(this.spPr.xfrm.extX, this.spPr.xfrm.extY);
+      drawing.Set_GraphicObject(this);
+      this.setParent(drawing);
+      drawing.CheckWH();
+      return drawing;
+    };
+
+
     SmartArt.prototype.fillByPreset = function (nSmartArtType) {
       this.setDataModel(new AscFormat.DiagramData());
       this.setColorsDef(new AscFormat.ColorsDef());
