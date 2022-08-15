@@ -1131,8 +1131,6 @@
      * @typeofeditors ["CDE", "CSE", "CPE"]
      * @alias PutImageDataToSelection
      * @param {ImageData} oImageData - image encoded in base64 format.
-     * @param {number} nWidth - image with in pixels.
-     * @param {number} nHeight - image height in pixels.
      */
 	Api.prototype["pluginMethod_PutImageDataToSelection"] = function(oImageData)
 	{
