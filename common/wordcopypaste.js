@@ -6354,6 +6354,16 @@ PasteProcessor.prototype =
 				this.pasteTextIntoList = null;
 			}
 
+			//принудительно добавляю для математики шрифт Cambria Math
+			if (child && child.nodeName.toLowerCase() === "#comment" && -1 !== child.nodeValue.indexOf("[if gte msEquation 12]") && !this.pasteInExcel) {
+				//TODO пока только в документы разрешаю вставку математики математику
+				var mathFont = "Cambria Math";
+				this.oFonts[mathFont] = {
+					Name: g_fontApplication.GetFontNameDictionary(mathFont, true),
+					Index: -1
+				};
+			}
+
 			var child_nodeType = child.nodeType;
 			if (!(Node.ELEMENT_NODE === child_nodeType || Node.TEXT_NODE === child_nodeType))
 				continue;
@@ -6497,52 +6507,78 @@ PasteProcessor.prototype =
 
 		return res;
 	},
+
 	_ParseColor: function (color) {
-		if (!color || color.length == 0)
+		if (!color || color.length == 0) {
 			return null;
-		if ("transparent" === color)
+		}
+		if ("transparent" === color) {
 			return null;
-		if ("aqua" === color)
+		}
+
+		if ("aqua" === color) {
 			return new CDocumentColor(0, 255, 255);
-		else if ("black" === color)
+		} else if ("black" === color) {
 			return new CDocumentColor(0, 0, 0);
-		else if ("blue" === color)
+		} else if ("blue" === color) {
 			return new CDocumentColor(0, 0, 255);
-		else if ("fuchsia" === color)
+		} else if ("fuchsia" === color) {
 			return new CDocumentColor(255, 0, 255);
-		else if ("gray" === color)
+		} else if ("gray" === color) {
 			return new CDocumentColor(128, 128, 128);
-		else if ("green" === color)
+		} else if ("green" === color) {
 			return new CDocumentColor(0, 128, 0);
-		else if ("lime" === color)
+		} else if ("lime" === color) {
 			return new CDocumentColor(0, 255, 0);
-		else if ("maroon" === color)
+		} else if ("maroon" === color) {
 			return new CDocumentColor(128, 0, 0);
-		else if ("navy" === color)
+		} else if ("navy" === color) {
 			return new CDocumentColor(0, 0, 128);
-		else if ("olive" === color)
+		} else if ("olive" === color) {
 			return new CDocumentColor(128, 128, 0);
-		else if ("purple" === color)
+		} else if ("purple" === color) {
 			return new CDocumentColor(128, 0, 128);
-		else if ("red" === color)
+		} else if ("red" === color) {
 			return new CDocumentColor(255, 0, 0);
-		else if ("silver" === color)
+		} else if ("silver" === color) {
 			return new CDocumentColor(192, 192, 192);
-		else if ("teal" === color)
+		} else if ("teal" === color) {
 			return new CDocumentColor(0, 128, 128);
-		else if ("white" === color)
+		} else if ("white" === color) {
 			return new CDocumentColor(255, 255, 255);
-		else if ("yellow" === color)
+		} else if ("yellow" === color) {
 			return new CDocumentColor(255, 255, 0);
-		else {
+		} else if ("cyan" === color) {
+			return new CDocumentColor(0, 255, 255);
+		} else if ("magenta" === color) {
+			return new CDocumentColor(255, 0, 255);
+		} else if ("darkblue" === color) {
+			return new CDocumentColor(0, 0, 139);
+		} else if ("darkcyan" === color) {
+			return new CDocumentColor(0, 139, 139);
+		} else if ("darkGreen" === color) {
+			return new CDocumentColor(0, 100, 0);
+		} else if ("darkmagenta" === color) {
+			return new CDocumentColor(128, 0, 128);
+		} else if ("darkRed" === color) {
+			return new CDocumentColor(139, 0, 0);
+		} else if ("darkyellow" === color) {
+			return new CDocumentColor(128, 128, 0);
+		} else if ("darkgray" === color) {
+			return new CDocumentColor(169, 169, 169);
+		} else if ("lightgray" === color) {
+			return new CDocumentColor(211, 211, 211);
+		} else {
+			var r, g, b;
 			if (0 === color.indexOf("#")) {
 				var hex = color.substring(1);
-				if (hex.length === 3)
+				if (hex.length === 3) {
 					hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+				}
 				if (hex.length === 6) {
-					var r = parseInt("0x" + hex.substring(0, 2));
-					var g = parseInt("0x" + hex.substring(2, 4));
-					var b = parseInt("0x" + hex.substring(4, 6));
+					r = parseInt("0x" + hex.substring(0, 2));
+					g = parseInt("0x" + hex.substring(2, 4));
+					b = parseInt("0x" + hex.substring(4, 6));
 					return new CDocumentColor(r, g, b);
 				}
 			}
@@ -6556,32 +6592,35 @@ PasteProcessor.prototype =
 						if (aParems.length >= 4) {
 							var oA = AscCommon.valueToMmType(aParems[3]);
 							if (0 == oA.val)//полностью прозрачный
+							{
 								return null;
+							}
 						}
 						var oR = AscCommon.valueToMmType(aParems[0]);
 						var oG = AscCommon.valueToMmType(aParems[1]);
 						var oB = AscCommon.valueToMmType(aParems[2]);
-						var r, g, b;
-						if (oR && "%" === oR.type)
+						if (oR && "%" === oR.type) {
 							r = parseInt(255 * oR.val / 100);
-						else
+						} else {
 							r = oR.val;
-						if (oG && "%" === oG.type)
+						}
+						if (oG && "%" === oG.type) {
 							g = parseInt(255 * oG.val / 100);
-						else
+						} else {
 							g = oG.val;
-						if (oB && "%" === oB.type)
+						}
+						if (oB && "%" === oB.type) {
 							b = parseInt(255 * oB.val / 100);
-						else
+						} else {
 							b = oB.val;
+						}
 						return new CDocumentColor(r, g, b);
 					}
 				}
 			}
 		}
 		return null;
-	},
-	_isEmptyProperty: function (prop) {
+	}, _isEmptyProperty: function (prop) {
 		var bIsEmpty = true;
 		for (var i in prop) {
 			if (null != prop[i]) {
@@ -8379,7 +8418,7 @@ PasteProcessor.prototype =
 					charCode = oIterator.value();
 				}
 				return charCode;
-			}
+			};
 
 			var setListItems = function (addFunc) {
 				for (var i = 0, length = node.childNodes.length; i < length; i++) {
@@ -9561,6 +9600,14 @@ PasteProcessor.prototype =
 							oThis.startMsoAnnotation = true;
 						} else if (oThis.startMsoAnnotation && child.nodeValue === "[endif]") {
 							oThis.startMsoAnnotation = false;
+						} else if (-1 !== child.nodeValue.indexOf("[if gte msEquation 12]") && !oThis.pasteInExcel) {
+							//TODO пока только в документы разрешаю вставку математики математику
+							var oPar = new Paragraph(oThis.oLogicDocument.DrawingDocument);
+							//TODO отключаю историю, затем делаю копию. иначе проблемы при сборке. пересмотреть!
+							History.TurnOff();
+							oThis._parseMathContent(child, oPar);
+							History.TurnOn();
+							oThis.aContent.push(oPar.Copy())
 						}
 					}
 					return;
@@ -9957,6 +10004,11 @@ PasteProcessor.prototype =
 					if (-1 !== value.indexOf("supportLineBreakNewLine")) {
 						bSkip = true;
 					}
+					if (-1 !== value.indexOf("[if !msEquation]") && !this.pasteInExcel) {
+						//TODO пока только в документы разрешаю вставку математики математику
+						bSkip = true;
+					}
+
 					// TODO пересмотреть информацию в <![if !supportFootnotes]>
 					/*if (-1 !== value.indexOf("supportFootnotes")) {
 						bSkip = true;
@@ -10006,6 +10058,26 @@ PasteProcessor.prototype =
 				oThis.bIsForFootEndnote = false;
 			}
 		return bAddParagraph;
+	},
+
+	_parseMathContent: function (node, oPar) {
+		//получаем строку, которая содержит необходимые данные для получения уравнения
+		let str = node.nodeValue;
+		str = str.replace('[if gte msEquation 12]>', '');
+		str = str.replace('<![endif]', '');
+		str = str.replace(/lang=\w*-\w*/g, '');
+
+		let xmlParserContext = new AscCommon.XmlParserContext();
+		xmlParserContext.oReadResult.bCopyPaste = true;
+		var reader = new StaxParser(str, /*documentPart*/null, xmlParserContext);
+
+		if (!reader.ReadNextNode()) {
+			return;
+		}
+
+		let elem = new AscCommon.CT_OMathPara();
+		elem.fromXml(reader, oPar);
+		return elem.OMath
 	},
 
 	_commitCommentEnd: function () {
@@ -10585,6 +10657,206 @@ MsoStyleClass.prototype.getAttributeByName = function (name) {
 	return null;
 };
 
+function ParseHtmlMathContent(paragraph, opt_textPr) {
+	this.paraRuns = null;
+	this.paragraph = paragraph;
+
+	this.cTextPr = opt_textPr ? opt_textPr : new CTextPr();
+}
+
+ParseHtmlMathContent.prototype.fromXml = function (reader) {
+	var state = reader.getState();
+	CMathBase.prototype.fromHtmlCtrlPr.call(this, reader, this.cTextPr);
+	this.getXmlRunsRecursive(reader);
+	reader.setState(state);
+};
+
+ParseHtmlMathContent.prototype.getXmlRunsRecursive = function (reader, textPr, doNotCopyPr) {
+	let depth = reader.GetDepth();
+	if (!textPr) {
+		textPr = this.cTextPr;
+	}
+	var copyTextPr;
+	while (reader.ReadNextSiblingNode(depth)) {
+		let name = reader.GetNameNoNS();
+		switch (name) {
+			case "u": {
+				textPr.Underline = true;
+				this.getXmlRunsRecursive(reader, textPr);
+				break;
+			}
+			case "s": {
+				textPr.Strikeout = true;
+				this.getXmlRunsRecursive(reader, textPr);
+				break;
+			}
+			case "r": {
+				var paraRun = new ParaRun(this.paragraph, true);
+				var state = reader.getState();
+				paraRun.fromXml(reader);
+				reader.setState(state);
+
+				copyTextPr = textPr.Copy();
+				this.getXmlRunsRecursive(reader, copyTextPr, true);
+				reader.setState(state);
+
+				var txt = reader.GetTextDecodeXml();
+				for (var oIterator = txt.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
+					var nUnicode = oIterator.value();
+					var cMath = new CMathText();
+					cMath.add(nUnicode);
+					paraRun.Add_ToContent(paraRun.GetElementsCount(), cMath, false);
+				}
+
+				if (copyTextPr != null) {
+					if (paraRun.Pr) {
+						paraRun.Pr.Merge(copyTextPr);
+					} else {
+						paraRun.Set_Pr(copyTextPr);
+					}
+				}
+
+				if (!this.paraRuns) {
+					this.paraRuns = [];
+				}
+				this.paraRuns.push(paraRun);
+				break;
+			}
+			case "span": {
+				copyTextPr = doNotCopyPr ? textPr : textPr.Copy();
+				CMathBase.prototype.fromHtmlCtrlPr.call(this, reader, copyTextPr);
+				this.getXmlRunsRecursive(reader, copyTextPr);
+				break;
+			}
+			default:
+				this.getXmlRunsRecursive(reader, textPr);
+				break;
+		}
+	}
+};
+
+function ParseHtmlStyle(styles) {
+	this.styles = styles;
+	this.map = null;
+}
+
+ParseHtmlStyle.prototype.parseStyles = function () {
+	if (!this.map) {
+		this.map = new Map();
+	}
+
+	var map = this.map;
+	var buff = this.styles.split(';');
+	var tagname;
+	var val;
+	for (var i = 0; i < buff.length; i++) {
+		tagname = buff[i].substring(0, buff[i].indexOf(':')).replace(/\s/g, '');
+		val = buff[i].substring(buff[i].indexOf(':') + 1).replace(/\s/g, '');
+
+		map.set(tagname, val);
+	}
+
+	return map;
+};
+
+ParseHtmlStyle.prototype.applyStyles = function (textPr) {
+	if (!textPr || !this.map) {
+		return;
+	}
+
+	var map = this.map;
+
+	//color
+	var color = map.get('color');
+	if (color) {
+		var cDocColor = new CDocumentColor(0, 0, 0);
+		cDocColor.SetFromHexColor(color);
+		textPr.Color = cDocColor;
+	}
+	/*var color = this._getStyle(node, computedStyle, "color");
+	if (color && (color = this._ParseColor(color))) {
+		if (PasteElementsId.g_bIsDocumentCopyPaste) {
+			rPr.Color = color;
+		} else {
+			if (color) {
+				rPr.Unifill = AscFormat.CreateUnfilFromRGB(color.r, color.g, color.b);
+			}
+		}
+	}*/
+
+
+	var font_size = map.get('font-size');
+	//font_size = CheckDefaultFontSize(font_size, this.apiEditor);
+	if (font_size) {
+		var obj = AscCommon.valueToMmType(font_size);
+		if (obj && "%" !== obj.type && "none" !== obj.type) {
+			font_size = obj.val;
+			//Если браузер не поддерживает нецелые пикселы отсекаем половинные шрифты, они появляются при вставке 8, 11, 14, 20, 26pt
+			if ("px" === obj.type && false === this.bIsDoublePx)
+				font_size = Math.round(font_size * g_dKoef_mm_to_pt);
+			else
+				font_size = Math.round(2 * font_size * g_dKoef_mm_to_pt) / 2;//половинные значения допустимы.
+
+			//TODO use constant
+			if (font_size > 300)
+				font_size = 300;
+			else if (font_size === 0)
+				font_size = 1;
+
+			textPr.FontSize = font_size;
+			textPr.FontSizeCS = font_size;
+		}
+	}
+
+
+	var font_weight = map.get("font-weight");
+	if (font_weight) {
+		if ("bold" === font_weight || "bolder" === font_weight || 400 < font_weight) {
+			textPr.Bold = true;
+		}
+	}
+
+	var font_style = map.get("font-style");
+	if ("italic" === font_style) {
+		textPr.Italic = true;
+	}
+
+	var spacing = map.get("letter-spacing");
+	if (spacing && null != (spacing = AscCommon.valueToMm(spacing))) {
+		textPr.Spacing = spacing;
+	}
+
+
+	var text_decoration = map.get("text-decoration");
+	if (text_decoration) {
+		if (-1 !== text_decoration.indexOf("underline")) {
+			textPr.Underline = true;
+		}
+		if (-1 !== text_decoration.indexOf("line-through")) {
+			textPr.Strikeout = true;
+		}
+	}
+
+	var background_color = map.get("background");
+	if (background_color) {
+		var highLight = AscCommon.PasteProcessor.prototype._ParseColor(background_color);
+		if (highLight != null) {
+			textPr.HighLight = highLight;
+		}
+	}
+
+
+	var vertical_align = map.get("vertical-align");
+	switch (vertical_align) {
+		case "sub":
+			rPr.VertAlign = AscCommon.vertalign_SubScript;
+			break;
+		case "super":
+			rPr.VertAlign = AscCommon.vertalign_SuperScript;
+			break;
+	}
+};
+
 function checkOnlyOneImage(node)
 {
 	var res = false;
@@ -10641,6 +10913,9 @@ function checkOnlyOneImage(node)
   window["AscCommon"].checkOnlyOneImage = checkOnlyOneImage;
 
   window["AscCommon"].koef_mm_to_indent = koef_mm_to_indent;
+
+  window["AscCommon"].ParseHtmlMathContent = ParseHtmlMathContent;
+  window["AscCommon"].ParseHtmlStyle = ParseHtmlStyle;
 
 
 })(window);

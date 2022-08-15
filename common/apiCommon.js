@@ -53,7 +53,8 @@
 	var c_oAscAxisType = Asc.c_oAscAxisType;
 	// ---------------------------------------------------------------------------------------------------------------
 
-	var c_oAscArrUserColors = [16757719, 56805, 10081791, 12884479, 16751001, 6748927, 16762931, 6865407,
+	var c_oAscArrUserColors = [10646501, 16749875, 1087211, 103817, 16760641, 16272775, 8765789, 14707685, 48336,
+		5729515, 16757719, 56805, 10081791, 12884479, 16751001, 6748927, 16762931, 6865407,
 		15650047, 16737894, 3407768, 16759142, 10852863, 6750176, 16774656, 13926655, 13815039, 3397375, 11927347, 16752947,
 		9404671, 4980531, 16744678, 3407830, 15919360, 16731553, 52479, 13330175, 16743219, 3386367, 14221056, 16737966,
 		1896960, 65484, 10970879, 16759296, 16711680, 13496832, 62072, 49906, 16734720, 10682112, 7890687, 16731610, 65406,
@@ -1270,6 +1271,8 @@
 		this.horizontalAxes = [];
 		this.verticalAxes = [];
 		this.depthAxes = [];
+
+		this.view3D = null;
 	}
 
 	//TODO:remove this---------------------
@@ -1384,6 +1387,28 @@
 	asc_ChartSettings.prototype.getDepthAxesProps = function() {
 		return this.depthAxes;
 	};
+	asc_ChartSettings.prototype.getView3d = function() {
+		if(this.chartSpace) {
+			return this.chartSpace.getView3d();
+		}
+		return this.view3D ? this.view3D.createDuplicate() : null;
+	};
+	asc_ChartSettings.prototype.putView3d = function(v) {
+		this.view3D = v;
+	};
+	asc_ChartSettings.prototype.setView3d = function(v) {
+		this.putView3d(v);
+		if(this.chartSpace) {
+			if(v) {
+				this.chartSpace.changeView3d(v.createDuplicate());
+			}
+			else {
+				this.chartSpace.changeView3d(null);
+			}
+			this.updateChart();
+		}
+	};
+
 	asc_ChartSettings.prototype.addHorAxesProps = function(v) {
 		this.horizontalAxes.push(v);
 	};
@@ -5639,6 +5664,7 @@
 		this.minVersion = "";
 		this.version = "";
 		this.isConnector = false;
+		this.loader;
 
 		this.variations = [];
 	}
@@ -5721,6 +5747,15 @@
 		this.variations = value;
 	};
 
+	CPlugin.prototype["get_Loader"] = function()
+	{
+		return this.loader;
+	};
+	CPlugin.prototype["set_Loader"] = function(value)
+	{
+		this.loader = value;
+	};
+
 	CPlugin.prototype["serialize"]   = function()
 	{
 		var _object           = {};
@@ -5731,6 +5766,7 @@
 		_object["baseUrl"]    = this.baseUrl;
 		_object["minVersion"] = this.minVersion;
 		_object["isConnector"] = this.isConnector;
+		_object["loader"]     = this.loader;
 
 		if (this.group)
 		{
@@ -5755,6 +5791,7 @@
 		this.baseUrl    = (_object["baseUrl"] != null) ? _object["baseUrl"] : this.baseUrl;
 		this.minVersion = (_object["minVersion"] != null) ? _object["minVersion"] : this.minVersion;
 		this.isConnector = (_object["isConnector"] != null) ? _object["isConnector"] : this.isConnector;
+		this.loader     = (_object["loader"] != null) ? _object["loader"] : this.loader;
 
 		if (true)
 		{
@@ -6259,6 +6296,10 @@
 	prot["getHorAxesProps"] = prot.getHorAxesProps;
 	prot["getVertAxesProps"] = prot.getVertAxesProps;
 	prot["getDepthAxesProps"] = prot.getDepthAxesProps;
+	prot["getView3d"] = prot.getView3d;
+	prot["putView3d"] = prot.putView3d;
+	prot["setView3d"] = prot.setView3d;
+
 
 	window["AscCommon"].asc_CRect = asc_CRect;
 	prot = asc_CRect.prototype;

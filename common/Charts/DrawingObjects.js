@@ -4300,6 +4300,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
             settings.putSeparator(",");
             settings.putLine(true);
             settings.putShowMarker(false);
+            settings.putView3d(null);
         }
         else{
             if(true !== bNoLock){

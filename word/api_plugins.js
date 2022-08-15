@@ -248,13 +248,25 @@
 			prop.CC.SelectContentControl();
 		}
 
-		if (prop && prop.CC) delete prop.CC;
-
-		prop["Tag"] = prop.Tag;
-		prop["Id"] = prop.Id;
-		prop["Lock"] = prop.Lock;
-		prop["InternalId"] = prop.InternalId;
-		prop["Appearance"] = prop.Appearance;
+		var result =
+		{
+			"Tag"        : prop.Tag,
+			"Id"         : prop.Id,
+			"Lock"       : prop.Lock,
+			"Alias"      : prop.Alias,
+			"InternalId" : prop.InternalId,
+			"Appearance" : prop.Appearance,
+		};
+		
+		if (prop.Color)
+		{
+			result["Color"] =
+			{
+				"R" : prop.Color.r,
+				"G" : prop.Color.g,
+				"B" : prop.Color.b
+			}
+		}
 
 		if (contentFormat)
 		{
@@ -269,7 +281,7 @@
 			if (contentFormat == Asc.EPluginDataType.html)
 				copy_format = 2;
 			this.asc_CheckCopy(copy_data, copy_format);
-			prop["content"] = copy_data.data;
+			result["content"] = copy_data.data;
 		}
 
 		if (oState && contentFormat)
@@ -278,7 +290,7 @@
 			oLogicDocument.UpdateSelection();
 		}
 
-		return prop;
+		return result;
 	};
     /**
      * Selects the specified content control.
