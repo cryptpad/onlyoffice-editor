@@ -2623,6 +2623,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		divide: 4
 	};
 
+	var c_oAscSmartArtNameTypes = ["accentedPicture", "balance1", "titledPictureBlocks", "pictureAccentBlocks", "cycle5", "venn2", "equation2", "vList5", "bProcess4", "vList2", "verticalCurvedList", "process2", "list1", "vList4", "verticalCircleList", "vList3", "vList6", "chevron2", "verticalAccentList", "target2", "funnel1", "arrow2", "increasingArrowsProcess", "stepUpProcess", "circularPictureCallout", "hierarchy2", "hierarchy5", "horizontalMultiLevelHierarchy", "horizontalOrganizationChart", "hList1", "pList2", "hChevron3", "hierarchy3", "hierarchy1", "circlePictureHierarchy", "hierarchy6", "pyramid3", "hexagonCluster", "circleRelationship", "circleAccentTimeline", "bProcess2", "arrow6", "venn3", "pictureLineup", "titlePictureLineup", "bendingPictureCaptionList", "bList2", "matrix1", "increasingCircleProcess", "bendingPictureBlocks", "bendingPictureCaption", "bendingPictureSemiTransparentText", "cycle6", "hProcess9", "hList7", "cycle3", "blockDescendingList", "stepDownProcess", "reverseList", "orgChart1", "nameandTitleOrganizationalChart", "hProcess4", "pyramid2", "plusandMinus", "bProcess3", "captionedPictures", "hProcess7", "pictureStrips", "halfCircleOrganizationChart", "phasedProcess", "venn1", "hProcess11", "chart3", "matrix3", "pyramid1", "radial1", "target1", "default", "process5", "process1", "chevron1", "cycle2", "opposingIdeas", "arrow4", "randomtoResultProcess", "subStepProcess", "pieProcess", "process3", "ascendingPictureAccentProcess", "hProcess10", "radial3", "radial6", "radialCluster", "radial2", "cycle7", "radial5", "arrow1", "framedTextPicture", "lProcess2", "pyramid4", "process4", "cycle8", "pictureGrid", "matrix2", "spiralPicture", "hList9", "pList1", "lProcess1", "bubblePictureList", "squareAccentList", "linedList", "hList2", "pictureAccentList", "snapshotPictureList", "hProcess3", "circleArrowProcess", "hProcess6", "vProcess5", "radial4", "arrow5", "hierarchy4", "hList3", "cycle1", "hList6", "descendingProcess", "lProcess3", "equation1", "arrow3", "target3", "cycle4", "alternatingPictureBlocks", "alternatingPictureCircles", "alternatingHexagons", "gear1"];
+
 	var c_oAscSmartArtTypes = {
 		accentedPicture:                   0, // Акцентируемый рисунок
 		balance1:                          1, // Баланс
@@ -4523,6 +4525,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['subtract'] = prot.subtract;
 	prot['multiply'] = prot.multiply;
 	prot['divide'] = prot.divide;
+
+	window['Asc']['c_oAscSmartArtNameTypes'] = window['Asc'].c_oAscSmartArtNameTypes = c_oAscSmartArtNameTypes;
 
 	window['Asc']['c_oAscSmartArtTypes'] = window['Asc'].c_oAscSmartArtTypes = c_oAscSmartArtTypes;
 	prot = c_oAscSmartArtTypes;
