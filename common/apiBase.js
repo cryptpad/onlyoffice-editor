@@ -3898,6 +3898,15 @@
 		this.openedAt = val;
 	};
 
+	baseEditorsApi.prototype.getImageDataFromSelection = function ()
+	{
+		return AscFormat.WHITE_RECT_IMAGE;
+	};
+
+	baseEditorsApi.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight)
+	{
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;

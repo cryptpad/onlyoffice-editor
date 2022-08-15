@@ -3444,9 +3444,6 @@
 			if (typeof sRasterImageId !== "string" || sRasterImageId.length === 0) {
 				return null;
 			}
-			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.indexOf("base64") > 0) {
-				return sRasterImageId;
-			}
 			var oApi = Asc.editor || editor;
 			var sDefaultResult = sRasterImageId;
 			if(bReturnOrigIfCantDraw === false) {
@@ -3462,6 +3459,10 @@
 			var oImage = oImageLoader.map_image_index[AscCommon.getFullImageSrc2(sRasterImageId)];
 			if (!oImage || !oImage.Image || oImage.Status !== AscFonts.ImageLoadStatus.Complete) {
 				return {img: sDefaultResult, w: null, h: null};
+			}
+
+			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.indexOf("base64") > 0) {
+				return {img: sRasterImageId, w: oImage.Image.width, h: oImage.Image.height};
 			}
 			var sResult = sDefaultResult;
 			if (!window["NATIVE_EDITOR_ENJINE"]) {

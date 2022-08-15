@@ -5753,6 +5753,16 @@ CDocument.prototype.GetChartObject = function(type)
     return this.DrawingObjects.getChartObject(type, W, H);
 
 };
+CDocument.prototype.GetImageDataFromSelection = function()
+{
+    return this.DrawingObjects.getImageDataFromSelection();
+
+};
+CDocument.prototype.PutImageToSelection = function(sImageSrc, nWidth, nHeight)
+{
+    return this.DrawingObjects.putImageToSelection(sImageSrc, nWidth, nHeight);
+
+};
 /**
  * Добавляем таблицу в текущую позицию курсора
  * @param {number} nCols
@@ -26433,6 +26443,10 @@ CDocument.prototype.RestoreAfterNativePrint = function()
 
 		delete this.StoredOptions.Graphics;
 	}
+};
+CDocument.prototype.GetImageFormSelection = function()
+{
+    return this.DrawingObjects.getImageDataFromSelection();
 };
 
 
