@@ -6442,6 +6442,10 @@
 			this.A = 255;
 		}
 
+		FormatRGBAColor.prototype.getGrayscaleValue = function () {
+			return this.R * 0.2126 + this.G * 0.7152 + this.B * 0.0722;
+		};
+
 		function CUniFill() {
 			CBaseNoIdObject.call(this);
 			this.fill = null;
@@ -6647,6 +6651,11 @@
 					this.fill.bgClr.Calculate(theme, slide, layout, masterSlide, RGBA, colorMap);
 			}
 		};
+		CUniFill.prototype.getGrayscaleValue = function () {
+			const RGBAColor = this.getRGBAColor();
+			return RGBAColor.R * 0.2126 + RGBAColor.G * 0.7152 + RGBAColor.B * 0.0722;
+		};
+
 		CUniFill.prototype.getRGBAColor = function () {
 			if (this.fill) {
 				if (this.fill.type === c_oAscFill.FILL_TYPE_SOLID) {
