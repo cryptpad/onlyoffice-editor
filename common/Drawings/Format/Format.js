@@ -5940,6 +5940,10 @@
 				}
 			}
 		};
+		CGradFill.prototype.fromXml = function (reader, bSkipFirstNode) {
+			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+			this.colors.sort(function(a,b){return a.pos- b.pos;});
+		}
 		CGradFill.prototype.toXml = function (writer, sNamespace) {
 			let sAttrNamespace = "";
 			let strName = "";
