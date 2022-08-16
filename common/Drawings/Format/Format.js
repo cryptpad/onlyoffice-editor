@@ -3136,6 +3136,14 @@
 			}
 			writer.WriteXmlAttributesEnd(true);
 		};
+		CSrcRect.prototype.isFullRect = function() {
+			let r = this;
+			let fAE = AscFormat.fApproxEqual;
+			if(fAE(r.l, 0) && fAE(r.t, 0) && fAE(r.r, 100) && fAE(r.b, 100)) {
+				return true;
+			}
+			return false;
+		};
 
 		function CBlipFillTile() {
 			CBaseNoIdObject.call(this)
@@ -3756,6 +3764,12 @@
 				//todo
 			}
 		};
+		CBlipFill.prototype.fromXml = function (reader, bSkipFirstNode) {
+			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+			if(this.srcRect && this.srcRect.isFullRect()) {
+				this.srcRect = null;
+			}
+		}
 		CBlipFill.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 				case "blip": {
@@ -3764,6 +3778,7 @@
 					break;
 				}
 				case "srcRect": {
+
 					this.srcRect = new CSrcRect();
 					this.srcRect.fromXml(reader, false, true);
 					break;
@@ -3773,8 +3788,11 @@
 					let oThis = this;
 					let oPr = new CT_XmlNode(function (reader, name) {
 						if (name === "fillRect") {
-							oThis.srcRect = new CSrcRect();
-							oThis.srcRect.fromXml(reader, false, false);
+							let oSrcRect = new CSrcRect();
+							oSrcRect.fromXml(reader, false, false);
+							if(!oSrcRect.isFullRect()) {
+								this.srcRect = oSrcRect;
+							}
 						}
 						return true;
 					});
