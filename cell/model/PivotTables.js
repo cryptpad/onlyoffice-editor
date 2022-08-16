@@ -5293,6 +5293,13 @@ CT_pivotTableDefinition.prototype.moveField = function(arr, from, to, addToHisto
 	}
 	return false;
 };
+CT_pivotTableDefinition.prototype.checkRefresh = function() {
+	let dataRef = this.asc_getDataRef();
+	return Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef) ? c_oAscError.ID.No : c_oAscError.ID.PivotLabledColumns;
+};
+CT_pivotTableDefinition.prototype.refresh = function() {
+	this.updateCacheData(this.asc_getDataRef());
+};
 CT_pivotTableDefinition.prototype.asc_refresh = function(api) {
 	var dataRef = this.asc_getDataRef();
 	if (Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef)) {
@@ -5784,7 +5791,7 @@ CT_pivotTableDefinition.prototype.filterByFieldIndex = function (api, autoFilter
 		}
 		api.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
-		api._changePivotEndCheckError(t, changeRes, function () {
+		api._changePivotEndCheckError(changeRes, function () {
 			var pivot = api.wbModel.getPivotTableById(t.Get_Id());
 			if (pivot) {
 				pivot.filterByFieldIndex(api, autoFilterObject, fld, true);
@@ -5919,7 +5926,7 @@ CT_pivotTableDefinition.prototype.removeFiltersWithLock = function(api, flds, co
 		}
 		api.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
-		api._changePivotEndCheckError(t, changeRes, function() {
+		api._changePivotEndCheckError(changeRes, function() {
 			var pivot = api.wbModel.getPivotTableById(t.Get_Id());
 			if (pivot) {
 				pivot.removeFiltersWithLock(api, flds, true);
