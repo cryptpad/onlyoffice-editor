@@ -1818,6 +1818,95 @@
 		};
 
 
+
+		const COLOR_3DDKSHADOW               = 21;
+		const COLOR_3DFACE                   = 15;
+		const COLOR_3DHIGHLIGHT              = 20;
+		const COLOR_3DHILIGHT                = 20;
+		const COLOR_3DLIGHT                  = 22;
+		const COLOR_3DSHADOW                 = 16;
+		const COLOR_ACTIVEBORDER             = 10;
+		const COLOR_ACTIVECAPTION            = 2;
+		const COLOR_APPWORKSPACE             = 12;
+		const COLOR_BACKGROUND               = 1;
+		const COLOR_BTNFACE                  = 15;
+		const COLOR_BTNHIGHLIGHT             = 20;
+		const COLOR_BTNHILIGHT               = 20;
+		const COLOR_BTNSHADOW                = 16;
+		const COLOR_BTNTEXT                  = 18;
+		const COLOR_CAPTIONTEXT              = 9;
+		const COLOR_DESKTOP                  = 1;
+		const COLOR_GRAYTEXT                 = 17;
+		const COLOR_HIGHLIGHT                = 13;
+		const COLOR_HIGHLIGHTTEXT            = 14;
+		const COLOR_HOTLIGHT                 = 26;
+		const COLOR_INACTIVEBORDER           = 11;
+		const COLOR_INACTIVECAPTION          = 3;
+		const COLOR_INACTIVECAPTIONTEXT      = 19;
+		const COLOR_INFOBK                   = 24;
+		const COLOR_INFOTEXT                 = 23;
+		const COLOR_MENU                     = 4;
+		const COLOR_GRADIENTACTIVECAPTION    = 27;
+		const COLOR_GRADIENTINACTIVECAPTION  = 28;
+		const COLOR_MENUHILIGHT              = 29;
+		const COLOR_MENUBAR                  = 30;
+		const COLOR_MENUTEXT                 = 7;
+		const COLOR_SCROLLBAR                = 0;
+		const COLOR_WINDOW                   = 5;
+		const COLOR_WINDOWFRAME              = 6;
+		const COLOR_WINDOWTEXT               = 8;
+
+
+		function GetSysColor(nIndex)
+		{
+			// get color values from any windows theme
+			// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724371(v=vs.85).aspx
+			//***************** GetSysColor values begin (Win7 x64) *****************
+			let nValue = 0x0;
+			//***************** GetSysColor values begin (Win7 x64) *****************
+			switch (nIndex) {
+				case COLOR_3DDKSHADOW: nValue = 0x696969; break;
+				case COLOR_3DFACE: nValue = 0xf0f0f0; break;
+				case COLOR_3DHIGHLIGHT: nValue = 0xffffff; break;
+				// case COLOR_3DHILIGHT: nValue = 0xffffff; break; // is COLOR_3DHIGHLIGHT
+				case COLOR_3DLIGHT: nValue = 0xe3e3e3; break;
+				case COLOR_3DSHADOW: nValue = 0xa0a0a0; break;
+				case COLOR_ACTIVEBORDER: nValue = 0xb4b4b4; break;
+				case COLOR_ACTIVECAPTION: nValue = 0xd1b499; break;
+				case COLOR_APPWORKSPACE: nValue = 0xababab; break;
+				case COLOR_BACKGROUND: nValue = 0x0; break;
+				// case COLOR_BTNFACE: nValue = 0xf0f0f0; break; // is COLOR_3DFACE
+				// case COLOR_BTNHIGHLIGHT: nValue = 0xffffff; break; // is COLOR_3DHIGHLIGHT
+				// case COLOR_BTNHILIGHT: nValue = 0xffffff; break; // is COLOR_3DHIGHLIGHT
+				// case COLOR_BTNSHADOW: nValue = 0xa0a0a0; break; // is COLOR_3DSHADOW
+				case COLOR_BTNTEXT: nValue = 0x0; break;
+				case COLOR_CAPTIONTEXT: nValue = 0x0; break;
+				// case COLOR_DESKTOP: nValue = 0x0; break; // is COLOR_BACKGROUND
+				case COLOR_GRADIENTACTIVECAPTION: nValue = 0xead1b9; break;
+				case COLOR_GRADIENTINACTIVECAPTION: nValue = 0xf2e4d7; break;
+				case COLOR_GRAYTEXT: nValue = 0x6d6d6d; break;
+				case COLOR_HIGHLIGHT: nValue = 0xff9933; break;
+				case COLOR_HIGHLIGHTTEXT: nValue = 0xffffff; break;
+				case COLOR_HOTLIGHT: nValue = 0xcc6600; break;
+				case COLOR_INACTIVEBORDER: nValue = 0xfcf7f4; break;
+				case COLOR_INACTIVECAPTION: nValue = 0xdbcdbf; break;
+				case COLOR_INACTIVECAPTIONTEXT: nValue = 0x544e43; break;
+				case COLOR_INFOBK: nValue = 0xe1ffff; break;
+				case COLOR_INFOTEXT: nValue = 0x0; break;
+				case COLOR_MENU: nValue = 0xf0f0f0; break;
+				case COLOR_MENUHILIGHT: nValue = 0xff9933; break;
+				case COLOR_MENUBAR: nValue = 0xf0f0f0; break;
+				case COLOR_MENUTEXT: nValue = 0x0; break;
+				case COLOR_SCROLLBAR: nValue = 0xc8c8c8; break;
+				case COLOR_WINDOW: nValue = 0xffffff; break;
+				case COLOR_WINDOWFRAME: nValue = 0x646464; break;
+				case COLOR_WINDOWTEXT: nValue = 0x0; break;
+				default: nValue = 0x0; break;
+			} // switch (nIndex)
+			//***************** GetSysColor values end *****************
+			return nValue;
+		}
+
 		function CSysColor() {
 			CBaseColor.call(this);
 			this.id = "";
@@ -1860,11 +1949,165 @@
 			duplicate.RGBA.A = this.RGBA.A;
 			return duplicate;
 		};
+		CSysColor.prototype.FillRGBFromVal = function(str) {
+			let RGB = 0;
+			if (str && str !== "") {
+				switch (str.charAt(0)) {
+					case '3':
+						if (str === ("3dDkShadow")) {
+							RGB = GetSysColor(COLOR_3DDKSHADOW);
+							break;
+						}
+						if (str === ("3dLight")) {
+							RGB = GetSysColor(COLOR_3DLIGHT);
+							break;
+						}
+						break;
+					case 'a':
+						if (str === ("activeBorder")) {
+							RGB = GetSysColor(COLOR_ACTIVEBORDER);
+							break;
+						}
+						if (str === ("activeCaption")) {
+							RGB = GetSysColor(COLOR_ACTIVECAPTION);
+							break;
+						}
+						if (str === ("appWorkspace")) {
+							RGB = GetSysColor(COLOR_APPWORKSPACE);
+							break;
+						}
+						break;
+					case 'b':
+						if (str === ("background")) {
+							RGB = GetSysColor(COLOR_BACKGROUND);
+							break;
+						}
+						if (str === ("btnFace")) {
+							RGB = GetSysColor(COLOR_BTNFACE);
+							break;
+						}
+						if (str === ("btnHighlight")) {
+							RGB = GetSysColor(COLOR_BTNHIGHLIGHT);
+							break;
+						}
+						if (str === ("btnShadow")) {
+							RGB = GetSysColor(COLOR_BTNSHADOW);
+							break;
+						}
+						if (str === ("btnText")) {
+							RGB = GetSysColor(COLOR_BTNTEXT);
+							break;
+						}
+						break;
+					case 'c':
+						if (str === ("captionText")) {
+							RGB = GetSysColor(COLOR_CAPTIONTEXT);
+							break;
+						}
+						break;
+					case 'g':
+						if (str === ("gradientActiveCaption")) {
+							RGB = GetSysColor(COLOR_GRADIENTACTIVECAPTION);
+							break;
+						}
+						if (str === ("gradientInactiveCaption")) {
+							RGB = GetSysColor(COLOR_GRADIENTINACTIVECAPTION);
+							break;
+						}
+						if (str === ("grayText")) {
+							RGB = GetSysColor(COLOR_GRAYTEXT);
+							break;
+						}
+						break;
+					case 'h':
+						if (str === ("highlight")) {
+							RGB = GetSysColor(COLOR_HIGHLIGHT);
+							break;
+						}
+						if (str === ("highlightText")) {
+							RGB = GetSysColor(COLOR_HIGHLIGHTTEXT);
+							break;
+						}
+						if (str === ("hotLight")) {
+							RGB = GetSysColor(COLOR_HOTLIGHT);
+							break;
+						}
+						break;
+					case 'i':
+						if (str === ("inactiveBorder")) {
+							RGB = GetSysColor(COLOR_INACTIVEBORDER);
+							break;
+						}
+						if (str === ("inactiveCaption")) {
+							RGB = GetSysColor(COLOR_INACTIVECAPTION);
+							break;
+						}
+						if (str === ("inactiveCaptionText")) {
+							RGB = GetSysColor(COLOR_INACTIVECAPTIONTEXT);
+							break;
+						}
+						if (str === ("infoBk")) {
+							RGB = GetSysColor(COLOR_INFOBK);
+							break;
+						}
+						if (str === ("infoText")) {
+							RGB = GetSysColor(COLOR_INFOTEXT);
+							break;
+						}
+						break;
+					case 'm':
+						if (str === ("menu")) {
+							RGB = GetSysColor(COLOR_MENU);
+							break;
+						}
+						if (str === ("menuBar")) {
+							RGB = GetSysColor(COLOR_MENUBAR);
+							break;
+						}
+						if (str === ("menuHighlight")) {
+							RGB = GetSysColor(COLOR_MENUHILIGHT);
+							break;
+						}
+						if (str === ("menuText")) {
+							RGB = GetSysColor(COLOR_MENUTEXT);
+							break;
+						}
+						break;
+					case 's':
+						if (str === ("scrollBar")) {
+							RGB = GetSysColor(COLOR_SCROLLBAR);
+							break;
+						}
+						break;
+					case 'w':
+						if (str === ("window")) {
+							RGB = GetSysColor(COLOR_WINDOW);
+							break;
+						}
+						if (str === ("windowFrame")) {
+							RGB = GetSysColor(COLOR_WINDOWFRAME);
+							break;
+						}
+						if (str === ("windowText")) {
+							RGB = GetSysColor(COLOR_WINDOWTEXT);
+							break;
+						}
+						break;
+				}
+			}
+
+
+			this.RGBA.R = (RGB >> 16) & 0xFF;
+			this.RGBA.G = (RGB >> 8) & 0xFF;
+			this.RGBA.B = RGB & 0xFF;
+		}
 		CSysColor.prototype.readAttrXml = function (name, reader) {
 			if (name === "val") {
 				this.id = reader.GetValue();
-			} else if (name === "lastClr") {
-				this.RGBA = AscCommon.RgbaHexToRGBA(reader.GetValue());
+				this.FillRGBFromVal(this.id);
+			}
+			else if (name === "lastClr") {
+			// 	this.RGBA = AscCommon.RgbaHexToRGBA(reader.GetValue());
 			}
 		};
 		CSysColor.prototype.readChildXml = function (name, reader) {

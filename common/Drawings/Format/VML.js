@@ -13767,10 +13767,10 @@
 		};
 		CColor.prototype.byHexColor = function (sVal) {
 			this.type = EColorType.colortypeRGB;
-			let nColor = parseInt(sVal.slice(1));
-			this.r = (nColor >> 16) & 0xFF;
-			this.g = (nColor >> 8) & 0xFF;
-			this.b = nColor & 0xFF;
+			let oRGBA = AscCommon.RgbaHexToRGBA(sVal);
+			this.r = oRGBA.R;
+			this.g = oRGBA.G;
+			this.b = oRGBA.B;
 		};
 		CColor.prototype.byColorName = function (sVal) {
 			this.type = EColorType.colortypeNone;
