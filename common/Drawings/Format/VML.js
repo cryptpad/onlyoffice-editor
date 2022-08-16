@@ -8710,7 +8710,12 @@
 			else if ("print" === name) this.m_oPrlet = reader.GetValueBool();
 			else if ("strokecolor" === name) this.m_oStrokeColor = this.readColor(reader);
 			else if ("stroked" === name) this.m_oStroked = reader.GetValueBool();
-			else if ("strokeweight" === name) this.m_oStrokeWeight = reader.GetValueInt();
+			else if ("strokeweight" === name) {
+				let sValue = reader.GetValue();
+				let oVal = new CUniversalMeasure();
+				oVal.Parse(sValue, 1);
+				this.m_oStrokeWeight = oVal.m_dValue;
+			}
 			else if ("style" === name) this.m_oStyle = new CCssStyle(reader.GetValue());
 			else if ("target" === name) this.m_sTarget = reader.GetValue();
 			else if ("title" === name) this.m_sTitle = reader.GetValue();
@@ -8875,7 +8880,7 @@
 			writer.WriteXmlNullableAttributeString("strokecolor", getColorType(this.m_oStrokeColor));
 
 			if (this.m_oStrokeWeight !== null)
-				writer.WriteXmlNullableAttributeInt("strokeweight", this.m_oStrokeWeight);
+				writer.WriteXmlNullableAttributeString("strokeweight", this.m_oStrokeWeight + "pt");
 
 			writer.WriteXmlNullableAttributeString("insetpen", getBooleanTrueFalse(this.m_oInsetPen));
 
@@ -9103,6 +9108,9 @@
 				oStroke = new AscFormat.CLn();
 				oStroke.setFill(AscFormat.CreateSolidFillRGB(0, 0, 0));
 			}
+			if(!oStroke.isVisible()) {
+				return null;
+			}
 			return oStroke;
 		};
 		CVmlCommonElements.prototype.createSpPrIfNoPresent = function(oSpPr) {
@@ -9298,7 +9306,7 @@
 				let nFontSize = 11;
 				let sText = "";
 				let oTextFill, oTextStroke;
-				var oBodyPr = new AscFormat.CBodyPr();
+				let oBodyPr = new AscFormat.CBodyPr();
 				if(bIsWordArt) {
 					let eTextShapeType;
 					let oTextPath = this.getTextPath();
@@ -9350,7 +9358,7 @@
 					oTextStroke = this.getOOXMLStroke();
 					oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
 					oSpPr.setFill(AscFormat.CreateNoFillUniFill());
-					oSpPr.setLn(AscFormat.CreateNoFillLine());
+					oSpPr.setLn(null);
 					oBodyPr.lIns = 0;
 					oBodyPr.tIns = 0;
 					oBodyPr.rIns = 0;
@@ -9382,12 +9390,12 @@
 					let oTextbox = this.getTextbox();
 					if(oTextbox) {
 						if(oTextbox.m_oTxtbxContent) {
-							oBodyPr.setAnchor(1);
+							//oBodyPr.setAnchor(1);
 							oOOXMLDrawing.setBodyPr(oBodyPr);
 							oOOXMLDrawing.setTextBoxContent(oTextbox.m_oTxtbxContent.Copy(oOOXMLDrawing));
 						}
 						else if(oTextbox.m_oText) {
-							oBodyPr.setAnchor(1);
+							//oBodyPr.setAnchor(1);
 							oOOXMLDrawing.setBodyPr(oBodyPr);
 							oDocContent = new CDocumentContent(oOOXMLDrawing, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
 							oDocContent.MoveCursorToStartPos(false);
@@ -9399,6 +9407,20 @@
 						}
 					}
 				}
+				if(oCSSStyle) {
+					let sCSSAnchor = oCSSStyle.GetStringValue(ECssPropertyType.cssptVTextAnchor);
+					if(sCSSAnchor) {
+						if (sCSSAnchor === "middle")					oBodyPr.setAnchor(oBodyPr.GetAnchorCode("ctr"));
+						if (sCSSAnchor === "bottom")					oBodyPr.setAnchor(oBodyPr.GetAnchorCode("b"));
+						if (sCSSAnchor === "top-center")				oBodyPr.setAnchor(oBodyPr.GetAnchorCode("t"));
+						if (sCSSAnchor === "middle-center")			    oBodyPr.setAnchor(oBodyPr.GetAnchorCode("ctr"));
+						if (sCSSAnchor === "bottom-center")			    oBodyPr.setAnchor(oBodyPr.GetAnchorCode("b"));
+						if (sCSSAnchor === "top-baseline")			    oBodyPr.setAnchor(oBodyPr.GetAnchorCode("t"));
+						if (sCSSAnchor === "bottom-baseline")		    oBodyPr.setAnchor(oBodyPr.GetAnchorCode("b"));
+						if (sCSSAnchor === "top-center-baseline")	    oBodyPr.setAnchor(oBodyPr.GetAnchorCode("t"));
+						if (sCSSAnchor === "bottom-center-baseline")	oBodyPr.setAnchor(oBodyPr.GetAnchorCode("b"));
+					}
+				}
 				if(oDocContent) {
 					if(oCSSStyle) {
 						let sCSSFont = oCSSStyle.GetStringValue(ECssPropertyType.cssptFontFamily);
@@ -9407,7 +9429,7 @@
 						}
 						let nCSSFontSize = oCSSStyle.GetNumberValue(ECssPropertyType.cssptFontSize);
 						if(nCSSFontSize !== null) {
-							nFontSize = nCSSFontSize * 2;
+							nFontSize = nCSSFontSize;
 						}
 						let oFontStylePr = oCSSStyle.GetProperty(ECssPropertyType.cssptFontStyle);
 						if(oFontStylePr) {
