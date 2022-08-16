@@ -638,6 +638,295 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	return this.previewGroups[chartType];
 };
 
+	function SmartArtPreviewDrawer() {
+		this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
+		this.CANVAS_SIZE = 100;
+		this.canvas = null;
+		this.imageType = "image/jpeg";
+		this.imageBuffer = [];
+		this.imagePlaceholderUrl = "../../../../sdkjs/common/Images/placeholders/image@2x.png";
+		this.placeholderImg = null;
+		this.placeholderSize = this.SMARTART_PREVIEW_SIZE_MM / 6;
+	}
+
+	SmartArtPreviewDrawer.prototype.getGraphics = function () {
+		if (null === this.canvas) {
+			this.canvas = document.createElement('canvas');
+			this.canvas.width = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
+			this.canvas.height = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
+		}
+
+		var _canvas = this.canvas;
+		var ctx = _canvas.getContext('2d');
+		ctx.fillStyle = 'white';
+		ctx.fillRect(0, 0, _canvas.width, _canvas.height);
+		var graphics = new AscCommon.CGraphics();
+		graphics.isSmartArtPreviewDrawer = true;
+		graphics.imagePlaceholder = this.placeholderImg;
+		graphics.placeholderSize = this.placeholderSize;
+		graphics.init(ctx, _canvas.width, _canvas.height, this.SMARTART_PREVIEW_SIZE_MM, this.SMARTART_PREVIEW_SIZE_MM);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+		graphics.transform(1,0,0,1,0,0);
+		return graphics;
+	}
+
+	SmartArtPreviewDrawer.prototype.loadImagePlaceholder = function (callback) {
+		this.placeholderImg = new Image();
+		this.placeholderImg.onload = callback;
+		this.placeholderImg.src = this.imagePlaceholderUrl;
+		this.placeholderImg.src = this.imagePlaceholderUrl;
+		AscCommon.backoffOnErrorImg(this.placeholderImg);
+	}
+
+	SmartArtPreviewDrawer.prototype.createPreviews = function () {
+		AscFormat.ExecuteNoHistory(function () {
+			for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
+				const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
+				const context = this.createSmartArtPreview(nType);
+				let oPreview = new AscCommon.CStyleImage();
+				oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
+				oPreview.image = context.canvas.toDataURL(this.imageType, 1);
+				this.imageBuffer.push(oPreview);
+			}
+			console.log(this.imageBuffer);
+		}, this, []);
+	};
+
+	SmartArtPreviewDrawer.prototype.start = function () {
+		this.loadImagePlaceholder(this.createPreviews.bind(this));
+	};
+
+
+
+	SmartArtPreviewDrawer.prototype.createSmartArtPreview = function (nType) {
+		const smartArt = this.getSmartArt(nType);
+		const graphics = this.getGraphics();
+		graphics.save();
+		smartArt.draw(graphics);
+		graphics.restore();
+		return graphics.m_oContext;
+	};
+
+	SmartArtPreviewDrawer.prototype.fitSmartArtForPreview = function (oSmartArt) {
+		const width = this.SMARTART_PREVIEW_SIZE_MM;
+		const height = this.SMARTART_PREVIEW_SIZE_MM;
+
+		oSmartArt.spTree[0].recalcBounds();
+		oSmartArt.spTree[0].spTree.forEach(function (shape) {
+			shape.recalcBounds();
+		});
+		oSmartArt.recalculateBounds();
+		let bounds = oSmartArt.spTree[0].bounds;
+		let smWidth = bounds.w;
+		let smHeight = bounds.h;
+
+		const coefH = Math.abs(width / smWidth);
+		const coefW = Math.abs(height / smHeight);
+		const min = Math.min(coefH, coefW);
+		if (min > 1) {
+			oSmartArt.changeSize(min - 0.1, min - 0.1);
+
+			oSmartArt.spTree[0].recalcBounds();
+			oSmartArt.spTree[0].spTree.forEach(function (shape) {
+				shape.recalcBounds();
+			});
+			oSmartArt.recalculateBounds();
+			smWidth = bounds.w;
+			smHeight = bounds.h;
+			const x = bounds.x;
+			const y = bounds.y;
+			const cx = x + smWidth / 2;
+			const cy = y + smHeight / 2;
+			const dx = width / 2 - cx;
+			const dy = height / 2 - cy;
+			const xfrm = oSmartArt.spPr.xfrm;
+			xfrm.setOffX(xfrm.offX + dx);
+			xfrm.setOffY(xfrm.offY + dy);
+
+		}
+	}
+
+	SmartArtPreviewDrawer.prototype.getSmartArt = function(nSmartArtType) {
+		const smartArt = new AscFormat.SmartArt();
+		smartArt.fillByPreset(nSmartArtType);
+		smartArt.getContrastDrawing();
+		smartArt.setBDeleted2(false);
+		const xfrm = smartArt.spPr.xfrm;
+		xfrm.setOffX(0);
+		xfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - xfrm.extY) / 2);
+
+
+		const oApi = Asc.editor || editor;
+		if (oApi) {
+			const drawingObjects = oApi.getDrawingObjects();
+			if (drawingObjects) {
+				smartArt.setDrawingObjects(drawingObjects);
+			}
+			if (drawingObjects.cSld) {
+				smartArt.setParent2(drawingObjects);
+				smartArt.setRecalculateInfo();
+			}
+
+			if (drawingObjects.getWorksheetModel) {
+				smartArt.setWorksheet(drawingObjects.getWorksheetModel());
+			}
+
+			smartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+			this.fitSmartArtForPreview(smartArt);
+			smartArt.checkDrawingBaseCoords();
+			smartArt.fitFontSize();
+			smartArt.recalculate();
+		}
+		return smartArt;
+	};
+
+
+// function SmartArtPreviewDrawer() {
+// 	this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
+// 	this.CANVAS_SIZE = 100;
+// 	this.canvas = null;
+// 	this.imageType = "image/png";
+// 	this.imageBuffer = [];
+// 	this.imagePlaceholderUrl = "../../../../sdkjs/common/Images/placeholders/image@2x.png";
+// 	this.placeholderImg = null;
+// 	this.placeholderSize = this.SMARTART_PREVIEW_SIZE_MM / 6;
+// }
+//
+// SmartArtPreviewDrawer.prototype.getGraphics = function () {
+// 	if (null === this.canvas) {
+// 		this.canvas = document.createElement('canvas');
+// 		this.canvas.width = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
+// 		this.canvas.height = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
+// 	}
+//
+// 	var _canvas = this.canvas;
+// 	var ctx = _canvas.getContext('2d');
+// 	ctx.fillStyle = 'white';
+// 	ctx.fillRect(0, 0, _canvas.width, _canvas.height);
+// 	var graphics = new AscCommon.CGraphics();
+// 	graphics.isSmartArtPreviewDrawer = true;
+// 	graphics.imagePlaceholder = this.placeholderImg;
+// 	graphics.placeholderSize = this.placeholderSize;
+// 	graphics.init(ctx, _canvas.width, _canvas.height, this.SMARTART_PREVIEW_SIZE_MM, this.SMARTART_PREVIEW_SIZE_MM);
+// 	graphics.m_oFontManager = AscCommon.g_fontManager;
+// 	graphics.transform(1,0,0,1,0,0);
+// 	return graphics;
+// }
+//
+// SmartArtPreviewDrawer.prototype.loadImagePlaceholder = function (callback) {
+// 	this.placeholderImg = new Image();
+// 	this.placeholderImg.onload = callback;
+// 	this.placeholderImg.src = this.imagePlaceholderUrl;
+// 	AscCommon.backoffOnErrorImg(this.placeholderImg);
+// }
+//
+// SmartArtPreviewDrawer.prototype.createPreviews = function () {
+// 	for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
+// 		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
+// 		const context = this.createSmartArtPreview(nType);
+// 		let oPreview = new AscCommon.CStyleImage();
+// 		oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
+// 		oPreview.image = context.canvas.toDataURL(this.imageType);
+// 		this.imageBuffer.push(oPreview);
+// 	}
+// 	console.log(this.imageBuffer);
+// };
+//
+// SmartArtPreviewDrawer.prototype.start = function () {
+// 	this.loadImagePlaceholder(this.createPreviews.bind(this));
+// };
+//
+//
+//
+// SmartArtPreviewDrawer.prototype.createSmartArtPreview = function (nType) {
+// 	const smartArt = this.getSmartArt(nType);
+// 	const graphics = this.getGraphics();
+// 	graphics.save();
+// 	smartArt.draw(graphics);
+// 	graphics.restore();
+// 	return graphics.m_oContext;
+// };
+//
+// SmartArtPreviewDrawer.prototype.fitSmartArtForPreview = function (oSmartArt) {
+// 	const width = this.SMARTART_PREVIEW_SIZE_MM;
+// 	const height = this.SMARTART_PREVIEW_SIZE_MM;
+//
+// 	oSmartArt.spTree[0].recalcBounds();
+// 	oSmartArt.spTree[0].spTree.forEach(function (shape) {
+// 		shape.recalcBounds();
+// 	});
+// 	oSmartArt.recalculateBounds();
+// 	let bounds = oSmartArt.spTree[0].bounds;
+// 	let smWidth = bounds.w;
+// 	let smHeight = bounds.h;
+//
+// 	const coefH = Math.abs(width / smWidth);
+// 	const coefW = Math.abs(height / smHeight);
+// 	const min = Math.min(coefH, coefW);
+// 	if (min > 1) {
+// 		oSmartArt.changeSize(min - 0.1, min - 0.1);
+//
+// 		oSmartArt.spTree[0].recalcBounds();
+// 		oSmartArt.spTree[0].spTree.forEach(function (shape) {
+// 			shape.recalcBounds();
+// 		});
+// 		oSmartArt.recalculateBounds();
+// 		smWidth = bounds.w;
+// 		smHeight = bounds.h;
+// 		const x = bounds.x;
+// 		const y = bounds.y;
+// 		const cx = x + smWidth / 2;
+// 		const cy = y + smHeight / 2;
+// 		const dx = width / 2 - cx;
+// 		const dy = height / 2 - cy;
+// 		const xfrm = oSmartArt.spPr.xfrm;
+// 		xfrm.setOffX(xfrm.offX + dx);
+// 		xfrm.setOffY(xfrm.offY + dy);
+//
+// 	}
+// }
+//
+// SmartArtPreviewDrawer.prototype.getSmartArt = function(nSmartArtType) {
+// 	const smartArt = new AscFormat.SmartArt();
+// 	smartArt.fillByPreset(nSmartArtType);
+// 	smartArt.getContrastDrawing();
+// 	smartArt.setBDeleted2(false);
+// 	const xfrm = smartArt.spPr.xfrm;
+// 	xfrm.setOffX(0);
+// 	xfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - xfrm.extY) / 2);
+//
+//
+// 	const oApi = Asc.editor || editor;
+// 	if (oApi) {
+// 		const drawingObjects = oApi.getDrawingObjects();
+// 		const oController = oApi.getGraphicController();
+//
+// 		if (drawingObjects) {
+// 			smartArt.setDrawingObjects(drawingObjects);
+// 		}
+// 		if (drawingObjects.cSld) {
+// 			smartArt.setParent(drawingObjects);
+// 			smartArt.setRecalculateInfo();
+// 		}
+//
+// 		if (drawingObjects.getWorksheetModel) {
+// 			smartArt.setWorksheet(drawingObjects.getWorksheetModel());
+// 		}
+//
+// 		smartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+// 		this.fitSmartArtForPreview(smartArt);
+//
+// 		smartArt.checkDrawingBaseCoords();
+//
+//
+//
+// 		smartArt.fitFontSize();
+// 		oController.startRecalculate();
+// 		drawingObjects.sendGraphicObjectProps();
+// 	}
+// 	return smartArt;
+// };
+
 function CreateAscColorByIndex(nIndex)
 {
 	var oColor = new Asc.asc_CColor();
@@ -1144,4 +1433,8 @@ TextArtPreviewManager.prototype.generateTextArtStyles = function()
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].ChartPreviewManager = ChartPreviewManager;
 	window['AscCommon'].TextArtPreviewManager = TextArtPreviewManager;
+	window['AscCommon'].createPreviewSmartArt = function () {
+		const SmartArtDrawer = new SmartArtPreviewDrawer();
+		SmartArtDrawer.start();
+	}
 })(window);

@@ -13790,7 +13790,7 @@ Because of this, the display is sometimes not correct.
             (oShape.brush && oShape.brush.fill && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill))) {
           const pen = new AscFormat.CreateSolidFillRGB(136, 136, 136);
           oShape.spPr.ln.setFill(pen);
-          console.log(oShape.spPr)
+          oShape.spPr.ln.setW(12700 * 6);
 
           if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
             const brush = oShape.brush;

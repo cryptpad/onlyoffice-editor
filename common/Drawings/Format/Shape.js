@@ -5625,10 +5625,9 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
     if (graphics.isSmartArtPreviewDrawer && this.isActiveBlipFillPlaceholder()) {
         const cx = this.spPr.xfrm.extX / 2;
         const cy = this.spPr.xfrm.extY / 2;
-        const minSide = Math.min(this.spPr.xfrm.extX, this.spPr.xfrm.extY);
         if (graphics.imagePlaceholder) {
             const img = graphics.imagePlaceholder;
-            graphics.drawImage2(img, cx - minSide / 6, cy - minSide / 6, minSide / 3, minSide / 3);
+            graphics.drawImage2(img, cx - graphics.placeholderSize / 2, cy - graphics.placeholderSize / 2, graphics.placeholderSize, graphics.placeholderSize);
         }
     }
 

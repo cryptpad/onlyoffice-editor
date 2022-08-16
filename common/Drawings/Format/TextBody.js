@@ -326,7 +326,39 @@
                 }
 
                 this.content2.Set_StartPage(0);
-                this.content2.Draw(0, graphics);
+                if (graphics.isSmartArtPreviewDrawer && graphics.m_oContext) {
+                    const height = this.parent.contentHeight;
+                    const lineHeight = 4/*(height / 4) > 4 ? (height / 4) : 4*/;
+                    graphics.save();
+                    graphics.m_oContext.fillStyle = 'rgb(136,136,136)';
+                    const width = this.content2.RecalculateMinMaxContentWidth().Min;
+                    const contentWidth = this.parent.contentWidth;
+                    const paragraph = this.content2.Content[0];
+                    const jc = paragraph.CompiledPr.Pr.ParaPr.Jc;
+                    let startX;
+                    switch (jc) {
+                        case AscCommon.align_Right: {
+                            startX = contentWidth - width;
+                            break;
+                        }
+                        case AscCommon.align_Justify:
+                        case AscCommon.align_Center: {
+                            startX = (contentWidth - width) / 2;
+                            break;
+                        }
+                        case AscCommon.align_Left:
+                        default: {
+                            startX = 0;
+                            break;
+                        }
+                    }
+                    graphics.rect(startX, (height - lineHeight) / 2, /*this.parent.contentWidth*/width, lineHeight);
+                    // graphics.AddRoundRect(startX, (height - lineHeight) / 2, /*this.parent.contentWidth*/width, lineHeight, lineHeight / 2);
+                    graphics.df();
+                    graphics.restore();
+                } else {
+                    this.content2.Draw(0, graphics);
+                }
             }
         }
         else if(this.content) {
