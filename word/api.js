@@ -11801,7 +11801,7 @@ background-repeat: no-repeat;\
 		});
 	};
 	asc_docs_api.prototype.getDrawingObjects = function () {
-		return null;
+		return this.getGraphicController();
 	}
 
 	asc_docs_api.prototype.getDrawingDocument = function () {
