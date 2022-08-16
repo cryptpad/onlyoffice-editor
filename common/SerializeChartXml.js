@@ -3008,7 +3008,7 @@
 					break;
 				}
 				case "smooth" : {
-					this.setSmooth(CT_Bool.prototype.toVal(reader, this.smooth));
+					this.setSmooth(CT_Bool.prototype.toVal(reader, true));
 					break;
 				}
 				case "axId" : {
@@ -3027,6 +3027,9 @@
 				// 	break;
 				// }
 			}
+		}
+		if(this.smooth === null){
+			this.setSmooth(false);
 		}
 	};
 	CLineChart.prototype.toXml = function(writer, name) {
@@ -3113,7 +3116,7 @@
 					break;
 				}
 				case "smooth" : {
-					this.setSmooth(CT_Bool.prototype.toVal(reader, this.smooth));
+					this.setSmooth(CT_Bool.prototype.toVal(reader, false));
 					break;
 				}
 				// case "extLst" : {
@@ -3128,6 +3131,10 @@
 				// 	break;
 				// }
 			}
+		}
+
+		if(this.smooth === null){
+			this.setSmooth(false);
 		}
 	};
 	CLineSeries.prototype.toXml = function(writer, name) {
@@ -3607,10 +3614,13 @@
 					break;
 				}
 				case "smooth" : {
-					this.setSmooth(CT_Bool.prototype.toVal(reader, this.smooth));
+					this.setSmooth(CT_Bool.prototype.toVal(reader, true));
 					break;
 				}
 			}
+		}
+		if(this.smooth === null){
+			this.setSmooth(false);
 		}
 	};
 	CScatterSeries.prototype.toXml = function(writer, name) {
