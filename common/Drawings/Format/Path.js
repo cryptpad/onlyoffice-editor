@@ -1189,6 +1189,12 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
             }
         }
     };
+    Path.prototype.fromXml = function (reader, bSkipFirstNode) {
+        this.setExtrusionOk(false);
+        this.setFill("norm");
+        this.setStroke(true);
+        AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+    };
     Path.prototype.toXml = function (writer) {
         writer.WriteXmlNodeStart("a:path");
 

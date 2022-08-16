@@ -2822,9 +2822,8 @@
 			_ret.b = this.b;
 			return _ret;
 		};
-		CSrcRect.prototype.fromXml = function (reader, bSkipFirstNode) {
+		CSrcRect.prototype.fromXml = function (reader, bSkipFirstNode, bIsMain) {
 			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
-			let bIsMain = true;//todo: check in serialize.js
 			let _ret = this;
 			if (_ret.l == null)
 				_ret.l = 0;
@@ -3523,11 +3522,20 @@
 				}
 				case "srcRect": {
 					this.srcRect = new CSrcRect();
-					this.srcRect.fromXml(reader);
+					this.srcRect.fromXml(reader, false, true);
 					break;
 				}
 				case "stretch": {
-					this.stretch = true;
+					//this.stretch = true;
+					let oThis = this;
+					let oPr = new CT_XmlNode(function (reader, name) {
+						if (name === "fillRect") {
+							oThis.srcRect = new CSrcRect();
+							oThis.srcRect.fromXml(reader, false, false);
+						}
+						return true;
+					});
+					oPr.fromXml(reader);
 					break;
 				}
 				case "tile": {
@@ -10692,7 +10700,7 @@
 				this.setLn(oLn);
 			} else if (name === "effectDag" || name === "effectLst") {
 				let oEffectProps = new CEffectProperties();
-				oEffectProps.fromXml(reader);
+				oEffectProps.fromXml(reader, name);
 				this.setEffectPr(oEffectProps);
 			}
 		};
