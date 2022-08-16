@@ -161,7 +161,7 @@ function CEditorPage(api)
 
 	this.MouseDownDocumentCounter = 0;
 
-	this.isNewReaderMode = false;
+	this.isNewReaderMode = true;
 
 	this.bIsUseKeyPress = true;
 	this.bIsEventPaste  = false;
