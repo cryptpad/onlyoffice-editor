@@ -995,25 +995,25 @@
 	baseEditorsApi.prototype.getDrawingObjects = function () {};
 	baseEditorsApi.prototype.getDrawingDocument = function () {};
 	baseEditorsApi.prototype.getLogicDocument = function () {};
-	baseEditorsApi.prototype.createSmartArt = function (nSmartArtType) {
+	baseEditorsApi.prototype.asc_createSmartArt = function (nSmartArtType) {
 		History.Create_NewPoint(AscDFH.historydescription_Document_AddSmartArt);
 		const bFromWord = this.isDocumentEditor;
 		const oSmartArt = new AscFormat.SmartArt();
 		oSmartArt.fillByPreset(nSmartArtType);
-		const logicDocument = this.getLogicDocument();
-		const drawingObjects = this.getDrawingObjects();
+		const oLogicDocument = this.getLogicDocument();
+		const oDrawingObjects = this.getDrawingObjects();
 		const oController = this.getGraphicController();
 		if (!bFromWord) {
-			if (drawingObjects) {
-				oSmartArt.setDrawingObjects(drawingObjects);
+			if (oDrawingObjects) {
+				oSmartArt.setDrawingObjects(oDrawingObjects);
 			}
-			if (drawingObjects.cSld) {
-				oSmartArt.setParent(drawingObjects);
+			if (oDrawingObjects.cSld) {
+				oSmartArt.setParent(oDrawingObjects);
 				oSmartArt.setRecalculateInfo();
 			}
 
-			if (drawingObjects.getWorksheetModel) {
-				oSmartArt.setWorksheet(drawingObjects.getWorksheetModel());
+			if (oDrawingObjects.getWorksheetModel) {
+				oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
 			}
 			oSmartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
 			oSmartArt.checkDrawingBaseCoords();
@@ -1025,19 +1025,20 @@
 			}
 			oSmartArt.fitFontSize();
 			oController.startRecalculate();
-			drawingObjects.sendGraphicObjectProps();
+			oDrawingObjects.sendGraphicObjectProps();
 		} else {
-			if (true === logicDocument.Selection.Use) {
-				logicDocument.Remove(1, true);
+			if (true === oLogicDocument.Selection.Use) {
+				oLogicDocument.Remove(1, true);
 			}
 			oSmartArt.fitToPageSize();
 			oSmartArt.fitFontSize();
-			const paraDrawing = oSmartArt.decorateParaDrawing(oController);
+			const oParaDrawing = oSmartArt.decorateParaDrawing(oController);
+			oSmartArt.setXfrmByParent();
 			if (oController) {
 				oController.resetSelection();
-				logicDocument.AddToParagraph(paraDrawing);
-				logicDocument.Select_DrawingObject(paraDrawing.Get_Id());
-				logicDocument.Recalculate();
+				oLogicDocument.AddToParagraph(oParaDrawing);
+				oLogicDocument.Select_DrawingObject(oParaDrawing.Get_Id());
+				oLogicDocument.Recalculate();
 				oController.clearTrackObjects();
 				oController.clearPreTrackObjects();
 				oController.updateOverlay();
@@ -3991,6 +3992,7 @@
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
+	prot['asc_createSmartArt'] = prot.asc_createSmartArt;
 	prot['asc_addTableOleObject'] = prot.asc_addTableOleObject;
 	prot['asc_editTableOleObject'] = prot.asc_editTableOleObject;
 	prot['asc_canEditTableOleObject'] = prot.asc_canEditTableOleObject;
