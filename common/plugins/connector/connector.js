@@ -68,6 +68,11 @@
 
 		if (config.autoconnect)
 			this.connect();
+
+		if (undefined === window["Asc"])
+			window["Asc"] = {};
+		if (undefined === window["Asc"]["scope"])
+			window["Asc"]["scope"] = {};
 	}
 
 	EditorConnector.prototype.onMessage = function (e) {
