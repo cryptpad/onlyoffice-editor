@@ -327,34 +327,47 @@
 
                 this.content2.Set_StartPage(0);
                 if (graphics.isSmartArtPreviewDrawer && graphics.m_oContext) {
-                    const height = this.parent.contentHeight;
-                    const lineHeight = 4/*(height / 4) > 4 ? (height / 4) : 4*/;
+                    const nHeight = this.parent.contentHeight;
+                    const nLineHeight = 3;
                     graphics.save();
-                    graphics.m_oContext.fillStyle = 'rgb(136,136,136)';
-                    const width = this.content2.RecalculateMinMaxContentWidth().Min;
-                    const contentWidth = this.parent.contentWidth;
-                    const paragraph = this.content2.Content[0];
-                    const jc = paragraph.CompiledPr.Pr.ParaPr.Jc;
-                    let startX;
-                    switch (jc) {
-                        case AscCommon.align_Right: {
-                            startX = contentWidth - width;
-                            break;
+                    graphics.m_oContext.fillStyle = 'rgb(0,0,0)';
+
+                    const nContentWidth = this.parent.contentWidth;
+                    const nHeightStep = nHeight / this.content2.Content.length;
+                    for (let i = 0; i < this.content2.Content.length; i += 1) {
+                        const oParagraph = this.content2.Content[i];
+                        const nWidth = oParagraph.RecalculateMinMaxContentWidth().Min;
+                        const eJC = oParagraph.CompiledPr.Pr.ParaPr.Jc;
+                        let startX;
+                        switch (eJC) {
+                            case AscCommon.align_Right: {
+                                startX = nContentWidth - nWidth;
+                                break;
+                            }
+                            case AscCommon.align_Justify:
+                            case AscCommon.align_Center: {
+                                startX = (nContentWidth - nWidth) / 2;
+                                break;
+                            }
+                            case AscCommon.align_Left:
+                            default: {
+                                startX = 0;
+                                break;
+                            }
                         }
-                        case AscCommon.align_Justify:
-                        case AscCommon.align_Center: {
-                            startX = (contentWidth - width) / 2;
-                            break;
-                        }
-                        case AscCommon.align_Left:
-                        default: {
-                            startX = 0;
-                            break;
+
+                        var oBullet =  oParagraph.PresentationPr && oParagraph.PresentationPr.Bullet;
+                        if(oBullet && !oBullet.IsNone()) {
+                            graphics.rect(startX + nWidth / 4, (nHeightStep * (i + 1) - nLineHeight) / 2, /*this.parent.contentWidth*/nWidth - nWidth / 4, nLineHeight);
+                            graphics.df();
+
+                            graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, nLineHeight, nLineHeight);
+                            graphics.df();
+                        } else {
+                            graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, /*this.parent.contentWidth*/nWidth, nLineHeight);
+                            graphics.df();
                         }
                     }
-                    graphics.rect(startX, (height - lineHeight) / 2, /*this.parent.contentWidth*/width, lineHeight);
-                    // graphics.AddRoundRect(startX, (height - lineHeight) / 2, /*this.parent.contentWidth*/width, lineHeight, lineHeight / 2);
-                    graphics.df();
                     graphics.restore();
                 } else {
                     this.content2.Draw(0, graphics);
