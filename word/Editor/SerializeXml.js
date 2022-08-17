@@ -4430,9 +4430,10 @@
 					break;
 				}
 				case "tblStylePr" : {
-					// elem = new CT_TblStylePr();
-					// elem.fromXml(reader);
-					// this.TblStylePr.push(elem);
+					let opt_addition = {type: null};
+					elem = new CTableStylePr();
+					elem.fromXml(reader, opt_addition);
+					fromXml_ST_TblStyleOverrideType(this, elem, opt_addition.type);
 					break;
 				}
 			}
@@ -4473,10 +4474,66 @@
 		// writer.WriteXmlNullable(this.Rsid, "w:rsid");
 		writer.WriteXmlNullable(this.ParaPr, "w:pPr");
 		writer.WriteXmlNullable(this.TextPr, "w:rPr");
+		if (styletype_Table == this.Type) {
+			writer.WriteXmlNullable(this.TablePr, "w:tblPr");
+			writer.WriteXmlNullable(this.TableRowPr, "w:trPr");
+			writer.WriteXmlNullable(this.TableCellPr, "w:tcPr");
+			toXml_ST_TblStyleOverrideType(writer, this);
+		}
+		writer.WriteXmlNodeEnd(name);
+	};
+	CTableStylePr.prototype.readAttr = function(reader, opt_addition) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "type": {
+					opt_addition.type = reader.GetValue();
+					break;
+				}
+			}
+		}
+	};
+	CTableStylePr.prototype.fromXml = function(reader, opt_addition) {
+		this.readAttr(reader, opt_addition);
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "pPr" : {
+					this.ParaPr = new CParaPr();
+					this.ParaPr.fromXml(reader);
+					break;
+				}
+				case "rPr" : {
+					this.TextPr = new CTextPr();
+					this.TextPr.fromXml(reader);
+					break;
+				}
+				case "tblPr" : {
+					this.TablePr = new CTablePr();
+					this.TablePr.fromXml(reader);
+					break;
+				}
+				case "trPr" : {
+					this.TableRowPr = new CTableRowPr();
+					this.TableRowPr.fromXml(reader);
+					break;
+				}
+				case "tcPr" : {
+					this.TableCellPr = new CTableCellPr();
+					this.TableCellPr.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	CTableStylePr.prototype.toXml = function(writer, name, type) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeString("w:type", type);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.ParaPr, "w:pPr");
+		writer.WriteXmlNullable(this.TextPr, "w:rPr");
 		writer.WriteXmlNullable(this.TablePr, "w:tblPr");
 		writer.WriteXmlNullable(this.TableRowPr, "w:trPr");
 		writer.WriteXmlNullable(this.TableCellPr, "w:tcPr");
-		// writer.WriteXmlArray(this.TblStylePr, "w:tblStylePr");
 		writer.WriteXmlNodeEnd(name);
 	};
 //numbering
@@ -4741,7 +4798,6 @@
 					break;
 				}
 				case "pPr" : {
-					//todo aPostOpenStyleNumCallbacks
 					this.ParaPr.fromXml(reader);
 					break;
 				}
@@ -9592,6 +9648,90 @@
 				return "numbering";
 		}
 		return null;
+	}
+	function fromXml_ST_TblStyleOverrideType(style, elem, type) {
+		switch (type) {
+			case "wholeTable":
+				style.TableWholeTable = elem;
+				break;
+			case "firstRow":
+				style.TableFirstRow = elem;
+				break;
+			case "lastRow":
+				style.TableLastRow = elem;
+				break;
+			case "firstCol":
+				style.TableFirstCol = elem;
+				break;
+			case "lastCol":
+				style.TableLastCol = elem;
+				break;
+			case "band1Vert":
+				style.TableBand1Vert = elem;
+				break;
+			case "band2Vert":
+				style.TableBand2Vert = elem;
+				break;
+			case "band1Horz":
+				style.TableBand1Horz = elem;
+				break;
+			case "band2Horz":
+				Sstyle.TableBand2Horz = elem;
+				break;
+			case "neCell":
+				style.TableTRCell = elem;
+				break;
+			case "nwCell":
+				style.TableTLCell = elem;
+				break;
+			case "seCell":
+				style.TableBRCell = elem;
+				break;
+			case "swCell":
+				style.TableBLCell = elem;
+				break;
+		}
+	}
+	function toXml_ST_TblStyleOverrideType(writer, style) {
+		if (style.TableWholeTable) {
+			style.TableWholeTable.toXml(writer, "w:tblStylePr", "wholeTable");
+		}
+		if (style.TableFirstRow) {
+			style.TableFirstRow.toXml(writer, "w:tblStylePr", "firstRow");
+		}
+		if (style.TableLastRow) {
+			style.TableLastRow.toXml(writer, "w:tblStylePr", "lastRow");
+		}
+		if (style.TableFirstCol) {
+			style.TableFirstCol.toXml(writer, "w:tblStylePr", "firstCol");
+		}
+		if (style.TableLastCol) {
+			style.TableLastCol.toXml(writer, "w:tblStylePr", "lastCol");
+		}
+		if (style.TableBand1Vert) {
+			style.TableBand1Vert.toXml(writer, "w:tblStylePr", "band1Vert");
+		}
+		if (style.TableBand2Vert) {
+			style.TableBand2Vert.toXml(writer, "w:tblStylePr", "band2Vert");
+		}
+		if (style.TableBand1Horz) {
+			style.TableBand1Horz.toXml(writer, "w:tblStylePr", "band1Horz");
+		}
+		if (style.TableBand2Horz) {
+			style.TableBand2Horz.toXml(writer, "w:tblStylePr", "band2Horz");
+		}
+		if (style.TableTRCell) {
+			style.TableTRCell.toXml(writer, "w:tblStylePr", "neCell");
+		}
+		if (style.TableTLCell) {
+			style.TableTLCell.toXml(writer, "w:tblStylePr", "nwCell");
+		}
+		if (style.TableBRCell) {
+			style.TableBRCell.toXml(writer, "w:tblStylePr", "seCell");
+		}
+		if (style.TableBLCell) {
+			style.TableBLCell.toXml(writer, "w:tblStylePr", "swCell");
+		}
 	}
 
 	function fromXml_ST_FldCharType(val, def) {
