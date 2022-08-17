@@ -2381,7 +2381,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "val": {
-					this.Val = fromXml_ST_TabJc(reader.GetValue());
+					this.Value = fromXml_ST_TabJc(reader.GetValue());
 					break;
 				}
 				case "leader": {
