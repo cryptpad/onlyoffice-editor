@@ -2378,10 +2378,11 @@ CShape.prototype.getTextRect = function () {
     CShape.prototype.checkTransformTextMatrixSmartArt = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
         if (this.txXfrm) {
             var oSmartArt = this.group.group;
+            const bForceSlideTransform = oSmartArt.bForceSlideTransform;
             var diffX = 0;
             var diffY = 0;
             if (oSmartArt.group) {
-                if ((this.parent && this.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet)) {
+                if (bForceSlideTransform || (this.parent && this.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet)) {
                     var mainGroup = oSmartArt.group.getRelativePosition();
                     diffX = mainGroup.x;
                     diffY = mainGroup.y;
@@ -2422,7 +2423,7 @@ CShape.prototype.getTextRect = function () {
             var extX = (oRect.r - oRect.l) / 2;
             var extY = (oRect.b - oRect.t) / 2;
             var deltaTranslateX = 0, deltaTranslateY = 0;
-            if (deltaShape.parent && deltaShape.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet) {
+            if (bForceSlideTransform || (deltaShape.parent && deltaShape.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet)) {
                 deltaTranslateX = deltaShape.group.group.x;
                 deltaTranslateY = deltaShape.group.group.y;
             }

@@ -708,224 +708,83 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	};
 
 	SmartArtPreviewDrawer.prototype.fitSmartArtForPreview = function (oSmartArt) {
-		const width = this.SMARTART_PREVIEW_SIZE_MM;
-		const height = this.SMARTART_PREVIEW_SIZE_MM;
+		AscFormat.ExecuteNoHistory(function () {
+			if (oSmartArt.spTree[0] && oSmartArt.spTree[0].spTree) {
+				const nWidth = this.SMARTART_PREVIEW_SIZE_MM;
+				const nHeight = this.SMARTART_PREVIEW_SIZE_MM;
 
-		oSmartArt.spTree[0].recalcBounds();
-		oSmartArt.spTree[0].spTree.forEach(function (shape) {
-			shape.recalcBounds();
-		});
-		oSmartArt.recalculateBounds();
-		let bounds = oSmartArt.spTree[0].bounds;
-		let smWidth = bounds.w;
-		let smHeight = bounds.h;
+				oSmartArt.spTree[0].recalcBounds();
+				oSmartArt.spTree[0].bForceGroupBounds = true;
+				oSmartArt.spTree[0].spTree.forEach(function (shape) {
+					shape.recalcBounds();
+				});
+				oSmartArt.recalculateBounds();
+				let oBounds = oSmartArt.spTree[0].bounds;
+				let nSmartArtWidth = oBounds.w;
+				let nSmartArtHeight = oBounds.h;
 
-		const coefH = Math.abs(width / smWidth);
-		const coefW = Math.abs(height / smHeight);
-		const min = Math.min(coefH, coefW);
-		if (min > 1) {
-			oSmartArt.changeSize(min - 0.1, min - 0.1);
+				const nCoefficientHeight = Math.abs(nWidth / nSmartArtWidth);
+				const nCoefficientWith = Math.abs(nHeight / nSmartArtHeight);
+				const nMinCoefficient = Math.min(nCoefficientHeight, nCoefficientWith);
+				if (nMinCoefficient > 1) {
+					oSmartArt.changeSize(nMinCoefficient - 0.1, nMinCoefficient - 0.1);
+					oSmartArt.spTree[0].recalcBounds();
+					oSmartArt.spTree[0].spTree.forEach(function (shape) {
+						shape.recalcBounds();
+					});
+					oSmartArt.recalculateBounds();
+					oBounds = oSmartArt.spTree[0].bounds;
+					nSmartArtWidth = oBounds.w;
+					nSmartArtHeight = oBounds.h;
+					const nX = oBounds.x;
+					const nY = oBounds.y;
+					const nCX = nX + nSmartArtWidth / 2;
+					const nCY = nY + nSmartArtHeight / 2;
+					const nDX = nWidth / 2 - nCX;
+					const nDY = nHeight / 2 - nCY;
+					const oXfrm = oSmartArt.spPr.xfrm;
+					oXfrm.setOffX(oXfrm.offX + nDX);
+					oXfrm.setOffY(oXfrm.offY + nDY);
+				}
+				delete oSmartArt.spTree[0].bForceGroupBounds;
+			}
 
-			oSmartArt.spTree[0].recalcBounds();
-			oSmartArt.spTree[0].spTree.forEach(function (shape) {
-				shape.recalcBounds();
-			});
-			oSmartArt.recalculateBounds();
-			smWidth = bounds.w;
-			smHeight = bounds.h;
-			const x = bounds.x;
-			const y = bounds.y;
-			const cx = x + smWidth / 2;
-			const cy = y + smHeight / 2;
-			const dx = width / 2 - cx;
-			const dy = height / 2 - cy;
-			const xfrm = oSmartArt.spPr.xfrm;
-			xfrm.setOffX(xfrm.offX + dx);
-			xfrm.setOffY(xfrm.offY + dy);
-
-		}
+		}, this, []);
 	}
 
 	SmartArtPreviewDrawer.prototype.getSmartArt = function(nSmartArtType) {
-		const smartArt = new AscFormat.SmartArt();
-		smartArt.fillByPreset(nSmartArtType);
-		smartArt.getContrastDrawing();
-		smartArt.setBDeleted2(false);
-		const xfrm = smartArt.spPr.xfrm;
-		xfrm.setOffX(0);
-		xfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - xfrm.extY) / 2);
+		return AscFormat.ExecuteNoHistory(function () {
+			const oSmartArt = new AscFormat.SmartArt();
+			oSmartArt.bForceSlideTransform = true;
+			oSmartArt.fillByPreset(nSmartArtType);
+			oSmartArt.getContrastDrawing();
+			oSmartArt.setBDeleted2(false);
+			const oXfrm = oSmartArt.spPr.xfrm;
 
+			const oApi = Asc.editor || editor;
+			if (oApi) {
+				const oDrawingObjects = oApi.getDrawingObjects();
+				oXfrm.setOffX(0);
+				oXfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - oXfrm.extY) / 2);
+				if (oDrawingObjects) {
+					oSmartArt.setDrawingObjects(oDrawingObjects);
+				}
+				if (oDrawingObjects.cSld) {
+					oSmartArt.setParent2(oDrawingObjects);
+					oSmartArt.setRecalculateInfo();
+				}
 
-		const oApi = Asc.editor || editor;
-		if (oApi) {
-			const drawingObjects = oApi.getDrawingObjects();
-			if (drawingObjects) {
-				smartArt.setDrawingObjects(drawingObjects);
+				if (oDrawingObjects.getWorksheetModel) {
+					oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
+				}
+				this.fitSmartArtForPreview(oSmartArt);
+				oSmartArt.fitFontSize();
+				oSmartArt.recalculate();
 			}
-			if (drawingObjects.cSld) {
-				smartArt.setParent2(drawingObjects);
-				smartArt.setRecalculateInfo();
-			}
 
-			if (drawingObjects.getWorksheetModel) {
-				smartArt.setWorksheet(drawingObjects.getWorksheetModel());
-			}
-
-			smartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
-			this.fitSmartArtForPreview(smartArt);
-			smartArt.checkDrawingBaseCoords();
-			smartArt.fitFontSize();
-			smartArt.recalculate();
-		}
-		return smartArt;
+			return oSmartArt;
+		}, this, []);
 	};
-
-
-// function SmartArtPreviewDrawer() {
-// 	this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
-// 	this.CANVAS_SIZE = 100;
-// 	this.canvas = null;
-// 	this.imageType = "image/png";
-// 	this.imageBuffer = [];
-// 	this.imagePlaceholderUrl = "../../../../sdkjs/common/Images/placeholders/image@2x.png";
-// 	this.placeholderImg = null;
-// 	this.placeholderSize = this.SMARTART_PREVIEW_SIZE_MM / 6;
-// }
-//
-// SmartArtPreviewDrawer.prototype.getGraphics = function () {
-// 	if (null === this.canvas) {
-// 		this.canvas = document.createElement('canvas');
-// 		this.canvas.width = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
-// 		this.canvas.height = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
-// 	}
-//
-// 	var _canvas = this.canvas;
-// 	var ctx = _canvas.getContext('2d');
-// 	ctx.fillStyle = 'white';
-// 	ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-// 	var graphics = new AscCommon.CGraphics();
-// 	graphics.isSmartArtPreviewDrawer = true;
-// 	graphics.imagePlaceholder = this.placeholderImg;
-// 	graphics.placeholderSize = this.placeholderSize;
-// 	graphics.init(ctx, _canvas.width, _canvas.height, this.SMARTART_PREVIEW_SIZE_MM, this.SMARTART_PREVIEW_SIZE_MM);
-// 	graphics.m_oFontManager = AscCommon.g_fontManager;
-// 	graphics.transform(1,0,0,1,0,0);
-// 	return graphics;
-// }
-//
-// SmartArtPreviewDrawer.prototype.loadImagePlaceholder = function (callback) {
-// 	this.placeholderImg = new Image();
-// 	this.placeholderImg.onload = callback;
-// 	this.placeholderImg.src = this.imagePlaceholderUrl;
-// 	AscCommon.backoffOnErrorImg(this.placeholderImg);
-// }
-//
-// SmartArtPreviewDrawer.prototype.createPreviews = function () {
-// 	for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
-// 		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
-// 		const context = this.createSmartArtPreview(nType);
-// 		let oPreview = new AscCommon.CStyleImage();
-// 		oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
-// 		oPreview.image = context.canvas.toDataURL(this.imageType);
-// 		this.imageBuffer.push(oPreview);
-// 	}
-// 	console.log(this.imageBuffer);
-// };
-//
-// SmartArtPreviewDrawer.prototype.start = function () {
-// 	this.loadImagePlaceholder(this.createPreviews.bind(this));
-// };
-//
-//
-//
-// SmartArtPreviewDrawer.prototype.createSmartArtPreview = function (nType) {
-// 	const smartArt = this.getSmartArt(nType);
-// 	const graphics = this.getGraphics();
-// 	graphics.save();
-// 	smartArt.draw(graphics);
-// 	graphics.restore();
-// 	return graphics.m_oContext;
-// };
-//
-// SmartArtPreviewDrawer.prototype.fitSmartArtForPreview = function (oSmartArt) {
-// 	const width = this.SMARTART_PREVIEW_SIZE_MM;
-// 	const height = this.SMARTART_PREVIEW_SIZE_MM;
-//
-// 	oSmartArt.spTree[0].recalcBounds();
-// 	oSmartArt.spTree[0].spTree.forEach(function (shape) {
-// 		shape.recalcBounds();
-// 	});
-// 	oSmartArt.recalculateBounds();
-// 	let bounds = oSmartArt.spTree[0].bounds;
-// 	let smWidth = bounds.w;
-// 	let smHeight = bounds.h;
-//
-// 	const coefH = Math.abs(width / smWidth);
-// 	const coefW = Math.abs(height / smHeight);
-// 	const min = Math.min(coefH, coefW);
-// 	if (min > 1) {
-// 		oSmartArt.changeSize(min - 0.1, min - 0.1);
-//
-// 		oSmartArt.spTree[0].recalcBounds();
-// 		oSmartArt.spTree[0].spTree.forEach(function (shape) {
-// 			shape.recalcBounds();
-// 		});
-// 		oSmartArt.recalculateBounds();
-// 		smWidth = bounds.w;
-// 		smHeight = bounds.h;
-// 		const x = bounds.x;
-// 		const y = bounds.y;
-// 		const cx = x + smWidth / 2;
-// 		const cy = y + smHeight / 2;
-// 		const dx = width / 2 - cx;
-// 		const dy = height / 2 - cy;
-// 		const xfrm = oSmartArt.spPr.xfrm;
-// 		xfrm.setOffX(xfrm.offX + dx);
-// 		xfrm.setOffY(xfrm.offY + dy);
-//
-// 	}
-// }
-//
-// SmartArtPreviewDrawer.prototype.getSmartArt = function(nSmartArtType) {
-// 	const smartArt = new AscFormat.SmartArt();
-// 	smartArt.fillByPreset(nSmartArtType);
-// 	smartArt.getContrastDrawing();
-// 	smartArt.setBDeleted2(false);
-// 	const xfrm = smartArt.spPr.xfrm;
-// 	xfrm.setOffX(0);
-// 	xfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - xfrm.extY) / 2);
-//
-//
-// 	const oApi = Asc.editor || editor;
-// 	if (oApi) {
-// 		const drawingObjects = oApi.getDrawingObjects();
-// 		const oController = oApi.getGraphicController();
-//
-// 		if (drawingObjects) {
-// 			smartArt.setDrawingObjects(drawingObjects);
-// 		}
-// 		if (drawingObjects.cSld) {
-// 			smartArt.setParent(drawingObjects);
-// 			smartArt.setRecalculateInfo();
-// 		}
-//
-// 		if (drawingObjects.getWorksheetModel) {
-// 			smartArt.setWorksheet(drawingObjects.getWorksheetModel());
-// 		}
-//
-// 		smartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
-// 		this.fitSmartArtForPreview(smartArt);
-//
-// 		smartArt.checkDrawingBaseCoords();
-//
-//
-//
-// 		smartArt.fitFontSize();
-// 		oController.startRecalculate();
-// 		drawingObjects.sendGraphicObjectProps();
-// 	}
-// 	return smartArt;
-// };
 
 function CreateAscColorByIndex(nIndex)
 {
