@@ -3791,7 +3791,7 @@
 							let oSrcRect = new CSrcRect();
 							oSrcRect.fromXml(reader, false, false);
 							if(!oSrcRect.isFullRect()) {
-								this.srcRect = oSrcRect;
+								oThis.srcRect = oSrcRect;
 							}
 						}
 						return true;
