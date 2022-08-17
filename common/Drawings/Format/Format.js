@@ -14468,6 +14468,7 @@
 				case "prstTxWarp": {
 					this.prstTxWarp = AscFormat.ExecuteNoHistory(function () {
 						let oGeometry = new AscFormat.Geometry();
+						oGeometry.bWrap = true;
 						oGeometry.fromXml(reader);
 						return oGeometry;
 					}, this, []);
