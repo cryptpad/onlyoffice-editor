@@ -6231,13 +6231,47 @@ var editor;
 		History.EndTransaction();
 		return pivot;
 	};
-	spreadsheet_api.prototype.asc_refreshAllPivots = function() {
+	spreadsheet_api.prototype.asc_refreshAllPivots = function(opt_confirmation) {
 		var t = this;
+		let pivotTables = [];
 		this.wbModel.forEach(function(ws) {
 			for (var i = 0; i < ws.pivotTables.length; ++i) {
-				ws.pivotTables[i].asc_refresh(t);
+				pivotTables.push(ws.pivotTables[i]);
 			}
 		});
+		if (0 === pivotTables.length) {
+			return;
+		}
+		this._isLockedPivotAndConnectedByPivotCache(pivotTables, function(res) {
+			if (!res) {
+				t.sendEvent('asc_onError', c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
+				return;
+			}
+			History.Create_NewPoint();
+			History.StartTransaction();
+			t.wbModel.dependencyFormulas.lockRecal();
+
+			let changeRes;
+			for (let i = pivotTables.length - 1; i >= 0; --i) {
+				let checkRefresh = pivotTables[i].checkRefresh();
+				if (c_oAscError.ID.No === checkRefresh) {
+					changeRes = t._changePivot(pivotTables[i], opt_confirmation, false, function(ws, pivot) {
+						let error = pivot.refresh();
+					});
+				} else {
+					changeRes = {error: checkRefresh, warning: c_oAscError.ID.No, updateRes: undefined};
+				}
+				if (c_oAscError.ID.No !== changeRes.error || c_oAscError.ID.No !== changeRes.warning) {
+					break;
+				}
+			}
+			t.wbModel.dependencyFormulas.unlockRecal();
+			History.EndTransaction();
+			t._changePivotEndCheckError(changeRes, function(){
+				t.asc_refreshAllPivots(true);
+			});
+		});
+
 	};
 	spreadsheet_api.prototype._isLockedPivot = function (pivot, callback) {
 		var lockInfos = [];
@@ -6292,7 +6326,7 @@ var editor;
 			var changeRes = t._changePivot(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData);
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
-			t._changePivotEndCheckError(pivot, changeRes, function () {
+			t._changePivotEndCheckError(changeRes, function () {
 				//undo can replace pivot complitly. note: getPivotTableById returns nothing while insert operation
 				var pivotAfterUndo = t.wbModel.getPivotTableById(pivot.Get_Id()) || pivot;
 				t._changePivotWithLockExt(pivotAfterUndo, true, updateSelection, onAction);
@@ -6327,7 +6361,7 @@ var editor;
 			var changeRes = onAction(confirmation, pivotTables);
 			t.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
-			t._changePivotEndCheckError(pivot, changeRes, onRepeat);
+			t._changePivotEndCheckError(changeRes, onRepeat);
 		});
 	};
 	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, updateSelection, onAction, doNotCheckUnderlyingData) {
@@ -6371,20 +6405,20 @@ var editor;
 		}
 		return {error: error, warning: warning, updateRes: updateRes};
 	};
-	spreadsheet_api.prototype._changePivotRevert = function (pivot) {
+	spreadsheet_api.prototype._changePivotRevert = function () {
 		History.Undo();
 		History.Clear_Redo();
 		this._onUpdateDocumentCanUndoRedo();
 	};
-	spreadsheet_api.prototype._changePivotEndCheckError = function (pivot, changeRes, onRepeat) {
+	spreadsheet_api.prototype._changePivotEndCheckError = function (changeRes, onRepeat) {
 		if (!changeRes) {
 			return true;
 		}
 		if (c_oAscError.ID.No !== changeRes.error) {
-			this._changePivotRevert(pivot);
+			this._changePivotRevert();
 			this.sendEvent('asc_onError', changeRes.error, c_oAscError.Level.NoCritical);
 		} else if (c_oAscError.ID.No !== changeRes.warning) {
-			this._changePivotRevert(pivot);
+			this._changePivotRevert();
 			this.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceRange, function (can) {
 				if (can) {
 					//repeate with whole checks because of collaboration changes
