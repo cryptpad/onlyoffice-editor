@@ -3087,10 +3087,6 @@ function BinaryPPTYLoader()
                         if(oEffect)
                         {
                             uni_fill.fill.Effects.push(oEffect);
-                            if(oEffect instanceof AscFormat.CAlphaModFix && AscFormat.isRealNumber(oEffect.amt))
-                            {
-                                uni_fill.setTransparent(255 * oEffect.amt / 100000);
-                            }
                         }
                     }
                     s.Seek2(_end_rec_effect);
@@ -3493,18 +3489,6 @@ function BinaryPPTYLoader()
                         }
                     }
 
-                    if(uni_fill.fill.fgClr && uni_fill.fill.bgClr)
-                    {
-                        var fAlphaVal = uni_fill.fill.fgClr.getModValue("alpha");
-                        if(fAlphaVal !== null)
-                        {
-                            if(fAlphaVal === uni_fill.fill.bgClr.getModValue("alpha"))
-                            {
-                                uni_fill.setTransparent(255 * fAlphaVal / 100000)
-                            }
-                        }
-                    }
-
                     break;
                 }
                 case c_oAscFill.FILL_TYPE_SOLID:
@@ -3513,31 +3497,8 @@ function BinaryPPTYLoader()
 
                     uni_fill.setFill(new AscFormat.CSolidFill());
                     uni_fill.fill.setColor(this.ReadUniColor());
-
-//                    uni_fill.fill.color.Mods = new AscFormat.CColorModifiers();
-                    if(uni_fill.fill
-                        && uni_fill.fill.color
-                        && uni_fill.fill.color.Mods
-                        && uni_fill.fill.color.Mods.Mods)
-                    {
-                        var mods = uni_fill.fill.color.Mods.Mods;
-                        var _len = mods.length;
-                        for (var i = 0; i < _len; i++)
-                        {
-                            if (mods[i].name == "alpha")
-                            {
-                                uni_fill.setTransparent(255 * mods[i].val / 100000);
-                                uni_fill.fill.color.Mods.removeMod(i);
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if(uni_fill.fill.color){
-                            uni_fill.fill.color.setMods(new AscFormat.CColorModifiers());
-                        }
-
+                    if(uni_fill.fill.color && !uni_fill.fill.color.Mods){
+                        uni_fill.fill.color.setMods(new AscFormat.CColorModifiers());
                     }
                     break;
                 }
@@ -3558,6 +3519,7 @@ function BinaryPPTYLoader()
         if(!uni_fill.fill){
             return null;
         }
+        uni_fill.checkTransparent();
         return uni_fill;
     };
 

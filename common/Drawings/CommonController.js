@@ -11555,7 +11555,9 @@ function CalcLiterByLength(aAlphaBet, nLength)
                                     var customListType = new AscCommon.asc_CCustomListType();
                                     customListType.type = Asc.asc_PreviewBulletType.char;
                                     customListType.char = Bullet.bulletType.Char;
-                                    customListType.specialFont = Bullet.bulletTypeface.typeface;
+                                    if(Bullet.bulletTypeface) {
+                                        customListType.specialFont = Bullet.bulletTypeface.typeface;
+                                    }
                                     ListType.Custom = customListType;
                                 }
                                 break;

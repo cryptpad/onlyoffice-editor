@@ -7091,6 +7091,9 @@
 
 			if (this.fill) {
 				this.fill.fromXml(reader);
+				if(this.checkTransparent) {
+					this.checkTransparent();
+				}
 			}
 		};
 		CUniFill.prototype.FILL_NAMES = {
@@ -7121,6 +7124,53 @@
 		CUniFill.prototype.isBlipFill = function() {
 			if(this.fill && this.fill.type === c_oAscFill.FILL_TYPE_BLIP) {
 				return true;
+			}
+		};
+		CUniFill.prototype.checkTransparent = function() {
+			let oFill = this.fill;
+			if(oFill) {
+				switch (oFill.type) {
+					case c_oAscFill.FILL_TYPE_BLIP: {
+						let aEffects = oFill.Effects;
+						for(let nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+							let oEffect = aEffects[nEffect];
+							if(oEffect instanceof AscFormat.CAlphaModFix && AscFormat.isRealNumber(oEffect.amt)) {
+								this.setTransparent(255 * oEffect.amt / 100000);
+							}
+						}
+						break;
+					}
+					case c_oAscFill.FILL_TYPE_SOLID: {
+						let oColor = oFill.color;
+						if(oColor) {
+							let fAlphaVal = oColor.getModValue("alpha");
+							if(fAlphaVal !== null) {
+								this.setTransparent(255 * fAlphaVal / 100000);
+								let aMods = oColor.Mods && oColor.Mods.Mods;
+								if(Array.isArray(aMods)) {
+									for(let nMod = aMods.length -1; nMod > -1; nMod--) {
+										let oMod = aMods[nMod];
+										if(oMod && oMod.name === "alpha") {
+											aMods.splice(nMod);
+										}
+									}
+								}
+							}
+						}
+						break;
+					}
+					case c_oAscFill.FILL_TYPE_PATT: {
+						if(oFill.fgClr && oFill.bgClr) {
+							let fAlphaVal = oFill.fgClr.getModValue("alpha");
+							if(fAlphaVal !== null) {
+								if(fAlphaVal === oFill.bgClr.getModValue("alpha")) {
+									this.setTransparent(255 * fAlphaVal / 100000)
+								}
+							}
+						}
+						break;
+					}
+				}
 			}
 		};
 
@@ -13346,11 +13396,11 @@
 		CTextFit.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "fontScale": {
-					this.fontScale = getPercentageValue(reader.GetValue());
+					this.fontScale = reader.GetValueInt();
 					break;
 				}
 				case "lnSpcReduction": {
-					this.lnSpcReduction = getPercentageValue(reader.GetValue());
+					this.lnSpcReduction = reader.GetValueInt();
 					break;
 				}
 			}
@@ -14463,6 +14513,7 @@
 				}
 				case "normAutofit": {
 					this.textFit = new CTextFit(AscFormat.text_fit_NormAuto);
+					this.textFit.fromXml(reader);
 					break;
 				}
 				case "prstTxWarp": {
