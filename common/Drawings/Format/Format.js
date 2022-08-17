@@ -9841,6 +9841,11 @@
 		CXfrm.prototype.isNotNull = function () {
 			return isRealNumber(this.offX) && isRealNumber(this.offY) && isRealNumber(this.extX) && isRealNumber(this.extY);
 		};
+
+		CXfrm.prototype.isNull = function () {
+			return !isRealNumber(this.offX) && !isRealNumber(this.offY) && !isRealNumber(this.extX) && !isRealNumber(this.extY);
+		};
+
 		CXfrm.prototype.isNotNullForGroup = function () {
 			return isRealNumber(this.offX) && isRealNumber(this.offY)
 				&& isRealNumber(this.chOffX) && isRealNumber(this.chOffY)

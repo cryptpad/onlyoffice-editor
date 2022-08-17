@@ -12035,11 +12035,17 @@ Because of this, the display is sometimes not correct.
         this.spPr.setXfrm(new AscFormat.CXfrm());
       }
       var oXfrm = this.spPr.xfrm;
-      if (oXfrm.isZero()) {
+      if (oXfrm.isNull() || oXfrm.isZero()) {
         var parent = this.group;
         if (parent && parent.spPr.xfrm) {
+          oXfrm.setOffX(0);
+          oXfrm.setOffY(0);
           oXfrm.setExtX(parent.spPr.xfrm.extX);
           oXfrm.setExtY(parent.spPr.xfrm.extY);
+          oXfrm.setChOffX(0);
+          oXfrm.setChOffY(0);
+          oXfrm.setChExtX(parent.spPr.xfrm.extX);
+          oXfrm.setChExtY(parent.spPr.xfrm.extY);
         }
       }
     };
