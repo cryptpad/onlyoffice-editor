@@ -656,18 +656,18 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 			this.canvas.height = AscCommon.AscBrowser.convertToRetinaValue(this.CANVAS_SIZE, true);
 		}
 
-		var _canvas = this.canvas;
-		var ctx = _canvas.getContext('2d');
-		ctx.fillStyle = 'white';
-		ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-		var graphics = new AscCommon.CGraphics();
-		graphics.isSmartArtPreviewDrawer = true;
-		graphics.imagePlaceholder = this.placeholderImg;
-		graphics.placeholderSize = this.placeholderSize;
-		graphics.init(ctx, _canvas.width, _canvas.height, this.SMARTART_PREVIEW_SIZE_MM, this.SMARTART_PREVIEW_SIZE_MM);
-		graphics.m_oFontManager = AscCommon.g_fontManager;
-		graphics.transform(1,0,0,1,0,0);
-		return graphics;
+		const oCanvas = this.canvas;
+		const oContext = oCanvas.getContext('2d');
+		oContext.fillStyle = 'white';
+		oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
+		const oGraphics = new AscCommon.CGraphics();
+		oGraphics.isSmartArtPreviewDrawer = true;
+		oGraphics.imagePlaceholder = this.placeholderImg;
+		oGraphics.placeholderSize = this.placeholderSize;
+		oGraphics.init(oContext, oCanvas.width, oCanvas.height, this.SMARTART_PREVIEW_SIZE_MM, this.SMARTART_PREVIEW_SIZE_MM);
+		oGraphics.m_oFontManager = AscCommon.g_fontManager;
+		oGraphics.transform(1,0,0,1,0,0);
+		return oGraphics;
 	}
 
 	SmartArtPreviewDrawer.prototype.loadImagePlaceholder = function (callback) {
@@ -679,32 +679,27 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	}
 
 	SmartArtPreviewDrawer.prototype.createPreviews = function () {
-		AscFormat.ExecuteNoHistory(function () {
-			for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
-				const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
-				const context = this.createSmartArtPreview(nType);
-				let oPreview = new AscCommon.CStyleImage();
-				oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
-				oPreview.image = context.canvas.toDataURL(this.imageType, 1);
-				this.imageBuffer.push(oPreview);
-			}
-			console.log(this.imageBuffer);
-		}, this, []);
+		for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
+			const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
+			const oContext = this.createSmartArtPreview(nType);
+			const oPreview = new AscCommon.CStyleImage();
+			oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
+			oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
+			this.imageBuffer.push(oPreview);
+		}
 	};
 
 	SmartArtPreviewDrawer.prototype.start = function () {
 		this.loadImagePlaceholder(this.createPreviews.bind(this));
 	};
 
-
-
 	SmartArtPreviewDrawer.prototype.createSmartArtPreview = function (nType) {
-		const smartArt = this.getSmartArt(nType);
-		const graphics = this.getGraphics();
-		graphics.save();
-		smartArt.draw(graphics);
-		graphics.restore();
-		return graphics.m_oContext;
+		const oSmartArt = this.getSmartArt(nType);
+		const oGraphics = this.getGraphics();
+		oGraphics.save();
+		oSmartArt.draw(oGraphics);
+		oGraphics.restore();
+		return oGraphics.m_oContext;
 	};
 
 	SmartArtPreviewDrawer.prototype.fitSmartArtForPreview = function (oSmartArt) {
