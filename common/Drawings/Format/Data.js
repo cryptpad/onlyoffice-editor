@@ -13788,31 +13788,33 @@ Because of this, the display is sometimes not correct.
     }
 
     SmartArt.prototype.getContrastDrawing = function () {
-      const shapes = this.spTree[0] && this.spTree[0].spTree;
-      shapes.forEach(function (oShape) {
-        oShape.recalculateBrush();
-        oShape.recalculatePen();
-        if ((oShape.pen && oShape.pen.Fill && oShape.pen.Fill.fill && !(oShape.pen.Fill.fill instanceof AscFormat.CNoFill)) ||
-            (oShape.brush && oShape.brush.fill && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill))) {
-          const pen = new AscFormat.CreateSolidFillRGB(136, 136, 136);
-          oShape.spPr.ln.setFill(pen);
-          oShape.spPr.ln.setW(12700 * 6);
+      const arrShapes = this.spTree[0] && this.spTree[0].spTree;
+      if (arrShapes) {
+        arrShapes.forEach(function (oShape) {
+          oShape.recalculateBrush();
+          oShape.recalculatePen();
+          if ((oShape.pen && oShape.pen.Fill && oShape.pen.Fill.fill && !(oShape.pen.Fill.fill instanceof AscFormat.CNoFill)) ||
+              (oShape.brush && oShape.brush.fill && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill))) {
+            const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
+            oShape.spPr.ln.setFill(oPen);
+            oShape.spPr.ln.setW(12700 * 3);
 
-          if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
-            const brush = oShape.brush;
-            const grayscale = brush.getGrayscaleValue();
-            if (grayscale < GRAYSCALE_TRESHHOLD) {
-              const heavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
-              oShape.spPr.setFill(heavyBrush);
-            } else {
-              const lightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
-              oShape.spPr.setFill(lightBrush);
+            if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
+              const oBrush = oShape.brush;
+              const grayscale = oBrush.getGrayscaleValue();
+              if (grayscale < GRAYSCALE_TRESHHOLD) {
+                const oHeavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
+                oShape.spPr.setFill(oHeavyBrush);
+              } else {
+                const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
+                oShape.spPr.setFill(oLightBrush);
+              }
             }
           }
-        }
-        oShape.recalcLine();
-        oShape.recalcFill();
-      });
+          oShape.recalcLine();
+          oShape.recalcFill();
+        });
+      }
     }
 
     SmartArt.prototype.recalculate = function () {
@@ -13899,6 +13901,7 @@ Because of this, the display is sometimes not correct.
         this.extX = AscCommon.g_oXfrmSmartArt.extX;
         this.extY = AscCommon.g_oXfrmSmartArt.extY;
         this.drawing.setXfrmByParent();
+        this.checkNodePointsAfterRead();
       }
       return this;
     };
@@ -13923,7 +13926,7 @@ Because of this, the display is sometimes not correct.
     };
 
     SmartArt.prototype.fitFontSize = function () {
-      this.spTree[0] &&  this.spTree[0].spTree.forEach(function (oShape) {
+      this.spTree[0] && this.spTree[0].spTree.forEach(function (oShape) {
         oShape.recalculateContent2()
         oShape.findFitFontSizeForSmartArt();
       });
