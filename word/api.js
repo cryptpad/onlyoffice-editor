@@ -12626,7 +12626,7 @@ background-repeat: no-repeat;\
 		let oDocument = this.private_GetLogicDocument();
 		if(!oDocument)
 		{
-			return AscFormat.WHITE_RECT_IMAGE_DATA;
+			return null;
 		}
 		return oDocument.GetImageDataFromSelection();
 	};

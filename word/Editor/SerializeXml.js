@@ -2479,7 +2479,7 @@
 				case "start":
 				case "left": {
 					this.Left =
-						AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
+						AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
 							undefined);
 					break;
 				}
@@ -2490,7 +2490,7 @@
 				case "right":
 				case "end": {
 					this.Right =
-						AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
+						AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
 							undefined);
 					break;
 				}
@@ -2500,7 +2500,7 @@
 				// }
 				case "hanging": {
 					Hanging =
-						AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
+						AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
 							undefined);
 					break;
 				}
@@ -2510,7 +2510,7 @@
 				// }
 				case "firstLine": {
 					this.FirstLine =
-						AscCommon.universalMeasureToUnsignedMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
+						AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
 							undefined);
 					break;
 				}

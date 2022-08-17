@@ -5344,7 +5344,7 @@ CPresentation.prototype.getImageDataFromSelection = function () {
     if(oSlide) {
         return oSlide.graphicObjects.getImageDataFromSelection();
     }
-    return AscFormat.WHITE_RECT_IMAGE_DATA;
+    return null;
 };
 CPresentation.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight) {
     let oSlide = this.GetCurrentSlide();

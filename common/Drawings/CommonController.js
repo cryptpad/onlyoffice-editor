@@ -10271,7 +10271,7 @@ DrawingObjectsController.prototype =
     getImageDataFromSelection: function() {
         let aSelectedObjects = this.getSelectedArray();
         if(aSelectedObjects.length < 1) {
-            return AscFormat.WHITE_RECT_IMAGE_DATA;
+            return null;
         }
         let sSrc = aSelectedObjects[0].getBase64Img();
         let nWidth = aSelectedObjects[0].cachedPixW || 50;

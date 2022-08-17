@@ -3900,7 +3900,7 @@
 
 	baseEditorsApi.prototype.getImageDataFromSelection = function ()
 	{
-		return AscFormat.WHITE_RECT_IMAGE_DATA;
+		return null;
 	};
 
 	baseEditorsApi.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight)

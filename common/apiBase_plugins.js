@@ -1118,7 +1118,7 @@
      * @memberof Api
      * @typeofeditors ["CDE", "CSE", "CPE"]
      * @alias GetImageDataFromSelection
-     * @returns {ImageData} - ImageData with png image encoded in base64 format.
+     * @returns {?ImageData} - ImageData with png image encoded in base64 format or null if there are no selected objects.
      */
 	Api.prototype["pluginMethod_GetImageDataFromSelection"] = function()
 	{
