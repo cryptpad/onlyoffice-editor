@@ -2552,20 +2552,6 @@ CGraphics.prototype =
         }
     },
 
-
-    AddRoundRect : function(x, y, w, h, r)
-    {
-       this._m(x + r, y);
-       this._l(x + w - r, y);
-       this._c2(x + w, y, x + w, y + r);
-       this._l(x + w, y + h - r);
-       this._c2(x + w, y + h, x + w - r, y + h);
-       this._l(x + r, y + h);
-       this._c2(x, y + h, x, y + h - r);
-       this._l(x, y + r);
-       this._c2(x, y, x + r, y);
-    },
-
     // функции клиппирования
     AddClipRect : function(x, y, w, h)
     {
