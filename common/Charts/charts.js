@@ -639,15 +639,59 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 };
 
 	function SmartArtPreviewDrawer() {
+		AscCommon.CActionOnTimerBase.call(this);
 		this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
-		this.CANVAS_SIZE = 100;
+		this.CANVAS_SIZE = 600;
 		this.canvas = null;
 		this.imageType = "image/jpeg";
 		this.imageBuffer = [];
 		this.imagePlaceholderUrl = "../../../../sdkjs/common/Images/placeholders/image@2x.png";
 		this.placeholderImg = null;
-		this.placeholderSize = this.SMARTART_PREVIEW_SIZE_MM / 6;
+		this.placeholderSize = this.SMARTART_PREVIEW_SIZE_MM / 10;
+		this.index = 0;
 	}
+	SmartArtPreviewDrawer.prototype = Object.create(AscCommon.CActionOnTimerBase.prototype);
+	SmartArtPreviewDrawer.prototype.constructor = SmartArtPreviewDrawer;
+
+	SmartArtPreviewDrawer.prototype.Begin = function () {
+		const oThis = this;
+		oThis.loadImagePlaceholder(function () {
+			AscCommon.CActionOnTimerBase.prototype.Begin.call(oThis);
+		});
+	};
+	SmartArtPreviewDrawer.prototype.OnBegin = function () {
+		const oApi = Asc.editor || editor;
+		this.index = 0;
+		if (oApi) oApi.sendEvent("asc_onBeginSmartArtPreview", Asc.c_oAscSmartArtNameTypes.length);
+	}
+
+	SmartArtPreviewDrawer.prototype.OnEnd = function() {
+		const oApi = Asc.editor || editor;
+		if (oApi) oApi.sendEvent("asc_onEndSmartArtPreview");
+
+	};
+
+	SmartArtPreviewDrawer.prototype.IsContinue = function() {
+		return (this.index < Asc.c_oAscSmartArtNameTypes.length);
+	};
+
+	SmartArtPreviewDrawer.prototype.DoAction = function() {
+		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[this.index]];
+		if (AscFormat.isRealNumber(nType)) {
+			const oContext = this.createSmartArtPreview(nType);
+			const oPreview = new AscCommon.CStyleImage();
+			oPreview.name = Asc.c_oAscSmartArtNameTypes[this.index];
+			oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
+			this.imageBuffer.push(oPreview);
+		}
+		this.index++;
+	};
+
+	SmartArtPreviewDrawer.prototype.OnEndTimer = function() {
+		const oApi = Asc.editor || editor;
+		oApi.sendEvent("asc_onAddSmartArtPreview", this.imageBuffer);
+		this.imageBuffer = [];
+	};
 
 	SmartArtPreviewDrawer.prototype.getGraphics = function () {
 		if (null === this.canvas) {
@@ -1286,6 +1330,7 @@ TextArtPreviewManager.prototype.generateTextArtStyles = function()
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].ChartPreviewManager = ChartPreviewManager;
+	window['AscCommon'].SmartArtPreviewDrawer = SmartArtPreviewDrawer;
 	window['AscCommon'].TextArtPreviewManager = TextArtPreviewManager;
 	window['AscCommon'].createPreviewSmartArt = function () {
 		const SmartArtDrawer = new SmartArtPreviewDrawer();
