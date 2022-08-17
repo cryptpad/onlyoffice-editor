@@ -1236,7 +1236,7 @@ ParaMath.prototype.Add = function(Item)
     }
     else if (para_Math === Type)
     {
-        var ContentPos = new AscWord.CParagraphContentPos();
+        var ContentPos = new CParagraphContentPos();
 
         if(this.bSelectionUse == true)
             this.Get_ParaContentPos(true, true, ContentPos);
@@ -3380,7 +3380,7 @@ ParaMath.prototype.Is_InInnerContent = function()
  */
 ParaMath.prototype.Handle_AddNewLine = function()
 {
-    var ContentPos = new AscWord.CParagraphContentPos();
+    var ContentPos = new CParagraphContentPos();
 
     var CurrContent = this.GetSelectContent().Content;
 
@@ -3425,7 +3425,7 @@ ParaMath.prototype.Handle_AddNewLine = function()
         CurrContent.Add_ToContent(1, EqArray);
         CurrContent.Correct_Content(true);
 
-        var CurrentContent = new AscWord.CParagraphContentPos();
+        var CurrentContent = new CParagraphContentPos();
         this.Get_ParaContentPos(false, false, CurrentContent);
 
         var RightContentPos = new CParagraphSearchPos();
@@ -3701,6 +3701,8 @@ ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 	}
 	else
 	{
+        this.Root.CorrectAllMathWord();
+
 		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
 			this.ConvertFromUnicodeMath();
 		}

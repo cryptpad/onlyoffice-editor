@@ -3291,6 +3291,37 @@ CMathContent.prototype.Add_Text = function(sText, Paragraph, MathStyle)
         this.CurPos++;
     }
 };
+
+CMathContent.prototype.Add_TextOnPos = function(nPos,sText, Paragraph, MathStyle)
+{
+    this.Paragraph = Paragraph;
+
+    if (sText)
+    {
+        var MathRun = new ParaRun(this.Paragraph, true);
+
+        for (var nCharPos = 0, nTextLen = sText.length; nCharPos < nTextLen; nCharPos++)
+        {
+            var oText = null;
+            if (0x0026 == sText.charCodeAt(nCharPos))
+                oText = new CMathAmp();
+            else
+            {
+                oText = new CMathText(false);
+                oText.addTxt(sText[nCharPos]);
+            }
+            MathRun.Add(oText, true);
+        }
+
+        MathRun.Set_RFont_ForMathRun();
+
+        if (undefined !== MathStyle && null !== MathStyle)
+            MathRun.Math_Apply_Style(MathStyle);
+
+        this.Internal_Content_Add(nPos, MathRun, false);
+        this.CurPos++;
+    }
+};
 CMathContent.prototype.Add_Symbol = function(Code, TextPr, MathPr)
 {
     var MathRun = new ParaRun(this.Paragraph, true);
@@ -3670,12 +3701,12 @@ CMathContent.prototype.Get_ParaContentPos = function(bSelection, bStart, Content
 			if (true === bStart && nPos > 0)
 			{
 				ContentPos.Add(nPos - 1);
-				this.Content[nPos - 1].Get_EndPos(false, ContentPos, ContentPos.GetDepth() + 1);
+				this.Content[nPos - 1].Get_EndPos(false, ContentPos, ContentPos.Get_Depth() + 1);
 			}
 			else
 			{
 				ContentPos.Add(nPos + 1);
-				this.Content[nPos + 1].Get_StartPos(ContentPos, ContentPos.GetDepth() + 1);
+				this.Content[nPos + 1].Get_StartPos(ContentPos, ContentPos.Get_Depth() + 1);
 			}
 		}
 		else
@@ -5481,7 +5512,7 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     if (oElement.value !== 32) { 
         return
     }
-
+    
 	var oLogicDocument = this.GetLogicDocument();
 	var nInputType = oLogicDocument 
         ? oLogicDocument.GetMathInputType()
@@ -5500,11 +5531,10 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
     var oContentCopy = this.Content.slice(); 
     oContentCopy.length = this.CurPos + 1;
-    var oContentForAutoCorrection = AscMath.GetTextForAutoCorrection(oContentCopy);
+    var oContentForAutoCorrection = AscMath.AutoCorrect(oContentCopy);
 
     var arrOutputContent = [];
     var arrDelData = [];
-	var isOneWord = false;
 
     var isPrecContent = false;
     var isDegree = false;
@@ -5512,42 +5542,35 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     if (this.CurPos > 0)
     {
         isPrecContent = this.Content[this.CurPos - 1].Type !== 49;
-        isDegree = this.Content[this.CurPos - 1].Type === 51;
+        //isDegree = this.Content[this.CurPos - 1].Type === 51;
     }
 
     for (var i = 0; i < oContentForAutoCorrection.length; i++) {
         var Content = oContentForAutoCorrection[i];
 
-        if (Content.str.length > 0 && Content.len > 0) {
-            if (i === 1 && oContentForAutoCorrection.length > 1 && isPrecContent && !isDegree) 
-                arrOutputContent.unshift("〗");
+        if (Content.str.length > 0) {
+            //if (i === 1 && oContentForAutoCorrection.length > 1 && isPrecContent && !isDegree) 
+            //console.log(2)//arrOutputContent.unshift("〗");
 
             arrOutputContent = Content.str.concat(arrOutputContent);
 
-            if (i === 1 && oContentForAutoCorrection.length > 1 && isPrecContent && !isDegree) 
-                arrOutputContent.unshift("〖");
-
-            if (oContentForAutoCorrection[i].isOneWord === true && oContentForAutoCorrection.length === 1)
-                isOneWord = true;
+            //if (i === 1 && oContentForAutoCorrection.length > 1 && isPrecContent && !isDegree) 
+            //console.log(1)//arrOutputContent.unshift("〖"); 
 
             arrDelData.push(Content.DelCount);
         } else {
+            arrDelData.push(Content.DelCount);
             oContentForAutoCorrection.splice(i, 1);
+            i--;
         }
     }
 
     //обрабатываем полученный текст
 	var strStringForConversion = arrOutputContent.join("");
-	if (isOneWord) 
-    {
-		oTempObject.Add_Text(strStringForConversion);
-    }
-	else 
-    {
-		(nInputType === Asc.c_oAscMathInputType.Unicode)
-			? AscMath.CUnicodeConverter(strStringForConversion, oTempObject)
-		    : AscMath.ConvertLaTeXToTokensList(strStringForConversion, oTempObject);
-    }
+
+    (nInputType === Asc.c_oAscMathInputType.Unicode)
+        ? AscMath.CUnicodeConverter(strStringForConversion, oTempObject)
+        : AscMath.ConvertLaTeXToTokensList(strStringForConversion, oTempObject);
 
     //при автокорекции мы всегда имеем дело с одним блоком контента
 	//если длина больше 1, то выбор предыдущих элементов был бессмысленен - удаляем лишнее
@@ -5600,6 +5623,9 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 	this.MergeParaRuns();
     this.Correct_Content(true);
 };
+CMathContent.prototype.CorrectAllMathWord = function() {
+    AscMath.ConvertCorrectionWordToSymbols(this);
+}
 
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     //при закрытии скобки делать автозамену до открывающейся скобки (добавить)
