@@ -5657,7 +5657,18 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_IsStartDemonstartionOnOpen = function()
 	{
-		return this.documentFormat === "ppsx";
+		if(this.documentFormat === "ppsx")
+		{
+			return true;
+		}
+		if(this.documentTitle)
+		{
+			if(this.documentTitle.indexOf(".ppsx") === (this.documentTitle.length - 5))
+			{
+				return true;
+			}
+		}
+		return false;
 	};
 
 	asc_docs_api.prototype.asc_AddMath = function(Type)
