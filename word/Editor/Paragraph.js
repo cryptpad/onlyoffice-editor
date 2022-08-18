@@ -10481,43 +10481,32 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 };
 Paragraph.prototype.Internal_CompiledParaPrPresentation = function(Lvl, bNoMergeDefault)
 {
-	var _Lvl        = AscFormat.isRealNumber(Lvl) ? Lvl : (AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0);
-	var styleObject = this.Parent.Get_Styles(_Lvl);
+	let _Lvl        = AscFormat.isRealNumber(Lvl) ? Lvl : (AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0);
+	let styleObject = this.Parent.Get_Styles(_Lvl);
 	if(!styleObject || !styleObject.styles)
 	{
-		return {ParaPr : g_oDocumentDefaultParaPr,
-				TextPr : g_oDocumentDefaultTextPr
-		};
+		return {ParaPr : g_oDocumentDefaultParaPr, TextPr : g_oDocumentDefaultTextPr};
 	}
-	var Styles      = styleObject.styles;
+	let Styles      = styleObject.styles;
 
-	// Считываем свойства для текущего стиля
-	var Pr = Styles.Get_Pr(styleObject.lastId, styletype_Paragraph, null);
-
-	var TableStyle = this.Parent.Get_TableStyleForPara();
+	let Pr = Styles.Get_Pr(styleObject.lastId, styletype_Paragraph, null);
+	let TableStyle = this.Parent.Get_TableStyleForPara();
 	if (TableStyle && TableStyle.TextPr)
 	{
-		//var TextPr2 = new CTextPr();
-		//TextPr2.Unifill = TableStyle.TextPr.Unifill;
-		//TextPr2.RFonts = TableStyle.TextPr.RFonts;
-		//TextPr2.Bold = TableStyle.TextPr.Bold;
-		//TextPr2.Itali = TableStyle.TextPr.RFonts;
 		Pr.TextPr.Merge(TableStyle.TextPr);
 	}
-
-	Pr.ParaPr.StyleTabs = ( undefined != Pr.ParaPr.Tabs ? Pr.ParaPr.Tabs.Copy() : new CParaTabs() );
-
+	Pr.ParaPr.StyleTabs = ( Pr.ParaPr.Tabs ? Pr.ParaPr.Tabs.Copy() : new CParaTabs() );
 	if(Pr.ParaPr.LnSpcReduction !== undefined && Pr.ParaPr.LnSpcReduction !== null)
 	{
-		var Spacing = Pr.ParaPr.Spacing;
+		let Spacing = Pr.ParaPr.Spacing;
 		if(Spacing.LineRule === Asc.linerule_Auto)
 		{
 			Spacing.Line = Spacing.Line - Pr.ParaPr.LnSpcReduction;
 		}
 	}
 
-	if(!(bNoMergeDefault === true)){
-		// Копируем прямые настройки параграфа.
+	if(!(bNoMergeDefault === true))
+	{
 		Pr.ParaPr.Merge(this.Pr);
 		if (this.Pr.DefaultRunPr)
 			Pr.TextPr.Merge(this.Pr.DefaultRunPr);

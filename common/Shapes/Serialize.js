@@ -1257,37 +1257,7 @@ function BinaryPPTYLoader()
         }
 
         s.Seek2(_end_rec);
-
-        if(_style.TableWholeTable.TablePr.TableBorders.InsideH)
-        {
-            _style.TablePr.TableBorders.InsideH = _style.TableWholeTable.TablePr.TableBorders.InsideH;
-            delete _style.TableWholeTable.TablePr.TableBorders.InsideH;
-        }
-        if(_style.TableWholeTable.TablePr.TableBorders.InsideV)
-        {
-            _style.TablePr.TableBorders.InsideV = _style.TableWholeTable.TablePr.TableBorders.InsideV;
-            delete _style.TableWholeTable.TablePr.TableBorders.InsideV;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Top)
-        {
-            _style.TablePr.TableBorders.Top = _style.TableWholeTable.TableCellPr.TableCellBorders.Top;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Top;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Bottom)
-        {
-            _style.TablePr.TableBorders.Bottom = _style.TableWholeTable.TableCellPr.TableCellBorders.Bottom;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Bottom;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Left)
-        {
-            _style.TablePr.TableBorders.Left = _style.TableWholeTable.TableCellPr.TableCellBorders.Left;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Left;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Right)
-        {
-            _style.TablePr.TableBorders.Right = _style.TableWholeTable.TableCellPr.TableCellBorders.Right;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Right;
-        }
+        _style.wholeToTablePr();
 		if(bNotAddStyle)
 		{
 			return _style;

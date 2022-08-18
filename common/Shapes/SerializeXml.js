@@ -1267,9 +1267,10 @@
 				this.Set_Pr(oPr);
 			}
 			else if(name === "tr") {
-				let oRow = new CTableRow(this, 0);
-				oRow.fromDrawingML(reader);
 				let nIdx = this.Content.length;
+				let oRow = new CTableRow(this, 0);
+				oRow.Index = nIdx;
+				oRow.fromDrawingML(reader);
 				this.Content[nIdx] = oRow;
 				this.Content[nIdx].Recalc_CompiledPr();
 				History.Add(new CChangesTableAddRow(this, nIdx, [this.Content[nIdx]]));
@@ -1990,6 +1991,10 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			let sName = reader.GetNameNoNS();
 			switch (sName) {
+				case "tblBg": {
+					this.readTableCellProperties(reader, this.TablePr);
+					break;
+				}
 				case "band1H": {
 					this.TableBand1Horz = this.readDrawingMLTableStylePart(reader);
 					break;
@@ -2042,23 +2047,26 @@
 					this.TableBLCell = this.readDrawingMLTableStylePart(reader);
 					break;
 				}
-				case "tblBg": {
-					this.readTableCellProperties(reader, this.TablePr);
-					break;
-				}
 			}
 		}
+		this.wholeToTablePr();
 	};
 	AscCommonWord.CStyle.prototype.readDrawingMLTableStylePart = function(reader) {
 		let oPart =  new CTableStylePr();
 		let oCellPr = oPart.TableCellPr;
 		let oTextPr = oPart.TextPr;
+		let oTablePr = oPart.TablePr;
+		let oCellBorders = oCellPr.TableCellBorders;
 		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			let sName = reader.GetNameNoNS();
 			switch (sName) {
 				case "tcStyle": {
 					this.readTableCellProperties(reader, oCellPr);
+					oTablePr.TableBorders.InsideH = oCellBorders.InsideH;
+					oTablePr.TableBorders.InsideV = oCellBorders.InsideV;
+					delete oCellBorders.InsideH;
+					delete oCellBorders.InsideV;
 					break;
 				}
 				case "tcTxStyle": {
@@ -2084,13 +2092,9 @@
 					});
 					oTxStyleNode.fromXml(reader);
 					let sBoldAttr = oTxStyleNode.attributes["b"];
-					if(sBoldAttr) {
-						oTextPr.Bold = reader.GetBool(sBoldAttr);
-					}
+					oTextPr.Bold = reader.GetBool(sBoldAttr);
 					let sItalicAttr = oTxStyleNode.attributes["i"];
-					if(sItalicAttr) {
-						oTextPr.Italic = reader.GetBool(sItalicAttr);
-					}
+					oTextPr.Italic = reader.GetBool(sItalicAttr);
 					break;
 				}
 			}
@@ -2294,7 +2298,6 @@
 		}
 
 	};
-
 	AscCommonWord.CStyle.prototype.writeTcBorder = function (writer, oBorder, sName) {
 		if(oBorder) {
 			writer.WriteXmlNodeStart(sName);
@@ -2308,6 +2311,51 @@
 				oLn.toXml(writer, "a:ln");
 			}
 			writer.WriteXmlNodeEnd(sName);
+		}
+	};
+	AscCommonWord.CStyle.prototype.wholeToTablePr = function() {
+
+		let oWhole = this.TableWholeTable;
+		if(!oWhole) {
+			return
+		}
+		let oWholeBorders = oWhole.TablePr && oWhole.TablePr.TableBorders;
+		if(!oWholeBorders) {
+			return;
+		}
+		let oWholeCellBorders = oWhole.TableCellPr && oWhole.TableCellPr.TableCellBorders;
+		if(!oWholeCellBorders) {
+			return;
+		}
+
+		let oTablePBorders = this.TablePr && this.TablePr.TableBorders;
+		if(!oTablePBorders) {
+			return;
+		}
+
+		if(oWholeBorders.InsideH) {
+			oTablePBorders.InsideH = oWholeBorders.InsideH;
+			delete oWholeBorders.InsideH;
+		}
+		if(oWholeBorders.InsideV) {
+			oTablePBorders.InsideV = oWholeBorders.InsideV;
+			delete oWholeBorders.InsideV;
+		}
+		if(oWholeCellBorders.Top) {
+			oTablePBorders.Top = oWholeCellBorders.Top;
+			delete oWholeCellBorders.Top;
+		}
+		if(oWholeCellBorders.Bottom) {
+			oTablePBorders.Bottom = oWholeCellBorders.Bottom;
+			delete oWholeCellBorders.Bottom;
+		}
+		if(oWholeCellBorders.Left) {
+			oTablePBorders.Left = oWholeCellBorders.Left;
+			delete oWholeCellBorders.Left;
+		}
+		if(oWholeCellBorders.Right) {
+			oTablePBorders.Right = oWholeCellBorders.Right;
+			delete oWholeCellBorders.Right;
 		}
 	};
 	let SPACING_SCALE = 0.00352777778;
