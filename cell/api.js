@@ -965,9 +965,9 @@ var editor;
   };
 
     spreadsheet_api.prototype.getDrawingObjects = function () {
-        var oWs = this.wb.getWorksheet();
-        if(oWs) {
-            return oWs.objectRender;
+        var oController = this.getGraphicController();
+        if (oController) {
+            return oController.drawingObjects;
         }
     };
 

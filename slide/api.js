@@ -4124,9 +4124,9 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onAddTable");
 	};
 	asc_docs_api.prototype.getDrawingObjects = function () {
-		const oPresentation = this.WordControl.m_oLogicDocument;
-		if (oPresentation) {
-			return oPresentation.GetCurrentSlide();
+		const oController = this.getGraphicController();
+		if (oController) {
+			return oController.drawingObjects;
 		}
 	};
 	asc_docs_api.prototype.getDrawingDocument = function () {

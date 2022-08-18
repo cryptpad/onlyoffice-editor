@@ -684,10 +684,10 @@
 					return;
 				}
 
-				var oController = this.getGraphicController();
-				if (oController)
+				var oDrawingObjects = this.getDrawingObjects();
+				if (oDrawingObjects)
 				{
-					var selectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
+					var selectedObjects = AscFormat.getObjectsByTypesFromArr(oDrawingObjects.selectedObjects);
 					if (selectedObjects.oleObjects.length === 1)
 					{
 						var selectedOleObject = selectedObjects.oleObjects[0];
@@ -1032,17 +1032,17 @@
 			}
 			oSmartArt.fitToPageSize();
 			oSmartArt.fitFontSize();
-			const oParaDrawing = oSmartArt.decorateParaDrawing(oController);
+			const oParaDrawing = oSmartArt.decorateParaDrawing(oDrawingObjects);
 			oSmartArt.setXfrmByParent();
-			if (oController) {
-				oController.resetSelection();
+			if (oDrawingObjects) {
+				oDrawingObjects.resetSelection();
 				oLogicDocument.AddToParagraph(oParaDrawing);
 				oLogicDocument.Select_DrawingObject(oParaDrawing.Get_Id());
 				oLogicDocument.Recalculate();
-				oController.clearTrackObjects();
-				oController.clearPreTrackObjects();
-				oController.updateOverlay();
-				oController.changeCurrentState(new AscFormat.NullState(oController));
+				oDrawingObjects.clearTrackObjects();
+				oDrawingObjects.clearPreTrackObjects();
+				oDrawingObjects.updateOverlay();
+				oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
 			}
 		}
 		return oSmartArt;
