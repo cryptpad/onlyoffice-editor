@@ -132,6 +132,13 @@
 
 		logicDocument.RecalculateFromStart(false);
 	}
+	function ClearDocument()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
+	}
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.CreateLogicDocument = CreateLogicDocument;
 	AscTest.SetFillingFormMode  = SetFillingFormMode;
@@ -141,6 +148,7 @@
 	AscTest.MoveCursorRight     = MoveCursorRight;
 	AscTest.Recalculate         = Recalculate;
 	AscTest.ClickMouseButton    = ClickMouseButton;
+	AscTest.ClearDocument       = ClearDocument;
 	AscTest.KeyCode             = KeyCode;
 
 })(window);

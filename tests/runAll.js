@@ -39,7 +39,8 @@ const allTests = [
 	'word/unit-tests/paragraphContentPos.html',
 	'word/document-calculation/paragraph.html',
 	'word/forms/forms.html',
-	'word/forms/complexForm.html'
+	'word/forms/complexForm.html',
+	'word/api/api.html'
 ];
 
 const {performance} = require('perf_hooks');
