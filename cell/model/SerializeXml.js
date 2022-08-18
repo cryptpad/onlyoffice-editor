@@ -2066,6 +2066,9 @@
 		val = val.replace(/&#xD;&#xA;/g, "\n");
 		val = val.replace(/_x000D_\r\n/g, "\n");
 		val = val.replace(/\r\n/g, "\n");
+
+		val = unescape_ST_Xstring(val);
+
 		return val;
 	}
 
@@ -2087,6 +2090,30 @@
 		//val = val.replace(/\n/g, "\r\n");
 
 		return val;
+	}
+
+	function unescape_ST_Xstring(s) {
+		var res = "";
+		for (var i = 0; i < s.length; i++) {
+			if (i + 6 < s.length && s[i] === '_' && s[i + 1] === 'x' && !isNaN(s[i + 2]) && !isNaN(s[i + 3]) && s[i + 6] === '_') {
+				res += hex2Str(s.substring(i + 2, i + 6));
+				i += 6;
+			} else {
+				res += s[i];
+			}
+		}
+		return res;
+	}
+
+	function hex2Str(hex) {
+		var res = "";
+		for (var i = 0; i < hex.length; i += 2) {
+			var val = parseInt(hex.substr(i, 2), 16);
+			if (val) {
+				res += String.fromCharCode(val);
+			}
+		}
+		return res;
 	}
 
 	//for uri/namespaces
@@ -3981,7 +4008,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 				if (CellValueType.String === this.type) {
 					var ss;
 					if (ctx.originType === "str") {
-						ss = value.val
+						ss = prepareTextFromXml(value.val);
 					} else {
 						ss = reader.GetContext().sharedStrings[parseInt(value.val)];
 					}
