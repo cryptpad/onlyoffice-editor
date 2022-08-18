@@ -1867,7 +1867,7 @@
 		if (false === _ShowFileDialog("image/*", true, true, ValidateUploadImage, callback)) {
 			//todo remove this compatibility
 			var frameWindow = GetUploadIFrame();
-			var url = sUploadServiceLocalUrlOld + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+			var url = sUploadServiceLocalUrlOld + '/' + documentId;
 			if (jwt)
 			{
 				url += '?token=' + encodeURIComponent(jwt);
@@ -2063,7 +2063,7 @@
 	{
 		if (files.length > 0)
 		{
-			var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+			var url = sUploadServiceLocalUrl + '/' + documentId;
 
 			var aFiles = [];
 			for(var i = files.length - 1;  i > - 1; --i){
@@ -2092,7 +2092,7 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
@@ -2126,7 +2126,7 @@
     {
         if (files.length > 0)
         {
-            var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+            var url = sUploadServiceLocalUrl + '/' + documentId;
 
             var aFiles = [];
             for(var i = files.length - 1;  i > - 1; --i){
@@ -2160,7 +2160,7 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
