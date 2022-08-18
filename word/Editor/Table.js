@@ -17298,7 +17298,19 @@ CTable.prototype.CorrectBadGrid = function()
 	}
 
 	var arrGrid = this.private_CopyTableGrid();
-	if (arrGrid.length != GridCount)
+
+	// MSWord плохо работает с файлами, где GridCol равен 0, поэтому такие правим
+	let isZeroColumns = false;
+	for (let nIndex = 0, nCount = arrGrid.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrGrid[nIndex] < 0.001)
+		{
+			isZeroColumns = true;
+			arrGrid[nIndex] = 20;
+		}
+	}
+
+	if (arrGrid.length !== GridCount || isZeroColumns)
 	{
 		if (arrGrid.length < GridCount)
 		{
