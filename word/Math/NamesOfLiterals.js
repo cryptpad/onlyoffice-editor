@@ -685,7 +685,7 @@
 		["​", oNamesOfLiterals.spaceLiteral[0]], //["​", oNamesOfLiterals.spaceLiteral[0]], // zero-width space
 
 		["√", oNamesOfLiterals.sqrtLiteral[0]],
-		["√(", oNamesOfLiterals.sqrtLiteral[0]],
+		//["√(", oNamesOfLiterals.sqrtLiteral[0]],
 		["\\}", oNamesOfLiterals.opCloseBracket[0]],
 		["\\|", "‖", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\\\", true],
@@ -2424,11 +2424,11 @@
 	const AutoCorrectionRules = [
 		//true обозначает обычный текст, цифры и блоки контента (CFraction, CLmit, CDegree...);
 		[true, "/", true],
-		[true, "/"],
+		["/", true],
 		[true, "^", true],
-		[true, "^"],
+		["^", true],
 		[true, "_", true],
-		[true, "_"],
+		["_", true],
 	];
 	function AutoCorrectionFunc(oCMathContent) {
 		this.InputContent = oCMathContent; //CMathContent
@@ -2502,6 +2502,8 @@
 						if (isContinue === true)
 						{
 							intContentOutput++;
+						} else {
+							break;
 						}
 					}
 				}
@@ -2523,7 +2525,7 @@
 		for (let i = 0; i < this.ProceedContent.length; i++) {
 			let oElement = this.ProceedContent[i];
 			oElement.InitRuler()
-	
+
 			if (oElement.Content.Type !== 49)
 			{
 				intCounter++;
@@ -2533,32 +2535,23 @@
 				while (oElement.IsHasContentForRule())
 				{
 					intCounter++;
-					oElement.intRuleCounter--;
 
 					if (intCounter >= intDelCount)
 					{
 						break;
+					} else {
+						oElement.intRuleCounter--;
 					}
 				}
 			}
 
 			if (intCounter >= intDelCount)
 			{
+				this.ProceedContent.length = i + 1;
 
-				if(oElement.IsStart())
-				{
-					this.ProceedContent.length = i;
-				}
-				else if (oElement.IsHasContentForRule())
-				{
-					this.ProceedContent.length = i + 1;
+				if (oElement.Content.Type === 49) {
 					oElement.SliceByRuleCounter()
 				}
-				else
-				{
-					this.ProceedContent.length = i;
-				}
-
 				break;
 			}
 		}
@@ -2569,9 +2562,17 @@
 			let oElement = this.ProceedContent[i];
 			oElement.InitRuler();
 
-			while (oElement.IsHasContentForRule())
+			if (oElement.Content.Type ===  49)
 			{
-				let oContentForRule = oElement.GetContentForCheckRule();
+				while (oElement.IsHasContentForRule() )
+				{
+					let oContentForRule = oElement.GetContentForCheckRule();
+					this.RuleData.push(oContentForRule);
+				}
+			}
+			else
+			{
+				let oContentForRule = oElement.oRootContext;
 				this.RuleData.push(oContentForRule);
 			}
 		}
@@ -2590,10 +2591,7 @@
 			let oCurrentContent = this.RuleData[intCopyPos];
 			let Class = oCurrentContent.class;
 
-			if (oCurrentContent instanceof ProceedAutoCorection) {
-				return intCopyPos + 1;
-			}
-			else if (!(Class === 2 || Class === 3 || Class === 11))
+			if (!(Class === 2 || Class === 3 || Class === 11 || Class === 10 || oCurrentContent instanceof ProceedAutoCorection))
 			{
 				break
 			}
@@ -2636,7 +2634,9 @@
 
 		return arrOutputData;
 	}
-
+	AutoCorrectionFunc.prototype.IsNotHaveContentToConvert = function() {
+		return this.ProceedContent.length === 1 && this.ProceedContent[0].oRootContext.str.length === 0;
+	}
 	function ProceedContent(oContent, Parent) {
 		this.Content = oContent;
 		this.strContent = oContent.GetTextOfElement(); //TODO Latex or Unicode
@@ -2691,8 +2691,7 @@
 			
 			this.GetNext();
 
-			//todo: выделить sqrt и т.п в отдельную абстракцию
-			if ((this.oElement.class === 23 || this.oElement.class === 25 || this.oElement.data === "√("))
+			if ((this.oElement.class === 23 || this.oElement.class === 25))
 			{
 				this.ProceedBracketsBlock();
 			}
@@ -2749,7 +2748,12 @@
 		return oContent;
 	}
 	ProceedContent.prototype.SliceByRuleCounter = function() {
-		this.oRootContext.str.splice(0, this.oRootContext.str.length - this.intRuleCounter - 1);
+		if (this.intRuleCounter !== 0) {
+			let intDelete = this.intRuleCounter;
+			if (intDelete >= 0) {
+				this.oRootContext.str.splice(0, intDelete);
+			}
+		}
 	}
 	ProceedContent.prototype.GetText = function() {
 		this.oRootContext.GetText()
@@ -2973,20 +2977,18 @@
 		oData.ProceedContentFunc();
 		oData.ProceedBracketsAndCut();
 
-		if (oData.intCounter !== 0)
-		{
-			//обрабатываем как текст
-		}
-		else
+		if (oData.intCounter === 0)
 		{
 			oData.GetFirstInput();
-			oData.CheckRules();
+			let isNotContinue = oData.IsNotHaveContentToConvert();
+
+			if (!isNotContinue) {
+				oData.CheckRules();
+				oData.GetText();
+				oData.CreateFlatData();
+				return oData.GetOutputData();
+			}
 		}
-
-		oData.GetText();
-		oData.CreateFlatData();
-
-		return oData.GetOutputData();
 	}
 
 	function GetFixedCharCodeAt(str) {
@@ -3529,6 +3531,7 @@
 	}
 
 	function ConvertCorrectionWordToSymbols (oCMathContent) {
+		let isConvert = false;
 		if (oCMathContent.Type === 49) {
 
 			for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
@@ -3564,17 +3567,20 @@
 							nCount -= (intEnd - intStart);
 							oCMathContent.Remove_FromContent(intStart, intEnd - intStart + 1);
 							oCMathContent.AddText(strCorrection, intStart);
+							isConvert = true
 						}
 					}
 				}
 			}
 		}
-		else 
+		else
 		{
 			for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
-				ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount]);
-			}	
+				isConvert = ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount]) || isConvert;
+			}
 		}
+
+		return isConvert;
 	}
 	
 	//--------------------------------------------------------export----------------------------------------------------
