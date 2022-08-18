@@ -9676,7 +9676,7 @@
 				style.TableBand1Horz = elem;
 				break;
 			case "band2Horz":
-				Sstyle.TableBand2Horz = elem;
+				style.TableBand2Horz = elem;
 				break;
 			case "neCell":
 				style.TableTRCell = elem;

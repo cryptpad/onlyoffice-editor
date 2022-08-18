@@ -12832,7 +12832,7 @@
 	window["AscCommon"].UTF8ArrayToString = UTF8ArrayToString;
 	window["AscCommon"].build_local_rx = build_local_rx;
 	window["AscCommon"].GetFileName = GetFileName;
-	window["AscCommon"].GetFileExtension = GetFileExtension;
+	window["AscCommon"]['GetFileExtension'] = window["AscCommon"].GetFileExtension = GetFileExtension;
 	window["AscCommon"].changeFileExtention = changeFileExtention;
 	window["AscCommon"].getExtentionByFormat = getExtentionByFormat;
 	window["AscCommon"].InitOnMessage = InitOnMessage;

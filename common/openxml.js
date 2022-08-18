@@ -779,7 +779,10 @@
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------
+	var prot;
 	window['AscCommon'] = window['AscCommon'] || {};
-	window['AscCommon'].openXml = openXml;
+	window['AscCommon']['openXml'] = window['AscCommon'].openXml = openXml;
 
+	prot = openXml;
+	prot['GetMimeType'] = prot.GetMimeType;
 }(window));
