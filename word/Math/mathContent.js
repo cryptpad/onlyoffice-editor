@@ -3292,7 +3292,7 @@ CMathContent.prototype.Add_Text = function(sText, Paragraph, MathStyle)
     }
 };
 
-CMathContent.prototype.Add_TextOnPos = function(nPos,sText, Paragraph, MathStyle)
+CMathContent.prototype.Add_TextOnPos = function(nPos, sText, Paragraph, MathStyle)
 {
     this.Paragraph = Paragraph;
 
@@ -5514,8 +5514,8 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
         return
     }
     
-    let isConvertWords = this.CorrectAllMathWord();
-
+    let isConvertWords = this.CorrectAllMathWord(oElement.value);
+    
     if (isConvertWords === false)
     {
 
@@ -5527,7 +5527,7 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
         var oCurrentObj = this.Content[this.CurPos];
         var CursorPos = oCurrentObj.State.ContentPos;
-        
+    
         //выделяем все после CurPos в отдельный ран
         if (CursorPos < oCurrentObj.Content.length)
         {
@@ -5609,7 +5609,7 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
                     }
                 }
             }
-        
+
             //пишем новый контент
             var intPos;
             for (var i = 0; i < oTempObject.Content.length; i++)
@@ -5628,16 +5628,12 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
                 this.CurPos = intPos + 1;
             }
         }
-        else {
-            this.Correct_ContentCurPos()
-        }
-
-        this.MergeParaRuns();
-        this.Correct_Content(true);
     }
+
+    this.MergeParaRuns();
 };
-CMathContent.prototype.CorrectAllMathWord = function() {
-    return AscMath.ConvertCorrectionWordToSymbols(this);
+CMathContent.prototype.CorrectAllMathWord = function(oInputCode) {
+    return AscMath.ConvertCorrectionWordToSymbols(this, oInputCode);
 }
 
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {

@@ -2421,8 +2421,38 @@
 		}
 	}
 
+	//	Автокррекции НЕ срабатывает только при вводе букв и цифр, есть исключения для скобок
+	//
+	//	Автокоррекция состоит из нескольник частей:
+	//
+	//		Есть автокоррекция слов \int \sqrt \in \ifty...
+	//			- Слово конвертируются только если ввод происходит после него,
+	//			конвертация блоков не влияет на это.
+	//
+	//
+	//		Есть автокоррекция блоков
+	//			- Автокррекция происходит блоками(chain convertation), так если ввести x^1^2^3,
+	//			то при первой орбаботке будет создан X^1^(CDegree 2^3), а при следующем нажатии
+	//			X^(СDegree 1^(CDegree 2^3)) и т.д;
+	//
+	//			- Если ввести оператор(-, +, =, /) или нажать после него пробел конвертнется ВСЕ,
+	//			что стоит до него (chain convertation тут не работает);
+	//
+	//			- Все скобки, кроме ( ) | |, работают как опертаоры
+	//				* скобки Не являются оператором для скобок
+	//			- Для LaTeX'a имеет смысле добавить в исключения { и }
+	//
+	//			- Есть правила для автоконвертации основанные на лексере:
+	//				* деление по всей видимости конвертится только если есть второй аргумент -> 1/2
+	//				* или введен один знак деления (вокруг пробелы, нет первого аргумента и т.п)
+	//
+	//
+
+	//нужно придумать как убрать дублирование и использовать токенизаторы
 	const AutoCorrectionRules = [
 		//true обозначает обычный текст, цифры и блоки контента (CFraction, CLmit, CDegree...);
+		[true, "_", true, "^", true],
+		[true, "^", true, "_", true],
 		[true, "/", true],
 		["/", true],
 		[true, "^", true],
@@ -2591,7 +2621,7 @@
 			let oCurrentContent = this.RuleData[intCopyPos];
 			let Class = oCurrentContent.class;
 
-			if (!(Class === 2 || Class === 3 || Class === 11 || Class === 10 || oCurrentContent instanceof ProceedAutoCorection))
+			if (!(Class === 2 || Class === 3 || Class === 11 || Class === 10 || Class === 29 || oCurrentContent instanceof ProceedAutoCorection))
 			{
 				break
 			}
@@ -3530,56 +3560,111 @@
 		'>>': "≫",
 	}
 
-	function ConvertCorrectionWordToSymbols (oCMathContent) {
+	//REFACTOR
+	function ConvertCorrectionWordToSymbols (oCMathContent, intInputCode) {
 		let isConvert = false;
-		if (oCMathContent.Type === 49) {
 
-			for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
+		//при автокоррекции мы обрабатываем только только слово стоящее перед курсором
+		if (intInputCode)
+		{
 
-				if (oCMathContent.Content[nCount].value === 92) {
+			let oContent = oCMathContent.Content[oCMathContent.CurPos];
+			let str = "";
+			let intStart = 0;
 
-					let str = oCMathContent.Content[nCount].GetTextOfElement();
-					let intStart = nCount;
-					let intEnd;
+			for (let nCount = oContent.State.ContentPos - 1; nCount >= 0; nCount--) {
+				let oElement = oContent.Content[nCount];
+				let intCode = oElement.value;
 
-					for (let i = nCount + 1; i < oCMathContent.Content.length; i++) {
+				intStart = nCount;
 
-						let oContent = oCMathContent.Content[i];
-						let intCode = oContent.value;
-						
-						if (intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90) {
-							intEnd = i;
-							str += oContent.GetTextOfElement();
-						}
-						else
-						{
-							break;
-						}
+				// первый обработанный элемент, то что было введено после слова
+				if (nCount === oContent.State.ContentPos - 1)
+				{ 
+					let isContinue = !(intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90); // не a-zA-z && 0-9
 
-						nCount++;
+					if (!isContinue)
+					{
+						return
 					}
+				}
+				else
+				{
+					str = oElement.GetTextOfElement() + str;
+				}
 
-					if (intEnd > intStart) {
+				if (intCode === 92) {
+					isConvert = true;
+					break;
+				}
+			}
 
-						let strCorrection = AutoCorrection[str];
-						if (strCorrection) {
+			if (oContent.State.ContentPos - 1 > intStart) {
+	
+				let strCorrection = AutoCorrection[str];
+				if (strCorrection) {
 
-							nCount -= (intEnd - intStart);
-							oCMathContent.Remove_FromContent(intStart, intEnd - intStart + 1);
-							oCMathContent.AddText(strCorrection, intStart);
-							isConvert = true
+					oContent.RemoveFromContent(intStart, oContent.State.ContentPos - 1 - intStart + 1, true);
+					oContent.AddText(strCorrection, intStart);
+					isConvert = true
+					
+					oCMathContent.Correct_Content(true)
+					oContent.State.ContentPos =  intStart + 1;
+				}
+			}
+		}
+		//при конвертации блока формулы проверяем все
+		else
+		{
+			if (oCMathContent.Type === 49) {
+
+				for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
+	
+					if (oCMathContent.Content[nCount].value === 92) {
+	
+						let str = oCMathContent.Content[nCount].GetTextOfElement();
+						let intStart = nCount;
+						let intEnd;
+	
+						for (let i = nCount + 1; i < oCMathContent.Content.length; i++) {
+	
+							let oContent = oCMathContent.Content[i];
+							let intCode = oContent.value;
+							
+							if (intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90) {
+								intEnd = i;
+								str += oContent.GetTextOfElement();
+							}
+							else
+							{
+								break;
+							}
+	
+							nCount++;
+						}
+	
+						if (intEnd > intStart) {
+	
+							let strCorrection = AutoCorrection[str];
+							if (strCorrection) {
+	
+								nCount -= (intEnd - intStart);
+								oCMathContent.RemoveFromContent(intStart, intEnd - intStart + 1, true);
+								oCMathContent.AddText(strCorrection, intStart);
+								isConvert = true;
+							}
 						}
 					}
 				}
 			}
-		}
-		else
-		{
-			for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
-				isConvert = ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount]) || isConvert;
+			else
+			{
+				for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
+					isConvert = ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount]) || isConvert;
+				}
 			}
 		}
-
+		
 		return isConvert;
 	}
 	
