@@ -548,7 +548,7 @@
 	};
 	baseEditorsApi.prototype.isLiveViewer                     = function()
 	{
-		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast();
+		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast() && !this.VersionHistory;
 	};
 	// Events
 	baseEditorsApi.prototype.sendEvent                       = function()
