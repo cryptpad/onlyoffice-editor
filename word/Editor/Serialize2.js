@@ -14955,7 +14955,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 		}
 		else if (c_oSer_OMathContentType.Run === type)
 		{
-			var run = new ParaRun(paragraphContent.GetParapgraph());
+			var run = new ParaRun(paragraphContent.GetParagraph());
             var oRes = { bRes: true };
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadRun(t, l, run, paragraphContent, oRes);
