@@ -4932,8 +4932,9 @@
 					break;
 				}
 				case "lvl" : {
+					let additionalLvl = {ilvl: 0};
 					this.NumberingLvl = new CNumberingLvl();
-					this.NumberingLvl.fromXml(reader);
+					this.NumberingLvl.fromXml(reader, additionalLvl);
 					break;
 				}
 			}
