@@ -7331,6 +7331,16 @@ window["asc_docs_api"].prototype["asc_nativeGetCoreProps"] = function() {
     return {};
 }
 
+window["Asc"]["asc_docs_api"].prototype["asc_nativeAddText"] = function(text, wrapWithSpaces) {
+    var settings = new AscCommon.CAddTextSettings();
+
+    if (wrapWithSpaces) {
+        settings.SetWrapWithSpaces(true);
+    }
+    
+    _api.asc_AddText(text, settings);
+}
+
 window["AscCommon"].getFullImageSrc2 = function(src) {
     var start = src.slice(0, 6);
     if (0 === start.indexOf("theme") && editor.ThemeLoader) {
