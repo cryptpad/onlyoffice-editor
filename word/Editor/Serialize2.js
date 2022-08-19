@@ -2905,12 +2905,12 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			if (null != border.Space) {
 				this.memory.WriteByte(c_oSerPageBorders.Space);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.WriteLong(border.getSpaceInPoint());
+				this.memory.WriteLong(border.getSpaceInPoint());
 			}
 			if (null != border.Size) {
 				this.memory.WriteByte(c_oSerPageBorders.Sz);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.WriteLong(border.getSizeIn8Point());
+				this.memory.WriteLong(border.getSizeIn8Point());
 			}
 			if (null != border.Unifill || (null != border.Color && border.Color.Auto)) {
 				this.memory.WriteByte(c_oSerPageBorders.ColorTheme);
