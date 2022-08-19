@@ -34,6 +34,7 @@
 			"common/api/actionOnTimer.js",
 			"common/api/tableStylesPreviewGenerator.js",
 			"common/api/spellCheckSettings.js",
+			"common/api/addTextSettings.js",
 
 			"common/nameMap.js",
 			"common/downloaderfiles.js",

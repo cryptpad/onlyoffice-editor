@@ -47,7 +47,7 @@ $(function () {
 		logicDocument.SelectAll();
 		assert.strictEqual(logicDocument.GetSelectedText(), "", "Check empty selection");
 
-		logicDocument.AddText("Hello World!");
+		logicDocument.AddTextWithPr("Hello World!");
 
 		logicDocument.SelectAll();
 		assert.strictEqual(logicDocument.GetSelectedText(false, {NewLineParagraph : true}), "Hello World!\r\n", "Add text 'Hello World!'");
@@ -59,13 +59,88 @@ $(function () {
 		p2.SetThisElementCurrent();
 		p2.MoveCursorToStartPos();
 
-		logicDocument.AddText("Second paragraph");
+		logicDocument.AddTextWithPr("Second paragraph");
 
 		logicDocument.SelectAll();
 		assert.strictEqual(logicDocument.GetSelectedText(false, {NewLineParagraph : true}), "Hello World!\r\nSecond paragraph\r\n", "Add text to the second paragraph");
 
-		logicDocument.AddText("Test");
+		logicDocument.AddTextWithPr("Test");
 		logicDocument.SelectAll();
 		assert.strictEqual(logicDocument.GetSelectedText(false, {NewLineParagraph : true}), "Test\r\n", "Replace all with adding text 'Test'");
+
+		function StartTest(text)
+		{
+			AscTest.ClearDocument();
+			let p = new AscWord.CParagraph(AscTest.DrawingDocument);
+			logicDocument.AddToContent(0, p);
+			logicDocument.AddTextWithPr(text);
+			logicDocument.MoveCursorToEndPos();
+		}
+
+		function GetText()
+		{
+			logicDocument.SelectAll();
+			let text = logicDocument.GetSelectedText();
+			logicDocument.RemoveSelection();
+			return text;
+		}
+
+		let settings = new AscCommon.CAddTextSettings();
+
+		settings.SetWrapWithSpaces(false);
+
+		StartTest("Text");
+		AscTest.MoveCursorLeft();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Tex123t", "Check text Tex123t");
+
+		StartTest("Tex t");
+		AscTest.MoveCursorLeft();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Tex 123t", "Check text Tex 123t");
+
+		StartTest("Tex t");
+		AscTest.MoveCursorLeft();
+		AscTest.MoveCursorLeft();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Tex123 t", "Check text Tex123 t");
+
+		StartTest("Text");
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Text123", "Check text Text123");
+
+		StartTest("Text");
+		logicDocument.MoveCursorToStartPos();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "123Text", "Check text 123Text");
+
+		settings.SetWrapWithSpaces(true);
+
+		StartTest("Text");
+		AscTest.MoveCursorLeft();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Tex 123 t", "Check wrap spaces Tex 123 t");
+
+		StartTest("Tex t");
+		AscTest.MoveCursorLeft();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Tex 123 t", "Check wrap spaces Tex 123 t");
+
+		StartTest("Tex t");
+		AscTest.MoveCursorLeft();
+		AscTest.MoveCursorLeft();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Tex 123 t", "Check wrap spaces Tex 123 t");
+
+		StartTest("Text");
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "Text 123", "Check wrap spaces Text 123");
+
+		StartTest("Text");
+		logicDocument.MoveCursorToStartPos();
+		logicDocument.AddTextWithPr("123", settings);
+		assert.strictEqual(GetText(), "123 Text", "Check wrap spaces 123 Text");
+
+
 	});
 });

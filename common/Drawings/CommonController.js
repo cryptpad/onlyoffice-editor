@@ -6890,13 +6890,17 @@ DrawingObjectsController.prototype =
         this.changeCurrentState(new AscFormat.NullState(this, this.drawingObjects));
     },
 
-    addTextWithPr: function(sText, oTextPr, isMoveCursorOutside)
+    addTextWithPr: function(sText, oSettings)
     {
         if(this.checkSelectedObjectsProtectionText())
         {
             return;
         }
         this.checkSelectedObjectsAndCallback(function(){
+
+			if (!oSettings)
+				oSettings = new AscCommon.CAddTextSettings();
+
             var oTargetDocContent = this.getTargetDocContent(true, false);
             if(oTargetDocContent) {
                 oTargetDocContent.Remove(-1, true, true, true, undefined);
@@ -6910,6 +6914,8 @@ DrawingObjectsController.prototype =
                     oTempPara.AddToContent(0, oRun);
 
                     oRun.SetPr(oCurrentTextPr.Copy());
+
+					let oTextPr = oSettings.GetTextPr();
                     if (oTextPr)
                         oRun.ApplyPr(oTextPr);
 
@@ -6923,7 +6929,7 @@ DrawingObjectsController.prototype =
                     oSelectedContent.Add(oSelectedElement);
                     oSelectedContent.EndCollect(oTargetDocContent);
 					oSelectedContent.ForceInlineInsert();
-					oSelectedContent.PlaceCursorInLastInsertedRun(!isMoveCursorOutside);
+					oSelectedContent.PlaceCursorInLastInsertedRun(!oSettings.IsMoveCursorOutside());
 					oSelectedContent.Insert(oAnchorPos);
 
                     var oTargetTextObject = getTargetTextObject(this);

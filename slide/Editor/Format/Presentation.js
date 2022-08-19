@@ -11267,16 +11267,15 @@ CPresentation.prototype.FitImagesToSlide = function () {
 /**
  * Добавляем текст в текущую позицию с заданными текстовыми настройками
  * @param sText {string}
- * @param oTextPr {?CTextPr}
- * @param isMoveCursorOutside {boolean} выводим ли курсор за пределы нового рана
+ * @param {?AscCommon.CAddTextSettings} oSettings
  */
-CPresentation.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside)
+CPresentation.prototype.AddTextWithPr = function(sText, oSettings)
 {
     var oCurrentController = this.GetCurrentController();
     if (!oCurrentController) {
         return;
     }
-    oCurrentController.addTextWithPr(sText, oTextPr, isMoveCursorOutside);
+    oCurrentController.addTextWithPr(sText, oSettings);
 };
 
 CPresentation.prototype.AddTextArt = function (nStyle) {

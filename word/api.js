@@ -11524,13 +11524,13 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.RemoveSelection();
 	};
-	asc_docs_api.prototype.asc_AddText = function(sText)
+	asc_docs_api.prototype.asc_AddText = function(sText, oSettings)
 	{
 		let oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return "";
 
-		return oLogicDocument.AddText(sText);
+		return oLogicDocument.AddTextWithPr(sText, oSettings);
 	};
 	asc_docs_api.prototype.asc_GetCurrentWord = function(nDirection)
 	{

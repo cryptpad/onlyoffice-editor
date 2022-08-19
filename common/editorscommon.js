@@ -1155,6 +1155,18 @@
     {
         return new CUnicodeIterator(this);
     };
+	/**
+	 * @returns {number[]}
+	 */
+	String.prototype.codePointsArray = function()
+	{
+		let codePoints = [];
+
+		for (let iter = this.getUnicodeIterator(); iter.check(); iter.next())
+			codePoints.push(iter.value());
+
+		return codePoints;
+	};
 
 	var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : undefined;
 	function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
