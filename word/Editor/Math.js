@@ -3701,9 +3701,9 @@ ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 	}
 	else
 	{
-        this.Root.CorrectAllMathWord();
 
 		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
+            this.Root.CorrectAllMathWord();
 			this.ConvertFromUnicodeMath();
 		}
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType) {

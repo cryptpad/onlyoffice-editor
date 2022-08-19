@@ -5513,17 +5513,19 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     { 
         return
     }
+
+    var oLogicDocument = this.GetLogicDocument();
     
-    let isConvertWords = this.CorrectAllMathWord(oElement.value);
+    var nInputType = oLogicDocument
+            ? oLogicDocument.GetMathInputType()
+            : Asc.c_oAscMathInputType.Unicode;
+    
+    let isConvertWords = (nInputType === Asc.c_oAscMathInputType.Unicode)
+        ? this.CorrectAllMathWord(oElement.value)
+        : false;
     
     if (isConvertWords === false)
     {
-
-        var oLogicDocument = this.GetLogicDocument();
-    
-        var nInputType = oLogicDocument 
-            ? oLogicDocument.GetMathInputType()
-            : Asc.c_oAscMathInputType.Unicode;
 
         var oCurrentObj = this.Content[this.CurPos];
         var CursorPos = oCurrentObj.State.ContentPos;
@@ -5539,7 +5541,7 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
         var oContentCopy = this.Content.slice(); 
         oContentCopy.length = this.CurPos + 1;
-        var oContentForAutoCorrection = AscMath.AutoCorrect(oContentCopy);
+        var oContentForAutoCorrection = AscMath.AutoCorrect(oContentCopy, nInputType);
 
         if (undefined !== oContentForAutoCorrection)
         {
@@ -5632,8 +5634,8 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
     this.MergeParaRuns();
 };
-CMathContent.prototype.CorrectAllMathWord = function(oInputCode) {
-    return AscMath.ConvertCorrectionWordToSymbols(this, oInputCode);
+CMathContent.prototype.CorrectAllMathWord = function(nInputType) {
+    return AscMath.ConvertCorrectionWordToSymbols(this, nInputType);
 }
 
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {

@@ -2460,7 +2460,7 @@
 		[true, "_", true],
 		["_", true],
 	];
-	function AutoCorrectionFunc(oCMathContent) {
+	function AutoCorrectionFunc(oCMathContent, nInputType) {
 		this.InputContent = oCMathContent; //CMathContent
 		this.isBreak = false;
 		this.ProceedContent = [];
@@ -2468,6 +2468,7 @@
 		this.intCounter = 0;
 		this.RuleData = [];
 		this.FirstElement;
+		this.nInputType = nInputType;
 	}
 	AutoCorrectionFunc.prototype.FillProceedContent = function() {
 		if (undefined !== this.InputContent) {
@@ -2487,7 +2488,10 @@
 		for (let i = 0; i < this.ProceedContent.length && !this.isBreak; i++) {
 			this.ProceedContent[i].Start();
 			this.ProceedContent[i].Clean();
-			this.ProceedContent[i].ProceedOperators();
+
+			//обрезка по оператору, а для LaTeX'a по символу //
+			this.ProceedContent[i].ProceedOperators(this.nInputType);
+			
 
 			if (this.isBreak === true) {
 				let intCount = i + 1;
@@ -2587,28 +2591,32 @@
 		}
 	}
 	AutoCorrectionFunc.prototype.CheckRules = function() {
-		for (let i = 0; i < this.ProceedContent.length; i++) {
-			
-			let oElement = this.ProceedContent[i];
-			oElement.InitRuler();
+		if (this.nInputType === 0)
+		{
 
-			if (oElement.Content.Type ===  49)
-			{
-				while (oElement.IsHasContentForRule() )
+			for (let i = 0; i < this.ProceedContent.length; i++) {
+			
+				let oElement = this.ProceedContent[i];
+				oElement.InitRuler();
+	
+				if (oElement.Content.Type ===  49)
 				{
-					let oContentForRule = oElement.GetContentForCheckRule();
+					while (oElement.IsHasContentForRule() )
+					{
+						let oContentForRule = oElement.GetContentForCheckRule();
+						this.RuleData.push(oContentForRule);
+					}
+				}
+				else
+				{
+					let oContentForRule = oElement.oRootContext;
 					this.RuleData.push(oContentForRule);
 				}
 			}
-			else
-			{
-				let oContentForRule = oElement.oRootContext;
-				this.RuleData.push(oContentForRule);
-			}
+	
+			let intLenForDel = this.ProceedRules();
+			this.DeleteContent(intLenForDel);
 		}
-
-		let intLenForDel = this.ProceedRules();
-		this.DeleteContent(intLenForDel);
 	}
 	AutoCorrectionFunc.prototype.GetFirstInput = function() {
 		this.FirstElement = this.ProceedContent[0].GetFirstElement();
@@ -2747,8 +2755,8 @@
 	ProceedContent.prototype.GetFlat = function() {
 		return this.oRootContext.FlatData();
 	}
-	ProceedContent.prototype.ProceedOperators = function() {
-		let isBreak = this.oRootContext.ProceedOperators();
+	ProceedContent.prototype.ProceedOperators = function(nInputType) {
+		let isBreak = this.oRootContext.ProceedOperators(nInputType);
 
 		if (true === isBreak) {
 			this.Parent.isBreak = true;
@@ -2960,11 +2968,20 @@
 	ProceedAutoCorection.prototype.SetEmpty = function() {
 		this.str = [];
 	}
-	ProceedAutoCorection.prototype.ProceedOperators = function() {
+	ProceedAutoCorection.prototype.ProceedOperators = function(nInputType) {
+		
 		for (let i = this.str.length - 1; i >= 0; i--) {
-			if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
-				this.str.splice(0, i + 1);
-				return true;
+			if (nInputType === 1) { //LaTeX
+				if (this.str[i].data && this.str[i].data[0] === "\\") {
+					this.str.splice(0, i - 1);
+					return true;
+				}
+			}
+			else {
+				if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
+					this.str.splice(0, i + 1);
+					return true;
+				}
 			}
 		}
 	}
@@ -2972,7 +2989,8 @@
 		for (let i = 0; i < this.str.length; i++) {
 			let oContent = this.str[i];
 
-			if (oContent instanceof ProceedAutoCorection) {
+			if (oContent instanceof ProceedAutoCorection)
+			{
 				let arrData = oContent.FlatData();
 				
 				if (arrData) {
@@ -2984,6 +3002,23 @@
 						this.str.splice(i+j, 0, arrData[j]);
 					}
 				}
+			}
+			else if (oContent.data.length > 1)
+			{
+				this.str.splice(i,1);
+	
+				for (let j = 0; j < oContent.data.length; j++) {
+
+					let oTemp = {
+						"class": 11,
+						"data": oContent.data[j],
+						"index": 2
+					}
+					this.str.splice(i + j, 0, oTemp);
+
+				}
+
+				i += oContent.data.length - 1;
 			}
 
 			if (this.Parent !== null) {
@@ -3000,8 +3035,8 @@
 		return arr;
 	}
 
-	function AutoCorrect(oCMathContent) {
-		let oData = new AutoCorrectionFunc(oCMathContent);
+	function AutoCorrect(oCMathContent, nInputType) {
+		let oData = new AutoCorrectionFunc(oCMathContent, nInputType);
 
 		oData.FillProceedContent();
 		oData.ProceedContentFunc();
@@ -3563,7 +3598,7 @@
 	//REFACTOR
 	function ConvertCorrectionWordToSymbols (oCMathContent, intInputCode) {
 		let isConvert = false;
-
+		
 		//при автокоррекции мы обрабатываем только только слово стоящее перед курсором
 		if (intInputCode)
 		{
@@ -3660,7 +3695,7 @@
 			else
 			{
 				for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
-					isConvert = ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount]) || isConvert;
+					isConvert = ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount], nInputType) || isConvert;
 				}
 			}
 		}
