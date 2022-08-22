@@ -107,29 +107,6 @@
 		EqArrayliteral: [55, "EqArrayliteral"],
 	};
 	const wordAutoCorrection = [
-		// Если массив правила состоит из:
-		// 		* элемента для сравнения,
-		// 		* корректирующего элемента;
-		//
-		// 		например: [alpha, α]
-		//
-		//	Значение будет равно: a
-		// 	Класс будет равен значению oLiteralNames.CharLiteral[0]
-
-		// Если массив правила состоит из:
-		// 		* элемента для сравнения,
-		//      * undefined || str,
-		// 		* значение из oNamesOfLiterals || true
-		//
-		// 		например: ["⁰", undefined, oNamesOfLiterals.specialScriptNumberLiteral[0]]
-		//
-		//  Значение равно:
-		//		* arr[1] === undefined: arr[0]
-		//		* typeof arr[1] === "string": arr[1]
-		//	Класс равен:
-		//		* arr[2] === true: Значение
-		//		* typeof arr[2] === "number" (oNamesOfLiterals): arr[2]
-
 		//Char
 		[
 			function (str) {
@@ -440,6 +417,8 @@
 		["≝"],
 		["℃"],
 		["℉"],
+		["\\sqrt", oNamesOfLiterals.sqrtLiteral[0]],
+
 		["°"],
 		["δ"],
 		["\\dfrac{", true],
@@ -860,786 +839,58 @@
 		"\\double": 12,
 	}
 	const GetMathFontChar = {
-		'A': {
-			0: '𝐀',
-			1: '𝐴',
-			2: '𝑨',
-			3: '𝖠',
-			4: '𝗔',
-			5: '𝘈',
-			6: '𝘼',
-			7: '𝒜',
-			8: '𝓐',
-			9: '𝔄',
-			10: '𝕬',
-			11: '𝙰',
-			12: '𝔸'
-		},
-		'B': {
-			0: '𝐁',
-			1: '𝐵',
-			2: '𝑩',
-			3: '𝖡',
-			4: '𝗕',
-			5: '𝘉',
-			6: '𝘽',
-			7: 'ℬ',
-			8: '𝓑',
-			9: '𝔅',
-			10: '𝕭',
-			11: '𝙱',
-			12: '𝔹'
-		},
-		'C': {
-			0: '𝐂',
-			1: '𝐶',
-			2: '𝑪',
-			3: '𝖢',
-			4: '𝗖',
-			5: '𝘊',
-			6: '𝘾',
-			7: '𝒞',
-			8: '𝓒',
-			9: 'ℭ',
-			10: '𝕮',
-			11: '𝙲',
-			12: 'ℂ'
-		},
-		'D': {
-			0: '𝐃',
-			1: '𝐷',
-			2: '𝑫',
-			3: '𝖣',
-			4: '𝗗',
-			5: '𝘋',
-			6: '𝘿',
-			7: '𝒟',
-			8: '𝓓',
-			9: '𝔇',
-			10: '𝕯',
-			11: '𝙳',
-			12: '𝔻'
-		},
-		'E': {
-			0: '𝐄',
-			1: '𝐸',
-			2: '𝑬',
-			3: '𝖤',
-			4: '𝗘',
-			5: '𝘌',
-			6: '𝙀',
-			7: 'ℰ',
-			8: '𝓔',
-			9: '𝔈',
-			10: '𝕰',
-			11: '𝙴',
-			12: '𝔼'
-		},
-		'F': {
-			0: '𝐅',
-			1: '𝐹',
-			2: '𝑭',
-			3: '𝖥',
-			4: '𝗙',
-			5: '𝘍',
-			6: '𝙁',
-			7: 'ℱ',
-			8: '𝓕',
-			9: '𝔉',
-			10: '𝕱',
-			11: '𝙵',
-			12: '𝔽'
-		},
-		'G': {
-			0: '𝐆',
-			1: '𝐺',
-			2: '𝑮',
-			3: '𝖦',
-			4: '𝗚',
-			5: '𝘎',
-			6: '𝙂',
-			7: '𝒢',
-			8: '𝓖',
-			9: '𝔊',
-			10: '𝕲',
-			11: '𝙶',
-			12: '𝔾'
-		},
-		'H': {
-			0: '𝐇',
-			1: '𝐻',
-			2: '𝑯',
-			3: '𝖧',
-			4: '𝗛',
-			5: '𝘏',
-			6: '𝙃',
-			7: 'ℋ',
-			8: '𝓗',
-			9: 'ℌ',
-			10: '𝕳',
-			11: '𝙷',
-			12: 'ℍ'
-		},
-		'I': {
-			0: '𝐈',
-			1: '𝐼',
-			2: '𝑰',
-			3: '𝖨',
-			4: '𝗜',
-			5: '𝘐',
-			6: '𝙄',
-			7: 'ℐ',
-			8: '𝓘',
-			9: 'ℑ',
-			10: '𝕴',
-			11: '𝙸',
-			12: '𝕀'
-		},
-		'J': {
-			0: '𝐉',
-			1: '𝐽',
-			2: '𝑱',
-			3: '𝖩',
-			4: '𝗝',
-			5: '𝘑',
-			6: '𝙅',
-			7: '𝒥',
-			8: '𝓙',
-			9: '𝔍',
-			10: '𝕵',
-			11: '𝙹',
-			12: '𝕁'
-		},
-		'K': {
-			0: '𝐊',
-			1: '𝐾',
-			2: '𝑲',
-			3: '𝖪',
-			4: '𝗞',
-			5: '𝘒',
-			6: '𝙆',
-			7: '𝒦',
-			8: '𝓚',
-			9: '𝔎',
-			10: '𝕶',
-			11: '𝙺',
-			12: '𝕂'
-		},
-		'L': {
-			0: '𝐋',
-			1: '𝐿',
-			2: '𝑳',
-			3: '𝖫',
-			4: '𝗟',
-			5: '𝘓',
-			6: '𝙇',
-			7: 'ℒ',
-			8: '𝓛',
-			9: '𝔏',
-			10: '𝕷',
-			11: '𝙻',
-			12: '𝕃'
-		},
-		'M': {
-			0: '𝐌',
-			1: '𝑀',
-			2: '𝑴',
-			3: '𝖬',
-			4: '𝗠',
-			5: '𝘔',
-			6: '𝙈',
-			7: 'ℳ',
-			8: '𝓜',
-			9: '𝔐',
-			10: '𝕸',
-			11: '𝙼',
-			12: '𝕄'
-		},
-		'N': {
-			0: '𝐍',
-			1: '𝑁',
-			2: '𝑵',
-			3: '𝖭',
-			4: '𝗡',
-			5: '𝘕',
-			6: '𝙉',
-			7: '𝒩',
-			8: '𝓝',
-			9: '𝔑',
-			10: '𝕹',
-			11: '𝙽',
-			12: 'ℕ'
-		},
-		'O': {
-			0: '𝐎',
-			1: '𝑂',
-			2: '𝑶',
-			3: '𝖮',
-			4: '𝗢',
-			5: '𝘖',
-			6: '𝙊',
-			7: '𝒪',
-			8: '𝓞',
-			9: '𝔒',
-			10: '𝕺',
-			11: '𝙾',
-			12: '𝕆'
-		},
-		'P': {
-			0: '𝐏',
-			1: '𝑃',
-			2: '𝑷',
-			3: '𝖯',
-			4: '𝗣',
-			5: '𝘗',
-			6: '𝙋',
-			7: '𝒫',
-			8: '𝓟',
-			9: '𝔓',
-			10: '𝕻',
-			11: '𝙿',
-			12: 'ℙ'
-		},
-		'Q': {
-			0: '𝐐',
-			1: '𝑄',
-			2: '𝑸',
-			3: '𝖰',
-			4: '𝗤',
-			5: '𝘘',
-			6: '𝙌',
-			7: '𝒬',
-			8: '𝓠',
-			9: '𝔔',
-			10: '𝕼',
-			11: '𝚀',
-			12: 'ℚ'
-		},
-		'R': {
-			0: '𝐑',
-			1: '𝑅',
-			2: '𝑹',
-			3: '𝖱',
-			4: '𝗥',
-			5: '𝘙',
-			6: '𝙍',
-			7: 'ℛ',
-			8: '𝓡',
-			9: 'ℜ',
-			10: '𝕽',
-			11: '𝚁',
-			12: 'ℝ'
-		},
-		'S': {
-			0: '𝐒',
-			1: '𝑆',
-			2: '𝑺',
-			3: '𝖲',
-			4: '𝗦',
-			5: '𝘚',
-			6: '𝙎',
-			7: '𝒮',
-			8: '𝓢',
-			9: '𝔖',
-			10: '𝕾',
-			11: '𝚂',
-			12: '𝕊'
-		},
-		'T': {
-			0: '𝐓',
-			1: '𝑇',
-			2: '𝑻',
-			3: '𝖳',
-			4: '𝗧',
-			5: '𝘛',
-			6: '𝙏',
-			7: '𝒯',
-			8: '𝓣',
-			9: '𝔗',
-			10: '𝕿',
-			11: '𝚃',
-			12: '𝕋'
-		},
-		'U': {
-			0: '𝐔',
-			1: '𝑈',
-			2: '𝑼',
-			3: '𝖴',
-			4: '𝗨',
-			5: '𝘜',
-			6: '𝙐',
-			7: '𝒰',
-			8: '𝓤',
-			9: '𝔘',
-			10: '𝖀',
-			11: '𝚄',
-			12: '𝕌'
-		},
-		'V': {
-			0: '𝐕',
-			1: '𝑉',
-			2: '𝑽',
-			3: '𝖵',
-			4: '𝗩',
-			5: '𝘝',
-			6: '𝙑',
-			7: '𝒱',
-			8: '𝓥',
-			9: '𝔙',
-			10: '𝖁',
-			11: '𝚅',
-			12: '𝕍'
-		},
-		'W': {
-			0: '𝐖',
-			1: '𝑊',
-			2: '𝑾',
-			3: '𝖶',
-			4: '𝗪',
-			5: '𝘞',
-			6: '𝙒',
-			7: '𝒲',
-			8: '𝓦',
-			9: '𝔚',
-			10: '𝖂',
-			11: '𝚆',
-			12: '𝕎'
-		},
-		'X': {
-			0: '𝐗',
-			1: '𝑋',
-			2: '𝑿',
-			3: '𝖷',
-			4: '𝗫',
-			5: '𝘟',
-			6: '𝙓',
-			7: '𝒳',
-			8: '𝓧',
-			9: '𝔛',
-			10: '𝖃',
-			11: '𝚇',
-			12: '𝕏'
-		},
-		'Y': {
-			0: '𝐘',
-			1: '𝑌',
-			2: '𝒀',
-			3: '𝖸',
-			4: '𝗬',
-			5: '𝘠',
-			6: '𝙔',
-			7: '𝒴',
-			8: '𝓨',
-			9: '𝔜',
-			10: '𝖄',
-			11: '𝚈',
-			12: '𝕐'
-		},
-		'Z': {
-			0: '𝐙',
-			1: '𝑍',
-			2: '𝒁',
-			3: '𝖹',
-			4: '𝗭',
-			5: '𝘡',
-			6: '𝙕',
-			7: '𝒵',
-			8: '𝓩',
-			9: 'ℨ',
-			10: '𝖅',
-			11: '𝚉',
-			12: 'ℤ'
-		},
-		'a': {
-			0: '𝐚',
-			1: '𝑎',
-			2: '𝒂',
-			3: '𝖺',
-			4: '𝗮',
-			5: '𝘢',
-			6: '𝙖',
-			7: '𝒶',
-			8: '𝓪',
-			9: '𝔞',
-			10: '𝖆',
-			11: '𝚊',
-			12: '𝕒'
-		},
-		'b': {
-			0: '𝐛',
-			1: '𝑏',
-			2: '𝒃',
-			3: '𝖻',
-			4: '𝗯',
-			5: '𝘣',
-			6: '𝙗',
-			7: '𝒷',
-			8: '𝓫',
-			9: '𝔟',
-			10: '𝖇',
-			11: '𝚋',
-			12: '𝕓'
-		},
-		'c': {
-			0: '𝐜',
-			1: '𝑐',
-			2: '𝒄',
-			3: '𝖼',
-			4: '𝗰',
-			5: '𝘤',
-			6: '𝙘',
-			7: '𝒸',
-			8: '𝓬',
-			9: '𝔠',
-			10: '𝖈',
-			11: '𝚌',
-			12: '𝕔'
-		},
-		'd': {
-			0: '𝐝',
-			1: '𝑑',
-			2: '𝒅',
-			3: '𝖽',
-			4: '𝗱',
-			5: '𝘥',
-			6: '𝙙',
-			7: '𝒹',
-			8: '𝓭',
-			9: '𝔡',
-			10: '𝖉',
-			11: '𝚍',
-			12: '𝕕'
-		},
-		'e': {
-			0: '𝐞',
-			1: '𝑒',
-			2: '𝒆',
-			3: '𝖾',
-			4: '𝗲',
-			5: '𝘦',
-			6: '𝙚',
-			7: 'ℯ',
-			8: '𝓮',
-			9: '𝔢',
-			10: '𝖊',
-			11: '𝚎',
-			12: '𝕖'
-		},
-		'f': {
-			0: '𝐟',
-			1: '𝑓',
-			2: '𝒇',
-			3: '𝖿',
-			4: '𝗳',
-			5: '𝘧',
-			6: '𝙛',
-			7: '𝒻',
-			8: '𝓯',
-			9: '𝔣',
-			10: '𝖋',
-			11: '𝚏',
-			12: '𝕗'
-		},
-		'g': {
-			0: '𝐠',
-			1: '𝑔',
-			2: '𝒈',
-			3: '𝗀',
-			4: '𝗴',
-			5: '𝘨',
-			6: '𝙜',
-			7: 'ℊ',
-			8: '𝓰',
-			9: '𝔤',
-			10: '𝖌',
-			11: '𝚐',
-			12: '𝕘'
-		},
-		'h': {
-			0: '𝐡',
-			1: 'ℎ',
-			2: '𝒉',
-			3: '𝗁',
-			4: '𝗵',
-			5: '𝘩',
-			6: '𝙝',
-			7: '𝒽',
-			8: '𝓱',
-			9: '𝔥',
-			10: '𝖍',
-			11: '𝚑',
-			12: '𝕙'
-		},
-		'i': {
-			0: '𝐢',
-			1: '𝑖',
-			2: '𝒊',
-			3: '𝗂',
-			4: '𝗶',
-			5: '𝘪',
-			6: '𝙞',
-			7: '𝒾',
-			8: '𝓲',
-			9: '𝔦',
-			10: '𝖎',
-			11: '𝚒',
-			12: '𝕚'
-		},
-		'j': {
-			0: '𝐣',
-			1: '𝑗',
-			2: '𝒋',
-			3: '𝗃',
-			4: '𝗷',
-			5: '𝘫',
-			6: '𝙟',
-			7: '𝒿',
-			8: '𝓳',
-			9: '𝔧',
-			10: '𝖏',
-			11: '𝚓',
-			12: '𝕛'
-		},
-		'k': {
-			0: '𝐤',
-			1: '𝑘',
-			2: '𝒌',
-			3: '𝗄',
-			4: '𝗸',
-			5: '𝘬',
-			6: '𝙠',
-			7: '𝓀',
-			8: '𝓴',
-			9: '𝔨',
-			10: '𝖐',
-			11: '𝚔',
-			12: '𝕜'
-		},
-		'l': {
-			0: '𝐥',
-			1: '𝑙',
-			2: '𝒍',
-			3: '𝗅',
-			4: '𝗹',
-			5: '𝘭',
-			6: '𝙡',
-			7: '𝓁',
-			8: '𝓵',
-			9: '𝔩',
-			10: '𝖑',
-			11: '𝚕',
-			12: '𝕝'
-		},
-		'm': {
-			0: '𝐦',
-			1: '𝑚',
-			2: '𝒎',
-			3: '𝗆',
-			4: '𝗺',
-			5: '𝘮',
-			6: '𝙢',
-			7: '𝓂',
-			8: '𝓶',
-			9: '𝔪',
-			10: '𝖒',
-			11: '𝚖',
-			12: '𝕞'
-		},
-		'n': {
-			0: '𝐧',
-			1: '𝑛',
-			2: '𝒏',
-			3: '𝗇',
-			4: '𝗻',
-			5: '𝘯',
-			6: '𝙣',
-			7: '𝓃',
-			8: '𝓷',
-			9: '𝔫',
-			10: '𝖓',
-			11: '𝚗',
-			12: '𝕟'
-		},
-		'o': {
-			0: '𝐨',
-			1: '𝑜',
-			2: '𝒐',
-			3: '𝗈',
-			4: '𝗼',
-			5: '𝘰',
-			6: '𝙤',
-			7: 'ℴ',
-			8: '𝓸',
-			9: '𝔬',
-			10: '𝖔',
-			11: '𝚘',
-			12: '𝕠'
-		},
-		'p': {
-			0: '𝐩',
-			1: '𝑝',
-			2: '𝒑',
-			3: '𝗉',
-			4: '𝗽',
-			5: '𝘱',
-			6: '𝙥',
-			7: '𝓅',
-			8: '𝓹',
-			9: '𝔭',
-			10: '𝖕',
-			11: '𝚙',
-			12: '𝕡'
-		},
-		'q': {
-			0: '𝐪',
-			1: '𝑞',
-			2: '𝒒',
-			3: '𝗊',
-			4: '𝗾',
-			5: '𝘲',
-			6: '𝙦',
-			7: '𝓆',
-			8: '𝓺',
-			9: '𝔮',
-			10: '𝖖',
-			11: '𝚚',
-			12: '𝕢'
-		},
-		'r': {
-			0: '𝐫',
-			1: '𝑟',
-			2: '𝒓',
-			3: '𝗋',
-			4: '𝗿',
-			5: '𝘳',
-			6: '𝙧',
-			7: '𝓇',
-			8: '𝓻',
-			9: '𝔯',
-			10: '𝖗',
-			11: '𝚛',
-			12: '𝕣'
-		},
-		's': {
-			0: '𝐬',
-			1: '𝑠',
-			2: '𝒔',
-			3: '𝗌',
-			4: '𝘀',
-			5: '𝘴',
-			6: '𝙨',
-			7: '𝓈',
-			8: '𝓼',
-			9: '𝔰',
-			10: '𝖘',
-			11: '𝚜',
-			12: '𝕤'
-		},
-		't': {
-			0: '𝐭',
-			1: '𝑡',
-			2: '𝒕',
-			3: '𝗍',
-			4: '𝘁',
-			5: '𝘵',
-			6: '𝙩',
-			7: '𝓉',
-			8: '𝓽',
-			9: '𝔱',
-			10: '𝖙',
-			11: '𝚝',
-			12: '𝕥'
-		},
-		'u': {
-			0: '𝐮',
-			1: '𝑢',
-			2: '𝒖',
-			3: '𝗎',
-			4: '𝘂',
-			5: '𝘶',
-			6: '𝙪',
-			7: '𝓊',
-			8: '𝓾',
-			9: '𝔲',
-			10: '𝖚',
-			11: '𝚞',
-			12: '𝕦'
-		},
-		'v': {
-			0: '𝐯',
-			1: '𝑣',
-			2: '𝒗',
-			3: '𝗏',
-			4: '𝘃',
-			5: '𝘷',
-			6: '𝙫',
-			7: '𝓋',
-			8: '𝓿',
-			9: '𝔳',
-			10: '𝖛',
-			11: '𝚟',
-			12: '𝕧'
-		},
-		'w': {
-			0: '𝐰',
-			1: '𝑤',
-			2: '𝒘',
-			3: '𝗐',
-			4: '𝘄',
-			5: '𝘸',
-			6: '𝙬',
-			7: '𝓌',
-			8: '𝔀',
-			9: '𝔴',
-			10: '𝖜',
-			11: '𝚠',
-			12: '𝕨'
-		},
-		'x': {
-			0: '𝐱',
-			1: '𝑥',
-			2: '𝒙',
-			3: '𝗑',
-			4: '𝘅',
-			5: '𝘹',
-			6: '𝙭',
-			7: '𝓍',
-			8: '𝔁',
-			9: '𝔵',
-			10: '𝖝',
-			11: '𝚡',
-			12: '𝕩'
-		},
-		'y': {
-			0: '𝐲',
-			1: '𝑦',
-			2: '𝒚',
-			3: '𝗒',
-			4: '𝘆',
-			5: '𝘺',
-			6: '𝙮',
-			7: '𝓎',
-			8: '𝔂',
-			9: '𝔶',
-			10: '𝖞',
-			11: '𝚢',
-			12: '𝕪'
-		},
-		'z': {
-			0: '𝐳',
-			1: '𝑧',
-			2: '𝒛',
-			3: '𝗓',
-			4: '𝘇',
-			5: '𝘻',
-			6: '𝙯',
-			7: '𝓏',
-			8: '𝔃',
-			9: '𝔷',
-			10: '𝖟',
-			11: '𝚣',
-			12: '𝕫'
-		},
+		'A': { 0: '𝐀', 1: '𝐴', 2: '𝑨', 3: '𝖠', 4: '𝗔', 5: '𝘈', 6: '𝘼', 7: '𝒜', 8: '𝓐', 9: '𝔄', 10: '𝕬', 11: '𝙰', 12: '𝔸'},
+		'B': { 0: '𝐁', 1: '𝐵', 2: '𝑩', 3: '𝖡', 4: '𝗕', 5: '𝘉', 6: '𝘽', 7: 'ℬ', 8: '𝓑', 9: '𝔅', 10: '𝕭', 11: '𝙱', 12: '𝔹'},
+		'C': { 0: '𝐂', 1: '𝐶', 2: '𝑪', 3: '𝖢', 4: '𝗖', 5: '𝘊', 6: '𝘾', 7: '𝒞', 8: '𝓒', 9: 'ℭ', 10: '𝕮', 11: '𝙲', 12: 'ℂ'},
+		'D': { 0: '𝐃', 1: '𝐷', 2: '𝑫', 3: '𝖣', 4: '𝗗', 5: '𝘋', 6: '𝘿', 7: '𝒟', 8: '𝓓', 9: '𝔇', 10: '𝕯', 11: '𝙳', 12: '𝔻'},
+		'E': { 0: '𝐄', 1: '𝐸', 2: '𝑬', 3: '𝖤', 4: '𝗘', 5: '𝘌', 6: '𝙀', 7: 'ℰ', 8: '𝓔', 9: '𝔈', 10: '𝕰', 11: '𝙴', 12: '𝔼'},
+		'F': { 0: '𝐅', 1: '𝐹', 2: '𝑭', 3: '𝖥', 4: '𝗙', 5: '𝘍', 6: '𝙁', 7: 'ℱ', 8: '𝓕', 9: '𝔉', 10: '𝕱', 11: '𝙵', 12: '𝔽'},
+		'G': { 0: '𝐆', 1: '𝐺', 2: '𝑮', 3: '𝖦', 4: '𝗚', 5: '𝘎', 6: '𝙂', 7: '𝒢', 8: '𝓖', 9: '𝔊', 10: '𝕲', 11: '𝙶', 12: '𝔾'},
+		'H': { 0: '𝐇', 1: '𝐻', 2: '𝑯', 3: '𝖧', 4: '𝗛', 5: '𝘏', 6: '𝙃', 7: 'ℋ', 8: '𝓗', 9: 'ℌ', 10: '𝕳', 11: '𝙷', 12: 'ℍ'},
+		'I': { 0: '𝐈', 1: '𝐼', 2: '𝑰', 3: '𝖨', 4: '𝗜', 5: '𝘐', 6: '𝙄', 7: 'ℐ', 8: '𝓘', 9: 'ℑ', 10: '𝕴', 11: '𝙸', 12: '𝕀'},
+		'J': { 0: '𝐉', 1: '𝐽', 2: '𝑱', 3: '𝖩', 4: '𝗝', 5: '𝘑', 6: '𝙅', 7: '𝒥', 8: '𝓙', 9: '𝔍', 10: '𝕵', 11: '𝙹', 12: '𝕁'},
+		'K': { 0: '𝐊', 1: '𝐾', 2: '𝑲', 3: '𝖪', 4: '𝗞', 5: '𝘒', 6: '𝙆', 7: '𝒦', 8: '𝓚', 9: '𝔎', 10: '𝕶', 11: '𝙺', 12: '𝕂'},
+		'L': { 0: '𝐋', 1: '𝐿', 2: '𝑳', 3: '𝖫', 4: '𝗟', 5: '𝘓', 6: '𝙇', 7: 'ℒ', 8: '𝓛', 9: '𝔏', 10: '𝕷', 11: '𝙻', 12: '𝕃'},
+		'M': { 0: '𝐌', 1: '𝑀', 2: '𝑴', 3: '𝖬', 4: '𝗠', 5: '𝘔', 6: '𝙈', 7: 'ℳ', 8: '𝓜', 9: '𝔐', 10: '𝕸', 11: '𝙼', 12: '𝕄'},
+		'N': { 0: '𝐍', 1: '𝑁', 2: '𝑵', 3: '𝖭', 4: '𝗡', 5: '𝘕', 6: '𝙉', 7: '𝒩', 8: '𝓝', 9: '𝔑', 10: '𝕹', 11: '𝙽', 12: 'ℕ'},
+		'O': { 0: '𝐎', 1: '𝑂', 2: '𝑶', 3: '𝖮', 4: '𝗢', 5: '𝘖', 6: '𝙊', 7: '𝒪', 8: '𝓞', 9: '𝔒', 10: '𝕺', 11: '𝙾', 12: '𝕆'},
+		'P': { 0: '𝐏', 1: '𝑃', 2: '𝑷', 3: '𝖯', 4: '𝗣', 5: '𝘗', 6: '𝙋', 7: '𝒫', 8: '𝓟', 9: '𝔓', 10: '𝕻', 11: '𝙿', 12: 'ℙ'},
+		'Q': { 0: '𝐐', 1: '𝑄', 2: '𝑸', 3: '𝖰', 4: '𝗤', 5: '𝘘', 6: '𝙌', 7: '𝒬', 8: '𝓠', 9: '𝔔', 10: '𝕼', 11: '𝚀', 12: 'ℚ'},
+		'R': { 0: '𝐑', 1: '𝑅', 2: '𝑹', 3: '𝖱', 4: '𝗥', 5: '𝘙', 6: '𝙍', 7: 'ℛ', 8: '𝓡', 9: 'ℜ', 10: '𝕽', 11: '𝚁', 12: 'ℝ'},
+		'S': { 0: '𝐒', 1: '𝑆', 2: '𝑺', 3: '𝖲', 4: '𝗦', 5: '𝘚', 6: '𝙎', 7: '𝒮', 8: '𝓢', 9: '𝔖', 10: '𝕾', 11: '𝚂', 12: '𝕊'},
+		'T': { 0: '𝐓', 1: '𝑇', 2: '𝑻', 3: '𝖳', 4: '𝗧', 5: '𝘛', 6: '𝙏', 7: '𝒯', 8: '𝓣', 9: '𝔗', 10: '𝕿', 11: '𝚃', 12: '𝕋'},
+		'U': { 0: '𝐔', 1: '𝑈', 2: '𝑼', 3: '𝖴', 4: '𝗨', 5: '𝘜', 6: '𝙐', 7: '𝒰', 8: '𝓤', 9: '𝔘', 10: '𝖀', 11: '𝚄', 12: '𝕌'},
+		'V': { 0: '𝐕', 1: '𝑉', 2: '𝑽', 3: '𝖵', 4: '𝗩', 5: '𝘝', 6: '𝙑', 7: '𝒱', 8: '𝓥', 9: '𝔙', 10: '𝖁', 11: '𝚅', 12: '𝕍'},
+		'W': { 0: '𝐖', 1: '𝑊', 2: '𝑾', 3: '𝖶', 4: '𝗪', 5: '𝘞', 6: '𝙒', 7: '𝒲', 8: '𝓦', 9: '𝔚', 10: '𝖂', 11: '𝚆', 12: '𝕎'},
+		'X': { 0: '𝐗', 1: '𝑋', 2: '𝑿', 3: '𝖷', 4: '𝗫', 5: '𝘟', 6: '𝙓', 7: '𝒳', 8: '𝓧', 9: '𝔛', 10: '𝖃', 11: '𝚇', 12: '𝕏'},
+		'Y': { 0: '𝐘', 1: '𝑌', 2: '𝒀', 3: '𝖸', 4: '𝗬', 5: '𝘠', 6: '𝙔', 7: '𝒴', 8: '𝓨', 9: '𝔜', 10: '𝖄', 11: '𝚈', 12: '𝕐'},
+		'Z': { 0: '𝐙', 1: '𝑍', 2: '𝒁', 3: '𝖹', 4: '𝗭', 5: '𝘡', 6: '𝙕', 7: '𝒵', 8: '𝓩', 9: 'ℨ', 10: '𝖅', 11: '𝚉', 12: 'ℤ'},
+		'a': { 0: '𝐚', 1: '𝑎', 2: '𝒂', 3: '𝖺', 4: '𝗮', 5: '𝘢', 6: '𝙖', 7: '𝒶', 8: '𝓪', 9: '𝔞', 10: '𝖆', 11: '𝚊', 12: '𝕒'},
+		'b': { 0: '𝐛', 1: '𝑏', 2: '𝒃', 3: '𝖻', 4: '𝗯', 5: '𝘣', 6: '𝙗', 7: '𝒷', 8: '𝓫', 9: '𝔟', 10: '𝖇', 11: '𝚋', 12: '𝕓'},
+		'c': { 0: '𝐜', 1: '𝑐', 2: '𝒄', 3: '𝖼', 4: '𝗰', 5: '𝘤', 6: '𝙘', 7: '𝒸', 8: '𝓬', 9: '𝔠', 10: '𝖈', 11: '𝚌', 12: '𝕔'},
+		'd': { 0: '𝐝', 1: '𝑑', 2: '𝒅', 3: '𝖽', 4: '𝗱', 5: '𝘥', 6: '𝙙', 7: '𝒹', 8: '𝓭', 9: '𝔡', 10: '𝖉', 11: '𝚍', 12: '𝕕'},
+		'e': { 0: '𝐞', 1: '𝑒', 2: '𝒆', 3: '𝖾', 4: '𝗲', 5: '𝘦', 6: '𝙚', 7: 'ℯ', 8: '𝓮', 9: '𝔢', 10: '𝖊', 11: '𝚎', 12: '𝕖'},
+		'f': { 0: '𝐟', 1: '𝑓', 2: '𝒇', 3: '𝖿', 4: '𝗳', 5: '𝘧', 6: '𝙛', 7: '𝒻', 8: '𝓯', 9: '𝔣', 10: '𝖋', 11: '𝚏', 12: '𝕗'},
+		'g': { 0: '𝐠', 1: '𝑔', 2: '𝒈', 3: '𝗀', 4: '𝗴', 5: '𝘨', 6: '𝙜', 7: 'ℊ', 8: '𝓰', 9: '𝔤', 10: '𝖌', 11: '𝚐', 12: '𝕘'},
+		'h': { 0: '𝐡', 1: 'ℎ', 2: '𝒉', 3: '𝗁', 4: '𝗵', 5: '𝘩', 6: '𝙝', 7: '𝒽', 8: '𝓱', 9: '𝔥', 10: '𝖍', 11: '𝚑', 12: '𝕙'},
+		'i': { 0: '𝐢', 1: '𝑖', 2: '𝒊', 3: '𝗂', 4: '𝗶', 5: '𝘪', 6: '𝙞', 7: '𝒾', 8: '𝓲', 9: '𝔦', 10: '𝖎', 11: '𝚒', 12: '𝕚'},
+		'j': { 0: '𝐣', 1: '𝑗', 2: '𝒋', 3: '𝗃', 4: '𝗷', 5: '𝘫', 6: '𝙟', 7: '𝒿', 8: '𝓳', 9: '𝔧', 10: '𝖏', 11: '𝚓', 12: '𝕛'},
+		'k': { 0: '𝐤', 1: '𝑘', 2: '𝒌', 3: '𝗄', 4: '𝗸', 5: '𝘬', 6: '𝙠', 7: '𝓀', 8: '𝓴', 9: '𝔨', 10: '𝖐', 11: '𝚔', 12: '𝕜'},
+		'l': { 0: '𝐥', 1: '𝑙', 2: '𝒍', 3: '𝗅', 4: '𝗹', 5: '𝘭', 6: '𝙡', 7: '𝓁', 8: '𝓵', 9: '𝔩', 10: '𝖑', 11: '𝚕', 12: '𝕝'},
+		'm': { 0: '𝐦', 1: '𝑚', 2: '𝒎', 3: '𝗆', 4: '𝗺', 5: '𝘮', 6: '𝙢', 7: '𝓂', 8: '𝓶', 9: '𝔪', 10: '𝖒', 11: '𝚖', 12: '𝕞'},
+		'n': { 0: '𝐧', 1: '𝑛', 2: '𝒏', 3: '𝗇', 4: '𝗻', 5: '𝘯', 6: '𝙣', 7: '𝓃', 8: '𝓷', 9: '𝔫', 10: '𝖓', 11: '𝚗', 12: '𝕟'},
+		'o': { 0: '𝐨', 1: '𝑜', 2: '𝒐', 3: '𝗈', 4: '𝗼', 5: '𝘰', 6: '𝙤', 7: 'ℴ', 8: '𝓸', 9: '𝔬', 10: '𝖔', 11: '𝚘', 12: '𝕠'},
+		'p': {0: '𝐩',1: '𝑝',2: '𝒑',3: '𝗉',4: '𝗽',5: '𝘱',6: '𝙥',7: '𝓅',8: '𝓹',9: '𝔭',10: '𝖕',11: '𝚙',12: '𝕡'},
+		'q': { 0: '𝐪', 1: '𝑞', 2: '𝒒', 3: '𝗊', 4: '𝗾', 5: '𝘲', 6: '𝙦', 7: '𝓆', 8: '𝓺', 9: '𝔮', 10: '𝖖', 11: '𝚚', 12: '𝕢'},
+		'r': { 0: '𝐫', 1: '𝑟', 2: '𝒓', 3: '𝗋', 4: '𝗿', 5: '𝘳', 6: '𝙧', 7: '𝓇', 8: '𝓻', 9: '𝔯', 10: '𝖗', 11: '𝚛', 12: '𝕣'},
+		's': { 0: '𝐬', 1: '𝑠', 2: '𝒔', 3: '𝗌', 4: '𝘀', 5: '𝘴', 6: '𝙨', 7: '𝓈', 8: '𝓼', 9: '𝔰', 10: '𝖘', 11: '𝚜', 12: '𝕤'},
+		't': { 0: '𝐭', 1: '𝑡', 2: '𝒕', 3: '𝗍', 4: '𝘁', 5: '𝘵', 6: '𝙩', 7: '𝓉', 8: '𝓽', 9: '𝔱', 10: '𝖙', 11: '𝚝', 12: '𝕥'},
+		'u': { 0: '𝐮', 1: '𝑢', 2: '𝒖', 3: '𝗎', 4: '𝘂', 5: '𝘶', 6: '𝙪', 7: '𝓊', 8: '𝓾', 9: '𝔲', 10: '𝖚', 11: '𝚞', 12: '𝕦'},
+		'v': { 0: '𝐯', 1: '𝑣', 2: '𝒗', 3: '𝗏', 4: '𝘃', 5: '𝘷', 6: '𝙫', 7: '𝓋', 8: '𝓿', 9: '𝔳', 10: '𝖛', 11: '𝚟', 12: '𝕧'},
+		'w': { 0: '𝐰', 1: '𝑤', 2: '𝒘', 3: '𝗐', 4: '𝘄', 5: '𝘸', 6: '𝙬', 7: '𝓌', 8: '𝔀', 9: '𝔴', 10: '𝖜', 11: '𝚠', 12: '𝕨'},
+		'x': { 0: '𝐱', 1: '𝑥', 2: '𝒙', 3: '𝗑', 4: '𝘅', 5: '𝘹', 6: '𝙭', 7: '𝓍', 8: '𝔁', 9: '𝔵', 10: '𝖝', 11: '𝚡', 12: '𝕩'},
+		'y': { 0: '𝐲', 1: '𝑦', 2: '𝒚', 3: '𝗒', 4: '𝘆', 5: '𝘺', 6: '𝙮', 7: '𝓎', 8: '𝔂', 9: '𝔶', 10: '𝖞', 11: '𝚢', 12: '𝕪'},
+		'z': { 0: '𝐳', 1: '𝑧', 2: '𝒛', 3: '𝗓', 4: '𝘇', 5: '𝘻', 6: '𝙯', 7: '𝓏', 8: '𝔃', 9: '𝔷', 10: '𝖟', 11: '𝚣', 12: '𝕫'},
 		'ı': {mathit: '𝚤'},
 		'ȷ': {mathit: '𝚥'},
 		'Α': {0: '𝚨', 1: '𝛢', 2: '𝜜', 4: '𝝖', 6: '𝞐'},
@@ -2311,28 +1562,33 @@
 	}
 	Tokenizer.prototype.GetSymbols = function (str) {
 		let output = [];
-		for (let oIter = str.getUnicodeIterator(); oIter.check(); oIter.next()) {
+		for (let oIter = str.getUnicodeIterator(); oIter.check(); oIter.next()) 
+		{
 			output.push(String.fromCodePoint(oIter.value()));
 		}
 		return output;
 	}
 	Tokenizer.prototype.GetStringLength = function (str) {
-		let len = 0;
+		let intLen = 0;
 		for (let oIter = str.getUnicodeIterator(); oIter.check(); oIter.next()) {
-			len++;
+			intLen++;
 		}
-		return len;
+		return intLen;
 	}
 	Tokenizer.prototype.IsHasMoreTokens = function () {
 		return this._cursor < this._string.length;
 	}
 	Tokenizer.prototype.GetTextOfToken = function (intIndex, isLaTeX) {
 		let arrToken = wordAutoCorrection[intIndex];
-		if (typeof arrToken[0] !== "function") {
-			if (isLaTeX && arrToken[1] !== undefined) {
+
+		if (typeof arrToken[0] !== "function")
+		{
+			if (isLaTeX && arrToken[1] !== undefined)
+			{
 				return arrToken[0];
 			}
-			else if (!isLaTeX && arrToken[1] !== undefined) {
+			else if (!isLaTeX && arrToken[1] !== undefined)
+			{
 				return arrToken[1];
 			}
 		}
@@ -2350,7 +1606,8 @@
 			tokenClass,
 			string = this._string.slice(this._cursor);
 
-		for (let i = wordAutoCorrection.length - 1; i >= 0; i--) {
+		for (let i = wordAutoCorrection.length - 1; i >= 0; i--)
+		{
 			autoCorrectRule = wordAutoCorrection[i];
 
 			tokenValue = this.MatchToken(autoCorrectRule[0], string);
@@ -2379,11 +1636,14 @@
 	}
 	Tokenizer.prototype.ProcessString = function (str, char) {
 		let intLenOfRule = 0;
+
 		while (intLenOfRule <= char.length - 1) {
-			if (char[intLenOfRule] === str[intLenOfRule]) {
+			if (char[intLenOfRule] === str[intLenOfRule])
+			{
 				intLenOfRule++;
 			}
-			else {
+			else
+			{
 				return;
 			}
 		}
@@ -2394,22 +1654,22 @@
 			? regexp(string, this)
 			: this.ProcessString(string, regexp);
 
-		if (oMatched === null || oMatched === undefined) {
+		if (oMatched === null || oMatched === undefined)
+		{
 			return null;
 		}
+
 		this._cursor += this.GetStringLength(oMatched);
 		return oMatched;
 	}
 	Tokenizer.prototype.SaveState = function (oLookahead) {
 		let strClass = oLookahead.class;
 		let data = oLookahead.data;
+
 		this.state.push({
 			_string: this._string,
 			_cursor: this._cursor,
-			oLookahead: {
-				class: strClass,
-				data: data,
-			},
+			oLookahead: { class: strClass, data: data},
 		})
 	}
 	Tokenizer.prototype.RestoreState = function () {
@@ -2469,14 +1729,16 @@
 		this.RuleData = [];
 		this.FirstElement;
 		this.nInputType = nInputType;
+		this.intLengthOfContent = [];
 	}
 	AutoCorrectionFunc.prototype.FillProceedContent = function() {
-		if (undefined !== this.InputContent) {
+		if (undefined !== this.InputContent)
+		{
 			
-			for (let i = this.InputContent.length - 1; i >= 0; i--) {
+			for (let i = this.InputContent.length - 1; i >= 0; i--)
+			{
 				let oCurrentContent = this.InputContent[i]; 
 				
-
 				if (oCurrentContent !== undefined && oCurrentContent.Content.length > 0 && !this.isBreak) {
 					let oProceedObj = new ProceedContent(oCurrentContent, this); 
 					this.ProceedContent.push(oProceedObj);
@@ -2487,11 +1749,26 @@
 	AutoCorrectionFunc.prototype.ProceedContentFunc = function() {
 		for (let i = 0; i < this.ProceedContent.length && !this.isBreak; i++) {
 			this.ProceedContent[i].Start();
-			this.ProceedContent[i].Clean();
+			this.ProceedContent[i].Clean()
+		}
+	}
+	AutoCorrectionFunc.prototype.ProceedOperators = function() {
+		this.isBreak = false;
+		for (let i = 0; i < this.ProceedContent.length && !this.isBreak; i++) {
+			this.ProceedContent[i].ProceedOperators();
 
-			//обрезка по оператору, а для LaTeX'a по символу //
-			this.ProceedContent[i].ProceedOperators(this.nInputType);
-			
+			if (this.isBreak === true) {
+				let intCount = i + 1;
+				this.ProceedContent.splice(i+1, this.ProceedContent.length - intCount)
+				break;
+			}
+		}
+	}
+	AutoCorrectionFunc.prototype.ProceedBackslashes = function() {
+		this.isBreak = false;
+
+		for (let i = 0; i < this.ProceedContent.length && !this.isBreak; i++) {
+			this.ProceedContent[i].ProceedBackslashes();
 
 			if (this.isBreak === true) {
 				let intCount = i + 1;
@@ -2501,8 +1778,14 @@
 		}
 	}
 	AutoCorrectionFunc.prototype.ProceedBracketsAndCut = function() {
+		this.isBreak = false;
 		for (let i = 0; i < this.ProceedContent.length; i++) {
-			this.ProceedContent[i].oRootContext.TrimUnnecessaryBrackets();
+			if (this.isBreak === true) {
+				this.ProceedContent.splice(i, this.ProceedContent.length - i);
+				break;
+			} else {
+				this.ProceedContent[i].oRootContext.TrimUnnecessaryBrackets();
+			}
 		}
 	}
 	AutoCorrectionFunc.prototype.ProceedRules = function() {
@@ -2710,6 +1993,7 @@
 			}
 		}
 
+		this.isBracketBlock = true;
 		this.Context = this.Context.SetUpperLevel();
 		this.oElement = undefined;
 	}
@@ -2755,8 +2039,15 @@
 	ProceedContent.prototype.GetFlat = function() {
 		return this.oRootContext.FlatData();
 	}
-	ProceedContent.prototype.ProceedOperators = function(nInputType) {
-		let isBreak = this.oRootContext.ProceedOperators(nInputType);
+	ProceedContent.prototype.ProceedOperators = function() {
+		let isBreak = this.oRootContext.ProceedOperators();
+
+		if (true === isBreak) {
+			this.Parent.isBreak = true;
+		}
+	}
+	ProceedContent.prototype.ProceedBackslashes = function() {
+		let isBreak = this.oRootContext.ProceedBackslashes();
 
 		if (true === isBreak) {
 			this.Parent.isBreak = true;
@@ -2933,7 +2224,13 @@
 		}
 	}
 	ProceedAutoCorection.prototype.TrimUnnecessaryBrackets = function() {
-		this.ProceedContent.Parent.intCounter += this.GetBracketCountAndCut();
+		let oTemp = this.GetBracketCountAndCut();
+
+		this.ProceedContent.Parent.intCounter += oTemp.intCounter;
+
+		if (oTemp.isBreak) {
+			this.ProceedContent.Parent.isBreak = true;
+		}
 	}
 	ProceedAutoCorection.prototype.GetBracketCountAndCut = function() {
 		let intLocalCount = 0
@@ -2942,46 +2239,77 @@
 		for (let i = this.str.length - 1; i >= 0; i--) {
 			let oContent = this.str[i];
 
-			if (oContent instanceof ProceedAutoCorection) {
-				intLocalCount += oContent.GetBracketCountAndCut();
-			} 
-			else {
+			if (oContent instanceof ProceedAutoCorection)
+			{
+				let oTemp = oContent.GetBracketCountAndCut()
+				intLocalCount += oTemp.intCounter;
+
+				if (oTemp.isBreak) {
+					this.str.splice(0, i);
+					return {
+						isBreak: true,
+						intCounter: intLocalCount
+					}
+				}
+			}
+			else
+			{
 				if (oContent.class === oNamesOfLiterals.opOpenBracket[0] || (oContent.class === oNamesOfLiterals.opOpenCloseBracket[0] && intLocalCount !== 1)) {
+					
 					intLocalCount++;
-					if (intCount + intLocalCount > 0 && i !== 0) {
-						this.str.splice(0, i)
-						break;
-					}
-					else if (this.ProceedContent.Parent.ProceedContent.length === 1 && intCount + intLocalCount > 0) {
+					
+					if (intCount + intLocalCount > 0)
+					{
 						this.str.splice(0, i + 1)
-						break;
+						return {
+							isBreak: true,
+							intCounter: intLocalCount
+						}
 					}
-				} 
+					else if (this.ProceedContent.Parent.ProceedContent.length === 1 && intCount + intLocalCount > 0)
+					{
+						this.str.splice(0, i + 1)
+						return {
+							isBreak: true,
+							intCounter: intLocalCount
+						}
+					}
+				}
 				else if (oContent.class === oNamesOfLiterals.opCloseBracket[0] || oContent.class === oNamesOfLiterals.opOpenCloseBracket[0]) {
 					intLocalCount--;
-				} 
+				}
 			}
 		}
 
-		return intLocalCount;
+		return {
+			isBreak: false,
+			intCounter: intLocalCount
+		};
 	}
 	ProceedAutoCorection.prototype.SetEmpty = function() {
 		this.str = [];
 	}
-	ProceedAutoCorection.prototype.ProceedOperators = function(nInputType) {
-		
+	ProceedAutoCorection.prototype.ProceedOperators = function() {
 		for (let i = this.str.length - 1; i >= 0; i--) {
-			if (nInputType === 1) { //LaTeX
-				if (this.str[i].data && this.str[i].data[0] === "\\") {
-					this.str.splice(0, i - 1);
-					return true;
+
+			if (this.str[i] instanceof ProceedAutoCorection && this.str[i].ProceedContent.isBracketBlock === false) {
+				let isBreak = this.str[i].ProceedOperators();
+				if (isBreak === true) {
+					return isBreak;
 				}
 			}
-			else {
-				if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
-					this.str.splice(0, i + 1);
-					return true;
-				}
+			else if (this.str[i].class === oNamesOfLiterals.operatorLiteral[0]) {
+				this.str.splice(0, i + 1);
+				return true;
+			}
+		}
+	}
+	ProceedAutoCorection.prototype.ProceedBackslashes = function() {
+		for (let i = this.str.length - 1; i >= 0; i--) {
+			if (this.str[i].data && this.str[i].data[0] === "\\")
+			{
+				this.str.splice(0, i);
+				return true;
 			}
 		}
 	}
@@ -2991,34 +2319,45 @@
 
 			if (oContent instanceof ProceedAutoCorection)
 			{
-				let arrData = oContent.FlatData();
-				
+				let arrData = oContent.FlatData()
+
 				if (arrData) {
-					this.str.splice(
-						i,
-						1,
-					);
-					for (let j = 0; j < arrData.length; j++) {
-						this.str.splice(i+j, 0, arrData[j]);
+
+					this.str.splice(i, 1);
+
+					for (let j = 0; j < arrData.length; j++)
+					{
+						this.str.splice(i + j, 0, arrData[j]);
 					}
 				}
 			}
 			else if (oContent.data.length > 1)
 			{
-				this.str.splice(i,1);
-	
-				for (let j = 0; j < oContent.data.length; j++) {
+				this.str.splice(i, 1);
+
+				let strCorrectionWord = AutoCorrection[oContent.data];
+
+				if (strCorrectionWord && this.ProceedContent.Parent.nInputType === 0) {
 
 					let oTemp = {
-						"class": 11,
-						"data": oContent.data[j],
-						"index": 2
+						"class": oContent.class,
+						"data": strCorrectionWord
 					}
-					this.str.splice(i + j, 0, oTemp);
-
+					this.str.splice(i, 0, oTemp);
 				}
+				else {
 
-				i += oContent.data.length - 1;
+					for (let j = 0; j < oContent.data.length; j++) {
+						
+						let oTemp = {
+							"class": 11,
+							"data": oContent.data[j],
+						}
+
+						this.str.splice(i + j, 0, oTemp);
+					}
+					i += oContent.data.length - 1;
+				}
 			}
 
 			if (this.Parent !== null) {
@@ -3036,24 +2375,70 @@
 	}
 
 	function AutoCorrect(oCMathContent, nInputType) {
-		let oData = new AutoCorrectionFunc(oCMathContent, nInputType);
+		//получаем копию контента
+		let oContentCopy = oCMathContent.Content.slice();
+		oContentCopy.length = oCMathContent.CurPos + 1;
+
+		//записываем данные
+		let oData = new AutoCorrectionFunc(oContentCopy, nInputType);
 
 		oData.FillProceedContent();
 		oData.ProceedContentFunc();
 		oData.ProceedBracketsAndCut();
+		
+		oData.ProceedOperators();
+		
+		//if ((oData.intCounter === 0 && nInputType === 1) || nInputType === 0) {
 
-		if (oData.intCounter === 0)
-		{
-			oData.GetFirstInput();
+			if (nInputType === 1) {
+				oData.ProceedBackslashes();
+			}
+			if (nInputType === 0) {
+				oData.GetFirstInput();
+			}
+	
 			let isNotContinue = oData.IsNotHaveContentToConvert();
-
+	
 			if (!isNotContinue) {
-				oData.CheckRules();
+	
+				if (nInputType === 0) {
+					oData.CheckRules();
+				}
+				
 				oData.GetText();
 				oData.CreateFlatData();
-				return oData.GetOutputData();
+	
+				let oOutputData = oData.GetOutputData();
+	
+				if (oOutputData !== undefined) {
+					var arrOutputContent = [];
+					var arrDelData = [];
+			
+					for (var i = 0; i < oOutputData.length; i++) {
+						var Content = oOutputData[i];
+			
+						if (Content.str.length > 0) {
+							arrOutputContent = Content.str.concat(arrOutputContent);
+							arrDelData.push(Content.DelCount);
+						}
+						else {
+							arrDelData.push(Content.DelCount);
+							oOutputData.splice(i, 1);
+							i--;
+						}
+					}
+	
+					let strStringForConversion = arrOutputContent.join("");
+	
+					if (strStringForConversion) {
+						return {
+							str: strStringForConversion,
+							del: arrDelData,
+						}
+					}
+				}
 			}
-		}
+		//}
 	}
 
 	function GetFixedCharCodeAt(str) {
@@ -3595,111 +2980,105 @@
 		'>>': "≫",
 	}
 
-	//REFACTOR
-	function ConvertCorrectionWordToSymbols (oCMathContent, intInputCode) {
+	function CorrectWordOnCursor(oCMathContent) {
 		let isConvert = false;
-		
-		//при автокоррекции мы обрабатываем только только слово стоящее перед курсором
-		if (intInputCode)
-		{
+		let oContent = oCMathContent.Content[oCMathContent.CurPos];
+		let str = "";
+		let intStart = 0;
 
-			let oContent = oCMathContent.Content[oCMathContent.CurPos];
-			let str = "";
-			let intStart = 0;
+		for (let nCount = oContent.State.ContentPos - 1; nCount >= 0; nCount--) {
+			let oElement = oContent.Content[nCount];
+			let intCode = oElement.value;
 
-			for (let nCount = oContent.State.ContentPos - 1; nCount >= 0; nCount--) {
-				let oElement = oContent.Content[nCount];
-				let intCode = oElement.value;
+			intStart = nCount;
 
-				intStart = nCount;
+			// первый обработанный элемент, то что было введено после слова
+			if (nCount === oContent.State.ContentPos - 1)
+			{ 
+				let isContinue = (intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90); // не a-zA-z && 0-9
 
-				// первый обработанный элемент, то что было введено после слова
-				if (nCount === oContent.State.ContentPos - 1)
-				{ 
-					let isContinue = !(intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90); // не a-zA-z && 0-9
-
-					if (!isContinue)
-					{
-						return
-					}
-				}
-				else
+				if (!isContinue)
 				{
-					str = oElement.GetTextOfElement() + str;
-				}
-
-				if (intCode === 92) {
-					isConvert = true;
-					break;
-				}
-			}
-
-			if (oContent.State.ContentPos - 1 > intStart) {
-	
-				let strCorrection = AutoCorrection[str];
-				if (strCorrection) {
-
-					oContent.RemoveFromContent(intStart, oContent.State.ContentPos - 1 - intStart + 1, true);
-					oContent.AddText(strCorrection, intStart);
-					isConvert = true
-					
-					oCMathContent.Correct_Content(true)
-					oContent.State.ContentPos =  intStart + 1;
-				}
-			}
-		}
-		//при конвертации блока формулы проверяем все
-		else
-		{
-			if (oCMathContent.Type === 49) {
-
-				for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
-	
-					if (oCMathContent.Content[nCount].value === 92) {
-	
-						let str = oCMathContent.Content[nCount].GetTextOfElement();
-						let intStart = nCount;
-						let intEnd;
-	
-						for (let i = nCount + 1; i < oCMathContent.Content.length; i++) {
-	
-							let oContent = oCMathContent.Content[i];
-							let intCode = oContent.value;
-							
-							if (intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90) {
-								intEnd = i;
-								str += oContent.GetTextOfElement();
-							}
-							else
-							{
-								break;
-							}
-	
-							nCount++;
-						}
-	
-						if (intEnd > intStart) {
-	
-							let strCorrection = AutoCorrection[str];
-							if (strCorrection) {
-	
-								nCount -= (intEnd - intStart);
-								oCMathContent.RemoveFromContent(intStart, intEnd - intStart + 1, true);
-								oCMathContent.AddText(strCorrection, intStart);
-								isConvert = true;
-							}
-						}
-					}
+					return false
 				}
 			}
 			else
 			{
-				for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
-					isConvert = ConvertCorrectionWordToSymbols(oCMathContent.Content[nCount], nInputType) || isConvert;
+				str = oElement.GetTextOfElement() + str;
+			}
+
+			if (intCode === 92) {
+				isConvert = true;
+				break;
+			}
+		}
+
+		if (oContent.State.ContentPos - 1 > intStart) {
+			let strCorrection = AutoCorrection[str];
+			if (strCorrection) {
+
+				oContent.RemoveFromContent(intStart, oContent.State.ContentPos - 1 - intStart + 1, true);
+				oContent.AddText(strCorrection, intStart);
+				isConvert = true;
+				
+				oCMathContent.Correct_Content(true);
+				oContent.State.ContentPos =  intStart + 1;
+			}
+		}
+
+		return isConvert;
+	}
+	function CorrectAllWords (oCMathContent) {
+		let isConvert = false;
+	
+		if (oCMathContent.Type === 49) {
+
+			for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
+
+				if (oCMathContent.Content[nCount].value === 92) {
+
+					let str = oCMathContent.Content[nCount].GetTextOfElement();
+					let intStart = nCount;
+					let intEnd;
+
+					for (let i = nCount + 1; i < oCMathContent.Content.length; i++) {
+
+						let oContent = oCMathContent.Content[i];
+						let intCode = oContent.value;
+						
+						if (intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90) {
+							intEnd = i;
+							str += oContent.GetTextOfElement();
+						}
+						else
+						{
+							break;
+						}
+
+						nCount++;
+					}
+
+					if (intEnd > intStart) {
+
+						let strCorrection = AutoCorrection[str];
+						if (strCorrection) {
+
+							nCount -= (intEnd - intStart);
+							oCMathContent.RemoveFromContent(intStart, intEnd - intStart + 1, true);
+							oCMathContent.AddText(strCorrection, intStart);
+							isConvert = true;
+						}
+					}
 				}
 			}
 		}
-		
+		else
+		{
+			for (let nCount = 0; nCount < oCMathContent.Content.length; nCount++) {
+				isConvert = CorrectAllWords(oCMathContent.Content[nCount]) || isConvert;
+			}
+		}
+	
 		return isConvert;
 	}
 	
@@ -3716,6 +3095,6 @@
 	window["AscMath"].GetMathFontChar = GetMathFontChar;
 	window["AscMath"].AutoCorrect = AutoCorrect;
 	window["AscMath"].AutoCorrection = AutoCorrection;
-	window["AscMath"].ConvertCorrectionWordToSymbols = ConvertCorrectionWordToSymbols;
-
+	window["AscMath"].CorrectWordOnCursor = CorrectWordOnCursor;
+	window["AscMath"].CorrectAllWords = CorrectAllWords;
 })(window);
