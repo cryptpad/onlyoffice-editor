@@ -4758,7 +4758,7 @@ StyleManager.prototype =
 		if (this.index >= 0 && (!opt_inCaseOfChange || this._hasChanged)) {
 			this._hasChanged = false;
 			var sheetMemory = this.ws.rowsData;
-			sheetMemory.checkSize(this.index);
+			sheetMemory.checkIndex(this.index);
 			var xfSave = this.xfs ? this.xfs.getIndexNumber() : 0;
 			var flagToSave = this.flags;
 			var heightToSave = this.h;
@@ -4777,7 +4777,7 @@ StyleManager.prototype =
 		this.clear();
 		this.index = index;
 		var sheetMemory = this.ws.rowsData;
-		if (sheetMemory.hasSize(this.index)) {
+		if (sheetMemory.hasIndex(this.index)) {
 			this.flags = sheetMemory.getUint8(this.index, g_nRowOffsetFlag);
 			if (0 != (g_nRowFlag_init & this.flags)) {
 				this.xfs = g_StyleCache.getXf(sheetMemory.getUint32(this.index, g_nRowOffsetXf));
