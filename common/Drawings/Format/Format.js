@@ -1773,18 +1773,18 @@
 		};
 		CBaseColor.prototype.readModifier = function (name, reader) {
 			if (MODS_MAP[name]) {
+				var oMod = new CColorMod();
+				oMod.name = name;
 				while (reader.MoveToNextAttribute()) {
 					if (reader.GetNameNoNS() === "val") {
-						if (!Array.isArray(this.Mods)) {
-							this.Mods = [];
-						}
-						var oMod = new CColorMod();
-						oMod.name = name;
 						oMod.val = reader.GetValueInt();
-						this.Mods.push(oMod);
-						return true;
+						break;
 					}
 				}
+				if (!Array.isArray(this.Mods)) {
+					this.Mods = [];
+				}
+				this.Mods.push(oMod);
 			}
 			return false;
 		};
@@ -2373,7 +2373,20 @@
 				writer.WriteXmlAttributesEnd(true);
 			}
 		};
-
+		CRGBColor.prototype.fromScRgb = function() {
+			this.RGBA.R = 255 * this.scRGB_to_sRGB(this.RGBA.R);
+			this.RGBA.G = 255 * this.scRGB_to_sRGB(this.RGBA.G);
+			this.RGBA.B = 255 * this.scRGB_to_sRGB(this.RGBA.B);
+		};
+		CRGBColor.prototype.scRGB_to_sRGB = function(value) {
+			if( value < 0)
+				return 0;
+			if(value <= 0.0031308)
+				return value * 12.92;
+			if(value < 1)
+				return 1.055 * (Math.pow(value , (1 / 2.4))) - 0.055;
+			return 1;
+		};
 		function CSchemeColor() {
 			CBaseColor.call(this);
 			this.id = 0;
@@ -2953,6 +2966,9 @@
 			}
 			if (this.color) {
 				this.color.fromXml(reader);
+				if(name === "scrgbClr") {
+					this.color.fromScRgb();
+				}
 				if (Array.isArray(this.color.Mods)) {
 					this.Mods = new CColorModifiers();
 					this.Mods.Mods = this.color.Mods;
