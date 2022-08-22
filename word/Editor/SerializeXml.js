@@ -4252,19 +4252,27 @@
 	}
 
 	CT_DocDefaults.prototype.fromXml = function(reader) {
-		var elem, depth = reader.GetDepth();
+		var elem, subDepth, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "rPrDefault" : {
-					reader.ReadNextNode();//rPr
-					this.RPrDefault = new CTextPr();
-					this.RPrDefault.fromXml(reader);
+					subDepth = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(subDepth)) {
+						if ("rPr" === reader.GetNameNoNS()) {
+							this.RPrDefault = new CTextPr();
+							this.RPrDefault.fromXml(reader);
+						}
+					}
 					break;
 				}
 				case "pPrDefault" : {
-					reader.ReadNextNode();//pPr
-					this.PPrDefault = new CParaPr();
-					this.PPrDefault.fromXml(reader);
+					subDepth = reader.GetDepth();
+					while (reader.ReadNextSiblingNode(subDepth)) {
+						if ("pPr" === reader.GetNameNoNS()) {
+							this.PPrDefault = new CParaPr();
+							this.PPrDefault.fromXml(reader);
+						}
+					}
 					break;
 				}
 			}
