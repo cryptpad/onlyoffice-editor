@@ -2535,6 +2535,11 @@
 					this.setGapWidth(CT_Double.prototype.toVal(reader, this.gapWidth));
 					break;
 				}
+				case "overlap" : {
+					//todo percent
+					this.setOverlap(CT_Double.prototype.toVal(reader, this.overlap));
+					break;
+				}
 				case "gapDepth" : {
 					//todo percent
 					this.setGapDepth(CT_Double.prototype.toVal(reader, this.gapDepth));
@@ -2571,6 +2576,7 @@
 		writer.WriteXmlArray(this.series, "c:ser");
 		writer.WriteXmlNullable(this.dLbls, "c:dLbls");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.gapWidth), "c:gapWidth");
+		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.overlap), "c:overlap");
 		writer.WriteXmlNullable(CT_Double.prototype.fromVal(this.gapDepth), "c:gapDepth");
 		writer.WriteXmlNullable(CT_String.prototype.fromVal(toXml_ST_Shape(this.shape)), "c:shape");
 		this.axId.forEach(function(axis) {

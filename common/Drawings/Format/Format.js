@@ -3786,7 +3786,7 @@
 					break;
 				}
 				case "stretch": {
-					//this.stretch = true;
+					this.stretch = true;
 					let oThis = this;
 					let oPr = new CT_XmlNode(function (reader, name) {
 						if (name === "fillRect") {
