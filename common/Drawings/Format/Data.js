@@ -11649,7 +11649,7 @@ Because of this, the display is sometimes not correct.
         }
         case "txPr": {
           let oTxPr = new AscFormat.CTextBody();
-          oTxPr.fromXml(reader);
+          //oTxPr.fromXml(reader);
           this.setTxPr(oTxPr);
           break;
         }
@@ -11669,8 +11669,11 @@ Because of this, the display is sometimes not correct.
         this.scene3d.toXml(writer, "dgm");
       if (this.sp3d)
         this.sp3d.toXml(writer, "dgm:sp3d");
-      if (this.txPr)
-        this.txPr.toXml(writer, "dgm:txPr");
+      if (this.txPr) {
+        writer.WriteXmlNodeStart("dgm:txPr");
+        writer.WriteXmlAttributesEnd(true);
+        //this.txPr.toXml(writer, "dgm:txPr");
+      }
       if (this.style)
         this.style.toXml(writer);
       writer.WriteXmlNodeEnd("dgm:styleLbl");

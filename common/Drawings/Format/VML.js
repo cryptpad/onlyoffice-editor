@@ -12181,7 +12181,7 @@
 		}
 
 		function Mm_To_Emu(dValue) {
-			return dValue * 36000;
+			return dValue * 36000 + 0.5 >> 0;
 		}
 
 		function Pt_To_Cm(dValue) {
@@ -17019,5 +17019,7 @@
 		window['AscFormat'].Emu_To_Px = Emu_To_Px;
 		window['AscFormat'].Mm_To_Px = Mm_To_Px;
 		window['AscFormat'].Px_To_Mm = Px_To_Mm;
+		window['AscFormat'].Emu_To_Mm = Emu_To_Mm;
+		window['AscFormat'].Mm_To_Emu = Mm_To_Emu;
 
 	})(window);

@@ -18763,6 +18763,43 @@
 		};
 
 
+		function IdEntry(name) {
+			AscFormat.CBaseNoIdObject.call(this);
+			this.name = name;
+			this.id = null;
+			this.rId = null;
+		}
+		InitClass(IdEntry, CBaseNoIdObject, undefined);
+		IdEntry.prototype.readAttrXml = function(name, reader) {
+			switch (reader.GetName()) {
+				case "id": {
+					this.id = reader.GetValue();
+					break;
+				}
+				case "r:id": {
+					this.rId = reader.GetValue();
+					break;
+				}
+			}
+		};
+		IdEntry.prototype.toXml = function(writer) {
+			writer.WriteXmlNodeStart(this.name);
+			writer.WriteXmlNullableAttributeString("id", this.id);
+			writer.WriteXmlNullableAttributeString("r:id", this.rId);
+			writer.WriteXmlAttributesEnd(true);
+		};
+		IdEntry.prototype.readItem = function(reader, fConstructor) {
+			let oRel = reader.rels.getRelationship(this.rId);
+			let oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
+			let oContent = oRelPart.getDocumentContent();
+			let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
+			let oElement = fConstructor(oReader);
+			if(oElement) {
+				oElement.fromXml(oReader, true);
+			}
+			return oElement;
+		};
+
 
 
 // DEFAULT OBJECTS
@@ -20670,6 +20707,7 @@
 		window['AscFormat'].CBaseFormatObject = CBaseFormatObject;
 		window['AscFormat'].CBaseNoIdObject = CBaseNoIdObject;
 		window['AscFormat'].checkRasterImageId = checkRasterImageId;
+		window['AscFormat'].IdEntry = IdEntry;
 
 		window['AscFormat'].DEFAULT_COLOR_MAP = null;
 		window['AscFormat'].DEFAULT_THEME = null;

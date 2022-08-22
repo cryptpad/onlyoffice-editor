@@ -1719,7 +1719,6 @@
         }
     };
     CTiming.prototype.toXml = function (writer, name) {
-
         writer.WriteXmlNodeStart("p:timing");
         writer.WriteXmlAttributesEnd();
         writer.WriteXmlNullable(this.tnLst);
@@ -3886,28 +3885,48 @@
         else if (4 === nType) this.setRev(oStream.GetBool());
     };
 
-    CBldSub.prototype.readAttrXml = function (name, reader) {
-        if ("chart" === name) this.setChart(reader.GetValueBool());
-        else if ("animBg" === name) this.setAnimBg(reader.GetValueBool());
-        else if ("bldChart" === name) this.setBldChart(reader.GetValue());
-        else if ("bldDgm" === name) this.setBldDgm(reader.GetValue());
-        else if ("rev" === name) this.setRev(reader.GetValueBool());
+    CBldSub.prototype.readChildXml = function (name, reader) {
+        if ("bldChart" === name) {
+            this.setChart(true);
+            let oChart = new CT_XmlNode();
+            oChart.fromXml(reader);
+            if(oChart.attributes["animBg"]) {
+                this.setAnimBg(reader.GetBool(oChart.attributes["animBg"]));
+            }
+            if(oChart.attributes["bld"]) {
+                this.setBldChart(0);
+            }
+        }
+        else if ("bldDgm" === name) {
+            this.setChart(false);
+            let oDgm = new CT_XmlNode();
+            oDgm.fromXml(reader);
+            this.setBldDgm(0);
+            if(oDgm.attributes["rev"]) {
+                this.setRev(reader.GetBool(oDgm.attributes["rev"]));
+            }
+        }
     };
     CBldSub.prototype.toXml = function (writer, name) {
         if (this.chart !== null) {
             writer.WriteXmlNodeStart("p:bldSub");
+            writer.WriteXmlAttributesEnd();
             if (this.chart) {
-                writer.WriteXmlNullableAttributeString("bld", this.bldChart);
-                writer.WriteXmlNullableAttributeBool(("animBg"), this.animBg);
+                writer.WriteXmlNodeStart("a:bldChart");
+                writer.WriteXmlNullableAttributeString("bld", "allAtOnce");
+                writer.WriteXmlNullableAttributeBool("animBg", this.animBg);
                 writer.WriteXmlAttributesEnd();
+                writer.WriteXmlNodeEnd("a:bldChart");
             }
             else {
-                writer.WriteXmlNullableAttributeString("bld", this.bldDgm);
+                writer.WriteXmlNodeStart("a:bldDgm");
+                writer.WriteXmlNullableAttributeString("bld", "allAtOnce");
                 writer.WriteXmlNullableAttributeBool("rev", this.rev);
                 writer.WriteXmlAttributesEnd();
+                writer.WriteXmlNodeEnd("a:bldDgm");
             }
-            writer.WriteXmlNullable(this.chart, "a:bldChart");
             writer.WriteXmlNodeEnd("p:bldSub");
+            return;
         }
         return writer.WriteXmlString("<p:bldSub/>");
     };
@@ -4116,12 +4135,12 @@
         writer.WriteXmlNodeStart("p:graphicEl");
         writer.WriteXmlAttributesEnd();
         if (this.chartBuildStep) {
-            writer.WriteXmlNodeStart("p:chart");
+            writer.WriteXmlNodeStart("a:chart");
             writer.WriteXmlNullableAttributeString("bldStep", this.chartBuildStep);
             writer.WriteXmlNullableAttributeInt("seriesIdx", this.seriesIdx);
             writer.WriteXmlNullableAttributeInt("categoryIdx", this.categoryIdx);
             writer.WriteXmlAttributesEnd();
-            writer.WriteXmlNodeEnd("p:chart");
+            writer.WriteXmlNodeEnd("a:chart");
         }
         else {
             writer.WriteXmlNodeStart("p:dgm");

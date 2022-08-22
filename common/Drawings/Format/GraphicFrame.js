@@ -1421,7 +1421,22 @@ CGraphicFrame.prototype.IsThisElementCurrent = function()
         }
     };
 	CGraphicFrame.prototype.toXml = function(writer, name) {
-        let sName = name || "p:graphicFrame";
+        let sName;
+        if(name) {
+            sName = name;
+        }
+        else {
+            let namespace_ = "p";
+            let nDocType = writer.context.docType;
+            if ((nDocType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+                nDocType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) && writer.context.groupIndex >= 0)		namespace_ = "wpg";
+        else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_XLSX && writer.context.groupIndex >= 0)				namespace_ = "xdr";
+        else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_GRAPHICS)										namespace_ = "a";
+        else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING)									namespace_ = "cdr";
+        else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_DIAGRAM)											namespace_ = "dgm";
+        else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_DSP_DRAWING)										namespace_ = "dsp";
+            sName = namespace_ + ":graphicFrame";
+        }
 		var context = writer.context;
 		var objectId = context.objectId++;
 		writer.WriteXmlNodeStart(sName);
@@ -1436,7 +1451,22 @@ CGraphicFrame.prototype.IsThisElementCurrent = function()
             if(oUniNvPr) {
                 oUniNvPr.toXmlGrFrame(writer);
             }
-            writer.WriteXmlNullable(oSpTreeDrawing.spPr && oSpTreeDrawing.spPr.xfrm, ns + "xfrm");
+            let oXfrm = oSpTreeDrawing.spPr && oSpTreeDrawing.spPr.xfrm;
+            if(oXfrm) {
+                let dChOffX = oXfrm.chOffX;
+                let dChOffY = oXfrm.chOffY;
+                let dChExtX = oXfrm.chExtX;
+                let dChExtY = oXfrm.chExtY;
+                oXfrm.chOffX = null;
+                oXfrm.chOffY = null;
+                oXfrm.chExtX = null;
+                oXfrm.chExtY = null;
+                writer.WriteXmlNullable(oSpTreeDrawing.spPr && oSpTreeDrawing.spPr.xfrm, ns + "xfrm");
+                oXfrm.chOffX = dChOffX;
+                oXfrm.chOffY = dChOffY;
+                oXfrm.chExtX = dChExtX;
+                oXfrm.chExtY = dChExtY;
+            }
         }
         let oGraphicObject;
         if(this.isTable()) {

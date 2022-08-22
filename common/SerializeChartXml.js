@@ -269,7 +269,31 @@
 						//todo themeOverride
 						break;
 					}
-					//todo userShapes, styles, colors
+					case "userShapes" : {
+						let oChartSpace = this;
+						let oUserShapesEntry = new AscFormat.IdEntry();
+						oUserShapesEntry.fromXml(reader);
+						oUserShapesEntry.readItem(reader, function () {
+							let oNode = new CT_XmlNode(
+								function(reader, name) {
+									if(name === "relSizeAnchor") {
+										let oAnchor = new AscFormat.CRelSizeAnchor();
+										oAnchor.fromXml(reader);
+										oChartSpace.addUserShape(null, oAnchor);
+									}
+									else if(name === "absSizeAnchor") {
+										let oAnchor = new AscFormat.CAbsSizeAnchor();
+										oAnchor.fromXml(reader);
+										oChartSpace.addUserShape(null, oAnchor);
+									}
+									return true;
+								}
+							);
+							return oNode;
+						});
+						break;
+					}
+					//todo styles, colors
 				}
 			}
 		}
@@ -312,8 +336,28 @@
 		writer.WriteXmlNullable(this.txPr, "c:txPr");
 		// writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.externalData), "c:externalData");
 		writer.WriteXmlNullable(this.printSettings, "c:printSettings");
-		// writer.WriteXmlNullable(this.userShapes, "c:userShapes");
-		// writer.WriteXmlNullable(this.themeOverride, "c:themeOverride");
+		if(this.userShapes.length > 0) {
+			let userShapesPart = writer.context.part.addPart(AscCommon.openXml.Types.chartDrawing);
+			let memory = new AscCommon.CMemory();
+			memory.context = writer.context;
+			memory.WriteXmlNodeStart("c:userShapes");
+			memory.WriteXmlAttributeString("xmlns:c", "http://schemas.openxmlformats.org/drawingml/2006/chart");
+			memory.WriteXmlAttributeString("xmlns:cdr", "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing");
+			memory.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+			memory.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+			memory.WriteXmlAttributesEnd();
+			for(let nUSp = 0; nUSp < this.userShapes.length; ++nUSp) {
+				this.userShapes[nUSp].toXml(memory);
+			}
+			memory.WriteXmlNodeEnd("c:userShapes");
+			let userShapesData = memory.GetDataUint8();
+			userShapesPart.part.setData(userShapesData);
+			memory.Seek(0);
+			let oEntry = new AscFormat.IdEntry("c:userShapes");
+			oEntry.rId = userShapesPart.rId;
+			oEntry.toXml(writer);
+		}
+		//writer.WriteXmlNullable(this.themeOverride, "c:themeOverride");
 		writer.WriteXmlNodeEnd(name);
 
 		writer.context.docType = nOldDocType;

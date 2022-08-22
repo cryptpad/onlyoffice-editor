@@ -12260,7 +12260,7 @@ function IdList(name) {
 }
 AscFormat.InitClass(IdList, AscFormat.CBaseNoIdObject, undefined);
 IdList.prototype.readChildXml = function(name, reader) {
-    let oEntry = new IdEntry(name);
+    let oEntry = new AscFormat.IdEntry(name);
     oEntry.fromXml(reader);
     this.list.push(oEntry);
 };
@@ -12271,17 +12271,10 @@ IdList.prototype.writeChildrenXml = function(writer) {
 };
 IdList.prototype.readList = function(reader, fConstructor) {
     let aList = this.list;
-    let oRel;
-    let oRelPart;
     let aListOfObjects = [];
     for(let nItem = 0; nItem < aList.length; ++nItem) {
-        oRel = reader.rels.getRelationship(aList[nItem].rId);
-        oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
-        let oContent = oRelPart.getDocumentContent();
-        let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
-        let oElement = fConstructor(oReader);
+        let oElement = aList[nItem].readItem(reader, fConstructor);
         if(oElement) {
-            oElement.fromXml(oReader, true);
             aListOfObjects.push(oElement);
         }
     }
@@ -12304,7 +12297,7 @@ AscFormat.MIN_SLD_ID = MIN_SLD_ID;
 AscFormat.MIN_SLD_LAYOUT_ID = MIN_SLD_LAYOUT_ID;
 IdList.prototype.fillFromRIdList = function(aRId, sEntryName) {
     for(let nItem = 0; nItem < aRId.length; ++nItem) {
-        let oItem = new IdEntry(sEntryName);
+        let oItem = new AscFormat.IdEntry(sEntryName);
         let oRID = aRId[nItem];
         oItem.rId = oRID.rId;
         oItem.id = oRID.id;
@@ -12319,31 +12312,6 @@ IdList.prototype.writeRIdList = function(writer, aRId, sEntryName, nCounterBase)
 };
 
 
-function IdEntry(name) {
-    AscFormat.CBaseNoIdObject.call(this);
-    this.name = name;
-    this.id = null;
-    this.rId = null;
-}
-AscFormat.InitClass(IdEntry, AscFormat.CBaseNoIdObject, undefined);
-IdEntry.prototype.readAttrXml = function(name, reader) {
-    switch (reader.GetName()) {
-        case "id": {
-            this.id = reader.GetValue();
-            break;
-        }
-        case "r:id": {
-            this.rId = reader.GetValue();
-            break;
-        }
-    }
-};
-IdEntry.prototype.toXml = function(writer) {
-    writer.WriteXmlNodeStart(this.name);
-    writer.WriteXmlNullableAttributeString("id", this.id);
-    writer.WriteXmlNullableAttributeString("r:id", this.rId);
-    writer.WriteXmlAttributesEnd(true);
-};
 
 function CPresentationProperties(oPresentation) {
     AscFormat.CBaseNoIdObject.call(this);

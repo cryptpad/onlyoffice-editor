@@ -1834,7 +1834,6 @@ XmlWriterContext.prototype.getSpIdxId = function(sEditorId){
 };
 function CT_XmlNode(opt_elemReader) {
     this.attributes = {};
-    this.attributes = {};
     this.members = {};
     this.text = null;
 
