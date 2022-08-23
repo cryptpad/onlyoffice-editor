@@ -5527,10 +5527,14 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
     var oLogicDocument = this.GetLogicDocument();
     var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
 
-    let isConvertWords = false;
-   
-    isConvertWords = this.CorrectWordOnCursor(oElement.value);
+    let isConvertWords = this.CorrectWordOnCursor();
+    
     if (!isConvertWords) {
+
+        if (nInputType === 1) {
+            this.CorrectAllMathWords();
+        }
+
          //выделяем все после CurPos в отдельный ран
         this.SplitContentByContentPos();
 
@@ -5558,37 +5562,37 @@ CMathContent.prototype.New_AutoCorrect = function (oElement) {
 
                 if (this.Content.length > 0) {
 
-                    var intIndex = this.CurPos - i >= 0 ? this.CurPos - i : 0;
+                    var intIndex = this.CurPos;
                     var oContent = this.Content[intIndex];
 
                     var intLengthOfContent = oContent.Content.length;
                     var intDeleteCount = arrDelData[intCounterForDel];
 
-                    if (intCounterForDel !== undefined) {
+                    if (intCounterForDel !== undefined && intDeleteCount !== undefined && intDeleteCount !== 0) {
 
-                        if (intLengthOfContent <= intDeleteCount) {
-
+                        if (intLengthOfContent <= intDeleteCount)
+                        {
+                            let intTempCurPos = this.CurPos;
                             this.Remove_FromContent(intIndex, 1, true);
-                            intCounterForDel++;
-                            i--;
-                            this.CurPos--;
-                        }
-                        else {
 
-                            if (i === 0 && !isConvertWords && nInputType === 0) {
-                                intDeleteCount++;
+                            if (intTempCurPos === this.CurPos) {
+                                this.CurPos--;
                             }
 
+                            intCounterForDel++;
+                        }
+                        else
+                        {
                             oContent.Remove_FromContent(intLengthOfContent - intDeleteCount, intDeleteCount);
                             intCounterForDel++;
-
-                            if (i === arrDelData.length - 1) {
-                                this.CurPos++;
-                             }
                         }
                     }
                 }
             }
+            if (this.CurPos !== 0) {
+                this.CurPos++
+            }
+            
 
             //пишем новый контент
             var intPos;

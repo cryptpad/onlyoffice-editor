@@ -1750,6 +1750,9 @@
 		for (let i = 0; i < this.ProceedContent.length && !this.isBreak; i++) {
 			this.ProceedContent[i].Start();
 			this.ProceedContent[i].Clean()
+			if (this.isBreak) {
+				this.ProceedContent.splice(i + 1, this.ProceedContent.length - (i + 1));
+			}	
 		}
 	}
 	AutoCorrectionFunc.prototype.ProceedOperators = function() {
@@ -1947,9 +1950,18 @@
 		let arrOutputData = [];
 
 		for (let i = 0; i < this.FlatDatas.length; i++) {
+			let intLen = 0;
+			let arrData = [];
+			for (let j = 0; j < this.FlatDatas[i].length; j++) {
+				intLen += this.FlatDatas[i][j].len || 1;
+
+				if (this.FlatDatas[i][j].data !== " ") {
+					arrData.push(this.FlatDatas[i][j].data)
+				}
+			}
 			arrOutputData.push({
-				str: this.FlatDatas[i],
-				DelCount: this.FlatDatas[i].length,
+				str: arrData,
+				DelCount: intLen,
 			})
 		}
 
@@ -1960,7 +1972,7 @@
 	}
 	function ProceedContent(oContent, Parent) {
 		this.Content = oContent;
-		this.strContent = oContent.GetTextOfElement(); //TODO Latex or Unicode
+		this.strContent = oContent.GetTextOfElement(Parent.nInputType); //TODO Latex or Unicode
 		this.oRootContext = new ProceedAutoCorection(undefined, this);
 
 		this.Context = this.oRootContext;
@@ -2278,6 +2290,13 @@
 				else if (oContent.class === oNamesOfLiterals.opCloseBracket[0] || oContent.class === oNamesOfLiterals.opOpenCloseBracket[0]) {
 					intLocalCount--;
 				}
+				else if (oContent.data[0] === "\\" && this.ProceedContent.Parent.nInputType === 1 && intCount + intLocalCount > 0) {
+					this.str.splice(0, i + 1)
+						return {
+							isBreak: true,
+							intCounter: intLocalCount
+						}
+				}
 			}
 		}
 
@@ -2337,23 +2356,16 @@
 
 				let strCorrectionWord = AutoCorrection[oContent.data];
 
-				if (strCorrectionWord && this.ProceedContent.Parent.nInputType === 0) {
-
-					let oTemp = {
-						"class": oContent.class,
-						"data": strCorrectionWord
-					}
+				if (strCorrectionWord && this.ProceedContent.Parent.nInputType === 0)
+				{
+					let oTemp = { "class": oContent.class, "data": strCorrectionWord, "len": oContent.data.length};
 					this.str.splice(i, 0, oTemp);
 				}
-				else {
-
-					for (let j = 0; j < oContent.data.length; j++) {
-						
-						let oTemp = {
-							"class": 11,
-							"data": oContent.data[j],
-						}
-
+				else
+				{
+					for (let j = 0; j < oContent.data.length; j++)
+					{
+						let oTemp = {"class": 11, "data": oContent.data[j], "len": 1};
 						this.str.splice(i + j, 0, oTemp);
 					}
 					i += oContent.data.length - 1;
@@ -2364,59 +2376,41 @@
 				return this.str;
 			}
 		}
-
-		let arr = [];
-
-		for (let i = 0; i < this.str.length; i++) {
-			arr.push(this.str[i].data);
-		}
-
-		return arr;
+		
+		return this.str;
 	}
 
 	function AutoCorrect(oCMathContent, nInputType) {
 		//получаем копию контента
 		let oContentCopy = oCMathContent.Content.slice();
 		oContentCopy.length = oCMathContent.CurPos + 1;
-
 		//записываем данные
 		let oData = new AutoCorrectionFunc(oContentCopy, nInputType);
 
 		oData.FillProceedContent();
 		oData.ProceedContentFunc();
-		oData.ProceedBracketsAndCut();
-		
+		oData.ProceedBracketsAndCut(); //Обрезка по \\ для LaTeX'a присходит тут же
 		oData.ProceedOperators();
-		
-		//if ((oData.intCounter === 0 && nInputType === 1) || nInputType === 0) {
+	
+		if (!oData.IsNotHaveContentToConvert()) {
 
-			if (nInputType === 1) {
-				oData.ProceedBackslashes();
-			}
 			if (nInputType === 0) {
-				oData.GetFirstInput();
+				oData.CheckRules();
 			}
-	
-			let isNotContinue = oData.IsNotHaveContentToConvert();
-	
-			if (!isNotContinue) {
-	
-				if (nInputType === 0) {
-					oData.CheckRules();
-				}
-				
-				oData.GetText();
-				oData.CreateFlatData();
-	
-				let oOutputData = oData.GetOutputData();
-	
-				if (oOutputData !== undefined) {
-					var arrOutputContent = [];
-					var arrDelData = [];
 			
-					for (var i = 0; i < oOutputData.length; i++) {
-						var Content = oOutputData[i];
-			
+			oData.GetText();
+			oData.CreateFlatData();
+
+			let oOutputData = oData.GetOutputData();
+			if (oOutputData !== undefined) {
+				var arrOutputContent = [];
+				var arrDelData = [];
+		
+				for (var i = 0; i < oOutputData.length; i++) {
+					var Content = oOutputData[i];
+		
+					if (Content.DelCount > 0) {
+						
 						if (Content.str.length > 0) {
 							arrOutputContent = Content.str.concat(arrOutputContent);
 							arrDelData.push(Content.DelCount);
@@ -2427,18 +2421,19 @@
 							i--;
 						}
 					}
-	
-					let strStringForConversion = arrOutputContent.join("");
-	
-					if (strStringForConversion) {
-						return {
-							str: strStringForConversion,
-							del: arrDelData,
-						}
+					
+				}
+
+				let strStringForConversion = arrOutputContent.join("");
+
+				if (strStringForConversion) {
+					return {
+						str: strStringForConversion,
+						del: arrDelData,
 					}
 				}
 			}
-		//}
+		}
 	}
 
 	function GetFixedCharCodeAt(str) {
@@ -2478,9 +2473,12 @@
 		"\\ast": "∗",
 		"\\asymp": "≍",
 		"\\atop": "¦",
+		"\\array": "■",
 
 		"\\bar": "̅",
 		"\\Bar": "̿",
+		"\\backslash": "\\",
+		"\\backprime": "‵",
 		"\\because": "∵",
 		"\\begin": "〖",
 		"\\below": "┬",
@@ -2510,7 +2508,7 @@
 		"\\bullet": "∙",
 
 		"\\cap": "∩",
-		"\\cases": "Ⓒ",
+		"\\cases": "Ⓒ", //["\\cases", "█", true], TODO CHECK
 		"\\cbrt": "∛",
 		"\\cdot": "⋅",
 		"\\cdots": "⋯",
@@ -2522,6 +2520,7 @@
 		"\\clubsuit": "♣",
 		"\\coint": "∲",
 		"\\cong": "≅",
+		"\\contain": "∋",
 		"\\coprod": "∐",
 		"\\cup": "∪",
 
@@ -2989,23 +2988,22 @@
 		for (let nCount = oContent.State.ContentPos - 1; nCount >= 0; nCount--) {
 			let oElement = oContent.Content[nCount];
 			let intCode = oElement.value;
-
 			intStart = nCount;
-
+			
 			// первый обработанный элемент, то что было введено после слова
-			if (nCount === oContent.State.ContentPos - 1)
+			if (nCount === oContent.State.ContentPos - 1 && intCode === 32)
 			{ 
-				let isContinue = (intCode >= 97 && intCode <= 122 || intCode >= 65 && intCode <= 90); // не a-zA-z && 0-9
+				continue
+			}
+			
+			let isContinue = ((intCode >= 97 && intCode <= 122) || (intCode >= 65 && intCode <= 90) || intCode === 92); // a-zA-z && 0-9
 
-				if (!isContinue)
-				{
-					return false
-				}
-			}
-			else
+			if (!isContinue)
 			{
-				str = oElement.GetTextOfElement() + str;
+				return false
 			}
+		
+			str = oElement.GetTextOfElement() + str;
 
 			if (intCode === 92) {
 				isConvert = true;
