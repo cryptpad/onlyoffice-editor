@@ -7802,8 +7802,6 @@ function BinaryPPTYLoader()
 
         s.Skip2(1); // start attributes
 
-		var fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
-
 		var fRowHeight = 5;
         while (true)
         {
