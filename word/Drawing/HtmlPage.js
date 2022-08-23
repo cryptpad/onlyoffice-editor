@@ -105,7 +105,6 @@ function CEditorPage(api)
 	this.m_bIsRuler                     = (api.isMobileVersion === true) ? false : true;
 	this.m_bDocumentPlaceChangedEnabled = false;
 
-	this.m_nZoomValue        = 100;
 	this.m_oBoundsController = new AscFormat.CBoundsController();
 	this.m_nTabsType         = tab_Left;
 
@@ -189,6 +188,11 @@ function CEditorPage(api)
 
 	this.zoom_values = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 320, 340, 360, 380, 400, 425, 450, 475, 500];
 	this.m_nZoomType = 0; // 0 - custom, 1 - fitToWodth, 2 - fitToPage
+	this.m_nZoomValue = 100;
+
+	// текущий зум после резайза. чтобы например после zoomToWidth и zoomIn/Out можно было вернуться на значение меньше меньшего/больше большего
+	this.m_nZoomValueMin = -1;
+	this.m_nZoomValueMax = -1;
 
 	this.MobileTouchManager = null;
 	this.ReaderTouchManager = null;
@@ -1015,6 +1019,9 @@ function CEditorPage(api)
 			}
 		}
 
+		if (_Zoom >= oThis.m_nZoomValue && (oThis.m_nZoomValueMin > 0 && _Zoom > oThis.m_nZoomValueMin))
+			_Zoom = oThis.m_nZoomValueMin;
+
 		if (oThis.m_nZoomValue <= _Zoom)
 			return;
 
@@ -1042,6 +1049,9 @@ function CEditorPage(api)
 				break;
 			}
 		}
+
+		if (_Zoom <= oThis.m_nZoomValue && (oThis.m_nZoomValueMax > 0 && _Zoom < oThis.m_nZoomValueMax))
+			_Zoom = oThis.m_nZoomValueMax;
 
 		if (oThis.m_nZoomValue >= _Zoom)
 			return;
@@ -2819,6 +2829,8 @@ function CEditorPage(api)
 		if (!isNewSize && false === isAttack)
 			return;
 
+		this.m_nZoomValueMin = -1;
+		this.m_nZoomValueMax = -1;
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
 
