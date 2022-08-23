@@ -64,9 +64,9 @@ var g_dKoef_mm_to_twips = 1 / g_dKoef_twips_to_mm;
 var g_dKoef_mm_to_emu = 36000;
 var g_dKoef_emu_to_mm = 1 / 36000;
 var g_dKoef_emu_to_twips = g_dKoef_emu_to_mm * g_dKoef_mm_to_twips;
-var g_dKoef_twips_to_pt = 20;
+var g_dKoef_pt_to_twips = 20;
 var g_dKoef_twips_to_emu = 1 / g_dKoef_emu_to_twips;
-var g_dKoef_pt_to_twips = 1 / g_dKoef_twips_to_pt;
+var g_dKoef_twips_to_pt = 1 / g_dKoef_pt_to_twips;
 
 var tblwidth_Auto = 0x00;
 var tblwidth_Mm   = 0x01;
