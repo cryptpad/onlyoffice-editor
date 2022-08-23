@@ -1826,6 +1826,26 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 				this.from.fromXml(reader);
 			} else if ("to" === name) {
                 this.to.fromXml(reader);
+            } else if("pos" === name) {
+                let oNode = new CT_XmlNode();
+                oNode.fromXml(reader);
+                let isN = AscFormat.isRealNumber;
+                let nX = reader.GetInt(oNode.attributes["x"]);
+                let nY = reader.GetInt(oNode.attributes["y"]);
+                if(isN(nX) && isN(nY)) {
+                    this.Pos.X = AscFormat.Emu_To_Mm(nX);
+                    this.Pos.Y = AscFormat.Emu_To_Mm(nY);
+                }
+            } else if("ext" === name) {
+                let oNode = new CT_XmlNode();
+                oNode.fromXml(reader);
+                let isN = AscFormat.isRealNumber;
+                let nCX = reader.GetInt(oNode.attributes["cx"]);
+                let nCY = reader.GetInt(oNode.attributes["cy"]);
+                if(isN(nCX) && isN(nCY)) {
+                    this.ext.cx = AscFormat.Emu_To_Mm(nCX);
+                    this.ext.cy = AscFormat.Emu_To_Mm(nCY);
+                }
             } else {
                 var graphicObject = AscFormat.CGraphicObjectBase.prototype.fromXmlElem(reader, name);
                 if (graphicObject) {
@@ -1883,8 +1903,31 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         writer.WriteXmlNodeStart(name);
         writer.WriteXmlNullableAttributeString("editAs", editAs);
         writer.WriteXmlAttributesEnd();
-        writer.WriteXmlNullable(this.from, "xdr:from");
-        writer.WriteXmlNullable(this.to, "xdr:to");
+        switch (this.Type) {
+            case c_oAscCellAnchorType.cellanchorTwoCell:
+                writer.WriteXmlNullable(this.from, "xdr:from");
+                writer.WriteXmlNullable(this.to, "xdr:to");
+                break;
+            case c_oAscCellAnchorType.cellanchorOneCell:
+                writer.WriteXmlNullable(this.from, "xdr:from");
+
+                writer.WriteXmlNodeStart("xdr:ext");
+                writer.WriteXmlAttributeInt("cx", AscFormat.Mm_To_Emu(this.ext.cx));
+                writer.WriteXmlAttributeInt("cy", AscFormat.Mm_To_Emu(this.ext.cy));
+                writer.WriteXmlAttributesEnd(true);
+                break;
+            case c_oAscCellAnchorType.cellanchorAbsolute:
+                writer.WriteXmlNodeStart("xdr:pos");
+                writer.WriteXmlAttributeInt("x", AscFormat.Mm_To_Emu(this.Pos.x));
+                writer.WriteXmlAttributeInt("y", AscFormat.Mm_To_Emu(this.Pos.y));
+                writer.WriteXmlAttributesEnd(true);
+
+                writer.WriteXmlNodeStart("xdr:ext");
+                writer.WriteXmlAttributeInt("cx", AscFormat.Mm_To_Emu(this.ext.cx));
+                writer.WriteXmlAttributeInt("cy", AscFormat.Mm_To_Emu(this.ext.cy));
+                writer.WriteXmlAttributesEnd(true);
+                break;
+        }
         AscFormat.CGraphicObjectBase.prototype.toXmlElem(writer, graphicObject, "xdr");
         writer.WriteXmlNodeStart("xdr:clientData");
         writer.WriteXmlAttributesEnd(true);
