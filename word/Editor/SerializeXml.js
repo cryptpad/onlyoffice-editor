@@ -1902,11 +1902,14 @@
 					break;
 				}
 				case "numPr" : {
-					this.NumPr = new CNumPr();
-					this.NumPr.Set(undefined, undefined);
-					this.NumPr.fromXml(reader);
-					if (null != this.NumPr.NumId) {
-						oReadResult.paraNumPrs.push(this.NumPr);
+					let numPr = new CNumPr();
+					numPr.Set(undefined, undefined);
+					numPr.fromXml(reader);
+					if (null != numPr.NumId || null != numPr.Lvl) {
+						if (null != numPr.NumId) {
+							oReadResult.paraNumPrs.push(numPr);
+						}
+						this.NumPr = numPr;
 					}
 					break;
 				}
@@ -2106,7 +2109,7 @@
 		writer.WriteXmlNullable(SuppressLineNumbers, "w:suppressLineNumbers");
 		writer.WriteXmlNullable(pBdr, "w:pBdr");
 		writer.WriteXmlNullable(this.Shd, "w:shd");
-		// writer.WriteXmlArray(this.Tabs, "w:tabs");//todo
+		writer.WriteXmlArray(this.Tabs && this.Tabs.Tabs, "w:tabs", "w:tab");//todo
 		// writer.WriteXmlNullable(this.Suppressautohyphens, "w:suppressAutoHyphens");
 		// writer.WriteXmlNullable(this.Kinsoku, "w:kinsoku");
 		// writer.WriteXmlNullable(this.Wordwrap, "w:wordWrap");
@@ -2262,15 +2265,11 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "ilvl" : {
-					var ilvl = new CT_IntW();
-					ilvl.fromXml(reader);
-					this.Lvl = ilvl.getVal(this.Lvl);
+					this.Lvl = CT_IntW.prototype.toVal(reader, this.Lvl);
 					break;
 				}
 				case "numId" : {
-					var numId = new CT_IntW();
-					numId.fromXml(reader);
-					this.NumId = numId.getVal(this.NumId);
+					this.NumId = CT_IntW.prototype.toVal(reader, this.NumId);
 					break;
 				}
 				// case "ins" : {
@@ -2282,15 +2281,13 @@
 		}
 	};
 	CNumPr.prototype.toXml = function(writer, name) {
-		var ilvl = new CT_IntW();
-		ilvl.val = this.Lvl;
-		var numId = new CT_IntW();
-		numId.val = writer.context.oNumIdMap[this.NumId] || 0;
+		let Lvl = CT_IntW.prototype.fromVal(this.Lvl);
+		let NumId = CT_IntW.prototype.fromVal(writer.context.oNumIdMap[this.NumId] || 0);
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlNullable(ilvl, "w:ilvl");
-		writer.WriteXmlNullable(numId, "w:numId");
+		writer.WriteXmlNullable(Lvl, "w:ilvl");
+		writer.WriteXmlNullable(NumId, "w:numId");
 		// writer.WriteXmlNullable(this.ins, "w:ins");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -2383,7 +2380,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "val": {
-					this.Value = fromXml_ST_TabJc(reader.GetValue());
+					this.Value = fromXml_ST_TabJc(reader.GetValue(), this.Value);
 					break;
 				}
 				case "leader": {
@@ -2404,7 +2401,7 @@
 	};
 	CParaTab.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_TabJc(this.Val));
+		writer.WriteXmlNullableAttributeString("w:val", toXml_ST_TabJc(this.Value));
 		writer.WriteXmlNullableAttributeString("w:leader", toXml_ST_TabTlc(this.Leader));
 		writer.WriteXmlNullableAttributeIntWithKoef("w:pos", this.Pos, g_dKoef_mm_to_twips);
 		writer.WriteXmlAttributesEnd(true);
@@ -2504,6 +2501,9 @@
 					Hanging =
 						AscCommon.universalMeasureToMm(reader.GetValue(), AscCommonWord.g_dKoef_twips_to_mm,
 							undefined);
+					if (undefined !== Hanging) {
+						this.FirstLine = -Hanging;
+					}
 					break;
 				}
 				// case "hangingChars": {
@@ -2520,9 +2520,6 @@
 				// 	this.Firstlinechars = reader.GetValueInt();
 				// 	break;
 				// }
-			}
-			if (undefined !== Hanging) {
-				this.FirstLine = -Hanging;
 			}
 		}
 	};
@@ -4078,7 +4075,7 @@
 		writer.WriteXmlNullableAttributeString("w:restart", toXml_ST_LineNumberRestart(this.Restart));
 		writer.WriteXmlAttributesEnd(true);
 	};
-	CFootnotePr.prototype.fromXml = function(reader, isFootnotePr) {
+	CFootnotePr.prototype.fromXml = function(reader, isFootnotePr, noteRefs) {
 		var elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -4108,6 +4105,22 @@
 					elem = new CT_StringW();
 					elem.fromXml(reader);
 					this.NumRestart = fromXml_ST_RestartNumber(reader.GetValue(), this.NumRestart);
+					break;
+				}
+				case "footnote" : {
+					let ednRef = new CT_FtnEdnRef();
+					ednRef.fromXml(reader);
+					if(noteRefs) {
+						noteRefs.push(ednRef.id);
+					}
+					break;
+				}
+				case "endnote" : {
+					let ednRef = new CT_FtnEdnRef();
+					ednRef.fromXml(reader);
+					if(noteRefs) {
+						noteRefs.push(ednRef.id);
+					}
 					break;
 				}
 			}
@@ -4764,10 +4777,9 @@
 					break;
 				}
 				case "pStyle" : {
-					elem = new CT_StringW();
-					elem.fromXml(reader);
-					if (elem.val) {
-						oReadResult.lvlStyles.push({pPr: this, style: elem.val});
+					elem = CT_StringW.prototype.toVal(reader);
+					if (elem) {
+						oReadResult.lvlStyles.push({pPr: this, style: elem});
 					}
 					break;
 				}
@@ -4789,11 +4801,7 @@
 					break;
 				}
 				case "lvlText" : {
-					elem = new CT_XmlNode();
-					elem.fromXml(reader);
-					if (elem.attributes["val"]) {
-						this.SetLvlTextFormat(additional.ilvl, elem.attributes["val"]);
-					}
+					this.SetLvlTextFormat(additional.ilvl, CT_StringW.prototype.toVal(reader, ""));
 					break;
 				}
 				// case "lvlPicBulletId" : {
@@ -5511,13 +5519,13 @@
 					}
 					case "footnotePr" : {
 						if (doc) {
-							doc.Footnotes.FootnotePr.fromXml(reader, true);
+							doc.Footnotes.FootnotePr.fromXml(reader, true, reader.context.oReadResult.footnoteRefs);
 						}
 						break;
 					}
 					case "endnotePr" : {
 						if (doc) {
-							doc.Endnotes.EndnotePr.fromXml(reader, true);
+							doc.Endnotes.EndnotePr.fromXml(reader, true, reader.context.oReadResult.endnoteRefs);
 						}
 						break;
 					}
@@ -6958,11 +6966,11 @@
 		this.RightFromText = null;
 		this.TopFromText = null;
 		this.BottomFromText = null;
-		this.VertAnchor = null;
-		this.HorzAnchor = null;
-		this.TblpXSpec = null;
+		this.VertAnchor = Asc.c_oAscHAnchor.Text;
+		this.HorzAnchor = Asc.c_oAscHAnchor.Text;
+		this.TblpXSpec = Asc.c_oAscXAlign.Left;
 		this.TblpX = null;
-		this.TblpYSpec = null;
+		this.TblpYSpec = Asc.c_oAscYAlign.Top;
 		this.TblpY = null;
 		return this;
 	}
@@ -7082,17 +7090,17 @@
 	CT_TblPPr.prototype.toTable = function(table) {
 		table.Set_Inline(false);
 		if (null !== this.HorzAnchor) {
-			if (null !== this.TblpXSpec) {
-				table.Set_PositionH(this.HorzAnchor, true, this.TblpXSpec);
-			} else if (null !== this.TblpX) {
+			if (null !== this.TblpX) {
 				table.Set_PositionH(this.HorzAnchor, false, this.TblpX * AscCommonWord.g_dKoef_twips_to_mm);
+			} else if (null !== this.TblpXSpec) {
+				table.Set_PositionH(this.HorzAnchor, true, this.TblpXSpec);
 			}
 		}
 		if (null !== this.VertAnchor) {
-			if (null !== this.TblpYSpec) {
-				table.Set_PositionV(this.VertAnchor, true, this.TblpYSpec);
-			} else if (null !== this.TblpY) {
+			if (null !== this.TblpY) {
 				table.Set_PositionV(this.VertAnchor, false, this.TblpY * AscCommonWord.g_dKoef_twips_to_mm);
+			} else if (null !== this.TblpYSpec) {
+				table.Set_PositionV(this.VertAnchor, true, this.TblpYSpec);
 			}
 		}
 		if (null !== this.LeftFromText || null !== this.TopFromText || null !== this.RightFromText ||
@@ -8206,7 +8214,7 @@
 					break;
 				}
 				case "char": {
-					this.char = reader.GetValueByte(this.char);
+					this.char = reader.GetValueByte(this.char, 16);
 					break;
 				}
 			}
@@ -9229,7 +9237,7 @@
 		return null;
 	}
 
-	function fromXml_ST_TabJc(val) {
+	function fromXml_ST_TabJc(val, def) {
 		switch (val) {
 			case "clear":
 				return tab_Clear;
@@ -9248,7 +9256,7 @@
 			case "num":
 				return tab_Num;
 		}
-		return undefined;
+		return def;
 	}
 
 	function toXml_ST_TabJc(val) {

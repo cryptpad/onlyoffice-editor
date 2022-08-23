@@ -1498,7 +1498,7 @@ StaxParser.prototype.GetText = function () {
         if (EasySAXEvent.END_ELEMENT === type && curDepth === depth)
             break;
         if (EasySAXEvent.CHARACTERS === type) {
-            text += this.GetValueDecodeXml();
+            text += this.GetValue();
         }
     }
     return text;
