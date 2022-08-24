@@ -6694,6 +6694,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                     editor.sync_EndAddShape();
                     oDrawingObjects.endTrackNewShape();
                     this.UpdateCursorType(0, 0, new AscCommon.CMouseEventHandler());
+                    this.UpdateInterface();
                     return;
                 }
                 var oTargetTextObject = AscFormat.getTargetTextObject(oDrawingObjects);
@@ -11059,6 +11060,7 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
             else {
                 oSlide.graphicObjects.changeCurrentState(new AscFormat.AddPolyLine2State(oSlide.graphicObjects, true, bReplace, bPreview));
             }
+            this.TurnOff_InterfaceEvents();
             return;
         }
         if(this.IsSelectionLocked(AscCommon.changestype_Timing) === false) {

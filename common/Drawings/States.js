@@ -201,6 +201,17 @@ StartAddNewShape.prototype =
                             oEffect.cTn.setPresetID(AscFormat.MOTION_CUSTOM_PATH);
                             oEffect.cTn.setPresetSubtype(0);
                             oPresentation.FinalizeAction();
+                            if(Asc["editor"])
+                            {
+                                if(!e.fromWindow || this.bStart)
+                                {
+                                    Asc["editor"].asc_endAddShape();
+                                }
+                            }
+                            else if(editor && editor.sync_EndAddShape)
+                            {
+                                editor.sync_EndAddShape();
+                            }
                             oPresentation.Document_UpdateInterfaceState();
                             if(this.bPreview && aAddedEffects.length > 0) {
                                 oCurSlide.graphicObjects.resetSelection();
@@ -359,7 +370,7 @@ NullState.prototype =
         }
         var ret;
         ret = this.drawingObjects.handleSlideComments(e, x, y, pageIndex);
-        if(ret )
+        if(ret)
         {
             if(ret.result)
             {
@@ -429,12 +440,15 @@ NullState.prototype =
 
         if(bHandleMode)
         {
-            var bRet =  this.drawingObjects.checkChartTextSelection(true);
+            let bRet =  this.drawingObjects.checkChartTextSelection(true);
             if(e.ClickCount < 2)
             {
                 this.drawingObjects.resetSelection(undefined, undefined, undefined, !!handleAnimLables);
             }
-            if(start_target_doc_content || selected_comment_index > -1 || bRet || handleAnimLables)
+            if(start_target_doc_content ||
+                selected_comment_index > -1 ||
+                bRet ||
+                handleAnimLables)
             {
                 this.drawingObjects.drawingObjects.showDrawingObjects();
             }

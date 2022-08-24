@@ -7452,6 +7452,9 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oDrawingDocument.UnlockCursorType();
 		}
+		if(this.WordControl.m_oLogicDocument.TurnOffInterfaceEvents) {
+			this.WordControl.m_oLogicDocument.TurnOn_InterfaceEvents(false);
+		}
 	};
 
 	// Вставка диаграмм

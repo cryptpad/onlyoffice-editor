@@ -16046,7 +16046,8 @@
     window['AscFormat'].CBaseAnimTexture = CBaseAnimTexture;
     window['AscFormat'].CDemoAnimPlayer = CDemoAnimPlayer;
     window['AscFormat'].ICON_TRIGGER = ICON_TRIGGER;
-    
+    window['AscFormat'].MoveAnimationDrawObject = MoveAnimationDrawObject;
+
 
 
     function generate_preset_data() {
@@ -16212,6 +16213,9 @@
         this.drawingTexture = null;
     }
     InitClass(MoveAnimationDrawObject, AscFormat.CShape, AscDFH.historyitem_type_Shape);
+    MoveAnimationDrawObject.prototype.isMoveAnimObject = function() {
+        return true;
+    };
     MoveAnimationDrawObject.prototype.checkRecalculate = function() {
         var bNeedRecalculate = false;
         var oPresentation = editor.WordControl.m_oLogicDocument;
@@ -16349,33 +16353,33 @@
             }
             if(aPTS.length > 1) {
                 oGraphics.SaveGrState();
-                if(this.selected) {
-                    var oTexture = this.getDrawingTexture(oGraphics);
-                    var oTransform = null;
-                    var dXS, dYS, dXE, dYE;
-                    dXS = this.transform.TransformPointX(aPTS[0].x, aPTS[0].y);
-                    dYS = this.transform.TransformPointY(aPTS[0].x, aPTS[0].y);
-                    dXE = this.transform.TransformPointX(aPTS[aPTS.length - 1].x, aPTS[aPTS.length - 1].y);
-                    dYE = this.transform.TransformPointY(aPTS[aPTS.length - 1].x, aPTS[aPTS.length - 1].y);
-                    if(oTexture) {
-                        
-                        oTransform = new AscCommon.CMatrix();
-                        var hc = this.boundsByDrawing.w * 0.5;
-                        var vc = this.boundsByDrawing.h * 0.5;
-                        AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc + dXS, -vc + dYS);
-
-                        
-                        oGraphics.put_GlobalAlpha(true, 0.5);
-                        oTexture.draw(oGraphics, oTransform);
-
-                        if(!bClosed) {
-                            oTransform = new AscCommon.CMatrix();
-                            AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc + dXE, -vc + dYE);
-                            oTexture.draw(oGraphics, oTransform);
-                        }
-                        oGraphics.put_GlobalAlpha(false, 1);
-                    }
-                }
+                // if(this.selected) {
+                //     var oTexture = this.getDrawingTexture(oGraphics);
+                //     var oTransform = null;
+                //     var dXS, dYS, dXE, dYE;
+                //     dXS = this.transform.TransformPointX(aPTS[0].x, aPTS[0].y);
+                //     dYS = this.transform.TransformPointY(aPTS[0].x, aPTS[0].y);
+                //     dXE = this.transform.TransformPointX(aPTS[aPTS.length - 1].x, aPTS[aPTS.length - 1].y);
+                //     dYE = this.transform.TransformPointY(aPTS[aPTS.length - 1].x, aPTS[aPTS.length - 1].y);
+                //     if(oTexture) {
+                //
+                //         oTransform = new AscCommon.CMatrix();
+                //         var hc = this.boundsByDrawing.w * 0.5;
+                //         var vc = this.boundsByDrawing.h * 0.5;
+                //         AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc + dXS, -vc + dYS);
+                //
+                //
+                //         oGraphics.put_GlobalAlpha(true, 0.5);
+                //         oTexture.draw(oGraphics, oTransform);
+                //
+                //         if(!bClosed) {
+                //             oTransform = new AscCommon.CMatrix();
+                //             AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -hc + dXE, -vc + dYE);
+                //             oTexture.draw(oGraphics, oTransform);
+                //         }
+                //         oGraphics.put_GlobalAlpha(false, 1);
+                //     }
+                // }
                 //draw start arrow
                 var dWidth = 5, dLen = 3;
                 var x0p, y0p, x1p, y1p, x2p, y2p, dx, dy, dStartLen, dWidthCoeff, dLenCoeff;
@@ -16533,7 +16537,7 @@
     window['AscCommon'].CSeqListContainer = CSeqListContainer;
     window['AscCommon'].CTimelineContainer = CTimelineContainer;
     window['AscCommon'].CColorPercentage = CColorPercentage;
-    
+
     let ANIMATION_PRESET_CLASSES = [];
     let PRESET_TYPES;
     let PRESET_SUBTYPES;

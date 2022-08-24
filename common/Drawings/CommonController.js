@@ -2661,11 +2661,37 @@ DrawingObjectsController.prototype =
     selectObject: function(object, pageIndex)
     {
         object.select(this, pageIndex);
+        if(AscFormat.MoveAnimationDrawObject)
+        {
+            let aSel = this.selectedObjects;
+            if(object instanceof AscFormat.MoveAnimationDrawObject)
+            {
+                for(let i = this.selectedObjects.length - 1; i > -1; --i)
+                {
+                    if(!this.selectedObjects[i].isMoveAnimObject()){
+                        object.selected = false;
+                        this.selectedObjects.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                for(let i = this.selectedObjects.length - 1; i > -1; --i)
+                {
+                    if(this.selectedObjects[i].isMoveAnimObject()){
+                        object.selected = false;
+                        this.selectedObjects.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+        }
     },
 
     deselectObject: function(object)
     {
-        for(var i = 0; i < this.selectedObjects.length; ++i)
+        for(let i = 0; i < this.selectedObjects.length; ++i)
         {
             if(this.selectedObjects[i] === object){
                 object.selected = false;
@@ -5508,7 +5534,7 @@ DrawingObjectsController.prototype =
         }
         else if(this.selectedObjects.length > 0)
         {
-            if(this.selectedObjects[0].animMotionTrack)
+            if(this.selectedObjects[0].isMoveAnimObject())
             {
                 var oTiming = this.drawingObjects.timing;
                 if(oTiming)
@@ -7218,6 +7244,22 @@ DrawingObjectsController.prototype =
             }
         }
         return bRet;
+    },
+
+    isMoveAnimPathSelected: function ()
+    {
+        if(!AscFormat.MoveAnimationDrawObject)
+        {
+            return false;
+        }
+        for(let nIdx = 0; nIdx < this.selectedObjects.length; ++nIdx)
+        {
+            if(this.selectedObjects[nIdx] instanceof AscFormat.MoveAnimationDrawObject)
+            {
+                return true;
+            }
+        }
+        return false;
     },
 
     resetSelection: function(noResetContentSelect, bNoCheckChart, bDoNotRedraw, bNoCheckAnim)
