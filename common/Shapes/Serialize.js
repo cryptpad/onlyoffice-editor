@@ -3850,7 +3850,14 @@ function BinaryPPTYLoader()
         }
 
         s.Seek2(_end_rec);
-        return join;
+        if( AscFormat.LineJoinType.Empty === join.type ||
+            AscFormat.LineJoinType.Round === join.type ||
+            AscFormat.LineJoinType.Bevel === join.type ||
+            AscFormat.LineJoinType.Miter === join.type ||
+            null === join.type) {
+            return join;
+        }
+        return null;
     };
 
     // ------------------------------------------

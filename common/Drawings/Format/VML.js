@@ -9024,6 +9024,12 @@
 			if(this.m_oOpacity !== null) {
 				oFill.addAlpha(this.m_oOpacity);
 			}
+			else {
+				let oVMLFill = this.getFill();
+				if(oVMLFill.m_oOpacity !== null) {
+					oFill.addAlpha(oVMLFill.m_oOpacity);
+				}
+			}
 		};
 		CVmlCommonElements.prototype.getOOXMLFill = function(oContext) {
 			if(this.m_oFilled === false) {
@@ -9108,9 +9114,9 @@
 				oStroke = new AscFormat.CLn();
 				oStroke.setFill(AscFormat.CreateSolidFillRGB(0, 0, 0));
 			}
-			if(!oStroke.isVisible()) {
-				return null;
-			}
+			// if(!oStroke.isVisible()) {
+			// 	return null;
+			// }
 			return oStroke;
 		};
 		CVmlCommonElements.prototype.createSpPrIfNoPresent = function(oSpPr) {
@@ -9387,12 +9393,14 @@
 					oOOXMLDrawing.setTextBoxContent(oDocContent);
 				}
 				else {
+					oBodyPr.wrap = AscFormat.nTWTSquare;
 					let oTextbox = this.getTextbox();
 					if(oTextbox) {
 						if(oTextbox.m_oTxtbxContent) {
 							//oBodyPr.setAnchor(1);
 							oOOXMLDrawing.setBodyPr(oBodyPr);
-							oOOXMLDrawing.setTextBoxContent(oTextbox.m_oTxtbxContent.Copy(oOOXMLDrawing));
+							oOOXMLDrawing.setTextBoxContent(oTextbox.m_oTxtbxContent);
+							oTextbox.m_oTxtbxContent.SetParent(oOOXMLDrawing);
 						}
 						else if(oTextbox.m_oText) {
 							//oBodyPr.setAnchor(1);
