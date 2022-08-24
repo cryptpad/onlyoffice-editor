@@ -692,7 +692,7 @@
 		writer.WriteXmlNullable(this.getBase(), "m:e");
 		writer.WriteXmlNodeEnd(name);
 	};
-	CMathBarPr.prototype.fromXml = function (reader) {
+	CMathBarPr.prototype.fromXml = function (reader, mathElem) {
 		let depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
@@ -1653,13 +1653,13 @@
 				case "sub" : {
 					elem = new CMathContent();
 					elem.fromXml(reader);
-					props.content[1] = elem;
+					props.content[2] = elem;
 					break;
 				}
 				case "sup" : {
 					elem = new CMathContent();
 					elem.fromXml(reader);
-					props.content[2] = elem;
+					props.content[1] = elem;
 					break;
 				}
 			}

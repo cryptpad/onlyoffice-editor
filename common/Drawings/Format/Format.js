@@ -1131,6 +1131,25 @@
 		var LAYOUT_KIND = 1;
 		var MASTER_KIND = 2;
 
+		var map_hightlight = {};
+		map_hightlight["black"] = 0x000000;
+		map_hightlight["blue"] = 0x0000FF;
+		map_hightlight["cyan"] = 0x00FFFF;
+		map_hightlight["darkBlue"] = 0x00008B;
+		map_hightlight["darkCyan"] = 0x008B8B;
+		map_hightlight["darkGray"] = 0x0A9A9A9;
+		map_hightlight["darkGreen"] = 0x006400;
+		map_hightlight["darkMagenta"] = 0x800080;
+		map_hightlight["darkRed"] = 0x8B0000;
+		map_hightlight["darkYellow"] = 0x808000;
+		map_hightlight["green"] = 0x00FF00;
+		map_hightlight["lightGray"] = 0xD3D3D3;
+		map_hightlight["magenta"] = 0xFF00FF;
+		map_hightlight["none"] = 0x000000;
+		map_hightlight["red"] = 0xFF0000;
+		map_hightlight["white"] = 0xFFFFFF;
+		map_hightlight["yellow"] = 0xFFFF00;
+
 		var map_prst_color = {};
 		map_prst_color["aliceBlue"] = 0xF0F8FF;
 		map_prst_color["antiqueWhite"] = 0xFAEBD7;
@@ -20586,6 +20605,7 @@
 		window['AscFormat'].TYPE_TRACK = TYPE_TRACK;
 		window['AscFormat'].TYPE_KIND = TYPE_KIND;
 		window['AscFormat'].mapPrstColor = map_prst_color;
+		window['AscFormat'].map_hightlight = map_hightlight;
 		window['AscFormat'].ar_arrow = ar_arrow;
 		window['AscFormat'].ar_diamond = ar_diamond;
 		window['AscFormat'].ar_none = ar_none;

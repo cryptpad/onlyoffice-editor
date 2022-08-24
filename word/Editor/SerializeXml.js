@@ -2531,8 +2531,8 @@
 		var Hanging = null;
 		var FirstLine = this.FirstLine;
 		if (FirstLine < 0) {
-			FirstLine = null;
 			Hanging = Math.abs(FirstLine);
+			FirstLine = null;
 		}
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeIntWithKoef("w:left", this.Left, g_dKoef_mm_to_twips);
@@ -2674,6 +2674,8 @@
 				case "br":
 					newItem = new AscWord.CRunBreak(AscWord.break_Line);
 					newItem.fromXml(reader);
+					//reinit because of logic in constructor
+					newItem = new AscWord.CRunBreak(newItem.BreakType, newItem.Clear);
 					break;
 				case "commentReference":
 					break;
@@ -3117,14 +3119,11 @@
 				}
 				case "highlight" : {
 					elem = CT_StringW.prototype.toVal(reader, undefined);
-					if (AscFormat.mapPrstColor[elem]) {
-						var highlight = new CDocumentColor(255, 255, 255);
-						highlight.SetFromHexColor(elem);
-						if (highlight.IsAuto()) {
-							this.HighLight = highlight_None;
-						} else {
-							this.HighLight = highlight;
-						}
+					let rgb = AscFormat.map_hightlight[elem];
+					if ("none" === elem) {
+						this.HighLight = highlight_None;
+					} else if (undefined !== rgb) {
+						this.HighLight = new CDocumentColor((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
 					}
 					break;
 				}
@@ -3711,7 +3710,7 @@
 				case "titlePg" : {
 					elem = new CT_BoolW();
 					elem.fromXml(reader);
-					this.Set_TitlePage(elem.getVal(undefined));
+					this.Set_TitlePage(elem.getVal(true));
 					break;
 				}
 				// case "textDirection" : {
@@ -4271,20 +4270,20 @@
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "rPrDefault" : {
+					this.RPrDefault = new CTextPr();
 					subDepth = reader.GetDepth();
 					while (reader.ReadNextSiblingNode(subDepth)) {
 						if ("rPr" === reader.GetNameNoNS()) {
-							this.RPrDefault = new CTextPr();
 							this.RPrDefault.fromXml(reader);
 						}
 					}
 					break;
 				}
 				case "pPrDefault" : {
+					this.PPrDefault = new CParaPr();
 					subDepth = reader.GetDepth();
 					while (reader.ReadNextSiblingNode(subDepth)) {
 						if ("pPr" === reader.GetNameNoNS()) {
-							this.PPrDefault = new CParaPr();
 							this.PPrDefault.fromXml(reader);
 						}
 					}
@@ -4863,11 +4862,11 @@
 					break;
 				}
 				case "legacyIndent": {
-					this.Indent = AscCommon.universalMeasureToTwips(reader.GetValue(), AscCommonWord.g_dKoef_emu_to_twips, this.Indent);
+					this.Indent = AscCommon.universalMeasureToTwips(reader.GetValue(), 1, this.Indent);
 					break;
 				}
 				case "legacySpace": {
-					this.Space = AscCommon.universalMeasureToUnsignedTwips(reader.GetValue(), AscCommonWord.g_dKoef_emu_to_twips, this.Space);
+					this.Space = AscCommon.universalMeasureToUnsignedTwips(reader.GetValue(), 1, this.Space);
 					break;
 				}
 			}
@@ -4880,8 +4879,8 @@
 	CNumberingLvlLegacy.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlNullableAttributeBool("w:legacy", this.Legacy);
-		writer.WriteXmlNullableAttributeUIntWithKoef("w:legacyIndent", this.Indent, AscCommonWord.g_dKoef_twips_to_emu);
-		writer.WriteXmlNullableAttributeUIntWithKoef("w:legacySpace", this.Space, AscCommonWord.g_dKoef_twips_to_emu);
+		writer.WriteXmlNullableAttributeUInt("w:legacyIndent", this.Indent);
+		writer.WriteXmlNullableAttributeUInt("w:legacySpace", this.Space);
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CNum.prototype.readAttr = function(reader, additional) {
@@ -4907,6 +4906,7 @@
 				}
 				case "lvlOverride" : {
 					elem = new CLvlOverride();
+					elem.StartOverride = undefined;
 					elem.fromXml(reader);
 					this.SetLvlOverride(elem.NumberingLvl, elem.Lvl, elem.StartOverride);
 					break;
@@ -5515,6 +5515,12 @@
 					case "defaultTabStop" : {
 						let def = reader.context.oReadResult.defaultTabStop;
 						reader.context.oReadResult.defaultTabStop = AscCommon.universalMeasureToMm(CT_StringW.prototype.toVal(reader, def), AscCommonWord.g_dKoef_twips_to_mm, def);
+						break;
+					}
+					case "evenAndOddHeaders" : {
+						if (doc) {
+							doc.Set_DocumentEvenAndOddHeaders(CT_BoolW.prototype.toVal(reader, true));
+						}
 						break;
 					}
 					case "footnotePr" : {
@@ -6966,11 +6972,11 @@
 		this.RightFromText = null;
 		this.TopFromText = null;
 		this.BottomFromText = null;
-		this.VertAnchor = Asc.c_oAscHAnchor.Text;
-		this.HorzAnchor = Asc.c_oAscHAnchor.Text;
-		this.TblpXSpec = Asc.c_oAscXAlign.Left;
+		this.VertAnchor = null;
+		this.HorzAnchor = null;
+		this.TblpXSpec = null;
 		this.TblpX = null;
-		this.TblpYSpec = Asc.c_oAscYAlign.Top;
+		this.TblpYSpec = null;
 		this.TblpY = null;
 		return this;
 	}
@@ -7036,6 +7042,7 @@
 	CT_TblPPr.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
 		reader.ReadTillEnd();
+		this.initDefaults();
 	};
 	CT_TblPPr.prototype.toXml = function(writer, name) {
 		writer.WriteXmlNodeStart(name);
@@ -7107,6 +7114,77 @@
 			null !== this.BottomFromText) {
 			table.Set_Distance(this.LeftFromText || 0, this.TopFromText || 0, this.RightFromText || 0,
 				this.BottomFromText || 0);
+		}
+	};
+	CT_TblPPr.prototype.initDefaults = function() {
+		if (null === this.HorzAnchor) {
+			this.HorzAnchor = Asc.c_oAscHAnchor.Text;
+		}
+		if (null === this.VertAnchor) {
+			this.VertAnchor = Asc.c_oAscVAnchor.Margin;
+		}
+		if (null === this.TblpXSpec) {
+			if (null === this.TblpX) {
+				this.TblpX = 0;
+			}
+			//Several values of sprmTDxaAbs have special meanings as specified by
+			//[ECMA-376] Part 4, Section 2.18.114. These values are specified as
+			//follows.
+			switch (this.TblpX) {
+				case 0:
+					this.TblpXSpec = Asc.c_oAscXAlign.Left;
+					this.TblpX = null;
+					break;
+				case -4:
+					this.TblpXSpec = Asc.c_oAscXAlign.Center;
+					this.TblpX = null;
+					break;
+				case -8:
+					this.TblpXSpec = Asc.c_oAscXAlign.Right;
+					this.TblpX = null;
+					break;
+				case -12:
+					this.TblpXSpec = Asc.c_oAscXAlign.Inside;
+					this.TblpX = null;
+					break;
+				case -16:
+					this.TblpXSpec = Asc.c_oAscXAlign.Outside;
+					this.TblpX = null;
+					break;
+			}
+		}
+		if (null === this.TblpYSpec) {
+			if (null === this.TblpY) {
+				this.TblpY = 0;
+			}
+			//Several values of sprmTDxaAbs have special meanings as specified by
+			//[ECMA-376] Part 4, Section 2.18.114. These values are specified as
+			//follows.
+			switch (this.TblpY) {
+				case 0:
+					this.VertAnchor = Asc.c_oAscVAnchor.Text;
+					break;
+				case -4:
+					this.TblpYSpec = Asc.c_oAscYAlign.Top;
+					this.TblpY = null;
+					break;
+				case -8:
+					this.TblpYSpec = Asc.c_oAscYAlign.Center;
+					this.TblpY = null;
+					break;
+				case -12:
+					this.TblpYSpec = Asc.c_oAscYAlign.Bottom;
+					this.TblpY = null;
+					break;
+				case -16:
+					this.TblpYSpec = Asc.c_oAscYAlign.Inside;
+					this.TblpY = null;
+					break;
+				case -16:
+					this.TblpYSpec = Asc.c_oAscYAlign.Outside;
+					this.TblpY = null;
+					break;
+			}
 		}
 	};
 	function CT_TblCellMar() {
