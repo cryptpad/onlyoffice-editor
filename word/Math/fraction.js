@@ -635,7 +635,7 @@ CFraction.prototype.GetTextOfElement = function(isLaTeX) {
 		strDenominator = strStartBracet + strDenominator + strCloseBracet;
 	}
 
-	if (1 === isLaTeX) {
+	if (true === isLaTeX) {
 		switch (this.Pr.type) {
 			case 0:	strTemp += '\\frac'; break;
 			case 1:	strTemp += '\\sfrac'; break;

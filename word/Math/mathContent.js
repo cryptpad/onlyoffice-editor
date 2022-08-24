@@ -5519,102 +5519,108 @@ CMathContent.prototype.SplitContentByContentPos = function() {
     }
 }
 CMathContent.prototype.New_AutoCorrect = function (oElement) {
-    //пока срабатывает только по пробелу
-    if (oElement.value !== 32) {
-        return
-    }
-
     var oLogicDocument = this.GetLogicDocument();
     var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+    var isAutoCorrect = this.IsStartAutoCorrection(nInputType, oElement.value);
 
-    let isConvertWords = this.CorrectWordOnCursor();
-    
-    if (!isConvertWords) {
+    if (isAutoCorrect) {
+        var isConvertWords = this.CorrectWordOnCursor();
 
-        if (nInputType === 1) {
-            this.CorrectAllMathWords();
-        }
+        if (!isConvertWords) {
 
-         //выделяем все после CurPos в отдельный ран
-        this.SplitContentByContentPos();
-
-        var oContentForAutoCorrection = AscMath.AutoCorrect(this, nInputType);
-
-        if (oContentForAutoCorrection) {
-
-            var arrDelData = oContentForAutoCorrection.del;
-            var strStringForConversion = oContentForAutoCorrection.str;
-            var oTempObject = new CMathContent();
-
-            nInputType === Asc.c_oAscMathInputType.Unicode
-                ? AscMath.CUnicodeConverter(strStringForConversion, oTempObject)
-                : AscMath.ConvertLaTeXToTokensList(strStringForConversion, oTempObject);
-
-            //при автокорекции мы всегда имеем дело с одним блоком контента
-            //если длина > 1, то выбор предыдущих элементов был бессмысленен - удаляем лишнее
-            if (oContentForAutoCorrection.length > 1 && oTempObject.Content.length > 1) {
-                oTempObject.Content.length = 1;
+            if (nInputType === 1) {
+                this.CorrectAllMathWords();
             }
 
-            //удаляем лишний контент
-            let intCounterForDel = 0;
-            for (var i = 0; i < arrDelData.length; i++) {
+            //выделяем все после CurPos в отдельный ран
+            this.SplitContentByContentPos();
 
-                if (this.Content.length > 0) {
+            var oContentForAutoCorrection = AscMath.AutoCorrect(this, nInputType);
 
-                    var intIndex = this.CurPos;
-                    var oContent = this.Content[intIndex];
+            if (oContentForAutoCorrection) {
 
-                    var intLengthOfContent = oContent.Content.length;
-                    var intDeleteCount = arrDelData[intCounterForDel];
+                var arrDelData = oContentForAutoCorrection.del;
+                var strStringForConversion = oContentForAutoCorrection.str;
+                var oTempObject = new CMathContent();
 
-                    if (intCounterForDel !== undefined && intDeleteCount !== undefined && intDeleteCount !== 0) {
+                nInputType === Asc.c_oAscMathInputType.Unicode
+                    ? AscMath.CUnicodeConverter(strStringForConversion, oTempObject)
+                    : AscMath.ConvertLaTeXToTokensList(strStringForConversion, oTempObject);
 
-                        if (intLengthOfContent <= intDeleteCount)
-                        {
-                            let intTempCurPos = this.CurPos;
-                            this.Remove_FromContent(intIndex, 1, true);
+                for (var i = 0; i < oTempObject.Content.length; i++) {
+                    var oTempElement = oTempObject.Content[i];
 
-                            if (intTempCurPos === this.CurPos) {
-                                this.CurPos--;
+                    if (oTempElement.Content.length === 0) {
+                        oTempObject.Content.splice(i, 1);
+                    }
+                }
+
+                //при автокорекции мы всегда имеем дело с одним блоком контента
+                //если длина > 1, то выбор предыдущих элементов был бессмысленен - удаляем лишнее
+                if (oTempObject.Content.length > 1) {
+                    oTempObject.Content.length = 1;
+                }
+
+                //удаляем лишний контент
+                var intCounterForDel = 0;
+                for (var i = 0; i < arrDelData.length; i++) {
+
+                    if (this.Content.length > 0) {
+
+                        var intIndex = this.CurPos;
+                        var oContent = this.Content[intIndex];
+
+                        var intLengthOfContent = oContent.Content.length;
+                        var intDeleteCount = arrDelData[intCounterForDel];
+
+                        if (intCounterForDel !== undefined && intDeleteCount !== undefined && intDeleteCount !== 0) {
+
+                            if (intLengthOfContent <= intDeleteCount) {
+                                let intTempCurPos = this.CurPos;
+                                this.Remove_FromContent(intIndex, 1, true);
+
+                                if (intTempCurPos === this.CurPos) {
+                                    this.CurPos--;
+                                }
+
+                                intCounterForDel++;
                             }
-
-                            intCounterForDel++;
-                        }
-                        else
-                        {
-                            oContent.Remove_FromContent(intLengthOfContent - intDeleteCount, intDeleteCount);
-                            intCounterForDel++;
+                            else {
+                                oContent.Remove_FromContent(intLengthOfContent - intDeleteCount, intDeleteCount);
+                                intCounterForDel++;
+                                
+                            }
                         }
                     }
                 }
-            }
-            if (this.CurPos !== 0) {
+              
                 this.CurPos++
-            }
-            
+                
+                //пишем новый контент
+                var intPos;
+                for (var i = 0; i < oTempObject.Content.length; i++) {
+                    var oCurrentContentForPaste = oTempObject.Content[i].Copy(false);
+                    intPos = this.CurPos + i;
+                    this.Add_ToContent(intPos, oCurrentContentForPaste, false);
+                }
 
-            //пишем новый контент
-            var intPos;
-            for (var i = 0; i < oTempObject.Content.length; i++) {
-                var oCurrentContentForPaste = oTempObject.Content[i].Copy(false);
-                intPos = this.CurPos + i;
-                this.Add_ToContent(intPos, oCurrentContentForPaste, false);
-            }
-
-            if (intPos + 1 <= this.Content.length) {
-                this.CurPos = intPos + 1;
+                if (intPos + 1 <= this.Content.length) {
+                    this.CurPos = intPos + 1;
+                }
             }
         }
+        //Соеденяем ParaRun'ы после конвертации
+        this.MergeParaRuns();
     }
-    //Соеденяем ParaRun'ы после конвертации
-    this.MergeParaRuns();
 };
 CMathContent.prototype.CorrectWordOnCursor = function() {
     return AscMath.CorrectWordOnCursor(this);
 }
 CMathContent.prototype.CorrectAllMathWords = function() {
     return AscMath.CorrectAllWords(this);
+}
+CMathContent.prototype.IsStartAutoCorrection = function(nInputType, intCode) {
+    return AscMath.IsStartAutoCorrection(nInputType, intCode);
 }
 
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
