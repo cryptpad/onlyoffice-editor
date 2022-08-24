@@ -610,6 +610,7 @@
 				}
 			}
 		}
+		this.Correct_Content();
 	};
 	AscCommonWord.ParaHyperlink.prototype.toDrawingML = function(writer) {
 		for(let nIdx = 0; nIdx < this.Content.length; ++nIdx) {
