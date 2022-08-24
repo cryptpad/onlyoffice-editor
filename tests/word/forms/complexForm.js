@@ -39,8 +39,8 @@ $(function () {
 
 	let formsManager = logicDocument.GetFormsManager();
 
-	let p1 = new AscWord.CParagraph(editor.WordControl);
-	let p2 = new AscWord.CParagraph(editor.WordControl);
+	let p1 = new AscWord.CParagraph(AscTest.DrawingDocument);
+	let p2 = new AscWord.CParagraph(AscTest.DrawingDocument);
 
 	logicDocument.AddToContent(0, p1);
 	logicDocument.AddToContent(1, p2);
@@ -254,6 +254,85 @@ $(function () {
 		assert.strictEqual(complexForm.GetInnerText(), "111abc222def333", "Check text of all complex form");
 	});
 
+	QUnit.test("Check conversion to fixed and vice versa", function (assert)
+	{
+		AscTest.ClearDocument();
+		AscTest.SetEditingMode();
+
+		let paragraph = new AscWord.CParagraph(AscTest.DrawingDocument);
+		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph);
+		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
+
+		paragraph.SetThisElementCurrent();
+
+		let complexForm = logicDocument.AddComplexForm();
+		complexForm.SetFormPr(new AscWord.CSdtFormPr());
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToStartPos();
+
+		// Наполняем нашу форму: 111<textForm>222<textForm>333
+		let tempRun1 = new AscWord.CRun();
+		tempRun1.AddText("111");
+		complexForm.Add(tempRun1);
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let textForm1 = logicDocument.AddContentControlTextForm();
+		textForm1.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun2 = new AscWord.CRun();
+		tempRun2.AddText("222");
+		complexForm.Add(tempRun2);
+
+		let textForm2 = logicDocument.AddContentControlTextForm();
+		textForm2.SetFormPr(new AscWord.CSdtFormPr());
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let tempRun3 = new AscWord.CRun();
+		tempRun3.AddText("333");
+		complexForm.Add(tempRun3);
+
+		AscTest.AddTextToInlineSdt(textForm1, "abc def");
+		AscTest.AddTextToInlineSdt(textForm2, "ABC DEF");
+
+		assert.strictEqual(complexForm.GetInnerText(), "111abc def222ABC DEF333", "Check text of all complex form");
+
+		logicDocument.RemoveSelection();
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+
+		assert.strictEqual(textForm1.IsThisElementCurrent(), true, "Check cursor position in text form1");
+		assert.strictEqual(logicDocument.IsInFormField(), true, "Check if we are in form field");
+
+		logicDocument.ConvertFormFixedType(textForm1.GetId(), true);
+
+		logicDocument.RemoveSelection();
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+
+		assert.strictEqual(textForm1.IsThisElementCurrent(), true, "Check cursor position in text form1");
+		assert.strictEqual(logicDocument.IsInFormField(), true, "Check if we are in form field");
+
+		logicDocument.ConvertFormFixedType(textForm1.GetId(), false);
+
+		logicDocument.RemoveSelection();
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+
+		assert.strictEqual(textForm1.IsThisElementCurrent(), true, "Check cursor position in text form1");
+		assert.strictEqual(logicDocument.IsInFormField(), true, "Check if we are in form field");
+
+	});
+
 	QUnit.test("Check mouse clicks", function (assert)
 	{
 		// Внутри составной формы тройной клик должен выделять всю составную форму целиком, где бы мы не кликали
@@ -262,7 +341,7 @@ $(function () {
 
 		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
 
-		let paragraph = new AscWord.CParagraph(editor.WordControl);
+		let paragraph = new AscWord.CParagraph(AscTest.DrawingDocument);
 		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph);
 		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
 
@@ -348,7 +427,7 @@ $(function () {
 
 		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
 
-		let paragraph = new AscWord.CParagraph(editor.WordControl);
+		let paragraph = new AscWord.CParagraph(AscTest.DrawingDocument);
 		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph);
 		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
 
@@ -411,7 +490,7 @@ $(function () {
 		assert.strictEqual(complexForm.IsFormFilled(), false, "Clear combo box and and check form completion");
 
 
-		let paragraph2 = new AscWord.CParagraph(editor.WordControl);
+		let paragraph2 = new AscWord.CParagraph(AscTest.DrawingDocument);
 		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph2);
 
 		let complexForm2 = logicDocument.AddComplexForm();

@@ -183,7 +183,7 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	this.LineTop = null;
 	this.LineBottom = null;
 	//------------------------------------------------------------
-	g_oTableId.Add(this, this.Id);
+	AscCommon.g_oTableId.Add(this, this.Id);
 
 	if (this.graphicObjects)
 	{

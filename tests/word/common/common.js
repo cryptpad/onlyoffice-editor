@@ -46,8 +46,18 @@ var AscTest = AscTest || {};
 	};
 
 	AscCommon.g_oTableId = {
-		Add : function(c, id) {},
-		Get_ById : function(id){return null;},
+		map : {},
+		Add : function(c, id)
+		{
+			this.map[id] = c;
+		},
+		Get_ById : function(id)
+		{
+			if (!this.map[id])
+				return null;
+
+			return this.map[id];
+		},
 		TurnOff : function(){},
 		TurnOn : function(){}
 	};

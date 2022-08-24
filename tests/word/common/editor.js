@@ -35,6 +35,9 @@
 (function(window)
 {
 	const drawingDocument = {
+		CanvasHit : null,
+		CanvasHitContext : null,
+
 		OnStartRecalculate : function(){},
 		OnRecalculatePage : function(){},
 		OnEndRecalculate : function(){},
@@ -54,11 +57,18 @@
 		SetTargetSize : function(){},
 		UpdateTarget : function(){},
 		ClearCachePages : function(){},
-		FirePaint : function(){}
+		OnRepaintPage : function(){},
+		FirePaint : function(){},
+		GetMMPerDot : function(value){return value / this.GetDotsPerMM(1);},
+		GetDotsPerMM : function(value) {return 72;}
 	};
+
+	drawingDocument.CanvasHit = document.createElement('canvas');
+	drawingDocument.CanvasHitContext = drawingDocument.CanvasHit.getContext('2d');
 
 	const editor = new AscCommon.baseEditorsApi({});
 	editor.WordControl = drawingDocument;
+	editor.WordControl.m_oDrawingDocument = drawingDocument;
 	editor.sync_BeginCatchRevisionsChanges = function(){};
 	editor.sync_EndCatchRevisionsChanges = function(){};
 	editor.sync_ChangeCommentLogicalPosition = function(){};
@@ -70,6 +80,7 @@
 	editor.sync_CanUndoCallback = function(){};
 	editor.sync_CanRedoCallback = function(){};
 	editor.CheckChangedDocument = function(){};
+	editor.asc_GetRevisionsChangesStack = function(){return []};
 
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.DrawingDocument = drawingDocument;

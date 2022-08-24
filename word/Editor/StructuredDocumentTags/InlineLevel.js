@@ -3039,8 +3039,11 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 		this.SetTextFormPr(oNewTextPr);
 	}
 
-	let oInlineRun = this.MakeSingleRunElement(false);
-	oInlineRun.RecalcMeasure();
+	if (!this.IsComplexForm())
+	{
+		let oInlineRun = this.MakeSingleRunElement(false);
+		oInlineRun.RecalcMeasure();
+	}
 
 	return this;
 };
