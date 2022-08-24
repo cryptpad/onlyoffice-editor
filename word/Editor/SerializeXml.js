@@ -143,9 +143,14 @@
 
 			let glossaryPart = documentPart.getPartByRelationshipType(openXml.Types.glossaryDocument.relationType);
 			if (glossaryPart) {
+				let glossaryDocument = this.GetGlossaryDocument()
+				context.oReadResult = new AscCommonWord.DocReadResult(glossaryDocument);
+
 				let glossaryContent = glossaryPart.getDocumentContent();
 				reader = new StaxParser(glossaryContent, glossaryPart, context);
 				this.GetGlossaryDocument().fromXml(reader);
+
+				context.oReadResult = oReadResult;
 			}
 
 			let contentDocument = documentPart.getDocumentContent();
@@ -3340,7 +3345,7 @@
 		if(this.TextOutline) {
 			let nOldDocType = writer.context.docType;
 			writer.context.docType = AscFormat.XMLWRITER_DOC_TYPE_WORDART;
-			this.TextFill.toXml(writer, "w14:textOutline");
+			this.TextOutline.toXml(writer, "w14:textOutline");
 			writer.context.docType = nOldDocType;
 		}
 		// writer.WriteXmlNullable(this.EastAsianLayout, "w:eastAsianLayout");
@@ -5596,7 +5601,7 @@
 			let elem, depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				switch (reader.GetNameNoNS()) {
-					case "splitPageBreakAndParaMark" : {
+					case "splitPgBreakAndParaMark" : {
 						this.SplitPageBreakAndParaMark = CT_BoolW.prototype.toVal(reader, this.SplitPageBreakAndParaMark);
 						break;
 					}
@@ -5631,7 +5636,7 @@
 			let CompatibilityMode = false === writer.context.docSaveParams.isCompatible ? AscCommon.document_compatibility_mode_Word15 : this.CompatibilityMode;
 			writer.WriteXmlNodeStart(name);
 			writer.WriteXmlAttributesEnd();
-			writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.SplitPageBreakAndParaMark), "w:splitPageBreakAndParaMark");
+			writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.SplitPageBreakAndParaMark), "w:splitPgBreakAndParaMark");
 			writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.DoNotExpandShiftReturn), "w:doNotExpandShiftReturn");
 			writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.BalanceSingleByteDoubleByteWidth), "w:balanceSingleByteDoubleByteWidth");
 			writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.UlTrailSpace), "w:ulTrailSpace");

@@ -744,7 +744,7 @@
 		while (reader.MoveToNextAttribute()) {
 			switch (reader.GetNameNoNS()) {
 				case "alnAt": {
-					this.alnAt = Math.min(255, Math.max(1, CT_UIntM.prototype.toVal(reader, 1)));
+					this.alnAt = Math.min(255, Math.max(1, reader.GetValueUInt(1)));
 					break;
 				}
 			}
