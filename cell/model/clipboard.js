@@ -858,55 +858,29 @@
 				if (window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) {
 					return false;
 				}
-				var isImage = false;
-				var objectRender = worksheet.objectRender;
+				let objectRender = worksheet.objectRender;
 
 				objectRender.preCopy();
-				var res = document.createElement('span');
-				var drawings = worksheet.model.Drawings;
+				let res = document.createElement('span');
+				let drawings = worksheet.model.Drawings;
 
-				for (var j = 0; j < isSelectedImages.length; ++j) {
-					var image = drawings[isSelectedImages[j]];
-					var cloneImg = objectRender.cloneDrawingObject(image);
-					var curImage = new Image();
-					var url;
-
-					if (cloneImg.graphicObject.isChart() && cloneImg.graphicObject.brush.fill.RasterImageId) {
-						url = cloneImg.graphicObject.brush.fill.RasterImageId;
-					} else if (cloneImg.graphicObject &&
-						(cloneImg.graphicObject.isShape() || cloneImg.graphicObject.isImage() ||
-						cloneImg.graphicObject.isGroup() || cloneImg.graphicObject.isChart())) {
-						var altAttr = null;
-						isImage = cloneImg.graphicObject.isImage();
-						var imageUrl;
-						if (isImage) {
-							imageUrl = cloneImg.graphicObject.getImageUrl();
-						}
-						if (isImage && imageUrl) {
-							//desktop - пишем все урлы в виде base64
-							if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] &&
-								window["AscDesktopEditor"]["IsLocalFile"]()) {
-								url = cloneImg.graphicObject.getBase64Img();
+				for (let j = 0; j < isSelectedImages.length; ++j) {
+					let oDrawing = drawings[isSelectedImages[j]];
+					if(oDrawing) {
+						let oGraphicObj = oDrawing.graphicObject;
+						if(oGraphicObj) {
+							let oHtmlImage = new Image();
+							oHtmlImage.src = oGraphicObj.getBase64Img();
+							if(oGraphicObj.cachedPixW && oGraphicObj.cachedPixH) {
+								oHtmlImage.width = oGraphicObj.cachedPixW;
+								oHtmlImage.height = oGraphicObj.cachedPixH;
 							} else {
-								url = AscCommon.getFullImageSrc2(imageUrl);
+								oHtmlImage.width = oDrawing.getWidthFromTo();
+								oHtmlImage.height = oDrawing.getHeightFromTo();
 							}
-						} else {
-							url = cloneImg.graphicObject.getBase64Img();
+							res.appendChild(oHtmlImage);
 						}
-						curImage.alt = altAttr;
-					} else {
-						url = cloneImg.image.src;
 					}
-
-					curImage.src = url;
-					curImage.width = cloneImg.getWidthFromTo();
-					curImage.height = cloneImg.getHeightFromTo();
-					if (image.guid) {
-						curImage.name = image.guid;
-					}
-
-					res.appendChild(curImage);
-					isImage = true;
 				}
 				return res;
 			},
