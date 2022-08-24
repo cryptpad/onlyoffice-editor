@@ -686,6 +686,33 @@
 			}
 			return res;
 		},
+		getDefNameByCellInside: function(col, row, sheetId, bLocale) {
+			var cellSheet = this.wb.getWorksheetById(sheetId);
+			var getByRef = function(defName) {
+				if (!defName.hidden) {
+					var defNameParseRef = defName.ref.split('!');
+					if (defNameParseRef) {
+						var sheetDefName = defNameParseRef[0];
+						var sRefDefName = defNameParseRef[1];
+
+						if (cellSheet && cellSheet.sName === sheetDefName) {
+							var refDefName = AscCommonExcel.g_oRangeCache.getAscRange(sRefDefName);
+							if (refDefName && refDefName.contains(col, row)) {
+								return defName.name;
+							}
+						}
+					}
+				}
+			};
+			var res = this._foreachDefNameSheet(sheetId, getByRef);
+			if(res && bLocale) {
+				res = AscCommon.translateManager.getValue(res);
+			}
+			if (!res) {
+				res = this._foreachDefNameBook(getByRef);
+			}
+			return res;
+		},
 		getDefinedNamesWB: function(type, bLocale, excludeErrorRefNames) {
 			var names = [], activeWS;
 
@@ -2658,6 +2685,9 @@
 	};
 	Workbook.prototype.findDefinesNames = function ( ref, sheetId, bLocale ) {
 		return this.dependencyFormulas.getDefNameByRef( ref, sheetId, bLocale );
+	};
+	Workbook.prototype.definesNamesContains = function ( col, row, sheetId, bLocale ) {
+		return this.dependencyFormulas.getDefNameByCellInside( col, row, sheetId, bLocale );
 	};
 	Workbook.prototype.unlockDefName = function(){
 		this.dependencyFormulas.unlockDefName();
