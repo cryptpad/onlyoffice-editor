@@ -11742,6 +11742,7 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
     for(let nMaster = 0; nMaster < this.slideMasters.length; ++nMaster) {
         let oMaster = this.slideMasters[nMaster];
         oMaster.setSlideSize(dWidth, dHeight);
+        oMaster.setThemeIndex(-nMaster - 1)
         for(let nLayout = 0; nLayout < oMaster.sldLayoutLst.length; ++nLayout) {
             let oLayout = oMaster.sldLayoutLst[nLayout];
             oLayout.setSlideSize(dWidth, dHeight);

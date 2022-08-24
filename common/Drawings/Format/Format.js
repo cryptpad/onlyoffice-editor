@@ -6411,166 +6411,166 @@
 					let sVal = reader.GetValue();
 					switch (sVal) {
 						case "cross":
-							this.type = AscCommon.global_hatch_offsets.cross;
+							this.ftype = AscCommon.global_hatch_offsets.cross;
 							break;
 						case "dashDnDiag":
-							this.type = AscCommon.global_hatch_offsets.dashDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dashDnDiag;
 							break;
 						case "dashHorz":
-							this.type = AscCommon.global_hatch_offsets.dashHorz;
+							this.ftype = AscCommon.global_hatch_offsets.dashHorz;
 							break;
 						case "dashUpDiag":
-							this.type = AscCommon.global_hatch_offsets.dashUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dashUpDiag;
 							break;
 						case "dashVert":
-							this.type = AscCommon.global_hatch_offsets.dashVert;
+							this.ftype = AscCommon.global_hatch_offsets.dashVert;
 							break;
 						case "diagBrick":
-							this.type = AscCommon.global_hatch_offsets.diagBrick;
+							this.ftype = AscCommon.global_hatch_offsets.diagBrick;
 							break;
 						case "diagCross":
-							this.type = AscCommon.global_hatch_offsets.diagCross;
+							this.ftype = AscCommon.global_hatch_offsets.diagCross;
 							break;
 						case "divot":
-							this.type = AscCommon.global_hatch_offsets.divot;
+							this.ftype = AscCommon.global_hatch_offsets.divot;
 							break;
 						case "dkDnDiag":
-							this.type = AscCommon.global_hatch_offsets.dkDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dkDnDiag;
 							break;
 						case "dkHorz":
-							this.type = AscCommon.global_hatch_offsets.dkHorz;
+							this.ftype = AscCommon.global_hatch_offsets.dkHorz;
 							break;
 						case "dkUpDiag":
-							this.type = AscCommon.global_hatch_offsets.dkUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dkUpDiag;
 							break;
 						case "dkVert":
-							this.type = AscCommon.global_hatch_offsets.dkVert;
+							this.ftype = AscCommon.global_hatch_offsets.dkVert;
 							break;
 						case "dnDiag":
-							this.type = AscCommon.global_hatch_offsets.dnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dnDiag;
 							break;
 						case "dotDmnd":
-							this.type = AscCommon.global_hatch_offsets.dotDmnd;
+							this.ftype = AscCommon.global_hatch_offsets.dotDmnd;
 							break;
 						case "dotGrid":
-							this.type = AscCommon.global_hatch_offsets.dotGrid;
+							this.ftype = AscCommon.global_hatch_offsets.dotGrid;
 							break;
 						case "horz":
-							this.type = AscCommon.global_hatch_offsets.horz;
+							this.ftype = AscCommon.global_hatch_offsets.horz;
 							break;
 						case "horzBrick":
-							this.type = AscCommon.global_hatch_offsets.horzBrick;
+							this.ftype = AscCommon.global_hatch_offsets.horzBrick;
 							break;
 						case "lgCheck":
-							this.type = AscCommon.global_hatch_offsets.lgCheck;
+							this.ftype = AscCommon.global_hatch_offsets.lgCheck;
 							break;
 						case "lgConfetti":
-							this.type = AscCommon.global_hatch_offsets.lgConfetti;
+							this.ftype = AscCommon.global_hatch_offsets.lgConfetti;
 							break;
 						case "lgGrid":
-							this.type = AscCommon.global_hatch_offsets.lgGrid;
+							this.ftype = AscCommon.global_hatch_offsets.lgGrid;
 							break;
 						case "ltDnDiag":
-							this.type = AscCommon.global_hatch_offsets.ltDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.ltDnDiag;
 							break;
 						case "ltHorz":
-							this.type = AscCommon.global_hatch_offsets.ltHorz;
+							this.ftype = AscCommon.global_hatch_offsets.ltHorz;
 							break;
 						case "ltUpDiag":
-							this.type = AscCommon.global_hatch_offsets.ltUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.ltUpDiag;
 							break;
 						case "ltVert":
-							this.type = AscCommon.global_hatch_offsets.ltVert;
+							this.ftype = AscCommon.global_hatch_offsets.ltVert;
 							break;
 						case "narHorz":
-							this.type = AscCommon.global_hatch_offsets.narHorz;
+							this.ftype = AscCommon.global_hatch_offsets.narHorz;
 							break;
 						case "narVert":
-							this.type = AscCommon.global_hatch_offsets.narVert;
+							this.ftype = AscCommon.global_hatch_offsets.narVert;
 							break;
 						case "openDmnd":
-							this.type = AscCommon.global_hatch_offsets.openDmnd;
+							this.ftype = AscCommon.global_hatch_offsets.openDmnd;
 							break;
 						case "pct10":
-							this.type = AscCommon.global_hatch_offsets.pct10;
+							this.ftype = AscCommon.global_hatch_offsets.pct10;
 							break;
 						case "pct20":
-							this.type = AscCommon.global_hatch_offsets.pct20;
+							this.ftype = AscCommon.global_hatch_offsets.pct20;
 							break;
 						case "pct25":
-							this.type = AscCommon.global_hatch_offsets.pct25;
+							this.ftype = AscCommon.global_hatch_offsets.pct25;
 							break;
 						case "pct30":
-							this.type = AscCommon.global_hatch_offsets.pct30;
+							this.ftype = AscCommon.global_hatch_offsets.pct30;
 							break;
 						case "pct40":
-							this.type = AscCommon.global_hatch_offsets.pct40;
+							this.ftype = AscCommon.global_hatch_offsets.pct40;
 							break;
 						case "pct5":
-							this.type = AscCommon.global_hatch_offsets.pct5;
+							this.ftype = AscCommon.global_hatch_offsets.pct5;
 							break;
 						case "pct50":
-							this.type = AscCommon.global_hatch_offsets.pct50;
+							this.ftype = AscCommon.global_hatch_offsets.pct50;
 							break;
 						case "pct60":
-							this.type = AscCommon.global_hatch_offsets.pct60;
+							this.ftype = AscCommon.global_hatch_offsets.pct60;
 							break;
 						case "pct70":
-							this.type = AscCommon.global_hatch_offsets.pct70;
+							this.ftype = AscCommon.global_hatch_offsets.pct70;
 							break;
 						case "pct75":
-							this.type = AscCommon.global_hatch_offsets.pct75;
+							this.ftype = AscCommon.global_hatch_offsets.pct75;
 							break;
 						case "pct80":
-							this.type = AscCommon.global_hatch_offsets.pct80;
+							this.ftype = AscCommon.global_hatch_offsets.pct80;
 							break;
 						case "pct90":
-							this.type = AscCommon.global_hatch_offsets.pct90;
+							this.ftype = AscCommon.global_hatch_offsets.pct90;
 							break;
 						case "plaid":
-							this.type = AscCommon.global_hatch_offsets.plaid;
+							this.ftype = AscCommon.global_hatch_offsets.plaid;
 							break;
 						case "shingle":
-							this.type = AscCommon.global_hatch_offsets.shingle;
+							this.ftype = AscCommon.global_hatch_offsets.shingle;
 							break;
 						case "smCheck":
-							this.type = AscCommon.global_hatch_offsets.smCheck;
+							this.ftype = AscCommon.global_hatch_offsets.smCheck;
 							break;
 						case "smConfetti":
-							this.type = AscCommon.global_hatch_offsets.smConfetti;
+							this.ftype = AscCommon.global_hatch_offsets.smConfetti;
 							break;
 						case "smGrid":
-							this.type = AscCommon.global_hatch_offsets.smGrid;
+							this.ftype = AscCommon.global_hatch_offsets.smGrid;
 							break;
 						case "solidDmnd":
-							this.type = AscCommon.global_hatch_offsets.solidDmnd;
+							this.ftype = AscCommon.global_hatch_offsets.solidDmnd;
 							break;
 						case "sphere":
-							this.type = AscCommon.global_hatch_offsets.sphere;
+							this.ftype = AscCommon.global_hatch_offsets.sphere;
 							break;
 						case "trellis":
-							this.type = AscCommon.global_hatch_offsets.trellis;
+							this.ftype = AscCommon.global_hatch_offsets.trellis;
 							break;
 						case "upDiag":
-							this.type = AscCommon.global_hatch_offsets.upDiag;
+							this.ftype = AscCommon.global_hatch_offsets.upDiag;
 							break;
 						case "vert":
-							this.type = AscCommon.global_hatch_offsets.vert;
+							this.ftype = AscCommon.global_hatch_offsets.vert;
 							break;
 						case "wave":
-							this.type = AscCommon.global_hatch_offsets.wave;
+							this.ftype = AscCommon.global_hatch_offsets.wave;
 							break;
 						case "wdDnDiag":
-							this.type = AscCommon.global_hatch_offsets.wdDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.wdDnDiag;
 							break;
 						case "wdUpDiag":
-							this.type = AscCommon.global_hatch_offsets.wdUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.wdUpDiag;
 							break;
 						case "weave":
-							this.type = AscCommon.global_hatch_offsets.weave;
+							this.ftype = AscCommon.global_hatch_offsets.weave;
 							break;
 						case "zigZag":
-							this.type = AscCommon.global_hatch_offsets.zigZag;
+							this.ftype = AscCommon.global_hatch_offsets.zigZag;
 							break;
 					}
 					break;
