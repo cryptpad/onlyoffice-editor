@@ -2224,8 +2224,9 @@ function CEditorPage(api)
 	{
 		if (this.m_oLogicDocument)
 		{
-			const nPageW = 210 / AscCommon.AscBrowser.retinaPixelRatio;
-			const nPageH = 297 / AscCommon.AscBrowser.retinaPixelRatio;
+			let sectPr = this.m_oLogicDocument.GetSectionsInfo().Get(0).SectPr;
+			const nPageW = sectPr.GetPageWidth() / AscCommon.AscBrowser.retinaPixelRatio;
+			const nPageH = sectPr.GetPageHeight() / AscCommon.AscBrowser.retinaPixelRatio;
 			const nScale = this.ReaderFontSizes[this.ReaderFontSizeCur] / 16;
 			this.m_oLogicDocument.SetDocumentReadMode(nPageW, nPageH, nScale);
 			return true;
