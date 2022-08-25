@@ -1666,10 +1666,10 @@
 				elem = new ParaRun(paragraph, para_Math_Content === this.Type);
 				elem.fromXml(reader);
 				this.AddToContent(this.GetElementsCount(), elem);
-				//todo
-				// if (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength && !(oParStruct.cur instanceof CInlineLevelSdt && oParStruct.cur.IsForm())) {
-				// 	this.oReadResult.runsToSplit.push(run);
-				// }
+
+				if (elem.GetElementsCount() > Asc.c_dMaxParaRunContentLength && !(this instanceof CInlineLevelSdt && this.IsForm())) {
+					oReadResult.runsToSplit.push(elem);
+				}
 				break;
 			case "sdt" : {
 				elem = new AscCommonWord.CInlineLevelSdt();
@@ -2803,8 +2803,13 @@
 				case "sym":
 					let sym = new CT_Sym();
 					sym.fromXml(reader);
-					if (null !== sym.char) {
-						this.AddText(String.fromCharCode(0x0FFF & sym.char), -1);
+					if (!isMathRun && null !== sym.char) {
+						//todo split here
+						if (!oReadResult.runsToSplitBySym[this.Id]) {
+							oReadResult.runsToSplitBySym[this.Id] = {run: this, syms: []};
+						}
+						oReadResult.runsToSplitBySym[this.Id].syms.push({pos: this.GetElementsCount(), sym: sym});
+						this.AddText(String.fromCharCode(sym.char), -1);
 					}
 					break;
 				case "t":
@@ -2836,10 +2841,10 @@
 			}
 			if (newItem) {
 				if (!isMathRun) {
-					this.Add_ToContent(this.GetElementsCount(), newItem, false);
+					this.AddToContentToEnd(newItem, false);
 				} else if (opt_paragraphContent) {
 					let oNewRun = new ParaRun(opt_paragraphContent.GetParagraph());
-					oNewRun.Add_ToContent(0, newItem, false);
+					oNewRun.AddToContentToEnd(newItem, false);
 					opt_paragraphContent.AddToContentToEnd(oNewRun);
 				}
 			}
@@ -8496,6 +8501,9 @@
 				}
 				case "char": {
 					this.char = reader.GetValueByte(this.char, 16);
+					if (null !== this.char) {
+						this.char = 0x0FFF & this.char;
+					}
 					break;
 				}
 			}

@@ -8104,6 +8104,34 @@ function BinaryFileReader(doc, openParams)
 			}
 		}
 		//split runs after styles because rPr can have a RStyle
+		for (let id in this.oReadResult.runsToSplitBySym) {
+			if (this.oReadResult.runsToSplitBySym.hasOwnProperty(id)) {
+				var runElem = this.oReadResult.runsToSplitBySym[id];
+				var runParent = runElem.run.Get_Parent();
+				var runPos = runElem.run.private_GetPosInParent(runParent);
+				if (!runParent) {
+					continue;
+				}
+
+				for (let i = runElem.syms.length - 1; i >= 0; --i) {
+					let symElem = runElem.syms[i];
+					runElem.run.RemoveFromContent(symElem.pos, 1);
+					runElem.run.Split2(symElem.pos, runParent, runPos);
+
+					let bMathRun = runElem.run.Type == para_Math_Run;
+					var NewRun = new ParaRun(runElem.run.Paragraph, bMathRun);
+					NewRun.SetPr(runElem.run.Pr.Copy(true));
+					if (symElem.sym.font) {
+						NewRun.Pr.RFonts.SetAll(symElem.sym.font);
+					}
+					NewRun.AddText(String.fromCharCode(symElem.sym.char), -1);
+
+					runParent.AddToContent(runPos, NewRun, false);
+				}
+			}
+		}
+
+		//split runs after styles because rPr can have a RStyle
 		for (var i = 0; i < this.oReadResult.runsToSplit.length; ++i) {
 			var run = this.oReadResult.runsToSplit[i];
 			var runParent = run.Get_Parent();
@@ -16932,6 +16960,7 @@ function DocReadResult(doc) {
 	this.TrackRevisions = null;
 	this.bdtr = null;
 	this.runsToSplit = [];
+	this.runsToSplitBySym = [];
 	this.bCopyPaste = false;
 
 	this.lastPar = null;
