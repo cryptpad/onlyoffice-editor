@@ -5974,7 +5974,9 @@
 				}
 				case "picture" : {
 					this.Picture = true;
-					//todo PictureFormPr
+					elem = new AscWord.CSdtPictureFormPr();
+					elem.fromXml(reader);
+					this.PictureFormPr = elem;
 					break;
 				}
 				case "richText" : {
@@ -6011,11 +6013,15 @@
 					break;
 				}
 				case "formPr" : {
-					//todo
+					elem = new AscWord.CSdtFormPr();
+					elem.fromXml(reader);
+					this.FormPr = elem;
 					break;
 				}
 				case "textFormPr" : {
-					//todo
+					elem = new AscWord.CSdtTextFormPr();
+					elem.fromXml(reader);
+					this.TextForm = elem;
 					break;
 				}
 			}
@@ -6027,10 +6033,14 @@
 
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
-		writer.WriteXmlNullable(this.TextPr, "w:rPr");
 		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Alias), "w:alias");
-		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Tag), "w:tag");
+		writer.WriteXmlNullable(CT_StringW15.prototype.fromVal(toXml_ST_SdtAppearance(this.Appearance)), "w15:appearance");
+		if (!Color.isEmpty()) {
+			writer.WriteXmlNullable(Color, "w15:color");
+		}
 		writer.WriteXmlNullable(CT_IntW.prototype.fromVal(this.Id), "w:id");
+		writer.WriteXmlNullable(CT_IntW.prototype.fromVal(this.Label), "w:label");
+		// writer.WriteXmlNullable(this.tabIndex, "w:tabIndex");
 		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(toXml_ST_Lock(this.Lock)), "w:lock");
 		if (this.Placeholder) {
 			writer.WriteXmlNodeStart("w:placeholder");
@@ -6038,16 +6048,19 @@
 			writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Placeholder), "w:docPart");
 			writer.WriteXmlNodeEnd("w:placeholder");
 		}
-		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.Temporary), "w:temporary");
 		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.ShowingPlcHdr), "w:showingPlcHdr");
 		// writer.WriteXmlNullable(this.dataBinding, "w:dataBinding");
-		writer.WriteXmlNullable(CT_IntW.prototype.fromVal(this.Label), "w:label");
-		// writer.WriteXmlNullable(this.tabIndex, "w:tabIndex");
+		writer.WriteXmlNullable(CT_BoolW.prototype.fromVal(this.Temporary), "w:temporary");
+		writer.WriteXmlNullable(CT_StringW.prototype.fromVal(this.Tag), "w:tag");
 		if (this.ComboBox) {
 			this.ComboBox.toXml(writer, "w:comboBox");
 		} else if (this.Picture) {
-			writer.WriteXmlNodeStart("w:picture");
-			writer.WriteXmlAttributesEnd(true);
+			if (this.PictureFormPr) {
+				this.PictureFormPr.toXml(writer, "w:picture");
+			} else {
+				writer.WriteXmlNodeStart("w:picture");
+				writer.WriteXmlAttributesEnd(true);
+			}
 		} else if (this.Text) {
 			writer.WriteXmlNodeStart("w:text");
 			writer.WriteXmlAttributesEnd(true);
@@ -6063,10 +6076,9 @@
 		} else if (undefined !== this.CheckBox) {
 			writer.WriteXmlNullable(this.CheckBox, "w14:checkbox");
 		}
-		writer.WriteXmlNullable(CT_StringW15.prototype.fromVal(toXml_ST_SdtAppearance(this.Appearance)), "w15:appearance");
-		if (!Color.isEmpty()) {
-			writer.WriteXmlNullable(Color, "w15:color");
-		}
+		writer.WriteXmlNullable(this.FormPr, "w:formPr");
+		writer.WriteXmlNullable(this.TextForm, "w:textFormPr");
+		writer.WriteXmlNullable(this.TextPr, "w:rPr");
 		writer.WriteXmlNodeEnd(name);
 	};
 	CSdtPr.prototype.fromXmlDocPartObj = function(reader) {
@@ -6259,6 +6271,178 @@
 		writer.WriteXmlAttributesEnd(true);
 		writer.WriteXmlNullable(CT_StringW14.prototype.fromVal(this.GroupKey), "w14:groupKey");
 		writer.WriteXmlNodeEnd(name);
+	};
+	AscWord.CSdtFormPr.prototype.readAttr = function (reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "key": {
+					this.Key = reader.GetValueDecodeXml();
+					break;
+				}
+				case "label": {
+					this.Label = reader.GetValueDecodeXml();
+					break;
+				}
+				case "helpText": {
+					this.HelpText = reader.GetValueDecodeXml();
+					break;
+				}
+				case "required": {
+					this.Required = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtFormPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "shd" : {
+					this.Shd = new CDocumentShd();
+					this.Shd.fromXml(reader);
+					break;
+				}
+				case "border" : {
+					this.Border = new CDocumentBorder();
+					this.Border.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtFormPr.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:key", this.Key);
+		writer.WriteXmlNullableAttributeStringEncode("w:label", this.Label);
+		writer.WriteXmlNullableAttributeStringEncode("w:helpText", this.HelpText);
+		writer.WriteXmlNullableAttributeBool("w:required", this.Required);
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlNullable(this.Shd, "w:shd");
+		writer.WriteXmlNullable(this.Border, "w:border");
+		writer.WriteXmlNodeEnd(name);
+	};
+	AscWord.CSdtTextFormPr.prototype.readAttr = function (reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "multiLine": {
+					this.MultiLine = reader.GetValueBool();
+					break;
+				}
+				case "autoFit": {
+					this.AutoFit = reader.GetValueBool();
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtTextFormPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		let elem, depth = reader.GetDepth();
+		while (reader.ReadNextSiblingNode(depth)) {
+			switch (reader.GetNameNoNS()) {
+				case "comb" : {
+					this.Comb = true;
+					this.fromXmlComb(reader);
+					break;
+				}
+				case "maxCharacters" : {
+					this.MaxCharacters = CT_IntW.prototype.toVal(reader, this.MaxCharacters);
+					break;
+				}
+				case "combBorder" : {
+					this.CombBorder = new CDocumentBorder();
+					this.CombBorder.fromXml(reader);
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtTextFormPr.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeBool("w:multiLine", this.MultiLine);
+		writer.WriteXmlNullableAttributeBool("w:autoFit", this.AutoFit);
+		writer.WriteXmlAttributesEnd();
+		if (this.Comb) {
+			this.toXmlComb(writer, "w:comb");
+		}
+		writer.WriteXmlNullable(CT_IntW.prototype.fromVal(this.MaxCharacters), "w:maxCharacters");
+		writer.WriteXmlNullable(this.CombBorder, "w:combBorder");
+		writer.WriteXmlNodeEnd(name);
+	};
+	AscWord.CSdtTextFormPr.prototype.readAttrComb = function (reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "width": {
+					this.Width = reader.GetValueInt();
+					break;
+				}
+				case "sym": {
+					this.CombPlaceholderSymbol = reader.GetValueDecodeXml();
+					break;
+				}
+				case "font": {
+					this.CombPlaceholderFont = reader.GetValueDecodeXml();
+					break;
+				}
+				case "wRule": {
+					this.WidthRule = fromXml_ST_CombFormWidthRule(reader.GetValue(), this.WidthRule);
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtTextFormPr.prototype.fromXmlComb = function (reader) {
+		this.readAttrComb(reader);
+		reader.ReadTillEnd();
+	};
+	AscWord.CSdtTextFormPr.prototype.toXmlComb = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:width", this.Width);
+		writer.WriteXmlNonEmptyAttributeStringEncode("w:sym", this.CombPlaceholderSymbol);
+		writer.WriteXmlNonEmptyAttributeStringEncode("w:font", this.CombPlaceholderFont);
+		writer.WriteXmlNonEmptyAttributeStringEncode("w:wRule", toXml_ST_CombFormWidthRule(this.WidthRule));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	AscWord.CSdtPictureFormPr.prototype.readAttr = function (reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "scaleFlag": {
+					this.ScaleFlag = reader.GetValueInt();
+					break;
+				}
+				case "lockProportions": {
+					this.Proportions = reader.GetValueBool();
+					break;
+				}
+				case "respectBorders": {
+					this.Borders = reader.GetValueBool();
+					break;
+				}
+				case "shiftX": {
+					this.ShiftX = reader.GetValueDouble();
+					break;
+				}
+				case "shiftY": {
+					this.ShiftY = reader.GetValueDouble();
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtPictureFormPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	AscWord.CSdtPictureFormPr.prototype.toXml = function (writer, name) {
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeInt("w:scaleFlag", this.ScaleFlag);
+		writer.WriteXmlNullableAttributeBool("w:lockProportions", this.Proportions);
+		writer.WriteXmlNullableAttributeBool("w:respectBorders", this.Borders);
+		writer.WriteXmlNullableAttributeDouble("w:shiftX", this.ShiftX);
+		writer.WriteXmlNullableAttributeDouble("w:shiftY", this.ShiftY);
+		writer.WriteXmlAttributesEnd(true);
 	};
 //comments
 	if(typeof CComments !== "undefined") {
@@ -11002,27 +11186,23 @@
 	}
 	function fromXml_ST_SdtAppearance(val, def) {
 		switch (val) {
-			case "sdtLocked":
-				return c_oAscSdtLockType.SdtLocked;
-			case "contentLocked":
-				return c_oAscSdtLockType.ContentLocked;
-			case "unlocked":
-				return c_oAscSdtLockType.Unlocked;
-			case "sdtContentLocked":
-				return c_oAscSdtLockType.SdtContentLocked;
+			case "tags":
+				return 0;
+			case "boundingBox":
+				return Asc.c_oAscSdtAppearance.Frame;
+			case "hidden":
+				return Asc.c_oAscSdtAppearance.Hidden;
 		}
 		return def;
 	}
 	function toXml_ST_SdtAppearance(val) {
 		switch (val) {
-			case c_oAscSdtLockType.SdtLocked:
-				return "sdtLocked";
-			case c_oAscSdtLockType.ContentLocked:
-				return "contentLocked";
-			case c_oAscSdtLockType.Unlocked:
-				return "unlocked";
-			case c_oAscSdtLockType.SdtContentLocked:
-				return "sdtContentLocked";
+			case 0:
+				return "tags";
+			case Asc.c_oAscSdtAppearance.Frame:
+				return "boundingBox";
+			case Asc.c_oAscSdtAppearance.Hidden:
+				return "hidden";
 		}
 		return null;
 	}
@@ -11092,6 +11272,28 @@
 		}
 		return null;
 	}
+	function fromXml_ST_CombFormWidthRule(val, def) {
+		switch (val) {
+			case "atLeast":
+				return Asc.CombFormWidthRule.AtLeast;
+			case "auto":
+				return Asc.CombFormWidthRule.Auto;
+			case "exact":
+				return Asc.CombFormWidthRule.Exact;
+		}
+		return def;
+	}
+	function toXml_ST_CombFormWidthRule(val) {
+		switch (val) {
+			case Asc.CombFormWidthRule.AtLeast:
+				return "atLeast";
+			case Asc.CombFormWidthRule.Auto:
+				return "auto";
+			case Asc.CombFormWidthRule.Exact:
+				return "exact";
+		}
+		return null;
+	}
 
 	function writeRunText(writer, ns, name, text) {
 		if(text) {
@@ -11117,7 +11319,6 @@
 		let options = {id: revisionId};
 		revisionMove.toXml(writer, name, options);
 	}
-
 
 	window['AscCommonWord'] = window['AscCommonWord'] || {};
 	window['AscCommonWord'].CT_TblGrid = CT_TblGrid;
