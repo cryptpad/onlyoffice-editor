@@ -2211,6 +2211,9 @@ function CEditorPage(api)
 
 	this.ChangeReaderMode = function()
 	{
+		if (!this.m_oLogicDocument)
+			return;
+
 		if (this.ReaderModeCurrent)
 			this.DisableReaderMode();
 		else
