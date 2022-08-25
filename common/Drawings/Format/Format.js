@@ -8409,9 +8409,16 @@
 
 			let nDashCode = this.GetDashByCode(this.prstDash);
 			if(nDashCode !== null) {
-				writer.WriteXmlNodeStart("a:prstDash");
-				writer.WriteXmlNullableAttributeString("val", this.GetDashByCode(this.prstDash));
-				writer.WriteXmlAttributesEnd(true);
+				if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
+					writer.WriteXmlNodeStart("w14:prstDash");
+					writer.WriteXmlNullableAttributeString("w14:val", this.GetDashByCode(this.prstDash));
+					writer.WriteXmlAttributesEnd(true);
+				}
+				else {
+					writer.WriteXmlNodeStart("a:prstDash");
+					writer.WriteXmlNullableAttributeString("val", this.GetDashByCode(this.prstDash));
+					writer.WriteXmlAttributesEnd(true);
+				}
 			}
 			if (this.Join) {
 				this.Join.toXml(writer);

@@ -3780,7 +3780,10 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(CT_Bool.prototype.fromVal(this.wireframe), "c:wireframe");
 		writer.WriteXmlArray(this.series, "c:ser");
-		writer.WriteXmlArray(this.bandFmts, "c:bandFmts");
+		writer.WriteXmlNodeStart("c:bandFmts");
+		writer.WriteXmlAttributesEnd();
+		writer.WriteXmlArray(this.bandFmts, "c:bandFmt");
+		writer.WriteXmlNodeEnd("c:bandFmts");
 		this.axId.forEach(function(axis) {
 			writer.WriteXmlNullable(CT_Int.prototype.fromVal(axis.axId), "c:axId");
 		});

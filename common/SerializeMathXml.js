@@ -756,7 +756,7 @@
 	};
 	CMathBreak.prototype.toXml = function (writer, name) {
 		writer.WriteXmlNodeStart(name);
-		writer.WriteXmlNullable(CT_UIntM.prototype.fromVal(this.alnAt), "m:alnAt");
+		writer.WriteXmlNullableAttributeUInt("alnAt", this.alnAt);
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CMathBoxPr.prototype.fromXml = function (reader, mathElem) {

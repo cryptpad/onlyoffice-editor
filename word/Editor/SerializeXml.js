@@ -2639,12 +2639,12 @@
 						var oXfrm = new AscFormat.CXfrm();
 						oXfrm.setOffX(0);
 						oXfrm.setOffY(0);
-						oXfrm.setChOffX(0);
-						oXfrm.setChOffY(0);
+						//oXfrm.setChOffX(0);
+						//oXfrm.setChOffY(0);
 						oXfrm.setExtX(oParaDrawing.Extent.W);
 						oXfrm.setExtY(oParaDrawing.Extent.H);
-						oXfrm.setChExtX(oParaDrawing.Extent.W);
-						oXfrm.setChExtY(oParaDrawing.Extent.H);
+						//oXfrm.setChExtX(oParaDrawing.Extent.W);
+						//oXfrm.setChExtY(oParaDrawing.Extent.H);
 						oXfrm.setParent(oParaDrawing.GraphicObj.spPr);
 						oGrObject.checkEmptySpPrAndXfrm(oXfrm);
 						delete oParaDrawing.GraphicObj.bEmptyTransform;
