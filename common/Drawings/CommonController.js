@@ -4304,10 +4304,6 @@ DrawingObjectsController.prototype =
                 var oSelectedObject = this.selectedObjects[i];
                 CheckSpPrXfrm3(oSelectedObject);
                 var nAnchorType = props.anchor;
-                if(oSelectedObject.getObjectType() === AscDFH.historyitem_type_OleObject)
-                {
-                    nAnchorType = AscCommon.c_oAscCellAnchorType.cellanchorTwoCell;
-                }
                 oSelectedObject.setDrawingBaseType(nAnchorType);
                 if(nAnchorType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
                 {
