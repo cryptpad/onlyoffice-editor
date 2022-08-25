@@ -7752,6 +7752,10 @@
 				}
 				case "docPr" : {
 					this.drawing.docPr.fromXml(reader);
+					if(this.drawing.docPr.form !== null) {
+						this.drawing.SetForm(this.drawing.docPr.form);
+						this.drawing.docPr.form = null;
+					}
 					break;
 				}
 				case "cNvGraphicFramePr" : {
@@ -7805,6 +7809,9 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(Extent, "wp:extent");
 		writer.WriteXmlNullable(EffectExtent, "wp:effectExtent");
+		if(drawing.docPr) {
+			drawing.docPr.form = drawing.Form;
+		}
 		writer.WriteXmlNullable(drawing.docPr, "wp:docPr");
 		writer.WriteXmlNullable(nvGraphicFramePr, "wp:cNvGraphicFramePr");
 		writer.WriteXmlNullable(Graphic, "a:graphic");
@@ -8022,6 +8029,10 @@
 				}
 				case "docPr" : {
 					drawing.docPr.fromXml(reader);
+					if(this.drawing.docPr.form !== null) {
+						this.drawing.SetForm(this.drawing.docPr.form);
+						this.drawing.docPr.form = null;
+					}
 					break;
 				}
 				case "cNvGraphicFramePr" : {
@@ -8178,6 +8189,9 @@
 		writer.WriteXmlNullable(WrapTight, "wp:wrapTight");
 		writer.WriteXmlNullable(WrapThrough, "wp:wrapThrough");
 		writer.WriteXmlNullable(WrapTopAndBottom, "wp:wrapTopAndBottom");
+		if(drawing.docPr) {
+			drawing.docPr.form = drawing.Form;
+		}
 		writer.WriteXmlNullable(drawing.docPr, "wp:docPr");
 		writer.WriteXmlNullable(nvGraphicFramePr, "wp:cNvGraphicFramePr");
 		writer.WriteXmlNullable(Graphic, "a:graphic");

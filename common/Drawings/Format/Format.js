@@ -8563,6 +8563,8 @@
 			this.hlinkClick = null;
 			this.hlinkHover = null;
 
+			this.form = null;
+
 			this.setId(AscCommon.CreateDurableId());
 		}
 
@@ -8635,6 +8637,7 @@
 			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 			writer.WriteXmlNullableAttributeStringEncode("descr", this.descr);
 			writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
+			writer.WriteXmlNullableAttributeBool("form", this.form);
 			writer.WriteXmlNullableAttributeStringEncode("title", this.title);
 			//writer.WriteXmlNullableAttributeBool("title", this.form);
 			if(this.hlinkClick || this.hlinkHover) {
@@ -8673,8 +8676,7 @@
 					break;
 				}
 				case "form": {
-					//todo
-					// ParaDrawing.SetForm(reader.GetValueBool());
+					this.form = reader.GetValueBool();
 					break;
 				}
 			}
@@ -8739,6 +8741,7 @@
 				writer.WriteXmlNullableAttributeString("descr", d);
 			}
 			writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
+			writer.WriteXmlNullableAttributeBool("form", this.form);
 			if (this.title) writer.WriteXmlNullableAttributeStringEncode("title", this.title);
 
 
