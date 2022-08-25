@@ -1281,6 +1281,9 @@ ParaDrawing.prototype.GetScaleCoefficient = function ()
 		let oSectPr = oParagraph.Get_SectPr();
 		oLogicDocument.Layout = oLayout;
 
+		if (!oSectPr)
+			return 1;
+
 		return oLogicDocument.GetDocumentLayout().GetScaleBySection(oSectPr);
 	}
 
