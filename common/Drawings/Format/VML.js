@@ -9026,7 +9026,7 @@
 			}
 			else {
 				let oVMLFill = this.getFill();
-				if(oVMLFill.m_oOpacity !== null) {
+				if(oVMLFill && oVMLFill.m_oOpacity !== null) {
 					oFill.addAlpha(oVMLFill.m_oOpacity);
 				}
 			}
