@@ -16357,10 +16357,11 @@ CDocument.prototype.AddContentControlTextForm = function(oPr)
 };
 /**
  * Добавляем специальную текстовую форму
- * @param oPr {?AscWord.CSdtComplexFormPr}
+ * @param {?AscWord.CSdtComplexFormPr} oPr
+ * @param {?AscWord.CSdtFormPr} formPr
  * @returns {?CInlineLevelSdt}
  */
-CDocument.prototype.AddComplexForm = function(oPr)
+CDocument.prototype.AddComplexForm = function(oPr, formPr)
 {
 	if (!oPr)
 		oPr = new AscWord.CSdtComplexFormPr();
@@ -16379,6 +16380,9 @@ CDocument.prototype.AddComplexForm = function(oPr)
 
 	oCC.SetComplexFormPr(oPr);
 	oCC.MoveCursorToStartPos();
+
+	let _formPr = formPr ? formPr : new AscWord.CSdtFormPr();
+	oCC.SetFormPr(_formPr);
 
 	if (sText)
 	{

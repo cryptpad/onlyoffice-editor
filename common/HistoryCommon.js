@@ -1243,6 +1243,9 @@
 			case AscDFH.historydescription_Document_FillFormInPlugin:
 				sString = "Document_FillFormInPlugin";
 				break;
+			case AscDFH.historydescription_Document_AddComplexForm:
+				sString = "Document_AddComplexForm";
+				break;
 		}
 		return sString;
 	}
@@ -4309,6 +4312,7 @@
 	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
 	window['AscDFH'].historydescription_Document_FillFormsByTags                    = 0x0193;
 	window['AscDFH'].historydescription_Document_FillFormInPlugin                   = 0x0194;
+	window['AscDFH'].historydescription_Document_AddComplexForm                     = 0x0195;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

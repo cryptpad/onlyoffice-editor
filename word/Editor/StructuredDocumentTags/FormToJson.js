@@ -57,9 +57,10 @@
 	/**
 	 * Создание формы по Json объекту
 	 * @param json
+	 * @param {?AscWord.CInlineLevelSdt} form
 	 * @returns {?CInlineLevelSdt}
 	 */
-	function JsonToForm(json)
+	function JsonToForm(json, form)
 	{
 		let arrFormat = json["format"];
 
@@ -68,9 +69,18 @@
 			|| !arrFormat.length)
 			return null;
 
-		let oComplexForm = new AscWord.CInlineLevelSdt();
+		let oComplexForm;
+		if (form)
+		{
+			oComplexForm = form;
+		}
+		else
+		{
+			oComplexForm = new AscWord.CInlineLevelSdt();
+			oComplexForm.SetComplexFormPr(new AscWord.CSdtComplexFormPr());
+		}
+
 		oComplexForm.RemoveFromContent(0, oComplexForm.GetElementsCount());
-		oComplexForm.SetComplexFormPr(new AscWord.CSdtComplexFormPr());
 
 		for (let nIndex = 0, nCount = arrFormat.length; nIndex < nCount; ++nIndex)
 		{

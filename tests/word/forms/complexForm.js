@@ -432,8 +432,7 @@ $(function () {
 		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
 
 		let complexForm   = logicDocument.AddComplexForm();
-		let complexFormPr = new AscWord.CSdtFormPr();
-		complexForm.SetFormPr(complexFormPr);
+		let complexFormPr = complexForm.GetFormPr();
 
 		complexForm.SetThisElementCurrent();
 		complexForm.MoveCursorToStartPos();
