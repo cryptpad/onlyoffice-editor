@@ -1277,17 +1277,22 @@ StaxParser.prototype.parseNode = function(indexStart) {
     return -1;
 };
 StaxParser.prototype.MoveToNextAttribute = function() {
-    var startAttrName = this.index;
     var i = this.index;
     var w = this.xml.charCodeAt(i);
     while (i < this.length) {
         if (w === 61 /* "=" */ && i + 1 < this.length) {
-            this.name = this.xml.substring(startAttrName, i);
+            this.name = this.xml.substring(this.index, i);
+            this.name = this.name.trim();
             var textStart = i + 2;
+            //todo single quote
             if (this.xml.charCodeAt(textStart - 1) === 34/* "\"" */) {
                 i = this.xml.indexOf("\"", textStart);
             } else {
-                i = this.xml.indexOf('\'', textStart);
+                i = this.xml.indexOf('"', textStart - 1);
+                if (-1 !== i) {
+                    textStart = i + 1;
+                    i = this.xml.indexOf("\"", textStart);
+                }
             }
             if (-1 !== i) {
                 this.text = this.xml.substring(textStart, i);
@@ -1300,7 +1305,6 @@ StaxParser.prototype.MoveToNextAttribute = function() {
         if (w === 32 || w === 9 || w === 10 || w === 11 || w === 12 || w === 13) { // \f\n\r\t\v space
             //todo spaces between name and =
             w = this.xml.charCodeAt(++i);
-            startAttrName = i;
             continue;
         }
         if (w === 62 /* ">" */) {

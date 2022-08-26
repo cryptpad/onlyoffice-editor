@@ -141,6 +141,25 @@
 				this.Settings.fromXml(reader, this);
 			}
 
+			var customXmlParts = documentPart.getPartsByRelationshipType(openXml.Types.customXml.relationType);
+			if (customXmlParts) {
+				for (let i = 0; i < customXmlParts.length; i++) {
+					var customXmlPart = customXmlParts[i];
+					var customXml = customXmlPart.getDocumentContent();
+					var customXmlPropsPart = customXmlPart.getPartByRelationshipType(openXml.Types.customXmlProps.relationType);
+					var customXmlProps = customXmlPropsPart && customXmlPropsPart.getDocumentContent();
+
+					if (-1 !== customXmlProps.indexOf("http://schemas.onlyoffice.com/settingsCustom")) {
+						reader = new StaxParser(customXml, customXmlPart, context);
+						this.Settings.fromXml(reader, this);
+					} else {
+						//todo read and save
+						var custom = {Uri: [], ItemId: null, Content: null, item: customXml, itemProps: customXmlProps};
+						this.CustomXmls.push(custom);
+					}
+				}
+			}
+
 			let glossaryPart = documentPart.getPartByRelationshipType(openXml.Types.glossaryDocument.relationType);
 			if (glossaryPart) {
 				let glossaryDocument = this.GetGlossaryDocument()
@@ -5570,6 +5589,38 @@
 						this.ListSeparator = CT_StringW.prototype.toVal(reader, this.ListSeparator);
 						break;
 					}
+					//non standard
+					case "SdtGlobalColor" : {
+						if (doc) {
+							elem = new CT_Color("val", "themeColor", "themeTint", "themeShade");
+							elem.fromXml(reader);
+							let color = elem.getColor(0, 0, 0);
+							if (!color.Auto) {
+								doc.SetSdtGlobalColor(color.r, color.g, color.b);
+							}
+						}
+						break;
+					}
+					case "SdtGlobalShowHighlight" : {
+						if (doc) {
+							doc.SetSdtGlobalShowHighlight(CT_BoolW.prototype.toVal(reader));
+						}
+						break;
+					}
+					case "SpecialFormsHighlight" : {
+						if (doc) {
+							elem = new CT_Color("val", "themeColor", "themeTint", "themeShade");
+							elem.fromXml(reader);
+							let color = elem.getColor(0, 0, 0);
+							if (color.Auto) {
+								doc.SetSpecialFormsHighlight(null);
+							} else {
+								doc.SetSpecialFormsHighlight(color.r, color.g, color.b);
+							}
+						}
+						break;
+					}
+
 				}
 			}
 		};
