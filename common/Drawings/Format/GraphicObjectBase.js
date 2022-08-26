@@ -2638,10 +2638,10 @@
         }
         return this;
     };
-    CGraphicObjectBase.prototype.Set_CurrentElement = function(bUpdate, pageIndex) {
+    CGraphicObjectBase.prototype.Set_CurrentElement = function(bUpdate, pageIndex, bNoTextSelection) {
         //TODO: refactor this
         if(AscFormat.CShape.prototype.Set_CurrentElement) {
-            AscFormat.CShape.prototype.Set_CurrentElement.call(this, bUpdate, pageIndex);
+            AscFormat.CShape.prototype.Set_CurrentElement.call(this, bUpdate, pageIndex, bNoTextSelection);
         }
     };
     CGraphicObjectBase.prototype.SetControllerTextSelection = function(drawing_objects, nPageIndex) {
