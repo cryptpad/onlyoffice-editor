@@ -1284,14 +1284,14 @@ StaxParser.prototype.MoveToNextAttribute = function() {
             this.name = this.xml.substring(this.index, i);
             this.name = this.name.trim();
             var textStart = i + 2;
-            //todo single quote
             if (this.xml.charCodeAt(textStart - 1) === 34/* "\"" */) {
                 i = this.xml.indexOf("\"", textStart);
             } else {
-                i = this.xml.indexOf('"', textStart - 1);
+                i = this.xml.slice(textStart - 1).search(/["']/g);
                 if (-1 !== i) {
+                    i += textStart - 1;//slice compensation
                     textStart = i + 1;
-                    i = this.xml.indexOf("\"", textStart);
+                    i = this.xml.indexOf(this.xml[i], textStart);
                 }
             }
             if (-1 !== i) {

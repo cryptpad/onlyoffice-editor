@@ -4718,7 +4718,7 @@
 					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (elem.val) {
-						oReadResult.numStyleLinks.push({pPr: this, style: elem.val});
+						oReadResult.styleLinks.push({pPr: this, style: elem.val});
 					}
 					break;
 				}
@@ -4726,7 +4726,7 @@
 					elem = new CT_StringW();
 					elem.fromXml(reader);
 					if (elem.val) {
-						oReadResult.styleLinks.push({pPr: this, style: elem.val});
+						oReadResult.numStyleLinks.push({pPr: this, style: elem.val});
 					}
 					break;
 				}
