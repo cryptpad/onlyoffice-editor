@@ -593,6 +593,7 @@ $(function () {
 
 		let complexForm2 = AscWord.JsonToForm(json);
 		assert.strictEqual(complexForm2.GetInnerText(), "111TextForm222ComboForm333-444", "Check inner text after conversion json to form");
+		assert.strictEqual(complexForm2.IsPlaceHolder(), false, "Check if complex form is filled with placeholder");
 
 		let subForms = complexForm2.GetAllSubForms();
 		assert.strictEqual(subForms.length, 3, "Check the count of subforms");

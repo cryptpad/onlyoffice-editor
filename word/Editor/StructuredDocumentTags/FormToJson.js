@@ -99,7 +99,12 @@
 			}
 		}
 
-		return oComplexForm.GetElementsCount() ? oComplexForm : null;
+		if (oComplexForm.GetElementsCount())
+			oComplexForm.SetShowingPlcHdr(false);
+		else
+			oComplexForm.ReplaceContentWithPlaceHolder(false);
+
+		return oComplexForm;
 	}
 
 	/**
