@@ -14440,7 +14440,7 @@
 
 			let nPos = sValue.indexOf(",");
 
-			let strX, strY;
+			let strX, strY = "";
 			if (-1 === nPos) {//only x coord
 				strX = sValue;
 			} else {

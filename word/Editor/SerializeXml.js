@@ -4362,14 +4362,14 @@
 	};
 	CStyle.prototype.fromXml = function(reader, opt_addition) {
 		this.readAttr(reader, opt_addition);
-		var elem, depth = reader.GetDepth(), oReadResult = reader.context.oReadResult;
+		var elem, name, depth = reader.GetDepth(), oReadResult = reader.context.oReadResult;
 		let t = this;
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
 				case "name" : {
 					elem = new CT_StringW();
 					elem.fromXml(reader);
-					this.Set_Name(elem.getVal(undefined));
+					name = elem.getVal(name);
 					break;
 				}
 				// case "aliases" : {
@@ -4489,6 +4489,10 @@
 				}
 			}
 		}
+		if (!name) {
+			name = "StGen" + oReadResult.styleGenIndex++;
+		}
+		this.Set_Name(name);
 	};
 	CStyle.prototype.toXml = function(writer, name, opt_addition) {
 		var Name = CT_StringW.prototype.fromVal(this.Name);

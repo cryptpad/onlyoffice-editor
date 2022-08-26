@@ -6372,8 +6372,8 @@ Because of this, the display is sometimes not correct.
     };
     If.prototype.readAttrXml = function (name, reader) {
       if (name === "name") this.setName(reader.GetValue());
-      else if (name === "st") this.readStFormXml(reader);
-      else if (name === "step") this.readStepFormXml(reader);
+      else if (name === "st") this.readStFromXml(reader);
+      else if (name === "step") this.readStepFromXml(reader);
       else if (name === "hideLastTrans") this.readHideLastTransFromXml(reader);
       else if (name === "cnt") this.readCntFromXml(reader);
       else if (name === "axis") {

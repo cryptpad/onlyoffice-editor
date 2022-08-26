@@ -16962,6 +16962,7 @@ function DocReadResult(doc) {
 	this.runsToSplit = [];
 	this.runsToSplitBySym = [];
 	this.bCopyPaste = false;
+	this.styleGenIndex = 1;
 
 	this.lastPar = null;
 	this.toNextPar = [];
