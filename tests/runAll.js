@@ -33,14 +33,14 @@
 const path = require("path");
 
 const allTests = [
-	// '../cell/.unit-tests/FormulaTests.html',
-	// '../cell/.unit-tests/subdir/PivotTests.html',
-	// '../cell/.unit-tests/CopyPasteTests.html',
-	// 'word/unit-tests/paragraphContentPos.html',
-	// 'word/document-calculation/paragraph.html',
-	// 'word/forms/forms.html',
+	'../cell/.unit-tests/FormulaTests.html',
+	'../cell/.unit-tests/subdir/PivotTests.html',
+	'../cell/.unit-tests/CopyPasteTests.html',
+	'word/unit-tests/paragraphContentPos.html',
+	'word/document-calculation/paragraph.html',
+	'word/forms/forms.html',
 	'word/forms/complexForm.html',
-	//'word/api/api.html'
+	'word/api/api.html'
 ];
 
 const {performance} = require('perf_hooks');
