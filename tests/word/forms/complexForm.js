@@ -603,5 +603,7 @@ $(function () {
 		assert.strictEqual(subForms[2].IsCheckBox(), true, "Check type of the 2 subform");
 		assert.strictEqual(subForms[2].IsCheckBoxChecked(), false, "Check value of the 2 subform");
 
+		assert.deepEqual(AscWord.GetUnicodesFromJsonToForm(json), [49,84,101,120,116,70,111,114,109,50,67,98,104,115,32,97,110,105,51,122,99,43,22,45,24,52], "Check GetUnicodesFromJsonToForm funciton");
+
 	});
 });

@@ -91,6 +91,65 @@
 
 		return oComplexForm.GetElementsCount() ? oComplexForm : null;
 	}
+
+	/**
+	 * Получем массив всех юниковод, используемых в заданной форме
+	 * @param json
+	 * @returns {Array.number}
+	 */
+	function GetUnicodesFromJsonToForm(json)
+	{
+		if (!json)
+			return [];
+
+		let format = json["format"];
+
+		if (!format
+			|| !Array.isArray(format)
+			|| !format.length)
+			return [];
+
+		let codePoints = [];
+		for (let index = 0, count = format.length; index < count; ++index)
+		{
+			let element = format[index];
+			if (typeof(element) === "string")
+			{
+				AppendString(codePoints, element);
+			}
+			else
+			{
+				let placeHolder = element["placeHolder"];
+				if (placeHolder)
+					AppendString(codePoints, placeHolder);
+
+				let type = element["type"];
+				if ("checkBox" === type)
+				{
+					if (element["checkedSymbol"])
+						AppendCodePoint(codePoints, codePoints.push(element["checkedSymbol"]));
+
+					if (element["uncheckedSymbol"])
+						AppendCodePoint(codePoints, codePoints.push(element["uncheckedSymbol"]));
+				}
+				else if ("comboBox" === type)
+				{
+					let choice = element["choice"];
+					if (Array.isArray(choice))
+					{
+						for (let choiceIndex = 0, choiceLen = choice.length; choiceIndex < choiceLen; ++choiceIndex)
+						{
+							let value = choice[choiceIndex];
+							if (typeof(value) === "string" && value)
+								AppendString(codePoints, value);
+						}
+					}
+				}
+			}
+		}
+
+		return codePoints;
+	}
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -257,9 +316,22 @@
 		// TODO: Реализовать
 		return null;
 	}
+	function AppendString(buffer, string)
+	{
+		for (let iterator = string.getUnicodeIterator(); iterator.check(); iterator.next())
+		{
+			AppendCodePoint(buffer, iterator.value());
+		}
+	}
+	function AppendCodePoint(buffer, codePoint)
+	{
+		if (-1 === buffer.indexOf(codePoint))
+			buffer.push(codePoint);
+	}
 
 	//--------------------------------------------------------export----------------------------------------------------
-	window['AscWord'].FormToJson = FormToJson;
-	window['AscWord'].JsonToForm = JsonToForm;
+	window['AscWord'].FormToJson                = FormToJson;
+	window['AscWord'].JsonToForm                = JsonToForm;
+	window['AscWord'].GetUnicodesFromJsonToForm = GetUnicodesFromJsonToForm;
 
 })(window);

@@ -1158,14 +1158,14 @@
 	/**
 	 * @returns {number[]}
 	 */
-	String.prototype.codePointsArray = function()
+	String.prototype.codePointsArray = function(codePoints)
 	{
-		let codePoints = [];
+		let _codePoints = codePoints ? codePoints : [];
 
 		for (let iter = this.getUnicodeIterator(); iter.check(); iter.next())
-			codePoints.push(iter.value());
+			_codePoints.push(iter.value());
 
-		return codePoints;
+		return _codePoints;
 	};
 
 	var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : undefined;
