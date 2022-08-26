@@ -9398,6 +9398,21 @@
 					if(oTextbox) {
 						if(oTextbox.m_oTxtbxContent) {
 							//oBodyPr.setAnchor(1);
+							let oInset = oTextbox.m_oInset;
+							if(oInset) {
+								if(oInset.m_dLeft !== null) {
+									oBodyPr.lIns = Pt_To_Mm(oInset.m_dLeft);
+								}
+								if(oInset.m_dTop !== null) {
+									oBodyPr.tIns = Pt_To_Mm(oInset.m_dTop);
+								}
+								if(oInset.m_dRight !== null) {
+									oBodyPr.rIns = Pt_To_Mm(oInset.m_dRight);
+								}
+								if(oInset.m_dBottom !== null) {
+									oBodyPr.bIns = Pt_To_Mm(oInset.m_dBottom);
+								}
+							}
 							oOOXMLDrawing.setBodyPr(oBodyPr);
 							oOOXMLDrawing.setTextBoxContent(oTextbox.m_oTxtbxContent);
 							oTextbox.m_oTxtbxContent.SetParent(oOOXMLDrawing);
