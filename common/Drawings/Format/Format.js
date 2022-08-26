@@ -14944,46 +14944,49 @@
 				blipFill.setRasterImageId(url);
 			}
 		};
-		CBullet.prototype.drawSquareImage = function (divId, relativeIndent) {
-			relativeIndent = relativeIndent || 0;
-
-			var url = this.getImageBulletURL();
-			var Api = editor || Asc.editor;
-			if (!url || !Api) {
+		CBullet.prototype.drawSquareImage = function (sDivId, nRelativeIndent) {
+			nRelativeIndent = nRelativeIndent || 0;
+			const sImageUrl = this.getImageBulletURL();
+			const oApi = editor || Asc.editor;
+			if (!sImageUrl || !oApi) {
 				return;
 			}
 
-			var oDiv = document.getElementById(divId);
+			const oDiv = document.getElementById(sDivId);
 			if (!oDiv) {
 				return;
 			}
-			var nWidth = oDiv.clientWidth;
-			var nHeight = oDiv.clientHeight;
-			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-			var sideSize = nWidth < nHeight ? nWidth * rPR : nHeight * rPR;
+			const nWidth = oDiv.clientWidth;
+			const nHeight = oDiv.clientHeight;
+			const nRPR = AscCommon.AscBrowser.retinaPixelRatio;
+			const nCanvasSide = Math.min(nWidth, nHeight) * nRPR;
 
-			var oCanvas = oDiv.firstChild;
+			let oCanvas = oDiv.firstChild;
 			if (!oCanvas) {
 				oCanvas = document.createElement('canvas');
 				oCanvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				oCanvas.style.width = oDiv.clientWidth + 'px';
 				oCanvas.style.height = oDiv.clientHeight + 'px';
-				oCanvas.width = sideSize;
-				oCanvas.height = sideSize;
+				oCanvas.width = nCanvasSide;
+				oCanvas.height = nCanvasSide;
 				oDiv.appendChild(oCanvas);
 			}
 
-			var oContext = oCanvas.getContext('2d');
+			const oContext = oCanvas.getContext('2d');
 			oContext.fillStyle = "white";
 			oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
-			var _img = Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
-			if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading) {
-				var absoluteIndent = sideSize * relativeIndent;
-				var _x = absoluteIndent;
-				var _y = absoluteIndent;
-				var _w = sideSize - absoluteIndent * 2;
-				var _h = sideSize - absoluteIndent * 2;
-				oContext.drawImage(_img.Image, _x, _y, _w, _h);
+			const oImage = oApi.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(sImageUrl)];
+			if (oImage && oImage.Image && oImage.Status !== AscFonts.ImageLoadStatus.Loading) {
+				const nImageWidth = oImage.Image.width;
+				const nImageHeight = oImage.Image.height;
+				const absoluteIndent = nCanvasSide * nRelativeIndent;
+				const nSideSizeWithoutIndent = nCanvasSide - 2 * absoluteIndent;
+				const nAdaptCoefficient = Math.max(nImageWidth / nSideSizeWithoutIndent, nImageHeight / nSideSizeWithoutIndent);
+				const nImageAdaptWidth = nImageWidth / nAdaptCoefficient;
+				const nImageAdaptHeight = nImageHeight / nAdaptCoefficient;
+				const nX = (nCanvasSide - nImageAdaptWidth) / 2;
+				const nY = (nCanvasSide - nImageAdaptHeight) / 2;
+				oContext.drawImage(oImage.Image, nX, nY, nImageAdaptWidth, nImageAdaptHeight);
 			}
 		};
 		CBullet.prototype.readChildXml = function (name, reader) {
