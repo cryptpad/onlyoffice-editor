@@ -85,10 +85,7 @@
 			{
 				let oForm = JsonToSimpleForm(oElement);
 				if (oForm)
-				{
-					oForm.SetFormPr(new AscWord.CSdtFormPr());
 					oComplexForm.AddToContentToEnd(oForm);
-				}
 			}
 		}
 
@@ -136,9 +133,12 @@
 	}
 	function CheckBoxToBuffer(oForm)
 	{
+		let pr = oForm.GetCheckBoxPr();
 		Buffer.push({
-			"type"    : "checkBox",
-			"checked" : oForm.IsCheckBoxChecked()
+			"type"            : "checkBox",
+			"checked"         : pr.GetChecked(),
+			"checkedSymbol"   : pr.GetCheckedSymbol(),
+			"uncheckedSymbol" : pr.GetUncheckedSymbol()
 		});
 	}
 	function ComboBoxToBuffer(oForm)
@@ -167,17 +167,22 @@
 	}
 	function JsonToSimpleForm(json)
 	{
+		let form = null;
+
 		let nType = json["type"];
 		if ("text" === nType)
-			return JsonToTextForm(json);
+			form = JsonToTextForm(json);
 		else if ("checkBox" === nType)
-			return JsonToCheckBox(json);
+			form = JsonToCheckBox(json);
 		else if ("comboBox" === nType)
-			return JsonToComboBox(json);
+			form = JsonToComboBox(json);
 		else if ("picture" === nType)
-			return JsonToPicture(json);
+			form = JsonToPicture(json);
 
-		return null;
+		if (form)
+			form.SetFormPr(new AscWord.CSdtFormPr());
+
+		return form;
 	}
 	function JsonToTextForm(json)
 	{
@@ -192,7 +197,7 @@
 
 		textFormPr.GetFormat().FromJson(json["format"]);
 
-		textForm.SetTextFormPr(textFormPr);
+		textForm.ApplyTextFormPr(textFormPr);
 
 		let placeHolderText = json["placeHolder"];
 		if (placeHolderText && placeHolderText !== textForm.GetPlaceholderText())
@@ -207,7 +212,14 @@
 		let checkBox   = new AscWord.CInlineLevelSdt();
 		let checkBoxPr = new AscWord.CSdtCheckBoxPr();
 		checkBoxPr.SetChecked(!!json["checked"]);
-		checkBox.SetCheckBoxPr(checkBoxPr);
+
+		if (json["checkedSymbol"])
+			checkBoxPr.SetCheckedSymbol(json["checkedSymbol"]);
+
+		if (json["uncheckedSymbol"])
+			checkBoxPr.SetUncheckedSymbol(json["uncheckedSymbol"]);
+
+		checkBox.ApplyCheckBoxPr(checkBoxPr);
 		return checkBox;
 	}
 	function JsonToComboBox(json)
@@ -228,9 +240,9 @@
 		comboBoxPr.GetFormat().ToJson(json["format"]);
 
 		if (json["edit"])
-			comboBox.SetComboBoxPr(comboBoxPr);
+			comboBox.ApplyComboBoxPr(comboBoxPr);
 		else
-			comboBox.SetDropDownListPr(comboBoxPr);
+			comboBox.ApplyDropDownListPr(comboBoxPr);
 
 		let placeHolderText = json["placeHolder"];
 		if (placeHolderText && placeHolderText !== comboBox.GetPlaceholderText())

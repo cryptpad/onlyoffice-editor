@@ -585,13 +585,15 @@ $(function () {
 		}, "Check form to json conversion");
 
 		json.format.push({
-			"checked" : false,
-			"type"    : "checkBox"
+			"checked"         : false,
+			"type"            : "checkBox",
+			"checkedSymbol"   : "+".codePointAt(0),
+			"uncheckedSymbol" : "-".codePointAt(0)
 		});
 		json.format.push("444");
 
 		let complexForm2 = AscWord.JsonToForm(json);
-		assert.strictEqual(complexForm2.GetInnerText(), "111TextForm222ComboForm333444", "Check inner text after conversion json to form");
+		assert.strictEqual(complexForm2.GetInnerText(), "111TextForm222ComboForm333-444", "Check inner text after conversion json to form");
 
 		let subForms = complexForm2.GetAllSubForms();
 		assert.strictEqual(subForms.length, 3, "Check the count of subforms");
