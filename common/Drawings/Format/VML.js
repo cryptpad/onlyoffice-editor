@@ -3845,7 +3845,7 @@
 						break;
 					}
 					case PPTFormulaType.ftCos: {
-						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, pow3_16, ParamType.ptValue, oGuide.m_lParam, oGuide.m_eType, false, false, true);
+						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, pow3_16, ParamType.ptValue, this.m_oParam.m_lParam, this.m_oParam.m_eType, false, false, true);
 						this.convertCos(oGuide.m_lParam1, oGuide.m_eType1, this.m_lIndexDst-1, ParamType.ptFormula, false, true);
 						break;
 					}
@@ -3854,8 +3854,12 @@
 						break;
 					}
 					case PPTFormulaType.ftAtan2: {
-						this.convertProd(oGuide.m_lParam2, oGuide.m_eType2, pow3_16, ParamType.ptValue, oGuide.m_lParam, oGuide.m_eType, false, false, true);
-						this.convertSin(oGuide.m_lParam1, oGuide.m_eType1, this.m_lIndexDst-1, ParamType.ptFormula, false, true);
+
+
+						//ConvertAt2(pFormula.m_lParam1, pFormula.m_eType1, pFormula.m_lParam2, pFormula.m_eType2, false, false, m_oGuidsRes);
+						//ConvertProd(m_lIndexDst-1, ptFormula, m_oParam.m_lParam, m_oParam.m_eType, pow3_16, ptValue, true, true, false, m_oGuidsRes);
+						this.convertAt2(oGuide.m_lParam1, oGuide.m_eType1, oGuide.m_lParam2, oGuide.m_eType2, false, false, true);
+						this.convertProd(this.m_lIndexDst-1, ParamType.ptFormula, this.m_oParam.m_lParam, this.m_oParam.m_eType, pow3_16, ParamType.ptValue, true, true, false);
 						break;
 					}
 					case PPTFormulaType.ftSinatan2: {
@@ -9066,6 +9070,14 @@
 				if(this.m_oStrokeWeight !== null) {
 					oStroke.w = Pt_To_Emu(this.m_oStrokeWeight);
 				}
+				if(oVMLStroke.m_oColor === null) {
+					if(this.m_oStrokeColor !== null) {
+						oStroke.Fill = this.m_oStrokeColor.getOOXMLFill();
+					}
+					else {
+						oStroke.Fill = AscFormat.CreateSolidFillRGB(0, 0, 0);
+					}
+				}
 			}
 			else {
 				if(this.m_oStroked === false) {
@@ -9196,6 +9208,11 @@
 					}
 				}
 			}
+			if(this instanceof CRoundRect) {
+				if(this.m_oArcSize && AscFormat.isRealNumber(this.m_oArcSize.m_dValue)) {
+					oGeometryData.adjustments[0] = (this.m_oArcSize.m_dValue * 65536 / 10.0 + 0.5) >> 0;
+				}
+ 			}
 			let sPath = this.m_oPath || oShapeType && oShapeType.m_oPath;
 			let bNeeLoadCoordSize = true;
 			if(this instanceof CLine) {
@@ -9411,6 +9428,51 @@
 								}
 								if(oInset.m_dBottom !== null) {
 									oBodyPr.bIns = Pt_To_Mm(oInset.m_dBottom);
+								}
+							}
+							
+							let oCssStyle = oTextbox.m_oStyle;
+							if(oCssStyle) {
+								let oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptLayoutFlow);
+								if (oProperty) {
+									if (oProperty.m_oValue.eLayoutFlow === ECssLayoutFlow.csslayoutflowVertical) {
+										oBodyPr.vert = AscFormat.nVertTTvert;
+									}
+								}
+								oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptMsoLayoutFlowAlt);
+								if (oProperty) {
+									if (oProperty.m_oValue.eLayoutFlowAlt === ECssLayoutFlow.csslayoutflowaltBottomToTop) {
+										oBodyPr.vert = AscFormat.nVertTTvert270;
+									}
+								}
+								oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptMsoRotate);
+								if (oProperty) {
+									let val = 0;
+									switch (oProperty.m_oValue.eRotate) {
+										case ECssMsoRotate.cssmsorotate90:	val = 90; break;
+										case ECssMsoRotate.cssmsorotate180:	val = 180; break;
+										case ECssMsoRotate.cssmsorotate270:	val = 270; break;
+									}
+									oBodyPr.rot = val * 60000;
+								}
+								oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptMsoFitShapeToText);
+								if (oProperty) {
+									if (oProperty.m_oValue.bValue) {
+										oBodyPr.textFit = new AscFormat.CTextFit(AscFormat.text_fit_Auto);
+									}
+								}
+								oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptMsoFitTextToShape);
+								if (oProperty) {
+									if (oProperty.m_oValue.bValue) {
+										oBodyPr.textFit = new AscFormat.CTextFit(AscFormat.text_fit_No);
+									}
+								}
+								oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptMsoTextScale);
+								if (oProperty) {
+									if (oProperty.m_oValue.oValue.eType === ECssUnitsType.cssunitstypeUnits) {
+										oBodyPr.textFit = new AscFormat.CTextFit(AscFormat.text_fit_NormAuto);
+										oBodyPr.textFit.fontScale = (100 * oProperty.m_oValue.oValue.dValue + 0.5) >> 0;
+									}
 								}
 							}
 							oOOXMLDrawing.setBodyPr(oBodyPr);
@@ -13927,8 +13989,8 @@
 
 			let nStartPos = 0;
 			while (true) {
-				let nMidPos = sValue.indexOf(",", nStartPos);
-				let nEndPos = sValue.indexOf(",", nMidPos + 1);
+				let nMidPos = sValue.indexOf(" ", nStartPos);
+				let nEndPos = sValue.indexOf(" ", nMidPos + 1);
 
 				if (-1 === nMidPos)
 					break;

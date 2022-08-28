@@ -7869,7 +7869,7 @@
 		writer.WriteXmlAttributesEnd();
 		writer.WriteXmlNullable(Extent, "wp:extent");
 		writer.WriteXmlNullable(EffectExtent, "wp:effectExtent");
-		if(drawing.docPr) {
+		if(drawing.docPr && drawing.Form) {
 			drawing.docPr.form = drawing.Form;
 		}
 		writer.WriteXmlNullable(drawing.docPr, "wp:docPr");
@@ -8249,7 +8249,7 @@
 		writer.WriteXmlNullable(WrapTight, "wp:wrapTight");
 		writer.WriteXmlNullable(WrapThrough, "wp:wrapThrough");
 		writer.WriteXmlNullable(WrapTopAndBottom, "wp:wrapTopAndBottom");
-		if(drawing.docPr) {
+		if(drawing.docPr && drawing.Form) {
 			drawing.docPr.form = drawing.Form;
 		}
 		writer.WriteXmlNullable(drawing.docPr, "wp:docPr");

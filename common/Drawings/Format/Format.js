@@ -8637,7 +8637,7 @@
 			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 			writer.WriteXmlNullableAttributeStringEncode("descr", this.descr);
 			writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
-			writer.WriteXmlNullableAttributeBool("form", this.form);
+			this.form && writer.WriteXmlNullableAttributeBool("form", this.form);
 			writer.WriteXmlNullableAttributeStringEncode("title", this.title);
 			//writer.WriteXmlNullableAttributeBool("title", this.form);
 			if(this.hlinkClick || this.hlinkHover) {
@@ -8741,7 +8741,7 @@
 				writer.WriteXmlNullableAttributeString("descr", d);
 			}
 			writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
-			writer.WriteXmlNullableAttributeBool("form", this.form);
+			this.form && writer.WriteXmlNullableAttributeBool("form", this.form);
 			if (this.title) writer.WriteXmlNullableAttributeStringEncode("title", this.title);
 
 
