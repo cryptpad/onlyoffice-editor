@@ -148,6 +148,11 @@
 			res.setBDeleted(false);
 			res.fromXml(reader);
 		}
+		else if("lockedCanvas" === name) {
+			res = new AscFormat.CLockedCanvas();
+			res.setBDeleted(false);
+			res.fromXml(reader);
+		}
 		else if("sp" === name || "wsp" === name) {
 			res = new AscFormat.CShape();
 			res.setBDeleted(false);

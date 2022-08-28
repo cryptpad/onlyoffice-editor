@@ -15680,7 +15680,8 @@
 			let arSplit;
 
 			sValue.replace("@", "");
-			arSplit = sValue.split(", ");
+			sValue.replace(" ", "");
+			arSplit = sValue.split(",");
 
 			if (arSplit.length > 0) {
 				let oPt = new CPoint(arSplit[0]);
@@ -15688,17 +15689,20 @@
 			}
 
 			if (arSplit.length > 1) {
-				let oPt = new CPoint(arSplit[1]);
+				let oPt = new CUniversalMeasure();
+				oPt.Parse(arSplit[1], 1)
 				this.m_dTop = oPt.GetValue();
 			}
 
 			if (arSplit.length > 2) {
-				let oPt = new CPoint(arSplit[2]);
+				let oPt = new CUniversalMeasure();
+				oPt.Parse(arSplit[2], 1)
 				this.m_dRight = oPt.GetValue();
 			}
 
 			if (arSplit.length > 3) {
-				let oPt = new CPoint(arSplit[3]);
+				let oPt = new CUniversalMeasure();
+				oPt.Parse(arSplit[3], 1)
 				this.m_dBottom = oPt.GetValue();
 			}
 

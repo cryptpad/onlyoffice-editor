@@ -7374,6 +7374,15 @@ CShape.prototype.getColumnNumber = function(){
                 elem.fromXml(reader);
                 break;
             }
+            case "txSp": {
+                let oThis = this;
+                let oTxSpNode = new CT_XmlNode(function(reader, name) {
+                    oThis.readChildXml(name, reader);
+                    return true;
+                });
+                oTxSpNode.fromXml(reader);
+                break;
+            }
             case "bodyPr": {
                 let oBodyPr = new AscFormat.CBodyPr();
                 oBodyPr.fromXml(reader);
