@@ -1696,11 +1696,20 @@ function initMathRevisions(elem ,props, reader) {
 function ReadDocumentShd(length, bcr, oShd) {
 	var themeColor = { Auto: null, Color: null, Tint: null, Shade: null };
 	var themeFill = { Auto: null, Color: null, Tint: null, Shade: null };
+	oShd.Value = undefined;
 	oShd.Color = undefined;
 	var res = bcr.Read2(length, function (t, l) {
 		return bcr.ReadShd(t, l, oShd, themeColor, themeFill);
 	});
 
+	//если нет Value, но есть цвет, то Value по умолчанию ShdClear(Тарифы May,01,2016.docx, Тарифы_на_комплексное_обслуживание_клиен.docx)
+	if (undefined === oShd.Value) {
+		if (oShd.Color || oShd.Fill || oShd.Unifill || oShd.ThemeFill) {
+			oShd.Value = Asc.c_oAscShdClear;
+		} else {
+			oShd.Value = Asc.c_oAscShdNil;
+		}
+	}
 	// TODO: Как только будем нормально воспринимать CDocumentShd.Color = undefined, убрать отсюда проверку (!oShd.Color)
 	if (!oShd.Color || themeColor.Auto)
 		oShd.Color = new AscCommonWord.CDocumentColor(255, 255, 255, true);
@@ -1715,7 +1724,6 @@ function ReadDocumentShd(length, bcr, oShd) {
 	unifill = CreateThemeUnifill(themeFill.Color, themeFill.Tint, themeFill.Shade);
 	if (unifill)
 		oShd.ThemeFill = unifill;
-
 	return oShd;
 }
 
@@ -10414,13 +10422,7 @@ Binary_tblPrReader.prototype =
         {
             if(null == Pr.Shd)
                 Pr.Shd = new CDocumentShd();
-            var oNewShd = {Value: undefined, Color: undefined, Unifill: undefined};
-			ReadDocumentShd(length, this.bcr, oNewShd);
-            //если есть themeColor или Color, то Value по умолчанию ShdClear(Тарифы_на_комплексное_обслуживание_клиен.docx)
-            if (undefined == oNewShd.Value && oNewShd.Unifill) {
-                oNewShd.Value = Asc.c_oAscShdClear;
-            }
-            Pr.Shd.Set_FromObject(oNewShd);
+			ReadDocumentShd(length, this.bcr, Pr.Shd);
         }
         else if( c_oSerProp_cellPrType.TableCellBorders === type )
         {
@@ -10902,9 +10904,9 @@ function Binary_HdrFtrTableReader(doc, oReadResult, openParams, stream)
             res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadHdrFtrItem(t, l, oNewItem);
             });
-            if(null != oNewItem.Content)
+            if(null != oNewItem.Content && oNewItem.Content.length > 0)
             {
-                hdrftr.Content.Content = oNewItem.Content;
+				hdrftr.Content.ReplaceContent(oNewItem.Content);
 				oHdrFtrContainer.push({type: type, elem: hdrftr});
             }
         }

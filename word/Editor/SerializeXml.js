@@ -2367,6 +2367,7 @@
 		writer.WriteXmlAttributesEnd(true);
 	};
 	CDocumentShd.prototype.readAttr = function(reader) {
+		this.Value = undefined;
 		var themeColor = new CT_Color("color", "themeColor", "themeTint", "themeShade");
 		var themeFill = new CT_Color("fill", "themeFill", "themeFillTint", "themeFillShade");
 		while (reader.MoveToNextAttribute()) {
@@ -2381,6 +2382,18 @@
 		this.Unifill = themeColor.getUnifill();
 		this.Fill = themeFill.getColor(255, 255, 255);
 		this.themeFill = themeFill.getUnifill();
+		//если нет Value, но есть цвет, то Value по умолчанию ShdClear(Тарифы May,01,2016.docx, Тарифы_на_комплексное_обслуживание_клиен.docx)
+		if (undefined === this.Value) {
+			if (this.Color || this.Fill || this.Unifill || this.ThemeFill) {
+				this.Value = Asc.c_oAscShdClear;
+			} else {
+				this.Value = Asc.c_oAscShdNil;
+			}
+		}
+		// TODO: Как только будем нормально воспринимать CDocumentShd.Color = undefined, убрать отсюда проверку (!oShd.Color)
+		if (!this.Color) {
+			this.Color = new AscCommonWord.CDocumentColor(255, 255, 255, true);
+		}
 	};
 	CDocumentShd.prototype.fromXml = function(reader) {
 		this.readAttr(reader);
@@ -2675,7 +2688,7 @@
 						});
 				}
 			}
-			return newItem;
+			return oParaDrawing.GraphicObj ? newItem : null;
 		}
 		return null;
 	};
@@ -5564,7 +5577,7 @@
 					}
 					case "endnotePr" : {
 						if (doc) {
-							doc.Endnotes.EndnotePr.fromXml(reader, true, reader.context.oReadResult.endnoteRefs);
+							doc.Endnotes.EndnotePr.fromXml(reader, false, reader.context.oReadResult.endnoteRefs);
 						}
 						break;
 					}
