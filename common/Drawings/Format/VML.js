@@ -10325,11 +10325,11 @@
 				//crop
 				if(this.m_oCropLeft !== null || this.m_oCropTop !== null ||
 					this.m_oCropRight !== null || this.m_oCropBottom !== null) {
-					oFill.srcRect = new AscFormat.CSrcRect();
-					oFill.srcRect.l = (this.m_oCropLeft !== null) ? this.m_oCropLeft * 100 : 0;
-					oFill.srcRect.t = (this.m_oCropTop !== null) ? this.m_oCropTop * 100 : 0;
-					oFill.srcRect.r = (this.m_oCropRight !== null) ? this.m_oCropRight * 100 : 0;
-					oFill.srcRect.b = (this.m_oCropBottom !== null) ? this.m_oCropBottom * 100 : 0;
+					oFill.fill.srcRect = new AscFormat.CSrcRect();
+					oFill.fill.srcRect.l = (this.m_oCropLeft !== null) ? this.m_oCropLeft * 100 : 0;
+					oFill.fill.srcRect.t = (this.m_oCropTop !== null) ? this.m_oCropTop * 100 : 0;
+					oFill.fill.srcRect.r = 100 - ((this.m_oCropRight !== null) ? this.m_oCropRight * 100 : 0);
+					oFill.fill.srcRect.b = 100 - ((this.m_oCropBottom !== null) ? this.m_oCropBottom * 100 : 0);
 				}
 				return oFill;
 			}
