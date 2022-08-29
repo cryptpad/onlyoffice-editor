@@ -9082,6 +9082,9 @@
 			else {
 				if(this.m_oStroked === false) {
 					oStroke = AscFormat.CreateNoFillLine();
+					if(this.m_oStrokeWeight !== null) {
+						oStroke.w = Pt_To_Emu(this.m_oStrokeWeight);
+					}
 				}
 				else {
 					if(this.m_oStrokeWeight !== null || this.m_oStrokeColor !== null) {
@@ -9411,6 +9414,7 @@
 				}
 				else {
 					oBodyPr.wrap = AscFormat.nTWTSquare;
+					oBodyPr.upright = true;
 					let oTextbox = this.getTextbox();
 					if(oTextbox) {
 						if(oTextbox.m_oTxtbxContent) {
