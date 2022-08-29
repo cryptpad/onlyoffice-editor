@@ -56,6 +56,10 @@
 
 		this.FulllCheck = false;
 	}
+	CTextFormFormat.prototype.IsEmpty = function()
+	{
+		return (FormatType.None === this.BaseFormat && !this.Symbols.length);
+	};
 	CTextFormFormat.prototype.SetSymbols = function(value)
 	{
 		this.Symbols = [];
