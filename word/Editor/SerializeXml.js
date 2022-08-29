@@ -1554,8 +1554,8 @@
 		// writer.WriteXmlNullable(this.CnfStyle, "w:cnfStyle");
 		writer.WriteXmlNullable(this.TableCellW, "w:tcW");
 		writer.WriteXmlNullable(GridSpan, "w:gridSpan");
-		writer.WriteXmlNullable(HMerge, "w:hmerge");
-		writer.WriteXmlNullable(VMerge, "w:vmerge");
+		writer.WriteXmlNullable(HMerge, "w:hMerge");
+		writer.WriteXmlNullable(VMerge, "w:vMerge");
 		writer.WriteXmlNullable(TableCellBorders, "w:tcBorders");
 		writer.WriteXmlNullable(this.Shd, "w:shd");
 		writer.WriteXmlNullable(NoWrap, "w:noWrap");
