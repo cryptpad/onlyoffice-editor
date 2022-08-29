@@ -3299,6 +3299,10 @@
 						if(AscFormat.CUniFill.prototype.isFillName(name)) {
 							oThis.TextFill = new AscFormat.CUniFill();
 							oThis.TextFill.fromXml(reader, name);
+							if(AscFormat.isRealNumber(oThis.TextFill.transparent))
+							{
+								oThis.TextFill.transparent = 255 - oThis.TextFill.transparent;
+							}
 						}
 						return true;
 					});

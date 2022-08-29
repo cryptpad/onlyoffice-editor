@@ -11309,7 +11309,7 @@
                 return;
             }
             var aParsedRef = AscFormat.fParseChartFormula(sFormula);
-            if(aParsedRef.length === 0) {
+            if(!Array.isArray(aParsedRef) || aParsedRef.length === 0) {
                 return;
             }
             this.removeAllPts();
@@ -12689,7 +12689,7 @@
             var pt_index = 0, i, j, cell, pt, value_width_format, row_hidden, col_hidden, nPtCount = 0;
             var aParsedRef = AscFormat.fParseChartFormula(sFormula);
 
-            if(aParsedRef.length === 0) {
+            if(!Array.isArray(aParsedRef) || aParsedRef.length === 0) {
                 return;
             }
             var str_cache = this;

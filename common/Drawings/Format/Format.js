@@ -13024,7 +13024,7 @@
 			let nDocType = writer.context.docType;
 			if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				nDocType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-				if (writer.context.groupIndex === 0) name_ = "wpg:wgp";
+				if (writer.context.groupIndex === 1) name_ = "wpg:wgp";
 				else name_ = "wpg:grpSp";
 			} else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) name_ = "xdr:grpSp";
 			else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) name_ = "cdr:grpSp";
@@ -13038,18 +13038,25 @@
 
 			writer.WriteXmlAttributesEnd();
 
-			if (this.nvGrpSpPr) {
-				if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-					writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-					if (this.nvGrpSpPr.cNvGrpSpPr) {
-						this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
-					}
-				} else
+
+			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
+				if (this.nvGrpSpPr && this.nvGrpSpPr.cNvGrpSpPr) {
+					this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
+				}
+				else {
+					writer.WriteXmlString("<wpg:cNvGrpSpPr/>");
+				}
+			} else {
+
+				if(this.nvGrpSpPr) {
 					this.nvGrpSpPr.toXmlGrp(writer);
-			}
-			else {
-				if(writer.context.groupIndex === 0) {
-					writer.WriteXmlString("<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr /></p:nvGrpSpPr><p:grpSpPr bwMode=\"auto\"><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>")
+				}
+				else {
+
+					if(writer.context.groupIndex === 0) {
+						writer.WriteXmlString("<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr /></p:nvGrpSpPr><p:grpSpPr bwMode=\"auto\"><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>")
+					}
 				}
 			}
 
