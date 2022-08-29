@@ -11030,9 +11030,6 @@
                 this.numCache.setFormatCode("General");
                 this.numCache.setPtCount(0);
             }
-            else {
-                this.numCache.removeAllPts();
-            }
             let oSeries = null;
             if(ser) {
                 oSeries = ser;
@@ -11115,7 +11112,6 @@
             if(!this.strCache) {
                 this.setStrCache(new CStrCache());
             }
-            this.strCache.removeAllPts();
             this.strCache.update(this.f);
             this.onUpdateCache();
         }, this, []);
@@ -11307,13 +11303,16 @@
     };
     CNumLit.prototype.update = function(sFormula, displayEmptyCellsAs, displayHidden, ser) {
         AscFormat.ExecuteNoHistory(function() {
-            this.removeAllPts();
             if(!(typeof sFormula === "string" && sFormula.length > 0)) {
                 this.setPtCount(0);
                 this.setFormatCode("General");
                 return;
             }
             var aParsedRef = AscFormat.fParseChartFormula(sFormula);
+            if(aParsedRef.length === 0) {
+                return;
+            }
+            this.removeAllPts();
             var nRef, oRef, oMinRef, oWS, oBB, nPtIdx, nPtCount, nCount;
             var oHM, nHidden, nR, nC, oMinBB, oCell, aSpanPoints = [], oStartPoint;
             var dVal, sVal, oPt, sCellFC, nSpan, nLastNoEmptyIndex, nSpliceIndex;
@@ -12684,10 +12683,16 @@
     CStrCache.prototype.update = function(sFormula) {
         AscFormat.ExecuteNoHistory(function() {
             if(!(typeof sFormula === "string" && sFormula.length > 0)) {
+                this.strCache.removeAllPts();
                 return;
             }
             var pt_index = 0, i, j, cell, pt, value_width_format, row_hidden, col_hidden, nPtCount = 0;
             var aParsedRef = AscFormat.fParseChartFormula(sFormula);
+
+            if(aParsedRef.length === 0) {
+                return;
+            }
+            this.strCache.removeAllPts();
             var str_cache = this;
             var fParseTableDataString = function(oRef, oCache) {
                 if(Array.isArray(oRef)) {
