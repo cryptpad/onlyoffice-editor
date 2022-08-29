@@ -12683,7 +12683,7 @@
     CStrCache.prototype.update = function(sFormula) {
         AscFormat.ExecuteNoHistory(function() {
             if(!(typeof sFormula === "string" && sFormula.length > 0)) {
-                this.strCache.removeAllPts();
+                str_cache.removeAllPts();
                 return;
             }
             var pt_index = 0, i, j, cell, pt, value_width_format, row_hidden, col_hidden, nPtCount = 0;
@@ -12692,8 +12692,8 @@
             if(aParsedRef.length === 0) {
                 return;
             }
-            this.strCache.removeAllPts();
             var str_cache = this;
+            str_cache.removeAllPts();
             var fParseTableDataString = function(oRef, oCache) {
                 if(Array.isArray(oRef)) {
                     for(var i = 0; i < oRef.length; ++i) {
