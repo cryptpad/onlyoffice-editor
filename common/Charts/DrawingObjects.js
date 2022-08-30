@@ -1846,6 +1846,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                     this.ext.cx = AscFormat.Emu_To_Mm(nCX);
                     this.ext.cy = AscFormat.Emu_To_Mm(nCY);
                 }
+            } else if("clientData" === name) {
             } else {
                 var graphicObject = AscFormat.CGraphicObjectBase.prototype.fromXmlElem(reader, name);
                 if (graphicObject) {

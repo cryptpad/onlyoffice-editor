@@ -198,6 +198,11 @@
 		}  else if ("slicer" === name) {
 			res = new AscFormat.CSlicer();
 			res.fromXml(reader);
+			let _xfrm = null;
+			if(graphicFrame) {
+				_xfrm = graphicFrame.spPr && graphicFrame.spPr.xfrm;
+			}
+			res.checkEmptySpPrAndXfrm(_xfrm);
 		} else if ("chart" === name) {
 			if (typeof AscFormat.CChartSpace !== "undefined") {
 				let elem = new CT_XmlNode();
