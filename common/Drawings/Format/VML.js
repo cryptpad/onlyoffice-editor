@@ -9496,8 +9496,9 @@
 						}
 					}
 				}
-				if(oCSSStyle) {
-					let sCSSAnchor = oCSSStyle.GetStringValue(ECssPropertyType.cssptVTextAnchor);
+
+				if(this.m_oStyle) {
+					let sCSSAnchor = this.m_oStyle.GetPropertyValueString("v-text-anchor");
 					if(sCSSAnchor) {
 						if (sCSSAnchor === "middle")					oBodyPr.setAnchor(oBodyPr.GetAnchorCode("ctr"));
 						if (sCSSAnchor === "bottom")					oBodyPr.setAnchor(oBodyPr.GetAnchorCode("b"));
