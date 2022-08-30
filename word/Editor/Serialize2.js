@@ -13007,7 +13007,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			case Asc.TextFormFormatType.Mask: format.SetMask(formatPr.val); break;
 			case Asc.TextFormFormatType.RegExp: format.SetRegExp(formatPr.val); break;
 			case Asc.TextFormFormatType.None:
-			default: val.SetNoneFormat(); break;
+			default: format.SetNone(); break;
 		}
 
 		if (formatPr.symbols)
