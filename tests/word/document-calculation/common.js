@@ -98,9 +98,9 @@ if (!AscCommon.g_oIdCounter)
 }
 
 
+AscCommon.g_oTableId.init();
 AscCommon.g_oTableId = {
-	Add : function(c, id) {},
-
+	Add : g_oTableId.Add,
 	TurnOff : function(){},
 	TurnOn : function(){}
 };

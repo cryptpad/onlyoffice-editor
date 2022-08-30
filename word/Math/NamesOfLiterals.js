@@ -1729,7 +1729,6 @@
 		[true, "_", true],
 	];
 	function AutoCorrectionFunc(oCMathContent, nInputType) {
-		//получаем копию контента
 		let oContentCopy = oCMathContent.Content.slice();
 		oContentCopy.length = oCMathContent.CurPos + 1;
 
@@ -1745,7 +1744,6 @@
 	AutoCorrectionFunc.prototype.FillProceedContent = function() {
 		if (undefined !== this.InputContent)
 		{
-			
 			for (let i = this.InputContent.length - 1; i >= 0; i--)
 			{
 				let oCurrentContent = this.InputContent[i]; 
@@ -1989,19 +1987,38 @@
 				}
 				
 			}
+			let str = arrOutputContent.join("");
 
 			if (arrOutputContent.length > 0)
 			{
-				return { str: arrOutputContent.join(""), del: arrDelData}
+				return { str: str, del: arrDelData}
 			}
 		}
 	}
 	AutoCorrectionFunc.prototype.IsNotHaveContentToConvert = function() {
 		return this.ProceedContent.length === 1 && this.ProceedContent[0].oRootContext.str.length === 0;
 	}
+	AutoCorrectionFunc.prototype.IsNotConvert = function() {
+		// не нужно конвертировать контент если был введен пробел после (одного) блока контента
+		if (this.ProceedContent.length === 2)
+		{
+			if (this.ProceedContent[0].Content.Type === 49 && this.ProceedContent[0].strContent === " ")
+			{
+
+				if (this.ProceedContent[1].Content.Type !== 49)
+				{
+					return true
+				}
+
+				return false;
+			}
+		}
+
+		return false;
+	}
 	function ProceedContent(oContent, Parent) {
 		this.Content = oContent;
-		this.strContent = oContent.GetTextOfElement(Parent.nInputType); //TODO Latex or Unicode
+		this.strContent = oContent.GetTextOfElement(Parent.nInputType === 1);
 		this.oRootContext = new ProceedAutoCorection(undefined, this);
 
 		this.Context = this.oRootContext;
@@ -2141,6 +2158,17 @@
 	}
 	ProceedAutoCorection.prototype.PushToStr = function(str) {
 		if (this.str !== undefined) {
+
+			if (this.ProceedContent.Parent.nInputType === 1) {
+				let one = AutoCorrection[str.data];
+
+				if (one !== undefined) {
+					let len = str.data.length;
+					str.data = one;
+					str.len = len;
+				}
+			}
+			
 			this.str.push(str);
 		}
 	}
@@ -2399,18 +2427,24 @@
 
 	function AutoCorrect(oCMathContent, nInputType) {
 		let oData = new AutoCorrectionFunc(oCMathContent, nInputType);
+		
 		oData.FillProceedContent();
 		oData.ProceedContentFunc();
-		oData.ProceedBracketsAndBackslashes();
-		let isConvertAll = oData.IsFirstInputOperator();
 
-		if (isConvertAll && nInputType === 0 && oData.intCounter === 0) {
+		let isStop = oData.IsNotConvert();
+
+		if (isStop) {
+			return
+		}
+
+		oData.ProceedBracketsAndBackslashes();
+
+		if (oData.IsFirstInputOperator() && nInputType === 0 && oData.intCounter === 0)
+		{
 			oData.GetText();
 			oData.CreateFlatData();
 			return oData.GetOutputData();
 		}
-
-		
 
 		if (oData.intCounter === 0)
 		{
@@ -2418,7 +2452,6 @@
 	
 			if (!oData.IsNotHaveContentToConvert())
 			{
-				
 				if (nInputType === 0)
 					oData.CheckRules();
 				
@@ -3105,6 +3138,20 @@
 			)
 		}
 	}
+	function GetConvertContent(nInputType, strConvertionData, Context) {
+		var oTempObject = new CMathContent();
+
+		nInputType === Asc.c_oAscMathInputType.Unicode
+			? AscMath.CUnicodeConverter(strConvertionData, oTempObject)
+			: AscMath.ConvertLaTeXToTokensList(strConvertionData, oTempObject);
+
+		if (oTempObject.Content.length >= 2 && oTempObject.Content[oTempObject.Content.length - 2].Type !== 49 && oTempObject.Content[oTempObject.Content.length - 1].GetTextOfElement() === " ") {
+			oTempObject.Content.splice(oTempObject.Content.length - 1,1);
+		}
+
+		oTempObject.Correct_Content(true);
+		return oTempObject;
+	}
 
 	const OperatorList = [
 		"⨯", "⨝", "⟕", "⟖", "⟗", "⋉", "⋊", "▷",
@@ -3245,4 +3292,6 @@
 	window["AscMath"].CorrectWordOnCursor = CorrectWordOnCursor;
 	window["AscMath"].CorrectAllWords = CorrectAllWords;
 	window["AscMath"].IsStartAutoCorrection = IsStartAutoCorrection;
+	window["AscMath"].GetConvertContent = GetConvertContent;
+
 })(window);
