@@ -5406,6 +5406,8 @@
 		this.size = undefined;
 		this.initOnSelectionChanged = undefined;
 
+		this.store = undefined;
+
 		this.events = [];
 		this.eventsMap = {};
 	}
@@ -5597,6 +5599,8 @@
 		_object["size"] = this.size;
 		_object["initOnSelectionChanged"] = this.initOnSelectionChanged;
 
+		_object["store"] = this.store;
+
 		return _object;
 	};
 	CPluginVariation.prototype["deserialize"] = function(_object)
@@ -5623,6 +5627,8 @@
 		this.isUpdateOleOnResize = (_object["isUpdateOleOnResize"] != null) ? _object["isUpdateOleOnResize"] : this.isUpdateOleOnResize;
 
 		this.buttons = (_object["buttons"] != null) ? _object["buttons"] : this.buttons;
+
+		this.store = (_object["store"] != null) ? _object["store"] : this.store;
 
 		if (_object["events"] != null) this["set_Events"](_object["events"]);
 
