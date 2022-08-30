@@ -9445,7 +9445,7 @@
 								}
 								oProperty = oCssStyle.GetProperty(ECssPropertyType.cssptMsoLayoutFlowAlt);
 								if (oProperty) {
-									if (oProperty.m_oValue.eLayoutFlowAlt === ECssLayoutFlow.csslayoutflowaltBottomToTop) {
+									if (oProperty.m_oValue.eLayoutFlowAlt === ECssLayoutFlowAlt.csslayoutflowaltBottomToTop) {
 										oBodyPr.vert = AscFormat.nVertTTvert270;
 									}
 								}
