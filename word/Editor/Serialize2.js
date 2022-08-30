@@ -1117,6 +1117,8 @@ var c_oSerSdt = {
 	TextFormPrFormatVal     : 81,
 	TextFormPrFormatSymbols : 82,
 
+	ComplexFormPr     : 90,
+	ComplexFormPrType : 91
 };
 var c_oSerFFData = {
 	CalcOnExit: 0,
@@ -6514,6 +6516,10 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (undefined !== type) {
 			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(type);});
 		}
+		let complexFormPr = oSdt.GetComplexFormPr && oSdt.GetComplexFormPr();
+		if (complexFormPr) {
+			this.bs.WriteItem(c_oSerSdt.ComplexFormPr, function (){oThis.WriteSdtComplexFormPr(complexFormPr)});
+		}
 	};
 	this.WriteSdtCheckBox = function (val)
 	{
@@ -6717,6 +6723,11 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (null != val.ShiftY) {
 			oThis.bs.WriteItem(c_oSerSdt.PictureFormPrShiftY, function (){oThis.memory.WriteDouble2(val.ShiftY);});
 		}
+	};
+	this.WriteSdtComplexFormPr = function(complexFormPr)
+	{
+		var oThis = this;
+		this.bs.WriteItem(c_oSerSdt.ComplexFormPrType, function (){oThis.memory.WriteLong(complexFormPr.GetType());});
 	};
 };
 function BinaryOtherTableWriter(memory, doc)
@@ -12824,6 +12835,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				return oThis.ReadSdtTextFormPr(t, l, textFormPr);
 			});
 			oSdt.SetTextFormPr(textFormPr);
+		} else if (c_oSerSdt.ComplexFormPr === type && oSdt.SetComplexFormPr) {
+			let complexFormPr = new AscWord.CSdtComplexFormPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtComplexFormPr(t, l, complexFormPr);
+			});
+			oSdt.SetComplexFormPr(complexFormPr);
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -12987,8 +13004,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		}
 		return res;
 	};
-	this.ReadSdtTextFormat = function(length, format)
-	{
+	this.ReadSdtTextFormat = function(length, format) {
 		let oThis = this;
 		let formatPr = {
 			type    : Asc.TextFormFormatType.None,
@@ -13015,7 +13031,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 
 		return res;
 	};
-	this.ReadSdtTextFormatPr = function(type, length, format)	{
+	this.ReadSdtTextFormatPr = function(type, length, format) {
 		let res = c_oSerConstants.ReadOk;
 		if (c_oSerSdt.TextFormPrFormatType === type) {
 			format.type = this.stream.GetByte();
@@ -13040,6 +13056,13 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			val.ShiftY = this.stream.GetDoubleLE();
 		} else {
 			res = c_oSerConstants.ReadUnknown;
+		}
+		return res;
+	};
+	this.ReadSdtComplexFormPr = function(type, length, complexFormPr){
+		let res = c_oSerConstants.ReadOk;
+		if (c_oSerSdt.ComplexFormPrType === type) {
+			complexFormPr.Type = this.stream.GetLong();
 		}
 		return res;
 	};
