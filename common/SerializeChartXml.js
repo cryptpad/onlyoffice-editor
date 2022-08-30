@@ -186,7 +186,7 @@
 			}
 		}
 		name = reader.GetNameNoNS();
-		if ("chartSpace" === name || "chartSpace" === name || "chartSpace" === name) {
+		if ("chartSpace" === name) {
 			var elem, depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				switch (reader.GetNameNoNS()) {

@@ -239,6 +239,17 @@
 									res.setChartColors(chartStyle);
 								}
 							}
+							let themeOverridePart = chartPart.getPartByRelationshipType(AscCommon.openXml.Types.themeOverride.relationType);
+							if (themeOverridePart) {
+								let themeOverrideContent = themeOverridePart.getDocumentContent();
+								if (themeOverrideContent) {
+									let themeOverride = new AscFormat.CTheme();
+									themeOverride.setIsThemeOverride(true);
+									let readerThemeOverride = new AscCommon.StaxParser(themeOverrideContent, themeOverridePart, reader.context);
+									themeOverride.themeElements.fromXml(readerThemeOverride, true);
+									res.setThemeOverride(themeOverride);
+								}
+							}
 							let _xfrm = null;
 							if(graphicFrame) {
 								_xfrm = graphicFrame.spPr && graphicFrame.spPr.xfrm;
@@ -325,6 +336,17 @@
 				if (graphicObject.chartColors) {
 					let chartColorPart = chartPart.part.addPart(AscCommon.openXml.Types.chartColorStyle);
 					chartColorPart.part.setDataXml(graphicObject.chartColors, writer);
+				}
+				if (graphicObject.themeOverride) {
+					let themeOverridePart = chartPart.part.addPart(AscCommon.openXml.Types.themeOverride);
+					let memory = new AscCommon.CMemory();
+					memory.context = writer.context;
+					writer.context.clearCurrentPartDataMaps();
+					memory.WriteXmlString(AscCommonWord.g_sXmlHeader);
+					graphicObject.themeOverride.themeElements.toXml(memory, "a:themeOverride");
+					let commentAuthorsData = memory.GetDataUint8();
+					themeOverridePart.part.setData(commentAuthorsData);
+					memory.Seek(0);
 				}
 				break;
 			}
