@@ -105,7 +105,8 @@ CInlineLevelSdt.prototype.Add = function(Item)
 
 		oTextFormRun = this.MakeSingleRunElement(false);
 
-		if (this.Pr.TextForm.MaxCharacters > 0)
+		let maxCharacters = this.Pr.TextForm.GetMaxCharacters();
+		if (maxCharacters > 0)
 		{
 			if (!(Item instanceof AscWord.CRunText) && !(Item instanceof AscWord.CRunSpace))
 				return;
@@ -130,12 +131,12 @@ CInlineLevelSdt.prototype.Add = function(Item)
 			if (nInsertPos === oTextFormRun.Content.length)
 				arrCodePoints.push(nNewCodePoint);
 
-			if (this.Pr.TextForm.MaxCharacters > 0)
+			if (maxCharacters > 0)
 			{
 				let nNewCount = AscWord.GraphemesCounter.GetCount(arrCodePoints, oTextFormRun.Get_CompiledPr(false));
-				if (nNewCount > this.Pr.TextForm.MaxCharacters)
+				if (nNewCount > maxCharacters)
 					return;
-				else if (nNewCount === this.Pr.TextForm.MaxCharacters)
+				else if (nNewCount === maxCharacters)
 					isFulfilled = true;
 			}
 		}

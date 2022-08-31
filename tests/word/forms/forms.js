@@ -358,8 +358,8 @@ $(function () {
 		AscTest.PressKey(AscTest.Key.A);
 		AscTest.PressKey(AscTest.Key.B);
 		AscTest.PressKey(AscTest.Key.C);
-		assert.strictEqual(textForm2.GetInnerText(), "123-AABC", "Check internal text");
-		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), false, "Fill the mask incorrectly (too long) and check");
+		assert.strictEqual(textForm2.GetInnerText(), "123-AAB", "Check internal text");
+		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), true, "Attempt to fill the mask incorrectly (too long) and check");
 
 		textForm2Pr.SetRegExpFormat("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)");
 		assert.strictEqual(formsManager.IsAllRequiredFormsFilled(), false, "Change format to hyperlink regexp an check ");

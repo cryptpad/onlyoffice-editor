@@ -1819,7 +1819,7 @@ ParaRun.prototype.AddText = function(sString, nPos)
 
 	let oForm     = this.GetParentForm();
 	var oTextForm = oForm ? oForm.GetTextFormPr() : null;
-	var nMax      = oTextForm ? oTextForm.MaxCharacters : 0;
+	var nMax      = oTextForm ? oTextForm.GetMaxCharacters() : 0;
 
 	if (this.IsMathRun())
 	{
@@ -3325,7 +3325,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 		const nWRule = oTextForm.GetWidthRule();
 		isKeepWidth  = Asc.CombFormWidthRule.Exact === nWRule;
 
-		nMaxComb = oTextForm.MaxCharacters;
+		nMaxComb = oTextForm.GetMaxCharacters();
 
 		if (undefined === oTextForm.Width || nWRule === Asc.CombFormWidthRule.Auto)
 			nCombWidth = 0;
@@ -12769,8 +12769,8 @@ ParaRun.prototype.CopyTextFormContent = function(oRun)
 	var nRunLen = oRun.Content.length;
 
 	var oTextForm = this.GetTextForm();
-	if (oTextForm && undefined !== oTextForm.MaxCharacters && oTextForm.MaxCharacters > 0)
-		nRunLen = Math.min(oTextForm.MaxCharacters, nRunLen);
+	if (oTextForm && undefined !== oTextForm.GetMaxCharacters() && oTextForm.GetMaxCharacters() > 0)
+		nRunLen = Math.min(oTextForm.GetMaxCharacters(), nRunLen);
 
 	// Упрощенный вариант сравнения двух контентов. Сравниваем просто начало и конец
 
