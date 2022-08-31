@@ -13260,7 +13260,7 @@
 	 */
 	ApiDrawing.prototype.GetWidth = function()
 	{
-		return private_MM2EMU(this.Drawing.GetWidth());
+		return private_MM2EMU(this.Drawing.getXfrmExtX());
 	};
 	/**
 	 * Returns the height of the current drawing.
@@ -13270,7 +13270,7 @@
 	 */
 	ApiDrawing.prototype.GetHeight = function()
 	{
-		return private_MM2EMU(this.Drawing.Get_Height());
+		return private_MM2EMU(this.Drawing.getXfrmExtY());
 	};
 	/**
      * Returns the lock value for the specified lock type of the current drawing.
