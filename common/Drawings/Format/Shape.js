@@ -6515,14 +6515,8 @@ CShape.prototype.hitToAdjustment = function (x, y) {
         ret = _calcGeom.hitToAdj(t_x, t_y, _dist);
         if(ret.hit)
         {
-            t_x = invert_transform.TransformPointX(x, y);
-            t_y = invert_transform.TransformPointY(x, y);
-            ret = _calcGeom.hitToAdj(t_x, t_y, this.convertPixToMM(global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
-            if(ret.hit)
-            {
-                ret.warp = false;
-                return ret;
-            }
+            ret.warp = false;
+            return ret;
         }
     }
     if(this.recalcInfo.warpGeometry && this.invertTransformTextWordArt)

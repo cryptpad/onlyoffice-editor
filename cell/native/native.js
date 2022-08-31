@@ -3460,6 +3460,9 @@ function OfflineEditor () {
         deviceScale = window["native"]["GetDeviceScale"]();
         sdkCheck = settings["sdkCheck"];
 
+        // в таблицах неправильно выставляются dpi. пока фиксируем.
+        AscCommon.global_mouseEvent.AscHitToHandlesEpsilon = 18;
+
         window.NATIVE_DOCUMENT_TYPE = "";
 
         var translations = this.initSettings["translations"];
