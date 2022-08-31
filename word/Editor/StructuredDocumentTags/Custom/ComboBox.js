@@ -89,12 +89,16 @@
 		}
 
 		oList.AutoFit = this.AutoFit;
+		oList.Format  = this.Format.Copy();
 
 		return oList;
 	};
 	CSdtComboBoxPr.prototype.IsEqual = function(oOther)
 	{
-		if (!oOther || this.LastValue !== oOther.LastValue || this.ListItems.length !== oOther.ListItems.length)
+		if (!oOther
+			|| this.LastValue !== oOther.LastValue
+			|| this.ListItems.length !== oOther.ListItems.length
+			|| !this.Format.IsEqual(oOther.Format))
 			return false;
 
 		for (var nIndex = 0, nCount = this.ListItems.length; nIndex < nCount; ++nIndex)
@@ -224,5 +228,6 @@
 	CSdtComboBoxPr.prototype['get_ItemValue']       = CSdtComboBoxPr.prototype.GetItemValue;
 	CSdtComboBoxPr.prototype['put_AutoFit']         = CSdtComboBoxPr.prototype.GetAutoFit;
 	CSdtComboBoxPr.prototype['put_AutoFit']         = CSdtComboBoxPr.prototype.SetAutoFit;
+
 
 })(window);
