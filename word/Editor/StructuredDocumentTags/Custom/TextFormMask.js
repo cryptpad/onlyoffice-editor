@@ -104,6 +104,10 @@
 	{
 		return this.Mask;
 	};
+	CTextFormMask.prototype.GetLength = function()
+	{
+		return this.Pattern.length;
+	};
 	CTextFormMask.prototype.Check = function(arrBuffer, isFullCheck)
 	{
 		if (isFullCheck && arrBuffer.length !== this.Pattern.length)

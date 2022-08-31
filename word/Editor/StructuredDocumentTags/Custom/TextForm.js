@@ -159,6 +159,9 @@
 	};
 	CSdtTextFormPr.prototype.GetMaxCharacters = function()
 	{
+		if (this.Format.IsMask())
+			return this.Format.GetMaskLength();
+
 		return this.MaxCharacters;
 	};
 	CSdtTextFormPr.prototype.SetMaxCharacters = function(nMax)
@@ -225,7 +228,8 @@
 	};
 	CSdtTextFormPr.prototype.IsComb = function()
 	{
-		return !!(this.Comb && undefined !== this.MaxCharacters && this.MaxCharacters <= 1000);
+		let maxCharacters = this.GetMaxCharacters();
+		return !!(this.Comb && undefined !== maxCharacters && maxCharacters <= 1000);
 	};
 	CSdtTextFormPr.prototype.GetMultiLine = function()
 	{

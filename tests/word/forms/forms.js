@@ -206,7 +206,10 @@ $(function () {
 		AddFormPr(textForm2);
 
 		let textForm2Pr = textForm2.GetTextFormPr();
+		assert.strictEqual(textForm2Pr.GetMaxCharacters(), -1, "Check max characters with no mask");
 		textForm2Pr.SetMaskFormat("999-aaa");
+		assert.strictEqual(textForm2Pr.GetMaxCharacters(), 7, "Check max characters with mask");
+
 
 		textForm2.SetThisElementCurrent();
 		textForm2.MoveCursorToStartPos();

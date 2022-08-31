@@ -137,6 +137,14 @@
 	{
 		return this.Mask.Get();
 	};
+	CTextFormFormat.prototype.IsMask = function()
+	{
+		return (this.BaseFormat === FormatType.Mask);
+	};
+	CTextFormFormat.prototype.GetMaskLength = function()
+	{
+		return this.Mask.GetLength();
+	};
 	CTextFormFormat.prototype.SetRegExp = function(sRegExp)
 	{
 		this.BaseFormat = FormatType.RegExp;
