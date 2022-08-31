@@ -60,7 +60,7 @@
 	{
 		let format = new CTextFormFormat();
 		format.BaseFormat = this.BaseFormat;
-		format.Symbols    = Array.from(this.Symbols);
+		format.Symbols    = this.Symbols.slice();
 		format.RegExp     = this.RegExp;
 		format.Mask.Set(this.Mask.Get());
 		return format;
@@ -81,7 +81,7 @@
 
 		if (Array.isArray(value))
 		{
-			this.Symbols = Array.from(value);
+			this.Symbols = value.slice();
 		}
 		else if (typeof(value) === "string")
 		{
@@ -296,7 +296,7 @@
 		let arrBuffer = [];
 		if (Array.isArray(sText))
 		{
-			arrBuffer = Array.from(sText);
+			arrBuffer = sText.slice();
 		}
 		else if (typeof(sText) === "string")
 		{
