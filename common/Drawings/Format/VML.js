@@ -12335,7 +12335,7 @@
 		}
 
 		function Px_To_Emu(dValue) {
-			return dValue * 9525;
+			return (dValue * 9525 + 0.5) >> 0;
 		}
 
 		function Inch_To_Cm(dValue) {
@@ -12826,10 +12826,24 @@
 		};
 		CVMLDrawing.prototype.getShape = function (nId) {
 			let sId = "_x0000_s" + nId;
+			return this.getShapeById(sId);
+		};
+		CVMLDrawing.prototype.getShapeById = function (sId) {
 			for(let nItem = 0; nItem < this.items.length; ++nItem) {
 				let oItem = this.items[nItem];
 				if(oItem instanceof CShape) {
 					if(oItem.m_sId === sId) {
+						return oItem;
+					}
+				}
+			}
+			return null;
+		};
+		CVMLDrawing.prototype.getShapeBySpId = function (sId) {
+			for(let nItem = 0; nItem < this.items.length; ++nItem) {
+				let oItem = this.items[nItem];
+				if(oItem instanceof CShape) {
+					if(oItem.m_sSpId === sId) {
 						return oItem;
 					}
 				}
@@ -17115,5 +17129,7 @@
 		window['AscFormat'].Px_To_Mm = Px_To_Mm;
 		window['AscFormat'].Emu_To_Mm = Emu_To_Mm;
 		window['AscFormat'].Mm_To_Emu = Mm_To_Emu;
+		window['AscFormat'].Emu_To_Twips = Emu_To_Twips;
+		window['AscFormat'].Px_To_Emu = Px_To_Emu;
 
 	})(window);

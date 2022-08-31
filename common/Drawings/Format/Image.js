@@ -1002,14 +1002,13 @@ CImageShape.prototype.Load_LinkData = function(linkData)
                     writer.WriteXmlAttributeString("r:id", sDataRId);
                 }
 
-                let nCoeffPixToEmu = 635 * 20 * 3 / 4;
                 if(this.m_nPixWidth !== null)
                 {
-                    writer.WriteXmlAttributeInt("imgW", (nCoeffPixToEmu * this.m_nPixWidth + 0.5) >> 0); //twips to emu
+                    writer.WriteXmlAttributeInt("imgW", AscFormat.Px_To_Emu(this.m_nPixWidth));
                 }
                 if(this.m_nPixHeight !== null)
                 {
-                    writer.WriteXmlAttributeInt("imgH", (nCoeffPixToEmu * this.m_nPixHeight + 0.5) >> 0); //twips to emu
+                    writer.WriteXmlAttributeInt("imgH", AscFormat.Px_To_Emu(this.m_nPixHeight));
                 }
                 writer.WriteXmlNullableAttributeString("progId", this.m_sApplicationId);
                 writer.WriteXmlAttributesEnd();
@@ -1036,8 +1035,16 @@ CImageShape.prototype.Load_LinkData = function(linkData)
             }
         }
 
+        let bSetStretch = false;
+        if(this.blipFill.stretch === null) {
+            this.blipFill.stretch = true;
+            bSetStretch = true;
+        }
         this.blipFill.toXml(writer, namespace_);
 
+        if(bSetStretch) {
+            this.blipFill.stretch = null;
+        }
         writer.context.flag = 1;
         this.spPr.toXml(writer);
         writer.context.flag = 0;

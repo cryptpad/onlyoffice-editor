@@ -265,10 +265,6 @@
 						this.setPrintSettings(elem);
 						break;
 					}
-					case "themeOverride" : {
-						//todo themeOverride
-						break;
-					}
 					case "userShapes" : {
 						let oChartSpace = this;
 						let oUserShapesEntry = new AscFormat.IdEntry();
@@ -357,7 +353,6 @@
 			oEntry.rId = userShapesPart.rId;
 			oEntry.toXml(writer);
 		}
-		//writer.WriteXmlNullable(this.themeOverride, "c:themeOverride");
 		writer.WriteXmlNodeEnd(name);
 
 		writer.context.docType = nOldDocType;

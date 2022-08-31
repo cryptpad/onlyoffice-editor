@@ -287,11 +287,66 @@
 			res.checkEmptySpPrAndXfrm(_xfrm);
 		}
 		else if("oleObj" === name) {
-			let oOLEObj = new AscFormat.COLEObject();
-			oOLEObj.fromXml(reader);
-			if(oOLEObj.m_oPic) {
-				res = new AscFormat.COleObject();
-				oOLEObj.fillEditorOleObject(res, oOLEObj.m_oPic, reader);
+			if(reader.GetName() === "p:oleObj") {
+
+				let oOleObject = new AscFormat.COleObject();
+				oOleObject.m_sData = null
+
+				let oOleNode = new CT_XmlNode(function(reader, name) {
+					if(name === "pic") {
+						oOleObject.fromXml(reader);
+						res = oOleObject;
+						return true;
+					}
+					return false;
+				});
+				oOleNode.fromXml(reader);
+				let sAppName = oOleNode.attributes["progId"];
+				if(sAppName) {
+					oOleObject.setApplicationId(sAppName);
+				}
+				let isN = AscFormat.isRealNumber;
+				let nImgH = reader.GetInt(oOleNode.attributes["imgH"]);
+				let nImgW = reader.GetInt(oOleNode.attributes["imgW"]);
+				if(isN(nImgW) && isN(nImgH)) {
+					oOleObject.setPixSizes(AscFormat.Emu_To_Px(nImgW), AscFormat.Emu_To_Px(nImgH));
+				}
+				oOleObject.fillDataLink(oOleNode.attributes["id"], reader);
+				let oVmlPart = reader.rels.getPartByRelationshipType(AscCommon.openXml.Types.vmlDrawing.relationType);
+				if(oVmlPart) {
+					let oVmlPartContent = oVmlPart.getDocumentContent();
+					if(oVmlPartContent) {
+						let oVmlReader = new AscCommon.StaxParser(oVmlPartContent, oVmlPart, reader.context);
+						let oVmlDrawing = new AscFormat.CVMLDrawing();
+						oVmlDrawing.fromXml(oVmlReader);
+						let oVmlShape = oVmlDrawing.getShapeBySpId(oOleNode.attributes["spid"]);
+						if(oVmlShape) {
+							let oImageData = oVmlShape.getImageData();
+							if(oImageData) {
+								let oOldReader = reader.context.reader;
+								reader.context.reader = oVmlReader;
+								let oFill = oImageData.getOOXMLFill(reader.context);
+								if(oFill && oFill.isBlipFill()) {
+									oOleObject.setBlipFill(oFill.fill);
+									res = oOleObject;
+								}
+								reader.context.reader = oOldReader;
+							}
+						}
+					}
+				}
+				if(!oOleObject.spPr) {
+					oOleObject.setSpPr(new AscFormat.CSpPr());
+				}
+				oOleObject.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
+			}
+			else {
+				let oOLEObj = new AscFormat.COLEObject();
+				oOLEObj.fromXml(reader);
+				if(oOLEObj.m_oPic) {
+					res = new AscFormat.COleObject();
+					oOLEObj.fillEditorOleObject(res, oOLEObj.m_oPic, reader);
+				}
 			}
 		}
 		return res;
@@ -1311,6 +1366,7 @@
 		}
 
 		let oTable = new CTable(oDrawingDocument, oParent, false, nRows, aColsGrid.length, aColsGrid, true);
+		oTable.Set_TableLook(new AscCommon.CTableLook(false, false, false, false, false, false));
 		oTable.Reset(0, 0, extX, 100000, 0, 0, 1);
 		reader.setState(oStartState);
 		depth = reader.GetDepth();
