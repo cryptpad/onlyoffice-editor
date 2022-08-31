@@ -6696,9 +6696,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		let type = format.GetType();
 		this.bs.WriteItem(c_oSerSdt.TextFormPrFormatType, function (){oThis.memory.WriteByte(type);});
 
-		if (Asc.TextFormFormatType.RegExp === type)
+		if (Asc.TextFormFormatType.Mask === type)
 			this.bs.WriteItem(c_oSerSdt.TextFormPrFormatVal, function (){oThis.memory.WriteString3(format.GetMask());});
-		else if (Asc.TextFormFormatType.Mask === type)
+		else if (Asc.TextFormFormatType.RegExp === type)
 			this.bs.WriteItem(c_oSerSdt.TextFormPrFormatVal, function (){oThis.memory.WriteString3(format.GetRegExp());});
 
 		let symbols = format.GetSymbols(true);
