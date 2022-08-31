@@ -333,6 +333,54 @@ $(function () {
 
 	});
 
+	QUnit.test("Check main form for subforms", function (assert)
+	{
+		AscTest.ClearDocument();
+		AscTest.SetEditingMode();
+
+		let paragraph = new AscWord.CParagraph(AscTest.DrawingDocument);
+		logicDocument.AddToContent(logicDocument.GetElementsCount(), paragraph);
+		paragraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
+
+		paragraph.SetThisElementCurrent();
+
+		let complexForm = logicDocument.AddComplexForm();
+		complexForm.SetFormPr(new AscWord.CSdtFormPr());
+
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToStartPos();
+
+		let textForm = logicDocument.AddContentControlTextForm();
+		textForm.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let comboBox = logicDocument.AddContentControlComboBox();
+		comboBox.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let checkBox = logicDocument.AddContentControlCheckBox();
+		checkBox.SetFormPr(new AscWord.CSdtFormPr());
+
+		logicDocument.RemoveSelection();
+		complexForm.SetThisElementCurrent();
+		complexForm.MoveCursorToEndPos();
+
+		let picture = logicDocument.AddContentControlPicture();
+		picture.SetFormPr(new AscWord.CSdtFormPr());
+
+		assert.strictEqual(complexForm.GetMainForm(), complexForm, "Check main form of complex form");
+		assert.strictEqual(textForm.GetMainForm(), complexForm, "Check main form of text form");
+		assert.strictEqual(comboBox.GetMainForm(), complexForm, "Check main form of combo box");
+		assert.strictEqual(checkBox.GetMainForm(), complexForm, "Check main form of check box");
+		assert.strictEqual(picture.GetMainForm(), complexForm, "Check main form of picture form");
+	});
+
 	QUnit.test("Check mouse clicks", function (assert)
 	{
 		// Внутри составной формы тройной клик должен выделять всю составную форму целиком, где бы мы не кликали
