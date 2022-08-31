@@ -13010,11 +13010,13 @@
 		CSpTree.prototype.readChildXml = function (name, reader) {
 			let oSp = CSpTree.prototype.readSpTreeElement.call(this, name, reader);
 			if (oSp) {
-				oSp.setBDeleted(false);
-				if(this.slideObject) {
-					oSp.setParent(this.slideObject);
+				if(!AscCommon.IsHiddenObj(oSp)) {
+					oSp.setBDeleted(false);
+					if(this.slideObject) {
+						oSp.setParent(this.slideObject);
+					}
+					this.spTree.push(oSp);
 				}
-				this.spTree.push(oSp);
 			}
 			return oSp;
 		};
