@@ -9050,9 +9050,14 @@
 					return oFill;
 				}
 			}
-
 			if(this.m_oFillColor) {
 				oFill = this.m_oFillColor.getOOXMLFill(oContext);
+				let oFillVML = this.getFill();
+				if(oFillVML) {
+					if(oFillVML.isGradient()) {
+						oFill = oFillVML.getOOXMLFill(oContext, this.m_oFillColor)
+					}
+				}
 				this.correctFillOpacity(oFill);
 				return oFill;
 			}
@@ -9405,8 +9410,6 @@
 					oBodyPr.wrap = AscFormat.nTWTSquare;
 					oBodyPr.fromWordArt = true;
 					oOOXMLDrawing.setBodyPr(oBodyPr);
-
-					oOOXMLDrawing.setBodyPr(oBodyPr);
 					oDocContent = new CDocumentContent(oOOXMLDrawing, oContext.DrawingDocument, 0, 0, 0, 0, false, false, false)
 					oDocContent.MoveCursorToStartPos(false);
 					oDocContent.AddText(sText);
@@ -9531,7 +9534,7 @@
 						let oFontWeightPr = oCSSStyle.GetProperty(ECssPropertyType.cssptFontWeight);
 						if(oFontWeightPr) {
 							let oValue = oFontWeightPr.m_oValue;
-							if(oValue.eFontWeight >= ECssFontStyle.cssfontweight400) {
+							if(oValue.eFontWeight >= ECssFontWeight.cssfontweight400) {
 								bBold = true;
 							}
 						}
@@ -9904,16 +9907,20 @@
 		CFillVml.prototype.writeChildrenXml = function (writer) {
 			this.m_oFill && this.m_oFill.toXml(writer, "o:fill");
 		};
-		CFillVml.prototype.getOOXMLFill = function(oContext) {
+		CFillVml.prototype.isGradient = function() {
+			return (this.m_oType === EFillType.filltypeGradient || EFillType.filltypeGradientRadial);
+		};
+		CFillVml.prototype.getOOXMLFill = function(oContext, oFirstColor) {
 			let oFill = null;
-			if(this.m_oType !== null && (this.m_oType === EFillType.filltypeGradient || EFillType.filltypeGradientRadial)) {
+			if(this.isGradient()) {
 				oFill = new AscFormat.CUniFill();
 				let oGradFill = new AscFormat.CGradFill();
 				oFill.fill = oGradFill;
 				let oGs;
-				if (this.m_oColor) {
+				let oStartColor = this.m_oColor || oFirstColor;
+				if (oStartColor) {
 					oGs = new AscFormat.CGs();
-					oGs.setColor(this.m_oColor.getOOXMLColor());
+					oGs.setColor(oStartColor.getOOXMLColor());
 					oGradFill.addColor(oGs);
 				}
 				if(this.m_oColor2) {
@@ -9935,6 +9942,17 @@
 				if(this.m_oRotate === true) {
 					oGradFill.rotateWithShape = true;
 				}
+				let nAngle = 90;
+				let nFocus = 0;
+				if(this.m_oAngle !== null) {
+					nAngle =  (-1) * this.m_oAngle + 90;
+				}
+				if(this.m_oFocus && this.m_oFocus.m_dValue) {
+					nFocus = parseInt(this.m_oFocus / 100);
+				}
+				let oGradLin = new AscFormat.GradLin();
+				oGradLin.angle = (nAngle * 60000 + 0.5) >> 0;
+				oGradFill.lin = oGradLin;
 			}
 			else if (typeof this.m_rId === "string" && this.m_rId.length > 0) {
 				oFill = new AscFormat.CreateBlipFillUniFillFromUrl("");
