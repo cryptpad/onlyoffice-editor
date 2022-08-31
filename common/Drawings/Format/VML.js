@@ -13934,6 +13934,83 @@
 			else if (sVal.indexOf("teal") > -1) this.type = EColorType.colortypeTeal;
 			else if (sVal.indexOf("white") > -1) this.type = EColorType.colortypeWhite;
 			else if (sVal.indexOf("yellow") > -1) this.type = EColorType.colortypeYellow;
+			else if (sVal.indexOf("fill") > -1) {
+				this.type = EColorType.colortypeRGB;
+
+				let sColorEffect = sVal;
+				let sColor = sVal;
+				if (sColorEffect.length > 5)
+					sColorEffect = sColorEffect.substring(5);
+
+				let resR, resG, resB;
+
+				resR = this.r;
+				resG = this.g;
+				resB = this.b;
+
+				let param = 0;
+				let pos1 = sColor.indexOf('(');
+				let pos2 = sColor.indexOf(')');
+				if (pos1 === -1 || pos2 === -1)
+					return;
+				if (pos2 < (pos1 + 2))
+					return;
+
+				let s = sColor.substring(pos1 + 1, pos2);
+				param = parseInt(s);
+				let isEffect = false;
+
+				if (0 === sColorEffect.indexOf("darken")) {
+					resR = (this.r * param / 255);
+					resG = (this.g * param / 255);
+					resB = (this.b * param / 255);
+					isEffect = true;
+				}
+				else if (0 === sColorEffect.indexOf("lighten")) {
+					resR = 255 - ((255 - this.r) * param / 255);
+					resG = 255 - ((255 - this.g) * param / 255);
+					resB = 255 - ((255 - this.b) * param / 255);
+					isEffect = true;
+				}
+				else if (0 === sColorEffect.indexOf("add")) {
+					resR = this.r + param;
+					resG = this.g + param;
+					resB = this.b + param;
+					isEffect = true;
+				}
+				else if (0 === sColorEffect.indexOf("subtract")) {
+					resR = this.r - param;
+					resG = this.g - param;
+					resB = this.b - param;
+					isEffect = true;
+				}
+				else if (0 === sColorEffect.indexOf("reversesubtract")) {
+					resR = param - this.r;
+					resG = param - this.g;
+					resB = param - this.b;
+					isEffect = true;
+				}
+				else if (0 === sColorEffect.indexOf("blackwhite")) {
+					resR = (this.r < param) ? 0 : 255;
+					resG = (this.g < param) ? 0 : 255;
+					resB = (this.b < param) ? 0 : 255;
+					isEffect = true;
+				}
+
+				if (isEffect) {
+					resR = (resR < 0) ? 0 : resR;
+					resR = (resR > 255) ? 255 : resR;
+
+					resG = (resG < 0) ? 0 : resG;
+					resG = (resG > 255) ? 255 : resG;
+
+					resB = (resB < 0) ? 0 : resB;
+					resB = (resB > 255) ? 255 : resB;
+				}
+				this.r = resR;
+				this.g = resG;
+				this.b = resB;
+			}
 			else if (sVal.indexOf("[") > -1 && sVal.indexOf("]") > -1) {
 				let p1 = sVal.indexOf("[");
 				let p2 = sVal.indexOf("]");
@@ -17128,7 +17205,7 @@
 				nRot = (dVal * 60000 + 0.5) >> 0;
 			}
 			else {
-				if (nCheckInvert == 1) {
+				if (nCheckInvert === 1) {
 					nRot = -nRot;
 				}
 
