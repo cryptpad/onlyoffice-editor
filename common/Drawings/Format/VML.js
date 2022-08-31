@@ -9178,10 +9178,9 @@
 						oXfrm.setFlipV(true);
 					}
 				}
-				let nRot = this.m_oStyle.GetNumberValue(ECssPropertyType.cssptRotation);
-				if (nRot !== null)
-				{
-					oXfrm.setRot(getRotateAngle(nRot, oXfrm.flipH, oXfrm.flipV));
+				let sRot = this.m_oStyle.GetPropertyValueString("rotation");
+				if (sRot) {
+					oXfrm.setRot(getRotateAngle(sRot, oXfrm.flipH, oXfrm.flipV));
 				}
 			}
 		};
@@ -17098,8 +17097,7 @@
 		};
 
 
-		function getRotateAngle(nRot, flipX, flipY)
-		{
+		function getRotateAngle(sRot, flipX, flipY) {
 			let nCheckInvert = 0;
 
 			if (flipX === true)
@@ -17107,25 +17105,47 @@
 			if (flipY === true)
 				nCheckInvert += 1;
 
-			if (nCheckInvert === 1)
-			{
-				nRot = -nRot;
+			let nRot = parseInt(sRot);
+			if (sRot.indexOf('f') !== -1) {
+				let dVal = nRot;
+				dVal /= 65536;
+
+				if (nCheckInvert === 1) {
+					dVal = -dVal;
+				}
+
+				if (dVal > 360) {
+					let nPart = (dVal / 360 + 0.5) >> 0 ;
+					dVal = dVal - nPart * 360;
+				}
+				else if (dVal < 0)
+				{
+					let nPart = (dVal / 360 + 0.5) >> 0;
+					nPart = 1 - nPart;
+					dVal = dVal + nPart * 360;
+				}
+
+				nRot = (dVal * 60000 + 0.5) >> 0;
+			}
+			else {
+				if (nCheckInvert == 1) {
+					nRot = -nRot;
+				}
+
+				if (nRot > 360) {
+					let nPart = (nRot / 360 + 0.5) >> 0.5;
+					nRot = nRot - nPart * 360;
+				}
+				else if (nRot < 0) {
+					let nPart = (nRot / 360 + 0.5) >> 0.5;
+					nPart = 1 - nPart;
+					nRot = nRot + nPart * 360;
+				}
+
+				nRot *= 60000;
 			}
 
-			if (nRot > 360)
-			{
-				let nPart = (nRot / 360);
-				nRot = nRot - nPart * 360;
-			}
-			else if (nRot < 0)
-			{
-				let nPart = (nRot / 360);
-				nPart = 1 - nPart;
-				nRot = nRot + nPart * 360;
-			}
-
-			nRot *=  (Math.PI / 180);
-
+			nRot  *= AscFormat.cToRad;
 			return nRot;
 		}
 
