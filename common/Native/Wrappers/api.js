@@ -2972,6 +2972,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             break;
         }
+        case 2500: // ASC_MENU_EVENT_TYPE_CHANGE_MOBILE_MODE
+        {
+            _api.ChangeReaderMode();
+            break;
+        }
 
         default:
             break;
