@@ -10752,10 +10752,13 @@
     };
     CMultiLvlStrCache.prototype.update = function(sFormula, oSeries) {
         if(!(typeof sFormula === "string" && sFormula.length > 0)) {
-            return;
+            return false;
         }
         var nPtCount = 0;
         var aParsedRef = AscFormat.fParseChartFormula(sFormula);
+        if(!Array.isArray(aParsedRef) || aParsedRef.length === 0) {
+            return false;
+        }
         if(aParsedRef.length > 0) {
             var nRows = 0, nRef, oRef, oBBox, nPtIdx, nCol, oWS, oCell, sVal, nCols = 0, nRow;
             var nLvl, oLvl;
@@ -10851,6 +10854,7 @@
             }
         }
         this.setPtCount(nPtCount);
+        return true;
     };
     CMultiLvlStrCache.prototype.getValues = function(nMaxValues) {
         var ret = [];
@@ -10980,8 +10984,10 @@
     };
     CMultiLvlStrRef.prototype.updateCache = function(oSeries) {
         AscFormat.ExecuteNoHistory(function() {
-            this.setMultiLvlStrCache(new CMultiLvlStrCache());
-            this.multiLvlStrCache.update(this.f, oSeries);
+            let oCache = new CMultiLvlStrCache();
+            if(oCache.update(this.f, oSeries) || !this.multiLvlStrCache) {
+                this.setMultiLvlStrCache(oCache);
+            }
             this.onUpdateCache();
         }, this, []);
     };
@@ -10994,7 +11000,14 @@
     CMultiLvlStrRef.prototype.getFirstLvlCache = function() {
         var oCache = this.multiLvlStrCache;
         if(oCache && oCache.lvl[0]) {
-            return oCache.lvl[0];
+            let oFirst = oCache.lvl[0];
+            let oThis = this;
+            return AscFormat.ExecuteNoHistory(function () {
+                let oCopy = new CStrCache();
+                oCopy.ptCount = oCache.ptCount;
+                oCopy.pts = oFirst.pts;
+                return oCopy;
+            });
         }
         return null;
     };
@@ -11310,6 +11323,9 @@
             }
             var aParsedRef = AscFormat.fParseChartFormula(sFormula);
             if(!Array.isArray(aParsedRef) || aParsedRef.length === 0) {
+                if(ser) {
+                    ser.isHidden = (this.pts.length === 0);
+                }
                 return;
             }
             this.removeAllPts();
