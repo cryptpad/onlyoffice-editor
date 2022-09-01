@@ -1307,10 +1307,16 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 	if (this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
-CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)
+CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect, isForceUpdate)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (isForceUpdate)
+			this.private_FillPlaceholderContent();
+
 		return;
+	}
+
 
 	this.SetShowingPlcHdr(true);
 
@@ -1434,9 +1440,9 @@ CInlineLevelSdt.prototype.ReplacePlaceHolderWithContent = function(bMathRun)
 {
 	this.private_ReplacePlaceHolderWithContent(bMathRun);
 };
-CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect)
+CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect, isForceUpdate)
 {
-	this.private_ReplaceContentWithPlaceHolder(isSelect);
+	this.private_ReplaceContentWithPlaceHolder(isSelect, isForceUpdate);
 };
 CInlineLevelSdt.prototype.CorrectContent = function()
 {

@@ -1710,10 +1710,15 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(isSkip
 	if (true !== isSkipTemporaryCheck && this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
-CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)
+CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect, isForceUpdate)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (isForceUpdate)
+			this.private_FillPlaceholderContent();
+		
 		return;
+	}
 
 	this.SetShowingPlcHdr(true);
 	this.private_FillPlaceholderContent();
@@ -1796,9 +1801,9 @@ CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
 {
 	return this.private_ReplacePlaceHolderWithContent();
 };
-CBlockLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect)
+CBlockLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect, isForceUpdate)
 {
-	return this.private_ReplaceContentWithPlaceHolder(isSelect);
+	return this.private_ReplaceContentWithPlaceHolder(isSelect, isForceUpdate);
 };
 CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
 {
