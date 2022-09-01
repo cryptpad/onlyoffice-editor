@@ -3606,6 +3606,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Password']                         = prot.Password;
 	prot['ComplexFieldEmptyTOC']             = prot.ComplexFieldEmptyTOC;
 	prot['ComplexFieldNoTOC']                = prot.ComplexFieldNoTOC;
+	prot['TextFormWrongFormat']              = prot.TextFormWrongFormat;
 	prot['SecondaryAxis']                    = prot.SecondaryAxis;
 	prot['ComboSeriesError']                 = prot.ComboSeriesError;
 
