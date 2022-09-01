@@ -134,9 +134,9 @@
 			}
 			else
 			{
-				let placeHolder = element["placeHolder"];
-				if (placeHolder)
-					AppendString(codePoints, placeHolder);
+				let placeholder = element["placeholder"];
+				if (placeholder)
+					AppendString(codePoints, placeholder);
 
 				let type = element["type"];
 				if ("checkBox" === type)
@@ -199,7 +199,7 @@
 		let oPr = oForm.GetTextFormPr();
 		Buffer.push({
 			"type"          : "text",
-			"placeHolder"   : oForm.GetPlaceholderText(),
+			"placeholder"   : oForm.GetPlaceholderText(),
 			"maxCharacters" : oPr.GetMaxCharacters(),
 			"comb"          : oPr.IsComb(),
 			"format"        : oPr.GetFormat().ToJson()
@@ -221,7 +221,7 @@
 		let object = {
 			"type"          : "comboBox",
 			"edit"          : oForm.IsComboBox(),
-			"placeHolder"   : oForm.GetPlaceholderText(),
+			"placeholder"   : oForm.GetPlaceholderText(),
 			"format"        : oPr.GetFormat().ToJson(),
 			"choice"        : []
 		};
@@ -273,9 +273,9 @@
 
 		textForm.ApplyTextFormPr(textFormPr);
 
-		let placeHolderText = json["placeHolder"];
-		if (placeHolderText && placeHolderText !== textForm.GetPlaceholderText())
-			textForm.SetPlaceholderText(placeHolderText);
+		let placeholder = json["placeholder"];
+		if (placeholder && placeholder !== textForm.GetPlaceholderText())
+			textForm.SetPlaceholderText(placeholder);
 
 		textForm.ReplaceContentWithPlaceHolder();
 
@@ -318,9 +318,9 @@
 		else
 			comboBox.ApplyDropDownListPr(comboBoxPr);
 
-		let placeHolderText = json["placeHolder"];
-		if (placeHolderText && placeHolderText !== comboBox.GetPlaceholderText())
-			comboBox.SetPlaceholderText(placeHolderText);
+		let placeholder = json["placeholder"];
+		if (placeholder && placeholder !== comboBox.GetPlaceholderText())
+			comboBox.SetPlaceholderText(placeholder);
 
 		comboBox.ReplaceContentWithPlaceHolder();
 

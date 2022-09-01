@@ -620,13 +620,13 @@ $(function () {
 				"comb"          : false,
 				"format"        : {"type" : "none"},
 				"maxCharacters" : -1,
-				"placeHolder"   : "TextForm",
+				"placeholder"   : "TextForm",
 				"type"          : "text"
 			}, "222", {
 				"choice"      : ["Choose an item", "123", "zxc"],
 				"edit"        : true,
 				"format"      : {"type" : "none"},
-				"placeHolder" : "ComboForm",
+				"placeholder" : "ComboForm",
 				"type"        : "comboBox"
 			}, "333"]
 		}, "Check form to json conversion");
