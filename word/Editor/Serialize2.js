@@ -12882,6 +12882,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				return oThis.ReadSdtListItem(t, l, listItem);
 			});
 			val.ListItems.push(listItem);
+		} else if (c_oSerSdt.TextFormPrFormat === type) {
+			res = this.ReadSdtTextFormat(length, val.GetFormat());
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -13022,15 +13024,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			return oThis.ReadSdtTextFormatPr(t, l, formatPr);
 		});
 
-		switch (formatPr.type)
-		{
-			case Asc.TextFormFormatType.Digit: format.SetDigit(); break;
-			case Asc.TextFormFormatType.Letter: format.SetLetter(); break;
-			case Asc.TextFormFormatType.Mask: format.SetMask(formatPr.val); break;
-			case Asc.TextFormFormatType.RegExp: format.SetRegExp(formatPr.val); break;
-			case Asc.TextFormFormatType.None:
-			default: format.SetNone(); break;
-		}
+		format.SetType(formatPr.type, formatPr.val);
 
 		if (formatPr.symbols)
 			format.SetSymbols(formatPr.symbols);

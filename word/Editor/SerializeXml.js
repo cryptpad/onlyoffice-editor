@@ -6128,6 +6128,12 @@
 					this.TextForm = elem;
 					break;
 				}
+				case "complexFormPr" : {
+					elem = new AscWord.CSdtComplexFormPr();
+					elem.fromXml(reader);
+					this.ComplexFormPr = elem;
+					break;
+				}
 			}
 		}
 	};
@@ -6182,6 +6188,7 @@
 		}
 		writer.WriteXmlNullable(this.FormPr, "w:formPr");
 		writer.WriteXmlNullable(this.TextForm, "w:textFormPr");
+		writer.WriteXmlNullable(this.ComplexFormPr, "w:complexFormPr");
 		writer.WriteXmlNullable(this.TextPr, "w:rPr");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -6229,6 +6236,10 @@
 		let elem, depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			switch (reader.GetNameNoNS()) {
+				case "format" : {
+					this.GetFormat().fromXml(reader);
+					break;
+				}
 				case "listItem" : {
 					elem = new AscWord.CSdtListItem();
 					elem.fromXml(reader);
@@ -6242,6 +6253,10 @@
 		writer.WriteXmlNodeStart(name);
 		// writer.WriteXmlNullableAttributeStringEncode("w:lastValue", this.LastValue);
 		writer.WriteXmlAttributesEnd();
+		let format = this.GetFormat();
+		if (format && !format.IsEmpty()) {
+			format.toXml(writer, "w:format");
+		}
 		writer.WriteXmlArray(this.ListItems, "w:listItem");
 		writer.WriteXmlNodeEnd(name);
 	};
@@ -6460,6 +6475,10 @@
 					this.CombBorder.fromXml(reader);
 					break;
 				}
+				case "format" : {
+					this.GetFormat().fromXml(reader);
+					break;
+				}
 			}
 		}
 	};
@@ -6473,6 +6492,10 @@
 		}
 		writer.WriteXmlNullable(CT_IntW.prototype.fromVal(this.MaxCharacters), "w:maxCharacters");
 		writer.WriteXmlNullable(this.CombBorder, "w:combBorder");
+		let format = this.GetFormat();
+		if (format && !format.IsEmpty()) {
+			format.toXml(writer, "w:format");
+		}
 		writer.WriteXmlNodeEnd(name);
 	};
 	AscWord.CSdtTextFormPr.prototype.readAttrComb = function (reader) {
@@ -6546,6 +6569,63 @@
 		writer.WriteXmlNullableAttributeBool("w:respectBorders", this.Borders);
 		writer.WriteXmlNullableAttributeDouble("w:shiftX", this.ShiftX);
 		writer.WriteXmlNullableAttributeDouble("w:shiftY", this.ShiftY);
+		writer.WriteXmlAttributesEnd(true);
+	};
+	AscWord.CTextFormFormat.prototype.readAttr = function (reader) {
+		let type = Asc.TextFormFormatType.None;
+		let val = "";
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "type": {
+					type = fromXml_ST_TextFormFormatType(reader.GetValue(), type);
+					break;
+				}
+				case "val": {
+					val = reader.GetValueDecodeXml();
+					break;
+				}
+				case "symbols": {
+					this.SetSymbols(reader.GetValueDecodeXml());
+					break;
+				}
+			}
+		}
+		this.SetType(type, val);
+	};
+	AscWord.CTextFormFormat.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	AscWord.CTextFormFormat.prototype.toXml = function (writer, name) {
+		let type = this.GetType();
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:type", toXml_ST_TextFormFormatType(type));
+		if (Asc.TextFormFormatType.Mask === type) {
+			writer.WriteXmlNullableAttributeStringEncode("w:val", this.GetMask());
+		} else if (Asc.TextFormFormatType.RegExp === type) {
+			writer.WriteXmlNullableAttributeStringEncode("w:val", this.GetRegExp());
+		}
+		writer.WriteXmlNonEmptyAttributeStringEncode("w:symbols", this.GetSymbols(true));
+		writer.WriteXmlAttributesEnd(true);
+	};
+	AscWord.CSdtComplexFormPr.prototype.readAttr = function (reader) {
+		while (reader.MoveToNextAttribute()) {
+			switch (reader.GetNameNoNS()) {
+				case "type": {
+					this.Type = fromXml_ST_ComplexFormType(reader.GetValue(), this.Type);
+					break;
+				}
+			}
+		}
+	};
+	AscWord.CSdtComplexFormPr.prototype.fromXml = function (reader) {
+		this.readAttr(reader);
+		reader.ReadTillEnd();
+	};
+	AscWord.CSdtComplexFormPr.prototype.toXml = function (writer, name) {
+		let type = this.GetType();
+		writer.WriteXmlNodeStart(name);
+		writer.WriteXmlNullableAttributeStringEncode("w:type", toXml_ST_ComplexFormType(this.GetType()));
 		writer.WriteXmlAttributesEnd(true);
 	};
 //comments
@@ -11412,6 +11492,58 @@
 				return "auto";
 			case Asc.CombFormWidthRule.Exact:
 				return "exact";
+		}
+		return null;
+	}
+	function fromXml_ST_TextFormFormatType(val, def) {
+		switch (val) {
+			case "none":
+				return Asc.TextFormFormatType.None;
+			case "digit":
+				return Asc.TextFormFormatType.Digit;
+			case "letter":
+				return Asc.TextFormFormatType.Letter;
+			case "mask":
+				return Asc.TextFormFormatType.Mask;
+			case "regExp":
+				return Asc.TextFormFormatType.RegExp;
+		}
+		return def;
+	}
+	function toXml_ST_TextFormFormatType(val) {
+		switch (val) {
+			case Asc.TextFormFormatType.None:
+				return "none";
+			case Asc.TextFormFormatType.Digit:
+				return "digit";
+			case Asc.TextFormFormatType.Letter:
+				return "letter";
+			case Asc.TextFormFormatType.Mask:
+				return "mask";
+			case Asc.TextFormFormatType.RegExp:
+				return "regExp";
+		}
+		return null;
+	}
+	function fromXml_ST_ComplexFormType(val, def) {
+		switch (val) {
+			case "custom":
+				return Asc.ComplexFormType.Custom;
+			case "telephone":
+				return Asc.ComplexFormType.Telephone;
+			case "email":
+				return Asc.ComplexFormType.Email;
+		}
+		return def;
+	}
+	function toXml_ST_ComplexFormType(val) {
+		switch (val) {
+			case Asc.ComplexFormType.Custom:
+				return null;//default
+			case Asc.ComplexFormType.Telephone:
+				return "telephone";
+			case Asc.ComplexFormType.Email:
+				return "email";
 		}
 		return null;
 	}

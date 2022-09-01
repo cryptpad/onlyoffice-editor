@@ -115,6 +115,18 @@
 	{
 		return this.BaseFormat;
 	};
+	CTextFormFormat.prototype.SetType = function(type, opt_val)
+	{
+		switch (type)
+		{
+			case Asc.TextFormFormatType.Digit: this.SetDigit(); break;
+			case Asc.TextFormFormatType.Letter: this.SetLetter(); break;
+			case Asc.TextFormFormatType.Mask: this.SetMask(opt_val); break;
+			case Asc.TextFormFormatType.RegExp: this.SetRegExp(opt_val); break;
+			case Asc.TextFormFormatType.None:
+			default: this.SetNone(); break;
+		}
+	};
 	CTextFormFormat.prototype.SetDigit = function()
 	{
 		this.BaseFormat = FormatType.Digit;
