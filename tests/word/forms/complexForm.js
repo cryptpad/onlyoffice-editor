@@ -57,7 +57,7 @@ $(function () {
 	QUnit.module("Check complex forms");
 
 
-	QUnit.test("Test: \"positioning, moving cursor and adding/removing text\"", function (assert)
+	QUnit.test("Positioning, moving cursor and adding/removing text", function (assert)
 	{
 		let complexForm = logicDocument.AddComplexForm();
 		complexForm.SetFormPr(new AscWord.CSdtFormPr());
@@ -125,7 +125,7 @@ $(function () {
 		textForm2.Add(new AscWord.CRunText(0x66));
 		assert.strictEqual(textForm2.IsPlaceHolder(), false, "Is placeholder in textForm2 after adding text");
 
-		AscTest.SetEditingMode(logicDocument);
+		AscTest.SetEditingMode();
 		assert.strictEqual(logicDocument.IsFillingFormMode(), false, "Check normal editing mode");
 
 		textForm2.SetThisElementCurrent();
@@ -134,34 +134,123 @@ $(function () {
 
 		// Делаем два смещения, потому что после одинарного мы могли попасть в пустой ран между tempRun2 и textForm2
 		// везде далее проверяем также
-		logicDocument.MoveCursorLeft(false, false);
-		logicDocument.MoveCursorLeft(false, false);
+		AscTest.MoveCursorLeft();
+		AscTest.MoveCursorLeft();
 		assert.strictEqual(tempRun2.IsThisElementCurrent(), true, "Cursor must be in run2");
 
 		textForm2.SetThisElementCurrent();
 		textForm2.MoveCursorToEndPos();
 		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Move cursor at the end of textForm2");
 
-		logicDocument.MoveCursorRight(false, false, false);
-		logicDocument.MoveCursorRight(false, false, false);
+		AscTest.MoveCursorRight();
+		AscTest.MoveCursorRight();
 		assert.strictEqual(tempRun3.IsThisElementCurrent(), true, "Cursor must be in run3");
 
-		AscTest.SetFillingFormMode(logicDocument);
+		AscTest.SetFillingFormMode();
 		assert.strictEqual(logicDocument.IsFillingFormMode(), true, "Check filling form mode");
 
 		textForm2.SetThisElementCurrent();
 		textForm2.MoveCursorToStartPos();
 
-		logicDocument.MoveCursorLeft(false, false);
+		AscTest.MoveCursorLeft();
 		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtEnd(), true, "Cursor must be at the end of text form1");
 
 		textForm2.SetThisElementCurrent();
 		textForm2.MoveCursorToEndPos();
 		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Move cursor at the end of textForm2");
 
-		logicDocument.MoveCursorRight(false, false, false);
-		logicDocument.MoveCursorRight(false, false, false);
+		AscTest.MoveCursorRight();
+		AscTest.MoveCursorRight();
 		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Cursor must be at the end of text form2");
 
+		// Проверяем перемещение из текстовых форм с плейсхолдером
+
+		textForm1.ClearContentControlExt();
+		assert.strictEqual(textForm1.IsPlaceHolder(), true, "Is placeholder in text form 1 after clearing form");
+
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), true, "Move cursor to the text form1");
+
+		AscTest.MoveCursorLeft();
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), true, "Check cursor position after moving left");
+
+
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToEndPos();
+		AscTest.MoveCursorRight();
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), false, "Check form1 after moving cursor right");
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), true, "Check form2 after moving cursor right");
+
+
+		textForm2.ClearContentControlExt();
+		assert.strictEqual(textForm2.IsPlaceHolder(), true, "Is placeholder in text form 1 after clearing form");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToEndPos();
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), true, "Move cursor to the text form2");
+
+		AscTest.MoveCursorLeft();
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtBegin(), true, "Check cursor position after moving left");
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtBegin(), false, "Check form2 after moving cursor right");
+
+		textForm2.SetThisElementCurrent();
+		textForm2.MoveCursorToEndPos();
+		AscTest.MoveCursorRight();
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Check cursor position after moving cursor right");
+
+
+		// Проверяем набор внутри форм
+		textForm1.ClearContentControlExt();
+		textForm2.ClearContentControlExt();
+
+		assert.strictEqual(textForm1.IsPlaceHolder() && textForm2.IsPlaceHolder() && !complexForm.IsPlaceHolder(), true, "Check entering text to a form. Check if both subforms are cleared");
+
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToStartPos();
+
+		assert.strictEqual(textForm1.IsTextForm() && !!textForm1.GetTextFormPr(), true, "Check if text form1 is an actual text form");
+		assert.strictEqual(textForm1.GetTextFormPr().GetMaxCharacters(), -1, "Check max characters value");
+
+		AscTest.PressKey(AscTest.KeyCode.a);
+		AscTest.PressKey(AscTest.KeyCode.b);
+		AscTest.PressKey(AscTest.KeyCode.c);
+		AscTest.PressKey(AscTest.KeyCode.d);
+		AscTest.PressKey(AscTest.KeyCode.e);
+		AscTest.PressKey(AscTest.KeyCode.f);
+
+		assert.strictEqual(textForm1.GetInnerText(), "abcdef", "Text of text form1 : abcdef");
+		assert.strictEqual(textForm2.IsPlaceHolder(), true, "Text form 2 is filled with placeholder");
+		assert.strictEqual(textForm1.IsThisElementCurrent() && textForm1.IsCursorAtEnd(), true, "Check cursor position after entering text");
+
+		AscTest.MoveCursorRight();
+
+		AscTest.PressKey(AscTest.KeyCode.A);
+		AscTest.PressKey(AscTest.KeyCode.B);
+		AscTest.PressKey(AscTest.KeyCode.C);
+
+		assert.strictEqual(complexForm.GetInnerText(), "111abcdef222ABC333", "Check text of all complex form");
+
+		textForm1.ClearContentControlExt();
+		textForm2.ClearContentControlExt();
+		textForm1.SetThisElementCurrent();
+		textForm1.MoveCursorToStartPos();
+		assert.strictEqual(textForm1.IsPlaceHolder() && textForm2.IsPlaceHolder() && !complexForm.IsPlaceHolder(), true, "Check entering text to a form. Check if both subforms are cleared");
+
+		textForm1.GetTextFormPr().SetMaxCharacters(3);
+		assert.strictEqual(textForm1.IsTextForm() && !!textForm1.GetTextFormPr(), true, "Check if text form1 is an actual text form");
+		assert.strictEqual(textForm1.GetTextFormPr().GetMaxCharacters(), 3, "Check max characters value");
+
+		AscTest.PressKey(AscTest.KeyCode.a);
+		AscTest.PressKey(AscTest.KeyCode.b);
+		AscTest.PressKey(AscTest.KeyCode.c);
+		AscTest.PressKey(AscTest.KeyCode.d);
+		AscTest.PressKey(AscTest.KeyCode.e);
+		AscTest.PressKey(AscTest.KeyCode.f);
+
+		assert.strictEqual(textForm1.GetInnerText(), "abc", "Text of text form1 : abc");
+		assert.strictEqual(textForm2.GetInnerText(), "def", "Text of text form2 : def");
+		assert.strictEqual(textForm2.IsThisElementCurrent() && textForm2.IsCursorAtEnd(), true, "Check cursor position after entering text");
+		assert.strictEqual(complexForm.GetInnerText(), "111abc222def333", "Check text of all complex form");
 	});
 });
