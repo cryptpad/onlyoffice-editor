@@ -9907,7 +9907,7 @@
 			this.m_oFill && this.m_oFill.toXml(writer, "o:fill");
 		};
 		CFillVml.prototype.isGradient = function() {
-			return (this.m_oType === EFillType.filltypeGradient || EFillType.filltypeGradientRadial);
+			return (this.m_oType === EFillType.filltypeGradient || this.m_oType === EFillType.filltypeGradientRadial);
 		};
 		CFillVml.prototype.getOOXMLFill = function(oContext, oFirstColor) {
 			let oFill = null;
@@ -9967,7 +9967,10 @@
 			else if (this.m_oColor) {
 				return this.m_oColor.getOOXMLFill();
 			}
-			if(oFill !== null && this.m_oOpacity !== null) {
+			if(!oFill) {
+				oFill = AscFormat.CreateSolidFillRGB(0xFF, 0xFF, 0xFF);
+			}
+			if(this.m_oOpacity !== null) {
 				oFill.addAlpha(this.m_oOpacity);
 			}
 			return oFill;
