@@ -2891,7 +2891,7 @@ CDocument.prototype.private_FinalizeValidateForm = function()
 		return;
 
 	// По логике заполнять одновремнно более одной формы нельзя
-	if (1 === arrForms.length)
+	if (1 === arrForms.length && !arrForms[0].IsPlaceHolder())
 		this.History.SetAdditionalFormFilling(arrForms[0], this.Action.PointsCount);
 };
 CDocument.prototype.private_FinalizeFormChange = function()
