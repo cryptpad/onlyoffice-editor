@@ -168,6 +168,7 @@
 			res.fromXml(reader);
 			res = res.graphicObject;
 		} else if ("AlternateContent" === name) {
+			let bRetNull = false;
 			let elem = new CT_XmlNode(function(reader, name) {
 				let oThis = this;
 				if(!res) {
@@ -179,6 +180,10 @@
 							return true;
 						});
 						elem.fromXml(reader);
+						let oAttr = elem.attributes;
+						if(oAttr["Requires"] === "cx" && oAttr["cx"] === "http://schemas.microsoft.com/office/drawing/2014/chartex") {
+							bRetNull = true;
+						}
 						return elem;
 					}
 					else if("Fallback" === name) {
@@ -195,6 +200,11 @@
 				return true;
 			});
 			elem.fromXml(reader);
+			if(bRetNull) {
+				if(res) {
+					res = null;
+				}
+			}
 		}  else if ("slicer" === name) {
 			res = new AscFormat.CSlicer();
 			res.fromXml(reader);
