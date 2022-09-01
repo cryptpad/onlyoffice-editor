@@ -1652,10 +1652,11 @@
 				elem = new ParaField(fieldtype_UNKNOWN);
 				elem.SetParagraph(paragraph);
 				elem.fromXml(reader);
-				if (fieldtype_UNKNOWN !== elem.FieldType) {
-					reader.context.oReadResult.logicDocument.Register_Field(elem);
-					this.AddToContent(this.GetElementsCount(), elem);
+				let pageField = elem.GetRunWithPageField(paragraph);
+				if (pageField) {
+					this.AddToContentToEnd(pageField);
 				} else {
+					reader.context.oReadResult.logicDocument.Register_Field(elem);
 					this.ConcatContent(elem.Content);
 				}
 				break;
@@ -2882,8 +2883,10 @@
 			}
 		}
 	};
-	ParaRun.prototype.toXml = function(writer, name, delText) {
+	ParaRun.prototype.toXml = function(writer, name, delText, startIndex) {
 		var t = this;
+		let pageFieldIndex = -1;
+		startIndex = startIndex || 0;
 		writer.WriteXmlNodeStart(name);
 		writer.WriteXmlAttributesEnd();
 		var reviewType = this.GetReviewType();
@@ -2906,14 +2909,34 @@
 					}
 				}
 			}, function(delText) {
-				t.toXmlContent(writer, delText);
+				pageFieldIndex = t.toXmlContent(writer, startIndex, delText);
 			});
 		} else {
-			t.toXmlContent(writer, delText);
+			pageFieldIndex = t.toXmlContent(writer, startIndex, delText);
 		}
 		writer.WriteXmlNodeEnd(name);
+		if (pageFieldIndex > 0) {
+			let paraField, num;
+			let pageNum = this.Content[pageFieldIndex];
+			if (pageNum.Type == para_PageCount) {
+				paraField = new ParaField(fieldtype_PAGECOUNT, "\\* MERGEFORMAT");
+				num = pageNum.GetPageCountValue();
+
+			} else {
+				paraField = new ParaField(fieldtype_PAGENUM, "\\* MERGEFORMAT");
+				num = pageNum.GetPageNumValue();
+			}
+			let oldContent = this.Content;
+			this.Content = [];
+			this.AddText(num.toString());
+			paraField.Content.push(this);
+			paraField.toXml(writer, "w:fldSimple");
+			this.Content = oldContent;
+
+			this.toXml(writer, name, delText, pageFieldIndex + 1);
+		}
 	};
-	ParaRun.prototype.toXmlContent = function(writer, delText) {
+	ParaRun.prototype.toXmlContent = function(writer, startIndex, delText) {
 		if (this.MathPrp && !this.MathPrp.Is_Empty()) {
 			this.MathPrp.toXml(writer, "m:rPr");
 		}
@@ -2942,7 +2965,7 @@
 
 		let sCurText = "";
 		let sCurInstrText = "";
-		for (let i = 0; i < this.Content.length; ++i)
+		for (let i = startIndex; i < this.Content.length; ++i)
 		{
 			var item = this.Content[i];
 			if (para_Text === item.Type || para_Space === item.Type || para_Math_Text === item.Type) {
@@ -3021,10 +3044,14 @@
 				case para_Drawing:
 					item.toXml(writer, "w:drawing");
 					break;
+				case para_PageNum:
+				case para_PageCount:
+					return i;
 			}
 		}
 		sCurText = writeRunText(writer, textNs, textName, sCurText);
 		sCurInstrText = writeRunText(writer, textNs, textInstrName, sCurInstrText);
+		return -1;
 	};
 	CTextPr.prototype.fromXml = function(reader, run) {
 		var elem, depth = reader.GetDepth();

@@ -11350,8 +11350,15 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 		    res = this.bcr.Read1(length, function (t, l) {
 		        return oThis.ReadFldSimple(t, l, oFldSimpleObj, paragraphContent);
 		    });
-			if(null != oFldSimpleObj.ParaField){
-				paragraphContent.AddToContentToEnd(oFldSimpleObj.ParaField);
+			let paraField = oFldSimpleObj.ParaField;
+			if(null != paraField){
+				let pageField = paraField.GetRunWithPageField(paragraph);
+				if (pageField) {
+					paragraphContent.AddToContentToEnd(pageField);
+				} else {
+					this.oReadResult.logicDocument.Register_Field(paraField);
+					paragraphContent.AddToContentToEnd(paraField);
+				}
 			}
 		} else if (c_oSerParType.Del == type && this.oReadResult.checkReadRevisions()) {
             var reviewInfo = new CReviewInfo();
@@ -11446,7 +11453,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			let Instruction = oParser.GetInstructionClass(Instr);
 			oParser.InitParaFieldArguments(Instruction.Type, Instr, elem);
 			if (fieldtype_UNKNOWN !== elem.FieldType) {
-				this.oReadResult.logicDocument.Register_Field(elem);
 				oFldSimpleObj.ParaField = elem;
 			} else {
 				this.ConcatContent(elem.Content);

@@ -4645,6 +4645,17 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFirstRun = function()
 
 	return null;
 };
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRunNonEmpty = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex].GetFirstRun();
+		if (oRun&& oRun.GetElementsCount() > 0)
+			return oRun;
+	}
+
+	return null;
+};
 CParagraphContentWithParagraphLikeContent.prototype.MakeSingleRunElement = function(isClearRun)
 {
 	if (this.Content.length !== 1 || para_Run !== this.Content[0].Type)
