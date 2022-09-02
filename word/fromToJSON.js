@@ -1279,10 +1279,10 @@
 		{
 			switch (oNvPr.unimedia.type)
 			{
-				case AscFormat.SPTREE_TYPE_VIDEO:
+				case AscFormat.AUDIO_FILE:
 					oResult["video"] = oNvPr.unimedia.media;
 					break;
-				case AscFormat.SPTREE_TYPE_AUDIO:
+				case AscFormat.VIDEO_FILE:
 					oResult["audio"] = oNvPr.unimedia.media;
 					break;
 			}
@@ -1319,16 +1319,6 @@
 			"orient":          sOrient,
 			"sz":              sPhSz,
 			"type":            this.GetStrPhType(oPh.type)
-		}
-	};
-	WriterToJSON.prototype.SerUniMedia = function(oUniMedia)
-	{
-		if (!oUniMedia)
-			return undefined;
-
-		return {
-			"type":  oUniMedia.type,
-			"media": oUniMedia.media
 		}
 	};
 	WriterToJSON.prototype.GetStrPhType = function(nType)
@@ -4552,7 +4542,7 @@
 		for (var nFill = 0; nFill < oFmtScheme.bgFillStyleLst.length; nFill++)
 			aBgFillStyleLst.push(this.SerFill(oFmtScheme.bgFillStyleLst[nFill]));
 
-		var aEffectStyleLst = []; // пока не поддерживаем
+		//var aEffectStyleLst = []; // пока не поддерживаем
 
 		var aFillStyleLst = [];
 		for (nFill = 0; nFill < oFmtScheme.fillStyleLst.length; nFill++)
@@ -7096,7 +7086,7 @@
 
 		return arrResults;
 	};
-	WriterToJSON.prototype.SerBlipFill = function(oBlipFill, oParent)
+	WriterToJSON.prototype.SerBlipFill = function(oBlipFill)
 	{
 		if (!oBlipFill)
 			return undefined;
@@ -10927,18 +10917,9 @@
 			oParentSectPr.Set_Columns_Col(nCol, private_Twips2MM(oParsedSectCols["col"][nCol]["w"]), private_Twips2MM(oParsedSectCols["col"][nCol]["space"]));
 
 		oParsedSectCols["equalWidth"] != null && oParentSectPr.Set_Columns_EqualWidth(oParsedSectCols["equalWidth"]);
-		oParsedSectCols["num"] != null & oParentSectPr.Set_Columns_Num(oParsedSectCols["num"]);
-		oParsedSectCols["sep"] != null & oParentSectPr.Set_Columns_Sep(oParsedSectCols["sep"]);
+		oParsedSectCols["num"] != null && oParentSectPr.Set_Columns_Num(oParsedSectCols["num"]);
+		oParsedSectCols["sep"] != null && oParentSectPr.Set_Columns_Sep(oParsedSectCols["sep"]);
 		oParsedSectCols["space"] != null && oParentSectPr.Set_Columns_Space(private_Twips2MM(oParsedSectCols["space"]));
-	};
-	ReaderFromJSON.prototype.SectionColFromJSON = function(oParsedSectCol)
-	{
-		var oSectionColumn = new CSectionColumn();
-
-		oSectionColumn.W     = private_Twips2MM(oParsedSectCol["w"]);
-		oSectionColumn.Space = private_Twips2MM(oParsedSectCol["space"]);
-
-		return oSectionColumn;
 	};
 	ReaderFromJSON.prototype.HeaderFromJSON = function(oParsedHdr)
 	{
@@ -16824,28 +16805,16 @@
 		switch (sType)
 		{
 			case "audio":
-				oUniMedia.type = AscFormat.SPTREE_TYPE_AUDIO;
+				oUniMedia.type = AscFormat.AUDIO_FILE;
 				break;
 			case "video":
-				oUniMedia.type = AscFormat.SPTREE_TYPE_VIDEO;
+				oUniMedia.type = AscFormat.VIDEO_FILE;
 				break;
 		}
 
 		oUniMedia.media = oParsedUniMedia["media"];
 
 		return oUniMedia;
-	};
-	ReaderFromJSON.prototype.NvUniSpPrFromJSON = function(oParsedPr)
-	{
-		var oNvUniSpPr = new AscFormat.CNvUniSpPr();
-
-		oNvUniSpPr.locks     = FromXML_GraphicFrameLocks(oParsedPr["locks"]);
-		oNvUniSpPr.stCnxIdx  = oParsedPr["stCnxIdx"];
-		oNvUniSpPr.stCnxId   = oParsedPr["stCnxId"];
-		oNvUniSpPr.endCnxIdx = oParsedPr["endCnxIdx"];
-		oNvUniSpPr.endCnxId  = oParsedPr["endCnxId"];
-
-		return oNvUniSpPr;
 	};
 	ReaderFromJSON.prototype.HLinkFromJSON = function(oParsedHLink)
 	{
@@ -21495,7 +21464,7 @@
 	function FromXml_ST_CalendarType(val, def) {
 		switch (val) {
 			case "gregorian":
-				return Asc.c_oAscCalendarType.Gregorian;;
+				return Asc.c_oAscCalendarType.Gregorian;
 			case "gregorianUs":
 				return Asc.c_oAscCalendarType.GregorianUs;
 			case "gregorianMeFrench":

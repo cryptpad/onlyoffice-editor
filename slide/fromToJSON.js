@@ -50,58 +50,9 @@
 
 		return oLogicDocument instanceof AscCommonWord.CDocument ? oLogicDocument.Get_Styles() : oLogicDocument.globalTableStyles;
 	}
-	function private_PtToMM(pt)
-	{
-		return 25.4 / 72.0 * pt;
-	}
-	function private_Twips2MM(twips)
-	{
-		return 25.4 / 72.0 / 20 * twips;
-	}
-	function private_EMU2MM(EMU)
-	{
-		return EMU / 36000.0;
-	}
-	function private_MM2EMU(MM)
-	{
-		return MM * 36000.0;
-	}
 	function private_GetPresentation(){
         return editor.WordControl.m_oLogicDocument;
     }
-	function private_MM2Twips(mm)
-	{
-		return mm / (25.4 / 72.0 / 20);
-	}
-	/**
-	 * Get the first Run in the array specified.
-	 * @typeofeditors ["CDE"]
-	 * @param {Array} firstPos - first doc pos of element
-	 * @param {Array} secondPos - second doc pos of element
-	 * @return {1 || 0 || - 1}
-	 * If returns 1  -> first element placed before second
-	 * If returns 0  -> first element placed like second
-	 * If returns -1 -> first element placed after second
-	 */
-	function private_checkRelativePos(firstPos, secondPos)
-	{
-		for (var nPos = 0, nLen = Math.min(firstPos.length, secondPos.length); nPos < nLen; ++nPos)
-		{
-			if (!secondPos[nPos] || !firstPos[nPos] || firstPos[nPos].Class !== secondPos[nPos].Class)
-				return 1;
-
-			if (firstPos[nPos].Position < secondPos[nPos].Position)
-				return 1;
-			else if (firstPos[nPos].Position > secondPos[nPos].Position)
-				return -1;
-		}
-
-		return 0;
-	}
-	function private_MM2Pt(mm)
-	{
-		return mm / (25.4 / 72.0);
-	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// End of private area
@@ -2011,8 +1962,7 @@
 		}
 		else if (oParsed["lnRef"])
 		{
-			let oStyleRef = this.StyleRefFromJSON(oParsed["lnRef"]);
-			oBorder.LineRef = oStyleRef;
+			oBorder.LineRef = this.StyleRefFromJSON(oParsed["lnRef"]);
 			oBorder.Value = AscCommonWord.border_Single;
 		}
 
@@ -2857,7 +2807,7 @@
 
 		//var spId = this.drawingsMap[oParsedInkTgt["spid"]] ? this.drawingsMap[oParsedInkTgt["spid"]].Id : oParsedInkTgt["spid"];
 
-		oParsedInkTgt["spid"] != undefined && oInkTgt.setSpid(spId);
+		oParsedInkTgt["spid"] != undefined && oInkTgt.setSpid(oParsedInkTgt["spid"]);
 		this.AddConnectedObject(oInkTgt);
 
 		return oInkTgt;

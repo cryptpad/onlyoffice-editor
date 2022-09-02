@@ -37,18 +37,6 @@
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	function private_PtToMM(pt)
-	{
-		return 25.4 / 72.0 * pt;
-	}
-	function private_Twips2MM(twips)
-	{
-		return 25.4 / 72.0 / 20 * twips;
-	}
-	function private_GetDrawingDocument()
-	{
-		return editor.WordControl.m_oLogicDocument.DrawingDocument;
-	}
 	function private_EMU2MM(EMU)
 	{
 		return EMU / 36000.0;
@@ -56,43 +44,6 @@
 	function private_MM2EMU(MM)
 	{
 		return MM * 36000.0;
-	}
-	function private_GetLogicDocument()
-	{
-		return editor.WordControl.m_oLogicDocument;
-	}
-	function private_MM2Twips(mm)
-	{
-		return mm / (25.4 / 72.0 / 20);
-	}
-	/**
-	 * Get the first Run in the array specified.
-	 * @typeofeditors ["CDE"]
-	 * @param {Array} firstPos - first doc pos of element
-	 * @param {Array} secondPos - second doc pos of element
-	 * @return {1 || 0 || - 1}
-	 * If returns 1  -> first element placed before second
-	 * If returns 0  -> first element placed like second
-	 * If returns -1 -> first element placed after second
-	 */
-	function private_checkRelativePos(firstPos, secondPos)
-	{
-		for (var nPos = 0, nLen = Math.min(firstPos.length, secondPos.length); nPos < nLen; ++nPos)
-		{
-			if (!secondPos[nPos] || !firstPos[nPos] || firstPos[nPos].Class !== secondPos[nPos].Class)
-				return 1;
-
-			if (firstPos[nPos].Position < secondPos[nPos].Position)
-				return 1;
-			else if (firstPos[nPos].Position > secondPos[nPos].Position)
-				return -1;
-		}
-
-		return 0;
-	}
-	function private_MM2Pt(mm)
-	{
-		return mm / (25.4 / 72.0);
 	}
 
 	var DocumentPageSize = new function() {
@@ -214,7 +165,7 @@
 			aHyperlinks.push(this.SerHyperlinkExcel(aWorksheetLinks[nHyperlink]));
 
 		var aMergeCells = this.SerMergeCells(oWorksheet.mergeManager.getAll());
-		var oSheet = {
+		return {
 			// worksheet props
 			"name":                  oWorksheet.sName,
 			"id":                    oWorksheet.Id,
@@ -247,14 +198,12 @@
 			"protectedRanges":       oWorksheet.aProtectedRanges.length > 0 ? this.SerProtectedRanges(oWorksheet.aProtectedRanges) : undefined,
 			"type":                  "worksheet"
 		}
-
-		return oSheet;
 	};
 	WriterToJSON.prototype.SerWorksheets = function(nStart, nEnd)
 	{
 		let aSheets = this.api.wbModel.aWorksheets;
 
-		if (this.workbook == null)
+		if (this.Workbook == null)
 			this.Workbook = this.api.wbModel;
 
 		if (this.InitSaveManager == null)
@@ -276,7 +225,7 @@
 
 		let aSerSheets = [];
 		for (let Index = nStart; Index <= nEnd; Index++)
-			aSerSheets.push(this.SerWorksheet(aSheets[Index], false));
+			aSerSheets.push(this.SerWorksheet(aSheets[Index]));
 
 		return {
 			"sheets":          aSerSheets,
@@ -450,7 +399,7 @@
 			"saltValue":          oRange.saltValue != null ? oRange.saltValue : undefined,
 			"name":               oRange.name != null ? oRange.name : undefined,
 			"sqref":              oRange.sqref != null ? AscCommonExcel.getSqRefString(oRange.sqref) : undefined,
-			"securityDescriptor": oRange.securityDescriptor != null ? securityDescriptor : undefined
+			"securityDescriptor": oRange.securityDescriptor != null ? oRange.securityDescriptor : undefined
 		}
 	};
 	WriterToJSON.prototype.SerSheetFormatPr = function(oPr)
@@ -1094,16 +1043,16 @@
 			return null;
 
 		var oElem;
-		switch (uri)
+		switch (oExt.uri)
 		{
 			case "{962EF5D1-5CA2-4c93-8EF4-DBF5C05439D2}":
-				oElem = this.SerPivotTableDefinitionX14(oElem.elem);
+				oElem = this.SerPivotTableDefinitionX14(oExt.elem);
 				break;
 			case "{725AE2AE-9491-48be-B2B4-4EB974FC3084}":
-				oElem = this.SerPivotCacheDefinitionX14(oElem.elem);
+				oElem = this.SerPivotCacheDefinitionX14(oExt.elem);
 				break;
 			case "{2946ED86-A175-432a-8AC1-64E0C546D7DE}":
-				oElem = this.SerPivotFieldX14(oElem.elem);
+				oElem = this.SerPivotFieldX14(oExt.elem);
 				break;
 		}
 
@@ -1602,7 +1551,7 @@
 			aUsages.push(this.SerHierarchyUsage(oUsages.rowHierarchyUsage[nUsage]));
 
 		return {
-			"rowHierarchyUsage": oUsages.rowHierarchyUsage
+			"rowHierarchyUsage": aUsages
 		}
 	};
 	WriterToJSON.prototype.SerHierarchyUsage = function(oUsage) // CT_HierarchyUsage
@@ -1624,7 +1573,7 @@
 			aUsages.push(this.SerHierarchyUsage(oUsages.colHierarchyUsage[nUsage]));
 
 		return {
-			"colHierarchyUsage": oUsages.colHierarchyUsage
+			"colHierarchyUsage": aUsages
 		}
 	};
 	WriterToJSON.prototype.SerSlicers = function(aSlicers) // CT_slicers (такой объект создается на чтении, но по факту просто массив)
@@ -1837,7 +1786,6 @@
 			"minRefreshableVersion": oCache.minRefreshableVersion !== 0 ? oCache.minRefreshableVersion : undefined,
 			"cacheRecords":          oCache.cacheRecords != null ? this.SerPivotCacheRecords(oCache.cacheRecords) : undefined,
 			"upgradeOnRefresh":      oCache.upgradeOnRefresh !== false ? oCache.upgradeOnRefresh : undefined,
-			"tupleCache":            oCache.tupleCache !== false ? oCache.tupleCache : undefined,
 			"supportSubquery":       oCache.supportSubquery !== false ? oCache.supportSubquery : undefined,
 			"supportAdvancedDrill":  oCache.supportAdvancedDrill !== false ? oCache.supportAdvancedDrill : undefined,
 			// members
@@ -1927,7 +1875,7 @@
 			aPages.push(this.SerPage(oPages.page[nElm]));
 
 		return {
-			"count": this.page.length > 0 ? this.page.length : undefined,
+			"count": aPages.length > 0 ? aPages.length : undefined,
 			"page":  aPages
 		}
 	};
@@ -1958,8 +1906,8 @@
 			aSets.push(this.SerRangeSet(oSets.rangeSet[nElm]));
 
 		return {
-			"count":    oSets.rangeSet.length > 0 ? oSets.rangeSet.length : undefined,
-			"rangeSet": oSets.rangeSet
+			"count":    aSets.length > 0 ? aSets.length : undefined,
+			"rangeSet": aSets
 		}
 	};
 	WriterToJSON.prototype.SerRangeSet = function(oSet) // CT_RangeSet
@@ -2381,13 +2329,13 @@
 	WriterToJSON.prototype.SerPCDSDTCItem = function(oItem)
 	{
 		var oResult;
-		if (oItem instanceof CT_Error)
+		if (oItem instanceof Asc.CT_Error)
 			oResult = this.SerPivotRecord(oItem, oItem.v, "e");
-		else if (oItem instanceof CT_Missing)
+		else if (oItem instanceof Asc.CT_Missing)
 			oResult = this.SerPivotRecord(oItem, oItem.v, "m");
-		else if (oItem instanceof CT_Number)
+		else if (oItem instanceof Asc.CT_Number)
 			oResult = this.SerPivotRecord(oItem, oItem.v, "n");
-		else if (oItem instanceof CT_String)
+		else if (oItem instanceof Asc.CT_String)
 			oResult = this.SerPivotRecord(oItem, oItem.v, "s");
 
 		return oResult;
@@ -2651,12 +2599,12 @@
 		if (!aRules)
 			return aRules;
 
-		var aRules = [];
+		var aResult = [];
 		for (var nRule = 0; aRules.length; nRule++)
-			aRules.push(this.SerSortRule(aRules[nRule]));
+			aResult.push(this.SerSortRule(aRules[nRule]));
 
 		return {
-			"sortRule": aRules.length > 0 ? aRules : undefined
+			"sortRule": aResult.length > 0 ? aResult : undefined
 		}
 	};
 	WriterToJSON.prototype.SerSortRule = function(oRule) // CT_SortRule
@@ -2962,7 +2910,7 @@
 		var oAllCol = null;
 		if(null != oWs.oAllCol)
 		{
-			oAllCol = fInitCol(oWs.oAllCol, 0, gc_nMaxCol0);
+			oAllCol = fInitCol(oWs.oAllCol, 0, AscCommon.gc_nMaxCol0);
 		}
 		for(var i = 0 , length = aIndexes.length; i < length; ++i)
 		{
@@ -3007,13 +2955,13 @@
 			if(null == nPrevIndex)
 			{
 				oAllCol.Min = 1;
-				oAllCol.Max = gc_nMaxCol0 + 1;
+				oAllCol.Max = AscCommon.gc_nMaxCol0 + 1;
 				aResult.push(this.SerCol(oAllCol));
 			}
-			else if(gc_nMaxCol0 != nPrevIndex)
+			else if(AscCommon.gc_nMaxCol0 != nPrevIndex)
 			{
 				oAllCol.Min = nPrevIndex + 2;
-				oAllCol.Max = gc_nMaxCol0 + 1;
+				oAllCol.Max = AscCommon.gc_nMaxCol0 + 1;
 				aResult.push(this.SerCol(oAllCol));
 			}
 		}
@@ -3082,7 +3030,7 @@
 	WriterToJSON.prototype.SerTableStyles = function(oStyles)
 	{
 		var bEmptyCustom = true;
-		for(var i in oStyles.CustomStyles)
+		for (var i in oStyles.CustomStyles)
 		{
 			bEmptyCustom = false;
 			break;
@@ -3302,11 +3250,11 @@
 	};
 	WriterToJSON.prototype.SerExcelStylesForWrite = function()
 	{
-		var g_oDefaultFormat = AscCommonExcel.g_oDefaultFormat;
+		//var g_oDefaultFormat = AscCommonExcel.g_oDefaultFormat;
 
 		var aBorders = [], aFills = [], aFonts = [],
 		aCellStyleXfs = [], aCellXfs = [], aCellStyles = [],
-		oTableStyles, aDxfs = [], aExtDxfs = [], aNumFmts = [], oSlicerStyles = [];
+		oTableStyles, aDxfs = [], aExtDxfs = [], aNumFmts = [];
 
 		//borders
 		var elems = this.stylesForWrite.oBorderMap.elems;
@@ -3350,7 +3298,7 @@
 			aDxfs.push(this.SerDxf(this.InitSaveManager.aDxfs[i]));
 
 		var aExtDxfsTemp = [];
-		var oSlicerStyles = this.PrepareSlicerStyles(this.Workbook.SlicerStyles, aExtDxfs);
+		var oSlicerStyles = this.PrepareSlicerStyles(this.Workbook.SlicerStyles, aExtDxfsTemp);
 		for (i = 0; i < aExtDxfsTemp.length; i++)
 			aExtDxfs.push(this.SerDxf(aExtDxfsTemp[i]));
 
@@ -3659,7 +3607,7 @@
 		if (oParsedSheet["autoFilter"] != null)
 			oWorksheet.AutoFilter = this.AutoFilterFromJSON(oParsedSheet["autoFilter"], true)
 		if (oParsedSheet["sortState"] != null)
-			oWorksheet.sortState = this.SortStateFromJSON(oParsedSheet["sortState"], oWorksheet);
+			oWorksheet.sortState = this.SortStateFromJSON(oParsedSheet["sortState"]);
 		if (oParsedSheet["tableParts"] != null)
 			this.TablePartsFromJSON(oParsedSheet["tableParts"], oWorksheet);
 		if (oParsedSheet["comments"] != null) 
@@ -4252,7 +4200,7 @@
 
 		return oClientData;
 	};
-	ReaderFromJSON.prototype.AutoFilterFromJSON = function(oParsed, bWriteToHistory)
+	ReaderFromJSON.prototype.AutoFilterFromJSON = function(oParsed)
 	{
 		var oAutoFilter = new AscCommonExcel.AutoFilter();
 
@@ -4262,18 +4210,6 @@
 			oAutoFilter.FilterColumns = this.FilterColumnsFromJSON(oParsed["filterColumn"]);
 		if (oParsed["sortState"] != null)
 			oAutoFilter.SortState = this.SortStateFromJSON(oParsed["sortState"]);
-
-		// при восстановление table parts в историю не заносим
-		// if (bWriteToHistory)
-		// {
-		// 	this.curWorksheet.autoFilters._addHistoryObj({Ref: oAutoFilter.Ref}, AscCH.historyitem_AutoFilter_Add, {
-		// 		activeCells: oAutoFilter.Ref,
-		// 		styleName: undefined,
-		// 		addFormatTableOptionsObj: undefined,
-		// 		displayName: null,
-		// 		tablePart: undefined
-		// 	}, null, oAutoFilter.Ref, undefined);
-		// }
 
 		return oAutoFilter;
 	};
@@ -4337,7 +4273,7 @@
 			oDateGroupItem = this.DateGroupItemFromJSON(oParsed["dateGroupItem"][nItem]);
 			oAutoFilterDateElem = new AscCommonExcel.AutoFilterDateElem();
 			oAutoFilterDateElem.convertDateGroupItemToRange(oDateGroupItem);
-			oFilters.Dates.push(autoFilterDateElem);
+			oFilters.Dates.push(oAutoFilterDateElem);
 		}
 			
 		if (oParsed["blank"] != null)
@@ -4770,17 +4706,6 @@
 				oSortState.SortConditions.push(this.SortConditionFromJSON(oParsed["sortCondition"][nSort]));
 		}
 
-		// if (oParent instanceof AscCommonExcel.Worksheet)
-		// {
-		// 	History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, oParent.getId(), null,
-		// 		new AscCommonExcel.UndoRedoData_SortState(oParent.sortState ? oParent.sortState.clone() : null, oSortState ? oSortState.clone() : null));
-		// }
-		// else
-		// {
-		// 	History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, this.curWorksheet.getId(), null,
-		// 		new AscCommonExcel.UndoRedoData_SortState(oParent.sortState ? oParent.sortState.clone() : null, sortState ? sortState.clone() : null, true, oParent.DisplayName));
-		// }
-		
 		return oSortState;
 	};
 	ReaderFromJSON.prototype.SortConditionFromJSON = function(oParsed)
@@ -6651,7 +6576,7 @@
 	};
 	ReaderFromJSON.prototype.OlapSlicerCacheItemParentFromJSON = function(oParsed)
 	{
-		var oParent = new CT_olapSlicerCacheItemParent();
+		var oParent = new Asc.CT_olapSlicerCacheItemParent();
 
 		if (oParsed["n"] != null)
 			oParent.n = oParsed["n"];
@@ -6828,8 +6753,8 @@
 	ReaderFromJSON.prototype.PageItemFromJSON = function(oParsed)
 	{
 		var oPageItem = new CT_PageItem();
-		if (oPageItem["name"] != null)
-			oPageItem.name = oPageItem["name"];
+		if (oParsed["name"] != null)
+			oPageItem.name = oParsed["name"];
 
 		return oPageItem;
 	};
@@ -7278,7 +7203,7 @@
 		var oKPIs = new CT_PCDKPIs();
 
 		for (var nElm = 0; nElm < oParsed["kpi"].length; nElm++)
-			oKPIs.kpi.push(this.KpiFromJSON(oParsed["kpi"][nElm]));
+			oKPIs.kpi.push(this.KPIFromJSON(oParsed["kpi"][nElm]));
 
 		return oKPIs;
 	};
@@ -9369,13 +9294,13 @@
 		var sType = undefined;
 		switch (nType)
 		{
-			case AscCommonExcel.ST_SortMethod.none:
+			case AscCommonExcel.ESortMethod.sortmethodNone:
 				sType = "none";
 				break;
-			case AscCommonExcel.ST_SortMethod.pinYin:
+			case AscCommonExcel.ESortMethod.sortmethodPinYin:
 				sType = "pinYin";
 				break;
-			case AscCommonExcel.ST_SortMethod.stroke:
+			case AscCommonExcel.ESortMethod.sortmethodStroke:
 				sType = "stroke";
 				break;
 		}
@@ -9388,13 +9313,13 @@
 		switch (sType)
 		{
 			case "none":
-				nType = AscCommonExcel.ST_SortMethod.none;
+				nType = AscCommonExcel.ESortMethod.sortmethodNone;
 				break;
 			case "pinYin":
-				nType = AscCommonExcel.ST_SortMethod.pinYin;
+				nType = AscCommonExcel.ESortMethod.sortmethodPinYin;
 				break;
 			case "stroke":
-				nType = AscCommonExcel.ST_SortMethod.stroke;
+				nType = AscCommonExcel.ESortMethod.sortmethodStroke;
 				break;
 		}
 
@@ -11125,7 +11050,7 @@
 		return res;
 	}
 	function FromXml_ST_CellFormulaType(val) {
-		var res = null;
+		var res;
 		switch (val) {
 			case "array":
 				res = window["Asc"].ECellFormulaType.cellformulatypeArray;
