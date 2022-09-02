@@ -7532,6 +7532,24 @@ var editor;
 		}
 	};
 
+	spreadsheet_api.prototype.onWorksheetChange = function(props) {
+		if (Array.isArray(props)) {
+			// todo сделать получение листа ещё
+			var ws = this.GetActiveSheet();
+			var arr = props.length <= 1 ? null : props.map(function(r){
+				return ws.worksheet.getRange3(r.r1, r.c1, r.r2, r.c2);
+			})
+			var range = this.GetRangeByNumber(ws.worksheet, props[0].r1, props[0].c1, props[0].r2, props[0].c2, arr);
+			this.sendEvent('asc_onTestEvent', range);
+		} else {
+			// todo сделать получение листа ещё
+			var ws = this.GetActiveSheet();
+			var range = this.GetRangeByNumber(ws.worksheet, props.r1, props.c1, props.r2, props.c2);
+			this.sendEvent('asc_onTestEvent', range);
+		}
+		
+	};
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -8059,6 +8077,7 @@ var editor;
   prot["asc_setDate1904"] = prot.asc_setDate1904;
   prot["asc_getDate1904"] = prot.asc_getDate1904;
 
+  prot["onWorksheetChange"] = prot.onWorksheetChange;  
 
 
 })(window);

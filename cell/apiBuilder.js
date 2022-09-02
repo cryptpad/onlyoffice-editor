@@ -535,6 +535,17 @@
 	};
 
 	/**
+	 * Returns the ApiRange object by the range reference.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 * @param {string} sRange - The range of cells from the current sheet.
+	 * @returns {ApiRange}
+	 */
+	Api.prototype.GetRangeByNumber = function(ws, r1, c1, r2, c2, areas) {
+		return new ApiRange( (ws ? ws.getRange3(r1, c1, r2, c2) : null), areas);
+	};
+
+	/**
 	 * Returns the mail merge fields.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
@@ -1871,6 +1882,7 @@
 	 * @returns {string | null} - returns address of range as string. 
 	 */
 	 ApiRange.prototype.GetAddress = function (RowAbs, ColAbs, RefStyle, External, RelativeTo) {
+		// todo поправить, чтобы возвращал адреса всех areas внутри range
 		var range = this.range.bbox;
 		var isOneCell = this.range.isOneCell();
 		var ws = this.range.worksheet;
@@ -2005,6 +2017,7 @@
 						}
 					}
 					worksheet.workbook.handlers.trigger("cleanCellCache", worksheet.getId(), [this.range.bbox], true);
+					worksheet.workbook.oApi.onWorksheetChange(this.range.bbox);
 					return true;
 				}
 			}
@@ -2015,6 +2028,7 @@
 			this.SetNumberFormat(AscCommon.getShortDateFormat());
 
 		worksheet.workbook.handlers.trigger("cleanCellCache", worksheet.getId(), [this.range.bbox], true);
+		worksheet.workbook.oApi.onWorksheetChange(this.range.bbox);
 		return true;
 	};
 

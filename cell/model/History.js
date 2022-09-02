@@ -643,6 +643,8 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			var curSheet = this.workbook.getWorksheetById(i);
 			if (curSheet)
 				this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
+
+			this.workbook.oApi.onWorksheetChange(Point.UpdateRigions[i]);
 		}
 
 		if (oRedoObjectParam.bOnSheetsChanged)

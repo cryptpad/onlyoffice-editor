@@ -12152,6 +12152,11 @@
 			AscCommonExcel.g_oHLOOKUPCache.remove(this);
 			AscCommonExcel.g_oMatchCache.remove(this);
 			AscCommonExcel.g_oSUMIFSCache.remove(this);
+			var t = this;
+			setTimeout(function(){
+				// если вызывать без таймаута, то зацкливается ивент при вызове GetValue у range и редактор виснет (скорее всего не в этом месте нужно посылать событие)
+				t.ws.workbook.oApi.onWorksheetChange({r1: t.nRow, c1: t.nCol, r2: t.nRow, c2: t.nCol});
+			});
 		}
 	};
 	Cell.prototype.cleanText = function() {
@@ -13746,6 +13751,7 @@
 			// cell.Remove();
 		});
 		History.EndTransaction();
+		this.worksheet.workbook.oApi.onWorksheetChange(this.bbox);
 	};
 	Range.prototype.setValueData = function(val){
 		History.Create_NewPoint();
