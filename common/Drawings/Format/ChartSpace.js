@@ -6931,6 +6931,8 @@ var GLOBAL_PATH_COUNT = 0;
 
                 axis.compiledLn = calcGridLine(defaultStyle.axisAndMajorGridLines, axis.spPr, subtleLine, parents);
                 axis.compiledTickMarkLn = axis.compiledLn.createDuplicate();
+                axis.compiledTickMarkLn.headEnd = null;
+                axis.compiledTickMarkLn.tailEnd = null;
                 axis.compiledTickMarkLn.calculate(parents.theme, parents.slide, parents.layout, parents.master, {
                     R: 0,
                     G: 0,
@@ -8025,6 +8027,7 @@ var GLOBAL_PATH_COUNT = 0;
         return this.drawingBase.createImage();
     }
     CChartSpace.prototype.checkDrawingCache = function(graphics) {
+        return false;
         if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview || graphics.PrintPreview) {
             return false;
         }
