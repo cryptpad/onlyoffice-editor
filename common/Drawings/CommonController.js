@@ -5537,6 +5537,7 @@ DrawingObjectsController.prototype =
                 {
                     oTiming.removeSelectedEffects();
                 }
+                this.resetSelection();
                 return;
             }
             var aSO, oSp;
@@ -8149,6 +8150,9 @@ DrawingObjectsController.prototype =
         for(var i = 0; i < drawings.length; ++i)
         {
             drawing = drawings[i];
+            if(AscFormat.MoveAnimationDrawObject && drawing instanceof AscFormat.MoveAnimationDrawObject) {
+                continue;
+            }
             locked = undefined;
             if(!drawing.group)
             {
