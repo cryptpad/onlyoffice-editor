@@ -622,7 +622,8 @@
 	{
 		var _this = this;
 		if (oleBinary) {
-			if (!oleBinary['imageUrl']) {
+			if (!oleBinary['imageUrl'])
+			{
 				var base64Image = oleBinary['base64Image'];
 				var fAfterUploadOleObjectImage = function (url) {
 					oleBinary['imageUrl'] = url;
@@ -631,9 +632,13 @@
 				var obj = {
 					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
 				};
-				AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-					_this._uploadCallback(nError, files, obj);
-				});
+				AscCommon.sendImgUrls(_this, [base64Image], function(data) {
+					if (data[0] && data[0].path != null && data[0].url !== "error")
+					{
+						oleBinary['imageUrl'] = data[0].url;
+						_this._addImageUrl([data[0].url], obj);
+					}
+				}, _this.editorId === c_oEditorId.Spreadsheet);
 				return;
 			}
 			var blipUrl = oleBinary['imageUrl'];
@@ -668,9 +673,13 @@
 				var obj = {
 					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
 				};
-				AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-					_this._uploadCallback(nError, files, obj);
-				});
+				AscCommon.sendImgUrls(_this, [base64Image], function(data) {
+					if (data[0] && data[0].path != null && data[0].url !== "error")
+					{
+						oleBinary['imageUrl'] = data[0].url;
+						_this._addImageUrl([data[0].url], obj);
+					}
+				}, _this.editorId === c_oEditorId.Spreadsheet);
 				return;
 			}
 
