@@ -618,7 +618,6 @@ CImageShape.prototype.draw = function(graphics, transform)
     }
 
 
-    this.drawShdw &&  this.drawShdw(graphics);
     var oClipRect;
     if(!graphics.IsSlideBoundsCheckerType){
         oClipRect = this.getClipRect();
@@ -627,6 +626,7 @@ CImageShape.prototype.draw = function(graphics, transform)
         graphics.SaveGrState();
         graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
     }
+    this.drawShdw &&  this.drawShdw(graphics);
     var _transform = transform ? transform :this.transform;
     graphics.SetIntegerGrid(false);
     graphics.transform3(_transform, false);

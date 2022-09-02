@@ -5536,9 +5536,9 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
     var _transform_text2 = options.transformText2 || this.transformText2;
     var geometry = this.calcGeometry || this.spPr && this.spPr.geometry;
 
-	this.drawShdw &&  this.drawShdw(graphics);
     if (graphics.IsSlideBoundsCheckerType === true) {
 
+        this.drawShdw &&  this.drawShdw(graphics);
         graphics.transform3(_transform);
         if (!this.spPr || null == geometry || geometry.isEmpty() || !graphics.IsShapeNeedBounds(geometry.preset)) {
             graphics._s();
@@ -5588,6 +5588,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
         graphics.SaveGrState();
         graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
     }
+    this.drawShdw &&  this.drawShdw(graphics);
     var _oldBrush = this.brush;
     if(this.signatureLine){
         var sSignatureUrl = null;
