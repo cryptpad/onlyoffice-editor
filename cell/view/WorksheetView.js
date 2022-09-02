@@ -11003,6 +11003,8 @@
 								oCanPromote);
 							// Вызываем функцию пересчета для заголовков форматированной таблицы
 							t.model.checkChangeTablesContent(arn);
+							var api = t.getApi();
+							api.onWorksheetChange(oCanPromote.to);
 
 							// Сбрасываем параметры автозаполнения
 							t.activeFillHandle = null;
@@ -11823,6 +11825,8 @@
 						function () {
 						});
 				}
+				t.workbook.Api.onWorksheetChange(arnFrom);
+				t.workbook.Api.onWorksheetChange(arnTo);
             };
 
             if (t.model.autoFilters._searchFiltersInRange(arnFrom, true)) {
@@ -11962,6 +11966,7 @@
             History.StartTransaction();
 
             checkRange.forEach(function (item, i) {
+
                 var c, _align, _verticalText;
 				var bIsUpdate = true;
                 var range = t.model.getRange3(item.r1, item.c1, item.r2, item.c2);
@@ -12478,6 +12483,9 @@
                 this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
             }
 		}
+		// убрал paste здесь так как не работает здесь для метода pasteHTML
+		if (/*prop == "paste" ||*/ prop == "empty" || prop == "hyperlink" || prop == "sort")
+			this.workbook.Api.onWorksheetChange(checkRange);
 	};
 
 	WorksheetView.prototype._isNeedLockedAllOnPaste = function (val) {
@@ -12833,6 +12841,8 @@
 			pastedData = t._pasteFromHTML(val, null, specialPasteProps);
 		}
 
+		var api = t.getApi();
+		api.onWorksheetChange(pasteToRange);
 		if (specialPasteHelper.specialPasteStart) {
 			if (window['Asc'].c_oSpecialPasteOperation.none !== specialPasteProps.operation && null !== specialPasteProps.operation) {
 				if (pasteInfo && pasteInfo.originalSelectBeforePaste) {
@@ -15191,6 +15201,7 @@
 								updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							}
 							History.EndTransaction();
+							t.workbook.Api.onWorksheetChange(checkRange);
 						};
 
 						arrChangedRanges.push(lockRange = new asc_Range(arn.c1, arn.r1, gc_nMaxCol0, arn.r2));
@@ -15224,6 +15235,7 @@
 								updateDrawingObjectsInfo2 = {bInsert: true, operType: val, updateRange: arn};
 							}
 							History.EndTransaction();
+							t.workbook.Api.onWorksheetChange(checkRange);
 						};
 
 						arrChangedRanges.push(lockRange = new asc_Range(arn.c1, arn.r1, arn.c2, gc_nMaxRow0));
@@ -15275,6 +15287,7 @@
 								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
 							}
 							History.EndTransaction();
+							t.workbook.Api.onWorksheetChange({r1: 0, c1: checkRange.c1, r2: AscCommon.gc_nMaxRow0, c2: checkRange.c2});
 						};
 
 						arrChangedRanges.push(lockRange);
@@ -15310,6 +15323,7 @@
 							if (changeFreezePane) {
 								t._updateFreezePane(changeFreezePane.col, changeFreezePane.row, true);
 							}
+							t.workbook.Api.onWorksheetChange({r1: checkRange.r1, c1 : 0, r2: checkRange.r2, c2: AscCommon.gc_nMaxCol0});
 						};
 
 						arrChangedRanges.push(lockRange);
@@ -15359,6 +15373,7 @@
 							}
 							History.EndTransaction();
 							reinitRanges = true;
+							t.workbook.Api.onWorksheetChange(checkRange);
 						};
 
 						arrChangedRanges.push(
@@ -15408,6 +15423,7 @@
 							History.EndTransaction();
 
 							reinitRanges = true;
+							t.workbook.Api.onWorksheetChange(checkRange);
 						};
 
 						arrChangedRanges.push(
@@ -15492,6 +15508,7 @@
 								} else {
 									updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: updateRange};
 								}
+								t.workbook.Api.onWorksheetChange({r1: 0, c1: checkRange.c1, r2: AscCommon.gc_nMaxRow0, c2: checkRange.c2});
 							}, null, null, true);
 
 							t._updateGroups(true);
@@ -15577,6 +15594,7 @@
 								} else {
 									updateDrawingObjectsInfo2 = {bInsert: false, operType: val, updateRange: updateRange};
 								}
+								t.workbook.Api.onWorksheetChange({r1: checkRange.r1, c1 : 0, r2: checkRange.r2, c2: AscCommon.gc_nMaxCol0});
 							});
 
 							t._updateGroups();
