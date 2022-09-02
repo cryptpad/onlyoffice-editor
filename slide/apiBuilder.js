@@ -894,7 +894,7 @@
         let oPresentation = private_GetPresentation();
 		let oParsedObj  = JSON.parse(sMessage);
         let oResult = null;
-		switch (oParsedObj.type)
+		switch (oParsedObj["type"])
 		{
             case "presentation":
                 if (oParsedObj["tblStyleLst"])
@@ -922,18 +922,18 @@
 
                 let oCPres = new AscCommon.CPres();
                 oCPres.defaultTextStyle = oReader.LstStyleFromJSON(oParsedObj["defaultTextStyle"]);
-                oCPres.attrAutoCompressPictures = oParsedObj.autoCompressPictures;
-                oCPres.attrBookmarkIdSeed = oParsedObj.bookmarkIdSeed;
-                oCPres.attrCompatMode = oParsedObj.compatMode;
+                oCPres.attrAutoCompressPictures = oParsedObj["autoCompressPictures"];
+                oCPres.attrBookmarkIdSeed = oParsedObj["bookmarkIdSeed"];
+                oCPres.attrCompatMode = oParsedObj["compatMode"];
                 oCPres.attrConformance = oParsedObj["conformance"] === "strict" ? c_oAscConformanceType.Strict : c_oAscConformanceType.Transitional;
-                oCPres.attrEmbedTrueTypeFonts = oParsedObj.embedTrueTypeFonts;
-                oCPres.attrFirstSlideNum = oParsedObj.firstSlideNum;
-                oCPres.attrRemovePersonalInfoOnSave = oParsedObj.removePersonalInfoOnSave;
-                oCPres.attrRtl = oParsedObj.rtl;
-                oCPres.attrSaveSubsetFonts = oParsedObj.saveSubsetFonts;
-                oCPres.attrServerZoom = oParsedObj.serverZoom;
-                oCPres.attrShowSpecialPlsOnTitleSld = oParsedObj.showSpecialPlsOnTitleSld;
-                oCPres.attrStrictFirstAndLastChars = oParsedObj.strictFirstAndLastChars;
+                oCPres.attrEmbedTrueTypeFonts = oParsedObj["embedTrueTypeFonts"];
+                oCPres.attrFirstSlideNum = oParsedObj["firstSlideNum"];
+                oCPres.attrRemovePersonalInfoOnSave = oParsedObj["removePersonalInfoOnSave"];
+                oCPres.attrRtl = oParsedObj["rtl"];
+                oCPres.attrSaveSubsetFonts = oParsedObj["saveSubsetFonts"];
+                oCPres.attrServerZoom = oParsedObj["serverZoom"];
+                oCPres.attrShowSpecialPlsOnTitleSld = oParsedObj["showSpecialPlsOnTitleSld"];
+                oCPres.attrStrictFirstAndLastChars = oParsedObj["strictFirstAndLastChars"];
 
                 oPresentation.pres = oCPres;
                 oPresentation.setDefaultTextStyle(oCPres.defaultTextStyle);
