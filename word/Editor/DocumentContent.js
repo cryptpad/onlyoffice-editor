@@ -2359,7 +2359,7 @@ CDocumentContent.prototype.Can_CopyCut = function()
 
 	if (null !== LogicDocument)
 	{
-		if (true === LogicDocument.IsSelectionUse())
+		if (true === LogicDocument.IsSelectionUse() && !LogicDocument.IsSelectionEmpty())
 		{
 			if (selectionflag_Numbering === LogicDocument.Selection.Flag)
 				bCanCopyCut = false;
