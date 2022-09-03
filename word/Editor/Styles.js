@@ -100,6 +100,19 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
+function private_GetWordLogicDocument()
+{
+	if(editor)
+	{
+		let oLogicDocument = null;
+		oLogicDocument = editor.private_GetLogicDocument();
+		if(oLogicDocument && oLogicDocument.IsDocumentEditor())
+		{
+			return oLogicDocument;
+		}
+	}
+	return null;
+}
 
 function IsEqualStyleObjects(Object1, Object2)
 {
@@ -358,7 +371,7 @@ CStyle.prototype =
 
 		if (isHandleNumbering && Value.NumPr instanceof CNumPr && Value.NumPr.IsValid())
 		{
-			var oLogicDocument = editor.WordControl.m_oLogicDocument;
+			var oLogicDocument = private_GetWordLogicDocument();
 			if (oLogicDocument)
 			{
 				var oNumbering = oLogicDocument.GetNumbering();
@@ -5978,7 +5991,9 @@ CStyle.prototype =
 		if (!oHistory)
 			return;
 
-		var LogicDocument = editor.WordControl.m_oLogicDocument;
+		var LogicDocument = private_GetWordLogicDocument();
+		if(!LogicDocument)
+			return;
 		var Styles        = LogicDocument.Get_Styles();
 
 		var AllParagraphs = [];
@@ -6238,7 +6253,7 @@ CStyle.prototype =
     {
         if (true === LinkData.StyleUpdate)
         {
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
+            var LogicDocument = private_GetWordLogicDocument();
             if (!LogicDocument)
                 return;
 
@@ -8993,7 +9008,7 @@ CStyles.prototype =
 		}
 
 		// Копируем свойства из стиля нумерации
-		var oLogicDocument = this.private_GetLogicDocument();
+		var oLogicDocument = private_GetWordLogicDocument();
 		if (oLogicDocument
 			&& Style.ParaPr.NumPr
 			&& (styletype_Paragraph === Type || styletype_Table === Type))
@@ -9223,7 +9238,9 @@ CStyles.prototype =
         if (undefined != StyleId)
         {
             // TODO: Надо сделать механизм, чтобы данное действие не вызывалось много раз подряд, а только 1.
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
+            var LogicDocument = private_GetWordLogicDocument();
+			if(!LogicDocument)
+				return;
 
             var AllParagraphs = [];
 
@@ -9254,8 +9271,8 @@ CStyles.prototype =
         {
             var StyleId = LinkData.UpdateStyleId;
 
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
-            if (!LogicDocument || !LogicDocument.IsDocumentEditor())
+            var LogicDocument = private_GetWordLogicDocument();
+            if (!LogicDocument)
                 return;
 
             var AllParagraphs = [];
@@ -14800,7 +14817,7 @@ CTextPr.prototype.SetAscColor = function(oAscColor)
 		this.Unifill.fill       = new AscFormat.CSolidFill();
 		this.Unifill.fill.color = AscFormat.CorrectUniColor(oAscColor, this.Unifill.fill.color, 1);
 
-		var oLogicDocument = editor && editor.private_GetLogicDocument() ? editor.private_GetLogicDocument() : null;
+		var oLogicDocument = private_GetWordLogicDocument();
 		if (oLogicDocument)
 			this.Unifill.check(oLogicDocument.GetTheme(), oLogicDocument.GetColorMap());
 
