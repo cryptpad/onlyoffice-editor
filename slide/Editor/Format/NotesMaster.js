@@ -184,9 +184,10 @@
         oPr.idMap = oIdMap;
         var i;
         var copy = new CNotesMaster();
-       // if(this.clrMap){
-       //     this.setClrMap(this.clrMap.createDuplicate());
-       // }
+        if(this.clrMap)
+        {
+            copy.setClrMap(this.clrMap.createDuplicate());
+        }
         if(typeof this.cSld.name === "string" && this.cSld.name.length > 0)
         {
             copy.setCSldName(this.cSld.name);
@@ -268,7 +269,7 @@
             case "clrMap": {
                 let oClrMap = new AscFormat.ClrMap();
                 oClrMap.fromXml(reader);
-                this.clrMap = oClrMap;
+                this.setClrMap(oClrMap);
                 break;
             }
             case "hf": {

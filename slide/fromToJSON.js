@@ -2349,7 +2349,7 @@
 		var oNotesMaster = new AscCommonSlide.CNotesMaster();
 
 		if (oParsedNotesMaster["clrMap"] != null)
-			this.ColorMapOvrFromJSON(oParsedNotesMaster["clrMap"], oNotesMaster.clrMap);
+			oNotesMaster.setClrMap(this.ColorMapOvrFromJSON(oParsedNotesMaster["clrMap"]));
 	
 		// cSld
 		var oCSld = this.CSldFromJSON(oParsedNotesMaster["cSld"]);
