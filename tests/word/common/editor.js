@@ -81,6 +81,7 @@
 	editor.sync_CanRedoCallback = function(){};
 	editor.CheckChangedDocument = function(){};
 	editor.asc_GetRevisionsChangesStack = function(){return []};
+	editor.private_GetLogicDocument = function(){return this.WordControl.m_oLogicDocument;};
 
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.DrawingDocument = drawingDocument;
