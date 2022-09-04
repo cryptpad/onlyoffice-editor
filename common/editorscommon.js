@@ -1876,7 +1876,7 @@
 	}
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
-		if (false === _ShowFileDialog("image/*", true, true, ValidateUploadImage, callback)) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscImageUploadProp.SupportedFormats), true, true, ValidateUploadImage, callback)) {
 			//todo remove this compatibility
 			var frameWindow = GetUploadIFrame();
 			var url = sUploadServiceLocalUrlOld + '/' + documentId;
