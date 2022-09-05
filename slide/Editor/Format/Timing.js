@@ -2147,7 +2147,6 @@
                 aAddedEffects = this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
         }
-        this.checkSelectedAnimMotionShapes();
         return aAddedEffects;
     };
     CTiming.prototype.removeSelectedEffects = function() {
@@ -10259,18 +10258,6 @@
     };
     CTimeNodeContainer.prototype.select = function() {
         this.selected = true;
-        let aShapes = [];
-        this.traverse(function(oChild) {
-            if(oChild.getObjectType() === AscDFH.historyitem_type_AnimMotion) {
-                var oShape = oChild.createPathShape();
-                if(oShape) {
-                    aShapes.push(oShape);
-                }
-            }
-        });
-        if(aShapes.length > 0) {
-            let oController
-        }
     };
     CTimeNodeContainer.prototype.deselect = function() {
         this.selected = false;
@@ -16545,20 +16532,20 @@
     };
     MoveAnimationDrawObject.prototype.updateAnimation = function(x, y, extX, extY, rot, geometry, bResetPreset) {
         var sPath = AscFormat.ExecuteNoHistory(function() {
-            if(this.spPr.geometry) {
-                var oXfrm = this.spPr.xfrm;
-                oXfrm.setOffX(x);
-                oXfrm.setOffY(y);
-                oXfrm.setExtX(extX);
-                oXfrm.setExtY(extY);
-                oXfrm.setRot(rot);
-                this.recalculateTransform();
-                if(geometry) {
-                    this.spPr.geometry = geometry;
-                }
-                this.spPr.geometry.Recalculate(this.extX, this.extY);
-                return this.getSVGPath();
+            var oXfrm = this.spPr.xfrm;
+            oXfrm.setOffX(x);
+            oXfrm.setOffY(y);
+            oXfrm.setExtX(extX);
+            oXfrm.setExtY(extY);
+            oXfrm.setRot(rot);
+            this.recalculateTransform();
+            if(geometry) {
+                this.spPr.geometry = geometry;
             }
+            if(this.spPr.geometry) {
+                this.spPr.geometry.Recalculate(this.extX, this.extY);
+            }
+            return this.getSVGPath();
         }, this, []);
         if(typeof sPath === "string" && sPath.length > 0) {
             this.anim.setPath(sPath);
