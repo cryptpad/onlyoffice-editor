@@ -11811,6 +11811,18 @@
         oCtx.fill();
         return oTexture;
     };
+    function ContextEllipse(context, x, y, radiusX, radiusY, rotation, startAngle, endAngle, antiClockwise) {
+        if(context.ellipse) {
+            context.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, antiClockwise);
+            return;
+        }
+        context.save();
+        context.translate(x, y);
+        context.rotate(rotation);
+        context.scale(radiusX, radiusY);
+        context.arc(0, 0, 1, startAngle, endAngle, antiClockwise);
+        context.restore();
+    }
     CAnimTexture.prototype.createCircle = function(fTime, sOperation) {
         var nMaxRadius = this.canvas.width * Math.SQRT1_2;
         var nRadius = nMaxRadius * fTime;
@@ -11830,7 +11842,7 @@
         var fStartAngle = 0;
         var fEndAngle = 2 * Math.PI;
         var bCounterclockwise = false;
-        oCtx.ellipse(nX, nY, nRadiusX, nRadiusY, fRotation, fStartAngle, fEndAngle, bCounterclockwise);
+        ContextEllipse(oCtx, nX, nY, nRadiusX, nRadiusY, fRotation, fStartAngle, fEndAngle, bCounterclockwise);
         oCtx.closePath();
         oCtx.fill();
         return oTexture;
