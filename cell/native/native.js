@@ -3959,6 +3959,7 @@ function OfflineEditor () {
                                  width + region.columnOff, height + region.rowOff);
         }
         
+        worksheet.stringRender.fontNeedUpdate = true;
         worksheet.__drawCellsAndBorders(null,
                                         region.columnBeg, region.rowBeg, region.columnEnd, region.rowEnd,
                                         region.columnOff, region.rowOff, istoplayer);
