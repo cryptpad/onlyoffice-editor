@@ -11070,11 +11070,13 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
             this.Document_UpdateInterfaceState();
             if(bPreview && aAddedEffects.length > 0) {
                 oSlide.graphicObjects.resetSelection();
-                this.GetCurTiming().resetSelection();
+                let oTiming = this.GetCurTiming();
+                oTiming.resetSelection();
                 for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
                     aAddedEffects[nEffect].select();
                 }
                 this.StartAnimationPreview();
+                oTiming.checkSelectedAnimMotionShapes();
             }
             else {
                 this.DrawingDocument.OnRecalculatePage(this.CurPage, oSlide);

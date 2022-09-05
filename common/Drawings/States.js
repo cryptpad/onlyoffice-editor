@@ -213,16 +213,22 @@ StartAddNewShape.prototype =
                                 editor.sync_EndAddShape();
                             }
                             oPresentation.Document_UpdateInterfaceState();
+                            let oTiming = oPresentation.GetCurTiming();
                             if(this.bPreview && aAddedEffects.length > 0) {
-                                oCurSlide.graphicObjects.resetSelection();
-                                oPresentation.GetCurTiming().resetSelection();
-                                for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
-                                    aAddedEffects[nEffect].select();
+                                if(oTiming) {
+                                    oCurSlide.graphicObjects.resetSelection();
+                                    oTiming.resetSelection();
+                                    for(let nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
+                                        aAddedEffects[nEffect].select();
+                                    }
+                                    oPresentation.StartAnimationPreview();
                                 }
-                                oPresentation.StartAnimationPreview();
                             }
                             else {
                                 oPresentation.DrawingDocument.OnRecalculatePage(oPresentation.CurPage, oCurSlide);
+                            }
+                            if(oTiming) {
+                                oTiming.checkSelectedAnimMotionShapes();
                             }
                         }
                     }

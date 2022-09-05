@@ -2147,6 +2147,7 @@
                 aAddedEffects = this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
             }
         }
+        this.checkSelectedAnimMotionShapes();
         return aAddedEffects;
     };
     CTiming.prototype.removeSelectedEffects = function() {
@@ -2849,9 +2850,41 @@
             oContext.fillStyle = sOldFill;
         }
     };
-    CTiming.prototype.onMouseDown = function(e, x, y, bHandle) {
+    CTiming.prototype.isDrawAnimLabels = function() {
         var oApi = editor || Asc.editor;
         if(!oApi.isDrawAnimLabels || !oApi.isDrawAnimLabels()) {
+            return false;
+        }
+        return true;
+    };
+    CTiming.prototype.checkSelectedAnimMotionShapes = function() {
+        if(!this.isDrawAnimLabels()) {
+            return;
+        }
+        let oPresentation = this.getPresentation();
+        if(!oPresentation) {
+            return;
+        }
+        let oSlide = oPresentation.GetCurrentSlide();
+        if(oSlide !== this.parent) {
+            return;
+        }
+        let oController = oSlide.graphicObjects;
+        var aEffectsForDraw = this.getEffectsForLabelsDraw();
+        let aShapes = this.getMoveEffectsShapes();
+        for(let nEffect = 0; nEffect < aEffectsForDraw.length; ++nEffect) {
+            let oEffect = aEffectsForDraw[nEffect];
+            for(let nShape = 0; nShape < aShapes.length; ++nShape) {
+                let oShape = aShapes[nShape];
+                if(oShape.effectNode === oEffect) {
+                    oController.selectObject(oShape, oSlide.num);
+                    break;
+                }
+            }
+        }
+    };
+    CTiming.prototype.onMouseDown = function(e, x, y, bHandle) {
+        if(!this.isDrawAnimLabels()) {
             return bHandle ? false : null;
         }
         var aEffectsForDraw = this.getEffectsForLabelsDraw();
@@ -2871,6 +2904,7 @@
                         this.resetSelection();
                         oEffect.select();
                     }
+                    this.checkSelectedAnimMotionShapes();
                     return true;
                 }
                 else {
@@ -8549,6 +8583,7 @@
             if(oTiming) {
                 this.editShape.parent = oTiming.parent;
             }
+            this.editShape.effectNode = this.getParentTimeNode();
         }
         this.editShape.checkRecalculate();
         return this.editShape;
@@ -10224,6 +10259,18 @@
     };
     CTimeNodeContainer.prototype.select = function() {
         this.selected = true;
+        let aShapes = [];
+        this.traverse(function(oChild) {
+            if(oChild.getObjectType() === AscDFH.historyitem_type_AnimMotion) {
+                var oShape = oChild.createPathShape();
+                if(oShape) {
+                    aShapes.push(oShape);
+                }
+            }
+        });
+        if(aShapes.length > 0) {
+            let oController
+        }
     };
     CTimeNodeContainer.prototype.deselect = function() {
         this.selected = false;

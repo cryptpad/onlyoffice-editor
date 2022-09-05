@@ -1757,7 +1757,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
     Slide.prototype.getDrawingsForController = function(){
         if(this.timing) {
-            var aShapes = this.timing.getMoveEffectsShapes();
+            let aShapes = this.timing.getMoveEffectsShapes();
             if(aShapes && aShapes.length > 0) {
                 return this.cSld.spTree.concat(aShapes);
             }
