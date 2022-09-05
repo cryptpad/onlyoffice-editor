@@ -5545,13 +5545,10 @@ CMathContent.prototype.Process_AutoCorrect = function (oElement) {
         return;
     
     var oTempObject = AscMath.GetConvertContent(nInputType, strStringForConversion, this);
+    if (!oTempObject)
+        return;
     this.DeleteContentForAutoCorrection(arrDelData);
     this.AddContentForAutoCorrection(oTempObject.Content);
-
-    console.log(
-        "CurPos:", this.CurPos, "\t",
-        "Content", this.Content,
-    )
 };
 CMathContent.prototype.DeleteContentForAutoCorrection = function(arrDeleteData) {
     if (arrDeleteData < 1) {
@@ -5576,10 +5573,9 @@ CMathContent.prototype.DeleteContentForAutoCorrection = function(arrDeleteData) 
                     let intTempCurPos = this.CurPos;
                     this.Remove_FromContent(intIndex, 1);
 
-                    if (intTempCurPos === this.CurPos && this.CurPos !== 0) {
+                    if (intTempCurPos === this.CurPos ) { //&& i !== arrDeleteData.length - 1
                         this.CurPos--;
                     }
-
                     intCounterForDel++;
                 }
                 else
@@ -5594,16 +5590,18 @@ CMathContent.prototype.DeleteContentForAutoCorrection = function(arrDeleteData) 
     if (this.Content.length === 1 && this.Content[0] && this.Content[0].Type === 49 && this.Content[0].Content.length === 0) {
         this.Remove_FromContent(0, 1);
     }
+
 };
 CMathContent.prototype.AddContentForAutoCorrection = function(arrNewElements) {
     if (arrNewElements.length < 1) {
         return
     }
 
-    var intPos;
+
     this.CurPos++;
+
     this.ConcatToContent(this.CurPos, arrNewElements);
-    this.CurPos+= arrNewElements.length;
+    this.CurPos += arrNewElements.length - 1;
 
     // for (var i = 0; i < arrNewElements.length; i++) {
     //

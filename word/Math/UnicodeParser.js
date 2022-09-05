@@ -1297,7 +1297,9 @@
 
 			if (this.IsFactorLiteral() && !this.IsExpSubSupLiteral()) {
 				arrFactorList.push(this.GetFactorLiteral());
-				isBreak = arrFactorList[arrFactorList.length - 1].type === 'BracketBlock';
+				if (arrFactorList[arrFactorList.length - 1]) {
+					isBreak = arrFactorList[arrFactorList.length - 1].type === 'BracketBlock';
+				}
 			}
 
 			if (this.IsSpecial(isNoSubSup) && arrFactorList[arrFactorList.length - 1]) {
