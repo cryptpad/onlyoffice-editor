@@ -2262,6 +2262,21 @@
         }
         if(this.setTxPr) {
             this.setTxPr(this.getTxPrFormStyleEntry(oStyleEntry, aColors, nIdx));
+            if(this.tx && this.tx.rich) {
+                let oTxBody = this.tx.rich;
+                if(oTxBody.content) {
+                    let aParagraphs = oTxBody.content.Content;
+                    for(let nPara = 0; nPara < aParagraphs.length; ++nPara) {
+                        let oParagraph = aParagraphs[nPara];
+                        oParagraph.Clear_TextFormatting();
+                        if(oParagraph.Pr && oParagraph.Pr.DefaultRunPr) {
+                            let oCopyPr = oParagraph.Pr.Copy();
+                            oCopyPr.DefaultRunPr = undefined;
+                            oParagraph.Set_Pr(oCopyPr);
+                        }
+                    }
+                }
+            }
         }
     };
     CBaseChartObject.prototype.resetFormatting = function() {
