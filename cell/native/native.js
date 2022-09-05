@@ -3516,6 +3516,7 @@ function OfflineEditor () {
 
              var thenCallback = function() {
 
+                _api.setDrawGroupsRestriction();
             	t.asc_WriteAllWorksheets(true);
             	t.asc_WriteCurrentCell();
             
@@ -7140,6 +7141,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers,
                                                       window["_null_object"], window["_null_object"], t,
                                                       t.collaborativeEditing, t.fontRenderingMode);
+               t.setDrawGroupsRestriction();
 
                if (!sdkCheck) {
 
