@@ -435,15 +435,16 @@
 	};
 	CSelectedContent.prototype.ConvertToPresentation = function(Parent)
 	{
-		var Elements = this.Elements.slice(0);
+		let Elements = this.Elements.slice(0);
 		this.Elements.length = 0;
 
-		for (var nIndex = 0, nCount = Elements.length; nIndex < nCount; ++nIndex)
+		for (let nIndex = 0, nCount = Elements.length; nIndex < nCount; ++nIndex)
 		{
-			var oElement = Elements[nIndex].Element;
+			let oSelectedElement = Elements[nIndex];
+			var oElement = oSelectedElement.Element;
 			if (oElement.IsParagraph())
 			{
-				this.Elements.push(new CSelectedElement(AscFormat.ConvertParagraphToPPTX(oElement, Parent.DrawingDocument, Parent, true, false), false))
+				this.Elements.push(new CSelectedElement(AscFormat.ConvertParagraphToPPTX(oElement, Parent.DrawingDocument, Parent, true, false), oSelectedElement.SelectedAll))
 			}
 		}
 	};
