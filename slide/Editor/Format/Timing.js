@@ -1407,6 +1407,8 @@
         return false;
     };
 
+    var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER  || 9007199254740991;
+
     function CAnimationTime(val) {
         this.val = 0;
         if(typeof val === "number") {
@@ -1416,7 +1418,7 @@
             this.assign(val);
         }
     }
-    CAnimationTime.prototype.Indefinite = Number.MAX_SAFE_INTEGER;
+    CAnimationTime.prototype.Indefinite = MAX_SAFE_INTEGER;
     CAnimationTime.prototype.Unresolved = Number.POSITIVE_INFINITY;
     CAnimationTime.prototype.Unspecified = CAnimationTime.prototype.Unresolved;
     CAnimationTime.prototype.Media = Number.NEGATIVE_INFINITY;
