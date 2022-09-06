@@ -78,6 +78,7 @@
 		this.Select        = true;
 		this.ParaAnchorPos = null;
 		this.Run           = null;
+		this.PasteHelper   = null;
 
 		this.IsPresentationContent = false;
 	}
@@ -193,6 +194,7 @@
 		this.Run           = oRun;
 		this.AnchorPos     = oAnchorPos;
 		this.Select        = !!isSelect;
+		this.PasteHelper   = oRun ? oRun.GetParagraph() : null;
 
 		let isLocalTrack = false;
 		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
@@ -254,6 +256,10 @@
 		}
 
 		oDocContent.SetThisElementCurrent();
+	};
+	CSelectedContent.prototype.GetPasteHelperElement = function()
+	{
+		return this.PasteHelper;
 	};
 	CSelectedContent.prototype.PrepareObjectsForInsert = function()
 	{
@@ -1034,6 +1040,8 @@
 			oDocContent.RemoveFromContent(nParagraphSPos + 1, 1);
 			nSelectionStart = nParagraphSPos;
 			nStartPos++;
+
+			oParagraphS = oInsertParagraph;
 		}
 
 		let nEndPos   = this.Elements.length - 1;
@@ -1058,9 +1066,14 @@
 			oDocContent.AddToContent(nInsertPos++, oElement);
 
 			if (this.Select)
+			{
 				oElement.SelectAll(1);
+			}
 			else
+			{
 				oElement.RemoveSelection();
+				oElement.MoveCursorToEndPos();
+			}
 		}
 		let nSelectionEnd = isConcatE ? oParagraphE.GetIndex() : nInsertPos - 1;
 
@@ -1074,8 +1087,11 @@
 		}
 		else
 		{
-			if (oParagraphS)
-				oParagraphE.RemoveSelection();
+			if (oParagraphS && oParagraphS !== oParagraphE)
+			{
+				oParagraphS.RemoveSelection();
+				oParagraphS.MoveCursorToEndPos();
+			}
 
 			oParagraphE.RemoveSelection();
 			oDocContent.CurPos.ContentPos = nInsertPos;
@@ -1083,6 +1099,8 @@
 		}
 
 		this.private_CheckInsertSignatures();
+
+		this.PasteHelper = this.Elements[this.Elements.length - 1].Element;
 	};
 
 	/**

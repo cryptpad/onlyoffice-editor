@@ -2443,6 +2443,7 @@ PasteProcessor.prototype =
 		this.pasteTypeContent = null;
 		var oSelectedContent = new AscCommonWord.CSelectedContent();
 		var tableSpecialPaste = false;
+		let pasteHelperElement = null;
 
 		if (oTable && !aNewContent[0].IsTable() && oTable.IsCellSelection())
 		{
@@ -2674,6 +2675,7 @@ PasteProcessor.prototype =
 
 			oSelectedContent.Insert(NearPos, false);
 			paragraph.Clear_NearestPosArray(aNewContent);
+			pasteHelperElement = oSelectedContent.GetPasteHelperElement();
 		}
 
 		//если вставляем таблицу в ячейку таблицы
@@ -2690,20 +2692,15 @@ PasteProcessor.prototype =
 			}
 			specialPasteHelper.showButtonIdParagraph = table.Id;
 		} else {
-			if(oSelectedContent.Elements.length === 1 && !oTable)
+			if (pasteHelperElement)
 			{
-				var curDocSelection = this.oDocument.GetSelectionState();
-				if(curDocSelection && curDocSelection[1] && curDocSelection[1].CurPos)
-				{
-					var selectParagraph = this.oDocument.Content[curDocSelection[1].CurPos.ContentPos];
-					specialPasteHelper.showButtonIdParagraph = selectParagraph.Id;
-
-					//TODO пересмотреть для случая когда вставляем таблицу внутри BlockLevelSdt
-					if(selectParagraph.GetType && type_BlockLevelSdt === selectParagraph.GetType()) {
-						var currentParagraph = this.oDocument.GetCurrentParagraph();
-						specialPasteHelper.showButtonIdParagraph = currentParagraph ? currentParagraph.Id : null
-					}
-				}
+				specialPasteHelper.showButtonIdParagraph = pasteHelperElement.GetId();
+			}
+			else if (oSelectedContent.Elements.length === 1 && !oTable)
+			{
+				let currentParagraph = this.oDocument.GetCurrentParagraph();
+				if (currentParagraph)
+					specialPasteHelper.showButtonIdParagraph = currentParagraph.GetId();
 			}
 			else
 			{
