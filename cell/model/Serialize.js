@@ -7305,7 +7305,7 @@
 			else if ( c_oSerWorkbookTypes.OleSize === type )
 			{
 				var sRange = this.stream.GetString2LE(length);
-				var parsedRange = AscCommonExcel.g_oRangeCache.getAscRange(sRange);
+				var parsedRange = AscCommonExcel.g_oRangeCache.getAscRange(sRange).clone();
 				if (parsedRange) {
 					this.oWorkbook.setOleSize(new AscCommonExcel.OleSizeSelectionRange(null, parsedRange));
 				}
