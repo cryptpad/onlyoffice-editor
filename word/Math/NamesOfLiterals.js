@@ -967,7 +967,8 @@
 
 	let type = false;
 
-	function GetBracketCode(code) {
+	function GetBracketCode(code)
+	{
 		const oBrackets = {
 			".": -1,
 			"\\{": "{".charCodeAt(0),
@@ -986,35 +987,23 @@
 		}
 	}
 
-	function GetHBracket(code) {
+	function GetHBracket(code)
+	{
 		switch (code) {
-			case "⏜":
-				return VJUST_TOP;
-			case "⏝":
-				return VJUST_BOT;
-			case "⏞":
-				return VJUST_TOP;
-			case "⏟":
-				return VJUST_BOT;
-			case "⏠":
-				return VJUST_TOP;
-			case "⏡":
-				return VJUST_BOT;
-			case "⎴":
-				return VJUST_BOT;
-			case "⎵":
-				return VJUST_TOP;
+			case "⏜": return VJUST_TOP;
+			case "⏝": return VJUST_BOT;
+			case "⏞": return VJUST_TOP;
+			case "⏟": return VJUST_BOT;
+			case "⏠": return VJUST_TOP;
+			case "⏡": return VJUST_BOT;
+			case "⎴": return VJUST_BOT;
+			case "⎵": return VJUST_TOP;
 		}
 	}
 
-	// \\sqrt ->   empty sqrt
-	// / -> empty frac
-	// _ -> empty base and empty index; _2 -> empty base with index 2
-	// _ -> empty base and empty index; _2 -> empty base with index 2
-	// \hat -> diacritic without base
-
 	//https://www.cs.bgu.ac.il/~khitron/Equation%20Editor.pdf
-	function GetUnicodeAutoCorrectionToken(str, context) {
+	function GetUnicodeAutoCorrectionToken(str, context)
+	{
 		if (str[0] !== "\\") {
 			return;
 		}
@@ -1054,7 +1043,8 @@
 		}
 	}
 
-	function ProcessString(str, char) {
+	function ProcessString(str, char)
+	{
 		let intLenOfRule = 0;
 		while (intLenOfRule <= char.length - 1) {
 			if (char[intLenOfRule] === str[intLenOfRule]) {
@@ -1067,7 +1057,8 @@
 		return intLenOfRule;
 	}
 
-	function ConvertTokens(oTokens, oContext) {
+	function ConvertTokens(oTokens, oContext)
+	{
 		if (typeof oTokens === "object") {
 			const Paragraph = oContext.Paragraph;
 			const Proceed = function (oTokens, oContext) {
@@ -1080,6 +1071,10 @@
 									oContext,
 								);
 							}
+							break;
+						case oNamesOfLiterals.otherLiteral[num]:
+							let intCharCode = oTokens.value.codePointAt()
+							oContext.Add_Symbol(intCharCode);
 							break;
 						case oNamesOfLiterals.functionNameLiteral[num]:
 						case oNamesOfLiterals.specialScriptNumberLiteral[num]:
@@ -1561,35 +1556,40 @@
 		}
 	}
 
-	function Tokenizer() {
+	function Tokenizer()
+	{
 		this._string = [];
 		this._cursor = 0;
 		this.state = [];
 	}
-
-	Tokenizer.prototype.Init = function (string) {
+	Tokenizer.prototype.Init = function (string)
+	{
 		this._string = this.GetSymbols(string);
 		this._cursor = 0;
-	}
-	Tokenizer.prototype.GetSymbols = function (str) {
+	};
+	Tokenizer.prototype.GetSymbols = function (str)
+	{
 		let output = [];
 		for (let oIter = str.getUnicodeIterator(); oIter.check(); oIter.next()) 
 		{
 			output.push(String.fromCodePoint(oIter.value()));
 		}
 		return output;
-	}
-	Tokenizer.prototype.GetStringLength = function (str) {
+	};
+	Tokenizer.prototype.GetStringLength = function (str)
+	{
 		let intLen = 0;
 		for (let oIter = str.getUnicodeIterator(); oIter.check(); oIter.next()) {
 			intLen++;
 		}
 		return intLen;
-	}
-	Tokenizer.prototype.IsHasMoreTokens = function () {
+	};
+	Tokenizer.prototype.IsHasMoreTokens = function ()
+	{
 		return this._cursor < this._string.length;
-	}
-	Tokenizer.prototype.GetTextOfToken = function (intIndex, isLaTeX) {
+	};
+	Tokenizer.prototype.GetTextOfToken = function (intIndex, isLaTeX)
+	{
 		let arrToken = wordAutoCorrection[intIndex];
 
 		if (typeof arrToken[0] !== "function")
@@ -1603,8 +1603,9 @@
 				return arrToken[1];
 			}
 		}
-	}
-	Tokenizer.prototype.GetNextToken = function () {
+	};
+	Tokenizer.prototype.GetNextToken = function ()
+	{
 		if (!this.IsHasMoreTokens()) {
 			return {
 				class: undefined,
@@ -1644,8 +1645,9 @@
 				index: i,
 			}
 		}
-	}
-	Tokenizer.prototype.ProcessString = function (str, char) {
+	};
+	Tokenizer.prototype.ProcessString = function (str, char)
+	{
 		let intLenOfRule = 0;
 
 		while (intLenOfRule <= char.length - 1) {
@@ -1659,8 +1661,9 @@
 			}
 		}
 		return char;
-	}
-	Tokenizer.prototype.MatchToken = function (regexp, string) {
+	};
+	Tokenizer.prototype.MatchToken = function (regexp, string)
+	{
 		let oMatched = (typeof regexp === "function")
 			? regexp(string, this)
 			: this.ProcessString(string, regexp);
@@ -1672,8 +1675,9 @@
 
 		this._cursor += this.GetStringLength(oMatched);
 		return oMatched;
-	}
-	Tokenizer.prototype.SaveState = function (oLookahead) {
+	};
+	Tokenizer.prototype.SaveState = function (oLookahead)
+	{
 		let strClass = oLookahead.class;
 		let data = oLookahead.data;
 
@@ -1682,15 +1686,16 @@
 			_cursor: this._cursor,
 			oLookahead: { class: strClass, data: data},
 		})
-	}
-	Tokenizer.prototype.RestoreState = function () {
+	};
+	Tokenizer.prototype.RestoreState = function ()
+	{
 		if (this.state.length > 0) {
 			let oState = this.state.shift();
 			this._cursor = oState._cursor;
 			this._string = oState._string;
 			return oState.oLookahead;
 		}
-	}
+	};
 
 	//	Автокррекции НЕ срабатывает только при вводе букв и цифр, есть исключения для скобок
 	//
@@ -1720,7 +1725,7 @@
 	//
 
 	const AutoCorrectionRules = [
-		//true обозначает обычный текст, цифры и блоки контента (CFraction, CLmit, CDegree...);
+		//true обозначает обычный текст, цифры и блоки контента (CFraction, CLimit, CDegree...);
 		[true, "_", true, "^", true],
 		[true, "^", true, "_", true],
 		[true, "/", true],
@@ -2156,8 +2161,7 @@
 	{
 		let intArrLen = this.oRootContext.str.length - 1;
 		let oContent = this.oRootContext.str[intArrLen];
-		return oContent.class === oNamesOfLiterals.operatorLiteral[0];
-		
+		return oContent && oContent.class === oNamesOfLiterals.operatorLiteral[0];
 	};
 	ProceedContent.prototype.SliceByRuleCounter = function()
 	{
@@ -2169,7 +2173,8 @@
 		}
 	};
 
-	function ProceedAutoCorrection(Parent, oProceedContent) {
+	function ProceedAutoCorrection(Parent, oProceedContent)
+	{
 		this.str = [];
 		this.Parent = Parent !== undefined ? Parent : null;
 		this.ProceedContent = oProceedContent;
@@ -2393,7 +2398,8 @@
 		return this.str;
 	};
 
-	function AutoCorrect(oCMathContent, nInputType) {
+	function AutoCorrect(oCMathContent, nInputType)
+	{
 		let oData = new AutoCorrectionFunc(oCMathContent, nInputType);
 
 		if (oData.intCounter === 0)
@@ -2408,7 +2414,8 @@
 		}
 	}
 
-	function GetFixedCharCodeAt(str) {
+	function GetFixedCharCodeAt(str)
+	{
 		let code = str.charCodeAt(0);
 		let hi, low;
 
@@ -2729,6 +2736,7 @@
 		"\\nabla": "∇",
 		"\\naryand": "▒",
 		"\\nbsp": " ",
+		"\\ndiv": "⊘",
 		"\\ne": "≠",
 		"\\nearrow": "↗",
 		"\\neg": "¬",
@@ -2951,7 +2959,8 @@
 		'>>': "≫",
 	}
 
-	function CorrectWordOnCursor(oCMathContent) {
+	function CorrectWordOnCursor(oCMathContent)
+	{
 		let isConvert = false;
 		let oContent = oCMathContent.Content[oCMathContent.CurPos];
 		let str = "";
@@ -2998,7 +3007,8 @@
 
 		return isConvert;
 	}
-	function CorrectAllWords (oCMathContent) {
+	function CorrectAllWords (oCMathContent)
+	{
 		let isConvert = false;
 	
 		if (oCMathContent.Type === 49) {
@@ -3051,7 +3061,8 @@
 	
 		return isConvert;
 	}
-	function IsStartAutoCorrection(nInputType, intCode) {
+	function IsStartAutoCorrection(nInputType, intCode)
+	{
 		if (nInputType === 0) // Unicode
 		{
 			return !(
@@ -3063,8 +3074,10 @@
 				intCode === 94 ||			// ^
 				intCode === 40 ||			// (
 				intCode === 41 ||			// )
-				intCode === 47				// /
-
+				intCode === 47 ||			// /
+				intCode === 46 ||			// .
+				intCode === 44 ||				// ,
+				intCode > 65533
 			)
 
 		}
@@ -3080,11 +3093,14 @@
 				intCode === 95 ||					// _
 				intCode === 94 ||					// ^
 				intCode === 91 ||					// [
-				intCode === 93 						// ]
+				intCode === 93 ||					// ]
+				intCode === 46 ||					// .
+				intCode === 44						// ,
 			)
 		}
 	}
-	function GetConvertContent(nInputType, strConversionData, Context) {
+	function GetConvertContent(nInputType, strConversionData, Context)
+	{
 		const oTempObject = new CMathContent();
 
 		nInputType === Asc.c_oAscMathInputType.Unicode
@@ -3104,7 +3120,7 @@
 			return
 		}
 
-		if (one.constructor.name !== two.constructor.name && oneText !== twoText) {
+		if (one.constructor.name !== two.constructor.name || oneText !== twoText) {
 			//если получили что-то кроме ParaRun убираем пробел после контента
 			for (let i = 0; i < oTempObject.Content.length; i++) {
 
@@ -3250,6 +3266,7 @@
 		" ", // 9/18em space
 		" ", // 1/18em space very very thin math space
 	];
+
 	//--------------------------------------------------------export----------------------------------------------------
 	window["AscMath"] = window["AscMath"] || {};
 	window["AscMath"].oNamesOfLiterals = oNamesOfLiterals;

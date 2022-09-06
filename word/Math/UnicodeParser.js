@@ -472,36 +472,42 @@
 	};
 	CUnicodeParser.prototype.GetNthrtLiteral = function () {
 		let oIndex, oContent;
+
 		this.EatToken(this.oLookahead.class);
 
-		if (this.IsOpOpenLiteral()) {
+		if (this.IsOpOpenLiteral())
 			this.GetOpOpenLiteral();
+
+		if (this.IsOperandLiteral())
+		{
+			oIndex = this.GetExpLiteral();
+
+			if (this.oLookahead.data === "&")
+			{
+				this.EatToken(this.oLookahead.class);
+				if (this.IsOperandLiteral())
+					oContent = this.GetExpLiteral();
+			}
+			else
+			{
+				oContent = oIndex;
+				oIndex = undefined;
+			}
+		}
+		else if (this.oLookahead.data === "&")
+		{
+			this.EatToken();
+			oContent = this.GetExpLiteral();
 		}
 
-		if (this.IsOperandLiteral()) {
-			oIndex = this.GetExpLiteral();
-			if (this.oLookahead.data === "&") {
-				this.EatToken(this.oLookahead.class);
-				if (this.IsOperandLiteral()) {
-					oContent = this.GetExpLiteral();
-					this.EatToken(oLiteralNames.opCloseBracket[0]);
-					return {
-						type: oLiteralNames.sqrtLiteral[num],
-						index: oIndex,
-						value: oContent,
-					};
-				}
-			}
-			else {
-				if (this.oLookahead.class === oLiteralNames.opCloseBracket[0]) {
-					this.EatToken(oLiteralNames.opCloseBracket[0]);
-				}
-				return {
-					type: oLiteralNames.sqrtLiteral[num],
-					value: oIndex,
-				};
-			}
-		}
+		if (this.oLookahead.class === oLiteralNames.opCloseBracket[0])
+			this.EatToken(oLiteralNames.opCloseBracket[0]);
+
+		return {
+			type: oLiteralNames.sqrtLiteral[num],
+			index: oIndex,
+			value: oContent,
+		};
 	};
 	CUnicodeParser.prototype.IsNthrtLiteral = function () {
 		return this.oLookahead.data === "√" && this.oLookahead.class !== oLiteralNames.operatorLiteral[0] || this.oLookahead.data === "√(";
@@ -1561,7 +1567,7 @@
 				return this.oLookahead.data === data
 			}
 		}
-	}
+	};
 	CUnicodeParser.prototype.GetContentOfLiteral = function (oContent) {
 		if (Array.isArray(oContent)) {
 			if (oContent.length === 1) {
@@ -1570,16 +1576,16 @@
 			return oContent;
 		}
 		return oContent;
-	}
+	};
 	CUnicodeParser.prototype.SkipSpace = function () {
 		while (this.oLookahead.class === oLiteralNames.spaceLiteral[0]) {
 			this.EatToken(oLiteralNames.spaceLiteral[0]);
 		}
-	}
+	};
 	CUnicodeParser.prototype.SaveTokensWhileReturn = function () {
 		this.isSaveTokens = true;
 		this.arrSavedTokens = [];
-	}
+	};
 	CUnicodeParser.prototype.WriteSavedTokens = function () {
 		let intSavedTokensLength = this.arrSavedTokens.length;
 		let strOutput = "";
@@ -1597,22 +1603,19 @@
 			type: oLiteralNames.charLiteral[num],
 			value: strOutput,
 		};
-	}
+	};
 
 	function CUnicodeConverter(str, oContext, isGetOnlyTokens) {
-		if (undefined === str || null === str) {
-			return
-		}
-		let oParser = new CUnicodeParser();
+		if (undefined === str || null === str)
+			return;
+
+		const oParser = new CUnicodeParser();
 		const oTokens = oParser.Parse(str);
 
-		if (!isGetOnlyTokens) {
+		if (!isGetOnlyTokens)
 			ConvertTokens(oTokens, oContext);
-		}
-		else {
+		else
 			return oTokens;
-		}
-		return true
 	}
 
 	//--------------------------------------------------------export----------------------------------------------------
