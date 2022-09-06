@@ -17005,6 +17005,10 @@
 						if (isSlowOperation) {
 							t.handlers.trigger("slowOperation", false);
 						}
+
+						if (filterInfo.filterRange.r2 === filterInfo.rangeWithoutDiff.r2) {
+							t.workbook.Api.onWorksheetChange({r1: filterInfo.filterRange.r1, c1: filterInfo.filterRange.c1, r2: filterInfo.filterRange.r1, c2: filterInfo.filterRange.c2});
+						}
 					};
 
 					if(isSlowOperation) {
@@ -18873,6 +18877,13 @@
 
 				History.EndTransaction();
                 t._onUpdateFormatTable(updateRange);
+				if (optionType === 5 ) {
+					var r = (val ? newTableRef.r2 : updateRange.r2);
+					t.workbook.Api.onWorksheetChange({r1: r, c1: newTableRef.c1, r2: r, c2: newTableRef.c2});
+				} else if (optionType === 4) {
+					var r = (val ? newTableRef.r1 : updateRange.r1);
+					t.workbook.Api.onWorksheetChange({r1: r, c1: newTableRef.c1, r2: r, c2: newTableRef.c2});
+				}
             };
 
             lockRange = lockRange ? lockRange : t.af_getLockRangeTableInfo(tablePart, optionType, val);
