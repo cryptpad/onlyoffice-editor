@@ -603,14 +603,19 @@ function (window, undefined) {
         }
     };
 
-    function asc_putBinaryDataToFrameFromTableOleObject(oleObject)
+    function asc_putBinaryDataToFrameFromTableOleObject(oOleObject)
     {
-        if (oleObject instanceof AscFormat.COleObject) {
-            const dataSize = oleObject.m_aBinaryData.length;
-            const data = AscCommon.Base64.encode(oleObject.m_aBinaryData);
+        if (oOleObject instanceof AscFormat.COleObject) {
+            const nDataSize = oOleObject.m_aBinaryData.length;
+            const sData = AscCommon.Base64.encode(oOleObject.m_aBinaryData);
+            const nImageWidth = oOleObject.extX * AscCommon.g_dKoef_mm_to_pix;
+            const nImageHeight = oOleObject.extY * AscCommon.g_dKoef_mm_to_pix;
+
             return {
-                "binary": "XLSY;v2;" + dataSize  + ";" + data,
-                "isFromSheetEditor": !!oleObject.worksheet,
+                "binary": "XLSY;v2;" + nDataSize  + ";" + sData,
+                "isFromSheetEditor": !!oOleObject.worksheet,
+                "imageWidth": nImageWidth,
+                "imageHeight": nImageHeight
             };
         }
         return {

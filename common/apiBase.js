@@ -658,54 +658,50 @@
 	{
 		this.editTableOleObject(oleBinary);
 	}
-	baseEditorsApi.prototype.editTableOleObject = function(oleBinary)
+	baseEditorsApi.prototype.editTableOleObject = function(oOleBinaryInfo)
 	{
-		var _this = this;
-		if (oleBinary)
+		const oThis = this;
+		if (oOleBinaryInfo)
 		{
-			if (!oleBinary['imageUrl'])
+			if (!oOleBinaryInfo['imageUrl'])
 			{
-				var base64Image = oleBinary['base64Image'];
-				var fAfterUploadOleObjectImage = function (url) {
-					oleBinary['imageUrl'] = url;
-					_this.editTableOleObject(oleBinary);
+				const sBase64Image = oOleBinaryInfo['base64Image'];
+				const fAfterUploadOleObjectImage = function (sUrl) {
+					oOleBinaryInfo['imageUrl'] = sUrl;
+					oThis.editTableOleObject(oOleBinaryInfo);
 				}
-				var obj = {
+				const oOptions = {
 					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
 				};
-				AscCommon.sendImgUrls(_this, [base64Image], function(data) {
+				AscCommon.sendImgUrls(oThis, [sBase64Image], function(data) {
 					if (data[0] && data[0].path != null && data[0].url !== "error")
 					{
-						oleBinary['imageUrl'] = data[0].url;
-						_this._addImageUrl([data[0].url], obj);
+						oOleBinaryInfo['imageUrl'] = data[0].url;
+						oThis._addImageUrl([data[0].url], oOptions);
 					}
-				}, _this.editorId === c_oEditorId.Spreadsheet);
+				}, oThis.editorId === c_oEditorId.Spreadsheet);
 				return;
 			}
 
-			var oController = this.getGraphicController();
+			const oController = this.getGraphicController();
 			if (oController)
 			{
-				var selectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
-				if (selectedObjects.oleObjects.length === 1)
+				const arrSelectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
+				if (arrSelectedObjects.oleObjects.length === 1)
 				{
-					var selectedOleObject = selectedObjects.oleObjects[0];
-					var blipUrl = oleBinary['imageUrl'];
-					var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary['binary']);
-					var sizes = AscCommon.getSourceImageSize(blipUrl);
-					var mmExtX, mmExtY, adaptSizeHeight, adaptSizeWidth;
-					if (oleBinary['isFromSheetEditor']) {
-						mmExtY = selectedOleObject.extY;
-						mmExtX = selectedOleObject.extX;
-						adaptSizeWidth = mmExtX * AscCommon.g_dKoef_mm_to_pix;
-						adaptSizeHeight = mmExtY * AscCommon.g_dKoef_mm_to_pix;
-					} else {
-						adaptSizeWidth = (sizes.width || 0);
-						adaptSizeHeight = (sizes.height || 0);
-						mmExtY = adaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
-						mmExtX = adaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
-					}
-					this.asc_editOleObjectAction(false, selectedOleObject, blipUrl, binaryDataOfSheet, mmExtX, mmExtY, adaptSizeWidth, adaptSizeHeight);
+					const oSelectedOleObject = arrSelectedObjects.oleObjects[0];
+					const sBlipUrl = oOleBinaryInfo['imageUrl'];
+					const arrBinaryDataOfSheet = AscCommon.Base64.decode(oOleBinaryInfo['binary']);
+					const oSizes = AscCommon.getSourceImageSize(sBlipUrl);
+					const nImageWidthCoefficient = oOleBinaryInfo['widthCoefficient'] || 1;
+					const nImageHeightCoefficient = oOleBinaryInfo['heightCoefficient'] || 1;
+
+					let nMMExtX, nMMExtY, nAdaptSizeHeight, nAdaptSizeWidth;
+					nAdaptSizeWidth = (oSizes.width || 0) * nImageWidthCoefficient;
+					nAdaptSizeHeight = (oSizes.height || 0) * nImageHeightCoefficient;
+					nMMExtY = nAdaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
+					nMMExtX = nAdaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
+					this.asc_editOleObjectAction(false, oSelectedOleObject, sBlipUrl, arrBinaryDataOfSheet, nMMExtX, nMMExtY, nAdaptSizeWidth, nAdaptSizeHeight);
 				}
 			}
 		}
