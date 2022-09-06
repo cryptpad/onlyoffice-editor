@@ -8335,6 +8335,9 @@ Paragraph.prototype.DrawSelectionOnPage = function(CurPage)
 			var SelectW2 = SelectW;
 
 			var oNumPr = this.GetNumPr();
+			if (!oNumPr)
+				break;
+
 			var nNumJc = this.Parent.GetNumbering().GetNum(oNumPr.NumId).GetLvl(oNumPr.Lvl).GetJc();
 
 			switch (nNumJc)

@@ -347,10 +347,30 @@ CNum.prototype.RecalculateRelatedParagraphs = function(nLvl)
 	if (nLvl < 0 || nLvl > 8)
 		nLvl = undefined;
 
-	var oLogicDocument = editor.WordControl.m_oLogicDocument;
-	//добавляю проверку - при чтении из бинарника oLogicDocument - это CPresentation(вставка de->pe)
-	var arrParagraphs  = oLogicDocument.GetAllParagraphsByNumbering ? oLogicDocument.GetAllParagraphsByNumbering({NumId : this.Id, Lvl : nLvl}) : [];
+	let logicDocument = editor.WordControl.m_oLogicDocument;
+	if (!logicDocument || !logicDocument.IsDocumentEditor())
+		return;
 
+	let styleManager = logicDocument.GetStyles();
+	if (undefined !== nLvl)
+	{
+		let lvl   = this.GetLvl(nLvl);
+		let style = styleManager.Get(lvl.GetPStyle());
+		if (style)
+			logicDocument.Add_ChangedStyle(style.GetId());
+	}
+	else
+	{
+		for (let iLvl = 0; iLvl <= 8; ++iLvl)
+		{
+			let lvl   = this.GetLvl(iLvl);
+			let style = styleManager.Get(lvl.GetPStyle());
+			if (style)
+				logicDocument.Add_ChangedStyle(style.GetId());
+		}
+	}
+
+	var arrParagraphs = logicDocument.GetAllParagraphsByNumbering({NumId : this.Id, Lvl : nLvl});
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 	{
 		arrParagraphs[nIndex].RecalcCompiledPr();
