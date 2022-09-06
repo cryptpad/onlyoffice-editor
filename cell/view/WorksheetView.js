@@ -11622,6 +11622,8 @@
 			if (null === this.startCellMoveResizeRange) {
 				return this._startMoveResizeRangeHandle(x, y, targetInfo, initialRange);
 			}
+            // очищаем выделение
+            this.overlayCtx.clear();
 
 			if (!this.getFormulaEditMode()) {
 				return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo);
