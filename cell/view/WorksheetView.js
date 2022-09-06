@@ -16503,6 +16503,9 @@
 		this.canChangeColWidth = c_oAscCanChangeColWidth.none;
 		this.draw(lockDraw);
 
+		if (isFormula) {
+			this.workbook.Api.onWorksheetChange(bbox);
+		}
 		// если вернуть false, то редактор не закроется
 		return true;
 	};
