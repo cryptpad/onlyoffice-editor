@@ -11854,8 +11854,13 @@
       return !(this.rows.length || this.cols.length);
     }
     
-    WorksheetView.prototype.isHaveOnlyOneChart = function () {
-      return this.isEmptyCellsSheet() && this.getCharts().length === 1;
+    WorksheetView.prototype.isHaveOnlyOneChart = function (bReturnChart) {
+        const arrCharts = this.getCharts();
+        const bHaveOnlyOneChart = this.isEmptyCellsSheet() && arrCharts.length === 1;
+        if (bReturnChart) {
+            return bHaveOnlyOneChart ? arrCharts[0] : null;
+        }
+      return bHaveOnlyOneChart;
     }
     
 
