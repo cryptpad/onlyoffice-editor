@@ -2709,6 +2709,9 @@
 						oOldEditor = editor;
 					}
 					editor = {WordControl: oTempDrawingDocument, isDocumentEditor: true};
+					editor.private_GetLogicDocument = function () {
+						return this.WordControl.m_oLogicDocument;
+					};
 					var oPasteProcessor = new AscCommon.PasteProcessor({WordControl: {m_oLogicDocument: newCDocument}, FontLoader: {}}, false, false);
 					oPasteProcessor._Prepeare_recursive(node, true, true);
 
