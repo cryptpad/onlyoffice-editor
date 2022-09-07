@@ -2774,6 +2774,43 @@
 	};
 
 	/**
+	 * Adds a comment to the document.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CDE"]
+	 * @param {string} Comment - The comment text.
+	 * @param {string} Autor - The author's name (not obligatory).
+	 * @returns {boolean} - returns false if params are invalid.
+	 */
+	ApiRange.prototype.AddComment = function(Comment, Autor)
+	{
+		let oDocument = private_GetLogicDocument();
+
+		if (typeof(Comment) !== "string" || Comment.trim() === "")
+			return false;
+	
+		if (typeof(Autor) !== "string")
+			Autor = "";
+		
+		var CommentData = new AscCommon.CCommentData();
+		CommentData.SetText(Comment);
+		CommentData.SetUserName(Autor);
+
+		var documentState = oDocument.SaveDocumentState();
+		this.Select();
+
+		var COMENT = oDocument.AddComment(CommentData, false);
+		if (null !== COMENT)
+		{
+			editor.sync_AddComment(COMENT.Get_Id(), CommentData);
+		}
+
+		oDocument.LoadDocumentState(documentState);
+		oDocument.UpdateSelection();
+
+		return true;
+	};
+
+	/**
 	 * Class representing a document.
 	 * @constructor
 	 * @extends {ApiDocumentContent}
@@ -17297,6 +17334,7 @@
 	ApiRange.prototype["SetTextPr"]                  = ApiRange.prototype.SetTextPr;
 	ApiRange.prototype["Delete"]                     = ApiRange.prototype.Delete;
 	ApiRange.prototype["ToJSON"]                     = ApiRange.prototype.ToJSON;
+	ApiRange.prototype["AddComment"]                 = ApiRange.prototype.AddComment;
 
 	ApiDocument.prototype["GetClassType"]                = ApiDocument.prototype.GetClassType;
 	ApiDocument.prototype["CreateNewHistoryPoint"]       = ApiDocument.prototype.CreateNewHistoryPoint;
