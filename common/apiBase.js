@@ -40,6 +40,7 @@
 	var c_oEditorId = AscCommon.c_oEditorId;
 	var c_oCloseCode = AscCommon.c_oCloseCode;
 	var DownloadType = AscCommon.DownloadType;
+	var c_oGatewayFrameGeneralInformationType = AscCommon.c_oGatewayFrameGeneralInformationType;
 
 	var c_oAscError           = Asc.c_oAscError;
 	var c_oAscAsyncAction     = Asc.c_oAscAsyncAction;
@@ -652,12 +653,48 @@
 	baseEditorsApi.prototype.asc_addTableOleObject = function(oleBinary)
 	{
 		this.addTableOleObject(oleBinary);
-	}
+	};
 
 	baseEditorsApi.prototype.asc_editTableOleObject = function(oleBinary)
 	{
 		this.editTableOleObject(oleBinary);
-	}
+	};
+
+	baseEditorsApi.prototype.sendFromFrameToGeneralEditor = function (oData)
+	{
+		//window.top[0].editor.getInformationBetweenFrameAndGeneralEditor(oData);
+		this.sendEvent("asc_sendFromFrameToGeneralEditor", oData);
+	};
+
+	baseEditorsApi.prototype.sendFromGeneralToFrameEditor = function (oData)
+	{
+		//window.frames[0].Asc.editor.getInformationBetweenFrameAndGeneralEditor(oData);
+		this.sendEvent("asc_sendFromGeneralToFrameEditor", oData);
+	};
+
+	baseEditorsApi.prototype.asc_getInformationBetweenFrameAndGeneralEditor = function (oData)
+	{
+		const type = oData.typeOfInformation;
+		delete oData.typeOfInformation;
+		switch (type)
+		{
+			case c_oGatewayFrameGeneralInformationType.GetLoadedImages:
+			{
+				this.CoAuthoringApi.onDocumentOpen(oData, true);
+				break;
+			}
+			case c_oGatewayFrameGeneralInformationType.SendImageUrls:
+			{
+				AscCommon.sendCommand(this, null, oData);
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
+	};
+
 	baseEditorsApi.prototype.editTableOleObject = function(oOleBinaryInfo)
 	{
 		const oThis = this;
@@ -1441,6 +1478,11 @@
 			}
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
+			if (t.isOpenedChartFrame) {
+				inputWrap.typeOfInformation = c_oGatewayFrameGeneralInformationType.GetLoadedImages;
+				t.sendFromGeneralToFrameEditor(inputWrap);
+				return;
+			}
 			if (AscCommon.EncryptionWorker.isNeedCrypt())
 			{
                 if (t.fCurCallback) {
@@ -3954,6 +3996,7 @@
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
 	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
+	prot['asc_getInformationBetweenFrameAndGeneralEditor'] = prot.asc_getInformationBetweenFrameAndGeneralEditor;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
 	prot['asc_addTableOleObject'] = prot.asc_addTableOleObject;
