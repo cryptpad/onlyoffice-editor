@@ -11810,8 +11810,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         }
         else if (c_oSerRunType.nonBreakHyphen === type)
         {
-            oNewElem = new AscWord.CRunText(0x002D);
-            oNewElem.Set_SpaceAfter(false);
+            oNewElem = AscWord.CreateNonBreakingHyphen();
         }
         else if (c_oSerRunType.softHyphen === type)
         {
@@ -13177,8 +13176,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         }
         else if (c_oSerRunType.nonBreakHyphen === type)
         {
-            oNewElem = new AscWord.CRunText(0x002D);
-            oNewElem.Set_SpaceAfter(false);
+            oNewElem = AscWord.CreateNonBreakingHyphen();
         }
         else if (c_oSerRunType.softHyphen === type)
         {

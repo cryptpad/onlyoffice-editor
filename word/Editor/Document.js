@@ -9449,10 +9449,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				this.DrawingDocument.TargetStart();
 				this.DrawingDocument.TargetShow();
 
-				var oItem = new AscWord.CRunText(0x002D);
-				oItem.Set_SpaceAfter(false);
-
-				this.AddToParagraph(oItem);
+				this.AddToParagraph(AscWord.CreateNonBreakingHyphen());
 				this.FinalizeAction();
 			}
 			bRetValue = keydownresult_PreventAll;
@@ -24776,8 +24773,7 @@ CDocument.prototype.AddSpecialSymbol = function(oPr)
 	{
 		if (true === oPr["NonBreakingHyphen"])
 		{
-			oItem = new AscWord.CRunText(0x002D);
-			oItem.Set_SpaceAfter(false);
+			oItem = AscWord.CreateNonBreakingHyphen();
 		}
 	}
 

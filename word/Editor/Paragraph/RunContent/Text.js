@@ -69,6 +69,13 @@
 	const FLAGS_NON_TEMPORARY_COMBINING_MARK    = FLAGS_MASK ^ FLAGS_TEMPORARY_COMBINING_MARK;
 	const FLAGS_NON_GAPS                        = FLAGS_MASK ^ FLAGS_GAPS;
 
+	function CreateNonBreakingHyphen()
+	{
+		let t = new CRunText(0x002D);
+		t.SetSpaceAfter(false);
+		return t;
+	}
+
 	/**
 	 * Класс представляющий текстовый символ
 	 * @param {Number} nCharCode - Юникодное значение символа
@@ -84,7 +91,7 @@
 		this.Flags    = 0x00000000 | 0;
 		this.Grapheme = AscFonts.NO_GRAPHEME;
 
-		this.Set_SpaceAfter(this.private_IsSpaceAfter());
+		this.SetSpaceAfter(this.private_IsSpaceAfter());
 
 		if (AscFonts.IsCheckSymbols)
 			AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
@@ -97,7 +104,7 @@
 	CRunText.prototype.SetCharCode = function(CharCode)
 	{
 		this.Value = CharCode;
-		this.Set_SpaceAfter(this.private_IsSpaceAfter());
+		this.SetSpaceAfter(this.private_IsSpaceAfter());
 
 		if (AscFonts.IsCheckSymbols)
 			AscFonts.FontPickerByCharacter.getFontBySymbol(this.Value);
@@ -378,7 +385,9 @@
 	};
 	CRunText.prototype.IsEqual = function(oElement)
 	{
-		return (oElement.Type === this.Type && this.Value === oElement.Value);
+		return (oElement.Type === this.Type
+			&& this.Value === oElement.Value
+			&& this.IsSpaceAfter() === oElement.IsSpaceAfter());
 	};
 	CRunText.prototype.IsNBSP = function()
 	{
@@ -415,7 +424,7 @@
 				return String.fromCharCode(this.Value);
 		}
 	};
-	CRunText.prototype.Set_SpaceAfter = function(bSpaceAfter)
+	CRunText.prototype.SetSpaceAfter = function(bSpaceAfter)
 	{
 		if (bSpaceAfter)
 			this.Flags |= FLAGS_SPACEAFTER;
@@ -430,13 +439,16 @@
 	{
 		// Long : Type
 		// Long : Value
+		// Bool : SpaceAfter
 
 		Writer.WriteLong(para_Text);
 		Writer.WriteLong(this.Value);
+		Writer.WriteBool(this.IsSpaceAfter());
 	};
 	CRunText.prototype.Read_FromBinary = function(Reader)
 	{
 		this.SetCharCode(Reader.GetLong());
+		this.SetSpaceAfter(Reader.GetBool());
 	};
 	CRunText.prototype.private_IsSpaceAfter = function()
 	{
@@ -645,5 +657,6 @@
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
 	window['AscWord'].CRunText = CRunText;
+	window['AscWord'].CreateNonBreakingHyphen = CreateNonBreakingHyphen;
 
 })(window);
