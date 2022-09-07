@@ -662,13 +662,13 @@
 
 	baseEditorsApi.prototype.sendFromFrameToGeneralEditor = function (oData)
 	{
-		//window.top[0].editor.getInformationBetweenFrameAndGeneralEditor(oData);
+		//window.top[0].editor.asc_getInformationBetweenFrameAndGeneralEditor(oData);
 		this.sendEvent("asc_sendFromFrameToGeneralEditor", oData);
 	};
 
 	baseEditorsApi.prototype.sendFromGeneralToFrameEditor = function (oData)
 	{
-		//window.frames[0].Asc.editor.getInformationBetweenFrameAndGeneralEditor(oData);
+		//window.frames[0].Asc.editor.asc_getInformationBetweenFrameAndGeneralEditor(oData);
 		this.sendEvent("asc_sendFromGeneralToFrameEditor", oData);
 	};
 
