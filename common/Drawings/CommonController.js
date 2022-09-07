@@ -8147,13 +8147,15 @@ DrawingObjectsController.prototype =
             }
         }
         var bGroupSelection = AscCommon.isRealObject(this.selection.groupSelection);
+        var bMotionPath = false;
         for(var i = 0; i < drawings.length; ++i)
         {
             drawing = drawings[i];
-            if(AscFormat.MoveAnimationDrawObject && drawing instanceof AscFormat.MoveAnimationDrawObject) {
-                continue;
-            }
+
             locked = undefined;
+            if(AscFormat.MoveAnimationDrawObject && drawing instanceof AscFormat.MoveAnimationDrawObject) {
+                bMotionPath = true;
+            }
             if(!drawing.group)
             {
                 locked = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine ;
@@ -8765,39 +8767,44 @@ DrawingObjectsController.prototype =
                 }
             }
         }
-        if(shape_props && shape_props.textArtProperties)
+        if(shape_props)
         {
-            var oTextArtProperties = shape_props.textArtProperties;
-            var oTextPr = this.getParagraphTextPr();
-            if(oTextPr)
+            if(shape_props.textArtProperties)
             {
-                if(oTextPr.TextFill)
+                let oTextArtProperties = shape_props.textArtProperties;
+                let oTextPr = this.getParagraphTextPr();
+                if(oTextPr)
                 {
-                    oTextArtProperties.Fill = oTextPr.TextFill;
-                }
-                else if(oTextPr.Unifill)
-                {
-                    oTextArtProperties.Fill = oTextPr.Unifill;
-                }
-                else if(oTextPr.Color)
-                {
-                    oTextArtProperties.Fill = AscFormat.CreateUnfilFromRGB(oTextPr.Color.r, oTextPr.Color.g, oTextPr.Color.b);
-                }
-                if(oTextPr.TextOutline){
-                    oTextArtProperties.Line = oTextPr.TextOutline;
-                }
-                else{
-                    oTextArtProperties.Line = AscFormat.CreateNoFillLine();
-                }
-                if(oTextArtProperties.Fill)
-                {
-                    oTextArtProperties.Fill.check(this.getTheme(), this.getColorMap());
-                }
-                if(oTextArtProperties.Line && oTextArtProperties.Line.Fill)
-                {
-                    oTextArtProperties.Line.Fill.check(this.getTheme(), this.getColorMap());
+                    if(oTextPr.TextFill)
+                    {
+                        oTextArtProperties.Fill = oTextPr.TextFill;
+                    }
+                    else if(oTextPr.Unifill)
+                    {
+                        oTextArtProperties.Fill = oTextPr.Unifill;
+                    }
+                    else if(oTextPr.Color)
+                    {
+                        oTextArtProperties.Fill = AscFormat.CreateUnfilFromRGB(oTextPr.Color.r, oTextPr.Color.g, oTextPr.Color.b);
+                    }
+                    if(oTextPr.TextOutline){
+                        oTextArtProperties.Line = oTextPr.TextOutline;
+                    }
+                    else{
+                        oTextArtProperties.Line = AscFormat.CreateNoFillLine();
+                    }
+                    if(oTextArtProperties.Fill)
+                    {
+                        oTextArtProperties.Fill.check(this.getTheme(), this.getColorMap());
+                    }
+                    if(oTextArtProperties.Line && oTextArtProperties.Line.Fill)
+                    {
+                        oTextArtProperties.Line.Fill.check(this.getTheme(), this.getColorMap());
+                    }
                 }
             }
+
+            shape_props.isMotionPath = !!bMotionPath;
         }
         return {imageProps: image_props, shapeProps: shape_props, chartProps: chart_props, tableProps: table_props, shapeChartProps: shape_chart_props, slicerProps: slicer_props, animProps: anim_props};
     },

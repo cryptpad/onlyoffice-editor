@@ -19628,6 +19628,7 @@
 				obj.signatureId = shapeProp.signatureId;
 			}
 			obj.Position = new Asc.CPosition({X: shapeProp.x, Y: shapeProp.y});
+			obj.isMotionPath = !!shapeProp.isMotionPath;
 			return obj;
 		}
 
