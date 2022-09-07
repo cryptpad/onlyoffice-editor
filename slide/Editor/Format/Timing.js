@@ -2884,9 +2884,6 @@
         return true;
     };
     CTiming.prototype.checkSelectedAnimMotionShapes = function() {
-        if(!this.isDrawAnimLabels()) {
-            return;
-        }
         let oPresentation = this.getPresentation();
         if(!oPresentation) {
             return;
@@ -2896,7 +2893,14 @@
             return;
         }
         let oController = oSlide.graphicObjects;
-        var aEffectsForDraw = this.getSelectedEffects();
+        if(!this.isDrawAnimLabels()) {
+            let aShapes = this.collectAllMoveEffectShapes();
+            for(let nSp = 0; nSp < aShapes.length; ++nSp) {
+                aShapes[nSp].deselect(oController);
+            }
+            return;
+        }
+        let aEffectsForDraw = this.getSelectedEffects();
         let aShapes = this.getMoveEffectsShapes();
         for(let nEffect = 0; nEffect < aEffectsForDraw.length; ++nEffect) {
             let oEffect = aEffectsForDraw[nEffect];
