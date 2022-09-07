@@ -2039,6 +2039,21 @@
         aMainSeq.push(oEffect);
         return this.buildTree(aSeqs);
     };
+    CTiming.prototype.addEffectsToMainSequence = function(aEffects) {
+        var aSeqs = this.getEffectsSequences();
+        var aMainSeq;
+        if(!aSeqs[0] || aSeqs[0][0] !== null) {
+            aMainSeq = [null];
+            aSeqs.splice(0, 0, aMainSeq);
+        }
+        else {
+            aMainSeq = aSeqs[0];
+        }
+        for(let nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            aMainSeq.push(aEffects[nEffect]);
+        }
+        return this.buildTree(aSeqs);
+    };
     CTiming.prototype.addToInteractiveSequence = function(oEffect, sObjectId) {
         var aSeqs = this.getEffectsSequences();
         var aMainSeq;
@@ -2056,16 +2071,12 @@
         return this.buildTree(aSeqs);
     };
     CTiming.prototype.addAnimationToSelectedObjects = function(nPresetClass, nPresetId, nPresetSubtype) {
-        var aSelectedObjects = this.parent.graphicObjects.selectedObjects;
-        var aAddedEffects = [];
-        for(var nIdx = 0; nIdx < aSelectedObjects.length; ++nIdx) {
-            var sObjectId = aSelectedObjects[nIdx].Get_Id();
-            var oEffect = this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
-            if(oEffect) {
-                aAddedEffects.push(oEffect);
-            }
+        let aSelectedObjects = this.parent.graphicObjects.selectedObjects;
+        let aObjectsIds = [];
+        for(let nObj = 0; nObj < aSelectedObjects.length; ++nObj) {
+            aObjectsIds.push(aSelectedObjects[nObj].Id);
         }
-        return aAddedEffects;
+        return this.addEffectToMainSequence(aObjectsIds, nPresetClass, nPresetId, nPresetSubtype, false);
     };
     CTiming.prototype.addAnimation = function(nPresetClass, nPresetId, nPresetSubtype, bReplace) {
         var aAddedEffects = [];
@@ -2131,19 +2142,18 @@
         }
         else {
             if(aSelectedEffects.length > 0) {
+                let aObjectsIds = [];
                 for(nIdx = 0; nIdx < aSelectedEffects.length; ++nIdx) {
                     oEffect = aSelectedEffects[nIdx];
                     sObjectId = oEffect.getObjectId();
                     if(sObjectId) {
                         if(!oDrawingsIdMap[sObjectId]) {
-                            oNewEffect = this.addEffectToMainSequence(sObjectId, nPresetClass, nPresetId, nPresetSubtype, false);
-                            if(oNewEffect) {
-                                aAddedEffects.push(oNewEffect);
-                            }
+                            aObjectsIds.push(sObjectId);
                             oDrawingsIdMap[sObjectId] = true;
                         }
                     }
                 }
+                aAddedEffects = this.addEffectToMainSequence(aObjectsIds, nPresetClass, nPresetId, nPresetSubtype, false);
             }
             else {
                 aAddedEffects = this.addAnimationToSelectedObjects(nPresetClass, nPresetId, nPresetSubtype);
@@ -2172,19 +2182,34 @@
         }
         this.buildTree(aSeqs);
     };
-    CTiming.prototype.addEffectToMainSequence = function(sObjectId, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
-     
-        if(bReplace) {
-            this.removeObjectAnimation(sObjectId);
+
+    CTiming.prototype.addEffectToMainSequence = function(aObjectsIds, nPresetClass, nPresetId, nPresetSubtype, bReplace) {
+        let aEffectsToAdd = [];
+        for(let nObj = 0; nObj < aObjectsIds.length; ++nObj) {
+            let sObjectId = aObjectsIds[nObj];
+            if(bReplace) {
+                this.removeObjectAnimation(sObjectId);
+            }
+            let oEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
+            if(!oEffect) {
+                continue;
+            }
+            let nNodeType = (nObj === 0) ? AscFormat.NODE_TYPE_CLICKEFFECT : AscFormat.NODE_TYPE_WITHEFFECT;
+            if(oEffect.cTn) {
+                oEffect.cTn.setNodeType(nNodeType);
+            }
+            aEffectsToAdd.push(oEffect);
         }
-        var oEffect = this.createEffect(sObjectId, nPresetClass, nPresetId, nPresetSubtype);
-        if(!oEffect) {
-            return null;
+        let aEffects = this.addEffectsToMainSequence(aEffectsToAdd);
+        for(let nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+            let oEffect = aEffects[nEffect];
+            if(oEffect) {
+                oEffect.select();
+            }
         }
-        oEffect = this.addToMainSequence(oEffect)[0];
-        oEffect && oEffect.select();
-        return oEffect;
+        return aEffects;
     };
+
     CTiming.prototype.createPar = function(nFill, sDelay) {
         var oPar = new CPar();
         var oCTn = CTiming.prototype.createCCTn(null, nFill, sDelay, null, null, true);
@@ -2871,14 +2896,14 @@
             return;
         }
         let oController = oSlide.graphicObjects;
-        var aEffectsForDraw = this.getEffectsForLabelsDraw();
+        var aEffectsForDraw = this.getSelectedEffects();
         let aShapes = this.getMoveEffectsShapes();
         for(let nEffect = 0; nEffect < aEffectsForDraw.length; ++nEffect) {
             let oEffect = aEffectsForDraw[nEffect];
             for(let nShape = 0; nShape < aShapes.length; ++nShape) {
                 let oShape = aShapes[nShape];
                 if(oShape.effectNode === oEffect) {
-                    oController.selectObject(oShape, oSlide.num);
+                    oController.selectObject(oShape, 0);
                     break;
                 }
             }
@@ -2905,7 +2930,6 @@
                         this.resetSelection();
                         oEffect.select();
                     }
-                    this.checkSelectedAnimMotionShapes();
                     return true;
                 }
                 else {
