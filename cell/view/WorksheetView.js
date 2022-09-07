@@ -10113,7 +10113,8 @@
     WorksheetView.prototype._endSelectionShape = function () {
         var isSelectOnShape = this.isSelectOnShape;
         if (this.isSelectOnShape) {
-            this.isSelectOnShape = false;
+            const oApi = Asc.editor || editor;
+            this.isSelectOnShape = oApi.controller.isShapeAction = false;
             var bCleanSelection = false;
             if(this.objectRender.controller && this.objectRender.controller.getChartForRangesDrawing()) {
                 bCleanSelection = true;
@@ -11622,6 +11623,8 @@
 			if (null === this.startCellMoveResizeRange) {
 				return this._startMoveResizeRangeHandle(x, y, targetInfo, initialRange);
 			}
+            // очищаем выделение
+            this.overlayCtx.clear();
 
 			if (!this.getFormulaEditMode()) {
 				return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo);
