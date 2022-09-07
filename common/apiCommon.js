@@ -3507,8 +3507,8 @@
 		asc_putPosition: function (v) {
 			this.Position = v;
 		},
-		asc_getIsMotionPath: function (v) {
-			this.isMotionPath = v;
+		asc_getIsMotionPath: function () {
+			return this.isMotionPath;
 		}
 	};
 
