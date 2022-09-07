@@ -1433,8 +1433,8 @@ background-repeat: no-repeat;\
 			_t.sendEvent("asc_onCountPages", pagesCount);
 		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.registerEvent("onZoom", function(value, type){
-			_t.WordControl.m_nZoomValue = (value * 100) >> 0;
-			_t.sendEvent("asc_onZoomChange", (value * 100) >> 0, type);
+			_t.WordControl.m_nZoomValue = ((value * 100) + 0.5) >> 0;
+			_t.sync_zoomChangeCallback(_t.WordControl.m_nZoomValue, type);
 		});
 		this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.open(gObject);
 
@@ -2717,8 +2717,13 @@ background-repeat: no-repeat;\
 			this.lastSaveTime = _curTime;
 		}
 
-		if (AscCommon.CollaborativeEditing.Is_Fast() && (!AscCommon.CollaborativeEditing.Is_SingleUser() || this.isLiveViewer())) {
+
+		if (AscCommon.CollaborativeEditing.Is_Fast() && !AscCommon.CollaborativeEditing.Is_SingleUser()) {
 			this.WordControl.m_oLogicDocument.Continue_FastCollaborativeEditing();
+		} else if (this.isLiveViewer()) {
+			if (AscCommon.CollaborativeEditing.Have_OtherChanges()) {
+				AscCommon.CollaborativeEditing.Apply_Changes();
+			}
 		} else {
 			var _bIsWaitScheme = false;
 			if (History.Points && History.Index >= 0 && History.Index < History.Points.length) {
@@ -3226,11 +3231,56 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_findText = function(oProps, isNext, callback)
 	{
 		var result = 0;
+		var CurMatchIdx = 0;
 		var isAsync = false;
+		var oViewer;
+
 		if (null != this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
-			isAsync = (true === this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.findText(oProps.GetText(), oProps.IsMatchCase(), isNext, callback)) ? true : false;
-			result = this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.SearchResults.Count;
+			oViewer = this.WordControl.m_oDrawingDocument.m_oDocumentRenderer;
+			result = oViewer.SearchResults.Count;
+
+			// если параметры поиска не изменились, то можно не искать повторно, а просто выделить следующее/предыдущее совпадение, т.к. уже все найдены
+			if (result > 0 && oViewer.PrevSearchPr && oProps.GetText() === oViewer.PrevSearchPr.GetText() && oProps.IsMatchCase() === oViewer.PrevSearchPr.IsMatchCase())
+			{
+				CurMatchIdx = isNext ? oViewer.SearchResults.CurMatchIdx + 1 : oViewer.SearchResults.CurMatchIdx - 1;
+				if (CurMatchIdx >= oViewer.SearchResults.Count)
+					CurMatchIdx = 0;
+				else if (CurMatchIdx < 0)
+					CurMatchIdx = oViewer.SearchResults.Count - 1;
+
+				oViewer.SelectSearchElement(CurMatchIdx);
+				oViewer.SearchResults.CurMatchIdx = CurMatchIdx;
+			}
+			else
+			{
+				isAsync = (true === oViewer.findText(oProps.GetText(), oProps.IsMatchCase(), isNext, this.sync_setSearchCurrent)) ? true : false;
+				result = oViewer.SearchResults.Count;
+
+				if (result > 0)
+				{
+					if (oViewer.SearchResults.CurrentPage === 0)
+						CurMatchIdx = oViewer.SearchResults.Current;
+					else
+					{
+						// чтобы узнать, под каким номером в списке текущее совпадение
+						// нужно посчитать сколько совпадений было до текущего на текущей странице
+						for (var nPage = 0; nPage <= oViewer.SearchResults.CurrentPage; nPage++)
+						{
+							for (var nMatch = 0; nMatch < oViewer.SearchResults.Pages[nPage].length; nMatch++)
+							{
+								if (nPage == oViewer.SearchResults.CurrentPage && nMatch == oViewer.SearchResults.Current)
+									break;
+								CurMatchIdx++;
+							}
+						}
+					}
+				}
+				oViewer.SearchResults.CurMatchIdx = CurMatchIdx;
+				this.sync_setSearchCurrent(CurMatchIdx, result);
+			}
+
+			oViewer.PrevSearchPr = oProps;
 		}
 		else
 		{
@@ -3323,18 +3373,26 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_StartTextAroundSearch = function()
 	{
 		let oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument || !oLogicDocument.SearchEngine)
-			return;
-
-		oLogicDocument.SearchEngine.StartTextAround();
+		if (oLogicDocument && oLogicDocument.SearchEngine)
+		{
+			oLogicDocument.SearchEngine.StartTextAround();
+		}
+		else if (this.isDocumentRenderer())
+		{
+			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.file.startTextAround();
+		}
 	};
 	asc_docs_api.prototype.asc_SelectSearchElement = function(sId)
 	{
 		let oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument || !oLogicDocument.SearchEngine)
-			return;
-
-		oLogicDocument.SelectSearchElement(sId);
+		if (oLogicDocument && oLogicDocument.SearchEngine)
+		{
+			oLogicDocument.SelectSearchElement(sId);
+		}
+		else if (this.isDocumentRenderer())
+		{
+			this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.SelectSearchElement(sId);
+		}
 	};
 	asc_docs_api.prototype.sync_startTextAroundSearch = function()
 	{
@@ -7253,6 +7311,13 @@ background-repeat: no-repeat;\
 	/*callbacks*/
 	asc_docs_api.prototype.sync_zoomChangeCallback  = function(percent, type)
 	{	//c_oAscZoomType.Current, c_oAscZoomType.FitWidth, c_oAscZoomType.FitPage
+		if (this.WordControl)
+		{
+			if (percent > this.WordControl.m_nZoomValueMax || this.WordControl.m_nZoomValueMax === -1)
+				this.WordControl.m_nZoomValueMax = percent;
+			if (percent < this.WordControl.m_nZoomValueMin || this.WordControl.m_nZoomValueMin === -1)
+				this.WordControl.m_nZoomValueMin = percent;
+		}
 		this.sendEvent("asc_onZoomChange", percent, type);
 	};
 	asc_docs_api.prototype.sync_countPagesCallback  = function(count)
@@ -8643,12 +8708,26 @@ background-repeat: no-repeat;\
 			var title = this.documentTitle;
 			this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Word, function(data) {
 				if (data) {
-					AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("docx"));
+					if (c_oAscFileType.DOCX === fileType && !window.isCloudCryptoDownloadAs) {
+						AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("docx"));
+					} else {
+						dataContainer.data = data;
+						if (window.isCloudCryptoDownloadAs)
+						{
+							var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
+							window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType, sParamXml);
+							return true;
+						}
+						t._downloadAsUsingServer(actionType, options, oAdditionalData, dataContainer, downloadType);
+						return;
+					}
+				} else {
+					t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+				}
+				if (actionType) {
+					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 				}
 			});
-			if (actionType) {
-				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-			}
 			return true;
 		} else {
 			if (options.advancedOptions instanceof Asc.asc_CTextOptions)
@@ -11522,6 +11601,22 @@ background-repeat: no-repeat;\
 		return oLogicDocument.GetFirstLetterAutoCorrectExceptions();
 	};
 
+	asc_docs_api.prototype.asc_RemoveSelection = function()
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return "";
+
+		return oLogicDocument.RemoveSelection();
+	};
+	asc_docs_api.prototype.asc_AddText = function(sText, oSettings)
+	{
+		let oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return "";
+
+		return oLogicDocument.AddTextWithPr(sText, oSettings);
+	};
 	asc_docs_api.prototype.asc_GetCurrentWord = function(nDirection)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -11548,6 +11643,9 @@ background-repeat: no-repeat;\
 			{
 				var textObj = {Text : ""};
 				this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.Copy(textObj);
+				if (textObj.Text.trim() === "")
+					return "";
+				
 				return textObj.Text;
 			}
 			return "";
@@ -12632,6 +12730,26 @@ background-repeat: no-repeat;\
 		return drawingObjects.startEditGeometry();
 	};
 
+	asc_docs_api.prototype.getImageDataFromSelection = function ()
+	{
+		let oDocument = this.private_GetLogicDocument();
+		if(!oDocument)
+		{
+			return null;
+		}
+		return oDocument.GetImageDataFromSelection();
+	};
+
+	asc_docs_api.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight)
+	{
+		let oDocument = this.private_GetLogicDocument();
+		if(!oDocument)
+		{
+			return;
+		}
+		return oDocument.PutImageToSelection(sImageSrc, nWidth, nHeight);
+	};
+
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;
@@ -13307,6 +13425,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
 	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;
 
+	asc_docs_api.prototype['asc_RemoveSelection']                       = asc_docs_api.prototype.asc_RemoveSelection;
+	asc_docs_api.prototype['asc_AddText']                               = asc_docs_api.prototype.asc_AddText;
 	asc_docs_api.prototype['asc_GetCurrentWord']                        = asc_docs_api.prototype.asc_GetCurrentWord;
 	asc_docs_api.prototype['asc_ReplaceCurrentWord']                    = asc_docs_api.prototype.asc_ReplaceCurrentWord;
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;

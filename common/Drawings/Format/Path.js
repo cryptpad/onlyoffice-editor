@@ -1123,7 +1123,7 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                 break;
             }
             case "stroke": {
-                this.setStroke(reader.GetValue());
+                this.setStroke(reader.GetValueBool());
                 break;
             }
             case "w": {
@@ -1141,7 +1141,8 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
             case "arcTo": {
                 let oCmd = new AscFormat.CBaseAttrObject();
                 oCmd.fromXml(reader);
-                this.arcTo(oCmd["wR"], oCmd["hR"], oCmd["stAng"], oCmd["swAng"]);
+                let oAttr = oCmd.attr;
+                this.arcTo(oAttr["wR"], oAttr["hR"], oAttr["stAng"], oAttr["swAng"]);
                 break;
             }
             case "close": {
@@ -1188,6 +1189,12 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                 break;
             }
         }
+    };
+    Path.prototype.fromXml = function (reader, bSkipFirstNode) {
+        this.setExtrusionOk(false);
+        this.setFill("norm");
+        this.setStroke(true);
+        AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
     };
     Path.prototype.toXml = function (writer) {
         writer.WriteXmlNodeStart("a:path");

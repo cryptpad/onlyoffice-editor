@@ -4624,11 +4624,26 @@ var GLOBAL_PATH_COUNT = 0;
             var fDiff;
             var fPrecision = 0.01;
             oCorrectedRect = new CRect(oRect.x, oRect.y, oRect.w, oRect.h);
+            let bWEdge = false;
+            let bHEge = false;
+            let oPALayout = this.chart.plotArea.layout;
+            if(oPALayout) {
+                let iN = AscFormat.isRealNumber;
+                if(oPALayout.wMode === AscFormat.LAYOUT_MODE_EDGE && iN(oPALayout.w)) {
+                    bWEdge = true;
+                }
+                if(oPALayout.hMode === AscFormat.LAYOUT_MODE_EDGE && iN(oPALayout.h)) {
+                    bHEge = true;
+                }
+            }
             if(bWithoutLabels) {
                 fDiff = fL;
                 if(fDiff < 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.x -= fDiff;
-                    oCorrectedRect.w += fDiff;
+
+                    if(bWEdge) {
+                        oCorrectedRect.w += fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = fR - this.extX;
@@ -4639,7 +4654,9 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = fT;
                 if(fDiff < 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.y -= fDiff;
-                    oCorrectedRect.h += fDiff;
+                    if(bHEge) {
+                        oCorrectedRect.h += fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = fB - this.extY;
@@ -4652,7 +4669,9 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = oBaseRect.x - fL;
                 if(/*fDiff > 0.0 && */!AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.x += fDiff;
-                    oCorrectedRect.w -= fDiff;
+                    if(bWEdge) {
+                        oCorrectedRect.w -= fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = oBaseRect.x + oBaseRect.w - fR;
@@ -4663,7 +4682,9 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = oBaseRect.y - fT;
                 if(/*fDiff > 0.0 &&*/ !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.y += fDiff;
-                    oCorrectedRect.h -= fDiff;
+                    if(bHEge) {
+                        oCorrectedRect.h -= fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = oBaseRect.y + oBaseRect.h - fB;
@@ -6924,6 +6945,8 @@ var GLOBAL_PATH_COUNT = 0;
 
                 axis.compiledLn = calcGridLine(defaultStyle.axisAndMajorGridLines, axis.spPr, subtleLine, parents);
                 axis.compiledTickMarkLn = axis.compiledLn.createDuplicate();
+                axis.compiledTickMarkLn.headEnd = null;
+                axis.compiledTickMarkLn.tailEnd = null;
                 axis.compiledTickMarkLn.calculate(parents.theme, parents.slide, parents.layout, parents.master, {
                     R: 0,
                     G: 0,

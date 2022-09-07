@@ -8954,23 +8954,23 @@
 						userIdAllProps = isLocked.UserId;
 					}
 				}
-				
-				//проверяем, не попали ли мы в чужой селект
-				if (this.collaborativeEditing.getFast()) {
-					var isForeignSelect = this.collaborativeEditing.getForeignSelectIntersection(c.col, r.row);
-					if (isForeignSelect) {
-						var foreignRow = isForeignSelect.ranges[0].r1;
-						var foreignCol = isForeignSelect.ranges[0].c2;
-						userIdForeignSelect = isForeignSelect.userId;
-						shortIdForeignSelect = isForeignSelect.shortId;
-						foreignSelectPosLeft = this._getColLeft(foreignCol) + this._getColumnWidth(foreignCol);
-						foreignSelectPosTop = this._getRowTop(foreignRow);
-						// Пересчитываем X и Y относительно видимой области
-						foreignSelectPosLeft -= offsetX;
-						foreignSelectPosTop -= offsetY;
-						foreignSelectPosLeft = this.cellsLeft > foreignSelectPosLeft ? this.cellsLeft : foreignSelectPosLeft;
-						foreignSelectPosTop = this.cellsTop > foreignSelectPosTop ? this.cellsTop : foreignSelectPosTop;
-					}
+			}
+
+			//проверяем, не попали ли мы в чужой селект
+			if (((canEdit && this.collaborativeEditing.getCollaborativeEditing()) || this.workbook.Api.isLiveViewer()) && readyMode && this.collaborativeEditing.getFast()) {
+				var isForeignSelect = this.collaborativeEditing.getForeignSelectIntersection(c.col, r.row);
+				if (isForeignSelect) {
+					var foreignRow = isForeignSelect.ranges[0].r1;
+					var foreignCol = isForeignSelect.ranges[0].c2;
+					userIdForeignSelect = isForeignSelect.userId;
+					shortIdForeignSelect = isForeignSelect.shortId;
+					foreignSelectPosLeft = this._getColLeft(foreignCol) + this._getColumnWidth(foreignCol);
+					foreignSelectPosTop = this._getRowTop(foreignRow);
+					// Пересчитываем X и Y относительно видимой области
+					foreignSelectPosLeft -= offsetX;
+					foreignSelectPosTop -= offsetY;
+					foreignSelectPosLeft = this.cellsLeft > foreignSelectPosLeft ? this.cellsLeft : foreignSelectPosLeft;
+					foreignSelectPosTop = this.cellsTop > foreignSelectPosTop ? this.cellsTop : foreignSelectPosTop;
 				}
 			}
 			
@@ -10115,7 +10115,8 @@
     WorksheetView.prototype._endSelectionShape = function () {
         var isSelectOnShape = this.isSelectOnShape;
         if (this.isSelectOnShape) {
-            this.isSelectOnShape = false;
+            const oApi = Asc.editor || editor;
+            this.isSelectOnShape = oApi.controller.isShapeAction = false;
             var bCleanSelection = false;
             if(this.objectRender.controller && this.objectRender.controller.getChartForRangesDrawing()) {
                 bCleanSelection = true;
@@ -11624,6 +11625,8 @@
 			if (null === this.startCellMoveResizeRange) {
 				return this._startMoveResizeRangeHandle(x, y, targetInfo, initialRange);
 			}
+            // очищаем выделение
+            this.overlayCtx.clear();
 
 			if (!this.getFormulaEditMode()) {
 				return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo);
@@ -11853,8 +11856,13 @@
       return !(this.rows.length || this.cols.length);
     }
     
-    WorksheetView.prototype.isHaveOnlyOneChart = function () {
-      return this.isEmptyCellsSheet() && this.getCharts().length === 1;
+    WorksheetView.prototype.isHaveOnlyOneChart = function (bReturnChart) {
+        const arrCharts = this.getCharts();
+        const bHaveOnlyOneChart = this.isEmptyCellsSheet() && arrCharts.length === 1;
+        if (bReturnChart) {
+            return bHaveOnlyOneChart ? arrCharts[0] : null;
+        }
+      return bHaveOnlyOneChart;
     }
     
 
@@ -16608,10 +16616,13 @@
 				}
 				if (dataValidation) {
 					var checkCell, setValueError;
-					checkCell =
-						t.model.getCellForValidation(row, col, val, t._isFormula(val) ? text : null, function (_res) {
-							setValueError = !_res;
-						});
+					AscFormat.ExecuteNoHistory(function () {
+						checkCell =
+							t.model.getCellForValidation(row, col, val, t._isFormula(val) ? text : null, function (_res) {
+								setValueError = !_res;
+							});
+					}, this, []);
+
 					if (setValueError) {
 						// Error sent from another function
 						return false;
@@ -20282,6 +20293,11 @@
 
 	//GROUP DATA FUNCTIONS
 	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange) {
+		if (this.workbook.getDrawRestriction("groups")) {
+			this.groupHeight = 0;
+			this.groupWidth = 0;
+			return;
+		}
 		if(bCol) {
 			if(bUpdateOnlyRowLevelMap) {
 				//this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange).levelMap;
@@ -20307,6 +20323,9 @@
 	};
 
 	WorksheetView.prototype._updateGroupsWidth = function() {
+		if (this.workbook.getDrawRestriction("groups")) {
+			return;
+		}
 		this.groupHeight = this.getGroupCommonWidth(this.getGroupCommonLevel(true), true);
 		this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
 	};
@@ -20493,6 +20512,9 @@
 	};
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, bCol /*width, height*/  ) {
+		if (this.workbook.getDrawRestriction("groups")) {
+			return;
+		}
 		var t = this;
 		if ( !range ) {
 			range = this.visibleRange;
@@ -20863,6 +20885,9 @@
 	};
 
 	WorksheetView.prototype._drawGroupDataButtons = function(drawingCtx, buttons, leftFieldInPx, topFieldInPx, bCol) {
+		if (this.workbook.getDrawRestriction("groups")) {
+			return;
+		}
 		if(!buttons) {
 			return;
 		}
@@ -21090,6 +21115,9 @@
 	};
 
 	WorksheetView.prototype._drawGroupDataMenuButton = function ( drawingCtx, level, bActive, bClean, bCol ) {
+		if (this.workbook.getDrawRestriction("groups")) {
+			return;
+		}
 		var ctx = drawingCtx || this.drawingCtx;
 		var st = this.settings.header.style[kHeaderDefault];
 
@@ -21245,6 +21273,10 @@
 		var viewMode = this.handlers.trigger('getViewMode') || window["Asc"]["editor"].isRestrictionComments();
 
 		if(this.collaborativeEditing.getGlobalLock() && !viewMode) {
+			return;
+		}
+
+		if (this.workbook.getDrawRestriction("groups")) {
 			return;
 		}
 
@@ -21426,6 +21458,10 @@
 			return;
 		}
 
+		if (this.workbook.getDrawRestriction("groups")) {
+			return;
+		}
+
 		if (!viewMode) {
 			var currentSheetId = this.model.getId();
 			var nLockAllType = this.collaborativeEditing.isLockAllOther(currentSheetId);
@@ -21475,6 +21511,10 @@
 
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock() && !viewMode) {
+			return;
+		}
+
+		if (this.workbook.getDrawRestriction("groups")) {
 			return;
 		}
 

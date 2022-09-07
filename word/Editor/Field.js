@@ -664,6 +664,25 @@ ParaField.prototype.ReplaceWithComplexField = function()
 	oComplexField.Update(false);
 	return oComplexField;
 };
+ParaField.prototype.GetRunWithPageField = function(paragraph)
+{
+	let res = null;
+	if (fieldtype_PAGENUM == this.FieldType || fieldtype_PAGECOUNT == this.FieldType) {
+		res = new ParaRun(paragraph);
+		let run = this.GetFirstRunNonEmpty();
+		let rPr = run && run.Get_FirstTextPr();
+		if (rPr) {
+			res.Set_Pr(rPr);
+		}
+		if (fieldtype_PAGENUM == this.FieldType) {
+			res.AddToContentToEnd(new AscWord.CRunPageNum());
+		} else {
+			var pageCount = parseInt(this.GetSelectedText(true));
+			res.AddToContentToEnd(new AscWord.CRunPagesCount(isNaN(pageCount) ? undefined : pageCount));
+		}
+	}
+	return res;
+}
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
 //----------------------------------------------------------------------------------------------------------------------

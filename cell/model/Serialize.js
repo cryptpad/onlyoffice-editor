@@ -1464,6 +1464,16 @@
         NA: 3
     };
 
+    var ST_TableType = {
+        queryTable: 0,
+        worksheet: 1,
+        xml: 2
+    }
+
+    var ST_PageOrder = {
+        downThenOver: 0,
+        overThenDown: 1
+    };
 
     var g_nNumsMaxId = 160;
 
@@ -7316,7 +7326,7 @@
 			else if ( c_oSerWorkbookTypes.OleSize === type )
 			{
 				var sRange = this.stream.GetString2LE(length);
-				var parsedRange = AscCommonExcel.g_oRangeCache.getAscRange(sRange);
+				var parsedRange = AscCommonExcel.g_oRangeCache.getAscRange(sRange).clone();
 				if (parsedRange) {
 					this.oWorkbook.setOleSize(new AscCommonExcel.OleSizeSelectionRange(null, parsedRange));
 				}
@@ -12282,6 +12292,9 @@
     window["AscCommonExcel"].ESortMethod = ESortMethod;
     window["AscCommonExcel"].ST_CellComments = ST_CellComments;
     window["AscCommonExcel"].ST_PrintError = ST_PrintError;
+    window["AscCommonExcel"].ST_TableType = ST_TableType;
+    window["AscCommonExcel"].ST_PageOrder = ST_PageOrder;
+    window["AscCommonExcel"].EActivePane = EActivePane;
 
     window["AscCommonExcel"].ReadWbComments = ReadWbComments;
     window["AscCommonExcel"].WriteWbComments = WriteWbComments;

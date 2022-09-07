@@ -1099,15 +1099,19 @@ CParagraphContentWithContentBase.prototype.SelectThisElement = function(nDirecti
 };
 CParagraphContentWithContentBase.prototype.SetThisElementCurrent = function()
 {
-	var ContentPos = this.Paragraph.Get_PosByElement(this);
+	let paragraph = this.GetParagraph();
+	if (!paragraph)
+		return;
+
+	var ContentPos = paragraph.Get_PosByElement(this);
 	if (!ContentPos)
 		return;
 
 	var StartPos = ContentPos.Copy();
 	this.Get_StartPos(StartPos, StartPos.GetDepth() + 1);
 
-	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
-	this.Paragraph.Document_SetThisElementCurrent(false);
+	paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
+	paragraph.Document_SetThisElementCurrent(false);
 };
 CParagraphContentWithContentBase.prototype.IsThisElementCurrent = function()
 {
@@ -4640,6 +4644,17 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFirstRun = function()
 	{
 		var oRun = this.Content[nIndex].GetFirstRun();
 		if (oRun)
+			return oRun;
+	}
+
+	return null;
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRunNonEmpty = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex].GetFirstRun();
+		if (oRun&& oRun.GetElementsCount() > 0)
 			return oRun;
 	}
 

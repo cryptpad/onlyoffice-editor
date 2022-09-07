@@ -3701,6 +3701,7 @@ StyleManager.prototype =
 	},
 	setFill : function(oItemWithXfs, val)
 	{
+		val && val.checkEmptyContent();
 		return this._setProperty(oItemWithXfs, val, "fill", CellXfs.prototype.getFill, CellXfs.prototype.setFill, g_StyleCache.addFill);
 	},
 	setBorder : function(oItemWithXfs, val)

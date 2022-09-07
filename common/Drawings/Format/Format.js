@@ -177,6 +177,8 @@
 			History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CommonChartFormat_SetParent, this.parent, oParent));
 			this.parent = oParent;
 		};
+		CBaseFormatObject.prototype.getImageFromBulletsMap = function(oImages) {};
+		CBaseFormatObject.prototype.getDocContentsWithImageBullets = function (arrContents) {};
 		CBaseFormatObject.prototype.setParentToChild = function (oChild) {
 			if (oChild && oChild.setParent) {
 				oChild.setParent(this);
@@ -689,8 +691,19 @@
 		drawingsChangesMap[AscDFH.historyitem_ThemeSetFontScheme] = function (oClass, value) {
 			oClass.themeElements.fontScheme = value;
 		};
-		drawingsChangesMap[AscDFH.historyitem_ThemeSetFmtScheme] = function (oClass, value) {
+		drawingsChangesMap[AscDFH.historyitem_ThemeSetFmtScheme] = function (oClass, value, bFromLoad) {
 			oClass.themeElements.fmtScheme = value;
+			if(bFromLoad) {
+				if(typeof AscCommon.CollaborativeEditing !== "undefined") {
+					if(value) {
+						let aImages = [];
+						value.getAllRasterImages(aImages);
+						for(let nImage = 0; nImage < aImages.length; ++nImage) {
+							AscCommon.CollaborativeEditing.Add_NewImage(aImages[nImage]);
+						}
+					}
+				}
+			}
 		};
 		drawingsChangesMap[AscDFH.historyitem_ThemeSetName] = function (oClass, value) {
 			oClass.name = value;
@@ -1117,6 +1130,25 @@
 		var SLIDE_KIND = 0;
 		var LAYOUT_KIND = 1;
 		var MASTER_KIND = 2;
+
+		var map_hightlight = {};
+		map_hightlight["black"] = 0x000000;
+		map_hightlight["blue"] = 0x0000FF;
+		map_hightlight["cyan"] = 0x00FFFF;
+		map_hightlight["darkBlue"] = 0x00008B;
+		map_hightlight["darkCyan"] = 0x008B8B;
+		map_hightlight["darkGray"] = 0x0A9A9A9;
+		map_hightlight["darkGreen"] = 0x006400;
+		map_hightlight["darkMagenta"] = 0x800080;
+		map_hightlight["darkRed"] = 0x8B0000;
+		map_hightlight["darkYellow"] = 0x808000;
+		map_hightlight["green"] = 0x00FF00;
+		map_hightlight["lightGray"] = 0xD3D3D3;
+		map_hightlight["magenta"] = 0xFF00FF;
+		map_hightlight["none"] = 0x000000;
+		map_hightlight["red"] = 0xFF0000;
+		map_hightlight["white"] = 0xFFFFFF;
+		map_hightlight["yellow"] = 0xFFFF00;
 
 		var map_prst_color = {};
 		map_prst_color["aliceBlue"] = 0xF0F8FF;
@@ -1760,18 +1792,18 @@
 		};
 		CBaseColor.prototype.readModifier = function (name, reader) {
 			if (MODS_MAP[name]) {
+				var oMod = new CColorMod();
+				oMod.name = name;
 				while (reader.MoveToNextAttribute()) {
 					if (reader.GetNameNoNS() === "val") {
-						if (!Array.isArray(this.Mods)) {
-							this.Mods = [];
-						}
-						var oMod = new CColorMod();
-						oMod.name = name;
 						oMod.val = reader.GetValueInt();
-						this.Mods.push(oMod);
-						return true;
+						break;
 					}
 				}
+				if (!Array.isArray(this.Mods)) {
+					this.Mods = [];
+				}
+				this.Mods.push(oMod);
 			}
 			return false;
 		};
@@ -1806,6 +1838,95 @@
 			}
 		};
 
+
+
+		const COLOR_3DDKSHADOW               = 21;
+		const COLOR_3DFACE                   = 15;
+		const COLOR_3DHIGHLIGHT              = 20;
+		const COLOR_3DHILIGHT                = 20;
+		const COLOR_3DLIGHT                  = 22;
+		const COLOR_3DSHADOW                 = 16;
+		const COLOR_ACTIVEBORDER             = 10;
+		const COLOR_ACTIVECAPTION            = 2;
+		const COLOR_APPWORKSPACE             = 12;
+		const COLOR_BACKGROUND               = 1;
+		const COLOR_BTNFACE                  = 15;
+		const COLOR_BTNHIGHLIGHT             = 20;
+		const COLOR_BTNHILIGHT               = 20;
+		const COLOR_BTNSHADOW                = 16;
+		const COLOR_BTNTEXT                  = 18;
+		const COLOR_CAPTIONTEXT              = 9;
+		const COLOR_DESKTOP                  = 1;
+		const COLOR_GRAYTEXT                 = 17;
+		const COLOR_HIGHLIGHT                = 13;
+		const COLOR_HIGHLIGHTTEXT            = 14;
+		const COLOR_HOTLIGHT                 = 26;
+		const COLOR_INACTIVEBORDER           = 11;
+		const COLOR_INACTIVECAPTION          = 3;
+		const COLOR_INACTIVECAPTIONTEXT      = 19;
+		const COLOR_INFOBK                   = 24;
+		const COLOR_INFOTEXT                 = 23;
+		const COLOR_MENU                     = 4;
+		const COLOR_GRADIENTACTIVECAPTION    = 27;
+		const COLOR_GRADIENTINACTIVECAPTION  = 28;
+		const COLOR_MENUHILIGHT              = 29;
+		const COLOR_MENUBAR                  = 30;
+		const COLOR_MENUTEXT                 = 7;
+		const COLOR_SCROLLBAR                = 0;
+		const COLOR_WINDOW                   = 5;
+		const COLOR_WINDOWFRAME              = 6;
+		const COLOR_WINDOWTEXT               = 8;
+
+
+		function GetSysColor(nIndex)
+		{
+			// get color values from any windows theme
+			// http://msdn.microsoft.com/en-us/library/windows/desktop/ms724371(v=vs.85).aspx
+			//***************** GetSysColor values begin (Win7 x64) *****************
+			let nValue = 0x0;
+			//***************** GetSysColor values begin (Win7 x64) *****************
+			switch (nIndex) {
+				case COLOR_3DDKSHADOW: nValue = 0x696969; break;
+				case COLOR_3DFACE: nValue = 0xf0f0f0; break;
+				case COLOR_3DHIGHLIGHT: nValue = 0xffffff; break;
+				// case COLOR_3DHILIGHT: nValue = 0xffffff; break; // is COLOR_3DHIGHLIGHT
+				case COLOR_3DLIGHT: nValue = 0xe3e3e3; break;
+				case COLOR_3DSHADOW: nValue = 0xa0a0a0; break;
+				case COLOR_ACTIVEBORDER: nValue = 0xb4b4b4; break;
+				case COLOR_ACTIVECAPTION: nValue = 0xd1b499; break;
+				case COLOR_APPWORKSPACE: nValue = 0xababab; break;
+				case COLOR_BACKGROUND: nValue = 0x0; break;
+				// case COLOR_BTNFACE: nValue = 0xf0f0f0; break; // is COLOR_3DFACE
+				// case COLOR_BTNHIGHLIGHT: nValue = 0xffffff; break; // is COLOR_3DHIGHLIGHT
+				// case COLOR_BTNHILIGHT: nValue = 0xffffff; break; // is COLOR_3DHIGHLIGHT
+				// case COLOR_BTNSHADOW: nValue = 0xa0a0a0; break; // is COLOR_3DSHADOW
+				case COLOR_BTNTEXT: nValue = 0x0; break;
+				case COLOR_CAPTIONTEXT: nValue = 0x0; break;
+				// case COLOR_DESKTOP: nValue = 0x0; break; // is COLOR_BACKGROUND
+				case COLOR_GRADIENTACTIVECAPTION: nValue = 0xead1b9; break;
+				case COLOR_GRADIENTINACTIVECAPTION: nValue = 0xf2e4d7; break;
+				case COLOR_GRAYTEXT: nValue = 0x6d6d6d; break;
+				case COLOR_HIGHLIGHT: nValue = 0xff9933; break;
+				case COLOR_HIGHLIGHTTEXT: nValue = 0xffffff; break;
+				case COLOR_HOTLIGHT: nValue = 0xcc6600; break;
+				case COLOR_INACTIVEBORDER: nValue = 0xfcf7f4; break;
+				case COLOR_INACTIVECAPTION: nValue = 0xdbcdbf; break;
+				case COLOR_INACTIVECAPTIONTEXT: nValue = 0x544e43; break;
+				case COLOR_INFOBK: nValue = 0xe1ffff; break;
+				case COLOR_INFOTEXT: nValue = 0x0; break;
+				case COLOR_MENU: nValue = 0xf0f0f0; break;
+				case COLOR_MENUHILIGHT: nValue = 0xff9933; break;
+				case COLOR_MENUBAR: nValue = 0xf0f0f0; break;
+				case COLOR_MENUTEXT: nValue = 0x0; break;
+				case COLOR_SCROLLBAR: nValue = 0xc8c8c8; break;
+				case COLOR_WINDOW: nValue = 0xffffff; break;
+				case COLOR_WINDOWFRAME: nValue = 0x646464; break;
+				case COLOR_WINDOWTEXT: nValue = 0x0; break;
+				default: nValue = 0x0; break;
+			} // switch (nIndex)
+			//***************** GetSysColor values end *****************
+			return nValue;
+		}
 
 		function CSysColor() {
 			CBaseColor.call(this);
@@ -1849,11 +1970,165 @@
 			duplicate.RGBA.A = this.RGBA.A;
 			return duplicate;
 		};
+		CSysColor.prototype.FillRGBFromVal = function(str) {
+			let RGB = 0;
+			if (str && str !== "") {
+				switch (str.charAt(0)) {
+					case '3':
+						if (str === ("3dDkShadow")) {
+							RGB = GetSysColor(COLOR_3DDKSHADOW);
+							break;
+						}
+						if (str === ("3dLight")) {
+							RGB = GetSysColor(COLOR_3DLIGHT);
+							break;
+						}
+						break;
+					case 'a':
+						if (str === ("activeBorder")) {
+							RGB = GetSysColor(COLOR_ACTIVEBORDER);
+							break;
+						}
+						if (str === ("activeCaption")) {
+							RGB = GetSysColor(COLOR_ACTIVECAPTION);
+							break;
+						}
+						if (str === ("appWorkspace")) {
+							RGB = GetSysColor(COLOR_APPWORKSPACE);
+							break;
+						}
+						break;
+					case 'b':
+						if (str === ("background")) {
+							RGB = GetSysColor(COLOR_BACKGROUND);
+							break;
+						}
+						if (str === ("btnFace")) {
+							RGB = GetSysColor(COLOR_BTNFACE);
+							break;
+						}
+						if (str === ("btnHighlight")) {
+							RGB = GetSysColor(COLOR_BTNHIGHLIGHT);
+							break;
+						}
+						if (str === ("btnShadow")) {
+							RGB = GetSysColor(COLOR_BTNSHADOW);
+							break;
+						}
+						if (str === ("btnText")) {
+							RGB = GetSysColor(COLOR_BTNTEXT);
+							break;
+						}
+						break;
+					case 'c':
+						if (str === ("captionText")) {
+							RGB = GetSysColor(COLOR_CAPTIONTEXT);
+							break;
+						}
+						break;
+					case 'g':
+						if (str === ("gradientActiveCaption")) {
+							RGB = GetSysColor(COLOR_GRADIENTACTIVECAPTION);
+							break;
+						}
+						if (str === ("gradientInactiveCaption")) {
+							RGB = GetSysColor(COLOR_GRADIENTINACTIVECAPTION);
+							break;
+						}
+						if (str === ("grayText")) {
+							RGB = GetSysColor(COLOR_GRAYTEXT);
+							break;
+						}
+						break;
+					case 'h':
+						if (str === ("highlight")) {
+							RGB = GetSysColor(COLOR_HIGHLIGHT);
+							break;
+						}
+						if (str === ("highlightText")) {
+							RGB = GetSysColor(COLOR_HIGHLIGHTTEXT);
+							break;
+						}
+						if (str === ("hotLight")) {
+							RGB = GetSysColor(COLOR_HOTLIGHT);
+							break;
+						}
+						break;
+					case 'i':
+						if (str === ("inactiveBorder")) {
+							RGB = GetSysColor(COLOR_INACTIVEBORDER);
+							break;
+						}
+						if (str === ("inactiveCaption")) {
+							RGB = GetSysColor(COLOR_INACTIVECAPTION);
+							break;
+						}
+						if (str === ("inactiveCaptionText")) {
+							RGB = GetSysColor(COLOR_INACTIVECAPTIONTEXT);
+							break;
+						}
+						if (str === ("infoBk")) {
+							RGB = GetSysColor(COLOR_INFOBK);
+							break;
+						}
+						if (str === ("infoText")) {
+							RGB = GetSysColor(COLOR_INFOTEXT);
+							break;
+						}
+						break;
+					case 'm':
+						if (str === ("menu")) {
+							RGB = GetSysColor(COLOR_MENU);
+							break;
+						}
+						if (str === ("menuBar")) {
+							RGB = GetSysColor(COLOR_MENUBAR);
+							break;
+						}
+						if (str === ("menuHighlight")) {
+							RGB = GetSysColor(COLOR_MENUHILIGHT);
+							break;
+						}
+						if (str === ("menuText")) {
+							RGB = GetSysColor(COLOR_MENUTEXT);
+							break;
+						}
+						break;
+					case 's':
+						if (str === ("scrollBar")) {
+							RGB = GetSysColor(COLOR_SCROLLBAR);
+							break;
+						}
+						break;
+					case 'w':
+						if (str === ("window")) {
+							RGB = GetSysColor(COLOR_WINDOW);
+							break;
+						}
+						if (str === ("windowFrame")) {
+							RGB = GetSysColor(COLOR_WINDOWFRAME);
+							break;
+						}
+						if (str === ("windowText")) {
+							RGB = GetSysColor(COLOR_WINDOWTEXT);
+							break;
+						}
+						break;
+				}
+			}
+
+
+			this.RGBA.R = (RGB >> 16) & 0xFF;
+			this.RGBA.G = (RGB >> 8) & 0xFF;
+			this.RGBA.B = RGB & 0xFF;
+		}
 		CSysColor.prototype.readAttrXml = function (name, reader) {
 			if (name === "val") {
 				this.id = reader.GetValue();
-			} else if (name === "lastClr") {
-				this.RGBA = AscCommon.RgbaHexToRGBA(reader.GetValue());
+				this.FillRGBFromVal(this.id);
+			}
+			else if (name === "lastClr") {
+			// 	this.RGBA = AscCommon.RgbaHexToRGBA(reader.GetValue());
 			}
 		};
 		CSysColor.prototype.readChildXml = function (name, reader) {
@@ -2117,7 +2392,20 @@
 				writer.WriteXmlAttributesEnd(true);
 			}
 		};
-
+		CRGBColor.prototype.fromScRgb = function() {
+			this.RGBA.R = 255 * this.scRGB_to_sRGB(this.RGBA.R);
+			this.RGBA.G = 255 * this.scRGB_to_sRGB(this.RGBA.G);
+			this.RGBA.B = 255 * this.scRGB_to_sRGB(this.RGBA.B);
+		};
+		CRGBColor.prototype.scRGB_to_sRGB = function(value) {
+			if( value < 0)
+				return 0;
+			if(value <= 0.0031308)
+				return value * 12.92;
+			if(value < 1)
+				return 1.055 * (Math.pow(value , (1 / 2.4))) - 0.055;
+			return 1;
+		};
 		function CSchemeColor() {
 			CBaseColor.call(this);
 			this.id = 0;
@@ -2697,6 +2985,9 @@
 			}
 			if (this.color) {
 				this.color.fromXml(reader);
+				if(name === "scrgbClr") {
+					this.color.fromScRgb();
+				}
 				if (Array.isArray(this.color.Mods)) {
 					this.Mods = new CColorModifiers();
 					this.Mods.Mods = this.color.Mods;
@@ -2811,9 +3102,8 @@
 			_ret.b = this.b;
 			return _ret;
 		};
-		CSrcRect.prototype.fromXml = function (reader, bSkipFirstNode) {
+		CSrcRect.prototype.fromXml = function (reader, bSkipFirstNode, bIsMain) {
 			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
-			let bIsMain = true;//todo: check in serialize.js
 			let _ret = this;
 			if (_ret.l == null)
 				_ret.l = 0;
@@ -2882,6 +3172,14 @@
 				writer.WriteXmlAttributeUInt("b", getPercentageValueForWrite(100 - this.b));
 			}
 			writer.WriteXmlAttributesEnd(true);
+		};
+		CSrcRect.prototype.isFullRect = function() {
+			let r = this;
+			let fAE = AscFormat.fApproxEqual;
+			if(fAE(r.l, 0) && fAE(r.t, 0) && fAE(r.r, 100) && fAE(r.b, 100)) {
+				return true;
+			}
+			return false;
 		};
 
 		function CBlipFillTile() {
@@ -3444,9 +3742,6 @@
 			if (typeof sRasterImageId !== "string" || sRasterImageId.length === 0) {
 				return null;
 			}
-			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.indexOf("base64") > 0) {
-				return sRasterImageId;
-			}
 			var oApi = Asc.editor || editor;
 			var sDefaultResult = sRasterImageId;
 			if(bReturnOrigIfCantDraw === false) {
@@ -3462,6 +3757,10 @@
 			var oImage = oImageLoader.map_image_index[AscCommon.getFullImageSrc2(sRasterImageId)];
 			if (!oImage || !oImage.Image || oImage.Status !== AscFonts.ImageLoadStatus.Complete) {
 				return {img: sDefaultResult, w: null, h: null};
+			}
+
+			if (sRasterImageId.indexOf("data:") === 0 && sRasterImageId.indexOf("base64") > 0) {
+				return {img: sRasterImageId, w: oImage.Image.width, h: oImage.Image.height};
 			}
 			var sResult = sDefaultResult;
 			if (!window["NATIVE_EDITOR_ENJINE"]) {
@@ -3502,6 +3801,12 @@
 				//todo
 			}
 		};
+		CBlipFill.prototype.fromXml = function (reader, bSkipFirstNode) {
+			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+			if(this.srcRect && this.srcRect.isFullRect()) {
+				this.srcRect = null;
+			}
+		}
 		CBlipFill.prototype.readChildXml = function (name, reader) {
 			switch (name) {
 				case "blip": {
@@ -3510,12 +3815,25 @@
 					break;
 				}
 				case "srcRect": {
+
 					this.srcRect = new CSrcRect();
-					this.srcRect.fromXml(reader);
+					this.srcRect.fromXml(reader, false, true);
 					break;
 				}
 				case "stretch": {
 					this.stretch = true;
+					let oThis = this;
+					let oPr = new CT_XmlNode(function (reader, name) {
+						if (name === "fillRect") {
+							let oSrcRect = new CSrcRect();
+							oSrcRect.fromXml(reader, false, false);
+							if(!oSrcRect.isFullRect()) {
+								oThis.srcRect = oSrcRect;
+							}
+						}
+						return true;
+					});
+					oPr.fromXml(reader);
 					break;
 				}
 				case "tile": {
@@ -5928,6 +6246,10 @@
 				}
 			}
 		};
+		CGradFill.prototype.fromXml = function (reader, bSkipFirstNode) {
+			CBaseNoIdObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+			this.colors.sort(function(a,b){return a.pos- b.pos;});
+		}
 		CGradFill.prototype.toXml = function (writer, sNamespace) {
 			let sAttrNamespace = "";
 			let strName = "";
@@ -6108,166 +6430,166 @@
 					let sVal = reader.GetValue();
 					switch (sVal) {
 						case "cross":
-							this.type = AscCommon.global_hatch_offsets.cross;
+							this.ftype = AscCommon.global_hatch_offsets.cross;
 							break;
 						case "dashDnDiag":
-							this.type = AscCommon.global_hatch_offsets.dashDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dashDnDiag;
 							break;
 						case "dashHorz":
-							this.type = AscCommon.global_hatch_offsets.dashHorz;
+							this.ftype = AscCommon.global_hatch_offsets.dashHorz;
 							break;
 						case "dashUpDiag":
-							this.type = AscCommon.global_hatch_offsets.dashUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dashUpDiag;
 							break;
 						case "dashVert":
-							this.type = AscCommon.global_hatch_offsets.dashVert;
+							this.ftype = AscCommon.global_hatch_offsets.dashVert;
 							break;
 						case "diagBrick":
-							this.type = AscCommon.global_hatch_offsets.diagBrick;
+							this.ftype = AscCommon.global_hatch_offsets.diagBrick;
 							break;
 						case "diagCross":
-							this.type = AscCommon.global_hatch_offsets.diagCross;
+							this.ftype = AscCommon.global_hatch_offsets.diagCross;
 							break;
 						case "divot":
-							this.type = AscCommon.global_hatch_offsets.divot;
+							this.ftype = AscCommon.global_hatch_offsets.divot;
 							break;
 						case "dkDnDiag":
-							this.type = AscCommon.global_hatch_offsets.dkDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dkDnDiag;
 							break;
 						case "dkHorz":
-							this.type = AscCommon.global_hatch_offsets.dkHorz;
+							this.ftype = AscCommon.global_hatch_offsets.dkHorz;
 							break;
 						case "dkUpDiag":
-							this.type = AscCommon.global_hatch_offsets.dkUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dkUpDiag;
 							break;
 						case "dkVert":
-							this.type = AscCommon.global_hatch_offsets.dkVert;
+							this.ftype = AscCommon.global_hatch_offsets.dkVert;
 							break;
 						case "dnDiag":
-							this.type = AscCommon.global_hatch_offsets.dnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.dnDiag;
 							break;
 						case "dotDmnd":
-							this.type = AscCommon.global_hatch_offsets.dotDmnd;
+							this.ftype = AscCommon.global_hatch_offsets.dotDmnd;
 							break;
 						case "dotGrid":
-							this.type = AscCommon.global_hatch_offsets.dotGrid;
+							this.ftype = AscCommon.global_hatch_offsets.dotGrid;
 							break;
 						case "horz":
-							this.type = AscCommon.global_hatch_offsets.horz;
+							this.ftype = AscCommon.global_hatch_offsets.horz;
 							break;
 						case "horzBrick":
-							this.type = AscCommon.global_hatch_offsets.horzBrick;
+							this.ftype = AscCommon.global_hatch_offsets.horzBrick;
 							break;
 						case "lgCheck":
-							this.type = AscCommon.global_hatch_offsets.lgCheck;
+							this.ftype = AscCommon.global_hatch_offsets.lgCheck;
 							break;
 						case "lgConfetti":
-							this.type = AscCommon.global_hatch_offsets.lgConfetti;
+							this.ftype = AscCommon.global_hatch_offsets.lgConfetti;
 							break;
 						case "lgGrid":
-							this.type = AscCommon.global_hatch_offsets.lgGrid;
+							this.ftype = AscCommon.global_hatch_offsets.lgGrid;
 							break;
 						case "ltDnDiag":
-							this.type = AscCommon.global_hatch_offsets.ltDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.ltDnDiag;
 							break;
 						case "ltHorz":
-							this.type = AscCommon.global_hatch_offsets.ltHorz;
+							this.ftype = AscCommon.global_hatch_offsets.ltHorz;
 							break;
 						case "ltUpDiag":
-							this.type = AscCommon.global_hatch_offsets.ltUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.ltUpDiag;
 							break;
 						case "ltVert":
-							this.type = AscCommon.global_hatch_offsets.ltVert;
+							this.ftype = AscCommon.global_hatch_offsets.ltVert;
 							break;
 						case "narHorz":
-							this.type = AscCommon.global_hatch_offsets.narHorz;
+							this.ftype = AscCommon.global_hatch_offsets.narHorz;
 							break;
 						case "narVert":
-							this.type = AscCommon.global_hatch_offsets.narVert;
+							this.ftype = AscCommon.global_hatch_offsets.narVert;
 							break;
 						case "openDmnd":
-							this.type = AscCommon.global_hatch_offsets.openDmnd;
+							this.ftype = AscCommon.global_hatch_offsets.openDmnd;
 							break;
 						case "pct10":
-							this.type = AscCommon.global_hatch_offsets.pct10;
+							this.ftype = AscCommon.global_hatch_offsets.pct10;
 							break;
 						case "pct20":
-							this.type = AscCommon.global_hatch_offsets.pct20;
+							this.ftype = AscCommon.global_hatch_offsets.pct20;
 							break;
 						case "pct25":
-							this.type = AscCommon.global_hatch_offsets.pct25;
+							this.ftype = AscCommon.global_hatch_offsets.pct25;
 							break;
 						case "pct30":
-							this.type = AscCommon.global_hatch_offsets.pct30;
+							this.ftype = AscCommon.global_hatch_offsets.pct30;
 							break;
 						case "pct40":
-							this.type = AscCommon.global_hatch_offsets.pct40;
+							this.ftype = AscCommon.global_hatch_offsets.pct40;
 							break;
 						case "pct5":
-							this.type = AscCommon.global_hatch_offsets.pct5;
+							this.ftype = AscCommon.global_hatch_offsets.pct5;
 							break;
 						case "pct50":
-							this.type = AscCommon.global_hatch_offsets.pct50;
+							this.ftype = AscCommon.global_hatch_offsets.pct50;
 							break;
 						case "pct60":
-							this.type = AscCommon.global_hatch_offsets.pct60;
+							this.ftype = AscCommon.global_hatch_offsets.pct60;
 							break;
 						case "pct70":
-							this.type = AscCommon.global_hatch_offsets.pct70;
+							this.ftype = AscCommon.global_hatch_offsets.pct70;
 							break;
 						case "pct75":
-							this.type = AscCommon.global_hatch_offsets.pct75;
+							this.ftype = AscCommon.global_hatch_offsets.pct75;
 							break;
 						case "pct80":
-							this.type = AscCommon.global_hatch_offsets.pct80;
+							this.ftype = AscCommon.global_hatch_offsets.pct80;
 							break;
 						case "pct90":
-							this.type = AscCommon.global_hatch_offsets.pct90;
+							this.ftype = AscCommon.global_hatch_offsets.pct90;
 							break;
 						case "plaid":
-							this.type = AscCommon.global_hatch_offsets.plaid;
+							this.ftype = AscCommon.global_hatch_offsets.plaid;
 							break;
 						case "shingle":
-							this.type = AscCommon.global_hatch_offsets.shingle;
+							this.ftype = AscCommon.global_hatch_offsets.shingle;
 							break;
 						case "smCheck":
-							this.type = AscCommon.global_hatch_offsets.smCheck;
+							this.ftype = AscCommon.global_hatch_offsets.smCheck;
 							break;
 						case "smConfetti":
-							this.type = AscCommon.global_hatch_offsets.smConfetti;
+							this.ftype = AscCommon.global_hatch_offsets.smConfetti;
 							break;
 						case "smGrid":
-							this.type = AscCommon.global_hatch_offsets.smGrid;
+							this.ftype = AscCommon.global_hatch_offsets.smGrid;
 							break;
 						case "solidDmnd":
-							this.type = AscCommon.global_hatch_offsets.solidDmnd;
+							this.ftype = AscCommon.global_hatch_offsets.solidDmnd;
 							break;
 						case "sphere":
-							this.type = AscCommon.global_hatch_offsets.sphere;
+							this.ftype = AscCommon.global_hatch_offsets.sphere;
 							break;
 						case "trellis":
-							this.type = AscCommon.global_hatch_offsets.trellis;
+							this.ftype = AscCommon.global_hatch_offsets.trellis;
 							break;
 						case "upDiag":
-							this.type = AscCommon.global_hatch_offsets.upDiag;
+							this.ftype = AscCommon.global_hatch_offsets.upDiag;
 							break;
 						case "vert":
-							this.type = AscCommon.global_hatch_offsets.vert;
+							this.ftype = AscCommon.global_hatch_offsets.vert;
 							break;
 						case "wave":
-							this.type = AscCommon.global_hatch_offsets.wave;
+							this.ftype = AscCommon.global_hatch_offsets.wave;
 							break;
 						case "wdDnDiag":
-							this.type = AscCommon.global_hatch_offsets.wdDnDiag;
+							this.ftype = AscCommon.global_hatch_offsets.wdDnDiag;
 							break;
 						case "wdUpDiag":
-							this.type = AscCommon.global_hatch_offsets.wdUpDiag;
+							this.ftype = AscCommon.global_hatch_offsets.wdUpDiag;
 							break;
 						case "weave":
-							this.type = AscCommon.global_hatch_offsets.weave;
+							this.ftype = AscCommon.global_hatch_offsets.weave;
 							break;
 						case "zigZag":
-							this.type = AscCommon.global_hatch_offsets.zigZag;
+							this.ftype = AscCommon.global_hatch_offsets.zigZag;
 							break;
 					}
 					break;
@@ -6806,6 +7128,9 @@
 
 			if (this.fill) {
 				this.fill.fromXml(reader);
+				if(this.checkTransparent) {
+					this.checkTransparent();
+				}
 			}
 		};
 		CUniFill.prototype.FILL_NAMES = {
@@ -6836,6 +7161,53 @@
 		CUniFill.prototype.isBlipFill = function() {
 			if(this.fill && this.fill.type === c_oAscFill.FILL_TYPE_BLIP) {
 				return true;
+			}
+		};
+		CUniFill.prototype.checkTransparent = function() {
+			let oFill = this.fill;
+			if(oFill) {
+				switch (oFill.type) {
+					case c_oAscFill.FILL_TYPE_BLIP: {
+						let aEffects = oFill.Effects;
+						for(let nEffect = 0; nEffect < aEffects.length; ++nEffect) {
+							let oEffect = aEffects[nEffect];
+							if(oEffect instanceof AscFormat.CAlphaModFix && AscFormat.isRealNumber(oEffect.amt)) {
+								this.setTransparent(255 * oEffect.amt / 100000);
+							}
+						}
+						break;
+					}
+					case c_oAscFill.FILL_TYPE_SOLID: {
+						let oColor = oFill.color;
+						if(oColor) {
+							let fAlphaVal = oColor.getModValue("alpha");
+							if(fAlphaVal !== null) {
+								this.setTransparent(255 * fAlphaVal / 100000);
+								let aMods = oColor.Mods && oColor.Mods.Mods;
+								if(Array.isArray(aMods)) {
+									for(let nMod = aMods.length -1; nMod > -1; nMod--) {
+										let oMod = aMods[nMod];
+										if(oMod && oMod.name === "alpha") {
+											aMods.splice(nMod);
+										}
+									}
+								}
+							}
+						}
+						break;
+					}
+					case c_oAscFill.FILL_TYPE_PATT: {
+						if(oFill.fgClr && oFill.bgClr) {
+							let fAlphaVal = oFill.fgClr.getModValue("alpha");
+							if(fAlphaVal !== null) {
+								if(fAlphaVal === oFill.bgClr.getModValue("alpha")) {
+									this.setTransparent(255 * fAlphaVal / 100000)
+								}
+							}
+						}
+						break;
+					}
+				}
 			}
 		};
 
@@ -8037,9 +8409,16 @@
 
 			let nDashCode = this.GetDashByCode(this.prstDash);
 			if(nDashCode !== null) {
-				writer.WriteXmlNodeStart("a:prstDash");
-				writer.WriteXmlNullableAttributeString("val", this.GetDashByCode(this.prstDash));
-				writer.WriteXmlAttributesEnd(true);
+				if (AscFormat.XMLWRITER_DOC_TYPE_WORDART === writer.context.docType) {
+					writer.WriteXmlNodeStart("w14:prstDash");
+					writer.WriteXmlNullableAttributeString("w14:val", this.GetDashByCode(this.prstDash));
+					writer.WriteXmlAttributesEnd(true);
+				}
+				else {
+					writer.WriteXmlNodeStart("a:prstDash");
+					writer.WriteXmlNullableAttributeString("val", this.GetDashByCode(this.prstDash));
+					writer.WriteXmlAttributesEnd(true);
+				}
 			}
 			if (this.Join) {
 				this.Join.toXml(writer);
@@ -8184,6 +8563,8 @@
 			this.hlinkClick = null;
 			this.hlinkHover = null;
 
+			this.form = null;
+
 			this.setId(AscCommon.CreateDurableId());
 		}
 
@@ -8256,6 +8637,7 @@
 			writer.WriteXmlNullableAttributeStringEncode("name", this.name);
 			writer.WriteXmlNullableAttributeStringEncode("descr", this.descr);
 			writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
+			this.form && writer.WriteXmlNullableAttributeBool("form", this.form);
 			writer.WriteXmlNullableAttributeStringEncode("title", this.title);
 			//writer.WriteXmlNullableAttributeBool("title", this.form);
 			if(this.hlinkClick || this.hlinkHover) {
@@ -8294,8 +8676,7 @@
 					break;
 				}
 				case "form": {
-					//todo
-					// ParaDrawing.SetForm(reader.GetValueBool());
+					this.form = reader.GetValueBool();
 					break;
 				}
 			}
@@ -8360,6 +8741,7 @@
 				writer.WriteXmlNullableAttributeString("descr", d);
 			}
 			writer.WriteXmlNullableAttributeBool("hidden", this.isHidden);
+			this.form && writer.WriteXmlNullableAttributeBool("form", this.form);
 			if (this.title) writer.WriteXmlNullableAttributeStringEncode("title", this.title);
 
 
@@ -10676,7 +11058,7 @@
 				this.setLn(oLn);
 			} else if (name === "effectDag" || name === "effectLst") {
 				let oEffectProps = new CEffectProperties();
-				oEffectProps.fromXml(reader);
+				oEffectProps.fromXml(reader, name);
 				this.setEffectPr(oEffectProps);
 			}
 		};
@@ -11459,10 +11841,12 @@
 		FontScheme.prototype.Write_ToBinary = function (w) {
 			this.majorFont.Write_ToBinary(w);
 			this.minorFont.Write_ToBinary(w);
+			writeString(w, this.name);
 		};
 		FontScheme.prototype.Read_FromBinary = function (r) {
 			this.majorFont.Read_FromBinary(r);
 			this.minorFont.Read_FromBinary(r);
+			this.name = readString(r);
 		};
 		FontScheme.prototype.checkFromFontCollection = function (font, fontCollection, region) {
 			if (fontCollection === this.majorFont) {
@@ -11654,6 +12038,8 @@
 		FmtScheme.prototype.addBgFillToStyleLst = function (pr) {
 			this.bgFillStyleLst.push(pr);
 		};
+		FmtScheme.prototype.getImageFromBulletsMap = function(oImages) {};
+		FmtScheme.prototype.getDocContentsWithImageBullets = function (arrContents) {};
 		FmtScheme.prototype.getAllRasterImages = function(aImages) {
 			for(let nIdx = 0; nIdx < this.fillStyleLst.length; ++nIdx) {
 				let oUnifill = this.fillStyleLst[nIdx];
@@ -12048,6 +12434,8 @@
 				this.themeElements.fmtScheme.getAllRasterImages(aImages);
 			}
 		};
+		CTheme.prototype.getImageFromBulletsMap = function(oImages) {};
+		CTheme.prototype.getDocContentsWithImageBullets = function (arrContents) {};
 		CTheme.prototype.Reassign_ImageUrls = function(images_rename) {
 			if(this.themeElements && this.themeElements.fmtScheme) {
 				let aImages = [];
@@ -12622,11 +13010,13 @@
 		CSpTree.prototype.readChildXml = function (name, reader) {
 			let oSp = CSpTree.prototype.readSpTreeElement.call(this, name, reader);
 			if (oSp) {
-				oSp.setBDeleted(false);
-				if(this.slideObject) {
-					oSp.setParent(this.slideObject);
+				if(!AscCommon.IsHiddenObj(oSp)) {
+					oSp.setBDeleted(false);
+					if(this.slideObject) {
+						oSp.setParent(this.slideObject);
+					}
+					this.spTree.push(oSp);
 				}
-				this.spTree.push(oSp);
 			}
 			return oSp;
 		};
@@ -12636,7 +13026,7 @@
 			let nDocType = writer.context.docType;
 			if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
 				nDocType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-				if (writer.context.groupIndex === 0) name_ = "wpg:wgp";
+				if (writer.context.groupIndex === 1) name_ = "wpg:wgp";
 				else name_ = "wpg:grpSp";
 			} else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_XLSX) name_ = "xdr:grpSp";
 			else if (nDocType === AscFormat.XMLWRITER_DOC_TYPE_CHART_DRAWING) name_ = "cdr:grpSp";
@@ -12650,18 +13040,25 @@
 
 			writer.WriteXmlAttributesEnd();
 
-			if (this.nvGrpSpPr) {
-				if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
-					writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
-					if (this.nvGrpSpPr.cNvGrpSpPr) {
-						this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
-					}
-				} else
+
+			if (writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX ||
+				writer.context.docType === AscFormat.XMLWRITER_DOC_TYPE_DOCX_GLOSSARY) {
+				if (this.nvGrpSpPr && this.nvGrpSpPr.cNvGrpSpPr) {
+					this.nvGrpSpPr.cNvGrpSpPr.toXmlGrSp2(writer, "wpg");
+				}
+				else {
+					writer.WriteXmlString("<wpg:cNvGrpSpPr/>");
+				}
+			} else {
+
+				if(this.nvGrpSpPr) {
 					this.nvGrpSpPr.toXmlGrp(writer);
-			}
-			else {
-				if(writer.context.groupIndex === 0) {
-					writer.WriteXmlString("<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr /></p:nvGrpSpPr><p:grpSpPr bwMode=\"auto\"><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>")
+				}
+				else {
+
+					if(writer.context.groupIndex === 0) {
+						writer.WriteXmlString("<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr /></p:nvGrpSpPr><p:grpSpPr bwMode=\"auto\"><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>")
+					}
 				}
 			}
 
@@ -13059,11 +13456,11 @@
 		CTextFit.prototype.readAttrXml = function (name, reader) {
 			switch (name) {
 				case "fontScale": {
-					this.fontScale = getPercentageValue(reader.GetValue());
+					this.fontScale = reader.GetValueInt();
 					break;
 				}
 				case "lnSpcReduction": {
-					this.lnSpcReduction = getPercentageValue(reader.GetValue());
+					this.lnSpcReduction = reader.GetValueInt();
 					break;
 				}
 			}
@@ -13128,6 +13525,13 @@
 			return this.Id;
 		};
 		CBodyPr.prototype.Refresh_RecalcData = function () {
+		};
+		CBodyPr.prototype.setVertOpen = function (nVert) {
+			let nVert_ = nVert;
+			if(nVert === AscFormat.nVertTTwordArtVert) {
+				nVert_ = AscFormat.nVertTTvert;
+			}
+			this.vert = nVert_;
 		};
 		CBodyPr.prototype.getLnSpcReduction = function () {
 			if (this.textFit
@@ -14142,7 +14546,7 @@
 				}
 				case "vert": {
 					let sVal = reader.GetValue();
-					this.vert = this.GetVertCode(sVal);
+					this.setVertOpen(this.GetVertCode(sVal));
 					break;
 				}
 				case "vertOverflow": {
@@ -14169,11 +14573,13 @@
 				}
 				case "normAutofit": {
 					this.textFit = new CTextFit(AscFormat.text_fit_NormAuto);
+					this.textFit.fromXml(reader);
 					break;
 				}
 				case "prstTxWarp": {
 					this.prstTxWarp = AscFormat.ExecuteNoHistory(function () {
 						let oGeometry = new AscFormat.Geometry();
+						oGeometry.bWrap = true;
 						oGeometry.fromXml(reader);
 						return oGeometry;
 					}, this, []);
@@ -14547,46 +14953,49 @@
 				blipFill.setRasterImageId(url);
 			}
 		};
-		CBullet.prototype.drawSquareImage = function (divId, relativeIndent) {
-			relativeIndent = relativeIndent || 0;
-
-			var url = this.getImageBulletURL();
-			var Api = editor || Asc.editor;
-			if (!url || !Api) {
+		CBullet.prototype.drawSquareImage = function (sDivId, nRelativeIndent) {
+			nRelativeIndent = nRelativeIndent || 0;
+			const sImageUrl = this.getImageBulletURL();
+			const oApi = editor || Asc.editor;
+			if (!sImageUrl || !oApi) {
 				return;
 			}
 
-			var oDiv = document.getElementById(divId);
+			const oDiv = document.getElementById(sDivId);
 			if (!oDiv) {
 				return;
 			}
-			var nWidth = oDiv.clientWidth;
-			var nHeight = oDiv.clientHeight;
-			var rPR = AscCommon.AscBrowser.retinaPixelRatio;
-			var sideSize = nWidth < nHeight ? nWidth * rPR : nHeight * rPR;
+			const nWidth = oDiv.clientWidth;
+			const nHeight = oDiv.clientHeight;
+			const nRPR = AscCommon.AscBrowser.retinaPixelRatio;
+			const nCanvasSide = Math.min(nWidth, nHeight) * nRPR;
 
-			var oCanvas = oDiv.firstChild;
+			let oCanvas = oDiv.firstChild;
 			if (!oCanvas) {
 				oCanvas = document.createElement('canvas');
 				oCanvas.style.cssText = "padding:0;margin:0;user-select:none;";
 				oCanvas.style.width = oDiv.clientWidth + 'px';
 				oCanvas.style.height = oDiv.clientHeight + 'px';
-				oCanvas.width = sideSize;
-				oCanvas.height = sideSize;
+				oCanvas.width = nCanvasSide;
+				oCanvas.height = nCanvasSide;
 				oDiv.appendChild(oCanvas);
 			}
 
-			var oContext = oCanvas.getContext('2d');
+			const oContext = oCanvas.getContext('2d');
 			oContext.fillStyle = "white";
 			oContext.fillRect(0, 0, oCanvas.width, oCanvas.height);
-			var _img = Api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(url)];
-			if (_img && _img.Image && _img.Status !== AscFonts.ImageLoadStatus.Loading) {
-				var absoluteIndent = sideSize * relativeIndent;
-				var _x = absoluteIndent;
-				var _y = absoluteIndent;
-				var _w = sideSize - absoluteIndent * 2;
-				var _h = sideSize - absoluteIndent * 2;
-				oContext.drawImage(_img.Image, _x, _y, _w, _h);
+			const oImage = oApi.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(sImageUrl)];
+			if (oImage && oImage.Image && oImage.Status !== AscFonts.ImageLoadStatus.Loading) {
+				const nImageWidth = oImage.Image.width;
+				const nImageHeight = oImage.Image.height;
+				const absoluteIndent = nCanvasSide * nRelativeIndent;
+				const nSideSizeWithoutIndent = nCanvasSide - 2 * absoluteIndent;
+				const nAdaptCoefficient = Math.max(nImageWidth / nSideSizeWithoutIndent, nImageHeight / nSideSizeWithoutIndent);
+				const nImageAdaptWidth = nImageWidth / nAdaptCoefficient;
+				const nImageAdaptHeight = nImageHeight / nAdaptCoefficient;
+				const nX = (nCanvasSide - nImageAdaptWidth) / 2;
+				const nY = (nCanvasSide - nImageAdaptHeight) / 2;
+				oContext.drawImage(oImage.Image, nX, nY, nImageAdaptWidth, nImageAdaptHeight);
 			}
 		};
 		CBullet.prototype.readChildXml = function (name, reader) {
@@ -14662,7 +15071,6 @@
 				this.bulletType.toXml(writer);
 			}
 		};
-//interface methods
 		//interface methods
 		var prot = CBullet.prototype;
 		prot["fillBulletImage"] = prot["asc_fillBulletImage"] = CBullet.prototype.fillBulletImage;
@@ -18412,6 +18820,43 @@
 		};
 
 
+		function IdEntry(name) {
+			AscFormat.CBaseNoIdObject.call(this);
+			this.name = name;
+			this.id = null;
+			this.rId = null;
+		}
+		InitClass(IdEntry, CBaseNoIdObject, undefined);
+		IdEntry.prototype.readAttrXml = function(name, reader) {
+			switch (reader.GetName()) {
+				case "id": {
+					this.id = reader.GetValue();
+					break;
+				}
+				case "r:id": {
+					this.rId = reader.GetValue();
+					break;
+				}
+			}
+		};
+		IdEntry.prototype.toXml = function(writer) {
+			writer.WriteXmlNodeStart(this.name);
+			writer.WriteXmlNullableAttributeString("id", this.id);
+			writer.WriteXmlNullableAttributeString("r:id", this.rId);
+			writer.WriteXmlAttributesEnd(true);
+		};
+		IdEntry.prototype.readItem = function(reader, fConstructor) {
+			let oRel = reader.rels.getRelationship(this.rId);
+			let oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
+			let oContent = oRelPart.getDocumentContent();
+			let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
+			let oElement = fConstructor(oReader);
+			if(oElement) {
+				oElement.fromXml(oReader, true);
+			}
+			return oElement;
+		};
+
 
 
 // DEFAULT OBJECTS
@@ -19183,6 +19628,7 @@
 				obj.signatureId = shapeProp.signatureId;
 			}
 			obj.Position = new Asc.CPosition({X: shapeProp.x, Y: shapeProp.y});
+			obj.isMotionPath = !!shapeProp.isMotionPath;
 			return obj;
 		}
 
@@ -20182,6 +20628,7 @@
 		window['AscFormat'].TYPE_TRACK = TYPE_TRACK;
 		window['AscFormat'].TYPE_KIND = TYPE_KIND;
 		window['AscFormat'].mapPrstColor = map_prst_color;
+		window['AscFormat'].map_hightlight = map_hightlight;
 		window['AscFormat'].ar_arrow = ar_arrow;
 		window['AscFormat'].ar_diamond = ar_diamond;
 		window['AscFormat'].ar_none = ar_none;
@@ -20319,6 +20766,7 @@
 		window['AscFormat'].CBaseFormatObject = CBaseFormatObject;
 		window['AscFormat'].CBaseNoIdObject = CBaseNoIdObject;
 		window['AscFormat'].checkRasterImageId = checkRasterImageId;
+		window['AscFormat'].IdEntry = IdEntry;
 
 		window['AscFormat'].DEFAULT_COLOR_MAP = null;
 		window['AscFormat'].DEFAULT_THEME = null;

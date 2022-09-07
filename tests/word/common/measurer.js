@@ -140,7 +140,7 @@
 	};
 	g_oTextMeasurer.MeasureCode     = function()
 	{
-		return {fAdvanceX : CharWidth};
+		return {Width : CharWidth * FontSize};
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.CharWidth   = CharWidth;

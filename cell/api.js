@@ -1187,15 +1187,30 @@ var editor;
 		AscCommonExcel.executeInR1C1Mode(false, function () {
 			t.saveDocumentToZip(t.wb.model, AscCommon.c_oEditorId.Spreadsheet, function(data) {
 				if (data) {
-					AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("xlsx"));
+					if (c_oAscFileType.XLSX === fileType && !window.isCloudCryptoDownloadAs) {
+						AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("xlsx"));
+					} else {
+						dataContainer.data = data;
+						if (window.isCloudCryptoDownloadAs)
+						{
+							var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
+							sParamXml += ("<m_nCsvDelimiter>" + oAdditionalData["delimiter"] + "</m_nCsvDelimiter>");
+							window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType, sParamXml);
+							return true;
+						}
+						t._downloadAsUsingServer(actionType, options, oAdditionalData, dataContainer, downloadType);
+						return;
+					}
+				} else {
+					t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+				}
+				if (actionType)
+				{
+					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 				}
 			});
-			if (actionType)
-			{
-				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-			}
-		});
 
+		});
 		return true;
 	} else {
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
@@ -1490,6 +1505,9 @@ var editor;
 			return false;
 		}
 		xmlParserContext.zip = jsZlib;
+
+		//check fonts inside
+		AscFonts.IsCheckSymbols = true;
 
 		AscCommonExcel.executeInR1C1Mode(false, function () {
 			var doc = new openXml.OpenXmlPackage(jsZlib, null);
@@ -2020,6 +2038,8 @@ var editor;
 
 			wb.initPostOpenZip(pivotCaches, xmlParserContext);
 		});
+
+		AscFonts.IsCheckSymbols = false;
 
 		jsZlib.close();
 		//clean up
@@ -3594,6 +3614,9 @@ var editor;
     spreadsheet_api.prototype.sync_closeOleEditor = function() {
         this.sendEvent("asc_onCloseOleEditor");
     };
+	spreadsheet_api.prototype.sync_changedElements = function (arr) {
+		this.sendEvent("asc_onUpdateSearchElem", arr);
+	};
 
 	spreadsheet_api.prototype.asc_StartTextAroundSearch = function()
 	{
@@ -3882,44 +3905,79 @@ var editor;
     return ret;
   };
 
+    spreadsheet_api.prototype.getScaleCoefficientsForOleTableImage = function (nImageWidth, nImageHeight) {
+        const oWorksheet = this.wb.getWorksheet();
+        const oSingleChart = oWorksheet.isHaveOnlyOneChart(true);
+        let oRangeSizes = {};
+        if (oSingleChart) {
+            oRangeSizes = {
+                width: oSingleChart.extX * AscCommon.g_dKoef_mm_to_pix,
+                height: oSingleChart.extY * AscCommon.g_dKoef_mm_to_pix
+            };
+        } else {
+            const oOleSize = this.wbModel.getOleSize().getLast();
+            if (oOleSize) {
+                oRangeSizes = oWorksheet.getRangePosition(oOleSize);
+            }
+        }
+        if (oRangeSizes.width && oRangeSizes.height) {
+            return {
+                widthCoefficient: nImageWidth / oRangeSizes.width,
+                heightCoefficient: nImageHeight / oRangeSizes.height
+            };
+        }
+        return {widthCoefficient: 1, heightCoefficient: 1};
+    };
+
   /**
    * Loading ole editor
-   * @param {{}} [oleObj] info from oleObject
+   * @param {{}} [oOleObjectInfo] info from oleObject
    */
-  spreadsheet_api.prototype.asc_addTableOleObjectInOleEditor = function(oleObj) {
-    oleObj = oleObj || {"binary": AscCommon.getEmpty()};
-    var stream = oleObj["binary"];
-    var _this = this;
-    var file = new AscCommon.OpenFileResult();
-    file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
-    file.data = stream;
+  spreadsheet_api.prototype.asc_addTableOleObjectInOleEditor = function(oOleObjectInfo) {
+  this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
+    oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
+    const sStream = oOleObjectInfo["binary"];
+    const oThis = this;
+    const oFile = new AscCommon.OpenFileResult();
+    oFile.bSerFormat = AscCommon.checkStreamSignature(sStream, AscCommon.c_oSerFormat.Signature);
+    oFile.data = sStream;
     this.isEditOleMode = true;
     this.isChartEditor = false;
-    this.isFromSheetEditor = oleObj["isFromSheetEditor"];
+    this.isFromSheetEditor = oOleObjectInfo["isFromSheetEditor"];
     this.asc_CloseFile();
-    this.openDocument(file);
-
     this.fAfterLoad = function () {
-      _this.wb.scrollToOleSize();
-      _this.wb.onOleEditorReady();
+        const nImageWidth = oOleObjectInfo["imageWidth"];
+        const nImageHeight = oOleObjectInfo["imageHeight"];
+        if (nImageWidth && nImageHeight) {
+            oThis.saveImageCoefficients = oThis.getScaleCoefficientsForOleTableImage(nImageWidth, nImageHeight);
+        }
+        oThis.wb.scrollToOleSize();
+        oThis.wb.onOleEditorReady();
+        oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
     }
+    this.openDocument(oFile);
     };
   /**
    * get binary info about changed ole object
    * @returns {{}} binary info about oleObject
    */
   spreadsheet_api.prototype.asc_getBinaryInfoOleObject = function () {
-    var dataUrl = this.wb.getImageFromTableOleObject();
-    var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
-    var binaryData = oBinaryFileWriter.Write().split(';');
-    var cleanBinaryData = binaryData[binaryData.length - 1];
-    var binaryInfo = {};
+    const sDataUrl = this.wb.getImageFromTableOleObject();
+    const oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
+    const arrBinaryData = oBinaryFileWriter.Write().split(';');
+    const sCleanBinaryData = arrBinaryData[arrBinaryData.length - 1];
+    const oBinaryInfo = {};
 
-    binaryInfo["binary"] = cleanBinaryData;
-    binaryInfo["base64Image"] = dataUrl;
-    binaryInfo["isFromSheetEditor"] =this.isFromSheetEditor;
+    oBinaryInfo["binary"] = sCleanBinaryData;
+    oBinaryInfo["base64Image"] = sDataUrl;
+    oBinaryInfo["isFromSheetEditor"] =this.isFromSheetEditor;
+    if (this.saveImageCoefficients) {
+        oBinaryInfo["widthCoefficient"] = this.saveImageCoefficients.widthCoefficient;
+        oBinaryInfo["heightCoefficient"] = this.saveImageCoefficients.heightCoefficient;
+        delete this.saveImageCoefficients;
+    }
 
-    return binaryInfo;
+    return oBinaryInfo;
   }
 
 	spreadsheet_api.prototype.asc_toggleChangeVisibleAreaOleEditor = function (bForceValue) {
@@ -4530,6 +4588,15 @@ var editor;
 
   spreadsheet_api.prototype.asc_changeArtImageFromFile = function(type) {
     this.asc_addImage({isTextArtChangeUrl: true, textureType: type});
+  };
+
+  spreadsheet_api.prototype.getImageDataFromSelection = function() {
+      var ws = this.wb.getWorksheet();
+      return ws.objectRender.controller.getImageDataFromSelection();
+  };
+  spreadsheet_api.prototype.putImageToSelection = function(sImageSrc, nWidth, nHeight) {
+      var ws = this.wb.getWorksheet();
+      return ws.objectRender.controller.putImageToSelection(sImageSrc, nWidth, nHeight);
   };
 
   spreadsheet_api.prototype.asc_putPrLineSpacing = function(type, value) {
@@ -5618,7 +5685,12 @@ var editor;
 		  return;
         }
 
-		if (!History.Have_Changes(true) && !(this.collaborativeEditing.getCollaborativeEditing() &&
+		if (this.isLiveViewer()) {
+			if (this.collaborativeEditing.haveOtherChanges()) {
+				this.collaborativeEditing.applyChanges();
+			}
+			return;
+		} else if (!History.Have_Changes(true) && !(this.collaborativeEditing.getCollaborativeEditing() &&
 			0 !== this.collaborativeEditing.getOwnLocksLength())) {
 			if (this.collaborativeEditing.getFast() && this.collaborativeEditing.haveOtherChanges()) {
 				AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
@@ -5630,7 +5702,7 @@ var editor;
 				// Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
 				this.wb._onWSSelectionChanged();
 			}
-            if (AscCommon.CollaborativeEditing.Is_Fast() && !this.isLiveViewer() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
                 this.wb.sendCursor();
             }
 			return;
@@ -5654,7 +5726,7 @@ var editor;
             if (0 <= gap) {
                 this.asc_Save(true);
             }
-            if (AscCommon.CollaborativeEditing.Is_Fast() && !this.isLiveViewer()/*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
+            if (AscCommon.CollaborativeEditing.Is_Fast() /*&& !AscCommon.CollaborativeEditing.Is_SingleUser()*/) {
                 this.wb.sendCursor();
             }
         }
@@ -7578,6 +7650,13 @@ var editor;
 			}
 		}
 		return res;
+	};
+
+	spreadsheet_api.prototype.setDrawGroupsRestriction = function() {
+		if (this.wb) {
+			//пока использую строку. будут другие ограничения на отрисовку - необходимо завести константы
+			this.wb.setDrawRestriction("groups");
+		}
 	};
 
   /*

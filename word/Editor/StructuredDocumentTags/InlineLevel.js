@@ -105,7 +105,8 @@ CInlineLevelSdt.prototype.Add = function(Item)
 
 		oTextFormRun = this.MakeSingleRunElement(false);
 
-		if (this.Pr.TextForm.MaxCharacters > 0)
+		let maxCharacters = this.Pr.TextForm.GetMaxCharacters();
+		if (maxCharacters > 0)
 		{
 			if (!(Item instanceof AscWord.CRunText) && !(Item instanceof AscWord.CRunSpace))
 				return;
@@ -130,11 +131,14 @@ CInlineLevelSdt.prototype.Add = function(Item)
 			if (nInsertPos === oTextFormRun.Content.length)
 				arrCodePoints.push(nNewCodePoint);
 
-			let nNewCount = AscWord.GraphemesCounter.GetCount(arrCodePoints, oTextFormRun.Get_CompiledPr(false));
-			if (nNewCount > this.Pr.TextForm.MaxCharacters)
-				return;
-			else if (nNewCount === this.Pr.TextForm.MaxCharacters)
-				isFulfilled = true;
+			if (maxCharacters > 0)
+			{
+				let nNewCount = AscWord.GraphemesCounter.GetCount(arrCodePoints, oTextFormRun.Get_CompiledPr(false));
+				if (nNewCount > maxCharacters)
+					return;
+				else if (nNewCount === maxCharacters)
+					isFulfilled = true;
+			}
 		}
 	}
 
@@ -1303,10 +1307,16 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 	if (this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
-CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)
+CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect, isForceUpdate)
 {
 	if (this.IsPlaceHolder())
+	{
+		if (isForceUpdate)
+			this.private_FillPlaceholderContent();
+
 		return;
+	}
+
 
 	this.SetShowingPlcHdr(true);
 
@@ -1430,9 +1440,9 @@ CInlineLevelSdt.prototype.ReplacePlaceHolderWithContent = function(bMathRun)
 {
 	this.private_ReplacePlaceHolderWithContent(bMathRun);
 };
-CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect)
+CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect, isForceUpdate)
 {
-	this.private_ReplaceContentWithPlaceHolder(isSelect);
+	this.private_ReplaceContentWithPlaceHolder(isSelect, isForceUpdate);
 };
 CInlineLevelSdt.prototype.CorrectContent = function()
 {
@@ -2745,6 +2755,9 @@ CInlineLevelSdt.prototype.IsFormFilled = function()
 	if (this.IsPlaceHolder())
 		return false;
 
+	if (this.IsComplexForm())
+		return this.IsComplexFormFilled();
+
 	if (this.IsTextForm())
 	{
 		var sText = this.GetSelectedText(true);
@@ -3033,8 +3046,11 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 		this.SetTextFormPr(oNewTextPr);
 	}
 
-	let oInlineRun = this.MakeSingleRunElement(false);
-	oInlineRun.RecalcMeasure();
+	if (!this.IsComplexForm())
+	{
+		let oInlineRun = this.MakeSingleRunElement(false);
+		oInlineRun.RecalcMeasure();
+	}
 
 	return this;
 };

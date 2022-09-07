@@ -172,43 +172,83 @@ StartAddNewShape.prototype =
                     if(oCurSlide) {
                         if(oPresentation.IsSelectionLocked(AscCommon.changestype_Timing) === false) {
                             oPresentation.StartAction(0);
-                            var aAddedEffects = oCurSlide.addAnimation(AscFormat.PRESET_CLASS_PATH, AscFormat.MOTION_SQUARE, 0, this.bReplace);
-                            let oEffect = aAddedEffects[0];
-                            if(!oEffect) {
+                            let oTiming = oCurSlide.timing;
+                            let aAddedEffects;
+                            aAddedEffects = oCurSlide.addAnimation(AscFormat.PRESET_CLASS_PATH, AscFormat.MOTION_SQUARE, 0, this.bReplace);
+                            oTiming = oCurSlide.timing;
+                            if(!oTiming) {
+                                oPresentation.FinalizeAction();
                                 return;
                             }
-                            let oPathShape = null;
-                            oEffect.traverse(function(oChild) {
-                                if(oChild.getObjectType() === AscDFH.historyitem_type_AnimMotion) {
-                                    oPathShape = oChild.createPathShape();
-                                    return true;
+                            for(let nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
+                                let oEffect = aAddedEffects[nEffect];
+                                if(!oEffect) {
+                                    continue;
                                 }
-                                return false;
-                            });
-                            if(!oPathShape) {
-                                return;
+                                let oPathShape = null;
+                                oEffect.traverse(function(oChild) {
+                                    if(oChild.getObjectType() === AscDFH.historyitem_type_AnimMotion) {
+                                        oPathShape = oChild.createPathShape();
+                                        return true;
+                                    }
+                                    return false;
+                                });
+                                if(!oPathShape) {
+                                    continue;
+                                }
+                                let oPolylineShape = AscFormat.ExecuteNoHistory(function () {
+                                    return oTrack.getShape(false, oPresentation.drawingDocument, oCurSlide.graphicObjects);
+                                }, this, []);
+                                if(!oPolylineShape) {
+                                    continue;
+                                }
+                                let oSpPr = oPolylineShape.spPr;
+                                let oXfrm = oSpPr.xfrm;
+                                let oGeometry = null;
+                                let oPath = null;
+                                let dOffX = oXfrm.offX;
+                                let dOffY = oXfrm.offY;
+                                let oObjectBounds = oPathShape.objectBounds;
+                                if(oSpPr.geometry) {
+                                    oGeometry = oSpPr.geometry.createDuplicate();
+                                    oGeometry.Recalculate(oXfrm.extX, oXfrm.extY);
+                                    oPath = oGeometry.pathLst[0];
+                                    if(oPath && oObjectBounds) {
+                                        let oFirstCommand = oPath.ArrPathCommand[0];
+                                        if(oFirstCommand && oFirstCommand.id === AscFormat.moveTo) {
+                                            dOffX = oObjectBounds.x + oObjectBounds.w/2 - oFirstCommand.X;
+                                            dOffY = oObjectBounds.y + oObjectBounds.h/2 - oFirstCommand.Y;
+                                        }
+                                    }
+                                }
+                                oPathShape.updateAnimation(dOffX, dOffY, oXfrm.extX, oXfrm.extY, oXfrm.rot, oGeometry);
+                                oEffect.cTn.setPresetID(AscFormat.MOTION_CUSTOM_PATH);
+                                oEffect.cTn.setPresetSubtype(0);
                             }
-
-                            let oPolylineShape = AscFormat.ExecuteNoHistory(function () {
-                                return oTrack.getShape(false, oPresentation.drawingDocument, oCurSlide.graphicObjects);
-                            }, this, []);
-                            if(!oPolylineShape) {
-                                return;
-                            }
-                            let oSpPr = oPolylineShape.spPr;
-                            let oXfrm = oSpPr.xfrm;
-                            oPathShape.updateAnimation(oXfrm.offX, oXfrm.offY, oXfrm.extX, oXfrm.extY, oXfrm.rot, oSpPr.geometry);
-                            oEffect.cTn.setPresetID(AscFormat.MOTION_CUSTOM_PATH);
-                            oEffect.cTn.setPresetSubtype(0);
                             oPresentation.FinalizeAction();
+                            if(Asc["editor"])
+                            {
+                                if(!e.fromWindow || this.bStart)
+                                {
+                                    Asc["editor"].asc_endAddShape();
+                                }
+                            }
+                            else if(editor && editor.sync_EndAddShape)
+                            {
+                                editor.sync_EndAddShape();
+                            }
                             oPresentation.Document_UpdateInterfaceState();
                             if(this.bPreview && aAddedEffects.length > 0) {
-                                oCurSlide.graphicObjects.resetSelection();
-                                oPresentation.GetCurTiming().resetSelection();
-                                for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
-                                    aAddedEffects[nEffect].select();
+                                let oTiming = oCurSlide.timing;
+                                if(oTiming) {
+                                    oCurSlide.graphicObjects.resetSelection();
+                                    oTiming.resetSelection();
+                                    for(let nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
+                                        aAddedEffects[nEffect].select();
+                                    }
+                                    oPresentation.StartAnimationPreview();
+                                    oTiming.checkSelectedAnimMotionShapes();
                                 }
-                                oPresentation.StartAnimationPreview();
                             }
                             else {
                                 oPresentation.DrawingDocument.OnRecalculatePage(oPresentation.CurPage, oCurSlide);
@@ -359,7 +399,7 @@ NullState.prototype =
         }
         var ret;
         ret = this.drawingObjects.handleSlideComments(e, x, y, pageIndex);
-        if(ret )
+        if(ret)
         {
             if(ret.result)
             {
@@ -429,12 +469,22 @@ NullState.prototype =
 
         if(bHandleMode)
         {
-            var bRet =  this.drawingObjects.checkChartTextSelection(true);
+            let bRet =  this.drawingObjects.checkChartTextSelection(true);
             if(e.ClickCount < 2)
             {
                 this.drawingObjects.resetSelection(undefined, undefined, undefined, !!handleAnimLables);
+                if(handleAnimLables)
+                {
+                    if(oTiming)
+                    {
+                        oTiming.checkSelectedAnimMotionShapes();
+                    }
+                }
             }
-            if(start_target_doc_content || selected_comment_index > -1 || bRet || handleAnimLables)
+            if(start_target_doc_content ||
+                selected_comment_index > -1 ||
+                bRet ||
+                handleAnimLables)
             {
                 this.drawingObjects.drawingObjects.showDrawingObjects();
             }
@@ -563,37 +613,44 @@ TrackSelectionRect.prototype =
     onMouseUp: function(e, x, y, pageIndex)
     {
         var _glyph_index;
-        var _glyphs_array = this.drawingObjects.getDrawingArray();
-        var _glyph, _glyph_transform;
-        var _xlt, _ylt, _xrt, _yrt, _xrb, _yrb, _xlb, _ylb;
-
-        var _rect_l = Math.min(this.drawingObjects.selectionRect.x, this.drawingObjects.selectionRect.x + this.drawingObjects.selectionRect.w);
-        var _rect_r = Math.max(this.drawingObjects.selectionRect.x, this.drawingObjects.selectionRect.x + this.drawingObjects.selectionRect.w);
-        var _rect_t = Math.min(this.drawingObjects.selectionRect.y, this.drawingObjects.selectionRect.y + this.drawingObjects.selectionRect.h);
-        var _rect_b = Math.max(this.drawingObjects.selectionRect.y, this.drawingObjects.selectionRect.y + this.drawingObjects.selectionRect.h);
-        for(_glyph_index = 0; _glyph_index < _glyphs_array.length; ++_glyph_index)
+        var _glyphs_array;
+        if(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld)
         {
-            _glyph = _glyphs_array[_glyph_index];
-            _glyph_transform = _glyph.transform;
+            _glyphs_array = this.drawingObjects.drawingObjects.cSld.spTree;
+        }
+        if(_glyphs_array)
+        {
+            var _glyph, _glyph_transform;
+            var _xlt, _ylt, _xrt, _yrt, _xrb, _yrb, _xlb, _ylb;
 
-            _xlt = _glyph_transform.TransformPointX(0, 0);
-            _ylt = _glyph_transform.TransformPointY(0, 0);
-
-            _xrt = _glyph_transform.TransformPointX( _glyph.extX, 0);
-            _yrt = _glyph_transform.TransformPointY( _glyph.extX, 0);
-
-            _xrb = _glyph_transform.TransformPointX( _glyph.extX, _glyph.extY);
-            _yrb = _glyph_transform.TransformPointY( _glyph.extX, _glyph.extY);
-
-            _xlb = _glyph_transform.TransformPointX(0, _glyph.extY);
-            _ylb = _glyph_transform.TransformPointY(0, _glyph.extY);
-
-            if((_xlb >= _rect_l && _xlb <= _rect_r) && (_xrb >= _rect_l && _xrb <= _rect_r)
-                && (_xlt >= _rect_l && _xlt <= _rect_r) && (_xrt >= _rect_l && _xrt <= _rect_r) &&
-                (_ylb >= _rect_t && _ylb <= _rect_b) && (_yrb >= _rect_t && _yrb <= _rect_b)
-                && (_ylt >= _rect_t && _ylt <= _rect_b) && (_yrt >= _rect_t && _yrt <= _rect_b))
+            var _rect_l = Math.min(this.drawingObjects.selectionRect.x, this.drawingObjects.selectionRect.x + this.drawingObjects.selectionRect.w);
+            var _rect_r = Math.max(this.drawingObjects.selectionRect.x, this.drawingObjects.selectionRect.x + this.drawingObjects.selectionRect.w);
+            var _rect_t = Math.min(this.drawingObjects.selectionRect.y, this.drawingObjects.selectionRect.y + this.drawingObjects.selectionRect.h);
+            var _rect_b = Math.max(this.drawingObjects.selectionRect.y, this.drawingObjects.selectionRect.y + this.drawingObjects.selectionRect.h);
+            for(_glyph_index = 0; _glyph_index < _glyphs_array.length; ++_glyph_index)
             {
-                this.drawingObjects.selectObject(_glyph, pageIndex);
+                _glyph = _glyphs_array[_glyph_index];
+                _glyph_transform = _glyph.transform;
+
+                _xlt = _glyph_transform.TransformPointX(0, 0);
+                _ylt = _glyph_transform.TransformPointY(0, 0);
+
+                _xrt = _glyph_transform.TransformPointX( _glyph.extX, 0);
+                _yrt = _glyph_transform.TransformPointY( _glyph.extX, 0);
+
+                _xrb = _glyph_transform.TransformPointX( _glyph.extX, _glyph.extY);
+                _yrb = _glyph_transform.TransformPointY( _glyph.extX, _glyph.extY);
+
+                _xlb = _glyph_transform.TransformPointX(0, _glyph.extY);
+                _ylb = _glyph_transform.TransformPointY(0, _glyph.extY);
+
+                if((_xlb >= _rect_l && _xlb <= _rect_r) && (_xrb >= _rect_l && _xrb <= _rect_r)
+                    && (_xlt >= _rect_l && _xlt <= _rect_r) && (_xrt >= _rect_l && _xrt <= _rect_r) &&
+                    (_ylb >= _rect_t && _ylb <= _rect_b) && (_yrb >= _rect_t && _yrb <= _rect_b)
+                    && (_ylt >= _rect_t && _ylt <= _rect_b) && (_yrt >= _rect_t && _yrt <= _rect_b))
+                {
+                    this.drawingObjects.selectObject(_glyph, pageIndex);
+                }
             }
         }
         this.drawingObjects.selectionRect = null;

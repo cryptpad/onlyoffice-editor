@@ -1546,11 +1546,9 @@
 		return res;
 	}
 
-	function FromXml_ST_HorizontalAlignment(val) {
-		var res = -1;
-		if ("general" === val) {
-			res = -1;
-		} else if ("left" === val) {
+	function FromXml_ST_HorizontalAlignment(val, default_null) {
+		var res = default_null ? null: -1;//general == null
+		if ("left" === val) {
 			res = AscCommon.align_Left;
 		} else if ("center" === val) {
 			res = AscCommon.align_Center;
@@ -2068,6 +2066,9 @@
 		val = val.replace(/&#xD;&#xA;/g, "\n");
 		val = val.replace(/_x000D_\r\n/g, "\n");
 		val = val.replace(/\r\n/g, "\n");
+
+		val = unescape_ST_Xstring(val);
+
 		return val;
 	}
 
@@ -2087,8 +2088,66 @@
 		//val = val.replace(/\n/g, "\&#xA;");
 		//от мс приходит \r\n
 		//val = val.replace(/\n/g, "\r\n");
-
+		val = escape_ST_Xstring(val);
 		return val;
+	}
+
+	function unescape_ST_Xstring(s) {
+		var res = "";
+		for (var i = 0; i < s.length; i++) {
+			if (i + 6 < s.length && s[i] === '_' && s[i + 1] === 'x' && !isNaN(s[i + 2]) && !isNaN(s[i + 3]) && s[i + 6] === '_') {
+				res += hex2Str(s.substring(i + 2, i + 6));
+				i += 6;
+			} else {
+				res += s[i];
+			}
+		}
+		return res;
+	}
+
+	var match_hex = "^_x[0-9A-F]{4}_";
+	function escape_ST_Xstring(wstr) {
+		var ret_val = "";
+
+		for (var i = 0; i < wstr.length; i++) {
+			var str = wstr[i];
+			var strCode = str.charCodeAt(0);
+			if (strCode < 0x0009 || strCode === 0x000B || strCode === 0x000C || strCode > 0x000D && strCode < 0x0020 || strCode > 0xD7FF && strCode < 0xE000 || strCode > 0xFFFD) {
+				ret_val += "_x" + wchar_t2hex_str(strCode) + "_";
+			} else if ('_' === str && wstr.substring(i, 7).match(match_hex)) {
+				ret_val += "_x005F_";
+			} else {
+				ret_val += str;
+			}
+		}
+		return ret_val;
+	}
+
+	function wchar_t2hex_str(val)
+	{
+		var hex = "0123456789ABCDEF";
+		var code_string = "";
+		code_string += hex[(val & 0xf000) >> 12];
+		code_string += hex[(val & 0x0f00) >> 8];
+		code_string += hex[(val & 0x00f0) >> 4];
+		code_string += hex[(val & 0x000f)];
+
+		if (code_string === "0000") {
+			return val;
+		}
+
+		return code_string;
+	}
+
+	function hex2Str(hex) {
+		var res = "";
+		for (var i = 0; i < hex.length; i += 2) {
+			var val = parseInt(hex.substr(i, 2), 16);
+			if (val) {
+				res += String.fromCharCode(val);
+			}
+		}
+		return res;
 	}
 
 	//for uri/namespaces
@@ -3939,9 +3998,6 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 				//если не число - мс пропускает
 				if (AscCommon.isNumber(val)) {
 					this.setHeight(val);
-					if (AscCommon.CurFileVersion < 2) {
-						this.setCustomHeight(true);
-					}
 				}
 			} else if ("ss:Height" === reader.GetName()) {
 				val = reader.GetValueDouble();
@@ -3974,13 +4030,20 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 	AscCommonExcel.Cell.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
 
-		var value = reader.GetContext().cellValue;
+		var ctx = reader.GetContext();
+		var value = ctx.cellValue;
 		var depth = reader.GetDepth();
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
 				value.fromXml(reader);
 				if (CellValueType.String === this.type) {
-					var ss = reader.GetContext().sharedStrings[parseInt(value.val)];
+					var ss;
+					if (ctx.originType === "str") {
+						ss = prepareTextFromXml(value.val);
+					} else {
+						ss = reader.GetContext().sharedStrings[parseInt(value.val)];
+					}
+
 					if (undefined !== ss) {
 						if (typeof ss === 'string') {
 							this.setValueTextInternal(ss);
@@ -4001,7 +4064,9 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 	};
 	AscCommonExcel.Cell.prototype.readAttr = function (reader) {
 		var val;
-		var cellBase = reader.GetContext().cellBase;
+		var ctx = reader.GetContext();
+		var cellBase = ctx.cellBase;
+		ctx.originType = null;
 		while (reader.MoveToNextAttribute()) {
 			if ("r" === reader.GetName()) {
 				val = reader.GetValue();
@@ -4020,6 +4085,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 				}
 			} else if ("t" === reader.GetName()) {
 				val = reader.GetValue();
+				ctx.originType = val;
 				var type = FromXml_ST_CellValueType(val);
 				if (type != null) {
 					this.type = type;
@@ -4093,7 +4159,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 			}
 
 			if (null !== text) {
-				writer.WriteXmlValueString("v", text);
+				writer.WriteXmlValueString("v", prepareTextToXml(text));
 			} else if (null !== number) {
 				writer.WriteXmlValueNumber("v", number);
 			}
@@ -4772,7 +4838,7 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 
 	CT_Value.prototype.fromXml = function (reader) {
 		this.readAttr(reader);
-		this.val = reader.GetText();
+		this.val = reader.GetTextDecodeXml();
 	};
 	CT_Value.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
@@ -4890,10 +4956,10 @@ xmlns:x=\"urn:schemas-microsoft-com:office:excel\">");
 				val = reader.GetValue();
 				this.DisplayName = val;
 			} else if ("headerRowCount" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.HeaderRowCount = val;
 			} else if ("totalsRowCount" === reader.GetName()) {
-				val = reader.GetValue();
+				val = reader.GetValueInt();
 				this.TotalsRowCount = val;
 			} else if ("id" === reader.GetName()) {
 				reader.context.InitOpenManager.oReadResult.tableIds[reader.GetValue()] = this;
@@ -6163,10 +6229,11 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("formula1" === name) {
-				val = new Asc.CDataFormula(reader.GetText());
+				val = new Asc.CDataFormula(prepareTextFromXml(reader.GetTextDecodeXml()));
+
 				this.formula1 = val;
 			} else if ("formula2" === name) {
-				val = new Asc.CDataFormula(reader.GetText());
+				val = new Asc.CDataFormula(prepareTextFromXml(reader.GetTextDecodeXml()));
 				this.formula2 = val;
 			} else if ("sqref" === name) {
 				this.setSqRef(reader.GetText());
@@ -6198,7 +6265,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				m_oFormula1->m_sText = convert.convert(oReader.GetText3());*/
 
 				//TODO r1c1? не могу найти в каком виде она должна быть здесь записана
-				val = new Asc.CDataFormula(reader.GetText());
+				val = new Asc.CDataFormula(prepareTextFromXml(reader.GetTextDecodeXml()));
 				this.formula1 = val;
 			}
 		}
@@ -7001,7 +7068,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				if (!this.securityDescriptors) {
 					this.securityDescriptors = [];
 				}
-				this.securityDescriptors.push(reader.GetText());
+				this.securityDescriptors.push(prepareTextFromXml(reader.GetTextDecodeXml()));
 			}
 		}
 	};
@@ -7081,32 +7148,32 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.ReadNextSiblingNode(depth)) {
 			var name = reader.GetNameNoNS();
 			if ("evenFooter" === name) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				if (val) {
 					this.setEvenFooter(val);
 				}
 			} else if ("evenHeader" === name) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				if (val) {
 					this.setEvenHeader(val);
 				}
 			} else if ("firstFooter" === name) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				if (val) {
 					this.setFirstFooter(val);
 				}
 			} else if ("firstHeader" === name) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				if (val) {
 					this.setFirstHeader(val);
 				}
 			} else if ("oddFooter" === name) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				if (val) {
 					this.setOddFooter(val);
 				}
 			} else if ("oddHeader" === name) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				if (val) {
 					this.setOddHeader(val);
 				}
@@ -7309,7 +7376,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.colorLow = AscCommon.getColorFromXml2(reader);
 			} else if ("f" === name) {
 				//TODO текст, возможно нужно использовать prepareTextToXml
-				this.f = reader.GetText();
+				this.f = prepareTextFromXml(reader.GetTextDecodeXml());
 			} else if ("sparklines" === name) {
 				var depth2 = reader.GetDepth();
 				while (reader.ReadNextSiblingNode(depth2)) {
@@ -7481,7 +7548,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			var name = reader.GetNameNoNS();
 
 			if ("f" === name) {
-				this.setF(reader.GetText());
+				this.setF(prepareTextFromXml(reader.GetTextDecodeXml()));
 			} else if ("sqref" === name) {
 				this.setSqRef(reader.GetText());
 			}
@@ -7703,6 +7770,9 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 						if ("dxf" === name2) {
 							val = new AscCommonExcel.CellXfs();
 							val.fromXml(reader);
+							if (!this.dxfs) {
+								this.dxfs = [];
+							}
 							this.dxfs.push(val);
 						}
 					}
@@ -7719,7 +7789,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				} else if ("slicerCacheHideItemsWithNoData" === name) {
 
 				} else if ("id" === name) {
-					val = reader.GetText();
+					val = prepareTextFromXml(reader.GetTextDecodeXml());
 					this.ids.push(val);
 				} else if ("presenceInfo" === name) {
 
@@ -8098,7 +8168,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				this.aRuleElements.push(val);
 			} else if ("formula" === name || "f" === name) {
 				val = new AscCommonExcel.CFormulaCF()
-				val.Text = reader.GetText();
+				val.Text = prepareTextFromXml(reader.GetTextDecodeXml());
 				this.aRuleElements.push(val);
 			} else if ("iconSet" === name) {
 				val = new AscCommonExcel.CIconSet();
@@ -8322,7 +8392,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			var name = reader.GetNameNoNS();
 			if ("formula" === name || "f" === name) {
 				//TODO prepareTextToXml?
-				this.Val = reader.GetText();
+				this.Val = prepareTextFromXml(reader.GetTextDecodeXml());
 			}
 		}
 	};
@@ -9472,7 +9542,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		while (reader.MoveToNextAttribute()) {
 			if ("horizontal" === reader.GetName() || "ss:Horizontal" === reader.GetName()) {
 				val = reader.GetValue();
-				this.hor = FromXml_ST_HorizontalAlignment(val);
+				this.hor = FromXml_ST_HorizontalAlignment(val, true);
 			} else if ("indent" === reader.GetName() || "ss:Indent" === reader.GetName()) {
 				val = reader.GetValueInt();
 				this.indent = val;
@@ -9888,7 +9958,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 				}
 			} else if ("sz" === name) {
 				readOneAttr(reader, "val", function () {
-					t.fs = reader.GetValueInt();
+					t.fs = reader.GetValueDouble();
 				});
 			} else if ("u" === name) {
 				if (reader.GetValue() !== null) {
@@ -10761,7 +10831,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 		var val;
 		while (reader.ReadNextSiblingNode(depth)) {
 			if ("v" === reader.GetName()) {
-				val = reader.GetText();
+				val = prepareTextFromXml(reader.GetTextDecodeXml());
 				this.val.CellValue = val;
 			}
 		}
@@ -12205,7 +12275,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			var name = reader.GetNameNoNS();
 
 			if ("author" === name) {
-				this.arr.push(reader.GetText());
+				this.arr.push(prepareTextFromXml(reader.GetTextDecodeXml()));
 			}
 		}
 	};
@@ -12542,7 +12612,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 			var name = reader.GetNameNoNS();
 
 			if ("text" === name) {
-				this.text = reader.GetText();
+				this.text = prepareTextFromXml(reader.GetTextDecodeXml());
 			} else if ("mentions" === name) {
 				//m_oMentions = oReader;
 				reader.readXmlArray("mention", function () {

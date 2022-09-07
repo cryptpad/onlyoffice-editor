@@ -2260,8 +2260,12 @@ background-repeat: no-repeat;\
 			this.lastSaveTime = _curTime;
 		}
 
-		if (AscCommon.CollaborativeEditing.Is_Fast() && (!AscCommon.CollaborativeEditing.Is_SingleUser() || this.isLiveViewer())) {
+		if (AscCommon.CollaborativeEditing.Is_Fast() && !AscCommon.CollaborativeEditing.Is_SingleUser()) {
 			this.WordControl.m_oLogicDocument.Continue_FastCollaborativeEditing();
+		} else if (this.isLiveViewer()) {
+			if (AscCommon.CollaborativeEditing.Have_OtherChanges()) {
+				AscCommon.CollaborativeEditing.Apply_Changes();
+			}
 		} else {
 			var _bIsWaitScheme = false;
 			if (this.WordControl.m_oDrawingDocument &&
@@ -4219,6 +4223,13 @@ background-repeat: no-repeat;\
 			if(slide) 
 			{
 				this.WordControl.m_oDrawingDocument.OnRecalculatePage(this.WordControl.m_oLogicDocument.CurPage, slide);
+				if(!bShow)
+				{
+					if(slide.timing)
+					{
+						slide.timing.checkSelectedAnimMotionShapes();
+					}
+				}
 			}
 		}
 	};
@@ -4233,6 +4244,14 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_moveAnimationLater = function() 
 	{
 		return this.WordControl.m_oLogicDocument.MoveAnimation(false);
+	};
+	asc_docs_api.prototype.getImageDataFromSelection = function()
+	{
+		return this.WordControl.m_oLogicDocument.getImageDataFromSelection();
+	};
+	asc_docs_api.prototype.putImageToSelection = function(sImageSrc, nWidth, nHeight)
+	{
+		return this.WordControl.m_oLogicDocument.putImageToSelection(sImageSrc, nWidth, nHeight);
 	};
 	asc_docs_api.prototype.StartAddShape = function(prst, is_apply)
 	{
@@ -5649,7 +5668,18 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_IsStartDemonstartionOnOpen = function()
 	{
-		return this.documentFormat === "ppsx";
+		if(this.documentFormat === "ppsx")
+		{
+			return true;
+		}
+		if(this.documentTitle)
+		{
+			if(this.documentTitle.indexOf(".ppsx") === (this.documentTitle.length - 5))
+			{
+				return true;
+			}
+		}
+		return false;
 	};
 
 	asc_docs_api.prototype.asc_AddMath = function(Type)
@@ -7429,6 +7459,9 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oDrawingDocument.UnlockCursorType();
 		}
+		if(this.WordControl.m_oLogicDocument.TurnOffInterfaceEvents) {
+			this.WordControl.m_oLogicDocument.TurnOn_InterfaceEvents(false);
+		}
 	};
 
 	// Вставка диаграмм
@@ -7662,6 +7695,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer, downloadType)
 	{
+		var t = this;
 		var fileType = options.fileType;
 		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
 		{
@@ -7678,13 +7712,26 @@ background-repeat: no-repeat;\
 			this.saveDocumentToZip(this.WordControl.m_oLogicDocument, AscCommon.c_oEditorId.Presentation,
 				function(data) {
 					if (data) {
-						AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("pptx"));
+						if (c_oAscFileType.PPTX === fileType && !window.isCloudCryptoDownloadAs) {
+							AscCommon.DownloadFileFromBytes(data, title, AscCommon.openXml.GetMimeType("pptx"));
+						} else {
+							dataContainer.data = data;
+							if (window.isCloudCryptoDownloadAs)
+							{
+								window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType);
+								return true;
+							}
+							t._downloadAsUsingServer(actionType, options, oAdditionalData, dataContainer, downloadType);
+							return;
+						}
+					} else {
+						t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+					}
+					if (actionType)
+					{
+						t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 					}
 				});
-			if (actionType)
-			{
-				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-			}
 			return true;
 		}
 		else

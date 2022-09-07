@@ -2305,7 +2305,7 @@
 				}
 			}
 		}
-		
+
 		function drawFillCell(ctx, graphics, fill, rect) {
 			if (!fill.hasFill()) {
 				return;
@@ -2316,7 +2316,7 @@
 				ctx.setFillStyle(solid).fillRect(rect._x, rect._y, rect._width, rect._height);
 				return;
 			}
-			
+
 			var vector_koef = AscCommonExcel.vector_koef / ctx.getZoom();
 			if (AscCommon.AscBrowser.isCustomScaling()) {
 				vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
@@ -2353,7 +2353,7 @@
 					shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
 					shapeDrawer.draw(geometry);
 					graphics.RestoreGrState();
-					
+
 					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
 						graphics.SetBaseTransform(null);
 						graphics.RestoreGrState();
@@ -2671,7 +2671,7 @@
 
 				//Filter
 				this.filter = obj.filter;
-				
+
 				//Tooltip
 				this.tooltip = obj.tooltip;
 
@@ -3065,6 +3065,12 @@
 			this.isNeedRecalc = null;
 
 			this.specificRange = null;
+
+			//если запускаем новый поиск из-за измененного документа, то присылаем последний элемент, на который
+			//кликнул пользователь и далее пытаемся найти следующий/предыдущий
+			this.lastSearchElem = null;
+
+			this.isNotSearchEmptyCells = null;
 		}
 
 		asc_CFindOptions.prototype.clone = function () {
@@ -3096,6 +3102,9 @@
 			result.error = this.error;
 
 			result.specificRange = this.specificRange;
+			result.lastSearchElem = this.lastSearchElem;
+			result.isNotSearchEmptyCells = this.isNotSearchEmptyCells;
+
 			return result;
 		};
 
@@ -3106,7 +3115,7 @@
 		asc_CFindOptions.prototype.isEqual2 = function (obj) {
 			return obj && this.findWhat === obj.findWhat && this.scanByRows === obj.scanByRows &&
 				this.isMatchCase === obj.isMatchCase && this.isWholeCell === obj.isWholeCell &&
-				this.lookIn === obj.lookIn && this.specificRange == obj.specificRange;
+				this.lookIn === obj.lookIn && this.specificRange == obj.specificRange && this.isNotSearchEmptyCells == obj.isNotSearchEmptyCells;
 		};
 		asc_CFindOptions.prototype.clearFindAll = function () {
 			this.countFindAll = 0;
@@ -3143,6 +3152,8 @@
 		asc_CFindOptions.prototype.asc_setIsReplaceAll = function (val) {this.isReplaceAll = val;};
 		asc_CFindOptions.prototype.asc_setSpecificRange = function (val) {this.specificRange = val;};
 		asc_CFindOptions.prototype.asc_setNeedRecalc = function (val) {this.isNeedRecalc = val;};
+		asc_CFindOptions.prototype.asc_setLastSearchElem = function (val) {this.lastSearchElem = val;};
+		asc_CFindOptions.prototype.asc_setNotSearchEmptyCells = function (val) {this.isNotSearchEmptyCells = val;};
 
 		/** @constructor */
 		function findResults() {
@@ -3439,7 +3450,7 @@
 				}
 			}
 		};
-		
+
 		cDate.prototype.getDateFromExcelWithTime2 = function ( val ) {
 			return new cDate( val * c_msPerDay + this.getExcelNullDate() );
 		};
@@ -3691,6 +3702,8 @@
 		prot["asc_setIsReplaceAll"] = prot.asc_setIsReplaceAll;
 		prot["asc_setSpecificRange"] = prot.asc_setSpecificRange;
 		prot["asc_setNeedRecalc"] = prot.asc_setNeedRecalc;
+		prot["asc_setLastSearchElem"] = prot.asc_setLastSearchElem;
+		prot["asc_setNotSearchEmptyCells"] = prot.asc_setNotSearchEmptyCells;
 
 		window["AscCommonExcel"].findResults = findResults;
 

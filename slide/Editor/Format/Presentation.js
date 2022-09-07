@@ -4394,7 +4394,7 @@ CPresentation.prototype.Is_OnRecalculate = function () {
     return true;
 };
 CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
-    if (true === AscCommon.CollaborativeEditing.Get_GlobalLock() && !this.Api.isLiveViewer()) {
+    if (true === AscCommon.CollaborativeEditing.Get_GlobalLock()) {
         if (this.Api.forceSaveUndoRequest)
             this.Api.asc_Save(true);
 
@@ -4403,7 +4403,7 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
 
     if (this.Api.isLongAction())
         return;
-    if (true !== AscCommon.CollaborativeEditing.Is_Fast() || (true === AscCommon.CollaborativeEditing.Is_SingleUser() && !this.Api.isLiveViewer()))
+    if (true !== AscCommon.CollaborativeEditing.Is_Fast() || true === AscCommon.CollaborativeEditing.Is_SingleUser())
         return;
 
     var oController = this.GetCurrentController();
@@ -4423,7 +4423,7 @@ CPresentation.prototype.Continue_FastCollaborativeEditing = function () {
     }
 
     var CurTime = new Date().getTime();
-    if (!this.Api.isLiveViewer() && this.CheckNeedUpdateTargetForCollaboration() && (CurTime - this.LastUpdateTargetTime > 1000)) {
+    if (this.CheckNeedUpdateTargetForCollaboration() && (CurTime - this.LastUpdateTargetTime > 1000)) {
         this.NeedUpdateTargetForCollaboration = false;
         if (true !== bHaveChanges) {
             var CursorInfo = History.Get_DocumentPositionBinary();
@@ -5243,10 +5243,11 @@ CPresentation.prototype.unGroupShapes = function () {
 };
 
 CPresentation.prototype.addImages = function (aImages, placeholder) {
-    if (this.Slides[this.CurPage] && aImages.length) {
+    let oCurSlide = this.Slides[this.CurPage];
+    if (oCurSlide && aImages.length) {
         editor.WordControl.Thumbnails && editor.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
         this.FocusOnNotes = false;
-        var oController = this.Slides[this.CurPage].graphicObjects;
+        var oController = oCurSlide.graphicObjects;
         if (placeholder && undefined !== placeholder.id && aImages.length === 1 && aImages[0].Image) {
             var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
             if (oPh) {
@@ -5273,7 +5274,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                         Image.spPr.xfrm.setRot(oPh.rot);
                     }
                 }
-                Image.setParent(this.Slides[this.CurPage]);
+                Image.setParent(oCurSlide);
                 if (oPh.isObjectInSmartArt && oPh.isObjectInSmartArt()) {
                   if (oPh.spPr) {
                     var imageWidth = _image.Image.width;
@@ -5291,7 +5292,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                   if (this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh])) {
                     Image.addToDrawingObjects();
                   } else {
-                    this.Slides[this.CurPage].replaceSp(oPh, Image);
+                      oCurSlide.replaceSp(oPh, Image);
                   }
                   oController.selectObject(Image, 0);
                 }
@@ -5305,21 +5306,10 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
         }
         History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
         oController.resetSelection();
-        var _w, _h;
-        for (var i = 0; i < aImages.length; ++i) {
-            var _image = aImages[i];
+        for (let i = 0; i < aImages.length; ++i) {
+            let _image = aImages[i];
             if(_image.Image) {
-                _w = this.GetWidthMM();
-                _h = this.GetHeightMM();
-                var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
-                var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
-                var fKoeff = Math.min(1.0, 1.0 / Math.max(__w / _w, __h / _h));
-                _w = Math.max(5, __w * fKoeff);
-                _h = Math.max(5, __h * fKoeff);
-                var Image = oController.createImage(_image.src, (this.GetWidthMM() - _w) / 2, (this.GetHeightMM() - _h) / 2, _w, _h, _image.videoUrl, _image.audioUrl);
-                Image.setParent(this.Slides[this.CurPage]);
-                Image.addToDrawingObjects();
-                oController.selectObject(Image, 0);
+                oController.addImage(_image.src, _image.Image.width, _image.Image.height, _image.videoUrl, _image.audioUrl);
             }
         }
         this.Recalculate();
@@ -5347,6 +5337,20 @@ CPresentation.prototype.AddOleObject = function (fWidth, fHeight, nWidthPix, nHe
 
 CPresentation.prototype.EditOleObject = function (oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight) {
     oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight);
+};
+
+CPresentation.prototype.getImageDataFromSelection = function () {
+    let oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        return oSlide.graphicObjects.getImageDataFromSelection();
+    }
+    return null;
+};
+CPresentation.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight) {
+    let oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        oSlide.graphicObjects.putImageToSelection(sImageSrc, nWidth, nHeight);
+    }
 };
 
 
@@ -6690,6 +6694,7 @@ CPresentation.prototype.OnKeyDown = function (e) {
                     editor.sync_EndAddShape();
                     oDrawingObjects.endTrackNewShape();
                     this.UpdateCursorType(0, 0, new AscCommon.CMouseEventHandler());
+                    this.UpdateInterface();
                     return;
                 }
                 var oTargetTextObject = AscFormat.getTargetTextObject(oDrawingObjects);
@@ -11055,6 +11060,7 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
             else {
                 oSlide.graphicObjects.changeCurrentState(new AscFormat.AddPolyLine2State(oSlide.graphicObjects, true, bReplace, bPreview));
             }
+            this.TurnOff_InterfaceEvents();
             return;
         }
         if(this.IsSelectionLocked(AscCommon.changestype_Timing) === false) {
@@ -11064,11 +11070,13 @@ CPresentation.prototype.AddAnimation = function(nPresetClass, nPresetId, nPreset
             this.Document_UpdateInterfaceState();
             if(bPreview && aAddedEffects.length > 0) {
                 oSlide.graphicObjects.resetSelection();
-                this.GetCurTiming().resetSelection();
+                let oTiming = this.GetCurTiming();
+                oTiming.resetSelection();
                 for(var nEffect = 0; nEffect < aAddedEffects.length; ++nEffect) {
                     aAddedEffects[nEffect].select();
                 }
                 this.StartAnimationPreview();
+                oTiming.checkSelectedAnimMotionShapes();
             }
             else {
                 this.DrawingDocument.OnRecalculatePage(this.CurPage, oSlide);
@@ -11263,16 +11271,15 @@ CPresentation.prototype.FitImagesToSlide = function () {
 /**
  * Добавляем текст в текущую позицию с заданными текстовыми настройками
  * @param sText {string}
- * @param oTextPr {?CTextPr}
- * @param isMoveCursorOutside {boolean} выводим ли курсор за пределы нового рана
+ * @param {?AscCommon.CAddTextSettings} oSettings
  */
-CPresentation.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside)
+CPresentation.prototype.AddTextWithPr = function(sText, oSettings)
 {
     var oCurrentController = this.GetCurrentController();
     if (!oCurrentController) {
         return;
     }
-    oCurrentController.addTextWithPr(sText, oTextPr, isMoveCursorOutside);
+    oCurrentController.addTextWithPr(sText, oSettings);
 };
 
 CPresentation.prototype.AddTextArt = function (nStyle) {
@@ -11739,6 +11746,7 @@ CPresentation.prototype.fromXml = function(reader, bSkipFirstNode) {
     for(let nMaster = 0; nMaster < this.slideMasters.length; ++nMaster) {
         let oMaster = this.slideMasters[nMaster];
         oMaster.setSlideSize(dWidth, dHeight);
+        oMaster.setThemeIndex(-nMaster - 1)
         for(let nLayout = 0; nLayout < oMaster.sldLayoutLst.length; ++nLayout) {
             let oLayout = oMaster.sldLayoutLst[nLayout];
             oLayout.setSlideSize(dWidth, dHeight);
@@ -12257,7 +12265,7 @@ function IdList(name) {
 }
 AscFormat.InitClass(IdList, AscFormat.CBaseNoIdObject, undefined);
 IdList.prototype.readChildXml = function(name, reader) {
-    let oEntry = new IdEntry(name);
+    let oEntry = new AscFormat.IdEntry(name);
     oEntry.fromXml(reader);
     this.list.push(oEntry);
 };
@@ -12268,17 +12276,10 @@ IdList.prototype.writeChildrenXml = function(writer) {
 };
 IdList.prototype.readList = function(reader, fConstructor) {
     let aList = this.list;
-    let oRel;
-    let oRelPart;
     let aListOfObjects = [];
     for(let nItem = 0; nItem < aList.length; ++nItem) {
-        oRel = reader.rels.getRelationship(aList[nItem].rId);
-        oRelPart = reader.rels.pkg.getPartByUri(oRel.targetFullName);
-        let oContent = oRelPart.getDocumentContent();
-        let oReader = new AscCommon.StaxParser(oContent, oRelPart, reader.context);
-        let oElement = fConstructor(oReader);
+        let oElement = aList[nItem].readItem(reader, fConstructor);
         if(oElement) {
-            oElement.fromXml(oReader, true);
             aListOfObjects.push(oElement);
         }
     }
@@ -12301,7 +12302,7 @@ AscFormat.MIN_SLD_ID = MIN_SLD_ID;
 AscFormat.MIN_SLD_LAYOUT_ID = MIN_SLD_LAYOUT_ID;
 IdList.prototype.fillFromRIdList = function(aRId, sEntryName) {
     for(let nItem = 0; nItem < aRId.length; ++nItem) {
-        let oItem = new IdEntry(sEntryName);
+        let oItem = new AscFormat.IdEntry(sEntryName);
         let oRID = aRId[nItem];
         oItem.rId = oRID.rId;
         oItem.id = oRID.id;
@@ -12316,31 +12317,6 @@ IdList.prototype.writeRIdList = function(writer, aRId, sEntryName, nCounterBase)
 };
 
 
-function IdEntry(name) {
-    AscFormat.CBaseNoIdObject.call(this);
-    this.name = name;
-    this.id = null;
-    this.rId = null;
-}
-AscFormat.InitClass(IdEntry, AscFormat.CBaseNoIdObject, undefined);
-IdEntry.prototype.readAttrXml = function(name, reader) {
-    switch (reader.GetName()) {
-        case "id": {
-            this.id = reader.GetValue();
-            break;
-        }
-        case "r:id": {
-            this.rId = reader.GetValue();
-            break;
-        }
-    }
-};
-IdEntry.prototype.toXml = function(writer) {
-    writer.WriteXmlNodeStart(this.name);
-    writer.WriteXmlNullableAttributeString("id", this.id);
-    writer.WriteXmlNullableAttributeString("r:id", this.rId);
-    writer.WriteXmlAttributesEnd(true);
-};
 
 function CPresentationProperties(oPresentation) {
     AscFormat.CBaseNoIdObject.call(this);

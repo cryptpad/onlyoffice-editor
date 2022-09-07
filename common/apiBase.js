@@ -548,7 +548,7 @@
 	};
 	baseEditorsApi.prototype.isLiveViewer                     = function()
 	{
-		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast();
+		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast() && !this.VersionHistory;
 	};
 	// Events
 	baseEditorsApi.prototype.sendEvent                       = function()
@@ -620,32 +620,33 @@
 	};
 	baseEditorsApi.prototype.addTableOleObject = function(oleBinary)
 	{
-
-		if (AscCommon.isRealObject(oleBinary))
-		{
-			var _this = this;
-			if (oleBinary) {
-				if (!oleBinary['imageUrl']) {
-					var base64Image = oleBinary['base64Image'];
-					var fAfterUploadOleObjectImage = function (url) {
-						oleBinary['imageUrl'] = url;
-						_this.addTableOleObject(oleBinary);
-					}
-					var obj = {
-						fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
-					};
-					AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-						_this._uploadCallback(nError, files, obj);
-					});
-					return;
+		var _this = this;
+		if (oleBinary) {
+			if (!oleBinary['imageUrl'])
+			{
+				var base64Image = oleBinary['base64Image'];
+				var fAfterUploadOleObjectImage = function (url) {
+					oleBinary['imageUrl'] = url;
+					_this.addTableOleObject(oleBinary);
 				}
-				var blipUrl = oleBinary['imageUrl'];
-				var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary['binary']);
-				var sizes = AscCommon.getSourceImageSize(blipUrl);
-				var mmExtX = sizes.width * AscCommon.g_dKoef_pix_to_mm;
-				var mmExtY = sizes.height * AscCommon.g_dKoef_pix_to_mm;
-				this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true);
+				var obj = {
+					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+				};
+				AscCommon.sendImgUrls(_this, [base64Image], function(data) {
+					if (data[0] && data[0].path != null && data[0].url !== "error")
+					{
+						oleBinary['imageUrl'] = data[0].url;
+						_this._addImageUrl([data[0].url], obj);
+					}
+				}, _this.editorId === c_oEditorId.Spreadsheet);
+				return;
 			}
+			var blipUrl = oleBinary['imageUrl'];
+			var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary['binary']);
+			var sizes = AscCommon.getSourceImageSize(blipUrl);
+			var mmExtX = sizes.width * AscCommon.g_dKoef_pix_to_mm;
+			var mmExtY = sizes.height * AscCommon.g_dKoef_pix_to_mm;
+			this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true);
 		}
 	};
 	baseEditorsApi.prototype.asc_addTableOleObject = function(oleBinary)
@@ -657,47 +658,50 @@
 	{
 		this.editTableOleObject(oleBinary);
 	}
-	baseEditorsApi.prototype.editTableOleObject = function(oleBinary)
+	baseEditorsApi.prototype.editTableOleObject = function(oOleBinaryInfo)
 	{
-		if (AscCommon.isRealObject(oleBinary))
+		const oThis = this;
+		if (oOleBinaryInfo)
 		{
-			var _this = this;
-			if (oleBinary)
+			if (!oOleBinaryInfo['imageUrl'])
 			{
-				if (!oleBinary['imageUrl'])
-				{
-					var base64Image = oleBinary['base64Image'];
-					var fAfterUploadOleObjectImage = function (url) {
-						oleBinary['imageUrl'] = url;
-						_this.editTableOleObject(oleBinary);
-					}
-					var obj = {
-						fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
-					};
-					AscCommon.uploadDataUrlAsFile(base64Image, obj, function (nError, files, obj) {
-						_this._uploadCallback(nError, files, obj);
-					});
-					return;
+				const sBase64Image = oOleBinaryInfo['base64Image'];
+				const fAfterUploadOleObjectImage = function (sUrl) {
+					oOleBinaryInfo['imageUrl'] = sUrl;
+					oThis.editTableOleObject(oOleBinaryInfo);
 				}
-
-				var oController = this.getGraphicController();
-				if (oController)
-				{
-					var selectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
-					if (selectedObjects.oleObjects.length === 1)
+				const oOptions = {
+					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+				};
+				AscCommon.sendImgUrls(oThis, [sBase64Image], function(data) {
+					if (data[0] && data[0].path != null && data[0].url !== "error")
 					{
-						var selectedOleObject = selectedObjects.oleObjects[0];
-						var blipUrl = oleBinary['imageUrl'];
-						var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary['binary']);
-						var sizes = AscCommon.getSourceImageSize(blipUrl);
-						var mmExtX, mmExtY, adaptSizeHeight, adaptSizeWidth;
-						adaptSizeWidth = (sizes.width || 0);
-						adaptSizeHeight = (sizes.height || 0);
-						mmExtY = adaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
-						mmExtX = adaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
-
-						this.asc_editOleObjectAction(false, selectedOleObject, blipUrl, binaryDataOfSheet, mmExtX, mmExtY, adaptSizeWidth, adaptSizeHeight);
+						oOleBinaryInfo['imageUrl'] = data[0].url;
+						oThis._addImageUrl([data[0].url], oOptions);
 					}
+				}, oThis.editorId === c_oEditorId.Spreadsheet);
+				return;
+			}
+
+			const oController = this.getGraphicController();
+			if (oController)
+			{
+				const arrSelectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
+				if (arrSelectedObjects.oleObjects.length === 1)
+				{
+					const oSelectedOleObject = arrSelectedObjects.oleObjects[0];
+					const sBlipUrl = oOleBinaryInfo['imageUrl'];
+					const arrBinaryDataOfSheet = AscCommon.Base64.decode(oOleBinaryInfo['binary']);
+					const oSizes = AscCommon.getSourceImageSize(sBlipUrl);
+					const nImageWidthCoefficient = oOleBinaryInfo['widthCoefficient'] || 1;
+					const nImageHeightCoefficient = oOleBinaryInfo['heightCoefficient'] || 1;
+
+					let nMMExtX, nMMExtY, nAdaptSizeHeight, nAdaptSizeWidth;
+					nAdaptSizeWidth = (oSizes.width || 0) * nImageWidthCoefficient;
+					nAdaptSizeHeight = (oSizes.height || 0) * nImageHeightCoefficient;
+					nMMExtY = nAdaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
+					nMMExtX = nAdaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
+					this.asc_editOleObjectAction(false, oSelectedOleObject, sBlipUrl, arrBinaryDataOfSheet, nMMExtX, nMMExtY, nAdaptSizeWidth, nAdaptSizeHeight);
 				}
 			}
 		}
@@ -1835,7 +1839,10 @@
 		{
 			return;
 		}
-
+		this._downloadAsUsingServer(actionType, options, oAdditionalData, dataContainer, downloadType);
+	};
+	baseEditorsApi.prototype._downloadAsUsingServer                        = function (actionType, options, oAdditionalData, dataContainer, downloadType)
+	{
 		var t = this;
 		this.fCurCallback = null;
 		if (!options.callback)
@@ -2699,7 +2706,12 @@
 					{
 						var textPr = new AscCommonWord.CTextPr();
 						textPr.SetFontFamily(familyName);
-						this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+
+						let settings = new AscCommon.CAddTextSettings();
+						settings.SetTextPr(textPr);
+						settings.MoveCursorOutside(true);
+
+						this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), settings);
 					}
                     break;
                 }
@@ -3817,8 +3829,8 @@
 	//---------------------------------------------------------version----------------------------------------------------
 	baseEditorsApi.prototype["GetVersion"] = baseEditorsApi.prototype.GetVersion = function()
 	{
-		var ver = "@@Version";
-		return (ver === "0.0.0" || ver.substr(2) === "Version") ? "develop" : ver;
+		this.versionSdk = "@@Version";
+		return (this.versionSdk === "0.0.0" || this.versionSdk.substr(2) === "Version") ? "develop" : this.versionSdk;
 	};
 	//----------------------------------------------------------addons----------------------------------------------------
 	baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
@@ -3898,6 +3910,15 @@
 		this.openedAt = val;
 	};
 
+	baseEditorsApi.prototype.getImageDataFromSelection = function ()
+	{
+		return null;
+	};
+
+	baseEditorsApi.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight)
+	{
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3905,6 +3926,8 @@
 	prot = baseEditorsApi.prototype;
 	prot['asc_loadFontsFromServer'] = prot.asc_loadFontsFromServer;
 	prot['asc_setRestriction'] = prot.asc_setRestriction;
+	prot['asc_addRestriction'] = prot.asc_addRestriction;
+	prot['asc_removeRestriction'] = prot.asc_removeRestriction;
 	prot['asc_selectSearchingResults'] = prot.asc_selectSearchingResults;
 	prot['asc_showRevision'] = prot.asc_showRevision;
 	prot['asc_getAdvancedOptions'] = prot.asc_getAdvancedOptions;

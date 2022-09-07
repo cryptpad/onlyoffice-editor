@@ -1245,6 +1245,12 @@
 			case AscDFH.historydescription_Document_FillFormInPlugin:
 				sString = "Document_FillFormInPlugin";
 				break;
+			case AscDFH.historydescription_Document_AddComplexForm:
+				sString = "Document_AddComplexForm";
+				break;
+			case AscDFH.historydescription_Document_CorrectFormTextByFormat:
+				sString = "Document_CorrectFormTextByFormat";
+				break;
 		}
 		return sString;
 	}
@@ -3118,6 +3124,7 @@
     window['AscDFH'].historyitem_NotesMasterSetBg          = window['AscDFH'].historyitem_type_NotesMaster | 6;
     window['AscDFH'].historyitem_NotesMasterAddToNotesLst  = window['AscDFH'].historyitem_type_NotesMaster | 7;
     window['AscDFH'].historyitem_NotesMasterSetName        = window['AscDFH'].historyitem_type_NotesMaster | 8;
+    window['AscDFH'].historyitem_NotesMasterSetClrMap      = window['AscDFH'].historyitem_type_NotesMaster | 9;
 
 
     window['AscDFH'].historyitem_NotesSetClrMap           = window['AscDFH'].historyitem_type_Notes | 1;
@@ -4310,7 +4317,9 @@
 	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
 	window['AscDFH'].historydescription_Document_FillFormsByTags                    = 0x0193;
 	window['AscDFH'].historydescription_Document_FillFormInPlugin                   = 0x0194;
-	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0195;
+	window['AscDFH'].historydescription_Document_AddComplexForm                     = 0x0195;
+	window['AscDFH'].historydescription_Document_CorrectFormTextByFormat            = 0x0196;
+	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0197;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

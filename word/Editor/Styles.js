@@ -64,9 +64,9 @@ var g_dKoef_mm_to_twips = 1 / g_dKoef_twips_to_mm;
 var g_dKoef_mm_to_emu = 36000;
 var g_dKoef_emu_to_mm = 1 / 36000;
 var g_dKoef_emu_to_twips = g_dKoef_emu_to_mm * g_dKoef_mm_to_twips;
-var g_dKoef_twips_to_pt = 20;
+var g_dKoef_pt_to_twips = 20;
 var g_dKoef_twips_to_emu = 1 / g_dKoef_emu_to_twips;
-var g_dKoef_pt_to_twips = 1 / g_dKoef_twips_to_pt;
+var g_dKoef_twips_to_pt = 1 / g_dKoef_pt_to_twips;
 
 var tblwidth_Auto = 0x00;
 var tblwidth_Mm   = 0x01;
@@ -100,6 +100,19 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
+function private_GetWordLogicDocument()
+{
+	if(editor)
+	{
+		let oLogicDocument = null;
+		oLogicDocument = editor.private_GetLogicDocument && editor.private_GetLogicDocument();
+		if(oLogicDocument && oLogicDocument.IsDocumentEditor())
+		{
+			return oLogicDocument;
+		}
+	}
+	return null;
+}
 
 function IsEqualStyleObjects(Object1, Object2)
 {
@@ -358,7 +371,7 @@ CStyle.prototype =
 
 		if (isHandleNumbering && Value.NumPr instanceof CNumPr && Value.NumPr.IsValid())
 		{
-			var oLogicDocument = editor.WordControl.m_oLogicDocument;
+			var oLogicDocument = private_GetWordLogicDocument();
 			if (oLogicDocument)
 			{
 				var oNumbering = oLogicDocument.GetNumbering();
@@ -5978,7 +5991,9 @@ CStyle.prototype =
 		if (!oHistory)
 			return;
 
-		var LogicDocument = editor.WordControl.m_oLogicDocument;
+		var LogicDocument = private_GetWordLogicDocument();
+		if(!LogicDocument)
+			return;
 		var Styles        = LogicDocument.Get_Styles();
 
 		var AllParagraphs = [];
@@ -6238,7 +6253,7 @@ CStyle.prototype =
     {
         if (true === LinkData.StyleUpdate)
         {
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
+            var LogicDocument = private_GetWordLogicDocument();
             if (!LogicDocument)
                 return;
 
@@ -8993,7 +9008,7 @@ CStyles.prototype =
 		}
 
 		// Копируем свойства из стиля нумерации
-		var oLogicDocument = this.private_GetLogicDocument();
+		var oLogicDocument = private_GetWordLogicDocument();
 		if (oLogicDocument
 			&& Style.ParaPr.NumPr
 			&& (styletype_Paragraph === Type || styletype_Table === Type))
@@ -9223,7 +9238,9 @@ CStyles.prototype =
         if (undefined != StyleId)
         {
             // TODO: Надо сделать механизм, чтобы данное действие не вызывалось много раз подряд, а только 1.
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
+            var LogicDocument = private_GetWordLogicDocument();
+			if(!LogicDocument)
+				return;
 
             var AllParagraphs = [];
 
@@ -9254,8 +9271,8 @@ CStyles.prototype =
         {
             var StyleId = LinkData.UpdateStyleId;
 
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
-            if (!LogicDocument || !LogicDocument.IsDocumentEditor())
+            var LogicDocument = private_GetWordLogicDocument();
+            if (!LogicDocument)
                 return;
 
             var AllParagraphs = [];
@@ -14800,7 +14817,7 @@ CTextPr.prototype.SetAscColor = function(oAscColor)
 		this.Unifill.fill       = new AscFormat.CSolidFill();
 		this.Unifill.fill.color = AscFormat.CorrectUniColor(oAscColor, this.Unifill.fill.color, 1);
 
-		var oLogicDocument = editor && editor.private_GetLogicDocument() ? editor.private_GetLogicDocument() : null;
+		var oLogicDocument = private_GetWordLogicDocument();
 		if (oLogicDocument)
 			this.Unifill.check(oLogicDocument.GetTheme(), oLogicDocument.GetColorMap());
 
@@ -15954,13 +15971,15 @@ CNumPr.prototype.Copy = function()
 };
 CNumPr.prototype.IsValid = function()
 {
-	if (undefined === this.NumId
-		|| null === this.NumId
-		|| 0 === this.NumId
-		|| "0" === this.NumId)
-		return false;
-
-	return true;
+	return (!this.IsZero() && undefined !== this.NumId && null !== this.NumId);
+};
+/**
+ * Нулевая нумерация используется для сброса нумерации в иерархии
+ * @returns {boolean}
+ */
+CNumPr.prototype.IsZero = function()
+{
+	return (0 === this.NumId || "0" === this.NumId);
 };
 CNumPr.prototype.IsEqual = function(oNumPr)
 {
@@ -17898,6 +17917,7 @@ asc_CStyle.prototype.get_TextPr = function()
 };
 //---------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};
+window['AscWord'] = window['AscWord'] || {};
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window["Asc"]["asc_CStyle"] = window["Asc"].asc_CStyle = asc_CStyle;
 asc_CStyle.prototype["get_Name"]    = asc_CStyle.prototype.get_Name;
@@ -17939,6 +17959,9 @@ window["AscCommonWord"].wrap_None = wrap_None;
 window["AscCommonWord"].wrap_NotBeside = wrap_NotBeside;
 window["AscCommonWord"].wrap_Through = wrap_Through;
 window["AscCommonWord"].wrap_Tight = wrap_Tight;
+
+window["AscWord"].CStyle = CStyle;
+window["AscWord"].CNumPr = CNumPr;
 
 
 // Создаем глобальные дефолтовые стили, чтобы быстро можно было отдать дефолтовые настройки

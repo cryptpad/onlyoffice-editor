@@ -1155,6 +1155,18 @@
     {
         return new CUnicodeIterator(this);
     };
+	/**
+	 * @returns {number[]}
+	 */
+	String.prototype.codePointsArray = function(codePoints)
+	{
+		let _codePoints = codePoints ? codePoints : [];
+
+		for (let iter = this.getUnicodeIterator(); iter.check(); iter.next())
+			_codePoints.push(iter.value());
+
+		return _codePoints;
+	};
 
 	var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : undefined;
 	function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
@@ -1864,10 +1876,10 @@
 	}
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
-		if (false === _ShowFileDialog("image/*", true, true, ValidateUploadImage, callback)) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscImageUploadProp.SupportedFormats), true, true, ValidateUploadImage, callback)) {
 			//todo remove this compatibility
 			var frameWindow = GetUploadIFrame();
-			var url = sUploadServiceLocalUrlOld + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+			var url = sUploadServiceLocalUrlOld + '/' + documentId;
 			if (jwt)
 			{
 				url += '?token=' + encodeURIComponent(jwt);
@@ -2063,7 +2075,7 @@
 	{
 		if (files.length > 0)
 		{
-			var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+			var url = sUploadServiceLocalUrl + '/' + documentId;
 
 			var aFiles = [];
 			for(var i = files.length - 1;  i > - 1; --i){
@@ -2092,7 +2104,7 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
@@ -2126,7 +2138,7 @@
     {
         if (files.length > 0)
         {
-            var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+            var url = sUploadServiceLocalUrl + '/' + documentId;
 
             var aFiles = [];
             for(var i = files.length - 1;  i > - 1; --i){
@@ -2160,7 +2172,7 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
@@ -3598,7 +3610,7 @@
 						// Some data has been received; however, neither responseText nor responseBody is available.
 						break;
 					case 4:
-						if (httpRequest.status === 200 || httpRequest.status === 1223)
+						if (httpRequest.status === 200 || httpRequest.status === 1223 || url.indexOf("file:") == 0)
 						{
 							if (typeof success === "function")
 								success(httpRequest);
@@ -12832,7 +12844,7 @@
 	window["AscCommon"].UTF8ArrayToString = UTF8ArrayToString;
 	window["AscCommon"].build_local_rx = build_local_rx;
 	window["AscCommon"].GetFileName = GetFileName;
-	window["AscCommon"].GetFileExtension = GetFileExtension;
+	window["AscCommon"]['GetFileExtension'] = window["AscCommon"].GetFileExtension = GetFileExtension;
 	window["AscCommon"].changeFileExtention = changeFileExtention;
 	window["AscCommon"].getExtentionByFormat = getExtentionByFormat;
 	window["AscCommon"].InitOnMessage = InitOnMessage;
