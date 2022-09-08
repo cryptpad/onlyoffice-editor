@@ -2564,19 +2564,22 @@
 		if (typeof sFontFamily !== "string")
 			return null;
 
+		var oThis               = this;
 		var loader				= AscCommon.g_font_loader;
 		var fontinfo			= g_fontApplication.GetFontInfo(sFontFamily);
-		var isasync				= loader.LoadFont(fontinfo);
-		var Document			= null;
+		var isasync				= loader.LoadFont(fontinfo, setFontFamily);
+		var Document			= private_GetLogicDocument();
 		var oldSelectionInfo	= undefined;
 
 		if (isasync === false)
-		{
-			Document			= private_GetLogicDocument();
-			oldSelectionInfo	= Document.SaveDocumentState();
+			setFontFamily()
 
-			this.Select(false);
-			if (this.isEmpty || this.isEmpty === undefined)
+		function setFontFamily()
+		{
+			oldSelectionInfo = Document.SaveDocumentState();
+
+			oThis.Select(false);
+			if (oThis.isEmpty || oThis.isEmpty === undefined)
 			{
 				Document.LoadDocumentState(oldSelectionInfo);
 				return null;
@@ -2601,13 +2604,13 @@
 			var ParaTextPr = new AscCommonWord.ParaTextPr({FontFamily : FontFamily});
 			Document.AddToParagraph(ParaTextPr);
 			
-			this.TextPr.Merge(ParaTextPr.Value);
+			oThis.TextPr.Merge(ParaTextPr.Value);
 
 			Document.LoadDocumentState(oldSelectionInfo);
 			Document.UpdateSelection();
-
-			return this;
 		}
+
+		return this;
 	};
 
 	/**
@@ -7021,32 +7024,34 @@
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
 	 * @param {string} sFontFamily - The font family or families used for the current paragraph.
-	 * @returns {ApiParagraph | false} 
+	 * @returns {?ApiParagraph} this
 	 */
 	ApiParagraph.prototype.SetFontFamily = function(sFontFamily)
 	{
 		if (typeof sFontFamily !== "string")
-			return false;
+			return null;
 
+		var oThis    = this;
 		var loader   = AscCommon.g_font_loader;
 		var fontinfo = g_fontApplication.GetFontInfo(sFontFamily);
-		var isasync  = loader.LoadFont(fontinfo);
+		var isasync  = loader.LoadFont(fontinfo, setFontFamily);
 
 		if (isasync === false)
+			setFontFamily()
+
+		function setFontFamily()
 		{
 			var FontFamily = {
 				Name : sFontFamily,
 				Index : -1
 			};
 
-			this.Paragraph.SetApplyToAll(true);
-			this.Paragraph.Add(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
-			this.Paragraph.SetApplyToAll(false);
-			
-			return this;
+			oThis.Paragraph.SetApplyToAll(true);
+			oThis.Paragraph.Add(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
+			oThis.Paragraph.SetApplyToAll(false);
 		}
-		
-		return false;
+
+		return this;
 	};
 	/**
 	 * Returns all font names from all elements inside the current paragraph.
