@@ -3934,32 +3934,34 @@ var editor;
    * @param {{}} [oOleObjectInfo] info from oleObject
    */
   spreadsheet_api.prototype.asc_addTableOleObjectInOleEditor = function(oOleObjectInfo) {
-  this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
-    oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
-    const sStream = oOleObjectInfo["binary"];
-    const oThis = this;
-    const oFile = new AscCommon.OpenFileResult();
-    oFile.bSerFormat = AscCommon.checkStreamSignature(sStream, AscCommon.c_oSerFormat.Signature);
-    oFile.data = sStream;
-    this.isEditOleMode = true;
-    this.isChartEditor = false;
-    this.isFromSheetEditor = oOleObjectInfo["isFromSheetEditor"];
-    const oDocumentImageUrls = oOleObjectInfo["documentImageUrls"];
-    this.asc_CloseFile();
-    this.fAfterLoad = function () {
-        const nImageWidth = oOleObjectInfo["imageWidth"];
-        const nImageHeight = oOleObjectInfo["imageHeight"];
-        if (nImageWidth && nImageHeight) {
-            oThis.saveImageCoefficients = oThis.getScaleCoefficientsForOleTableImage(nImageWidth, nImageHeight);
-        }
-        oThis.wb.scrollToOleSize();
-        oThis.wb.onOleEditorReady();
-        delete oThis.imagesFromGeneralEditor;
-        oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
-    }
+      this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
+      // на случай, если изображение поставили на загрузку, закрыли редактор, и потом опять открыли
+      this.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
+      oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
+      const sStream = oOleObjectInfo["binary"];
+      const oThis = this;
+      const oFile = new AscCommon.OpenFileResult();
+      oFile.bSerFormat = AscCommon.checkStreamSignature(sStream, AscCommon.c_oSerFormat.Signature);
+      oFile.data = sStream;
+      this.isEditOleMode = true;
+      this.isChartEditor = false;
+      this.isFromSheetEditor = oOleObjectInfo["isFromSheetEditor"];
+      const oDocumentImageUrls = oOleObjectInfo["documentImageUrls"];
+      this.asc_CloseFile();
+      this.fAfterLoad = function () {
+          const nImageWidth = oOleObjectInfo["imageWidth"];
+          const nImageHeight = oOleObjectInfo["imageHeight"];
+          if (nImageWidth && nImageHeight) {
+              oThis.saveImageCoefficients = oThis.getScaleCoefficientsForOleTableImage(nImageWidth, nImageHeight);
+          }
+          oThis.wb.scrollToOleSize();
+          oThis.wb.onOleEditorReady();
+          delete oThis.imagesFromGeneralEditor;
+          oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
+      }
 
-    this.imagesFromGeneralEditor = oDocumentImageUrls;
-    this.openDocument(oFile);
+      this.imagesFromGeneralEditor = oDocumentImageUrls;
+      this.openDocument(oFile);
     };
   /**
    * get binary info about changed ole object
