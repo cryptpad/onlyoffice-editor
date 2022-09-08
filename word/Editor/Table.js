@@ -251,7 +251,7 @@ function CTable(DrawingDocument, Parent, Inline, Rows, Cols, TableGrid, bPresent
 
     this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
-    g_oTableId.Add( this, this.Id );
+	AscCommon.g_oTableId.Add(this, this.Id);
 }
 
 CTable.prototype = Object.create(CDocumentContentElementBase.prototype);
@@ -3821,6 +3821,10 @@ CTable.prototype.Is_Inline = function()
 CTable.prototype.IsInline = function()
 {
 	return this.Is_Inline();
+};
+CTable.prototype.SetInline = function(isInline)
+{
+	return this.Set_Inline(isInline);
 };
 /**
  * Берем настройки рамки для всей таблицы
@@ -8574,6 +8578,10 @@ CTable.prototype.Set_PositionH = function(RelativeFrom, Align, Value)
 	this.PositionH.Align        = Align;
 	this.PositionH.Value        = Value;
 };
+CTable.prototype.SetPositionH = function(relativeFrom, align, value)
+{
+	return this.Set_PositionH(relativeFrom, align, value);
+};
 CTable.prototype.Get_PositionHValueInTwips = function() {
 	var res;
 	if(this.PositionH && null !== this.PositionH.Value && undefined !== this.PositionH.Value) {
@@ -8602,6 +8610,10 @@ CTable.prototype.Set_PositionV = function(RelativeFrom, Align, Value)
 	this.PositionV.RelativeFrom = RelativeFrom;
 	this.PositionV.Align        = Align;
 	this.PositionV.Value        = Value;
+};
+CTable.prototype.SetPositionV = function(relativeFrom, align, value)
+{
+	return this.Set_PositionV(relativeFrom, align, value);
 };
 CTable.prototype.Get_PositionVValueInTwips = function() {
 	var res;

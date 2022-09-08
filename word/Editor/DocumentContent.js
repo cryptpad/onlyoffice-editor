@@ -363,7 +363,7 @@ CDocumentContent.prototype.Get_PageLimits = function(nCurPage)
 		return {X : 0, Y : 0, XLimit : W, YLimit : H};
 	}
 };
-CDocumentContent.prototype.Get_PageFields = function(PageIndex, isHdrFtr)
+CDocumentContent.prototype.Get_PageFields = function(PageIndex, isHdrFtr, oSectPr)
 {
 	if (this.Parent && (this.Parent.IsCell() || (undefined !== AscFormat.CShape && this.Parent instanceof AscFormat.CShape)))
 	{

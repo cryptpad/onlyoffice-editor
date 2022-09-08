@@ -10913,6 +10913,10 @@ CDocumentBorder.prototype.IsNone = function()
 {
 	return (this.Value === border_None);
 };
+CDocumentBorder.prototype.SetNone = function()
+{
+	this.Value = border_None;
+};
 CDocumentBorder.prototype.setSizeIn8Point = function(val)
 {
 	if(null !== val && undefined !== val) {
@@ -17960,8 +17964,9 @@ window["AscCommonWord"].wrap_NotBeside = wrap_NotBeside;
 window["AscCommonWord"].wrap_Through = wrap_Through;
 window["AscCommonWord"].wrap_Tight = wrap_Tight;
 
-window["AscWord"].CStyle = CStyle;
-window["AscWord"].CNumPr = CNumPr;
+window["AscWord"].CStyle  = CStyle;
+window["AscWord"].CNumPr  = CNumPr;
+window["AscWord"].CBorder = CDocumentBorder;
 
 
 // Создаем глобальные дефолтовые стили, чтобы быстро можно было отдать дефолтовые настройки
