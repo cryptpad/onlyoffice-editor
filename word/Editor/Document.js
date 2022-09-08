@@ -2014,6 +2014,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.ForceDrawPlaceHolders     = null;  // true/false - насильно заставляем рисовать или не рисовать плейсхолдеры и подсветку,
 	this.ForceDrawFormHighlight    = null;  // null - редактор решает рисовать или нет в зависимости от других параметров
 	this.ConcatParagraphsOnRemove  = false; // Во время удаления объединять ли первый и последний параграфы
+	this.StartCheckTextFormFormat  = false; // Флаг, что в данный момент мы уже проверяем формат текстовых форм, чтобы не вызывать повторно
+
 
 	this.DrawTableMode = {
 		Start  : false,
@@ -12212,8 +12214,11 @@ CDocument.prototype.CheckTextFormFormatOnBlur = function(oForm)
 		|| !oForm.IsForm()
 		|| !oForm.IsTextForm()
 		|| oForm.IsComplexForm()
-		|| oForm.IsPlaceHolder())
+		|| oForm.IsPlaceHolder()
+		|| this.StartCheckTextFormFormat)
 		return;
+
+	this.StartCheckTextFormFormat = true;
 
 	let sInnerText  = oForm.GetInnerText();
 	let oTextFormPr = oForm.GetTextFormPr();
@@ -12245,6 +12250,8 @@ CDocument.prototype.CheckTextFormFormatOnBlur = function(oForm)
 	}
 
 	this.History.ClearFormFillingInfo();
+
+	this.StartCheckTextFormFormat = false;
 };
 CDocument.prototype.private_UpdateFormInnerText = function(form, text)
 {
