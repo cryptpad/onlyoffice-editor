@@ -3944,6 +3944,7 @@ var editor;
     this.isEditOleMode = true;
     this.isChartEditor = false;
     this.isFromSheetEditor = oOleObjectInfo["isFromSheetEditor"];
+    const oDocumentImageUrls = oOleObjectInfo["documentImageUrls"];
     this.asc_CloseFile();
     this.fAfterLoad = function () {
         const nImageWidth = oOleObjectInfo["imageWidth"];
@@ -3953,8 +3954,11 @@ var editor;
         }
         oThis.wb.scrollToOleSize();
         oThis.wb.onOleEditorReady();
+        delete oThis.imagesFromGeneralEditor;
         oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
     }
+
+    this.imagesFromGeneralEditor = oDocumentImageUrls;
     this.openDocument(oFile);
     };
   /**
@@ -3970,7 +3974,7 @@ var editor;
 
     oBinaryInfo["binary"] = sCleanBinaryData;
     oBinaryInfo["base64Image"] = sDataUrl;
-    oBinaryInfo["isFromSheetEditor"] =this.isFromSheetEditor;
+    oBinaryInfo["isFromSheetEditor"] = this.isFromSheetEditor;
     if (this.saveImageCoefficients) {
         oBinaryInfo["widthCoefficient"] = this.saveImageCoefficients.widthCoefficient;
         oBinaryInfo["heightCoefficient"] = this.saveImageCoefficients.heightCoefficient;
