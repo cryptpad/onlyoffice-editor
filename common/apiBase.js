@@ -685,7 +685,7 @@
 			}
 			case c_oGatewayFrameGeneralInformationType.SendImageUrls:
 			{
-				AscCommon.sendImgUrls(this, oInformation["images"], function () {}, this.IsSpreadSheetEditor(), oInformation["bNotShowError"], oInformation["token"]);
+				AscCommon.sendImgUrls(this, oInformation["images"], function () {}, this.editorId === c_oEditorId.Spreadsheet, oInformation["bNotShowError"], oInformation["token"]);
 				break;
 			}
 			default:

@@ -2731,10 +2731,10 @@
 
 				var aImagesToDownload = this._getImageFromHtml(node, true);
 				var specialPasteProps = window['AscCommon'].g_specialPasteHelper.specialPasteProps;
-				if (aImagesToDownload !== null &&
+				var api = Asc["editor"];
+				if (!api.isChartEditor && aImagesToDownload !== null &&
 					(!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server
 				{
-					var api = Asc["editor"];
 					AscCommon.sendImgUrls(api, aImagesToDownload, function (data) {
 						for (var i = 0, length = Math.min(data.length, aImagesToDownload.length); i < length; ++i) {
 							var elem = data[i];
