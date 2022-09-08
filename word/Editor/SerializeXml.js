@@ -2795,8 +2795,7 @@
 				case "monthShort":
 					break;
 				case "noBreakHyphen":
-					newItem = new AscWord.CRunText(0x002D);
-					newItem.Set_SpaceAfter(false);
+					newItem = AscWord.CreateNonBreakingHyphen();
 					break;
 				case "object":
 					newItem = this.readVMLDrawing(reader, name);

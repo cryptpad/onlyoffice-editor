@@ -2405,11 +2405,16 @@ CDocument.prototype.Get_PageLimits = function(nPageIndex)
 		YLimit : oSectPr.GetPageHeight()
 	};
 };
-CDocument.prototype.Get_PageFields = function(nPageIndex, isHdrFtr)
+CDocument.prototype.Get_PageFields = function(nPageIndex, isHdrFtr, oSectPr)
 {
-	var oPage   = this.Pages[nPageIndex];
-	var nIndex  = oPage ? oPage.Pos : 0;
-	var oSectPr = this.SectionsInfo.Get_SectPr(nIndex).SectPr;
+	let oPage = this.Pages[nPageIndex];
+
+	if (!oSectPr)
+	{
+		let nIndex = oPage ? oPage.Pos : 0;
+		oSectPr    = this.SectionsInfo.Get_SectPr(nIndex).SectPr;
+	}
+
 	var oFrame  = oSectPr.GetContentFrame(nPageIndex);
 	if (!oPage)
 	{
@@ -9449,10 +9454,7 @@ CDocument.prototype.OnKeyDown = function(e)
 				this.DrawingDocument.TargetStart();
 				this.DrawingDocument.TargetShow();
 
-				var oItem = new AscWord.CRunText(0x002D);
-				oItem.Set_SpaceAfter(false);
-
-				this.AddToParagraph(oItem);
+				this.AddToParagraph(AscWord.CreateNonBreakingHyphen());
 				this.FinalizeAction();
 			}
 			bRetValue = keydownresult_PreventAll;
@@ -24776,8 +24778,7 @@ CDocument.prototype.AddSpecialSymbol = function(oPr)
 	{
 		if (true === oPr["NonBreakingHyphen"])
 		{
-			oItem = new AscWord.CRunText(0x002D);
-			oItem.Set_SpaceAfter(false);
+			oItem = AscWord.CreateNonBreakingHyphen();
 		}
 	}
 

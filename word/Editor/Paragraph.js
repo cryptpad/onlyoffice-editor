@@ -14436,6 +14436,14 @@ Paragraph.prototype.Set_SectionPr = function(SectPr, bUpdate)
 		}
 	}
 };
+Paragraph.prototype.SetSectionPr = function(sectPr, isUpdate)
+{
+	return this.Set_SectionPr(sectPr, isUpdate);
+};
+Paragraph.prototype.RemoveSectionPr = function(isUpdate)
+{
+	return this.Set_SectionPr(undefined, isUpdate);
+};
 Paragraph.prototype.GetLastRangeVisibleBounds = function()
 {
 	var CurLine = this.Lines.length - 1;

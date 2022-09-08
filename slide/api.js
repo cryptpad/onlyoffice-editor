@@ -4223,6 +4223,13 @@ background-repeat: no-repeat;\
 			if(slide) 
 			{
 				this.WordControl.m_oDrawingDocument.OnRecalculatePage(this.WordControl.m_oLogicDocument.CurPage, slide);
+				if(!bShow)
+				{
+					if(slide.timing)
+					{
+						slide.timing.checkSelectedAnimMotionShapes();
+					}
+				}
 			}
 		}
 	};
