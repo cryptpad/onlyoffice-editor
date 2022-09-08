@@ -674,18 +674,18 @@
 
 	baseEditorsApi.prototype.asc_getInformationBetweenFrameAndGeneralEditor = function (oData)
 	{
-		const type = oData.typeOfInformation;
-		delete oData.typeOfInformation;
-		switch (type)
+		const nType = oData["typeOfInformation"];
+		const oInformation = oData["information"]
+		switch (nType)
 		{
 			case c_oGatewayFrameGeneralInformationType.GetLoadedImages:
 			{
-				this.CoAuthoringApi.onDocumentOpen(oData, true);
+				this.CoAuthoringApi.onDocumentOpen(oInformation["inputWrap"], true);
 				break;
 			}
 			case c_oGatewayFrameGeneralInformationType.SendImageUrls:
 			{
-				AscCommon.sendCommand(this, null, oData);
+				AscCommon.sendImgUrls(this, oInformation["images"], function () {}, this.IsSpreadSheetEditor(), oInformation["bNotShowError"], oInformation["token"]);
 				break;
 			}
 			default:
@@ -1479,9 +1479,13 @@
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
 			if (t.isOpenedChartFrame) {
-				inputWrap.typeOfInformation = c_oGatewayFrameGeneralInformationType.GetLoadedImages;
-				t.sendFromGeneralToFrameEditor(inputWrap);
-				return;
+				const oSentInformation = {
+					"typeOfInformation": c_oGatewayFrameGeneralInformationType.GetLoadedImages,
+					"information": {
+						"inputWrap": inputWrap
+					}
+				};
+				t.sendFromGeneralToFrameEditor(oSentInformation);
 			}
 			if (AscCommon.EncryptionWorker.isNeedCrypt())
 			{

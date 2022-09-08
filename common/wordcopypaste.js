@@ -2217,10 +2217,17 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
     callback(data);
   };
   if (api.isEditOleMode) {
-      rData.typeOfInformation = AscCommon.c_oGatewayFrameGeneralInformationType.SendImageUrls;
-      api.sendFromFrameToGeneralEditor(rData);
-      return;
-  }
+    const sendInformation = {
+      "typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.SendImageUrls,
+      "information": {
+          "images": images,
+          "bNotShowError": bNotShowError,
+          "token": token
+        }
+    }
+    api.sendFromFrameToGeneralEditor(sendInformation);
+    return;
+    }
   AscCommon.sendCommand(api, null, rData);
 }
 function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel, pasteCallback)
