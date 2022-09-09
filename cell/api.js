@@ -3937,6 +3937,9 @@ var editor;
       this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
       // на случай, если изображение поставили на загрузку, закрыли редактор, и потом опять открыли
       this.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
+      this.sendFromFrameToGeneralEditor({
+          "typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.OpenFrame
+      });
       oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
       const sStream = oOleObjectInfo["binary"];
       const oThis = this;

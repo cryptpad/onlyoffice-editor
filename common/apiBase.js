@@ -688,6 +688,12 @@
 				AscCommon.sendImgUrls(this, oInformation["images"], function () {}, this.editorId === c_oEditorId.Spreadsheet, true, oInformation["token"]);
 				break;
 			}
+			case c_oGatewayFrameGeneralInformationType.OpenFrame: // TODO: это нужно перенести в web-apps,
+				// при открытии и закрытии фрейма метод должен вызываться там, в 7.2 это сделать не успели
+			{
+				this.asc_onOpenChartFrame();
+				break;
+			}
 			default:
 			{
 				break;
