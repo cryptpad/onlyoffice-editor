@@ -9213,13 +9213,27 @@ background-repeat: no-repeat;\
 		else
 			this.WordControl.m_oLogicDocument.RejectRevisionChangesBySelection();
 	};
-	asc_docs_api.prototype.asc_AcceptChangesBySelection        = function(isForce)
+	asc_docs_api.prototype.asc_AcceptChangesBySelection        = function(moveToNext)
 	{
-		this.WordControl.m_oLogicDocument.AcceptRevisionChangesBySelection(isForce);
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return;
+
+		logicDocument.AcceptRevisionChangesBySelection();
+
+		if (moveToNext)
+			logicDocument.GetNextRevisionChange();
 	};
-	asc_docs_api.prototype.asc_RejectChangesBySelection        = function(isForce)
+	asc_docs_api.prototype.asc_RejectChangesBySelection        = function(moveToNext)
 	{
-		this.WordControl.m_oLogicDocument.RejectRevisionChangesBySelection(isForce);
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return;
+
+		logicDocument.RejectRevisionChangesBySelection();
+
+		if (moveToNext)
+			logicDocument.GetNextRevisionChange();
 	};
 	asc_docs_api.prototype.asc_HaveRevisionsChanges            = function(isCheckOwnChanges)
 	{
