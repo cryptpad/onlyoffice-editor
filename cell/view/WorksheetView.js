@@ -3715,7 +3715,7 @@
 				str.format = portion[i].format.clone();
 				//TODO уменьшаю только размер текста. пересмотреть!
 				var fSize = str.format.fs ? str.format.fs : AscCommonExcel.g_oDefaultFormat.Font.fs;
-				str.format.fs = fSize * printScale;
+				str.format.fs = isPrintPreview ? fSize * printScale : fSize;
 				res.push(str);
 			}
 			return res;
@@ -3738,12 +3738,13 @@
 			printScale = scaleWithDoc ? 1 : 1 / _printScale;
 		}
 
-
 		//for print preview
 		var printScaleForPrintPreview = 1;
-		if (this.workbook.printPreviewState && this.workbook.printPreviewState.isStart()) {
+		if (isPrintPreview) {
 			printScaleForPrintPreview = printPagesData.scale;
 			vector_koef = vector_koef * printScaleForPrintPreview;
+		} else {
+			vector_koef = vector_koef * printScale;
 		}
 
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
@@ -3759,6 +3760,11 @@
 		//для превью - делю на zoom
 		var top = margins.header / (AscCommonExcel.vector_koef / (this.getZoom() / printScaleForPrintPreview));
 		var bottom = margins.footer / (AscCommonExcel.vector_koef / (this.getZoom() / printScaleForPrintPreview));
+
+		if (!isPrintPreview) {
+			top = top / printScale;
+			bottom = bottom / printScale;
+		}
 
 		//TODO пересмотреть минимальный отступ
 		var rowTop = (this._getRowTop(0) - this.groupHeight) / printScaleForPrintPreview;
@@ -3807,22 +3813,23 @@
 
 		//добавил аналогично другим отрисовка.
 		//без этого отсутвует drawingCtx.DocumentRenderer.m_arrayPages[0].FontPicker.LastPickFont
-		/*var transformMatrix;
-		if (printScale !== 1 && drawingCtx.Transform) {
+		//пока добавляю зум от printScale не для предварительного просмотра. пп - проверить и сделать аналогично
+		var transformMatrix;
+		if (!isPrintPreview && printScale !== 1 && drawingCtx.Transform) {
 			transformMatrix = drawingCtx.Transform.CreateDublicate();
 
 			drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, 0, 0);
-		}*/
+		}
 
 		this._setDefaultFont(drawingCtx);
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
 
-		/*if (transformMatrix) {
+		if (transformMatrix) {
 			drawingCtx.setTransform(transformMatrix.sx, transformMatrix.shy, transformMatrix.shx,
 				transformMatrix.sy, transformMatrix.tx, transformMatrix.ty);
-		}*/
+		}
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
