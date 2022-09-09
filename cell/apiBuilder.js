@@ -87,6 +87,7 @@
 	 * @property {ApiRange} Rows - Returns the ApiRange object that represents the rows of the specified range.
 	 * @property {ApiRange} Cols - Returns the ApiRange object that represents the columns of the specified range.
 	 * @property {number} Count - Returns the rows or columns count.
+	 * @property {string} Address - Returns the range address.
 	 * @property {string} Value - Returns a value from the first cell of the specified range or sets it to this cell.
 	 * @property {string} Formula - Returns a formula from the first cell of the specified range or sets it to this cell.
 	 * @property {string} Value2 - Returns the value2 (value without format) from the first cell of the specified range or sets it to this cell.
@@ -1871,7 +1872,7 @@
 	};
 
 	/**
-	 * Returns the cell address.
+	 * Returns the range address.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @param {boolean} RowAbs - Defines if the link to the row is absolute or not.
@@ -1885,6 +1886,8 @@
 		// todo поправить, чтобы возвращал адреса всех areas внутри range
 		var range = this.range.bbox;
 		var isOneCell = this.range.isOneCell();
+		var isOneCol = (this.range.bbox.c1 === this.range.bbox.c2 && this.range.bbox.r1 === 0 && this.range.bbox.r2 === AscCommon.gc_nMaxRow0);
+		var isOneRow = (this.range.bbox.r1 === this.range.bbox.r2 && this.range.bbox.c1 === 0 && this.range.bbox.c2 === AscCommon.gc_nMaxCol0);
 		var ws = this.range.worksheet;
 		var value;
 		var row1 = range.r1 + ( (RowAbs || RefStyle != "xlR1C1") ? 1 : 0),
@@ -1909,17 +1912,22 @@
 				col1 = "C" + ((col1 - tmpC) !== 0 ? "[" + (col1 - tmpC) + "]" : "");
 				col2 = isOneCell ? "" : "C" + ((col2 - tmpC) !== 0 ? "[" + (col2 - tmpC) + "]" : "");
 			}
-			value = row1 + col1 + row2 + col2;
+			value = isOneCol ? col1 : isOneRow ? row1 : row1 + col1 + row2 + col2;
 		} else {
 			// xlA1 - default
 			row1 = (RowAbs ? "$" : "") + row1;
 			col1 = (ColAbs ? "$" : "") + AscCommon.g_oCellAddressUtils.colnumToColstr(col1);
 			row2 = isOneCell ? "" : ( (RowAbs ? "$" : "") + row2);
 			col2 = isOneCell ? "" : ( (ColAbs ? ":$" : ":") + AscCommon.g_oCellAddressUtils.colnumToColstr(col2) );
-			value = col1 + row1 + col2 + row2;
+			value = isOneCol ? col1 + col2 : isOneRow ? row1 + ":" + row2 : col1 + row1 + col2 + row2;
 		}
 		return (External) ? '[' + ws.workbook.oApi.DocInfo.Title + ']' + AscCommon.parserHelp.get3DRef(ws.sName, value) : value;
-};
+	};
+	Object.defineProperty(ApiRange.prototype, "Address", {
+		get: function () {
+			return this.GetAddress(true, true);
+		}
+	});
 
 	/**
 	 * Returns the rows or columns count.
