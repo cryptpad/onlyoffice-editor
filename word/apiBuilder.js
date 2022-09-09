@@ -9168,7 +9168,10 @@
 				this.Section.Set_Footer_Default(oFooter);
 		}
 
-		return new ApiDocumentContent(oFooter.Get_DocumentContent());
+		if (oFooter)
+			return new ApiDocumentContent(oFooter.Get_DocumentContent());
+		
+		return null;
 	};
 	/**
 	 * Removes the footer of the specified type from the current section. After removal, the footer will be inherited from 
