@@ -476,7 +476,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 				oBounds = oShapeBounds;
 		}
 
-		var oRun = this.Content[0];
+		var oRun = this.GetFirstRun();
 		if (oBounds && oRun)
 		{
 			var X = oBounds.X;

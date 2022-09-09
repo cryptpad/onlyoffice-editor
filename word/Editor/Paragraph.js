@@ -12082,12 +12082,12 @@ Paragraph.prototype.private_GetReviewChangeForHover = function(X, Y, CurPage, oC
 		}
 		else if (isInText && Asc.c_oAscRevisionsChangeType.TextPr === nType)
 		{
-			oChange = oCurChange;
-			break;
+			if (!oChange || oChange.GetWeight() < oCurChange.GetWeight())
+				oChange = oCurChange;
 		}
 		else if (isInText && (Asc.c_oAscRevisionsChangeType.TextAdd === nType || Asc.c_oAscRevisionsChangeType.TextRem === nType))
 		{
-			if (!oChange)
+			if (!oChange || oChange.GetWeight() < oCurChange.GetWeight())
 				oChange = oCurChange;
 		}
 

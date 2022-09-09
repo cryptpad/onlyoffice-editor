@@ -2014,6 +2014,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.ForceDrawPlaceHolders     = null;  // true/false - насильно заставляем рисовать или не рисовать плейсхолдеры и подсветку,
 	this.ForceDrawFormHighlight    = null;  // null - редактор решает рисовать или нет в зависимости от других параметров
 	this.ConcatParagraphsOnRemove  = false; // Во время удаления объединять ли первый и последний параграфы
+	this.StartCheckTextFormFormat  = false; // Флаг, что в данный момент мы уже проверяем формат текстовых форм, чтобы не вызывать повторно
+
 
 	this.DrawTableMode = {
 		Start  : false,
@@ -12212,8 +12214,11 @@ CDocument.prototype.CheckTextFormFormatOnBlur = function(oForm)
 		|| !oForm.IsForm()
 		|| !oForm.IsTextForm()
 		|| oForm.IsComplexForm()
-		|| oForm.IsPlaceHolder())
+		|| oForm.IsPlaceHolder()
+		|| this.StartCheckTextFormFormat)
 		return;
+
+	this.StartCheckTextFormFormat = true;
 
 	let sInnerText  = oForm.GetInnerText();
 	let oTextFormPr = oForm.GetTextFormPr();
@@ -12245,6 +12250,8 @@ CDocument.prototype.CheckTextFormFormatOnBlur = function(oForm)
 	}
 
 	this.History.ClearFormFillingInfo();
+
+	this.StartCheckTextFormFormat = false;
 };
 CDocument.prototype.private_UpdateFormInnerText = function(form, text)
 {
@@ -17299,7 +17306,7 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
 	{
 		this.AcceptRevisionChange(CurrentChange);
 	}
-	else
+	else if (this.IsSelectionUse())
 	{
 		var sMoveId = this.CheckTrackMoveInSelection();
 		if (sMoveId)
@@ -17314,7 +17321,8 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
 
 		var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
 		var RelatedParas       = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, true);
-		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+		if (SelectedParagraphs.length > 0
+			&& !this.IsSelectionLocked(AscCommon.changestype_None, {
 			Type      : changestype_2_ElementsArray_and_Type,
 			Elements  : RelatedParas,
 			CheckType : AscCommon.changestype_Paragraph_Content
@@ -17334,9 +17342,12 @@ CDocument.prototype.AcceptRevisionChangesBySelection = function()
 			this.FinalizeAction();
 		}
 	}
+	else
+	{
+		this.private_AcceptRejectChangeByCurrentPosition(true);
+	}
 
 	this.TrackRevisionsManager.ClearCurrentChange();
-	this.GetNextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
 {
@@ -17345,7 +17356,7 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
 	{
 		this.RejectRevisionChange(CurrentChange);
 	}
-	else
+	else if (this.IsSelectionUse())
 	{
 		var sMoveId = this.CheckTrackMoveInSelection();
 		if (sMoveId)
@@ -17366,7 +17377,7 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
 			CheckType : AscCommon.changestype_Paragraph_Content
 		}))
 		{
-			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+			this.StartAction(AscDFH.historydescription_Document_RejectRevisionChangesBySelection);
 
 			var isTrackRevision = this.GetLocalTrackRevisions();
 			if (false !== isTrackRevision)
@@ -17380,9 +17391,37 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
 			this.FinalizeAction();
 		}
 	}
+	else
+	{
+		this.private_AcceptRejectChangeByCurrentPosition(false);
+	}
 
 	this.TrackRevisionsManager.ClearCurrentChange();
-	this.GetNextRevisionChange();
+};
+CDocument.prototype.private_AcceptRejectChangeByCurrentPosition = function(isAccept)
+{
+	this.TrackRevisionsManager.ContinueTrackRevisions();
+
+	let currentChanges = this.TrackRevisionsManager.GetSelectedChanges();
+
+	let change = null;
+	for (let index = 0, count = currentChanges.length; index < count; ++index)
+	{
+		if (!change || change.GetWeight() < currentChanges[index].GetWeight())
+			change = currentChanges[index];
+	}
+
+	let state = this.SaveDocumentState(false);
+
+	if (change)
+	{
+		if (isAccept)
+			this.AcceptRevisionChange(change);
+		else
+			this.RejectRevisionChange(change);
+	}
+
+	this.LoadDocumentState(state);
 };
 CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock, isCheckEmptyAction)
 {
@@ -26088,22 +26127,6 @@ CDocument.prototype.DocxfToDocx = function(isUseHistory)
 		this.UpdateSelection();
 		this.FinalizeAction();
 	}
-};
-/**
- * Получаем массив всех изменений совместного редактирования, попавших в текущее выделение
- * @returns {[]}
- */
-CDocument.prototype.GetCurrentReviewChanges = function()
-{
-	var oCurChange
-	if ((oCurChange = this.TrackRevisionsManager.GetCurrentChange()))
-		return [oCurChange];
-
-	var arrReviewChanges = [];
-
-	this.Controller.GetCurrentReviewChanges(arrReviewChanges);
-
-	return arrReviewChanges;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // SpellCheck
