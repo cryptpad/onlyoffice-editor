@@ -487,8 +487,8 @@ DrawingObjectsController.prototype.addImage = function(sImageUrl, nPixW, nPixH, 
     this.drawingObjects.getWorksheet().setSelectionShape(true);
 };
 
-DrawingObjectsController.prototype.addOleObjectFromParams = function(fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect){
-    var oOleObject = this.createOleObject(sData, sApplicationId, sLocalUrl, fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix);
+DrawingObjectsController.prototype.addOleObjectFromParams = function(fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect, arrImagesForAddToHistory){
+    var oOleObject = this.createOleObject(sData, sApplicationId, sLocalUrl, fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix, arrImagesForAddToHistory);
     this.resetSelection();
     oOleObject.setWorksheet(this.drawingObjects.getWorksheetModel());
     oOleObject.setDrawingObjects(this.drawingObjects);
@@ -501,8 +501,8 @@ DrawingObjectsController.prototype.addOleObjectFromParams = function(fPosX, fPos
     this.startRecalculate();
 };
 
-DrawingObjectsController.prototype.editOleObjectFromParams = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight){
-    oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight);
+DrawingObjectsController.prototype.editOleObjectFromParams = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory){
+    oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory);
     this.startRecalculate();
 };
 

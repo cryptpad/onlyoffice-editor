@@ -3959,11 +3959,10 @@ var editor;
           }
           oThis.wb.scrollToOleSize();
           oThis.wb.onOleEditorReady();
-          delete oThis.imagesFromGeneralEditor;
           oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
       }
 
-      this.imagesFromGeneralEditor = oDocumentImageUrls;
+      this.imagesFromGeneralEditor = oDocumentImageUrls || {};
       this.openDocument(oFile);
     };
   /**
@@ -3976,10 +3975,31 @@ var editor;
     const arrBinaryData = oBinaryFileWriter.Write().split(';');
     const sCleanBinaryData = arrBinaryData[arrBinaryData.length - 1];
     const oBinaryInfo = {};
+    const arrWorksheets = this.wb.wsViews;
+    const arrRasterImageIds = [];
+    for (let i = 0; i < arrWorksheets.length; i += 1) {
+        const oWorksheet = arrWorksheets[i];
+        const arrDrawings = oWorksheet.model.Drawings;
+        if (arrDrawings) {
+            for (let i = 0; i < arrDrawings.length; i += 1) {
+                const oDrawing = arrDrawings[i];
+                oDrawing.graphicObject.getAllRasterImages(arrRasterImageIds);
+            }
+        }
+    }
+    const urlsForAddToHistory = [];
+    for (let i = 0; i < arrRasterImageIds.length; i += 1) {
+        const url = AscCommon.g_oDocumentUrls.mediaPrefix + arrRasterImageIds[i];
+        if (!(this.imagesFromGeneralEditor && this.imagesFromGeneralEditor[url] && this.imagesFromGeneralEditor[url] === AscCommon.g_oDocumentUrls.getUrls()[url])) {
+            urlsForAddToHistory.push(arrRasterImageIds[i]);
+        }
+    }
+
 
     oBinaryInfo["binary"] = sCleanBinaryData;
     oBinaryInfo["base64Image"] = sDataUrl;
     oBinaryInfo["isFromSheetEditor"] = this.isFromSheetEditor;
+    oBinaryInfo["imagesForAddToHistory"] = urlsForAddToHistory;
     if (this.saveImageCoefficients) {
         oBinaryInfo["widthCoefficient"] = this.saveImageCoefficients.widthCoefficient;
         oBinaryInfo["heightCoefficient"] = this.saveImageCoefficients.heightCoefficient;
@@ -4400,7 +4420,7 @@ var editor;
         }
     };
 
-  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
+  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect, arrImagesForAddToHistory)
   {
     var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
     if (null != _image){
@@ -4411,20 +4431,20 @@ var editor;
 
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
+        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect, arrImagesForAddToHistory);
         this.asc_endPaste();
       }
     }
   };
 
-  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight)
+  spreadsheet_api.prototype.asc_editOleObjectAction = function(oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory)
   {
     if (oOleObject)
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
+        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory);
         this.asc_endPaste();
       }
     }

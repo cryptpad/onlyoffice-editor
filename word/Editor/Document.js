@@ -5765,13 +5765,13 @@ CDocument.prototype.AddImages = function(aImages){
     this.Controller.AddImages(aImages);
 };
 
-CDocument.prototype.AddOleObject  = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+CDocument.prototype.AddOleObject  = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
-	this.Controller.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+	this.Controller.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
-CDocument.prototype.EditOleObject = function(oOleObject, sData, sImageUrl, fWidth, fHeight, fHeightMM, nPixWidth, nPixHeight)
+CDocument.prototype.EditOleObject = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory)
 {
-    oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight);
+    oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory);
 };
 CDocument.prototype.AddTextArt = function(nStyle)
 {
@@ -18669,7 +18669,7 @@ CDocument.prototype.controller_AddImages = function(aImages)
         Item.AddImages(aImages);
     }
 };
-CDocument.prototype.controller_AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+CDocument.prototype.controller_AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
 	if (true == this.Selection.Use)
 		this.Remove(1, true);
@@ -18678,7 +18678,7 @@ CDocument.prototype.controller_AddOleObject = function(W, H, nWidthPix, nHeightP
 	if (type_Paragraph == Item.GetType())
 	{
 		var Drawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
-		var Image = this.DrawingObjects.createOleObject(Data, sApplicationId, Img, 0, 0, W, H, nWidthPix, nHeightPix);
+		var Image = this.DrawingObjects.createOleObject(Data, sApplicationId, Img, 0, 0, W, H, nWidthPix, nHeightPix, arrImagesForAddToHistory);
 		Image.setParent(Drawing);
 		Drawing.Set_GraphicObject(Image);
 		this.AddToParagraph(Drawing);
@@ -18689,7 +18689,7 @@ CDocument.prototype.controller_AddOleObject = function(W, H, nWidthPix, nHeightP
 	}
 	else
 	{
-		Item.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+		Item.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 	}
 };
 CDocument.prototype.controller_AddTextArt = function(nStyle)

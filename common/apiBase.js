@@ -643,11 +643,12 @@
 				return;
 			}
 			var blipUrl = oleBinary['imageUrl'];
+			var arrImagesForAddToHistory = oleBinary['imagesForAddToHistory'];
 			var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary['binary']);
 			var sizes = AscCommon.getSourceImageSize(blipUrl);
 			var mmExtX = sizes.width * AscCommon.g_dKoef_pix_to_mm;
 			var mmExtY = sizes.height * AscCommon.g_dKoef_pix_to_mm;
-			this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true);
+			this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true, arrImagesForAddToHistory);
 		}
 	};
 	baseEditorsApi.prototype.asc_addTableOleObject = function(oleBinary)
@@ -732,6 +733,7 @@
 				const arrSelectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
 				if (arrSelectedObjects.oleObjects.length === 1)
 				{
+					const arrImagesForAddToHistory = oOleBinaryInfo['imagesForAddToHistory'];
 					const oSelectedOleObject = arrSelectedObjects.oleObjects[0];
 					const sBlipUrl = oOleBinaryInfo['imageUrl'];
 					const arrBinaryDataOfSheet = AscCommon.Base64.decode(oOleBinaryInfo['binary']);
@@ -744,7 +746,7 @@
 					nAdaptSizeHeight = (oSizes.height || 0) * nImageHeightCoefficient;
 					nMMExtY = nAdaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
 					nMMExtX = nAdaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
-					this.asc_editOleObjectAction(false, oSelectedOleObject, sBlipUrl, arrBinaryDataOfSheet, nMMExtX, nMMExtY, nAdaptSizeWidth, nAdaptSizeHeight);
+					this.asc_editOleObjectAction(oSelectedOleObject, sBlipUrl, arrBinaryDataOfSheet, nMMExtX, nMMExtY, nAdaptSizeWidth, nAdaptSizeHeight, arrImagesForAddToHistory);
 				}
 			}
 		}
@@ -2132,16 +2134,16 @@
 		{
             this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
 			{
-				oThis.asc_editOleObjectAction(bResize, oOleObject, AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, fWidthMM, fHeightMM, nWidthPix, nHeightPix);
+				oThis.asc_editOleObjectAction(oOleObject, AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, fWidthMM, fHeightMM, nWidthPix, nHeightPix);
 			});
 		}
 	};
 
-	baseEditorsApi.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
+	baseEditorsApi.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect, arrImagesForAddToHistory)
 	{
 	};
 
-	baseEditorsApi.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, fWidthMM, fHeightMM, nPixWidth, nPixHeight)
+	baseEditorsApi.prototype.asc_editOleObjectAction = function(oOleObject, sImageUrl, sData, fWidthMM, fHeightMM, nPixWidth, nPixHeight, arrImagesForAddToHistory)
 	{
 	};
 
