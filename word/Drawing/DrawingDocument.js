@@ -7051,7 +7051,10 @@ function CDrawingDocument()
 				[
 					c_oAscMultiLevelNumbering.MultiLevel1,
 					c_oAscMultiLevelNumbering.MultiLevel2,
-					c_oAscMultiLevelNumbering.MultiLevel3
+					c_oAscMultiLevelNumbering.MultiLevel3,
+					c_oAscMultiLevelNumbering.MultiLevel4,
+					c_oAscMultiLevelNumbering.MultiLevel5,
+					c_oAscMultiLevelNumbering.MultiLevel6
 				];
 				for (var i = 0; i < arrTypes.length; i++)
 				{

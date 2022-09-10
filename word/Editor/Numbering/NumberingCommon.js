@@ -47,7 +47,10 @@ var c_oAscMultiLevelNumbering = {
 
 	MultiLevel1 : 101,
 	MultiLevel2 : 102,
-	MultiLevel3 : 103
+	MultiLevel3 : 103,
+	MultiLevel4 : 104,
+	MultiLevel5 : 105,
+	MultiLevel6 : 106
 };
 
 /** enum {number} */

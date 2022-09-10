@@ -4031,8 +4031,22 @@ background-repeat: no-repeat;\
 	 1)a)i)        - SubType = 1
 	 1.1.1         - SubType = 2
 	 маркированный - SubType = 3
+
+	 SubType = 4:
+	 	Article I
+	 		Section 1.01
+	 			(a)
+
+	 SubType = 5:
+	 	Chapter 1
+	 	(none)
+	 	(none)
+
+	 SubType = 6:
+	 I. A. 3. a) (1)
+
 	 */
-	asc_docs_api.prototype.put_ListType = function(type, subtype)
+	asc_docs_api.prototype.put_ListType = function(type, subtype, applyToHeading)
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
 		var fCallback = function()
@@ -4042,7 +4056,8 @@ background-repeat: no-repeat;\
 				oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphNumbering);
 				oLogicDocument.SetParagraphNumbering({
 					Type    : type,
-					SubType : subtype
+					SubType : subtype,
+					Heading : applyToHeading
 				});
 				oLogicDocument.FinalizeAction();
 			}

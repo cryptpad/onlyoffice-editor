@@ -7265,6 +7265,21 @@ CDocument.prototype.private_SetParagraphNumberingMultiLevel = function(arrParagr
 			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel3);
 			break;
 		}
+		case 4:
+		{
+			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel4);
+			break;
+		}
+		case 5:
+		{
+			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel5);
+			break;
+		}
+		case 6:
+		{
+			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel6);
+			break;
+		}
 	}
 
 	if (sNumId)
