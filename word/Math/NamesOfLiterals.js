@@ -1089,7 +1089,6 @@
 						case oNamesOfLiterals.charLiteral[num]:
 						case oNamesOfLiterals.operatorLiteral[num]:
 						case oNamesOfLiterals.mathOperatorLiteral[num]:
-						case oNamesOfLiterals.opNaryLiteral[num]:
 						case oNamesOfLiterals.numberLiteral[num]:
 							if (oTokens.decimal) {
 								ConvertTokens(
@@ -1104,6 +1103,15 @@
 							}
 							else {
 								oContext.Add_Text(oTokens.value, Paragraph);
+							}
+							break;
+						case oNamesOfLiterals.opNaryLiteral[num]:
+							let oNary = oContext.Add_NAry({chr: oTokens.value.charCodeAt(0)}, null, null, null);
+							if (oTokens.third) {
+								ConvertTokens(
+									oTokens.third,
+									oNary.getBase(),
+								);
 							}
 							break;
 						case oNamesOfLiterals.preScriptLiteral[num]:
@@ -1178,7 +1186,7 @@
 							);
 							break;
 						case oNamesOfLiterals.subSupLiteral[num]:
-							if (oTokens.value.type === oNamesOfLiterals.functionLiteral[num]) {
+							if (oTokens.value && oTokens.value.type === oNamesOfLiterals.functionLiteral[num]) {
 								let oFunc = oContext.Add_Function({}, null, null);
 								let oFuncName = oFunc.getFName();
 								let SubSup = oFuncName.Add_Script(
@@ -1208,7 +1216,7 @@
 									oFuncArgument
 								)
 							}
-							else if (oTokens.value.type === oNamesOfLiterals.functionWithLimitLiteral[num]) {
+							else if (oTokens.value && oTokens.value.type === oNamesOfLiterals.functionWithLimitLiteral[num]) {
 								let oFuncWithLimit = oContext.Add_FunctionWithLimit(
 									{},
 									null,
@@ -1238,7 +1246,7 @@
 									oFuncWithLimit.getArgument()
 								)
 							}
-							else if (oTokens.value.type === oNamesOfLiterals.opNaryLiteral[num]) {
+							else if (oTokens.value && oTokens.value.type === oNamesOfLiterals.opNaryLiteral[num]) {
 								let oNary = oContext.Add_NAry({chr: oTokens.value.value.charCodeAt(0)}, null, null, null);
 								ConvertTokens(
 									oTokens.third,
@@ -1697,7 +1705,7 @@
 		}
 	};
 
-	//	Автокррекции НЕ срабатывает только при вводе букв и цифр, есть исключения для скобок
+	//	Автокоррекции НЕ срабатывает только при вводе букв и цифр, есть исключения для скобок
 	//
 	//	Автокоррекция состоит из нескольник частей:
 	//
@@ -1724,15 +1732,8 @@
 	//
 	//
 
-	const AutoCorrectionRules = [
-		//true обозначает обычный текст, цифры и блоки контента (CFraction, CLimit, CDegree...);
-		[true, "_", true, "^", true],
-		[true, "^", true, "_", true],
-		[true, "/", true],
-		[true, "^", true],
-		[true, "_", true],
-	];
-
+	// вместо этих абстракций лучше использовать уже существующие
+	// в идеале все это переписать и распределить исполнение по ParaRun, CMathContent и т.п
 	function AutoCorrectionFunc(oCMathContent, nInputType)
 	{
 		let oContentCopy = oCMathContent.Content.slice();
@@ -1804,6 +1805,14 @@
 	};
 	AutoCorrectionFunc.prototype.ProceedRules = function()
 	{
+		const AutoCorrectionRules = [
+			//true обозначает обычный текст, цифры и блоки контента (CFraction, CLimit, CDegree...);
+			[true, "_", true, "^", true],
+			[true, "^", true, "_", true],
+			[true, "/", true],
+			[true, "^", true],
+			[true, "_", true],
+		];
 		for (let i = 0; i < AutoCorrectionRules.length; i++) {
 
 			let arrRule = AutoCorrectionRules[i];
@@ -2400,7 +2409,7 @@
 
 	function AutoCorrect(oCMathContent, nInputType)
 	{
-		let oData = new AutoCorrectionFunc(oCMathContent, nInputType);
+		const oData = new AutoCorrectionFunc(oCMathContent, nInputType);
 
 		if (oData.intCounter === 0)
 		{
@@ -3072,7 +3081,7 @@
 				intCode === 92 ||			// "\\"
 				intCode === 95 ||			// _
 				intCode === 94 ||			// ^
-				intCode === 40 ||			// (
+				//intCode === 40 ||			// (
 				intCode === 41 ||			// )
 				intCode === 47 ||			// /
 				intCode === 46 ||			// .
@@ -3138,134 +3147,229 @@
 		return oTempObject;
 	}
 
-	const OperatorList = [
-		"⨯", "⨝", "⟕", "⟖", "⟗", "⋉", "⋊", "▷",
-		"+", "-", "*", "=", "≶", "≷", "≜", "⇓", "⇐",
-		"⇔", "⟸", "⟺", "⟹", "⇒", "⇑", "⇕", "∠", "≈",
-		"⬆", "∗", "≍", "∵", "⋈", "⊡", "⊟", "⊞", "⤶",
-		"∙", "⋅", "⋯", "∘", "♣", "≅", "∋", "⋱", "≝", "℃",
-		"℉", "°", "⊣", "⋄", "♢", "÷", "≐", "…", "↓",
-		"⬇", "∅", "#", "≡", "∃", "∀", "⌑", "≥",
-		"←", "≫", "↩", "♡", "∈", "≤", "↪", "←", "↽",
-		"↼", "↔", "≤", "⬄", "⬌", "≪", "⇋", "↦", "⊨",
-		"∓", "≠", "↗", "¬", "≠", "∌", "∉", "∉", "ν",
-		"↖", "ο", "⊙", "⊖", "⊕", "⊗", "⊥", "±",
-		"≺", "≼", "∶", "⋰", "→", "⇁", "⇀", "↘",
-		"∼", "≃", "⬍", "⊑", "⊒", "⋆", "⊂", "⊆", "≻", "≽",
-		"⊃", "⊇", "×", "⊤", "→", "‼", "∷", "≔", "∩", "∪",
-		"∆", "∞", "⁢",
-
-	];
-	const NaryLiteral = [
-		"⅀", "⨊", "⨋", "∫", "∱", "⨑", "⨍", "⨎", "⨏", "⨕",
-		"⨖", "⨗", "⨘", "⨙", "⨚", "⨛", "⨜", "⨒", "⨓", "⨔",
-		"⨃", "⨅", "⨉", "⫿", "∐", "∳", "⋂", "⋃", "⨀", "⨁",
-		"⨂", "⨆", "⨄", "⋁", "⋀", "∲", "⨌", "∭", "∬",
-		"∫", "∰", "∯", "∮", "∏", "∑",
-	];
-	const sqrtLiteral = [
-		"∛",
-	];
-	const AccentLiteral = [
-		"̿", "'", "''", "̳", "́", "‵", "̅", "̆", "̌", "⃜", "⃛", "̈",
-		"̇", "̀", "̂", "⃑",
-	];
-	const Open = [
-		"(", "{", "〖",  "⟨",
-	];
-	const Close = [
-		")", "}", "⟫", //	"\\"
-		"⟧", "〗", "⟩",
-	];
-	const OpenClose = [
-		"|", "||", "‖" //	"\\|"
-	];
-
-	const BracketLiterals = {
-		open: Open,
-		close: Close,
-		openClose: OpenClose,
-	};
-	const OverLiteral = [
-		"/",  //TODO opOpen
-		"⊘", "⒞", "\\/", "¦",
-	];
-	const BoxLiteral = [
-		"□", 
-	];
-	const LaTeXWordList = {
-		"\\backslash" : "\\",
-		"\\begin{array}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{cases}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{matrix}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{pmatrix}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{bmatrix}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{Bmatrix}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{vmatrix}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{Vmatrix}": oNamesOfLiterals.matrixLiteral[0],
-		"\\begin{equation}" : true,
-		"\\begin{" : true,
-		"pmatrix": oNamesOfLiterals.matrixLiteral[0],
-		"bmatrix": oNamesOfLiterals.matrixLiteral[0],
-		"\\bmatrix": oNamesOfLiterals.matrixLiteral[0],
-		"Bmatrix": oNamesOfLiterals.matrixLiteral[0],
-		"vmatrix": oNamesOfLiterals.matrixLiteral[0],
-		"Vmatrix": oNamesOfLiterals.matrixLiteral[0],
-		"\\bmod": " mod ",
-		"\\binom": true,
-		"\\boxed": true,
-		"\\cr": "\\\\",
-		"\\cfrac": true,
-		"\\dfrac{": true,
-		"\\end{" : oNamesOfLiterals.opCloseBracket[0],
-		"\\start": oNamesOfLiterals.opOpenBracket[0],
-
-		"\\end{equation}":"endOfMatrix",
-		"\\end{array}":"endOfMatrix",
-		"\\end{cases}":"endOfMatrix",
-		"\\end{matrix}":"endOfMatrix",
-		"\\end{pmatrix}":"endOfMatrix",
-		"\\end{bmatrix}":"endOfMatrix",
-		"\\end{Bmatrix}":"endOfMatrix",
-		"\\end{vmatrix}":"endOfMatrix",
-		"\\end{Vmatrix}":"endOfMatrix",
-
-		"frac": true,
-
+	function LexerLiterals(arrData)
+	{
+		this.data = arrData;
 	}
-	// Class === Data
-	const SpecialLiteral = [
-		"^", "_", "&", "@", "┴", "┬", "┤", "█",
-	];
-	const matrixLiteral = [
-		"array", "⒩", "■",
-	];
-	const specialScriptNumberLiteral = [
-		"⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸",
-		"⁹", "ⁱ", "ⁿ", "⁺", "⁻", "⁼", "⁽", "⁾", 
-	];
-	const specialIndexNumberLiteral = [	
-		"₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈",
-		"₉", "₊", "₋", "₌", "₍", "₎", 
-	]
+	LexerLiterals.prototype.PushNewData = function (str)
+	{
+		if (!this.data.includes(str))
+			this.data.push(str);
+	};
+	LexerLiterals.prototype.GetArrData = function ()
+	{
+		return this.data
+	};
+	LexerLiterals.prototype.PushNextElement = function (strData)
+	{
+		if (!this.data.includes(strData))
+			this.data.push(strData);
+	}
+	LexerLiterals.prototype.IsIncludes = function (str)
+	{
+		return this.data.includes(str)
+	}
+
+	function OpenBrackets()
+	{
+		this.data = ["(", "{", "〖",  "⟨"];
+	}
+	OpenBrackets.prototype = Object.create(LexerLiterals.prototype);
+	OpenBrackets.prototype.constructor = OpenBrackets;
+
+	function CloseBrackets()
+	{
+		this.data = [
+			")", "}", "⟫", //	"\\"
+			"⟧", "〗", "⟩",
+		];
+	}
+	CloseBrackets.prototype = Object.create(LexerLiterals.prototype);
+	CloseBrackets.prototype.constructor = CloseBrackets;
+
+	function OpenCloseBrackets()
+	{
+		this.data = ["|", "‖"];
+	}
+	OpenCloseBrackets.prototype = Object.create(LexerLiterals.prototype);
+	OpenCloseBrackets.prototype.constructor = OpenCloseBrackets;
+
+	function Operators()
+	{
+		this.data =  [
+			"⨯", "⨝", "⟕", "⟖", "⟗", "⋉", "⋊", "▷",
+			"+", "-", "*", "=", "≶", "≷", "≜", "⇓", "⇐",
+			"⇔", "⟸", "⟺", "⟹", "⇒", "⇑", "⇕", "∠", "≈",
+			"⬆", "∗", "≍", "∵", "⋈", "⊡", "⊟", "⊞", "⤶",
+			"∙", "⋅", "⋯", "∘", "♣", "≅", "∋", "⋱", "≝", "℃",
+			"℉", "°", "⊣", "⋄", "♢", "÷", "≐", "…", "↓",
+			"⬇", "∅", "#", "≡", "∃", "∀", "⌑", "≥",
+			"←", "≫", "↩", "♡", "∈", "≤", "↪", "←", "↽",
+			"↼", "↔", "≤", "⬄", "⬌", "≪", "⇋", "↦", "⊨",
+			"∓", "≠", "↗", "¬", "≠", "∌", "∉", "∉", "ν",
+			"↖", "ο", "⊙", "⊖", "⊕", "⊗", "⊥", "±",
+			"≺", "≼", "∶", "⋰", "→", "⇁", "⇀", "↘",
+			"∼", "≃", "⬍", "⊑", "⊒", "⋆", "⊂", "⊆", "≻", "≽",
+			"⊃", "⊇", "×", "⊤", "→", "‼", "∷", "≔", "∩", "∪",
+			"∆", "∞", "⁢",
+		];
+	}
+	Operators.prototype = Object.create(LexerLiterals.prototype);
+	Operators.prototype.constructor = Operators;
+
+	function Nary()
+	{
+		this.data = [
+			"⅀", "⨊", "⨋", "∫", "∱", "⨑", "⨍", "⨎", "⨏", "⨕",
+			"⨖", "⨗", "⨘", "⨙", "⨚", "⨛", "⨜", "⨒", "⨓", "⨔",
+			"⨃", "⨅", "⨉", "⫿", "∐", "∳", "⋂", "⋃", "⨀", "⨁",
+			"⨂", "⨆", "⨄", "⋁", "⋀", "∲", "⨌", "∭", "∬",
+			"∫", "∰", "∯", "∮", "∏", "∑",
+		];
+	}
+	Nary.prototype = Object.create(LexerLiterals.prototype);
+	Nary.prototype.constructor = Nary;
+
+	function Radical()
+	{
+		this.data = [
+			"∛",
+		];
+	}
+	Radical.prototype = Object.create(LexerLiterals.prototype);
+	Radical.prototype.constructor = Radical;
+
+	function Accent()
+	{
+		this.data = [
+			"̿", "'", "''", "̳", "́", "‵", "̅", "̆", "̌", "⃜", "⃛", "̈",
+			"̇", "̀", "̂", "⃑",
+		];
+	}
+	Accent.prototype = Object.create(LexerLiterals.prototype);
+	Accent.prototype.constructor = Accent;
+
+	function Over()
+	{
+		this.data = [
+			"/",  //TODO opOpen
+			"⊘", "⒞", "\\/", "¦",
+		];
+	}
+	Over.prototype = Object.create(LexerLiterals.prototype);
+	Over.prototype.constructor = Over;
+
+	function Box()
+	{
+		this.data = ["□"];
+	}
+	Box.prototype = Object.create(LexerLiterals.prototype);
+	Box.prototype.constructor = Box;
+
+	function Matrix()
+	{
+		this.data = ["⒩", "■"];
+	}
+	Matrix.prototype = Object.create(LexerLiterals.prototype);
+	Matrix.prototype.constructor = Matrix;
+
+	function Space()
+	{
+		this.data = [
+			"  ", // 2/18em space  very thin math space
+			" ", // 3/18em space thin math space
+			"  ", // 7/18em space  very very thick math space
+			" ", // Digit-width space
+			" ", // Space-with space (non-breaking space)
+			"\t", //Tab
+			"\n",
+			" ", // 1em space
+			" ", // 9/18em space
+			" ", // 1/18em space very very thin math space
+		];
+	}
+	Space.prototype = Object.create(LexerLiterals.prototype);
+	Space.prototype.constructor = Space;
+
+	//class === data
+	function SpecialLiteral()
+	{
+		this.data = [
+				"^", "_", "&", "@", "┴", "┬", "┤", "█",
+		];
+	}
+	SpecialLiteral.prototype = Object.create(LexerLiterals.prototype);
+	SpecialLiteral.prototype.constructor = SpecialLiteral;
+
+	const MathLiterals = {
+		lBrackets: new OpenBrackets(),
+		rBrackets: new CloseBrackets(),
+		lrBrackets: new OpenCloseBrackets(),
+		operators: new Operators(),
+		nary: new Nary(),
+		accent: new Accent(),
+		radical: new Radical(),
+		over: new Over(),
+		box: new Box(),
+		matrix: new Matrix(),
+		space: new Space(),
+	}
+
+	// const LaTeXWordList = {
+	// 	"\\backslash" : "\\",
+	// 	"\\begin{array}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{cases}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{matrix}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{pmatrix}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{bmatrix}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{Bmatrix}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{vmatrix}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{Vmatrix}": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\begin{equation}" : true,
+	// 	"\\begin{" : true,
+	// 	"pmatrix": oNamesOfLiterals.matrixLiteral[0],
+	// 	"bmatrix": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\bmatrix": oNamesOfLiterals.matrixLiteral[0],
+	// 	"Bmatrix": oNamesOfLiterals.matrixLiteral[0],
+	// 	"vmatrix": oNamesOfLiterals.matrixLiteral[0],
+	// 	"Vmatrix": oNamesOfLiterals.matrixLiteral[0],
+	// 	"\\bmod": " mod ",
+	// 	"\\binom": true,
+	// 	"\\boxed": true,
+	// 	"\\cr": "\\\\",
+	// 	"\\cfrac": true,
+	// 	"\\dfrac{": true,
+	// 	"\\end{" : oNamesOfLiterals.opCloseBracket[0],
+	// 	"\\start": oNamesOfLiterals.opOpenBracket[0],
+	//
+	// 	"\\end{equation}":"endOfMatrix",
+	// 	"\\end{array}":"endOfMatrix",
+	// 	"\\end{cases}":"endOfMatrix",
+	// 	"\\end{matrix}":"endOfMatrix",
+	// 	"\\end{pmatrix}":"endOfMatrix",
+	// 	"\\end{bmatrix}":"endOfMatrix",
+	// 	"\\end{Bmatrix}":"endOfMatrix",
+	// 	"\\end{vmatrix}":"endOfMatrix",
+	// 	"\\end{Vmatrix}":"endOfMatrix",
+	//
+	// 	"frac": true,
+	//
+	// }
+	//
+	// const specialScriptNumberLiteral = [
+	// 	"⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸",
+	// 	"⁹", "ⁱ", "ⁿ", "⁺", "⁻", "⁼", "⁽", "⁾",
+	// ];
+	// const specialIndexNumberLiteral = [
+	// 	"₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈",
+	// 	"₉", "₊", "₋", "₌", "₍", "₎",
+	// ]
 	//AutoCerrection 
 	// ["!", undefined, oNamesOfLiterals.charLiteral[0]],
 	// ["!!", "‼", oNamesOfLiterals.charLiteral[0]],
 	// ["...", "…"],
 	// ["::", "∷"],
 	// [":=", "≔"],
-	const SpaceLiterals = [
-		"  ", // 2/18em space  very thin math space
-		" ", // 3/18em space thin math space
-		"  ", // 7/18em space  very very thick math space
-		" ", // Digit-width space
-		" ", // Space-with space (non-breaking space)
-		"\t", //Tab
-		"\n",
-		" ", // 1em space
-		" ", // 9/18em space
-		" ", // 1/18em space very very thin math space
-	];
 
 	//--------------------------------------------------------export----------------------------------------------------
 	window["AscMath"] = window["AscMath"] || {};
@@ -3284,5 +3388,6 @@
 	window["AscMath"].CorrectAllWords = CorrectAllWords;
 	window["AscMath"].IsStartAutoCorrection = IsStartAutoCorrection;
 	window["AscMath"].GetConvertContent = GetConvertContent;
+	window["AscMath"].MathLiterals = MathLiterals;
 
 })(window);

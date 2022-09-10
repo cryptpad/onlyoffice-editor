@@ -1034,7 +1034,7 @@ CMathText.prototype.GetTextOfElement = function(isLaTeX) {
 		}
 	}
 
-    if (this.value)
+    if (this.value && this.value !== 11034)
         return strPre + AscCommon.encodeSurrogateChar(this.value);
 
 	return "";
