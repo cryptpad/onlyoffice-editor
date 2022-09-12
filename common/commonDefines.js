@@ -794,7 +794,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	var c_oGatewayFrameGeneralInformationType = {
 		SendImageUrls: 0,
 		GetLoadedImages: 1,
-		OpenFrame: 2
+		OpenFrame: 2,
+		ShowImageDialogInFrame: 3,
+		GetUrlsFromImageDialog: 4,
+		SkipStartEndAction: 5
 	};
 
 	var CellValueType = {

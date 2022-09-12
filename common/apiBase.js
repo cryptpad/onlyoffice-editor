@@ -573,24 +573,30 @@
 	};
 	baseEditorsApi.prototype.sync_StartAction                = function(type, id)
 	{
-		if (type !== c_oAscAsyncActionType.Empty)
-			this.sendEvent('asc_onStartAction', type, id);
-		//console.log("asc_onStartAction: type = " + type + " id = " + id);
-
-		if (c_oAscAsyncActionType.BlockInteraction === type)
+		if (!this.bSkipStartEndAction)
 		{
-			this.incrementCounterLongAction();
+			if (type !== c_oAscAsyncActionType.Empty)
+				this.sendEvent('asc_onStartAction', type, id);
+			//console.log("asc_onStartAction: type = " + type + " id = " + id);
+
+			if (c_oAscAsyncActionType.BlockInteraction === type)
+			{
+				this.incrementCounterLongAction();
+			}
 		}
 	};
 	baseEditorsApi.prototype.sync_EndAction                  = function(type, id)
 	{
-		if (type !== c_oAscAsyncActionType.Empty)
-			this.sendEvent('asc_onEndAction', type, id);
-		//console.log("asc_onEndAction: type = " + type + " id = " + id);
-
-		if (c_oAscAsyncActionType.BlockInteraction === type)
+		if (!this.bSkipStartEndAction)
 		{
-			this.decrementCounterLongAction();
+			if (type !== c_oAscAsyncActionType.Empty)
+				this.sendEvent('asc_onEndAction', type, id);
+			//console.log("asc_onEndAction: type = " + type + " id = " + id);
+
+			if (c_oAscAsyncActionType.BlockInteraction === type)
+			{
+				this.decrementCounterLongAction();
+			}
 		}
 	};
 	baseEditorsApi.prototype.sync_TryUndoInFastCollaborative = function()
@@ -673,6 +679,18 @@
 		this.sendEvent("asc_sendFromGeneralToFrameEditor", oData);
 	};
 
+	baseEditorsApi.prototype.setSkipStartEndAction = function(bValue)
+	{
+		if (bValue !== true)
+		{
+			delete this.bSkipStartEndAction;
+		}
+		else
+		{
+			this.bSkipStartEndAction = bValue;
+		}
+	};
+
 	baseEditorsApi.prototype.asc_getInformationBetweenFrameAndGeneralEditor = function (oData)
 	{
 		const nType = oData["typeOfInformation"];
@@ -695,11 +713,63 @@
 				this.asc_onOpenChartFrame();
 				break;
 			}
+			case c_oGatewayFrameGeneralInformationType.ShowImageDialogInFrame:
+			{
+				this.setSkipStartEndAction(true);
+				const oOptions = {
+				sendUrlsToFrameEditor: true
+				};
+				this.setSkipStartEndAction(true);
+				this.asc_addImage(oOptions);
+				break;
+			}
+			case c_oGatewayFrameGeneralInformationType.GetUrlsFromImageDialog:
+			{
+				this.sendFromGeneralToFrameEditor({
+					"typeOfInformation": c_oGatewayFrameGeneralInformationType.SkipStartEndAction,
+					"information": {
+						value: false
+					}
+				});
+
+				let oOptions;
+				if (this.oSaveObjectForAddImage)
+				{
+					oOptions = this.oSaveObjectForAddImage;
+					delete this.oSaveObjectForAddImage;
+				}
+				const arrUrlsForAddToDocumentUrls = oInformation;
+				AscCommon.g_oDocumentUrls.addUrls(arrUrlsForAddToDocumentUrls);
+				this._addImageUrl(Object.keys(arrUrlsForAddToDocumentUrls).map(function (localUrl) {
+					return arrUrlsForAddToDocumentUrls[localUrl]
+				}), oOptions);
+				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+				break;
+			}
+			case c_oGatewayFrameGeneralInformationType.SkipStartEndAction:
+			{
+				this.setSkipStartEndAction(oInformation.value);
+				break;
+			}
 			default:
 			{
 				break;
 			}
 		}
+	};
+
+	baseEditorsApi.prototype.addImageUrlsFromGeneralToFrameEditor = function (urls)
+	{
+		const urlsForAddToDocumentUrls = {};
+		for (let i = 0; i < urls.length; i += 1)
+		{
+			const url = urls[i];
+			urlsForAddToDocumentUrls[AscCommon.g_oDocumentUrls.getLocal(url)] = url;
+		}
+		this.sendFromGeneralToFrameEditor({
+			"typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.GetUrlsFromImageDialog,
+			"information": urlsForAddToDocumentUrls
+		});
 	};
 
 	baseEditorsApi.prototype.editTableOleObject = function(oOleBinaryInfo)
@@ -2009,6 +2079,15 @@
 	};
 	baseEditorsApi.prototype.asc_addImage                        = function(obj)
 	{
+		if (this.isEditOleMode)
+		{
+			this.oSaveObjectForAddImage = obj;
+			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			this.sendFromFrameToGeneralEditor({
+				"typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.ShowImageDialogInFrame,
+			});
+			return;
+		}
 		var t = this;
         if (this.WordControl) // после показа диалога может не прийти mouseUp
         	this.WordControl.m_bIsMouseLock = false;
