@@ -2897,7 +2897,7 @@ CDocument.prototype.private_FinalizeValidateForm = function()
 	if (this.Action.CancelAction)
 		return;
 
-	// По логике заполнять одновремнно более одной формы нельзя
+	// По логике заполнять одновременно более одной формы нельзя
 	if (1 === arrForms.length && !arrForms[0].IsPlaceHolder())
 		this.History.SetAdditionalFormFilling(arrForms[0], this.Action.PointsCount);
 };
@@ -16364,7 +16364,7 @@ CDocument.prototype.AddContentControlTextForm = function(oPr)
 	if (!oPr)
 		oPr = new AscWord.CSdtTextFormPr();
 
-	var sText   = this.GetSelectedText();
+	var sText   = this.GetSelectedText(false, {SkipPlaceholder : true});
 	var oTextPr = this.GetDirectTextPr();
 
 	if (this.IsTextSelectionUse())
@@ -16431,7 +16431,7 @@ CDocument.prototype.AddComplexForm = function(oPr, formPr)
 	if (!oPr)
 		oPr = new AscWord.CSdtComplexFormPr();
 
-	let sText   = this.GetSelectedText();
+	let sText   = this.GetSelectedText(false, {SkipPlaceholder : true});
 	let oTextPr = this.GetDirectTextPr();
 
 	if (this.IsTextSelectionUse())
@@ -25164,17 +25164,17 @@ CDocument.prototype.OnChangeForm = function(oForm)
 
 	let sKey = oForm.IsRadioButton() ? oForm.GetRadioButtonGroupKey() : oForm.GetFormKey();
 
+	if (!this.Action.Additional.ValidateForm)
+		this.Action.Additional.ValidateForm = {};
+
+	this.Action.Additional.ValidateForm[oForm.GetId()] = oForm;
+
 	let oMainForm = oForm.GetMainForm();
 	if (oForm !== oMainForm)
 	{
 		sKey  = oMainForm.GetFormKey();
 		oForm = oMainForm;
 	}
-
-	if (!this.Action.Additional.ValidateForm)
-		this.Action.Additional.ValidateForm = {};
-
-	this.Action.Additional.ValidateForm[oForm.GetId()] = oForm;
 
 	if (!sKey)
 		return;

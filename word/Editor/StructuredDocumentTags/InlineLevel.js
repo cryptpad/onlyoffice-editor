@@ -300,6 +300,9 @@ CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 };
 CInlineLevelSdt.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 {
+	if (oPr && oPr.SkipPlaceholder && this.IsPlaceHolder())
+		return "";
+
 	if (oPr && oPr.MathAdd && this.IsContentControlEquation() && this.IsPlaceHolder())
 		return "";
 
