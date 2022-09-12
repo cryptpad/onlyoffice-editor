@@ -3811,6 +3811,12 @@
 	{
 	};
 	//---------------------------------------------------------search-----------------------------------------------------
+	baseEditorsApi.prototype.asc_findText = function(oProps, isNext, callback)
+	{
+	};
+	baseEditorsApi.prototype.asc_endFindText = function()
+	{
+	};
 	baseEditorsApi.prototype.sync_setSearchCurrent = function(nCurrent, nOverallCount)
 	{
 	};

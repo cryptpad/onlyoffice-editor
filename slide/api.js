@@ -2592,6 +2592,10 @@ background-repeat: no-repeat;\
 			callback(result);
 		return result;
 	};
+	asc_docs_api.prototype.asc_endFindText = function()
+	{
+		return this.WordControl.m_oLogicDocument.ClearSearch();
+	};
 
 	// returns: CSearchResult
 	asc_docs_api.prototype.sync_SearchFoundCallback = function(obj)
@@ -8525,6 +8529,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['stopSearchText']                      = asc_docs_api.prototype.stopSearchText;
 	asc_docs_api.prototype['asc_searchEnabled']                   = asc_docs_api.prototype.asc_searchEnabled;
 	asc_docs_api.prototype['asc_findText']                        = asc_docs_api.prototype.asc_findText;
+	asc_docs_api.prototype['asc_endFindText']                     = asc_docs_api.prototype.asc_endFindText;
 	asc_docs_api.prototype['asc_replaceText']                     = asc_docs_api.prototype.asc_replaceText;
 	asc_docs_api.prototype['sync_SearchFoundCallback']            = asc_docs_api.prototype.sync_SearchFoundCallback;
 	asc_docs_api.prototype['sync_SearchStartCallback']            = asc_docs_api.prototype.sync_SearchStartCallback;

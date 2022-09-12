@@ -3299,6 +3299,14 @@ background-repeat: no-repeat;\
 
 		return result;
 	};
+	asc_docs_api.prototype.asc_endFindText = function()
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return;
+
+		return logicDocument.ClearSearch();
+	};
 	asc_docs_api.prototype.asc_replaceText = function(oProps, replaceWith, isReplaceAll)
 	{
 		if (this.asc_GetErrorForReplaceString(replaceWith))
@@ -12953,6 +12961,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_ReturnHeadersCallback']                = asc_docs_api.prototype.sync_ReturnHeadersCallback;
 	asc_docs_api.prototype['asc_searchEnabled']                         = asc_docs_api.prototype.asc_searchEnabled;
 	asc_docs_api.prototype['asc_findText']                              = asc_docs_api.prototype.asc_findText;
+	asc_docs_api.prototype['asc_endFindText']                           = asc_docs_api.prototype.asc_endFindText;
 	asc_docs_api.prototype['asc_replaceText']                           = asc_docs_api.prototype.asc_replaceText;
 	asc_docs_api.prototype['asc_GetErrorForReplaceString']              = asc_docs_api.prototype.asc_GetErrorForReplaceString;
 	asc_docs_api.prototype['asc_isSelectSearchingResults']              = asc_docs_api.prototype.asc_isSelectSearchingResults;

@@ -4900,15 +4900,19 @@ CPresentation.prototype.Search = function (oProps) {
     this.SearchEngine.ClearOnRecalc = true;
     return this.SearchEngine;
 };
+CPresentation.prototype.ClearSearch = function() {
+	let isPrevSearch = this.SearchEngine.Count > 0;
+	this.SearchEngine.Clear();
+	if (isPrevSearch) {
+		this.Api.sync_SearchEndCallback();
+	}
+};
 CPresentation.prototype.private_ClearSearchOnRecalculate = function() {
     if (!this.SearchEngine.ClearOnRecalc) {
         return;
     }
-    let isPrevSearch = this.SearchEngine.Count > 0;
-    this.SearchEngine.Clear();
-    if (isPrevSearch) {
-        this.Api.sync_SearchEndCallback();
-    }
+
+	this.ClearSearch();
 };
 
 

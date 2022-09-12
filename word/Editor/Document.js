@@ -5126,16 +5126,7 @@ CDocument.prototype.private_ClearSearchOnRecalculate = function()
 	if (!this.SearchEngine.ClearOnRecalc)
 		return;
 
-	var isPrevSearch = this.SearchEngine.Count > 0;
-
-	this.SearchEngine.Clear();
-
-	if (isPrevSearch)
-	{
-		this.Api.sync_SearchEndCallback();
-		this.DrawingDocument.ClearCachePages();
-		this.DrawingDocument.FirePaint();
-	}
+	this.ClearSearch();
 };
 CDocument.prototype.IsCalculatingContinuousSectionBottomLine = function()
 {
@@ -26268,6 +26259,19 @@ CDocument.prototype.Search = function(oProps, bDraw)
 	//console.log("Search logic: " + ((performance.now() - nStartTime) / 1000) + " s");
 
 	return this.SearchEngine;
+};
+CDocument.prototype.ClearSearch = function()
+{
+	let isPrevSearch = this.SearchEngine.Count > 0;
+
+	this.SearchEngine.Clear();
+
+	if (isPrevSearch)
+	{
+		this.Api.sync_SearchEndCallback();
+		this.DrawingDocument.ClearCachePages();
+		this.DrawingDocument.FirePaint();
+	}
 };
 CDocument.prototype.SelectSearchElement = function(Id)
 {
