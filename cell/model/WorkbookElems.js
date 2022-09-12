@@ -11824,6 +11824,21 @@ QueryTableField.prototype.clone = function() {
 		oGraphics.m_oFontManager = AscCommon.g_fontManager;
 		this.ctx.DocumentRenderer = oGraphics;
 		this.pixelRatio = AscCommon.AscBrowser.retinaPixelRatio;
+
+		if (isChangeForZoom && this.advancedOptions) {
+			this.recalculatePageClipRect();
+		}
+	};
+	CPrintPreviewState.prototype.recalculatePageClipRect = function () {
+		var pages = this.wb.calcPagesPrint(this.advancedOptions);
+		if (pages && pages.arrPages && this.pages.arrPages && this.pages.arrPages.length === pages.arrPages.length) {
+			for (var i in this.pages.arrPages) {
+				this.pages.arrPages[i].pageClipRectHeight = pages.arrPages[i].pageClipRectHeight;
+				this.pages.arrPages[i].pageClipRectLeft = pages.arrPages[i].pageClipRectLeft;
+				this.pages.arrPages[i].pageClipRectTop = pages.arrPages[i].pageClipRectTop;
+				this.pages.arrPages[i].pageClipRectWidth = pages.arrPages[i].pageClipRectWidth;
+			}
+		}
 	};
 	CPrintPreviewState.prototype.setAdvancedOptions = function (val) {
 		this.advancedOptions = val;
