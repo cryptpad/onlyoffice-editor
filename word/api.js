@@ -3299,6 +3299,14 @@ background-repeat: no-repeat;\
 
 		return result;
 	};
+	asc_docs_api.prototype.asc_endFindText = function()
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return;
+
+		return logicDocument.ClearSearch();
+	};
 	asc_docs_api.prototype.asc_replaceText = function(oProps, replaceWith, isReplaceAll)
 	{
 		if (this.asc_GetErrorForReplaceString(replaceWith))
@@ -4031,6 +4039,23 @@ background-repeat: no-repeat;\
 	 1)a)i)        - SubType = 1
 	 1.1.1         - SubType = 2
 	 маркированный - SubType = 3
+
+	 SubType = 4: (Headings)
+	 	Article I
+	 		Section 1.01
+	 			(a)
+
+	 SubType = 5 : (Headings)
+	 1.1.1  (аналогичен SubType = 2)
+
+	 SubType = 6: (Headings)
+	 I. A. 3. a) (1)
+
+	 SubType = 7: (Headings)
+	 	Chapter 1
+	 	(none)
+	 	(none)
+
 	 */
 	asc_docs_api.prototype.put_ListType = function(type, subtype)
 	{
@@ -4041,8 +4066,9 @@ background-repeat: no-repeat;\
 			{
 				oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphNumbering);
 				oLogicDocument.SetParagraphNumbering({
-					Type    : type,
-					SubType : subtype
+					Type     : type,
+					SubType  : subtype,
+					Headings : 2 === type && 4 <= subtype && subtype <= 7
 				});
 				oLogicDocument.FinalizeAction();
 			}
@@ -12939,6 +12965,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_ReturnHeadersCallback']                = asc_docs_api.prototype.sync_ReturnHeadersCallback;
 	asc_docs_api.prototype['asc_searchEnabled']                         = asc_docs_api.prototype.asc_searchEnabled;
 	asc_docs_api.prototype['asc_findText']                              = asc_docs_api.prototype.asc_findText;
+	asc_docs_api.prototype['asc_endFindText']                           = asc_docs_api.prototype.asc_endFindText;
 	asc_docs_api.prototype['asc_replaceText']                           = asc_docs_api.prototype.asc_replaceText;
 	asc_docs_api.prototype['asc_GetErrorForReplaceString']              = asc_docs_api.prototype.asc_GetErrorForReplaceString;
 	asc_docs_api.prototype['asc_isSelectSearchingResults']              = asc_docs_api.prototype.asc_isSelectSearchingResults;
