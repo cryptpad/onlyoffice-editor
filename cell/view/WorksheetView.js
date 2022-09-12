@@ -7114,7 +7114,6 @@
 				if (rowInfo) {
 					rowInfo.height = _rowHeight;
 					rowInfo._heightForPrint = AscCommonExcel.convertPxToPt(_rowHeight);
-					console.log("row: " + row + " rowInfo._heightForPrint: " + rowInfo._heightForPrint + " newHeight: " + newHeight + " oldHeight: " + oldHeight )
 				}
 				History.TurnOff();
 				res = newHeight;
