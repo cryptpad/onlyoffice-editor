@@ -1949,6 +1949,19 @@
 				var files = e.dataTransfer.files;
 				var nError = ValidateUploadImage(files);
 
+				if (nError === c_oAscServerError.UploadExtension && 1 === files.length)
+				{
+					let types = e.dataTransfer.types;
+					for (let i = 0, len = types.length; i < len; i++)
+					{
+						if (types[i] === "text" || types[i] === "text/plain" || types[i] === "text/html")
+						{
+							nError = c_oAscServerError.UploadCountFiles;
+							break;
+						}
+					}
+				}
+
                 var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
                 editor.endInlineDropTarget(e);
 
