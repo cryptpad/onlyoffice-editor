@@ -13192,7 +13192,8 @@ ParaRun.prototype.Search = function(ParaSearch)
 		{
 			if (isWholeWords)
 			{
-				ParaSearch.SearchIndex = 0;
+				ParaSearch.Reset();
+				break;
 			}
 			else
 			{
