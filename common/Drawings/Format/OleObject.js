@@ -639,7 +639,12 @@ function (window, undefined) {
             const oApi = Asc.editor || editor;
             if (!oApi.isOpenedChartFrame) {
                 oApi.asc_onOpenChartFrame();
-                oApi.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props);
+                const oController = oApi.getGraphicController();
+                if (oController) {
+                    AscFormat.ExecuteNoHistory(function () {
+                        oController.checkSelectedObjectsAndCallback(function () {}, [], false, AscDFH.historydescription_Common_PutBinaryInfo);
+                    }, this, []);
+                }
             }
             const nDataSize = oOleObject.m_aBinaryData.length;
             const sData = AscCommon.Base64.encode(oOleObject.m_aBinaryData);

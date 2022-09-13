@@ -4318,6 +4318,7 @@
 	window['AscDFH'].historydescription_Document_FillFormInPlugin                   = 0x0194;
 	window['AscDFH'].historydescription_Document_AddComplexForm                     = 0x0195;
 	window['AscDFH'].historydescription_Document_CorrectFormTextByFormat            = 0x0196;
+	window['AscDFH'].historydescription_Common_PutBinaryInfo                        = 0x0197;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
