@@ -130,7 +130,7 @@
 			if (!oFont.GetGIDByUnicode(codePoint))
 			{
 				if (oPreferredFont && oPreferredFont.GetGIDByUnicode(codePoint))
-					return oPreferredFont;
+					return {Font : oPreferredFont, CodePoint : codePoint};
 
 				let _oFont = this.m_oManager.m_pFont.Picker.GetFontBySymbolWithSize(this.m_oManager.m_pFont, codePoint);
 				if (_oFont)
