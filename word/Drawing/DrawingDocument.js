@@ -8576,7 +8576,7 @@ CStylesPainter.prototype =
 				_dr_style.Id = i;
 
 				this.drawStyle(_api, graphics, _dr_style,
-					__Styles.Is_StyleDefault(style.Name) ? AscCommon.translateManager.getValue(style.Name) : style.Name);
+					__Styles.IsStyleDefaultByName(style.Name) ? AscCommon.translateManager.getValue(style.Name) : style.Name);
 				this.docStyles[cur_index] = new AscCommon.CStyleImage(style.Name, AscCommon.c_oAscStyleImage.Document,
 					_canvas.toDataURL("image/png"), style.uiPriority);
 

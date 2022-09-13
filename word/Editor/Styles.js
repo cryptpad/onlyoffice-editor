@@ -9318,6 +9318,34 @@ CStyles.prototype.GetAllTableStyles = function()
 
 	return arrTableStyles;
 };
+CStyles.prototype.GetAllStyles = function()
+{
+	let result = [];
+	for (let id in this.Style)
+	{
+		result.push(this.Style[id]);
+	}
+
+	return result;
+};
+CStyles.prototype.GetRelatedStyles = function(styleId)
+{
+	let result = [];
+	for (let id in this.Style)
+	{
+		if (id === styleId)
+			continue;
+
+		let style = this.Style[id];
+
+		if (styleId === style.GetBasedOn()
+			|| styleId === style.GetLink()
+			|| styleId === style.GetNext())
+			result.push(style);
+	}
+
+	return result;
+};
 /**
  * Получаем идентификатор стиля по его имени
  * @param {string} sName
@@ -9590,47 +9618,46 @@ CStyles.prototype.Remove_AllCustomStylesFromInterface = function()
 		}
 	}
 };
-CStyles.prototype.Is_StyleDefault = function(sStyleName)
+CStyles.prototype.IsStyleDefaultByName = function(styleName)
 {
-	var StyleId = this.GetStyleIdByName(sStyleName);
-	if (null === StyleId)
+	var styleId = this.GetStyleIdByName(styleName);
+	if (!styleId)
 		return false;
 
-	if (StyleId == this.Default.Paragraph
-		|| StyleId == this.Default.Character
-		|| StyleId == this.Default.Numbering
-		|| StyleId == this.Default.Table
-		|| StyleId == this.Default.TableGrid
-		|| StyleId == this.Default.Headings[0]
-		|| StyleId == this.Default.Headings[1]
-		|| StyleId == this.Default.Headings[2]
-		|| StyleId == this.Default.Headings[3]
-		|| StyleId == this.Default.Headings[4]
-		|| StyleId == this.Default.Headings[5]
-		|| StyleId == this.Default.Headings[6]
-		|| StyleId == this.Default.Headings[7]
-		|| StyleId == this.Default.Headings[8]
-		|| StyleId == this.Default.ParaList
-		|| StyleId == this.Default.Header
-		|| StyleId == this.Default.Footer
-		|| StyleId == this.Default.Hyperlink
-		|| StyleId == this.Default.FootnoteText
-		|| StyleId == this.Default.FootnoteTextChar
-		|| StyleId == this.Default.FootnoteReference
-		|| StyleId == this.Default.NoSpacing
-		|| StyleId == this.Default.Title
-		|| StyleId == this.Default.Subtitle
-		|| StyleId == this.Default.Quote
-		|| StyleId == this.Default.IntenseQuote
-		|| StyleId == this.Default.Caption
-		|| StyleId == this.Default.EndnoteText
-		|| StyleId == this.Default.EndnoteTextChar
-		|| StyleId == this.Default.EndnoteReference)
-	{
-		return true;
-	}
-
-	return false;
+	return this.IsStyleDefaultById(styleId);
+};
+CStyles.prototype.IsStyleDefaultById = function(styleId)
+{
+	return (styleId === this.Default.Paragraph
+		|| styleId === this.Default.Character
+		|| styleId === this.Default.Numbering
+		|| styleId === this.Default.Table
+		|| styleId === this.Default.TableGrid
+		|| styleId === this.Default.Headings[0]
+		|| styleId === this.Default.Headings[1]
+		|| styleId === this.Default.Headings[2]
+		|| styleId === this.Default.Headings[3]
+		|| styleId === this.Default.Headings[4]
+		|| styleId === this.Default.Headings[5]
+		|| styleId === this.Default.Headings[6]
+		|| styleId === this.Default.Headings[7]
+		|| styleId === this.Default.Headings[8]
+		|| styleId === this.Default.ParaList
+		|| styleId === this.Default.Header
+		|| styleId === this.Default.Footer
+		|| styleId === this.Default.Hyperlink
+		|| styleId === this.Default.FootnoteText
+		|| styleId === this.Default.FootnoteTextChar
+		|| styleId === this.Default.FootnoteReference
+		|| styleId === this.Default.NoSpacing
+		|| styleId === this.Default.Title
+		|| styleId === this.Default.Subtitle
+		|| styleId === this.Default.Quote
+		|| styleId === this.Default.IntenseQuote
+		|| styleId === this.Default.Caption
+		|| styleId === this.Default.EndnoteText
+		|| styleId === this.Default.EndnoteTextChar
+		|| styleId === this.Default.EndnoteReference);
 };
 CStyles.prototype.Is_StyleDefaultOOXML = function(sStyleName)
 {
@@ -9649,7 +9676,7 @@ CStyles.prototype.Is_StyleDefaultOOXML = function(sStyleName)
 };
 CStyles.prototype.Is_DefaultStyleChanged = function(sStyleName)
 {
-	if (true != this.Is_StyleDefault(sStyleName))
+	if (true != this.IsStyleDefaultByName(sStyleName))
 		return false;
 
 	var StyleId = this.GetStyleIdByName(sStyleName);

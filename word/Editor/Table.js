@@ -8543,6 +8543,10 @@ CTable.prototype.Get_TableStyle = function()
 {
 	return this.TableStyle;
 };
+CTable.prototype.GetTableStyle = function()
+{
+	return this.Get_TableStyle();
+};
 CTable.prototype.Set_TableLook = function(TableLook)
 {
 	History.Add(new CChangesTableTableLook(this, this.TableLook, TableLook));
