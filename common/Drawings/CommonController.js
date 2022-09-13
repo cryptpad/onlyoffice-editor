@@ -5011,9 +5011,9 @@ DrawingObjectsController.prototype =
         {
             oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth);
         }
-        let oView3D = oProps.getView3d();
+        let oView3D = oProps.view3D;
         if(oView3D) {
-            oChartSpace.changeView3d(oProps.getView3d());
+            oChartSpace.changeView3d(oView3D);
         }
     },
 

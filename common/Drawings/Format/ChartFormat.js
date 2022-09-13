@@ -14595,11 +14595,11 @@
                 this.rotY === pr.rotY;
     };
     CView3d.prototype.asc_getRotX = function() {
-        return this.rotX;
+        return this.rotY; //ms changes x and y in interface
     };
     CView3d.prototype["asc_getRotX"] = CView3d.prototype.asc_getRotX;
     CView3d.prototype.asc_getRotY = function() {
-        return this.rotY;
+        return this.rotX; //ms changes x and y in interface
     };
     CView3d.prototype["asc_getRotY"] = CView3d.prototype.asc_getRotY;
     CView3d.prototype.asc_getPerspective = function() {
@@ -14627,11 +14627,11 @@
     CView3d.prototype["asc_getHeight"] = CView3d.prototype.asc_getHeight;
 
     CView3d.prototype.asc_setRotX = function(pr) {
-        this.rotX = pr;
+        this.rotY = pr;//ms changes x and y in interface
     };
     CView3d.prototype["asc_setRotX"] = CView3d.prototype.asc_setRotX;
     CView3d.prototype.asc_setRotY = function(pr) {
-        this.rotY = pr;
+        this.rotX = pr;//ms changes x and y in interface
     };
     CView3d.prototype["asc_setRotY"] = CView3d.prototype.asc_setRotY;
     CView3d.prototype.asc_setPerspective = function(pr) {
