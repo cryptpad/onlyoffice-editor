@@ -636,6 +636,11 @@ function (window, undefined) {
     function asc_putBinaryDataToFrameFromTableOleObject(oOleObject)
     {
         if (oOleObject instanceof AscFormat.COleObject) {
+            const oApi = Asc.editor || editor;
+            if (!oApi.isOpenedChartFrame) {
+                oApi.asc_onOpenChartFrame();
+                oApi.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props);
+            }
             const nDataSize = oOleObject.m_aBinaryData.length;
             const sData = AscCommon.Base64.encode(oOleObject.m_aBinaryData);
             const nImageWidth = oOleObject.extX * AscCommon.g_dKoef_mm_to_pix;
