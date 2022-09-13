@@ -7067,7 +7067,7 @@ function CDrawingDocument()
 					c_oAscMultiLevelNumbering.MultiLevel_Article_Section,
 					c_oAscMultiLevelNumbering.MultiLevel_Chapter,
 					c_oAscMultiLevelNumbering.MultiLevel_I_A_1,
-					c_oAscMultiLevelNumbering.MultiLevel_1_11_111
+					c_oAscMultiLevelNumbering.MultiLevel_1_11_111_NoInd
 				];
 				for (var i = 0; i < arrTypes.length; i++)
 				{

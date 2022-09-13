@@ -230,6 +230,9 @@ CNumberingLvl.prototype.InitDefault = function(nLvl, nType)
 		case c_oAscMultiLevelNumbering.MultiLevel_I_A_1:
 			this.private_InitDefaultMultiLevel_I_A_1(nLvl);
 			break;
+		case c_oAscMultiLevelNumbering.MultiLevel_1_11_111_NoInd:
+			this.private_InitDefaultMultiLevel_1_11_111_NoInd(nLvl);
+			break;
 		default:
 			this.private_InitDefault(nLvl);
 	}
@@ -728,6 +731,30 @@ CNumberingLvl.prototype.private_InitDefaultMultiLevel_I_A_1 = function(nLvl)
 			this.AddLvlToLvlText(8);
 			this.AddStringToLvlText(")");
 			break;
+	}
+};
+/**
+ * Многоуровневый список 1. 1.1. 1.1.1. и т.д.
+ * @param iLvl {number} 0..8
+ */
+CNumberingLvl.prototype.private_InitDefaultMultiLevel_1_11_111_NoInd = function(iLvl)
+{
+	this.SetFormat(Asc.c_oAscNumberingFormat.Decimal);
+	this.Jc      = AscCommon.align_Left;
+	this.Start   = 1;
+	this.Restart = -1;
+	this.Suff    = Asc.c_oAscNumberingSuff.Tab;
+	this.TextPr  = new CTextPr();
+
+	this.ParaPr               = new CParaPr();
+	this.ParaPr.Ind.Left      = (432 + 144 * iLvl) * g_dKoef_twips_to_mm;
+	this.ParaPr.Ind.FirstLine = -this.ParaPr.Ind.Left;
+
+	this.LvlText = [];
+	for (let index = 0; index <= iLvl; ++index)
+	{
+		this.LvlText.push(new CNumberingLvlTextNum(index));
+		this.LvlText.push(new CNumberingLvlTextString("."));
 	}
 };
 /**

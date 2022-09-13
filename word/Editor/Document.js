@@ -7294,7 +7294,7 @@ CDocument.prototype.private_SetParagraphNumberingMultiLevel = function(arrParagr
 		}
 		case 7:
 		{
-			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel_1_11_111);
+			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel_1_11_111_NoInd);
 			break;
 		}
 	}
