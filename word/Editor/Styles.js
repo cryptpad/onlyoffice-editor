@@ -316,7 +316,6 @@ CStyle.prototype =
         Style.TextPr      = this.TextPr.Copy();
         Style.ParaPr      = this.ParaPr.Copy();
         Style.TablePr     = this.TablePr.Copy();
-        Style.TablePr     = this.TablePr.Copy();
         Style.TableRowPr  = this.TableRowPr.Copy();
         Style.TableCellPr = this.TableCellPr.Copy();
 
@@ -339,6 +338,45 @@ CStyle.prototype =
 
         return Style;
     },
+
+	Set : function(style)
+	{
+		if (!style || !(style instanceof CStyle))
+			return;
+
+		this.Set_Name(style.Name);
+		this.Set_BasedOn(style.BasedOn);
+		this.Set_Next(style.Next);
+		this.Set_Type(style.Type);
+		this.Set_QFormat(style.qFormat);
+		this.Set_UiPriority(style.uiPriority);
+		this.Set_Hidden(style.hidden);
+		this.Set_SemiHidden(style.semiHidden);
+		this.Set_UnhideWhenUsed(style.unhideWhenUsed);
+		this.Set_TextPr(style.TextPr.Copy());
+		this.Set_ParaPr(style.ParaPr.Copy());
+
+		this.Set_TablePr(style.TablePr.Copy());
+		this.Set_TableRowPr(style.TableRowPr.Copy());
+		this.Set_TableCellPr(style.TableCellPr.Copy());
+
+		if (style.TableBand1Horz)
+		{
+			this.Set_TableBand1Horz(style.TableBand1Horz.Copy());
+			this.Set_TableBand1Vert(style.TableBand1Vert.Copy());
+			this.Set_TableBand2Horz(style.TableBand2Horz.Copy());
+			this.Set_TableBand2Vert(style.TableBand2Vert.Copy());
+			this.Set_TableFirstCol(style.TableFirstCol.Copy());
+			this.Set_TableFirstRow(style.TableFirstRow.Copy());
+			this.Set_TableLastCol(style.TableLastCol.Copy());
+			this.Set_TableLastRow(style.TableLastRow.Copy());
+			this.Set_TableTLCell(style.TableTLCell.Copy());
+			this.Set_TableTRCell(style.TableTRCell.Copy());
+			this.Set_TableBLCell(style.TableBLCell.Copy());
+			this.Set_TableBRCell(style.TableBRCell.Copy());
+			this.Set_TableWholeTable(style.TableWholeTable.Copy());
+		}
+	},
 
 	RemapIdReferences : function(OldId, NewId)
 	{
