@@ -7243,6 +7243,8 @@ Paragraph.prototype.Apply_TextPr = function(TextPr, IncFontSize)
 
 	if (true === this.Selection.Use)
 	{
+		let selectDirection = this.GetSelectDirection();
+
 		var StartPos = this.Selection.StartPos;
 		var EndPos   = this.Selection.EndPos;
 
@@ -7250,9 +7252,15 @@ Paragraph.prototype.Apply_TextPr = function(TextPr, IncFontSize)
 		{
 			var NewElements = this.Content[EndPos].Apply_TextPr(TextPr, IncFontSize, false);
 
-			if (para_Run === this.Content[EndPos].Type)
+			if (this.Content[EndPos].IsRun())
 			{
-				this.Internal_ReplaceRun(EndPos, NewElements);
+				this.RemoveSelection();
+				let centerPos = this.Internal_ReplaceRun(EndPos, NewElements);
+
+				this.Selection.Use      = true;
+				this.Selection.StartPos = centerPos;
+				this.Selection.EndPos   = centerPos;
+				this.Content[centerPos].SelectAll(selectDirection);
 			}
 		}
 		else

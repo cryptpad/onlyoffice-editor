@@ -2897,7 +2897,7 @@ CDocument.prototype.private_FinalizeValidateForm = function()
 	if (this.Action.CancelAction)
 		return;
 
-	// По логике заполнять одновремнно более одной формы нельзя
+	// По логике заполнять одновременно более одной формы нельзя
 	if (1 === arrForms.length && !arrForms[0].IsPlaceHolder())
 		this.History.SetAdditionalFormFilling(arrForms[0], this.Action.PointsCount);
 };
@@ -7294,7 +7294,7 @@ CDocument.prototype.private_SetParagraphNumberingMultiLevel = function(arrParagr
 		}
 		case 7:
 		{
-			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel_1_11_111);
+			oNum.CreateDefault(c_oAscMultiLevelNumbering.MultiLevel_1_11_111_NoInd);
 			break;
 		}
 	}
@@ -11070,9 +11070,9 @@ CDocument.prototype.Remove_AllCustomStyles = function()
 /**
  * Проверяем является ли заданный стиль дефолтовым.
  */
-CDocument.prototype.Is_StyleDefault = function(sName)
+CDocument.prototype.IsStyleDefaultByName = function(sName)
 {
-	return this.Styles.Is_StyleDefault(sName);
+	return this.Styles.IsStyleDefaultByName(sName);
 };
 /**
  * Проверяем изменен ли дефолтовый стиль.
@@ -11086,10 +11086,18 @@ CDocument.prototype.Get_Styles = function()
 	return this.Styles;
 };
 /**
- * Получаем ссылку на объект, работающий со стилями
+ * Получаем ссылку на менеджер стилей
  * @returns {CStyles}
  */
 CDocument.prototype.GetStyles = function()
+{
+	return this.Styles;
+};
+/**
+ * Получаем ссылку на менеджер стилей
+ * @returns {CStyles}
+ */
+CDocument.prototype.GetStyleManager = function()
 {
 	return this.Styles;
 };
@@ -11100,6 +11108,70 @@ CDocument.prototype.GetAllTableStyles = function()
 CDocument.prototype.CopyStyle = function()
 {
 	return this.Styles.CopyStyle();
+};
+CDocument.prototype.IsStylesUseInDocument = function(styleIds)
+{
+	let styleManager = this.GetStyleManager();
+	let allStyles    = styleManager.GetAllStyles();
+
+	let mapStyleId = {};
+	for (let index = 0, count = allStyles.length; index < count; ++index)
+	{
+		mapStyleId[allStyles[index].GetId()] = 0;
+	}
+
+	let allParagraphs = this.GetAllParagraphs()
+	for (let index = 0, count = allParagraphs.length; index < count; ++index)
+	{
+		let paraStyleId = allParagraphs[index].GetParagraphStyle();
+		if (undefined !== mapStyleId[paraStyleId])
+			mapStyleId[paraStyleId]++;
+	}
+
+	let allTables = this.GetAllTables();
+	for (let index = 0, count = allTables.length; index < count; ++index)
+	{
+		let tableStyleId = allTables[index].GetTableStyle();
+		if (undefined !== mapStyleId[tableStyleId])
+			mapStyleId[tableStyleId]++;
+	}
+
+	this.CheckAllRunContent(function(run)
+	{
+		let runStyleId = run.GetRStyle();
+		if (undefined !== mapStyleId[runStyleId])
+			mapStyleId[runStyleId]++;
+	});
+
+
+	let result = [];
+	for (let index = 0, count = styleIds.length; index < count; ++index)
+	{
+		let currentId = styleIds[index];
+		let isUse     = false;
+
+		if (styleManager.IsStyleDefaultById(currentId) || (undefined !== mapStyleId[currentId] && mapStyleId[currentId] > 0))
+		{
+			isUse = true;
+		}
+		else
+		{
+			let relatedStyles = styleManager.GetRelatedStyles(currentId);
+			for (let relatedIndex = 0, relatedCount = relatedStyles.length; relatedIndex < relatedCount; ++relatedIndex)
+			{
+				let relatedId = relatedStyles[relatedIndex].GetId();
+				if (undefined !== mapStyleId[relatedId] && mapStyleId[relatedId] > 0)
+				{
+					isUse = true;
+					break;
+				}
+			}
+		}
+
+		result.push(isUse);
+	}
+
+	return result;
 };
 CDocument.prototype.Get_TableStyleForPara = function()
 {
@@ -14866,6 +14938,9 @@ CDocument.prototype.GetAllParagraphs = function(Props, ParaArray)
 	if (!ParaArray)
 		ParaArray = [];
 
+	if (!Props)
+		Props = {All : true};
+
 	if (true === Props.OnlyMainDocument)
 	{
 		var Count = this.Content.length;
@@ -14899,6 +14974,9 @@ CDocument.prototype.GetAllTables = function(oProps, arrTables)
 {
 	if (!arrTables)
 		arrTables = [];
+
+	if (!oProps)
+		oProps = {};
 
 	if (oProps && true === oProps.OnlyMainDocument)
 	{
@@ -16364,7 +16442,7 @@ CDocument.prototype.AddContentControlTextForm = function(oPr)
 	if (!oPr)
 		oPr = new AscWord.CSdtTextFormPr();
 
-	var sText   = this.GetSelectedText();
+	var sText   = this.GetSelectedText(false, {SkipPlaceholder : true});
 	var oTextPr = this.GetDirectTextPr();
 
 	if (this.IsTextSelectionUse())
@@ -16431,7 +16509,7 @@ CDocument.prototype.AddComplexForm = function(oPr, formPr)
 	if (!oPr)
 		oPr = new AscWord.CSdtComplexFormPr();
 
-	let sText   = this.GetSelectedText();
+	let sText   = this.GetSelectedText(false, {SkipPlaceholder : true});
 	let oTextPr = this.GetDirectTextPr();
 
 	if (this.IsTextSelectionUse())
@@ -25164,17 +25242,17 @@ CDocument.prototype.OnChangeForm = function(oForm)
 
 	let sKey = oForm.IsRadioButton() ? oForm.GetRadioButtonGroupKey() : oForm.GetFormKey();
 
+	if (!this.Action.Additional.ValidateForm)
+		this.Action.Additional.ValidateForm = {};
+
+	this.Action.Additional.ValidateForm[oForm.GetId()] = oForm;
+
 	let oMainForm = oForm.GetMainForm();
 	if (oForm !== oMainForm)
 	{
 		sKey  = oMainForm.GetFormKey();
 		oForm = oMainForm;
 	}
-
-	if (!this.Action.Additional.ValidateForm)
-		this.Action.Additional.ValidateForm = {};
-
-	this.Action.Additional.ValidateForm[oForm.GetId()] = oForm;
 
 	if (!sKey)
 		return;
@@ -26675,6 +26753,19 @@ CDocument.prototype.GetImageFormSelection = function()
 {
     return this.DrawingObjects.getImageDataFromSelection();
 };
+/**
+ * Проходим по всем ранам документа (в отличие от функции CheckRunContent, проходящей только по основной части
+ * документа)
+ */
+CDocument.prototype.CheckAllRunContent = function(fCheck)
+{
+	// TODO: Добавить drawings
+
+	this.CheckRunContent(fCheck);
+	this.SectionsInfo.CheckRunContent(fCheck);
+	this.Footnotes.CheckRunContent(fCheck);
+	this.Endnotes.CheckRunContent(fCheck);
+};
 
 
 function CDocumentSelectionState()
@@ -27306,6 +27397,14 @@ CDocumentSectionsInfo.prototype.RemoveEmptyHdrFtrs = function()
 	{
 		let oSectPr = this.Elements[nIndex].SectPr;
 		oSectPr.RemoveEmptyHdrFtrs();
+	}
+};
+CDocumentSectionsInfo.prototype.CheckRunContent = function(fCheck)
+{
+	let headers = this.GetAllHdrFtrs();
+	for (let index = 0, count = headers.length; index < count; ++index)
+	{
+		headers[index].GetContent().CheckRunContent(fCheck);
 	}
 };
 //----------------------------------------------------------------------------------------------------------------------

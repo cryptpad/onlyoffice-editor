@@ -9147,7 +9147,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_IsStyleDefault         = function(sName)
 	{
-		return this.WordControl.m_oLogicDocument.Is_StyleDefault(sName);
+		return this.WordControl.m_oLogicDocument.IsStyleDefaultByName(sName);
 	};
 	asc_docs_api.prototype.asc_IsDefaultStyleChanged  = function(sName)
 	{

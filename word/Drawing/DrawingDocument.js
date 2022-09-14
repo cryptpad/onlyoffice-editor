@@ -7067,7 +7067,7 @@ function CDrawingDocument()
 					c_oAscMultiLevelNumbering.MultiLevel_Article_Section,
 					c_oAscMultiLevelNumbering.MultiLevel_Chapter,
 					c_oAscMultiLevelNumbering.MultiLevel_I_A_1,
-					c_oAscMultiLevelNumbering.MultiLevel_1_11_111
+					c_oAscMultiLevelNumbering.MultiLevel_1_11_111_NoInd
 				];
 				for (var i = 0; i < arrTypes.length; i++)
 				{
@@ -8576,7 +8576,7 @@ CStylesPainter.prototype =
 				_dr_style.Id = i;
 
 				this.drawStyle(_api, graphics, _dr_style,
-					__Styles.Is_StyleDefault(style.Name) ? AscCommon.translateManager.getValue(style.Name) : style.Name);
+					__Styles.IsStyleDefaultByName(style.Name) ? AscCommon.translateManager.getValue(style.Name) : style.Name);
 				this.docStyles[cur_index] = new AscCommon.CStyleImage(style.Name, AscCommon.c_oAscStyleImage.Document,
 					_canvas.toDataURL("image/png"), style.uiPriority);
 
