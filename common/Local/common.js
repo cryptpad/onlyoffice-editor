@@ -345,7 +345,8 @@ AscCommon.CDocsCoApi.prototype.askSaveChanges = function(callback)
 };
 AscCommon.CDocsCoApi.prototype.saveChanges = function(arrayChanges, deleteIndex, excelAdditionalInfo)
 {
-	window["AscDesktopEditor"]["LocalFileSaveChanges"](arrayChanges.join("\",\""), deleteIndex, arrayChanges.length);
+	let count = arrayChanges.length;
+	window["AscDesktopEditor"]["LocalFileSaveChanges"]((count > 100000) ? arrayChanges : arrayChanges.join("\",\""), deleteIndex, count);
 	//this.onUnSaveLock();
 };
 
