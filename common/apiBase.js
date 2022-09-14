@@ -751,12 +751,23 @@
 				this.setSkipStartEndAction(oInformation.value);
 				break;
 			}
+			case c_oGatewayFrameGeneralInformationType.StartUploadImageAction:
+			{
+				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			}
 			default:
 			{
 				break;
 			}
 		}
 	};
+
+	baseEditorsApi.prototype.sendStartUploadImageActionToFrameEditor = function () {
+		this.sendFromGeneralToFrameEditor({
+			"typeOfInformation": c_oGatewayFrameGeneralInformationType.StartUploadImageAction,
+
+		});
+	}
 
 	baseEditorsApi.prototype.addImageUrlsFromGeneralToFrameEditor = function (urls)
 	{
@@ -2082,7 +2093,6 @@
 		if (this.isEditOleMode)
 		{
 			this.oSaveObjectForAddImage = obj;
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 			this.sendFromFrameToGeneralEditor({
 				"typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.ShowImageDialogInFrame,
 			});
@@ -2100,7 +2110,11 @@
 			{
 				t.sendEvent("asc_onError", error, c_oAscError.Level.NoCritical);
 			}
-			t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			if (obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
+				t.sendStartUploadImageActionToFrameEditor();
+			} else {
+				t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			}
 		});
 	};
 	baseEditorsApi.prototype._uploadCallback                     = function(error, files, obj)
@@ -2112,7 +2126,12 @@
 		}
 		else
 		{
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+
+			if (obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
+				this.sendStartUploadImageActionToFrameEditor();
+			} else {
+				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			}
 			AscCommon.UploadImageFiles(files, this.documentId, this.documentUserId, this.CoAuthoringApi.get_jwt(), function(error, urls)
 			{
 				if (c_oAscError.ID.No !== error)
