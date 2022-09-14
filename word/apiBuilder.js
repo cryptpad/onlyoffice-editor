@@ -10125,7 +10125,7 @@
 			tempCell 			= this.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.Cell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10159,7 +10159,7 @@
 			tempCell 			= this.Row.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10213,7 +10213,7 @@
 			tempCell 			= this.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.Cell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10253,7 +10253,7 @@
 			tempCell 			= this.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.Cell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{

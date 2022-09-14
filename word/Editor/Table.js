@@ -9842,7 +9842,7 @@ CTable.prototype.AddTableRow = function(bBefore, nCount, isCheckInnerTable)
 		var Cell_grid_start = Cell_info.StartGridCol;
 		var Cell_grid_span  = Cell.Get_GridSpan();
 
-		var VMerge_count_before = this.Internal_GetVertMergeCount2(RowId, Cell_grid_start, Cell_grid_span);
+		var VMerge_count_before = this.Internal_GetVertMergeCountUp(RowId, Cell_grid_start, Cell_grid_span);
 		var VMerge_count_after  = this.Internal_GetVertMergeCount(RowId, Cell_grid_start, Cell_grid_span);
 
 		Cells_info[CurCell] = {
@@ -9989,7 +9989,7 @@ CTable.prototype.RemoveTableRow = function(Ind)
 
 			// Данная ячейка продолжает вертикальное объединение ячеек
 			// Найдем строку, с которой начинается данное объединение.
-			var VMerge_count = this.Internal_GetVertMergeCount2(CurRow, Row.Get_CellInfo(CurCell).StartGridCol, Cell.Get_GridSpan());
+			var VMerge_count = this.Internal_GetVertMergeCountUp(CurRow, Row.Get_CellInfo(CurCell).StartGridCol, Cell.Get_GridSpan());
 			if (CurRow - ( VMerge_count - 1 ) >= FirstRow_to_delete)
 				Cell.SetVMerge(vmerge_Restart);
 		}
@@ -14433,28 +14433,35 @@ CTable.prototype.Internal_GetVertMergeCount = function(StartRow, StartGridCol, G
 /**
  * Считаем количество соединенных вертикально ячеек, но в обратную сторону (т.е. снизу вверх)
  */
-CTable.prototype.Internal_GetVertMergeCount2 = function(StartRow, StartGridCol, GridSpan)
+CTable.prototype.Internal_GetVertMergeCountUp = function(StartRow, StartGridCol, GridSpan)
 {
-	// начинаем с 1, потому что предполагается, что соединение начинается с исходной ячейки
-	var VmergeCount = 1;
+	// Сначала проверим VMerge заданной ячейки
+	let row = this.GetRow(StartRow);
+	if (!row)
+		return 1;
 
-	// сначала проверим VMerge текущей ячейки
-	var Start_Row        = this.Content[StartRow];
-	var Start_VMerge     = vmerge_Restart;
-	var Start_CellsCount = Start_Row.Get_CellsCount();
-	for (var Index = 0; Index < Start_CellsCount; Index++)
+	let curGridCol = row.GetBefore().Grid;
+	for (let curCell = 0, cellsCount = row.GetCellsCount(); curCell < cellsCount; ++curCell)
 	{
-		var Temp_Grid_start = Start_Row.Get_CellInfo(Index).StartGridCol;
-		if (Temp_Grid_start === StartGridCol)
+		let cell = row.GetCell(curCell);
+
+		if (curGridCol === StartGridCol)
 		{
-			Start_VMerge = Start_Row.Get_Cell(Index).GetVMerge();
+			if (vmerge_Restart === cell.GetVMerge())
+				return 1;
+
 			break;
 		}
+		else if (curGridCol > StartGridCol)
+		{
+			return 1;
+		}
+
+		curGridCol += cell.GetGridSpan();
 	}
 
-	if (vmerge_Restart === Start_VMerge)
-		return VmergeCount;
-
+	// начинаем с 1, потому что предполагается, что соединение начинается с исходной ячейки
+	var VmergeCount = 1;
 	for (var Index = StartRow - 1; Index >= 0; Index--)
 	{
 		var Row        = this.Content[Index];
@@ -16998,7 +17005,7 @@ CTable.prototype.private_StartTrackTable = function(CurPage)
     var Transform = this.Get_ParentTextTransform();
     this.DrawingDocument.StartTrackTable(NewOutline, Transform);
 };
-CTable.prototype.Correct_BadTable = function()
+CTable.prototype.CorrectBadTable = function()
 {
     // TODO: Пока оставим эту заглушку на случай загрузки плохих таблиц. В будущем надо будет
     //       сделать нормальный обсчет для случая, когда у нас есть "пустые" строки (составленные
@@ -17080,8 +17087,7 @@ CTable.prototype.CorrectHMerge = function()
 	this.Recalc_CompiledPr2();
 };
 /**
- * Специальная функция, проверяющая, чтобы в первой строке не было ячеек с параметром vmerge_Continue
- * @constructor
+ * Специальная функция, проверяющая корректность вертикального объединения всех ячеек в таблице
  */
 CTable.prototype.CorrectVMerge = function()
 {
@@ -17094,15 +17100,27 @@ CTable.prototype.CorrectVMerge = function()
 	AscCommon.g_oIdCounter.m_bLoad = false;
 	AscCommon.g_oIdCounter.m_bRead = false;
 
-	var oRow = this.GetRow(0);
-
-	for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+	for (let curRow = 0, rowsCount = this.GetRowsCount(); curRow < rowsCount; ++curRow)
 	{
-		var oCell   = oRow.GetCell(nCurCell);
-		var nVMerge = oCell.GetVMerge();
+		let row = this.GetRow(curRow);
 
-		if (vmerge_Continue === oCell.GetVMerge())
-			oCell.SetVMerge(vmerge_Restart);
+		let gridCol = row.GetBefore().Grid;
+		for (let curCell = 0, cellsCount = row.GetCellsCount(); curCell < cellsCount; ++curCell)
+		{
+			let cell     = row.GetCell(curCell);
+			let gridSpan = cell.GetGridSpan();
+
+			if (vmerge_Continue !== cell.GetVMerge())
+			{
+				gridCol += gridSpan;
+				continue;
+			}
+
+			if (0 === curRow || this.Internal_GetVertMergeCountUp(curRow, gridCol, gridSpan) <= 1)
+				cell.SetVMerge(vmerge_Restart);
+
+			gridCol += gridSpan;
+		}
 	}
 
 	// HACK: Восстанавливаем флаги и выставляем, что стиль всей таблицы нужно пересчитать

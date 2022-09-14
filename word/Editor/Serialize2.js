@@ -8368,7 +8368,7 @@ function BinaryFileReader(doc, openParams)
 		for (var i = 0, length = this.oReadResult.aTableCorrect.length; i < length; ++i) {
 			var table = this.oReadResult.aTableCorrect[i];
 			table.ReIndexing(0);
-			table.Correct_BadTable();
+			table.CorrectBadTable();
 		}
 		if (opt_xmlParserContext) {
 			AscCommon.pptx_content_loader.Reader.ImageMapChecker = AscCommon.pptx_content_loader.ImageMapChecker;
@@ -8776,12 +8776,12 @@ function BinaryFileReader(doc, openParams)
 			{
 				var oldStyles = table.Parent.Styles;
 				table.Parent.Styles = this.Document.Styles;
-				table.Correct_BadTable();
+				table.CorrectBadTable();
 				table.Parent.Styles = oldStyles;
 			}
 			else
 			{
-				table.Correct_BadTable();
+				table.CorrectBadTable();
 			}
 		}		//чтобы удалялся stream с бинарником
 		pptx_content_loader.Clear(true);
