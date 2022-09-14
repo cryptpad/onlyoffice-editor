@@ -6473,7 +6473,7 @@ function CDrawingDocument()
 		}
 	};
 
-    this.privateGetParagraphByString = function(level, levelNum, counterCurrent, startText, x, y, lineHeight, ctx, w, h)
+    this.privateGetParagraphByString = function(level, levelNum, counterCurrent, formats, startText, x, y, lineHeight, ctx, w, h)
     {
         var text = "";
         for (var i = 0; i < level.Text.length; i++)
@@ -6484,10 +6484,14 @@ function CDrawingDocument()
                     text += level.Text[i].Value;
                     break;
                 case Asc.c_oAscNumberingLvlTextType.Num:
+					let format = level.Format;
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.get_OLang());
+					else if (level.Text[i].Value < levelNum && formats && undefined !== formats[level.Text[i].Value])
+						format = formats[level.Text[i].Value];
+
+                    text += AscCommon.IntToNumberFormat(correctNum, format, level.get_OLang());
                     break;
                 default:
                     break;
@@ -6753,7 +6757,7 @@ function CDrawingDocument()
 
 			for (var i = 0; i < textYs.length; i++)
 			{
-				this.privateGetParagraphByString(props.Lvl[level], level, i + 1, null, (text_base_offset_x- ((6.25 * AscCommon.g_dKoef_mm_to_pix)) >> 0),
+				this.privateGetParagraphByString(props.Lvl[level], level, i + 1, null, null, (text_base_offset_x- ((6.25 * AscCommon.g_dKoef_mm_to_pix)) >> 0),
 					textYs[i], line_distance, ctx, width_px, height_px);
 			}
 
@@ -6827,7 +6831,7 @@ function CDrawingDocument()
 
 			for (var i = 0; i < 9; i++)
 			{
-                this.privateGetParagraphByString(props.Lvl[i], level, 1, null, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
+                this.privateGetParagraphByString(props.Lvl[i], level, 1, null, null, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
             }
         }
 
@@ -6947,7 +6951,7 @@ function CDrawingDocument()
 
             text_base_offset_x += text_base_offset_dist;
 
-            this.privateGetParagraphByString(props.Lvl[k], k, 1, null, textYs.x, textYs.y, (height_px >> 1), ctx, width_px, height_px);
+            this.privateGetParagraphByString(props.Lvl[k], k, 1, null, null, textYs.x, textYs.y, (height_px >> 1), ctx, width_px, height_px);
         }
 
         if (oDocState)
@@ -7228,7 +7232,7 @@ function CDrawingDocument()
 			var x = (width_px - (parW >> 0)) >> 1;
 			var y = (height_px >> 1) + (parH >> 1);
 
-			this.privateGetParagraphByString(lvl, 0, 0, null, x, y, line_distance, ctx, width_px, height_px);
+			this.privateGetParagraphByString(lvl, 0, 0, null, null, x, y, line_distance, ctx, width_px, height_px);
 		}
 
 		for (var i = 1; i < id.length; i++)
@@ -7318,7 +7322,7 @@ function CDrawingDocument()
 				}
 
 				// для размеров окна 38 на 38
-				this.privateGetParagraphByString(props[i], 0, 0, null, x, y, line_distance, ctx, width_px, height_px);
+				this.privateGetParagraphByString(props[i], 0, 0, null, null, x, y, line_distance, ctx, width_px, height_px);
 			}
 			else
 			{
@@ -7337,6 +7341,12 @@ function CDrawingDocument()
 
 				let ind = 0;
 
+				// TODO: Переделать отрисовку на нормальную, с учетом всевозможных уровней.
+				//       Пока оставляю такую заглушку из-за бага 59031
+				let formats = null;
+				if (2 === type)
+					formats = [props[i][0].Format, props[i][1].Format, props[i][2].Format];
+
 				for (var j = 0; j < 3; j++)
 				{
 					ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
@@ -7349,7 +7359,8 @@ function CDrawingDocument()
 					if (2 === type && 4 <= i && i <= 7)
 						startText = " Heading " + (j + 1);
 
-					this.privateGetParagraphByString((type == 2) ? props[i][j] : props[i], 0, 1 + ((type == 1) ? j : 0), startText, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+
+					this.privateGetParagraphByString((type == 2) ? props[i][j] : props[i], 2 === type ? j : 0, 1 + ((type == 1) ? j : 0), formats, startText, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
 					y += (line_w + line_distance);
 					if (type == 2 && j < 2)
 					{
