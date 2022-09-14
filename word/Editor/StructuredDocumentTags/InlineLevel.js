@@ -668,8 +668,16 @@ CInlineLevelSdt.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, U
 			let oNewPos = oParaPos.Copy();
 			oPrevForm.Get_EndPos(false, oNewPos, oNewPos.GetDepth() + 1);
 
+			if (!oPrevForm.IsPlaceHolder() && !oPrevForm.IsEmpty() && oParagraph.IsEmptyBetweenClasses(oPrevForm, this))
+			{
+				let run = oParagraph.GetClassByPos(oNewPos);
+				if (run && run instanceof AscWord.CRun && oNewPos.Get(oNewPos.GetDepth()) > 0)
+					oNewPos.Update2(oNewPos.Get(oNewPos.GetDepth()) - 1, oNewPos.GetDepth());
+			}
+
 			SearchPos.Pos   = oNewPos;
 			SearchPos.Found = true;
+
 			return true;
 		}
 		else
@@ -764,6 +772,13 @@ CInlineLevelSdt.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, 
 		{
 			let oNewPos = oParaPos.Copy();
 			oNextForm.Get_StartPos(oNewPos, oNewPos.GetDepth() + 1);
+
+			if (!oNextForm.IsPlaceHolder() && !oNextForm.IsEmpty() && oParagraph.IsEmptyBetweenClasses(this, oNextForm))
+			{
+				let run = oParagraph.GetClassByPos(oNewPos);
+				if (run && run instanceof AscWord.CRun && oNewPos.Get(oNewPos.GetDepth()) < run.GetElementsCount())
+					oNewPos.Update2(oNewPos.Get(oNewPos.GetDepth()) + 1, oNewPos.GetDepth());
+			}
 
 			SearchPos.Pos   = oNewPos;
 			SearchPos.Found = true;
