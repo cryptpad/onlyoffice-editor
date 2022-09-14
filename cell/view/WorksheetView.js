@@ -11862,7 +11862,7 @@
     
     WorksheetView.prototype.isHaveOnlyOneChart = function (bReturnChart) {
         const arrCharts = this.getCharts();
-        const bHaveOnlyOneChart = this.isEmptyCellsSheet() && arrCharts.length === 1;
+        const bHaveOnlyOneChart = this.isEmptyCellsSheet() && arrCharts.length === 1 && this.model.Drawings.length === 1;
         if (bReturnChart) {
             return bHaveOnlyOneChart ? arrCharts[0] : null;
         }
