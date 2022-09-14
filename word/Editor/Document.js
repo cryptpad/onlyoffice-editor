@@ -6584,7 +6584,10 @@ CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 						let numPr     = paragraph.GetNumPr();
 						let iLvl      = numPr ? numPr.Lvl : 0;
 						paragraph.SetNumPr(undefined);
-						paragraph.SetParagraphStyleById(styles.GetDefaultHeading(iLvl));
+
+						let pStyle = paragraph.GetParagraphStyle();
+						if (!pStyle || -1 === styles.GetHeadingLevelById(pStyle))
+							paragraph.SetParagraphStyleById(styles.GetDefaultHeading(iLvl));
 					}
 
 					this.Document_UpdateStylesPanel();
