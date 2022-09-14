@@ -1663,6 +1663,8 @@
 	window['AscDFH'].historyitem_type_VMLShapeType           = 2109 << 16;
 	window['AscDFH'].historyitem_type_VMLClientData          = 2110 << 16;
 
+	window['AscDFH'].historyitem_type_OleSizeSelection       = 2111 << 16;
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2862,6 +2864,8 @@
 	window['AscDFH'].historyitem_ShapeSetFLocksText             = window['AscDFH'].historyitem_type_Shape | 17;
 	window['AscDFH'].historyitem_ShapeSetClientData             = window['AscDFH'].historyitem_type_Shape | 18;
 	window['AscDFH'].historyitem_ShapeSetShapeSmartArtPointInfo = window['AscDFH'].historyitem_type_Shape | 19;
+
+	window['AscDFH'].historyitem_OleSizeSelectionSetRange = window['AscDFH'].historyitem_type_OleSizeSelection | 1;
 
 	window['AscDFH'].historyitem_DispUnitsSetBuiltInUnit  = window['AscDFH'].historyitem_type_DispUnits | 1;
 	window['AscDFH'].historyitem_DispUnitsSetCustUnit     = window['AscDFH'].historyitem_type_DispUnits | 2;

@@ -1392,6 +1392,8 @@
 
 			if (this.isChangeVisibleAreaMode) {
 				this.isChangeVisibleAreaMode = false;
+				const oOleSize = this.view.getOleSize();
+				oOleSize.addPointToLocalHistory();
 			}
 
 			if (this.isSelectMode) {
@@ -1691,6 +1693,8 @@
 
 			if (this.isChangeVisibleAreaMode) {
 				this.isChangeVisibleAreaMode = false;
+				const oOleSize = this.view.getOleSize();
+				oOleSize.addPointToLocalHistory();
 			}
 
 			if (2 === button) {

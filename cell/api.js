@@ -3958,6 +3958,10 @@ var editor;
               oThis.saveImageCoefficients = oThis.getScaleCoefficientsForOleTableImage(nImageWidth, nImageHeight);
           }
           oThis.wb.scrollToOleSize();
+          // добавляем первый поинт после загрузки, чтобы в локальную историю добавился либо стандартный oleSize, либо заданный пользователем
+          const oleSize = oThis.wb.getOleSize();
+          oleSize.addPointToLocalHistory();
+
           oThis.wb.onOleEditorReady();
           oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
       }
@@ -4010,10 +4014,11 @@ var editor;
   }
 
 	spreadsheet_api.prototype.asc_toggleChangeVisibleAreaOleEditor = function (bForceValue) {
-		var ws = this.wb.getWorksheet();
+		const ws = this.wb.getWorksheet();
 		ws.cleanSelection();
 		ws.endEditChart();
 		ws._endSelectionShape();
+        const previousValue = this.isEditVisibleAreaOleEditor;
 		if (typeof bForceValue === 'boolean') {
 			this.isEditVisibleAreaOleEditor = bForceValue;
 		} else {
@@ -4022,6 +4027,11 @@ var editor;
 		if (this.isEditVisibleAreaOleEditor) {
 			this.wb.setCellEditMode(false);
 		}
+        const currentValue = this.isEditVisibleAreaOleEditor;
+        if (previousValue === true && currentValue === false) {
+            const oOleSize = this.wbModel.getOleSize();
+            oOleSize.addToGlobalHistory();
+        }
 		ws._drawSelection();
 	};
 
