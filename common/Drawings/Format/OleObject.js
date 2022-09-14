@@ -638,11 +638,12 @@ function (window, undefined) {
         if (oOleObject instanceof AscFormat.COleObject) {
             const oApi = Asc.editor || editor;
             if (!oApi.isOpenedChartFrame) {
+                oApi.isOleEditor = true;
                 oApi.asc_onOpenChartFrame();
                 const oController = oApi.getGraphicController();
                 if (oController) {
                     AscFormat.ExecuteNoHistory(function () {
-                        oController.checkSelectedObjectsAndCallback(function () {}, [], false, AscDFH.historydescription_Common_PutBinaryInfo);
+                        oController.checkSelectedObjectsAndCallback(function () {}, [], false);
                     }, this, []);
                 }
             }
