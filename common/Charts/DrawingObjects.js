@@ -4406,7 +4406,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 		worksheet.cleanSelection();
         worksheet.endEditChart();
         drawing.fillSelectedRanges(worksheet);
-        if (worksheet.isChartAreaEditMode) {
+        if (worksheet.isChartAreaEditMode || (api && api.isShowVisibleAreaOleEditor)) {
             worksheet._drawSelection();
         }
     };
