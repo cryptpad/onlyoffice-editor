@@ -851,6 +851,9 @@
 
 		let nInLastClassPos = oParaAnchorPos.NearPos.ContentPos.Data[oParaAnchorPos.Classes.length - 1];
 
+		if (oForm.IsComplexForm())
+			return this.private_InsertInline();
+
 		if ((!oForm.IsTextForm() && !oForm.IsComboBox()))
 			return;
 

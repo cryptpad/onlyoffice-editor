@@ -1203,14 +1203,26 @@ CInlineLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isSt
 		return null;
 	}
 
+	let isComplex = this.IsComplexForm();
+	if (!isCurrent && isComplex)
+	{
+		let subForms = this.GetAllSubForms();
+		if (!subForms.length)
+			return null;
+		else if (isNext)
+			return subForms[0];
+		else
+			return subForms[subForms.length - 1];
+	}
+
 	if (!isCurrent && isNext)
-		return this;
+		return isComplex ? null : this;
 
 	var oRes = CParagraphContentWithParagraphLikeContent.prototype.FindNextFillingForm.apply(this, arguments);
 	if (!oRes && !isNext)
-		return this;
+		return isComplex ? null : this;
 
-	return null;
+	return oRes ? oRes : null;
 };
 CInlineLevelSdt.prototype.GetAllContentControls = function(arrContentControls)
 {
