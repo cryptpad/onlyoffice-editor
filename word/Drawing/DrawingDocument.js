@@ -6501,7 +6501,7 @@ function CDrawingDocument()
 		var api            = this.m_oWordControl.m_oApi;
 		var oLogicDocument = this.m_oWordControl.m_oLogicDocument;
 		if (!api || !oLogicDocument)
-			return;
+			return 0;
 
 		var oldViewMode = api.isViewMode;
         var oldMarks = api.ShowParaMarks;
@@ -6560,10 +6560,10 @@ function CDrawingDocument()
         }
 
         // debug: text rect:
-        //ctx.beginPath();
-        //ctx.fillStyle = "#FFFF00";
-        //ctx.fillRect(xOffset, y, parW, parH);
-        //ctx.beginPath();
+        // ctx.beginPath();
+        // ctx.fillStyle = "#FFFF00";
+        // ctx.fillRect(xOffset, y, parW, parH);
+        // ctx.beginPath();
 
 		var backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
 		switch (level.Suff)
@@ -6605,6 +6605,8 @@ function CDrawingDocument()
 
         api.isViewMode = oldViewMode;
         api.ShowParaMarks = oldMarks;
+
+		return (Math.round(rPR * xOffset) + Math.round(backTextWidth * rPR));
     };
 
 	this.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level, isNoCheckFonts)
@@ -6755,15 +6757,19 @@ function CDrawingDocument()
 			textYs.push(y + line_w); y += 2 * (line_w + line_distance);
 			textYs.push(y + line_w);
 
+			let left_offset = Math.round(text_base_offset_x * rPR);
+
 			for (var i = 0; i < textYs.length; i++)
 			{
-				this.privateGetParagraphByString(props.Lvl[level], level, i + 1, null, null, (text_base_offset_x- ((6.25 * AscCommon.g_dKoef_mm_to_pix)) >> 0),
+				let tempW = this.privateGetParagraphByString(props.Lvl[level], level, i + 1, null, null, (text_base_offset_x- ((6.25 * AscCommon.g_dKoef_mm_to_pix)) >> 0),
 					textYs[i], line_distance, ctx, width_px, height_px);
+
+				if (tempW > left_offset)
+					left_offset = tempW;
 			}
 
 			y = Math.round((offset + 2) * rPR);
-			var left_offset = Math.round(text_base_offset_x * rPR),
-				right_offset = Math.round((width_px - offsetBase) * rPR),
+			let right_offset = Math.round((width_px - offsetBase) * rPR),
 				y_dist = Math.round((line_w + line_distance) * rPR);
 
 			var left_offset2 = Math.round(offsetBase * rPR);
@@ -6912,7 +6918,7 @@ function CDrawingDocument()
 		if (this.m_oLogicDocument)
 			oDocState = this.m_oLogicDocument.StartNoHistoryMode();
 
-        for (var k = 0; k < 9; k++) 
+        for (var k = 0; k < 9; k++)
         {
 			// чтобы убрать отступ у i
 			props.Lvl[k].Align = 1;
@@ -6949,7 +6955,7 @@ function CDrawingDocument()
             ctx.stroke();
             ctx.beginPath();
 
-            text_base_offset_x += text_base_offset_dist;
+			text_base_offset_x += text_base_offset_dist;
 
             this.privateGetParagraphByString(props.Lvl[k], k, 1, null, null, textYs.x, textYs.y, (height_px >> 1), ctx, width_px, height_px);
         }
