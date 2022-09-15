@@ -969,15 +969,6 @@
 		this.state = state;
 		this.isFixedForm = this.base.IsFixedForm();
 
-		this.geom = geom;
-		this.rects = undefined;
-		this.paths = undefined;
-
-		if (undefined === geom[0].Points)
-			this.rects = geom;
-		else
-			this.paths = geom;
-
 		this.OffsetX = 0;
 		this.OffsetY = 0;
 
@@ -997,8 +988,6 @@
 		this.ComboRect = null;
 		this.Buttons = []; // header buttons
 
-		this.GetPosition();
-
 		this.Name = this.base.GetAlias();
 		if (this.base.IsBuiltInTableOfContents && this.base.IsBuiltInTableOfContents())
 			this.Name = AscCommon.translateManager.getValue("Table of Contents");
@@ -1016,11 +1005,32 @@
 		if (this.parent.document.m_oLogicDocument)
 			this.IsFillFormsMode = this.parent.document.m_oLogicDocument.IsFillingFormMode();
 
+		this.geom  = undefined;
+		this.rects = undefined;
+		this.paths = undefined;
+
+		this.UpdateGeom(geom);
+	}
+
+	CContentControlTrack.prototype.UpdateGeom = function(geom)
+	{
+		this.geom  = geom;
+		this.rects = undefined;
+		this.paths = undefined;
+
+		if (undefined === geom[0].Points)
+			this.rects = geom;
+		else
+			this.paths = geom;
+
+		this.formInfo = null;
+		this.Pos      = { X : 0, Y : 0, Page : 0 };
+
+		this.GetPosition();
 		this.CalculateNameRect();
 		this.CalculateMoveRect();
 		this.CalculateButtons();
-	}
-
+	};
 	CContentControlTrack.prototype.IsUseMoveRect = function()
 	{
 		if (this.IsNoButtons || this.IsFillFormsMode || this.isFixedForm)
@@ -2204,6 +2214,12 @@
 			// всегда должен быть максимум один hover и in
 			for (var i = 0; i < this.ContentControlObjects.length; i++)
 			{
+				if (state === this.ContentControlObjects[i].state && obj === this.ContentControlObjects[i].base)
+				{
+					this.ContentControlObjects[i].UpdateGeom(geom);
+					return;
+				}
+
 				if (state == this.ContentControlObjects[i].state
 					|| (!obj && AscCommon.ContentControlTrack.In === state && AscCommon.ContentControlTrack.Main === this.ContentControlObjects[i].state))
 				{
