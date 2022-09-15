@@ -100,7 +100,7 @@ CInlineLevelSdt.prototype.Add = function(Item)
 	{
 		if (para_Tab === Item.Type)
 			return CParagraphContentWithParagraphLikeContent.prototype.Add.call(this, new AscWord.CRunSpace());
-		else if (Item.Type !== para_Text && Item.Type !== para_Space)
+		else if (Item.Type !== para_Text && Item.Type !== para_Space && (!(Item instanceof AscWord.CRunBreak) || !Item.IsLineBreak() || !this.IsMultiLineForm()))
 			return;
 
 		oTextFormRun = this.MakeSingleRunElement(false);
@@ -3535,6 +3535,22 @@ CInlineLevelSdt.prototype.GetPicture = function()
 	}
 
 	return null;
+};
+CInlineLevelSdt.prototype.CorrectSingleLineFormContent = function()
+{
+	if (!this.IsTextForm())
+		return;
+
+	let run = this.MakeSingleRunElement(false);
+	for (let index = run.GetElementsCount() - 1; index >= 0; --index)
+	{
+		let item = run.GetElement(index);
+		if (!item.IsText() && !item.IsSpace())
+		{
+			run.RemoveFromContent(index, 1);
+			run.AddToContent(index, new AscWord.CRunSpace());
+		}
+	}
 };
 
 //--------------------------------------------------------export--------------------------------------------------------
