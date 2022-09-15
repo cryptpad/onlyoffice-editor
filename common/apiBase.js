@@ -2110,7 +2110,7 @@
 			{
 				t.sendEvent("asc_onError", error, c_oAscError.Level.NoCritical);
 			}
-			if (obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
+			if (obj && obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
 				t.sendStartUploadImageActionToFrameEditor();
 			} else {
 				t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
@@ -2127,7 +2127,7 @@
 		else
 		{
 
-			if (obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
+			if (obj && obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
 				this.sendStartUploadImageActionToFrameEditor();
 			} else {
 				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
