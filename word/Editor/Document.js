@@ -25325,6 +25325,9 @@ CDocument.prototype.ClearAllSpecialForms = function(isClearAllContentControls)
 		{
 			var oControl = arrContentControls[nIndex];
 
+			if (oControl.IsBuiltInTableOfContents() || oControl.IsBuiltInWatermark())
+				continue;
+
 			if (!oCurrentControl && oControl.IsUseInDocument())
 				oCurrentControl = oControl;
 
