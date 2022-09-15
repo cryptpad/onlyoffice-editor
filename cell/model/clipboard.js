@@ -867,7 +867,7 @@
 			},
 
 			_generateHtmlImg: function (isSelectedImages, worksheet) {
-				if (window["Asc"]["editor"] && window["Asc"]["editor"].isFrameEditor()) {
+				if (window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) {
 					return false;
 				}
 				let objectRender = worksheet.objectRender;
