@@ -967,21 +967,16 @@
 		this.isForm = this.base.IsForm();
 		this.formInfo = null;
 		this.state = state;
+
 		this.isFixedForm = this.base.IsFixedForm();
 
 		this.OffsetX = 0;
 		this.OffsetY = 0;
 
-		this.transform = this.base.Get_ParentTextTransform ? this.base.Get_ParentTextTransform() : null;
-		if (this.transform && this.transform.IsIdentity())
-			this.transform = null;
-		if (this.transform && this.transform.IsIdentity2())
-		{
-			this.OffsetX = this.transform.tx;
-			this.OffsetY = this.transform.ty;
-			this.transform = null;
-		}
-		this.invertTransform = this.transform ? AscCommon.global_MatrixTransformer.Invert(this.transform) : null;
+		this.transform       = null;
+		this.invertTransform = null;
+
+		this.UpdateTransform();
 
 		this.Pos = { X : 0, Y : 0, Page : 0 };
 
@@ -1012,8 +1007,28 @@
 		this.UpdateGeom(geom);
 	}
 
+	CContentControlTrack.prototype.UpdateTransform = function()
+	{
+		this.OffsetX = 0;
+		this.OffsetY = 0;
+
+		this.isFixedForm = this.base.IsFixedForm();
+		this.transform   = this.base.Get_ParentTextTransform ? this.base.Get_ParentTextTransform() : null;
+
+		if (this.transform && this.transform.IsIdentity())
+			this.transform = null;
+		if (this.transform && this.transform.IsIdentity2())
+		{
+			this.OffsetX = this.transform.tx;
+			this.OffsetY = this.transform.ty;
+			this.transform = null;
+		}
+		this.invertTransform = this.transform ? AscCommon.global_MatrixTransformer.Invert(this.transform) : null;
+	};
 	CContentControlTrack.prototype.UpdateGeom = function(geom)
 	{
+		this.UpdateTransform();
+
 		this.geom  = geom;
 		this.rects = undefined;
 		this.paths = undefined;
