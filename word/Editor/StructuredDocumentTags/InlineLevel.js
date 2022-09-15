@@ -470,7 +470,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			}
 		}
 
-		if (this.IsFixedForm())
+		if (this.IsFixedForm() && this.IsMainForm())
 		{
 			var oShape       = this.GetParagraph().Parent.Is_DrawingShape(true);
 			var oShapeBounds = oShape.getFormRelRect();
@@ -583,7 +583,7 @@ CInlineLevelSdt.prototype.private_IsAddFormFieldToGraphics = function(oGraphics,
 	if (undefined === oTransform)
 		_oTransform = this.Get_ParentTextTransform();
 
-	return (this.IsForm() && oGraphics && oGraphics.AddFormField && (!_oTransform || _oTransform.IsIdentity2()));
+	return (this.IsForm() && !this.IsComplexForm() && oGraphics && oGraphics.AddFormField && (!_oTransform || _oTransform.IsIdentity2()));
 };
 CInlineLevelSdt.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, UseContentPos)
 {
