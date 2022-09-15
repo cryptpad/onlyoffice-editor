@@ -12322,6 +12322,7 @@ CDocument.prototype.UpdateContentControlFocusState = function(oCC)
 CDocument.prototype.CheckTextFormFormatOnBlur = function(oForm)
 {
 	if (!oForm
+		|| !oForm.IsUseInDocument()
 		|| !oForm.IsForm()
 		|| !oForm.IsTextForm()
 		|| oForm.IsComplexForm()
