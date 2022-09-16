@@ -326,52 +326,7 @@
                 }
 
                 this.content2.Set_StartPage(0);
-                if (graphics.isSmartArtPreviewDrawer && graphics.m_oContext) {
-                    const nHeight = this.parent.contentHeight;
-                    const nLineHeight = 3;
-                    graphics.save();
-                    graphics.m_oContext.fillStyle = 'rgb(0,0,0)';
-
-                    const nContentWidth = this.parent.contentWidth;
-                    const nHeightStep = nHeight / this.content2.Content.length;
-                    for (let i = 0; i < this.content2.Content.length; i += 1) {
-                        const oParagraph = this.content2.Content[i];
-                        const nWidth = oParagraph.RecalculateMinMaxContentWidth().Min;
-                        const eJC = oParagraph.CompiledPr.Pr.ParaPr.Jc;
-                        let startX;
-                        switch (eJC) {
-                            case AscCommon.align_Right: {
-                                startX = nContentWidth - nWidth;
-                                break;
-                            }
-                            case AscCommon.align_Justify:
-                            case AscCommon.align_Center: {
-                                startX = (nContentWidth - nWidth) / 2;
-                                break;
-                            }
-                            case AscCommon.align_Left:
-                            default: {
-                                startX = 0;
-                                break;
-                            }
-                        }
-
-                        var oBullet =  oParagraph.PresentationPr && oParagraph.PresentationPr.Bullet;
-                        if(oBullet && !oBullet.IsNone()) {
-                            graphics.rect(startX + nWidth / 4, (nHeightStep * (i + 1) - nLineHeight) / 2, /*this.parent.contentWidth*/nWidth - nWidth / 4, nLineHeight);
-                            graphics.df();
-
-                            graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, nLineHeight, nLineHeight);
-                            graphics.df();
-                        } else {
-                            graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, /*this.parent.contentWidth*/nWidth, nLineHeight);
-                            graphics.df();
-                        }
-                    }
-                    graphics.restore();
-                } else {
-                    this.content2.Draw(0, graphics);
-                }
+                this.content2.Draw(0, graphics);
             }
         }
         else if(this.content) {
@@ -383,7 +338,54 @@
             }
             var old_start_page = this.content.StartPage;
             this.content.Set_StartPage(0);
-            this.content.Draw(0, graphics);
+            if (graphics.isSmartArtPreviewDrawer && graphics.m_oContext) {
+                const nContentHeight = this.parent.contentHeight;
+                const nLineHeight = 3;
+                graphics.save();
+                graphics.m_oContext.fillStyle = 'rgb(0,0,0)';
+
+                const nContentWidth = this.parent.contentWidth;
+                const nHeightStep = nContentHeight / this.content.Content.length;
+
+                for (let i = 0; i < this.content.Content.length; i += 1) {
+                    const oParagraph = this.content.Content[i];
+                    const nWidth = nContentWidth > 30 ? 30 : nContentWidth - nContentWidth * 0.3;
+                    const eJC = oParagraph.CompiledPr.Pr.ParaPr.Jc;
+                    let startX;
+                    const gap = 5;
+                    switch (eJC) {
+                        case AscCommon.align_Right: {
+                            startX = nContentWidth - (nWidth + gap);
+                            break;
+                        }
+                        case AscCommon.align_Justify:
+                        case AscCommon.align_Center: {
+                            startX = (nContentWidth - nWidth) / 2;
+                            break;
+                        }
+                        case AscCommon.align_Left:
+                        default: {
+                            startX = gap;
+                            break;
+                        }
+                    }
+
+                    var oBullet =  oParagraph.PresentationPr && oParagraph.PresentationPr.Bullet;
+                    if(oBullet && !oBullet.IsNone()) {
+                        graphics.rect(startX + nWidth / 4, (nHeightStep * (i + 1) - nLineHeight) / 2, nWidth - nWidth / 4, nLineHeight);
+                        graphics.df();
+
+                        graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, nLineHeight, nLineHeight);
+                        graphics.df();
+                    } else {
+                        graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, nWidth, nLineHeight);
+                        graphics.df();
+                    }
+                }
+                graphics.restore();
+            } else {
+                this.content.Draw(0, graphics);
+            }
             this.content.Set_StartPage(old_start_page);
         }
     };

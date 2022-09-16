@@ -641,7 +641,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	function SmartArtPreviewDrawer() {
 		AscCommon.CActionOnTimerBase.call(this);
 		this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
-		this.CANVAS_SIZE = 100;
+		this.CANVAS_SIZE = 600;
 		this.canvas = null;
 		this.imageType = "image/jpeg";
 		this.imageBuffer = [];
@@ -820,7 +820,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 					oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
 				}
 				this.fitSmartArtForPreview(oSmartArt);
-				oSmartArt.fitFontSize();
+				oSmartArt.recalcTransformText();
 				oSmartArt.recalculate();
 			}
 

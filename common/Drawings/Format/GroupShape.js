@@ -121,6 +121,14 @@ AscFormat.InitClass(CGroupShape, AscFormat.CGraphicObjectBase, AscDFH.historyite
         return hasSmartArt;
     };
 
+    CGroupShape.prototype.recalcTransformText = function () {
+        this.spTree.forEach(function (oDrawing) {
+            if (oDrawing.recalcTransformText) {
+                oDrawing.recalcTransformText();
+            }
+        });
+    };
+
     CGroupShape.prototype.documentGetAllFontNames = function(allFonts)
     {
         for(var i = 0; i < this.spTree.length; ++i)
