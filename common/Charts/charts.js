@@ -676,6 +676,8 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	};
 
 	SmartArtPreviewDrawer.prototype.DoAction = function() {
+		const oApi = Asc.editor || editor;
+		oApi.isSkipAddIdToBaseObject = true;
 		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[this.index]];
 		if (AscFormat.isRealNumber(nType)) {
 			const oContext = this.createSmartArtPreview(nType);
@@ -684,6 +686,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 			oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
 			this.imageBuffer.push(oPreview);
 		}
+		delete oApi.isSkipAddIdToBaseObject;
 		this.index++;
 	};
 

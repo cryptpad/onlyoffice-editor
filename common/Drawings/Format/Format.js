@@ -143,12 +143,17 @@
 		function CBaseObject() {
 			CBaseNoIdObject.call(this);
 			this.Id = null;
-			if (AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) {
+			if ((AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) && !this.isGlobalSkipAddId()) {
 				this.Id = AscCommon.g_oIdCounter.Get_NewId();
 				AscCommon.g_oTableId.Add(this, this.Id);
 			}
 		}
 		InitClass(CBaseObject, CBaseNoIdObject, AscDFH.historyitem_type_Unknown);
+
+		CBaseObject.prototype.isGlobalSkipAddId = function () {
+			const oApi = editor || Asc.editor;
+			return !!(oApi && oApi.isSkipAddIdToBaseObject);
+		}
 
 		function InitClassWithoutType(fClass, fBase) {
 			fClass.prototype = Object.create(fBase.prototype);
