@@ -370,15 +370,17 @@
                         }
                     }
 
-                    var oBullet =  oParagraph.PresentationPr && oParagraph.PresentationPr.Bullet;
+                    const oBullet = oParagraph.PresentationPr && oParagraph.PresentationPr.Bullet;
+                    const Y = nHeightStep * i + (nHeightStep - nLineHeight) / 2;
+
                     if(oBullet && !oBullet.IsNone()) {
-                        graphics.rect(startX + nWidth / 4, (nHeightStep * (i + 1) - nLineHeight) / 2, nWidth - nWidth / 4, nLineHeight);
+                        graphics.rect(startX + nWidth / 4, Y, nWidth - nWidth / 4, nLineHeight);
                         graphics.df();
 
-                        graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, nLineHeight, nLineHeight);
+                        graphics.rect(startX, Y, nLineHeight, nLineHeight);
                         graphics.df();
                     } else {
-                        graphics.rect(startX, (nHeightStep * (i + 1) - nLineHeight) / 2, nWidth, nLineHeight);
+                        graphics.rect(startX, Y, nWidth, nLineHeight);
                         graphics.df();
                     }
                 }
