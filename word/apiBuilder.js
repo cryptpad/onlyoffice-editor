@@ -5780,39 +5780,17 @@
 		oProps.SetText(sText);
 		oProps.SetMatchCase(isMatchCase);
 
-		var foundItems 		= [];
-		var arrApiRanges	= [];
-		var docSearchEngine	= this.Document.Search(oProps);
+		let searchEngine = this.Document.Search(oProps);
+		let mapElements  = searchEngine.GetElementsMap();
 
-		var docSearchEngineElementsLenght = 0;
-		for (var FoundId in docSearchEngine.Elements)
-			docSearchEngineElementsLenght++;
-
-		for (var Index = 1; Index <= docSearchEngineElementsLenght; Index++)
-			foundItems.push(docSearchEngine.Elements[Index]);
-
-		for (var Index1 = 0; Index1 < foundItems.length; Index1++)
+		let apiRanges = [];
+		for (let paraId in mapElements)
 		{
-			for (var Index2 = Index1 + 1; Index2 < foundItems.length; Index2++)
-			{
-				if (foundItems[Index1].Id === foundItems[Index2].Id)
-				{
-					foundItems.splice(Index2, 1);
-					Index2--;
-				}
-			}
+			let paragraph = new ApiParagraph(mapElements[paraId]);
+			apiRanges = apiRanges.concat(paragraph.Search(sText, isMatchCase));
 		}
 
-		for (var para in foundItems)
-		{
-			var oParagraph			= new ApiParagraph(foundItems[para]);
-			var arrOfParaApiRanges	= oParagraph.Search(oProps);
-
-			for (var itemRange = 0; itemRange < arrOfParaApiRanges.length; itemRange++)	
-				arrApiRanges.push(arrOfParaApiRanges[itemRange]);
-		}
-
-		return arrApiRanges;
+		return apiRanges;
 	};
 	/**
 	 * Converts a document to Markdown.
@@ -7606,32 +7584,18 @@
 		if (isMatchCase === undefined)
 			isMatchCase = false;
 
-		var arrApiRanges	= [];
-		var Api				= editor; 
-		var oDocument		= Api.GetDocument();
-		var SearchEngine;
-		let oProps = new AscCommon.CSearchSettings();
+		let oDocument = private_GetLogicDocument();
+		let oProps    = new AscCommon.CSearchSettings();
 		oProps.SetText(sText);
 		oProps.SetMatchCase(!!isMatchCase);
+		oDocument.Search(oProps);
 
-		if (!oDocument.Document.SearchEngine.Compare(oProps))
-		{
-			SearchEngine		= new AscCommonWord.CDocumentSearch();
-			SearchEngine.Set(oProps);
-			this.Paragraph.Search(SearchEngine, 0)
-		}
-		else
-		{
-			SearchEngine = oDocument.Document.SearchEngine;
-			this.Paragraph.Search(SearchEngine, 0)
-		}
-
-		var SearchResults	= this.Paragraph.SearchResults;
-
+		var SearchResults = this.Paragraph.SearchResults;
+		let arrApiRanges  = [];
 		for (var FoundId in SearchResults)
 		{
-			var StartSearchContentPos	= SearchResults[FoundId].StartPos;
-			var EndSearchContentPos		= SearchResults[FoundId].EndPos;
+			var StartSearchContentPos = SearchResults[FoundId].StartPos;
+			var EndSearchContentPos   = SearchResults[FoundId].EndPos;
 
 			var StartChar	= this.Paragraph.ConvertParaContentPosToRangePos(StartSearchContentPos);
 			var EndChar		= this.Paragraph.ConvertParaContentPosToRangePos(EndSearchContentPos);
