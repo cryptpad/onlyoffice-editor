@@ -13843,7 +13843,7 @@ Because of this, the display is sometimes not correct.
     };
 
 
-    SmartArt.prototype.fillByPreset = function (nSmartArtType) {
+    SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
       this.setDataModel(new AscFormat.DiagramData());
       this.setColorsDef(new AscFormat.ColorsDef());
       this.setLayoutDef(new AscFormat.LayoutDef());
@@ -13859,33 +13859,35 @@ Because of this, the display is sometimes not correct.
         pReader.presentation = logicDocument;
         pReader.DrawingDocument = drawingDocument;
 
-        let sData = AscCommon.g_oSmartArtStyleDef[nSmartArtType];
+        let sData = AscCommon.g_oSmartArtDrawings[nSmartArtType];
         let data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-        pReader.stream = new AscCommon.FileStream(data, data.length);
-        this.styleDef.fromPPTY(pReader);
-
-        sData = AscCommon.g_oSmartArtLayoutDef[nSmartArtType];
-        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-        pReader.stream = new AscCommon.FileStream(data, data.length);
-        this.layoutDef.fromPPTY(pReader);
-
-        sData = AscCommon.g_oSmartArtDrawings[nSmartArtType];
-        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
         pReader.stream = new AscCommon.FileStream(data, data.length);
         pReader.ReadSmartArtGroup(this.drawing);
         this.drawing.setGroup(this);
         this.addToSpTree(0, this.drawing);
 
-        sData = AscCommon.g_oSmartArtColorsDef[nSmartArtType];
-        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-        pReader.stream = new AscCommon.FileStream(data, data.length);
-        this.colorsDef.fromPPTY(pReader);
+        if (!bLoadOnlyDrawing) {
+          sData = AscCommon.g_oSmartArtStyleDef[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.styleDef.fromPPTY(pReader);
 
-        sData = AscCommon.g_oSmartArtData[nSmartArtType];
-        data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-        pReader.stream = new AscCommon.FileStream(data, data.length);
-        this.dataModel.fromPPTY(pReader);
-        this.setConnections2();
+          sData = AscCommon.g_oSmartArtLayoutDef[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.layoutDef.fromPPTY(pReader);
+
+          sData = AscCommon.g_oSmartArtColorsDef[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.colorsDef.fromPPTY(pReader);
+
+          sData = AscCommon.g_oSmartArtData[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.dataModel.fromPPTY(pReader);
+          this.setConnections2();
+        }
 
         this.setSpPr(new AscFormat.CSpPr());
         this.spPr.setParent(this);
@@ -13901,7 +13903,10 @@ Because of this, the display is sometimes not correct.
         this.extX = AscCommon.g_oXfrmSmartArt.extX;
         this.extY = AscCommon.g_oXfrmSmartArt.extY;
         this.drawing.setXfrmByParent();
-        this.checkNodePointsAfterRead();
+
+        if (!bLoadOnlyDrawing) {
+          this.checkNodePointsAfterRead();
+        }
       }
       return this;
     };

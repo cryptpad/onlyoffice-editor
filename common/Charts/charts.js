@@ -795,7 +795,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 		return AscFormat.ExecuteNoHistory(function () {
 			const oSmartArt = new AscFormat.SmartArt();
 			oSmartArt.bForceSlideTransform = true;
-			oSmartArt.fillByPreset(nSmartArtType);
+			oSmartArt.fillByPreset(nSmartArtType, true);
 			oSmartArt.getContrastDrawing();
 			oSmartArt.setBDeleted2(false);
 			const oXfrm = oSmartArt.spPr.xfrm;
