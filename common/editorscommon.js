@@ -955,6 +955,11 @@
 				return {width: _img.Image.width, height: _img.Image.height};
 			}
 		}
+		if (window["NATIVE_EDITOR_ENJINE"] && window["native"]["GetImageOriginalSize"]) {
+			var sizes = window["native"]["GetImageOriginalSize"](src);
+			if (sizes)
+				return {width:sizes["W"], height:sizes["H"]};
+		}
 		return {width: 0, height: 0};
 	}
 	function getFullImageSrc2(src)
