@@ -1942,6 +1942,7 @@ function CDrawingDocument()
 
 	this.m_bIsDocumentCalculating = true;
 	this.m_arPrintingWaitEndRecalculate = null;
+	this.m_bUpdateAllPagesOnFirstRecalculate = false;
 
 	this.m_lTimerTargetId = -1;
 	this.m_dTargetX = -1;
@@ -2236,6 +2237,22 @@ function CDrawingDocument()
 		{
 			this.OnEndRecalculate(false);
 		}
+
+		if (this.m_bUpdateAllPagesOnFirstRecalculate)
+		{
+			this.m_bUpdateAllPagesOnFirstRecalculate = false;
+			this.m_nZoomType = 1;
+
+			if (true)
+			{
+				// имитируем isFull, чтобы пересчитался размер документа
+				if (this.m_lPagesCount > this.m_lCountCalculatePages)
+					this.m_arrPages.splice(this.m_lCountCalculatePages, this.m_lPagesCount - this.m_lCountCalculatePages);
+				this.m_lPagesCount = 0;
+			}
+
+			this.OnEndRecalculate(false);
+		}
 	};
 
 	this.OnEndRecalculate = function (isFull, isBreak)
@@ -2336,7 +2353,13 @@ function CDrawingDocument()
 			this.m_oWordControl.OnScroll();
 
 			if (this.m_arPrintingWaitEndRecalculate)
+			{
+				var actionType = this.m_arPrintingWaitEndRecalculate[0];
 				this.m_oWordControl.m_oApi.downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
+
+				this.m_oWordControl.ChangeReaderMode();
+				this.m_oWordControl.m_oApi.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, actionType);
+			}
 		}
 
         if (isFull || isBreak)
@@ -2561,8 +2584,16 @@ function CDrawingDocument()
 			return false;
 		}
 
-		if (!this.m_bIsDocumentCalculating)
+		if (!this.m_bIsDocumentCalculating && (0 === this.m_oWordControl.ReaderModeCurrent))
 			return false;
+
+		if (1 === this.m_oWordControl.ReaderModeCurrent)
+		{
+			params.PrintInReaderMode = true;
+			this.m_oWordControl.ChangeReaderMode();
+			// добавляем еще один longAction, чтобы убрать не после готовности pdf, а после возврата в reader mode
+			this.m_oWordControl.m_oApi.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, params[0]);
+		}
 
 		this.m_arPrintingWaitEndRecalculate = params;
 		this.m_oWordControl.m_oApi.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, params[0]);
