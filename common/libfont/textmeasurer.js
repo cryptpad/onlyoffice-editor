@@ -142,7 +142,7 @@
 
 		GetGraphemeByUnicode : function(codePoint, sFontName, nFontStyle)
 		{
-			this.SetFontInternal(sFontName, 72, nFontStyle);
+			this.SetFontInternal(sFontName, AscFonts.MEASURE_FONTSIZE, nFontStyle);
 
 			let oFont = this.m_oManager.m_oFont;
 			let nGID  = oFont ? oFont.GetGIDByUnicode(codePoint) : 0;
