@@ -48,14 +48,13 @@ $(function () {
 
         p1.AddToContent(0, MathContent);
         Root = MathContent.Root;
-        Root.Correct_Content(true);
     }
 
-    Init();
+	Init();
 
     function Clear() {
         Root.Remove_FromContent(0, Root.Content.length);
-        Root.Correct_Content(true);
+        Root.Correct_Content();
     }
 
     function AddText(str) {
@@ -154,14 +153,24 @@ $(function () {
 		})
 	}
 
+	Test("[", 0, [["ParaRun", "["]], false);
+	Test("(", 0, [["ParaRun", "("]], false);
+	Test("|", 0, [["ParaRun", "|"]], false);
+	Test("{", 0, [["ParaRun", "{"]], false);
+
+	Test("]", 0, [["ParaRun", "]"]], false);
+	Test("}", 0, [["ParaRun", "}"]], false);
+	Test(")", 0, [["ParaRun", ")"]], false);
+
+
     Test("2_1", 0, [["ParaRun", "2_1"]], false);
     Test("2_1 ", 2, [["ParaRun", ""], ["CDegree", "2_(1)"], ["ParaRun", ""]], false);
     Test("\\int", 0, [["ParaRun", "\\int"]], false);
-    Test("\\int _x^y\\of 1/2 ", 2, [["ParaRun", ""], ["CNary", "〖∫^y_x▒〖〖1/2〗〗〗"], ["ParaRun", ""]], false);
+    Test("\\int _x^y\\of 1/2  ", 2, [["ParaRun", ""], ["CNary", "〖∫^y_x▒〖〖1/2〗〗〗"], ["ParaRun", ""]], false);
     Test("1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖1/2〗"], ["ParaRun", ""]], false);
     Test("1/2 +", 2, [["ParaRun", ""], ["CDelimiter", "〖1/2〗"], ["ParaRun", "+"]], false);
     Test("1/2=", 2, [["ParaRun", ""], ["CFraction", "〖1/2〗"], ["ParaRun", "="]], false);
-	Test("1/2 +1/2=x/y ", 6, [["ParaRun", ""], ["CDelimiter", "〖1/2〗"], ["ParaRun", "+"], ["CFraction", "〖1/2〗"], ["ParaRun", "="], ["CFraction", "〖x/y〗"], ["ParaRun", ""]], false);
+	Test("1/2+1/2=x/y ", 6, [["ParaRun", ""], ["CFraction", "〖1/2〗"], ["ParaRun", "+"], ["CFraction", "〖1/2〗"], ["ParaRun", "="], ["CFraction", "〖x/y〗"], ["ParaRun", ""]], false);
 
 	MultiLineTest(
 		["1/2", " "],
@@ -215,9 +224,9 @@ $(function () {
 	Test("x/2 ", 2, [["ParaRun", ""], ["CFraction", "〖x/2〗"], ["ParaRun", ""]], false, "Check fraction");
 	Test("x/(1+2) ", 2, [["ParaRun", ""], ["CFraction", "〖x/(1+2)〗"], ["ParaRun", ""]], false, "Check fraction");
 	Test("x/((1+2)) ", 2, [["ParaRun", ""], ["CFraction", "〖x/(1+2)〗"], ["ParaRun", ""]], false, "Check fraction");
-	Test("x/[1+2]", 2, [["ParaRun", ""], ["CFraction", "〖x/([1+2])〗"], ["ParaRun", ""]], false, "Check fraction");
-	Test("x/{1+2}", 2, [["ParaRun", ""], ["CFraction", "〖x/({1+2})〗"], ["ParaRun", ""]], false, "Check fraction");
-	Test("x/[1+2}", 2, [["ParaRun", ""], ["CFraction", "〖x/([1+2})〗"], ["ParaRun", ""]], false, "Check fraction");
+	Test("x/[1+2]  ", 2, [["ParaRun", ""], ["CDelimiter", "〖x/([1+2])〗"], ["ParaRun", ""]], false, "Check fraction");
+	Test("x/{1+2} ", 2, [["ParaRun", ""], ["CFraction", "〖x/({1+2})〗"], ["ParaRun", ""]], false, "Check fraction");
+	Test("x/[1+2} ", 2, [["ParaRun", ""], ["CFraction", "〖x/([1+2})〗"], ["ParaRun", ""]], false, "Check fraction");
 	Test("(1_i)/32 ", 2, [["ParaRun", ""], ["CFraction", "〖(1_(i))/(32)〗"], ["ParaRun", ""]], false, "Check fraction");
 	Test("(1_i)/32 ", 2, [["ParaRun", ""], ["CFraction", "〖(1_(i))/(32)〗"], ["ParaRun", ""]], false, "Check fraction");
 	Test("\\sdiv ", 0, [["ParaRun", "⁄"]], false, "Check fraction symbol");
@@ -233,28 +242,30 @@ $(function () {
 	Test("x\\atop y ", 2, [["ParaRun", ""], ["CFraction", "〖x¦y〗"], ["ParaRun", ""]], false, "Check fraction");
 	Test("x\\atop (y+1_i) ", 2, [["ParaRun", ""], ["CFraction", "〖x¦(y+1_(i))〗"], ["ParaRun", ""]], false, "Check fraction");
 
+	Test("_ ", 2, [["ParaRun", ""], ["CDegree", "_()"], ["ParaRun", ""]], false, "Check degree");
 	Test("x_y ", 2, [["ParaRun", ""], ["CDegree", "x_(y)"], ["ParaRun", ""]], false, "Check degree");
 	Test("x_1 ", 2, [["ParaRun", ""], ["CDegree", "x_(1)"], ["ParaRun", ""]], false, "Check degree");
 	Test("1_x ", 2, [["ParaRun", ""], ["CDegree", "1_(x)"], ["ParaRun", ""]], false, "Check degree");
 	Test("x_(1+2) ", 2, [["ParaRun", ""], ["CDegree", "x_(1+2)"], ["ParaRun", ""]], false, "Check degree");
-	Test("x_[1+2]", 2, [["ParaRun", ""], ["CDegree", "x_([1+2])"], ["ParaRun", ""]], false, "Check degree");
-	Test("x_[1+2}", 2, [["ParaRun", ""], ["CDegree", "x_([1+2})"], ["ParaRun", ""]], false, "Check degree");
-	Test("x_1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖(x_(1))/2〗"], ["ParaRun", ""]], false, "Check degree");
+	Test("x_[1+2] ", 2, [["ParaRun", ""], ["CDegree", "x_([1+2])"], ["ParaRun", ""]], false, "Check degree");
+	Test("x_[1+2} ", 2, [["ParaRun", ""], ["CDegree", "x_([1+2})"], ["ParaRun", ""]], false, "Check degree");
+	Test("x_1/2  ", 2, [["ParaRun", ""], ["CDelimiter", "〖(x_(1))/2〗"], ["ParaRun", ""]], false, "Check degree");
 
+	Test("^ ", 2, [["ParaRun", ""], ["CDegree", "^()"], ["ParaRun", ""]], false, "Check index");
 	Test("x^y ", 2, [["ParaRun", ""], ["CDegree", "x^(y)"], ["ParaRun", ""]], false, "Check index");
 	Test("x^1 ", 2, [["ParaRun", ""], ["CDegree", "x^(1)"], ["ParaRun", ""]], false, "Check index");
 	Test("1^x ", 2, [["ParaRun", ""], ["CDegree", "1^(x)"], ["ParaRun", ""]], false, "Check index");
 	Test("x^(1+2) ", 2, [["ParaRun", ""], ["CDegree", "x^(1+2)"], ["ParaRun", ""]], false, "Check index");
-	Test("x^[1+2]", 2, [["ParaRun", ""], ["CDegree", "x^([1+2])"], ["ParaRun", ""]], false, "Check index");
-	Test("x^[1+2}", 2, [["ParaRun", ""], ["CDegree", "x^([1+2})"], ["ParaRun", ""]], false, "Check index");
+	Test("x^[1+2] ", 2, [["ParaRun", ""], ["CDegree", "x^([1+2])"], ["ParaRun", ""]], false, "Check index");
+	Test("x^[1+2} ", 2, [["ParaRun", ""], ["CDegree", "x^([1+2})"], ["ParaRun", ""]], false, "Check index");
 	Test("x^1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖(x^(1))/2〗"], ["ParaRun", ""]], false, "Check index");
 
 	Test("x^y_1 ", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_(1)^(y)"], ["ParaRun", ""]], false, "Check index degree");
 	Test("x^1_i ", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_(i)^(1)"], ["ParaRun", ""]], false, "Check index degree");
 	Test("1^x_y ", 2, [["ParaRun", ""], ["CDegreeSubSup", "1_(y)^(x)"], ["ParaRun", ""]], false, "Check index degree");
 	Test("x^(1+2)_(g/2) ", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_(〖g/2〗)^(1+2)"], ["ParaRun", ""]], false, "Check index degree");
-	Test("x^[1+2]_[g_i]", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_([g_(i)])^([1+2])"], ["ParaRun", ""]], false, "Check index degree");
-	Test("x^[1+2}_[6+1}", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_([6+1})^([1+2})"], ["ParaRun", ""]], false, "Check index degree");
+	Test("x^[1+2]_[g_i] ", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_([g_(i)])^([1+2])"], ["ParaRun", ""]], false, "Check index degree");
+	Test("x^[1+2}_[6+1} ", 2, [["ParaRun", ""], ["CDegreeSubSup", "x_([6+1})^([1+2})"], ["ParaRun", ""]], false, "Check index degree");
 	Test("x^1/2_1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖(x^(1))/(〖(2_(1))/2〗)〗"], ["ParaRun", ""]], false, "Check index degree");
 
 	Test("𝑊^3𝛽_𝛿1𝜌1𝜎2 ", 2, [["ParaRun", ""], ["CDegreeSubSup", "𝑊_(𝛿1𝜌1𝜎2)^(3𝛽)"], ["ParaRun", ""]], false, "Check index degree with Unicode symbols");
@@ -266,25 +277,100 @@ $(function () {
 	Test("\\sqrt ", 0, [["ParaRun", "√"]], false, "Check");
 	Test("\\sqrt (2&1+2) ", 2, [["ParaRun", ""], ["CRadical", "√(2&(1+2))"], ["ParaRun", ""]], false, "Check radical");
 	Test("\\sqrt (1+2) ", 2, [["ParaRun", ""], ["CRadical", "√(1+2)"], ["ParaRun", ""]], false, "Check radical");
-	Test("√1 ", 2, [["ParaRun", ""], ["CRadical", "√(1)"], ["ParaRun", ""]], false, "Check radical");
+	Test("√1 ", 2, [["ParaRun", ""], ["CRadical", "√1"], ["ParaRun", ""]], false, "Check radical");
 
 	Test("\\cbrt ", 0, [["ParaRun", "∛"]], false, "Check");
 	Test("\\cbrt (1+2) ", 2, [["ParaRun", ""], ["CRadical", "∛(1+2)"], ["ParaRun", ""]], false, "Check radical");
-	Test("\\cbrt 1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖(∛1)/2〗"], ["ParaRun", ""]], false, "Check radical");
+	Test("\\cbrt 1/2  ", 2, [["ParaRun", ""], ["CDelimiter", "〖(∛1)/2〗"], ["ParaRun", ""]], false, "Check radical");
 	Test("∛1 ", 2, [["ParaRun", ""], ["CRadical", "∛1"], ["ParaRun", ""]], false, "Check radical");
 	Test("∛(1) ", 2, [["ParaRun", ""], ["CRadical", "∛(1)"], ["ParaRun", ""]], false, "Check radical");
 
 	Test("\\qdrt ", 0, [["ParaRun", "∜"]], false, "Check");
 	Test("\\qdrt (1+2) ", 2, [["ParaRun", ""], ["CRadical", "∜(1+2)"], ["ParaRun", ""]], false, "Check radical");
-	Test("\\qdrt 1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖(∜1)/2〗"], ["ParaRun", ""]], false, "Check radical");
+	Test("\\qdrt 1/2  ", 2, [["ParaRun", ""], ["CDelimiter", "〖(∜1)/2〗"], ["ParaRun", ""]], false, "Check radical");
 	Test("∜1 ", 2, [["ParaRun", ""], ["CRadical", "∜1"], ["ParaRun", ""]], false, "Check radical");
-	Test("∜(1) ", 2, [["ParaRun", ""], ["CRadical", "∜(1)"], ["ParaRun", ""]], false, "Check radical");
+	Test("∜(1) ", 2, [["ParaRun", ""], ["CRadical", "∜1"], ["ParaRun", ""]], false, "Check radical");
 
 	Test("\\rect ", 0, [["ParaRun", "▭"]], false, "Check box literal");
 	Test("\\rect 1/2 ", 2, [["ParaRun", ""], ["CFraction", "〖(▭1)/2〗"], ["ParaRun", ""]], false, "Check box");
 	Test("\\rect (1/2) ", 2, [["ParaRun", ""], ["CBorderBox", "▭(〖1/2〗)"], ["ParaRun", ""]], false, "Check box");
 	Test("▭(𝐸 = 𝑚𝑐^2) ", 2, [["ParaRun", ""], ["CBorderBox", "▭(𝐸 = 〖𝑚〗^(2))"], ["ParaRun", ""]], false, "Check box");
 
+	Test("\\int ", 0, [["ParaRun", "∫"]], false, "Check large operators");
+	Test("\\int  ", 2, [["ParaRun", ""], ["CNary", "〖∫〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int _x ", 2, [["ParaRun", ""], ["CNary", "〖∫_x〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int ^x ", 2, [["ParaRun", ""], ["CNary", "〖∫^x〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int ^(x+1) ", 2, [["ParaRun", ""], ["CNary", "〖∫^(x+1)〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int ^(x+1) ", 2, [["ParaRun", ""], ["CNary", "〖∫^(x+1)〗"], ["ParaRun", ""]],false, "Check large operators");
+	Test("\\int ^(x+1)_(1_i) ", 2, [["ParaRun", ""], ["CNary", "〖∫^(x+1)_(1_(i))〗"], ["ParaRun", ""]], false, "Check large operators");
+
+	Test("\\int \\of x ", 2, [["ParaRun", ""], ["CNary", "〖∫▒x〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int _x\\of 1/2  ", 2, [["ParaRun", ""], ["CNary", "〖∫_x▒〖〖1/2〗〗〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int ^x\\of 1/2  ", 2, [["ParaRun", ""], ["CNary", "〖∫^x▒〖〖1/2〗〗〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\int _(x+1)\\of 1/2  ", 2, [["ParaRun", ""], ["CNary", "〖∫_(x+1)▒〖〖1/2〗〗〗"], ["ParaRun", ""]], false, "Check large operators");
+	Test("\\prod ^(x+1)\\of 1/2  ", 2, [["ParaRun", ""], ["CNary", "〖∏^(x+1)▒〖〖1/2〗〗〗"], ["ParaRun", ""]],false, "Check large operators");
+	Test("∫^(x+1)_(1_i)\\of 1/2  ", 2, [["ParaRun", ""], ["CNary", "〖∫^(x+1)_(1_(i))▒〖〖1/2〗〗〗"], ["ParaRun", ""], ["ParaRun", ""]], false, "Check large operators");
+
+	Test("(1+ ", 0, [["ParaRun", "(1+ "]], false, "Check brackets");
+	Test("(1+2) ", 2, [["ParaRun", ""], ["CDelimiter", "(1+2)"], ["ParaRun", ""]], false, "Check brackets");
+	Test("[1+2] ", 2, [["ParaRun", ""], ["CDelimiter", "[1+2]"], ["ParaRun", ""]], false, "Check brackets");
+	Test("{1+2} ", 2, [["ParaRun", ""], ["CDelimiter", "{1+2}"], ["ParaRun", ""]], false, "Check brackets");
+
+	Test(")1+ ", 0, [["ParaRun", ")1+ "]], false, "Check brackets");
+	Test(")1+2) ", 2, [["ParaRun", ")1+2) "]], false, "Check brackets");
+	Test(")1+2] ", 2, [["ParaRun", ")1+2] "]], false, "Check brackets");
+	Test(")1+2} ", 2, [["ParaRun", ")1+2} "]], false, "Check brackets");
+
+	Test("(1+2] ", 2, [["ParaRun", ""], ["CDelimiter", "(1+2]"], ["ParaRun", ""]], false, "Check brackets");
+	Test("|1+2] ", 2, [["ParaRun", ""], ["CDelimiter", "|1+2]"], ["ParaRun", ""]], false, "Check brackets");
+	Test("{1+2] ", 2, [["ParaRun", ""], ["CDelimiter", "{1+2]"], ["ParaRun", ""]], false, "Check brackets");
+
+	Test("|1+2| |1+2| ", 4, [["ParaRun", ""], ["CDelimiter", "|1+2|"],  ["CDelimiter", "|1+2|"], ["ParaRun", ""]], false, "Check brackets");
+
+	Test("sin ", 2, [["ParaRun", ""], ["CMathFunc", "sin "], ["ParaRun", ""]], false, "Check functions");
+	Test("cos ", 2, [["ParaRun", ""], ["CMathFunc", "cos "], ["ParaRun", ""]], false, "Check functions");
+	Test("tan ", 2, [["ParaRun", ""], ["CMathFunc", "tan "], ["ParaRun", ""]], false, "Check functions");
+	Test("csc ", 2, [["ParaRun", ""], ["CMathFunc", "csc "], ["ParaRun", ""]], false, "Check functions");
+	Test("sec ", 2, [["ParaRun", ""], ["CMathFunc", "sec "], ["ParaRun", ""]], false, "Check functions");
+	Test("cot ", 2, [["ParaRun", ""], ["CMathFunc", "cot "], ["ParaRun", ""]], false, "Check functions");
+
+	Test("sin a", 2, [["ParaRun", ""], ["CMathFunc", "{1+2]"], ["ParaRun", ""]], false, "Check functions");
+	Test("cos a", 2, [["ParaRun", ""], ["CMathFunc", "{1+2]"], ["ParaRun", ""]], false, "Check functions");
+	Test("tan a", 2, [["ParaRun", ""], ["CMathFunc", "{1+2]"], ["ParaRun", ""]], false, "Check functions");
+	Test("csc a", 2, [["ParaRun", ""], ["CMathFunc", "{1+2]"], ["ParaRun", ""]], false, "Check functions");
+	Test("sec a", 2, [["ParaRun", ""], ["CMathFunc", "{1+2]"], ["ParaRun", ""]], false, "Check functions");
+	Test("cot a", 2, [["ParaRun", ""], ["CMathFunc", "{1+2]"], ["ParaRun", ""]], false, "Check functions");
+
+	Test("sin(1+2_i) ", 2, [["ParaRun", ""], ["CMathFunc", "sin 〖 1+2_(i)〗"], ["ParaRun", ""]], false, "Check functions");
+	Test("cos(1+2_i) ", 2, [["ParaRun", ""], ["CMathFunc", "cos 〖 1+2_(i)〗"], ["ParaRun", ""]], false, "Check functions");
+	Test("tan(1+2_i) ", 2, [["ParaRun", ""], ["CMathFunc", "tan 〖 1+2_(i)〗"], ["ParaRun", ""]], false, "Check functions");
+	Test("csc(1+2_i) ", 2, [["ParaRun", ""], ["CMathFunc", "csc 〖 1+2_(i)〗"], ["ParaRun", ""]], false, "Check functions");
+	Test("sec(1+2_i) ", 2, [["ParaRun", ""], ["CMathFunc", "sec 〖 1+2_(i)〗"], ["ParaRun", ""]], false, "Check functions");
+	Test("cot(1+2_i) ", 2, [["ParaRun", ""], ["CMathFunc", "cot 〖 1+2_(i)〗"], ["ParaRun", ""]], false, "Check functions");
+
+	Test("log ", 2, [["ParaRun", ""], ["CMathFunc", "log "], ["ParaRun", ""]], false, "Check functions");
+	Test("log a ", 2, [["ParaRun", ""], ["CMathFunc", "log a"], ["ParaRun", ""]], false, "Check functions");
+	Test("log(a+2)  ", 2, [["ParaRun", ""], ["CMathFunc", "log 〖 a+2〗"], ["ParaRun", ""]], false, "Check functions");
+	Test("lim ", 2, [["ParaRun", ""], ["CMathFunc", "lim "], ["ParaRun", ""]], false, "Check functions");
+	Test("lim_a ", 2, [["ParaRun", ""], ["CMathFunc", "lim┬a "], ["ParaRun", ""]], false, "Check functions");
+	Test("lim^a ", 2, [["ParaRun", ""], ["CMathFunc", "lim┴a "], ["ParaRun", ""]], false, "Check functions");
+
+	Test("min ", 2, [["ParaRun", ""], ["CMathFunc", "min "], ["ParaRun", ""]], false, "Check functions");
+	Test("min_a ", 2, [["ParaRun", ""], ["CMathFunc", "min┬a "], ["ParaRun", ""]], false, "Check functions");
+	Test("min^a ", 2, [["ParaRun", ""], ["CMathFunc", "min┴a "], ["ParaRun", ""]], false, "Check functions");
+
+	Test("max ", 2, [["ParaRun", ""], ["CMathFunc", "max "], ["ParaRun", ""]], false, "Check functions");
+	Test("max_a ", 2, [["ParaRun", ""], ["CMathFunc", "max┬a "], ["ParaRun", ""]], false, "Check functions");
+	Test("max^a ", 2, [["ParaRun", ""], ["CMathFunc", "max┴a "], ["ParaRun", ""]], false, "Check functions");
+
+	Test("ln ", 2, [["ParaRun", ""], ["CMathFunc", "ln "], ["ParaRun", ""]], false, "Check functions");
+	Test("ln_a ", 2, [["ParaRun", ""], ["CMathFunc", "〖ln〗_(a) "], ["ParaRun", ""]], false, "Check functions");
+	Test("ln^a ", 2, [["ParaRun", ""], ["CMathFunc", "〖ln〗^(a) "], ["ParaRun", ""]], false, "Check functions");
+
+	Test("■ ", 2, [["ParaRun", ""], ["CMathFunc", "〖ln〗^(a) "], ["ParaRun", ""]], false, "Check functions");
+	Test("■(1&2@3&4) ", 2, [["ParaRun", ""], ["CMathFunc", "〖ln〗^(a) "], ["ParaRun", ""]], false, "Check functions");
+	Test("■(1&2) ", 2, [["ParaRun", ""], ["CMathFunc", "〖ln〗^(a) "], ["ParaRun", ""]], false, "Check functions");
+	Test("■(&1&2@3&4) ", 2, [["ParaRun", ""], ["CMathFunc", "〖ln〗^(a) "], ["ParaRun", ""]], false, "Check functions");
 
  })
 

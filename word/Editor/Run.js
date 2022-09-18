@@ -542,7 +542,7 @@ ParaRun.prototype.GetTextOfElement = function(isLaTeX) {
 	}
 	return str;
 };
-ParaRun.prototype.MathAutocorrection_GetBracketsInfo = function () {
+ParaRun.prototype.MathAutocorrection_GetBracketsOperatorsInfo = function () {
 	const arrBracketsInfo = [];
 
 	for (let intCounter = 0; intCounter < this.Content.length; intCounter++)
@@ -556,6 +556,8 @@ ParaRun.prototype.MathAutocorrection_GetBracketsInfo = function () {
 			intCount = 1;
 		else if (AscMath.MathLiterals.lrBrackets.IsIncludes(strContent))
 			intCount = 0;
+		else if (AscMath.MathLiterals.operators.IsIncludes(strContent))
+			intCount = 2;
 
 		if (intCount !== null)
 			arrBracketsInfo.push([intCounter, intCount]);
@@ -592,9 +594,31 @@ ParaRun.prototype.MathAutocorrection_GetSlashesInfo = function () {
 }
 
 ParaRun.prototype.MathAutocorrection_IsLastElementOperator = function() {
+	if (this.Content.length === 0)
+		return false;
 	let oLastElement = this.Content[this.Content.length - 1];
 	let strLastElement = String.fromCharCode(oLastElement.value);
 	return AscMath.MathLiterals.operators.IsIncludes(strLastElement);
+}
+
+ParaRun.prototype.MathAutocorrection_IsLastElementLBracket = function() {
+	if (this.Content.length === 0)
+		return false;
+
+	let oLastElement = this.Content[this.Content.length - 1];
+	let strLastElement = String.fromCharCode(oLastElement.value);
+	return AscMath.MathLiterals.lBrackets.IsIncludes(strLastElement);
+}
+ParaRun.prototype.MathAutocorrection_IsLastElementRBracket = function() {
+	if (this.Content.length === 0)
+		return false;
+
+	let oLastElement = this.Content[this.Content.length - 1];
+	if (oLastElement.value === 32 && this.Content.length - 2 >= 0) {
+		oLastElement =  this.Content[this.Content.length - 2]
+	}
+	let strLastElement = String.fromCharCode(oLastElement.value);
+	return AscMath.MathLiterals.rBrackets.IsIncludes(strLastElement);
 }
 
 // Проверяем пустой ли ран

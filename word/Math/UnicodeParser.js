@@ -581,6 +581,14 @@
 				return this.GetPreScriptLiteral();
 			}
 			oExp = this.GetContentOfBracket();
+
+			if (oExp.length === 0) {
+				return {
+					type: oLiteralNames.charLiteral[num],
+					value: strOpen,
+				}
+			}
+
 			if (this.oLookahead.class) {
 				strClose = this.GetOpCloserLiteral();
 			}
@@ -612,9 +620,10 @@
 				intCountOfBracketBlock++;
 			}
 		}
-		while (arrContent.length < intCountOfBracketBlock) {
-			arrContent.push([]);
-		}
+		// while (arrContent.length < intCountOfBracketBlock) {
+		// 	arrContent.push([]);
+		// }
+
 
 		return arrContent;
 	}

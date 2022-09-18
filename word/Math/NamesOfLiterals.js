@@ -2975,24 +2975,21 @@
 		let str = "";
 		let intStart = 0;
 
-		for (let nCount = oContent.State.ContentPos - 1; nCount >= 0; nCount--) {
+		for (let nCount = oContent.Content.length - 1; nCount >= 0; nCount--)
+		{
 			let oElement = oContent.Content[nCount];
 			let intCode = oElement.value;
 			intStart = nCount;
 			
 			// первый обработанный элемент, то что было введено после слова
-			if (nCount === oContent.State.ContentPos - 1 && intCode === 32)
-			{ 
-				continue
-			}
+			if (nCount === oContent.Content.length - 1 && intCode === 32)
+				continue;
 			
 			let isContinue = ((intCode >= 97 && intCode <= 122) || (intCode >= 65 && intCode <= 90) || intCode === 92); // a-zA-z && 0-9
 
 			if (!isContinue)
-			{
-				return false
-			}
-		
+				return false;
+
 			str = oElement.GetTextOfElement() + str;
 
 			if (intCode === 92) {
@@ -3001,19 +2998,19 @@
 			}
 		}
 
-		if (oContent.State.ContentPos - 1 > intStart) {
+		if (oContent.State.ContentPos - 1 > intStart)
+		{
 			let strCorrection = AutoCorrection[str];
-			if (strCorrection) {
-
+			if (strCorrection)
+			{
 				oContent.RemoveFromContent(intStart, oContent.State.ContentPos - 1 - intStart + 1, true);
 				oContent.AddText(strCorrection, intStart);
 				isConvert = true;
 				
 				oCMathContent.Correct_Content(true);
-				oContent.State.ContentPos =  intStart + 1;
+				oContent.State.ContentPos = intStart + 1;
 			}
 		}
-
 		return isConvert;
 	}
 	function CorrectAllWords (oCMathContent)
@@ -3081,7 +3078,9 @@
 				intCode === 92 ||			// "\\"
 				intCode === 95 ||			// _
 				intCode === 94 ||			// ^
-				//intCode === 40 ||			// (
+				MathLiterals.lBrackets.IsIncludes(String.fromCodePoint(intCode)) ||
+				MathLiterals.rBrackets.IsIncludes(String.fromCodePoint(intCode)) ||
+				intCode === 40 ||			// (
 				intCode === 41 ||			// )
 				intCode === 47 ||			// /
 				intCode === 46 ||			// .
@@ -3116,32 +3115,32 @@
 			? AscMath.CUnicodeConverter(strConversionData, oTempObject)
 			: AscMath.ConvertLaTeXToTokensList(strConversionData, oTempObject);
 
-		let one = (Context.Content.length === 1) ? Context.Content[Context.CurPos] : Context.Content[Context.CurPos - 1];
-		let two = oTempObject.Content[0];
-
-		if (!one || !two) {
-			return;
-		}
-		let oneText = one.GetTextOfElement().trim();
-		let twoText = two.GetTextOfElement().trim();
-
-		if (oneText === "" || oneText === " " || twoText === "" || twoText === " ") {
-			return
-		}
-
-		if (one.constructor.name !== two.constructor.name || oneText !== twoText) {
-			//если получили что-то кроме ParaRun убираем пробел после контента
-			for (let i = 0; i < oTempObject.Content.length; i++) {
-
-				if (oTempObject.Content[i].Type !== 49) {
-					let endPos = oTempObject.Content.length - 1;
-					if (oTempObject.Content[endPos].GetTextOfElement() === " ") {
-						oTempObject.Content.splice(endPos, 1);
-					}
-					break;
-				}
-			}
-		}
+		// let one = (Context.Content.length === 1) ? Context.Content[Context.CurPos] : Context.Content[Context.CurPos - 1];
+		// let two = oTempObject.Content[0];
+		//
+		// if (!one || !two) {
+		// 	return;
+		// }
+		// let oneText = one.GetTextOfElement().trim();
+		// let twoText = two.GetTextOfElement().trim();
+		//
+		// if (oneText === "" || oneText === " " || twoText === "" || twoText === " ") {
+		// 	return
+		// }
+		//
+		// if (one.constructor.name !== two.constructor.name || oneText !== twoText) {
+		// 	//если получили что-то кроме ParaRun убираем пробел после контента
+		// 	for (let i = 0; i < oTempObject.Content.length; i++) {
+		//
+		// 		if (oTempObject.Content[i].Type !== 49) {
+		// 			let endPos = oTempObject.Content.length - 1;
+		// 			if (oTempObject.Content[endPos].GetTextOfElement() === " ") {
+		// 				oTempObject.Content.splice(endPos, 1);
+		// 			}
+		// 			break;
+		// 		}
+		// 	}
+		// }
 
 		oTempObject.Correct_Content(true);
 		return oTempObject;
@@ -3172,7 +3171,7 @@
 
 	function OpenBrackets()
 	{
-		this.data = ["(", "{", "〖",  "⟨"];
+		this.data = ["(", "{", "〖",  "⟨", "["];
 	}
 	OpenBrackets.prototype = Object.create(LexerLiterals.prototype);
 	OpenBrackets.prototype.constructor = OpenBrackets;
@@ -3181,7 +3180,7 @@
 	{
 		this.data = [
 			")", "}", "⟫", //	"\\"
-			"⟧", "〗", "⟩",
+			"⟧", "〗", "⟩", "]",
 		];
 	}
 	CloseBrackets.prototype = Object.create(LexerLiterals.prototype);
@@ -3295,7 +3294,7 @@
 	function SpecialLiteral()
 	{
 		this.data = [
-				"^", "_", "&", "@", "┴", "┬", "┤", "█",
+			"^", "_", "&", "@", "┴", "┬", "┤", "█", "▒",
 		];
 	}
 	SpecialLiteral.prototype = Object.create(LexerLiterals.prototype);
@@ -3313,6 +3312,7 @@
 		box: new Box(),
 		matrix: new Matrix(),
 		space: new Space(),
+		special: new SpecialLiteral(),
 	}
 
 	// const LaTeXWordList = {
