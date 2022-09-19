@@ -155,6 +155,12 @@
 				nFontId   = oInfo.Font;
 				nUnicode  = oInfo.CodePoint;
 			}
+			else
+			{
+				let nCurFontId = AscCommon.g_oTextMeasurer.GetCurrentFont();
+				if (nCurFontId)
+					nFontId = nCurFontId;
+			}
 
 			if (this.FontId !== nFontId
 				&& -1 !== this.FontId

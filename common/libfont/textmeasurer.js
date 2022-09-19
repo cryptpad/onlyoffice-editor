@@ -140,6 +140,11 @@
 			return {Font : oFont, CodePoint : codePoint};
 		},
 
+		GetCurrentFont : function()
+		{
+			return this.m_oManager.m_pFont;
+		},
+
 		GetGraphemeByUnicode : function(codePoint, sFontName, nFontStyle)
 		{
 			this.SetFontInternal(sFontName, AscFonts.MEASURE_FONTSIZE, nFontStyle);
