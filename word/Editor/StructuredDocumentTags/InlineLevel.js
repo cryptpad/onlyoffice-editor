@@ -880,7 +880,7 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 	var StartPage = this.Paragraph.Get_StartPage_Absolute();
 	if (null === this.BoundsPaths || StartPage !== this.BoundsPathsStartPage)
 	{
-		var arrBounds = [], arrRects = [], CurPage = -1;
+		var arrBounds = [], arrRects = [], CurPage = -1, isAllEmpty = true;
 		for (var Key in this.Bounds)
 		{
 			if (null !== nHdrFtrPage && nHdrFtrPage !== this.Paragraph.GetAbsolutePage(this.Bounds[Key].PageInternal))
@@ -894,10 +894,16 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 			}
 			this.Bounds[Key].Page = this.Paragraph.GetAbsolutePage(this.Bounds[Key].PageInternal);
 			arrRects.push(this.Bounds[Key]);
+
+			if (this.Bounds[Key].W > 0.001)
+				isAllEmpty = false;
 		}
 
+		if (isAllEmpty && arrBounds.length && arrBounds[0].length)
+			arrBounds[0][0].W = 1;
+
 		this.BoundsPaths = [];
-		for (var nIndex = 0, nCount = arrBounds.length; nIndex < nCount; ++nIndex)
+		for (let nIndex = 0, nCount = arrBounds.length; nIndex < nCount; ++nIndex)
 		{
 			var oPolygon = new AscCommon.CPolygon();
 			oPolygon.fill([arrBounds[nIndex]]);
@@ -1062,7 +1068,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(nType, X, Y, nCurP
 	var oShape = this.Paragraph.Parent ? this.Paragraph.Parent.Is_DrawingShape(true) : null;
 	if (this.IsForm() && oShape && oShape.isForm())
 	{
-		var oPolygon = new AscCommon.CPolygon();
+		let oPolygon = new AscCommon.CPolygon();
 		oPolygon.fill([[oShape.getFormRelRect()]]);
 		oDrawingDocument.OnDrawContentControl(this, nType, oPolygon.GetPaths(0));
 		return;
@@ -1074,7 +1080,11 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(nType, X, Y, nCurP
 		return;
 	}
 
-	oDrawingDocument.OnDrawContentControl(this, nType, this.GetBoundingPolygon());
+	let oPolygon = this.GetBoundingPolygon();
+	if (!oPolygon || !oPolygon.length)
+		oDrawingDocument.OnDrawContentControl(null, nType);
+	else
+		oDrawingDocument.OnDrawContentControl(this, nType, oPolygon);
 };
 CInlineLevelSdt.prototype.IsDrawContentControlsTrackBounds = function()
 {

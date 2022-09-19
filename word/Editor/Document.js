@@ -12372,6 +12372,10 @@ CDocument.prototype.CheckTextFormFormatOnBlur = function(oForm)
 	{
 		this.private_UpdateFormInnerText(oForm, sText);
 	}
+	else if (oForm.IsEmpty() && !oForm.IsPlaceHolder())
+	{
+		this.private_UpdateFormToPlaceholder(oForm);
+	}
 
 	this.History.ClearFormFillingInfo();
 
@@ -12393,6 +12397,26 @@ CDocument.prototype.private_UpdateFormInnerText = function(form, text)
 
 		let run = form.MakeSingleRunElement(true);
 		run.AddText(text);
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.private_UpdateFormToPlaceholder = function(form)
+{
+	let paragraph = form.GetParagraph();
+	if (!paragraph || form.IsPlaceHolder())
+		return;
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_None, {
+		Type      : AscCommon.changestype_2_Element_and_Type,
+		Element   : paragraph,
+		CheckType : AscCommon.changestype_Paragraph_Content
+	}, true, true))
+	{
+		this.StartAction(AscDFH.historydescription_Document_CorrectFormTextByFormat);
+		form.ReplaceContentWithPlaceHolder(false, true);
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateSelection();
