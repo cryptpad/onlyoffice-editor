@@ -2318,7 +2318,8 @@ ParaRun.prototype.GetSimpleChangesRange = function(arrChanges, nStart, nEnd)
 				|| para_FieldChar === nItemType
 				|| para_InstrText === nItemType
 				|| para_EndnoteRef === nItemType
-				|| para_EndnoteReference === nItemType)
+				|| para_EndnoteReference === nItemType
+				|| para_Tab === nItemType)
 				return null;
 
 			var nChangePos = oChange.GetPos(nItemIndex);
