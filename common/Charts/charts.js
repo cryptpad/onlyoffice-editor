@@ -649,20 +649,25 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 		this.placeholderImg = null;
 		this.placeholderSize = this.SMARTART_PREVIEW_SIZE_MM / 10;
 		this.index = 0;
+		this.cache = {};
+		this.queue = [];
 	}
 	SmartArtPreviewDrawer.prototype = Object.create(AscCommon.CActionOnTimerBase.prototype);
 	SmartArtPreviewDrawer.prototype.constructor = SmartArtPreviewDrawer;
 
-	SmartArtPreviewDrawer.prototype.Begin = function () {
-		const oThis = this;
-		oThis.loadImagePlaceholder(function () {
-			AscCommon.CActionOnTimerBase.prototype.Begin.call(oThis);
-		});
+	SmartArtPreviewDrawer.prototype.Begin = function (nTypeOfSectionLoad) {
+		if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
+			const oThis = this;
+			 this.queue.concat(Asc.c_oAscSmartArtSections[nTypeOfSectionLoad]);
+			oThis.loadImagePlaceholder(function () {
+				AscCommon.CActionOnTimerBase.prototype.Begin.call(oThis);
+			});
+		}
 	};
 	SmartArtPreviewDrawer.prototype.OnBegin = function () {
 		const oApi = Asc.editor || editor;
 		this.index = 0;
-		if (oApi) oApi.sendEvent("asc_onBeginSmartArtPreview", Asc.c_oAscSmartArtNameTypes.length);
+		if (oApi) oApi.sendEvent("asc_onBeginSmartArtPreview");
 	}
 
 	SmartArtPreviewDrawer.prototype.OnEnd = function() {
@@ -672,22 +677,24 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	};
 
 	SmartArtPreviewDrawer.prototype.IsContinue = function() {
-		return (this.index < Asc.c_oAscSmartArtNameTypes.length);
+		return !!this.queue.length;
 	};
 
 	SmartArtPreviewDrawer.prototype.DoAction = function() {
 		const oApi = Asc.editor || editor;
 		oApi.isSkipAddIdToBaseObject = true;
-		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[this.index]];
+		const nType = this.queue.pop();
 		if (AscFormat.isRealNumber(nType)) {
-			const oContext = this.createSmartArtPreview(nType);
-			const oPreview = new AscCommon.CStyleImage();
-			oPreview.name = Asc.c_oAscSmartArtNameTypes[this.index];
-			oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
-			this.imageBuffer.push(oPreview);
+			if (!this.cache[nType]) {
+				const oContext = this.createSmartArtPreview(nType);
+				const oPreview = new AscCommon.CStyleImage();
+				oPreview.name = nType;
+				oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
+				this.cache[nType] = oPreview;
+			}
+			this.imageBuffer.push(this.cache[nType]);
 		}
 		delete oApi.isSkipAddIdToBaseObject;
-		this.index++;
 	};
 
 	SmartArtPreviewDrawer.prototype.OnEndTimer = function() {
@@ -718,23 +725,27 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	}
 
 	SmartArtPreviewDrawer.prototype.loadImagePlaceholder = function (callback) {
-		this.placeholderImg = new Image();
-		this.placeholderImg.onload = callback;
-		this.placeholderImg.src = this.imagePlaceholderUrl;
-		this.placeholderImg.src = this.imagePlaceholderUrl;
-		AscCommon.backoffOnErrorImg(this.placeholderImg);
+		if (!this.placeholderImg) {
+			this.placeholderImg = new Image();
+			this.placeholderImg.onload = callback;
+			this.placeholderImg.src = this.imagePlaceholderUrl;
+			this.placeholderImg.src = this.imagePlaceholderUrl;
+			AscCommon.backoffOnErrorImg(this.placeholderImg);
+		} else {
+			callback();
+		}
 	}
 
-	SmartArtPreviewDrawer.prototype.createPreviews = function () {
-		for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
-			const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
-			const oContext = this.createSmartArtPreview(nType);
-			const oPreview = new AscCommon.CStyleImage();
-			oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
-			oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
-			this.imageBuffer.push(oPreview);
-		}
-	};
+	// SmartArtPreviewDrawer.prototype.createPreviews = function () {
+	// 	for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
+	// 		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
+	// 		const oContext = this.createSmartArtPreview(nType);
+	// 		const oPreview = new AscCommon.CStyleImage();
+	// 		oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
+	// 		oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
+	// 		this.imageBuffer.push(oPreview);
+	// 	}
+	// };
 
 	SmartArtPreviewDrawer.prototype.start = function () {
 		this.loadImagePlaceholder(this.createPreviews.bind(this));

@@ -1936,9 +1936,9 @@
 		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
 	};
 
-	baseEditorsApi.prototype.asc_generateSmartArtPreviews = function()
+	baseEditorsApi.prototype.asc_generateSmartArtPreviews = function(nTypeOfSection)
 	{
-		return this.smartArtPreviewManager.Begin();
+		return this.smartArtPreviewManager.Begin(nTypeOfSection);
 	};
 	// Images & Charts & TextArts
 	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType, arrId, bEmpty)
