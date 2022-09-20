@@ -4900,15 +4900,19 @@ CPresentation.prototype.Search = function (oProps) {
     this.SearchEngine.ClearOnRecalc = true;
     return this.SearchEngine;
 };
+CPresentation.prototype.ClearSearch = function() {
+	let isPrevSearch = this.SearchEngine.Count > 0;
+	this.SearchEngine.Clear();
+	if (isPrevSearch) {
+		this.Api.sync_SearchEndCallback();
+	}
+};
 CPresentation.prototype.private_ClearSearchOnRecalculate = function() {
     if (!this.SearchEngine.ClearOnRecalc) {
         return;
     }
-    let isPrevSearch = this.SearchEngine.Count > 0;
-    this.SearchEngine.Clear();
-    if (isPrevSearch) {
-        this.Api.sync_SearchEndCallback();
-    }
+
+	this.ClearSearch();
 };
 
 
@@ -7156,6 +7160,10 @@ CPresentation.prototype.OnKeyPress = function (e) {
     if (!this.CanEdit())
         return false;
 
+    if(e.KeyCode === 27) {
+        //escape. for bug 58884  in IE
+        return;
+    }
     var oCurSlide = this.Slides[this.CurPage];
     if (!oCurSlide || !oCurSlide.graphicObjects) {
         return;
