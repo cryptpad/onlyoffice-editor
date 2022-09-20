@@ -5344,6 +5344,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Print']       = prot.Print;
 	prot['Web']         = prot.Web;
 
-	window['Asc'].DocumentView.c_oAscSmartArtSections = c_oAscSmartArtSections;
+	window['Asc'].c_oAscSmartArtSections = c_oAscSmartArtSections;
 
 })(window);

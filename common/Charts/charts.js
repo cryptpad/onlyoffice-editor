@@ -658,7 +658,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.Begin = function (nTypeOfSectionLoad) {
 		if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
 			const oThis = this;
-			 this.queue.concat(Asc.c_oAscSmartArtSections[nTypeOfSectionLoad]);
+			this.queue = this.queue.concat(Asc.c_oAscSmartArtSections[nTypeOfSectionLoad]);
 			oThis.loadImagePlaceholder(function () {
 				AscCommon.CActionOnTimerBase.prototype.Begin.call(oThis);
 			});
@@ -737,14 +737,11 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	}
 
 	// SmartArtPreviewDrawer.prototype.createPreviews = function () {
-	// 	for (let i = 0; i < Asc.c_oAscSmartArtNameTypes.length; i += 1) {
-	// 		const nType = Asc.c_oAscSmartArtTypes[Asc.c_oAscSmartArtNameTypes[i]];
-	// 		const oContext = this.createSmartArtPreview(nType);
-	// 		const oPreview = new AscCommon.CStyleImage();
-	// 		oPreview.name = Asc.c_oAscSmartArtNameTypes[i];
-	// 		oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
-	// 		this.imageBuffer.push(oPreview);
+	// 	this.queue = this.queue.concat(Asc.c_oAscSmartArtSections[Asc.c_oAscSmartArtSectionNames.OfficeCom]);
+	// 	while (this.IsContinue()) {
+	// 		this.DoAction();
 	// 	}
+	// 	console.log(this.imageBuffer);
 	// };
 
 	SmartArtPreviewDrawer.prototype.start = function () {
@@ -1346,8 +1343,8 @@ TextArtPreviewManager.prototype.generateTextArtStyles = function()
 	window['AscCommon'].ChartPreviewManager = ChartPreviewManager;
 	window['AscCommon'].SmartArtPreviewDrawer = SmartArtPreviewDrawer;
 	window['AscCommon'].TextArtPreviewManager = TextArtPreviewManager;
-	window['AscCommon'].createPreviewSmartArt = function () {
-		const SmartArtDrawer = new SmartArtPreviewDrawer();
-		SmartArtDrawer.start();
-	}
+	// window['AscCommon'].createPreviewSmartArt = function () {
+	// 	const SmartArtDrawer = new SmartArtPreviewDrawer();
+	// 	SmartArtDrawer.start();
+	// }
 })(window);
