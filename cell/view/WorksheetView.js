@@ -11751,6 +11751,10 @@
         if (!this.getFormulaEditMode() && !this.startCellMoveResizeRange.isEqual(this.moveRangeDrawingObjectTo)) {
             this.objectRender.applyMoveResizeRange(this.oOtherRanges);
         }
+        if (this.workbook.Api.isEditVisibleAreaOleEditor) {
+            const oOleSize = this.getOleSize();
+            oOleSize.addPointToLocalHistory();
+        }
 
         this.startCellMoveResizeRange = null;
         this.startCellMoveResizeRange2 = null;
