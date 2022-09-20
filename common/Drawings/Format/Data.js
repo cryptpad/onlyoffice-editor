@@ -14826,6 +14826,7 @@ Because of this, the display is sometimes not correct.
         case Asc.c_oAscSmartArtTypes.StepDownProcess:
         case Asc.c_oAscSmartArtTypes.ReverseList:
         case Asc.c_oAscSmartArtTypes.OrganizationChart:
+        case Asc.c_oAscSmartArtTypes.PictureOrganizationChart:
         case Asc.c_oAscSmartArtTypes.PyramidList:
         case Asc.c_oAscSmartArtTypes.PlusAndMinus:
         case Asc.c_oAscSmartArtTypes.RepeatingBendingProcess:
@@ -14863,7 +14864,8 @@ Because of this, the display is sometimes not correct.
         case Asc.c_oAscSmartArtTypes.StaggeredProcess:
         case Asc.c_oAscSmartArtTypes.ConvergingRadial:
         case Asc.c_oAscSmartArtTypes.ConvergingArrows:
-        case Asc.c_oAscSmartArtTypes.TableHierarchy:
+        case Asc.c_oAscSmartArtTypes.TableHierarchy: //TODO: think about it
+        case Asc.c_oAscSmartArtTypes.ArchitectureLayout: //TODO: think about it
         case Asc.c_oAscSmartArtTypes.TextCycle:
         case Asc.c_oAscSmartArtTypes.TrapezoidList:
         case Asc.c_oAscSmartArtTypes.DescendingProcess:
@@ -14871,6 +14873,16 @@ Because of this, the display is sometimes not correct.
         case Asc.c_oAscSmartArtTypes.CounterbalanceArrows:
         case Asc.c_oAscSmartArtTypes.AlternatingPictureBlocks:
         case Asc.c_oAscSmartArtTypes.AlternatingPictureCircles:
+        case Asc.c_oAscSmartArtTypes.ChevronAccentProcess:
+        case Asc.c_oAscSmartArtTypes.TabbedArc:
+        case Asc.c_oAscSmartArtTypes.ThemePictureAccent:
+        case Asc.c_oAscSmartArtTypes.VaryingWidthList:
+        case Asc.c_oAscSmartArtTypes.InterconnectedRings:
+        case Asc.c_oAscSmartArtTypes.ThemePictureAlternatingAccent:
+        case Asc.c_oAscSmartArtTypes.HexagonRadial:
+        case Asc.c_oAscSmartArtTypes.PictureFrame:
+        case Asc.c_oAscSmartArtTypes.TabList:
+        case Asc.c_oAscSmartArtTypes.VerticalBracketList:
         case Asc.c_oAscSmartArtTypes.Gear: {
           return shapes;
         }
@@ -14886,6 +14898,8 @@ Because of this, the display is sometimes not correct.
           return getShapesFromPresStyleLbl(['node1', 'revTx']);
         case Asc.c_oAscSmartArtTypes.GroupedList:// TODO: check transform
           return getShapesFromPresStyleLbl(['bgShp', 'node1']);
+        case Asc.c_oAscSmartArtTypes.InterconnectedBlockProcess:
+          return getShapesFromPresStyleLbl(['alignImgPlace1', 'node1']);
         case Asc.c_oAscSmartArtTypes.TitledPictureAccentList:
           return getShapesFromPresStyleLbl(['lnNode1']); // TODO: think about it
         case Asc.c_oAscSmartArtTypes.VerticalBlockList:
@@ -14906,6 +14920,9 @@ Because of this, the display is sometimes not correct.
         case Asc.c_oAscSmartArtTypes.TitledPictureBlocks:
         case Asc.c_oAscSmartArtTypes.OpposingIdeas:
         case Asc.c_oAscSmartArtTypes.LabeledHierarchy:
+        case Asc.c_oAscSmartArtTypes.RadialPictureList:
+        case Asc.c_oAscSmartArtTypes.ConvergingText:
+        case Asc.c_oAscSmartArtTypes.CircleProcess:
         case Asc.c_oAscSmartArtTypes.HorizontalLabeledHierarchy:
         case Asc.c_oAscSmartArtTypes.IncreasingArrowsProcess: {
           return getShapesFromPresetGeom();
@@ -14948,6 +14965,8 @@ Because of this, the display is sometimes not correct.
         case Asc.c_oAscSmartArtTypes.AccentedPicture:
         case Asc.c_oAscSmartArtTypes.CircularPictureCallout:
           return getShapesFromPresStyleLbl(['revTx', 'node1']);
+        case Asc.c_oAscSmartArtTypes.ThemePictureGrid:
+          return getShapesFromPresStyleLbl(['revTx', 'trBgShp']);
         case Asc.c_oAscSmartArtTypes.TitlePictureLineup:
           return getShapesFromPresStyleLbl(['revTx', 'alignNode1']);
         default:
