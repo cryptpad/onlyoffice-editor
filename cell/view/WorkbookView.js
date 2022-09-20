@@ -2881,7 +2881,10 @@
     var oFormulaLocaleInfo = AscCommonExcel.oFormulaLocaleInfo;
     oFormulaLocaleInfo.Parse = false;
     oFormulaLocaleInfo.DigitSep = false;
-    if (!this.getCellEditMode()) {
+	  if (this.Api.isEditVisibleAreaOleEditor) {
+		  const oOleSize = this.getOleSize();
+		  oOleSize.undo();
+	  } else if (!this.getCellEditMode()) {
       if (!History.Undo(Options) && this.collaborativeEditing.getFast() && this.collaborativeEditing.getCollaborativeEditing()) {
         this.Api.sync_TryUndoInFastCollaborative();
       }
@@ -2893,11 +2896,14 @@
   };
 
   WorkbookView.prototype.redo = function() {
-    if (!this.getCellEditMode()) {
-      History.Redo();
-    } else {
-      this.cellEditor.redo();
-    }
+	  if (this.Api.isEditVisibleAreaOleEditor) {
+		  const oOleSize = this.getOleSize();
+		  oOleSize.redo();
+	  } else if (!this.getCellEditMode()) {
+		  History.Redo();
+	  } else {
+		  this.cellEditor.redo();
+	  }
   };
 
   WorkbookView.prototype.setFontAttributes = function(prop, val) {

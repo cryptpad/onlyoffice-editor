@@ -1240,11 +1240,13 @@
 			if ((dc !== 0 || dr !== 0) && false === t.handlers.trigger("isGlobalLockEditCell")) {
 				if (isChangeVisibleAreaMode) {
 				t.handlers.trigger("changeVisibleArea", !shiftKey, dc, dr, false, function (d) {
-						var wb = window["Asc"]["editor"].wb;
+						const wb = window["Asc"]["editor"].wb;
 						if (t.targetInfo) {
 							wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
 						}
 						t.scroll(d);
+						const oOleSize = wb.getOleSize();
+						oOleSize.addPointToLocalHistory();
 						_checkLastTab();
 					}, true);
 				} else if (selectionActivePointChanged) { // Проверка на движение в выделенной области
@@ -1392,6 +1394,8 @@
 
 			if (this.isChangeVisibleAreaMode) {
 				this.isChangeVisibleAreaMode = false;
+				const oOleSize = this.view.getOleSize();
+				oOleSize.addPointToLocalHistory();
 			}
 
 			if (this.isSelectMode) {
@@ -1691,6 +1695,8 @@
 
 			if (this.isChangeVisibleAreaMode) {
 				this.isChangeVisibleAreaMode = false;
+				const oOleSize = this.view.getOleSize();
+				oOleSize.addPointToLocalHistory();
 			}
 
 			if (2 === button) {

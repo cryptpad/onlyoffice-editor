@@ -3950,28 +3950,40 @@ var editor;
    * @param {{}} [oOleObjectInfo] info from oleObject
    */
   spreadsheet_api.prototype.asc_addTableOleObjectInOleEditor = function(oOleObjectInfo) {
-  this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
-    oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
-    const sStream = oOleObjectInfo["binary"];
-    const oThis = this;
-    const oFile = new AscCommon.OpenFileResult();
-    oFile.bSerFormat = AscCommon.checkStreamSignature(sStream, AscCommon.c_oSerFormat.Signature);
-    oFile.data = sStream;
-    this.isEditOleMode = true;
-    this.isChartEditor = false;
-    this.isFromSheetEditor = oOleObjectInfo["isFromSheetEditor"];
-    this.asc_CloseFile();
-    this.fAfterLoad = function () {
-        const nImageWidth = oOleObjectInfo["imageWidth"];
-        const nImageHeight = oOleObjectInfo["imageHeight"];
-        if (nImageWidth && nImageHeight) {
-            oThis.saveImageCoefficients = oThis.getScaleCoefficientsForOleTableImage(nImageWidth, nImageHeight);
-        }
-        oThis.wb.scrollToOleSize();
-        oThis.wb.onOleEditorReady();
-        oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
-    }
-    this.openDocument(oFile);
+      this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
+      // на случай, если изображение поставили на загрузку, закрыли редактор, и потом опять открыли
+      this.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
+      this.sendFromFrameToGeneralEditor({
+          "typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.OpenFrame
+      });
+      oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
+      const sStream = oOleObjectInfo["binary"];
+      const oThis = this;
+      const oFile = new AscCommon.OpenFileResult();
+      oFile.bSerFormat = AscCommon.checkStreamSignature(sStream, AscCommon.c_oSerFormat.Signature);
+      oFile.data = sStream;
+      this.isEditOleMode = true;
+      this.isChartEditor = false;
+      this.isFromSheetEditor = oOleObjectInfo["isFromSheetEditor"];
+      const oDocumentImageUrls = oOleObjectInfo["documentImageUrls"];
+      this.asc_CloseFile();
+      this.fAfterLoad = function () {
+          const nImageWidth = oOleObjectInfo["imageWidth"];
+          const nImageHeight = oOleObjectInfo["imageHeight"];
+          if (nImageWidth && nImageHeight) {
+              oThis.saveImageCoefficients = oThis.getScaleCoefficientsForOleTableImage(nImageWidth, nImageHeight);
+          }
+          oThis.wb.scrollToOleSize();
+          // добавляем первый поинт после загрузки, чтобы в локальную историю добавился либо стандартный oleSize, либо заданный пользователем
+          const oleSize = oThis.wb.getOleSize();
+          oleSize.addPointToLocalHistory();
+
+          oThis.wb.onOleEditorReady();
+          oThis.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Open);
+      }
+
+      this.imagesFromGeneralEditor = oDocumentImageUrls || {};
+      this.openDocument(oFile);
     };
   /**
    * get binary info about changed ole object
@@ -3983,10 +3995,31 @@ var editor;
     const arrBinaryData = oBinaryFileWriter.Write().split(';');
     const sCleanBinaryData = arrBinaryData[arrBinaryData.length - 1];
     const oBinaryInfo = {};
+    const arrWorksheets = this.wb.wsViews;
+    const arrRasterImageIds = [];
+    for (let i = 0; i < arrWorksheets.length; i += 1) {
+        const oWorksheet = arrWorksheets[i];
+        const arrDrawings = oWorksheet.model.Drawings;
+        if (arrDrawings) {
+            for (let i = 0; i < arrDrawings.length; i += 1) {
+                const oDrawing = arrDrawings[i];
+                oDrawing.graphicObject.getAllRasterImages(arrRasterImageIds);
+            }
+        }
+    }
+    const urlsForAddToHistory = [];
+    for (let i = 0; i < arrRasterImageIds.length; i += 1) {
+        const url = AscCommon.g_oDocumentUrls.mediaPrefix + arrRasterImageIds[i];
+        if (!(this.imagesFromGeneralEditor && this.imagesFromGeneralEditor[url] && this.imagesFromGeneralEditor[url] === AscCommon.g_oDocumentUrls.getUrls()[url])) {
+            urlsForAddToHistory.push(arrRasterImageIds[i]);
+        }
+    }
+
 
     oBinaryInfo["binary"] = sCleanBinaryData;
     oBinaryInfo["base64Image"] = sDataUrl;
-    oBinaryInfo["isFromSheetEditor"] =this.isFromSheetEditor;
+    oBinaryInfo["isFromSheetEditor"] = this.isFromSheetEditor;
+    oBinaryInfo["imagesForAddToHistory"] = urlsForAddToHistory;
     if (this.saveImageCoefficients) {
         oBinaryInfo["widthCoefficient"] = this.saveImageCoefficients.widthCoefficient;
         oBinaryInfo["heightCoefficient"] = this.saveImageCoefficients.heightCoefficient;
@@ -3997,10 +4030,11 @@ var editor;
   }
 
 	spreadsheet_api.prototype.asc_toggleChangeVisibleAreaOleEditor = function (bForceValue) {
-		var ws = this.wb.getWorksheet();
+		const ws = this.wb.getWorksheet();
 		ws.cleanSelection();
 		ws.endEditChart();
 		ws._endSelectionShape();
+        const previousValue = this.isEditVisibleAreaOleEditor;
 		if (typeof bForceValue === 'boolean') {
 			this.isEditVisibleAreaOleEditor = bForceValue;
 		} else {
@@ -4009,6 +4043,11 @@ var editor;
 		if (this.isEditVisibleAreaOleEditor) {
 			this.wb.setCellEditMode(false);
 		}
+        const currentValue = this.isEditVisibleAreaOleEditor;
+        if (previousValue === true && currentValue === false) {
+            const oOleSize = this.wbModel.getOleSize();
+            oOleSize.addToGlobalHistory();
+        }
 		ws._drawSelection();
 	};
 
@@ -4074,6 +4113,10 @@ var editor;
     this.asc_addImage();
   };
   spreadsheet_api.prototype._addImageUrl = function(urls, obj) {
+    if (obj && obj.sendUrlsToFrameEditor && this.isOpenedChartFrame) {
+      this.addImageUrlsFromGeneralToFrameEditor(urls);
+      return;
+    }
     var ws = this.wb.getWorksheet();
     if (ws) {
       if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl || obj.fAfterUploadOleObjectImage)) {
@@ -4407,7 +4450,7 @@ var editor;
         }
     };
 
-  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
+  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect, arrImagesForAddToHistory)
   {
     var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
     if (null != _image){
@@ -4418,20 +4461,20 @@ var editor;
 
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
+        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect, arrImagesForAddToHistory);
         this.asc_endPaste();
       }
     }
   };
 
-  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight)
+  spreadsheet_api.prototype.asc_editOleObjectAction = function(oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory)
   {
     if (oOleObject)
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
+        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory);
         this.asc_endPaste();
       }
     }
