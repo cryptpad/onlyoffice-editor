@@ -4508,9 +4508,6 @@ var editor;
 	if (!this.canEdit()) {
 	  return;
 	}
-    if (this.isFrameEditor() && !AscCommon.isNullOrEmptyString(props.ImageUrl)) {
-        props.ImageUrl = null;
-    }
     var ws = this.wb.getWorksheet();
     var fReplaceCallback = null, sImageUrl = null, sToken = undefined;
     if(!AscCommon.isNullOrEmptyString(props.ImageUrl)){

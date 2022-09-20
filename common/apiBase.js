@@ -395,7 +395,7 @@
 		return null;
 	};
 	baseEditorsApi.prototype.isFrameEditor = function () {
-		return !!(this.isChartEditor ||  this.isEditOleMode); // TODO: solve the confusion
+		return !!(this.isChartEditor || this.isOleEditor);
 	};
 	baseEditorsApi.prototype.asc_setCoreProps                = function(oProps)
 	{
@@ -1955,7 +1955,6 @@
 	};
 	baseEditorsApi.prototype.asc_addImage                        = function(obj)
 	{
-		if (this.isFrameEditor()) return; //TODO: Fix in 7.2.1
 		var t = this;
         if (this.WordControl) // после показа диалога может не прийти mouseUp
         	this.WordControl.m_bIsMouseLock = false;
