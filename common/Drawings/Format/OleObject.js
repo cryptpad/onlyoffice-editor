@@ -610,14 +610,12 @@ function (window, undefined) {
             const sData = AscCommon.Base64.encode(oOleObject.m_aBinaryData);
             const nImageWidth = oOleObject.extX * AscCommon.g_dKoef_mm_to_pix;
             const nImageHeight = oOleObject.extY * AscCommon.g_dKoef_mm_to_pix;
-            const documentImageUrls = AscCommon.g_oDocumentUrls.urls;
 
             return {
                 "binary": "XLSY;v2;" + nDataSize  + ";" + sData,
                 "isFromSheetEditor": !!oOleObject.worksheet,
                 "imageWidth": nImageWidth,
-                "imageHeight": nImageHeight,
-                "documentImageUrls": documentImageUrls
+                "imageHeight": nImageHeight
             };
         }
         return {
