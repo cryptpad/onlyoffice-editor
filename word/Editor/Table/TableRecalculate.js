@@ -1734,8 +1734,16 @@ CTable.prototype.private_RecalculatePageXY = function(CurPage)
     this.Pages.length = Math.max(CurPage, 0);
     if (0 === CurPage)
     {
-    	this.Pages.length = CurPage + 1;
-        this.Pages[CurPage] = new CTablePage(this.X, this.Y, this.XLimit, this.YLimit, FirstRow, TempMaxTopBorder);
+		let nShiftY = 0;
+		if (!this.IsInline()
+			&& c_oAscVAnchor.Text === this.PositionV.RelativeFrom
+			&& !this.PositionV.Align)
+		{
+			nShiftY += this.PositionV.Value;
+		}
+
+		this.Pages.length = 1;
+		this.Pages[0]     = new CTablePage(this.X, this.Y + nShiftY, this.XLimit, this.YLimit, FirstRow, TempMaxTopBorder);
     }
     else
     {
@@ -1751,7 +1759,7 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
 
     var TablePr = this.Get_CompiledPr(false).TablePr;
     var PageLimits = this.Parent.Get_PageLimits(this.PageNum);
-    var PageFields = this.Parent.Get_PageFields(this.PageNum, isHdtFtr);
+    var PageFields = this.Parent.Get_PageFields(this.PageNum, isHdtFtr, this.Get_SectPr());
 
 	var LD_PageLimits = this.LogicDocument.Get_PageLimits(this.Get_StartPage_Absolute());
 	var LD_PageFields = this.LogicDocument.Get_PageFields(this.Get_StartPage_Absolute(), isHdtFtr);
@@ -1796,17 +1804,6 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
     {
         if (0 === CurPage)
         {
-        	var oSectPr = this.Get_SectPr();
-        	if (oSectPr)
-			{
-				var oFrame = oSectPr.GetContentFrame(this.GetAbsolutePage(CurPage));
-
-				PageFields.Y      = oFrame.Top;
-				PageFields.YLimit = oFrame.Bottom;
-				PageFields.X      = oFrame.Left;
-				PageFields.XLimit = oFrame.Right;
-			}
-
             var OffsetCorrection_Left  = this.GetTableOffsetCorrection();
             var OffsetCorrection_Right = this.GetRightTableOffsetCorrection();
 
@@ -3357,7 +3354,11 @@ CTable.prototype.private_RecalculatePositionY = function(CurPage)
         var NewX = this.AnchorPosition.CalcX;
         var NewY = this.AnchorPosition.CalcY;
 
-        this.Shift( CurPage, NewX - this.Pages[CurPage].X, NewY - this.Pages[CurPage].Y );
+		// Данная ситуация обрабатывается отдельно до пересчета в RecalculatePageXY
+		if (c_oAscVAnchor.Text === this.PositionV.RelativeFrom && !this.PositionV.Align)
+			NewY = this.Pages[CurPage].Y;
+
+		this.Shift( CurPage, NewX - this.Pages[CurPage].X, NewY - this.Pages[CurPage].Y );
     }
 };
 CTable.prototype.private_RecalculateSkipPage = function(CurPage)

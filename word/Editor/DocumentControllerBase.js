@@ -247,15 +247,6 @@ CDocumentControllerBase.prototype.Is_DrawingShape = function(bRetShape)
 	return false;
 };
 /**
- * Событие о том, что контент изменился и пересчитался.
- * @param bChange
- * @param bForceRecalc
- */
-CDocumentControllerBase.prototype.OnContentRecalculate = function(bChange, bForceRecalc)
-{
-	return;
-};
-/**
  * Получаем стартовую позицию для заданной страницы.
  * @returns {{X: number, Y: number, XLimit: number, YLimit: number}}
  */
@@ -824,6 +815,6 @@ CDocumentControllerBase.prototype.IsSelectionLocked  = function(CheckType)
 CDocumentControllerBase.prototype.FindNextFillingForm = function(isNext, isCurrent) {return null;};
 /**
  * Заполняем массив текущих изменений в рецензировании
- * @param oTrackManager {CTrackRevisionsManager}
+ * @param oTrackManager {AscWord.CTrackRevisionsManager}
  */
 CDocumentControllerBase.prototype.CollectSelectedReviewChanges = function(oTrackManager) {};

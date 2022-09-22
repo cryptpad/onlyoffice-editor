@@ -1164,10 +1164,6 @@ CDocumentContentElementBase.prototype.GetHdrFtr = function()
  */
 CDocumentContentElementBase.prototype.IsUseInDocument = function(sId)
 {
-	return this.Is_UseInDocument(sId);
-};
-CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
-{
 	return false;
 };
 /**
@@ -1176,6 +1172,10 @@ CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
  * @returns {boolean}
  */
 CDocumentContentElementBase.prototype.CheckRunContent = function(fCheck)
+{
+	return false;
+};
+CDocumentContentElementBase.prototype.CheckSelectedRunContent = function(fCheck)
 {
 	return false;
 };

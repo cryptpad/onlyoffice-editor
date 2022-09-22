@@ -158,6 +158,7 @@
 
 		this.objAutoComplete = {};
 		this.sAutoComplete = null;
+		this.eventListeners = [];
 
 		/** @type RegExp */
 		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " ", "."];
@@ -198,15 +199,20 @@
 			var ceCanvasOverlay = "ce-canvas-overlay" + ceMenuEditor;
 			var ceCursor = "ce-cursor" + ceMenuEditor;
 
+			var canvasOuterEl = document.getElementById(ceCanvasOuterId);
+			if (canvasOuterEl) {
+				var parentNode = canvasOuterEl.parentNode;
+				parentNode.removeChild(canvasOuterEl);
+			}
 			t.canvasOuter = document.createElement('div');
 			t.canvasOuter.id = ceCanvasOuterId;
 			t.canvasOuter.style.position = "absolute";
 			t.canvasOuter.style.display = "none";
 			t.canvasOuter.style.zIndex = z;
-			var innerHTML = '<canvas id='+ ceCanvasId +' style="z-index: ' + (z + 1) + '"></canvas>';
-			innerHTML += '<canvas id='+ ceCanvasOverlay +' style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
+			var innerHTML = '<canvas id=' + ceCanvasId + ' style="z-index: ' + (z + 1) + '"></canvas>';
+			innerHTML += '<canvas id=' + ceCanvasOverlay + ' style="z-index: ' + (z + 2) + '; cursor: ' + t.defaults.cursorShape +
 				'"></canvas>';
-			innerHTML += '<div id='+ ceCursor +' style="display: none; z-index: ' + (z + 3) + '"></div>';
+			innerHTML += '<div id=' + ceCursor + ' style="display: none; z-index: ' + (z + 3) + '"></div>';
 			t.canvasOuter.innerHTML = innerHTML;
 			this.element.appendChild(t.canvasOuter);
 
@@ -228,40 +234,55 @@
 
 		// bind event handlers
 		if (t.canvasOuter && t.canvasOuter.addEventListener) {
-			t.canvasOuter.addEventListener("mousedown", function () {
+			var eventInfo = new AscCommon.CEventListenerInfo(t.canvasOuter, "mousedown", function () {
 				return t._onMouseDown.apply(t, arguments);
 			}, false);
-			t.canvasOuter.addEventListener("mouseup", function () {
+			t.eventListeners.push(eventInfo);
+
+			eventInfo = new AscCommon.CEventListenerInfo(t.canvasOuter, "mouseup", function () {
 				return t._onMouseUp.apply(t, arguments);
 			}, false);
-			t.canvasOuter.addEventListener("mousemove", function () {
+			t.eventListeners.push(eventInfo);
+
+			eventInfo = new AscCommon.CEventListenerInfo(t.canvasOuter, "mousemove", function () {
 				return t._onMouseMove.apply(t, arguments);
 			}, false);
-			t.canvasOuter.addEventListener("mouseleave", function () {
+			t.eventListeners.push(eventInfo);
+
+			eventInfo = new AscCommon.CEventListenerInfo(t.canvasOuter, "mouseleave", function () {
 				return t._onMouseLeave.apply(t, arguments);
 			}, false);
+			t.eventListeners.push(eventInfo);
 		}
 
 		// check input, it may have zero len, for mobile version
 		if (t.input && t.input.addEventListener) {
-			t.input.addEventListener("focus", function () {
+			eventInfo = new AscCommon.CEventListenerInfo(t.input, "focus", function () {
 				return t.isOpened ? t._topLineGotFocus.apply(t, arguments) : true;
 			}, false);
-			t.input.addEventListener("mousedown", function () {
+			t.eventListeners.push(eventInfo);
+
+			eventInfo = new AscCommon.CEventListenerInfo(t.input, "mousedown", function () {
 				return t.isOpened ? (t.callTopLineMouseup = true) : true;
 			}, false);
-			t.input.addEventListener("mouseup", function () {
+			t.eventListeners.push(eventInfo);
+
+			eventInfo = new AscCommon.CEventListenerInfo(t.input, "mouseup", function () {
 				return t.isOpened ? t._topLineMouseUp.apply(t, arguments) : true;
 			}, false);
-			t.input.addEventListener("input", function () {
+			t.eventListeners.push(eventInfo);
+
+			eventInfo = new AscCommon.CEventListenerInfo(t.input, "input", function () {
 				return t._onInputTextArea.apply(t, arguments);
 			}, false);
+			t.eventListeners.push(eventInfo);
 
 			// Не поддерживаем drop на верхнюю строку
-			t.input.addEventListener("drop", function (e) {
+			eventInfo = new AscCommon.CEventListenerInfo(t.input, "drop", function (e) {
 				e.preventDefault();
 				return false;
 			}, false);
+			t.eventListeners.push(eventInfo);
 		}
 
 		this.fKeyMouseUp = function () {
@@ -270,9 +291,23 @@
 		this.fKeyMouseMove = function () {
 			return t._onWindowMouseMove.apply(t, arguments);
 		};
+
+		t.addEventListeners();
 	};
 
 	CellEditor.prototype.destroy = function () {
+	};
+
+	CellEditor.prototype.removeEventListeners = function () {
+		this.eventListeners.forEach(function (eventInfo) {
+			eventInfo.listeningElement.removeEventListener(eventInfo.eventName, eventInfo.listener);
+		});
+	};
+
+	CellEditor.prototype.addEventListeners = function () {
+		this.eventListeners.forEach(function (eventInfo) {
+			eventInfo.listeningElement.addEventListener(eventInfo.eventName, eventInfo.listener, eventInfo.useCapture);
+		});
 	};
 
 	/**
@@ -1712,6 +1747,11 @@
 			if (b !== e) {
 				this._selectChars(kPosition, e);
 			}
+
+			//onSelectionEnd - используется в плагинах. нужен он для отслеживания смены селекта.
+			if (!this.isSelectMode) {
+				this.handlers.trigger("onSelectionEnd");
+			}
 		}
 	};
 
@@ -2903,6 +2943,14 @@
 	};
 	CellEditor.prototype.getMenuEditorMode = function () {
 		return this.menuEditor;
+	};
+	CellEditor.prototype.selectAll = function () {
+		//t.skipKeyPress
+		var tmp = this.skipTLUpdate;
+		this.skipTLUpdate = false;
+		this._moveCursor(kBeginOfText);
+		this._selectChars(kEndOfText);
+		this.skipTLUpdate = tmp;
 	};
 
 

@@ -1156,6 +1156,12 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 return;
             }
 
+            if(this.originalObject.animMotionTrack) 
+            {
+                this.originalObject.updateAnimation(this.resizedPosX, this.resizedPosY, 
+                    this.resizedExtX, this.resizedExtY, this.originalObject.rot);
+                return;
+            }
             if (this.originalObject.isObjectInSmartArt()) {
                 return;
                 if (this.resizedPosX < 0) {
@@ -1290,9 +1296,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                     var oldY = xfrm.offY;
                     var newX = this.resizedPosX/scale_coefficients.cx + ch_off_x;
                     var newY = this.resizedPosY/scale_coefficients.cy + ch_off_y;
-                    this.originalObject.graphicObject.Resize(this.resizedExtX, this.resizedExtY);
-                    this.originalObject.recalculateTable();
-                    this.originalObject.recalculateSizes();
+                    this.originalObject.resize(this.resizedExtX, this.resizedExtY);
                     if(!this.bLastCenter){
                         if(!AscFormat.fApproxEqual(oldX, newX, 0.5)){
                             xfrm.setOffX(this.resizedPosX/scale_coefficients.cx + ch_off_x - this.originalObject.extX + this.resizedExtX);

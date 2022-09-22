@@ -104,6 +104,13 @@
 
 		return null;
 	};
+	CTableId.prototype.GetClass = function(id)
+	{
+		if (!id || !this.m_aPairs[id])
+			return null;
+
+		return this.m_aPairs[id];
+	};
 	/**
 	 * Получаем Id, по классу (вообще, данную функцию лучше не использовать)
 	 * @param Class
@@ -273,7 +280,7 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_RelSizeAnchor]      	 = AscFormat.CRelSizeAnchor;
 		this.m_oFactoryClass[AscDFH.historyitem_type_AbsSizeAnchor]      	 = AscFormat.CAbsSizeAnchor;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ParaRevisionMove]       = AscCommon.CParaRevisionMove;
-		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscCommon.CRunRevisionMove;
+		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscWord.CRunRevisionMove;
 		this.m_oFactoryClass[AscDFH.historyitem_type_DocPart]                = AscCommon.CDocPart;
 		this.m_oFactoryClass[AscDFH.historyitem_type_SlicerView]             = AscFormat.CSlicer;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ChartStyle]             = AscFormat.CChartStyle;
@@ -373,6 +380,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArtTree      ]     = AscFormat.SmartArtTree;
 		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArtNode      ]     = AscFormat.SmartArtNode;
 		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArtNodeData  ]     = AscFormat.SmartArtNodeData;
+		this.m_oFactoryClass[AscDFH.historyitem_type_BuBlip            ]     = AscFormat.CBuBlip;
+
 		if (window['AscCommonSlide'])
 		{
 			this.m_oFactoryClass[AscDFH.historyitem_type_Slide]               = AscCommonSlide.Slide;
@@ -412,7 +421,6 @@
 			this.m_oFactoryClass[AscDFH.historyitem_type_CBhvr]               = AscFormat.CCBhvr;
 			this.m_oFactoryClass[AscDFH.historyitem_type_CTn]                 = AscFormat.CCTn;
 			this.m_oFactoryClass[AscDFH.historyitem_type_Cond]                = AscFormat.CCond;
-			this.m_oFactoryClass[AscDFH.historyitem_type_Rtn]                 = AscFormat.CRtn;
 			this.m_oFactoryClass[AscDFH.historyitem_type_TgtEl]               = AscFormat.CTgtEl;
 			this.m_oFactoryClass[AscDFH.historyitem_type_SndTgt]              = AscFormat.CSndTgt;
 			this.m_oFactoryClass[AscDFH.historyitem_type_SpTgt]               = AscFormat.CSpTgt;

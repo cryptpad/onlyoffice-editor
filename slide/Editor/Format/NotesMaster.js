@@ -42,12 +42,14 @@
     AscDFH.changesFactory[AscDFH.historyitem_NotesMasterSetBg]          = AscDFH.CChangesDrawingsObjectNoId;
     AscDFH.changesFactory[AscDFH.historyitem_NotesMasterAddToNotesLst]  = AscDFH.CChangesDrawingsContentPresentation;
     AscDFH.changesFactory[AscDFH.historyitem_NotesMasterSetName]        = AscDFH.CChangesDrawingsString;
+    AscDFH.changesFactory[AscDFH.historyitem_NotesMasterSetClrMap]      = AscDFH.CChangesDrawingsObject;
 
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_NotesMasterSetNotesTheme]  = function(oClass, value){oClass.Theme = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_NotesMasterSetHF]          = function(oClass, value){oClass.hf = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_NotesMasterSetNotesStyle]  = function(oClass, value){oClass.txStyles = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_NotesMasterSetName]        = function(oClass, value){oClass.cSld.name = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_NotesMasterSetClrMap]      = function(oClass, value){oClass.clrMap = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_NotesMasterSetBg]          = function(oClass, value, FromLoad){
         oClass.cSld.Bg = value;
         if(FromLoad){
@@ -73,9 +75,10 @@
     AscDFH.drawingContentChanges[AscDFH.historyitem_NotesMasterRemoveFromTree] = function(oClass){return oClass.cSld.spTree;};
     AscDFH.drawingContentChanges[AscDFH.historyitem_NotesMasterAddToNotesLst]  = function(oClass){return oClass.notesLst;};
 
-    function CNotesMaster(){
+    function CNotesMaster() {
+        AscFormat.CBaseFormatObject.call(this);
         this.clrMap = new AscFormat.ClrMap();
-        this.cSld =  new AscFormat.CSld();
+        this.cSld =  new AscFormat.CSld(this);
         this.hf = null;
         this.txStyles = null;
 
@@ -85,34 +88,21 @@
 
 
         this.m_oContentChanges = new AscCommon.CContentChanges(); // список изменений(добавление/удаление элементов)
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add(this, this.Id);
     }
-
+    AscFormat.InitClass(CNotesMaster, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_NotesMaster);
 
 
     CNotesMaster.prototype.getObjectType = function(){
         return AscDFH.historyitem_type_NotesMaster;
     };
 
-
-    CNotesMaster.prototype.Get_Id = function(){
-        return this.Id;
-    };
-
-
-    CNotesMaster.prototype.Write_ToBinary2 = function(w){
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Id);
-    };
-
-    CNotesMaster.prototype.Read_FromBinary2 = function(r){
-        this.Id = r.GetString();
-    };
-
     CNotesMaster.prototype.setTheme = function(pr){
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesMasterSetNotesTheme, this.Theme, pr));
         this.Theme = pr;
+    };
+    CNotesMaster.prototype.setClrMap = function(pr){
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_NotesMasterSetClrMap, this.clrMap, pr));
+        this.clrMap = pr;
     };
 
     CNotesMaster.prototype.setHF = function(pr){
@@ -194,9 +184,10 @@
         oPr.idMap = oIdMap;
         var i;
         var copy = new CNotesMaster();
-       // if(this.clrMap){
-       //     this.setClrMap(this.clrMap.createDuplicate());
-       // }
+        if(this.clrMap)
+        {
+            copy.setClrMap(this.clrMap.createDuplicate());
+        }
         if(typeof this.cSld.name === "string" && this.cSld.name.length > 0)
         {
             copy.setCSldName(this.cSld.name);
@@ -244,6 +235,70 @@
     {
     };
 
+    CNotesMaster.prototype.fromXml = function(reader, bSkipFirstNode) {
+        AscFormat.CBaseFormatObject.prototype.fromXml.call(this, reader, bSkipFirstNode);
+        //read theme
+        var oThemePart = reader.rels.getPartByRelationshipType(AscCommon.openXml.Types.theme.relationType);
+        if(oThemePart) {
+            var oThemeContent = oThemePart.getDocumentContent();
+            let oThemeReader = new AscCommon.StaxParser(oThemeContent, oThemePart, reader.context);
+            let oTheme = new AscFormat.CTheme();
+            oTheme.fromXml(oThemeReader, true);
+            this.setTheme(oTheme, true);
+        }
+    };
+    CNotesMaster.prototype.readAttrXml = function(name, reader) {
+        switch (name) {
+            case "showMasterPhAnim": {
+                this.setShowPhAnim(reader.GetValueBool());
+                break;
+            }
+            case "showMasterSp": {
+                this.setShowMasterSp(reader.GetValueBool());
+                break;
+            }
+        }
+    };
+    CNotesMaster.prototype.readChildXml = function(name, reader) {
+        switch(name) {
+            case "cSld": {
+                let oCSld = this.cSld;
+                oCSld.fromXml(reader);
+                break;
+            }
+            case "clrMap": {
+                let oClrMap = new AscFormat.ClrMap();
+                oClrMap.fromXml(reader);
+                this.setClrMap(oClrMap);
+                break;
+            }
+            case "hf": {
+                let oHF = new AscFormat.HF();
+                oHF.fromXml(reader);
+                this.setHF(oHF);
+                break;
+            }
+            case "notesStyle": {
+                let oTxStyles = new AscFormat.TextListStyle();
+                oTxStyles.fromXml(reader);
+                this.setNotesStyle(oTxStyles);
+                break;
+            }
+        }
+    };
+    CNotesMaster.prototype.toXml = function(writer) {
+        writer.WriteXmlString(AscCommonWord.g_sXmlHeader);
+        writer.WriteXmlNodeStart("p:notesMaster");
+        writer.WriteXmlAttributeString("xmlns:a", "http://schemas.openxmlformats.org/drawingml/2006/main");
+        writer.WriteXmlAttributeString("xmlns:r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships");
+        writer.WriteXmlAttributeString("xmlns:p", "http://schemas.openxmlformats.org/presentationml/2006/main");
+        writer.WriteXmlAttributesEnd();
+        this.cSld.toXml(writer);
+        writer.WriteXmlNullable(this.clrMap, "p:clrMap");
+        writer.WriteXmlNullable(this.hf, "p:hf");
+        writer.WriteXmlNullable(this.txStyles, "p:notesStyle");
+        writer.WriteXmlNodeEnd("p:notesMaster");
+    };
 
     function CreateNotesMaster(){
         var oNM = new CNotesMaster();

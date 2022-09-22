@@ -34,6 +34,9 @@
 
 (function(window, undefined)
 {
+	const IGNORE_UPPERCASE = 0x0001;
+	const IGNORE_NUMBERS   = 0x0002;
+
 	/**
 	 * Класс для хранения элементов проверки орфографии
 	 * @constructor
@@ -45,6 +48,7 @@
 		this.Paragraph = oParagraph;
 		this.Words     = {};
 		this.Collector = null;
+		this.Flags     = IGNORE_UPPERCASE | IGNORE_NUMBERS;
 	}
 
 	CParagraphSpellChecker.prototype.Clear = function()
@@ -56,6 +60,19 @@
 
 		this.Elements = [];
 		this.Words    = {};
+	};
+	/**
+	 * @param oSettings {AscCommon.CSpellCheckSettings}
+	 */
+	CParagraphSpellChecker.prototype.UpdateSettings = function(oSettings)
+	{
+		this.Flags = 0;
+
+		if (oSettings.IsIgnoreWordsInUppercase())
+			this.Flags |= IGNORE_UPPERCASE;
+
+		if (oSettings.IsIgnoreWordsWithNumbers())
+			this.Flags |= IGNORE_NUMBERS;
 	};
 	CParagraphSpellChecker.prototype.SetRecalcId = function(nRecalcId)
 	{
@@ -350,14 +367,17 @@
 	 */
 	CParagraphSpellChecker.prototype.IsNeedCheckWord = function(sWord)
 	{
-		if (1 >= sWord.length || AscCommon.IsAbbreviation(sWord))
+		if (1 >= sWord.length || ((this.Flags & IGNORE_UPPERCASE) && AscCommon.IsAbbreviation(sWord)))
 			return false;
 
-		for (let nPos = 0, nLen = sWord.length; nPos < nLen; ++nPos)
+		if (this.Flags & IGNORE_NUMBERS)
 		{
-			let nCharCode = sWord.charCodeAt(nPos);
-			if (AscCommon.IsDigit(nCharCode))
-				return false;
+			for (var oIterator = sWord.getUnicodeIterator(); oIterator.check(); oIterator.next())
+			{
+				let nCharCode = oIterator.value();
+				if (AscCommon.IsDigit(nCharCode))
+					return false;
+			}
 		}
 
 		return true;
@@ -373,7 +393,7 @@
 	CParagraphSpellChecker.prototype.GetCurrentPositionInParagraph = function()
 	{
 		let oCurPos = null;
-		if (this.Paragraph.Is_ThisElementCurrent())
+		if (this.Paragraph.IsThisElementCurrent())
 			oCurPos = this.Paragraph.Get_ParaContentPos(false, false);
 
 		return oCurPos;

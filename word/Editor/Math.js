@@ -134,6 +134,9 @@ CMathPropertiesSettings.prototype.Merge = function(Pr)
     if(Pr.brkBin !== null && Pr.brkBin !== undefined)
         this.brkBin = Pr.brkBin;
 
+    if(Pr.brkBinSub !== null && Pr.brkBinSub !== undefined)
+        this.brkBinSub = Pr.brkBinSub;
+
     if(Pr.dispDef !== null && Pr.dispDef !== undefined)
         this.dispDef = Pr.dispDef;
 	
@@ -1170,7 +1173,10 @@ ParaMath.prototype.GetCompiledDefaultTextPr = function()
 	oTextPr.Merge(this.DefaultTextPr);
 	return oTextPr;
 };
-
+/**
+ * Добавляем элемент в текущую позицию (с учетом возможной глубины)
+ * @param Item
+ */
 ParaMath.prototype.Add = function(Item)
 {
     var LogicDocument  = (this.Paragraph ? this.Paragraph.LogicDocument : undefined);
@@ -1230,7 +1236,7 @@ ParaMath.prototype.Add = function(Item)
     }
     else if (para_Math === Type)
     {
-        var ContentPos = new CParagraphContentPos();
+        var ContentPos = new AscWord.CParagraphContentPos();
 
         if(this.bSelectionUse == true)
             this.Get_ParaContentPos(true, true, ContentPos);
@@ -1282,6 +1288,27 @@ ParaMath.prototype.Add = function(Item)
 
     // Корректируем данный контент
     oContent.Correct_Content(true);
+};
+/**
+ * Добавляем элемент в конец корневого контента
+ * @param oElement
+ */
+ParaMath.prototype.Push = function(oElement)
+{
+	this.Root.AddToContent(this.Root.GetElementsCount(), oElement);
+};
+/**
+ * Добавляем все элементы заданного ParaMath в конец текущего
+ * @param oMath {ParaMath}
+ */
+ParaMath.prototype.Concat = function(oMath)
+{
+	let nCount = oMath.Root.GetElementsCount();
+	for (let nIndex = 0, nCount = oMath.Root.GetElementsCount(); nIndex < nCount; ++nIndex)
+	{
+		this.Push(oMath.Root.GetElement(nIndex));
+	}
+	oMath.Root.RemoveFromContent(0, nCount);
 };
 
 ParaMath.prototype.Get_AlignToLine = function(_CurLine, _CurRange, _Page, _X, _XLimit)
@@ -2246,7 +2273,7 @@ ParaMath.prototype.private_RecalculateRoot = function(PRS, ParaPr, Depth)
 
         var WidthLine = PRS.X - PRS.XRange + PRS.SpaceLen + PRS.WordLen;
 
-        var bFirstItem =  PRS.FirstItemOnLine == true && true === Para.Internal_Check_Ranges(ParaLine, ParaRange);
+        var bFirstItem =  PRS.FirstItemOnLine == true && true === Para.IsSingleRangeOnLine(ParaLine, ParaRange);
         if(bFirstItem && PRS.X + PRS.SpaceLen + PRS.WordLen > PRS.XEnd)
         {
             PRS.bMathWordLarge = true;
@@ -2556,6 +2583,117 @@ ParaMath.prototype.IsInline = function()
 {
 	return (this.ParaMathRPI.bInline === true);
 };
+ParaMath.prototype.ConvertToInlineMode = function()
+{
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return false;
+
+	if (this.IsInlineMode())
+		return true;
+
+	let oParent      = this.GetParent();
+	let nPosInParent = this.GetPosInParent(oParent);
+	if (!oParent || -1 === nPosInParent)
+		return false;
+
+	let oContentPos = this.GetStartPosInParagraph();
+	let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsBefore.SetSaveContentPositions(true);
+	oParagraph.GetPrevRunElements(oRunElementsBefore);
+	let arrElements = oRunElementsBefore.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsBreak())
+		oParagraph.RemoveRunElement(oRunElementsBefore.GetContentPositions()[0]);
+
+	oContentPos = this.GetEndPosInParagraph();
+	let oRunElementsAfter = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsAfter.SetSaveContentPositions(true);
+	oParagraph.GetNextRunElements(oRunElementsAfter);
+	arrElements = oRunElementsAfter.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsBreak())
+		oParagraph.RemoveRunElement(oRunElementsAfter.GetContentPositions()[0]);
+
+	let oAfterItem = oParagraph.GetNextRunElement(this.GetEndPosInParagraph());
+	if (!oAfterItem || !oAfterItem.IsSpace())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new AscWord.CRunSpace());
+		oParent.AddToContent(nPosInParent + 1, oRun);
+	}
+
+	let oBeforeItem = oParagraph.GetPrevRunElement(this.GetStartPosInParagraph());
+	if (oBeforeItem && oBeforeItem.IsText())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new AscWord.CRunSpace());
+		oParent.AddToContent(nPosInParent, oRun);
+	}
+
+	return true;
+};
+ParaMath.prototype.ConvertToDisplayMode = function()
+{
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return false;
+
+	if (!this.IsInlineMode())
+		return true;
+
+	let oParent      = this.GetParent();
+	let nPosInParent = this.GetPosInParent(oParent);
+	if (!oParent || -1 === nPosInParent)
+		return false;
+
+	let oContentPos = this.GetStartPosInParagraph();
+	let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsBefore.SetSaveContentPositions(true);
+	oParagraph.GetPrevRunElements(oRunElementsBefore);
+	let arrElements = oRunElementsBefore.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsSpace())
+		oParagraph.RemoveRunElement(oRunElementsBefore.GetContentPositions()[0]);
+
+	oContentPos = this.GetEndPosInParagraph();
+	let oRunElementsAfter = new CParagraphRunElements(oContentPos, 1, null, false);
+	oRunElementsAfter.SetSaveContentPositions(true);
+	oParagraph.GetNextRunElements(oRunElementsAfter);
+	arrElements = oRunElementsAfter.GetElements();
+	if (arrElements.length > 0 && arrElements[0].IsSpace())
+		oParagraph.RemoveRunElement(oRunElementsAfter.GetContentPositions()[0]);
+
+	let oAfterItem = oParagraph.GetNextRunElement(this.GetEndPosInParagraph());
+	if (oAfterItem && !oAfterItem.IsParaEnd())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new AscWord.CRunBreak(AscWord.break_Line));
+		oParent.AddToContent(nPosInParent + 1, oRun);
+	}
+
+	let oBeforeItem = oParagraph.GetPrevRunElement(this.GetStartPosInParagraph());
+	if (oBeforeItem || oParagraph.HaveNumbering())
+	{
+		let oRun = new ParaRun(oParagraph, false);
+		oRun.Add(new AscWord.CRunBreak(AscWord.break_Line));
+		oParent.AddToContent(nPosInParent, oRun);
+	}
+
+	return true;
+};
+ParaMath.prototype.IsInlineMode = function()
+{
+	// TODO: Сейчас у нас формула может быть только на верхнем уровне параграфа, когда это изменится тут
+	//       надо переделать проверку
+
+	let oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return false;
+
+	let oParaPos = oParagraph.GetPosByElement(this);
+	if (!oParaPos)
+		return false;
+
+	return !oParagraph.CheckMathPara(oParaPos.Get(0));
+};
 ParaMath.prototype.NeedDispOperators = function(Line)
 {
     return false === this.Is_Inline() &&  true == this.Root.IsStartLine(Line);
@@ -2849,7 +2987,7 @@ ParaMath.prototype.Draw_Elements = function(PDSE)
 
     this.Root.Draw_Elements(PDSE);
 
-    PDSE.X = X + this.Root.Get_Width(PDSE.Line, PDSE.Range);
+    PDSE.X = X + this.Root.GetWidth(PDSE.Line, PDSE.Range);
 
     /*PDSE.Graphics.p_color(255,0,0, 255);
      PDSE.Graphics.drawHorLine(0, PDSE.Y - this.Ascent + this.Height, PDSE.X - 30, PDSE.X + this.Width + 30 , 1);*/
@@ -2958,7 +3096,7 @@ ParaMath.prototype.Get_ParaContentPosByXY = function(SearchPos, Depth, _CurLine,
 	var CurX = SearchPos.CurX;
 
 	var MathX = SearchPos.CurX;
-	var MathW = this.Root.Get_Width(_CurLine, _CurRange);
+	var MathW = this.Root.GetWidth(_CurLine, _CurRange);
 
 	// Если мы попадаем четко в формулу, тогда ищем внутри нее, если нет, тогда не заходим внутрь
 	if ((SearchPos.X > MathX && SearchPos.X < MathX + MathW) || SearchPos.DiffX > 1000000 - 1)
@@ -3239,7 +3377,7 @@ ParaMath.prototype.Is_InInnerContent = function()
  */
 ParaMath.prototype.Handle_AddNewLine = function()
 {
-    var ContentPos = new CParagraphContentPos();
+    var ContentPos = new AscWord.CParagraphContentPos();
 
     var CurrContent = this.GetSelectContent().Content;
 
@@ -3280,7 +3418,7 @@ ParaMath.prototype.Handle_AddNewLine = function()
         CurrContent.Add_ToContent(1, EqArray);
         CurrContent.Correct_Content(true);
 
-        var CurrentContent = new CParagraphContentPos();
+        var CurrentContent = new AscWord.CParagraphContentPos();
         this.Get_ParaContentPos(false, false, CurrentContent);
 
         var RightContentPos = new CParagraphSearchPos();
@@ -3518,6 +3656,31 @@ ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
 
 	oCollector.FlushWord();
 };
+//----------------------------------------------------------------------------------------------------------------------
+// Search
+//----------------------------------------------------------------------------------------------------------------------
+ParaMath.prototype.Search = function(oParaSearch)
+{
+	this.Root.Search(oParaSearch);
+};
+ParaMath.prototype.AddSearchResult = function(SearchResult, Start, ContentPos, Depth)
+{
+	this.Root.AddSearchResult(SearchResult, Start, ContentPos, Depth);
+};
+ParaMath.prototype.ClearSearchResults = function()
+{
+	this.Root.ClearSearchResults();
+};
+ParaMath.prototype.RemoveSearchResult = function(oSearchResult)
+{
+	this.Root.RemoveSearchResult(oSearchResult);
+};
+ParaMath.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
+{
+	return this.Root.GetSearchElementId(bNext, bUseContentPos, ContentPos, Depth);
+};
+//----------------------------------------------------------------------------------------------------------------------
+
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {
