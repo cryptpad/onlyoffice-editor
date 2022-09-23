@@ -619,6 +619,9 @@
 					}};
 					var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
 					options.isNaturalDownload = true;
+					if (_current["Url"]) {
+						options.errorDirect = Asc.c_oAscError.ID.DirectUrl;
+					}
 					this.api.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, options);
 					return;
 				}
@@ -12006,6 +12009,9 @@ background-repeat: no-repeat;\
 
 		var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
 		options.isNaturalDownload = true;
+		if (document.url) {
+			options.errorDirect = Asc.c_oAscError.ID.DirectUrl;
+		}
 		this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, options);
 	};
 	// callback for local mode

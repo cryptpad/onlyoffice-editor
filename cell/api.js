@@ -562,6 +562,9 @@ var editor;
 			var _options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.TXT);
 			_options.isNaturalDownload = true;
 			_options.isGetTextFromUrl = true;
+			if (document.url) {
+				_options.errorDirect = Asc.c_oAscError.ID.DirectUrl;
+			}
 			this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, _options);
 		}
 	};
