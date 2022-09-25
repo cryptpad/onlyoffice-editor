@@ -638,6 +638,43 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	return this.previewGroups[chartType];
 };
 
+	function CSmartArtPreviewInfo(nSmartArtId, nSectionId, oImage) {
+		this.m_nSectionId = AscFormat.isRealNumber(nSectionId) ? nSectionId : null;
+		this.m_nSmartArtId = AscFormat.isRealNumber(nSmartArtId) ? nSmartArtId : null;
+		this.m_oImage = oImage ? oImage : null;
+	}
+
+	CSmartArtPreviewInfo.prototype.asc_getImage = function () {
+		return this.m_oImage;
+	};
+	CSmartArtPreviewInfo.prototype["asc_getImage"] = CSmartArtPreviewInfo.prototype.asc_getImage;
+
+	CSmartArtPreviewInfo.prototype.asc_getSectionId = function () {
+		return this.m_nSectionId;
+	};
+	CSmartArtPreviewInfo.prototype["asc_getSectionId"] = CSmartArtPreviewInfo.prototype.asc_getSectionId;
+
+	CSmartArtPreviewInfo.prototype.asc_getSmartArtId = function () {
+		return this.m_nSmartArtId;
+	};
+	CSmartArtPreviewInfo.prototype["asc_getSmartArtId"] = CSmartArtPreviewInfo.prototype.asc_getSmartArtId;
+
+	CSmartArtPreviewInfo.prototype.asc_setImage = function (oImage) {
+		this.m_oImage = oImage;
+	};
+	CSmartArtPreviewInfo.prototype["asc_setImage"] = CSmartArtPreviewInfo.prototype.asc_setImage;
+
+	CSmartArtPreviewInfo.prototype.asc_setSectionId = function (nSectionId) {
+		this.m_nSectionId = nSectionId;
+	};
+	CSmartArtPreviewInfo.prototype["asc_setSectionId"] = CSmartArtPreviewInfo.prototype.asc_setSectionId;
+
+	CSmartArtPreviewInfo.prototype.asc_setSmartArtId = function (nSmartArtId) {
+		this.m_nSmartArtId = nSmartArtId;
+	};
+	CSmartArtPreviewInfo.prototype["asc_setSmartArtId"] = CSmartArtPreviewInfo.prototype.asc_setSmartArtId;
+
+
 	function SmartArtPreviewDrawer() {
 		AscCommon.CActionOnTimerBase.call(this);
 		this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
@@ -658,7 +695,10 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.Begin = function (nTypeOfSectionLoad) {
 		if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
 			const oThis = this;
-			this.queue = this.queue.concat(Asc.c_oAscSmartArtSections[nTypeOfSectionLoad]);
+			const arrPreviewObjects = Asc.c_oAscSmartArtSections[nTypeOfSectionLoad].map(function (nTypeOfSmartArt) {
+				return new CSmartArtPreviewInfo(nTypeOfSmartArt, nTypeOfSectionLoad);
+			});
+			this.queue = this.queue.concat(arrPreviewObjects);
 			oThis.loadImagePlaceholder(function () {
 				AscCommon.CActionOnTimerBase.prototype.Begin.call(oThis);
 			});
@@ -683,16 +723,18 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.DoAction = function() {
 		const oApi = Asc.editor || editor;
 		oApi.isSkipAddIdToBaseObject = true;
-		const nType = this.queue.pop();
-		if (AscFormat.isRealNumber(nType)) {
-			if (!this.cache[nType]) {
-				const oContext = this.createSmartArtPreview(nType);
+		const oSmartArtPreviewInfo = this.queue.pop();
+		if (oSmartArtPreviewInfo) {
+			const nTypeOfSmartArt = oSmartArtPreviewInfo.asc_getSmartArtId();
+			if (!this.cache[nTypeOfSmartArt]) {
+				const oContext = this.createSmartArtPreview(nTypeOfSmartArt);
 				const oPreview = new AscCommon.CStyleImage();
-				oPreview.name = nType;
+				oPreview.name = nTypeOfSmartArt;
 				oPreview.image = oContext.canvas.toDataURL(this.imageType, 1);
-				this.cache[nType] = oPreview;
+				this.cache[nTypeOfSmartArt] = oPreview;
 			}
-			this.imageBuffer.push(this.cache[nType]);
+			oSmartArtPreviewInfo.asc_setImage(this.cache[nTypeOfSmartArt]);
+			this.imageBuffer.push(oSmartArtPreviewInfo);
 		}
 		delete oApi.isSkipAddIdToBaseObject;
 	};
@@ -737,7 +779,10 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	}
 
 	// SmartArtPreviewDrawer.prototype.createPreviews = function () {
-	// 	this.queue = this.queue.concat(Asc.c_oAscSmartArtSections[Asc.c_oAscSmartArtSectionNames.OfficeCom]);
+	// const arrPreviewObjects = Asc.c_oAscSmartArtSections[Asc.c_oAscSmartArtSectionNames.OfficeCom].map(function (nTypeOfSmartArt) {
+	// 	return new CSmartArtPreviewInfo(nTypeOfSmartArt, Asc.c_oAscSmartArtSectionNames.OfficeCom);
+	// });
+	// this.queue = this.queue.concat(arrPreviewObjects);
 	// 	while (this.IsContinue()) {
 	// 		this.DoAction();
 	// 	}
