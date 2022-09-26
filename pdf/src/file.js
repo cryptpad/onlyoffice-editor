@@ -1758,6 +1758,13 @@ void main() {\n\
         _lineCharCount = 0;
         _numLine = 0;
 
+        // переменные для случаев, когда присутсвует небольшое смещение по y, что мы можем считать строку условно неделимой
+        var tmpLineCurCharX = 0;
+        var tmpLinePrevCharX = 0;
+        var tmpLineCurGlyphWidth = 0;
+        var tmpLinePrevGlyphWidth = 0;
+        var tmpLineCharCount = 0; // всего символов в условно неделимой строке.
+
         stream.Seek(0);
 
         // если текст, который ищем разбит на строки, то мапим в какой строке какую часть текста нашли,
@@ -1773,25 +1780,20 @@ void main() {\n\
 
             switch (command)
             {
-                case 41:
+                case 41: // ctFontName
                 {
                     stream.Skip(12);
                     break;
                 }
-                case 22:
+                case 22: // ctBrushColor1
                 {
                     stream.Skip(4);
                     break;
                 }
-                case 80:
+                case 80: // ctDrawText
                 {
-                    if (pageIndex == 19 && _numLine == 22)
-                        debugger;
-
                     if (0 != _lineCharCount)
                         _linePrevCharX += stream.GetDouble2();
-
-                    _lineCharCount++;
 
                     var _char = stream.GetUShort();
                     if (_lineGidExist)
@@ -1800,16 +1802,42 @@ void main() {\n\
                     if (0xFFFF == _char)
                         _char = " ".charCodeAt(0);
 
-                    var _strMem = String.fromCharCode(_char);
+                    _lineLastGlyphWidth = stream.GetDouble2();
+                    tmpLineCurGlyphWidth = _lineLastGlyphWidth;
 
-                    if (_searchResults.WholeWords && _char === " ".charCodeAt(0) || undefined !== AscCommon.g_aPunctuation[_char])
+                    if (tmpLineCharCount != 0)
+                        tmpLineCurCharX += tmpLinePrevGlyphWidth;
+
+                    _lineCharCount++;
+                    tmpLineCharCount++;
+
+                    let curLine = _searchResults.PagesLines[pageIndex][_numLine];
+                    let prevLine = _searchResults.PagesLines[pageIndex][_numLine - 1]
+                    // если текущий символ позади предыдущего (или впереди больше чем на ширину предыдущего символа) значит это новая строка (иначе был бы пробел), обнуляем поиск
+                    if (tmpLineCurCharX < tmpLinePrevCharX || tmpLineCurCharX > tmpLinePrevCharX + tmpLinePrevGlyphWidth)
                     {
+                        glyphsEqualFound = 0;
                         isStartWhole = true;
-                        _lineLastGlyphWidth = stream.GetDouble2();
-                        break;
+                    }
+                    else if (prevLine && (prevLine.Y < curLine.Y - (curLine.H / 2) || prevLine.Y - (prevLine.H / 2) > curLine.Y))
+                    {
+                        tmpLineCharCount = _lineCharCount;
                     }
 
-                    _lineLastGlyphWidth = stream.GetDouble2();
+                    // если пробел или пунктуация (или начало строки), значит это старт для whole words
+                    if (_searchResults.WholeWords && (_char === " ".charCodeAt(0) || undefined !== AscCommon.g_aPunctuation[_char]))
+                    {
+                        isStartWhole = true;
+                        oEqualStrByLine = {};
+                        break;
+                    }
+                    else if (tmpLineCharCount == 1)
+                    {
+                        isStartWhole = true;
+                    }
+
+                    tmpLinePrevCharX = tmpLineCurCharX;
+                    tmpLinePrevGlyphWidth = tmpLineCurGlyphWidth;
 
                     if (_searchResults.WholeWords && isStartWhole === false)
                         break;
@@ -1851,7 +1879,7 @@ void main() {\n\
                             if (_searchResults.WholeWords)
                             {
                                 var nCurStreamPos = stream.pos;
-                                var isWhole = CheckWholeWords(stream);
+                                var isWhole = CheckWholeNextChar(stream);
                                 stream.pos = nCurStreamPos;
                                 if (!isWhole)
                                 {
@@ -1865,6 +1893,8 @@ void main() {\n\
                             }
 
                             var _rects = [];
+                            var _prevL = null;
+                            var isDiffLines = false;
                             for (var i = _findLine; i <= _numLine; i++)
                             {
                                 var ps = 0;
@@ -1875,6 +1905,13 @@ void main() {\n\
                                     pe = _findLineOffsetR;
 
                                 var _l = _searchResults.PagesLines[pageIndex][i];
+                                if (_prevL && (_prevL.Y < _l.Y - (_l.H / 2) || _prevL.Y - (_prevL.H / 2) > _l.Y))
+                                {
+                                    isDiffLines = true;
+                                    break;
+                                }
+                                _prevL = _l;
+
                                 if (_l.Ex == 1 && _l.Ey == 0)
                                 {
                                     _rects[_rects.length] = { PageNum : pageIndex, X : _l.X + ps, Y : _l.Y, W : pe - ps, H : _l.H, LineNum: i, Text: oEqualStrByLine[i]};
@@ -1885,17 +1922,20 @@ void main() {\n\
                                 }
                             }
 
-                            _navRects[_navRects.length] = _rects;
-
-                            // если isWhole !== true -> нужно вернуться и попробовать искать со след буквы.
-                            if (!isWhole)
+                            if (isDiffLines === false)
                             {
-                                stream.pos = _SeekToNextPoint;
-                                _linePrevCharX = _SeekLinePrevCharX;
-                                _lineCharCount = _findGlyphIndex;
-                                _numLine = _findLine;
-                            }
+                                _navRects[_navRects.length] = _rects;
 
+                                // если isWhole !== true -> нужно вернуться и попробовать искать со след буквы.
+                                if (!isWhole)
+                                {
+                                    stream.pos = _SeekToNextPoint;
+                                    _linePrevCharX = _SeekLinePrevCharX;
+                                    _lineCharCount = _findGlyphIndex;
+                                    _numLine = _findLine;
+                                }
+                            }
+                            
                             isStartWhole = false;
                             glyphsEqualFound = 0;
                             oEqualStrByLine = {};
@@ -1923,12 +1963,11 @@ void main() {\n\
 
                     break;
                 }
-                case 160:
+                case 160: // ctCommandTextLine
                 {
-                    // textline
                     _linePrevCharX = 0;
                     _lineCharCount = 0;
-
+                    
                     var mask = stream.GetUChar();
                     stream.Skip(8);
 
@@ -1945,8 +1984,6 @@ void main() {\n\
                     else
                         _lineGidExist = false;
 
-                    isStartWhole = true;
-
                     if (text.charCodeAt(glyphsEqualFound) === " ".charCodeAt(0))
                     {
                         glyphsEqualFound++;
@@ -1958,22 +1995,16 @@ void main() {\n\
                                 break;
                         }
                     }
-                    else
-                    {
-                        glyphsEqualFound = 0;
-                        oEqualStrByLine = {};
-                    }
 
                     break;
                 }
-                case 162:
+                case 162: // ctCommandTextLineEnd
                 {
                     ++_numLine;
                     break;
                 }
-                case 161:
+                case 161: // ctCommandTextTransform
                 {
-                    // text transform
                     stream.Skip(16);
                     break;
                 }
@@ -1985,33 +2016,114 @@ void main() {\n\
         }
 
         // проверка следующего символа на совпадение условий для whole words
-        function CheckWholeWords(stream)
+        function CheckWholeNextChar(stream)
         {
-            if (stream.pos < stream.size)
+            let n_linePrevCharX = _linePrevCharX;
+            let n_lineCharCount = _lineCharCount;
+            let n_lineLastGlyphWidth = _lineLastGlyphWidth;
+            let nTmpLineCurCharX = tmpLineCurCharX;
+            let nTmpLineCharCount = tmpLineCharCount;
+            let b_lineGidExist = _lineGidExist;
+            let n_numLine = _numLine;
+            let nTmpLinePrevCharX = tmpLinePrevCharX;
+
+            while (stream.pos < stream.size)
             {
                 var command = stream.GetUChar();
+
                 switch (command)
                 {
-                    case 80:
+                    case 41: // ctFontName
                     {
-                        if (0 != _lineCharCount)
-                            stream.GetDouble2();
+                        stream.Skip(12);
+                        break;
+                    }
+                    case 22: // ctBrushColor1
+                    {
+                        stream.Skip(4);
+                        break;
+                    }
+                    case 80: // ctDrawText
+                    {
+                        if (0 != n_lineCharCount)
+                            n_linePrevCharX += stream.GetDouble2();
 
                         var _char = stream.GetUShort();
-                        if (_lineGidExist)
+                        if (b_lineGidExist)
                             stream.Skip(2);
 
-                        if (0xFFFF == _char || _char == " ".charCodeAt(0) || undefined !== AscCommon.g_aPunctuation[_char])
+                        if (0xFFFF == _char)
+                            _char = " ".charCodeAt(0);
+
+                        n_lineLastGlyphWidth = stream.GetDouble2();
+
+                        if (nTmpLineCharCount != 0)
+                            nTmpLineCurCharX += tmpLinePrevGlyphWidth;
+
+                        n_lineCharCount++;
+                        nTmpLineCharCount++;
+
+                        let curLine = _searchResults.PagesLines[pageIndex][n_numLine];
+                        let prevLine = _searchResults.PagesLines[pageIndex][n_numLine - 1]
+                        // если текущий символ позади предыдущего (или впереди) больше чем на ширину предыдущего символа значит это другая строка (иначе был бы пробел), 
+                        // whole words условия выполнены
+                        if (nTmpLineCurCharX < nTmpLinePrevCharX || nTmpLineCurCharX > nTmpLinePrevCharX + tmpLinePrevGlyphWidth)
+                        {
+                            return true;
+                        }
+                        else if (prevLine && (prevLine.Y < curLine.Y - (curLine.H / 2) || prevLine.Y - (prevLine.H / 2) > curLine.Y))
+                        {
+                            nTmpLineCharCount = n_lineCharCount;
+                        }
+
+                        // если пробел или пунктуация (или начало строки), значит это старт для whole words
+                        if (_searchResults.WholeWords && (_char === " ".charCodeAt(0) || undefined !== AscCommon.g_aPunctuation[_char]))
+                            return true;
+                        else if (nTmpLineCharCount == 1)
                             return true;
 
                         return false;
                     }
+                    case 160: // ctCommandTextLine
+                    {
+                        n_linePrevCharX = 0;
+                        n_lineCharCount = 0;
+                        
+                        var mask = stream.GetUChar();
+                        stream.Skip(8);
+
+                        if ((mask & 0x01) == 0)
+                            stream.Skip(8);
+
+                        stream.Skip(8);
+
+                        if ((mask & 0x04) != 0)
+                            stream.Skip(4);
+
+                        if ((mask & 0x02) != 0)
+                            b_lineGidExist = true;
+                        else
+                            b_lineGidExist = false;
+
+                        break;
+                    }
+                    case 162: // ctCommandTextLineEnd
+                    {
+                        ++n_numLine;
+                        break;
+                    }
+                    case 161: // ctCommandTextTransform
+                    {
+                        stream.Skip(16);
+                        break;
+                    }
                     default:
                     {
-                        return true;
+                        stream.pos = stream.size;
                     }
                 }
             }
+            return true;
         }
     };
 
