@@ -7450,9 +7450,10 @@
 
 		for (var Index = ParaPosition.length - 1; Index >= 1; Index--)
 		{
-			if (ParaPosition[Index].Class)
-				if (ParaPosition[Index].Class instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(ParaPosition[Index].Class);
+			if (ParaPosition[Index].Class && ParaPosition[Index].Class.Parent && ParaPosition[Index].Class.Parent instanceof CBlockLevelSdt)
+			{
+				return new ApiBlockLvlSdt(ParaPosition[Index].Class.Parent);
+			}
 		}
 
 		return null;
@@ -8520,7 +8521,7 @@
         {
             if (RunPosition[Index].Class)
             {
-                if (RunPosition[Index].Class instanceof CBlockLevelSdt)
+                if (RunPosition[Index].Class.Parent && RunPosition[Index].Class.Parent instanceof CBlockLevelSdt)
                     return new ApiBlockLvlSdt(RunPosition[Index].Class);
                 else if (RunPosition[Index].Class instanceof CInlineLevelSdt)
                     return new ApiInlineLvlSdt(RunPosition[Index].Class);
@@ -9780,9 +9781,8 @@
 
         for (var Index = TablePosition.length - 1; Index >= 1; Index--)
         {
-            if (TablePosition[Index].Class)
-                if (TablePosition[Index].Class instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(TablePosition[Index].Class);
+            if (TablePosition[Index].Class && TablePosition[Index].Class.Parent && TablePosition[Index].Class.Parent instanceof CBlockLevelSdt)
+				return new ApiBlockLvlSdt(TablePosition[Index].Class.Parent);
         }
 
         return null;
@@ -15624,9 +15624,8 @@
 
 		for (var Index = documentPos.length - 1; Index >= 1; Index--)
 		{
-			if (documentPos[Index].Class)
-				if (documentPos[Index].Class instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(documentPos[Index].Class);
+			if (documentPos[Index].Class && documentPos[Index].Class.Parent && documentPos[Index].Class.Parent instanceof CBlockLevelSdt)
+				return new ApiBlockLvlSdt(documentPos[Index].Class.Parent);
 		}
 
 		return null;
