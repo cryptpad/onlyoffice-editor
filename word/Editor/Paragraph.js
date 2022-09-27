@@ -2087,6 +2087,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 
 	// TODO: Сейчас здесь используется функция Draw_HighLights, хотя нам нужно пробежаться и найти все fixed form
 	let fixedForms = [];
+	PDSH.SetCollectFixedForms(true);
 	for (let curLine = StartLine; curLine <= EndLine; ++curLine)
 	{
 		let line        = this.Lines[curLine];
@@ -2186,6 +2187,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			}
 		}
 	}
+	PDSH.SetCollectFixedForms(false);
 
 	for (var CurLine = StartLine; CurLine <= EndLine; CurLine++)
 	{
@@ -18865,6 +18867,7 @@ function CParagraphDrawStateHighlights()
     this.Spaces = 0;
 
     this.InlineSdt = [];
+    this.CollectFixedForms = false;
 
     this.ComplexFields = new CParagraphComplexFieldsInfo();
 }
@@ -18998,6 +19001,14 @@ CParagraphDrawStateHighlights.prototype.Load_Coll = function(Coll)
 CParagraphDrawStateHighlights.prototype.Load_Comm = function(Comm)
 {
 	this.Comm = Comm;
+};
+CParagraphDrawStateHighlights.prototype.IsCollectFixedForms = function()
+{
+	return this.CollectFixedForms;
+};
+CParagraphDrawStateHighlights.prototype.SetCollectFixedForms = function(isCollect)
+{
+	this.CollectFixedForms = isCollect;
 };
 
 function CParagraphDrawStateElements()
