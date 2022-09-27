@@ -2081,6 +2081,112 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 	var StartLine = _Page.StartLine;
 	var EndLine   = _Page.EndLine;
 
+	//------------------------------------------------------------------------------------------------------------------
+	// Рисуем подсветку Fixed форм. Рисуем отдельно, т.к. заливка делается для внешней формы
+	//------------------------------------------------------------------------------------------------------------------
+
+	// TODO: Сейчас здесь используется функция Draw_HighLights, хотя нам нужно пробежаться и найти все fixed form
+	let fixedForms = [];
+	for (let curLine = StartLine; curLine <= EndLine; ++curLine)
+	{
+		let line        = this.Lines[curLine];
+		let lineMetrics = line.Metrics;
+
+		let Y0 = (_Page.Y + line.Y - lineMetrics.Ascent);
+		let Y1 = (_Page.Y + line.Y + lineMetrics.Descent);
+		if (lineMetrics.LineGap < 0)
+			Y1 += lineMetrics.LineGap;
+
+		for (let curRange = 0, rangesCount = line.Ranges.length; curRange < rangesCount; ++curRange)
+		{
+			let range = line.Ranges[curRange];
+			PDSH.Reset_Range(CurPage, curLine, curRange, range.XVisible, Y0, Y1, range.Spaces);
+
+			if (this.Numbering.Check_Range(curRange, curLine))
+				PDSH.X += this.Numbering.WidthVisible;
+
+			for (let contentPos = range.StartPos; contentPos <= range.EndPos; ++contentPos)
+			{
+				this.Content[contentPos].Draw_HighLights(PDSH);
+			}
+
+			var isFormShd = false;
+			var oInlineSdt, isForm, oFormShd;
+			for (var nSdtIndex = 0, nSdtCount = PDSH.InlineSdt.length; nSdtIndex < nSdtCount; ++nSdtIndex)
+			{
+				oInlineSdt = PDSH.InlineSdt[nSdtIndex];
+				isForm     = oInlineSdt.IsForm();
+				oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
+
+				if (oFormShd && !oFormShd.IsNil())
+				{
+					isFormShd = true;
+					break;
+				}
+			}
+
+			if (SdtHighlightColor || FormsHighlight || isFormShd)
+			{
+				var oSdtBounds;
+
+				let isDrawFormHighlight = !pGraphics.isPrintMode;
+				if (true === LogicDocument.ForceDrawFormHighlight)
+					isDrawFormHighlight = true;
+				else if (false === LogicDocument.ForceDrawFormHighlight)
+					isDrawFormHighlight = false;
+
+				for (var nSdtIndex = 0, nSdtCount = PDSH.InlineSdt.length; nSdtIndex < nSdtCount; ++nSdtIndex)
+				{
+					oInlineSdt = PDSH.InlineSdt[nSdtIndex];
+					isForm     = oInlineSdt.IsForm();
+					oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
+
+					if (!isForm || !oInlineSdt.IsFixedForm() || -1 !== fixedForms.indexOf(oInlineSdt))
+						continue;
+
+					if (isForm && pGraphics.RENDERER_PDF_FLAG && !pGraphics.isPrintMode)
+						continue;
+
+					if (!isDrawFormHighlight && isForm && (!oFormShd || oFormShd.IsNil()))
+						continue;
+
+					oSdtBounds = oInlineSdt.GetFixedFormBounds();
+
+					if (oFormShd && !oFormShd.IsNil())
+					{
+						var oFormShdColor     = oFormShd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
+						var oFormShdColorDark = new CDocumentColor(oFormShdColor.r * (201 / 255) | 0, oFormShdColor.g * (225 / 255) | 0, oFormShdColor.b, 255);
+
+						if (oInlineSdt.IsCurrentComplexForm() || !isDrawFormHighlight)
+						{
+							pGraphics.b_color1(oFormShdColor.r, oFormShdColor.g, oFormShdColor.b, 255);
+						}
+						else
+						{
+							if (FormsHighlight)
+								pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
+							else
+								pGraphics.b_color1(oFormShdColorDark.r, oFormShdColorDark.g, oFormShdColorDark.b, 255);
+						}
+					}
+					else if (FormsHighlight && !oInlineSdt.IsCurrentComplexForm())
+					{
+						pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
+					}
+					else
+					{
+						continue;
+					}
+
+					fixedForms.push(oInlineSdt);
+
+					pGraphics.rect(oSdtBounds.X, oSdtBounds.Y, oSdtBounds.W, oSdtBounds.H);
+					pGraphics.df();
+				}
+			}
+		}
+	}
+
 	for (var CurLine = StartLine; CurLine <= EndLine; CurLine++)
 	{
 		var _Line        = this.Lines[CurLine];
@@ -2307,6 +2413,9 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 					oSdtBounds = PDSH.InlineSdt[nSdtIndex].GetRangeBounds(CurLine, CurRange);
 					oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
 
+					if (-1 !== fixedForms.indexOf(oInlineSdt) || oInlineSdt.IsFixedForm())
+						continue;
+
 					if (isForm && pGraphics.RENDERER_PDF_FLAG && !pGraphics.isPrintMode)
 						continue;
 
@@ -2342,9 +2451,6 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 								oPrevColor.SetFromColor(oFormShdColorDark);
 							}
 						}
-
-						if (oInlineSdt.IsFixedForm())
-							oSdtBounds = oInlineSdt.GetFixedFormBounds();
 					}
 					else if (isForm && FormsHighlight && !oInlineSdt.IsCurrentComplexForm())
 					{
@@ -2353,9 +2459,6 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 							pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
 							oPrevColor.SetFromColor(FormsHighlight);
 						}
-
-						if (oInlineSdt.IsFixedForm())
-							oSdtBounds = oInlineSdt.GetFixedFormBounds();
 					}
 					else if (!isForm && SdtHighlightColor)
 					{
@@ -3542,6 +3645,29 @@ Paragraph.prototype.private_IsEmptyPageWithBreak = function(CurPage)
 
 	var Info = this.Lines[this.Pages[CurPage].EndLine].Info;
 	return !!(Info & paralineinfo_Empty && Info & paralineinfo_BreakPage);
+};
+/**
+ * Получаем пересечение двух ректов
+ * @param {CDocumentBounds} bounds1
+ * @param {CDocumentBounds} bounds2
+ * @returns {CDocumentBounds}
+ */
+Paragraph.prototype.private_IntersectBounds = function(bounds1, bounds2)
+{
+	let result = bounds1.Copy();
+	if (result.Left < bounds2.Left)
+		result.Left = bounds2.Left;
+
+	if (result.Right > bounds2.Right)
+		result.Right = bounds2.Right;
+
+	if (result.Top < bounds2.Top)
+		result.Top = bounds2.Top;
+
+	if (result.Bottom > bounds2.Bottom)
+		result.Bottom = bounds2.Bottom;
+
+	return result;
 };
 /**
  * Функция отрисовки нумерации строк
