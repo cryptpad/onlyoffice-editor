@@ -306,10 +306,21 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 
 		if (para_Comment === Item.Type && true === oPr.SkipComments)
 			continue;
-		if(para_Bookmark === Item.Type && true === oPr.SkipBookmarks)
+		if (para_Bookmark === Item.Type && true === oPr.SkipBookmarks)
 			continue;
 
-		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr), false);
+		let newItems = Item.Copy(false, oPr);
+		if (Array.isArray(newItems))
+		{
+			for (let newIndex = 0, newCount = newItems.length; newIndex < newCount; ++newIndex)
+			{
+				Para.Internal_Content_Add(Para.Content.length, newItems[newIndex], false);
+			}
+		}
+		else if (newItems)
+		{
+			Para.Internal_Content_Add(Para.Content.length, newItems, false);
+		}
 	}
 
 	// TODO: Как только переделаем para_End, переделать тут
