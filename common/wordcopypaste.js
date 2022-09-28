@@ -3886,13 +3886,8 @@ PasteProcessor.prototype =
 					oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
 				}, true);
 			} else {
-				var im_arr = [];
-				for (var key in images) {
-					im_arr.push(key);
-				}
-
 				this.SetShortImageId(arrImages);
-				this.api.pre_Paste(fonts, im_arr, paste_callback);
+				this.api.pre_Paste(fonts, images, paste_callback);
 			}
 		} else {
 			var presentationSelectedContent = new PresentationSelectedContent();
