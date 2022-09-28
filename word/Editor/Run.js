@@ -208,7 +208,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 
     var NewRun = new ParaRun(this.Paragraph, bMath);
 
-	NewRun.Set_Pr(this.Pr.Copy(undefined, oPr));
+	NewRun.Set_Pr(this.Pr.Copy(isCopyReviewPr, oPr));
 
     var oLogicDocument = this.GetLogicDocument();
 	if(oPr && oPr.Comparison)

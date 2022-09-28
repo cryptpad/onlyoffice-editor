@@ -1004,7 +1004,7 @@ Paragraph.prototype.ConcatContent = function(arrItems)
 
 	for (let nIndex = 0, nCount = arrItems.length; nIndex < nCount; ++nIndex)
 	{
-		let oItem = arrItems[nIndex].Copy();
+		let oItem = arrItems[nIndex].Copy(false, {CopyReviewPr : true});
 
 		arrNewItems.push(oItem);
 		this.Content.push(oItem);
@@ -13133,6 +13133,15 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		TextPr.RStyle = undefined;
 	}
 
+	let localTrack = false;
+	if (oLogicDocument
+		&& oLogicDocument.IsDocumentEditor()
+		&& oLogicDocument.IsTrackRevisions())
+	{
+		localTrack = oLogicDocument.GetLocalTrackRevisions();
+		oLogicDocument.SetLocalTrackRevisions(false);
+	}
+
 	var nCurPos = oContentPos.Get(0);
 	if (true === isNoDuplicate)
 	{
@@ -13176,6 +13185,9 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		this.Internal_Content_Remove2(nCurPos + 1, this.Content.length - nCurPos - 1);
 		this.CheckParaEnd();
 	}
+
+	if (false !== localTrack)
+		oLogicDocument.SetLocalTrackRevisions(localTrack);
 
 	// Копируем все настройки в новый параграф. Делаем это после того как определили контент параграфов.
 	// У нового параграфа настройки конца параграфа делаем, как у старого (происходит в функции CopyPr), а у старого
