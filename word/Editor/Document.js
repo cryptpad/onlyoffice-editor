@@ -10390,8 +10390,6 @@ CDocument.prototype.private_AddSymbolByShortcut = function(nCode)
 };
 CDocument.prototype.OnKeyPress = function(e)
 {
-	this.private_CheckForbiddenPlaceOnTextAdd();
-
 	var Code;
 	if (null != e.Which)
 		Code = e.Which;
@@ -10407,6 +10405,8 @@ CDocument.prototype.OnKeyPress = function(e)
 };
 CDocument.prototype.EnterText = function(codePoints)
 {
+	this.private_CheckForbiddenPlaceOnTextAdd();
+
 	if (this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
 		return false;
 
