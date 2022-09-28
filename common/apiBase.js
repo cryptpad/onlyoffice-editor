@@ -1407,7 +1407,9 @@
 		};
 		this.CoAuthoringApi.onLicenseChanged          = function(res)
 		{
-			t.licenseResult   = res;
+			if (t.licenseResult) {
+				t.licenseResult['type'] = res;
+			}
 			t.isOnLoadLicense = true;
 			var oResult = new AscCommon.asc_CAscEditorPermissions();
 			oResult.setLicenseType(res);
@@ -3958,6 +3960,9 @@
 	{
 	};
 	baseEditorsApi.prototype.asc_EditSelectAll = function()
+	{
+	};
+	baseEditorsApi.prototype.asc_enterText = function(codePoints)
 	{
 	};
 	//---------------------------------------------------------search-----------------------------------------------------

@@ -10390,8 +10390,6 @@ CDocument.prototype.private_AddSymbolByShortcut = function(nCode)
 };
 CDocument.prototype.OnKeyPress = function(e)
 {
-	this.private_CheckForbiddenPlaceOnTextAdd();
-
 	var Code;
 	if (null != e.Which)
 		Code = e.Which;
@@ -10401,26 +10399,44 @@ CDocument.prototype.OnKeyPress = function(e)
 		Code = 0;//special char
 
 	if (Code > 0x20)
-	{
-		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
-		{
-			this.StartAction(AscDFH.historydescription_Document_AddLetter);
-
-			this.DrawingDocument.TargetStart();
-			this.DrawingDocument.TargetShow();
-
-			this.CheckLanguageOnTextAdd = true;
-			this.AddToParagraph(new AscWord.CRunText(Code));
-			this.CheckLanguageOnTextAdd = false;
-
-			this.FinalizeAction();
-		}
-
-		this.UpdateSelection();
-		return true;
-	}
+		return this.EnterText(Code);
 
 	return false;
+};
+CDocument.prototype.EnterText = function(codePoints)
+{
+	this.private_CheckForbiddenPlaceOnTextAdd();
+
+	if (this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
+		return false;
+
+	this.StartAction(AscDFH.historydescription_Document_AddLetter);
+
+	this.DrawingDocument.TargetStart();
+	this.DrawingDocument.TargetShow();
+
+	this.CheckLanguageOnTextAdd = true;
+
+	if (Array.isArray(codePoints))
+	{
+		for (let index = 0, count = codePoints.length; index < count; ++index)
+		{
+			let codePoint = codePoints[index];
+			this.AddToParagraph(AscCommon.IsSpace(codePoint) ? new AscWord.CRunSpace(codePoint) : new AscWord.CRunText(codePoint));
+		}
+	}
+	else
+	{
+		let codePoint = codePoints;
+		this.AddToParagraph(AscCommon.IsSpace(codePoint) ? new AscWord.CRunSpace(codePoint) : new AscWord.CRunText(codePoint));
+	}
+
+	this.CheckLanguageOnTextAdd = false;
+
+	this.UpdateSelection();
+	this.FinalizeAction();
+
+	return true;
 };
 CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 {
@@ -16326,15 +16342,10 @@ CDocument.prototype.SetDocumentReadMode = function(nW, nH, nScale)
 	this.Layouts.Read.Set(nW, nH, nScale);
 	this.Layout = this.Layouts.Read;
 
-
-	function UpdateRun(oRun)
+	this.CheckAllRunContent(function(oRun)
 	{
 		oRun.Recalc_CompiledPr(true);
-	}
-
-	this.CheckRunContent(UpdateRun);
-	this.Footnotes.CheckRunContent(UpdateRun);
-	this.Endnotes.CheckRunContent(UpdateRun);
+	});
 
 	this.RecalculateFromStart(true);
 };
@@ -16342,14 +16353,10 @@ CDocument.prototype.SetDocumentPrintMode = function()
 {
 	this.Layout = this.Layouts.Print;
 
-	function UpdateRun(oRun)
+	this.CheckAllRunContent(function(oRun)
 	{
 		oRun.Recalc_CompiledPr(true);
-	}
-
-	this.CheckRunContent(UpdateRun);
-	this.Footnotes.CheckRunContent(UpdateRun);
-	this.Endnotes.CheckRunContent(UpdateRun);
+	});
 
 	this.RecalculateFromStart(true);
 };
@@ -26802,12 +26809,25 @@ CDocument.prototype.GetImageFormSelection = function()
  */
 CDocument.prototype.CheckAllRunContent = function(fCheck)
 {
-	// TODO: Добавить drawings
+	function private_check(run)
+	{
+		for (let pos = 0, count = run.GetElementsCount(); pos < count; ++pos)
+		{
+			let item = run.GetElement(pos);
+			if (item.IsDrawing())
+			{
+				if (item.CheckRunContent(private_check))
+					return true;
+			}
+		}
 
-	this.CheckRunContent(fCheck);
-	this.SectionsInfo.CheckRunContent(fCheck);
-	this.Footnotes.CheckRunContent(fCheck);
-	this.Endnotes.CheckRunContent(fCheck);
+		return fCheck(run);
+	}
+
+	this.CheckRunContent(private_check);
+	this.SectionsInfo.CheckRunContent(private_check);
+	this.Footnotes.CheckRunContent(private_check);
+	this.Endnotes.CheckRunContent(private_check);
 };
 
 
