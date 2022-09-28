@@ -11886,6 +11886,115 @@ QueryTableField.prototype.clone = function() {
 		return this;
 	}
 
+	AscDFH.changesFactory[AscDFH.historyitem_OleSizeSelectionSetRange] = AscDFH.CChangesDrawingsObjectNoId;
+	AscDFH.drawingsChangesMap[AscDFH.historyitem_OleSizeSelectionSetRange] = function (oClass, value) {
+		oClass.resetHistory();
+		oClass.applyRange(value);
+		oClass.addPointToLocalHistory(true);
+	};
+	/**
+	 *
+	 * @param ws
+	 * @param range
+	 * @constructor
+	 * @extends {SelectionRange}
+	 */
+	function OleSizeSelectionRange(ws, range) {
+		AscCommonExcel.SelectionRange.call(this, ws);
+		this.Id = AscCommon.g_oIdCounter.Get_NewId();
+
+		this.classType = AscDFH.historyitem_type_OleSizeSelection;
+		this.init = false;
+		if (range) {
+			this.ranges = [range];
+			this.activeCell = new AscCommon.CellBase(range.r1, range.c1);
+		}
+		this.localHistory = [];
+		this.currentHistoryIndex = -1;
+		AscCommon.g_oTableId.Add( this, this.Id );
+		this.api = Asc.editor || editor;
+	}
+	OleSizeSelectionRange.prototype = Object.create(AscCommonExcel.SelectionRange.prototype);
+	OleSizeSelectionRange.prototype.constructor = OleSizeSelectionRange;
+	OleSizeSelectionRange.prototype.GetId = AscFormat.CBaseObject.prototype.Get_Id;
+	OleSizeSelectionRange.prototype.Get_Id = AscFormat.CBaseObject.prototype.Get_Id;
+
+	OleSizeSelectionRange.prototype.addToGlobalHistory = function () {
+		const oOldRange = this.getFirstFromLocalHistory();
+		const oNewRange = this.getLastFromLocalHistory();
+
+		this.resetHistory();
+		this.addPointToLocalHistory(true);
+
+		AscCommon.History.Create_NewPoint();
+		AscCommon.History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_OleSizeSelectionSetRange, oOldRange, oNewRange));
+	};
+
+	OleSizeSelectionRange.prototype.validActiveCell = function () {
+		return true;
+	};
+	OleSizeSelectionRange.prototype.addPointToLocalHistory = function (bSkipUpdate) {
+		this.localHistory.length = this.currentHistoryIndex + 1;
+		this.localHistory.push(this.getLast().clone());
+		this.currentHistoryIndex = this.localHistory.length - 1;
+
+		if (!bSkipUpdate) {
+			this.updateUndoRedoChanged();
+		}
+	};
+
+	OleSizeSelectionRange.prototype.updateUndoRedoChanged = function () {
+		this.api.wb.cellEditor.handlers.trigger( "updateUndoRedoChanged", this.currentHistoryIndex > 0, this.currentHistoryIndex < this.localHistory.length - 1);
+	};
+
+
+	OleSizeSelectionRange.prototype.undo = function () {
+		const ws = this.api.wb.getWorksheet();
+		ws.cleanSelection();
+		this.currentHistoryIndex = this.currentHistoryIndex > 0 ? this.currentHistoryIndex - 1 : 0;
+		this.applyRange(this.localHistory[this.currentHistoryIndex]);
+		ws._drawSelection();
+		this.updateUndoRedoChanged();
+	};
+
+	OleSizeSelectionRange.prototype.getFirstFromLocalHistory = function () {
+		return this.localHistory[0].clone();
+	}
+
+	OleSizeSelectionRange.prototype.getLastFromLocalHistory = function () {
+		return this.localHistory[this.localHistory.length - 1].clone();
+	}
+
+	OleSizeSelectionRange.prototype.resetHistory = function () {
+		this.localHistory = [];
+		this.currentHistoryIndex = -1;
+	};
+
+	OleSizeSelectionRange.prototype.redo = function () {
+		const ws = this.api.wb.getWorksheet();
+		ws.cleanSelection();
+		this.currentHistoryIndex = this.currentHistoryIndex < this.localHistory.length - 1 ? this.currentHistoryIndex + 1 : this.localHistory.length - 1;
+		this.applyRange(this.localHistory[this.currentHistoryIndex]);
+		ws._drawSelection();
+		this.updateUndoRedoChanged();
+	};
+
+	OleSizeSelectionRange.prototype.applyRange = function (oRange) {
+		this.ranges = [oRange.clone()];
+		this.activeCellId = 0;
+		this.activeCell = new AscCommon.CellBase(oRange.r1, oRange.c1);
+	}
+
+	OleSizeSelectionRange.prototype.clean = function () {
+		this.ranges = [new Asc.Range(0, 0, 10, 10)];
+		this.activeCellId = 0;
+		this.activeCell.clean();
+	};
+	OleSizeSelectionRange.prototype.getName = function () {
+		var range = this.getLast();
+		return range.getName();
+	};
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -12094,6 +12203,8 @@ QueryTableField.prototype.clone = function() {
 	window['AscCommonExcel'].QueryTableField = QueryTableField;
 	window['AscCommonExcel'].QueryTableDeletedField = QueryTableDeletedField;
 	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
+
+	window['AscCommonExcel'].OleSizeSelectionRange = OleSizeSelectionRange;
 
 
 	window["Asc"]["CustomFilters"]			= window["Asc"].CustomFilters = CustomFilters;
