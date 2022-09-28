@@ -40,7 +40,7 @@
 	var c_oEditorId = AscCommon.c_oEditorId;
 	var c_oCloseCode = AscCommon.c_oCloseCode;
 	var DownloadType = AscCommon.DownloadType;
-	var c_oGatewayFrameGeneralInformationType = AscCommon.c_oGatewayFrameGeneralInformationType;
+	var c_oAscFrameDataType = AscCommon.c_oAscFrameDataType;
 
 	var c_oAscError           = Asc.c_oAscError;
 	var c_oAscAsyncAction     = Asc.c_oAscAsyncAction;
@@ -645,7 +645,7 @@
 						oleBinary['imageUrl'] = data[0].url;
 						_this._addImageUrl([data[0].url], obj);
 					}
-				}, _this.editorId === c_oEditorId.Spreadsheet);
+				});
 				return;
 			}
 			var blipUrl = oleBinary['imageUrl'];
@@ -669,13 +669,11 @@
 
 	baseEditorsApi.prototype.sendFromFrameToGeneralEditor = function (oData)
 	{
-		//window.top[0].editor.asc_getInformationBetweenFrameAndGeneralEditor(oData);
 		this.sendEvent("asc_sendFromFrameToGeneralEditor", oData);
 	};
 
 	baseEditorsApi.prototype.sendFromGeneralToFrameEditor = function (oData)
 	{
-		//window.frames[0].Asc.editor.asc_getInformationBetweenFrameAndGeneralEditor(oData);
 		this.sendEvent("asc_sendFromGeneralToFrameEditor", oData);
 	};
 
@@ -693,27 +691,27 @@
 
 	baseEditorsApi.prototype.asc_getInformationBetweenFrameAndGeneralEditor = function (oData)
 	{
-		const nType = oData["typeOfInformation"];
+		const nType = oData["type"];
 		const oInformation = oData["information"]
 		switch (nType)
 		{
-			case c_oGatewayFrameGeneralInformationType.GetLoadedImages:
+			case c_oAscFrameDataType.GetLoadedImages:
 			{
 				this.CoAuthoringApi.onDocumentOpen(oInformation["inputWrap"], true);
 				break;
 			}
-			case c_oGatewayFrameGeneralInformationType.SendImageUrls:
+			case c_oAscFrameDataType.SendImageUrls:
 			{
-				AscCommon.sendImgUrls(this, oInformation["images"], function () {}, this.editorId === c_oEditorId.Spreadsheet, true, oInformation["token"]);
+				AscCommon.sendImgUrls(this, oInformation["images"], function () {}, true, oInformation["token"]);
 				break;
 			}
-			case c_oGatewayFrameGeneralInformationType.OpenFrame: // TODO: это нужно перенести в web-apps,
+			case c_oAscFrameDataType.OpenFrame: // TODO: это нужно перенести в web-apps,
 				// при открытии и закрытии фрейма метод должен вызываться там, в 7.2 это сделать не успели
 			{
 				this.asc_onOpenChartFrame();
 				break;
 			}
-			case c_oGatewayFrameGeneralInformationType.ShowImageDialogInFrame:
+			case c_oAscFrameDataType.ShowImageDialogInFrame:
 			{
 				this.setSkipStartEndAction(true);
 				const oOptions = {
@@ -723,10 +721,10 @@
 				this.asc_addImage(oOptions);
 				break;
 			}
-			case c_oGatewayFrameGeneralInformationType.GetUrlsFromImageDialog:
+			case c_oAscFrameDataType.GetUrlsFromImageDialog:
 			{
 				this.sendFromGeneralToFrameEditor({
-					"typeOfInformation": c_oGatewayFrameGeneralInformationType.SkipStartEndAction,
+					"type": c_oAscFrameDataType.SkipStartEndAction,
 					"information": {
 						value: false
 					}
@@ -746,12 +744,12 @@
 				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 				break;
 			}
-			case c_oGatewayFrameGeneralInformationType.SkipStartEndAction:
+			case c_oAscFrameDataType.SkipStartEndAction:
 			{
 				this.setSkipStartEndAction(oInformation.value);
 				break;
 			}
-			case c_oGatewayFrameGeneralInformationType.StartUploadImageAction:
+			case c_oAscFrameDataType.StartUploadImageAction:
 			{
 				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 			}
@@ -764,7 +762,7 @@
 
 	baseEditorsApi.prototype.sendStartUploadImageActionToFrameEditor = function () {
 		this.sendFromGeneralToFrameEditor({
-			"typeOfInformation": c_oGatewayFrameGeneralInformationType.StartUploadImageAction,
+			"type": c_oAscFrameDataType.StartUploadImageAction,
 
 		});
 	}
@@ -778,7 +776,7 @@
 			urlsForAddToDocumentUrls[AscCommon.g_oDocumentUrls.getLocal(url)] = url;
 		}
 		this.sendFromGeneralToFrameEditor({
-			"typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.GetUrlsFromImageDialog,
+			"type": AscCommon.c_oAscFrameDataType.GetUrlsFromImageDialog,
 			"information": urlsForAddToDocumentUrls
 		});
 	};
@@ -804,7 +802,7 @@
 						oOleBinaryInfo['imageUrl'] = data[0].url;
 						oThis._addImageUrl([data[0].url], oOptions);
 					}
-				}, oThis.editorId === c_oEditorId.Spreadsheet);
+				});
 				return;
 			}
 
@@ -1569,7 +1567,7 @@
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
 			if (t.isOpenedChartFrame) {
 				const oSentInformation = {
-					"typeOfInformation": c_oGatewayFrameGeneralInformationType.GetLoadedImages,
+					"type": c_oAscFrameDataType.GetLoadedImages,
 					"information": {
 						"inputWrap": inputWrap
 					}
@@ -2080,7 +2078,7 @@
 					});
 					callback.call(t, urls);
 				}
-			}, false, undefined, token);
+			}, undefined, token);
 		} else {
 			callback.call(this, urls);
 		}
@@ -2094,7 +2092,7 @@
 		{
 			this.oSaveObjectForAddImage = obj;
 			this.sendFromFrameToGeneralEditor({
-				"typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.ShowImageDialogInFrame,
+				"type": AscCommon.c_oAscFrameDataType.ShowImageDialogInFrame,
 			});
 			return;
 		}
@@ -2183,7 +2181,7 @@
 			{
 				oThis.asc_loadLocalImageAndAction(AscCommon.g_oDocumentUrls.imagePath2Local(data[0].path), fCallback2);
 			}
-		}, this.editorId === c_oEditorId.Spreadsheet);
+		});
 	};
 
 	baseEditorsApi.prototype.asc_addOleObject = function(oPluginData)

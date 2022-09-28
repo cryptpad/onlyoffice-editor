@@ -3954,7 +3954,7 @@ var editor;
       // на случай, если изображение поставили на загрузку, закрыли редактор, и потом опять открыли
       this.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
       this.sendFromFrameToGeneralEditor({
-          "typeOfInformation": AscCommon.c_oGatewayFrameGeneralInformationType.OpenFrame
+          "type": AscCommon.c_oAscFrameDataType.OpenFrame
       });
       oOleObjectInfo = oOleObjectInfo || {"binary": AscCommon.getEmpty()};
       const sStream = oOleObjectInfo["binary"];
@@ -4595,7 +4595,7 @@ var editor;
           ws.objectRender.setGraphicObjectProps(props);
         }
 
-      }, true, undefined, sToken);
+      }, undefined, sToken);
     }
     else{
       var sBulletSymbol = props.asc_getBulletSymbol && props.asc_getBulletSymbol();

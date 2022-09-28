@@ -791,7 +791,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		MailMerge : 'asc_onSaveMailMerge'
 	};
 
-	var c_oGatewayFrameGeneralInformationType = {
+	var c_oAscFrameDataType = {
 		SendImageUrls: 0,
 		GetLoadedImages: 1,
 		OpenFrame: 2,
@@ -4281,7 +4281,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window["AscCommon"].c_oAscMaxFormulaReferenceLength = c_oAscMaxFormulaReferenceLength;
 	window["AscCommon"].c_oAscMaxTableColumnTextLength = c_oAscMaxTableColumnTextLength;
 
-	window["AscCommon"].c_oGatewayFrameGeneralInformationType = c_oGatewayFrameGeneralInformationType;
+	window["AscCommon"].c_oAscFrameDataType = c_oAscFrameDataType;
 
 	prot =  window["AscCommon"]["c_oAscUrlType"] = window["AscCommon"].c_oAscUrlType = c_oAscUrlType;
 	prot["Invalid"] = prot.Invalid;

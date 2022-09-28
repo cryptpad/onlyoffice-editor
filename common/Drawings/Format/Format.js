@@ -15095,7 +15095,7 @@
 						Api.sendEvent("asc_onBulletImageLoaded", _this);
 					});
 				}
-			}, false, false, token);
+			}, false, token);
 		};
 		prot["put_ImageUrl"] = prot["asc_putImageUrl"] = CBullet.prototype.put_ImageUrl;
 		prot.showFileDialog = function () {
