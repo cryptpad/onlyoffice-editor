@@ -573,30 +573,24 @@
 	};
 	baseEditorsApi.prototype.sync_StartAction                = function(type, id)
 	{
-		if (!this.bSkipStartEndAction)
-		{
-			if (type !== c_oAscAsyncActionType.Empty)
-				this.sendEvent('asc_onStartAction', type, id);
-			//console.log("asc_onStartAction: type = " + type + " id = " + id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onStartAction', type, id);
+		//console.log("asc_onStartAction: type = " + type + " id = " + id);
 
-			if (c_oAscAsyncActionType.BlockInteraction === type)
-			{
-				this.incrementCounterLongAction();
-			}
+		if (c_oAscAsyncActionType.BlockInteraction === type)
+		{
+			this.incrementCounterLongAction();
 		}
 	};
 	baseEditorsApi.prototype.sync_EndAction                  = function(type, id)
 	{
-		if (!this.bSkipStartEndAction)
-		{
-			if (type !== c_oAscAsyncActionType.Empty)
-				this.sendEvent('asc_onEndAction', type, id);
-			//console.log("asc_onEndAction: type = " + type + " id = " + id);
+		if (type !== c_oAscAsyncActionType.Empty)
+			this.sendEvent('asc_onEndAction', type, id);
+		//console.log("asc_onEndAction: type = " + type + " id = " + id);
 
-			if (c_oAscAsyncActionType.BlockInteraction === type)
-			{
-				this.decrementCounterLongAction();
-			}
+		if (c_oAscAsyncActionType.BlockInteraction === type)
+		{
+			this.decrementCounterLongAction();
 		}
 	};
 	baseEditorsApi.prototype.sync_TryUndoInFastCollaborative = function()
@@ -677,17 +671,6 @@
 		this.sendEvent("asc_sendFromGeneralToFrameEditor", oData);
 	};
 
-	baseEditorsApi.prototype.setSkipStartEndAction = function(bValue)
-	{
-		if (bValue !== true)
-		{
-			delete this.bSkipStartEndAction;
-		}
-		else
-		{
-			this.bSkipStartEndAction = bValue;
-		}
-	};
 
 	baseEditorsApi.prototype.asc_getInformationBetweenFrameAndGeneralEditor = function (oData)
 	{
@@ -713,23 +696,14 @@
 			}
 			case c_oAscFrameDataType.ShowImageDialogInFrame:
 			{
-				this.setSkipStartEndAction(true);
 				const oOptions = {
 				sendUrlsToFrameEditor: true
 				};
-				this.setSkipStartEndAction(true);
 				this.asc_addImage(oOptions);
 				break;
 			}
 			case c_oAscFrameDataType.GetUrlsFromImageDialog:
 			{
-				this.sendFromGeneralToFrameEditor({
-					"type": c_oAscFrameDataType.SkipStartEndAction,
-					"information": {
-						value: false
-					}
-				});
-
 				let oOptions;
 				if (this.oSaveObjectForAddImage)
 				{
@@ -742,11 +716,6 @@
 					return arrUrlsForAddToDocumentUrls[localUrl]
 				}), oOptions);
 				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
-				break;
-			}
-			case c_oAscFrameDataType.SkipStartEndAction:
-			{
-				this.setSkipStartEndAction(oInformation.value);
 				break;
 			}
 			case c_oAscFrameDataType.StartUploadImageAction:
@@ -763,7 +732,6 @@
 	baseEditorsApi.prototype.sendStartUploadImageActionToFrameEditor = function () {
 		this.sendFromGeneralToFrameEditor({
 			"type": c_oAscFrameDataType.StartUploadImageAction,
-
 		});
 	}
 
@@ -2110,11 +2078,11 @@
 			{
 				t.sendEvent("asc_onError", error, c_oAscError.Level.NoCritical);
 			}
-			if (obj && obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
+			if (obj && obj.sendUrlsToFrameEditor && t.isOpenedChartFrame)
+			{
 				t.sendStartUploadImageActionToFrameEditor();
-			} else {
-				t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 			}
+			t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 		});
 	};
 	baseEditorsApi.prototype._uploadCallback                     = function(error, files, obj)
@@ -2126,12 +2094,11 @@
 		}
 		else
 		{
-
-			if (obj && obj.sendUrlsToFrameEditor && t.isOpenedChartFrame) {
+			if (obj && obj.sendUrlsToFrameEditor && t.isOpenedChartFrame)
+			{
 				this.sendStartUploadImageActionToFrameEditor();
-			} else {
-				this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 			}
+			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 			AscCommon.UploadImageFiles(files, this.documentId, this.documentUserId, this.CoAuthoringApi.get_jwt(), function(error, urls)
 			{
 				if (c_oAscError.ID.No !== error)
