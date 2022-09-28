@@ -11717,6 +11717,14 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.SelectAll();
 	};
+	asc_docs_api.prototype.asc_enterText = function(codePoints)
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return false;
+
+		return logicDocument.EnterText(codePoints);
+	};
 
 	// input
 	asc_docs_api.prototype.Begin_CompositeInput = function()

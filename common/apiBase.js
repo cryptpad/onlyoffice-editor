@@ -3813,6 +3813,9 @@
 	baseEditorsApi.prototype.asc_EditSelectAll = function()
 	{
 	};
+	baseEditorsApi.prototype.asc_enterText = function(codePoints)
+	{
+	};
 	//---------------------------------------------------------search-----------------------------------------------------
 	baseEditorsApi.prototype.asc_findText = function(oProps, isNext, callback)
 	{

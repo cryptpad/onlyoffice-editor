@@ -10401,26 +10401,42 @@ CDocument.prototype.OnKeyPress = function(e)
 		Code = 0;//special char
 
 	if (Code > 0x20)
-	{
-		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
-		{
-			this.StartAction(AscDFH.historydescription_Document_AddLetter);
-
-			this.DrawingDocument.TargetStart();
-			this.DrawingDocument.TargetShow();
-
-			this.CheckLanguageOnTextAdd = true;
-			this.AddToParagraph(new AscWord.CRunText(Code));
-			this.CheckLanguageOnTextAdd = false;
-
-			this.FinalizeAction();
-		}
-
-		this.UpdateSelection();
-		return true;
-	}
+		return this.EnterText(Code);
 
 	return false;
+};
+CDocument.prototype.EnterText = function(codePoints)
+{
+	if (this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
+		return false;
+
+	this.StartAction(AscDFH.historydescription_Document_AddLetter);
+
+	this.DrawingDocument.TargetStart();
+	this.DrawingDocument.TargetShow();
+
+	this.CheckLanguageOnTextAdd = true;
+
+	if (Array.isArray(codePoints))
+	{
+		for (let index = 0, count = codePoints.length; index < count; ++index)
+		{
+			let codePoint = codePoints[index];
+			this.AddToParagraph(AscCommon.IsSpace(codePoint) ? new AscWord.CRunSpace(codePoint) : new AscWord.CRunText(codePoint));
+		}
+	}
+	else
+	{
+		let codePoint = codePoints;
+		this.AddToParagraph(AscCommon.IsSpace(codePoint) ? new AscWord.CRunSpace(codePoint) : new AscWord.CRunText(codePoint));
+	}
+
+	this.CheckLanguageOnTextAdd = false;
+
+	this.UpdateSelection();
+	this.FinalizeAction();
+
+	return true;
 };
 CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 {
