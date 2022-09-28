@@ -627,7 +627,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
     if(e.CtrlKey || e.AltKey)
         return false;
 
-    var Code;
+    let Code;
     if (null != e.Which)
         Code = e.Which;
     else if (e.KeyCode)
@@ -635,36 +635,61 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
     else
         Code = 0;//special char
 
-    var bRetValue = false;
-    if(this.checkSelectedObjectsProtectionText())
-    {
-        return true;
-    }
+    let bRetValue = false;
     if ( Code >= 0x20 )
     {
-        var fCallback = function()
-        {
-            var oItem;
-            if(AscCommon.IsSpace(Code))
-            {
-                oItem = new AscWord.CRunSpace(Code);
-            }
-            else
-            {
-                oItem = new AscWord.CRunText(Code);
-            }
-            this.paragraphAdd(oItem, false);
-            this.checkMobileCursorPosition();
-            this.recalculateCurPos(true, true);
-        };
-        this.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Spreadsheet_ParagraphAdd, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
-
-        bRetValue = true;
+        return this.enterText(Code);
     }
 
     return bRetValue;
 };
-
+    DrawingObjectsController.prototype.enterText = function (codePoints)
+    {
+        if (!this.canEdit())
+            return false;
+        if(this.checkSelectedObjectsProtectionText())
+        {
+            return true;
+        }
+        let fCallback = function()
+        {
+            let oItem;
+            let Code;
+            if(Array.isArray(codePoints))
+            {
+                for(let nIdx = 0; nIdx < codePoints.length; ++nIdx)
+                {
+                    Code = codePoints[nIdx];
+                    if(AscCommon.IsSpace(Code))
+                    {
+                        oItem = new AscWord.CRunSpace(Code);
+                    }
+                    else
+                    {
+                        oItem = new AscWord.CRunText(Code);
+                    }
+                    this.paragraphAdd(oItem, false);
+                }
+            }
+            else
+            {
+                Code = codePoints;
+                if(AscCommon.IsSpace(Code))
+                {
+                    oItem = new AscWord.CRunSpace(Code);
+                }
+                else
+                {
+                    oItem = new AscWord.CRunText(Code);
+                }
+                this.paragraphAdd(oItem, false);
+            }
+            this.checkMobileCursorPosition();
+            this.recalculateCurPos(true, true);
+        };
+        this.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Spreadsheet_ParagraphAdd, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+        return AscCommon.isRealObject(this.getTargetDocContent());
+    };
 
     DrawingObjectsController.prototype.checkSlicerCopies = function (aCopies)
     {
