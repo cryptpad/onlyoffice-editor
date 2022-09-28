@@ -310,6 +310,24 @@ ParaField.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseC
 		SearchPos.Found     = true;
 	}
 };
+ParaField.prototype.SetCurrent = function(isCurrent)
+{
+};
+ParaField.prototype.IsCurrent = function()
+{
+	return false;
+};
+ParaField.prototype.SelectField = function()
+{
+	this.SelectThisElement();
+};
+ParaField.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
+{
+	if (isCurrent)
+		arrComplexFields.push(this);
+
+	return CParagraphContentWithParagraphLikeContent.prototype.GetCurrentComplexFields.apply(this, arguments);
+};
 ParaField.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	arrFields.push(this);
@@ -637,6 +655,14 @@ ParaField.prototype.GetInstructionLine = function()
 	}
 	return Instr;
 };
+ParaField.prototype.GetInstruction = function()
+{
+	let instructionLine = this.GetInstructionLine();
+	let parser = new CFieldInstructionParser();
+	let instruction = parser.GetInstructionClass(instructionLine);
+	instruction.SetInstructionLine(instructionLine);
+	return instruction;
+};
 ParaField.prototype.ReplaceWithComplexField = function()
 {
 	let oParent        = this.GetParent();
@@ -779,3 +805,5 @@ ParaField.prototype.CheckSpelling = function(oCollector, nDepth)
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].ParaField = ParaField;
+
+window['AscWord'].CSimpleField = ParaField;
