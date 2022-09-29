@@ -773,7 +773,7 @@ CRadical.prototype.GetTextOfElement = function(isLaTex) {
 	if (strDegree.length > 0 && isLaTex)
 		strDegree =  '[' + strDegree + ']';
 
-	if (strBase.length > 1 && strDegree !== "3" && strDegree !== "4")
+	if (strBase.length > 1 && (strDegree === "3" || strDegree === "4" || strDegree === '') )
 		strBase = strStartBracet + strBase + strCloseBracet;
 
 	if (isLaTex)
@@ -798,6 +798,8 @@ CRadical.prototype.GetTextOfElement = function(isLaTex) {
                 strTemp = strRadicalSymbol + strDegree + strBase;
         }
 	}
+    if (!isLaTex)
+        strTemp = "〖" + strTemp + "〗";
 	return strTemp;
 };
 

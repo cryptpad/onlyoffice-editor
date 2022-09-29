@@ -3591,6 +3591,23 @@ CMathContent.prototype.Add_FunctionWithLimit = function(Pr, FName, LimitText, Ba
 
     return MathFunc;
 };
+CMathContent.prototype.Add_FunctionWithTypeLimit = function(Pr, FName, LimitText, BaseText, LIMIT_TYPE)
+{
+    var MathFunc = new CMathFunc(Pr);
+    this.Add_Element(MathFunc);
+
+    MathFunc.SetParagraph(this.Paragraph);
+
+    var MathContent = MathFunc.getFName();
+    var Limit = MathContent.Add_Limit({ctrPrp : Pr.ctrPrp, type : LIMIT_TYPE}, null, LimitText);
+    MathContent = Limit.getFName();
+    MathContent.Add_Text(FName, this.Paragraph, STY_PLAIN);
+
+    MathContent = MathFunc.getArgument();
+    MathContent.Add_Text(BaseText, this.Paragraph);
+
+    return MathFunc;
+};
 CMathContent.prototype.Add_Accent = function(ctrPr, chr, BaseText)
 {
     var Pr =
@@ -5513,49 +5530,102 @@ CMathContent.prototype.SplitContentByContentPos = function()
 
     var oCurrentObj = this.Content[this.CurPos];
     var CursorPos = oCurrentObj.State.ContentPos;
+    var arrContent = [];
 
     if (CursorPos < oCurrentObj.Content.length) {
         var oNewRun = oCurrentObj.Split_Run(CursorPos);
-        this.Add_ToContent(this.CurPos + 1, oNewRun);
+        arrContent.push(oNewRun);
     }
+
+    for (let i = this.CurPos + 1; i < this.Content.length; i++) {
+        arrContent.push(this.Content[i].Copy());
+    }
+
+    this.Remove_FromContent(this.CurPos + 1, this.Content.length - this.CurPos);
+
+    return arrContent;
 };
 CMathContent.prototype.Process_AutoCorrect = function (oElement)
 {
     var oLogicDocument = this.GetLogicDocument();
     var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
-    var isAutoCorrect = this.IsStartAutoCorrection(nInputType, oElement.value);
+    var isLaTeX_AutoCorrection_Allow = true; // для будущей настройки
 
-    if (!isAutoCorrect)
-        return;
-    
-    var isConvertWords = this.CorrectWordOnCursor();
-
-    if (isConvertWords)
+    //разрешена ли автоконвертация для LaTeX
+    if (isLaTeX_AutoCorrection_Allow === false && nInputType === 1)
         return;
 
-    this.SplitContentByContentPos();
+    //делим контент по позиции курсора
+    const arrNextContent = this.SplitContentByContentPos();
 
-    this.GetInfoForAutoCorrection(nInputType);
+    //конвертируем контент в скобке у курсора для Unicode (1/2) -> ( CFraction )
+    if (nInputType === 0)
+        this.ConvertContentInLastBracketBlock(nInputType);
 
-    // var oContentForAutoCorrection = AscMath.AutoCorrect(this, nInputType);
-    //
-    // if (oContentForAutoCorrection === undefined)
-    //     return;
-    //
-    // var arrDelData = oContentForAutoCorrection.del;
-    // var strStringForConversion = oContentForAutoCorrection.str;
-    //
-    // if (strStringForConversion.length === 1 && oElement.value === strStringForConversion.charCodeAt(0))
-    //     return;
-    // if (strStringForConversion.length < 1)
-    //     return;
-    //
-    // var oTempObject = AscMath.GetConvertContent(nInputType, strStringForConversion, this);
-    // if (!oTempObject)
-    //     return;
-    // this.DeleteContentForAutoCorrection(arrDelData);
-    // this.AddContentForAutoCorrection(oTempObject.Content);
+    //конвертриуем слово у курсора (\int, \sqrt, \alpha...)
+    if (oElement.value === 32) {
+        if (this.CorrectWordOnCursor())
+            return;
+    }
+
+    //проверяем нужно ли начать процесс автокоррекции
+    if (!this.IsStartAutoCorrection(nInputType, oElement.value))
+        return;
+
+    // if (nInputType === 1) {
+    //     this.CorrectAllMathWords();
+    // }
+
+    //убираем символ пустого контента TODO выделить в нормальную функцию
+    if (
+        this.Content.length > 1 &&
+        this.Content[this.Content.length - 1].Content[0] &&
+        this.Content[this.Content.length - 1].Content[0].value === 11034
+    )
+    {
+        this.Remove_FromContent(this.Content.length - 1, 1);
+    }
+
+    //const oSlashesContent = this.GetSlashesInfo();
+
+    //если режим Unicode
+    if (nInputType === 0)
+    {
+        //обрабатывает скобку () -> CDelimiter
+        let Brack = this.CheckAutoCorrectionBrackets(nInputType);
+        //обрабатывает правила (1/2, 1_2 ...)
+        let isConvert = this.CheckAutoCorrectionRules(nInputType);
+
+        //если правило не было найдено - конвертируем контент до первого оператора
+        if (!isConvert && typeof Brack === 'object' && Brack.intCounter === 0)
+            this.CheckWhileOperatorContent(Brack.OperatorsPos, nInputType);
+    }
+    else //LaTex
+    {
+        let Brack = this.CheckAutoCorrectionBrackets(nInputType);
+        if (typeof Brack === 'object' && Brack.intCounter === 0)
+            this.CheckWhileOperatorContent(Brack.OperatorsPos, nInputType);
+    }
+
+    //возвращяем обратно обрезанный после позиции курсора контент
+    if (arrNextContent.length > 0)
+        this.AddContentForAutoCorrection(arrNextContent);
 };
+CMathContent.prototype.CheckWhileOperatorContent = function(arrOperatorsList, nInputType) {
+
+    if (arrOperatorsList === undefined)
+        return;
+
+    if(arrOperatorsList.length === 0)
+    {
+        this.CutConvertAndPaste([0, 0], nInputType);
+    }
+    else
+    {
+        let Position = arrOperatorsList[arrOperatorsList.length - 1];
+        this.CutConvertAndPaste([Position[2], Position[0]], nInputType);
+    }
+}
 CMathContent.prototype.DeleteContentForAutoCorrection = function(arrDeleteData)
 {
     if (arrDeleteData < 1) {
@@ -5611,13 +5681,29 @@ CMathContent.prototype.AddContentForAutoCorrection = function(arrNewElements)
         arrNewElements[arrNewElements.length - 1].Content[0].value === 32 &&
 
         !(arrNewElements[arrNewElements.length - 2] instanceof ParaRun)
-    ) {
+    )
+    {
         arrNewElements[arrNewElements.length - 1].Remove_FromContent(0,1);
     }
 
     this.CurPos++;
     this.ConcatToContent(this.CurPos, arrNewElements);
-    this.CurPos += arrNewElements.length - 1;
+
+    let oMiddlePastedObejct = this.Content[this.CurPos - 1 + arrNewElements.length - 1];
+    if (oMiddlePastedObejct instanceof CMathFunc) {
+        if (oMiddlePastedObejct.Content[1].GetTextOfElement() === "") {
+            this.CurPos+=1;
+            oMiddlePastedObejct.CurPos++;
+        }
+        else {
+            this.CurPos+=2;
+        }
+    }
+    else
+    {
+        this.RemoveSelection();
+        this.CurPos += arrNewElements.length - 1;
+    }
 };
 CMathContent.prototype.CorrectWordOnCursor = function()
 {
@@ -5627,14 +5713,14 @@ CMathContent.prototype.CorrectAllMathWords = function()
 {
     return AscMath.CorrectAllWords(this);
 };
-CMathContent.prototype.GetBracketOperatorInfo = function ()
+CMathContent.prototype.GetBracketOperatorInfo = function (isLaTeX)
 {
     const arrContent = {};
 
     for (let i = 0; i < this.Content.length; i++)
     {
         if (this.Content[i].Type === 49 && this.Content[i].Content.length > 0) {
-            let cont = this.Content[i].MathAutocorrection_GetBracketsOperatorsInfo();
+            let cont = this.Content[i].MathAutocorrection_GetBracketsOperatorsInfo(isLaTeX);
 
             if (cont.length > 0) {
                 arrContent[i] = cont;
@@ -5662,377 +5748,575 @@ CMathContent.prototype.GetSlashesInfo = function ()
 
     for (let i = 0; i < this.Content.length; i++)
     {
-        if (this.Content[i].Type === 49 && this.Content[i].Content.length > 0)
-            arrContent[i] = this.Content[i].MathAutocorrection_GetSlashesInfo();
+        if (this.Content[i].Type === 49 && this.Content[i].Content.length > 0) {
+            let content = this.Content[i].MathAutocorrection_GetSlashesInfo();
+            if (content.length > 0) {
+                arrContent[i] = content;
+            }
+        }
+
+
     }
 
     return arrContent;
 }
-CMathContent.prototype.IsLastElementOperator = function ()
+CMathContent.prototype.IsLastElement = function (type)
 {
-    let oLastElement = this.Content[this.Content.length - 1];
-
-    if (oLastElement.Content.length > 0 && oLastElement.Type === 49)
-            return oLastElement.MathAutocorrection_IsLastElementOperator();
-    else {
-        oLastElement =  this.Content[this.Content.length];
-        return oLastElement.MathAutocorrection_IsLastElementOperator();
-    }
-
-    return false;
-};
-
-CMathContent.prototype.IsLastElementLBracket = function ()
-{
-    let oLastElement = this.Content[this.Content.length - 1];
-    if (oLastElement.Type === 49)
-        return oLastElement.MathAutocorrection_IsLastElementLBracket();
-
-    return false;
-};
-CMathContent.prototype.IsLastElementRBracket = function ()
-{
-    let oLastElement = this.Content[this.Content.length - 1];
-    if (oLastElement.Type === 49)
-        return oLastElement.MathAutocorrection_IsLastElementRBracket();
-
-    return false;
-};
-
-CMathContent.prototype.GetInfoForAutoCorrection = function(nInputType)
-{
-    if (this.Content.length > 1 && this.Content[this.Content.length - 1].Content[0] && this.Content[this.Content.length - 1].Content[0].value === 11034) {
-        this.Remove_FromContent(this.Content.length - 1, 1);
-    }
-    let oBracketsContent = this.GetBracketOperatorInfo();
-
-    if (this.IsLastElementLBracket())
+    if (this.Content.length === 0)
         return
 
-    let oSlashesContent = this.GetSlashesInfo();
-    let Result;
-    oBracketsContent.intCounter = [];
+    let oLastElement = this.Content[this.Content.length - 1];
+    if (oLastElement.Type === 49)
+        return oLastElement.MathAutocorrection_IsLastElement(type);
 
-    const ParaRunIterator = function(ParaRun) {
-        this.Content = ParaRun.Content;
-        this.Cursor = ParaRun.Content.length - 1;
-    }
-    ParaRunIterator.prototype.GetNext = function() {
-        if (!this.IsHasContent())
-            return false;
-
-        const oContent = this.Content[this.Cursor];
-        this.Cursor--;
-        return oContent.value;
-    }
-    ParaRunIterator.prototype.IsHasContent = function() {
-        return this.Cursor >= 0;
-    }
-
-    const ContentIterator = function(Content)
-    {
-        this.Content = Content.Content;
-        this.cursor = this.Content.length - 1;
-        this.endPosition = [];
-        this.CurrentElement;
-    }
-    ContentIterator.prototype.IsEndPositionFind = function () {
-        return this.endPosition.length === 2;
-    }
-    ContentIterator.prototype.SetPositionInContent = function (intPos) {
-        return this.endPosition[0] = intPos;
-    }
-    ContentIterator.prototype.SetPositionInParaRun = function (intPos) {
-        return this.endPosition[1] = intPos;
-    }
-    ContentIterator.prototype.IsHasContent = function ()
-    {
-        return this.cursor >= 0;
-    }
-    ContentIterator.prototype.GetNext = function (nextRule)
-    {
-        if (!this.CurrentElement)
-            this.CreateCurrentElement(nextRule);
-
-        return this.GetNextFromCurrentElement(nextRule);
-    }
-    ContentIterator.prototype.CreateCurrentElement = function(nextRule)
-    {
-        const oCurrent = this.Content[this.cursor];
-
-        if (oCurrent instanceof ParaRun)
-            this.CurrentElement = new ParaRunIterator(oCurrent);
-        else
-            this.CurrentElement = oCurrent;
-    }
-    ContentIterator.prototype.GetNextFromCurrentElement = function (nextRule)
-    {
-        if (this.CurrentElement instanceof ParaRunIterator)
-        {
-            if (!this.CurrentElement.IsHasContent() && this.cursor > 0) {
-                this.cursor--;
-                this.CreateCurrentElement();
-                return this.GetNextFromCurrentElement(nextRule);
-            }
-            else if (!this.CurrentElement.IsHasContent() && this.cursor <= 0) {
-                return false;
-            }
-
-            let intCode;
-            while (this.CurrentElement.IsHasContent()) {
-                const prevCode = intCode;
-                const intCurrent = this.CurrentElement.GetNext();
-                intCode = intCurrent;
-
-                if (this.CurrentRule === String.fromCharCode(intCode)) {
-                    return intCurrent;
-                }
-                // else if (AscMath.MathLiterals.special.IsIncludes(String.fromCharCode(intCode))) {
-                //     this.CurrentElement.Cursor++;
-                //     return prevCode;
-                // }
-                else if (String.fromCharCode(intCode) === "▒") {
-                        this.CurrentElement.Cursor++;
-                        return prevCode;
-                }
-                else if (nextRule !== true && nextRule && intCurrent === nextRule.charCodeAt(0)) {
-                    this.CurrentElement.Cursor++;
-                    return prevCode;
-                }
-            }
-            return intCode;
-        }
-        else
-        {
-            if (nextRule !== undefined) {
-                this.cursor--
-            }
-            return true;
-        }
-    }
-    ContentIterator.prototype.ResetParaRunCursor = function()
-    {
-        this.cursor = this.Content.length - 1
-        this.CurrentElement = undefined;
-    }
-    ContentIterator.prototype.CheckRules = function ()
-    {
-        const rules = [
-            //true обозначает обычный текст, цифры и блоки контента (CFraction, CLimit, CDegree...);
-            [true, "_", true, "^", true],
-            [true, "^", true, "_", true],
-            [true, "/", true],
-            [true, "^", true],
-            [true, "_", true],
-            ["√", true],
-            ["∛", true],
-            ["∜", true],
-            ["▭", true],
-            ["_"],
-            ["^"],
-        ];
-
-        for (let i = 0; i < rules.length; i++)
-        {
-            this.cursor = this.Content.length - 1;
-            let arrCurrentRule = rules[i];
-            let intRuleCounter = 0;
-
-            for (let i = arrCurrentRule.length - 1; i >= 0 && this.IsHasContent(); i--)
-            {
-                this.CurrentRule = arrCurrentRule[i];
-                const intCharCode = this.GetNext(arrCurrentRule[i - 1]);
-
-                if (arrCurrentRule[i] === true && intCharCode)
-                    intRuleCounter++;
-                else if (arrCurrentRule[i] !== true && String.fromCharCode(intCharCode) === arrCurrentRule[i])
-                    intRuleCounter++;
-                else
-                    break;
-            }
-
-            if (intRuleCounter === arrCurrentRule.length)
-            {
-                this.SetPositionInContent(this.cursor);
-                this.SetPositionInParaRun(this.CurrentElement instanceof ParaRunIterator ? this.CurrentElement.Cursor : 0);
-                return;
-            }
-            else
-                this.ResetParaRunCursor();
-        }
+    return false;
+}
+//авто-конвертации контента ВНУТРИ скобок, не самих скобок
+CMathContent.prototype.ConvertContentInLastBracketBlock = function(nInputType)
+{
+    if (!(this.IsLastElement(AscMath.MathLiterals.rBrackets) || this.IsLastElement(AscMath.MathLiterals.lrBrackets))) {
         return;
     }
 
-    const ProceedBracketsContentLevel = function(lvl)
-    {
-        let isBracketPushed = false;
+    const oBracketsContent = this.GetBracketOperatorInfo(nInputType === 1);
 
-        if (!lvl || lvl.length === 0)
-            return true;
-        else
+    const Brackets = new ProceedBrackets(oBracketsContent);
+    if (Brackets.intCounter === 0) {
+        let pair = Brackets.BracketsPair[0][0];
+        const Result = [pair[2], pair[0] + 1]
+
+        if (Result.length === 2) {
+            this.CutConvertAndPaste(Result, nInputType, true);
+        }
+    }
+}
+
+function ProceedBrackets(arrDataOfBrackets)
+{
+    this.Buffer = [];
+    this.BracketsPair = [];
+    this.OperatorsPos = [];
+    this.isContinue = true;
+    this.Position = [];
+    this.isStopConvertation = false;
+    this.intCounter = 0;
+
+    let one = Object.keys(arrDataOfBrackets);
+
+    for (let i = one.length - 1; i >= 0 && this.isContinue; i--)
+    {
+        const BracketsOfCurrentContent = arrDataOfBrackets[one[i]];
+
+        if (!BracketsOfCurrentContent && BracketsOfCurrentContent.length === 0)
+            continue;
+
+        this.Position[0] = parseInt(one[i]);
+
+        for (let j = BracketsOfCurrentContent.length - 1; j >= 0 && this.isContinue; j--)
         {
-            for (let i = lvl.length - 1; i >= 0; i--)
+            const intCurrentData = BracketsOfCurrentContent[j];
+
+            if (this.Buffer.length === 0)
+                this.PushData(intCurrentData);
+            else
+                this.AnalyseData(intCurrentData);
+        }
+    }
+}
+ProceedBrackets.prototype.PushData = function (intContent)
+{
+    intContent[2] = this.Position[0]
+
+    if (intContent[1] === 2)
+    {
+        this.OperatorsPos.push(intContent);
+        return
+    }
+    else if (intContent[1] === -1)
+        this.intCounter++;
+    else if (intContent[1] === 1)
+        this.intCounter--;
+    else if (intContent[1] === 0)
+    {
+        if (this.intCounter > 0)
+            this.intCounter++;
+        else
+            this.intCounter--;
+    }
+
+    this.Buffer.push(intContent);
+}
+ProceedBrackets.prototype.AnalyseData = function (arrContent)
+{
+    const arrLastElement = this.GetLastData();
+
+    arrContent[2] = this.Position[0];
+    if (arrContent[1] === 0)
+    {
+        if (arrLastElement[1] === 0)
+        {
+            this.Buffer.shift();
+            this.BracketsPair.push([arrContent, arrLastElement]);
+            this.intCounter++;
+            this.Position[1] = arrContent[0] - 1;
+        }
+        else if (arrLastElement[1] === 1)
+        {
+            this.Buffer.shift();
+            this.BracketsPair.push([arrContent, arrLastElement]);
+            this.intCounter++;
+            this.Position[1] = arrContent[0] - 1;
+        }
+        else
+            return;
+    }
+    else if (arrContent[1] === 1)
+    {
+        if (arrLastElement[1] === 1)
+            this.PushData(arrContent);
+        else if (arrLastElement[1] === 2)
+            this.OperatorsPos.push(arrLastElement);
+        else if (arrLastElement[1] === -1) {
+            this.Buffer.shift();
+            this.BracketsPair.push([arrContent, arrLastElement]);
+            this.intCounter--;
+            this.Position[1] = arrContent[0] - 1;
+        }
+        else
+            return;
+    }
+    else if (arrContent[1] === -1)
+    {
+        if (arrLastElement[1] === 0)
+        {
+            this.Buffer.shift();
+            this.BracketsPair.push([arrContent, arrLastElement]);
+            this.intCounter++;
+            this.Position[1] = arrContent[0] - 1;
+        }
+        else if (arrLastElement[1] === 1)
+        {
+            this.Buffer.shift();
+            this.BracketsPair.push([arrContent, arrLastElement]);
+            this.intCounter++;
+            this.Position[1] = arrContent[0] - 1;
+        }
+        else if (arrLastElement[1] === -1)
+            return;
+        else if (arrLastElement[1] === 2) {
+            this.OperatorsPos.push(arrLastElement);
+            this.isStopConvertation = true;
+        }
+        else {
+            this.isContinue = false;
+            return
+        }
+    }
+}
+ProceedBrackets.prototype.GetLastData = function ()
+{
+    let arrContent = [];
+    let intCounter = this.Buffer.length - 1;
+
+    while (arrContent !== 2 && intCounter >= 0)
+    {
+        arrContent = this.Buffer[intCounter];
+        intCounter--;
+    }
+
+    if (arrContent)
+        return arrContent;
+
+    return false;
+}
+ProceedBrackets.prototype.IsStop = function()
+{
+    return this.isStopConvertation === true || this.intCounter !== 0
+}
+ProceedBrackets.prototype.IsHasPoints = function ()
+{
+    return this.Position.length === 2;
+}
+ProceedBrackets.prototype.GetPosition = function (con)
+{
+    // let ContentPos = con.Content.length - 1;
+    // let Content = con.Content[ContentPos];
+    // let RunPos = Content.Content.length - 1;
+
+
+    if (this.Position[1] < 0) {
+        this.Position[1] = 0;
+    }
+
+    //if (this.Position[0] === ContentPos && this.Position[1] === RunPos)
+        return this.Position;
+
+    //return []
+}
+ProceedBrackets.prototype.IsBufferIncludeOneOpenBracket = function ()
+{
+    return this.Buffer.length === 1 && this.Buffer[0][1] === -1
+}
+ProceedBrackets.prototype.FindPairPos = function (intPos)
+{
+    for (let i = 0; i < this.BracketsPair.length; i++)
+    {
+        let arrCurrentPair = this.BracketsPair[i];
+
+        if (arrCurrentPair[1] === intPos)
+            return arrCurrentPair[0];
+    }
+    return false;
+}
+
+const ParaRunIterator = function(ParaRun)
+{
+    this.Content = ParaRun.Content;
+    this.Cursor = ParaRun.Content.length - 1;
+}
+ParaRunIterator.prototype.GetNext = function()
+{
+    if (!this.IsHasContent())
+        return false;
+
+    const oContent = this.Content[this.Cursor];
+    this.Cursor--;
+
+    return oContent.value;
+}
+ParaRunIterator.prototype.IsHasContent = function()
+{
+    return this.Cursor !== -1;
+}
+ParaRunIterator.prototype.CheckCursor = function()
+{
+    if (this.Cursor === -1) {
+        this.Cursor = 0;
+    }
+}
+
+const ContentIterator = function(Content, oBracketContent)
+{
+    this.Content = Content.Content;
+    this.cursor = this.Content.length - 1;
+    this.RulePosition = [];
+    this.BracketPosition = [];
+    this.CurrentElement;
+    this.intBracketCounter = 0;
+    this.BracketContent = oBracketContent;
+    this.isBracket = false;
+}
+ContentIterator.prototype.IsHasContent = function ()
+{
+    return this.cursor >= 0;
+}
+ContentIterator.prototype.GetNext = function (nextRule)
+{
+    if (!this.CurrentElement)
+        this.CreateCurrentElement(nextRule);
+
+    return this.GetNextFromCurrentElement(nextRule);
+}
+ContentIterator.prototype.CreateCurrentElement = function(nextRule)
+{
+    const oCurrent = this.Content[this.cursor];
+
+    if (oCurrent instanceof ParaRun) {
+        if (oCurrent.Content.length === 0) {
+            this.cursor--;
+            this.CreateCurrentElement(nextRule);
+        }
+        else
+            this.CurrentElement = new ParaRunIterator(oCurrent);
+    }
+    else
+        this.CurrentElement = oCurrent;
+}
+ContentIterator.prototype.GetNextFromCurrentElement = function (nextRule)
+{
+    if (this.CurrentElement instanceof ParaRunIterator)
+    {
+        if (!this.CurrentElement.IsHasContent() && this.cursor > 0)
+        {
+            this.cursor--;
+            this.CreateCurrentElement();
+            return this.GetNextFromCurrentElement(nextRule);
+        }
+        else if (!this.CurrentElement.IsHasContent() && this.cursor <= 0)
+        {
+            return false;
+        }
+
+        let intCount = 0;
+        let intCode;
+
+        while (this.CurrentElement.IsHasContent())
+        {
+            const prevCode = intCode;
+            let intCurrent = intCode = this.CurrentElement.GetNext();
+
+            const strCurrent = String.fromCharCode(intCode);
+
+            if (AscMath.MathLiterals.rBrackets.IsIncludes(strCurrent))
             {
-                let oCurrentBracket = lvl[i];
-                if (!oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1])
-                {
-                    if (oCurrentBracket[1] === 2 && lvl[i-1] && lvl[i-1][1] === -1) {
-                        return false;
-                    }
-                    else {
-                       if(oCurrentBracket[1] !== 2) {
-                            isBracketPushed = true;
-                       }
-                       oBracketsContent.intCounter.push(oCurrentBracket);
-                    }
-                }
+                this.intBracketCounter--;
+            }
+            else if (AscMath.MathLiterals.lrBrackets.IsIncludes(strCurrent))
+            {
+                if (this.intBracketCounter === 0 && intCount === 0)
+                    this.intBracketCounter--;
                 else
                 {
-                    if (oCurrentBracket[1] === 0)
-                    {
-                        if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 0)
-                        {
-                            oBracketsContent.intCounter.shift();
-                            isBracketPushed = false;
-                            return oCurrentBracket[0] - 1;
-                        }
-                        else if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 1)
-                        {
-                            oBracketsContent.intCounter.shift();
-                            isBracketPushed = false;
-                            return oCurrentBracket[0] - 1;
-                        }
-                        else if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === -1)
-                            return false;
-                        else {
-                            if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 2) {
-                                return false;
-                            }
-                            oBracketsContent.intCounter.push(oCurrentBracket);
-                        }
-
+                    this.intBracketCounter++;
+                    if (this.intBracketCounter === 0) {
+                        return intCode;
                     }
-                    else if (oCurrentBracket[1] === 1)
-                    {
-                        if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 0) {
-                            return false
-                        }
-                        else if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 1)
-                            oBracketsContent.intCounter.push(oCurrentBracket);
-                        else if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === -1)
-                            return false;
-                        else
-                            oBracketsContent.intCounter.push(oCurrentBracket);
-                    }
-                    else if (oCurrentBracket[1] === -1)
-                    {
-                        if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 0) {
-                            oBracketsContent.intCounter.shift();
-                            isBracketPushed = false;
-                            return oCurrentBracket[0] - 1;
-                        }
-                        else if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === 1) {
-                            oBracketsContent.intCounter.shift();
-                            isBracketPushed = false;
-                            return oCurrentBracket[0] - 1;
-                        }
-                        else if (oBracketsContent.intCounter[oBracketsContent.intCounter.length - 1][1] === -1)
-                            return false;
-                        else
-                            oBracketsContent.intCounter.push(oCurrentBracket);
+                    else {
+                        this.CurrentElement.CheckCursor();
+                        this.CurrentElement.Cursor++;
+                        return prevCode;
                     }
                 }
             }
+            else if (AscMath.MathLiterals.lBrackets.IsIncludes(strCurrent) && this.intBracketCounter < 0)
+            {
+                this.intBracketCounter++;
+                return intCode;
+            }
+            else if (AscMath.MathLiterals.lBrackets.IsIncludes(strCurrent))
+            {
+                this.CurrentElement.CheckCursor();
+                this.CurrentElement.Cursor++;
+                return prevCode;
+            }
+            else if (strCurrent === "▒" && this.CurrentRule !== "▒") {
+                this.CurrentElement.Cursor++;
+                return prevCode;
+            }
+
+            if (this.CurrentRule === strCurrent)
+            {
+                return intCurrent;
+            }
+
+            else if (nextRule !== true && nextRule && intCurrent === nextRule.charCodeAt(0))
+            {
+                this.CurrentElement.Cursor++;
+                return prevCode;
+            }
+
+            if (this.CurrentRule !== true) {
+                return false;
+            }
+
+            intCount++;
         }
 
-        if (isBracketPushed)
-            return false;
-
-        return true;
+        return intCode;
     }
-    const ProceedOperatorLevel = function(lvl, oBracketsContent)
+    else
     {
-        if (lvl && lvl.length > 0 && oBracketsContent.intCounter && oBracketsContent.intCounter[0] && oBracketsContent.intCounter[0][0] < lvl[lvl.length - 1]) {
-            if (isOperatorInBracketBLock(oBracketsContent, lvl)) {
-                console.log(oBracketsContent, lvl);
-            }
-            return lvl[lvl.length - 1];
+        if (nextRule !== undefined) {
+            this.cursor--;
+            this.CurrentElement = undefined;
         }
 
         return true;
     }
-    const ProceedSlashesLevel = function(lvl, oBracketsContent)
+}
+ContentIterator.prototype.ResetParaRunCursor = function()
+{
+    this.cursor = this.Content.length - 1
+    this.CurrentElement = undefined;
+    this.intBracketCounter = 0;
+}
+ContentIterator.prototype.CheckRules = function ()
+{
+    const rules = [
+        //true обозначает обычный текст или блоки контента (CFraction, CLimit, CDegree...);
+        // ["_"],
+        // ["^"],
+        [true, "^", true, "_", true, "▒", true],
+        [true, "_", true, "^", true, "▒", true],
+
+        [true, "_", true, "^", true],
+        [true, "^", true, "_", true],
+
+        [true, "^", true, "▒", true],
+        [true, "_", true, "▒", true],
+
+        [true, "/", true],
+        [true, "^", true],
+        [true, "_", true],
+
+        ['\\frac', true, true],
+
+        ["√", true],
+        ["∛", true],
+        ["∜", true],
+        ["▭", true],
+    ];
+
+    for (let j = 0; j < rules.length; j++)
     {
-        if (oBracketsContent.intCounter && oBracketsContent.intCounter === 0 && lvl.length > 0)
-            return lvl[lvl.length - 1];
+        this.cursor = this.Content.length - 1;
+        let arrCurrentRule = rules[j];
+        let intRuleCounter = 0;
 
-        return true;
-    }
+        for (let i = arrCurrentRule.length - 1; i >= 0 && this.IsHasContent(); i--)
+        {
+            this.CurrentRule = arrCurrentRule[i];
+            const intCharCode = this.GetNext(arrCurrentRule[i - 1]);
 
-    let oCurrent = new ContentIterator(this);
-
-    for (let i = this.Content.length - 1; i >= 0; i--) {
-        if (this.Content[i].Type === 49) {
-
-            if (i === this.Content.length - 1) {
-                Result = ProceedBracketsContentLevel(oBracketsContent[i]);
-
-                if (Result === false)
-                    return;
-                else if (Result !== true) {
-                    oCurrent.SetPositionInContent(i);
-                    oCurrent.SetPositionInParaRun(Result);
-                }
-            }
-
-            if (Result === true && nInputType === 1)
-                Result = ProceedSlashesLevel(oSlashesContent[i], oBracketsContent);
-
-            if (i === this.Content.length - 1)
-                oCurrent.CheckRules();
-
-            if (oCurrent.IsEndPositionFind()) {
-                Result = oCurrent.endPosition;
+            if (arrCurrentRule[i] === true && intCharCode)
+                intRuleCounter++;
+            else if (arrCurrentRule[i] !== true && String.fromCharCode(intCharCode) === arrCurrentRule[i])
+                intRuleCounter++;
+            else
                 break;
-            }
+        }
+
+        if (intRuleCounter === arrCurrentRule.length)
+        {
+            this.RulePosition[0] = this.cursor;
+            this.RulePosition[1] = this.CurrentElement instanceof ParaRunIterator && this.CurrentElement.Cursor > 0 ? this.CurrentElement.Cursor : 0;
+            break;
+        }
+        else
+            this.ResetParaRunCursor();
+    }
+
+    return;
+}
+ContentIterator.prototype.WriteBracketPosition = function (intGlobalPos, intParaRunPos)
+{
+    this.BracketPosition[0] = intGlobalPos;
+    this.BracketPosition[1] = intParaRunPos;
+}
+ContentIterator.prototype.GetPosition = function()
+{
+    let brack = this.BracketPosition;
+    let rule = this.RulePosition;
+
+    if (rule[0] > brack[0])
+    {
+        if (rule[1] > brack[1]) {
+            return rule;
+        }
+        else {
+            this.isBracket = true;
+            return brack;
+        }
+    }
+    else
+    {
+        if (brack[1] > rule[1]) {
+            this.isBracket = true
+            return brack
+        }
+        else {
+            return rule
+        }
+    }
+}
+
+CMathContent.prototype.CheckAutoCorrectionRules = function(nInputType)
+{
+    const oRuleIterator = new ContentIterator(this);
+    const oParaRunWithSpace = this.DeleteEndSpace();
+    oRuleIterator.CheckRules();
+
+    const arrPosition = oRuleIterator.RulePosition;
+
+    if (arrPosition.length === 2) {
+        this.CutConvertAndPaste(arrPosition, nInputType);
+        return true;
+    }
+    else if (oParaRunWithSpace !== false) {
+        oParaRunWithSpace.AddText(" ", oParaRunWithSpace.Content.length);
+        return false;
+    }
+}
+CMathContent.prototype.CheckAutoCorrectionBrackets = function(nInputType)
+{
+    const oBracketsContent = this.GetBracketOperatorInfo(nInputType === 1);
+    const Brackets = new ProceedBrackets(oBracketsContent, nInputType);
+
+    const arrPosition = Brackets.GetPosition(this);
+
+    if (Brackets.BracketsPair.length > 0) {
+        const arrPos = Brackets.BracketsPair[0][0];
+
+        if (
+            arrPosition.length === 2 &&
+            Brackets.intCounter === 0 &&
+            arrPosition[0] === arrPos[2] && arrPosition[1] === arrPos[0]
+
+        ) {
+            this.CutConvertAndPaste(arrPosition, nInputType);
+            return Brackets;
         }
     }
 
-    Result = oCurrent.endPosition.length === 2 ? oCurrent.endPosition : [0, 0] ;
+
+    return Brackets;
+}
+CMathContent.prototype.CutConvertAndPaste = function(arrPos, nInputType, isContentNotParaRun)
+{
+    let isCurPos = false;
+    if (arrPos.length === 0)
+        arrPos = [0, 0];
+
+    if (arrPos[0] < 0) {
+        arrPos[0] = 0;
+    }
 
     let strContent = "";
-    for (let i = this.CurPos; i >= Result[0]; i--) {
-        if (i > Result[0])
+    for (let i = this.CurPos; i >= arrPos[0]; i--)
+    {
+        const CurrentContent = this.Content[i];
+        if (CurrentContent === undefined)
+            continue;
+
+        if (i === arrPos[0] && CurrentContent instanceof ParaRun)
         {
-          strContent = this.Content[i].GetTextOfElement(nInputType) + strContent;
-          this.Remove_FromContent(i, 1);
+            for (let j = CurrentContent.Content.length - 1; j >= arrPos[1] && j >= 0; j--)
+            {
+                strContent = CurrentContent.Content[j].GetTextOfElement(nInputType === 1) + strContent;
+                CurrentContent.Remove_FromContent(j, 1);
+            }
         }
         else
         {
-            if (Result[1] === -1 || Result[1] === 0 || !(this.Content[0] instanceof ParaRun)) {
-                strContent = this.Content[i].GetTextOfElement(nInputType) + strContent;
-                this.Remove_FromContent(i, 1);
-            }
-            else {
-                for (let j = this.Content[i].Content.length - 1; j > Result[1]; j--)
-                {
-                    strContent = this.Content[i].Content[j].GetTextOfElement(nInputType) + strContent;
-                    this.Content[i].Remove_FromContent(j, 1);
-                }
-            }
+            strContent = CurrentContent.GetTextOfElement(nInputType === 1) + strContent;
+            this.Remove_FromContent(i, 1);
         }
     }
 
-    let oTempObject = AscMath.GetConvertContent(nInputType, strContent, this);
-
-    //Objects with empty content must be selected: sin ->  sin▯ - select content of CMathFunction
+    const oTempObject = AscMath.GetConvertContent(nInputType, strContent, this);
 
     if (oTempObject && oTempObject.Content.length > 0)
         this.AddContentForAutoCorrection(oTempObject.Content);
-};
+}
+CMathContent.prototype.DeleteEndSpace = function()
+{
+    const oLastContent = this.Content[this.Content.length - 1];
+    if (oLastContent instanceof ParaRun) {
+        const isReturn = oLastContent.MathAutoCorrection_DeleteLastSpace();
+        if (isReturn)
+            return oLastContent;
+        return false;
+    }
+}
 CMathContent.prototype.IsStartAutoCorrection = function(nInputType, intCode)
 {
-    return AscMath.IsStartAutoCorrection(nInputType, intCode);
+    return AscMath.IsStartAutoCorrection(nInputType, intCode) &&
+        !(
+            this.IsLastElement(AscMath.MathLiterals.lBrackets)
+            || this.IsLastElement(AscMath.MathLiterals.lrBrackets)
+            || this.IsLastElement(AscMath.MathLiterals.radical)
+            || this.IsLastElement(AscMath.MathLiterals.nary)
+        )
 };
 CMathContent.prototype.Clear_ContentChanges = function()
 {
