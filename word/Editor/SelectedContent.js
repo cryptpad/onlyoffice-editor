@@ -1104,7 +1104,10 @@
 
 		this.private_CheckInsertSignatures();
 
-		this.PasteHelper = this.Elements[this.Elements.length - 1].Element;
+		if (isConcatE && oParagraphE)
+			this.PasteHelper = oParagraphE;
+		else
+			this.PasteHelper = this.Elements[this.Elements.length - 1].Element;
 	};
 
 	/**
