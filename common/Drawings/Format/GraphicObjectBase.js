@@ -1694,6 +1694,9 @@
     CGraphicObjectBase.prototype.getAllDocContents = function(aDrawings){
 
     };
+    CGraphicObjectBase.prototype.GetParaDrawing = function(){
+        return AscFormat.getParaDrawing(this);
+    };
     CGraphicObjectBase.prototype.checkRunContent = function(fCallback){
         let aDocContents = [];
         this.getAllDocContents(aDocContents);
