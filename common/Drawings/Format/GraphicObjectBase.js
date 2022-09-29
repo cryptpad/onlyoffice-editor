@@ -436,6 +436,7 @@
         this.idMap = null;
         this.bSaveSourceFormatting = null;
         this.contentCopyPr = null;
+        this.cacheImage = true;
     }
 
 
