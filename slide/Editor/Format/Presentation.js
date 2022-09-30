@@ -7233,7 +7233,7 @@ CPresentation.prototype.EnterText = function (codePoints) {
         }
         else {
             oItem = AscCommon.IsSpace(codePoints) ? new AscWord.CRunSpace(codePoints) : new AscWord.CRunText(codePoints);
-            this.AddToParagraph(new AscWord.CRunText(codePoints), false, true);
+            this.AddToParagraph(oItem, false, true);
         }
         this.CheckLanguageOnTextAdd = false;
         if (oController) {
