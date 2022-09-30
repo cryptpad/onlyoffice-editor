@@ -1330,6 +1330,9 @@ var editor;
     }
     return false;
   };
+  spreadsheet_api.prototype.isDocumentModified = function() {
+    return this.asc_isDocumentModified();
+  };
 
   // Actions and callbacks interface
 
@@ -7755,6 +7758,7 @@ var editor;
   prot["asc_getCoreProps"] = prot.asc_getCoreProps;
   prot["asc_setCoreProps"] = prot.asc_setCoreProps;
   prot["asc_isDocumentModified"] = prot.asc_isDocumentModified;
+  prot["isDocumentModified"] = prot.isDocumentModified;
   prot["asc_isDocumentCanSave"] = prot.asc_isDocumentCanSave;
   prot["asc_getCanUndo"] = prot.asc_getCanUndo;
   prot["asc_getCanRedo"] = prot.asc_getCanRedo;
