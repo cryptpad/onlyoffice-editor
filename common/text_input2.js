@@ -463,6 +463,23 @@
 			return false;
 		}
 	};
+
+	CTextInputPrototype.addTextCodes = function(codes)
+	{
+		for (let i = 0, len = codes.length; i < len; i++)
+		{
+			if (32 === codes[i] && this.isSpaceOnKeyDown)
+			{
+				codes.splice(i, 1);
+				--i;
+				--len;
+				continue;
+			}
+		}
+		this.Api.asc_enterText(codes);
+	};
+
+	/* Old version
 	CTextInputPrototype.addTextCodes = function(codes)
 	{
 		for (let i = 0, len = codes.length; i < len; i++)
@@ -486,7 +503,6 @@
 		else
 		{
 			// TODO: отдельный метод в апи
-
 			// пока имитируем через keyCode - для keyDown/Up - сделаем такой код,
 			// который ни на что не влияет. код для буквы 'a' - 65
 			let keyObject = this.getKeyboardEventObject(code);
@@ -497,6 +513,7 @@
 			this.Api.onKeyUp(keyObjectUpDown);
 		}
 	};
+	*/
 	CTextInputPrototype.removeText = function(length)
 	{
 		for (let i = 0; i < length; i++)
