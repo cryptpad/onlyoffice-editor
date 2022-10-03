@@ -106,9 +106,6 @@
 		this.isHardCheckKeyboard = AscCommon.AscBrowser.isSailfish;
 		this.virtualKeyboardClickTimeout = -1;
 		this.virtualKeyboardClickPrevent = false;
-
-		// на андроиде не приходят пробелы на keyDown
-		this.isSpaceOnKeyDown = false;
 	}
 
 	var CTextInputPrototype = CTextInput2.prototype;
@@ -204,7 +201,9 @@
 			return false;
 		}
 
-		var ret = this.Api.onKeyDown(e);
+		let ret = undefined;
+		if (32 !== e.keyCode)
+			ret = this.Api.onKeyDown(e);
 
 		switch (e.keyCode)
 		{
@@ -223,10 +222,6 @@
 			{
 				this.clear();
 				return false;
-			}
-			case 32:
-			{
-				this.isSpaceOnKeyDown = true;
 			}
 			default:
 				break;
@@ -394,8 +389,6 @@
 			if (isClear)
 				this.clear();
 		}
-
-		this.isSpaceOnKeyDown = false;
 	};
 	CTextInputPrototype.addText = function(text)
 	{
@@ -466,16 +459,6 @@
 
 	CTextInputPrototype.addTextCodes = function(codes)
 	{
-		for (let i = 0, len = codes.length; i < len; i++)
-		{
-			if (32 === codes[i] && this.isSpaceOnKeyDown)
-			{
-				codes.splice(i, 1);
-				--i;
-				--len;
-				continue;
-			}
-		}
 		this.Api.asc_enterText(codes);
 	};
 
