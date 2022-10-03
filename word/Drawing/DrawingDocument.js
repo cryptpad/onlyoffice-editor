@@ -2759,6 +2759,14 @@ function CDrawingDocument()
 		this.m_oWordControl.OnScroll();
 	};
 
+	this.GetVisibleRegion = function()
+	{
+		let pos1 = this.ConvertCoordsFromCursor2(0, 0);
+		let pos2 = this.ConvertCoordsFromCursor2(0, this.m_oWordControl.m_oEditor ? this.m_oWordControl.m_oEditor.HtmlElement.height : 0);
+
+		return [{ Page : pos1.Page, Y : pos1.Y }, { Page : pos2.Page, Y : pos2.Y }];
+	};
+
 	this.ConvertCoordsFromCursor = function (x, y, bIsRul)
 	{
 		var _x = x;
