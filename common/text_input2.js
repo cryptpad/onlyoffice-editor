@@ -110,7 +110,7 @@
 
 	var CTextInputPrototype = CTextInput2.prototype;
 
-	const TEXT_INPUT_DEBUG = false;
+	const TEXT_INPUT_DEBUG = true;
 	CTextInputPrototype.log = function(value)
 	{
 		if (TEXT_INPUT_DEBUG)
@@ -422,8 +422,14 @@
 
 		this.TextBeforeComposition = "";
 	};
-	// чтобы можно было переключать версии text_input
-	CTextInputPrototype.apiCompositeEnd = CTextInputPrototype.compositeEnd;
+	CTextInputPrototype.apiCompositeEnd = function()
+	{
+		if (!this.IsComposition)
+			return;
+
+		this.compositeEnd();
+		this.clear();
+	};
 	CTextInputPrototype.checkTextInput = function(codes)
 	{
 		var isAsync = AscFonts.FontPickerByCharacter.checkTextLight(codes, true);
@@ -861,35 +867,6 @@
 		}
 
 		this.Api.Input_UpdatePos();
-
-		if (AscCommon.AscBrowser.isAndroid)
-		{
-			this.HtmlArea.onclick = function (e)
-			{
-				var _this = AscCommon.g_inputContext;
-
-				if (-1 != _this.virtualKeyboardClickTimeout)
-				{
-					clearTimeout(_this.virtualKeyboardClickTimeout);
-					_this.virtualKeyboardClickTimeout = -1;
-				}
-
-				_this.compositeEnd();
-
-				if (!_this.virtualKeyboardClickPrevent)
-					return;
-
-				_this.setReadOnlyWrapper(true);
-				_this.virtualKeyboardClickPrevent = false;
-				AscCommon.stopEvent(e);
-				_this.virtualKeyboardClickTimeout = setTimeout(function ()
-				{
-					_this.setReadOnlyWrapper(false);
-					_this.virtualKeyboardClickTimeout = -1;
-				}, 1);
-				return false;
-			};
-		}
 	};
 	CTextInputPrototype.appendInputToCanvas = function(parent_id)
 	{
