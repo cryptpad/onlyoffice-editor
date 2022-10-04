@@ -110,7 +110,7 @@
 
 	var CTextInputPrototype = CTextInput2.prototype;
 
-	const TEXT_INPUT_DEBUG = true;
+	const TEXT_INPUT_DEBUG = false;
 	CTextInputPrototype.log = function(value)
 	{
 		if (TEXT_INPUT_DEBUG)
