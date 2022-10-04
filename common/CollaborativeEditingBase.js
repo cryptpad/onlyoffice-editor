@@ -918,7 +918,7 @@
             this.m_aCursorsToUpdate = {};
         }
         else {
-            DocState = LogicDocument.Save_DocumentStateBeforeLoadChanges();
+            DocState = LogicDocument.Save_DocumentStateBeforeLoadChanges(false, true);
         }
         return DocState;
     };
@@ -935,7 +935,8 @@
             this.Refresh_ForeignCursors();
         }
     };
-    CCollaborativeEditingBase.prototype.WatchDocumentPositionsByState = function(DocState) {
+    CCollaborativeEditingBase.prototype.WatchDocumentPositionsByState = function(DocState)
+	{
         this.Clear_DocumentPositions();
 
         if (DocState.Pos)
@@ -944,6 +945,11 @@
             this.Add_DocumentPosition(DocState.StartPos);
         if (DocState.EndPos)
             this.Add_DocumentPosition(DocState.EndPos);
+
+		if (DocState.ViewPosTop)
+			this.Add_DocumentPosition(DocState.ViewPosTop);
+		if (DocState.ViewPosBottom)
+			this.Add_DocumentPosition(DocState.ViewPosBottom);
 
         if (DocState.FootnotesStart && DocState.FootnotesStart.Pos)
             this.Add_DocumentPosition(DocState.FootnotesStart.Pos);
@@ -958,13 +964,19 @@
         if (DocState.FootnotesEnd && DocState.FootnotesEnd.EndPos)
             this.Add_DocumentPosition(DocState.FootnotesEnd.EndPos);
     };
-    CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(DocState) {
+    CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(DocState)
+	{
         if (DocState.Pos)
             this.Update_DocumentPosition(DocState.Pos);
         if (DocState.StartPos)
             this.Update_DocumentPosition(DocState.StartPos);
         if (DocState.EndPos)
             this.Update_DocumentPosition(DocState.EndPos);
+
+		if (DocState.ViewPosTop)
+			this.Update_DocumentPosition(DocState.ViewPosTop);
+		if (DocState.ViewPosBottom)
+			this.Update_DocumentPosition(DocState.ViewPosBottom);
 
         if (DocState.FootnotesStart && DocState.FootnotesStart.Pos)
             this.Update_DocumentPosition(DocState.FootnotesStart.Pos);

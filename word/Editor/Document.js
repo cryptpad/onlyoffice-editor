@@ -1935,6 +1935,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     this.DrawingDocument = DrawingDocument;
 
     this.NeedUpdateTarget = false;
+	this.ViewPosition     = null;  // Позиция, куда мы должны проскроллиться после пересчета (если задана)
 
     // Флаг, который контролирует нужно ли обновлять наш курсор у остальных редакторов нашего документа.
     // Также следим за частотой обновления, чтобы оно проходило не чаще одного раза в секунду.
@@ -5235,14 +5236,78 @@ CDocument.prototype.CheckTargetUpdate = function()
 		this.DrawingDocument.UpdateTargetCheck = false;
 	}
 
-	var bFlag = this.Controller.CanUpdateTarget();
+	if (!this.NeedUpdateTarget)
+		return;
 
-	if (true === this.NeedUpdateTarget && true === bFlag && false === this.IsMovingTableBorder())
+	if (this.ViewPosition)
 	{
-		// Обновляем курсор сначала, чтобы обновить текущую страницу
-		this.RecalculateCurPos();
-		this.NeedUpdateTarget = false;
+		this.CheckViewPosition();
 	}
+	else
+	{
+		if (this.Controller.CanUpdateTarget() && !this.IsMovingTableBorder())
+		{
+			// Обновляем курсор сначала, чтобы обновить текущую страницу
+			this.RecalculateCurPos();
+			this.NeedUpdateTarget = false;
+		}
+	}
+};
+CDocument.prototype.CheckViewPosition = function()
+{
+	if (!this.ViewPosition)
+		return;
+
+	let topDocPos    = this.ViewPosition.Top;
+	let bottomDocPos = this.ViewPosition.Bottom;
+
+	if (!topDocPos[0]
+		|| this !== topDocPos[0].Class
+		|| !bottomDocPos[0]
+		|| this !== bottomDocPos[0].Class)
+	{
+		this.ViewPosition     = null;
+		this.NeedUpdateTarget = false;
+		return;
+	}
+
+	let nInDocumentPosition = bottomDocPos[0].Position;
+	if (this.FullRecalc.Id && this.FullRecalc.StartIndex <= nInDocumentPosition)
+		return;
+
+	this.ViewPosition     = null;
+	this.NeedUpdateTarget = false;
+
+	function GetXY(docPos)
+	{
+		let run = docPos[docPos.length - 1].Class;
+		if (!run || !(run instanceof AscWord.CRun))
+			return {Page : 0, Y : 0, X : 0, H : 0};
+
+		let paragraph = run.GetParagraph();
+
+		let state = paragraph.SaveSelectionState();
+		paragraph.RemoveSelection();
+
+		run.SetThisElementCurrentInParagraph();
+		run.State.ContentPos = docPos[docPos.length - 1].Position;
+
+		let posInfo = paragraph.RecalculateCurPos(false, false, false, true);
+		paragraph.LoadSelectionState(state);
+
+		return {
+			Page : posInfo.PageNum,
+			X    : 0,
+			Y    : posInfo.Y,
+			H    : posInfo.Height
+		}
+	}
+
+	let top    = GetXY(topDocPos);
+	let bottom = GetXY(bottomDocPos);
+
+	let height = (top.Page === bottom.Page ? bottom.Y - top.Y - top.H : bottom.Y);
+	this.DrawingDocument.m_oWordControl.ScrollToPosition(top.X, top.Y + top.H, top.Page, height);
 };
 CDocument.prototype.RecalculateCurPos = function()
 {
@@ -11268,6 +11333,21 @@ CDocument.prototype.Get_NearestPos = function(PageNum, X, Y, bAnchor, Drawing)
 			return NearestPos;
 	}
 
+	if (!this.Pages.length)
+	{
+		return {
+			X          : 0,
+			Y          : 0,
+			Height     : 0,
+			PageNum    : 0,
+			Internal   : {Line : 0, Page : 0, Range : 0},
+			Transform  : null,
+			Paragraph  : null,
+			ContentPos : null,
+			SearchPos  : null
+		};
+	}
+
 	var ContentPos = this.Internal_GetContentPosByXY(X, Y, PageNum);
 
 	// Делаем логику как в ворде
@@ -15229,7 +15309,7 @@ CDocument.prototype.Continue_FastCollaborativeEditing = function()
 		}
 	}
 };
-CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function(isRemoveSelection)
+CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function(isRemoveSelection, isStoreViewPosition)
 {
 	var State = {};
 
@@ -15262,6 +15342,50 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function(isRemoveSelec
 	State.Pos        = [];
 	State.StartPos   = [];
 	State.EndPos     = [];
+
+	if (isStoreViewPosition)
+	{
+		let viewPort = this.DrawingDocument.GetVisibleRegion();
+
+		let anchorPos = this.Get_NearestPos(viewPort[0].Page, 0, viewPort[0].Y);
+
+		if (anchorPos
+			&& anchorPos.Paragraph
+			&& anchorPos.Paragraph.IsUseInDocument()
+			&& anchorPos.ContentPos)
+		{
+			let run = anchorPos.Paragraph.GetClassByPos(anchorPos.ContentPos);
+			if (run && run instanceof AscWord.CRun)
+			{
+				let posInRun = anchorPos.ContentPos.Get(anchorPos.ContentPos.GetDepth());
+
+				let docPos = run.GetDocumentPositionFromObject();
+				docPos.push({Class : run, Position : posInRun});
+
+				State.ViewPosTop = docPos;
+			}
+		}
+
+		anchorPos = this.Get_NearestPos(viewPort[1].Page, 0, viewPort[1].Y);
+
+		if (anchorPos
+			&& anchorPos.Paragraph
+			&& anchorPos.Paragraph.IsUseInDocument()
+			&& anchorPos.ContentPos)
+		{
+			let run = anchorPos.Paragraph.GetClassByPos(anchorPos.ContentPos);
+			if (run && run instanceof AscWord.CRun)
+			{
+				let posInRun = anchorPos.ContentPos.Get(anchorPos.ContentPos.GetDepth());
+
+				let docPos = run.GetDocumentPositionFromObject();
+				docPos.push({Class : run, Position : posInRun});
+
+				State.ViewPosBottom = docPos;
+			}
+		}
+
+	}
 
 	this.Controller.SaveDocumentStateBeforeLoadChanges(State);
 
@@ -15310,7 +15434,13 @@ CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 		}
 	}
 
+	if (State.ViewPosTop)
+		this.ViewPosition = {Top : State.ViewPosTop, Bottom : State.ViewPosBottom ? State.ViewPosBottom : State.ViewPosTop};
+	else
+		this.ViewPosition = null;
+
 	this.UpdateSelection();
+
 };
 CDocument.prototype.SaveDocumentState = function(isRemoveSelection)
 {

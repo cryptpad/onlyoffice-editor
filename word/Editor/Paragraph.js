@@ -1857,12 +1857,14 @@ Paragraph.prototype.Reset_RecalculateCache = function()
 {
 
 };
-Paragraph.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget)
+Paragraph.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY, isUpdateTarget, isReturnTarget)
 {
 	if (undefined === isUpdateTarget)
 		isUpdateTarget = true;
+	if (undefined === isReturnTarget)
+		isReturnTarget = false;
 
-	var oCurPosInfo = this.Internal_Recalculate_CurPos(this.CurPos.ContentPos, true, isUpdateTarget, false);
+	var oCurPosInfo = this.Internal_Recalculate_CurPos(this.CurPos.ContentPos, true, isUpdateTarget, isReturnTarget);
 
 	if (bUpdateX)
 		this.CurPos.RealX = oCurPosInfo.X;
