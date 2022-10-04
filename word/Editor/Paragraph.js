@@ -15096,7 +15096,10 @@ Paragraph.prototype.Get_SectPr = function()
     if (this.Parent && this.Parent.Get_SectPr)
     {
         this.Parent.Update_ContentIndexing();
-        return this.Parent.Get_SectPr(this.Index);
+		if(this.Index > -1)
+		{
+			return this.Parent.Get_SectPr(this.Index);
+		}
     }
 
     return null;
