@@ -3546,9 +3546,12 @@ function CDrawingDocument()
 	};
 	this.DrawTarget = function ()
 	{
-		if (oThis.NeedTarget && oThis.m_oWordControl.IsFocus)
+		if (oThis.NeedTarget)
 		{
-			oThis.showTarget(!oThis.isShowTarget());
+			if (oThis.m_oWordControl.IsFocus && !oThis.m_oWordControl.m_oApi.isBlurEditor)
+				oThis.showTarget(!oThis.isShowTarget());
+			else
+				oThis.showTarget(true);
 		}
 	};
 
