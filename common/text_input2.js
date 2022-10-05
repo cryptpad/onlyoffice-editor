@@ -290,6 +290,8 @@
 
 		let lastSymbol = 0;
 		let newTextLength = 0;
+
+		let isAsyncInput = false;
 		if (this.IsComposition)
 		{
 			if (newValue.length >= this.TextBeforeComposition.length)
@@ -306,7 +308,7 @@
 				if (newTextLength > 0)
 					lastSymbol = codes[newTextLength - 1];
 
-				this.checkTextInput(codes);
+				isAsyncInput = this.checkTextInput(codes);
 			}
 		}
 		else
@@ -343,7 +345,7 @@
 				codesNew.splice(0, equalsLen);
 
 			// добавляем новые
-			this.checkTextInput(codesNew);
+			isAsyncInput = this.checkTextInput(codesNew);
 
 			if (codesNew.length > 0)
 				lastSymbol = codesNew[codesNew.length - 1];
@@ -357,12 +359,16 @@
 			this.log("compositionEnd: " + newValue);
 		}
 
-		this.Text = newValue;
+		if (!isAsyncInput)
+		{
+			// если асинхронно - то на коллбеке придет onInput - и текст добавится позже
+			this.Text = newValue;
+		}
 
 		if (window.g_asc_plugins)
 			window.g_asc_plugins.onPluginEvent("onInputHelperInput", { "text" : this.Text });
 
-		if (!this.IsComposition && lastSymbol !== 0)
+		if (!this.IsComposition && lastSymbol !== 0 && !isAsyncInput)
 		{
 			let isClear = false;
 			switch (lastSymbol)
@@ -459,8 +465,8 @@
 			});
 
 			//this.setReadOnly(true);
-			return false;
 		}
+		return isAsync;
 	};
 
 	CTextInputPrototype.addTextCodes = function(codes)
