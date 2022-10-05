@@ -15344,48 +15344,7 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function(isRemoveSelec
 	State.EndPos     = [];
 
 	if (isStoreViewPosition)
-	{
-		let viewPort = this.DrawingDocument.GetVisibleRegion();
-
-		let anchorPos = this.Get_NearestPos(viewPort[0].Page, 0, viewPort[0].Y);
-
-		if (anchorPos
-			&& anchorPos.Paragraph
-			&& anchorPos.Paragraph.IsUseInDocument()
-			&& anchorPos.ContentPos)
-		{
-			let run = anchorPos.Paragraph.GetClassByPos(anchorPos.ContentPos);
-			if (run && run instanceof AscWord.CRun)
-			{
-				let posInRun = anchorPos.ContentPos.Get(anchorPos.ContentPos.GetDepth());
-
-				let docPos = run.GetDocumentPositionFromObject();
-				docPos.push({Class : run, Position : posInRun});
-
-				State.ViewPosTop = docPos;
-			}
-		}
-
-		anchorPos = this.Get_NearestPos(viewPort[1].Page, 0, viewPort[1].Y);
-
-		if (anchorPos
-			&& anchorPos.Paragraph
-			&& anchorPos.Paragraph.IsUseInDocument()
-			&& anchorPos.ContentPos)
-		{
-			let run = anchorPos.Paragraph.GetClassByPos(anchorPos.ContentPos);
-			if (run && run instanceof AscWord.CRun)
-			{
-				let posInRun = anchorPos.ContentPos.Get(anchorPos.ContentPos.GetDepth());
-
-				let docPos = run.GetDocumentPositionFromObject();
-				docPos.push({Class : run, Position : posInRun});
-
-				State.ViewPosBottom = docPos;
-			}
-		}
-
-	}
+		this.private_StoreViewPositions(State);
 
 	this.Controller.SaveDocumentStateBeforeLoadChanges(State);
 
@@ -15396,6 +15355,158 @@ CDocument.prototype.Save_DocumentStateBeforeLoadChanges = function(isRemoveSelec
 	this.CollaborativeEditing.WatchDocumentPositionsByState(State);
 
 	return State;
+};
+CDocument.prototype.GetDocumentPositionByXY = function(pageIndex, x, y)
+{
+	let anchorPos = this.Get_NearestPos(pageIndex, x, y);
+
+	if (anchorPos
+		&& anchorPos.Paragraph
+		&& anchorPos.Paragraph.IsUseInDocument()
+		&& anchorPos.ContentPos)
+	{
+		let run = anchorPos.Paragraph.GetClassByPos(anchorPos.ContentPos);
+		if (run && run instanceof AscWord.CRun)
+		{
+			let posInRun = anchorPos.ContentPos.Get(anchorPos.ContentPos.GetDepth());
+
+			let docPos = run.GetDocumentPositionFromObject();
+			docPos.push({Class : run, Position : posInRun});
+			return docPos;
+		}
+	}
+
+	return null;
+};
+CDocument.prototype.private_GetXYByDocumentPosition = function(docPos)
+{
+	let run = docPos[docPos.length - 1].Class;
+	if (!run || !(run instanceof AscWord.CRun))
+		return null;
+
+	let paragraph = run.GetParagraph();
+
+	let state = paragraph.SaveSelectionState();
+	paragraph.RemoveSelection();
+
+	run.SetThisElementCurrentInParagraph();
+	run.State.ContentPos = docPos[docPos.length - 1].Position;
+
+	let posInfo = paragraph.RecalculateCurPos(false, false, false, true);
+	paragraph.LoadSelectionState(state);
+
+	return {
+		Page : posInfo.PageNum,
+		X    : 0,
+		Y    : posInfo.Y,
+		H    : posInfo.Height
+	}
+};
+CDocument.prototype.private_StoreViewPositions = function(state)
+{
+	let viewPort = this.DrawingDocument.GetVisibleRegion();
+
+	let topPos    = this.GetDocumentPositionByXY(viewPort[0].Page, 0, viewPort[0].Y);
+	let bottomPos = this.GetDocumentPositionByXY(viewPort[1].Page, 0, viewPort[1].Y);
+
+	if (!topPos)
+		return;
+
+	if (!bottomPos)
+		bottomPos = topPos;
+
+	state.ViewPosTop    = topPos;
+	state.ViewPosBottom = bottomPos;
+
+	let _topPos    = topPos;
+	let _bottomPos = bottomPos;
+	if (viewPort[0].Page === viewPort[1].Page)
+	{
+		let pageIndex = viewPort[0].Page;
+
+		let y0 = viewPort[0].Y;
+		let y1 = viewPort[1].Y;
+		let y  = y0;
+
+
+		let xyInfo = this.private_GetXYByDocumentPosition(_topPos);
+		while (xyInfo.Y < y0 && y < y1)
+		{
+			y += 10;
+			_topPos = this.GetDocumentPositionByXY(pageIndex, 0, y);
+			if (!_topPos)
+				continue;
+
+			xyInfo = this.private_GetXYByDocumentPosition(_topPos);
+		}
+
+		if (_topPos)
+			state.ViewPosTop = _topPos;
+
+		y = y1;
+		xyInfo = this.private_GetXYByDocumentPosition(_bottomPos);
+		while (xyInfo.Y + xyInfo.H > y1 && y > y0)
+		{
+			y -= 10;
+			_bottomPos = this.GetDocumentPositionByXY(pageIndex, 0, y);
+			if (!_bottomPos)
+				continue;
+
+			xyInfo = this.private_GetXYByDocumentPosition(_bottomPos);
+		}
+
+		if (_bottomPos)
+			state.ViewPosBottom = _bottomPos;
+	}
+	else
+	{
+		let pageIndex = viewPort[0].Page;
+
+		let y0 = viewPort[0].Y;
+		let y1 = this.Pages[pageIndex] ? this.Pages[pageIndex].Height : 297;
+		let y  = y0;
+
+
+		let xyInfo = this.private_GetXYByDocumentPosition(_topPos);
+		while (xyInfo.Y < y0 && y < y1)
+		{
+			y += 10;
+			_topPos = this.GetDocumentPositionByXY(pageIndex, 0, y);
+			if (!_topPos)
+				continue;
+
+			xyInfo = this.private_GetXYByDocumentPosition(_topPos);
+		}
+
+		if (y >= y1)
+			_topPos = this.GetDocumentPositionByXY(pageIndex + 1, 0, 0);
+
+		if (_topPos)
+			state.ViewPosTop = _topPos;
+
+		pageIndex = viewPort[1].Page;
+
+		y0 = 0;
+		y1 = viewPort[1].Y;
+		y  = y1;
+
+		xyInfo = this.private_GetXYByDocumentPosition(_bottomPos);
+		while (xyInfo.Y + xyInfo.H > y1 && y > y0)
+		{
+			y -= 10;
+			_bottomPos = this.GetDocumentPositionByXY(pageIndex, 0, y);
+			if (!_bottomPos)
+				continue;
+
+			xyInfo = this.private_GetXYByDocumentPosition(_bottomPos);
+		}
+
+		if (y <= 0)
+			_bottomPos = this.GetDocumentPositionByXY(pageIndex - 1, 0, MEASUREMENT_MAX_MM_VALUE);
+
+		if (_bottomPos)
+			state.ViewPosBottom = _bottomPos;
+	}
 };
 CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 {
