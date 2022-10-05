@@ -13791,36 +13791,39 @@ Because of this, the display is sometimes not correct.
       const arrShapes = this.spTree[0] && this.spTree[0].spTree;
       if (arrShapes) {
         arrShapes.forEach(function (oShape) {
-          if ((oShape.spPr && oShape.spPr.Fill && oShape.spPr.Fill.fill && !(oShape.spPr.Fill.fill instanceof AscFormat.CNoFill))) {
-            let mods = null;
-            if (oShape.spPr.Fill.fill.color.Mods) {
-              mods = oShape.spPr.Fill.fill.color.Mods.createDuplicate();
-            }
-            oShape.spPr.setFill(new AscFormat.CreateSolidFillRGB(91, 155, 213));
-            oShape.spPr.Fill.fill.color.setMods(mods);
-          }
+          if (oShape.spPr) {
+            if (oShape.spPr.Fill && oShape.spPr.Fill.fill && !(oShape.spPr.Fill.fill instanceof AscFormat.CNoFill)) {
+              let mods = null;
+              const id = oShape.spPr.Fill.fill.color.color.id;
+              map[oShape.spPr.Fill.fill.color.color.id] = true
+              let standardColor;
+              if (id === 0) {
+                standardColor = {R: 0x5B, G: 0x9B, B: 0xD5, A: 255};
+              } else if (id === 12) {
+                standardColor = {R: 255, G: 255, B: 255, A: 255};
+              } else {
+                standardColor = {R: 0, G: 0, B: 0, A: 255};
+              }
 
-          oShape.recalculateBrush();
-          oShape.recalculatePen();
-          if (oShape.pen && oShape.pen.Fill && oShape.pen.Fill.fill && !(oShape.pen.Fill.fill instanceof AscFormat.CNoFill)) {
-            const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
-            oShape.spPr.ln.setFill(oPen);
-            oShape.spPr.ln.setW(12700 * 3);
-          }
+              if (oShape.spPr.Fill.fill.color.Mods) {
+                mods = oShape.spPr.Fill.fill.color.Mods.Apply(standardColor);
+              }
+              const grayscaleValue = AscFormat.getGrayscaleValue(standardColor);
 
-          if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
-            const oBrush = oShape.brush;
-            const grayscale = oBrush.getGrayscaleValue();
-            if (grayscale < GRAYSCALE_TRESHHOLD) {
-              const oHeavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
-              oShape.spPr.setFill(oHeavyBrush);
-            } else {
-              const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
-              oShape.spPr.setFill(oLightBrush);
+              if (grayscaleValue < GRAYSCALE_TRESHHOLD) {
+                const oHeavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
+                oShape.spPr.setFill(oHeavyBrush);
+              } else {
+                const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
+                oShape.spPr.setFill(oLightBrush);
+              }
+            }
+            if (oShape.spPr.ln && oShape.spPr.ln.Fill && oShape.spPr.ln.Fill.fill && !(oShape.spPr.ln.Fill.fill instanceof AscFormat.CNoFill)) {
+              const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
+              oShape.spPr.ln.setFill(oPen);
+              oShape.spPr.ln.setW(12700 * 3);
             }
           }
-          oShape.recalcLine();
-          oShape.recalcFill();
         });
       }
     }

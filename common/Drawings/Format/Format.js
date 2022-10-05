@@ -6440,6 +6440,10 @@
 		};
 
 
+		function getGrayscaleValue(color) {
+			return color.R * 0.2126 + color.G * 0.7152 + color.B * 0.0722;
+		}
+
 		function FormatRGBAColor() {
 			this.R = 0;
 			this.G = 0;
@@ -6448,7 +6452,7 @@
 		}
 
 		FormatRGBAColor.prototype.getGrayscaleValue = function () {
-			return this.R * 0.2126 + this.G * 0.7152 + this.B * 0.0722;
+			return getGrayscaleValue(this);
 		};
 
 		function CUniFill() {
@@ -6658,7 +6662,7 @@
 		};
 		CUniFill.prototype.getGrayscaleValue = function () {
 			const RGBAColor = this.getRGBAColor();
-			return RGBAColor.R * 0.2126 + RGBAColor.G * 0.7152 + RGBAColor.B * 0.0722;
+			return getGrayscaleValue(RGBAColor);
 		};
 
 		CUniFill.prototype.getRGBAColor = function () {
@@ -20083,6 +20087,7 @@
 		window['AscFormat'].CreateUniColorRGB2 = CreateUniColorRGB2;
 		window['AscFormat'].CreateSolidFillRGB = CreateSolidFillRGB;
 		window['AscFormat'].CreateSolidFillRGBA = CreateSolidFillRGBA;
+		window['AscFormat'].getGrayscaleValue = getGrayscaleValue;
 		window['AscFormat'].CSrcRect = CSrcRect;
 		window['AscFormat'].CBlipFillTile = CBlipFillTile;
 		window['AscFormat'].CBlipFill = CBlipFill;
