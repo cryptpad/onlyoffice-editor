@@ -324,7 +324,7 @@
 		}
 
 		var _t = this;
-		window.addEventListener("blur", function(){
+		window.addEventListener && window.addEventListener("blur", function(){
 			_t.isBlurEditor = true;
 		}, false);
 	};
