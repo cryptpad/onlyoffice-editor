@@ -13791,24 +13791,32 @@ Because of this, the display is sometimes not correct.
       const arrShapes = this.spTree[0] && this.spTree[0].spTree;
       if (arrShapes) {
         arrShapes.forEach(function (oShape) {
+          if ((oShape.spPr && oShape.spPr.Fill && oShape.spPr.Fill.fill && !(oShape.spPr.Fill.fill instanceof AscFormat.CNoFill))) {
+            let mods = null;
+            if (oShape.spPr.Fill.fill.color.Mods) {
+              mods = oShape.spPr.Fill.fill.color.Mods.createDuplicate();
+            }
+            oShape.spPr.setFill(new AscFormat.CreateSolidFillRGB(91, 155, 213));
+            oShape.spPr.Fill.fill.color.setMods(mods);
+          }
+
           oShape.recalculateBrush();
           oShape.recalculatePen();
-          if ((oShape.pen && oShape.pen.Fill && oShape.pen.Fill.fill && !(oShape.pen.Fill.fill instanceof AscFormat.CNoFill)) ||
-              (oShape.brush && oShape.brush.fill && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill))) {
+          if (oShape.pen && oShape.pen.Fill && oShape.pen.Fill.fill && !(oShape.pen.Fill.fill instanceof AscFormat.CNoFill)) {
             const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
             oShape.spPr.ln.setFill(oPen);
             oShape.spPr.ln.setW(12700 * 3);
+          }
 
-            if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
-              const oBrush = oShape.brush;
-              const grayscale = oBrush.getGrayscaleValue();
-              if (grayscale < GRAYSCALE_TRESHHOLD) {
-                const oHeavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
-                oShape.spPr.setFill(oHeavyBrush);
-              } else {
-                const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
-                oShape.spPr.setFill(oLightBrush);
-              }
+          if (oShape.brush && oShape.brush.fill && !(oShape.brush.fill instanceof AscFormat.CNoFill)) {
+            const oBrush = oShape.brush;
+            const grayscale = oBrush.getGrayscaleValue();
+            if (grayscale < GRAYSCALE_TRESHHOLD) {
+              const oHeavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
+              oShape.spPr.setFill(oHeavyBrush);
+            } else {
+              const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
+              oShape.spPr.setFill(oLightBrush);
             }
           }
           oShape.recalcLine();
