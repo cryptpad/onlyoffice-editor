@@ -12555,7 +12555,9 @@ CDocument.prototype.private_UpdateUndoRedo = function()
 
 		this.Api.sync_CanUndoCallback(bCanUndo);
 		this.Api.sync_CanRedoCallback(this.History.Can_Redo());
-		this.Api.CheckChangedDocument();
+
+		if (!this.IsCompositeInputInProgress())
+			this.Api.CheckChangedDocument();
 	}
 };
 CDocument.prototype.Document_UpdateCopyCutState = function()
@@ -18282,6 +18284,10 @@ CDocument.prototype.Is_CursorInsideCompositeText = function()
 		return true;
 
 	return false;
+};
+CDocument.prototype.IsCompositeInputInProgress = function()
+{
+	return (!!this.CompositeInput);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы со сносками
