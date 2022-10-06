@@ -12555,9 +12555,7 @@ CDocument.prototype.private_UpdateUndoRedo = function()
 
 		this.Api.sync_CanUndoCallback(bCanUndo);
 		this.Api.sync_CanRedoCallback(this.History.Can_Redo());
-
-		if (!this.IsCompositeInputInProgress())
-			this.Api.CheckChangedDocument();
+		this.Api.CheckChangedDocument();
 	}
 };
 CDocument.prototype.Document_UpdateCopyCutState = function()
@@ -18194,7 +18192,8 @@ CDocument.prototype.End_CompositeInput = function()
         }
     }
 
-	this.Document_UpdateInterfaceState();
+	// Обновление интерфейса здесь обязательно, т.к. на нем должно сработать Api.CheckChangedDocument
+	this.UpdateInterface();
 
     this.private_UpdateCursorXY(true, true);
 
