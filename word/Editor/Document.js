@@ -23780,19 +23780,28 @@ CDocument.prototype.GetAllTablesOfFigures = function(isCurrent)
  */
 CDocument.prototype.GetCurrentComplexField = function()
 {
-	var oSelectedInfo = this.GetSelectedElementsInfo();
-	var arrComplexFields = oSelectedInfo.GetComplexFields();
+	if (this.IsSelectionUse())
+	{
+		let arrFields = this.GetAllFields(true);
+		if (arrFields.length > 0)
+			return arrFields[arrFields.length - 1];
+	}
+	else
+	{
+		var oSelectedInfo    = this.GetSelectedElementsInfo();
+		var arrComplexFields = oSelectedInfo.GetComplexFields();
 
-	if (arrComplexFields.length > 0)
-		return arrComplexFields[arrComplexFields.length - 1];
+		if (arrComplexFields.length > 0)
+			return arrComplexFields[arrComplexFields.length - 1];
 
-	var oPageNum = oSelectedInfo.GetPageNum();
-	if (oPageNum)
-		return oPageNum;
+		var oPageNum = oSelectedInfo.GetPageNum();
+		if (oPageNum)
+			return oPageNum;
 
-	var oPagesCount = oSelectedInfo.GetPagesCount();
-	if (oPagesCount)
-		return oPagesCount;
+		var oPagesCount = oSelectedInfo.GetPagesCount();
+		if (oPagesCount)
+			return oPagesCount;
+	}
 
 	return null;
 };
