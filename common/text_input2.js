@@ -242,7 +242,6 @@
 			case 46:	// delete
 			{
 				this.clear();
-				return false;
 			}
 			default:
 				break;
