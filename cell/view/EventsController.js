@@ -1478,6 +1478,7 @@
 			var coord = t._getCoordinates(event);
 			var button = AscCommon.getMouseButton(event);
 			event.isLocked = t.isMousePressed = true;
+			this.isShapeAction = false;
 			// Shapes
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
 			if(!graphicsInfo) {
@@ -1538,7 +1539,6 @@
 				return;
 			}
 
-			this.isShapeAction = false;
 
 			if (2 === event.detail) {
 				// Это означает, что это MouseDown для dblClick эвента (его обрабатывать не нужно)
