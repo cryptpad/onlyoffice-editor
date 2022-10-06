@@ -201,8 +201,29 @@
 			return false;
 		}
 
+		let isSpaceAsText = (32 === e.keyCode);
+		if (isSpaceAsText)
+		{
+			// hotkeys
+			if (AscCommon.global_keyboardEvent.AltKey ||
+				AscCommon.global_keyboardEvent.CtrlKey ||
+				AscCommon.global_keyboardEvent.MacCmdKey)
+			{
+				isSpaceAsText = false;
+			}
+
+			if (isSpaceAsText)
+			{
+				// cell hotkey
+				if (AscCommon.global_keyboardEvent.ShiftKey && this.Api.editorId === AscCommon.c_oEditorId.Spreadsheet)
+				{
+					isSpaceAsText = false;
+				}
+			}
+		}
+
 		let ret = undefined;
-		if (32 !== e.keyCode)
+		if (!isSpaceAsText)
 			ret = this.Api.onKeyDown(e);
 
 		switch (e.keyCode)
