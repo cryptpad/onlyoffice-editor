@@ -2314,7 +2314,7 @@
 		this.newDefinedNames = [];
 	}
 
-	CT_Workbook.prototype.fromXml = function (reader) {
+	CT_Workbook.prototype.fromXml = function (reader, opt_read_only_map) {
 		if (!reader.ReadNextNode()) {
 			return;
 		}
@@ -2329,6 +2329,11 @@
 			var depth = reader.GetDepth();
 			while (reader.ReadNextSiblingNode(depth)) {
 				var name = reader.GetNameNoNS();
+
+				if (opt_read_only_map && !opt_read_only_map[name]) {
+					continue;
+				}
+
 				if ("sheets" === name) {
 					var sheets = new CT_Sheets(this.wb);
 					sheets.fromXml(reader);
@@ -10436,7 +10441,7 @@ xmlns:xr16=\"http://schemas.microsoft.com/office/spreadsheetml/2017/revision16\"
 	};
 
 	function CT_ExternalReference() {
-		this.val = {};
+		this.val = new AscCommonExcel.ExternalReference();
 	}
 
 	CT_ExternalReference.prototype.fromXml = function (reader) {
