@@ -210,6 +210,13 @@ function (window, undefined) {
             }
         };
 
+
+        let EOLEDrawAspect =
+            {
+                oledrawaspectContent: 0,
+                oledrawaspectIcon: 1
+            };
+
     function COleObject()
     {
 		AscFormat.CImageShape.call(this);
@@ -647,5 +654,6 @@ function (window, undefined) {
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].COleObject = COleObject;
     window['Asc'].asc_putBinaryDataToFrameFromTableOleObject = window['Asc']['asc_putBinaryDataToFrameFromTableOleObject'] = asc_putBinaryDataToFrameFromTableOleObject;
+    window['AscFormat'].EOLEDrawAspect = EOLEDrawAspect;
 
 })(window);
