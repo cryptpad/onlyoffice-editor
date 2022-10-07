@@ -2875,13 +2875,15 @@ CDocument.prototype.private_FinalizeCheckTrackMove = function()
 };
 CDocument.prototype.private_FinalizeValidateForm = function()
 {
+	let isCompositeInput = this.IsCompositeInputInProgress();
+
 	let isCancelAction = this.Action.CancelAction;
 
 	let arrForms = [];
 	for (var sId in this.Action.Additional.ValidateForm)
 	{
 		let oForm = this.Action.Additional.ValidateForm[sId];
-		if (!this.FormsManager.ValidateChangeOnFly(oForm))
+		if (!isCompositeInput && !this.FormsManager.ValidateChangeOnFly(oForm))
 			this.Action.CancelAction = true;
 
 		arrForms.push(oForm);
@@ -12905,14 +12907,7 @@ CDocument.prototype.Document_Undo = function(Options)
 			this.BookmarksManager.SetNeedUpdate(true);
 
 			var arrChanges = this.History.Undo(Options);
-			this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
-			this.Comments.UpdateAll();        // TODO: Надо переделать как на Start/Finalize
-			this.DrawingObjects.TurnOnCheckChartSelection();
-			this.RecalculateByChanges(arrChanges);
-
-			this.Document_UpdateSelectionState();
-			this.Document_UpdateInterfaceState();
-			this.Document_UpdateRulersState();
+			this.UpdateAfterUndoRedo(arrChanges);
 		}
 	}
 
@@ -12935,18 +12930,22 @@ CDocument.prototype.Document_Redo = function()
 		this.BookmarksManager.SetNeedUpdate(true);
 
 		var arrChanges = this.History.Redo();
-		this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
-		this.Comments.UpdateAll();        // TODO: Надо переделать как на Start/Finalize
-		this.DrawingObjects.TurnOnCheckChartSelection();
-		this.RecalculateByChanges(arrChanges);
-
-		this.Document_UpdateSelectionState();
-		this.Document_UpdateInterfaceState();
-		this.Document_UpdateRulersState();
+		this.UpdateAfterUndoRedo(arrChanges);
 	}
 
 	if (this.IsFillingFormMode())
 		this.Api.sync_OnAllRequiredFormsFilled(this.FormsManager.IsAllRequiredFormsFilled());
+};
+CDocument.prototype.UpdateAfterUndoRedo = function(changes)
+{
+	this.DocumentOutline.UpdateAll(); // TODO: надо бы подумать как переделать на более легкий пересчет
+	this.Comments.UpdateAll();        // TODO: Надо переделать как на Start/Finalize
+	this.DrawingObjects.TurnOnCheckChartSelection();
+	this.RecalculateByChanges(changes);
+
+	this.UpdateSelection();
+	this.UpdateInterface();
+	this.UpdateRulers();
 };
 CDocument.prototype.GetSelectionState = function()
 {
@@ -18173,15 +18172,21 @@ CDocument.prototype.End_CompositeInput = function()
 	var oRun = this.CompositeInput.Run;
 	oRun.Set_CompositeInput(null);
 
-	if (0 === nLen && true === this.History.CanRemoveLastPoint() && true === this.CompositeInput.CanUndo)
+	let oParentForm;
+	if ((0 === nLen && this.CompositeInput.CanUndo)
+		|| ((oParentForm = oRun.GetParentForm()) && !this.FormsManager.ValidateChangeOnFly(oParentForm)))
 	{
-		this.Document_Undo();
-		this.History.Clear_Redo();
+		let arrChanges = this.History.UndoCompositeInput();
+		if (arrChanges)
+		{
+			this.History.ClearRedo();
+			this.UpdateAfterUndoRedo(arrChanges);
+		}
 	}
 
 	this.CompositeInput = null;
 
-    var oController = this.DrawingObjects;
+	var oController = this.DrawingObjects;
     if(oController)
     {
         var oTargetTextObject = AscFormat.getTargetTextObject(oController);

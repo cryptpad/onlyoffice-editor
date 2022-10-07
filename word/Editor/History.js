@@ -440,6 +440,10 @@ CHistory.prototype =
         // Удаляем ненужные точки
         this.Points.length = this.Index + 1;
     },
+	ClearRedo : function()
+	{
+		return this.Clear_Redo();
+	},
 
     // Регистрируем новое изменение:
     // Class - объект, в котором оно произошло
@@ -753,8 +757,16 @@ CHistory.prototype =
             && AscDFH.historydescription_Document_CompositeInputReplace === Point2.Description)
         {
             // Ничего не делаем. Эта ветка означает, что эти две точки можно объединить
-            NewDescription = AscDFH.historydescription_Document_CompositeInput;
+            NewDescription = Point1.Description;
         }
+		else if (AscDFH.historydescription_Document_CompositeInput === Point1.Description
+			|| AscDFH.historydescription_Document_CompositeInputReplace === Point1.Description
+			|| AscDFH.historydescription_Document_CompositeInput === Point2.Description
+			|| AscDFH.historydescription_Document_CompositeInputReplace === Point2.Description)
+		{
+			// Композитный ввод не разрешаем объединять ни с чем, кроме композитного ввода
+			return false;
+		}
         else
         {
             var PrevItem = null;
@@ -817,11 +829,14 @@ CHistory.prototype =
         return true;
 	},
 
-    CanRemoveLastPoint : function()
+    CanRemoveLastPoint : function(pointsCount)
     {
-        if (this.Points.length <= 0
-            || (true !== this.Is_UserSaveMode() && null !== this.SavedIndex && this.SavedIndex >= this.Points.length - 1)
-            || (true === this.Is_UserSaveMode() && null !== this.UserSavedIndex && this.UserSavedIndex >= this.Points.length - 1))
+		if (undefined === pointsCount || null === pointsCount)
+			pointsCount = 1;
+
+        if (this.Points.length < pointsCount
+            || (true !== this.Is_UserSaveMode() && null !== this.SavedIndex && this.SavedIndex >= this.Points.length - pointsCount)
+            || (true === this.Is_UserSaveMode() && null !== this.UserSavedIndex && this.UserSavedIndex >= this.Points.length - pointsCount))
             return false;
 
         return true;
@@ -1410,6 +1425,47 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 			|| AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence === nDescription
 			|| AscDFH.historydescription_Document_AutoCorrectHyphensWithDash === nDescription
 			|| AscDFH.historydescription_Document_AutoCorrectSmartQuotes === nDescription);
+	};
+	/**
+	 * Специальная функция для отмены последнего ввода через композитный ввод
+	 */
+	CHistory.prototype.UndoCompositeInput = function()
+	{
+		let lastIndex = this.Index;
+		while (lastIndex >= 0)
+		{
+			let description = this.Points[lastIndex].Description;
+
+			if (AscDFH.historydescription_Document_CompositeInput === description)
+				break;
+
+			if (AscDFH.historydescription_Document_CompositeInputReplace !== description)
+				return null;
+
+			lastIndex--;
+		}
+
+		if (lastIndex < 0)
+			return null;
+
+
+		let changes = [];
+		for (; this.Index >= lastIndex; --this.Index)
+		{
+			let point = this.Points[this.Index];
+			for (let changeIndex = point.Items.length - 1; changeIndex >= 0; --changeIndex)
+			{
+				let item = point.Items[changeIndex];
+				if (item.Data)
+				{
+					item.Data.Undo();
+					changes.push(item.Data);
+				}
+				this.private_UpdateContentChangesOnUndo(item);
+			}
+		}
+
+		return changes;
 	};
 
 	//----------------------------------------------------------export--------------------------------------------------
