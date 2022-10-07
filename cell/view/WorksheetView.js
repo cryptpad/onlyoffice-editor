@@ -13404,6 +13404,10 @@
 				return true;
 			}
 
+			if (_row === 1 && _col === 1) {
+				return true;
+			}
+
 			return false;
 		};
 
