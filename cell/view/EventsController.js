@@ -1378,13 +1378,15 @@
 			this.isMousePressed = false;
 			// Shapes
 			if (this.isShapeAction) {
-                if(!this.isUpOnCanvas)
-                {
-                    event.isLocked = this.isMousePressed;
-                    event.ClickCount = this.clickCounter.clickCount;
-                    event.fromWindow = true;
-                    this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
-                    this._changeSelectionDone(event);
+                if(!this.isUpOnCanvas) {
+					let oDrawingsController = this.view.getWorksheet().objectRender.controller;
+					if(oDrawingsController.haveTrackedObjects()) {
+						event.isLocked = this.isMousePressed;
+						event.ClickCount = this.clickCounter.clickCount;
+						event.fromWindow = true;
+						this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
+						this._changeSelectionDone(event);
+					}
                 }
                 this.isUpOnCanvas = false;
 				return true;

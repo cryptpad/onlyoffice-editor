@@ -6850,12 +6850,16 @@ DrawingObjectsController.prototype =
         return bRetValue;
     },
 
+    haveTrackedObjects: function(){
+        return this.arrTrackObjects.length > 0 || this.arrPreTrackObjects.length > 0;
+    },
+
     checkTrackDrawings: function(){
         return this.curState instanceof  AscFormat.StartAddNewShape
         || this.curState instanceof  AscFormat.SplineBezierState
         || this.curState instanceof  AscFormat.PolyLineAddState
         || this.curState instanceof  AscFormat.AddPolyLine2State
-        || this.arrTrackObjects.length > 0 || this.arrPreTrackObjects.length > 0;
+        || this.haveTrackedObjects();
     },
 
     checkEndAddShape: function()
