@@ -4470,9 +4470,13 @@
 	{
 		return this.Add;
 	};
+	CChangesBaseContentChange.prototype.CreateFromParams = function(Class, Pos, Items, Add)
+	{
+		return new this.constructor(Class, Pos, Items, Add);
+	};
 	CChangesBaseContentChange.prototype.Copy = function()
 	{
-		var oChanges = new this.constructor(this.Class, this.Pos, this.Items, this.Add);
+		var oChanges = this.CreateFromParams(this.Class, this.Pos, this.Items, this.Add);
 
 		oChanges.UseArray = this.UseArray;
 
@@ -4618,7 +4622,7 @@
 		for (let nIndex = 0, nCount = arrSimpleActions.length; nIndex < nCount; ++nIndex)
 		{
 			let oAction = arrSimpleActions[nIndex];
-			let oChange = new this.constructor(this.Class, oAction.Pos, [oAction.Item], oAction.Add);
+			let oChange = this.CreateFromParams(this.Class, oAction.Pos, [oAction.Item], oAction.Add);
 			arrChanges.push(oChange);
 		}
 
