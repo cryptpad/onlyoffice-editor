@@ -767,8 +767,9 @@ CHistory.prototype =
 			// Композитный ввод не разрешаем объединять ни с чем, кроме композитного ввода
 			return false;
 		}
-        else
-        {
+		else if (AscDFH.historydescription_Document_AddLetterUnion === Point1.Description
+			&& AscDFH.historydescription_Document_AddLetterUnion === Point2.Description)
+		{
             var PrevItem = null;
             var Class    = null;
             for (var Index = StartIndex1; Index < Point1.Items.length; Index++)
@@ -795,6 +796,10 @@ CHistory.prototype =
 
             NewDescription = AscDFH.historydescription_Document_AddLetterUnion;
         }
+		else
+		{
+			return false;
+		}
 
         if (0 !== StartIndex1)
             Point1.Items.splice(0, 1);
@@ -1466,6 +1471,38 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 		}
 
 		return changes;
+	};
+	/**
+	 * Проверяем что последнее действие ввод заданного символа, в предшествующей заданной позиции
+	 * @param run {AscWord.CRun}
+	 * @param inRunPos {number}
+	 * @param codePoint {?number}
+	 * @returns {boolean}
+	 */
+	CHistory.prototype.CheckAsYouTypeEnterText = function(run, inRunPos, codePoint)
+	{
+		this.CheckUnionLastPoints();
+
+		if (this.Points.length <= 0 || this.Index !== this.Points.length - 1)
+			return false;
+
+		let point = this.Points[this.Index];
+		let description = point.Description;
+		if (AscDFH.historydescription_Document_AddLetter !== description
+			&& AscDFH.historydescription_Document_AddLetterUnion !== description
+			&& AscDFH.historydescription_Document_SpaceButton !== description
+			&& AscDFH.historydescription_Document_CorrectEnterText !== description)
+			return false;
+
+		let changes = point.Items;
+		if (!changes.length)
+			return false;
+
+		let lastChange = changes[changes.length - 1].Data;
+		return (AscDFH.historyitem_ParaRun_AddItem === lastChange.Type
+			&& lastChange.Class === run
+			&& lastChange.Pos === inRunPos - 1
+			&& (undefined === codePoint || lastChange.Items[0].GetCodePoint() === codePoint));
 	};
 
 	//----------------------------------------------------------export--------------------------------------------------

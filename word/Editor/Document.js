@@ -10470,8 +10470,15 @@ CDocument.prototype.OnKeyPress = function(e)
 
 	return false;
 };
-CDocument.prototype.EnterText = function(codePoints)
+CDocument.prototype.EnterText = function(value)
 {
+	if (undefined === value
+		|| null === value
+		|| (Array.isArray(value) && !value.length))
+		return false;
+
+	let codePoints = typeof(value) === "string" ? value.codePointsArray() : value;
+
 	this.private_CheckForbiddenPlaceOnTextAdd();
 
 	if (this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
@@ -10499,6 +10506,93 @@ CDocument.prototype.EnterText = function(codePoints)
 	}
 
 	this.CheckLanguageOnTextAdd = false;
+
+	this.UpdateSelection();
+	this.FinalizeAction();
+
+	return true;
+};
+CDocument.prototype.CorrectEnterText = function(oldValue, newValue)
+{
+	if (undefined === oldValue
+		|| null === oldValue
+		|| (Array.isArray(oldValue) && !oldValue.length))
+		return this.EnterText(newValue);
+
+	let newCodePoints = typeof(newValue) === "string" ? newValue.codePointsArray() : newValue;
+	let oldCodePoints = typeof(oldValue) === "string" ? oldValue.codePointsArray() : oldValue;
+
+	if (this.IsSelectionUse())
+		return false;
+
+	if (!Array.isArray(oldCodePoints))
+		oldCodePoints = [oldCodePoints];
+
+	let paragraph = this.GetCurrentParagraph();
+	if (!paragraph)
+		return false;
+
+	let contentPos = paragraph.GetContentPosition(false, false);
+	let run, inRunPos;
+	for (let index = contentPos.length - 1; index >= 0; --index)
+	{
+		if (contentPos[index].Class instanceof AscWord.CRun)
+		{
+			run      = contentPos[index].Class;
+			inRunPos = contentPos[index].Position;
+			break;
+		}
+	}
+
+	if (!run)
+		return false;
+
+	if (!this.History.CheckAsYouTypeEnterText(run, inRunPos, oldCodePoints[oldCodePoints.length - 1]))
+		return false;
+
+	if (undefined === newCodePoints || null === newCodePoints)
+		newCodePoints = [];
+	else if (!Array.isArray(newCodePoints))
+		newCodePoints = [newCodePoints];
+
+	let oldText = "";
+	for (let index = 0, count = oldCodePoints.length; index < count; ++index)
+	{
+		oldText += String.fromCodePoint(oldCodePoints[index]);
+	}
+
+	let state     = this.SaveDocumentState();
+	let maxShifts = oldCodePoints.length;
+	let selectedText;
+	while (maxShifts >= 0)
+	{
+		this.MoveCursorLeft(true, false);
+		selectedText = this.GetSelectedText(true);
+
+		if (!selectedText || selectedText === oldText)
+			break;
+
+		maxShifts--;
+	}
+
+	if (selectedText !== oldText || this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText, null, true, this.IsFormFieldEditing()))
+	{
+		this.LoadDocumentState(state);
+		return false;
+	}
+
+	this.StartAction(AscDFH.historydescription_Document_CorrectEnterText);
+
+	this.DrawingDocument.TargetStart();
+	this.DrawingDocument.TargetShow();
+
+	this.Remove(1, true, false, true);
+
+	for (let index = 0, count = newCodePoints.length; index < count; ++index)
+	{
+		let codePoint = newCodePoints[index];
+		this.AddToParagraph(AscCommon.IsSpace(codePoint) ? new AscWord.CRunSpace(codePoint) : new AscWord.CRunText(codePoint));
+	}
 
 	this.UpdateSelection();
 	this.FinalizeAction();

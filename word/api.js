@@ -11725,13 +11725,21 @@ background-repeat: no-repeat;\
 
 		oLogicDocument.SelectAll();
 	};
-	asc_docs_api.prototype.asc_enterText = function(codePoints)
+	asc_docs_api.prototype.asc_enterText = function(value)
 	{
 		let logicDocument = this.private_GetLogicDocument();
 		if (!logicDocument)
 			return false;
 
-		return logicDocument.EnterText(codePoints);
+		return logicDocument.EnterText(value);
+	};
+	asc_docs_api.prototype.asc_correctEnterText = function(oldValue, newValue)
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return false;
+
+		return logicDocument.CorrectEnterText(oldValue, newValue);
 	};
 
 	// input

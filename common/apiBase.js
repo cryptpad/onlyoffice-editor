@@ -3901,7 +3901,10 @@
 	baseEditorsApi.prototype.asc_EditSelectAll = function()
 	{
 	};
-	baseEditorsApi.prototype.asc_enterText = function(codePoints)
+	baseEditorsApi.prototype.asc_enterText = function(value)
+	{
+	};
+	baseEditorsApi.prototype.asc_correctEnterText = function(oldValue, newValue)
 	{
 	};
 	//---------------------------------------------------------search-----------------------------------------------------
