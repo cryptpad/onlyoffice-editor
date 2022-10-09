@@ -357,15 +357,16 @@
 			newTextLength = newLen;
 
 			// удаляем то, чего уже нет
+			let codesRemove = undefined;
 			if (oldLen > equalsLen)
-				this.removeText(oldLen - equalsLen);
+				codesRemove = codesOld.slice(equalsLen);
 
 			// удаляем старые из массива
 			if (0 !== equalsLen)
 				codesNew.splice(0, equalsLen);
 
 			// добавляем новые
-			isAsyncInput = this.checkTextInput(codesNew);
+			isAsyncInput = this.checkTextInput(codesNew, codesRemove);
 
 			if (codesNew.length > 0)
 				lastSymbol = codesNew[codesNew.length - 1];
@@ -456,7 +457,7 @@
 		this.compositeEnd();
 		this.clear();
 	};
-	CTextInputPrototype.checkTextInput = function(codes)
+	CTextInputPrototype.checkTextInput = function(codes, codesRemove)
 	{
 		var isAsync = AscFonts.FontPickerByCharacter.checkTextLight(codes, true);
 
@@ -468,7 +469,7 @@
 			}
 			else
 			{
-				this.addTextCodes(codes);
+				this.addTextCodes(codes, codesRemove);
 			}
 		}
 		else
@@ -489,9 +490,21 @@
 		return isAsync;
 	};
 
-	CTextInputPrototype.addTextCodes = function(codes)
+	CTextInputPrototype.addTextCodes = function(codes, codesRemove)
 	{
-		this.Api.asc_enterText(codes);
+		if (codesRemove && codesRemove.length !== 0)
+		{
+			// old version (cells??).
+			//this.removeText(codesRemove.length);
+
+			let resultCorrection = this.Api.asc_correctEnterText(codesRemove, codes);
+			if (true !== resultCorrection)
+				this.Api.asc_enterText(codes);
+		}
+		else
+		{
+			this.Api.asc_enterText(codes);
+		}
 	};
 
 	/* Old version
