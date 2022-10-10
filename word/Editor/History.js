@@ -1491,7 +1491,9 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 		if (AscDFH.historydescription_Document_AddLetter !== description
 			&& AscDFH.historydescription_Document_AddLetterUnion !== description
 			&& AscDFH.historydescription_Document_SpaceButton !== description
-			&& AscDFH.historydescription_Document_CorrectEnterText !== description)
+			&& AscDFH.historydescription_Document_CorrectEnterText !== description
+			&& AscDFH.historydescription_Document_CompositeInput !== description
+			&& AscDFH.historydescription_Document_CompositeInputReplace !== description)
 			return false;
 
 		let changes = point.Items;

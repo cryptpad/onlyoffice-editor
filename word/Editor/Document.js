@@ -18187,6 +18187,8 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	if (null === this.CompositeInput)
 		return;
 
+	arrCharCodes = typeof(arrCharCodes) === "string" ? arrCharCodes.codePointsArray() : arrCharCodes;
+
 	if (!this.CompositeInput.Length && !arrCharCodes.length)
 		return;
 
