@@ -9249,10 +9249,13 @@ DrawingObjectsController.prototype =
         return image;
     },
 
-    createOleObject: function(data, sApplicationId, rasterImageId, x, y, extX, extY, nWidthPix, nHeightPix)
+    createOleObject: function(data, sApplicationId, rasterImageId, x, y, extX, extY, nWidthPix, nHeightPix, arrImagesForAddToHistory)
     {
         var oleObject = new AscFormat.COleObject();
         AscFormat.fillImage(oleObject, rasterImageId, x, y, extX, extY);
+        if (arrImagesForAddToHistory) {
+            oleObject.loadImagesFromContent(arrImagesForAddToHistory);
+        }
         if (data instanceof Uint8Array) {
             oleObject.setBinaryData(data);
         } else {
