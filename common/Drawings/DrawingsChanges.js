@@ -501,11 +501,29 @@
     CChangesDrawingsContent.prototype.IsContentChange = function () {
         return false;
     };
-    CChangesDrawingsContent.prototype.CreateFromParams = function(Class, Pos, Items, Add)
+    CChangesDrawingsContent.prototype.Copy = function()
     {
-        return new this.constructor(Class, this.Type, Pos, Items, Add);
-    };
+        var oChanges = new this.constructor(this.Class, this.Type, this.Pos, this.Items, this.Add);
 
+        oChanges.UseArray = this.UseArray;
+
+        for (var nIndex = 0, nCount = this.PosArray.length; nIndex < nCount; ++nIndex)
+            oChanges.PosArray[nIndex] = this.PosArray[nIndex];
+
+        return oChanges;
+    };
+    CChangesDrawingsContent.prototype.ConvertToSimpleChanges = function()
+    {
+        let arrSimpleActions = this.ConvertToSimpleActions();
+        let arrChanges       = [];
+        for (let nIndex = 0, nCount = arrSimpleActions.length; nIndex < nCount; ++nIndex)
+        {
+            let oAction = arrSimpleActions[nIndex];
+            let oChange = new this.constructor(this.Class, this.Type, oAction.Pos, [oAction.Item], oAction.Add);
+            arrChanges.push(oChange);
+        }
+        return arrChanges;
+    };
     CChangesDrawingsContent.prototype.CreateReverseChange = function(){
         var oRet = this.private_CreateReverseChange(this.constructor);
         oRet.Type = this.Type;
