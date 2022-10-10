@@ -13795,7 +13795,6 @@ Because of this, the display is sometimes not correct.
             if (oShape.spPr.Fill && oShape.spPr.Fill.fill && !(oShape.spPr.Fill.fill instanceof AscFormat.CNoFill)) {
               let mods = null;
               const id = oShape.spPr.Fill.fill.color.color.id;
-              map[oShape.spPr.Fill.fill.color.color.id] = true
               let standardColor;
               if (id === 0) {
                 standardColor = {R: 0x5B, G: 0x9B, B: 0xD5, A: 255};
