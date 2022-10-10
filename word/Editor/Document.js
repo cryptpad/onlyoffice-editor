@@ -18234,6 +18234,9 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 
 	this.private_UpdateCursorXY(true, true);
 
+	if (!this.CompositeInput)
+		return;
+
 	if (!this.History.CheckUnionLastPoints())
 		this.CompositeInput.CanUndo = false;
 };
