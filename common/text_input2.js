@@ -365,11 +365,18 @@
 			if (0 !== equalsLen)
 				codesNew.splice(0, equalsLen);
 
-			// добавляем новые
-			isAsyncInput = this.checkTextInput(codesNew, codesRemove);
-
 			if (codesNew.length > 0)
 				lastSymbol = codesNew[codesNew.length - 1];
+
+			if (10 === lastSymbol)
+			{
+				// заглушка на интерфейс (если там enter был нажат - и сначала blur(), и только затем применение).
+				this.clear();
+				return;
+			}
+
+			// добавляем новые
+			isAsyncInput = this.checkTextInput(codesNew, codesRemove);
 		}
 
 		if (("compositionend" === type) && this.IsComposition)
