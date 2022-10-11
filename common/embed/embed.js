@@ -66,7 +66,7 @@
 	{
 		if (document.activeElement === this.frame)
 		{
-			this.lockWithTimeout(100);
+			this.lockWithTimeout(500);
 		}
 	};
 
@@ -76,6 +76,7 @@
 
 	ScrollLocker.prototype.onLeave = function()
 	{
+		this.lockWithTimeout(100);
 		this.frame.blur();
 	};
 
