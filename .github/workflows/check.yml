@@ -33,6 +33,7 @@ jobs:
           node-qunit-puppeteer tests/word/forms/forms.html
           node-qunit-puppeteer tests/word/forms/complexForm.html
           node-qunit-puppeteer tests/word/api/api.html
+          node-qunit-puppeteer tests/word/api/textInput.html
           node-qunit-puppeteer tests/word/styles/paraPr.html
   builder-tests:
     runs-on: ubuntu-latest
