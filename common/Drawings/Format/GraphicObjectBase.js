@@ -622,6 +622,14 @@
         }
         return false;
     };
+
+
+    CGraphicObjectBase.prototype.getRectBounds = function() {
+        let aSnapX = [];
+        let aSnapY = [];
+        this.calculateSnapArrays(aSnapX, aSnapY, this.getTransformMatrix());
+        return new CGraphicBounds(Math.min.apply(Math, aSnapX), Math.min.apply(Math, aSnapY),Math.max.apply(Math, aSnapX), Math.max.apply(Math, aSnapY));
+    };
     /**
      * Internal method for calculating snap arrays
      * @param {Array} snapArrayX
@@ -1840,7 +1848,7 @@
     CGraphicObjectBase.prototype.getInvertTransform = function(){
         return this.invertTransform;
     };
-    CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y, aDrawings) {
+    CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y, aDrawings, oController) {
         var cx, cy;
         cx = this.extX > 0 ? this.extX : 0.01;
         cy = this.extY > 0 ? this.extY : 0.01;
@@ -1894,7 +1902,11 @@
 
         if(!bSnapH) {
             if(Array.isArray(aDrawings)) {
-                oSnapHorObject = AscFormat.GetMinSnapDistanceXObject(x, aDrawings, this);
+                let aVertGuidesPos = [];
+                if(oController) {
+                    aVertGuidesPos = oController.getVertGuidesPos();
+                }
+                oSnapHorObject = AscFormat.GetMinSnapDistanceXObject(x, aDrawings, this, aVertGuidesPos);
                 if(oSnapHorObject) {
                     if(Math.abs(oSnapHorObject.dist) < AscFormat.SNAP_DISTANCE) {
                         bSnapH = true;
@@ -1907,7 +1919,11 @@
         }
         if(!bSnapV) {
             if(Array.isArray(aDrawings)) {
-                oSnapVertObject = AscFormat.GetMinSnapDistanceYObject(y, aDrawings, this);
+                let aHorGuidesPos = [];
+                if(oController) {
+                    aHorGuidesPos = oController.getHorGuidesPos();
+                }
+                oSnapVertObject = AscFormat.GetMinSnapDistanceYObject(y, aDrawings, this, aHorGuidesPos);
                 if(oSnapVertObject && Math.abs(oSnapVertObject.dist) < AscFormat.SNAP_DISTANCE) {
                     bSnapV = true;
                 }
@@ -1938,26 +1954,28 @@
                 dSnapY = this.transform.TransformPointY(t_x, t_y);
             }
         }
+        let bHorGuideSnap = oSnapHorObject && oSnapHorObject.guide;
+        let bVertGuideSnap = oSnapVertObject && oSnapVertObject.guide;
 
         switch (numHandle) {
             case 0:
-                return { kd1: (cx - t_x) / cx, kd2: (cy - t_y) / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY};
+                return { kd1: (cx - t_x) / cx, kd2: (cy - t_y) / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap};
             case 1:
-                return { kd1: (cy - t_y) / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cy - t_y) / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 2:
-                return { kd1: (cy - t_y) / cy, kd2: t_x / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cy - t_y) / cy, kd2: t_x / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 3:
-                return { kd1: t_x / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_x / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 4:
-                return { kd1: t_x / cx, kd2: t_y / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_x / cx, kd2: t_y / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 5:
-                return { kd1: t_y / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_y / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 6:
-                return { kd1: t_y / cy, kd2: (cx - t_x) / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_y / cy, kd2: (cx - t_x) / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 7:
-                return { kd1: (cx - t_x) / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cx - t_x) / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
         }
-        return { kd1: 1, kd2: 1, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+        return { kd1: 1, kd2: 1, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
     };
     CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls) {};
 	CGraphicObjectBase.prototype.GetAllDrawingObjects = function(arrDrawingObjects) {};

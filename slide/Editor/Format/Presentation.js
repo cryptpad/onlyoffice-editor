@@ -2770,8 +2770,14 @@ CSlideSize.prototype.GetSizeType = function () {
     return Asc.c_oAscSlideSZType.SzCustom;
 };
 
-let CONFORMANCE_STRICT = 0;
-let CONFORMANCE_TRANSITIONAL = 1;
+CSlideSize.prototype.fillObject = function (oCopy, oIdMap) {
+    oCopy.setCX(this.cx);
+    oCopy.setCY(this.cy);
+    oCopy.setType(this.type);
+};
+
+const CONFORMANCE_STRICT = 0;
+const CONFORMANCE_TRANSITIONAL = 1;
 
 function CPresentation(DrawingDocument) {
     AscFormat.CBaseFormatObject.call(this);
@@ -2853,6 +2859,9 @@ function CPresentation(DrawingDocument) {
 
 
     this.sldSz = null;
+    this.viewPr = null;
+
+    this.strideData = null;
 
     this.recalcMap = {};
     this.bNeedUpdateTh = false;
@@ -2975,7 +2984,19 @@ CPresentation.prototype.setSldSz = function(pr) {
     History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_Presentation_SlideSize, this.sldSz, pr));
     this.sldSz = pr;
 };
-
+CPresentation.prototype.setViewPr = function(pr) {
+    History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_Presentation_ViewPr, this.viewPr, pr));
+    this.viewPr = pr;
+    if(this.viewPr) {
+        this.viewPr.setParent(this);
+    }
+ };
+CPresentation.prototype.getStrideData = function() {
+    if(!this.strideData) {
+        this.strideData = new AscCommonSlide.CStrideData(this);
+    }
+    return this.strideData;
+};
 
 CPresentation.prototype.changeSlideSizeFunction = function () {
     AscFormat.ExecuteNoHistory(function () {
@@ -3013,6 +3034,60 @@ CPresentation.prototype.changeSlideSize = function (width, height, nType) {
         this.Recalculate();
         this.Document_UpdateInterfaceState();
     }
+};
+
+CPresentation.prototype.getViewProperties = function() {
+    let oPresentation = this;
+    return AscFormat.ExecuteNoHistory(function() {
+        if(oPresentation.viewPr) {
+            return oPresentation.viewPr.createDuplicate();
+        }
+        return new AscFormat.CViewPr();
+    }, this, []);
+};
+
+CPresentation.prototype.getGridSpacing = function() {
+    if(this.viewPr) {
+        return this.viewPr.getGridSpacing();
+    }
+    return AscFormat.CViewPr.prototype.DEFAULT_GRID_SPACING;
+};
+CPresentation.prototype.getViewPropertiesStride = function() {
+    return this.getGridSpacing();
+};
+CPresentation.prototype.checkViewPr = function() {
+    if(!this.viewPr) {
+        this.setViewPr(new AscFormat.CViewPr());
+    }
+    return this.viewPr;
+};
+CPresentation.prototype.setGridSpacing = function(nSpacing) {
+    this.Create_NewHistoryPoint(0);
+    this.checkViewPr().setGridSpacingVal(nSpacing);
+    this.Recalculate();
+};
+CPresentation.prototype.isSnapToGrid = function() {
+    if(this.viewPr) {
+        return this.viewPr.isSnapToGrid();
+    }
+    return false;
+};
+CPresentation.prototype.setSnapToGrid = function(bVal) {
+    this.Create_NewHistoryPoint(0);
+    this.checkViewPr().setSnapToGrid(bVal);
+};
+
+CPresentation.prototype.addHorizontalGuide = function()
+{
+    this.Create_NewHistoryPoint(0);
+    this.checkViewPr().addHorizontalGuide();
+    this.Recalculate();
+};
+CPresentation.prototype.addVerticalGuide = function()
+{
+    this.Create_NewHistoryPoint(0);
+    this.checkViewPr().addVerticalGuide();
+    this.Recalculate();
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -4602,15 +4677,69 @@ CPresentation.prototype.Set_TargetPos = function (X, Y, PageNum) {
 
 // Вызываем перерисовку нужных страниц
 CPresentation.prototype.ReDraw = function (StartPage, EndPage) {
-
     this.DrawingDocument.OnRecalculatePage(StartPage, this.Slides[StartPage]);
 };
-
 CPresentation.prototype.DrawPage = function (nPageIndex, pGraphics) {
     this.Draw(nPageIndex, pGraphics);
 };
+CPresentation.prototype.RedrawCurSlide = function() {
+    let oSlide = this.GetCurrentSlide();
+    if(oSlide) {
+        let oDrawingDocument = this.DrawingDocument;
+        oDrawingDocument.OnRecalculatePage(this.CurPage, oSlide);
+        oDrawingDocument.OnEndRecalculate();
+    }
+};
+CPresentation.prototype.drawGrid = function(oGraphics) {
+    this.getStrideData().drawGrid(oGraphics);
+};
+CPresentation.prototype.drawGuides = function(oGraphics) {
+    if(this.viewPr) {
+        this.viewPr.drawGuides(oGraphics);
+    }
+};
+CPresentation.prototype.getHorGuidesPos = function() {
+    if(this.viewPr) {
+        return this.viewPr.getHorGuidesPos();
+    }
+    return [];
 
-
+};
+CPresentation.prototype.getVertGuidesPos = function() {
+    if(this.viewPr) {
+        return this.viewPr.getVertGuidesPos();
+    }
+    return [];
+};
+CPresentation.prototype.canClearGuides = function() {
+    if(this.viewPr) {
+        return this.viewPr.canClearGuides();
+    }
+    return false;
+};
+CPresentation.prototype.clearGuides = function() {
+    if(!this.canClearGuides()) {
+        return;
+    }
+    if(this.viewPr) {
+        this.Create_NewHistoryPoint(0);
+        this.viewPr.clearGuides();
+        this.Recalculate();
+    }
+};
+CPresentation.prototype.deleteGuide = function(sId) {
+    if(this.viewPr) {
+        this.Create_NewHistoryPoint(0);
+        this.viewPr.removeGuideById(sId);
+        this.Recalculate();
+    }
+};
+CPresentation.prototype.hitInGuide = function(x, y) {
+    if(this.viewPr) {
+        return this.viewPr.hitInGuide(x, y);
+    }
+    return null;
+};
 CPresentation.prototype.Update_ForeignCursor = function (CursorInfo, UserId, Show, UserShortId) {
     if (!editor.User)
         return;
@@ -7157,6 +7286,7 @@ CPresentation.prototype.OnMouseUp = function (e, X, Y, PageIndex) {
         ContextData.X_abs = ConvertedPos.X;
         ContextData.Y_abs = ConvertedPos.Y;
         ContextData.IsSlideSelect = false;
+        ContextData.Guide = this.hitInGuide(X, Y);
         editor.sync_ContextMenuCallback(ContextData);
     }
     this.noShowContextMenu = false;
@@ -8261,7 +8391,6 @@ CPresentation.prototype.resetStateCurSlide = function () {
     }
 
 };
-
 
 ///NOTES
 CPresentation.prototype.Notes_OnResize = function () {
@@ -9609,6 +9738,13 @@ CPresentation.prototype.Refresh_RecalcData2 = function (Data) {
                 ColorScheme: true,
                 ArrInd: Data.aIndexes
             });
+            break;
+        }
+        case AscDFH.historyitem_CSldViewPrGuideLst:
+        case AscDFH.historyitem_ViewPrGuidePos:
+        case AscDFH.historyitem_ViewPrGridSpacing:
+        case AscDFH.historyitem_ViewPrSlideViewerPr: {
+            History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, All: true});
             break;
         }
     }

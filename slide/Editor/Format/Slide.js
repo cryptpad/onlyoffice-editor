@@ -1390,23 +1390,242 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
                 }
             }
         }
+        if(!bCheckBounds && !bSlideShow) {
+            this.drawGrid(graphics);
+        }
         if(bClipBySlide) {
             graphics.RestoreGrState();
         }
     };
 
-    Slide.prototype.drawNotes = function (g) {
+    function CStrideData(oPresentation) {
+        this.presentation = oPresentation;
+        this.slideWidth = null;
+        this.slideHeight = null;
+        this.stride = null;
+        this.originX = null;
+        this.originY = null;
 
-        if(this.notesShape){
+    }
+    CStrideData.prototype.checkUpdate = function() {
+        if(this.slideWidth !== this.presentation.GetWidthEMU() ||
+        this.slideHeight !== this.presentation.GetHeightEMU() ||
+        this.stride !== this.presentation.getViewPropertiesStride()) {
+            this.update();
+            return true;
+        }
+        return false;
+    };
+    CStrideData.prototype.update = function() {
+        this.stride = this.presentation.getViewPropertiesStride();
+        this.slideWidth = this.presentation.GetWidthEMU();
+        this.slideHeight = this.presentation.GetHeightEMU();
+
+        this.originX = this.getStartStridePos(this.stride, this.slideWidth);
+        this.originY = this.getStartStridePos(this.stride, this.slideHeight);
+    };
+    CStrideData.prototype.getStartStridePos = function(stride, len) {
+        let nStrideCnt = (len / stride) >> 0;
+        return (((len - nStrideCnt * stride) / 2 + 0.5) >> 0) - stride;
+    };
+    CStrideData.prototype.getNearestLinearPoint = function(nDX, nOrigin) {
+        let nCX = nDX / this.stride >> 0;
+        let dRX = nDX - nCX * this.stride;
+        let nX;
+        if((dRX / this.stride) < 0.5) {
+            nX = nCX * this.stride;
+        }
+        else {
+            nX = (nCX + 1) * this.stride;
+        }
+        return nOrigin + nX;
+    };
+    CStrideData.prototype.getNearestPoint = function(x, y) {
+        this.checkUpdate();
+        let em = function (dValue) {return dValue / 36000;};
+        let me = function(dValue) { return dValue * 36000 + 0.5 >> 0;};
+        let nDX = me(x) - this.originX;
+        let nDY = me(y) - this.originY;
+        let nX = this.getNearestLinearPoint(nDX, this.originX);
+        let nY = this.getNearestLinearPoint(nDY, this.originY);
+        return {x: em(nX), y: em(nY)};
+    };
+    CStrideData.prototype.drawGrid = function(oGraphics) {
+        let oContext = oGraphics.m_oContext;
+        if(!oContext) {
+            return;
+        }
+        if(oGraphics.IsThumbnail || oGraphics.animationDrawer || oGraphics.IsDemonstrationMode) {
+            return;
+        }
+        this.checkUpdate();
+        let dPixScale = oGraphics.m_oCoordTransform.sx;
+        let mmp = function(dMM) {
+            return (dMM*dPixScale + 0.5) >> 0;
+        };
+        let em = function (val) {return val / 36000;};
+        let ep = function(nEmu) {
+            return mmp(em(nEmu));
+        };
+
+        let nGridSpacingPix = ep(this.stride);
+
+        let nMinLineStridePix = ep(720000);
+        let nMinInsideLineStridePix = ep(150000);
+
+        let nGridSpacing = this.stride;
+        let bPixel = true;
+        let nStrideInsideLine = nGridSpacing;
+        let nStrideLine;
+
+        let nStrideInsideLinePix = nGridSpacingPix;
+        let nStrideLinePix;
+
+        let nHorStart;
+        let nVertStart;
+        let nSlideWidth = this.slideWidth;
+        let nSlideHeight = this.slideHeight;
+
+       while(nStrideInsideLinePix < nMinInsideLineStridePix) {
+           nStrideInsideLine *= 2;
+           nStrideInsideLinePix = ep(nStrideInsideLine);
+       }
+        nStrideLine = nStrideInsideLine;
+        nStrideLinePix = nStrideInsideLinePix;
+        let nStartStrideVerPos = this.getStartStridePos(nStrideLine, nSlideHeight);
+        let nStartStrideHorPos = this.getStartStridePos(nStrideLine, nSlideHeight);
+        let nStartInsideHorPos = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
+        let nStartInsideVerPos = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
+        while(nStrideLinePix < nMinLineStridePix) {
+            nStrideLine += nStrideInsideLine;
+            nStrideLinePix = ep(nStrideLine);
+            //nStartStridePos = this.getStartStridePos(nStrideLine, nSlideHeight);
+        }
+        bPixel = nStrideInsideLinePix < AscCommon.AscBrowser.convertToRetinaValue(17, true);
+
+        oGraphics.SaveGrState();
+        oGraphics.transform3(new AscCommon.CMatrix());
+        oGraphics.SetIntegerGrid(true);
+        oGraphics.b_color1(0, 0, 0, 255);
+
+        let nX, nY;
+        let oT = oGraphics.m_oFullTransform;
+        let oImageCanvas = document.createElement('canvas');
+        let oImageContext;
+        let c = function(value) {
+            return value;//AscCommon.AscBrowser.convertToRetinaValue(value, true);
+        }
+        if(bPixel) {
+            oImageCanvas.width = c(1);
+            oImageCanvas.height = c(1);
+            oImageContext = oImageCanvas.getContext("2d");
+            oImageContext.fillStyle = 'black';
+            oImageContext.fillRect(0, 0, oImageCanvas.width, oImageCanvas.height);
+            oImageContext.fill();
+        }
+        else {
+            oImageCanvas.width = c(3);
+            oImageCanvas.height = c(3);
+            oImageContext = oImageCanvas.getContext("2d");
+            oImageContext.fillStyle = 'black';
+            oImageContext.fillRect(c(1), 0, c(1), c(1));
+            oImageContext.fillRect(0, c(1), c(1), c(1));
+            oImageContext.fillRect(c(2), c(1), c(1), c(1));
+            oImageContext.fillRect(c(1), c(2), c(1), c(1));
+            oImageContext.fill();
+        }
+
+        function dp() {
+            let nHP = em(nHorPos);
+            let nVP = em(nVertPos);
+            nX = oT.TransformPointX(nHP, nVP) + 0.5 >> 0;
+            nY = oT.TransformPointY(nHP, nVP) + 0.5 >> 0;
+            if(bPixel) {
+                oContext.drawImage(oImageCanvas, nX, nY);
+            }
+            else {
+                oContext.drawImage(oImageCanvas, nX - 1, nY - 1);
+            }
+        }
+
+
+        nHorStart = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
+        nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
+        let nVertPos = nVertStart;
+        let nHorPos;
+        while (nVertPos < nSlideHeight) {
+            if(nVertPos > 0) {
+                nHorPos = nHorStart;
+                while (nHorPos < nSlideWidth) {
+                    if(nHorPos > 0) {
+                        dp();
+                    }
+                    nHorPos += nStrideInsideLine;
+                }
+            }
+            nVertPos += nStrideLine;
+        }
+
+
+
+        nHorStart = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
+        nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
+        nHorPos = nHorStart;
+
+
+        while (nHorPos < nSlideWidth) {
+            if(nHorPos > 0) {
+                nVertPos = nVertStart;
+                while (nVertPos < nSlideHeight) {
+                    if(nVertPos > 0) {
+                        dp();
+                    }
+                    nVertPos += nStrideInsideLine;
+                }
+            }
+            nHorPos += nStrideLine;
+        }
+
+        oGraphics.df();
+        oGraphics.RestoreGrState();
+    };
+    Slide.prototype.drawGrid = function(oGraphics) {
+        let oApi = editor;
+        if(!oApi) {
+            return;
+        }
+        if(!oApi.WordControl) {
+            return;
+        }
+        let oContext = oGraphics.m_oContext;
+        if(!oContext) {
+            return;
+        }
+        if(oGraphics.IsThumbnail || oGraphics.animationDrawer || oGraphics.IsDemonstrationMode) {
+            return;
+        }
+
+        let oPresentation = oApi.WordControl.m_oLogicDocument;
+        if(!oPresentation) {
+            return;
+        }
+        if(oApi.asc_getShowGridlines()) {
+            oPresentation.drawGrid(oGraphics);
+        }
+        if(oApi.asc_getShowGuides()) {
+            oPresentation.drawGuides(oGraphics);
+        }
+    };
+    Slide.prototype.drawNotes = function (g) {
+        if(this.notesShape) {
             this.notesShape.draw(g);
             var oLock = this.notesShape.Lock;
-            if(oLock && AscCommon.locktype_None != oLock.Get_Type())
-            {
+            if(oLock && AscCommon.locktype_None != oLock.Get_Type()) {
                 var bCoMarksDraw = true;
-                if(typeof editor !== "undefined" && editor && AscFormat.isRealBool(editor.isCoMarksDraw)){
+                if(typeof editor !== "undefined" && editor && AscFormat.isRealBool(editor.isCoMarksDraw)) {
                     bCoMarksDraw = editor.isCoMarksDraw;
                 }
-                if(bCoMarksDraw){
+                if(bCoMarksDraw) {
                     g.transform3(this.notesShape.transformText);
                     var Width = this.notesShape.txBody.content.XLimit - 2;
                     Width = Math.max(Width, 1);
@@ -1416,7 +1635,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             }
         }
     };
-
     Slide.prototype.drawAnimPane = function(oGraphics) {
         if(this.timing) {
             this.timing.drawAnimPane(oGraphics);
@@ -1508,11 +1726,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
     Slide.prototype.sendGraphicObjectProps = function()
     {
         editor.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
-    };
-
-    Slide.prototype.checkGraphicObjectPosition = function()
-    {
-        return {x: 0, y: 0};
     };
 
     Slide.prototype.isViewerMode = function()
@@ -2252,3 +2465,4 @@ window['AscCommonSlide'].Slide = Slide;
 window['AscCommonSlide'].PropLocker = PropLocker;
 window['AscCommonSlide'].SlideComments = SlideComments;
 window['AscCommonSlide'].fLoadComments = fLoadComments;
+window['AscCommonSlide'].CStrideData = CStrideData;

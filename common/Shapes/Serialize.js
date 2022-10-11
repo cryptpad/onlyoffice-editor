@@ -421,7 +421,7 @@ function BinaryPPTYLoader()
             {
                 // view props
                 s.Seek2(_main_tables["4"]);
-                this.presentation.ViewProps = this.ReadViewProps();
+                this.presentation.setViewPr(this.ReadViewProps());
             }
 
             if (undefined != _main_tables["5"])
@@ -790,7 +790,12 @@ function BinaryPPTYLoader()
 
     this.ReadViewProps = function()
     {
-        return null;
+       //this.stream.SkipRecord();
+       //return null;
+        let oViewPr = new AscFormat.CViewPr();
+        this.stream.GetUChar();
+        oViewPr.fromPPTY(this);
+        return oViewPr;
     };
     this.ReadVmlDrawing = function()
     {
