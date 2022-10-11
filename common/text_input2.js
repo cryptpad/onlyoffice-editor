@@ -99,13 +99,16 @@
 		this.ReadOnlyCounter = 0;
 
 		this.keyPressInput = "";
-        this.isInputHelpersPresent = false;
-        this.isInputHelpers = {};
+		this.isInputHelpersPresent = false;
+		this.isInputHelpers = {};
 
 		// параметры для показа/скрытия виртуальной клавиатуры.
 		this.isHardCheckKeyboard = AscCommon.AscBrowser.isSailfish;
 		this.virtualKeyboardClickTimeout = -1;
 		this.virtualKeyboardClickPrevent = false;
+
+		// для сброса текста при фокусе
+		this.checkClearTextOnFocusTimerId = -1;
 	}
 
 	var CTextInputPrototype = CTextInput2.prototype;
@@ -276,6 +279,27 @@
 		AscCommon.global_keyboardEvent.Up();
 		this.Api.onKeyUp(e);
 	};
+
+	CTextInputPrototype.onFocusInputText = function()
+	{
+		this.onFocusInputTextEnd();
+
+		this.checkClearTextOnFocusTimerId = setTimeout(function(){
+			let _t = AscCommon.g_inputContext;
+			if (!_t.IsComposition)
+				_t.clear();
+		}, 500);
+	};
+
+	CTextInputPrototype.onFocusInputTextEnd = function()
+	{
+		if (-1 !== this.checkClearTextOnFocusTimerId)
+		{
+			clearTimeout(this.checkClearTextOnFocusTimerId);
+			this.checkClearTextOnFocusTimerId = -1;
+		}
+	};
+
 	CTextInputPrototype.onInput = function(e)
 	{
 		if (this.Api.isLongAction())
@@ -283,6 +307,8 @@
 			AscCommon.stopEvent(e);
 			return false;
 		}
+
+		this.onFocusInputTextEnd();
 
 		let type = (e.type ? ("" + e.type) : "undefined");
 		type = type.toLowerCase()
@@ -1151,6 +1177,8 @@
 				t.compositeEnd();
 				t.externalEndCompositeInput();
 			}
+
+			t.onFocusInputText();
 
 			/*
 			if (!t.isNoClearOnFocus)
