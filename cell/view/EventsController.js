@@ -825,6 +825,14 @@
 			var _activeCell;
 
 			switch (event.which) {
+				case 116:
+					//todo ctrl+alt
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode &&
+						event.altKey && t.handlers.trigger("refreshConnections", !!ctrlKey)) {
+						return result;
+					}
+					t._setSkipKeyPress(false);
+					return true;
 				case 82:
 					if (ctrlKey && shiftKey) {
 						stop();
