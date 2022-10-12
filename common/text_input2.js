@@ -287,7 +287,7 @@
 		this.checkClearTextOnFocusTimerId = setTimeout(function(){
 			let _t = AscCommon.g_inputContext;
 			if (!_t.IsComposition)
-				_t.clear();
+				_t.clear(true);
 		}, 500);
 	};
 
