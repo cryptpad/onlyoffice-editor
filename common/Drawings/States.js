@@ -407,21 +407,25 @@ NullState.prototype =
         let oStartPara = null;
         let bHandleMode = this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE;
         let sHitGuideId = this.drawingObjects.hitInGuide(x, y);
-        let oGuide = AscCommon.g_oTableId.Get_ById(sHitGuideId);
-        if(oGuide)
+        let oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
+        if(!oAnimPlayer)
         {
-            if(!bHandleMode)
+            let oGuide = AscCommon.g_oTableId.Get_ById(sHitGuideId);
+            if(oGuide)
             {
-                let bHor = oGuide.isHorizontal();
-                return {cursorType: bHor ? "ns-resize" : "ew-resize", objectId: "1"};
-            }
-            else
-            {
-                this.drawingObjects.addPreTrackObject(new AscFormat.CGuideTrack(oGuide));
-                this.drawingObjects.changeCurrentState(new TrackGuideState(this.drawingObjects, oGuide, x, y))
-                return;
-            }
+                if(!bHandleMode)
+                {
+                    let bHor = oGuide.isHorizontal();
+                    return {cursorType: bHor ? "ns-resize" : "ew-resize", objectId: "1"};
+                }
+                else
+                {
+                    this.drawingObjects.addPreTrackObject(new AscFormat.CGuideTrack(oGuide));
+                    this.drawingObjects.changeCurrentState(new TrackGuideState(this.drawingObjects, oGuide, x, y))
+                    return;
+                }
 
+            }
         }
         if(bHandleMode)
         {
@@ -537,7 +541,6 @@ NullState.prototype =
                     this.drawingObjects.changeCurrentState(new TrackSelectionRect(this.drawingObjects));
                 }
             }
-            var oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
             if(oAnimPlayer) 
             {
                 if(oAnimPlayer.onClick()) 
