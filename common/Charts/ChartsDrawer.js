@@ -6736,7 +6736,7 @@ drawLineChart.prototype = {
 					this.paths.points[i][n] = this.cChartDrawer.calculatePoint(x, y, compiledMarkerSize, compiledMarkerSymbol);
 					//this.paths.points[i][n].val = val;
 					if (this.chart.series[i].errBars) {
-						this.cChartDrawer.errBars.putPoint(x, y, val, null,  i, n);
+						this.cChartDrawer.errBars.putPoint(x, y, val, null,  seria.idx, n);
 					}
 					points[i][n] = {x: x, y: y};
 				} else {
@@ -15546,10 +15546,11 @@ CErrBarsDraw.prototype = {
 		var isHorPos;
 		for (var i = 0; i < this.points.length; i++) {
 			if (this.points[i]) {
-				if (!oChart.chart.series[i].errBars) {
+				var serIndex = t.cChartDrawer._getIndexByIdxSeria(oChart.chart.series, i);
+				if (!oChart.chart.series[serIndex] || !oChart.chart.series[serIndex].errBars) {
 					continue;
 				}
-				errBars = oChart.chart.series[i].errBars;
+				errBars = oChart.chart.series[serIndex].errBars;
 				for (var j = 0; j < this.points[i].length; j++) {
 					if (this.points[i][j]) {
 
@@ -15560,7 +15561,7 @@ CErrBarsDraw.prototype = {
 						var isCatAx = axis.getObjectType() === AscDFH.historyitem_type_CatAx;
 
 						//расчитываем величину погрешности в одну сторону
-						var oErrVal = this.calculateErrVal(oChart.chart, i, j, isCatAx, pointVal);
+						var oErrVal = this.calculateErrVal(oChart.chart, serIndex, j, isCatAx);
 						if (oErrVal !== null) {
 							var plusErrVal = oErrVal.plusErrVal;
 							var minusErrVal = oErrVal.minusErrVal;
@@ -15603,11 +15604,21 @@ CErrBarsDraw.prototype = {
 								}
 							}
 
-							if (!res[i]) {
-								res[i] = [];
+							if (!res[serIndex]) {
+								res[serIndex] = [];
 							}
-							//isCatAx
-							res[i].push(calcErrLine(start, end, isHorPos ?  this.cChartDrawer.getYPosition(otherAxis.getObjectType() === AscDFH.historyitem_type_CatAx ? j + 1 : this.points[i][j].yVal, otherAxis, true) : x));
+
+							var fixPosition = x;
+							var isCatOtherAxis = otherAxis.getObjectType() === AscDFH.historyitem_type_CatAx;
+							if (isHorPos) {
+								if (isCatOtherAxis && y) {
+									fixPosition = y;
+								} else {
+									fixPosition = this.cChartDrawer.getYPosition(isCatOtherAxis ? j + 1 : this.points[i][j].yVal, otherAxis, true);
+								}
+							}
+
+							res[serIndex].push(calcErrLine(start, end, fixPosition));
 						}
 					}
 				}
@@ -15688,20 +15699,19 @@ CErrBarsDraw.prototype = {
 				return Math.sqrt(aSumm / (ny - 1));
 			};
 
-
 			var pointsCount = seria.getValuesCount();
 			if (!pointsCount) {
 				if (t.cChartDrawer.getErrBarsPosition(errBars, oChart)) {
 					if (seria.xVal) {
-						pointsCount = seria.xVal.getValuesCount();
+						pointsCount = seria.xVal.getValuesCount ?  seria.xVal.getValuesCount() : (seria.xVal.getValues ? seria.xVal.getValues().length : 0);
 					} else if (seria.yVal) {
-						pointsCount = seria.yVal.getValuesCount();
+						pointsCount = seria.yVal.getValuesCount ? seria.yVal.getValuesCount(): (seria.yVal.getValues ? seria.yVal.getValues().length : 0);
 					}
 				} else {
 					if (seria.yVal) {
-						pointsCount = seria.yVal.getValuesCount();
+						pointsCount = seria.yVal.getValuesCount ? seria.yVal.getValuesCount(): (seria.yVal.getValues ? seria.yVal.getValues().length : 0);
 					} else if (seria.xVal) {
-						pointsCount = seria.xVal.getValuesCount();
+						pointsCount = seria.xVal.getValuesCount ?  seria.xVal.getValuesCount() : (seria.xVal.getValues ? seria.xVal.getValues().length : 0);
 					}
 				}
 			}
