@@ -2236,7 +2236,7 @@ CShape.prototype.getTextRect = function () {
     };
 };
     CShape.prototype.checkTransformTextMatrixSmartArt = function (oMatrix, oContent, oBodyPr, bWordArtTransform, bIgnoreInsets) {
-        if (this.txXfrm) {
+        if (this.txXfrm && (this.isObjectInSmartArt && this.isObjectInSmartArt())) {
             var oSmartArt = this.group.group;
             var diffX = 0;
             var diffY = 0;
