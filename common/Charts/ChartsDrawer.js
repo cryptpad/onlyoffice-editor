@@ -15765,53 +15765,6 @@ CErrBarsDraw.prototype = {
 		}
 
 		return plusErrVal !== null ? {startVal: startVal, plusErrVal: Math.abs(plusErrVal), minusErrVal: Math.abs(minusErrVal), val: pointVal} : null;
-	},
-
-	_drawLines: function (/*isSkip*/) {
-		//TODO для того, чтобы верхняя линия рисовалась. пересмотреть!
-		var diffPen = 3;
-		var leftRect = this.chartProp.chartGutter._left / this.chartProp.pxToMM;
-		var topRect = (this.chartProp.chartGutter._top - diffPen) / this.chartProp.pxToMM;
-		var rightRect = this.chartProp.trueWidth / this.chartProp.pxToMM;
-		var bottomRect = (this.chartProp.trueHeight + diffPen) / this.chartProp.pxToMM;
-
-		this.cChartDrawer.cShapeDrawer.Graphics.SaveGrState();
-		this.cChartDrawer.cShapeDrawer.Graphics.AddClipRect(leftRect, topRect, rightRect, bottomRect);
-		this.cChartDrawer.drawPaths(this.paths, this.chart.series, true);
-		this.cChartDrawer.cShapeDrawer.Graphics.RestoreGrState();
-
-		this.cChartDrawer.drawPathsPoints(this.paths, this.chart.series);
-	},
-
-	_drawLine3D: function (path, pen, brush, k) {
-		//затемнение боковых сторон
-		//в excel всегда темные боковые стороны, лицевая и задняя стороны светлые
-
-		//todo возможно стоит проверить fill.type на FILL_TYPE_NOFILL и рисовать отдельно границы, если они заданы!
-		//brush = pen.Fill;
-
-		if (k !== 2) {
-			var props = this.cChartSpace.getParentObjects();
-			var duplicateBrush = brush.createDuplicate();
-			var cColorMod = new AscFormat.CColorMod;
-
-			cColorMod.name = "shade";
-			if (k === 1 || k === 4) {
-				cColorMod.val = 45000;
-			} else {
-				cColorMod.val = 35000;
-			}
-
-			this._addColorMods(cColorMod, duplicateBrush);
-
-			duplicateBrush.calculate(props.theme, props.slide, props.layout, props.master, new AscFormat.CUniColor().RGBA, this.cChartSpace.clrMapOvr);
-			pen = AscFormat.CreatePenFromParams(duplicateBrush, undefined, undefined, undefined, undefined, 0.1);
-
-			this.cChartDrawer.drawPath(path, pen, duplicateBrush);
-		} else {
-			pen = AscFormat.CreatePenFromParams(brush, undefined, undefined, undefined, undefined, 0.1);
-			this.cChartDrawer.drawPath(path, pen, brush);
-		}
 	}
 };
 
