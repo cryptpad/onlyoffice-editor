@@ -15656,7 +15656,7 @@ CErrBarsDraw.prototype = {
 			var chartType = t.cChartDrawer._getChartType(oChart);
 			var pointVal = null;
 			if (chartType === c_oChartTypes.Scatter) {
-				pointVal = errBars.errValType === t.cChartDrawer.getValWithoutStacked(ser, val, oChart, errBars.errDir === AscFormat.st_errdirX);
+				pointVal = t.cChartDrawer.getValWithoutStacked(ser, val, oChart, errBars.errDir === AscFormat.st_errdirX);
 				if (!pointVal && errBars.errDir === AscFormat.st_errdirX) {
 					pointVal = val + 1;
 				}
