@@ -9749,7 +9749,7 @@
     };
     CErrBars.prototype.getPen = function() {
         if(this.pen === null) {
-            let oPen = AscFormat.builder_CreateLine(12700, AscFormat.CreateUnfilFromRGB(0, 0, 0));
+            let oPen = AscFormat.builder_CreateLine(12700, {UniFill: AscFormat.CreateUnfilFromRGB(0, 0, 0)});
             let oLn = this.spPr && this.spPr.ln;
             if(oLn) {
                 oPen.merge(oLn);
