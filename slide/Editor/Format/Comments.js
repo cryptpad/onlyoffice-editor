@@ -563,26 +563,38 @@ CWriteCommentData.prototype =
 
     CalculateAdditionalData : function()
     {
-        if (null == this.Data)
+        if (!this.Data)
+        {
             this.AdditionalData = "";
+        }
         else
         {
-            this.AdditionalData = "teamlab_data:";
-            this.AdditionalData += ("0;" + this.Data.m_sUserId.length + ";" + this.Data.m_sUserId + ";" );
-            this.AdditionalData += ("1;" + this.Data.m_sUserName.length + ";" + this.Data.m_sUserName + ";" );
-            this.AdditionalData += ("2;1;" + (this.Data.m_bSolved ? "1;" : "0;"));
-            if (this.Data.m_sOOTime)
+            let sUserId = this.Data.m_sUserId;
+            let sUserName = this.Data.m_sUserName;
+            if(typeof sUserId === "string" && sUserId.length > 0 &&
+                typeof sUserName === "string" && sUserName.length > 0)
             {
-                var WriteOOTime = new Date(this.Data.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z';
-                this.AdditionalData += ("3;" + WriteOOTime.length + ";" + WriteOOTime + ";");
+                this.AdditionalData = "teamlab_data:";
+                this.AdditionalData += ("0;" + sUserId.length + ";" + sUserId + ";" );
+                this.AdditionalData += ("1;" + sUserName.length + ";" + sUserName + ";" );
+                this.AdditionalData += ("2;1;" + (this.Data.m_bSolved ? "1;" : "0;"));
+                if (this.Data.m_sOOTime)
+                {
+                    var WriteOOTime = new Date(this.Data.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z';
+                    this.AdditionalData += ("3;" + WriteOOTime.length + ";" + WriteOOTime + ";");
+                }
+                if (this.Data.m_sGuid)
+                {
+                    this.AdditionalData += "4;" + this.Data.m_sGuid.length + ";" + this.Data.m_sGuid + ";";
+                }
+                if (this.Data.m_sUserData)
+                {
+                    this.AdditionalData += "5;" + this.Data.m_sUserData.length + ";" + this.Data.m_sUserData + ";";
+                }
             }
-            if (this.Data.m_sGuid)
+            else
             {
-                this.AdditionalData += "4;" + this.Data.m_sGuid.length + ";" + this.Data.m_sGuid + ";";
-            }
-            if (this.Data.m_sUserData)
-            {
-                this.AdditionalData += "5;" + this.Data.m_sUserData.length + ";" + this.Data.m_sUserData + ";";
+                this.AdditionalData = "";
             }
         }
     },
