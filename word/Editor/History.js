@@ -767,8 +767,8 @@ CHistory.prototype =
 			// Композитный ввод не разрешаем объединять ни с чем, кроме композитного ввода
 			return false;
 		}
-		else if (AscDFH.historydescription_Document_AddLetterUnion === Point1.Description
-			&& AscDFH.historydescription_Document_AddLetterUnion === Point2.Description)
+		else if ((AscDFH.historydescription_Document_AddLetter === Point1.Description || AscDFH.historydescription_Document_AddLetterUnion === Point1.Description)
+			&& (AscDFH.historydescription_Document_AddLetter === Point2.Description || AscDFH.historydescription_Document_AddLetterUnion === Point2.Description))
 		{
             var PrevItem = null;
             var Class    = null;
