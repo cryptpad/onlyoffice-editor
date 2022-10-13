@@ -139,6 +139,11 @@ Asc['asc_docs_api'].prototype.SetDocumentModified = function(bValue)
     }
 };
 
+Asc['asc_docs_api'].prototype._saveLocalCheck = function()
+{
+	return !this.isLongAction();
+};
+
 Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs, isResaveAttack, options)
 {
 	if (!isResaveAttack && !isSaveAs && !this.asc_isDocumentCanSave())
@@ -152,7 +157,7 @@ Asc['asc_docs_api'].prototype.asc_Save = function (isNoUserSave, isSaveAs, isRes
 		this.LastUserSavedIndex = AscCommon.History.UserSavedIndex;
 	}
 
-    if (true === this.canSave && this._saveCheck())
+    if (true === this.canSave && this._saveLocalCheck())
 	{
 		var _isNaturalSave = this.IsUserSave;
 		this.canSave = false;
