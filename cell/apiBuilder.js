@@ -49,6 +49,9 @@
 	 * @property {Array} Sheets - Returns the Sheets collection that represents all the sheets in the active workbook.
 	 * @property {ApiWorksheet} ActiveSheet - Returns an object that represents the active sheet.
 	 * @property {ApiRange} Selection - Returns an object that represents the selected range.
+	 * @event onWorksheetChange - Calls the callback function when the specified range of the current sheet changes.
+	 * It is called with the *range* parameter which specifies the modified range represented as the ApiRange object.
+	 * <note>Please note that the event is not called for the undo/redo operations.</note>
 	 */
 	var Api = window["Asc"]["spreadsheet_api"];
 
@@ -86,7 +89,9 @@
 	 * @property {number} Col - Returns the column number for the selected cell.
 	 * @property {ApiRange} Rows - Returns the ApiRange object that represents the rows of the specified range.
 	 * @property {ApiRange} Cols - Returns the ApiRange object that represents the columns of the specified range.
+	 * @property {ApiRange} Cells - Returns a Range object that represents all the cells in the specified range or a specified cell.
 	 * @property {number} Count - Returns the rows or columns count.
+	 * @property {string} Address - Returns the range address.
 	 * @property {string} Value - Returns a value from the first cell of the specified range or sets it to this cell.
 	 * @property {string} Formula - Returns a formula from the first cell of the specified range or sets it to this cell.
 	 * @property {string} Value2 - Returns the value2 (value without format) from the first cell of the specified range or sets it to this cell.
@@ -102,8 +107,10 @@
 	 * @property {'center' | 'bottom' | 'top' | 'distributed' | 'justify'} AlignVertical - Sets the text vertical alignment to the current cell range.
 	 * @property {'left' | 'right' | 'center' | 'justify'} AlignHorizontal - Sets the text horizontal alignment to the current cell range.
 	 * @property {boolean} Bold - Sets the bold property to the text characters from the current cell or cell range.
+	 * @property {boolean} Italic - Sets the italic property to the text characters in the current cell or cell range.
 	 * @property {'none' | 'single' | 'singleAccounting' | 'double' | 'doubleAccounting'} Underline - Sets the type of underline applied to the font.
 	 * @property {boolean} Strikeout - Sets a value that indicates whether the contents of the current cell or cell range are displayed struck through.
+	 * @property {boolean} WrapText - Returns the information about the wrapping cell style or specifies whether the words in the cell must be wrapped to fit the cell size or not.
 	 * @property {ApiColor|'No Fill'} FillColor - Returns or sets the background color of the current cell range.
 	 * @property {string} NumberFormat - Sets a value that represents the format code for the object.
 	 * @property {ApiRange} MergeArea - Returns the cell or cell range from the merge area.
@@ -532,6 +539,22 @@
 			ws = this.wbModel.getActiveWs();
 		}
 		return new ApiRange(ws ? ws.getRange2(sRange) : null);
+	};
+
+	/**
+	 * Returns an object that represents the range of the specified sheet using the maximum and minimum row/column coordinates.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 * @param {ApiWorksheet} ws - The sheet where the specified range is represented.
+	 * @param {number} r1 - The minimum row number of the specified range.
+	 * @param {number} c1 - The minimum column number of the specified range.
+	 * @param {number} r2 - The maximum row number of the specified range.
+	 * @param {number} c2 - The maximum column number of the specified range.
+	 * @param {ApiAreas} areas - A collection of the ranges from the specified range.
+	 * @returns {ApiRange}
+	 */
+	Api.prototype.GetRangeByNumber = function(ws, r1, c1, r2, c2, areas) {
+		return new ApiRange( (ws ? ws.getRange3(r1, c1, r2, c2) : null), areas);
 	};
 
 	/**
@@ -1536,86 +1559,11 @@
 	 * @param {EMU} nHeight - The image height in English measure units.
 	 */
 	ApiWorksheet.prototype.ReplaceCurrentImage = function(sImageUrl, nWidth, nHeight){
-
 		let oWorksheet = Asc['editor'].wb.getWorksheet();
 		if(oWorksheet && oWorksheet.objectRender && oWorksheet.objectRender.controller){
-
 			let oController = oWorksheet.objectRender.controller;
-			let _w = nWidth/36000.0;
-			let _h = nHeight/36000.0;
-			let oImage = oController.createImage(sImageUrl, 0, 0, _w, _h);
-			oImage.setWorksheet(oWorksheet.model);
-			let selectedObjects, spTree;
-			if(oController.selection.groupSelection){
-				selectedObjects = oController.selection.groupSelection.selectedObjects;
-			}
-			else{
-				selectedObjects = oController.selectedObjects;
-			}
-			if(selectedObjects.length > 0) {
-				if(selectedObjects[0].group){
-					spTree = selectedObjects[0].group.spTree;
-				}
-				else{
-					spTree = oController.getDrawingArray();
-				}
-
-				for(let nSp = 0; nSp < spTree.length; ++nSp){
-					let oSp = spTree[nSp];
-					if(oSp === selectedObjects[0]){
-						if(oSp.isImage() && selectedObjects.length === 1){
-							oSp.replacePictureData(sImageUrl, _w, _h);
-							if(oSp.group){
-								oController.selection.groupSelection.resetInternalSelection();
-								oSp.group.selectObject(oSp, 0);
-							}
-							else{
-								oController.resetSelection();
-								oController.selectObject(oSp, 0);
-							}
-						}
-						else {
-							let _xfrm = oSp.spPr && oSp.spPr.xfrm;
-							let _xfrm2 = oImage.spPr.xfrm;
-							if(_xfrm){
-								_xfrm2.setOffX(_xfrm.offX);
-								_xfrm2.setOffY(_xfrm.offY);
-							}
-							else{
-								if(AscFormat.isRealNumber(oSp.x) && AscFormat.isRealNumber(oSp.y)){
-									_xfrm2.setOffX(oSp.x);
-									_xfrm2.setOffY(oSp.y);
-								}
-							}
-							if(selectedObjects[0].group){
-								let _group = selectedObjects[0].group;
-								_group.removeFromSpTreeByPos(nSp);
-								_group.addToSpTree(nSp, oImage);
-								oImage.setGroup(_group);
-								oController.selection.groupSelection.resetInternalSelection();
-								_group.selectObject(oImage, 0);
-							}
-							else{
-								oSp.deleteDrawingBase();
-								oImage.setBDeleted(false);
-								oImage.setWorksheet(oWorksheet.model);
-								oImage.addToDrawingObjects(nSp);
-								oImage.setDrawingBaseType(AscCommon.c_oAscCellAnchorType.cellanchorAbsolute);
-								oImage.setDrawingBaseCoords(0, 0, 0, 0, 0, 0, 0, 0, oSp.x, oSp.y, oImage.spPr.xfrm.extX, oImage.spPr.xfrm.extY);
-								oImage.setDrawingBaseExt(oImage.spPr.xfrm.extX, oImage.spPr.xfrm.extY);
-								oController.resetSelection();
-								oController.selectObject(oImage, 0);
-							}
-						}
-						return;
-					}
-				}
-			}
-			let cell = this.worksheet.selectionRange.activeCell;
-			private_SetCoords(oImage, oWorksheet.model, nWidth, nHeight, cell ? cell.col : 0, 0,  cell ? cell.row : 0, 0, undefined);
-			oController.resetSelection();
-			oController.selectObject(oImage, 0);
-			oWorksheet.isSelectOnShape = true;
+			let dK = 1 / 36000 / AscCommon.g_dKoef_pix_to_mm;
+			oController.putImageToSelection(sImageUrl, nWidth * dK, nHeight * dK );
 		}
 	};
 
@@ -1935,7 +1883,7 @@
 	};
 
 	/**
-	 * Returns the cell address.
+	 * Returns the range address.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @param {boolean} RowAbs - Defines if the link to the row is absolute or not.
@@ -1946,8 +1894,11 @@
 	 * @returns {string | null} - returns address of range as string. 
 	 */
 	 ApiRange.prototype.GetAddress = function (RowAbs, ColAbs, RefStyle, External, RelativeTo) {
+		// todo поправить, чтобы возвращал адреса всех areas внутри range
 		var range = this.range.bbox;
 		var isOneCell = this.range.isOneCell();
+		var isOneCol = (this.range.bbox.c1 === this.range.bbox.c2 && this.range.bbox.r1 === 0 && this.range.bbox.r2 === AscCommon.gc_nMaxRow0);
+		var isOneRow = (this.range.bbox.r1 === this.range.bbox.r2 && this.range.bbox.c1 === 0 && this.range.bbox.c2 === AscCommon.gc_nMaxCol0);
 		var ws = this.range.worksheet;
 		var value;
 		var row1 = range.r1 + ( (RowAbs || RefStyle != "xlR1C1") ? 1 : 0),
@@ -1972,17 +1923,22 @@
 				col1 = "C" + ((col1 - tmpC) !== 0 ? "[" + (col1 - tmpC) + "]" : "");
 				col2 = isOneCell ? "" : "C" + ((col2 - tmpC) !== 0 ? "[" + (col2 - tmpC) + "]" : "");
 			}
-			value = row1 + col1 + row2 + col2;
+			value = isOneCol ? col1 : isOneRow ? row1 : row1 + col1 + row2 + col2;
 		} else {
 			// xlA1 - default
 			row1 = (RowAbs ? "$" : "") + row1;
 			col1 = (ColAbs ? "$" : "") + AscCommon.g_oCellAddressUtils.colnumToColstr(col1);
 			row2 = isOneCell ? "" : ( (RowAbs ? "$" : "") + row2);
 			col2 = isOneCell ? "" : ( (ColAbs ? ":$" : ":") + AscCommon.g_oCellAddressUtils.colnumToColstr(col2) );
-			value = col1 + row1 + col2 + row2;
+			value = isOneCol ? col1 + col2 : isOneRow ? row1 + ":" + row2 : col1 + row1 + col2 + row2;
 		}
 		return (External) ? '[' + ws.workbook.oApi.DocInfo.Title + ']' + AscCommon.parserHelp.get3DRef(ws.sName, value) : value;
-};
+	};
+	Object.defineProperty(ApiRange.prototype, "Address", {
+		get: function () {
+			return this.GetAddress(true, true);
+		}
+	});
 
 	/**
 	 * Returns the rows or columns count.
@@ -2080,6 +2036,7 @@
 						}
 					}
 					worksheet.workbook.handlers.trigger("cleanCellCache", worksheet.getId(), [this.range.bbox], true);
+					worksheet.workbook.oApi.onWorksheetChange(this.range.bbox);
 					return true;
 				}
 			}
@@ -2090,6 +2047,7 @@
 			this.SetNumberFormat(AscCommon.getShortDateFormat());
 
 		worksheet.workbook.handlers.trigger("cleanCellCache", worksheet.getId(), [this.range.bbox], true);
+		worksheet.workbook.oApi.onWorksheetChange(this.range.bbox);
 		return true;
 	};
 
@@ -4440,47 +4398,47 @@
 		var border = new AscCommonExcel.BorderProp();
 		switch (lineStyle) {
 			case 'Double':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Double);
+				border.setStyle(Asc.c_oAscBorderStyles.Double);
 				break;
 			case 'Hair':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Hair);
+				border.setStyle(Asc.c_oAscBorderStyles.Hair);
 				break;
 			case 'DashDotDot':
-				border.setStyle(AscCommon.c_oAscBorderStyles.DashDotDot);
+				border.setStyle(Asc.c_oAscBorderStyles.DashDotDot);
 				break;
 			case 'DashDot':
-				border.setStyle(AscCommon.c_oAscBorderStyles.DashDot);
+				border.setStyle(Asc.c_oAscBorderStyles.DashDot);
 				break;
 			case 'Dotted':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Dotted);
+				border.setStyle(Asc.c_oAscBorderStyles.Dotted);
 				break;
 			case 'Dashed':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Dashed);
+				border.setStyle(Asc.c_oAscBorderStyles.Dashed);
 				break;
 			case 'Thin':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Thin);
+				border.setStyle(Asc.c_oAscBorderStyles.Thin);
 				break;
 			case 'MediumDashDotDot':
-				border.setStyle(AscCommon.c_oAscBorderStyles.MediumDashDotDot);
+				border.setStyle(Asc.c_oAscBorderStyles.MediumDashDotDot);
 				break;
 			case 'SlantDashDot':
-				border.setStyle(AscCommon.c_oAscBorderStyles.SlantDashDot);
+				border.setStyle(Asc.c_oAscBorderStyles.SlantDashDot);
 				break;
 			case 'MediumDashDot':
-				border.setStyle(AscCommon.c_oAscBorderStyles.MediumDashDot);
+				border.setStyle(Asc.c_oAscBorderStyles.MediumDashDot);
 				break;
 			case 'MediumDashed':
-				border.setStyle(AscCommon.c_oAscBorderStyles.MediumDashed);
+				border.setStyle(Asc.c_oAscBorderStyles.MediumDashed);
 				break;
 			case 'Medium':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Medium);
+				border.setStyle(Asc.c_oAscBorderStyles.Medium);
 				break;
 			case 'Thick':
-				border.setStyle(AscCommon.c_oAscBorderStyles.Thick);
+				border.setStyle(Asc.c_oAscBorderStyles.Thick);
 				break;
 			case 'None':
 			default:
-				border.setStyle(AscCommon.c_oAscBorderStyles.None);
+				border.setStyle(Asc.c_oAscBorderStyles.None);
 				break;
 		}
 

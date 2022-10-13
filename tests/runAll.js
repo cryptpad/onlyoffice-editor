@@ -38,8 +38,11 @@ const allTests = [
 	'../cell/.unit-tests/CopyPasteTests.html',
 	'word/unit-tests/paragraphContentPos.html',
 	'word/document-calculation/paragraph.html',
+	'word/document-calculation/table/flowTablePosition.html',
 	'word/forms/forms.html',
-	'word/forms/complexForm.html'
+	'word/forms/complexForm.html',
+	'word/api/api.html',
+	'word/styles/paraPr.html'
 ];
 
 const {performance} = require('perf_hooks');

@@ -436,6 +436,7 @@
         this.idMap = null;
         this.bSaveSourceFormatting = null;
         this.contentCopyPr = null;
+        this.cacheImage = true;
     }
 
 
@@ -620,6 +621,14 @@
             return true;
         }
         return false;
+    };
+
+
+    CGraphicObjectBase.prototype.getRectBounds = function() {
+        let aSnapX = [];
+        let aSnapY = [];
+        this.calculateSnapArrays(aSnapX, aSnapY, this.getTransformMatrix());
+        return new CGraphicBounds(Math.min.apply(Math, aSnapX), Math.min.apply(Math, aSnapY),Math.max.apply(Math, aSnapX), Math.max.apply(Math, aSnapY));
     };
     /**
      * Internal method for calculating snap arrays
@@ -1190,6 +1199,8 @@
     };
     CGraphicObjectBase.prototype.getAllRasterImages = function(mapUrl){
     };
+    CGraphicObjectBase.prototype.getImageFromBulletsMap = function(oImages) {};
+    CGraphicObjectBase.prototype.getDocContentsWithImageBullets = function (arrContents) {};
     CGraphicObjectBase.prototype.getAllSlicerViews = function(aSlicerView) {
 
     };
@@ -1691,6 +1702,23 @@
     CGraphicObjectBase.prototype.getAllDocContents = function(aDrawings){
 
     };
+    CGraphicObjectBase.prototype.GetParaDrawing = function(){
+        return AscFormat.getParaDrawing(this);
+    };
+    CGraphicObjectBase.prototype.checkRunContent = function(fCallback){
+        let aDocContents = [];
+        this.getAllDocContents(aDocContents);
+        for(let nIdx = 0; nIdx < aDocContents.length; ++nIdx) {
+            aDocContents[nIdx].CheckRunContent(fCallback);
+        }
+    };
+    CGraphicObjectBase.prototype.getScaleCoefficient = function(){
+        let oParaDrawing = AscFormat.getParaDrawing(this);
+        if(oParaDrawing) {
+            return oParaDrawing.GetScaleCoefficient();
+        }
+        return 1.0;
+    };
     CGraphicObjectBase.prototype.getFullRotate = function () {
         return !AscCommon.isRealObject(this.group) ? this.rot : this.rot + this.group.getFullRotate();
     };
@@ -1820,7 +1848,7 @@
     CGraphicObjectBase.prototype.getInvertTransform = function(){
         return this.invertTransform;
     };
-    CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y, aDrawings) {
+    CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y, aDrawings, oController) {
         var cx, cy;
         cx = this.extX > 0 ? this.extX : 0.01;
         cy = this.extY > 0 ? this.extY : 0.01;
@@ -1874,7 +1902,11 @@
 
         if(!bSnapH) {
             if(Array.isArray(aDrawings)) {
-                oSnapHorObject = AscFormat.GetMinSnapDistanceXObject(x, aDrawings, this);
+                let aVertGuidesPos = [];
+                if(oController) {
+                    aVertGuidesPos = oController.getVertGuidesPos();
+                }
+                oSnapHorObject = AscFormat.GetMinSnapDistanceXObject(x, aDrawings, this, aVertGuidesPos);
                 if(oSnapHorObject) {
                     if(Math.abs(oSnapHorObject.dist) < AscFormat.SNAP_DISTANCE) {
                         bSnapH = true;
@@ -1887,7 +1919,11 @@
         }
         if(!bSnapV) {
             if(Array.isArray(aDrawings)) {
-                oSnapVertObject = AscFormat.GetMinSnapDistanceYObject(y, aDrawings, this);
+                let aHorGuidesPos = [];
+                if(oController) {
+                    aHorGuidesPos = oController.getHorGuidesPos();
+                }
+                oSnapVertObject = AscFormat.GetMinSnapDistanceYObject(y, aDrawings, this, aHorGuidesPos);
                 if(oSnapVertObject && Math.abs(oSnapVertObject.dist) < AscFormat.SNAP_DISTANCE) {
                     bSnapV = true;
                 }
@@ -1918,26 +1954,28 @@
                 dSnapY = this.transform.TransformPointY(t_x, t_y);
             }
         }
+        let bHorGuideSnap = oSnapHorObject && oSnapHorObject.guide;
+        let bVertGuideSnap = oSnapVertObject && oSnapVertObject.guide;
 
         switch (numHandle) {
             case 0:
-                return { kd1: (cx - t_x) / cx, kd2: (cy - t_y) / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY};
+                return { kd1: (cx - t_x) / cx, kd2: (cy - t_y) / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap};
             case 1:
-                return { kd1: (cy - t_y) / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cy - t_y) / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 2:
-                return { kd1: (cy - t_y) / cy, kd2: t_x / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cy - t_y) / cy, kd2: t_x / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 3:
-                return { kd1: t_x / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_x / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 4:
-                return { kd1: t_x / cx, kd2: t_y / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_x / cx, kd2: t_y / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 5:
-                return { kd1: t_y / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_y / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 6:
-                return { kd1: t_y / cy, kd2: (cx - t_x) / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_y / cy, kd2: (cx - t_x) / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 7:
-                return { kd1: (cx - t_x) / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cx - t_x) / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
         }
-        return { kd1: 1, kd2: 1, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+        return { kd1: 1, kd2: 1, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
     };
     CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls) {};
 	CGraphicObjectBase.prototype.GetAllDrawingObjects = function(arrDrawingObjects) {};
@@ -2636,10 +2674,10 @@
         }
         return this;
     };
-    CGraphicObjectBase.prototype.Set_CurrentElement = function(bUpdate, pageIndex) {
+    CGraphicObjectBase.prototype.Set_CurrentElement = function(bUpdate, pageIndex, bNoTextSelection) {
         //TODO: refactor this
         if(AscFormat.CShape.prototype.Set_CurrentElement) {
-            AscFormat.CShape.prototype.Set_CurrentElement.call(this, bUpdate, pageIndex);
+            AscFormat.CShape.prototype.Set_CurrentElement.call(this, bUpdate, pageIndex, bNoTextSelection);
         }
     };
     CGraphicObjectBase.prototype.SetControllerTextSelection = function(drawing_objects, nPageIndex) {
@@ -3078,7 +3116,35 @@
             return "";
         }
     };
-
+    CGraphicObjectBase.prototype.deleteDrawingBase = function(bCheckPlaceholder) {
+        if(AscFormat.editorDeleteDrawingBase) {
+            return AscFormat.editorDeleteDrawingBase(this, bCheckPlaceholder);
+        }
+        return -1;
+    };
+    CGraphicObjectBase.prototype.addToDrawingObjects =  function(pos, type) {
+        if(AscFormat.editorAddToDrawingObjects) {
+            return AscFormat.editorAddToDrawingObjects(this, pos, type);
+        }
+        return -1;
+    };
+    CGraphicObjectBase.prototype.checkDrawingUniNvPr = function() {
+        let oUniNvPr = this.getUniNvProps();
+        if(!oUniNvPr) {
+            oUniNvPr = new AscFormat.UniNvPr();
+            this.setNvSpPr(oUniNvPr);
+        }
+        if(Array.isArray(this.spTree)) {
+            for(let i = 0; i < this.spTree.length; ++i) {
+                this.spTree[i].checkDrawingUniNvPr();
+            }
+        }
+    };
+    CGraphicObjectBase.prototype.setNvSpPr = function(oPr) {
+    };
+    CGraphicObjectBase.prototype.isMoveAnimObject = function() {
+        return false;
+    };
 
     var ANIM_LABEL_WIDTH_PIX = 22;
     var ANIM_LABEL_HEIGHT_PIX = 17;
@@ -3171,8 +3237,6 @@
         this.parent = null;
         this.drawingBase = null;
     }
-
-
     CAbsSizeAnchor.prototype = Object.create(CBaseObject.prototype);
     CAbsSizeAnchor.prototype.constructor = CAbsSizeAnchor;
     CAbsSizeAnchor.prototype.setDrawingBase = function(drawingBase){
@@ -3198,12 +3262,10 @@
             object.setParent(this);
         }
     };
-
     CAbsSizeAnchor.prototype.setParent = function (object) {
         History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_AbsSizeAnchorParent, this.parent, object));
         this.parent = object;
     };
-
     CAbsSizeAnchor.prototype.copy = function(oPr){
         var copy = new CRelSizeAnchor();
         copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
@@ -3212,7 +3274,6 @@
         }
         return copy;
     };
-
     CAbsSizeAnchor.prototype.Refresh_RecalcData = function(drawingDocument){
         if(this.parent && this.parent.Refresh_RecalcData2)
         {
@@ -3225,7 +3286,6 @@
             this.parent.Refresh_RecalcData2();
         }
     };
-
 
     function CalculateSrcRect(parentCropTransform, bounds, oInvertTransformCrop, cropExtX, cropExtY){
         var lt_x_abs = parentCropTransform.TransformPointX(bounds.min_x, bounds.min_y);

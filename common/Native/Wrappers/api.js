@@ -2972,6 +2972,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             break;
         }
+        case 2500: // ASC_MENU_EVENT_TYPE_CHANGE_MOBILE_MODE
+        {
+            _api.ChangeReaderMode();
+            break;
+        }
 
         default:
             break;
@@ -7329,6 +7334,16 @@ window["asc_docs_api"].prototype["asc_nativeGetCoreProps"] = function() {
     }
 
     return {};
+}
+
+window["Asc"]["asc_docs_api"].prototype["asc_nativeAddText"] = function(text, wrapWithSpaces) {
+    var settings = new AscCommon.CAddTextSettings();
+
+    if (wrapWithSpaces) {
+        settings.SetWrapWithSpaces(true);
+    }
+    
+    _api.asc_AddText(text, settings);
 }
 
 window["AscCommon"].getFullImageSrc2 = function(src) {

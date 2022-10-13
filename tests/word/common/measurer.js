@@ -126,6 +126,9 @@
 	g_oTextMeasurer.SetFontSlot     = function()
 	{
 	};
+	g_oTextMeasurer.SetFont         = function()
+	{
+	};
 	g_oTextMeasurer.GetHeight       = function()
 	{
 		return FontHeight;
@@ -140,7 +143,11 @@
 	};
 	g_oTextMeasurer.MeasureCode     = function()
 	{
-		return {fAdvanceX : CharWidth};
+		return {Width : CharWidth * FontSize};
+	};
+	g_oTextMeasurer.Measure         = function()
+	{
+		return {Width : CharWidth * FontSize};
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.CharWidth   = CharWidth;

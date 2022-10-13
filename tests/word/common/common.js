@@ -46,8 +46,18 @@ var AscTest = AscTest || {};
 	};
 
 	AscCommon.g_oTableId = {
-		Add : function(c, id) {},
+		map : {},
+		Add : function(c, id)
+		{
+			this.map[id] = c;
+		},
+		Get_ById : function(id)
+		{
+			if (!this.map[id])
+				return null;
 
+			return this.map[id];
+		},
 		TurnOff : function(){},
 		TurnOn : function(){}
 	};
@@ -55,7 +65,28 @@ var AscTest = AscTest || {};
 	AscCommon.g_oIdCounter.m_bLoad = false;
 	AscCommon.g_oIdCounter.m_bRead = false;
 
+	function AddTextToInlineSdt(control, text)
+	{
+		AscWord.TextToRunElements(text, function(runElement)
+		{
+			control.Add(runElement);
+		});
+	}
+
+	function GetBinaryWriter()
+	{
+		return new AscCommon.CMemory();
+	}
+	function GetBinaryReader(binaryWriter)
+	{
+		return new AscCommon.FT_Stream2(binaryWriter.GetData(), binaryWriter.GetCurPosition());
+	}
+
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.Letter = Letter;
+
+	AscTest.AddTextToInlineSdt = AddTextToInlineSdt;
+	AscTest.GetBinaryWriter    = GetBinaryWriter;
+	AscTest.GetBinaryReader    = GetBinaryReader;
 
 })(window);

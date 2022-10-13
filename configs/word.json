@@ -35,6 +35,7 @@
 			"common/api/actionOnTimer.js",
 			"common/api/tableStylesPreviewGenerator.js",
 			"common/api/spellCheckSettings.js",
+			"common/api/addTextSettings.js",
 
 			"common/nameMap.js",
 			"common/downloaderfiles.js",
@@ -53,6 +54,7 @@
 
 			"common/stringserialize.js",
 			"common/random.js",
+			"common/hash/hash.js",
 
 			"common/Drawings/Metafile.js",
 			"common/libfont/textmeasurer.js",
@@ -72,7 +74,6 @@
 			"word/Editor/GraphicObjects/DrawingStates.js",
 			"common/Drawings/DrawingsChanges.js",
 			"common/Drawings/Format/Format.js",
-			"common/Drawings/Format/VML.js",
 			"common/Drawings/Format/CreateGeometry.js",
 			"common/Drawings/Format/Geometry.js",
 			"common/Drawings/Format/GraphicObjectBase.js",
@@ -223,6 +224,7 @@
 			"word/Editor/StructuredDocumentTags/SdtBase.js",
 			"word/Editor/StructuredDocumentTags/BlockLevel.js",
 			"word/Editor/StructuredDocumentTags/FormsManager.js",
+			"word/Editor/StructuredDocumentTags/FormToJson.js",
 			"word/Editor/StructuredDocumentTags/InlineLevel.js",
 			"word/Editor/StructuredDocumentTags/SdtPr.js",
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
@@ -233,6 +235,8 @@
 			"word/Editor/StructuredDocumentTags/Custom/Form.js",
 			"word/Editor/StructuredDocumentTags/Custom/PictureForm.js",
 			"word/Editor/StructuredDocumentTags/Custom/TextForm.js",
+			"word/Editor/StructuredDocumentTags/Custom/TextFormFormat.js",
+			"word/Editor/StructuredDocumentTags/Custom/TextFormMask.js",
 			"word/Editor/Serialize2.js",
 			"common/api/searchSettings.js",
 			"word/Editor/Search/DocumentSearch.js",
@@ -290,7 +294,7 @@
 			"word/fromToJSON.js",
 			"common/versionHistory.js",
 			"common/clipboard_base.js",
-			"common/text_input.js",
+			"common/text_input2.js",
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
@@ -298,12 +302,7 @@
 			"common/Native/native_graphics.js",
 						
 			"vendor/easysax.js",
-			"common/openxml.js",
-			"common/Shapes/SerializeXml.js",
-			"common/SerializeChartXml.js",
-			"common/SerializeMathXml.js",
-			"word/Editor/SerializeXml.js",
-			"word/Editor/SerializeXmlAssets.js"
+			"common/openxml.js"
 		],
 		"desktop": {
 			"min": [

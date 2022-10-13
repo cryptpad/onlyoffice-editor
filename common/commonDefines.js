@@ -696,6 +696,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 			ComplexFieldEmptyTOC : -1101,
 			ComplexFieldNoTOC    : -1102,
 
+			TextFormWrongFormat : -1201,
+
 			SecondaryAxis: 1001,
 			ComboSeriesError: 1002,
 
@@ -787,6 +789,16 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		Download  : 'asc_onDownloadUrl',
 		Print     : 'asc_onPrintUrl',
 		MailMerge : 'asc_onSaveMailMerge'
+	};
+
+	var c_oAscFrameDataType = {
+		SendImageUrls: 0,
+		GetLoadedImages: 1,
+		OpenFrame: 2,
+		ShowImageDialogInFrame: 3,
+		GetUrlsFromImageDialog: 4,
+		SkipStartEndAction: 5,
+		StartUploadImageAction: 6
 	};
 
 	var CellValueType = {
@@ -2333,7 +2345,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	var changestype_SlideHide                 = 75;
 	var changestype_CorePr                    = 76;
 	var changestype_Document_Settings         = 77; // Изменение общих настроек документа Document.Settings
-	var changestype_Timing                    = 78; // Изменение общих настроек документа Document.Settings
+	var changestype_Timing                    = 78;
+	var changestype_ViewPr                    = 79;
+	var changestype_DocumentProtection        = 80;
 
 	var changestype_2_InlineObjectMove       = 1; // Передвигаем объект в заданную позцию (проверяем место, в которое пытаемся передвинуть)
 	var changestype_2_HdrFtr                 = 2; // Изменения с колонтитулом
@@ -2484,6 +2498,13 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	g_aPunctuation[0x205C] = PUNCTUATION_FLAG_BASE;                                     // ⁜
 	g_aPunctuation[0x205D] = PUNCTUATION_FLAG_BASE;                                     // ⁝
 	g_aPunctuation[0x205E] = PUNCTUATION_FLAG_BASE;                                     // ⁞
+	g_aPunctuation[0x2420] = PUNCTUATION_FLAG_BASE;                                     // ␠
+	g_aPunctuation[0x2421] = PUNCTUATION_FLAG_BASE;                                     // ␡
+	g_aPunctuation[0x2422] = PUNCTUATION_FLAG_BASE;                                     // ␢
+	g_aPunctuation[0x2423] = PUNCTUATION_FLAG_BASE;                                     // ␣
+	g_aPunctuation[0x2424] = PUNCTUATION_FLAG_BASE;                                     // ␤
+	g_aPunctuation[0x2425] = PUNCTUATION_FLAG_BASE;                                     // ␥
+	g_aPunctuation[0x2426] = PUNCTUATION_FLAG_BASE;                                     // ␦
 
 	// Не смотря на то что следующий набор символов идет в блоке CJK Symbols and Punctuation
 	// Word не считает их как EastAsian script (w:lang->w:eastAsian)
@@ -4032,6 +4053,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Password']                         = prot.Password;
 	prot['ComplexFieldEmptyTOC']             = prot.ComplexFieldEmptyTOC;
 	prot['ComplexFieldNoTOC']                = prot.ComplexFieldNoTOC;
+	prot['TextFormWrongFormat']              = prot.TextFormWrongFormat;
 	prot['SecondaryAxis']                    = prot.SecondaryAxis;
 	prot['ComboSeriesError']                 = prot.ComboSeriesError;
 
@@ -4372,7 +4394,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Page']                           = prot.Page;
 	prot['Paragraph']                      = prot.Paragraph;
 	prot['TopMargin']                      = prot.TopMargin;
-	window['Asc']['c_oAscBorderStyles'] = window['AscCommon'].c_oAscBorderStyles = c_oAscBorderStyles;
+	window['Asc']['c_oAscBorderStyles'] = window['Asc'].c_oAscBorderStyles = c_oAscBorderStyles;
 	prot                         = c_oAscBorderStyles;
 	prot['None']                 = prot.None;
 	prot['Double']               = prot.Double;
@@ -4650,7 +4672,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window["AscCommon"].DownloadType                = DownloadType;
 	window["AscCommon"].CellValueType               = CellValueType;
 	window["AscCommon"].c_oAscChartDefines          = c_oAscChartDefines;
-	window["AscCommon"].c_oAscStyleImage            = c_oAscStyleImage;
+	window['Asc']['c_oAscStyleImage']               = window['Asc'].c_oAscStyleImage = window["AscCommon"].c_oAscStyleImage = c_oAscStyleImage;
+	c_oAscStyleImage["Default"] = c_oAscStyleImage.Default;
+	c_oAscStyleImage["Document"] = c_oAscStyleImage.Document;
+
 	window["AscCommon"].c_oAscLineDrawingRule       = c_oAscLineDrawingRule;
 	window["AscCommon"].vertalign_Baseline          = vertalign_Baseline;
 	window["AscCommon"].vertalign_SuperScript       = vertalign_SuperScript;
@@ -4688,6 +4713,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window["AscCommon"].c_oAscMaxFormulaLength      = c_oAscMaxFormulaLength;
 	window["AscCommon"].c_oAscMaxFormulaReferenceLength = c_oAscMaxFormulaReferenceLength;
 	window["AscCommon"].c_oAscMaxTableColumnTextLength = c_oAscMaxTableColumnTextLength;
+
+	window["AscCommon"].c_oAscFrameDataType = c_oAscFrameDataType;
 
 	prot =  window["AscCommon"]["c_oAscUrlType"] = window["AscCommon"].c_oAscUrlType = c_oAscUrlType;
 	prot["Invalid"] = prot.Invalid;
@@ -4737,6 +4764,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window["AscCommon"].changestype_CorePr                    = changestype_CorePr;
 	window["AscCommon"].changestype_Document_Settings         = changestype_Document_Settings;
 	window["AscCommon"].changestype_Timing                    = changestype_Timing;
+	window["AscCommon"].changestype_ViewPr                    = changestype_ViewPr;
+	window["AscCommon"].changestype_DocumentProtection        = changestype_DocumentProtection;
 
 	window["AscCommon"].changestype_2_InlineObjectMove        = changestype_2_InlineObjectMove;
 	window["AscCommon"].changestype_2_HdrFtr                  = changestype_2_HdrFtr;

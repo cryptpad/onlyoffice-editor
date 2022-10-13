@@ -110,9 +110,9 @@ CDrawingsController.prototype.AddSignatureLine = function(oSignatureDrawing)
 {
 	return this.DrawingObjects.addSignatureLine(oSignatureDrawing);
 };
-CDrawingsController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+CDrawingsController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
-	this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+	this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
 CDrawingsController.prototype.AddTextArt = function(nStyle)
 {
@@ -480,8 +480,13 @@ CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 	var oParaDrawing = this.DrawingObjects.getMajorParaDrawing();
 	if (oParaDrawing && oParaDrawing.IsForm())
 	{
-		var oInnerForm = oParaDrawing.GetInnerForm();
-		if (oInnerForm && oInnerForm !== oInfo.GetInlineLevelSdt())
+		let oInnerForm = oParaDrawing.GetInnerForm();
+		let oInlineSdt = oInfo.GetInlineLevelSdt();
+
+		if (oInnerForm
+			&& (!oInlineSdt
+				|| !oInlineSdt.IsForm()
+				|| oInnerForm !== oInlineSdt.GetMainForm()))
 		{
 			oInfo.SetInlineLevelSdt(oInnerForm);
 			oInfo.SetFixedFormShape(true);

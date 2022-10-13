@@ -105,7 +105,6 @@ function CEditorPage(api)
 	this.m_bIsRuler                     = (api.isMobileVersion === true) ? false : true;
 	this.m_bDocumentPlaceChangedEnabled = false;
 
-	this.m_nZoomValue        = 100;
 	this.m_oBoundsController = new AscFormat.CBoundsController();
 	this.m_nTabsType         = tab_Left;
 
@@ -161,7 +160,7 @@ function CEditorPage(api)
 
 	this.MouseDownDocumentCounter = 0;
 
-	this.isNewReaderMode = false;
+	this.isNewReaderMode = true;
 
 	this.bIsUseKeyPress = true;
 	this.bIsEventPaste  = false;
@@ -188,7 +187,12 @@ function CEditorPage(api)
     this.retinaScaling = AscCommon.AscBrowser.retinaPixelRatio;
 
 	this.zoom_values = [50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300, 320, 340, 360, 380, 400, 425, 450, 475, 500];
-	this.m_nZoomType = 0; // 0 - custom, 1 - fitToWodth, 2 - fitToPage
+	this.m_nZoomType = 0; // 0 - custom, 1 - fitToWidth, 2 - fitToPage
+	this.m_nZoomValue = 100;
+
+	// текущий зум после резайза. чтобы например после zoomToWidth и zoomIn/Out можно было вернуться на значение меньше меньшего/больше большего
+	this.m_nZoomValueMin = -1;
+	this.m_nZoomValueMax = -1;
 
 	this.MobileTouchManager = null;
 	this.ReaderTouchManager = null;
@@ -1015,6 +1019,9 @@ function CEditorPage(api)
 			}
 		}
 
+		if (_Zoom >= oThis.m_nZoomValue && (oThis.m_nZoomValueMin > 0 && _Zoom > oThis.m_nZoomValueMin))
+			_Zoom = oThis.m_nZoomValueMin;
+
 		if (oThis.m_nZoomValue <= _Zoom)
 			return;
 
@@ -1042,6 +1049,9 @@ function CEditorPage(api)
 				break;
 			}
 		}
+
+		if (_Zoom <= oThis.m_nZoomValue && (oThis.m_nZoomValueMax > 0 && _Zoom < oThis.m_nZoomValueMax))
+			_Zoom = oThis.m_nZoomValueMax;
 
 		if (oThis.m_nZoomValue >= _Zoom)
 			return;
@@ -2201,6 +2211,9 @@ function CEditorPage(api)
 
 	this.ChangeReaderMode = function()
 	{
+		if (!this.m_oLogicDocument)
+			return;
+
 		if (this.ReaderModeCurrent)
 			this.DisableReaderMode();
 		else
@@ -2211,8 +2224,14 @@ function CEditorPage(api)
 	{
 		if (this.m_oLogicDocument)
 		{
-			const nPageW = 210 / AscCommon.AscBrowser.retinaPixelRatio;
-			const nPageH = 297 / AscCommon.AscBrowser.retinaPixelRatio;
+			if (this.m_oDrawingDocument)
+			{
+				this.m_nZoomType = 1;
+				this.m_oDrawingDocument.m_bUpdateAllPagesOnFirstRecalculate = true;
+			}
+			let sectPr = this.m_oLogicDocument.GetSectionsInfo().Get(0).SectPr;
+			const nPageW = sectPr.GetPageWidth() / AscCommon.AscBrowser.retinaPixelRatio;
+			const nPageH = sectPr.GetPageHeight() / AscCommon.AscBrowser.retinaPixelRatio;
 			const nScale = this.ReaderFontSizes[this.ReaderFontSizeCur] / 16;
 			this.m_oLogicDocument.SetDocumentReadMode(nPageW, nPageH, nScale);
 			return true;
@@ -2347,8 +2366,13 @@ function CEditorPage(api)
 	{
 		if (this.isNewReaderMode && this.m_oLogicDocument)
 		{
-			this.m_oLogicDocument.SetDocumentPrintMode();
 			this.ReaderModeCurrent = 0;
+			if (this.m_oDrawingDocument)
+			{
+				this.m_nZoomType = 1;
+				this.m_oDrawingDocument.m_bUpdateAllPagesOnFirstRecalculate = true;
+			}
+			this.m_oLogicDocument.SetDocumentPrintMode();
 			return;
 		}
 
@@ -2819,6 +2843,8 @@ function CEditorPage(api)
 		if (!isNewSize && false === isAttack)
 			return;
 
+		this.m_nZoomValueMin = -1;
+		this.m_nZoomValueMax = -1;
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
 

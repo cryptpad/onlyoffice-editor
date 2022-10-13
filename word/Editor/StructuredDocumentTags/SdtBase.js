@@ -468,6 +468,28 @@ CSdtBase.prototype.IsFormFilled = function()
 	return true;
 }
 /**
+ * Проверка заполненности формы для составных форм
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsComplexFormFilled = function()
+{
+	let oMainForm = this.GetMainForm();
+	if (!oMainForm)
+		return false;
+
+	let arrForms = oMainForm.GetAllSubForms();
+	if (!arrForms.length)
+		return true;
+
+	for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
+	{
+		if (!arrForms[nIndex].IsFormFilled())
+			return false;
+	}
+
+	return true;
+};
+/**
  * Оборачиваем форму в графический контейнер
  * @returns {?ParaDrawing}
  */
@@ -729,4 +751,16 @@ CSdtBase.prototype.GetSubFormFromCurrentPosition = function(isForward)
 		return null;
 
 	return oParent.GetSubFormFromCurrentPosition(isForward);
+};
+CSdtBase.prototype.IsBuiltInTableOfContents = function()
+{
+	return (this.Pr && this.Pr.DocPartObj && this.Pr.DocPartObj.Gallery === "Table of Contents");
+};
+CSdtBase.prototype.IsBuiltInWatermark = function()
+{
+	return (this.Pr && this.Pr.DocPartObj && (this.Pr.DocPartObj.Gallery === "Watermarks" || this.Pr.DocPartObj.Gallery === "Watermark"));
+};
+CSdtBase.prototype.IsBuiltInUnique = function()
+{
+	return (this.Pr && this.Pr.DocPartObj && true === this.Pr.DocPartObj.Unique);
 };

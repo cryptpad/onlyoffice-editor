@@ -71,7 +71,24 @@
             }, 0);
             return maxFontSizeInParagraph > pAcc ? maxFontSizeInParagraph : pAcc;
         }, 0);
-    }
+    };
+
+    CDrawingDocContent.prototype.getBulletImages = function (arrImages) {
+        var aParagraphs = this.Content;
+        var sImageId;
+        for(var nPar = 0; nPar < aParagraphs.length; ++nPar)
+        {
+            var oPr = aParagraphs[nPar].Pr;
+            if(oPr.Bullet)
+            {
+                sImageId = oPr.Bullet.getImageBulletURL();
+                if(sImageId)
+                {
+                    arrImages.push(sImageId);
+                }
+            }
+        }
+    };
 
     CDrawingDocContent.prototype.GetFieldByType = function (sType) {
         var sType_ = sType.toLowerCase();
@@ -850,12 +867,6 @@
 
     	return this.private_GetElementPageIndex(ElementPos, PageIndex, ResultColumn, ColumnsCount);
     }
-    CDrawingDocContent.prototype.fromXml = function(reader) {
-
-    };
-    CDrawingDocContent.prototype.toXml = function (writer, name) {
-
-    };
 
     function fReadParagraphs(reader) {
 

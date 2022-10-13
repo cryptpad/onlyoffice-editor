@@ -356,7 +356,12 @@
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @alias AddComment
-	 * @param {object} oCommentData - An object which contains the comment data: "comment" - the comment text, "author" - the comment author.
+	 * @param {object}  oCommentData - An object which contains the comment data
+	 * @param {string}  oCommentData.UserName - the comment author
+	 * @param {string}  oCommentData.Text - the comment text
+	 * @param {string}  oCommentData.Time - the comment time
+	 * @param {boolean}  oCommentData.Solved - is the comment resolved
+	 * @param {undefined | array} oCommentData.Replies - an array of replies, they are in the same format as oCommentData
 	 * @return {string | null} - The comment ID in the string format or null if the comment cannot be added.
 	 */
 	window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(oCommentData)
@@ -926,6 +931,57 @@
 			}
 
 		}
+	};
+	/**
+	 * Accept review changes
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias AcceptReviewChanges
+	 * @param {boolean} [isAll=false] Accept all changes or only in the current selection
+	 * @example
+	 * window.Asc.plugin.executeMethod("AcceptReviewChanges");
+	 *
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_AcceptReviewChanges"] = function(isAll)
+	{
+		if (isAll)
+			this.asc_AcceptAllChanges();
+		else
+			this.asc_AcceptChangesBySelection(false);
+	};
+	/**
+	 * Reject review changes in the current selection
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias RejectReviewChanges
+	 * @param {boolean} [isAll=false] Accept all changes or only in the current selection
+	 * @example
+	 * window.Asc.plugin.executeMethod("RejectReviewChanges");
+	 *
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_RejectReviewChanges"] = function(isAll)
+	{
+		if (isAll)
+			this.asc_RejectAllChanges();
+		else
+			this.asc_RejectChangesBySelection(false);
+	};
+	/**
+	 * Move to next review change
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias MoveToNextReviewChange
+	 * @param {boolean} [isForward=true] Move forward or backward
+	 * @example
+	 * window.Asc.plugin.executeMethod("MoveToNextReviewChange");
+	 *
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_MoveToNextReviewChange"] = function(isForward)
+	{
+		if (undefined !== isForward && !isForward)
+			this.asc_GetPrevRevisionsChange();
+		else
+			this.asc_GetNextRevisionsChange();
 	};
 
 	function private_ReadContentControlCommonPr(commonPr)

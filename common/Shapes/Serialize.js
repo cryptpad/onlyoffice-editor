@@ -421,7 +421,7 @@ function BinaryPPTYLoader()
             {
                 // view props
                 s.Seek2(_main_tables["4"]);
-                this.presentation.ViewProps = this.ReadViewProps();
+                this.presentation.setViewPr(this.ReadViewProps());
             }
 
             if (undefined != _main_tables["5"])
@@ -790,7 +790,12 @@ function BinaryPPTYLoader()
 
     this.ReadViewProps = function()
     {
-        return null;
+       //this.stream.SkipRecord();
+       //return null;
+        let oViewPr = new AscFormat.CViewPr();
+        this.stream.GetUChar();
+        oViewPr.fromPPTY(this);
+        return oViewPr;
     };
     this.ReadVmlDrawing = function()
     {
@@ -1257,37 +1262,7 @@ function BinaryPPTYLoader()
         }
 
         s.Seek2(_end_rec);
-
-        if(_style.TableWholeTable.TablePr.TableBorders.InsideH)
-        {
-            _style.TablePr.TableBorders.InsideH = _style.TableWholeTable.TablePr.TableBorders.InsideH;
-            delete _style.TableWholeTable.TablePr.TableBorders.InsideH;
-        }
-        if(_style.TableWholeTable.TablePr.TableBorders.InsideV)
-        {
-            _style.TablePr.TableBorders.InsideV = _style.TableWholeTable.TablePr.TableBorders.InsideV;
-            delete _style.TableWholeTable.TablePr.TableBorders.InsideV;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Top)
-        {
-            _style.TablePr.TableBorders.Top = _style.TableWholeTable.TableCellPr.TableCellBorders.Top;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Top;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Bottom)
-        {
-            _style.TablePr.TableBorders.Bottom = _style.TableWholeTable.TableCellPr.TableCellBorders.Bottom;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Bottom;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Left)
-        {
-            _style.TablePr.TableBorders.Left = _style.TableWholeTable.TableCellPr.TableCellBorders.Left;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Left;
-        }
-        if(_style.TableWholeTable.TableCellPr.TableCellBorders.Right)
-        {
-            _style.TablePr.TableBorders.Right = _style.TableWholeTable.TableCellPr.TableCellBorders.Right;
-            delete _style.TableWholeTable.TableCellPr.TableCellBorders.Right;
-        }
+        _style.wholeToTablePr();
 		if(bNotAddStyle)
 		{
 			return _style;
@@ -3087,10 +3062,6 @@ function BinaryPPTYLoader()
                         if(oEffect)
                         {
                             uni_fill.fill.Effects.push(oEffect);
-                            if(oEffect instanceof AscFormat.CAlphaModFix && AscFormat.isRealNumber(oEffect.amt))
-                            {
-                                uni_fill.setTransparent(255 * oEffect.amt / 100000);
-                            }
                         }
                     }
                     s.Seek2(_end_rec_effect);
@@ -3493,18 +3464,6 @@ function BinaryPPTYLoader()
                         }
                     }
 
-                    if(uni_fill.fill.fgClr && uni_fill.fill.bgClr)
-                    {
-                        var fAlphaVal = uni_fill.fill.fgClr.getModValue("alpha");
-                        if(fAlphaVal !== null)
-                        {
-                            if(fAlphaVal === uni_fill.fill.bgClr.getModValue("alpha"))
-                            {
-                                uni_fill.setTransparent(255 * fAlphaVal / 100000)
-                            }
-                        }
-                    }
-
                     break;
                 }
                 case c_oAscFill.FILL_TYPE_SOLID:
@@ -3513,31 +3472,8 @@ function BinaryPPTYLoader()
 
                     uni_fill.setFill(new AscFormat.CSolidFill());
                     uni_fill.fill.setColor(this.ReadUniColor());
-
-//                    uni_fill.fill.color.Mods = new AscFormat.CColorModifiers();
-                    if(uni_fill.fill
-                        && uni_fill.fill.color
-                        && uni_fill.fill.color.Mods
-                        && uni_fill.fill.color.Mods.Mods)
-                    {
-                        var mods = uni_fill.fill.color.Mods.Mods;
-                        var _len = mods.length;
-                        for (var i = 0; i < _len; i++)
-                        {
-                            if (mods[i].name == "alpha")
-                            {
-                                uni_fill.setTransparent(255 * mods[i].val / 100000);
-                                uni_fill.fill.color.Mods.removeMod(i);
-                                break;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if(uni_fill.fill.color){
-                            uni_fill.fill.color.setMods(new AscFormat.CColorModifiers());
-                        }
-
+                    if(uni_fill.fill.color && !uni_fill.fill.color.Mods){
+                        uni_fill.fill.color.setMods(new AscFormat.CColorModifiers());
                     }
                     break;
                 }
@@ -3558,6 +3494,7 @@ function BinaryPPTYLoader()
         if(!uni_fill.fill){
             return null;
         }
+        uni_fill.checkTransparent();
         return uni_fill;
     };
 
@@ -3918,7 +3855,14 @@ function BinaryPPTYLoader()
         }
 
         s.Seek2(_end_rec);
-        return join;
+        if( AscFormat.LineJoinType.Empty === join.type ||
+            AscFormat.LineJoinType.Round === join.type ||
+            AscFormat.LineJoinType.Bevel === join.type ||
+            AscFormat.LineJoinType.Miter === join.type ||
+            null === join.type) {
+            return join;
+        }
+        return null;
     };
 
     // ------------------------------------------
@@ -4528,7 +4472,9 @@ function BinaryPPTYLoader()
                 }
                 case 1:
                 {
-                    this.ReadClrMap(oNotesMaster.clrMap);
+                    let clrMap = new AscFormat.ClrMap();
+                    this.ReadClrMap(clrMap);
+                    oNotesMaster.setClrMap(clrMap);
                     break;
                 }
                 case 2:
@@ -4538,7 +4484,6 @@ function BinaryPPTYLoader()
                 }
                 case 3:
                 {
-
                     oNotesMaster.setNotesStyle(this.ReadTextListStyle());
                     break;
                 }
@@ -7869,8 +7814,6 @@ function BinaryPPTYLoader()
 
         s.Skip2(1); // start attributes
 
-		var fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
-
 		var fRowHeight = 5;
         while (true)
         {
@@ -7938,7 +7881,7 @@ function BinaryPPTYLoader()
 		}
 
 		if(this.presentation && Array.isArray(this.presentation.Slides)){
-            row.updateHeightAfterOpen(fRowHeight);
+            AscFormat.updateRowHeightAfterOpen(row, fRowHeight);
         }
         s.Seek2(_end_rec);
     };
@@ -8933,9 +8876,7 @@ function BinaryPPTYLoader()
                 }
                 case 17:
                 {
-                    bodyPr.vert = s.GetUChar();
-                    if(bodyPr.vert === AscFormat.nVertTTwordArtVert)
-                        bodyPr.vert = AscFormat.nVertTTvert;
+                    bodyPr.setVertOpen(s.GetUChar());
                     break;
                 }
                 case 18:

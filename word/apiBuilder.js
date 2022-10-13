@@ -2564,19 +2564,22 @@
 		if (typeof sFontFamily !== "string")
 			return null;
 
+		var oThis               = this;
 		var loader				= AscCommon.g_font_loader;
 		var fontinfo			= g_fontApplication.GetFontInfo(sFontFamily);
-		var isasync				= loader.LoadFont(fontinfo);
-		var Document			= null;
+		var isasync				= loader.LoadFont(fontinfo, setFontFamily);
+		var Document			= private_GetLogicDocument();
 		var oldSelectionInfo	= undefined;
 
 		if (isasync === false)
-		{
-			Document			= private_GetLogicDocument();
-			oldSelectionInfo	= Document.SaveDocumentState();
+			setFontFamily()
 
-			this.Select(false);
-			if (this.isEmpty || this.isEmpty === undefined)
+		function setFontFamily()
+		{
+			oldSelectionInfo = Document.SaveDocumentState();
+
+			oThis.Select(false);
+			if (oThis.isEmpty || oThis.isEmpty === undefined)
 			{
 				Document.LoadDocumentState(oldSelectionInfo);
 				return null;
@@ -2601,13 +2604,13 @@
 			var ParaTextPr = new AscCommonWord.ParaTextPr({FontFamily : FontFamily});
 			Document.AddToParagraph(ParaTextPr);
 			
-			this.TextPr.Merge(ParaTextPr.Value);
+			oThis.TextPr.Merge(ParaTextPr.Value);
 
 			Document.LoadDocumentState(oldSelectionInfo);
 			Document.UpdateSelection();
-
-			return this;
 		}
+
+		return this;
 	};
 
 	/**
@@ -2729,22 +2732,24 @@
 	/**
 	 * Converts the ApiRange object into the JSON object.
 	 * @memberof ApiRange
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
 	 */
-	ApiRange.prototype.ToJSON = function()
+	ApiRange.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oDocument = private_GetLogicDocument();
 		var aContent = [];
-		var aResult = {
-			type: "document",
-			content: []
+		var oJSON = {
+			"type":    "document",
+			"content": []
 		}
 
 		private_RefreshRangesPosition();
 		private_RemoveEmptyRanges();
 
-		var oldSelectionInfo	= oDocument.SaveDocumentState();
+		var oldSelectionInfo = oDocument.SaveDocumentState();
 		this.Select(false);
 
 		var oSelectedContent = oDocument.GetSelectedContent();
@@ -2765,12 +2770,55 @@
 		if (aContent.length > 0)
 		{
 			var oWriter = new AscCommon.WriterToJSON();
-			aResult["content"] = oWriter.SerContent(aContent);
+			oJSON["content"] = oWriter.SerContent(aContent);
 		}
 		else
 			return "";
 
-		return JSON.stringify(aResult);
+		// numbering и styles в конце, потому что сначала нужно обойти все параграфы
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+
+		return JSON.stringify(oJSON);
+	};
+
+	/**
+	 * Adds a comment to the document.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CDE"]
+	 * @param {string} Comment - The comment text.
+	 * @param {string} Autor - The author's name (not obligatory).
+	 * @returns {boolean} - returns false if params are invalid.
+	 */
+	ApiRange.prototype.AddComment = function(Comment, Autor)
+	{
+		let oDocument = private_GetLogicDocument();
+
+		if (typeof(Comment) !== "string" || Comment.trim() === "")
+			return false;
+	
+		if (typeof(Autor) !== "string")
+			Autor = "";
+		
+		var CommentData = new AscCommon.CCommentData();
+		CommentData.SetText(Comment);
+		CommentData.SetUserName(Autor);
+
+		var documentState = oDocument.SaveDocumentState();
+		this.Select();
+
+		var COMENT = oDocument.AddComment(CommentData, false);
+		if (null !== COMENT)
+		{
+			editor.sync_AddComment(COMENT.Get_Id(), CommentData);
+		}
+
+		oDocument.LoadDocumentState(documentState);
+		oDocument.UpdateSelection();
+
+		return true;
 	};
 
 	/**
@@ -3174,13 +3222,18 @@
 	/**
 	 * Converts the ApiHyperlink object into the JSON object.
 	 * @memberof ApiHyperlink
+	 * @param bWriteStyles - Specifies if the used styles will be written to the JSON object or not.
 	 * @typeofeditors ["CDE"]
 	 * @returns {JSON}
 	 */
-	ApiHyperlink.prototype.ToJSON = function()
+	ApiHyperlink.prototype.ToJSON = function(bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerHyperlink(this.ParaHyperlink));
+		var oJSON = oWriter.SerHyperlink(this.ParaHyperlink);
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+
+		return JSON.stringify(oJSON);
 	};
 
 	/**
@@ -3763,10 +3816,6 @@
 	 * @typedef {"entireCaption" | "labelNumber" | "captionText" | "pageNum" | "aboveBelow"} captionRefTo
 	 */
 
-	/**
-	 * Available caption types.
-	 * @typedef {"equation" | "figure" | "table"} captionType
-	 */
 	//------------------------------------------------------End Cross-reference types--------------------------------------------------
 
 	/**
@@ -3810,6 +3859,62 @@
 	/**
      * Possible values for the caption label.
      * @typedef {("Table" | "Equation" | "Figure")} CaptionLabel
+	 * **/
+
+	/**
+	 * Table of contents properties.
+	 * @typedef {Object} TocPr
+	 * @property {boolean} [ShowPageNums=true] - whether to show page numbers.
+	 * @property {boolean} [RightAlgn=true] - whether to right align page numbers.
+	 * @property {TocLeader} [LeaderType="dot"] - leader type.
+	 * @property {boolean} [FormatAsLinks=true] - whether format table of contents as links..
+	 * @property {TocBuildFromPr} [BuildFrom={OutlineLvls=9}] - build table of contents from (outline levels or specified styles).
+	 * @property {TocStyle} [TocStyle="standard"] - table of contents style type.
+	 */
+
+	/**
+	 * Table of figures properties.
+	 * @typedef {Object} TofPr
+	 * @property {boolean} [ShowPageNums=true] - whether to show page numbers.
+	 * @property {boolean} [RightAlgn=true] - whether to right align page numbers.
+	 * @property {TocLeader} [LeaderType="dot"] - leader type.
+	 * @property {boolean} [FormatAsLinks=true] - whether format table of contents as links.
+	 * @property {CaptionLabel | string} [BuildFrom="Figure"] - build table of figures by specified caption label or used paragraph style name (ex. "Heading 1").
+	 * @property {boolean} [LabelNumber=true] - whether to include label and number.
+	 * @property {TofStyle} [TofStyle="distinctive"] - table of figures style type.
+	 */
+
+	/**
+	 * Table of contents build from propertie.
+	 * @typedef {Object} TocBuildFromPr
+	 * @property {number} [OutlineLvls=9] - maximum levels in table of figures
+	 * @property {TocStyleLvl[]} StylesLvls - levels for styles (ex. [{Name: "Heading 1", Lvl: 2}, {Name: "Heading 2", Lvl: 3}]).
+	 * Note: if StylesLvls.length > 0 then OutlineLvls propertie will be ignore.
+	 */
+
+	/**
+	 * Table of contents style lvl.
+	 * @typedef {Object} TocStyleLvl
+	 * @property {string} Name - name of style. (ex. "Heading 1")
+	 * @property {number} Lvl - level which will be apply for style in TOC
+	 */
+
+	/**
+	 * **"dot"**       - "......."
+	 * **"dash"**      - "-------"
+	 * **"underline"** - "_______"
+     * Possible values for the table of contents leader.
+     * @typedef {("dot" | "dash" | "underline" | "none")} TocLeader
+	 * **/
+
+	/**
+     * Possible values for the style of table of contents.
+     * @typedef {("simple" | "online" | "standard" | "modern" | "classic")} TocStyle
+	 * **/
+
+	/**
+     * Possible values for the style of table of contents.
+     * @typedef {("simple" | "online" | "classic" | "distinctive" | "centered" | "formal")} TofStyle
 	 * **/
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -4465,44 +4570,52 @@
 		var oReader = new AscCommon.ReaderFromJSON();
 		var oDocument = this.GetDocument();
 		var oParsedObj  = JSON.parse(sMessage);
-
-		switch (oParsedObj.type)
+		var oResult = null;
+		switch (oParsedObj["type"])
 		{
 			case "document":
-				if (oParsedObj.textPr)
+				if (oParsedObj["numbering"])
 				{
-					var oNewTextPr = oReader.TextPrFromJSON(oParsedObj.textPr);
+					oReader.parsedNumbering = oParsedObj["numbering"];
+				}
+				if (oParsedObj["styles"])
+				{
+					oReader.StylesFromJSON(oParsedObj["styles"]);
+				}
+				if (oParsedObj["textPr"])
+				{
+					var oNewTextPr = oReader.TextPrFromJSON(oParsedObj["textPr"]);
 					var oDefaultTextPr = oDocument.GetDefaultTextPr();
 
-					oDefaultTextPr.TextPr.Set_FromObject(oNewTextPr);
+					oDefaultTextPr.TextPr = oNewTextPr;
 					oDefaultTextPr.private_OnChange();
 				}
-				if (oParsedObj.paraPr)
+				if (oParsedObj["paraPr"])
 				{
-					var oNewParaPr = oReader.ParaPrFromJSON(oParsedObj.paraPr);
+					var oNewParaPr = oReader.ParaPrFromJSON(oParsedObj["paraPr"]);
 					var oDefaultParaPr = oDocument.GetDefaultParaPr();
 
 					oDefaultParaPr.ParaPr.Set_FromObject(oNewParaPr);
 					oDefaultParaPr.private_OnChange();
 				}
-				if (oParsedObj.theme)
+				if (oParsedObj["theme"])
 				{
 					var oDefaultTheme = oDocument.Document.GetTheme();
 
-					oDefaultTheme.setColorScheme(oReader.ClrSchemeFromJSON(oParsedObj.theme.themeElements.clrScheme));
-					oDefaultTheme.setFontScheme(oReader.FontSchemeFromJSON(oParsedObj.theme.themeElements.fontScheme));
-					oDefaultTheme.setFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj.theme.themeElements.fmtScheme));
+					oDefaultTheme.setColorScheme(oReader.ClrSchemeFromJSON(oParsedObj["theme"]["themeElements"]["clrScheme"]));
+					oDefaultTheme.setFontScheme(oReader.FontSchemeFromJSON(oParsedObj["theme"]["themeElements"]["fontScheme"]));
+					oDefaultTheme.setFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj["theme"]["themeElements"]["fmtScheme"]));
 
-					oDefaultTheme.setLnDef(oParsedObj.theme.objectDefaults.lnDef ? oReader.DefSpDefinitionFromJSON(oParsedObj.theme.objectDefaults.lnDef) : null);
-					oDefaultTheme.setSpDef(oParsedObj.theme.objectDefaults.spDef ? oReader.DefSpDefinitionFromJSON(oParsedObj.theme.objectDefaults.spDef) : null);
-					oDefaultTheme.setTxDef(oParsedObj.theme.objectDefaults.txDef ? oReader.DefSpDefinitionFromJSON(oParsedObj.theme.objectDefaults.txDef) : null);
+					oDefaultTheme.setLnDef(oParsedObj["theme"]["objectDefaults"]["lnDef"] ? oReader.DefSpDefinitionFromJSON(oParsedObj["theme"]["objectDefaults"]["lnDef"]) : null);
+					oDefaultTheme.setSpDef(oParsedObj["theme"]["objectDefaults"]["spDef"] ? oReader.DefSpDefinitionFromJSON(oParsedObj["theme"]["objectDefaults"]["spDef"]) : null);
+					oDefaultTheme.setTxDef(oParsedObj["theme"]["objectDefaults"]["txDef"] ? oReader.DefSpDefinitionFromJSON(oParsedObj["theme"]["objectDefaults"]["txDef"]) : null);
 
-					oDefaultTheme.setName(oParsedObj.theme);
-					oDefaultTheme.setIsThemeOverride(true);
+					oDefaultTheme.setName(oParsedObj["theme"]);
+					oDefaultTheme.setIsThemeOverride(oParsedObj["theme"]["isThemeOverride"]);
 				}
-				if (oParsedObj.sectPr)
+				if (oParsedObj["sectPr"])
 				{
-					var oNewSectPr = oReader.SectPrFromJSON(oParsedObj.sectPr);
+					var oNewSectPr = oReader.SectPrFromJSON(oParsedObj["sectPr"]);
 					var oCurSectPr = oDocument.Document.SectPr;
 
 					// borders
@@ -4538,7 +4651,7 @@
 					oCurSectPr.SetGutter(oNewSectPr.PageMargins.Gutter);
 					oCurSectPr.SetPageMargins(oNewSectPr.PageMargins.Left, oNewSectPr.PageMargins.Top, oNewSectPr.PageMargins.Right, oNewSectPr.PageMargins.Bottom);
 					oCurSectPr.SetPageMarginFooter(oNewSectPr.PageMargins.Footer);
-					oCurSectPr.GetPageMarginHeader(oNewSectPr.PageMargins.Header);
+					oCurSectPr.SetPageMarginHeader(oNewSectPr.PageMargins.Header);
 
 					// pageSize
 					oCurSectPr.SetPageSize(oNewSectPr.PageSize.W, oNewSectPr.PageSize.H);
@@ -4561,7 +4674,7 @@
 
 				}
 
-				var aContent = oReader.ContentFromJSON(oParsedObj.content);
+				var aContent = oReader.ContentFromJSON(oParsedObj["content"]);
 				for (var nElm = 0; nElm < aContent.length; nElm++)
 				{
 					if (aContent[nElm] instanceof AscCommonWord.Paragraph)
@@ -4572,54 +4685,75 @@
 						aContent[nElm] = new ApiBlockLvlSdt(aContent[nElm]);
 				}
 
-				return aContent;
+				oResult = aContent;
+				break;
 			case "docContent":
-				return new ApiDocumentContent(oReader.DocContentFromJSON(oParsedObj));
+				oResult = new ApiDocumentContent(oReader.DocContentFromJSON(oParsedObj));
+				break;
 			case "drawingDocContent":
-				return new ApiDocumentContent(oReader.DrawingDocContentFromJSON(oParsedObj));
+				oResult = new ApiDocumentContent(oReader.DrawingDocContentFromJSON(oParsedObj));
+				break;
 			case "paragraph":
-				return new ApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
+				oResult = new ApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
+				break;
 			case "run":
 			case "mathRun":
 			case "endRun":
-				return new ApiRun(oReader.ParaRunFromJSON(oParsedObj));
+				oResult = new ApiRun(oReader.ParaRunFromJSON(oParsedObj));
+				break;
 			case "hyperlink":
-				return new ApiHyperlink(oReader.HyperlinkFromJSON(oParsedObj));
+				oResult = new ApiHyperlink(oReader.HyperlinkFromJSON(oParsedObj));
+				break;
 			case "inlineLvlSdt":
-				return new ApiInlineLvlSdt(oReader.InlineLvlSdtFromJSON(oParsedObj));
+				oResult = new ApiInlineLvlSdt(oReader.InlineLvlSdtFromJSON(oParsedObj));
+				break;
 			case "blockLvlSdt":
-				return new ApiBlockLvlSdt(oReader.BlockLvlSdtFromJSON(oParsedObj));
+				oResult = new ApiBlockLvlSdt(oReader.BlockLvlSdtFromJSON(oParsedObj));
+				break;
 			case "table":
-				return new ApiTable(oReader.TableFromJSON(oParsedObj));
+				oResult = new ApiTable(oReader.TableFromJSON(oParsedObj));
+				break;
 			case "paraDrawing":
-				return new ApiDrawing(oReader.ParaDrawingFromJSON(oParsedObj));
+				oResult = new ApiDrawing(oReader.ParaDrawingFromJSON(oParsedObj));
+				break;
 			case "nextPage":
 			case "oddPage":
 			case "evenPage":
 			case "continuous":
 			case "nextColumn":
-				return new ApiSection(oReader.SectPrFromJSON(oParsedObj));
+				oResult = new ApiSection(oReader.SectPrFromJSON(oParsedObj));
+				break;
 			case "numbering":
-				return new ApiNumbering(oReader.NumberingFromJSON(oParsedObj));
+				oResult = new ApiNumbering(oReader.NumberingFromJSON(oParsedObj));
+				break;
 			case "textPr":
-				return new ApiTextPr(null, oReader.TextPrFromJSON(oParsedObj));
+				oResult = oParsedObj["bFromDocument"] ? new ApiTextPr(null, oReader.TextPrFromJSON(oParsedObj)) : new ApiTextPr(null, oReader.TextPrDrawingFromJSON(oParsedObj));
+				break;
 			case "paraPr":
-				return new ApiParaPr(null, oReader.ParaPrFromJSON(oParsedObj));
+				oResult = oParsedObj["bFromDocument"] ? new ApiParaPr(null, oReader.ParaPrFromJSON(oParsedObj)) : new ApiParaPr(null, oReader.ParaPrDrawingFromJSON(oParsedObj));
+				break;
 			case "tablePr":
-				return new ApiTablePr(null, oReader.TablePrFromJSON(null, oParsedObj));
+				oResult = new ApiTablePr(null, oReader.TablePrFromJSON(null, oParsedObj));
+				break;
 			case "tableRowPr":
-				return new ApiTableRowPr(null, oReader.TableRowPrFromJSON(oParsedObj));
+				oResult = new ApiTableRowPr(null, oReader.TableRowPrFromJSON(oParsedObj));
+				break;
 			case "tableCellPr":
-				return new ApiTableCellPr(null, oReader.TableCellPrFromJSON(oParsedObj));
+				oResult = new ApiTableCellPr(null, oReader.TableCellPrFromJSON(oParsedObj));
+				break;
 			case "fill":
-				return new ApiFill(oReader.FillFromJSON(oParsedObj));
+				oResult = new ApiFill(oReader.FillFromJSON(oParsedObj));
+				break;
 			case "stroke":
-				return new ApiStroke(oReader.LnFromJSON(oParsedObj));
+				oResult = new ApiStroke(oReader.LnFromJSON(oParsedObj));
+				break;
 			case "gradStop":
 				var oGs = oReader.GradStopFromJSON(oParsedObj);
-				return new ApiGradientStop(new ApiUniColor(oGs.color), oGs.pos);
+				oResult = new ApiGradientStop(new ApiUniColor(oGs.color), oGs.pos);
+				break;
 			case "uniColor":
-				return new ApiUniColor(oReader.ColorFromJSON(oParsedObj));
+				oResult = new ApiUniColor(oReader.ColorFromJSON(oParsedObj));
+				break;
 			case "style":
 				var oStyle = oReader.StyleFromJSON(oParsedObj);
 				var oDocument = private_GetLogicDocument();
@@ -4642,10 +4776,15 @@
 							oStyle = oExistingStyle;
 					}
 				}
-				return new ApiStyle(oStyle);
+				oResult = new ApiStyle(oStyle);
+				break;
 			case "tableStyle":
-				return new ApiTableStylePr(oParsedObj.styleType, null, oReader.TableStylePrFromJSON(oParsedObj));
+				oResult = new ApiTableStylePr(oParsedObj.styleType, null, oReader.TableStylePrFromJSON(oParsedObj));
+				break;
 		}
+
+		oReader.AssignConnectedObjects();
+		return oResult;
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -4755,7 +4894,22 @@
 		return false;
 	};
 
-	
+	/**
+	 * Subscribes to the specified event and calls the callback function when the event fires.
+	 * @memberof Api
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @param {string} eventName - The event name.
+	 * @param {function} callback - Function to be called when the event fires.
+	 */
+	Api.prototype["attachEvent"] = Api.prototype.attachEvent;
+
+	/**
+	 * Unsubscribes from the specified event.
+	 * @memberof Api
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @param {string} eventName - The event name.
+	 */
+	Api.prototype["detachEvent"] = Api.prototype.detachEvent;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -4883,11 +5037,20 @@
 	 * Converts the ApiDocumentContent object into the JSON object.
 	 * @memberof ApiDocumentContent
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
+	 * @returns {JSON}
 	 */
-	ApiDocumentContent.prototype.ToJSON = function()
+	ApiDocumentContent.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerDocContent(this.Document));
+		var oJSON = oWriter.SerDocContent(this.Document);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+
+		return JSON.stringify(oJSON);
 	};
 	/**
 	 * Returns an array of document elements from the current ApiDocumentContent object.
@@ -5294,13 +5457,17 @@
 			{
 				var isAnswer     = !oReport[sUserName][nIndex].Top;
 				var oCommentData = oReport[sUserName][nIndex].Data;
+				var nDateUTC     = parseInt(oCommentData.m_sOOTime);
+				if (isNaN(nDateUTC))
+					nDateUTC = 0;
 
 				if (isAnswer)
 				{
 					oResult[sUserName].push({
 						"IsAnswer"       : true,
 						"CommentMessage" : oCommentData.GetText(),
-						"Date"           : oCommentData.GetDateTime()
+						"Date"           : oCommentData.GetDateTime(),
+						"DateUTC"        : nDateUTC
 					});
 				}
 				else
@@ -5310,6 +5477,7 @@
 						"IsAnswer"       : false,
 						"CommentMessage" : oCommentData.GetText(),
 						"Date"           : oCommentData.GetDateTime(),
+						"DateUTC"        : nDateUTC,
 						"QuoteText"      : sQuoteText,
 						"IsSolved"       : oCommentData.IsSolved()
 					});
@@ -5749,39 +5917,17 @@
 		oProps.SetText(sText);
 		oProps.SetMatchCase(isMatchCase);
 
-		var foundItems 		= [];
-		var arrApiRanges	= [];
-		var docSearchEngine	= this.Document.Search(oProps);
+		let searchEngine = this.Document.Search(oProps);
+		let mapElements  = searchEngine.GetElementsMap();
 
-		var docSearchEngineElementsLenght = 0;
-		for (var FoundId in docSearchEngine.Elements)
-			docSearchEngineElementsLenght++;
-
-		for (var Index = 1; Index <= docSearchEngineElementsLenght; Index++)
-			foundItems.push(docSearchEngine.Elements[Index]);
-
-		for (var Index1 = 0; Index1 < foundItems.length; Index1++)
+		let apiRanges = [];
+		for (let paraId in mapElements)
 		{
-			for (var Index2 = Index1 + 1; Index2 < foundItems.length; Index2++)
-			{
-				if (foundItems[Index1].Id === foundItems[Index2].Id)
-				{
-					foundItems.splice(Index2, 1);
-					Index2--;
-				}
-			}
+			let paragraph = new ApiParagraph(mapElements[paraId]);
+			apiRanges = apiRanges.concat(paragraph.Search(sText, isMatchCase));
 		}
 
-		for (var para in foundItems)
-		{
-			var oParagraph			= new ApiParagraph(foundItems[para]);
-			var arrOfParaApiRanges	= oParagraph.Search(oProps);
-
-			for (var itemRange = 0; itemRange < arrOfParaApiRanges.length; itemRange++)	
-				arrApiRanges.push(arrOfParaApiRanges[itemRange]);
-		}
-
-		return arrApiRanges;
+		return apiRanges;
 	};
 	/**
 	 * Converts a document to Markdown.
@@ -5990,27 +6136,32 @@
 				oDocument.LoadDocumentState(oState);
 			}
 		}
-	};	/**
+	};
+	/**
 	 * Converts the ApiDocument object into the JSON object.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
 	 * @param bWriteDefaultTextPr - Specifies if the default text properties will be written to the JSON object or not.
 	 * @param bWriteDefaultParaPr - Specifies if the default paragraph properties will be written to the JSON object or not.
 	 * @param bWriteTheme         - Specifies if the document theme will be written to the JSON object or not.
-	 * @param bWriteSectionPr     - Specifies if the section properties will be written to the JSON object or not.
+	 * @param bWriteSectionPr     - Specifies if the document section properties will be written to the JSON object or not.
+	 * @param bWriteNumberings    - Specifies if the document numberings will be written to the JSON object or not.
+	 * @param bWriteStyles        - Specifies if the document styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiDocument.prototype.ToJSON = function(bWriteDefaultTextPr, bWriteDefaultParaPr, bWriteTheme, bWriteSectionPr)
+	ApiDocument.prototype.ToJSON = function(bWriteDefaultTextPr, bWriteDefaultParaPr, bWriteTheme, bWriteSectionPr, bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
 
 		var oResult = {
-			type: "document",
-			textPr: bWriteDefaultTextPr ? oWriter.SerTextPr(this.GetDefaultTextPr().TextPr) : null,
-			paraPr: bWriteDefaultParaPr ? oWriter.SerParaPr(this.GetDefaultParaPr().ParaPr) : null,
-			theme: bWriteTheme ? oWriter.SerTheme(this.Document.GetTheme()) : null,
-			sectPr: bWriteSectionPr ? oWriter.SerSectionPr(this.Document.SectPr) : null,
-			content: oWriter.SerContent(this.Document.Content, undefined, undefined, undefined, true)
+			"type":      "document",
+			"textPr":    bWriteDefaultTextPr ? oWriter.SerTextPr(this.GetDefaultTextPr().TextPr) : undefined,
+			"paraPr":    bWriteDefaultParaPr ? oWriter.SerParaPr(this.GetDefaultParaPr().ParaPr) : undefined,
+			"theme":     bWriteTheme ? oWriter.SerTheme(this.Document.GetTheme()) : undefined,
+			"sectPr":    bWriteSectionPr ? oWriter.SerSectionPr(this.Document.SectPr) : undefined,
+			"content":   oWriter.SerContent(this.Document.Content, undefined, undefined, undefined, true),
+			"numbering": bWriteNumberings ? oWriter.jsonWordNumberings : undefined,
+			"styles":    bWriteStyles ? oWriter.SerWordStylesForWrite() : undefined
 		}
 
 		return JSON.stringify(oResult);
@@ -6131,7 +6282,7 @@
 	 * Returns all caption paragraphs of the specified type from the current document.
 	 * @memberof ApiDocument
 	 * @typeofeditors ["CDE"]
-	 * @param {captionType} sCaption Caption type (equation, figure or table).
+	 * @param {CaptionLabel | string} sCaption - The caption label ("Equation", "Figure", "Table" or another caption label).
 	 * @returns {ApiParagraph[]}
 	 */
 	ApiDocument.prototype.GetAllCaptionParagraphs = function(sCaption) 
@@ -6139,7 +6290,7 @@
 		if (typeof(sCaption) !== "string" || sCaption.length === 0)
 			return [];
 
-		var allParas = this.Document.GetAllCaptionParagraphs(sCaption[0].toUpperCase() + sCaption.slice(1));
+		var allParas = this.Document.GetAllCaptionParagraphs(sCaption);
 		var aResult = [];
 		for (var nPara = 0; nPara < allParas.length; nPara++)
 			aResult.push(new ApiParagraph(allParas[nPara]));
@@ -6230,7 +6381,7 @@
 	/**
 	 * Replaces the current image with an image specified.
 	 * @typeofeditors ["CDE"]
-	 * @memberof ApiPresentation
+	 * @memberof ApiDocument
 	 * @param {string} sImageUrl - The image source where the image to be inserted should be taken from (currently, only internet URL or Base64 encoded images are supported).
 	 * @param {EMU} Width - The image width in English measure units.
 	 * @param {EMU} Height - The image height in English measure units.
@@ -6239,39 +6390,9 @@
 	{
 		let oLogicDocument = private_GetLogicDocument();
 		let oDrawingObjects = oLogicDocument.DrawingObjects;
-		let oDrawingSelection = oDrawingObjects.selection;
-		let aSelectedObjects;
-		if(oDrawingSelection.groupSelection)
-		{
-			aSelectedObjects = oDrawingSelection.groupSelection.selectedObjects;
-		}
-		else
-		{
-			aSelectedObjects = oDrawingObjects.selectedObjects;
-		}
-		if(aSelectedObjects.length === 1 && aSelectedObjects[0].isImage())
-		{
-			let dWidth = private_EMU2MM(Width);
-			let dHeight = private_EMU2MM(Height);
-			let oSp = aSelectedObjects[0];
-			oSp.replacePictureData(sImageUrl, dWidth, dHeight);
-			if(oSp.group){
-				oDrawingObjects.selection.groupSelection.resetInternalSelection();
-				oSp.group.selectObject(oSp, 0);
-			}
-			else{
-				oDrawingObjects.resetSelection();
-				oDrawingObjects.selectObject(oSp, 0);
-			}
-		}
-		else
-		{
-			let oParagraph, arrInsertResult = [], oImage;
-			oParagraph = Api.CreateParagraph();
-			oImage = Api.CreateImage(sImageUrl, Width, Height);
-			oParagraph.AddDrawing(oImage);
-			this.InsertContent(arrInsertResult);
-		}
+
+		let dK = 1 / 36000 / AscCommon.g_dKoef_pix_to_mm;
+		oDrawingObjects.putImageToSelection(sImageUrl, Width * dK, Height * dK );
 	};
 
 	/**
@@ -6346,6 +6467,236 @@
 			return null;
 
 		return new ApiDocumentContent(oResult);
+	};
+
+	/**
+	 * Sets the highlight to the content controls in the document.
+	 * @memberof ApiDocument
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} [bNone=false] - Defines that highlight will not be set.
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.SetControlsHighlight = function(r, g, b, bNone)
+	{
+		if (bNone === true)
+			this.Document.SetSdtGlobalShowHighlight(false);
+		else
+		{
+			this.Document.SetSdtGlobalShowHighlight(true);
+			this.Document.SetSdtGlobalColor(r, g, b);
+		}
+	};
+
+	/**
+	 * Adds a table of content.
+	 * Note: replaces existing table of contents.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @param {TocPr} [oTocPr={}] - table of contents properties.
+	 */
+	ApiDocument.prototype.AddTableOfContents = function(oTocPr)
+	{
+		if (typeof(oTocPr) !== "object")
+			oTocPr = {};
+
+		if (!oTocPr["BuildFrom"])
+			oTocPr["BuildFrom"] = {"OutlineLvls": 9};
+
+		let oTargetPr = new Asc.CTableOfContentsPr();
+		oTargetPr.PageNumbers = typeof(oTocPr["ShowPageNums"]) == "boolean" ? oTocPr["ShowPageNums"] : true;
+		oTargetPr.RightTab = typeof(oTocPr["RightAlgn"]) == "boolean" ? oTocPr["RightAlgn"] : true;
+		oTargetPr.Hyperlink = typeof(oTocPr["FormatAsLinks"]) == "boolean" ? oTocPr["FormatAsLinks"] : true;
+
+		if (oTocPr["LeaderType"] == null)
+			oTocPr["LeaderType"] = "dot";
+		switch (oTocPr["LeaderType"])
+		{
+			case "dot":
+				oTargetPr.TabLeader = 0;
+				break;
+			case "dash":
+				oTargetPr.TabLeader = 2;
+				break;
+			case "underline":
+				oTargetPr.TabLeader = 5;
+				break;
+			case "none":
+				oTargetPr.TabLeader = 4;
+				break;
+		}
+
+		if (Array.isArray(oTocPr["BuildFrom"]["StylesLvls"]) && oTocPr["BuildFrom"]["StylesLvls"].length > 0)
+		{
+			oTargetPr.Styles = oTocPr["BuildFrom"]["StylesLvls"];
+			oTargetPr.OutlineEnd = -1;
+			oTargetPr.OutlineStart = -1;
+		}
+		else if (oTocPr["BuildFrom"]["OutlineLvls"] >= 1 && oTocPr["BuildFrom"]["OutlineLvls"] <= 9)
+		{
+			oTargetPr.OutlineEnd = oTocPr["BuildFrom"]["OutlineLvls"];
+		}
+
+		if (oTocPr["TocStyle"] == null)
+			oTocPr["TocStyle"] = "standard";
+		switch (oTocPr["TocStyle"])
+		{
+			case "simple":
+				oTargetPr.StylesType = 1;
+				break;
+			case "online":
+				oTargetPr.StylesType = 5;
+				break;
+			case "standard":
+				oTargetPr.StylesType = 2;
+				break;
+			case "modern":
+				oTargetPr.StylesType = 3;
+				break;
+			case "classic":
+				oTargetPr.StylesType = 4;
+				break;
+		}
+
+		var oTOC = this.Document.GetTableOfContents();
+		if (oTOC instanceof AscCommonWord.CBlockLevelSdt && oTOC.IsBuiltInUnique())
+		{
+			var oInnerTOC = oTOC.GetInnerTableOfContents();
+			oTOC = oInnerTOC;
+			if (!oTOC)
+				return;
+
+			var oStyles = this.Document.GetStyles();
+			var nStylesType = oTargetPr.get_StylesType();
+			var isNeedChangeStyles = (Asc.c_oAscTOCStylesType.Current !== nStylesType && nStylesType !== oStyles.GetTOCStylesType());
+
+			oTOC.SelectField();
+			if (isNeedChangeStyles)
+				oStyles.SetTOCStylesType(nStylesType);
+
+			oTOC.SetPr(oTargetPr);
+			oTOC.Update();
+			return;
+		}
+
+		this.Document.AddTableOfContents(null, oTargetPr, undefined);
+	};
+
+	/**
+	 * Adds a table of figures.
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @param {TofPr} [oTofPr={}] - table of figures properties.
+	 * Note: oTofPr will be fill by default properties if undefined.
+	 * @param {boolean} [bReplace=true] - replaces current selected table of figures instead of adding.
+	 * @returns {boolean}
+	 */
+	ApiDocument.prototype.AddTableOfFigures = function(oTofPr, bReplace)
+	{
+		if (typeof(oTofPr) !== "object")
+			oTofPr = {};
+		if (typeof(bReplace) !== "boolean")
+			bReplace = true;
+
+		let oTargetPr = new Asc.CTableOfContentsPr();
+		oTargetPr.PageNumbers = typeof(oTofPr["ShowPageNums"]) == "boolean" ? oTofPr["ShowPageNums"] : true;
+		oTargetPr.RightTab = typeof(oTofPr["RightAlgn"]) == "boolean" ? oTofPr["RightAlgn"] : true;
+		oTargetPr.Hyperlink = typeof(oTofPr["FormatAsLinks"]) == "boolean" ? oTofPr["FormatAsLinks"] : true;
+		oTargetPr.IsIncludeLabelAndNumber = typeof(oTofPr["LabelNumber"]) == "boolean" ? oTofPr["LabelNumber"] : true;
+		oTargetPr.OutlineEnd = -1;
+		oTargetPr.OutlineStart = -1;
+
+
+		if (oTofPr["LeaderType"] == null)
+			oTofPr["LeaderType"] = "dot";
+		switch (oTofPr["LeaderType"])
+		{
+			case "dot":
+				oTargetPr.TabLeader = 0;
+				break;
+			case "dash":
+				oTargetPr.TabLeader = 2;
+				break;
+			case "underline":
+				oTargetPr.TabLeader = 5;
+				break;
+			case "none":
+				oTargetPr.TabLeader = 4;
+				break;
+		}
+
+		if (typeof(oTofPr["BuildFrom"]) !== "string")
+			oTofPr["BuildFrom"] = "Figure";
+
+		let aStyles = this.Document.GetAllUsedParagraphStyles();
+		let isUsedStyle = false;
+		for (var i = 0; i < aStyles.length; i++)
+		{
+			if (aStyles[i].Name == oTofPr["BuildFrom"])
+			{
+				isUsedStyle = true;
+				break;
+			}
+		}
+
+		if (isUsedStyle)
+		{
+			oTargetPr.Styles = [{ Name: oTofPr["BuildFrom"], Lvl: undefined }];
+			oTargetPr.Caption = null;
+		}
+		else
+			oTargetPr.Caption = oTofPr["BuildFrom"];
+
+		if (oTofPr["TofStyle"] == null)
+			oTofPr["TofStyle"] = "distinctive";
+		switch (oTofPr["TofStyle"])
+		{
+			case "simple":
+				oTargetPr.StylesType = 5;
+				break;
+			case "online":
+				oTargetPr.StylesType = 6;
+				break;
+			case "classic":
+				oTargetPr.StylesType = 1;
+				break;
+			case "distinctive":
+				oTargetPr.StylesType = 2;
+				break;
+			case "centered":
+				oTargetPr.StylesType = 3;
+				break;
+			case "formal":
+				oTargetPr.StyleType = 4;
+				break;
+		}
+
+		let aTOF = this.Document.GetAllTablesOfFigures(true);
+		let oTOFToReplace = null;
+		if(aTOF.length > 0)
+		{
+			oTOFToReplace = aTOF[0];
+		}
+
+		if (oTOFToReplace && bReplace)
+		{
+			oTOFToReplace.SelectFieldValue();
+			oTargetPr.ComplexField = oTOFToReplace;
+
+			var oStyles     = this.Document.GetStyles();
+			var nStylesType = oTargetPr.get_StylesType();
+			var isNeedChangeStyles = (Asc.c_oAscTOFStylesType.Current !== nStylesType && nStylesType !== oStyles.GetTOFStyleType());
+			if (isNeedChangeStyles)
+				oStyles.SetTOFStyleType(nStylesType);
+
+			oTOFToReplace.SetPr(oTargetPr);
+			oTOFToReplace.Update();
+		}
+		else
+			this.Document.AddTableOfFigures(oTargetPr);
+
+		return true;
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -6953,32 +7304,34 @@
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
 	 * @param {string} sFontFamily - The font family or families used for the current paragraph.
-	 * @returns {ApiParagraph | false} 
+	 * @returns {?ApiParagraph} this
 	 */
 	ApiParagraph.prototype.SetFontFamily = function(sFontFamily)
 	{
 		if (typeof sFontFamily !== "string")
-			return false;
+			return null;
 
+		var oThis    = this;
 		var loader   = AscCommon.g_font_loader;
 		var fontinfo = g_fontApplication.GetFontInfo(sFontFamily);
-		var isasync  = loader.LoadFont(fontinfo);
+		var isasync  = loader.LoadFont(fontinfo, setFontFamily);
 
 		if (isasync === false)
+			setFontFamily()
+
+		function setFontFamily()
 		{
 			var FontFamily = {
 				Name : sFontFamily,
 				Index : -1
 			};
 
-			this.Paragraph.SetApplyToAll(true);
-			this.Paragraph.Add(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
-			this.Paragraph.SetApplyToAll(false);
-			
-			return this;
+			oThis.Paragraph.SetApplyToAll(true);
+			oThis.Paragraph.Add(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
+			oThis.Paragraph.SetApplyToAll(false);
 		}
-		
-		return false;
+
+		return this;
 	};
 	/**
 	 * Returns all font names from all elements inside the current paragraph.
@@ -7378,9 +7731,10 @@
 
 		for (var Index = ParaPosition.length - 1; Index >= 1; Index--)
 		{
-			if (ParaPosition[Index].Class)
-				if (ParaPosition[Index].Class instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(ParaPosition[Index].Class);
+			if (ParaPosition[Index].Class && ParaPosition[Index].Class.Parent && ParaPosition[Index].Class.Parent instanceof CBlockLevelSdt)
+			{
+				return new ApiBlockLvlSdt(ParaPosition[Index].Class.Parent);
+			}
 		}
 
 		return null;
@@ -7600,32 +7954,18 @@
 		if (isMatchCase === undefined)
 			isMatchCase = false;
 
-		var arrApiRanges	= [];
-		var Api				= editor; 
-		var oDocument		= Api.GetDocument();
-		var SearchEngine;
-		let oProps = new AscCommon.CSearchSettings();
+		let oDocument = private_GetLogicDocument();
+		let oProps    = new AscCommon.CSearchSettings();
 		oProps.SetText(sText);
 		oProps.SetMatchCase(!!isMatchCase);
+		oDocument.Search(oProps);
 
-		if (!oDocument.Document.SearchEngine.Compare(oProps))
-		{
-			SearchEngine		= new AscCommonWord.CDocumentSearch();
-			SearchEngine.Set(oProps);
-			this.Paragraph.Search(SearchEngine, 0)
-		}
-		else
-		{
-			SearchEngine = oDocument.Document.SearchEngine;
-			this.Paragraph.Search(SearchEngine, 0)
-		}
-
-		var SearchResults	= this.Paragraph.SearchResults;
-
+		var SearchResults = this.Paragraph.SearchResults;
+		let arrApiRanges  = [];
 		for (var FoundId in SearchResults)
 		{
-			var StartSearchContentPos	= SearchResults[FoundId].StartPos;
-			var EndSearchContentPos		= SearchResults[FoundId].EndPos;
+			var StartSearchContentPos = SearchResults[FoundId].StartPos;
+			var EndSearchContentPos   = SearchResults[FoundId].EndPos;
 
 			var StartChar	= this.Paragraph.ConvertParaContentPosToRangePos(StartSearchContentPos);
 			var EndChar		= this.Paragraph.ConvertParaContentPosToRangePos(EndSearchContentPos);
@@ -7972,7 +8312,7 @@
 	 * The paragraph must be in the document.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
-	 * @param {captionType} sCaption - Caption type (equation, figure, table).
+	 * @param {CaptionLabel | string} sCaption - The caption label ("Equation", "Figure", "Table" or another caption label).
 	 * @param {captionRefTo} sRefType - The text or numeric value of a caption reference you want to insert.
 	 * @param {ApiParagraph} oParaTo - The caption paragraph to be referred to (must be in the document).
 	 * @param {boolean} [bLink=true] - Specifies if the reference will be inserted as a hyperlink.
@@ -8013,7 +8353,7 @@
 		var aTempCompFlds = [];
 		oParaTo = oParaTo.private_GetImpl();
 		
-		oParaTo.GetAllSeqFieldsByType(sCaption[0].toUpperCase() + sCaption.slice(1), aTempCompFlds);
+		oParaTo.GetAllSeqFieldsByType(sCaption, aTempCompFlds);
 		if (aTempCompFlds.length === 0)
 			return false;
 		if (nRefTo === 7 && oParaTo.asc_canAddRefToCaptionText(typeRec.displayValue) === false)
@@ -8027,7 +8367,7 @@
 		oDocument.RemoveSelection();
 		this.Paragraph.Document_SetThisElementCurrent();
 		this.Paragraph.SetCurrentPos(this.Paragraph.Content.length - 1);
-		oDocument.AddRefToCaption(sCaption[0].toUpperCase() + sCaption.slice(1), oParaTo, nRefTo, bLink, bAboveBelow);
+		oDocument.AddRefToCaption(sCaption, oParaTo, nRefTo, bLink, bAboveBelow);
 		oDocument.LoadDocumentState(oldSelectionInfo);
 		return true;
 	};
@@ -8036,12 +8376,19 @@
 	 * Converts the ApiParagraph object into the JSON object.
 	 * @memberof ApiParagraph
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiParagraph.prototype.ToJSON = function()
+	ApiParagraph.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerParagraph(this.Paragraph));
+		var oJSON = oWriter.SerParagraph(this.Paragraph);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 	/**
@@ -8455,7 +8802,7 @@
         {
             if (RunPosition[Index].Class)
             {
-                if (RunPosition[Index].Class instanceof CBlockLevelSdt)
+                if (RunPosition[Index].Class.Parent && RunPosition[Index].Class.Parent instanceof CBlockLevelSdt)
                     return new ApiBlockLvlSdt(RunPosition[Index].Class);
                 else if (RunPosition[Index].Class instanceof CInlineLevelSdt)
                     return new ApiInlineLvlSdt(RunPosition[Index].Class);
@@ -8836,11 +9183,16 @@
 	 * Converts the ApiRun object into the JSON object.
 	 * @memberof ApiRun
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteStyles - Specifies if the used styles will be written to the JSON object or not.
+	 * @returns {JSON}
 	 */
-	ApiRun.prototype.ToJSON = function()
+	ApiRun.prototype.ToJSON = function(bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerParaRun(this.Run));
+		var oJSON = oWriter.SerParaRun(this.Run);
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -9062,7 +9414,10 @@
 				this.Section.Set_Footer_Default(oFooter);
 		}
 
-		return new ApiDocumentContent(oFooter.Get_DocumentContent());
+		if (oFooter)
+			return new ApiDocumentContent(oFooter.Get_DocumentContent());
+		
+		return null;
 	};
 	/**
 	 * Removes the footer of the specified type from the current section. After removal, the footer will be inherited from 
@@ -9150,12 +9505,19 @@
 	 * Converts the ApiSection object into the JSON object.
 	 * @memberof ApiSection
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiSection.prototype.ToJSON = function()
+	ApiSection.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerSectionPr(this.Section));
+		var oJSON = oWriter.SerSectionPr(this.Section);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -9700,9 +10062,8 @@
 
         for (var Index = TablePosition.length - 1; Index >= 1; Index--)
         {
-            if (TablePosition[Index].Class)
-                if (TablePosition[Index].Class instanceof CBlockLevelSdt)
-                    return new ApiBlockLvlSdt(TablePosition[Index].Class);
+            if (TablePosition[Index].Class && TablePosition[Index].Class.Parent && TablePosition[Index].Class.Parent instanceof CBlockLevelSdt)
+				return new ApiBlockLvlSdt(TablePosition[Index].Class.Parent);
         }
 
         return null;
@@ -10007,12 +10368,19 @@
 	 * Converts the ApiTable object into the JSON object.
 	 * @memberof ApiTable
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiTable.prototype.ToJSON = function()
+	ApiTable.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerTable(this.Table));
+		var oJSON = oWriter.SerTable(this.Table);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 	/**
@@ -10189,7 +10557,7 @@
 			tempCell 			= this.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.Cell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10223,7 +10591,7 @@
 			tempCell 			= this.Row.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10277,7 +10645,7 @@
 			tempCell 			= this.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.Cell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10317,7 +10685,7 @@
 			tempCell 			= this.GetCell(curCell);
 			tempStartGridCol	= this.Row.GetCellInfo(curCell).StartGridCol;
 			tempGridSpan		= tempCell.Cell.GetGridSpan();
-			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCount2(this.GetIndex(), tempStartGridCol, tempGridSpan);
+			tempVMergeCount		= oTable.Table.Internal_GetVertMergeCountUp(this.GetIndex(), tempStartGridCol, tempGridSpan);
 
 			if (tempVMergeCount > 1)
 			{
@@ -10912,12 +11280,16 @@
 	 * Converts the ApiStyle object into the JSON object.
 	 * @memberof ApiStyle
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiStyle.prototype.ToJSON = function()
+	ApiStyle.prototype.ToJSON = function(bWriteNumberings)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerStyle(this.Style));
+		var oJSON = oWriter.SerStyle(this.Style);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		return JSON.stringify(oJSON);
 	};
 
 
@@ -11250,12 +11622,23 @@
 	 * Converts the ApiTextPr object into the JSON object.
 	 * @memberof ApiTextPr
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteStyles - Specifies if the used styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiTextPr.prototype.ToJSON = function()
+	ApiTextPr.prototype.ToJSON = function(bWriteStyles)
 	{
-		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerTextPr(this.TextPr));
+		let oWriter = new AscCommon.WriterToJSON();
+		let bFromDocument = true;
+		let oParentRun = this.Parent;
+		let oParentPara = oParentRun instanceof ParaRun ? oParentRun.GetParagraph() : null;
+
+		if (oWriter.isWord === false || (oParentPara instanceof Paragraph && oParentPara.bFromDocument !== true))
+			bFromDocument = false;
+
+		let oJSON = bFromDocument ? oWriter.SerTextPr(this.TextPr) : oWriter.SerTextPrDrawing(this.TextPr);
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify();
 	};
 
 
@@ -11880,12 +12263,16 @@
 	 * Converts the ApiParaPr object into the JSON object.
 	 * @memberof ApiParaPr
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteStyles - Specifies if the used styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiParaPr.prototype.ToJSON = function()
+	ApiParaPr.prototype.ToJSON = function(bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerParaPr(this.ParaPr));
+		var oJSON = this.Parent != null && this.Parent instanceof Paragraph && this.Parent.bFromDocument !== true ? oWriter.SerParaPrDrawing(this.ParaPr) : oWriter.SerParaPr(this.ParaPr);
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 
@@ -13395,12 +13782,19 @@
 	 * Converts the ApiDrawing object into the JSON object.
 	 * @memberof ApiDrawing
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
 	 * @returns {JSON}
 	 */
-	ApiDrawing.prototype.ToJSON = function()
+	ApiDrawing.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerParaDrawing(this.Drawing));
+		var oJSON = oWriter.SerParaDrawing(this.Drawing);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 	/**
@@ -13411,7 +13805,7 @@
 	 */
 	ApiDrawing.prototype.GetWidth = function()
 	{
-		return private_MM2EMU(this.Drawing.GetWidth());
+		return private_MM2EMU(this.Drawing.getXfrmExtX());
 	};
 	/**
 	 * Returns the height of the current drawing.
@@ -13421,7 +13815,7 @@
 	 */
 	ApiDrawing.prototype.GetHeight = function()
 	{
-		return private_MM2EMU(this.Drawing.Get_Height());
+		return private_MM2EMU(this.Drawing.getXfrmExtY());
 	};
 	/**
      * Returns the lock value for the specified lock type of the current drawing.
@@ -14196,7 +14590,7 @@
 	ApiChart.prototype.SetXValues = function(aValues)
 	{
 		if (this.Chart.isScatterChartType())
-			return this.Chart.SetValuesToXDataPoints(aValues);
+			return this.Chart.SetXValuesToDataPoints(aValues);
 		return false;
 	};
 
@@ -14528,6 +14922,7 @@
 	 * Converts the ApiFill object into the JSON object.
 	 * @memberof ApiFill
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiFill.prototype.ToJSON = function()
 	{
@@ -14555,6 +14950,7 @@
 	 * Converts the ApiStroke object into the JSON object.
 	 * @memberof ApiStroke
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiStroke.prototype.ToJSON = function()
 	{
@@ -14582,6 +14978,7 @@
 	 * Converts the ApiGradientStop object into the JSON object.
 	 * @memberof ApiGradientStop
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiGradientStop.prototype.ToJSON = function()
 	{
@@ -14609,6 +15006,7 @@
 	 * Converts the ApiUniColor object into the JSON object.
 	 * @memberof ApiUniColor
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiUniColor.prototype.ToJSON = function()
 	{
@@ -14636,6 +15034,7 @@
 	 * Converts the ApiRGBColor object into the JSON object.
 	 * @memberof ApiRGBColor
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiRGBColor.prototype.ToJSON = function()
 	{
@@ -14663,6 +15062,7 @@
 	 * Converts the ApiSchemeColor object into the JSON object.
 	 * @memberof ApiSchemeColor
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiSchemeColor.prototype.ToJSON = function()
 	{
@@ -14690,6 +15090,7 @@
 	 * Converts the ApiPresetColor object into the JSON object.
 	 * @memberof ApiPresetColor
 	 * @typeofeditors ["CDE"]
+	 * @returns {JSON}
 	 */
 	ApiPresetColor.prototype.ToJSON = function()
 	{
@@ -15160,11 +15561,16 @@
 	 * Converts the ApiInlineLvlSdt object into the JSON object.
 	 * @memberof ApiInlineLvlSdt
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteStyles - Specifies if the used styles will be written to the JSON object or not.
+	 * @return {JSON}
 	 */
-	ApiInlineLvlSdt.prototype.ToJSON = function()
+	ApiInlineLvlSdt.prototype.ToJSON = function(bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerInlineLvlSdt(this.Sdt));
+		var oJSON = oWriter.SerInlineLvlSdt(this.Sdt);
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 	/**
@@ -15499,9 +15905,8 @@
 
 		for (var Index = documentPos.length - 1; Index >= 1; Index--)
 		{
-			if (documentPos[Index].Class)
-				if (documentPos[Index].Class instanceof CBlockLevelSdt)
-					return new ApiBlockLvlSdt(documentPos[Index].Class);
+			if (documentPos[Index].Class && documentPos[Index].Class.Parent && documentPos[Index].Class.Parent instanceof CBlockLevelSdt)
+				return new ApiBlockLvlSdt(documentPos[Index].Class.Parent);
 		}
 
 		return null;
@@ -15758,6 +16163,52 @@
 		}
 
 		return false;
+	};
+
+	/**
+	 * Sets the background color to the current sdt.
+	 * @memberof ApiBlockLvlSdt
+	 * @param {byte} r - Red color component value.
+	 * @param {byte} g - Green color component value.
+	 * @param {byte} b - Blue color component value.
+	 * @param {boolean} bNone - Defines that background color will not be set.
+	 * @typeofeditors ["CDE"]
+	 * @returns {boolean}
+	 */
+	ApiBlockLvlSdt.prototype.SetBackgroundColor = function(r, g, b, bNone)
+	{
+		var oFormPr = this.Sdt.GetFormPr().Copy();
+		
+		let oUnifill = new AscFormat.CUniFill();
+		oUnifill.setFill(new AscFormat.CSolidFill());
+		oUnifill.fill.setColor(new AscFormat.CUniColor());
+		oUnifill.fill.color.setColor(new AscFormat.CRGBColor());
+
+		if (r >=0 && g >=0 && b >=0)
+			oUnifill.fill.color.color.setColor(r, g, b);
+		else
+			return false;
+
+		oFormPr.Shd = new CDocumentShd();
+		oFormPr.Shd.Set_FromObject({
+			Value: bNone ? Asc.c_oAscShd.Clear : Asc.c_oAscShd.Clear,
+			Color: {
+				r: r,
+				g: g,
+				b: b,
+				Auto: false
+			},
+			Fill: {
+				r: r,
+				g: g,
+				b: b,
+				Auto: false
+			},
+			Unifill: oUnifill
+		});
+
+		this.Sdt.SetFormPr(oFormPr);
+		return true;
 	};
 
 	//------------------------------------------------------------------------------------------------------------------
@@ -16076,7 +16527,7 @@
 	};
 	/**
 	 * Sets the text properties to the current form.
-	 * *This method is used only for text and combo box forms.
+	 * *This method is used only for text and combo box forms.*
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @param {ApiTextPr} oTextPr - The text properties that will be set to the current form.
@@ -16094,7 +16545,7 @@
 	};
 	/**
 	 * Returns the text properties from the current form.
-	 * *This method is used only for text and combo box forms.
+	 * *This method is used only for text and combo box forms.*
 	 * @memberof ApiFormBase
 	 * @typeofeditors ["CDE"]
 	 * @return {ApiTextPr}  
@@ -16728,11 +17179,19 @@
 	 * Converts the ApiBlockLvlSdt object into the JSON object.
 	 * @memberof ApiBlockLvlSdt
 	 * @typeofeditors ["CDE"]
+	 * @param bWriteNumberings - Specifies if the used numberings will be written to the JSON object or not.
+	 * @param bWriteStyles     - Specifies if the used styles will be written to the JSON object or not.
+	 * @return {JSON}
 	 */
-	ApiBlockLvlSdt.prototype.ToJSON = function()
+	ApiBlockLvlSdt.prototype.ToJSON = function(bWriteNumberings, bWriteStyles)
 	{
 		var oWriter = new AscCommon.WriterToJSON();
-		return JSON.stringify(oWriter.SerBlockLvlSdt(this.Sdt));
+		var oJSON = oWriter.SerBlockLvlSdt(this.Sdt);
+		if (bWriteNumberings)
+			oJSON["numbering"] = oWriter.jsonWordNumberings;
+		if (bWriteStyles)
+			oJSON["styles"] = oWriter.SerWordStylesForWrite();
+		return JSON.stringify(oJSON);
 	};
 
 	/**
@@ -17058,7 +17517,9 @@
 			var resultText        = null;
 			var nTextToReplace    = 0;
 			var ws                = this.wb.getWorksheet();
-			var oContent = ws.objectRender.controller.getTargetDocContent();
+			var oContent          = ws.objectRender.controller != null ? ws.objectRender.controller.getTargetDocContent() : null;
+			var isPasteLocked     = false;
+			var isLockedRange     = oWorksheet.worksheet.isLockedRange(oRange.range.bbox);
 
 			if (oContent) 
 			{
@@ -17069,6 +17530,24 @@
 					arrSelectedParas[0].Parent.RemoveSelection();
 				Asc.editor.wb.recalculateDrawingObjects();
 				return;
+			}
+
+			if (oWorksheet.worksheet.getSheetProtection()) {
+				let aProtRanges = oWorksheet.worksheet.protectedRangesContainsRange(oRange.range.bbox) || [];
+				if (aProtRanges.length == 0 && isLockedRange)
+					isPasteLocked = true;
+				else if (aProtRanges.length > 0) {
+					for (let Index = 0; Index < aProtRanges.length; Index++) {
+						if (aProtRanges[Index].asc_isPassword() && !aProtRanges[Index].isUserEnteredPassword())
+							isPasteLocked = true;
+					}
+				}
+			}
+			
+			if (isPasteLocked) {
+				if (oWorksheet.worksheet.workbook.handlers)
+					oWorksheet.worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
+				return false;
 			}
 
 			for (var nRow = oRange.range.bbox.r1; nRow <= oRange.range.bbox.r2; nRow++)
@@ -17297,6 +17776,7 @@
 	ApiRange.prototype["SetTextPr"]                  = ApiRange.prototype.SetTextPr;
 	ApiRange.prototype["Delete"]                     = ApiRange.prototype.Delete;
 	ApiRange.prototype["ToJSON"]                     = ApiRange.prototype.ToJSON;
+	ApiRange.prototype["AddComment"]                 = ApiRange.prototype.AddComment;
 
 	ApiDocument.prototype["GetClassType"]                = ApiDocument.prototype.GetClassType;
 	ApiDocument.prototype["CreateNewHistoryPoint"]       = ApiDocument.prototype.CreateNewHistoryPoint;
@@ -17342,6 +17822,7 @@
 	ApiDocument.prototype["GetAllBookmarksNames"]        = ApiDocument.prototype.GetAllBookmarksNames;
 	ApiDocument.prototype["AddFootnote"]                 = ApiDocument.prototype.AddFootnote;
 	ApiDocument.prototype["AddEndnote"]                  = ApiDocument.prototype.AddEndnote;
+	ApiDocument.prototype["SetControlsHighlight"]        = ApiDocument.prototype.SetControlsHighlight;
 	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
 	ApiDocument.prototype["ReplaceCurrentImage"]         = ApiDocument.prototype.ReplaceCurrentImage;
@@ -17352,6 +17833,8 @@
 	ApiDocument.prototype["ToJSON"]                  = ApiDocument.prototype.ToJSON;
 	ApiDocument.prototype["UpdateAllTOC"]		     = ApiDocument.prototype.UpdateAllTOC;
 	ApiDocument.prototype["UpdateAllTOF"]		     = ApiDocument.prototype.UpdateAllTOF;
+	ApiDocument.prototype["AddTableOfContents"]		 = ApiDocument.prototype.AddTableOfContents;
+	ApiDocument.prototype["AddTableOfFigures"]		 = ApiDocument.prototype.AddTableOfFigures;
 
 	ApiDocument.prototype["GetAllForms"]             = ApiDocument.prototype.GetAllForms;
 	ApiDocument.prototype["ClearAllFields"]          = ApiDocument.prototype.ClearAllFields;
