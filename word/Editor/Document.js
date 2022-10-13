@@ -13553,6 +13553,13 @@ CDocument.prototype.private_DocumentIsSelectionLocked = function(CheckType)
 				this.Core.Lock.Check(this.Core.Get_Id());
 			}
 		}
+		else if (AscCommon.changestype_DocumentProtection === CheckType)
+		{
+			if (this.Settings.DocumentProtection)
+			{
+				this.Settings.DocumentProtection.Lock.Check(this.Settings.DocumentProtection.Get_Id());
+			}
+		}
 		else if (AscCommon.changestype_Document_Settings === CheckType)
 		{
 			this.Lock.Check(this.GetId());
@@ -16668,6 +16675,13 @@ CDocument.prototype.IsSpecialFormsSettingsDefault = function()
 {
 	return this.Settings.SpecialFormsSettings.IsDefault();
 };
+CDocument.prototype.SetProtection = function(props)
+{
+	if (this.Settings.DocumentProtection) {
+		this.Settings.DocumentProtection.setProps(props);
+	}
+};
+
 CDocument.prototype.GetDocumentLayout = function()
 {
 	return this.Layout;

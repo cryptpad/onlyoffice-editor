@@ -4359,6 +4359,7 @@
 	window['AscDFH'].historydescription_Document_CorrectFormTextByFormat            = 0x0196;
 	window['AscDFH'].historydescription_Document_CorrectEnterText                   = 0x0197;
 	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0198;
+	window['AscDFH'].historydescription_Document_DocumentProtection                 = 0x0198;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
