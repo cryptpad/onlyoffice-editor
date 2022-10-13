@@ -10157,8 +10157,12 @@ Because of this, the display is sometimes not correct.
                 const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
                 oShape.spPr.setFill(oLightBrush);
               }
-            }
-            if (oShape.spPr.ln && oShape.spPr.ln.Fill && oShape.spPr.ln.Fill.fill && !(oShape.spPr.ln.Fill.fill instanceof AscFormat.CNoFill)) {
+              if (oShape.spPr.ln) {
+                const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
+                oShape.spPr.ln.setFill(oPen);
+                oShape.spPr.ln.setW(12700 * 3);
+              }
+            } else if (oShape.spPr.ln && oShape.spPr.ln.Fill && oShape.spPr.ln.Fill.fill && !(oShape.spPr.ln.Fill.fill instanceof AscFormat.CNoFill)) {
               const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
               oShape.spPr.ln.setFill(oPen);
               oShape.spPr.ln.setW(12700 * 3);
