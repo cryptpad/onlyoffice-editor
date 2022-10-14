@@ -4898,10 +4898,43 @@
 										//хранится sharedStrings, возмжно придтся использовать для каждого листа свою книгу
 										//необходимо проверить, ссылкой на 2 листа одной книги
 										var wb = eR.getWb();
+										if (!t.Api.isOpenOOXInBrowser) {
+											//в этом случае запрашиваем бинарник
+											// в ответ приходит архив - внутри должен лежать 1 файл "Editor.bin"
+											let jsZlib = new AscCommon.ZLib();
+											if (!jsZlib.open(values[i])) {
+												return false;
+											}
 
-										var updatedData = window["Asc"]["editor"].openDocumentFromZip2(wb ? wb : t.model, values[i]);
-										if (updatedData) {
-											eR && eR.updateData(updatedData);
+											if (jsZlib.files && jsZlib.files.length) {
+												var binaryData = jsZlib.getFile(jsZlib.files[0])
+
+												//заполняем через банарник
+												var oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
+												//чтобы лишнего не читать, проставляю флаг копипаст
+												oBinaryFileReader.InitOpenManager.copyPasteObj = {
+													isCopyPaste: true, activeRange: null, selectAllSheet: true
+												};
+
+												if (!wb) {
+													wb = new AscCommonExcel.Workbook();
+													wb.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
+												}
+												AscFormat.ExecuteNoHistory(function() {
+													AscCommonExcel.executeInR1C1Mode(false, function () {
+														oBinaryFileReader.Read(binaryData, wb);
+													});
+												});
+
+												if (wb.aWorksheets) {
+													eR && eR.updateData(wb.aWorksheets);
+												}
+											}
+										} else {
+											var updatedData = window["Asc"]["editor"].openDocumentFromZip2(wb ? wb : t.model, values[i]);
+											if (updatedData) {
+												eR && eR.updateData(updatedData);
+											}
 										}
 									}
 								}
@@ -4937,6 +4970,7 @@
 		if (!requests) {
 			return;
 		}
+		var t = this;
 		//чтобы потом понять что нужно обновлять, сохраняю сооветсвие, количество запросов соответсвует количеству externalReferences
 		//для этого создаю на все Promise, и если data[i].error -> возвращаю null
 		for (var i = 0; i < data.length; i++) {
@@ -4962,10 +4996,11 @@
 					}, "arraybuffer");
 				};
 
+				//если открыть на клиенте не можем, то запрашиваем бинарник
 				var isXlsx = externalReferences[i].externalReference && externalReferences[i].externalReference.isXlsx();
 				//если внешняя ссылка, то конвертируем в xlsx
-				if (sFileUrl && (isExternalLink || !isXlsx)) {
-					window["Asc"]["editor"]._getXlsxFromUrl(sFileUrl, null, function (fileUrlAfterConvert) {
+				if (sFileUrl && (isExternalLink || !isXlsx) || !t.Api.isOpenOOXInBrowser) {
+					window["Asc"]["editor"]._getFileFromUrl(sFileUrl, t.Api.isOpenOOXInBrowser ? Asc.c_oAscFileType.XLSX : Asc.c_oAscFileType.XLSY, function (fileUrlAfterConvert) {
 						if (fileUrlAfterConvert) {
 							loadFile(fileUrlAfterConvert);
 						} else {

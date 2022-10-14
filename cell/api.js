@@ -569,7 +569,7 @@ var editor;
 		}
 	};
 
-	spreadsheet_api.prototype._getXlsxFromUrl = function (url, options, callback) {
+	spreadsheet_api.prototype._getFileFromUrl = function (url, fileType, callback) {
 		if (this.canEdit()) {
 			var document = {url: url, format: "XLSX"};
 			this.insertDocumentUrlsData = {
@@ -577,6 +577,8 @@ var editor;
 					_api.insertDocumentUrlsData.imageMap = url;
 					if (url['output.xlsx']) {
 						callback(url['output.xlsx']);
+					} else if (url['output.xlst']) {
+						callback(url['output.xlst']);
 					} else {
 						callback(null);
 					}
@@ -584,7 +586,7 @@ var editor;
 				}
 			};
 
-			var _options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.XLSX);
+			var _options = new Asc.asc_CDownloadOptions(fileType);
 			_options.isNaturalDownload = true;
 			_options.isGetTextFromUrl = true;
 			this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, _options);
@@ -2078,7 +2080,7 @@ var editor;
 
 	spreadsheet_api.prototype.openDocumentFromZip2 = function (wb, data) {
 		//TODO зачитать sharedStrings
-		if (!data) {
+		if (!data || !this.isOpenOOXInBrowser) {
 			return null;
 		}
 
