@@ -1161,7 +1161,7 @@
 			const oParaDrawing = oSmartArt.decorateParaDrawing(oDrawingObjects);
 			oSmartArt.setXfrmByParent();
 			if (oDrawingObjects) {
-				oDrawingObjects.resetSelection();
+				oDrawingObjects.resetSelection2();
 				oLogicDocument.AddToParagraph(oParaDrawing);
 				oLogicDocument.Select_DrawingObject(oParaDrawing.Get_Id());
 				oLogicDocument.Recalculate();
