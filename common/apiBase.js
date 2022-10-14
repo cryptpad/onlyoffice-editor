@@ -312,12 +312,16 @@
 		if (body && body.addEventListener)
 		{
 			body.addEventListener("mousewheel", function(e) {
+				if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey)
+					return;
 				e.preventDefault && e.preventDefault();
 				e.stopPropagation && e.stopPropagation();
 				return false;
 			}, false);
 			body.addEventListener("DOMMouseScroll", function(e)
 			{
+				if (e.ctrlKey || e.altKey || e.shiftKey || e.metaKey)
+					return;
 				e.preventDefault && e.preventDefault();
 				e.stopPropagation && e.stopPropagation();
 				return false;
