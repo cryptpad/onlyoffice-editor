@@ -2645,6 +2645,429 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 
 
+	var c_oAscSmartArtTypes = {
+		AccentedPicture: 0, // Акцентируемый рисунок
+		Balance: 1, // Баланс
+		TitledPictureBlocks: 2, // Блоки рисунков с названиями
+		PictureAccentBlocks: 3, // Блоки со смещенными рисунками
+		BlockCycle: 4, // Блочный цикл
+		StackedVenn: 5, // Венна в столбик
+		VerticalEquation: 6, // Вертикальное уравнение
+		VerticalBlockList: 7, // Вертикальный блочный список
+		VerticalBendingProcess: 8, // Вертикальный ломаный процесс
+		VerticalBulletList: 9, // Вертикальный маркированный список
+		VerticalCurvedList: 10, // Вертикальный нелинейный список
+		VerticalProcess: 11, // Вертикальный процесс
+		VerticalBoxList: 12, // Вертикальный список
+		VerticalPictureList: 13, // Вертикальный список рисунков
+		VerticalCircleList: 14, // Вертикальный список с кругами
+		VerticalPictureAccentList: 15, // Вертикальный список со смещенными рисунками
+		VerticalArrowList: 16, // Вертикальный список со стрелкой
+		VerticalChevronList: 17, // Вертикальный уголковый список
+		VerticalAccentList: 18, // Вертикальный уголковый список2
+		NestedTarget: 19, // Вложенная целевая
+		Funnel: 20, // Воронка
+		UpwardArrow: 21, // Восходящая стрелка
+		IncreasingArrowsProcess: 22, // Восходящая стрелка процесса
+		StepUpProcess: 23, // Восходящий процесс
+		CircularPictureCallout: 24, // Выноска с круглыми рисунками
+		HorizontalHierarchy: 25, // Горизонтальная иерархия
+		HorizontalLabeledHierarchy: 26, // Горизонтальная иерархия с подписями
+		HorizontalMultiLevelHierarchy: 27, // Горизонтальная многоуровневая иерархия
+		HorizontalOrganizationChart: 28, // Горизонтальная организационная диаграмма
+		HorizontalBulletList: 29, // Горизонтальный маркированный список
+		HorizontalPictureList: 30, // Горизонтальный список рисунков
+		ClosedChevronProcess: 31, // Закрытый уголковый процесс
+		HierarchyList: 32, // Иерархический список
+		Hierarchy: 33, // Иерархия
+		CirclePictureHierarchy: 34, // Иерархия с круглыми рисунками
+		LabeledHierarchy: 35, // Иерархия с подписями
+		InvertedPyramid: 36, // Инвертированная пирамида
+		HexagonCluster: 37, // Кластер шестиугольников
+		CircleRelationship: 38, // Круг связей
+		CircleAccentTimeline: 39, // Круглая временная шкала
+		CircularBendingProcess: 40, // Круглый ломаный процесс
+		ArrowRibbon: 41, // Лента со стрелками
+		LinearVenn: 42, // Линейная Венна
+		PictureLineup: 43, // Линия рисунков
+		TitlePictureLineup: 44, // Линия рисунков с названиями
+		BendingPictureCaptionList: 45, // Ломаный список рисунков с подписями
+		BendingPictureAccentList: 46, // Ломаный список со смещенными рисунками
+		TitledMatrix: 47, // Матрица с заголовками
+		IncreasingCircleProcess: 48, // Нарастающий процесс с кругами
+		BendingPictureBlocks: 49, // Нелинейные рисунки с блоками
+		BendingPictureCaption: 50, // Нелинейные рисунки с подписями
+		BendingPictureSemiTransparentText: 51, // Нелинейные рисунки с полупрозрачным текстом
+		NonDirectionalCycle: 52, // Ненаправленный цикл
+		ContinuousBlockProcess: 53, // Непрерывный блочный процесс
+		ContinuousPictureList: 54, // Непрерывный список с рисунками
+		ContinuousCycle: 55, // Непрерывный цикл
+		DescendingBlockList: 56, // Нисходящий блочный список
+		StepDownProcess: 57, // Нисходящий процесс
+		ReverseList: 58, // Обратный список
+		OrganizationChart: 59, // Организационная диаграмма
+		NameAndTitleOrganizationChart: 60, // Организационная диаграмма с именами и должностями
+		AlternatingFlow: 61, // Переменный поток
+		PyramidList: 62, // Пирамидальный список
+		PlusAndMinus: 63, // Плюс и минус
+		RepeatingBendingProcess: 64, // Повторяющийся ломаный процесс
+		CaptionedPictures: 65, // Подписанные рисунки
+		DetailedProcess: 66, // Подробный процесс
+		PictureStrips: 67, // Полосы рисунков
+		HalfCircleOrganizationChart: 68, // Полукруглая организационная диаграмма
+		PhasedProcess: 69, // Поэтапный процесс
+		BasicVenn: 70, // Простая Венна
+		BasicTimeline: 71, // Простая временная шкала
+		BasicPie: 72, // Простая круговая
+		BasicMatrix: 73, // Простая матрица
+		BasicPyramid: 74, // Простая пирамида
+		BasicRadial: 75, // Простая радиальная
+		BasicTarget: 76, // Простая целевая
+		BasicBlockList: 77, // Простой блочный список
+		BasicBendingProcess: 78, // Простой ломаный процесс
+		BasicProcess: 79, // Простой процесс
+		BasicChevronProcess: 80, // Простой уголковый процесс
+		BasicCycle: 81, // Простой цикл
+		OpposingIdeas: 82, // Противоположные идеи
+		OpposingArrows: 83, // Противостоящие стрелки
+		RandomToResultProcess: 84, // Процесс от случайности к результату
+		SubStepProcess: 85, // Процесс с вложенными шагами
+		PieProcess: 86, // Процесс с круговой диаграммой
+		AccentProcess: 87, // Процесс со смещением
+		AscendingPictureAccentProcess: 88, // Процесс со смещенными по возрастанию рисунками
+		PictureAccentProcess: 89, // Процесс со смещенными рисунками
+		RadialVenn: 90, // Радиальная Венна
+		RadialCycle: 91, // Радиальная циклическая
+		RadialCluster: 92, // Радиальный кластер
+		RadialList: 93, // Радиальный список
+		MultiDirectionalCycle: 94, // Разнонаправленный цикл
+		DivergingRadial: 95, // Расходящаяся радиальная
+		DivergingArrows: 96, // Расходящиеся стрелки
+		FramedTextPicture: 97, // Рисунок с текстом в рамке
+		GroupedList: 98, // Сгруппированный список
+		SegmentedPyramid: 99, // Сегментированная пирамида
+		SegmentedProcess: 100, // Сегментированный процесс
+		SegmentedCycle: 101, // Сегментированный цикл
+		PictureGrid: 102, // Сетка рисунков
+		GridMatrix: 103, // Сетчатая матрица
+		SpiralPicture: 104, // Спираль рисунков
+		StackedList: 105, // Список в столбик
+		PictureCaptionList: 106, // Список названий рисунков
+		ProcessList: 107, // Список процессов
+		BubblePictureList: 108, // Список рисунков с выносками
+		SquareAccentList: 109, // Список с квадратиками
+		LinedList: 110, // Список с линиями
+		PictureAccentList: 111, // Список со смещенными рисунками
+		TitledPictureAccentList: 112, // Список со смещенными рисунками и заголовком
+		SnapshotPictureList: 113, // Список со снимками
+		ContinuousArrowProcess: 114, // Стрелка непрерывного процесса
+		CircleArrowProcess: 115, // Стрелка процесса с кругами
+		ProcessArrows: 116, // Стрелки процесса
+		StaggeredProcess: 117, // Ступенчатый процесс
+		ConvergingRadial: 118, // Сходящаяся радиальная
+		ConvergingArrows: 119, // Сходящиеся стрелки
+		TableHierarchy: 120, // Табличная иерархия
+		TableList: 121, // Табличный список
+		TextCycle: 122, // Текстовый цикл
+		TrapezoidList: 123, // Трапецевидный список
+		DescendingProcess: 124, // Убывающий процесс
+		ChevronList: 125, // Уголковый список
+		Equation: 126, // Уравнение
+		CounterbalanceArrows: 127, // Уравновешивающие стрелки
+		TargetList: 128, // Целевой список
+		CycleMatrix: 129, // Циклическая матрица
+		AlternatingPictureBlocks: 130, // Чередующиеся блоки рисунков
+		AlternatingPictureCircles: 131, // Чередующиеся круги рисунков
+		AlternatingHexagonList: 132, // Чередующиеся шестиугольники
+		Gear: 133, // Шестеренки
+
+		// Office.com
+		ArchitectureLayout: 134,
+		ChevronAccentProcess: 135,
+		CircleProcess: 136,
+		ConvergingText: 137,
+		HexagonRadial: 138,
+		InterconnectedBlockProcess: 139,
+		InterconnectedRings: 140,
+		PictureFrame: 141,
+		PictureOrganizationChart: 142,
+		RadialPictureList: 143,
+		TabList: 144,
+		TabbedArc: 145,
+		ThemePictureAccent: 146,
+		ThemePictureAlternatingAccent: 147,
+		ThemePictureGrid: 148,
+		VaryingWidthList: 149,
+		VerticalBracketList: 150
+	};
+
+	var c_oAscSmartArtListTypes = [
+		c_oAscSmartArtTypes.BasicBlockList,
+		c_oAscSmartArtTypes.AlternatingHexagonList,
+		c_oAscSmartArtTypes.PictureCaptionList,
+		c_oAscSmartArtTypes.LinedList,
+		c_oAscSmartArtTypes.VerticalBulletList,
+		c_oAscSmartArtTypes.VerticalBoxList,
+		c_oAscSmartArtTypes.VerticalBracketList,
+		c_oAscSmartArtTypes.VaryingWidthList,
+		c_oAscSmartArtTypes.TabList,
+		c_oAscSmartArtTypes.HorizontalBulletList,
+		c_oAscSmartArtTypes.SquareAccentList,
+		c_oAscSmartArtTypes.PictureAccentList,
+		c_oAscSmartArtTypes.BendingPictureAccentList,
+		c_oAscSmartArtTypes.StackedList,
+		c_oAscSmartArtTypes.IncreasingCircleProcess,
+		c_oAscSmartArtTypes.PieProcess,
+		c_oAscSmartArtTypes.DetailedProcess,
+		c_oAscSmartArtTypes.GroupedList,
+		c_oAscSmartArtTypes.HorizontalPictureList,
+		c_oAscSmartArtTypes.ContinuousPictureList,
+		c_oAscSmartArtTypes.PictureStrips,
+		c_oAscSmartArtTypes.VerticalPictureList,
+		c_oAscSmartArtTypes.AlternatingPictureBlocks,
+		c_oAscSmartArtTypes.VerticalPictureAccentList,
+		c_oAscSmartArtTypes.TitledPictureAccentList,
+		c_oAscSmartArtTypes.VerticalBlockList,
+		c_oAscSmartArtTypes.VerticalChevronList,
+		c_oAscSmartArtTypes.VerticalAccentList,
+		c_oAscSmartArtTypes.VerticalArrowList,
+		c_oAscSmartArtTypes.TrapezoidList,
+		c_oAscSmartArtTypes.DescendingBlockList,
+		c_oAscSmartArtTypes.TableList,
+		c_oAscSmartArtTypes.SegmentedProcess,
+		c_oAscSmartArtTypes.VerticalCurvedList,
+		c_oAscSmartArtTypes.PyramidList,
+		c_oAscSmartArtTypes.TargetList,
+		c_oAscSmartArtTypes.HierarchyList,
+		c_oAscSmartArtTypes.VerticalCircleList,
+		c_oAscSmartArtTypes.TableHierarchy,
+		c_oAscSmartArtTypes.ArchitectureLayout
+	];
+
+	var c_oAscSmartArtProcessTypes = [
+		c_oAscSmartArtTypes.BasicProcess,
+		c_oAscSmartArtTypes.StepUpProcess,
+		c_oAscSmartArtTypes.StepDownProcess,
+		c_oAscSmartArtTypes.AccentProcess,
+		c_oAscSmartArtTypes.PictureAccentProcess,
+		c_oAscSmartArtTypes.AlternatingFlow,
+		c_oAscSmartArtTypes.IncreasingCircleProcess,
+		c_oAscSmartArtTypes.PieProcess,
+		c_oAscSmartArtTypes.ContinuousBlockProcess,
+		c_oAscSmartArtTypes.IncreasingArrowsProcess,
+		c_oAscSmartArtTypes.InterconnectedBlockProcess,
+		c_oAscSmartArtTypes.ContinuousArrowProcess,
+		c_oAscSmartArtTypes.ConvergingText,
+		c_oAscSmartArtTypes.ProcessArrows,
+		c_oAscSmartArtTypes.CircleAccentTimeline,
+		c_oAscSmartArtTypes.BasicTimeline,
+		c_oAscSmartArtTypes.CircleProcess,
+		c_oAscSmartArtTypes.BasicChevronProcess,
+		c_oAscSmartArtTypes.ChevronAccentProcess,
+		c_oAscSmartArtTypes.ClosedChevronProcess,
+		c_oAscSmartArtTypes.ChevronList,
+		c_oAscSmartArtTypes.VerticalChevronList,
+		c_oAscSmartArtTypes.SubStepProcess,
+		c_oAscSmartArtTypes.PhasedProcess,
+		c_oAscSmartArtTypes.RandomToResultProcess,
+		c_oAscSmartArtTypes.VerticalProcess,
+		c_oAscSmartArtTypes.StaggeredProcess,
+		c_oAscSmartArtTypes.ProcessList,
+		c_oAscSmartArtTypes.SegmentedProcess,
+		c_oAscSmartArtTypes.CircleArrowProcess,
+		c_oAscSmartArtTypes.BasicBendingProcess,
+		c_oAscSmartArtTypes.RepeatingBendingProcess,
+		c_oAscSmartArtTypes.VerticalBendingProcess,
+		c_oAscSmartArtTypes.ContinuousPictureList,
+		c_oAscSmartArtTypes.DetailedProcess,
+		c_oAscSmartArtTypes.VerticalArrowList,
+		c_oAscSmartArtTypes.AscendingPictureAccentProcess,
+		c_oAscSmartArtTypes.UpwardArrow,
+		c_oAscSmartArtTypes.DescendingProcess,
+		c_oAscSmartArtTypes.CircularBendingProcess,
+		c_oAscSmartArtTypes.Equation,
+		c_oAscSmartArtTypes.VerticalEquation,
+		c_oAscSmartArtTypes.Funnel,
+		c_oAscSmartArtTypes.Gear,
+		c_oAscSmartArtTypes.ArrowRibbon,
+		c_oAscSmartArtTypes.OpposingArrows,
+		c_oAscSmartArtTypes.ConvergingArrows,
+		c_oAscSmartArtTypes.DivergingArrows
+	];
+	var c_oAscSmartArtCycleTypes = [
+		c_oAscSmartArtTypes.BasicCycle,
+		c_oAscSmartArtTypes.TextCycle,
+		c_oAscSmartArtTypes.BlockCycle,
+		c_oAscSmartArtTypes.NonDirectionalCycle,
+		c_oAscSmartArtTypes.ContinuousCycle,
+		c_oAscSmartArtTypes.MultiDirectionalCycle,
+		c_oAscSmartArtTypes.SegmentedCycle,
+		c_oAscSmartArtTypes.BasicPie,
+		c_oAscSmartArtTypes.HexagonRadial,
+		c_oAscSmartArtTypes.RadialCycle,
+		c_oAscSmartArtTypes.BasicRadial,
+		c_oAscSmartArtTypes.DivergingRadial,
+		c_oAscSmartArtTypes.RadialVenn,
+		c_oAscSmartArtTypes.CycleMatrix,
+		c_oAscSmartArtTypes.Gear,
+		c_oAscSmartArtTypes.RadialCluster,
+		c_oAscSmartArtTypes.CircleArrowProcess
+
+];
+	var c_oAscSmartArtHierarchyTypes = [
+		c_oAscSmartArtTypes.OrganizationChart,
+		c_oAscSmartArtTypes.PictureOrganizationChart,
+		c_oAscSmartArtTypes.NameAndTitleOrganizationChart,
+		c_oAscSmartArtTypes.HalfCircleOrganizationChart,
+		c_oAscSmartArtTypes.CirclePictureHierarchy,
+		c_oAscSmartArtTypes.Hierarchy,
+		c_oAscSmartArtTypes.LabeledHierarchy,
+		c_oAscSmartArtTypes.TableHierarchy,
+		c_oAscSmartArtTypes.HorizontalOrganizationChart,
+		c_oAscSmartArtTypes.ArchitectureLayout,
+		c_oAscSmartArtTypes.HorizontalMultiLevelHierarchy,
+		c_oAscSmartArtTypes.HorizontalHierarchy,
+		c_oAscSmartArtTypes.HorizontalLabeledHierarchy,
+		c_oAscSmartArtTypes.HierarchyList,
+		c_oAscSmartArtTypes.LinedList
+
+	];
+	var c_oAscSmartArtRelationshipTypes = [
+		c_oAscSmartArtTypes.Balance,
+		c_oAscSmartArtTypes.CircleRelationship,
+		c_oAscSmartArtTypes.Funnel,
+		c_oAscSmartArtTypes.Gear,
+		c_oAscSmartArtTypes.HexagonCluster,
+		c_oAscSmartArtTypes.OpposingIdeas,
+		c_oAscSmartArtTypes.PlusAndMinus,
+		c_oAscSmartArtTypes.ReverseList,
+		c_oAscSmartArtTypes.ArrowRibbon,
+		c_oAscSmartArtTypes.CounterbalanceArrows,
+		c_oAscSmartArtTypes.ConvergingArrows,
+		c_oAscSmartArtTypes.DivergingArrows,
+		c_oAscSmartArtTypes.OpposingArrows,
+		c_oAscSmartArtTypes.SegmentedPyramid,
+		c_oAscSmartArtTypes.TableHierarchy,
+		c_oAscSmartArtTypes.ArchitectureLayout,
+		c_oAscSmartArtTypes.TargetList,
+		c_oAscSmartArtTypes.NestedTarget,
+		c_oAscSmartArtTypes.GroupedList,
+		c_oAscSmartArtTypes.ContinuousPictureList,
+		c_oAscSmartArtTypes.HierarchyList,
+		c_oAscSmartArtTypes.PictureAccentList,
+		c_oAscSmartArtTypes.Equation,
+		c_oAscSmartArtTypes.VerticalEquation,
+		c_oAscSmartArtTypes.ConvergingRadial,
+		c_oAscSmartArtTypes.RadialCluster,
+		c_oAscSmartArtTypes.RadialList,
+		c_oAscSmartArtTypes.TabbedArc,
+		c_oAscSmartArtTypes.RadialCycle,
+		c_oAscSmartArtTypes.BasicRadial,
+		c_oAscSmartArtTypes.DivergingRadial,
+		c_oAscSmartArtTypes.NonDirectionalCycle,
+		c_oAscSmartArtTypes.BasicTarget,
+		c_oAscSmartArtTypes.CycleMatrix,
+		c_oAscSmartArtTypes.BasicPie,
+		c_oAscSmartArtTypes.BasicVenn,
+		c_oAscSmartArtTypes.LinearVenn,
+		c_oAscSmartArtTypes.StackedVenn,
+		c_oAscSmartArtTypes.RadialVenn,
+		c_oAscSmartArtTypes.InterconnectedRings
+	];
+	var c_oAscSmartArtMatrixTypes = [
+		c_oAscSmartArtTypes.BasicMatrix,
+		c_oAscSmartArtTypes.TitledMatrix,
+		c_oAscSmartArtTypes.GridMatrix,
+		c_oAscSmartArtTypes.CycleMatrix
+	];
+	var c_oAscSmartArtPyramidTypes = [
+		c_oAscSmartArtTypes.BasicPyramid,
+		c_oAscSmartArtTypes.InvertedPyramid,
+		c_oAscSmartArtTypes.PyramidList,
+		c_oAscSmartArtTypes.SegmentedPyramid
+	];
+	var c_oAscSmartArtPictureTypes = [
+		c_oAscSmartArtTypes.AccentedPicture,
+		c_oAscSmartArtTypes.CircularPictureCallout,
+		c_oAscSmartArtTypes.PictureCaptionList,
+		c_oAscSmartArtTypes.RadialPictureList,
+		c_oAscSmartArtTypes.SnapshotPictureList,
+		c_oAscSmartArtTypes.SpiralPicture,
+		c_oAscSmartArtTypes.CaptionedPictures,
+		c_oAscSmartArtTypes.BendingPictureCaption,
+		c_oAscSmartArtTypes.PictureFrame,
+		c_oAscSmartArtTypes.BendingPictureSemiTransparentText,
+		c_oAscSmartArtTypes.BendingPictureBlocks,
+		c_oAscSmartArtTypes.BendingPictureCaptionList,
+		c_oAscSmartArtTypes.TitledPictureBlocks,
+		c_oAscSmartArtTypes.PictureGrid,
+		c_oAscSmartArtTypes.PictureAccentBlocks,
+		c_oAscSmartArtTypes.PictureStrips,
+		c_oAscSmartArtTypes.ThemePictureAccent,
+		c_oAscSmartArtTypes.ThemePictureGrid,
+		c_oAscSmartArtTypes.ThemePictureAlternatingAccent,
+		c_oAscSmartArtTypes.TitledPictureAccentList,
+		c_oAscSmartArtTypes.AlternatingPictureBlocks,
+		c_oAscSmartArtTypes.AscendingPictureAccentProcess,
+		c_oAscSmartArtTypes.AlternatingPictureCircles,
+		c_oAscSmartArtTypes.TitlePictureLineup,
+		c_oAscSmartArtTypes.PictureLineup,
+		c_oAscSmartArtTypes.FramedTextPicture,
+		c_oAscSmartArtTypes.HexagonCluster,
+		c_oAscSmartArtTypes.BubblePictureList,
+		c_oAscSmartArtTypes.CirclePictureHierarchy,
+		c_oAscSmartArtTypes.HorizontalPictureList,
+		c_oAscSmartArtTypes.ContinuousPictureList,
+		c_oAscSmartArtTypes.VerticalPictureList,
+		c_oAscSmartArtTypes.VerticalPictureAccentList,
+		c_oAscSmartArtTypes.BendingPictureAccentList,
+		c_oAscSmartArtTypes.PictureAccentList,
+		c_oAscSmartArtTypes.PictureAccentProcess
+	];
+	var c_oAscSmartArtOfficeComTypes = [
+		c_oAscSmartArtTypes.PictureOrganizationChart,
+		c_oAscSmartArtTypes.ChevronAccentProcess,
+		c_oAscSmartArtTypes.RadialPictureList,
+		c_oAscSmartArtTypes.VerticalBracketList,
+		c_oAscSmartArtTypes.InterconnectedBlockProcess,
+		c_oAscSmartArtTypes.TabbedArc,
+		c_oAscSmartArtTypes.ThemePictureAccent,
+		c_oAscSmartArtTypes.VaryingWidthList,
+		c_oAscSmartArtTypes.ConvergingText,
+		c_oAscSmartArtTypes.InterconnectedRings,
+		c_oAscSmartArtTypes.ArchitectureLayout,
+		c_oAscSmartArtTypes.ThemePictureAlternatingAccent,
+		c_oAscSmartArtTypes.ThemePictureGrid,
+		c_oAscSmartArtTypes.CircleProcess,
+		c_oAscSmartArtTypes.HexagonRadial,
+		c_oAscSmartArtTypes.PictureFrame,
+		c_oAscSmartArtTypes.TabList
+	];
+
+	var c_oAscSmartArtSectionNames = {
+		List:         0,
+		Process:      1,
+		Cycle:        2,
+		Hierarchy:    3,
+		Relationship: 4,
+		Matrix:       5,
+		Pyramid:      6,
+		Picture:      7,
+		OfficeCom:    8
+	};
+
+	var c_oAscSmartArtSections = {};
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.List]         = c_oAscSmartArtListTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Process]      = c_oAscSmartArtProcessTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Cycle]        = c_oAscSmartArtCycleTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Hierarchy]    = c_oAscSmartArtHierarchyTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Relationship] = c_oAscSmartArtRelationshipTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Matrix]       = c_oAscSmartArtMatrixTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Pyramid]      = c_oAscSmartArtPyramidTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.Picture]      = c_oAscSmartArtPictureTypes;
+	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.OfficeCom]    = c_oAscSmartArtOfficeComTypes;
+
+
 	/** @enum {number} */
 	var c_oAscNumberingFormat = {
 		Aiueo                        :  0,
@@ -4416,6 +4839,174 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['multiply'] = prot.multiply;
 	prot['divide'] = prot.divide;
 
+	window['Asc']['c_oAscSmartArtTypes'] = window['Asc'].c_oAscSmartArtTypes = c_oAscSmartArtTypes;
+	prot = c_oAscSmartArtTypes;
+	prot['AccentedPicture']                   = prot.AccentedPicture;
+	prot['Balance']                           = prot.Balance;
+	prot['TitledPictureBlocks']               = prot.TitledPictureBlocks;
+	prot['PictureAccentBlocks']               = prot.PictureAccentBlocks;
+	prot['BlockCycle']                        = prot.BlockCycle;
+	prot['StackedVenn']                       = prot.StackedVenn;
+	prot['VerticalEquation']                  = prot.VerticalEquation;
+	prot['VerticalBlockList']                 = prot.VerticalBlockList;
+	prot['VerticalBendingProcess']            = prot.VerticalBendingProcess;
+	prot['VerticalBulletList']                = prot.VerticalBulletList;
+	prot['VerticalCurvedList']                = prot.VerticalCurvedList;
+	prot['VerticalProcess']                   = prot.VerticalProcess;
+	prot['VerticalBoxList']                   = prot.VerticalBoxList;
+	prot['VerticalPictureList']               = prot.VerticalPictureList;
+	prot['VerticalCircleList']                = prot.VerticalCircleList;
+	prot['VerticalPictureAccentList']         = prot.VerticalPictureAccentList;
+	prot['VerticalArrowList']                 = prot.VerticalArrowList;
+	prot['VerticalChevronList']               = prot.VerticalChevronList;
+	prot['VerticalAccentList']                = prot.VerticalAccentList;
+	prot['NestedTarget']                      = prot.NestedTarget;
+	prot['Funnel']                            = prot.Funnel;
+	prot['UpwardArrow']                       = prot.UpwardArrow;
+	prot['IncreasingArrowsProcess']           = prot.IncreasingArrowsProcess;
+	prot['StepUpProcess']                     = prot.StepUpProcess;
+	prot['CircularPictureCallout']            = prot.CircularPictureCallout;
+	prot['HorizontalHierarchy']               = prot.HorizontalHierarchy;
+	prot['HorizontalLabeledHierarchy']        = prot.HorizontalLabeledHierarchy;
+	prot['HorizontalMultiLevelHierarchy']     = prot.HorizontalMultiLevelHierarchy;
+	prot['HorizontalOrganizationChart']       = prot.HorizontalOrganizationChart;
+	prot['HorizontalBulletList']              = prot.HorizontalBulletList;
+	prot['HorizontalPictureList']             = prot.HorizontalPictureList;
+	prot['ClosedChevronProcess']              = prot.ClosedChevronProcess;
+	prot['HierarchyList']                     = prot.HierarchyList;
+	prot['Hierarchy']                         = prot.Hierarchy;
+	prot['CirclePictureHierarchy']            = prot.CirclePictureHierarchy;
+	prot['LabeledHierarchy']                  = prot.LabeledHierarchy;
+	prot['InvertedPyramid']                   = prot.InvertedPyramid;
+	prot['HexagonCluster']                    = prot.HexagonCluster;
+	prot['CircleRelationship']                = prot.CircleRelationship;
+	prot['CircleAccentTimeline']              = prot.CircleAccentTimeline;
+	prot['CircularBendingProcess']            = prot.CircularBendingProcess;
+	prot['ArrowRibbon']                       = prot.ArrowRibbon;
+	prot['LinearVenn']                        = prot.LinearVenn;
+	prot['PictureLineup']                     = prot.PictureLineup;
+	prot['TitlePictureLineup']                = prot.TitlePictureLineup;
+	prot['BendingPictureCaptionList']         = prot.BendingPictureCaptionList;
+	prot['BendingPictureAccentList']          = prot.BendingPictureAccentList;
+	prot['TitledMatrix']                      = prot.TitledMatrix;
+	prot['IncreasingCircleProcess']           = prot.IncreasingCircleProcess;
+	prot['BendingPictureBlocks']              = prot.BendingPictureBlocks;
+	prot['BendingPictureCaption']             = prot.BendingPictureCaption;
+	prot['BendingPictureSemiTransparentText'] = prot.BendingPictureSemiTransparentText;
+	prot['NonDirectionalCycle']               = prot.NonDirectionalCycle;
+	prot['ContinuousBlockProcess']            = prot.ContinuousBlockProcess;
+	prot['ContinuousPictureList']             = prot.ContinuousPictureList;
+	prot['ContinuousCycle']                   = prot.ContinuousCycle;
+	prot['DescendingBlockList']               = prot.DescendingBlockList;
+	prot['StepDownProcess']                   = prot.StepDownProcess;
+	prot['ReverseList']                       = prot.ReverseList;
+	prot['OrganizationChart']                 = prot.OrganizationChart;
+	prot['NameAndTitleOrganizationChart']     = prot.NameAndTitleOrganizationChart;
+	prot['AlternatingFlow']                   = prot.AlternatingFlow;
+	prot['PyramidList']                       = prot.PyramidList;
+	prot['PlusAndMinus']                      = prot.PlusAndMinus;
+	prot['RepeatingBendingProcess']           = prot.RepeatingBendingProcess;
+	prot['CaptionedPictures']                 = prot.CaptionedPictures;
+	prot['DetailedProcess']                   = prot.DetailedProcess;
+	prot['PictureStrips']                     = prot.PictureStrips;
+	prot['HalfCircleOrganizationChart']       = prot.HalfCircleOrganizationChart;
+	prot['PhasedProcess']                     = prot.PhasedProcess;
+	prot['BasicVenn']                         = prot.BasicVenn;
+	prot['BasicTimeline']                     = prot.BasicTimeline;
+	prot['BasicPie']                          = prot.BasicPie;
+	prot['BasicMatrix']                       = prot.BasicMatrix;
+	prot['BasicPyramid']                      = prot.BasicPyramid;
+	prot['BasicRadial']                       = prot.BasicRadial;
+	prot['BasicTarget']                       = prot.BasicTarget;
+	prot['BasicBlockList']                    = prot.BasicBlockList;
+	prot['BasicBendingProcess']               = prot.BasicBendingProcess;
+	prot['BasicProcess']                      = prot.BasicProcess;
+	prot['BasicChevronProcess']               = prot.BasicChevronProcess;
+	prot['BasicCycle']                        = prot.BasicCycle;
+	prot['OpposingIdeas']                     = prot.OpposingIdeas;
+	prot['OpposingArrows']                    = prot.OpposingArrows;
+	prot['RandomToResultProcess']             = prot.RandomToResultProcess;
+	prot['SubStepProcess']                    = prot.SubStepProcess;
+	prot['PieProcess']                        = prot.PieProcess;
+	prot['AccentProcess']                     = prot.AccentProcess;
+	prot['AscendingPictureAccentProcess']     = prot.AscendingPictureAccentProcess;
+	prot['PictureAccentProcess']              = prot.PictureAccentProcess;
+	prot['RadialVenn']                        = prot.RadialVenn;
+	prot['RadialCycle']                       = prot.RadialCycle;
+	prot['RadialCluster']                     = prot.RadialCluster;
+	prot['RadialList']                        = prot.RadialList;
+	prot['MultiDirectionalCycle']             = prot.MultiDirectionalCycle;
+	prot['DivergingRadial']                   = prot.DivergingRadial;
+	prot['DivergingArrows']                   = prot.DivergingArrows;
+	prot['FramedTextPicture']                 = prot.FramedTextPicture;
+	prot['GroupedList']                       = prot.GroupedList;
+	prot['SegmentedPyramid']                  = prot.SegmentedPyramid;
+	prot['SegmentedProcess']                  = prot.SegmentedProcess;
+	prot['SegmentedCycle']                    = prot.SegmentedCycle;
+	prot['PictureGrid']                       = prot.PictureGrid;
+	prot['GridMatrix']                        = prot.GridMatrix;
+	prot['SpiralPicture']                     = prot.SpiralPicture;
+	prot['StackedList']                       = prot.StackedList;
+	prot['PictureCaptionList']                = prot.PictureCaptionList;
+	prot['ProcessList']                       = prot.ProcessList;
+	prot['BubblePictureList']                 = prot.BubblePictureList;
+	prot['SquareAccentList']                  = prot.SquareAccentList;
+	prot['LinedList']                         = prot.LinedList;
+	prot['PictureAccentList']                 = prot.PictureAccentList;
+	prot['TitledPictureAccentList']           = prot.TitledPictureAccentList;
+	prot['SnapshotPictureList']               = prot.SnapshotPictureList;
+	prot['ContinuousArrowProcess']            = prot.ContinuousArrowProcess;
+	prot['CircleArrowProcess']                = prot.CircleArrowProcess;
+	prot['ProcessArrows']                     = prot.ProcessArrows;
+	prot['StaggeredProcess']                  = prot.StaggeredProcess;
+	prot['ConvergingRadial']                  = prot.ConvergingRadial;
+	prot['ConvergingArrows']                  = prot.ConvergingArrows;
+	prot['TableHierarchy']                    = prot.TableHierarchy;
+	prot['TableList']                         = prot.TableList;
+	prot['TextCycle']                         = prot.TextCycle;
+	prot['TrapezoidList']                     = prot.TrapezoidList;
+	prot['DescendingProcess']                 = prot.DescendingProcess;
+	prot['ChevronList']                       = prot.ChevronList;
+	prot['Equation']                          = prot.Equation;
+	prot['CounterbalanceArrows']              = prot.CounterbalanceArrows;
+	prot['TargetList']                        = prot.TargetList;
+	prot['CycleMatrix']                       = prot.CycleMatrix;
+	prot['AlternatingPictureBlocks']          = prot.AlternatingPictureBlocks;
+	prot['AlternatingPictureCircles']         = prot.AlternatingPictureCircles;
+	prot['AlternatingHexagonList']            = prot.AlternatingHexagonList;
+	prot['Gear']                              = prot.Gear;
+	prot['ArchitectureLayout']                = prot.ArchitectureLayout;
+	prot['ChevronAccentProcess']              = prot.ChevronAccentProcess;
+	prot['CircleProcess']                     = prot.CircleProcess;
+	prot['ConvergingText']                    = prot.ConvergingText;
+	prot['HexagonRadial']                     = prot.HexagonRadial;
+	prot['InterconnectedBlockProcess']        = prot.InterconnectedBlockProcess;
+	prot['InterconnectedRings']               = prot.InterconnectedRings;
+	prot['PictureFrame']                      = prot.PictureFrame;
+	prot['PictureOrganizationChart']          = prot.PictureOrganizationChart;
+	prot['RadialPictureList']                 = prot.RadialPictureList;
+	prot['TabList']                           = prot.TabList;
+	prot['TabbedArc']                         = prot.TabbedArc;
+	prot['ThemePictureAccent']                = prot.ThemePictureAccent;
+	prot['ThemePictureAlternatingAccent']     = prot.ThemePictureAlternatingAccent;
+	prot['ThemePictureGrid']                  = prot.ThemePictureGrid;
+	prot['VaryingWidthList']                  = prot.VaryingWidthList;
+	prot['VerticalBracketList']               = prot.VerticalBracketList;
+
+	window['Asc']['c_oAscSmartArtSectionNames'] = window['Asc'].c_oAscSmartArtSectionNames = c_oAscSmartArtSectionNames;
+	prot = c_oAscSmartArtSectionNames;
+	prot['List']         = prot.List;
+	prot['Process']      = prot.Process;
+	prot['Cycle']        = prot.Cycle;
+	prot['Hierarchy']    = prot.Hierarchy;
+	prot['Relationship'] = prot.Relationship;
+	prot['Matrix']       = prot.Matrix;
+	prot['Pyramid']      = prot.Pyramid;
+	prot['Picture']      = prot.Picture;
+	prot['OfficeCom']    = prot.OfficeCom;
+
+
+
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
 	prot['Aiueo']                        = prot.Aiueo;
@@ -4781,5 +5372,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Outline']     = prot.Outline;
 	prot['Print']       = prot.Print;
 	prot['Web']         = prot.Web;
+
+	window['Asc'].c_oAscSmartArtSections = c_oAscSmartArtSections;
 
 })(window);

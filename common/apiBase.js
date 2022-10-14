@@ -268,6 +268,10 @@
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
 		});
 
+		AscCommon.loadSmartArtPresets(function() {}, function(err) {
+			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
+		});
+
 		var oldOnError = window.onerror;
 		window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
 			//send only first error to reduce number of requests. also following error may be consequences of first
@@ -1113,6 +1117,61 @@
 		{
 			AscCommon.getFile(url);
 		}
+	};
+	baseEditorsApi.prototype.getDrawingObjects = function () {};
+	baseEditorsApi.prototype.getDrawingDocument = function () {};
+	baseEditorsApi.prototype.getLogicDocument = function () {};
+	baseEditorsApi.prototype.asc_createSmartArt = function (nSmartArtType) {
+		History.Create_NewPoint(AscDFH.historydescription_Document_AddSmartArt);
+		const bFromWord = this.isDocumentEditor;
+		const oSmartArt = new AscFormat.SmartArt();
+		oSmartArt.fillByPreset(nSmartArtType);
+		const oLogicDocument = this.getLogicDocument();
+		const oDrawingObjects = this.getDrawingObjects();
+		const oController = this.getGraphicController();
+		if (!bFromWord) {
+			if (oDrawingObjects) {
+				oSmartArt.setDrawingObjects(oDrawingObjects);
+			}
+			if (oDrawingObjects.cSld) {
+				oSmartArt.setParent(oDrawingObjects);
+				oSmartArt.setRecalculateInfo();
+			}
+
+			if (oDrawingObjects.getWorksheetModel) {
+				oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
+			}
+			oSmartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+			oSmartArt.checkDrawingBaseCoords();
+
+			if (oController) {
+				oController.checkChartTextSelection();
+				oController.resetSelection();
+				oSmartArt.select(oController, 0);
+			}
+			oSmartArt.fitFontSize();
+			oController.startRecalculate();
+			oDrawingObjects.sendGraphicObjectProps();
+		} else {
+			if (true === oLogicDocument.Selection.Use) {
+				oLogicDocument.Remove(1, true);
+			}
+			oSmartArt.fitToPageSize();
+			oSmartArt.fitFontSize();
+			const oParaDrawing = oSmartArt.decorateParaDrawing(oDrawingObjects);
+			oSmartArt.setXfrmByParent();
+			if (oDrawingObjects) {
+				oDrawingObjects.resetSelection2();
+				oLogicDocument.AddToParagraph(oParaDrawing);
+				oLogicDocument.Select_DrawingObject(oParaDrawing.Get_Id());
+				oLogicDocument.Recalculate();
+				oDrawingObjects.clearTrackObjects();
+				oDrawingObjects.clearPreTrackObjects();
+				oDrawingObjects.updateOverlay();
+				oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
+			}
+		}
+		return oSmartArt;
 	};
 	baseEditorsApi.prototype.forceSave = function()
 	{
@@ -2024,6 +2083,11 @@
 			AscCommon.sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
 		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
 	};
+
+	baseEditorsApi.prototype.asc_generateSmartArtPreviews = function(nTypeOfSection)
+	{
+		return this.smartArtPreviewManager.Begin(nTypeOfSection);
+	};
 	// Images & Charts & TextArts
 	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType, arrId, bEmpty)
 	{
@@ -2484,6 +2548,7 @@
 		this.FontLoader.SetStandartFonts();
 
 		this.chartPreviewManager   = new AscCommon.ChartPreviewManager();
+		this.smartArtPreviewManager   = new AscCommon.SmartArtPreviewDrawer();
 		this.textArtPreviewManager = new AscCommon.TextArtPreviewManager();
 
 		AscFormat.initStyleManager();
@@ -4068,6 +4133,8 @@
 	prot['asc_getInformationBetweenFrameAndGeneralEditor'] = prot.asc_getInformationBetweenFrameAndGeneralEditor;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
+	prot['asc_createSmartArt'] = prot.asc_createSmartArt;
+	prot['asc_generateSmartArtPreviews'] = prot.asc_generateSmartArtPreviews;
 	prot['asc_addTableOleObject'] = prot.asc_addTableOleObject;
 	prot['asc_editTableOleObject'] = prot.asc_editTableOleObject;
 	prot['asc_canEditTableOleObject'] = prot.asc_canEditTableOleObject;

@@ -991,6 +991,17 @@ var editor;
       this.wb.savePagePrintOptions(arrPagesPrint);
   };
 
+    spreadsheet_api.prototype.getDrawingObjects = function () {
+        var oController = this.getGraphicController();
+        if (oController) {
+            return oController.drawingObjects;
+        }
+    };
+
+    spreadsheet_api.prototype.getDrawingDocument = function () {
+        return this.wbModel && this.wbModel.DrawingDocument
+    };
+
   spreadsheet_api.prototype.asc_getPageOptions = function(index, initPrintTitles, opt_copy) {
     var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
     var ws = this.wbModel.getWorksheet(sheetIndex);

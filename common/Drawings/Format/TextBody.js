@@ -338,7 +338,56 @@
             }
             var old_start_page = this.content.StartPage;
             this.content.Set_StartPage(0);
-            this.content.Draw(0, graphics);
+            if (graphics.isSmartArtPreviewDrawer && graphics.m_oContext) {
+                const nContentHeight = this.parent.contentHeight;
+                const nLineHeight = 3;
+                graphics.save();
+                graphics.m_oContext.fillStyle = 'rgb(0,0,0)';
+
+                const nContentWidth = this.parent.contentWidth;
+                const nHeightStep = nContentHeight / this.content.Content.length;
+
+                for (let i = 0; i < this.content.Content.length; i += 1) {
+                    const oParagraph = this.content.Content[i];
+                    const nWidth = nContentWidth > 30 ? 30 : nContentWidth - nContentWidth * 0.3;
+                    const eJC = oParagraph.CompiledPr.Pr.ParaPr.Jc;
+                    let startX;
+                    const gap = 5;
+                    switch (eJC) {
+                        case AscCommon.align_Right: {
+                            startX = nContentWidth - (nWidth + gap);
+                            break;
+                        }
+                        case AscCommon.align_Justify:
+                        case AscCommon.align_Center: {
+                            startX = (nContentWidth - nWidth) / 2;
+                            break;
+                        }
+                        case AscCommon.align_Left:
+                        default: {
+                            startX = gap;
+                            break;
+                        }
+                    }
+
+                    const oBullet = oParagraph.PresentationPr && oParagraph.PresentationPr.Bullet;
+                    const Y = nHeightStep * i + (nHeightStep - nLineHeight) / 2;
+
+                    if(oBullet && !oBullet.IsNone()) {
+                        graphics.rect(startX + nWidth / 4, Y, nWidth - nWidth / 4, nLineHeight);
+                        graphics.df();
+
+                        graphics.rect(startX, Y, nLineHeight, nLineHeight);
+                        graphics.df();
+                    } else {
+                        graphics.rect(startX, Y, nWidth, nLineHeight);
+                        graphics.df();
+                    }
+                }
+                graphics.restore();
+            } else {
+                this.content.Draw(0, graphics);
+            }
             this.content.Set_StartPage(old_start_page);
         }
     };

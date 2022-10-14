@@ -142,12 +142,17 @@
 		function CBaseObject() {
 			CBaseNoIdObject.call(this);
 			this.Id = null;
-			if (AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) {
+			if ((AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges() || this.notAllowedWithoutId()) && !this.isGlobalSkipAddId()) {
 				this.Id = AscCommon.g_oIdCounter.Get_NewId();
 				AscCommon.g_oTableId.Add(this, this.Id);
 			}
 		}
 		InitClass(CBaseObject, CBaseNoIdObject, AscDFH.historyitem_type_Unknown);
+
+		CBaseObject.prototype.isGlobalSkipAddId = function () {
+			const oApi = editor || Asc.editor;
+			return !!(oApi && oApi.isSkipAddIdToBaseObject);
+		}
 
 		function InitClassWithoutType(fClass, fBase) {
 			fClass.prototype = Object.create(fBase.prototype);
@@ -4746,12 +4751,20 @@
 		};
 
 
+		function getGrayscaleValue(color) {
+			return color.R * 0.2126 + color.G * 0.7152 + color.B * 0.0722;
+		}
+
 		function FormatRGBAColor() {
 			this.R = 0;
 			this.G = 0;
 			this.B = 0;
 			this.A = 255;
 		}
+
+		FormatRGBAColor.prototype.getGrayscaleValue = function () {
+			return getGrayscaleValue(this);
+		};
 
 		function CUniFill() {
 			CBaseNoIdObject.call(this);
@@ -4958,6 +4971,11 @@
 					this.fill.bgClr.Calculate(theme, slide, layout, masterSlide, RGBA, colorMap);
 			}
 		};
+		CUniFill.prototype.getGrayscaleValue = function () {
+			const RGBAColor = this.getRGBAColor();
+			return getGrayscaleValue(RGBAColor);
+		};
+
 		CUniFill.prototype.getRGBAColor = function () {
 			if (this.fill) {
 				if (this.fill.type === c_oAscFill.FILL_TYPE_SOLID) {
@@ -6914,6 +6932,11 @@
 		CXfrm.prototype.isNotNull = function () {
 			return isRealNumber(this.offX) && isRealNumber(this.offY) && isRealNumber(this.extX) && isRealNumber(this.extY);
 		};
+
+		CXfrm.prototype.isNull = function () {
+			return !isRealNumber(this.offX) && !isRealNumber(this.offY) && !isRealNumber(this.extX) && !isRealNumber(this.extY);
+		};
+
 		CXfrm.prototype.isNotNullForGroup = function () {
 			return isRealNumber(this.offX) && isRealNumber(this.offY)
 				&& isRealNumber(this.chOffX) && isRealNumber(this.chOffY)
@@ -14574,6 +14597,7 @@
 		window['AscFormat'].CreateUniColorRGB2 = CreateUniColorRGB2;
 		window['AscFormat'].CreateSolidFillRGB = CreateSolidFillRGB;
 		window['AscFormat'].CreateSolidFillRGBA = CreateSolidFillRGBA;
+		window['AscFormat'].getGrayscaleValue = getGrayscaleValue;
 		window['AscFormat'].CSrcRect = CSrcRect;
 		window['AscFormat'].CBlipFillTile = CBlipFillTile;
 		window['AscFormat'].CBlipFill = CBlipFill;

@@ -4355,11 +4355,12 @@
 	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
 	window['AscDFH'].historydescription_Document_FillFormsByTags                    = 0x0193;
 	window['AscDFH'].historydescription_Document_FillFormInPlugin                   = 0x0194;
-	window['AscDFH'].historydescription_Document_AddComplexForm                     = 0x0195;
-	window['AscDFH'].historydescription_Document_CorrectFormTextByFormat            = 0x0196;
-	window['AscDFH'].historydescription_Document_CorrectEnterText                   = 0x0197;
-	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0198;
-	window['AscDFH'].historydescription_Document_DocumentProtection                 = 0x0198;
+	window['AscDFH'].historydescription_Document_AddSmartArt                        = 0x0195;
+	window['AscDFH'].historydescription_Document_AddComplexForm                     = 0x0196;
+	window['AscDFH'].historydescription_Document_CorrectFormTextByFormat            = 0x0197;
+	window['AscDFH'].historydescription_Document_CorrectEnterText                   = 0x0198;
+	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0199;
+	window['AscDFH'].historydescription_Document_DocumentProtection                 = 0x019a;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

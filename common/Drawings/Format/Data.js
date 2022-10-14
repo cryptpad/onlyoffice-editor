@@ -86,6 +86,8 @@ Because of this, the display is sometimes not correct.
     var CGroupShape = AscFormat.CGroupShape;
 
     // consts
+    const GRAYSCALE_TRESHHOLD = 150;
+
     const Point_type_asst = 1;
     const Point_type_doc = 2;
     const Point_type_node = 0;
@@ -9090,12 +9092,24 @@ Because of this, the display is sometimes not correct.
     };
 
     Drawing.prototype.setXfrmByParent = function () {
+      if (!this.spPr) {
+        this.setSpPr(new AscFormat.CSpPr());
+      }
+      if (!this.spPr.xfrm) {
+        this.spPr.setXfrm(new AscFormat.CXfrm());
+      }
       var oXfrm = this.spPr.xfrm;
-      if (oXfrm.isZero && oXfrm.isZero()) {
+      if (oXfrm.isNull() || oXfrm.isZero()) {
         var parent = this.group;
         if (parent && parent.spPr.xfrm) {
+          oXfrm.setOffX(0);
+          oXfrm.setOffY(0);
           oXfrm.setExtX(parent.spPr.xfrm.extX);
           oXfrm.setExtY(parent.spPr.xfrm.extY);
+          oXfrm.setChOffX(0);
+          oXfrm.setChOffY(0);
+          oXfrm.setChExtX(parent.spPr.xfrm.extX);
+          oXfrm.setChExtY(parent.spPr.xfrm.extY);
         }
       }
     };
@@ -10114,6 +10128,50 @@ Because of this, the display is sometimes not correct.
       return bRetSmartArt ? this : true;
     }
 
+    SmartArt.prototype.getContrastDrawing = function () {
+      const arrShapes = this.spTree[0] && this.spTree[0].spTree;
+      if (arrShapes) {
+        arrShapes.forEach(function (oShape) {
+          if (oShape.spPr) {
+            if (oShape.spPr.Fill && oShape.spPr.Fill.fill && !(oShape.spPr.Fill.fill instanceof AscFormat.CNoFill)) {
+              let mods = null;
+              const id = oShape.spPr.Fill.fill.color.color.id;
+              let standardColor;
+              if (id === 0) {
+                standardColor = {R: 0x5B, G: 0x9B, B: 0xD5, A: 255};
+              } else if (id === 12) {
+                standardColor = {R: 255, G: 255, B: 255, A: 255};
+              } else {
+                standardColor = {R: 0, G: 0, B: 0, A: 255};
+              }
+
+              if (oShape.spPr.Fill.fill.color.Mods) {
+                mods = oShape.spPr.Fill.fill.color.Mods.Apply(standardColor);
+              }
+              const grayscaleValue = AscFormat.getGrayscaleValue(standardColor);
+
+              if (grayscaleValue < GRAYSCALE_TRESHHOLD) {
+                const oHeavyBrush = new AscFormat.CreateSolidFillRGB(211, 211, 211);
+                oShape.spPr.setFill(oHeavyBrush);
+              } else {
+                const oLightBrush = new AscFormat.CreateSolidFillRGB(255, 255, 255);
+                oShape.spPr.setFill(oLightBrush);
+              }
+              if (oShape.spPr.ln) {
+                const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
+                oShape.spPr.ln.setFill(oPen);
+                oShape.spPr.ln.setW(12700 * 3);
+              }
+            } else if (oShape.spPr.ln && oShape.spPr.ln.Fill && oShape.spPr.ln.Fill.fill && !(oShape.spPr.ln.Fill.fill instanceof AscFormat.CNoFill)) {
+              const oPen = new AscFormat.CreateSolidFillRGB(0, 0, 0);
+              oShape.spPr.ln.setFill(oPen);
+              oShape.spPr.ln.setW(12700 * 3);
+            }
+          }
+        });
+      }
+    }
+
     SmartArt.prototype.recalculate = function () {
     var oldParaMarks = editor && editor.ShowParaMarks;
       if (oldParaMarks) {
@@ -10129,6 +10187,110 @@ Because of this, the display is sometimes not correct.
         editor.ShowParaMarks = oldParaMarks;
       }
     }
+
+    SmartArt.prototype.decorateParaDrawing = function (drawingObjects) {
+      var drawing = new ParaDrawing(this.spPr.xfrm.extX, this.spPr.xfrm.extY, this, drawingObjects.drawingDocument, drawingObjects.document, null);
+      drawing.setExtent(this.spPr.xfrm.extX, this.spPr.xfrm.extY);
+      drawing.Set_GraphicObject(this);
+      this.setParent(drawing);
+      drawing.CheckWH();
+      return drawing;
+    };
+
+
+    SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
+      this.setDataModel(new AscFormat.DiagramData());
+      this.setColorsDef(new AscFormat.ColorsDef());
+      this.setLayoutDef(new AscFormat.LayoutDef());
+      this.setStyleDef(new AscFormat.StyleDef());
+      this.setDrawing(new AscFormat.Drawing());
+
+      const oApi = Asc.editor || editor;
+      if (oApi) {
+        const bFromWord = oApi.isDocumentEditor;
+        const pReader = new AscCommon.BinaryPPTYLoader();
+        const drawingDocument = oApi.getDrawingDocument();
+        const logicDocument = oApi.getLogicDocument();
+        pReader.presentation = logicDocument;
+        pReader.DrawingDocument = drawingDocument;
+
+        let sData = AscCommon.g_oSmartArtDrawings[nSmartArtType];
+        let data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+        pReader.stream = new AscCommon.FileStream(data, data.length);
+        pReader.ReadSmartArtGroup(this.drawing);
+        this.drawing.setGroup(this);
+        this.addToSpTree(0, this.drawing);
+
+        if (!bLoadOnlyDrawing) {
+          sData = AscCommon.g_oSmartArtStyleDef[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.styleDef.fromPPTY(pReader);
+
+          sData = AscCommon.g_oSmartArtLayoutDef[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.layoutDef.fromPPTY(pReader);
+
+          sData = AscCommon.g_oSmartArtColorsDef[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.colorsDef.fromPPTY(pReader);
+
+          sData = AscCommon.g_oSmartArtData[nSmartArtType];
+          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
+          pReader.stream = new AscCommon.FileStream(data, data.length);
+          this.dataModel.fromPPTY(pReader);
+          this.setConnections2();
+        }
+
+        this.setSpPr(new AscFormat.CSpPr());
+        this.spPr.setParent(this);
+        const smXfrm = AscCommon.g_oXfrmSmartArt.createDuplicate();
+        if (bFromWord) {
+          smXfrm.setOffX(0);
+          smXfrm.setOffY(0);
+        }
+        this.spPr.setXfrm(smXfrm);
+        this.setBDeleted2(false);
+        this.x = AscCommon.g_oXfrmSmartArt.offX;
+        this.y = AscCommon.g_oXfrmSmartArt.offY;
+        this.extX = AscCommon.g_oXfrmSmartArt.extX;
+        this.extY = AscCommon.g_oXfrmSmartArt.extY;
+        this.drawing.setXfrmByParent();
+
+        if (!bLoadOnlyDrawing) {
+          this.checkNodePointsAfterRead();
+        }
+      }
+      return this;
+    };
+
+    SmartArt.prototype.fitToPageSize = function () {
+      const oApi = Asc.editor || editor;
+      if (oApi) {
+        const bFromWord = oApi.isDocumentEditor;
+        if (bFromWord) {
+          const logicDocument = oApi.getLogicDocument();
+          const curPage = logicDocument.Pages[logicDocument.controller_GetCurPage()];
+          const heightPage = curPage.Height - curPage.Margins.Top - (curPage.Height - curPage.Margins.Bottom);
+          const widthPage = curPage.Width - curPage.Margins.Left - (curPage.Width - curPage.Margins.Right);
+          const cH = widthPage / this.extX;
+          const cW = heightPage / this.extY;
+          if (cH < 1 || cW < 1) {
+            const minCoefficient = Math.min(cH, cW);
+            this.changeSize(minCoefficient, minCoefficient);
+          }
+        }
+      }
+    };
+
+    SmartArt.prototype.fitFontSize = function () {
+      this.spTree[0] && this.spTree[0].spTree.forEach(function (oShape) {
+        oShape.recalculateContent2()
+        oShape.findFitFontSizeForSmartArt();
+      });
+    };
 
     SmartArt.prototype.handleUpdateExtents = function(bExt)
     {
@@ -10476,7 +10638,465 @@ Because of this, the display is sometimes not correct.
           }
         }
       });
-      return type;
+
+      switch (type) {
+        case "AccentedPicture": {
+          return Asc.c_oAscSmartArtTypes.AccentedPicture;
+        }
+        case "balance1": {
+          return Asc.c_oAscSmartArtTypes.Balance;
+        }
+        case "TitledPictureBlocks": {
+          return Asc.c_oAscSmartArtTypes.TitledPictureBlocks;
+        }
+        case "PictureAccentBlocks": {
+          return Asc.c_oAscSmartArtTypes.PictureAccentBlocks;
+        }
+        case "cycle5": {
+          return Asc.c_oAscSmartArtTypes.BlockCycle;
+        }
+        case "venn2": {
+          return Asc.c_oAscSmartArtTypes.StackedVenn;
+        }
+        case "equation2": {
+          return Asc.c_oAscSmartArtTypes.VerticalEquation;
+        }
+        case "vList5": {
+          return Asc.c_oAscSmartArtTypes.VerticalBlockList;
+        }
+        case "bProcess4": {
+          return Asc.c_oAscSmartArtTypes.VerticalBendingProcess;
+        }
+        case "vList2": {
+          return Asc.c_oAscSmartArtTypes.VerticalBulletList;
+        }
+        case "VerticalCurvedList": {
+          return Asc.c_oAscSmartArtTypes.VerticalCurvedList;
+        }
+        case "process2": {
+          return Asc.c_oAscSmartArtTypes.VerticalProcess;
+        }
+        case "list1": {
+          return Asc.c_oAscSmartArtTypes.VerticalBoxList;
+        }
+        case "vList4": {
+          return Asc.c_oAscSmartArtTypes.VerticalPictureList;
+        }
+        case "VerticalCircleList": {
+          return Asc.c_oAscSmartArtTypes.VerticalCircleList;
+        }
+        case "vList3": {
+          return Asc.c_oAscSmartArtTypes.VerticalPictureAccentList;
+        }
+        case "vList6": {
+          return Asc.c_oAscSmartArtTypes.VerticalArrowList;
+        }
+        case "chevron2": {
+          return Asc.c_oAscSmartArtTypes.VerticalChevronList;
+        }
+        case "VerticalAccentList": {
+          return Asc.c_oAscSmartArtTypes.VerticalAccentList;
+        }
+        case "target2": {
+          return Asc.c_oAscSmartArtTypes.NestedTarget;
+        }
+        case "funnel1": {
+          return Asc.c_oAscSmartArtTypes.Funnel;
+        }
+        case "arrow2": {
+          return Asc.c_oAscSmartArtTypes.UpwardArrow;
+        }
+        case "IncreasingArrowsProcess": {
+          return Asc.c_oAscSmartArtTypes.IncreasingArrowsProcess;
+        }
+        case "StepUpProcess": {
+          return Asc.c_oAscSmartArtTypes.StepUpProcess;
+        }
+        case "CircularPictureCallout": {
+          return Asc.c_oAscSmartArtTypes.CircularPictureCallout;
+        }
+        case "hierarchy2": {
+          return Asc.c_oAscSmartArtTypes.HorizontalHierarchy;
+        }
+        case "hierarchy5": {
+          return Asc.c_oAscSmartArtTypes.HorizontalLabeledHierarchy;
+        }
+        case "HorizontalMultiLevelHierarchy": {
+          return Asc.c_oAscSmartArtTypes.HorizontalMultiLevelHierarchy;
+        }
+        case "HorizontalOrganizationChart": {
+          return Asc.c_oAscSmartArtTypes.HorizontalOrganizationChart;
+        }
+        case "hList1": {
+          return Asc.c_oAscSmartArtTypes.HorizontalBulletList;
+        }
+        case "pList2": {
+          return Asc.c_oAscSmartArtTypes.HorizontalPictureList;
+        }
+        case "hChevron3": {
+          return Asc.c_oAscSmartArtTypes.ClosedChevronProcess;
+        }
+        case "hierarchy3": {
+          return Asc.c_oAscSmartArtTypes.HierarchyList;
+        }
+        case "hierarchy1": {
+          return Asc.c_oAscSmartArtTypes.Hierarchy;
+        }
+        case "CirclePictureHierarchy": {
+          return Asc.c_oAscSmartArtTypes.CirclePictureHierarchy;
+        }
+        case "hierarchy6": {
+          return Asc.c_oAscSmartArtTypes.LabeledHierarchy;
+        }
+        case "pyramid3": {
+          return Asc.c_oAscSmartArtTypes.InvertedPyramid;
+        }
+        case "HexagonCluster": {
+          return Asc.c_oAscSmartArtTypes.HexagonCluster;
+        }
+        case "CircleRelationship": {
+          return Asc.c_oAscSmartArtTypes.CircleRelationship;
+        }
+        case "CircleAccentTimeline": {
+          return Asc.c_oAscSmartArtTypes.CircleAccentTimeline;
+        }
+        case "bProcess2": {
+          return Asc.c_oAscSmartArtTypes.CircularBendingProcess;
+        }
+        case "arrow6": {
+          return Asc.c_oAscSmartArtTypes.ArrowRibbon;
+        }
+        case "venn3": {
+          return Asc.c_oAscSmartArtTypes.LinearVenn;
+        }
+        case "PictureLineup": {
+          return Asc.c_oAscSmartArtTypes.PictureLineup;
+        }
+        case "TitlePictureLineup": {
+          return Asc.c_oAscSmartArtTypes.TitlePictureLineup;
+        }
+        case "BendingPictureCaptionList": {
+          return Asc.c_oAscSmartArtTypes.BendingPictureCaptionList;
+        }
+        case "bList2": {
+          return Asc.c_oAscSmartArtTypes.BendingPictureAccentList;
+        }
+        case "matrix1": {
+          return Asc.c_oAscSmartArtTypes.TitledMatrix;
+        }
+        case "IncreasingCircleProcess": {
+          return Asc.c_oAscSmartArtTypes.IncreasingCircleProcess;
+        }
+        case "BendingPictureBlocks": {
+          return Asc.c_oAscSmartArtTypes.BendingPictureBlocks;
+        }
+        case "BendingPictureCaption": {
+          return Asc.c_oAscSmartArtTypes.BendingPictureCaption;
+        }
+        case "BendingPictureSemiTransparentText": {
+          return Asc.c_oAscSmartArtTypes.BendingPictureSemiTransparentText;
+        }
+        case "cycle6": {
+          return Asc.c_oAscSmartArtTypes.NonDirectionalCycle;
+        }
+        case "hProcess9": {
+          return Asc.c_oAscSmartArtTypes.ContinuousBlockProcess;
+        }
+        case "hList7": {
+          return Asc.c_oAscSmartArtTypes.ContinuousPictureList;
+        }
+        case "cycle3": {
+          return Asc.c_oAscSmartArtTypes.ContinuousCycle;
+        }
+        case "BlockDescendingList": {
+          return Asc.c_oAscSmartArtTypes.DescendingBlockList;
+        }
+        case "StepDownProcess": {
+          return Asc.c_oAscSmartArtTypes.StepDownProcess;
+        }
+        case "ReverseList": {
+          return Asc.c_oAscSmartArtTypes.ReverseList;
+        }
+        case "orgChart1": {
+          return Asc.c_oAscSmartArtTypes.OrganizationChart;
+        }
+        case "NameandTitleOrganizationalChart": {
+          return Asc.c_oAscSmartArtTypes.NameAndTitleOrganizationChart;
+        }
+        case "hProcess4": {
+          return Asc.c_oAscSmartArtTypes.AlternatingFlow;
+        }
+        case "pyramid2": {
+          return Asc.c_oAscSmartArtTypes.PyramidList;
+        }
+        case "PlusandMinus": {
+          return Asc.c_oAscSmartArtTypes.PlusAndMinus;
+        }
+        case "bProcess3": {
+          return Asc.c_oAscSmartArtTypes.RepeatingBendingProcess;
+        }
+        case "CaptionedPictures": {
+          return Asc.c_oAscSmartArtTypes.CaptionedPictures;
+        }
+        case "hProcess7": {
+          return Asc.c_oAscSmartArtTypes.DetailedProcess;
+        }
+        case "PictureStrips": {
+          return Asc.c_oAscSmartArtTypes.PictureStrips;
+        }
+        case "HalfCircleOrganizationChart": {
+          return Asc.c_oAscSmartArtTypes.HalfCircleOrganizationChart;
+        }
+        case "PhasedProcess": {
+          return Asc.c_oAscSmartArtTypes.PhasedProcess;
+        }
+        case "venn1": {
+          return Asc.c_oAscSmartArtTypes.BasicVenn;
+        }
+        case "hProcess11": {
+          return Asc.c_oAscSmartArtTypes.BasicTimeline;
+        }
+        case "chart3": {
+          return Asc.c_oAscSmartArtTypes.BasicPie;
+        }
+        case "matrix3": {
+          return Asc.c_oAscSmartArtTypes.BasicMatrix;
+        }
+        case "pyramid1": {
+          return Asc.c_oAscSmartArtTypes.BasicPyramid;
+        }
+        case "radial1": {
+          return Asc.c_oAscSmartArtTypes.BasicRadial;
+        }
+        case "target1": {
+          return Asc.c_oAscSmartArtTypes.BasicTarget;
+        }
+        case "default": {
+          return Asc.c_oAscSmartArtTypes.BasicBlockList;
+        }
+        case "process5": {
+          return Asc.c_oAscSmartArtTypes.BasicBendingProcess;
+        }
+        case "process1": {
+          return Asc.c_oAscSmartArtTypes.BasicProcess;
+        }
+        case "chevron1": {
+          return Asc.c_oAscSmartArtTypes.BasicChevronProcess;
+        }
+        case "cycle2": {
+          return Asc.c_oAscSmartArtTypes.BasicCycle;
+        }
+        case "OpposingIdeas": {
+          return Asc.c_oAscSmartArtTypes.OpposingIdeas;
+        }
+        case "arrow4": {
+          return Asc.c_oAscSmartArtTypes.OpposingArrows;
+        }
+        case "RandomtoResultProcess": {
+          return Asc.c_oAscSmartArtTypes.RandomToResultProcess;
+        }
+        case "SubStepProcess": {
+          return Asc.c_oAscSmartArtTypes.SubStepProcess;
+        }
+        case "PieProcess": {
+          return Asc.c_oAscSmartArtTypes.PieProcess;
+        }
+        case "process3": {
+          return Asc.c_oAscSmartArtTypes.AccentProcess;
+        }
+        case "AscendingPictureAccentProcess": {
+          return Asc.c_oAscSmartArtTypes.AscendingPictureAccentProcess;
+        }
+        case "hProcess10": {
+          return Asc.c_oAscSmartArtTypes.PictureAccentProcess;
+        }
+        case "radial3": {
+          return Asc.c_oAscSmartArtTypes.RadialVenn;
+        }
+        case "radial6": {
+          return Asc.c_oAscSmartArtTypes.RadialCycle;
+        }
+        case "RadialCluster": {
+          return Asc.c_oAscSmartArtTypes.RadialCluster;
+        }
+        case "radial2": {
+          return Asc.c_oAscSmartArtTypes.RadialList;
+        }
+        case "cycle7": {
+          return Asc.c_oAscSmartArtTypes.MultiDirectionalCycle;
+        }
+        case "radial5": {
+          return Asc.c_oAscSmartArtTypes.DivergingRadial;
+        }
+        case "arrow1": {
+          return Asc.c_oAscSmartArtTypes.DivergingArrows;
+        }
+        case "FramedTextPicture": {
+          return Asc.c_oAscSmartArtTypes.FramedTextPicture;
+        }
+        case "lProcess2": {
+          return Asc.c_oAscSmartArtTypes.GroupedList;
+        }
+        case "pyramid4": {
+          return Asc.c_oAscSmartArtTypes.SegmentedPyramid;
+        }
+        case "process4": {
+          return Asc.c_oAscSmartArtTypes.SegmentedProcess;
+        }
+        case "cycle8": {
+          return Asc.c_oAscSmartArtTypes.SegmentedCycle;
+        }
+        case "PictureGrid": {
+          return Asc.c_oAscSmartArtTypes.PictureGrid;
+        }
+        case "matrix2": {
+          return Asc.c_oAscSmartArtTypes.GridMatrix;
+        }
+        case "SpiralPicture": {
+          return Asc.c_oAscSmartArtTypes.SpiralPicture;
+        }
+        case "hList9": {
+          return Asc.c_oAscSmartArtTypes.StackedList;
+        }
+        case "pList1": {
+          return Asc.c_oAscSmartArtTypes.PictureCaptionList;
+        }
+        case "lProcess1": {
+          return Asc.c_oAscSmartArtTypes.ProcessList;
+        }
+        case "BubblePictureList": {
+          return Asc.c_oAscSmartArtTypes.BubblePictureList;
+        }
+        case "SquareAccentList": {
+          return Asc.c_oAscSmartArtTypes.SquareAccentList;
+        }
+        case "LinedList": {
+          return Asc.c_oAscSmartArtTypes.LinedList;
+        }
+        case "hList2": {
+          return Asc.c_oAscSmartArtTypes.PictureAccentList;
+        }
+        case "PictureAccentList": {
+          return Asc.c_oAscSmartArtTypes.TitledPictureAccentList;
+        }
+        case "SnapshotPictureList": {
+          return Asc.c_oAscSmartArtTypes.SnapshotPictureList;
+        }
+        case "hProcess3": {
+          return Asc.c_oAscSmartArtTypes.ContinuousArrowProcess;
+        }
+        case "CircleArrowProcess": {
+          return Asc.c_oAscSmartArtTypes.CircleArrowProcess;
+        }
+        case "hProcess6": {
+          return Asc.c_oAscSmartArtTypes.ProcessArrows;
+        }
+        case "vProcess5": {
+          return Asc.c_oAscSmartArtTypes.StaggeredProcess;
+        }
+        case "radial4": {
+          return Asc.c_oAscSmartArtTypes.ConvergingRadial;
+        }
+        case "arrow5": {
+          return Asc.c_oAscSmartArtTypes.ConvergingArrows;
+        }
+        case "hierarchy4": {
+          return Asc.c_oAscSmartArtTypes.TableHierarchy;
+        }
+        case "hList3": {
+          return Asc.c_oAscSmartArtTypes.TableList;
+        }
+        case "cycle1": {
+          return Asc.c_oAscSmartArtTypes.TextCycle;
+        }
+        case "hList6": {
+          return Asc.c_oAscSmartArtTypes.TrapezoidList;
+        }
+        case "DescendingProcess": {
+          return Asc.c_oAscSmartArtTypes.DescendingProcess;
+        }
+        case "lProcess3": {
+          return Asc.c_oAscSmartArtTypes.ChevronList;
+        }
+        case "equation1": {
+          return Asc.c_oAscSmartArtTypes.Equation;
+        }
+        case "arrow3": {
+          return Asc.c_oAscSmartArtTypes.CounterbalanceArrows;
+        }
+        case "target3": {
+          return Asc.c_oAscSmartArtTypes.TargetList;
+        }
+        case "cycle4": {
+          return Asc.c_oAscSmartArtTypes.CycleMatrix;
+        }
+        case "AlternatingPictureBlocks": {
+          return Asc.c_oAscSmartArtTypes.AlternatingPictureBlocks;
+        }
+        case "AlternatingPictureCircles": {
+          return Asc.c_oAscSmartArtTypes.AlternatingPictureCircles;
+        }
+        case "AlternatingHexagons": {
+          return Asc.c_oAscSmartArtTypes.AlternatingHexagonList;
+        }
+        case "gear1": {
+          return Asc.c_oAscSmartArtTypes.Gear;
+        }
+        case "architecture": {
+          return Asc.c_oAscSmartArtTypes.ArchitectureLayout;
+        }
+        case "chevronAccent+Icon": {
+          return Asc.c_oAscSmartArtTypes.ChevronAccentProcess;
+        }
+        case "CircleProcess": {
+          return Asc.c_oAscSmartArtTypes.CircleProcess;
+        }
+        case "ConvergingText": {
+          return Asc.c_oAscSmartArtTypes.ConvergingText;
+        }
+        case "HexagonRadial": {
+          return Asc.c_oAscSmartArtTypes.HexagonRadial;
+        }
+        case "InterconnectedBlockProcess": {
+          return Asc.c_oAscSmartArtTypes.InterconnectedBlockProcess;
+        }
+        case "rings+Icon": {
+          return Asc.c_oAscSmartArtTypes.InterconnectedRings;
+        }
+        case "Picture Frame": {
+          return Asc.c_oAscSmartArtTypes.PictureFrame;
+        }
+        case "pictureOrgChart+Icon": {
+          return Asc.c_oAscSmartArtTypes.PictureOrganizationChart;
+        }
+        case "RadialPictureList": {
+          return Asc.c_oAscSmartArtTypes.RadialPictureList;
+        }
+        case "TabList": {
+          return Asc.c_oAscSmartArtTypes.TabList;
+        }
+        case "TabbedArc+Icon": {
+          return Asc.c_oAscSmartArtTypes.TabbedArc;
+        }
+        case "ThemePictureAccent": {
+          return Asc.c_oAscSmartArtTypes.ThemePictureAccent;
+        }
+        case "ThemePictureAlternatingAccent": {
+          return Asc.c_oAscSmartArtTypes.ThemePictureAlternatingAccent;
+        }
+        case "ThemePictureGrid": {
+          return Asc.c_oAscSmartArtTypes.ThemePictureGrid;
+        }
+        case "VaryingWidthList": {
+          return Asc.c_oAscSmartArtTypes.VaryingWidthList;
+        }
+        case "BracketList": {
+          return Asc.c_oAscSmartArtTypes.VerticalBracketList;
+        }
+        default: {
+          return type;
+        }
+      }
     };
 
     SmartArt.prototype.getShapesForFitText = function (callShape) {
@@ -10522,167 +11142,187 @@ Because of this, the display is sometimes not correct.
       }
 
       switch (smartArtType) {
-        case "PictureAccentBlocks":
-        case "cycle5":
-        case "venn2":
-        case "bProcess4":
-        case "vList2":
-        case "VerticalCurvedList":
-        case "process2":
-        case "list1":
-        case "vList4":
-        case "VerticalCircleList":
-        case "arrow2":
-        case "StepUpProcess":
-        case "hierarchy2":
-        case "HorizontalMultiLevelHierarchy":
-        case "HorizontalOrganizationChart":
-        case "hList1":
-        case "pList2":
-        case "hChevron3":
-        case "hierarchy1":
-        case "CirclePictureHierarchy":
-        case "HexagonCluster":
-        case "CircleRelationship":
-        case "CircleAccentTimeline":
-        case "bProcess2":
-        case "arrow6":
-        case "venn3":
-        case "PictureLineup":
-        case "BendingPictureCaptionList":
-        case "matrix1":
-        case "BendingPictureBlocks":
-        case "BendingPictureCaption":
-        case "BendingPictureSemiTransparentText":
-        case "cycle6":
-        case "hProcess9":
-        case "hList7":
-        case "cycle3":
-        case "StepDownProcess":
-        case "ReverseList":
-        case "orgChart1":
-        case "pyramid2":
-        case "PlusandMinus":
-        case "bProcess3":
-        case "CaptionedPictures":// TODO: think about it
-        case "PictureStrips":
-        case "HalfCircleOrganizationChart":
-        case "venn1":
-        case "hProcess11":
-        case "chart3":
-        case "matrix3":
-        case "target1":
-        case "default":
-        case "process5":
-        case "process1":
-        case "chevron1":
-        case "cycle2":
-        case "arrow4":
-        case "RandomtoResultProcess": // TODO: recalculate in next
-        case "process3":
-        case "hProcess10":
-        case "radial6": // TODO: think about it
-        case "cycle7":
-        case "arrow1":
-        case "FramedTextPicture":
-        case "pyramid4":
-        case "cycle8":
-        case "PictureGrid":
-        case "matrix2":
-        case "SpiralPicture":
-        case "pList1":
-        case "BubblePictureList":
-        case "SnapshotPictureList": // TODO: think about it
-        case "hProcess3":
-        case "CircleArrowProcess": // TODO: think about it
-        case "vProcess5":
-        case "radial4":
-        case "arrow5":
-        case "hierarchy4":
-        case "cycle1":
-        case "hList6":
-        case "DescendingProcess":
-        case "equation1":
-        case "arrow3":
-        case "AlternatingPictureBlocks":
-        case "AlternatingPictureCircles":
-        case "gear1":
+        case Asc.c_oAscSmartArtTypes.PictureAccentBlocks:
+        case Asc.c_oAscSmartArtTypes.BlockCycle:
+        case Asc.c_oAscSmartArtTypes.StackedVenn:
+        case Asc.c_oAscSmartArtTypes.VerticalBendingProcess:
+        case Asc.c_oAscSmartArtTypes.VerticalBulletList:
+        case Asc.c_oAscSmartArtTypes.VerticalCurvedList:
+        case Asc.c_oAscSmartArtTypes.VerticalProcess:
+        case Asc.c_oAscSmartArtTypes.VerticalBoxList:
+        case Asc.c_oAscSmartArtTypes.VerticalPictureList:
+        case Asc.c_oAscSmartArtTypes.VerticalCircleList:
+        case Asc.c_oAscSmartArtTypes.UpwardArrow:
+        case Asc.c_oAscSmartArtTypes.StepUpProcess:
+        case Asc.c_oAscSmartArtTypes.HorizontalHierarchy:
+        case Asc.c_oAscSmartArtTypes.HorizontalMultiLevelHierarchy:
+        case Asc.c_oAscSmartArtTypes.HorizontalOrganizationChart:
+        case Asc.c_oAscSmartArtTypes.HorizontalBulletList:
+        case Asc.c_oAscSmartArtTypes.HorizontalPictureList:
+        case Asc.c_oAscSmartArtTypes.ClosedChevronProcess:
+        case Asc.c_oAscSmartArtTypes.Hierarchy:
+        case Asc.c_oAscSmartArtTypes.CirclePictureHierarchy:
+        case Asc.c_oAscSmartArtTypes.HexagonCluster:
+        case Asc.c_oAscSmartArtTypes.CircleRelationship:
+        case Asc.c_oAscSmartArtTypes.CircleAccentTimeline:
+        case Asc.c_oAscSmartArtTypes.CircularBendingProcess:
+        case Asc.c_oAscSmartArtTypes.ArrowRibbon:
+        case Asc.c_oAscSmartArtTypes.LinearVenn:
+        case Asc.c_oAscSmartArtTypes.PictureLineup:
+        case Asc.c_oAscSmartArtTypes.BendingPictureCaptionList:
+        case Asc.c_oAscSmartArtTypes.TitledMatrix:
+        case Asc.c_oAscSmartArtTypes.BendingPictureBlocks:
+        case Asc.c_oAscSmartArtTypes.BendingPictureCaption:
+        case Asc.c_oAscSmartArtTypes.BendingPictureSemiTransparentText:
+        case Asc.c_oAscSmartArtTypes.NonDirectionalCycle:
+        case Asc.c_oAscSmartArtTypes.ContinuousBlockProcess:
+        case Asc.c_oAscSmartArtTypes.ContinuousPictureList:
+        case Asc.c_oAscSmartArtTypes.ContinuousCycle:
+        case Asc.c_oAscSmartArtTypes.StepDownProcess:
+        case Asc.c_oAscSmartArtTypes.ReverseList:
+        case Asc.c_oAscSmartArtTypes.OrganizationChart:
+        case Asc.c_oAscSmartArtTypes.PictureOrganizationChart:
+        case Asc.c_oAscSmartArtTypes.PyramidList:
+        case Asc.c_oAscSmartArtTypes.PlusAndMinus:
+        case Asc.c_oAscSmartArtTypes.RepeatingBendingProcess:
+        case Asc.c_oAscSmartArtTypes.CaptionedPictures:
+        case Asc.c_oAscSmartArtTypes.PictureStrips:
+        case Asc.c_oAscSmartArtTypes.HalfCircleOrganizationChart:
+        case Asc.c_oAscSmartArtTypes.BasicVenn:
+        case Asc.c_oAscSmartArtTypes.BasicTimeline:
+        case Asc.c_oAscSmartArtTypes.BasicPie:
+        case Asc.c_oAscSmartArtTypes.BasicMatrix:
+        case Asc.c_oAscSmartArtTypes.BasicTarget:
+        case Asc.c_oAscSmartArtTypes.BasicBlockList:
+        case Asc.c_oAscSmartArtTypes.BasicBendingProcess:
+        case Asc.c_oAscSmartArtTypes.BasicProcess:
+        case Asc.c_oAscSmartArtTypes.BasicChevronProcess:
+        case Asc.c_oAscSmartArtTypes.BasicCycle:
+        case Asc.c_oAscSmartArtTypes.OpposingArrows:
+        case Asc.c_oAscSmartArtTypes.RandomToResultProcess:
+        case Asc.c_oAscSmartArtTypes.AccentProcess:
+        case Asc.c_oAscSmartArtTypes.PictureAccentProcess:
+        case Asc.c_oAscSmartArtTypes.RadialCycle:
+        case Asc.c_oAscSmartArtTypes.MultiDirectionalCycle:
+        case Asc.c_oAscSmartArtTypes.DivergingArrows:
+        case Asc.c_oAscSmartArtTypes.FramedTextPicture:
+        case Asc.c_oAscSmartArtTypes.SegmentedPyramid:
+        case Asc.c_oAscSmartArtTypes.SegmentedCycle:
+        case Asc.c_oAscSmartArtTypes.PictureGrid:
+        case Asc.c_oAscSmartArtTypes.GridMatrix:
+        case Asc.c_oAscSmartArtTypes.SpiralPicture:
+        case Asc.c_oAscSmartArtTypes.PictureCaptionList:
+        case Asc.c_oAscSmartArtTypes.BubblePictureList:
+        case Asc.c_oAscSmartArtTypes.SnapshotPictureList:
+        case Asc.c_oAscSmartArtTypes.ContinuousArrowProcess:
+        case Asc.c_oAscSmartArtTypes.CircleArrowProcess:
+        case Asc.c_oAscSmartArtTypes.StaggeredProcess:
+        case Asc.c_oAscSmartArtTypes.ConvergingRadial:
+        case Asc.c_oAscSmartArtTypes.ConvergingArrows:
+        case Asc.c_oAscSmartArtTypes.TableHierarchy: //TODO: think about it
+        case Asc.c_oAscSmartArtTypes.ArchitectureLayout: //TODO: think about it
+        case Asc.c_oAscSmartArtTypes.TextCycle:
+        case Asc.c_oAscSmartArtTypes.TrapezoidList:
+        case Asc.c_oAscSmartArtTypes.DescendingProcess:
+        case Asc.c_oAscSmartArtTypes.Equation:
+        case Asc.c_oAscSmartArtTypes.CounterbalanceArrows:
+        case Asc.c_oAscSmartArtTypes.AlternatingPictureBlocks:
+        case Asc.c_oAscSmartArtTypes.AlternatingPictureCircles:
+        case Asc.c_oAscSmartArtTypes.ChevronAccentProcess:
+        case Asc.c_oAscSmartArtTypes.TabbedArc:
+        case Asc.c_oAscSmartArtTypes.ThemePictureAccent:
+        case Asc.c_oAscSmartArtTypes.VaryingWidthList:
+        case Asc.c_oAscSmartArtTypes.InterconnectedRings:
+        case Asc.c_oAscSmartArtTypes.ThemePictureAlternatingAccent:
+        case Asc.c_oAscSmartArtTypes.HexagonRadial:
+        case Asc.c_oAscSmartArtTypes.PictureFrame:
+        case Asc.c_oAscSmartArtTypes.TabList:
+        case Asc.c_oAscSmartArtTypes.VerticalBracketList:
+        case Asc.c_oAscSmartArtTypes.Gear: {
           return shapes;
-          break;
-        case "AlternatingHexagons":
+        }
+        case Asc.c_oAscSmartArtTypes.AlternatingHexagonList:
           return getShapesFromPresetGeom(['rect']);
-        case "LinedList":
+        case Asc.c_oAscSmartArtTypes.LinedList:
           return getShapesFromPresName(['tx1', 'tx2', 'tx3', 'tx4']);
-        case "SquareAccentList":
-        case "IncreasingCircleProcess":
-        case "PieProcess":
+        case Asc.c_oAscSmartArtTypes.SquareAccentList:
+        case Asc.c_oAscSmartArtTypes.IncreasingCircleProcess:
+        case Asc.c_oAscSmartArtTypes.PieProcess:
           return getShapesFromPresName(['Child', 'Parent']);
-        case "hList2":
+        case Asc.c_oAscSmartArtTypes.PictureAccentList:
           return getShapesFromPresStyleLbl(['node1', 'revTx']);
-        case "lProcess2": // TODO: check transform
+        case Asc.c_oAscSmartArtTypes.GroupedList:// TODO: check transform
           return getShapesFromPresStyleLbl(['bgShp', 'node1']);
-        case "PictureAccentList":
+        case Asc.c_oAscSmartArtTypes.InterconnectedBlockProcess:
+          return getShapesFromPresStyleLbl(['alignImgPlace1', 'node1']);
+        case Asc.c_oAscSmartArtTypes.TitledPictureAccentList:
           return getShapesFromPresStyleLbl(['lnNode1']); // TODO: think about it
-        case "vList5":
-        case "chevron2":
-        case "bList2":
-        case "hList9":
-        case "hProcess7":
-        case "vList6":
-        case "hProcess6":
-        case "SubStepProcess":
-        case "funnel1":
-        case "PhasedProcess":
-        case "cycle4":
-        case "pyramid1":
-        case "pyramid3":
-        case "vList3":
-        case "radial2":
-        case "TitledPictureBlocks":
-        case "OpposingIdeas":
-        case "hierarchy6":
-        case "hierarchy5":
-        case "IncreasingArrowsProcess":
+        case Asc.c_oAscSmartArtTypes.VerticalBlockList:
+        case Asc.c_oAscSmartArtTypes.VerticalChevronList:
+        case Asc.c_oAscSmartArtTypes.BendingPictureAccentList:
+        case Asc.c_oAscSmartArtTypes.StackedList:
+        case Asc.c_oAscSmartArtTypes.DetailedProcess:
+        case Asc.c_oAscSmartArtTypes.VerticalArrowList:
+        case Asc.c_oAscSmartArtTypes.ProcessArrows:
+        case Asc.c_oAscSmartArtTypes.SubStepProcess:
+        case Asc.c_oAscSmartArtTypes.Funnel:
+        case Asc.c_oAscSmartArtTypes.PhasedProcess:
+        case Asc.c_oAscSmartArtTypes.CycleMatrix:
+        case Asc.c_oAscSmartArtTypes.BasicPyramid:
+        case Asc.c_oAscSmartArtTypes.InvertedPyramid:
+        case Asc.c_oAscSmartArtTypes.VerticalPictureAccentList:
+        case Asc.c_oAscSmartArtTypes.RadialList:
+        case Asc.c_oAscSmartArtTypes.TitledPictureBlocks:
+        case Asc.c_oAscSmartArtTypes.OpposingIdeas:
+        case Asc.c_oAscSmartArtTypes.LabeledHierarchy:
+        case Asc.c_oAscSmartArtTypes.RadialPictureList:
+        case Asc.c_oAscSmartArtTypes.ConvergingText:
+        case Asc.c_oAscSmartArtTypes.CircleProcess:
+        case Asc.c_oAscSmartArtTypes.HorizontalLabeledHierarchy:
+        case Asc.c_oAscSmartArtTypes.IncreasingArrowsProcess: {
           return getShapesFromPresetGeom();
-        case "VerticalAccentList":
+        }
+        case Asc.c_oAscSmartArtTypes.VerticalAccentList:
           return getShapesFromPresStyleLbl(['revTx', 'solidFgAcc1']);
-        case "BlockDescendingList":
+        case Asc.c_oAscSmartArtTypes.DescendingBlockList:
           return getShapesFromPresName(['childText']);
-        case "hList3":
+        case Asc.c_oAscSmartArtTypes.TableList:
           return getShapesFromPresStyleLbl(['node1', 'dkBgShp']);
-        case "process4":
+        case Asc.c_oAscSmartArtTypes.SegmentedProcess:
           return getShapesFromPresStyleLbl(['node1', 'fgAccFollowNode1']);
-        case "target3":
+        case Asc.c_oAscSmartArtTypes.TargetList:
           return getShapesFromPresName(['СhTx', 'rect']); // TODO: think about it
-        case "hierarchy3":
+        case Asc.c_oAscSmartArtTypes.HierarchyList:
           return getShapesFromPresStyleLbl(['node1', 'bgAcc1']);
-        case "hProcess4":
+        case Asc.c_oAscSmartArtTypes.AlternatingFlow:
           return getShapesFromPresStyleLbl(['node1', 'bgAcc1']);
-        case "lProcess3":
+        case Asc.c_oAscSmartArtTypes.ChevronList:
           return getShapesFromPresStyleLbl(['node1', 'alignAccFollowNode1']);
-        case "lProcess1":
+        case Asc.c_oAscSmartArtTypes.ProcessList:
           return getShapesFromPresStyleLbl(['alignAccFollowNode1', 'node1']);
-        case "AscendingPictureAccentProcess":
+        case Asc.c_oAscSmartArtTypes.AscendingPictureAccentProcess:
           return getShapesFromPresStyleLbl(['node1', 'revTx']);
-        case "equation2":
+        case Asc.c_oAscSmartArtTypes.VerticalEquation:
           return getShapesFromPresName(['lastNode', 'node']);
-        case "radial1":
-        case "radial5": // TODO: think
+        case Asc.c_oAscSmartArtTypes.BasicRadial:
+        case Asc.c_oAscSmartArtTypes.DivergingRadial: // TODO: think
           return getShapesFromPresStyleLbl(['node1', 'node0']);
-        case "radial3":
+        case Asc.c_oAscSmartArtTypes.RadialVenn:
           return getShapesFromPresName(['centerShape', 'node']);
-        case "RadialCluster":
+        case Asc.c_oAscSmartArtTypes.RadialCluster:
           return [callShape];
-        case "NameandTitleOrganizationalChart":
+        case Asc.c_oAscSmartArtTypes.NameAndTitleOrganizationChart:
           return getShapesFromPresStyleLbl(['node0'], true);
-        case "balance1":
+        case Asc.c_oAscSmartArtTypes.Balance:
           return getShapesFromPresStyleLbl(['alignAccFollowNode1', 'node1']);
-        case "target2":
+        case Asc.c_oAscSmartArtTypes.NestedTarget:
           return getShapesFromPresStyleLbl(['node1', 'fgAcc1']);
-        case "AccentedPicture":
-        case "CircularPictureCallout":
+        case Asc.c_oAscSmartArtTypes.AccentedPicture:
+        case Asc.c_oAscSmartArtTypes.CircularPictureCallout:
           return getShapesFromPresStyleLbl(['revTx', 'node1']);
-        case "TitlePictureLineup":
+        case Asc.c_oAscSmartArtTypes.ThemePictureGrid:
+          return getShapesFromPresStyleLbl(['revTx', 'trBgShp']);
+        case Asc.c_oAscSmartArtTypes.TitlePictureLineup:
           return getShapesFromPresStyleLbl(['revTx', 'alignNode1']);
         default:
           return [];
