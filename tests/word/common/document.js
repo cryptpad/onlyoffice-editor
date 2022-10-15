@@ -184,20 +184,67 @@
 
 		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
 	}
+	function EnterText(text)
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.EnterText(text);
+	}
+	function CorrectEnterText(oldText, newText)
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.CorrectEnterText(oldText, newText);
+	}
+	function BeginCompositeInput()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.Begin_CompositeInput();
+	}
+	function ReplaceCompositeInput(text)
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.Replace_CompositeText(text);
+	}
+	function EndCompositeInput()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.End_CompositeInput();
+	}
+	function EnterTextCompositeInput(text)
+	{
+		BeginCompositeInput();
+		ReplaceCompositeInput(text);
+		EndCompositeInput();
+	}
 	//--------------------------------------------------------export----------------------------------------------------
-	AscTest.CreateLogicDocument = CreateLogicDocument;
-	AscTest.CreateParagraph     = CreateParagraph;
-	AscTest.CreateTable         = CreateTable;
-	AscTest.RemoveTableBorders  = RemoveTableBorders;
-	AscTest.SetFillingFormMode  = SetFillingFormMode;
-	AscTest.SetEditingMode      = SetEditingMode;
-	AscTest.PressKey            = PressKey;
-	AscTest.MoveCursorLeft      = MoveCursorLeft;
-	AscTest.MoveCursorRight     = MoveCursorRight;
-	AscTest.Recalculate         = Recalculate;
-	AscTest.ClickMouseButton    = ClickMouseButton;
-	AscTest.ClearDocument       = ClearDocument;
-	AscTest.Key                 = Key;
+	AscTest.CreateLogicDocument     = CreateLogicDocument;
+	AscTest.CreateParagraph         = CreateParagraph;
+	AscTest.CreateTable             = CreateTable;
+	AscTest.RemoveTableBorders      = RemoveTableBorders;
+	AscTest.SetFillingFormMode      = SetFillingFormMode;
+	AscTest.SetEditingMode          = SetEditingMode;
+	AscTest.PressKey                = PressKey;
+	AscTest.MoveCursorLeft          = MoveCursorLeft;
+	AscTest.MoveCursorRight         = MoveCursorRight;
+	AscTest.Recalculate             = Recalculate;
+	AscTest.ClickMouseButton        = ClickMouseButton;
+	AscTest.ClearDocument           = ClearDocument;
+	AscTest.EnterText               = EnterText;
+	AscTest.CorrectEnterText        = CorrectEnterText;
+	AscTest.BeginCompositeInput     = BeginCompositeInput;
+	AscTest.ReplaceCompositeInput   = ReplaceCompositeInput;
+	AscTest.EndCompositeInput       = EndCompositeInput;
+	AscTest.EnterTextCompositeInput = EnterTextCompositeInput;
+	AscTest.Key                     = Key;
 
 })(window);
 

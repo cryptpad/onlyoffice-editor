@@ -42,6 +42,7 @@ const allTests = [
 	'word/forms/forms.html',
 	'word/forms/complexForm.html',
 	'word/api/api.html',
+	'word/api/textInput.html',
 	'word/styles/paraPr.html'
 ];
 

@@ -3300,7 +3300,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		DropDownList : 4,
 		DateTime     : 5,
 
-		TOC          : 10
+		TOC          : 10,
+		Complex      : 11
 	};
 
 	var c_oAscDefNameType = {
@@ -3843,6 +3844,15 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		Outline     : 3,
 		Print       : 4,
 		Web         : 5
+	};
+
+	var c_oAscConfirm = {
+		ConfirmReplaceRange: 0,
+		ConfirmPutMergeRange: 1,
+		ConfirmReplaceFormulaInTable: 2,
+		ConfirmChangeProtectRange: 3,
+		ConfirmMaxChangesSize: 4,
+		ConfirmAddCellWatches: 5
 	};
 
 	//------------------------------------------------------------export--------------------------------------------------
@@ -5205,6 +5215,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['DropDownList'] = c_oAscContentControlSpecificType.DropDownList;
 	prot['DateTime']     = c_oAscContentControlSpecificType.DateTime;
 	prot['TOC']          = c_oAscContentControlSpecificType.TOC;
+	prot['Complex']      = c_oAscContentControlSpecificType.Complex;
 
 	window['Asc']['c_oAscDefNameType'] = window['Asc'].c_oAscDefNameType = c_oAscDefNameType;
 	prot = c_oAscDefNameType;
@@ -5372,6 +5383,13 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Outline']     = prot.Outline;
 	prot['Print']       = prot.Print;
 	prot['Web']         = prot.Web;
+
+	prot = window['Asc']['c_oAscConfirm'] = window['Asc'].c_oAscConfirm = c_oAscConfirm;
+	prot['ConfirmReplaceRange'] = prot.ConfirmReplaceRange;
+	prot['ConfirmPutMergeRange'] = prot.ConfirmPutMergeRange;
+	prot['ConfirmChangeProtectRange'] = prot.ConfirmChangeProtectRange;
+	prot['ConfirmMaxChangesSize'] = prot.ConfirmMaxChangesSize;
+	prot['ConfirmAddCellWatches'] = prot.ConfirmAddCellWatches;
 
 	window['Asc'].c_oAscSmartArtSections = c_oAscSmartArtSections;
 

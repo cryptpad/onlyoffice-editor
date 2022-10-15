@@ -9591,6 +9591,7 @@ DrawingObjectsController.prototype =
                 }
                 callback.apply(_this, args);
                 _this.startRecalculate();
+                oApi.checkChangesSize();
                 if(!(bNoSendProps === true))
                 {
                     _this.drawingObjects.sendGraphicObjectProps();
@@ -11607,7 +11608,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
                                 break;
                             }
                             default: {
-                                if (Bullet.bulletType.Char.length) {
+                                if (Bullet.bulletType.Char && Bullet.bulletType.Char.length > 0) {
                                     ListType.SubType = 0x1000;
                                     var customListType = new AscCommon.asc_CCustomListType();
                                     customListType.type = Asc.asc_PreviewBulletType.char;

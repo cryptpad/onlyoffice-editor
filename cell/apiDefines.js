@@ -44,14 +44,6 @@ function (window, undefined) {
   // Import
   var CColor = AscCommon.CColor;
 
-var c_oAscConfirm = {
-  ConfirmReplaceRange: 0,
-  ConfirmPutMergeRange: 1,
-  ConfirmReplaceFormulaInTable: 2,
-  ConfirmChangeProtectRange: 3,
-  ConfirmAddCellWatches: 4
-};
-
 var c_oAscMergeOptions = {
   Disabled: -1,
   None: 0,
@@ -618,12 +610,6 @@ var c_oAscPopUpSelectorType = {
   prot['ByColorFont'] = prot.ByColorFont;
   prot['ByIcon'] = prot.ByIcon;
   prot['ByValue'] = prot.ByValue;
-  window['Asc']['c_oAscConfirm'] = window['Asc'].c_oAscConfirm = c_oAscConfirm;
-  prot = c_oAscConfirm;
-  prot['ConfirmReplaceRange'] = prot.ConfirmReplaceRange;
-  prot['ConfirmPutMergeRange'] = prot.ConfirmPutMergeRange;
-  prot['ConfirmChangeProtectRange'] = prot.ConfirmChangeProtectRange;
-  prot['ConfirmAddCellWatches'] = prot.ConfirmAddCellWatches;
 
   prot['ConfirmReplaceFormulaInTable'] = prot.ConfirmReplaceFormulaInTable;
   window['Asc']['c_oAscMergeOptions'] = window['Asc'].c_oAscMergeOptions = c_oAscMergeOptions;

@@ -6994,7 +6994,10 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
 		// Для плейсхолдера форм нам нужна только рамка
 		if (isFormPlaceHolder)
+		{
+			X += ItemWidthVisible;
 			continue;
+		}
 
 		switch (ItemType)
 		{
@@ -9461,7 +9464,7 @@ ParaRun.prototype.SetBoldCS = function(isBold)
 {
 	if (isBold !== this.Pr.BoldCS)
 	{
-		History.Add(new CChangesRunBoldCS(this, this.Pr.Bold, isBold, this.private_IsCollPrChangeMine()));
+		History.Add(new CChangesRunBoldCS(this, this.Pr.BoldCS, isBold, this.private_IsCollPrChangeMine()));
 		this.Pr.BoldCS = isBold;
 		this.Recalc_CompiledPr(true);
 		this.private_UpdateTrackRevisionOnChangeTextPr(true);
@@ -10221,8 +10224,8 @@ ParaRun.prototype.Check_HistoryUninon = function(Data1, Data2)
 		&& 1 === Data1.Items.length
 		&& 1 === Data2.Items.length
 		&& Data1.Pos === Data2.Pos - 1
-		&& (Data1.Items[0].IsText() || Data1.Items[0].IsSpace())
-		&& (Data2.Items[0].IsText() || Data2.Items[0].IsSpace()));
+		&& ((Data1.Items[0].IsText() && Data2.Items[0].IsText())
+			|| (Data1.Items[0].IsSpace() && Data2.Items[0].IsSpace())));
 };
 //-----------------------------------------------------------------------------------
 // Функции для совместного редактирования

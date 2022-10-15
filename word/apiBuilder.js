@@ -4897,7 +4897,7 @@
 	/**
 	 * Subscribes to the specified event and calls the callback function when the event fires.
 	 * @memberof Api
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE"]
 	 * @param {string} eventName - The event name.
 	 * @param {function} callback - Function to be called when the event fires.
 	 */
@@ -4906,7 +4906,7 @@
 	/**
 	 * Unsubscribes from the specified event.
 	 * @memberof Api
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @typeofeditors ["CDE"]
 	 * @param {string} eventName - The event name.
 	 */
 	Api.prototype["detachEvent"] = Api.prototype.detachEvent;
@@ -17647,7 +17647,7 @@
 	/**
 	 * Creates the empty text properties.
 	 * @memberof Api
-	 * @typeofeditors ["CSE"]
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @returns {ApiTextPr}
 	 */
 	Api.prototype.CreateTextPr = function () {

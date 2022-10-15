@@ -17152,10 +17152,19 @@ Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
 	if (isUseSelection && true !== this.Selection.Use)
 	{
 		var arrParaFields = this.GetCurrentComplexFields();
-		for (var nIndex = 0, nCount = arrParaFields.length; nIndex < nCount; ++nIndex)
+		for (let nIndex = 0, nCount = arrParaFields.length; nIndex < nCount; ++nIndex)
 		{
 			arrFields.push(arrParaFields[nIndex]);
 		}
+
+		let tempFields = [];
+		this.Content[this.CurPos.ContentPos].GetAllFields(false, tempFields);
+		for (let nIndex = 0, nCount = tempFields.length; nIndex < nCount; ++nIndex)
+		{
+			if (tempFields[nIndex] instanceof AscWord.CSimpleField)
+				arrFields.push(tempFields[nIndex]);
+		}
+
 		return arrFields;
 	}
 

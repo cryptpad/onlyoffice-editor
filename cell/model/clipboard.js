@@ -2411,7 +2411,9 @@
 						}
 
 						var _copy = data.Drawings[i].graphicObject.copy(oCopyPr);
-
+						if(_copy.convertFromSmartArt) {
+							_copy.convertFromSmartArt(true);
+						}
 						oIdMap[data.Drawings[i].graphicObject.Id] = _copy.Id;
 						data.Drawings[i].graphicObject = _copy;
 						aCopies.push(data.Drawings[i].graphicObject);

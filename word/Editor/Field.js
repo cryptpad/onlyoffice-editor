@@ -321,13 +321,6 @@ ParaField.prototype.SelectField = function()
 {
 	this.SelectThisElement();
 };
-ParaField.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
-{
-	if (isCurrent)
-		arrComplexFields.push(this);
-
-	return CParagraphContentWithParagraphLikeContent.prototype.GetCurrentComplexFields.apply(this, arguments);
-};
 ParaField.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	arrFields.push(this);
@@ -718,6 +711,10 @@ ParaField.prototype.GetRunWithPageField = function(paragraph)
 	}
 	return res;
 }
+ParaField.prototype.IsValid = function()
+{
+	return true;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
 //----------------------------------------------------------------------------------------------------------------------

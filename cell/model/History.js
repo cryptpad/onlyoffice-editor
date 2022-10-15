@@ -357,6 +357,7 @@ function (window, undefined) {
 function CHistory()
 {
 	this.workbook = null;
+	this.memory = new AscCommon.CMemory();
     this.Index    = -1;
     this.Points   = [];
     this.TurnOffHistory = 0;
@@ -1006,7 +1007,8 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 			SheetId : sheetid,
 			Range : null,
 			Data  : Data,
-			LocalChange: this.LocalChange
+			LocalChange: this.LocalChange,
+			bytes: undefined
 		};
 	if(null != range)
 		Item.Range = range.clone();
@@ -1148,7 +1150,6 @@ CHistory.prototype.StartTransaction = function()
 	}
 	this.Transaction++;
 };
-
 CHistory.prototype.EndTransaction = function()
 {
 	if (1 === this.Transaction && !this.Is_LastPointEmpty()) {
@@ -1157,6 +1158,7 @@ CHistory.prototype.EndTransaction = function()
 		if (wsView) {
 			wsView.updateTopLeftCell();
 		}
+		this.workbook && this.workbook.handlers.trigger("EndTransactionCheckSize");
 	}
 	this.Transaction--;
 	if(this.Transaction < 0)
@@ -1244,11 +1246,32 @@ CHistory.prototype.GetSerializeArray = function()
 		for(var j = 0, length2 = point.Items.length; j < length2; ++j)
 		{
 			var elem = point.Items[j];
-			aPointChanges.push(new AscCommonExcel.UndoRedoItemSerializable(elem.Class, elem.Type, elem.SheetId, elem.Range, elem.Data, elem.LocalChange));
+			aPointChanges.push(new AscCommonExcel.UndoRedoItemSerializable(elem.Class, elem.Type, elem.SheetId, elem.Range, elem.Data, elem.LocalChange, elem.bytes));
 		}
 		aRes.push(aPointChanges);
 	}
 		return aRes;
+	};
+	CHistory.prototype.GetLocalChangesSize = function() {
+		let res = 0;
+		var i = 0;
+		if (null != this.SavedIndex) {
+			i = this.SavedIndex + 1;
+		}
+		for (; i <= this.Index; ++i) {
+			var point = this.Points[i];
+			for (var j = 0, length2 = point.Items.length; j < length2; ++j) {
+				let elem = point.Items[j];
+				if (!elem.bytes && this.workbook) {
+					let serializable = new AscCommonExcel.UndoRedoItemSerializable(elem.Class, elem.Type, elem.SheetId, elem.Range, elem.Data, elem.LocalChange);
+					elem.bytes = this.workbook._SerializeHistoryBase64Item(this.memory, serializable);
+				}
+				if (elem.bytes) {
+					res += elem.bytes.length;
+				}
+			}
+		}
+		return res;
 	};
 	CHistory.prototype._CheckCanNotAddChanges = function() {
 		try {
