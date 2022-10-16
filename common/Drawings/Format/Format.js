@@ -11018,25 +11018,69 @@
 		function CChangesCorePr(Class, Old, New, Color) {
 			AscDFH.CChangesBase.call(this, Class, Old, New, Color);
 			if (Old && New) {
-				this.OldTitle = Old.title;
+				this.OldCategory = Old.category;
+				this.OldContentStatus = Old.contentStatus;
+				this.OldCreated = Old.created;
 				this.OldCreator = Old.creator;
 				this.OldDescription = Old.description;
+				this.OldIdentifier = Old.identifier;
+				this.OldKeywords = Old.keywords;
+				this.OldLanguage = Old.language;
+				this.OldLastModifiedBy = Old.lastModifiedBy;
+				this.OldLastPrinted = Old.lastPrinted;
+				this.OldModified = Old.modified;
+				this.OldRevision = Old.revision;
 				this.OldSubject = Old.subject;
+				this.OldTitle = Old.title;
+				this.OldVersion = Old.version;
 
-				this.NewTitle = New.title === Old.title ? undefined : New.title;
+				this.NewCategory = New.category === Old.category ? undefined : New.category;
+				this.NewContentStatus = New.contentStatus === Old.contentStatus ? undefined : New.contentStatus;
+				this.NewCreated = New.created === Old.created ? undefined : New.created;
 				this.NewCreator = New.creator === Old.creator ? undefined : New.creator;
 				this.NewDescription = New.description === Old.description ? undefined : New.description;
+				this.NewIdentifier = New.identifier === Old.identifier ? undefined : New.identifier;
+				this.NewKeywords = New.keywords === Old.keywords ? undefined : New.keywords;
+				this.NewLanguage = New.language === Old.language ? undefined : New.language;
+				this.NewLastModifiedBy = New.lastModifiedBy === Old.lastModifiedBy ? undefined : New.lastModifiedBy;
+				this.NewLastPrinted = New.lastPrinted === Old.lastPrinted ? undefined : New.lastPrinted;
+				this.NewModified = New.modified === Old.modified ? undefined : New.modified;
+				this.NewRevision = New.revision === Old.revision ? undefined : New.revision;
 				this.NewSubject = New.subject === Old.subject ? undefined : New.subject;
+				this.NewTitle = New.title === Old.title ? undefined : New.title;
+				this.NewVersion = New.version === Old.version ? undefined : New.version;
 			} else {
-				this.OldTitle = undefined;
+				this.OldCategory = undefined;
+				this.OldContentStatus = undefined;
+				this.OldCreated = undefined;
 				this.OldCreator = undefined;
 				this.OldDescription = undefined;
+				this.OldIdentifier = undefined;
+				this.OldKeywords = undefined;
+				this.OldLanguage = undefined;
+				this.OldLastModifiedBy = undefined;
+				this.OldLastPrinted= undefined;
+				this.OldModified = undefined;
+				this.OldRevision = undefined;
 				this.OldSubject = undefined;
+				this.OldTitle = undefined;
+				this.OldVersion = undefined;
 
-				this.NewTitle = undefined;
+				this.NewCategory = undefined;
+				this.NewContentStatus = undefined;
+				this.NewCreated = undefined;
 				this.NewCreator = undefined;
 				this.NewDescription = undefined;
+				this.NewIdentifier = undefined;
+				this.NewKeywords = undefined;
+				this.NewLanguage = undefined;
+				this.NewLastModifiedBy = undefined;
+				this.NewLastPrinted = undefined;
+				this.NewModified = undefined;
+				this.NewRevision = undefined;
 				this.NewSubject = undefined;
+				this.NewTitle = undefined;
+				this.NewVersion = undefined;
 			}
 		}
 
@@ -11047,17 +11091,34 @@
 			if (!this.Class) {
 				return;
 			}
-			this.Class.title = this.OldTitle;
+			this.Class.category = this.OldCategory;
+			this.Class.contentStatus = this.OldContentStatus;
+			this.Class.created = this.OldCreated;
 			this.Class.creator = this.OldCreator;
 			this.Class.description = this.OldDescription;
+			this.Class.identifier = this.OldIdentifier;
+			this.Class.keywords = this.OldKeywords;
+			this.Class.language = this.OldLanguage;
+			this.Class.lastModifiedBy = this.OldLastModifiedBy;
+			this.Class.lastPrinted = this.OldLastPrinted;
+			this.Class.modified = this.OldModified;
+			this.Class.revision = this.OldRevision;
 			this.Class.subject = this.OldSubject;
+			this.Class.title = this.OldTitle;
+			this.Class.version = this.OldVersion;
 		};
 		CChangesCorePr.prototype.Redo = function () {
 			if (!this.Class) {
 				return;
 			}
-			if (this.NewTitle !== undefined) {
-				this.Class.title = this.NewTitle;
+			if (this.NewCategory !== undefined) {
+				this.Class.category = this.NewCategory;
+			}
+			if (this.NewContentStatus !== undefined) {
+				this.Class.contentStatus = this.NewContentStatus;
+			}
+			if (this.NewCreated !== undefined) {
+				this.Class.created = this.NewCreated;
 			}
 			if (this.NewCreator !== undefined) {
 				this.Class.creator = this.NewCreator;
@@ -11065,53 +11126,190 @@
 			if (this.NewDescription !== undefined) {
 				this.Class.description = this.NewDescription;
 			}
+			if (this.NewIdentifier !== undefined) {
+				this.Class.identifier = this.NewIdentifier;
+			}
+			if (this.NewKeywords !== undefined) {
+				this.Class.keywords = this.NewKeywords;
+			}
+			if (this.NewLanguage !== undefined) {
+				this.Class.language = this.NewLanguage;
+			}
+			if (this.NewLastModifiedBy !== undefined) {
+				this.Class.lastModifiedBy = this.NewLastModifiedBy;
+			}
+			if (this.NewLastPrinted !== undefined) {
+				this.Class.lastPrinted = this.NewLastPrinted;
+			}
+			if (this.NewModified !== undefined) {
+				this.Class.modified = this.NewModified;
+			}
+			if (this.NewRevision !== undefined) {
+				this.Class.revision = this.NewRevision;
+			}
 			if (this.NewSubject !== undefined) {
 				this.Class.subject = this.NewSubject;
+			}
+			if (this.NewTitle !== undefined) {
+				this.Class.title = this.NewTitle;
+			}
+			if (this.NewVersion !== undefined) {
+				this.Class.version = this.NewVersion;
 			}
 		};
 		CChangesCorePr.prototype.WriteToBinary = function (Writer) {
 			var nFlags = 0;
 			if (undefined !== this.NewTitle) {
-				nFlags |= 1;
+				nFlags |= (1 << 0);
 			}
 			if (undefined !== this.NewCreator) {
-				nFlags |= 2;
+				nFlags |= (1 << 1);
 			}
 			if (undefined !== this.NewDescription) {
-				nFlags |= 4;
+				nFlags |= (1 << 2);
 			}
 			if (undefined !== this.NewSubject) {
-				nFlags |= 8;
+				nFlags |= (1 << 3);
+			}
+			if (undefined !== this.NewCategory) {
+				nFlags |= (1 << 4);
+			}
+			if (undefined !== this.NewContentStatus) {
+				nFlags |= (1 << 5);
+			}
+			if (undefined !== this.NewCreated) {
+				nFlags |= (1 << 6);
+			}
+			if (undefined !== this.NewIdentifier) {
+				nFlags |= (1 << 7);
+			}
+			if (undefined !== this.NewKeywords) {
+				nFlags |= (1 << 8);
+			}
+			if (undefined !== this.NewLanguage) {
+				nFlags |= (1 << 9);
+			}
+			if (undefined !== this.NewLastModifiedBy) {
+				nFlags |= (1 << 10);
+			}
+			if (undefined !== this.NewLastPrinted) {
+				nFlags |= (1 << 11);
+			}
+			if (undefined !== this.NewModified) {
+				nFlags |= (1 << 12);
+			}
+			if (undefined !== this.NewRevision) {
+				nFlags |= (1 << 13);
+			}
+			if (undefined !== this.NewVersion) {
+				nFlags |= (1 << 14);
 			}
 
 			Writer.WriteLong(nFlags);
 			var bIsField;
-			if (nFlags & 1) {
+			if (nFlags & (1 << 0)) {
 				bIsField = typeof this.NewTitle === "string";
 				Writer.WriteBool(bIsField);
 				if (bIsField) {
 					Writer.WriteString2(this.NewTitle);
 				}
 			}
-			if (nFlags & 2) {
+			if (nFlags & (1 << 1)) {
 				bIsField = typeof this.NewCreator === "string";
 				Writer.WriteBool(bIsField);
 				if (bIsField) {
 					Writer.WriteString2(this.NewCreator);
 				}
 			}
-			if (nFlags & 4) {
+			if (nFlags & (1 << 2)) {
 				bIsField = typeof this.NewDescription === "string";
 				Writer.WriteBool(bIsField);
 				if (bIsField) {
 					Writer.WriteString2(this.NewDescription);
 				}
 			}
-			if (nFlags & 8) {
+			if (nFlags & (1 << 3)) {
 				bIsField = typeof this.NewSubject === "string";
 				Writer.WriteBool(bIsField);
 				if (bIsField) {
 					Writer.WriteString2(this.NewSubject);
+				}
+			}
+			if (nFlags & (1 << 4)) {
+				bIsField = typeof this.NewCategory === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewCategory);
+				}
+			}
+			if (nFlags & (1 << 5)) {
+				bIsField = typeof this.NewContentStatus === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewContentStatus);
+				}
+			}
+			if (nFlags & (1 << 6)) {
+				bIsField = this.NewCreated && this.NewCreated instanceof Date;
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewCreated.toISOString().slice(0, 19) + 'Z');
+				}
+			}
+			if (nFlags & (1 << 7)) {
+				bIsField = typeof this.NewIdentifier === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewIdentifier);
+				}
+			}
+			if (nFlags & (1 << 8)) {
+				bIsField = typeof this.NewKeywords === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewKeywords);
+				}
+			}
+			if (nFlags & (1 << 9)) {
+				bIsField = typeof this.NewLanguage === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewLanguage);
+				}
+			}
+			if (nFlags & (1 << 10)) {
+				bIsField = typeof this.NewLastModifiedBy === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewLastModifiedBy);
+				}
+			}
+			if (nFlags & (1 << 11)) {
+				bIsField = this.NewLastPrinted && this.NewLastPrinted instanceof Date;
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewLastPrinted.toISOString().slice(0, 19) + 'Z');
+				}
+			}
+			if (nFlags & (1 << 12)) {
+				bIsField = this.NewModified && this.NewModified instanceof Date;
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewModified.toISOString().slice(0, 19) + 'Z');
+				}
+			}
+			if (nFlags & (1 << 13)) {
+				bIsField = typeof this.NewRevision === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewRevision);
+				}
+			}
+			if (nFlags & (1 << 14)) {
+				bIsField = typeof this.NewVersion === "string";
+				Writer.WriteBool(bIsField);
+				if (bIsField) {
+					Writer.WriteString2(this.NewVersion);
 				}
 			}
 		};
@@ -11119,7 +11317,7 @@
 		CChangesCorePr.prototype.ReadFromBinary = function (Reader) {
 			var nFlags = Reader.GetLong();
 			var bIsField;
-			if (nFlags & 1) {
+			if (nFlags & (1 << 0)) {
 				bIsField = Reader.GetBool();
 				if (bIsField) {
 					this.NewTitle = Reader.GetString2();
@@ -11127,7 +11325,7 @@
 					this.NewTitle = null;
 				}
 			}
-			if (nFlags & 2) {
+			if (nFlags & (1 << 1)) {
 				bIsField = Reader.GetBool();
 				if (bIsField) {
 					this.NewCreator = Reader.GetString2();
@@ -11135,7 +11333,7 @@
 					this.NewCreator = null;
 				}
 			}
-			if (nFlags & 4) {
+			if (nFlags & (1 << 2)) {
 				bIsField = Reader.GetBool();
 				if (bIsField) {
 					this.NewDescription = Reader.GetString2();
@@ -11143,7 +11341,7 @@
 					this.NewDescription = null;
 				}
 			}
-			if (nFlags & 8) {
+			if (nFlags & (1 << 3)) {
 				bIsField = Reader.GetBool();
 				if (bIsField) {
 					this.NewSubject = Reader.GetString2();
@@ -11151,17 +11349,128 @@
 					this.NewSubject = null;
 				}
 			}
+			if (nFlags & (1 << 4)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewCategory = Reader.GetString2();
+				} else {
+					this.NewCategory = null;
+				}
+			}
+			if (nFlags & (1 << 5)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewContentStatus = Reader.GetString2();
+				} else {
+					this.NewContentStatus = null;
+				}
+			}
+			if (nFlags & (1 << 6)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewCreated = new Date(Reader.GetString2());
+				} else {
+					this.NewCreated = null;
+				}
+			}
+			if (nFlags & (1 << 7)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewIdentifier = Reader.GetString2();
+				} else {
+					this.NewIdentifier = null;
+				}
+			}
+			if (nFlags & (1 << 8)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewKeywords = Reader.GetString2();
+				} else {
+					this.NewKeywords = null;
+				}
+			}
+			if (nFlags & (1 << 9)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewLanguage = Reader.GetString2();
+				} else {
+					this.NewLanguage = null;
+				}
+			}
+			if (nFlags & (1 << 10)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewLastModifiedBy = Reader.GetString2();
+				} else {
+					this.NewLastModifiedBy = null;
+				}
+			}
+			if (nFlags & (1 << 11)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewLastPrinted = new Date(Reader.GetString2());
+				} else {
+					this.NewLastPrinted = null;
+				}
+			}
+			if (nFlags & (1 << 12)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewModified = new Date(Reader.GetString2());
+				} else {
+					this.NewModified = null;
+				}
+			}
+			if (nFlags & (1 << 13)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewRevision = Reader.GetString2();
+				} else {
+					this.NewRevision = null;
+				}
+			}
+			if (nFlags & (1 << 14)) {
+				bIsField = Reader.GetBool();
+				if (bIsField) {
+					this.NewVersion = Reader.GetString2();
+				} else {
+					this.NewVersion = null;
+				}
+			}
 		};
 		CChangesCorePr.prototype.CreateReverseChange = function () {
 			var ret = new CChangesCorePr(this.Class);
-			ret.OldTitle = this.NewTitle;
+			ret.OldCategory = this.NewCategory;
+			ret.OldContentStatus = this.NewContentStatus;
+			ret.OldCreated = this.NewCreated;
 			ret.OldCreator = this.NewCreator;
-			ret.OldDescription = this.NewCreator;
+			ret.OldDescription = this.NewDescription;
+			ret.OldIdentifier = this.NewIdentifier;
+			ret.OldKeywords = this.NewKeywords;
+			ret.OldLanguage = this.NewLanguage;
+			ret.OldLastModifiedBy = this.NewLastModifiedBy;
+			ret.OldLastPrinted = this.NewLastPrinted;
+			ret.OldModified = this.NewModified;
+			ret.OldRevision = this.NewRevision;
 			ret.OldSubject = this.NewSubject;
-			ret.NewTitle = this.OldTitle;
+			ret.OldTitle = this.NewTitle;
+			ret.OldVersion = this.NewVersion;
+
+			ret.NewCategory = this.OldCategory;
+			ret.NewContentStatus = this.OldContentStatus;
+			ret.NewCreated = this.OldCreated;
 			ret.NewCreator = this.OldCreator;
-			ret.NewDescription = this.OldCreator;
+			ret.NewDescription = this.OldDescription;
+			ret.NewIdentifier = this.OldIdentifier;
+			ret.NewKeywords = this.OldKeywords;
+			ret.NewLanguage = this.OldLanguage;
+			ret.NewLastModifiedBy = this.OldLastModifiedBy;
+			ret.NewLastPrinted = this.OldLastPrinted;
+			ret.NewModified = this.OldModified;
+			ret.NewRevision = this.OldRevision;
 			ret.NewSubject = this.OldSubject;
+			ret.NewTitle = this.OldTitle;
+			ret.NewVersion = this.OldVersion;
 			return ret;
 		};
 
@@ -11446,10 +11755,21 @@
 		};
 		CCore.prototype.setProps = function (oProps) {
 			History.Add(new CChangesCorePr(this, this, oProps, null));
-			this.title = oProps.title;
+			this.category = oProps.category;
+			this.contentStatus = oProps.contentStatus;
+			this.created = oProps.created;
 			this.creator = oProps.creator;
 			this.description = oProps.description;
+			this.identifier = oProps.identifier;
+			this.keywords = oProps.keywords;
+			this.language = oProps.language;
+			this.lastModifiedBy = oProps.lastModifiedBy;
+			this.lastPrinted = oProps.lastPrinted;
+			this.modified = oProps.modified;
+			this.revision = oProps.revision;
 			this.subject = oProps.subject;
+			this.title = oProps.title;
+			this.version = oProps.version;
 		};
 		CCore.prototype.Refresh_RecalcData = function () {
 		};
