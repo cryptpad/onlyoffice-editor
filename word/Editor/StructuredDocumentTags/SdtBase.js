@@ -315,6 +315,14 @@ CSdtBase.prototype.GetFormKey = function()
 	return (this.Pr.FormPr.Key);
 };
 /**
+ * Проверяем, является ли данный контейнер чекбоксом
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsCheckBox = function()
+{
+	return false;
+};
+/**
  * Проверяем, является ли заданный контрол радио-кнопкой
  * @returns {boolean}
  */
@@ -781,4 +789,42 @@ CSdtBase.prototype.IsBuiltInWatermark = function()
 CSdtBase.prototype.IsBuiltInUnique = function()
 {
 	return (this.Pr && this.Pr.DocPartObj && true === this.Pr.DocPartObj.Unique);
+};
+CSdtBase.prototype.GetInnerText = function()
+{
+	return "";
+};
+CSdtBase.prototype.GetFormValue = function()
+{
+	if (!this.IsForm())
+		return null;
+
+	if (this.IsPlaceHolder())
+		return this.IsCheckBox() ? false : "";
+
+	if (this.IsComplexForm())
+	{
+		return this.GetInnerText();
+	}
+	else if (this.IsCheckBox())
+	{
+		return this.IsCheckBoxChecked();
+	}
+	else if (this.IsPictureForm())
+	{
+		let oImg;
+		let allDrawings = this.GetAllDrawingObjects();
+		for (let nDrawing = 0; nDrawing < allDrawings.length; ++nDrawing)
+		{
+			if (allDrawings[nDrawing].IsPicture())
+			{
+				oImg = allDrawings[nDrawing].GraphicObj;
+				break;
+			}
+		}
+
+		return oImg ? oImg.getBase64Img() : "";
+	}
+
+	return this.GetInnerText();
 };
