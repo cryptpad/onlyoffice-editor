@@ -277,7 +277,7 @@
         return {X: 0, Y: 0, XLimit: this.contentWidth, YLimit: 20000};
     };
     CTextBody.prototype.Get_Numbering = function() {
-        return new CNumbering();
+        return AscWord.DEFAULT_NUMBERING;
     };
     CTextBody.prototype.Set_CurrentElement = function(bUpdate, pageIndex) {
         if(this.parent.Set_CurrentElement) {

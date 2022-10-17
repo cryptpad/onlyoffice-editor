@@ -39,7 +39,7 @@
 
 /**
  * Класс представляющий нумерацию параграфов в документах
- * @param {CNumbering} oNumbering - ссылка на главный объект нумерации в документах
+ * @param {AscWord.CNumbering} oNumbering - ссылка на главный объект нумерации в документах
  * @param {string} sAbstractNumId - идентификатор абстрактной нумерации
  * @constructor
  */

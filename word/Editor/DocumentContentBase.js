@@ -1576,7 +1576,7 @@ CDocumentContentBase.prototype.IsLastTableCellInRow = function(isSelection)
 };
 /**
  * Получаем ссылку на главный класс нумерации
- * @returns {?CNumbering}
+ * @returns {?AscWord.CNumbering}
  */
 CDocumentContentBase.prototype.GetNumbering = function()
 {

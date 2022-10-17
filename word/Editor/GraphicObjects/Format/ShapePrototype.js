@@ -883,7 +883,7 @@ CShape.prototype.Get_Numbering = function()
     {
         return oLogicDoc.Numbering;
     }
-    return new CNumbering();
+    return AscWord.DEFAULT_NUMBERING;
 };
 CShape.prototype.IsCell = function(isReturnCell)
 {
