@@ -32,7 +32,7 @@
 
 "use strict";
 
-(function()
+(function(window)
 {
 	/**
 	 * Класс представляющий нумерацию в документе
@@ -329,4 +329,4 @@
 	window["AscWord"].CNumbering        = CNumbering;
 	window["AscWord"].DEFAULT_NUMBERING = new CNumbering();
 
-}());
+})(window);
