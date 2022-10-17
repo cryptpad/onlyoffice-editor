@@ -7364,22 +7364,30 @@ drawAreaChart.prototype = {
 	},
 
 	_calculateLine: function (points, prevPoints) {
-		var pathId = this.cChartSpace.AllocPath();
-		var path = this.cChartSpace.GetPath(pathId);
+		if (!points) {
+			return;
+		}
+		let pathId = this.cChartSpace.AllocPath();
+		let path = this.cChartSpace.GetPath(pathId);
 
-		var pathH = this.chartProp.pathH;
-		var pathW = this.chartProp.pathW;
+		if (!path) {
+			return;
+		}
+
+		let pathH = this.chartProp.pathH;
+		let pathW = this.chartProp.pathW;
 
 
-		var point;
-		var pxToMm = this.chartProp.pxToMM;
+		let point;
+		let pxToMm = this.chartProp.pxToMM;
 
-		var nullPositionOX = this.catAx.posY * this.chartProp.pxToMM;
+		let nullPositionOX = this.catAx && this.catAx.posY * this.chartProp.pxToMM;
 
+		var i;
 		//точки данной серии
 		if(this.subType === "stacked" || this.subType === "stackedPer") {
-			var pointsLength = points.length;
-			for (var i = 0; i < pointsLength; i++) {
+			let pointsLength = points.length;
+			for (i = 0; i < pointsLength; i++) {
 				point = points[i];
 				if(!point) {
 
@@ -7392,7 +7400,7 @@ drawAreaChart.prototype = {
 
 			//точки предыдущей серии
 			if (prevPoints != null && pointsLength) {
-				for (var i = pointsLength - 1; i >= 0; i--) {
+				for (let i = pointsLength - 1; i >= 0; i--) {
 					point = prevPoints[i];
 					path.lnTo(point.x * pathW, point.y * pathH);
 
@@ -7406,8 +7414,8 @@ drawAreaChart.prototype = {
 				path.lnTo(points[0].x * pathW, points[0].y * pathH);
 			}
 		} else {
-			var startSegmentPoint;
-			for (var i = 0; i < points.length; i++) {
+			let startSegmentPoint;
+			for (i = 0; i < points.length; i++) {
 				point = points[i];
 				if(!point) {
 					if(startSegmentPoint) {
