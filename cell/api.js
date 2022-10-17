@@ -4511,66 +4511,79 @@ var editor;
   };
 
   // Cell comment interface
-  spreadsheet_api.prototype.asc_addComment = function(oComment) {
-    if (this.collaborativeEditing.getGlobalLock() || (!this.canEdit() && !this.isRestrictionComments())) {
-      return false;
-    }
-    var oPlace = oComment.bDocument ? this.wb : this.wb.getWorksheet();
-    oPlace.cellCommentator.addComment(oComment);
-  };
+	spreadsheet_api.prototype.asc_addComment = function (oComment) {
+		if (this.collaborativeEditing.getGlobalLock() || (!this.canEdit() && !this.isRestrictionComments())) {
+			return false;
+		}
+		let oPlace = oComment.bDocument ? this.wb : (this.wb && this.wb.getWorksheet());
+		oPlace && oPlace.cellCommentator.addComment(oComment);
+	};
 
-  spreadsheet_api.prototype.asc_changeComment = function(id, oComment) {
-    if (oComment.bDocument) {
-      this.wb.cellCommentator.changeComment(id, oComment);
-    } else {
-      var ws = this.wb.getWorksheet();
-      ws.cellCommentator.changeComment(id, oComment);
-    }
-  };
+	spreadsheet_api.prototype.asc_changeComment = function (id, oComment) {
+		if (this.wb) {
+			if (oComment.bDocument) {
+				this.wb.cellCommentator.changeComment(id, oComment);
+			} else {
+				var ws = this.wb.getWorksheet();
+				ws.cellCommentator.changeComment(id, oComment);
+			}
+		}
+	};
 
-  spreadsheet_api.prototype.asc_selectComment = function(id) {
-    this.wb.getWorksheet().cellCommentator.selectComment(id);
-  };
+	spreadsheet_api.prototype.asc_selectComment = function (id) {
+		this.wb && this.wb.getWorksheet().cellCommentator.selectComment(id);
+	};
 
-  spreadsheet_api.prototype.asc_showComment = function(id, bNew) {
-    var ws = this.wb.getWorksheet();
-    ws.cellCommentator.showCommentById(id, bNew);
-  };
+	spreadsheet_api.prototype.asc_showComment = function (id, bNew) {
+		if (this.wb) {
+			let ws = this.wb.getWorksheet();
+			ws.cellCommentator.showCommentById(id, bNew);
+		}
+	};
 
-  spreadsheet_api.prototype.asc_findComment = function(id) {
-    var ws = this.wb.getWorksheet();
-    return ws.cellCommentator.findComment(id);
-  };
+	spreadsheet_api.prototype.asc_findComment = function (id) {
+		let ws = this.wb && this.wb.getWorksheet();
+		return ws ? ws.cellCommentator.findComment(id) : null;
+	};
 
-  spreadsheet_api.prototype.asc_removeComment = function(id) {
-    this.wb.removeComment(id);
-  };
+	spreadsheet_api.prototype.asc_removeComment = function (id) {
+		if (this.wb) {
+			this.wb.removeComment(id);
+		}
+	};
 
-  spreadsheet_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent) {
-	if (this.collaborativeEditing.getGlobalLock() || (!this.canEdit() && !this.isRestrictionComments())) {
-	  return;
-	}
-  	this.wb.removeAllComments(isMine, isCurrent);
-  };
+	spreadsheet_api.prototype.asc_RemoveAllComments = function (isMine, isCurrent) {
+		if (this.collaborativeEditing.getGlobalLock() || (!this.canEdit() && !this.isRestrictionComments())) {
+			return;
+		}
+		if (this.wb) {
+			this.wb.removeAllComments(isMine, isCurrent);
+		}
+	};
 
-  spreadsheet_api.prototype.asc_GetCommentLogicPositionv = function(sId) {
-  	return -1;
-  };
+	spreadsheet_api.prototype.asc_GetCommentLogicPositionv = function (sId) {
+		return -1;
+	};
 
-	spreadsheet_api.prototype.asc_ResolveAllComments = function(isMine, isCurrent, arrIds)
-	{
+	spreadsheet_api.prototype.asc_ResolveAllComments = function (isMine, isCurrent, arrIds) {
 		if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
 			return;
 		}
-		this.wb.resolveAllComments(isMine, isCurrent);
+		if (this.wb) {
+			this.wb.resolveAllComments(isMine, isCurrent);
+		}
 	};
 
-  spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
-    this.wb.showComments(true, isShowSolved);
-  };
-  spreadsheet_api.prototype.asc_hideComments = function () {
-    this.wb.showComments(false, false);
-  };
+	spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
+		if (this.wb) {
+			this.wb.showComments(true, isShowSolved);
+		}
+	};
+	spreadsheet_api.prototype.asc_hideComments = function () {
+		if (this.wb) {
+			this.wb.showComments(false, false);
+		}
+	};
 
   // Shapes
   spreadsheet_api.prototype.setStartPointHistory = function() {
