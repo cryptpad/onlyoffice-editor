@@ -150,7 +150,7 @@
 		InitClass(CBaseObject, CBaseNoIdObject, AscDFH.historyitem_type_Unknown);
 
 		CBaseObject.prototype.isGlobalSkipAddId = function () {
-			const oApi = editor || Asc.editor;
+			const oApi = window.editor || Asc.editor;
 			return !!(oApi && oApi.isSkipAddIdToBaseObject);
 		}
 
@@ -7168,6 +7168,22 @@
 			}
 		};
 
+		CXfrm.prototype.fillStandardSmartArtXfrm = function () {
+			const oApi = Asc.editor || editor;
+			if (oApi && oApi.isDocumentEditor) {
+				this.setOffX(0);
+				this.setOffY(0);
+			} else {
+				this.setOffX(2032000 * AscCommonWord.g_dKoef_emu_to_mm);
+				this.setOffY(719666 * AscCommonWord.g_dKoef_emu_to_mm);
+			}
+			this.setExtX(8128000 * AscCommonWord.g_dKoef_emu_to_mm);
+			this.setExtY(5418667 * AscCommonWord.g_dKoef_emu_to_mm);
+			this.setChOffX(0);
+			this.setChOffY(0);
+			this.setChExtX(this.extX);
+			this.setChExtY(this.extY);
+		};
 
 		function CEffectProperties() {
 			CBaseNoIdObject.call(this);
