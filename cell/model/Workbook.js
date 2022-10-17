@@ -4430,7 +4430,7 @@
 		}
 	};
 	SheetMemory.prototype.copyRangeByChunk = function(from, fromCount, to, toCount) {
-		if (from <= this.indexB) {
+		if (from <= this.indexB && from + fromCount - 1 >= this.indexA) {
 			//todo from < this.indexA
 			var fromStartOffset = Math.max(0, (from - this.indexA)) * this.structSize;
 			var fromEndOffset = (Math.min((from + fromCount), this.indexB + 1) - this.indexA) * this.structSize;
