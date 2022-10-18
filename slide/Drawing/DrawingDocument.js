@@ -5654,6 +5654,25 @@ function CThumbnailsManager()
 		}
 		return bReturnValue;
 	};
+
+	this.getSpecialPasteButtonCoords = function()
+	{
+		let aSelectedSlides = this.GetSelectedArray();
+		if(aSelectedSlides.length === 0)
+		{
+			return null;
+		}
+
+		let nIdx = aSelectedSlides[aSelectedSlides.length - 1];
+		let oPage = this.m_arrPages[nIdx];
+		if(!oPage)
+		{
+			return null;
+		}
+		let nX = oPage.right - AscCommon.specialPasteElemWidth - ((oThis.m_oWordControl.m_oThumbnails.AbsolutePosition.L * g_dKoef_mm_to_pix) >> 0) - oThis.m_oWordControl.X;
+		let nY = oPage.bottom - ((oThis.m_oWordControl.m_oThumbnails.AbsolutePosition.T * g_dKoef_mm_to_pix) >> 0) - oThis.m_oWordControl.Y;
+		return {X: nX, Y: nY};
+	};
 }
 
 function DrawBackground(graphics, unifill, w, h)

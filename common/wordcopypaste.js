@@ -3294,7 +3294,16 @@ PasteProcessor.prototype =
 			x = pos.X;
 			y = pos.Y;
 		}
-		var screenPos = window["editor"].WordControl.m_oLogicDocument.DrawingDocument.ConvertCoordsToCursorWR(x, y, curPage);
+		let screenPos;
+		let bThumbnals = (presentation.GetFocusObjType() === FOCUS_OBJECT_THUMBNAILS);
+		if(bThumbnals) {
+			screenPos = editor.WordControl.Thumbnails.getSpecialPasteButtonCoords();
+			w = 1;
+			h = 1;
+		}
+		else {
+			screenPos = presentation.DrawingDocument.ConvertCoordsToCursorWR(x, y, curPage);
+		}
 
 		var specialPasteShowOptions = window['AscCommon'].g_specialPasteHelper.buttonInfo;
 		specialPasteShowOptions.asc_setOptions(props);
@@ -3308,7 +3317,7 @@ PasteProcessor.prototype =
 
 		var curCoord = new AscCommon.asc_CRect( screenPos.X, screenPos.Y, 0, 0 );
 		specialPasteShowOptions.asc_setCellCoord(curCoord);
-		specialPasteShowOptions.setFixPosition({x: x, y: y, pageNum: curPage, w: w, h: h});
+		specialPasteShowOptions.setFixPosition({x: x, y: y, pageNum: curPage, w: w, h: h, thumbnails: bThumbnals});
 	},
 
     insertInPlace2: function(oDoc, aNewContent)
