@@ -217,10 +217,22 @@
 
 			if (isSpaceAsText)
 			{
-				// cell hotkey
-				if (AscCommon.global_keyboardEvent.ShiftKey && this.Api.editorId === AscCommon.c_oEditorId.Spreadsheet)
+				switch (this.Api.editorId)
 				{
-					isSpaceAsText = false;
+					case AscCommon.c_oEditorId.Spreadsheet:
+					{
+						if (AscCommon.global_keyboardEvent.ShiftKey)
+							isSpaceAsText = false;
+						break;
+					}
+					case AscCommon.c_oEditorId.Presentation:
+					{
+						if (this.Api.WordControl && this.Api.WordControl.DemonstrationManager && this.Api.WordControl.DemonstrationManager.Mode)
+							isSpaceAsText = false;
+						break;
+					}
+					default:
+						break;
 				}
 			}
 		}
