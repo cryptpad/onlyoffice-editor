@@ -127,6 +127,7 @@ CGraphicObjects.prototype =
     canEditTableOleObject: DrawingObjectsController.prototype.canEditTableOleObject,
     canEditGeometry: DrawingObjectsController.prototype.canEditGeometry,
     startEditGeometry: DrawingObjectsController.prototype.startEditGeometry,
+    haveTrackedObjects: DrawingObjectsController.prototype.haveTrackedObjects,
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
     {
