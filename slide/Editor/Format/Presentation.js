@@ -9747,6 +9747,17 @@ CPresentation.prototype.Refresh_RecalcData2 = function (Data) {
             History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, All: true});
             break;
         }
+        case AscDFH.historyitem_ThemeSetFontScheme: {
+            for(let nSlide = 0; nSlide < Data.aIndexes.length; ++nSlide) {
+                let nSldIdx = Data.aIndexes[nSlide];
+                let oSlide = this.Slides[nSldIdx];
+                if(oSlide) {
+                    oSlide.checkSlideTheme();
+                    oSlide.addToRecalculate();
+                }
+            }
+            break;
+        }
     }
 };
 
