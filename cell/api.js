@@ -8507,8 +8507,8 @@ var editor;
 
 
 
-  prot["asc_getExternalReference"] = prot.asc_getExternalReferences;
-  prot["asc_updateExternalReference"] = prot.asc_updateExternalReferences;
+  prot["asc_getExternalReferences"] = prot.asc_getExternalReferences;
+  prot["asc_updateExternalReferences"] = prot.asc_updateExternalReferences;
   prot["asc_removeExternalReferences"] = prot.asc_removeExternalReferences;
 
 
