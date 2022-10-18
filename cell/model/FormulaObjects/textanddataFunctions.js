@@ -61,10 +61,82 @@ function (window, undefined) {
 	cFormulaFunctionGroup['TextAndData'].push(cASC, cBAHTTEXT, cCHAR, cCLEAN, cCODE, cCONCATENATE, cCONCAT, cDOLLAR,
 		cEXACT, cFIND, cFINDB, cFIXED, cJIS, cLEFT, cLEFTB, cLEN, cLENB, cLOWER, cMID, cMIDB, cNUMBERVALUE, cPHONETIC,
 		cPROPER, cREPLACE, cREPLACEB, cREPT, cRIGHT, cRIGHTB, cSEARCH, cSEARCHB, cSUBSTITUTE, cT, cTEXT, cTEXTJOIN,
-		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE);
+		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE, cTEXTBEFORE, cTEXTAFTER);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cBAHTTEXT, cJIS, cPHONETIC);
+
+	function calcBeforeAfterText(arg, arg1, isAfter) {
+		let newArgs = cBaseFunction.prototype._prepareArguments.call(this, arg, arg1, true, null, true).args;
+		let text = newArgs[0];
+		text = text.tocString();
+		if (text.type === cElementType.error) {
+			return text;
+		}
+		text = text.toString();
+
+		let delimiter = newArgs[1];
+		delimiter = delimiter.tocString();
+		if (delimiter.type === cElementType.error) {
+			return delimiter;
+		}
+		delimiter = delimiter.toString();
+
+		//instance_num - при отрицательном вхождении поиск с конца начинается
+		let instance_num = newArgs[2] && !(newArgs[2].type === cElementType.empty) ? newArgs[2] : new cNumber(1);
+		let match_mode = newArgs[3] && !(newArgs[3].type === cElementType.empty) ? newArgs[3] : new cBool(false);
+		let match_end = newArgs[4] && !(newArgs[4].type === cElementType.empty) ? newArgs[4] : new cBool(false);
+		if (instance_num.type === cElementType.error) {
+			return instance_num;
+		}
+		if (match_mode.type === match_mode.error) {
+			return match_mode;
+		}
+		if (match_end.type === match_end.error) {
+			return match_end;
+		}
+
+		instance_num = instance_num.toNumber();
+		if (instance_num === 0 || (instance_num > text.length && newArgs[2].type !== cElementType.empty)) {
+			//Excel returns a #VALUE! error if instance_num = 0 or if instance_num is greater than the length of text.
+			return new cError(cErrorType.wrong_value_type);
+		}
+
+		match_mode = match_mode.toBool();
+		match_end = match_end.toBool();
+
+		let if_not_found = newArgs[5] ? newArgs[5] : new cError(cErrorType.not_available);
+
+		//calculate
+		let modifiedText = match_mode ? text.toLowerCase() : text;
+		let modifiedDelimiter = match_mode ? delimiter.toLowerCase() : delimiter;
+
+		let isReverseSearch = instance_num < 0;
+		let foundIndex = -1;
+		let startPos = isReverseSearch ? modifiedText.length : 0;
+		let repeatZero = 0;
+		let match_end_active = false;
+		for (let i = 0; i < Math.abs(instance_num); i++) {
+			foundIndex = isReverseSearch ? modifiedText.lastIndexOf(modifiedDelimiter ,startPos) : modifiedText.indexOf(modifiedDelimiter ,startPos);
+			if (foundIndex === 0) {
+				repeatZero++;
+			}
+			if (foundIndex === -1) {
+				if (match_end && i === Math.abs(instance_num) - 1) {
+					foundIndex = isReverseSearch ? 0 : text.length;
+					match_end_active = true;
+				}
+				break;
+			}
+			startPos = isReverseSearch ? foundIndex - modifiedDelimiter.length : foundIndex + modifiedDelimiter.length;
+		}
+
+		if (foundIndex === -1) {
+			return if_not_found;
+		} else {
+			return new cString(isAfter ? text.substring(foundIndex + (((repeatZero > 1 || match_end_active) && match_end && isReverseSearch ) ? 0 : modifiedDelimiter.length), text.length) : text.substring(0, foundIndex));
+		}
+	}
 
 	/**
 	 * @constructor
@@ -2205,6 +2277,44 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
+	};
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cTEXTBEFORE() {
+	}
+
+	//***array-formula***
+	cTEXTBEFORE.prototype = Object.create(cBaseFunction.prototype);
+	cTEXTBEFORE.prototype.constructor = cTEXTBEFORE;
+	cTEXTBEFORE.prototype.name = 'TEXTBEFORE';
+	cTEXTBEFORE.prototype.argumentsMin = 2;
+	cTEXTBEFORE.prototype.argumentsMax = 6;
+	cTEXTBEFORE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTEXTBEFORE.prototype.argumentsType = [argType.text, argType.text, argType.number, argType.logical, argType.logical, argType.any];
+	cTEXTBEFORE.prototype.Calculate = function (arg) {
+		return calcBeforeAfterText(arg, arguments[1]);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cTEXTAFTER() {
+	}
+
+	//***array-formula***
+	cTEXTAFTER.prototype = Object.create(cBaseFunction.prototype);
+	cTEXTAFTER.prototype.constructor = cTEXTAFTER;
+	cTEXTAFTER.prototype.name = 'TEXTAFTER';
+	cTEXTAFTER.prototype.argumentsMin = 2;
+	cTEXTAFTER.prototype.argumentsMax = 6;
+	cTEXTAFTER.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTEXTAFTER.prototype.argumentsType = [argType.text, argType.text, argType.number, argType.logical, argType.logical, argType.any];
+	cTEXTAFTER.prototype.Calculate = function (arg) {
+		return calcBeforeAfterText(arg, arguments[1], true);
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------
