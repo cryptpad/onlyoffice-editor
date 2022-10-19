@@ -4625,22 +4625,11 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						layouts.push(loader.ReadSlideLayout());
+						let oLayout = loader.ReadSlideLayout();
+						layouts.push(oLayout);
+						oLayout.getAllFonts(oFontMap);
 					}
 				}
-
-				/*var font_map = {};
-                for (var i = 0; i < layouts.length; ++i) {
-                    if (layouts[i].getAllFonts) {
-                        layouts[i].getAllFonts(font_map);
-                    }
-                    if (layouts[i].getAllImages) {
-                        layouts[i].getAllImages(images);
-                    }
-                }
-                for (var i in font_map) {
-                    fonts.push(new CFont(i, 0, "", 0));
-                }*/
 
 				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
 				presentationSelectedContent.Layouts = layouts;
@@ -4663,7 +4652,9 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						array.push(loader.ReadSlideMaster());
+						let oMaster = loader.ReadSlideMaster();
+						array.push(oMaster);
+						oMaster.getAllFonts(oFontMap);
 					}
 				}
 
@@ -4706,7 +4697,8 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						array.push(loader.ReadNoteMaster());
+						let oNotesMaster = loader.ReadNoteMaster();
+						array.push(oNotesMaster);
 					}
 				}
 
@@ -4744,7 +4736,9 @@ PasteProcessor.prototype =
 				//TODO возможно стоит пропустить при чтении в документах
 				var array = [];
 				for (var i = 0; i < count; ++i) {
-					array.push(loader.ReadTheme());
+					let oTheme = loader.ReadTheme();
+					oTheme.Document_Get_AllFontNames(oFontMap);
+					array.push(oTheme);
 				}
 
 				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
