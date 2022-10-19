@@ -9502,24 +9502,26 @@ PasteProcessor.prototype =
 						oSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
 						oThis.oCurPar.Set_SectionPr(oSectPr, true);
 						pPr.msoWordSection = null;
-					} else */if (bPageBreakBefore) {
+					} else */
+
+					if (bPageBreakBefore) {
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph);
 						bAddParagraph = true;
 						oThis._Commit_Br(0, node, pPr);
 						oThis._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Page));
-					} else if (AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+					} else {
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph);
 						oThis._Commit_Br(0, node, pPr);
 						oThis._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
-					} else {
+					} /*else {
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph, false);
-						oThis.nBrCount++;//oThis._AddToParagraph(new AscWord.CRunBreak(AscWord.break_Line));
+						oThis.nBrCount++;
 						if ("line-break" === pPr["mso-special-character"] ||
 							"always" === pPr["mso-column-break-before"]) {
 							oThis._Commit_Br(0, node, pPr);
 						}
-						return bAddParagraph;
-					}
+					}*/
+					return bAddParagraph;
 				}
 			}
 			return null;
