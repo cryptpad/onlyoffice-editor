@@ -9363,8 +9363,13 @@ CPresentation.prototype.InsertContent2 = function (aContents, nIndex) {
 };
 
 CPresentation.prototype.InsertContent = function (Content) {
-    var bInsert = false;
-    var selected_slides = this.GetSelectedSlides(), i;
+    let bInsert = false;
+    let selected_slides = this.GetSelectedSlides(), i;
+    let oThumbnails = editor.WordControl.Thumbnails;
+    let nNeedFocusType = null;
+    if(oThumbnails) {
+        nNeedFocusType = oThumbnails.FocusObjType;
+    }
     if (Content.SlideObjects.length > 0) {
         var las_slide_index = selected_slides.length > 0 ? selected_slides[selected_slides.length - 1] : -1;
 
@@ -9379,7 +9384,7 @@ CPresentation.prototype.InsertContent = function (Content) {
         this.FocusOnNotes = false;
         this.CheckEmptyPlaceholderNotes();
         bInsert = true;
-
+        nNeedFocusType = FOCUS_OBJECT_THUMBNAILS;
     } else if (this.Slides[this.CurPage]) {
         if (Content.Drawings.length > 0) {
             if (this.FocusOnNotes && Content.Drawings.length === 1 && Content.Drawings[0].Drawing instanceof AscFormat.CGraphicFrame
@@ -9410,6 +9415,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                 PresentSelContent.DocContent = oSelectedContent;
                 this.InsertContent(PresentSelContent);
                 this.Check_CursorMoveRight();
+                nNeedFocusType = FOCUS_OBJECT_MAIN;
                 return true;
             } else {
                 this.FocusOnNotes = false;
@@ -9489,12 +9495,14 @@ CPresentation.prototype.InsertContent = function (Content) {
                         }
                         this.Slides[this.CurPage].graphicObjects.selectObject(oSp, 0);
                         bInsert = true;
+                        nNeedFocusType = FOCUS_OBJECT_MAIN;
                     }
                 }
                 if (Content.DocContent && Content.DocContent.Elements.length > 0) {
                     var shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
                     this.Slides[this.CurPage].graphicObjects.selectObject(shape, 0);
                     bInsert = true;
+                    nNeedFocusType = FOCUS_OBJECT_MAIN;
                 }
             }
         } else if (Content.DocContent) {
@@ -9514,16 +9522,21 @@ CPresentation.prototype.InsertContent = function (Content) {
                     }
                     var oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
                     oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
-                    bInsert = true;
                 } else {
                     this.FocusOnNotes = false;
                     var shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
                     this.Slides[this.CurPage].graphicObjects.resetSelection();
                     this.Slides[this.CurPage].graphicObjects.selectObject(shape, 0);
                     this.CheckEmptyPlaceholderNotes();
-                    bInsert = true;
                 }
+                bInsert = true;
+                nNeedFocusType = FOCUS_OBJECT_MAIN;
             }
+        }
+    }
+    if(bInsert && oThumbnails) {
+        if(oThumbnails.FocusObjType !== nNeedFocusType) {
+            oThumbnails.SetFocusElement(nNeedFocusType);
         }
     }
     return bInsert;
