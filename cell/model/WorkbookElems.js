@@ -13642,6 +13642,8 @@ QueryTableField.prototype.clone = function() {
 		//избегаем повторного отображения ошибки(максимальное количество страниц)
 		this.maxPagesCount = null;
 
+		this.isNeedViewRecalc = true;
+
 		//опции измененного листа пока не мержу с теми, что в модели. перезатираю полностью. если будет необходимость - _pageOptionsMap использовать и при сохранении проверять что изменилось
 		//при закрытии окна с сохранением вычисляем только измененные настройки, для этого храним те настройки, которые были до открытия
 		//this._pageOptionsMap = null;
@@ -13651,6 +13653,19 @@ QueryTableField.prototype.clone = function() {
 
 	CPrintPreviewState.prototype.init = function () {
 		this.start = true;
+
+		//нужно пересчитать высоты строк, поскольку при открытии она не пересчитывается
+		if (this.isNeedViewRecalc) {
+			for (var i in this.wb.wsViews) {
+				var ws = this.wb.wsViews[i];
+				if (ws) {
+					ws.arrRecalcRangesWithHeight.push(new Asc.Range(0, 0, ws.nColsCount, ws.nRowsCount));
+					ws._updateRowsHeight();
+				}
+			}
+			this.isNeedViewRecalc = false;
+		}
+
 		/*var api = window["Asc"]["editor"];
 		this._pageOptionsMap = {};
 		for (var i = 0, length = this.wb.model.getWorksheetCount(); i < length; ++i) {

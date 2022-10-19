@@ -2076,9 +2076,6 @@
 
 		var _getRowHeight = function (index) {
 			var defaultHeight = t._getHeightForPrint(index);
-
-			console.log("index: " + index + " scale: " + defaultHeight)
-
 			if (defaultHeight) {
 				return defaultHeight;
 			}
