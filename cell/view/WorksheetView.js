@@ -2076,11 +2076,12 @@
 
 		var _getRowHeight = function (index) {
 			var defaultHeight = t._getHeightForPrint(index);
+
+			console.log("index: " + index + " scale: " + defaultHeight)
+
 			if (defaultHeight) {
 				return defaultHeight;
 			}
-
-			console.log("index: " + index + " scale: " + t._getRowHeight(index))
 
 			return t._getRowHeight(index);
 		};
@@ -3050,7 +3051,7 @@
 	WorksheetView.prototype._setPrintScale = function (val) {
 		var pageOptions = this.model.PagePrintOptions;
 		var pageSetup = pageOptions.asc_getPageSetup();
-		var oldScale = pageSetup.asc_getScale() / 100;
+		var oldScale = pageSetup.asc_getScale();
 
 		if(val !== oldScale) {
 			History.Create_NewPoint();
