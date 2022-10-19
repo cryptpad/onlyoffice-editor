@@ -1488,7 +1488,8 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 			&& AscDFH.historydescription_Document_SpaceButton !== description
 			&& AscDFH.historydescription_Document_CorrectEnterText !== description
 			&& AscDFH.historydescription_Document_CompositeInput !== description
-			&& AscDFH.historydescription_Document_CompositeInputReplace !== description)
+			&& AscDFH.historydescription_Document_CompositeInputReplace !== description
+			&& AscDFH.historydescription_Presentation_ParagraphAdd !== description)
 			return false;
 
 		let changes = point.Items;
