@@ -14070,10 +14070,10 @@ QueryTableField.prototype.clone = function() {
 		if (r.GetBool()) {
 			this.referenceData = {};
 			if (r.GetBool()) {
-				this.referenceData.fileId = r.GetString2();
+				this.referenceData["fileId"] = r.GetString2();
 			}
 			if (r.GetBool()) {
-				this.referenceData.portalName = r.GetString2();
+				this.referenceData["portalName"] = r.GetString2();
 			}
 		}
 	};
@@ -14116,15 +14116,15 @@ QueryTableField.prototype.clone = function() {
 
 		if (null != this.referenceData) {
 			w.WriteBool(true);
-			if (null != this.referenceData.fileId) {
+			if (null != this.referenceData["fileId"]) {
 				w.WriteBool(true);
-				w.WriteString2(this.referenceData.fileId);
+				w.WriteString2(this.referenceData["fileId"]);
 			} else {
 				w.WriteBool(false);
 			}
-			if (null != this.referenceData.portalName) {
+			if (null != this.referenceData["portalName"]) {
 				w.WriteBool(true);
-				w.WriteString2(this.referenceData.portalName);
+				w.WriteString2(this.referenceData["portalName"]);
 			} else {
 				w.WriteBool(false);
 			}
@@ -14155,8 +14155,8 @@ QueryTableField.prototype.clone = function() {
 		if (null != this.referenceData) {
 
 			newObj.referenceData = {};
-			newObj.referenceData.fileId = this.referenceData.fileId;
-			newObj.referenceData.portalName = this.referenceData.portalName;
+			newObj.referenceData["fileId"] = this.referenceData["fileId"];
+			newObj.referenceData["portalName"] = this.referenceData["portalName"];
 		}
 
 		return newObj;

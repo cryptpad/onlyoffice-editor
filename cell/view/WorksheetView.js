@@ -13793,10 +13793,13 @@
 					}
 				} else if (linkInfo.type === -2) {
 					//добавляем
-					var referenceData = pastedWb && pastedWb.Core && {
-						fileId: pastedWb.Core.contentStatus,
-						portalName: pastedWb.Core.category
-					};
+					var referenceData;
+					if (pastedWb && pastedWb.Core) {
+						referenceData = {};
+						referenceData["fileId"] = pastedWb.Core.contentStatus;
+						referenceData["portalName"] = pastedWb.Core.category;
+					}
+
 					var name = pastedWb.Core.title;
 
 					var pastedSheetName = pastedWb.aWorksheets[0].sName;
@@ -14610,7 +14613,12 @@
 			} else {
 				//сначала ищем по дополнительной информации
 				//fileId -> contentStatus, portalName -> category
-				var referenceData = pastedWb && pastedWb.Core && {fileId: pastedWb.Core.contentStatus, portalName: pastedWb.Core.category};
+				var referenceData;
+				if (pastedWb && pastedWb.Core) {
+					referenceData = {};
+					referenceData["fileId"] = pastedWb.Core.contentStatus;
+					referenceData["portalName"] = pastedWb.Core.category;
+				}
 				var externalReference = referenceData && this.model.workbook.getExternalLinkByReferenceData(referenceData);
 				externalReference = externalReference && externalReference.index;
 				if (null == externalReference) {
