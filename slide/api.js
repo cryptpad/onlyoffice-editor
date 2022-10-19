@@ -1965,9 +1965,9 @@ background-repeat: no-repeat;\
 		var curCoord = props.asc_getCellCoord();
 		var startShapePos;
 
-		if(fixPos && fixPos.thumbnails)
+		if(fixPos && fixPos.slideId)
 		{
-			let oPos = this.WordControl.Thumbnails.getSpecialPasteButtonCoords();
+			let oPos = this.WordControl.Thumbnails.getSpecialPasteButtonCoords(fixPos.slideId);
 			curCoord = new AscCommon.asc_CRect( oPos.X, oPos.Y, 1, 1 );
 		}
 		else
