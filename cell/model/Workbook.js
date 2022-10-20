@@ -465,10 +465,6 @@
 							}
 						}
 					}
-					if (Object.keys(sheetContainer.cellMap).length == 0) {
-						//если есть ссылки на внешние источники, необходимо их удалить
-						this.wb.removeExternalReferenceBySheet(sheetId);
-					}
 				}
 			}
 		},
@@ -11783,6 +11779,8 @@
 		if (undefined === newFP) {
 			return;
 		}
+
+		var oldFP = this.formulaParsed;
 		//удаляем старые значения
 		this.cleanText();
 		this.setFormulaInternal(null);
@@ -11832,7 +11830,52 @@
 			var cell = this.ws.getCell3(this.nRow, this.nCol);
 			cell.removeHyperlink();
 		}
+
+		this.checkRemoveExternalReferences(newFP, oldFP);
 	};
+
+	Cell.prototype.checkRemoveExternalReferences=function(fNew, fOld) {
+		//1.проверяем, были ли ссылки на внешние данные
+		let externalLinks;
+		let i;
+		if (fOld && (!fNew || fNew.Formula !== fOld.Formula) && fOld.outStack) {
+			for (i = 0; i < fOld.outStack.length; i++) {
+				if (fOld.outStack[i].externalLink) {
+					if (!externalLinks) {
+						externalLinks = {};
+					}
+					externalLinks[fOld.outStack[i].externalLink] = fOld.outStack[i].getWsId();
+				}
+			}
+		}
+
+		//2. проверяем, каких ссылок не осталось в новых данных
+		if (externalLinks && fNew && fNew.outStack) {
+			for (i = 0; i < fNew.outStack.length; i++) {
+				if (fNew.outStack[i].externalLink) {
+					if (externalLinks[fNew.outStack[i].externalLink]) {
+						delete externalLinks[fNew.outStack[i].externalLink];
+					}
+				}
+			}
+		}
+
+		//3. проверям, не ссылаются ли на эти ссылки кто-то другой
+		if (externalLinks && fOld) {
+			let listenerId = fOld.getListenerId();
+			for (i in externalLinks) {
+				if (null != listenerId) {
+					let sheetId = externalLinks[i];
+					let sheetContainer = fOld.wb && fOld.wb.dependencyFormulas && fOld.wb.dependencyFormulas.sheetListeners && fOld.wb.dependencyFormulas.sheetListeners[sheetId];
+					if (sheetContainer && Object.keys(sheetContainer.cellMap).length === 0) {
+						//если есть ссылки на внешние источники, необходимо их удалить
+						this.ws && this.ws.workbook && this.ws.workbook.removeExternalReferenceBySheet(sheetId);
+					}
+				}
+			}
+		}
+	};
+
 	Cell.prototype.setValueGetParsed=function(val,callback, isCopyPaste, byRef) {
 		var ws = this.ws;
 		var wb = ws.workbook;
