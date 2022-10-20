@@ -1673,7 +1673,12 @@
 			return new MultiplyRange(this.ranges.slice());
 		};
 		MultiplyRange.prototype.union2 = function(multiplyRange) {
-			this.ranges = this.ranges.concat(multiplyRange.ranges);
+			if (!multiplyRange || !multiplyRange.ranges) {
+				return;
+			}
+			for (var i = 0; i < multiplyRange.ranges.length; i++) {
+				this.ranges.push(multiplyRange.ranges[i]);
+			}
 		};
 		MultiplyRange.prototype.isIntersect = function(range) {
 			for (var i = 0; i < this.ranges.length; ++i) {
