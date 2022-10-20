@@ -833,6 +833,20 @@
 			}
 		}
 	};
+
+	baseEditorsApi.prototype.asc_SaveDrawingAsPicture = function()
+	{
+		let oImageData = this.getImageDataFromSelection();
+		if(oImageData)
+		{
+			let a = document.createElement("a");
+			let sSrc = oImageData.src;
+			a.href = sSrc;
+			let sExt = sSrc.substring("data:image/".length, sSrc.indexOf(";base64"));
+			a.download = AscCommon.translateManager.getValue("Picture") + "." + sExt;
+			a.click();
+		}
+	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
 		return !this.isViewMode && this.restrictions === Asc.c_oAscRestrictionType.None;
@@ -4172,6 +4186,7 @@
 	prot['asc_canEditTableOleObject'] = prot.asc_canEditTableOleObject;
 	prot['asc_EditSelectAll'] = prot.asc_EditSelectAll;
 	prot['setOpenedAt'] = prot.setOpenedAt;
+	prot['asc_SaveDrawingAsPicture'] = prot.asc_SaveDrawingAsPicture;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 
