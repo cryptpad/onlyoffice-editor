@@ -444,7 +444,7 @@
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @alias GetAllComments
-	 * @returns {[]} - An array which contains all the comments from the document.
+	 * @returns {object[]} - An array which contains all the comments from the document.
 	 */
 	window["asc_docs_api"].prototype["pluginMethod_GetAllComments"] = function()
 	{
@@ -620,7 +620,7 @@
 	 * @typeofeditors ["CDE"]
 	 * @alias AddContentControlList
 	 * @param {ContentControlType} type - A numeric value that specifies the content control type. It can have one of the following values: 1 (comboBox) or 0 (drop-down list).
-	 * @param {Array[{String, String}]}  [List = [{Display, Value}]] - A list of the content control elements that consists of two items: "Display" - an item that will be displayed to the user in the content control list, "Value" - a value of each item from the content control list.
+	 * @param {Array<String, String>}  [List = [{Display, Value}]] - A list of the content control elements that consists of two items: "Display" - an item that will be displayed to the user in the content control list, "Value" - a value of each item from the content control list.
 	 * @param {ContentControlProperties}  [commonPr = {}] - The common content control properties.
 	 * @return {undefined}
 	 * @example
@@ -919,6 +919,57 @@
 			}
 
 		}
+	};
+	/**
+	 * Accept review changes
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias AcceptReviewChanges
+	 * @param {boolean} [isAll=false] Accept all changes or only in the current selection
+	 * @example
+	 * window.Asc.plugin.executeMethod("AcceptReviewChanges");
+	 *
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_AcceptReviewChanges"] = function(isAll)
+	{
+		if (isAll)
+			this.asc_AcceptAllChanges();
+		else
+			this.asc_AcceptChangesBySelection(false);
+	};
+	/**
+	 * Reject review changes in the current selection
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias RejectReviewChanges
+	 * @param {boolean} [isAll=false] Accept all changes or only in the current selection
+	 * @example
+	 * window.Asc.plugin.executeMethod("RejectReviewChanges");
+	 *
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_RejectReviewChanges"] = function(isAll)
+	{
+		if (isAll)
+			this.asc_RejectAllChanges();
+		else
+			this.asc_RejectChangesBySelection(false);
+	};
+	/**
+	 * Move to next review change
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias MoveToNextReviewChange
+	 * @param {boolean} [isForward=true] Move forward or backward
+	 * @example
+	 * window.Asc.plugin.executeMethod("MoveToNextReviewChange");
+	 *
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_MoveToNextReviewChange"] = function(isForward)
+	{
+		if (undefined !== isForward && !isForward)
+			this.asc_GetPrevRevisionsChange();
+		else
+			this.asc_GetNextRevisionsChange();
 	};
 
 	function private_ReadContentControlCommonPr(commonPr)

@@ -54,9 +54,10 @@
 
 		// В мапе форм находятся вообще все формы. В списке находятся только самостоятельные формы, которые
 		// не являются частью другой формы
-		this.FormsMap   = {};
-		this.Forms      = [];
-		this.UpdateList = false;
+		this.FormsMap     = {};
+		this.Forms        = [];
+		this.UpdateList   = false;
+		this.KeyGenerator = new AscWord.CFormKeyGenerator(this);
 	}
 	CFormsManager.prototype.Register = function(oForm)
 	{
@@ -271,6 +272,13 @@
 
 		return true;
 	};
+	/**
+	 * @returns {AscWord.CFormKeyGenerator}
+	 */
+	CFormsManager.prototype.GetKeyGenerator = function()
+	{
+		return this.KeyGenerator;
+	};
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -395,16 +403,21 @@
 	};
 	CFormsManager.prototype.OnChangeComplexForm = function(oForm)
 	{
-		let arrForms = this.GetAllForms();
+		let sKey          = oForm.GetFormKey();
+		let isPlaceholder = oForm.IsPlaceHolder();
+		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
 			let oTempForm = arrForms[nIndex];
-			if (!oTempForm.IsComplexForm() || oTempForm === oForm)
+			if (!oTempForm.IsComplexForm()
+				|| oTempForm === oForm
+				|| sKey !== oTempForm.GetFormKey())
 				continue;
 
 			// TODO: Сейчас мы полностью перезаписываем содержимое поля. Можно проверить, что поле состоит из таких
 			//       же базовых подклассов и попробовать обновить их каждый по отдельности, что бы было меньше изменений
 
+			oTempForm.SetShowingPlcHdr(isPlaceholder);
 			oTempForm.RemoveAll();
 			for (let nPos = 0, nItemsCount = oForm.GetElementsCount(); nPos < nItemsCount; ++nPos)
 			{

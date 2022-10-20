@@ -9239,10 +9239,13 @@ DrawingObjectsController.prototype =
         return image;
     },
 
-    createOleObject: function(data, sApplicationId, rasterImageId, x, y, extX, extY, nWidthPix, nHeightPix)
+    createOleObject: function(data, sApplicationId, rasterImageId, x, y, extX, extY, nWidthPix, nHeightPix, arrImagesForAddToHistory)
     {
         var oleObject = new AscFormat.COleObject();
         AscFormat.fillImage(oleObject, rasterImageId, x, y, extX, extY);
+        if (arrImagesForAddToHistory) {
+            oleObject.loadImagesFromContent(arrImagesForAddToHistory);
+        }
         if (data instanceof Uint8Array) {
             oleObject.setBinaryData(data);
         } else {
@@ -9563,6 +9566,7 @@ DrawingObjectsController.prototype =
                 }
                 callback.apply(_this, args);
                 _this.startRecalculate();
+                oApi.checkChangesSize();
                 if(!(bNoSendProps === true))
                 {
                     _this.drawingObjects.sendGraphicObjectProps();
@@ -11611,7 +11615,7 @@ function CalcLiterByLength(aAlphaBet, nLength)
                                 break;
                             }
                             default: {
-                                if (Bullet.bulletType.Char.length) {
+                                if (Bullet.bulletType.Char && Bullet.bulletType.Char.length > 0) {
                                     ListType.SubType = 0x1000;
                                     var customListType = new AscCommon.asc_CCustomListType();
                                     customListType.type = Asc.asc_PreviewBulletType.char;

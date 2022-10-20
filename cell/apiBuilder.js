@@ -53,6 +53,13 @@
 	var Api = window["Asc"]["spreadsheet_api"];
 
 	/**
+ 	* The callback function which is called when the specified range of the current sheet changes.
+ 	* <note>Please note that the event is not called for the undo/redo operations.</note>
+	* @event Api#onWorksheetChange
+	* @property {ApiRange} range - The modified range represented as the ApiRange object.
+ 	*/
+
+	/**
 	 * Class representing a sheet.
 	 * @constructor
 	 * @property {boolean} Visible - Returns or sets the state of sheet visibility.
@@ -86,6 +93,7 @@
 	 * @property {number} Col - Returns the column number for the selected cell.
 	 * @property {ApiRange} Rows - Returns the ApiRange object that represents the rows of the specified range.
 	 * @property {ApiRange} Cols - Returns the ApiRange object that represents the columns of the specified range.
+	 * @property {ApiRange} Cells - Returns a Range object that represents all the cells in the specified range or a specified cell.
 	 * @property {number} Count - Returns the rows or columns count.
 	 * @property {string} Address - Returns the range address.
 	 * @property {string} Value - Returns a value from the first cell of the specified range or sets it to this cell.
@@ -103,8 +111,10 @@
 	 * @property {'center' | 'bottom' | 'top' | 'distributed' | 'justify'} AlignVertical - Sets the text vertical alignment to the current cell range.
 	 * @property {'left' | 'right' | 'center' | 'justify'} AlignHorizontal - Sets the text horizontal alignment to the current cell range.
 	 * @property {boolean} Bold - Sets the bold property to the text characters from the current cell or cell range.
+	 * @property {boolean} Italic - Sets the italic property to the text characters in the current cell or cell range.
 	 * @property {'none' | 'single' | 'singleAccounting' | 'double' | 'doubleAccounting'} Underline - Sets the type of underline applied to the font.
 	 * @property {boolean} Strikeout - Sets a value that indicates whether the contents of the current cell or cell range are displayed struck through.
+	 * @property {boolean} WrapText - Returns the information about the wrapping cell style or specifies whether the words in the cell must be wrapped to fit the cell size or not.
 	 * @property {ApiColor|'No Fill'} FillColor - Returns or sets the background color of the current cell range.
 	 * @property {string} NumberFormat - Sets a value that represents the format code for the object.
 	 * @property {ApiRange} MergeArea - Returns the cell or cell range from the merge area.
@@ -748,6 +758,25 @@
 			}
 		}
 	};
+
+	/**
+	 * Subscribes to the specified event and calls the callback function when the event fires.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 * @param {string} eventName - The event name.
+	 * @param {function} callback - Function to be called when the event fires.
+	 * @fires Api#onWorksheetChange
+	 */
+	Api.prototype["attachEvent"] = Api.prototype.attachEvent;
+
+	/**
+	 * Unsubscribes from the specified event.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 * @param {string} eventName - The event name.
+	 * @fires Api#onWorksheetChange
+	 */
+	Api.prototype["detachEvent"] = Api.prototype.detachEvent;
 
 	/**
 	 * Returns the state of sheet visibility.
@@ -2088,7 +2117,7 @@
 		var nRow = bbox.r2 - bbox.r1 + 1;
 		var res;
 		if (this.range.isOneCell()) {
-			res = this.range.getValue();
+			res = this.range.getValueWithoutFormat();
 		} else {
 			res = [];
 			for (var i = 0; i < nRow; i++) {
@@ -2124,7 +2153,7 @@
 		var nRow = bbox.r2 - bbox.r1 + 1;
 		var res;
 		if (this.range.isOneCell()) {
-			res = this.range.getValue();
+			res = this.range.getValueWithFormat();
 		} else {
 			res = [];
 			for (var i = 0; i < nRow; i++) {
@@ -2141,7 +2170,7 @@
 
 	Object.defineProperty(ApiRange.prototype, "Text", {
 		get: function () {
-			return this.range.getValueWithFormat();
+			return this.GetText();
 		},
 		set: function (value) {
 			this.SetValue(value);

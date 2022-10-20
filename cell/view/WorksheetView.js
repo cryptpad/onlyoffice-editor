@@ -9166,7 +9166,7 @@
         }
 
         if (ar.c2 === ar.c1) {
-            if (0 === this._getColumnWidth(ar.c1)) {
+            if (0 !== dc && 0 === this._getColumnWidth(ar.c1)) {
                 c1 = c2 = this._findVisibleCol(ar.c1, dc);
             }
         } else {
@@ -9188,7 +9188,7 @@
         }
 
         if (ar.r2 === ar.r1) {
-            if (0 === this._getRowHeight(ar.r1)) {
+            if (0 !== dr && 0 === this._getRowHeight(ar.r1)) {
                 r1 = r2 = this._findVisibleRow(ar.r1, dr);
             }
         } else {
@@ -11750,6 +11750,10 @@
     WorksheetView.prototype.applyMoveResizeRangeHandle = function () {
         if (!this.getFormulaEditMode() && !this.startCellMoveResizeRange.isEqual(this.moveRangeDrawingObjectTo)) {
             this.objectRender.applyMoveResizeRange(this.oOtherRanges);
+        }
+        if (this.workbook.Api.isEditVisibleAreaOleEditor) {
+            const oOleSize = this.getOleSize();
+            oOleSize.addPointToLocalHistory();
         }
 
         this.startCellMoveResizeRange = null;

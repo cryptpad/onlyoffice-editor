@@ -507,6 +507,8 @@
 				  return self._onGraphicObjectWindowKeyUp.apply(self, arguments);
 			  }, "graphicObjectWindowKeyPress": function () {
 				  return self._onGraphicObjectWindowKeyPress.apply(self, arguments);
+			  }, "graphicObjectWindowEnterText": function () {
+				  return self._onGraphicObjectWindowEnterText.apply(self, arguments);
 			  }, "graphicObjectMouseWheel": function () {
 				  return self._onGraphicObjecMouseWheel.apply(self, arguments);
 			  }, "getGraphicsInfo": function () {
@@ -1021,6 +1023,9 @@
 	});
 	this.model.handlers.add("clearFindResults", function(index) {
 		self.clearSearchOnRecalculate(index);
+	});
+	this.Api.asc_registerCallback("EndTransactionCheckSize", function() {
+		self.Api.checkChangesSize();
 	});
     this.cellCommentator = new AscCommonExcel.CCellCommentator({
       model: new WorkbookCommentsModel(this.handlers, this.model.aComments),
@@ -1755,6 +1760,10 @@
   WorkbookView.prototype._onGraphicObjectWindowKeyPress = function(e) {
     var objectRender = this.getWorksheet().objectRender;
     return (0 < objectRender.getSelectedGraphicObjects().length) ? objectRender.graphicObjectKeyPress(e) : false;
+  };
+  WorkbookView.prototype._onGraphicObjectWindowEnterText = function(codePoints) {
+    var objectRender = this.getWorksheet().objectRender;
+    return objectRender.controller && (0 < objectRender.getSelectedGraphicObjects().length) ? objectRender.controller.enterText(codePoints) : false;
   };
   WorkbookView.prototype._onGraphicObjecMouseWheel = function(deltaX, deltaY) {
     var objectRender = this.getWorksheet().objectRender;
@@ -2700,7 +2709,7 @@
 				}
 
 				if (name) {
-					res = new AscCommonExcel.CFunctionInfo(name)
+					res = new AscCommonExcel.CFunctionInfo(AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[name] : name)
 
 					//получаем массив аргументов
 					res.argumentsValue = parseResult.getArgumentsValue(t.cellEditor._formula.Formula);
@@ -2881,7 +2890,10 @@
     var oFormulaLocaleInfo = AscCommonExcel.oFormulaLocaleInfo;
     oFormulaLocaleInfo.Parse = false;
     oFormulaLocaleInfo.DigitSep = false;
-    if (!this.getCellEditMode()) {
+	  if (this.Api.isEditVisibleAreaOleEditor) {
+		  const oOleSize = this.getOleSize();
+		  oOleSize.undo();
+	  } else if (!this.getCellEditMode()) {
       if (!History.Undo(Options) && this.collaborativeEditing.getFast() && this.collaborativeEditing.getCollaborativeEditing()) {
         this.Api.sync_TryUndoInFastCollaborative();
       }
@@ -2893,11 +2905,14 @@
   };
 
   WorkbookView.prototype.redo = function() {
-    if (!this.getCellEditMode()) {
-      History.Redo();
-    } else {
-      this.cellEditor.redo();
-    }
+	  if (this.Api.isEditVisibleAreaOleEditor) {
+		  const oOleSize = this.getOleSize();
+		  oOleSize.redo();
+	  } else if (!this.getCellEditMode()) {
+		  History.Redo();
+	  } else {
+		  this.cellEditor.redo();
+	  }
   };
 
   WorkbookView.prototype.setFontAttributes = function(prop, val) {
@@ -4764,6 +4779,13 @@
 			if (activeWs) {
 				activeWs.draw();
 			}
+		}
+	};
+
+	WorkbookView.prototype.EnterText = function (codePoints, skipCellEditor) {
+		this.controller.EnterText(codePoints);
+		if (this.isCellEditMode && !skipCellEditor) {
+			this.cellEditor.EnterText(codePoints);
 		}
 	};
 
