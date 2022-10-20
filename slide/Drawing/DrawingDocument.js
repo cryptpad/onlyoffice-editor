@@ -5678,7 +5678,17 @@ function CThumbnailsManager()
 		{
 			return null;
 		}
-		return {X: oRect.X + oRect.W - AscCommon.specialPasteElemWidth, Y: oRect.Y + oRect.H};
+		let nX, nY;
+		if(editor.WordControl.m_oThumbnailsContainer.HtmlElement.style.display === "none")
+		{
+			nX = 0;
+		}
+		else
+		{
+			nX = oRect.X + oRect.W - AscCommon.specialPasteElemWidth;
+		}
+		nY = oRect.Y + oRect.H;
+		return {X: nX, Y: nY};
 	};
 }
 
