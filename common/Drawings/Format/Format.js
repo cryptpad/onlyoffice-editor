@@ -8562,8 +8562,8 @@
 				else if(oData.Type === AscDFH.historyitem_ThemeSetFontScheme) {
 					let oPresentation = this.GetLogicDocument();
 					let aSlideIndexes = this.GetAllSlideIndexes();
-					if(oPresentation) {
-						oPresentation.Refresh_RecalcData({Type: AscDFH.historyitem_Presentation_ChangeTheme, aIndexes: aSlideIndexes});
+					if(oPresentation && aSlideIndexes.length > 0) {
+						oPresentation.Refresh_RecalcData2({Type: AscDFH.historyitem_ThemeSetFontScheme, aIndexes: aSlideIndexes});
 					}
 				}
 			}

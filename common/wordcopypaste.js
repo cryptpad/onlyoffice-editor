@@ -3294,7 +3294,24 @@ PasteProcessor.prototype =
 			x = pos.X;
 			y = pos.Y;
 		}
-		var screenPos = window["editor"].WordControl.m_oLogicDocument.DrawingDocument.ConvertCoordsToCursorWR(x, y, curPage);
+		let screenPos;
+		let bThumbnals = (presentation.GetFocusObjType() === FOCUS_OBJECT_THUMBNAILS);
+		let sSlideId = null;
+
+		let aSelectedSlides = presentation.GetSelectedSlides();
+		if(bThumbnals && aSelectedSlides.length > 0) {
+			let nSlideIndex = aSelectedSlides[aSelectedSlides.length - 1];
+			let oSlide = presentation.GetSlide(nSlideIndex);
+			sSlideId = oSlide.Get_Id();
+		}
+		if(sSlideId) {
+			screenPos = editor.WordControl.Thumbnails.getSpecialPasteButtonCoords(sSlideId);
+			w = 1;
+			h = 1;
+		}
+		else {
+			screenPos = presentation.DrawingDocument.ConvertCoordsToCursorWR(x, y, curPage);
+		}
 
 		var specialPasteShowOptions = window['AscCommon'].g_specialPasteHelper.buttonInfo;
 		specialPasteShowOptions.asc_setOptions(props);
@@ -3308,7 +3325,7 @@ PasteProcessor.prototype =
 
 		var curCoord = new AscCommon.asc_CRect( screenPos.X, screenPos.Y, 0, 0 );
 		specialPasteShowOptions.asc_setCellCoord(curCoord);
-		specialPasteShowOptions.setFixPosition({x: x, y: y, pageNum: curPage, w: w, h: h});
+		specialPasteShowOptions.setFixPosition({x: x, y: y, pageNum: curPage, w: w, h: h, slideId: sSlideId});
 	},
 
     insertInPlace2: function(oDoc, aNewContent)
@@ -4451,7 +4468,7 @@ PasteProcessor.prototype =
 
 					//пока не показываю значок специальной вставки после copy/paste слайдов
 					var bSlideObjects = aContents[nIndex] && aContents[nIndex].SlideObjects && aContents[nIndex].SlideObjects.length > 0;
-					if (specialOptionsArr.length >= 1 && !bSlideObjects && bPaste) {
+					if (specialOptionsArr.length >= 1 /*&& !bSlideObjects*/ && bPaste) {
 						if (presentationSelectedContent && presentationSelectedContent.DocContent) {
 							specialOptionsArr.push(Asc.c_oSpecialPasteProps.keepTextOnly);
 						}
@@ -4468,12 +4485,16 @@ PasteProcessor.prototype =
 			var oObjectsForDownload = GetObjectsForImageDownload(arr_Images, p_url === this.api.documentId);
 			if (oObjectsForDownload.aUrls.length > 0) {
 				AscCommon.sendImgUrls(oThis.api, oObjectsForDownload.aUrls, function (data) {
-					var oImageMap = {};
+					let oImageMap = {};
 					ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 					oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
 				}, true);
 			} else {
-				oThis.api.pre_Paste(fonts, {}, paste_callback);
+				let oImageMap = {};
+				for(let nImg = 0; nImg < arr_Images.length; ++nImg) {
+					oImageMap[nImg] = arr_Images[nImg].Url
+				}
+				oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
 			}
 		} else {
 			return null;
@@ -4616,22 +4637,11 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						layouts.push(loader.ReadSlideLayout());
+						let oLayout = loader.ReadSlideLayout();
+						layouts.push(oLayout);
+						oLayout.getAllFonts(oFontMap);
 					}
 				}
-
-				/*var font_map = {};
-                for (var i = 0; i < layouts.length; ++i) {
-                    if (layouts[i].getAllFonts) {
-                        layouts[i].getAllFonts(font_map);
-                    }
-                    if (layouts[i].getAllImages) {
-                        layouts[i].getAllImages(images);
-                    }
-                }
-                for (var i in font_map) {
-                    fonts.push(new CFont(i, 0, "", 0));
-                }*/
 
 				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
 				presentationSelectedContent.Layouts = layouts;
@@ -4654,7 +4664,9 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						array.push(loader.ReadSlideMaster());
+						let oMaster = loader.ReadSlideMaster();
+						array.push(oMaster);
+						oMaster.getAllFonts(oFontMap);
 					}
 				}
 
@@ -4676,7 +4688,9 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						notes.push(loader.ReadNote());
+						let oNotes = loader.ReadNote();
+						notes.push(oNotes);
+						oNotes.getAllFonts(oFontMap);
 					}
 				}
 
@@ -4697,7 +4711,9 @@ PasteProcessor.prototype =
 						loader.stream.GetUChar();
 						loader.stream.SkipRecord();
 					} else {
-						array.push(loader.ReadNoteMaster());
+						let oNotesMaster = loader.ReadNoteMaster();
+						array.push(oNotesMaster);
+						oNotesMaster.getAllFonts(oFontMap);
 					}
 				}
 
@@ -4715,7 +4731,9 @@ PasteProcessor.prototype =
 				//TODO возможно стоит пропустить при чтении в документах
 				var array = [];
 				for (var i = 0; i < count; ++i) {
-					array.push(loader.ReadTheme());
+					let oTheme = loader.ReadTheme();
+					array.push(oTheme);
+					oTheme.Document_Get_AllFontNames(oFontMap);
 				}
 
 				presentationSelectedContent.NotesThemes = array;
@@ -4735,7 +4753,9 @@ PasteProcessor.prototype =
 				//TODO возможно стоит пропустить при чтении в документах
 				var array = [];
 				for (var i = 0; i < count; ++i) {
-					array.push(loader.ReadTheme());
+					let oTheme = loader.ReadTheme();
+					oTheme.Document_Get_AllFontNames(oFontMap);
+					array.push(oTheme);
 				}
 
 				arr_Images = arr_Images.concat(loader.End_UseFullUrl());
