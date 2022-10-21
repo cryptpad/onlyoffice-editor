@@ -441,7 +441,25 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
             editor.endInlineDropTarget(e);
 
 			var _files = window["AscDesktopEditor"]["GetDropFiles"]();
-			if (0 == _files.length)
+			let countInserted = 0;
+			if (0 !== _files.length)
+			{
+				let countInserted = 0;
+				for (var i = 0; i < _files.length; i++)
+				{
+					if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
+					{
+						if (_files[i] === "")
+							continue;
+						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
+						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
+						++countInserted;
+						break;
+					}
+				}
+			}
+
+			if (0 === countInserted)
 			{
                 // test html
                 var htmlValue = e.dataTransfer.getData("text/html");
@@ -458,20 +476,6 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
                     return;
                 }
 			}
-			else
-			{
-                for (var i = 0; i < _files.length; i++)
-                {
-                    if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
-                    {
-						if (_files[i] == "")
-							continue;
-						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
-						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
-                        break;
-                    }
-                }
-            }
 		};
 	}
 };
