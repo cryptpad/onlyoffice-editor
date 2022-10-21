@@ -409,6 +409,10 @@
 			}
 		};
 
+		if (this.isStartCompositeInput()) {
+			this.End_CompositeInput();
+		}
+
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
 			if (0 < this.undoList.length || 0 < AscCommonExcel.getFragmentsCharCodesLength(this.options.fragments)) {
@@ -2967,6 +2971,9 @@
 		// Обновляем выделение
 		this._cleanSelection();
 		this._drawSelection();
+	};
+	CellEditor.prototype.isStartCompositeInput = function () {
+		return this.beginCompositePos !== -1 && this.compositeLength !== 0;
 	};
 	CellEditor.prototype.Set_CursorPosInCompositeText = function (nPos) {
 		if (-1 !== this.beginCompositePos) {
