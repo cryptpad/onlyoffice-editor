@@ -2732,7 +2732,7 @@
 				}
 
 				if (name) {
-					res = new AscCommonExcel.CFunctionInfo(name)
+					res = new AscCommonExcel.CFunctionInfo(AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[name] : name)
 
 					//получаем массив аргументов
 					res.argumentsValue = parseResult.getArgumentsValue(t.cellEditor._formula.Formula);
