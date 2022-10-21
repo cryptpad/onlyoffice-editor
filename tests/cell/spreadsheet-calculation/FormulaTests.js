@@ -15029,6 +15029,30 @@ $( function () {
 		assert.ok( oParser.parse() );
 		assert.strictEqual( oParser.calculate().getValue(), "TEST2");
 
+		oParser = new parserFormula( 'IFS(1=1,"correct",#VALUE!,1)', "AA2", ws );
+		assert.ok( oParser.parse() );
+		assert.strictEqual( oParser.calculate().getValue(), "correct");
+
+		oParser = new parserFormula( 'IFS(1<>1,"correct",#VALUE!,1)', "AA2", ws );
+		assert.ok( oParser.parse() );
+		assert.strictEqual( oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula( 'IFS(1<>1,"correct",#N/A,1)', "AA2", ws );
+		assert.ok( oParser.parse() );
+		assert.strictEqual( oParser.calculate().getValue(), "#N/A");
+
+		oParser = new parserFormula( 'IFS(1<>1,"correct",1=1, #N/A)', "AA2", ws );
+		assert.ok( oParser.parse() );
+		assert.strictEqual( oParser.calculate().getValue(), "#N/A");
+
+		oParser = new parserFormula( 'IFS(1<>1,"correct",1=1, #N/A, #VALUE!, #VALUE!)', "AA2", ws );
+		assert.ok( oParser.parse() );
+		assert.strictEqual( oParser.calculate().getValue(), "#N/A");
+
+		oParser = new parserFormula( 'IFS(1=1,"correct",1=2,1/0)', "AA2", ws );
+		assert.ok( oParser.parse() );
+		assert.strictEqual( oParser.calculate().getValue(), "correct");
+
 		testArrayFormulaEqualsValues(assert, "1,3.123,-4,#N/A;2,4,5,#N/A;#N/A,#N/A,#N/A,#N/A","IFS(A1:C2,A1:C2,A1:C2,A1:C2, A1:C2,A1:C2)");
 	});
 
