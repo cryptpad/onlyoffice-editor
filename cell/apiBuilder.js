@@ -49,6 +49,7 @@
 	 * @property {Array} Sheets - Returns the Sheets collection that represents all the sheets in the active workbook.
 	 * @property {ApiWorksheet} ActiveSheet - Returns an object that represents the active sheet.
 	 * @property {ApiRange} Selection - Returns an object that represents the selected range.
+	 * @property {ApiComment[]} Comments - Returns an array of ApiComment objects.
 	 */
 	var Api = window["Asc"]["spreadsheet_api"];
 
@@ -279,9 +280,9 @@
 	 * @constructor
 	 * @property {string} Text - Returns the text from the first cell in range.
 	 */
-	function ApiComment(comment, ws) {
+	function ApiComment(comment, wb) {
 		this.Comment = comment;
-		this.WS = ws;
+		this.WB = wb;
 	}
 
 	/**
@@ -777,6 +778,25 @@
 	 * @fires Api#onWorksheetChange
 	 */
 	Api.prototype["detachEvent"] = Api.prototype.detachEvent;
+
+	/**
+	 * Returns an array of ApiComment objects.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 * @returns {ApiComment[]}
+	 */
+	Api.prototype.GetComments = function () {
+		var comments = [];
+		for (var i = 0; i < this.wbModel.aComments.length; i++) {
+			comments.push(new ApiComment(this.wbModel.aComments[i], this.wb));
+		}
+		return comments;
+	};
+	Object.defineProperty(Api.prototype, "Comments", {
+		get: function () {
+			return this.GetComments();
+		}
+	});
 
 	/**
 	 * Returns the state of sheet visibility.
@@ -1362,7 +1382,7 @@
 	ApiWorksheet.prototype.GetComments = function () {
 		var comments = [];
 		for (var i = 0; i < this.worksheet.aComments.length; i++) {
-			comments.push(new ApiComment(this.worksheet.aComments[i], this.worksheet.workbook.getWorksheet(this.Index)));
+			comments.push(new ApiComment(this.worksheet.aComments[i], this.worksheet.workbook.oApi.wb));
 		}
 		return comments;
 	};
@@ -2774,7 +2794,7 @@
 		}
 		var ws = this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex());
 		var comment = ws.cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false);
-		var res = comment ? new ApiComment(comment, ws) : null;
+		var res = comment ? new ApiComment(comment, this.range.worksheet.workbook.oApi.wb) : null;
 		return res;
 	};
 	Object.defineProperty(ApiRange.prototype, "Comments", {
@@ -4125,7 +4145,7 @@
 	 * @typeofeditors ["CSE"]
 	 */
 	ApiComment.prototype.Delete = function () {
-		this.WS.cellCommentator.removeComment(this.Comment.asc_getId());
+		this.WB.removeComment(this.Comment.asc_getId());
 	};
 
 	/**
@@ -4207,6 +4227,7 @@
 	Api.prototype["GetRange"] = Api.prototype.GetRange;
 
 	Api.prototype["RecalculateAllFormulas"] = Api.prototype.RecalculateAllFormulas;
+	Api.prototype["GetComments"] = Api.prototype.GetComments;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;
