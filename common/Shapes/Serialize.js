@@ -1107,10 +1107,21 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     var _id = s.GetString2();
+                    _style.Set_StyleId(_id);
                    // _style.Id = _id;
 					if(AscCommon.isRealObject(this.presentation.TableStylesIdMap) && !bNotAddStyle)
 						this.presentation.TableStylesIdMap[_style.Id] = true;
-                    this.map_table_styles[_id] = _style;
+
+                    const oOldStyle = this.presentation.globalTableStyles.GetStyleByStyleId(_id);
+                    if (oOldStyle)
+                    {
+                        this.presentation.globalTableStyles.Remove(oOldStyle.GetId());
+                        this.presentation.globalTableStyles.Add(_style);
+                    }
+                    else
+                    {
+                        this.map_table_styles[_id] = _style;
+                    }
                     break;
                 }
                 case 1:
@@ -7786,6 +7797,11 @@ function BinaryPPTYLoader()
             if(this.map_table_styles[props.style])
             {
                 _table.Set_TableStyle(this.map_table_styles[props.style].Id);
+            }
+            else if (this.presentation && this.presentation.globalTableStyles.GetStyleByStyleId(props.style))
+            {
+                style = this.presentation.globalTableStyles.GetStyleByStyleId(props.style);
+                _table.Set_TableStyle(style.GetId());
             }
             _table.Set_Pr(props.props);
             _table.Set_TableLook(props.look);

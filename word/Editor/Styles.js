@@ -240,6 +240,8 @@ function CStyle(Name, BasedOnId, NextId, type, bNoCreateTablePr)
 {
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
+	this.StyleId = null;
+
     this.Name    = Name;
     this.BasedOn = BasedOnId;
     this.Next    = NextId;
@@ -660,6 +662,17 @@ CStyle.prototype =
     {
         return this.Type;
     },
+
+	Set_StyleId: function (sStyleId)
+	{
+		History.Add(new CChangesStyleStyleId(this, this.StyleId, sStyleId));
+		this.StyleId = sStyleId;
+	},
+
+	Get_StyleId: function ()
+	{
+		return this.StyleId;
+	},
 
 	Set_QFormat : function(Value)
 	{
@@ -5917,6 +5930,7 @@ CStyle.prototype =
             || this.Next !== oStyle.Next
             || this.Type !== oStyle.Type
             || this.Link !== oStyle.Link
+            || this.StyleId !== oStyle.StyleId
             || this.qFormat !== oStyle.qFormat
             || this.uiPriority !== oStyle.uiPriority
             || this.hidden !== oStyle.hidden
@@ -8436,6 +8450,17 @@ CStyles.prototype =
 		this.Style[Id] = Style;
 		this.Update_Interface(Id);
 		return Id;
+	},
+
+	GetStyleByStyleId: function (sStyleId)
+	{
+		const arrStylesId = Object.keys(this.Style);
+		for (let i = 0; i < arrStylesId.length; i += 1)
+		{
+			const oStyle = this.Style[arrStylesId[i]];
+			if (oStyle.Get_StyleId() === sStyleId)
+				return oStyle;
+		}
 	},
 
 	Remove : function(Id)
