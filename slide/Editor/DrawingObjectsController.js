@@ -515,7 +515,7 @@ PreMoveCommentState.prototype =
         var Coords = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR_Comment( this.comment.x, this.comment.y, this.drawingObjects.num);
         editor.sync_HideComment();
         editor.sync_ShowComment(this.comment.Id, Coords.X, Coords.Y );
-        this.getPresentation().noShowContextMenu = true;
+        this.drawingObjects.getPresentation().noShowContextMenu = true;
         this.drawingObjects.clearPreTrackObjects();
         this.drawingObjects.changeCurrentState(new AscFormat.NullState(this.drawingObjects));
     }
@@ -553,7 +553,7 @@ MoveCommentState.prototype =
 
     onMouseUp: function(e, x, y, pageIndex)
     {
-        var oPresentation = this.getPresentation();
+        var oPresentation = this.drawingObjects.getPresentation();
         var aCommentsData = [
             {
                 comment: this.comment,
