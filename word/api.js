@@ -5889,7 +5889,7 @@ background-repeat: no-repeat;\
 
 			let oDrawingObjects = LogicDocument.DrawingObjects;
 			let oImage = oDrawingObjects.createImage(sUrl, 0, 0, dW, dH);
-			let oDrawing   = new ParaDrawing(dW, dH, oImage, LogicDocument.DrawingDocument, null, null);
+			let oDrawing   = new AscCommonWord.ParaDrawing(dW, dH, oImage, LogicDocument.DrawingDocument, null, null);
 			oImage.setParent(oDrawing);
 			oDrawing.Set_GraphicObject(oImage);
 			let oNearestPos = LogicDocument.Get_NearestPos(nPageIndex, dX, dY, true, oDrawing);
