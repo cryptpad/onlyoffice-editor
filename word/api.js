@@ -5862,13 +5862,13 @@ background-repeat: no-repeat;\
 		if (false === LogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 		{
 			var oPosH = new Asc.CImagePositionH();
-			oPosH.put_RelativeFrom(Asc.c_oAscRelativeFromH.Page);
+			oPosH.put_RelativeFrom(Asc.c_oAscRelativeFromH.Column);
 			oPosH.put_Align(false);
-			oPosH.put_Value(dX);
+			oPosH.put_Value(0);
 			var oPosV = new Asc.CImagePositionV();
-			oPosV.put_RelativeFrom(Asc.c_oAscRelativeFromV.Page);
+			oPosV.put_RelativeFrom(Asc.c_oAscRelativeFromV.Paragraph);
 			oPosV.put_Align(false);
-			oPosV.put_Value(dY);
+			oPosV.put_Value(0);
 			var oImageProps = new asc_CImgProperty();
 			let nWrappingStyleToSet;
 			if(nWrappingStyle !== undefined && nWrappingStyle !== null)
@@ -5886,8 +5886,25 @@ background-repeat: no-repeat;\
 			// TODO: Убрать SilentMode, когда переделаются функции AddInlineImage, SetImageProps (в них нужно передалать пересчет и обновляения согласно схеме Actions)
 			LogicDocument.StartAction(AscDFH.historydescription_Document_AddImageToPage);
 			LogicDocument.Start_SilentMode();
-			LogicDocument.AddInlineImage(dW, dH, sUrl);
-			LogicDocument.SetImageProps(oImageProps);
+
+			let oDrawingObjects = LogicDocument.DrawingObjects;
+			let oImage = oDrawingObjects.createImage(sUrl, 0, 0, dW, dH);
+			let oDrawing   = new ParaDrawing(dW, dH, oImage, LogicDocument.DrawingDocument, null, null);
+			oImage.setParent(oDrawing);
+			oDrawing.Set_GraphicObject(oImage);
+			let oNearestPos = LogicDocument.Get_NearestPos(nPageIndex, dX, dY, true, oDrawing);
+			if(oNearestPos)
+			{
+				oDrawing.Set_Props(oImageProps)
+				oDrawing.Set_Distance( 3.2,  0,  3.2, 0 )
+				oNearestPos.Paragraph.Check_NearestPos(oNearestPos);
+				oNearestPos.Page = nPageIndex;
+				oDrawing.Set_XYForAdd(dX, dY, oNearestPos, nPageIndex);
+				oDrawing.AddToDocument(oNearestPos);
+				oDrawing.CheckWH();
+				oDrawingObjects.resetSelection();
+				oImage.select(oDrawingObjects, nPageIndex);
+			}
 			LogicDocument.End_SilentMode(true);
 			LogicDocument.FinalizeAction();
 		}
