@@ -769,7 +769,11 @@ function CBinaryFileWriter()
         {
             if(oTableStyleIdMap.hasOwnProperty(key))
             {
-                this.tableStylesGuides[key] = "{" + GUID() + "}"
+                const oStyle = AscCommon.g_oTableId.Get_ById(key);
+                if (oStyle)
+                {
+                    this.tableStylesGuides[key] = oStyle.Get_StyleId() || AscCommon.CreateGUID();
+                }
             }
         }
 

@@ -1951,6 +1951,7 @@
 	window['AscDFH'].historyitem_Style_UnhideWhenUsed  = window['AscDFH'].historyitem_type_Style | 109;
 	window['AscDFH'].historyitem_Style_Link            = window['AscDFH'].historyitem_type_Style | 110;
 	window['AscDFH'].historyitem_Style_Custom          = window['AscDFH'].historyitem_type_Style | 111;
+	window['AscDFH'].historyitem_Style_StyleId         = window['AscDFH'].historyitem_type_Style | 112;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CStyles
 	//------------------------------------------------------------------------------------------------------------------
