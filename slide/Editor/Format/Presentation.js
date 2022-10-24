@@ -10130,22 +10130,27 @@ CPresentation.prototype.shiftSlides = function (pos, array, bCopy) {
     }
 
     var _selectedPage = this.CurPage;
-    var _newSelectedPage = 0;
-
+    var _newSelectedPage = pos;
     deleted.reverse();
+    let aNewSelected = [];
     for (i = 0; i < deleted.length; ++i) {
         this.insertSlide(pos + i, deleted[i]);
+        aNewSelected.push(pos + i);
     }
     for (i = 0; i < this.Slides.length; ++i) {
-        if (this.Slides[i].num === _selectedPage)
-            _newSelectedPage = i;
-
         this.Slides[i].changeNum(i);
     }
     this.Recalculate();
     this.Document_UpdateUndoRedoState();
     this.DrawingDocument.OnEndRecalculate();
-    this.DrawingDocument.m_oWordControl.GoToPage(_newSelectedPage);
+    this.DrawingDocument.m_oWordControl.GoToPage(pos);
+
+
+    let oThumbnails = editor.WordControl.Thumbnails;
+    if(oThumbnails) {
+        oThumbnails.SelectSlides(aNewSelected);
+    }
+
     return _newSelectedPage;
 };
 
@@ -10386,7 +10391,6 @@ CPresentation.prototype.moveSlides = function (slidesIndexes, pos) {
     for (i = 0; i < removed_slides.length; ++i) {
         this.insertSlide(insert_pos + i, removed_slides[i]);
     }
-    this.Recalculate();
 };
 
 CPresentation.prototype.moveSelectedSlidesToEnd = function() {
@@ -10397,6 +10401,17 @@ CPresentation.prototype.moveSelectedSlidesToEnd = function() {
     var aSelectedIdx = this.GetSelectedSlides();
     this.moveSlides(aSelectedIdx, this.Slides.length - aSelectedIdx.length);
     this.Recalculate();
+    let oThumbnails = editor.WordControl.Thumbnails;
+
+    this.DrawingDocument.m_oWordControl.GoToPage(this.Slides.length - aSelectedIdx.length);
+    if(oThumbnails) {
+        let nCount = aSelectedIdx.length;
+        let aNewSelected = [];
+        for (let nIdx = 0; nIdx < nCount; nIdx++) {
+            aNewSelected.push(oThumbnails.m_arrPages.length - 1 - nIdx);
+        }
+        oThumbnails.SelectSlides(aNewSelected);
+    }
     this.Document_UpdateInterfaceState();
 };
 CPresentation.prototype.moveSelectedSlidesToStart = function() {
@@ -10407,6 +10422,17 @@ CPresentation.prototype.moveSelectedSlidesToStart = function() {
     var _selection_array = this.GetSelectedSlides();
     this.moveSlides(_selection_array, 0);
     this.Recalculate();
+    let oThumbnails = editor.WordControl.Thumbnails;
+    this.DrawingDocument.m_oWordControl.GoToPage(0);
+    if(oThumbnails) {
+        let aNewSelected = [];
+        let nCount = _selection_array.length;
+        for (let nIdx = 0; nIdx < nCount; nIdx++) {
+            aNewSelected.push(nIdx);
+        }
+        oThumbnails.SelectSlides(aNewSelected);
+    }
+
     this.Document_UpdateInterfaceState();
 };
 CPresentation.prototype.moveSlidesNextPos = function() {
@@ -10433,10 +10459,22 @@ CPresentation.prototype.moveSlidesNextPos = function() {
     }
     if (can_move) {
         History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesNextPos);
+        let aNewSelected = [];
         for (i = first_index; i > -1; --i) {
-            this.moveSlides([aSelectedIdx[i]], aSelectedIdx[i] + 1);
+            let nOldIdx = aSelectedIdx[i];
+            let nNewIdx = nOldIdx + 1;
+            this.moveSlides([nOldIdx], nNewIdx);
+            aNewSelected.push(nNewIdx)
         }
         this.Recalculate();
+
+        if(aNewSelected.length > 0) {
+            this.DrawingDocument.m_oWordControl.GoToPage(aNewSelected[0]);
+            let oThumbnails = editor.WordControl.Thumbnails;
+            if(oThumbnails) {
+                oThumbnails.SelectSlides(aNewSelected);
+            }
+        }
         this.Document_UpdateInterfaceState();
     }
 };
@@ -10464,10 +10502,21 @@ CPresentation.prototype.moveSlidesPrevPos = function() {
     }
     if (can_move) {
         History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesPrevPos);
+        let aNewSelected = [];
         for (i = first_index; i > -1; --i) {
-            this.moveSlides([_selected_array[i]], _selected_array[i] - 1);
+            let nOldIdx = _selected_array[i];
+            let nNewIdx = nOldIdx - 1;
+            this.moveSlides([nOldIdx], nNewIdx);
+            aNewSelected.push(nNewIdx);
         }
         this.Recalculate();
+        if(aNewSelected.length > 0) {
+            this.DrawingDocument.m_oWordControl.GoToPage(aNewSelected[0]);
+            let oThumbnails = editor.WordControl.Thumbnails;
+            if(oThumbnails) {
+                oThumbnails.SelectSlides(aNewSelected);
+            }
+        }
         this.Document_UpdateInterfaceState();
     }
 };

@@ -5356,6 +5356,27 @@ function CThumbnailsManager()
 		this.ShowPage(_page);
 	};
 
+	this.SelectSlides = function(aSelectedIdx)
+	{
+		if(aSelectedIdx.length > 0)
+		{
+			for (let i = 0; i < this.m_arrPages.length; i++)
+			{
+				this.m_arrPages[i].IsSelected = false;
+			}
+			let nCount = aSelectedIdx.length;
+			for (let nIdx = 0; nIdx < nCount; nIdx++)
+			{
+				let oPage = this.m_arrPages[aSelectedIdx[nIdx]];
+				if(oPage)
+				{
+					oPage.IsSelected = true;
+				}
+			}
+			this.OnUpdateOverlay();
+		}
+	};
+
 	this.UpdateInterface = function()
 	{
 		this.m_oWordControl.m_oLogicDocument.Document_UpdateInterfaceState();
@@ -5513,25 +5534,6 @@ function CThumbnailsManager()
 					{
 						oPresentation.moveSlidesNextPos();
 					}
-					var slidesCount = oDrawingDocument.SlidesCount;
-					if (!oEvent.ShiftKey)
-					{
-						if (oDrawingDocument.SlideCurrent < (slidesCount - 1))
-						{
-							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent + 1);
-						}
-					}
-					else if (oEvent.CtrlKey)
-					{
-						if (oDrawingDocument.SlidesCount > 0)
-						{
-							this.m_oWordControl.GoToPage(oDrawingDocument.SlidesCount - 1);
-						}
-					}
-					else
-					{
-						this.CorrectShiftSelect(false, false);
-					}
 					break;
 				}
 				case 36: // home
@@ -5581,24 +5583,6 @@ function CThumbnailsManager()
 					else if (oEvent.CtrlKey)
 					{
 						oPresentation.moveSlidesPrevPos();
-					}
-					if (!oEvent.ShiftKey)
-					{
-						if (oDrawingDocument.SlideCurrent > 0)
-						{
-							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent - 1);
-						}
-					}
-					else if (oEvent.CtrlKey)
-					{
-						if (oDrawingDocument.SlidesCount > 0)
-						{
-							this.m_oWordControl.GoToPage(0);
-						}
-					}
-					else
-					{
-						this.CorrectShiftSelect(true, false);
 					}
 					break;
 				}
