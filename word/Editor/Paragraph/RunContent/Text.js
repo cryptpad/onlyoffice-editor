@@ -503,7 +503,27 @@
 	};
 	CRunText.prototype.IsDiacriticalSymbol = function()
 	{
-		return !!(0x0300 <= this.Value && this.Value <= 0x036F);
+		return false;
+	};
+	CRunText.prototype.IsForceCombinedMark = function()
+	{
+		// Символы, которые мы в любом случае считаем комбинированными, даже если текстовый шейпер их не объединил
+		// с предыдущим символом в один глиф
+
+		return !!((0x0300 <= this.Value && this.Value <= 0x036F)
+			|| (0x0483 <= this.Value && this.Value <= 0x0487)
+			|| (0x1AB0 <= this.Value && this.Value <= 0x1ABE)
+			|| (0x1CD0 <= this.Value && this.Value <= 0x1CE0)
+			|| (0x1CE2 <= this.Value && this.Value <= 0x1CE8)
+			|| 0x1CED === this.Value
+			|| 0x1CF4 === this.Value
+			|| 0x1CF8 === this.Value
+			|| 0x1CF9 === this.Value
+			|| (0x1DC0 <= this.Value && this.Value <= 0x1DFF)
+			|| (0x20D0 <= this.Value && this.Value <= 0x20F0)
+			|| (0xFE00 <= this.Value && this.Value <= 0xFE00)
+			|| (0xFE20 <= this.Value && this.Value <= 0xFE2D)
+		);
 	};
 	CRunText.prototype.IsDot = function()
 	{
@@ -558,7 +578,7 @@
 	};
 	CRunText.prototype.IsCombiningMark = function()
 	{
-		return !!(this.Flags & FLAGS_TEMPORARY ? this.Flags & FLAGS_TEMPORARY_COMBINING_MARK : this.Flags & FLAGS_COMBINING_MARK);
+		return (!!(this.Flags & FLAGS_TEMPORARY ? this.Flags & FLAGS_TEMPORARY_COMBINING_MARK : this.Flags & FLAGS_COMBINING_MARK) || this.IsForceCombinedMark());
 	};
 	CRunText.prototype.IsLigatureContinue = function()
 	{
