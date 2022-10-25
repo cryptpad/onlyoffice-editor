@@ -2331,7 +2331,8 @@ function (window, undefined) {
 	cTEXTSPLIT.prototype.argumentsMin = 2;
 	cTEXTSPLIT.prototype.argumentsMax = 6;
 	cTEXTSPLIT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
-	cTEXTSPLIT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	//cTEXTSPLIT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cTEXTSPLIT.prototype.arrayIndexes = {1: 1, 2: 1, 4: 1, 5: 1};
 	cTEXTSPLIT.prototype.argumentsType = [argType.text, argType.text, argType.text, argType.logical, argType.logical, argType.any];
 	cTEXTSPLIT.prototype.Calculate = function (arg) {
 
@@ -2347,13 +2348,13 @@ function (window, undefined) {
 
 		//если оба empty или хотя бы один из разделителей - пустая строка - ошибка
 		if (col_delimiter && row_delimiter && col_delimiter.type === cElementType.empty && row_delimiter.type === cElementType.empty) {
-			return  new cError(cErrorType.wrong_value_type);
+			return new cError(cErrorType.wrong_value_type);
 		}
 		if (col_delimiter && col_delimiter.type === cElementType.string && col_delimiter.getValue() === "") {
-			return  new cError(cErrorType.wrong_value_type);
+			return new cError(cErrorType.wrong_value_type);
 		}
 		if (row_delimiter && row_delimiter.type === cElementType.string && row_delimiter.getValue() === "") {
-			return  new cError(cErrorType.wrong_value_type);
+			return new cError(cErrorType.wrong_value_type);
 		}
 
 		col_delimiter = col_delimiter.toArray(true, true);
@@ -2382,6 +2383,13 @@ function (window, undefined) {
 
 		//заполняющее_значение. Значение по умолчанию: #Н/Д.
 		let pad_with = arg[5] ? arg[5] : new cError(cErrorType.not_available);
+		if (pad_with.type === cElementType.cell3D || pad_with.type === cElementType.cell) {
+			pad_with = pad_with.getValue();
+		}
+		if (pad_with.type === cElementType.cellsRange3D || pad_with.type === cElementType.cellsRange) {
+			return new cError(cErrorType.wrong_value_type);
+		}
+
 		let getRexExpFromArray = function (_array, _match_mode) {
 			let sRegExp = "";
 			if (Array.isArray(_array)) {
@@ -2428,80 +2436,58 @@ function (window, undefined) {
 			return res;
 		};
 
-		//если первый аргумент - массив или диапазон, то возвращаем массив, равный его размеру
-		//если первый аргмента не массив/диапазон - возвращаем массив из разбитого текста
+		//обрабатываю первый аргумент - диапазон выше, если сюда он приходит в виже диапазона, то беру первый элемент
 		var res;
-		if (cElementType.cellsRange === text.type || cElementType.cellsRange3D === text.type || cElementType.array === text.type) {
-			res = text;
-			if (cElementType.cellsRange === text.type || cElementType.cellsRange3D === text.type) {
-				res = text.getFullArray();
-			}
-			if (res) {
-				if (res.type === cElementType.error) {
-					return res;
-				} else {
-					res.foreach(function (elem, r, c) {
-						elem = elem.tocString();
-						if (elem.type === cElementType.error) {
-							this.array[r][c] = elem;
-						} else {
-							//здесь делаем полный разбор текста, хотя для результата нам достаточно первого элемента
-							var parsedArray = AscCommon.parseText(text, elem.toString());
-							if (parsedArray && parsedArray[0] && parsedArray[0][0]) {
-								this.array[r][c] = parsedArray[0][0];
-							} else {
-								this.array[r][c] = new cError(cErrorType.not_available);
-							}
-						}
-					});
-				}
-			}
-		} else {
-			text = text.tocString();
-			if (text.type === cElementType.error) {
-				return text;
-			}
-			text = text.toString();
-			if (match_mode) {
-				text = text.toLowerCase();
-			}
-
-			//let array = AscCommon.parseText(text, options);
-			let array = splitText(text, row_delimiter, col_delimiter);
-			if (array) {
-				//проверяем массив на пустые элементы +  дополняем массив pad_with
-
-				let rowCount = array.length;
-				let colCount = 0, i, j;
-				for (i = 0; i < rowCount; i++) {
-					colCount = Math.max(colCount, array[i].length)
-				}
-
-				let newArray = [];
-				for (i = 0; i < rowCount; i++) {
-					let row = [];
-					for (j = 0; j < colCount; j++) {
-						if (("" === array[i][j] && !ignore_empty) || array[i][j]) {
-							row.push(new cString(array[i][j]));
-						}
-					}
-
-					if (row.length || (!row.length && !ignore_empty)) {
-						if (colCount > row.length) {
-							while (colCount > row.length) {
-								row.push(pad_with);
-							}
-						}
-						newArray.push(row);
-					}
-				}
-
-				res = new cArray();
-				res.fillFromArray(newArray);
-			}
+		if (cElementType.cellsRange3D === text.type || cElementType.cellsRange === text.type) {
+			text = text.getValue2(0, 0);
+		} else if (cElementType.array === text.type) {
+			text = text.getValue2(0, 0);
 		}
 
-		return res ?  res : new cError(cErrorType.not_available);
+		text = text.tocString();
+		if (text.type === cElementType.error) {
+			return text;
+		}
+		text = text.toString();
+		if (match_mode) {
+			text = text.toLowerCase();
+		}
+
+		//let array = AscCommon.parseText(text, options);
+		let array = splitText(text, row_delimiter, col_delimiter);
+		if (array) {
+			//проверяем массив на пустые элементы +  дополняем массив pad_with
+
+			let rowCount = array.length;
+			let colCount = 0, i, j;
+			for (i = 0; i < rowCount; i++) {
+				colCount = Math.max(colCount, array[i].length)
+			}
+
+			let newArray = [];
+			for (i = 0; i < rowCount; i++) {
+				let row = [];
+				for (j = 0; j < colCount; j++) {
+					if (("" === array[i][j] && !ignore_empty) || array[i][j]) {
+						row.push(new cString(array[i][j]));
+					}
+				}
+
+				if (row.length || (!row.length && !ignore_empty)) {
+					if (colCount > row.length) {
+						while (colCount > row.length) {
+							row.push(pad_with);
+						}
+					}
+					newArray.push(row);
+				}
+			}
+
+			res = new cArray();
+			res.fillFromArray(newArray);
+		}
+
+		return res ? res : new cError(cErrorType.not_available);
 	};
 
 

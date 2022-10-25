@@ -5268,6 +5268,17 @@ $(function () {
 		ws.getRange2("C3").setValue(
 			"test1del1TEst2Del2#NUM!DEl2 test3 tedel3del3st3del1del1del1 del2del2del2 testdel1\n" + "test3 del1del2del1 test123testdel3testwDEL3test2DeL4jjjdel4rrrDEL123rrrdEl4");
 
+		ws.getRange2("C4").setValue("tedel1asd");
+		ws.getRange2("D3").setValue("fffdel1sdf");
+		ws.getRange2("D4").setValue("rflde1");
+
+		ws.getRange2("C5").setValue("del2");
+		ws.getRange2("D5").setValue("teST");
+		ws.getRange2("C6").setValue("del3");
+		ws.getRange2("D6").setValue("del1");
+
+		ws.getRange2("C11").setValue("error");
+
 		let array;
 		oParser = new parserFormula("TEXTSPLIT(C3,\"del1\")", "A1", ws);
 		assert.ok(oParser.parse());
@@ -5529,6 +5540,40 @@ $(function () {
 		assert.strictEqual(oParser.calculate().getValue(), "#VALUE!");
 
 		oParser = new parserFormula("TEXTSPLIT(C2,\"\",\"test\",,,)", "A1", ws);
+		assert.ok(oParser.parse());
+		assert.strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("TEXTSPLIT(C3:D4,\"del1\")", "A1", ws);
+		assert.ok(oParser.parse());
+		assert.strictEqual(oParser.calculate().getElementRowCol(0, 0).getValue(), "test1");
+
+
+		oParser = new parserFormula("TEXTSPLIT(C3,C5:D5,C6:D6,TRUE,,C11)", "A1", ws);
+		assert.ok(oParser.parse());
+		array = oParser.calculate();
+
+		assert.strictEqual(array.getElementRowCol(0, 0).getValue(), 'test1');
+		assert.strictEqual(array.getElementRowCol(0, 1).getValue(), 'error');
+
+		assert.strictEqual(array.getElementRowCol(1, 0).getValue(), 'TEst2Del2#NUM!DEl2 test3 te');
+		assert.strictEqual(array.getElementRowCol(1, 1).getValue(), 'error');
+
+		assert.strictEqual(array.getElementRowCol(2, 0).getValue(), 'st3');
+		assert.strictEqual(array.getElementRowCol(2, 1).getValue(), 'error');
+
+		assert.strictEqual(array.getElementRowCol(3, 0).getValue(), ' ');
+		assert.strictEqual(array.getElementRowCol(3, 1).getValue(), ' test');
+
+		assert.strictEqual(array.getElementRowCol(4, 0).getValue(), "\n" + "test3 ");
+		assert.strictEqual(array.getElementRowCol(4, 1).getValue(), 'error');
+
+		assert.strictEqual(array.getElementRowCol(5, 0).getValue(), ' test123test');
+		assert.strictEqual(array.getElementRowCol(5, 1).getValue(), 'error');
+
+		assert.strictEqual(array.getElementRowCol(6, 0).getValue(), 'testwDEL3test2DeL4jjjdel4rrrDEL123rrrdEl4');
+		assert.strictEqual(array.getElementRowCol(6, 1).getValue(), 'error');
+
+		oParser = new parserFormula("TEXTSPLIT(C3,C5:D5,C6:D6,TRUE,,C11:D11)", "A1", ws);
 		assert.ok(oParser.parse());
 		assert.strictEqual(oParser.calculate().getValue(), "#VALUE!");
 	});
