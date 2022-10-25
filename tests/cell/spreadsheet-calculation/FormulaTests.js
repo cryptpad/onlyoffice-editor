@@ -5576,6 +5576,16 @@ $(function () {
 		oParser = new parserFormula("TEXTSPLIT(C3,C5:D5,C6:D6,TRUE,,C11:D11)", "A1", ws);
 		assert.ok(oParser.parse());
 		assert.strictEqual(oParser.calculate().getValue(), "#VALUE!");
+
+		oParser = new parserFormula("TEXTSPLIT(C3,C5:D5,C6:D6,{TRUE,FALSE},,C11)", "A1", ws);
+		assert.ok(oParser.parse());
+		assert.strictEqual(oParser.calculate().getElementRowCol(0, 0).getValue(), "test1");
+
+		oParser = new parserFormula("TEXTSPLIT(C3,C5:D5,C6:D6,C59:D59,{TRUE,FALSE},C11)", "A1", ws);
+		assert.ok(oParser.parse());
+		assert.strictEqual(oParser.calculate().getElementRowCol(0, 0).getValue(), "test1");
+
+
 	});
 
 	QUnit.test("Test: \"WORKDAY\"", function (assert) {

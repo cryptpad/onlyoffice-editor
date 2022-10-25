@@ -2370,12 +2370,20 @@ function (window, undefined) {
 		}
 
 		let ignore_empty = arg[3] ? arg[3].tocBool() : new cBool(false);
+		if (ignore_empty.type === cElementType.cellsRange3D || ignore_empty.type === cElementType.cellsRange || ignore_empty.type === cElementType.array) {
+			ignore_empty = ignore_empty.getValue2(0, 0);
+			ignore_empty = ignore_empty.tocBool();
+		}
 		if (ignore_empty.type === cElementType.error) {
 			return ignore_empty;
 		}
 		ignore_empty = ignore_empty.toBool();
 
 		let match_mode = arg[4] ? arg[4].tocBool() : new cBool(false);
+		if (match_mode.type === cElementType.cellsRange3D || match_mode.type === cElementType.cellsRange || match_mode.type === cElementType.array) {
+			match_mode = match_mode.getValue2(0, 0);
+			match_mode = match_mode.tocBool();
+		}
 		if (match_mode.type === cElementType.error) {
 			return match_mode;
 		}
