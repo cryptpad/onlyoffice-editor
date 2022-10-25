@@ -5920,7 +5920,7 @@ PasteProcessor.prototype =
 						}
 					}
 					if(nPos === 0) {
-						let oNewParagraph = new Paragraph( oDocContent.DrawingDocument, this, true);
+						let oNewParagraph = new Paragraph(oDocContent.DrawingDocument, oDocContent, true);
 						oDocContent.Internal_Content_Add(0, oNewParagraph, true);
 					}
 				}
