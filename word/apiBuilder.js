@@ -2428,11 +2428,11 @@
 		var value = undefined;
 
 		if (sType === "baseline")
-			value = 0;
+			value = AscCommon.vertalign_Baseline;
 		else if (sType === "subscript")
-			value = 2;
+			value = AscCommon.vertalign_SubScript;
 		else if (sType === "superscript")
-			value = 1;
+			value = AscCommon.vertalign_SuperScript;
 		else 
 			return null;
 
@@ -7630,11 +7630,11 @@
 		var value = undefined;
 
 		if (sType === "baseline")
-			value = 0;
+			value = AscCommon.vertalign_Baseline;
 		else if (sType === "subscript")
-			value = 2;
+			value = AscCommon.vertalign_SubScript;
 		else if (sType === "superscript")
-			value = 1;
+			value = AscCommon.vertalign_SuperScript;
 		else 
 			return null;
 
