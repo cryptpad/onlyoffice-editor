@@ -1503,7 +1503,7 @@
 		};
 		this.CoAuthoringApi.onLicenseChanged          = function(res)
 		{
-			if (res['settings'] && undefined !== res['settings']['maxChangesSize']) {
+			if (res['settings'] && res['settings']['maxChangesSize']) {
 				t.maxChangesSize = res['settings']['maxChangesSize'];
 			}
 			let licenseType = res['licenseType'];
