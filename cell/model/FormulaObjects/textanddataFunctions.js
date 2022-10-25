@@ -61,7 +61,7 @@ function (window, undefined) {
 	cFormulaFunctionGroup['TextAndData'].push(cASC, cBAHTTEXT, cCHAR, cCLEAN, cCODE, cCONCATENATE, cCONCAT, cDOLLAR,
 		cEXACT, cFIND, cFINDB, cFIXED, cJIS, cLEFT, cLEFTB, cLEN, cLENB, cLOWER, cMID, cMIDB, cNUMBERVALUE, cPHONETIC,
 		cPROPER, cREPLACE, cREPLACEB, cREPT, cRIGHT, cRIGHTB, cSEARCH, cSEARCHB, cSUBSTITUTE, cT, cTEXT, cTEXTJOIN,
-		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE, cTEXTBEFORE, cTEXTAFTER);
+		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE, cTEXTBEFORE, cTEXTAFTER, cTEXTSPLIT);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cBAHTTEXT, cJIS, cPHONETIC);
@@ -2316,6 +2316,194 @@ function (window, undefined) {
 	cTEXTAFTER.prototype.Calculate = function (arg) {
 		return calcBeforeAfterText(arg, arguments[1], true);
 	};
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cTEXTSPLIT() {
+	}
+
+	//***array-formula***
+	cTEXTSPLIT.prototype = Object.create(cBaseFunction.prototype);
+	cTEXTSPLIT.prototype.constructor = cTEXTSPLIT;
+	cTEXTSPLIT.prototype.name = 'TEXTSPLIT';
+	cTEXTSPLIT.prototype.argumentsMin = 2;
+	cTEXTSPLIT.prototype.argumentsMax = 6;
+	cTEXTSPLIT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTEXTSPLIT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cTEXTSPLIT.prototype.argumentsType = [argType.text, argType.text, argType.text, argType.logical, argType.logical, argType.any];
+	cTEXTSPLIT.prototype.Calculate = function (arg) {
+
+		//функция должна возвращать массив
+		let text = arg[0];
+		if (text.type === cElementType.error) {
+			return text;
+		}
+
+		//второй/третий аргумент тоже может быть массивом, каждый из элементов каторого может быть разделителем
+		let col_delimiter = arg[1];
+		let row_delimiter = arg[2] ? arg[2] : null;
+
+		//если оба empty или хотя бы один из разделителей - пустая строка - ошибка
+		if (col_delimiter && row_delimiter && col_delimiter.type === cElementType.empty && row_delimiter.type === cElementType.empty) {
+			return  new cError(cErrorType.wrong_value_type);
+		}
+		if (col_delimiter && col_delimiter.type === cElementType.string && col_delimiter.getValue() === "") {
+			return  new cError(cErrorType.wrong_value_type);
+		}
+		if (row_delimiter && row_delimiter.type === cElementType.string && row_delimiter.getValue() === "") {
+			return  new cError(cErrorType.wrong_value_type);
+		}
+
+		col_delimiter = col_delimiter.toArray(true, true);
+		if (col_delimiter.type === cElementType.error) {
+			return col_delimiter;
+		}
+
+		if (row_delimiter) {
+			row_delimiter = row_delimiter.toArray(true, true);
+			if (row_delimiter.type === cElementType.error) {
+				return row_delimiter;
+			}
+		}
+
+		let ignore_empty = arg[3] ? arg[3].tocBool() : new cBool(false);
+		if (ignore_empty.type === cElementType.error) {
+			return ignore_empty;
+		}
+		ignore_empty = ignore_empty.toBool();
+
+		let match_mode = arg[4] ? arg[4].tocBool() : new cBool(false);
+		if (match_mode.type === cElementType.error) {
+			return match_mode;
+		}
+		match_mode = match_mode.toBool();
+
+		//заполняющее_значение. Значение по умолчанию: #Н/Д.
+		let pad_with = arg[5] ? arg[5] : new cError(cErrorType.not_available);
+		let getRexExpFromArray = function (_array, _match_mode) {
+			let sRegExp = "";
+			if (Array.isArray(_array)) {
+				for (let row = 0; row < _array.length; row++) {
+					for (let col = 0; col < _array[row].length; col++) {
+						if (sRegExp !== "") {
+							sRegExp += "|";
+						}
+
+						sRegExp += _array[row][col];
+					}
+				}
+			} else {
+				sRegExp += "[" + _array + "]";
+			}
+
+			return _match_mode ? new RegExp(sRegExp, "i") : new RegExp(sRegExp);
+		};
+
+		let splitText = function (_text, _rowDelimiter, _colDelimiter) {
+			var res;
+
+			if (_rowDelimiter == null || _rowDelimiter === "" || _rowDelimiter && _rowDelimiter[0] === "" || _rowDelimiter && _rowDelimiter[0] && _rowDelimiter[0][0] === "") {
+				_rowDelimiter = null;
+			} else {
+				_rowDelimiter = getRexExpFromArray(_rowDelimiter, match_mode);
+			}
+			if (_colDelimiter === "" || _colDelimiter && _colDelimiter[0] === "" || _colDelimiter && _colDelimiter[0] && _colDelimiter[0][0] === "") {
+				_colDelimiter = null;
+			} else {
+				_colDelimiter = getRexExpFromArray(_colDelimiter, match_mode);
+			}
+
+			var _array = _text.split(_rowDelimiter);
+			if (_array) {
+				for (let i = 0; i < _array.length; i++) {
+					if (!res) {
+						res = [];
+					}
+					res.push(_array[i].split(_colDelimiter));
+				}
+			}
+
+			return res;
+		};
+
+		//если первый аргумент - массив или диапазон, то возвращаем массив, равный его размеру
+		//если первый аргмента не массив/диапазон - возвращаем массив из разбитого текста
+		var res;
+		if (cElementType.cellsRange === text.type || cElementType.cellsRange3D === text.type || cElementType.array === text.type) {
+			res = text;
+			if (cElementType.cellsRange === text.type || cElementType.cellsRange3D === text.type) {
+				res = text.getFullArray();
+			}
+			if (res) {
+				if (res.type === cElementType.error) {
+					return res;
+				} else {
+					res.foreach(function (elem, r, c) {
+						elem = elem.tocString();
+						if (elem.type === cElementType.error) {
+							this.array[r][c] = elem;
+						} else {
+							//здесь делаем полный разбор текста, хотя для результата нам достаточно первого элемента
+							var parsedArray = AscCommon.parseText(text, elem.toString());
+							if (parsedArray && parsedArray[0] && parsedArray[0][0]) {
+								this.array[r][c] = parsedArray[0][0];
+							} else {
+								this.array[r][c] = new cError(cErrorType.not_available);
+							}
+						}
+					});
+				}
+			}
+		} else {
+			text = text.tocString();
+			if (text.type === cElementType.error) {
+				return text;
+			}
+			text = text.toString();
+			if (match_mode) {
+				text = text.toLowerCase();
+			}
+
+			//let array = AscCommon.parseText(text, options);
+			let array = splitText(text, row_delimiter, col_delimiter);
+			if (array) {
+				//проверяем массив на пустые элементы +  дополняем массив pad_with
+
+				let rowCount = array.length;
+				let colCount = 0, i, j;
+				for (i = 0; i < rowCount; i++) {
+					colCount = Math.max(colCount, array[i].length)
+				}
+
+				let newArray = [];
+				for (i = 0; i < rowCount; i++) {
+					let row = [];
+					for (j = 0; j < colCount; j++) {
+						if (("" === array[i][j] && !ignore_empty) || array[i][j]) {
+							row.push(new cString(array[i][j]));
+						}
+					}
+
+					if (row.length || (!row.length && !ignore_empty)) {
+						if (colCount > row.length) {
+							while (colCount > row.length) {
+								row.push(pad_with);
+							}
+						}
+						newArray.push(row);
+					}
+				}
+
+				res = new cArray();
+				res.fillFromArray(newArray);
+			}
+		}
+
+		return res ?  res : new cError(cErrorType.not_available);
+	};
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
