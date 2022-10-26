@@ -111,6 +111,10 @@
 
 		AscFonts.HB_ShapeString(this, nFontId, oFontInfo.Style, this.FontId, this.GetLigaturesType(), nScript, nDirection, "en");
 
+		// Значит шрифт был подобран, вовзвращаем назад состояние отрисовщика
+		if (this.FontId.m_pFaceInfo.family_name !== oFontInfo.Name)
+			AscCommon.g_oTextMeasurer.SetFontInternal(oFontInfo.Name, AscFonts.MEASURE_FONTSIZE, oFontInfo.Style);
+
 		this.ClearBuffer();
 	};
 	CTextShaper.prototype.GetLigaturesType = function()
