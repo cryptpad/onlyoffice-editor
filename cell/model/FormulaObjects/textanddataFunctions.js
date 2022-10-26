@@ -61,7 +61,7 @@ function (window, undefined) {
 	cFormulaFunctionGroup['TextAndData'].push(cASC, cBAHTTEXT, cCHAR, cCLEAN, cCODE, cCONCATENATE, cCONCAT, cDOLLAR,
 		cEXACT, cFIND, cFINDB, cFIXED, cJIS, cLEFT, cLEFTB, cLEN, cLENB, cLOWER, cMID, cMIDB, cNUMBERVALUE, cPHONETIC,
 		cPROPER, cREPLACE, cREPLACEB, cREPT, cRIGHT, cRIGHTB, cSEARCH, cSEARCHB, cSUBSTITUTE, cT, cTEXT, cTEXTJOIN,
-		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE, cTEXTBEFORE, cTEXTAFTER, cTEXTSPLIT, cVSTACK, cHSTACK);
+		cTRIM, cUNICHAR, cUNICODE, cUPPER, cVALUE, cTEXTBEFORE, cTEXTAFTER, cTEXTSPLIT);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cBAHTTEXT, cJIS, cPHONETIC);
@@ -2500,131 +2500,6 @@ function (window, undefined) {
 
 		return res ? res : new cError(cErrorType.not_available);
 	};
-
-
-	/**
-	 * @constructor
-	 * @extends {AscCommonExcel.cBaseFunction}
-	 */
-	function cVSTACK() {
-	}
-
-	//***array-formula***
-	cVSTACK.prototype = Object.create(cBaseFunction.prototype);
-	cVSTACK.prototype.constructor = cVSTACK;
-	cVSTACK.prototype.name = 'VSTACK';
-	cVSTACK.prototype.argumentsMin = 1;
-	cVSTACK.prototype.numFormat = AscCommonExcel.cNumFormatNone;
-	cVSTACK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
-	cVSTACK.prototype.argumentsType = [[argType.array]];
-	cVSTACK.prototype.isXLFN = true;
-	cVSTACK.prototype.Calculate = function (arg) {
-		let unionArray;
-		for (let i = 0; i < arg.length; i++) {
-			let matrix;
-			if (arg[i].type === cElementType.cellsRange || arg[i].type === cElementType.array || arg[i].type === cElementType.cell || arg[i].type === cElementType.cell3D) {
-				matrix = arg[i].getMatrix();
-			} else if (arg[i].type === cElementType.cellsRange3D) {
-				if (arg[i].isSingleSheet()) {
-					matrix = arg[i].getMatrix()[0];
-				} else {
-					return new cError(cErrorType.bad_reference);
-				}
-			} else if (arg[i].type === cElementType.error) {
-				return arg[i];
-			} else if (arg[i].type === cElementType.empty) {
-				return new cError(cErrorType.wrong_value_type);
-			} else {
-				matrix = [[arg[i]]];
-			}
-
-			//добавляем по строкам
-			for (let j = 0; j < matrix.length; j++) {
-				if (matrix[j]) {
-					if (!unionArray) {
-						unionArray = [];
-					}
-					unionArray.push(matrix[j]);
-				}
-			}
-		}
-
-		if (unionArray) {
-			let res = new cArray();
-			res.fillFromArray(unionArray);
-			res.fillMatrix(new cError(cErrorType.not_available));
-			return res;
-		} else {
-			return new cError(cErrorType.wrong_value_type);
-		}
-	}
-
-	/**
-	 * @constructor
-	 * @extends {AscCommonExcel.cBaseFunction}
-	 */
-	function cHSTACK() {
-	}
-
-	//***array-formula***
-	cHSTACK.prototype = Object.create(cBaseFunction.prototype);
-	cHSTACK.prototype.constructor = cHSTACK;
-	cHSTACK.prototype.name = 'HSTACK';
-	cHSTACK.prototype.argumentsMin = 1;
-	cHSTACK.prototype.numFormat = AscCommonExcel.cNumFormatNone;
-	cHSTACK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
-	cHSTACK.prototype.argumentsType = [[argType.array]];
-	cHSTACK.prototype.isXLFN = true;
-	cHSTACK.prototype.Calculate = function (arg) {
-		let unionArray;
-		let startCol = 0;
-		for (let i = 0; i < arg.length; i++) {
-			let matrix;
-			if (arg[i].type === cElementType.cellsRange || arg[i].type === cElementType.array || arg[i].type === cElementType.cell || arg[i].type === cElementType.cell3D) {
-				matrix = arg[i].getMatrix();
-			} else if (arg[i].type === cElementType.cellsRange3D) {
-				if (arg[i].isSingleSheet()) {
-					matrix = arg[i].getMatrix()[0];
-				} else {
-					return new cError(cErrorType.bad_reference);
-				}
-			} else if (arg[i].type === cElementType.error) {
-				return arg[i];
-			} else if (arg[i].type === cElementType.empty) {
-				return new cError(cErrorType.wrong_value_type);
-			} else {
-				matrix = [[arg[i]]];
-			}
-
-			let maxColCount = 0;
-			for (let j = 0; j < matrix.length; j++) {
-				if (matrix[j]) {
-					maxColCount = Math.max(maxColCount, matrix[j].length)
-					for (let k = 0; k < matrix[j].length; k++) {
-						if (matrix[j][k]) {
-							if (!unionArray) {
-								unionArray = [];
-							}
-							if (!unionArray[j]) {
-								unionArray[j] = [];
-							}
-							unionArray[j][k + startCol] = matrix[j][k];
-						}
-					}
-				}
-			}
-			startCol += maxColCount;
-		}
-
-		if (unionArray) {
-			let res = new cArray();
-			res.fillFromArray(unionArray);
-			res.fillMatrix(new cError(cErrorType.not_available));
-			return res;
-		} else {
-			return new cError(cErrorType.wrong_value_type);
-		}
-	}
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
