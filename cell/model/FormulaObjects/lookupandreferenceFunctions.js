@@ -69,7 +69,7 @@ function (window, undefined) {
 	cFormulaFunctionGroup['LookupAndReference'] = cFormulaFunctionGroup['LookupAndReference'] || [];
 	cFormulaFunctionGroup['LookupAndReference'].push(cADDRESS, cAREAS, cCHOOSE, cCOLUMN, cCOLUMNS, cFORMULATEXT,
 		cGETPIVOTDATA, cHLOOKUP, cHYPERLINK, cINDEX, cINDIRECT, cLOOKUP, cMATCH, cOFFSET, cROW, cROWS, cRTD, cTRANSPOSE,
-		cUNIQUE, cVLOOKUP, cXLOOKUP, cVSTACK, cHSTACK);
+		cUNIQUE, cVLOOKUP, cXLOOKUP, cVSTACK, cHSTACK, cTOROW, cTOCOL);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cAREAS, cGETPIVOTDATA, cRTD);
@@ -2461,7 +2461,7 @@ function (window, undefined) {
 	cVSTACK.prototype.argumentsMin = 1;
 	cVSTACK.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cVSTACK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
-	cVSTACK.prototype.argumentsType = [[argType.array]];
+	cVSTACK.prototype.argumentsType = [[argType.reference]];
 	cVSTACK.prototype.isXLFN = true;
 	cVSTACK.prototype.Calculate = function (arg) {
 		let unionArray;
@@ -2518,7 +2518,7 @@ function (window, undefined) {
 	cHSTACK.prototype.argumentsMin = 1;
 	cHSTACK.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cHSTACK.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
-	cHSTACK.prototype.argumentsType = [[argType.array]];
+	cHSTACK.prototype.argumentsType = [[argType.reference]];
 	cHSTACK.prototype.isXLFN = true;
 	cHSTACK.prototype.Calculate = function (arg) {
 		let unionArray;
@@ -2569,6 +2569,138 @@ function (window, undefined) {
 		} else {
 			return new cError(cErrorType.wrong_value_type);
 		}
+	}
+
+	function toRowCol(arg, argument1, toCol) {
+		var argError = cBaseFunction.prototype._checkErrorArg.call(this, arg);
+		if (argError) {
+			return argError;
+		}
+
+		//из документации:
+		//Excel returns a #VALUE! when an array constant contains one or more numbers that are not a whole number.
+		//не повторил в мс
+
+		let arg1 = arg[0];
+		if (arg1.type === arg1.empty) {
+			return new cError(cErrorType.wrong_value_type);
+		}
+		arg1 = arg1.toArray();
+
+		//Excel returns a #NUM when array is too large.
+		let elemCount = arg1.length * arg1[0].length;
+		if (elemCount > 1048578) {
+			return new cError(cErrorType.not_available);
+		}
+
+		//0    Keep all values (default)
+		//1    Ignore blanks
+		//2    Ignore errors
+		//3    Ignore blanks and errors
+		let arg2 = arg[1] ? arg[1] : new cNumber(0);
+		if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
+			arg2 = arg2.cross(argument1);
+		} else if (cElementType.array === arg2.type) {
+			arg2 = arg2.getElementRowCol(0, 0);
+		}
+		arg2 = arg2.tocNumber();
+		if (arg2.type === cElementType.error) {
+			return arg2;
+		}
+		arg2 = arg2.toNumber();
+
+		//scan_by_column
+		let arg3 = arg[2] ? arg[2] : new cBool(false);
+		if (cElementType.cellsRange === arg3.type || cElementType.cellsRange3D === arg3.type) {
+			arg3 = arg3.cross(argument1);
+		} else if (cElementType.array === arg3.type) {
+			arg3 = arg3.getElementRowCol(0, 0);
+		}
+		arg3 = arg3.tocBool();
+		if (arg3.type === cElementType.error) {
+			return arg3;
+		}
+		arg3 = arg3.toBool();
+
+		let arg1_array = new cArray();
+		arg1_array.fillFromArray(arg1);
+
+
+		var res = new cArray();
+		arg1_array.foreach2(function (elem, r, c) {
+			if (elem) {
+				let needAdd = true;
+				switch (arg2) {
+					case 0:
+						break;
+					case 1:
+						if (elem.type === cElementType.empty) {
+							needAdd = false;
+						}
+						break;
+					case 2:
+						if (elem.type === cElementType.error) {
+							needAdd = false;
+						}
+						break;
+					case 3:
+						if (elem.type === cElementType.error || elem.type === cElementType.empty) {
+							needAdd = false;
+						}
+						break;
+				}
+				if (needAdd) {
+					if (toCol) {
+						res.addRow();
+					}
+					res.addElement(elem);
+				}
+			}
+		}, arg3);
+
+		return res;
+	}
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cTOROW() {
+	}
+
+	//***array-formula***
+	cTOROW.prototype = Object.create(cBaseFunction.prototype);
+	cTOROW.prototype.constructor = cTOROW;
+	cTOROW.prototype.name = 'TOROW';
+	cTOROW.prototype.argumentsMin = 1;
+	cTOROW.prototype.argumentsMax = 3;
+	cTOROW.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTOROW.prototype.arrayIndexes = {0: 1};
+	cTOROW.prototype.argumentsType = [argType.reference, argType.number, argType.bool];
+	cTOROW.prototype.isXLFN = true;
+	cTOROW.prototype.Calculate = function (arg) {
+		return toRowCol(arg, arguments[1]);
+	}
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cTOCOL() {
+	}
+
+	//***array-formula***
+	cTOCOL.prototype = Object.create(cBaseFunction.prototype);
+	cTOCOL.prototype.constructor = cTOCOL;
+	cTOCOL.prototype.name = 'TOCOL';
+	cTOCOL.prototype.argumentsMin = 1;
+	cTOCOL.prototype.argumentsMax = 3;
+	cTOCOL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTOCOL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cTOCOL.prototype.argumentsType = [[argType.array]];
+	cTOCOL.prototype.isXLFN = true;
+	cTOCOL.prototype.Calculate = function (arg) {
+		return toRowCol(arg, arguments[1], true);
 	}
 
 	var g_oVLOOKUPCache = new VHLOOKUPCache(false);
