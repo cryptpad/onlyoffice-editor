@@ -1407,23 +1407,36 @@
 	 * @typeofeditors ["CSE"]
 	 * @param {string} sRange - The range where the hyperlink will be added to.
 	 * @param {string} sAddress - The link address.
+	 * @param {string} subAddress - The subaddress of the hyperlink.
 	 * @param {string} sScreenTip - The screen tip text.
 	 * @param {string} sTextToDisplay - The link text that will be displayed on the sheet.
 	 * */
-	ApiWorksheet.prototype.SetHyperlink = function (sRange, sAddress, sScreenTip, sTextToDisplay)	{
+	ApiWorksheet.prototype.SetHyperlink = function (sRange, sAddress, subAddress, sScreenTip, sTextToDisplay) {
 		var range = new ApiRange(this.worksheet.getRange2(sRange));
-		if (range && range.range.isOneCell() && sAddress) {
-			var externalLink = AscCommon.rx_allowedProtocols.test(sAddress);
+		var address;
+		if ( range && range.range.isOneCell() && (sAddress || subAddress) ) {
+			var externalLink = sAddress ? AscCommon.rx_allowedProtocols.test(sAddress) : false;
 			if (externalLink && AscCommonExcel.getFullHyperlinkLength(sAddress) > Asc.c_nMaxHyperlinkLength) {
-				return null;
+				return new Error('Incorrect "sAddress".');
 			}
-
+			if (!externalLink) {
+				address = subAddress.split("!");
+				if (address.length == 1) 
+					address.unshift(this.GetName());
+				else if (this.worksheet.workbook.getWorksheetByName(address[0]) === null)
+					return new Error('Invalid "subAddress".')
+				
+				var res = this.worksheet.workbook.oApi.asc_checkDataRange(Asc.c_oAscSelectionDialogType.FormatTable, address[1], false);
+				if (res === Asc.c_oAscError.ID.DataRangeError) {
+					return new Error('Invalid "subAddress".');
+				}
+			}
 			this.worksheet.selectionRange.assign2(range.range.bbox);
 			var  Hyperlink = new Asc.asc_CHyperlink();
 			if (sScreenTip) {
 				Hyperlink.asc_setText(sScreenTip);
 			} else {
-				Hyperlink.asc_setText(sAddress);
+				Hyperlink.asc_setText( (externalLink ? sAddress : subAddress) );
 			}
 			if (sTextToDisplay) {
 				Hyperlink.asc_setTooltip(sTextToDisplay);
@@ -1431,8 +1444,8 @@
 			if (externalLink) {
 				Hyperlink.asc_setHyperlinkUrl(sAddress);
 			} else {
-				Hyperlink.asc_setRange(sAddress);
-				Hyperlink.asc_setSheet(this.GetName());
+				Hyperlink.asc_setRange(address[1]);
+				Hyperlink.asc_setSheet(address[0]);
 			}
 			this.worksheet.workbook.oApi.wb.insertHyperlink(Hyperlink);
 		}
