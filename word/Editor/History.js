@@ -139,11 +139,17 @@ CHistory.prototype =
 			);
 
 			var Binary_Pos = this.BinaryWriter.GetCurPosition();
-			this.BinaryWriter.WriteWithLen(this, function(){
+			if ((Asc.editor || editor).binaryChanges) {
+				this.BinaryWriter.WriteWithLen(this, function(){
+					this.BinaryWriter.WriteString2(Class.Get_Id());
+					this.BinaryWriter.WriteLong(Data.Type);
+					Data.WriteToBinary(this.BinaryWriter);
+				});
+			} else {
 				this.BinaryWriter.WriteString2(Class.Get_Id());
 				this.BinaryWriter.WriteLong(Data.Type);
 				Data.WriteToBinary(this.BinaryWriter);
-			});
+			}
 
 			var Binary_Len = this.BinaryWriter.GetCurPosition() - Binary_Pos;
 
