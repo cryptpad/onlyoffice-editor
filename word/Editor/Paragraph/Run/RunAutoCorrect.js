@@ -817,7 +817,9 @@
 			// Проверяем исключения
 			if (1 === oRunElements.Elements.length && oDocument.IsDocumentEditor())
 			{
-				var nExceptionMaxLen = oDocument.GetFirstLetterAutoCorrectExceptionsMaxLen() + 1;
+				let autoCorrectSettings = oDocument.GetAutoCorrectSettings();
+
+				var nExceptionMaxLen = autoCorrectSettings.GetFirstLetterExceptionsMaxLen() + 1;
 				var oDotContentPos   = oRunElements.GetContentPositions()[0];
 				oRunElements         = new CParagraphRunElements(oDotContentPos, nExceptionMaxLen, null, false);
 				oParagraph.GetPrevRunElements(oRunElements);
@@ -834,7 +836,7 @@
 					sCheckException = String.fromCharCode(oElement.Value) + sCheckException;
 				}
 
-				if (oDocument.CheckFirstLetterAutoCorrectException(sCheckException))
+				if (autoCorrectSettings.CheckFirstLetterException(sCheckException))
 					return false;
 			}
 		}

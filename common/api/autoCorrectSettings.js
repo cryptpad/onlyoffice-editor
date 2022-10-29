@@ -221,7 +221,7 @@
 		}
 		return arrResult;
 	};
-	CAutoCorrectSettings.prototype.CheckFirstLetterAutoCorrectException = function(sWord)
+	CAutoCorrectSettings.prototype.CheckFirstLetterException = function(sWord)
 	{
 		var _sWord = sWord.toLowerCase();
 
@@ -238,7 +238,7 @@
 
 		return false;
 	};
-	CAutoCorrectSettings.prototype.GetFirstLetterAutoCorrectExceptionsMaxLen = function()
+	CAutoCorrectSettings.prototype.GetFirstLetterExceptionsMaxLen = function()
 	{
 		return this.FirstLetterExcMaxLen;
 	};
