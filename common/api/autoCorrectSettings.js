@@ -130,11 +130,11 @@
 	};
 	CAutoCorrectSettings.prototype.CheckFirstLetterException = function(word, lang)
 	{
-		return this.FirstLetterException.Check(word, lang);
+		return this.FirstLetterExceptions.Check(word, lang);
 	};
 	CAutoCorrectSettings.prototype.GetFirstLetterExceptionsMaxLen = function()
 	{
-		return this.FirstLetterException.GetMaxLen();
+		return this.FirstLetterExceptions.GetMaxLen();
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
