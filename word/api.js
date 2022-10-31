@@ -11716,6 +11716,14 @@ background-repeat: no-repeat;\
 		let exceptionManager = oLogicDocument.GetAutoCorrectSettings().GetFirstLetterExceptionManager();
 		return exceptionManager.GetExceptions(lang);
 	};
+	asc_docs_api.prototype.asc_GetAutoCorrectSettings = function()
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return null;
+
+		return logicDocument.GetAutoCorrectSettings();
+	};
 
 	asc_docs_api.prototype.asc_RemoveSelection = function()
 	{
@@ -13703,6 +13711,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
 	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;
+	asc_docs_api.prototype['asc_GetAutoCorrectSettings']                = asc_docs_api.prototype.asc_GetAutoCorrectSettings;
 
 	asc_docs_api.prototype['asc_RemoveSelection']                       = asc_docs_api.prototype.asc_RemoveSelection;
 	asc_docs_api.prototype['asc_AddText']                               = asc_docs_api.prototype.asc_AddText;

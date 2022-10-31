@@ -8018,6 +8018,14 @@ background-repeat: no-repeat;\
 		let exceptionsManager = oLogicDocument.GetAutoCorrectSettings().GetFirstLetterExceptionManager();
 		return exceptionsManager.GetExceptions(lang);
 	};
+	asc_docs_api.prototype.asc_GetAutoCorrectSettings = function()
+	{
+		let logicDocument = this.WordControl.m_oLogicDocument;
+		if (!logicDocument)
+			return [];
+
+		return logicDocument.GetAutoCorrectSettings();
+	};
 
 	asc_docs_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr)
 	{
@@ -9057,7 +9065,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
 	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;
-
+	asc_docs_api.prototype['asc_GetAutoCorrectSettings']                = asc_docs_api.prototype.asc_GetAutoCorrectSettings;
 
 	asc_docs_api.prototype["asc_GetSelectedText"]                 = asc_docs_api.prototype.asc_GetSelectedText;
 
