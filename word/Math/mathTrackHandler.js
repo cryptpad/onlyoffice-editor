@@ -170,11 +170,11 @@
 	};
 	CMathTrackHandler.prototype.OnHide = function()
 	{
-		this.EventHandler.sendEvent("asc_oHideMathTrack");
+		this.EventHandler.sendEvent("asc_onHideMathTrack");
 	};
 	CMathTrackHandler.prototype.OnShow = function(bounds)
 	{
-		this.EventHandler.sendEvent("asc_oShowMathTrack", bounds);
+		this.EventHandler.sendEvent("asc_onShowMathTrack", bounds);
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
