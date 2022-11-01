@@ -316,8 +316,8 @@ function PivotDataLocation(ws, bbox, headings) {
 }
 PivotDataLocation.prototype.isEqual = function (val) {
 	var res = val && this.ws === val.ws
-		&& (!this.bbox && !val.bbox) || (this.bbox && val.bbox && this.bbox.isEqual(val.bbox))
-		&& (!this.headings && !val.headings) || (this.headings && val.headings && AscCommon.isEqualSortedArrays(this.headings, val.headings));
+		&& ((!this.bbox && !val.bbox) || (this.bbox && val.bbox && this.bbox.isEqual(val.bbox)))
+		&& ((!this.headings && !val.headings) || (this.headings && val.headings && AscCommon.isEqualSortedArrays(this.headings, val.headings)));
 	return !!res;
 }
 function setTableProperty(pivot, oldVal, newVal, addToHistory, historyType, changeData) {
@@ -1795,7 +1795,7 @@ CT_PivotCacheDefinition.prototype.setPivotCacheId = function(val) {
 	this.pivotCacheDefinitionX14.pivotCacheId = val;
 };
 CT_PivotCacheDefinition.prototype.createNewPivotCacheId = function() {
-	this.setPivotCacheId(AscCommon.CreateUInt32());
+	this.setPivotCacheId(AscCommon.CreateDurableId());
 };
 CT_PivotCacheDefinition.prototype.getSlicerCaption = function () {
 	var res = [];
@@ -2443,6 +2443,7 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 		var maxValue = Number.NEGATIVE_INFINITY, maxDate = Number.NEGATIVE_INFINITY;
 		var minValue = Number.POSITIVE_INFINITY, minDate = Number.POSITIVE_INFINITY;
 		var records = new PivotRecords();
+		let stringCaseMap = new Map();
 		var lastRow, lastRowWithText;
 		lastRow = lastRowWithText = firstRow - 1;
 		ws.getRange3(lastRow + 1, bbox.c1 + i, bbox.r2, bbox.c1 + i)._foreachNoEmptyByCol(function(cell) {
@@ -2479,7 +2480,13 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 						break;
 					case AscCommon.CellValueType.String:
 						var text = cell.getValueWithoutFormat();
-						records.addString(text);
+						let textLower = text.toLowerCase();
+						let textWithCase = stringCaseMap.get(textLower);
+						if (!textWithCase) {
+							textWithCase = text;
+							stringCaseMap.set(textLower, textWithCase);
+						}
+						records.addString(textWithCase);
 						if (text.length > 255) {
 							si.longText = true;
 						}
@@ -5293,6 +5300,13 @@ CT_pivotTableDefinition.prototype.moveField = function(arr, from, to, addToHisto
 	}
 	return false;
 };
+CT_pivotTableDefinition.prototype.checkRefresh = function() {
+	let dataRef = this.asc_getDataRef();
+	return Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef) ? c_oAscError.ID.No : c_oAscError.ID.PivotLabledColumns;
+};
+CT_pivotTableDefinition.prototype.refresh = function() {
+	this.updateCacheData(this.asc_getDataRef());
+};
 CT_pivotTableDefinition.prototype.asc_refresh = function(api) {
 	var dataRef = this.asc_getDataRef();
 	if (Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef)) {
@@ -5784,7 +5798,7 @@ CT_pivotTableDefinition.prototype.filterByFieldIndex = function (api, autoFilter
 		}
 		api.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
-		api._changePivotEndCheckError(t, changeRes, function () {
+		api._changePivotEndCheckError(changeRes, function () {
 			var pivot = api.wbModel.getPivotTableById(t.Get_Id());
 			if (pivot) {
 				pivot.filterByFieldIndex(api, autoFilterObject, fld, true);
@@ -5919,7 +5933,7 @@ CT_pivotTableDefinition.prototype.removeFiltersWithLock = function(api, flds, co
 		}
 		api.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
-		api._changePivotEndCheckError(t, changeRes, function() {
+		api._changePivotEndCheckError(changeRes, function() {
 			var pivot = api.wbModel.getPivotTableById(t.Get_Id());
 			if (pivot) {
 				pivot.removeFiltersWithLock(api, flds, true);
@@ -15025,6 +15039,7 @@ function PivotRecords() {
 	this.startCount = 0;
 
 //inner
+	this.stringMap = new Map();
 	this._curBoolean = new CT_Boolean();
 	this._curDateTime = new CT_DateTime();
 	this._curError = new CT_Error();
@@ -15166,8 +15181,15 @@ PivotRecords.prototype.addMissing = function(count, addition) {
 PivotRecords.prototype.addNumber = function(val, addition) {
 	this._add(c_oAscPivotRecType.Number, val, addition);
 };
+PivotRecords.prototype._addString = function(val) {
+	let valLower = val.toLowerCase();
+	this.stringMap.get(valLower);
+	this.stringMap.set(valLower, {});
+};
 PivotRecords.prototype.addString = function(val, addition) {
 	//todo don't use global editor
+
+	//AscFonts.FontPickerByCharacter.getFontsByString(text);
 	val = window["Asc"]["editor"].wbModel.sharedStrings.addText(val);
 	this._add(c_oAscPivotRecType.String, val, addition);
 };
@@ -15931,3 +15953,10 @@ window["Asc"]["CT_WorksheetSource"] = window['Asc'].CT_WorksheetSource = CT_Work
 window["Asc"]["PivotLayoutType"] = window['Asc'].PivotLayoutType = PivotLayoutType;
 window["Asc"]["PivotLayout"] = window['Asc'].PivotLayout = PivotLayout;
 window["Asc"]["PivotLayoutCell"] = window['Asc'].PivotLayoutCell = PivotLayoutCell;
+window["Asc"]["PivotRecords"] = window['Asc'].PivotRecords = PivotRecords;
+
+window["Asc"]["c_oAscAllocationMethod"] = window['Asc'].c_oAscAllocationMethod = c_oAscAllocationMethod;
+window["Asc"]["c_oAscPivotRecType"] = window['Asc'].c_oAscPivotRecType = c_oAscPivotRecType;
+
+
+

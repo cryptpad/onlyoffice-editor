@@ -1245,6 +1245,15 @@
 			case AscDFH.historydescription_Document_FillFormInPlugin:
 				sString = "Document_FillFormInPlugin";
 				break;
+			case AscDFH.historydescription_Document_AddComplexForm:
+				sString = "Document_AddComplexForm";
+				break;
+			case AscDFH.historydescription_Document_CorrectFormTextByFormat:
+				sString = "Document_CorrectFormTextByFormat";
+				break;
+			case AscDFH.historydescription_Document_CorrectEnterText:
+				sString = "Document_CorrectEnterText";
+				break;
 		}
 		return sString;
 	}
@@ -1659,6 +1668,14 @@
 	window['AscDFH'].historyitem_type_VMLShapeType           = 2109 << 16;
 	window['AscDFH'].historyitem_type_VMLClientData          = 2110 << 16;
 
+	window['AscDFH'].historyitem_type_OleSizeSelection       = 2111 << 16;
+	window['AscDFH'].historyitem_type_ViewPr                 = 2112 << 16;
+	window['AscDFH'].historyitem_type_CommonViewPr           = 2113 << 16;
+	window['AscDFH'].historyitem_type_CSldViewPr             = 2114 << 16;
+	window['AscDFH'].historyitem_type_CViewPr                = 2115 << 16;
+	window['AscDFH'].historyitem_type_ViewPrScale            = 2116 << 16;
+	window['AscDFH'].historyitem_type_ViewPrGuide            = 2117 << 16;
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1934,6 +1951,7 @@
 	window['AscDFH'].historyitem_Style_UnhideWhenUsed  = window['AscDFH'].historyitem_type_Style | 109;
 	window['AscDFH'].historyitem_Style_Link            = window['AscDFH'].historyitem_type_Style | 110;
 	window['AscDFH'].historyitem_Style_Custom          = window['AscDFH'].historyitem_type_Style | 111;
+	window['AscDFH'].historyitem_Style_StyleId         = window['AscDFH'].historyitem_type_Style | 112;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CStyles
 	//------------------------------------------------------------------------------------------------------------------
@@ -2235,6 +2253,7 @@
 	window["AscDFH"].historyitem_Presentation_SetFirstSlideNum            = window["AscDFH"].historyitem_type_Presentation | 11;
 	window["AscDFH"].historyitem_Presentation_SetShowSpecialPlsOnTitleSld = window["AscDFH"].historyitem_type_Presentation | 12;
 	window['AscDFH'].historyitem_Presentation_RemoveSlideMaster           = window['AscDFH'].historyitem_type_Presentation | 13;
+	window['AscDFH'].historyitem_Presentation_ViewPr                      = window['AscDFH'].historyitem_type_Presentation | 14;
 
 	window['AscDFH'].historyitem_ColorMod_SetName = window['AscDFH'].historyitem_type_ColorMod | 1;
 	window['AscDFH'].historyitem_ColorMod_SetVal  = window['AscDFH'].historyitem_type_ColorMod | 2;
@@ -2859,6 +2878,8 @@
 	window['AscDFH'].historyitem_ShapeSetClientData             = window['AscDFH'].historyitem_type_Shape | 18;
 	window['AscDFH'].historyitem_ShapeSetShapeSmartArtPointInfo = window['AscDFH'].historyitem_type_Shape | 19;
 
+	window['AscDFH'].historyitem_OleSizeSelectionSetRange = window['AscDFH'].historyitem_type_OleSizeSelection | 1;
+
 	window['AscDFH'].historyitem_DispUnitsSetBuiltInUnit  = window['AscDFH'].historyitem_type_DispUnits | 1;
 	window['AscDFH'].historyitem_DispUnitsSetCustUnit     = window['AscDFH'].historyitem_type_DispUnits | 2;
 	window['AscDFH'].historyitem_DispUnitsSetDispUnitsLbl = window['AscDFH'].historyitem_type_DispUnits | 3;
@@ -2871,20 +2892,24 @@
 	window['AscDFH'].historyitem_GroupShapeSetGroup         = window['AscDFH'].historyitem_type_GroupShape | 5;
 	window['AscDFH'].historyitem_GroupShapeRemoveFromSpTree = window['AscDFH'].historyitem_type_GroupShape | 6;
 
-	window['AscDFH'].historyitem_ImageShapeSetNvPicPr       = window['AscDFH'].historyitem_type_ImageShape | 1;
-	window['AscDFH'].historyitem_ImageShapeSetSpPr          = window['AscDFH'].historyitem_type_ImageShape | 2;
-	window['AscDFH'].historyitem_ImageShapeSetBlipFill      = window['AscDFH'].historyitem_type_ImageShape | 3;
-	window['AscDFH'].historyitem_ImageShapeSetParent        = window['AscDFH'].historyitem_type_ImageShape | 4;
-	window['AscDFH'].historyitem_ImageShapeSetGroup         = window['AscDFH'].historyitem_type_ImageShape | 5;
-	window['AscDFH'].historyitem_ImageShapeSetStyle         = window['AscDFH'].historyitem_type_ImageShape | 6;
-	window['AscDFH'].historyitem_ImageShapeSetData          = window['AscDFH'].historyitem_type_ImageShape | 7;
-	window['AscDFH'].historyitem_ImageShapeSetApplicationId = window['AscDFH'].historyitem_type_ImageShape | 8;
-	window['AscDFH'].historyitem_ImageShapeSetPixSizes      = window['AscDFH'].historyitem_type_ImageShape | 9;
-	window['AscDFH'].historyitem_ImageShapeSetObjectFile	= window['AscDFH'].historyitem_type_ImageShape | 10;
-	window['AscDFH'].historyitem_ImageShapeSetOleType   	= window['AscDFH'].historyitem_type_ImageShape | 11;
-	window['AscDFH'].historyitem_ImageShapeSetBinaryData   	= window['AscDFH'].historyitem_type_ImageShape | 12;
-	window['AscDFH'].historyitem_ImageShapeSetMathObject   	= window['AscDFH'].historyitem_type_ImageShape | 13;
-	window['AscDFH'].historyitem_ImageShapeSetDataLink   	= window['AscDFH'].historyitem_type_ImageShape | 14;
+	window['AscDFH'].historyitem_ImageShapeSetNvPicPr            = window['AscDFH'].historyitem_type_ImageShape | 1;
+	window['AscDFH'].historyitem_ImageShapeSetSpPr               = window['AscDFH'].historyitem_type_ImageShape | 2;
+	window['AscDFH'].historyitem_ImageShapeSetBlipFill           = window['AscDFH'].historyitem_type_ImageShape | 3;
+	window['AscDFH'].historyitem_ImageShapeSetParent             = window['AscDFH'].historyitem_type_ImageShape | 4;
+	window['AscDFH'].historyitem_ImageShapeSetGroup              = window['AscDFH'].historyitem_type_ImageShape | 5;
+	window['AscDFH'].historyitem_ImageShapeSetStyle              = window['AscDFH'].historyitem_type_ImageShape | 6;
+	window['AscDFH'].historyitem_ImageShapeSetData               = window['AscDFH'].historyitem_type_ImageShape | 7;
+	window['AscDFH'].historyitem_ImageShapeSetApplicationId      = window['AscDFH'].historyitem_type_ImageShape | 8;
+	window['AscDFH'].historyitem_ImageShapeSetPixSizes           = window['AscDFH'].historyitem_type_ImageShape | 9;
+	window['AscDFH'].historyitem_ImageShapeSetObjectFile	     = window['AscDFH'].historyitem_type_ImageShape | 10;
+	window['AscDFH'].historyitem_ImageShapeSetOleType   	     = window['AscDFH'].historyitem_type_ImageShape | 11;
+	window['AscDFH'].historyitem_ImageShapeSetStartBinaryData    = window['AscDFH'].historyitem_type_ImageShape | 12;
+	window['AscDFH'].historyitem_ImageShapeSetPartBinaryData     = window['AscDFH'].historyitem_type_ImageShape | 13;
+	window['AscDFH'].historyitem_ImageShapeSetEndBinaryData      = window['AscDFH'].historyitem_type_ImageShape | 14;
+	window['AscDFH'].historyitem_ImageShapeSetMathObject         = window['AscDFH'].historyitem_type_ImageShape | 15;
+	window['AscDFH'].historyitem_ImageShapeSetDataLink           = window['AscDFH'].historyitem_type_ImageShape | 16;
+	window['AscDFH'].historyitem_ImageShapeSetDrawAspect         = window['AscDFH'].historyitem_type_ImageShape | 17;
+	window['AscDFH'].historyitem_ImageShapeLoadImagesfromContent = window['AscDFH'].historyitem_type_ImageShape | 18;
 
 	window['AscDFH'].historyitem_GeometrySetParent      = window['AscDFH'].historyitem_type_Geometry | 1;
 	window['AscDFH'].historyitem_GeometryAddAdj         = window['AscDFH'].historyitem_type_Geometry | 2;
@@ -3115,6 +3140,7 @@
     window['AscDFH'].historyitem_NotesMasterSetBg          = window['AscDFH'].historyitem_type_NotesMaster | 6;
     window['AscDFH'].historyitem_NotesMasterAddToNotesLst  = window['AscDFH'].historyitem_type_NotesMaster | 7;
     window['AscDFH'].historyitem_NotesMasterSetName        = window['AscDFH'].historyitem_type_NotesMaster | 8;
+    window['AscDFH'].historyitem_NotesMasterSetClrMap      = window['AscDFH'].historyitem_type_NotesMaster | 9;
 
 
     window['AscDFH'].historyitem_NotesSetClrMap           = window['AscDFH'].historyitem_type_Notes | 1;
@@ -3891,6 +3917,29 @@
 	AscDFH.historyitem_CCommonDataClrListMeth   = AscDFH.historyitem_type_CCommonDataClrList | 4;
 
 
+	AscDFH.historyitem_ViewPrGridSpacing        = AscDFH.historyitem_type_ViewPr | 1;
+	AscDFH.historyitem_ViewPrSlideViewerPr      = AscDFH.historyitem_type_ViewPr | 2;
+	AscDFH.historyitem_ViewPrLastView           = AscDFH.historyitem_type_ViewPr | 3;
+	AscDFH.historyitem_ViewPrShowComments       = AscDFH.historyitem_type_ViewPr | 4;
+
+	AscDFH.historyitem_CommonViewPrCSldViewPr   = AscDFH.historyitem_type_CommonViewPr | 1;
+
+	AscDFH.historyitem_CSldViewPrCViewPr        = AscDFH.historyitem_type_CSldViewPr | 1;
+	AscDFH.historyitem_CSldViewPrGuideLst       = AscDFH.historyitem_type_CSldViewPr | 2;
+	AscDFH.historyitem_CSldViewPrShowGuides     = AscDFH.historyitem_type_CSldViewPr | 3;
+	AscDFH.historyitem_CSldViewPrSnapToGrid     = AscDFH.historyitem_type_CSldViewPr | 4;
+	AscDFH.historyitem_CSldViewPrSnapToObjects  = AscDFH.historyitem_type_CSldViewPr | 5;
+
+	AscDFH.historyitem_CViewPrOrigin            = AscDFH.historyitem_type_CViewPr | 1;
+	AscDFH.historyitem_CViewPrScale             = AscDFH.historyitem_type_CViewPr | 2;
+
+	AscDFH.historyitem_ViewPrScaleSx             = AscDFH.historyitem_type_ViewPrScale | 1;
+	AscDFH.historyitem_ViewPrScaleSy             = AscDFH.historyitem_type_ViewPrScale | 2;
+
+	AscDFH.historyitem_ViewPrGuideOrient         = AscDFH.historyitem_type_ViewPrGuide | 1;
+	AscDFH.historyitem_ViewPrGuidePos            = AscDFH.historyitem_type_ViewPrGuide | 2;
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -4307,7 +4356,12 @@
 	window['AscDFH'].historydescription_Document_AddParagraphToTOC                  = 0x0192;
 	window['AscDFH'].historydescription_Document_FillFormsByTags                    = 0x0193;
 	window['AscDFH'].historydescription_Document_FillFormInPlugin                   = 0x0194;
-	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0195;
+	window['AscDFH'].historydescription_Document_AddSmartArt                        = 0x0195;
+	window['AscDFH'].historydescription_Document_AddComplexForm                     = 0x0196;
+	window['AscDFH'].historydescription_Document_CorrectFormTextByFormat            = 0x0197;
+	window['AscDFH'].historydescription_Document_CorrectEnterText                   = 0x0198;
+	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0199;
+	window['AscDFH'].historydescription_Document_DocumentProtection                 = 0x019a;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4565,11 +4619,11 @@
 	};
 	CChangesBaseContentChange.prototype.ConvertToSimpleActions = function()
 	{
-		var arrActions = [];
+		let arrActions = [];
 
 		if (this.UseArray)
 		{
-			for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+			for (let nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 			{
 				arrActions.push({
 					Item : this.Items[nIndex],
@@ -4580,8 +4634,8 @@
 		}
 		else
 		{
-			var Pos = this.Pos;
-			for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+			let Pos = this.Pos;
+			for (let nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 			{
 				arrActions.push({
 					Item : this.Items[nIndex],
@@ -4592,6 +4646,20 @@
 		}
 
 		return arrActions;
+	};
+	CChangesBaseContentChange.prototype.ConvertToSimpleChanges = function()
+	{
+		let arrSimpleActions = this.ConvertToSimpleActions();
+		let arrChanges       = [];
+
+		for (let nIndex = 0, nCount = arrSimpleActions.length; nIndex < nCount; ++nIndex)
+		{
+			let oAction = arrSimpleActions[nIndex];
+			let oChange = new this.constructor(this.Class, oAction.Pos, [oAction.Item], oAction.Add);
+			arrChanges.push(oChange);
+		}
+
+		return arrChanges;
 	};
 	CChangesBaseContentChange.prototype.ConvertFromSimpleActions = function(arrActions)
 	{

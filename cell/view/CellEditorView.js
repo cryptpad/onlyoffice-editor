@@ -409,6 +409,10 @@
 			}
 		};
 
+		if (this.isStartCompositeInput()) {
+			this.End_CompositeInput();
+		}
+
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
 			if (0 < this.undoList.length || 0 < AscCommonExcel.getFragmentsCharCodesLength(this.options.fragments)) {
@@ -834,7 +838,7 @@
 		this.undoList = [];
 		this.redoList = [];
 		this.undoMode = false;
-		this.skipKeyPress = false;
+		this._setSkipKeyPress(false);
 
 		this.updateWizardMode(false);
 	};
@@ -1548,17 +1552,18 @@
 
 	CellEditor.prototype._updateCursorPosition = function (redrawText) {
 		// ToDo стоит переправить данную функцию
-		var h = this.canvas.height;
-		var y = -this.textRender.calcLineOffset(this.topLineIndex);
-		var cur = this.textRender.calcCharOffset(this.cursorPos);
-		var charsCount = this.textRender.getCharsCount();
-		var curLeft = asc_round(
-			((AscCommon.align_Right !== this.textFlags.textAlign || this.cursorPos !== charsCount) && cur !== null &&
+		let h = this.canvas.height;
+		let y = -this.textRender.calcLineOffset(this.topLineIndex);
+		let cur = this.textRender.calcCharOffset(this.cursorPos);
+		let charsCount = this.textRender.getCharsCount();
+		let textAlign = this.textFlags && this.textFlags.textAlign;
+		let curLeft = asc_round(
+			((AscCommon.align_Right !== textAlign || this.cursorPos !== charsCount) && cur !== null &&
 			cur.left !== null ? cur.left : this._getContentPosition()) * this.kx);
-		var curTop = asc_round(((cur !== null ? cur.top : 0) + y) * this.ky);
-		var curHeight = asc_round((cur !== null ? cur.height : this._getContentHeight()) * this.ky);
-		var i, dy, nCount = this.textRender.getLinesCount();
-		var zoom = this.getZoom();
+		let curTop = asc_round(((cur !== null ? cur.top : 0) + y) * this.ky);
+		let curHeight = asc_round((cur !== null ? cur.height : this._getContentHeight()) * this.ky);
+		let i, dy, nCount = this.textRender.getLinesCount();
+		let zoom = this.getZoom();
 
 		while (1 < nCount) {
 			if (curTop + curHeight - 1 > h) {
@@ -1620,7 +1625,7 @@
 			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop, curHeight );
 		}
 
-		//var fCurrent = this._getEditableFunction(null, true);
+		//let fCurrent = this._getEditableFunction(null, true);
 		//console.log("func: " + fCurrent.func + " arg: " + fCurrent.argPos);
 		this._updateSelectionInfo();
 	};
@@ -2333,7 +2338,7 @@
 			t.lastKeyCode = event.which;
 		}
 
-		t.skipKeyPress = true;
+		t._setSkipKeyPress(true);
 		t.skipTLUpdate = false;
 
 		// определение ввода иероглифов
@@ -2402,87 +2407,13 @@
 				t._removeChars(ctrlKey ? kPrevWord : kPrevChar);
 				return false;
 
-			case 46:  // "del"
-				if (!this.enableKeyEvents || event.shiftKey) {
-					break;
-				}
+			case 32:  // "space"
 
-				if (hieroglyph) {
-					t._syncEditors();
-				}
+				t._addChars(String.fromCharCode(32));
 				event.stopPropagation();
 				event.preventDefault();
-				t._removeChars(ctrlKey ? kNextWord : kNextChar);
-				return true;
 
-			case 37:  // "left"
-				if (!this.enableKeyEvents) {
-					this._delayedUpdateCursorByTopLine();
-					break;
-				}
-
-				event.stopPropagation();
-				event.preventDefault();
-				if (!t.hasFocus) {
-					break;
-				}
-				if (hieroglyph) {
-					t._syncEditors();
-				}
-				kind = ctrlKey ? kPrevWord : kPrevChar;
-				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
-				return false;
-
-			case 39:  // "right"
-				if (!this.enableKeyEvents) {
-					this._delayedUpdateCursorByTopLine();
-					break;
-				}
-
-				event.stopPropagation();
-				event.preventDefault();
-				if (!t.hasFocus) {
-					break;
-				}
-				if (hieroglyph) {
-					t._syncEditors();
-				}
-				kind = ctrlKey ? kNextWord : kNextChar;
-				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
-				return false;
-
-			case 38:  // "up"
-				if (!this.enableKeyEvents) {
-					this._delayedUpdateCursorByTopLine();
-					break;
-				}
-
-				event.stopPropagation();
-				event.preventDefault();
-				if (!t.hasFocus) {
-					break;
-				}
-				if (hieroglyph) {
-					t._syncEditors();
-				}
-				event.shiftKey ? t._selectChars(kPrevLine) : t._moveCursor(kPrevLine);
-				return false;
-
-			case 40:  // "down"
-				if (!this.enableKeyEvents) {
-					this._delayedUpdateCursorByTopLine();
-					break;
-				}
-
-				event.stopPropagation();
-				event.preventDefault();
-				if (!t.hasFocus) {
-					break;
-				}
-				if (hieroglyph) {
-					t._syncEditors();
-				}
-				event.shiftKey ? t._selectChars(kNextLine) : t._moveCursor(kNextLine);
+				t._setSkipKeyPress(false);
 				return false;
 
 			case 35:  // "end"
@@ -2520,6 +2451,89 @@
 				kind = ctrlKey ? kBeginOfText : kBeginOfLine;
 				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
 				return false;
+
+			case 37:  // "left"
+				if (!this.enableKeyEvents) {
+					this._delayedUpdateCursorByTopLine();
+					break;
+				}
+
+				event.stopPropagation();
+				event.preventDefault();
+				if (!t.hasFocus) {
+					break;
+				}
+				if (hieroglyph) {
+					t._syncEditors();
+				}
+				kind = ctrlKey ? kPrevWord : kPrevChar;
+				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
+				return false;
+
+			case 38:  // "up"
+				if (!this.enableKeyEvents) {
+					this._delayedUpdateCursorByTopLine();
+					break;
+				}
+
+				event.stopPropagation();
+				event.preventDefault();
+				if (!t.hasFocus) {
+					break;
+				}
+				if (hieroglyph) {
+					t._syncEditors();
+				}
+				event.shiftKey ? t._selectChars(kPrevLine) : t._moveCursor(kPrevLine);
+				return false;
+
+			case 39:  // "right"
+				if (!this.enableKeyEvents) {
+					this._delayedUpdateCursorByTopLine();
+					break;
+				}
+
+				event.stopPropagation();
+				event.preventDefault();
+				if (!t.hasFocus) {
+					break;
+				}
+				if (hieroglyph) {
+					t._syncEditors();
+				}
+				kind = ctrlKey ? kNextWord : kNextChar;
+				event.shiftKey ? t._selectChars(kind) : t._moveCursor(kind);
+				return false;
+
+			case 40:  // "down"
+				if (!this.enableKeyEvents) {
+					this._delayedUpdateCursorByTopLine();
+					break;
+				}
+
+				event.stopPropagation();
+				event.preventDefault();
+				if (!t.hasFocus) {
+					break;
+				}
+				if (hieroglyph) {
+					t._syncEditors();
+				}
+				event.shiftKey ? t._selectChars(kNextLine) : t._moveCursor(kNextLine);
+				return false;
+
+			case 46:  // "del"
+				if (!this.enableKeyEvents || event.shiftKey) {
+					break;
+				}
+
+				if (hieroglyph) {
+					t._syncEditors();
+				}
+				event.stopPropagation();
+				event.preventDefault();
+				t._removeChars(ctrlKey ? kNextWord : kNextChar);
+				return true;
 
 			case 53: // 5
 				if (ctrlKey) {
@@ -2651,11 +2665,11 @@
 					event.stopPropagation();
 					event.preventDefault();
 				}
-				t.skipKeyPress = false;
+				t._setSkipKeyPress(false);
 				return false;
 		}
 
-		t.skipKeyPress = false;
+		t._setSkipKeyPress(false);
 		t.skipTLUpdate = true;
 		return true;
 	};
@@ -2665,25 +2679,54 @@
 		var t = this;
 
 		if (!window['IS_NATIVE_EDITOR']) {
+			if (event.which < 32 || t.skipKeyPress) {
+				t._setSkipKeyPress(true);
+				return true;
+			}
+		}
 
+		let Code;
+		if (null != event.which) {
+			Code = event.which;
+		} else if (event.KeyCode) {
+			Code = event.KeyCode;
+		} else {
+			Code = 0;
+		}
+
+		return this.EnterText(Code);
+	};
+
+	CellEditor.prototype.EnterText = function (codePoints) {
+		var t = this;
+
+		if (!window['IS_NATIVE_EDITOR']) {
 			if (!t.isOpened || !t.enableKeyEvents || this.handlers.trigger('getWizard')) {
 				return true;
 			}
-
-			if (t.skipKeyPress || event.which < 32) {
-				t.skipKeyPress = true;
-				return true;
-			}
-
 			// определение ввода иероглифов
 			if (t.isTopLineActive && AscCommonExcel.getFragmentsLength(t.options.fragments) !== t.input.value.length) {
 				t._syncEditors();
 			}
 		}
 
+		t._setSkipKeyPress(false);
+
+		//TODO перевод из кода в символы!
+		var newChar;
+		if(Array.isArray(codePoints)) {
+			for(let nIdx = 0; nIdx < codePoints.length; ++nIdx) {
+				newChar = String.fromCharCode(codePoints[nIdx]);
+				t._addChars(newChar);
+			}
+		}
+		else {
+			newChar = String.fromCharCode(codePoints);
+			t._addChars(newChar);
+		}
+
+		//TODO в случае добавляения массива - првоерить - возможно часть нужно вызывать каждый раз после _addChars
 		var tmpCursorPos;
-		var newChar = String.fromCharCode(event.which);
-		t._addChars(newChar);
 		// При первом быстром вводе стоит добавить в конце проценты (для процентного формата и только для числа)
 		if (t.options.isAddPersentFormat && AscCommon.isNumber(newChar)) {
 			t.options.isAddPersentFormat = false;
@@ -2929,6 +2972,9 @@
 		this._cleanSelection();
 		this._drawSelection();
 	};
+	CellEditor.prototype.isStartCompositeInput = function () {
+		return this.beginCompositePos !== -1 && this.compositeLength !== 0;
+	};
 	CellEditor.prototype.Set_CursorPosInCompositeText = function (nPos) {
 		if (-1 !== this.beginCompositePos) {
 			nPos = Math.min(nPos, this.compositeLength);
@@ -2951,6 +2997,9 @@
 		this._moveCursor(kBeginOfText);
 		this._selectChars(kEndOfText);
 		this.skipTLUpdate = tmp;
+	};
+	CellEditor.prototype._setSkipKeyPress = function (val) {
+		this.skipKeyPress = val;
 	};
 
 

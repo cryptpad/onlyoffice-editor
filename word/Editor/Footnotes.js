@@ -729,7 +729,7 @@ CFootnotesController.prototype.IsUseInDocument = function(sFootnoteId, arrFootno
  * @param oFootnote
  * return {boolean}
  */
-CFootnotesController.prototype.Is_ThisElementCurrent = function(oFootnote)
+CFootnotesController.prototype.IsThisElementCurrent = function(oFootnote)
 {
 	if (oFootnote === this.CurFootnote && docpostype_Footnotes === this.LogicDocument.GetDocPosType())
 		return true;
@@ -1468,12 +1468,12 @@ CFootnotesController.prototype.AddSignatureLine = function(oSignatureDrawing)
 
 	return this.CurFootnote.AddSignatureLine(oSignatureDrawing);
 };
-CFootnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+CFootnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
 	if (false === this.private_CheckFootnotesSelectionBeforeAction())
 		return false;
 
-	return this.CurFootnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+	return this.CurFootnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
 CFootnotesController.prototype.EditChart = function(Chart)
 {

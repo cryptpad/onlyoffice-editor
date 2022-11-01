@@ -204,6 +204,8 @@ CWordCollaborativeEditing.prototype.Release_Locks = function()
                 editor.sync_UnLockDocumentSchema();
             else if (this.m_aNeedUnlock[Index] instanceof AscCommon.CCore)
                 editor.sendEvent("asc_onLockCore", false);
+            else if (this.m_aNeedUnlock[Index] instanceof AscCommonWord.CDocProtect)
+                editor.sendEvent("asc_onLockDocumentProtection", false);
         }
         else if (AscCommon.locktype_Other3 === CurLockType)
         {
@@ -460,7 +462,7 @@ CWordCollaborativeEditing.prototype.Update_ForeignCursorPosition = function(User
         DrawingDocument.Collaborative_RemoveTarget(UserId);
         return;
     }
-    ParaContentPos.Update(InRunPos, ParaContentPos.Get_Depth() + 1);
+    ParaContentPos.Update(InRunPos, ParaContentPos.GetDepth() + 1);
 
     var XY = Paragraph.Get_XYByContentPos(ParaContentPos);
     if (XY && XY.Height > 0.001)

@@ -228,7 +228,7 @@ CEndnotesController.prototype.IsUseInDocument = function(sEndnoteId, arrEndnotes
  * @param oEndnote
  * return {boolean}
  */
-CEndnotesController.prototype.Is_ThisElementCurrent = function(oEndnote)
+CEndnotesController.prototype.IsThisElementCurrent = function(oEndnote)
 {
 	if (oEndnote === this.CurEndnote && docpostype_Endnotes === this.LogicDocument.GetDocPosType())
 		return true;
@@ -1474,12 +1474,12 @@ CEndnotesController.prototype.AddImages = function(aImages)
 
 	return this.CurEndnote.AddImages(aImages);
 };
-CEndnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+CEndnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
 	if (false === this.private_CheckEndnotesSelectionBeforeAction())
 		return false;
 
-	return this.CurEndnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+	return this.CurEndnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
 CEndnotesController.prototype.AddTextArt = function(nStyle)
 {

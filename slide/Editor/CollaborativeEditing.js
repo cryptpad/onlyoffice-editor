@@ -529,9 +529,17 @@ CCollaborativeEditing.prototype.RewritePosExtChanges = function(changesArr, scal
         data.Old *= scale;
         var Binary_Writer = AscCommon.History.BinaryWriter;
         var Binary_Pos    = Binary_Writer.GetCurPosition();
-        Binary_Writer.WriteString2(changes.Class.Get_Id());
-        Binary_Writer.WriteLong(changes.Data.Type);
-        changes.Data.WriteToBinary(Binary_Writer);
+		if ((Asc.editor || editor).binaryChanges) {
+			Binary_Writer.WriteWithLen(this, function () {
+				Binary_Writer.WriteString2(changes.Class.Get_Id());
+				Binary_Writer.WriteLong(changes.Data.Type);
+				changes.Data.WriteToBinary(Binary_Writer);
+			});
+		} else {
+			Binary_Writer.WriteString2(changes.Class.Get_Id());
+			Binary_Writer.WriteLong(changes.Data.Type);
+			changes.Data.WriteToBinary(Binary_Writer);
+		}
 
         var Binary_Len = Binary_Writer.GetCurPosition() - Binary_Pos;
 
@@ -613,7 +621,7 @@ CCollaborativeEditing.prototype.Update_ForeignCursorPosition = function(UserId, 
         DrawingDocument.Collaborative_RemoveTarget(UserId);
         return;
     }
-    ParaContentPos.Update(InRunPos, ParaContentPos.Get_Depth() + 1);
+    ParaContentPos.Update(InRunPos, ParaContentPos.GetDepth() + 1);
     var XY = Paragraph.Get_XYByContentPos(ParaContentPos);
     if (XY && XY.Height > 0.001){
         var ShortId = this.m_aForeignCursorsId[UserId] ? this.m_aForeignCursorsId[UserId] : UserId;

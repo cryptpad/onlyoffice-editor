@@ -130,6 +130,10 @@
 	{
 		return this.Id;
 	};
+	CTableId.prototype.GetId = function()
+	{
+		return this.Id;
+	};
 	CTableId.prototype.Clear = function()
 	{
 		this.m_aPairs   = {};
@@ -455,11 +459,19 @@
 
 		if (window['AscCommonExcel'])
 		{
-			this.m_oFactoryClass[AscDFH.historyitem_type_Sparkline] = AscCommonExcel.sparklineGroup;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Sparkline]            = AscCommonExcel.sparklineGroup;
 			this.m_oFactoryClass[AscDFH.historyitem_type_PivotTableDefinition] = Asc.CT_pivotTableDefinition;
 			this.m_oFactoryClass[AscDFH.historyitem_type_PivotWorksheetSource] = Asc.CT_WorksheetSource;
-			this.m_oFactoryClass[AscDFH.historyitem_type_NamedSheetView] = Asc.CT_NamedSheetView;
-			this.m_oFactoryClass[AscDFH.historyitem_type_DataValidation] = AscCommonExcel.CDataValidation;
+			this.m_oFactoryClass[AscDFH.historyitem_type_NamedSheetView]       = Asc.CT_NamedSheetView;
+			this.m_oFactoryClass[AscDFH.historyitem_type_DataValidation]       = AscCommonExcel.CDataValidation;
+			this.m_oFactoryClass[AscDFH.historyitem_type_OleSizeSelection  ]   = AscCommonExcel.OleSizeSelectionRange;
+			this.m_oFactoryClass[AscDFH.historyitem_type_ViewPr]               = AscFormat.CViewPr;
+			this.m_oFactoryClass[AscDFH.historyitem_type_CommonViewPr]         = AscFormat.CCommonViewPr;
+			this.m_oFactoryClass[AscDFH.historyitem_type_CSldViewPr]           = AscFormat.CCSldViewPr;
+			this.m_oFactoryClass[AscDFH.historyitem_type_CViewPr]              = AscFormat.CCViewPr;
+			this.m_oFactoryClass[AscDFH.historyitem_type_ViewPrScale]          = AscFormat.CViewPrScale;
+			this.m_oFactoryClass[AscDFH.historyitem_type_ViewPrGuide]          = AscFormat.CViewPrGuide;
+
 		}
 
 		this.m_oFactoryClass[AscDFH.historyitem_type_DocumentMacros] = AscCommon.CDocumentMacros;

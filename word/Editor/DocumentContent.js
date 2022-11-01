@@ -363,7 +363,7 @@ CDocumentContent.prototype.Get_PageLimits = function(nCurPage)
 		return {X : 0, Y : 0, XLimit : W, YLimit : H};
 	}
 };
-CDocumentContent.prototype.Get_PageFields = function(PageIndex, isHdrFtr)
+CDocumentContent.prototype.Get_PageFields = function(PageIndex, isHdrFtr, oSectPr)
 {
 	if (this.Parent && (this.Parent.IsCell() || (undefined !== AscFormat.CShape && this.Parent instanceof AscFormat.CShape)))
 	{
@@ -532,10 +532,10 @@ CDocumentContent.prototype.Set_CurrentElement = function(Index, bUpdateStates)
 
 	this.SetThisElementCurrent(bUpdateStates)
 };
-CDocumentContent.prototype.Is_ThisElementCurrent = function()
+CDocumentContent.prototype.IsThisElementCurrent = function()
 {
 	if (this.Parent)
-		return this.Parent.Is_ThisElementCurrent(this);
+		return this.Parent.IsThisElementCurrent(this);
 
 	return false;
 };
@@ -2359,7 +2359,7 @@ CDocumentContent.prototype.Can_CopyCut = function()
 
 	if (null !== LogicDocument)
 	{
-		if (true === LogicDocument.IsSelectionUse())
+		if (true === LogicDocument.IsSelectionUse() && !LogicDocument.IsSelectionEmpty())
 		{
 			if (selectionflag_Numbering === LogicDocument.Selection.Flag)
 				bCanCopyCut = false;
@@ -3031,11 +3031,11 @@ CDocumentContent.prototype.AddImages = function(aImages){
     }
 };
 
-CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
-		return this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+		return this.DrawingObjects.addOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 	}
 	else //if ( docpostype_Content === this.CurPos.Type )
 	{
@@ -3046,7 +3046,7 @@ CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, 
 		if (type_Paragraph == Item.GetType())
 		{
 			var Drawing = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
-			var Image   = this.DrawingObjects.createOleObject(Data, sApplicationId, Img, 0, 0, W, H, nWidthPix, nHeightPix);
+			var Image   = this.DrawingObjects.createOleObject(Data, sApplicationId, Img, 0, 0, W, H, nWidthPix, nHeightPix, arrImagesForAddToHistory);
 			Image.setParent(Drawing);
 			Drawing.Set_GraphicObject(Image);
 
@@ -3058,7 +3058,7 @@ CDocumentContent.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, 
 		}
 		else
 		{
-			Item.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+			Item.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 		}
 	}
 };
@@ -4532,23 +4532,14 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 	{
 		if (docpostype_DrawingObjects === this.CurPos.Type)
 		{
-			if (this.LogicDocument && this.LogicDocument.DrawingsController)
+			let logicDocument = this.GetLogicDocument();
+			if (logicDocument)
 			{
-				var oContentControl = this.LogicDocument.DrawingsController.private_GetParentContentControl();
-				if (oContentControl)
-				{
-					if (oContentControl.IsBlockLevel())
-					{
-						oInfo.SetBlockLevelSdt(oContentControl);
-					}
-					else if (oContentControl.IsInlineLevel())
-					{
-						oInfo.SetInlineLevelSdt(oContentControl);
-					}
-				}
+				if (logicDocument.IsDocumentEditor())
+					logicDocument.DrawingsController.GetSelectedElementsInfo(oInfo);
+				else if (logicDocument.DrawingObjects)
+					logicDocument.DrawingObjects.getSelectedElementsInfo(oInfo);
 			}
-
-			this.LogicDocument.DrawingObjects.getSelectedElementsInfo(oInfo);
 		}
 		else //if ( docpostype_Content == this.CurPos.Type )
 		{

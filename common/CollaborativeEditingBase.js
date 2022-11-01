@@ -62,6 +62,9 @@
         var CollaborativeEditing = AscCommon.CollaborativeEditing;
 
         var Reader  = this.private_LoadData(this.m_pData);
+        if ((Asc.editor || editor).binaryChanges) {
+            Reader.GetULong();
+        }
         var ClassId = Reader.GetString2();
         var Class   = AscCommon.g_oTableId.Get_ById(ClassId);
 
@@ -111,15 +114,23 @@
     };
     CCollaborativeChanges.prototype.GetStream = function(szSrc, offset)
     {
-        var memoryData = AscCommon.Base64.decode(szSrc, true, undefined, offset);
-        return new AscCommon.FT_Stream2(memoryData, memoryData.length);
+        if ((Asc.editor || editor).binaryChanges) {
+            return new AscCommon.FT_Stream2(szSrc, szSrc.length);
+        } else {
+            var memoryData = AscCommon.Base64.decode(szSrc, true, undefined, offset);
+            return new AscCommon.FT_Stream2(memoryData, memoryData.length);
+        }
     };
     CCollaborativeChanges.prototype.private_SaveData = function(Binary)
     {
         var Writer = AscCommon.History.BinaryWriter;
         var Pos    = Binary.Pos;
         var Len    = Binary.Len;
-        return Len + ";" + Writer.GetBase64Memory2(Pos, Len);
+        if ((Asc.editor || editor).binaryChanges) {
+            return Writer.GetDataUint8(Pos, Len);
+        } else {
+            return Len + ";" + Writer.GetBase64Memory2(Pos, Len);
+        }
     };
 
 
@@ -363,7 +374,7 @@
         if(!oApi){
             return;
         }
-        rData['c'] = 'pathurls';
+        rData['type'] = 'pathurls';
         rData['data'] = [];
         for(i = 0; i < aImages.length; ++i)
         {
@@ -375,9 +386,9 @@
         if(false === oApi.isSaveFonts_Images){
             oApi.isSaveFonts_Images = true;
         }
-        oApi.fCurCallback = function (oRes) {
+        var callback = function (isTimeout, oRes) {
             var aData, i, oUrls;
-            if(oRes['status'] === 'ok')
+            if(oRes && oRes['status'] === 'ok')
             {
                 aData = oRes['data'];
                 oUrls= {};
@@ -389,7 +400,10 @@
             }
             AscCommon.CollaborativeEditing.SendImagesCallback(aImagesToLoad);
         };
-        AscCommon.sendCommand(oApi, null, rData);
+
+        if (!oApi.CoAuthoringApi.callPRC(rData, Asc.c_nCommonRequestTime, callback)) {
+            callback(false, undefined);
+        }
     };
 
     CCollaborativeEditingBase.prototype.SendImagesCallback = function (aImages) {
@@ -915,7 +929,7 @@
             this.m_aCursorsToUpdate = {};
         }
         else {
-            DocState = LogicDocument.Save_DocumentStateBeforeLoadChanges();
+            DocState = LogicDocument.Save_DocumentStateBeforeLoadChanges(false, true);
         }
         return DocState;
     };
@@ -932,7 +946,8 @@
             this.Refresh_ForeignCursors();
         }
     };
-    CCollaborativeEditingBase.prototype.WatchDocumentPositionsByState = function(DocState) {
+    CCollaborativeEditingBase.prototype.WatchDocumentPositionsByState = function(DocState)
+	{
         this.Clear_DocumentPositions();
 
         if (DocState.Pos)
@@ -941,6 +956,11 @@
             this.Add_DocumentPosition(DocState.StartPos);
         if (DocState.EndPos)
             this.Add_DocumentPosition(DocState.EndPos);
+
+		if (DocState.ViewPosTop)
+			this.Add_DocumentPosition(DocState.ViewPosTop);
+		if (DocState.ViewPosBottom)
+			this.Add_DocumentPosition(DocState.ViewPosBottom);
 
         if (DocState.FootnotesStart && DocState.FootnotesStart.Pos)
             this.Add_DocumentPosition(DocState.FootnotesStart.Pos);
@@ -955,13 +975,19 @@
         if (DocState.FootnotesEnd && DocState.FootnotesEnd.EndPos)
             this.Add_DocumentPosition(DocState.FootnotesEnd.EndPos);
     };
-    CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(DocState) {
+    CCollaborativeEditingBase.prototype.UpdateDocumentPositionsByState = function(DocState)
+	{
         if (DocState.Pos)
             this.Update_DocumentPosition(DocState.Pos);
         if (DocState.StartPos)
             this.Update_DocumentPosition(DocState.StartPos);
         if (DocState.EndPos)
             this.Update_DocumentPosition(DocState.EndPos);
+
+		if (DocState.ViewPosTop)
+			this.Update_DocumentPosition(DocState.ViewPosTop);
+		if (DocState.ViewPosBottom)
+			this.Update_DocumentPosition(DocState.ViewPosBottom);
 
         if (DocState.FootnotesStart && DocState.FootnotesStart.Pos)
             this.Update_DocumentPosition(DocState.FootnotesStart.Pos);
@@ -1067,107 +1093,147 @@
                 this.m_aAllChanges = this.m_aAllChanges.concat(arrChanges);
             }
         };
-        CCollaborativeEditingBase.prototype.Undo = function()
-        {
-            if (true === this.Get_GlobalLock())
-                return;
+		CCollaborativeEditingBase.prototype.private_PreUndo = function()
+		{
+			let logicDocument = this.m_oLogicDocument;
 
-            if (this.m_aOwnChangesIndexes.length <= 0)
-                return false;
+			logicDocument.DrawingDocument.EndTrackTable(null, true);
+			logicDocument.TurnOffCheckChartSelection();
 
-            // Формируем новую пачку действий, которые будут откатывать нужные нам действия.
+			return this.private_SaveDocumentState();
+		};
+		CCollaborativeEditingBase.prototype.private_PostUndo = function(state, changes)
+		{
+			this.private_RestoreDocumentState(state);
+			this.private_RecalculateDocument(changes);
 
-            // На первом шаге мы заданнуюю пачку изменений коммутируем с последними измениями. Смотрим на то какой набор
-            // изменений у нас получается.
-            // Объектная модель у нас простая: класс, в котором возможно есть массив элементов(тоже классов), у которого воможно
-            // есть набор свойств. Поэтому у нас ровно 2 типа изменений: изменения внутри массива элементов, либо изменения
-            // свойств. Изменения этих двух типов коммутируют между собой, изменения разных классов тоже коммутируют.
-            var arrChanges = [];
-            var oIndexes   = this.m_aOwnChangesIndexes[this.m_aOwnChangesIndexes.length - 1];
-            var nPosition  = oIndexes.Position;
-            var nCount     = oIndexes.Count;
+			let logicDocument = this.m_oLogicDocument;
+			logicDocument.TurnOnCheckChartSelection();
+			logicDocument.UpdateSelection();
+			logicDocument.UpdateInterface();
+			logicDocument.UpdateRulers();
+		};
+		CCollaborativeEditingBase.prototype.UndoGlobal = function(count)
+		{
+			if (!count)
+				return;
 
-            for (var nIndex = nCount - 1; nIndex >= 0; --nIndex)
-            {
-                var oChange = this.m_aAllChanges[nPosition + nIndex];
-                if (!oChange)
-                    continue;
+			count = Math.min(count, this.m_aAllChanges.length);
 
-                var oClass = oChange.GetClass();
-                if (oChange.IsContentChange())
-                {
-                    var _oChange = oChange.Copy();
+			let state = this.private_PreUndo();
 
-                    if (this.private_CommutateContentChanges(_oChange, nPosition + nCount))
-                        arrChanges.push(_oChange);
+			let index = this.m_aAllChanges.length - 1;
+			let changeArray = [];
+			while (index >= this.m_aAllChanges.length - count)
+			{
+				let change = this.m_aAllChanges[index--];
+				if (!change)
+					continue;
 
-                    oChange.SetReverted(true);
-                }
-                else
-                {
-                    var _oChange = oChange; // TODO: Тут надо бы сделать копирование
+				if (change.IsContentChange())
+				{
+					let simpleChanges = change.ConvertToSimpleChanges();
+					for (let simpleIndex = simpleChanges.length - 1; simpleIndex >= 0; --simpleIndex)
+					{
+						simpleChanges[simpleIndex].Undo();
+						changeArray.push(simpleChanges[simpleIndex]);
+					}
+				}
+				else
+				{
+					change.Undo();
+					changeArray.push(change);
+				}
+			}
 
-                    if (this.private_CommutatePropertyChanges(oClass, _oChange, nPosition + nCount))
-                        arrChanges.push(_oChange);
-                }
-            }
+			this.m_aAllChanges.length = this.m_aAllChanges.length - count;
 
-            // Удаляем запись о последнем изменении
-            this.m_aOwnChangesIndexes.length = this.m_aOwnChangesIndexes.length - 1;
+			this.private_PostUndo(state, changeArray);
+		};
+		CCollaborativeEditingBase.prototype.private_GetReverseChangesForCollaborativeUndo = function()
+		{
+			// На первом шаге мы заданнуюю пачку изменений коммутируем с последними измениями. Смотрим на то какой набор
+			// изменений у нас получается.
+			// Объектная модель у нас простая: класс, в котором возможно есть массив элементов(тоже классов), у которого воможно
+			// есть набор свойств. Поэтому у нас ровно 2 типа изменений: изменения внутри массива элементов, либо изменения
+			// свойств. Изменения этих двух типов коммутируют между собой, изменения разных классов тоже коммутируют.
 
-            var arrReverseChanges = [];
-            for (var nIndex = 0, nCount = arrChanges.length; nIndex < nCount; ++nIndex)
-            {
-                var oReverseChange = arrChanges[nIndex].CreateReverseChange();
-                if (oReverseChange)
-                {
-                    arrReverseChanges.push(oReverseChange);
-                    oReverseChange.SetReverted(true);
-                }
-            }
+			if (this.m_aOwnChangesIndexes.length <= 0)
+				return [];
 
-            // Накатываем изменения в данном клиенте
-            var oLogicDocument = this.m_oLogicDocument;
+			var arrChanges = [];
+			var oIndexes   = this.m_aOwnChangesIndexes[this.m_aOwnChangesIndexes.length - 1];
+			var nPosition  = oIndexes.Position;
+			var nCount     = oIndexes.Count;
 
-            oLogicDocument.DrawingDocument.EndTrackTable(null, true);
-            oLogicDocument.TurnOffCheckChartSelection();
+			for (var nIndex = nCount - 1; nIndex >= 0; --nIndex)
+			{
+				var oChange = this.m_aAllChanges[nPosition + nIndex];
+				if (!oChange)
+					continue;
 
-            var DocState = this.private_SaveDocumentState();
-            var mapDrawings         = {};
-            for (var nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
-            {
-                var oClass = arrReverseChanges[nIndex].GetClass();
-                if(oClass && oClass.parent && oClass.parent instanceof AscCommonWord.ParaDrawing){
-                    mapDrawings[oClass.parent.Get_Id()] = oClass.parent;
-                }
-                arrReverseChanges[nIndex].Load();
+				var oClass = oChange.GetClass();
+				if (oChange.IsContentChange())
+				{
+					var _oChange = oChange.Copy();
 
-                if (oClass && oClass.SetIsRecalculated && (!arrReverseChanges[nIndex] || arrReverseChanges[nIndex].IsNeedRecalculate()))
-                    oClass.SetIsRecalculated(false);
+					if (this.private_CommutateContentChanges(_oChange, nPosition + nCount))
+						arrChanges.push(_oChange);
 
-                this.m_aAllChanges.push(arrReverseChanges[nIndex]);
-            }
+					oChange.SetReverted(true);
+				}
+				else
+				{
+					var _oChange = oChange; // TODO: Тут надо бы сделать копирование
 
-            // Может так случиться, что в каких-то классах DocumentContent удалились все элементы, либо
-            // в классе Paragraph удалился знак конца параграфа. Нам необходимо проверить все классы на корректность, и если
-            // нужно, добавить дополнительные изменения.
+					if (this.private_CommutatePropertyChanges(oClass, _oChange, nPosition + nCount))
+						arrChanges.push(_oChange);
+				}
+			}
 
-            var mapDocumentContents = {};
-            var mapParagraphs       = {};
-            var mapRuns             = {};
-            var mapTables           = {};
-            var mapGrObjects        = {};
-            var mapSlides           = {};
-            var mapLayouts          = {};
-            var mapTimings          = {};
-            var bChangedLayout      = false;
-            var bAddSlides          = false;
-            var mapAddedSlides      = {};
-            var mapCommentsToDelete = {};
-			for (var nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
+			// Удаляем запись о последнем изменении
+			this.m_aOwnChangesIndexes.length = this.m_aOwnChangesIndexes.length - 1;
+
+			var arrReverseChanges = [];
+			for (var nIndex = 0, nCount = arrChanges.length; nIndex < nCount; ++nIndex)
+			{
+				var oReverseChange = arrChanges[nIndex].CreateReverseChange();
+				if (oReverseChange)
+				{
+					arrReverseChanges.push(oReverseChange);
+					oReverseChange.SetReverted(true);
+				}
+			}
+
+			return arrReverseChanges;
+		};
+		CCollaborativeEditingBase.prototype.private_CorrectClassesOnCollaborativeUndo = function(arrReverseChanges)
+		{
+			let oLogicDocument = this.m_oLogicDocument;
+
+			// Может так случиться, что в каких-то классах DocumentContent удалились все элементы, либо
+			// в классе Paragraph удалился знак конца параграфа. Нам необходимо проверить все классы на корректность, и если
+			// нужно, добавить дополнительные изменения.
+
+			var mapDrawings         = {};
+			var mapDocumentContents = {};
+			var mapParagraphs       = {};
+			var mapRuns             = {};
+			var mapTables           = {};
+			var mapGrObjects        = {};
+			var mapSlides           = {};
+			var mapLayouts          = {};
+			var mapTimings          = {};
+			var bChangedLayout      = false;
+			var bAddSlides          = false;
+			var mapAddedSlides      = {};
+			var mapCommentsToDelete = {};
+
+			for (let nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
 			{
 				var oChange = arrReverseChanges[nIndex];
 				var oClass  = oChange.GetClass();
+
 				if (oClass instanceof AscCommonWord.CDocument || oClass instanceof AscCommonWord.CDocumentContent)
 				{
 					mapDocumentContents[oClass.Get_Id()] = oClass;
@@ -1181,6 +1247,10 @@
 					mapParagraphs[oClass.GetParagraph().Get_Id()] = oClass.GetParagraph();
 					if (oClass instanceof AscCommonWord.ParaRun)
 						mapRuns[oClass.Get_Id()] = oClass;
+				}
+				else if (oClass && oClass.parent && oClass.parent instanceof AscCommonWord.ParaDrawing)
+				{
+					mapDrawings[oClass.parent.Get_Id()] = oClass.parent;
 				}
 				else if (oClass instanceof AscCommonWord.ParaDrawing)
 				{
@@ -1201,28 +1271,28 @@
 					|| oClass instanceof AscFormat.CGraphicFrame)
 				{
 					mapGrObjects[oClass.Get_Id()] = oClass;
-                    let oParent = oClass.parent;
-                    if(oParent && oParent.timing) 
-                    {
-                        mapTimings[oParent.timing.Get_Id()] = oParent.timing;
-                    }
+					let oParent                   = oClass.parent;
+					if (oParent && oParent.timing)
+					{
+						mapTimings[oParent.timing.Get_Id()] = oParent.timing;
+					}
 				}
 				else if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.Slide && oClass instanceof AscCommonSlide.Slide)
 				{
 					mapSlides[oClass.Get_Id()] = oClass;
-                    if(oClass.timing) 
-                    {
-                        mapTimings[oClass.timing.Get_Id()] = oClass.timing;
-                    }
+					if (oClass.timing)
+					{
+						mapTimings[oClass.timing.Get_Id()] = oClass.timing;
+					}
 				}
 				else if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.SlideLayout && oClass instanceof AscCommonSlide.SlideLayout)
 				{
 					mapLayouts[oClass.Get_Id()] = oClass;
-                    if(oClass.timing) 
-                    {
-                        mapTimings[oClass.timing.Get_Id()] = oClass.timing;
-                    }
-					bChangedLayout              = true;
+					if (oClass.timing)
+					{
+						mapTimings[oClass.timing.Get_Id()] = oClass.timing;
+					}
+					bChangedLayout = true;
 				}
 				else if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.CPresentation && oClass instanceof AscCommonSlide.CPresentation)
 				{
@@ -1239,204 +1309,253 @@
 				{
 					mapCommentsToDelete[oChange.New] = oClass;
 				}
-                else if(oClass.isAnimObject) 
-                {
-                    let oTiming = oClass.getTiming();
-                    if(oTiming) 
-                    {
-                        mapTimings[oTiming.Get_Id()] = oTiming;
-                    }
-                }
+				else if (oClass.isAnimObject)
+				{
+					let oTiming = oClass.getTiming();
+					if (oTiming)
+					{
+						mapTimings[oTiming.Get_Id()] = oTiming;
+					}
+				}
 			}
 
-            // Создаем точку в истории. Делаем действия через обычные функции (с отключенным пересчетом), которые пишут в
-            // историю. Сохраняем список изменений в новой точке, удаляем данную точку.
-            var oHistory = AscCommon.History;
-            oHistory.CreateNewPointForCollectChanges();
-            if(bAddSlides){
-                for(var i = oLogicDocument.Slides.length - 1; i > -1; --i){
-                    if(mapAddedSlides[oLogicDocument.Slides[i].Get_Id()] && !oLogicDocument.Slides[i].Layout){
-                        oLogicDocument.removeSlide(i);
-                    }
-                }
-            }
 
-            for(var sId in mapSlides){
-                if(mapSlides.hasOwnProperty(sId)){
-                    mapSlides[sId].correctContent();
-                }
-            }
+			if (bAddSlides)
+			{
+				for (var i = oLogicDocument.Slides.length - 1; i > -1; --i)
+				{
+					if (mapAddedSlides[oLogicDocument.Slides[i].Get_Id()] && !oLogicDocument.Slides[i].Layout)
+					{
+						oLogicDocument.removeSlide(i);
+					}
+				}
+			}
 
-            if(bChangedLayout){
-                for(var i = oLogicDocument.Slides.length - 1; i > -1 ; --i){
-                    var Layout = oLogicDocument.Slides[i].Layout;
-                    if(!Layout || mapLayouts[Layout.Get_Id()]){
-                        if(!oLogicDocument.Slides[i].CheckLayout()){
-                            oLogicDocument.removeSlide(i);
-                        }
-                    }
-                }
-            }
+			for (var sId in mapSlides)
+			{
+				if (mapSlides.hasOwnProperty(sId))
+				{
+					mapSlides[sId].correctContent();
+				}
+			}
+
+			if (bChangedLayout)
+			{
+				for (var i = oLogicDocument.Slides.length - 1; i > -1; --i)
+				{
+					var Layout = oLogicDocument.Slides[i].Layout;
+					if (!Layout || mapLayouts[Layout.Get_Id()])
+					{
+						if (!oLogicDocument.Slides[i].CheckLayout())
+						{
+							oLogicDocument.removeSlide(i);
+						}
+					}
+				}
+			}
 
 
-            for(var sId in mapGrObjects){
-                var oShape = mapGrObjects[sId];
-                if(!oShape.checkCorrect()){
-                    oShape.setBDeleted(true);
-                    if(oShape.group){
-                        oShape.group.removeFromSpTree(oShape.Get_Id());
-                    }
-                    else if(AscFormat.Slide && (oShape.parent instanceof AscFormat.Slide)){
-                        oShape.parent.removeFromSpTreeById(oShape.Get_Id());
-                    }
-                    else if(AscCommonWord.ParaDrawing && (oShape.parent instanceof AscCommonWord.ParaDrawing)){
-                        mapDrawings[oShape.parent.Get_Id()] = oShape.parent;
-                    }
-                }
-                else{
-                    if(oShape.resetGroups){
-                        oShape.resetGroups();
-                    }
-                }
-            }
-            var oDrawing;
-            for (var sId in mapDrawings)
-            {
-                if (mapDrawings.hasOwnProperty(sId))
-                {
-                    oDrawing = mapDrawings[sId];
-                    if (!oDrawing.CheckCorrect())
-                    {
-                        var oParentParagraph = oDrawing.Get_ParentParagraph();
-                        oDrawing.PreDelete();
-                        oDrawing.Remove_FromDocument(false);
-                        if (oParentParagraph)
-                        {
-                            mapParagraphs[oParentParagraph.Get_Id()] = oParentParagraph;
-                        }
-                    }
-                }
-            }
+			for (var sId in mapGrObjects)
+			{
+				var oShape = mapGrObjects[sId];
+				if (!oShape.checkCorrect())
+				{
+					oShape.setBDeleted(true);
+					if (oShape.group)
+					{
+						oShape.group.removeFromSpTree(oShape.Get_Id());
+					}
+					else if (AscFormat.Slide && (oShape.parent instanceof AscFormat.Slide))
+					{
+						oShape.parent.removeFromSpTreeById(oShape.Get_Id());
+					}
+					else if (AscCommonWord.ParaDrawing && (oShape.parent instanceof AscCommonWord.ParaDrawing))
+					{
+						mapDrawings[oShape.parent.Get_Id()] = oShape.parent;
+					}
+				}
+				else
+				{
+					if (oShape.resetGroups)
+					{
+						oShape.resetGroups();
+					}
+				}
+			}
+			var oDrawing;
+			for (var sId in mapDrawings)
+			{
+				if (mapDrawings.hasOwnProperty(sId))
+				{
+					oDrawing = mapDrawings[sId];
+					if (!oDrawing.CheckCorrect())
+					{
+						var oParentParagraph = oDrawing.Get_ParentParagraph();
+						oDrawing.PreDelete();
+						oDrawing.Remove_FromDocument(false);
+						if (oParentParagraph)
+						{
+							mapParagraphs[oParentParagraph.Get_Id()] = oParentParagraph;
+						}
+					}
+				}
+			}
 
-            for(var sId in mapRuns){
-                if (mapRuns.hasOwnProperty(sId))
-                {
-                    var oRun = mapRuns[sId];
-                    for(var nIndex = oRun.Content.length - 1; nIndex > - 1; --nIndex){
-                        if(oRun.Content[nIndex] instanceof AscCommonWord.ParaDrawing){
-                            if(!oRun.Content[nIndex].CheckCorrect()){
-                                oRun.Remove_FromContent(nIndex, 1, false);
-                                if(oRun.Paragraph){
-                                    mapParagraphs[oRun.Paragraph.Get_Id()] = oRun.Paragraph;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+			for (var sId in mapRuns)
+			{
+				if (mapRuns.hasOwnProperty(sId))
+				{
+					var oRun = mapRuns[sId];
+					for (var nIndex = oRun.Content.length - 1; nIndex > -1; --nIndex)
+					{
+						if (oRun.Content[nIndex] instanceof AscCommonWord.ParaDrawing)
+						{
+							if (!oRun.Content[nIndex].CheckCorrect())
+							{
+								oRun.Remove_FromContent(nIndex, 1, false);
+								if (oRun.Paragraph)
+								{
+									mapParagraphs[oRun.Paragraph.Get_Id()] = oRun.Paragraph;
+								}
+							}
+						}
+					}
+				}
+			}
 
-            for (var sId in mapTables)
-            {
-                var oTable = mapTables[sId];
-                for (var nCurRow = oTable.Content.length - 1; nCurRow >= 0; --nCurRow)
-                {
-                    var oRow = oTable.Get_Row(nCurRow);
-                    if (oRow.Get_CellsCount() <= 0)
-                        oTable.private_RemoveRow(nCurRow);
-                }
+			for (var sId in mapTables)
+			{
+				var oTable = mapTables[sId];
+				for (var nCurRow = oTable.Content.length - 1; nCurRow >= 0; --nCurRow)
+				{
+					var oRow = oTable.Get_Row(nCurRow);
+					if (oRow.Get_CellsCount() <= 0)
+						oTable.private_RemoveRow(nCurRow);
+				}
 
-                if (oTable.Parent instanceof AscCommonWord.CDocument || oTable.Parent instanceof AscCommonWord.CDocumentContent)
-                    mapDocumentContents[oTable.Parent.Get_Id()] = oTable.Parent;
-            }
+				if (oTable.Parent instanceof AscCommonWord.CDocument || oTable.Parent instanceof AscCommonWord.CDocumentContent)
+					mapDocumentContents[oTable.Parent.Get_Id()] = oTable.Parent;
+			}
 
-            for (var sId in mapDocumentContents)
-            {
-                var oDocumentContent = mapDocumentContents[sId];
-                var nContentLen = oDocumentContent.Content.length;
-                for (var nIndex = nContentLen - 1; nIndex >= 0; --nIndex)
-                {
-                    var oElement = oDocumentContent.Content[nIndex];
-                    if ((AscCommonWord.type_Paragraph === oElement.GetType() || AscCommonWord.type_Table === oElement.GetType()) && oElement.Content.length <= 0)
-                    {
-                        oDocumentContent.Remove_FromContent(nIndex, 1);
-                    }
-                }
+			for (var sId in mapDocumentContents)
+			{
+				var oDocumentContent = mapDocumentContents[sId];
+				var nContentLen      = oDocumentContent.Content.length;
+				for (var nIndex = nContentLen - 1; nIndex >= 0; --nIndex)
+				{
+					var oElement = oDocumentContent.Content[nIndex];
+					if ((AscCommonWord.type_Paragraph === oElement.GetType() || AscCommonWord.type_Table === oElement.GetType()) && oElement.Content.length <= 0)
+					{
+						oDocumentContent.Remove_FromContent(nIndex, 1);
+					}
+				}
 
-                nContentLen = oDocumentContent.Content.length;
-                if (nContentLen <= 0 || AscCommonWord.type_Paragraph !== oDocumentContent.Content[nContentLen - 1].GetType())
-                {
-                    var oNewParagraph = new AscCommonWord.Paragraph(oLogicDocument.Get_DrawingDocument(), oDocumentContent, 0, 0, 0, 0, 0, false);
-                    oDocumentContent.Add_ToContent(nContentLen, oNewParagraph);
-                }
-            }
+				nContentLen = oDocumentContent.Content.length;
+				if (nContentLen <= 0 || AscCommonWord.type_Paragraph !== oDocumentContent.Content[nContentLen - 1].GetType())
+				{
+					var oNewParagraph = new AscCommonWord.Paragraph(oLogicDocument.Get_DrawingDocument(), oDocumentContent, 0, 0, 0, 0, 0, false);
+					oDocumentContent.Add_ToContent(nContentLen, oNewParagraph);
+				}
+			}
 
-            for (var sId in mapParagraphs)
-            {
-                var oParagraph = mapParagraphs[sId];
-                oParagraph.CheckParaEnd();
-                oParagraph.Correct_Content(null, null, true);
-            }
+			for (var sId in mapParagraphs)
+			{
+				var oParagraph = mapParagraphs[sId];
+				oParagraph.CheckParaEnd();
+				oParagraph.Correct_Content(null, null, true);
+			}
 
-            for(var sId in mapTimings) 
-            {
-                if(mapTimings.hasOwnProperty(sId)) 
-                {
-                    let oTiming = mapTimings[sId];
-                    oTiming.checkCorrect();
-                }
-            }
-            if (oLogicDocument && oLogicDocument.IsDocumentEditor())
+			for (var sId in mapTimings)
+			{
+				if (mapTimings.hasOwnProperty(sId))
+				{
+					let oTiming = mapTimings[sId];
+					oTiming.checkCorrect();
+				}
+			}
+			if (oLogicDocument && oLogicDocument.IsDocumentEditor())
 			{
 				for (var sCommentId in mapCommentsToDelete)
 				{
 					oLogicDocument.RemoveComment(sCommentId, false, false);
 				}
 			}
+		};
+		CCollaborativeEditingBase.prototype.Undo = function()
+		{
+			if (true === this.Get_GlobalLock())
+				return;
 
-            var oBinaryWriter = AscCommon.History.BinaryWriter;
-            var aSendingChanges = [];
-            for (var nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
-            {
-                var oReverseChange = arrReverseChanges[nIndex];
-                var oChangeClass   = oReverseChange.GetClass();
+			// Формируем новую пачку действий, которые будут откатывать нужные нам действия
+			let arrReverseChanges = this.private_GetReverseChangesForCollaborativeUndo();
+			if (arrReverseChanges.length <= 0)
+				return;
 
-                var nBinaryPos = oBinaryWriter.GetCurPosition();
-                oBinaryWriter.WriteString2(oChangeClass.Get_Id());
-                oBinaryWriter.WriteLong(oReverseChange.Type);
-                oReverseChange.WriteToBinary(oBinaryWriter);
+			let state = this.private_PreUndo();
 
-                var nBinaryLen = oBinaryWriter.GetCurPosition() - nBinaryPos;
+			for (var nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
+			{
+				var oClass = arrReverseChanges[nIndex].GetClass();
+				arrReverseChanges[nIndex].Load();
 
-                var oChange = new AscCommon.CCollaborativeChanges();
-                oChange.Set_FromUndoRedo(oChangeClass, oReverseChange, {Pos : nBinaryPos, Len : nBinaryLen});
-                aSendingChanges.push(oChange.m_pData);
-            }
+				if (oClass && oClass.SetIsRecalculated && (!arrReverseChanges[nIndex] || arrReverseChanges[nIndex].IsNeedRecalculate()))
+					oClass.SetIsRecalculated(false);
 
-            var oHistoryPoint = oHistory.Points[oHistory.Points.length - 1];
-            for (var nIndex = 0, nCount = oHistoryPoint.Items.length; nIndex < nCount; ++nIndex)
-            {
-                var oReverseChange = oHistoryPoint.Items[nIndex].Data;
-                var oChangeClass   = oReverseChange.GetClass();
+				this.m_aAllChanges.push(arrReverseChanges[nIndex]);
+			}
 
-                var oChange = new AscCommon.CCollaborativeChanges();
-                oChange.Set_FromUndoRedo(oChangeClass, oReverseChange, {Pos : oHistoryPoint.Items[nIndex].Binary.Pos, Len : oHistoryPoint.Items[nIndex].Binary.Len});
-                aSendingChanges.push(oChange.m_pData);
+			// Создаем точку в истории. Делаем действия через обычные функции (с отключенным пересчетом), которые пишут в
+			// историю. Сохраняем список изменений в новой точке, удаляем данную точку.
+			var oHistory = AscCommon.History;
+			oHistory.CreateNewPointForCollectChanges();
 
-                arrReverseChanges.push(oHistoryPoint.Items[nIndex].Data);
-            }
-            oHistory.Remove_LastPoint();
-            this.Clear_DCChanges();
+            this.private_CorrectClassesOnCollaborativeUndo(arrReverseChanges);
+
+			var oBinaryWriter = AscCommon.History.BinaryWriter;
+			var aSendingChanges = [];
+			for (var nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
+			{
+				var oReverseChange = arrReverseChanges[nIndex];
+				var oChangeClass   = oReverseChange.GetClass();
+
+				var nBinaryPos = oBinaryWriter.GetCurPosition();
+				oBinaryWriter.WriteString2(oChangeClass.Get_Id());
+				oBinaryWriter.WriteLong(oReverseChange.Type);
+				oReverseChange.WriteToBinary(oBinaryWriter);
+
+				var nBinaryLen = oBinaryWriter.GetCurPosition() - nBinaryPos;
+
+				var oChange = new AscCommon.CCollaborativeChanges();
+				oChange.Set_FromUndoRedo(oChangeClass, oReverseChange, {Pos : nBinaryPos, Len : nBinaryLen});
+				aSendingChanges.push(oChange.m_pData);
+			}
+		
+			var oHistoryPoint = oHistory.Points[oHistory.Points.length - 1];
+			for (var nIndex = 0, nCount = oHistoryPoint.Items.length; nIndex < nCount; ++nIndex)
+			{
+				var oReverseChange = oHistoryPoint.Items[nIndex].Data;
+				var oChangeClass   = oReverseChange.GetClass();
+
+				var oChange = new AscCommon.CCollaborativeChanges();
+				oChange.Set_FromUndoRedo(oChangeClass, oReverseChange, {Pos : oHistoryPoint.Items[nIndex].Binary.Pos, Len : oHistoryPoint.Items[nIndex].Binary.Len});
+				aSendingChanges.push(oChange.m_pData);
+
+				arrReverseChanges.push(oHistoryPoint.Items[nIndex].Data);
+			}
+			oHistory.Remove_LastPoint();
+			this.Clear_DCChanges();
 
             editor.CoAuthoringApi.saveChanges(aSendingChanges, null, null, false, this.getCollaborativeEditing());
 
-            this.private_RestoreDocumentState(DocState);
-            this.private_RecalculateDocument(arrReverseChanges);
-
-            oLogicDocument.TurnOnCheckChartSelection();
-
-            oLogicDocument.UpdateSelection();
-            oLogicDocument.UpdateInterface();
-            oLogicDocument.UpdateRulers();
+			this.private_PostUndo(state, arrReverseChanges);
+		};
+		CCollaborativeEditingBase.prototype.CanUndoMultipleActions = function()
+        {
+            return this.m_aAllChanges.length > 0;
+        };
+        CCollaborativeEditingBase.prototype.GetAllChangesCount = function()
+        {
+            return this.m_aAllChanges.length;
         };
         CCollaborativeEditingBase.prototype.CanUndo = function()
         {

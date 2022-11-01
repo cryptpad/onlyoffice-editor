@@ -76,17 +76,26 @@ ParaField.prototype.Get_Id = function()
 };
 ParaField.prototype.Copy = function(Selected, oPr)
 {
-    var NewField = CParagraphContentWithParagraphLikeContent.prototype.Copy.apply(this, arguments);
+	let newField = CParagraphContentWithParagraphLikeContent.prototype.Copy.apply(this, arguments);
 
-    // TODO: Сделать функциями с иторией
-    NewField.FieldType = this.FieldType;
-    NewField.Arguments = this.Arguments;
-    NewField.Switches  = this.Switches;
+	if (oPr && oPr.SkipFldSimple)
+	{
+		let newItems = this.Content.slice();
+		this.RemoveAll();
+		return newItems;
+	}
+	else
+	{
+		// TODO: Сделать функциями с иторией
+		newField.FieldType = this.FieldType;
+		newField.Arguments = this.Arguments;
+		newField.Switches  = this.Switches;
 
-    if (editor)
-        editor.WordControl.m_oLogicDocument.Register_Field(NewField);
+		if (editor)
+			editor.WordControl.m_oLogicDocument.Register_Field(newField);
 
-    return NewField;
+		return newField;
+	}
 };
 ParaField.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 {
@@ -133,7 +142,7 @@ ParaField.prototype.Add = function(Item)
 			var CurPos  = this.State.ContentPos;
 			var CurItem = this.Content[CurPos];
 
-			var CurContentPos = new CParagraphContentPos();
+			var CurContentPos = new AscWord.CParagraphContentPos();
 			CurItem.Get_ParaContentPos(false, false, CurContentPos);
 
 			var NewItem = CurItem.Split(CurContentPos, 0);
@@ -301,6 +310,17 @@ ParaField.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseC
 		SearchPos.Found     = true;
 	}
 };
+ParaField.prototype.SetCurrent = function(isCurrent)
+{
+};
+ParaField.prototype.IsCurrent = function()
+{
+	return false;
+};
+ParaField.prototype.SelectField = function()
+{
+	this.SelectThisElement();
+};
 ParaField.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	arrFields.push(this);
@@ -413,13 +433,13 @@ ParaField.prototype.Replace_MailMerge = function(_Value)
     if (null === ParaContentPos)
         return false;
 
-    var Depth    = ParaContentPos.Get_Depth();
+    var Depth    = ParaContentPos.GetDepth();
     var FieldPos = ParaContentPos.Get(Depth);
 
     if (Depth < 0)
         return false;
 
-    ParaContentPos.Decrease_Depth(1);
+    ParaContentPos.DecreaseDepth(1);
     var FieldContainer = Paragraph.Get_ElementByPos(ParaContentPos);
     if (!FieldContainer || !FieldContainer.Content || FieldContainer.Content[FieldPos] !== this)
         return false;
@@ -628,6 +648,14 @@ ParaField.prototype.GetInstructionLine = function()
 	}
 	return Instr;
 };
+ParaField.prototype.GetInstruction = function()
+{
+	let instructionLine = this.GetInstructionLine();
+	let parser = new CFieldInstructionParser();
+	let instruction = parser.GetInstructionClass(instructionLine);
+	instruction.SetInstructionLine(instructionLine);
+	return instruction;
+};
 ParaField.prototype.ReplaceWithComplexField = function()
 {
 	let oParent        = this.GetParent();
@@ -663,6 +691,29 @@ ParaField.prototype.ReplaceWithComplexField = function()
 	oComplexField.SetEndChar(oEndChar);
 	oComplexField.Update(false);
 	return oComplexField;
+};
+ParaField.prototype.GetRunWithPageField = function(paragraph)
+{
+	let res = null;
+	if (fieldtype_PAGENUM == this.FieldType || fieldtype_PAGECOUNT == this.FieldType) {
+		res = new ParaRun(paragraph);
+		let run = this.GetFirstRunNonEmpty();
+		let rPr = run && run.Get_FirstTextPr();
+		if (rPr) {
+			res.Set_Pr(rPr);
+		}
+		if (fieldtype_PAGENUM == this.FieldType) {
+			res.AddToContentToEnd(new AscWord.CRunPageNum());
+		} else {
+			var pageCount = parseInt(this.GetSelectedText(true));
+			res.AddToContentToEnd(new AscWord.CRunPagesCount(isNaN(pageCount) ? undefined : pageCount));
+		}
+	}
+	return res;
+}
+ParaField.prototype.IsValid = function()
+{
+	return true;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
@@ -751,3 +802,5 @@ ParaField.prototype.CheckSpelling = function(oCollector, nDepth)
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].ParaField = ParaField;
+
+window['AscWord'].CSimpleField = ParaField;

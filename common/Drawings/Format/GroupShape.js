@@ -86,13 +86,8 @@ function CGroupShape()
         textSelection: null
     };
 }
-	CGroupShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
-	CGroupShape.prototype.constructor = CGroupShape;
 
-    CGroupShape.prototype.getObjectType = function()
-    {
-        return AscDFH.historyitem_type_GroupShape;
-    };
+AscFormat.InitClass(CGroupShape, AscFormat.CGraphicObjectBase, AscDFH.historyitem_type_GroupShape);
 
     CGroupShape.prototype.GetAllDrawingObjects = function(DrawingObjects)
     {
@@ -126,12 +121,34 @@ function CGroupShape()
         return hasSmartArt;
     };
 
+    CGroupShape.prototype.recalcTransformText = function () {
+        this.spTree.forEach(function (oDrawing) {
+            if (oDrawing.recalcTransformText) {
+                oDrawing.recalcTransformText();
+            }
+        });
+    };
+
     CGroupShape.prototype.documentGetAllFontNames = function(allFonts)
     {
         for(var i = 0; i < this.spTree.length; ++i)
         {
             if(this.spTree[i].documentGetAllFontNames)
                 this.spTree[i].documentGetAllFontNames(allFonts);
+        }
+    };
+    CGroupShape.prototype.getImageFromBulletsMap = function(oImages) {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            if(this.spTree[i].getImageFromBulletsMap)
+                this.spTree[i].getImageFromBulletsMap(oImages);
+        }
+    };
+    CGroupShape.prototype.getDocContentsWithImageBullets = function (arrContents) {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            if(this.spTree[i].getDocContentsWithImageBullets)
+                this.spTree[i].getDocContentsWithImageBullets(arrContents);
         }
     };
     CGroupShape.prototype.handleAllContents = function(fCallback)
@@ -147,6 +164,14 @@ function CGroupShape()
         {
             if(this.spTree[i].getAllDocContents)
                 this.spTree[i].getAllDocContents(aDocContents);
+        }
+    };
+    CGroupShape.prototype.checkRunContent = function(fCallback)
+    {
+        let aGraphics = this.getArrGraphicObjects();
+        for(let nIdx = 0; nIdx < aGraphics.length; ++nIdx)
+        {
+            aGraphics[nIdx].checkRunContent(fCallback);
         }
     };
 
@@ -356,9 +381,11 @@ function CGroupShape()
         if(this.fLocksText !== null) {
             copy.setFLocksText(this.fLocksText);
         }
-        copy.cachedImage = this.getBase64Img();
-        copy.cachedPixH = this.cachedPixH;
-        copy.cachedPixW = this.cachedPixW;
+        if(!oPr || false !== oPr.cacheImage) {
+            copy.cachedImage = this.getBase64Img();
+            copy.cachedPixH = this.cachedPixH;
+            copy.cachedPixW = this.cachedPixW;
+        }
         copy.setLocks(this.locks);
         return copy;
     };
@@ -373,8 +400,6 @@ function CGroupShape()
             }
         }
     };
-
-    CGroupShape.prototype.getBase64Img = CShape.prototype.getBase64Img;
 
     CGroupShape.prototype.convertToWord = function(document)
     {
@@ -538,35 +563,6 @@ function CGroupShape()
     CGroupShape.prototype.getInvertTransform = function()
     {
         return this.invertTransform;
-    };
-
-    CGroupShape.prototype.getRectBounds = function()
-    {
-        var transform = this.getTransformMatrix();
-        var w = this.extX;
-        var h = this.extY;
-        var rect_points = [{x:0, y:0}, {x: w, y: 0}, {x: w, y: h}, {x: 0, y: h}];
-        var min_x, max_x, min_y, max_y;
-        min_x = transform.TransformPointX(rect_points[0].x, rect_points[0].y);
-        min_y = transform.TransformPointY(rect_points[0].x, rect_points[0].y);
-        max_x = min_x;
-        max_y = min_y;
-        var cur_x, cur_y;
-        for(var i = 1; i < 4; ++i)
-        {
-            cur_x = transform.TransformPointX(rect_points[i].x, rect_points[i].y);
-            cur_y = transform.TransformPointY(rect_points[i].x, rect_points[i].y);
-            if(cur_x < min_x)
-                min_x = cur_x;
-            if(cur_x > max_x)
-                max_x = cur_x;
-
-            if(cur_y < min_y)
-                min_y = cur_y;
-            if(cur_y > max_y)
-                max_y = cur_y;
-        }
-        return {minX: min_x, maxX: max_x, minY: min_y, maxY: max_y};
     };
 
     CGroupShape.prototype.getResultScaleCoefficients = function()
@@ -740,15 +736,20 @@ function CGroupShape()
     CGroupShape.prototype.recalculateArrGraphicObjects = function()
     {
         this.arrGraphicObjects.length = 0;
-        for(var i = 0; i < this.spTree.length; ++i)
+        for(let nSp = 0; nSp < this.spTree.length; ++nSp)
         {
-            if(!this.spTree[i].isGroup())
-                this.arrGraphicObjects.push(this.spTree[i]);
+            let oSp = this.spTree[nSp];
+            if(oSp.isGroup() || oSp.isSmartArtObject())
+            {
+                let aGraphicObjets = oSp.getArrGraphicObjects();
+                for(let nGr = 0; nGr < aGraphicObjets.length; ++nGr)
+                {
+                    this.arrGraphicObjects.push(aGraphicObjets[nGr]);
+                }
+            }
             else
             {
-                var arr_graphic_objects = this.spTree[i].getArrGraphicObjects();
-                for(var j = 0; j < arr_graphic_objects.length; ++j)
-                    this.arrGraphicObjects.push(arr_graphic_objects[j]);
+                this.arrGraphicObjects.push(oSp);
             }
         }
     };
@@ -1431,9 +1432,9 @@ function CGroupShape()
             }
         }
     };
-
-
-
+    CGroupShape.prototype.isGroup = function() {
+        return true;
+    };
     CGroupShape.prototype.normalize = function()
     {
         for(var i = 0; i < this.spTree.length; ++i)
@@ -1632,10 +1633,6 @@ function CGroupShape()
     CGroupShape.prototype.loadDocumentStateAfterLoadChanges = AscFormat.DrawingObjectsController.prototype.loadDocumentStateAfterLoadChanges;
     CGroupShape.prototype.getAllConnectors = AscFormat.DrawingObjectsController.prototype.getAllConnectors;
     CGroupShape.prototype.getAllShapes = AscFormat.DrawingObjectsController.prototype.getAllShapes;
-
-    CGroupShape.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
-
-    CGroupShape.prototype.setDrawingBaseCoords = CShape.prototype.setDrawingBaseCoords;
 
 
     CGroupShape.prototype.calculateSnapArrays = function(snapArrayX, snapArrayY)
@@ -1913,57 +1910,6 @@ function CGroupShape()
     };
 
 
-    CGroupShape.prototype.readChildXml = function (name, reader) {
-        let res;
-        if( "cxnSp" === name) {
-            res = new AscFormat.CConnectionShape();
-            res.setBDeleted(false);
-            res.fromXml(reader);
-            this.addToSpTree(null, res);
-        }
-        else if("grpSp" === name || "wgp" === name) {
-            res = new AscFormat.CGroupShape();
-            res.setBDeleted(false);
-            res.fromXml(reader);
-            this.addToSpTree(null, res);
-        }
-        else if("sp" === name || "wsp" === name) {
-            res = new AscFormat.CShape();
-            res.setBDeleted(false);
-			res.setWordShape("wsp" === name);
-            res.fromXml(reader);
-            this.addToSpTree(null, res);
-        }
-        else if ("pic" === name) {
-            res = new AscFormat.CImageShape();
-            res.setBDeleted(false);
-            res.fromXml(reader);
-            this.addToSpTree(null, res);
-        } else if ("graphicFrame" === name) {
-            res = new AscFormat.CGraphicFrame();
-            res.fromXml(reader);
-            res = res.graphicObject;
-            res && this.addToSpTree(null, res);
-        } else if ("grpSpPr" === name) {
-            res = new AscFormat.CSpPr();
-            res.fromXml(reader);
-            this.setSpPr(res);
-        } else if ("nvGrpSpPr" === name) {
-            res = new AscFormat.UniNvPr();
-            res.fromXml(reader);
-            this.setNvSpPr(res);
-            this.setLocks(res.getLocks());
-        }
-    };
-    CGroupShape.prototype.fromXml = function(reader, bSkipFirstNode) {
-        AscFormat.CGraphicObjectBase.prototype.fromXml.call(this, reader, bSkipFirstNode);
-        this.checkXfrm();
-    };
-    CGroupShape.prototype.toXml = function (writer) {
-        writer.context.groupIndex++;
-        AscFormat.CSpTree.prototype.toXml.call(this, writer, true);
-        writer.context.groupIndex--;
-    };
     CGroupShape.prototype.checkXfrm = function () {
         if(!this.spPr){
             return;
@@ -1981,6 +1927,11 @@ function CGroupShape()
             this.spPr.setXfrm(oXfrm);
             this.updateCoordinatesAfterInternalResize();
             this.spPr.xfrm.setParent(this.spPr);
+        }
+    };
+    CGroupShape.prototype.clearChartDataCache = function () {
+        for(let nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].clearChartDataCache();
         }
     };
 

@@ -81,8 +81,7 @@ function CGraphicFrame()
     this.RecalcInfo = {};
 }
 
-	CGraphicFrame.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
-	CGraphicFrame.prototype.constructor = CGraphicFrame;
+AscFormat.InitClass(CGraphicFrame, AscFormat.CGraphicObjectBase, AscDFH.historyitem_type_GraphicFrame);
 
 CGraphicFrame.prototype.addToRecalculate = CShape.prototype.addToRecalculate;
 
@@ -90,9 +89,6 @@ CGraphicFrame.prototype.Get_Theme = CShape.prototype.Get_Theme;
 
 CGraphicFrame.prototype.Get_ColorMap = CShape.prototype.Get_ColorMap;
 
-CGraphicFrame.prototype.setBDeleted = CShape.prototype.setBDeleted;
-CGraphicFrame.prototype.getBase64Img = CShape.prototype.getBase64Img;
-CGraphicFrame.prototype.checkDrawingBaseCoords = CShape.prototype.checkDrawingBaseCoords;
 CGraphicFrame.prototype.getSlideIndex = CShape.prototype.getSlideIndex;
 CGraphicFrame.prototype.IsUseInDocument = CShape.prototype.IsUseInDocument;
 CGraphicFrame.prototype.convertPixToMM = CShape.prototype.convertPixToMM;
@@ -237,11 +233,6 @@ CGraphicFrame.prototype.setGroup= function(group)
         this.group = group;
 };
 
-CGraphicFrame.prototype.getObjectType= function()
-    {
-        return AscDFH.historyitem_type_GraphicFrame;
-};
-
 CGraphicFrame.prototype.Search = function(SearchEngine, Type)
     {
         if(this.graphicObject)
@@ -299,9 +290,11 @@ CGraphicFrame.prototype.copy = function(oPr)
         }
         if(!this.recalcInfo.recalculateTable && !this.recalcInfo.recalculateSizes && !this.recalcInfo.recalculateTransform)
         {
-            ret.cachedImage = this.getBase64Img();
-            ret.cachedPixW = this.cachedPixW;
-            ret.cachedPixH = this.cachedPixH;
+            if(!oPr || false !== oPr.cacheImage) {
+                ret.cachedImage = this.getBase64Img();
+                ret.cachedPixH = this.cachedPixH;
+                ret.cachedPixW = this.cachedPixW;
+            }
         }
         return ret;
 };
@@ -522,35 +515,6 @@ CGraphicFrame.prototype.getTransformMatrix = function()
 
 CGraphicFrame.prototype.OnContentReDraw = function()
 {};
-
-CGraphicFrame.prototype.getRectBounds = function()
-    {
-        var transform = this.getTransformMatrix();
-        var w = this.extX;
-        var h = this.extY;
-        var rect_points = [{x:0, y:0}, {x: w, y: 0}, {x: w, y: h}, {x: 0, y: h}];
-        var min_x, max_x, min_y, max_y;
-        min_x = transform.TransformPointX(rect_points[0].x, rect_points[0].y);
-        min_y = transform.TransformPointY(rect_points[0].x, rect_points[0].y);
-        max_x = min_x;
-        max_y = min_y;
-        var cur_x, cur_y;
-        for(var i = 1; i < 4; ++i)
-        {
-            cur_x = transform.TransformPointX(rect_points[i].x, rect_points[i].y);
-            cur_y = transform.TransformPointY(rect_points[i].x, rect_points[i].y);
-            if(cur_x < min_x)
-                min_x = cur_x;
-            if(cur_x > max_x)
-                max_x = cur_x;
-
-            if(cur_y < min_y)
-                min_y = cur_y;
-            if(cur_y > max_y)
-                max_y = cur_y;
-        }
-        return {minX: min_x, maxX: max_x, minY: min_y, maxY: max_y};
-};
 
 CGraphicFrame.prototype.changeSize = function(kw, kh)
     {
@@ -843,10 +807,6 @@ CGraphicFrame.prototype.drawAdjustments = function()
 CGraphicFrame.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
 
 CGraphicFrame.prototype.recalculateLocalTransform = CShape.prototype.recalculateLocalTransform;
-
-CGraphicFrame.prototype.deleteDrawingBase = CShape.prototype.deleteDrawingBase;
-
-CGraphicFrame.prototype.addToDrawingObjects = CShape.prototype.addToDrawingObjects;
 
 
 CGraphicFrame.prototype.Update_ContentIndexing = function()
@@ -1194,7 +1154,7 @@ CGraphicFrame.prototype.checkTypeCorrect = function()
         }
         return true;
     };
-CGraphicFrame.prototype.Is_ThisElementCurrent = function()
+CGraphicFrame.prototype.IsThisElementCurrent = function()
     {
         if(this.parent && this.parent.graphicObjects)
         {
@@ -1365,39 +1325,6 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
         }
     };
 
-    CGraphicFrame.prototype.readChildXml = function (name, reader) {
-        switch (name) {
-            case "xfrm": {
-                let xfrm = new AscFormat.CXfrm();
-                xfrm.fromXml(reader);
-                if(!this.spPr) {
-                    this.setSpPr(new AscFormat.CSpPr());
-                }
-                this.spPr.setXfrm(xfrm);
-                break;
-            }
-            case "graphic": {
-                let graphic = new AscFormat.CT_GraphicalObject(this);
-                graphic.fromXml(reader);
-                let graphicObject = graphic.GraphicData && graphic.GraphicData.graphicObject;
-                if (graphicObject) {
-                    if(!(graphicObject instanceof AscCommonWord.CTable)) {
-                        graphicObject.setBDeleted(false);
-                        graphicObject.setParent(this);
-                        this.setGraphicObject(graphicObject);
-                    }
-                }
-                break;
-            }
-            case "nvGraphicFramePr": {
-                let oPr = new AscFormat.UniNvPr();
-                oPr.fromXml(reader);
-                this.setNvSpPr(oPr);
-                this.setLocks(oPr.getLocks());
-                break;
-            }
-        }
-    };
     CGraphicFrame.prototype.getSpTreeDrawing = function () {
         if(this.isTable()) {
             return this;
@@ -1421,49 +1348,6 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
             return null;
         }
     };
-    CGraphicFrame.prototype.fromXml = function(reader, name) {
-        AscFormat.CGraphicObjectBase.prototype.fromXml.call(this, reader, name);
-
-        if(this.nvGraphicFramePr) {
-            let oSpTreeDrawing = this.getSpTreeDrawing();
-            if(oSpTreeDrawing && oSpTreeDrawing !== this) {
-                if(oSpTreeDrawing.setNvSpPr) {
-                    oSpTreeDrawing.setNvSpPr(this.nvGraphicFramePr.createDuplicate());
-                }
-            }
-        }
-    };
-	CGraphicFrame.prototype.toXml = function(writer, name) {
-        let sName = name || "p:graphicFrame";
-		var context = writer.context;
-		var objectId = context.objectId++;
-		writer.WriteXmlNodeStart(sName);
-		writer.WriteXmlAttributesEnd();
-
-		var ns = AscCommon.StaxParser.prototype.GetNSFromNodeName(sName);
-
-
-        let oSpTreeDrawing = this.getSpTreeDrawing();
-        if(oSpTreeDrawing) {
-            let oUniNvPr = oSpTreeDrawing.getUniNvProps();
-            if(oUniNvPr) {
-                oUniNvPr.toXmlGrFrame(writer);
-            }
-            writer.WriteXmlNullable(oSpTreeDrawing.spPr && oSpTreeDrawing.spPr.xfrm, ns + "xfrm");
-        }
-        let oGraphicObject;
-        if(this.isTable()) {
-            oGraphicObject =  new AscFormat.CT_GraphicalObject(this);
-            oGraphicObject.GraphicData = new  AscFormat.CT_GraphicalObjectData(this);
-            oGraphicObject.GraphicData.graphicObject = this.graphicObject;
-            oGraphicObject.GraphicData.Uri = "http://schemas.openxmlformats.org/drawingml/2006/table";
-        }
-        else {
-            oGraphicObject = this.graphicObject;
-        }
-		writer.WriteXmlNullable(oGraphicObject, "a:graphic");
-		writer.WriteXmlNodeEnd(sName);
-	};
 
     CGraphicFrame.prototype.static_CreateGraphicFrameFromDrawing = function (oDrawing) {
         let Graphic = new AscFormat.CT_GraphicalObject();
@@ -1486,7 +1370,9 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
         newGraphicObject.graphicObject = Graphic;
         return newGraphicObject;
     };
-
+    CGraphicFrame.prototype.Get_ShapeStyleForPara = function() {
+        return null;
+    };
     function ConvertToWordTableBorder(oBorder) {
         if(!oBorder) {
             return undefined;
@@ -1560,7 +1446,38 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
         }
         return undefined;
     }
+
+
+
+    function updateRowHeightAfterOpen(oRow, fRowHeight) {
+        let fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
+        let bLoadVal = AscCommon.g_oIdCounter.m_bLoad;
+        let bRead = AscCommon.g_oIdCounter.m_bRead;
+        AscCommon.g_oIdCounter.m_bLoad = false;
+        AscCommon.g_oIdCounter.m_bRead = false;
+        for(let i = 0;  i < oRow.Content.length; ++i){
+            let oCell = oRow.Content[i];
+            let oMargins = oCell.GetMargins();
+            if(oMargins.Bottom.W > fMaxBottomMargin){
+                fMaxBottomMargin = oMargins.Bottom.W;
+            }
+            if(oMargins.Top.W > fMaxTopMargin){
+                fMaxTopMargin = oMargins.Top.W;
+            }
+            let oBorders = oCell.Get_Borders();
+            if(oBorders.Top.Size > fMaxTopBorder){
+                fMaxTopBorder = oBorders.Top.Size;
+            }
+            if(oBorders.Bottom.Size > fMaxBottomBorder){
+                fMaxBottomBorder = oBorders.Bottom.Size;
+            }
+        }
+        AscCommon.g_oIdCounter.m_bLoad = bLoadVal;
+        AscCommon.g_oIdCounter.m_bRead = bRead;
+        oRow.Set_Height(Math.max(1, fRowHeight - fMaxTopMargin - fMaxBottomMargin - fMaxTopBorder/2 - fMaxBottomBorder/2), Asc.linerule_AtLeast);
+    }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGraphicFrame = CGraphicFrame;
+    window['AscFormat'].updateRowHeightAfterOpen = updateRowHeightAfterOpen;
 })(window);

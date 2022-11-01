@@ -63,6 +63,10 @@ function ParaFieldChar(Type, LogicDocument)
 ParaFieldChar.prototype = Object.create(AscWord.CRunElementBase.prototype);
 ParaFieldChar.prototype.constructor = ParaFieldChar;
 ParaFieldChar.prototype.Type = para_FieldChar;
+ParaFieldChar.prototype.IsFieldChar = function()
+{
+	return true;
+};
 ParaFieldChar.prototype.Init = function(Type, LogicDocument)
 {
 	this.CharType = Type;
@@ -287,6 +291,10 @@ function ParaInstrText(nCharCode)
 ParaInstrText.prototype = Object.create(AscWord.CRunElementBase.prototype);
 ParaInstrText.prototype.constructor = ParaInstrText;
 ParaInstrText.prototype.Type = para_InstrText;
+ParaInstrText.prototype.IsInstrText = function()
+{
+	return true;
+};
 ParaInstrText.prototype.Copy = function()
 {
 	return new ParaInstrText(this.Value);
@@ -945,13 +953,16 @@ CComplexField.prototype.private_UpdateTOC = function()
 	else
 	{
 		var sReplacementText;
-		if(bTOF)
+		if (bTOF)
 		{
 			sReplacementText = AscCommon.translateManager.getValue("No table of figures entries found.");
 		}
 		else
 		{
 			sReplacementText = AscCommon.translateManager.getValue("No table of contents entries found.");
+
+			let oApi = this.LogicDocument.GetApi();
+			oApi.sendEvent("asc_onError", c_oAscError.ID.ComplexFieldEmptyTOC, c_oAscError.Level.NoCritical);
 		}
 
 		oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
@@ -960,9 +971,6 @@ CComplexField.prototype.private_UpdateTOC = function()
 		oRun.AddText(sReplacementText);
 		oPara.AddToContent(0, oRun);
 		oSelectedContent.Add(new AscCommonWord.CSelectedElement(oPara, true));
-
-		let oApi = this.LogicDocument.GetApi();
-		oApi.sendEvent("asc_onError", c_oAscError.ID.ComplexFieldEmptyTOC, c_oAscError.Level.NoCritical);
 	}
 
 	this.SelectFieldValue();
@@ -1186,7 +1194,8 @@ CComplexField.prototype.private_GetBookmarkContent = function(sBookmarkName)
 			SkipFootnoteReference : true,
 			SkipComplexFields     : true,
 			SkipComments          : true,
-			SkipBookmarks         : true
+			SkipBookmarks         : true,
+			SkipFldSimple         : true
 		});
 	}
 	return oSelectedContent;

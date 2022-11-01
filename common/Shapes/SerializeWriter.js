@@ -51,7 +51,7 @@ var c_oMainTables = {
     VmlDrawing		: 5,
     TableStyles		: 6,
     PresProps		: 7,
-	JsaProject		: 8,
+    Customs 		: 8,
 
     Themes			: 20,
     ThemeOverride	: 21,
@@ -606,11 +606,14 @@ function CBinaryFileWriter()
 			this.WriteCustomProperties(presentation.CustomProperties, presentation.Api);
 
         // ViewProps
-		if (presentation.ViewProps)
-			this.WriteViewProps(presentation.ViewProps);
+		if (presentation.viewPr)
+			this.WriteViewProps(presentation.viewPr);
 
         // PresProps
 		this.WritePresProps(presentation);
+
+        //Customs
+        this.WriteCustomXml(presentation);
 
         // presentation
         this.WritePresentation(presentation);
@@ -766,7 +769,11 @@ function CBinaryFileWriter()
         {
             if(oTableStyleIdMap.hasOwnProperty(key))
             {
-                this.tableStylesGuides[key] = "{" + GUID() + "}"
+                const oStyle = AscCommon.g_oTableId.Get_ById(key);
+                if (oStyle)
+                {
+                    this.tableStylesGuides[key] = oStyle.Get_StyleId() || AscCommon.CreateGUID();
+                }
             }
         }
 
@@ -1050,10 +1057,11 @@ function CBinaryFileWriter()
         this.StartMainRecord(c_oMainTables.CustomProperties);
         customProperties.toStream(this, api);
     };
-    this.WriteViewProps = function(viewprops)
+    this.WriteViewProps = function(viewPr)
     {
         this.StartMainRecord(c_oMainTables.ViewProps);
         this.StartRecord(c_oMainTables.ViewProps);
+        viewPr.toPPTY(this);
         this.EndRecord();
     };
     this.WritePresProps = function(presentation)
@@ -1113,6 +1121,16 @@ function CBinaryFileWriter()
             this.EndRecord();
         }
         this.EndRecord();
+    };
+
+    this.WriteCustomXml = function(presentation)
+    {
+        if(!presentation.CustomXmlData)
+        {
+            return;
+        }
+        this.StartMainRecord(c_oMainTables.Customs);
+        this.WriteBuffer(presentation.CustomXmlData, 0, presentation.CustomXmlData.length);
     };
 
     this.WritePresentation = function(presentation)
@@ -3490,12 +3508,12 @@ function CBinaryFileWriter()
         oThis._WriteString2(1, ole.m_sData);
         oThis._WriteInt2(2, ratio * ole.m_nPixWidth);
         oThis._WriteInt2(3, ratio * ole.m_nPixHeight);
-        oThis._WriteUChar2(4, 0);
+        oThis._WriteUChar2(4, ole.m_nDrawAspect);
         oThis._WriteUChar2(5, 0);
         oThis._WriteString2(7, ole.m_sObjectFile);
         oThis.WriteUChar(g_nodeAttributeEnd);
 
-        if((ole.m_nOleType === 0 || ole.m_nOleType === 1 || ole.m_nOleType === 2) && ole.m_aBinaryData !== null)
+        if((ole.m_nOleType === 0 || ole.m_nOleType === 1 || ole.m_nOleType === 2) && ole.m_aBinaryData.length !== 0)
         {
             oThis.WriteRecord1(1, ole.m_nOleType, function(val){
                 oThis.WriteUChar(val);
@@ -5393,7 +5411,7 @@ function CBinaryFileWriter()
             _writer._WriteString2(1, ole.m_sData);
 			_writer._WriteInt2(2, ratio * ole.m_nPixWidth);
 			_writer._WriteInt2(3, ratio * ole.m_nPixHeight);
-            _writer._WriteUChar2(4, 0);
+            _writer._WriteUChar2(4, ole.m_nDrawAspect);
             _writer._WriteUChar2(5, 0);
 			_writer._WriteString2(7, ole.m_sObjectFile);
             _writer.WriteUChar(g_nodeAttributeEnd);
