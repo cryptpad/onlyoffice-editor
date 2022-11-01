@@ -51,7 +51,7 @@
 		this.ForceUpdate = true;
 	}
 
-	CMathTrackHandler.prototype.UpdateTrack = function(math, pageNum, isActive)
+	CMathTrackHandler.prototype.SetTrackObject = function(math, pageNum, isActive)
 	{
 		// TODO: Сейчас посылаем сообщение в отрисовщик трека по старому всегда
 

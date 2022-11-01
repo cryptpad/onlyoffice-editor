@@ -11628,7 +11628,7 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 
 	var oMath = oSelectedInfo.GetMath();
-	this.MathTrackHandler.UpdateTrack(this.IsShowEquationTrack() ? oMath : null, this.CurPage, false === bSelection || true === bEmptySelection)
+	this.MathTrackHandler.SetTrackObject(this.IsShowEquationTrack() ? oMath : null, this.CurPage, false === bSelection || true === bEmptySelection)
 
 	var oBlockLevelSdt  = oSelectedInfo.GetBlockLevelSdt();
 	var oInlineLevelSdt = oSelectedInfo.GetInlineLevelSdt();
