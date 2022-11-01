@@ -1701,7 +1701,7 @@
   DocsCoApi.prototype.setDocId = function(docid) {
     //todo возможно надо менять sockjs_url
     this._docid = docid;
-    this.socketio_url = AscCommon.getBaseUrlPathname() + '../../../../doc/socket.io';
+    this.socketio_url = AscCommon.getBaseUrlPathname() + '../../../../doc/' + docid + '/c';
   };
   // Авторизация (ее нужно делать после выставления состояния редактора view-mode)
   DocsCoApi.prototype.auth = function(isViewer, opt_openCmd, opt_isIdle) {
@@ -1763,15 +1763,15 @@
 		} else {
           let io = AscCommon.getSocketIO();
           socket = io({
-            path: this.socketio_url,
-            transports: ["websocket", "polling"],
-            closeOnBeforeunload: false,
-            reconnectionAttempts: 15,
-            reconnectionDelay: 500,
-            reconnectionDelayMax: 10000,
-            randomizationFactor: 0.5,
-            auth: {
-              token: this.jwtOpen
+            "path": this.socketio_url,
+            "transports": ["websocket", "polling"],
+            "closeOnBeforeunload": false,
+            "reconnectionAttempts": 15,
+            "reconnectionDelay": 500,
+            "reconnectionDelayMax": 10000,
+            "randomizationFactor": 0.5,
+            "auth": {
+              "token": this.jwtOpen
             }
           });
           socket.on("connect", function () {
