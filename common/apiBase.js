@@ -3907,6 +3907,9 @@
 	};
 	baseEditorsApi.prototype.asc_AddMath = function(type)
 	{};
+	baseEditorsApi.prototype.asc_ConvertMathView = function(isToLinear, isAll)
+	{
+	};
 	baseEditorsApi.prototype.asc_GetMathInputType = function()
 	{
 		return Asc.c_oAscMathInputType.Unicode;
@@ -4185,6 +4188,7 @@
 	prot['asc_refreshOnStartAutoCorrectMathFunctions'] = prot.asc_refreshOnStartAutoCorrectMathFunctions;
 	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
 	prot['asc_AddMath'] = prot.asc_AddMath;
+	prot['asc_ConvertMathView'] = prot.asc_ConvertMathView;
 	prot['asc_GetMathInputType'] = prot.asc_GetMathInputType;
 	prot['asc_SetMathInputType'] = prot.asc_SetMathInputType;
 	prot['asc_initShortcuts'] = prot.asc_initShortcuts;
