@@ -227,6 +227,7 @@
 			"word/Math/operators.js",
 			"word/Math/accent.js",
 			"word/Math/borderBox.js",
+			"word/Math/mathTrackHandler.js",
 			"word/Editor/FlowObjects.js",
 			"word/Editor/Paragraph.js",
 			"word/Editor/ParagraphChanges.js",

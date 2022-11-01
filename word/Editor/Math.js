@@ -3491,6 +3491,10 @@ ParaMath.prototype.Get_Bounds = function()
         return this.private_GetBounds(this.Root);
     }
 };
+ParaMath.prototype.GetBounds = function()
+{
+	return this.Get_Bounds();
+};
 ParaMath.prototype.Get_JointSize = function()
 {
     var W = 0, H = 0;

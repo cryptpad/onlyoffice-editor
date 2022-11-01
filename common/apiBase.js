@@ -3905,6 +3905,14 @@
 	{
 		window['AscCommonWord'].b_DoAutoCorrectMathSymbols = flag;
 	};
+	baseEditorsApi.prototype.asc_AddMath = function(type)
+	{};
+	baseEditorsApi.prototype.asc_GetMathInputType = function()
+	{
+		return Asc.c_oAscMathInputType.Unicode;
+	};
+	baseEditorsApi.prototype.asc_SetMathInputType = function(type)
+	{};
 
 	baseEditorsApi.prototype.getFileAsFromChanges = function()
 	{
@@ -4176,6 +4184,9 @@
 	prot['asc_refreshOnStartAutoCorrectMathSymbols'] = prot.asc_refreshOnStartAutoCorrectMathSymbols;
 	prot['asc_refreshOnStartAutoCorrectMathFunctions'] = prot.asc_refreshOnStartAutoCorrectMathFunctions;
 	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
+	prot['asc_AddMath'] = prot.asc_AddMath;
+	prot['asc_GetMathInputType'] = prot.asc_GetMathInputType;
+	prot['asc_SetMathInputType'] = prot.asc_SetMathInputType;
 	prot['asc_initShortcuts'] = prot.asc_initShortcuts;
 	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
 	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;

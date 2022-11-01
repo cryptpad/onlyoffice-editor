@@ -1878,6 +1878,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	// TODO: Пока временно так сделаем, в будущем надо переделать в общий класс позиции документа
 	this.FocusCC = null;
 
+	this.MathTrackHandler = new AscWord.CMathTrackHandler(DrawingDocument, this.Api);
+
 	this.Selection =
     {
         Start    : false,
@@ -3058,6 +3060,7 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 	}
 
 	this.DocumentOutline.Update();
+	this.MathTrackHandler.Update();
 
     if (true !== this.Is_OnRecalculate())
         return document_recalcresult_NoRecal;
@@ -11624,11 +11627,8 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 
-	var Math = oSelectedInfo.GetMath();
-	if (null !== Math && this.IsShowEquationTrack())
-		this.DrawingDocument.Update_MathTrack(true, (false === bSelection || true === bEmptySelection ? true : false), Math);
-	else
-		this.DrawingDocument.Update_MathTrack(false);
+	var oMath = oSelectedInfo.GetMath();
+	this.MathTrackHandler.UpdateTrack(this.IsShowEquationTrack() ? oMath : null, this.CurPage, false === bSelection || true === bEmptySelection)
 
 	var oBlockLevelSdt  = oSelectedInfo.GetBlockLevelSdt();
 	var oInlineLevelSdt = oSelectedInfo.GetInlineLevelSdt();
@@ -13257,6 +13257,7 @@ CDocument.prototype.Viewer_OnChangePosition = function()
 	}
     window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
 	this.TrackRevisionsManager.UpdateSelectedChangesPosition(this.Api);
+	this.MathTrackHandler.OnChangePosition();
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с секциями
