@@ -648,7 +648,7 @@
 		{
 			oPr = new AscWord.CSdtComboBoxPr();
 			List.forEach(function(el) {
-				oPr.AddItem(el.Display, el.Value);
+				oPr.AddItem(el["Display"], el["Value"]);
 			});
 		}
 
@@ -691,10 +691,10 @@
 		if (datePickerPr)
 		{
 			oPr = new AscWord.CSdtDatePickerPr();
-			if (datePickerPr.Date)
-				oPr.SetFullDate(datePickerPr.Date);
-			if (datePickerPr.DateFormat)
-				oPr.SetDateFormat(datePickerPr.DateFormat);
+			if (datePickerPr["Date"])
+				oPr.SetFullDate(datePickerPr["Date"]);
+			if (datePickerPr["DateFormat"])
+				oPr.SetDateFormat(datePickerPr["DateFormat"]);
 		}
 
 		var _content_control_pr = private_ReadContentControlCommonPr(commonPr);
