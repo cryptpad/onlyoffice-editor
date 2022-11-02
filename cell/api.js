@@ -7952,6 +7952,15 @@ var editor;
 		wb.EnterText(codePoints);
 	};
 
+	spreadsheet_api.prototype.asc_correctEnterText = function(oldValue, newValue)
+	{
+		let wb = this.wb;
+		if (!wb)
+			return;
+
+		wb.CorrectEnterText(oldValue, newValue);
+	};
+
 	spreadsheet_api.prototype.asc_getExternalReferences = function() {
 		return this.wb.getExternalReferences();
 	};

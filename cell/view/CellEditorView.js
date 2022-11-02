@@ -3001,6 +3001,16 @@
 	CellEditor.prototype._setSkipKeyPress = function (val) {
 		this.skipKeyPress = val;
 	};
+	CellEditor.prototype.getText = function (start, len) {
+		let chars = this.textRender.getChars(start, len);
+		let res = "";
+		for (let i in chars) {
+			if (chars.hasOwnProperty(i)) {
+				res += AscCommon.encodeSurrogateChar(chars[i]);
+			}
+		}
+		return res;
+	};
 
 
 	//------------------------------------------------------------export---------------------------------------------------

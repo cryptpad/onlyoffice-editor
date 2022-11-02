@@ -4841,6 +4841,43 @@
 		}
 	};
 
+	WorkbookView.prototype.CorrectEnterText = function (oldValue, newValue) {
+		if (undefined === oldValue || null === oldValue || (Array.isArray(oldValue) && !oldValue.length)) {
+			return this.EnterText(newValue);
+		}
+
+		if (!this.isCellEditMode || !this.cellEditor) {
+			return;
+		}
+
+		let newCodePoints = typeof (newValue) === "string" ? newValue.codePointsArray() : newValue;
+		let oldCodePoints = typeof (oldValue) === "string" ? oldValue.codePointsArray() : oldValue;
+
+		if (undefined === newCodePoints || null === newCodePoints) {
+			newCodePoints = [];
+		} else if (!Array.isArray(newCodePoints)) {
+			newCodePoints = [newCodePoints];
+		}
+
+		let oldText = "";
+		for (let index = 0, count = oldCodePoints.length; index < count; ++index) {
+			oldText += String.fromCodePoint(oldCodePoints[index]);
+		}
+
+		let curPos = this.cellEditor.cursorPos;
+		let maxShifts = oldCodePoints.length;
+		let selectedText = this.cellEditor.getText(curPos - maxShifts, maxShifts);
+
+		if (selectedText !== oldText) {
+			return false;
+		}
+
+		//TODO Replace_CompositeText
+		this.cellEditor.replaceText(curPos - maxShifts, maxShifts, newCodePoints)
+
+		return true;
+	};
+
 	WorkbookView.prototype.removeExternalReferences = function (arr) {
 		this.model.removeExternalReferences(arr);
 	};
