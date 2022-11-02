@@ -5511,8 +5511,6 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement)
 		this.private_ProcessAutoCorrect(ActionElement, textToCheck);
 	}
 };
-CMathContent.prototype.private_ProcessAutoCorrect = function(ActionElement) {
-
 CMathContent.prototype.SplitSelectedContentPos = function(pos) {
 	let oContent = this.Content[pos];
 	let isStart = this.Selection.StartPos === pos;
