@@ -67,7 +67,7 @@ function (window, undefined) {
 	var _func = AscCommonExcel._func;
 
 	cFormulaFunctionGroup['LookupAndReference'] = cFormulaFunctionGroup['LookupAndReference'] || [];
-	cFormulaFunctionGroup['LookupAndReference'].push(cADDRESS, cAREAS, cCHOOSE, cCHOOSECOLS, cCHOOSEROWS, cCOLUMN, cCOLUMNS, cFORMULATEXT,
+	cFormulaFunctionGroup['LookupAndReference'].push(cADDRESS, cAREAS, cCHOOSE, cCHOOSECOLS, cCHOOSEROWS, cCOLUMN, cCOLUMNS, cDROP, cFORMULATEXT,
 		cGETPIVOTDATA, cHLOOKUP, cHYPERLINK, cINDEX, cINDIRECT, cLOOKUP, cMATCH, cOFFSET, cROW, cROWS, cRTD, cTRANSPOSE, cTAKE,
 		cUNIQUE, cVLOOKUP, cXLOOKUP, cVSTACK, cHSTACK, cTOROW, cTOCOL, cWRAPROWS, cWRAPCOLS);
 
@@ -1442,25 +1442,7 @@ function (window, undefined) {
 		return TransposeMatrix(arg0);
 	};
 
-	/**
-	 * @constructor
-	 * @extends {AscCommonExcel.cBaseFunction}
-	 */
-	function cTAKE() {
-	}
-
-	//***array-formula***
-	cTAKE.prototype = Object.create(cBaseFunction.prototype);
-	cTAKE.prototype.constructor = cTAKE;
-	cTAKE.prototype.name = 'TAKE';
-	cTAKE.prototype.argumentsMin = 2;
-	cTAKE.prototype.argumentsMax = 3;
-	cTAKE.prototype.arrayIndexes = {0: 1};
-	cTAKE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
-	cTAKE.prototype.isXLFN = true;
-	cTAKE.prototype.argumentsType = [argType.reference, argType.number, argType.number];
-	cTAKE.prototype.arrayIndexes = {0: 1};
-	cTAKE.prototype.Calculate = function (arg) {
+	function takeDrop(arg, argument1, isDrop) {
 		var argError = cBaseFunction.prototype._checkErrorArg.call(this, arg);
 		if (argError) {
 			return argError;
@@ -1535,8 +1517,78 @@ function (window, undefined) {
 			}
 		}
 
+		if (isDrop) {
+			let dimensions = array.getDimensions();
+
+			if (arg2 && dimensions.row <= Math.abs(arg2)) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+			if (arg3 && dimensions.col <= Math.abs(arg3)) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+
+			if (arg2) {
+				if (arg2 < 0) {
+					arg2 = dimensions.row - Math.abs(arg2);
+				} else {
+					arg2 = -1 * (dimensions.row - arg2);
+				}
+			}
+			if (arg3) {
+				if (arg3 < 0) {
+					arg3 = dimensions.col - Math.abs(arg3);
+				} else {
+					arg3 = -1 * (dimensions.col - arg3);
+				}
+			}
+		}
+
 		let res = array.crop(arg2, arg3);
 		return res ? res : new cError(cErrorType.wrong_value_type);
+	}
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cTAKE() {
+	}
+
+	//***array-formula***
+	cTAKE.prototype = Object.create(cBaseFunction.prototype);
+	cTAKE.prototype.constructor = cTAKE;
+	cTAKE.prototype.name = 'TAKE';
+	cTAKE.prototype.argumentsMin = 2;
+	cTAKE.prototype.argumentsMax = 3;
+	cTAKE.prototype.arrayIndexes = {0: 1};
+	cTAKE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTAKE.prototype.isXLFN = true;
+	cTAKE.prototype.argumentsType = [argType.reference, argType.number, argType.number];
+	cTAKE.prototype.arrayIndexes = {0: 1};
+	cTAKE.prototype.Calculate = function (arg) {
+		return takeDrop(arg, arguments[1]);
+	};
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cDROP() {
+	}
+
+	//***array-formula***
+	cDROP.prototype = Object.create(cBaseFunction.prototype);
+	cDROP.prototype.constructor = cDROP;
+	cDROP.prototype.name = 'DROP';
+	cDROP.prototype.argumentsMin = 2;
+	cDROP.prototype.argumentsMax = 3;
+	cDROP.prototype.arrayIndexes = {0: 1};
+	cDROP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDROP.prototype.isXLFN = true;
+	cDROP.prototype.argumentsType = [argType.reference, argType.number, argType.number];
+	cDROP.prototype.arrayIndexes = {0: 1};
+	cDROP.prototype.Calculate = function (arg) {
+		return takeDrop(arg, arguments[1], true);
 	};
 
 
