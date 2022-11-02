@@ -5831,7 +5831,7 @@ drawBarChart.prototype = {
 				if (this.chart.series[i].errBars) {
 					var _pointX = (startX + individualBarWidth / 2) / this.chartProp.pxToMM;
 					var pointY = (startY + height) / this.chartProp.pxToMM;
-					var _pointVal = this.cChartDrawer.getValWithStacked(i, j, this.chart);
+					var _pointVal = this.cChartDrawer.getValWithStacked(i, idx, this.chart);
 					//var _pointVal = this.subType === "stacked" || this.subType === "stackedPer" ? this._getStackedValue(this.chart.series, i, j, val) : val;
 					this.cChartDrawer.errBars.putPoint(_pointX, pointY, _pointVal, _pointVal,  serIdx, idx);
 				}
@@ -8913,7 +8913,7 @@ drawHBarChart.prototype = {
 					var _pointX = (startX) / this.chartProp.pxToMM;
 					var pointY = (startY - individualBarHeight / 2) / this.chartProp.pxToMM;
 					//var _pointVal = this.subType === "stacked" || this.subType === "stackedPer" ? this._getStackedValue(this.chart.series, i, j, val) : val;
-					var _pointVal = this.cChartDrawer.getValWithStacked(i, j, this.chart);
+					var _pointVal = this.cChartDrawer.getValWithStacked(i, idx, this.chart);
 					this.cChartDrawer.errBars.putPoint(_pointX, pointY, _pointVal, _pointVal,  serIdx, idx);
 				}
 			}
