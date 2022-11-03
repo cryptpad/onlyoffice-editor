@@ -14129,7 +14129,7 @@ valAxisChart.prototype = {
 					return;
 				}
 
-				var stepX = points[1] ? Math.abs(points[1].pos - points[0].pos) : Math.abs(points[1].pos - this.chartProp.chartGutter._bottom / this.chartProp.pxToMM);
+				var stepX = points[1] ? Math.abs(points[1].pos - points[0].pos) : Math.abs(points[0].pos - this.chartProp.chartGutter._bottom / this.chartProp.pxToMM);
 				minorStep = stepX / minorLinesCount;
 				posY = this.valAx.posY;
 
@@ -14635,7 +14635,7 @@ axisChart.prototype = {
 				return;
 			}
 
-			var stepX = points[1] ? Math.abs(points[1].pos - points[0].pos) : Math.abs(points[1].pos - this.chartProp.chartGutter._bottom / this.chartProp.pxToMM);
+			var stepX = points[1] ? Math.abs(points[1].pos - points[0].pos) : Math.abs(points[0].pos - this.chartProp.chartGutter._bottom / this.chartProp.pxToMM);
 			minorStep = stepX / minorLinesCount;
 			posY = this.axis.posY;
 

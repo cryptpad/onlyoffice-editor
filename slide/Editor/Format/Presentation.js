@@ -11633,6 +11633,10 @@ CPresentation.prototype.UpdateUndoRedo = function () {
 };
 
 
+CPresentation.prototype.UpdateTracks = function () {
+};
+
+
  CPresentation.prototype.GetAutoCorrectSettings = function()
  {
      return this.AutoCorrectSettings;
