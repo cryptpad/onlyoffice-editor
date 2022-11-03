@@ -698,7 +698,7 @@ function NewShapeTrack(presetGeom, startX, startY, theme, master, layout, slide,
             var body_pr = new AscFormat.CBodyPr();
             body_pr.setDefault();
             if(this.presetGeom === "textRectVertical") {
-                body_pr.setVert(AscFormat.nVertTTvert270);
+                body_pr.setVert(AscFormat.nVertTTvert);
             }
             if(bFromWord)
             {
