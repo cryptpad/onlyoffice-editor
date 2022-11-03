@@ -11835,7 +11835,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
     {
         var res = c_oSerConstants.ReadOk;
         var oThis = this;
-		let paragraph = this.Paragraph;
+		let paragraph = run.Paragraph;
         var oNewElem = null;
         if (c_oSerRunType.run === type || c_oSerRunType.delText === type)
         {
