@@ -1522,6 +1522,9 @@ CInlineLevelSdt.prototype.SetPr = function(oPr)
 
 	if (undefined !== oPr.Color)
 		this.SetColor(oPr.Color);
+
+	if(undefined !== oPr.OForm)
+		this.SetOForm(oPr.OForm);
 };
 /**
  * Выставляем настройки текста по умолчанию для данного контрола
@@ -1637,6 +1640,11 @@ CInlineLevelSdt.prototype.SetContentControlLock = function(nLockType)
 		History.Add(new CChangesSdtPrLock(this, this.Pr.Lock, nLockType));
 		this.Pr.Lock = nLockType;
 	}
+};
+CInlineLevelSdt.prototype.SetOForm = function(oOForm)
+{
+	History.Add(new CChangesSdtPrOForm(this, this.Pr.OForm, oOForm));
+	this.Pr.OForm = oOForm;
 };
 CInlineLevelSdt.prototype.GetContentControlLock = function()
 {

@@ -73,6 +73,8 @@ function CSdtPr()
 	this.FormPr        = undefined;
 	this.PictureFormPr = undefined;
 	this.ComplexFormPr = undefined;
+
+	this.OForm         = undefined;
 }
 
 CSdtPr.prototype.Copy = function()
