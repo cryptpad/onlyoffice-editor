@@ -142,6 +142,7 @@
 			"word/Editor/Numbering/Numbering.js",
 			"word/Drawing/GraphicsEvents.js",
 			"word/Drawing/Rulers.js",
+			"word/Drawing/printpreview.js",
 			"word/Editor/DocumentContentElementBase.js",
 			"word/Editor/Table.js",
 			"word/Editor/Table/TableChanges.js",
