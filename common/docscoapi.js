@@ -1781,7 +1781,7 @@
             t._onServerMessage(data);
           });
           socket.on("error", function (data) {
-            console.error(`socket.error:${data}`);
+            console.error("socket.error:" + JSON.stringify(data));
           });
           socket.on("disconnect", function (reason) {
             t._onServerClose(false, reason);
