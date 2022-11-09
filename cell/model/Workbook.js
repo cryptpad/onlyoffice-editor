@@ -4432,24 +4432,29 @@
 		}
 	};
 	SheetMemory.prototype.copyRange = function(sheetMemory, startFrom, startTo, count) {
-		this.clear(startTo, startTo + count - 1);
+		let dataCopy, startToSrc = startTo, countSrc = count;
 		if (startFrom <= sheetMemory.indexB && startFrom + count - 1 >= sheetMemory.indexA) {
 			if (startFrom < sheetMemory.indexA) {
-				startTo += sheetMemory.indexA - startFrom;
+				let diff = sheetMemory.indexA - startFrom;
+				startTo += diff;
+				count -= diff;
 				startFrom = sheetMemory.indexA;
 			}
 			if (startFrom + count - 1 > sheetMemory.indexB) {
 				count -= startFrom + count - 1 - sheetMemory.indexB;
 			}
 			if (count > 0) {
-				this.checkIndex(startTo);
-				this.checkIndex(startTo + count - 1);
-				var startOffsetFrom = (startFrom - sheetMemory.indexA) * this.structSize;
-				var endOffsetFrom = (startFrom - sheetMemory.indexA + count) * this.structSize;
-				var startOffsetTo = (startTo - this.indexA) * this.structSize;
-
-				this.data.set(sheetMemory.data.subarray(startOffsetFrom, endOffsetFrom), startOffsetTo);
+				let startOffsetFrom = (startFrom - sheetMemory.indexA) * this.structSize;
+				let endOffsetFrom = (startFrom - sheetMemory.indexA + count) * this.structSize;
+				dataCopy = sheetMemory.data.slice(startOffsetFrom, endOffsetFrom);
 			}
+		}
+		this.clear(startToSrc, startToSrc + countSrc);
+		if(dataCopy) {
+			this.checkIndex(startTo);
+			this.checkIndex(startTo + count - 1);
+			let startOffsetTo = (startTo - this.indexA) * this.structSize;
+			this.data.set(dataCopy, startOffsetTo);
 		}
 	};
 	SheetMemory.prototype.copyRangeByChunk = function(from, fromCount, to, toCount) {
@@ -4466,9 +4471,9 @@
 	};
 	SheetMemory.prototype.clear = function(start, end) {
 		start = Math.max(start, this.indexA);
-		end = Math.min(end, this.indexB);
+		end = Math.min(end, this.indexB + 1);
 		if (start < end) {
-			this.data.fill(0, (start - this.indexA) * this.structSize, (end + 1 - this.indexA) * this.structSize);
+			this.data.fill(0, (start - this.indexA) * this.structSize, (end - this.indexA) * this.structSize);
 		}
 	};
 	SheetMemory.prototype.getUint8 = function(index, offset) {
