@@ -132,6 +132,31 @@
             return Len + ";" + Writer.GetBase64Memory2(Pos, Len);
         }
     };
+	CCollaborativeChanges.prototype.ToHistoryChange = function()
+	{
+		let binaryReader = this.private_LoadData(this.m_pData);
+
+		let objectId = binaryReader.GetString2();
+		let object   = AscCommon.g_oTableId.Get_ById(objectId);
+
+		if (!object)
+		{
+			let changeType = binaryReader.GetLong();
+			let change = new AscDFH.changesFactory[changeType](object);
+			change.ReadFromBinary(binaryReader);
+
+			return null;
+		}
+
+		let changeType = binaryReader.GetLong();
+
+		if (!AscDFH.changesFactory[changeType])
+			return null;
+
+		let change = new AscDFH.changesFactory[changeType](object);
+		change.ReadFromBinary(binaryReader);
+		return change;
+	};
 
 
     function CCollaborativeEditingBase()
@@ -191,6 +216,11 @@
         this.m_oOwnChanges        = [];
 
 		this.m_fEndLoadCallBack   = null;
+
+		this.m_aExternalChanges = [];
+		this.m_nExternalIndex0  = -1;
+		this.m_nExternalIndex1  = -1;
+		this.m_nExternalCounter = 0;
     }
 
     CCollaborativeEditingBase.prototype.GetEditorApi = function()
@@ -353,6 +383,133 @@
 
         AscCommon.g_oIdCounter.Set_Load( false );
     };
+	CCollaborativeEditingBase.prototype.ValidateExternalChanges = function()
+	{
+		if (this.m_nExternalIndex0 < 0)
+		{
+			if (true === window['AscApplyChanges'] || !window['AscChanges'])
+				return false;
+
+			this.m_aExternalChanges = window['AscChanges'];
+			this.m_nExternalIndex0  = 0;
+			this.m_nExternalIndex1  = -1;
+		}
+
+		return true;
+	};
+	CCollaborativeEditingBase.prototype.GetNextExternalChange = function()
+	{
+		if (this.m_nExternalIndex0 < 0
+			|| this.m_nExternalIndex0 >= this.m_aExternalChanges.length)
+			return null;
+
+		this.m_nExternalIndex1++;
+
+		while (this.m_nExternalIndex1 >= this.m_aExternalChanges[this.m_nExternalIndex0].length)
+		{
+			this.m_nExternalIndex0++;
+			this.m_nExternalIndex1 = 0;
+
+			if (this.m_nExternalIndex0 >= this.m_aExternalChanges.length)
+				return null;
+		}
+
+		return this.m_aExternalChanges[this.m_nExternalIndex0][this.m_nExternalIndex1];
+	};
+	/**
+	 * Накатываем изменения заданные через LoadExternalChanges, причем не все сразу, а последовательно по 1-ой точке
+	 * @returns {number} возвращаем количество примененных изменений
+	 */
+	CCollaborativeEditingBase.prototype.ApplyExternalChanges = function(pointCount)
+	{
+		if (!this.ValidateExternalChanges())
+			return 0;
+
+		// Чтобы заново созданные параграфы не отображались залоченными
+		AscCommon.g_oIdCounter.Set_Load( true );
+
+		if (this.m_aChanges.length > 0)
+			this.private_CollectOwnChanges();
+
+		this.private_SaveRecalcChangeIndex(true);
+
+		pointCount = pointCount ? pointCount : 1;
+		let counter = 0;
+		for (let pointIndex = 0; pointIndex < pointCount; ++pointIndex)
+		{
+			let color   = new CDocumentColor(191, 255, 199);
+
+			this.m_nExternalCounter++;
+
+			let isStart = false;
+			let binary;
+			while (binary = this.GetNextExternalChange())
+			{
+				let change = AscDFH.GetChange(binary);
+				if (!change)
+				{
+					console.log("Lost change!!!");
+					continue;
+				}
+
+				if (change.IsDescriptionChange())
+				{
+					if (isStart)
+					{
+						this.m_nExternalIndex1--;
+						break;
+					}
+					else
+						isStart = true;
+				}
+
+				if (this.private_AddOverallChange(change))
+				{
+					change.Load(color);
+					if (change.GetClass() && change.GetClass().SetIsRecalculated && change.IsNeedRecalculate())
+						change.GetClass().SetIsRecalculated(false);
+				}
+
+				counter++;
+
+				// // CollaborativeEditing LOG
+				// this.m_nErrorLog_PointChangesCount++;
+			}
+
+			if (!binary)
+				break;
+		}
+
+
+		this.private_SaveRecalcChangeIndex(false);
+		this.private_ClearChanges();
+
+		// У новых элементов выставляем указатели на другие классы
+		this.Apply_LinkData();
+
+		// Делаем проверки корректности новых изменений
+		this.Check_MergeData();
+
+		this.OnEnd_ReadForeignChanges();
+
+		AscCommon.g_oIdCounter.Set_Load( false );
+
+		editor.WordControl.m_oLogicDocument.RecalculateFromStart();
+
+		return counter;
+	};
+	CCollaborativeEditingBase.prototype.GetEmptyContentChanges = function()
+	{
+		let changes = [];
+		for (let index = this.m_aAllChanges.length - 1; index >= 0; --index)
+		{
+			let tempChange = this.m_aAllChanges[index];
+
+			if (tempChange.IsContentChange() && tempChange.GetItemsCount() <= 0)
+				changes.push(tempChange);
+		}
+		return changes;
+	};
     CCollaborativeEditingBase.prototype.getOwnLocksLength = function()
     {
         return this.m_aNeedUnlock2.length;
@@ -1150,6 +1307,27 @@
 
 			this.private_PostUndo(state, changeArray);
 		};
+	CCollaborativeEditingBase.prototype.UndoGlobalPoint = function()
+	{
+		let count = 0;
+		for (let index = this.m_aAllChanges.length - 1; index > 0; --index, ++count)
+		{
+			let change = this.m_aAllChanges[index];
+			if (!change)
+				continue;
+
+			if (change.IsDescriptionChange())
+			{
+				count++;
+				break;
+			}
+		}
+
+		if (count)
+			this.UndoGlobal(count);
+
+		return count;
+	};
 		CCollaborativeEditingBase.prototype.private_GetReverseChangesForCollaborativeUndo = function()
 		{
 			// На первом шаге мы заданнуюю пачку изменений коммутируем с последними измениями. Смотрим на то какой набор

@@ -1261,11 +1261,18 @@
 	{
 		return (nChangeType >> 16) & 0x0000FFFF;
 	}
+	function GetChange(base64Binary)
+	{
+		let change = new AscCommon.CCollaborativeChanges();
+		change.Set_Data(base64Binary);
+		return change.ToHistoryChange();
+	}
 
 	//------------------------------------------------------------export--------------------------------------------------
 	window['AscDFH']                                  = window['AscDFH'] || {};
 	window['AscDFH'].GetHistoryPointStringDescription = GetHistoryPointStringDescription;
 	window['AscDFH'].GetHistoryClassTypeByChangeType  = GetHistoryClassTypeByChangeType;
+	window['AscDFH'].GetChange                        = GetChange;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

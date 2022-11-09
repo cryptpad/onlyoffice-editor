@@ -196,9 +196,9 @@
 		// // CollaborativeEditing LOG
 		// console.log("ItemsCount2  " + CollaborativeEditing.m_nErrorLog_PointChangesCount);
 		// if (CollaborativeEditing.m_nErrorLog_PointChangesCount !== CollaborativeEditing.m_nErrorLog_SavedPCC)
-		// 	console.log("========================= BAD Changes Count in Point =============================");
+		// 	console.log("========================= BAD number of changes in the Point =====================");
 		// if (CollaborativeEditing.m_nErrorLog_CurPointIndex + 1 !== this.PointIndex && 0 !== this.PointIndex)
-		// 	console.log("========================= BAD Point index ========================================");
+		// 	console.log("========================= BAD Point number =======================================");
 		// var bBadSumIndex = false;
 		// if (0 === this.PointIndex)
 		// {
