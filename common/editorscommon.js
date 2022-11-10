@@ -13407,7 +13407,7 @@ window["asc_IsNeedBuildCryptedFile"] = function()
         }
         else
         {
-            if (0 != AscCommon.CollaborativeEditing.m_aAllChanges.length)
+            if (0 != AscCommon.CollaborativeEditing.GetAllChangesCount())
                 _returnValue = true;
         }
     }
