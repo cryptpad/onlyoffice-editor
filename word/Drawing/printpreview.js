@@ -192,7 +192,20 @@
 		}
 
 		if (this.pageImage)
-			this.canvas.getContext("2d").drawImage(this.pageImage, (width_canvas - this.pageImage.width) >> 1, (height_canvas - this.pageImage.height) >> 1);
+		{
+			let ctx = this.canvas.getContext("2d");
+			let x = (width_canvas - this.pageImage.width) >> 1;
+			let y = (height_canvas - this.pageImage.height) >> 1;
+
+			ctx.drawImage(this.pageImage, x, y);
+
+			ctx.strokeStyle = AscCommon.GlobalSkin.PageOutline;
+			let lineW = AscCommon.AscBrowser.retinaPixelRatio >> 0;
+
+			ctx.lineWidth = lineW;
+			ctx.strokeRect(x + lineW / 2, y + lineW / 2, this.pageImage.width - lineW, this.pageImage.height - lineW);
+			ctx.beginPath();
+		}
 	};
 
 	CPrintPreview.prototype.close = function()
