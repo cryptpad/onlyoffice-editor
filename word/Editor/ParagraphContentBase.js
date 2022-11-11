@@ -1681,6 +1681,9 @@ CParagraphContentWithParagraphLikeContent.prototype.ConcatContent = function (It
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	if (Count <= 0)
+		return;
+
 	for (var nIndex = Pos; nIndex < Pos + Count; ++nIndex)
 	{
 		this.Content[nIndex].PreDelete();

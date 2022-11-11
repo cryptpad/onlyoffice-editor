@@ -1098,6 +1098,9 @@ Paragraph.prototype.Internal_Content_Remove = function(Pos)
  */
 Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
 {
+	if (Count <= 0)
+		return;
+
 	if (0 === Pos && this.Content.length === Count)
 		return this.ClearContent();
 
@@ -1205,6 +1208,9 @@ Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
  */
 Paragraph.prototype.ClearContent = function()
 {
+	if (this.Content.length <= 0)
+		return;
+
 	var arrCommentsToDelete = [];
 	var isDeleteComments = true === this.DeleteCommentOnRemove && null != this.LogicDocument && null != this.LogicDocument.Comments;
 	var oDocumentComments = null;
