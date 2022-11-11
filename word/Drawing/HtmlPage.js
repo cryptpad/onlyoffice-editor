@@ -198,6 +198,13 @@ function CEditorPage(api)
 	this.ReaderTouchManager = null;
 	this.ReaderModeCurrent  = 0;
 
+	// сдвиг для редактора. используется для мобильной версии. меняется при скрытии тулбара.
+	// изначально - высота тулбара. без учета deviceScale (css значение)
+	this.offsetTop = 0;
+	// запоминаем позицию скролла при начатии скролла. чтобы отсылать изменение в интерфейс (ТОЛЬКО при скролле).
+	// чтобы иметь возможность убирать интерфейс
+	this.mobileScrollStartPos = 0;
+
 	this.ReaderFontSizeCur = 2;
 	this.ReaderFontSizes   = [12, 14, 16, 18, 22, 28, 36, 48, 72];
 
@@ -2630,6 +2637,12 @@ function CEditorPage(api)
 		if (oWordControl.MobileTouchManager && oWordControl.MobileTouchManager.iScroll)
 		{
 			oWordControl.MobileTouchManager.iScroll.y = -oWordControl.m_dScrollY;
+
+			if ((oWordControl.MobileTouchManager.Mode === AscCommon.MobileTouchMode.None || oWordControl.MobileTouchManager.Mode === AscCommon.MobileTouchMode.Scroll) &&
+				(oWordControl.MobileTouchManager.iScroll.initiated !== 0 || oWordControl.MobileTouchManager.iScroll.isAnimating))
+			{
+				oThis.m_oApi.sendEvent("onMobileScrollDelta", oWordControl.m_dScrollY - oWordControl.mobileScrollStartPos);
+			}
 		}
 	};
 	this.CorrectSpeedVerticalScroll = function(newScrollPos)
@@ -2731,6 +2744,10 @@ function CEditorPage(api)
 
 		settings.screenW = AscCommon.AscBrowser.convertToRetinaValue(settings.screenW);
 		settings.screenH = AscCommon.AscBrowser.convertToRetinaValue(settings.screenH);
+
+		if (!this.MobileTouchManager)
+			settings.screenH -= this.offsetTop;
+
 		return settings;
 	};
 
@@ -2770,6 +2787,10 @@ function CEditorPage(api)
 		settings.isHorizontalScroll = false;
 		settings.isVerticalScroll = true;
 		settings.contentH = this.m_dDocumentHeight;
+
+		if (this.MobileTouchManager)
+			settings.contentH += this.offsetTop;
+
 		if (this.m_oScrollVer_)
 		{
 			this.m_oScrollVer_.Repos(settings, undefined, true);
@@ -3340,10 +3361,12 @@ function CEditorPage(api)
 			hor_pos_median = parseInt(this.m_dDocumentWidth / 2 - this.m_dScrollX);
 		}
 
-		var lCurrentTopInDoc = parseInt(this.m_dScrollY);
+		let lCurrentTopInDoc = parseInt(this.m_dScrollY);
+		//let offsetTop = AscCommon.AscBrowser.convertToRetinaValue(this.offsetTop, true);
+		let offsetTop = this.offsetTop;
 
 		var dKoef  = (this.m_nZoomValue * g_dKoef_mm_to_pix / 100);
-		var lStart = 0;
+		var lStart = offsetTop;
 		for (var i = 0; i < this.m_oDrawingDocument.m_lPagesCount; i++)
 		{
 			var _pageWidth  = (this.m_oDrawingDocument.m_arrPages[i].width_mm * dKoef + 0.5) >> 0;
@@ -3455,7 +3478,6 @@ function CEditorPage(api)
 		if (this.m_oDrawingDocument.m_lDrawingFirst < 0 || this.m_oDrawingDocument.m_lDrawingEnd < 0)
 			return;
 
-		//this.m_oBoundsController.Clear(context);
 		// сначала посморим, изменились ли ректы страниц
 		var rectsPages = [];
 		for (var i = this.m_oDrawingDocument.m_lDrawingFirst; i <= this.m_oDrawingDocument.m_lDrawingEnd; i++)
@@ -3484,35 +3506,32 @@ function CEditorPage(api)
 		{
 			this.m_bIsFullRepaint = false;
 
-			for (var i = this.m_oDrawingDocument.m_lDrawingFirst; i <= this.m_oDrawingDocument.m_lDrawingEnd; i++)
+			for (let i = this.m_oDrawingDocument.m_lDrawingFirst; i <= this.m_oDrawingDocument.m_lDrawingEnd; i++)
 			{
-				var drawPage = this.m_oDrawingDocument.m_arrPages[i].drawingPage;
+				let drawPage = this.m_oDrawingDocument.m_arrPages[i].drawingPage;
 
-				if (!AscCommon.AscBrowser.isCustomScaling())
-				{
-					this.m_oDrawingDocument.m_arrPages[i].Draw(context, drawPage.left, drawPage.top, drawPage.right - drawPage.left, drawPage.bottom - drawPage.top, this.m_oApi);
-				}
-				else
-				{
-					var __x = (drawPage.left * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-					var __y = (drawPage.top * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-					var __w = ((drawPage.right * AscCommon.AscBrowser.retinaPixelRatio) >> 0) - __x;
-					var __h = ((drawPage.bottom * AscCommon.AscBrowser.retinaPixelRatio) >> 0) - __y;
-					this.m_oDrawingDocument.m_arrPages[i].Draw(context, __x, __y, __w, __h, this.m_oApi);
-				}
+				let _x = (drawPage.left * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+				let _y = (drawPage.top * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
+
+				this.m_oDrawingDocument.m_arrPages[i].Draw(context,
+					_x,
+					_y,
+					((drawPage.right * AscCommon.AscBrowser.retinaPixelRatio) >> 0) - _x,
+					((drawPage.bottom * AscCommon.AscBrowser.retinaPixelRatio) >> 0) - _y,
+					this.m_oApi);
 			}
 		}
 		else
 		{
-			for (var i = 0; i < this.m_oDrawingDocument.m_lDrawingFirst; i++)
+			for (let i = 0; i < this.m_oDrawingDocument.m_lDrawingFirst; i++)
 				this.m_oDrawingDocument.StopRenderingPage(i);
 
-			for (var i = this.m_oDrawingDocument.m_lDrawingEnd + 1; i < this.m_oDrawingDocument.m_lPagesCount; i++)
+			for (let i = this.m_oDrawingDocument.m_lDrawingEnd + 1; i < this.m_oDrawingDocument.m_lPagesCount; i++)
 				this.m_oDrawingDocument.StopRenderingPage(i);
 
-			for (var i = this.m_oDrawingDocument.m_lDrawingFirst; i <= this.m_oDrawingDocument.m_lDrawingEnd; i++)
+			for (let i = this.m_oDrawingDocument.m_lDrawingFirst; i <= this.m_oDrawingDocument.m_lDrawingEnd; i++)
 			{
-				var drawPage = this.m_oDrawingDocument.m_arrPages[i].drawingPage;
+				let drawPage = this.m_oDrawingDocument.m_arrPages[i].drawingPage;
 
 				if (this.m_bIsFullRepaint === true)
 				{
@@ -3536,7 +3555,6 @@ function CEditorPage(api)
 				}
 
 				this.m_oDrawingDocument.m_arrPages[i].Draw(context, __x, __y, __w, __h, this.m_oApi);
-				//this.m_oBoundsController.CheckRect(__x, __y, __w, __h);
 			}
 		}
 
@@ -4080,6 +4098,24 @@ function CEditorPage(api)
 	this.GetMainContentBounds = function()
 	{
 		return this.m_oMainContent.AbsolutePosition;
+	};
+
+	this.setOffsetTop = function(offset, offsetScrollTop)
+	{
+		if (offset !== undefined && offset !== this.offsetTop)
+		{
+			this.offsetTop = offset;
+
+			this.UpdateScrolls();
+
+			if (this.MobileTouchManager)
+				this.MobileTouchManager.UpdateScrolls();
+
+			this.OnScroll();
+		}
+
+		if (undefined !== offsetScrollTop && this.MobileTouchManager)
+			this.MobileTouchManager.iScroll.setOffsetTop(offsetScrollTop);
 	};
 }
 
