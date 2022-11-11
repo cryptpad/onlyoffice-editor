@@ -979,6 +979,22 @@
 		return (null === this.WordControl.m_oLogicDocument);
 	};
 
+	asc_docs_api.prototype.getEditorErrorInfo = function()
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return "DocumentInfo: no logic document";
+
+		let result = "DocumentInfo:";
+
+		if (logicDocument.Action.Start)
+			result += "\nAction: " + logicDocument.Action.Description;
+
+		result += "\nSelection: " + logicDocument.IsSelectionUse();
+
+		return result;
+	};
+
 	asc_docs_api.prototype.SetCollaborativeMarksShowType = function(Type)
 	{
 		if (c_oAscCollaborativeMarksShowType.None !== this.CollaborativeMarksShowType && c_oAscCollaborativeMarksShowType.None === Type && this.WordControl && this.WordControl.m_oLogicDocument)
