@@ -2821,11 +2821,6 @@
 		asc_CAdjustPrint.prototype.asc_setIgnorePrintArea = function (val) { this.ignorePrintArea = val; };
 		asc_CAdjustPrint.prototype.asc_getNativeOptions = function () { return this.nativeOptions; };
 		asc_CAdjustPrint.prototype.asc_setNativeOptions = function (val) { this.nativeOptions = val; };
-		asc_CAdjustPrint.prototype.getDesktopJSON = function(obj) {
-			if (!obj) obj = {};
-			obj["nativeOptions"] = this.nativeOptions;
-			return JSON.stringify(obj);
-		};
 
 		/** @constructor */
 		function asc_CLockInfo () {
