@@ -3482,7 +3482,6 @@ CParagraphRecalculateStateWrap.prototype =
 
 				if (undefined !== paraMarkTextPr.RStyle && this.Paragraph.Parent)
 				{
-					console.log("Recalculate here");
 					let styleManager = this.Paragraph.Parent.GetStyles();
 					let styleTextPr  = styleManager.Get_Pr(paraMarkTextPr.RStyle, styletype_Character).TextPr;
 					oNumTextPr.Merge(styleTextPr);
