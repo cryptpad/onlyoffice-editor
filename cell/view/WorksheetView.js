@@ -548,7 +548,7 @@
       });
     }
     var oChart = charts[0];
-    var image = oChart.createImage();
+    var image = oChart.getBase64Img();
     return image;
   }
 
