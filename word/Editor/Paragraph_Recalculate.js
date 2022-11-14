@@ -3476,20 +3476,7 @@ CParagraphRecalculateStateWrap.prototype =
 				else if (oPrevNumPr)
 					oNumLvl = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
 
-				var oNumTextPr = Para.Get_CompiledPr2(false).TextPr.Copy();
-
-				let paraMarkTextPr = Para.TextPr.Value;
-
-				if (undefined !== paraMarkTextPr.RStyle && this.Paragraph.Parent)
-				{
-					let styleManager = this.Paragraph.Parent.GetStyles();
-					let styleTextPr  = styleManager.Get_Pr(paraMarkTextPr.RStyle, styletype_Character).TextPr;
-					oNumTextPr.Merge(styleTextPr);
-				}
-
-				oNumTextPr.Merge(Para.TextPr.Value);
-				oNumTextPr.Merge(oNumLvl.GetTextPr());
-                oNumTextPr.CheckFontScale();
+				var oNumTextPr = Para.GetNumberingTextPr();
 				var nNumSuff   = oNumLvl.GetSuff();
 				var nNumJc     = oNumLvl.GetJc();
 

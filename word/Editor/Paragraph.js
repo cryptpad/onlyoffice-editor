@@ -1722,23 +1722,39 @@ Paragraph.prototype.GetNumberingTextPr = function()
 
 	var oLvl = oNum.GetLvl(oNumPr.Lvl);
 
-	var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-	oNumTextPr.Merge(this.TextPr.Value);
-	oNumTextPr.Merge(oLvl.GetTextPr());
+	let numTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
 
-	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
-	if (undefined !== oNumTextPr.RFonts && null !== oNumTextPr.RFonts)
+	// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для
+	// символа параграфа.
+	let underline = numTextPr.Underline;
+
+	let paraMarkTextPr = this.TextPr.Value;
+	if (paraMarkTextPr.RStyle)
 	{
-		oNumTextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
-
-		if (!oNumTextPr.FontFamily)
-			oNumTextPr.FontFamily = {Name : "", Index : -1};
-
-		oNumTextPr.FontFamily.Name  = oNumTextPr.RFonts.Ascii.Name;
-		oNumTextPr.FontFamily.Index = oNumTextPr.RFonts.Ascii.Index;
+		let styleManager = this.Parent.GetStyles();
+		let styleTextPr  = styleManager.Get_Pr(paraMarkTextPr.RStyle, styletype_Character).TextPr;
+		numTextPr.Merge(styleTextPr);
 	}
 
-	return oNumTextPr;
+	numTextPr.Merge(paraMarkTextPr);
+
+	numTextPr.Underline = underline;
+
+	numTextPr.Merge(oLvl.GetTextPr());
+
+	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
+	if (undefined !== numTextPr.RFonts && null !== numTextPr.RFonts)
+	{
+		numTextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!numTextPr.FontFamily)
+			numTextPr.FontFamily = {Name : "", Index : -1};
+
+		numTextPr.FontFamily.Name  = numTextPr.RFonts.Ascii.Name;
+		numTextPr.FontFamily.Index = numTextPr.RFonts.Ascii.Index;
+	}
+
+	return numTextPr;
 };
 /**
  * Получаем рассчитанное значение нумерации для данного параграфа
@@ -2247,12 +2263,10 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 					}
 					else
 					{
-						var oNumbering = this.Parent.GetNumbering();
-						var oNumLvl    = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
-						var nNumJc     = oNumLvl.GetJc();
-						var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-						oNumTextPr.Merge(this.TextPr.Value);
-						oNumTextPr.Merge(oNumLvl.GetTextPr());
+						let oNumbering = this.Parent.GetNumbering();
+						let oNumLvl    = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+						let nNumJc     = oNumLvl.GetJc();
+						let numTextPr  = this.GetNumberingTextPr();
 
 						var X_start = X;
 
@@ -2262,8 +2276,8 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 							X_start = X - NumberingItem.WidthNum / 2;
 
 						// Если есть выделение текста, рисуем его сначала
-						if (highlight_None != oNumTextPr.HighLight)
-							PDSH.High.Add(Y0, Y1, X_start, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, 0, oNumTextPr.HighLight.r, oNumTextPr.HighLight.g, oNumTextPr.HighLight.b, undefined, oNumTextPr);
+						if (highlight_None !== numTextPr.HighLight)
+							PDSH.High.Add(Y0, Y1, X_start, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, 0, numTextPr.HighLight.r, numTextPr.HighLight.g, numTextPr.HighLight.b, undefined, numTextPr);
 					}
 				}
 
@@ -2868,23 +2882,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 
 						var nNumSuff   = oNumLvl.GetSuff();
 						var nNumJc     = oNumLvl.GetJc();
-						var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-
-						// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для
-						// символа параграфа.
-
-						var oTextPrTemp = this.TextPr.Value.Copy();
-						if (undefined !== oTextPrTemp.RStyle && this.Parent)
-						{
-							let styleManager = this.Parent.GetStyles();
-							let styleTextPr  = styleManager.Get_Pr(oTextPrTemp.RStyle, styletype_Character).TextPr;
-							oNumTextPr.Merge(styleTextPr);
-						}
-
-						oTextPrTemp.Underline = undefined;
-
-						oNumTextPr.Merge(oTextPrTemp);
-						oNumTextPr.Merge(oNumLvl.GetTextPr());
+						var oNumTextPr = this.GetNumberingTextPr();
 
 						var oPrevNumTextPr = oPrevNumPr ? this.Get_CompiledPr2(false).TextPr.Copy() : null;
 						if (oPrevNumTextPr && (oPrevNumPr
