@@ -772,7 +772,7 @@ function CBinaryFileWriter()
                 const oStyle = AscCommon.g_oTableId.Get_ById(key);
                 if (oStyle)
                 {
-                    this.tableStylesGuides[key] = oStyle.Get_StyleId() || AscCommon.CreateGUID();
+                    this.tableStylesGuides[key] = oStyle.GetStyleId() || AscCommon.CreateGUID();
                 }
             }
         }

@@ -2458,7 +2458,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
     const arrStylesId = Object.keys(Styles.Style);
     for (let i = 0; i < arrStylesId.length; i += 1) {
         const oStyle = Styles.Style[arrStylesId[i]];
-        oStyle.Set_StyleId(getDefaultGUIDTableStyleByName(oStyle.Get_Name()));
+        oStyle.SetStyleId(getDefaultGUIDTableStyleByName(oStyle.Get_Name()));
     }
 
     return def.Id;
