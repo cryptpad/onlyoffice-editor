@@ -2621,6 +2621,27 @@ CBlockLevelSdt.prototype.CollectSelectedReviewChanges = function(oTrackManager)
 {
 	return this.Content.CollectSelectedReviewChanges(oTrackManager);
 };
+CBlockLevelSdt.prototype.MoveCursorOutsideForm = function(isBefore)
+{
+	if (isBefore)
+	{
+		let prevElement = this.GetPrevDocumentElement();
+		if (prevElement && prevElement.Document_SetThisElementCurrent)
+		{
+			prevElement.Document_SetThisElementCurrent();
+			prevElement.MoveCursorToEndPos();
+		}
+	}
+	else
+	{
+		let nextElement = this.GetNextDocumentElement();
+		if (nextElement && nextElement.Document_SetThisElementCurrent)
+		{
+			nextElement.Document_SetThisElementCurrent();
+			nextElement.MoveCursorToStartPos();
+		}
+	}
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;
