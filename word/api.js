@@ -12895,6 +12895,36 @@ background-repeat: no-repeat;\
 			delete this.printPreview;
 		}
 	};
+	asc_docs_api.prototype.asc_getPageSize = function(pageIndex)
+	{
+		if (!this.WordControl)
+			return null;
+
+		if (this.WordControl.m_oLogicDocument && this.WordControl.m_oDrawingDocument)
+		{
+			if (this.WordControl.m_oDrawingDocument.IsFreezePage(pageIndex))
+				return null;
+
+			return {
+				"W" : this.WordControl.m_oDrawingDocument.m_arrPages[pageIndex].width_mm,
+				"H" : this.WordControl.m_oDrawingDocument.m_arrPages[pageIndex].height_mm
+			}
+		}
+
+		if (this.isDocumentRenderer())
+		{
+			let page = this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.file.pages[pageIndex];
+			if (page)
+			{
+				return {
+					"W": 25.4 * page.W / page.Dpi,
+					"H": 25.4 * page.H / page.Dpi
+				}
+			}
+		}
+
+		return null;
+	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
@@ -13659,6 +13689,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_initPrintPreview"] 	= asc_docs_api.prototype.asc_initPrintPreview;
 	asc_docs_api.prototype["asc_drawPrintPreview"] 	= asc_docs_api.prototype.asc_drawPrintPreview;
 	asc_docs_api.prototype["asc_closePrintPreview"] = asc_docs_api.prototype.asc_closePrintPreview;
+	asc_docs_api.prototype["asc_getPageSize"] 		= asc_docs_api.prototype.asc_getPageSize;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;
