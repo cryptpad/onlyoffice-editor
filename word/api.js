@@ -4069,7 +4069,6 @@ background-repeat: no-repeat;\
 		new Promise(function(resolve)
 		{
 			let symbols = AscWord.GetNumberingSymbols(_numInfo);
-			console.log(symbols);
 			if (symbols && symbols.length)
 				AscFonts.FontPickerByCharacter.checkText(symbols, this, resolve);
 			else
