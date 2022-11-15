@@ -1724,9 +1724,8 @@ Paragraph.prototype.GetNumberingTextPr = function()
 
 	let numTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
 
-	// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для
-	// символа параграфа.
-	let underline = numTextPr.Underline;
+	// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для символа параграфа
+	let _underline = numTextPr.Underline;
 
 	let paraMarkTextPr = this.TextPr.Value;
 	if (paraMarkTextPr.RStyle)
@@ -1738,7 +1737,7 @@ Paragraph.prototype.GetNumberingTextPr = function()
 
 	numTextPr.Merge(paraMarkTextPr);
 
-	numTextPr.Underline = underline;
+	numTextPr.Underline = _underline;
 
 	numTextPr.Merge(oLvl.GetTextPr());
 
