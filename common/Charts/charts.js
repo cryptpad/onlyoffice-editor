@@ -678,7 +678,7 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	function SmartArtPreviewDrawer() {
 		AscCommon.CActionOnTimerBase.call(this);
 		this.SMARTART_PREVIEW_SIZE_MM = 8128000 * AscCommonWord.g_dKoef_emu_to_mm;
-		this.CANVAS_SIZE = 100;
+		this.CANVAS_SIZE = 70;
 		this.canvas = null;
 		this.imageType = "image/jpeg";
 		this.imageBuffer = [];
