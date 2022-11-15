@@ -126,6 +126,7 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Style_Hidden]          = [AscDFH.hi
 AscDFH.changesRelationMap[AscDFH.historyitem_Style_SemiHidden]      = [AscDFH.historyitem_Style_SemiHidden];
 AscDFH.changesRelationMap[AscDFH.historyitem_Style_UnhideWhenUsed]  = [AscDFH.historyitem_Style_UnhideWhenUsed];
 AscDFH.changesRelationMap[AscDFH.historyitem_Style_Link]            = [AscDFH.historyitem_Style_Link];
+AscDFH.changesRelationMap[AscDFH.historyitem_Style_StyleId]         = [AscDFH.historyitem_Style_StyleId];
 
 AscDFH.changesRelationMap[AscDFH.historyitem_Styles_Add]                 = [
 	AscDFH.historyitem_Styles_Add,
