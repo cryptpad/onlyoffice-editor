@@ -270,7 +270,7 @@
 
 			let textPr = new AscWord.CTextPr();
 			textPr.RFonts.SetAll("Symbol");
-			lvl.SetByType(c_oAscNumberingLevel.Bullet, oNumPr.Lvl, String.fromCharCode(0x00B7), textPr);
+			lvl.SetByType(c_oAscNumberingLevel.Bullet, numPr.Lvl, String.fromCharCode(0x00B7), textPr);
 		}
 
 		lvl.ParaPr = num.GetLvl(numPr.Lvl).ParaPr.Copy();
