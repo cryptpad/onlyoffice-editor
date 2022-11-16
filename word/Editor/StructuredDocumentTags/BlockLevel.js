@@ -2401,8 +2401,12 @@ CBlockLevelSdt.prototype.private_UpdateDatePickerContent = function()
 };
 CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 {
-	if (AscCommon.changestype_Document_Content_Add === CheckType && this.Content.IsCursorAtBegin())
+	if (AscCommon.changestype_Document_Content_Add === CheckType
+		&& ((this.Content.IsCursorAtBegin() && !this.Get_DocumentPrev())
+			|| (this.Content.IsCursorAtEnd() && !this.Get_DocumentNext())))
+	{
 		return AscCommon.CollaborativeEditing.Add_CheckLock(false);
+	}
 
 	var isCheckContentControlLock = this.LogicDocument ? this.LogicDocument.IsCheckContentControlsLock() : true;
 
