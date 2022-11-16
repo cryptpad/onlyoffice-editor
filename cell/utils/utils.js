@@ -3635,6 +3635,8 @@
 		prot["asc_setPageOptionsMap"] = prot.asc_setPageOptionsMap;
 		prot["asc_getIgnorePrintArea"] = prot.asc_getIgnorePrintArea;
 		prot["asc_setIgnorePrintArea"] = prot.asc_setIgnorePrintArea;
+		prot["asc_getNativeOptions"] = prot.asc_getNativeOptions;
+		prot["asc_setNativeOptions"] = prot.asc_setNativeOptions;
 
 		window["AscCommonExcel"].asc_CLockInfo = asc_CLockInfo;
 
