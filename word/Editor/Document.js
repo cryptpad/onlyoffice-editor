@@ -17338,8 +17338,10 @@ CDocument.prototype.Begin_CompositeInput = function()
 						oNewRun = oRun.private_SplitRunInCurPos();
 				}
 
-				if (oNewRun)
+				let prevRun = null;
+				if (oNewRun && oNewRun !== oRun)
 				{
+					prevRun = oRun;
 					oRun = oNewRun;
 					oRun.Make_ThisElementCurrent();
 				}
@@ -17349,7 +17351,8 @@ CDocument.prototype.Begin_CompositeInput = function()
 					Pos     : oRun.State.ContentPos,
 					Length  : 0,
 					CanUndo : true,
-					Check   : isCheck
+					Check   : isCheck,
+					PrevRun : prevRun
 				};
 
 				oRun.Set_CompositeInput(this.CompositeInput);
@@ -17389,10 +17392,16 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 
 	if (this.CompositeInput.Check && arrCharCodes.length)
 	{
-		if (AscCommon.IsComplexScript(arrCharCodes[0]))
-			this.CompositeInput.Run.ApplyComplexScript(true);
-		else
-			this.CompositeInput.Run.ApplyComplexScript(false);
+		let prevRun = this.CompositeInput.PrevRun;
+		let isCS = AscCommon.IsComplexScript(arrCharCodes[0]);
+
+		this.CompositeInput.Run.ApplyComplexScript(isCS);
+		if (prevRun
+			&& isCS !== prevRun.IsCS()
+			&& prevRun.IsOnlyCommonTextScript())
+		{
+			prevRun.ApplyComplexScript(isCS);
+		}
 
 		this.CompositeInput.Check = false;
 	}
