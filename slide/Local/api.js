@@ -163,7 +163,17 @@ window["DesktopOfflineAppDocumentStartSave"] = function(isSaveAs, password, isFo
 		}
 	};
 
-	window["AscDesktopEditor"]["LocalFileSave"](_param, (password === undefined) ? editor.currentPassword : password, docinfo, 0, JSON.stringify(jsonOptions));
+	if (options && options.advancedOptions)
+	{
+		let nativeOptions = options.advancedOptions.asc_getNativeOptions();
+		if (nativeOptions)
+		{
+			jsonOptions["nativeOptions"] = nativeOptions;
+			jsonOptions["nativeOptions"]["currentPage"] = editor.getCurrentPage();
+		}
+	}
+
+	window["AscDesktopEditor"]["LocalFileSave"](_param, (password === undefined) ? editor.currentPassword : password, docinfo, (options && options.fileType) ? options.fileType : 0, JSON.stringify(jsonOptions));
 };
 window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
 {
