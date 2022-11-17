@@ -208,7 +208,7 @@ window["DesktopOfflineAppDocumentStartSave"] = function(isSaveAs, password, isFo
 		if (nativeOptions)
 		{
 			jsonOptions["nativeOptions"] = nativeOptions;
-			jsonOptions["nativeOptions"]["currentPage"] = editor.getCurrentPage();
+			jsonOptions["nativeOptions"]["currentPage"] = editor.getCurrentPage() + 1;
  		}
 	}
 

@@ -12862,11 +12862,11 @@
 			{
 				let currentPage =  currentPageSrc;
 				if (undefined === currentPage)
-					currentPage = 0;
-				if (currentPage >= 0 && currentPage < pagescount)
+					currentPage = 1;
+				if (currentPage >= 1 && currentPage <= pagescount)
 				{
 					pages = new Array(pagescount);
-					pages[currentPage] = true;
+					pages[currentPage - 1] = true;
 				}
 				break;
 			}
