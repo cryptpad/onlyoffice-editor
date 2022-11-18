@@ -14642,7 +14642,7 @@ QueryTableField.prototype.clone = function() {
 		if (needGenerateRow) {
 			cell = new ExternalCell();
 			AscCommonExcel.executeInR1C1Mode(false, function () {
-				cell.Ref = new Asc.Range(t.R - 1, index, t.R - 1, index).getName();
+				cell.Ref = new Asc.Range(index, t.R - 1, index, t.R - 1).getName();
 			});
 			this.Cell.push(cell);
 		}
@@ -15215,6 +15215,7 @@ QueryTableField.prototype.clone = function() {
 	prot["asc_getData"] = prot.asc_getData;
 	prot["asc_getSource"] = prot.asc_getSource;
 	prot["asc_getId"] = prot.asc_getId;
+	prot["asc_isExternalLink"] = prot.isExternalLink;
 
 
 	window["AscCommonExcel"].CPrintPreviewState = CPrintPreviewState;
