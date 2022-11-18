@@ -386,19 +386,22 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArtNodeData  ]     = AscFormat.SmartArtNodeData;
 		this.m_oFactoryClass[AscDFH.historyitem_type_BuBlip            ]     = AscFormat.CBuBlip;
 
-		this.m_oFactoryClass[AscDFH.historyitem_type_UserMaster        ]     = AscWord.CUserMaster;
-		this.m_oFactoryClass[AscDFH.historyitem_type_User              ]     = AscWord.CUser;
-		this.m_oFactoryClass[AscDFH.historyitem_type_SignInfo          ]     = AscWord.CSignInfo;
-		this.m_oFactoryClass[AscDFH.historyitem_type_CipherInfo        ]     = AscWord.CCipherInfo;
-		this.m_oFactoryClass[AscDFH.historyitem_type_FormFieldMaster   ]     = AscWord.CFieldMaster;
-		this.m_oFactoryClass[AscDFH.historyitem_type_FormField         ]     = AscWord.CField;
-		this.m_oFactoryClass[AscDFH.historyitem_type_EncryptedData     ]     = AscWord.CEncryptedData;
-		this.m_oFactoryClass[AscDFH.historyitem_type_KeyInfo           ]     = AscWord.CKeyInfo;
-		this.m_oFactoryClass[AscDFH.historyitem_type_MainDocument      ]     = AscWord.CMainDocument;
-		this.m_oFactoryClass[AscDFH.historyitem_type_FieldsGroup       ]     = AscWord.CFieldsGroup;
-		this.m_oFactoryClass[AscDFH.historyitem_type_FormDate          ]     = AscWord.CFormDate;
-		this.m_oFactoryClass[AscDFH.historyitem_type_SignRequest       ]     = AscWord.CSignRequest;
-		this.m_oFactoryClass[AscDFH.historyitem_type_FieldContent      ]     = AscWord.CFieldContent;
+		if (window['AscOForm'])
+		{
+			this.m_oFactoryClass[AscDFH.historyitem_type_oform_UserMaster] = AscOForm.CUserMaster;
+			this.m_oFactoryClass[AscDFH.historyitem_type_User]             = AscWord.CUser;
+			this.m_oFactoryClass[AscDFH.historyitem_type_SignInfo]         = AscWord.CSignInfo;
+			this.m_oFactoryClass[AscDFH.historyitem_type_CipherInfo]       = AscWord.CCipherInfo;
+			this.m_oFactoryClass[AscDFH.historyitem_type_FormFieldMaster]  = AscWord.CFieldMaster;
+			this.m_oFactoryClass[AscDFH.historyitem_type_FormField]        = AscWord.CField;
+			this.m_oFactoryClass[AscDFH.historyitem_type_EncryptedData]    = AscWord.CEncryptedData;
+			this.m_oFactoryClass[AscDFH.historyitem_type_KeyInfo]          = AscWord.CKeyInfo;
+			this.m_oFactoryClass[AscDFH.historyitem_type_MainDocument]     = AscWord.CMainDocument;
+			this.m_oFactoryClass[AscDFH.historyitem_type_FieldsGroup]      = AscWord.CFieldsGroup;
+			this.m_oFactoryClass[AscDFH.historyitem_type_FormDate]         = AscWord.CFormDate;
+			this.m_oFactoryClass[AscDFH.historyitem_type_SignRequest]      = AscWord.CSignRequest;
+			this.m_oFactoryClass[AscDFH.historyitem_type_FieldContent]     = AscWord.CFieldContent;
+		}
 
 		if (window['AscCommonSlide'])
 		{
