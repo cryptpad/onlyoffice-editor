@@ -1513,7 +1513,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     case 23:
                     {
                         var _listType = asc_menu_ReadParaListType(_params, _current);
-                        this.WordControl.m_oLogicDocument.SetParagraphNumbering( _listType );
+						this.put_ListType(_listType.asc_getListType(), _listType.asc_getListSubType());
                         break;
                     }
                     case 24:
