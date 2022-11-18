@@ -1689,7 +1689,7 @@
 	window['AscDFH'].historyitem_type_ViewPrScale            = 2116 << 16;
 	window['AscDFH'].historyitem_type_ViewPrGuide            = 2117 << 16;
 
-	window['AscDFH'].historyitem_type_UserMaster             = 2200 << 16;
+	window['AscDFH'].historyitem_type_oform_UserMaster       = 2200 << 16;
 	window['AscDFH'].historyitem_type_User                   = 2201 << 16;
 	window['AscDFH'].historyitem_type_SignInfo               = 2202 << 16;
 	window['AscDFH'].historyitem_type_CipherInfo             = 2203 << 16;
