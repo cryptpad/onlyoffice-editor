@@ -647,7 +647,7 @@ CFraction.prototype.GetTextOfElement = function(isLaTeX) {
 		strTemp += strNumerator;
 		switch (this.Pr.type) {
 			case 0:	strTemp += '/';	break;
-			case 1:	strTemp += '∕';	break;
+			case 1:	strTemp += '⁄';	break;
 			case 2:	strTemp += '⊘';	break;
 			case 3:	strTemp += String.fromCharCode(166); break;
 			default:strTemp += String.fromCharCode(47); break;
