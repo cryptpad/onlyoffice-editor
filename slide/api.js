@@ -8478,12 +8478,12 @@ background-repeat: no-repeat;\
 	{
 		this.printPreview = new AscCommon.CPrintPreview(this, containerId);
 	};
-	asc_docs_api.prototype.asc_drawPrintPreview = function(index)
+	asc_docs_api.prototype.asc_drawPrintPreview = function(index, paperSize)
 	{
 		if (this.printPreview)
 		{
 			this.printPreview.page = index;
-			this.printPreview.update();
+			this.printPreview.update(paperSize);
 		}
 	};
 	asc_docs_api.prototype.asc_closePrintPreview = function()

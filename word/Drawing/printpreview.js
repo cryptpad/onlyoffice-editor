@@ -98,11 +98,12 @@
 			g.IsRetina = true;
 
 		g.IsNoDrawingEmptyPlaceholderText = true;
+		g.IsNoDrawingEmptyPlaceholder = true;
 
 		return g;
 	};
 
-	CPrintPreview.prototype.update = function()
+	CPrintPreview.prototype.update = function(paperSize)
 	{
 		// clear canvas
 		let width_canvas = this.canvas.width;
@@ -120,6 +121,8 @@
 
 		let width = this.canvas.width - (offset << 1);
 		let height = this.canvas.height - (offset << 1);
+
+		let ctx = this.canvas.getContext("2d");
 
 		switch (this.api.editorId)
 		{
@@ -184,6 +187,46 @@
 				let w_mm = this.api.WordControl.m_oLogicDocument.GetWidthMM();
 				let h_mm = this.api.WordControl.m_oLogicDocument.GetHeightMM();
 
+				if (undefined !== paperSize)
+				{
+					let paperW = paperSize[0];
+					let paperH = paperSize[1];
+
+					if ((paperW > paperH && w_mm < h_mm) ||
+						(paperW < paperH && w_mm > h_mm))
+					{
+						let tmp = paperW;
+						paperW = paperH;
+						paperH = tmp;
+					}
+
+					let aspectMM = paperW / paperH;
+					let aspect = width / height;
+
+					let w, h;
+
+					if (aspectMM > aspect)
+					{
+						w = width;
+						h = (width * paperH / paperW) >> 0;
+					}
+					else
+					{
+						w = (height * paperW / paperH) >> 0;
+						h = height;
+					}
+
+					let x = (width_canvas - w) >> 1;
+					let y = (height_canvas - h) >> 1;
+
+					ctx.fillStyle = "#FFFFFF";
+					ctx.fillRect(x, y, w, h);
+					ctx.beginPath();
+
+					width = w;
+					height = h;
+				}
+
 				let g = this.checkGraphics(width, height, w_mm, h_mm);
 				this.api.WordControl.m_oLogicDocument.DrawPage(this.page, g);
 
@@ -193,18 +236,20 @@
 
 		if (this.pageImage)
 		{
-			let ctx = this.canvas.getContext("2d");
 			let x = (width_canvas - this.pageImage.width) >> 1;
 			let y = (height_canvas - this.pageImage.height) >> 1;
 
 			ctx.drawImage(this.pageImage, x, y);
 
-			ctx.strokeStyle = AscCommon.GlobalSkin.PageOutline;
-			let lineW = AscCommon.AscBrowser.retinaPixelRatio >> 0;
+			if (undefined === paperSize)
+			{
+				ctx.strokeStyle = AscCommon.GlobalSkin.PageOutline;
+				let lineW = AscCommon.AscBrowser.retinaPixelRatio >> 0;
 
-			ctx.lineWidth = lineW;
-			ctx.strokeRect(x + lineW / 2, y + lineW / 2, this.pageImage.width - lineW, this.pageImage.height - lineW);
-			ctx.beginPath();
+				ctx.lineWidth = lineW;
+				ctx.strokeRect(x + lineW / 2, y + lineW / 2, this.pageImage.width - lineW, this.pageImage.height - lineW);
+				ctx.beginPath();
+			}
 		}
 	};
 
