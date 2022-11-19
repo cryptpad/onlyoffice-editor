@@ -1691,7 +1691,7 @@
 
 	window['AscDFH'].historyitem_type_OForm_UserMaster       = 2200 << 16;
 	window['AscDFH'].historyitem_type_OForm_User             = 2201 << 16;
-	window['AscDFH'].historyitem_type_FormFieldMaster        = 2204 << 16;
+	window['AscDFH'].historyitem_type_OForm_FieldMaster      = 2202 << 16;
 	window['AscDFH'].historyitem_type_FormField              = 2205 << 16;
 	window['AscDFH'].historyitem_type_MainDocument           = 2208 << 16;
 	window['AscDFH'].historyitem_type_FieldsGroup            = 2209 << 16;
@@ -5385,4 +5385,23 @@
 		this.Old = Reader.GetDouble();
 	};
 	window['AscDFH'].CChangesBaseDoubleValue = CChangesBaseDoubleValue;
+	//------------------------------------------------------------------------------------------------------------------
+	function DoNotRecalculate()
+	{
+		return false;
+	}
+	window['AscDFH'].InheritChange = function(changeClass, baseChange, type, setFunction, needRecalculate)
+	{
+		window['AscDFH'].changesFactory[type]   = changeClass;
+
+		changeClass.prototype                   = Object.create(baseChange.prototype);
+		changeClass.prototype.constructor       = changeClass;
+		changeClass.prototype.Type              = type;
+		changeClass.prototype.private_SetValue  = setFunction;
+
+		if (undefined !== needRecalculate && !needRecalculate)
+			changeClass.prototype.IsNeedRecalculate = DoNotRecalculate;
+
+	};
+
 })(window);

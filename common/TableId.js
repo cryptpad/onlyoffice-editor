@@ -386,11 +386,11 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_SmartArtNodeData  ]     = AscFormat.SmartArtNodeData;
 		this.m_oFactoryClass[AscDFH.historyitem_type_BuBlip            ]     = AscFormat.CBuBlip;
 
-		if (window['AscOForm'])
+		if (AscOForm)
 		{
-			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_UserMaster] = AscOForm.CUserMaster;
-			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_User]       = AscOForm.CUser;
-			this.m_oFactoryClass[AscDFH.historyitem_type_FormFieldMaster]  = AscWord.CFieldMaster;
+			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_UserMaster]  = AscOForm.CUserMaster;
+			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_User]        = AscOForm.CUser;
+			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_FieldMaster] = AscOForm.CFieldMaster;
 			this.m_oFactoryClass[AscDFH.historyitem_type_FormField]        = AscWord.CField;
 			this.m_oFactoryClass[AscDFH.historyitem_type_MainDocument]     = AscWord.CMainDocument;
 			this.m_oFactoryClass[AscDFH.historyitem_type_FieldsGroup]      = AscWord.CFieldsGroup;
