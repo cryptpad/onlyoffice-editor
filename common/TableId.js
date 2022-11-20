@@ -104,6 +104,10 @@
 
 		return null;
 	};
+	CTableId.prototype.GetById = function(id)
+	{
+		return this.GetClass(id);
+	}
 	CTableId.prototype.GetClass = function(id)
 	{
 		if (!id || !this.m_aPairs[id])
@@ -121,7 +125,7 @@
 		if (Class.Get_Id)
 			return Class.Get_Id();
 
-		if (Class.GetId())
+		if (Class.GetId)
 			return Class.GetId();
 
 		return null;

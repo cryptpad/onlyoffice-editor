@@ -5390,7 +5390,7 @@
 	{
 		return false;
 	}
-	window['AscDFH'].InheritChange = function(changeClass, baseChange, type, setFunction, needRecalculate)
+	window['AscDFH'].InheritPropertyChange = function(changeClass, baseChange, type, setFunction, needRecalculate)
 	{
 		window['AscDFH'].changesFactory[type]   = changeClass;
 
