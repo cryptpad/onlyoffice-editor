@@ -1692,11 +1692,8 @@
 	window['AscDFH'].historyitem_type_OForm_UserMaster       = 2200 << 16;
 	window['AscDFH'].historyitem_type_OForm_User             = 2201 << 16;
 	window['AscDFH'].historyitem_type_OForm_FieldMaster      = 2202 << 16;
-	window['AscDFH'].historyitem_type_FormField              = 2205 << 16;
-	window['AscDFH'].historyitem_type_MainDocument           = 2208 << 16;
-	window['AscDFH'].historyitem_type_FieldsGroup            = 2209 << 16;
-	window['AscDFH'].historyitem_type_FieldContent           = 2212 << 16;
-
+	window['AscDFH'].historyitem_type_OForm_Document         = 2203 << 16;
+	window['AscDFH'].historyitem_type_OForm_FieldGroup       = 2204 << 16;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

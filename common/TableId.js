@@ -395,10 +395,8 @@
 			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_UserMaster]  = AscOForm.CUserMaster;
 			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_User]        = AscOForm.CUser;
 			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_FieldMaster] = AscOForm.CFieldMaster;
-			this.m_oFactoryClass[AscDFH.historyitem_type_FormField]        = AscWord.CField;
-			this.m_oFactoryClass[AscDFH.historyitem_type_MainDocument]     = AscWord.CMainDocument;
-			this.m_oFactoryClass[AscDFH.historyitem_type_FieldsGroup]      = AscWord.CFieldsGroup;
-			this.m_oFactoryClass[AscDFH.historyitem_type_FieldContent]     = AscWord.CFieldContent;
+			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_Document]    = AscOForm.CDocument;
+			this.m_oFactoryClass[AscDFH.historyitem_type_OForm_FieldGroup]  = AscOForm.CFieldGroup;
 		}
 
 		if (window['AscCommonSlide'])
