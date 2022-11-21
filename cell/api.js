@@ -4319,6 +4319,11 @@ var editor;
     var ws = this.wb.getWorksheet();
     ws.objectRender.addMath(Type);
   };
+  spreadsheet_api.prototype.asc_ConvertMathView = function(isToLinear, isAll)
+  {
+    var ws = this.wb.getWorksheet();
+    ws.objectRender.convertMathView(isToLinear, isAll);
+  };
 
   spreadsheet_api.prototype.asc_SetMathProps = function(MathProps)
   {
@@ -8297,6 +8302,7 @@ var editor;
   prot["asc_setDrawImagePlaceParagraph"] = prot.asc_setDrawImagePlaceParagraph;
   prot["asc_changeShapeImageFromFile"] = prot.asc_changeShapeImageFromFile;
   prot["asc_AddMath"] = prot.asc_AddMath;
+  prot["asc_ConvertMathView"] = prot.asc_ConvertMathView;
   prot["asc_SetMathProps"] = prot.asc_SetMathProps;
   //----------------------------------------------------------------------------------------------------------------------
 

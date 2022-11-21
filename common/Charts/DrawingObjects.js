@@ -2596,7 +2596,10 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     {
         _this.controller.setMathProps(MathProps);
     }
-
+    _this.convertMathView = function(isToLinear, isAll)
+    {
+        _this.controller.convertMathView(isToLinear, isAll);
+    }
     _this.setListType = function(type, subtype, custom)
     {
         if(_this.controller.checkSelectedObjectsProtectionText())

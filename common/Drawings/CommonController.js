@@ -3358,6 +3358,36 @@ DrawingObjectsController.prototype =
         }
     },
 
+	convertMathView: function(isToLinear, isAll)
+	{
+		let oDocContent = this.getTargetDocContent();
+		if(!oDocContent)
+		{
+			return;
+		}
+		let oInfo = oDocContent.GetSelectedElementsInfo();
+		let oMath = oInfo.GetMath();
+		if (!oMath)
+		{
+			return;
+		}
+		let oApi = this.getEditorApi();
+		this.checkSelectedObjectsAndCallback(function()
+		{
+			let nInputType = oApi.getMathInputType();
+			if (isAll || !oDocContent.IsTextSelectionUse())
+			{
+				oDocContent.RemoveTextSelection();
+				oMath.ConvertView(isToLinear, nInputType);
+			}
+			else
+			{
+				oMath.ConvertViewBySelection(isToLinear, nInputType);
+			}
+		},
+		[], false, AscDFH.historydescription_Document_ConvertMathView, [], false);
+	},
+
     paragraphIncDecFontSize: function(bIncrease)
     {
         this.applyDocContentFunction(CDocumentContent.prototype.IncreaseDecreaseFontSize, [bIncrease], CTable.prototype.IncreaseDecreaseFontSize);

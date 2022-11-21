@@ -5614,6 +5614,13 @@ CPresentation.prototype.AddToParagraph = function (ParaItem, bRecalculate, noUpd
 
 };
 
+CPresentation.prototype.ConvertMathView = function(isToLinear, isAll) {
+	let oController = this.GetCurrentController();
+	if(!oController) {
+		return;
+	}
+	oController.convertMathView(isToLinear, isAll);
+};
 
 CPresentation.prototype.ClearParagraphFormatting = function (isClearParaPr, isClearTextPr) {
     var oController = this.GetCurrentController();
