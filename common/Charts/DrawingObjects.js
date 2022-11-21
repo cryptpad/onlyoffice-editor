@@ -2590,8 +2590,6 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
             worksheet.setSelectionShape(true);
         }
     };
-
-
     _this.setMathProps = function(MathProps)
     {
         _this.controller.setMathProps(MathProps);
@@ -2599,6 +2597,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     _this.convertMathView = function(isToLinear, isAll)
     {
         _this.controller.convertMathView(isToLinear, isAll);
+        _this.controller.updateSelectionState();
     }
     _this.setListType = function(type, subtype, custom)
     {
