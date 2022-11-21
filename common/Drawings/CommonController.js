@@ -9192,45 +9192,15 @@ DrawingObjectsController.prototype =
             }
             this.prepareParagraphProperties(ParaPr, TextPr, ascSelectedObjects);
         }
-        var oTargetDocContent = this.getTargetDocContent(false, false);
+        let oTargetDocContent = this.getTargetDocContent(false, false);
         if(oTargetDocContent)
         {
-            if (( true === oTargetDocContent.Selection.Use && oTargetDocContent.Selection.StartPos == oTargetDocContent.Selection.EndPos && type_Paragraph == oTargetDocContent.Content[oTargetDocContent.Selection.StartPos].GetType() ) || ( false == oTargetDocContent.Selection.Use && type_Paragraph == oTargetDocContent.Content[oTargetDocContent.CurPos.ContentPos].GetType() ))
-            {
-                var oParagraph;
-                if (true == oTargetDocContent.Selection.Use)
-                    oParagraph = oTargetDocContent.Content[oTargetDocContent.Selection.StartPos];
-                else
-                    oParagraph = oTargetDocContent.Content[oTargetDocContent.CurPos.ContentPos];
-                if ( true === oParagraph.Selection.Use )
-                {
-                    var StartPos = oParagraph.Selection.StartPos;
-                    var EndPos   = oParagraph.Selection.EndPos;
-                    if ( StartPos > EndPos )
-                    {
-                        StartPos = oParagraph.Selection.EndPos;
-                        EndPos   = oParagraph.Selection.StartPos;
-                    }
-
-                    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-                    {
-                        var Element = oParagraph.Content[CurPos];
-
-                        if (true !== Element.IsSelectionEmpty() && (para_Math === Element.Type))
-                        {
-                            ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, Element.Get_MenuProps()));
-                        }
-                    }
-                }
-                else
-                {
-                    var CurType = oParagraph.Content[oParagraph.CurPos.ContentPos].Type;
-                    if (para_Math === CurType)
-                    {
-                        ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, oParagraph.Content[oParagraph.CurPos.ContentPos].Get_MenuProps()));
-                    }
-                }
-            }
+	        let oInfo = oTargetDocContent.GetSelectedElementsInfo();
+	        let oMath = oInfo.GetMath();
+	        if (oMath)
+	        {
+		        ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, oMath.Get_MenuProps()));
+	        }
         }
 
         return ascSelectedObjects;
