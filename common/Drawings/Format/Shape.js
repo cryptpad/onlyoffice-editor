@@ -5502,14 +5502,6 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex,
         shape_drawer.fromShape2(this, graphics, geometry);
         shape_drawer.draw(geometry);
     }
-    if (graphics.isSmartArtPreviewDrawer && this.isActiveBlipFillPlaceholder()) {
-        const cx = this.spPr.xfrm.extX / 2;
-        const cy = this.spPr.xfrm.extY / 2;
-        if (graphics.imagePlaceholder) {
-            const img = graphics.imagePlaceholder;
-            graphics.drawImage2(img, cx - graphics.placeholderSize / 2, cy - graphics.placeholderSize / 2, graphics.placeholderSize, graphics.placeholderSize);
-        }
-    }
 
     if (!graphics.isSmartArtPreviewDrawer && !this.bWordShape && this.isEmptyPlaceholder() && !(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES) && !(this.pen && this.pen.Fill && this.pen.Fill.fill && !(this.pen.Fill.fill instanceof AscFormat.CNoFill)) && graphics.IsNoDrawingEmptyPlaceholder !== true  && !AscCommon.IsShapeToImageConverter)
     {
