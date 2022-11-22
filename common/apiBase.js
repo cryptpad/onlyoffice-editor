@@ -830,15 +830,19 @@
 
 	baseEditorsApi.prototype.asc_SaveDrawingAsPicture = function()
 	{
-		let oImageData = this.getImageDataFromSelection();
-		if(oImageData)
+		let oController = this.getGraphicController();
+		if(oController)
 		{
-			let a = document.createElement("a");
-			let sSrc = oImageData.src;
-			a.href = sSrc;
-			let sExt = sSrc.substring("data:image/".length, sSrc.indexOf(";base64"));
-			a.download = AscCommon.translateManager.getValue("Picture") + "." + sExt;
-			a.click();
+			let oImageData = oController.getImageDataForSaving();
+			if(oImageData)
+			{
+				let a = document.createElement("a");
+				let sSrc = oImageData.src;
+				a.href = sSrc;
+				let sExt = sSrc.substring("data:image/".length, sSrc.indexOf(";base64"));
+				a.download = AscCommon.translateManager.getValue("Picture") + "." + sExt;
+				a.click();
+			}
 		}
 	};
 	baseEditorsApi.prototype.canEdit                         = function()
