@@ -2153,6 +2153,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		isFastCollaboration : false,
 	};
 
+	this.OFormDocument           = window['AscOForm'] ? new AscOForm.OForm(this) : null;
 	this.FormsManager            = new AscWord.CFormsManager(this);
 	this.CurrentForm             = null;
 	this.HighlightRequiredFields = false;  // Выделяем ли обязательные поля
@@ -24799,6 +24800,13 @@ CDocument.prototype.OnChangeContentControl = function(oControl)
 		return;
 
 	this.Action.Additional.ContentControlChange[sId] = oControl;
+};
+/**
+ * @returns {?AscOForm.CDocument}
+ */
+CDocument.prototype.GetOFormDocument = function()
+{
+	return this.OFormDocument;
 };
 /**
  * @returns {AscWord.CFormsManager}
