@@ -5848,6 +5848,15 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.asc_ConvertMathView = function(isToLinear, isAll)
+	{
+		let oPresentation = this.private_GetLogicDocument();
+		if(!oPresentation)
+		{
+			return;
+		}
+		oPresentation.ConvertMathView(isToLinear, isAll);
+	};
 
 	asc_docs_api.prototype.asc_AddVideoCallback = function(sImageUrlLocal, sVideoUrl, obj)
 	{
@@ -9091,6 +9100,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["asc_getCurrentFocusObject"]           = asc_docs_api.prototype.asc_getCurrentFocusObject;
 	asc_docs_api.prototype["asc_AddMath"]           			  = asc_docs_api.prototype.asc_AddMath;
+	asc_docs_api.prototype["asc_ConvertMathView"]           	  = asc_docs_api.prototype.asc_ConvertMathView;
 	asc_docs_api.prototype["asc_SetMathProps"]           		  = asc_docs_api.prototype.asc_SetMathProps;
 
     asc_docs_api.prototype['sendEvent']								= asc_docs_api.prototype.sendEvent;

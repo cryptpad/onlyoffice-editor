@@ -9979,23 +9979,31 @@
         if (graphicObjects.length) {
             objectInfo.selectionType = this.objectRender.getGraphicSelectionType(graphicObjects[0].Id);
         }
+		let oController = this.objectRender.controller;
+		let oDocContent = oController.getTargetDocContent();
+		if(oDocContent) {
+			let oPr = new CSelectedElementsInfo({CheckAllSelection : true})
+			let oSelectedInfo = oDocContent.GetSelectedElementsInfo(oPr);
+			let oMath         = oSelectedInfo.GetMath();
+		}
 
-        var textPr = this.objectRender.controller.getParagraphTextPr();
-        var theme = this.objectRender.controller.getTheme();
+
+        var textPr = oController.getParagraphTextPr();
+        var theme = oController.getTheme();
         if (textPr && theme && theme.themeElements && theme.themeElements.fontScheme) {
             textPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
         }
 
-        var paraPr = this.objectRender.controller.getParagraphParaPr();
+        var paraPr = oController.getParagraphParaPr();
         if (!paraPr && textPr) {
             paraPr = new CParaPr();
         }
         if (textPr && paraPr) {
-            objectInfo.text = this.objectRender.controller.GetSelectedText(true);
+            objectInfo.text = oController.GetSelectedText(true);
 
             horAlign = paraPr.Jc;
             vertAlign = Asc.c_oAscVAlign.Center;
-            var shape_props = this.objectRender.controller.getDrawingProps().shapeProps;
+            var shape_props = oController.getDrawingProps().shapeProps;
             if (shape_props) {
                 switch (shape_props.verticalTextAlign) {
                     case AscFormat.VERTICAL_ANCHOR_TYPE_BOTTOM:
@@ -10025,13 +10033,13 @@
             }
 
             if (textPr.Unifill && theme) {
-                textPr.Unifill.check(theme, this.objectRender.controller.getColorMap());
+                textPr.Unifill.check(theme, oController.getColorMap());
             }
             var font = new AscCommonExcel.Font();
             font.assignFromTextPr(textPr);
             xfs.setFont(font);
 
-            var shapeHyperlink = this.objectRender.controller.getHyperlinkInfo();
+            var shapeHyperlink = oController.getHyperlinkInfo();
             if (shapeHyperlink && (shapeHyperlink instanceof ParaHyperlink)) {
 
                 var hyperlink = new AscCommonExcel.Hyperlink();

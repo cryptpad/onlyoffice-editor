@@ -2016,7 +2016,6 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 	this.PrintSelection            = false; // Печатаем выделенный фрагмент
 	this.CheckFormPlaceHolder      = true;  // Выполняем ли специальную обработку для плейсхолдеров у форм
-	this.MathInputType             = Asc.c_oAscMathInputType.Unicode;
 	this.ForceDrawPlaceHolders     = null;  // true/false - насильно заставляем рисовать или не рисовать плейсхолдеры и подсветку,
 	this.ForceDrawFormHighlight    = null;  // null - редактор решает рисовать или нет в зависимости от других параметров
 	this.ConcatParagraphsOnRemove  = false; // Во время удаления объединять ли первый и последний параграфы
@@ -26378,10 +26377,7 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
 	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 	{
 		this.StartAction(AscDFH.historydescription_Document_ConvertMathView);
-
-		var oLogicDocument = this.GetLogicDocument()
-		var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
-
+		var nInputType = this.Api.getMathInputType();
 		if (isAll || !this.IsTextSelectionUse())
 		{
 			this.RemoveTextSelection();
@@ -26397,20 +26393,6 @@ CDocument.prototype.ConvertMathView = function(isToLinear, isAll)
         this.UpdateTracks();
         this.FinalizeAction();
 	}
-};
-/**
- * @param {Asc.c_oAscMathInputType} nType
- */
-CDocument.prototype.SetMathInputType = function(nType)
-{
-	this.MathInputType = nType;
-};
-/**
- * @returns {Asc.c_oAscMathInputType}
- */
-CDocument.prototype.GetMathInputType = function()
-{
-	return this.MathInputType;
 };
 
 function CDocumentSelectionState()

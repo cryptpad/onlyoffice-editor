@@ -3358,6 +3358,36 @@ DrawingObjectsController.prototype =
         }
     },
 
+	convertMathView: function(isToLinear, isAll)
+	{
+		let oDocContent = this.getTargetDocContent();
+		if(!oDocContent)
+		{
+			return;
+		}
+		let oInfo = oDocContent.GetSelectedElementsInfo();
+		let oMath = oInfo.GetMath();
+		if (!oMath)
+		{
+			return;
+		}
+		let oApi = this.getEditorApi();
+		this.checkSelectedObjectsAndCallback(function()
+		{
+			let nInputType = oApi.getMathInputType();
+			if (isAll || !oDocContent.IsTextSelectionUse())
+			{
+				oDocContent.RemoveTextSelection();
+				oMath.ConvertView(isToLinear, nInputType);
+			}
+			else
+			{
+				oMath.ConvertViewBySelection(isToLinear, nInputType);
+			}
+		},
+		[], false, AscDFH.historydescription_Document_ConvertMathView, [], false);
+	},
+
     paragraphIncDecFontSize: function(bIncrease)
     {
         this.applyDocContentFunction(CDocumentContent.prototype.IncreaseDecreaseFontSize, [bIncrease], CTable.prototype.IncreaseDecreaseFontSize);
@@ -5436,9 +5466,26 @@ DrawingObjectsController.prototype =
         this.curState = newState;
     },
 
+	setEquationTrack: function(oMathTrackHandler, IsShowEquationTrack)
+	{
+		let oDocContent = null;
+		let bSelection = false;
+		let bEmptySelection = true;
+		let oMath = null;
+		oDocContent = this.getTargetDocContent();
+		if(oDocContent)
+		{
+			bSelection = oDocContent.IsSelectionUse();
+			bEmptySelection = oDocContent.IsSelectionEmpty();
+			let oSelectedInfo = oDocContent.GetSelectedElementsInfo();
+			oMath = oSelectedInfo.GetMath();
+		}
+		oMathTrackHandler.SetTrackObject(IsShowEquationTrack ? oMath : null, 0, false === bSelection || true === bEmptySelection);
+	},
+
     updateSelectionState: function(bNoCheck)
     {
-        var text_object, drawingDocument = this.drawingObjects.getDrawingDocument();
+        let text_object, drawingDocument = this.drawingObjects.getDrawingDocument();
         if(this.selection.textSelection)
         {
             text_object = this.selection.textSelection;
@@ -5469,24 +5516,22 @@ DrawingObjectsController.prototype =
             drawingDocument.SelectEnabled(false);
             drawingDocument.SelectShow();
         }
-        var oContent = this.getTargetDocContent();
-        if(oContent)
-        {
-            var oSelectedInfo = new CSelectedElementsInfo();
-            oSelectedInfo = oContent.GetSelectedElementsInfo(oSelectedInfo);
-
-            var Math = oSelectedInfo.GetMath();
-            var bSelection = oContent.IsSelectionUse();
-            var bEmptySelection = bSelection && oContent.IsSelectionEmpty();
-            if (null !== Math)
-                drawingDocument.Update_MathTrack(true, (!bSelection || bEmptySelection), Math);
-            else
-                drawingDocument.Update_MathTrack(false);
-        }
-        else
-        {
-            drawingDocument.Update_MathTrack(false);
-        }
+		let oMathTrackHandler = null;
+		if(this.drawingObjects.mathTrackHandler)
+		{
+			oMathTrackHandler = this.drawingObjects.mathTrackHandler;
+		}
+		else
+		{
+			if(this.drawingObjects.cSld)
+			{
+				oMathTrackHandler = editor.WordControl.m_oLogicDocument.MathTrackHandler;
+			}
+		}
+		if(oMathTrackHandler)
+		{
+			this.setEquationTrack(oMathTrackHandler, this.canEdit());
+		}
     },
 
     remove: function(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
@@ -9162,45 +9207,15 @@ DrawingObjectsController.prototype =
             }
             this.prepareParagraphProperties(ParaPr, TextPr, ascSelectedObjects);
         }
-        var oTargetDocContent = this.getTargetDocContent(false, false);
+        let oTargetDocContent = this.getTargetDocContent(false, false);
         if(oTargetDocContent)
         {
-            if (( true === oTargetDocContent.Selection.Use && oTargetDocContent.Selection.StartPos == oTargetDocContent.Selection.EndPos && type_Paragraph == oTargetDocContent.Content[oTargetDocContent.Selection.StartPos].GetType() ) || ( false == oTargetDocContent.Selection.Use && type_Paragraph == oTargetDocContent.Content[oTargetDocContent.CurPos.ContentPos].GetType() ))
-            {
-                var oParagraph;
-                if (true == oTargetDocContent.Selection.Use)
-                    oParagraph = oTargetDocContent.Content[oTargetDocContent.Selection.StartPos];
-                else
-                    oParagraph = oTargetDocContent.Content[oTargetDocContent.CurPos.ContentPos];
-                if ( true === oParagraph.Selection.Use )
-                {
-                    var StartPos = oParagraph.Selection.StartPos;
-                    var EndPos   = oParagraph.Selection.EndPos;
-                    if ( StartPos > EndPos )
-                    {
-                        StartPos = oParagraph.Selection.EndPos;
-                        EndPos   = oParagraph.Selection.StartPos;
-                    }
-
-                    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-                    {
-                        var Element = oParagraph.Content[CurPos];
-
-                        if (true !== Element.IsSelectionEmpty() && (para_Math === Element.Type))
-                        {
-                            ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, Element.Get_MenuProps()));
-                        }
-                    }
-                }
-                else
-                {
-                    var CurType = oParagraph.Content[oParagraph.CurPos.ContentPos].Type;
-                    if (para_Math === CurType)
-                    {
-                        ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, oParagraph.Content[oParagraph.CurPos.ContentPos].Get_MenuProps()));
-                    }
-                }
-            }
+	        let oInfo = oTargetDocContent.GetSelectedElementsInfo();
+	        let oMath = oInfo.GetMath();
+	        if (oMath)
+	        {
+		        ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, oMath.Get_MenuProps()));
+	        }
         }
 
         return ascSelectedObjects;

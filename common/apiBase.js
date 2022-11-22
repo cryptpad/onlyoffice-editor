@@ -131,6 +131,8 @@
 
 		this.MathMenuLoad          = false;
 
+		this.mathInputType = Asc.c_oAscMathInputType.Unicode;
+
 		// CoAuthoring and Chat
 		this.User                   = undefined;
 		this.CoAuthoringApi         = new AscCommon.CDocsCoApi();
@@ -3923,12 +3925,18 @@
 	baseEditorsApi.prototype.asc_ConvertMathView = function(isToLinear, isAll)
 	{
 	};
+	baseEditorsApi.prototype.getMathInputType = function()
+	{
+		return this.mathInputType;
+	};
 	baseEditorsApi.prototype.asc_GetMathInputType = function()
 	{
-		return Asc.c_oAscMathInputType.Unicode;
+		return this.getMathInputType();
 	};
 	baseEditorsApi.prototype.asc_SetMathInputType = function(type)
-	{};
+	{
+		this.mathInputType = type;
+	};
 
 	baseEditorsApi.prototype.getFileAsFromChanges = function()
 	{
