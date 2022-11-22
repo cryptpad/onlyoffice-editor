@@ -4140,27 +4140,30 @@ var editor;
   };
 
     spreadsheet_api.prototype.getScaleCoefficientsForOleTableImage = function (nImageWidth, nImageHeight) {
-        const oWorksheet = this.wb.getWorksheet();
+      const oThis = this;
+      return this.wb._executeWithoutZoom(function () {
+        const oWorksheet = oThis.wb.getWorksheet();
         const oSingleChart = oWorksheet.isHaveOnlyOneChart(true);
         let oRangeSizes = {};
         if (oSingleChart) {
-            oRangeSizes = {
-                width: oSingleChart.extX * AscCommon.g_dKoef_mm_to_pix,
-                height: oSingleChart.extY * AscCommon.g_dKoef_mm_to_pix
-            };
+          oRangeSizes = {
+            width: oSingleChart.extX * AscCommon.g_dKoef_mm_to_pix,
+            height: oSingleChart.extY * AscCommon.g_dKoef_mm_to_pix
+          };
         } else {
-            const oOleSize = this.wbModel.getOleSize().getLast();
-            if (oOleSize) {
-                oRangeSizes = oWorksheet.getRangePosition(oOleSize);
-            }
+          const oOleSize = oThis.wbModel.getOleSize().getLast();
+          if (oOleSize) {
+            oRangeSizes = oWorksheet.getRangePosition(oOleSize);
+          }
         }
         if (oRangeSizes.width && oRangeSizes.height) {
-            return {
-                widthCoefficient: nImageWidth / oRangeSizes.width,
-                heightCoefficient: nImageHeight / oRangeSizes.height
-            };
+          return {
+            widthCoefficient: nImageWidth / oRangeSizes.width,
+            heightCoefficient: nImageHeight / oRangeSizes.height
+          };
         }
         return {widthCoefficient: 1, heightCoefficient: 1};
+      });
     };
 
   /**

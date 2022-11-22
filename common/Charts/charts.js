@@ -843,14 +843,14 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 				oXfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - oXfrm.extY) / 2);
 				if (oDrawingObjects) {
 					oSmartArt.setDrawingObjects(oDrawingObjects);
-				}
-				if (oDrawingObjects.cSld) {
-					oSmartArt.setParent2(oDrawingObjects);
-					oSmartArt.setRecalculateInfo();
-				}
+					if (oDrawingObjects.cSld) {
+						oSmartArt.setParent2(oDrawingObjects);
+						oSmartArt.setRecalculateInfo();
+					}
 
-				if (oDrawingObjects.getWorksheetModel) {
-					oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
+					if (oDrawingObjects.getWorksheetModel) {
+						oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
+					}
 				}
 				this.fitSmartArtForPreview(oSmartArt);
 				oSmartArt.recalcTransformText();

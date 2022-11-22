@@ -7612,7 +7612,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.getGraphicController = function () {
 		var document = this.private_GetLogicDocument();
-		return document && document.DrawingsController;
+		return document && document.DrawingsController && document.DrawingsController.DrawingObjects;
 	};
 
 	asc_docs_api.prototype.ChangeColorScheme            = function(sSchemeName)
@@ -12061,10 +12061,11 @@ background-repeat: no-repeat;\
 	};
 
 	asc_docs_api.prototype.getDrawingObjects = function () {
-		const oController = this.getGraphicController();
+/*		const oController = this.getGraphicController();
 		if (oController) {
-			return oController.DrawingObjects;
-		}
+			return oController.drawingObjects;
+		}*/
+		return null;
 	};
 
 	asc_docs_api.prototype.getDrawingDocument = function () {

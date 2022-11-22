@@ -1159,9 +1159,9 @@
 		const oSmartArt = new AscFormat.SmartArt();
 		oSmartArt.fillByPreset(nSmartArtType);
 		const oLogicDocument = this.getLogicDocument();
-		const oDrawingObjects = this.getDrawingObjects();
 		const oController = this.getGraphicController();
 		if (!bFromWord) {
+			const oDrawingObjects = this.getDrawingObjects();
 			if (oDrawingObjects) {
 				oSmartArt.setDrawingObjects(oDrawingObjects);
 			}
@@ -1190,17 +1190,17 @@
 			}
 			oSmartArt.fitToPageSize();
 			oSmartArt.fitFontSize();
-			const oParaDrawing = oSmartArt.decorateParaDrawing(oDrawingObjects);
+			const oParaDrawing = oSmartArt.decorateParaDrawing(oController);
 			oSmartArt.setXfrmByParent();
-			if (oDrawingObjects) {
-				oDrawingObjects.resetSelection2();
+			if (oController) {
+				oController.resetSelection2();
 				oLogicDocument.AddToParagraph(oParaDrawing);
 				oLogicDocument.Select_DrawingObject(oParaDrawing.Get_Id());
 				oLogicDocument.Recalculate();
-				oDrawingObjects.clearTrackObjects();
-				oDrawingObjects.clearPreTrackObjects();
-				oDrawingObjects.updateOverlay();
-				oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
+				oController.clearTrackObjects();
+				oController.clearPreTrackObjects();
+				oController.updateOverlay();
+				oController.changeCurrentState(new AscFormat.NullState(oController));
 			}
 		}
 		return oSmartArt;
