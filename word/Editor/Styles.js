@@ -10366,6 +10366,7 @@ CDocumentColor.prototype.ConvertToUniColor = function()
 {
 	return AscFormat.CreateUniColorRGB(this.r, this.g, this.b);
 };
+AscWord.CDocumentColor = CDocumentColor;
 
 function CDocumentShd()
 {
