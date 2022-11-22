@@ -1507,6 +1507,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         oGraphics.transform3(new AscCommon.CMatrix());
         oGraphics.SetIntegerGrid(true);
         oGraphics.b_color1(0, 0, 0, 255);
+	    oGraphics._s();
 
         let nX, nY;
         let oT = oGraphics.m_oFullTransform;
