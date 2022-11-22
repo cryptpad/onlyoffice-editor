@@ -5466,9 +5466,26 @@ DrawingObjectsController.prototype =
         this.curState = newState;
     },
 
+	setEquationTrack: function(oMathTrackHandler, IsShowEquationTrack)
+	{
+		let oDocContent = null;
+		let bSelection = false;
+		let bEmptySelection = true;
+		let oMath = null;
+		oDocContent = this.getTargetDocContent();
+		if(oDocContent)
+		{
+			bSelection = oDocContent.IsSelectionUse();
+			bEmptySelection = oDocContent.IsSelectionEmpty();
+			let oSelectedInfo = oDocContent.GetSelectedElementsInfo();
+			oMath = oSelectedInfo.GetMath();
+		}
+		oMathTrackHandler.SetTrackObject(IsShowEquationTrack ? oMath : null, 0, false === bSelection || true === bEmptySelection);
+	},
+
     updateSelectionState: function(bNoCheck)
     {
-        var text_object, drawingDocument = this.drawingObjects.getDrawingDocument();
+        let text_object, drawingDocument = this.drawingObjects.getDrawingDocument();
         if(this.selection.textSelection)
         {
             text_object = this.selection.textSelection;
@@ -5499,24 +5516,22 @@ DrawingObjectsController.prototype =
             drawingDocument.SelectEnabled(false);
             drawingDocument.SelectShow();
         }
-        var oContent = this.getTargetDocContent();
-        if(oContent)
-        {
-            var oSelectedInfo = new CSelectedElementsInfo();
-            oSelectedInfo = oContent.GetSelectedElementsInfo(oSelectedInfo);
-
-            var Math = oSelectedInfo.GetMath();
-            var bSelection = oContent.IsSelectionUse();
-            var bEmptySelection = bSelection && oContent.IsSelectionEmpty();
-            if (null !== Math)
-                drawingDocument.Update_MathTrack(true, (!bSelection || bEmptySelection), Math);
-            else
-                drawingDocument.Update_MathTrack(false);
-        }
-        else
-        {
-            drawingDocument.Update_MathTrack(false);
-        }
+		let oMathTrackHandler = null;
+		if(this.drawingObjects.mathTrackHandler)
+		{
+			oMathTrackHandler = this.drawingObjects.mathTrackHandler;
+		}
+		else
+		{
+			if(this.drawingObjects.cSld)
+			{
+				oMathTrackHandler = editor.WordControl.m_oLogicDocument.MathTrackHandler;
+			}
+		}
+		if(oMathTrackHandler)
+		{
+			this.setEquationTrack(oMathTrackHandler, this.canEdit());
+		}
     },
 
     remove: function(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
