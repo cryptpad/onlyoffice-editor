@@ -2912,6 +2912,7 @@ function CPresentation(DrawingDocument) {
     this.slideSizeLock = new PropLocker(this.Id);
     this.defaultTextStyleLock = new PropLocker(this.Id);
     this.commentsLock = new PropLocker(this.Id);
+    this.viewPrLock = new PropLocker(this.Id);
 
     this.RecalcId = 0; // Номер пересчета
     this.CommentAuthors = {};
@@ -3070,9 +3071,12 @@ CPresentation.prototype.checkViewPr = function() {
     return this.viewPr;
 };
 CPresentation.prototype.setGridSpacing = function(nSpacing) {
-    this.Create_NewHistoryPoint(0);
-    this.checkViewPr().setGridSpacingVal(nSpacing);
-    this.Recalculate();
+	if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, [])) {
+		this.Create_NewHistoryPoint(0);
+		this.checkViewPr().setGridSpacingVal(nSpacing);
+		this.Recalculate();
+		this.UpdateInterface();
+	}
 };
 CPresentation.prototype.isSnapToGrid = function() {
     if(this.viewPr) {
@@ -3081,22 +3085,50 @@ CPresentation.prototype.isSnapToGrid = function() {
     return false;
 };
 CPresentation.prototype.setSnapToGrid = function(bVal) {
-    this.Create_NewHistoryPoint(0);
-    this.checkViewPr().setSnapToGrid(bVal);
+	if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, [])) {
+		this.Create_NewHistoryPoint(0);
+		this.checkViewPr().setSnapToGrid(bVal);
+		this.UpdateInterface();
+	}
 };
 
 CPresentation.prototype.addHorizontalGuide = function()
 {
-    this.Create_NewHistoryPoint(0);
-    this.checkViewPr().addHorizontalGuide();
-    this.Recalculate();
+	if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, []))
+	{
+		this.Create_NewHistoryPoint(0);
+		this.checkViewPr().addHorizontalGuide();
+		this.Recalculate();
+		this.UpdateInterface();
+	}
 };
 CPresentation.prototype.addVerticalGuide = function()
 {
-    this.Create_NewHistoryPoint(0);
-    this.checkViewPr().addVerticalGuide();
-    this.Recalculate();
+	if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, []))
+	{
+		this.Create_NewHistoryPoint(0);
+		this.checkViewPr().addVerticalGuide();
+		this.Recalculate();
+		this.UpdateInterface();
+	}
 };
+
+
+CPresentation.prototype.checkEmptyGuides = function()
+{
+	if(!this.canClearGuides())
+	{
+		if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, []))
+		{
+			this.Create_NewHistoryPoint(0);
+			this.checkViewPr().addVerticalGuide();
+			this.checkViewPr().addHorizontalGuide();
+			this.Recalculate();
+			this.UpdateInterface();
+		}
+	}
+};
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с составным вводом
@@ -10843,6 +10875,17 @@ CPresentation.prototype.Document_Is_SelectionLocked = function (CheckType, Addit
 
         this.defaultTextStyleLock.Lock.Check(check_obj);
     }
+
+	if (CheckType === AscCommon.changestype_ViewPr) {
+		var check_obj =
+			{
+				"type": c_oAscLockTypeElemPresentation.Slide,
+				"val": this.viewPrLock.Get_Id(),
+				"guid": this.viewPrLock.Get_Id()
+			};
+
+		this.viewPrLock.Lock.Check(check_obj);
+	}
 
     var bResult = AscCommon.CollaborativeEditing.OnEnd_CheckLock(DontLockInFastMode);
 

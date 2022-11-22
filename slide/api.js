@@ -821,17 +821,22 @@
 							var object = g_oTableId.Get_ById(Class.objectId);
 							if (object instanceof AscCommonSlide.CPresentation)
 							{
-								if (Class === editor.WordControl.m_oLogicDocument.themeLock)
+								let oPresentation = editor.WordControl.m_oLogicDocument;
+								if (Class === oPresentation.themeLock)
 								{
 									editor.sendEvent("asc_onLockDocumentTheme");
 								}
-								else if (Class === editor.WordControl.m_oLogicDocument.schemeLock)
+								else if (Class === oPresentation.schemeLock)
 								{
 									editor.sendEvent("asc_onLockDocumentSchema");
 								}
-								else if (Class === editor.WordControl.m_oLogicDocument.slideSizeLock)
+								else if (Class === oPresentation.slideSizeLock)
 								{
 									editor.sendEvent("asc_onLockDocumentProps");
+								}
+								else if (Class === oPresentation.viewPrLock)
+								{
+									editor.sendEvent("asc_onLockViewProps");
 								}
 							}
 						}
@@ -984,8 +989,18 @@
 										editor.sendEvent("asc_onUnLockDocumentProps");
 									}
 								}
+								if (Class === object.viewPrLock)
+								{
+									if (NewType !== locktype_Mine && NewType !== locktype_None)
+									{
+										editor.sendEvent("asc_onLockViewProps");
+									}
+									else
+									{
+										editor.sendEvent("asc_onUnLockViewProps");
+									}
+								}
 							}
-
 						}
 
 					}
@@ -3088,8 +3103,12 @@ background-repeat: no-repeat;\
 		{
 			return;
 		}
-		this.ShowGuides = isShow;
 		let oPresentation = this.WordControl.m_oLogicDocument;
+		if(isShow)
+		{
+			oPresentation.checkEmptyGuides();
+		}
+		this.ShowGuides = isShow;
 		oPresentation.RedrawCurSlide();
 	};
 	asc_docs_api.prototype.asc_getShowGuides = function()
