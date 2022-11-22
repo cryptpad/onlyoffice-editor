@@ -5624,6 +5624,7 @@ CPresentation.prototype.ConvertMathView = function(isToLinear, isAll) {
 	}
 	oController.convertMathView(isToLinear, isAll);
 	this.UpdateSelection();
+	this.UpdateInterface();
 };
 
 CPresentation.prototype.ClearParagraphFormatting = function (isClearParaPr, isClearTextPr) {
