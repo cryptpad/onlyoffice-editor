@@ -125,9 +125,11 @@ StartAddNewShape.prototype =
                 this.drawingObjects.handleEventMode = HANDLE_EVENT_MODE_HANDLE;
                 this.drawingObjects.changeCurrentState(oOldState);
 
-                if(oResult){
-                    var oObject = AscCommon.g_oTableId.Get_ById(oResult.objectId);
-                    this.drawingObjects.connector = oObject;
+                if(oResult) {
+                    let oObject = AscCommon.g_oTableId.Get_ById(oResult.objectId);
+					if(oObject.canConnectTo && oObject.canConnectTo()) {
+						this.drawingObjects.connector = oObject;
+					}
                 }
                 if(this.drawingObjects.connector !== this.oldConnector){
                     this.oldConnector = this.drawingObjects.connector;
