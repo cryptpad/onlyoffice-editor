@@ -2080,7 +2080,7 @@
 		this.lastFindCells = {};
 		this.oleSize = null;
 		if (oApi && oApi.isEditOleMode) {
-			this.oleSize = new AscCommonExcel.OleSizeSelectionRange(null, new Asc.Range(0, 0, 10, 10));
+			this.oleSize = new AscCommonExcel.OleSizeSelectionRange(null, new Asc.Range(0, 0, 6, 9));
 		}
 
 		//при копировании листа с одного wb на другой необходимо менять в стеке
