@@ -390,6 +390,18 @@
         return this.asc_setMacros(data);
     };
 
+	/**
+	 * Returns all VBA macros into a document.
+	 * @memberof Api
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @alias GetVBAMacros
+	 * @returns {string | null} VBA xml macros.
+	 */
+	Api.prototype["pluginMethod_GetVBAMacros"] = function()
+	{
+		return (this.vbaProject ? this.vbaProject.vbaXml : null);
+	};
+
     /**
      * Specifies the start action for long operations.
      * @memberof Api
