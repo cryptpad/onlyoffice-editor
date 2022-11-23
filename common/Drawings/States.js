@@ -410,25 +410,6 @@ NullState.prototype =
         let bHandleMode = this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE;
         let sHitGuideId = this.drawingObjects.hitInGuide(x, y);
         let oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
-        if(!oAnimPlayer)
-        {
-            let oGuide = AscCommon.g_oTableId.Get_ById(sHitGuideId);
-            if(oGuide)
-            {
-                if(!bHandleMode)
-                {
-                    let bHor = oGuide.isHorizontal();
-                    return {cursorType: bHor ? "ns-resize" : "ew-resize", objectId: "1"};
-                }
-                else
-                {
-                    this.drawingObjects.addPreTrackObject(new AscFormat.CGuideTrack(oGuide));
-                    this.drawingObjects.changeCurrentState(new TrackGuideState(this.drawingObjects, oGuide, x, y))
-                    return;
-                }
-
-            }
-        }
         if(bHandleMode)
         {
             start_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
@@ -574,6 +555,25 @@ NullState.prototype =
                 }
             }
         }
+	    if(!oAnimPlayer)
+	    {
+		    let oGuide = AscCommon.g_oTableId.Get_ById(sHitGuideId);
+		    if(oGuide)
+		    {
+			    if(!bHandleMode)
+			    {
+				    let bHor = oGuide.isHorizontal();
+				    return {cursorType: bHor ? "ns-resize" : "ew-resize", objectId: "1"};
+			    }
+			    else
+			    {
+				    this.drawingObjects.addPreTrackObject(new AscFormat.CGuideTrack(oGuide));
+				    this.drawingObjects.changeCurrentState(new TrackGuideState(this.drawingObjects, oGuide, x, y))
+				    return;
+			    }
+
+		    }
+	    }
         return null;
     },
 
@@ -714,13 +714,12 @@ TrackSelectionRect.prototype =
         this.startY = dStartY;
         let oTrack = this.drawingObjects.arrPreTrackObjects[0];
         if(oTrack) {
-            let bHor = this.guide.isHorizontal();
-            let dPos = bHor ? dStartY : dStartX;
+            let dPos = AscFormat.GdPosToMm(this.guide.pos);
+	        dPos = ((dPos * 10) >> 0) / 10;
             let oConvertedPos = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(dStartX, dStartY, 0);
             editor.sendEvent("asc_onTrackGuide", dPos, oConvertedPos.X, oConvertedPos.Y);
         }
     }
-
     TrackGuideState.prototype.onMouseDown = function (e, x, y, pageIndex) {
         if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR) {
             let bHor = this.guide.isHorizontal();
@@ -746,8 +745,10 @@ TrackSelectionRect.prototype =
             let oTrack = this.drawingObjects.arrTrackObjects[0];
             if(oTrack) {
                 oTrack.track(x, y);
-                let dPos = bHor ? y : x;
                 let oConvertedPos = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(x, y, 0);
+				let dGdPos = oTrack.getPos();
+	            let dPos = AscFormat.GdPosToMm(dGdPos);
+	            dPos = ((dPos * 10) >> 0) / 10;
                 editor.sendEvent("asc_onTrackGuide", dPos, oConvertedPos.X, oConvertedPos.Y)
                 this.drawingObjects.updateOverlay();
             }
