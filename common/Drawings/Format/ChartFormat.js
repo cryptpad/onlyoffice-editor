@@ -10920,9 +10920,11 @@
                         for(nRef = 0; nRef < aParsedRef.length; ++nRef) {
                             oRef = aParsedRef[nRef];
                             oSeriesRef = aParsedSeriesRef[nRef];
-                            if(oSeriesRef.bbox.r1 !== oRef.bbox.r1 || oSeriesRef.bbox.r2 !== oRef.bbox.r2) {
-                                break;
-                            }
+							let oSerBB = oSeriesRef.bbox;
+							let oRefBB = oSeriesRef.bbox;
+							if(oSerBB.r1 > oRefBB.r2 || oRefBB.r1 > oSerBB.r2) {// check empty intersection (bug 59334)
+								break;
+							}
                         }
                         if(nRef === aParsedRef.length) {
                             bLvlsByRows = false;

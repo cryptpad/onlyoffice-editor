@@ -4138,8 +4138,10 @@ var GLOBAL_PATH_COUNT = 0;
 
                         var bTickSkip = AscFormat.isRealNumber(oAxis.tickLblSkip) || nPtsLen >= SKIP_LBL_LIMIT;
                         var nTickLblSkip = AscFormat.isRealNumber(oAxis.tickLblSkip) ? oAxis.tickLblSkip : (nPtsLen < SKIP_LBL_LIMIT ? 1 : (Math.floor(nPtsLen / SKIP_LBL_LIMIT) + 1));
-                        for(i = 0; i < nPtsLen; ++i) {
-                            if(!bTickSkip || ((i % nTickLblSkip) === 0)) {
+                        let nLastNoEmptyLblIdx = -1;
+						for(i = 0; i < nPtsLen; ++i) {
+                            if(!bTickSkip ||
+	                            nLastNoEmptyLblIdx === -1 ||((i - nLastNoEmptyLblIdx) >= nTickLblSkip)) {
                                 var oPt = oLit.getPtByIndex(i);
                                 if(oPt) {
                                     var sPt;
@@ -4159,9 +4161,12 @@ var GLOBAL_PATH_COUNT = 0;
                                         sPt = oPt.val + "";
                                     }
                                     aStrings.push(sPt);
+									if(typeof sPt === "string" && sPt.length > 0) {
+										nLastNoEmptyLblIdx = i;
+									}
                                 }
                                 else {
-                                    aStrings.push("");
+                                    aStrings.push(null);
                                 }
                             }
                             else {
