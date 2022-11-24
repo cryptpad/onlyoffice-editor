@@ -1425,8 +1425,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         this.originY = this.getStartStridePos(this.stride, this.slideHeight);
     };
     CStrideData.prototype.getStartStridePos = function(stride, len) {
-        let nStrideCnt = (len / stride) >> 0;
-        return (((len - nStrideCnt * stride) / 2 + 0.5) >> 0) - stride;
+		let nCenterPos = len / 2 + 0.5 >> 0;
+        let nPos = nCenterPos - ((nCenterPos / stride >> 0) + 1)*stride;
+        return nPos;
     };
     CStrideData.prototype.getNearestLinearPoint = function(nDX, nOrigin) {
         let nCX = nDX / this.stride >> 0;
@@ -1493,7 +1494,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         nStrideLine = nStrideInsideLine;
         nStrideLinePix = nStrideInsideLinePix;
         let nStartStrideVerPos = this.getStartStridePos(nStrideLine, nSlideHeight);
-        let nStartStrideHorPos = this.getStartStridePos(nStrideLine, nSlideHeight);
+        let nStartStrideHorPos = this.getStartStridePos(nStrideLine, nSlideWidth);
         let nStartInsideHorPos = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
         let nStartInsideVerPos = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
         while(nStrideLinePix < nMinLineStridePix) {
@@ -1501,6 +1502,8 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             nStrideLinePix = ep(nStrideLine);
             //nStartStridePos = this.getStartStridePos(nStrideLine, nSlideHeight);
         }
+	    nStartStrideVerPos = this.getStartStridePos(nStrideLine, nSlideHeight);
+	    nStartStrideHorPos = this.getStartStridePos(nStrideLine, nSlideWidth);
         bPixel = nStrideInsideLinePix < AscCommon.AscBrowser.convertToRetinaValue(17, true);
 
         oGraphics.SaveGrState();
@@ -1551,7 +1554,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
 
         nHorStart = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
-        nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
+        nVertStart = this.getStartStridePos(nStrideLine, nSlideHeight);
         let nVertPos = nVertStart;
         let nHorPos;
         while (nVertPos < nSlideHeight) {
@@ -1569,7 +1572,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
 
 
-        nHorStart = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
+        nHorStart = this.getStartStridePos(nStrideLine, nSlideWidth);
         nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
         nHorPos = nHorStart;
 
