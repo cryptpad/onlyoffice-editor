@@ -733,8 +733,8 @@ TrackSelectionRect.prototype =
         }
         let bHor = this.guide.isHorizontal();
         if(!this.tracked) {
-            if(bHor && Math.abs(x - this.startX) > MOVE_DELTA ||
-                !bHor && Math.abs(y - this.startY) > MOVE_DELTA) {
+            if(bHor && Math.abs(y - this.startY) > MOVE_DELTA ||
+                !bHor && Math.abs(x - this.startX) > MOVE_DELTA) {
                 this.tracked = true;
                 this.drawingObjects.swapTrackObjects();
                 this.onMouseMove(e, x, y, pageIndex);
@@ -744,8 +744,16 @@ TrackSelectionRect.prototype =
         else {
             let oTrack = this.drawingObjects.arrTrackObjects[0];
             if(oTrack) {
-                oTrack.track(x, y);
-                let oConvertedPos = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(x, y, 0);
+	            let oNearestPos = this.drawingObjects.getSnapNearestPos(x, y);
+				let dX = x;
+				let dY = y;
+	            if(oNearestPos)
+	            {
+		            dX = oNearestPos.x;
+		            dY = oNearestPos.y;
+	            }
+                oTrack.track(dX, dY);
+                let oConvertedPos = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(dX, dY, 0);
 				let dGdPos = oTrack.getPos();
 	            let dPos = AscFormat.GdPosToMm(dGdPos);
 	            dPos = ((dPos * 10) >> 0) / 10;
