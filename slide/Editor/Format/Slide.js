@@ -1430,8 +1430,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         return nPos;
     };
     CStrideData.prototype.getNearestLinearPoint = function(nDX, nOrigin) {
-        let nCX = nDX / this.stride >> 0;
-        let dRX = nDX - nCX * this.stride;
+		let nDX_ = Math.abs(nDX);
+        let nCX = nDX_ / this.stride >> 0;
+        let dRX = nDX_ - nCX * this.stride;
         let nX;
         if((dRX / this.stride) < 0.5) {
             nX = nCX * this.stride;
@@ -1439,6 +1440,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         else {
             nX = (nCX + 1) * this.stride;
         }
+		if(nDX < 0) {
+			nX = -nX;
+		}
         return nOrigin + nX;
     };
     CStrideData.prototype.getNearestPoint = function(x, y) {
