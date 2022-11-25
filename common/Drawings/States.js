@@ -567,9 +567,12 @@ NullState.prototype =
 			    }
 			    else
 			    {
-				    this.drawingObjects.addPreTrackObject(new AscFormat.CGuideTrack(oGuide));
-				    this.drawingObjects.changeCurrentState(new TrackGuideState(this.drawingObjects, oGuide, x, y))
-				    return;
+					if(e.Button !== AscCommon.g_mouse_button_right)
+					{
+						this.drawingObjects.addPreTrackObject(new AscFormat.CGuideTrack(oGuide));
+						this.drawingObjects.changeCurrentState(new TrackGuideState(this.drawingObjects, oGuide, x, y))
+					}
+				    return true;
 			    }
 
 		    }

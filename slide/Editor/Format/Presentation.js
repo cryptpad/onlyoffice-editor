@@ -4766,16 +4766,22 @@ CPresentation.prototype.clearGuides = function() {
         return;
     }
     if(this.viewPr) {
-        this.Create_NewHistoryPoint(0);
-        this.viewPr.clearGuides();
-        this.Recalculate();
+	    if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, [])) {
+		    this.Create_NewHistoryPoint(0);
+		    this.viewPr.clearGuides();
+		    this.Recalculate();
+		    this.UpdateInterface();
+	    }
     }
 };
 CPresentation.prototype.deleteGuide = function(sId) {
     if(this.viewPr) {
-        this.Create_NewHistoryPoint(0);
-        this.viewPr.removeGuideById(sId);
-        this.Recalculate();
+	    if(false === this.Document_Is_SelectionLocked(AscCommon.changestype_ViewPr, undefined, undefined, [])) {
+		    this.Create_NewHistoryPoint(0);
+		    this.viewPr.removeGuideById(sId);
+		    this.Recalculate();
+		    this.UpdateInterface();
+	    }
     }
 };
 CPresentation.prototype.hitInGuide = function(x, y) {
