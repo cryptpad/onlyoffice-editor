@@ -1523,7 +1523,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             oImageCanvas.width = c(1);
             oImageCanvas.height = c(1);
             oImageContext = oImageCanvas.getContext("2d");
-            oImageContext.fillStyle = 'black';
+            oImageContext.fillStyle = 'white';
             oImageContext.fillRect(0, 0, oImageCanvas.width, oImageCanvas.height);
             oImageContext.fill();
         }
@@ -1531,7 +1531,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             oImageCanvas.width = c(3);
             oImageCanvas.height = c(3);
             oImageContext = oImageCanvas.getContext("2d");
-            oImageContext.fillStyle = 'black';
+            oImageContext.fillStyle = 'white';
             oImageContext.fillRect(c(1), 0, c(1), c(1));
             oImageContext.fillRect(0, c(1), c(1), c(1));
             oImageContext.fillRect(c(2), c(1), c(1), c(1));
@@ -1551,7 +1551,8 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
                 oContext.drawImage(oImageCanvas, nX - 1, nY - 1);
             }
         }
-
+		let sOldCompostiteOperation = oContext.globalCompositeOperation;
+	    oContext.globalCompositeOperation = "difference";
 
         nHorStart = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
         nVertStart = this.getStartStridePos(nStrideLine, nSlideHeight);
@@ -1592,6 +1593,8 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
         oGraphics.df();
         oGraphics.RestoreGrState();
+
+	    oContext.globalCompositeOperation = sOldCompostiteOperation;
     };
     Slide.prototype.drawGrid = function(oGraphics) {
         let oApi = editor;
