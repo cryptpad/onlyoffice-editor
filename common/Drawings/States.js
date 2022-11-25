@@ -715,7 +715,7 @@ TrackSelectionRect.prototype =
         let oTrack = this.drawingObjects.arrPreTrackObjects[0];
         if(oTrack) {
             let dPos = AscFormat.GdPosToMm(this.guide.pos);
-	        dPos = ((dPos * 10) >> 0) / 10;
+	        dPos = (dPos * 10 + 0.5 >> 0) / 10;
             let oConvertedPos = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(dStartX, dStartY, 0);
             editor.sendEvent("asc_onTrackGuide", dPos, oConvertedPos.X, oConvertedPos.Y);
         }
@@ -755,7 +755,7 @@ TrackSelectionRect.prototype =
                 let oConvertedPos = editor.WordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(bHor ? x : dX, !bHor ? y : dY, 0);
 				let dGdPos = oTrack.getPos();
 	            let dPos = AscFormat.GdPosToMm(dGdPos);
-	            dPos = ((dPos * 10) >> 0) / 10;
+	            dPos = (dPos * 10 + 0.5 >> 0) / 10;
                 editor.sendEvent("asc_onTrackGuide", dPos, oConvertedPos.X, oConvertedPos.Y)
                 this.drawingObjects.updateOverlay();
             }

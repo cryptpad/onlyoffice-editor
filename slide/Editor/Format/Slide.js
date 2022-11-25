@@ -1573,23 +1573,30 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
 
 
-        nHorStart = this.getStartStridePos(nStrideLine, nSlideWidth);
-        nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
-        nHorPos = nHorStart;
+		if(nStrideLine !== nStrideInsideLine) {
+			nHorStart = this.getStartStridePos(nStrideLine, nSlideWidth);
+			nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
+			nHorPos = nHorStart;
+			let nVertLineStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
 
-
-        while (nHorPos < nSlideWidth) {
-            if(nHorPos > 0) {
-                nVertPos = nVertStart;
-                while (nVertPos < nSlideHeight) {
-                    if(nVertPos > 0) {
-                        dp();
-                    }
-                    nVertPos += nStrideInsideLine;
-                }
-            }
-            nHorPos += nStrideLine;
-        }
+			while (nHorPos < nSlideWidth) {
+				if(nHorPos > 0) {
+					nVertPos = nVertStart;
+					while (nVertPos < nSlideHeight) {
+						if(nVertPos > 0) {
+							let nDistance = nVertPos - nVertLineStart;
+							let dVal1 = nDistance / nStrideLine;
+							let dVal2 = nDistance / nStrideLine >> 0;
+							if(!AscFormat.fApproxEqual(dVal1, dVal2)) {
+								dp();
+							}
+						}
+						nVertPos += nStrideInsideLine;
+					}
+				}
+				nHorPos += nStrideLine;
+			}
+		}
 
         oGraphics.df();
         oGraphics.RestoreGrState();
