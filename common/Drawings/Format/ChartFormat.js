@@ -14000,11 +14000,11 @@
         this.onChangeDataRefs();
         this.setParentToChild(pr);
     };
-    CCat.prototype.setValues = function(sValues, oNumRef) {
+    CCat.prototype.setValues = function(sValues) {
         this.calculatedRef = null;
         var oNumRef, oNumLit, oStrRef, oStrLit, oMultiLvl, oRef, oResult;
         oResult = new CParseResult();
-        fParseNumRef(sValues, !!oNumRef, oResult);
+        fParseNumRef(sValues, false, oResult);
         oNumRef = oResult.getObject();
         if(!oNumRef) {
             fParseStrRef(sValues, true, oResult);
@@ -14201,7 +14201,7 @@
                 var sFormula = this.getFormula();
                 if(typeof sFormula === "string" && sFormula.length > 0) {
                     var oTestCat = new CCat();
-                    var oRes = oTestCat.setValues(sFormula, this.numRef);
+                    var oRes = oTestCat.setValues(sFormula);
                     var oNumRef = oTestCat.numRef;
                     var oStrRef = oTestCat.strRef;
                     var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
@@ -15828,8 +15828,7 @@
                             for(nRow = oRange.bbox.r1; nRow <= oRange.bbox.r2; ++nRow) {
                                 for(nCol = oRange.bbox.c1; nCol <= oRange.bbox.c2; ++nCol) {
                                     oCell = oWS.getCell3(nRow, nCol);
-                                    var value = oCell.getNumberValue();
-                                    if(!AscFormat.isRealNumber(value)) {
+                                    if(!CChartDataRefs.prototype.privateCheckCellValueNumberOrEmpty(oCell)) {
                                         oResult.setError(Asc.c_oAscError.ID.DataRangeError);
                                         return;
                                     }
