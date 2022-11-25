@@ -5916,7 +5916,96 @@ DrawingObjectsController.prototype =
         }
     },
 
+	getPresentation: function()
+	{
+		return null;
+	},
 
+	moveSelectedObjectsByDir: function(aDir, bCtrlKey)//
+	{
+		//aDir - [+-1(null), +-1(null)] aDir[0] - x, dDir[1] - y
+		let oPresentation = this.getPresentation();
+		let bIsSnap = oPresentation && !bCtrlKey && !!this.getSnapNearestPos(0, 0);
+		let dDelta = 0.0;
+		let bHor = aDir[0] !== null;
+		let nDir;
+		if(bHor)
+		{
+			nDir = aDir[0];
+		}
+		else
+		{
+			nDir = aDir[1];
+		}
+		if(bIsSnap)
+		{
+			let oBounds = this.getSelectedObjectsBounds();
+			let dMoveDelta = 0.01;
+			if(nDir < 0)
+			{
+				let oNearestPos = this.getSnapNearestPos(oBounds.minX, oBounds.minY);
+				if(!oNearestPos)
+				{
+					return;
+				}
+				let dPos, dMinPos;
+				if(bHor)
+				{
+					dPos = oNearestPos.x;
+					dMinPos = oBounds.minX;
+				}
+				else
+				{
+					dPos = oNearestPos.y;
+					dMinPos = oBounds.minY;
+				}
+				if(dPos < dMinPos && !AscFormat.fApproxEqual(dPos, dMinPos, dMoveDelta))
+				{
+					dDelta = dPos - dMinPos;
+				}
+				else
+				{
+					dDelta = dPos - dMinPos - oPresentation.getGridSpacingMM();
+				}
+			}
+			else
+			{
+				let oNearestPos = this.getSnapNearestPos(oBounds.maxX, oBounds.maxY);
+				if(!oNearestPos)
+				{
+					return;
+				}
+				let dPos, dMaxPos;
+				if(bHor)
+				{
+					dPos = oNearestPos.x;
+					dMaxPos = oBounds.maxX;
+				}
+				else
+				{
+					dPos = oNearestPos.y;
+					dMaxPos = oBounds.maxY;
+				}
+				if(dPos > dMaxPos && !AscFormat.fApproxEqual(dPos, dMaxPos, dMoveDelta))
+				{
+					dDelta = dPos - dMaxPos;
+				}
+				else
+				{
+					dDelta = dPos - dMaxPos + oPresentation.getGridSpacingMM();
+				}
+			}
+		}
+		else
+		{
+			dDelta = this.getMoveDist(bCtrlKey);
+			if(nDir < 0)
+			{
+				dDelta = -dDelta;
+			}
+		}
+		this.moveSelectedObjects(bHor ? dDelta : 0.0, !bHor ? dDelta : 0.0);
+	},
 
     moveSelectedObjects: function(dx, dy)
     {
@@ -6079,7 +6168,7 @@ DrawingObjectsController.prototype =
             if(this.selectedObjects.length === 0)
                 return;
 
-            this.moveSelectedObjects(-this.getMoveDist(Word), 0);
+			this.moveSelectedObjectsByDir([-1, null], Word);
         }
     },
 
@@ -6119,7 +6208,8 @@ DrawingObjectsController.prototype =
         {
             if(this.selectedObjects.length === 0)
                 return;
-            this.moveSelectedObjects(this.getMoveDist(Word), 0);
+
+	        this.moveSelectedObjectsByDir([1, null], Word);
         }
     },
 
@@ -6160,7 +6250,7 @@ DrawingObjectsController.prototype =
         {
             if(this.selectedObjects.length === 0)
                 return;
-            this.moveSelectedObjects(0, -this.getMoveDist(Word));
+	        this.moveSelectedObjectsByDir([null, -1], Word);
         }
     },
 
@@ -6200,7 +6290,7 @@ DrawingObjectsController.prototype =
         {
             if(this.selectedObjects.length === 0)
                 return;
-            this.moveSelectedObjects(0, this.getMoveDist(Word));
+	        this.moveSelectedObjectsByDir([null, 1], Word);
         }
     },
 

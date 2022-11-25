@@ -3061,6 +3061,9 @@ CPresentation.prototype.getGridSpacing = function() {
     }
     return AscFormat.CViewPr.prototype.DEFAULT_GRID_SPACING;
 };
+CPresentation.prototype.getGridSpacingMM = function() {
+    return this.getGridSpacing() / g_dKoef_mm_to_emu;
+};
 CPresentation.prototype.getViewPropertiesStride = function() {
     return this.getGridSpacing();
 };
