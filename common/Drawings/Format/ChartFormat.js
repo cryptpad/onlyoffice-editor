@@ -14000,11 +14000,11 @@
         this.onChangeDataRefs();
         this.setParentToChild(pr);
     };
-    CCat.prototype.setValues = function(sValues) {
+    CCat.prototype.setValues = function(sValues, oNumRef) {
         this.calculatedRef = null;
         var oNumRef, oNumLit, oStrRef, oStrLit, oMultiLvl, oRef, oResult;
         oResult = new CParseResult();
-        fParseNumRef(sValues, false, oResult);
+        fParseNumRef(sValues, !!oNumRef, oResult);
         oNumRef = oResult.getObject();
         if(!oNumRef) {
             fParseStrRef(sValues, true, oResult);
@@ -14201,7 +14201,7 @@
                 var sFormula = this.getFormula();
                 if(typeof sFormula === "string" && sFormula.length > 0) {
                     var oTestCat = new CCat();
-                    var oRes = oTestCat.setValues(sFormula);
+                    var oRes = oTestCat.setValues(sFormula, this.numRef);
                     var oNumRef = oTestCat.numRef;
                     var oStrRef = oTestCat.strRef;
                     var oMultiLvlStrRef = oTestCat.multiLvlStrRef;
