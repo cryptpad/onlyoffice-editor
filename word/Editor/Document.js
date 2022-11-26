@@ -2255,6 +2255,9 @@ CDocument.prototype.On_EndLoad                     = function()
         this.Set_FastCollaborativeEditing(true);
     }
 
+	if (this.OFormDocument)
+		this.OFormDocument.onEndLoad();
+
 	this.End_SilentMode();
 };
 CDocument.prototype.UpdateDefaultsDependingOnCompatibility = function()
