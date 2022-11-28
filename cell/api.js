@@ -8008,14 +8008,25 @@ var editor;
 		}
 	};
 
-	spreadsheet_api.prototype.asc_fillHandleDone = function(startRange, endRange, bCtrl) {
+	spreadsheet_api.prototype.asc_fillHandleDone = function(range) {
 		if (this.canEdit()) {
 			let wb = this.wb;
 			if (!wb) {
 				return;
 			}
-			wb.fillHandleDone(startRange, endRange, bCtrl);
+			wb.fillHandleDone(range);
 		}
+	};
+
+	spreadsheet_api.prototype.asc_canFillHandle = function(range) {
+		if (this.canEdit()) {
+			let wb = this.wb;
+			if (!wb) {
+				return;
+			}
+			return wb.canFillHandle(range);
+		}
+		return false;
 	};
 
 
@@ -8564,6 +8575,8 @@ var editor;
   prot["asc_updateExternalReferences"] = prot.asc_updateExternalReferences;
   prot["asc_removeExternalReferences"] = prot.asc_removeExternalReferences;
 
+  prot["asc_fillHandleDone"] = prot.asc_fillHandleDone;
+  prot["asc_canFillHandle"] = prot.asc_canFillHandle;
 
 
 })(window);
