@@ -1260,6 +1260,18 @@
 			case AscDFH.historydescription_Collaborative_Undo:
 				sString = "Collaborative_Undo";
 				break;
+			case AscDFH.historydescription_OForm_AddRole:
+				sString = "OForm_AddRole";
+				break;
+			case AscDFH.historydescription_OForm_RemoveRole:
+				sString = "OForm_RemoveRole";
+				break;
+			case AscDFH.historydescription_OForm_EditRole:
+				sString = "OForm_EditRole";
+				break;
+			case AscDFH.historydescription_OForm_ChangeRoleOrder:
+				sString = "OForm_ChangeRoleOrder";
+				break;
 		}
 		return sString;
 	}
@@ -4379,6 +4391,10 @@
 	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0199;
 	window['AscDFH'].historydescription_Document_DocumentProtection                 = 0x019a;
 	window['AscDFH'].historydescription_Collaborative_Undo                          = 0x019b;
+	window['AscDFH'].historydescription_OForm_AddRole                               = 0x019c;
+	window['AscDFH'].historydescription_OForm_RemoveRole                            = 0x019d;
+	window['AscDFH'].historydescription_OForm_EditRole                              = 0x019e;
+	window['AscDFH'].historydescription_OForm_ChangeRoleOrder                       = 0x019f;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
