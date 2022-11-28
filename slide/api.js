@@ -1982,8 +1982,16 @@ background-repeat: no-repeat;\
 
 		if(fixPos && fixPos.slideId)
 		{
-			let oPos = this.WordControl.Thumbnails.getSpecialPasteButtonCoords(fixPos.slideId);
-			curCoord = new AscCommon.asc_CRect( oPos.X, oPos.Y, 1, 1 );
+			let oThumbnails = this.WordControl.Thumbnails;
+			if(oThumbnails.m_bIsVisible)
+			{
+				let oPos = this.WordControl.Thumbnails.getSpecialPasteButtonCoords(fixPos.slideId);
+				curCoord = new AscCommon.asc_CRect( oPos.X, oPos.Y, 1, 1 );
+			}
+			else
+			{
+				curCoord = new AscCommon.asc_CRect( -1, -1, 0, 0 );
+			}
 		}
 		else
 		{
