@@ -452,7 +452,7 @@
 						 },
 		getImageUrl:     function (strPath)
 						 {
-							 return this.getUrl(this.mediaPrefix + strPath) || strPath;
+							 return this.getUrl(this.mediaPrefix + strPath);
 						 },
 		getImageLocal:   function (url)
 						 {
