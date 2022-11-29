@@ -64,9 +64,9 @@ var g_dKoef_mm_to_twips = 1 / g_dKoef_twips_to_mm;
 var g_dKoef_mm_to_emu = 36000;
 var g_dKoef_emu_to_mm = 1 / 36000;
 var g_dKoef_emu_to_twips = g_dKoef_emu_to_mm * g_dKoef_mm_to_twips;
-var g_dKoef_twips_to_pt = 20;
+var g_dKoef_pt_to_twips = 20;
 var g_dKoef_twips_to_emu = 1 / g_dKoef_emu_to_twips;
-var g_dKoef_pt_to_twips = 1 / g_dKoef_twips_to_pt;
+var g_dKoef_twips_to_pt = 1 / g_dKoef_pt_to_twips;
 
 var tblwidth_Auto = 0x00;
 var tblwidth_Mm   = 0x01;
@@ -100,6 +100,19 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
+function private_GetWordLogicDocument()
+{
+	if(editor)
+	{
+		let oLogicDocument = null;
+		oLogicDocument = editor.private_GetLogicDocument && editor.private_GetLogicDocument();
+		if(oLogicDocument && oLogicDocument.IsDocumentEditor())
+		{
+			return oLogicDocument;
+		}
+	}
+	return null;
+}
 
 function IsEqualStyleObjects(Object1, Object2)
 {
@@ -227,6 +240,8 @@ function CStyle(Name, BasedOnId, NextId, type, bNoCreateTablePr)
 {
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
+	this.StyleId = null;
+
     this.Name    = Name;
     this.BasedOn = BasedOnId;
     this.Next    = NextId;
@@ -303,7 +318,6 @@ CStyle.prototype =
         Style.TextPr      = this.TextPr.Copy();
         Style.ParaPr      = this.ParaPr.Copy();
         Style.TablePr     = this.TablePr.Copy();
-        Style.TablePr     = this.TablePr.Copy();
         Style.TableRowPr  = this.TableRowPr.Copy();
         Style.TableCellPr = this.TableCellPr.Copy();
 
@@ -326,6 +340,45 @@ CStyle.prototype =
 
         return Style;
     },
+
+	Set : function(style)
+	{
+		if (!style || !(style instanceof CStyle))
+			return;
+
+		this.Set_Name(style.Name);
+		this.Set_BasedOn(style.BasedOn);
+		this.Set_Next(style.Next);
+		this.Set_Type(style.Type);
+		this.Set_QFormat(style.qFormat);
+		this.Set_UiPriority(style.uiPriority);
+		this.Set_Hidden(style.hidden);
+		this.Set_SemiHidden(style.semiHidden);
+		this.Set_UnhideWhenUsed(style.unhideWhenUsed);
+		this.Set_TextPr(style.TextPr.Copy());
+		this.Set_ParaPr(style.ParaPr.Copy());
+
+		this.Set_TablePr(style.TablePr.Copy());
+		this.Set_TableRowPr(style.TableRowPr.Copy());
+		this.Set_TableCellPr(style.TableCellPr.Copy());
+
+		if (style.TableBand1Horz)
+		{
+			this.Set_TableBand1Horz(style.TableBand1Horz.Copy());
+			this.Set_TableBand1Vert(style.TableBand1Vert.Copy());
+			this.Set_TableBand2Horz(style.TableBand2Horz.Copy());
+			this.Set_TableBand2Vert(style.TableBand2Vert.Copy());
+			this.Set_TableFirstCol(style.TableFirstCol.Copy());
+			this.Set_TableFirstRow(style.TableFirstRow.Copy());
+			this.Set_TableLastCol(style.TableLastCol.Copy());
+			this.Set_TableLastRow(style.TableLastRow.Copy());
+			this.Set_TableTLCell(style.TableTLCell.Copy());
+			this.Set_TableTRCell(style.TableTRCell.Copy());
+			this.Set_TableBLCell(style.TableBLCell.Copy());
+			this.Set_TableBRCell(style.TableBRCell.Copy());
+			this.Set_TableWholeTable(style.TableWholeTable.Copy());
+		}
+	},
 
 	RemapIdReferences : function(OldId, NewId)
 	{
@@ -358,7 +411,7 @@ CStyle.prototype =
 
 		if (isHandleNumbering && Value.NumPr instanceof CNumPr && Value.NumPr.IsValid())
 		{
-			var oLogicDocument = editor.WordControl.m_oLogicDocument;
+			var oLogicDocument = private_GetWordLogicDocument();
 			if (oLogicDocument)
 			{
 				var oNumbering = oLogicDocument.GetNumbering();
@@ -5866,6 +5919,7 @@ CStyle.prototype =
             || this.Next !== oStyle.Next
             || this.Type !== oStyle.Type
             || this.Link !== oStyle.Link
+            || this.StyleId !== oStyle.StyleId
             || this.qFormat !== oStyle.qFormat
             || this.uiPriority !== oStyle.uiPriority
             || this.hidden !== oStyle.hidden
@@ -5978,7 +6032,9 @@ CStyle.prototype =
 		if (!oHistory)
 			return;
 
-		var LogicDocument = editor.WordControl.m_oLogicDocument;
+		var LogicDocument = private_GetWordLogicDocument();
+		if(!LogicDocument)
+			return;
 		var Styles        = LogicDocument.Get_Styles();
 
 		var AllParagraphs = [];
@@ -6238,7 +6294,7 @@ CStyle.prototype =
     {
         if (true === LinkData.StyleUpdate)
         {
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
+            var LogicDocument = private_GetWordLogicDocument();
             if (!LogicDocument)
                 return;
 
@@ -6268,6 +6324,23 @@ CStyle.prototype =
             }
         }
     }
+};
+/**
+ * Устаналиваем форматный идентификатор стиля
+ * @param styleId
+ * @constructor
+ */
+CStyle.prototype.SetStyleId = function(styleId)
+{
+	if (styleId === this.StyleId)
+		return;
+
+	History.Add(new CChangesStyleStyleId(this, this.StyleId, styleId));
+	this.StyleId = styleId;
+};
+CStyle.prototype.GetStyleId = function()
+{
+	return this.StyleId;
 };
 /**
  * Выставляем текстовые настройки
@@ -7568,6 +7641,52 @@ CStyle.prototype.IsTableStyle = function()
 	return (this.Type === styletype_Table);
 };
 
+CStyle.prototype.wholeToTablePr = function() {
+
+	let oWhole = this.TableWholeTable;
+	if(!oWhole) {
+		return
+	}
+	let oWholeBorders = oWhole.TablePr && oWhole.TablePr.TableBorders;
+	if(!oWholeBorders) {
+		return;
+	}
+	let oWholeCellBorders = oWhole.TableCellPr && oWhole.TableCellPr.TableCellBorders;
+	if(!oWholeCellBorders) {
+		return;
+	}
+
+	let oTablePBorders = this.TablePr && this.TablePr.TableBorders;
+	if(!oTablePBorders) {
+		return;
+	}
+
+	if(oWholeBorders.InsideH) {
+		oTablePBorders.InsideH = oWholeBorders.InsideH;
+		delete oWholeBorders.InsideH;
+	}
+	if(oWholeBorders.InsideV) {
+		oTablePBorders.InsideV = oWholeBorders.InsideV;
+		delete oWholeBorders.InsideV;
+	}
+	if(oWholeCellBorders.Top) {
+		oTablePBorders.Top = oWholeCellBorders.Top;
+		delete oWholeCellBorders.Top;
+	}
+	if(oWholeCellBorders.Bottom) {
+		oTablePBorders.Bottom = oWholeCellBorders.Bottom;
+		delete oWholeCellBorders.Bottom;
+	}
+	if(oWholeCellBorders.Left) {
+		oTablePBorders.Left = oWholeCellBorders.Left;
+		delete oWholeCellBorders.Left;
+	}
+	if(oWholeCellBorders.Right) {
+		oTablePBorders.Right = oWholeCellBorders.Right;
+		delete oWholeCellBorders.Right;
+	}
+};
+
 function CStyles(bCreateDefault)
 {
 	this.ValidDefaultEastAsiaFont = false;
@@ -8339,6 +8458,17 @@ CStyles.prototype =
 		return Id;
 	},
 
+	GetStyleByStyleId: function (sStyleId)
+	{
+		const arrStylesId = Object.keys(this.Style);
+		for (let i = 0; i < arrStylesId.length; i += 1)
+		{
+			const oStyle = this.Style[arrStylesId[i]];
+			if (oStyle.GetStyleId() === sStyleId)
+				return oStyle;
+		}
+	},
+
 	Remove : function(Id)
 	{
 		History.Add(new CChangesStylesRemove(this, Id, this.Style[Id]));
@@ -8993,7 +9123,7 @@ CStyles.prototype =
 		}
 
 		// Копируем свойства из стиля нумерации
-		var oLogicDocument = this.private_GetLogicDocument();
+		var oLogicDocument = private_GetWordLogicDocument();
 		if (oLogicDocument
 			&& Style.ParaPr.NumPr
 			&& (styletype_Paragraph === Type || styletype_Table === Type))
@@ -9223,7 +9353,9 @@ CStyles.prototype =
         if (undefined != StyleId)
         {
             // TODO: Надо сделать механизм, чтобы данное действие не вызывалось много раз подряд, а только 1.
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
+            var LogicDocument = private_GetWordLogicDocument();
+			if(!LogicDocument)
+				return;
 
             var AllParagraphs = [];
 
@@ -9254,8 +9386,8 @@ CStyles.prototype =
         {
             var StyleId = LinkData.UpdateStyleId;
 
-            var LogicDocument = editor.WordControl.m_oLogicDocument;
-            if (!LogicDocument || !LogicDocument.IsDocumentEditor())
+            var LogicDocument = private_GetWordLogicDocument();
+            if (!LogicDocument)
                 return;
 
             var AllParagraphs = [];
@@ -9300,6 +9432,34 @@ CStyles.prototype.GetAllTableStyles = function()
 	}
 
 	return arrTableStyles;
+};
+CStyles.prototype.GetAllStyles = function()
+{
+	let result = [];
+	for (let id in this.Style)
+	{
+		result.push(this.Style[id]);
+	}
+
+	return result;
+};
+CStyles.prototype.GetRelatedStyles = function(styleId)
+{
+	let result = [];
+	for (let id in this.Style)
+	{
+		if (id === styleId)
+			continue;
+
+		let style = this.Style[id];
+
+		if (styleId === style.GetBasedOn()
+			|| styleId === style.GetLink()
+			|| styleId === style.GetNext())
+			result.push(style);
+	}
+
+	return result;
 };
 /**
  * Получаем идентификатор стиля по его имени
@@ -9573,47 +9733,46 @@ CStyles.prototype.Remove_AllCustomStylesFromInterface = function()
 		}
 	}
 };
-CStyles.prototype.Is_StyleDefault = function(sStyleName)
+CStyles.prototype.IsStyleDefaultByName = function(styleName)
 {
-	var StyleId = this.GetStyleIdByName(sStyleName);
-	if (null === StyleId)
+	var styleId = this.GetStyleIdByName(styleName);
+	if (!styleId)
 		return false;
 
-	if (StyleId == this.Default.Paragraph
-		|| StyleId == this.Default.Character
-		|| StyleId == this.Default.Numbering
-		|| StyleId == this.Default.Table
-		|| StyleId == this.Default.TableGrid
-		|| StyleId == this.Default.Headings[0]
-		|| StyleId == this.Default.Headings[1]
-		|| StyleId == this.Default.Headings[2]
-		|| StyleId == this.Default.Headings[3]
-		|| StyleId == this.Default.Headings[4]
-		|| StyleId == this.Default.Headings[5]
-		|| StyleId == this.Default.Headings[6]
-		|| StyleId == this.Default.Headings[7]
-		|| StyleId == this.Default.Headings[8]
-		|| StyleId == this.Default.ParaList
-		|| StyleId == this.Default.Header
-		|| StyleId == this.Default.Footer
-		|| StyleId == this.Default.Hyperlink
-		|| StyleId == this.Default.FootnoteText
-		|| StyleId == this.Default.FootnoteTextChar
-		|| StyleId == this.Default.FootnoteReference
-		|| StyleId == this.Default.NoSpacing
-		|| StyleId == this.Default.Title
-		|| StyleId == this.Default.Subtitle
-		|| StyleId == this.Default.Quote
-		|| StyleId == this.Default.IntenseQuote
-		|| StyleId == this.Default.Caption
-		|| StyleId == this.Default.EndnoteText
-		|| StyleId == this.Default.EndnoteTextChar
-		|| StyleId == this.Default.EndnoteReference)
-	{
-		return true;
-	}
-
-	return false;
+	return this.IsStyleDefaultById(styleId);
+};
+CStyles.prototype.IsStyleDefaultById = function(styleId)
+{
+	return (styleId === this.Default.Paragraph
+		|| styleId === this.Default.Character
+		|| styleId === this.Default.Numbering
+		|| styleId === this.Default.Table
+		|| styleId === this.Default.TableGrid
+		|| styleId === this.Default.Headings[0]
+		|| styleId === this.Default.Headings[1]
+		|| styleId === this.Default.Headings[2]
+		|| styleId === this.Default.Headings[3]
+		|| styleId === this.Default.Headings[4]
+		|| styleId === this.Default.Headings[5]
+		|| styleId === this.Default.Headings[6]
+		|| styleId === this.Default.Headings[7]
+		|| styleId === this.Default.Headings[8]
+		|| styleId === this.Default.ParaList
+		|| styleId === this.Default.Header
+		|| styleId === this.Default.Footer
+		|| styleId === this.Default.Hyperlink
+		|| styleId === this.Default.FootnoteText
+		|| styleId === this.Default.FootnoteTextChar
+		|| styleId === this.Default.FootnoteReference
+		|| styleId === this.Default.NoSpacing
+		|| styleId === this.Default.Title
+		|| styleId === this.Default.Subtitle
+		|| styleId === this.Default.Quote
+		|| styleId === this.Default.IntenseQuote
+		|| styleId === this.Default.Caption
+		|| styleId === this.Default.EndnoteText
+		|| styleId === this.Default.EndnoteTextChar
+		|| styleId === this.Default.EndnoteReference);
 };
 CStyles.prototype.Is_StyleDefaultOOXML = function(sStyleName)
 {
@@ -9632,7 +9791,7 @@ CStyles.prototype.Is_StyleDefaultOOXML = function(sStyleName)
 };
 CStyles.prototype.Is_DefaultStyleChanged = function(sStyleName)
 {
-	if (true != this.Is_StyleDefault(sStyleName))
+	if (true != this.IsStyleDefaultByName(sStyleName))
 		return false;
 
 	var StyleId = this.GetStyleIdByName(sStyleName);
@@ -9815,6 +9974,20 @@ CStyles.prototype.GetDefaultHyperlink = function()
 CStyles.prototype.GetDefaultHeading = function(nLvl)
 {
 	return this.Default.Headings[Math.max(Math.min(nLvl, 8), 0)];
+};
+CStyles.prototype.HaveHeadingsNum = function()
+{
+	for (let index = 0; index <= 8; ++index)
+	{
+		let style = this.Get(this.GetDefaultHeading(index));
+		let numPr;
+		if (style
+			&& (numPr = style.GetParaPr().GetNumPr())
+			&& numPr.IsValid())
+			return true;
+	}
+
+	return false;
 };
 CStyles.prototype.GetHeadingLevelByName = function(sStyleName)
 {
@@ -10895,6 +11068,10 @@ CDocumentBorder.prototype =
 CDocumentBorder.prototype.IsNone = function()
 {
 	return (this.Value === border_None);
+};
+CDocumentBorder.prototype.SetNone = function()
+{
+	this.Value = border_None;
 };
 CDocumentBorder.prototype.setSizeIn8Point = function(val)
 {
@@ -12676,6 +12853,10 @@ CRFonts.prototype.Is_Empty = function()
 		&& undefined === this.HAnsiTheme
 		&& undefined === this.CSTheme);
 };
+CRFonts.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 CRFonts.prototype.Copy = function()
 {
 	var oRFonts = new CRFonts();
@@ -13146,6 +13327,10 @@ CLang.prototype.Is_Empty = function()
 		return false;
 
 	return true;
+};
+CLang.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
 };
 CLang.prototype.IsEqual = function(oLang)
 {
@@ -14618,6 +14803,10 @@ CTextPr.prototype.Is_Empty = function()
 
 	return true;
 };
+CTextPr.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 /**
  * Сравниваем данные настройки с заданными, если настройка совпала ставим undefined, если нет, то берем из текущей
  * @param oTextPr {CTextPr}
@@ -14800,7 +14989,7 @@ CTextPr.prototype.SetAscColor = function(oAscColor)
 		this.Unifill.fill       = new AscFormat.CSolidFill();
 		this.Unifill.fill.color = AscFormat.CorrectUniColor(oAscColor, this.Unifill.fill.color, 1);
 
-		var oLogicDocument = editor && editor.private_GetLogicDocument() ? editor.private_GetLogicDocument() : null;
+		var oLogicDocument = private_GetWordLogicDocument();
 		if (oLogicDocument)
 			this.Unifill.check(oLogicDocument.GetTheme(), oLogicDocument.GetColorMap());
 
@@ -15619,6 +15808,10 @@ CParaInd.prototype.Is_Empty = function()
 
 	return true;
 };
+CParaInd.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 CParaInd.prototype.Get_Diff = function(Ind)
 {
     var DiffInd = new CParaInd();
@@ -15845,6 +16038,10 @@ CParaSpacing.prototype.Is_Empty = function()
 
 	return true;
 };
+CParaSpacing.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 CParaSpacing.prototype.IsEqual = function(oSpacing)
 {
 	return (this.Line === oSpacing.Line
@@ -15954,13 +16151,15 @@ CNumPr.prototype.Copy = function()
 };
 CNumPr.prototype.IsValid = function()
 {
-	if (undefined === this.NumId
-		|| null === this.NumId
-		|| 0 === this.NumId
-		|| "0" === this.NumId)
-		return false;
-
-	return true;
+	return (!this.IsZero() && undefined !== this.NumId && null !== this.NumId);
+};
+/**
+ * Нулевая нумерация используется для сброса нумерации в иерархии
+ * @returns {boolean}
+ */
+CNumPr.prototype.IsZero = function()
+{
+	return (0 === this.NumId || "0" === this.NumId);
 };
 CNumPr.prototype.IsEqual = function(oNumPr)
 {
@@ -17516,6 +17715,21 @@ CParaPr.prototype.Is_Empty = function()
 		|| undefined !== this.OutlineLvl
 		|| undefined !== this.SuppressLineNumbers);
 };
+CParaPr.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
+CParaPr.prototype.IsEmptyBorders = function()
+{
+	return (!this.Brd
+		|| (!this.Brd.First
+			&& !this.Brd.Last
+			&& !this.Brd.Between
+			&& !this.Brd.Bottom
+			&& !this.Brd.Left
+			&& !this.Brd.Right
+			&& !this.Brd.Top));
+};
 CParaPr.prototype.GetDiffPrChange = function()
 {
 	var ParaPr = new CParaPr();
@@ -17779,6 +17993,7 @@ CParaPr.prototype.CheckBorderSpaces = function()
 	if (this.Brd.Between)
 		this.Brd.Between.Space = this.private_CorrectBorderSpace(this.Brd.Between.Space);
 };
+
 //----------------------------------------------------------------------------------------------------------------------
 // CParaPr Export
 //----------------------------------------------------------------------------------------------------------------------
@@ -17898,6 +18113,7 @@ asc_CStyle.prototype.get_TextPr = function()
 };
 //---------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};
+window['AscWord'] = window['AscWord'] || {};
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window["Asc"]["asc_CStyle"] = window["Asc"].asc_CStyle = asc_CStyle;
 asc_CStyle.prototype["get_Name"]    = asc_CStyle.prototype.get_Name;
@@ -17939,6 +18155,12 @@ window["AscCommonWord"].wrap_None = wrap_None;
 window["AscCommonWord"].wrap_NotBeside = wrap_NotBeside;
 window["AscCommonWord"].wrap_Through = wrap_Through;
 window["AscCommonWord"].wrap_Tight = wrap_Tight;
+
+window["AscWord"].CTextPr = CTextPr;
+window["AscWord"].CParaPr = CParaPr;
+window["AscWord"].CStyle  = CStyle;
+window["AscWord"].CNumPr  = CNumPr;
+window["AscWord"].CBorder = CDocumentBorder;
 
 
 // Создаем глобальные дефолтовые стили, чтобы быстро можно было отдать дефолтовые настройки

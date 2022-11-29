@@ -183,7 +183,7 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	this.LineTop = null;
 	this.LineBottom = null;
 	//------------------------------------------------------------
-	g_oTableId.Add(this, this.Id);
+	AscCommon.g_oTableId.Add(this, this.Id);
 
 	if (this.graphicObjects)
 	{
@@ -1281,6 +1281,9 @@ ParaDrawing.prototype.GetScaleCoefficient = function ()
 		let oSectPr = oParagraph.Get_SectPr();
 		oLogicDocument.Layout = oLayout;
 
+		if (!oSectPr)
+			return 1;
+
 		return oLogicDocument.GetDocumentLayout().GetScaleBySection(oSectPr);
 	}
 
@@ -2078,7 +2081,7 @@ ParaDrawing.prototype.AddToDocument = function(oAnchorPos, oRunPr, oRun, oPictur
 	oSelectedContent.EndCollect();
 	oSelectedContent.SetMoveDrawing(true);
 	oSelectedContent.Insert(oAnchorPos, true);
-
+	this.SelectAsDrawing();
 	oAnchorParagraph.Clear_NearestPosArray();
 };
 ParaDrawing.prototype.AddToParagraph = function(oParagraph)
@@ -3297,6 +3300,13 @@ ParaDrawing.prototype.ToSearchElement = function(oProps)
 ParaDrawing.prototype.IsDrawing = function()
 {
 	return true;
+};
+ParaDrawing.prototype.CheckRunContent = function(fCheck)
+{
+	if(this.GraphicObj)
+	{
+		this.GraphicObj.checkRunContent(fCheck);
+	}
 };
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.

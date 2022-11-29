@@ -1065,17 +1065,55 @@ var GLOBAL_PATH_COUNT = 0;
         return dlbl;
     }
     function fLayoutHorLabelsBox(oLabelsBox, fY, fXStart, fXEnd, bOnTickMark, fDistance, bForceVertical, bNumbers, fForceContentWidth) {
-        var fAxisLength = fXEnd - fXStart;
-        var nLabelsCount = oLabelsBox.aLabels.length;
+        let fAxisLength = fXEnd - fXStart;
+        let nLabelsCount = oLabelsBox.aLabels.length;
 
-        var bOnTickMark_ = bOnTickMark && nLabelsCount > 1;
-        var nIntervalCount = bOnTickMark_ ? nLabelsCount - 1 : nLabelsCount;
-        var fInterval = fAxisLength / nIntervalCount;
+        let bOnTickMark_ = bOnTickMark && nLabelsCount > 1;
+        let nIntervalCount = bOnTickMark_ ? nLabelsCount - 1 : nLabelsCount;
+        let fInterval = fAxisLength / nIntervalCount;
+		let fForceContentWidth_ = fForceContentWidth;
         if(!bForceVertical || true) {//TODO: implement for vertical labels
-            var fMaxMinWidth = oLabelsBox.checkMaxMinWidth();
-            var fCheckInterval = AscFormat.isRealNumber(fForceContentWidth) ? fForceContentWidth : Math.abs(fInterval);
+            let fMaxMinWidth = oLabelsBox.checkMaxMinWidth();
+	        let fCheckInterval;
+			if(AscFormat.isRealNumber(fForceContentWidth)) {
+				fCheckInterval = fForceContentWidth;
+			}
+			else {
+				fCheckInterval = Math.abs(fInterval);
+				let nMinInterval = -1;
+				let nLastIdx = -1;
+				for(let nLbl = 0; nLbl < nLabelsCount; ++nLbl) {
+					let oLbl = oLabelsBox.aLabels[nLbl];
+					if(oLbl) {
+						if(nLastIdx === -1) {
+							nLastIdx = nLbl;
+						}
+						else {
+							let nIdxInterval = nLbl - nLastIdx;
+							if(nMinInterval === -1) {
+								nMinInterval = nIdxInterval;
+							}
+							else {
+								nMinInterval = Math.min(nMinInterval, nIdxInterval);
+							}
+							if(nMinInterval === 1) {
+								break;
+							}
+						}
+					}
+				}
+				if(nMinInterval > 0) {
+					fCheckInterval *= nMinInterval;
+					if(!fForceContentWidth_) {
+						fForceContentWidth_ = fCheckInterval;
+					}
+					else {
+						fForceContentWidth_ = Math.max(fCheckInterval, fForceContentWidth_);
+					}
+				}
+			}
             if(fMaxMinWidth <= fCheckInterval) {
-                oLabelsBox.layoutHorNormal(fY, fDistance, fXStart, fInterval, bOnTickMark_, fForceContentWidth);
+                oLabelsBox.layoutHorNormal(fY, fDistance, fXStart, fInterval, bOnTickMark_, fForceContentWidth_);
             }
             else {
                 oLabelsBox.layoutHorRotated(fY, fDistance, fXStart, fXEnd, fInterval, bOnTickMark_);
@@ -3228,9 +3266,11 @@ var GLOBAL_PATH_COUNT = 0;
         if(this.textLink !== null) {
             copy.setTextLink(this.textLink);
         }
-        copy.cachedImage = this.getBase64Img();
-        copy.cachedPixH = this.cachedPixH;
-        copy.cachedPixW = this.cachedPixW;
+        if(!oPr || false !== oPr.cacheImage) {
+            copy.cachedImage = this.getBase64Img();
+            copy.cachedPixH = this.cachedPixH;
+            copy.cachedPixW = this.cachedPixW;
+        }
         return copy;
     };
     CChartSpace.prototype.convertToWord = function(document) {
@@ -3719,6 +3759,16 @@ var GLOBAL_PATH_COUNT = 0;
         var bVert = (nInfo & AscFormat.SERIES_FLAG_HOR_VALUE) !== 0;
         return {range: sRange, bVert: bVert};
     };
+
+    CChartSpace.prototype.clearDataCache = function() {
+        let aSeries = this.getAllSeries();
+        for(let nSer = 0; nSer < aSeries.length; ++nSer) {
+            aSeries[nSer].clearDataCache();
+        }
+    };
+    CChartSpace.prototype.clearChartDataCache = function() {
+        this.clearDataCache();
+    };
     CChartSpace.prototype.recalculateReferences = function() {
         var oSelectedSeries = this.getSelectedSeries();
         if(AscFormat.isRealNumber(this.selection.series)) {
@@ -3729,7 +3779,6 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
         var worksheet = this.worksheet;
-        //this.pointsMap = {};
         if(!worksheet)
             return;
         var charts, series, i, j, ser;
@@ -4127,8 +4176,10 @@ var GLOBAL_PATH_COUNT = 0;
 
                         var bTickSkip = AscFormat.isRealNumber(oAxis.tickLblSkip) || nPtsLen >= SKIP_LBL_LIMIT;
                         var nTickLblSkip = AscFormat.isRealNumber(oAxis.tickLblSkip) ? oAxis.tickLblSkip : (nPtsLen < SKIP_LBL_LIMIT ? 1 : (Math.floor(nPtsLen / SKIP_LBL_LIMIT) + 1));
-                        for(i = 0; i < nPtsLen; ++i) {
-                            if(!bTickSkip || ((i % nTickLblSkip) === 0)) {
+                        let nLastNoEmptyLblIdx = -1;
+						for(i = 0; i < nPtsLen; ++i) {
+                            if(!bTickSkip ||
+	                            nLastNoEmptyLblIdx === -1 ||((i - nLastNoEmptyLblIdx) >= nTickLblSkip)) {
                                 var oPt = oLit.getPtByIndex(i);
                                 if(oPt) {
                                     var sPt;
@@ -4148,9 +4199,12 @@ var GLOBAL_PATH_COUNT = 0;
                                         sPt = oPt.val + "";
                                     }
                                     aStrings.push(sPt);
+									if(typeof sPt === "string" && sPt.length > 0) {
+										nLastNoEmptyLblIdx = i;
+									}
                                 }
                                 else {
-                                    aStrings.push("");
+                                    aStrings.push(null);
                                 }
                             }
                             else {
@@ -4624,11 +4678,26 @@ var GLOBAL_PATH_COUNT = 0;
             var fDiff;
             var fPrecision = 0.01;
             oCorrectedRect = new CRect(oRect.x, oRect.y, oRect.w, oRect.h);
+            let bWEdge = false;
+            let bHEge = false;
+            let oPALayout = this.chart.plotArea.layout;
+            if(oPALayout) {
+                let iN = AscFormat.isRealNumber;
+                if(oPALayout.wMode === AscFormat.LAYOUT_MODE_EDGE && iN(oPALayout.w)) {
+                    bWEdge = true;
+                }
+                if(oPALayout.hMode === AscFormat.LAYOUT_MODE_EDGE && iN(oPALayout.h)) {
+                    bHEge = true;
+                }
+            }
             if(bWithoutLabels) {
                 fDiff = fL;
                 if(fDiff < 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.x -= fDiff;
-                    oCorrectedRect.w += fDiff;
+
+                    if(bWEdge) {
+                        oCorrectedRect.w += fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = fR - this.extX;
@@ -4639,7 +4708,9 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = fT;
                 if(fDiff < 0.0 && !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.y -= fDiff;
-                    oCorrectedRect.h += fDiff;
+                    if(bHEge) {
+                        oCorrectedRect.h += fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = fB - this.extY;
@@ -4652,7 +4723,9 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = oBaseRect.x - fL;
                 if(/*fDiff > 0.0 && */!AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.x += fDiff;
-                    oCorrectedRect.w -= fDiff;
+                    if(bWEdge) {
+                        oCorrectedRect.w -= fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = oBaseRect.x + oBaseRect.w - fR;
@@ -4663,7 +4736,9 @@ var GLOBAL_PATH_COUNT = 0;
                 fDiff = oBaseRect.y - fT;
                 if(/*fDiff > 0.0 &&*/ !AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
                     oCorrectedRect.y += fDiff;
-                    oCorrectedRect.h -= fDiff;
+                    if(bHEge) {
+                        oCorrectedRect.h -= fDiff;
+                    }
                     bCorrected = true;
                 }
                 fDiff = oBaseRect.y + oBaseRect.h - fB;
@@ -6924,6 +6999,8 @@ var GLOBAL_PATH_COUNT = 0;
 
                 axis.compiledLn = calcGridLine(defaultStyle.axisAndMajorGridLines, axis.spPr, subtleLine, parents);
                 axis.compiledTickMarkLn = axis.compiledLn.createDuplicate();
+                axis.compiledTickMarkLn.headEnd = null;
+                axis.compiledTickMarkLn.tailEnd = null;
                 axis.compiledTickMarkLn.calculate(parents.theme, parents.slide, parents.layout, parents.master, {
                     R: 0,
                     G: 0,
@@ -8014,9 +8091,6 @@ var GLOBAL_PATH_COUNT = 0;
             }
         }
     };
-    CChartSpace.prototype.createImage = function () {
-        return this.drawingBase.createImage();
-    }
     CChartSpace.prototype.checkDrawingCache = function(graphics) {
         if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline || this.bPreview || graphics.PrintPreview) {
             return false;
@@ -8530,14 +8604,14 @@ var GLOBAL_PATH_COUNT = 0;
         return nResult;
     };
     CChartSpace.prototype.fillDataFromTrack = function(oSelectedRange) {
-        var oSlectedSeries = this.getSelectedSeries();
-        if(oSlectedSeries) {
-            oSlectedSeries.fillFromSelectedRange(oSelectedRange);
+        let oSelectedSeries = this.getSelectedSeries();
+        if(oSelectedSeries) {
+            oSelectedSeries.fillFromSelectedRange(oSelectedRange);
             this.recalculate();
             return;
         }
-        var oDataRange = this.getDataRefs();
-        var nResult = this.buildSeries(oDataRange.getSeriesRefsFromSelectedRange(oSelectedRange, this.isScatterChartType()));
+        let oDataRange = this.getDataRefs();
+        let nResult = this.buildSeries(oDataRange.getSeriesRefsFromSelectedRange(oSelectedRange, this.isScatterChartType()));
         if(Asc.c_oAscError.ID.No === nResult) {
             this.recalculate();
         }

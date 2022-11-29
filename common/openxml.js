@@ -131,7 +131,7 @@
 		return this;
 	};
 	ContentTypes.prototype.toXml = function(writer) {
-		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+		writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
 		writer.WriteXmlNodeStart("Types");
 		writer.WriteXmlString(" xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"");
 		writer.WriteXmlAttributesEnd();
@@ -248,11 +248,12 @@
 		if (-1 === type.filename.indexOf("[N]")) {
 			return type.filename;
 		} else {
+			let sIndexKey = type.enumerateType || type.relationType;
 			var nextIndex = 1;
-			if (!this.fileNameIndexes[type.relationType]) {
-				this.fileNameIndexes[type.relationType] = nextIndex + 1;
+			if (!this.fileNameIndexes[sIndexKey]) {
+				this.fileNameIndexes[sIndexKey] = nextIndex + 1;
 			} else {
-				nextIndex = this.fileNameIndexes[type.relationType]++;
+				nextIndex = this.fileNameIndexes[sIndexKey]++;
 			}
 			return type.filename.replace(/\[N\]/g, nextIndex.toString());
 		}
@@ -665,7 +666,7 @@
 		chart: {dir: "../charts", filename: "chart[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"},
 		chartWord: {dir: "charts", filename: "chart[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chart+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"},
 		chartColorStyle: {dir: "", filename: "color[N].xml", contentType: "application/vnd.ms-office.chartcolorstyle+xml", relationType: "http://schemas.microsoft.com/office/2011/relationships/chartColorStyle"},
-		chartDrawing: {dir: "", filename: "chartDrawing.xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chartshapes+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartUserShapes"},
+		chartDrawing: {dir: "../drawings", filename: "drawing[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawingml.chartshapes+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartUserShapes", enumerateType: "drawings/drawing"},
 		chartsheet: {dir: "chartsheets", filename: "sheet[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.chartsheet+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet"},
 		chartStyle: {dir: "", filename: "style[N].xml", contentType: "application/vnd.ms-office.chartstyle+xml", relationType: "http://schemas.microsoft.com/office/2011/relationships/chartStyle"},
 		commentAuthors: {dir: "", filename: "commentAuthors.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.commentAuthors+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/commentAuthors"},
@@ -683,7 +684,7 @@
 		dialogsheet: {dir: "", filename: "dialogsheet.xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.dialogsheet+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/dialogsheet"},
 		digitalSignatureOrigin: {dir: "", filename: "digitalSignatureOrigin.xml", contentType: "application/vnd.openxmlformats-package.digital-signature-origin", relationType: "http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/origin"},
 		documentSettings: {dir: "", filename: "settings.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings"},
-		drawings: {dir: "../drawings", filename: "drawing[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawing+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing"},
+		drawings: {dir: "../drawings", filename: "drawing[N].xml", contentType: "application/vnd.openxmlformats-officedocument.drawing+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing", enumerateType: "drawings/drawing"},
 		endnotes: {dir: "", filename: "endnotes.xml", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.endnotes+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/endnotes"},
 		excelAttachedToolbars: {dir: "", filename: "excelAttachedToolbars.xml", contentType: "application/vnd.ms-excel.attachedToolbars", relationType: "http://schemas.microsoft.com/office/2006/relationships/attachedToolbars"},
 		extendedFileProperties: {dir: "docProps", filename: "app.xml", contentType: "application/vnd.openxmlformats-officedocument.extended-properties+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"},
@@ -728,7 +729,7 @@
 		tableDefinition: {dir: "../tables", filename: "table[N].xml", contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.table+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/table"},
 		tableStyles: {dir: "", filename: "tableStyles.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles"},
 		theme: {dir: "theme", filename: "theme[N].xml", contentType: "application/vnd.openxmlformats-officedocument.theme+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme"},
-		themeOverride: {dir: "", filename: "themeOverride.xml", contentType: "application/vnd.openxmlformats-officedocument.themeOverride+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride"},
+		themeOverride: {dir: "../theme", filename: "themeOverride[N].xml", contentType: "application/vnd.openxmlformats-officedocument.themeOverride+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/themeOverride"},
 		tiff: {dir: "", filename: "tiff.xml", contentType: "image/tiff"},
 		trueTypeFont: {dir: "", filename: "trueTypeFont.xml", contentType: "application/x-font-ttf"},
 		userDefinedTags: {dir: "", filename: "userDefinedTags.xml", contentType: "application/vnd.openxmlformats-officedocument.presentationml.tags+xml", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/tags"},
@@ -771,7 +772,15 @@
 
 		//todo
 		image: {dir: "../media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},
-		imageWord: {dir: "media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"}
+		imageWord: {dir: "media", filename: "image[N].", contentType: "image/jpeg", relationType: "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"},
+
+
+		//onlyf
+		main: {dir: "../oform", filename: "main.xml", contentType: "application/vnd.openxmlformats-package.onlyf+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-main"},
+		userMaster: {dir: "../oform/userMasters", filename: "userMaster[N].xml", contentType: "application/vnd.openxmlformats-package.onlyf-userMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-userMaster"},
+		user: {dir: "../oform/users", filename: "user[N].xml", /*contentType: "application/vnd.openxmlformats-package.onlyf-user+xml",*/ relationType: "https://schemas.onlyoffice.com/relationships/oform-user"},
+		field: {dir: "../oform/fields", filename: "field[N].xml", /*contentType: "application/vnd.openxmlformats-package.onlyf-field+xml",*/ relationType: "https://schemas.onlyoffice.com/relationships/oform-field"},
+		fieldMaster: {dir: "../oform/fieldMasters", filename: "fieldMaster[N].xml", contentType: "application/vnd.openxmlformats-package.onlyf-fieldMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-fieldMaster"}
 	};
 	openXml.TargetMode = {
 		internal: "Internal",
@@ -779,7 +788,10 @@
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------
+	var prot;
 	window['AscCommon'] = window['AscCommon'] || {};
-	window['AscCommon'].openXml = openXml;
+	window['AscCommon']['openXml'] = window['AscCommon'].openXml = openXml;
 
+	prot = openXml;
+	prot['GetMimeType'] = prot.GetMimeType;
 }(window));

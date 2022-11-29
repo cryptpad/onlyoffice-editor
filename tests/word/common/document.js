@@ -36,7 +36,18 @@
 {
 	let logicDocument = null;
 
-	const KeyCode = {
+	const Key = {
+		_0 : 48,
+		_1 : 49,
+		_2 : 50,
+		_3 : 51,
+		_4 : 52,
+		_5 : 53,
+		_6 : 54,
+		_7 : 55,
+		_8 : 56,
+		_9 : 57,
+
 		A : 65,
 		B : 66,
 		C : 67,
@@ -49,8 +60,18 @@
 		c : 99,
 		d : 100,
 		e : 101,
-		f : 102
+		f : 102,
+
+		space : 32,
+		backspace : 8,
+		minus : 45,
 	};
+
+	function IsKeyDown(key)
+	{
+		return (Key.space === key
+			|| Key.backspace === key);
+	}
 
 	function CreateLogicDocument()
 	{
@@ -65,13 +86,48 @@
 
 		return logicDocument;
 	}
-	function SetFillingFormMode()
+	function CreateParagraph()
+	{
+		return new AscWord.CParagraph(AscTest.DrawingDocument);
+	}
+	function CreateTable(rows, cols)
+	{
+		return new AscWord.CTable(AscTest.DrawingDocument, null, true, rows, cols);
+	}
+	function GetParagraphText(paragraph)
+	{
+		return paragraph.GetText({ParaEndToSpace : false});
+	}
+	function RemoveTableBorders(table)
+	{
+		function CreateNoneBorder()
+		{
+			let border = new AscWord.CBorder();
+			border.SetNone();
+			return border;
+		}
+
+		table.Set_TableBorder_Left(CreateNoneBorder());
+		table.Set_TableBorder_Top(CreateNoneBorder());
+		table.Set_TableBorder_Right(CreateNoneBorder());
+		table.Set_TableBorder_Bottom(CreateNoneBorder());
+		table.Set_TableBorder_InsideH(CreateNoneBorder());
+		table.Set_TableBorder_InsideV(CreateNoneBorder());
+	}
+	function SetFillingFormMode(isOForm)
 	{
 		editor.restrictions = Asc.c_oAscRestrictionType.OnlyForms;
+
+		if (isOForm)
+			editor.DocInfo = {Format : "oform"};
+		else
+			editor.DocInfo = {Format : "docx"};
 	}
 	function SetEditingMode()
 	{
 		editor.restrictions = Asc.c_oAscRestrictionType.None;
+
+		editor.DocInfo = {Format : "docx"};
 	}
 	function PressKey(keyCode, isCtrl, isShift, isAlt)
 	{
@@ -83,10 +139,10 @@
 		global_mouseEvent.AltKey   = !!isAlt;
 		global_mouseEvent.KeyCode  = keyCode;
 
-		if (0x20 !== keyCode)
-			logicDocument.OnKeyPress(global_mouseEvent);
-		else
+		if (IsKeyDown(keyCode))
 			logicDocument.OnKeyDown(global_mouseEvent);
+		else
+			logicDocument.OnKeyPress(global_mouseEvent);
 	}
 	function MoveCursorLeft(isShift, isCtrl)
 	{
@@ -102,14 +158,98 @@
 
 		logicDocument.MoveCursorRight(!!isShift, !!isCtrl, false);
 	}
+	function ClickMouseButton(x, y, page, isRight, count)
+	{
+		if (!logicDocument)
+			return;
+
+		let e = new AscCommon.CMouseEventHandler();
+
+		e.Button     = isRight ? AscCommon.g_mouse_button_right : AscCommon.g_mouse_button_left;
+		e.ClickCount = count ? count : 1;
+
+		e.Type = AscCommon.g_mouse_event_type_down;
+		logicDocument.OnMouseDown(e, x, y, page);
+
+		e.Type = AscCommon.g_mouse_event_type_up;
+		logicDocument.OnMouseUp(e, x, y, page);
+	}
+	function Recalculate()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.RecalculateFromStart(false);
+	}
+	function ClearDocument()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.RemoveFromContent(0, logicDocument.GetElementsCount(), false);
+	}
+	function EnterText(text)
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.EnterText(text);
+	}
+	function CorrectEnterText(oldText, newText)
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.CorrectEnterText(oldText, newText);
+	}
+	function BeginCompositeInput()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.Begin_CompositeInput();
+	}
+	function ReplaceCompositeInput(text)
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.Replace_CompositeText(text);
+	}
+	function EndCompositeInput()
+	{
+		if (!logicDocument)
+			return;
+
+		logicDocument.End_CompositeInput();
+	}
+	function EnterTextCompositeInput(text)
+	{
+		BeginCompositeInput();
+		ReplaceCompositeInput(text);
+		EndCompositeInput();
+	}
 	//--------------------------------------------------------export----------------------------------------------------
-	AscTest.CreateLogicDocument = CreateLogicDocument;
-	AscTest.SetFillingFormMode  = SetFillingFormMode;
-	AscTest.SetEditingMode      = SetEditingMode;
-	AscTest.PressKey            = PressKey;
-	AscTest.MoveCursorLeft      = MoveCursorLeft;
-	AscTest.MoveCursorRight     = MoveCursorRight;
-	AscTest.KeyCode             = KeyCode;
+	AscTest.CreateLogicDocument     = CreateLogicDocument;
+	AscTest.CreateParagraph         = CreateParagraph;
+	AscTest.CreateTable             = CreateTable;
+	AscTest.GetParagraphText        = GetParagraphText;
+	AscTest.RemoveTableBorders      = RemoveTableBorders;
+	AscTest.SetFillingFormMode      = SetFillingFormMode;
+	AscTest.SetEditingMode          = SetEditingMode;
+	AscTest.PressKey                = PressKey;
+	AscTest.MoveCursorLeft          = MoveCursorLeft;
+	AscTest.MoveCursorRight         = MoveCursorRight;
+	AscTest.Recalculate             = Recalculate;
+	AscTest.ClickMouseButton        = ClickMouseButton;
+	AscTest.ClearDocument           = ClearDocument;
+	AscTest.EnterText               = EnterText;
+	AscTest.CorrectEnterText        = CorrectEnterText;
+	AscTest.BeginCompositeInput     = BeginCompositeInput;
+	AscTest.ReplaceCompositeInput   = ReplaceCompositeInput;
+	AscTest.EndCompositeInput       = EndCompositeInput;
+	AscTest.EnterTextCompositeInput = EnterTextCompositeInput;
+	AscTest.Key                     = Key;
 
 })(window);
 

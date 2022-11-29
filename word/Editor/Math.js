@@ -1236,7 +1236,7 @@ ParaMath.prototype.Add = function(Item)
     }
     else if (para_Math === Type)
     {
-        var ContentPos = new CParagraphContentPos();
+        var ContentPos = new AscWord.CParagraphContentPos();
 
         if(this.bSelectionUse == true)
             this.Get_ParaContentPos(true, true, ContentPos);
@@ -3379,7 +3379,7 @@ ParaMath.prototype.Is_InInnerContent = function()
  */
 ParaMath.prototype.Handle_AddNewLine = function()
 {
-    var ContentPos = new CParagraphContentPos();
+    var ContentPos = new AscWord.CParagraphContentPos();
 
     var CurrContent = this.GetSelectContent().Content;
 
@@ -3424,7 +3424,7 @@ ParaMath.prototype.Handle_AddNewLine = function()
         CurrContent.Add_ToContent(1, EqArray);
         CurrContent.Correct_Content(true);
 
-        var CurrentContent = new CParagraphContentPos();
+        var CurrentContent = new AscWord.CParagraphContentPos();
         this.Get_ParaContentPos(false, false, CurrentContent);
 
         var RightContentPos = new CParagraphSearchPos();
@@ -3490,6 +3490,10 @@ ParaMath.prototype.Get_Bounds = function()
     {
         return this.private_GetBounds(this.Root);
     }
+};
+ParaMath.prototype.GetBounds = function()
+{
+	return this.Get_Bounds();
 };
 ParaMath.prototype.Get_JointSize = function()
 {
@@ -3686,9 +3690,10 @@ ParaMath.prototype.ConvertToUnicodeMath = function()
 };
 ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 {
-	if (undefined === nInputType) {
-		var oLogicDocument = this.GetLogicDocument()
-		nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+	if (undefined === nInputType)
+	{
+		let oApi = Asc.editor || editor;
+		nInputType = oApi ? oApi.getMathInputType() : Asc.c_oAscMathInputType.Unicode;
 	}
 
 	if (isToLinear)
@@ -3700,15 +3705,33 @@ ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 	}
 	else
 	{
-
-		if (Asc.c_oAscMathInputType.Unicode === nInputType) {
-            this.Root.CorrectAllMathWords();
+		if (Asc.c_oAscMathInputType.Unicode === nInputType)
+		{
 			this.ConvertFromUnicodeMath();
 		}
-		else if (Asc.c_oAscMathInputType.LaTeX === nInputType) {
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+		{
 			this.ConvertFromLaTeX();
 		}
 	}
+};
+ParaMath.prototype.SplitSelectedContent = function() {
+    var oSelection = this.GetSelectContent();
+    var oContent = oSelection.Content;
+    oContent.SplitSelectedContent();
+}
+ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
+{
+    this.SplitSelectedContent();
+
+    var oSelection = this.GetSelectContent();
+
+    oSelection.Content.ConvertContentView(
+        oSelection.Start,
+        oSelection.End,
+        nInputType,
+        isToLinear
+    );
 };
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
 {

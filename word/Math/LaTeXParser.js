@@ -797,8 +797,7 @@
 
 		return {
 			type: oLiteralNames.matrixLiteral[num],
-			value: arrMatrixContent,
-			strMatrixType,
+			value: arrMatrixContent
 		}
 	};
 	CLaTeXParser.prototype.GetRayOfMatrixLiteral = function ()
@@ -880,10 +879,10 @@
 		if (tokenType) {
 			const oToken = this.oLookahead;
 			if (oToken === null) {
-				console.log(`Unexpected end of input, expected: "${tokenType}"`);
+				console.log('Unexpected end of input, expected: ' + tokenType);
 			}
 			if (oToken.class !== tokenType) {
-				console.log(`Unexpected token: "${oToken.class}", expected: "${tokenType}"`);
+				console.log('Unexpected token: ' + oToken.class + ', expected: ' + tokenType);
 			}
 			this.oLookahead = this.oTokenizer.GetNextToken();
 			return oToken;

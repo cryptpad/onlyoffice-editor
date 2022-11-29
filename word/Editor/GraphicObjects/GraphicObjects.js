@@ -118,6 +118,7 @@ CGraphicObjects.prototype =
     rotateTrackObjects: DrawingObjectsController.prototype.rotateTrackObjects,
     handleRotateTrack: DrawingObjectsController.prototype.handleRotateTrack,
     trackResizeObjects: DrawingObjectsController.prototype.trackResizeObjects,
+    trackGeometryObjects: DrawingObjectsController.prototype.trackGeometryObjects,
     resetInternalSelection: DrawingObjectsController.prototype.resetInternalSelection,
     handleTextHit: DrawingObjectsController.prototype.handleTextHit,
     getConnectorsForCheck: DrawingObjectsController.prototype.getConnectorsForCheck,
@@ -126,6 +127,7 @@ CGraphicObjects.prototype =
     canEditTableOleObject: DrawingObjectsController.prototype.canEditTableOleObject,
     canEditGeometry: DrawingObjectsController.prototype.canEditGeometry,
     startEditGeometry: DrawingObjectsController.prototype.startEditGeometry,
+    haveTrackedObjects: DrawingObjectsController.prototype.haveTrackedObjects,
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
     {
@@ -1732,19 +1734,19 @@ CGraphicObjects.prototype =
 
     getAllSignatures2: AscFormat.DrawingObjectsController.prototype.getAllSignatures2,
 
-    addOleObject: function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
+    addOleObject: function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
     {
         var content = this.getTargetDocContent();
         if(content)
         {
             if(!content.bPresentation){
-                content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+                content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
             }
             else{
                 if(this.selectedObjects.length > 0)
                 {
                     this.resetSelection2();
-                    this.document.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+                    this.document.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
                 }
             }
         }
@@ -1754,14 +1756,14 @@ CGraphicObjects.prototype =
             {
                 this.resetInternalSelection();
                 this.document.Remove(1, true);
-                this.document.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+                this.document.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
             }
             else
             {
                 if(this.selectedObjects.length > 0)
                 {
                     this.resetSelection2();
-                    this.document.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
+                    this.document.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
                 }
             }
         }
@@ -3073,6 +3075,7 @@ CGraphicObjects.prototype =
     },
 
     moveSelectedObjects: DrawingObjectsController.prototype.moveSelectedObjects,
+    moveSelectedObjectsByDir: DrawingObjectsController.prototype.moveSelectedObjectsByDir,
 
     cursorMoveLeft: DrawingObjectsController.prototype.cursorMoveLeft,
 
@@ -4529,6 +4532,67 @@ CGraphicObjects.prototype.getAnimationPlayer = function()
     return null;
 };
 
+CGraphicObjects.prototype.getImageDataFromSelection = DrawingObjectsController.prototype.getImageDataFromSelection;
+CGraphicObjects.prototype.putImageToSelection = function(sImageUrl, nWidth, nHeight)
+{
+    let aSelectedObjects = this.getSelectedArray();
+    if(aSelectedObjects.length > 0 && aSelectedObjects[0].isImage())
+    {
+        let oController = this;
+        this.checkSelectedObjectsAndCallback(function() {
+            let dWidth = nWidth * AscCommon.g_dKoef_pix_to_mm;
+            let dHeight = nHeight * AscCommon.g_dKoef_pix_to_mm;
+            let oSp = aSelectedObjects[0];
+            oSp.replacePictureData(sImageUrl, dWidth, dHeight);
+            if(oSp.group)
+            {
+                oController.selection.groupSelection.resetInternalSelection();
+                oSp.group.selectObject(oSp, 0);
+            }
+            else
+            {
+                oController.resetSelection();
+                oController.selectObject(oSp, 0);
+            }
+        }, [], false, 0, []);
+    }
+    else
+    {
+        if (false === this.document.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
+        {
+            let oImageData =
+            {
+                src: sImageUrl,
+                Image:
+                {
+                    width: nWidth,
+                    height: nHeight
+                }
+            };
+            this.document.StartAction();
+            if(aSelectedObjects.length > 0)
+            {
+                this.document.Remove(-1)
+            }
+            this.document.AddImages([oImageData]);
+            this.document.FinalizeAction();
+
+        }
+    }
+};
+CGraphicObjects.prototype.getSelectionImageData = DrawingObjectsController.prototype.getSelectionImageData;
+CGraphicObjects.prototype.getImageDataForSaving = DrawingObjectsController.prototype.getImageDataForSaving;
+CGraphicObjects.prototype.getPresentation = DrawingObjectsController.prototype.getPresentation;
+
+CGraphicObjects.prototype.getHorGuidesPos = function() {
+    return [];
+}
+CGraphicObjects.prototype.getVertGuidesPos = function() {
+    return [];
+};
+CGraphicObjects.prototype.hitInGuide = function(x, y) {
+    return null;
+};
 function ComparisonByZIndexSimpleParent(obj1, obj2)
 {
     if(obj1.parent && obj2.parent)

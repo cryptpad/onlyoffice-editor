@@ -1124,7 +1124,7 @@
 							);
 							ConvertTokens(
 								oTokens.value,
-								oPreSubSup.getBase(),
+								oPreSubSup.getBase()
 							);
 							UnicodeArgument(
 								oTokens.up,

@@ -1057,7 +1057,7 @@ CParagraphContentWithContentBase.prototype.IsUseInDocument = function()
 };
 CParagraphContentWithContentBase.prototype.IsUseInParagraph = function()
 {
-	return (this.Paragraph && this.Paragraph.Get_PosByElement(this));
+	return (this.Paragraph && !!this.Paragraph.Get_PosByElement(this));
 };
 CParagraphContentWithContentBase.prototype.SelectThisElement = function(nDirection, isUseInnerSelection)
 {
@@ -1099,15 +1099,19 @@ CParagraphContentWithContentBase.prototype.SelectThisElement = function(nDirecti
 };
 CParagraphContentWithContentBase.prototype.SetThisElementCurrent = function()
 {
-	var ContentPos = this.Paragraph.Get_PosByElement(this);
+	let paragraph = this.GetParagraph();
+	if (!paragraph)
+		return;
+
+	var ContentPos = paragraph.Get_PosByElement(this);
 	if (!ContentPos)
 		return;
 
 	var StartPos = ContentPos.Copy();
 	this.Get_StartPos(StartPos, StartPos.GetDepth() + 1);
 
-	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
-	this.Paragraph.Document_SetThisElementCurrent(false);
+	paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
+	paragraph.Document_SetThisElementCurrent(false);
 };
 CParagraphContentWithContentBase.prototype.IsThisElementCurrent = function()
 {
@@ -1264,14 +1268,21 @@ CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oP
 		}
 	}
 
+	let newElementPos = 0;
 	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
 	{
-		var Item = this.Content[CurPos];
-
-		if (StartPos === CurPos || EndPos === CurPos)
-			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(Selected, oPr));
-		else
-			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(false, oPr));
+		let newItems = this.Content[CurPos].Copy(Selected && (StartPos === CurPos || EndPos === CurPos), oPr);
+		if (Array.isArray(newItems))
+		{
+			for (let newIndex = 0, newCount = newItems.length; newIndex < newCount; ++newIndex)
+			{
+				NewElement.AddToContent(newElementPos++, newItems[newIndex]);
+			}
+		}
+		else if (newItems)
+		{
+			NewElement.AddToContent(newElementPos++, newItems);
+		}
 	}
 
 	return NewElement;
@@ -1670,6 +1681,9 @@ CParagraphContentWithParagraphLikeContent.prototype.ConcatContent = function (It
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	if (Count <= 0)
+		return;
+
 	for (var nIndex = Pos; nIndex < Pos + Count; ++nIndex)
 	{
 		this.Content[nIndex].PreDelete();
@@ -4640,6 +4654,17 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFirstRun = function()
 	{
 		var oRun = this.Content[nIndex].GetFirstRun();
 		if (oRun)
+			return oRun;
+	}
+
+	return null;
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRunNonEmpty = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex].GetFirstRun();
+		if (oRun&& oRun.GetElementsCount() > 0)
 			return oRun;
 	}
 
