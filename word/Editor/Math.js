@@ -3733,6 +3733,24 @@ ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
         isToLinear
     );
 };
+ParaMath.prototype.SplitSelectedContent = function() {
+    var oSelection = this.GetSelectContent();
+    var oContent = oSelection.Content;
+    oContent.SplitSelectedContent();
+}
+ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
+{
+    this.SplitSelectedContent();
+
+    var oSelection = this.GetSelectContent();
+
+    oSelection.Content.ConvertContentView(
+        oSelection.Start,
+        oSelection.End,
+        nInputType,
+        isToLinear
+    );
+};
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
 {
 	if (oCollector.IsExceedLimit())
