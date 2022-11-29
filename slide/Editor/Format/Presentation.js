@@ -4761,6 +4761,12 @@ CPresentation.prototype.canClearGuides = function() {
     }
     return false;
 };
+CPresentation.prototype.getGuidesCount = function() {
+    if(this.viewPr) {
+        return this.viewPr.getHorGuidesPos().length + this.viewPr.getVertGuidesPos().length;
+    }
+    return 0;
+};
 CPresentation.prototype.clearGuides = function() {
     if(!this.canClearGuides()) {
         return;
