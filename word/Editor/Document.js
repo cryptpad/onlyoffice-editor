@@ -2016,6 +2016,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 	this.PrintSelection            = false; // Печатаем выделенный фрагмент
 	this.CheckFormPlaceHolder      = true;  // Выполняем ли специальную обработку для плейсхолдеров у форм
+	this.MathInputType             = Asc.c_oAscMathInputType.Unicode;
 	this.ForceDrawPlaceHolders     = null;  // true/false - насильно заставляем рисовать или не рисовать плейсхолдеры и подсветку,
 	this.ForceDrawFormHighlight    = null;  // null - редактор решает рисовать или нет в зависимости от других параметров
 	this.ConcatParagraphsOnRemove  = false; // Во время удаления объединять ли первый и последний параграфы
@@ -26361,6 +26362,20 @@ CDocument.prototype.CheckAllRunContent = function(fCheck)
 	this.Endnotes.CheckRunContent(private_check);
 };
 
+/**
+ * @param {Asc.c_oAscMathInputType} nType
+ */
+CDocument.prototype.SetMathInputType = function(nType)
+{
+	this.MathInputType = nType;
+};
+/**
+ * @returns {Asc.c_oAscMathInputType}
+ */
+CDocument.prototype.GetMathInputType = function()
+{
+	return this.MathInputType;
+};
 
 /**
  * Функция конвертации вида формулы из линейного в профессиональный и наоборот

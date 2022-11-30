@@ -5547,6 +5547,7 @@ CMathContent.prototype.SplitContentByContentPos = function()
 };
 CMathContent.prototype.Process_AutoCorrect = function (oElement)
 {
+    //debugger
     var oLogicDocument = this.GetLogicDocument();
     var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
     var isLaTeX_AutoCorrection_Allow = true; // для будущей настройки
@@ -5611,7 +5612,8 @@ CMathContent.prototype.Process_AutoCorrect = function (oElement)
     if (arrNextContent.length > 0)
         this.AddContentForAutoCorrection(arrNextContent);
 };
-CMathContent.prototype.CheckWhileOperatorContent = function(arrOperatorsList, nInputType) {
+CMathContent.prototype.CheckWhileOperatorContent = function(arrOperatorsList, nInputType)
+{
 
     if (arrOperatorsList === undefined)
         return;
@@ -5625,7 +5627,7 @@ CMathContent.prototype.CheckWhileOperatorContent = function(arrOperatorsList, nI
         let Position = arrOperatorsList[arrOperatorsList.length - 1];
         this.CutConvertAndPaste([Position[2], Position[0]], nInputType);
     }
-}
+};
 CMathContent.prototype.DeleteContentForAutoCorrection = function(arrDeleteData)
 {
     if (arrDeleteData < 1) {
@@ -5789,7 +5791,7 @@ CMathContent.prototype.ConvertContentInLastBracketBlock = function(nInputType)
             this.CutConvertAndPaste(Result, nInputType, true);
         }
     }
-}
+};
 
 function ProceedBrackets(arrDataOfBrackets)
 {
