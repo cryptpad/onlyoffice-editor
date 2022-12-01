@@ -51,6 +51,7 @@
 		this.Fixed    = false;
 		this.Border   = undefined;
 		this.Shd      = undefined;
+		this.Field    = undefined;
 	}
 	CSdtFormPr.prototype.Copy = function()
 	{
@@ -120,6 +121,12 @@
 			this.Shd.WriteToBinary(oWriter)
 			nFlags |= 32;
 		}
+		
+		if (undefined !== this.Field)
+		{
+			oWriter.WriteString2(this.Field.GetId());
+			nFlags |= 64;
+		}
 
 		var nEndPos = oWriter.GetCurPosition();
 		oWriter.Seek(nStartPos);
@@ -152,6 +159,12 @@
 		{
 			this.Shd = new CDocumentShd();
 			this.Shd.ReadFromBinary(oReader);
+		}
+		
+		if (nFlags & 64)
+		{
+			let fieldId = oReader.GetString2();
+			this.Fixed = AscCommon.g_oTableId.GetById(fieldId);
 		}
 	};
 	CSdtFormPr.prototype.Write_ToBinary = function(oWriter)
@@ -271,6 +284,17 @@
 			});
 		}
 	};
+	CSdtFormPr.prototype.GetAscRole = function()
+	{
+		if (!this.Field || !this.Field.getUserCount())
+			return "Anyone";
+		
+		return this.Field.getUser(0).getRole();
+	};
+	CSdtFormPr.prototype.SetAscRole = function(fieldMaster)
+	{
+		this.Field = fieldMaster;
+	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'].CSdtFormPr = CSdtFormPr;
 
@@ -291,4 +315,6 @@
 	CSdtFormPr.prototype['put_Border']   = CSdtFormPr.prototype.SetAscBorder;
 	CSdtFormPr.prototype['get_Shd']      = CSdtFormPr.prototype.GetAscShd;
 	CSdtFormPr.prototype['put_Shd']      = CSdtFormPr.prototype.SetAscShd;
+	CSdtFormPr.prototype['get_Role']     = CSdtFormPr.prototype.GetAscRole;
+	CSdtFormPr.prototype['put_Role']     = CSdtFormPr.prototype.SetAscRole;
 })(window);
