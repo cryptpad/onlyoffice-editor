@@ -67,6 +67,9 @@
 
 		if (this.Shd)
 			oFormPr.Shd = this.Shd.Copy();
+		
+		if (this.Field)
+			oFormPr.Field = this.Field.clone();
 
 		return oFormPr;
 	};
@@ -78,7 +81,8 @@
 			&& this.HelpText === oOther.HelpText
 			&& this.Required === oOther.Required
 			&& IsEqualStyleObjects(this.Border, oOther.Border)
-			&& IsEqualStyleObjects(this.Shd, oOther.Shd));
+			&& IsEqualStyleObjects(this.Shd, oOther.Shd)
+			&& this.Field === oOther.Field);
 	};
 	CSdtFormPr.prototype.WriteToBinary = function(oWriter)
 	{
@@ -283,6 +287,10 @@
 				Unifill: oUnifill
 			});
 		}
+	};
+	CSdtFormPr.prototype.SetField = function(fieldMaster)
+	{
+		this.Field = fieldMaster;
 	};
 	CSdtFormPr.prototype.GetAscRole = function()
 	{

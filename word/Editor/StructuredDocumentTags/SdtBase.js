@@ -210,6 +210,7 @@ CSdtBase.prototype.IsContentControlTemporary = function()
  */
 CSdtBase.prototype.SetFormPr = function(oFormPr)
 {
+	this.private_CheckFieldMasterBeforeSet(oFormPr);
 	this.private_CheckKeyValueBeforeSet(oFormPr);
 
 	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
@@ -239,6 +240,40 @@ CSdtBase.prototype.private_CheckKeyValueBeforeSet = function(formPr)
 		formPr.SetKey(this.Pr.FormPr.GetKey());
 	else
 		formPr.SetKey(newKey);
+};
+CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
+{
+	if (!formPr || !formPr.Field)
+		return;
+
+	let logicDocument = this.GetLogicDocument();
+	let oform;
+	
+	if (!logicDocument || !window['AscOForm'] || !(oform = logicDocument.GetOFormDocument()))
+	{
+		formPr.Field = undefined;
+		return;
+	}
+	
+	let role = oform.getRole(formPr.Field);
+	let userMaster;
+	if (!role || !(userMaster = role.getUserMaster()))
+	{
+		formPr.Field = undefined;
+		return;
+	}
+	
+	let fieldMaster;
+	if (this.Pr.FormPr && this.Pr.FormPr.Field)
+		fieldMaster = this.Pr.FormPr.Field;
+	
+	if (!fieldMaster)
+		fieldMaster = new AscOForm.CFieldMaster(true);
+	
+	fieldMaster.addUser(userMaster);
+	fieldMaster.setLogicField(this);
+	
+	formPr.Field = fieldMaster;
 };
 /**
  * Удаляем настройки специальных форм
