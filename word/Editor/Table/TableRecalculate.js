@@ -3176,8 +3176,11 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
             var TempCellSpacing = this.Content[TempCurRow].Get_CellSpacing();
             var Y_0 = this.RowsInfo[TempCurRow].Y[CurPage];
 
-            //if ( null === TempCellSpacing )
-            //    Y_0 += MaxTopBorder[TempCurRow];
+			if(!this.bPresentation)
+			{
+				if ( null === TempCellSpacing )
+					Y_0 += MaxTopBorder[TempCurRow];
+			}
 
             Y_0 += CellMar.Top.W;
 
