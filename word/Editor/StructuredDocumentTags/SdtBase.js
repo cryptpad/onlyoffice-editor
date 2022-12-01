@@ -268,7 +268,7 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 		fieldMaster = this.Pr.FormPr.Field;
 	
 	if (!fieldMaster)
-		fieldMaster = new AscOForm.CFieldMaster(true);
+		fieldMaster = oform.getFormat().createFieldMaster();
 	
 	fieldMaster.addUser(userMaster);
 	fieldMaster.setLogicField(this);
