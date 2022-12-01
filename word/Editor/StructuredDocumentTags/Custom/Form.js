@@ -319,6 +319,7 @@
 	CSdtFormPr.prototype['get_Required'] = CSdtFormPr.prototype.GetRequired;
 	CSdtFormPr.prototype['put_Required'] = CSdtFormPr.prototype.SetRequired;
 	CSdtFormPr.prototype['get_Fixed']    = CSdtFormPr.prototype.GetFixed;
+	CSdtFormPr.prototype['put_Fixed']    = CSdtFormPr.prototype.SetFixed;
 	CSdtFormPr.prototype['get_Border']   = CSdtFormPr.prototype.GetAscBorder;
 	CSdtFormPr.prototype['put_Border']   = CSdtFormPr.prototype.SetAscBorder;
 	CSdtFormPr.prototype['get_Shd']      = CSdtFormPr.prototype.GetAscShd;
