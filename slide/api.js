@@ -8295,7 +8295,7 @@ background-repeat: no-repeat;\
 		this.ShowParaMarks                    = false;
 		_renderer.IsNoDrawingEmptyPlaceholder = true;
 
-		let nativeOptions = options["nativeOptions"];
+		let nativeOptions = options ? options["nativeOptions"] : undefined;
 		let pages = nativeOptions ? AscCommon.getNativePrintRanges(nativeOptions["pages"], nativeOptions["currentPage"], pagescount) : undefined;
 
 		for (var i = 0; i < pagescount; i++)
