@@ -2869,6 +2869,9 @@ function CEditorPage(api)
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
 
+		if (this.m_oApi.printPreview)
+			this.m_oApi.printPreview.resize();
+
 		this.CheckRetinaDisplay();
 		this.m_oBody.Resize(this.Width * g_dKoef_pix_to_mm, this.Height * g_dKoef_pix_to_mm, this);
 		this.onButtonTabsDraw();

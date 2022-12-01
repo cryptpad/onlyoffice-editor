@@ -2256,6 +2256,9 @@ function CDrawingDocument()
 
 			this.OnEndRecalculate(false);
 		}
+
+		if (this.m_oWordControl.m_oApi.printPreview && this.m_oWordControl.m_oApi.printPreview.page === index)
+			this.m_oWordControl.m_oApi.printPreview.update();
 	};
 
 	this.OnEndRecalculate = function (isFull, isBreak)
