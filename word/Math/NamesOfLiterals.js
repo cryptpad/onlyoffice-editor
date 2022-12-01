@@ -33,79 +33,355 @@
 "use strict";
 
 (function (window) {
-	/**
-	 * @typedef {Object} LiteralType
-	 * @property {number} index Индекс литерала
-	 * @property {string} nameOfLiteral Название литерала
-	 */
-	/**
-	 * @param {Object.<number, LiteralType>} LiteralTypesList
-	 */
+
+	function LexerLiterals()
+	{
+		this.fromSymbols = {};
+		this.toSymbols = {};
+
+		this.Init();
+	}
+	LexerLiterals.prototype.Init = function ()
+	{
+
+		let names = Object.keys(this.toSymbols);
+
+		if (names.length < 1)
+			return false;
+
+		for (let i = 0; i < names.length; i++)
+		{
+			let name = names[i];
+			let data = this.toSymbols[name];
+			this.private_FromToSymbols(data, name);
+		};
+
+		return true;
+	};
+	LexerLiterals.prototype.IsIncludes = function (name)
+	{
+		return this.toSymbols[name];
+	};
+	LexerLiterals.prototype.private_Add = function (name, data)
+	{
+		this.private_AddToSymbols(name, data);
+	};
+	LexerLiterals.prototype.private_AddToSymbols = function (name, data)
+	{
+		this.toSymbols[name] = data;
+		this.private_FromToSymbols(data, name);
+	};
+	LexerLiterals.prototype.private_FromToSymbols = function (name, data)
+	{
+		this.fromSymbols[name] = data;
+	};
+	LexerLiterals.prototype.Add = function (name, data)
+	{
+		if (!this.IsIncludes(name))
+		{
+			this.private_Add(name, data);
+			return true
+		}
+
+		return false;
+	};
+	LexerLiterals.prototype.DeleteElementByName = function (name)
+	{
+		if (this.IsIncludes(name))
+		{
+			let nameFromSymbols = this.toSymbols[name];
+			delete this.toSymbols[name];
+			delete this.fromSymbols[nameFromSymbols];
+
+			return true;
+		}
+
+		return false;
+	};
+
+	function Symbols()
+	{
+		this.fromSymbols = {};
+		this.toSymbols = {
+			"\\aleph": "ℵ",
+			"\\alpha": "α",
+			"\\Alpha": "Α",
+		};
+		this.Init();
+	}
+	Symbols.prototype = Object.create(LexerLiterals.prototype);
+	Symbols.prototype.constructor = Symbols;
+
+	function OpenBrackets()
+	{
+		this.data = ["(", "{", "〖",  "⟨", "["];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	OpenBrackets.prototype = Object.create(LexerLiterals.prototype);
+	OpenBrackets.prototype.constructor = OpenBrackets;
+
+	function CloseBrackets()
+	{
+		this.data = [
+			")", "}", "⟫", //	"\\"
+			"⟧", "〗", "⟩", "]",
+		];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	CloseBrackets.prototype = Object.create(LexerLiterals.prototype);
+	CloseBrackets.prototype.constructor = CloseBrackets;
+
+	function OpenCloseBrackets()
+	{
+		this.data = ["|", "‖"];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	OpenCloseBrackets.prototype = Object.create(LexerLiterals.prototype);
+	OpenCloseBrackets.prototype.constructor = OpenCloseBrackets;
+
+	function Operators()
+	{
+		this.data =  [
+			"⨯", "⨝", "⟕", "⟖", "⟗", "⋉", "⋊", "▷",
+			"+", "-", "*", "=", "≶", "≷", "≜", "⇓", "⇐",
+			"⇔", "⟸", "⟺", "⟹", "⇒", "⇑", "⇕", "∠", "≈",
+			"⬆", "∗", "≍", "∵", "⋈", "⊡", "⊟", "⊞", "⤶",
+			"∙", "⋅", "⋯", "∘", "♣", "≅", "∋", "⋱", "≝", "℃",
+			"℉", "°", "⊣", "⋄", "♢", "÷", "≐", "…", "↓",
+			"⬇", "∅", "#", "≡", "∃", "∀", "⌑", "≥",
+			"←", "≫", "↩", "♡", "∈", "≤", "↪", "←", "↽",
+			"↼", "↔", "≤", "⬄", "⬌", "≪", "⇋", "↦", "⊨",
+			"∓", "≠", "↗", "¬", "≠", "∌", "∉", "∉", "ν",
+			"↖", "ο", "⊙", "⊖", "⊕", "⊗", "⊥", "±",
+			"≺", "≼", "∶", "⋰", "→", "⇁", "⇀", "↘",
+			"∼", "≃", "⬍", "⊑", "⊒", "⋆", "⊂", "⊆", "≻", "≽",
+			"⊃", "⊇", "×", "⊤", "→", "‼", "∷", "≔", "∩", "∪",
+			"∆", "∞", "⁢",
+		];
+		this.toSymbols = {
+			"\\angle": "∠",
+		};
+		this.fromSymbols = {};
+		this.Init();
+	}
+	Operators.prototype = Object.create(LexerLiterals.prototype);
+	Operators.prototype.constructor = Operators;
+
+	function Nary()
+	{
+		this.data = [
+			"⅀", "⨊", "⨋", "∫", "∱", "⨑", "⨍", "⨎", "⨏", "⨕",
+			"⨖", "⨗", "⨘", "⨙", "⨚", "⨛", "⨜", "⨒", "⨓", "⨔",
+			"⨃", "⨅", "⨉", "⫿", "∐", "∳", "⋂", "⋃", "⨀", "⨁",
+			"⨂", "⨆", "⨄", "⋁", "⋀", "∲", "⨌", "∭", "∬",
+			"∫", "∰", "∯", "∮", "∏", "∑",
+		];
+		this.fromSymbols  = {};
+		this.toSymbols = {
+			"\\aoint": "∳",
+		};
+		this.Init();
+	}
+	Nary.prototype = Object.create(LexerLiterals.prototype);
+	Nary.prototype.constructor = Nary;
+
+	function Radical()
+	{
+		this.data = [
+			"√", "∛", "∜"
+		];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	Radical.prototype = Object.create(LexerLiterals.prototype);
+	Radical.prototype.constructor = Radical;
+
+	function Accent()
+	{
+		this.id 			= 4;
+		this.name			= "AccentLiterals";
+		this.toSymbols 		= {
+			"\\acute"	: 	"́",
+			"\\hat" 	: 	"̂",
+			"\\check" 	:	"̌",
+			"\\tilde"	:	"̃",
+			"\\grave"	: 	"̀",
+			"\\dot"		:	"̇",
+			"\\ddot"	:	"̈",
+			"\\dddot"	:	"⃛",
+			"\\bar"		:	"̄",
+			"\\vec"		:	"⃗",
+		};
+		this.fromSymbols 	= {};
+
+		this.Init();
+	}
+	Accent.prototype = Object.create(LexerLiterals.prototype);
+	Accent.prototype.constructor = Accent;
+
+	function Over()
+	{
+		this.data = [
+			"/",  //TODO opOpen
+			"⊘", "⒞", "\\/", "¦",
+		];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	Over.prototype = Object.create(LexerLiterals.prototype);
+	Over.prototype.constructor = Over;
+
+	function Box()
+	{
+		this.data = ["□"];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	Box.prototype = Object.create(LexerLiterals.prototype);
+	Box.prototype.constructor = Box;
+
+	function Matrix()
+	{
+		this.data = ["⒩", "■"];
+		this.fromSymbols = {};
+		this.toSymbols = {};
+		this.Init();
+	}
+	Matrix.prototype = Object.create(LexerLiterals.prototype);
+	Matrix.prototype.constructor = Matrix;
+
+	function Space()
+	{
+		this.fromSymbols = {};
+		this.toSymbols = {
+			"\\nbsp" : 		" ",		// space width && no-break space
+			"\\numsp": 		" ",		// digit width
+			"\\emsp" :		" ",		// 18/18 em
+			"\\ensp" :		" ",		// 9/18 em
+			"\\vthicksp": 	" ",	// 6/18 em verythickmathspace
+			"\\thicksp": 	" ",	// 5/18 em thickmathspace
+			"\\medsp": 		" ",		// 4/18 em mediummathspace
+			"\\thinsp": 	" ",		// 3/18 em thinmathspace
+			"\\hairsp": 	" ",		// 3/18 em veryverythinmathspace
+			"\\zwsp": 		"​",		// 3/18 em zero-width space
+		};
+		this.Init();
+	}
+	Space.prototype = Object.create(LexerLiterals.prototype);
+	Space.prototype.constructor = Space;
+
+	//class === data
+	function SpecialLiteral()
+	{
+		this.data = [
+			"^", "_", "&", "@", "┴", "┬", "┤", "█", "▒",
+		];
+		this.fromSymbols = {};
+		this.toSymbols = {
+			"\\above": "┴",
+		};
+		this.Init();
+	}
+	SpecialLiteral.prototype = Object.create(LexerLiterals.prototype);
+	SpecialLiteral.prototype.constructor = SpecialLiteral;
+
+	const MathLiterals = {
+		lBrackets: 		new OpenBrackets(),
+		rBrackets: 		new CloseBrackets(),
+		lrBrackets: 	new OpenCloseBrackets(),
+		operators: 		new Operators(),
+		nary: 			new Nary(),
+		accent: 		new Accent(),
+		radical: 		new Radical(),
+		over: 			new Over(),
+		box: 			new Box(),
+		matrix: 		new Matrix(),
+		space: 			new Space(),
+		special: 		new SpecialLiteral(),
+	}
+	function GetClassOfMathLiterals (id)
+	{
+		switch (id)
+		{
+			case 1		:	return MathLiterals.space;
+			default		:	return undefined;
+		}
+	}
+
 	const oNamesOfLiterals = {
-		fractionLiteral: [0, "FractionLiteral"],
-		spaceLiteral: [1, "SpaceLiteral"],
-		charLiteral: [2, "CharLiteral"],
-		accentLiteral: [4, "AccentLiteral"],
-		operatorLiteral: [5, "OperatorLiteral"],
-		binomLiteral: [6, "BinomLiteral"],
-		bracketBlockLiteral: [7, "BracketBlock"],
-		functionLiteral: [8, "FunctionLiteral"],
-		subSupLiteral: [9, "SubSupLiteral"],
-		sqrtLiteral: [10, "SqrtLiteral"],
-		numberLiteral: [11, "NumberLiteral"],
-		mathOperatorLiteral: [12, "MathOperatorLiteral"],
-		rectLiteral: [13, "RectLiteral"],
-		boxLiteral: [14, "BoxLiteral"],
-		preScriptLiteral: [15, "PreScriptLiteral"],
-		mathFontLiteral: [16, "MathFontLiteral"],
-		overLiteral: [17, "OverLiteral"],
-		diacriticLiteral: [18, "DiacriticLiteral"],
-		diacriticBaseLiteral: [19, "DiacriticBaseLiteral"],
-		otherLiteral: [20, "OtherLiteral"],
-		anMathLiteral: [21, "AnMathLiteral"],
-		opBuildupLiteral: [22, "opBuildUpLiteral"],
-		opOpenBracket: [23, "opOpenLiteral"],
-		opCloseBracket: [24, "opCLoseLiteral"],
-		opOpenCloseBracket: [25, "opCloseLiteral"],
-		belowLiteral: [26, "belowLiteral"],
-		aboveLiteral: [27, "aboveLiteral"],
-		hBracketLiteral: [28, "hBracketLiteral"],
-		opNaryLiteral: [29, "opNaryLiteral"],
-		asciiLiteral: [30, "asciiLiteral"],
-		opArrayLiteral: [31, "opArrayLiteral"],
-		opDecimal: [32, "opDecimal"],
+		fractionLiteral: 			[0, "FractionLiteral"],
+		spaceLiteral: 				[1, "SpaceLiteral", MathLiterals.space],
+		charLiteral: 				[2, "CharLiteral"],
+		operatorLiteral: 			[5, "OperatorLiteral"],
+		binomLiteral: 				[6, "BinomLiteral"],
+		bracketBlockLiteral: 		[7, "BracketBlock"],
+		functionLiteral: 			[8, "FunctionLiteral"],
+		subSupLiteral: 				[9, "SubSupLiteral"],
+		sqrtLiteral: 				[10, "SqrtLiteral"],
+		numberLiteral: 				[11, "NumberLiteral"],
+		mathOperatorLiteral: 		[12, "MathOperatorLiteral"],
+		rectLiteral: 				[13, "RectLiteral"],
+		boxLiteral: 				[14, "BoxLiteral"],
+		preScriptLiteral: 			[15, "PreScriptLiteral"],
+		mathFontLiteral: 			[16, "MathFontLiteral"],
+		overLiteral: 				[17, "OverLiteral"],
+		diacriticLiteral: 			[18, "DiacriticLiteral"],
+		diacriticBaseLiteral: 		[19, "DiacriticBaseLiteral"],
+		otherLiteral: 				[20, "OtherLiteral"],
+		anMathLiteral: 				[21, "AnMathLiteral"],
+		opBuildupLiteral: 			[22, "opBuildUpLiteral"],
+		opOpenBracket: 				[23, "opOpenLiteral"],
+		opCloseBracket: 			[24, "opCLoseLiteral"],
+		opOpenCloseBracket: 		[25, "opCloseLiteral"],
+		belowLiteral: 				[26, "belowLiteral"],
+		aboveLiteral: 				[27, "aboveLiteral"],
+		hBracketLiteral: 			[28, "hBracketLiteral"],
+		opNaryLiteral: 				[29, "opNaryLiteral"],
+		asciiLiteral: 				[30, "asciiLiteral"],
+		opArrayLiteral: 			[31, "opArrayLiteral"],
+		opDecimal: 					[32, "opDecimal"],
 
 		specialScriptNumberLiteral: [33, "specialScriptLiteral"],
-		specialScriptCharLiteral: [34, "specialScriptLiteral"],
+		specialScriptCharLiteral: 	[34, "specialScriptLiteral"],
 		specialScriptBracketLiteral: [35, "specialScriptBracketLiteral"],
 		specialScriptOperatorLiteral: [36, "specialScriptBracketLiteral"],
 
-		specialIndexNumberLiteral: [37, "specialScriptLiteral"],
-		specialIndexCharLiteral: [38, "specialScriptLiteral"],
+		specialIndexNumberLiteral: 	[37, "specialScriptLiteral"],
+		specialIndexCharLiteral: 	[38, "specialScriptLiteral"],
 		specialIndexBracketLiteral: [39, "specialScriptBracketLiteral"],
 		specialIndexOperatorLiteral: [40, "specialScriptBracketLiteral"],
 
-		textLiteral: [41, "textLiteral"],
-		nthrtLiteral: [42, "nthrtLiteral"],
-		fourthrtLiteral: [43, "fourthrtLiteral"],
-		cubertLiteral: [44, "cubertLiteral"],
-		overBarLiteral: [45, "overBarLiteral"],
+		textLiteral: 				[41, "textLiteral"],
+		nthrtLiteral: 				[42, "nthrtLiteral"],
+		fourthrtLiteral: 			[43, "fourthrtLiteral"],
+		cubertLiteral: 				[44, "cubertLiteral"],
+		overBarLiteral: 			[45, "overBarLiteral"],
 
-		factorialLiteral: [46, "factorialLiteral"],
-		rowLiteral: [47, "rowLiteral"],
-		rowsLiteral: [48, "rowsLiteral"],
+		factorialLiteral: 			[46, "factorialLiteral"],
+		rowLiteral: 				[47, "rowLiteral"],
+		rowsLiteral: 				[48, "rowsLiteral"],
 
-		minusLiteral: [49, "minusLiteral"],
-		LaTeXLiteral: [50, "LaTeXLiteral"],
+		minusLiteral: 				[49, "minusLiteral"],
+		LaTeXLiteral: 				[50, "LaTeXLiteral"],
 
-		functionWithLimitLiteral: [51, "functionWithLimitLiteral"],
-		functionNameLiteral: [52, "functionNameLiteral"],
-		matrixLiteral: [53, "matrixLiteral"],
+		functionWithLimitLiteral: 	[51, "functionWithLimitLiteral"],
+		functionNameLiteral: 		[52, "functionNameLiteral"],
+		matrixLiteral: 				[53, "matrixLiteral"],
+		arrayLiteral: 				[53, "arrayLiteral"],
 
-		arrayLiteral: [53, "arrayLiteral"],
-		skewedFractionLiteral: [54, "skewedFractionLiteral"],
-		EqArrayliteral: [55, "EqArrayliteral"],
+		skewedFractionLiteral: 		[54, "skewedFractionLiteral"],
+		EqArrayliteral: 			[55, "EqArrayliteral"],
 	};
+
 	const wordAutoCorrection = [
 		//Char
 		[
@@ -122,7 +398,7 @@
 					return str[0];
 				}
 			},
-			oNamesOfLiterals.accentLiteral[0],
+			MathLiterals.accent.id,
 		],
 		//Numbers
 		[
@@ -254,8 +530,8 @@
 		["₎", oNamesOfLiterals.specialIndexBracketLiteral[0]],
 
 		["/", oNamesOfLiterals.overLiteral[0]], // opOpen
-		["'", oNamesOfLiterals.accentLiteral[0]],
-		["''", oNamesOfLiterals.accentLiteral[0]],
+		["'", MathLiterals.accent.id],
+		["''", MathLiterals.accent.id],
 		["|", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\|", oNamesOfLiterals.opOpenCloseBracket[0]],
 
@@ -291,7 +567,7 @@
 
 		["┴", true],
 		["Α"],
-		["̿", oNamesOfLiterals.accentLiteral[0]], //todo
+		["̿", MathLiterals.accent.id], //todo
 		["Β"],
 		["□", oNamesOfLiterals.boxLiteral[0]],
 		["\\Bmatrix", oNamesOfLiterals.matrixLiteral[0]],
@@ -328,7 +604,7 @@
 		["Σ"],
 		["Τ"],
 		["Θ"],
-		["̳", oNamesOfLiterals.accentLiteral[0]], //check
+		["̳", MathLiterals.accent.id], //check
 		["⇑"],
 		["⇕"],
 		["Υ"],
@@ -337,7 +613,7 @@
 		["Ξ"],
 		["Ζ"],
 		["┴", true],
-		["́", oNamesOfLiterals.accentLiteral[0]],
+		["́", MathLiterals.accent.id],
 		["ℵ"],
 		["α"],
 		["∐", oNamesOfLiterals.opNaryLiteral[0]],
@@ -349,8 +625,8 @@
 		["≍", oNamesOfLiterals.operatorLiteral[0]],
 		["¦", oNamesOfLiterals.overLiteral[0]], //LateX true
 		["■", oNamesOfLiterals.matrixLiteral[0]],
-		["‵", oNamesOfLiterals.accentLiteral[0]],
-		["̅", oNamesOfLiterals.accentLiteral[0]],
+		["‵", MathLiterals.accent.id],
+		["̅", MathLiterals.accent.id],
 		["∵"],
 		["〖", oNamesOfLiterals.opOpenBracket[0]], //Unicode  LaTeX: ["\\begin{"],
 		["\\begin{", true],
@@ -387,7 +663,7 @@
 		["\\boxplus", "⊞"],
 		["⟨", oNamesOfLiterals.opOpenBracket[0]],
 		["\\break", "⤶"],
-		["̆", oNamesOfLiterals.accentLiteral[0]],
+		["̆", MathLiterals.accent.id],
 		["∙"],
 		["∩"],
 		["\\cr", "\\\\", true],
@@ -396,7 +672,7 @@
 		["⋅", oNamesOfLiterals.operatorLiteral[0]],
 		["⋯"],
 		["\\cfrac", true],// https://www.tutorialspoint.com/tex_commands/cfrac.htm
-		["̌", oNamesOfLiterals.accentLiteral[0]],
+		["̌", MathLiterals.accent.id],
 		["χ"],
 		["∘"],
 		["┤", true],
@@ -410,9 +686,9 @@
 		["ℸ"],
 		["⊣"],
 		["ⅆ"],
-		["⃜", oNamesOfLiterals.accentLiteral[0]],
-		["⃛", oNamesOfLiterals.accentLiteral[0]],
-		["̈", oNamesOfLiterals.accentLiteral[0]],
+		["⃜", MathLiterals.accent.id],
+		["⃛", MathLiterals.accent.id],
+		["̈", MathLiterals.accent.id],
 		["⋱"],
 		["≝"],
 		["℃"],
@@ -425,7 +701,7 @@
 		["⋄"],
 		["♢"],
 		["÷", oNamesOfLiterals.operatorLiteral[0]],
-		["̇", oNamesOfLiterals.accentLiteral[0]],
+		["̇", MathLiterals.accent.id],
 		["≐"],
 		["…"],
 		["↓"],
@@ -461,9 +737,9 @@
 		["←"],
 		["≫"],
 		["ℷ"],//0x2137
-		["̀", oNamesOfLiterals.accentLiteral[0]],
+		["̀", MathLiterals.accent.id],
 		[" ", oNamesOfLiterals.spaceLiteral[0]], //	[" ", oNamesOfLiterals.spaceLiteral[0]], // 1/18em space very very thin math space
-		["̂", oNamesOfLiterals.accentLiteral[0]], //["\\hat", oNamesOfLiterals.accentLiteral[0], 770],
+		["̂", MathLiterals.accent.id], //["\\hat", MathLiterals.accent.id, 770],
 		["ℏ"],//0x210f
 		["♡"],
 		["↩"],
@@ -510,7 +786,7 @@
 		["⟦", oNamesOfLiterals.opOpenBracket[0]],
 		["⎰", oNamesOfLiterals.opOpenBracket[0]],
 		["⇋"],
-		["⃖", oNamesOfLiterals.accentLiteral[0]],
+		["⃖", MathLiterals.accent.id],
 		["|", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["↦"],
 		["■", oNamesOfLiterals.matrixLiteral[0]],
@@ -561,12 +837,12 @@
 		["π"],
 		["±"],
 		["⒨", oNamesOfLiterals.matrixLiteral[0]],
-		["⁗", oNamesOfLiterals.accentLiteral[0]],
-		["‴", oNamesOfLiterals.accentLiteral[0]],
-		["″", oNamesOfLiterals.accentLiteral[0]],
+		["⁗", MathLiterals.accent.id],
+		["‴", MathLiterals.accent.id],
+		["″", MathLiterals.accent.id],
 		["≺", oNamesOfLiterals.operatorLiteral[0]],
 		["≼", oNamesOfLiterals.operatorLiteral[0]],
-		["′", oNamesOfLiterals.accentLiteral[0]],
+		["′", MathLiterals.accent.id],
 		["∏", oNamesOfLiterals.opNaryLiteral[0]], //oNamesOfLiterals.functionLiteral[0]
 		["∝"],
 		["ψ"],
@@ -621,12 +897,12 @@
 		["θ"],
 		[" ", oNamesOfLiterals.spaceLiteral[0]], //[" ", oNamesOfLiterals.spaceLiteral[0]], // 5/18em space thick math space
 		[" ", oNamesOfLiterals.spaceLiteral[0]],
-		["̃", oNamesOfLiterals.accentLiteral[0]],
+		["̃", MathLiterals.accent.id],
 		["×", oNamesOfLiterals.operatorLiteral[0]],
 		["→"],
 		["⊤", oNamesOfLiterals.operatorLiteral[0]],
-		["⃡", oNamesOfLiterals.accentLiteral[0]],
-		["̲", oNamesOfLiterals.accentLiteral[0]], //check
+		["⃡", MathLiterals.accent.id],
+		["̲", MathLiterals.accent.id], //check
 		["┌", oNamesOfLiterals.opOpenBracket[0]],
 		["▁", oNamesOfLiterals.hBracketLiteral[0]],
 		["⏟", oNamesOfLiterals.hBracketLiteral[0]],
@@ -649,24 +925,24 @@
 		["│", true],
 		["⊢", oNamesOfLiterals.operatorLiteral[0]],
 		["⋮"],
-		["⃗", oNamesOfLiterals.accentLiteral[0]],
+		["⃗", MathLiterals.accent.id],
 		["∨", oNamesOfLiterals.operatorLiteral[0]],
 		["|", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["⇳"],
 		[" ", oNamesOfLiterals.spaceLiteral[0]], //[" ", oNamesOfLiterals.spaceLiteral[0]], // 6/18em space very thick math space
 		["∧", oNamesOfLiterals.operatorLiteral[0]],
-		["̂", oNamesOfLiterals.accentLiteral[0]], //["\\hat", oNamesOfLiterals.accentLiteral[0], 770],
+		["̂", MathLiterals.accent.id], //["\\hat", MathLiterals.accent.id, 770],
 		["℘"],//0x2118
 		["≀"],
 		["ξ"],
 		["ζ"],
-		["‌"],
+		["‌", oNamesOfLiterals.spaceLiteral[0]],
 		["​", oNamesOfLiterals.spaceLiteral[0]], //["​", oNamesOfLiterals.spaceLiteral[0]], // zero-width space
 
 		["√", oNamesOfLiterals.sqrtLiteral[0]],
 		//["√(", oNamesOfLiterals.sqrtLiteral[0]],
 		["\\}", oNamesOfLiterals.opCloseBracket[0]],
-		["\\|", "‖", oNamesOfLiterals.opOpenCloseBracket[0]],
+		["\\|", oNamesOfLiterals.opOpenCloseBracket[0]],
 		["\\\\", true],
 
 		["\\sf",  oNamesOfLiterals.mathFontLiteral[0]],
@@ -693,20 +969,24 @@
 		["\\frak", oNamesOfLiterals.mathFontLiteral[0]],
 		["\\double", oNamesOfLiterals.mathFontLiteral[0]],
 		["\\sfrac", true],
+		["\\text", true],
+
+		["\\hat", MathLiterals.accent.id],
+		["\\dot", MathLiterals.accent.id],
 
 		// ["\""],
 		// ["\'"],
 
-		["\\quad", " ", oNamesOfLiterals.spaceLiteral[0]], // 1 em (nominally, the height of the font)
+		["\\quad", oNamesOfLiterals.spaceLiteral[0]], // 1 em (nominally, the height of the font)
 		// ["\\qquad", [8193, 8193], oNamesOfLiterals.spaceLiteral[0]], // 2em
 		//["\\text{", "text{"],
 
-		["\\,", " ", oNamesOfLiterals.spaceLiteral[0]], // 3/18em space thin math space
-		["\\:", " ", oNamesOfLiterals.spaceLiteral[0]], // 4/18em space thin math space
-		["\\;", " ", oNamesOfLiterals.spaceLiteral[0]], // 5/18em space thin math space
+		["\\,", oNamesOfLiterals.spaceLiteral[0]], // 3/18em space thin math space
+		["\\:", oNamesOfLiterals.spaceLiteral[0]], // 4/18em space thin math space
+		["\\;", oNamesOfLiterals.spaceLiteral[0]], // 5/18em space thin math space
 		//["\!", " ", oNamesOfLiterals.spaceLiteral[0]], // -3/18 of \quad (= -3 mu)
-		["\\ ", " ", oNamesOfLiterals.spaceLiteral[0]], // equivalent of space in normal text
-		["\\qquad", "  ", oNamesOfLiterals.spaceLiteral[0]], // equivalent of space in normal text
+		["\\ ", oNamesOfLiterals.spaceLiteral[0]], // equivalent of space in normal text
+		["\\qquad", oNamesOfLiterals.spaceLiteral[0]], // equivalent of space in normal text
 
 		["\\\\", true],
 		// ["\\lim", oNamesOfLiterals.opNaryLiteral[0]], LaTeX
@@ -1089,6 +1369,7 @@
 						case oNamesOfLiterals.charLiteral[num]:
 						case oNamesOfLiterals.operatorLiteral[num]:
 						case oNamesOfLiterals.mathOperatorLiteral[num]:
+						case oNamesOfLiterals.textLiteral[num]:
 						case oNamesOfLiterals.numberLiteral[num]:
 							if (oTokens.decimal) {
 								ConvertTokens(
@@ -1137,7 +1418,7 @@
 								oPreSubSup.getLowerIterator()
 							)
 							break;
-						case oNamesOfLiterals.accentLiteral[num]:
+						case MathLiterals.accent.id:
 							let oAccent = oContext.Add_Accent(
 								new CTextPr(),
 								GetFixedCharCodeAt(oTokens.value),
@@ -1630,27 +1911,34 @@
 	};
 	Tokenizer.prototype.GetNextToken = function ()
 	{
-		if (!this.IsHasMoreTokens()) {
+		if (!this.IsHasMoreTokens())
 			return {
 				class: undefined,
 				data: undefined,
 			};
-		}
 
 		let autoCorrectRule,
 			tokenValue,
 			tokenClass,
-			string = this._string.slice(this._cursor);
+			string = this._string.slice(this._cursor),
+			mathLiteral;
+
 
 		for (let i = wordAutoCorrection.length - 1; i >= 0; i--)
 		{
 			autoCorrectRule = wordAutoCorrection[i];
-
 			tokenValue = this.MatchToken(autoCorrectRule[0], string);
+			mathLiteral = GetClassOfMathLiterals[autoCorrectRule[1]];
 
 			if (tokenValue === null)
 			{
 				continue;
+			}
+			if (mathLiteral)
+			{
+				let new_token = mathLiteral.toSymbols[tokenValue];
+				if (new_token)
+					tokenValue = new_token;
 			}
 			else if (autoCorrectRule.length === 1)
 			{
@@ -1721,36 +2009,6 @@
 		}
 	};
 
-	//	Автокоррекции НЕ срабатывает только при вводе букв и цифр, есть исключения для скобок
-	//
-	//	Автокоррекция состоит из нескольник частей:
-	//
-	//		Есть автокоррекция слов \int \sqrt \in \ifty...
-	//			- Слово конвертируются только если ввод происходит после него,
-	//			конвертация блоков не влияет на это.
-	//
-	//
-	//		Есть автокоррекция блоков
-	//			- Автокррекция происходит блоками(chain convertation), так если ввести x^1^2^3,
-	//			то при первой орбаботке будет создан X^1^(CDegree 2^3), а при следующем нажатии
-	//			X^(СDegree 1^(CDegree 2^3)) и т.д;
-	//
-	//			- Если ввести оператор(-, +, =, /) или нажать после него пробел конвертнется ВСЕ,
-	//			что стоит до него (chain convertation тут не работает);
-	//
-	//			- Все скобки, кроме ( ) | |, работают как опертаоры
-	//				* скобки Не являются оператором для скобок
-	//			- Для LaTeX'a имеет смысле добавить в исключения { и }
-	//
-	//			- Есть правила для автоконвертации основанные на лексере:
-	//				* деление по всей видимости конвертится только если есть второй аргумент -> 1/2
-	//				* или введен один знак деления (вокруг пробелы, нет первого аргумента и т.п)
-	//
-	//
-
-	// вместо этих абстракций лучше использовать уже существующие
-	// в идеале все это переписать и распределить исполнение по ParaRun, CMathContent и т.п
-
 	function GetFixedCharCodeAt(str)
 	{
 		let code = str.charCodeAt(0);
@@ -1781,7 +2039,7 @@
 		"\\aleph": "ℵ",
 		"\\alpha": "α",
 		"\\Alpha": "Α",
-		"\\amalg": "∐",
+		"\\amalg": "∐", //?
 		"\\angle": "∠",
 		"\\aoint": "∳",
 		"\\approx": "≈",
@@ -2129,6 +2387,7 @@
 		"\\Psi": "Ψ",
 
 		"\\qdrt": "∜",
+		"\\quad": " ",
 		"\\quadratic": "x=(-b±√(b^2-4ac))/2a",
 
 		"\\rangle": "〉",
@@ -2447,175 +2706,6 @@
 
 		oTempObject.Correct_Content(true);
 		return oTempObject;
-	}
-
-	function LexerLiterals(arrData)
-	{
-		this.data = arrData;
-	}
-	LexerLiterals.prototype.PushNewData = function (str)
-	{
-		if (!this.data.includes(str))
-			this.data.push(str);
-	};
-	LexerLiterals.prototype.GetArrData = function ()
-	{
-		return this.data
-	};
-	LexerLiterals.prototype.PushNextElement = function (strData)
-	{
-		if (!this.data.includes(strData))
-			this.data.push(strData);
-	}
-	LexerLiterals.prototype.IsIncludes = function (str)
-	{
-		return this.data.includes(str)
-	}
-
-	function OpenBrackets()
-	{
-		this.data = ["(", "{", "〖",  "⟨", "["];
-	}
-	OpenBrackets.prototype = Object.create(LexerLiterals.prototype);
-	OpenBrackets.prototype.constructor = OpenBrackets;
-
-	function CloseBrackets()
-	{
-		this.data = [
-			")", "}", "⟫", //	"\\"
-			"⟧", "〗", "⟩", "]",
-		];
-	}
-	CloseBrackets.prototype = Object.create(LexerLiterals.prototype);
-	CloseBrackets.prototype.constructor = CloseBrackets;
-
-	function OpenCloseBrackets()
-	{
-		this.data = ["|", "‖"];
-	}
-	OpenCloseBrackets.prototype = Object.create(LexerLiterals.prototype);
-	OpenCloseBrackets.prototype.constructor = OpenCloseBrackets;
-
-	function Operators()
-	{
-		this.data =  [
-			"⨯", "⨝", "⟕", "⟖", "⟗", "⋉", "⋊", "▷",
-			"+", "-", "*", "=", "≶", "≷", "≜", "⇓", "⇐",
-			"⇔", "⟸", "⟺", "⟹", "⇒", "⇑", "⇕", "∠", "≈",
-			"⬆", "∗", "≍", "∵", "⋈", "⊡", "⊟", "⊞", "⤶",
-			"∙", "⋅", "⋯", "∘", "♣", "≅", "∋", "⋱", "≝", "℃",
-			"℉", "°", "⊣", "⋄", "♢", "÷", "≐", "…", "↓",
-			"⬇", "∅", "#", "≡", "∃", "∀", "⌑", "≥",
-			"←", "≫", "↩", "♡", "∈", "≤", "↪", "←", "↽",
-			"↼", "↔", "≤", "⬄", "⬌", "≪", "⇋", "↦", "⊨",
-			"∓", "≠", "↗", "¬", "≠", "∌", "∉", "∉", "ν",
-			"↖", "ο", "⊙", "⊖", "⊕", "⊗", "⊥", "±",
-			"≺", "≼", "∶", "⋰", "→", "⇁", "⇀", "↘",
-			"∼", "≃", "⬍", "⊑", "⊒", "⋆", "⊂", "⊆", "≻", "≽",
-			"⊃", "⊇", "×", "⊤", "→", "‼", "∷", "≔", "∩", "∪",
-			"∆", "∞", "⁢",
-		];
-	}
-	Operators.prototype = Object.create(LexerLiterals.prototype);
-	Operators.prototype.constructor = Operators;
-
-	function Nary()
-	{
-		this.data = [
-			"⅀", "⨊", "⨋", "∫", "∱", "⨑", "⨍", "⨎", "⨏", "⨕",
-			"⨖", "⨗", "⨘", "⨙", "⨚", "⨛", "⨜", "⨒", "⨓", "⨔",
-			"⨃", "⨅", "⨉", "⫿", "∐", "∳", "⋂", "⋃", "⨀", "⨁",
-			"⨂", "⨆", "⨄", "⋁", "⋀", "∲", "⨌", "∭", "∬",
-			"∫", "∰", "∯", "∮", "∏", "∑",
-		];
-	}
-	Nary.prototype = Object.create(LexerLiterals.prototype);
-	Nary.prototype.constructor = Nary;
-
-	function Radical()
-	{
-		this.data = [
-			"√", "∛", "∜"
-		];
-	}
-	Radical.prototype = Object.create(LexerLiterals.prototype);
-	Radical.prototype.constructor = Radical;
-
-	function Accent()
-	{
-		this.data = [
-			"̿", "'", "''", "̳", "́", "‵", "̅", "̆", "̌", "⃜", "⃛", "̈",
-			"̇", "̀", "̂", "⃑",
-		];
-	}
-	Accent.prototype = Object.create(LexerLiterals.prototype);
-	Accent.prototype.constructor = Accent;
-
-	function Over()
-	{
-		this.data = [
-			"/",  //TODO opOpen
-			"⊘", "⒞", "\\/", "¦",
-		];
-	}
-	Over.prototype = Object.create(LexerLiterals.prototype);
-	Over.prototype.constructor = Over;
-
-	function Box()
-	{
-		this.data = ["□"];
-	}
-	Box.prototype = Object.create(LexerLiterals.prototype);
-	Box.prototype.constructor = Box;
-
-	function Matrix()
-	{
-		this.data = ["⒩", "■"];
-	}
-	Matrix.prototype = Object.create(LexerLiterals.prototype);
-	Matrix.prototype.constructor = Matrix;
-
-	function Space()
-	{
-		this.data = [
-			"  ", // 2/18em space  very thin math space
-			" ", // 3/18em space thin math space
-			"  ", // 7/18em space  very very thick math space
-			" ", // Digit-width space
-			" ", // Space-with space (non-breaking space)
-			"\t", //Tab
-			"\n",
-			" ", // 1em space
-			" ", // 9/18em space
-			" ", // 1/18em space very very thin math space
-		];
-	}
-	Space.prototype = Object.create(LexerLiterals.prototype);
-	Space.prototype.constructor = Space;
-
-	//class === data
-	function SpecialLiteral()
-	{
-		this.data = [
-			"^", "_", "&", "@", "┴", "┬", "┤", "█", "▒",
-		];
-	}
-	SpecialLiteral.prototype = Object.create(LexerLiterals.prototype);
-	SpecialLiteral.prototype.constructor = SpecialLiteral;
-
-	const MathLiterals = {
-		lBrackets: new OpenBrackets(),
-		rBrackets: new CloseBrackets(),
-		lrBrackets: new OpenCloseBrackets(),
-		operators: new Operators(),
-		nary: new Nary(),
-		accent: new Accent(),
-		radical: new Radical(),
-		over: new Over(),
-		box: new Box(),
-		matrix: new Matrix(),
-		space: new Space(),
-		special: new SpecialLiteral(),
 	}
 
 	// const LaTeXWordList = {

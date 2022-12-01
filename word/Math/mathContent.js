@@ -5549,7 +5549,7 @@ CMathContent.prototype.Process_AutoCorrect = function (oElement)
 {
     //debugger
     var oLogicDocument = this.GetLogicDocument();
-    var nInputType = oLogicDocument ? oLogicDocument.GetMathInputType() : Asc.c_oAscMathInputType.Unicode;
+    var nInputType = oLogicDocument ? oLogicDocument. Api.getMathInputType() : Asc.c_oAscMathInputType.Unicode;
     var isLaTeX_AutoCorrection_Allow = true; // для будущей настройки
 
     //разрешена ли автоконвертация для LaTeX

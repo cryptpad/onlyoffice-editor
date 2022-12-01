@@ -34,13 +34,14 @@
 
 (function (window) {
 	const num = 1; //needs for debug, default value: 0
+	const MathLiteral = AscMath.MathLiterals;
 
-	const oLiteralNames = window.AscMath.oNamesOfLiterals;
-	const UnicodeSpecialScript = window.AscMath.UnicodeSpecialScript;
-	const ConvertTokens = window.AscMath.ConvertTokens;
-	const Tokenizer = window.AscMath.Tokenizer;
-	const FunctionNames = window.AscMath.functionNames;
-	const LimitNames = window.AscMath.LimitFunctions;
+	const oLiteralNames = AscMath.oNamesOfLiterals;
+	const UnicodeSpecialScript = AscMath.UnicodeSpecialScript;
+	const ConvertTokens = AscMath.ConvertTokens;
+	const Tokenizer = AscMath.Tokenizer;
+	const FunctionNames = AscMath.functionNames;
+	const LimitNames = AscMath.LimitFunctions;
 
 	function CUnicodeParser() {
 		this.oTokenizer = new Tokenizer(false);
@@ -1187,14 +1188,17 @@
 	CUnicodeParser.prototype.GetDiacriticsLiteral = function ()
 	{
 		const arrDiacriticList = [];
-		while (this.oLookahead.class === oLiteralNames.accentLiteral[0]) {
-			arrDiacriticList.push(this.EatToken(oLiteralNames.accentLiteral[0]).data);
+
+		while (this.IsDiacriticsLiteral())
+		{
+			arrDiacriticList.push(this.EatToken(MathLiteral.accent.id).data);
 		}
+
 		return this.GetContentOfLiteral(arrDiacriticList);
 	};
 	CUnicodeParser.prototype.IsDiacriticsLiteral = function ()
 	{
-		return this.oLookahead.class === oLiteralNames.accentLiteral[0];
+		return this.oLookahead.class === MathLiteral.accent.id;
 	};
 	CUnicodeParser.prototype.GetAtomLiteral = function ()
 	{
@@ -1286,7 +1290,7 @@
 		if (this.IsDiacriticsLiteral()) {
 			const oDiacritic = this.GetDiacriticsLiteral();
 			return {
-				type: oLiteralNames.accentLiteral[num],
+				type: MathLiteral.accent.id,
 				value: oDiacritic,
 			};
 		}
@@ -1311,7 +1315,7 @@
 					}
 				}
 				return {
-					type: oLiteralNames.accentLiteral[num],
+					type: MathLiteral.accent.id,
 					base: oEntity,
 					value: oDiacritic,
 				};

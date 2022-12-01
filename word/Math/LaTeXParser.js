@@ -33,6 +33,7 @@
 "use strict";
 (function (window) {
 	const num = 1;//needs for debug, default value: 0
+	const MathLiterals = AscMath.MathLiterals;
 
 	const oLiteralNames = window.AscMath.oNamesOfLiterals;
 	const ConvertTokens = window.AscMath.ConvertTokens;
@@ -142,12 +143,17 @@
 	};
 	CLaTeXParser.prototype.IsAccentLiteral = function ()
 	{
-		return this.oLookahead.class === oLiteralNames.accentLiteral[0];
+		return this.oLookahead.class === MathLiterals.accent.id;
 	};
 	CLaTeXParser.prototype.GetAccentLiteral = function (oBase)
 	{
-		let strAccent, oResultAccent;
-		if (this.oLookahead.data === "'" || this.oLookahead.data === "''") {
+		let strAccent,
+			oResultAccent;
+
+		this.oLookahead.data = MathLiterals.accent.toSymbols[this.oLookahead.data];
+
+		if (this.oLookahead.data === "'" || this.oLookahead.data === "''")
+		{
 			strAccent = this.EatToken(this.oLookahead.class).data;
 			oResultAccent = {
 				type: oLiteralNames.subSupLiteral[num],
@@ -158,17 +164,19 @@
 				}
 			};
 		}
-		else {
+		else
+		{
 			strAccent = this.EatToken(this.oLookahead.class).data;
 			oBase = this.GetArguments(1);
 			oBase = this.GetContentOfLiteral(oBase);
 
 			oResultAccent = {
-				type: oLiteralNames.accentLiteral[1],
+				type: MathLiterals.accent.id,
 				base: oBase,
 				value: strAccent,
 			};
 		}
+
 		return oResultAccent;
 	};
 	CLaTeXParser.prototype.IsFractionLiteral = function ()
@@ -316,7 +324,9 @@
 			this.oLookahead.data === "┬" ||
 			this.oLookahead.data === "┴" ||
 			this.oLookahead.data === "." || this.oLookahead.data === "," ||
-			this.IsOverUnderBarLiteral()
+			this.IsOverUnderBarLiteral() ||
+			this.IsTextLiteral() ||
+			this.oLookahead.data === "/"
 		);
 	};
 	CLaTeXParser.prototype.GetElementLiteral = function ()
@@ -416,7 +426,46 @@
 		else if (this.IsHBracket()) {
 			return this.GetHBracketLiteral()
 		}
+		else if (this.IsTextLiteral()) {
+			return this.GetTextLiteral();
+		}
+		else if (this.oLookahead.data === "/") {
+			this.EatToken(this.oLookahead.class);
+			return {
+				type: oLiteralNames.charLiteral[num],
+				value: "/",
+			}
+		}
 	};
+	CLaTeXParser.prototype.IsTextLiteral = function ()
+	{
+		return this.oLookahead.class === "\\text"
+	}
+	CLaTeXParser.prototype.GetTextLiteral = function ()
+	{
+		this.EatToken("\\text");
+		let oContent = this.GetTextArgument();
+
+		return {
+			type: oLiteralNames.textLiteral[num],
+			value: oContent,
+		}
+	}
+	CLaTeXParser.prototype.GetTextArgument = function ()
+	{
+		let strText = "";
+
+		this.EatToken(this.oLookahead.class); // {
+
+		while (this.oLookahead.data !== "}" && this.oLookahead.data !== undefined)
+		{
+			strText += this.EatToken(this.oLookahead.class).data;
+		}
+
+		this.EatToken(this.oLookahead.class); // }
+
+		return strText;
+	}
 	CLaTeXParser.prototype.IsSkipLiteral = function ()
 	{
 		return (
@@ -542,17 +591,23 @@
 	};
 	CLaTeXParser.prototype.GetWrapperElementLiteral = function ()
 	{
-		if (!this.IsSubSup() && this.oLookahead.class !== "\\over") {
+		if (!this.IsSubSup() && this.oLookahead.class !== "\\over")
+		{
 			let oWrapperContent = this.GetElementLiteral();
-			if (this.IsSubSup() || this.oLookahead.class === "\\limits") {
+
+			if (this.IsSubSup() || this.oLookahead.class === "\\limits")
+			{
 				return this.GetSubSupLiteral(oWrapperContent);
 			}
-			else if (this.oLookahead.class === "\\over") {
-				//TODO
-			}
-			else if (this.oLookahead.class === oLiteralNames.accentLiteral[0]) {
+			else if (this.oLookahead.class === MathLiterals.accent.id)
+			{
 				return this.GetAccentLiteral(oWrapperContent);
 			}
+
+			// else if (this.oLookahead.class === "\\over") {
+			// 	//TODO
+			// }
+
 			return oWrapperContent;
 		}
 	};
@@ -724,6 +779,9 @@
 	{
 		let strMatrixType;
 		switch (this.oLookahead.data) {
+			case "\\begin{cases}":
+				strMatrixType = "{";
+				break
 			case "\\begin{pmatrix}":
 			case "\\pmatrix":
 			case "⒨":
@@ -856,22 +914,29 @@
 
 		return arrRow;
 	};
+	CLaTeXParser.prototype.IsExpressionLiteral = function(strBreakType)
+	{
+		const arrEndOfExpression = ["}", "\\endgroup", "\\end", "┤"];
+
+		//todo refactor
+		return 	this.IsElementLiteral() &&
+				this.oLookahead.data !== this.EscapeSymbol &&
+				!arrEndOfExpression.includes(this.oLookahead.data) &&
+				((this.EscapeSymbol && !this.EscapeSymbol.includes(this.oLookahead.data)) || !strBreakType)
+	};
 	CLaTeXParser.prototype.GetExpressionLiteral = function (strBreakSymbol, strBreakType)
 	{
 		this.EscapeSymbol = strBreakSymbol;
-		const arrEndOfExpression = ["}", "\\endgroup", "\\end", "┤"];
 		const arrExpList = [];
-		while (
-			this.IsElementLiteral() &&
-			this.oLookahead.data !== strBreakSymbol &&
-			!arrEndOfExpression.includes(this.oLookahead.data) &&
-			((this.EscapeSymbol && !this.EscapeSymbol.includes(this.oLookahead.data)) || !strBreakType)) {
-			if (this.IsPreScript()) {
+
+		while (this.IsExpressionLiteral(strBreakType))
+		{
+			if (this.IsPreScript())
 				arrExpList.push(this.GetPreScriptLiteral());
-			} else {
+			else
 				arrExpList.push(this.GetWrapperElementLiteral());
-			}
 		}
+
 		return this.GetContentOfLiteral(arrExpList)
 	};
 	CLaTeXParser.prototype.EatToken = function (tokenType)
