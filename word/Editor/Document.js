@@ -15569,7 +15569,6 @@ CDocument.prototype.private_StoreViewPositions = function(state)
 	state.CursorDistance = cursorDistance
 	state.CursorPosType  = cursorPosType;
 	
-	
 	let topPos    = this.GetDocumentPositionByXY(viewPort[0].Page, 0, viewPort[0].Y);
 	let bottomPos = this.GetDocumentPositionByXY(viewPort[1].Page, 0, viewPort[1].Y);
 
@@ -15711,19 +15710,31 @@ CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 
 	if (State.ViewPosTop)
 	{
-		this.ViewPosition = {
-			Top            : State.ViewPosTop,
-			Bottom         : State.ViewPosBottom ? State.ViewPosBottom : State.ViewPosTop,
-			CursorAlign    : State.CursorAlign,
-			CursorDistance : State.CursorDistance,
-			CursorPos      : null
-		};
+		if (this.ViewPosition)
+		{
+			// Сюда попадаем, когда мы еще не успели обработать предыдущую расчитанную позицию курсора, но при этом
+			// прошло несколько пересчетов, которые могли поменять позицию курсора, поэтому мы должны использовать
+			// начально расчитанные значения
+			this.ViewPosition.Top    = State.ViewPosTop;
+			this.ViewPosition.Bottom = State.ViewPosBottom ? State.ViewPosBottom : State.ViewPosTop;
+		}
+		else
+		{
+			this.ViewPosition = {
+				Top            : State.ViewPosTop,
+				Bottom         : State.ViewPosBottom ? State.ViewPosBottom : State.ViewPosTop,
+				CursorAlign    : State.CursorAlign,
+				CursorDistance : State.CursorDistance,
+				CursorPosType  : State.CursorPosType,
+				CursorPos      : null
+			};
+		}
 		
-		if (0 === State.CursorPosType)
+		if (0 === this.ViewPosition.CursorPosType)
 			this.ViewPosition.CursorPos = State.Pos;
-		else if (1 === State.CursorPosType)
+		else if (1 === this.ViewPosition.CursorPosType)
 			this.ViewPosition.CursorPos = State.StartPos;
-		else if (2 === State.CursorPosType)
+		else if (2 === this.ViewPosition.CursorPosType)
 			this.ViewPosition.CursorPos = State.EndPos;
 		else
 			this.ViewPosition.CursorPos = null;
