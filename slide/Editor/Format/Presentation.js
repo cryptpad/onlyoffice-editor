@@ -8269,19 +8269,17 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
 		let oDrawingPr = oController.getDrawingProps();
 	    let oParaPr = oController.getParagraphParaPr();
 		let oTextPr = oController.getParagraphTextPr();
-	    if (!oParaPr) {
-		    oParaPr = new CParaPr();
-	    }
-	    if (!oTextPr) {
-		    oTextPr = new CTextPr();
-	    }
 	    this.Api.textArtPreviewManager.clear();
 	    let oTheme = oController.getTheme();
-	    oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
-	    this.Api.sync_PrLineSpacingCallBack(oParaPr.Spacing);
+		if(oTextPr) {
+			oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
+		}
+	    this.Api.sync_PrLineSpacingCallBack(oParaPr ? oParaPr.Spacing : undefined);
 	    if (!oTargetDocContent) {
-		    this.Api.UpdateTextPr(oTextPr);
-		    this.Api.UpdateParagraphProp(oParaPr);
+			if(oTextPr && oParaPr) {
+				this.Api.UpdateParagraphProp(oParaPr);
+			}
+
 	    }
 		let oImgPr = oDrawingPr.imageProps;
 		let oSpPr = oDrawingPr.shapeProps;
