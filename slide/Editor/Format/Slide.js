@@ -1391,7 +1391,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             }
         }
         if(!bCheckBounds && !bSlideShow) {
-            this.drawGrid(graphics);
+            this.drawViewPrMarks(graphics);
         }
         if(bClipBySlide) {
             graphics.RestoreGrState();
@@ -1458,9 +1458,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
     CStrideData.prototype.drawGrid = function(oGraphics) {
         let oContext = oGraphics.m_oContext;
         if(!oContext) {
-            return;
-        }
-        if(oGraphics.IsThumbnail || oGraphics.animationDrawer || oGraphics.IsDemonstrationMode) {
             return;
         }
         this.checkUpdate();
@@ -1607,23 +1604,24 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
 	    oContext.globalCompositeOperation = sOldCompostiteOperation;
     };
-    Slide.prototype.drawGrid = function(oGraphics) {
-        let oApi = editor;
+    Slide.prototype.drawViewPrMarks = function(oGraphics) {
+	    let oContext = oGraphics.m_oContext;
+	    if( !oContext ||
+			AscCommon.IsShapeToImageConverter ||
+		    oGraphics.IsThumbnail ||
+		    oGraphics.animationDrawer ||
+		    oGraphics.IsDemonstrationMode ||
+		    oGraphics.IsSlideBoundsCheckerType) {
+		    return;
+	    }
+
+	    let oApi = editor;
         if(!oApi) {
             return;
         }
         if(!oApi.WordControl) {
             return;
         }
-        let oContext = oGraphics.m_oContext;
-        if(!oContext) {
-            return;
-        }
-        if(oGraphics.IsThumbnail || oGraphics.animationDrawer ||
-	        oGraphics.IsDemonstrationMode || AscCommon.IsShapeToImageConverter) {
-            return;
-        }
-
         let oPresentation = oApi.WordControl.m_oLogicDocument;
         if(!oPresentation) {
             return;
