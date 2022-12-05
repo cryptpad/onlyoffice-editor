@@ -8207,10 +8207,8 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
             var target_content = graphic_objects.getTargetDocContent(undefined, true),
                 drawing_props = graphic_objects.getDrawingProps(), i;
             var para_pr = graphic_objects.getParagraphParaPr(), text_pr = graphic_objects.getParagraphTextPr();
-            var flag = undefined;
             if (!para_pr) {
                 para_pr = new CParaPr();
-                flag = true;
             }
             if (!text_pr) {
                 text_pr = new CTextPr();
@@ -8221,6 +8219,7 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
             editor.sync_PrLineSpacingCallBack(para_pr.Spacing);
             if (!target_content) {
                 editor.UpdateTextPr(text_pr);
+				editor.UpdateParagraphProp(para_pr);
             }
 
             if (drawing_props.imageProps && !this.FocusOnNotes) {
