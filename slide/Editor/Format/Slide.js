@@ -1551,16 +1551,14 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         nVertStart = this.getStartStridePos(nStrideLine, nSlideHeight);
         let nVertPos = nVertStart;
         let nHorPos;
-        while (nVertPos < nSlideHeight) {
-            if(nVertPos > 0) {
-                nHorPos = nHorStart;
-                while (nHorPos < nSlideWidth) {
-                    if(nHorPos > 0) {
-                        dp();
-                    }
-                    nHorPos += nStrideInsideLine;
-                }
-            }
+		let nBottom = nSlideHeight + nStrideInsideLine;
+		let nRight = nSlideWidth + nStrideInsideLine;
+        while (nVertPos < nBottom) {
+	        nHorPos = nHorStart;
+	        while (nHorPos < nRight) {
+		        dp();
+		        nHorPos += nStrideInsideLine;
+	        }
             nVertPos += nStrideLine;
         }
 
@@ -1570,22 +1568,12 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 			nHorStart = this.getStartStridePos(nStrideLine, nSlideWidth);
 			nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
 			nHorPos = nHorStart;
-			let nVertLineStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
 
-			while (nHorPos < nSlideWidth) {
-				if(nHorPos > 0) {
-					nVertPos = nVertStart;
-					while (nVertPos < nSlideHeight) {
-						if(nVertPos > 0) {
-							let nDistance = nVertPos - nVertLineStart;
-							let dVal1 = nDistance / nStrideLine;
-							let dVal2 = nDistance / nStrideLine >> 0;
-							if(!AscFormat.fApproxEqual(dVal1, dVal2)) {
-								dp();
-							}
-						}
-						nVertPos += nStrideInsideLine;
-					}
+			while (nHorPos < nRight) {
+				nVertPos = nVertStart;
+				while (nVertPos < nBottom) {
+					dp();
+					nVertPos += nStrideInsideLine;
 				}
 				nHorPos += nStrideLine;
 			}
