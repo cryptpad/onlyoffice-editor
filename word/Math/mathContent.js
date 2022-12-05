@@ -5547,29 +5547,29 @@ CMathContent.prototype.SplitContentByContentPos = function()
 };
 CMathContent.prototype.Process_AutoCorrect = function (oElement)
 {
-    //debugger
     var oLogicDocument = this.GetLogicDocument();
-    var nInputType = oLogicDocument ? oLogicDocument. Api.getMathInputType() : Asc.c_oAscMathInputType.Unicode;
-    var isLaTeX_AutoCorrection_Allow = true; // для будущей настройки
+    var nInputType = oLogicDocument
+        ? oLogicDocument. Api.getMathInputType()
+        : Asc.c_oAscMathInputType.Unicode;
 
-    //разрешена ли автоконвертация для LaTeX
+    var isLaTeX_AutoCorrection_Allow = false;
     if (isLaTeX_AutoCorrection_Allow === false && nInputType === 1)
         return;
 
-    //делим контент по позиции курсора
+    // split content bu cursor position
     const arrNextContent = this.SplitContentByContentPos();
 
-    //конвертируем контент в скобке у курсора для Unicode (1/2) -> ( CFraction )
+    // convert bracket block near cursor for Unicode (1/2) -> ( CFraction )
     if (nInputType === 0)
         this.ConvertContentInLastBracketBlock(nInputType);
 
-    //конвертриуем слово у курсора (\int, \sqrt, \alpha...)
-    if (oElement.value === 32) {
-        if (this.CorrectWordOnCursor())
-            return;
+    // convert word near cursor (\int, \sqrt, \alpha...)
+    if (oElement.value === 32)
+    {
+        if (this.CorrectWordOnCursor()) return;
     }
 
-    //проверяем нужно ли начать процесс автокоррекции
+    // check is needed start autocorrection
     if (!this.IsStartAutoCorrection(nInputType, oElement.value))
         return;
 
@@ -5577,38 +5577,34 @@ CMathContent.prototype.Process_AutoCorrect = function (oElement)
     //     this.CorrectAllMathWords();
     // }
 
-    //убираем символ пустого контента TODO выделить в нормальную функцию
-    if (
-        this.Content.length > 1 &&
-        this.Content[this.Content.length - 1].Content[0] &&
-        this.Content[this.Content.length - 1].Content[0].value === 11034
-    )
+    // delete placeholder symbol TODO refactor to normal method
+    if (this.Content.length > 1 && this.Content[this.Content.length - 1].Content[0] &&
+        this.Content[this.Content.length - 1].Content[0].value === 11034)
     {
         this.Remove_FromContent(this.Content.length - 1, 1);
     }
 
     //const oSlashesContent = this.GetSlashesInfo();
 
-    //если режим Unicode
+    // Unicode
     if (nInputType === 0)
     {
-        //обрабатывает скобку () -> CDelimiter
-        let Brack = this.CheckAutoCorrectionBrackets(nInputType);
-        //обрабатывает правила (1/2, 1_2 ...)
+        // proceed bracket block () -> CDelimiter
+        let Bracket = this.CheckAutoCorrectionBrackets(nInputType);
+        // proceed rules (1/2, 1_2 ...)
         let isConvert = this.CheckAutoCorrectionRules(nInputType);
 
-        //если правило не было найдено - конвертируем контент до первого оператора
-        if (!isConvert && typeof Brack === 'object' && Brack.intCounter === 0)
-            this.CheckWhileOperatorContent(Brack.OperatorsPos, nInputType);
+        // else - convert content until first operator
+        if (!isConvert && typeof Bracket === 'object' && Bracket.intCounter === 0)
+            this.CheckWhileOperatorContent(Bracket.OperatorsPos, nInputType);
     }
-    else //LaTex
+    else // LaTex
     {
-        let Brack = this.CheckAutoCorrectionBrackets(nInputType);
-        if (typeof Brack === 'object' && Brack.intCounter === 0)
-            this.CheckWhileOperatorContent(Brack.OperatorsPos, nInputType);
+        let Bracket = this.CheckAutoCorrectionBrackets(nInputType);
+        if (typeof Bracket === 'object' && Bracket.intCounter === 0)
+            this.CheckWhileOperatorContent(Bracket.OperatorsPos, nInputType);
     }
 
-    //возвращяем обратно обрезанный после позиции курсора контент
     if (arrNextContent.length > 0)
         this.AddContentForAutoCorrection(arrNextContent);
 };
