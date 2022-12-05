@@ -1494,17 +1494,11 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
        }
         nStrideLine = nStrideInsideLine;
         nStrideLinePix = nStrideInsideLinePix;
-        let nStartStrideVerPos = this.getStartStridePos(nStrideLine, nSlideHeight);
-        let nStartStrideHorPos = this.getStartStridePos(nStrideLine, nSlideWidth);
-        let nStartInsideHorPos = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
-        let nStartInsideVerPos = this.getStartStridePos(nStrideInsideLine, nSlideHeight);
         while(nStrideLinePix < nMinLineStridePix) {
             nStrideLine += nStrideInsideLine;
             nStrideLinePix = ep(nStrideLine);
             //nStartStridePos = this.getStartStridePos(nStrideLine, nSlideHeight);
         }
-	    nStartStrideVerPos = this.getStartStridePos(nStrideLine, nSlideHeight);
-	    nStartStrideHorPos = this.getStartStridePos(nStrideLine, nSlideWidth);
         bPixel = nStrideInsideLinePix < AscCommon.AscBrowser.convertToRetinaValue(17, true);
 
         oGraphics.SaveGrState();
@@ -1552,8 +1546,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
                 oContext.drawImage(oImageCanvas, nX - 1, nY - 1);
             }
         }
-		let sOldCompostiteOperation = oContext.globalCompositeOperation;
-	    oContext.globalCompositeOperation = "difference";
 
         nHorStart = this.getStartStridePos(nStrideInsideLine, nSlideWidth);
         nVertStart = this.getStartStridePos(nStrideLine, nSlideHeight);
@@ -1601,8 +1593,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 
         oGraphics.df();
         oGraphics.RestoreGrState();
-
-	    oContext.globalCompositeOperation = sOldCompostiteOperation;
     };
     Slide.prototype.drawViewPrMarks = function(oGraphics) {
 	    let oContext = oGraphics.m_oContext;
@@ -1627,7 +1617,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             return;
         }
         if(oApi.asc_getShowGridlines()) {
-            oPresentation.drawGrid(oGraphics);
+            oPresentation.checkGridCache(oGraphics);
         }
         if(oApi.asc_getShowGuides()) {
             oPresentation.drawGuides(oGraphics);

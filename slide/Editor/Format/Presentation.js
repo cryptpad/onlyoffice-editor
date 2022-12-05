@@ -2937,6 +2937,9 @@ function CPresentation(DrawingDocument) {
     this.AutoCorrectSettings = new AscCommon.CAutoCorrectSettings();
 
 	this.MathTrackHandler = new AscWord.CMathTrackHandler(DrawingDocument, this.Api);
+
+	this.cachedGridCanvas = null;
+	this.cachedGridSpacing = null;
 }
 AscFormat.InitClass(CPresentation, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_Presentation);
 
@@ -4693,6 +4696,64 @@ CPresentation.prototype.OnContentReDraw = function (StartPage, EndPage) {
     this.ReDraw(StartPage, EndPage);
 };
 
+CPresentation.prototype.checkGridCache = function(oGraphics) {
+	let oCoordTr = oGraphics.m_oCoordTransform;
+	let oContext = oGraphics.m_oContext;
+	if( !oContext ||
+		!oCoordTr ||
+		AscCommon.IsShapeToImageConverter ||
+		oGraphics.IsThumbnail ||
+		oGraphics.animationDrawer ||
+		oGraphics.IsDemonstrationMode ||
+		oGraphics.IsSlideBoundsCheckerType) {
+		return;
+	}
+	let nWidth = (oCoordTr.sx * this.GetWidthMM() + 0.5) >> 0;
+	let nHeight = (oCoordTr.sy * this.GetHeightMM() + 0.5) >> 0;
+	if(nWidth === 0 || nHeight === 0) {
+		return;
+	}
+	let bUpdateCache = false;
+	if(!this.cachedGridCanvas) {
+		bUpdateCache = true;
+	}
+	if(!bUpdateCache) {
+		if(this.cachedGridCanvas.width !== nWidth || this.cachedGridCanvas.height !== nHeight) {
+			bUpdateCache = true
+		}
+	}
+	if(!bUpdateCache) {
+		let nGridSpacing = this.getGridSpacing();
+		if(this.cachedGridSpacing !== nGridSpacing) {
+			bUpdateCache = true;
+		}
+	}
+	if(bUpdateCache) {
+		if(!this.cachedGridCanvas) {
+			this.cachedGridCanvas = document.createElement('canvas');
+		}
+		this.cachedGridCanvas.width = nWidth;
+		this.cachedGridCanvas.height = nHeight;
+		this.cachedGridSpacing = this.getGridSpacing();
+		let oCtx = this.cachedGridCanvas.getContext('2d');
+		let oCacheGraphics = new AscCommon.CGraphics();
+		oCacheGraphics.init(oCtx, nWidth, nHeight, nWidth / oCoordTr.sx, nHeight / oCoordTr.sy);
+		oCacheGraphics.m_oFontManager = AscCommon.g_fontManager;
+		oCacheGraphics.transform(1, 0, 0, 1, 0, 0);
+		this.drawGrid(oCacheGraphics);
+	}
+	let nX = oCoordTr.TransformPointX(0, 0) + 0.5 >> 0;
+	let nY = oCoordTr.TransformPointY(0, 0) + 0.5 >> 0;
+	oGraphics.SaveGrState();
+	oGraphics.SetIntegerGrid(true);
+
+	let oGrCtx = oGraphics.m_oContext;
+	let sOldCompostiteOperation = oContext.globalCompositeOperation;
+	oContext.globalCompositeOperation = "difference";
+	oGrCtx.drawImage(this.cachedGridCanvas, nX, nY);
+	oGrCtx.globalCompositeOperation = sOldCompostiteOperation;
+	oGraphics.RestoreGrState();
+};
 CPresentation.prototype.CheckTargetUpdate = function () {
     if (this.DrawingDocument.UpdateTargetFromPaint === true) {
         if (true === this.DrawingDocument.UpdateTargetCheck)
