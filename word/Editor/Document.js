@@ -14694,6 +14694,18 @@ CDocument.prototype.private_GetXYByDocumentPosition = function(docPos)
 };
 CDocument.prototype.private_StoreViewPositions = function(state)
 {
+	if (this.ViewPosition)
+	{
+		// Сюда попадаем, когда мы еще не успели обработать предыдущую расчитанную позицию, но при этом
+		// прошло несколько пересчетов, которые могли поменять значения позиции, поэтому мы должны использовать
+		// начально расчитанные значения
+		state.AnchorAlignTop = this.ViewPosition.AlignTop;
+		state.AnchorDistance = this.ViewPosition.Distance;
+		state.AnchorType     = this.ViewPosition.Type;
+		state.AnchorPos      = this.ViewPosition.AnchorPos;
+		return;
+	}
+	
 	let viewPort = this.DrawingDocument.GetVisibleRegion();
 	
 	let selectionBounds = this.GetSelectionBounds();
@@ -14857,22 +14869,12 @@ CDocument.prototype.Load_DocumentStateAfterLoadChanges = function(State)
 
 	if (undefined !== State.AnchorType)
 	{
-		if (this.ViewPosition)
-		{
-			// Сюда попадаем, когда мы еще не успели обработать предыдущую расчитанную позицию, но при этом
-			// прошло несколько пересчетов, которые могли поменять значения позиции, поэтому мы должны использовать
-			// начально расчитанные значения
-			this.ViewPosition.AnchorPos = State.AnchorPos;
-		}
-		else
-		{
-			this.ViewPosition = {
-				AnchorPos : State.AnchorPos,
-				AlignTop  : State.AnchorAlignTop,
-				Distance  : State.AnchorDistance,
-				Type      : State.AnchorType
-			};
-		}
+		this.ViewPosition = {
+			AnchorPos : State.AnchorPos,
+			AlignTop  : State.AnchorAlignTop,
+			Distance  : State.AnchorDistance,
+			Type      : State.AnchorType
+		};
 		
 		if (AscWord.ViewPositionType.Cursor === this.ViewPosition.Type)
 			this.ViewPosition.AnchorPos = State.Pos;
