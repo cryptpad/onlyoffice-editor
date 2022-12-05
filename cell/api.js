@@ -434,7 +434,12 @@ var editor;
 
   spreadsheet_api.prototype._printDesktop = function (options) {
     window.AscDesktopEditor_PrintOptions = options;
-    window["AscDesktopEditor"]["Print"]();
+
+    let desktopOptions = {};
+    if (options && options.advancedOptions)
+      desktopOptions["nativeOptions"] = options.advancedOptions.asc_getNativeOptions();
+
+    window["AscDesktopEditor"]["Print"](JSON.stringify(desktopOptions));
     return true;
   };
 
@@ -1619,12 +1624,16 @@ var editor;
 									var reader = new StaxParser(contentExternalWorkbook, externalWorkbookPart, xmlParserContext);
 									oExternalReference.fromXml(reader);
 
-									//TODO id отличается от serialize
 									if (oExternalReference.val) {
-										if (oExternalReference.val.Id) {
-											oExternalReference.val.Id = externalReference;
+										if (oExternalReference.val.externalBook) {
+											var relationship = externalWorkbookPart.getRelationship(oExternalReference.val.externalBook.Id);
+											//подменяем id на target
+											if (relationship && relationship.targetFullName) {
+												oExternalReference.val.externalBook.Id = relationship.targetFullName;
+											}
+											wb.externalReferences.push(oExternalReference.val.externalBook);
+
 										}
-										wb.externalReferences.push(oExternalReference.val);
 									}
 								}
 							}
@@ -2124,7 +2133,7 @@ var editor;
 			wbPart = doc.getPartByRelationshipType(openXml.Types.workbook.relationType);
 			var contentWorkbook = wbPart.getDocumentContent();
 			AscCommonExcel.executeInR1C1Mode(false, function () {
-				wbXml = new AscCommonExcel.CT_Workbook();
+				wbXml = new AscCommonExcel.CT_Workbook(wb);
 				var reader = new StaxParser(contentWorkbook, wbPart, xmlParserContext);
 				wbXml.fromXml(reader, {"sheets" : 1});
 			});
