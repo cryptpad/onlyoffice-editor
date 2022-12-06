@@ -8399,7 +8399,7 @@ CPresentation.prototype.GetTableForPreview = function()
         let _pageH = 210;
         let W = (_pageW - _x_mar - _r_mar);
         let H = (_pageH - _y_mar - _b_mar);
-        let oGrFrame = this.Create_TableGraphicFrame(5, 5, this.GetCurrentSlide(), this.DefaultTableStyleId, W, H - 17, _x_mar, _y_mar, true);
+        let oGrFrame = this.Create_TableGraphicFrame(5, 5, this.GetCurrentSlide(), this.DefaultTableStyleId, W, H, _x_mar, _y_mar, true);
         oGrFrame.setBDeleted(true);
         return oGrFrame.graphicObject;
     }, this, []);
@@ -12108,7 +12108,7 @@ function getDefaultGUIDTableStyleByName(sName)
     default:
       return AscCommon.CreateGUID();
   }
-};
+}
 
 //------------------------------------------------------------export----------------------------------------------------
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
