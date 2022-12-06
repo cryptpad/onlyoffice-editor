@@ -2937,6 +2937,9 @@ function CPresentation(DrawingDocument) {
     this.AutoCorrectSettings = new AscCommon.CAutoCorrectSettings();
 
 	this.MathTrackHandler = new AscWord.CMathTrackHandler(DrawingDocument, this.Api);
+
+	this.cachedGridCanvas = null;
+	this.cachedGridSpacing = null;
 }
 AscFormat.InitClass(CPresentation, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_Presentation);
 
@@ -4693,6 +4696,64 @@ CPresentation.prototype.OnContentReDraw = function (StartPage, EndPage) {
     this.ReDraw(StartPage, EndPage);
 };
 
+CPresentation.prototype.checkGridCache = function(oGraphics) {
+	let oCoordTr = oGraphics.m_oCoordTransform;
+	let oContext = oGraphics.m_oContext;
+	if( !oContext ||
+		!oCoordTr ||
+		AscCommon.IsShapeToImageConverter ||
+		oGraphics.IsThumbnail ||
+		oGraphics.animationDrawer ||
+		oGraphics.IsDemonstrationMode ||
+		oGraphics.IsSlideBoundsCheckerType) {
+		return;
+	}
+	let nWidth = (oCoordTr.sx * this.GetWidthMM() + 0.5) >> 0;
+	let nHeight = (oCoordTr.sy * this.GetHeightMM() + 0.5) >> 0;
+	if(nWidth === 0 || nHeight === 0) {
+		return;
+	}
+	let bUpdateCache = false;
+	if(!this.cachedGridCanvas) {
+		bUpdateCache = true;
+	}
+	if(!bUpdateCache) {
+		if(this.cachedGridCanvas.width !== nWidth || this.cachedGridCanvas.height !== nHeight) {
+			bUpdateCache = true
+		}
+	}
+	if(!bUpdateCache) {
+		let nGridSpacing = this.getGridSpacing();
+		if(this.cachedGridSpacing !== nGridSpacing) {
+			bUpdateCache = true;
+		}
+	}
+	if(bUpdateCache) {
+		if(!this.cachedGridCanvas) {
+			this.cachedGridCanvas = document.createElement('canvas');
+		}
+		this.cachedGridCanvas.width = nWidth;
+		this.cachedGridCanvas.height = nHeight;
+		this.cachedGridSpacing = this.getGridSpacing();
+		let oCtx = this.cachedGridCanvas.getContext('2d');
+		let oCacheGraphics = new AscCommon.CGraphics();
+		oCacheGraphics.init(oCtx, nWidth, nHeight, nWidth / oCoordTr.sx, nHeight / oCoordTr.sy);
+		oCacheGraphics.m_oFontManager = AscCommon.g_fontManager;
+		oCacheGraphics.transform(1, 0, 0, 1, 0, 0);
+		this.drawGrid(oCacheGraphics);
+	}
+	let nX = oCoordTr.TransformPointX(0, 0) + 0.5 >> 0;
+	let nY = oCoordTr.TransformPointY(0, 0) + 0.5 >> 0;
+	oGraphics.SaveGrState();
+	oGraphics.SetIntegerGrid(true);
+
+	let oGrCtx = oGraphics.m_oContext;
+	let sOldCompostiteOperation = oContext.globalCompositeOperation;
+	oContext.globalCompositeOperation = "difference";
+	oGrCtx.drawImage(this.cachedGridCanvas, nX, nY);
+	oGrCtx.globalCompositeOperation = sOldCompostiteOperation;
+	oGraphics.RestoreGrState();
+};
 CPresentation.prototype.CheckTargetUpdate = function () {
     if (this.DrawingDocument.UpdateTargetFromPaint === true) {
         if (true === this.DrawingDocument.UpdateTargetCheck)
@@ -8208,19 +8269,17 @@ CPresentation.prototype.Document_UpdateInterfaceState = function () {
 		let oDrawingPr = oController.getDrawingProps();
 	    let oParaPr = oController.getParagraphParaPr();
 		let oTextPr = oController.getParagraphTextPr();
-	    if (!oParaPr) {
-		    oParaPr = new CParaPr();
-	    }
-	    if (!oTextPr) {
-		    oTextPr = new CTextPr();
-	    }
 	    this.Api.textArtPreviewManager.clear();
 	    let oTheme = oController.getTheme();
-	    oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
-	    this.Api.sync_PrLineSpacingCallBack(oParaPr.Spacing);
+		if(oTextPr) {
+			oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
+		}
+	    this.Api.sync_PrLineSpacingCallBack(oParaPr ? oParaPr.Spacing : undefined);
 	    if (!oTargetDocContent) {
-		    this.Api.UpdateTextPr(oTextPr);
-		    this.Api.UpdateParagraphProp(oParaPr);
+			if(oTextPr && oParaPr) {
+				this.Api.UpdateParagraphProp(oParaPr);
+			}
+
 	    }
 		let oImgPr = oDrawingPr.imageProps;
 		let oSpPr = oDrawingPr.shapeProps;
@@ -8340,7 +8399,7 @@ CPresentation.prototype.GetTableForPreview = function()
         let _pageH = 210;
         let W = (_pageW - _x_mar - _r_mar);
         let H = (_pageH - _y_mar - _b_mar);
-        let oGrFrame = this.Create_TableGraphicFrame(5, 5, this.GetCurrentSlide(), this.DefaultTableStyleId, W, H - 17, _x_mar, _y_mar, true);
+        let oGrFrame = this.Create_TableGraphicFrame(5, 5, this.GetCurrentSlide(), this.DefaultTableStyleId, W, H, _x_mar, _y_mar, true);
         oGrFrame.setBDeleted(true);
         return oGrFrame.graphicObject;
     }, this, []);
@@ -12049,7 +12108,7 @@ function getDefaultGUIDTableStyleByName(sName)
     default:
       return AscCommon.CreateGUID();
   }
-};
+}
 
 //------------------------------------------------------------export----------------------------------------------------
 window['AscCommonSlide'] = window['AscCommonSlide'] || {};
