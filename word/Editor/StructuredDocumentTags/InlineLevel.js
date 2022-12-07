@@ -248,7 +248,11 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl, oPr)
 	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
 
 	if (undefined !== this.Pr.FormPr)
-		oContentControl.SetFormPr(this.Pr.FormPr);
+	{
+		let formPr = this.Pr.FormPr.Copy();
+		formPr.Field = undefined;
+		oContentControl.SetFormPr(formPr);
+	}
 
 	if (undefined !== this.Pr.TextForm)
 		oContentControl.SetTextFormPr(this.Pr.TextForm);
