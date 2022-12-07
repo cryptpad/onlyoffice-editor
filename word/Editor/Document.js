@@ -2813,6 +2813,9 @@ CDocument.prototype.private_CheckAdditionalOnFinalize = function()
 
 	if (this.Action.Additional.ContentControlChange)
 		this.private_FinalizeContentControlChange();
+	
+	if (this.OFormDocument)
+		this.OFormDocument.onEndAction();
 };
 /**
  * Пересчитываем нумерацию строк
