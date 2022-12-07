@@ -681,7 +681,7 @@ CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
 	form.Pr.FormPr = Value;
 	
 	let oldFieldMaster = form.Pr.FormPr ? form.Pr.FormPr.Field : undefined;
-	let newFieldMaster = Value.Field;
+	let newFieldMaster = Value ? Value.Field : undefined;
 	
 	if (oldFieldMaster && oldFieldMaster !== newFieldMaster)
 		oldFieldMaster.setLogicField(null);
