@@ -273,7 +273,12 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 	if (!fieldMaster)
 		fieldMaster = oform.getFormat().createFieldMaster();
 	
-	fieldMaster.addUser(userMaster);
+	if (1 !== fieldMaster.getUserCount() || userMaster !== fieldMaster.getUser(0))
+	{
+		fieldMaster.clearUsers();
+		fieldMaster.addUser(userMaster);
+	}
+	
 	fieldMaster.setLogicField(this);
 	
 	formPr.Field = fieldMaster;
