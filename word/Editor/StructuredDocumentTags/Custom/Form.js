@@ -68,8 +68,9 @@
 		if (this.Shd)
 			oFormPr.Shd = this.Shd.Copy();
 		
+		// При простом копировании настроек мы не делаем копию fieldMaster
 		if (this.Field)
-			oFormPr.Field = this.Field.clone();
+			oFormPr.Field = this.Field;
 
 		return oFormPr;
 	};
@@ -168,7 +169,7 @@
 		if (nFlags & 64)
 		{
 			let fieldId = oReader.GetString2();
-			this.Fixed = AscCommon.g_oTableId.GetById(fieldId);
+			this.Field = AscCommon.g_oTableId.GetById(fieldId);
 		}
 	};
 	CSdtFormPr.prototype.Write_ToBinary = function(oWriter)
@@ -291,6 +292,10 @@
 	CSdtFormPr.prototype.SetField = function(fieldMaster)
 	{
 		this.Field = fieldMaster;
+	};
+	CSdtFormPr.prototype.GetFieldMaster = function()
+	{
+		return this.Field ? this.Field : null;
 	};
 	CSdtFormPr.prototype.GetAscRole = function()
 	{

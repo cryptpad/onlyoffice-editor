@@ -245,7 +245,7 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 {
 	if (!formPr || !formPr.Field)
 		return;
-
+	
 	let logicDocument = this.GetLogicDocument();
 	let oform;
 	
@@ -255,6 +255,9 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 		return;
 	}
 	
+	if (formPr.Field instanceof AscOForm.CFieldMaster)
+		return;
+		
 	let role = oform.getRole(formPr.Field);
 	let userMaster;
 	if (!role || !(userMaster = role.getUserMaster()))
@@ -865,4 +868,25 @@ CSdtBase.prototype.GetFormValue = function()
 };
 CSdtBase.prototype.MoveCursorOutsideForm = function(isBefore)
 {
+};
+CSdtBase.prototype.GetFieldMaster = function()
+{
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		return null;
+	
+	return formPr.GetFieldMaster();
+};
+CSdtBase.prototype.SetFieldMaster = function(fieldMaster)
+{
+	if (!fieldMaster)
+		return;
+	
+	let formPr = this.Pr.FormPr;
+	if (!formPr)
+		return;
+	
+	let newFormPr = formPr.Copy();
+	newFormPr.Field = fieldMaster;
+	this.SetFormPr(newFormPr);
 };
