@@ -7089,6 +7089,12 @@
 			this.rot = pr;
 			this.handleUpdateRot();
 		};
+		CXfrm.prototype.shift = function(dDX, dDY) {
+			if(this.offX !== null && this.offY !== null) {
+				this.setOffX(this.offX + dDX);
+				this.setOffY(this.offY + dDY);
+			}
+		};
 		CXfrm.prototype.handleUpdatePosition = function () {
 			if (this.parent && this.parent.handleUpdatePosition) {
 				this.parent.handleUpdatePosition();

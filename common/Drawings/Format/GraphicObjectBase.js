@@ -3042,12 +3042,41 @@
         return true;
     };
     CGraphicObjectBase.prototype.GetWidth = function() {
-        if (this.spPr && this.spPr.xfrm)
-            return this.spPr.xfrm.extX;
+        return  this.getXfrmExtX();
     };
     CGraphicObjectBase.prototype.GetHeight = function() {
+        return this.getXfrmExtY();
+    };
+    CGraphicObjectBase.prototype.getXfrm = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm;
+		return null;
+    };
+    CGraphicObjectBase.prototype.shiftXfrm = function(dDX, dDY) {
+       let oXfrm = this.getXfrm();
+	   if(oXfrm) {
+		   oXfrm.shift(dDX, dDY);
+	   }
+    };
+    CGraphicObjectBase.prototype.getXfrmOffX = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.offX;
+		return null;
+    };
+    CGraphicObjectBase.prototype.getXfrmOffY = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.offY;
+		return null;
+    };
+    CGraphicObjectBase.prototype.getXfrmExtX = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.extX;
+		return null;
+    };
+    CGraphicObjectBase.prototype.getXfrmExtY = function() {
         if (this.spPr && this.spPr.xfrm)
             return this.spPr.xfrm.extY;
+		return null;
     };
     CGraphicObjectBase.prototype.checkEmptySpPrAndXfrm = function(_xfrm) {
         if(!this.spPr)

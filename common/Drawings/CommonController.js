@@ -39,61 +39,58 @@
 */
 function (window, undefined) {
 
-// Import
-var c_oAscSizeRelFromH = AscCommon.c_oAscSizeRelFromH;
-var c_oAscSizeRelFromV = AscCommon.c_oAscSizeRelFromV;
-var c_oAscLockTypes = AscCommon.c_oAscLockTypes;
-var parserHelp = AscCommon.parserHelp;
-var isRealObject = AscCommon.isRealObject;
-    var History = AscCommon.History;
+	// Import
+	const c_oAscSizeRelFromH = AscCommon.c_oAscSizeRelFromH;
+	const c_oAscSizeRelFromV = AscCommon.c_oAscSizeRelFromV;
+	const c_oAscLockTypes = AscCommon.c_oAscLockTypes;
+	const isRealObject = AscCommon.isRealObject;
+    const History = AscCommon.History;
 
-var c_oAscError = Asc.c_oAscError;
-var c_oAscChartTitleShowSettings = Asc.c_oAscChartTitleShowSettings;
-var c_oAscChartHorAxisLabelShowSettings = Asc.c_oAscChartHorAxisLabelShowSettings;
-var c_oAscChartVertAxisLabelShowSettings = Asc.c_oAscChartVertAxisLabelShowSettings;
-var c_oAscChartLegendShowSettings = Asc.c_oAscChartLegendShowSettings;
-var c_oAscChartDataLabelsPos = Asc.c_oAscChartDataLabelsPos;
-var c_oAscGridLinesSettings = Asc.c_oAscGridLinesSettings;
-var c_oAscChartTypeSettings = Asc.c_oAscChartTypeSettings;
-var c_oAscRelativeFromH = Asc.c_oAscRelativeFromH;
-var c_oAscRelativeFromV = Asc.c_oAscRelativeFromV;
-var c_oAscFill = Asc.c_oAscFill;
+	const c_oAscError = Asc.c_oAscError;
+	const c_oAscChartTitleShowSettings = Asc.c_oAscChartTitleShowSettings;
+	const c_oAscChartLegendShowSettings = Asc.c_oAscChartLegendShowSettings;
+	const c_oAscChartDataLabelsPos = Asc.c_oAscChartDataLabelsPos;
+	const c_oAscGridLinesSettings = Asc.c_oAscGridLinesSettings;
+	const c_oAscChartTypeSettings = Asc.c_oAscChartTypeSettings;
+	const c_oAscRelativeFromH = Asc.c_oAscRelativeFromH;
+	const c_oAscRelativeFromV = Asc.c_oAscRelativeFromV;
+	const c_oAscFill = Asc.c_oAscFill;
 
 
-var HANDLE_EVENT_MODE_HANDLE = 0;
-var HANDLE_EVENT_MODE_CURSOR = 1;
+	const HANDLE_EVENT_MODE_HANDLE = 0;
+	const HANDLE_EVENT_MODE_CURSOR = 1;
 
-var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
+	const DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
 
-    var BAR_DIR_BAR = 0;
-    var BAR_DIR_COL = 1;
+    const BAR_DIR_BAR = 0;
+    const BAR_DIR_COL = 1;
 
-    var BAR_GROUPING_CLUSTERED = 0;
-    var BAR_GROUPING_PERCENT_STACKED = 1;
-    var BAR_GROUPING_STACKED = 2;
-    var BAR_GROUPING_STANDARD = 3;
+    const BAR_GROUPING_CLUSTERED = 0;
+    const BAR_GROUPING_PERCENT_STACKED = 1;
+    const BAR_GROUPING_STACKED = 2;
+    const BAR_GROUPING_STANDARD = 3;
 
-    var GROUPING_PERCENT_STACKED = 0;
-    var GROUPING_STACKED = 1;
-    var GROUPING_STANDARD = 2;
+    const GROUPING_PERCENT_STACKED = 0;
+    const GROUPING_STACKED = 1;
+    const GROUPING_STANDARD = 2;
 
-    var SCATTER_STYLE_LINE = 0;
-    var SCATTER_STYLE_LINE_MARKER = 1;
-    var SCATTER_STYLE_MARKER = 2;
-    var SCATTER_STYLE_NONE = 3;
-    var SCATTER_STYLE_SMOOTH = 4;
-    var SCATTER_STYLE_SMOOTH_MARKER = 5;
+    const SCATTER_STYLE_LINE = 0;
+    const SCATTER_STYLE_LINE_MARKER = 1;
+    const SCATTER_STYLE_MARKER = 2;
+    const SCATTER_STYLE_NONE = 3;
+    const SCATTER_STYLE_SMOOTH = 4;
+    const SCATTER_STYLE_SMOOTH_MARKER = 5;
 
-    var CARD_DIRECTION_N = 0;
-    var CARD_DIRECTION_NE = 1;
-    var CARD_DIRECTION_E = 2;
-    var CARD_DIRECTION_SE = 3;
-    var CARD_DIRECTION_S = 4;
-    var CARD_DIRECTION_SW = 5;
-    var CARD_DIRECTION_W = 6;
-    var CARD_DIRECTION_NW = 7;
+    const CARD_DIRECTION_N = 0;
+    const CARD_DIRECTION_NE = 1;
+    const CARD_DIRECTION_E = 2;
+    const CARD_DIRECTION_SE = 3;
+    const CARD_DIRECTION_S = 4;
+    const CARD_DIRECTION_SW = 5;
+    const CARD_DIRECTION_W = 6;
+    const CARD_DIRECTION_NW = 7;
 
-    var CURSOR_TYPES_BY_CARD_DIRECTION = [];
+    const CURSOR_TYPES_BY_CARD_DIRECTION = [];
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_N]  = "n-resize";
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_NE] = "ne-resize";
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_E]  = "e-resize";
@@ -109,6 +106,8 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
         "width": 300,
         "height": 300,
     }
+	const OBJECT_PASTE_SHIFT = 152400;
+
     function fillImage(image, rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl)
     {
         image.setSpPr(new AscFormat.CSpPr());
@@ -8983,6 +8982,61 @@ DrawingObjectsController.prototype =
         }
         return this.getDrawingPropsFromArray(this.selectedObjects);
     },
+
+	getDrawingsPasteShift: function(aDrawings)
+	{
+		let oLastDrawing = aDrawings[aDrawings.length - 1];
+		if(!oLastDrawing)
+		{
+			return 0;
+		}
+		let dPosX = oLastDrawing.getXfrmOffX();
+		let dPosY = oLastDrawing.getXfrmOffY();
+		let dExtX = oLastDrawing.getXfrmExtX();
+		let dExtY = oLastDrawing.getXfrmExtY();
+		if(dPosX === null || dPosY === null || dExtX === null || dExtY === null)
+		{
+			return 0;
+		}
+		let nObjectType = oLastDrawing.getObjectType();
+		let aAllDrawings = this.getDrawingArray();
+		let oBaseDrawing = null;
+		let nBaseDrawingIdx = null;
+		let fAE = AscFormat.fApproxEqual;
+		let dDelta = 0.1;
+		let fCompareDrawing = function(oCurDrawing, dPosX, dPosY, dExtX, dExtY) {
+			return (oCurDrawing.getObjectType() === nObjectType &&
+				fAE(dPosX, oCurDrawing.getXfrmOffX() || oCurDrawing.x, dDelta) &&
+				fAE(dPosY, oCurDrawing.getXfrmOffY() || oCurDrawing.y, dDelta) &&
+				fAE(dExtX, oCurDrawing.getXfrmExtX() || oCurDrawing.extX, dDelta) &&
+				fAE(dExtY, oCurDrawing.getXfrmExtY() || oCurDrawing.extY, dDelta));
+		};
+		for(let nDrawing = 0; nDrawing < aAllDrawings.length; ++nDrawing)
+		{
+			let oCurDrawing = aAllDrawings[nDrawing];
+			if(fCompareDrawing(oCurDrawing, dPosX, dPosY, dExtX, dExtY))
+			{
+				oBaseDrawing = oCurDrawing;
+				nBaseDrawingIdx = nDrawing;
+				break;
+			}
+		}
+		if(!oBaseDrawing)
+		{
+			return 0;
+		}
+		let dPasteShift = AscCommonWord.g_dKoef_emu_to_mm * OBJECT_PASTE_SHIFT;
+		let dShift = dPasteShift;
+		for(let nDrawing = nBaseDrawingIdx + 1; nDrawing < aAllDrawings.length; ++nDrawing)
+		{
+			let oCurDrawing = aAllDrawings[nDrawing];
+			if(fCompareDrawing(oCurDrawing, dPosX + dShift, dPosY + dShift, dExtX, dExtY))
+			{
+				dShift += dPasteShift;
+			}
+		}
+		return dShift;
+	},
 
     getEditorApi: function()
     {

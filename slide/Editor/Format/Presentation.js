@@ -9521,8 +9521,9 @@ CPresentation.prototype.InsertContent = function (Content) {
     if(oThumbnails) {
         nNeedFocusType = oThumbnails.FocusObjType;
     }
+	let oCurSlide = this.GetCurrentSlide();
     if (Content.SlideObjects.length > 0) {
-        var las_slide_index = selected_slides.length > 0 ? selected_slides[selected_slides.length - 1] : -1;
+        let las_slide_index = selected_slides.length > 0 ? selected_slides[selected_slides.length - 1] : -1;
 
         this.needSelectPages.length = 0;
         for (i = 0; i < Content.SlideObjects.length; ++i) {
@@ -9536,19 +9537,24 @@ CPresentation.prototype.InsertContent = function (Content) {
         this.CheckEmptyPlaceholderNotes();
         bInsert = true;
         nNeedFocusType = FOCUS_OBJECT_THUMBNAILS;
-    } else if (this.Slides[this.CurPage]) {
+    } else if (oCurSlide) {
         if (Content.Drawings.length > 0) {
-            if (this.FocusOnNotes && Content.Drawings.length === 1 && Content.Drawings[0].Drawing instanceof AscFormat.CGraphicFrame
-                && Content.Drawings[0].Drawing.graphicObject) {
-                var oContent = AscFormat.ExecuteNoHistory(
+			let oIsSingleTable = null;
+			if(Content.Drawings.length === 1 &&
+				Content.Drawings[0].Drawing &&
+				Content.Drawings[0].Drawing.isTable()) {
+				oIsSingleTable = Content.Drawings[0].Drawing.graphicObject;
+			}
+            if (this.FocusOnNotes && oIsSingleTable) {
+                let oContent = AscFormat.ExecuteNoHistory(
                     function () {
-                        var oTable = Content.Drawings[0].Drawing.graphicObject;
-                        var oResult = new AscFormat.CDrawingDocContent(this, this.DrawingDocument, 0, 0, 3000, 2000);
-                        for (var i = 0; i < oTable.Content.length; ++i) {
-                            var oRow = oTable.Content[i];
-                            for (var j = 0; j < oRow.Content.length; ++j) {
-                                var oCurDocContent = oRow.Content[j].Content;
-                                for (var k = 0; k < oCurDocContent.Content.length; ++k) {
+                        let oTable = Content.Drawings[0].Drawing.graphicObject;
+                        let oResult = new AscFormat.CDrawingDocContent(this, this.DrawingDocument, 0, 0, 3000, 2000);
+                        for (let i = 0; i < oTable.Content.length; ++i) {
+                            let oRow = oTable.Content[i];
+                            for (let j = 0; j < oRow.Content.length; ++j) {
+                                let oCurDocContent = oRow.Content[j].Content;
+                                for (let k = 0; k < oCurDocContent.Content.length; ++k) {
                                     oResult.Content.push(oCurDocContent.Content[k]);
                                 }
                             }
@@ -9559,10 +9565,10 @@ CPresentation.prototype.InsertContent = function (Content) {
                         return oResult;
                     }, this, []
                 );
-                var oSelectedContent = new AscCommonWord.CSelectedContent();
+                let oSelectedContent = new AscCommonWord.CSelectedContent();
                 oContent.SelectAll();
                 oContent.GetSelectedContent(oSelectedContent);
-                var PresentSelContent = new PresentationSelectedContent();
+                let PresentSelContent = new PresentationSelectedContent();
                 PresentSelContent.DocContent = oSelectedContent;
                 this.InsertContent(PresentSelContent);
                 this.Check_CursorMoveRight();
@@ -9570,97 +9576,140 @@ CPresentation.prototype.InsertContent = function (Content) {
                 return true;
             } else {
                 this.FocusOnNotes = false;
-                this.Slides[this.CurPage].graphicObjects.resetSelection();
-                for (i = 0; i < Content.Drawings.length; ++i) {
-                    var bInsertShape = true;
-                    var oCopyObject = Content.Drawings[i];
-                    var oSp = oCopyObject.Drawing;
-                    var oSlidePh, oLayoutPlaceholder;
+				let oController = oCurSlide.graphicObjects;
+				let oTextSelection = oController.selection.textSelection;
+				if(oIsSingleTable && oTextSelection && oTextSelection.isTable()) {
+					let oTable = oTextSelection.graphicObject;
+					let oCurCell = oTable.CurCell;
+					if(oCurCell) {
+						oCurCell.InsertTableContent(oIsSingleTable);
 
-                    var nType, nIdx;
-                    if (oSp.isPlaceholder()) {
-                        var oInfo = {};
-                        nType = oSp.getPlaceholderType();
-                        nIdx = oSp.getPlaceholderIndex();
-                        oSlidePh = this.Slides[this.CurPage].getMatchingShape(nType, nIdx, false, oInfo);
-                        oLayoutPlaceholder = this.Slides[this.CurPage].Layout.getMatchingShape(nType, nIdx, false, oInfo);
-                        if (oSp.isEmptyPlaceholder()) {
-                            if (!oLayoutPlaceholder || oInfo.bBadMatch) {
-                                bInsertShape = false;
-                            } else {
-                                if (oSlidePh) {
-                                    bInsertShape = false;
-                                }
-                            }
-                        }
-                    }
-                    if (bInsertShape) {
-                        if (oSp.bDeleted) {
-                            if (oSp.setBDeleted2) {
-                                oSp.setBDeleted2(false);
-                            } else if (oSp.setBDeleted) {
-                                oSp.setBDeleted(false);
-                            }
-                        }
-                        oSp.setParent2(this.Slides[this.CurPage]);
-                        if (oSp.getObjectType() === AscDFH.historyitem_type_GraphicFrame) {
-                            this.Check_GraphicFrameRowHeight(oSp);
-                        }
-                        oSp.addToDrawingObjects();
-                        oSp.checkExtentsByDocContent && oSp.checkExtentsByDocContent();
-                        if (oSp.isPlaceholder()) {
-                            if (oSlidePh || !oLayoutPlaceholder) {
-                                var oNvProps = oSp.getNvProps();
-                                if (oNvProps && oNvProps.ph) {
+						let nMaxCellsCount = 0;
+						for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
+							let oRow = oTable.Content[nRow];
+							if (nMaxCellsCount < oRow.Content.length)
+								nMaxCellsCount = oRow.Content.length;
+						}
+						for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
+							let oRow = oTable.Content[nRow];
+							let aCells = oRow.Content;
+							let nCellsCount = 0;
+							for (let nCell = 0; nCell < aCells.length; nCell++) {
+								nCellsCount += aCells[nCell].GetGridSpan();
+							}
+							if (nCellsCount < nMaxCellsCount) {
+								for (let nCell = nCellsCount; nCell < nMaxCellsCount; nCell++) {
+									oRow.Add_Cell(oRow.Get_CellsCount(), oRow, null, true);
+								}
+							}
+						}
 
+						bInsert = true;
+						nNeedFocusType = FOCUS_OBJECT_MAIN;
+					}
+				}
+				if(!bInsert) {
+					oController.resetSelection();
+					let aPasteDrawings = [];
+					for (i = 0; i < Content.Drawings.length; ++i) {
+						aPasteDrawings.push(Content.Drawings[i].Drawing);
+					}
+					let dShift = oController.getDrawingsPasteShift(aPasteDrawings);
+					for (i = 0; i < Content.Drawings.length; ++i) {
+						let bInsertShape = true;
+						let oCopyObject = Content.Drawings[i];
+						let oSp = oCopyObject.Drawing;
+						let oSlidePh, oLayoutPlaceholder;
 
-                                    if (oSp.txBody) {
-                                        var oLstStyles = new AscFormat.TextListStyle(), oLstStylesTmp, oParentObjects;
-                                        oParentObjects = oSp.getParentObjects();
-                                        if (oParentObjects && oParentObjects.master && oParentObjects.master.txStyles) {
+						let nType, nIdx;
+						if (oSp.isPlaceholder()) {
+							let oInfo = {};
+							nType = oSp.getPlaceholderType();
+							nIdx = oSp.getPlaceholderIndex();
+							oSlidePh = oCurSlide.getMatchingShape(nType, nIdx, false, oInfo);
+							oLayoutPlaceholder = oCurSlide.Layout.getMatchingShape(nType, nIdx, false, oInfo);
+							if (oSp.isEmptyPlaceholder()) {
+								if (!oLayoutPlaceholder || oInfo.bBadMatch) {
+									bInsertShape = false;
+								} else {
+									if (oSlidePh) {
+										bInsertShape = false;
+									}
+								}
+							}
+						}
+						if (bInsertShape) {
+							if (oSp.bDeleted) {
+								if (oSp.setBDeleted2) {
+									oSp.setBDeleted2(false);
+								} else if (oSp.setBDeleted) {
+									oSp.setBDeleted(false);
+								}
+							}
+							oSp.setParent2(this.Slides[this.CurPage]);
+							if (oSp.getObjectType() === AscDFH.historyitem_type_GraphicFrame) {
+								this.Check_GraphicFrameRowHeight(oSp);
+							}
+							if(dShift > 0) {
+								let oXfrm = oSp.getXfrm();
+								if(oXfrm) {
+									oXfrm.shift(dShift, dShift);
+								}
+							}
+							oSp.addToDrawingObjects();
+							oSp.checkExtentsByDocContent && oSp.checkExtentsByDocContent();
+							if (oSp.isPlaceholder()) {
+								if (oSlidePh || !oLayoutPlaceholder) {
+									let oNvProps = oSp.getNvProps();
+									if (oNvProps && oNvProps.ph) {
+										if (oSp.txBody) {
+											let oLstStyles = new AscFormat.TextListStyle(), oLstStylesTmp, oParentObjects;
+											oParentObjects = oSp.getParentObjects();
+											if (oParentObjects && oParentObjects.master && oParentObjects.master.txStyles) {
 
-                                            oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
-                                            if (oLstStylesTmp) {
-                                                oLstStyles.merge(oLstStylesTmp);
-                                            }
-                                        }
+												oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
+												if (oLstStylesTmp) {
+													oLstStyles.merge(oLstStylesTmp);
+												}
+											}
 
-                                        var aHierarhy = oSp.getHierarchy();
-                                        var oBodyPr = new AscFormat.CBodyPr();
-                                        for (var s = aHierarhy.length - 1; s > -1; --s) {
-                                            if (aHierarhy[s]) {
-                                                if (aHierarhy[s].txBody) {
-                                                    oLstStyles.merge(aHierarhy[s].txBody.lstStyle);
-                                                    oBodyPr.merge(aHierarhy[s].txBody.bodyPr);
-                                                }
-                                            }
-                                        }
-                                        oLstStyles.merge(oSp.txBody.lstStyle);
-                                        oBodyPr.merge(oSp.txBody.bodyPr);
-                                        oSp.txBody.setLstStyle(oLstStyles);
-                                        oSp.txBody.setBodyPr(oBodyPr);
-                                    }
-                                    oNvProps.setPh(null);
-                                }
-                            }
-                        }
-                        this.Slides[this.CurPage].graphicObjects.selectObject(oSp, 0);
-                        bInsert = true;
-                        nNeedFocusType = FOCUS_OBJECT_MAIN;
-                    }
-                }
-                if (Content.DocContent && Content.DocContent.Elements.length > 0) {
-                    var shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
-                    this.Slides[this.CurPage].graphicObjects.selectObject(shape, 0);
-                    bInsert = true;
-                    nNeedFocusType = FOCUS_OBJECT_MAIN;
-                }
+											let aHierarhy = oSp.getHierarchy();
+											let oBodyPr = new AscFormat.CBodyPr();
+											for (let s = aHierarhy.length - 1; s > -1; --s) {
+												if (aHierarhy[s]) {
+													if (aHierarhy[s].txBody) {
+														oLstStyles.merge(aHierarhy[s].txBody.lstStyle);
+														oBodyPr.merge(aHierarhy[s].txBody.bodyPr);
+													}
+												}
+											}
+											oLstStyles.merge(oSp.txBody.lstStyle);
+											oBodyPr.merge(oSp.txBody.bodyPr);
+											oSp.txBody.setLstStyle(oLstStyles);
+											oSp.txBody.setBodyPr(oBodyPr);
+										}
+										oNvProps.setPh(null);
+									}
+								}
+							}
+							oController.selectObject(oSp, 0);
+							bInsert = true;
+							nNeedFocusType = FOCUS_OBJECT_MAIN;
+						}
+					}
+					if (Content.DocContent && Content.DocContent.Elements.length > 0) {
+						let shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
+						oController.selectObject(shape, 0);
+						bInsert = true;
+						nNeedFocusType = FOCUS_OBJECT_MAIN;
+					}
+				}
             }
         } else if (Content.DocContent) {
             Content.DocContent.EndCollect(this);
             if (Content.DocContent.Elements.length > 0) {
-                var oController = this.GetCurrentController();
-                var target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;
+                let oController = this.GetCurrentController();
+                let target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;
                 if (target_doc_content) {
                     if (target_doc_content.Selection.Use) {
                         oController.removeCallback(1, undefined, undefined, undefined, undefined, undefined);
@@ -9671,13 +9720,13 @@ CPresentation.prototype.InsertContent = function (Content) {
                         paragraph.Check_NearestPos(NearPos);
 						Content.DocContent.Insert(NearPos);
                     }
-                    var oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
+                    let oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
                     oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
                 } else {
                     this.FocusOnNotes = false;
-                    var shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
-                    this.Slides[this.CurPage].graphicObjects.resetSelection();
-                    this.Slides[this.CurPage].graphicObjects.selectObject(shape, 0);
+                    let shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
+                    oController.resetSelection();
+                    oController.selectObject(shape, 0);
                     this.CheckEmptyPlaceholderNotes();
                 }
                 bInsert = true;
