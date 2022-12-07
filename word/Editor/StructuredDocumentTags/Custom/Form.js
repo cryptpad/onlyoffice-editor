@@ -68,7 +68,9 @@
 		if (this.Shd)
 			oFormPr.Shd = this.Shd.Copy();
 		
-		// При простом копировании настроек мы не делаем копию fieldMaster
+		// При простом копировании настроек нельзя делать копию fieldMaster, т.к. копирование делается вне какого-либо
+		// действия. Поэтом, просто копируем здесь ссылку. Реальное копирование объекта должно происходить в момент
+		// его вставки куда-либо
 		if (this.Field)
 			oFormPr.Field = this.Field;
 
@@ -290,6 +292,10 @@
 		}
 	};
 	CSdtFormPr.prototype.SetField = function(fieldMaster)
+	{
+		this.Field = fieldMaster;
+	};
+	CSdtFormPr.prototype.SetFieldMaster = function(fieldMaster)
 	{
 		this.Field = fieldMaster;
 	};

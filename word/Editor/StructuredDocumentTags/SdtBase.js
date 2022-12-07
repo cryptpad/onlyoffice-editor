@@ -215,12 +215,9 @@ CSdtBase.prototype.SetFormPr = function(oFormPr)
 
 	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
 	{
-		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
-		this.Pr.FormPr = oFormPr;
-
-		let oLogicDocument = this.GetLogicDocument();
-		if (oLogicDocument)
-			oLogicDocument.GetFormsManager().Register(this);
+		let change = new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr);
+		AscCommon.History.Add(change);
+		change.Redo();
 
 		this.private_OnAddFormPr();
 	}
@@ -249,13 +246,16 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 	let logicDocument = this.GetLogicDocument();
 	let oform;
 	
-	if (!logicDocument || !window['AscOForm'] || !(oform = logicDocument.GetOFormDocument()))
+	if (!logicDocument
+		|| !window['AscOForm']
+		|| !(oform = logicDocument.GetOFormDocument()))
 	{
 		formPr.Field = undefined;
 		return;
 	}
 	
-	if (formPr.Field instanceof AscOForm.CFieldMaster)
+	if (formPr.Field instanceof AscOForm.CFieldMaster
+		|| !logicDocument.IsActionStarted())
 		return;
 		
 	let role = oform.getRole(formPr.Field);
