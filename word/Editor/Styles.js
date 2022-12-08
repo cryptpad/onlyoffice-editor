@@ -10438,6 +10438,12 @@ CDocumentShd.prototype =
         }
     }
 };
+CDocumentShd.fromObject = function(val)
+{
+	let shd = new CDocumentShd();
+	shd.Set_FromObject(val);
+	return shd;
+};
 CDocumentShd.prototype.Copy = function()
 {
 	var Shd = new CDocumentShd();
@@ -18162,6 +18168,7 @@ window["AscWord"].CParaPr = CParaPr;
 window["AscWord"].CStyle  = CStyle;
 window["AscWord"].CNumPr  = CNumPr;
 window["AscWord"].CBorder = CDocumentBorder;
+window["AscWord"].CShd    = CDocumentShd;
 
 
 // Создаем глобальные дефолтовые стили, чтобы быстро можно было отдать дефолтовые настройки

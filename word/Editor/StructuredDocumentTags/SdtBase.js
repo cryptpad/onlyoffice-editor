@@ -895,3 +895,31 @@ CSdtBase.prototype.SetFieldMaster = function(fieldMaster)
 	newFormPr.Field = fieldMaster;
 	this.SetFormPr(newFormPr);
 };
+CSdtBase.prototype.GetFormShd = function()
+{
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		return null;
+	
+	return formPr.GetShd();
+};
+CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
+{
+	// TODO: Подсветка во время заполнения
+	
+	if (undefined === defaultColor)
+	{
+		let logicDocument = this.GetLogicDocument();
+		defaultColor = logicDocument && logicDocument.GetSpecialFormsHighlight ? logicDocument.GetSpecialFormsHighlight() : null;
+	}
+	
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		defaultColor;
+	
+	let fieldMaster = formPr.GetFieldMaster();
+	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
+	let userColor   = userMaster ? userMaster.getColor() : null;
+	
+	return userColor ? userColor : defaultColor;
+};
