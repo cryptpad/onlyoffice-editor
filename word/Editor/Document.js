@@ -2153,7 +2153,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		isFastCollaboration : false,
 	};
 
-	this.OFormDocument           = window['AscOForm'] ? new AscOForm.OForm(this) : null;
+	this.OFormDocument           = window['AscOForm'] && false !== isMainLogicDocument ? new AscOForm.OForm(this) : null;
 	this.FormsManager            = new AscWord.CFormsManager(this);
 	this.CurrentForm             = null;
 	this.HighlightRequiredFields = false;  // Выделяем ли обязательные поля
