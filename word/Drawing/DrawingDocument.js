@@ -3724,6 +3724,8 @@ function CDrawingDocument()
 
 	this.OnDrawContentControl = function(obj, state, geom)
 	{
+		if (window["NATIVE_EDITOR_ENJINE"] === true)
+			return;
 		return this.contentControls.OnDrawContentControl(obj, state, geom);
 	};
 
