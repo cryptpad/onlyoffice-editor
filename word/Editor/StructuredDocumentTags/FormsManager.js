@@ -371,8 +371,9 @@
 	};
 	CFormsManager.prototype.OnChangeCheckBox = function(oForm)
 	{
-		let isChecked = oForm.GetCheckBoxPr().Checked;
-		let arrForms  = this.GetAllForms();
+		let isChecked  = oForm.GetCheckBoxPr().Checked;
+		let userMaster = oForm.GetUserMasterByForm(oForm);
+		let arrForms   = this.GetAllForms();
 
 		if (oForm.IsRadioButton())
 		{
@@ -383,7 +384,8 @@
 				if (oTempForm.IsComplexForm()
 					|| oTempForm === oForm
 					|| !oTempForm.IsRadioButton()
-					|| sKey !== oTempForm.GetCheckBoxPr().GetGroupKey())
+					|| sKey !== oTempForm.GetCheckBoxPr().GetGroupKey()
+					|| userMaster !== this.GetUserMasterByForm(oTempForm))
 					continue;
 
 				if (oTempForm.GetCheckBoxPr().GetChecked())
@@ -401,7 +403,8 @@
 					|| !oTempForm.IsCheckBox()
 					|| oTempForm.IsRadioButton()
 					|| sKey !== oTempForm.GetFormKey()
-					|| isChecked === oTempForm.GetCheckBoxPr().GetChecked())
+					|| isChecked === oTempForm.GetCheckBoxPr().GetChecked()
+					|| userMaster !== this.GetUserMasterByForm(oTempForm))
 					continue;
 
 				oTempForm.ToggleCheckBox();
@@ -420,6 +423,7 @@
 
 		let sKey          = oForm.GetFormKey();
 		let isPlaceHolder = oForm.IsPlaceHolder();
+		let userMaster    = this.GetUserMasterByForm(oForm);
 		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
@@ -427,7 +431,8 @@
 			if (oTempForm.IsComplexForm()
 				|| oTempForm === oForm
 				|| sKey !== oTempForm.GetFormKey()
-				|| !oTempForm.IsPicture())
+				|| !oTempForm.IsPicture()
+				|| userMaster !== this.GetUserMasterByForm(oTempForm))
 				continue;
 
 			let arrDrawings = oTempForm.GetAllDrawingObjects();
@@ -446,6 +451,7 @@
 		let sKey          = oForm.GetFormKey();
 		let isPlaceHolder = oForm.IsPlaceHolder();
 		let oSrcRun       = !isPlaceHolder ? oForm.MakeSingleRunElement(false) : null;
+		let userMaster    = this.GetUserMasterByForm(oForm);
 		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
@@ -455,7 +461,8 @@
 				|| oTempForm.IsPicture()
 				|| oTempForm.IsCheckBox()
 				|| oTempForm === oForm
-				|| sKey !== oTempForm.GetFormKey())
+				|| sKey !== oTempForm.GetFormKey()
+				|| userMaster !== this.GetUserMasterByForm(oTempForm))
 				continue;
 
 			if (isPlaceHolder)
@@ -477,13 +484,15 @@
 	{
 		let sKey          = oForm.GetFormKey();
 		let isPlaceholder = oForm.IsPlaceHolder();
+		let userMaster    = this.GetUserMasterByForm(oForm);
 		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
 			let oTempForm = arrForms[nIndex];
 			if (!oTempForm.IsComplexForm()
 				|| oTempForm === oForm
-				|| sKey !== oTempForm.GetFormKey())
+				|| sKey !== oTempForm.GetFormKey()
+				|| userMaster !== this.GetUserMasterByForm(oTempForm))
 				continue;
 
 			// TODO: Сейчас мы полностью перезаписываем содержимое поля. Можно проверить, что поле состоит из таких
@@ -508,6 +517,17 @@
 		}
 
 		return "";
+	};
+	CFormsManager.prototype.GetUserMasterByForm = function(form)
+	{
+		if (!form)
+			return null;
+		
+		let fieldMaster = form.GetFieldMaster();
+		if (!fieldMaster)
+			return null;
+		
+		return fieldMaster.getFirstUser();
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};
