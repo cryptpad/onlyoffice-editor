@@ -1597,6 +1597,10 @@
 		MaxFileSize:      25000000, //25 mb
 		SupportedFormats: ["txt", "csv"]
 	};
+	var c_oAscXmlUploadProp = {
+		MaxFileSize:      25000000, //25 mb
+		SupportedFormats: ["xml"]
+	};
 
 	/**
 	 *
@@ -2021,6 +2025,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowXmlFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscXmlUploadProp.SupportedFormats), false, false, ValidateUploadXml, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 
 	function InitDragAndDrop(oHtmlElement, callback)
 	{
@@ -2366,6 +2375,10 @@
 	function ValidateUploadText(files)
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscTextUploadProp);
+	}
+	function ValidateUploadXml(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscXmlUploadProp);
 	}
 
 	function CanDropFiles(event)
@@ -3428,7 +3441,7 @@
 				}
 			}
 		}
-		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType)
 		{
 			result = parserHelp.parse3DRef(dataRange);
 			if (result)
@@ -3438,7 +3451,7 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
-			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType) {
+			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType) {
 				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
@@ -3522,7 +3535,7 @@
 					return Asc.c_oAscError.ID.PivotLabledColumns;
 				}
 			}
-			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType)
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
@@ -3530,8 +3543,12 @@
 					if (!sheetModel) {
 						sheetModel = model.getActiveWs();
 					}
-					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-					return sheetModel.checkPivotReportLocationForError([newRange]);
+					if (Asc.c_oAscSelectionDialogType.ImportXml === dialogType) {
+						return sheetModel.checkImportXmlLocationForError([location.bbox]);
+					} else {
+						var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
+						return sheetModel.checkPivotReportLocationForError([newRange]);
+					}
 				} else {
 					return Asc.c_oAscError.ID.DataRangeError;
 				}
@@ -13308,6 +13325,7 @@
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
 	window["AscCommon"].ShowSpreadsheetFileDialog = ShowSpreadsheetFileDialog;
 	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
+	window["AscCommon"].ShowXmlFileDialog = ShowXmlFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;

@@ -646,8 +646,190 @@ var editor;
 				t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
 			};
 
+			reader.readAsBinaryString(files[0]);
+		});
+	};
+
+	spreadsheet_api.prototype.asc_ImportXmlStart = function (callback) {
+		let t = this;
+
+		if (window["AscDesktopEditor"]) {
+			// TODO: add translations
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("xml", false, function (_file) {
+				let file = _file;
+				if (Array.isArray(file))
+					file = file[0];
+				if (!file)
+					return;
+
+				window["AscDesktopEditor"]["loadLocalFile"](file, function(uint8Array) {
+					if (!uint8Array)
+						return;
+
+					t._convertFromXml({data: uint8Array, format: "xml"}, callback);
+				});
+			});
+			return;
+		}
+
+		AscCommon.ShowXmlFileDialog(function (error, files) {
+			if (Asc.c_oAscError.ID.No !== error) {
+				t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+				return;
+			}
+
+			let format = AscCommon.GetFileExtension(files[0].name);
+			let reader = new FileReader();
+			reader.onload = function () {
+				t._convertFromXml({data: new Uint8Array(reader.result), format: format}, callback);
+			};
+			reader.onerror = function () {
+				t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+			};
+
 			reader.readAsArrayBuffer(files[0]);
 		});
+	};
+
+	spreadsheet_api.prototype.asc_ImportXmlEnd = function (stream, dataRef, newSheetName) {
+		let t = this;
+
+
+		let doInsertXml = function (_dataRef, _ws) {
+			let jsZlib = new AscCommon.ZLib();
+			if (!jsZlib.open(stream)) {
+				//t.model.handlers.trigger("asc_onErrorUpdateExternalReference", eR.Id);
+				return false;
+			}
+
+			if (jsZlib.files && jsZlib.files.length) {
+				let binaryData = jsZlib.getFile(jsZlib.files[0]);
+
+				//заполняем через банарник
+				let oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
+				//чтобы лишнего не читать, проставляю флаг копипаст
+				oBinaryFileReader.InitOpenManager.copyPasteObj = {
+					isCopyPaste: true, activeRange: null, selectAllSheet: true
+				};
+
+				let wb = new AscCommonExcel.Workbook();
+				wb.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
+
+				AscFormat.ExecuteNoHistory(function () {
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						oBinaryFileReader.Read(binaryData, wb);
+					});
+				});
+
+				if (wb.aWorksheets) {
+					let arrSheets = wb.aWorksheets;
+					let pastedSheet = arrSheets && arrSheets[0];
+					if (pastedSheet) {
+						if (_ws) {
+							t.wbModel.setActive(_ws.index);
+							t.wb.updateWorksheetByModel();
+							t.wb.showWorksheet();
+						}
+						let ws = t.wb.getWorksheet();
+						if (_dataRef) {
+							ws.setSelection(_dataRef);
+						}
+						AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange = new Asc.Range(0, 0, Math.max(pastedSheet.nColsCount - 1, 0), Math.max(pastedSheet.nRowsCount - 1, 0)).getName();
+						t.wb.getWorksheet().setSelectionInfo('paste', {data: pastedSheet, fromBinary: true, fontsNew: [], pasteAllSheet: true, wb: wb});
+					}
+				}
+			}
+		};
+
+		let doCheckRange = function (_sDataRange) {
+			let result = parserHelp.parse3DRef(_sDataRange);
+			let _range, sheetModel;
+			if (result)
+			{
+				sheetModel = t.wb.model.getWorksheetByName(result.sheet);
+				if (sheetModel)
+				{
+					_range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+				}
+			} else {
+				_range = AscCommonExcel.g_oRangeCache.getAscRange(_sDataRange);
+			}
+			if (!_range) {
+				_range = AscCommon.rx_defName.test(_sDataRange);
+			}
+			if (!_range) {
+				_range = parserHelp.isTable(_sDataRange, 0, true);
+			}
+
+			return _range ? {range: _range, sheetModel: sheetModel} : false;
+		};
+
+		let wb = this.wbModel;
+		let alreadyAddedSheet = newSheetName && t.wb.model.getWorksheetByName(newSheetName);
+		if (newSheetName && !alreadyAddedSheet) {
+			this._isLockedAddWorksheets(function(res) {
+				if (res) {
+					History.Create_NewPoint();
+					History.StartTransaction();
+					t._addWorksheetsWithoutLock([newSheetName], wb.getActive());
+					doInsertXml();
+					History.EndTransaction();
+				} else {
+					//todo
+					t.sendEvent('asc_onError', c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+				}
+			});
+		} else {
+			let _checkRange = doCheckRange(dataRef);
+			if (_checkRange) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+				doInsertXml(_checkRange.range, _checkRange.sheetModel);
+				History.EndTransaction();
+			} else {
+				this.sendEvent('asc_onError', c_oAscError.ID.PivotLabledColumns, c_oAscError.Level.NoCritical);
+			}
+		}
+	};
+
+
+	spreadsheet_api.prototype._convertFromXml = function (document, callback) {
+		let stream = null;
+		this.insertDocumentUrlsData = {
+			imageMap: null, documents: [document], convertCallback: function (_api, url) {
+				_api.insertDocumentUrlsData.imageMap = url;
+				if (!url['output.xlst']) {
+					_api.endInsertDocumentUrls();
+					_api.sendEvent("asc_onError", Asc.c_oAscError.ID.DirectUrl,
+						Asc.c_oAscError.Level.NoCritical);
+					callback(null);
+					return;
+				}
+				AscCommon.loadFileContent(url['output.xlst'], function (httpRequest) {
+					if (null === httpRequest || !(stream = AscCommon.initStreamFromResponse(httpRequest))) {
+						_api.endInsertDocumentUrls();
+						_api.sendEvent("asc_onError", Asc.c_oAscError.ID.DirectUrl,
+							Asc.c_oAscError.Level.NoCritical);
+						callback(null);
+						return;
+					}
+					_api.endInsertDocumentUrls();
+				}, "arraybuffer");
+			}, endCallback: function (_api) {
+
+				if (stream) {
+					callback(stream);
+				}
+			}
+		};
+
+		let options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.XLSY);
+		options.isNaturalDownload = true;
+		options.isGetTextFromUrl = true;
+		if (document.url) {
+			options.errorDirect = Asc.c_oAscError.ID.DirectUrl;
+		}
+		this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, options);
 	};
 
 	spreadsheet_api.prototype.endInsertDocumentUrls = function()
@@ -8585,7 +8767,12 @@ var editor;
   prot["asc_removeExternalReferences"] = prot.asc_removeExternalReferences;
 
   prot["asc_fillHandleDone"] = prot.asc_fillHandleDone;
-  prot["asc_canFillHandle"] = prot.asc_canFillHandle;
+  prot["asc_canFillHandle"]  = prot.asc_canFillHandle;
+
+  prot["asc_ImportXmlStart"] = prot.asc_ImportXmlStart;
+  prot["asc_ImportXmlEnd"]   = prot.asc_ImportXmlEnd;
+
+
 
 
 })(window);
