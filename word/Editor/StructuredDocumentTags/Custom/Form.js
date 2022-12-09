@@ -303,7 +303,7 @@
 	{
 		return this.Field ? this.Field : null;
 	};
-	CSdtFormPr.prototype.GetRole = function()
+	CSdtFormPr.prototype.GetAscRole = function()
 	{
 		// Приоритет у роли выставленной через интерфейс, т.к. выставление в класс формы еще могло не произойти
 		// но название роли мы должны уже отдавать новое
@@ -314,6 +314,14 @@
 			return this.Field.getFirstUser().getRole();
 		
 		return "Anyone";
+	};
+	CSdtFormPr.prototype.SetAscRole = function(roleName)
+	{
+		return this.SetRole(roleName);
+	};
+	CSdtFormPr.prototype.GetRole = function()
+	{
+		return this.RoleName;
 	};
 	CSdtFormPr.prototype.SetRole = function(roleName)
 	{
@@ -340,6 +348,6 @@
 	CSdtFormPr.prototype['put_Border']   = CSdtFormPr.prototype.SetAscBorder;
 	CSdtFormPr.prototype['get_Shd']      = CSdtFormPr.prototype.GetAscShd;
 	CSdtFormPr.prototype['put_Shd']      = CSdtFormPr.prototype.SetAscShd;
-	CSdtFormPr.prototype['get_Role']     = CSdtFormPr.prototype.GetRole;
-	CSdtFormPr.prototype['put_Role']     = CSdtFormPr.prototype.SetRole;
+	CSdtFormPr.prototype['get_Role']     = CSdtFormPr.prototype.GetAscRole;
+	CSdtFormPr.prototype['put_Role']     = CSdtFormPr.prototype.SetAscRole;
 })(window);
