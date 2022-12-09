@@ -905,8 +905,6 @@ CSdtBase.prototype.GetFormShd = function()
 };
 CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 {
-	// TODO: Подсветка во время заполнения
-	
 	if (undefined === defaultColor)
 	{
 		let logicDocument = this.GetLogicDocument();
@@ -921,5 +919,12 @@ CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
 	let userColor   = userMaster ? userMaster.getColor() : null;
 	
-	return userColor ? userColor : defaultColor;
+	let logicDocument = this.GetLogicDocument();
+	let oform         = logicDocument ? logicDocument.GetOFormDocument() : null;
+	let currentUser   = oform ? oform.getCurrentUserMaster() : null;
+	
+	if (!currentUser || currentUser === userMaster)
+		return userColor ? userColor : defaultColor;
+	
+	return defaultColor;
 };
