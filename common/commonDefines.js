@@ -771,6 +771,13 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		                      // открывается именно просмотрщик.
 	};
 
+	var c_oAscLocalRestrictionType = {
+		None		: 0x00,
+		ReadOnly	: 0x01,
+		Locked		: 0x02,
+		Nosafe		: 0x04
+	};
+
 	// Режимы отрисовки
 	var c_oAscFontRenderingModeType = {
 		noHinting             : 1,
@@ -4231,6 +4238,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['OnlyComments']   = c_oAscRestrictionType.OnlyComments;
 	prot['OnlySignatures'] = c_oAscRestrictionType.OnlySignatures;
 	prot['View']           = c_oAscRestrictionType.View;
+
+	prot = window['Asc']['c_oAscLocalRestrictionType'] = window['Asc'].c_oAscLocalRestrictionType = c_oAscLocalRestrictionType;
+	prot['None']     = c_oAscLocalRestrictionType.None;
+	prot['ReadOnly'] = c_oAscLocalRestrictionType.ReadOnly;
+	prot['Locked']   = c_oAscLocalRestrictionType.Locked;
+	prot['Nosafe']   = c_oAscLocalRestrictionType.Nosafe;
 
 
 	prot =  window["AscCommon"]["c_oAscCellAnchorType"] = window["AscCommon"].c_oAscCellAnchorType = c_oAscCellAnchorType;
