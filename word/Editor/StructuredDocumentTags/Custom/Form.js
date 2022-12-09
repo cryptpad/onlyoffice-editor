@@ -52,6 +52,7 @@
 		this.Border   = undefined;
 		this.Shd      = undefined;
 		this.Field    = undefined;
+		this.RoleName = undefined; // Данное поле только для работы с интерфейсом, в бинарник его не пишем
 	}
 	CSdtFormPr.prototype.Copy = function()
 	{
@@ -73,6 +74,8 @@
 		// его вставки куда-либо
 		if (this.Field)
 			oFormPr.Field = this.Field;
+		
+		oFormPr.RoleName = this.RoleName;
 
 		return oFormPr;
 	};
@@ -85,7 +88,8 @@
 			&& this.Required === oOther.Required
 			&& IsEqualStyleObjects(this.Border, oOther.Border)
 			&& IsEqualStyleObjects(this.Shd, oOther.Shd)
-			&& this.Field === oOther.Field);
+			&& this.Field === oOther.Field
+			&& this.RoleName === oOther.RoleName);
 	};
 	CSdtFormPr.prototype.WriteToBinary = function(oWriter)
 	{
@@ -291,28 +295,29 @@
 			});
 		}
 	};
-	CSdtFormPr.prototype.SetField = function(fieldMaster)
-	{
-		this.Field = fieldMaster;
-	};
 	CSdtFormPr.prototype.SetFieldMaster = function(fieldMaster)
 	{
-		this.Field = fieldMaster;
+		this.Field = null !== fieldMaster ? fieldMaster : undefined;
 	};
 	CSdtFormPr.prototype.GetFieldMaster = function()
 	{
 		return this.Field ? this.Field : null;
 	};
-	CSdtFormPr.prototype.GetAscRole = function()
+	CSdtFormPr.prototype.GetRole = function()
 	{
-		if (!this.Field || !this.Field.getUserCount())
-			return "Anyone";
+		// Приоритет у роли выставленной через интерфейс, т.к. выставление в класс формы еще могло не произойти
+		// но название роли мы должны уже отдавать новое
+		if (this.RoleName)
+			return this.RoleName;
 		
-		return this.Field.getUser(0).getRole();
+		if (this.Field && this.Field.getUserCount())
+			return this.Field.getFirstUser().getRole();
+		
+		return "Anyone";
 	};
-	CSdtFormPr.prototype.SetAscRole = function(fieldMaster)
+	CSdtFormPr.prototype.SetRole = function(roleName)
 	{
-		this.Field = fieldMaster;
+		this.RoleName = null !== roleName ? roleName : undefined;
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'].CSdtFormPr = CSdtFormPr;
@@ -335,6 +340,6 @@
 	CSdtFormPr.prototype['put_Border']   = CSdtFormPr.prototype.SetAscBorder;
 	CSdtFormPr.prototype['get_Shd']      = CSdtFormPr.prototype.GetAscShd;
 	CSdtFormPr.prototype['put_Shd']      = CSdtFormPr.prototype.SetAscShd;
-	CSdtFormPr.prototype['get_Role']     = CSdtFormPr.prototype.GetAscRole;
-	CSdtFormPr.prototype['put_Role']     = CSdtFormPr.prototype.SetAscRole;
+	CSdtFormPr.prototype['get_Role']     = CSdtFormPr.prototype.GetRole;
+	CSdtFormPr.prototype['put_Role']     = CSdtFormPr.prototype.SetRole;
 })(window);

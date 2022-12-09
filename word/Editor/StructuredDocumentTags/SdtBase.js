@@ -240,38 +240,41 @@ CSdtBase.prototype.private_CheckKeyValueBeforeSet = function(formPr)
 };
 CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 {
-	if (!formPr || !formPr.Field)
+	if (!formPr || !formPr.GetRole())
 		return;
+	
+	let roleName = formPr.GetRole();
+	if (!roleName)
+		return;
+	
+	// Настройки formPr могут прийти в интерфейс с заполненным fieldMaster, если в интерфейсе меняется роль, значит
+	// она будет здесь выставлена и имеет больший приоритет, чем выставленный fieldMaster
+	
+	formPr.SetFieldMaster(null);
+	formPr.SetRole(null);
 	
 	let logicDocument = this.GetLogicDocument();
 	let oform;
 	
 	if (!logicDocument
 		|| !window['AscOForm']
-		|| !(oform = logicDocument.GetOFormDocument()))
-	{
-		formPr.Field = undefined;
-		return;
-	}
-	
-	if (formPr.Field instanceof AscOForm.CFieldMaster
+		|| !(oform = logicDocument.GetOFormDocument())
 		|| !logicDocument.IsActionStarted())
 		return;
-		
-	let role = oform.getRole(formPr.Field);
+	
+	let role = oform.getRole(roleName);
 	let userMaster;
 	if (!role || !(userMaster = role.getUserMaster()))
-	{
-		formPr.Field = undefined;
 		return;
-	}
 	
 	let fieldMaster;
-	if (this.Pr.FormPr && this.Pr.FormPr.Field)
-		fieldMaster = this.Pr.FormPr.Field;
+	if (this.Pr.FormPr && this.Pr.FormPr.GetFieldMaster())
+		fieldMaster = this.Pr.FormPr.GetFieldMaster();
 	
 	if (!fieldMaster)
 		fieldMaster = oform.getFormat().createFieldMaster();
+	else
+		oform.getFormat().addFieldMaster(fieldMaster);
 	
 	if (1 !== fieldMaster.getUserCount() || userMaster !== fieldMaster.getUser(0))
 	{
@@ -280,8 +283,7 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 	}
 	
 	fieldMaster.setLogicField(this);
-	
-	formPr.Field = fieldMaster;
+	formPr.SetFieldMaster(fieldMaster);
 };
 /**
  * Удаляем настройки специальных форм
@@ -887,7 +889,7 @@ CSdtBase.prototype.SetFieldMaster = function(fieldMaster)
 	if (!fieldMaster)
 		return;
 	
-	let formPr = this.Pr.FormPr;
+	let formPr = this.GetFormPr();
 	if (!formPr)
 		return;
 	
