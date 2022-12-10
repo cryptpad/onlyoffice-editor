@@ -124,6 +124,8 @@
 
 		let ctx = this.canvas.getContext("2d");
 
+		let strokeRect = null;
+
 		switch (this.api.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
@@ -219,6 +221,13 @@
 					let x = (width_canvas - w) >> 1;
 					let y = (height_canvas - h) >> 1;
 
+					strokeRect = {
+						x : x,
+						y : y,
+						w : w,
+						h : h
+					};
+
 					ctx.fillStyle = "#FFFFFF";
 					ctx.fillRect(x, y, w, h);
 					ctx.beginPath();
@@ -243,11 +252,21 @@
 
 			if (undefined === paperSize)
 			{
+				strokeRect = {
+					x : x,
+					y : y,
+					w : this.pageImage.width,
+					h : this.pageImage.height
+				};
+			}
+
+			if (null != strokeRect)
+			{
 				ctx.strokeStyle = AscCommon.GlobalSkin.PageOutline;
 				let lineW = AscCommon.AscBrowser.retinaPixelRatio >> 0;
 
 				ctx.lineWidth = lineW;
-				ctx.strokeRect(x + lineW / 2, y + lineW / 2, this.pageImage.width - lineW, this.pageImage.height - lineW);
+				ctx.strokeRect(strokeRect.x + lineW / 2, strokeRect.y + lineW / 2, strokeRect.w - lineW, strokeRect.h - lineW);
 				ctx.beginPath();
 			}
 		}
