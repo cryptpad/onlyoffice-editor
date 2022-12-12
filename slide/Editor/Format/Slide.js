@@ -1497,7 +1497,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         while(nStrideLinePix < nMinLineStridePix) {
             nStrideLine += nStrideInsideLine;
             nStrideLinePix = ep(nStrideLine);
-            //nStartStridePos = this.getStartStridePos(nStrideLine, nSlideHeight);
         }
         bPixel = nStrideInsideLinePix < AscCommon.AscBrowser.convertToRetinaValue(17, true);
 
@@ -1511,26 +1510,23 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         let oT = oGraphics.m_oFullTransform;
         let oImageCanvas = document.createElement('canvas');
         let oImageContext;
-        let c = function(value) {
-            return value;//AscCommon.AscBrowser.convertToRetinaValue(value, true);
-        }
         if(bPixel) {
-            oImageCanvas.width = c(1);
-            oImageCanvas.height = c(1);
+            oImageCanvas.width = 1;
+            oImageCanvas.height = 1;
             oImageContext = oImageCanvas.getContext("2d");
             oImageContext.fillStyle = 'white';
             oImageContext.fillRect(0, 0, oImageCanvas.width, oImageCanvas.height);
             oImageContext.fill();
         }
         else {
-            oImageCanvas.width = c(3);
-            oImageCanvas.height = c(3);
+            oImageCanvas.width = 3;
+            oImageCanvas.height = 3;
             oImageContext = oImageCanvas.getContext("2d");
             oImageContext.fillStyle = 'white';
-            oImageContext.fillRect(c(1), 0, c(1), c(1));
-            oImageContext.fillRect(0, c(1), c(1), c(1));
-            oImageContext.fillRect(c(2), c(1), c(1), c(1));
-            oImageContext.fillRect(c(1), c(2), c(1), c(1));
+            oImageContext.fillRect(1, 0, 1, 1);
+            oImageContext.fillRect(0, 1, 1, 1);
+            oImageContext.fillRect(2, 1, 1, 1);
+            oImageContext.fillRect(1, 2, 1, 1);
             oImageContext.fill();
         }
 
@@ -1561,9 +1557,6 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 	        }
             nVertPos += nStrideLine;
         }
-
-
-
 		if(nStrideLine !== nStrideInsideLine) {
 			nHorStart = this.getStartStridePos(nStrideLine, nSlideWidth);
 			nVertStart = this.getStartStridePos(nStrideInsideLine, nSlideHeight);

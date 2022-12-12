@@ -320,9 +320,10 @@
         if((!this.content || this.content.Is_Empty()) && !AscCommon.IsShapeToImageConverter && this.parent.isEmptyPlaceholder() && !this.checkCurrentPlaceholder()) {
             if(graphics.IsNoDrawingEmptyPlaceholder !== true && graphics.IsNoDrawingEmptyPlaceholderText !== true && this.content2) {
                 if(graphics.IsNoSupportTextDraw) {
-                    var _w2 = this.content2.XLimit;
-                    var _h2 = this.content2.GetSummaryHeight();
+                    let _w2 = this.content2.XLimit;
+                    let _h2 = this.content2.GetSummaryHeight();
                     graphics.rect(this.content2.X, this.content2.Y, _w2, _h2);
+					return;
                 }
 
                 this.content2.Set_StartPage(0);
@@ -331,10 +332,11 @@
         }
         else if(this.content) {
             if(graphics.IsNoSupportTextDraw) {
-                var bEmpty = this.content.IsEmpty();
-                var _w = bEmpty ? 0.1 : this.content.XLimit;
-                var _h = this.content.GetSummaryHeight();
+                let bEmpty = this.content.IsEmpty();
+                let _w = bEmpty ? 0.1 : this.content.XLimit;
+                let _h = this.content.GetSummaryHeight();
                 graphics.rect(this.content.X, this.content.Y, _w, _h);
+				return;
             }
             var old_start_page = this.content.StartPage;
             this.content.Set_StartPage(0);
