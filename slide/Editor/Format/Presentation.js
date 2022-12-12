@@ -11335,6 +11335,13 @@ CPresentation.prototype.GetCurSlideObjectsNames = function() {
     }
     return oSlide.cSld.getObjectsNames();
 };
+CPresentation.prototype.isSlideAnimated = function(nSlideIdx) {
+	let oSlide = this.GetSlide(nSlideIdx);
+	if(!oSlide) {
+		return false;
+	}
+	return oSlide.isAnimated();
+};
 CPresentation.prototype.SetAnimationProperties = function(oPr) {
     
     var oController = this.GetCurrentController();

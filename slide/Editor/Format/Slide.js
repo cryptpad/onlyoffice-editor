@@ -1635,7 +1635,21 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
             this.timing.drawAnimPane(oGraphics);
         }
     };
-
+	Slide.prototype.isAnimated = function() {
+		let oTr = this.transition;
+		if(oTr
+			&& oTr.TransitionType !== undefined
+			&& oTr.TransitionType !== null
+			&& oTr.TransitionType !== c_oAscSlideTransitionTypes.None) {
+			return true;
+		}
+		if(this.timing) {
+			if(this.timing.hasEffects()) {
+				return true;
+			}
+		}
+		return false;
+	};
     Slide.prototype.onAnimPaneResize = function(oGraphics) {
         if(this.timing) {
             this.timing.onAnimPaneResize(oGraphics);
