@@ -632,7 +632,28 @@ CContentControlPr.prototype.OnSetKeyToForm = function(newKey, form)
 };
 CContentControlPr.prototype.OnSetRoleToForm = function(newRole, form)
 {
-
+	let logicDocument = form.GetLogicDocument();
+	if (!logicDocument)
+		return;
+	
+	let formManager = logicDocument.GetFormsManager();
+	let allForms = formManager.GetAllFormsByKey(form.GetFormKey(), form.GetSpecificType());
+	
+	for (let index = 0, formCount = allForms.length; index < formCount; ++index)
+	{
+		let curForm = allForms[index];
+		if (curForm !== form)
+		{
+			let formPr = curForm.GetFormPr();
+			if (!formPr)
+				continue;
+			
+			let newFormPr = formPr.Copy();
+			newFormPr.SetRole(newRole);
+			newFormPr.SetFieldMaster(null);
+			curForm.SetFormPr(newFormPr);
+		}
+	}
 };
 CContentControlPr.prototype.GetId = function()
 {

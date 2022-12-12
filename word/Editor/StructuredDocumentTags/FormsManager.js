@@ -149,16 +149,17 @@
 	/**
 	 * Получаем массив всех специальных форм с заданным ключом
 	 * @param sKey
+	 * @param [formType=undefined] {Asc.c_oAscContentControlSpecificType}
 	 * @returns {[]}
 	 */
-	CFormsManager.prototype.GetAllFormsByKey = function(sKey)
+	CFormsManager.prototype.GetAllFormsByKey = function(sKey, formType)
 	{
 		let arrForms  = this.GetAllForms();
 		let arrResult = [];
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
 			let oForm = arrForms[nIndex];
-			if (sKey === oForm.GetFormKey())
+			if (sKey === oForm.GetFormKey() && (undefined === formType || formType === oForm.GetSpecificType()))
 				arrResult.push(oForm);
 		}
 
