@@ -245,9 +245,9 @@
 	 */
 	CFormsManager.prototype.OnChange = function(oForm)
 	{
-		if (!oForm || !oForm.IsUseInDocument())
+		if (!this.IsValidForm(oForm))
 			return;
-
+		
 		if (oForm.IsComplexForm())
 			this.OnChangeComplexForm(oForm);
 		else if (oForm.IsCheckBox())
@@ -350,6 +350,28 @@
 			return this.GetRadioGroupValue(form.GetRadioButtonGroupKey());
 
 		return form.GetFormValue();
+	};
+	/**
+	 * Получем роль по текущему ключу и возможно заданному типу формы
+	 * @param key
+	 * @param [formType=undefined] {Asc.c_oAscContentControlSpecificType}
+	 * @returns {string}
+	 */
+	CFormsManager.prototype.GetRoleByKey = function(key, formType)
+	{
+		let allForms = this.GetAllFormsByKey(key);
+		for (let index = 0, count = allForms.length; index < count; ++index)
+		{
+			let form = allForms[index];
+			if (undefined !== formType && formType !== form.GetSpecificType())
+				continue;
+			
+			let role = form.GetFormRole();
+			if (role)
+				return role;
+		}
+		
+		return "";
 	};
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
@@ -528,6 +550,10 @@
 			return null;
 		
 		return fieldMaster.getFirstUser();
+	};
+	CFormsManager.prototype.IsValidForm = function(form)
+	{
+		return (form && form.IsUseInDocument());
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};

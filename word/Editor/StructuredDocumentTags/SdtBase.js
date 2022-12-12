@@ -884,6 +884,16 @@ CSdtBase.prototype.GetFieldMaster = function()
 	
 	return formPr.GetFieldMaster();
 };
+/**
+ * Получаем название роли данного поля
+ * @returns {string}
+ */
+CSdtBase.prototype.GetFormRole = function()
+{
+	let fieldMaster = this.GetFieldMaster();
+	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
+	return userMaster ? userMaster.getRole() : "";
+};
 CSdtBase.prototype.SetFieldMaster = function(fieldMaster)
 {
 	if (!fieldMaster)
