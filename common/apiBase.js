@@ -1118,7 +1118,6 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
-		this.CoAuthoringApi.sendClientLog("debug", "onDocumentContentReady");
 
 		let time = this.VersionHistory ? undefined : performance.now();//todo perfStart?
 		AscCommon.sendClientLog("debug", AscCommon.getClientInfoString("onDocumentContentReady", time, AscCommon.getMemoryInfo()), t);
