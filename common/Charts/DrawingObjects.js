@@ -4270,6 +4270,38 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         return selectedObjects.length;
     };
 
+    _this.checkCursorPlaceholder = function (x, y) {
+        const oWS = this.getWorksheet();
+        const oDrawingDocument = oWS.getDrawingDocument();
+        const nPage = oWS.workbook.model.nActive;
+        const oContext = oWS.workbook.trackOverlay.m_oContext;
+
+        const oRect = {};
+        const nLeft = 2 * oWS.cellsLeft - oWS._getColLeft(oWS.visibleRange.c1);
+        const nTop = 2 * oWS.cellsTop - oWS._getRowTop(oWS.visibleRange.r1);
+        oRect.left   = nLeft;
+        oRect.right  = nLeft + AscCommon.AscBrowser.convertToRetinaValue(oContext.canvas.width);
+        oRect.top    = nTop;
+        oRect.bottom = nTop + AscCommon.AscBrowser.convertToRetinaValue(oContext.canvas.height);
+
+        const nPXtoMM = Asc.getCvtRatio(0/*mm*/, 3/*px*/, oWS._getPPIX());
+        const oOffsets = oWS.objectRender.drawingArea.getOffsets(x, y);
+        let nX = x;
+        let nY = y;
+        if (oOffsets) {
+            nX -= oOffsets.x;
+            nY -= oOffsets.y;
+        }
+        nX *= nPXtoMM;
+        nY *= nPXtoMM;
+
+        const oRet = oDrawingDocument.placeholders.onPointerMove({X: nX, Y: nY, Page: nPage}, oRect, oContext.canvas.width * nPXtoMM, oContext.canvas.height * nPXtoMM);
+        if (oRet) {
+            return {cursor: "default"};
+        }
+        return null;
+    };
+    
     _this.checkCursorDrawingObject = function(x, y) {
 
         var offsets = _this.drawingArea.getOffsets(x, y);

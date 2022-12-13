@@ -2138,6 +2138,20 @@
 			this.snapshot = this._getSnapshot();
 		}
 	};
+	Workbook.prototype.addImages = function (aImages, oPlaceholder) {
+		const oApi = Asc.editor;
+		if (oPlaceholder && undefined !== oPlaceholder.id && aImages.length === 1 && aImages[0].Image) {
+			var oController = oApi.getGraphicController();
+			var oPlaceholderTarget = AscCommon.g_oTableId.Get_ById(oPlaceholder.id);
+			if (oPlaceholderTarget) {
+				History.Create_NewPoint();
+				oController.resetSelection();
+				oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
+				oController.selectObject(oPlaceholderTarget, 0);
+				oController.startRecalculate();
+			}
+		}
+	};
 	Workbook.prototype.getOleSize = function () {
 		return this.oleSize;
 	};

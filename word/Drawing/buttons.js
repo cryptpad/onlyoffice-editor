@@ -374,6 +374,8 @@
 		// id button (parent shape id)
 		this.id = null;
 
+		this.api = Asc.editor || editor;
+
 		// list of buttons {AscCommon.PlaceholderButtonType}
 		this.buttons = [];
 		this.states = []; // states
@@ -518,8 +520,8 @@
 		if (this.states[indexButton] == AscCommon.PlaceholderButtonState.Active)
 		{
 			this.states[indexButton] = AscCommon.PlaceholderButtonState.Over;
-			this.events.document.m_oWordControl.OnUpdateOverlay();
-			this.events.document.m_oWordControl.EndUpdateOverlay();
+			this.events.onUpdateOverlay();
+			this.events.endUpdateOverlay();
 
 			this.events.closeCallback(this.buttons[indexButton], this);
 			return true;
@@ -533,15 +535,15 @@
 			}
 
 			this.states[indexButton] = AscCommon.PlaceholderButtonState.Active;
-			this.events.document.m_oWordControl.OnUpdateOverlay();
-			this.events.document.m_oWordControl.EndUpdateOverlay();
+			this.events.onUpdateOverlay();
+			this.events.endUpdateOverlay();
 		}
 
 		var xCoord = pointMenu.x;
 		var yCoord = pointMenu.y;
 
 		var word_control = this.events.document.m_oWordControl;
-		switch (word_control.m_oApi.editorId)
+		switch (this.api.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
 				if (true === word_control.m_bIsRuler)
@@ -659,12 +661,16 @@
 		}
 	};
 
+	AscCommon.DrawingPlaceholder = Placeholder;
+
 	function Placeholders(drDocument)
 	{
 		this.document = drDocument;
 
 		this.callbacks = [];
 		this.objects = [];
+
+		this.api = Asc.editor || editor;
 
 		this.icons = new PlaceholderIcons();
 		this.icons.register(AscCommon.PlaceholderButtonType.Image, "image");
@@ -692,7 +698,7 @@
 
 	Placeholders.prototype.closeCallback = function(type, obj)
 	{
-		this.document.m_oWordControl.m_oApi.sendEvent("asc_onHidePlaceholderActions");
+		this.api.sendEvent("asc_onHidePlaceholderActions");
 	};
 
 	Placeholders.prototype.closeAllActive = function()
@@ -711,7 +717,7 @@
 			}
 		}
 		if (isUpdate)
-			this.document.m_oWordControl.OnUpdateOverlay();
+			this.onUpdateOverlay();
 	};
 
 	Placeholders.prototype.draw = function(overlay, page, pixelsRect, pageWidthMM, pageHeightMM)
@@ -738,6 +744,23 @@
 		return false;
 	};
 
+	Placeholders.prototype.onUpdateOverlay = function () {
+		if (this.api.editorId === AscCommon.c_oEditorId.Spreadsheet) {
+			const oController = this.api.getGraphicController();
+			oController.updateOverlay();
+		} else {
+			if (this.api.WordControl) {
+				this.api.WordControl.OnUpdateOverlay();
+			}
+		}
+	};
+
+	Placeholders.prototype.endUpdateOverlay = function () {
+		if (this.api.editorId !== AscCommon.c_oEditorId.Spreadsheet) {
+			this.api.WordControl.EndUpdateOverlay();
+		}
+	};
+
 	Placeholders.prototype.onPointerMove = function(pos, pixelsRect, pageWidthMM, pageHeightMM)
 	{
 		var checker = { isNeedUpdateOverlay : false };
@@ -754,12 +777,12 @@
 			this.document.SetCursorType("default");
 
 		// обновить оверлей
-		if (checker.isNeedUpdateOverlay && this.document.m_oWordControl)
+		if (checker.isNeedUpdateOverlay)
 		{
-			this.document.m_oWordControl.OnUpdateOverlay();
+			this.onUpdateOverlay();
 
 			if (isButton)
-				this.document.m_oWordControl.EndUpdateOverlay();
+				this.endUpdateOverlay();
 		}
 
 		return isButton;
@@ -772,7 +795,7 @@
 
 	Placeholders.prototype.update = function(objects)
 	{
-		if (this.document.m_oWordControl.m_oApi.isViewMode || this.document.m_oWordControl.m_oApi.isRestrictionSignatures())
+		if (this.api.isViewMode || this.api.isRestrictionSignatures())
 			objects = [];
 
 		var count = this.objects.length;
@@ -786,7 +809,7 @@
 			if (this.objects[i].id != objects[i].id)
 				return this._onUpdate(objects);
 
-			if (this.objects[i].page != objects[i].page)
+			if (this.objects[i].anchor.page != objects[i].anchor.page)
 				return this._onUpdate(objects);
 
 			t1 = this.objects[i].anchor.rect;
@@ -820,7 +843,7 @@
 			this.objects[i].events = this;
 		}
 
-		this.document.m_oWordControl && this.document.m_oWordControl.OnUpdateOverlay();
+		this.onUpdateOverlay();
 	};
 
 	AscCommon.DrawingPlaceholders = Placeholders;

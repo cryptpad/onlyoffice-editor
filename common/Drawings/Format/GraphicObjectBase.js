@@ -2471,15 +2471,22 @@
             }
         }
     };
+    CGraphicObjectBase.prototype.canAddButtonPlaceholder = function () {
+        return false;
+    };
+    CGraphicObjectBase.prototype.Get_AbsolutePage = function () {
+
+    };
     CGraphicObjectBase.prototype.createPlaceholderControl = function(aControls)
     {
-        if(!this.isEmptyPlaceholder())
+        if(!this.isEmptyPlaceholder() || !this.canAddButtonPlaceholder())
         {
             return;
         }
         var phType = this.getPhType();
         var aButtons = [];
         var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsSupportMedia"] && window["AscDesktopEditor"]["IsSupportMedia"]();
+        const oRect = {x: 0, y: 0, w: this.extX, h: this.extY};
         switch (phType)
         {
             case null:
@@ -2583,14 +2590,18 @@
                 break;
             }
         }
-        var nSlideNum = 0;
-        if(this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Slide)
+        var nPageNum;
+        if(this.parent && this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Slide)
         {
-            nSlideNum = this.parent.num;
+            nPageNum = this.parent.num;
+        } else if (this.worksheet) {
+            nPageNum = this.worksheet.workbook && this.worksheet.workbook.nActive;
+        } else {
+            nPageNum = this.Get_AbsolutePage() || 0;
         }
         if(aButtons.length > 0)
         {
-            aControls.push(AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform));
+            aControls.push(AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nPageNum, oRect, this.transform));
         }
     };
     CGraphicObjectBase.prototype.onSlicerUpdate = function(sName){

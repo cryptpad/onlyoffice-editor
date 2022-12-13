@@ -65,9 +65,9 @@ CLogicDocumentController.prototype.AddInlineImage = function(nW, nH, oImage, oCh
 {
 	this.LogicDocument.controller_AddInlineImage(nW, nH, oImage, oChart, bFlow);
 };
-CLogicDocumentController.prototype.AddImages = function(aImages)
+CLogicDocumentController.prototype.AddImages = function(aImages, oOptionObject)
 {
-	this.LogicDocument.controller_AddImages(aImages);
+	this.LogicDocument.controller_AddImages(aImages, oOptionObject);
 };
 CLogicDocumentController.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId, bSelect, arrImagesForAddToHistory)
 {

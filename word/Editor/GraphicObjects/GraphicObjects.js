@@ -1780,16 +1780,16 @@ CGraphicObjects.prototype =
 		return null;
 	},
 
-    addImages: function( aImages )
+    addImages: function( aImages, oOptionObject )
     {
         var content = this.getTargetDocContent();
         if(content && !content.bPresentation)
         {
-            content.AddImages(aImages);
+            content.AddImages(aImages, oOptionObject);
         }
         else{
             this.resetSelection2();
-            this.document.AddImages(aImages);
+            this.document.AddImages(aImages, oOptionObject);
         }
     },
 
