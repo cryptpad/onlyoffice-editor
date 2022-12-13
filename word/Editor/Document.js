@@ -2848,7 +2848,10 @@ CDocument.prototype.private_UpdatePlaceholders = function ()
 	{
 		graphicPages[i] && graphicPages[i].getPlaceholdersControls(arrRet);
 	}
-	this.DrawingDocument.placeholders.update(arrRet);
+    if (this.DrawingDocument.placeholders)
+    {
+      this.DrawingDocument.placeholders.update(arrRet);
+    }
 };
 CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
