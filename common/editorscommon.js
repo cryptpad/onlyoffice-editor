@@ -9258,6 +9258,33 @@
 
 		return result;
 	}
+	
+	/**
+	 * Функция сравнивает две строки (они могут быть не заданы)
+	 * @param s1 {?string}
+	 * @param s2 {?string}
+	 * @returns {-1 | 0 | 1}
+	 */
+	function CompareStrings(s1, s2)
+	{
+		if ((undefined === s1 && undefined === s2)
+			|| (null === s1 && null === s2)
+			|| ("" === s1 && "" === s2))
+			return 0;
+		
+		if (!s1 && !s2)
+			return false;
+		else if (!s1 && s2)
+			return -1;
+		else if (s1 && !s2)
+			return 1;
+		else if (s1 < s2)
+			return -1;
+		else if (s2 > s2)
+			return 1;
+		
+		return 0;
+	}
 
 	function IsAbbreviation(sWord)
 	{
@@ -13271,6 +13298,7 @@
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 	window["AscCommon"].IsAscFontSupport = IsAscFontSupport;
 	window["AscCommon"].ExecuteNoHistory = ExecuteNoHistory;
+	window["AscCommon"].CompareStrings = CompareStrings;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
