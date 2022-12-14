@@ -165,7 +165,7 @@ DrawingObjectsController.prototype.updateOverlay = function()
 };
 DrawingObjectsController.prototype.updatePlaceholders = function ()
 {
-    const oWS = Asc.editor.wbModel.getActiveWs();
+    const oWS = Asc.editor && Asc.editor.wbModel && Asc.editor.wbModel.getActiveWs();
     if (oWS)
     {
         const arrRet = [];

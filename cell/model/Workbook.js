@@ -2144,11 +2144,18 @@
 			var oController = oApi.getGraphicController();
 			var oPlaceholderTarget = AscCommon.g_oTableId.Get_ById(oPlaceholder.id);
 			if (oPlaceholderTarget) {
-				History.Create_NewPoint();
-				oController.resetSelection();
-				oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
-				oController.selectObject(oPlaceholderTarget, 0);
-				oController.startRecalculate();
+				if (oPlaceholderTarget.isObjectInSmartArt && oPlaceholderTarget.isObjectInSmartArt()) {
+					const oSmartArtId = oPlaceholderTarget.group && oPlaceholderTarget.group.group && oPlaceholderTarget.group.group.Id;
+					this.checkObjectsLock([oSmartArtId], function (bLock) {
+						if (bLock) {
+							History.Create_NewPoint();
+							oController.resetSelection();
+							oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
+							oController.selectObject(oPlaceholderTarget, 0);
+							oController.startRecalculate();
+						}
+					});
+				}
 			}
 		}
 	};
