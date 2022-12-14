@@ -65,31 +65,41 @@ $(function () {
 			fieldGroup.toXml(writer);
 			
 			let reader = AscTest.GetXmlReader(writer);
+			
+			if (!reader.ReadNextNode() || "fieldGroup" !== reader.GetNameNoNS())
+			{
+				assert.strictEqual(false, true, msgHeader + ": bad xml");
+				return;
+			}
+			
 			let fG     = AscOForm.CFieldGroup.fromXml(reader);
 			
-			assert.strictEqual(fieldGroup.getWeight(), fG.getWeight(), msgHeader + " check weight");
-			assert.strictEqual(fieldGroup.getUserCount(), fG.getUserCount(), msgHeader + ": check number of users");
+			assert.strictEqual(fG.getWeight(), fieldGroup.getWeight(), msgHeader + " check weight");
+			assert.strictEqual(fG.getUserCount(), fieldGroup.getUserCount(), msgHeader + ": check number of users");
 			
 			if (fieldGroup.getUserCount() === fG.getUserCount())
 			{
 				for (let index = 0, count = fieldGroup.getUserCount(); index < count; ++index)
 				{
-					assert.strictEqual(fieldGroup.getUser(index), fG.getUser(index), msgHeader + ": check user[" + index + "]");
+					assert.strictEqual(fG.getUser(index), fieldGroup.getUser(index), msgHeader + ": check user[" + index + "]");
 				}
 			}
 			
-			assert.strictEqual(fieldGroup.getFieldCount(), fG.getFieldCount(), msgHeader + ": check number of fields");
+			assert.strictEqual(fieldGroup.getFieldCount(), fieldGroup.getFieldCount(), msgHeader + ": check number of fields");
 			
 			if (fieldGroup.getFieldCount() === fG.getFieldCount())
 			{
 				for (let index = 0, count = fieldGroup.getFieldCount(); index < count; ++index)
 				{
-					assert.strictEqual(fieldGroup.getField(index), fG.getField(index), msgHeader + ": check field[" + index + "]");
+					assert.strictEqual(fG.getField(index), fieldGroup.getField(index), msgHeader + ": check field[" + index + "]");
 				}
 			}
 		}
 		
 		let fieldGroup = new AscOForm.CFieldGroup();
-		Test(fieldGroup, "Empty group");
+		Test(fieldGroup, "Empty group with undefined weight");
+		
+		fieldGroup.setWeight(12);
+		Test(fieldGroup, "Empty group with weight=12");
 	});
 });
