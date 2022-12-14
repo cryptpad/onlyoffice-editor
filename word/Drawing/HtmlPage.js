@@ -1636,6 +1636,7 @@ function CEditorPage(api)
 
 					if (!oWordControl.m_oApi.getHandlerOnClick())
 						AscCommon.stopEvent(e);
+					oWordControl.EndUpdateOverlay();
 					return;
 				}
 
