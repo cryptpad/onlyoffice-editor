@@ -395,7 +395,7 @@
 	CFormsManager.prototype.OnChangeCheckBox = function(oForm)
 	{
 		let isChecked  = oForm.GetCheckBoxPr().Checked;
-		let userMaster = oForm.GetUserMasterByForm(oForm);
+		let userMaster = this.GetUserMasterByForm(oForm);
 		let arrForms   = this.GetAllForms();
 
 		if (oForm.IsRadioButton())
