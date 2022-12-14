@@ -2979,10 +2979,10 @@ CDocumentContent.prototype.AddInlineImage = function(W, H, Img, Chart, bFlow)
 	}
 };
 
-CDocumentContent.prototype.AddImages = function(aImages, oOptionObject){
+CDocumentContent.prototype.AddImages = function(aImages){
     if (docpostype_DrawingObjects === this.CurPos.Type)
     {
-        return this.DrawingObjects.addImages(aImages, oOptionObject);
+        return this.DrawingObjects.addImages(aImages);
     }
     else //if ( docpostype_Content === this.CurPos.Type )
     {

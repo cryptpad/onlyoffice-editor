@@ -5887,15 +5887,8 @@ CDocument.prototype.AddInlineImage = function(W, H, Img, Chart, bFlow)
     this.TurnOn_InterfaceEvents(true);
 };
 
-CDocument.prototype.AddImages = function(aImages, oOptionObject){
-  if (oOptionObject instanceof AscCommon.DrawingPlaceholder)
-  {
-    this.LogicDocumentController.AddImages(aImages, oOptionObject);
-  }
-  else
-  {
-    this.Controller.AddImages(aImages, oOptionObject);
-  }
+CDocument.prototype.AddImages = function(aImages){
+    this.Controller.AddImages(aImages);
 };
 
 CDocument.prototype.AddOleObject  = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
@@ -18495,23 +18488,35 @@ CDocument.prototype.controller_AddInlineImage = function(W, H, Img, Chart, bFlow
 		Item.AddInlineImage(W, H, Img, Chart, bFlow);
 	}
 };
-CDocument.prototype.controller_AddImages = function(aImages, oPlaceholder)
+CDocument.prototype.AddPlaceholderImages = function (aImages, oPlaceholder)
 {
-  if (oPlaceholder && undefined !== oPlaceholder.id && aImages.length === 1 && aImages[0].Image)
-  {
-    const oController = editor.getGraphicController();
-      var oPlaceholderTarget = AscCommon.g_oTableId.Get_ById(oPlaceholder.id);
-      if (oPlaceholderTarget)
-      {
-        oController.resetSelection2();
-        oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
-        this.Document_UpdateSelectionState();
-        this.Document_UpdateUndoRedoState();
-        this.Recalculate();
-        return;
-      }
-  }
-
+	if (oPlaceholder && undefined !== oPlaceholder.id && aImages.length === 1 && aImages[0].Image)
+	{
+		const oController = editor.getGraphicController();
+		const oPlaceholderTarget = AscCommon.g_oTableId.Get_ById(oPlaceholder.id);
+		if (oPlaceholderTarget)
+		{
+			if (oPlaceholderTarget.isObjectInSmartArt && oPlaceholderTarget.isObjectInSmartArt())
+			{
+			oController.resetSelection2();
+			oController.selectObject(oPlaceholderTarget.group.getMainGroup(), 0);
+			this.SetDocPosType(docpostype_DrawingObjects);
+			}
+			if (false === this.Document_Is_SelectionLocked(changestype_Drawing_Props, undefined, false, false))
+			{
+			this.StartAction();
+			oController.resetSelection2();
+			oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
+			this.Document_UpdateSelectionState();
+			this.Document_UpdateUndoRedoState();
+			this.Recalculate();
+			this.FinalizeAction();
+			}
+		}
+	}
+};
+CDocument.prototype.controller_AddImages = function(aImages)
+{
     if (true === this.Selection.Use)
         this.Remove(1, true);
 

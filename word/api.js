@@ -5721,19 +5721,37 @@ background-repeat: no-repeat;\
 				{
 					oApi.asc_SetContentControlPictureUrl(arrUrls[0], sContentControlId);
 				}
+				else if (oOptionObject instanceof AscCommon.DrawingPlaceholder)
+				{
+					const arrImages = [];
+					for(let i = 0; i < arrUrls.length; ++i)
+					{
+						const oImage = oApi.ImageLoader.LoadImage(arrUrls[i], 1);
+						if(oImage)
+						{
+							arrImages.push(oImage);
+						}
+					}
+					if(arrImages.length)
+					{
+						oApi.WordControl.m_oLogicDocument.AddPlaceholderImages(arrImages, oOptionObject);
+					}
+				}
 				else if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
 				{
 					const arrImages = [];
-					for(let i = 0; i < arrUrls.length; ++i){
+					for(let i = 0; i < arrUrls.length; ++i)
+					{
 						const oImage = oApi.ImageLoader.LoadImage(arrUrls[i], 1);
-						if(oImage){
+						if(oImage)
+						{
 							arrImages.push(oImage);
 						}
 					}
 					if(arrImages.length)
 					{
 						oApi.WordControl.m_oLogicDocument.StartAction();
-						oApi.WordControl.m_oLogicDocument.AddImages(arrImages, oOptionObject);
+						oApi.WordControl.m_oLogicDocument.AddImages(arrImages);
 						oApi.WordControl.m_oLogicDocument.FinalizeAction();
 					}
 				}

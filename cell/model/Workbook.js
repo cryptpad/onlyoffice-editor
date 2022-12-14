@@ -2145,7 +2145,8 @@
 			var oPlaceholderTarget = AscCommon.g_oTableId.Get_ById(oPlaceholder.id);
 			if (oPlaceholderTarget) {
 				if (oPlaceholderTarget.isObjectInSmartArt && oPlaceholderTarget.isObjectInSmartArt()) {
-					const oSmartArtId = oPlaceholderTarget.group && oPlaceholderTarget.group.group && oPlaceholderTarget.group.group.Id;
+					const oSmartArtGroup = oPlaceholderTarget.group.getMainGroup();
+					const oSmartArtId = oSmartArtGroup && oSmartArtGroup.Id;
 					this.checkObjectsLock([oSmartArtId], function (bLock) {
 						if (bLock) {
 							History.Create_NewPoint();

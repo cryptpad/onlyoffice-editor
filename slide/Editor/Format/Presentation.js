@@ -5333,7 +5333,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     }
                 }
                 Image.setParent(oCurSlide);
-                if (oPh.isObjectInSmartArt && oPh.isObjectInSmartArt() && !this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh])) {
+                if (oPh.isObjectInSmartArt && oPh.isObjectInSmartArt() && !this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh.group.getMainGroup()])) {
                   oPh.applyImagePlaceholderCallback(aImages, placeholder);
                   oController.selectObject(oPh, 0);
                 } else {
