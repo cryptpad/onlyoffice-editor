@@ -35,7 +35,7 @@ $(function () {
 	QUnit.module("Test writeTo/readFrom Xml");
 	
 	
-	QUnit.test("UserMaster:", function (assert)
+	QUnit.test("UserMaster:", function(assert)
 	{
 		function Test(user, msg)
 		{
@@ -43,7 +43,7 @@ $(function () {
 			user.toXml(writer);
 			
 			let reader = AscTest.GetXmlReader(writer);
-			let _user = AscOForm.CUserMaster.fromXml(reader);
+			let _user  = AscOForm.CUserMaster.fromXml(reader);
 			assert.strictEqual(user.isEqual(_user), true, msg);
 		}
 		
@@ -55,5 +55,41 @@ $(function () {
 		
 		user.setColor(4, 8, 15);
 		Test(user, "Check user with color");
+	});
+	
+	QUnit.test("FieldGroup:", function(assert)
+	{
+		function Test(fieldGroup, msgHeader)
+		{
+			let writer = AscTest.GetXmlWriter();
+			fieldGroup.toXml(writer);
+			
+			let reader = AscTest.GetXmlReader(writer);
+			let fG     = AscOForm.CFieldGroup.fromXml(reader);
+			
+			assert.strictEqual(fieldGroup.getWeight(), fG.getWeight(), msgHeader + " check weight");
+			assert.strictEqual(fieldGroup.getUserCount(), fG.getUserCount(), msgHeader + ": check number of users");
+			
+			if (fieldGroup.getUserCount() === fG.getUserCount())
+			{
+				for (let index = 0, count = fieldGroup.getUserCount(); index < count; ++index)
+				{
+					assert.strictEqual(fieldGroup.getUser(index), fG.getUser(index), msgHeader + ": check user[" + index + "]");
+				}
+			}
+			
+			assert.strictEqual(fieldGroup.getFieldCount(), fG.getFieldCount(), msgHeader + ": check number of fields");
+			
+			if (fieldGroup.getFieldCount() === fG.getFieldCount())
+			{
+				for (let index = 0, count = fieldGroup.getFieldCount(); index < count; ++index)
+				{
+					assert.strictEqual(fieldGroup.getField(index), fG.getField(index), msgHeader + ": check field[" + index + "]");
+				}
+			}
+		}
+		
+		let fieldGroup = new AscOForm.CFieldGroup();
+		Test(fieldGroup, "Empty group");
 	});
 });
