@@ -2547,6 +2547,7 @@
 		ipRe                  = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/i,
 		hostnameRe            = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
 		localRe               = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
+		fileRe                = /^((file):\/\/)[^'`"%^{}<>].*/i,//reserved symbols from word 2010
 		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa|smb):\/\/)|(mailto:)).*/i,
 
 		rx_table              = build_rx_table(null),
@@ -2598,8 +2599,25 @@
 		return null;
 	}
 
+	function isValidFileUrl(url) {
+		if(!url.startsWith("file:")) {
+			return false;
+		}
+		if (true || AscBrowser.isIE) {
+			return url.strongMatch(fileRe);
+		}
+		try {
+			//https://stackoverflow.com/a/43467144
+			new URL(url);
+		} catch (err) {
+			return false;
+		}
+		return true;
+	}
 	function getUrlType(url)
 	{
+		//todo validate blob, ftp, http, https, ws, wss, file with new URL https://nodejs.org/api/url.html#special-schemes
+		//they are special-schemes https://url.spec.whatwg.org/#origin
 		var checkvalue = url.replace(new RegExp(' ', 'g'), '%20');
 		var isEmail;
 		var isvalid = checkvalue.strongMatch(hostnameRe);
@@ -2609,6 +2627,8 @@
 			return AscCommon.c_oAscUrlType.Http;
 		} else if (checkvalue.strongMatch(emailRe)) {
 			return AscCommon.c_oAscUrlType.Email;
+		} else if (checkvalue.startsWith("file:")) {
+			return isValidFileUrl(checkvalue) ? AscCommon.c_oAscUrlType.Unsafe : AscCommon.c_oAscUrlType.Invalid;
 		} else if (checkvalue.strongMatch(rx_allowedProtocols)) {
 			return AscCommon.c_oAscUrlType.Unsafe;
 		} else {
