@@ -3646,7 +3646,7 @@ CDocument.prototype.Recalculate_Page = function()
 					{
 						if (this.private_IsStartTimeoutOnRecalc(PageIndex))
 						{
-							if (window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
+							if (window["native"] && window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
 							{
 								//if (window["native"]["WC_CheckSuspendRecalculate"]())
 								//    return;
@@ -4426,7 +4426,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
             {
 				if (this.private_IsStartTimeoutOnRecalc(_PageIndex))
                 {
-                    if (window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
+                    if (window["native"] && window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
 					{
 						//if (window["native"]["WC_CheckSuspendRecalculate"]())
 						//    return;
@@ -5045,7 +5045,7 @@ CDocument.prototype.private_RecalculateHdrFtrPageCountUpdate = function()
 
 			if (window["NATIVE_EDITOR_ENJINE_SYNC_RECALC"] === true)
 			{
-				if (nPageAbs >= this.HdrFtrRecalc.PageIndex + 5 && window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
+				if (nPageAbs >= this.HdrFtrRecalc.PageIndex + 5 && window["native"] && window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
 				{
 					//if (window["native"]["WC_CheckSuspendRecalculate"]())
 					//    return;1
