@@ -955,6 +955,23 @@
 			return this.guidAsyncMethod;
 		},
 
+		/* sign methods */
+		getSign : function()
+		{
+			let _count = this.plugins.length;
+			for (let i = 0; i < _count; i++)
+			{
+				var _variation = this.plugins[i].variations[0];
+				if (_variation)
+				{
+					if ("sign" === _variation.initDataType)
+						return this.plugins[i];
+				}
+			}
+
+			return null;
+		},
+
         /* encryption methods ------------- */
         getEncryption : function()
         {

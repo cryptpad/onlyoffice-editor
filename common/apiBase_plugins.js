@@ -70,6 +70,7 @@
      * * **desktop** - the desktop editor data,
      * * **destop-external** - the main page data of the desktop app (system messages),
      * * **none** - no data will be send to the plugin from the editor.
+	 * * **sign** - plugin for keychain.
 	 * @typedef {("text" | "html" | "ole" | "desktop" | "destop-external" | "none")} initDataType
      */
 
@@ -1489,4 +1490,30 @@
 			this.sendEvent("asc_onPluginHideButton", id);
 		}
 	};
+
+	Api.prototype["pluginMethod_GetKeychainStorageInfo"] = function(keys)
+	{
+		if (!this.keychainStorage)
+			this.keychainStorage = new AscCrypto.Storage.CStorageLocalStorage();
+
+		var guidAsync = window.g_asc_plugins.setPluginMethodReturnAsync();
+
+		this.keychainStorage.command(keys, function(retObj){
+			window.g_asc_plugins.onPluginMethodReturn(guidAsync, retObj);
+		});
+	};
+
+	Api.prototype["pluginMethod_SetKeychainStorageInfo"] = function(items)
+	{
+		var guidAsync = window.g_asc_plugins.setPluginMethodReturnAsync();
+
+		this.keychainStorage.command(items, function(retObj){
+			window.g_asc_plugins.onPluginMethodReturn(guidAsync, retObj);
+		});
+	};
+
+	Api.prototype["pluginMethod_OnSignWithKeychain"] = function(data)
+	{
+	};
+
 })(window);
