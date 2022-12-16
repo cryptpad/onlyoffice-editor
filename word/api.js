@@ -641,8 +641,22 @@
 						};
 					};
 
+
+					if ( !AscCommon.isValidJs( _current["Script"] ) )
+					{
+						console.error('Invalid JS.');
+						return;	
+					}
+
 					var _script = "(function(Api, window, alert, document, XMLHttpRequest){ \n" + "\"use strict\"" + ";\n" + _current["Script"] + "\n})(window.g_asc_plugins.api, {}, function(){}, {}," + customXMLHttpRequest.toString() + ");";
-					eval(_script);
+					try
+					{
+						eval(_script);
+					}
+					catch (err)
+					{
+						console.error(err);
+					}
 
 					if (c_oAscSdtLevelType.Block === _blockStd.GetContentControlType())
 					{
