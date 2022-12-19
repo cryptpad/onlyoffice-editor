@@ -2474,8 +2474,8 @@
     CGraphicObjectBase.prototype.canAddButtonPlaceholder = function () {
         return false;
     };
-    CGraphicObjectBase.prototype.Get_AbsolutePage = function () {
-
+    CGraphicObjectBase.prototype.Get_AbsolutePage = function (nCurPage) {
+        return nCurPage || 0;
     };
     CGraphicObjectBase.prototype.createPlaceholderControl = function(aControls)
     {
