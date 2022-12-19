@@ -859,6 +859,26 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 		oWatermark.Generate();
 		oWatermark.Draw(ctx, ctx.canvas.width, ctx.canvas.height);
 	}
+
+	if (this.api) {
+		const oDrawingDocument = this.api.getDrawingDocument();
+		if (oDrawingDocument && oDrawingDocument.placeholders.objects.length) {
+			const oRect = {};
+			const nOffsetX = 2 * oWS.cellsLeft - oWS._getColLeft(oWS.visibleRange.c1);
+			const nOffsetY = 2 * oWS.cellsTop - oWS._getRowTop(oWS.visibleRange.r1);
+			oRect.left   = nOffsetX;
+			oRect.right  = nOffsetX + ctx.canvas.width;
+			oRect.top    = nOffsetY;
+			oRect.bottom = nOffsetY + ctx.canvas.height;
+			var pxToMm = Asc.getCvtRatio(0/*mm*/, 3/*px*/, oWS._getPPIX());
+			ctx.save();
+			ctx.beginPath();
+			ctx.rect(oWS.cellsLeft, oWS.cellsTop, ctx.canvas.width, ctx.canvas.height);
+			ctx.clip();
+			oDrawingDocument.placeholders.draw(trackOverlay, oWS.workbook.model.nActive, oRect, ctx.canvas.width * pxToMm, ctx.canvas.height * pxToMm);
+			ctx.restore();
+		}
+	}
 };
 
 	DrawingArea.prototype.drawFrozenPaneBorders = function(autoShapeTrack) {

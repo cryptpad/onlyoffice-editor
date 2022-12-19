@@ -1636,6 +1636,7 @@ function CEditorPage(api)
 
 					if (!oWordControl.m_oApi.getHandlerOnClick())
 						AscCommon.stopEvent(e);
+					oWordControl.EndUpdateOverlay();
 					return;
 				}
 
@@ -3201,8 +3202,13 @@ function CEditorPage(api)
             {
                 for (var indP = drDoc.m_lDrawingFirst; indP <= drDoc.m_lDrawingEnd; indP++)
                 {
-                    var _page = drDoc.m_arrPages[indP];
-                    drDoc.placeholders.draw(overlay, indP, _page.drawingPage, _page.width_mm, _page.height_mm);
+                    const oPage = drDoc.m_arrPages[indP];
+					const oPixelRect = {};
+					oPixelRect.left = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.left, true);
+					oPixelRect.right = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.right, true);
+					oPixelRect.top = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.top, true);
+					oPixelRect.bottom = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.bottom, true);
+                    drDoc.placeholders.draw(overlay, indP, oPixelRect, oPage.width_mm, oPage.height_mm);
                 }
             }
 

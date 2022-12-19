@@ -5311,6 +5311,14 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
             if (oPh) {
                 History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
                 oController.resetSelection();
+              if (oPh.isObjectInSmartArt && oPh.isObjectInSmartArt() && !this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh.group.getMainGroup()])) {
+                const oMainGroup = oPh.group.getMainGroup();
+                oPh.applyImagePlaceholderCallback(aImages, placeholder);
+                oController.selectObject(oMainGroup, 0);
+                oController.selection.groupSelection = oMainGroup;
+                oMainGroup.selectObject(oPh, 0);
+                oMainGroup.addToRecalculate();
+              } else {
                 var _w, _h;
                 var _image = aImages[0];
                 _w = oPh.extX;
@@ -5333,20 +5341,6 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     }
                 }
                 Image.setParent(oCurSlide);
-                if (oPh.isObjectInSmartArt && oPh.isObjectInSmartArt()) {
-                  if (oPh.spPr) {
-                    var imageWidth = _image.Image.width;
-                    var imageHeight = _image.Image.height;
-                    var shapeWidth = oPh.extX;
-                    var shapeHeight = oPh.extY;
-                    var srcRect = new AscFormat.CSrcRect();
-                    srcRect.setValueForFitBlipFill(shapeWidth, shapeHeight, imageWidth, imageHeight);
-                    var oBlipFillUniFill = AscFormat.CreateBlipFillUniFillFromUrl(_image.src);
-                    oBlipFillUniFill.fill.setSrcRect(srcRect);
-                    oPh.changeFill(oBlipFillUniFill);
-                  }
-                  oController.selectObject(oPh, 0);
-                } else {
                   if (this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh])) {
                     Image.addToDrawingObjects();
                   } else {

@@ -2471,6 +2471,7 @@
 						window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
 					}
 					ws.objectRender.controller.updateSelectionState();
+					ws.objectRender.controller.updatePlaceholders();
 					ws.objectRender.showDrawingObjects();
 
 					if (needShowSpecialProps) {
@@ -2657,6 +2658,7 @@
 
 				ws.objectRender.showDrawingObjects();
 				ws.setSelectionShape(true);
+				ws.objectRender.controller.updatePlaceholders();
 				ws.objectRender.controller.updateOverlay();
 				History.EndTransaction();
 			},

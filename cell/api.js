@@ -4531,17 +4531,33 @@ var editor;
     // ToDo заменить на общую функцию для всех
     this.asc_addImage();
   };
-  spreadsheet_api.prototype._addImageUrl = function(urls, obj) {
-    if (obj && obj.sendUrlsToFrameEditor && this.isOpenedChartFrame) {
-      this.addImageUrlsFromGeneralToFrameEditor(urls);
+  spreadsheet_api.prototype._addImageUrl = function(arrUrls, oOptionObject) {
+    if (oOptionObject && oOptionObject.sendUrlsToFrameEditor && this.isOpenedChartFrame) {
+      this.addImageUrlsFromGeneralToFrameEditor(arrUrls);
       return;
     }
-    var ws = this.wb.getWorksheet();
-    if (ws) {
-      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl || obj.fAfterUploadOleObjectImage)) {
-        ws.objectRender.editImageDrawingObject(urls[0], obj);
+    const oWS = this.wb.getWorksheet();
+    if (oWS) {
+      if (oOptionObject) {
+        if (oOptionObject.isImageChangeUrl || oOptionObject.isShapeImageChangeUrl || oOptionObject.isTextArtChangeUrl || oOptionObject.fAfterUploadOleObjectImage) {
+          oWS.objectRender.editImageDrawingObject(arrUrls[0], oOptionObject);
+        } else {
+          if (this.ImageLoader) {
+            const oApi = this;
+            this.ImageLoader.LoadImagesWithCallback(arrUrls, function() {
+               const arrImages = [];
+              for(let i = 0; i < arrUrls.length; ++i) {
+                const oImage = oApi.ImageLoader.LoadImage(arrUrls[i], 1);
+                if(oImage){
+                  arrImages.push(oImage);
+                }
+              }
+              oApi.wbModel.addImages(arrImages, oOptionObject);
+            }, []);
+          }
+        }
       } else {
-        ws.objectRender.addImageDrawingObject(urls, null);
+        oWS.objectRender.addImageDrawingObject(arrUrls, null);
       }
     }
   };

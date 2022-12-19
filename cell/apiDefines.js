@@ -308,7 +308,8 @@ var c_oTargetType = {
   FrozenAnchorV: 15,
   GroupRow: 16,
   GroupCol: 17,
-  TableSelectionChange: 18
+  TableSelectionChange: 18,
+  Placeholder: 19
 };
 
 var c_oAscAutoFilterTypes = {

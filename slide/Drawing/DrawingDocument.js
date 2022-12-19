@@ -3323,8 +3323,10 @@ function CDrawingDocument()
         var oWordControl = this.m_oWordControl;
 		var bIsReturn = false;
 
-        if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM()))
-            bIsReturn = true;
+        if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.GetWidthMM(), this.m_oLogicDocument.GetHeightMM())) {
+			bIsReturn = true;
+			this.m_oWordControl.onMouseUpMainSimple();
+		}
 
         if (bIsReturn)
 		{

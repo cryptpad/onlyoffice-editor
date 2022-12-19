@@ -1260,6 +1260,9 @@
 			case AscDFH.historydescription_Collaborative_Undo:
 				sString = "Collaborative_Undo";
 				break;
+			case AscDFH.historydescription_Document_AddPlaceholderImages:
+				sString = "Document_AddPlaceholderImages";
+				break;
 		}
 		return sString;
 	}
@@ -4379,6 +4382,7 @@
 	window['AscDFH'].historydescription_Document_ConvertMathView                    = 0x0199;
 	window['AscDFH'].historydescription_Document_DocumentProtection                 = 0x019a;
 	window['AscDFH'].historydescription_Collaborative_Undo                          = 0x019b;
+	window['AscDFH'].historydescription_Document_AddPlaceholderImages               = 0x019c;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -2590,6 +2590,17 @@ CDocument.prototype.UpdateSelection = function(isRemoveEmptySelection)
 		this.private_UpdateSelection();
 	}
 };
+CDocument.prototype.UpdatePlaceholders = function ()
+{
+	if (this.Action.Start)
+	{
+		this.Action.UpdatePlaceholders = true;
+    }
+	else
+	{
+		this.private_UpdatePlaceholders();
+	}
+};
 /**
  * Сообщаем документу, что потребуется обновить состояние интерфейса
  * @param {?boolean} bSaveCurRevisionChange
@@ -2771,19 +2782,23 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (this.Action.UpdateTracks)
 		this.private_UpdateDocumentTracks();
 
-	this.Action.Start           = false;
-	this.Action.Depth           = 0;
-	this.Action.PointsCount     = 0;
-	this.Action.Recalculate     = false;
-	this.Action.CancelAction    = false;
-	this.Action.UpdateSelection = false;
-	this.Action.UpdateInterface = false;
-	this.Action.UpdateRulers    = false;
-	this.Action.UpdateUndoRedo  = false;
-	this.Action.UpdateTracks    = false;
-	this.Action.Redraw.Start    = undefined;
-	this.Action.Redraw.End      = undefined;
-	this.Action.Additional      = {};
+	if (this.Action.UpdatePlaceholders)
+		this.private_UpdatePlaceholders();
+
+	this.Action.Start              = false;
+	this.Action.Depth              = 0;
+	this.Action.PointsCount        = 0;
+	this.Action.Recalculate        = false;
+	this.Action.CancelAction       = false;
+	this.Action.UpdateSelection    = false;
+	this.Action.UpdateInterface    = false;
+	this.Action.UpdateRulers       = false;
+	this.Action.UpdateUndoRedo     = false;
+	this.Action.UpdateTracks       = false;
+	this.Action.UpdatePlaceholders = false;
+	this.Action.Redraw.Start       = undefined;
+	this.Action.Redraw.End         = undefined;
+	this.Action.Additional         = {};
 	this.Api.checkChangesSize();
 };
 CDocument.prototype.private_CheckAdditionalOnFinalize = function()
@@ -2824,6 +2839,19 @@ CDocument.prototype.RecalculateLineNumbers = function()
 {
 	this.UpdateLineNumbersInfo();
 	this.Redraw(-1, -1);
+};
+CDocument.prototype.private_UpdatePlaceholders = function ()
+{
+	const arrRet = [];
+	const graphicPages = this.DrawingObjects.graphicPages;
+	for (let i = 0; i < graphicPages.length; i += 1)
+	{
+		graphicPages[i] && graphicPages[i].getPlaceholdersControls(arrRet);
+	}
+    if (this.DrawingDocument.placeholders)
+    {
+      this.DrawingDocument.placeholders.update(arrRet);
+    }
 };
 CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
@@ -3244,6 +3272,7 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 		{
 			this.DrawingDocument.ClearCachePages();
 			this.DrawingDocument.FirePaint();
+			this.UpdatePlaceholders();
 			return document_recalcresult_LongRecalc;
 		}
 		else if (ChangeIndex >= this.Content.length)
@@ -3305,6 +3334,7 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 			{
 				// // Recalculation LOG
 				// console.log("No need to recalc");
+				this.UpdatePlaceholders();
 				return document_recalcresult_LongRecalc;
 			}
 
@@ -3360,7 +3390,7 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 	{
 		this.Recalculate_Page();
 	}
-
+	this.UpdatePlaceholders();
     return document_recalcresult_LongRecalc;
 };
 /**
@@ -3442,7 +3472,11 @@ CDocument.prototype.private_RecalculateFastRunRange = function(arrChanges, nStar
 
 			// // Recalculation LOG
 			// console.log("Fast Recalculation RunRange, PageIndex=" + nPageIndex);
-
+			const oGraphicPage = this.DrawingObjects.graphicPages[nPageIndex];
+			if (!!(oGraphicPage && oGraphicPage.getAllDrawings().length))
+			{
+				this.UpdatePlaceholders();
+			}
 			return true;
 		}
 	}
@@ -3536,11 +3570,17 @@ CDocument.prototype.private_RecalculateFastParagraph = function(arrChanges, nSta
 
 		if (bCanFastRecalc)
 		{
+			let bUpdatePlaceholders = false;
 			for (var nPageIndex in oFastPages)
 			{
 				// // Recalculation LOG
 				// console.log("Fast Recalculation Paragraph, PageIndex=" + nPageIndex);
 				this.DrawingDocument.OnRecalculatePage(oFastPages[nPageIndex], this.Pages[nPageIndex]);
+				if (!bUpdatePlaceholders)
+				{
+					const oGraphicPage = this.DrawingObjects.graphicPages[nPageIndex];
+					bUpdatePlaceholders = !!(oGraphicPage && oGraphicPage.getAllDrawings().length);
+				}
 			}
 
 			this.DrawingDocument.OnEndRecalculate(false, true);
@@ -3557,7 +3597,10 @@ CDocument.prototype.private_RecalculateFastParagraph = function(arrChanges, nSta
 						oTopDocument.OnFastRecalculate();
 				}
 			}
-
+			if (bUpdatePlaceholders)
+            {
+            	this.UpdatePlaceholders();
+			}
 			return true;
 		}
 	}
@@ -4470,7 +4513,11 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		{
 			this.FullRecalc.Continue = true;
 		}
-    }
+	}
+	else
+	{
+		this.UpdatePlaceholders();
+	}
 };
 CDocument.prototype.private_IsStartTimeoutOnRecalc = function(nPageAbs)
 {
@@ -7395,6 +7442,7 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 
         if (docpostype_DrawingObjects === this.CurPos.Type && (true != this.IsInDrawing(X, Y, this.CurPage) || ( nInDrawing === DRAWING_ARRAY_TYPE_BEHIND && true === bInText )))
         {
+            this.DrawingObjects.OnMouseDown(MouseEvent, X, Y, this.CurPage);
             this.DrawingObjects.resetSelection();
             bOldSelectionIsCommon = false;
         }
@@ -18439,6 +18487,35 @@ CDocument.prototype.controller_AddInlineImage = function(W, H, Img, Chart, bFlow
 	else
 	{
 		Item.AddInlineImage(W, H, Img, Chart, bFlow);
+	}
+};
+CDocument.prototype.AddPlaceholderImages = function (aImages, oPlaceholder)
+{
+	if (oPlaceholder && undefined !== oPlaceholder.id && aImages.length === 1 && aImages[0].Image)
+	{
+		const oController = editor.getGraphicController();
+		const oPlaceholderTarget = AscCommon.g_oTableId.Get_ById(oPlaceholder.id);
+		if (oPlaceholderTarget)
+		{
+			if (oPlaceholderTarget.isObjectInSmartArt && oPlaceholderTarget.isObjectInSmartArt())
+			{
+				
+				if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, false, false))
+				{
+					this.StartAction(AscDFH.historydescription_Document_AddPlaceholderImages);
+					oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
+					const nDrawingPage = oPlaceholderTarget.Get_AbsolutePage();
+					if (AscFormat.isRealNumber(nDrawingPage))
+					{
+						oPlaceholderTarget.Set_CurrentElement(false, nDrawingPage, true);
+					}
+					this.Document_UpdateSelectionState();
+					this.Document_UpdateUndoRedoState();
+					this.Recalculate();
+					this.FinalizeAction();
+				}
+			}
+		}
 	}
 };
 CDocument.prototype.controller_AddImages = function(aImages)

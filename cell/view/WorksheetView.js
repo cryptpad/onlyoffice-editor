@@ -8668,6 +8668,11 @@
 		var readyMode = !(this.getSelectionDialogMode() || this.getCellEditMode());
     var oResDefault = {cursor: kCurDefault, target: c_oTargetType.None, col: -1, row: -1};
 
+    const oPlaceholderCursor = this.objectRender.checkCursorPlaceholder(x, y);
+    if (oPlaceholderCursor) {
+      return {cursor: kCurDefault, target: c_oTargetType.Placeholder, col: -1, row: -1};
+    }
+
     if (this.workbook.Api.isEditVisibleAreaOleEditor) {
       if (x >= this.cellsLeft && y >= this.cellsTop) {
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
