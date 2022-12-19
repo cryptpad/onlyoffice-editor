@@ -18499,14 +18499,21 @@ CDocument.prototype.AddPlaceholderImages = function (aImages, oPlaceholder)
 		{
 			if (oPlaceholderTarget.isObjectInSmartArt && oPlaceholderTarget.isObjectInSmartArt())
 			{
-			oController.resetSelection2();
-			oController.selectObject(oPlaceholderTarget.group.getMainGroup(), 0);
-			this.SetDocPosType(docpostype_DrawingObjects);
+				this.SetDocPosType(docpostype_DrawingObjects);
+				const oMainGroup = oPlaceholderTarget.group.getMainGroup();
+				oController.resetSelection();
+                const nDrawingPage = oPlaceholderTarget.Get_AbsolutePage();
+                if (AscFormat.isRealNumber(nDrawingPage))
+                {
+                    oController.selectObject(oMainGroup, nDrawingPage);
+                    oController.selection.groupSelection = oMainGroup;
+                    oMainGroup.selectObject(oPlaceholderTarget, nDrawingPage);
+                    oMainGroup.addToRecalculate();
+                }
 			}
 			if (false === this.Document_Is_SelectionLocked(changestype_Drawing_Props, undefined, false, false))
 			{
 			this.StartAction();
-			oController.resetSelection2();
 			oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
 			this.Document_UpdateSelectionState();
 			this.Document_UpdateUndoRedoState();
