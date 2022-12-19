@@ -1579,10 +1579,11 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
 	    let oContext = oGraphics.m_oContext;
 	    if( !oContext ||
 			AscCommon.IsShapeToImageConverter ||
-		    oGraphics.IsThumbnail ||
 		    oGraphics.animationDrawer ||
+		    oGraphics.IsThumbnail ||
 		    oGraphics.IsDemonstrationMode ||
-		    oGraphics.IsSlideBoundsCheckerType) {
+		    oGraphics.IsSlideBoundsCheckerType || 
+			oGraphics.IsNoDrawingEmptyPlaceholder) {
 		    return;
 	    }
 
