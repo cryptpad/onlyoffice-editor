@@ -1213,6 +1213,7 @@
 		oController.clearPreTrackObjects();
 		oController.updateOverlay();
 		oController.changeCurrentState(new AscFormat.NullState(oController));
+		oController.updateSelectionState();
 		return oSmartArt;
 	};
 	baseEditorsApi.prototype.forceSave = function()

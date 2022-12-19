@@ -2169,6 +2169,7 @@
 							oController.clearTrackObjects();
 							oController.updateOverlay();
 							oController.changeCurrentState(new AscFormat.NullState(oController));
+							oController.updateSelectionState();
 						}
 					});
 				}
