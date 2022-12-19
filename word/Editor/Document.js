@@ -7442,6 +7442,7 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 
         if (docpostype_DrawingObjects === this.CurPos.Type && (true != this.IsInDrawing(X, Y, this.CurPage) || ( nInDrawing === DRAWING_ARRAY_TYPE_BEHIND && true === bInText )))
         {
+            this.DrawingObjects.OnMouseDown(MouseEvent, X, Y, this.CurPage);
             this.DrawingObjects.resetSelection();
             bOldSelectionIsCommon = false;
         }
