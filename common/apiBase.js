@@ -1164,30 +1164,36 @@
 		oSmartArt.fillByPreset(nSmartArtType);
 		const oLogicDocument = this.getLogicDocument();
 		const oController = this.getGraphicController();
+		const oDrawingObjects = this.getDrawingObjects();
 		if (!bFromWord) {
-			const oDrawingObjects = this.getDrawingObjects();
-			if (oDrawingObjects) {
-				oSmartArt.setDrawingObjects(oDrawingObjects);
-			}
-			if (oDrawingObjects.cSld) {
-				oSmartArt.setParent(oDrawingObjects);
-				oSmartArt.setRecalculateInfo();
-			}
+					if (oDrawingObjects) {
+						oSmartArt.setDrawingObjects(oDrawingObjects);
+					}
+					if (oDrawingObjects.cSld) {
+						oSmartArt.setParent(oDrawingObjects);
+						oSmartArt.setRecalculateInfo();
+					}
 
-			if (oDrawingObjects.getWorksheetModel) {
-				oSmartArt.setWorksheet(oDrawingObjects.getWorksheetModel());
-			}
-			oSmartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
-			oSmartArt.checkDrawingBaseCoords();
-
-			if (oController) {
-				oController.checkChartTextSelection();
-				oController.resetSelection();
-				oSmartArt.select(oController, 0);
-			}
-			oSmartArt.fitFontSize();
-			oController.startRecalculate();
-			oDrawingObjects.sendGraphicObjectProps();
+					if (oDrawingObjects.getWorksheetModel) {
+						const oWSView = oDrawingObjects.getWorksheetModel();
+						oSmartArt.setWorksheet(oWSView);
+					}
+					oSmartArt.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+					oSmartArt.checkDrawingBaseCoords();
+					oSmartArt.fitFontSize();
+					if (oController) {
+						oController.checkChartTextSelection();
+						oController.resetSelection();
+						oSmartArt.select(oController, 0);
+						if (oDrawingObjects.getWorksheet) {
+							const oWS = oDrawingObjects.getWorksheet();
+							if (oWS) {
+								oWS.setSelectionShape(true);
+							}
+						}
+					}
+					oController.startRecalculate();
+					oDrawingObjects.sendGraphicObjectProps();
 		} else {
 			if (true === oLogicDocument.Selection.Use) {
 				oLogicDocument.Remove(1, true);
@@ -1201,12 +1207,12 @@
 				oLogicDocument.AddToParagraph(oParaDrawing);
 				oLogicDocument.Select_DrawingObject(oParaDrawing.Get_Id());
 				oLogicDocument.Recalculate();
-				oController.clearTrackObjects();
-				oController.clearPreTrackObjects();
-				oController.updateOverlay();
-				oController.changeCurrentState(new AscFormat.NullState(oController));
 			}
 		}
+		oController.clearTrackObjects();
+		oController.clearPreTrackObjects();
+		oController.updateOverlay();
+		oController.changeCurrentState(new AscFormat.NullState(oController));
 		return oSmartArt;
 	};
 	baseEditorsApi.prototype.forceSave = function()
