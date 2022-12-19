@@ -18499,26 +18499,21 @@ CDocument.prototype.AddPlaceholderImages = function (aImages, oPlaceholder)
 		{
 			if (oPlaceholderTarget.isObjectInSmartArt && oPlaceholderTarget.isObjectInSmartArt())
 			{
-				this.SetDocPosType(docpostype_DrawingObjects);
-				const oMainGroup = oPlaceholderTarget.group.getMainGroup();
-				oController.resetSelection();
-                const nDrawingPage = oPlaceholderTarget.Get_AbsolutePage();
-                if (AscFormat.isRealNumber(nDrawingPage))
-                {
-                    oController.selectObject(oMainGroup, nDrawingPage);
-                    oController.selection.groupSelection = oMainGroup;
-                    oMainGroup.selectObject(oPlaceholderTarget, nDrawingPage);
-                    oMainGroup.addToRecalculate();
-                }
-			}
-			if (false === this.Document_Is_SelectionLocked(changestype_Drawing_Props, undefined, false, false))
-			{
-			this.StartAction();
-			oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
-			this.Document_UpdateSelectionState();
-			this.Document_UpdateUndoRedoState();
-			this.Recalculate();
-			this.FinalizeAction();
+				
+				if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, false, false))
+				{
+					this.StartAction(AscDFH.historydescription_Document_AddPlaceholderImages);
+					oPlaceholderTarget.applyImagePlaceholderCallback && oPlaceholderTarget.applyImagePlaceholderCallback(aImages, oPlaceholder);
+					const nDrawingPage = oPlaceholderTarget.Get_AbsolutePage();
+					if (AscFormat.isRealNumber(nDrawingPage))
+					{
+						oPlaceholderTarget.Set_CurrentElement(false, nDrawingPage, true);
+					}
+					this.Document_UpdateSelectionState();
+					this.Document_UpdateUndoRedoState();
+					this.Recalculate();
+					this.FinalizeAction();
+				}
 			}
 		}
 	}
