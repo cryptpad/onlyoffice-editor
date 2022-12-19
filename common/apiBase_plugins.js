@@ -70,6 +70,7 @@
      * * **desktop** - the desktop editor data,
      * * **destop-external** - the main page data of the desktop app (system messages),
      * * **none** - no data will be send to the plugin from the editor.
+	 * * **sign** - plugin for keychain.
 	 * @typedef {("text" | "html" | "ole" | "desktop" | "destop-external" | "none")} initDataType
      */
 
@@ -1449,7 +1450,7 @@
     * Installs a plugin by the URL to the plugin config.
      * @memberof Api
      * @typeofeditors ["CDE", "CSE", "CPE"]
-     * @param {string} [url] - The URL to the plugin config for installing.
+     * @param {object} [config] - The plugin config for installing.
      * @alias InstallPlugin
      * @returns {object} - An object with the result information.
      * @since 7.2.0
@@ -1462,12 +1463,12 @@
     * Updates a plugin by the URL to the plugin config.
      * @memberof Api
      * @typeofeditors ["CDE", "CSE", "CPE"]
-     * @param {string} [url] - The URL to the plugin config for updating.
+     * @param {object} [config] - The plugin config for updating.
      * @alias UpdatePlugin
      * @returns {object} - An object with the result information.
-     * @since 7.2.0
+     * @since 7.3.0
      */
-	Api.prototype["pluginMethod_UpdatePlugin"] = function(url, guid)
+	Api.prototype["pluginMethod_UpdatePlugin"] = function(config)
 	{
 		return installPlugin(config, "Updated");
 	};
@@ -1489,4 +1490,30 @@
 			this.sendEvent("asc_onPluginHideButton", id);
 		}
 	};
+
+	Api.prototype["pluginMethod_GetKeychainStorageInfo"] = function(keys)
+	{
+		if (!this.keychainStorage)
+			this.keychainStorage = new AscCrypto.Storage.CStorageLocalStorage();
+
+		var guidAsync = window.g_asc_plugins.setPluginMethodReturnAsync();
+
+		this.keychainStorage.command(keys, function(retObj){
+			window.g_asc_plugins.onPluginMethodReturn(guidAsync, retObj);
+		});
+	};
+
+	Api.prototype["pluginMethod_SetKeychainStorageInfo"] = function(items)
+	{
+		var guidAsync = window.g_asc_plugins.setPluginMethodReturnAsync();
+
+		this.keychainStorage.command(items, function(retObj){
+			window.g_asc_plugins.onPluginMethodReturn(guidAsync, retObj);
+		});
+	};
+
+	Api.prototype["pluginMethod_OnSignWithKeychain"] = function(data)
+	{
+	};
+
 })(window);

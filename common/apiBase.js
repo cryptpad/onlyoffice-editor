@@ -4197,6 +4197,31 @@
 	{
 	};
 
+	// ---------------------------------------------------- oform ---------------------------------------------
+	baseEditorsApi.prototype.signOform = function()
+	{
+		// TODO:
+		// 1) делаем архив oform
+		// 2) прогоняем архив через модуль для подписи. считаем хэши и делаем архив - и отдаем хмл для подписи
+		// 3) вызываем плагин для подписи
+		// 4) получаем подпись и информацию о подписи.
+		// 5) добавляем эти данные в архив
+
+		// TODO: проверить, есть ли плагин для подписи
+
+		let plugin = window.g_asc_plugins ? window.g_asc_plugins.getSign() : null;
+		if (!plugin)
+		{
+			this.sendEvent('asc_onError', c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		let startData = new Asc.CPluginData();
+		startData.setAttribute("data", "test_sign_data");
+
+		this.asc_pluginRun(plugin.guid, 0, startData);
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;

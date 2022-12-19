@@ -13120,7 +13120,7 @@
 				if (pasteInfo.wb && pasteInfo.wb.Core && pasteInfo.wb.Core.title && pasteInfo.wb.Core.category) {
 					//работаем внутри одного портала
 					//если разные документу, то вставляем ссылку на другой документ, если один и тот же, то вставляем обычную ссылку
-					if (api.DocInfo && api.DocInfo.ReferenceData && pasteInfo.wb.Core.category === api.DocInfo.ReferenceData["portalName"]) {
+					if (api.DocInfo && api.DocInfo.ReferenceData && pasteInfo.wb.Core.category === api.DocInfo.ReferenceData["instanceId"]) {
 						_res = true;
 					}
 				}
@@ -13958,8 +13958,8 @@
 					var referenceData;
 					if (pastedWb && pastedWb.Core) {
 						referenceData = {};
-						referenceData["fileId"] = pastedWb.Core.contentStatus;
-						referenceData["portalName"] = pastedWb.Core.category;
+						referenceData["fileKey"] = pastedWb.Core.contentStatus;
+						referenceData["instanceId"] = pastedWb.Core.category;
 					}
 
 					var name = pastedWb.Core.title;
@@ -13988,6 +13988,7 @@
 			}
 		};
 
+		var isLinkToOtherWorkbook = false;
 		var pasteLinkIndex = -1;
 		var pasteSheetLinkName = null;
 		var colsWidth = {};
@@ -13998,6 +13999,9 @@
 			if (isPastingLink) {
 				if (-1 === pasteLinkIndex) {
 					_getPasteLinkIndex();
+				}
+				if (pasteLinkIndex != null) {
+					isLinkToOtherWorkbook = true;
 				}
 				t._pasteCellLink(range, fromRow, fromCol, arrFormula, pasteSheetLinkName, pasteLinkIndex);
 				return;
@@ -14207,6 +14211,10 @@
 					}
 				}
 			}
+		}
+
+		if (isLinkToOtherWorkbook) {
+			t.model.workbook.handlers.trigger("asc_onNeedUpdateExternalReference")
 		}
 
 		t.isChanged = true;
@@ -14778,8 +14786,8 @@
 				var referenceData;
 				if (pastedWb && pastedWb.Core) {
 					referenceData = {};
-					referenceData["fileId"] = pastedWb.Core.contentStatus;
-					referenceData["portalName"] = pastedWb.Core.category;
+					referenceData["fileKey"] = pastedWb.Core.contentStatus;
+					referenceData["instanceId"] = pastedWb.Core.category;
 				}
 				var externalReference = referenceData && this.model.workbook.getExternalLinkByReferenceData(referenceData);
 				externalReference = externalReference && externalReference.index;
@@ -17026,7 +17034,9 @@
 
 					}
 
-					t.updateExternalReferenceByCell(c, true);
+					if (t.getExternalReferencesByCell(c, true)) {
+						t.model.workbook.handlers.trigger("asc_onNeedUpdateExternalReference");
+					}
 
 					if (callback) {
 						return callback(bRes);
@@ -24257,14 +24267,20 @@
 
 	WorksheetView.prototype.updateExternalReferenceByCell = function (c, initStructure) {
 		var t = this;
-		var externalReferences = [];
+		var externalReferences = this.getExternalReferencesByCell(c, initStructure);
+		this.workbook.doUpdateExternalReference(externalReferences);
+	};
+
+	WorksheetView.prototype.getExternalReferencesByCell = function (c, initStructure) {
+		let t = this;
+		let externalReferences = [];
 		t.model._getCell(c.bbox.r1, c.bbox.c1, function (cell) {
 			if (cell && cell.isFormula()) {
-				var fP = cell.formulaParsed;
+				let fP = cell.formulaParsed;
 				if (fP) {
-					for (var i = 0; i < fP.outStack.length; i++) {
+					for (let i = 0; i < fP.outStack.length; i++) {
 						if ((AscCommonExcel.cElementType.cellsRange3D === fP.outStack[i].type || AscCommonExcel.cElementType.cell3D === fP.outStack[i].type) && fP.outStack[i].externalLink) {
-							var eR = t.model.workbook.getExternalWorksheet(fP.outStack[i].externalLink);
+							let eR = t.model.workbook.getExternalWorksheet(fP.outStack[i].externalLink);
 							if (eR) {
 								externalReferences.push(eR.getAscLink());
 								if (initStructure) {
@@ -24277,7 +24293,7 @@
 			}
 		});
 
-		this.workbook.doUpdateExternalReference(externalReferences);
+		return externalReferences.length ? externalReferences : null;
 	};
 
 	WorksheetView.prototype.shiftCellWatches = function (bInsert, operType, updateRange) {

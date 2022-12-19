@@ -1473,7 +1473,7 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         let nGridSpacingPix = ep(this.stride);
 
         let nMinLineStridePix = ep(720000);
-        let nMinInsideLineStridePix = ep(150000);
+        let nMinInsideLineStridePix = ep(100000);
 
         let nGridSpacing = this.stride;
         let bPixel = true;

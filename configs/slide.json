@@ -58,6 +58,7 @@
 
 			"common/stringserialize.js",
 			"common/random.js",
+			"common/keychainstorage.js",
 
 			"common/Drawings/Metafile.js",
 			"common/libfont/textmeasurer.js",
