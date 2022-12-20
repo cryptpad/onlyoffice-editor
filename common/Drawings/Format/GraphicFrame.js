@@ -1399,7 +1399,9 @@ CGraphicFrame.prototype.IsThisElementCurrent = function()
         newGraphicObject.graphicObject = Graphic;
         return newGraphicObject;
     };
-
+    CGraphicFrame.prototype.Get_ShapeStyleForPara = function() {
+        return null;
+    };
     function ConvertToWordTableBorder(oBorder) {
         if(!oBorder) {
             return undefined;
@@ -1502,7 +1504,7 @@ CGraphicFrame.prototype.IsThisElementCurrent = function()
         AscCommon.g_oIdCounter.m_bLoad = bLoadVal;
         AscCommon.g_oIdCounter.m_bRead = bRead;
         oRow.Set_Height(Math.max(1, fRowHeight - fMaxTopMargin - fMaxBottomMargin - fMaxTopBorder/2 - fMaxBottomBorder/2), Asc.linerule_AtLeast);
-    };
+    }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGraphicFrame = CGraphicFrame;

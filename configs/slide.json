@@ -28,7 +28,8 @@
 			"slide/api.js",
 			"common/spell/spell.js",
 			"common/zlib/zlib.js",
-			"word/Editor/Table/TableLook.js"
+			"word/Editor/Table/TableLook.js",
+			"cell/utils/utils.js"
 		],
 		"common": [
 			"common/api/actionOnTimer.js",
@@ -118,7 +119,6 @@
 			"common/wordcopypaste.js",
 			"common/intervalTree.js",
 
-			"cell/utils/utils.js",
 			"cell/model/WorkbookElems.js",
 			"cell/model/Workbook.js",
 			"cell/model/Serialize.js",
@@ -142,6 +142,7 @@
 			"word/Editor/Numbering/Numbering.js",
 			"word/Drawing/GraphicsEvents.js",
 			"word/Drawing/Rulers.js",
+			"word/Drawing/printpreview.js",
 			"word/Editor/DocumentContentElementBase.js",
 			"word/Editor/Table.js",
 			"word/Editor/Table/TableChanges.js",

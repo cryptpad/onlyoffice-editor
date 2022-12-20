@@ -90,8 +90,7 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     this.Pages = []; // Массив страниц (CParaPage)
     this.Lines = []; // Массив строк (CParaLine)
 
-	this.EndInfo         = new CParagraphPageEndInfo();
-	this.EndInfoRecalcId = -1;
+	this.EndInfo = new CParagraphPageEndInfo();
 
     if(!(bFromPresentation === true))
     {
@@ -1443,23 +1442,40 @@ Paragraph.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
 };
 Paragraph.prototype.RecalculateEndInfo = function()
 {
-	var oLogicDocument = this.GetLogicDocument();
-	if (oLogicDocument && oLogicDocument.GetRecalcId && this.EndInfoRecalcId === oLogicDocument.GetRecalcId())
+	let logicDocument = this.GetLogicDocument();
+	if (!logicDocument || !logicDocument.GetRecalcId)
 		return;
-
-	var oPRSI     = this.m_oPRSI;
-	var oPrevInfo = this.Parent.GetPrevElementEndInfo(this);
-	oPRSI.Reset(oPrevInfo);
-
-	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+	
+	let recalcId = logicDocument.GetRecalcId();
+	if (this.EndInfo.CheckRecalcId(recalcId))
+		return;
+	
+	let prevEndInfo = this.Parent.GetPrevElementEndInfo(this);
+	if (prevEndInfo && !prevEndInfo.CheckRecalcId(recalcId))
+		return;
+	
+	let prsi = this.m_oPRSI;
+	prsi.Reset(prevEndInfo);
+	
+	for (let pos = 0, count = this.Content.length; pos < count; ++pos)
 	{
-		this.Content[nCurPos].RecalculateEndInfo(oPRSI);
+		this.Content[pos].RecalculateEndInfo(prsi);
 	}
-
-	this.EndInfo.SetFromPRSI(oPRSI);
-
-	if (oLogicDocument && oLogicDocument.GetRecalcId)
-		this.EndInfoRecalcId = oLogicDocument.GetRecalcId();
+	
+	this.EndInfo.SetFromPRSI(prsi);
+	this.EndInfo.SetRecalcId(recalcId);
+};
+/**
+ * Данная функция вызывается, когда с данным элементом, и с элементами до него не произошло никаких изменений и мы
+ * просто актуализируем EndInfo.RecalcId
+ */
+Paragraph.prototype.UpdateEndInfoRecalcId = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	if (!logicDocument || !logicDocument.GetRecalcId)
+		return;
+	
+	this.EndInfo.SetRecalcId(logicDocument.GetRecalcId());
 };
 Paragraph.prototype.GetEndInfo = function()
 {
@@ -2201,6 +2217,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 		}
 	}
 	PDSH.SetCollectFixedForms(false);
+	PDSH.Reset(this, pGraphics, DrawColl, DrawFind, DrawComm, DrawMMFields, this.GetEndInfoByPage(CurPage - 1), DrawSolvedComments);
 
 	for (var CurLine = StartLine; CurLine <= EndLine; CurLine++)
 	{
@@ -2866,11 +2883,20 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 
 						// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для
 						// символа параграфа.
+						
+						let underlineValue = oNumTextPr.Underline;
 
 						var oTextPrTemp = this.TextPr.Value.Copy();
-						oTextPrTemp.Underline = undefined;
-
+						if (undefined !== oTextPrTemp.RStyle && this.Parent)
+						{
+							let styleManager = this.Parent.GetStyles();
+							let styleTextPr  = styleManager.Get_Pr(oTextPrTemp.RStyle, styletype_Character).TextPr;
+							oNumTextPr.Merge(styleTextPr);
+						}
+						
 						oNumTextPr.Merge(oTextPrTemp);
+						oNumTextPr.Underline = underlineValue;
+						
 						oNumTextPr.Merge(oNumLvl.GetTextPr());
 
 						var oPrevNumTextPr = oPrevNumPr ? this.Get_CompiledPr2(false).TextPr.Copy() : null;
@@ -4201,27 +4227,6 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 		}
 
 		this.Correct_Content(ContentPos, ContentPos);
-
-		// Обработка удаления диакритических знаков
-		if (Direction > 0 && true === Result)
-		{
-			var oElement = this.Get_RunElementByPos(this.Get_ParaContentPos(false));
-			while (oElement && oElement.IsDiacriticalSymbol && oElement.IsDiacriticalSymbol())
-			{
-				if (false === this.Content[this.CurPos.ContentPos].Remove(Direction, bOnAddText))
-				{
-					this.CurPos.ContentPos++;
-
-					// TODO:ParaEnd
-					if (this.CurPos.ContentPos >= this.Content.length - 2)
-						break;
-
-					this.Content[this.CurPos.ContentPos].MoveCursorToStartPos();
-				}
-
-				oElement = this.Get_RunElementByPos(this.Get_ParaContentPos(false));
-			}
-		}
 
 		if (Direction < 0 && false === Result)
 		{
@@ -6275,16 +6280,7 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 		this.Content[CurPos].Get_RightPos(SearchPos, ContentPos, Depth + 1, true, StepEnd);
 
 		if (SearchPos.Found)
-		{
-			var oRunElement = this.Get_RunElementByPos(SearchPos.Pos);
-			if (oRunElement && oRunElement.IsDiacriticalSymbol && oRunElement.IsDiacriticalSymbol())
-			{
-				SearchPos.Found = false;
-				continue;
-			}
-
 			return true;
-		}
 	}
 
 	CurPos++;
@@ -6305,16 +6301,7 @@ Paragraph.prototype.Get_RightPos = function(SearchPos, ContentPos, StepEnd)
 		this.Content[CurPos].Get_RightPos(SearchPos, ContentPos, Depth + 1, false, StepEnd);
 
 		if (true === SearchPos.Found)
-		{
-			var oRunElement = this.Get_RunElementByPos(SearchPos.Pos);
-			if (oRunElement && oRunElement.IsDiacriticalSymbol && oRunElement.IsDiacriticalSymbol())
-			{
-				SearchPos.Found = false;
-				continue;
-			}
-
 			return true;
-		}
 
 		CurPos++;
 	}
@@ -18325,6 +18312,7 @@ function CParagraphPageEndInfo()
 	this.ComplexFields = []; // Массив незакрытых полей на данной странице
 
     this.RunRecalcInfo = null;
+	this.RecalcId     = -1;
 }
 CParagraphPageEndInfo.prototype.Copy = function()
 {
@@ -18379,6 +18367,14 @@ CParagraphPageEndInfo.prototype.IsEqual = function(oEndInfo)
 	}
 
 	return true;
+};
+CParagraphPageEndInfo.prototype.CheckRecalcId = function(recalcId)
+{
+	return this.RecalcId === recalcId;
+};
+CParagraphPageEndInfo.prototype.SetRecalcId = function(recalcId)
+{
+	this.RecalcId = recalcId;
 };
 
 function CParaPos(Range, Line, Page, Pos)

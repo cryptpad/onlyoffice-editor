@@ -434,7 +434,12 @@ var editor;
 
   spreadsheet_api.prototype._printDesktop = function (options) {
     window.AscDesktopEditor_PrintOptions = options;
-    window["AscDesktopEditor"]["Print"]();
+
+    let desktopOptions = {};
+    if (options && options.advancedOptions)
+      desktopOptions["nativeOptions"] = options.advancedOptions.asc_getNativeOptions();
+
+    window["AscDesktopEditor"]["Print"](JSON.stringify(desktopOptions));
     return true;
   };
 
