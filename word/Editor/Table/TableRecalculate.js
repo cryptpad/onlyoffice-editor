@@ -2557,6 +2557,12 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
             var CellMar  = Cell.GetMargins();
 
             Row.Update_CellInfo(CurCell);
+	
+			// Обновляем сразу EndInfo, т.к. мы можем начать пересчет следующей ячейки, до окончания полного пересчета
+			// предыдущей ячейки в строке. Кроме того пересчет EndInfo внутри параграфа, в любом случае, выполняется
+			// не более одного раза за текущий Document.RecalcId, поэтому, можем не боятся, что пересчет EndInfo
+			// вызовется несколько раз для параграфа
+			Cell.Content.RecalculateEndInfo();
 
             var CellMetrics   = Row.Get_CellInfo( CurCell );
 
@@ -2592,11 +2598,6 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
             {
                 CurGridCol += GridSpan;
                 Merged_Cell.push( Cell );
-
-				// Приходится здесь обновлять EndInfo, т.к. мы можем начать пересчет следующей ячейки, до
-				// окончания полного пересчета предыдущей ячейки в строке
-				Cell.Content.RecalculateEndInfo();
-
                 continue;
             }
             else
@@ -2668,10 +2669,6 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
             Cell.Content.Set_ClipInfo(CellPageIndex, Page.X + CellMetrics.X_cell_start, Page.X + CellMetrics.X_cell_end);
             if ( CellPageIndex < Cell.PagesCount )
             {
-            	// Приходится здесь обновлять EndInfo, т.к. мы можем начать пересчет следующей ячейки, до
-				// окончания полного пересчета предыдущей ячейки в строке
-            	Cell.Content.RecalculateEndInfo();
-
                 if ( true === bCanShift )
                 {
 					Cell.ShiftCell(0, ShiftDx, ShiftDy);

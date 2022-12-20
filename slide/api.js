@@ -8654,6 +8654,8 @@ background-repeat: no-repeat;\
 	// print-preview
 	asc_docs_api.prototype.asc_initPrintPreview = function(containerId, options)
 	{
+		if (this.printPreview)
+			return;
 		this.printPreview = new AscCommon.CPrintPreview(this, containerId);
 	};
 	asc_docs_api.prototype.asc_drawPrintPreview = function(index, paperSize)
