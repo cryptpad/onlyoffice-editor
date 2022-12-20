@@ -233,9 +233,12 @@
 		this.cntTypes = new ContentTypes();
 		this.fileNameIndexes = {};
 
+		this.openFromZip();
+	};
+	
+	openXml.OpenXmlPackage.prototype.openFromZip = function(){
 		openFromZip(this.zip, this);
 	};
-
 	openXml.OpenXmlPackage.prototype.removePart = function (uri) {
 		var removePart = this.parts[uri];
 		if(removePart) {
