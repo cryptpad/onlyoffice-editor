@@ -611,6 +611,9 @@
 		}
 		writer.WriteXmlAttributesEnd(true);
 	};
+	openXml.OpenXmlRelationship.prototype.getFullPath = function() {
+		return this.targetFullName;
+	};
 
 	openXml.MimeTypes = {
 		"bmp": "image/bmp",
