@@ -10197,8 +10197,71 @@ Because of this, the display is sometimes not correct.
       return drawing;
     };
 
+    function readSmartArt() {
+      AscCommon.loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
+        if (httpRequest && httpRequest.response) {
+          const arrStream = AscCommon.initStreamFromResponse(httpRequest);
+
+          AscCommon.g_oBinarySmartArts = {
+            shifts: {},
+            stream: arrStream
+          }
+
+          const oFileStream = new AscCommon.FileStream(arrStream, arrStream.length);
+          oFileStream.GetUChar();
+          const nLength = oFileStream.GetULong();
+          while (nLength + 4 > oFileStream.cur) {
+            const nType = oFileStream.GetUChar();
+            const nPosition = oFileStream.GetULong();
+            AscCommon.g_oBinarySmartArts.shifts[nType] = nPosition;
+          }
+        }
+
+      }, 'arraybuffer');
+    }
+
+    setTimeout(function () {
+      readSmartArt();
+    }, 0)
+
 
     SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
+      const oApi = Asc.editor || editor;
+      if (oApi) {
+        const nShift = AscCommon.g_oBinarySmartArts.shifts[nSmartArtType];
+        const oDrawingDocument = oApi.getDrawingDocument();
+        const oLogicDocument = oApi.getLogicDocument();
+
+        const pReader = new AscCommon.BinaryPPTYLoader();
+        pReader.stream = new AscCommon.FileStream(AscCommon.g_oBinarySmartArts.stream, AscCommon.g_oBinarySmartArts.stream.length);
+        pReader.stream.cur = nShift;
+
+        pReader.presentation = oLogicDocument;
+        pReader.DrawingDocument = oDrawingDocument;
+
+        pReader.loadOnlyDrawingSmartArt = bLoadOnlyDrawing;
+        pReader.stream.GetUChar();
+        this.fromPPTY(pReader);
+        this.setSpPr(new AscFormat.CSpPr());
+        this.spPr.setParent(this);
+        const smXfrm = new AscFormat.CXfrm();
+        smXfrm.fillStandardSmartArtXfrm();
+        this.spPr.setXfrm(smXfrm);
+        this.setBDeleted2(false);
+        this.x = smXfrm.offX;
+        this.y = smXfrm.offY;
+        this.extX = smXfrm.extX;
+        this.extY = smXfrm.extY;
+        this.drawing.setXfrmByParent();
+
+        if (!bLoadOnlyDrawing) {
+          this.checkNodePointsAfterRead();
+        }
+      }
+      return this;
+    }
+
+    SmartArt.prototype.fillByPreset2 = function (nSmartArtType, bLoadOnlyDrawing) {
       this.setDataModel(new AscFormat.DiagramData());
       this.setColorsDef(new AscFormat.ColorsDef());
       this.setLayoutDef(new AscFormat.LayoutDef());
@@ -11510,22 +11573,38 @@ Because of this, the display is sometimes not correct.
           break;
         }
         case 1: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           this.setConnections2();
           break;
         }
         case 2: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setColorsDef(new ColorsDef());
           this.colorsDef.fromPPTY(pReader);
           break;
         }
         case 3: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setLayoutDef(new LayoutDef());
           this.layoutDef.fromPPTY(pReader);
           break;
         }
         case 4: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setStyleDef(new StyleDef());
           this.styleDef.fromPPTY(pReader);
           break;
