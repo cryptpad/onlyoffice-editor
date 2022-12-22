@@ -9808,10 +9808,6 @@
 		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
 	}
 
-	function loadSmartArtPresets(onSuccess, onError) {
-		loadScript('../../../../sdkjs/common/SmartArts/SmartArtPresets.js', onSuccess, onError);
-	}
-
 	function getAltGr(e)
 	{
 		if (true === e["altGraphKey"])
@@ -13399,7 +13395,6 @@
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
     window["AscCommon"].loadChartStyles = loadChartStyles;
-    window["AscCommon"].loadSmartArtPresets = loadSmartArtPresets;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;

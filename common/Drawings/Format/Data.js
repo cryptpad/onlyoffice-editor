@@ -10197,7 +10197,7 @@ Because of this, the display is sometimes not correct.
       return drawing;
     };
 
-    function readSmartArtBinary() {
+    function loadSmartArtBinary(fOnError) {
       AscCommon.loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
         if (httpRequest && httpRequest.response) {
           const arrStream = AscCommon.initStreamFromResponse(httpRequest);
@@ -10215,11 +10215,12 @@ Because of this, the display is sometimes not correct.
             const nPosition = oFileStream.GetULong();
             AscCommon.g_oBinarySmartArts.shifts[nType] = nPosition;
           }
+        } else {
+          fOnError(httpRequest);
         }
 
       }, 'arraybuffer');
     }
-      readSmartArtBinary();
 
 
     SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
@@ -10257,70 +10258,6 @@ Because of this, the display is sometimes not correct.
       }
       return this;
     }
-
-    SmartArt.prototype.fillByPreset2 = function (nSmartArtType, bLoadOnlyDrawing) {
-      this.setDataModel(new AscFormat.DiagramData());
-      this.setColorsDef(new AscFormat.ColorsDef());
-      this.setLayoutDef(new AscFormat.LayoutDef());
-      this.setStyleDef(new AscFormat.StyleDef());
-      this.setDrawing(new AscFormat.Drawing());
-
-      const oApi = Asc.editor || editor;
-      if (oApi) {
-        const pReader = new AscCommon.BinaryPPTYLoader();
-        const drawingDocument = oApi.getDrawingDocument();
-        const logicDocument = oApi.getLogicDocument();
-        pReader.presentation = logicDocument;
-        pReader.DrawingDocument = drawingDocument;
-
-        let sData = AscCommon['g_oSmartArtDrawings'][nSmartArtType];
-        let data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-        pReader.stream = new AscCommon.FileStream(data, data.length);
-        pReader.ReadSmartArtGroup(this.drawing);
-        this.drawing.setGroup(this);
-        this.addToSpTree(0, this.drawing);
-
-        if (!bLoadOnlyDrawing) {
-          sData = AscCommon['g_oSmartArtStyleDef'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.styleDef.fromPPTY(pReader);
-
-          sData = AscCommon['g_oSmartArtLayoutDef'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.layoutDef.fromPPTY(pReader);
-
-          sData = AscCommon['g_oSmartArtColorsDef'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.colorsDef.fromPPTY(pReader);
-
-          sData = AscCommon['g_oSmartArtData'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.dataModel.fromPPTY(pReader);
-          this.setConnections2();
-        }
-
-        this.setSpPr(new AscFormat.CSpPr());
-        this.spPr.setParent(this);
-        const smXfrm = new AscFormat.CXfrm();
-        smXfrm.fillStandardSmartArtXfrm();
-        this.spPr.setXfrm(smXfrm);
-        this.setBDeleted2(false);
-        this.x = smXfrm.offX;
-        this.y = smXfrm.offY;
-        this.extX = smXfrm.extX;
-        this.extY = smXfrm.extY;
-        this.drawing.setXfrmByParent();
-
-        if (!bLoadOnlyDrawing) {
-          this.checkNodePointsAfterRead();
-        }
-      }
-      return this;
-    };
 
     SmartArt.prototype.fitToPageSize = function () {
       const oApi = Asc.editor || editor;
@@ -13321,6 +13258,7 @@ Because of this, the display is sometimes not correct.
 
 
     window['AscFormat'] = window['AscFormat'] || {};
+    window['AscCommon'] = window['AscCommon'] || {};
     window['AscFormat'].kForInsFitFontSize     = kForInsFitFontSize;
     window['AscFormat'].PrSet                  = PrSet;
     window['AscFormat'].CCommonDataList        = CCommonDataList;
@@ -14118,5 +14056,7 @@ Because of this, the display is sometimes not correct.
 
     window['AscFormat'].EChOrder_chOrderB = EChOrder_chOrderB;
     window['AscFormat'].EChOrder_chOrderT = EChOrder_chOrderT;
+
+    window['AscCommon'].loadSmartArtBinary = loadSmartArtBinary;
 
   })(window)
