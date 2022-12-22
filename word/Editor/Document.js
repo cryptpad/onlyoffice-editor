@@ -2160,6 +2160,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		isFastCollaboration : false,
 	};
 
+	this.OFormDocument           = window['AscOForm'] && false !== isMainLogicDocument ? new AscOForm.OForm(this) : null;
 	this.FormsManager            = new AscWord.CFormsManager(this);
 	this.CurrentForm             = null;
 	this.HighlightRequiredFields = false;  // Выделяем ли обязательные поля
@@ -2260,6 +2261,9 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
+
+	if (this.OFormDocument)
+		this.OFormDocument.onEndLoad();
 
 	this.End_SilentMode();
 };
@@ -2803,6 +2807,8 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 };
 CDocument.prototype.private_CheckAdditionalOnFinalize = function()
 {
+	this.Action.Additional.Start = true;
+	
 	this.Comments.CheckMarks();
 
 	if (this.Action.Additional.TrackMove)
@@ -2815,7 +2821,10 @@ CDocument.prototype.private_CheckAdditionalOnFinalize = function()
 		this.private_FinalizeValidateForm();
 
 	if (this.Action.CancelAction)
+	{
+		this.Action.Additional.Start = false;
 		return;
+	}
 
 	if (this.Action.Additional.FormChange)
 		this.private_FinalizeFormChange();
@@ -2831,6 +2840,11 @@ CDocument.prototype.private_CheckAdditionalOnFinalize = function()
 
 	if (this.Action.Additional.ContentControlChange)
 		this.private_FinalizeContentControlChange();
+	
+	if (this.OFormDocument)
+		this.OFormDocument.onEndAction();
+	
+	this.Action.Additional.Start = false;
 };
 /**
  * Пересчитываем нумерацию строк
@@ -16230,6 +16244,9 @@ CDocument.prototype.AddComplexForm = function(oPr, formPr)
 		oRun.ApplyTextPr(oTextPr);
 		oCC.SelectContentControl();
 	}
+	
+	if (_formPr.GetFixed())
+		oCC.ConvertFormToFixed();
 
 	this.UpdateSelection();
 	this.UpdateTracks();
@@ -24949,6 +24966,13 @@ CDocument.prototype.OnChangeContentControl = function(oControl)
 		return;
 
 	this.Action.Additional.ContentControlChange[sId] = oControl;
+};
+/**
+ * @returns {?AscOForm.CDocument}
+ */
+CDocument.prototype.GetOFormDocument = function()
+{
+	return this.OFormDocument;
 };
 /**
  * @returns {AscWord.CFormsManager}

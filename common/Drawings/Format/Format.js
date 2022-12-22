@@ -88,6 +88,9 @@
 		CBaseNoIdObject.prototype.Get_Id = function () {
 			return this.Id;
 		};
+		CBaseNoIdObject.prototype.GetId = function () {
+			return this.Id;
+		};
 		CBaseNoIdObject.prototype.Write_ToBinary2 = function (oWriter) {
 			oWriter.WriteLong(this.getObjectType());
 			oWriter.WriteString2(this.Get_Id());

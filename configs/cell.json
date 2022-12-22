@@ -42,6 +42,7 @@
 			"common/api/addTextSettings.js",
 			"common/api/autoCorrectSettings.js",
 			"common/api/firstLetterExceptions.js",
+			"common/api/restrictionSettings.js",
 
 			"common/nameMap.js",
 			"common/downloaderfiles.js",
