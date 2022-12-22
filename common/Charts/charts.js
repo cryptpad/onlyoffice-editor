@@ -830,14 +830,13 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.getSmartArt = function(nSmartArtType) {
 		return AscFormat.ExecuteNoHistory(function () {
 			const oSmartArt = new AscFormat.SmartArt();
-			oSmartArt.bForceSlideTransform = true;
-			oSmartArt.fillByPreset(nSmartArtType, true);
-			oSmartArt.getContrastDrawing();
-			oSmartArt.setBDeleted2(false);
-			const oXfrm = oSmartArt.spPr.xfrm;
-
 			const oApi = Asc.editor || editor;
-			if (oApi) {
+			if (oApi && AscCommon.g_oBinarySmartArts) {
+				oSmartArt.bForceSlideTransform = true;
+				oSmartArt.fillByPreset(nSmartArtType, true);
+				oSmartArt.getContrastDrawing();
+				oSmartArt.setBDeleted2(false);
+				const oXfrm = oSmartArt.spPr.xfrm;
 				const oDrawingObjects = oApi.getDrawingObjects();
 				oXfrm.setOffX(0);
 				oXfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - oXfrm.extY) / 2);

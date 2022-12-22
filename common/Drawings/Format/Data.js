@@ -10197,7 +10197,7 @@ Because of this, the display is sometimes not correct.
       return drawing;
     };
 
-    function readSmartArt() {
+    function readSmartArtBinary() {
       AscCommon.loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
         if (httpRequest && httpRequest.response) {
           const arrStream = AscCommon.initStreamFromResponse(httpRequest);
@@ -10219,15 +10219,12 @@ Because of this, the display is sometimes not correct.
 
       }, 'arraybuffer');
     }
-
-    setTimeout(function () {
-      readSmartArt();
-    }, 0)
+      readSmartArtBinary();
 
 
     SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
       const oApi = Asc.editor || editor;
-      if (oApi) {
+      if (oApi && AscCommon.g_oBinarySmartArts) {
         const nShift = AscCommon.g_oBinarySmartArts.shifts[nSmartArtType];
         const oDrawingDocument = oApi.getDrawingDocument();
         const oLogicDocument = oApi.getLogicDocument();

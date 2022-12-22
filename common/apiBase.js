@@ -1158,6 +1158,9 @@
 	baseEditorsApi.prototype.getDrawingDocument = function () {};
 	baseEditorsApi.prototype.getLogicDocument = function () {};
 	baseEditorsApi.prototype.asc_createSmartArt = function (nSmartArtType) {
+		if (!AscCommon.g_oBinarySmartArts) {
+			return;
+		}
 		AscCommon.History.Create_NewPoint(AscDFH.historydescription_Document_AddSmartArt);
 		const bFromWord = this.isDocumentEditor;
 		const oSmartArt = new AscFormat.SmartArt();
