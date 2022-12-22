@@ -10197,32 +10197,6 @@ Because of this, the display is sometimes not correct.
       return drawing;
     };
 
-    function loadSmartArtBinary(fOnError) {
-      AscCommon.loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
-        if (httpRequest && httpRequest.response) {
-          const arrStream = AscCommon.initStreamFromResponse(httpRequest);
-
-          AscCommon.g_oBinarySmartArts = {
-            shifts: {},
-            stream: arrStream
-          }
-
-          const oFileStream = new AscCommon.FileStream(arrStream, arrStream.length);
-          oFileStream.GetUChar();
-          const nLength = oFileStream.GetULong();
-          while (nLength + 4 > oFileStream.cur) {
-            const nType = oFileStream.GetUChar();
-            const nPosition = oFileStream.GetULong();
-            AscCommon.g_oBinarySmartArts.shifts[nType] = nPosition;
-          }
-        } else {
-          fOnError(httpRequest);
-        }
-
-      }, 'arraybuffer');
-    }
-
-
     SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
       const oApi = Asc.editor || editor;
       if (oApi && AscCommon.g_oBinarySmartArts) {
@@ -13258,7 +13232,6 @@ Because of this, the display is sometimes not correct.
 
 
     window['AscFormat'] = window['AscFormat'] || {};
-    window['AscCommon'] = window['AscCommon'] || {};
     window['AscFormat'].kForInsFitFontSize     = kForInsFitFontSize;
     window['AscFormat'].PrSet                  = PrSet;
     window['AscFormat'].CCommonDataList        = CCommonDataList;
@@ -14056,7 +14029,5 @@ Because of this, the display is sometimes not correct.
 
     window['AscFormat'].EChOrder_chOrderB = EChOrder_chOrderB;
     window['AscFormat'].EChOrder_chOrderT = EChOrder_chOrderT;
-
-    window['AscCommon'].loadSmartArtBinary = loadSmartArtBinary;
 
   })(window)
