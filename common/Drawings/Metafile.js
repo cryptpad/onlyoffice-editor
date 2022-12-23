@@ -1005,7 +1005,8 @@
 		{
 			this.WriteXmlNodeStart(name);
 			this.WriteXmlAttributesEnd(false);
-			this.WriteXmlStringEncode(text.toString());
+			if (text)
+				this.WriteXmlStringEncode(text.toString());
 			this.WriteXmlNodeEnd(name);
 		};
 		this.WriteXmlAttributesEnd = function(isEnd)
