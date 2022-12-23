@@ -782,11 +782,12 @@
 
 
 		//onlyf
-		main: {dir: "../oform", filename: "main.xml", contentType: "application/vnd.openxmlformats-package.onlyf+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-main"},
-		userMaster: {dir: "../oform/userMasters", filename: "userMaster[N].xml", contentType: "application/vnd.openxmlformats-package.onlyf-userMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-userMaster"},
-		user: {dir: "../oform/users", filename: "user[N].xml", /*contentType: "application/vnd.openxmlformats-package.onlyf-user+xml",*/ relationType: "https://schemas.onlyoffice.com/relationships/oform-user"},
-		field: {dir: "../oform/fields", filename: "field[N].xml", /*contentType: "application/vnd.openxmlformats-package.onlyf-field+xml",*/ relationType: "https://schemas.onlyoffice.com/relationships/oform-field"},
-		fieldMaster: {dir: "../oform/fieldMasters", filename: "fieldMaster[N].xml", contentType: "application/vnd.openxmlformats-package.onlyf-fieldMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-fieldMaster"}
+		oformMain: {dir: "oform", filename: "main.xml", contentType: "application/vnd.openxmlformats-package.onlyf+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-main"},
+		oformDefaultUserMaster: {dir: "oform/userMasters", filename: "default.xml", contentType: "application/vnd.openxmlformats-package.onlyf-default-userMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-default-userMaster"},
+		oformUserMaster: {dir: "oform/userMasters", filename: "userMaster[N].xml", contentType: "application/vnd.openxmlformats-package.onlyf-userMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-userMaster"},
+		oformUser: {dir: "oform/users", filename: "user[N].xml", /*contentType: "application/vnd.openxmlformats-package.onlyf-user+xml",*/ relationType: "https://schemas.onlyoffice.com/relationships/oform-user"},
+		oformField: {dir: "oform/fields", filename: "field[N].xml", /*contentType: "application/vnd.openxmlformats-package.onlyf-field+xml",*/ relationType: "https://schemas.onlyoffice.com/relationships/oform-field"},
+		oformFieldMaster: {dir: "oform/fieldMasters", filename: "fieldMaster[N].xml", contentType: "application/vnd.openxmlformats-package.onlyf-fieldMaster+xml", relationType: "https://schemas.onlyoffice.com/relationships/oform-fieldMaster"}
 	};
 	openXml.TargetMode = {
 		internal: "Internal",
