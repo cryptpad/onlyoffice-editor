@@ -6822,6 +6822,9 @@ function readSDKContentControl(props, selectedObjects) {
                 }
             }
         }
+    } else if (type == Asc.c_oAscContentControlSpecificType.DateTime) {
+        specProps = props.get_DateTimePr();
+        result["get_FullDate"] = specProps ? specProps.get_FullDate() : null;
     }
 
     // form settings
@@ -7033,7 +7036,7 @@ function onFocusObject(SelectedObjects, localTrigger) {
     }
 
     // Form object
-    if (control_props && control_props.get_FormPr()) {
+    if (control_props) {
         var spectype = control_props.get_SpecificType();
         settings.push({
             type: Asc.c_oAscTypeSelectElement.ContentControl,
@@ -7334,6 +7337,22 @@ window["asc_docs_api"].prototype["asc_nativeGetCoreProps"] = function() {
     }
 
     return {};
+}
+
+// The helper function, wrap of asc_SetContentControlDatePickerDate
+window["asc_docs_api"].prototype["asc_nativeSetContentControlDatePickerDate"] = function(textDate, sId) {
+    var oLogicDocument = this.WordControl.m_oLogicDocument;
+    if (!oLogicDocument)
+        return;
+
+    var oContentControl = oLogicDocument.GetContentControl(sId);
+    if (!oContentControl || !oContentControl.IsDatePicker() || !oContentControl.CanBeEdited())
+        return;
+
+    var oPr = oContentControl.GetContentControlPr().get_DateTimePr();
+    oPr.put_FullDate(new  Date(textDate));
+
+    _api.asc_SetContentControlDatePickerPr(oPr, sId);
 }
 
 window["Asc"]["asc_docs_api"].prototype["asc_nativeAddText"] = function(text, wrapWithSpaces) {
