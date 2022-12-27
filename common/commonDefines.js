@@ -567,6 +567,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 			LoadingScriptError    : -24,
 			EditingError          :	-25,
 			LoadingFontError      : -26,
+			LoadingBinError       : -27,
 
 			SplitCellMaxRows     : -30,
 			SplitCellMaxCols     : -31,
