@@ -2684,15 +2684,23 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
         //    в том числе если стиля нет у обоих, тогда копируем еще все прямые настройки.
         //    (Т.е. если стили разные, а у исходный параграф был параграфом со списком, тогда
         //    новый параграф будет без списка).
-        if (type_Paragraph === Item.GetType())
+        if (Item.IsParagraph())
         {
         	var isCheckAutoCorrect = false;
+			let numPr = Item.GetNumPr();
 
             // Если текущий параграф пустой и с нумерацией, тогда удаляем нумерацию и отступы левый и первой строки
-            if (true !== bForceAdd && undefined != Item.GetNumPr() && true === Item.IsEmpty({SkipNewLine : true}) && true === Item.IsCursorAtBegin())
+            if (true !== bForceAdd && numPr && true === Item.IsEmpty({SkipNewLine : true}) && true === Item.IsCursorAtBegin())
             {
-                Item.RemoveNumPr();
-                Item.Set_Ind({FirstLine : undefined, Left : undefined, Right : Item.Pr.Ind.Right}, true);
+				if (numPr.Lvl <= 0)
+				{
+					Item.RemoveNumPr();
+					Item.Set_Ind({FirstLine : undefined, Left : undefined, Right : Item.Pr.Ind.Right}, true);
+				}
+				else
+				{
+					Item.SetNumPr(numPr.NumId, numPr.Lvl - 1);
+				}
             }
             else
             {

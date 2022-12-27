@@ -65,12 +65,14 @@
 		space : 32,
 		backspace : 8,
 		minus : 45,
+		enter : 13
 	};
 
 	function IsKeyDown(key)
 	{
 		return (Key.space === key
-			|| Key.backspace === key);
+			|| Key.backspace === key
+			|| Key.enter === key);
 	}
 
 	function CreateLogicDocument()
@@ -229,28 +231,74 @@
 		ReplaceCompositeInput(text);
 		EndCompositeInput();
 	}
+	function MoveCursorToParagraph(paragraph, isToStart)
+	{
+		if (!paragraph || !(paragraph instanceof AscWord.CParagraph))
+			return;
+		
+		paragraph.SetThisElementCurrent();
+		
+		if (false === isToStart)
+			paragraph.MoveCursorToEndPos();
+		else
+			paragraph.MoveCursorToStartPos();
+	}
+	function AddNumbering(type, subtype)
+	{
+		if (!logicDocument)
+			return;
+		
+		let numObject = AscWord.GetNumberingObjectByDeprecatedTypes(type, subtype);
+		if (!numObject)
+			return;
+		
+		let _numInfo = numObject;
+		if (typeof _numInfo === "string" || _numInfo instanceof String)
+		{
+			try
+			{
+				_numInfo = JSON.parse(numInfo);
+			}
+			catch (e)
+			{
+				return;
+			}
+		}
+		
+		logicDocument.SetParagraphNumbering(_numInfo);
+	}
+	function SetParagraphNumberingLvl(paragraph, iLvl)
+	{
+		let numPr = paragraph.GetNumPr();
+		if (!numPr)
+			return;
+		
+		paragraph.SetNumPr(numPr.NumId, iLvl)
+	}
 	//--------------------------------------------------------export----------------------------------------------------
-	AscTest.CreateLogicDocument     = CreateLogicDocument;
-	AscTest.CreateParagraph         = CreateParagraph;
-	AscTest.CreateTable             = CreateTable;
-	AscTest.GetParagraphText        = GetParagraphText;
-	AscTest.RemoveTableBorders      = RemoveTableBorders;
-	AscTest.SetFillingFormMode      = SetFillingFormMode;
-	AscTest.SetEditingMode          = SetEditingMode;
-	AscTest.PressKey                = PressKey;
-	AscTest.MoveCursorLeft          = MoveCursorLeft;
-	AscTest.MoveCursorRight         = MoveCursorRight;
-	AscTest.Recalculate             = Recalculate;
-	AscTest.ClickMouseButton        = ClickMouseButton;
-	AscTest.ClearDocument           = ClearDocument;
-	AscTest.EnterText               = EnterText;
-	AscTest.CorrectEnterText        = CorrectEnterText;
-	AscTest.BeginCompositeInput     = BeginCompositeInput;
-	AscTest.ReplaceCompositeInput   = ReplaceCompositeInput;
-	AscTest.EndCompositeInput       = EndCompositeInput;
-	AscTest.EnterTextCompositeInput = EnterTextCompositeInput;
-	AscTest.Key                     = Key;
+	AscTest.CreateLogicDocument      = CreateLogicDocument;
+	AscTest.CreateParagraph          = CreateParagraph;
+	AscTest.CreateTable              = CreateTable;
+	AscTest.GetParagraphText         = GetParagraphText;
+	AscTest.RemoveTableBorders       = RemoveTableBorders;
+	AscTest.SetFillingFormMode       = SetFillingFormMode;
+	AscTest.SetEditingMode           = SetEditingMode;
+	AscTest.PressKey                 = PressKey;
+	AscTest.MoveCursorLeft           = MoveCursorLeft;
+	AscTest.MoveCursorRight          = MoveCursorRight;
+	AscTest.Recalculate              = Recalculate;
+	AscTest.ClickMouseButton         = ClickMouseButton;
+	AscTest.ClearDocument            = ClearDocument;
+	AscTest.EnterText                = EnterText;
+	AscTest.CorrectEnterText         = CorrectEnterText;
+	AscTest.BeginCompositeInput      = BeginCompositeInput;
+	AscTest.ReplaceCompositeInput    = ReplaceCompositeInput;
+	AscTest.EndCompositeInput        = EndCompositeInput;
+	AscTest.EnterTextCompositeInput  = EnterTextCompositeInput;
+	AscTest.Key                      = Key;
+	AscTest.MoveCursorToParagraph    = MoveCursorToParagraph;
+	AscTest.AddNumbering             = AddNumbering;
+	AscTest.SetParagraphNumberingLvl = SetParagraphNumberingLvl;
 
 })(window);
-
 
