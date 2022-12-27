@@ -310,6 +310,11 @@
         }
         return null;
     };
+    CViewPr.prototype.scaleGuides = function(dCW, dCH) {
+        if(this.slideViewPr) {
+            this.slideViewPr.scaleGuides(dCW, dCH);
+        }
+    };
     CViewPr.prototype.Refresh_RecalcData = function(Data) {
         this.Refresh_RecalcData2(Data);
     };
@@ -406,6 +411,11 @@
             return this.cSldViewPr.hitInGuide(x, y);
         }
         return null;
+    };
+    CCommonViewPr.prototype.scaleGuides = function(dCW, dCH) {
+        if(this.cSldViewPr) {
+            this.cSldViewPr.scaleGuides(dCW, dCH);
+        }
     };
     CCommonViewPr.prototype.Refresh_RecalcData = function(Data) {
         this.Refresh_RecalcData2(Data);
@@ -654,6 +664,14 @@
         }
         return null;
     };
+
+    CCSldViewPr.prototype.scaleGuides = function(dCW, dCH) {
+        let nLength = this.guideLst.length;
+        for(let nGd = nLength - 1; nGd > -1; nGd --) {
+            let oGd = this.guideLst[nGd];
+            oGd.scale(dCW, dCH);
+        }
+    };
     CCSldViewPr.prototype.Refresh_RecalcData = function(Data) {
         this.Refresh_RecalcData2(Data);
     };
@@ -738,6 +756,14 @@
         return false;
     };
 
+    CGuide.prototype.scale = function(dCW, dCH) {
+        if(this.isHorizontal()) {
+            this.setPos(this.pos * dCH + 0.5 >> 0);
+        }
+        else {
+            this.setPos(this.pos * dCW + 0.5 >> 0);
+        }
+    };
     CGuide.prototype.Refresh_RecalcData = function (Data) {
         if(this.parent) {
             this.parent.Refresh_RecalcData2(Data);

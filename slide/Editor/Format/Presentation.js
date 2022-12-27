@@ -3012,9 +3012,19 @@ CPresentation.prototype.getStrideData = function() {
 
 CPresentation.prototype.changeSlideSizeFunction = function () {
     AscFormat.ExecuteNoHistory(function () {
-        var i;
-        var dWidth = this.GetWidthMM();
-        var dHeight = this.GetHeightMM();
+        let i;
+        const dWidth = this.GetWidthMM();
+        const dHeight = this.GetHeightMM();
+        let oFirstMaster = this.slideMasters[0];
+        if(oFirstMaster) {
+            let dOldWidth = oFirstMaster.Width;
+            let dOldHeight = oFirstMaster.Height;
+            let dCW = dWidth / dOldWidth;
+            let dCH = dHeight / dOldHeight;
+            if(!AscFormat.fApproxEqual(dCW, 1.0) || !AscFormat.fApproxEqual(dCW, 1.0)) {
+                this.scaleGuides(dCW, dCH);
+            }
+        }
         for (i = 0; i < this.slideMasters.length; ++i) {
             this.slideMasters[i].changeSize(dWidth, dHeight);
             var master = this.slideMasters[i];
@@ -4856,6 +4866,11 @@ CPresentation.prototype.hitInGuide = function(x, y) {
         return this.viewPr.hitInGuide(x, y);
     }
     return null;
+};
+CPresentation.prototype.scaleGuides = function(dCW, dCH) {
+    if(this.viewPr) {
+        this.viewPr.scaleGuides(dCW, dCH);
+    }
 };
 CPresentation.prototype.Update_ForeignCursor = function (CursorInfo, UserId, Show, UserShortId) {
     if (!editor.User)
