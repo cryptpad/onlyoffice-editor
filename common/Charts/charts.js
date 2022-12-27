@@ -690,12 +690,15 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.constructor = SmartArtPreviewDrawer;
 
 	SmartArtPreviewDrawer.prototype.Begin = function (nTypeOfSectionLoad) {
-		if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
-			const arrPreviewObjects = Asc.c_oAscSmartArtSections[nTypeOfSectionLoad].map(function (nTypeOfSmartArt) {
-				return new CSmartArtPreviewInfo(nTypeOfSmartArt, nTypeOfSectionLoad);
-			});
-			this.queue = this.queue.concat(arrPreviewObjects);
-			AscCommon.CActionOnTimerBase.prototype.Begin.call(this);
+		const oApi = Asc.editor || editor;
+		if (oApi && AscCommon.g_oBinarySmartArts) {
+			if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
+				const arrPreviewObjects = Asc.c_oAscSmartArtSections[nTypeOfSectionLoad].map(function (nTypeOfSmartArt) {
+					return new CSmartArtPreviewInfo(nTypeOfSmartArt, nTypeOfSectionLoad);
+				});
+				this.queue = this.queue.concat(arrPreviewObjects);
+				AscCommon.CActionOnTimerBase.prototype.Begin.call(this);
+			}
 		}
 	};
 	SmartArtPreviewDrawer.prototype.OnBegin = function () {
@@ -831,7 +834,6 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 		return AscFormat.ExecuteNoHistory(function () {
 			const oSmartArt = new AscFormat.SmartArt();
 			const oApi = Asc.editor || editor;
-			if (oApi && AscCommon.g_oBinarySmartArts) {
 				oSmartArt.bForceSlideTransform = true;
 				oSmartArt.fillByPreset(nSmartArtType, true);
 				oSmartArt.getContrastDrawing();
@@ -854,7 +856,6 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 				this.fitSmartArtForPreview(oSmartArt);
 				oSmartArt.recalcTransformText();
 				oSmartArt.recalculate();
-			}
 
 			return oSmartArt;
 		}, this, []);

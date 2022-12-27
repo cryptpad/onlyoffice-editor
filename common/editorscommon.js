@@ -9809,6 +9809,9 @@
 	}
 
 	function loadSmartArtBinary(fOnError) {
+		if (window["NATIVE_EDITOR_ENJINE"]) {
+			return;
+		}
 		loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
 			if (httpRequest && httpRequest.response) {
 				const arrStream = AscCommon.initStreamFromResponse(httpRequest);
