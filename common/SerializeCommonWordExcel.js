@@ -859,6 +859,10 @@ FT_Stream2.prototype.GetBuffer = function(length) {
 	}
 	return res;
 };
+FT_Stream2.prototype.GetBufferUint8 = function(length) {
+	let pos = this.GetCurPos();
+	return this.data.slice(pos, pos + length);
+};
 FT_Stream2.prototype.ToFileStream = function() {
 	var res = new AscCommon.FileStream();
 	this.ToFileStream2(res);
@@ -1241,6 +1245,10 @@ function isRealObject(obj)
     this.pos = 0;
     this.cur = 0;
 
+    this.GetCurPos = function()
+    {
+      return this.cur;
+    }
     this.Seek = function(_pos)
     {
       if (_pos > this.size)
@@ -1415,6 +1423,10 @@ function isRealObject(obj)
         res[i] = this.data[this.cur++]
       }
       return res;
+    };
+    this.GetBufferUint8 = function (length) {
+      let pos = this.GetCurPos();
+      return this.data.slice(pos, pos + length);
     };
 
     this.EnterFrame = function(count)
