@@ -1411,6 +1411,10 @@
   };
 
 	WorkbookView.prototype._onPointerDownPlaceholder = function (x, y) {
+		if(window["IS_NATIVE_EDITOR"]) {
+			return false;
+		}
+
 		const oWS = this.getWorksheet();
 		if (x < oWS.cellsLeft || y < oWS.cellsTop) {
 			return false;
