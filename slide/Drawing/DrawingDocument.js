@@ -4714,7 +4714,7 @@ function CThumbnailsManager()
 			this.const_offset_x = 25;
 
 		// focus/select rects
-		this.const_offset_x += Math.round(5 * AscCommon.AscBrowser.retinaPixelRatio);
+		this.const_offset_x += Math.round(9 * AscCommon.AscBrowser.retinaPixelRatio);
 
 		nWidthSlide -= this.const_offset_x;
 

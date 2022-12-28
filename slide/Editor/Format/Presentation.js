@@ -4498,44 +4498,46 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
         for (key in _RecalcData.Drawings.Map) {
             if (_RecalcData.Drawings.Map.hasOwnProperty(key)) {
                 var oDrawingObject = _RecalcData.Drawings.Map[key];
-                oDrawingObject.recalculate();
-                if (oDrawingObject.parent instanceof AscCommonSlide.SlideLayout) {
-                    oDrawingObject.parent.ImageBase64 = "";
-                    b_check_layout = true;
-                    bAttack = true;
-                    for (i = 0; i < this.Slides.length; ++i) {
-                        if (this.Slides[i].Layout === oDrawingObject.parent) {
-                            if (redrawSlideIndexMap[i] !== true) {
-                                redrawSlideIndexMap[i] = true;
-                                aToRedrawSlides.push(i);
+                if(AscCommon.g_oTableId.Get_ById(key) === oDrawingObject) {
+                    oDrawingObject.recalculate();
+                    if (oDrawingObject.parent instanceof AscCommonSlide.SlideLayout) {
+                        oDrawingObject.parent.ImageBase64 = "";
+                        b_check_layout = true;
+                        bAttack = true;
+                        for (i = 0; i < this.Slides.length; ++i) {
+                            if (this.Slides[i].Layout === oDrawingObject.parent) {
+                                if (redrawSlideIndexMap[i] !== true) {
+                                    redrawSlideIndexMap[i] = true;
+                                    aToRedrawSlides.push(i);
+                                }
                             }
                         }
                     }
-                }
-                if (oDrawingObject instanceof AscCommonSlide.SlideLayout) {
-                    oDrawingObject.ImageBase64 = "";
-                    b_check_layout = true;
-                    bAttack = true;
-                    for (i = 0; i < this.Slides.length; ++i) {
-                        if (this.Slides[i].Layout === oDrawingObject) {
-                            if (redrawSlideIndexMap[i] !== true) {
-                                redrawSlideIndexMap[i] = true;
-                                aToRedrawSlides.push(i);
+                    if (oDrawingObject instanceof AscCommonSlide.SlideLayout) {
+                        oDrawingObject.ImageBase64 = "";
+                        b_check_layout = true;
+                        bAttack = true;
+                        for (i = 0; i < this.Slides.length; ++i) {
+                            if (this.Slides[i].Layout === oDrawingObject) {
+                                if (redrawSlideIndexMap[i] !== true) {
+                                    redrawSlideIndexMap[i] = true;
+                                    aToRedrawSlides.push(i);
+                                }
                             }
                         }
                     }
-                }
-                if (oDrawingObject.getSlideIndex) {
-                    slideIndex = oDrawingObject.getSlideIndex();
-                    if (slideIndex !== null) {
-                        if (redrawSlideIndexMap[slideIndex] !== true) {
-                            redrawSlideIndexMap[slideIndex] = true;
-                            aToRedrawSlides.push(slideIndex);
-                        }
-                    } else {
-                        if (oCurNotesShape && oCurNotesShape === oDrawingObject) {
-                            this.Slides[this.CurPage].recalculateNotesShape();
-                            bRedrawNotes = true;
+                    if (oDrawingObject.getSlideIndex) {
+                        slideIndex = oDrawingObject.getSlideIndex();
+                        if (slideIndex !== null) {
+                            if (redrawSlideIndexMap[slideIndex] !== true) {
+                                redrawSlideIndexMap[slideIndex] = true;
+                                aToRedrawSlides.push(slideIndex);
+                            }
+                        } else {
+                            if (oCurNotesShape && oCurNotesShape === oDrawingObject) {
+                                this.Slides[this.CurPage].recalculateNotesShape();
+                                bRedrawNotes = true;
+                            }
                         }
                     }
                 }
