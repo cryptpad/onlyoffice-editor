@@ -1045,6 +1045,23 @@ var GLOBAL_PATH_COUNT = 0;
                 this.aLabels[i].checkShapeChildTransform(t);
         }
     };
+	CLabelsBox.prototype.getLabelsOffset = function() {
+		let dStakeOffset = 1;
+		if(this.axis) {
+			if(AscFormat.isRealNumber(this.axis.lblOffset)) {
+				dStakeOffset = this.axis.lblOffset / 100;
+			}
+		}
+		let dFontSize = 11;
+		for(let nLbl = 0; nLbl < this.aLabels.length; ++nLbl) {
+			let oLbl = this.aLabels[nLbl];
+			if(oLbl) {
+				dFontSize = oLbl.tx.rich.content.Content[0].CompiledPr.Pr.TextPr.FontSize;
+				break;
+			}
+		}
+		return dFontSize * (25.4 / 72) * dStakeOffset;
+	};
 
     function fCreateLabel(sText, idx, oParent, oChart, oTxPr, oSpPr, oDrawingDocument) {
         var dlbl = new AscFormat.CDLbl();
@@ -5112,8 +5129,7 @@ var GLOBAL_PATH_COUNT = 0;
                         }
                         else {
                             if(oAxisLabels.align) {
-                                var stake_offset = AscFormat.isRealNumber(oCatAx.lblOffset) ? oCatAx.lblOffset / 100 : 1;
-                                var labels_offset = oCatAx.labels.aLabels[0].tx.rich.content.Content[0].CompiledPr.Pr.TextPr.FontSize * (25.4 / 72) * stake_offset;
+                                var labels_offset = oCatAx.labels.getLabelsOffset();
                                 for(i = 0; i < oAxisLabels.aLabels.length; ++i) {
                                     if(oAxisLabels.aLabels[i]) {
                                         oLabel = oAxisLabels.aLabels[i];
@@ -5145,8 +5161,7 @@ var GLOBAL_PATH_COUNT = 0;
                                 }
                             }
                             else {
-                                var stake_offset = AscFormat.isRealNumber(oCatAx.lblOffset) ? oCatAx.lblOffset / 100 : 1;
-                                var labels_offset = oCatAx.labels.aLabels[0].tx.rich.content.Content[0].CompiledPr.Pr.TextPr.FontSize * (25.4 / 72) * stake_offset;
+                                var labels_offset = oCatAx.labels.getLabelsOffset();
                                 for(i = 0; i < oAxisLabels.aLabels.length; ++i) {
                                     if(oAxisLabels.aLabels[i]) {
                                         oLabel = oAxisLabels.aLabels[i];
