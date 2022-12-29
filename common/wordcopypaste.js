@@ -3746,8 +3746,8 @@ PasteProcessor.prototype =
                     ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
                     var aContent = oThis._convertExcelBinary(aContentExcel, aContentExcel ? aContentExcel.pDrawings : null);
                     revertLocale();
-
                     oThis.aContent = aContent.content;
+	                addThemeImagesToMap(oImageMap, oObjectsForDownload, aContentExcel.arrImages);
                     oThis.api.pre_Paste(aContent.fonts, oImageMap, fPrepasteCallback);
                 }, true);
             } else {
@@ -3896,6 +3896,8 @@ PasteProcessor.prototype =
 				AscCommon.sendImgUrls(oThis.api, oObjectsForDownload.aUrls, function (data) {
 					var oImageMap = {};
 					ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
+
+					addThemeImagesToMap(oImageMap, oObjectsForDownload, arrImages);
 					oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
 				}, true);
 			} else {
@@ -4232,6 +4234,7 @@ PasteProcessor.prototype =
 						AscFormat.checkBlipFillRasterImages(presentationSelectedContent.Drawings[i].Drawing);
 					}
 				}
+				addThemeImagesToMap(oImageMap, oObjectsForDownload, aContent.aPastedImages);
 				oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
 			}, true);
 		} else {
@@ -4481,6 +4484,7 @@ PasteProcessor.prototype =
 				AscCommon.sendImgUrls(oThis.api, oObjectsForDownload.aUrls, function (data) {
 					let oImageMap = {};
 					ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
+					addThemeImagesToMap(oImageMap, oObjectsForDownload, arr_Images);
 					oThis.api.pre_Paste(fonts, oImageMap, paste_callback);
 				}, true);
 			} else {
@@ -11094,6 +11098,52 @@ function checkOnlyOneImage(node)
 	}
 
 	return res;
+}
+
+function addThemeImagesToMap(oImageMap, oObjectsForDownload, aImages) {
+	if(!oObjectsForDownload) {
+		return;
+	}
+	let aDnldUrls = oObjectsForDownload.aUrls;
+	if(!Array.isArray(aDnldUrls)) {
+		return;
+	}
+	if(!Array.isArray(aImages)) {
+		return;
+	}
+	if(aDnldUrls.length === aImages.length) {
+		return;
+	}
+	let oAddMap = {};
+	let nAddIdx = 0;
+	for(let nImg = 0; nImg < aImages.length; ++nImg) {
+		let oImgObject = aImages[nImg];
+		if(!AscCommon.isRealObject(oImgObject)) {
+			continue;
+		}
+		let sUrl = oImgObject.Url;
+		let nDnldImg;
+		for(nDnldImg = 0; nDnldImg < aDnldUrls.length; ++nDnldImg) {
+			let sDnldUrl = aDnldUrls[nDnldImg];
+			if(sUrl === sDnldUrl) {
+				break;
+			}
+		}
+		if(nDnldImg === aDnldUrls.length) {
+			oAddMap[nAddIdx++] = sUrl;
+		}
+	}
+	for(let sKey in oImageMap) {
+		if(oImageMap.hasOwnProperty(sKey)) {
+			oAddMap[nAddIdx++] = oImageMap[sKey];
+			delete oImageMap[sKey];
+		}
+	}
+	for(let sKey in oAddMap) {
+		if(oAddMap.hasOwnProperty(sKey)) {
+			oImageMap[sKey] = oAddMap[sKey];
+		}
+	}
 }
 
   //---------------------------------------------------------export---------------------------------------------------
