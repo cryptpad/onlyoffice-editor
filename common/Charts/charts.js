@@ -690,12 +690,15 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.constructor = SmartArtPreviewDrawer;
 
 	SmartArtPreviewDrawer.prototype.Begin = function (nTypeOfSectionLoad) {
-		if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
-			const arrPreviewObjects = Asc.c_oAscSmartArtSections[nTypeOfSectionLoad].map(function (nTypeOfSmartArt) {
-				return new CSmartArtPreviewInfo(nTypeOfSmartArt, nTypeOfSectionLoad);
-			});
-			this.queue = this.queue.concat(arrPreviewObjects);
-			AscCommon.CActionOnTimerBase.prototype.Begin.call(this);
+		const oApi = Asc.editor || editor;
+		if (oApi && AscCommon.g_oBinarySmartArts) {
+			if (AscFormat.isRealNumber(nTypeOfSectionLoad)) {
+				const arrPreviewObjects = Asc.c_oAscSmartArtSections[nTypeOfSectionLoad].map(function (nTypeOfSmartArt) {
+					return new CSmartArtPreviewInfo(nTypeOfSmartArt, nTypeOfSectionLoad);
+				});
+				this.queue = this.queue.concat(arrPreviewObjects);
+				AscCommon.CActionOnTimerBase.prototype.Begin.call(this);
+			}
 		}
 	};
 	SmartArtPreviewDrawer.prototype.OnBegin = function () {
@@ -830,14 +833,12 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 	SmartArtPreviewDrawer.prototype.getSmartArt = function(nSmartArtType) {
 		return AscFormat.ExecuteNoHistory(function () {
 			const oSmartArt = new AscFormat.SmartArt();
-			oSmartArt.bForceSlideTransform = true;
-			oSmartArt.fillByPreset(nSmartArtType, true);
-			oSmartArt.getContrastDrawing();
-			oSmartArt.setBDeleted2(false);
-			const oXfrm = oSmartArt.spPr.xfrm;
-
 			const oApi = Asc.editor || editor;
-			if (oApi) {
+				oSmartArt.bForceSlideTransform = true;
+				oSmartArt.fillByPreset(nSmartArtType, true);
+				oSmartArt.getContrastDrawing();
+				oSmartArt.setBDeleted2(false);
+				const oXfrm = oSmartArt.spPr.xfrm;
 				const oDrawingObjects = oApi.getDrawingObjects();
 				oXfrm.setOffX(0);
 				oXfrm.setOffY((this.SMARTART_PREVIEW_SIZE_MM - oXfrm.extY) / 2);
@@ -855,7 +856,6 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 				this.fitSmartArtForPreview(oSmartArt);
 				oSmartArt.recalcTransformText();
 				oSmartArt.recalculate();
-			}
 
 			return oSmartArt;
 		}, this, []);

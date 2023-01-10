@@ -755,7 +755,7 @@ function CChangesSdtPrOForm(Class, Old, New)
 	}
 	if(New)
 	{
-		sNew = Old.Get_Id();
+		sNew = New.Get_Id();
 	}
 	AscDFH.CChangesBaseStringProperty.call(this, Class, sOld, sNew);
 }

@@ -236,10 +236,18 @@
     CViewPr.prototype.toXml = function (writer, name) {
     };
     CViewPr.prototype.DEFAULT_GRID_SPACING = 360000;
+    CViewPr.prototype.MAX_GRID_SPACING = 2*914400;//2 inches
     CViewPr.prototype.getGridSpacing = function () {
         let oSpacing = this.gridSpacing;
         if(oSpacing) {
-            return oSpacing.cx || this.DEFAULT_GRID_SPACING;
+            if(AscFormat.isRealNumber(oSpacing.cx) && oSpacing.cx > 0) {
+                let nGridSpacing = oSpacing.cx;
+                while(nGridSpacing > this.MAX_GRID_SPACING) {
+                    nGridSpacing /= 1000;
+                }
+                return nGridSpacing
+            }
+            return this.DEFAULT_GRID_SPACING;
         }
         return  this.DEFAULT_GRID_SPACING;
     };
@@ -309,6 +317,11 @@
             return this.slideViewPr.hitInGuide(x, y);
         }
         return null;
+    };
+    CViewPr.prototype.scaleGuides = function(dCW, dCH) {
+        if(this.slideViewPr) {
+            this.slideViewPr.scaleGuides(dCW, dCH);
+        }
     };
     CViewPr.prototype.Refresh_RecalcData = function(Data) {
         this.Refresh_RecalcData2(Data);
@@ -406,6 +419,11 @@
             return this.cSldViewPr.hitInGuide(x, y);
         }
         return null;
+    };
+    CCommonViewPr.prototype.scaleGuides = function(dCW, dCH) {
+        if(this.cSldViewPr) {
+            this.cSldViewPr.scaleGuides(dCW, dCH);
+        }
     };
     CCommonViewPr.prototype.Refresh_RecalcData = function(Data) {
         this.Refresh_RecalcData2(Data);
@@ -654,6 +672,14 @@
         }
         return null;
     };
+
+    CCSldViewPr.prototype.scaleGuides = function(dCW, dCH) {
+        let nLength = this.guideLst.length;
+        for(let nGd = nLength - 1; nGd > -1; nGd --) {
+            let oGd = this.guideLst[nGd];
+            oGd.scale(dCW, dCH);
+        }
+    };
     CCSldViewPr.prototype.Refresh_RecalcData = function(Data) {
         this.Refresh_RecalcData2(Data);
     };
@@ -738,6 +764,14 @@
         return false;
     };
 
+    CGuide.prototype.scale = function(dCW, dCH) {
+        if(this.isHorizontal()) {
+            this.setPos(this.pos * dCH + 0.5 >> 0);
+        }
+        else {
+            this.setPos(this.pos * dCW + 0.5 >> 0);
+        }
+    };
     CGuide.prototype.Refresh_RecalcData = function (Data) {
         if(this.parent) {
             this.parent.Refresh_RecalcData2(Data);

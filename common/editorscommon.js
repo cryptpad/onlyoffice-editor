@@ -3840,7 +3840,7 @@
 						// Some data has been received; however, neither responseText nor responseBody is available.
 						break;
 					case 4:
-						if (httpRequest.status === 200 || httpRequest.status === 1223 || url.indexOf("file:") == 0)
+						if (httpRequest.status === 200 || httpRequest.status === 1223 || location.href.indexOf("file:") == 0)
 						{
 							if (typeof success === "function")
 								success(httpRequest);
@@ -9835,8 +9835,32 @@
 		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
 	}
 
-	function loadSmartArtPresets(onSuccess, onError) {
-		loadScript('../../../../sdkjs/common/SmartArts/SmartArtPresets.js', onSuccess, onError);
+	function loadSmartArtBinary(fOnError) {
+		if (window["NATIVE_EDITOR_ENJINE"]) {
+			return;
+		}
+		loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
+			if (httpRequest && httpRequest.response) {
+				const arrStream = AscCommon.initStreamFromResponse(httpRequest);
+
+				AscCommon.g_oBinarySmartArts = {
+					shifts: {},
+					stream: arrStream
+				}
+
+				const oFileStream = new AscCommon.FileStream(arrStream, arrStream.length);
+				oFileStream.GetUChar();
+				const nLength = oFileStream.GetULong();
+				while (nLength + 4 > oFileStream.cur) {
+					const nType = oFileStream.GetUChar();
+					const nPosition = oFileStream.GetULong();
+					AscCommon.g_oBinarySmartArts.shifts[nType] = nPosition;
+				}
+			} else {
+				fOnError(httpRequest);
+			}
+
+		}, 'arraybuffer');
 	}
 
 	function getAltGr(e)
@@ -13427,7 +13451,7 @@
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
     window["AscCommon"].loadChartStyles = loadChartStyles;
-    window["AscCommon"].loadSmartArtPresets = loadSmartArtPresets;
+	window["AscCommon"].loadSmartArtBinary = loadSmartArtBinary;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;

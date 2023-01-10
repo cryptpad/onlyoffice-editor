@@ -4271,6 +4271,10 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
     _this.checkCursorPlaceholder = function (x, y) {
+        if (window["IS_NATIVE_EDITOR"]) {
+            return null;
+        }
+
         const oWS = this.getWorksheet();
         const oDrawingDocument = oWS.getDrawingDocument();
         const nPage = oWS.workbook.model.nActive;

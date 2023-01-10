@@ -10039,7 +10039,7 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 			{
 				this.CurPos.SetCC(oCC);
 				oCC.SkipSpecialContentControlLock(true);
-				if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
+				if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode() && this.CheckOFormUserMaster(oCC)))
 				{
 					this.RemoveTextSelection();
 					this.StartAction();
@@ -18326,15 +18326,23 @@ CDocument.prototype.controller_AddNewParagraph = function(bRecalculate, bForceAd
 	//    (Т.е. если стили разные, а у исходный параграф был параграфом со списком, тогда
 	//    новый параграф будет без списка). Кроме этого у предыдущего параграфа пытаемся
 	//    выполнить автозамены
-	if (type_Paragraph === Item.GetType())
+	if (Item.IsParagraph())
 	{
 		var isCheckAutoCorrect = false;
+		let numPr = Item.GetNumPr();
 
 		// Если текущий параграф пустой и с нумерацией, тогда удаляем нумерацию и отступы левый и первой строки
-		if (true !== bForceAdd && undefined != Item.GetNumPr() && true === Item.IsEmpty({SkipNewLine : true}) && true === Item.IsCursorAtBegin())
+		if (true !== bForceAdd && numPr && true === Item.IsEmpty({SkipNewLine : true}) && true === Item.IsCursorAtBegin())
 		{
-			Item.RemoveNumPr();
-			Item.Set_Ind({FirstLine : undefined, Left : undefined, Right : Item.Pr.Ind.Right}, true);
+			if (numPr.Lvl <= 0)
+			{
+				Item.RemoveNumPr();
+				Item.Set_Ind({FirstLine : undefined, Left : undefined, Right : Item.Pr.Ind.Right}, true);
+			}
+			else
+			{
+				Item.SetNumPr(numPr.NumId, numPr.Lvl - 1);
+			}
 		}
 		else
 		{
@@ -21638,12 +21646,29 @@ CDocument.prototype.IsFillingOFormMode = function()
 	var oApi = this.GetApi();
 	return !!(oApi.DocInfo &&  oApi.DocInfo.Format && (this.Api.DocInfo.Format === "oform" || this.Api.DocInfo.Format === "docxf"));
 };
-CDocument.prototype.IsInFormField = function(isAllowComplexForm)
+CDocument.prototype.CheckOFormUserMaster = function(form)
+{
+	let currentUserMaster = this.GetCurrentOFormUserMaster();
+	if (!currentUserMaster || !form || !form.IsForm())
+		return true;
+	
+	let fieldMaster = form.GetFieldMaster();
+	if (!fieldMaster)
+		return false;
+	
+	return fieldMaster.getFirstUser() === currentUserMaster;
+};
+CDocument.prototype.IsInFormField = function(isAllowComplexForm, isCheckCurrentUser)
 {
 	var oSelectedInfo = this.GetSelectedElementsInfo();
 	var oField        = oSelectedInfo.GetField();
 	var oInlineSdt    = oSelectedInfo.GetInlineLevelSdt();
 	var oBlockSdt     = oSelectedInfo.GetBlockLevelSdt();
+	
+	if (isCheckCurrentUser
+		&& oInlineSdt
+		&& (!oInlineSdt.IsComplexForm() || isAllowComplexForm))
+		return this.CheckOFormUserMaster(oInlineSdt);
 
 	// оInlineSdt отдает нам нижний уровень, если на нем у нас ComplexField, значит мы находимся внутри текста,
 	// в такой ситуации мы отдаем, что ме не находимся в форме, чтобы запретить редактирование в этой части формы
@@ -21652,10 +21677,7 @@ CDocument.prototype.IsInFormField = function(isAllowComplexForm)
 };
 CDocument.prototype.IsFormFieldEditing = function()
 {
-	if (true === this.IsFillingFormMode() && true === this.IsInFormField())
-		return true;
-
-	return false;
+	return (this.IsFillingFormMode() && this.IsInFormField(false, true));
 };
 CDocument.prototype.MoveToFillingForm = function(isNext)
 {
@@ -24973,6 +24995,13 @@ CDocument.prototype.OnChangeContentControl = function(oControl)
 CDocument.prototype.GetOFormDocument = function()
 {
 	return this.OFormDocument;
+};
+/**
+ * @returns {?AscOForm.CUserMaster}
+ */
+CDocument.prototype.GetCurrentOFormUserMaster = function()
+{
+	return this.OFormDocument ? this.OFormDocument.getCurrentUserMaster() : null;
 };
 /**
  * @returns {AscWord.CFormsManager}

@@ -10197,52 +10197,23 @@ Because of this, the display is sometimes not correct.
       return drawing;
     };
 
-
     SmartArt.prototype.fillByPreset = function (nSmartArtType, bLoadOnlyDrawing) {
-      this.setDataModel(new AscFormat.DiagramData());
-      this.setColorsDef(new AscFormat.ColorsDef());
-      this.setLayoutDef(new AscFormat.LayoutDef());
-      this.setStyleDef(new AscFormat.StyleDef());
-      this.setDrawing(new AscFormat.Drawing());
-
       const oApi = Asc.editor || editor;
-      if (oApi) {
+      if (oApi && AscCommon.g_oBinarySmartArts) {
+        const nShift = AscCommon.g_oBinarySmartArts.shifts[nSmartArtType];
+        const oDrawingDocument = oApi.getDrawingDocument();
+        const oLogicDocument = oApi.getLogicDocument();
+
         const pReader = new AscCommon.BinaryPPTYLoader();
-        const drawingDocument = oApi.getDrawingDocument();
-        const logicDocument = oApi.getLogicDocument();
-        pReader.presentation = logicDocument;
-        pReader.DrawingDocument = drawingDocument;
+        pReader.stream = new AscCommon.FileStream(AscCommon.g_oBinarySmartArts.stream, AscCommon.g_oBinarySmartArts.stream.length);
+        pReader.stream.cur = nShift;
 
-        let sData = AscCommon['g_oSmartArtDrawings'][nSmartArtType];
-        let data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-        pReader.stream = new AscCommon.FileStream(data, data.length);
-        pReader.ReadSmartArtGroup(this.drawing);
-        this.drawing.setGroup(this);
-        this.addToSpTree(0, this.drawing);
+        pReader.presentation = oLogicDocument;
+        pReader.DrawingDocument = oDrawingDocument;
 
-        if (!bLoadOnlyDrawing) {
-          sData = AscCommon['g_oSmartArtStyleDef'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.styleDef.fromPPTY(pReader);
-
-          sData = AscCommon['g_oSmartArtLayoutDef'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.layoutDef.fromPPTY(pReader);
-
-          sData = AscCommon['g_oSmartArtColorsDef'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.colorsDef.fromPPTY(pReader);
-
-          sData = AscCommon['g_oSmartArtData'][nSmartArtType];
-          data = AscCommon.Base64.decode(sData, true, undefined, undefined);
-          pReader.stream = new AscCommon.FileStream(data, data.length);
-          this.dataModel.fromPPTY(pReader);
-          this.setConnections2();
-        }
-
+        pReader.loadOnlyDrawingSmartArt = bLoadOnlyDrawing;
+        pReader.stream.GetUChar();
+        this.fromPPTY(pReader);
         this.setSpPr(new AscFormat.CSpPr());
         this.spPr.setParent(this);
         const smXfrm = new AscFormat.CXfrm();
@@ -10260,7 +10231,7 @@ Because of this, the display is sometimes not correct.
         }
       }
       return this;
-    };
+    }
 
     SmartArt.prototype.fitToPageSize = function () {
       const oApi = Asc.editor || editor;
@@ -11513,22 +11484,38 @@ Because of this, the display is sometimes not correct.
           break;
         }
         case 1: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
           this.setConnections2();
           break;
         }
         case 2: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setColorsDef(new ColorsDef());
           this.colorsDef.fromPPTY(pReader);
           break;
         }
         case 3: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setLayoutDef(new LayoutDef());
           this.layoutDef.fromPPTY(pReader);
           break;
         }
         case 4: {
+          if (pReader.loadOnlyDrawingSmartArt) {
+            s.SkipRecord();
+            break;
+          }
           this.setStyleDef(new StyleDef());
           this.styleDef.fromPPTY(pReader);
           break;

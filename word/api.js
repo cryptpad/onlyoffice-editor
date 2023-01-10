@@ -8854,9 +8854,11 @@ background-repeat: no-repeat;\
 				oLogicDocument = this.WordControl.m_oLogicDocument;
 			var oBinaryFileWriter;
 			if (null != options.oMailMergeSendData && c_oAscFileType.HTML === options.oMailMergeSendData.get_MailFormat())
-				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, false, true, options.compatible);
+				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, false, true, false, options.compatible);
+			else if (c_oAscFileType.DOCXF === fileType || c_oAscFileType.OFORM === fileType)
+				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, false, false, true, options.compatible);
 			else
-				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, undefined, undefined, options.compatible);
+				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, undefined, undefined, undefined, options.compatible);
 			dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
 		}
 		if (null != options.oMailMergeSendData)
@@ -11679,6 +11681,11 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onBookmarksUpdate");
 	};
 
+	asc_docs_api.prototype.asc_OnProtectionUpdate = function(sUserId)
+	{
+		this.sendEvent("asc_onChangeDocumentProtection", sUserId);
+	};
+
 	asc_docs_api.prototype.asc_GetHeadingLevel = function(sStyleName)
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
@@ -13056,7 +13063,7 @@ background-repeat: no-repeat;\
 					oDocument.SetProtection(props);
 					oDocument.UpdateInterface();
 					oDocument.FinalizeAction();
-					t.sendEvent("asc_onChangeDocumentProtection");
+					t.asc_OnProtectionUpdate();
 				}
 			} else {
 				t.sendEvent("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
@@ -13067,7 +13074,7 @@ background-repeat: no-repeat;\
 		props.temporaryPassword = null;
 		let documentProtection = oDocument.Settings.DocumentProtection;
 		let salt, alg, spinCount;
-		let cryptProviderType = ECryptAlgType.TypeAny;
+		let cryptProviderType = AscCommonWord.ECryptAlgType.TypeAny;
 		if (password !== "" && password != null) {
 			if (documentProtection) {
 				salt = documentProtection.saltValue;
@@ -13105,7 +13112,7 @@ background-repeat: no-repeat;\
 					} else {
 						//неверный пароль
 						t.sendEvent("asc_onError", c_oAscError.ID.PasswordIsNotCorrect, c_oAscError.Level.NoCritical);
-						t.sendEvent("asc_onChangeDocumentProtection");
+						t.asc_OnProtectionUpdate();
 						t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction);
 					}
 				}

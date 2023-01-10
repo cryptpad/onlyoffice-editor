@@ -3012,9 +3012,19 @@ CPresentation.prototype.getStrideData = function() {
 
 CPresentation.prototype.changeSlideSizeFunction = function () {
     AscFormat.ExecuteNoHistory(function () {
-        var i;
-        var dWidth = this.GetWidthMM();
-        var dHeight = this.GetHeightMM();
+        let i;
+        const dWidth = this.GetWidthMM();
+        const dHeight = this.GetHeightMM();
+        let oFirstMaster = this.slideMasters[0];
+        if(oFirstMaster) {
+            let dOldWidth = oFirstMaster.Width;
+            let dOldHeight = oFirstMaster.Height;
+            let dCW = dWidth / dOldWidth;
+            let dCH = dHeight / dOldHeight;
+            if(!AscFormat.fApproxEqual(dCW, 1.0) || !AscFormat.fApproxEqual(dCW, 1.0)) {
+                this.scaleGuides(dCW, dCH);
+            }
+        }
         for (i = 0; i < this.slideMasters.length; ++i) {
             this.slideMasters[i].changeSize(dWidth, dHeight);
             var master = this.slideMasters[i];
@@ -4488,44 +4498,46 @@ CPresentation.prototype.Recalculate = function (RecalcData) {
         for (key in _RecalcData.Drawings.Map) {
             if (_RecalcData.Drawings.Map.hasOwnProperty(key)) {
                 var oDrawingObject = _RecalcData.Drawings.Map[key];
-                oDrawingObject.recalculate();
-                if (oDrawingObject.parent instanceof AscCommonSlide.SlideLayout) {
-                    oDrawingObject.parent.ImageBase64 = "";
-                    b_check_layout = true;
-                    bAttack = true;
-                    for (i = 0; i < this.Slides.length; ++i) {
-                        if (this.Slides[i].Layout === oDrawingObject.parent) {
-                            if (redrawSlideIndexMap[i] !== true) {
-                                redrawSlideIndexMap[i] = true;
-                                aToRedrawSlides.push(i);
+                if(AscCommon.g_oTableId.Get_ById(key) === oDrawingObject) {
+                    oDrawingObject.recalculate();
+                    if (oDrawingObject.parent instanceof AscCommonSlide.SlideLayout) {
+                        oDrawingObject.parent.ImageBase64 = "";
+                        b_check_layout = true;
+                        bAttack = true;
+                        for (i = 0; i < this.Slides.length; ++i) {
+                            if (this.Slides[i].Layout === oDrawingObject.parent) {
+                                if (redrawSlideIndexMap[i] !== true) {
+                                    redrawSlideIndexMap[i] = true;
+                                    aToRedrawSlides.push(i);
+                                }
                             }
                         }
                     }
-                }
-                if (oDrawingObject instanceof AscCommonSlide.SlideLayout) {
-                    oDrawingObject.ImageBase64 = "";
-                    b_check_layout = true;
-                    bAttack = true;
-                    for (i = 0; i < this.Slides.length; ++i) {
-                        if (this.Slides[i].Layout === oDrawingObject) {
-                            if (redrawSlideIndexMap[i] !== true) {
-                                redrawSlideIndexMap[i] = true;
-                                aToRedrawSlides.push(i);
+                    if (oDrawingObject instanceof AscCommonSlide.SlideLayout) {
+                        oDrawingObject.ImageBase64 = "";
+                        b_check_layout = true;
+                        bAttack = true;
+                        for (i = 0; i < this.Slides.length; ++i) {
+                            if (this.Slides[i].Layout === oDrawingObject) {
+                                if (redrawSlideIndexMap[i] !== true) {
+                                    redrawSlideIndexMap[i] = true;
+                                    aToRedrawSlides.push(i);
+                                }
                             }
                         }
                     }
-                }
-                if (oDrawingObject.getSlideIndex) {
-                    slideIndex = oDrawingObject.getSlideIndex();
-                    if (slideIndex !== null) {
-                        if (redrawSlideIndexMap[slideIndex] !== true) {
-                            redrawSlideIndexMap[slideIndex] = true;
-                            aToRedrawSlides.push(slideIndex);
-                        }
-                    } else {
-                        if (oCurNotesShape && oCurNotesShape === oDrawingObject) {
-                            this.Slides[this.CurPage].recalculateNotesShape();
-                            bRedrawNotes = true;
+                    if (oDrawingObject.getSlideIndex) {
+                        slideIndex = oDrawingObject.getSlideIndex();
+                        if (slideIndex !== null) {
+                            if (redrawSlideIndexMap[slideIndex] !== true) {
+                                redrawSlideIndexMap[slideIndex] = true;
+                                aToRedrawSlides.push(slideIndex);
+                            }
+                        } else {
+                            if (oCurNotesShape && oCurNotesShape === oDrawingObject) {
+                                this.Slides[this.CurPage].recalculateNotesShape();
+                                bRedrawNotes = true;
+                            }
                         }
                     }
                 }
@@ -4856,6 +4868,11 @@ CPresentation.prototype.hitInGuide = function(x, y) {
         return this.viewPr.hitInGuide(x, y);
     }
     return null;
+};
+CPresentation.prototype.scaleGuides = function(dCW, dCH) {
+    if(this.viewPr) {
+        this.viewPr.scaleGuides(dCW, dCH);
+    }
 };
 CPresentation.prototype.Update_ForeignCursor = function (CursorInfo, UserId, Show, UserShortId) {
     if (!editor.User)
@@ -9574,33 +9591,37 @@ CPresentation.prototype.InsertContent = function (Content) {
 				let oTextSelection = oController.selection.textSelection;
 				if(oIsSingleTable && oTextSelection && oTextSelection.isTable()) {
 					let oTable = oTextSelection.graphicObject;
-					let oCurCell = oTable.CurCell;
-					if(oCurCell) {
-						oCurCell.InsertTableContent(oIsSingleTable);
-
-						let nMaxCellsCount = 0;
-						for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
-							let oRow = oTable.Content[nRow];
-							if (nMaxCellsCount < oRow.Content.length)
-								nMaxCellsCount = oRow.Content.length;
-						}
-						for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
-							let oRow = oTable.Content[nRow];
-							let aCells = oRow.Content;
-							let nCellsCount = 0;
-							for (let nCell = 0; nCell < aCells.length; nCell++) {
-								nCellsCount += aCells[nCell].GetGridSpan();
-							}
-							if (nCellsCount < nMaxCellsCount) {
-								for (let nCell = nCellsCount; nCell < nMaxCellsCount; nCell++) {
-									oRow.Add_Cell(oRow.Get_CellsCount(), oRow, null, true);
-								}
-							}
-						}
-
-						bInsert = true;
-						nNeedFocusType = FOCUS_OBJECT_MAIN;
-					}
+                    let oCurParagraph = oTable.GetCurrentParagraph();
+                    if(oCurParagraph) {
+                        let oParaParent = oCurParagraph.GetParent();
+                        if(oParaParent) {
+                            let oCurCell = oParaParent.IsTableCellContent(true);
+                            if(oCurCell) {
+                                oCurCell.InsertTableContent(oIsSingleTable);
+                                let nMaxCellsCount = 0;
+                                for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
+                                    let oRow = oTable.Content[nRow];
+                                    if (nMaxCellsCount < oRow.Content.length)
+                                        nMaxCellsCount = oRow.Content.length;
+                                }
+                                for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
+                                    let oRow = oTable.Content[nRow];
+                                    let aCells = oRow.Content;
+                                    let nCellsCount = 0;
+                                    for (let nCell = 0; nCell < aCells.length; nCell++) {
+                                        nCellsCount += aCells[nCell].GetGridSpan();
+                                    }
+                                    if (nCellsCount < nMaxCellsCount) {
+                                        for (let nCell = nCellsCount; nCell < nMaxCellsCount; nCell++) {
+                                            oRow.Add_Cell(oRow.Get_CellsCount(), oRow, null, true);
+                                        }
+                                    }
+                                }
+                                bInsert = true;
+                                nNeedFocusType = FOCUS_OBJECT_MAIN;
+                            }
+                        }
+                    }
 				}
 				if(!bInsert) {
 					oController.resetSelection();

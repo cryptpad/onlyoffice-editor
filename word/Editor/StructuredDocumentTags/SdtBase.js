@@ -925,7 +925,7 @@ CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 	
 	let formPr = this.GetFormPr();
 	if (!formPr)
-		defaultColor;
+		return defaultColor;
 	
 	let fieldMaster = formPr.GetFieldMaster();
 	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
@@ -938,5 +938,5 @@ CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 	if (!currentUser || currentUser === userMaster)
 		return userColor ? userColor : defaultColor;
 	
-	return defaultColor;
+	return new AscWord.CDocumentColor(0xF2, 0xF2, 0xF2);
 };

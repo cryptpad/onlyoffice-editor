@@ -81,7 +81,8 @@ var c_oSerTableTypes = {
 	DocumentComments: 17,
 	CustomProperties: 18,
 	Glossary: 19,
-	Customs: 20
+	Customs: 20,
+	OForm: 21
 };
 var c_oSerSigTypes = {
     Version:0
@@ -1118,7 +1119,8 @@ var c_oSerSdt = {
 	TextFormPrFormatSymbols : 82,
 
 	ComplexFormPr     : 90,
-	ComplexFormPrType : 91
+	ComplexFormPrType : 91,
+	OformMaster : 92
 };
 var c_oSerFFData = {
 	CalcOnExit: 0,
@@ -1761,7 +1763,7 @@ function getThemeFontType(name) {
 	return 0;
 }
 
-function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible, opt_memory, docParts)
+function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, bOForm, isCompatible, opt_memory, docParts)
 {
     this.memory = opt_memory || new AscCommon.CMemory();
     this.Document = doc;
@@ -1777,7 +1779,7 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible, opt
 		nNumIdIndex: null,
 		oUsedStyleMap: null
 	};
-	this.saveParams = new DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts);
+	this.saveParams = new DocSaveParams(bMailMergeDocx, bMailMergeHtml, bOForm, isCompatible, docParts);
 	this.WriteToMemory = function(addHeader)
 	{
 		pptx_content_writer._Start();
@@ -1865,7 +1867,21 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible, opt
 		}
 		//Write Settings
 		this.WriteTable(c_oSerTableTypes.Settings, new BinarySettingsTableWriter(this.memory, this.Document, this.saveParams));
-		
+
+		let oform = this.Document.GetOFormDocument();
+		if (this.saveParams.bOForm && oform) {
+			let jsZlib = new AscCommon.ZLib();
+			jsZlib.create();
+			oform.toZip(jsZlib, this.saveParams.fieldMastersPartMap);
+			let data = jsZlib.save();
+
+			let jsZlib2 = new AscCommon.ZLib();
+			jsZlib2.open(data);
+			this.WriteTable(c_oSerTableTypes.OForm, {Write: function(){
+				t.bs.WriteItemWithLength(function(){t.memory.WriteBuffer(data, 0, data.length);});
+			}});
+		}
+
 		//Write Comments
 		var oMapCommentId = {};
 		var commentUniqueGuids = {};
@@ -1939,7 +1955,7 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible, opt
 						doc.Styles = glossaryDocument.GetStyles();
 						doc.Footnotes = glossaryDocument.GetFootnotes();
 						doc.Endnotes = glossaryDocument.GetEndnotes();
-						var oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(doc, undefined, undefined, t.saveParams.isCompatible, t.memory, docParts);
+						var oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(doc, undefined, undefined, undefined, t.saveParams.isCompatible, t.memory, docParts);
 						oBinaryFileWriter.WriteToMemory(false);
 					}});
 			}, this, []);
@@ -6574,6 +6590,15 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (complexFormPr) {
 			this.bs.WriteItem(c_oSerSdt.ComplexFormPr, function (){oThis.WriteSdtComplexFormPr(complexFormPr)});
 		}
+		if (this.saveParams.bOForm) {
+			let fieldMaster = oSdt.GetFieldMaster && oSdt.GetFieldMaster();
+			if (fieldMaster) {
+				let sTarget = this.saveParams.fieldMastersPartMap[fieldMaster.Id];
+				if (sTarget) {
+					oThis.bs.WriteItem(c_oSerSdt.OformMaster, function (){oThis.memory.WriteString3(sTarget);});
+				}
+			}
+		}
 	};
 	this.WriteSdtCheckBox = function (val)
 	{
@@ -7601,20 +7626,21 @@ function BinaryFileReader(doc, openParams)
     this.ReadMainTable = function()
 	{	
         var res = c_oSerConstants.ReadOk;
-        //mtLen
-        res = this.stream.EnterFrame(1);
+		//mtLen
+		res = this.stream.EnterFrame(1);
         if(c_oSerConstants.ReadOk != res)
-            return res;
-        var mtLen = this.stream.GetUChar();
-        var aSeekTable = [];
-        var nOtherTableSeek = -1;
-        var nNumberingTableSeek = -1;
+			return res;
+		var mtLen = this.stream.GetUChar();
+		var aSeekTable = [];
+		var nOtherTableSeek = -1;
+		var nNumberingTableSeek = -1;
 		var nCommentTableSeek = -1;
 		var nDocumentCommentTableSeek = -1;
 		var nSettingTableSeek = -1;
 		var nDocumentTableSeek = -1;
 		var nFootnoteTableSeek = -1;
 		var nEndnoteTableSeek = -1;
+		var nOFormTableSeek = -1;
 		var fileStream;
 		for(var i = 0; i < mtLen; ++i)
         {
@@ -7640,6 +7666,8 @@ function BinaryFileReader(doc, openParams)
 				nFootnoteTableSeek = mtiOffBits;
 			else if(c_oSerTableTypes.Endnotes === mtiType)
 				nEndnoteTableSeek = mtiOffBits;
+			else if (c_oSerTableTypes.OForm === mtiType)
+				nOFormTableSeek = mtiOffBits;
             else
                 aSeekTable.push( {type: mtiType, offset: mtiOffBits} );
         }
@@ -7832,6 +7860,17 @@ function BinaryFileReader(doc, openParams)
             if(c_oSerConstants.ReadOk != res)
                 return res;
         }
+		if (-1 != nOFormTableSeek) {
+			//after oBinary_DocumentTableReader for OformMaster
+			this.stream.Seek2(nOFormTableSeek);
+			var stLen = this.stream.GetULongLE();
+			let data = this.stream.GetBufferUint8(stLen);
+			let jsZlib = new AscCommon.ZLib();
+			if (jsZlib.open(new Uint8Array(data))) {
+				let oform = this.Document.GetOFormDocument();
+				oform.fromZip(jsZlib, this.oReadResult.sdtPrWithFieldPath);
+			}
+		}
         return res;
     };
 	this.PostLoadPrepareCheckStylesRecursion = function(stId, aStylesGrey, styles){
@@ -13003,6 +13042,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				return oThis.ReadSdtComplexFormPr(t, l, complexFormPr);
 			});
 			oSdt.SetComplexFormPr(complexFormPr);
+		} else if (c_oSerSdt.OformMaster === type) {
+			var sTarget = this.stream.GetString2LE(length);
+			//todo
+			if (-1 !== sTarget.indexOf("oform")) {
+				sTarget = sTarget.substring(sTarget.indexOf("oform") + "oform".length);
+			}
+			sTarget = sTarget.replace(/\\/g, "/");
+			this.oReadResult.sdtPrWithFieldPath.push({sdt: oSdt, target: sTarget});
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
@@ -17136,9 +17183,10 @@ CFontsCharMap.prototype =
             this.CurrentFontInfo.CharArray[_find] = true;
     }
 }
-function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts) {
+function DocSaveParams(bMailMergeDocx, bMailMergeHtml, bOForm, isCompatible, docParts) {
 	this.bMailMergeDocx = bMailMergeDocx;
 	this.bMailMergeHtml = bMailMergeHtml;
+	this.bOForm = bOForm;
 	this.trackRevisionId = 0;
 	this.footnotes = {};
 	this.footnotesIndex = 0;
@@ -17151,6 +17199,7 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible, docParts) {
 	this.isCompatible = isCompatible;
 	this.placeholders = {};
 	this.docParts = docParts;
+	this.fieldMastersPartMap = {};
 };
 DocSaveParams.prototype.WriteRunRevisionMove = function(par, callback) {
 	let oEndRun = par.GetParaEndRun();
@@ -17215,6 +17264,7 @@ function DocReadResult(doc) {
 	this.runsToSplitBySym = [];
 	this.bCopyPaste = false;
 	this.styleGenIndex = 1;
+	this.sdtPrWithFieldPath = [];
 
 	this.lastPar = null;
 	this.toNextPar = [];

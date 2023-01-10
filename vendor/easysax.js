@@ -1620,6 +1620,7 @@ function XmlParserContext(){
     this.oReadResult = new AscCommonWord.DocReadResult();
     this.maxZIndex = 0;
 
+    this.xmlReaderContext = null;
     this.sdtPrWithFieldPath = [];
     this.fieldMasterMap = {};
 
@@ -1682,7 +1683,7 @@ XmlParserContext.prototype.assignFieldsToFieldMasters = function() {
                 if(sKey.indexOf(sTarget) > -1) {
                     let oFieldMaster = this.fieldMasterMap[sKey];
                     if(oFieldMaster) {
-                        oFieldMaster.setField(oPair.field);
+                        oFieldMaster.setLogicField(oPair.field);
                         break;
                     }
                 }
@@ -1741,7 +1742,7 @@ XmlParserContext.prototype.assignUsersToUserMasters = function() {
                 if(sKey.indexOf(sTarget) > -1) {
                     let oUserMaster = this.userMasterMap[sKey];
                     if(oUserMaster) {
-                        oUserMaster.addUser(oPair.user);
+                        oUserMaster.setUserId(oPair.user.Id);
                         break;
                     }
                 }

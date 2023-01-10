@@ -60,6 +60,9 @@
 	};
 	LexerLiterals.prototype.IsIncludes = function (name)
 	{
+		if (this.data)
+			return this.data.includes(name);
+
 		return this.toSymbols[name];
 	};
 	LexerLiterals.prototype.private_Add = function (name, data)
@@ -630,7 +633,7 @@
 		["∵"],
 		["〖", oNamesOfLiterals.opOpenBracket[0]], //Unicode  LaTeX: ["\\begin{"],
 		["\\begin{", true],
-		["\\begin{equation}",  true],
+		["\\begin{equation}", oNamesOfLiterals.matrixLiteral[0]],
 		["\\begin{array}", oNamesOfLiterals.matrixLiteral[0]],
 		["\\begin{cases}", oNamesOfLiterals.matrixLiteral[0]],
 		["\\begin{matrix}", oNamesOfLiterals.matrixLiteral[0]],
@@ -1732,7 +1735,6 @@
 							)
 							break;
 						case oNamesOfLiterals.spaceLiteral[num]:
-							oContext.Add_Text(oTokens.value);
 							break;
 						case oNamesOfLiterals.mathFontLiteral[num]:
 							ConvertTokens(

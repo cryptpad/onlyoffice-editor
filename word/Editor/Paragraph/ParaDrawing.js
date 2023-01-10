@@ -820,7 +820,13 @@ ParaDrawing.prototype.IsWatermark = function()
 				return true;
 		}
 	}
-
+	if(this.docPr) 
+	{
+		if(this.docPr.name && 
+			this.docPr.name.indexOf("PowerPlusWaterMarkObject") > -1) {
+				return true;
+		}
+	}
 	return false;
 };
 ParaDrawing.prototype.Set_ParaMath = function(ParaMath)

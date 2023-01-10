@@ -1585,11 +1585,24 @@
 	};
 	asc_ChartSettings.prototype.setRange = function(sRange) {
 		if(this.chartSpace) {
+			const oDataRefs = new AscFormat.CChartDataRefs(null);
+			const nCheckResult = oDataRefs.checkDataRange(sRange, this.getInRows(), this.getType());
+			if(nCheckResult !== Asc.c_oAscError.ID.No) {
+				this.sendError(nCheckResult);
+				return;
+			}
 			this.chartSpace.setRange(sRange);
 			this.updateChart();
 		}
 	};
 	asc_ChartSettings.prototype.isValidRange = function(sRange) {
+		if(this.getRange() !== sRange) {
+			const oDataRefs = new AscFormat.CChartDataRefs(null);
+			const nCheckResult = oDataRefs.checkDataRange(sRange, this.getInRows(), this.getType());
+			if(nCheckResult === Asc.c_oAscError.ID.MaxDataPointsError) {
+				return nCheckResult;
+			}
+		}
 		return AscFormat.isValidChartRange(sRange);
 	};
 	asc_ChartSettings.prototype.getRange = function() {
@@ -1695,6 +1708,9 @@
 		return this.separator;
 	};
 	asc_ChartSettings.prototype.sendErrorOnChangeType = function(nType) {
+		this.sendError(nType);
+	};
+	asc_ChartSettings.prototype.sendError = function(nType) {
 		var oApi = Asc.editor || editor;
 		if(oApi) {
 			oApi.sendEvent("asc_onError", nType, Asc.c_oAscError.Level.NoCritical);
