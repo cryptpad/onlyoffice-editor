@@ -8668,7 +8668,11 @@ CDocument.prototype.OnKeyDown = function(e)
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
 				this.StartAction(AscDFH.historydescription_Document_SetParagraphNumberingHotKey);
-				this.SetParagraphNumbering({Type : 0, SubType : 1});
+				
+				let numObject = AscWord.GetNumberingObjectByDeprecatedTypes(0, 1);
+				if (numObject)
+					this.SetParagraphNumbering(numObject);
+				
 				this.UpdateInterface();
 				this.FinalizeAction();
 			}
