@@ -1563,6 +1563,12 @@ StaxParser.prototype.GetEventType = function() {
 StaxParser.prototype.GetContext = function() {
     return this.context;
 };
+StaxParser.prototype.GetOformContext = function() {
+	if (!this.context)
+		return null;
+	
+	return this.context.getOformContext();
+};
 StaxParser.prototype.getState = function() {
     return {
         depth: this.depth,
@@ -1620,7 +1626,7 @@ function XmlParserContext(){
     this.oReadResult = new AscCommonWord.DocReadResult();
     this.maxZIndex = 0;
 
-    this.xmlReaderContext = null;
+    this.oformContext = null;
     this.sdtPrWithFieldPath = [];
     this.fieldMasterMap = {};
 
@@ -1764,6 +1770,12 @@ XmlParserContext.prototype.assignFormLinks = function() {
     this.fieldGroupsWithFieldMasterPath = [];
     this.fieldWithFieldMastersPath = [];
     this.userWithUserMastersPath = [];
+};
+XmlParserContext.prototype.getOformContext = function() {
+	return this.oformContext;
+};
+XmlParserContext.prototype.setOformContext = function(context) {
+	this.oformContext = context;
 };
 
 XmlParserContext.prototype.addTableStyle = function(sGuid, oStyle) {
