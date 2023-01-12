@@ -4615,48 +4615,49 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         X += SpaceLen;
                         SpaceLen = 0;
                     }
-
-                    if (Item.IsPageBreak() || Item.IsColumnBreak())
-                    {
-                        PRS.BreakPageLine = true;
-                        if (Item.IsPageBreak())
-                            PRS.BreakRealPageLine = true;
-
-						// Учитываем разрыв страницы/колонки, только если мы находимся в главной части документа, либо
-						// во вложенной в нее SdtContent (вложение может быть многоуровневым)
-                        var oParent = Para.Parent;
-                        while (oParent instanceof CDocumentContent && oParent.IsBlockLevelSdtContent())
-							oParent = oParent.GetParent().GetParent();
-
-						if (!(oParent instanceof CDocument) || true !== Para.Is_Inline())
+					
+					let isLineBreak = Item.IsLineBreak();
+					if (Item.IsPageBreak() || Item.IsColumnBreak())
+					{
+						isLineBreak = false;
+						PRS.BreakPageLine = true;
+						if (Item.IsPageBreak())
+							PRS.BreakRealPageLine = true;
+						
+						if (Para.IsTableCellContent() || !Para.IsInline())
 						{
-							// TODO: Продумать, как избавиться от данного элемента, т.к. удалять его при пересчете нельзя,
-							//       иначе будут проблемы с совместным редактированием.
-
 							Item.Flags.Use = false;
 							continue;
 						}
-
-						if (Item.IsPageBreak() && !Para.CheckSplitPageOnPageBreak(Item))
-                            continue;
-
-                        Item.Flags.NewLine = true;
-
-                        NewPage       = true;
-                        NewRange      = true;
-                    }
-                    else
-                    {
-                    	PRS.BreakLine = true;
-
-                        NewRange = true;
-                        EmptyLine = false;
+						else if (!(PRS.GetTopDocument() instanceof CDocument))
+						{
+							// Везде кроме таблиц считаем такие разрывы обычными разрывами строки
+							isLineBreak = true;
+						}
+						else
+						{
+							if (Item.IsPageBreak() && !Para.CheckSplitPageOnPageBreak(Item))
+								continue;
+							
+							Item.Flags.NewLine = true;
+							
+							NewPage       = true;
+							NewRange      = true;
+						}
+					}
+					
+					if (isLineBreak)
+					{
+						PRS.BreakLine = true;
+						
+						NewRange = true;
+						EmptyLine = false;
 						TextOnLine = true;
-
-                        // здесь оставляем проверку, т.к. в случае, если после неинлайновой формулы нах-ся инлайновая необходимо в любом случае сделать перенос (проверка в private_RecalculateRange(), где выставляется PRS.ForceNewLine = true не пройдет)
-                        if (true === PRS.MathNotInline)
-                            PRS.ForceNewLine = true;
-                    }
+						
+						// здесь оставляем проверку, т.к. в случае, если после неинлайновой формулы нах-ся инлайновая необходимо в любом случае сделать перенос (проверка в private_RecalculateRange(), где выставляется PRS.ForceNewLine = true не пройдет)
+						if (true === PRS.MathNotInline)
+							PRS.ForceNewLine = true;
+					}
 
                     RangeEndPos = Pos + 1;
 
