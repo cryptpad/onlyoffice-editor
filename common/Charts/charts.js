@@ -758,6 +758,9 @@ ChartPreviewManager.prototype.getChartPreviews = function(chartType, arrId, bEmp
 		oGraphics.init(oContext, oCanvas.width, oCanvas.height, this.SMARTART_PREVIEW_SIZE_MM, this.SMARTART_PREVIEW_SIZE_MM);
 		oGraphics.m_oFontManager = AscCommon.g_fontManager;
 		oGraphics.transform(1,0,0,1,0,0);
+		if (AscCommon.AscBrowser.retinaPixelRatio < 2) {
+			oGraphics.bDrawRectWithLines = true;
+		}
 		return oGraphics;
 	}
 
