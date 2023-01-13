@@ -6618,6 +6618,14 @@
 		}
     };
 
+	WorksheetView.prototype._checkCacheInitSector = function (row) {
+		var s = this.cache.sectors;
+		var sectorNumber = Asc.floor(row / kRowsCacheSize);
+		if (!s[sectorNumber]) {
+			s[sectorNumber] = true;
+		}
+	};
+
 
     // ----- Cell text cache -----
 
@@ -7021,6 +7029,7 @@
 		cache.indent = indent;
 
         this._fetchCellCacheText(col, row);
+        this._checkCacheInitSector(row);
 
         if (!angle && !verticalText && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
