@@ -355,13 +355,13 @@ CShapeDrawer.prototype =
     {
         this.fromShape(shape, graphics);
 
-        if (!geom)
+        if (!geom && !graphics.bDrawRectWithLines)
         {
             this.IsRectShape = true;
         }
         else
         {
-            if (geom.preset == "rect")
+            if (geom.preset == "rect" && !graphics.bDrawRectWithLines)
                 this.IsRectShape = true;
         }
     },
