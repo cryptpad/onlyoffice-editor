@@ -940,3 +940,11 @@ CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 	
 	return new AscWord.CDocumentColor(0xF2, 0xF2, 0xF2);
 };
+CSdtBase.prototype.CheckOFormUserMaster = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	if (!logicDocument)
+		return true;
+	
+	return logicDocument.CheckOFormUserMaster(this);
+};
