@@ -14848,7 +14848,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         var oThis = this;
 		if (c_oSer_OMathContentType.Mc === type)
         {
-			var mc = {};
+			var mc = new CMathMatrixColumnPr();
 			res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathMc(t,l,mc);
             });
