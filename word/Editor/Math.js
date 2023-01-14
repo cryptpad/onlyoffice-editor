@@ -2915,6 +2915,8 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
         {
             _ret.ImageUrl = "";
         }
+        if (_canvas.isNativeGraphics === true)
+            _canvas.Destroy();
         return _ret;
     }
     return null;

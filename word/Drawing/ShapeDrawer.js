@@ -1861,6 +1861,8 @@ function ShapeToImageConverter(shape, pageIndex)
         else
             _ret.ImageUrl = "";
     }
+    if (_canvas.isNativeGraphics === true)
+        _canvas.Destroy();
     return _ret;
 }
 
