@@ -4842,6 +4842,7 @@ function CThumbnailsManager()
 		}
 
 		this.CalculatePlaces();
+		AscCommon.g_specialPasteHelper.SpecialPasteButton_Update_Position();
 		this.m_bIsUpdate = true;
 	};
 
@@ -4854,6 +4855,7 @@ function CThumbnailsManager()
 		this.m_dScrollY_max = maxY;
 
 		this.CalculatePlaces();
+		AscCommon.g_specialPasteHelper.SpecialPasteButton_Update_Position();
 		this.m_bIsUpdate = true;
 
 		if (!this.m_oWordControl.m_oApi.isMobileVersion)
