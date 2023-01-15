@@ -5598,6 +5598,10 @@ function CThumbnailsManager()
 					{
 						oPresentation.moveSlidesNextPos();
 					}
+					else
+					{
+						this.CorrectShiftSelect(false, false);
+					}
 					break;
 				}
 				case 36: // home
@@ -5647,6 +5651,10 @@ function CThumbnailsManager()
 					else if (oEvent.CtrlKey)
 					{
 						oPresentation.moveSlidesPrevPos();
+					}
+					else
+					{
+						this.CorrectShiftSelect(true, false);
 					}
 					break;
 				}
