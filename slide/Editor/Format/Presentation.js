@@ -9206,56 +9206,32 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                     break;
                 }
                 case FOCUS_OBJECT_THUMBNAILS : {
-                    var selected_slides = this.GetSelectedSlides();
-                    var oLayoutsMap = {}, oMastersMap = {}, oThemesMap = {}, oSlide, oSlideCopy, oLayout, oMaster,
+                    let aSelectedSlidesIdx = this.GetSelectedSlides();
+                    let oMastersMap = {}, oSlide, oSlideCopy, oLayout, oMaster,
                         oTheme, oNotesCopy, oNotes;
-                    for (i = 0; i < selected_slides.length; ++i) {
+                    for (let nSldIdx = 0; nSldIdx < aSelectedSlidesIdx.length; ++nSldIdx) {
                         oIdMap = {};
-                        oSlide = this.Slides[selected_slides[i]];
-                        oSlideCopy = oSlide;//.createDuplicate(oIdMap);
+                        oSlide = this.Slides[aSelectedSlidesIdx[nSldIdx]];
+                        oSlideCopy = oSlide;
                         oLayout = oSlide.Layout;
-                        if (!oLayoutsMap[oLayout.Get_Id()]) {
-                            oLayoutsMap[oLayout.Get_Id()] = oLayout;
-                            oSourceFormattingContent.LayoutsIndexes.push(oSourceFormattingContent.Layouts.length);
-                            oSourceFormattingContent.Layouts.push(oLayout);
-                            oMaster = oLayout.Master;
-                            if (!oMastersMap[oMaster.Get_Id()]) {
-                                oMastersMap[oMaster.Get_Id()] = oMaster;
-                                oSourceFormattingContent.MastersIndexes.push(oSourceFormattingContent.Masters.length);
-                                oSourceFormattingContent.Masters.push(oMaster);
-                                oTheme = oMaster.Theme;
-                                if (!oThemesMap[oTheme.Get_Id()]) {
-                                    oSourceFormattingContent.ThemesIndexes.push(oSourceFormattingContent.Themes.length);
-                                    oSourceFormattingContent.Themes.push(oTheme);
-                                } else {
-                                    for (j = 0; j < oSourceFormattingContent.Themes.length; ++j) {
-                                        if (oSourceFormattingContent.Themes[j] === oTheme) {
-                                            oSourceFormattingContent.ThemesIndexes.push(j);
-                                            break;
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (j = 0; j < oSourceFormattingContent.Masters.length; ++j) {
-                                    if (oSourceFormattingContent.Masters[j] === oMaster) {
-                                        oSourceFormattingContent.MastersIndexes.push(j);
-                                        break;
-                                    }
-                                }
-                            }
-                        } else {
-                            for (j = 0; j < oSourceFormattingContent.Layouts.length; ++j) {
-                                if (oSourceFormattingContent.Layouts[j] === oLayout) {
-                                    oSourceFormattingContent.LayoutsIndexes.push(j);
-                                    break;
-                                }
-                            }
-                        }
+						oMaster = oLayout.Master;
+						let sMasterId = oMaster.Get_Id();
+						if(!oMastersMap[sMasterId]) {
+							oMastersMap[sMasterId] = oMaster;
+							oSourceFormattingContent.Masters.push(oMaster);
+							let aLayouts = oMaster.sldLayoutLst;
+							for(let nLayout = 0; nLayout < aLayouts.length; ++nLayout) {
+								let oCurLayout = aLayouts[nLayout];
+								oSourceFormattingContent.Layouts.push(oCurLayout);
+							}
+							oTheme = oMaster.Theme;
+							oSourceFormattingContent.Themes.push(oTheme);
+						}
                         oSourceFormattingContent.SlideObjects.push(oSlideCopy);
                         oEndFormattingContent.SlideObjects.push(oSlideCopy);
 
-                        if (i === 0) {
-                            var sRasterImageId = oSlide.getBase64Img();
+                        if (nSldIdx === 0) {
+                            let sRasterImageId = oSlide.getBase64Img();
                             oImage = AscFormat.DrawingObjectsController.prototype.createImage(sRasterImageId, 0, 0, this.GetWidthMM() / 2.0, this.GetHeightMM() / 2.0);
                             oImagesSelectedContent.Drawings.push(new DrawingCopyObject(oImage, 0, 0, this.GetWidthMM() / 2.0, this.GetHeightMM() / 2.0, sRasterImageId));
                         }
@@ -9287,6 +9263,33 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                             oEndFormattingContent.NotesMastersIndexes.push(-1);
                         }
                     }
+
+					let aSlides = oSourceFormattingContent.SlideObjects;
+					let aLayouts = oSourceFormattingContent.Layouts;
+					let aMasters = oSourceFormattingContent.Masters;
+					let aThemes = oSourceFormattingContent.Themes;
+					for (let nSldIdx = 0; nSldIdx < aSlides.length; ++nSldIdx) {
+						let oSlide = aSlides[nSldIdx];
+						let oLayout = oSlide.Layout;
+						for(let nIdx = 0; nIdx < aLayouts.length; ++nIdx) {
+							if(aLayouts[nIdx] === oLayout) {
+								oSourceFormattingContent.LayoutsIndexes[nSldIdx] = nIdx;
+								break;
+							}
+						}
+	                }
+					for(let nLtIdx = 0; nLtIdx < aLayouts.length; ++nLtIdx) {
+						let oCurLayout = aLayouts[nLtIdx];
+						for(let nIdx = 0; nIdx < aMasters.length; ++nIdx) {
+							if(aMasters[nIdx] === oCurLayout.Master) {
+								oSourceFormattingContent.MastersIndexes[nLtIdx] = nIdx;
+								break;
+							}
+						}
+					}
+					for(let nMasterIdx = 0; nMasterIdx < aMasters.length; ++nMasterIdx) {
+						oSourceFormattingContent.ThemesIndexes[nMasterIdx] = nMasterIdx;
+					}
                 }
             }
         }
