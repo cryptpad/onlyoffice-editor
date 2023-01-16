@@ -3485,7 +3485,6 @@ ParaMath.prototype.Make_AutoCorrect = function()
 
 /**
  * Получаем рект формулы
- * @constructor
  */
 ParaMath.prototype.Get_Bounds = function()
 {
