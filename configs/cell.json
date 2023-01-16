@@ -11,6 +11,7 @@
 			"common/spellcheckapi.js",
 			"common/apiCommon.js",
 			"common/SerializeCommonWordExcel.js",
+			"vendor/string.js",
 			"common/editorscommon.js",
 			"common/HistoryCommon.js",
 			"common/TableId.js",
