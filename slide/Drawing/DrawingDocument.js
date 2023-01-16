@@ -5598,9 +5598,16 @@ function CThumbnailsManager()
 					{
 						oPresentation.moveSlidesNextPos();
 					}
-					else
+					else if(oEvent.ShiftKey)
 					{
 						this.CorrectShiftSelect(false, false);
+					}
+					else
+					{
+						if (oDrawingDocument.SlideCurrent < oDrawingDocument.SlidesCount - 1)
+						{
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent + 1);
+						}
 					}
 					break;
 				}
@@ -5652,9 +5659,17 @@ function CThumbnailsManager()
 					{
 						oPresentation.moveSlidesPrevPos();
 					}
-					else
+
+					else if(oEvent.ShiftKey)
 					{
 						this.CorrectShiftSelect(true, false);
+					}
+					else
+					{
+						if (oDrawingDocument.SlideCurrent > 0)
+						{
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent - 1);
+						}
 					}
 					break;
 				}
