@@ -9228,7 +9228,12 @@ CPresentation.prototype.GetSelectedContent2 = function () {
 							oSourceFormattingContent.Themes.push(oTheme);
 						}
                         oSourceFormattingContent.SlideObjects.push(oSlideCopy);
-                        oEndFormattingContent.SlideObjects.push(oSlideCopy);
+						let oEndFmtSld = oSlideCopy;
+						if(oEndFmtSld.cSld && oEndFmtSld.cSld.Bg) {
+							oEndFmtSld = oEndFmtSld.createDuplicate();
+							oEndFmtSld.changeBackground(null);
+						}
+                        oEndFormattingContent.SlideObjects.push(oEndFmtSld);
 
                         if (nSldIdx === 0) {
                             let sRasterImageId = oSlide.getBase64Img();
