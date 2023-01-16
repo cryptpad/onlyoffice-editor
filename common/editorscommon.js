@@ -9320,7 +9320,7 @@
 		else if (s2 > s2)
 			return 1;
 		
-		return 0;
+		return s1 === s2 ? 0 : -1;
 	}
 
 	function IsAbbreviation(sWord)
