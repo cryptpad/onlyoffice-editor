@@ -2574,8 +2574,10 @@
 	baseEditorsApi.prototype.asc_getUrlType = function(url)
 	{
 		let res = AscCommon.getUrlType(url);
+		//check bugs after modification: 59753, 59780
 		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"]() &&
-			(res === AscCommon.c_oAscUrlType.Invalid || !(AscCommon.rx_allowedProtocols.test(url) || /^(www.)|@/i.test(url))))
+			(res === AscCommon.c_oAscUrlType.Invalid || res === AscCommon.c_oAscUrlType.Http) &&
+			!(AscCommon.rx_allowedProtocols.test(url) || /^(www.)|@/i.test(url)) )
 		{
 			res = AscCommon.c_oAscUrlType.Unsafe;
 		}
