@@ -9398,7 +9398,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			}
 		}
 	}
-	if (undefined !== TextPr.AscLine)
+	if (undefined !== TextPr.AscLine && null !== TextPr.AscLine)
 	{
 		if(this.Paragraph)
 		{
