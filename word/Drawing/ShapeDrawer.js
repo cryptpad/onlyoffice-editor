@@ -349,6 +349,10 @@ CShapeDrawer.prototype =
                 _arr[indexD] *= this.StrokeWidth;
             this.Graphics.p_dash(_arr);
         }
+        else if (this.Graphics.RENDERER_PDF_FLAG)
+        {
+            this.Graphics.p_dash(null);
+        }
     },
 
     fromShape2 : function(shape, graphics, geom)
