@@ -10194,10 +10194,7 @@ CPresentation.prototype.addNextSlideAction = function(layoutIndex) {
 		}
 	} else {
 
-		var master = this.slideMasters[0];
-		if (this.lastMaster) {
-			master = this.lastMaster;
-		}
+		var master = this.getDefaultMasterSlide();
 		layout = AscFormat.isRealNumber(layoutIndex) ? (master.sldLayoutLst[layoutIndex] ? master.sldLayoutLst[layoutIndex] : master.sldLayoutLst[0]) : master.sldLayoutLst[0];
 		hf = layout.Master.hf;
 
@@ -10225,7 +10222,12 @@ CPresentation.prototype.addNextSlideAction = function(layoutIndex) {
 		this.insertSlide(this.CurPage + 1, new_slide);
 	}
 };
-
+CPresentation.prototype.getDefaultMasterSlide = function() {
+	if(this.lastMaster && this.lastMaster.sldLayoutLst.length > 0) {
+		return this.lastMaster;
+	}
+	return this.slideMasters[0];
+};
 CPresentation.prototype.DublicateSlide = function () {
     if (editor.WordControl.Thumbnails) {
         var selected_slides = this.GetSelectedSlides();

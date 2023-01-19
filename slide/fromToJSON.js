@@ -2163,9 +2163,7 @@
 				var CurSlide = oPresentation.Slides[oPresentation.CurPage];
 				if (!CurSlide)
 				{
-					oMaster = oPresentation.slideMasters[0];
-					if (oPresentation.lastMaster)
-						oMaster = oPresentation.lastMaster;
+					oMaster = oPresentation.getDefaultMasterSlide();
 					oLayout = oMaster.sldLayoutLst[0];
 				}
 				else
