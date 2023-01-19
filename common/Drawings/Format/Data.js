@@ -10117,6 +10117,7 @@ Because of this, the display is sometimes not correct.
       this.bNeedUpdatePosition = true;
 
       this.calcGeometry = null;
+      this.bFirstRecalculate = true;
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
@@ -10182,10 +10183,9 @@ Because of this, the display is sometimes not correct.
         editor.ShowParaMarks = false;
       }
       CGroupShape.prototype.recalculate.call(this);
-      if (this.group && this.bNeedUpdatePosition) {
-        this.bNeedUpdatePosition = false;
-        var group = this.getMainGroup();
-        group.updateCoordinatesAfterInternalResize();
+      if (this.bFirstRecalculate) {
+        this.bFirstRecalculate = false;
+        this.fitFontSize();
       }
       if (oldParaMarks) {
         editor.ShowParaMarks = oldParaMarks;
@@ -10258,8 +10258,8 @@ Because of this, the display is sometimes not correct.
 
     SmartArt.prototype.fitFontSize = function () {
       this.spTree[0] && this.spTree[0].spTree.forEach(function (oShape) {
-        oShape.recalculateContent2()
-        oShape.findFitFontSizeForSmartArt();
+        oShape.setTruthFontSizeInSmartArt();
+        oShape.recalculateContentWitCompiledPr();
       });
     };
 

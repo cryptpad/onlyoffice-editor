@@ -2249,12 +2249,14 @@ CShape.prototype.getTextRect = function () {
             var diffY = 0;
             if (oSmartArt.group) {
                 if (bForceSlideTransform || (this.parent && this.parent.getObjectType() === AscDFH.historyitem_type_Slide || this.worksheet)) {
-                    var mainGroup = oSmartArt.group.getRelativePosition();
-                    diffX = mainGroup.x;
-                    diffY = mainGroup.y;
+                    const oMainGroupRelativePosition = oSmartArt.group.getRelativePosition();
+                    diffX = oMainGroupRelativePosition.x;
+                    diffY = oMainGroupRelativePosition.y;
                 } else {
-                    diffX = oSmartArt.bounds.x;
-                    diffY = oSmartArt.bounds.y;
+                    const oMainGroup = oSmartArt.getMainGroup();
+                    const oMainGroupRelativePosition = oSmartArt.getRelativePosition();
+                    diffX =  oMainGroupRelativePosition.x - oMainGroup.x;
+                    diffY =  oMainGroupRelativePosition.y - oMainGroup.y;
                 }
             }
             var oRect = this.getTextRect();
@@ -4575,7 +4577,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         }
     };
 
-    CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
+    CShape.prototype.getFirstFontSize = function () {
         let currentFontSize;
         if (this.txBody && this.txBody.content) {
             this.txBody.content.CheckRunContent(function (paraRun) {
@@ -4592,12 +4594,15 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                     }
                 });
             }
-            const bOldApplyToAll = this.txBody.content.ApplyToAll;
-            this.txBody.content.ApplyToAll = true;
-            this.txBody.content.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize: (Math.min(fontSize, 300))}));
-            this.txBody.content.ApplyToAll = bOldApplyToAll;
+        }
+        return currentFontSize;
+    }
 
-            const oBodyPr = this.getBodyPr && this.getBodyPr();
+    CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
+        const oContent = this.txBody && this.txBody.content;
+        if (this.txBody && oContent) {
+            const currentFontSize = this.getFirstFontSize();
+            const oBodyPr = this.txBody.getBodyPr();
             if (oBodyPr) {
                 const paddings = {};
                 const pointContent = this.getSmartArtPointContent();
@@ -4625,7 +4630,11 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                 // While there is no recalculation, we consider new insets as a dependency on the previous font size.
                 this.setPaddings(paddings, {bNotCopyToPoints: true});
             }
-            this.recalculateContentWitCompiledPr();
+            const bOldApplyToAll = oContent.ApplyToAll;
+            oContent.ApplyToAll = true;
+            oContent.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize: (Math.min(fontSize, 300))}));
+            oContent.ApplyToAll = bOldApplyToAll;
+            this.recalculateContent2();
         }
     };
     CShape.prototype.resetSmartArtMaxFontSize = function () {
@@ -4757,10 +4766,34 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         const sizesOfTextRectContent = this.getTextRectContentHW();
         const vert = this.txBody && this.txBody.bodyPr.vert;
 
-        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert) {
-            return this.contentHeight > sizesOfTextRectContent.width;
+
+        let nContentHeight;
+        if (this.txBody && this.txBody.content2) {
+            this.recalculateContent();
+            nContentHeight = this.contentHeight;
+        } else {
+            this.recalculateContent();
+            nContentHeight = this.contentHeight;
         }
-        return this.contentHeight > sizesOfTextRectContent.height;
+        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert || vert === AscFormat.nVertTTeaVert) {
+            return nContentHeight >= sizesOfTextRectContent.width;
+        }
+        return nContentHeight >= sizesOfTextRectContent.height;
+    };
+    CShape.prototype.compareWidthOfBoundsTextInSmartArt = function (bMax) {
+        const oContent = this.getCurrentDocContentInSmartArt();
+        const sizesOfTextRectContent = this.getTextRectContentHW();
+        const vert = this.txBody && this.txBody.bodyPr.vert;
+        let widthOfContent = oContent.RecalculateMinMaxContentWidth();
+        if (bMax) {
+            widthOfContent = widthOfContent.Max;
+        } else {
+            widthOfContent = widthOfContent.Min;
+        }
+        if (vert === AscFormat.nVertTTvert270 || vert === AscFormat.nVertTTvert || vert === AscFormat.nVertTTeaVert) {
+            return widthOfContent > sizesOfTextRectContent.height;
+        }
+        return widthOfContent > sizesOfTextRectContent.width;
     };
     CShape.prototype.checkFitContentForSmartArt = function () {
         // почему-то у майков не подбирается шрифт для ширины, если вставлено только уравнение
@@ -4779,43 +4812,39 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         return false;
     };
     CShape.prototype.findFitFontSizeForSmartArt = function (bMax) {
-        const MAX_FONT_SIZE = 65;
-
-        const content = this.getCurrentDocContentInSmartArt();
-        if (content) {
-            const scalesForSmartArt = Array((MAX_FONT_SIZE - 4) > 0 ? MAX_FONT_SIZE - 4 : 1).fill(0).map(function (e, ind) {
-                return ind + 5;
-            });
-            let a = 0;
-            let b = scalesForSmartArt.length - 1;
-            let averageAmount = Math.floor((a + b) / 2);
-            const bNeedCheckWidth = this.checkFitContentForSmartArt();
-            while (a !== averageAmount && b !== averageAmount) {
-                this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-                let bCheck;
-                if (bNeedCheckWidth) {
-                    let widthOfContent = content.RecalculateMinMaxContentWidth();
-                    if (bMax) {
-                        widthOfContent = widthOfContent.Max;
+        return AscFormat.ExecuteNoHistory(function () {
+            const MAX_FONT_SIZE = 65;
+            const content = this.getCurrentDocContentInSmartArt();
+            if (content) {
+                const nOldFontSize = this.getFirstFontSize();
+                const scalesForSmartArt = Array((MAX_FONT_SIZE - 4) > 0 ? MAX_FONT_SIZE - 4 : 1).fill(0).map(function (e, ind) {
+                    return ind + 5;
+                });
+                let a = 0;
+                let b = scalesForSmartArt.length - 1;
+                let averageAmount = Math.floor((a + b) / 2);
+                const bNeedCheckWidth = this.checkFitContentForSmartArt();
+                while (a !== averageAmount && b !== averageAmount) {
+                    this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
+                    let bCheck;
+                    if (bNeedCheckWidth) {
+                        bCheck = this.compareWidthOfBoundsTextInSmartArt(bMax) || this.compareHeightOfBoundsTextInSmartArt();
                     } else {
-                        widthOfContent = widthOfContent.Min;
+                        bCheck = this.compareHeightOfBoundsTextInSmartArt();
                     }
-                    bCheck = widthOfContent > this.contentWidth || this.compareHeightOfBoundsTextInSmartArt();
-                } else {
-                    bCheck = this.compareHeightOfBoundsTextInSmartArt();
-                }
 
-                if (bCheck) {
-                    b = averageAmount;
-                } else {
-                    a = averageAmount;
+                    if (bCheck) {
+                        b = averageAmount;
+                    } else {
+                        a = averageAmount;
+                    }
+                    averageAmount = Math.floor((a + b) / 2);
                 }
-                averageAmount = Math.floor((a + b) / 2);
+                this.setFontSizeInSmartArt(nOldFontSize);
+                return scalesForSmartArt[averageAmount];
             }
-            this.setFontSizeInSmartArt(scalesForSmartArt[averageAmount]);
-            return scalesForSmartArt[averageAmount];
-        }
-        return MAX_FONT_SIZE;
+            return MAX_FONT_SIZE;
+        }, this, []);
     };
 
     CShape.prototype.getShapesForFitText = function () {
@@ -4823,38 +4852,78 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
     };
 
     CShape.prototype.setTruthFontSizeInSmartArt = function () {
-        var shapes = this.getShapesForFitText();
-        var maxFontSize = 65;
-        var arrOfFonts = shapes.reduce(function (arr, shape) {
-            var contentPoints = shape.getSmartArtPointContent();
-            var isNotPlaceholder = contentPoints.every(function (point) {
-                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && !point.prSet.phldr;
-            });
-            if (isNotPlaceholder) {
-                arr.push(shape.findFitFontSizeForSmartArt());
-            }
-            return arr;
-        }, [maxFontSize]);
+        const arrMainContentPoints = this.getSmartArtPointContent();
+        if (!arrMainContentPoints) return;
+        const bIsFitText = arrMainContentPoints.every(function (point) {
+            return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && !point.prSet.phldr;
+        });
+        let bIsPlaceholder = arrMainContentPoints.every(function (point) {
+            return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && point.prSet.phldr;
+        });
 
-        var minFont = Math.min.apply(Math, arrOfFonts);
-        shapes.forEach(function (shape) {
-            var contentPoints = shape.getSmartArtPointContent();
-            var isPlaceholder = contentPoints.every(function (point) {
+        if (!bIsFitText && !bIsPlaceholder) {
+            return;
+        }
+        const oSmartArtInfo = this.getSmartArtInfo();
+        if (oSmartArtInfo) {
+            oSmartArtInfo.setMaxFontSize(this.findFitFontSizeForSmartArt());
+        }
+        const arrShapes = this.getShapesForFitText();
+        const arrPlaceholders = [];
+        const arrFitText = [];
+        for (let i = 0; i < arrShapes.length; i += 1) {
+            const oShape = arrShapes[i];
+            var contentPoints = oShape.getSmartArtPointContent();
+            const isPlaceholder = contentPoints.every(function (point) {
                 return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && point.prSet.phldr;
             });
-            var isFitText = contentPoints.every(function (point) {
-                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT;
+            const isNotPlaceholder = contentPoints.every(function (point) {
+                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && !point.prSet.phldr;
             });
-
             if (isPlaceholder) {
-                var minFontSizeForPlaceholder = shape.findFitFontSizeForSmartArt();
-                if (minFontSizeForPlaceholder > minFont) {
-                    shape.setFontSizeInSmartArt(minFont);
-                }
-            } else if (isFitText) {
-                shape.setFontSizeInSmartArt(minFont);
+                arrPlaceholders.push(oShape);
+            } else if (isNotPlaceholder) {
+                arrFitText.push(oShape);
             }
-        });
+        }
+
+        let nFitFontSize = 65;
+        for (let i = 0; i < arrFitText.length; i += 1) {
+            const oShape = arrFitText[i];
+            const oShapeSmartArtInfo = oShape.getSmartArtInfo();
+            if (oShapeSmartArtInfo) {
+                if (!AscFormat.isRealNumber(oShapeSmartArtInfo.maxFontSize)) {
+                    oShapeSmartArtInfo.setMaxFontSize(oShape.findFitFontSizeForSmartArt());
+                }
+                if (oShapeSmartArtInfo.maxFontSize < nFitFontSize) {
+                    nFitFontSize = oShapeSmartArtInfo.maxFontSize;
+                }
+            }
+        }
+        for (let i = 0; i < arrFitText.length; i += 1) {
+            const oShape = arrFitText[i];
+            const nCurrentFontSize = oShape.getFirstFontSize();
+            if (nCurrentFontSize !== nFitFontSize) {
+                oShape.setFontSizeInSmartArt(nFitFontSize);
+            }
+        }
+
+        for (let i = 0; i < arrPlaceholders.length; i += 1) {
+            const oShape = arrPlaceholders[i];
+            const nCurrentFontSize = oShape.getFirstFontSize();
+            const oPlaceholderSmartArtInfo = oShape.getSmartArtInfo();
+            if (oPlaceholderSmartArtInfo) {
+                if (!AscFormat.isRealNumber(oPlaceholderSmartArtInfo.maxFontSize)) {
+                    oPlaceholderSmartArtInfo.setMaxFontSize(oShape.findFitFontSizeForSmartArt());
+                }
+                const nPlaceholderFontSize = Math.min(oPlaceholderSmartArtInfo.maxFontSize, nFitFontSize);
+                if (nCurrentFontSize !== nPlaceholderFontSize) {
+                    oShape.setFontSizeInSmartArt(nPlaceholderFontSize);
+                }
+            } else if (nCurrentFontSize !== nFitFontSize) {
+                oShape.setFontSizeInSmartArt(nFitFontSize);
+            }
+        }
     };
 
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
