@@ -7291,6 +7291,7 @@ function CDrawingDocument()
 			shape.contentWidth = shape.extX;
 			shape.createTextBody();
 			var par = shape.txBody.content.GetAllParagraphs()[0];
+			shape.setPaddings({Left: 0, Top: 0, Right: 0, Bottom: 0});
 
 			par.MoveCursorToStartPos();
 
@@ -7307,7 +7308,9 @@ function CDrawingDocument()
 
 			var parW = par.RecalculateMinMaxContentWidth().Max;
 			if (parW > shape.contentWidth) {
-				shape.findFitFontSizeForSmartArt(true);
+				const nNewFontSize = shape.findFitFontSizeForSmartArt(true);
+				shape.setFontSizeInSmartArt(nNewFontSize);
+				shape.recalculateContentWitCompiledPr();
 				parW = par.RecalculateMinMaxContentWidth().Max;
 			}
 

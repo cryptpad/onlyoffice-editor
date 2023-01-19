@@ -10444,6 +10444,7 @@
 		oNewShape.extX = width_px * AscCommon.g_dKoef_pix_to_mm;
 		oNewShape.extY = height_px * AscCommon.g_dKoef_pix_to_mm;
 		oNewShape.contentWidth = oNewShape.extX;
+		oNewShape.setPaddings({Left: 0, Top: 0, Right: 0, Bottom: 0});
 
 		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
 		par.MoveCursorToStartPos();
@@ -10462,7 +10463,9 @@
 
 		let parW = par.RecalculateMinMaxContentWidth().Max;
 		if (parW > oNewShape.contentWidth) {
-			oNewShape.findFitFontSizeForSmartArt(true);
+			const nNewFontSize = oNewShape.findFitFontSizeForSmartArt(true);
+			oNewShape.setFontSizeInSmartArt(nNewFontSize);
+			oNewShape.recalculateContentWitCompiledPr();
 			parW = par.RecalculateMinMaxContentWidth().Max;
 		}
 
