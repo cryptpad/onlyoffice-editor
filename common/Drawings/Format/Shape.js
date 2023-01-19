@@ -4598,7 +4598,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         return currentFontSize;
     }
 
-    CShape.prototype.setFontSizeInSmartArt = function (fontSize) {
+    CShape.prototype.setFontSizeInSmartArt = function (fontSize, bSkipRecalculateContent2) {
         const oContent = this.txBody && this.txBody.content;
         if (this.txBody && oContent) {
             const currentFontSize = this.getFirstFontSize();
@@ -4632,9 +4632,11 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             }
             const bOldApplyToAll = oContent.ApplyToAll;
             oContent.ApplyToAll = true;
-            oContent.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize: (Math.min(fontSize, 300))}));
+            oContent.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize: (Math.min(fontSize, 300))}), false);
             oContent.ApplyToAll = bOldApplyToAll;
-            this.recalculateContent2();
+            if (!bSkipRecalculateContent2) {
+                this.recalculateContent2();
+            }
         }
     };
     CShape.prototype.resetSmartArtMaxFontSize = function () {
@@ -4904,7 +4906,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             const oShape = arrFitText[i];
             const nCurrentFontSize = oShape.getFirstFontSize();
             if (nCurrentFontSize !== nFitFontSize) {
-                oShape.setFontSizeInSmartArt(nFitFontSize);
+                oShape.setFontSizeInSmartArt(nFitFontSize, true);
             }
         }
 
@@ -4918,10 +4920,10 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                 }
                 const nPlaceholderFontSize = Math.min(oPlaceholderSmartArtInfo.maxFontSize, nFitFontSize);
                 if (nCurrentFontSize !== nPlaceholderFontSize) {
-                    oShape.setFontSizeInSmartArt(nPlaceholderFontSize);
+                    oShape.setFontSizeInSmartArt(nPlaceholderFontSize, true);
                 }
             } else if (nCurrentFontSize !== nFitFontSize) {
-                oShape.setFontSizeInSmartArt(nFitFontSize);
+                oShape.setFontSizeInSmartArt(nFitFontSize, true);
             }
         }
     };
