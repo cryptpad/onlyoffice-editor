@@ -6937,14 +6937,24 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
     {
         var oThis = this;
         this.bs.WriteItemWithLength(function(){oThis.WriteSettings();});
-    }
+    };
     this.WriteSettings = function()
     {
         var oThis = this;
 		this.bs.WriteItem(c_oSer_SettingsType.ClrSchemeMapping, function(){oThis.WriteColorSchemeMapping();});
 		this.bs.WriteItem(c_oSer_SettingsType.DefaultTabStopTwips, function(){oThis.bs.writeMmToTwips(AscCommonWord.Default_Tab_Stop);});
 		this.bs.WriteItem(c_oSer_SettingsType.MathPr, function(){oThis.WriteMathPr();});
-		this.bs.WriteItem(c_oSer_SettingsType.TrackRevisions, function(){oThis.memory.WriteBool(oThis.Document.GetGlobalTrackRevisions());});
+		this.bs.WriteItem(c_oSer_SettingsType.TrackRevisions, function(){
+			let trackRevisionsFlag = oThis.Document.GetGlobalTrackRevisions();
+			if (!trackRevisionsFlag && oThis.Document.GetLocalTrackRevisions()) {
+				//if applied trackedChanges protection, ms write w:trackRevisions default(default -> true)
+				let documentProtection = oThis.Document.Settings && oThis.Document.Settings.DocumentProtection;
+				if (documentProtection && documentProtection.edit === Asc.c_oAscEDocProtect.TrackedChanges) {
+					trackRevisionsFlag = true;
+				}
+			}
+			oThis.memory.WriteBool(trackRevisionsFlag);
+		});
 		this.bs.WriteItem(c_oSer_SettingsType.FootnotePr, function(){
 			var index = oThis.WriteNotePr(oThis.Document.Footnotes, oThis.Document.Footnotes.FootnotePr, oThis.saveParams.footnotes, c_oSerNotes.PrFntPos);
 			if (index > oThis.saveParams.footnotesIndex) {
@@ -8428,11 +8438,8 @@ function BinaryFileReader(doc, openParams)
 			//this.Document.applyProtection()
 			var restrictionType = docProtection.getRestrictionType();
 			var enforcement = docProtection.getEnforcement();
-			if (/*docProtection.isOnlyView() && false !== docProtection.getEnforcement()*/restrictionType !== null) {
+			if (enforcement !== false && restrictionType !== null) {
 				api && api.asc_addRestriction(restrictionType);
-			} else if (false !== enforcement && enforcement != null && restrictionType !== null) {
-				//TODO ?
-				api && api.asc_addRestriction(Asc.c_oAscRestrictionType.View);
 			}
 		}
 		
@@ -14848,7 +14855,7 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
         var oThis = this;
 		if (c_oSer_OMathContentType.Mc === type)
         {
-			var mc = {};
+			var mc = new CMathMatrixColumnPr();
 			res = this.bcr.Read1(length, function(t, l){
                 return oThis.ReadMathMc(t,l,mc);
             });

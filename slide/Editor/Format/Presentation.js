@@ -253,7 +253,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -281,7 +281,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -296,7 +296,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 }
         }
@@ -339,7 +339,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -415,7 +415,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                     },
                 TableCellPr:
@@ -443,7 +443,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                 },
             TableCellPr:
@@ -481,7 +481,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -557,7 +557,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -585,7 +585,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -620,7 +620,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             };
         styleObject.TableCellPr.Shd =
@@ -700,7 +700,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -772,7 +772,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -811,7 +811,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
 
@@ -893,7 +893,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -921,7 +921,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -967,7 +967,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -1041,7 +1041,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -1069,7 +1069,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -1120,7 +1120,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -1197,7 +1197,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -1225,7 +1225,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                 },
             TableCellPr:
@@ -1338,7 +1338,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -1366,7 +1366,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                 },
             TableCellPr:
@@ -1397,7 +1397,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             };
             style.TableLastRow.Set_FromObject(styleObject);
@@ -1415,7 +1415,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
         styleObject.TableCellPr.Shd =
@@ -1495,7 +1495,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -1523,7 +1523,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -1567,7 +1567,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -1641,7 +1641,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -1669,7 +1669,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -1709,7 +1709,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -1785,7 +1785,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                     },
                 TableCellPr:
@@ -1814,7 +1814,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                 },
             TableCellPr:
@@ -1858,7 +1858,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                 },
             TableCellPr:
@@ -1887,7 +1887,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
                     TextPr:
                         {
                             Bold: true,
-                            FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                            FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                             Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                         },
                     Shd:
@@ -1977,7 +1977,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -2005,7 +2005,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -2045,7 +2045,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -2118,7 +2118,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -2146,7 +2146,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -2186,7 +2186,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -2259,7 +2259,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             {
                 TextPr:
                     {
-                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                        FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                         Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                     },
                 TableCellPr:
@@ -2287,7 +2287,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
                 },
             TableCellPr:
@@ -2302,7 +2302,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
             TextPr:
                 {
                     Bold: true,
-                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                    FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                     Unifill: CreateUnifillSolidFillSchemeColor(8, 0)
                 },
             TableCellPr:
@@ -2342,7 +2342,7 @@ function CreatePresentationTableStyles(Styles, IdMap) {
         styleObject.TextPr =
             {
                 Bold: true,
-                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.CreatePresetColor("black")),
+                FontRef: AscFormat.CreateFontRef(AscFormat.fntStyleInd_minor, AscFormat.builder_CreatePresetColor("black")),
                 Unifill: CreateUnifillSolidFillSchemeColor(12, 0)
             };
         style.TableFirstRow.Set_FromObject(styleObject);
@@ -9206,56 +9206,37 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                     break;
                 }
                 case FOCUS_OBJECT_THUMBNAILS : {
-                    var selected_slides = this.GetSelectedSlides();
-                    var oLayoutsMap = {}, oMastersMap = {}, oThemesMap = {}, oSlide, oSlideCopy, oLayout, oMaster,
+                    let aSelectedSlidesIdx = this.GetSelectedSlides();
+                    let oMastersMap = {}, oSlide, oSlideCopy, oLayout, oMaster,
                         oTheme, oNotesCopy, oNotes;
-                    for (i = 0; i < selected_slides.length; ++i) {
+                    for (let nSldIdx = 0; nSldIdx < aSelectedSlidesIdx.length; ++nSldIdx) {
                         oIdMap = {};
-                        oSlide = this.Slides[selected_slides[i]];
-                        oSlideCopy = oSlide;//.createDuplicate(oIdMap);
+                        oSlide = this.Slides[aSelectedSlidesIdx[nSldIdx]];
+                        oSlideCopy = oSlide;
                         oLayout = oSlide.Layout;
-                        if (!oLayoutsMap[oLayout.Get_Id()]) {
-                            oLayoutsMap[oLayout.Get_Id()] = oLayout;
-                            oSourceFormattingContent.LayoutsIndexes.push(oSourceFormattingContent.Layouts.length);
-                            oSourceFormattingContent.Layouts.push(oLayout);
-                            oMaster = oLayout.Master;
-                            if (!oMastersMap[oMaster.Get_Id()]) {
-                                oMastersMap[oMaster.Get_Id()] = oMaster;
-                                oSourceFormattingContent.MastersIndexes.push(oSourceFormattingContent.Masters.length);
-                                oSourceFormattingContent.Masters.push(oMaster);
-                                oTheme = oMaster.Theme;
-                                if (!oThemesMap[oTheme.Get_Id()]) {
-                                    oSourceFormattingContent.ThemesIndexes.push(oSourceFormattingContent.Themes.length);
-                                    oSourceFormattingContent.Themes.push(oTheme);
-                                } else {
-                                    for (j = 0; j < oSourceFormattingContent.Themes.length; ++j) {
-                                        if (oSourceFormattingContent.Themes[j] === oTheme) {
-                                            oSourceFormattingContent.ThemesIndexes.push(j);
-                                            break;
-                                        }
-                                    }
-                                }
-                            } else {
-                                for (j = 0; j < oSourceFormattingContent.Masters.length; ++j) {
-                                    if (oSourceFormattingContent.Masters[j] === oMaster) {
-                                        oSourceFormattingContent.MastersIndexes.push(j);
-                                        break;
-                                    }
-                                }
-                            }
-                        } else {
-                            for (j = 0; j < oSourceFormattingContent.Layouts.length; ++j) {
-                                if (oSourceFormattingContent.Layouts[j] === oLayout) {
-                                    oSourceFormattingContent.LayoutsIndexes.push(j);
-                                    break;
-                                }
-                            }
-                        }
+						oMaster = oLayout.Master;
+						let sMasterId = oMaster.Get_Id();
+						if(!oMastersMap[sMasterId]) {
+							oMastersMap[sMasterId] = oMaster;
+							oSourceFormattingContent.Masters.push(oMaster);
+							let aLayouts = oMaster.sldLayoutLst;
+							for(let nLayout = 0; nLayout < aLayouts.length; ++nLayout) {
+								let oCurLayout = aLayouts[nLayout];
+								oSourceFormattingContent.Layouts.push(oCurLayout);
+							}
+							oTheme = oMaster.Theme;
+							oSourceFormattingContent.Themes.push(oTheme);
+						}
                         oSourceFormattingContent.SlideObjects.push(oSlideCopy);
-                        oEndFormattingContent.SlideObjects.push(oSlideCopy);
+						let oEndFmtSld = oSlideCopy;
+						if(oEndFmtSld.cSld && oEndFmtSld.cSld.Bg) {
+							oEndFmtSld = oEndFmtSld.createDuplicate();
+							oEndFmtSld.changeBackground(null);
+						}
+                        oEndFormattingContent.SlideObjects.push(oEndFmtSld);
 
-                        if (i === 0) {
-                            var sRasterImageId = oSlide.getBase64Img();
+                        if (nSldIdx === 0) {
+                            let sRasterImageId = oSlide.getBase64Img();
                             oImage = AscFormat.DrawingObjectsController.prototype.createImage(sRasterImageId, 0, 0, this.GetWidthMM() / 2.0, this.GetHeightMM() / 2.0);
                             oImagesSelectedContent.Drawings.push(new DrawingCopyObject(oImage, 0, 0, this.GetWidthMM() / 2.0, this.GetHeightMM() / 2.0, sRasterImageId));
                         }
@@ -9287,6 +9268,33 @@ CPresentation.prototype.GetSelectedContent2 = function () {
                             oEndFormattingContent.NotesMastersIndexes.push(-1);
                         }
                     }
+
+					let aSlides = oSourceFormattingContent.SlideObjects;
+					let aLayouts = oSourceFormattingContent.Layouts;
+					let aMasters = oSourceFormattingContent.Masters;
+					let aThemes = oSourceFormattingContent.Themes;
+					for (let nSldIdx = 0; nSldIdx < aSlides.length; ++nSldIdx) {
+						let oSlide = aSlides[nSldIdx];
+						let oLayout = oSlide.Layout;
+						for(let nIdx = 0; nIdx < aLayouts.length; ++nIdx) {
+							if(aLayouts[nIdx] === oLayout) {
+								oSourceFormattingContent.LayoutsIndexes[nSldIdx] = nIdx;
+								break;
+							}
+						}
+	                }
+					for(let nLtIdx = 0; nLtIdx < aLayouts.length; ++nLtIdx) {
+						let oCurLayout = aLayouts[nLtIdx];
+						for(let nIdx = 0; nIdx < aMasters.length; ++nIdx) {
+							if(aMasters[nIdx] === oCurLayout.Master) {
+								oSourceFormattingContent.MastersIndexes[nLtIdx] = nIdx;
+								break;
+							}
+						}
+					}
+					for(let nMasterIdx = 0; nMasterIdx < aMasters.length; ++nMasterIdx) {
+						oSourceFormattingContent.ThemesIndexes[nMasterIdx] = nMasterIdx;
+					}
                 }
             }
         }
@@ -9548,206 +9556,213 @@ CPresentation.prototype.InsertContent = function (Content) {
         this.CheckEmptyPlaceholderNotes();
         bInsert = true;
         nNeedFocusType = FOCUS_OBJECT_THUMBNAILS;
-    } else if (oCurSlide) {
-        if (Content.Drawings.length > 0) {
-			let oIsSingleTable = null;
-			if(Content.Drawings.length === 1 &&
-				Content.Drawings[0].Drawing &&
-				Content.Drawings[0].Drawing.isTable()) {
-				oIsSingleTable = Content.Drawings[0].Drawing.graphicObject;
-			}
-            if (this.FocusOnNotes && oIsSingleTable) {
-                let oContent = AscFormat.ExecuteNoHistory(
-                    function () {
-                        let oTable = Content.Drawings[0].Drawing.graphicObject;
-                        let oResult = new AscFormat.CDrawingDocContent(this, this.DrawingDocument, 0, 0, 3000, 2000);
-                        for (let i = 0; i < oTable.Content.length; ++i) {
-                            let oRow = oTable.Content[i];
-                            for (let j = 0; j < oRow.Content.length; ++j) {
-                                let oCurDocContent = oRow.Content[j].Content;
-                                for (let k = 0; k < oCurDocContent.Content.length; ++k) {
-                                    oResult.Content.push(oCurDocContent.Content[k]);
-                                }
-                            }
-                        }
-                        if (oResult.Content.length > 1) {
-                            oResult.Content.splice(0, 1);
-                        }
-                        return oResult;
-                    }, this, []
-                );
-                let oSelectedContent = new AscCommonWord.CSelectedContent();
-                oContent.SelectAll();
-                oContent.GetSelectedContent(oSelectedContent);
-                let PresentSelContent = new PresentationSelectedContent();
-                PresentSelContent.DocContent = oSelectedContent;
-                this.InsertContent(PresentSelContent);
-                this.Check_CursorMoveRight();
-                nNeedFocusType = FOCUS_OBJECT_MAIN;
-                return true;
-            } else {
-                this.FocusOnNotes = false;
-				let oController = oCurSlide.graphicObjects;
-				let oTextSelection = oController.selection.textSelection;
-				if(oIsSingleTable && oTextSelection && oTextSelection.isTable()) {
-					let oTable = oTextSelection.graphicObject;
-                    let oCurParagraph = oTable.GetCurrentParagraph();
-                    if(oCurParagraph) {
-                        let oParaParent = oCurParagraph.GetParent();
-                        if(oParaParent) {
-                            let oCurCell = oParaParent.IsTableCellContent(true);
-                            if(oCurCell) {
-                                oCurCell.InsertTableContent(oIsSingleTable);
-                                let nMaxCellsCount = 0;
-                                for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
-                                    let oRow = oTable.Content[nRow];
-                                    if (nMaxCellsCount < oRow.Content.length)
-                                        nMaxCellsCount = oRow.Content.length;
-                                }
-                                for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
-                                    let oRow = oTable.Content[nRow];
-                                    let aCells = oRow.Content;
-                                    let nCellsCount = 0;
-                                    for (let nCell = 0; nCell < aCells.length; nCell++) {
-                                        nCellsCount += aCells[nCell].GetGridSpan();
-                                    }
-                                    if (nCellsCount < nMaxCellsCount) {
-                                        for (let nCell = nCellsCount; nCell < nMaxCellsCount; nCell++) {
-                                            oRow.Add_Cell(oRow.Get_CellsCount(), oRow, null, true);
-                                        }
-                                    }
-                                }
-                                bInsert = true;
-                                nNeedFocusType = FOCUS_OBJECT_MAIN;
-                            }
-                        }
-                    }
+    } else {
+		if(!oCurSlide) {
+			this.addNextSlideAction(null);
+			this.CurPage = 0;
+			oCurSlide = this.Slides[0];
+		}
+		if(oCurSlide) {
+			if (Content.Drawings.length > 0) {
+				let oIsSingleTable = null;
+				if(Content.Drawings.length === 1 &&
+					Content.Drawings[0].Drawing &&
+					Content.Drawings[0].Drawing.isTable()) {
+					oIsSingleTable = Content.Drawings[0].Drawing.graphicObject;
 				}
-				if(!bInsert) {
-					oController.resetSelection();
-					let aPasteDrawings = [];
-					for (i = 0; i < Content.Drawings.length; ++i) {
-						aPasteDrawings.push(Content.Drawings[i].Drawing);
-					}
-					let dShift = oController.getDrawingsPasteShift(aPasteDrawings);
-					for (i = 0; i < Content.Drawings.length; ++i) {
-						let bInsertShape = true;
-						let oCopyObject = Content.Drawings[i];
-						let oSp = oCopyObject.Drawing;
-						let oSlidePh, oLayoutPlaceholder;
-
-						let nType, nIdx;
-						if (oSp.isPlaceholder()) {
-							let oInfo = {};
-							nType = oSp.getPlaceholderType();
-							nIdx = oSp.getPlaceholderIndex();
-							oSlidePh = oCurSlide.getMatchingShape(nType, nIdx, false, oInfo);
-							oLayoutPlaceholder = oCurSlide.Layout.getMatchingShape(nType, nIdx, false, oInfo);
-							if (oSp.isEmptyPlaceholder()) {
-								if (!oLayoutPlaceholder || oInfo.bBadMatch) {
-									bInsertShape = false;
-								} else {
-									if (oSlidePh) {
-										bInsertShape = false;
+				if (this.FocusOnNotes && oIsSingleTable) {
+					let oContent = AscFormat.ExecuteNoHistory(
+						function () {
+							let oTable = Content.Drawings[0].Drawing.graphicObject;
+							let oResult = new AscFormat.CDrawingDocContent(this, this.DrawingDocument, 0, 0, 3000, 2000);
+							for (let i = 0; i < oTable.Content.length; ++i) {
+								let oRow = oTable.Content[i];
+								for (let j = 0; j < oRow.Content.length; ++j) {
+									let oCurDocContent = oRow.Content[j].Content;
+									for (let k = 0; k < oCurDocContent.Content.length; ++k) {
+										oResult.Content.push(oCurDocContent.Content[k]);
 									}
+								}
+							}
+							if (oResult.Content.length > 1) {
+								oResult.Content.splice(0, 1);
+							}
+							return oResult;
+						}, this, []
+					);
+					let oSelectedContent = new AscCommonWord.CSelectedContent();
+					oContent.SelectAll();
+					oContent.GetSelectedContent(oSelectedContent);
+					let PresentSelContent = new PresentationSelectedContent();
+					PresentSelContent.DocContent = oSelectedContent;
+					this.InsertContent(PresentSelContent);
+					this.Check_CursorMoveRight();
+					nNeedFocusType = FOCUS_OBJECT_MAIN;
+					return true;
+				} else {
+					this.FocusOnNotes = false;
+					let oController = oCurSlide.graphicObjects;
+					let oTextSelection = oController.selection.textSelection;
+					if(oIsSingleTable && oTextSelection && oTextSelection.isTable()) {
+						let oTable = oTextSelection.graphicObject;
+						let oCurParagraph = oTable.GetCurrentParagraph();
+						if(oCurParagraph) {
+							let oParaParent = oCurParagraph.GetParent();
+							if(oParaParent) {
+								let oCurCell = oParaParent.IsTableCellContent(true);
+								if(oCurCell) {
+									oCurCell.InsertTableContent(oIsSingleTable);
+									let nMaxCellsCount = 0;
+									for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
+										let oRow = oTable.Content[nRow];
+										if (nMaxCellsCount < oRow.Content.length)
+											nMaxCellsCount = oRow.Content.length;
+									}
+									for (let nRow = 0; nRow < oTable.Content.length; nRow++) {
+										let oRow = oTable.Content[nRow];
+										let aCells = oRow.Content;
+										let nCellsCount = 0;
+										for (let nCell = 0; nCell < aCells.length; nCell++) {
+											nCellsCount += aCells[nCell].GetGridSpan();
+										}
+										if (nCellsCount < nMaxCellsCount) {
+											for (let nCell = nCellsCount; nCell < nMaxCellsCount; nCell++) {
+												oRow.Add_Cell(oRow.Get_CellsCount(), oRow, null, true);
+											}
+										}
+									}
+									bInsert = true;
+									nNeedFocusType = FOCUS_OBJECT_MAIN;
 								}
 							}
 						}
-						if (bInsertShape) {
-							if (oSp.bDeleted) {
-								if (oSp.setBDeleted2) {
-									oSp.setBDeleted2(false);
-								} else if (oSp.setBDeleted) {
-									oSp.setBDeleted(false);
-								}
-							}
-							oSp.setParent2(this.Slides[this.CurPage]);
-							if (oSp.getObjectType() === AscDFH.historyitem_type_GraphicFrame) {
-								this.Check_GraphicFrameRowHeight(oSp);
-							}
-							if(dShift > 0) {
-								let oXfrm = oSp.getXfrm();
-								if(oXfrm) {
-									oXfrm.shift(dShift, dShift);
-								}
-							}
-							oSp.addToDrawingObjects();
-							oSp.checkExtentsByDocContent && oSp.checkExtentsByDocContent();
+					}
+					if(!bInsert) {
+						oController.resetSelection();
+						let aPasteDrawings = [];
+						for (i = 0; i < Content.Drawings.length; ++i) {
+							aPasteDrawings.push(Content.Drawings[i].Drawing);
+						}
+						let dShift = oController.getDrawingsPasteShift(aPasteDrawings);
+						for (i = 0; i < Content.Drawings.length; ++i) {
+							let bInsertShape = true;
+							let oCopyObject = Content.Drawings[i];
+							let oSp = oCopyObject.Drawing;
+							let oSlidePh, oLayoutPlaceholder;
+
+							let nType, nIdx;
 							if (oSp.isPlaceholder()) {
-								if (oSlidePh || !oLayoutPlaceholder) {
-									let oNvProps = oSp.getNvProps();
-									if (oNvProps && oNvProps.ph) {
-										if (oSp.txBody) {
-											let oLstStyles = new AscFormat.TextListStyle(), oLstStylesTmp, oParentObjects;
-											oParentObjects = oSp.getParentObjects();
-											if (oParentObjects && oParentObjects.master && oParentObjects.master.txStyles) {
-
-												oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
-												if (oLstStylesTmp) {
-													oLstStyles.merge(oLstStylesTmp);
-												}
-											}
-
-											let aHierarhy = oSp.getHierarchy();
-											let oBodyPr = new AscFormat.CBodyPr();
-											for (let s = aHierarhy.length - 1; s > -1; --s) {
-												if (aHierarhy[s]) {
-													if (aHierarhy[s].txBody) {
-														oLstStyles.merge(aHierarhy[s].txBody.lstStyle);
-														oBodyPr.merge(aHierarhy[s].txBody.bodyPr);
-													}
-												}
-											}
-											oLstStyles.merge(oSp.txBody.lstStyle);
-											oBodyPr.merge(oSp.txBody.bodyPr);
-											oSp.txBody.setLstStyle(oLstStyles);
-											oSp.txBody.setBodyPr(oBodyPr);
+								let oInfo = {};
+								nType = oSp.getPlaceholderType();
+								nIdx = oSp.getPlaceholderIndex();
+								oSlidePh = oCurSlide.getMatchingShape(nType, nIdx, false, oInfo);
+								oLayoutPlaceholder = oCurSlide.Layout.getMatchingShape(nType, nIdx, false, oInfo);
+								if (oSp.isEmptyPlaceholder()) {
+									if (!oLayoutPlaceholder || oInfo.bBadMatch) {
+										bInsertShape = false;
+									} else {
+										if (oSlidePh) {
+											bInsertShape = false;
 										}
-										oNvProps.setPh(null);
 									}
 								}
 							}
-							oController.selectObject(oSp, 0);
+							if (bInsertShape) {
+								if (oSp.bDeleted) {
+									if (oSp.setBDeleted2) {
+										oSp.setBDeleted2(false);
+									} else if (oSp.setBDeleted) {
+										oSp.setBDeleted(false);
+									}
+								}
+								oSp.setParent2(this.Slides[this.CurPage]);
+								if (oSp.getObjectType() === AscDFH.historyitem_type_GraphicFrame) {
+									this.Check_GraphicFrameRowHeight(oSp);
+								}
+								if(dShift > 0) {
+									let oXfrm = oSp.getXfrm();
+									if(oXfrm) {
+										oXfrm.shift(dShift, dShift);
+									}
+								}
+								oSp.addToDrawingObjects();
+								oSp.checkExtentsByDocContent && oSp.checkExtentsByDocContent();
+								if (oSp.isPlaceholder()) {
+									if (oSlidePh || !oLayoutPlaceholder) {
+										let oNvProps = oSp.getNvProps();
+										if (oNvProps && oNvProps.ph) {
+											if (oSp.txBody) {
+												let oLstStyles = new AscFormat.TextListStyle(), oLstStylesTmp, oParentObjects;
+												oParentObjects = oSp.getParentObjects();
+												if (oParentObjects && oParentObjects.master && oParentObjects.master.txStyles) {
+
+													oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
+													if (oLstStylesTmp) {
+														oLstStyles.merge(oLstStylesTmp);
+													}
+												}
+
+												let aHierarhy = oSp.getHierarchy();
+												let oBodyPr = new AscFormat.CBodyPr();
+												for (let s = aHierarhy.length - 1; s > -1; --s) {
+													if (aHierarhy[s]) {
+														if (aHierarhy[s].txBody) {
+															oLstStyles.merge(aHierarhy[s].txBody.lstStyle);
+															oBodyPr.merge(aHierarhy[s].txBody.bodyPr);
+														}
+													}
+												}
+												oLstStyles.merge(oSp.txBody.lstStyle);
+												oBodyPr.merge(oSp.txBody.bodyPr);
+												oSp.txBody.setLstStyle(oLstStyles);
+												oSp.txBody.setBodyPr(oBodyPr);
+											}
+											oNvProps.setPh(null);
+										}
+									}
+								}
+								oController.selectObject(oSp, 0);
+								bInsert = true;
+								nNeedFocusType = FOCUS_OBJECT_MAIN;
+							}
+						}
+						if (Content.DocContent && Content.DocContent.Elements.length > 0) {
+							let shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
+							oController.selectObject(shape, 0);
 							bInsert = true;
 							nNeedFocusType = FOCUS_OBJECT_MAIN;
 						}
 					}
-					if (Content.DocContent && Content.DocContent.Elements.length > 0) {
-						let shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
-						oController.selectObject(shape, 0);
-						bInsert = true;
-						nNeedFocusType = FOCUS_OBJECT_MAIN;
-					}
 				}
-            }
-        } else if (Content.DocContent) {
-            Content.DocContent.EndCollect(this);
-            if (Content.DocContent.Elements.length > 0) {
-                let oController = this.GetCurrentController();
-                let target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;
-                if (target_doc_content) {
-                    if (target_doc_content.Selection.Use) {
-                        oController.removeCallback(1, undefined, undefined, undefined, undefined, undefined);
-                    }
-                    paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
-                    if (null != paragraph && paragraph.IsParagraph()) {
-                        NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
-                        paragraph.Check_NearestPos(NearPos);
-						Content.DocContent.Insert(NearPos);
-                    }
-                    let oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
-                    oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
-                } else {
-                    this.FocusOnNotes = false;
-                    let shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
-                    oController.resetSelection();
-                    oController.selectObject(shape, 0);
-                    this.CheckEmptyPlaceholderNotes();
-                }
-                bInsert = true;
-                nNeedFocusType = FOCUS_OBJECT_MAIN;
-            }
-        }
+			} else if (Content.DocContent) {
+				Content.DocContent.EndCollect(this);
+				if (Content.DocContent.Elements.length > 0) {
+					let oController = this.GetCurrentController();
+					let target_doc_content = oController.getTargetDocContent(true), paragraph, NearPos;
+					if (target_doc_content) {
+						if (target_doc_content.Selection.Use) {
+							oController.removeCallback(1, undefined, undefined, undefined, undefined, undefined);
+						}
+						paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
+						if (null != paragraph && paragraph.IsParagraph()) {
+							NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
+							paragraph.Check_NearestPos(NearPos);
+							Content.DocContent.Insert(NearPos);
+						}
+						let oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
+						oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
+					} else {
+						this.FocusOnNotes = false;
+						let shape = this.CreateAndAddShapeFromSelectedContent(Content.DocContent);
+						oController.resetSelection();
+						oController.selectObject(shape, 0);
+						this.CheckEmptyPlaceholderNotes();
+					}
+					bInsert = true;
+					nNeedFocusType = FOCUS_OBJECT_MAIN;
+				}
+			}
+		}
     }
     if(bInsert && oThumbnails) {
         if(oThumbnails.FocusObjType !== nNeedFocusType) {
@@ -10128,87 +10143,88 @@ CPresentation.prototype.RemoveBeforePaste = function () {
 
 CPresentation.prototype.addNextSlide = function (layoutIndex) {
     History.Create_NewPoint(AscDFH.historydescription_Presentation_AddNextSlide);
-    var new_slide, layout, i, _ph_type, sp, hf, bIsSpecialPh, aLayouts, bRemoveOnTitle;
-    if (this.Slides[this.CurPage]) {
-        var cur_slide = this.Slides[this.CurPage];
-        aLayouts = cur_slide.Layout.Master.sldLayoutLst;
-        if(AscFormat.isRealNumber(layoutIndex) && aLayouts[layoutIndex]) {
-            layout = aLayouts[layoutIndex];
-        }
-        else {
-            if(cur_slide.Layout === aLayouts[0] && aLayouts[1]) {
-                layout = aLayouts[1];
-            }
-            else {
-                layout = cur_slide.Layout;
-            }
-        }
-        hf = layout.hf || layout.Master.hf;
-        new_slide = new Slide(this, layout, this.CurPage + 1);
-        new_slide.setNotes(AscCommonSlide.CreateNotes());
-        new_slide.notes.setNotesMaster(this.notesMasters[0]);
-        new_slide.notes.setSlide(new_slide);
-        bRemoveOnTitle = layout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
-        for (i = 0; i < layout.cSld.spTree.length; ++i) {
-            if (layout.cSld.spTree[i].isPlaceholder()) {
-                _ph_type = layout.cSld.spTree[i].getPhType();
-                bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
-                if (!bIsSpecialPh || hf && !bRemoveOnTitle && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
-                    (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
-                    (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
-                    (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
-                    sp = layout.cSld.spTree[i].copy(undefined);
-                    sp.setParent(new_slide);
-                    !bIsSpecialPh && sp.clearContent && sp.clearContent();
-                    new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
-                }
-            }
-        }
-        new_slide.setSlideNum(this.CurPage + 1);
-        new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
-        this.insertSlide(this.CurPage + 1, new_slide);
-
-        for (i = this.CurPage + 2; i < this.Slides.length; ++i) {
-            this.Slides[i].setSlideNum(i);
-        }
-        this.Recalculate();
-    } else {
-
-        var master = this.slideMasters[0];
-        if (this.lastMaster) {
-            master = this.lastMaster;
-        }
-        layout = AscFormat.isRealNumber(layoutIndex) ? (master.sldLayoutLst[layoutIndex] ? master.sldLayoutLst[layoutIndex] : master.sldLayoutLst[0]) : master.sldLayoutLst[0];
-        hf = layout.Master.hf;
-
-        new_slide = new Slide(this, layout, this.CurPage + 1);
-        new_slide.setNotes(AscCommonSlide.CreateNotes());
-        new_slide.notes.setNotesMaster(this.notesMasters[0]);
-        new_slide.notes.setSlide(new_slide);
-        for (i = 0; i < layout.cSld.spTree.length; ++i) {
-            if (layout.cSld.spTree[i].isPlaceholder()) {
-                _ph_type = layout.cSld.spTree[i].getPhType();
-                bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
-                if (!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
-                    (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
-                    (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
-                    (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
-                    sp = layout.cSld.spTree[i].copy(undefined);
-                    sp.setParent(new_slide);
-                    !bIsSpecialPh && sp.clearContent && sp.clearContent();
-                    new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
-                }
-            }
-        }
-        new_slide.setSlideNum(this.CurPage + 1);
-        new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
-        this.insertSlide(this.CurPage + 1, new_slide);
-        this.Recalculate();
-    }
+    this.addNextSlideAction(layoutIndex);
+	this.Recalculate();
     this.DrawingDocument.m_oWordControl.GoToPage(this.CurPage + 1);
     this.Document_UpdateInterfaceState();
 };
+CPresentation.prototype.addNextSlideAction = function(layoutIndex) {
+	var new_slide, layout, i, _ph_type, sp, hf, bIsSpecialPh, aLayouts, bRemoveOnTitle;
+	if (this.Slides[this.CurPage]) {
+		var cur_slide = this.Slides[this.CurPage];
+		aLayouts = cur_slide.Layout.Master.sldLayoutLst;
+		if(AscFormat.isRealNumber(layoutIndex) && aLayouts[layoutIndex]) {
+			layout = aLayouts[layoutIndex];
+		}
+		else {
+			if(cur_slide.Layout === aLayouts[0] && aLayouts[1]) {
+				layout = aLayouts[1];
+			}
+			else {
+				layout = cur_slide.Layout;
+			}
+		}
+		hf = layout.hf || layout.Master.hf;
+		new_slide = new Slide(this, layout, this.CurPage + 1);
+		new_slide.setNotes(AscCommonSlide.CreateNotes());
+		new_slide.notes.setNotesMaster(this.notesMasters[0]);
+		new_slide.notes.setSlide(new_slide);
+		bRemoveOnTitle = layout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
+		for (i = 0; i < layout.cSld.spTree.length; ++i) {
+			if (layout.cSld.spTree[i].isPlaceholder()) {
+				_ph_type = layout.cSld.spTree[i].getPhType();
+				bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
+				if (!bIsSpecialPh || hf && !bRemoveOnTitle && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
+					(_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
+					(_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
+					(_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
+					sp = layout.cSld.spTree[i].copy(undefined);
+					sp.setParent(new_slide);
+					!bIsSpecialPh && sp.clearContent && sp.clearContent();
+					new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
+				}
+			}
+		}
+		new_slide.setSlideNum(this.CurPage + 1);
+		new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
+		this.insertSlide(this.CurPage + 1, new_slide);
 
+		for (i = this.CurPage + 2; i < this.Slides.length; ++i) {
+			this.Slides[i].setSlideNum(i);
+		}
+	} else {
+
+		var master = this.slideMasters[0];
+		if (this.lastMaster) {
+			master = this.lastMaster;
+		}
+		layout = AscFormat.isRealNumber(layoutIndex) ? (master.sldLayoutLst[layoutIndex] ? master.sldLayoutLst[layoutIndex] : master.sldLayoutLst[0]) : master.sldLayoutLst[0];
+		hf = layout.Master.hf;
+
+		new_slide = new Slide(this, layout, this.CurPage + 1);
+		new_slide.setNotes(AscCommonSlide.CreateNotes());
+		new_slide.notes.setNotesMaster(this.notesMasters[0]);
+		new_slide.notes.setSlide(new_slide);
+		for (i = 0; i < layout.cSld.spTree.length; ++i) {
+			if (layout.cSld.spTree[i].isPlaceholder()) {
+				_ph_type = layout.cSld.spTree[i].getPhType();
+				bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
+				if (!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
+					(_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
+					(_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
+					(_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
+					sp = layout.cSld.spTree[i].copy(undefined);
+					sp.setParent(new_slide);
+					!bIsSpecialPh && sp.clearContent && sp.clearContent();
+					new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
+				}
+			}
+		}
+		new_slide.setSlideNum(this.CurPage + 1);
+		new_slide.setSlideSize(this.GetWidthMM(), this.GetHeightMM());
+		this.insertSlide(this.CurPage + 1, new_slide);
+	}
+};
 
 CPresentation.prototype.DublicateSlide = function () {
     if (editor.WordControl.Thumbnails) {

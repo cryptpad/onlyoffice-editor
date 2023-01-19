@@ -9049,7 +9049,14 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_ConvertMathView = function(isToLinear, isAll)
 	{
-		this.private_GetLogicDocument().ConvertMathView(isToLinear, isAll);
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return;
+		
+		if (isAll)
+			logicDocument.ConvertAllMathView(isToLinear);
+		else
+			logicDocument.ConvertMathView(isToLinear);
 	};
 	asc_docs_api.prototype.asc_AddPageCount = function()
 	{
@@ -13035,8 +13042,8 @@ background-repeat: no-repeat;\
 		let curDocProtection = oDocument.Settings && oDocument.Settings.DocumentProtection;
 		if (curDocProtection) {
 			//пытаемся выставить такие же настройки
-			let curIsProtect = curDocProtection.edit != null && curDocProtection.edit !== Asc.c_oAscEDocProtect.None;
-			let isPropsProtect = props.edit != null && props.edit !== Asc.c_oAscEDocProtect.None;
+			let curIsProtect = curDocProtection.edit != null && curDocProtection.edit !== Asc.c_oAscEDocProtect.None && curDocProtection.enforcement !== false;
+			let isPropsProtect = props.edit != null && props.edit !== Asc.c_oAscEDocProtect.None && props.enforcement !== false;
 			if (curIsProtect === isPropsProtect) {
 				return;
 			}

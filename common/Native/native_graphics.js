@@ -35,6 +35,8 @@ function CNativeGraphics()
 {
     this.Native = CreateNativeGraphics();
 
+    this.isNativeGraphics = true;
+
     this.width        = 0;
     this.height       = 0;
     this.m_dWidthMM   = 0;
@@ -733,5 +735,10 @@ CNativeGraphics.prototype =
     GetPen : function()
     {
         return { Color : this.Native["GetPenColor"]()};
+    },
+
+    Destroy : function()
+    {
+        this.Native["Destroy"]();
     }
 };

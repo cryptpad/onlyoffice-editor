@@ -594,6 +594,19 @@ Paragraph.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+Paragraph.prototype.GetAllParaMaths = function(arrParaMaths)
+{
+	if (!arrParaMaths)
+		arrParaMaths = [];
+
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (para_Math === this.Content[nCurPos].Type)
+			arrParaMaths.push(this.Content[nCurPos]);
+	}
+
+	return arrParaMaths;
+};
 
 Paragraph.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 {
@@ -18228,6 +18241,17 @@ Paragraph.prototype.IsEmptyBetweenClasses = function(class1, class2)
 	this.LoadSelectionState(state);
 	return result;
 };
+Paragraph.prototype.SelectFotMath = function()
+{
+	this.Selection.Use      = true;
+	this.Selection.Start    = false;
+	this.Selection.StartManually = false;
+	this.Selection.EndManually   = false;
+	this.Selection.StartPos      = this.CurPos.ContentPos;
+	this.Selection.EndPos        = this.CurPos.ContentPos;
+
+	this.Document_SetThisElementCurrent(false);
+}
 
 Paragraph.prototype.asc_getText = function()
 {

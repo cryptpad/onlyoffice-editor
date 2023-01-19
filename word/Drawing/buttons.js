@@ -1101,6 +1101,9 @@
 	{
 		if (this.IsNoButtons)
 			return true;
+		
+		if (this.base && !this.base.CheckOFormUserMaster())
+			return true;
 
 		switch (this.type)
 		{
@@ -3022,7 +3025,7 @@
 			case Asc.c_oAscContentControlSpecificType.DropDownList:
 			case Asc.c_oAscContentControlSpecificType.DateTime:
 			{
-				this.isCombobox = true;
+				this.isCombobox = !(object && object.IsNoUseButtons());
 				break;
 			}
 			case Asc.c_oAscContentControlSpecificType.Picture:

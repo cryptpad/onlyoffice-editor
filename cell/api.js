@@ -574,9 +574,9 @@ var editor;
 		}
 	};
 
-	spreadsheet_api.prototype._getFileFromUrl = function (url, fileType, callback) {
+	spreadsheet_api.prototype._getFileFromUrl = function (url, fileType, token, outputFormat, callback) {
 		if (this.canEdit()) {
-			var document = {url: url, format: "XLSX"};
+			var document = {url: url, format: fileType, token: token};
 			this.insertDocumentUrlsData = {
 				imageMap: null, documents: [document], convertCallback: function (_api, url) {
 					_api.insertDocumentUrlsData.imageMap = url;
@@ -593,7 +593,7 @@ var editor;
 				}
 			};
 
-			var _options = new Asc.asc_CDownloadOptions(fileType);
+			var _options = new Asc.asc_CDownloadOptions(outputFormat);
 			_options.isNaturalDownload = true;
 			_options.isGetTextFromUrl = true;
 			this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, _options);
@@ -655,7 +655,7 @@ var editor;
 
 		if (window["AscDesktopEditor"]) {
 			// TODO: add translations
-			window["AscDesktopEditor"]["OpenFilenameDialog"]("xml", false, function (_file) {
+			window["AscDesktopEditor"]["OpenFilenameDialog"]("(*xml)", false, function (_file) {
 				let file = _file;
 				if (Array.isArray(file))
 					file = file[0];
@@ -2303,7 +2303,13 @@ var editor;
 		AscFormat.ExecuteNoHistory(function() {
 			var xmlParserContext = new AscCommon.XmlParserContext();
 			xmlParserContext.DrawingDocument = this.wbModel.DrawingDocument;
-			var initOpenManager = xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
+			xmlParserContext.InitOpenManager = AscCommonExcel.InitOpenManager ? new AscCommonExcel.InitOpenManager(null, wb) : null;
+			if (!xmlParserContext.InitOpenManager) {
+				xmlParserContext.InitOpenManager = {};
+			}
+			xmlParserContext.InitOpenManager.aCellXfs = [];
+			xmlParserContext.InitOpenManager.Dxfs = [];
+			
 			var wbPart = null;
 			var wbXml = null;
 			if (!window.nativeZlibEngine || !window.nativeZlibEngine.open(data)) {
@@ -8187,18 +8193,18 @@ var editor;
 	{
 		let wb = this.wb;
 		if (!wb)
-			return;
+			return false;
 
-		wb.EnterText(codePoints);
+		return wb.EnterText(codePoints);
 	};
 
 	spreadsheet_api.prototype.asc_correctEnterText = function(oldValue, newValue)
 	{
 		let wb = this.wb;
 		if (!wb)
-			return;
+			return false;
 
-		wb.CorrectEnterText(oldValue, newValue);
+		return wb.CorrectEnterText(oldValue, newValue);
 	};
 
 	spreadsheet_api.prototype.asc_getExternalReferences = function() {

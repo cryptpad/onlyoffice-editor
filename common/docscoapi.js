@@ -1770,10 +1770,9 @@
   CNativeSocket.prototype.randomizationFactor  = function(val) { this.settings["randomizationFactor"] = val; };
 
 	DocsCoApi.prototype._initSocksJs = function () {
-		var t = this;
-        let socket;
-		if (window['IS_NATIVE_EDITOR']) {
-			socket = this.sockjs = new CNativeSocket({
+      var t = this;
+      let socket;
+      let options = {
         "path": this.socketio_url,
         "transports": ["websocket", "polling"],
         "closeOnBeforeunload": false,
@@ -1784,43 +1783,39 @@
         "auth": {
           "token": this.jwtOpen
         }
-      });
-			socket.open();
-		} else {
-      let io = AscCommon.getSocketIO();
-      socket = io({
-        "path": this.socketio_url,
-        "transports": ["websocket", "polling"],
-        "closeOnBeforeunload": false,
-        "reconnectionAttempts": 15,
-        "reconnectionDelay": 500,
-        "reconnectionDelayMax": 10000,
-        "randomizationFactor": 0.5,
-        "auth": {
-          "token": this.jwtOpen
-        }
-      });
-      socket.on("connect", function () {
-        t._onServerOpen();
-      });
-      socket.on("message", function (data) {
-        t._onServerMessage(data);
-      });
-      socket.on("error", function (data) {
-        console.error("socket.error:" + JSON.stringify(data));
-      });
-      socket.on("disconnect", function (reason) {
-        t._onServerClose(false, reason);
-      });
-      socket.io.on("reconnect_failed", () => {
-        t._onServerClose(true);
-      });
-      socket.io.engine.on('close', (event) => {
-        if (event === "forced close") {
-          t._onServerClose(true);
-        }
-      });
-    }
+      };
+      if (window['IS_NATIVE_EDITOR']) {
+        socket = this.sockjs = new CNativeSocket(options);
+        socket.open();
+      } else {
+        let io = AscCommon.getSocketIO();
+        socket = io(options);
+        socket.on("connect", function () {
+          t._onServerOpen();
+        });
+        socket.on("disconnect", function (reason) {
+          let code;
+          if ('io server disconnect' === reason || 'io client disconnect' === reason) {
+            //(explicit disconnection), the client will not try to reconnect and you need to manually call
+            code = c_oCloseCode.restore;
+          }
+          t._onServerClose(reason, code);
+        });
+        socket.on('connect_error', function (err) {
+          //cases: every connect error and reconnect
+          if (err.data) {
+            //cases: authorization
+            t._onServerClose(err.data.description, err.data.code);
+          }
+        });
+        socket.io.on("reconnect_failed", function () {
+          //cases: connection restore, wrong socketio_url
+          t._onServerClose("reconnect_failed", c_oCloseCode.restore);
+        });
+        socket.on("message", function (data) {
+          t._onServerMessage(data);
+        });
+      }
     this.socketio = socket;
 
 		return socket;
@@ -1908,9 +1903,7 @@
 				break;
 		}
 	};
-	DocsCoApi.prototype._onServerClose = function (reconnect_failed, reason, evt) {
-      var bIsDisconnectAtAll = reconnect_failed || 'io server disconnect' === reason || 'io client disconnect' === reason;
-      evt = {};
+	DocsCoApi.prototype._onServerClose = function (reason, code) {
 		if (ConnectionState.SaveChanges === this._state) {
 			// Мы сохраняли изменения и разорвалось соединение
 			this._isReSaveAfterAuth = true;
@@ -1920,18 +1913,14 @@
 				this.saveCallbackErrorTimeOutId = null;
 			}
 		}
-		this._state = ConnectionState.Reconnect;
-		var code = null;
-		if (bIsDisconnectAtAll) {
+		if (code) {
 			this._state = ConnectionState.ClosedAll;
-			code = evt.code;
+		} else {
+			this._state = ConnectionState.Reconnect;
 		}
 		if (this.onDisconnect) {
 			this.onDisconnect(reason, code);
 		}
-	};
-	DocsCoApi.prototype._reconnect = function () {
-		this._initSocksJs();
 	};
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommon'] = window['AscCommon'] || {};

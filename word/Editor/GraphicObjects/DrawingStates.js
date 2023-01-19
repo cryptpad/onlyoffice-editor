@@ -1489,7 +1489,7 @@ MoveInGroupState.prototype =
             else
             {
                 this.group.parent.CheckWH();
-                this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, parent_paragraph, this.startPageIndex, false);
+                this.group.parent.Set_XY(this.group.posX + posX, this.group.posY + posY, parent_paragraph, this.getStartPageNumber(), false);
             }
             this.drawingObjects.document.Recalculate();
 			this.drawingObjects.document.FinalizeAction();
@@ -1499,6 +1499,13 @@ MoveInGroupState.prototype =
         this.drawingObjects.updateOverlay();
     }
 };
+	MoveInGroupState.prototype.getStartPageNumber = function()
+	{
+		if(this.group && this.group.parent)
+			return this.group.parent.pageIndex;
+		
+		return this.startPageIndex;
+	};
 
 
 function PreRotateInGroupState(drawingObjects, group, majorObject)
@@ -1611,6 +1618,13 @@ ResizeInGroupState.prototype =
     onMouseMove: ResizeState.prototype.onMouseMove,
     onMouseUp: MoveInGroupState.prototype.onMouseUp
 };
+	ResizeInGroupState.prototype.getStartPageNumber = function()
+	{
+		if (this.group && this.group.parent)
+			return this.group.parent.pageIndex;
+		
+		return 0;
+	};
 
 function PreChangeAdjInGroupState(drawingObjects, group)
 {

@@ -1507,6 +1507,7 @@
 		this.ctHyperlink = 160;
 		this.ctLink      = 161;
 		this.ctFormField = 162;
+		this.ctDocInfo   = 163;
 
 		this.ctPageWidth  = 200;
 		this.ctPageHeight = 201;
@@ -3467,6 +3468,18 @@
 		{
 			if (0 !== this.m_lPagesCount)
 				this.m_arrayPages[this.m_lPagesCount - 1].AddFormField(nX, nY, nW, nH, nBaseLineOffset, oForm);
+		},
+
+		DocInfo : function(props)
+		{
+			if (props)
+			{
+				this.Memory.WriteByte(CommandType.ctDocInfo);
+				this.Memory.WriteString(props.asc_getTitle());
+				this.Memory.WriteString(props.asc_getCreator());
+				this.Memory.WriteString(props.asc_getSubject());
+				this.Memory.WriteString(props.asc_getKeywords());
+			}
 		}
 	};
 

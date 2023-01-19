@@ -119,9 +119,10 @@
 			for (let innerIndex = 0, innerCount = mathBounds[index].length; innerIndex < innerCount; ++innerIndex)
 			{
 				let bounds = mathBounds[index][innerIndex];
+
 				if (bounds.W < 0.001 || bounds.H < 0.001)
 					continue;
-
+				
 				if (!firstBounds)
 					firstBounds = bounds;
 
@@ -132,7 +133,29 @@
 				}
 			}
 		}
+		
+		if (!firstBounds)
+		{
+			if (!math.IsEmpty() && mathBounds.length > 0 && mathBounds[0].length > 0)
+			{
+				let logicDocument = paragraph.GetLogicDocument();
+				let shift         = logicDocument ? logicDocument.GetDrawingDocument().GetMMPerDot(5) : 0.1;
 
+				let tmpBounds = mathBounds[0][0];
+				firstBounds = {
+					Page : tmpBounds.Page,
+					X    : tmpBounds.X,
+					Y    : tmpBounds.Y,
+					W    : Math.max(tmpBounds.W, shift),
+					H    : Math.max(tmpBounds.H, shift)
+				};
+			}
+			else
+			{
+				return null;
+			}
+		}
+		
 		let pageNum = firstBounds.Page;
 		let x0 = firstBounds.X;
 		let y0 = firstBounds.Y;

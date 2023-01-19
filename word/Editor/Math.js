@@ -896,7 +896,6 @@ CMathPageInfo.prototype.Update_CurrentPage = function(Page, ParaLine)
 };
 CMathPageInfo.prototype.Update_CurrentWrap = function(DispDef, bInline)
 {
-    if(this.WPages[this.CurPage].NeedUpdateWrap == true)
     {
         var WrapState;
 
@@ -1430,6 +1429,10 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
 
                     // Значит мы в каком-то элементе, тогда надо выделить данный элемент
                     oContent.ParentElement.Select_WholeElement();
+
+                    // выставляем выделение для родительского элемента
+                    // TODO нужно понять почему mathContent.Select_WholeElement() не выделяет родительский элемент
+                    this.Parent.SelectFotMath();
 
                     return true;
                 }
@@ -2911,6 +2914,8 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
         {
             _ret.ImageUrl = "";
         }
+        if (_canvas.isNativeGraphics === true)
+            _canvas.Destroy();
         return _ret;
     }
     return null;
@@ -3480,7 +3485,6 @@ ParaMath.prototype.Make_AutoCorrect = function()
 
 /**
  * Получаем рект формулы
- * @constructor
  */
 ParaMath.prototype.Get_Bounds = function()
 {
@@ -3664,6 +3668,10 @@ ParaMath.prototype.ConvertFromLaTeX = function()
 {
 	var strLaTeX = this.GetText(true);
 	this.Root.Remove_Content(0, this.Root.Content.length);
+    this.Root.Add_Text(strLaTeX);
+    this.Root.CorrectAllMathWords(true);
+    strLaTeX = this.GetText(true);
+    this.Root.Remove_Content(0, this.Root.Content.length);
     this.Root.Correct_Content(true);
     AscMath.ConvertLaTeXToTokensList(strLaTeX, this.Root);
 	this.Root.Correct_Content(true);
@@ -3673,10 +3681,11 @@ ParaMath.prototype.ConvertToLaTeX = function()
 	var strLatex = this.GetText(true);
 	this.Root.Remove_Content(0,this.Root.Content.length);
 	this.Root.Add_Text(strLatex, this.Paragraph);
+    this.Root.CurPos = this.Root.Content.length - 1;
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
-    this.Root.CorrectAllMathWords();
+    this.Root.CorrectAllMathWords(false);
 	var strUnicode = this.GetText();
 	this.Root.Remove_Content(0,this.Root.Content.length);
     this.Root.Correct_Content(true);
@@ -3717,11 +3726,12 @@ ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 		}
 	}
 };
-ParaMath.prototype.SplitSelectedContent = function() {
+ParaMath.prototype.SplitSelectedContent = function()
+{
     var oSelection = this.GetSelectContent();
     var oContent = oSelection.Content;
     oContent.SplitSelectedContent();
-}
+};
 ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
 {
     this.SplitSelectedContent();
@@ -3735,23 +3745,11 @@ ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
         isToLinear
     );
 };
-ParaMath.prototype.SplitSelectedContent = function() {
+ParaMath.prototype.SplitSelectedContent = function()
+{
     var oSelection = this.GetSelectContent();
     var oContent = oSelection.Content;
     oContent.SplitSelectedContent();
-}
-ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
-{
-    this.SplitSelectedContent();
-
-    var oSelection = this.GetSelectContent();
-
-    oSelection.Content.ConvertContentView(
-        oSelection.Start,
-        oSelection.End,
-        nInputType,
-        isToLinear
-    );
 };
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
 {

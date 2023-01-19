@@ -1879,6 +1879,7 @@ CDocumentContent.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+
 /**
  * Специальный пресет с номером страницы для колонтитула
  * @param nAlignType

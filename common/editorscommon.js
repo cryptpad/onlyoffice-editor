@@ -2133,7 +2133,7 @@
 				'x-url': url
 			},
 			success: function(resp) {
-				fSuccess(resp.response);
+				fSuccess(AscCommon.initStreamFromResponse(resp));
 			},
 			error: fError
 		});
@@ -9320,7 +9320,7 @@
 		else if (s2 > s2)
 			return 1;
 		
-		return 0;
+		return s1 === s2 ? 0 : -1;
 	}
 
 	function IsAbbreviation(sWord)
@@ -11883,9 +11883,25 @@
 			{
 				this.MathSelectPolygons.length = 0;
 			}
-			var arrBounds = oMath.Get_Bounds();
+			var arrBounds = oMath.GetBounds();
 			if (arrBounds.length <= 0)
 				return;
+			
+			if (!oMath.IsEmpty()
+				&& 1 === arrBounds.length
+				&& 1 === arrBounds[0].length
+				&& (arrBounds[0][0].W < 0.001 || arrBounds[0][0].H < 0.001))
+			{
+				let tmpBounds = arrBounds[0][0];
+				arrBounds = [[{
+						Page : tmpBounds.Page,
+						X    : tmpBounds.X,
+						Y    : tmpBounds.Y,
+						W    : Math.max(tmpBounds.W, 0.1),
+						H    : Math.max(tmpBounds.H, 0.1)
+					}]];
+			}
+			
 			var MPolygon = new CPolygon();
 			MPolygon.fill(arrBounds);
 			this.MathPolygons = MPolygon.GetPaths(PixelError);

@@ -6609,14 +6609,24 @@
 
         // ToDo now delete all. Change this code
 		for (var i = Asc.floor(range.r1 / kRowsCacheSize), l = Asc.floor(range.r2 / kRowsCacheSize); i <= l; ++i) {
-			if (s[i]) {
+			//TODO while remove sectors checks. don't clean all need rows
+			// rows added in _fetchRowCache and sectors did'nt init
+			//if (s[i]) {
 				for (var j = i * kRowsCacheSize, k = (i + 1) * kRowsCacheSize; j < k; ++j) {
 					delete rows[j];
 				}
 				delete s[i];
-			}
+			//}
 		}
     };
+
+	WorksheetView.prototype._checkCacheInitSector = function (row) {
+		var s = this.cache.sectors;
+		var sectorNumber = Asc.floor(row / kRowsCacheSize);
+		if (!s[sectorNumber]) {
+			s[sectorNumber] = true;
+		}
+	};
 
 
     // ----- Cell text cache -----
@@ -7021,6 +7031,7 @@
 		cache.indent = indent;
 
         this._fetchCellCacheText(col, row);
+        //this._checkCacheInitSector(row);
 
         if (!angle && !verticalText && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);

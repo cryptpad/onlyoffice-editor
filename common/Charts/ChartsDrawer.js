@@ -10220,13 +10220,19 @@ drawPieChart.prototype = {
 		var oCommand1, calcPath, oCommand0;
 		// циклом находим крайнюю точку
 		for (var i = 0; i < this.paths.series.length; i++) {
-			calcPath = this.paths.series[i][numCache[i].val].insidePath;
-			calcPath = this.cChartSpace.GetPath(calcPath).getCommandByIndex(1);
-			if (calcPath) {
-				oCommand1 = calcPath;
+			calcPath = null;
+			if (this.paths.series[i] && numCache[i] && null != numCache[i].val && this.paths.series[i][numCache[i].val]) {
+				calcPath = this.paths.series[i][numCache[i].val].insidePath;
+				calcPath = null != calcPath && this.cChartSpace.GetPath(calcPath).getCommandByIndex(1);
+				if (calcPath) {
+					oCommand1 = calcPath;
+				}
 			}
 		}
 
+		if (!oCommand1) {
+			return;
+		}
 		if (!AscFormat.isRealNumber(path)) {
 			return;
 		}
@@ -15726,14 +15732,14 @@ CErrBarsDraw.prototype = {
 			switch (errBars.errValType) {
 				case AscFormat.st_errvaltypeCUST: {
 					//TODO numRef ?
-					var numLit = errBars.plus.numLit || (errBars.plus.numRef && errBars.plus.numRef.numCache);
+					var numLit = errBars.plus && (errBars.plus.numLit || (errBars.plus.numRef && errBars.plus.numRef.numCache));
 					if (errBars.plus && numLit) {
 						plusErrVal = numLit.getPtByIndex(numLit.ptCount === 1 ? 0 : val);
 						if (plusErrVal) {
 							plusErrVal = plusErrVal.val;
 						}
 					}
-					numLit = errBars.minus.numLit || (errBars.minus.numRef && errBars.minus.numRef.numCache);
+					numLit = errBars.minus && (errBars.minus.numLit || (errBars.minus.numRef && errBars.minus.numRef.numCache));
 					if (errBars.minus && numLit) {
 						minusErrVal = numLit.getPtByIndex(numLit.ptCount === 1 ? 0 : val);
 						if (minusErrVal) {

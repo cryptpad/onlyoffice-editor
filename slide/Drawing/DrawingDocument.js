@@ -1089,6 +1089,7 @@ function CDrawingDocument()
 		var renderer = this.m_oDocRenderer;
 		renderer.Memory.Seek(0);
 		renderer.VectorMemoryForPrint.ClearNoAttack();
+		renderer.DocInfo(this.m_oWordControl.m_oApi.asc_getCoreProps());
 
 		for (var i = start; i <= end; i++)
 		{
@@ -4842,6 +4843,7 @@ function CThumbnailsManager()
 		}
 
 		this.CalculatePlaces();
+		AscCommon.g_specialPasteHelper.SpecialPasteButton_Update_Position();
 		this.m_bIsUpdate = true;
 	};
 
@@ -4854,6 +4856,7 @@ function CThumbnailsManager()
 		this.m_dScrollY_max = maxY;
 
 		this.CalculatePlaces();
+		AscCommon.g_specialPasteHelper.SpecialPasteButton_Update_Position();
 		this.m_bIsUpdate = true;
 
 		if (!this.m_oWordControl.m_oApi.isMobileVersion)
@@ -5596,6 +5599,17 @@ function CThumbnailsManager()
 					{
 						oPresentation.moveSlidesNextPos();
 					}
+					else if(oEvent.ShiftKey)
+					{
+						this.CorrectShiftSelect(false, false);
+					}
+					else
+					{
+						if (oDrawingDocument.SlideCurrent < oDrawingDocument.SlidesCount - 1)
+						{
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent + 1);
+						}
+					}
 					break;
 				}
 				case 36: // home
@@ -5645,6 +5659,18 @@ function CThumbnailsManager()
 					else if (oEvent.CtrlKey)
 					{
 						oPresentation.moveSlidesPrevPos();
+					}
+
+					else if(oEvent.ShiftKey)
+					{
+						this.CorrectShiftSelect(true, false);
+					}
+					else
+					{
+						if (oDrawingDocument.SlideCurrent > 0)
+						{
+							this.m_oWordControl.GoToPage(oDrawingDocument.SlideCurrent - 1);
+						}
 					}
 					break;
 				}
@@ -5725,7 +5751,8 @@ function CThumbnailsManager()
 			return null;
 		}
 		let nX, nY;
-		if(editor.WordControl.m_oThumbnailsContainer.HtmlElement.style.display === "none")
+		let oThContainer = editor.WordControl.m_oThumbnailsContainer;
+		if(oThContainer.HtmlElement.style.display === "none")
 		{
 			nX = 0;
 		}
@@ -5734,6 +5761,7 @@ function CThumbnailsManager()
 			nX = oRect.X + oRect.W - AscCommon.specialPasteElemWidth;
 		}
 		nY = oRect.Y + oRect.H;
+		nY = Math.max(Math.min(oThContainer.GetCSS_height() - 25, nY), 0);
 		return {X: nX, Y: nY};
 	};
 }
