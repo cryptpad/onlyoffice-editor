@@ -1882,7 +1882,7 @@
 									case "onbeforedrop":
 									case "ondrop":
 									{
-										window.g_asc_plugins.api.privateDropEvent(data.data);
+										window.g_asc_plugins.api["plugin_Method_OnDropEvent"](data.data);
 										return;
 									}
 									default:

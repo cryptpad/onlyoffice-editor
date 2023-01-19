@@ -1516,4 +1516,45 @@
 	{
 	};
 
+	/**
+	 * On drop event. Use this method for external drag&drop emulation.
+	 * @memberof Api
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @param {object} The event object
+	 * @alias OnDropEvent
+	 * @since 7.3.0
+	 */
+	Api.prototype["pluginMethod_OnDropEvent"] = function(obj)
+	{
+		if (!obj || !obj["type"])
+			return;
+
+		var e = {
+			pageX : obj["x"],
+			pageY : obj["y"]
+		};
+
+		switch (obj.type)
+		{
+			case "onbeforedrop":
+			{
+				this.beginInlineDropTarget(e);
+				break;
+			}
+			case "ondrop":
+			{
+				this.endInlineDropTarget(e);
+
+				if (obj["html"])
+					this["pluginMethod_PasteHtml"](obj["html"]);
+				else if (obj["text"])
+					this["pluginMethod_PasteText"](obj["text"]);
+
+				break;
+			}
+			default:
+				break;
+		}
+	};
+
 })(window);
