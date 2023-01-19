@@ -2297,8 +2297,8 @@ CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
 	this.SetPlaceholder(c_oAscDefaultPlaceholderName.DateTime);
 	if (this.IsPlaceHolder())
 		this.private_FillPlaceholderContent();
-
-	this.private_UpdateDatePickerContent();
+	else
+		this.private_UpdateDatePickerContent();
 };
 CInlineLevelSdt.prototype.private_UpdateDatePickerContent = function()
 {
