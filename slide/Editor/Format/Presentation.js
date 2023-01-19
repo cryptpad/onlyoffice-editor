@@ -8027,21 +8027,13 @@ CPresentation.prototype.SplitTableCells = function (Cols, Rows) {
 };
 
 CPresentation.prototype.RemoveTable = function () {
-    if (this.Slides[this.CurPage]) {
-        var by_types = this.Slides[this.CurPage].graphicObjects.getSelectedObjectsByTypes(true);
-        if (by_types.tables.length === 1) {
-            by_types.tables[0].deselect(this.Slides[this.CurPage].graphicObjects);
-            this.Slides[this.CurPage].graphicObjects.resetInternalSelection();
-            if (by_types.tables[0].group) {
-                by_types.tables[0].group.removeFromSpTree(by_types.tables[0].Id);
-            } else {
-                this.Slides[this.CurPage].removeFromSpTreeById(by_types.tables[0].Id);
-            }
-            by_types.tables[0].setBDeleted(true);
-            this.Recalculate();
-            this.Document_UpdateInterfaceState();
-            this.Document_UpdateSelectionState();
-        }
+	let oCurSlide = this.GetCurrentSlide();
+    if (oCurSlide) {
+		let oController = oCurSlide.graphicObjects;
+		oController.deleteSelectedObjectsCallback();
+	    this.Recalculate();
+	    this.Document_UpdateInterfaceState();
+	    this.Document_UpdateSelectionState();
     }
 };
 

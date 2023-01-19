@@ -3693,8 +3693,22 @@ DrawingObjectsController.prototype =
 
     },
 
+		deleteSelectedObjectsCallback: function() {
+			var oSelection  = this.selection.groupSelection ? this.selection.groupSelection.selection : this.selection;
+			if(oSelection.chartSelection)
+			{
+				oSelection.chartSelection.resetSelection(true);
+				oSelection.chartSelection = null;
+			}
+			if(oSelection.textSelection)
+			{
+				oSelection.textSelection = null;
+			}
+			this.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
+		},
     deleteSelectedObjects: function(){
-        if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection)){
+        if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection))
+		{
             return true;
         }
         if(this.checkSelectedObjectsProtection())
@@ -3704,15 +3718,7 @@ DrawingObjectsController.prototype =
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
 
-            var oSelection  = oThis.selection.groupSelection ? oThis.selection.groupSelection.selection : oThis.selection;
-            if(oSelection.chartSelection) {
-                oSelection.chartSelection.resetSelection(true);
-                oSelection.chartSelection = null;
-            }
-            if(oSelection.textSelection) {
-                oSelection.textSelection = null;
-            }
-            oThis.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
+			oThis.deleteSelectedObjectsCallback();
             oThis.updateSelectionState();
         }, [], false, AscDFH.historydescription_Spreadsheet_Remove);
         return true;
@@ -8752,7 +8758,7 @@ DrawingObjectsController.prototype =
                 }
                 case AscDFH.historyitem_type_GraphicFrame:
                 {
-                    if(table_props === undefined)
+                    if(table_props === undefined && drawings.length === 1)
                     {
                         new_table_props = drawing.graphicObject.Get_Props();
                         table_props = new_table_props;
