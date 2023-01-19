@@ -74,7 +74,7 @@
 		AscCommon.ExecuteNoHistory(function()
 		{
 			oSectPr.SetPageSize(nW, nH);
-			oSectPr.SetPageMargins(20, 10, 10, 10);
+			oSectPr.SetPageMargins(5, 5, 5, 5);
 		}, this.LogicDocument);
 	};
 	CDocumentReadView.prototype.IsHeaders = function()
