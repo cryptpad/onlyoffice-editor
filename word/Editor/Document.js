@@ -12307,6 +12307,9 @@ CDocument.prototype.UpdateAfterUndoRedo = function(changes)
 	this.UpdateSelection();
 	this.UpdateInterface();
 	this.UpdateRulers();
+	
+	if (this.OFormDocument)
+		this.OFormDocument.onUndoRedo();
 };
 CDocument.prototype.GetSelectionState = function()
 {
