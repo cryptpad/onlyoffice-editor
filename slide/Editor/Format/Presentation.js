@@ -10353,10 +10353,19 @@ CPresentation.prototype.changeTheme = function (themeInfo, arrInd) {
     }
     var arr_ind, i;
     if (!Array.isArray(arrInd)) {
-        arr_ind = [];
-        for (i = 0; i < this.Slides.length; ++i) {
-            arr_ind.push(i);
-        }
+		let oCurMaster;
+		let oCurSlide = this.GetCurrentSlide();
+	    arr_ind = [];
+		if(oCurSlide) {
+			oCurMaster = oCurSlide.Layout && oCurSlide.Layout.Master;
+			for (i = 0; i < this.Slides.length; ++i) {
+				let oSlide = this.Slides[i];
+				let oMaster = oSlide.Layout && oSlide.Layout.Master;
+				if(oMaster === oCurMaster) {
+					arr_ind.push(i);
+				}
+			}
+		}
     } else {
         arr_ind = arrInd;
     }
