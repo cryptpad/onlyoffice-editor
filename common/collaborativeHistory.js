@@ -430,6 +430,7 @@
 		var bAddSlides          = false;
 		var mapAddedSlides      = {};
 		var mapCommentsToDelete = {};
+		const mapSmartArtShapes = {};
 
 		for (let nIndex = 0, nCount = arrReverseChanges.length; nIndex < nCount; ++nIndex)
 		{
@@ -446,9 +447,15 @@
 			}
 			else if (oClass.IsParagraphContentElement && true === oClass.IsParagraphContentElement() && true === oChange.IsContentChange() && oClass.GetParagraph())
 			{
-				mapParagraphs[oClass.GetParagraph().Get_Id()] = oClass.GetParagraph();
+				const oParagraph = oClass.GetParagraph();
+				mapParagraphs[oParagraph.Get_Id()] = oParagraph;
 				if (oClass instanceof AscCommonWord.ParaRun)
 					mapRuns[oClass.Get_Id()] = oClass;
+				const oSmartArtShape = oParagraph.IsInsideSmartArtShape(true);
+				if (oSmartArtShape)
+				{
+					mapSmartArtShapes[oSmartArtShape.Get_Id()] = oSmartArtShape;
+				}
 			}
 			else if (oClass && oClass.parent && oClass.parent instanceof AscCommonWord.ParaDrawing)
 			{
@@ -461,6 +468,11 @@
 			else if (oClass instanceof AscCommonWord.ParaRun)
 			{
 				mapRuns[oClass.Get_Id()] = oClass;
+				const oSmartArtShape = oClass.IsInsideSmartArtShape(true);
+				if (oSmartArtShape)
+				{
+					mapSmartArtShapes[oSmartArtShape.Get_Id()] = oSmartArtShape;
+				}
 			}
 			else if (oClass instanceof AscCommonWord.CTable)
 			{
@@ -624,7 +636,11 @@
 				}
 			}
 		}
-
+		for (let sId in mapSmartArtShapes)
+		{
+			const oSmartArtShape = mapSmartArtShapes[sId];
+			oSmartArtShape.correctSmartArtUndo();
+		}
 		for (var sId in mapTables)
 		{
 			var oTable = mapTables[sId];

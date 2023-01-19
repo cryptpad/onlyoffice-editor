@@ -788,17 +788,19 @@
             }
         }
     };
-    CDrawingDocContent.prototype.Is_Empty = function()
+    CDrawingDocContent.prototype.Is_Empty = function(bDefault)
     {
-        if (this.isDocumentContentInSmartArtShape()) {
-            var oShape = this.Parent.parent;
-            var contentPoints = oShape.getSmartArtPointContent();
-            if (contentPoints && contentPoints.length !== 0) {
-                var isPhldr = contentPoints.every(function (point) {
-                    return point && point.prSet && point.prSet.phldr;
-                });
-                if (isPhldr) {
-                    return true;
+        if (!bDefault) {
+            if (this.isDocumentContentInSmartArtShape()) {
+                var oShape = this.Parent.parent;
+                var contentPoints = oShape.getSmartArtPointContent();
+                if (contentPoints && contentPoints.length !== 0) {
+                    var isPhldr = contentPoints.every(function (point) {
+                        return point && point.prSet && point.prSet.phldr;
+                    });
+                    if (isPhldr) {
+                        return true;
+                    }
                 }
             }
         }

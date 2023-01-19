@@ -3299,12 +3299,12 @@ CShape.prototype.canAddButtonPlaceholder = function () {
     return (this.parent && (this.parent.getObjectType() === AscDFH.historyitem_type_Slide) ||
       this.isObjectInSmartArt());
 };
-CShape.prototype.isEmptyPlaceholder = function () {
+CShape.prototype.isEmptyPlaceholder = function (bDefaultEmpty) {
     if (this.isObjectInSmartArt()) {
         if (this.isPlaceholderInSmartArt()) {
             if (this.txBody) {
                 if (this.txBody.content) {
-                    return this.txBody.content.Is_Empty();
+                    return this.txBody.content.Is_Empty(bDefaultEmpty);
                 }
                 return true;
             }
@@ -4627,6 +4627,37 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             }
             this.recalculateContentWitCompiledPr();
         }
+    };
+    CShape.prototype.resetSmartArtMaxFontSize = function () {
+        const oSmartArtInfo = this.getSmartArtInfo();
+        if (oSmartArtInfo) {
+            delete oSmartArtInfo.maxFontSize;
+        }
+    };
+    CShape.prototype.correctSmartArtUndo = function () {
+        if (this.isObjectInSmartArt()) {
+            this.group.group.fitFontSize();
+            const oSmartArtInfo = this.getSmartArtInfo();
+            if (oSmartArtInfo) {
+                if (!this.isEmptyPlaceholder(true)) {
+                    if (this.isPlaceholderInSmartArt()) {
+                        const oContent = this.getDocContent && this.getDocContent();
+                        const arrPointContent = this.getSmartArtPointContent();
+                        const bIsNotEmptyShape = oContent.Content.some(function (paragraph) {
+                            return !paragraph.Is_Empty({SkipEnd: true, SkipPlcHldr: false});
+                        });
+                        if (bIsNotEmptyShape) {
+                            arrPointContent.forEach(function (point) {
+                                point.prSet.setPhldr(false);
+                            })
+                            this.txBody.content2 = null;
+                        }
+                    }
+                }
+            }
+            this.setTruthFontSizeInSmartArt();
+        }
+
     };
 
     CShape.prototype.getInsets = function (properties) {

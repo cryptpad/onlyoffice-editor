@@ -1096,6 +1096,20 @@ ParaRun.prototype.IsOnlyCommonTextScript = function()
 	return isCommonScript;
 };
 /**
+ * Is a run inside smartArt
+ * @param [bReturnSmartArtShape] {boolean}
+ * @returns {boolean|null|AscFormat.CShape}
+ */
+ParaRun.prototype.IsInsideSmartArtShape = function (bReturnSmartArtShape)
+{
+	const oParagraph = this.GetParagraph();
+	if (oParagraph)
+	{
+		return oParagraph.IsInsideSmartArtShape(bReturnSmartArtShape);
+	}
+	return bReturnSmartArtShape ? null : false;
+};
+/**
  * Проверяем, предзназначен ли данный ран чисто для математических формул.
  * @returns {boolean}
  */
