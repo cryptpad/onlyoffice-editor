@@ -2133,7 +2133,7 @@
 				'x-url': url
 			},
 			success: function(resp) {
-				fSuccess(resp.response);
+				fSuccess(AscCommon.initStreamFromResponse(resp));
 			},
 			error: fError
 		});

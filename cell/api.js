@@ -574,9 +574,9 @@ var editor;
 		}
 	};
 
-	spreadsheet_api.prototype._getFileFromUrl = function (url, fileType, callback) {
+	spreadsheet_api.prototype._getFileFromUrl = function (url, fileType, token, outputFormat, callback) {
 		if (this.canEdit()) {
-			var document = {url: url, format: "XLSX"};
+			var document = {url: url, format: fileType, token: token};
 			this.insertDocumentUrlsData = {
 				imageMap: null, documents: [document], convertCallback: function (_api, url) {
 					_api.insertDocumentUrlsData.imageMap = url;
@@ -593,7 +593,7 @@ var editor;
 				}
 			};
 
-			var _options = new Asc.asc_CDownloadOptions(fileType);
+			var _options = new Asc.asc_CDownloadOptions(outputFormat);
 			_options.isNaturalDownload = true;
 			_options.isGetTextFromUrl = true;
 			this.downloadAs(Asc.c_oAscAsyncAction.DownloadAs, _options);

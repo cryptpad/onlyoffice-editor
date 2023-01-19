@@ -5104,24 +5104,33 @@
 						sFileUrl = eR.data;
 					}
 
+					var resolveStream = function (stream) {
+						resolve(_resolve(stream, eR.externalReference.Id, oData));
+					};
 					//получаем контент файла
 					var loadFile = function (_fileUrl) {
 						AscCommon.loadFileContent(_fileUrl, function (httpRequest) {
+							var stream;
 							if (httpRequest) {
-								var stream = AscCommon.initStreamFromResponse(httpRequest);
-								resolve(_resolve(stream, eR.externalReference.Id, oData));
+								stream = AscCommon.initStreamFromResponse(httpRequest);
 							} else {
 								//reject - не вызываю, чтобы выполнились все запросы
-								resolve(_resolve(null, eR.externalReference.Id, oData));
+								stream = null;
 							}
+							resolveStream(stream);
 						}, "arraybuffer");
 					};
 
 					//если открыть на клиенте не можем, то запрашиваем бинарник
 					var isXlsx = eR.externalReference && eR.externalReference.isXlsx();
+					let outputFormat = t.Api["asc_isSupportFeature"]("ooxml") ? Asc.c_oAscFileType.XLSX : Asc.c_oAscFileType.XLSY;
+					let fileType = oData["fileType"];
+					let token = oData["token"];
+					let directUrl = oData["directUrl"];
+
 					//если внешняя ссылка, то конвертируем в xlsx
 					if (sFileUrl && (isExternalLink || !isXlsx) || !t.Api["asc_isSupportFeature"]("ooxml")) {
-						window["Asc"]["editor"]._getFileFromUrl(sFileUrl, t.Api["asc_isSupportFeature"]("ooxml") ? Asc.c_oAscFileType.XLSX : Asc.c_oAscFileType.XLSY,
+						t.Api._getFileFromUrl(sFileUrl, fileType, token, outputFormat,
 							function (fileUrlAfterConvert) {
 								if (fileUrlAfterConvert) {
 									successfulLoadFileMap[sFileUrl] = 1;
@@ -5131,8 +5140,10 @@
 								}
 							});
 					} else {
-						if (sFileUrl) {
-							loadFile(sFileUrl);
+						if (directUrl || sFileUrl) {
+							t.Api._downloadOriginalFile(directUrl, sFileUrl, fileType, token, function(stream){
+								resolveStream(stream);
+							});
 						} else {
 							resolve(_resolve(null, eR.externalReference.Id, oData));
 						}
