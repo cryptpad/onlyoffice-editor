@@ -3929,6 +3929,9 @@ function (window, undefined) {
 			case AscCH.historyitem_PivotTable_SetAltTextSummary:
 				pivotTable.setDescription(value);
 				break;
+			case AscCH.historyitem_PivotTable_HideValuesRow:
+				pivotTable.setHideValuesRow(value);
+				break;
 			case AscCH.historyitem_PivotTable_AddPageField:
 				if (bUndo) {
 					pivotTable.removeNoDataField(Data.from);

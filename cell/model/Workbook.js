@@ -8332,7 +8332,13 @@
 		if (pivotTable.showHeaders && colFields) {
 			cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
 			if (pivotTable.compact) {
-				this._updatePivotTableSetCellValue(cells, pivotTable.colHeaderCaption || AscCommon.translateManager.getValue(AscCommonExcel.COL_HEADER_CAPTION));
+				let caption;
+				if (1 === colFields.length && st_VALUES === colFields[0].asc_getIndex()) {
+					caption = pivotTable.dataCaption || AscCommon.translateManager.getValue(AscCommonExcel.DATA_CAPTION)
+				} else {
+					caption = pivotTable.colHeaderCaption || AscCommon.translateManager.getValue(AscCommonExcel.COL_HEADER_CAPTION);
+				}
+				this._updatePivotTableSetCellValue(cells, caption);
 			} else {
 				var offset = new AscCommon.CellBase(0, 1);
 				for (var i = 0; i < colFields.length; ++i) {
