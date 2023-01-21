@@ -636,6 +636,13 @@
 	 */
 	baseEditorsApi.prototype.asc_setRestriction              = function(val, additionalSettings)
 	{
+		if (this.restrictions === val)
+			return;
+		
+		if (Asc.c_oAscRestrictionType.None === val
+			&& (!additionalSettings || !additionalSettings.IsResetNone()))
+			return;
+		
 		this.restrictions = val;
 		this.onUpdateRestrictions(additionalSettings);
 	};
