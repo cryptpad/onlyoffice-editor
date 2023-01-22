@@ -636,7 +636,9 @@
 	 */
 	baseEditorsApi.prototype.asc_setRestriction              = function(val, additionalSettings)
 	{
-		if (this.restrictions === val)
+		// Если выставлен флаг OnlySignatures, то его нельзя перебить никак, кроме как явно снять через
+		// editor.removeRestriction(Asc.c_oAscRestrictionType.OnlySignatures)
+		if (this.restrictions === val || (this.restrictions & Asc.c_oAscRestrictionType.OnlySignatures))
 			return;
 		
 		this.restrictions = val;
