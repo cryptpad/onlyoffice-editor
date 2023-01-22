@@ -12456,7 +12456,7 @@ background-repeat: no-repeat;\
 			}
 			return new Uint8Array(0);
 		} else {
-			var oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(this.WordControl.m_oLogicDocument);
+			var oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(this.WordControl.m_oLogicDocument, undefined, undefined, true, undefined, undefined, undefined);
 			var _memory           = oBinaryFileWriter.memory;
 
 			oBinaryFileWriter.Write(true);
