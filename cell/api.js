@@ -8703,6 +8703,7 @@ var editor;
   prot["asc_getAddPivotTableOptions"] = prot.asc_getAddPivotTableOptions;
   prot["asc_insertPivotNewWorksheet"] = prot.asc_insertPivotNewWorksheet;
   prot["asc_insertPivotExistingWorksheet"] = prot.asc_insertPivotExistingWorksheet;
+  prot["asc_refreshAllPivots"] = prot.asc_refreshAllPivots;
 	// signatures
   prot["asc_addSignatureLine"] 		     = prot.asc_addSignatureLine;
   prot["asc_CallSignatureDblClickEvent"] = prot.asc_CallSignatureDblClickEvent;
