@@ -10201,18 +10201,22 @@ Because of this, the display is sometimes not correct.
     }
 
     SmartArt.prototype.recalculate = function () {
-    var oldParaMarks = editor && editor.ShowParaMarks;
-      if (oldParaMarks) {
-        editor.ShowParaMarks = false;
-      }
-      CGroupShape.prototype.recalculate.call(this);
-      if (this.bFirstRecalculate) {
-        this.bFirstRecalculate = false;
-        this.fitFontSize();
-      }
-      if (oldParaMarks) {
-        editor.ShowParaMarks = oldParaMarks;
-      }
+      if(this.bDeleted)
+        return;
+      AscFormat.ExecuteNoHistory(function () {
+        var oldParaMarks = editor && editor.ShowParaMarks;
+        if (oldParaMarks) {
+          editor.ShowParaMarks = false;
+        }
+        CGroupShape.prototype.recalculate.call(this);
+        if (this.bFirstRecalculate) {
+          this.bFirstRecalculate = false;
+          this.fitFontSize();
+        }
+        if (oldParaMarks) {
+          editor.ShowParaMarks = oldParaMarks;
+        }
+      }, this, []);
     }
 
     SmartArt.prototype.decorateParaDrawing = function (drawingObjects) {
@@ -10281,6 +10285,7 @@ Because of this, the display is sometimes not correct.
 
     SmartArt.prototype.fitFontSize = function () {
       this.spTree[0] && this.spTree[0].spTree.forEach(function (oShape) {
+        oShape.recalculateContentWitCompiledPr();
         oShape.setTruthFontSizeInSmartArt();
         oShape.recalculateContentWitCompiledPr();
       });

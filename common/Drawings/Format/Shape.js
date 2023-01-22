@@ -4666,7 +4666,6 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                     }
                 }
             }
-            this.setTruthFontSizeInSmartArt();
         }
 
     };
