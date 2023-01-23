@@ -2888,6 +2888,15 @@ DrawingObjectsController.prototype =
         return null;
     },
 
+    checkCurrentTextObjectExtends: function()
+    {
+        var text_object = getTargetTextObject(this);
+        if(text_object)
+        {
+            text_object.checkExtentsByDocContent && text_object.checkExtentsByDocContent(true, true);
+        }
+    },
+
 
     addNewParagraph: function(bRecalculate)
     {
