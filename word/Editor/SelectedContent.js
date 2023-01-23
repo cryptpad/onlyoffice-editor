@@ -430,7 +430,7 @@
 	 */
 	CSelectedContent.prototype.ConvertToText = function()
 	{
-		var oParagraph = new Paragraph(editor.WordControl.m_oDrawingDocument, undefined, this.IsPresentationContent);
+		var oParagraph = this.private_CreateParagraph();
 
 		var sText = "";
 		for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
@@ -475,7 +475,7 @@
 	};
 	CSelectedContent.prototype.ConvertToInline = function()
 	{
-		var oParagraph = new Paragraph(editor.WordControl.m_oDrawingDocument, undefined, this.IsPresentationContent);
+		var oParagraph = this.private_CreateParagraph();
 
 		for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
 		{
@@ -1127,6 +1127,21 @@
 			this.PasteHelper = oParagraphE;
 		else
 			this.PasteHelper = this.Elements[this.Elements.length - 1].Element;
+	};
+	CSelectedContent.prototype.private_GetDrawingDocument = function()
+	{
+		let _editor = editor;
+		if (!_editor && Asc && Asc.editor)
+			_editor = Asc.editor;
+		
+		if (!_editor)
+			return null;
+		
+		return _editor.getDrawingDocument();
+	};
+	CSelectedContent.prototype.private_CreateParagraph = function()
+	{
+		return new AscWord.CParagraph(this.private_GetDrawingDocument(), undefined, this.IsPresentationContent);
 	};
 
 	/**
