@@ -896,6 +896,7 @@ CMathPageInfo.prototype.Update_CurrentPage = function(Page, ParaLine)
 };
 CMathPageInfo.prototype.Update_CurrentWrap = function(DispDef, bInline)
 {
+	if (this.WPages[this.CurPage].NeedUpdateWrap)
     {
         var WrapState;
 
