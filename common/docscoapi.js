@@ -1526,10 +1526,14 @@
     this.onLicenseChanged(data);
   };
 
-  DocsCoApi.prototype._onDrop = function(data) {
-    this.disconnect();
+  DocsCoApi.prototype._onDisconnectReason = function(data) {
     var code = data && data['code'] || c_oCloseCode.drop;
     this.onDisconnect(data ? data['description'] : '', code);
+  };
+
+  DocsCoApi.prototype._onDrop = function(data) {
+    this.disconnect();
+    this._onDisconnectReason(data);
   };
 
   DocsCoApi.prototype._onWarning = function(data) {
@@ -1794,23 +1798,26 @@
           t._onServerOpen();
         });
         socket.on("disconnect", function (reason) {
-          let code;
-          if ('io server disconnect' === reason || 'io client disconnect' === reason) {
-            //(explicit disconnection), the client will not try to reconnect and you need to manually call
-            code = c_oCloseCode.restore;
+          //(explicit disconnection), the client will not try to reconnect and you need to manually call
+          let explicit = 'io server disconnect' === reason || 'io client disconnect' === reason;
+          t._onServerClose(explicit);
+          if (!explicit) {
+            //explicit disconnect sends disconnect reason on its own
+            t.onDisconnect();
           }
-          t._onServerClose(reason, code);
         });
         socket.on('connect_error', function (err) {
           //cases: every connect error and reconnect
           if (err.data) {
             //cases: authorization
-            t._onServerClose(err.data.description, err.data.code);
+            t._onServerClose(true);
+            t.onDisconnect(err.data.description, err.data.code);
           }
         });
         socket.io.on("reconnect_failed", function () {
           //cases: connection restore, wrong socketio_url
-          t._onServerClose("reconnect_failed", c_oCloseCode.restore);
+          t._onServerClose(true);
+          t.onDisconnect("reconnect_failed", c_oCloseCode.restore);
         });
         socket.on("message", function (data) {
           t._onServerMessage(data);
@@ -1869,6 +1876,9 @@
 			case 'drop'        :
 				this._onDrop(dataObject);
 				break;
+			case 'disconnectReason':
+				this._onDisconnectReason(dataObject);
+				break;
 			case 'waitAuth'      : /*Ждем, когда придет auth, документ залочен*/
 				break;
 			case 'error'      : /*Старая версия sdk*/
@@ -1903,7 +1913,7 @@
 				break;
 		}
 	};
-	DocsCoApi.prototype._onServerClose = function (reason, code) {
+	DocsCoApi.prototype._onServerClose = function (explicit) {
 		if (ConnectionState.SaveChanges === this._state) {
 			// Мы сохраняли изменения и разорвалось соединение
 			this._isReSaveAfterAuth = true;
@@ -1913,13 +1923,10 @@
 				this.saveCallbackErrorTimeOutId = null;
 			}
 		}
-		if (code) {
+		if (explicit) {
 			this._state = ConnectionState.ClosedAll;
 		} else {
 			this._state = ConnectionState.Reconnect;
-		}
-		if (this.onDisconnect) {
-			this.onDisconnect(reason, code);
 		}
 	};
   //----------------------------------------------------------export----------------------------------------------------
