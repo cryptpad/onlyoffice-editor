@@ -3732,7 +3732,7 @@ function CEditorPage(api)
 		{
 			var dGlobalAplpha = ctx.globalAlpha;
 			ctx.globalAlpha = 1.0;
-			drDoc.DrawMathTrack(overlay);
+			drDoc.DrawMathTrack(isDrawNotes ? overlayNotes : overlay);
 			ctx.globalAlpha = dGlobalAplpha;
 		}
 

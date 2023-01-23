@@ -2113,19 +2113,31 @@ function CDrawingDocument()
 			return;
 
 		overlay.Show();
-		var nIndex, nCount;
-		var oPath;
-		var dKoefX, dKoefY;
-		var PathLng = this.MathTrack.GetPolygonsCount();
+		let nIndex, nCount;
+		let oPath;
+		let dKoefX, dKoefY;
+		let PathLng = this.MathTrack.GetPolygonsCount();
 
-		var xDst = this.SlideCurrectRect.left;
-		var yDst = this.SlideCurrectRect.top;
-		var wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
-		var hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
+		let xDst, yDst, wDst, hDst;
+		let bIsMain = !this.m_oLogicDocument.IsFocusOnNotes();
+		if(bIsMain)
+		{
+			xDst = this.SlideCurrectRect.left;
+			yDst = this.SlideCurrectRect.top;
+			wDst = this.SlideCurrectRect.right - this.SlideCurrectRect.left;
+			hDst = this.SlideCurrectRect.bottom - this.SlideCurrectRect.top;
 
-		dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
-		dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
-		var oTextMatrix = this.TextMatrix;
+			dKoefX = wDst / this.m_oLogicDocument.GetWidthMM();
+			dKoefY = hDst / this.m_oLogicDocument.GetHeightMM();
+		}
+		else
+		{
+			xDst = this.m_oWordControl.m_oNotesApi.OffsetX;
+			yDst = - this.m_oWordControl.m_oNotesApi.Scroll;
+			dKoefX = g_dKoef_mm_to_pix;
+			dKoefY = g_dKoef_mm_to_pix;
+		}
+		let oTextMatrix = this.TextMatrix;
 		for (nIndex = 0; nIndex < PathLng; nIndex++)
 		{
 			oPath = this.MathTrack.GetPolygon(nIndex);
@@ -2429,7 +2441,15 @@ function CDrawingDocument()
 
 	this.Update_MathTrack = function (IsActive, IsContentActive, oMath)
 	{
-		var PixelError = this.GetMMPerDot(1) * 3;
+		let PixelError;
+		if(this.m_oLogicDocument.IsFocusOnNotes())
+		{
+			PixelError = 3 / g_dKoef_mm_to_pix;
+		}
+		else
+		{
+			 PixelError = this.GetMMPerDot(3);
+		}
 		this.MathTrack.Update(IsActive, IsContentActive, oMath, PixelError);
 	};
 
