@@ -1706,6 +1706,11 @@ Because of this, the display is sometimes not correct.
       prSet && prSet.setPhldrT(pr);
     }
 
+    Point.prototype.getPhldrT = function() {
+      var prSet = this.getPrSet();
+      return prSet && prSet.getPhldrT();
+    }
+
     Point.prototype.getCxnId = function () {
       return this.cxnId;
     }
@@ -10236,7 +10241,7 @@ Because of this, the display is sometimes not correct.
         this.drawing.setXfrmByParent();
 
         if (!bLoadOnlyDrawing) {
-          this.checkNodePointsAfterRead();
+          this.checkNodePointsAfterRead(true);
         }
       }
       return this;
@@ -11881,12 +11886,19 @@ Because of this, the display is sometimes not correct.
         oDrawing.spPr.xfrm.setOffY(0);
       }
     };
-    SmartArt.prototype.checkNodePointsAfterRead = function() {
+    SmartArt.prototype.checkNodePointsAfterRead = function(bReplaceAll) {
       let tree = this.createHierarchy();
       tree.traverseBF(function (node) {
         let nodePoint = node.data && (node.data.nodePoint || node.data.asstPoint);
         if (nodePoint) {
-          nodePoint.setPhldrT('[' + AscCommon.translateManager.getValue('Text') + ']');
+          if (bReplaceAll) {
+            nodePoint.setPhldrT('[' + AscCommon.translateManager.getValue('Text') + ']');
+          } else {
+            const oPlaceholderText = nodePoint.getPhldrT();
+            if (typeof oPlaceholderText !== 'string') {
+              nodePoint.setPhldrT('');
+            }
+          }
         }
       });
     };

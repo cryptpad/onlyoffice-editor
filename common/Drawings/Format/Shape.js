@@ -4410,7 +4410,7 @@ CShape.prototype.getSmartArtShapePoint = function () {
                     if(typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body){
                         text = AscCommon.translateManager.getValue("Click to add notes");
                     } else if (this.isObjectInSmartArt()) {
-                        text = AscCommon.translateManager.getValue(pointContent[0].prSet.phldrT);
+                        text = AscCommon.translateManager.getValue(pointContent[0].prSet.phldrT || '');
                     } else {
                         text = this.getPlaceholderName();
                     }
