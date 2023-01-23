@@ -17516,11 +17516,7 @@ CDocument.prototype.CheckCurrentTextObjectExtends = function()
 	var oController = this.DrawingObjects;
 	if (oController)
 	{
-		var oTargetTextObject = AscFormat.getTargetTextObject(oController);
-		if (oTargetTextObject && oTargetTextObject.checkExtentsByDocContent)
-		{
-			oTargetTextObject.checkExtentsByDocContent(true, true);
-		}
+		oController.checkCurrentTextObjectExtends();
 	}
 };
 CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
@@ -24687,6 +24683,7 @@ CDocument.prototype.AddTextWithPr = function(sText, oSettings)
 			oSelectedContent.ForceInlineInsert();
 			oSelectedContent.PlaceCursorInLastInsertedRun(!oSettings.IsMoveCursorOutside());
 			oSelectedContent.Insert(oAnchorPos);
+            this.CheckCurrentTextObjectExtends();
 		}
 
 		this.Recalculate();

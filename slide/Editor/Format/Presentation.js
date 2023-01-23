@@ -3818,6 +3818,7 @@ CPresentation.prototype.addFieldToContent = function (fCallback) {
                 var oFld = fCallback.call(this, oParagraph);
                 if (oFld) {
                     oContent.AddToParagraph(oFld, false, false);
+                    oController.checkCurrentTextObjectExtends();
                     oContent.MoveCursorRight(false, false);
                     this.Recalculate();
                     this.RecalculateCurPos();
