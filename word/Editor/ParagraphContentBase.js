@@ -896,11 +896,14 @@ CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
 	if (!this.IsCursorPlaceable() || !oParagraph)
 		return;
 
-	var oContentPos = this.Paragraph.Get_PosByElement(this);
-	if (!oContentPos)
+	let contentPos = this.Paragraph.Get_PosByElement(this);
+	if (!contentPos)
 		return;
+	
+	// Дополним полученную позицию текущей в текущем элементе
+	this.Get_ParaContentPos(false, false, contentPos, false);
 
-	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
+	this.Paragraph.Set_ParaContentPos(contentPos, true, -1, -1, false);
 };
 CParagraphContentBase.prototype.createDuplicateForSmartArt = function(oPr)
 {

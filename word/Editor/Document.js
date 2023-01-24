@@ -1911,6 +1911,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		UpdateInterface : false,
 		UpdateRulers    : false,
 		UpdateUndoRedo  : false,
+		UpadteStates    : false,
 		Redraw          : {
 			Start : undefined,
 			End   : undefined
@@ -2771,39 +2772,47 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (oCurrentParagraph && oCurrentParagraph.IsInFixedForm())
 		oCurrentParagraph.GetParent().CheckFormViewWindow();
 
-	if (this.Action.UpdateInterface)
-		this.private_UpdateInterface();
-
-	if (this.Action.UpdateSelection)
-		this.private_UpdateSelection();
-
-	if (this.Action.UpdateRulers)
-		this.private_UpdateRulers();
-
-	if (this.Action.UpdateUndoRedo)
-		this.private_UpdateUndoRedo();
-
-	if (this.Action.UpdateTracks)
-		this.private_UpdateDocumentTracks();
-
-	if (this.Action.UpdatePlaceholders)
-		this.private_UpdatePlaceholders();
-
 	this.Action.Start              = false;
 	this.Action.Depth              = 0;
 	this.Action.PointsCount        = 0;
 	this.Action.Recalculate        = false;
 	this.Action.CancelAction       = false;
+	this.Action.Redraw.Start       = undefined;
+	this.Action.Redraw.End         = undefined;
+	this.Action.Additional         = {};
+	this.Api.checkChangesSize();
+	
+	if (this.Action.UpdateStates)
+		return;
+	
+	this.Action.UpdateStates = true;
+	
+	if (this.Action.UpdateInterface)
+		this.private_UpdateInterface();
+	
+	if (this.Action.UpdateSelection)
+		this.private_UpdateSelection();
+	
+	if (this.Action.UpdateRulers)
+		this.private_UpdateRulers();
+	
+	if (this.Action.UpdateUndoRedo)
+		this.private_UpdateUndoRedo();
+	
+	if (this.Action.UpdateTracks)
+		this.private_UpdateDocumentTracks();
+	
+	if (this.Action.UpdatePlaceholders)
+		this.private_UpdatePlaceholders();
+	
 	this.Action.UpdateSelection    = false;
 	this.Action.UpdateInterface    = false;
 	this.Action.UpdateRulers       = false;
 	this.Action.UpdateUndoRedo     = false;
 	this.Action.UpdateTracks       = false;
 	this.Action.UpdatePlaceholders = false;
-	this.Action.Redraw.Start       = undefined;
-	this.Action.Redraw.End         = undefined;
-	this.Action.Additional         = {};
-	this.Api.checkChangesSize();
+	
+	this.Action.UpdateStates = false;
 };
 CDocument.prototype.private_CheckAdditionalOnFinalize = function()
 {
@@ -3016,6 +3025,10 @@ CDocument.prototype.private_FinalizeContentControlChange = function()
 	{
 		this.Api.asc_OnChangeContentControl(this.Action.Additional.ContentControlChange[sId]);
 	}
+};
+CDocument.prototype.private_FinalizeCheckFocusAndBlurCC = function()
+{
+
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
