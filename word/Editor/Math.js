@@ -1280,17 +1280,32 @@ ParaMath.prototype.Add = function(Item)
 		if (false !== isLocalTrack)
 			LogicDocument.SetLocalTrackRevisions(isLocalTrack);
     }
-
-    if ((para_Text === Type || para_Space === Type) && null !== NewElement)
-    {
-        this.bFastRecalculate = oContent.bOneLine == false; // многострочный контент => можно осуществлять быстрый пересчет
-
-        // Пробуем произвести автозамену
-        oContent.Process_AutoCorrect(NewElement);
-    }
+	
+	if ((para_Text === Type || para_Space === Type) && null !== NewElement)
+		this.ProcessAutoCorrect(oContent, NewElement);
 
     // Корректируем данный контент
     oContent.Correct_Content(true);
+};
+ParaMath.prototype.ProcessAutoCorrect = function(content, triggerElement)
+{
+	if (!content)
+	{
+		let selectContent = this.GetSelectContent();
+		if (!selectContent)
+			return;
+		
+		content = selectContent.Content;
+	}
+	
+	if (!triggerElement)
+	{
+		triggerElement = new CMathText();
+		triggerElement.add(32);
+	}
+	
+	this.bFastRecalculate = content.bOneLine == false; // многострочный контент => можно осуществлять быстрый пересчет
+	content.Process_AutoCorrect(triggerElement);
 };
 /**
  * Добавляем элемент в конец корневого контента
