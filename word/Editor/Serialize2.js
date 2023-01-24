@@ -11461,6 +11461,13 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			if (run.GetElementsCount() > Asc.c_dMaxParaRunContentLength && !(paragraphContent instanceof CInlineLevelSdt && paragraphContent.IsForm())) {
 				this.oReadResult.runsToSplit.push(run);
 			}
+	
+			if (this.nCurCommentsCount > 0)
+			{
+				let runText = run.GetText();
+				for (var commentId in this.oCurComments)
+					this.oCurComments[commentId] += runText;
+			}
         }
 		else if (c_oSerParType.CommentStart === type)
         {
@@ -11526,7 +11533,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 			res = this.bcr.Read1(length, function(t, l){
                 return oThis.boMathr.ReadMathArg(t,l,oMath.Root, paragraphContent);
 			});
-            oMath.Root.Correct_Content(true);
+			oMath.Root.Correct_Content(true);
+			
+			if (this.nCurCommentsCount > 0)
+			{
+				let mathText = oMath.GetText();
+				for (var commentId in this.oCurComments)
+					this.oCurComments[commentId] += mathText;
+			}
 		}
 		else if ( c_oSerParType.MRun == type )
 		{
@@ -11890,12 +11904,6 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
         if (c_oSerRunType.run === type || c_oSerRunType.delText === type)
         {
             var text = this.stream.GetString2LE(length);
-			if(this.nCurCommentsCount > 0)
-			{
-				for(var i in this.oCurComments)
-					this.oCurComments[i] += text;
-			}
-
 			this.ReadText(text, run, false);
         }
         else if (c_oSerRunType.tab === type)
