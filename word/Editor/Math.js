@@ -1078,7 +1078,10 @@ ParaMath.prototype.Get_Id = function()
 {
     return this.Id;
 };
-
+ParaMath.prototype.IsMath = function()
+{
+	return true;
+};
 ParaMath.prototype.Copy = function(Selected, oPr)
 {
     var NewMath = new ParaMath();

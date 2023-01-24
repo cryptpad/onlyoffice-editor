@@ -103,6 +103,10 @@ CParagraphContentBase.prototype.IsRun = function()
 {
 	return false;
 };
+CParagraphContentBase.prototype.IsMath = function()
+{
+	return false;
+};
 CParagraphContentBase.prototype.Is_Empty = function()
 {
 	return true;

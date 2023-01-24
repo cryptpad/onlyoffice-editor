@@ -4223,11 +4223,31 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 			// TODO: В режиме рецензии элементы не удаляются, а позиция меняется прямо в ранах
 			//       Возможно стоит пересмотреть подход в выставлении позиции в данной функции, чтобы
 			//       не делать таких заглушек
-			if (!this.LogicDocument || !this.LogicDocument.IsTrackRevisions())
+			let logicDocument = this.GetLogicDocument();
+			if (!logicDocument || !logicDocument.IsTrackRevisions())
 			{
 				// TODO: Как только избавимся от para_End переделать здесь
 				// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
-				if (ContentPos < this.Content.length - 2 && true === this.Content[ContentPos].Is_Empty())
+				
+				if (logicDocument
+					&& logicDocument.IsDocumentEditor()
+					&& this.Content[ContentPos].IsMath()
+					&& this.Content[ContentPos].IsEmpty())
+				{
+					this.RemoveFromContent(ContentPos, 1);
+					
+					this.CurPos.ContentPos = ContentPos;
+					this.Content[ContentPos].MoveCursorToStartPos();
+					this.Correct_ContentPos2();
+					
+					let contentControl = this.AddContentControl(c_oAscSdtLevelType.Inline);
+					if (contentControl)
+					{
+						contentControl.ApplyContentControlEquationPr();
+						contentControl.SelectContentControl();
+					}
+				}
+				else if (ContentPos < this.Content.length - 2 && this.Content[ContentPos].IsEmpty())
 				{
 					this.Internal_Content_Remove(ContentPos);
 
