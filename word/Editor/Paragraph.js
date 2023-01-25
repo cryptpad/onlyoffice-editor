@@ -4672,21 +4672,28 @@ Paragraph.prototype.Add = function(Item)
 				var NewElement = this.Content[CurPos].Split(ContentPos, 1);
 
 				if (null !== NewElement)
-					this.Internal_Content_Add(CurPos + 1, NewElement);
+					this.AddToContent(CurPos + 1, NewElement);
 
-				var MathElement = Item;
-				if (!(Item instanceof ParaMath))
+				let paraMath = null;
+				if (Item instanceof ParaMath)
 				{
-					MathElement = new ParaMath();
-					MathElement.Root.Load_FromMenu(Item.Menu, this, null, Item.GetText());
-					MathElement.Root.Correct_Content(true);
+					paraMath = Item;
+				}
+				else if (Item instanceof AscCommonWord.MathMenu)
+				{
+					let textPr = Item.GetTextPr();
+					paraMath = new ParaMath();
+					paraMath.Root.Load_FromMenu(Item.Menu, this, textPr.Copy(), Item.GetText());
+					paraMath.Root.Correct_Content(true);
+					paraMath.ApplyTextPr(textPr.Copy(), undefined, true);
 				}
 
-				this.Internal_Content_Add(CurPos + 1, MathElement);
-
-				// Перемещаем кусор в конец формулы
-				this.CurPos.ContentPos = CurPos + 1;
-				this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+				if (paraMath)
+				{
+					this.AddToContent(CurPos + 1, paraMath);
+					this.CurPos.ContentPos = CurPos + 1;
+					this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+				}
 			}
 			else
 			{

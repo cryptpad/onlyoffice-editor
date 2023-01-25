@@ -24995,7 +24995,8 @@ CDocument.prototype.AddParaMath = function(nType)
 	}
 	else
 	{
-		this.AddToParagraph(new AscCommonWord.MathMenu(nType));
+		let textPr = this.GetDirectTextPr();
+		this.AddToParagraph(new AscCommonWord.MathMenu(nType, textPr));
 	}
 
 	this.UpdateSelection();

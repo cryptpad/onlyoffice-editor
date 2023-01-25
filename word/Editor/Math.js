@@ -657,11 +657,12 @@ function Get_WordDocumentDefaultMathSettings()
     return editor.WordControl.m_oLogicDocument.Settings.MathSettings;
 }
 
-function MathMenu(type)
+function MathMenu(type, textPr)
 {
-	this.Type = para_Math;
-	this.Menu = type == undefined ? c_oAscMathType.Default_Text : type;
-	this.Text = null;
+	this.Type   = para_Math;
+	this.Menu   = type == undefined ? c_oAscMathType.Default_Text : type;
+	this.Text   = null;
+	this.TextPr = textPr ? textPr : new CTextPr();
 }
 MathMenu.prototype.Get_Type = function()
 {
@@ -678,6 +679,10 @@ MathMenu.prototype.SetText = function(sText)
 MathMenu.prototype.GetText = function()
 {
 	return this.Text;
+};
+MathMenu.prototype.GetTextPr = function()
+{
+	return this.TextPr;
 };
 
 function CMathLineState()

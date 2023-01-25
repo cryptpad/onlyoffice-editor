@@ -1354,9 +1354,12 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 
 	if (this.IsContentControlEquation())
 	{
+		let textPr = this.GetDefaultTextPr();
+		
 		var oParaMath = new ParaMath();
-		oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph());
+		oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph(), textPr.Copy());
 		oParaMath.Root.Correct_Content(true);
+		oParaMath.ApplyTextPr(textPr.Copy(), undefined, true);
 		this.AddToContent(0, oParaMath);
 	}
 	else

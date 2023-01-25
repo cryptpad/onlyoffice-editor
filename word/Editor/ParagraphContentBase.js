@@ -4826,15 +4826,27 @@ CParagraphContentWithParagraphLikeContent.prototype.Add = function(Item)
 
 				if (null !== NewElement)
 					this.Add_ToContent(CurPos + 1, NewElement, true);
-
-				var Elem = new ParaMath();
-				Elem.Root.Load_FromMenu(Item.Menu, this.GetParagraph());
-				Elem.Root.Correct_Content(true);
-				this.Add_ToContent(CurPos + 1, Elem, true);
-
-				// Перемещаем кусор в конец формулы
-				this.State.ContentPos = CurPos + 1;
-				this.Content[this.State.ContentPos].MoveCursorToEndPos(false);
+				
+				let paraMath = null;
+				if (Item instanceof ParaMath)
+				{
+					paraMath = Item;
+				}
+				else if (Item instanceof AscCommonWord.MathMenu)
+				{
+					let textPr = Item.GetTextPr();
+					paraMath = new ParaMath();
+					paraMath.Root.Load_FromMenu(Item.Menu, this.GetParagraph(), textPr.Copy(), Item.GetText());
+					paraMath.Root.Correct_Content(true);
+					paraMath.ApplyTextPr(textPr.Copy(), undefined, true);
+				}
+				
+				if (paraMath)
+				{
+					this.AddToContent(CurPos + 1, paraMath, true);
+					this.State.ContentPos = CurPos + 1;
+					this.Content[this.State.ContentPos].MoveCursorToEndPos(false);
+				}
 			}
 			else
 			{
