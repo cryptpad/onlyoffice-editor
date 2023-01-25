@@ -3744,7 +3744,6 @@ ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
 	{
 		if (Asc.c_oAscMathInputType.Unicode === nInputType)
 		{
-
 			this.ConvertFromUnicodeMath();
 		}
 		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
