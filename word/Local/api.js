@@ -271,7 +271,7 @@ Asc['asc_docs_api'].prototype.AddImageUrl = function(urls, imgProp, token, obj)
 		var localUrl = window["AscDesktopEditor"]["LocalFileGetImageUrl"](currentValue);
 		return AscCommon.g_oDocumentUrls.getImageUrl(localUrl);
 	});
-	this._addImageUrl(_urls, imgProp, obj);
+	this._addImageUrl(_urls, obj);
 };
 Asc['asc_docs_api'].prototype.AddImage = Asc['asc_docs_api'].prototype.asc_addImage = function(obj)
 {
