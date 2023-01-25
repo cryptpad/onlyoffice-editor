@@ -1106,13 +1106,13 @@ CShape.prototype.checkPosTransformText = function()
         }
     }
 };
-CShape.prototype.getNearestPos = function(x, y, pageIndex)
+CShape.prototype.getNearestPos = function(x, y, pageIndex, drawing)
 {
     if(isRealObject(this.textBoxContent) && this.invertTransformText)
     {
         var t_x = this.invertTransformText.TransformPointX(x, y);
         var t_y = this.invertTransformText.TransformPointY(x, y);
-        var nearest_pos = this.textBoxContent.Get_NearestPos(0, t_x, t_y, false);
+        var nearest_pos = this.textBoxContent.Get_NearestPos(0, t_x, t_y, false, drawing);
         return nearest_pos;
     }
     return null;

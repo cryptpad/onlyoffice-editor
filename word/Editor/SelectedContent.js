@@ -113,6 +113,10 @@
 	{
 		this.MoveDrawing = isMoveDrawing;
 	};
+	CSelectedContent.prototype.IsMoveDrawing = function()
+	{
+		return this.MoveDrawing;
+	};
 	CSelectedContent.prototype.SetCopyComments = function(isCopy)
 	{
 		this.CopyComments = isCopy;
@@ -185,6 +189,10 @@
 
 		let oRun = oParaAnchorPos.Classes[oParaAnchorPos.Classes.length - 1];
 		if (!oRun || !(oRun instanceof AscCommonWord.ParaRun))
+			return false;
+		
+		// Пока автофигуры не поддерживаются внутри формул, запрещаем их туда всталять
+		if (oRun.IsMathRun() && this.IsMoveDrawing())
 			return false;
 
 		return (oRun.IsMathRun() ? this.CanConvertToMath() : true);

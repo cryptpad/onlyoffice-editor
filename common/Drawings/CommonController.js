@@ -2812,7 +2812,7 @@ DrawingObjectsController.prototype =
     },
 
 
-    getNearestPos: function(x, y){
+    getNearestPos: function(x, y, pageIndex, drawing){
         var oTragetDocContent = this.getTargetDocContent(false, false);
         if(oTragetDocContent){
             var tx = x, ty = y;
@@ -2821,7 +2821,7 @@ DrawingObjectsController.prototype =
                 var oInvertTransform = AscCommon.global_MatrixTransformer.Invert(oTransform);
                 tx = oInvertTransform.TransformPointX(x, y);
                 ty = oInvertTransform.TransformPointY(x, y);
-                return oTragetDocContent.Get_NearestPos(0, tx, ty, false);
+                return oTragetDocContent.Get_NearestPos(0, tx, ty, false, drawing);
             }
         }
         return null;

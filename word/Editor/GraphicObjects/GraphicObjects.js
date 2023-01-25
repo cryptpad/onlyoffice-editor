@@ -2476,7 +2476,7 @@ CGraphicObjects.prototype =
                 {
                     if(object.getNearestPos)
                     {
-                        return object.getNearestPos(x, y, pageIndex);
+                        return object.getNearestPos(x, y, pageIndex, drawing);
                     }
                 }
                 else
@@ -2486,14 +2486,14 @@ CGraphicObjects.prototype =
                         var oShape = object.parent.isShapeChild(true);
                         if(oShape)
                         {
-                            return oShape.getNearestPos(x, y, pageIndex);
+                            return oShape.getNearestPos(x, y, pageIndex, drawing);
                         }
                     }
                     else if(object.getObjectType() === AscDFH.historyitem_type_Shape)
                     {
                         if(object.hitInTextRect(x, y))
                         {
-                            return object.getNearestPos(x, y, pageIndex);
+                            return object.getNearestPos(x, y, pageIndex, drawing);
                         }
                     }
                 }
