@@ -638,7 +638,7 @@
 	{
 		// Если выставлен флаг OnlySignatures, то его нельзя перебить никак, кроме как явно снять через
 		// editor.removeRestriction(Asc.c_oAscRestrictionType.OnlySignatures)
-		if (this.restrictions === val || (this.restrictions & Asc.c_oAscRestrictionType.OnlySignatures))
+		if (this.restrictions & Asc.c_oAscRestrictionType.OnlySignatures)
 			return;
 		
 		this.restrictions = val;
