@@ -10592,7 +10592,7 @@ background-repeat: no-repeat;\
 		oLogicDocument.LoadDocumentState(oState);
 		return sValue;
 	};
-	asc_docs_api.prototype.asc_SetContentControlDatePickerPr = function(oPr, sId)
+	asc_docs_api.prototype.asc_SetContentControlDatePickerPr = function(oPr, sId, updateDate)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
@@ -10627,7 +10627,7 @@ background-repeat: no-repeat;\
 		if (false === isLocked)
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetContentControlListPr);
-			oContentControl.ApplyDatePickerPr(oPr);
+			oContentControl.ApplyDatePickerPr(oPr, updateDate);
 			oLogicDocument.Recalculate();
 			oLogicDocument.UpdateInterface();
 			oLogicDocument.UpdateTracks();
@@ -10644,7 +10644,7 @@ background-repeat: no-repeat;\
 		if (!oContentControl || !oContentControl.IsDatePicker() || !oContentControl.CanBeEdited())
 			return;
 
-		this.asc_SetContentControlDatePickerPr(oPr, sId);
+		this.asc_SetContentControlDatePickerPr(oPr, sId, true);
 	};
 	asc_docs_api.prototype.asc_SetContentControlTextPlaceholder = function(sText, sId)
 	{

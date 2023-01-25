@@ -2299,19 +2299,19 @@ CBlockLevelSdt.prototype.GetDatePickerPr = function()
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
  * @param oPr {AscWord.CSdtDatePickerPr}
+ * @param updateValue {boolean}
  */
-CBlockLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
+CBlockLevelSdt.prototype.ApplyDatePickerPr = function(oPr, updateValue)
 {
 	this.SetDatePickerPr(oPr);
 
 	if (!this.IsDatePicker())
 		return;
 
-	this.SetPlaceholder(c_oAscDefaultPlaceholderName.DateTime);
-	if (this.IsPlaceHolder())
-		this.private_FillPlaceholderContent();
-	else
+	if (true === updateValue || !this.IsPlaceHolder())
 		this.private_UpdateDatePickerContent();
+	else
+		this.private_FillPlaceholderContent();
 };
 CBlockLevelSdt.prototype.private_UpdateDatePickerContent = function()
 {

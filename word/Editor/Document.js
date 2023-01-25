@@ -16169,7 +16169,8 @@ CDocument.prototype.AddContentControlDatePicker = function(oPr)
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	if (!oCC)
 		return null;
-
+	
+	oCC.SetPlaceholder(c_oAscDefaultPlaceholderName.DateTime);
 	oCC.ApplyDatePickerPr(oPr);
 	oCC.SelectContentControl();
 	return oCC;
