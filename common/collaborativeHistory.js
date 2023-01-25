@@ -385,7 +385,7 @@
 		// 		return false;
 		// }
 
-	
+
 		return true;
 	};
 	CCollaborativeHistory.prototype.CreateLocalHistoryPointByReverseChanges = function(reverseChanges)
@@ -580,9 +580,17 @@
 				{
 					oShape.parent.removeFromSpTreeById(oShape.Get_Id());
 				}
-				else if (AscCommonWord.ParaDrawing && (oShape.parent instanceof AscCommonWord.ParaDrawing))
+				else if (AscCommonWord.ParaDrawing)
 				{
-					mapDrawings[oShape.parent.Get_Id()] = oShape.parent;
+					if(oShape.parent instanceof AscCommonWord.ParaDrawing)
+					{
+						mapDrawings[oShape.parent.Get_Id()] = oShape.parent;
+					}
+					if(oShape.oldParent && oShape.oldParent instanceof AscCommonWord.ParaDrawing)
+					{
+						mapDrawings[oShape.oldParent.Get_Id()] = oShape.oldParent;
+						oShape.oldParent = undefined;
+					}
 				}
 			}
 			else
@@ -602,6 +610,11 @@
 				if (!oDrawing.CheckCorrect())
 				{
 					var oParentParagraph = oDrawing.Get_ParentParagraph();
+					let oParentRun = oDrawing.Get_Run();
+					if(oParentRun)
+					{
+						mapRuns[oParentRun.Id] = oParentRun;
+					}
 					oDrawing.PreDelete();
 					oDrawing.Remove_FromDocument(false);
 					if (oParentParagraph)

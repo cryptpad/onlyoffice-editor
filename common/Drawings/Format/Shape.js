@@ -969,7 +969,10 @@ function SetXfrmFromMetrics(oDrawing, metrics)
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetTextBoxContent]         = function(oClass, value){oClass.textBoxContent = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetBodyPr]                 = function(oClass, value){oClass.bodyPr = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_AutoShapes_SetBFromSerialize]   = function(oClass, value){oClass.fromSerialize = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetParent]                 = function(oClass, value){oClass.parent = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetParent]                 = function(oClass, value){
+	    oClass.oldParent = oClass.parent;
+		oClass.parent = value;
+	};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetGroup]                  = function(oClass, value){oClass.group = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetWordShape]              = function(oClass, value){oClass.bWordShape = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ShapeSetSignature]              = function(oClass, value){

@@ -60,7 +60,10 @@ var CShape = AscFormat.CShape;
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetNvGrpSpPr] = function(oClass, value){oClass.nvGrpSpPr = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetSpPr] = function(oClass, value){oClass.spPr = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetParent] = function(oClass, value){oClass.parent = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetParent] = function(oClass, value){
+		oClass.oldParent = oClass.parent;
+		oClass.parent = value;
+	};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetGroup] = function(oClass, value){oClass.group = value;};
 
     AscDFH.drawingContentChanges[AscDFH.historyitem_GroupShapeAddToSpTree] =  AscDFH.drawingContentChanges[AscDFH.historyitem_GroupShapeRemoveFromSpTree] = function(oClass){return oClass.spTree;};

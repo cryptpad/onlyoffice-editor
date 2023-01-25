@@ -531,6 +531,7 @@ var GLOBAL_PATH_COUNT = 0;
         oClass.bDeleted = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetParent] = function(oClass, value) {
+		oClass.oldParent = oClass.parent;
         oClass.parent = value;
     };
     drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetChart] = function(oClass, value) {

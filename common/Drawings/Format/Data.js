@@ -10125,6 +10125,7 @@ Because of this, the display is sometimes not correct.
       oClass.styleDef = value;
     };
     drawingsChangesMap[AscDFH.historyitem_SmartArtParent] = function (oClass, value) {
+		oClass.oldParent = oClass.parent;
       oClass.parent = value;
     };
 
