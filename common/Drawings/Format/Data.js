@@ -1645,7 +1645,7 @@ Because of this, the display is sometimes not correct.
     }
 
     Point.prototype.getShape = function () {
-      if (this.parent && this.parent.parent instanceof CShape) {
+      if (this.parent && this.parent.parent instanceof AscFormat.CShape) {
         return this.parent.parent;
       }
     }
@@ -10062,6 +10062,7 @@ Because of this, the display is sometimes not correct.
       CBaseFormatObject.call(this);
       this.shapePoint = null;
       this.contentPoint = [];
+      this.maxFontSize = null;
     }
     InitClass(ShapeSmartArtInfo, CBaseFormatObject, AscDFH.historyitem_type_ShapeSmartArtInfo);
 
@@ -10084,6 +10085,9 @@ Because of this, the display is sometimes not correct.
         oHistory.CanAddChanges() && oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ShapeSmartArtInfoRemoveLstContentPoint, nIdx, [this.contentPoint[nIdx]], false));
         nIdx === this.contentPoint.length - 1 ? this.contentPoint.pop() : this.contentPoint.splice(nIdx, 1);
       }
+    }
+    ShapeSmartArtInfo.prototype.setMaxFontSize = function (oPr) {
+      this.maxFontSize = oPr;
     }
 
     changesFactory[AscDFH.historyitem_SmartArtColorsDef] = CChangeObject;
@@ -10112,6 +10116,7 @@ Because of this, the display is sometimes not correct.
       oClass.styleDef = value;
     };
     drawingsChangesMap[AscDFH.historyitem_SmartArtParent] = function (oClass, value) {
+		oClass.oldParent = oClass.parent;
       oClass.parent = value;
     };
 
@@ -10127,6 +10132,7 @@ Because of this, the display is sometimes not correct.
       this.bNeedUpdatePosition = true;
 
       this.calcGeometry = null;
+      this.bFirstRecalculate = true;
     }
 
     InitClass(SmartArt, CGroupShape, AscDFH.historyitem_type_SmartArt);
@@ -10187,19 +10193,22 @@ Because of this, the display is sometimes not correct.
     }
 
     SmartArt.prototype.recalculate = function () {
-    var oldParaMarks = editor && editor.ShowParaMarks;
-      if (oldParaMarks) {
-        editor.ShowParaMarks = false;
-      }
-      CGroupShape.prototype.recalculate.call(this);
-      if (this.group && this.bNeedUpdatePosition) {
-        this.bNeedUpdatePosition = false;
-        var group = this.getMainGroup();
-        group.updateCoordinatesAfterInternalResize();
-      }
-      if (oldParaMarks) {
-        editor.ShowParaMarks = oldParaMarks;
-      }
+      if(this.bDeleted)
+        return;
+      AscFormat.ExecuteNoHistory(function () {
+        var oldParaMarks = editor && editor.ShowParaMarks;
+        if (oldParaMarks) {
+          editor.ShowParaMarks = false;
+        }
+        CGroupShape.prototype.recalculate.call(this);
+        if (this.bFirstRecalculate) {
+          this.bFirstRecalculate = false;
+          this.fitFontSize();
+        }
+        if (oldParaMarks) {
+          editor.ShowParaMarks = oldParaMarks;
+        }
+      }, this, []);
     }
 
     SmartArt.prototype.decorateParaDrawing = function (drawingObjects) {
@@ -10268,8 +10277,9 @@ Because of this, the display is sometimes not correct.
 
     SmartArt.prototype.fitFontSize = function () {
       this.spTree[0] && this.spTree[0].spTree.forEach(function (oShape) {
-        oShape.recalculateContent2()
-        oShape.findFitFontSizeForSmartArt();
+        oShape.recalculateContentWitCompiledPr();
+        oShape.setTruthFontSizeInSmartArt();
+        oShape.recalculateContentWitCompiledPr();
       });
     };
 

@@ -52,7 +52,10 @@ var History = AscCommon.History;
         }
     };
     window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetNvSpPr] = function(oClass, value){oClass.nvGraphicFramePr = value;};
-    window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetParent] = function(oClass, value){oClass.parent = value;};
+    window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetParent] = function(oClass, value){
+	    oClass.oldParent = oClass.parent;
+		oClass.parent = value;
+	};
     window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetGroup] = function(oClass, value){oClass.group = value;};
 
     AscDFH.changesFactory[AscDFH.historyitem_GraphicFrameSetSpPr] = AscDFH.CChangesDrawingsObject;

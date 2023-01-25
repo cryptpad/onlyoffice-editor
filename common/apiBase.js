@@ -1213,6 +1213,8 @@
 			}
 			oSmartArt.fitToPageSize();
 			oSmartArt.fitFontSize();
+			oSmartArt.recalculateBounds();
+
 			const oParaDrawing = oSmartArt.decorateParaDrawing(oController);
 			oSmartArt.setXfrmByParent();
 			if (oController) {

@@ -9491,6 +9491,27 @@ Paragraph.prototype.IsInText = function(X, Y, CurPage)
 
 	return null;
 };
+/**
+ * Is paragraph inside SmartArt
+ * @param bReturnShape {boolean}
+ * @returns {boolean|null|AscFormat.CShape}
+ */
+Paragraph.prototype.IsInsideSmartArtShape = function (bReturnShape)
+{
+	const oShape = this.Parent && this.Parent.Is_DrawingShape(true);
+	if (oShape)
+	{
+		if (oShape.isObjectInSmartArt && oShape.isObjectInSmartArt())
+		{
+			if (bReturnShape)
+			{
+				return oShape;
+			}
+			return !!oShape;
+		}
+	}
+	return bReturnShape ? null : false;
+};
 Paragraph.prototype.IsUseInDocument = function(Id)
 {
 	if (undefined !== Id && null !== Id)
