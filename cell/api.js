@@ -4439,24 +4439,24 @@ var editor;
     const arrBinaryData = oBinaryFileWriter.Write().split(';');
     const sCleanBinaryData = arrBinaryData[arrBinaryData.length - 1];
     const oBinaryInfo = {};
-    const arrWorksheets = this.wb.wsViews;
     const arrRasterImageIds = [];
-    for (let i = 0; i < arrWorksheets.length; i += 1) {
-        const oWorksheet = arrWorksheets[i];
-        const arrDrawings = oWorksheet.model.Drawings;
-        if (arrDrawings) {
-            for (let i = 0; i < arrDrawings.length; i += 1) {
-                const oDrawing = arrDrawings[i];
-                oDrawing.graphicObject.getAllRasterImages(arrRasterImageIds);
-            }
+    const arrWorksheetLength = this.wbModel.aWorksheets.length;
+    for (let i = 0; i < arrWorksheetLength; i += 1) {
+      const oWorksheet = this.wbModel.aWorksheets[i];
+      const arrDrawings = oWorksheet.Drawings;
+      if (arrDrawings) {
+        for (let j = 0; j < arrDrawings.length; j += 1) {
+          const oDrawing = arrDrawings[j];
+          oDrawing.graphicObject.getAllRasterImages(arrRasterImageIds);
         }
+      }
     }
     const urlsForAddToHistory = [];
     for (let i = 0; i < arrRasterImageIds.length; i += 1) {
-        const url = AscCommon.g_oDocumentUrls.mediaPrefix + arrRasterImageIds[i];
-        if (!(this.imagesFromGeneralEditor && this.imagesFromGeneralEditor[url] && this.imagesFromGeneralEditor[url] === AscCommon.g_oDocumentUrls.getUrls()[url])) {
-            urlsForAddToHistory.push(arrRasterImageIds[i]);
-        }
+      const url = AscCommon.g_oDocumentUrls.mediaPrefix + arrRasterImageIds[i];
+      if (!(this.imagesFromGeneralEditor && this.imagesFromGeneralEditor[url] && this.imagesFromGeneralEditor[url] === AscCommon.g_oDocumentUrls.getUrls()[url])) {
+        urlsForAddToHistory.push(arrRasterImageIds[i]);
+      }
     }
 
 
@@ -4465,9 +4465,9 @@ var editor;
     oBinaryInfo["isFromSheetEditor"] = this.isFromSheetEditor;
     oBinaryInfo["imagesForAddToHistory"] = urlsForAddToHistory;
     if (this.saveImageCoefficients) {
-        oBinaryInfo["widthCoefficient"] = this.saveImageCoefficients.widthCoefficient;
-        oBinaryInfo["heightCoefficient"] = this.saveImageCoefficients.heightCoefficient;
-        delete this.saveImageCoefficients;
+      oBinaryInfo["widthCoefficient"] = this.saveImageCoefficients.widthCoefficient;
+      oBinaryInfo["heightCoefficient"] = this.saveImageCoefficients.heightCoefficient;
+      delete this.saveImageCoefficients;
     }
 
     return oBinaryInfo;
