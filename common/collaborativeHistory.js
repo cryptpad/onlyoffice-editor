@@ -385,10 +385,7 @@
 		// 		return false;
 		// }
 
-		if(oChange.CheckCorrect && !oChange.CheckCorrect())
-		{
-			return false;
-		}
+	
 		return true;
 	};
 	CCollaborativeHistory.prototype.CreateLocalHistoryPointByReverseChanges = function(reverseChanges)
