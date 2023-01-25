@@ -4845,6 +4845,7 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
                     averageAmount = Math.floor((a + b) / 2);
                 }
                 this.setFontSizeInSmartArt(nOldFontSize);
+                this.recalculateContent();
                 return scalesForSmartArt[averageAmount];
             }
             return MAX_FONT_SIZE;

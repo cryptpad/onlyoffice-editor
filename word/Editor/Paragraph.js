@@ -9474,7 +9474,7 @@ Paragraph.prototype.IsInsideSmartArtShape = function (bReturnShape)
 	const oShape = this.Parent && this.Parent.Is_DrawingShape(true);
 	if (oShape)
 	{
-		if (oShape.isObjectInSmartArt())
+		if (oShape.isObjectInSmartArt && oShape.isObjectInSmartArt())
 		{
 			if (bReturnShape)
 			{
