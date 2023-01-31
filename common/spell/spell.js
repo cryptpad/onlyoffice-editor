@@ -32,46 +32,10 @@
 
 "use strict";
 
-function CSpellchecker(settings)
+window['AscCommon'] = window['AscCommon'] || {};
+window['AscCommon'].spellcheckGetLanguages = function()
 {
-	this.useWasm = false;
-	var webAsmObj = window["WebAssembly"];
-	if (typeof webAsmObj === "object")
-	{
-		if (typeof webAsmObj["Memory"] === "function")
-		{
-			if ((typeof webAsmObj["instantiateStreaming"] === "function") || (typeof webAsmObj["instantiate"] === "function"))
-				this.useWasm = true;
-		}
-	}
-
-	this.enginePath = "./spell/";
-	if (settings && settings.enginePath)
-	{
-		this.enginePath = settings.enginePath;
-		if (this.enginePath.substring(this.enginePath.length - 1) != "/")
-			this.enginePath += "/";
-	}
-
-	var dictionariesPath = "./../dictionaries";
-	if (settings && settings.dictionariesPath)
-	{
-		dictionariesPath = settings.dictionariesPath;
-		if (dictionariesPath.substring(dictionariesPath.length - 1) == "/")
-			dictionariesPath = dictionariesPath.substr(0, dictionariesPath.length - 1);
-	}
-
-	this.isUseSharedWorker = !!window.SharedWorker;
-	if (this.isUseSharedWorker && (false === settings.useShared))
-		this.isUseSharedWorker = false;
-
-	// disable for WKWebView
-	if (this.isUseSharedWorker && (undefined !== window["webkit"]))
-		this.isUseSharedWorker = false;
-
-	this.worker = null;
-
-	this.languages = {
+	return {
 		"1068" : "az_Latn_AZ",
 		"1026" : "bg_BG",
 		"1027" : "ca_ES",
@@ -117,9 +81,53 @@ function CSpellchecker(settings)
 		"1053" : "sv_SE",
 		"1055" : "tr_TR",
 		"1058" : "uk_UA",
+		"2115" : "uz_Cyrl_UZ",
+		"1091" : "uz_Latn_UZ",
 		"1066" : "vi_VN",
 		"2067" : "nl_NL" // nl_BE
 	};
+};
+
+function CSpellchecker(settings)
+{
+	this.useWasm = false;
+	var webAsmObj = window["WebAssembly"];
+	if (typeof webAsmObj === "object")
+	{
+		if (typeof webAsmObj["Memory"] === "function")
+		{
+			if ((typeof webAsmObj["instantiateStreaming"] === "function") || (typeof webAsmObj["instantiate"] === "function"))
+				this.useWasm = true;
+		}
+	}
+
+	this.enginePath = "./spell/";
+	if (settings && settings.enginePath)
+	{
+		this.enginePath = settings.enginePath;
+		if (this.enginePath.substring(this.enginePath.length - 1) != "/")
+			this.enginePath += "/";
+	}
+
+	var dictionariesPath = "./../dictionaries";
+	if (settings && settings.dictionariesPath)
+	{
+		dictionariesPath = settings.dictionariesPath;
+		if (dictionariesPath.substring(dictionariesPath.length - 1) == "/")
+			dictionariesPath = dictionariesPath.substr(0, dictionariesPath.length - 1);
+	}
+
+	this.isUseSharedWorker = !!window.SharedWorker;
+	if (this.isUseSharedWorker && (false === settings.useShared))
+		this.isUseSharedWorker = false;
+
+	// disable for WKWebView
+	if (this.isUseSharedWorker && (undefined !== window["webkit"]))
+		this.isUseSharedWorker = false;
+
+	this.worker = null;
+
+	this.languages = AscCommon.spellcheckGetLanguages();
 
 	this.stop = function()
 	{

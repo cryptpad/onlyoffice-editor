@@ -137,6 +137,14 @@
 			{
 				return this.engine["getImageBlob"](path);
 			};
+			/**
+			 * Get all file paths in archive
+			 * @returns {Array}
+			 */
+			ZLib.prototype.getPaths = function()
+			{
+				return this.engine["getPaths"]();
+			};
 
 
 			AscCommon.ZLib = ZLib;

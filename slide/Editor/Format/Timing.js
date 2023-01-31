@@ -1869,6 +1869,24 @@
         }
         return oTmRoot.getAllAnimEffects();
     };
+	CTiming.prototype.hasEffects = function() {
+		if (!this.tnLst) {
+			return false;
+		}
+		var oTmRoot = this.getTimingRootNode();
+		if (!oTmRoot) {
+			return false;
+		}
+		let bResult = false;
+		oTmRoot.traverseTimeNodes(function (oNode) {
+			if (oNode.isAnimEffect()) {
+				bResult = true;
+				return true;
+			}
+			return false;
+		});
+		return bResult;
+	};
     CTiming.prototype.createTimingRoot = function () {
         var oTnContainer, oCTn;
         this.setTnLst(new CTnLst());
@@ -2776,18 +2794,24 @@
         }
         var aEffectsForDraw = this.getEffectsForLabelsDraw();
 
-        var oContext = oGraphics.m_oContext;
-        var sOldFill;
-        if (oContext) {
-            var dPR = AscCommon.AscBrowser.retinaPixelRatio;
-            oContext.font = Math.round(8 * dPR) + "pt Arial";
-            oContext.textAlign = "center";
-        }
-        for (var nEffect = 0; nEffect < aEffectsForDraw.length; ++nEffect) {
-            aEffectsForDraw[nEffect].drawEffectLabel(oGraphics);
-        }
-        if (oContext) {
-            oContext.fillStyle = sOldFill;
+        if(aEffectsForDraw.length > 0) {
+            oGraphics.SaveGrState();
+            oGraphics.transform3(new AscCommon.CMatrix());
+            oGraphics.SetIntegerGrid(true);
+            var oContext = oGraphics.m_oContext;
+            var sOldFill;
+            if (oContext) {
+                var dPR = AscCommon.AscBrowser.retinaPixelRatio;
+                oContext.font = Math.round(8 * dPR) + "pt Arial";
+                oContext.textAlign = "center";
+            }
+            for (var nEffect = 0; nEffect < aEffectsForDraw.length; ++nEffect) {
+                aEffectsForDraw[nEffect].drawEffectLabel(oGraphics);
+            }
+            if (oContext) {
+                oContext.fillStyle = sOldFill;
+            }
+            oGraphics.RestoreGrState();
         }
     };
     CTiming.prototype.isDrawAnimLabels = function () {

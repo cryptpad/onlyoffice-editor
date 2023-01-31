@@ -164,11 +164,11 @@ CSdtBase.prototype.SetContentControlEquation = function(isEquation)
  */
 CSdtBase.prototype.ApplyContentControlEquationPr = function()
 {
-	var oTextPr = new CTextPr();
-	oTextPr.SetItalic(true);
-	oTextPr.SetFontFamily("Cambria Math");
+	let textPr = this.GetDefaultTextPr().Copy();
+	textPr.SetItalic(true);
+	textPr.SetFontFamily("Cambria Math");
 
-	this.SetDefaultTextPr(oTextPr);
+	this.SetDefaultTextPr(textPr);
 	this.SetContentControlEquation(true);
 	this.SetContentControlTemporary(true);
 
@@ -210,16 +210,14 @@ CSdtBase.prototype.IsContentControlTemporary = function()
  */
 CSdtBase.prototype.SetFormPr = function(oFormPr)
 {
+	this.private_CheckFieldMasterBeforeSet(oFormPr);
 	this.private_CheckKeyValueBeforeSet(oFormPr);
 
 	if ((!this.Pr.FormPr && oFormPr) || !this.Pr.FormPr.IsEqual(oFormPr))
 	{
-		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
-		this.Pr.FormPr = oFormPr;
-
-		let oLogicDocument = this.GetLogicDocument();
-		if (oLogicDocument)
-			oLogicDocument.GetFormsManager().Register(this);
+		let change = new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr);
+		AscCommon.History.Add(change);
+		change.Redo();
 
 		this.private_OnAddFormPr();
 	}
@@ -239,6 +237,53 @@ CSdtBase.prototype.private_CheckKeyValueBeforeSet = function(formPr)
 		formPr.SetKey(this.Pr.FormPr.GetKey());
 	else
 		formPr.SetKey(newKey);
+};
+CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
+{
+	if (!formPr || !formPr.GetRole())
+		return;
+	
+	let roleName = formPr.GetRole();
+	if (!roleName)
+		return;
+	
+	// Настройки formPr могут прийти в интерфейс с заполненным fieldMaster, если в интерфейсе меняется роль, значит
+	// она будет здесь выставлена и имеет больший приоритет, чем выставленный fieldMaster
+	
+	formPr.SetFieldMaster(null);
+	formPr.SetRole(null);
+	
+	let logicDocument = this.GetLogicDocument();
+	let oform;
+	
+	if (!logicDocument
+		|| !window['AscOForm']
+		|| !(oform = logicDocument.GetOFormDocument())
+		|| !logicDocument.IsActionStarted())
+		return;
+	
+	let role = oform.getRole(roleName);
+	let userMaster;
+	if (!role || !(userMaster = role.getUserMaster()))
+		return;
+	
+	let fieldMaster;
+	if (this.Pr.FormPr && this.Pr.FormPr.GetFieldMaster())
+		fieldMaster = this.Pr.FormPr.GetFieldMaster();
+	
+	if (!fieldMaster)
+		fieldMaster = oform.getFormat().createFieldMaster();
+	else
+		oform.getFormat().addFieldMaster(fieldMaster);
+	
+	if (1 !== fieldMaster.getUserCount() || userMaster !== fieldMaster.getUser(0))
+	{
+		fieldMaster.clearUsers();
+		fieldMaster.addUser(userMaster);
+	}
+	
+	fieldMaster.setLogicField(this);
+	formPr.SetFieldMaster(fieldMaster);
 };
 /**
  * Удаляем настройки специальных форм
@@ -315,6 +360,31 @@ CSdtBase.prototype.GetFormKey = function()
 	return (this.Pr.FormPr.Key);
 };
 /**
+ * Задаем новый ключ для специальной формы
+ * @param key {string}
+ */
+CSdtBase.prototype.SetFormKey = function(key)
+{
+	if (this.GetFormKey() === key)
+		return;
+	
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		return;
+	
+	formPr = formPr.Copy();
+	formPr.Key = key;
+	this.SetFormPr(formPr);
+};
+/**
+ * Проверяем, является ли данный контейнер чекбоксом
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsCheckBox = function()
+{
+	return false;
+};
+/**
  * Проверяем, является ли заданный контрол радио-кнопкой
  * @returns {boolean}
  */
@@ -340,6 +410,20 @@ CSdtBase.prototype.GetRadioButtonGroupKey = function()
 		return undefined;
 
 	return (this.Pr.CheckBox.GroupKey);
+};
+/**
+ * Задаем групповой ключ для радио кнопки
+ * @param {string }groupKey
+ */
+CSdtBase.prototype.SetRadioButtonGroupKey = function(groupKey)
+{
+	let checkBoxPr = this.Pr.CheckBox;
+	if (!this.IsRadioButton() || !checkBoxPr)
+		return;
+	
+	checkBoxPr = checkBoxPr.Copy();
+	checkBoxPr.SetGroupKey(groupKey);
+	this.SetCheckBoxPr(checkBoxPr);
 };
 /**
  * Для чекбоксов и радио-кнопок получаем состояние
@@ -781,4 +865,139 @@ CSdtBase.prototype.IsBuiltInWatermark = function()
 CSdtBase.prototype.IsBuiltInUnique = function()
 {
 	return (this.Pr && this.Pr.DocPartObj && true === this.Pr.DocPartObj.Unique);
+};
+CSdtBase.prototype.GetInnerText = function()
+{
+	return "";
+};
+CSdtBase.prototype.GetFormValue = function()
+{
+	if (!this.IsForm())
+		return null;
+
+	if (this.IsPlaceHolder())
+		return this.IsCheckBox() ? false : "";
+
+	if (this.IsComplexForm())
+	{
+		return this.GetInnerText();
+	}
+	else if (this.IsCheckBox())
+	{
+		return this.IsCheckBoxChecked();
+	}
+	else if (this.IsPictureForm())
+	{
+		let oImg;
+		let allDrawings = this.GetAllDrawingObjects();
+		for (let nDrawing = 0; nDrawing < allDrawings.length; ++nDrawing)
+		{
+			if (allDrawings[nDrawing].IsPicture())
+			{
+				oImg = allDrawings[nDrawing].GraphicObj;
+				break;
+			}
+		}
+
+		return oImg ? oImg.getBase64Img() : "";
+	}
+
+	return this.GetInnerText();
+};
+CSdtBase.prototype.MoveCursorOutsideForm = function(isBefore)
+{
+};
+CSdtBase.prototype.GetFieldMaster = function()
+{
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		return null;
+	
+	return formPr.GetFieldMaster();
+};
+/**
+ * Получаем название роли данного поля
+ * @returns {string}
+ */
+CSdtBase.prototype.GetFormRole = function()
+{
+	let fieldMaster = this.GetFieldMaster();
+	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
+	return userMaster ? userMaster.getRole() : "";
+};
+CSdtBase.prototype.SetFormRole = function(roleName)
+{
+	if (!this.IsForm() || roleName === this.GetFormRole())
+		return;
+	
+	let formPr = this.GetFormPr().Copy();
+	formPr.SetRole(roleName);
+	this.SetFormPr(formPr);
+};
+CSdtBase.prototype.SetFieldMaster = function(fieldMaster)
+{
+	if (!fieldMaster)
+		return;
+	
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		return;
+	
+	let newFormPr = formPr.Copy();
+	newFormPr.Field = fieldMaster;
+	this.SetFormPr(newFormPr);
+};
+CSdtBase.prototype.GetFormShd = function()
+{
+	let formPr = this.GetFormPr();
+	if (!formPr)
+		return null;
+	
+	return formPr.GetShd();
+};
+CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
+{
+	if (undefined === defaultColor)
+	{
+		let logicDocument = this.GetLogicDocument();
+		defaultColor = logicDocument && logicDocument.GetSpecialFormsHighlight ? logicDocument.GetSpecialFormsHighlight() : null;
+	}
+	
+	let logicDocument = this.GetLogicDocument();
+	
+	if (!logicDocument || !this.IsForm())
+		return defaultColor;
+	
+	let formPr = this.GetFormPr();
+	if (!this.IsMainForm())
+	{
+		let mainForm = this.GetMainForm();
+		if (!mainForm)
+			return defaultColor;
+		
+		formPr = mainForm.GetFormPr();
+	}
+	
+	if (!formPr)
+		return defaultColor;
+	
+	let fieldMaster = formPr.GetFieldMaster();
+	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
+	let userColor   = userMaster ? userMaster.getColor() : null;
+	
+	let oform         = logicDocument ? logicDocument.GetOFormDocument() : null;
+	let currentUser   = oform ? oform.getCurrentUserMaster() : null;
+	
+	if (!currentUser || currentUser === userMaster)
+		return userColor ? userColor : defaultColor;
+	
+	return new AscWord.CDocumentColor(0xF2, 0xF2, 0xF2);
+};
+CSdtBase.prototype.CheckOFormUserMaster = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	if (!logicDocument)
+		return true;
+	
+	return logicDocument.CheckOFormUserMaster(this);
 };

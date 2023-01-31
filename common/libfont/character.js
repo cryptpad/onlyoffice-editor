@@ -45,6 +45,9 @@
 		this.End = _end;
 		this.Name = _name;
 	}
+	CSymbolRange.prototype["getStart"] = function() { return this.Start; };
+	CSymbolRange.prototype["getEnd"] = function() { return this.End; };
+	CSymbolRange.prototype["getName"] = function() { return this.Name; };
 
 	function CFontByCharacter()
 	{
@@ -330,5 +333,7 @@
 	window['AscFonts'] = window['AscFonts'] || {};
 	window['AscFonts'].IsCheckSymbols = false;
 	window['AscFonts'].FontPickerByCharacter = new CFontByCharacter();
+
+	window['AscFonts']['getSymbolRanges'] = function() { return window['AscFonts'].FontPickerByCharacter.Ranges; };
 
 })(window);

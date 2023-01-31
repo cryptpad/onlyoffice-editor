@@ -39,61 +39,58 @@
 */
 function (window, undefined) {
 
-// Import
-var c_oAscSizeRelFromH = AscCommon.c_oAscSizeRelFromH;
-var c_oAscSizeRelFromV = AscCommon.c_oAscSizeRelFromV;
-var c_oAscLockTypes = AscCommon.c_oAscLockTypes;
-var parserHelp = AscCommon.parserHelp;
-var isRealObject = AscCommon.isRealObject;
-    var History = AscCommon.History;
+	// Import
+	const c_oAscSizeRelFromH = AscCommon.c_oAscSizeRelFromH;
+	const c_oAscSizeRelFromV = AscCommon.c_oAscSizeRelFromV;
+	const c_oAscLockTypes = AscCommon.c_oAscLockTypes;
+	const isRealObject = AscCommon.isRealObject;
+    const History = AscCommon.History;
 
-var c_oAscError = Asc.c_oAscError;
-var c_oAscChartTitleShowSettings = Asc.c_oAscChartTitleShowSettings;
-var c_oAscChartHorAxisLabelShowSettings = Asc.c_oAscChartHorAxisLabelShowSettings;
-var c_oAscChartVertAxisLabelShowSettings = Asc.c_oAscChartVertAxisLabelShowSettings;
-var c_oAscChartLegendShowSettings = Asc.c_oAscChartLegendShowSettings;
-var c_oAscChartDataLabelsPos = Asc.c_oAscChartDataLabelsPos;
-var c_oAscGridLinesSettings = Asc.c_oAscGridLinesSettings;
-var c_oAscChartTypeSettings = Asc.c_oAscChartTypeSettings;
-var c_oAscRelativeFromH = Asc.c_oAscRelativeFromH;
-var c_oAscRelativeFromV = Asc.c_oAscRelativeFromV;
-var c_oAscFill = Asc.c_oAscFill;
+	const c_oAscError = Asc.c_oAscError;
+	const c_oAscChartTitleShowSettings = Asc.c_oAscChartTitleShowSettings;
+	const c_oAscChartLegendShowSettings = Asc.c_oAscChartLegendShowSettings;
+	const c_oAscChartDataLabelsPos = Asc.c_oAscChartDataLabelsPos;
+	const c_oAscGridLinesSettings = Asc.c_oAscGridLinesSettings;
+	const c_oAscChartTypeSettings = Asc.c_oAscChartTypeSettings;
+	const c_oAscRelativeFromH = Asc.c_oAscRelativeFromH;
+	const c_oAscRelativeFromV = Asc.c_oAscRelativeFromV;
+	const c_oAscFill = Asc.c_oAscFill;
 
 
-var HANDLE_EVENT_MODE_HANDLE = 0;
-var HANDLE_EVENT_MODE_CURSOR = 1;
+	const HANDLE_EVENT_MODE_HANDLE = 0;
+	const HANDLE_EVENT_MODE_CURSOR = 1;
 
-var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
+	const DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
 
-    var BAR_DIR_BAR = 0;
-    var BAR_DIR_COL = 1;
+    const BAR_DIR_BAR = 0;
+    const BAR_DIR_COL = 1;
 
-    var BAR_GROUPING_CLUSTERED = 0;
-    var BAR_GROUPING_PERCENT_STACKED = 1;
-    var BAR_GROUPING_STACKED = 2;
-    var BAR_GROUPING_STANDARD = 3;
+    const BAR_GROUPING_CLUSTERED = 0;
+    const BAR_GROUPING_PERCENT_STACKED = 1;
+    const BAR_GROUPING_STACKED = 2;
+    const BAR_GROUPING_STANDARD = 3;
 
-    var GROUPING_PERCENT_STACKED = 0;
-    var GROUPING_STACKED = 1;
-    var GROUPING_STANDARD = 2;
+    const GROUPING_PERCENT_STACKED = 0;
+    const GROUPING_STACKED = 1;
+    const GROUPING_STANDARD = 2;
 
-    var SCATTER_STYLE_LINE = 0;
-    var SCATTER_STYLE_LINE_MARKER = 1;
-    var SCATTER_STYLE_MARKER = 2;
-    var SCATTER_STYLE_NONE = 3;
-    var SCATTER_STYLE_SMOOTH = 4;
-    var SCATTER_STYLE_SMOOTH_MARKER = 5;
+    const SCATTER_STYLE_LINE = 0;
+    const SCATTER_STYLE_LINE_MARKER = 1;
+    const SCATTER_STYLE_MARKER = 2;
+    const SCATTER_STYLE_NONE = 3;
+    const SCATTER_STYLE_SMOOTH = 4;
+    const SCATTER_STYLE_SMOOTH_MARKER = 5;
 
-    var CARD_DIRECTION_N = 0;
-    var CARD_DIRECTION_NE = 1;
-    var CARD_DIRECTION_E = 2;
-    var CARD_DIRECTION_SE = 3;
-    var CARD_DIRECTION_S = 4;
-    var CARD_DIRECTION_SW = 5;
-    var CARD_DIRECTION_W = 6;
-    var CARD_DIRECTION_NW = 7;
+    const CARD_DIRECTION_N = 0;
+    const CARD_DIRECTION_NE = 1;
+    const CARD_DIRECTION_E = 2;
+    const CARD_DIRECTION_SE = 3;
+    const CARD_DIRECTION_S = 4;
+    const CARD_DIRECTION_SW = 5;
+    const CARD_DIRECTION_W = 6;
+    const CARD_DIRECTION_NW = 7;
 
-    var CURSOR_TYPES_BY_CARD_DIRECTION = [];
+    const CURSOR_TYPES_BY_CARD_DIRECTION = [];
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_N]  = "n-resize";
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_NE] = "ne-resize";
     CURSOR_TYPES_BY_CARD_DIRECTION[CARD_DIRECTION_E]  = "e-resize";
@@ -109,6 +106,8 @@ var DISTANCE_TO_TEXT_LEFTRIGHT = 3.2;
         "width": 300,
         "height": 300,
     }
+	const OBJECT_PASTE_SHIFT = 152400;
+
     function fillImage(image, rasterImageId, x, y, extX, extY, sVideoUrl, sAudioUrl)
     {
         image.setSpPr(new AscFormat.CSpPr());
@@ -1060,7 +1059,7 @@ DrawingObjectsController.prototype =
         for(var i = 0; i < _aConnectors.length; ++i){
             for(var j = 0; j < aDrawings.length; ++j){
                 if(aDrawings[j].getObjectType() === AscDFH.historyitem_type_GroupShape){
-                    if(bInsideGroup){
+                    if(bInsideGroup) {
                         this.getAllConnectorsByDrawings(aDrawings[j].getArrGraphicObjects(), _ret, _aConnectors, bInsideGroup);
                     }
                 }
@@ -2813,7 +2812,7 @@ DrawingObjectsController.prototype =
     },
 
 
-    getNearestPos: function(x, y){
+    getNearestPos: function(x, y, pageIndex, drawing){
         var oTragetDocContent = this.getTargetDocContent(false, false);
         if(oTragetDocContent){
             var tx = x, ty = y;
@@ -2822,7 +2821,7 @@ DrawingObjectsController.prototype =
                 var oInvertTransform = AscCommon.global_MatrixTransformer.Invert(oTransform);
                 tx = oInvertTransform.TransformPointX(x, y);
                 ty = oInvertTransform.TransformPointY(x, y);
-                return oTragetDocContent.Get_NearestPos(0, tx, ty, false);
+                return oTragetDocContent.Get_NearestPos(0, tx, ty, false, drawing);
             }
         }
         return null;
@@ -2887,6 +2886,15 @@ DrawingObjectsController.prototype =
             return text_object.getDocContent();
         }
         return null;
+    },
+
+    checkCurrentTextObjectExtends: function()
+    {
+        var text_object = getTargetTextObject(this);
+        if(text_object)
+        {
+            text_object.checkExtentsByDocContent && text_object.checkExtentsByDocContent(true, true);
+        }
     },
 
 
@@ -3358,6 +3366,36 @@ DrawingObjectsController.prototype =
         }
     },
 
+	convertMathView: function(isToLinear, isAll)
+	{
+		let oDocContent = this.getTargetDocContent();
+		if(!oDocContent)
+		{
+			return;
+		}
+		let oInfo = oDocContent.GetSelectedElementsInfo();
+		let oMath = oInfo.GetMath();
+		if (!oMath)
+		{
+			return;
+		}
+		let oApi = this.getEditorApi();
+		this.checkSelectedObjectsAndCallback(function()
+		{
+			let nInputType = oApi.getMathInputType();
+			if (isAll || !oDocContent.IsTextSelectionUse())
+			{
+				oDocContent.RemoveTextSelection();
+				oMath.ConvertView(isToLinear, nInputType);
+			}
+			else
+			{
+				oMath.ConvertViewBySelection(isToLinear, nInputType);
+			}
+		},
+		[], false, AscDFH.historydescription_Document_ConvertMathView, [], false);
+	},
+
     paragraphIncDecFontSize: function(bIncrease)
     {
         this.applyDocContentFunction(CDocumentContent.prototype.IncreaseDecreaseFontSize, [bIncrease], CTable.prototype.IncreaseDecreaseFontSize);
@@ -3664,8 +3702,22 @@ DrawingObjectsController.prototype =
 
     },
 
+		deleteSelectedObjectsCallback: function() {
+			var oSelection  = this.selection.groupSelection ? this.selection.groupSelection.selection : this.selection;
+			if(oSelection.chartSelection)
+			{
+				oSelection.chartSelection.resetSelection(true);
+				oSelection.chartSelection = null;
+			}
+			if(oSelection.textSelection)
+			{
+				oSelection.textSelection = null;
+			}
+			this.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
+		},
     deleteSelectedObjects: function(){
-        if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection)){
+        if(Asc["editor"] && Asc["editor"].isChartEditor && (!this.selection.chartSelection))
+		{
             return true;
         }
         if(this.checkSelectedObjectsProtection())
@@ -3675,15 +3727,7 @@ DrawingObjectsController.prototype =
         var oThis = this;
         this.checkSelectedObjectsAndCallback(function(){
 
-            var oSelection  = oThis.selection.groupSelection ? oThis.selection.groupSelection.selection : oThis.selection;
-            if(oSelection.chartSelection) {
-                oSelection.chartSelection.resetSelection(true);
-                oSelection.chartSelection = null;
-            }
-            if(oSelection.textSelection) {
-                oSelection.textSelection = null;
-            }
-            oThis.removeCallback(-1, undefined, undefined, undefined, undefined, undefined);
+			oThis.deleteSelectedObjectsCallback();
             oThis.updateSelectionState();
         }, [], false, AscDFH.historydescription_Spreadsheet_Remove);
         return true;
@@ -3749,9 +3793,12 @@ DrawingObjectsController.prototype =
         {
             if(!this.document)
             {
-                if ( null != HyperProps.Text && "" != HyperProps.Text && true === content.IsSelectionUse() )
+                if ( null != HyperProps.Text && "" != HyperProps.Text )
                 {
-                    this.removeCallback(-1, undefined, undefined, undefined, undefined, true);
+                    if (true === content.IsSelectionUse())
+                    {
+                        this.removeCallback(-1, undefined, undefined, undefined, undefined, true);
+                    }
                     bCheckExtents = true;
                 }
             }
@@ -5011,6 +5058,10 @@ DrawingObjectsController.prototype =
         {
             oTypedChart.setLineParams(oProps.showMarker, oProps.bLine, oProps.smooth);
         }
+        let oView3D = oProps.view3D;
+        if(oView3D) {
+            oChartSpace.changeView3d(oView3D);
+        }
     },
 
     checkDlblsPosition: function(chart, chart_type, position){
@@ -5190,6 +5241,7 @@ DrawingObjectsController.prototype =
             ret.smooth = oFirstChart.isSmooth();
             ret.showMarker = oFirstChart.isMarkerChart();
         }
+        ret.putView3d(chart_space.getView3d());
         return ret;
     },
 
@@ -5431,9 +5483,26 @@ DrawingObjectsController.prototype =
         this.curState = newState;
     },
 
+	setEquationTrack: function(oMathTrackHandler, IsShowEquationTrack)
+	{
+		let oDocContent = null;
+		let bSelection = false;
+		let bEmptySelection = true;
+		let oMath = null;
+		oDocContent = this.getTargetDocContent();
+		if(oDocContent)
+		{
+			bSelection = oDocContent.IsSelectionUse();
+			bEmptySelection = oDocContent.IsSelectionEmpty();
+			let oSelectedInfo = oDocContent.GetSelectedElementsInfo();
+			oMath = oSelectedInfo.GetMath();
+		}
+		oMathTrackHandler.SetTrackObject(IsShowEquationTrack ? oMath : null, 0, false === bSelection || true === bEmptySelection);
+	},
+
     updateSelectionState: function(bNoCheck)
     {
-        var text_object, drawingDocument = this.drawingObjects.getDrawingDocument();
+        let text_object, drawingDocument = this.drawingObjects.getDrawingDocument();
         if(this.selection.textSelection)
         {
             text_object = this.selection.textSelection;
@@ -5464,24 +5533,22 @@ DrawingObjectsController.prototype =
             drawingDocument.SelectEnabled(false);
             drawingDocument.SelectShow();
         }
-        var oContent = this.getTargetDocContent();
-        if(oContent)
-        {
-            var oSelectedInfo = new CSelectedElementsInfo();
-            oSelectedInfo = oContent.GetSelectedElementsInfo(oSelectedInfo);
-
-            var Math = oSelectedInfo.GetMath();
-            var bSelection = oContent.IsSelectionUse();
-            var bEmptySelection = bSelection && oContent.IsSelectionEmpty();
-            if (null !== Math)
-                drawingDocument.Update_MathTrack(true, (!bSelection || bEmptySelection), Math);
-            else
-                drawingDocument.Update_MathTrack(false);
-        }
-        else
-        {
-            drawingDocument.Update_MathTrack(false);
-        }
+		let oMathTrackHandler = null;
+		if(this.drawingObjects.mathTrackHandler)
+		{
+			oMathTrackHandler = this.drawingObjects.mathTrackHandler;
+		}
+		else
+		{
+			if(this.drawingObjects.cSld)
+			{
+				oMathTrackHandler = editor.WordControl.m_oLogicDocument.MathTrackHandler;
+			}
+		}
+		if(oMathTrackHandler)
+		{
+			this.setEquationTrack(oMathTrackHandler, this.canEdit());
+		}
     },
 
     remove: function(dir, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
@@ -5866,7 +5933,96 @@ DrawingObjectsController.prototype =
         }
     },
 
+	getPresentation: function()
+	{
+		return null;
+	},
 
+	moveSelectedObjectsByDir: function(aDir, bCtrlKey)//
+	{
+		//aDir - [+-1(null), +-1(null)] aDir[0] - x, dDir[1] - y
+		let oPresentation = this.getPresentation();
+		let bIsSnap = oPresentation && !bCtrlKey && !!this.getSnapNearestPos(0, 0);
+		let dDelta = 0.0;
+		let bHor = aDir[0] !== null;
+		let nDir;
+		if(bHor)
+		{
+			nDir = aDir[0];
+		}
+		else
+		{
+			nDir = aDir[1];
+		}
+		if(bIsSnap)
+		{
+			let oBounds = this.getSelectedObjectsBounds();
+			let dMoveDelta = 0.01;
+			if(nDir < 0)
+			{
+				let oNearestPos = this.getSnapNearestPos(oBounds.minX, oBounds.minY);
+				if(!oNearestPos)
+				{
+					return;
+				}
+				let dPos, dMinPos;
+				if(bHor)
+				{
+					dPos = oNearestPos.x;
+					dMinPos = oBounds.minX;
+				}
+				else
+				{
+					dPos = oNearestPos.y;
+					dMinPos = oBounds.minY;
+				}
+				if(dPos < dMinPos && !AscFormat.fApproxEqual(dPos, dMinPos, dMoveDelta))
+				{
+					dDelta = dPos - dMinPos;
+				}
+				else
+				{
+					dDelta = dPos - dMinPos - oPresentation.getGridSpacingMM();
+				}
+			}
+			else
+			{
+				let oNearestPos = this.getSnapNearestPos(oBounds.maxX, oBounds.maxY);
+				if(!oNearestPos)
+				{
+					return;
+				}
+				let dPos, dMaxPos;
+				if(bHor)
+				{
+					dPos = oNearestPos.x;
+					dMaxPos = oBounds.maxX;
+				}
+				else
+				{
+					dPos = oNearestPos.y;
+					dMaxPos = oBounds.maxY;
+				}
+				if(dPos > dMaxPos && !AscFormat.fApproxEqual(dPos, dMaxPos, dMoveDelta))
+				{
+					dDelta = dPos - dMaxPos;
+				}
+				else
+				{
+					dDelta = dPos - dMaxPos + oPresentation.getGridSpacingMM();
+				}
+			}
+		}
+		else
+		{
+			dDelta = this.getMoveDist(bCtrlKey);
+			if(nDir < 0)
+			{
+				dDelta = -dDelta;
+			}
+		}
+		this.moveSelectedObjects(bHor ? dDelta : 0.0, !bHor ? dDelta : 0.0);
+	},
 
     moveSelectedObjects: function(dx, dy)
     {
@@ -6029,7 +6185,7 @@ DrawingObjectsController.prototype =
             if(this.selectedObjects.length === 0)
                 return;
 
-            this.moveSelectedObjects(-this.getMoveDist(Word), 0);
+			this.moveSelectedObjectsByDir([-1, null], Word);
         }
     },
 
@@ -6069,7 +6225,8 @@ DrawingObjectsController.prototype =
         {
             if(this.selectedObjects.length === 0)
                 return;
-            this.moveSelectedObjects(this.getMoveDist(Word), 0);
+
+	        this.moveSelectedObjectsByDir([1, null], Word);
         }
     },
 
@@ -6110,7 +6267,7 @@ DrawingObjectsController.prototype =
         {
             if(this.selectedObjects.length === 0)
                 return;
-            this.moveSelectedObjects(0, -this.getMoveDist(Word));
+	        this.moveSelectedObjectsByDir([null, -1], Word);
         }
     },
 
@@ -6150,7 +6307,7 @@ DrawingObjectsController.prototype =
         {
             if(this.selectedObjects.length === 0)
                 return;
-            this.moveSelectedObjects(0, this.getMoveDist(Word));
+	        this.moveSelectedObjectsByDir([null, 1], Word);
         }
     },
 
@@ -6365,7 +6522,8 @@ DrawingObjectsController.prototype =
     onKeyDown: function(e)
     {
         var ctrlKey = e.metaKey || e.ctrlKey;
-		var macCmdKey = AscCommon.AscBrowser.isMacOs && e.metaKey;
+		var bIsMacOs = AscCommon.AscBrowser.isMacOs;
+		var macCmdKey = bIsMacOs && e.metaKey;
 
         var drawingObjectsController = this;
         var bRetValue = false;
@@ -6648,7 +6806,7 @@ DrawingObjectsController.prototype =
         }
         else if ( e.keyCode == 67) // C
         {
-            if(e.altKey)
+            if(e.altKey && (!bIsMacOs || bIsMacOs && true === ctrlKey))
             {
                 var oSelector = this.selection.groupSelection || this;
                 var aSelected = oSelector.selectedObjects;
@@ -6724,7 +6882,7 @@ DrawingObjectsController.prototype =
         }
         else if ( e.keyCode == 83) //  S - save
         {
-            if(e.altKey)
+            if(e.altKey && (!bIsMacOs || bIsMacOs && true === ctrlKey))
             {
                 var oSelector = this.selection.groupSelection || this;
                 var aSelected = oSelector.selectedObjects;
@@ -6845,12 +7003,16 @@ DrawingObjectsController.prototype =
         return bRetValue;
     },
 
+    haveTrackedObjects: function(){
+        return this.arrTrackObjects.length > 0 || this.arrPreTrackObjects.length > 0;
+    },
+
     checkTrackDrawings: function(){
         return this.curState instanceof  AscFormat.StartAddNewShape
         || this.curState instanceof  AscFormat.SplineBezierState
         || this.curState instanceof  AscFormat.PolyLineAddState
         || this.curState instanceof  AscFormat.AddPolyLine2State
-        || this.arrTrackObjects.length > 0 || this.arrPreTrackObjects.length > 0;
+        || this.haveTrackedObjects();
     },
 
     checkEndAddShape: function()
@@ -7019,6 +7181,7 @@ DrawingObjectsController.prototype =
                 }
                 ret.theme = this.getTheme();
                 ret.colorMapOverride = this.getColorMapOverride();
+                options.putView3d(ret.getView3d());
                 return ret;
             }, this, []);
         }
@@ -7349,6 +7512,21 @@ DrawingObjectsController.prototype =
             aAllConnectors[i].calculateTransform();
         }
         this.drawingObjects.showDrawingObjects();
+    },
+
+    checkGraphicObjectPosition: function(x, y, w, h)
+    {
+        return {x: 0, y: 0};
+    },
+
+    isSnapToGrid: function()
+    {
+        return false;
+    },
+
+    getSnapNearestPos: function(dX, dY)
+    {
+        return null;
     },
 
     canGroup: function()
@@ -8590,7 +8768,7 @@ DrawingObjectsController.prototype =
                 }
                 case AscDFH.historyitem_type_GraphicFrame:
                 {
-                    if(table_props === undefined)
+                    if(table_props === undefined && drawings.length === 1)
                     {
                         new_table_props = drawing.graphicObject.Get_Props();
                         table_props = new_table_props;
@@ -8823,6 +9001,61 @@ DrawingObjectsController.prototype =
         }
         return this.getDrawingPropsFromArray(this.selectedObjects);
     },
+
+	getDrawingsPasteShift: function(aDrawings)
+	{
+		let oLastDrawing = aDrawings[aDrawings.length - 1];
+		if(!oLastDrawing)
+		{
+			return 0;
+		}
+		let dPosX = oLastDrawing.getXfrmOffX();
+		let dPosY = oLastDrawing.getXfrmOffY();
+		let dExtX = oLastDrawing.getXfrmExtX();
+		let dExtY = oLastDrawing.getXfrmExtY();
+		if(dPosX === null || dPosY === null || dExtX === null || dExtY === null)
+		{
+			return 0;
+		}
+		let nObjectType = oLastDrawing.getObjectType();
+		let aAllDrawings = this.getDrawingArray();
+		let oBaseDrawing = null;
+		let nBaseDrawingIdx = null;
+		let fAE = AscFormat.fApproxEqual;
+		let dDelta = 0.1;
+		let fCompareDrawing = function(oCurDrawing, dPosX, dPosY, dExtX, dExtY) {
+			return (oCurDrawing.getObjectType() === nObjectType &&
+				fAE(dPosX, oCurDrawing.getXfrmOffX() || oCurDrawing.x, dDelta) &&
+				fAE(dPosY, oCurDrawing.getXfrmOffY() || oCurDrawing.y, dDelta) &&
+				fAE(dExtX, oCurDrawing.getXfrmExtX() || oCurDrawing.extX, dDelta) &&
+				fAE(dExtY, oCurDrawing.getXfrmExtY() || oCurDrawing.extY, dDelta));
+		};
+		for(let nDrawing = 0; nDrawing < aAllDrawings.length; ++nDrawing)
+		{
+			let oCurDrawing = aAllDrawings[nDrawing];
+			if(fCompareDrawing(oCurDrawing, dPosX, dPosY, dExtX, dExtY))
+			{
+				oBaseDrawing = oCurDrawing;
+				nBaseDrawingIdx = nDrawing;
+				break;
+			}
+		}
+		if(!oBaseDrawing)
+		{
+			return 0;
+		}
+		let dPasteShift = AscCommonWord.g_dKoef_emu_to_mm * OBJECT_PASTE_SHIFT;
+		let dShift = dPasteShift;
+		for(let nDrawing = nBaseDrawingIdx + 1; nDrawing < aAllDrawings.length; ++nDrawing)
+		{
+			let oCurDrawing = aAllDrawings[nDrawing];
+			if(fCompareDrawing(oCurDrawing, dPosX + dShift, dPosY + dShift, dExtX, dExtY))
+			{
+				dShift += dPasteShift;
+			}
+		}
+		return dShift;
+	},
 
     getEditorApi: function()
     {
@@ -9137,45 +9370,15 @@ DrawingObjectsController.prototype =
             }
             this.prepareParagraphProperties(ParaPr, TextPr, ascSelectedObjects);
         }
-        var oTargetDocContent = this.getTargetDocContent(false, false);
+        let oTargetDocContent = this.getTargetDocContent(false, false);
         if(oTargetDocContent)
         {
-            if (( true === oTargetDocContent.Selection.Use && oTargetDocContent.Selection.StartPos == oTargetDocContent.Selection.EndPos && type_Paragraph == oTargetDocContent.Content[oTargetDocContent.Selection.StartPos].GetType() ) || ( false == oTargetDocContent.Selection.Use && type_Paragraph == oTargetDocContent.Content[oTargetDocContent.CurPos.ContentPos].GetType() ))
-            {
-                var oParagraph;
-                if (true == oTargetDocContent.Selection.Use)
-                    oParagraph = oTargetDocContent.Content[oTargetDocContent.Selection.StartPos];
-                else
-                    oParagraph = oTargetDocContent.Content[oTargetDocContent.CurPos.ContentPos];
-                if ( true === oParagraph.Selection.Use )
-                {
-                    var StartPos = oParagraph.Selection.StartPos;
-                    var EndPos   = oParagraph.Selection.EndPos;
-                    if ( StartPos > EndPos )
-                    {
-                        StartPos = oParagraph.Selection.EndPos;
-                        EndPos   = oParagraph.Selection.StartPos;
-                    }
-
-                    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-                    {
-                        var Element = oParagraph.Content[CurPos];
-
-                        if (true !== Element.IsSelectionEmpty() && (para_Math === Element.Type))
-                        {
-                            ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, Element.Get_MenuProps()));
-                        }
-                    }
-                }
-                else
-                {
-                    var CurType = oParagraph.Content[oParagraph.CurPos.ContentPos].Type;
-                    if (para_Math === CurType)
-                    {
-                        ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, oParagraph.Content[oParagraph.CurPos.ContentPos].Get_MenuProps()));
-                    }
-                }
-            }
+	        let oInfo = oTargetDocContent.GetSelectedElementsInfo();
+	        let oMath = oInfo.GetMath();
+	        if (oMath)
+	        {
+		        ascSelectedObjects.push(new AscCommon.asc_CSelectedObject(Asc.c_oAscTypeSelectElement.Math, oMath.Get_MenuProps()));
+	        }
         }
 
         return ascSelectedObjects;
@@ -10420,6 +10623,101 @@ DrawingObjectsController.prototype =
         }
         AscCommon.History.Create_NewPoint(0);
         this.addImage(sImageUrl, nWidth, nHeight, null, null);
+    },
+	getSelectionImageData: function() {
+		let sImageUrl;
+		if (this.selectedObjects.length > 0) {
+			let oController2 = this.selection.groupSelection ? this.selection.groupSelection : this;
+			let _bounds_cheker = new AscFormat.CSlideBoundsChecker();
+			let dKoef = AscCommon.g_dKoef_mm_to_pix;
+			let w_mm = 210;
+			let h_mm = 297;
+			let w_px = (w_mm * dKoef + 0.5) >> 0;
+			let h_px = (h_mm * dKoef + 0.5) >> 0;
+
+			_bounds_cheker.init(w_px, h_px, w_mm, h_mm);
+			_bounds_cheker.transform(1, 0, 0, 1, 0, 0);
+
+			_bounds_cheker.AutoCheckLineWidth = true;
+			for (let i = 0; i < oController2.selectedObjects.length; ++i) {
+				oController2.selectedObjects[i].draw(_bounds_cheker);
+			}
+
+			var _need_pix_width = _bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1;
+			var _need_pix_height = _bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1;
+
+			if (_need_pix_width > 0 && _need_pix_height > 0) {
+
+				var _canvas = document.createElement('canvas');
+				_canvas.width = _need_pix_width;
+				_canvas.height = _need_pix_height;
+
+				var _ctx = _canvas.getContext('2d');
+				if (!window["NATIVE_EDITOR_ENJINE"]) {
+					var g = new AscCommon.CGraphics();
+					g.init(_ctx, w_px, h_px, w_mm, h_mm);
+					g.m_oFontManager = AscCommon.g_fontManager;
+
+					g.m_oCoordTransform.tx = -_bounds_cheker.Bounds.min_x;
+					g.m_oCoordTransform.ty = -_bounds_cheker.Bounds.min_y;
+					g.transform(1, 0, 0, 1, 0, 0);
+
+
+					AscCommon.IsShapeToImageConverter = true;
+					for (let i = 0; i < oController2.selectedObjects.length; ++i) {
+						oController2.selectedObjects[i].draw(g);
+					}
+					if (AscCommon.g_fontManager) {
+						AscCommon.g_fontManager.m_pFont = null;
+					}
+					if (AscCommon.g_fontManager2) {
+						AscCommon.g_fontManager2.m_pFont = null;
+					}
+					AscCommon.IsShapeToImageConverter = false;
+
+					try {
+						sImageUrl = _canvas.toDataURL("image/png");
+					} catch (err) {
+						sImageUrl = "";
+					}
+				} else {
+					sImageUrl = "";
+				}
+				return {
+					src: sImageUrl,
+					width: _need_pix_width,
+					height: _need_pix_height,
+					bounds: _bounds_cheker.Bounds
+				};
+			}
+		}
+		return null;
+	},
+	getImageDataForSaving: function() {
+		let aSelectedObjects = this.getSelectedArray();
+		if(aSelectedObjects.length === 1) {
+			return this.getImageDataFromSelection();
+		}
+		else {
+			let oImageData = this.getSelectionImageData();
+			if(oImageData) {
+				return {
+					"src": oImageData.src,
+					"width": oImageData.width,
+					"height": oImageData.height
+				}
+			}
+		}
+		return null;
+	},
+    getHorGuidesPos: function() {
+        return [];
+    },
+    getVertGuidesPos: function() {
+        return [];
+    },
+    hitInGuide: function(x, y) {
+        return null;
     }
 };
 
@@ -11111,130 +11409,89 @@ CSlideBoundsChecker.prototype =
 // ASC Classes
 //-----------------------------------------------------------------------------------
 
-function GetMinSnapDistanceXObject(pointX, arrGrObjects, oExclude)
-{
-    var min_dx = null;
-    var ret = null;
-    for(var i = 0; i < arrGrObjects.length; ++i)
+    function GetMinSnapDistance(aSnap, dPos, dMinDistance)
     {
-        var cur_snap_arr_x = arrGrObjects[i].snapArrayX;
-        if(!cur_snap_arr_x)
+        if(!aSnap)
         {
-            continue;
+            return null;
         }
-        if(oExclude === arrGrObjects[i])
+        let dCurMinDistance = dMinDistance;
+        let oRet = null;
+        let nSnapCount = aSnap.length;
+        for(let nSnap  = 0; nSnap < nSnapCount; ++nSnap)
         {
-            continue;
-        }
-        var count = cur_snap_arr_x.length;
-        for(var snap_index  = 0; snap_index < count; ++snap_index)
-        {
-            var dx = cur_snap_arr_x[snap_index] - pointX;
-            if(min_dx === null)
+            let dDist = aSnap[nSnap] - dPos;
+            if(dCurMinDistance === null)
             {
-                ret = {dist: dx, pos: cur_snap_arr_x[snap_index]};
-                min_dx = dx;
+                oRet = {dist: dDist, pos: aSnap[nSnap]};
+                dCurMinDistance = dDist;
             }
             else
             {
-                if(Math.abs(dx) < Math.abs(min_dx))
+                if(Math.abs(dDist) < Math.abs(dCurMinDistance))
                 {
-                    min_dx = dx;
-                    ret = {dist: dx, pos: cur_snap_arr_x[snap_index]};
+                    dCurMinDistance = dDist;
+                    oRet = {dist: dDist, pos: aSnap[nSnap]};
                 }
             }
         }
+        return oRet;
     }
-    return ret;
+
+
+    function GetMinSnapDistancePosObject(dPos, aDrawings, oExclude, bXPoints, aGuides)
+    {
+        let dMinDistance = null;
+        let oResult = null;
+        for(let i = 0; i < aDrawings.length; ++i)
+        {
+            if(oExclude === aDrawings[i])
+            {
+                continue;
+            }
+            let aSnap;
+            if(bXPoints)
+            {
+                aSnap = aDrawings[i].snapArrayX;
+            }
+            else
+            {
+                aSnap = aDrawings[i].snapArrayY;
+            }
+            let oCurResult = GetMinSnapDistance(aSnap, dPos, dMinDistance);
+            if(oCurResult)
+            {
+                oResult = oCurResult;
+                dMinDistance = oCurResult.dist;
+            }
+        }
+        let oCurResult = GetMinSnapDistance(aGuides, dPos, dMinDistance);
+        if(oCurResult)
+        {
+            oResult = oCurResult;
+            oCurResult.guide = true;
+        }
+        return oResult;
+    }
+
+function GetMinSnapDistanceXObject(pointX, arrGrObjects, oExclude, aGuides)
+{
+    return GetMinSnapDistancePosObject(pointX, arrGrObjects, oExclude, true, aGuides);
 }
 
-function GetMinSnapDistanceYObject(pointY, arrGrObjects, oExclude)
+function GetMinSnapDistanceYObject(pointY, arrGrObjects, oExclude, aGuides)
 {
-    var min_dy = null;
-    var ret = null;
-    for(var i = 0; i < arrGrObjects.length; ++i)
-    {
-        var cur_snap_arr_y = arrGrObjects[i].snapArrayY;
-        if(!cur_snap_arr_y)
-        {
-            continue;
-        }
-        if(oExclude === arrGrObjects[i])
-        {
-            continue;
-        }
-        var count = cur_snap_arr_y.length;
-        for(var snap_index  = 0; snap_index < count; ++snap_index)
-        {
-            var dy = cur_snap_arr_y[snap_index] - pointY;
-            if(min_dy === null)
-            {
-                min_dy = dy;
-                ret = {dist: dy, pos: cur_snap_arr_y[snap_index]};
-            }
-            else
-            {
-                if(Math.abs(dy) < Math.abs(min_dy))
-                {
-                    min_dy = dy;
-                    ret = {dist: dy, pos: cur_snap_arr_y[snap_index]};
-                }
-            }
-        }
-    }
-    return ret;
+    return GetMinSnapDistancePosObject(pointY, arrGrObjects, oExclude, false, aGuides);
 }
 
 function GetMinSnapDistanceXObjectByArrays(pointX, snapArrayX)
 {
-    var min_dx = null;
-    var ret = null;
-    var cur_snap_arr_x = snapArrayX;
-    var count = cur_snap_arr_x.length;
-    for(var snap_index  = 0; snap_index < count; ++snap_index)
-    {
-        var dx = cur_snap_arr_x[snap_index] - pointX;
-        if(min_dx === null)
-        {
-            ret = {dist: dx, pos: cur_snap_arr_x[snap_index]};
-            min_dx = dx;
-        }
-        else
-        {
-            if(Math.abs(dx) < Math.abs(min_dx))
-            {
-                min_dx = dx;
-                ret = {dist: dx, pos: cur_snap_arr_x[snap_index]};
-            }
-        }
-    }
-    return ret;
+    return GetMinSnapDistance(snapArrayX, pointX, null);
 }
 
 function GetMinSnapDistanceYObjectByArrays(pointY, snapArrayY)
 {
-    var min_dy = null;
-    var ret = null;
-    var cur_snap_arr_y = snapArrayY;
-    var count = cur_snap_arr_y.length;
-    for(var snap_index  = 0; snap_index < count; ++snap_index)
-    {
-        var dy = cur_snap_arr_y[snap_index] - pointY;
-        if(min_dy === null)
-        {
-            min_dy = dy;
-            ret = {dist: dy, pos: cur_snap_arr_y[snap_index]};
-        }
-        else
-        {
-            if(Math.abs(dy) < Math.abs(min_dy))
-            {
-                min_dy = dy;
-                ret = {dist: dy, pos: cur_snap_arr_y[snap_index]};
-            }
-        }
-    }
-    return ret;
+    return GetMinSnapDistance(snapArrayY, pointY, null);
 }
 
 function getAbsoluteRectBoundsObject(drawing)

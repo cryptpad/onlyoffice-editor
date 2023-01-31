@@ -139,9 +139,17 @@ CHistory.prototype =
 			);
 
 			var Binary_Pos = this.BinaryWriter.GetCurPosition();
-			this.BinaryWriter.WriteString2(Class.Get_Id());
-			this.BinaryWriter.WriteLong(Data.Type);
-			Data.WriteToBinary(this.BinaryWriter);
+			if ((Asc.editor || editor).binaryChanges) {
+				this.BinaryWriter.WriteWithLen(this, function(){
+					this.BinaryWriter.WriteString2(Class.Get_Id());
+					this.BinaryWriter.WriteLong(Data.Type);
+					Data.WriteToBinary(this.BinaryWriter);
+				});
+			} else {
+				this.BinaryWriter.WriteString2(Class.Get_Id());
+				this.BinaryWriter.WriteLong(Data.Type);
+				Data.WriteToBinary(this.BinaryWriter);
+			}
 
 			var Binary_Len = this.BinaryWriter.GetCurPosition() - Binary_Pos;
 
@@ -347,19 +355,22 @@ CHistory.prototype =
 	/**
 	 * Специальная функция, для создания точки, чтобы отловить все изменения, которые происходят. После использования
 	 * данная точка ДОЛЖНА быть удалена через функцию Remove_LastPoint.
+	 * @param {number} description - идентификатор действия
 	 */
-	CreateNewPointForCollectChanges : function()
+	CreateNewPointToCollectChanges : function(description)
 	{
 		this.Points[++this.Index] = {
 			State       : null,
 			Items       : [],
 			Time        : null,
 			Additional  : {},
-			Description : -1
+			Description : description ? description : -1
 		};
 
 		this.Points.length  = this.Index + 1;
 		this.CollectChanges = true;
+
+		return this.Index;
 	},
     
     Remove_LastPoint : function()
@@ -985,7 +996,7 @@ CHistory.prototype =
             if (this.CanNotAddChanges && this.Api && !this.CollectChanges) {
                 var tmpErr = new Error();
                 if (tmpErr.stack) {
-                    this.Api.CoAuthoringApi.sendChangesError(tmpErr.stack);
+					AscCommon.sendClientLog("error", "changesError: " + tmpErr.stack, this.Api);
                 }
             }
         } catch (e) {
@@ -1488,7 +1499,8 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 			&& AscDFH.historydescription_Document_SpaceButton !== description
 			&& AscDFH.historydescription_Document_CorrectEnterText !== description
 			&& AscDFH.historydescription_Document_CompositeInput !== description
-			&& AscDFH.historydescription_Document_CompositeInputReplace !== description)
+			&& AscDFH.historydescription_Document_CompositeInputReplace !== description
+			&& AscDFH.historydescription_Presentation_ParagraphAdd !== description)
 			return false;
 
 		let changes = point.Items;

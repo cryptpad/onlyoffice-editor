@@ -135,6 +135,35 @@ var c_oSerShdType = {
     nodeAttributeEnd: 0xFB
   };
 
+  var c_oSerAlgorithmNameTypes = {
+    MD2: 1,
+    MD4: 2,
+    MD5: 3,
+    RIPEMD_128: 4,
+    RIPEMD_160: 5,
+    SHA_1: 6,
+    SHA_256: 7,
+    SHA_384: 8,
+    SHA_512: 9,
+    WHIRLPOOL: 10
+  };
+
+  var c_oSerCryptAlgorithmSid = {
+    MD2: 1,
+    MD4: 2,
+    MD5: 3,
+    SHA_1: 4,
+    MAC: 5,
+    RIPEMD: 6,
+    RIPEMD_160: 7,
+    //SHA_384: 8,
+    HMAC: 9,
+    SHA_256: 12,
+    SHA_384: 13,
+    SHA_512: 14,
+  };
+
+
 function BinaryCommonWriter(memory)
 {
     this.memory = memory;
@@ -830,6 +859,10 @@ FT_Stream2.prototype.GetBuffer = function(length) {
 	}
 	return res;
 };
+FT_Stream2.prototype.GetBufferUint8 = function(length) {
+	let pos = this.GetCurPos();
+	return this.data.slice(pos, pos + length);
+};
 FT_Stream2.prototype.ToFileStream = function() {
 	var res = new AscCommon.FileStream();
 	this.ToFileStream2(res);
@@ -1212,6 +1245,10 @@ function isRealObject(obj)
     this.pos = 0;
     this.cur = 0;
 
+    this.GetCurPos = function()
+    {
+      return this.cur;
+    }
     this.Seek = function(_pos)
     {
       if (_pos > this.size)
@@ -1387,6 +1424,10 @@ function isRealObject(obj)
       }
       return res;
     };
+    this.GetBufferUint8 = function (length) {
+      let pos = this.GetCurPos();
+      return this.data.slice(pos, pos + length);
+    };
 
     this.EnterFrame = function(count)
     {
@@ -1532,4 +1573,8 @@ function isRealObject(obj)
 	window['AscCommon'].GetStringUtf8 = GetStringUtf8;
   window['AscCommon'].g_nodeAttributeStart = c_nodeAttribute.nodeAttributeStart;
   window['AscCommon'].g_nodeAttributeEnd = c_nodeAttribute.nodeAttributeEnd;
+  window['AscCommon'].c_oSerAlgorithmNameTypes = c_oSerAlgorithmNameTypes;
+  window['AscCommon'].c_oSerCryptAlgorithmSid = c_oSerCryptAlgorithmSid;
+
+
 })(window);

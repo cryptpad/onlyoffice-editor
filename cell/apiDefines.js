@@ -108,7 +108,8 @@ var c_oAscSelectionDialogType = {
   PrintTitles: 8,
   Function: 9,
   DataValidation: 10,
-  ConditionalFormattingRule: 11
+  ConditionalFormattingRule: 11,
+  ImportXml: 12
 };
 
 var c_oAscScrollType = {
@@ -307,7 +308,8 @@ var c_oTargetType = {
   FrozenAnchorV: 15,
   GroupRow: 16,
   GroupCol: 17,
-  TableSelectionChange: 18
+  TableSelectionChange: 18,
+  Placeholder: 19
 };
 
 var c_oAscAutoFilterTypes = {
@@ -557,6 +559,12 @@ var c_oAscPopUpSelectorType = {
     Range: 2
   };
 
+  var c_nAscMaxAddCellWatchesCount = 10000;
+  var c_oAscExternalReferenceType = {
+    referenceData: 0,
+    link: 1,
+    path: 2
+  };
 
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -651,6 +659,7 @@ var c_oAscPopUpSelectorType = {
   prot['PrintTitles'] = prot.PrintTitles;
   prot['Function'] = prot.Function;
   prot['DataValidation'] = prot.DataValidation;
+  prot['ImportXml'] = prot.ImportXml;
   prot['ConditionalFormattingRule'] = prot.ConditionalFormattingRule;
 
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
@@ -909,6 +918,13 @@ var c_oAscPopUpSelectorType = {
   prot['Workbook'] = prot.Workbook;
   prot['Sheet'] = prot.Sheet;
   prot['Range'] = prot.Range;
+
+  window['Asc']['c_nAscMaxAddCellWatchesCount'] = window['Asc'].c_nAscMaxAddCellWatchesCount = c_nAscMaxAddCellWatchesCount;
+  window['Asc']['c_oAscExternalReferenceType'] = window['Asc'].c_oAscExternalReferenceType = c_oAscExternalReferenceType;
+  prot = c_oAscExternalReferenceType;
+  prot['referenceData'] = prot.referenceData;
+  prot['link'] = prot.link;
+  prot['path'] = prot.path;
 
 
 })(window);

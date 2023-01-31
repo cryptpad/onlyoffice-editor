@@ -3009,6 +3009,19 @@ CMathBase.prototype.ConvertOperatorToStr = function(operator)
     return OPERATOR_EMPTY === operator ? "" : AscCommon.convertUnicodeToUTF16([operator]);
 };
 
+CMathBase.prototype.GetStartBracetForGetTextContent = function(isLaTeX) {
+	if (isLaTeX) 
+		return '{';
+	else
+		return '(';
+};
+CMathBase.prototype.GetEndBracetForGetTextContent = function(isLaTeX) {
+	if (isLaTeX) 
+		return '}';
+	else
+		return ')';
+};
+
 function CMathBasePr()
 {
 }
@@ -3029,6 +3042,10 @@ CMathBounds.prototype.Reset = function(CurLine, CurRange)
 CMathBounds.prototype.CheckLineBound = function(Line, Range)
 {
     if(this.Bounds.length <= Line)
+    {
+        this.Bounds[Line] = [];
+    }
+    else if (undefined === this.Bounds[Line])
     {
         this.Bounds[Line] = [];
     }

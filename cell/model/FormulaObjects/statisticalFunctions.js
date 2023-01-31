@@ -6537,11 +6537,14 @@ function (window, undefined) {
 
 			var C = [[]], k = 0;
 			for (i = 1; i < tB.length; i++, k++) {
-				C[0][k] = new cNumber(0);
+				if (!C[k]) {
+					C[k] = [];
+				}
+				C[k][0] = new cNumber(0);
 				for (j = 0; j < tA.length; j++) {
 					if (tA[j] > tB[i - 1] && tA[j] <= tB[i]) {
-						var a = C[0][k].getValue();
-						C[0][k] = new cNumber(++a);
+						var a = C[k][0].getValue();
+						C[k][0] = new cNumber(++a);
 					}
 				}
 			}
@@ -6615,6 +6618,7 @@ function (window, undefined) {
 
 	cF_TEST.prototype = Object.create(cFTEST.prototype);
 	cF_TEST.prototype.constructor = cF_TEST;
+	cF_TEST.prototype.isXLFN = true;
 	cF_TEST.prototype.name = 'F.TEST';
 
 	/**
@@ -9938,6 +9942,7 @@ function (window, undefined) {
 	cSKEW.prototype.argumentsMin = 1;
 	cSKEW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSKEW.prototype.argumentsType = [[argType.number]];
+	cSKEW.prototype.isXLFN = true;
 	cSKEW.prototype.Calculate = function (arg) {
 
 		var arr0 = [];

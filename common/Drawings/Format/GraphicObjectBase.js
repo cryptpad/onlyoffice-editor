@@ -622,6 +622,14 @@
         }
         return false;
     };
+
+
+    CGraphicObjectBase.prototype.getRectBounds = function() {
+        let aSnapX = [];
+        let aSnapY = [];
+        this.calculateSnapArrays(aSnapX, aSnapY, this.getTransformMatrix());
+        return new CGraphicBounds(Math.min.apply(Math, aSnapX), Math.min.apply(Math, aSnapY),Math.max.apply(Math, aSnapX), Math.max.apply(Math, aSnapY));
+    };
     /**
      * Internal method for calculating snap arrays
      * @param {Array} snapArrayX
@@ -1666,7 +1674,18 @@
         return _geom.findConnector(_x, _y, this.convertPixToMM(AscCommon.global_mouseEvent.KoefPixToMM * AscCommon.TRACK_CIRCLE_RADIUS));
 
     };
+	CGraphicObjectBase.prototype.canConnectTo = function() {
+		let sPreset = this.getPresetGeom();
+		if(sPreset && AscFormat.LINE_PRESETS_MAP[sPreset])
+		{
+			return false;
+		}
+		return true;
+	};
     CGraphicObjectBase.prototype.findConnector = function(x, y){
+		if(!this.canConnectTo()) {
+			return null;
+		}
         var oConnGeom = this.findGeomConnector(x, y);
         if(oConnGeom){
             var _rot = this.rot;
@@ -1686,7 +1705,10 @@
         return null;
     };
     CGraphicObjectBase.prototype.findConnectionShape = function(x, y){
-        if(this.hit(x, y)){
+	    if(!this.canConnectTo()) {
+		    return null;
+	    }
+		if(this.hit(x, y)){
             return this;
         }
         return null;
@@ -1840,7 +1862,7 @@
     CGraphicObjectBase.prototype.getInvertTransform = function(){
         return this.invertTransform;
     };
-    CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y, aDrawings) {
+    CGraphicObjectBase.prototype.getResizeCoefficients = function (numHandle, x, y, aDrawings, oController) {
         var cx, cy;
         cx = this.extX > 0 ? this.extX : 0.01;
         cy = this.extY > 0 ? this.extY : 0.01;
@@ -1894,7 +1916,11 @@
 
         if(!bSnapH) {
             if(Array.isArray(aDrawings)) {
-                oSnapHorObject = AscFormat.GetMinSnapDistanceXObject(x, aDrawings, this);
+                let aVertGuidesPos = [];
+                if(oController) {
+                    aVertGuidesPos = oController.getVertGuidesPos();
+                }
+                oSnapHorObject = AscFormat.GetMinSnapDistanceXObject(x, aDrawings, this, aVertGuidesPos);
                 if(oSnapHorObject) {
                     if(Math.abs(oSnapHorObject.dist) < AscFormat.SNAP_DISTANCE) {
                         bSnapH = true;
@@ -1907,7 +1933,11 @@
         }
         if(!bSnapV) {
             if(Array.isArray(aDrawings)) {
-                oSnapVertObject = AscFormat.GetMinSnapDistanceYObject(y, aDrawings, this);
+                let aHorGuidesPos = [];
+                if(oController) {
+                    aHorGuidesPos = oController.getHorGuidesPos();
+                }
+                oSnapVertObject = AscFormat.GetMinSnapDistanceYObject(y, aDrawings, this, aHorGuidesPos);
                 if(oSnapVertObject && Math.abs(oSnapVertObject.dist) < AscFormat.SNAP_DISTANCE) {
                     bSnapV = true;
                 }
@@ -1938,26 +1968,28 @@
                 dSnapY = this.transform.TransformPointY(t_x, t_y);
             }
         }
+        let bHorGuideSnap = oSnapHorObject && oSnapHorObject.guide;
+        let bVertGuideSnap = oSnapVertObject && oSnapVertObject.guide;
 
         switch (numHandle) {
             case 0:
-                return { kd1: (cx - t_x) / cx, kd2: (cy - t_y) / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY};
+                return { kd1: (cx - t_x) / cx, kd2: (cy - t_y) / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap};
             case 1:
-                return { kd1: (cy - t_y) / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cy - t_y) / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 2:
-                return { kd1: (cy - t_y) / cy, kd2: t_x / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cy - t_y) / cy, kd2: t_x / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 3:
-                return { kd1: t_x / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_x / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 4:
-                return { kd1: t_x / cx, kd2: t_y / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_x / cx, kd2: t_y / cy, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 5:
-                return { kd1: t_y / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_y / cy, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 6:
-                return { kd1: t_y / cy, kd2: (cx - t_x) / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: t_y / cy, kd2: (cx - t_x) / cx, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
             case 7:
-                return { kd1: (cx - t_x) / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+                return { kd1: (cx - t_x) / cx, kd2: 0, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
         }
-        return { kd1: 1, kd2: 1, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY };
+        return { kd1: 1, kd2: 1, snapH: bSnapH, snapV: bSnapV, snapX: dSnapX, snapY: dSnapY, horGuideSnap: bHorGuideSnap, vertGuideSnap: bVertGuideSnap };
     };
     CGraphicObjectBase.prototype.GetAllContentControls = function(arrContentControls) {};
 	CGraphicObjectBase.prototype.GetAllDrawingObjects = function(arrDrawingObjects) {};
@@ -2439,15 +2471,22 @@
             }
         }
     };
+    CGraphicObjectBase.prototype.canAddButtonPlaceholder = function () {
+        return false;
+    };
+    CGraphicObjectBase.prototype.Get_AbsolutePage = function (nCurPage) {
+        return nCurPage || 0;
+    };
     CGraphicObjectBase.prototype.createPlaceholderControl = function(aControls)
     {
-        if(!this.isEmptyPlaceholder())
+        if(!this.isEmptyPlaceholder() || !this.canAddButtonPlaceholder())
         {
             return;
         }
         var phType = this.getPhType();
         var aButtons = [];
         var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsSupportMedia"] && window["AscDesktopEditor"]["IsSupportMedia"]();
+        const oRect = {x: 0, y: 0, w: this.extX, h: this.extY};
         switch (phType)
         {
             case null:
@@ -2551,14 +2590,18 @@
                 break;
             }
         }
-        var nSlideNum = 0;
-        if(this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Slide)
+        var nPageNum;
+        if(this.parent && this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Slide)
         {
-            nSlideNum = this.parent.num;
+            nPageNum = this.parent.num;
+        } else if (this.worksheet) {
+            nPageNum = this.worksheet.workbook && this.worksheet.workbook.nActive;
+        } else {
+            nPageNum = this.Get_AbsolutePage() || 0;
         }
         if(aButtons.length > 0)
         {
-            aControls.push(AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform));
+            aControls.push(AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nPageNum, oRect, this.transform));
         }
     };
     CGraphicObjectBase.prototype.onSlicerUpdate = function(sName){
@@ -3010,12 +3053,41 @@
         return true;
     };
     CGraphicObjectBase.prototype.GetWidth = function() {
-        if (this.spPr && this.spPr.xfrm)
-            return this.spPr.xfrm.extX;
+        return  this.getXfrmExtX();
     };
     CGraphicObjectBase.prototype.GetHeight = function() {
+        return this.getXfrmExtY();
+    };
+    CGraphicObjectBase.prototype.getXfrm = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm;
+		return null;
+    };
+    CGraphicObjectBase.prototype.shiftXfrm = function(dDX, dDY) {
+       let oXfrm = this.getXfrm();
+	   if(oXfrm) {
+		   oXfrm.shift(dDX, dDY);
+	   }
+    };
+    CGraphicObjectBase.prototype.getXfrmOffX = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.offX;
+		return null;
+    };
+    CGraphicObjectBase.prototype.getXfrmOffY = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.offY;
+		return null;
+    };
+    CGraphicObjectBase.prototype.getXfrmExtX = function() {
+        if (this.spPr && this.spPr.xfrm)
+            return this.spPr.xfrm.extX;
+		return null;
+    };
+    CGraphicObjectBase.prototype.getXfrmExtY = function() {
         if (this.spPr && this.spPr.xfrm)
             return this.spPr.xfrm.extY;
+		return null;
     };
     CGraphicObjectBase.prototype.checkEmptySpPrAndXfrm = function(_xfrm) {
         if(!this.spPr)
@@ -3126,6 +3198,9 @@
     };
     CGraphicObjectBase.prototype.isMoveAnimObject = function() {
         return false;
+    };
+    CGraphicObjectBase.prototype.clearChartDataCache = function() {
+
     };
 
     var ANIM_LABEL_WIDTH_PIX = 22;

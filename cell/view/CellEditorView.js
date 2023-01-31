@@ -156,7 +156,7 @@
 		this.fKeyMouseMove = null;
 		//-----------------
 
-		this.objAutoComplete = {};
+		this.objAutoComplete = new Map();
 		this.sAutoComplete = null;
 		this.eventListeners = [];
 
@@ -367,6 +367,11 @@
 		var opt = this.options;
 		var t = this;
 
+		var api = window["Asc"]["editor"];
+		if (api && !api.canUndoRedoByRestrictions()) {
+			saveValue = false;
+		}
+
 		var localSaveValueCallback = function(isSuccess) {
 			if(!isSuccess) {
 				t.setFocus(true);
@@ -396,7 +401,7 @@
 			}
 
 			// delete autoComplete
-			t.objAutoComplete = {};
+			t.objAutoComplete.clear();
 
 			// Сброс состояния редактора
 			t._setEditorState(c_oAscCellEditorState.editEnd);
@@ -408,6 +413,10 @@
 				return true;
 			}
 		};
+
+		if (this.isStartCompositeInput()) {
+			this.End_CompositeInput();
+		}
 
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
@@ -448,7 +457,7 @@
 		}
 
 		// delete autoComplete
-		this.objAutoComplete = {};
+		this.objAutoComplete.clear();
 
 		// Сброс состояния редактора
 		this._setEditorState(c_oAscCellEditorState.editEnd);
@@ -526,10 +535,18 @@
 	};
 
 	CellEditor.prototype.undo = function () {
+		var api = window["Asc"]["editor"];
+		if (api && !api.canUndoRedoByRestrictions()) {
+			return;
+		}
 		this._performAction( this.undoList, this.redoList );
 	};
 
 	CellEditor.prototype.redo = function () {
+		var api = window["Asc"]["editor"];
+		if (api && !api.canUndoRedoByRestrictions()) {
+			return;
+		}
 		this._performAction( this.redoList, this.undoList );
 	};
 
@@ -882,10 +899,10 @@
 					}
 					isName = true;
 				}
-				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type || cElementType.cell3D === oper.type) {
+				if ((cElementType.cell === oper.type || cElementType.cellsRange === oper.type || cElementType.cell3D === oper.type) && oper.externalLink == null) {
 					wsName = oper.getWS().getName();
 					bboxOper = oper.getBBox0();
-				} else if (cElementType.cellsRange3D === oper.type) {
+				} else if ((cElementType.cellsRange3D === oper.type) && oper.externalLink == null) {
 					if (oper.isSingleSheet()) {
 						wsName = oper.getWS().getName();
 						bboxOper = oper.getBBox0NoCheck();
@@ -1548,17 +1565,18 @@
 
 	CellEditor.prototype._updateCursorPosition = function (redrawText) {
 		// ToDo стоит переправить данную функцию
-		var h = this.canvas.height;
-		var y = -this.textRender.calcLineOffset(this.topLineIndex);
-		var cur = this.textRender.calcCharOffset(this.cursorPos);
-		var charsCount = this.textRender.getCharsCount();
-		var curLeft = asc_round(
-			((AscCommon.align_Right !== this.textFlags.textAlign || this.cursorPos !== charsCount) && cur !== null &&
+		let h = this.canvas.height;
+		let y = -this.textRender.calcLineOffset(this.topLineIndex);
+		let cur = this.textRender.calcCharOffset(this.cursorPos);
+		let charsCount = this.textRender.getCharsCount();
+		let textAlign = this.textFlags && this.textFlags.textAlign;
+		let curLeft = asc_round(
+			((AscCommon.align_Right !== textAlign || this.cursorPos !== charsCount) && cur !== null &&
 			cur.left !== null ? cur.left : this._getContentPosition()) * this.kx);
-		var curTop = asc_round(((cur !== null ? cur.top : 0) + y) * this.ky);
-		var curHeight = asc_round((cur !== null ? cur.height : this._getContentHeight()) * this.ky);
-		var i, dy, nCount = this.textRender.getLinesCount();
-		var zoom = this.getZoom();
+		let curTop = asc_round(((cur !== null ? cur.top : 0) + y) * this.ky);
+		let curHeight = asc_round((cur !== null ? cur.height : this._getContentHeight()) * this.ky);
+		let i, dy, nCount = this.textRender.getLinesCount();
+		let zoom = this.getZoom();
 
 		while (1 < nCount) {
 			if (curTop + curHeight - 1 > h) {
@@ -1620,7 +1638,7 @@
 			this.handlers.trigger( "updateMenuEditorCursorPosition", curTop, curHeight );
 		}
 
-		//var fCurrent = this._getEditableFunction(null, true);
+		//let fCurrent = this._getEditableFunction(null, true);
 		//console.log("func: " + fCurrent.func + " arg: " + fCurrent.argPos);
 		this._updateSelectionInfo();
 	};
@@ -2279,7 +2297,7 @@
 	CellEditor.prototype._getAutoComplete = function (str) {
 		// ToDo можно ускорить делая поиск каждый раз не в большом массиве, а в уменьшенном (по предыдущим символам)
 		//TODO оставляю текст!
-		var oLastResult = this.objAutoComplete[str];
+		var oLastResult = this.objAutoComplete.get(str);
 		if (oLastResult) {
 			return oLastResult;
 		}
@@ -2292,7 +2310,8 @@
 				arrResult.push(arrAutoComplete[i]);
 			}
 		}
-		return this.objAutoComplete[str] = arrResult;
+		this.objAutoComplete.set(str, arrResult);
+		return arrResult;
 	};
 
 	CellEditor.prototype._updateSelectionInfo = function () {
@@ -2967,6 +2986,9 @@
 		this._cleanSelection();
 		this._drawSelection();
 	};
+	CellEditor.prototype.isStartCompositeInput = function () {
+		return this.beginCompositePos !== -1 && this.compositeLength !== 0;
+	};
 	CellEditor.prototype.Set_CursorPosInCompositeText = function (nPos) {
 		if (-1 !== this.beginCompositePos) {
 			nPos = Math.min(nPos, this.compositeLength);
@@ -2992,6 +3014,16 @@
 	};
 	CellEditor.prototype._setSkipKeyPress = function (val) {
 		this.skipKeyPress = val;
+	};
+	CellEditor.prototype.getText = function (start, len) {
+		let chars = this.textRender.getChars(start, len);
+		let res = "";
+		for (let i in chars) {
+			if (chars.hasOwnProperty(i)) {
+				res += AscCommon.encodeSurrogateChar(chars[i]);
+			}
+		}
+		return res;
 	};
 
 

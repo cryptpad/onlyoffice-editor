@@ -654,8 +654,6 @@ CShape.prototype.GetAllTables = function(oProps, arrTables)
 	var oContent = this.getDocContent();
 	return oContent ? oContent.GetAllTables(oProps, arrTables) : [];
 };
-
-
 CShape.prototype.getArrayWrapIntervals = function(x0,y0, x1, y1, Y0Sp, Y1Sp, LeftField, RightField, arr_intervals, bMathWrap)
 {
     return this.parent.getArrayWrapIntervals(x0,y0, x1, y1, Y0Sp, Y1Sp, LeftField, RightField, arr_intervals, bMathWrap);
@@ -883,7 +881,7 @@ CShape.prototype.Get_Numbering = function()
     {
         return oLogicDoc.Numbering;
     }
-    return new CNumbering();
+    return AscWord.DEFAULT_NUMBERING;
 };
 CShape.prototype.IsCell = function(isReturnCell)
 {
@@ -926,11 +924,19 @@ CShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex, bNoTextSelect
         var nPageIndex = AscFormat.isRealNumber(pageIndex) ? pageIndex : para_drawing.PageNum;
 		var drawing_objects = oLogicDoc.DrawingObjects;
 
-        if(bNoTextSelection !== true) {
+        if(bNoTextSelection !== true) 
+		{
             this.SetControllerTextSelection(drawing_objects, nPageIndex);
         }
-        else {
+        else 
+		{
             oSelector.resetSelection();
+			if(oSelector !== oLogicDoc.DrawingObjects)
+			{
+				oLogicDoc.DrawingObjects.resetSelection();
+				oLogicDoc.DrawingObjects.selection.groupSelection = oSelector;
+				oLogicDoc.DrawingObjects.selectObject(oSelector, nPageIndex);
+			}
             oSelector.selectObject(this, nPageIndex);
         }
 
@@ -1100,13 +1106,13 @@ CShape.prototype.checkPosTransformText = function()
         }
     }
 };
-CShape.prototype.getNearestPos = function(x, y, pageIndex)
+CShape.prototype.getNearestPos = function(x, y, pageIndex, drawing)
 {
     if(isRealObject(this.textBoxContent) && this.invertTransformText)
     {
         var t_x = this.invertTransformText.TransformPointX(x, y);
         var t_y = this.invertTransformText.TransformPointY(x, y);
-        var nearest_pos = this.textBoxContent.Get_NearestPos(0, t_x, t_y, false);
+        var nearest_pos = this.textBoxContent.Get_NearestPos(0, t_x, t_y, false, drawing);
         return nearest_pos;
     }
     return null;

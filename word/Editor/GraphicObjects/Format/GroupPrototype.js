@@ -225,9 +225,9 @@ CGroupShape.prototype.handleUpdatePosition = function()
     this.addToRecalculate();
     for(var i = 0; i < this.spTree.length; ++i)
     {
-        if(this.spTree[i].recalcTransform)
+        if(this.spTree[i].handleUpdatePosition)
         {
-            this.spTree[i].recalcTransform();
+            this.spTree[i].handleUpdatePosition();
         }
     }
 };
@@ -370,7 +370,7 @@ CGroupShape.prototype.recalculateBounds = function()
     }
 
 
-    //if(!this.group)
+    if(!this.bForceGroupBounds)
     {
         var tr = this.localTransform;
         var arr_p_x = [];

@@ -657,11 +657,12 @@ function Get_WordDocumentDefaultMathSettings()
     return editor.WordControl.m_oLogicDocument.Settings.MathSettings;
 }
 
-function MathMenu(type)
+function MathMenu(type, textPr)
 {
-	this.Type = para_Math;
-	this.Menu = type == undefined ? c_oAscMathType.Default_Text : type;
-	this.Text = null;
+	this.Type   = para_Math;
+	this.Menu   = type == undefined ? c_oAscMathType.Default_Text : type;
+	this.Text   = null;
+	this.TextPr = textPr ? textPr : new CTextPr();
 }
 MathMenu.prototype.Get_Type = function()
 {
@@ -678,6 +679,10 @@ MathMenu.prototype.SetText = function(sText)
 MathMenu.prototype.GetText = function()
 {
 	return this.Text;
+};
+MathMenu.prototype.GetTextPr = function()
+{
+	return this.TextPr;
 };
 
 function CMathLineState()
@@ -896,7 +901,7 @@ CMathPageInfo.prototype.Update_CurrentPage = function(Page, ParaLine)
 };
 CMathPageInfo.prototype.Update_CurrentWrap = function(DispDef, bInline)
 {
-    if(this.WPages[this.CurPage].NeedUpdateWrap == true)
+	if (this.WPages[this.CurPage].NeedUpdateWrap)
     {
         var WrapState;
 
@@ -1078,7 +1083,10 @@ ParaMath.prototype.Get_Id = function()
 {
     return this.Id;
 };
-
+ParaMath.prototype.IsMath = function()
+{
+	return true;
+};
 ParaMath.prototype.Copy = function(Selected, oPr)
 {
     var NewMath = new ParaMath();
@@ -1277,17 +1285,32 @@ ParaMath.prototype.Add = function(Item)
 		if (false !== isLocalTrack)
 			LogicDocument.SetLocalTrackRevisions(isLocalTrack);
     }
-
-    if ((para_Text === Type || para_Space === Type) && null !== NewElement)
-    {
-        this.bFastRecalculate = oContent.bOneLine == false; // многострочный контент => можно осуществлять быстрый пересчет
-
-        // Пробуем произвести автозамену
-        oContent.Process_AutoCorrect(NewElement);
-    }
+	
+	if ((para_Text === Type || para_Space === Type) && null !== NewElement)
+		this.ProcessAutoCorrect(oContent, NewElement);
 
     // Корректируем данный контент
     oContent.Correct_Content(true);
+};
+ParaMath.prototype.ProcessAutoCorrect = function(content, triggerElement)
+{
+	if (!content)
+	{
+		let selectContent = this.GetSelectContent();
+		if (!selectContent)
+			return;
+		
+		content = selectContent.Content;
+	}
+	
+	if (!triggerElement)
+	{
+		triggerElement = new CMathText();
+		triggerElement.add(32);
+	}
+	
+	this.bFastRecalculate = content.bOneLine == false; // многострочный контент => можно осуществлять быстрый пересчет
+	content.Process_AutoCorrect(triggerElement);
 };
 /**
  * Добавляем элемент в конец корневого контента
@@ -1420,7 +1443,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                 this.Root.Remove_FromContent(0, 1);
                 return true;
             }
-            else if ((true === oElement.IsPlaceholder()) || (false === oElement.Remove(Direction) && true !== this.bSelectionUse))
+            else if ((true === oElement.IsPlaceholder() && !bOnAddText) || (false === oElement.Remove(Direction) && true !== this.bSelectionUse))
             {
                 if ((Direction > 0 && oContent.Content.length - 1 === nStartPos) || (Direction < 0 && 0 === nStartPos))
                 {
@@ -1430,6 +1453,10 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
 
                     // Значит мы в каком-то элементе, тогда надо выделить данный элемент
                     oContent.ParentElement.Select_WholeElement();
+
+                    // выставляем выделение для родительского элемента
+                    // TODO нужно понять почему mathContent.Select_WholeElement() не выделяет родительский элемент
+                    this.Parent.SelectFotMath();
 
                     return true;
                 }
@@ -1763,11 +1790,11 @@ ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 	return "";
 };
 
-ParaMath.prototype.GetText = function()
+ParaMath.prototype.GetText = function(isLaTeX)
 {
     var res = "";
     if (this.Root && this.Root.GetTextContent) {
-        var textContent = this.Root.GetTextContent();
+        var textContent = this.Root.GetTextContent(false, isLaTeX);
         if (textContent && textContent.str) {
             res = textContent.str;
         }
@@ -2628,6 +2655,7 @@ ParaMath.prototype.ConvertToInlineMode = function()
 		oRun.Add(new AscWord.CRunSpace());
 		oParent.AddToContent(nPosInParent, oRun);
 	}
+	this.Set_Inline(true);
 
 	return true;
 };
@@ -2646,10 +2674,12 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 		return false;
 
 	let oContentPos = this.GetStartPosInParagraph();
-	let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
+
+    let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
 	oRunElementsBefore.SetSaveContentPositions(true);
 	oParagraph.GetPrevRunElements(oRunElementsBefore);
-	let arrElements = oRunElementsBefore.GetElements();
+
+    let arrElements = oRunElementsBefore.GetElements();
 	if (arrElements.length > 0 && arrElements[0].IsSpace())
 		oParagraph.RemoveRunElement(oRunElementsBefore.GetContentPositions()[0]);
 
@@ -2676,6 +2706,7 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 		oRun.Add(new AscWord.CRunBreak(AscWord.break_Line));
 		oParent.AddToContent(nPosInParent, oRun);
 	}
+	this.Set_Inline(false);
 
 	return true;
 };
@@ -2907,6 +2938,8 @@ ParaMath.prototype.MathToImageConverter = function(bCopy, _canvasInput, _widthPx
         {
             _ret.ImageUrl = "";
         }
+        if (_canvas.isNativeGraphics === true)
+            _canvas.Destroy();
         return _ret;
     }
     return null;
@@ -3272,6 +3305,19 @@ ParaMath.prototype.Selection_IsPlaceholder = function()
 
     return bPlaceholder;
 };
+ParaMath.prototype.IsMathContentPlaceholder = function()
+{
+	return this.Selection_IsPlaceholder();
+};
+ParaMath.prototype.SelectAllInCurrentMathContent = function()
+{
+	let content = this.GetSelectContent().Content;
+	if (content)
+	{
+		content.SelectThisElement(1);
+		content.SelectAll(1);
+	}
+};
 
 ParaMath.prototype.Selection_CheckParaEnd = function()
 {
@@ -3388,15 +3434,19 @@ ParaMath.prototype.Handle_AddNewLine = function()
 
     var NeedRecalculate = false;
 
-    if(MATH_EQ_ARRAY === CurrContent.ParentElement.kind)
+    if(MATH_EQ_ARRAY === CurrContent.ParentElement.kind && this.Cursor_Is_End())
     {
-        var oEqArray = CurrContent.Parent;
-
+        var oEqArray = CurrContent.ParentElement;
         oEqArray.Add_Row(oEqArray.CurPos + 1);
         oEqArray.CurPos++;
 
         NeedRecalculate = true;
     }
+    //todo duplication EQ_ARRAY while creating new line 
+    // else if(MATH_EQ_ARRAY === CurrContent.ParentElement.kind)
+    // {
+
+    // }
     else if(MATH_MATRIX !== CurrContent.ParentElement.kind)
     {
         var ctrPrp = CurrContent.Parent.CtrPrp.Copy();
@@ -3430,8 +3480,7 @@ ParaMath.prototype.Handle_AddNewLine = function()
 
         NeedRecalculate = true;
     }
-
-
+    //console.log(CurrContent.ParentElement)
     return NeedRecalculate;
 };
 
@@ -3473,7 +3522,6 @@ ParaMath.prototype.Make_AutoCorrect = function()
 
 /**
  * Получаем рект формулы
- * @constructor
  */
 ParaMath.prototype.Get_Bounds = function()
 {
@@ -3485,6 +3533,10 @@ ParaMath.prototype.Get_Bounds = function()
     {
         return this.private_GetBounds(this.Root);
     }
+};
+ParaMath.prototype.GetBounds = function()
+{
+	return this.Get_Bounds();
 };
 ParaMath.prototype.Get_JointSize = function()
 {
@@ -3649,6 +3701,95 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 {
 	this.Root.CalculateTextToTable(oEngine);
 };
+ParaMath.prototype.ConvertFromLaTeX = function()
+{
+	var strLaTeX = this.GetText(true);
+    this.Root.Remove_Content(0, this.Root.Content.length);
+    this.Root.Correct_Content(true);
+    AscMath.ConvertLaTeXToTokensList(strLaTeX, this.Root);
+    this.Root.CorrectAllMathWords(true);
+    this.Root.ConvertAllSpecialWords(true);
+	this.Root.Correct_Content(true);
+};
+ParaMath.prototype.ConvertToLaTeX = function()
+{
+	var strLatex = this.GetText(true);
+	this.Root.Remove_Content(0,this.Root.Content.length);
+	this.Root.Add_Text(strLatex, this.Paragraph);
+    this.Root.CurPos = this.Root.Content.length - 1;
+};
+ParaMath.prototype.ConvertFromUnicodeMath = function()
+{
+    this.Root.CorrectAllMathWords(false);
+    this.Root.ConvertAllSpecialWords(false);
+	var strUnicode = this.GetText();
+	this.Root.Remove_Content(0,this.Root.Content.length);
+    this.Root.Correct_Content(true);
+	AscMath.CUnicodeConverter(strUnicode, this.Root);
+	this.Root.Correct_Content(true);
+};
+ParaMath.prototype.ConvertToUnicodeMath = function()
+{
+	var strUnicode = this.GetText();
+    if (strUnicode[strUnicode.length - 1] === " ")
+    {
+        strUnicode = strUnicode.slice(0, -1)
+    }
+	this.Root.Remove_Content(0,this.Root.Content.length);
+	this.Root.Add_Text(strUnicode, this.Paragraph);
+};
+ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
+{
+	if (undefined === nInputType)
+	{
+		let oApi = Asc.editor || editor;
+		nInputType = oApi ? oApi.getMathInputType() : Asc.c_oAscMathInputType.Unicode;
+	}
+
+	if (isToLinear)
+	{
+		if (Asc.c_oAscMathInputType.Unicode === nInputType)
+			this.ConvertToUnicodeMath();
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+			this.ConvertToLaTeX();
+	}
+	else
+	{
+		if (Asc.c_oAscMathInputType.Unicode === nInputType)
+		{
+			this.ConvertFromUnicodeMath();
+		}
+		else if (Asc.c_oAscMathInputType.LaTeX === nInputType)
+		{
+			this.ConvertFromLaTeX();
+		}
+	}
+};
+ParaMath.prototype.SplitSelectedContent = function()
+{
+    var oSelection = this.GetSelectContent();
+    var oContent = oSelection.Content;
+    oContent.SplitSelectedContent();
+};
+ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
+{
+    this.SplitSelectedContent();
+
+    var oSelection = this.GetSelectContent();
+
+    oSelection.Content.ConvertContentView(
+        oSelection.Start,
+        oSelection.End,
+        nInputType,
+        isToLinear
+    );
+};
+ParaMath.prototype.SplitSelectedContent = function()
+{
+    var oSelection = this.GetSelectContent();
+    var oContent = oSelection.Content;
+    oContent.SplitSelectedContent();
+};
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
 {
 	if (oCollector.IsExceedLimit())
@@ -3701,7 +3842,7 @@ function MatGetKoeffArgSize(FontSize, ArgSize)
     }
 
     return FontKoef;
-}
+};
 
 function CMathRecalculateInfo()
 {

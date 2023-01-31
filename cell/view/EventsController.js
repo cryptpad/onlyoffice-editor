@@ -775,6 +775,7 @@
 		/** @param event {KeyboardEvent} */
 		asc_CEventsController.prototype._onWindowKeyDown = function (event) {
 			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false, enterOptions;
+			var macOs = AscCommon.AscBrowser.isMacOs;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var macCmdKey = AscCommon.AscBrowser.isMacOs && event.metaKey;
 			var shiftKey = event.shiftKey;
@@ -825,6 +826,14 @@
 			var _activeCell;
 
 			switch (event.which) {
+				case 116:
+					//todo ctrl+alt
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode &&
+						event.altKey && t.handlers.trigger("refreshConnections", !!ctrlKey)) {
+						return result;
+					}
+					t._setSkipKeyPress(false);
+					return true;
 				case 82:
 					if (ctrlKey && shiftKey) {
 						stop();
@@ -966,7 +975,7 @@
 					if (t.getCellEditMode()) {
 						return true;
 					}
-					var isSelectColumns = !AscBrowser.isMacOs && ctrlKey || AscBrowser.isMacOs && event.altKey;
+					var isSelectColumns = ctrlKey;
 					// Обработать как обычный текст
 					if (!isSelectColumns && !shiftKey) {
 						//теперь пробел обрабатывается на WindowKeyDown
@@ -982,8 +991,7 @@
 					stop();
 					if (isSelectColumns) {
 						t.handlers.trigger("selectColumnsByRange");
-					}
-					if (shiftKey) {
+					} else if (shiftKey) {
 						t.handlers.trigger("selectRowsByRange");
 					}
 					return result;
@@ -1198,14 +1206,12 @@
 					}
 					stop();
 					return result;
-
 				case 61:  // Firefox, Opera (+/=)
 				case 187: // +/=
 					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
-
-					if (event.altKey) {
+					if (event.altKey && (!macOs || (macOs && event.ctrlKey))) {
 						this.handlers.trigger('addFunction',
 							AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale['SUM'] :
 								'SUM', Asc.c_oAscPopUpSelectorType.Func, true);
@@ -1428,13 +1434,15 @@
 			this.isMousePressed = false;
 			// Shapes
 			if (this.isShapeAction) {
-                if(!this.isUpOnCanvas)
-                {
-                    event.isLocked = this.isMousePressed;
-                    event.ClickCount = this.clickCounter.clickCount;
-                    event.fromWindow = true;
-                    this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
-                    this._changeSelectionDone(event);
+                if(!this.isUpOnCanvas) {
+					let oDrawingsController = this.view.getWorksheet().objectRender.controller;
+					if(oDrawingsController.haveTrackedObjects()) {
+						event.isLocked = this.isMousePressed;
+						event.ClickCount = this.clickCounter.clickCount;
+						event.fromWindow = true;
+						this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
+						this._changeSelectionDone(event);
+					}
                 }
                 this.isUpOnCanvas = false;
 				return true;
@@ -1530,6 +1538,7 @@
 			var coord = t._getCoordinates(event);
 			var button = AscCommon.getMouseButton(event);
 			event.isLocked = t.isMousePressed = true;
+			this.isShapeAction = false;
 			// Shapes
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
 			if(!graphicsInfo) {
@@ -1565,6 +1574,13 @@
 				t.handlers.trigger("canvasClick");
 			}
 
+			if (!(asc["editor"].isStartAddShape || this.getSelectionDialogMode() || this.getCellEditMode() && !this.handlers.trigger("stopCellEditing"))) {
+				const isPlaceholder = t.handlers.trigger("onPointerDownPlaceholder", coord.x, coord.y);
+				if (isPlaceholder) {
+					return;
+				}
+			}
+
 			if (asc["editor"].isStartAddShape || graphicsInfo) {
 				// При выборе диапазона не нужно выделять автофигуру
 				if (this.getSelectionDialogMode()) {
@@ -1590,7 +1606,6 @@
 				return;
 			}
 
-			this.isShapeAction = false;
 
 			if (2 === event.detail) {
 				// Это означает, что это MouseDown для dblClick эвента (его обрабатывать не нужно)

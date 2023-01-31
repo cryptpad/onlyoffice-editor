@@ -820,7 +820,13 @@ ParaDrawing.prototype.IsWatermark = function()
 				return true;
 		}
 	}
-
+	if(this.docPr) 
+	{
+		if(this.docPr.name && 
+			this.docPr.name.indexOf("PowerPlusWaterMarkObject") > -1) {
+				return true;
+		}
+	}
 	return false;
 };
 ParaDrawing.prototype.Set_ParaMath = function(ParaMath)
@@ -1288,6 +1294,10 @@ ParaDrawing.prototype.GetScaleCoefficient = function ()
 	}
 
 	return 1;
+};
+ParaDrawing.prototype.createPlaceholderControl = function (arrObjects)
+{
+	this.GraphicObj && this.GraphicObj.createPlaceholderControl(arrObjects);
 };
 ParaDrawing.prototype.IsNeedSaveRecalculateObject = function()
 {

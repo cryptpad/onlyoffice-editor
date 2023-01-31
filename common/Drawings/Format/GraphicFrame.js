@@ -52,7 +52,10 @@ var History = AscCommon.History;
         }
     };
     window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetNvSpPr] = function(oClass, value){oClass.nvGraphicFramePr = value;};
-    window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetParent] = function(oClass, value){oClass.parent = value;};
+    window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetParent] = function(oClass, value){
+	    oClass.oldParent = oClass.parent;
+		oClass.parent = value;
+	};
     window['AscDFH'].drawingsChangesMap[AscDFH.historyitem_GraphicFrameSetSetGroup] = function(oClass, value){oClass.group = value;};
 
     AscDFH.changesFactory[AscDFH.historyitem_GraphicFrameSetSpPr] = AscDFH.CChangesDrawingsObject;
@@ -515,35 +518,6 @@ CGraphicFrame.prototype.getTransformMatrix = function()
 
 CGraphicFrame.prototype.OnContentReDraw = function()
 {};
-
-CGraphicFrame.prototype.getRectBounds = function()
-    {
-        var transform = this.getTransformMatrix();
-        var w = this.extX;
-        var h = this.extY;
-        var rect_points = [{x:0, y:0}, {x: w, y: 0}, {x: w, y: h}, {x: 0, y: h}];
-        var min_x, max_x, min_y, max_y;
-        min_x = transform.TransformPointX(rect_points[0].x, rect_points[0].y);
-        min_y = transform.TransformPointY(rect_points[0].x, rect_points[0].y);
-        max_x = min_x;
-        max_y = min_y;
-        var cur_x, cur_y;
-        for(var i = 1; i < 4; ++i)
-        {
-            cur_x = transform.TransformPointX(rect_points[i].x, rect_points[i].y);
-            cur_y = transform.TransformPointY(rect_points[i].x, rect_points[i].y);
-            if(cur_x < min_x)
-                min_x = cur_x;
-            if(cur_x > max_x)
-                max_x = cur_x;
-
-            if(cur_y < min_y)
-                min_y = cur_y;
-            if(cur_y > max_y)
-                max_y = cur_y;
-        }
-        return {minX: min_x, maxX: max_x, minY: min_y, maxY: max_y};
-};
 
 CGraphicFrame.prototype.changeSize = function(kw, kh)
     {
@@ -1479,31 +1453,7 @@ CGraphicFrame.prototype.IsThisElementCurrent = function()
 
 
     function updateRowHeightAfterOpen(oRow, fRowHeight) {
-        let fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
-        let bLoadVal = AscCommon.g_oIdCounter.m_bLoad;
-        let bRead = AscCommon.g_oIdCounter.m_bRead;
-        AscCommon.g_oIdCounter.m_bLoad = false;
-        AscCommon.g_oIdCounter.m_bRead = false;
-        for(let i = 0;  i < oRow.Content.length; ++i){
-            let oCell = oRow.Content[i];
-            let oMargins = oCell.GetMargins();
-            if(oMargins.Bottom.W > fMaxBottomMargin){
-                fMaxBottomMargin = oMargins.Bottom.W;
-            }
-            if(oMargins.Top.W > fMaxTopMargin){
-                fMaxTopMargin = oMargins.Top.W;
-            }
-            let oBorders = oCell.Get_Borders();
-            if(oBorders.Top.Size > fMaxTopBorder){
-                fMaxTopBorder = oBorders.Top.Size;
-            }
-            if(oBorders.Bottom.Size > fMaxBottomBorder){
-                fMaxBottomBorder = oBorders.Bottom.Size;
-            }
-        }
-        AscCommon.g_oIdCounter.m_bLoad = bLoadVal;
-        AscCommon.g_oIdCounter.m_bRead = bRead;
-        oRow.Set_Height(Math.max(1, fRowHeight - fMaxTopMargin - fMaxBottomMargin - fMaxTopBorder/2 - fMaxBottomBorder/2), Asc.linerule_AtLeast);
+	    oRow.Set_Height( fRowHeight, Asc.linerule_AtLeast);
     }
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

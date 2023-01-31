@@ -52,6 +52,10 @@ CParagraphContentBase.prototype.Get_Type = function()
 {
 	return this.Type;
 };
+CParagraphContentBase.prototype.GetLogicDocument = function()
+{
+	return this.Paragraph ? this.Paragraph.GetLogicDocument() : null;
+};
 CParagraphContentBase.prototype.CanSplit = function()
 {
 	return false;
@@ -96,6 +100,10 @@ CParagraphContentBase.prototype.IsThisElementCurrent = function()
 	return false;
 };
 CParagraphContentBase.prototype.IsRun = function()
+{
+	return false;
+};
+CParagraphContentBase.prototype.IsMath = function()
 {
 	return false;
 };
@@ -892,11 +900,14 @@ CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
 	if (!this.IsCursorPlaceable() || !oParagraph)
 		return;
 
-	var oContentPos = this.Paragraph.Get_PosByElement(this);
-	if (!oContentPos)
+	let contentPos = this.Paragraph.Get_PosByElement(this);
+	if (!contentPos)
 		return;
+	
+	// Дополним полученную позицию текущей в текущем элементе
+	this.Get_ParaContentPos(false, false, contentPos, false);
 
-	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
+	this.Paragraph.Set_ParaContentPos(contentPos, true, -1, -1, false);
 };
 CParagraphContentBase.prototype.createDuplicateForSmartArt = function(oPr)
 {
@@ -1677,6 +1688,9 @@ CParagraphContentWithParagraphLikeContent.prototype.ConcatContent = function (It
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	if (Count <= 0)
+		return;
+
 	for (var nIndex = Pos; nIndex < Pos + Count; ++nIndex)
 	{
 		this.Content[nIndex].PreDelete();
@@ -4812,15 +4826,27 @@ CParagraphContentWithParagraphLikeContent.prototype.Add = function(Item)
 
 				if (null !== NewElement)
 					this.Add_ToContent(CurPos + 1, NewElement, true);
-
-				var Elem = new ParaMath();
-				Elem.Root.Load_FromMenu(Item.Menu, this.GetParagraph());
-				Elem.Root.Correct_Content(true);
-				this.Add_ToContent(CurPos + 1, Elem, true);
-
-				// Перемещаем кусор в конец формулы
-				this.State.ContentPos = CurPos + 1;
-				this.Content[this.State.ContentPos].MoveCursorToEndPos(false);
+				
+				let paraMath = null;
+				if (Item instanceof ParaMath)
+				{
+					paraMath = Item;
+				}
+				else if (Item instanceof AscCommonWord.MathMenu)
+				{
+					let textPr = Item.GetTextPr();
+					paraMath = new ParaMath();
+					paraMath.Root.Load_FromMenu(Item.Menu, this.GetParagraph(), textPr.Copy(), Item.GetText());
+					paraMath.Root.Correct_Content(true);
+					paraMath.ApplyTextPr(textPr.Copy(), undefined, true);
+				}
+				
+				if (paraMath)
+				{
+					this.AddToContent(CurPos + 1, paraMath, true);
+					this.State.ContentPos = CurPos + 1;
+					this.Content[this.State.ContentPos].MoveCursorToEndPos(false);
+				}
 			}
 			else
 			{

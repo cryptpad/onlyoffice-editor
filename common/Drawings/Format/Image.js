@@ -65,7 +65,10 @@ var isRealObject = AscCommon.isRealObject;
             }
         }
     };
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetParent] =  function(oClass, value){oClass.parent = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetParent] =  function(oClass, value){
+		oClass.oldParent = oClass.parent;
+		oClass.parent = value;
+	};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetGroup] =   function(oClass, value){oClass.group = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetStyle] =   function(oClass, value){oClass.style = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_ImageShapeSetNvPicPr] =  function(oClass, value){oClass.nvPicPr = value;};
@@ -257,35 +260,6 @@ CImageShape.prototype.hitInInnerArea = CShape.prototype.hitInInnerArea;
 CImageShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 
 CImageShape.prototype.changeSize = CShape.prototype.changeSize;
-
-CImageShape.prototype.getRectBounds = function()
-{
-    var transform = this.getTransformMatrix();
-    var w = this.extX;
-    var h = this.extY;
-    var rect_points = [{x:0, y:0}, {x: w, y: 0}, {x: w, y: h}, {x: 0, y: h}];
-    var min_x, max_x, min_y, max_y;
-    min_x = transform.TransformPointX(rect_points[0].x, rect_points[0].y);
-    min_y = transform.TransformPointY(rect_points[0].x, rect_points[0].y);
-    max_x = min_x;
-    max_y = min_y;
-    var cur_x, cur_y;
-    for(var i = 1; i < 4; ++i)
-    {
-        cur_x = transform.TransformPointX(rect_points[i].x, rect_points[i].y);
-        cur_y = transform.TransformPointY(rect_points[i].x, rect_points[i].y);
-        if(cur_x < min_x)
-            min_x = cur_x;
-        if(cur_x > max_x)
-            max_x = cur_x;
-
-        if(cur_y < min_y)
-            min_y = cur_y;
-        if(cur_y > max_y)
-            max_y = cur_y;
-    }
-    return {minX: min_x, maxX: max_x, minY: min_y, maxY: max_y};
-};
 
 CImageShape.prototype.canRotate = function()
 {

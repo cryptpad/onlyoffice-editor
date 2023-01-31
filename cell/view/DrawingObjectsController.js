@@ -65,10 +65,18 @@ AscCommon.CContentChangesElement.prototype.Refresh_BinaryData = function()
         this.m_pData.Data.UseArray = true;
         this.m_pData.Data.PosArray = this.m_aPositions;
 
-        Binary_Writer.WriteString2(this.m_pData.Class.Get_Id());
-        Binary_Writer.WriteLong(this.m_pData.Data.Type);
-        this.m_pData.Data.WriteToBinary(Binary_Writer);
-		var Binary_Len = Binary_Writer.GetCurPosition() - Binary_Pos;
+        if ((Asc.editor || editor).binaryChanges) {
+            Binary_Writer.WriteWithLen(this, function() {
+                Binary_Writer.WriteString2(this.m_pData.Class.Get_Id());
+                Binary_Writer.WriteLong(this.m_pData.Data.Type);
+                this.m_pData.Data.WriteToBinary(Binary_Writer);
+            });
+        } else {
+            Binary_Writer.WriteString2(this.m_pData.Class.Get_Id());
+            Binary_Writer.WriteLong(this.m_pData.Data.Type);
+            this.m_pData.Data.WriteToBinary(Binary_Writer);
+        }
+        var Binary_Len = Binary_Writer.GetCurPosition() - Binary_Pos;
 
 		this.m_pData.Binary.Pos = Binary_Pos;
 		this.m_pData.Binary.Len = Binary_Len;
@@ -155,6 +163,28 @@ DrawingObjectsController.prototype.updateOverlay = function()
 {
     this.drawingObjects.OnUpdateOverlay();
 };
+DrawingObjectsController.prototype.updatePlaceholders = function ()
+{
+    const oWS = Asc.editor && Asc.editor.wbModel && Asc.editor.wbModel.getActiveWs();
+    if (oWS)
+    {
+        const arrRet = [];
+        const arrDrawingObjects = oWS.Drawings;
+        for (let i = 0; i < arrDrawingObjects.length; i += 1)
+        {
+            const oGraphicObject = arrDrawingObjects[i] && arrDrawingObjects[i].graphicObject;
+            if (oGraphicObject)
+            {
+                oGraphicObject.createPlaceholderControl(arrRet);
+            }
+        }
+        const oDrawingDocument = this.getDrawingDocument();
+        if (oDrawingDocument && oDrawingDocument.placeholders)
+        {
+            oDrawingDocument.placeholders.update(arrRet);
+        }
+    }
+};
 DrawingObjectsController.prototype.recalculate = function(bAll, Point, bCheckPoint)
 {
     if(bCheckPoint !== false)
@@ -186,6 +216,7 @@ DrawingObjectsController.prototype.recalculate2 = function(bAll)
         }
     }
     this.objectsForRecalculate = {};
+    this.updatePlaceholders();
 };
 
 
@@ -760,7 +791,16 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
                 oThis.drawingObjects.sendGraphicObjectProps();
             });
         }
-    }
+    };
+
+    DrawingObjectsController.prototype.checkGraphicObjectPosition = function (x, y, w, h)
+    {
+        if(this.drawingObjects.checkGraphicObjectPosition)
+        {
+            return this.drawingObjects.checkGraphicObjectPosition(x, y, w, h);
+        }
+        return {x: 0, y: 0};
+    };
 //------------------------------------------------------------export---------------------------------------------------
 window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 window['AscCommonExcel'].CheckIdSatetShapeAdd = CheckIdSatetShapeAdd;
