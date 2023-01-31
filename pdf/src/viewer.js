@@ -748,7 +748,7 @@
 			var _t = this;
 			xhr.onload = function()
 			{
-				if (this.status === 200)
+				if (this.status === 200 || location.href.indexOf("file:") == 0)
 				{
 					_t.isCMapLoading = false;
 					_t.file.setCMap(new Uint8Array(this.response));
