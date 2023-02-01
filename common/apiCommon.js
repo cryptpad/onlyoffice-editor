@@ -5737,8 +5737,10 @@
 		return 0;
 	};
 
-	CPlugin.prototype["get_Name"]    = function()
+	CPlugin.prototype["get_Name"]    = function(locale)
 	{
+		if (locale && this.nameLocale && this.nameLocale[locale])
+			return this.nameLocale[locale];
 		return this.name;
 	};
 	CPlugin.prototype["set_Name"]    = function(value)
