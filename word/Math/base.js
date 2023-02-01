@@ -3008,6 +3008,10 @@ CMathBase.prototype.ConvertOperatorToStr = function(operator)
     }
     return OPERATOR_EMPTY === operator ? "" : AscCommon.convertUnicodeToUTF16([operator]);
 };
+CMathBase.prototype.GetTextOfElement = function()
+{
+	return "";
+};
 
 CMathBase.prototype.GetStartBracetForGetTextContent = function(isLaTeX) {
 	if (isLaTeX) 
