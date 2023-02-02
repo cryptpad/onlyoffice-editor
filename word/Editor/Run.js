@@ -11218,20 +11218,17 @@ ParaRun.prototype.Math_GetRealFontSize = function(FontSize)
 
     return RealFontSize;
 };
-ParaRun.prototype.Math_CompareFontSize = function(ComparableFontSize, bStartLetter)
+ParaRun.prototype.Math_GetFontSize = function(fromBegin)
 {
-    var lng = this.Content.length;
-
-    var Letter = this.Content[lng - 1];
-
-    if(bStartLetter == true)
-        Letter = this.Content[0];
-
-
-    var CompiledPr = this.Get_CompiledPr(false);
-    var LetterFontSize = Letter.Is_LetterCS() ? CompiledPr.FontSizeCS : CompiledPr.FontSize;
-
-    return ComparableFontSize == this.Math_GetRealFontSize(LetterFontSize);
+	let compiledPr = this.Get_CompiledPr(false);
+	let fontSize   = compiledPr.FontSize;
+	if (this.Content.length > 0)
+	{
+		let runItem = this.Content[fromBegin ? 0 : this.Content.length - 1];
+		fontSize    = runItem.IsCS() ? compiledPr.FontSizeCS : compiledPr.FontSize;
+	}
+	
+	return this.Math_GetRealFontSize(fontSize);
 };
 ParaRun.prototype.Math_EmptyRange = function(_CurLine, _CurRange) // до пересчета нужно узнать будет ли данный Run пустым или нет в данном Range, необходимо для того, чтобы выставить wrapIndent
 {

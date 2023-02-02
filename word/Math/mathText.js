@@ -1004,9 +1004,9 @@ CMathText.prototype.Read_FromBinary = function(Reader)
 	if (AscFonts.IsCheckSymbols)
 		AscFonts.FontPickerByCharacter.getFontBySymbol(this.value);
 };
-CMathText.prototype.Is_LetterCS = function()
+CMathText.prototype.GetFontSlot = function()
 {
-    return this.FontSlot == AscWord.fontslot_CS;
+	return this.FontSlot;
 };
 CMathText.prototype.ToSearchElement = function(oProps)
 {

@@ -303,6 +303,14 @@
 		return AscWord.fontslot_Unknown;
 	};
 	/**
+	 * Является ли элемент текстом из ComplexScript
+	 * @returns {boolean}
+	 */
+	CRunElementBase.prototype.IsCS = function()
+	{
+		return this.GetFontSlot() === AscWord.fontslot_CS;
+	};
+	/**
 	 * @returns {boolean}
 	 */
 	CRunElementBase.prototype.IsBreak = function()
