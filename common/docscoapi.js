@@ -1796,7 +1796,7 @@
       let socket;
       let options = {
         "path": this.socketio_url,
-        "transports": ["websocket", "polling"],
+        "transports": ["polling", "websocket"],
         "closeOnBeforeunload": false,
         "reconnectionAttempts": 15,
         "reconnectionDelay": 500,
