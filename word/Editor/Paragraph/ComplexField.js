@@ -1449,10 +1449,12 @@ CComplexField.prototype.SelectField = function()
 };
 CComplexField.prototype.GetFieldValueText = function()
 {
+	let logicDocument = this.LogicDocument;
 	var oDocument = this.GetTopDocumentContent();
 	if (!oDocument)
 		return;
-
+	
+	let state = logicDocument ? logicDocument.SaveDocumentState() : null;
 	oDocument.RemoveSelection();
 
 	var oRun = this.SeparateChar.GetRun();
@@ -1466,8 +1468,12 @@ CComplexField.prototype.GetFieldValueText = function()
 	var oEndPos = oDocument.GetContentPosition(false);
 
 	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
-
-	return oDocument.GetSelectedText();
+	let result = oDocument.GetSelectedText();
+	
+	if (state)
+		logicDocument.LoadDocumentState(state);
+	
+	return result;
 };
 CComplexField.prototype.GetTopDocumentContent = function()
 {
