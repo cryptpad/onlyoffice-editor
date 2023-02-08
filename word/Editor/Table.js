@@ -6041,7 +6041,7 @@ CTable.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data,
 {
 	this.Selection.Use  = true;
 	this.Selection.Type = table_Selection_Text;
-	this.CurCell.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
+	return this.CurCell.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
 CTable.prototype.AddTextArt = function(nStyle)
 {

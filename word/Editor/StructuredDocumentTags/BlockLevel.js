@@ -525,7 +525,7 @@ CBlockLevelSdt.prototype.AddSignatureLine = function(oSignatureDrawing)
 CBlockLevelSdt.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
 	this.private_ReplacePlaceHolderWithContent();
-	this.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
+	return this.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
 CBlockLevelSdt.prototype.AddTextArt = function(nStyle)
 {

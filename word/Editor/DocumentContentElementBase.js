@@ -463,6 +463,7 @@ CDocumentContentElementBase.prototype.AddImages = function(aImages)
 };
 CDocumentContentElementBase.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
+	return null;
 };
 CDocumentContentElementBase.prototype.AddSignatureLine = function(oSignatureDrawing)
 {
