@@ -5303,6 +5303,36 @@
 		
 		return arrApiOleObjects;
 	};
+	/**
+	 * Returns an array of all paragraphs from the current document content
+	 * @memberof ApiDocumentContent
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiParagraph[]}
+	 */
+	ApiDocumentContent.prototype.GetAllParagraphs = function()
+	{
+		let result = [];
+		this.Document.GetAllParagraphs().forEach(function(paragraph)
+		{
+			result.push(new ApiParagraph(paragraph));
+		});
+		return result;
+	};
+	/**
+	 * Returns an array of all tables from the current document content
+	 * @memberof ApiDocumentContent
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiParagraph[]}
+	 */
+	ApiDocumentContent.prototype.GetAllTables = function()
+	{
+		let result = [];
+		this.Document.GetAllTables().forEach(function(table)
+		{
+			result.push(new ApiTable(table));
+		});
+		return result;
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDocument
@@ -6908,6 +6938,19 @@
             "SymbolsCount"   : oLogicDocument.Statistics.SymbolsWOSpaces,
             "SymbolsWSCount" : oLogicDocument.Statistics.SymbolsWhSpaces
         }
+	};
+	/**
+	 * Returns the number of pages in a document
+	 * <note>This method can be slow for large documents, because it runs the document calculation
+	 * process before the full recalculation.</note>
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @return {number}
+	 */
+	ApiDocument.prototype.GetPageCount = function()
+	{
+		this.ForceRecalculate();
+		return this.Document.GetPagesCount();
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -18431,6 +18474,8 @@
 	ApiDocumentContent.prototype["GetAllImages"]         = ApiDocumentContent.prototype.GetAllImages;
 	ApiDocumentContent.prototype["GetAllCharts"]         = ApiDocumentContent.prototype.GetAllCharts;
 	ApiDocumentContent.prototype["GetAllOleObjects"]     = ApiDocumentContent.prototype.GetAllOleObjects;
+	ApiDocumentContent.prototype["GetAllParagraphs"]     = ApiDocumentContent.prototype.GetAllParagraphs;
+	ApiDocumentContent.prototype["GetAllTables"]         = ApiDocumentContent.prototype.GetAllTables;
 
 	ApiRange.prototype["GetClassType"]               = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetParagraph"]               = ApiRange.prototype.GetParagraph;
@@ -18512,6 +18557,7 @@
 	ApiDocument.prototype["GetAllComments"]              = ApiDocument.prototype.GetAllComments;
 	ApiDocument.prototype["GetCommentById"]              = ApiDocument.prototype.GetCommentById;
 	ApiDocument.prototype["GetStatistics"]               = ApiDocument.prototype.GetStatistics;
+	ApiDocument.prototype["GetPageCount"]                = ApiDocument.prototype.GetPageCount;
 	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
 	ApiDocument.prototype["ReplaceCurrentImage"]         = ApiDocument.prototype.ReplaceCurrentImage;
