@@ -1153,6 +1153,18 @@ CTableRow.prototype.private_UpdateTableGrid = function()
 	if (oTable)
 		oTable.private_UpdateTableGrid();
 };
+CTableRow.prototype.GetAllDrawingObjects = function(drawingObjects)
+{
+	if (!drawingObjects)
+		drawingObjects = [];
+	
+	for (let curCell = 0, cellCount = this.GetCellsCount(); curCell < cellCount; ++curCell)
+	{
+		this.GetCell(curCell).GetContent().GetAllDrawingObjects(drawingObjects);
+	}
+	
+	return drawingObjects;
+};
 
 CTableRow.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
 {
