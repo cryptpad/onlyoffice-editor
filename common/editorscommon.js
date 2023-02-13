@@ -12340,36 +12340,6 @@
 			});
 		}
 	}
-	if (typeof Int8Array !== 'undefined' && !Int8Array.prototype.fill) {
-		Int8Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Uint8Array !== 'undefined' && !Uint8Array.prototype.fill) {
-		Uint8Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Uint8ClampedArray !== 'undefined' && !Uint8ClampedArray.prototype.fill) {
-		Uint8ClampedArray.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Int16Array !== 'undefined' && !Int16Array.prototype.fill) {
-		Int16Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Uint16Array !== 'undefined' && !Uint16Array.prototype.fill) {
-		Uint16Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Int32Array !== 'undefined' && !Int32Array.prototype.fill) {
-		Int32Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Uint32Array !== 'undefined' && !Uint32Array.prototype.fill) {
-		Uint32Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Float32Array !== 'undefined' && !Float32Array.prototype.fill) {
-		Float32Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Float64Array !== 'undefined' && !Float64Array.prototype.fill) {
-		Float64Array.prototype.fill = Array.prototype.fill;
-	}
-	if (typeof Uint8Array !== 'undefined' && !Uint8Array.prototype.slice) {
-		Uint8Array.prototype.slice = Array.prototype.slice;
-	}
 
 	function parseText(text, options, bTrimSpaces) {
 		var delimiterChar;
