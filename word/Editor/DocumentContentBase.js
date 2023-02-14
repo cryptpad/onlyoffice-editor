@@ -2299,7 +2299,7 @@ CDocumentContentBase.prototype.SetThisElementCurrent = function(isUpdateStates)
  */
 CDocumentContentBase.prototype.GetAllOleObjects = function(sPluginId, arrObjects)
 {
-	if (Array.isArray(arrObjects))
+	if (!Array.isArray(arrObjects))
 	{
 		arrObjects = [];
 	}
