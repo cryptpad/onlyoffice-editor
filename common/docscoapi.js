@@ -1128,7 +1128,7 @@
         this.socketio.auth.token = this.jwtOpen;
       }
       if (this.socketio.io && this.socketio.io.setOpenToken) {
-        this.socketio.io.setOpenToken(delay);
+        this.socketio.io.setOpenToken(this.jwtOpen);
       }
     }
     if (jwt) {
