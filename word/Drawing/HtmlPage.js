@@ -3809,6 +3809,12 @@ function CEditorPage(api)
 
 		//setInterval(this.onTimerScroll, this.m_nTimerScrollInterval);
 
+		if (undefined !== this.m_oApi.startMobileOffset)
+		{
+			this.setOffsetTop(this.m_oApi.startMobileOffset.offset, this.m_oApi.startMobileOffset.offsetScrollTop);
+			delete this.m_oApi.startMobileOffset;
+		}
+
 		if (!this.m_oApi.isOnlyReaderMode)
 			this.StartMainTimer();
 
