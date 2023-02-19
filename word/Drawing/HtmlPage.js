@@ -3809,12 +3809,6 @@ function CEditorPage(api)
 
 		//setInterval(this.onTimerScroll, this.m_nTimerScrollInterval);
 
-		if (undefined !== this.m_oApi.startMobileOffset)
-		{
-			this.setOffsetTop(this.m_oApi.startMobileOffset.offset, this.m_oApi.startMobileOffset.offsetScrollTop);
-			delete this.m_oApi.startMobileOffset;
-		}
-
 		if (!this.m_oApi.isOnlyReaderMode)
 			this.StartMainTimer();
 
@@ -3837,6 +3831,12 @@ function CEditorPage(api)
             if (this.m_oApi.isMobileVersion)
                 this.initEventsMobile();
         }
+
+		if (undefined !== this.m_oApi.startMobileOffset)
+		{
+			this.setOffsetTop(this.m_oApi.startMobileOffset.offset, this.m_oApi.startMobileOffset.offsetScrollTop);
+			delete this.m_oApi.startMobileOffset;
+		}
 
 		//this.m_oDrawingDocument.CheckFontCache();
 
