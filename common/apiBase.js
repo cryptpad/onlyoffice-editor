@@ -283,12 +283,12 @@
 			window.onerror = oldOnError;
 			let editorInfo = t.getEditorErrorInfo();
 			let memoryInfo = AscCommon.getMemoryInfo();
-			var msg = 'Error: ' + errorMsg + '\nScript: ' + url + '\nLine: ' + lineNumber + ':' + column +
-				'\nuserAgent: ' + (navigator.userAgent || navigator.vendor || window.opera) + '\nplatform: ' +
-				navigator.platform + '\nisLoadFullApi: ' + t.isLoadFullApi + '\nisDocumentLoadComplete: ' +
-				t.isDocumentLoadComplete + (editorInfo ? '\n' + editorInfo : "") +
-				(memoryInfo ? '\nperformance.memory: ' + memoryInfo : "") +
-				'\nStackTrace: ' + (errorObj ? errorObj.stack : "");
+			var msg = 'Error: ' + errorMsg + '\n Script: ' + url + '\n Line: ' + lineNumber + ':' + column +
+				'\n userAgent: ' + (navigator.userAgent || navigator.vendor || window.opera) + '\n platform: ' +
+				navigator.platform + '\n isLoadFullApi: ' + t.isLoadFullApi + '\n isDocumentLoadComplete: ' +
+				t.isDocumentLoadComplete + (editorInfo ? '\n ' + editorInfo : "") +
+				(memoryInfo ? '\n performance.memory: ' + memoryInfo : "") +
+				'\n StackTrace: ' + (errorObj ? errorObj.stack : "");
 			AscCommon.sendClientLog("error", "changesError: " + msg, t);
 			if (t.isLoadFullApi ) {
 				if(t.isDocumentLoadComplete) {
