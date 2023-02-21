@@ -385,6 +385,10 @@
 				}
 			}
 			return res;
+		},
+
+		isThemeUrl: function(sUrl) {
+			return 0 === sUrl.indexOf('theme');
 		}
 	};
 	var g_oDocumentUrls = new DocumentUrls();
