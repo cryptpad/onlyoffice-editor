@@ -388,7 +388,7 @@
 		},
 
 		isThemeUrl: function(sUrl) {
-			return 0 === sUrl.indexOf('theme');
+			return sUrl && (0 === sUrl.indexOf('theme'));
 		}
 	};
 	var g_oDocumentUrls = new DocumentUrls();
