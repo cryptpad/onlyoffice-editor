@@ -4998,6 +4998,8 @@
 
 		if (undefined !== this.Old && this.Old.Write_ToBinary)
 			this.Old.Write_ToBinary(Writer);
+		
+		this.WriteAdditional(Writer);
 	};
 	CChangesBaseObjectProperty.prototype.ReadFromBinary = function(Reader)
 	{
@@ -5042,6 +5044,14 @@
 			if (this.Old && this.Old.Read_FromBinary)
 				this.Old.Read_FromBinary(Reader);
 		}
+		
+		this.ReadAdditional(Reader);
+	};
+	CChangesBaseObjectProperty.prototype.WriteAdditional = function(writer)
+	{
+	};
+	CChangesBaseObjectProperty.prototype.ReadAdditional = function(reader)
+	{
 	};
 	CChangesBaseObjectProperty.prototype.private_CreateObject = function()
 	{
