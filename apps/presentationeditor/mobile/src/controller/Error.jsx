@@ -3,17 +3,22 @@ import { inject } from 'mobx-react';
 import { f7 } from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 
-const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocument}) => {
-    const {t} = useTranslation();
+const ErrorController = inject('storeAppOptions','storePresentationInfo')(({storeAppOptions, storePresentationInfo, LoadingDocument}) => {
+    const { t } = useTranslation();
     const _t = t("Error", { returnObjects: true });
 
     useEffect(() => {
-        Common.Notifications.on('engineCreated', (api) => {
-            api.asc_registerCallback('asc_onError', onError);
-        });
+        const on_engine_created = k => { k.asc_registerCallback('asc_onError', onError); };
+
+        const api = Common.EditorApi.get();
+        if ( !api ) Common.Notifications.on('engineCreated', on_engine_created);
+        else on_engine_created(api);
+
         return () => {
             const api = Common.EditorApi.get();
-            api.asc_unregisterCallback('asc_onError', onError);
+            if ( api ) api.asc_unregisterCallback('asc_onError', onError);
+
+            Common.Notifications.off('engineCreated', on_engine_created);
         }
     });
 
@@ -83,11 +88,11 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
                 break;
 
             case Asc.c_oAscError.ID.VKeyEncrypt:
-                config.msg = _t.errorKeyEncrypt;
+                config.msg = _t.errorToken;
                 break;
 
             case Asc.c_oAscError.ID.KeyExpire:
-                config.msg = _t.errorKeyExpire;
+                config.msg = _t.errorTokenExpire;
                 break;
 
             case Asc.c_oAscError.ID.UserCountExceed:
@@ -166,6 +171,24 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
 
             case Asc.c_oAscError.ID.LoadingFontError:
                 config.msg = _t.errorLoadingFont;
+                break;
+
+            case Asc.c_oAscError.ID.DirectUrl:
+                config.msg = _t.errorDirectUrl;
+                break;
+
+            case Asc.c_oAscError.ID.ConvertationOpenFormat:
+                let docExt = storePresentationInfo.dataDoc ? storePresentationInfo.dataDoc.fileType || '' : '';
+                if (errData === 'pdf')
+                    config.msg = _t.errorInconsistentExtPdf.replace('%1', docExt);
+                else if  (errData === 'docx')
+                    config.msg = _t.errorInconsistentExtDocx.replace('%1', docExt);
+                else if  (errData === 'xlsx')
+                    config.msg = _t.errorInconsistentExtXlsx.replace('%1', docExt);
+                else if  (errData === 'pptx')
+                    config.msg = _t.errorInconsistentExtPptx.replace('%1', docExt);
+                else
+                    config.msg = _t.errorInconsistentExt;
                 break;
 
             default:

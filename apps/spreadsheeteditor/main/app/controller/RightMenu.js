@@ -54,7 +54,7 @@ define([
 
         initialize: function() {
             this.editMode = true;
-            this._state = {};
+            this._state = {wsLock: false, wsProps: []};
 
             this.addListeners({
                 'Toolbar': {
@@ -69,6 +69,9 @@ define([
                 },
                 'PivotTable': {
                     'insertpivot': this.onInsertPivot
+                },
+                'ViewTab': {
+                    'rightmenu:hide': this.onRightMenuHide.bind(this)
                 }
             });
 
@@ -83,7 +86,7 @@ define([
         },
 
         onRightMenuAfterRender: function(rightMenu) {
-            rightMenu.shapeSettings.application = rightMenu.textartSettings.application = this.getApplication();
+            rightMenu.imageSettings.application = rightMenu.shapeSettings.application = rightMenu.textartSettings.application = this.getApplication();
 
             this._settings = [];
             this._settings[Common.Utils.documentSettingsType.Paragraph] = {panelId: "id-paragraph-settings",  panel: rightMenu.paragraphSettings,btn: rightMenu.btnText,        hidden: 1, locked: false};
@@ -104,6 +107,7 @@ define([
             this.api.asc_registerCallback('asc_onCoAuthoringDisconnect',_.bind(this.onCoAuthoringDisconnect, this));
             Common.NotificationCenter.on('api:disconnect',              _.bind(this.onCoAuthoringDisconnect, this));
             Common.NotificationCenter.on('cells:range',                 _.bind(this.onCellsRange, this));
+            Common.NotificationCenter.on('protect:wslock',              _.bind(this.onChangeProtectSheet, this));
         },
 
         setMode: function(mode) {
@@ -138,13 +142,13 @@ define([
                 var panel = this._settings[type].panel;
                 var props = this._settings[type].props;
                 if (props && panel)
-                    panel.ChangeSettings.call(panel, (type==Common.Utils.documentSettingsType.Signature) ? undefined : props);
+                    panel.ChangeSettings.call(panel, (type==Common.Utils.documentSettingsType.Signature) ? undefined : props, this._state.wsLock, this._state.wsProps);
             }
             Common.NotificationCenter.trigger('layout:changed', 'rightmenu');
         },
 
         onSelectionChanged: function(info) {
-            if (this.rangeSelectionMode) return;
+            if (this.rangeSelectionMode || !info) return;
             
             var SelectedObjects = [],
                 selectType = info.asc_getSelectionType(),
@@ -167,14 +171,14 @@ define([
             this.onFocusObject(SelectedObjects, cellInfo, formatTableInfo, sparkLineInfo, pivotInfo);
         },
 
-        onFocusObject: function(SelectedObjects, cellInfo, formatTableInfo, sparkLineInfo, pivotInfo) {
-            if (!this.editMode)
+        onFocusObject: function(SelectedObjects, cellInfo, formatTableInfo, sparkLineInfo, pivotInfo, forceSignature) {
+            if (!this.editMode && !forceSignature)
                 return;
 
-            var isCellLocked = cellInfo.asc_getLocked(),
-                isTableLocked = (cellInfo.asc_getLockedTable()===true || !this.rightmenu.mode.canModifyFilter),
-                isSparkLocked = (cellInfo.asc_getLockedSparkline()===true),
-                isPivotLocked = (cellInfo.asc_getLockedPivotTable()===true);
+            var isCellLocked = cellInfo && cellInfo.asc_getLocked() || this._state.wsProps['FormatCells'],
+                isTableLocked = (cellInfo && cellInfo.asc_getLockedTable()===true || !this.rightmenu.mode.canModifyFilter) || this._state.wsProps['FormatCells'],
+                isSparkLocked = (cellInfo && cellInfo.asc_getLockedSparkline()===true) || this._state.wsLock,
+                isPivotLocked = (cellInfo && cellInfo.asc_getLockedPivotTable()===true) || this._state.wsProps['PivotTables'];
 
             for (var i=0; i<this._settings.length; ++i) {
                 if (i==Common.Utils.documentSettingsType.Signature) continue;
@@ -185,6 +189,7 @@ define([
             }
             this._settings[Common.Utils.documentSettingsType.Signature].locked = false;
 
+            var locktext = false;
             for (i=0; i<SelectedObjects.length; ++i)
             {
                 var eltype = SelectedObjects[i].asc_getObjectType(),
@@ -194,6 +199,7 @@ define([
 
                 var value = SelectedObjects[i].asc_getObjectValue();
                 if (settingsType == Common.Utils.documentSettingsType.Image) {
+                    locktext = locktext || value.asc_getProtectionLockText();
                     if (value.asc_getChartProperties() !== null) {
                         settingsType = Common.Utils.documentSettingsType.Chart;
                         this._settings[settingsType].btn.updateHint(this.rightmenu.txtChartSettings);
@@ -202,19 +208,23 @@ define([
                         if (value.asc_getShapeProperties().asc_getTextArtProperties()) {
                             this._settings[Common.Utils.documentSettingsType.TextArt].props = value;
                             this._settings[Common.Utils.documentSettingsType.TextArt].hidden = 0;
-                            this._settings[Common.Utils.documentSettingsType.TextArt].locked = value.asc_getLocked();
+                            this._settings[Common.Utils.documentSettingsType.TextArt].locked = value.asc_getLocked() || this._state.wsProps['Objects'] && value.asc_getProtectionLockText();
                         }
                     } else if (value.asc_getSlicerProperties() !== null) {
                         settingsType = Common.Utils.documentSettingsType.Slicer;
                     }
+                    this._settings[settingsType].locked = value.asc_getLocked() || this._state.wsProps['Objects'] && value.asc_getProtectionLocked();
+                } else {
+                    this._settings[settingsType].locked = value.asc_getLocked();
                 }
 
                 this._settings[settingsType].props = value;
                 this._settings[settingsType].hidden = 0;
-                this._settings[settingsType].locked = value.asc_getLocked();
 
                 if (!this._settings[Common.Utils.documentSettingsType.Signature].locked) // lock Signature, если хотя бы один объект locked
                     this._settings[Common.Utils.documentSettingsType.Signature].locked = value.asc_getLocked();
+                if (!this._settings[Common.Utils.documentSettingsType.Paragraph].locked) // lock Paragraph, если хотя бы у одной автофигуры заблокирован текст
+                    this._settings[Common.Utils.documentSettingsType.Paragraph].locked = this._state.wsProps['Objects'] && locktext;
             }
 
             if (formatTableInfo) {
@@ -239,7 +249,7 @@ define([
                 this._settings[settingsType].hidden = 0;
             }
 
-            if (SelectedObjects.length<=0) { // cell is selected
+            if (SelectedObjects.length<=0 && cellInfo) { // cell is selected
                 settingsType = Common.Utils.documentSettingsType.Cell;
                 this._settings[settingsType].props = cellInfo;
                 this._settings[settingsType].locked = isCellLocked;
@@ -271,6 +281,12 @@ define([
             if (!this.rightmenu.minimizedMode || this._openRightMenu) {
                 var active;
 
+                if (priorityactive<0 && this._lastVisibleSettings!==undefined) {
+                    var pnl = this._settings[this._lastVisibleSettings];
+                    if (pnl!==undefined && pnl.btn!==undefined && pnl.panel!==undefined && !pnl.hidden)
+                        priorityactive = this._lastVisibleSettings;
+                }
+
                 if (priorityactive<0 && !this._settings[Common.Utils.documentSettingsType.Cell].hidden &&
                                         (!this._settings[Common.Utils.documentSettingsType.Table].hidden || !this._settings[Common.Utils.documentSettingsType.Pivot].hidden ||
                                          !this._settings[Common.Utils.documentSettingsType.Chart].hidden)) {
@@ -294,6 +310,7 @@ define([
                 if (priorityactive>-1) active = priorityactive;
                 else if (lastactive>=0 && currentactive<0) active = lastactive;
                 else if (currentactive>=0) active = currentactive;
+                else if (forceSignature && !this._settings[Common.Utils.documentSettingsType.Signature].hidden) active = Common.Utils.documentSettingsType.Signature;
 
                 if (active == undefined && this._openRightMenu && lastactive>=0)
                     active = lastactive;
@@ -301,7 +318,7 @@ define([
                 if (active !== undefined) {
                     this.rightmenu.SetActivePane(active, this._openRightMenu);
                     if (active!=Common.Utils.documentSettingsType.Signature)
-                        this._settings[active].panel.ChangeSettings.call(this._settings[active].panel, this._settings[active].props);
+                        this._settings[active].panel.ChangeSettings.call(this._settings[active].panel, this._settings[active].props, this._state.wsLock, this._state.wsProps);
                     else
                         this._settings[active].panel.ChangeSettings.call(this._settings[active].panel);
                     this._openRightMenu = false;
@@ -361,11 +378,12 @@ define([
             var me = this;
             if (this.api) {
                 this._openRightMenu = !Common.localStorage.getBool("sse-hide-right-settings", this.rightmenu.defaultHideRightMenu);
-                
+                Common.Utils.InternalSettings.set("sse-hide-right-settings", !this._openRightMenu);
+
                 this.api.asc_registerCallback('asc_onSelectionChanged', _.bind(this.onSelectionChanged, this));
                 this.api.asc_registerCallback('asc_doubleClickOnObject', _.bind(this.onDoubleClickOnObject, this));
                 // this.rightmenu.shapeSettings.createDelayedElements();
-                this.onSelectionChanged(this.api.asc_getCellInfo());
+                this.onChangeProtectSheet();
             }
         },
 
@@ -388,7 +406,7 @@ define([
 
             if (settingsType !== Common.Utils.documentSettingsType.Paragraph) {
                 this.rightmenu.SetActivePane(settingsType, true);
-                this._settings[settingsType].panel.ChangeSettings.call(this._settings[settingsType].panel, this._settings[settingsType].props);
+                this._settings[settingsType].panel.ChangeSettings.call(this._settings[settingsType].panel, this._settings[settingsType].props, this._state.wsLock, this._state.wsProps);
             }
         },
 
@@ -423,12 +441,9 @@ define([
                 this.rightmenu.cellSettings.disableControls(disabled);
                 this.rightmenu.slicerSettings.disableControls(disabled);
 
-                if (!allowSignature && this.rightmenu.signatureSettings) {
-                    this.rightmenu.btnSignature.setDisabled(disabled);
-                }
-
-                if (!allowSignature && this.rightmenu.signatureSettings) {
-                    this.rightmenu.btnSignature.setDisabled(disabled);
+                if (this.rightmenu.signatureSettings) {
+                    !allowSignature && this.rightmenu.btnSignature.setDisabled(disabled);
+                    allowSignature && disabled && this.onFocusObject([], undefined, undefined, undefined, undefined, true); // force press signature button
                 }
 
                 if (disabled) {
@@ -449,6 +464,48 @@ define([
 
         onCellsRange: function(status) {
             this.rangeSelectionMode = (status != Asc.c_oAscSelectionDialogType.None);
+        },
+
+        onChangeProtectSheet: function(props) {
+            if (!props) {
+                var wbprotect = this.getApplication().getController('WBProtection');
+                props = wbprotect ? wbprotect.getWSProps() : null;
+            }
+            if (props) {
+                this._state.wsProps = props.wsProps;
+                this._state.wsLock = props.wsLock;
+            }
+            this.onSelectionChanged(this.api.asc_getCellInfo());
+        },
+
+        onRightMenuHide: function (view, status) {
+            if (this.rightmenu) {
+                if (!status)  { // remember last active pane
+                    var active = this.rightmenu.GetActivePane(),
+                        type;
+                    if (active) {
+                        for (var i=0; i<this._settings.length; i++) {
+                            if (this._settings[i] && this._settings[i].panelId === active) {
+                                type = i;
+                                break;
+                            }
+                        }
+                        this._lastVisibleSettings = type;
+                    }
+                    this.rightmenu.clearSelection();
+                    this.rightmenu.hide();
+                    this.rightmenu.signatureSettings && this.rightmenu.signatureSettings.hideSignatureTooltip();
+                } else {
+                    this.rightmenu.show();
+                    this._openRightMenu = !Common.Utils.InternalSettings.get("sse-hide-right-settings");
+                    this.onSelectionChanged(this.api.asc_getCellInfo());
+                    this._lastVisibleSettings = undefined;
+                }
+                Common.localStorage.setBool('sse-hidden-rightmenu', !status);
+            }
+
+            Common.NotificationCenter.trigger('layout:changed', 'main');
+            Common.NotificationCenter.trigger('edit:complete', this.rightmenu);
         }
     });
 });

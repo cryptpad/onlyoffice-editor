@@ -95,7 +95,7 @@ define([
                 labelText: this.textDontShow
             });
 
-            this.getChild().find('.btn').on('click', _.bind(this.onBtnClick, this));
+            this.getChild().find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
             this.autoSize();
         },
 
@@ -126,7 +126,7 @@ define([
         },
 
         textTitle   : 'Copy, Cut and Paste Actions',
-        textMsg     : 'Copy, cut and paste actions using the editor toolbar buttons and context menu actions will be performed within this editor tab only.<br><br>.To copy or paste to or from applications outside the editor tab use the following keyboard combinations:',
+        textMsg     : 'Copy, cut and paste actions using the editor toolbar buttons and context menu actions will be performed within this editor tab only.<br><br>To copy or paste to or from applications outside the editor tab use the following keyboard combinations:',
         textToCopy  : 'for Copy',
         textToPaste : 'for Paste',
         textToCut: 'for Cut',

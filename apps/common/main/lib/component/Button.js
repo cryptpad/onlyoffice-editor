@@ -194,7 +194,7 @@ define([
             '<% } %>';
 
     var templateHugeCaption =
-            '<button type="button" class="btn <%= cls %>" id="<%= id %>" > ' +
+            '<button type="button" class="btn <%= cls %>" id="<%= id %>" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>" <% if (dataHintTitle) { %> data-hint-title="<%= dataHintTitle %>" <% } %>> ' +
                 '<div class="inner-box-icon">' +
                     templateBtnIcon +
                 '</div>' +
@@ -205,13 +205,15 @@ define([
 
     var templateHugeMenuCaption =
         '<div class="btn-group icon-top" id="<%= id %>" style="<%= style %>">' +
-            '<button type="button" class="btn dropdown-toggle <%= cls %>" data-toggle="dropdown">' +
+            '<button type="button" class="btn dropdown-toggle <%= cls %>" data-toggle="dropdown" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>" <% if (dataHintTitle) { %> data-hint-title="<%= dataHintTitle %>" <% } %>>' +
                 '<div class="inner-box-icon">' +
                     templateBtnIcon +
                 '</div>' +
                 '<div class="inner-box-caption">' +
-                    '<span class="caption"><%= caption %></span>' +
-                    '<i class="caret"></i>' +
+                    '<span class="caption"><%= caption %>' +
+                        '<i class="caret"></i>' +
+                    '</span>' +
+                    '<i class="caret compact-caret"></i>' +
                 '</div>' +
             '</button>' +
         '</div>';
@@ -223,13 +225,39 @@ define([
                     templateBtnIcon +
                 '</span>' +
             '</button>' +
-            '<button type="button" class="btn <%= cls %> inner-box-caption dropdown-toggle" data-toggle="dropdown">' +
+            '<button type="button" class="btn <%= cls %> inner-box-caption dropdown-toggle" data-toggle="dropdown" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>" <% if (dataHintTitle) { %> data-hint-title="<%= dataHintTitle %>" <% } %>>' +
                 '<span class="btn-fixflex-vcenter">' +
-                    '<span class="caption"><%= caption %></span>' +
-                    '<i class="caret"></i>' +
+                    '<span class="caption"><%= caption %>' +
+                        '<i class="caret"></i>' +
+                    '</span>' +
+                    '<i class="caret compact-caret"></i>' +
                 '</span>' +
             '</button>' +
         '</div>';
+
+    var getWidthOfCaption = function (txt) {
+        var el = document.createElement('span');
+        el.style.fontSize = '11px';
+        el.style.fontFamily = 'Arial, Helvetica, "Helvetica Neue", sans-serif';
+        el.style.position = "absolute";
+        el.style.top = '-1000px';
+        el.style.left = '-1000px';
+        el.innerHTML = txt;
+        document.body.appendChild(el);
+        var result = el.offsetWidth;
+        document.body.removeChild(el);
+        return result;
+    };
+
+    var getShortText = function (txt, max) {
+        var lastIndex = txt.length - 1,
+            word = txt;
+        while (getWidthOfCaption(word) > max) {
+            word = txt.slice(0, lastIndex).trim() + '...';
+            lastIndex--;
+        }
+        return word;
+    };
 
     Common.UI.Button = Common.UI.BaseView.extend({
         options : {
@@ -245,7 +273,10 @@ define([
             disabled        : false,
             pressed         : false,
             split           : false,
-            visible         : true
+            visible         : true,
+            dataHint        : '',
+            dataHintDirection: '',
+            dataHintOffset: '0, 0'
         },
 
         template: _.template([
@@ -261,13 +292,13 @@ define([
                 '}} %>',
             '<% } %>',
             '<% if ( !menu ) { %>',
-                '<button type="button" class="btn <%= cls %>" id="<%= id %>" style="<%= style %>">',
+                '<button type="button" class="btn <%= cls %>" id="<%= id %>" style="<%= style %>" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>" <% if (dataHintTitle) { %> data-hint-title="<%= dataHintTitle %>" <% } %>>',
                     '<% applyicon() %>',
                     '<span class="caption"><%= caption %></span>',
                 '</button>',
             '<% } else if (split == false) {%>',
                 '<div class="btn-group" id="<%= id %>" style="<%= style %>">',
-                    '<button type="button" class="btn dropdown-toggle <%= cls %>" data-toggle="dropdown">',
+                    '<button type="button" class="btn dropdown-toggle <%= cls %>" data-toggle="dropdown" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>" <% if (dataHintTitle) { %> data-hint-title="<%= dataHintTitle %>" <% } %>>',
                         '<% applyicon() %>',
                         '<span class="caption"><%= caption %></span>',
                         '<span class="inner-box-caret">' +
@@ -281,7 +312,7 @@ define([
                         '<% applyicon() %>',
                         '<span class="caption"><%= caption %></span>',
                     '</button>',
-                    '<button type="button" class="btn <%= cls %> dropdown-toggle" data-toggle="dropdown">',
+                    '<button type="button" class="btn <%= cls %> dropdown-toggle" data-toggle="dropdown" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>" <% if (dataHintTitle) { %> data-hint-title="<%= dataHintTitle %>" <% } %>>',
                         '<i class="caret"></i>',
                         '<span class="sr-only"></span>',
                     '</button>',
@@ -317,6 +348,52 @@ define([
                 me.render(me.options.parentEl);
         },
 
+        getCaptionWithBreaks: function (caption) {
+            var words = caption.split(' '),
+                newCaption = null,
+                maxWidth = 160 - 4, //85 - 4
+                containAnd = words.indexOf('&');
+            if (containAnd > -1) { // add & to previous word
+                words[containAnd - 1] += ' &';
+                words.splice(containAnd, 1);
+            }
+            if (words.length > 1) {
+                maxWidth = !!this.menu || this.split === true ? maxWidth - 10 : maxWidth;
+                if (words.length < 3) {
+                    words[0] = getShortText(words[0], !!this.menu ? maxWidth + 10 : maxWidth);
+                    words[1] = getShortText(words[1], maxWidth);
+                    newCaption = words[0] + '<br>' + words[1];
+                } else {
+                    var otherWords = '';
+                    if (getWidthOfCaption(words[0] + ' ' + words[1]) < maxWidth) { // first and second words in first line
+                        for (var i = 2; i < words.length; i++) {
+                            otherWords += words[i] + ' ';
+                        }
+                        if (getWidthOfCaption(otherWords + (!!this.menu ? 10 : 0))*2 < getWidthOfCaption(words[0] + ' ' + words[1])) {
+                            otherWords = getShortText((words[1] + ' ' + otherWords).trim(), maxWidth);
+                            newCaption = words[0] + '<br>' + otherWords;
+                        } else {
+                            otherWords = getShortText(otherWords.trim(), maxWidth);
+                            newCaption = words[0] + ' ' + words[1] + '<br>' + otherWords;
+                        }
+                    } else { // only first word is in first line
+                        for (var j = 1; j < words.length; j++) {
+                            otherWords += words[j] + ' ';
+                        }
+                        otherWords = getShortText(otherWords.trim(), maxWidth);
+                        newCaption = words[0] + '<br>' + otherWords;
+                    }
+                }
+            } else {
+                var width = getWidthOfCaption(caption);
+                newCaption = width < maxWidth ? caption : getShortText(caption, maxWidth);
+                if (!!this.menu || this.split === true) {
+                    newCaption += '<br>';
+                }
+            }
+            return newCaption;
+        },
+
         render: function(parentEl) {
             var me = this;
 
@@ -338,6 +415,10 @@ define([
                         } else {
                             this.template = _.template(templateHugeCaption);
                         }
+                        var newCaption = this.getCaptionWithBreaks(this.caption);
+                        if (newCaption) {
+                            me.caption = newCaption;
+                        }
                     }
 
                     me.cmpEl = $(this.template({
@@ -350,7 +431,11 @@ define([
                         disabled     : me.disabled,
                         pressed      : me.pressed,
                         caption      : me.caption,
-                        style        : me.style
+                        style        : me.style,
+                        dataHint     : me.options.dataHint,
+                        dataHintDirection: me.options.dataHintDirection,
+                        dataHintOffset: me.options.dataHintOffset,
+                        dataHintTitle: me.options.dataHintTitle
                     }));
 
                     if (me.menu && _.isObject(me.menu) && _.isFunction(me.menu.render))
@@ -684,7 +769,7 @@ define([
             return (this.cmpEl) ? this.cmpEl.is(":visible") : $(this.el).is(":visible");
         },
 
-        updateHint: function(hint) {
+        updateHint: function(hint, isHtml) {
             this.options.hint = hint;
 
             if (!this.rendered) return;
@@ -710,10 +795,12 @@ define([
                 this.btnMenuEl.removeData('bs.tooltip');
 
             this.btnEl.tooltip({
+                html: !!isHtml,
                 title       : (typeof hint == 'string') ? hint : hint[0],
                 placement   : this.options.hintAnchor||'cursor'
             });
             this.btnMenuEl && this.btnMenuEl.tooltip({
+                html: !!isHtml,
                 title       : hint[1],
                 placement   : this.options.hintAnchor||'cursor'
             });
@@ -741,15 +828,19 @@ define([
 
         setCaption: function(caption) {
             if (this.caption != caption) {
-                this.caption = caption;
+                if ( /icon-top/.test(this.cls) && !!this.caption && /huge/.test(this.cls) ) {
+                    var newCaption = this.getCaptionWithBreaks(caption);
+                    this.caption = newCaption || caption;
+                } else
+                    this.caption = caption;
 
                 if (this.rendered) {
                     var captionNode = this.cmpEl.find('.caption');
 
                     if (captionNode.length > 0) {
-                        captionNode.text(caption);
+                        captionNode.html(this.caption);
                     } else {
-                        this.cmpEl.find('button:first').addBack().filter('button').text(caption);
+                        this.cmpEl.find('button:first').addBack().filter('button').html(this.caption);
                     }
                 }
             }

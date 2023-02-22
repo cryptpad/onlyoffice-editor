@@ -72,7 +72,7 @@ define([
             this._initSettings = true;
 
             this._state = {
-                TemplateId: 0,
+                TemplateId: undefined,
                 CheckHeader: false,
                 CheckTotal: false,
                 CheckBanded: false,
@@ -82,7 +82,10 @@ define([
                 BackColor: '#000000',
                 DisabledControls: false,
                 Width: null,
-                Height: null
+                Height: null,
+                beginPreviewStyles: true,
+                previewStylesCount: -1,
+                currentStyleFound: false
             };
             this.spinners = [];
             this.lockedControls = [];
@@ -219,7 +222,10 @@ define([
         setApi: function(o) {
             this.api = o;
             if (o) {
-                this.api.asc_registerCallback('asc_onInitTableTemplates', _.bind(this._onInitTemplates, this));
+                this.api.asc_registerCallback('asc_onInitTableTemplates', _.bind(this.onInitTableTemplates, this));
+                this.api.asc_registerCallback('asc_onBeginTableStylesPreview', _.bind(this.onBeginTableStylesPreview, this));
+                this.api.asc_registerCallback('asc_onAddTableStylesPreview', _.bind(this.onAddTableStylesPreview, this));
+                this.api.asc_registerCallback('asc_onEndTableStylesPreview', _.bind(this.onEndTableStylesPreview, this));
             }
             return this;
         },
@@ -227,39 +233,59 @@ define([
         createDelayedControls: function() {
             var me = this;
 
+            this._tableTemplates && this._onInitTemplates();
+
             this.chHeader = new Common.UI.CheckBox({
                 el: $('#table-checkbox-header'),
-                labelText: this.textHeader
+                labelText: this.textHeader,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chHeader);
 
             this.chTotal = new Common.UI.CheckBox({
                 el: $('#table-checkbox-total'),
-                labelText: this.textTotal
+                labelText: this.textTotal,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chTotal);
 
             this.chBanded = new Common.UI.CheckBox({
                 el: $('#table-checkbox-banded'),
-                labelText: this.textBanded
+                labelText: this.textBanded,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chBanded);
 
             this.chFirst = new Common.UI.CheckBox({
                 el: $('#table-checkbox-first'),
-                labelText: this.textFirst
+                labelText: this.textFirst,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chFirst);
 
             this.chLast = new Common.UI.CheckBox({
                 el: $('#table-checkbox-last'),
-                labelText: this.textLast
+                labelText: this.textLast,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chLast);
 
             this.chColBanded = new Common.UI.CheckBox({
                 el: $('#table-checkbox-col-banded'),
-                labelText: this.textBanded
+                labelText: this.textBanded,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chColBanded);
 
@@ -271,16 +297,16 @@ define([
             this.chColBanded.on('change', _.bind(this.onCheckTemplateChange, this, 5));
 
             var _arrBorderPosition = [
-                ['l', 'toolbar__icon btn-border-left', 'table-button-border-left',              this.tipLeft],
-                ['c', 'toolbar__icon btn-border-insidevert', 'table-button-border-inner-vert',  this.tipInnerVert],
-                ['r', 'toolbar__icon btn-border-right', 'table-button-border-right',            this.tipRight],
-                ['t', 'toolbar__icon btn-border-top', 'table-button-border-top',                this.tipTop],
-                ['m', 'toolbar__icon btn-border-insidehor', 'table-button-border-inner-hor',    this.tipInnerHor],
-                ['b', 'toolbar__icon btn-border-bottom', 'table-button-border-bottom',          this.tipBottom],
-                ['cm', 'toolbar__icon btn-border-inside', 'table-button-border-inner',          this.tipInner],
-                ['lrtb', 'toolbar__icon btn-border-out', 'table-button-border-outer',           this.tipOuter],
-                ['lrtbcm', 'toolbar__icon btn-border-all', 'table-button-border-all',           this.tipAll],
-                ['', 'toolbar__icon btn-border-no', 'table-button-border-none',                 this.tipNone]
+                ['l', 'toolbar__icon btn-border-left', 'table-button-border-left',              this.tipLeft,       'bottom'],
+                ['c', 'toolbar__icon btn-border-insidevert', 'table-button-border-inner-vert',  this.tipInnerVert,  'bottom'],
+                ['r', 'toolbar__icon btn-border-right', 'table-button-border-right',            this.tipRight,      'bottom'],
+                ['t', 'toolbar__icon btn-border-top', 'table-button-border-top',                this.tipTop,        'bottom'],
+                ['m', 'toolbar__icon btn-border-insidehor', 'table-button-border-inner-hor',    this.tipInnerHor,   'bottom'],
+                ['b', 'toolbar__icon btn-border-bottom', 'table-button-border-bottom',          this.tipBottom,     'bottom'],
+                ['cm', 'toolbar__icon btn-border-inside', 'table-button-border-inner',          this.tipInner,      'top'],
+                ['lrtb', 'toolbar__icon btn-border-out', 'table-button-border-outer',           this.tipOuter,      'top'],
+                ['lrtbcm', 'toolbar__icon btn-border-all', 'table-button-border-all',           this.tipAll,        'top'],
+                ['', 'toolbar__icon btn-border-no', 'table-button-border-none',                 this.tipNone,       'top']
             ];
 
             this._btnsBorderPosition = [];
@@ -290,7 +316,10 @@ define([
                     cls: 'btn-toolbar borders--small',
                     iconCls: item[1],
                     strId   :item[0],
-                    hint: item[3]
+                    hint: item[3],
+                    dataHint: '1',
+                    dataHintDirection: item[4],
+                    dataHintOffset: 'small'
                 });
                 _btn.on('click', _.bind(this.onBtnBordersClick, this));
                 this._btnsBorderPosition.push( _btn );
@@ -299,7 +328,10 @@ define([
 
             this.cmbBorderSize = new Common.UI.ComboBorderSize({
                 el: $('#table-combo-border-size'),
-                style: "width: 93px;"
+                style: "width: 93px;",
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.BorderSize = this.cmbBorderSize.store.at(2).get('value');
             this.cmbBorderSize.setValue(this.BorderSize);
@@ -308,9 +340,11 @@ define([
 
             this.btnEdit = new Common.UI.Button({
                 parentEl: $('#table-btn-edit'),
-                cls: 'btn-icon-default',
-                iconCls: 'btn-edit-table',
-                menu        : new Common.UI.Menu({
+                cls         : 'btn-toolbar align-left',
+                iconCls     : 'toolbar__icon rows-and-columns',
+                caption     : this.textEdit,
+                style       : 'width: 100%;',
+                menu: new Common.UI.Menu({
                     menuAlign: 'tr-br',
                     items: [
                         { caption: this.selectRowText, value: 0 },
@@ -330,7 +364,10 @@ define([
                         { caption: this.mergeCellsText,  value: 11 },
                         { caption: this.splitCellsText,  value: 12 }
                     ]
-                })
+                }),
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.mnuMerge = this.btnEdit.menu.items[this.btnEdit.menu.items.length-2];
             this.mnuSplit = this.btnEdit.menu.items[this.btnEdit.menu.items.length-1];
@@ -351,7 +388,10 @@ define([
                 defaultUnit : "cm",
                 value: '1 cm',
                 maxValue: 55.88,
-                minValue: 0
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.numHeight.on('change', _.bind(function(field, newValue, oldValue, eOpts){
                 var _props = new Asc.CTableProp();
@@ -369,7 +409,10 @@ define([
                 defaultUnit : "cm",
                 value: '1 cm',
                 maxValue: 55.88,
-                minValue: 0
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.numWidth.on('change', _.bind(function(field, newValue, oldValue, eOpts){
                 var _props = new Asc.CTableProp();
@@ -427,19 +470,12 @@ define([
                 //for table-template
                 value = props.get_TableStyle();
                 if (this._state.TemplateId!==value || this._isTemplatesChanged) {
-                    var rec = this.mnuTableTemplatePicker.store.findWhere({
-                        templateId: value
-                    });
-                    if (!rec) {
-                        rec = this.mnuTableTemplatePicker.store.at(0);
-                    }
-                    this.btnTableTemplate.suspendEvents();
-                    this.mnuTableTemplatePicker.selectRecord(rec, true);
-                    this.btnTableTemplate.resumeEvents();
-
-                    this.$el.find('.icon-template-table').css({'background-image': 'url(' + rec.get("imageUrl") + ')', 'height': '52px', 'width': '72px', 'background-position': 'center', 'background-size': 'auto 52px'});
-
                     this._state.TemplateId = value;
+                    var template = this.api.asc_getTableStylesPreviews(false, [this._state.TemplateId]);
+                    if (template && template.length>0)
+                        this.$el.find('.icon-template-table').css({'background-image': 'url(' + template[0].asc_getImage() + ')', 'height': '52px', 'width': '72px', 'background-position': 'center', 'background-size': 'auto 52px'});
+                    this._state.currentStyleFound = false;
+                    this.selectCurrentTableStyle();
                 }
                 this._isTemplatesChanged = false;
 
@@ -612,14 +648,20 @@ define([
                 this.btnBorderColor = new Common.UI.ColorButton({
                     parentEl: $('#table-border-color-btn'),
                     color: 'auto',
-                    auto: true
+                    auto: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.lockedControls.push(this.btnBorderColor);
                 this.borderColor = this.btnBorderColor.getPicker();
 
                 this.btnBackColor = new Common.UI.ColorButton({
                     parentEl: $('#table-back-color-btn'),
-                    transparent: true
+                    transparent: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.lockedControls.push(this.btnBackColor);
                 this.colorsBack = this.btnBackColor.getPicker();
@@ -630,7 +672,123 @@ define([
             !this.btnBorderColor.isAutoColor() && this.btnBorderColor.setColor(this.borderColor.getColor());
         },
 
-        _onInitTemplates: function(Templates){
+        selectCurrentTableStyle: function() {
+            if (!this.mnuTableTemplatePicker || this._state.beginPreviewStyles) return;
+
+            var rec = this.mnuTableTemplatePicker.store.findWhere({
+                templateId: this._state.TemplateId
+            });
+            if (!rec && this._state.previewStylesCount===this.mnuTableTemplatePicker.store.length) {
+                rec = this.mnuTableTemplatePicker.store.at(0);
+            }
+            if (rec) {
+                this._state.currentStyleFound = true;
+                this.btnTableTemplate.suspendEvents();
+                this.mnuTableTemplatePicker.selectRecord(rec, true);
+                this.btnTableTemplate.resumeEvents();
+                this.$el.find('.icon-template-table').css({'background-image': 'url(' + rec.get("imageUrl") + ')', 'height': '52px', 'width': '72px', 'background-position': 'center', 'background-size': 'auto 52px'});
+            }
+        },
+
+        onBeginTableStylesPreview: function(count){
+            this._state.beginPreviewStyles = true;
+            this._state.currentStyleFound = false;
+            this._state.previewStylesCount = count;
+            this._state.groups = {
+                'menu-table-group-custom':  {id: 'menu-table-group-custom',    caption: this.txtGroupTable_Custom,  index: 0, templateCount: 0},
+                'menu-table-group-optimal': {id: 'menu-table-group-optimal',   caption: this.txtGroupTable_Optimal, index: 1, templateCount: 0},
+                'menu-table-group-light':   {id: 'menu-table-group-light',     caption: this.txtGroupTable_Light,   index: 2, templateCount: 0},
+                'menu-table-group-medium':  {id: 'menu-table-group-medium',    caption: this.txtGroupTable_Medium,  index: 3, templateCount: 0},
+                'menu-table-group-dark':    {id: 'menu-table-group-dark',      caption: this.txtGroupTable_Dark,    index: 4, templateCount: 0},
+                'menu-table-group-no-name': {id: 'menu-table-group-no-name',   caption: '&nbsp',                    index: 5, templateCount: 0},
+            };
+        },
+
+        onEndTableStylesPreview: function(){
+            !this._state.currentStyleFound && this.selectCurrentTableStyle();
+            if (this.mnuTableTemplatePicker) {
+                this.mnuTableTemplatePicker.scroller.update({alwaysVisibleY: true});
+                if (this.mnuTableTemplatePicker.isVisible())
+                    this.mnuTableTemplatePicker.scrollToRecord(this.mnuTableTemplatePicker.getSelectedRec());
+            }
+        },
+
+        onAddTableStylesPreview: function(Templates){
+            var self = this;
+
+            _.each(Templates, function(template){
+                var tip = template.asc_getDisplayName();
+                var groupItem = '';
+
+                if (template.asc_getType()==0) {
+                    var arr = tip.split(' ');
+                    
+                    if(new RegExp('No Style|Themed Style', 'i').test(tip)){
+                        groupItem = 'menu-table-group-optimal';
+                    }
+                    else{
+                        if(arr[0]){
+                            groupItem = 'menu-table-group-' + arr[0].toLowerCase();
+                        }
+                        if(self._state.groups.hasOwnProperty(groupItem) == false) {
+                            groupItem = 'menu-table-group-no-name';
+                        }
+                    }
+
+                    ['No Style', 'No Grid', 'Table Grid', 'Themed Style', 'Light Style', 'Medium Style', 'Dark Style', 'Accent'].forEach(function(item){
+                        var str = 'txtTable_' + item.replace(' ', '');
+                        if (self[str])
+                            tip = tip.replace(new RegExp(item, 'g'), self[str]);
+                    });
+                }
+                else {
+                    groupItem = 'menu-table-group-custom'
+                }   
+
+                var templateObj = {
+                    imageUrl: template.asc_getImage(),
+                    id     : Common.UI.getId(),
+                    templateId: template.asc_getId(),
+                    group  : groupItem,
+                    tip    : tip
+                };
+                var templateIndex = 0;
+
+                for(var group in self._state.groups) {
+                    if(self._state.groups[group].index <= self._state.groups[groupItem].index) {
+                        templateIndex += self._state.groups[group].templateCount;
+                    }
+                }
+
+                if (self._state.beginPreviewStyles) {
+                    self._state.beginPreviewStyles = false;
+                    self.mnuTableTemplatePicker && self.mnuTableTemplatePicker.groups.reset(self._state.groups[groupItem]);
+                    self.mnuTableTemplatePicker && self.mnuTableTemplatePicker.store.reset(templateObj);
+                    self.mnuTableTemplatePicker.groups.comparator = function(item) {
+                        return item.get('index');
+                    };
+                } 
+                else {
+                    if(self._state.groups[groupItem].templateCount == 0) {
+                        self.mnuTableTemplatePicker && self.mnuTableTemplatePicker.groups.add(self._state.groups[groupItem]);
+                    } 
+                    self.mnuTableTemplatePicker && self.mnuTableTemplatePicker.store.add(templateObj, {at: templateIndex});
+                }
+
+                self._state.groups[groupItem].templateCount += 1;
+            });
+            !this._state.currentStyleFound && this.selectCurrentTableStyle();
+        },
+
+        onInitTableTemplates: function(){
+            if (this._initSettings) {
+                this._tableTemplates = true;
+                return;
+            }
+            this._onInitTemplates();
+        },
+
+        _onInitTemplates: function(){
             var self = this;
             this._isTemplatesChanged = true;
 
@@ -643,7 +801,10 @@ define([
                         items: [
                             { template: _.template('<div id="id-table-menu-template" class="menu-table-template"  style="margin: 5px 5px 5px 10px;"></div>') }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.btnTableTemplate.on('render:after', function(btn) {
                     self.mnuTableTemplatePicker = new Common.UI.DataView({
@@ -653,43 +814,16 @@ define([
                         groups: new Common.UI.DataViewGroupStore(),
                         store: new Common.UI.DataViewStore(),
                         itemTemplate: _.template('<div id="<%= id %>" class="item"><img src="<%= imageUrl %>" height="52" width="72"></div>'),
-                        style: 'max-height: 350px;'
+                        style: 'max-height: 350px;',
+                        delayRenderTips: true
                     });
                 });
                 this.btnTableTemplate.render($('#table-btn-template'));
+                this.btnTableTemplate.cmpEl.find('.icon-template-table').css({'height': '52px', 'width': '72px', 'background-position': 'center', 'background-size': 'auto 52px'});
                 this.lockedControls.push(this.btnTableTemplate);
                 this.mnuTableTemplatePicker.on('item:click', _.bind(this.onTableTemplateSelect, this, this.btnTableTemplate));
             }
-
-            var count = self.mnuTableTemplatePicker.store.length;
-            if (count>0 && count==Templates.length) {
-                var data = self.mnuTableTemplatePicker.dataViewItems;
-                data && _.each(Templates, function(template, index){
-                    var img = template.asc_getImage();
-                    data[index].model.set('imageUrl', img, {silent: true});
-                    $(data[index].el).find('img').attr('src', img);
-                });
-            } else {
-                var arr = [];
-                _.each(Templates, function(template){
-                    var tip = template.asc_getDisplayName();
-                    if (template.asc_getType()==0) {
-                        ['No Style', 'No Grid', 'Table Grid', 'Themed Style', 'Light Style', 'Medium Style', 'Dark Style', 'Accent'].forEach(function(item){
-                            var str = 'txtTable_' + item.replace(' ', '');
-                            if (self[str])
-                                tip = tip.replace(new RegExp(item, 'g'), self[str]);
-                        });
-
-                    }
-                    arr.push({
-                        imageUrl: template.asc_getImage(),
-                        id     : Common.UI.getId(),
-                        templateId: template.asc_getId(),
-                        tip    : tip
-                    });
-                });
-                self.mnuTableTemplatePicker.store.reset(arr);
-            }
+            this.api.asc_generateTableStylesPreviews();
         },
 
         openAdvancedSettings: function(e) {
@@ -707,6 +841,7 @@ define([
                             (new PE.Views.TableSettingsAdvanced(
                             {
                                 tableProps: elValue,
+                                slideSize: PE.getController('Toolbar').currentPageSize,
                                 handler: function(result, value) {
                                     if (result == 'ok') {
                                         if (me.api) {
@@ -735,7 +870,7 @@ define([
                 _.each(this.lockedControls, function(item) {
                     item.setDisabled(disable);
                 });
-                this.linkAdvanced.toggleClass('disabled', disable);
+                this.linkAdvanced && this.linkAdvanced.toggleClass('disabled', disable);
             }
         },
 
@@ -791,7 +926,12 @@ define([
         txtTable_LightStyle: 'Light Style',
         txtTable_MediumStyle: 'Medium Style',
         txtTable_DarkStyle: 'Dark Style',
-        txtTable_Accent: 'Accent'
+        txtTable_Accent: 'Accent',
+        txtGroupTable_Custom: 'Custom',
+        txtGroupTable_Optimal: 'Best Match for Document',
+        txtGroupTable_Light: 'Light',
+        txtGroupTable_Medium: 'Medium',
+        txtGroupTable_Dark: 'Dark',
 
 }, PE.Views.TableSettings || {}));
 });

@@ -110,7 +110,10 @@ define([
             hold        : true,
             speed       : 'medium',
             width       : 90,
-            allowDecimal: true
+            allowDecimal: true,
+            dataHint    : '',
+            dataHintDirection: '',
+            dataHintOffset: ''
         },
 
         disabled    : false,
@@ -118,7 +121,7 @@ define([
         rendered    : false,
 
         template    :
-                    '<input type="text" class="form-control" spellcheck="false">' +
+                    '<input type="text" class="form-control" spellcheck="false" data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>">' +
                     '<div class="spinner-buttons">' +
                         '<button type="button" class="spinner-up"><i class="arrow"></i></button>' +
                         '<button type="button" class="spinner-down"><i class="arrow"></i></button>' +
@@ -144,8 +147,13 @@ define([
             el.on('input', '.form-control', _.bind(this.onInput, this));
             if (!this.options.allowDecimal)
                 el.on('keypress',   '.form-control', _.bind(this.onKeyPress, this));
-            el.on('focus', 'input.form-control', function() {
-                setTimeout(function(){me.$input && me.$input.select();}, 1);
+            el.on('focus', 'input.form-control', function(e) {
+                setTimeout(function(){
+                    if (me.$input) {
+                        me.$input[0].selectionStart = 0;
+                        me.$input[0].selectionEnd = me.$input.val().length;
+                    }
+                }, 1);
             });
             Common.Utils.isGecko && el.on('blur', 'input.form-control', function() {
                 setTimeout(function(){
@@ -185,7 +193,13 @@ define([
 
         render: function () {
             var el = this.$el || $(this.el);
-            el.html(this.template);
+
+            var template = _.template(this.template);
+            el.html($(template({
+                dataHint         : this.options.dataHint,
+                dataHintDirection: this.options.dataHintDirection,
+                dataHintOffset   : this.options.dataHintOffset
+            })));
 
             this.$input = el.find('.form-control');
             this.rendered = true;
@@ -197,6 +211,7 @@ define([
         },
 
         setDisabled: function(disabled) {
+            disabled = !!disabled;
             var el = this.$el || $(this.el);
             if (disabled !== this.disabled) {
                 el.find('button').toggleClass('disabled', disabled);
@@ -231,6 +246,14 @@ define([
 
         setStep: function(step){
             this.options.step = step;
+        },
+
+        getMinValue: function(){
+            return this.options.minValue;
+        },
+
+        getMaxValue: function(){
+            return this.options.maxValue;
         },
 
         getNumberValue: function(){

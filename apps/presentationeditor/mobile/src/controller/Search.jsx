@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { List, ListItem, Toggle, Page, Navbar, NavRight, Link } from 'framework7-react';
 import { SearchController, SearchView, SearchSettingsView } from '../../../../common/mobile/lib/controller/Search';
 import { f7 } from 'framework7-react';
@@ -21,7 +21,7 @@ class SearchSettings extends SearchSettingsView {
 
         const markup = (
                 <Page>
-                    <Navbar title={_t.textFindAndReplace}>
+                    <Navbar title={isEdit ? _t.textFindAndReplace : _t.textFind}>
                         {!show_popover &&
                             <NavRight>
                                 <Link popupClose=".search-settings-popup">{_t.textDone}</Link>
@@ -65,30 +65,53 @@ class PESearchView extends SearchView {
         return {...params, ...searchOptions};
     }
 
-    onSearchbarShow(isshowed, bar) {
-        super.onSearchbarShow(isshowed, bar);
-    }
+    // onSearchbarShow(isshowed, bar) {
+    //     super.onSearchbarShow(isshowed, bar);
+    // }
 }
 
 const Search = withTranslation()(props => {
     const { t } = props;
     const _t = t('View.Settings', {returnObjects: true});
 
+    useEffect(() => {
+        if (f7.searchbar.get('.searchbar')?.enabled && Device.phone) {
+            const api = Common.EditorApi.get();
+            $$('.searchbar-input').focus();
+            api.asc_enableKeyEvents(false);
+        }
+    });
+
     const onSearchQuery = params => {
         const api = Common.EditorApi.get();
 
+        f7.popover.close('.document-menu.modal-in', false);
+
         if (params.find && params.find.length) {
-            if (!api.findText(params.find, params.forward, params.caseSensitive) ) {
-                f7.dialog.alert(null, _t.textNoTextFound);
-            }
+            var options = new AscCommon.CSearchSettings();
+            options.put_Text(params.find);
+            options.put_MatchCase(params.caseSensitive);
+            api.asc_findText(options, params.forward, function(resultCount) {
+                !resultCount && f7.dialog.alert(null, _t.textNoTextFound);
+            });
+
         }
     };
+
+    const onchangeSearchQuery = params => {
+        const api = Common.EditorApi.get();
+        
+        if(params.length === 0) api.asc_selectSearchingResults(false);
+    }
 
     const onReplaceQuery = params => {
         const api = Common.EditorApi.get();
 
         if (params.find && params.find.length) {
-            api.asc_replaceText(params.find, params.replace || '', false, params.caseSensitive);
+            var options = new AscCommon.CSearchSettings();
+            options.put_Text(params.find);
+            options.put_MatchCase(params.caseSensitive);
+            api.asc_replaceText(options, params.replace || '', false);
         }
     }
 
@@ -96,11 +119,14 @@ const Search = withTranslation()(props => {
         const api = Common.EditorApi.get();
 
         if (params.find && params.find.length) {
-            api.asc_replaceText(params.find, params.replace || '', true, params.caseSensitive);
+            var options = new AscCommon.CSearchSettings();
+            options.put_Text(params.find);
+            options.put_MatchCase(params.caseSensitive);
+            api.asc_replaceText(options, params.replace || '', true);
         }
     }
 
-    return <PESearchView _t={_t} onSearchQuery={onSearchQuery} onReplaceQuery={onReplaceQuery} onReplaceAllQuery={onReplaceAllQuery} />
+    return <PESearchView _t={_t} onSearchQuery={onSearchQuery} onchangeSearchQuery={onchangeSearchQuery} onReplaceQuery={onReplaceQuery} onReplaceAllQuery={onReplaceAllQuery} />
 });
 
 const SearchSettingsWithTranslation = inject("storeAppOptions")(observer(withTranslation()(SearchSettings)));

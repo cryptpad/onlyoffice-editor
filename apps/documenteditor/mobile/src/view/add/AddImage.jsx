@@ -11,7 +11,7 @@ const PageLinkSettings = props => {
         <Page>
             <Navbar title={_t.textLinkSettings} backLink={_t.textBack}></Navbar>
             <BlockTitle>{_t.textAddress}</BlockTitle>
-            <List className='inputs-list'>
+            <List className='add-image'>
                 <ListInput
                     type='text'
                     placeholder={_t.textImageURL}
@@ -33,16 +33,19 @@ const AddImage = props => {
     const { t } = useTranslation();
     const _t = t('Add', {returnObjects: true});
     return (
-        <List>
-            <ListItem title={_t.textPictureFromLibrary} onClick={() => {props.onInsertByFile()}}>
-                <Icon slot="media" icon="icon-image-library"></Icon>
-            </ListItem>
-            <ListItem title={_t.textPictureFromURL} link={'/add-image-from-url/'} routeProps={{
-                onInsertByUrl: props.onInsertByUrl
-            }}>
-                <Icon slot="media" icon="icon-link"></Icon>
-            </ListItem>
-        </List>
+        <Page>
+            <Navbar title={_t.textInsertImage} backLink={_t.textBack}></Navbar>
+            <List>
+                <ListItem title={_t.textPictureFromLibrary} onClick={() => {props.onInsertByFile()}}>
+                    <Icon slot="media" icon="icon-image-library"></Icon>
+                </ListItem>
+                <ListItem title={_t.textPictureFromURL} link={'/add-image-from-url/'} routeProps={{
+                    onInsertByUrl: props.onInsertByUrl
+                }}>
+                    <Icon slot="media" icon="icon-link"></Icon>
+                </ListItem>
+            </List>
+        </Page>
     )
 };
 

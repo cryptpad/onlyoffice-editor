@@ -51,6 +51,7 @@
 
             &.active, &:active {
                 .caret {
+                    border-color: @icon-normal-ie;
                     border-color: @icon-normal;
                 }
             }
@@ -68,6 +69,7 @@
     }
 
     &.disabled {
+        opacity: @component-disabled-opacity-ie;
         opacity: @component-disabled-opacity;
 
         .dataview.inner {
@@ -76,41 +78,55 @@
             }
         }
     }
+
+    .masked & {
+        &.disabled {
+            opacity: 1;
+        }
+    }
 }
 
 
-.combo-styles {
+.combo-styles(@combo-dataview-height: 46px, @item-height: 46px, @row-count: 1) {
     @combo-dataview-button-width: 30px;
-    @combo-dataview-height: 46px;
-
+    @item-height-calc: calc(@item-height - 6px + 2 * @scaled-two-px-value + 2 * @scaled-one-px-value);
+    @combo-dataview-height-calc: calc(@combo-dataview-height - ((@row-count - 1) * @scaled-one-px-value) - @row-count * (6px - 2 * @scaled-two-px-value - 2 * @scaled-one-px-value));
+    
     height: @combo-dataview-height;
+    height: @combo-dataview-height-calc;
 
     .view {
         margin-right: -@combo-dataview-button-width;
-        padding-right: @combo-dataview-button-width;
+        padding-right: calc(@combo-dataview-button-width - @scaled-two-px-value);
 
         .border-left-radius(0);
 
         .dataview {
-            height: 46px;
+            @minus-px: calc(-1px / @pixel-ratio-factor);
+            height: @combo-dataview-height;
+            height: @combo-dataview-height-calc;
             padding: 0;
-            margin: -1px 0 0 -1px;
+            margin: -1 0 0 -1;
+            margin: @minus-px 0 0 @minus-px;
         }
     }
 
-    .item {
+    &:not(.shapes) .item {
         padding: 2px;
+        padding: @scaled-two-px-value;
         border: @scaled-one-px-value-ie solid @border-regular-control-ie;
         border: @scaled-one-px-value solid @border-regular-control;
         .box-shadow(none);
 
         @minus-px-ie: -1px;
-        @minus-px: calc(-1px / @pixel-ratio-factor);
+        @minus-px: calc((-1px / @pixel-ratio-factor));
         margin: 0 @minus-px-ie @minus-px-ie 0;
         margin: 0 @minus-px @minus-px 0;
-        height: @combo-dataview-height;
+        height: @item-height;
+        height: @item-height-calc;
         background-color: @background-normal-ie;
         background-color: @background-normal;
+        display: flex;
 
         &:hover {
             .box-inner-shadow(0 0 0 2px @border-preview-hover-ie);
@@ -123,7 +139,7 @@
         }
     }
 
-    &.disabled {
+    &.disabled:not(.shapes) {
         .item {
             &:hover:not(.selected) {
                 .box-shadow(none);
@@ -135,7 +151,7 @@
         }
     }
 
-    .dropdown-menu {
+    &:not(.shapes) .dropdown-menu {
         box-sizing: content-box;
         padding: 0;
         border-top-left-radius: 0;
@@ -143,6 +159,7 @@
 
         .dataview {
             margin-top: -1px;
+            margin-top: calc(-1 * @scaled-one-px-value);
         }
     }
 
@@ -163,6 +180,7 @@
     .button {
         width: @combo-dataview-button-width;
         height: @combo-dataview-height;
+        height: @combo-dataview-height-calc;
 
         .btn-group, button {
             width: 100%;
@@ -202,6 +220,14 @@
     .ps-scrollbar-y-rail {
         margin-top: 2px;
     }
+}
+
+.combo-styles {
+    .combo-styles()
+}
+
+.combo-cell-styles {
+    .combo-styles(52px, 26px, 2);
 }
 
 .combo-template(@combo-dataview-height: 64px) {
@@ -331,15 +357,138 @@
 .combo-pivot-template {
     .combo-template(60px);
 
-    top: -7px;
-    padding-right: 24px;
+    top: -4px;
     position: absolute;
+    padding-right: 12px;
+
+    .more-container & {
+        position: static;
+    }
 
     .view .dataview, .dropdown-menu {
         padding: 1px;
     }
+
+    .dataview {
+        .item {
+            &:hover {
+                .box-shadow(0 0 0 2px @border-preview-hover-ie) !important;
+                .box-shadow(0 0 0 @scaled-two-px-value @border-preview-hover) !important;
+            }
+      
+            &.selected {
+                .box-shadow(0 0 0 2px @border-preview-select-ie) !important;
+                .box-shadow(0 0 0 @scaled-two-px-value @border-preview-select) !important;
+            }
+        }
+    }
+
+    .dropdown-menu {
+        padding: 5px 1px 5px 1px;
+
+        .dataview {
+            .group-description {
+                padding: 3px 0 3px 10px;
+                .font-weight-bold();
+            } 
+        }
+    }
+
 }
 
 .combo-slicer-style {
-    .combo-textart(61px, 4px);
+    .combo-textart(60px, 4px);
+}
+
+.combo-transitions {
+    @combo-dataview-height: 46px;
+    @combo-dataview-height-calc: calc(40px + 2 * @scaled-two-px-value + 2 * @scaled-one-px-value);
+    @combo-dataview-item-margins: @scaled-two-px-value;
+    @combo-dataview-button-width: 15px;
+
+    height: @combo-dataview-height;
+    height: @combo-dataview-height-calc;
+
+    .view {
+        margin-right: -@combo-dataview-button-width;
+        padding-right: calc(@combo-dataview-button-width - @scaled-one-px-value);
+    }
+
+    .view .dataview, .dropdown-menu {
+        padding: 0;
+    }
+
+    .button {
+        width: @combo-dataview-button-width;
+        height: @combo-dataview-height;
+        height: @combo-dataview-height-calc;
+    }
+
+    .item, .menu-picker-container .dataview .group-items-container .item {
+        padding: 0px;
+        margin: 2px;
+        margin: @combo-dataview-item-margins;
+        .box-shadow(none);
+
+        &:hover {
+            .box-shadow(0 0 0 2px @border-preview-hover-ie);
+            .box-shadow(0 0 0 @scaled-two-px-value @border-preview-hover);
+        }
+
+        &.selected {
+            .box-shadow(0 0 0 2px @border-preview-select-ie);
+            .box-shadow(0 0 0 @scaled-two-px-value @border-preview-select);
+        }
+    }
+
+    .menu-picker-container {
+        .group-description {
+            padding: 3px 0 3px 10px;
+            .font-weight-bold();
+        }
+
+        .group-items-container .item {
+            &:last-child {
+                margin-bottom: @combo-dataview-item-margins;
+            }
+        }
+
+        .last-item {
+            margin-bottom: @combo-dataview-item-margins;
+        }
+    }
+
+    &.disabled {
+        .item {
+            &:hover:not(.selected) {
+                .box-shadow(none);
+            }
+        }
+    }
+}
+
+.combo-transitions, .menu-animation {
+    .btn_item {
+        color: @text-normal-ie;
+        color: @text-normal;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+
+        .icon:not(svg) {
+            width: @x-huge-btn-icon-size;
+            height: @x-huge-btn-icon-size;
+            min-width: 0;
+        }
+
+        .caption{
+            line-height: 12px;
+            font-size: 11px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            width: 100%;
+            text-align: center;
+            padding: 0 2px;
+        }
+    }
 }

@@ -1,6 +1,6 @@
 import React, {Fragment, useState} from 'react';
 import {observer, inject} from "mobx-react";
-import {f7, List, ListItem, Icon, Button, Page, Navbar, NavRight, Segmented, BlockTitle, Toggle, Link} from 'framework7-react';
+import {f7, List, ListItem, Icon, Button, Page, Navbar, NavRight, Segmented, BlockTitle, Toggle, Link, NavLeft, NavTitle, ListInput} from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 import {Device} from '../../../../../common/mobile/utils/device';
 import { ThemeColorPalette, CustomColorPicker } from '../../../../../common/mobile/lib/component/ThemeColorPalette.jsx';
@@ -94,21 +94,21 @@ const PageAdvancedSettings = props => {
             </List>
             <List>
                 <ListItem title={t('Edit.textSpaceBetweenParagraphs')}>
-                    <Toggle checked={spaceBetween} onChange={() => {props.onSpaceBetween(!spaceBetween)}}/>
+                    <Toggle checked={spaceBetween} onToggleChange={() => {props.onSpaceBetween(!spaceBetween)}}/>
                 </ListItem>
             </List>
             <List>
                 <ListItem title={t('Edit.textPageBreakBefore')}>
-                    <Toggle checked={breakBefore} onChange={() => {props.onBreakBefore(!breakBefore)}}/>
+                    <Toggle checked={breakBefore} onToggleChange={() => {props.onBreakBefore(!breakBefore)}}/>
                 </ListItem>
                 <ListItem title={t('Edit.textOrphanControl')}>
-                    <Toggle checked={orphanControl} onChange={() => {props.onOrphan(!orphanControl)}}/>
+                    <Toggle checked={orphanControl} onToggleChange={() => {props.onOrphan(!orphanControl)}}/>
                 </ListItem>
                 <ListItem title={t('Edit.textKeepLinesTogether')}>
-                    <Toggle checked={keepTogether} onChange={() => {props.onKeepTogether(!keepTogether)}}/>
+                    <Toggle checked={keepTogether} onToggleChange={() => {props.onKeepTogether(!keepTogether)}}/>
                 </ListItem>
                 <ListItem title={t('Edit.textKeepWithNext')}>
-                    <Toggle checked={keepWithNext} onChange={() => {props.onKeepNext(!keepWithNext)}}/>
+                    <Toggle checked={keepWithNext} onToggleChange={() => {props.onKeepNext(!keepWithNext)}}/>
                 </ListItem>
             </List>
         </Page>
@@ -191,14 +191,26 @@ const EditParagraph = props => {
     const storeParagraphSettings = props.storeParagraphSettings;
     const paragraphStyles = storeParagraphSettings.paragraphStyles;
     const curStyleName = storeParagraphSettings.styleName;
+    const curStyle = paragraphStyles.find(style => style.name === curStyleName);
     const thumbSize = storeParagraphSettings.styleThumbSize;
-
     const paragraph = props.storeFocusObjects.paragraphObject;
     const curBackColor = storeParagraphSettings.backColor ? storeParagraphSettings.backColor : storeParagraphSettings.getBackgroundColor(paragraph);
-    const background = curBackColor !== 'transparent' ? `#${(typeof curBackColor === "object" ? curBackColor.color : curBackColor)}` : curBackColor;
-
+    const background = curBackColor !== 'transparent' ? `#${(typeof curBackColor === "object" ? curBackColor.color : curBackColor)}` : '';
+    
     return (
         <Fragment>
+            <BlockTitle>{t('Edit.textParagraphStyle')}</BlockTitle>
+            <List style={{marginBottom: 0}}>
+                <ListItem link="/edit-paragraph-style/" title={!curStyle && t('Edit.textCustomStyle')} routeProps={{
+                    onStyleClick: props.onStyleClick,
+                    onSaveStyle: props.onSaveStyle,
+                    onStyleMenuDelete: props.onStyleMenuDelete
+                }}>
+                    {curStyle && 
+                        <div slot="inner" style={{backgroundImage: 'url(' + curStyle.image + ')', width: '100%', height: thumbSize.height + 'px', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundColor: '#fff'}}></div>
+                    }
+                </ListItem>
+            </List>
             <List>
                 <ListItem title={_t.textBackground} link='/edit-paragraph-back-color/' routeProps={{
                     onBackgroundColor: props.onBackgroundColor
@@ -221,31 +233,166 @@ const EditParagraph = props => {
                     onKeepNext: props.onKeepNext
                 }}></ListItem>
             </List>
-            <BlockTitle>{_t.textParagraphStyles}</BlockTitle>
+        </Fragment>
+    )
+};
+
+const EditParagraphStyle = props => {
+    const { t } = useTranslation();
+    const api = Common.EditorApi.get();
+    const _t = t('Edit', {returnObjects: true});
+    const storeParagraphSettings = props.storeParagraphSettings;
+    const paragraphStyles = storeParagraphSettings.paragraphStyles;
+    const curStyleName = storeParagraphSettings.styleName;
+    const thumbSize = storeParagraphSettings.styleThumbSize;
+
+    return (
+        <Page>
+            <Navbar title={t('Edit.textParagraphStyle')} backLink={_t.textBack}>
+                {Device.phone &&
+                    <NavRight>
+                        <Link sheetClose='#edit-sheet'>
+                            <Icon icon='icon-expand-down'/>
+                        </Link>
+                    </NavRight>
+                }
+            </Navbar>
+            <List style={{marginBottom: 0}}>
+                <ListItem className="create-style-link" title={t('Edit.textCreateTextStyle')} href="/create-text-style/" routeProps={{
+                    onSaveStyle: props.onSaveStyle
+                }}>
+                    {Device.android && <Icon slot="media" icon="icon-create-style"></Icon>}
+                </ListItem>
+            </List>
             <List>
                 {paragraphStyles.map((style, index) => (
                     <ListItem
                         key={index}
                         radio
+                        radioIcon="start"
                         checked={curStyleName === style.name}
-                        onClick={() => {props.onStyleClick(style.name)}}
+                        onClick={() => {
+                            if(curStyleName !== style.name) {
+                                props.onStyleClick(style.name);
+                            }
+                        }}
                     >
                         <div slot="inner"
-                             style={{backgroundImage: 'url(' + style.image + ')', width: thumbSize.width + 'px', height: thumbSize.height + 'px', backgroundSize: thumbSize.width + 'px ' + thumbSize.height + 'px', backgroundRepeat: 'no-repeat'}}
+                            style={{backgroundImage: 'url(' + style.image + ')', width: '100%', height: thumbSize.height + 'px', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundColor: '#fff'}}
+                        ></div>
+                        {!api.asc_IsStyleDefault(style.name) && (
+                            <div slot="inner-end">
+                                <Link onClick={async () => {
+                                    await storeParagraphSettings.changeParaStyleName('Normal');
+                                    await props.onStyleMenuDelete(style.name);
+                                }}>
+                                    <Icon icon="icon-remove-style" />
+                                </Link>
+                            </div>
+                        )}
+                    </ListItem>
+                ))}
+            </List>
+        </Page>
+    )
+}
+
+const CreateTextStyle = props => {
+    const { t } = useTranslation();
+    const _t = t('Edit', {returnObjects: true});
+    const [titleNewStyle, setTitle] = useState('');
+    const [nextParagraphStyle, setParagraph] = useState('');
+
+    return (
+        <Page>
+            <Navbar title={t('Edit.textCreateTextStyle')} backLink={t('Edit.textBack')}>
+                <Link slot="right" className={`${!titleNewStyle.trim() && 'disabled'}`} onClick={() => {
+                    let title = titleNewStyle.trim();
+                    if(title) {
+                        props.onSaveStyle(title, nextParagraphStyle);
+                        props.f7router.back();
+                    }
+                }}>{t('Edit.textDone')}</Link>
+            </Navbar>
+            <List inlineLabels className='inputs-list'>
+                <ListInput
+                    label={_t.textTitle}
+                    type="text"
+                    placeholder={_t.textEnterTitleNewStyle}
+                    value={titleNewStyle}
+                    onChange={(event) => {
+                        setTitle(event.target.value)
+                    }}
+                ></ListInput>
+            </List>
+            <BlockTitle>{t('Edit.textNextParagraphStyle')}</BlockTitle>
+            <List>
+                <ListItem title={!nextParagraphStyle ? t('Edit.textSameCreatedNewStyle') : nextParagraphStyle} href="/change-next-paragraph-style/" routeProps={{
+                    nextParagraphStyle,
+                    setParagraph
+                }}></ListItem>
+            </List>
+        </Page>
+    )
+}
+
+const ChangeNextParagraphStyle = props => {
+    const { t } = useTranslation();
+    const _t = t('Edit', {returnObjects: true});
+    const nextParagraphStyle = props.nextParagraphStyle;
+    const storeParagraphSettings = props.storeParagraphSettings;
+    const paragraphStyles = storeParagraphSettings.paragraphStyles;
+    const thumbSize = storeParagraphSettings.styleThumbSize;
+    const [newParagraph, setParagraph] = useState(nextParagraphStyle);
+
+    return (
+        <Page>
+            <Navbar title={t('Edit.textNextParagraphStyle')} backLink={_t.textBack}></Navbar>
+            <List>
+                <ListItem style={{paddingLeft: '5px'}} radio radioIcon="start" checked={!newParagraph} onClick={() => {
+                    if(newParagraph) {
+                        setParagraph('');
+                        props.setParagraph('');
+                    }
+                }} title={t('Edit.textSameCreatedNewStyle')}></ListItem>
+                {paragraphStyles.map((style, index) => (
+                    <ListItem
+                        key={index}
+                        radio
+                        radioIcon="start"
+                        checked={newParagraph === style.name}
+                        onClick={() => {
+                            if(newParagraph !== style.name) {
+                                setParagraph(style.name);
+                                props.setParagraph(style.name);
+                            }
+                        }}
+                    >
+                        <div slot="inner"
+                            style={{backgroundImage: 'url(' + style.image + ')', width: '100%', height: thumbSize.height + 'px', backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundColor: '#fff'}}
                         ></div>
                     </ListItem>
                 ))}
             </List>
-        </Fragment>
+        </Page>
     )
-};
+
+}
 
 const EditParagraphContainer = inject("storeParagraphSettings", "storeFocusObjects")(observer(EditParagraph));
 const ParagraphAdvSettings = inject("storeParagraphSettings", "storeFocusObjects")(observer(PageAdvancedSettings));
 const PageParagraphBackColor = inject("storeParagraphSettings", "storePalette")(observer(PageBackgroundColor));
 const PageParagraphCustomColor = inject("storeParagraphSettings", "storePalette")(observer(PageCustomBackColor));
+const PageParagraphStyle = inject("storeParagraphSettings")(observer(EditParagraphStyle));
+const PageCreateTextStyle = inject("storeParagraphSettings")(observer(CreateTextStyle));
+const PageChangeNextParagraphStyle = inject("storeParagraphSettings")(observer(ChangeNextParagraphStyle));
 
-export {EditParagraphContainer as EditParagraph,
+export {
+        EditParagraphContainer as EditParagraph,
         ParagraphAdvSettings,
         PageParagraphBackColor,
-        PageParagraphCustomColor};
+        PageParagraphCustomColor,
+        PageParagraphStyle,
+        PageCreateTextStyle,
+        PageChangeNextParagraphStyle
+};

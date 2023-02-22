@@ -51,21 +51,28 @@ define([
         el: '#left-panel-spellcheck',
 
         template: _.template([
-            '<div id="spellcheck-box" class="layout-ct vbox active">',
-                '<div id="spellcheck-header" style="font-size: 14px; padding-bottom: 16px;"><%= scope.txtSpelling %></div>',
-                '<div style="display: flex; width: 100%; padding-bottom: 8px;">',
-                    '<div id="spellcheck-current-word"></div>',
-                    '<div id="spellcheck-next" style=""></div>',
+            '<div id="spellcheck-box" class="layout-ct active">',
+                '<div class="spellcheck-settings">',
+                    '<div class="spellcheck-settings-inner">',
+                        '<div style="display: flex; width: 100%; padding-bottom: 8px; padding-top: 16px;">',
+                            '<div id="spellcheck-current-word"></div>',
+                            '<div id="spellcheck-next" style=""></div>',
+                        '</div>',
+                        '<div id="spellcheck-suggestions-list"></div>',
+                        '<div id="spellcheck-change" style=""></div>',
+                        '<div id="spellcheck-ignore" class="padding-large"></div>',
+                        '<button class="btn btn-text-default auto" id="spellcheck-add-to-dictionary" data-hint="1" data-hint-direction="bottom" data-hint-offset="big"><%= scope.txtAddToDictionary %></button>',
+                        '<label class="header" style="display: block;"><%= scope.txtDictionaryLanguage %></label>',
+                        '<div id="spellcheck-dictionary-language"></div>',
+                        '<div id="spellcheck-complete" class="hidden">',
+                            '<i class="btn-resolve" style="display: inline-block;margin-right: 10px;"></i>',
+                            '<%= scope.txtComplete %>' ,
+                        '</div>',
+                    '</div>',
                 '</div>',
-                '<div id="spellcheck-suggestions-list"></div>',
-                '<div id="spellcheck-change" style=""></div>',
-                '<div id="spellcheck-ignore" class="padding-large"></div>',
-                '<button class="btn btn-text-default auto" id="spellcheck-add-to-dictionary"><%= scope.txtAddToDictionary %></button>',
-                '<label class="header" style="display: block;"><%= scope.txtDictionaryLanguage %></label>',
-                '<div id="spellcheck-dictionary-language"></div>',
-                '<div id="spellcheck-complete" class="hidden">',
-                    '<i class="img-commonctrl img-colored img-complete" style="display: inline-block;margin-right: 10px;"></i>',
-                    '<%= scope.txtComplete %>' ,
+                '<div id="spellcheck-header">',
+                    '<label><%= scope.txtSpelling %></label>',
+                    '<div id="spellcheck-btn-close" style="float:right; margin-left: 4px;"></div>',
                 '</div>',
             '</div>'
         ].join('')),
@@ -80,11 +87,25 @@ define([
             this.$el = $(el);
             this.$el.html(this.template({scope: this}));
 
+            this.buttonClose = new Common.UI.Button({
+                parentEl: $('#spellcheck-btn-close', this.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-close',
+                hint: this.txtClosePanel,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
+            });
+            this.buttonClose.on('click', _.bind(this.onClickClosePanel, this));
+
             this.currentWord = new Common.UI.InputField({
                 el : $('#spellcheck-current-word'),
                 allowBlank  : true,
                 validateOnBlur: false,
-                disabled: true
+                disabled: true,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'big'
             });
 
             this.buttonNext = new Common.UI.Button({
@@ -92,14 +113,19 @@ define([
                 style: 'margin-left: 5px;',
                 cls: 'btn-toolbar bg-white',
                 iconCls: 'toolbar__icon btn-nextitem',
-                hint: this.txtNextTip
+                hint: this.txtNextTip,
+                dataHint: '1',
+                dataHintDirection: 'bottom'
             });
 
             this.suggestionList = new Common.UI.ListView({
                 el: $('#spellcheck-suggestions-list'),
                 emptyText: this.noSuggestions,
                 store: new Common.UI.DataViewStore(),
-                scrollAlwaysVisible: true
+                scrollAlwaysVisible: true,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'big'
             });
 
             this.btnChange = new Common.UI.Button({
@@ -121,7 +147,10 @@ define([
                             value: 1
                         }
                         ]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
 
             this.btnIgnore = new Common.UI.Button({
@@ -143,7 +172,10 @@ define([
                             value: 1
                         }
                     ]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
 
             this.cmbDictionaryLanguage = new Common.UI.ComboBox({
@@ -155,7 +187,10 @@ define([
                 scroller    : {
                     suppressScrollX: true
                 },
-                search: true
+                search: true,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
 
             this.btnToDictionary = new Common.UI.Button({
@@ -168,10 +203,15 @@ define([
 
             if (_.isUndefined(this.scroller)) {
                 this.scroller = new Common.UI.Scroller({
-                    el: this.$el.find('#spellcheck-box'),
-                    suppressScrollX: true
+                    el: this.$el.find('.spellcheck-settings-inner'),
+                    suppressScrollX: true,
+                    alwaysVisibleY: true
                 });
             }
+
+            $(window).on('resize', _.bind(function() {
+                this.scroller.update({alwaysVisibleY: true});
+            }, this));
 
             return this;
         },
@@ -189,6 +229,10 @@ define([
         ChangeSettings: function(props) {
         },
 
+        onClickClosePanel: function() {
+            Common.NotificationCenter.trigger('leftmenu:change', 'hide');
+        },
+
         txtSpelling: 'Spelling',
         noSuggestions: 'No spelling suggestions',
         textChange: 'Change',
@@ -198,7 +242,8 @@ define([
         txtAddToDictionary: 'Add To Dictionary',
         txtDictionaryLanguage: 'Dictionary Language',
         txtComplete: 'Spellcheck has been complete',
-        txtNextTip: 'Go to the next word'
+        txtNextTip: 'Go to the next word',
+        txtClosePanel: 'Close spelling'
 
     }, SSE.Views.Spellcheck || {}));
 });

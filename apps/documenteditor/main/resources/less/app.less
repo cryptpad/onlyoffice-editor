@@ -12,6 +12,7 @@
 @import "../../../../common/main/resources/less/colors-table.less";
 @import "../../../../common/main/resources/less/colors-table-classic.less";
 @import "../../../../common/main/resources/less/colors-table-dark.less";
+@import "../../../../common/main/resources/less/colors-table-dark-contrast.less";
 
 //
 // Bootstrap
@@ -123,6 +124,7 @@
 @import "../../../../common/main/resources/less/winxp_fix.less";
 @import "../../../../common/main/resources/less/calendar.less";
 @import "../../../../common/main/resources/less/symboltable.less";
+@import "../../../../common/main/resources/less/hint-manager.less";
 
 // App
 // --------------------------------------------------
@@ -135,6 +137,7 @@
 @import "rightmenu.less";
 @import "advanced-settings.less";
 @import "navigation.less";
+@import "thumbnails.less";
 
 @import "sprites/iconssmall@1x";
 @import "sprites/iconsbig@1x";
@@ -226,5 +229,16 @@
         background: fade(#000, 5%);
         overflow: hidden;
         position: relative;
+    }
+
+    .content-theme-dark & {
+        @canvas-content-dark-background: #3a3a3a;
+        @canvas-content-dark-page-border: #2a2a2a;
+        background-color: @canvas-content-dark-background;
+        border-color: @canvas-content-dark-page-border;
+
+        > .line {
+            background-color: fade(#fff, 5%);
+        }
     }
 }

@@ -86,6 +86,8 @@ define([
             };
             this.lockedControls = [];
             this._locked = false;
+            this.wsLock = false;
+            this.wsProps = [];
             this.isEditCell = false;
 
             this._originalProps = null;
@@ -192,43 +194,64 @@ define([
             var me = this;
             this.chHeader = new Common.UI.CheckBox({
                 el: $('#table-checkbox-header'),
-                labelText: this.textHeader
+                labelText: this.textHeader,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chHeader);
 
             this.chTotal = new Common.UI.CheckBox({
                 el: $('#table-checkbox-total'),
-                labelText: this.textTotal
+                labelText: this.textTotal,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chTotal);
 
             this.chBanded = new Common.UI.CheckBox({
                 el: $('#table-checkbox-banded'),
-                labelText: this.textBanded
+                labelText: this.textBanded,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chBanded);
 
             this.chFirst = new Common.UI.CheckBox({
                 el: $('#table-checkbox-first'),
-                labelText: this.textFirst
+                labelText: this.textFirst,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chFirst);
 
             this.chLast = new Common.UI.CheckBox({
                 el: $('#table-checkbox-last'),
-                labelText: this.textLast
+                labelText: this.textLast,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chLast);
 
             this.chColBanded = new Common.UI.CheckBox({
                 el: $('#table-checkbox-col-banded'),
-                labelText: this.textBanded
+                labelText: this.textBanded,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chColBanded);
 
             this.chFilter = new Common.UI.CheckBox({
                 el: $('#table-checkbox-filter'),
-                labelText: this.textFilter
+                labelText: this.textFilter,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chFilter);
 
@@ -250,16 +273,25 @@ define([
             this.lockedControls.push(this.txtTableName);
 
             this.btnSelectData = new Common.UI.Button({
-                el: $('#table-btn-select-data')
+                parentEl: $('#table-btn-select-data'),
+                cls         : 'btn-toolbar align-left',
+                iconCls     : 'toolbar__icon resize-table',
+                caption     : this.textResize,
+                style       : 'width: 100%;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnSelectData.on('click', _.bind(this.onSelectData, this));
             this.lockedControls.push(this.btnSelectData);
 
             this.btnEdit = new Common.UI.Button({
                 parentEl: $('#table-btn-edit'),
-                cls: 'btn-icon-default',
-                iconCls: 'btn-edit-table',
-                menu        : new Common.UI.Menu({
+                cls         : 'btn-toolbar align-left',
+                iconCls     : 'toolbar__icon rows-and-columns',
+                caption     : this.textEdit,
+                style       : 'width: 100%;',
+                menu: new Common.UI.Menu({
                     menuAlign: 'tr-br',
                     items: [
                         { caption: this.selectRowText,      value:  Asc.c_oAscChangeSelectionFormatTable.row,   idx: 0 },
@@ -276,8 +308,12 @@ define([
                         { caption: this.deleteColumnText,   value: Asc.c_oAscDeleteOptions.DeleteColumns,   idx: 9 },
                         { caption: this.deleteTableText,    value: Asc.c_oAscDeleteOptions.DeleteTable,     idx: 10 }
                     ]
-                })
+                }),
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
+
             this.btnEdit.menu.on('show:after', _.bind( function(menu){
                 if (this.api) {
                     menu.items[5].setDisabled(!this._originalProps.asc_getIsInsertRowAbove());
@@ -295,10 +331,13 @@ define([
 
             this.btnConvertRange = new Common.UI.Button({
                 parentEl: $('#table-btn-convert-range'),
-                cls         : 'btn-toolbar',
+                cls         : 'btn-toolbar align-left',
                 iconCls     : 'toolbar__icon btn-convert-to-range',
                 caption     : this.textConvertRange,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
 
             this.btnConvertRange.on('click', _.bind(function(btn){
@@ -309,10 +348,13 @@ define([
 
             this.btnRemDuplicates = new Common.UI.Button({
                 parentEl: $('#table-btn-rem-duplicates'),
-                cls         : 'btn-toolbar',
+                cls         : 'btn-toolbar align-left',
                 iconCls     : 'toolbar__icon btn-remove-duplicates',
                 caption     : this.textRemDuplicates,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnRemDuplicates.on('click', _.bind(function(btn){
                 Common.NotificationCenter.trigger('data:remduplicates', this);
@@ -321,20 +363,26 @@ define([
 
             this.btnSlicer = new Common.UI.Button({
                 parentEl: $('#table-btn-slicer'),
-                cls         : 'btn-toolbar',
+                cls         : 'btn-toolbar align-left',
                 iconCls     : 'toolbar__icon btn-slicer',
                 caption     : this.textSlicer,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnSlicer.on('click', _.bind(this.onInsertSlicerClick, this));
             this.lockedControls.push(this.btnSlicer);
 
             this.btnPivot = new Common.UI.Button({
                 parentEl: $('#table-btn-pivot'),
-                cls         : 'btn-toolbar',
+                cls         : 'btn-toolbar align-left',
                 iconCls     : 'toolbar__icon btn-pivot-sum',
                 caption     : this.textPivot,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnPivot.on('click', _.bind(this.onInsertPivotClick, this));
             this.lockedControls.push(this.btnPivot);
@@ -367,10 +415,12 @@ define([
             }
         },
 
-        ChangeSettings: function(props) {
+        ChangeSettings: function(props, wsLock, wsProps) {
             if (this._initSettings)
                 this.createDelayedControls();
 
+            this.wsLock = wsLock;
+            this.wsProps = wsProps;
             this.disableControls(this._locked); // need to update combodataview after disabled state
 
             if (props )//formatTableInfo
@@ -434,7 +484,7 @@ define([
                     this._state.CheckFilter=value;
                 }
                 if (this.chFilter.isDisabled() !== (!this._state.CheckHeader || this._locked || value===null))
-                    this.chFilter.setDisabled(!this._state.CheckHeader || this._locked || value===null);
+                    this.chFilter.setDisabled(!this._state.CheckHeader || this._locked || value===null || this.wsLock);
 
                 if (needTablePictures || !this.mnuTableTemplatePicker)
                     this.onApiInitTableTemplates(this.api.asc_getTablePictures(props));
@@ -474,11 +524,13 @@ define([
                     cls         : 'btn-large-dataview sheet-template-table',
                     iconCls     : 'icon-template-table',
                     menu        : new Common.UI.Menu({
-                        style: 'width: 505px;',
                         items: [
-                            { template: _.template('<div id="id-table-menu-template" class="menu-table-template"  style="margin: 5px 5px 5px 10px;"></div>') }
+                            { template: _.template('<div id="id-table-menu-template" class="menu-table-template"  style="margin: 0 4px;"></div>') }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big',
                 });
                 this.btnTableTemplate.on('render:after', function(btn) {
                     self.mnuTableTemplatePicker = new Common.UI.DataView({
@@ -487,14 +539,38 @@ define([
                         restoreHeight: 325,
                         groups: new Common.UI.DataViewGroupStore(),
                         store: new Common.UI.DataViewStore(),
-                        itemTemplate: _.template('<div id="<%= id %>" class="item"><img src="<%= imageUrl %>" height="44" width="60"></div>'),
-                        style: 'max-height: 325px;'
+                        itemTemplate: _.template('<div id="<%= id %>" class="item-template"><img src="<%= imageUrl %>" height="44" width="60"></div>'),
+                        style: 'max-height: 325px;',
+                        delayRenderTips: true
                     });
                 });
+
+                this.btnTableTemplate.menu.on('show:before', function(menu) {
+                    if (menu && self.mnuTableTemplatePicker) {
+                        var picker = self.mnuTableTemplatePicker,
+                            columnCount = 7;
+        
+                        if (picker.cmpEl) {
+                            var itemEl = $(picker.cmpEl.find('.dataview.inner .item-template').get(0)).parent(),
+                                itemMargin = 8,
+                                itemWidth = itemEl.is(':visible') ? parseFloat(itemEl.css('width')) : 60;
+        
+                            var menuWidth = columnCount * (itemMargin + itemWidth) + 11, // for scroller
+                                menuMargins = parseFloat(picker.cmpEl.css('margin-left')) + parseFloat(picker.cmpEl.css('margin-right'));
+                            if (menuWidth + menuMargins>Common.Utils.innerWidth())
+                                menuWidth = Math.max(Math.floor((Common.Utils.innerWidth()-menuMargins-11)/(itemMargin + itemWidth)), 2) * (itemMargin + itemWidth) + 11;
+                            picker.cmpEl.css({
+                                'width': menuWidth
+                            });
+                            menu.alignPosition();
+                        }
+                    }
+                });
+
                 this.btnTableTemplate.render($('#table-btn-template'));
                 this.lockedControls.push(this.btnTableTemplate);
                 this.mnuTableTemplatePicker.on('item:click', _.bind(this.onTableTemplateSelect, this, this.btnTableTemplate));
-                if (this._locked) this.btnTableTemplate.setDisabled(this._locked);
+                if (this._locked) this.btnTableTemplate.setDisabled(this._locked || this.wsProps['FormatCells']);
             }
 
 
@@ -506,21 +582,64 @@ define([
                     data[index].model.set('imageUrl', img, {silent: true});
                     $(data[index].el).find('img').attr('src', img);
                 });
-            } else {
-                var arr = [];
-                _.each(Templates, function(template){
-                    arr.push({
+            } else {            
+                var templates = [];
+                var groups = [
+                    {id: 'menu-table-group-custom',    caption: self.txtGroupTable_Custom, templates: []},
+                    {id: 'menu-table-group-light',     caption: self.txtGroupTable_Light,  templates: []},
+                    {id: 'menu-table-group-medium',    caption: self.txtGroupTable_Medium, templates: []},
+                    {id: 'menu-table-group-dark',      caption: self.txtGroupTable_Dark,   templates: []},
+                    {id: 'menu-table-group-no-name',   caption: '&nbsp',                 templates: []},
+                ];
+                _.each(Templates, function(item){
+                    var tip = item.asc_getDisplayName();
+                    var groupItem = '';
+                    
+                    if (item.asc_getType()==0) {
+                        var arr = tip.split(' '),
+                            last = arr.pop();
+                            
+                        if(tip == 'None'){
+                            groupItem = 'menu-table-group-light';
+                        }
+                        else {
+                            if(arr.length > 0){
+                                groupItem = 'menu-table-group-' + arr[arr.length - 1].toLowerCase();
+                            }
+                            if(groups.some(function(item) {return item.id === groupItem;}) == false) {
+                                groupItem = 'menu-table-group-no-name';
+                            }
+                        }
+                        arr = 'txtTable_' + arr.join('');
+                        tip = self[arr] ? self[arr] + ' ' + last : tip;
+                    }
+                    else {
+                        groupItem = 'menu-table-group-custom'
+                    }                        
+                    groups.filter(function(item){ return item.id == groupItem; })[0].templates.push({
                         id          : Common.UI.getId(),
-                        name        : template.asc_getName(),
-                        caption     : template.asc_getDisplayName(),
-                        type        : template.asc_getType(),
-                        imageUrl    : template.asc_getImage(),
+                        name        : item.asc_getName(),
+                        caption     : item.asc_getDisplayName(),
+                        type        : item.asc_getType(),
+                        imageUrl    : item.asc_getImage(),
+                        group       : groupItem, 
                         allowSelected : true,
                         selected    : false,
-                        tip         : template.asc_getDisplayName()
+                        tip         : tip
                     });
                 });
-                self.mnuTableTemplatePicker.store.reset(arr);
+
+                groups = groups.filter(function(item, index){
+                    return item.templates.length > 0
+                });
+                
+                groups.forEach(function(item){
+                    templates = templates.concat(item.templates);
+                    delete item.templates;
+                });
+
+                self.mnuTableTemplatePicker.groups.reset(groups);
+                self.mnuTableTemplatePicker.store.reset(templates);
             }
         },
 
@@ -597,13 +716,16 @@ define([
             if (this._initSettings) return;
             disable = disable || this.isEditCell;
 
-            if (this._state.DisabledControls!==disable) {
-                this._state.DisabledControls = disable;
-                _.each(this.lockedControls, function(item) {
-                    item.setDisabled(disable);
-                });
-                this.linkAdvanced.toggleClass('disabled', disable);
-            }
+            var me = this;
+            _.each(this.lockedControls, function(item) {
+                item.setDisabled(disable || me.wsLock);
+            });
+            this.linkAdvanced.toggleClass('disabled', disable || this.wsLock);
+            this.btnTableTemplate && this.btnTableTemplate.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chBanded.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chFirst.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chLast.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chColBanded.setDisabled(disable || this.wsProps['FormatCells']);
         },
 
         textEdit:           'Rows & Columns',
@@ -643,7 +765,15 @@ define([
         textRemDuplicates: 'Remove duplicates',
         textSlicer: 'Insert slicer',
         textPivot: 'Insert pivot table',
-        textActions: 'Table actions'
+        textActions: 'Table actions',
+        txtTable_TableStyleMedium: 'Table Style Medium',
+        txtTable_TableStyleDark: 'Table Style Dark',
+        txtTable_TableStyleLight: 'Table Style Light',
+        txtGroupTable_Custom: 'Custom',
+        txtGroupTable_Light: 'Light',
+        txtGroupTable_Medium: 'Medium',
+        txtGroupTable_Dark: 'Dark',
+        
         
     }, SSE.Views.TableSettings || {}));
 });

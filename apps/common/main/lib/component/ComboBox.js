@@ -87,12 +87,15 @@ define([
                 valueField  : 'value',
                 search      : false,
                 scrollAlwaysVisible: false,
-                takeFocusOnClose: false
+                takeFocusOnClose: false,
+                dataHint: '',
+                dataHintDirection: '',
+                dataHintOffset: ''
             },
 
             template: _.template([
                 '<span class="input-group combobox <%= cls %>" id="<%= id %>" style="<%= style %>">',
-                    '<input type="text" class="form-control" spellcheck="false">',
+                    '<input type="text" class="form-control" spellcheck="false"  data-hint="<%= dataHint %>" data-hint-direction="<%= dataHintDirection %>" data-hint-offset="<%= dataHintOffset %>">',
                     '<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">',
                         '<span class="caret"></span>',
                     '</button>',
@@ -147,7 +150,10 @@ define([
                         menuCls     : this.menuCls,
                         menuStyle   : this.menuStyle,
                         items       : items,
-                        scope       : me
+                        scope       : me,
+                        dataHint    : this.options.dataHint,
+                        dataHintDirection: this.options.dataHintDirection,
+                        dataHintOffset: this.options.dataHintOffset
                     }));
                     if (this.itemsTemplate)
                         this.cmpEl.find('ul').html(
@@ -184,6 +190,7 @@ define([
                         el.on('click', '.form-control', _.bind(this.onInputClick, this));
                         this._input.attr('readonly', 'readonly');
                         this._input.attr('data-can-copy', false);
+                        this._input.on('mousedown',function (e){e.preventDefault();})
                     }
 
                     if (me.options.hint) {
@@ -304,7 +311,10 @@ define([
                 var $list = this.cmpEl.find('ul');
                 if ($list.hasClass('menu-absolute')) {
                     var offset = this.cmpEl.offset();
-                    $list.css({left: offset.left, top: offset.top + this.cmpEl.outerHeight() + 2});
+                    var left = offset.left;
+                    if (left + $list.outerWidth()>Common.Utils.innerWidth())
+                        left += (this.cmpEl.outerWidth() - $list.outerWidth());
+                    $list.css({left: left, top: offset.top + this.cmpEl.outerHeight() + 2});
                 } else if ($list.hasClass('menu-aligned')) {
                     var offset = this.cmpEl.offset();
                     $list.toggleClass('show-top', offset.top + this.cmpEl.outerHeight() + $list.outerHeight() > Common.Utils.innerHeight());
@@ -351,6 +361,9 @@ define([
                 Common.NotificationCenter.trigger('menu:hide', this, isFromInputControl);
                 if (this.options.takeFocusOnClose) {
                     var me = this;
+                    (me._input && me._input.length>0 && !me.editable) && (me._input[0].selectionStart===me._input[0].selectionEnd) && setTimeout(function() {
+                        me._input[0].selectionStart = me._input[0].selectionEnd = 0;
+                    },1);
                     setTimeout(function(){me.focus();}, 1);
                 }
             },
@@ -397,8 +410,9 @@ define([
             },
 
             selectCandidate: function() {
-                var index = this._search.index || 0,
+                var index = (this._search.index && this._search.index != -1) ? this._search.index : 0,
                     re = new RegExp('^' + ((this._search.full) ? this._search.text : this._search.char), 'i'),
+                    isFirstCharsEqual = re.test(this.store.at(index).get(this.displayField)),
                     itemCandidate, idxCandidate;
 
                 for (var i=0; i<this.store.length; i++) {
@@ -407,6 +421,8 @@ define([
                         if (!itemCandidate) {
                             itemCandidate = item;
                             idxCandidate = i;
+                            if(!isFirstCharsEqual) 
+                                break;  
                         }
                         if (this._search.full && i==index || i>index) {
                             itemCandidate = item;
@@ -538,6 +554,7 @@ define([
             },
 
             setDisabled: function(disabled) {
+                disabled = !!disabled;
                 this.disabled = disabled;
 
                 if (!this.rendered)
@@ -696,8 +713,8 @@ define([
                 this.options.updateFormControl.call(this, this._selectedItem);
         },
 
-        setValue: function(value) {
-            Common.UI.ComboBox.prototype.setValue.call(this, value);
+        setValue: function(value, defValue) {
+            Common.UI.ComboBox.prototype.setValue.call(this, value, defValue);
             if (this.options.updateFormControl)
                 this.options.updateFormControl.call(this, this._selectedItem);
         },

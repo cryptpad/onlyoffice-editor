@@ -14,12 +14,11 @@ import EditChartController from "../../controller/edit/EditChart";
 import { EditLinkController } from "../../controller/edit/EditLink";
 
 import { Theme, Layout, Transition, Type, Effect, StyleFillColor, CustomFillColor } from './EditSlide';
-import { PageTextFonts, PageTextFontColor, PageTextCustomFontColor, PageTextAddFormatting, PageTextBullets, PageTextNumbers, PageTextLineSpacing } from './EditText';
+import { PageTextFonts, PageTextFontColor, PageTextHighlightColor, PageTextCustomFontColor, PageTextAddFormatting, PageTextBulletsAndNumbers, PageTextLineSpacing, PageTextBulletsLinkSettings } from './EditText';
 import { PageShapeStyle, PageShapeStyleNoFill, PageReplaceContainer, PageReorderContainer, PageAlignContainer, PageShapeBorderColor, PageShapeCustomBorderColor, PageShapeCustomFillColor } from './EditShape';
 import { PageImageReplace, PageImageReorder, PageImageAlign, PageLinkSettings } from './EditImage';
 import { PageTableStyle, PageTableStyleOptions, PageTableCustomFillColor, PageTableBorderColor, PageTableCustomBorderColor, PageTableReorder, PageTableAlign } from './EditTable';
-import { PageChartStyle, PageChartCustomFillColor, PageChartBorderColor, PageChartCustomBorderColor, PageChartReorder, PageChartAlign } from './EditChart'
-import { PageLinkTo, PageTypeLink } from './EditLink'
+import { PageChartDesign, PageChartDesignType, PageChartDesignStyle, PageChartDesignFill, PageChartDesignBorder, PageChartCustomFillColor, PageChartBorderColor, PageChartCustomBorderColor, PageChartReorder, PageChartAlign } from './EditChart'
 
 const routes = [
 
@@ -65,6 +64,10 @@ const routes = [
         component: PageTextFontColor
     },
     {
+        path: '/edit-text-highlight-color/',
+        component: PageTextHighlightColor
+    },
+    {
         path: '/edit-text-custom-font-color/',
         component: PageTextCustomFontColor
     },
@@ -73,12 +76,14 @@ const routes = [
         component: PageTextAddFormatting
     },
     {
-        path: '/edit-text-bullets/',
-        component: PageTextBullets
-    },
-    {
-        path: '/edit-text-numbers/',
-        component: PageTextNumbers
+        path: '/edit-bullets-and-numbers/',
+        component: PageTextBulletsAndNumbers,
+        routes: [
+            {
+                path: 'image-link/',
+                component: PageTextBulletsLinkSettings
+            }
+        ]
     },
     {
         path: '/edit-text-line-spacing/',
@@ -173,8 +178,24 @@ const routes = [
     // Chart
 
     {
+        path: '/edit-chart-design/',
+        component: PageChartDesign,
+    },
+    {
+        path: '/edit-chart-type/',
+        component: PageChartDesignType
+    },
+    {
         path: '/edit-chart-style/',
-        component: PageChartStyle
+        component: PageChartDesignStyle
+    },
+    {
+        path: '/edit-chart-fill/',
+        component: PageChartDesignFill
+    },
+    {
+        path: '/edit-chart-border/',
+        component: PageChartDesignBorder
     },
     {
         path: '/edit-chart-reorder/',
@@ -198,14 +219,9 @@ const routes = [
     },
 
     // Link
-
     {
-        path: '/edit-link-type/',
-        component: PageTypeLink
-    },
-    {
-        path: '/edit-link-to/',
-        component: PageLinkTo
+        path: '/edit-link/',
+        component: EditLinkController
     }
 ];
 
@@ -273,18 +289,11 @@ const EditTabs = props => {
             component: <EmptyEditLayout />
         });
     } else {
-        if (settings.indexOf('slide') > -1) {
+        if (settings.indexOf('image') > -1) {
             editors.push({
-                caption: _t.textSlide,
-                id: 'edit-slide',
-                component: <EditSlideController />
-            })
-        }
-        if (settings.indexOf('text') > -1) {
-            editors.push({
-                caption: _t.textText,
-                id: 'edit-text',
-                component: <EditTextController />
+                caption: _t.textImage,
+                id: 'edit-image',
+                component: <EditImageController />
             })
         }
         if (settings.indexOf('shape') > -1) {
@@ -293,13 +302,6 @@ const EditTabs = props => {
                  id: 'edit-shape',
                  component: <EditShapeController />
              })
-        }
-        if (settings.indexOf('image') > -1) {
-            editors.push({
-                caption: _t.textImage,
-                id: 'edit-image',
-                component: <EditImageController />
-            })
         }
         if (settings.indexOf('table') > -1) {
             editors.push({
@@ -315,11 +317,18 @@ const EditTabs = props => {
                 component: <EditChartController />
             })
         }
-        if (settings.indexOf('hyperlink') > -1) {
+        if (settings.indexOf('text') > -1) {
             editors.push({
-                caption: _t.textHyperlink,
-                id: 'edit-link',
-                component: <EditLinkController />
+                caption: _t.textText,
+                id: 'edit-text',
+                component: <EditTextController />
+            })
+        }
+        if (settings.indexOf('slide') > -1) {
+            editors.push({
+                caption: _t.textSlide,
+                id: 'edit-slide',
+                component: <EditSlideController />
             })
         }
     }
@@ -343,7 +352,7 @@ const EditView = props => {
     const show_popover = props.usePopover;
     return (
         show_popover ?
-            <Popover id="edit-popover" className="popover__titled" onPopoverClosed={() => props.onClosed()}>
+            <Popover id="edit-popover" className="popover__titled" closeByOutsideClick={false} onPopoverClosed={() => props.onClosed()}>
                 <EditTabsContainer inPopover={true} onOptionClick={onOptionClick} style={{height: '410px'}} />
             </Popover> :
             <Sheet id="edit-sheet" push onSheetClosed={() => props.onClosed()}>
@@ -364,8 +373,9 @@ const EditOptions = props => {
     });
 
     const onviewclosed = () => {
-        if ( props.onclosed )
+        if ( props.onclosed ) {
             props.onclosed();
+        }
     };
 
     return (

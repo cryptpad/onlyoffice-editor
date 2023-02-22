@@ -46,9 +46,74 @@ define([
     'use strict';
 
     SSE.Views.ViewTab = Common.UI.BaseView.extend(_.extend((function(){
+        var template = '<section class="panel" data-tab="view">' +
+            '<div class="group sheet-views">' +
+                '<span class="btn-slot text x-huge" id="slot-btn-sheet-view"></span>' +
+            '</div>' +
+            '<div class="group sheet-views small">' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-createview"></span>' +
+                '</div>' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-closeview"></span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="separator long sheet-views"></div>' +
+            '<div class="group small">' +
+                '<div class="elset" style="display: flex;">' +
+                    '<span class="btn-slot" id="slot-field-zoom" style="flex-grow: 1;"></span>' +
+                '</div>' +
+                '<div class="elset" style="text-align: center;">' +
+                    '<span class="btn-slot text" id="slot-lbl-zoom" style="font-size: 11px;text-align: center;margin-top: 4px;"></span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="separator long"></div>' +
+            '<div class="group">' +
+                '<span class="btn-slot text x-huge" id="slot-btn-interface-theme"></span>' +
+            '</div>' +
+            '<div class="separator long separator-theme"></div>' +
+            '<div class="group sheet-freeze">' +
+                '<span class="btn-slot text x-huge" id="slot-btn-freeze"></span>' +
+            '</div>' +
+            '<div class="separator long sheet-freeze"></div>' +
+            '<div class="group small sheet-formula">' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-formula"></span>' +
+                '</div>' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-heading"></span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="group small sheet-gridlines">' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-gridlines"></span>' +
+                '</div>' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-zeros"></span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="separator long separator-formula"></div>' +
+            '<div class="group small">' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-toolbar"></span>' +
+                '</div>' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-statusbar"></span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="group small">' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-leftmenu"></span>' +
+                '</div>' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-chk-rightmenu"></span>' +
+                '</div>' +
+            '</div>' +
+        '</section>';
+
         function setEvents() {
             var me = this;
-            if ( me.appConfig.canFeatureViews ) {
+            if ( me.appConfig.canFeatureViews && me.appConfig.isEdit) {
                 me.btnCloseView.on('click', function (btn, e) {
                     me.fireEvent('viewtab:openview', [{name: 'default', value: 'default'}]);
                 });
@@ -57,24 +122,47 @@ define([
                 });
             }
 
-            me.btnFreezePanes.menu.on('item:click', function (menu, item, e) {
-                me.fireEvent('viewtab:freeze', [item.value]);
+            me.btnFreezePanes && me.btnFreezePanes.menu.on('item:click', function (menu, item, e) {
+                if (item.value === 'shadow') {
+                    me.fireEvent('viewtab:freezeshadow', [item.checked]);
+                } else {
+                    me.fireEvent('viewtab:freeze', [item.value]);
+                }
             });
             this.chFormula.on('change', function (field, value) {
-                me.fireEvent('viewtab:formula', [0, value]);
+                me.fireEvent('viewtab:formula', [0, value=='checked']);
             });
-            this.chHeadings.on('change', function (field, value) {
-                me.fireEvent('viewtab:headings', [1, value]);
+            this.chHeadings && this.chHeadings.on('change', function (field, value) {
+                me.fireEvent('viewtab:headings', [1, value=='checked']);
             });
-            this.chGridlines.on('change', function (field, value) {
-                me.fireEvent('viewtab:gridlines', [2, value]);
+            this.chGridlines && this.chGridlines.on('change', function (field, value) {
+                me.fireEvent('viewtab:gridlines', [2, value=='checked']);
             });
-            this.chZeros.on('change', function (field, value) {
-                me.fireEvent('viewtab:zeros', [3, value]);
+            this.chZeros && this.chZeros.on('change', function (field, value) {
+                me.fireEvent('viewtab:zeros', [3, value=='checked']);
             });
-            this.cmbZoom.on('selected', function(combo, record) {
-                me.fireEvent('viewtab:zoom', [record.value]);
+            this.chToolbar.on('change', function (field, value) {
+                me.fireEvent('viewtab:showtoolbar', [field, value !== 'checked']);
             });
+            this.chStatusbar.on('change', function (field, value) {
+                me.fireEvent('statusbar:setcompact', [field, value === 'checked']);
+            });
+            this.cmbZoom.on('selected', function (combo, record) {
+                me.fireEvent('zoom:selected', [combo, record]);
+            }).on('changed:before', function (combo, record) {
+                me.fireEvent('zoom:changedbefore', [true, combo, record]);
+            }).on('changed:after', function (combo, record) {
+                me.fireEvent('zoom:changedafter', [false, combo, record]);
+            }).on('combo:blur', function () {
+                me.fireEvent('editcomplete', me);
+            }).on('combo:focusin', _.bind(this.onComboOpen, this, false))
+              .on('show:after', _.bind(this.onComboOpen, this, true));
+            me.chLeftMenu.on('change', _.bind(function (checkbox, state) {
+                me.fireEvent('leftmenu:hide', [me.chLeftMenu, state === 'checked']);
+            }, me));
+            me.chRightMenu.on('change', _.bind(function (checkbox, state) {
+                me.fireEvent('rightmenu:hide', [me.chRightMenu, state === 'checked']);
+            }, me));
         }
 
         return {
@@ -88,17 +176,18 @@ define([
                 this.lockedControls = [];
 
                 var me = this,
-                    $host = me.toolbar.$el,
-                    _set = SSE.enumLock;
+                    _set = Common.enumLock;
 
-                if ( me.appConfig.canFeatureViews ) {
+                if ( me.appConfig.canFeatureViews && me.appConfig.isEdit ) {
                     this.btnSheetView = new Common.UI.Button({
-                        parentEl: $host.find('#slot-btn-sheet-view'),
                         cls: 'btn-toolbar x-huge icon-top',
                         iconCls: 'toolbar__icon btn-sheet-view',
                         caption: me.capBtnSheetView,
-                        lock        : [_set.lostConnect, _set.coAuth],
-                        menu: true
+                        lock        : [_set.lostConnect, _set.coAuth, _set.editCell],
+                        menu: true,
+                        dataHint    : '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
                     });
                     this.lockedControls.push(this.btnSheetView);
 
@@ -107,39 +196,73 @@ define([
                         cls         : 'btn-toolbar',
                         iconCls     : 'toolbar__icon btn-sheet-view-new',
                         caption     : this.textCreate,
-                        lock        : [_set.coAuth, _set.lostConnect]
+                        lock        : [_set.coAuth, _set.lostConnect, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'big'
                     });
                     this.lockedControls.push(this.btnCreateView);
-                    Common.Utils.injectComponent($host.find('#slot-createview'), this.btnCreateView);
 
                     this.btnCloseView = new Common.UI.Button({
                         id          : 'id-toolbar-btn-closeview',
                         cls         : 'btn-toolbar',
                         iconCls     : 'toolbar__icon btn-sheet-view-close',
                         caption     : this.textClose,
-                        lock        : [_set.sheetView, _set.coAuth, _set.lostConnect]
+                        lock        : [_set.sheetView, _set.coAuth, _set.lostConnect, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'big'
                     });
                     this.lockedControls.push(this.btnCloseView);
-                    Common.Utils.injectComponent($host.find('#slot-closeview'), this.btnCloseView);
                 }
 
-                this.btnFreezePanes = new Common.UI.Button({
-                    parentEl: $host.find('#slot-btn-freeze'),
-                    cls: 'btn-toolbar x-huge icon-top',
-                    iconCls: 'toolbar__icon btn-freeze-panes',
-                    caption: this.capBtnFreeze,
-                    menu: true,
-                    lock: [_set.sheetLock, _set.lostConnect, _set.coAuth]
-                });
-                this.lockedControls.push(this.btnFreezePanes);
+                if (me.appConfig.isEdit) {
+                    this.btnFreezePanes = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        iconCls: 'toolbar__icon btn-freeze-panes',
+                        caption: this.capBtnFreeze,
+                        menu: true,
+                        lock: [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
+                        dataHint: '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.btnFreezePanes);
+
+                    this.chHeadings = new Common.UI.CheckBox({
+                        labelText: this.textHeadings,
+                        lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.chHeadings);
+
+                    this.chGridlines = new Common.UI.CheckBox({
+                        labelText: this.textGridlines,
+                        lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.chGridlines);
+
+                    this.chZeros = new Common.UI.CheckBox({
+                        labelText: this.textZeros,
+                        lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.chZeros);
+                }
 
                 this.cmbZoom = new Common.UI.ComboBox({
-                    el          : $host.find('#slot-field-zoom'),
                     cls         : 'input-group-nr',
                     menuStyle   : 'min-width: 55px;',
                     hint        : me.tipFontSize,
-                    editable    : false,
-                    lock        : [_set.coAuth, _set.lostConnect],
+                    editable    : true,
+                    lock        : [_set.lostConnect, _set.editCell],
                     data        : [
                         { displayValue: "50%", value: 50 },
                         { displayValue: "75%", value: 75 },
@@ -147,47 +270,106 @@ define([
                         { displayValue: "125%", value: 125 },
                         { displayValue: "150%", value: 150 },
                         { displayValue: "175%", value: 175 },
-                        { displayValue: "200%", value: 200 }
-                    ]
+                        { displayValue: "200%", value: 200 },
+                        { displayValue: "300%", value: 300 },
+                        { displayValue: "400%", value: 400 },
+                        { displayValue: "500%", value: 500 }
+                    ],
+                    dataHint    : '1',
+                    dataHintDirection: 'top',
+                    dataHintOffset: 'small'
                 });
-                this.cmbZoom.setValue(100);
+                this.lockedControls.push(this.cmbZoom);
+
+                this.btnInterfaceTheme = new Common.UI.Button({
+                    cls: 'btn-toolbar x-huge icon-top',
+                    iconCls: 'toolbar__icon day',
+                    caption: this.textInterfaceTheme,
+                    menu: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
+                });
+                this.lockedControls.push(this.btnInterfaceTheme);
 
                 this.chFormula = new Common.UI.CheckBox({
-                    el: $host.findById('#slot-chk-formula'),
                     labelText: this.textFormula,
                     value: !Common.localStorage.getBool('sse-hidden-formula'),
-                    lock        : [_set.lostConnect, _set.coAuth]
+                    lock        : [_set.lostConnect, _set.editCell],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.chFormula);
 
-                this.chHeadings = new Common.UI.CheckBox({
-                    el: $host.findById('#slot-chk-heading'),
-                    labelText: this.textHeadings,
-                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                this.chStatusbar = new Common.UI.CheckBox({
+                    labelText: this.textCombineSheetAndStatusBars,
+                    value       : Common.localStorage.getBool('sse-compact-statusbar', true),
+                    lock        : [_set.lostConnect, _set.editCell],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
-                this.lockedControls.push(this.chHeadings);
+                this.lockedControls.push(this.chStatusbar);
 
-                this.chGridlines = new Common.UI.CheckBox({
-                    el: $host.findById('#slot-chk-gridlines'),
-                    labelText: this.textGridlines,
-                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                this.chToolbar = new Common.UI.CheckBox({
+                    labelText: this.textAlwaysShowToolbar,
+                    value       : !options.compactToolbar,
+                    lock        : [_set.lostConnect, _set.editCell],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
-                this.lockedControls.push(this.chGridlines);
+                this.lockedControls.push(this.chToolbar);
 
-                this.chZeros = new Common.UI.CheckBox({
-                    el: $host.findById('#slot-chk-zeros'),
-                    labelText: this.textZeros,
-                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                this.chRightMenu = new Common.UI.CheckBox({
+                    lock: [_set.lostConnect],
+                    labelText: this.textRightMenu,
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
-                this.lockedControls.push(this.chZeros);
+                this.lockedControls.push(this.chRightMenu);
 
-                $host.find('#slot-lbl-zoom').text(this.textZoom);
+                this.chLeftMenu = new Common.UI.CheckBox({
+                    lock: [_set.lostConnect],
+                    labelText: this.textLeftMenu,
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
+                });
+                this.lockedControls.push(this.chLeftMenu);
 
                 Common.NotificationCenter.on('app:ready', this.onAppReady.bind(this));
             },
 
             render: function (el) {
+                if ( el ) el.html( this.getPanel() );
+
                 return this;
+            },
+
+            getPanel: function () {
+                this.$el = $(_.template(template)( {} ));
+                var $host = this.$el;
+
+                this.btnSheetView && this.btnSheetView.render($host.find('#slot-btn-sheet-view'));
+                this.btnCreateView && this.btnCreateView.render($host.find('#slot-createview'));
+                this.btnCloseView && this.btnCloseView.render($host.find('#slot-closeview'));
+                this.btnFreezePanes && this.btnFreezePanes.render($host.find('#slot-btn-freeze'));
+                this.cmbZoom.render($host.find('#slot-field-zoom'));
+                this.cmbZoom.setValue(100);
+                $host.find('#slot-lbl-zoom').text(this.textZoom);
+                this.btnInterfaceTheme.render($host.find('#slot-btn-interface-theme'));
+                this.chFormula.render($host.find('#slot-chk-formula'));
+                this.chStatusbar.render($host.find('#slot-chk-statusbar'));
+                this.chToolbar.render($host.find('#slot-chk-toolbar'));
+                this.chHeadings && this.chHeadings.render($host.find('#slot-chk-heading'));
+                this.chGridlines && this.chGridlines.render($host.find('#slot-chk-gridlines'));
+                this.chZeros && this.chZeros.render($host.find('#slot-chk-zeros'));
+                this.chLeftMenu.render($host.find('#slot-chk-leftmenu'));
+                this.chRightMenu.render($host.find('#slot-chk-rightmenu'));
+                return this.$el;
             },
 
             onAppReady: function (config) {
@@ -195,7 +377,7 @@ define([
                 (new Promise(function (accept, reject) {
                     accept();
                 })).then(function(){
-                    if (!config.canFeatureViews) {
+                    if (!(config.canFeatureViews && me.appConfig.isEdit)) {
                         me.toolbar && me.toolbar.$el.find('.group.sheet-views').hide();
                         me.toolbar && me.toolbar.$el.find('.separator.sheet-views').hide();
                     } else {
@@ -205,60 +387,109 @@ define([
                         me.btnCreateView.updateHint(me.tipCreate);
                         me.btnCloseView.updateHint(me.tipClose);
                     }
-                    me.btnFreezePanes.setMenu(new Common.UI.Menu({
-                        items: [
-                            {
-                                caption: me.toolbar && me.toolbar.api && !!me.toolbar.api.asc_getSheetViewSettings().asc_getIsFreezePane() ? me.textUnFreeze : me.capBtnFreeze,
-                                value: undefined
-                            },
-                            {
-                                caption: me.textFreezeRow,
-                                value: Asc.c_oAscFrozenPaneAddType.firstRow
-                            },
-                            {
-                                caption: me.textFreezeCol,
-                                value: Asc.c_oAscFrozenPaneAddType.firstCol
+
+                    me.btnInterfaceTheme.updateHint(me.tipInterfaceTheme);
+
+                    if (config.isEdit) {
+                        me.btnFreezePanes.setMenu(new Common.UI.Menu({
+                            items: [
+                                {
+                                    caption: me.toolbar && me.toolbar.api && !!me.toolbar.api.asc_getSheetViewSettings().asc_getIsFreezePane() ? me.textUnFreeze : me.capBtnFreeze,
+                                    value: undefined
+                                },
+                                {
+                                    caption: me.textFreezeRow,
+                                    value: Asc.c_oAscFrozenPaneAddType.firstRow
+                                },
+                                {
+                                    caption: me.textFreezeCol,
+                                    value: Asc.c_oAscFrozenPaneAddType.firstCol
+                                },
+                                { caption: '--' },
+                                {
+                                    caption: me.textShowFrozenPanesShadow,
+                                    value: 'shadow',
+                                    checkable: true,
+                                    checked: Common.localStorage.getBool('sse-freeze-shadow', true)
+                                }
+                            ]
+                        }));
+                        me.btnFreezePanes.updateHint(me.tipFreeze);
+                    } else {
+                        me.toolbar && me.toolbar.$el.find('.group.sheet-freeze').hide();
+                        me.toolbar && me.toolbar.$el.find('.separator.sheet-freeze').hide();
+                        me.toolbar && me.toolbar.$el.find('.group.sheet-gridlines').hide();
+                    }
+
+                    if (!Common.UI.Themes.available()) {
+                        me.btnInterfaceTheme.$el.closest('.group').remove();
+                        me.$el.find('.separator-theme').remove();
+                    }
+
+                    var emptyGroup = [];
+                    if (config.canBrandingExt && config.customization && config.customization.statusBar === false || !Common.UI.LayoutManager.isElementVisible('statusBar')) {
+                        emptyGroup.push(me.chStatusbar.$el.closest('.elset'));
+                        me.chStatusbar.$el.remove();
+                    }
+
+                    if (config.canBrandingExt && config.customization && config.customization.leftMenu === false || !Common.UI.LayoutManager.isElementVisible('leftMenu')) {
+                        emptyGroup.push(me.chLeftMenu.$el.closest('.elset'));
+                        me.chLeftMenu.$el.remove();
+                    } else if (emptyGroup.length>0) {
+                        emptyGroup.push(me.chLeftMenu.$el.closest('.elset'));
+                        emptyGroup.shift().append(me.chLeftMenu.$el[0]);
+                    }
+
+                    if (!config.isEdit || config.canBrandingExt && config.customization && config.customization.rightMenu === false || !Common.UI.LayoutManager.isElementVisible('rightMenu')) {
+                        emptyGroup.push(me.chRightMenu.$el.closest('.elset'));
+                        me.chRightMenu.$el.remove();
+                    } else if (emptyGroup.length>0) {
+                        emptyGroup.push(me.chRightMenu.$el.closest('.elset'));
+                        emptyGroup.shift().append(me.chRightMenu.$el[0]);
+                    }
+                    if (emptyGroup.length>1) { // remove empty group
+                        emptyGroup[emptyGroup.length-1].closest('.group').remove();
+                    }
+
+                    if (Common.UI.Themes.available()) {
+                        function _fill_themes() {
+                            var btn = this.btnInterfaceTheme;
+                            if ( typeof(btn.menu) == 'object' ) btn.menu.removeAll();
+                            else btn.setMenu(new Common.UI.Menu());
+
+                            var currentTheme = Common.UI.Themes.currentThemeId() || Common.UI.Themes.defaultThemeId();
+                            for (var t in Common.UI.Themes.map()) {
+                                btn.menu.addItem({
+                                    value: t,
+                                    caption: Common.UI.Themes.get(t).text,
+                                    checked: t === currentTheme,
+                                    checkable: true,
+                                    toggleGroup: 'interface-theme'
+                                });
                             }
-                        ]
-                    }));
-                    me.btnFreezePanes.updateHint(me.tipFreeze);
+                        }
+
+                        Common.NotificationCenter.on('uitheme:countchanged', _fill_themes.bind(me));
+                        _fill_themes.call(me);
+
+                        if (me.btnInterfaceTheme.menu.items.length) {
+                            me.btnInterfaceTheme.menu.on('item:click', _.bind(function (menu, item) {
+                                var value = item.value;
+                                Common.UI.Themes.setTheme(value);
+                            }, me));
+                        }
+                    }
+
+                    var value = Common.UI.LayoutManager.getInitValue('leftMenu');
+                    value = (value!==undefined) ? !value : false;
+                    me.chLeftMenu.setValue(!Common.localStorage.getBool("sse-hidden-leftmenu", value));
+
+                    value = Common.UI.LayoutManager.getInitValue('rightMenu');
+                    value = (value!==undefined) ? !value : false;
+                    me.chRightMenu.setValue(!Common.localStorage.getBool("sse-hidden-rightmenu", value));
 
                     setEvents.call(me);
                 });
-            },
-
-            focusInner: function(menu, e) {
-                if (e.keyCode == Common.UI.Keys.UP)
-                    menu.items[menu.items.length-1].cmpEl.find('> a').focus();
-                else
-                    menu.items[0].cmpEl.find('> a').focus();
-            },
-
-            focusOuter: function(menu, e) {
-                menu.items[2].cmpEl.find('> a').focus();
-            },
-
-            onBeforeKeyDown: function(menu, e) {
-                if (e.keyCode == Common.UI.Keys.RETURN) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var li = $(e.target).closest('li');
-                    (li.length>0) && li.click();
-                    Common.UI.Menu.Manager.hideAll();
-                } else if (e.namespace!=="after.bs.dropdown" && (e.keyCode == Common.UI.Keys.DOWN || e.keyCode == Common.UI.Keys.UP)) {
-                    var $items = $('> [role=menu] > li:not(.divider):not(.disabled):visible', menu.$el).find('> a');
-                    if (!$items.length) return;
-                    var index = $items.index($items.filter(':focus')),
-                        me = this;
-                    if (menu._outerMenu && (e.keyCode == Common.UI.Keys.UP && index==0 || e.keyCode == Common.UI.Keys.DOWN && index==$items.length - 1) ||
-                        menu._innerMenu && (e.keyCode == Common.UI.Keys.UP || e.keyCode == Common.UI.Keys.DOWN) && index!==-1) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        _.delay(function() {
-                            menu._outerMenu ? me.focusOuter(menu._outerMenu, e) : me.focusInner(menu._innerMenu, e);
-                        }, 10);
-                    }
-                }
             },
 
             setButtonMenu: function(btn) {
@@ -285,12 +516,13 @@ define([
                     }, 10);
                 }).on('show:before', function (menu, e) {
                     me.fireEvent('viewtab:showview');
-                }).on('keydown:before', _.bind(me.onBeforeKeyDown, this));
+                });
 
                 var menu = new Common.UI.Menu({
                     maxHeight: 300,
                     cls: 'internal-menu',
-                    items: arr
+                    items: arr,
+                    outerMenu:  {menu: btn.menu, index: 0}
                 });
                 menu.render(btn.menu.items[0].cmpEl.children(':first'));
                 menu.cmpEl.css({
@@ -303,9 +535,9 @@ define([
                 menu.on('item:toggle', function (menu, item, state, e) {
                     if (!!state)
                         me.fireEvent('viewtab:openview', [{name: item.caption, value: item.value}]);
-                }).on('keydown:before', _.bind(me.onBeforeKeyDown, this));
+                });
                 btn.menu._innerMenu = menu;
-                menu._outerMenu = btn.menu;
+                btn.menu.setInnerMenu([{menu: menu, index: 0}]);
             },
 
             show: function () {
@@ -327,6 +559,14 @@ define([
                 }, this);
             },
 
+            onComboOpen: function (needfocus, combo) {
+                _.delay(function() {
+                    var input = $('input', combo.cmpEl).select();
+                    if (needfocus) input.focus();
+                    else if (!combo.isMenuOpen()) input.one('mouseup', function (e) { e.preventDefault(); });
+                }, 10);
+            },
+
             capBtnSheetView: 'Sheet View',
             capBtnFreeze: 'Freeze Panes',
             textZoom: 'Zoom',
@@ -344,7 +584,14 @@ define([
             textFreezeRow: 'Freeze Top Row',
             textFreezeCol: 'Freeze First Column',
             textUnFreeze: 'Unfreeze Panes',
-            textZeros: 'Show zeros'
+            textZeros: 'Show zeros',
+            textCombineSheetAndStatusBars: 'Combine sheet and status bars',
+            textAlwaysShowToolbar: 'Always show toolbar',
+            textInterfaceTheme: 'Interface theme',
+            textShowFrozenPanesShadow: 'Show frozen panes shadow',
+            tipInterfaceTheme: 'Interface theme',
+            textLeftMenu: 'Left panel',
+            textRightMenu: 'Right panel'
         }
     }()), SSE.Views.ViewTab || {}));
 });

@@ -23,6 +23,7 @@
                 options: <advanced options>,
                 key: 'key',
                 vkey: 'vkey',
+                referenceData: 'data for external paste',
                 info: {
                     owner: 'owner name',
                     folder: 'path to document',
@@ -55,7 +56,9 @@
                          view: ["Group1", ""] // current user can view comments made by users from Group1 and users without a group.
                          edit: ["Group1", ""] // current user can edit comments made by users from Group1 and users without a group.
                          remove: ["Group1", ""] // current user can remove comments made by users from Group1 and users without a group.
-                    }
+                    },
+                    userInfoGroups: ["Group1", ""], // show tooltips/cursors/info in header only for users in userInfoGroups groups. [""] - means users without group, [] - don't show any users, null/undefined/"" - show all users
+                    protect: <can protect document> // default = true. show/hide protect tab or protect buttons
                 }
             },
             editorConfig: {
@@ -83,7 +86,7 @@
                 user: {
                     id: 'user id',
                     name: 'user name',
-                    group: 'group name' // for customization.reviewPermissions parameter
+                    group: 'group name' // for customization.reviewPermissions or permissions.reviewGroups or permissions.commentGroups. Can be multiple groups separated by commas (,) : 'Group1' or 'Group1,Group2'
                 },
                 recent: [
                     {
@@ -104,7 +107,8 @@
                 customization: {
                     logo: {
                         image: url,
-                        imageEmbedded: url,
+                        imageDark: url, // logo for dark theme
+                        imageEmbedded: url, // deprecated, use image instead
                         url: http://...
                     },
                     customer: {
@@ -112,8 +116,10 @@
                         address: 'New-York, 125f-25',
                         mail: 'support@gmail.com',
                         www: 'www.superpuper.com',
+                        phone: '1234567890',
                         info: 'Some info',
-                        logo: ''
+                        logo: '',
+                        logoDark: '', // logo for dark theme
                     },
                     about: true,
                     feedback: {
@@ -137,41 +143,94 @@
                     },
                     review: {
                         hideReviewDisplay: false, // hide button Review mode
-                        hoverMode: false // true - show review balloons on mouse move, not on click on text
+                        hoverMode: false, // true - show review balloons on mouse move, not on click on text
+                        showReviewChanges: false,
+                        reviewDisplay: 'original', // original for viewer, markup for editor
+                        trackChanges: undefined // true/false - open editor with track changes mode on/off,
+                    },
+                    layout: { // hide elements, but don't disable feature
+                        toolbar: {
+                            file: { // menu file
+                                close: false / true, // close menu button
+                                settings: false / true, // advanced settings
+                                info: false / true // document info
+                                save: false/true // save button
+                            } / false / true,
+                            home:  {
+                                mailmerge: false/true // mail merge button
+                            },
+                            layout:  false / true, // layout tab
+                            references:  false / true, // de references tab
+                            collaboration:  false / true // collaboration tab
+                            protect:  false / true, // protect tab
+                            plugins:  false / true // plugins tab
+                            view: {
+                                navigation: false/true // navigation button in de
+                            } / false / true, // view tab
+                            save: false/true // save button on toolbar in 
+                        } / false / true, // use instead of customization.toolbar,
+                        header: {
+                            users: false/true // users list button
+                            save: false/true // save button
+                        },
+                        leftMenu: {
+                            navigation: false/true,
+                            spellcheck: false/true // spellcheck button in sse,
+                            mode: false/true // init value for left panel, true - is visible, false - is hidden, used for option "Left panel" on the View Tab
+                        } / false / true, // use instead of customization.leftMenu
+                        rightMenu: {
+                            mode: false/true // init value for right panel, true - is visible, false - is hidden, used for option "Right panel" on the View Tab
+                        } / false/true, // use instead of customization.rightMenu
+                        statusBar: {
+                            textLang: false/true // text language button in de/pe
+                            docLang: false/true // document language button in de/pe
+                            actionStatus: false/true // status of operation
+                        } / false / true, // use instead of customization.statusBar
+                    },
+                    features: { // disable feature
+                        spellcheck: {
+                            mode: false/true // init value in de/pe
+                            change: false/true // hide/show feature in de/pe/sse
+                        } / false / true // if false/true - use as init value in de/pe. use instead of customization.spellcheck parameter
+                    },
+                    font: {
+                        name: "Arial",
                     },
                     chat: true,
                     comments: true,
                     zoom: 100,
                     compactToolbar: false,
-                    leftMenu: true,
-                    rightMenu: true,
+                    leftMenu: true, // must be deprecated. use layout.leftMenu instead
+                    rightMenu: true, // must be deprecated. use layout.rightMenu instead
                     hideRightMenu: false, // hide or show right panel on first loading
-                    toolbar: true,
-                    statusBar: true,
+                    toolbar: true, // must be deprecated. use layout.toolbar instead
+                    statusBar: true, // must be deprecated. use layout.statusBar instead
                     autosave: true,
                     forcesave: false,
                     commentAuthorOnly: false, // must be deprecated. use permissions.editCommentAuthorOnly and permissions.deleteCommentAuthorOnly instead
-                    showReviewChanges: false,
+                    showReviewChanges: false, // must be deprecated. use customization.review.showReviewChanges instead
                     help: true,
                     compactHeader: false,
                     toolbarNoTabs: false,
                     toolbarHideFileName: false,
-                    reviewDisplay: 'original', // original for viewer, markup for editor
-                    spellcheck: true,
+                    reviewDisplay: 'original', // must be deprecated. use customization.review.reviewDisplay instead
+                    spellcheck: true, // must be deprecated. use customization.features.spellcheck instead
                     compatibleFeatures: false,
                     unit: 'cm' // cm, pt, inch,
                     mentionShare : true // customize tooltip for mention,
                     macros: true // can run macros in document
                     plugins: true // can run plugins in document
                     macrosMode: 'warn' // warn about automatic macros, 'enable', 'disable', 'warn',
-                    trackChanges: undefined // true/false - open editor with track changes mode on/off,
+                    trackChanges: undefined // true/false - open editor with track changes mode on/off,  // must be deprecated. use customization.review.trackChanges instead
                     hideRulers: false // hide or show rulers on first loading (presentation or document editor)
                     hideNotes: false // hide or show notes panel on first loading (presentation editor)
                     uiTheme: 'theme-dark' // set interface theme: id or default-dark/default-light
+                    integrationMode: "embed" // turn off scroll to frame
                 },
                  coEditing: {
-                     mode: 'fast', // <coauthoring mode>, 'fast' or 'strict'. if 'fast' and 'customization.autosave'=false -> set 'customization.autosave'=true
-                     change: true, // can change co-authoring mode
+                     mode: 'fast', // <coauthoring mode>, 'fast' or 'strict'. if 'fast' and 'customization.autosave'=false -> set 'customization.autosave'=true. 'fast' - default for editor
+                     // for viewer: 'strict' is default, offline viewer; 'fast' - live viewer, show changes from other users
+                     change: true, // can change co-authoring mode. true - default for editor, false - default for viewer
                  },
                 plugins: {
                     autostart: ['asc.{FFE1F462-1EA2-4391-990D-4CC84940B754}'],
@@ -212,6 +271,7 @@
                 'onRequestCompareFile': <request file to compare>,// must call setRevisedFile method
                 'onRequestSharingSettings': <request sharing settings>,// must call setSharingSettings method
                 'onRequestCreateNew': <try to create document>,
+                'onRequestReferenceData': <try to refresh external data>,
             }
         }
 
@@ -275,6 +335,7 @@
         _config.editorConfig.canRequestCompareFile = _config.events && !!_config.events.onRequestCompareFile;
         _config.editorConfig.canRequestSharingSettings = _config.events && !!_config.events.onRequestSharingSettings;
         _config.editorConfig.canRequestCreateNew = _config.events && !!_config.events.onRequestCreateNew;
+        _config.editorConfig.canRequestReferenceData = _config.events && !!_config.events.onRequestReferenceData;
         _config.frameEditorId = placeholderId;
         _config.parentOrigin = window.location.origin;
 
@@ -323,41 +384,11 @@
             }
         };
 
-        var _callLocalStorage = function(data) {
-            if (data.cmd == 'get') {
-                if (data.keys && data.keys.length) {
-                    var af = data.keys.split(','), re = af[0];
-                    for (i = 0; ++i < af.length;)
-                        re += '|' + af[i];
-
-                    re = new RegExp(re); k = {};
-                    for (i in localStorage)
-                        if (re.test(i)) k[i] = localStorage[i];
-                } else {
-                    k = localStorage;
-                }
-
-                _sendCommand({
-                    command: 'internalCommand',
-                    data: {
-                        type: 'localstorage',
-                        keys: k
-                    }
-                });
-            } else
-            if (data.cmd == 'set') {
-                var k = data.keys, i;
-                for (i in k) {
-                    localStorage.setItem(i, k[i]);
-                }
-            }
-        };
-
         var _onMessage = function(msg) {
             if ( msg ) {
                 if ( msg.type === "onExternalPluginMessage" ) {
                     _sendCommand(msg);
-                } else if (msg.type === "onExternalPluginMessageCallback") {
+                } else if ((window.parent !== window) && msg.type === "onExternalPluginMessageCallback") {
                     postMessage(window.parent, msg);
                 } else
                 if ( msg.frameEditorId == placeholderId ) {
@@ -367,8 +398,6 @@
 
                     if (msg.event === 'onRequestEditRights' && !handler) {
                         _applyEditRights(false, 'handler isn\'t defined');
-                    } else if (msg.event === 'onInternalMessage' && msg.data && msg.data.type == 'localstorage') {
-                        _callLocalStorage(msg.data.data);
                     } else {
                         if (msg.event === 'onAppReady') {
                             _onAppReady();
@@ -415,7 +444,7 @@
 
                 if (typeof _config.document.fileType === 'string' && _config.document.fileType != '') {
                     _config.document.fileType = _config.document.fileType.toLowerCase();
-                    var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp)|(doc|docx|doct|odt|gdoc|txt|rtf|pdf|mht|htm|html|epub|djvu|xps|oxps|docm|dot|dotm|dotx|fodt|ott|fb2|xml))$/
+                    var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp)|(doc|docx|doct|odt|gdoc|txt|rtf|pdf|mht|htm|html|epub|djvu|xps|oxps|docm|dot|dotm|dotx|fodt|ott|fb2|xml|oform|docxf))$/
                                     .exec(_config.document.fileType);
                     if (!type) {
                         window.alert("The \"document.fileType\" parameter for the config object is invalid. Please correct it.");
@@ -471,6 +500,9 @@
 
         if (target && _checkConfigParams()) {
             iframe = createIframe(_config);
+            if (_config.editorConfig.customization && _config.editorConfig.customization.integrationMode==='embed')
+                window.AscEmbed && window.AscEmbed.initWorker(iframe);
+
             if (iframe.src) {
                 var pathArray = iframe.src.split('/');
                 this.frameOrigin = pathArray[0] + '//' + pathArray[2];
@@ -713,6 +745,13 @@
             });
         };
 
+        var _setReferenceData = function(data) {
+            _sendCommand({
+                command: 'setReferenceData',
+                data: data
+            });
+        };
+
         var _serviceCommand = function(command, data) {
             _sendCommand({
                 command: 'internalCommand',
@@ -747,7 +786,8 @@
             setFavorite         : _setFavorite,
             requestClose        : _requestClose,
             grabFocus           : _grabFocus,
-            blurFocus           : _blurFocus
+            blurFocus           : _blurFocus,
+            setReferenceData    : _setReferenceData
         }
     };
 
@@ -835,9 +875,24 @@
         return extensionParams["url"] + "apps/";
     }
 
+
+    function getTestPath() {
+        var scripts = document.getElementsByTagName('script'),
+            match;
+
+        for (var i = scripts.length - 1; i >= 0; i--) {
+            match = scripts[i].src.match(/(.*)apps\/api\/documents\/api.js/i);
+            if (match) {
+                return match[1] + "test/";
+            }
+        }
+
+        return "";
+    }
+
     function getAppPath(config) {
         var extensionPath = getExtensionPath(),
-            path = extensionPath ? extensionPath : getBasePath(),
+            path = extensionPath ? extensionPath : (config.type=="test" ? getTestPath() : getBasePath()),
             appMap = {
                 'text': 'documenteditor',
                 'text-pdf': 'documenteditor',
@@ -853,7 +908,7 @@
             app = appMap[config.documentType.toLowerCase()];
         } else
         if (!!config.document && typeof config.document.fileType === 'string') {
-            var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp))$/
+            var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp))$/
                             .exec(config.document.fileType);
             if (type) {
                 if (typeof type[1] === 'string') app = appMap['cell']; else
@@ -865,25 +920,24 @@
             check = function(regex){ return regex.test(userAgent); },
             isIE = !check(/opera/) && (check(/msie/) || check(/trident/) || check(/edge/)),
             isChrome = !isIE && check(/\bchrome\b/),
-            isSafari_mobile = !isIE && !isChrome && check(/safari/) && (navigator.maxTouchPoints>0);
+            isSafari_mobile = !isIE && !isChrome && check(/safari/) && (navigator.maxTouchPoints>0),
+            path_type;
 
         path += app + "/";
-        /*
-        path += (config.type === "mobile" || isSafari_mobile)
-            ? "mobile"
-            : (config.type === "embedded")
-                ? "embed"
-                : "main";
-        */
-        path += "main";
+        // XXX Cryptpad: Only main here?
+        path_type = (config.type === "mobile" || isSafari_mobile)
+                    ? "mobile" : (config.type === "embedded")
+                    ? "embed" : (config.document && typeof config.document.fileType === 'string' && config.document.fileType.toLowerCase() === 'oform')
+                    ? "forms" : "main";
 
+        path += path_type;
         var index = "/index.html";
-        if (config.editorConfig) {
+        if (config.editorConfig && path_type!=="forms") {
             var customization = config.editorConfig.customization;
             if ( typeof(customization) == 'object' && ( customization.toolbarNoTabs ||
                                                         (config.editorConfig.targetApp!=='desktop') && (customization.loaderName || customization.loaderLogo))) {
                 index = "/index_loader.html";
-            } else if (config.editorConfig.mode == 'editdiagram' || config.editorConfig.mode == 'editmerge')
+            } else if (config.editorConfig.mode === 'editdiagram' || config.editorConfig.mode === 'editmerge' || config.editorConfig.mode === 'editole')
                 index = "/index_internal.html";
 
         }
@@ -902,20 +956,25 @@
                 if (config.editorConfig.customization.loaderName !== 'none') params += "&customer=" + encodeURIComponent(config.editorConfig.customization.loaderName);
             } else
                 params += "&customer={{APP_CUSTOMER_NAME}}";
-            if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.loaderLogo) {
-                if (config.editorConfig.customization.loaderLogo !== '') params += "&logo=" + encodeURIComponent(config.editorConfig.customization.loaderLogo);
-            } else if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.logo) {
-                if (config.type=='embedded' && config.editorConfig.customization.logo.imageEmbedded)
-                    params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.imageEmbedded);
-                else if (config.type!='embedded' && config.editorConfig.customization.logo.image)
-                    params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image);
+            if (typeof(config.editorConfig.customization) == 'object') {
+                if ( config.editorConfig.customization.loaderLogo && config.editorConfig.customization.loaderLogo !== '') {
+                    params += "&logo=" + encodeURIComponent(config.editorConfig.customization.loaderLogo);
+                }
+                if ( config.editorConfig.customization.logo ) {
+                    if (config.type=='embedded' && (config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageEmbedded))
+                        params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageEmbedded);
+                    else if (config.type!='embedded' && (config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageDark)) {
+                        config.editorConfig.customization.logo.image && (params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image));
+                        config.editorConfig.customization.logo.imageDark && (params += "&headerlogodark=" + encodeURIComponent(config.editorConfig.customization.logo.imageDark));
+                    }
+                }
             }
         }
 
         if (window.APP && window.APP.urlArgs) {
             params += "&"+ window.APP.urlArgs;
         }
-        if (config.editorConfig && (config.editorConfig.mode == 'editdiagram' || config.editorConfig.mode == 'editmerge'))
+        if (config.editorConfig && (config.editorConfig.mode == 'editdiagram' || config.editorConfig.mode == 'editmerge' || config.editorConfig.mode == 'editole'))
             params += "&internal=true";
 
         if (config.frameEditorId)
@@ -930,8 +989,6 @@
 
         if (config.editorConfig && config.editorConfig.customization && (config.editorConfig.customization.toolbar===false))
             params += "&toolbar=false";
-        else if (config.document && config.document.permissions && (config.document.permissions.edit === false && config.document.permissions.fillForms ))
-            params += "&toolbar=true";
 
         if (config.parentOrigin)
             params += "&parentOrigin=" + config.parentOrigin;
@@ -951,11 +1008,12 @@
         iframe.align = "top";
         iframe.frameBorder = 0;
         iframe.name = "frameEditor";
+        config.title && (typeof config.title === 'string') && (iframe.title = config.title);
         iframe.allowFullscreen = true;
         iframe.setAttribute("allowfullscreen",""); // for IE11
         iframe.setAttribute("onmousewheel",""); // for Safari on Mac
-        iframe.setAttribute("allow", "autoplay; camera; microphone; display-capture");
-        
+        iframe.setAttribute("allow", "autoplay; camera; microphone; display-capture; clipboard-write;");
+
 		if (config.type == "mobile")
 		{
 			iframe.style.position = "fixed";

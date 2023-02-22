@@ -1,9 +1,10 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useState, useEffect} from 'react';
 import {observer, inject} from "mobx-react";
 import {f7, List, ListItem, Icon, Row, Button, Page, Navbar, NavRight, Segmented, BlockTitle, Link} from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 import {Device} from '../../../../../common/mobile/utils/device';
 import { ThemeColorPalette, CustomColorPicker } from '../../../../../common/mobile/lib/component/ThemeColorPalette.jsx';
+import { LocalStorage } from '../../../../../common/mobile/utils/LocalStorage.mjs';
 
 const EditText = props => {
     const isAndroid = Device.android;
@@ -98,7 +99,29 @@ const PageFonts = props => {
     const displaySize = typeof size === 'undefined' ? _t.textAuto : size + ' ' + _t.textPt;
     const curFontName = storeTextSettings.fontName;
     const fonts = storeTextSettings.fontsArray;
+    const iconWidth = storeTextSettings.iconWidth;
+    const iconHeight = storeTextSettings.iconHeight;
+    const thumbs = storeTextSettings.thumbs;
+    const thumbIdx = storeTextSettings.thumbIdx;
+    const thumbCanvas = storeTextSettings.thumbCanvas;
+    const thumbContext = storeTextSettings.thumbContext;
+    const spriteCols = storeTextSettings.spriteCols;
+    const spriteThumbs = storeTextSettings.spriteThumbs;
+    const arrayRecentFonts = storeTextSettings.arrayRecentFonts;
 
+    const addRecentStorage = () => {
+        setRecent(getImageUri(arrayRecentFonts));
+        LocalStorage.setItem('sse-settings-recent-fonts', JSON.stringify(arrayRecentFonts));
+    };
+
+    const getImageUri = fonts => {
+        return fonts.map(font => {
+            let index = Math.floor(font.imgidx/spriteCols);
+            return spriteThumbs.getImage(index, thumbCanvas, thumbContext).toDataURL();
+        });
+    };
+
+    const [stateRecent, setRecent] = useState(() => getImageUri(arrayRecentFonts));
     const [vlFonts, setVlFonts] = useState({
         vlData: {
             items: [],
@@ -107,11 +130,19 @@ const PageFonts = props => {
 
     const renderExternal = (vl, vlData) => {
         setVlFonts((prevState) => {
-            let fonts = [...prevState.vlData.items];
-            fonts.splice(vlData.fromIndex, vlData.toIndex, ...vlData.items);
+            let fonts = [...prevState.vlData.items],
+                drawFonts = [...vlData.items];
+
+            let images = [],
+                drawImages = getImageUri(drawFonts);
+            for (let i = 0; i < drawFonts.length; i++) {
+                fonts[i + vlData.fromIndex] = drawFonts[i];
+                images[i + vlData.fromIndex] = drawImages[i];
+            }
             return {vlData: {
-                items: fonts,
-            }};
+                    items: fonts,
+                    images,
+                }}
         });
     };
 
@@ -141,21 +172,35 @@ const PageFonts = props => {
                 </ListItem>
             </List>
             <BlockTitle>{_t.textFonts}</BlockTitle>
+            {!!arrayRecentFonts.length &&
+                <List>
+                    {arrayRecentFonts.map((item, index) => (
+                        <ListItem className="font-item" key={index} radio checked={curFontName === item.name} onClick={() => {
+                            props.changeFontFamily(item.name);
+                        }}> 
+                            <img src={stateRecent[index]} style={{width: `${iconWidth}px`, height: `${iconHeight}px`}} />
+                        </ListItem>
+                    ))}
+                </List>
+            }
             <List virtualList virtualListParams={{
                 items: fonts,
                 renderExternal: renderExternal
             }}>
                 <ul>
-                    {vlFonts.vlData.items.map((item, index) => (
-                        <ListItem
-                            key={index}
-                            radio
-                            checked={curFontName === item.name}
-                            title={item.name}
-                            style={{fontFamily: `${item.name}`}}
-                            onClick={() => {props.changeFontFamily(item.name)}}
-                        ></ListItem>
-                    ))}
+                    {vlFonts.vlData.items.map((item, index) => {
+                        const font = item || fonts[index];
+                        const fontName = font.name;
+                        return (
+                            <ListItem className="font-item" key={index} radio checked={curFontName === fontName} onClick={() => {
+                                props.changeFontFamily(fontName);
+                                storeTextSettings.addFontToRecent(font);
+                                addRecentStorage();
+                            }}>
+                                {vlFonts.vlData.images[index] && <img src={vlFonts.vlData.images[index]} style={{width: `${iconWidth}px`, height: `${iconHeight}px`}} />}
+                            </ListItem>
+                        )
+                    })}
                 </ul>
             </List>
         </Page>

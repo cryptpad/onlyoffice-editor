@@ -95,7 +95,9 @@ define([
                 GradFillType: Asc.c_oAscFillGradType.GRAD_LINEAR,
                 FormId: null,
                 DisabledControls: false,
-                applicationPixelRatio: Common.Utils.applicationPixelRatio()
+                applicationPixelRatio: Common.Utils.applicationPixelRatio(),
+                isFromSmartArtInternal: false,
+                HideTransformSettings: false
             };
             this.lockedControls = [];
             this._locked = false;
@@ -126,6 +128,10 @@ define([
             this.FillGradientContainer = $('#textart-panel-gradient-fill');
             this.TransparencyContainer = $('#textart-panel-transparent-fill');
 
+            this.TransformSettings = $('.textart-transform');
+
+            this.gradientColorsStr="#000, #fff";
+            this.typeGradient = 90 ;
             SSE.getCollection('Common.Collections.TextArt').bind({
                 reset: this.fillTextArt.bind(this)
             });
@@ -394,10 +400,7 @@ define([
                 this.mnuDirectionPicker.restoreHeight = 174;
                 var record = this.mnuDirectionPicker.store.findWhere({type: this.GradLinearDirectionType});
                 this.mnuDirectionPicker.selectRecord(record, true);
-                if (record)
-                    this.btnDirection.setIconCls('item-gradient ' + record.get('iconcls'));
-                else
-                    this.btnDirection.setIconCls('');
+                this.typeGradient = (record) ? this.GradLinearDirectionType + 90 : -1;
                 this.numGradientAngle.setValue(this.GradLinearDirectionType, true);
                 this.numGradientAngle.setDisabled(this._locked);
             } else if (this.GradFillType == Asc.c_oAscFillGradType.GRAD_PATH) {
@@ -406,9 +409,9 @@ define([
                 this.mnuDirectionPicker.restoreHeight = 58;
                 this.mnuDirectionPicker.selectByIndex(this.GradRadialDirectionIdx, true);
                 if (this.GradRadialDirectionIdx>=0)
-                    this.btnDirection.setIconCls('item-gradient ' + this._viewDataRadial[this.GradRadialDirectionIdx].iconcls);
+                    this.typeGradient = this._viewDataRadial[this.GradRadialDirectionIdx].type;
                 else
-                    this.btnDirection.setIconCls('');
+                    this.typeGradient= -1;
                 this.numGradientAngle.setValue(0, true);
                 this.numGradientAngle.setDisabled(true);
             }
@@ -448,7 +451,14 @@ define([
                 rawData = record;
             }
 
-            this.btnDirection.setIconCls('item-gradient ' + rawData.iconcls);
+            //this.btnDirection.setIconCls('item-gradient ' + rawData.iconcls);
+            if (this.GradFillType === Asc.c_oAscFillGradType.GRAD_LINEAR) {
+                this.GradLinearDirectionType = rawData.type;
+                this.typeGradient = rawData.type + 90;
+            } else {
+                this.GradRadialDirectionIdx = 0;
+                this.typeGradient = rawData.type;
+            }
             (this.GradFillType == Asc.c_oAscFillGradType.GRAD_LINEAR) ? this.GradLinearDirectionType = rawData.type : this.GradRadialDirectionIdx = 0;
             if (this.api) {
                 if (this.GradFillType == Asc.c_oAscFillGradType.GRAD_LINEAR) {
@@ -694,6 +704,9 @@ define([
             if (this._initSettings)
                 this.createDelayedElements();
 
+            this._state.isFromSmartArtInternal = props.asc_getShapeProperties() && props.asc_getShapeProperties().asc_getFromSmartArtInternal();
+            this.hideTransformSettings(this._state.isFromSmartArtInternal);
+
             if (props && props.asc_getShapeProperties() && props.asc_getShapeProperties().get_TextArtProperties())
             {
                 var shapeprops = props.asc_getShapeProperties().get_TextArtProperties();
@@ -802,7 +815,7 @@ define([
                             this.onGradTypeSelect(this.cmbGradType, rec.attributes);
                         } else {
                             this.cmbGradType.setValue('');
-                            this.btnDirection.setIconCls('');
+                            this.typeGradient = -1;
                         }
                         this._state.GradFillType = this.GradFillType;
                     }
@@ -813,10 +826,7 @@ define([
                             this.GradLinearDirectionType=value;
                             var record = this.mnuDirectionPicker.store.findWhere({type: value});
                             this.mnuDirectionPicker.selectRecord(record, true);
-                            if (record)
-                                this.btnDirection.setIconCls('item-gradient ' + record.get('iconcls'));
-                            else
-                                this.btnDirection.setIconCls('');
+                            this.typeGradient = (record)? value + 90 : -1;
                             this.numGradientAngle.setValue(value, true);
                         }
                     } else
@@ -849,10 +859,17 @@ define([
                             me.GradColor.values[index] = position;
                         }
                     });
+
+                    var arrGrCollors=[];
+                    var scale=(this.GradFillType == Asc.c_oAscFillGradType.GRAD_LINEAR)?1:0.7;
                     for (var index=0; index<length; index++) {
+
                         me.sldrGradient.setColorValue(Common.Utils.String.format('#{0}', (typeof(me.GradColor.colors[index]) == 'object') ? me.GradColor.colors[index].color : me.GradColor.colors[index]), index);
                         me.sldrGradient.setValue(index, me.GradColor.values[index]);
+                        arrGrCollors.push(me.sldrGradient.getColorValue(index)+ ' '+ me.sldrGradient.getValue(index)*scale +'%');
                     }
+                    this.btnDirectionRedraw(me.sldrGradient, arrGrCollors.join(', '));
+
                     if (_.isUndefined(me.GradColor.currentIdx) || me.GradColor.currentIdx >= this.GradColor.colors.length) {
                         me.GradColor.currentIdx = 0;
                     }
@@ -956,7 +973,7 @@ define([
 
                             if (w!==null) w = this._mm2pt(w);
                             var _selectedItem = (w===null) ? w : _.find(this.cmbBorderSize.store.models, function(item) {
-                                if ( w<item.attributes.value+0.00001 && w>item.attributes.value-0.00001) {
+                                if ( w<item.attributes.value+0.0001 && w>item.attributes.value-0.0001) {
                                     return true;
                                 }
                             });
@@ -1073,6 +1090,26 @@ define([
             }
         },
 
+        btnDirectionRedraw: function(slider, gradientColorsStr) {
+            this.gradientColorsStr = gradientColorsStr;
+            _.each(this._viewDataLinear, function(item){
+                item.gradientColorsStr = gradientColorsStr;
+            });
+            this._viewDataRadial.gradientColorsStr = this.gradientColorsStr;
+            this.mnuDirectionPicker.store.each(function(item){
+                item.set('gradientColorsStr', gradientColorsStr);
+            }, this);
+
+            if (this.typeGradient == -1)
+                this.btnDirection.$icon.css({'background': 'none'});
+            else if (this.typeGradient == 2)
+                this.btnDirection.$icon.css({'background': ('radial-gradient(' + gradientColorsStr + ')')});
+            else
+                this.btnDirection.$icon.css({
+                    'background': ('linear-gradient(' + this.typeGradient + 'deg, ' + gradientColorsStr + ')')
+                });
+        },
+
         createDelayedControls: function() {
             var me = this;
 
@@ -1090,26 +1127,34 @@ define([
                 style: 'width: 100%;',
                 menuStyle: 'min-width: 100%;',
                 editable: false,
-                data: this._arrFillSrc
+                data: this._arrFillSrc,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.cmbFillSrc.setValue(this._arrFillSrc[0].value);
             this.cmbFillSrc.on('selected', _.bind(this.onFillSrcSelect, this));
             this.lockedControls.push(this.cmbFillSrc);
 
+            var itemWidth = 28,
+                itemHeight = 28;
             this.cmbPattern = new Common.UI.ComboDataView({
-                itemWidth: 28,
-                itemHeight: 28,
+                itemWidth: itemWidth,
+                itemHeight: itemHeight,
                 menuMaxHeight: 300,
                 enableKeyEvents: true,
-                cls: 'combo-pattern'
-            });
-            this.cmbPattern.menuPicker.itemTemplate = this.cmbPattern.fieldPicker.itemTemplate = _.template([
+                cls: 'combo-pattern',
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big',
+                itemTemplate: _.template([
                     '<div class="style" id="<%= id %>">',
                         '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="combo-pattern-item" ',
-                        'width="' + this.cmbPattern.itemWidth + '" height="' + this.cmbPattern.itemHeight + '" ',
+                        'width="' + itemWidth + '" height="' + itemHeight + '" ',
                         'style="background-position: -<%= offsetx %>px -<%= offsety %>px;"/>',
                     '</div>'
-                ].join(''));
+                ].join(''))
+            });
             this.cmbPattern.render($('#textart-combo-pattern'));
             this.cmbPattern.openButton.menu.cmpEl.css({
                 'min-width': 178,
@@ -1148,7 +1193,10 @@ define([
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 90px;',
                 editable: false,
-                data: this._arrFillType
+                data: this._arrFillType,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.cmbFillType.setValue(this._arrFillType[0].value);
             this.cmbFillType.on('selected', _.bind(this.onFillTypeSelect, this));
@@ -1161,7 +1209,10 @@ define([
                 value: '100 %',
                 defaultUnit : "%",
                 maxValue: 100,
-                minValue: 0
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.numTransparency.on('change', _.bind(this.onNumTransparencyChange, this));
             this.numTransparency.on('inputleave', function(){ Common.NotificationCenter.trigger('edit:complete', me);});
@@ -1191,25 +1242,31 @@ define([
                 cls: 'input-group-nr',
                 menuStyle: 'min-width: 90px;',
                 editable: false,
-                data: this._arrGradType
+                data: this._arrGradType,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.cmbGradType.setValue(this._arrGradType[0].value);
             this.cmbGradType.on('selected', _.bind(this.onGradTypeSelect, this));
             this.lockedControls.push(this.cmbGradType);
 
             this._viewDataLinear = [
-                { offsetx: 0,   offsety: 0,   type:45,  subtype:-1, iconcls:'gradient-left-top' },
-                { offsetx: 50,  offsety: 0,   type:90,  subtype:4,  iconcls:'gradient-top'},
-                { offsetx: 100, offsety: 0,   type:135, subtype:5,  iconcls:'gradient-right-top'},
-                { offsetx: 0,   offsety: 50,  type:0,   subtype:6,  iconcls:'gradient-left', cls: 'item-gradient-separator', selected: true},
-                { offsetx: 100, offsety: 50,  type:180, subtype:1,  iconcls:'gradient-right'},
-                { offsetx: 0,   offsety: 100, type:315, subtype:2,  iconcls:'gradient-left-bottom'},
-                { offsetx: 50,  offsety: 100, type:270, subtype:3,  iconcls:'gradient-bottom'},
-                { offsetx: 100, offsety: 100, type:225, subtype:7,  iconcls:'gradient-right-bottom'}
+                { type:45,  subtype:-1},
+                { type:90,  subtype:4},
+                { type:135, subtype:5},
+                { type:0,   subtype:6, cls: 'item-gradient-separator', selected: true},
+                { type:180, subtype:1},
+                { type:315, subtype:2},
+                { type:270, subtype:3},
+                { type:225, subtype:7}
             ];
+            _.each(this._viewDataLinear, function(item){
+                item.gradientColorsStr = me.gradientColorsStr;
+            });
 
             this._viewDataRadial = [
-                { offsetx: 100, offsety: 150, type:2, subtype:5, iconcls:'gradient-radial-center'}
+                { type:2, subtype:5, gradientColorsStr: this.gradientColorsStr}
             ];
 
             this.btnDirection = new Common.UI.Button({
@@ -1221,7 +1278,10 @@ define([
                     items: [
                         { template: _.template('<div id="id-textart-menu-direction" style="width: 175px; margin: 0 5px;"></div>') }
                     ]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.btnDirection.on('render:after', function(btn) {
                 me.mnuDirectionPicker = new Common.UI.DataView({
@@ -1229,7 +1289,9 @@ define([
                     parentMenu: btn.menu,
                     restoreHeight: 174,
                     store: new Common.UI.DataViewStore(me._viewDataLinear),
-                    itemTemplate: _.template('<div id="<%= id %>" class="item-gradient" style="background-position: -<%= offsetx %>px -<%= offsety %>px;"></div>')
+                    itemTemplate: _.template('<div id="<%= id %>" class="item-gradient" style="background: '
+                        +'<% if(type!=2) {%>linear-gradient(<%= type + 90 %>deg,<%= gradientColorsStr %>)'
+                        +' <%} else {%> radial-gradient(<%= gradientColorsStr %>) <%}%>;"></div>')
                 });
             });
             this.btnDirection.render($('#textart-button-direction'));
@@ -1296,7 +1358,10 @@ define([
                 allowDecimal: false,
                 maxValue: 100,
                 minValue: 0,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.spnGradPosition);
             this.spnGradPosition.on('change', _.bind(this.onPositionChange, this));
@@ -1307,7 +1372,9 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-add-breakpoint',
                 disabled: this._locked,
-                hint: this.tipAddGradientPoint
+                hint: this.tipAddGradientPoint,
+                dataHint: '1',
+                dataHintDirection: 'bottom'
             });
             this.btnAddGradientStep.on('click', _.bind(this.onAddGradientStep, this));
             this.lockedControls.push(this.btnAddGradientStep);
@@ -1317,7 +1384,9 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-remove-breakpoint',
                 disabled: this._locked,
-                hint: this.tipRemoveGradientPoint
+                hint: this.tipRemoveGradientPoint,
+                dataHint: '1',
+                dataHintDirection: 'bottom'
             });
             this.btnRemoveGradientStep.on('click', _.bind(this.onRemoveGradientStep, this));
             this.lockedControls.push(this.btnRemoveGradientStep);
@@ -1331,7 +1400,10 @@ define([
                 allowDecimal: true,
                 maxValue: 359.9,
                 minValue: 0,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.numGradientAngle);
             this.numGradientAngle.on('change', _.bind(this.onGradientAngleChange, this));
@@ -1340,7 +1412,10 @@ define([
             this.cmbBorderSize = new Common.UI.ComboBorderSizeEditable({
                 el: $('#textart-combo-border-size'),
                 style: "width: 93px;",
-                txtNoBorders: this.txtNoBorders
+                txtNoBorders: this.txtNoBorders,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             })
             .on('selected', _.bind(this.onBorderSizeSelect, this))
             .on('changed:before',_.bind(this.onBorderSizeChanged, this, true))
@@ -1353,7 +1428,10 @@ define([
             this.cmbBorderType = new Common.UI.ComboBorderType({
                 el: $('#textart-combo-border-type'),
                 style: "width: 93px;",
-                menuStyle: 'min-width: 93px;'
+                menuStyle: 'min-width: 93px;',
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             }).on('selected', _.bind(this.onBorderTypeSelect, this))
             .on('combo:blur',    _.bind(this.onComboBlur, this, false));
             this.BorderType = Asc.c_oDashType.solid;
@@ -1365,7 +1443,10 @@ define([
                 itemHeight: 50,
                 menuMaxHeight: 300,
                 enableKeyEvents: true,
-                cls: 'combo-textart'
+                cls: 'combo-textart',
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.cmbTransform.render($('#textart-combo-transform'));
             this.cmbTransform.openButton.menu.cmpEl.css({
@@ -1442,7 +1523,7 @@ define([
                     el: $('#textart-combo-fill-texture'),
                     template: _.template([
                         '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle" tabindex="0" data-toggle="dropdown">',
-                            '<div class="form-control text" style="width: 90px;">' + this.textSelectTexture + '</div>',
+                            '<div class="form-control text" style="width: 90px;" data-hint="1" data-hint-direction="bottom" data-hint-offset="big">' + this.textSelectTexture + '</div>',
                             '<div style="display: table-cell;"></div>',
                             '<button type="button" class="btn btn-default">',
                                 '<span class="caret" />',
@@ -1504,7 +1585,10 @@ define([
                     menuMaxHeight: 300,
                     enableKeyEvents: true,
                     showLast: false,
-                    cls: 'combo-textart'
+                    cls: 'combo-textart',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.cmbTextArt.render($('#textart-combo-template'));
                 this.cmbTextArt.openButton.menu.cmpEl.css({
@@ -1579,7 +1663,10 @@ define([
             if (!this.btnBackColor) {
                 this.btnBorderColor = new Common.UI.ColorButton({
                     parentEl: $('#textart-border-color-btn'),
-                    color: '000000'
+                    color: '000000',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.lockedControls.push(this.btnBorderColor);
                 this.colorsBorder = this.btnBorderColor.getPicker();
@@ -1588,7 +1675,10 @@ define([
                 this.btnBackColor = new Common.UI.ColorButton({
                     parentEl: $('#textart-back-color-btn'),
                     transparent: true,
-                    color: 'transparent'
+                    color: 'transparent',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'medium'
                 });
                 this.lockedControls.push(this.btnBackColor);
                 this.colorsBack = this.btnBackColor.getPicker();
@@ -1596,7 +1686,10 @@ define([
 
                 this.btnFGColor = new Common.UI.ColorButton({
                     parentEl: $('#textart-foreground-color-btn'),
-                    color: '000000'
+                    color: '000000',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.lockedControls.push(this.btnFGColor);
                 this.colorsFG = this.btnFGColor.getPicker();
@@ -1604,7 +1697,10 @@ define([
 
                 this.btnBGColor = new Common.UI.ColorButton({
                     parentEl: $('#textart-background-color-btn'),
-                    color: 'ffffff'
+                    color: 'ffffff',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.lockedControls.push(this.btnBGColor);
                 this.colorsBG = this.btnBGColor.getPicker();
@@ -1612,7 +1708,10 @@ define([
 
                 this.btnGradColor = new Common.UI.ColorButton({
                     parentEl: $('#textart-gradient-color-btn'),
-                    color: '000000'
+                    color: '000000',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.lockedControls.push(this.btnGradColor);
                 this.colorsGrad = this.btnGradColor.getPicker();
@@ -1734,6 +1833,13 @@ define([
                 this.fillTransform(this.api.asc_getPropertyEditorTextArts());
 
             this._state.applicationPixelRatio = Common.Utils.applicationPixelRatio();
+        },
+
+        hideTransformSettings: function(value) {
+            if (this._state.HideTransformSettings !== value) {
+                this._state.HideTransformSettings = value;
+                this.TransformSettings.toggleClass('hidden', value === true);
+            }
         },
 
         txtNoBorders            : 'No Line',

@@ -9,9 +9,18 @@ const EditShape = props => {
     const { t } = useTranslation();
     const _t = t('View.Edit', {returnObjects: true});
     const storeFocusObjects = props.storeFocusObjects;
+    const objects = storeFocusObjects.objects;
     const shapeObject = storeFocusObjects.shapeObject;
     const canFill = shapeObject && shapeObject.get_ShapeProperties().asc_getCanFill();
 
+    const shapeType = shapeObject.get_ShapeProperties().asc_getType();
+    const hideChangeType = shapeObject.get_ShapeProperties().get_FromChart() || shapeObject.get_ShapeProperties().get_FromSmartArt() 
+    || shapeType=='line' || shapeType=='bentConnector2' || shapeType=='bentConnector3'
+    || shapeType=='bentConnector4' || shapeType=='bentConnector5' || shapeType=='curvedConnector2'
+    || shapeType=='curvedConnector3' || shapeType=='curvedConnector4' || shapeType=='curvedConnector5'
+    || shapeType=='straightConnector1';
+
+    const isSmartArtInternal = shapeObject.get_ShapeProperties().get_FromSmartArtInternal();
     let disableRemove = storeFocusObjects.selections.indexOf('text') > -1;
 
     return (
@@ -30,16 +39,22 @@ const EditShape = props => {
                         onBorderColor: props.onBorderColor
                     }}></ListItem>
                 }
-                <ListItem title={_t.textReplace} link="/edit-replace-shape/" routeProps={{
-                    onReplace: props.onReplace
-                }}></ListItem>
-                <ListItem title={_t.textReorder} link="/edit-reorder-shape/" routeProps={{
-                    onReorder: props.onReorder
-                }}></ListItem>
+                {!hideChangeType &&
+                    <ListItem title={t('View.Edit.textChangeShape')} link="/edit-replace-shape/" routeProps={{
+                        onReplace: props.onReplace
+                    }}></ListItem>
+                }
+                {(!isSmartArtInternal && objects.indexOf('image') === -1) &&
+                    <ListItem title={t('View.Edit.textArrange')} link="/edit-reorder-shape/" routeProps={{
+                        onReorder: props.onReorder
+                    }}></ListItem>
+                }
             </List>
-            <List className="buttons-list">
-                <ListButton className={`button-red button-fill button-raised${disableRemove ? ' disabled' : ''}`} onClick={props.onRemoveShape}>{_t.textRemoveShape}</ListButton>
-            </List>
+            {objects.indexOf('image') === -1 &&
+                <List className="buttons-list">
+                    <ListButton className={`button-red button-fill button-raised${disableRemove ? ' disabled' : ''}`} onClick={props.onRemoveShape}>{_t.textRemoveShape}</ListButton>
+                </List>
+            }
         </Fragment>
     )
 };
@@ -319,7 +334,7 @@ const PageReorder = props => {
 
     return (
         <Page>
-            <Navbar title={_t.textReorder} backLink={_t.textBack}>
+            <Navbar title={t('View.Edit.textArrange')} backLink={_t.textBack}>
                 {Device.phone &&
                     <NavRight>
                         <Link icon='icon-expand-down' sheetClose></Link>

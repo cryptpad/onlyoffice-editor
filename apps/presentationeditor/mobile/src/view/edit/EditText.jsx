@@ -1,9 +1,11 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useState, useEffect} from 'react';
 import {observer, inject} from "mobx-react";
-import {f7, List, ListItem, Icon, Row, Button, Page, Navbar, Segmented, BlockTitle, NavRight, Link} from 'framework7-react';
+import {f7, Swiper, View, SwiperSlide, List, ListItem, ListButton, ListInput, Icon, Row,  Button, Page, Navbar, Segmented, BlockTitle, NavRight, Link} from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 import {Device} from '../../../../../common/mobile/utils/device';
 import { ThemeColorPalette, CustomColorPicker } from '../../../../../common/mobile/lib/component/ThemeColorPalette.jsx';
+import { LocalStorage } from '../../../../../common/mobile/utils/LocalStorage.mjs';
+import HighlightColorPalette from '../../../../../common/mobile/lib/component/HighlightColorPalette.jsx';
 
 const EditText = props => {
     const isAndroid = Device.android;
@@ -15,6 +17,7 @@ const EditText = props => {
     const fontName = storeTextSettings.fontName || _t.textFonts;
     const fontSize = storeTextSettings.fontSize;
     const fontColor = storeTextSettings.textColor;
+    const highlightColor = storeTextSettings.highlightColor;
     const displaySize = typeof fontSize === 'undefined' || fontSize == '' ? _t.textAuto : fontSize + ' ' + _t.textPt;
     const isBold = storeTextSettings.isBold;
     const isItalic = storeTextSettings.isItalic;
@@ -27,6 +30,18 @@ const EditText = props => {
     const paragraphObj = storeFocusObjects.paragraphObject;
     let spaceBefore;
     let spaceAfter;
+    let previewList;
+    switch(storeTextSettings.listType) {
+        case -1: 
+            previewList = '';
+            break;
+        case 0: 
+            previewList = t('View.Edit.textBullets');
+            break;
+        case 1: 
+            previewList = t('View.Edit.textNumbers');
+            break;
+    }
 
     if(paragraphObj) {
         spaceBefore = paragraphObj.get_Spacing().get_Before() < 0 ? paragraphObj.get_Spacing().get_Before() : Common.Utils.Metric.fnRecalcFromMM(paragraphObj.get_Spacing().get_Before());
@@ -39,6 +54,10 @@ const EditText = props => {
     const fontColorPreview = fontColor !== 'auto' ?
         <span className="color-preview" style={{ background: `#${(typeof fontColor === "object" ? fontColor.color : fontColor)}`}}></span> :
         <span className="color-preview auto"></span>;
+
+    const highlightColorPreview = highlightColor !== 'transparent' ?
+        <span className="color-preview" style={{ background: `#${(typeof highlightColor === "object" ? highlightColor.color : highlightColor)}`}}></span> :
+        <span className="color-preview"></span>;
 
     return (
         <Fragment>
@@ -63,6 +82,13 @@ const EditText = props => {
                         fontColorPreview
                     }
                 </ListItem>
+                <ListItem title={t("View.Edit.textHighlightColor")} link="/edit-text-highlight-color/" routeProps={{
+                    onHighlightColor: props.onHighlightColor
+                }}>
+                    {!isAndroid ?
+                        <Icon slot="media" icon="icon-text-selection">{highlightColorPreview}</Icon> : highlightColorPreview
+                    }
+                </ListItem>
                 <ListItem title={_t.textAdditionalFormatting} link="/edit-text-add-formatting/" routeProps={{
                     onAdditionalStrikethrough: props.onAdditionalStrikethrough,
                     onAdditionalCaps: props.onAdditionalCaps,
@@ -72,7 +98,7 @@ const EditText = props => {
                     {!isAndroid && <Icon slot="media" icon="icon-text-additional"></Icon>}
                 </ListItem>
             </List>
-            {paragraphObj ? (
+            {paragraphObj || storeFocusObjects.settings.includes('text') ? (
                 <Fragment>
                     <List>
                         <ListItem className='buttons'>
@@ -114,15 +140,16 @@ const EditText = props => {
                                 </a>
                             </Row>
                         </ListItem>
-                        <ListItem title={_t.textBullets} link='/edit-text-bullets/' routeProps={{
-                            onBullet: props.onBullet
+                        <ListItem title={_t.textBulletsAndNumbers} link='/edit-bullets-and-numbers/' routeProps={{
+                            onBullet: props.onBullet,
+                            onNumber: props.onNumber,
+                            getIconsBulletsAndNumbers: props.getIconsBulletsAndNumbers,
+                            onImageSelect: props.onImageSelect,
+                            onInsertByUrl: props.onInsertByUrl
+                            
                         }}>
+                            <div className="preview">{previewList}</div>
                             {!isAndroid && <Icon slot="media" icon="icon-bullets"></Icon>}
-                        </ListItem>
-                        <ListItem title={_t.textNumbers} link='/edit-text-numbers/' routeProps={{
-                            onNumber: props.onNumber
-                        }}>
-                            {!isAndroid && <Icon slot="media" icon="icon-numbers"></Icon>}
                         </ListItem>
                         <ListItem title={_t.textLineSpacing} link='/edit-text-line-spacing/' routeProps={{
                             onLineSpacing: props.onLineSpacing
@@ -176,7 +203,29 @@ const PageFonts = props => {
     const displaySize = typeof size === 'undefined' || size == '' ? _t.textAuto : size + ' ' + _t.textPt;
     const curFontName = storeTextSettings.fontName;
     const fonts = storeTextSettings.fontsArray;
+    const iconWidth = storeTextSettings.iconWidth;
+    const iconHeight = storeTextSettings.iconHeight;
+    const thumbs = storeTextSettings.thumbs;
+    const thumbIdx = storeTextSettings.thumbIdx;
+    const thumbCanvas = storeTextSettings.thumbCanvas;
+    const thumbContext = storeTextSettings.thumbContext;
+    const spriteCols = storeTextSettings.spriteCols;
+    const spriteThumbs = storeTextSettings.spriteThumbs;
+    const arrayRecentFonts = storeTextSettings.arrayRecentFonts;
 
+    const addRecentStorage = () => {
+        setRecent(getImageUri(arrayRecentFonts));
+        LocalStorage.setItem('ppe-settings-recent-fonts', JSON.stringify(arrayRecentFonts));
+    };
+
+    const getImageUri = fonts => {
+        return fonts.map(font => {
+            let index = Math.floor(font.imgidx/spriteCols);
+            return spriteThumbs.getImage(index, thumbCanvas, thumbContext).toDataURL();
+        });
+    };
+
+    const [stateRecent, setRecent] = useState(() => getImageUri(arrayRecentFonts));
     const [vlFonts, setVlFonts] = useState({
         vlData: {
             items: [],
@@ -185,16 +234,25 @@ const PageFonts = props => {
 
     const renderExternal = (vl, vlData) => {
         setVlFonts((prevState) => {
-            let fonts = [...prevState.vlData.items];
-            fonts.splice(vlData.fromIndex, vlData.toIndex, ...vlData.items);
+            let fonts = [...prevState.vlData.items],
+                drawFonts = [...vlData.items];
+
+            let images = [],
+                drawImages = getImageUri(drawFonts);
+            for (let i = 0; i < drawFonts.length; i++) {
+                fonts[i + vlData.fromIndex] = drawFonts[i];
+                images[i + vlData.fromIndex] = drawImages[i];
+            }
             return {vlData: {
-                items: fonts,
-            }};
+                    items: fonts,
+                    images,
+                }}
         });
     };
 
     const paragraph = props.storeFocusObjects.paragraphObject;
-    if (!paragraph && Device.phone) {
+    const shapeObj = props.storeFocusObjects.shapeObject;
+    if (!shapeObj && !paragraph && Device.phone) {
         $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
         return null;
     }
@@ -227,21 +285,35 @@ const PageFonts = props => {
                 </ListItem>
             </List>
             <BlockTitle>{_t.textFonts}</BlockTitle>
+            {!!arrayRecentFonts.length &&
+                <List>
+                    {arrayRecentFonts.map((item, index) => (
+                        <ListItem className="font-item" key={index} radio checked={curFontName === item.name} onClick={() => {
+                            props.changeFontFamily(item.name);
+                        }}> 
+                            <img src={stateRecent[index]} style={{width: `${iconWidth}px`, height: `${iconHeight}px`}} />
+                        </ListItem>
+                    ))}
+                </List>
+            }
             <List virtualList virtualListParams={{
                 items: fonts,
                 renderExternal: renderExternal
             }}>
                 <ul>
-                    {vlFonts.vlData.items.map((item, index) => (
-                        <ListItem
-                            key={index}
-                            radio
-                            checked={curFontName === item.name}
-                            title={item.name}
-                            style={{fontFamily: `${item.name}`}}
-                            onClick={() => {props.changeFontFamily(item.name)}}
-                        ></ListItem>
-                    ))}
+                    {vlFonts.vlData.items.map((item, index) => {
+                        const font = item || fonts[index];
+                        const fontName = font.name;
+                        return (
+                            <ListItem className="font-item" key={index} radio checked={curFontName === fontName} onClick={() => {
+                                props.changeFontFamily(fontName);
+                                storeTextSettings.addFontToRecent(font);
+                                addRecentStorage();
+                            }}>
+                                {vlFonts.vlData.images[index] && <img src={vlFonts.vlData.images[index]} style={{width: `${iconWidth}px`, height: `${iconHeight}px`}} />}
+                            </ListItem>
+                        )
+                    })}
                 </ul>
             </List>
         </Page>
@@ -268,7 +340,8 @@ const PageFontColor = props => {
     };
 
     const paragraph = props.storeFocusObjects.paragraphObject;
-    if (!paragraph && Device.phone) {
+    const shapeObj = props.storeFocusObjects.shapeObject;
+    if (!shapeObj && !paragraph && Device.phone) {
         $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
         return null;
     }
@@ -327,6 +400,37 @@ const PageCustomFontColor = props => {
     )
 };
 
+const PageHighlightColor = props => {
+    const { t } = useTranslation();
+    const _t = t('View.Edit', {returnObjects: true});
+    const highlightColor = props.storeTextSettings.highlightColor;
+
+    const changeColor = (color, effectId) => {
+        if (color !== 'empty') {
+            if (effectId !== undefined ) {
+                props.onHighlightColor({color: color, effectId: effectId});
+            } else {
+                props.onHighlightColor(color);
+            }
+        }
+    };
+
+    return (
+        <Page>
+            <Navbar title={_t.textHighlightColor} backLink={_t.textBack}>
+                {Device.phone &&
+                    <NavRight>
+                        <Link sheetClose='#edit-sheet'>
+                            <Icon icon='icon-expand-down'/>
+                        </Link>
+                    </NavRight>
+                }
+            </Navbar>
+            <HighlightColorPalette changeColor={changeColor} curColor={highlightColor} />
+        </Page>
+    )
+};
+
 const PageAdditionalFormatting = props => {
     const isAndroid = Device.android;
     const { t } = useTranslation();
@@ -334,6 +438,7 @@ const PageAdditionalFormatting = props => {
     const storeTextSettings = props.storeTextSettings;
     const storeFocusObjects = props.storeFocusObjects;
     const paragraphObj = storeFocusObjects.paragraphObject;
+    const shapeObj = storeFocusObjects.shapeObject;
     const isSuperscript = storeTextSettings.isSuperscript;
     const isSubscript = storeTextSettings.isSubscript;
     
@@ -351,7 +456,7 @@ const PageAdditionalFormatting = props => {
         letterSpacing = (paragraphObj.get_TextSpacing() === null || paragraphObj.get_TextSpacing() === undefined) ? paragraphObj.get_TextSpacing() : Common.Utils.Metric.fnRecalcFromMM(paragraphObj.get_TextSpacing());
     }
 
-    if (!paragraphObj && Device.phone) {
+    if (!shapeObj && !paragraphObj && Device.phone) {
         $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
         return null;
     }
@@ -395,91 +500,161 @@ const PageAdditionalFormatting = props => {
     )
 };
 
-const PageBullets = props => {
+const PageBulletLinkSettings = (props) => {
     const { t } = useTranslation();
     const _t = t('View.Edit', {returnObjects: true});
-    const bulletArrays = [
-        [
-            {type: -1, thumb: ''},
-            {type: 1, thumb: 'bullet-01.png'},
-            {type: 2, thumb: 'bullet-02.png'},
-            {type: 3, thumb: 'bullet-03.png'}
-        ],
-        [
-            {type: 4, thumb: 'bullet-04.png'},
-            {type: 5, thumb: 'bullet-05.png'},
-            {type: 6, thumb: 'bullet-06.png'},
-            {type: 7, thumb: 'bullet-07.png'}
-        ]
-    ];
+    const [stateValue, setValue] = useState('');
+
+    return (
+        <Page>
+            <Navbar title={_t.textLinkSettings} backLink={_t.textBack}></Navbar>
+            <BlockTitle>{_t.textAddress}</BlockTitle>
+            <List className='add-image'>
+                <ListInput
+                    type='text'
+                    placeholder={_t.textImageURL}
+                    value={stateValue}
+                    onChange={(event) => {setValue(event.target.value)}}
+                >
+                </ListInput>
+            </List>
+            <List className="buttons-list">
+                <ListButton 
+                    className={'button-fill button-raised' + (stateValue.length < 1 ? ' disabled' : '')}
+                    onClick={() => {props.onInsertByUrl(stateValue)}}
+                >
+                    {_t.textInsertImage}
+                </ListButton>
+            </List>
+        </Page>
+    )
+}
+
+const PageAddImage = (props) => {
+    const { t } = useTranslation();
+    const _t = t('View.Edit', {returnObjects: true});
+
+    return (
+        <List className='bullet-menu-image'>
+            <ListItem title={_t.textPictureFromLibrary} onClick={props.onImageSelect}>
+                <Icon slot="media" icon="icon-image-library" />
+            </ListItem>
+            <ListItem title={_t.textPictureFromURL} link="#" onClick={() =>  
+                props.f7router.navigate('/edit-bullets-and-numbers/image-link/',
+                {props: {onInsertByUrl: props.onInsertByUrl}}) }>
+                <Icon slot="media" icon="icon-link" />
+            </ListItem>
+        </List>
+    )
+}
+
+const PageBullets = observer(props => {
+    const { t } = useTranslation();
+    const _t = t('View.Edit', {returnObjects: true});
+
     const storeTextSettings = props.storeTextSettings;
     const typeBullets = storeTextSettings.typeBullets;
-
-    const paragraph = props.storeFocusObjects.paragraphObject;
-    if (!paragraph && Device.phone) {
-        $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
-        return null;
-    }
-
-    return (
-        <Page className='bullets dataview'>
-            <Navbar title={_t.textBullets} backLink={_t.textBack}>
-                {Device.phone &&
-                    <NavRight>
-                        <Link sheetClose='#edit-sheet'>
-                            <Icon icon='icon-expand-down'/>
-                        </Link>
-                    </NavRight>
-                }
-            </Navbar>
-            {bulletArrays.map((bullets, index) => (
-                    <ul className="row" style={{listStyle: 'none'}} key={'bullets-' + index}>
-                        {bullets.map((bullet) => (
-                            <li key={'bullet-' + bullet.type} data-type={bullet.type} className={bullet.type === typeBullets ? 'active' : ''} onClick={() => {props.onBullet(bullet.type)}}>
-                                {bullet.thumb.length < 1 ?
-                                    <div className="thumb" style={{position: 'relative'}}>
-                                        <label>{_t.textNone}</label>
-                                    </div> :
-                                    <div className="thumb" style={{backgroundImage: `url('resources/img/bullets/${bullet.thumb}')`}}></div>
-                                }
-                            </li>
-                        ))}
-                    </ul>
-            ))}
-        </Page>
-    )
-};
-
-const PageNumbers = props => {
-    const { t } = useTranslation();
-    const _t = t('View.Edit', {returnObjects: true});
-    const numberArrays = [
-        [
-            {type: -1, thumb: ''},
-            {type: 4, thumb: 'number-01.png'},
-            {type: 5, thumb: 'number-02.png'},
-            {type: 6, thumb: 'number-03.png'}
-        ],
-        [
-            {type: 1, thumb: 'number-04.png'},
-            {type: 2, thumb: 'number-05.png'},
-            {type: 3, thumb: 'number-06.png'},
-            {type: 7, thumb: 'number-07.png'}
-        ]
+    const bulletArrays = [
+        {id: 'id-markers-0', type: 0, subtype: -1, drawdata: {type: Asc.asc_PreviewBulletType.text, text: 'None'} },
+        {id: 'id-markers-1', type: 0, subtype: 1, drawdata: {type: Asc.asc_PreviewBulletType.char, char: String.fromCharCode(0x00B7), specialFont: 'Symbol'} },
+        {id: 'id-markers-2', type: 0, subtype: 2, drawdata: {type: Asc.asc_PreviewBulletType.char, char: 'o', specialFont: 'Courier New'} },
+        {id: 'id-markers-3', type: 0, subtype: 3, drawdata: {type: Asc.asc_PreviewBulletType.char, char: String.fromCharCode(0x00A7), specialFont: 'Wingdings'} },
+        {id: 'id-markers-4', type: 0, subtype: 4, drawdata: {type: Asc.asc_PreviewBulletType.char, char: String.fromCharCode(0x0076), specialFont: 'Wingdings'} },
+        {id: 'id-markers-5', type: 0, subtype: 5, drawdata: {type: Asc.asc_PreviewBulletType.char, char: String.fromCharCode(0x00D8), specialFont: 'Wingdings'} },
+        {id: 'id-markers-6', type: 0, subtype: 6, drawdata: {type: Asc.asc_PreviewBulletType.char, char: String.fromCharCode(0x00FC), specialFont: 'Wingdings'} },
+        {id: 'id-markers-7', type: 0, subtype: 7, drawdata: {type: Asc.asc_PreviewBulletType.char, char: String.fromCharCode(0x00A8), specialFont: 'Symbol'} }
     ];
 
-    const storeTextSettings = props.storeTextSettings;
-    const typeNumbers = storeTextSettings.typeNumbers;
+    useEffect(() => {
+        props.getIconsBulletsAndNumbers(bulletArrays, 0);
+    }, []);
 
     const paragraph = props.storeFocusObjects.paragraphObject;
-    if (!paragraph && Device.phone) {
+    const shapeObj = props.storeFocusObjects.shapeObject;
+    if (!shapeObj && !paragraph && Device.phone) {
+        $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
+        return null;
+    }
+
+    return(
+        <View className='bullets dataview'>
+            <List className="row" style={{listStyle: 'none'}}>
+                {bulletArrays.map( bullet => (
+                    <ListItem key={'bullet-' + bullet.subtype} data-type={bullet.subtype} className={(bullet.subtype === typeBullets) && 
+                        (storeTextSettings.listType === 0 || storeTextSettings.listType === -1) ? 'active' : ''}
+                        onClick={() => {
+                            storeTextSettings.resetBullets(bullet.subtype);
+                            props.onBullet(bullet.subtype);
+                        }}>
+                        <div id={bullet.id} className='item-marker'>
+                        
+                        </div>
+                    </ListItem>
+                ))}
+            </List>
+            { !Device.isPhone && 
+                <PageAddImage
+                    f7router={props.f7router} 
+                    onImageSelect={props.onImageSelect}
+                    onInsertByUrl={props.onInsertByUrl} 
+                />
+            }
+        </View>
+    )
+});
+
+const PageNumbers = observer(props => {
+    const storeTextSettings = props.storeTextSettings;
+    const typeNumbers = storeTextSettings.typeNumbers;
+    const numberArrays = [
+            {id: 'id-numbers-0', type: 1, subtype: -1, drawdata: {type: Asc.asc_PreviewBulletType.text, text: 'None'}},
+            {id: 'id-numbers-4', type: 1, subtype: 4, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.UpperLetterDot_Left}},
+            {id: 'id-numbers-5', type: 1, subtype: 5, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.LowerLetterBracket_Left}},
+            {id: 'id-numbers-6', type: 1, subtype: 6, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.LowerLetterDot_Left}},
+            {id: 'id-numbers-1', type: 1, subtype: 1, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.DecimalDot_Right}},
+            {id: 'id-numbers-2', type: 1, subtype: 2, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.DecimalBracket_Right}},
+            {id: 'id-numbers-3', type: 1, subtype: 3, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.UpperRomanDot_Right}},
+            {id: 'id-numbers-7', type: 1, subtype: 7, drawdata: {type: Asc.asc_PreviewBulletType.number, numberingType: Asc.asc_oAscNumberingLevel.LowerRomanDot_Right}}
+    ];
+
+    useEffect(() => {
+        props.getIconsBulletsAndNumbers(numberArrays, 1);
+    }, []);
+
+    const paragraph = props.storeFocusObjects.paragraphObject;
+    const shapeObj = props.storeFocusObjects.shapeObject;
+    if (!shapeObj && !paragraph && Device.phone) {
         $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
         return null;
     }
 
     return (
-        <Page className='numbers dataview'>
-            <Navbar title={_t.textNumbers} backLink={_t.textBack}>
+        <View className='numbers dataview'>
+            <List className="row" style={{listStyle: 'none'}}>
+                {numberArrays.map( number => (
+                    <ListItem key={'number-' + number.subtype} data-type={number.subtype} className={(number.subtype === typeNumbers) &&
+                        (storeTextSettings.listType === 1 || storeTextSettings.listType === -1) ? 'active' : ''}
+                        onClick={() => {
+                            storeTextSettings.resetNumbers(number.subtype);
+                            props.onNumber(number.subtype);
+                        }}>
+                        <div id={number.id} className='item-number'></div>
+                    </ListItem>
+                ))}
+            </List>
+        </View>
+    );
+});
+
+const PageBulletsAndNumbers = props => {
+    const { t } = useTranslation();
+    const _t = t('View.Edit', {returnObjects: true});
+    const storeTextSettings = props.storeTextSettings;
+    const storeFocusObjects = props.storeFocusObjects;
+    
+    return (
+        <Page>
+            <Navbar title={_t.textBulletsAndNumbers} backLink={_t.textBack}>
                 {Device.phone &&
                     <NavRight>
                         <Link sheetClose='#edit-sheet'>
@@ -488,23 +663,40 @@ const PageNumbers = props => {
                     </NavRight>
                 }
             </Navbar>
-            {numberArrays.map((numbers, index) => (
-                <ul className="row" style={{listStyle: 'none'}} key={'numbers-' + index}>
-                    {numbers.map((number) => (
-                        <li key={'number-' + number.type} data-type={number.type} className={number.type === typeNumbers ? 'active' : ''} onClick={() => {props.onNumber(number.type)}}>
-                            {number.thumb.length < 1 ?
-                                <div className="thumb" style={{position: 'relative'}}>
-                                    <label>{_t.textNone}</label>
-                                </div> :
-                                <div className="thumb" style={{backgroundImage: `url('resources/img/numbers/${number.thumb}')`}}></div>
-                            }
-                        </li>
-                    ))}
-                </ul>
-            ))}
+            <Swiper pagination>
+                <SwiperSlide> 
+                    <PageNumbers 
+                        f7router={props.f7router} 
+                        storeFocusObjects={storeFocusObjects} 
+                        storeTextSettings={storeTextSettings} 
+                        onNumber={props.onNumber}
+                        getIconsBulletsAndNumbers={props.getIconsBulletsAndNumbers}
+                    />
+                </SwiperSlide> 
+                <SwiperSlide> 
+                    <PageBullets 
+                        f7router={props.f7router} 
+                        storeFocusObjects={storeFocusObjects} 
+                        storeTextSettings={storeTextSettings} 
+                        onBullet={props.onBullet}
+                        getIconsBulletsAndNumbers={props.getIconsBulletsAndNumbers}
+                        onImageSelect={props.onImageSelect}
+                        onInsertByUrl={props.onInsertByUrl}
+                    />
+                </SwiperSlide>
+                { Device.phone &&
+                    <SwiperSlide> 
+                        <PageAddImage
+                            f7router={props.f7router}
+                            onImageSelect={props.onImageSelect}
+                            onInsertByUrl={props.onInsertByUrl}
+                        />
+                    </SwiperSlide>
+                }
+            </Swiper>
         </Page>
     )
-};
+}
 
 const PageLineSpacing = props => {
     const { t } = useTranslation();
@@ -513,7 +705,8 @@ const PageLineSpacing = props => {
     const lineSpacing = storeTextSettings.lineSpacing;
 
     const paragraph = props.storeFocusObjects.paragraphObject;
-    if (!paragraph && Device.phone) {
+    const shapeObj = props.storeFocusObjects.shapeObject;
+    if (!shapeObj && !paragraph && Device.phone) {
         $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
         return null;
     }
@@ -544,19 +737,21 @@ const PageLineSpacing = props => {
 const EditTextContainer = inject("storeTextSettings", "storeFocusObjects")(observer(EditText));
 const PageTextFonts = inject("storeTextSettings", "storeFocusObjects")(observer(PageFonts));
 const PageTextFontColor = inject("storeTextSettings", "storePalette", "storeFocusObjects")(observer(PageFontColor));
+const PageTextHighlightColor = inject("storeTextSettings")(observer(PageHighlightColor));
 const PageTextCustomFontColor = inject("storeTextSettings", "storePalette")(observer(PageCustomFontColor));
 const PageTextAddFormatting = inject("storeTextSettings", "storeFocusObjects")(observer(PageAdditionalFormatting));
-const PageTextBullets = inject("storeTextSettings", "storeFocusObjects")(observer(PageBullets));
-const PageTextNumbers = inject("storeTextSettings", "storeFocusObjects")(observer(PageNumbers));
+const PageTextBulletsAndNumbers = inject("storeTextSettings", "storeFocusObjects")(observer(PageBulletsAndNumbers));
 const PageTextLineSpacing = inject("storeTextSettings", "storeFocusObjects")(observer(PageLineSpacing));
+const PageTextBulletsLinkSettings = inject("storeTextSettings", "storeFocusObjects")(observer(PageBulletLinkSettings));
 
 export {
     EditTextContainer as EditText,
     PageTextFonts,
     PageTextFontColor,
+    PageTextHighlightColor,
     PageTextCustomFontColor,
     PageTextAddFormatting,
-    PageTextBullets,
-    PageTextNumbers,
-    PageTextLineSpacing
+    PageTextBulletsAndNumbers,
+    PageTextLineSpacing,
+    PageTextBulletsLinkSettings
 };

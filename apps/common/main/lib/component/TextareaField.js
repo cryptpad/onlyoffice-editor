@@ -56,7 +56,8 @@ define([
                 maxlength   : undefined,
                 placeHolder : '',
                 spellcheck  : false,
-                disabled: false
+                disabled: false,
+                resize: false
             },
 
             template: _.template([
@@ -65,6 +66,15 @@ define([
                     'spellcheck="<%= spellcheck %>" ',
                     'class="form-control <%= cls %>" ',
                     'placeholder="<%= placeHolder %>" ',
+                    '<% if (dataHint) {%>',
+                    'data-hint="<%= dataHint %>" ',
+                    '<% } %>',
+                    '<% if (dataHintDirection) {%>',
+                    'data-hint-direction="<%= dataHintDirection %>" ',
+                    '<% } %>',
+                    '<% if (dataHintOffset) {%>',
+                    'data-hint-offset="<%= dataHintOffset %>" ',
+                    '<% } %>',
                     '></textarea>',
                 '</div>'
             ].join('')),
@@ -101,6 +111,9 @@ define([
                         style       : this.style,
                         placeHolder : this.placeHolder,
                         spellcheck  : this.spellcheck,
+                        dataHint    : this.options.dataHint,
+                        dataHintDirection: this.options.dataHintDirection,
+                        dataHintOffset: this.options.dataHintOffset,
                         scope       : me
                     }));
 
@@ -121,12 +134,16 @@ define([
                     this._input.on('blur',   _.bind(this.onInputChanged, this));
                     this._input.on('keydown',    _.bind(this.onKeyDown, this));
                     if (this.maxLength) this._input.attr('maxlength', this.maxLength);
+                    if (!this.resize) this._input.css('resize', 'none');
 
                     if (this.disabled)
                         this.setDisabled(this.disabled);
                 }
 
                 me.rendered = true;
+
+                if (me.value)
+                    me.setValue(me.value);
 
                 return this;
             },
@@ -171,6 +188,7 @@ define([
             },
 
             setDisabled: function(disabled) {
+                disabled = !!disabled;
                 this.disabled = disabled;
                 $(this.el).toggleClass('disabled', disabled);
                 disabled

@@ -160,7 +160,7 @@ define([
                         throughIndex    : 0
                     }));
                 this.columnsList.store.reset(arr);
-                this.columnsList.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+                this.columnsList.scroller.update({minScrollbarLength  : this.columnsList.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             } else {
                 this.props.asc_getColumnList().forEach(function (item, index) {
                     store.at(index+1).set('value', item.asc_getVal());
@@ -195,7 +195,7 @@ define([
                     }
                 }
 
-                if (isLabel || event.target.className.match('checkbox')) {
+                if (isLabel || event.target.className.match('checkbox') && event.target.localName!=='input') {
                     this.updateCellCheck(listView, record);
 
                     _.delay(function () {
@@ -246,7 +246,7 @@ define([
                     this.checkCellTrigerBlock = undefined;
                 }
 
-                listView.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+                listView.scroller.update({minScrollbarLength  : listView.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             }
         },
 

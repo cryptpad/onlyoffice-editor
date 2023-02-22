@@ -64,13 +64,15 @@ define([
 
             }, options);
 
+            this.handler        =   options.handler;
+
             this.template = options.template || [
                 '<div class="box">',
                     '<div class="input-row" style="margin-bottom: 10px;">',
                         '<label>' + t.txtDescription + '</label>',
                     '</div>',
                     '<div class="input-row">',
-                        '<label>' + t.txtPassword + '</label>',
+                        '<label>' + t.txtPassword + (t.passwordOptional ? ' (' + t.txtOptional + ')': '') + '</label>',
                     '</div>',
                     '<div id="id-password-txt" class="input-row" style="margin-bottom: 5px;"></div>',
                     '<div class="input-row">',
@@ -80,9 +82,6 @@ define([
                     '<label>' + t.txtWarning + '</label>',
                 '</div>'
             ].join('');
-
-            this.handler        =   options.handler;
-            this.settings       =   options.settings;
 
             _options.tpl        =   _.template(this.template)(_options);
 
@@ -94,14 +93,7 @@ define([
             if (this.$window) {
                 var me = this;
                 this.$window.find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
-                    this.inputPwd = new Common.UI.InputField({
-                        el: $('#id-password-txt'),
-                        type: 'password',
-                        allowBlank  : false,
-                        style       : 'width: 100%;',
-                        maxLength: 255,
-                        validateOnBlur: false
-                    });
+
                     this.repeatPwd = new Common.UI.InputField({
                         el: $('#id-repeat-txt'),
                         type: 'password',
@@ -112,6 +104,15 @@ define([
                         validation  : function(value) {
                             return me.txtIncorrectPwd;
                         }
+                    });
+                    this.inputPwd = new Common.UI.InputFieldBtnPassword({
+                        el: $('#id-password-txt'),
+                        type: 'password',
+                        allowBlank  : false,
+                        style       : 'width: 100%;',
+                        maxLength: 255,
+                        validateOnBlur: false,
+                        repeatInput: this.repeatPwd
                     });
             }
         },

@@ -1,10 +1,10 @@
-<% if (!hide) { %>
+<% if (!hide && !filtered) { %>
     <div id="<%= id %>" class="user-comment-item">
 
         <!-- comment block -->
 
         <div class="user-name">
-            <div class="color" style="display: inline-block; background-color: <% if (usercolor!==null) { %><%=usercolor%><% } else { %> #cfcfcf <% } %>; " ></div><%= scope.getUserName(username) %>
+            <div class="color" style="display: inline-block; background-color: <% if (usercolor!==null) { %><%=usercolor%><% } else { %> #cfcfcf <% } %>; " ></div><%= scope.getEncodedName(parsedName) %>
         </div>
         <div class="user-date"><%=date%></div>
         <% if (quote!==null && quote!=='') { %>
@@ -31,7 +31,7 @@
                 <% } %>
                 <div class="reply-item-ct" <% if (scope.viewmode && index==replys.length-1) { %>style="padding-bottom: 0;" <% } %>;>
                     <div class="user-name">
-                        <div class="color" style="display: inline-block; background-color: <% if (item.get("usercolor")!==null) { %><%=item.get("usercolor")%><% } else { %> #cfcfcf <% } %>; " ></div><%= scope.getUserName(item.get("username")) %>
+                        <div class="color" style="display: inline-block; background-color: <% if (item.get("usercolor")!==null) { %><%=item.get("usercolor")%><% } else { %> #cfcfcf <% } %>; " ></div><%= scope.getEncodedName(item.get("parsedName")) %>
                     </div>
                     <div class="user-date"><%=item.get("date")%></div>
                     <% if (!item.get("editText")) { %>
@@ -70,16 +70,20 @@
 
         <!-- edit buttons -->
 
-        <% if (!editText && !lock && !scope.viewmode) { %>
+        <% if (!editText && !lock) { %>
             <div class="edit-ct">
-                <% if (editable) { %>
-                    <div class="btn-edit img-commonctrl"></div>
+                <% if (!scope.viewmode) { %>
+                    <% if (editable) { %>
+                        <div class="btn-edit img-commonctrl"></div>
+                    <% } %>
+                    <% if (removable) { %>
+                        <div class="btn-delete img-commonctrl"></div>
+                    <% } %>
                 <% } %>
-                <% if (removable) { %>
-                    <div class="btn-delete img-commonctrl"></div>
-                <% } %>
-                <% if (editable) { %>
-                <div class="btn-resolve <% if (resolved) print('comment-resolved') %>" data-toggle="tooltip"></div>
+                <% if (editable && !scope.viewmode) { %>
+                    <div class="btn-resolve <% if (resolved) print('comment-resolved') %>" data-toggle="tooltip"></div>
+                <% } else if ((!editable || scope.viewmode) && resolved) { %>
+                    <div class="icon-resolve i-comment-resolved" data-toggle="tooltip"></div>
                 <% } %>
             </div>
         <% } %>

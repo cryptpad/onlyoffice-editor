@@ -2,22 +2,25 @@ import React, { useContext } from 'react';
 import { f7 } from 'framework7-react';
 import { inject, observer } from "mobx-react";
 import { withTranslation} from 'react-i18next';
-import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage';
-
+import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage.mjs';
 import ContextMenuController from '../../../../common/mobile/lib/controller/ContextMenu';
 import { idContextMenuElement } from '../../../../common/mobile/lib/view/ContextMenu';
-import { Device } from '../../../../common/mobile/utils/device';
 import EditorUIController from '../lib/patch';
 
 @inject ( stores => ({
     isEdit: stores.storeAppOptions.isEdit,
     canComments: stores.storeAppOptions.canComments,
     canViewComments: stores.storeAppOptions.canViewComments,
+    canEditComments: stores.storeAppOptions.canEditComments,
     canCoAuthoring: stores.storeAppOptions.canCoAuthoring,
     canReview: stores.storeAppOptions.canReview,
+    canFillForms: stores.storeAppOptions.canFillForms,
     users: stores.users,
     isDisconnected: stores.users.isDisconnected,
-    displayMode: stores.storeReview.displayMode
+    displayMode: stores.storeReview.displayMode,
+    dataDoc: stores.storeDocumentInfo.dataDoc,
+    objects: stores.storeFocusObjects.settings,
+    isViewer: stores.storeAppOptions.isViewer
 }))
 class ContextMenu extends ContextMenuController {
     constructor(props) {
@@ -28,7 +31,9 @@ class ContextMenu extends ContextMenuController {
         this.onApiHideComment = this.onApiHideComment.bind(this);
         this.onApiShowChange = this.onApiShowChange.bind(this);
         this.getUserName = this.getUserName.bind(this);
+        this.isUserVisible = this.isUserVisible.bind(this);
         this.ShowModal = this.ShowModal.bind(this);
+        this.checkShapeSelection = this.checkShapeSelection.bind(this);
     }
 
     static closeContextMenu() {
@@ -40,6 +45,11 @@ class ContextMenu extends ContextMenuController {
         return AscCommon.UserInfoParser.getParsedName(user.asc_getUserName());
     }
 
+    isUserVisible(id) {
+        const user = this.props.users.searchUserByCurrentId(id);
+        return user ? (user.asc_getIdOriginal()===this.props.users.currentUser.asc_getIdOriginal() || AscCommon.UserInfoParser.isUserVisible(user.asc_getUserName())) : true;
+    }
+
     componentWillUnmount() {
         super.componentWillUnmount();
 
@@ -47,6 +57,7 @@ class ContextMenu extends ContextMenuController {
         api.asc_unregisterCallback('asc_onShowComment', this.onApiShowComment);
         api.asc_unregisterCallback('asc_onHideComment', this.onApiHideComment);
         api.asc_unregisterCallback('asc_onShowRevisionsChange', this.onApiShowChange);
+        api.asc_unregisterCallback('asc_onShowPopMenu', this.checkShapeSelection);
         Common.Notifications.off('showSplitModal', this.ShowModal);
     }
 
@@ -62,8 +73,8 @@ class ContextMenu extends ContextMenuController {
         this.isComments = false;
     }
 
-    onApiShowChange(sdkchange) {
-        this.inRevisionChange = sdkchange && sdkchange.length>0;
+    onApiShowChange(sdkchange, isShow) {
+        this.inRevisionChange = isShow && sdkchange && sdkchange.length>0;
     }
 
     // onMenuClosed() {
@@ -96,11 +107,13 @@ class ContextMenu extends ContextMenuController {
             case 'openlink':
                 const stack = api.getSelectedElements();
                 let value;
+
                 stack.forEach((item) => {
                     if (item.get_ObjectType() == Asc.c_oAscTypeSelectElement.Hyperlink) {
                         value = item.get_ObjectValue().get_Value();
                     }
                 });
+
                 value && this.openLink(value);
                 break;
             case 'review':
@@ -113,12 +126,37 @@ class ContextMenu extends ContextMenuController {
                     this.props.openOptions('coauth', 'cm-review-change');
                 }, 400);
                 break;
+            case 'refreshEntireTable':
+                this.onTableContentsUpdate('all');
+                break;
+            case 'refreshPageNumbers':
+                this.onTableContentsUpdate('pages');
+                break;
         }
     }
+
+    checkShapeSelection() {
+        const objects = this.props.objects;
+        const contextMenuElem = document.querySelector('#idx-context-menu-popover');
+
+        if(objects.indexOf('shape') > -1) {
+            contextMenuElem.style.top = `${+(contextMenuElem.style.top.replace(/px$/, '')) - 40}px`;
+        }
+    }
+
+    onTableContentsUpdate(type, currentTOC) {
+        const api = Common.EditorApi.get();
+        let props = api.asc_GetTableOfContentsPr(currentTOC);
+
+        if (currentTOC && props)
+            currentTOC = props.get_InternalClass();
+        api.asc_UpdateTableOfContents(type == 'pages', currentTOC);
+    };
 
     showCopyCutPasteModal() {
         const { t } = this.props;
         const _t = t("ContextMenu", { returnObjects: true });
+
         f7.dialog.create({
             title: _t.textCopyCutPasteActions,
             text: _t.errorCopyCutPaste,
@@ -143,6 +181,7 @@ class ContextMenu extends ContextMenuController {
         const { t } = this.props;
         const _t = t("ContextMenu", { returnObjects: true });
         let picker;
+
         const dialog = f7.dialog.create({
             title: _t.menuSplit,
             text: '',
@@ -165,35 +204,59 @@ class ContextMenu extends ContextMenuController {
                         Common.EditorApi.get().SplitCell(parseInt(size[0]), parseInt(size[1]));
                     }
                 }
-            ]
+            ],
+            on: {
+                open: () => {
+                    picker = f7.picker.create({
+                        containerEl: document.getElementById('picker-split-size'),
+                        cols: [
+                            {
+                                textAlign: 'center',
+                                width: '100%',
+                                values: [1,2,3,4,5,6,7,8,9,10]
+                            },
+                            {
+                                textAlign: 'center',
+                                width: '100%',
+                                values: [1,2,3,4,5,6,7,8,9,10]
+                            }
+                        ],
+                        toolbar: false,
+                        rotateEffect: true,
+                        value: [3, 3]
+                    });
+                }
+            }
         }).open();
-        dialog.on('opened', () => {
-            picker = f7.picker.create({
-                containerEl: document.getElementById('picker-split-size'),
-                cols: [
-                    {
-                        textAlign: 'center',
-                        width: '100%',
-                        values: [1,2,3,4,5,6,7,8,9,10]
-                    },
-                    {
-                        textAlign: 'center',
-                        width: '100%',
-                        values: [1,2,3,4,5,6,7,8,9,10]
-                    }
-                ],
-                toolbar: false,
-                rotateEffect: true,
-                value: [3, 3]
-            });
-        });
     }
 
     openLink(url) {
-        if (Common.EditorApi.get().asc_getUrlType(url) > 0) {
-            const newDocumentPage = window.open(url, '_blank');
-            if (newDocumentPage) {
-                newDocumentPage.focus();
+        if (url) {
+            const type = Common.EditorApi.get().asc_getUrlType(url);
+            if (type===AscCommon.c_oAscUrlType.Http || type===AscCommon.c_oAscUrlType.Email) {
+                const newDocumentPage = window.open(url, '_blank');
+                if (newDocumentPage) {
+                    newDocumentPage.focus();
+                }
+            } else {
+                const { t } = this.props;
+                const _t = t("ContextMenu", { returnObjects: true });
+
+                f7.dialog.create({
+                    title: t('Settings', {returnObjects: true}).notcriticalErrorTitle,
+                    text  : _t.txtWarnUrl,
+                    buttons: [{
+                        text: _t.textOk,
+                        bold: true,
+                        onClick: () => {
+                            const newDocumentPage = window.open(url, '_blank');
+                            if (newDocumentPage) {
+                                newDocumentPage.focus();
+                            }
+                        }
+                    },
+                    { text: _t.menuCancel }]
+                }).open();
             }
         }
     }
@@ -205,23 +268,27 @@ class ContextMenu extends ContextMenuController {
         api.asc_registerCallback('asc_onShowComment', this.onApiShowComment);
         api.asc_registerCallback('asc_onHideComment', this.onApiHideComment);
         api.asc_registerCallback('asc_onShowRevisionsChange', this.onApiShowChange);
+        api.asc_registerCallback('asc_onShowPopMenu', this.checkShapeSelection);
         Common.Notifications.on('showSplitModal', this.ShowModal);
     }
 
     initMenuItems() {
         if ( !Common.EditorApi ) return [];
-        const { isEdit } = this.props;
+
+        const { isEdit, canFillForms, isDisconnected, isViewer, canEditComments } = this.props;
 
         if (isEdit && EditorUIController.ContextMenu) {
             return EditorUIController.ContextMenu.mapMenuItems(this);
         } else {
             const { t } = this.props;
             const _t = t("ContextMenu", {returnObjects: true});
-            const { canViewComments, canCoAuthoring, canComments } = this.props;
+            const { canViewComments, canCoAuthoring, canComments, dataDoc } = this.props;
 
             const api = Common.EditorApi.get();
+            const inToc = api.asc_GetTableOfContentsPr(true);
             const stack = api.getSelectedElements();
             const canCopy = api.can_CopyCut();
+            const docExt = dataDoc ? dataDoc.fileType : '';
 
             let isText = false,
                 isObject = false,
@@ -249,31 +316,62 @@ class ContextMenu extends ContextMenuController {
             let itemsIcon = [],
                 itemsText = [];
 
-            if ( canCopy ) {
+            if (canCopy) {
                 itemsIcon.push({
                     event: 'copy',
                     icon: 'icon-copy'
                 });
             }
 
-            if ( canViewComments && this.isComments ) {
-                itemsText.push({
-                    caption: _t.menuViewComment,
-                    event: 'viewcomment'
-                });
+            if (!isDisconnected) {
+                if (canFillForms && canCopy && !locked && (!isViewer || docExt === 'oform')) {
+                    itemsIcon.push({
+                        event: 'cut',
+                        icon: 'icon-cut'
+                    });
+                }
+
+                if (canFillForms && canCopy && !locked && (!isViewer || docExt === 'oform')) {
+                    itemsIcon.push({
+                        event: 'paste',
+                        icon: 'icon-paste'
+                    });
+                }
+
+                if (canViewComments && this.isComments) {
+                    itemsText.push({
+                        caption: _t.menuViewComment,
+                        event: 'viewcomment'
+                    });
+                }
+
+                if (api.can_AddQuotedComment() !== false && canCoAuthoring && canComments && !locked && !(!isText && isObject) && !isViewer && canEditComments) {
+                    itemsText.push({
+                        caption: _t.menuAddComment,
+                        event: 'addcomment'
+                    });
+                }
             }
 
-            if (api.can_AddQuotedComment() !== false && canCoAuthoring && canComments && !locked && !(!isText && isObject)) {
-                itemsText.push({
-                    caption: _t.menuAddComment,
-                    event: 'addcomment'
-                });
-            }
-
-            if ( isLink ) {
+            if (isLink) {
                 itemsText.push({
                     caption: _t.menuOpenLink,
                     event: 'openlink'
+                });
+                itemsText.push({
+                    caption: t('ContextMenu.menuEditLink'),
+                    event: 'editlink'
+                });
+            }
+
+            if(inToc && isEdit && !isViewer) {
+                itemsText.push({
+                    caption: t('ContextMenu.textRefreshEntireTable'),
+                    event: 'refreshEntireTable'
+                });
+                itemsText.push({
+                    caption: t('ContextMenu.textRefreshPageNumbersOnly'),
+                    event: 'refreshPageNumbers'
                 });
             }
 

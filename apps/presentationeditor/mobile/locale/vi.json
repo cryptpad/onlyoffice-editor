@@ -6,7 +6,8 @@
     "textEmail": "Email",
     "textPoweredBy": "Powered By",
     "textTel": "Tel",
-    "textVersion": "Version"
+    "textVersion": "Version",
+    "textEditor": "Presentation Editor"
   },
   "Common": {
     "Collaboration": {
@@ -31,12 +32,16 @@
       "textResolve": "Resolve",
       "textTryUndoRedo": "The Undo/Redo functions are disabled for the Fast co-editing mode.",
       "textUsers": "Users",
-      "textOk": "Ok"
+      "textOk": "Ok",
+      "textSharingSettings": "Sharing Settings"
     },
     "ThemeColorPalette": {
       "textCustomColors": "Custom Colors",
       "textStandartColors": "Standard Colors",
       "textThemeColors": "Theme Colors"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -55,7 +60,10 @@
     "textColumns": "Columns",
     "textCopyCutPasteActions": "Copy, Cut and Paste Actions",
     "textDoNotShowAgain": "Don't show again",
-    "textRows": "Rows"
+    "textRows": "Rows",
+    "textOk": "Ok",
+    "txtWarnUrl": "Clicking this link can be harmful to your device and data.<br>Are you sure you want to continue?",
+    "menuEditLink": "Edit Link"
   },
   "Controller": {
     "Main": {
@@ -120,7 +128,11 @@
       "warnLicenseUsersExceeded": "You've reached the user limit for %1 editors. Contact your administrator to learn more.",
       "warnNoLicense": "You've reached the limit for simultaneous connections to %1 editors. This document will be opened for viewing only. Contact %1 sales team for personal upgrade terms.",
       "warnNoLicenseUsers": "You've reached the user limit for %1 editors. Contact %1 sales team for personal upgrade terms.",
-      "warnProcessRightsChange": "You don't have permission to edit the file."
+      "warnProcessRightsChange": "You don't have permission to edit the file.",
+      "textReplaceSuccess": "The search has been done. Occurrences replaced: {0}",
+      "textReplaceSkipped": "The replacement has been made. {0} occurrences were skipped.",
+      "textNoTextFound": "Text not found",
+      "textRequestMacros": "A macro makes a request to URL. Do you want to allow the request to the %1?"
     }
   },
   "Error": {
@@ -159,7 +171,15 @@
     "uploadImageExtMessage": "Unknown image format.",
     "uploadImageFileCountMessage": "No images uploaded.",
     "uploadImageSizeMessage": "The image is too big. The maximum size is 25 MB.",
-    "errorLoadingFont": "Fonts are not loaded.<br>Please contact your Document Server administrator."
+    "errorLoadingFont": "Fonts are not loaded.<br>Please contact your Document Server administrator.",
+    "errorDirectUrl": "Please verify the link to the document.<br>This link must be a direct link to the file for downloading.",
+    "errorInconsistentExtDocx": "An error has occurred while opening the file.<br>The file content corresponds to text documents (e.g. docx), but the file has the inconsistent extension: %1.",
+    "errorInconsistentExtXlsx": "An error has occurred while opening the file.<br>The file content corresponds to spreadsheets (e.g. xlsx), but the file has the inconsistent extension: %1.",
+    "errorInconsistentExtPptx": "An error has occurred while opening the file.<br>The file content corresponds to presentations (e.g. pptx), but the file has the inconsistent extension: %1.",
+    "errorInconsistentExtPdf": "An error has occurred while opening the file.<br>The file content corresponds to one of the following formats: pdf/djvu/xps/oxps, but the file has the inconsistent extension: %1.",
+    "errorInconsistentExt": "An error has occurred while opening the file.<br>The file content does not match the file extension.",
+    "errorToken": "The document security token is not correctly formed.<br>Please contact your Document Server administrator.",
+    "errorTokenExpire": "The document security token has expired.<br>Please contact your Document Server administrator."
   },
   "LongActions": {
     "applyChangesTextText": "Loading data...",
@@ -190,7 +210,10 @@
     "txtEditingMode": "Set editing mode...",
     "uploadImageTextText": "Uploading image...",
     "uploadImageTitleText": "Uploading Image",
-    "waitText": "Please, wait..."
+    "waitText": "Please, wait...",
+    "confirmMaxChangesSize": "The size of actions exceeds the limitation set for your server.<br>Press \"Undo\" to cancel your last action or press \"Continue\" to keep action locally (you need to download the file or copy its content to make sure nothing is lost).",
+    "textUndo": "Undo",
+    "textContinue": "Continue"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "You have unsaved changes in this document. Click 'Stay on this Page' to wait for autosave. Click 'Leave this Page' to discard all the unsaved changes.",
@@ -234,7 +257,11 @@
       "textSlideNumber": "Slide Number",
       "textTable": "Table",
       "textTableSize": "Table Size",
-      "txtNotUrl": "This field should be a URL in the format \"http://www.example.com\""
+      "txtNotUrl": "This field should be a URL in the format \"http://www.example.com\"",
+      "textOk": "Ok",
+      "textDone": "Done",
+      "textRecommended": "Recommended",
+      "textRequired": "Required"
     },
     "Edit": {
       "notcriticalErrorTitle": "Warning",
@@ -382,7 +409,19 @@
       "textZoom": "Zoom",
       "textZoomIn": "Zoom In",
       "textZoomOut": "Zoom Out",
-      "textZoomRotate": "Zoom and Rotate"
+      "textZoomRotate": "Zoom and Rotate",
+      "textTransitions": "Transitions",
+      "textDesign": "Design",
+      "textAutomatic": "Automatic",
+      "textOk": "Ok",
+      "textArrange": "Arrange",
+      "textCancel": "Cancel",
+      "textChangeShape": "Change Shape",
+      "textDeleteImage": "Delete Image",
+      "textDeleteLink": "Delete Link",
+      "textInsertImage": "Insert Image",
+      "textRecommended": "Recommended",
+      "textRequired": "Required"
     },
     "Settings": {
       "mniSlideStandard": "Standard (4:3)",
@@ -461,7 +500,13 @@
       "txtScheme6": "Concourse",
       "txtScheme7": "Equity",
       "txtScheme8": "Flow",
-      "txtScheme9": "Foundry"
+      "txtScheme9": "Foundry",
+      "textDarkTheme": "Dark Theme",
+      "textFeedback": "Feedback & Support",
+      "textOk": "Ok",
+      "textRTL": "RTL",
+      "textRestartApplication": "Please restart the application for the changes to take effect",
+      "notcriticalErrorTitle": "Warning"
     }
   }
 }

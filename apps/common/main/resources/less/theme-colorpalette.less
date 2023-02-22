@@ -14,6 +14,13 @@
         }
     }
 
+    &.palette-large em {
+        span{
+            height: 28px;
+            width: 28px;
+        }
+    }
+
     a {
         padding: 0;
         margin: calc(1px - 1px / @pixel-ratio-factor);
@@ -30,7 +37,7 @@
             border: @scaled-one-px-value solid @border-color-shading;
         }
 
-        &:hover, &.selected {
+        &:hover, &:focus, &.selected {
             border-color: @icon-normal-ie;
             border-color: @icon-normal;
             em span {

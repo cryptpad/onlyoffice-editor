@@ -7,6 +7,24 @@
         display: table-row;
     }
 
+    #comments-header {
+        position: absolute;
+        height: 45px;
+        left: 0;
+        top: 0;
+        right: 0;
+        padding: 12px;
+        overflow: hidden;
+        border-bottom: @scaled-one-px-value-ie solid @border-toolbar-ie;
+        border-bottom: @scaled-one-px-value solid @border-toolbar;
+
+        label {
+            font-size: 12px;
+            .font-weight-bold();
+            margin-top: 2px;
+        }
+    }
+
     .messages-ct {
         position: absolute;
         overflow: hidden;
@@ -14,6 +32,7 @@
         right: 0;
         bottom: 45px;
         height: 300px;
+        padding-top: 45px;
         border-bottom: @scaled-one-px-value-ie solid @border-toolbar-ie;
         border-bottom: @scaled-one-px-value solid @border-toolbar;
 
@@ -26,6 +45,22 @@
             margin-bottom: 5px;
             right: 4px !important;
         }
+
+        .dataview-ct.inner {
+            .empty-text {
+                text-align: center;
+                height: 100%;
+                width: 100%;
+                color: @text-tertiary-ie;
+                color: @text-tertiary;
+                tr {
+                    vertical-align: top;
+                    td {
+                        padding-top: 18px;
+                    }
+                }
+            }
+        }
     }
 
     .add-link-ct {
@@ -35,7 +70,7 @@
         label {
             color: @text-normal-ie;
             color: @text-normal;
-            font: 12px arial;
+            font-size: 12px;
             line-height: normal;
             border-bottom: @scaled-one-px-value-ie dotted @text-normal-ie;
             border-bottom: @scaled-one-px-value dotted @text-normal;
@@ -85,7 +120,7 @@
 .dataview-ct {
     width: 100%;
     height: 100%;
-    font: 12px arial;
+    font-size: 12px;
     line-height: normal;
     position: relative;
     overflow: hidden;
@@ -133,7 +168,7 @@
         color: @text-normal-ie;
         color: @text-normal;
         font-size: 12px;
-        font-weight: bold;
+        .font-weight-bold();
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -258,11 +293,15 @@
         cursor: pointer;
     }
 
-    .btn-edit,.btn-delete, .btn-resolve, .btn-resolve-check, .btn-accept, .btn-reject, .btn-goto {
+    .btn-edit,.btn-delete, .btn-resolve, .icon-resolve, .btn-resolve-check, .btn-accept, .btn-reject, .btn-goto {
         width: 16px;
         height: 16px;
         margin: 0 0 0 5px;
         background-color: transparent;
+    }
+
+    .icon-resolve {
+        float: left;
     }
 
     .btn-edit {
@@ -273,15 +312,66 @@
         background-position: -22px -232px;
     }
 
-    .btn-accept {
-        background-position: -2px -253px;
+    
+    .tool {
+        float: right;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        overflow: hidden;
+        padding: 0px;
+        margin-right: 2px;
+
+        &.btn-reject {
+            position: relative;
+
+            &.disabled {
+                cursor: default;
+            }
+
+            &:before, &:after {
+                content: ' ';
+                position: absolute;
+                left: 8px;
+                top: 2px;
+                height: 12px;
+                width: 2px;
+                background-color: @icon-normal-ie;
+                background-color: @icon-normal;
+            }
+
+            &:before {
+                transform: rotate(45deg);
+            }
+
+            &:after {
+                transform: rotate(-45deg);
+            }
+        }
+
+        &.help {
+            width: 20px;
+            margin-right:0;
+            line-height: 14px;
+            font-size: 14px;
+            .font-weight-bold();
+            color: @text-normal-ie;
+            color: @text-normal;
+            opacity: 0.7;
+
+            &:hover {
+                opacity: 1;
+            }
+
+            &.disabled {
+                opacity: @component-disabled-opacity-ie;
+                opacity: @component-disabled-opacity;
+                cursor: default;
+            }
+        }
     }
 
-    .btn-reject {
-        background-position: -22px -253px;
-    }
-
-    .btn-resolve {
+    .btn-resolve, .btn-accept, .icon-resolve {
         position: relative;
 
         &:after {
@@ -297,7 +387,7 @@
             top: 0px;
         }
 
-        &.comment-resolved {
+        &.comment-resolved, &.i-comment-resolved {
             &:after {
                 border-color: @icon-success-ie;
                 border-color: @icon-success;
@@ -403,7 +493,7 @@
     width:100%;
     position: relative;
     overflow-y: hidden;
-    margin-bottom: 5px;
+    //margin-bottom: 5px;
 
     .dataview-ct.inner {
         overflow: visible;
@@ -413,24 +503,6 @@
 .comments-arrow {
     position: absolute;
     overflow: hidden;
-    left: -10px;
-    top: 20px;
-    width: 10px;
-    height: 30px;
-
-    &.right {
-        left: 100%;
-
-        &:after {
-            left: -8px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-
-            body.safari &,
-            body.chrome & {
-                box-shadow: none;
-            }
-        }
-    }
 
     &:after {
         content: '';
@@ -448,5 +520,54 @@
         transform: rotate(45deg);
         border: solid @scaled-one-px-value-ie @border-toolbar-ie;
         border: solid @scaled-one-px-value @border-toolbar;
+    }
+
+    &.left {
+        left: -10px;
+        top: 20px;
+        width: 10px;
+        height: 30px;
+    }
+
+    &.right {
+        left: 100%;
+        top: 20px;
+        width: 10px;
+        height: 30px;
+
+        &:after {
+            left: -8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+
+            body.safari &,
+            body.chrome & {
+                box-shadow: none;
+            }
+        }
+    }
+
+    &.top {
+        left: 20px;
+        top: -10px;
+        height: 10px;
+        width: 30px;
+
+        &:after {
+            top: 2px;
+            left: 5px;
+        }
+    }
+
+    &.bottom {
+        left: 20px;
+        top: auto;
+        bottom: -10px;
+        height: 10px;
+        width: 30px;
+
+        &:after {
+            top: -7px;
+            left: 5px;
+        }
     }
 }

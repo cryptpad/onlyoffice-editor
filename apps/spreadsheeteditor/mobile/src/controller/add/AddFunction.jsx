@@ -2,9 +2,7 @@ import React, {Component} from 'react';
 import {observer, inject} from "mobx-react";
 import { f7 } from 'framework7-react';
 import {Device} from '../../../../../common/mobile/utils/device';
-
-import {LocalStorage} from '../../../../../common/mobile/utils/LocalStorage';
-
+import {LocalStorage} from '../../../../../common/mobile/utils/LocalStorage.mjs';
 import {AddFunction} from '../../view/add/AddFunction';
 
 class _FunctionGroups extends Component {
@@ -12,6 +10,11 @@ class _FunctionGroups extends Component {
         super(props);
 
         Common.Notifications.on('changeFuncLang', () => {
+            this.api = Common.EditorApi.get();
+            this.init();
+        });
+
+        Common.Notifications.on('changeRegSettings', () => {
             this.api = Common.EditorApi.get();
             this.init();
         });
@@ -46,7 +49,8 @@ class _FunctionGroups extends Component {
                 jsonDesc = data;
             }
             const grouparr = this.api.asc_getFormulasInfo();
-            this.props.storeFunctions.initFunctions(grouparr, jsonDesc);
+            const separator = this.api.asc_getFunctionArgumentSeparator();
+            this.props.storeFunctions.initFunctions(grouparr, jsonDesc, separator);
         };
 
         fetch(`locale/l10n/functions/${this._editorLang}_desc.json`)

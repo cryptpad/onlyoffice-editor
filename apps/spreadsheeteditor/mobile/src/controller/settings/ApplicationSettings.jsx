@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { ApplicationSettings } from "../../view/settings/ApplicationSettings";
 import {observer, inject} from "mobx-react";
-import { LocalStorage } from '../../../../../common/mobile/utils/LocalStorage';
+import { LocalStorage } from '../../../../../common/mobile/utils/LocalStorage.mjs';
 import {FunctionGroups} from '../../controller/add/AddFunction';
 
 class ApplicationSettingsController extends Component {
@@ -85,6 +85,11 @@ class ApplicationSettingsController extends Component {
         LocalStorage.setItem("sse-settings-regional", regCode);
         this.initRegSettings();
         if (regCode!==null) api.asc_setLocale(+regCode);
+        Common.Notifications.trigger('changeRegSettings');
+    }
+
+    changeDirection(value) {
+        LocalStorage.setItem('mode-direction', value);
     }
 
     render() {
@@ -98,7 +103,8 @@ class ApplicationSettingsController extends Component {
                 clickR1C1Style={this.clickR1C1Style}
                 onChangeMacrosSettings={this.onChangeMacrosSettings}  
                 onFormulaLangChange={this.onFormulaLangChange}     
-                onRegSettings={this.onRegSettings}
+                onRegSettings={this.onRegSettings}   
+                changeDirection={this.changeDirection}
             />
         )
     }

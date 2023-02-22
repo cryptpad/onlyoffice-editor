@@ -106,6 +106,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.api = this.options.api;
             this._changedProps = null;
             this._changedShapeProps = null;
+            this._isSmartArt = false;
         },
 
         render: function() {
@@ -117,7 +118,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.spnWidth = new Common.UI.MetricSpinner({
                 el: $('#image-advanced-spin-width'),
                 step: .1,
-                width: 80,
+                width: 70,
                 defaultUnit : "cm",
                 value: '3 cm',
                 maxValue: 55.88,
@@ -145,7 +146,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             this.spnHeight = new Common.UI.MetricSpinner({
                 el: $('#image-advanced-spin-height'),
                 step: .1,
-                width: 80,
+                width: 70,
                 defaultUnit : "cm",
                 value: '3 cm',
                 maxValue: 55.88,
@@ -253,7 +254,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 minValue: 0
             });
             this.spnShapeWidth.on('change', _.bind(function(field, newValue, oldValue, eOpts){
-                if (this.chRatio.getValue()=='checked' && !this.chRatio.isDisabled()) {
+                if (this.chRatio.getValue()=='checked' && (!this.chRatio.isDisabled() || this._isSmartArt)) {
                     var w = field.getNumberValue();
                     var h = w/this._nRatio;
                     if (h>this.sizeMax.height) {
@@ -281,7 +282,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
             });
             this.spnShapeHeight.on('change', _.bind(function(field, newValue, oldValue, eOpts){
                 var h = field.getNumberValue(), w = null;
-                if (this.chRatio.getValue()=='checked' && !this.chRatio.isDisabled()) {
+                if (this.chRatio.getValue()=='checked' && (!this.chRatio.isDisabled() || this._isSmartArt)) {
                     w = h * this._nRatio;
                     if (w>this.sizeMax.width) {
                         w = this.sizeMax.width;
@@ -1014,7 +1015,9 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-begin-style'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div class="form-control" style="width: 100px;">',
+                            '<i class="image img-arrows"></i>',
+                        '</div>',
                         '<div style="display: table-cell;"></div>',
                         '<button type="button" class="btn btn-default">',
                             '<span class="caret"></span>',
@@ -1043,7 +1046,9 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-begin-size'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div class="form-control" style="width: 100px;">',
+                            '<i class="image img-arrows"></i>',
+                        '</div>',
                         '<div style="display: table-cell;"></div>',
                         '<button type="button" class="btn btn-default">',
                             '<span class="caret"></span>',
@@ -1078,7 +1083,9 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-end-style'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div class="form-control" style="width: 100px;">',
+                            '<i class="image img-arrows"></i>',
+                        '</div>',
                         '<div style="display: table-cell;"></div>',
                         '<button type="button" class="btn btn-default">',
                             '<span class="caret"></span>',
@@ -1107,7 +1114,9 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 el: $('#shape-advanced-end-size'),
                 template: _.template([
                     '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                        '<div class="img-arrows form-control image" style="width: 100px;"></div>',
+                        '<div class="form-control" style="width: 100px;">',
+                            '<i class="image img-arrows"></i>',
+                        '</div>',
                         '<div style="display: table-cell;"></div>',
                         '<button type="button" class="btn btn-default">',
                             '<span class="caret"></span>',
@@ -1385,22 +1394,31 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                 var shapeprops = props.get_ShapeProperties();
                 var chartprops = props.get_ChartProperties();
                 var pluginGuid = props.asc_getPluginGuid();
+                var control_props = this.api && this.api.asc_IsContentControl() ? this.api.asc_GetContentControlProperties() : null,
+                    fixed_size = false;
+                if (control_props) {
+                    var spectype = control_props.get_SpecificType();
+                    fixed_size = (spectype==Asc.c_oAscContentControlSpecificType.CheckBox || spectype==Asc.c_oAscContentControlSpecificType.ComboBox ||
+                                spectype==Asc.c_oAscContentControlSpecificType.DropDownList || spectype==Asc.c_oAscContentControlSpecificType.None ||
+                                spectype==Asc.c_oAscContentControlSpecificType.Picture || spectype==Asc.c_oAscContentControlSpecificType.Complex ||
+                                spectype==Asc.c_oAscContentControlSpecificType.DateTime) &&
+                                control_props.get_FormPr() && control_props.get_FormPr().get_Fixed();
+                }
 
                 this.btnOriginalSize.setVisible(!(shapeprops || chartprops));
                 this.btnOriginalSize.setDisabled(props.get_ImageUrl()===null || props.get_ImageUrl()===undefined);
-                this.btnsCategory[5].setVisible(shapeprops!==null && !shapeprops.get_FromChart());   // Shapes
-                this.btnsCategory[6].setVisible(shapeprops!==null && !shapeprops.get_FromChart());   // Margins
+                this.btnsCategory[5].setVisible(shapeprops!==null && !shapeprops.get_FromChart() && !fixed_size);   // Shapes
+                this.btnsCategory[6].setVisible(shapeprops!==null && !shapeprops.get_FromChart() && !fixed_size);   // Margins
+                this.btnsCategory[7].setVisible(!fixed_size);   // Alt
                 this.btnsCategory[2].setVisible(!chartprops && (pluginGuid === null || pluginGuid === undefined)); // Rotation
-
-                var control_props = this.api && this.api.asc_IsContentControl() ? this.api.asc_GetContentControlProperties() : null;
-                this.btnsCategory[3].setDisabled(props.get_FromGroup() || !!control_props && (control_props.get_SpecificType()==Asc.c_oAscContentControlSpecificType.Picture)); // Wrapping
+                this.btnsCategory[3].setDisabled(props.get_FromGroup() || !!control_props && (control_props.get_SpecificType()==Asc.c_oAscContentControlSpecificType.Picture) && !control_props.get_FormPr()); // Wrapping
 
                 if (shapeprops) {
                     this._objectType = Asc.c_oAscTypeSelectElement.Shape;
                     this._setShapeDefaults(shapeprops);
                     this.setTitle(this.textTitleShape);
                     value = props.asc_getLockAspect();
-                    this.chRatio.setValue(value);
+                    this.chRatio.setValue(value || this._isSmartArt, true); // can resize smart art only proportionately
 
                     this.spnShapeWidth.setMaxValue(this.sizeMax.width);
                     this.spnShapeHeight.setMaxValue(this.sizeMax.height);
@@ -1442,7 +1460,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
                         value = props.get_Height();
                         this.spnShapeHeight.setValue((value!==undefined) ? Common.Utils.Metric.fnRecalcFromMM(value).toFixed(2) : '', true);
                     }
-                    this.chRatio.setDisabled(this.radioVSizePc.getValue() || this.radioHSizePc.getValue());
+                    this.chRatio.setDisabled(this.radioVSizePc.getValue() || this.radioHSizePc.getValue() || this._isSmartArt);
 
                     var margins = shapeprops.get_paddings();
                     if (margins) {
@@ -1546,6 +1564,19 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
 
         _setShapeDefaults: function(props) {
             if (props ){
+                if (props.get_FromSmartArt()) {
+                    this.radioHSizePc.setDisabled(true);
+                    this.radioVSizePc.setDisabled(true);
+                    this.btnsCategory[2].setDisabled(true);
+                    this._isSmartArt = true;
+                }
+                if (props.get_FromSmartArtInternal()) {
+                    this.chAutofit.setDisabled(true);
+                    this.chFlipHor.setDisabled(true);
+                    this.chFlipVert.setDisabled(true);
+                    this.btnsCategory[1].setDisabled(true);
+                }
+
                 var stroke = props.get_stroke();
                 if (stroke) {
                     var value = stroke.get_linejoin();
@@ -2061,7 +2092,7 @@ define([    'text!documenteditor/main/app/template/ImageSettingsAdvanced.templat
         },
 
         _selectStyleItem: function(combo, record) {
-            var formcontrol = $(combo.el).find('.form-control');
+            var formcontrol = $(combo.el).find('.form-control > .image');
             formcontrol.css('background-position', ((record) ? (-record.get('offsetx')+20) + 'px' : '0') + ' ' + ((record) ? '-' + record.get('offsety') + 'px' : '-30px'));
         },
 

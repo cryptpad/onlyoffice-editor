@@ -45,12 +45,17 @@ class EditTextController extends Component {
         api.put_TextColor(Common.Utils.ThemeColor.getRgbColor(color));
     }
 
-    onBackgroundColor(color) {
+    onHighlightColor(strColor) {
         const api = Common.EditorApi.get();
-        if (color == 'transparent') {
-            api.put_ParagraphShade(false);
+        
+        if (strColor == 'transparent') {
+            api.SetMarkerFormat(true, false);
         } else {
-            api.put_ParagraphShade(true, Common.Utils.ThemeColor.getRgbColor(color));
+            let r = strColor[0] + strColor[1],
+                g = strColor[2] + strColor[3],
+                b = strColor[4] + strColor[5];
+
+            api.SetMarkerFormat(true, true, parseInt(r, 16), parseInt(g, 16), parseInt(b, 16));
         }
     }
 
@@ -114,9 +119,9 @@ class EditTextController extends Component {
         const api = Common.EditorApi.get();
         if (api) {
             if ('superscript' === type) {
-                api.put_TextPrBaseline(value ? 1 : 0);
+                api.put_TextPrBaseline(value ? Asc.vertalign_SuperScript : Asc.vertalign_Baseline);
             } else {
-                api.put_TextPrBaseline(value ? 2 : 0);
+                api.put_TextPrBaseline(value ? Asc.vertalign_SubScript : Asc.vertalign_Baseline);
             }
         }
     }
@@ -183,6 +188,19 @@ class EditTextController extends Component {
         }
     }
 
+    onMultiLevelList(type) {
+        const api = Common.EditorApi.get();
+        if (api) api.put_ListType(2, parseInt(type));
+    }
+
+    getIconsBulletsAndNumbers(arrayElements, type) {
+        const api = Common.EditorApi.get();
+        const arr = [];
+
+        arrayElements.forEach( item => arr.push(item.id));
+        if (api) api.SetDrawImagePreviewBulletForMenu(arr, type);
+    }
+
     onLineSpacing(value) {
         const api = Common.EditorApi.get();
         if (api) {
@@ -193,24 +211,27 @@ class EditTextController extends Component {
 
     render() {
         return (
-            <EditText changeFontSize={this.changeFontSize}
-                      changeFontFamily={this.changeFontFamily}
-                      onTextColorAuto={this.onTextColorAuto}
-                      onTextColor={this.onTextColor}
-                      onBackgroundColor={this.onBackgroundColor}
-                      toggleBold={this.toggleBold}
-                      toggleItalic={this.toggleItalic}
-                      toggleUnderline={this.toggleUnderline}
-                      toggleStrikethrough={this.toggleStrikethrough}
-                      onAdditionalStrikethrough={this.onAdditionalStrikethrough}
-                      onAdditionalCaps={this.onAdditionalCaps}
-                      onAdditionalScript={this.onAdditionalScript}
-                      changeLetterSpacing={this.changeLetterSpacing}
-                      onParagraphAlign={this.onParagraphAlign}
-                      onParagraphMove={this.onParagraphMove}
-                      onBullet={this.onBullet}
-                      onNumber={this.onNumber}
-                      onLineSpacing={this.onLineSpacing}
+            <EditText 
+                changeFontSize={this.changeFontSize}
+                changeFontFamily={this.changeFontFamily}
+                onTextColorAuto={this.onTextColorAuto}
+                onTextColor={this.onTextColor}
+                onHighlightColor={this.onHighlightColor}
+                toggleBold={this.toggleBold}
+                toggleItalic={this.toggleItalic}
+                toggleUnderline={this.toggleUnderline}
+                toggleStrikethrough={this.toggleStrikethrough}
+                onAdditionalStrikethrough={this.onAdditionalStrikethrough}
+                onAdditionalCaps={this.onAdditionalCaps}
+                onAdditionalScript={this.onAdditionalScript}
+                changeLetterSpacing={this.changeLetterSpacing}
+                onParagraphAlign={this.onParagraphAlign}
+                onParagraphMove={this.onParagraphMove}
+                onBullet={this.onBullet}
+                onNumber={this.onNumber}
+                getIconsBulletsAndNumbers={this.getIconsBulletsAndNumbers}
+                onMultiLevelList={this.onMultiLevelList}
+                onLineSpacing={this.onLineSpacing}
             />
         )
     }

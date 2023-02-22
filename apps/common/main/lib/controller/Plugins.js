@@ -39,7 +39,8 @@
 define([
     'core',
     'common/main/lib/collection/Plugins',
-    'common/main/lib/view/Plugins'
+    'common/main/lib/view/Plugins',
+    'common/main/lib/view/PluginDlg'
 ], function () {
     'use strict';
 
@@ -62,10 +63,10 @@ define([
                     'render:before' : function (toolbar) {
                         var appOptions = me.getApplication().getController('Main').appOptions;
 
-                        if ( !appOptions.isEditMailMerge && !appOptions.isEditDiagram ) {
-                            var tab = {action: 'plugins', caption: me.panelPlugins.groupCaption};
+                        if ( !appOptions.isEditMailMerge && !appOptions.isEditDiagram && !appOptions.isEditOle ) {
+                            var tab = {action: 'plugins', caption: me.panelPlugins.groupCaption, dataHintTitle: 'E', layoutname: 'toolbar-plugins'};
                             me.$toolbarPanelPlugins = me.panelPlugins.getPanel();
-
+                            me.toolbar = toolbar;
                             toolbar.addTab(tab, me.$toolbarPanelPlugins, 10);     // TODO: clear plugins list in left panel
                         }
                     }
@@ -104,6 +105,7 @@ define([
             Common.NotificationCenter.on('app:face', this.onAppShowed.bind(this));
             Common.NotificationCenter.on('uitheme:changed', this.updatePluginsButtons.bind(this));
             Common.NotificationCenter.on('window:resize', this.updatePluginsButtons.bind(this));
+            Common.NotificationCenter.on('app:ready', this.onAppReady.bind(this));
         },
 
         loadConfig: function(data) {
@@ -150,6 +152,16 @@ define([
         onAppShowed: function (config) {
         },
 
+        onAppReady: function (config) {
+            var me = this;
+            (new Promise(function (accept, reject) {
+                accept();
+            })).then(function(){
+                me.onChangeProtectDocument();
+                Common.NotificationCenter.on('protect:doclock', _.bind(me.onChangeProtectDocument, me));
+            });
+        },
+
         setApi: function(api) {
             this.api = api;
 
@@ -161,6 +173,8 @@ define([
                 this.api.asc_registerCallback("asc_onPluginMouseMove", _.bind(this.onPluginMouseMove, this));
                 this.api.asc_registerCallback('asc_onPluginsReset', _.bind(this.resetPluginsList, this));
                 this.api.asc_registerCallback('asc_onPluginsInit', _.bind(this.onPluginsInit, this));
+                this.api.asc_registerCallback('asc_onPluginShowButton', _.bind(this.onPluginShowButton, this));
+                this.api.asc_registerCallback('asc_onPluginHideButton', _.bind(this.onPluginHideButton, this));
 
                 this.loadPlugins();
             }
@@ -203,44 +217,13 @@ define([
                 arr = [];
             storePlugins.each(function(item){
                 var plugin = new Asc.CPlugin();
-                plugin.set_Name(item.get('name'));
-                plugin.set_Guid(item.get('guid'));
-                plugin.set_BaseUrl(item.get('baseUrl'));
-                plugin.set_MinVersion && plugin.set_MinVersion(item.get('minVersion'));
-
-                var variations = item.get('variations'),
-                    variationsArr = [];
-                variations.forEach(function(itemVar){
-                    var variation = new Asc.CPluginVariation();
-                    variation.set_Description(itemVar.get('description'));
-                    variation.set_Url(itemVar.get('url'));
-                    variation.set_Icons(itemVar.get('icons'));
-                    variation.set_Visual(itemVar.get('isVisual'));
-                    variation.set_CustomWindow(itemVar.get('isCustomWindow'));
-                    variation.set_System(itemVar.get('isSystem'));
-                    variation.set_Viewer(itemVar.get('isViewer'));
-                    variation.set_EditorsSupport(itemVar.get('EditorsSupport'));
-                    variation.set_Modal(itemVar.get('isModal'));
-                    variation.set_InsideMode(itemVar.get('isInsideMode'));
-                    variation.set_InitDataType(itemVar.get('initDataType'));
-                    variation.set_InitData(itemVar.get('initData'));
-                    variation.set_UpdateOleOnResize(itemVar.get('isUpdateOleOnResize'));
-                    variation.set_Buttons(itemVar.get('buttons'));
-                    variation.set_Size(itemVar.get('size'));
-                    variation.set_InitOnSelectionChanged(itemVar.get('initOnSelectionChanged'));
-                    variation.set_Events(itemVar.get('events'));
-                    variation.set_Help(itemVar.get('help'));
-
-                    variationsArr.push(variation);
-                });
-
-                plugin.set_Variations(variationsArr);
+                plugin.deserialize(item.get('original'));
                 item.set('pluginObj', plugin);
                 arr.push(plugin);
             });
             this.api.asc_pluginsRegister('', arr);
             if (storePlugins.hasVisible())
-                Common.NotificationCenter.trigger('tab:visible', 'plugins', true);
+                Common.NotificationCenter.trigger('tab:visible', 'plugins', Common.UI.LayoutManager.isElementVisible('toolbar-plugins'));
             Common.Gateway.pluginsReady();
         },
 
@@ -253,6 +236,10 @@ define([
                 var _group = $('> .group', me.$toolbarPanelPlugins);
                 var $slot = $('<span class="btn-slot text x-huge"></span>').appendTo(_group);
                 btn.render($slot);
+                var docProtection = me.panelPlugins._state.docProtection;
+                Common.Utils.lockControls(Common.enumLock.docLockView, docProtection.isReadOnly, {array: btn});
+                Common.Utils.lockControls(Common.enumLock.docLockForms, docProtection.isFormsOnly, {array: btn});
+                Common.Utils.lockControls(Common.enumLock.docLockComments, docProtection.isCommentsOnly, {array: btn});
             }
         },
 
@@ -261,6 +248,7 @@ define([
             me.appOptions.canPlugins = !collection.isEmpty();
             if ( me.$toolbarPanelPlugins ) {
                 me.$toolbarPanelPlugins.empty();
+                me.toolbar && me.toolbar.clearMoreButton('plugins');
 
                 var _group = $('<div class="group"></div>'),
                     rank = -1,
@@ -272,6 +260,10 @@ define([
                         $('<div class="separator long"></div>').appendTo(me.$toolbarPanelPlugins);
                         _group = $('<div class="group"></div>');
                         rank_plugins = 0;
+                    } else {
+                        _group.appendTo(me.$toolbarPanelPlugins);
+                        $('<div class="separator long invisible"></div>').appendTo(me.$toolbarPanelPlugins);
+                        _group = $('<div class="group" style="padding-left: 0;"></div>');
                     }
 
                     var btn = me.panelPlugins.createPluginButton(model);
@@ -283,6 +275,11 @@ define([
                     rank = new_rank;
                 });
                 _group.appendTo(me.$toolbarPanelPlugins);
+                me.toolbar && me.toolbar.isTabActive('plugins') && me.toolbar.processPanelVisible(null, true, true);
+                var docProtection = me.panelPlugins._state.docProtection;
+                Common.Utils.lockControls(Common.enumLock.docLockView, docProtection.isReadOnly, {array: me.panelPlugins.lockedControls});
+                Common.Utils.lockControls(Common.enumLock.docLockForms, docProtection.isFormsOnly, {array: me.panelPlugins.lockedControls});
+                Common.Utils.lockControls(Common.enumLock.docLockComments, docProtection.isCommentsOnly, {array: me.panelPlugins.lockedControls});
             } else {
                 console.error('toolbar panel isnot created');
             }
@@ -407,6 +404,7 @@ define([
                         buttons: isCustomWindow ? undefined : newBtns,
                         toolcallback: _.bind(this.onToolClose, this),
                         help: !!help,
+                        loader: plugin.get_Loader(),
                         modal: isModal!==undefined ? isModal : true
                     });
                     me.pluginDlg.on({
@@ -425,6 +423,9 @@ define([
                         },
                         'help': function(){
                             help && window.open(help, '_blank');
+                        },
+                        'header:click': function(type){
+                            me.api.asc_pluginButtonClick(type);
                         }
                     });
 
@@ -484,6 +485,14 @@ define([
             this.parsePlugins(pluginsdata)
         },
 
+        onPluginShowButton: function(id) {
+            this.pluginDlg && this.pluginDlg.showButton(id);
+        },
+
+        onPluginHideButton: function(id) {
+            this.pluginDlg && this.pluginDlg.hideButton(id);
+        },
+
         runAutoStartPlugins: function() {
             if (this.autostart && this.autostart.length > 0) {
                 this.api.asc_pluginRun(this.autostart.shift(), 0, '');
@@ -530,10 +539,13 @@ define([
                     }
 
                     var variationsArr = [],
-                        pluginVisible = false;
+                        pluginVisible = false,
+                        isDisplayedInViewer = false;
                     item.variations.forEach(function(itemVar){
                         var visible = (isEdit || itemVar.isViewer && (itemVar.isDisplayedInViewer!==false)) && _.contains(itemVar.EditorsSupport, editor) && !itemVar.isSystem;
                         if ( visible ) pluginVisible = true;
+                        if (itemVar.isViewer && (itemVar.isDisplayedInViewer!==false))
+                            isDisplayedInViewer = true;
 
                         if (item.isUICustomizer ) {
                             visible && arrUI.push({
@@ -582,7 +594,9 @@ define([
                             visible: pluginVisible,
                             groupName: (item.group) ? item.group.name : '',
                             groupRank: (item.group) ? item.group.rank : 0,
-                            minVersion: item.minVersion
+                            minVersion: item.minVersion,
+                            original: item,
+                            isDisplayedInViewer: isDisplayedInViewer
                         }));
                     }
                 });
@@ -731,6 +745,19 @@ define([
                     }, funcComplete);
             } else
                 funcComplete();
+        },
+
+        onChangeProtectDocument: function(props) {
+            if (!props) {
+                var docprotect = this.getApplication().getController('DocProtection');
+                props = docprotect ? docprotect.getDocProps() : null;
+            }
+            if (props && this.panelPlugins) {
+                this.panelPlugins._state.docProtection = props;
+                Common.Utils.lockControls(Common.enumLock.docLockView, props.isReadOnly, {array: this.panelPlugins.lockedControls});
+                Common.Utils.lockControls(Common.enumLock.docLockForms, props.isFormsOnly, {array: this.panelPlugins.lockedControls});
+                Common.Utils.lockControls(Common.enumLock.docLockComments, props.isCommentsOnly, {array: this.panelPlugins.lockedControls});
+            }
         }
     }, Common.Controllers.Plugins || {}));
 });

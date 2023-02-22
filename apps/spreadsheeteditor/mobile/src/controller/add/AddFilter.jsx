@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import { f7 } from 'framework7-react';
 import { withTranslation } from 'react-i18next';
+import {observer, inject} from "mobx-react";
 
 import AddSortAndFilter from '../../view/add/AddFilter';
 
@@ -23,6 +24,9 @@ class AddFilterController extends Component {
 
     componentDidMount () {
         const api = Common.EditorApi.get();
+        const appOptions = this.props.storeAppOptions;
+
+        api.asc_setFilteringMode && api.asc_setFilteringMode(appOptions.canModifyFilter);
         api.asc_registerCallback('asc_onError', this.uncheckedFilter);
     }
 
@@ -48,7 +52,9 @@ class AddFilterController extends Component {
         f7.popover.close('#add-popover');
         
         let typeCheck = type == 'down' ? Asc.c_oAscSortOptions.Ascending : Asc.c_oAscSortOptions.Descending;
-            if( api.asc_sortCellsRangeExpand()) {
+        let res = api.asc_sortCellsRangeExpand();
+        switch (res) {
+            case Asc.c_oAscSelectionSortExpand.showExpandMessage:
                 f7.dialog.create({
                     title: _t.txtSorting,
                     text: _t.txtExpandSort,
@@ -63,18 +69,41 @@ class AddFilterController extends Component {
                         {
                             text: _t.txtSortSelected,
                             bold: true,
-                                onClick: () => {
-                                    api.asc_sortColFilter(typeCheck, '', undefined, undefined);
+                            onClick: () => {
+                                api.asc_sortColFilter(typeCheck, '', undefined, undefined);
                             }
                         },
                         {
                             text: _t.textCancel
                         }
                     ],
-                    verticalButtons: true,
+                    verticalButtons: true
                 }).open();
-            } else 
-                api.asc_sortColFilter(typeCheck, '', undefined, undefined, api.asc_sortCellsRangeExpand() !== null);
+                break;
+            case Asc.c_oAscSelectionSortExpand.showLockMessage:
+                f7.dialog.create({
+                    title: _t.txtSorting,
+                    text: _t.txtLockSort,
+                    buttons: [
+                        {
+                            text: _t.txtYes,
+                            bold: true,
+                            onClick: () => {
+                                api.asc_sortColFilter(typeCheck, '', undefined, undefined, false);
+                            }
+                        },
+                        {
+                            text: _t.txtNo
+                        }
+                    ],
+                    verticalButtons: true
+                }).open();
+                break;
+            case Asc.c_oAscSelectionSortExpand.expandAndNotShowMessage:
+            case Asc.c_oAscSelectionSortExpand.notExpandAndNotShowMessage:
+                api.asc_sortColFilter(typeCheck, '', undefined, undefined, res === Asc.c_oAscSelectionSortExpand.expandAndNotShowMessage);
+                break;
+        }
     }
 
     onInsertFilter (checked) {
@@ -82,7 +111,8 @@ class AddFilterController extends Component {
         const api = Common.EditorApi.get();
         const formatTableInfo = api.asc_getCellInfo().asc_getFormatTableInfo();
         const tablename = (formatTableInfo) ? formatTableInfo.asc_getTableName() : undefined;
-        if (checked) {
+        
+        if (checked || tablename) {
             api.asc_addAutoFilter();
         } else {
             api.asc_changeAutoFilter(tablename, Asc.c_oAscChangeFilterOptions.filter, checked);
@@ -95,9 +125,10 @@ class AddFilterController extends Component {
                               onInsertSort={this.onInsertSort}
                               onInsertFilter={this.onInsertFilter}
                               isFilter={this.state.isFilter}
+                              wsLock={this.props.storeWorksheets.wsLock}
             />
         )
     }
 }
 
-export default  withTranslation()(AddFilterController);
+export default inject("storeWorksheets", "storeAppOptions")(observer(withTranslation()(AddFilterController)));

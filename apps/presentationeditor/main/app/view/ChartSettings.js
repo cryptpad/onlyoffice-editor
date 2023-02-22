@@ -97,6 +97,7 @@ define([
             this.api = api;
             if (this.api) {
                 this.api.asc_registerCallback('asc_onUpdateChartStyles', _.bind(this._onUpdateChartStyles, this));
+                this.api.asc_registerCallback('asc_onAddChartStylesPreview', _.bind(this.onAddChartStylesPreview, this));
             }
             return this;
         },
@@ -113,10 +114,8 @@ define([
                 this.chartProps = props.get_ChartProperties();
 
                 var value = props.get_SeveralCharts() || this._locked;
-                if (this._state.SeveralCharts!==value) {
-                    this.btnEditData.setDisabled(value);
-                    this._state.SeveralCharts=value;
-                }
+                this.btnEditData.setDisabled(value);
+                this._state.SeveralCharts=value;
 
                 value = props.get_SeveralChartTypes();
                 if (this._state.SeveralCharts && value) {
@@ -133,7 +132,7 @@ define([
                             this.btnChartType.setIconCls('svgicon');
                         this.ShowCombinedProps(type);
                         !(type===null || type==Asc.c_oAscChartTypeSettings.comboBarLine || type==Asc.c_oAscChartTypeSettings.comboBarLineSecondary ||
-                        type==Asc.c_oAscChartTypeSettings.comboAreaBar || type==Asc.c_oAscChartTypeSettings.comboCustom) && this.updateChartStyles(this.api.asc_getChartPreviews(type));
+                        type==Asc.c_oAscChartTypeSettings.comboAreaBar || type==Asc.c_oAscChartTypeSettings.comboCustom) && this.updateChartStyles(this.api.asc_getChartPreviews(type, undefined, true));
                         this._state.ChartType = type;
                     }
                 }
@@ -148,18 +147,9 @@ define([
                     } else {
                         value = props.getStyle();
                         if (this._state.ChartStyle !== value || this._isChartStylesChanged) {
-                            this.cmbChartStyle.suspendEvents();
-                            var rec = this.cmbChartStyle.menuPicker.store.findWhere({data: value});
-                            this.cmbChartStyle.menuPicker.selectRecord(rec);
-                            this.cmbChartStyle.resumeEvents();
-
-                            if (this._isChartStylesChanged) {
-                                if (rec)
-                                    this.cmbChartStyle.fillComboView(this.cmbChartStyle.menuPicker.getSelectedRec(), true);
-                                else
-                                    this.cmbChartStyle.fillComboView(this.cmbChartStyle.menuPicker.store.at(0), true);
-                            }
                             this._state.ChartStyle = value;
+                            var arr = this.selectCurrentChartStyle();
+                            this._isChartStylesChanged && this.api.asc_generateChartPreviews(this._state.ChartType, arr);
                         }
                     }
                     this._isChartStylesChanged = false;
@@ -189,6 +179,57 @@ define([
                     this.btnRatio.toggle(value);
                     this._state.keepRatio=value;
                 }
+
+                var props3d = this.chartProps ? this.chartProps.getView3d() : null;
+                this.ShowHideElem(!!props3d);
+                if (props3d) {
+                    value = props3d.asc_getRotX();
+                    if ((this._state.X===undefined || value===undefined)&&(this._state.X!==value) ||
+                        Math.abs(this._state.X-value)>0.001) {
+                        this.spnX.setValue((value!==null && value !== undefined) ? value : '', true);
+                        this._state.X = value;
+                    }
+
+                    value = props3d.asc_getRotY();
+                    if ( (this._state.Y===undefined || value===undefined)&&(this._state.Y!==value) ||
+                        Math.abs(this._state.Y-value)>0.001) {
+                        this.spnY.setValue((value!==null && value !== undefined) ? value : '', true);
+                        this._state.Y = value;
+                    }
+
+                    value = props3d.asc_getRightAngleAxes();
+                    if ( this._state.RightAngle!==value ) {
+                        this.chRightAngle.setValue((value !== null && value !== undefined) ? value : 'indeterminate', true);
+                        this._state.RightAngle=value;
+                    }
+
+                    value = props3d.asc_getPerspective();
+                    if ( (this._state.Perspective===undefined || value===undefined)&&(this._state.Perspective!==value) ||
+                        Math.abs(this._state.Perspective-value)>0.001) {
+                        this.spnPerspective.setMinValue((value!==null && value !== undefined) ? 0.1 : 0);
+                        this.spnPerspective.setValue((value!==null && value !== undefined) ? value : 0, true);
+                        this._state.Perspective = value;
+                    }
+                    this.spnPerspective.setDisabled(this._locked || !!this._state.RightAngle);
+                    this.btnNarrow.setDisabled(this._locked || !!this._state.RightAngle);
+                    this.btnWiden.setDisabled(this._locked || !!this._state.RightAngle);
+
+                    value = props3d.asc_getDepth();
+                    if ( Math.abs(this._state.Depth-value)>0.001 ||
+                        (this._state.Depth===undefined || value===undefined)&&(this._state.Depth!==value)) {
+                        this.spn3DDepth.setValue((value!==null && value !== undefined) ? value : '', true);
+                        this._state.Depth = value;
+                    }
+
+                    value = props3d.asc_getHeight();
+                    if ( Math.abs(this._state.Height3d-value)>0.001 ||
+                        (this._state.Height3d===undefined || this._state.Height3d===null || value===null)&&(this._state.Height3d!==value)) {
+                        (value!==null) && this.spn3DHeight.setValue(value, true);
+                        this.chAutoscale.setValue(value===null, true);
+                        this._state.Height3d = value;
+                    }
+                    this.spn3DHeight.setDisabled(this._locked || value===null);
+                }
             }
         },
 
@@ -214,7 +255,10 @@ define([
                     items: [
                         { template: _.template('<div id="id-chart-menu-type" class="menu-insertchart"></div>') }
                     ]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.btnChartType.on('render:after', function(btn) {
                 me.mnuChartTypePicker = new Common.UI.DataView({
@@ -223,7 +267,9 @@ define([
                     restoreHeight: 465,
                     groups: new Common.UI.DataViewGroupStore(Common.define.chartData.getChartGroupData()),
                     store: new Common.UI.DataViewStore(Common.define.chartData.getChartData()),
-                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist"><svg width="40" height="40" class=\"icon\"><use xlink:href=\"#chart-<%= iconCls %>\"></use></svg></div>')
+                    itemTemplate: _.template('<div id="<%= id %>" class="item-chartlist"><svg width="40" height="40" class=\"icon\"><use xlink:href=\"#chart-<%= iconCls %>\"></use></svg></div>'),
+                    delayRenderTips: true,
+                    delaySelect: Common.Utils.isSafari
                 });
             });
             this.btnChartType.render($('#chart-button-type'));
@@ -243,7 +289,10 @@ define([
                 defaultUnit : "cm",
                 value: '3 cm',
                 maxValue: 55.88,
-                minValue: 0
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.spinners.push(this.spnWidth);
             this.lockedControls.push(this.spnWidth);
@@ -255,7 +304,10 @@ define([
                 defaultUnit : "cm",
                 value: '3 cm',
                 maxValue: 55.88,
-                minValue: 0
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.spinners.push(this.spnHeight);
             this.lockedControls.push(this.spnHeight);
@@ -287,10 +339,215 @@ define([
                 this.fireEvent('editcomplete', this);
             }, this));
 
+            // 3d rotation
+            this.spnX = new Common.UI.MetricSpinner({
+                el: $('#chart-spin-x'),
+                step: 10,
+                width: 57,
+                defaultUnit : "°",
+                value: '20 °',
+                maxValue: 359.9,
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
+            });
+            this.lockedControls.push(this.spnX);
+            this.spnX.on('change', _.bind(this.onXRotation, this));
+            this.spnX.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
+
+            this.btnLeft = new Common.UI.Button({
+                parentEl: $('#chart-btn-x-left', me.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-rotate-270',
+                hint: this.textLeft,
+                dataHint: '1',
+                dataHintDirection: 'top'
+            });
+            this.lockedControls.push(this.btnLeft);
+            this.btnLeft.on('click', _.bind(function() {
+                this.spnX.setValue(Math.ceil((this.spnX.getNumberValue() - 10)/10)*10);
+            }, this));
+
+            this.btnRight= new Common.UI.Button({
+                parentEl: $('#chart-btn-x-right', me.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-rotate-90',
+                hint: this.textRight,
+                dataHint: '1',
+                dataHintDirection: 'top'
+            });
+            this.lockedControls.push(this.btnRight);
+            this.btnRight.on('click', _.bind(function() {
+                this.spnX.setValue(Math.floor((this.spnX.getNumberValue() + 10)/10)*10);
+            }, this));
+
+            this.spnY = new Common.UI.MetricSpinner({
+                el: $('#chart-spin-y'),
+                step: 10,
+                width: 57,
+                defaultUnit : "°",
+                value: '15 °',
+                maxValue: 90,
+                minValue: -90,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
+            });
+            this.lockedControls.push(this.spnY);
+            this.spnY.on('change', _.bind(this.onYRotation, this));
+            this.spnY.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
+
+            this.btnUp = new Common.UI.Button({
+                parentEl: $('#chart-btn-y-up', me.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-rotate-y-clockwise',
+                hint: this.textUp,
+                dataHint: '1',
+                dataHintDirection: 'top'
+            });
+            this.lockedControls.push(this.btnUp);
+            this.btnUp.on('click', _.bind(function() {
+                this.spnY.setValue(Math.ceil((this.spnY.getNumberValue() - 10)/10)*10);
+            }, this));
+
+            this.btnDown= new Common.UI.Button({
+                parentEl: $('#chart-btn-y-down', me.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-rotate-y-counterclockwise',
+                hint: this.textDown,
+                dataHint: '1',
+                dataHintDirection: 'top'
+            });
+            this.lockedControls.push(this.btnDown);
+            this.btnDown.on('click', _.bind(function() {
+                this.spnY.setValue(Math.floor((this.spnY.getNumberValue() + 10)/10)*10);
+            }, this));
+
+            this.spnPerspective = new Common.UI.MetricSpinner({
+                el: $('#chart-spin-persp'),
+                step: 5,
+                width: 57,
+                defaultUnit : "°",
+                value: '0 °',
+                maxValue: 100,
+                minValue: 0.1,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
+            });
+            this.lockedControls.push(this.spnPerspective);
+            this.spnPerspective.on('change', _.bind(this.onPerspective, this));
+            this.spnPerspective.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
+
+            this.btnNarrow = new Common.UI.Button({
+                parentEl: $('#chart-btn-narrow', me.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-rotate-up',
+                hint: this.textNarrow,
+                dataHint: '1',
+                dataHintDirection: 'top'
+            });
+            this.lockedControls.push(this.btnNarrow);
+            this.btnNarrow.on('click', _.bind(function() {
+                this.spnPerspective.setValue(Math.ceil((this.spnPerspective.getNumberValue() - 5)/5)*5);
+            }, this));
+
+            this.btnWiden= new Common.UI.Button({
+                parentEl: $('#chart-btn-widen', me.$el),
+                cls: 'btn-toolbar',
+                iconCls: 'toolbar__icon btn-rotate-down',
+                hint: this.textWiden,
+                dataHint: '1',
+                dataHintDirection: 'top'
+            });
+            this.lockedControls.push(this.btnWiden);
+            this.btnWiden.on('click', _.bind(function() {
+                this.spnPerspective.setValue(Math.floor((this.spnPerspective.getNumberValue() + 5)/5)*5);
+            }, this));
+
+            this.chRightAngle = new Common.UI.CheckBox({
+                el: $('#chart-checkbox-right-angle'),
+                labelText: this.textRightAngle
+            });
+            this.lockedControls.push(this.chRightAngle);
+            this.chRightAngle.on('change', _.bind(function(field, newValue, oldValue, eOpts) {
+                if (this._noApply) return;
+                if (this.api){
+                    if (this.chartProps) {
+                        var props = new Asc.CAscChartProp();
+                        var oView3D = this.chartProps.getView3d();
+                        if (oView3D) {
+                            oView3D.asc_setRightAngleAxes(field.getValue()=='checked');
+                            this.chartProps.putView3d(oView3D);
+                            props.put_ChartProperties(this.chartProps);
+                            this.api.ChartApply(props);
+                        }
+                    }
+                }
+            }, this));
+
+            this.chAutoscale = new Common.UI.CheckBox({
+                el: $('#chart-checkbox-autoscale'),
+                labelText: this.textAutoscale
+            });
+            this.lockedControls.push(this.chAutoscale);
+            this.chAutoscale.on('change', _.bind(function(field, newValue, oldValue, eOpts) {
+                if (this._noApply) return;
+                if (this.api){
+                    if (this.chartProps) {
+                        var props = new Asc.CAscChartProp();
+                        var oView3D = this.chartProps.getView3d();
+                        if (oView3D) {
+                            oView3D.asc_setHeight(field.getValue()=='checked' ? null : this.spn3DHeight.getNumberValue());
+                            this.chartProps.putView3d(oView3D);
+                            props.put_ChartProperties(this.chartProps);
+                            this.api.ChartApply(props);
+                        }
+                    }
+                }
+            }, this));
+
+            this.spn3DDepth = new Common.UI.MetricSpinner({
+                el: $('#chart-spin-3d-depth'),
+                step: 10,
+                width: 70,
+                defaultUnit : "%",
+                value: '0 %',
+                maxValue: 2000,
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
+            });
+            this.lockedControls.push(this.spn3DDepth);
+            this.spn3DDepth.on('change', _.bind(this.on3DDepth, this));
+            this.spn3DDepth.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
+
+            this.spn3DHeight = new Common.UI.MetricSpinner({
+                el: $('#chart-spin-3d-height'),
+                step: 10,
+                width: 70,
+                defaultUnit : "%",
+                value: '50 %',
+                maxValue: 500,
+                minValue: 5,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
+            });
+            this.lockedControls.push(this.spn3DHeight);
+            this.spn3DHeight.on('change', _.bind(this.on3DHeight, this));
+            this.spn3DHeight.on('inputleave', function(){ me.fireEvent('editcomplete', me);});
+
+            this.linkDefRotation = $('#chart-def-rotate-link');
+            $(this.el).on('click', '#chart-def-rotate-link', _.bind(this.onDefRotation, this));
+
             this.linkAdvanced = $('#chart-advanced-link');
             $(this.el).on('click', '#chart-advanced-link', _.bind(this.openAdvancedSettings, this));
 
             this.NotCombinedSettings = $('.not-combined');
+            this.Chart3DContainer = $('#chart-panel-3d-rotate');
         },
 
         createDelayedElements: function() {
@@ -357,11 +614,54 @@ define([
             this.fireEvent('editcomplete', this);
         },
 
+        selectCurrentChartStyle: function() {
+            if (!this.cmbChartStyle) return;
+
+            this.cmbChartStyle.suspendEvents();
+            var rec = this.cmbChartStyle.menuPicker.store.findWhere({data: this._state.ChartStyle});
+            this.cmbChartStyle.menuPicker.selectRecord(rec);
+            this.cmbChartStyle.resumeEvents();
+
+            if (this._isChartStylesChanged) {
+                var currentRecords;
+                if (rec)
+                    currentRecords = this.cmbChartStyle.fillComboView(this.cmbChartStyle.menuPicker.getSelectedRec(), true);
+                else
+                    currentRecords = this.cmbChartStyle.fillComboView(this.cmbChartStyle.menuPicker.store.at(0), true);
+                if (currentRecords && currentRecords.length>0) {
+                    var arr = [];
+                    _.each(currentRecords, function(style, index){
+                        arr.push(style.get('data'));
+                    });
+                    return arr;
+                }
+            }
+        },
+
+        onAddChartStylesPreview: function(styles){
+            if (!this.cmbChartStyle) return;
+
+            var me = this;
+            if (styles && styles.length>0){
+                var stylesStore = this.cmbChartStyle.menuPicker.store;
+                if (stylesStore) {
+                    _.each(styles, function(item, index){
+                        var rec = stylesStore.findWhere({
+                            data: item.asc_getName()
+                        });
+                        rec && rec.set('imageUrl', item.asc_getImage());
+                    });
+                }
+            }
+        },
+
         _onUpdateChartStyles: function() {
             if (this.api && this._state.ChartType!==null && this._state.ChartType>-1 &&
                 !(this._state.ChartType==Asc.c_oAscChartTypeSettings.comboBarLine || this._state.ChartType==Asc.c_oAscChartTypeSettings.comboBarLineSecondary ||
-                  this._state.ChartType==Asc.c_oAscChartTypeSettings.comboAreaBar || this._state.ChartType==Asc.c_oAscChartTypeSettings.comboCustom))
-                this.updateChartStyles(this.api.asc_getChartPreviews(this._state.ChartType));
+                  this._state.ChartType==Asc.c_oAscChartTypeSettings.comboAreaBar || this._state.ChartType==Asc.c_oAscChartTypeSettings.comboCustom)) {
+                this.updateChartStyles(this.api.asc_getChartPreviews(this._state.ChartType, undefined, true));
+                this.api.asc_generateChartPreviews(this._state.ChartType, this.selectCurrentChartStyle());
+            }
         },
 
         updateChartStyles: function(styles) {
@@ -374,7 +674,11 @@ define([
                     itemHeight: 50,
                     menuMaxHeight: 270,
                     enableKeyEvents: true,
-                    cls: 'combo-chart-style'
+                    cls: 'combo-chart-style',
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big',
+                    delayRenderTips: true
                 });
                 this.cmbChartStyle.render($('#chart-combo-style'));
                 this.cmbChartStyle.openButton.menu.cmpEl.css({
@@ -391,24 +695,15 @@ define([
             if (styles && styles.length>0){
                 var stylesStore = this.cmbChartStyle.menuPicker.store;
                 if (stylesStore) {
-                    var count = stylesStore.length;
-                    if (count>0 && count==styles.length) {
-                        var data = stylesStore.models;
-                        _.each(styles, function(style, index){
-                            data[index].set('imageUrl', style.asc_getImage());
+                    var stylearray = [];
+                    _.each(styles, function(item, index){
+                        stylearray.push({
+                            imageUrl: item.asc_getImage(),
+                            data    : item.asc_getName(),
+                            tip     : me.textStyle + ' ' + item.asc_getName()
                         });
-                    } else {
-                        var stylearray = [],
-                            selectedIdx = -1;
-                        _.each(styles, function(item, index){
-                            stylearray.push({
-                                imageUrl: item.asc_getImage(),
-                                data    : item.asc_getName(),
-                                tip     : me.textStyle + ' ' + item.asc_getName()
-                            });
-                        });
-                        stylesStore.reset(stylearray, {silent: false});
-                    }
+                    });
+                    stylesStore.reset(stylearray, {silent: false});
                 }
             } else {
                 this.cmbChartStyle.menuPicker.store.reset();
@@ -472,6 +767,7 @@ define([
                             (new PE.Views.ChartSettingsAdvanced(
                                 {
                                     chartProps: elValue,
+                                    slideSize: PE.getController('Toolbar').currentPageSize,
                                     handler: function(result, value) {
                                         if (result == 'ok') {
                                             if (me.api) {
@@ -491,6 +787,108 @@ define([
         ShowCombinedProps: function(type) {
             this.NotCombinedSettings.toggleClass('settings-hidden', type===null || type==Asc.c_oAscChartTypeSettings.comboBarLine || type==Asc.c_oAscChartTypeSettings.comboBarLineSecondary ||
                 type==Asc.c_oAscChartTypeSettings.comboAreaBar || type==Asc.c_oAscChartTypeSettings.comboCustom);
+        },
+
+        ShowHideElem: function(is3D) {
+            this.Chart3DContainer.toggleClass('settings-hidden', !is3D);
+        },
+
+        onXRotation: function(field, newValue, oldValue, eOpts){
+            if (this._noApply) return;
+            if (this.api){
+                if (this.chartProps) {
+                    var props = new Asc.CAscChartProp();
+                    var oView3D = this.chartProps.getView3d();
+                    if (oView3D) {
+                        oView3D.asc_setRotX(field.getNumberValue());
+                        this.chartProps.putView3d(oView3D);
+                        props.put_ChartProperties(this.chartProps);
+                        this.api.ChartApply(props);
+                    }
+                }
+            }
+        },
+
+        onYRotation: function(field, newValue, oldValue, eOpts){
+            if (this._noApply) return;
+            if (this.api){
+                if (this.chartProps) {
+                    var props = new Asc.CAscChartProp();
+                    var oView3D = this.chartProps.getView3d();
+                    if (oView3D) {
+                        oView3D.asc_setRotY(field.getNumberValue());
+                        this.chartProps.putView3d(oView3D);
+                        props.put_ChartProperties(this.chartProps);
+                        this.api.ChartApply(props);
+                    }
+                }
+            }
+
+        },
+
+        onPerspective: function(field, newValue, oldValue, eOpts){
+            if (this._noApply) return;
+            if (this.api){
+                if (this.chartProps) {
+                    var props = new Asc.CAscChartProp();
+                    var oView3D = this.chartProps.getView3d();
+                    if (oView3D) {
+                        oView3D.asc_setPerspective(field.getNumberValue());
+                        this.chartProps.putView3d(oView3D);
+                        props.put_ChartProperties(this.chartProps);
+                        this.api.ChartApply(props);
+                    }
+                }
+            }
+        },
+
+        on3DDepth: function(field, newValue, oldValue, eOpts){
+            if (this._noApply) return;
+            if (this.api){
+                if (this.chartProps) {
+                    var props = new Asc.CAscChartProp();
+                    var oView3D = this.chartProps.getView3d();
+                    if (oView3D) {
+                        oView3D.asc_setDepth(field.getNumberValue());
+                        this.chartProps.putView3d(oView3D);
+                        props.put_ChartProperties(this.chartProps);
+                        this.api.ChartApply(props);
+                    }
+                }
+            }
+        },
+
+        on3DHeight: function(field, newValue, oldValue, eOpts){
+            if (this._noApply) return;
+            if (this.api){
+                if (this.chartProps) {
+                    var props = new Asc.CAscChartProp();
+                    var oView3D = this.chartProps.getView3d();
+                    if (oView3D) {
+                        oView3D.asc_setHeight(field.getNumberValue());
+                        this.chartProps.putView3d(oView3D);
+                        props.put_ChartProperties(this.chartProps);
+                        this.api.ChartApply(props);
+                    }
+                }
+            }
+        },
+
+        onDefRotation: function() {
+            if (this._noApply) return;
+            if (this.api){
+                if (this.chartProps) {
+                    var props = new Asc.CAscChartProp();
+                    var oView3D = this.chartProps.getView3d();
+                    if (oView3D) {
+                        oView3D.asc_setRotX(20);
+                        oView3D.asc_setRotY(15);
+                        this.chartProps.putView3d(oView3D);
+                        props.put_ChartProperties(this.chartProps);
+                        this.api.ChartApply(props);
+                    }
+                }
+            }
         },
 
         setLocked: function (locked) {
@@ -516,6 +914,21 @@ define([
         textEditData: 'Edit Data',
         textChartType: 'Change Chart Type',
         textStyle:          'Style',
-        textAdvanced:   'Show advanced settings'
+        textAdvanced:   'Show advanced settings',
+        text3dRotation: '3D Rotation',
+        textX: 'X rotation',
+        textY: 'Y rotation',
+        textPerspective: 'Perspective',
+        text3dDepth: 'Depth (% of base)',
+        text3dHeight: 'Height (% of base)',
+        textLeft: 'Left',
+        textRight: 'Right',
+        textUp: 'Up',
+        textDown: 'Down',
+        textNarrow: 'Narrow field of view',
+        textWiden: 'Widen field of view',
+        textRightAngle: 'Right Angle Axes',
+        textAutoscale: 'Autoscale',
+        textDefault: 'Default Rotation'
     }, PE.Views.ChartSettings || {}));
 });

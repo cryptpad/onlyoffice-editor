@@ -141,7 +141,8 @@ define([ 'text!documenteditor/main/app/template/ControlSettingsDialog.template',
                     '33CCCC', '3366FF', '800080', '999999', 'FF00FF', 'FFCC00', 'FFFF00', '00FF00', '00FFFF', '00CCFF',
                     '993366', 'C0C0C0', 'FF99CC', 'FFCC99', 'FFFF99', 'CCFFCC', 'CCFFFF', 'C9C8FF', 'CC99FF', 'FFFFFF'
                 ],
-                paletteHeight: 94
+                cls: 'move-focus',
+                takeFocusOnClose: true
             });
             this.colors = this.btnColor.getPicker();
 
@@ -203,8 +204,8 @@ define([ 'text!documenteditor/main/app/template/ControlSettingsDialog.template',
 
             // date picker
             var data = [{ value: 0x042C }, { value: 0x0402 }, { value: 0x0405 }, { value: 0x0C07 }, { value: 0x0407 },  {value: 0x0807}, { value: 0x0408 }, { value: 0x0C09 }, { value: 0x0809 }, { value: 0x0409 }, { value: 0x0C0A }, { value: 0x080A },
-                { value: 0x040B }, { value: 0x040C }, { value: 0x0410 }, { value: 0x0411 }, { value: 0x0412 }, { value: 0x0426 }, { value: 0x040E }, { value: 0x0413 }, { value: 0x0415 }, { value: 0x0416 },
-                { value: 0x0816 }, { value: 0x0419 }, { value: 0x041B }, { value: 0x0424 }, { value: 0x081D }, { value: 0x041D }, { value: 0x041F }, { value: 0x0422 }, { value: 0x042A }, { value: 0x0804 }];
+                { value: 0x040B }, { value: 0x040C }, { value: 0x100C }, { value: 0x0410 }, { value: 0x0810 }, { value: 0x0411 }, { value: 0x0412 }, { value: 0x0426 }, { value: 0x040E }, { value: 0x0413 }, { value: 0x0415 }, { value: 0x0416 },
+                { value: 0x0816 }, { value: 0x0419 }, { value: 0x041B }, { value: 0x0424 }, { value: 0x081D }, { value: 0x041D }, { value: 0x041F }, { value: 0x0422 }, { value: 0x042A }, { value: 0x0804 }, { value: 0x0404 }];
             data.forEach(function(item) {
                 var langinfo = Common.util.LanguageInfo.getLocalLanguageName(item.value);
                 item.displayValue = langinfo[1];
@@ -357,7 +358,7 @@ define([ 'text!documenteditor/main/app/template/ControlSettingsDialog.template',
 
         getFocusedComponents: function() {
             return [
-                this.txtName, this.txtTag, this.txtPlaceholder, this.cmbShow, this.btnApplyAll, // 0 tab
+                this.txtName, this.txtTag, this.txtPlaceholder, this.cmbShow, this.btnColor, this.btnApplyAll, // 0 tab
                 this.chLockDelete , this.chLockEdit, // 1 tab
                 this.list, // 2 tab
                 this.txtDate, this.listFormats, this.cmbLang // 3 tab
@@ -553,8 +554,11 @@ define([ 'text!documenteditor/main/app/template/ControlSettingsDialog.template',
             if (this.btnColor.isAutoColor()) {
                 props.put_Color(null);
             } else {
-                var color = Common.Utils.ThemeColor.getRgbColor(this.colors.getColor());
-                props.put_Color(color.get_r(), color.get_g(), color.get_b());
+                var color = this.colors.getColor() || this.btnColor.color;
+                if (color) {
+                    color = Common.Utils.ThemeColor.getRgbColor(color);
+                    props.put_Color(color.get_r(), color.get_g(), color.get_b());
+                }
             }
 
             var lock = Asc.c_oAscSdtLockType.Unlocked;
@@ -663,8 +667,11 @@ define([ 'text!documenteditor/main/app/template/ControlSettingsDialog.template',
                 if (this.btnColor.isAutoColor()) {
                     props.put_Color(null);
                 } else {
-                    var color = Common.Utils.ThemeColor.getRgbColor(this.colors.getColor());
-                    props.put_Color(color.get_r(), color.get_g(), color.get_b());
+                    var color = this.colors.getColor() || this.btnColor.color;
+                    if (color) {
+                        color = Common.Utils.ThemeColor.getRgbColor(color);
+                        props.put_Color(color.get_r(), color.get_g(), color.get_b());
+                    }
                 }
                 this.api.asc_SetContentControlProperties(props, null, true);
             }

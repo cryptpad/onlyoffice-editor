@@ -132,7 +132,10 @@ define([
                         {cls: 'cp-from-url', caption: this.textFromUrl, value: 1},
                         {caption: this.textFromStorage, value: 2}
                     ]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.btnSelectImage);
             this.btnSelectImage.menu.on('item:click', _.bind(this.onImageSelect, this));
@@ -145,7 +148,18 @@ define([
 
             this.btnOriginalSize.on('click', _.bind(this.setOriginalSize, this));
             this.btnEditObject.on('click', _.bind(function(btn){
-                if (this.api) this.api.asc_startEditCurrentOleObject();
+                if (this.api) {
+                    var oleobj = this.api.asc_canEditTableOleObject(true);
+                    if (oleobj) {
+                        var oleEditor = PE.getController('Common.Controllers.ExternalOleEditor').getView('Common.Views.ExternalOleEditor');
+                        if (oleEditor) {
+                            oleEditor.setEditMode(true);
+                            oleEditor.show();
+                            oleEditor.setOleData(Asc.asc_putBinaryDataToFrameFromTableOleObject(oleobj));
+                        }
+                    } else
+                        this.api.asc_startEditCurrentOleObject();
+                }
                 this.fireEvent('editcomplete', this);
             }, this));
 
@@ -180,6 +194,14 @@ define([
                             value: 0
                         },
                         {
+                            caption:  this.textCropToShape,
+                            menu: new Common.UI.Menu({
+                                menuAlign: 'tl-tl',
+                                cls: 'menu-shapes menu-change-shape',
+                                items: []
+                            })
+                        },
+                        {
                             caption: this.textCropFill,
                             value: 1
                         },
@@ -187,18 +209,25 @@ define([
                             caption: this.textCropFit,
                             value: 2
                         }]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.btnCrop.on('click', _.bind(this.onCrop, this));
             this.btnCrop.menu.on('item:click', _.bind(this.onCropMenu, this));
             this.lockedControls.push(this.btnCrop);
+            this.btnChangeShape= this.btnCrop.menu.items[1];
 
             this.btnRotate270 = new Common.UI.Button({
                 parentEl: $('#image-button-270', this.$el),
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-rotate-270',
                 value: 0,
-                hint: this.textHint270
+                hint: this.textHint270,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'small'
             });
             this.btnRotate270.on('click', _.bind(this.onBtnRotateClick, this));
             this.lockedControls.push(this.btnRotate270);
@@ -208,7 +237,10 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-rotate-90',
                 value: 1,
-                hint: this.textHint90
+                hint: this.textHint90,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'small'
             });
             this.btnRotate90.on('click', _.bind(this.onBtnRotateClick, this));
             this.lockedControls.push(this.btnRotate90);
@@ -218,7 +250,10 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-flip-vert',
                 value: 0,
-                hint: this.textHintFlipV
+                hint: this.textHintFlipV,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'small'
             });
             this.btnFlipV.on('click', _.bind(this.onBtnFlipClick, this));
             this.lockedControls.push(this.btnFlipV);
@@ -228,7 +263,10 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-flip-hor',
                 value: 1,
-                hint: this.textHintFlipH
+                hint: this.textHintFlipH,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'small'
             });
             this.btnFlipH.on('click', _.bind(this.onBtnFlipClick, this));
             this.lockedControls.push(this.btnFlipH);
@@ -240,7 +278,48 @@ define([
         createDelayedElements: function() {
             this.createDelayedControls();
             this.updateMetricUnit();
+            this.onApiAutoShapes();
             this._initSettings = false;
+        },
+
+        onApiAutoShapes: function() {
+            var me = this;
+            var onShowBefore = function(menu) {
+                me.fillAutoShapes();
+                menu.off('show:before', onShowBefore);
+            };
+            me.btnChangeShape.menu.on('show:before', onShowBefore);
+        },
+
+        fillAutoShapes: function() {
+            var me = this,
+                recents = Common.localStorage.getItem('pe-recent-shapes');
+
+            var menuitem = new Common.UI.MenuItem({
+                template: _.template('<div id="id-img-change-shape-menu" class="menu-insertshape"></div>'),
+                index: 0
+            });
+            me.btnChangeShape.menu.addItem(menuitem);
+
+            var shapePicker = new Common.UI.DataViewShape({
+                el: $('#id-img-change-shape-menu'),
+                itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>'),
+                groups: me.application.getCollection('ShapeGroups'),
+                parentMenu: me.btnChangeShape.menu,
+                restoreHeight: 652,
+                textRecentlyUsed: me.textRecentlyUsed,
+                recentShapes: recents ? JSON.parse(recents) : null,
+                hideTextRect: true
+            });
+            shapePicker.on('item:click', function(picker, item, record, e) {
+                if (me.api) {
+                    PE.getController('Toolbar').toolbar.cmbInsertShape.updateComboView(record);
+                    me.api.ChangeShapeType(record.get('data').shapeType);
+                    me.fireEvent('editcomplete', me);
+                }
+                if (e.type !== 'click')
+                    me.btnCrop.menu.hide();
+            });
         },
 
         ChangeSettings: function(props) {
@@ -271,16 +350,16 @@ define([
                 if (this._state.isOleObject!==value) {
                     this.btnSelectImage.setVisible(!value);
                     this.btnEditObject.setVisible(value);
-                    this.btnRotate270.setDisabled(value);
-                    this.btnRotate90.setDisabled(value);
-                    this.btnFlipV.setDisabled(value);
-                    this.btnFlipH.setDisabled(value);
                     this._state.isOleObject=value;
                 }
+                this.btnRotate270.setDisabled(value || this._locked);
+                this.btnRotate90.setDisabled(value || this._locked);
+                this.btnFlipV.setDisabled(value || this._locked);
+                this.btnFlipH.setDisabled(value || this._locked);
 
                 if (this._state.isOleObject) {
                     var plugin = PE.getCollection('Common.Collections.Plugins').findWhere({guid: pluginGuid});
-                    this.btnEditObject.setDisabled(plugin===null || plugin ===undefined || this._locked);
+                    this.btnEditObject.setDisabled(!this.api.asc_canEditTableOleObject() && (plugin===null || plugin ===undefined) || this._locked);
                 } else {
                     this.btnSelectImage.setDisabled(pluginGuid===null || this._locked);
                 }
@@ -313,8 +392,8 @@ define([
         },
 
         insertImageFromStorage: function(data) {
-            if (data && data.url && data.c=='change') {
-                this.setImageUrl(data.url, data.token);
+            if (data && data._urls && data.c=='change') {
+                this.setImageUrl(data._urls[0], data.token);
             }
         },
 
@@ -368,6 +447,7 @@ define([
                                 {
                                     imageProps: elValue,
                                     sizeOriginal: imgsizeOriginal,
+                                    slideSize: PE.getController('Toolbar').currentPageSize,
                                     handler: function(result, value) {
                                         if (result == 'ok') {
                                             if (me.api) {
@@ -472,6 +552,8 @@ define([
         textCropFill: 'Fill',
         textCropFit: 'Fit',
         textFitSlide: 'Fit to Slide',
-        textFromStorage: 'From Storage'
+        textCropToShape: 'Crop to shape',
+        textFromStorage: 'From Storage',
+        textRecentlyUsed: 'Recently Used'
     }, PE.Views.ImageSettings || {}));
 });

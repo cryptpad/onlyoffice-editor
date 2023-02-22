@@ -113,10 +113,11 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
 
             var $window = this.getChild();
             var me = this;
+            var panelAutoFormat = $window.find('#id-autocorrect-dialog-settings-' + (this.appPrefix=='pe-' ? 'de-' : this.appPrefix) + 'autoformat');
 
             // Math correct
             this.chReplaceType = new Common.UI.CheckBox({
-                el: $window.findById('#auto-correct-chb-replace-type'),
+                el: $window.find('#auto-correct-chb-replace-type'),
                 labelText: this.textReplaceType,
                 value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-math-correct-replace-type")
             }).on('change', function(field, newValue, oldValue, eOpts){
@@ -197,17 +198,17 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
             // this.inputBy.cmpEl.find('input').css('font-size', '13px');
 
             this.btnReset = new Common.UI.Button({
-                el: $('#auto-correct-btn-reset')
+                el: $window.find('#auto-correct-btn-reset')
             });
             this.btnReset.on('click', _.bind(this.onResetToDefault, this));
 
             this.btnEdit = new Common.UI.Button({
-                el: $('#auto-correct-btn-edit')
+                el: $window.find('#auto-correct-btn-edit')
             });
             this.btnEdit.on('click', _.bind(this.onEdit, this, false));
 
             this.btnDelete = new Common.UI.Button({
-                el: $('#auto-correct-btn-delete')
+                el: $window.find('#auto-correct-btn-delete')
             });
             this.btnDelete.on('click', _.bind(this.onDelete, this, false));
 
@@ -269,23 +270,23 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
             });
 
             this.btnResetRec = new Common.UI.Button({
-                el: $('#auto-correct-btn-rec-reset')
+                el: $window.find('#auto-correct-btn-rec-reset')
             });
             this.btnResetRec.on('click', _.bind(this.onResetRecToDefault, this));
 
             this.btnAddRec = new Common.UI.Button({
-                el: $('#auto-correct-btn-rec-edit')
+                el: $window.find('#auto-correct-btn-rec-edit')
             });
             this.btnAddRec.on('click', _.bind(this.onAddRec, this, false));
 
             this.btnDeleteRec = new Common.UI.Button({
-                el: $('#auto-correct-btn-rec-delete')
+                el: $window.find('#auto-correct-btn-rec-delete')
             });
             this.btnDeleteRec.on('click', _.bind(this.onDeleteRec, this, false));
 
             if (this.appPrefix=='de-' || this.appPrefix=='pe-') {
                 this.chQuotes = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-quotes'),
+                    el: $window.find('#id-autocorrect-dialog-chk-quotes'),
                     labelText: this.textQuotes,
                     value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-smart-quotes")
                 }).on('change', function(field, newValue, oldValue, eOpts){
@@ -295,7 +296,7 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
                     me.api.asc_SetAutoCorrectSmartQuotes(checked);
                 });
                 this.chHyphens = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-hyphens'),
+                    el: $window.find('#id-autocorrect-dialog-chk-hyphens'),
                     labelText: this.textHyphens,
                     value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-hyphens")
                 }).on('change', function(field, newValue, oldValue, eOpts){
@@ -305,7 +306,7 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
                     me.api.asc_SetAutoCorrectHyphensWithDash(checked);
                 });
                 this.chBulleted = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-bulleted'),
+                    el: $window.find('#id-autocorrect-dialog-chk-bulleted'),
                     labelText: this.textBulleted,
                     value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-bulleted")
                 }).on('change', function(field, newValue, oldValue, eOpts){
@@ -315,7 +316,7 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
                     me.api.asc_SetAutomaticBulletedLists(checked);
                 });
                 this.chNumbered = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-numbered'),
+                    el: $window.find('#id-autocorrect-dialog-chk-numbered'),
                     labelText: this.textNumbered,
                     value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-numbered")
                 }).on('change', function(field, newValue, oldValue, eOpts){
@@ -324,9 +325,19 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
                     Common.Utils.InternalSettings.set(me.appPrefix + "settings-autoformat-numbered", checked);
                     me.api.asc_SetAutomaticNumberedLists(checked);
                 });
+                this.chDoubleSpaces = new Common.UI.CheckBox({
+                    el: panelAutoFormat.find('#id-autocorrect-dialog-chk-double-space'),
+                    labelText: this.textDoubleSpaces,
+                    value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-double-space")
+                }).on('change', function(field, newValue, oldValue, eOpts){
+                    var checked = (field.getValue()==='checked');
+                    Common.localStorage.setBool(me.appPrefix + "settings-autoformat-double-space", checked);
+                    Common.Utils.InternalSettings.set(me.appPrefix + "settings-autoformat-double-space", checked);
+                    me.api.asc_SetAutoCorrectDoubleSpaceWithPeriod(checked);
+                });
                 // AutoCorrect
                 this.chFLSentence = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-fl-sentence'),
+                    el: $window.find('#id-autocorrect-dialog-chk-fl-sentence'),
                     labelText: this.textFLSentence,
                     value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-fl-sentence")
                 }).on('change', function(field, newValue, oldValue, eOpts){
@@ -336,10 +347,21 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
                     me.api.asc_SetAutoCorrectFirstLetterOfSentences && me.api.asc_SetAutoCorrectFirstLetterOfSentences(checked);
                 });
 
+                this.chFLCells = new Common.UI.CheckBox({
+                    el: $window.find('#id-autocorrect-dialog-chk-fl-cells'),
+                    labelText: this.textFLCells,
+                    value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-fl-cells")
+                }).on('change', function(field, newValue, oldValue, eOpts){
+                    var checked = (field.getValue()==='checked');
+                    Common.localStorage.setBool(me.appPrefix + "settings-autoformat-fl-cells", checked);
+                    Common.Utils.InternalSettings.set(me.appPrefix + "settings-autoformat-fl-cells", checked);
+                    me.api.asc_SetAutoCorrectFirstLetterOfCells && me.api.asc_SetAutoCorrectFirstLetterOfCells(checked);
+                });
+
                 this.btnsCategory[3].on('click', _.bind(this.onAutocorrectCategoryClick, this, false));
             } else if (this.appPrefix=='sse-') {
                 this.chNewRows = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-new-rows'),
+                    el: $window.find('#id-autocorrect-dialog-chk-new-rows'),
                     labelText: this.textNewRowCol,
                     value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-new-rows")
                 }).on('change', function(field, newValue, oldValue, eOpts){
@@ -348,18 +370,17 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
                     Common.Utils.InternalSettings.set(me.appPrefix + "settings-autoformat-new-rows", checked);
                     me.api.asc_setIncludeNewRowColTable(checked);
                 });
-
-                this.chHyperlink = new Common.UI.CheckBox({
-                    el: $('#id-autocorrect-dialog-chk-hyperlink'),
-                    labelText: this.textHyperlink,
-                    value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-hyperlink")
-                }).on('change', function(field, newValue, oldValue, eOpts){
-                    var checked = (field.getValue()==='checked');
-                    Common.localStorage.setBool(me.appPrefix + "settings-autoformat-hyperlink", checked);
-                    Common.Utils.InternalSettings.set(me.appPrefix + "settings-autoformat-hyperlink", checked);
-                    me.api.asc_setAutoCorrectHyperlinks(checked);
-                });
             }
+            this.chHyperlink = new Common.UI.CheckBox({
+                el: panelAutoFormat.find('#id-autocorrect-dialog-chk-hyperlink'),
+                labelText: this.textHyperlink,
+                value: Common.Utils.InternalSettings.get(this.appPrefix + "settings-autoformat-hyperlink")
+            }).on('change', function(field, newValue, oldValue, eOpts){
+                var checked = (field.getValue()==='checked');
+                Common.localStorage.setBool(me.appPrefix + "settings-autoformat-hyperlink", checked);
+                Common.Utils.InternalSettings.set(me.appPrefix + "settings-autoformat-hyperlink", checked);
+                me.api.asc_SetAutoCorrectHyperlinks(checked);
+            });
 
             this.btnsCategory[0].on('click', _.bind(this.onMathCategoryClick, this, false));
             this.btnsCategory[1].on('click', _.bind(this.onRecCategoryClick, this, false));
@@ -381,10 +402,9 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
             var arr = [
                     this.chReplaceType, this.inputReplace, this.inputBy, this.mathList, this.btnReset, this.btnEdit, this.btnDelete, // 0 tab
                     this.inputRecFind, this.mathRecList, this.btnResetRec, this.btnAddRec, this.btnDeleteRec, // 1 tab
-                    this.chFLSentence // 3 tab
                 ];
-            arr = arr.concat(this.chNewRows ? [this.chHyperlink, this.chNewRows] : [this.chQuotes, this.chHyphens, this.chBulleted, this.chNumbered]);
-            arr = arr.concat(this.chFLSentence ? [this.chFLSentence] : []);
+            arr = arr.concat(this.chNewRows ? [this.chHyperlink, this.chNewRows] : [this.chQuotes, this.chHyphens, this.chHyperlink, this.chDoubleSpaces, this.chBulleted, this.chNumbered]);
+            arr = arr.concat(this.chFLSentence ? [this.chFLSentence, this.chFLCells] : []);
             return arr;
         },
 
@@ -453,7 +473,7 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
         onAutoformatCategoryClick: function(delay) {
             var me = this;
             _.delay(function(){
-                me.chHyperlink ? me.chHyperlink.focus() : me.chQuotes.focus();
+                (me.appPrefix=='sse-') ? me.chHyperlink.focus() : me.chQuotes.focus();
             },delay ? 50 : 0);
         },
 
@@ -466,22 +486,30 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
 
         onDelete: function() {
             var rec = this.mathList.getSelectedRec();
+            var path = '';
+            var val;
             if (rec) {
                 if (rec.get('defaultValue')) {
-                    var path = this.appPrefix + "settings-math-correct-rem";
+                    path = this.appPrefix + "settings-math-correct-rem";
                     var disabled = !rec.get('defaultDisabled');
                     rec.set('defaultDisabled', disabled);
                     if (disabled)
                         this.arrRem.push(rec.get('replaced'));
                     else
                         this.arrRem.splice(this.arrRem.indexOf(rec.get('replaced')), 1);
-                    var val = JSON.stringify(this.arrRem);
+                    val = JSON.stringify(this.arrRem);
                     Common.Utils.InternalSettings.set(path, val);
                     Common.localStorage.setItem(path, val);
                     this.btnDelete.setCaption(disabled ? this.textRestore : this.textDelete);
                     disabled ? this.api.asc_deleteFromAutoCorrectMathSymbols(rec.get('replaced')) : this.api.asc_AddOrEditFromAutoCorrectMathSymbols(rec.get('replaced'), rec.get('defaultValue'));
                 } else {
                     _mathStore.remove(rec);
+
+                    this.arrAdd.splice(this.arrAdd.indexOf(rec.get('replaced')), 1);
+                    path = this.appPrefix + "settings-math-correct-add";
+                    val = JSON.stringify(this.arrAdd);
+                    Common.Utils.InternalSettings.set(path, val);
+                    Common.localStorage.setItem(path, val);
                     this.mathList.scroller && this.mathList.scroller.update({});
                     this.api.asc_deleteFromAutoCorrectMathSymbols(rec.get('replaced'));
                 }
@@ -725,22 +753,30 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
 
         onDeleteRec: function() {
             var rec = this.mathRecList.getSelectedRec();
+            var path;
+            var val;
             if (rec) {
                 if (rec.get('defaultValue')) {
-                    var path = this.appPrefix + "settings-rec-functions-rem";
+                    path = this.appPrefix + "settings-rec-functions-rem";
                     var disabled = !rec.get('defaultDisabled');
                     rec.set('defaultDisabled', disabled);
                     if (disabled)
                         this.arrRemRec.push(rec.get('value'));
                     else
                         this.arrRemRec.splice(this.arrRemRec.indexOf(rec.get('value')), 1);
-                    var val = JSON.stringify(this.arrRemRec);
+                    val = JSON.stringify(this.arrRemRec);
                     Common.Utils.InternalSettings.set(path, val);
                     Common.localStorage.setItem(path, val);
                     this.btnDeleteRec.setCaption(disabled ? this.textRestore : this.textDelete);
                     disabled ? this.api.asc_deleteFromAutoCorrectMathFunctions(rec.get('value')) : this.api.asc_AddFromAutoCorrectMathFunctions(rec.get('value'));
                 } else {
                     _functionsStore.remove(rec);
+
+                    this.arrAddRec.splice(this.arrAddRec.indexOf(rec.get('value')), 1);
+                    path = this.appPrefix + "settings-rec-functions-add";
+                    val = JSON.stringify(this.arrAddRec);
+                    Common.Utils.InternalSettings.set(path, val);
+                    Common.localStorage.setItem(path, val);
                     this.mathRecList.scroller && this.mathRecList.scroller.update({});
                     this.api.asc_deleteFromAutoCorrectMathFunctions(rec.get('value'));
                 }
@@ -829,7 +865,9 @@ define([ 'text!common/main/lib/template/AutoCorrectDialog.template',
         textNewRowCol: 'Include new rows and columns in table',
         textAutoCorrect: 'AutoCorrect',
         textFLSentence: 'Capitalize first letter of sentences',
-        textHyperlink: 'Internet and network paths with hyperlinks'
+        textHyperlink: 'Internet and network paths with hyperlinks',
+        textFLCells: 'Capitalize first letter of table cells',
+        textDoubleSpaces: 'Add period with double-space'
 
     }, Common.Views.AutoCorrectDialog || {}))
 });

@@ -8,6 +8,26 @@ import { EditText } from '../../view/edit/EditText';
 class EditTextController extends Component {
     constructor (props) {
         super(props);
+
+        this.onApiImageLoaded = this.onApiImageLoaded.bind(this);
+    }
+
+    componentDidMount() {
+        const api = Common.EditorApi.get();
+        api.asc_registerCallback('asc_onBulletImageLoaded', this.onApiImageLoaded);
+    }
+
+    componentWillUnmount() {
+        const api = Common.EditorApi.get();
+        api.asc_unregisterCallback('asc_onBulletImageLoaded', this.onApiImageLoaded);
+    }
+
+    closeModal() {
+        if ( Device.phone ) {
+            f7.sheet.close('#edit-sheet', true);
+        } else {
+            f7.popover.close('#edit-popover');
+        }
     }
 
     toggleBold(value) {
@@ -138,7 +158,7 @@ class EditTextController extends Component {
         } else {
             typeof size === 'undefined' || size == '' ? api.FontSizeIn() : size = Math.min(300, ++size);
         }
-        if (typeof size !== 'undefined' || size == '') {
+        if (typeof size !== 'undefined' && size !== '') {
             api.put_TextPrFontSize(size);
         }
     };
@@ -153,6 +173,19 @@ class EditTextController extends Component {
     onTextColor(color) {
         const api = Common.EditorApi.get();
         api.put_TextColor(Common.Utils.ThemeColor.getRgbColor(color));
+    }
+
+    onHighlightColor(strColor) {
+        const api = Common.EditorApi.get();
+
+        if (strColor == 'transparent') {
+            api.SetMarkerFormat(true, false);
+        } else {
+            let r = strColor[0] + strColor[1],
+                g = strColor[2] + strColor[3],
+                b = strColor[4] + strColor[5];
+            api.SetMarkerFormat(true, true, parseInt(r, 16), parseInt(g, 16), parseInt(b, 16));
+        }
     }
 
     // Additional
@@ -191,9 +224,9 @@ class EditTextController extends Component {
         const api = Common.EditorApi.get();
         
         if ('superscript' === type) {
-            api.put_TextPrBaseline(value ? 1 : 0);
+            api.put_TextPrBaseline(value ? Asc.vertalign_SuperScript : Asc.vertalign_Baseline);
         } else {
-            api.put_TextPrBaseline(value ? 2 : 0);
+            api.put_TextPrBaseline(value ? Asc.vertalign_SubScript : Asc.vertalign_Baseline);
         }   
     }
 
@@ -222,6 +255,52 @@ class EditTextController extends Component {
         api.put_ListType(1, parseInt(type));
     }
 
+    getIconsBulletsAndNumbers(arrayElements, type) {
+        const api = Common.EditorApi.get();
+        const arr = [];
+
+        arrayElements.forEach( item => {
+            let data = item.drawdata;
+            data['divId'] = item.id;
+            arr.push(data);
+        });
+        if (api) api.SetDrawImagePreviewBulletForMenu(arr, type);
+    }
+
+    onApiImageLoaded(bullet) {
+        const api = Common.EditorApi.get();
+        const selectedElements = api.getSelectedElements();
+        const imageProp = {id: bullet.asc_getImageId(), redraw: true};
+
+        let selectItem = null;
+
+        if(selectedElements) {
+            for (var i = 0; i< selectedElements.length; i++) {
+                if (Asc.c_oAscTypeSelectElement.Paragraph == selectedElements[i].get_ObjectType()) {
+                    selectItem = selectedElements[i].get_ObjectValue();
+                    break;
+                }
+            }
+        }
+
+        bullet.asc_fillBulletImage(imageProp.id);
+        selectItem.asc_putBullet(bullet);
+        api.paraApply(selectItem);
+        this.closeModal();
+    }
+
+    onImageSelect() {
+        (new Asc.asc_CBullet()).asc_showFileDialog();
+    }
+
+    onInsertByUrl(value) {
+        var checkUrl = value.replace(/ /g, '');
+        
+        if(checkUrl) {
+            (new Asc.asc_CBullet()).asc_putImageUrl(checkUrl);
+        }
+    }
+
     onLineSpacing(value) {
         const api = Common.EditorApi.get();
         const LINERULE_AUTO = 1;
@@ -243,12 +322,16 @@ class EditTextController extends Component {
                 changeFontSize={this.changeFontSize}
                 changeFontFamily={this.changeFontFamily}
                 onTextColor={this.onTextColor}
+                onHighlightColor={this.onHighlightColor}
                 onAdditionalStrikethrough={this.onAdditionalStrikethrough}
                 onAdditionalCaps={this.onAdditionalCaps}
                 onAdditionalScript={this.onAdditionalScript}
                 changeLetterSpacing={this.changeLetterSpacing}
                 onBullet={this.onBullet}
                 onNumber={this.onNumber}
+                getIconsBulletsAndNumbers={this.getIconsBulletsAndNumbers}
+                onImageSelect={this.onImageSelect}
+                onInsertByUrl={this.onInsertByUrl}
                 onLineSpacing={this.onLineSpacing}
             />
         )

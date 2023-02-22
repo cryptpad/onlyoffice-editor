@@ -1,10 +1,41 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useEffect} from 'react';
 import {NavLeft, NavRight, NavTitle, Link, Icon} from 'framework7-react';
 import { Device } from '../../../../common/mobile/utils/device';
 import EditorUIController from '../lib/patch'
 
 const ToolbarView = props => {
     const isDisconnected = props.isDisconnected;
+    const docTitle = props.docTitle;
+    const docTitleLength = docTitle.length;
+
+    const correctOverflowedText = el => {
+        if(el) {
+            el.innerText = docTitle;
+
+            if(el.scrollWidth > el.clientWidth) {
+                const arrDocTitle = docTitle.split('.');
+                const ext = arrDocTitle[1];
+                const name = arrDocTitle[0];
+                const diff = Math.floor(docTitleLength * el.clientWidth / el.scrollWidth - ext.length - 6);
+                const shortName = name.substring(0, diff).trim();
+
+                return `${shortName}...${ext}`;
+            }
+
+            return docTitle;
+        }
+    };
+
+    useEffect(() => {
+        if(!Device.phone) {
+            const elemTitle = document.querySelector('.subnavbar .title');
+
+            if (elemTitle) {
+                elemTitle.innerText = correctOverflowedText(elemTitle);
+            }
+        }
+    }, [docTitle]);
+
     return (
         <Fragment>
             <NavLeft>
@@ -16,7 +47,7 @@ const ToolbarView = props => {
                     onRedoClick: props.onRedo
                 })}
             </NavLeft>
-            {!Device.phone && <NavTitle>{props.docTitle}</NavTitle>}
+            {!Device.phone && <NavTitle style={{width: '71%'}}>{props.docTitle}</NavTitle>}
             <NavRight>
                 {Device.android && props.isEdit && EditorUIController.getUndoRedo && EditorUIController.getUndoRedo({
                     disabledUndo: !props.isCanUndo || isDisconnected,
@@ -34,9 +65,9 @@ const ToolbarView = props => {
                     onEditClick: () => props.openOptions('edit'),
                     onAddClick: () => props.openOptions('add')
                 })}
-                { Device.phone ? null : <Link className={props.disabledControls && 'disabled'} icon='icon-search' searchbarEnable='.searchbar' href={false}></Link> }
+                { Device.phone ? null : <Link className={(props.disabledControls || props.disabledPreview) && 'disabled'} icon='icon-search' searchbarEnable='.searchbar' href={false}></Link> }
                 {props.displayCollaboration && window.matchMedia("(min-width: 375px)").matches ? <Link className={props.disabledControls && 'disabled'} id='btn-coauth' href={false} icon='icon-collaboration' onClick={() => props.openOptions('coauth')}></Link> : null}
-                <Link className={(props.disabledSettings || props.disabledControls) && 'disabled'} id='btn-settings' icon='icon-settings' href={false} onClick={() => props.openOptions('settings')}></Link>
+                <Link className={(props.disabledSettings || props.disabledControls || isDisconnected) && 'disabled'} id='btn-settings' icon='icon-settings' href={false} onClick={() => props.openOptions('settings')}></Link>
             </NavRight>
         </Fragment>
     )

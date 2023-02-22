@@ -56,11 +56,15 @@ define([
             itemWidth           : 80,
             itemHeight          : 40,
             menuMaxHeight       : 300,
+            autoWidth           : false,
             enableKeyEvents     : false,
             beforeOpenHandler   : null,
             additionalMenuItems  : null,
             showLast: true,
-            minWidth: -1
+            minWidth: -1,
+            dataHint: '',
+            dataHintDirection: '',
+            dataHintOffset: ''
         },
 
         template: _.template([
@@ -78,28 +82,34 @@ define([
             this.style       = this.options.style;
             this.hint        = this.options.hint;
             this.store       = this.options.store || new Common.UI.DataViewStore();
+            this.groups      = this.options.groups;
             this.itemWidth   = this.options.itemWidth;
             this.itemHeight  = this.options.itemHeight;
             this.menuMaxHeight = this.options.menuMaxHeight;
             this.beforeOpenHandler = this.options.beforeOpenHandler;
             this.showLast    = this.options.showLast;
+            this.wrapWidth   = 0;
             this.rootWidth   = 0;
             this.rootHeight  = 0;
             this.rendered    = false;
             this.needFillComboView = false;
-            this.minWidth = this.options.minWidth;
+            this.minWidth    = this.options.minWidth;
+            this.autoWidth   = this.initAutoWidth = (Common.Utils.isIE10 || Common.Utils.isIE11) ? false : this.options.autoWidth;
+            this.delayRenderTips = this.options.delayRenderTips || false;
+            this.itemTemplate   = this.options.itemTemplate || _.template([
+                '<div class="style" id="<%= id %>">',
+                    '<img src="<%= imageUrl %>" width="' + this.itemWidth + '" height="' + this.itemHeight + '" + <% if(typeof imageUrl === "undefined" || imageUrl===null || imageUrl==="") { %> style="visibility: hidden;" <% } %>/>',
+                    '<% if (typeof title !== "undefined") {%>',
+                        '<span class="title"><%= title %></span>',
+                    '<% } %>',
+                '</div>'
+            ].join(''));
 
             this.fieldPicker = new Common.UI.DataView({
                 cls: 'field-picker',
                 allowScrollbar: false,
-                itemTemplate : _.template([
-                    '<div class="style" id="<%= id %>">',
-                        '<img src="<%= imageUrl %>" width="' + this.itemWidth + '" height="' + this.itemHeight + '"/>',
-                        '<% if (typeof title !== "undefined") {%>',
-                            '<span class="title"><%= title %></span>',
-                        '<% } %>',
-                    '</div>'
-                ].join(''))
+                itemTemplate : this.itemTemplate,
+                delayRenderTips: this.delayRenderTips
             });
 
             this.openButton = new Common.UI.Button({
@@ -109,30 +119,29 @@ define([
                     offset: [0, 3],
                     items: [
                         {template: _.template('<div class="menu-picker-container"></div>')}
-                    ]
-                })
+                    ].concat(this.options.additionalMenuItems != null ? this.options.additionalMenuItems : [])
+                }),
+                dataHint: this.options.dataHint,
+                dataHintDirection: this.options.dataHintDirection,
+                dataHintOffset: this.options.dataHintOffset
             });
-
-            if  (this.options.additionalMenuItems != null) {
-                this.openButton.menu.items = this.openButton.menu.items.concat(this.options.additionalMenuItems)
-            }
 
             this.menuPicker  = new Common.UI.DataView({
                 cls: 'menu-picker',
                 parentMenu: this.openButton.menu,
+                outerMenu:  this.options.additionalMenuItems ? {menu: this.openButton.menu, index: 0} : undefined,
                 restoreHeight: this.menuMaxHeight,
                 style: 'max-height: '+this.menuMaxHeight+'px;',
                 enableKeyEvents: this.options.enableKeyEvents,
+                groups: this.groups,
                 store: this.store,
-                itemTemplate : _.template([
-                    '<div class="style" id="<%= id %>">',
-                        '<img src="<%= imageUrl %>" width="' + this.itemWidth + '" height="' + this.itemHeight + '"/>',
-                        '<% if (typeof title !== "undefined") {%>',
-                            '<span class="title"><%= title %></span>',
-                        '<% } %>',
-                    '</div>'
-                ].join(''))
+                itemTemplate : this.itemTemplate,
+                delayRenderTips: this.delayRenderTips
             });
+
+            if  (this.options.additionalMenuItems != null) {
+                this.openButton.menu.setInnerMenu([{menu: this.menuPicker, index: 0}]);
+            }
 
             // Handle resize
             setInterval(_.bind(this.checkSize, this), 500);
@@ -202,18 +211,41 @@ define([
                 me.fieldPicker.el.addEventListener('contextmenu', _.bind(me.onPickerComboContextMenu, me), false);
                 me.menuPicker.el.addEventListener('contextmenu', _.bind(me.onPickerComboContextMenu, me), false);
 
+                Common.NotificationCenter.on('more:toggle', _.bind(this.onMoreToggle, this));
+
                 me.onResize();
 
                 me.rendered = true;
-
+                
                 me.trigger('render:after', me);
+            }
+            if (this.disabled) {
+                this.setDisabled(!!this.disabled);
             }
 
             return this;
         },
 
+        onMoreToggle: function(btn, state) {
+            if(state) {
+                this.checkSize();
+            }
+        },
+
         checkSize: function() {
             if (this.cmpEl && this.cmpEl.is(':visible')) {
+                if(this.autoWidth && this.menuPicker.store.length > 0) {
+                    var wrapWidth = this.$el.width();
+                    if(wrapWidth != this.wrapWidth || this.needFillComboView){
+                        this.wrapWidth = wrapWidth;
+                        this.autoChangeWidth();
+
+                        var picker = this.menuPicker;
+                        var record = picker.getSelectedRec();
+                        this.fillComboView(record || picker.store.at(0), !!record, true);                   
+                    }
+                }
+                
                 var me = this,
                     width  = this.cmpEl.width(),
                     height = this.cmpEl.height();
@@ -246,6 +278,7 @@ define([
                 var picker = this.menuPicker;
                 if (picker) {
                     var record = picker.getSelectedRec();
+                    this.itemMarginLeft = undefined;
                     this.fillComboView(record || picker.store.at(0), !!record, true);
 
                     picker.onResize();
@@ -255,7 +288,46 @@ define([
             if (!this.isSuspendEvents)
                 this.trigger('resize', this);
         },
+    
+        autoChangeWidth: function() {
+            if(this.menuPicker.dataViewItems[0]){
+                var wrapEl = this.$el;
+                var wrapWidth = wrapEl.width();
 
+                var itemEl = this.menuPicker.dataViewItems[0].$el;
+                var itemWidth = this.itemWidth + parseFloat(itemEl.css('padding-left')) + parseFloat(itemEl.css('padding-right')) + 2 * parseFloat(itemEl.css('border-width'));
+                var itemMargins = parseFloat(itemEl.css('margin-left')) + parseFloat(itemEl.css('margin-right'));
+
+                var fieldPickerEl = this.fieldPicker.$el;
+                var fieldPickerPadding = parseFloat(fieldPickerEl.css('padding-right'));
+                var fieldPickerBorder = parseFloat(fieldPickerEl.css('border-width'));
+                var dataviewPaddings = parseFloat(this.fieldPicker.$el.find('.dataview').css('padding-left')) + parseFloat(this.fieldPicker.$el.find('.dataview').css('padding-right'));
+
+                var cmbDataViewEl = this.cmpEl;
+                var cmbDataViewPaddings = parseFloat(cmbDataViewEl.css('padding-left')) + parseFloat(cmbDataViewEl.css('padding-right'));
+
+                var itemsCount =  Math.floor((wrapWidth - fieldPickerPadding - dataviewPaddings - 2 * fieldPickerBorder - cmbDataViewPaddings) / (itemWidth + itemMargins));
+                if(itemsCount > this.store.length) 
+                    itemsCount = this.store.length;
+
+                var widthCalc = Math.ceil((itemsCount * (itemWidth + itemMargins) + fieldPickerPadding + dataviewPaddings + 2 * fieldPickerBorder + cmbDataViewPaddings) * 10) / 10;
+                
+                var maxWidth = parseFloat(cmbDataViewEl.css('max-width'));
+                if(widthCalc > maxWidth)
+                    widthCalc = maxWidth;
+                    
+                cmbDataViewEl.css('width', widthCalc);
+
+                if(this.initAutoWidth) {
+                    this.initAutoWidth = false;
+                    cmbDataViewEl.css('position', 'absolute');
+                    cmbDataViewEl.css('top', '50%');
+                    cmbDataViewEl.css('bottom', '50%');
+                    cmbDataViewEl.css('margin', 'auto 0');
+                }
+            }
+        },
+        
         onBeforeShowMenu: function(e) {
             var me = this;
 
@@ -371,6 +443,7 @@ define([
         },
 
         setDisabled: function(disabled) {
+            disabled = !!disabled;
             this.disabled = disabled;
 
             if (!this.rendered)
@@ -405,6 +478,9 @@ define([
                     if (forceFill || !me.fieldPicker.store.findWhere({'id': record.get('id')})){
                         if (me.itemMarginLeft===undefined) {
                             var div = $($(this.menuPicker.el).find('.inner > div:not(.grouped-data):not(.ps-scrollbar-x-rail):not(.ps-scrollbar-y-rail)')[0]);
+                            if (!div || div.length<1) { // try to find items in groups
+                                div = $($(this.menuPicker.el).find('.inner .group-items-container > div:not(.grouped-data):not(.ps-scrollbar-x-rail):not(.ps-scrollbar-y-rail)')[0]);
+                            }
                             if (div.length > 0) {
                                 me.itemMarginLeft  = parseInt(div.css('margin-left'));
                                 me.itemMarginRight = parseInt(div.css('margin-right'));
@@ -445,6 +521,7 @@ define([
                             me.resumeEvents();
                         }
                     }
+                    return me.fieldPicker.store.models; // return list of visible items
                 }
             }
         },

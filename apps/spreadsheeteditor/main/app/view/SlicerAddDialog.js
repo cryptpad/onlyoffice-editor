@@ -119,7 +119,7 @@ define([
                 });
 
                 this.columnsList.store.reset(arr);
-                this.columnsList.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+                this.columnsList.scroller.update({minScrollbarLength  : this.columnsList.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             }
         },
 
@@ -150,7 +150,7 @@ define([
                     }
                 }
 
-                if (isLabel || event.target.className.match('checkbox')) {
+                if (isLabel || event.target.className.match('checkbox') && event.target.localName!=='input') {
                     this.updateCellCheck(listView, record);
 
                     _.delay(function () {

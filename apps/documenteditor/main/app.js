@@ -53,9 +53,7 @@ require.config({
         perfectscrollbar: 'common/main/lib/mods/perfect-scrollbar',
         jmousewheel     : '../vendor/perfect-scrollbar/src/jquery.mousewheel',
         xregexp         : '../vendor/xregexp/xregexp-all-min',
-        sockjs          : '../vendor/sockjs/sockjs.min',
-        jszip           : '../vendor/jszip/jszip.min',
-        jsziputils      : '../vendor/jszip-utils/jszip-utils.min',
+        socketio        : '../vendor/socketio/socket.io.min',
         allfonts        : '../../sdkjs/common/AllFonts',
         sdk             : '../../sdkjs/word/sdk-all-min',
         api             : 'api/documents/api',
@@ -106,12 +104,10 @@ require.config({
         sdk: {
             deps: [
                 'jquery',
-                'underscore',
+                // 'underscore',
                 'allfonts',
                 'xregexp',
-                'sockjs',
-                'jszip',
-                'jsziputils'
+                'socketio'
             ]
         },
         gateway: {
@@ -128,15 +124,16 @@ require.config({
 });
 
 require([
+    'sdk',
     'backbone',
     'bootstrap',
     'core',
-    'sdk',
-    'api',
     'analytics',
     'gateway',
     'locale'
-], function (Backbone, Bootstrap, Core) {
+], function (Sdk, Backbone, Bootstrap, Core) {
+    if (Backbone.History && Backbone.History.started)
+        return;
     Backbone.history.start();
 
     /**
@@ -153,9 +150,14 @@ require([
             'Links',
             'FormsTab',
             'Navigation',
+            'PageThumbnails',
             'RightMenu',
             'LeftMenu',
             'Main',
+            'ViewTab',
+            'Search',
+            'DocProtection',
+            'Print',
             'Common.Controllers.Fonts',
             'Common.Controllers.History'
             /** coauthoring begin **/
@@ -165,6 +167,7 @@ require([
             ,'Common.Controllers.Plugins'
             ,'Common.Controllers.ExternalDiagramEditor'
             ,'Common.Controllers.ExternalMergeEditor'
+            ,'Common.Controllers.ExternalOleEditor'
             ,'Common.Controllers.ReviewChanges'
             ,'Common.Controllers.Protection'
         ]
@@ -173,6 +176,9 @@ require([
     Common.Locale.apply(
         function() {
             require([
+                'common/main/lib/util/LocalStorage',
+                'common/main/lib/controller/Themes',
+                'common/main/lib/controller/Desktop',
                 'documenteditor/main/app/controller/Viewport',
                 'documenteditor/main/app/controller/DocumentHolder',
                 'documenteditor/main/app/controller/Toolbar',
@@ -180,9 +186,14 @@ require([
                 'documenteditor/main/app/controller/FormsTab',
                 'documenteditor/main/app/controller/Links',
                 'documenteditor/main/app/controller/Navigation',
+                'documenteditor/main/app/controller/PageThumbnails',
                 'documenteditor/main/app/controller/RightMenu',
                 'documenteditor/main/app/controller/LeftMenu',
                 'documenteditor/main/app/controller/Main',
+                'documenteditor/main/app/controller/ViewTab',
+                'documenteditor/main/app/controller/Search',
+                'documenteditor/main/app/controller/DocProtection',
+                'documenteditor/main/app/controller/Print',
                 'documenteditor/main/app/view/FileMenuPanels',
                 'documenteditor/main/app/view/ParagraphSettings',
                 'documenteditor/main/app/view/HeaderFooterSettings',
@@ -192,7 +203,6 @@ require([
                 'documenteditor/main/app/view/TextArtSettings',
                 'documenteditor/main/app/view/SignatureSettings',
                 'common/main/lib/util/utils',
-                'common/main/lib/util/LocalStorage',
                 'common/main/lib/controller/Fonts',
                 'common/main/lib/controller/History'
                 /** coauthoring begin **/
@@ -203,10 +213,9 @@ require([
                 ,'documenteditor/main/app/view/ChartSettings'
                 ,'common/main/lib/controller/ExternalDiagramEditor'
                 ,'common/main/lib/controller/ExternalMergeEditor'
+                ,'common/main/lib/controller/ExternalOleEditor'
                 ,'common/main/lib/controller/ReviewChanges'
                 ,'common/main/lib/controller/Protection'
-                ,'common/main/lib/controller/Themes'
-                ,'common/main/lib/controller/Desktop'
             ], function() {
                 app.start();
             });

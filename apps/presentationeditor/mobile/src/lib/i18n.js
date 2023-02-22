@@ -6,12 +6,15 @@ i18n.use(initReactI18next)
     .use(Fetch)
     .init({
         lng: Common.Locale.currentLang,
-        fallbackLng: "en",
+        fallbackLng: Common.Locale.defaultLang,
         escapeValue: false,
         backend: {
             loadPath: './locale/{{lng}}.json'
         },
         interpolation: { escapeValue: false },
+        react: {
+            useSuspense: false,
+        },
     });
 
 export default i18n;

@@ -5,6 +5,7 @@ import { observer, inject } from "mobx-react";
 import {Device} from '../../../../../common/mobile/utils/device';
 
 import SettingsView from "../../view/settings/Settings";
+import {LocalStorage} from "../../../../../common/mobile/utils/LocalStorage.mjs";
 
 const Settings = props => {
     useEffect(() => {
@@ -27,23 +28,12 @@ const Settings = props => {
         }
     };
 
-    const onReaderMode = () => {
-        const appOptions = props.storeAppOptions;
-        appOptions.changeReaderMode();
-
-        Common.EditorApi.get().ChangeReaderMode();
-
-        if (Device.phone) {
-            setTimeout(() => {
-                closeModal();
-            }, 1);
-        }
-    };
-
     const onPrint = () => {
+        const api = Common.EditorApi.get();
+
         closeModal();
         setTimeout(() => {
-            Common.EditorApi.get().asc_Print();
+            api.asc_Print();
         }, 400);
     };
 
@@ -67,6 +57,17 @@ const Settings = props => {
         }, 400);
     };
 
+    const showFeedback = () => {
+        let config = props.storeAppOptions.config;
+
+        closeModal();
+        setTimeout(() => {
+            if(config && !!config.feedback && !!config.feedback.url) {
+                window.open(config.feedback.url, "_blank");
+            } else window.open(__SUPPORT_URL__, "_blank");
+        }, 400);
+    }
+
     const onOrthographyCheck = () => {
         closeModal();
         setTimeout(() => {
@@ -81,14 +82,26 @@ const Settings = props => {
         }, 0);
     };
 
+    const onChangeMobileView = () => {
+        const api = Common.EditorApi.get();
+        const appOptions = props.storeAppOptions;
+        const isMobileView = appOptions.isMobileView;
+
+        LocalStorage.setBool('mobile-view', !isMobileView);
+        appOptions.changeMobileView();
+        api.ChangeReaderMode();
+    };
+
     return <SettingsView usePopover={!Device.phone}
                          openOptions={props.openOptions}
-                         onclosed={props.onclosed}
-                         onReaderMode={onReaderMode}
+                         closeOptions={props.closeOptions}
+                         // onclosed={props.onclosed}
                          onPrint={onPrint}
                          showHelp={showHelp}
+                         showFeedback={showFeedback}
                          onOrthographyCheck={onOrthographyCheck}
                          onDownloadOrigin={onDownloadOrigin}
+                         onChangeMobileView={onChangeMobileView}
     />
 };
 

@@ -1,30 +1,91 @@
+.ios {
+    // Stepper 
+    .content-block.stepper-block {
+        margin: 20px 0;
 
-.device-ios {
+        .stepper.stepper-large {
+            height: 35px;
+            border-radius: var(--f7-button-border-radius);
+            box-shadow: var(--f7-button-box-shadow);
+        }
 
+        .stepper-button-minus, .stepper-button-plus {
+            color: #446995;
+            border: 1px solid #446995;
+            
+            &:before, &:after{
+                display: none;
+            }
+        }
 
-}
+        .stepper-button-minus.active-state, .stepper-button-plus.active-state {
+            background-color: var(--f7-list-link-pressed-bg-color);
+        }
 
-// Color Schemes
-
-.color-schemes-menu {
-    cursor: pointer;
-    display: block;
-    background-color: #fff;
-    .item-inner {
-        justify-content: flex-start;
+        .stepper-input-wrap {
+            border-top: 1px solid #446995;
+            border-bottom: 1px solid #446995;
+            input {
+                color: @text-normal;
+                font-size: 17px;
+                font-weight: var(--f7-list-item-after-line-height);
+            }
+        }
     }
-    .color-schema-block {
-        display: flex;
+
+    .navigation-sheet {
+        border-radius: 10px 10px 0px 0px;
+        &__title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: @background-primary;
+            padding-bottom: 10px;
+            p {
+                font-style: normal;
+                font-weight: 600;
+                font-size: 17px;
+                line-height: 22px;
+                text-align: center;
+                color: @text-normal;
+                margin: 0;
+            }
+        }
     }
-    .color {
-        min-width: 26px;
-        min-height: 26px;
-        margin: 0 2px 0 0;
-        box-shadow: 0 0 0 1px rgba(0,0,0,.15) inset;
+
+    // Reader mode
+    .back-reader-mode {
+        margin-left: 10px;
     }
-    .item-title {
-        margin-left: 20px;
-        color: #212121;
+
+    // Snackbar
+    .snackbar {
+        max-width: 195px;
+        position: absolute;
+        bottom: 24px;
+        left: calc(50% - 195px / 2);
+        background: rgba(0, 0, 0, .9);
+        border-radius: 4px;
+        z-index: 1000000;
+        &__content {
+            padding: 15px 16.5px;
+        }
+        &__text {
+            margin: 0;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 13px;
+            line-height: 18px;
+            letter-spacing: -0.078px;
+            color: @fill-white;
+            text-align: center;
+        }
+    }
+
+    @media(max-width: 450px) {
+        .snackbar {
+            bottom: 50px;
+        }
     }
 }
 

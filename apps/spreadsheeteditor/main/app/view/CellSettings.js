@@ -68,7 +68,8 @@ define([
         initialize: function () {
             this._initSettings = true;
             this._noApply = true;
-
+            this._sendUndoPoint = true;
+            
             this._state = {
                 DisabledControls: true,
                 DisabledFillPanels: true,
@@ -91,6 +92,8 @@ define([
             this.GradColor = { values: [0, 100], colors: ['000000', 'ffffff'], currentIdx: 0};
 
             this.fillControls = [];
+            this.gradientColorsStr="#000, #fff";
+            this.typeGradient = 90;
 
             this.render();
             this.createDelayedControls();
@@ -186,7 +189,10 @@ define([
                 menuStyle: 'min-width: 100%;',
                 editable: false,
                 data: this._arrFillSrc,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.cmbFillSrc.setValue(Asc.c_oAscFill.FILL_TYPE_NOFILL);
             this.fillControls.push(this.cmbFillSrc);
@@ -201,7 +207,10 @@ define([
                 allowDecimal: true,
                 maxValue: 359.9,
                 minValue: 0,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.numGradientAngle);
             this.numGradientAngle.on('change', _.bind(this.onGradientAngleChange, this));
@@ -224,15 +233,18 @@ define([
             this.cmbGradType.on('selected', _.bind(this.onGradTypeSelect, this));*/
 
             this._viewDataLinear = [
-                { offsetx: 0,   offsety: 0,   type:45,  subtype:-1, iconcls:'gradient-left-top' },
-                { offsetx: 50,  offsety: 0,   type:90,  subtype:4,  iconcls:'gradient-top'},
-                { offsetx: 100, offsety: 0,   type:135, subtype:5,  iconcls:'gradient-right-top'},
-                { offsetx: 0,   offsety: 50,  type:0,   subtype:6,  iconcls:'gradient-left', cls: 'item-gradient-separator', selected: true},
-                { offsetx: 100, offsety: 50,  type:180, subtype:1,  iconcls:'gradient-right'},
-                { offsetx: 0,   offsety: 100, type:315, subtype:2,  iconcls:'gradient-left-bottom'},
-                { offsetx: 50,  offsety: 100, type:270, subtype:3,  iconcls:'gradient-bottom'},
-                { offsetx: 100, offsety: 100, type:225, subtype:7,  iconcls:'gradient-right-bottom'}
+                { offsetx: 0,   offsety: 0,   type:45,  subtype:-1},
+                { offsetx: 50,  offsety: 0,   type:90,  subtype:4},
+                { offsetx: 100, offsety: 0,   type:135, subtype:5},
+                { offsetx: 0,   offsety: 50,  type:0,   subtype:6,  cls: 'item-gradient-separator', selected: true},
+                { offsetx: 100, offsety: 50,  type:180, subtype:1},
+                { offsetx: 0,   offsety: 100, type:315, subtype:2},
+                { offsetx: 50,  offsety: 100, type:270, subtype:3},
+                { offsetx: 100, offsety: 100, type:225, subtype:7}
             ];
+            _.each(this._viewDataLinear, function(item){
+                item.gradientColorsStr = me.gradientColorsStr;
+            });
 
             this.btnDirection = new Common.UI.Button({
                 cls         : 'btn-large-dataview',
@@ -243,7 +255,10 @@ define([
                     items: [
                         { template: _.template('<div id="id-cell-menu-direction" style="width: 175px; margin: 0 5px;"></div>') }
                     ]
-                })
+                }),
+                dataHint    : '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.btnDirection.on('render:after', function(btn) {
                 me.mnuDirectionPicker = new Common.UI.DataView({
@@ -251,7 +266,8 @@ define([
                     parentMenu: btn.menu,
                     restoreHeight: 174,
                     store: new Common.UI.DataViewStore(me._viewDataLinear),
-                    itemTemplate: _.template('<div id="<%= id %>" class="item-gradient" style="background-position: -<%= offsetx %>px -<%= offsety %>px;"></div>')
+                    itemTemplate: _.template('<div id="<%= id %>" class="item-gradient" style="background: '
+                        +'linear-gradient(<%= type + 90 %>deg,<%= gradientColorsStr %>);"></div>')
                 });
             });
             this.btnDirection.render($('#cell-button-direction'));
@@ -308,20 +324,25 @@ define([
             });
             this.fillControls.push(this.sldrGradient);
 
+            var itemWidth = 28,
+                itemHeight = 28;
             this.cmbPattern = new Common.UI.ComboDataView({
-                itemWidth: 28,
-                itemHeight: 28,
+                itemWidth: itemWidth,
+                itemHeight: itemHeight,
                 menuMaxHeight: 300,
                 enableKeyEvents: true,
-                cls: 'combo-pattern'
+                cls: 'combo-pattern',
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big',
+                itemTemplate: _.template([
+                    '<div class="style" id="<%= id %>">',
+                    '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="combo-pattern-item" ',
+                    'width="' + itemWidth + '" height="' + itemHeight + '" ',
+                    'style="background-position: -<%= offsetx %>px -<%= offsety %>px;"/>',
+                    '</div>'
+                ].join(''))
             });
-            this.cmbPattern.menuPicker.itemTemplate = this.cmbPattern.fieldPicker.itemTemplate = _.template([
-                '<div class="style" id="<%= id %>">',
-                '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="combo-pattern-item" ',
-                'width="' + this.cmbPattern.itemWidth + '" height="' + this.cmbPattern.itemHeight + '" ',
-                'style="background-position: -<%= offsetx %>px -<%= offsety %>px;"/>',
-                '</div>'
-            ].join(''));
             this.cmbPattern.render($('#cell-combo-pattern'));
             this.cmbPattern.openButton.menu.cmpEl.css({
                 'min-width': 178,
@@ -366,18 +387,18 @@ define([
             }
 
             var _arrBorderPosition = [
-                [Asc.c_oAscBorderOptions.Left,  'toolbar__icon btn-border-left',        'cell-button-border-left',      this.tipLeft],
-                [Asc.c_oAscBorderOptions.InnerV,'toolbar__icon btn-border-insidevert',  'cell-button-border-inner-vert',this.tipInnerVert],
-                [Asc.c_oAscBorderOptions.Right, 'toolbar__icon btn-border-right',       'cell-button-border-right',     this.tipRight],
-                [Asc.c_oAscBorderOptions.Top,   'toolbar__icon btn-border-top',         'cell-button-border-top',       this.tipTop],
-                [Asc.c_oAscBorderOptions.InnerH,'toolbar__icon btn-border-insidehor',   'cell-button-border-inner-hor', this.tipInnerHor],
-                [Asc.c_oAscBorderOptions.Bottom,'toolbar__icon btn-border-bottom',      'cell-button-border-bottom',    this.tipBottom],
-                [Asc.c_oAscBorderOptions.DiagU, 'toolbar__icon btn-border-diagup',      'cell-button-border-diagu',     this.tipDiagU],
-                [Asc.c_oAscBorderOptions.DiagD, 'toolbar__icon btn-border-diagdown',    'cell-button-border-diagd',     this.tipDiagD],
-                ['inner',                       'toolbar__icon btn-border-inside',      'cell-button-border-inner',     this.tipInner],
-                ['outer',                       'toolbar__icon btn-border-out',         'cell-button-border-outer',     this.tipOuter],
-                ['all',                         'toolbar__icon btn-border-all',         'cell-button-border-all',       this.tipAll],
-                ['none',                        'toolbar__icon btn-border-no',          'cell-button-border-none',      this.tipNone]
+                [Asc.c_oAscBorderOptions.Left,  'toolbar__icon btn-border-left',        'cell-button-border-left',      this.tipLeft,       'bottom'],
+                [Asc.c_oAscBorderOptions.InnerV,'toolbar__icon btn-border-insidevert',  'cell-button-border-inner-vert',this.tipInnerVert,  'bottom'],
+                [Asc.c_oAscBorderOptions.Right, 'toolbar__icon btn-border-right',       'cell-button-border-right',     this.tipRight,      'bottom'],
+                [Asc.c_oAscBorderOptions.Top,   'toolbar__icon btn-border-top',         'cell-button-border-top',       this.tipTop,        'bottom'],
+                [Asc.c_oAscBorderOptions.InnerH,'toolbar__icon btn-border-insidehor',   'cell-button-border-inner-hor', this.tipInnerHor,   'bottom'],
+                [Asc.c_oAscBorderOptions.Bottom,'toolbar__icon btn-border-bottom',      'cell-button-border-bottom',    this.tipBottom,     'bottom'],
+                [Asc.c_oAscBorderOptions.DiagU, 'toolbar__icon btn-border-diagup',      'cell-button-border-diagu',     this.tipDiagU,      'top'],
+                [Asc.c_oAscBorderOptions.DiagD, 'toolbar__icon btn-border-diagdown',    'cell-button-border-diagd',     this.tipDiagD,      'top'],
+                ['inner',                       'toolbar__icon btn-border-inside',      'cell-button-border-inner',     this.tipInner,      'top'],
+                ['outer',                       'toolbar__icon btn-border-out',         'cell-button-border-outer',     this.tipOuter,      'top'],
+                ['all',                         'toolbar__icon btn-border-all',         'cell-button-border-all',       this.tipAll,        'top'],
+                ['none',                        'toolbar__icon btn-border-no',          'cell-button-border-none',      this.tipNone,       'top']
             ];
 
             _.each(_arrBorderPosition, function(item, index, list){
@@ -387,7 +408,10 @@ define([
                     iconCls: item[1],
                     borderId:item[0],
                     hint: item[3],
-                    disabled: this._locked
+                    disabled: this._locked,
+                    dataHint: '1',
+                    dataHintDirection: item[4],
+                    dataHintOffset: 'small'
                 });
                 _btn.on('click', _.bind(this.onBtnBordersClick, this));
                 this.lockedControls.push(_btn);
@@ -411,7 +435,10 @@ define([
                     { value: Asc.c_oAscBorderStyles.MediumDashDot,  offsety: 160},
                     { value: Asc.c_oAscBorderStyles.MediumDashDotDot,  offsety: 180},
                     { value: Asc.c_oAscBorderStyles.Thick,  offsety: 200}
-                ]
+                ],
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             }).on('selected', _.bind(this.onBorderTypeSelect, this));
             this.BorderType = Asc.c_oAscBorderStyles.Thin;
             this.cmbBorderType.setValue(this.BorderType);
@@ -422,7 +449,10 @@ define([
                 disabled: this._locked,
                 menu        : true,
                 color: 'auto',
-                auto: true
+                auto: true,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'medium'
             });
             this.lockedControls.push(this.btnBorderColor);
 
@@ -431,7 +461,10 @@ define([
                 disabled: this._locked,
                 menu        : true,
                 transparent : true,
-                color: 'transparent'
+                color: 'transparent',
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'medium'
             });
             this.lockedControls.push(this.btnBackColor);
 
@@ -444,7 +477,10 @@ define([
                 allowDecimal: false,
                 maxValue: 250,
                 minValue: 0,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.spnIndent);
             this.spnIndent.on('change', _.bind(this.onIndentChange, this));
@@ -459,7 +495,10 @@ define([
                 allowDecimal: false,
                 maxValue: 90,
                 minValue: -90,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.spnAngle);
             this.spnAngle.on('change', _.bind(this.onAngleChange, this));
@@ -474,7 +513,10 @@ define([
                 allowDecimal: false,
                 maxValue: 100,
                 minValue: 0,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big'
             });
             this.lockedControls.push(this.spnGradPosition);
             this.spnGradPosition.on('change', _.bind(this.onPositionChange, this));
@@ -485,7 +527,9 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-add-breakpoint',
                 disabled: this._locked,
-                hint: this.tipAddGradientPoint
+                hint: this.tipAddGradientPoint,
+                dataHint: '1',
+                dataHintDirection: 'bottom'
             });
             this.btnAddGradientStep.on('click', _.bind(this.onAddGradientStep, this));
             this.lockedControls.push(this.btnAddGradientStep);
@@ -495,7 +539,9 @@ define([
                 cls: 'btn-toolbar',
                 iconCls: 'toolbar__icon btn-remove-breakpoint',
                 disabled: this._locked,
-                hint: this.tipRemoveGradientPoint
+                hint: this.tipRemoveGradientPoint,
+                dataHint: '1',
+                dataHintDirection: 'bottom'
             });
             this.btnRemoveGradientStep.on('click', _.bind(this.onRemoveGradientStep, this));
             this.lockedControls.push(this.btnRemoveGradientStep);
@@ -503,7 +549,10 @@ define([
             this.chWrap = new Common.UI.CheckBox({
                 el: $('#cell-checkbox-wrap'),
                 labelText: this.strWrap,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chWrap);
             this.chWrap.on('change', this.onWrapChange.bind(this));
@@ -511,19 +560,25 @@ define([
             this.chShrink = new Common.UI.CheckBox({
                 el: $('#cell-checkbox-shrink'),
                 labelText: this.strShrink,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chShrink);
             this.chShrink.on('change', this.onShrinkChange.bind(this));
 
             this.btnCondFormat = new Common.UI.Button({
                 parentEl: $('#cell-btn-cond-format'),
-                cls         : 'btn-toolbar',
+                cls         : 'btn-toolbar align-left',
                 iconCls     : 'toolbar__icon btn-cond-format',
                 caption     : this.textCondFormat,
-                style       : 'width: 100%;text-align: left;',
+                style       : 'width: 100%;',
                 menu: true,
-                disabled: this._locked
+                disabled: this._locked,
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.btnCondFormat);
         },
@@ -864,9 +919,9 @@ define([
                                 var record = this.mnuDirectionPicker.store.findWhere({type: value});
                                 this.mnuDirectionPicker.selectRecord(record, true);
                                 if (record)
-                                    this.btnDirection.setIconCls('item-gradient ' + record.get('iconcls'));
+                                    this.typeGradient = value + 90;
                                 else
-                                    this.btnDirection.setIconCls('');
+                                    this.typeGradient= -1;
                                 this.numGradientAngle.setValue(value, true);
                             }
                         }
@@ -888,10 +943,15 @@ define([
                                 Common.Utils.ThemeColor.getHexColor(clr.asc_getR(), clr.asc_getG(), clr.asc_getB()));
                             me.GradColor.values.push(position*100);
                         });
+
+                        var arrGrCollors=[];
                         for (var index=0; index<length; index++) {
                             me.sldrGradient.setColorValue(Common.Utils.String.format('#{0}', (typeof(me.GradColor.colors[index]) == 'object') ? me.GradColor.colors[index].color : me.GradColor.colors[index]), index);
                             me.sldrGradient.setValue(index, me.GradColor.values[index]);
+                            arrGrCollors.push(me.sldrGradient.getColorValue(index)+ ' '+ me.sldrGradient.getValue(index) +'%');
                         }
+                        this.btnDirectionRedraw(me.sldrGradient, arrGrCollors.join(', '));
+
                         if (_.isUndefined(me.GradColor.currentIdx) || me.GradColor.currentIdx >= me.GradColor.colors.length) {
                             me.GradColor.currentIdx = 0;
                         }
@@ -1023,6 +1083,25 @@ define([
             }
         },
 
+        btnDirectionRedraw: function(slider, gradientColorsStr) {
+            this.gradientColorsStr = gradientColorsStr;
+            _.each(this._viewDataLinear, function(item){
+                item.gradientColorsStr = gradientColorsStr;
+            });
+            this.mnuDirectionPicker.store.each(function(item){
+                item.set('gradientColorsStr', gradientColorsStr);
+            }, this);
+
+            if (this.typeGradient == -1)
+                this.btnDirection.$icon.css({'background': 'none'});
+            else if (this.typeGradient == 2)
+                this.btnDirection.$icon.css({'background': ('radial-gradient(' + gradientColorsStr + ')')});
+            else
+                this.btnDirection.$icon.css({
+                    'background': ('linear-gradient(' + this.typeGradient + 'deg, ' + gradientColorsStr + ')')
+                });
+        },
+
         UpdateThemeColors: function() {
              if (!this.borderColor) {
                 // create color buttons
@@ -1036,7 +1115,10 @@ define([
 
                  this.btnGradColor = new Common.UI.ColorButton({
                      parentEl: $('#cell-gradient-color-btn'),
-                     color: '000000'
+                     color: '000000',
+                     dataHint: '1',
+                     dataHintDirection: 'bottom',
+                     dataHintOffset: 'big'
                  });
                  this.fillControls.push(this.btnGradColor);
                  this.colorsGrad = this.btnGradColor.getPicker();
@@ -1044,7 +1126,10 @@ define([
 
                  this.btnFGColor = new Common.UI.ColorButton({
                      parentEl: $('#cell-foreground-color-btn'),
-                     color: '000000'
+                     color: '000000',
+                     dataHint: '1',
+                     dataHintDirection: 'bottom',
+                     dataHintOffset: 'medium'
                  });
                  this.fillControls.push(this.btnFGColor);
                  this.colorsFG = this.btnFGColor.getPicker();
@@ -1052,7 +1137,10 @@ define([
 
                  this.btnBGColor = new Common.UI.ColorButton({
                      parentEl: $('#cell-background-color-btn'),
-                     color: 'ffffff'
+                     color: 'ffffff',
+                     dataHint: '1',
+                     dataHintDirection: 'bottom',
+                     dataHintOffset: 'medium'
                  });
                  this.fillControls.push(this.btnBGColor);
                  this.colorsBG = this.btnBGColor.getPicker();
@@ -1251,7 +1339,7 @@ define([
                 rawData = record;
             }
 
-            this.btnDirection.setIconCls('item-gradient ' + rawData.iconcls);
+            this.typeGradient = rawData.type + 90;
             this.GradLinearDirectionType = rawData.type;
             this.numGradientAngle.setValue(rawData.type, true);
 

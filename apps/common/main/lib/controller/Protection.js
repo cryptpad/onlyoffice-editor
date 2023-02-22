@@ -147,13 +147,29 @@ define([
         },
 
         onAppReady: function (config) {
+            var me = this;
+            (new Promise(function (accept, reject) {
+                accept();
+            })).then(function(){
+                me.onChangeProtectDocument();
+                Common.NotificationCenter.on('protect:doclock', _.bind(me.onChangeProtectDocument, me));
+            });
+        },
+
+        onChangeProtectDocument: function(props) {
+            if (!props) {
+                var docprotect = this.getApplication().getController('DocProtection');
+                props = docprotect ? docprotect.getDocProps() : null;
+            }
+            if (props && this.view) {
+                this.view._state.docProtection = props;
+            }
         },
 
         addPassword: function() {
             var me = this,
                 win = new Common.Views.PasswordDialog({
                     api: me.api,
-                    signType: 'invisible',
                     handler: function(result, props) {
                         if (result == 'ok') {
                             me.api.asc_setCurrentPassword(props);

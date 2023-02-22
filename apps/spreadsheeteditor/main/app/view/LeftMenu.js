@@ -40,6 +40,7 @@ define([
     /** coauthoring begin **/
     'common/main/lib/view/Comments',
     'common/main/lib/view/Chat',
+    'common/main/lib/view/History',
     /** coauthoring end **/
     'common/main/lib/view/SearchDialog',
     'common/main/lib/view/Plugins',
@@ -58,12 +59,6 @@ define([
         // Delegated events for creating new items, and clearing completed ones.
         events: function() {
             return {
-                /** coauthoring begin **/
-                'click #left-btn-comments': _.bind(this.onCoauthOptions, this),
-                'click #left-btn-chat': _.bind(this.onCoauthOptions, this),
-                /** coauthoring end **/
-                'click #left-btn-plugins': _.bind(this.onCoauthOptions, this),
-                'click #left-btn-spellcheck': _.bind(this.onCoauthOptions, this),
                 'click #left-btn-support': function() {
                     var config = this.mode.customization;
                     config && !!config.feedback && !!config.feedback.url ?
@@ -75,19 +70,21 @@ define([
 
         initialize: function () {
             this.minimizedMode = true;
-            this._state = {};
+            this._state = {disabled: false};
         },
 
         render: function () {
             var $markup = $(this.template({}));
 
-            this.btnSearch = new Common.UI.Button({
-                action: 'search',
-                el: $markup.elementById('#left-btn-search'),
-                hint: this.tipSearch + Common.Utils.String.platformKey('Ctrl+F'),
+            this.btnSearchBar = new Common.UI.Button({
+                action: 'advancedsearch',
+                el: $markup.elementById('#left-btn-searchbar'),
+                hint: this.tipSearch,
                 disabled: true,
-                enableToggle: true
+                enableToggle: true,
+                toggleGroup: 'leftMenuGroup'
             });
+            this.btnSearchBar.on('click',       _.bind(this.onBtnMenuClick, this));
 
             this.btnAbout = new Common.UI.Button({
                 action: 'about',
@@ -97,6 +94,7 @@ define([
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
+            this.btnAbout.on('toggle',          _.bind(this.onBtnMenuToggle, this));
 
             this.btnSupport = new Common.UI.Button({
                 action: 'support',
@@ -113,21 +111,20 @@ define([
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
+            this.btnComments.on('toggle',       this.onBtnCommentsToggle.bind(this));
+            this.btnComments.on('click',        this.onBtnMenuClick.bind(this));
 
             this.btnChat = new Common.UI.Button({
                 el: $markup.elementById('#left-btn-chat'),
-                hint: this.tipChat + Common.Utils.String.platformKey('Alt+Q'),
+                hint: this.tipChat + Common.Utils.String.platformKey('Alt+Q', ' (' + (Common.Utils.isMac ? Common.Utils.String.textCtrl + '+' : '') + '{0})'),
                 enableToggle: true,
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
+            this.btnChat.on('click',            this.onBtnMenuClick.bind(this));
 
             this.btnComments.hide();
             this.btnChat.hide();
-
-            this.btnComments.on('toggle',       this.onBtnCommentsToggle.bind(this));
-            this.btnComments.on('click',        this.onBtnMenuClick.bind(this));
-            this.btnChat.on('click',            this.onBtnMenuClick.bind(this));
             /** coauthoring end **/
 
             this.btnPlugins = new Common.UI.Button({
@@ -150,11 +147,8 @@ define([
             this.btnSpellcheck.hide();
             this.btnSpellcheck.on('click',      _.bind(this.onBtnMenuClick, this));
 
-            this.btnSearch.on('click',          _.bind(this.onBtnMenuClick, this));
-            this.btnAbout.on('toggle',          _.bind(this.onBtnMenuToggle, this));
-
             this.menuFile = new SSE.Views.FileMenu({});
-            this.btnAbout.panel = (new Common.Views.About({el: '#about-menu-panel', appName: 'Spreadsheet Editor'}));
+            this.btnAbout.panel = (new Common.Views.About({el: '#about-menu-panel', appName: this.txtEditor}));
             this.$el.html($markup);
 
             return this;
@@ -165,9 +159,6 @@ define([
                 btn.panel['show']();
                 if (!this._state.pluginIsRunning)
                     this.$el.width(SCALE_MIN);
-
-                if (this.btnSearch.isActive())
-                    this.btnSearch.toggle(false);
             } else {
                 btn.panel['hide']();
             }
@@ -183,19 +174,17 @@ define([
         onBtnMenuClick: function(btn, e) {
             this.btnAbout.toggle(false);
 
-            if (btn.options.action == 'search') {
-            } else {
-                if (btn.pressed) {
-                    if (!(this.$el.width() > SCALE_MIN)) {
-                        this.$el.width(Common.localStorage.getItem('sse-mainmenu-width') || MENU_SCALE_PART);
-                    }
-                } else if (!this._state.pluginIsRunning){
-                    Common.localStorage.setItem('sse-mainmenu-width',this.$el.width());
-                    this.$el.width(SCALE_MIN);
+            if (btn.pressed) {
+                if (!(this.$el.width() > SCALE_MIN)) {
+                    this.$el.width(Common.localStorage.getItem('sse-mainmenu-width') || MENU_SCALE_PART);
                 }
+            } else if (!this._state.pluginIsRunning){
+                var width = this.$el.width();
+                this.isVisible() && (width>SCALE_MIN) && Common.localStorage.setItem('sse-mainmenu-width',width);
+                this.$el.width(SCALE_MIN);
             }
-
-//            this.btnChat.id == btn.id && !this.btnChat.pressed && this.fireEvent('chat:hide', this);
+            this.onCoauthOptions();
+            btn.pressed && btn.options.action == 'advancedsearch' && this.fireEvent('search:aftershow', this);
             Common.NotificationCenter.trigger('layout:changed', 'leftmenu');
         },
 
@@ -225,6 +214,14 @@ define([
                 } else
                     this.panelSpellcheck['hide']();
             }
+            if (this.panelSearch) {
+                if (this.btnSearchBar.pressed) {
+                    this.panelSearch.show();
+                    this.panelSearch.focus();
+                } else {
+                    this.panelSearch.hide();
+                }
+            }
             // if (this.mode.canPlugins && this.panelPlugins) {
             //     if (this.btnPlugins.pressed) {
             //         this.panelPlugins.show();
@@ -244,6 +241,11 @@ define([
             } else
             if (name == 'spellcheck' && !this.panelSpellcheck) {
                 this.panelSpellcheck = panel.render('#left-panel-spellcheck');
+            } else if (name == 'history') {
+                this.panelHistory = panel.render('#left-panel-history');
+            } else
+            if (name == 'advancedsearch') {
+                this.panelSearch = panel.render('#left-panel-search');
             }
         },
 
@@ -285,10 +287,14 @@ define([
                 this.panelSpellcheck['hide']();
                 this.btnSpellcheck.toggle(false, true);
             }
+            if (this.panelSearch) {
+                this.panelSearch['hide']();
+                this.btnSearchBar.toggle(false, true);
+            }
         },
 
         isOpened: function() {
-            var isopened = this.btnSearch.pressed;
+            var isopened = this.btnSearchBar.pressed;
             /** coauthoring begin **/
             !isopened && (isopened = this.btnComments.pressed || this.btnChat.pressed);
             /** coauthoring end **/
@@ -298,7 +304,7 @@ define([
         disableMenu: function(menu, disable) {
             this.btnAbout.setDisabled(false);
             this.btnSupport.setDisabled(false);
-            this.btnSearch.setDisabled(false);
+            this.btnSearchBar.setDisabled(false);
             /** coauthoring begin **/
             this.btnComments.setDisabled(false);
             this.btnChat.setDisabled(false);
@@ -307,10 +313,10 @@ define([
             this.btnSpellcheck.setDisabled(false);
         },
 
-        showMenu: function(menu) {
+        showMenu: function(menu, opts) {
             var re = /^(\w+):?(\w*)$/.exec(menu);
             if ( re[1] == 'file' ) {
-                this.menuFile.show(re[2].length ? re[2] : undefined);
+                this.menuFile.show(re[2].length ? re[2] : undefined, opts);
             } else {
                 /** coauthoring begin **/
                 if (menu == 'chat') {
@@ -318,7 +324,6 @@ define([
                             !this.btnChat.isDisabled() && !this.btnChat.pressed) {
                         this.btnChat.toggle(true);
                         this.onBtnMenuClick(this.btnChat);
-                        this.onCoauthOptions();
                         this.panelChat.focus();
                     }
                 } else
@@ -327,8 +332,13 @@ define([
                             !this.btnComments.isDisabled() && !this.btnComments.pressed) {
                         this.btnComments.toggle(true);
                         this.onBtnMenuClick(this.btnComments);
-                        this.onCoauthOptions();
                         this.btnComments.$el.focus();
+                    }
+                } else if (menu == 'advancedsearch') {
+                    if (this.btnSearchBar.isVisible() &&
+                        !this.btnSearchBar.isDisabled() && !this.btnSearchBar.pressed) {
+                        this.btnSearchBar.toggle(true);
+                        this.onBtnMenuClick(this.btnSearchBar);
                     }
                 }
                 /** coauthoring end **/
@@ -423,6 +433,18 @@ define([
             this.limitHint && this.limitHint.css('top', top);
         },
 
+        showHistory: function() {
+            this._state.pluginIsRunning = false;
+            this._state.historyIsRunning = true;
+            this.panelHistory.show();
+            this.panelHistory.$el.width((parseInt(Common.localStorage.getItem('sse-mainmenu-width')) || MENU_SCALE_PART) - SCALE_MIN);
+            Common.NotificationCenter.trigger('layout:changed', 'history');
+        },
+
+        isVisible: function () {
+            return this.$el && this.$el.is(':visible');
+        },
+
         /** coauthoring begin **/
         tipComments : 'Comments',
         tipChat     : 'Chat',
@@ -436,6 +458,7 @@ define([
         txtTrial: 'TRIAL MODE',
         tipSpellcheck: 'Spell checking',
         txtTrialDev: 'Trial Developer Mode',
-        txtLimit: 'Limit Access'
+        txtLimit: 'Limit Access',
+        txtEditor: 'Spreadsheet Editor'
     }, SSE.Views.LeftMenu || {}));
 });

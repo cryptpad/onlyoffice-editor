@@ -1,5 +1,5 @@
 import {action, observable, makeObservable} from 'mobx';
-import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage';
+import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage.mjs';
 
 export class storeAppOptions {
     constructor() {
@@ -11,6 +11,7 @@ export class storeAppOptions {
 
             lostEditingRights: observable,
             changeEditingRights: action,
+            canBranding: observable,
 
             isDocReady: observable,
             changeDocReady: action
@@ -25,6 +26,7 @@ export class storeAppOptions {
         this.canViewComments = value;
     }
 
+    canBranding = undefined;
     lostEditingRights = false;
     changeEditingRights (value) {
         this.lostEditingRights = value;
@@ -76,6 +78,9 @@ export class storeAppOptions {
     setPermissionOptions (document, licType, params, permissions, isSupportEditFeature) {
         if (params.asc_getRights() !== Asc.c_oRights.Edit)
             permissions.edit = false;
+        this.canBranding = params.asc_getCustomization();
+        this.canBrandingExt = params.asc_getCanBranding() && (typeof this.customization == 'object');
+        this.canModifyFilter = permissions.modifyFilter !== false;
         this.canAutosave = true;
         this.canAnalytics = params.asc_getIsAnalyticsEnable();
         this.canLicense = (licType === Asc.c_oLicenseResult.Success || licType === Asc.c_oLicenseResult.SuccessLimit);
@@ -86,24 +91,33 @@ export class storeAppOptions {
         this.canEdit = permissions.edit !== false  && // can edit or review
             (this.config.canRequestEditRights || this.config.mode !== 'view') && isSupportEditFeature; // if mode=="view" -> canRequestEditRights must be defined
             // (!this.isReviewOnly || this.canLicense) && // if isReviewOnly==true -> canLicense must be true
-        this.isEdit = (this.canLicense || this.isEditDiagram || this.isEditMailMerge) && permissions.edit !== false && this.config.mode !== 'view' && true;
+        this.isEdit = (this.canLicense || this.isEditDiagram || this.isEditMailMerge) && permissions.edit !== false && this.config.mode !== 'view' && isSupportEditFeature;
         this.canComments = this.canLicense && (permissions.comment === undefined ? this.isEdit : permissions.comment) && (this.config.mode !== 'view');
         this.canComments = this.canComments && !((typeof (this.customization) == 'object') && this.customization.comments===false);
         this.canViewComments = this.canComments || !((typeof (this.customization) == 'object') && this.customization.comments===false);
-        this.canEditComments = this.isOffline || !(typeof (this.customization) == 'object' && this.customization.commentAuthorOnly);
+        this.canEditComments = this.isOffline || !permissions.editCommentAuthorOnly;
         this.canDeleteComments= this.isOffline || !permissions.deleteCommentAuthorOnly;
-        this.canChat = this.canLicense && !this.isOffline && !((typeof (this.customization) == 'object') && this.customization.chat === false);
+        if ((typeof (this.customization) == 'object') && this.customization.commentAuthorOnly===true) {
+            console.log("Obsolete: The 'commentAuthorOnly' parameter of the 'customization' section is deprecated. Please use 'editCommentAuthorOnly' and 'deleteCommentAuthorOnly' parameters in the permissions instead.");
+            if (permissions.editCommentAuthorOnly===undefined && permissions.deleteCommentAuthorOnly===undefined)
+                this.canEditComments = this.canDeleteComments = this.isOffline;
+        }
+        this.canChat = this.canLicense && !this.isOffline && (permissions.chat !== false);
         this.canPrint = (permissions.print !== false);
-        this.isRestrictedEdit = !this.isEdit && this.canComments;
+        this.isRestrictedEdit = !this.isEdit && this.canComments && isSupportEditFeature;
         this.trialMode = params.asc_getLicenseMode();
-        this.canDownloadOrigin = permissions.download !== false;
-        this.canDownload = permissions.download !== false;
-        this.canBranding = params.asc_getCustomization();
-        this.canBrandingExt = params.asc_getCanBranding() && (typeof this.customization == 'object');
+
+        const type = /^(?:(pdf|djvu|xps|oxps))$/.exec(document.fileType);
+        this.canDownloadOrigin = permissions.download !== false && (type && typeof type[1] === 'string');
+        this.canDownload = permissions.download !== false && (!type || typeof type[1] !== 'string');
         this.canUseReviewPermissions = this.canLicense && (!!permissions.reviewGroups || this.customization 
             && this.customization.reviewPermissions && (typeof (this.customization.reviewPermissions) == 'object'));
         this.canUseCommentPermissions = this.canLicense && !!permissions.commentGroups;
+        this.canUseUserInfoPermissions = this.canLicense && !!permissions.userInfoGroups;
         this.canUseReviewPermissions && AscCommon.UserInfoParser.setReviewPermissions(permissions.reviewGroups, this.customization.reviewPermissions);
         this.canUseCommentPermissions && AscCommon.UserInfoParser.setCommentPermissions(permissions.commentGroups);  
+        this.canUseUserInfoPermissions && AscCommon.UserInfoParser.setUserInfoPermissions(permissions.userInfoGroups);
+
+        this.canLiveView = !!params.asc_getLiveViewerSupport() && (this.config.mode === 'view') && isSupportEditFeature;
     }
 }

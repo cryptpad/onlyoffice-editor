@@ -6,7 +6,8 @@
     "textEmail": "Email",
     "textPoweredBy": "Powered By",
     "textTel": "Tel",
-    "textVersion": "Version"
+    "textVersion": "Version",
+    "textEditor": "Document Editor"
   },
   "Add": {
     "notcriticalErrorTitle": "Warning",
@@ -56,7 +57,14 @@
     "textStartAt": "Start At",
     "textTable": "Table",
     "textTableSize": "Table Size",
-    "txtNotUrl": "This field should be a URL in the format \"http://www.example.com\""
+    "txtNotUrl": "This field should be a URL in the format \"http://www.example.com\"",
+    "textOk": "Ok",
+    "textTableContents": "Table of Contents",
+    "textWithPageNumbers": "With Page Numbers",
+    "textWithBlueLinks": "With Blue Links",
+    "textDone": "Done",
+    "textRecommended": "Recommended",
+    "textRequired": "Required"
   },
   "Common": {
     "Collaboration": {
@@ -155,12 +163,16 @@
       "textUnderline": "Underline",
       "textUsers": "Users",
       "textWidow": "Widow control",
-      "textOk": "Ok"
+      "textOk": "Ok",
+      "textSharingSettings": "Sharing Settings"
     },
     "ThemeColorPalette": {
       "textCustomColors": "Custom Colors",
       "textStandartColors": "Standard Colors",
       "textThemeColors": "Theme Colors"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -181,7 +193,19 @@
     "textColumns": "Columns",
     "textCopyCutPasteActions": "Copy, Cut and Paste Actions",
     "textDoNotShowAgain": "Don't show again",
-    "textRows": "Rows"
+    "textRows": "Rows",
+    "menuStartNewList": "Start new list",
+    "menuStartNumberingFrom": "Set numbering value",
+    "menuContinueNumbering": "Continue numbering",
+    "menuSeparateList": "Separate list",
+    "menuJoinList": "Join to previous list",
+    "textOk": "OK",
+    "textCancel": "Cancel",
+    "textNumberingValue": "Numbering Value",
+    "textRefreshEntireTable": "Refresh entire table",
+    "textRefreshPageNumbersOnly": "Refresh page numbers only",
+    "txtWarnUrl": "Clicking this link can be harmful to your device and data.<br>Are you sure you want to continue?",
+    "menuEditLink": "Edit Link"
   },
   "Edit": {
     "notcriticalErrorTitle": "Warning",
@@ -296,7 +320,67 @@
     "textTotalRow": "Total Row",
     "textType": "Type",
     "textWrap": "Wrap",
-    "textNumbers": "Numbers"
+    "textNumbers": "Numbers",
+    "textDesign": "Design",
+    "textSu": "Su",
+    "textMo": "Mo",
+    "textTu": "Tu",
+    "textWe": "We",
+    "textTh": "Th",
+    "textFr": "Fr",
+    "textSa": "Sa",
+    "textJanuary": "January",
+    "textFebruary": "February",
+    "textMarch": "March",
+    "textApril": "April",
+    "textMay": "May",
+    "textJune": "June",
+    "textJuly": "July",
+    "textAugust": "August",
+    "textSeptember": "September",
+    "textOctober": "October",
+    "textNovember": "November",
+    "textDecember": "December",
+    "textEmpty": "Empty",
+    "textOk": "Ok",
+    "textTableOfCont": "TOC",
+    "textPageNumbers": "Page Numbers",
+    "textSimple": "Simple",
+    "textRightAlign": "Right Align",
+    "textLeader": "Leader",
+    "textStructure": "Structure",
+    "textRefresh": "Refresh",
+    "textLevels": "Levels",
+    "textRemoveTableContent": "Remove table of content",
+    "textCurrent": "Current",
+    "textOnline": "Online",
+    "textClassic": "Classic",
+    "textDistinctive": "Distinctive",
+    "textCentered": "Centered",
+    "textFormal": "Formal",
+    "textStandard": "Standard",
+    "textModern": "Modern",
+    "textCancel": "Cancel",
+    "textRefreshEntireTable": "Refresh entire table",
+    "textRefreshPageNumbersOnly": "Refresh page numbers only",
+    "textStyles": "Styles",
+    "textAmountOfLevels": "Amount of Levels",
+    "textCreateTextStyle": "Create new text style",
+    "textDone": "Done",
+    "textTitle": "Title",
+    "textEnterTitleNewStyle": "Enter title of a new style",
+    "textNextParagraphStyle": "Next paragraph style",
+    "textSameCreatedNewStyle": "Same as created new style",
+    "textParagraphStyle": "Paragraph Style",
+    "textChangeShape": "Change Shape",
+    "textDeleteImage": "Delete Image",
+    "textDeleteLink": "Delete Link",
+    "textRecommended": "Recommended",
+    "textRequired": "Required",
+    "textTextWrapping": "Text Wrapping",
+    "textCustomStyle": "Custom Style",
+    "textWrappingStyle": "Wrapping Style",
+    "textArrange": "Arrange"
   },
   "Error": {
     "convertationTimeoutText": "Conversion timeout exceeded.",
@@ -336,7 +420,18 @@
     "uploadImageExtMessage": "Unknown image format.",
     "uploadImageFileCountMessage": "No images uploaded.",
     "uploadImageSizeMessage": "The image is too big. The maximum size is 25 MB.",
-    "errorLoadingFont": "Fonts are not loaded.<br>Please contact your Document Server administrator."
+    "errorLoadingFont": "Fonts are not loaded.<br>Please contact your Document Server administrator.",
+    "errorEmptyTOC": "Start creating a table of contents by applying a heading style from the Styles gallery to the selected text.",
+    "errorNoTOC": "There's no table of contents to update. You can insert one from the References tab.",
+    "errorTextFormWrongFormat": "The value entered does not match the format of the field.",
+    "errorDirectUrl": "Please verify the link to the document.<br>This link must be a direct link to the file for downloading.",
+    "errorInconsistentExtDocx": "An error has occurred while opening the file.<br>The file content corresponds to text documents (e.g. docx), but the file has the inconsistent extension: %1.",
+    "errorInconsistentExtXlsx": "An error has occurred while opening the file.<br>The file content corresponds to spreadsheets (e.g. xlsx), but the file has the inconsistent extension: %1.",
+    "errorInconsistentExtPptx": "An error has occurred while opening the file.<br>The file content corresponds to presentations (e.g. pptx), but the file has the inconsistent extension: %1.",
+    "errorInconsistentExtPdf": "An error has occurred while opening the file.<br>The file content corresponds to one of the following formats: pdf/djvu/xps/oxps, but the file has the inconsistent extension: %1.",
+    "errorInconsistentExt": "An error has occurred while opening the file.<br>The file content does not match the file extension.",
+    "errorToken": "The document security token is not correctly formed.<br>Please contact your Document Server administrator.",
+    "errorTokenExpire": "The document security token has expired.<br>Please contact your Document Server administrator."
   },
   "LongActions": {
     "applyChangesTextText": "Loading data...",
@@ -371,7 +466,10 @@
     "txtEditingMode": "Set editing mode...",
     "uploadImageTextText": "Uploading image...",
     "uploadImageTitleText": "Uploading Image",
-    "waitText": "Please, wait..."
+    "waitText": "Please, wait...",
+    "confirmMaxChangesSize": "The size of actions exceeds the limitation set for your server.<br>Press \"Undo\" to cancel your last action or press \"Continue\" to keep action locally (you need to download the file or copy its content to make sure nothing is lost).",
+    "textUndo": "Undo",
+    "textContinue": "Continue"
   },
   "Main": {
     "criticalErrorTitle": "Error",
@@ -466,7 +564,13 @@
     "warnLicenseUsersExceeded": "You've reached the user limit for %1 editors. Contact your administrator to learn more.",
     "warnNoLicense": "You've reached the limit for simultaneous connections to %1 editors. This document will be opened for viewing only. Contact %1 sales team for personal upgrade terms.",
     "warnNoLicenseUsers": "You've reached the user limit for %1 editors. Contact %1 sales team for personal upgrade terms.",
-    "warnProcessRightsChange": "You don't have permission to edit this file."
+    "warnProcessRightsChange": "You don't have permission to edit this file.",
+    "textReplaceSuccess": "The search has been done. Occurrences replaced: {0}",
+    "textReplaceSkipped": "The replacement has been made. {0} occurrences were skipped.",
+    "textNoTextFound": "Text not found",
+    "textRequestMacros": "A macro makes a request to URL. Do you want to allow the request to the %1?",
+    "textDocumentProtected": "The document is protected. Edit settings are not available",
+    "textOk": "Ok"
   },
   "Settings": {
     "advDRMOptions": "Protected File",
@@ -476,7 +580,7 @@
     "notcriticalErrorTitle": "Warning",
     "textAbout": "About",
     "textApplication": "Application",
-    "textApplicationSettings": "Application settings",
+    "textApplicationSettings": "Application Settings",
     "textAuthor": "Author",
     "textBack": "Back",
     "textBottom": "Bottom",
@@ -569,12 +673,41 @@
     "txtScheme7": "Equity",
     "txtScheme8": "Flow",
     "txtScheme9": "Foundry",
-    "textOk": "Ok"
+    "textOk": "Ok",
+    "textChooseEncoding": "Choose Encoding",
+    "textChooseTxtOptions": "Choose TXT Options",
+    "txtDownloadTxt": "Download TXT",
+    "txtOk": "Ok",
+    "textPages": "Pages",
+    "textParagraphs": "Paragraphs",
+    "textSpaces": "Spaces",
+    "textSymbols": "Symbols",
+    "textWords": "Words",
+    "textFeedback": "Feedback & Support",
+    "textNavigation": "Navigation",
+    "textEmptyScreens": "There are no headings in the document. Apply a headings style to the text so that it appeas in the table of cotents.",
+    "textBeginningDocument": "Beginning of document",
+    "textEmptyHeading": "Empty Heading",
+    "textPageSize": "Page Size",
+    "textPdfVer": "PDF Version",
+    "textPdfTagged": "Tagged PDF",
+    "textFastWV": "Fast Web View",
+    "textYes": "Yes",
+    "textNo": "No",
+    "textPdfProducer": "PDF Producer",
+    "textDirection": "Direction",
+    "textLeftToRight": "Left To Right",
+    "textRightToLeft": "Right To Left",
+    "textRestartApplication": "Please restart the application for the changes to take effect",
+    "textMobileView": "Mobile View"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "You have unsaved changes. Click 'Stay on this Page' to wait for autosave. Click 'Leave this Page' to discard all the unsaved changes.",
     "dlgLeaveTitleText": "You leave the application",
     "leaveButtonText": "Leave this Page",
-    "stayButtonText": "Stay on this page"
+    "stayButtonText": "Stay on this page",
+    "textOk": "OK",
+    "textSwitchedMobileView": "Switched to Mobile view",
+    "textSwitchedStandardView": "Switched to Standard view"
   }
 }

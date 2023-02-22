@@ -179,8 +179,8 @@ define([
                     isN2 = n2!==undefined;
                 if (isN1 !== isN2) return (isN1) ? -1 : 1;
                 !isN1 && (n1 = item1.get('value').toLowerCase()) && (n2 = item2.get('value').toLowerCase());
-                if (n1==n2) return 0;
-                return (n2=='' || n1!=='' && n1<n2) ? -1 : 1;
+                if (n1===n2) return 0;
+                return (n2==='' || n1!=='' && n1<n2) ? -1 : 1;
             };
             this.cmbValue1.store.comparator = this.cmbValue2.store.comparator = comparator;
 
@@ -962,10 +962,10 @@ define([
 
             _.extend(_options, {
                 width           : width || 450,
-                height          : height || 265,
+                height          : height || 277,
                 contentWidth    : (width - 50) || 400,
                 header          : false,
-                cls             : 'filter-dlg',
+                cls             : 'filter-dlg autofilter',
                 contentTemplate : '',
                 title           : t.txtTitle,
                 modal           : false,
@@ -973,13 +973,13 @@ define([
                 items           : [],
                 resizable       : true,
                 minwidth        : 450,
-                minheight       : 265
+                minheight       : 277
             }, options);
 
             this.template   =   options.template || [
                 '<div class="box" style="height: 100%; display: flex; justify-content: space-between;">',
-                    '<div class="content-panel" style="width: 100%; border-right: 1px solid #cbcbcb; display: flex; flex-direction: column; justify-content: space-between;">',
-                        '<div class="" style="display: flex; flex-direction: column; justify-content: flex-start; height: calc(100% - 40px);">',
+                    '<div class="content-panel">',
+                        '<div class="" style="display: flex; flex-direction: column; justify-content: flex-start; height: calc(100% - 37px);">',
                             '<div id="id-sd-cell-search" style="height:22px; margin-bottom:10px;"></div>',
                             '<div class="border-values" style="overflow: hidden; flex-grow: 1;">',
                                 '<div id="id-dlg-filter-values" class="combo-values" style=""></div>',
@@ -1022,7 +1022,7 @@ define([
             $border.removeClass('top');
 
 
-            this.$window.find('.btn').on('click', _.bind(this.onBtnClick, this));
+            this.$window.find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
 
             this.btnOk = new Common.UI.Button({
                 cls: 'btn normal dlg-btn primary',
@@ -1328,8 +1328,8 @@ define([
                         isN2 = n2!==undefined;
                     if (isN1 !== isN2) return (isN1) ? -1 : 1;
                     !isN1 && (n1 = item1.get('cellvalue').toLowerCase()) && (n2 = item2.get('cellvalue').toLowerCase());
-                    if (n1==n2) return 0;
-                    return (n2=='' || n1!=='' && n1<n2) ? -1 : 1;
+                    if (n1===n2) return 0;
+                    return (n2==='' || n1!=='' && n1<n2) ? -1 : 1;
                 };
                 this.cellsList.on({
                     'item:change': this.onItemChanged.bind(this),
@@ -1355,8 +1355,7 @@ define([
             }, 100, this);
 
             if(Common.Utils.InternalSettings.get('sse-settings-size-filter-window')) {
-                this.$window.find('.combo-values').css({'height': Common.Utils.InternalSettings.get('sse-settings-size-filter-window')[1] - 103 + 'px'});
-                this.cellsList.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+                this.cellsList.scroller.update({minScrollbarLength  : this.cellsList.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             }
         },
 
@@ -1622,7 +1621,7 @@ define([
                     }
                 }
 
-                if (isLabel || event.target.className.match('checkbox')) {
+                if (isLabel || event.target.className.match('checkbox') && event.target.localName!=='input') {
                     this.updateCellCheck(listView, record);
 
                     _.delay(function () {
@@ -1684,7 +1683,7 @@ define([
                 this.configTo.asc_getFilterObj().asc_setType(Asc.c_oAscAutoFilterTypes.Filters);
 
                 // listView.isSuspendEvents = false;
-                listView.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+                listView.scroller.update({minScrollbarLength  : listView.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             }
         },
 
@@ -1943,7 +1942,7 @@ define([
                 this.checkCellTrigerBlock = undefined;
             }
             this.btnOk.setDisabled(this.cells.length<1);
-            this.cellsList.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+            this.cellsList.scroller.update({minScrollbarLength  : this.cellsList.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             this.cellsList.cmpEl.toggleClass('scroll-padding', this.cellsList.scroller.isVisible());
         },
 
@@ -2026,8 +2025,7 @@ define([
                 this.curSize = {resize: false, height: this.getSize()[1]};
             else if (this.curSize.resize) {
                 var size = this.getSize();
-                this.$window.find('.combo-values').css({'height': size[1] - 100 + 'px'});
-                this.cellsList.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: true, suppressScrollX: true});
+                this.cellsList.scroller.update({minScrollbarLength  : this.cellsList.minScrollbarLength, alwaysVisibleY: true, suppressScrollX: true});
             }
         },
 
@@ -2038,9 +2036,8 @@ define([
             if (size[1] !== this.curSize.height) {
                 if (!this.curSize.resize) {
                     this.curSize.resize = true;
-                    this.cellsList.scroller.update({minScrollbarLength  : 40, alwaysVisibleY: false, suppressScrollX: true});
+                    this.cellsList.scroller.update({minScrollbarLength  : this.cellsList.minScrollbarLength, alwaysVisibleY: false, suppressScrollX: true});
                 }
-                this.$window.find('.combo-values').css({'height': size[1] - 100 + 'px'});
                 this.curSize.height = size[1];
             }
             size[0] -= this.menuPanelWidth;

@@ -13,13 +13,15 @@ import EditTableController from "../../controller/edit/EditTable";
 import EditChartController from "../../controller/edit/EditChart";
 import EditHyperlinkController from "../../controller/edit/EditHyperlink";
 import EditHeaderController from "../../controller/edit/EditHeader";
+import EditTableContentsController from "../../controller/edit/EditTableContents";
 
-import {PageTextFonts, PageTextAddFormatting, PageTextBullets, PageTextNumbers, PageTextLineSpacing, PageTextFontColor, PageTextCustomFontColor, PageTextBackgroundColor, PageTextCustomBackColor} from "./EditText";
-import {ParagraphAdvSettings, PageParagraphBackColor, PageParagraphCustomColor} from "./EditParagraph";
+import {PageTextFonts, PageTextAddFormatting, PageTextBulletsAndNumbers, PageTextLineSpacing, PageTextFontColor, PageTextCustomFontColor, PageTextHighlightColor} from "./EditText";
+import {ParagraphAdvSettings, PageParagraphBackColor, PageParagraphCustomColor, PageParagraphStyle, PageCreateTextStyle, PageChangeNextParagraphStyle} from "./EditParagraph";
 import {PageShapeStyleNoFill, PageShapeStyle, PageShapeCustomFillColor, PageShapeBorderColor, PageShapeCustomBorderColor, PageWrap, PageReorder, PageReplace} from "./EditShape";
-import {PageImageReorder, PageImageReplace, PageImageWrap, PageLinkSettings} from "./EditImage";
+import {PageImageReorder, PageImageReplace, PageImageWrap, PageLinkSettings, PageWrappingStyle} from "./EditImage";
 import {PageTableOptions, PageTableWrap, PageTableStyle, PageTableStyleOptions, PageTableCustomFillColor, PageTableBorderColor, PageTableCustomBorderColor} from "./EditTable";
-import {PageChartStyle, PageChartCustomFillColor, PageChartBorderColor, PageChartCustomBorderColor, PageChartWrap, PageChartReorder} from "./EditChart";
+import {PageChartDesign,  PageChartDesignType, PageChartDesignStyle, PageChartDesignFill, PageChartDesignBorder, PageChartCustomFillColor, PageChartBorderColor, PageChartCustomBorderColor, PageChartWrap, PageChartReorder} from "./EditChart";
+import { PageEditLeaderTableContents, PageEditStylesTableContents, PageEditStructureTableContents } from './EditTableContents';
 
 const routes = [
     //Edit text
@@ -32,12 +34,8 @@ const routes = [
         component: PageTextAddFormatting,
     },
     {
-        path: '/edit-text-bullets/',
-        component: PageTextBullets,
-    },
-    {
-        path: '/edit-text-numbers/',
-        component: PageTextNumbers,
+        path: '/edit-bullets-and-numbers/',
+        component: PageTextBulletsAndNumbers,
     },
     {
         path: '/edit-text-line-spacing/',
@@ -52,13 +50,16 @@ const routes = [
         component: PageTextCustomFontColor,
     },
     {
-        path: '/edit-text-background-color/',
-        component: PageTextBackgroundColor,
+        path: '/edit-text-highlight-color/',
+        component: PageTextHighlightColor,
     },
-    {
-        path: '/edit-text-custom-back-color/',
-        component: PageTextCustomBackColor,
-    },
+
+    // Edit link
+    // {
+    //     path: '/edit-link/',
+    //     component: EditHyperlinkController
+    // },
+
     //Edit paragraph
     {
         path: '/edit-paragraph-adv/',
@@ -71,6 +72,18 @@ const routes = [
     {
         path: '/edit-paragraph-custom-color/',
         component: PageParagraphCustomColor,
+    },
+    {
+        path: '/edit-paragraph-style/',
+        component: PageParagraphStyle
+    },
+    {
+        path: '/create-text-style/',
+        component: PageCreateTextStyle
+    },
+    {
+        path: '/change-next-paragraph-style/',
+        component: PageChangeNextParagraphStyle
     },
     //Edit shape
     {
@@ -105,7 +118,8 @@ const routes = [
         path: '/edit-shape-replace/',
         component: PageReplace,
     },
-    //Edit image
+
+    // Edit image
     {
         path: '/edit-image-wrap/',
         component: PageImageWrap,
@@ -122,7 +136,12 @@ const routes = [
         path: '/edit-image-link/',
         component: PageLinkSettings,
     },
-    //Edit table
+    {
+        path: '/edit-image-wrapping-style/',
+        component: PageWrappingStyle
+    },
+
+    // Edit table
     {
         path: '/edit-table-options/',
         component: PageTableOptions,
@@ -161,8 +180,24 @@ const routes = [
         component: PageChartReorder,
     },
     {
+        path: '/edit-chart-design/',
+        component: PageChartDesign,
+    },
+    {
+        path: '/edit-chart-type/',
+        component: PageChartDesignType
+    },
+    {
         path: '/edit-chart-style/',
-        component: PageChartStyle,
+        component: PageChartDesignStyle
+    },
+    {
+        path: '/edit-chart-fill/',
+        component: PageChartDesignFill
+    },
+    {
+        path: '/edit-chart-border/',
+        component: PageChartDesignBorder
     },
     {
         path: '/edit-chart-custom-fill-color/',
@@ -175,6 +210,21 @@ const routes = [
     {
         path: '/edit-chart-custom-border-color/',
         component: PageChartCustomBorderColor,
+    }, 
+
+    // Table Contents 
+
+    {
+        path: '/edit-style-table-contents/',
+        component: PageEditStylesTableContents
+    },
+    {
+        path: '/edit-leader-table-contents/',
+        component: PageEditLeaderTableContents
+    },
+    {
+        path: '/edit-structure-table-contents/',
+        component: PageEditStructureTableContents
     }
 ];
 
@@ -234,28 +284,45 @@ const EditLayoutContent = ({ editors }) => {
 const EditTabs = props => {
     const { t } = useTranslation();
     const _t = t('Edit', {returnObjects: true});
+    const api = Common.EditorApi.get();
+    const inToc = api.asc_GetTableOfContentsPr(true);
 
     const settings = props.storeFocusObjects.settings;
     const headerType = props.storeFocusObjects.headerType;
     let editors = [];
+
     if (settings.length < 1) {
         editors.push({
             caption: _t.textSettings,
             component: <EmptyEditLayout />
         });
     } else {
-        if (settings.indexOf('text') > -1) {
+        if(inToc) {
             editors.push({
-                caption: _t.textText,
-                id: 'edit-text',
-                component: <EditTextController />
+                caption: _t.textTableOfCont,
+                id: 'edit-table-contents',
+                component: <EditTableContentsController />
             })
         }
-        if (settings.indexOf('paragraph') > -1) {
+        if (settings.indexOf('image') > -1) {
             editors.push({
-                caption: _t.textParagraph,
-                id: 'edit-paragraph',
-                component: <EditParagraphController />
+                caption: _t.textImage,
+                id: 'edit-image',
+                component: <EditImageController />
+            })
+        }
+        if (settings.indexOf('shape') > -1) {
+            editors.push({
+                caption: _t.textShape,
+                id: 'edit-shape',
+                component: <EditShapeController />
+            })
+        }
+        if (settings.indexOf('chart') > -1) {
+            editors.push({
+                caption: _t.textChart,
+                id: 'edit-chart',
+                component: <EditChartController />
             })
         }
         if (settings.indexOf('table') > -1) {
@@ -272,32 +339,18 @@ const EditTabs = props => {
                 component: <EditHeaderController />
             })
         }
-        if (settings.indexOf('shape') > -1) {
+        if (settings.indexOf('text') > -1) {
             editors.push({
-                caption: _t.textShape,
-                id: 'edit-shape',
-                component: <EditShapeController />
+                caption: _t.textText,
+                id: 'edit-text',
+                component: <EditTextController />
             })
         }
-        if (settings.indexOf('image') > -1) {
+        if (settings.indexOf('paragraph') > -1) {
             editors.push({
-                caption: _t.textImage,
-                id: 'edit-image',
-                component: <EditImageController />
-            })
-        }
-        if (settings.indexOf('chart') > -1) {
-            editors.push({
-                caption: _t.textChart,
-                id: 'edit-chart',
-                component: <EditChartController />
-            })
-        }
-        if (settings.indexOf('hyperlink') > -1) {
-            editors.push({
-                caption: _t.textHyperlink,
-                id: 'edit-link',
-                component: <EditHyperlinkController />
+                caption: _t.textParagraph,
+                id: 'edit-paragraph',
+                component: <EditParagraphController />
             })
         }
     }
@@ -322,10 +375,10 @@ const EditView = props => {
     const show_popover = props.usePopover;
     return (
         show_popover ?
-            <Popover id="edit-popover" className="popover__titled" onPopoverClosed={() => props.onClosed()}>
+            <Popover id="edit-popover" className="popover__titled" closeByOutsideClick={false} onPopoverClosed={() => props.onClosed()}>
                 <EditTabsContainer inPopover={true} onOptionClick={onOptionClick} style={{height: '410px'}} />
             </Popover> :
-            <Sheet id="edit-sheet" push onSheetClosed={() => props.onClosed()}>
+            <Sheet id="edit-sheet" closeByOutsideClick={true} closeByBackdropClick={false} backdrop={false} push onSheetClosed={() => props.onClosed()}>
                 <EditTabsContainer onOptionClick={onOptionClick} />
             </Sheet>
     )
@@ -343,8 +396,9 @@ const EditOptions = props => {
     });
 
     const onviewclosed = () => {
-        if ( props.onclosed )
+        if ( props.onclosed ) {
             props.onclosed();
+        }
     };
 
     return (

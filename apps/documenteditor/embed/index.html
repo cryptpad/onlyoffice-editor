@@ -29,7 +29,7 @@
         .loadmask > .brendpanel {
             width: 100%;
             position: absolute;
-            height: 48px;
+            height: 28px;
             background-color: #F7F7F7;
             -webkit-box-shadow: inset 0 -1px 0 #dbdbdb, inset 0 1px 0 #FAFAFA;
             box-shadow: inset 0 -1px 0 #dbdbdb, inset 0 1px 0 #FAFAFA;
@@ -43,16 +43,15 @@
 
         .loadmask > .brendpanel .loading-logo {
             max-width: 200px;
-            height: 24px;
+            height: 20px;
             margin-left: 10px;
             text-align: center;
         }
 
         .loadmask > .brendpanel .loading-logo > img {
             display: inline-block;
-            max-width: 124px;
+            max-width: 100px;
             max-height: 20px;
-            margin-top: 2px;
             opacity: 0;
         }
         .loadmask > .brendpanel .doc-title {
@@ -171,6 +170,8 @@
            var elem = document.querySelector('.loading-logo');
            if (elem && logo) {
                elem.style.backgroundImage= 'none';
+               elem.style.width = 'auto';
+               elem.style.height = 'auto';
                var img = document.querySelector('.loading-logo img');
                img && img.setAttribute('src', logo);
                img.style.opacity = 1;
@@ -228,7 +229,7 @@
       <script type="text/javascript" src="../../../vendor/jquery.browser/dist/jquery.browser.min.js"></script>
       <script type="text/javascript" src="../../../vendor/bootstrap/dist/js/bootstrap.js"></script>
 
-      <script type="text/javascript" src="../../../vendor/sockjs/sockjs.min.js"></script>
+      <script type="text/javascript" src="../../../vendor/socketio/socket.io.min.js"></script>
       <script type="text/javascript" src="../../../vendor/xregexp/xregexp-all-min.js"></script>
 
       <script src="../../../vendor/requirejs/require.js"></script>
@@ -254,6 +255,8 @@
       <script type="text/javascript" src="../../common/embed/lib/view/LoadMask.js"></script>
       <script type="text/javascript" src="../../common/embed/lib/view/modals.js"></script>
       <script type="text/javascript" src="../../common/embed/lib/controller/modals.js"></script>
+      <script type="text/javascript" src="../../common/embed/lib/view/SearchBar.js"></script>
+      <script type="text/javascript" src="js/SearchBar.js"></script>
       <script type="text/javascript" src="js/ApplicationView.js"></script>
       <script type="text/javascript" src="js/ApplicationController.js"></script>
       <script type="text/javascript" src="js/application.js"></script>

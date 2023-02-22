@@ -36,6 +36,11 @@
     !common.utils && (common.utils = {});
 
     common.utils = new(function(){
+        var userAgent = navigator.userAgent.toLowerCase(),
+            check = function(regex){
+                return regex.test(userAgent);
+            },
+            isMac = check(/macintosh|mac os x/);
         return {
             openLink: function(url) {
                 if (url) {
@@ -94,7 +99,17 @@
                     str = num.toString();
                 for (var i=str.length; i<digits; i++) strfill += fill;
                 return strfill + str;
-            }
+            },
+            getKeyByValue: function(obj, value) {
+                for(var prop in obj) {
+                    if(obj.hasOwnProperty(prop)) {
+                        if(obj[prop] === value)
+                            return prop;
+                    }
+                }
+            },
+
+            isMac : isMac
         };
     })();
 }();

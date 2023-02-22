@@ -145,7 +145,7 @@ define([
                 style       : '',
                 itemTemplate: null,
                 items       : [],
-                menuAlign   : 'tl-bl',
+                menuAlign   : 'tl-bl',//menu - parent
                 menuAlignEl : null,
                 offset      : [0, 0],
                 cyclic      : true,
@@ -171,6 +171,7 @@ define([
                 this.menuAlignEl    = this.options.menuAlignEl;
                 this.scrollAlwaysVisible = this.options.scrollAlwaysVisible;
                 this.search = this.options.search;
+                this.outerMenu      = this.options.outerMenu;
 
                 if (this.options.restoreHeight) {
                     this.options.restoreHeight = (typeof (this.options.restoreHeight) == "number") ? this.options.restoreHeight : (this.options.maxHeight ? this.options.maxHeight : 100000);
@@ -267,6 +268,8 @@ define([
                     this.parentEl.on('hide.bs.dropdown',    _.bind(me.onBeforeHideMenu, me));
                     this.parentEl.on('hidden.bs.dropdown',  _.bind(me.onAfterHideMenu, me));
                     this.parentEl.on('keydown.after.bs.dropdown', _.bind(me.onAfterKeydownMenu, me));
+                    this.parentEl.on('keydown.before.bs.dropdown', _.bind(me.onBeforeKeydownMenu, me));
+                    this.options.innerMenus && this.on('keydown:before', _.bind(me.onBeforeKeyDown, me));
 
                     menuRoot.hover(
                         function(e) { me.isOver = true;},
@@ -374,12 +377,12 @@ define([
             onBeforeShowMenu: function(e) {
                 Common.NotificationCenter.trigger('menu:show');
                 this.trigger('show:before', this, e);
-                this.alignPosition();
+                (e && e.target===e.currentTarget) && this.alignPosition();
             },
 
             onAfterShowMenu: function(e) {
                 this.trigger('show:after', this, e);
-                if (this.scroller) {
+                if (this.scroller && e && e.target===e.currentTarget) {
                     var menuRoot = this.menuRoot;
                     if (this.wheelSpeed===undefined) {
                         var item = menuRoot.find('> li:first'),
@@ -453,9 +456,25 @@ define([
                 }
             },
 
+            onBeforeKeydownMenu: function(e) {
+                if (e.isDefaultPrevented() || !(this.outerMenu && this.outerMenu.menu))
+                    return;
+
+                if (e.keyCode == Common.UI.Keys.UP || e.keyCode == Common.UI.Keys.DOWN)  {
+                    var $items = this.menuRoot.find('> li').find('> a'),
+                        index = $items.index($items.filter(':focus'));
+                    if (e.keyCode==Common.UI.Keys.UP && index==0 || e.keyCode == Common.UI.Keys.DOWN && index==$items.length-1) {
+                        this.outerMenu.menu.focusOuter(e, this.outerMenu.index);
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+            },
+
             selectCandidate: function() {
-                var index = this._search.index || 0,
+                var index = (this._search.index && this._search.index != -1) ? this._search.index : 0,
                     re = new RegExp('^' + ((this._search.full) ? this._search.text : this._search.char), 'i'),
+                    isFirstCharsEqual = re.test(this.items[index].caption),
                     itemCandidate, idxCandidate;
 
                 for (var i=0; i<this.items.length; i++) {
@@ -464,6 +483,8 @@ define([
                         if (!itemCandidate) {
                             itemCandidate = item;
                             idxCandidate = i;
+                            if(!isFirstCharsEqual) 
+                                break;  
                         }
                         if (this._search.full && i==index || i>index) {
                             itemCandidate = item;
@@ -488,6 +509,85 @@ define([
                         }
                     }
                     item.focus();
+                }
+            },
+
+            onBeforeKeyDown: function(menu, e) {
+                if (e.keyCode == Common.UI.Keys.RETURN) {
+                    var li = $(e.target).closest('li');
+                    if (li.length>0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        li.click();
+                    }
+                    Common.UI.Menu.Manager.hideAll();
+                } else if (e.namespace!=="after.bs.dropdown" && (e.keyCode == Common.UI.Keys.DOWN || e.keyCode == Common.UI.Keys.UP)) {
+                    if ( this.menuRoot.length<1 || $(e.target).closest('ul[role=menu]').get(0) !== this.menuRoot.get(0)) return;
+
+                    var innerMenu = this.findInnerMenu(e.keyCode);
+                    if (innerMenu && innerMenu.focusInner) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        _.delay(function() {
+                            innerMenu.focusInner(e);
+                        }, 10);
+                    }
+                }
+            },
+
+            setInnerMenu: function(menus) {
+                if (this.options.innerMenus || !menus) return;
+
+                this.options.innerMenus = menus;
+                this.rendered && this.on('keydown:before', _.bind(this.onBeforeKeyDown, this));
+            },
+            
+            findInnerMenu: function(direction, index, findOuter) {
+                if (!this.options.innerMenus) return;
+
+                var $allItems = $('> li', this.menuRoot),
+                    $liItems = $('> li:not(.divider):not(.disabled):visible', this.menuRoot),
+                    length = $liItems.length;
+                if (!length) return;
+
+                var step = 0;
+                while (step<length) {
+                    var focusedIndex = (index!==undefined) ? $liItems.index($allItems.eq(index)) : $liItems.index($liItems.find('> a').filter(':focus').parent());
+                    var checkedIndex = (direction == Common.UI.Keys.DOWN) ? (focusedIndex<length-1 ? focusedIndex+1 : 0) : (focusedIndex>0 ? focusedIndex-1 : length-1),
+                        checkedItem = $liItems.eq(checkedIndex);
+                    index = $allItems.index(checkedItem);
+
+                    for (var i=0; i<this.options.innerMenus.length; i++) {
+                        var item = this.options.innerMenus[i];
+                        if (item && item.menu && item.index==index) {
+                            return item.menu;
+                        }
+                    }
+                    if (checkedItem.find('> a').length>0)
+                        return findOuter ? checkedItem : undefined;
+                    step++;
+                }
+            },
+
+            focusInner: function(e) {
+                if (e.keyCode == Common.UI.Keys.UP)
+                    this.items[this.items.length-1].cmpEl.find('> a').focus();
+                else
+                    this.items[0].cmpEl.find('> a').focus();
+            },
+
+            focusOuter: function(e, index) {
+                var innerMenu = this.findInnerMenu(e.keyCode, index, true);
+                if (innerMenu && innerMenu.focusInner) {
+                    _.delay(function() {
+                        innerMenu.focusInner(e);
+                    }, 10);
+                } else if (innerMenu) {
+                    innerMenu.find('> a').focus();
+                } else {
+                    var $items = $('> li:not(.divider):not(.disabled):visible', this.menuRoot).find('> a'),
+                        length = $items.length;
+                    length && $items.eq(e.keyCode == Common.UI.Keys.UP ? (index<0 ? length-1 : index) : (index>=length-1 ? 0 : index+1)).focus();
                 }
             },
 
@@ -554,7 +654,28 @@ define([
                 if (left < 0)
                     left = 0;
 
-                if (this.options.restoreHeight) {
+                if (this.options.restoreHeightAndTop) { // can change top position, if top<0 - then change menu height
+                    var cg = Common.Utils.croppedGeometry();
+                    docH = cg.height - 10;
+                    menuRoot.css('max-height', 'none');
+                    menuH = menuRoot.outerHeight();
+                    if (top + menuH > docH + cg.top) {
+                        top = docH - menuH;
+                    }
+                    if (top < cg.top)
+                        top = cg.top;
+                    if (top + menuH > docH + cg.top) {
+                        menuRoot.css('max-height', (docH - top) + 'px');
+                        (!this.scroller) && (this.scroller = new Common.UI.Scroller({
+                            el: this.$el.find('> .dropdown-menu '),
+                            minScrollbarLength: 30,
+                            suppressScrollX: true,
+                            alwaysVisibleY: this.scrollAlwaysVisible
+                        }));
+                        this.wheelSpeed = undefined;
+                    }
+                    this.scroller && this.scroller.update({alwaysVisibleY: this.scrollAlwaysVisible});
+                } else if (this.options.restoreHeight) {
                     if (typeof (this.options.restoreHeight) == "number") {
                         if (top + menuH > docH) {
                             menuRoot.css('max-height', (docH - top) + 'px');
@@ -592,6 +713,14 @@ define([
                     if (!(menuH < docH)) _css['margin-top'] = 0;
 
                     menuRoot.css(_css);
+                }
+            },
+
+            getChecked: function() {
+                for (var i=0; i<this.items.length; i++) {
+                    var item = this.items[i];
+                    if (item.isChecked && item.isChecked())
+                        return item;
                 }
             },
 
@@ -857,12 +986,12 @@ define([
         onBeforeShowMenu: function(e) {
             Common.NotificationCenter.trigger('menu:show');
             this.trigger('show:before', this, e);
-            this.alignPosition();
+            (e && e.target===e.currentTarget) && this.alignPosition();
         },
 
         onAfterShowMenu: function(e) {
             this.trigger('show:after', this, e);
-            if (this.scroller) {
+            if (this.scroller && e && e.target===e.currentTarget) {
                 this.scroller.update({alwaysVisibleY: this.scrollAlwaysVisible});
                 var menuRoot = this.menuRoot,
                     $selected = menuRoot.find('> li .checked');
@@ -933,8 +1062,9 @@ define([
         },
 
         selectCandidate: function() {
-            var index = this._search.index || 0,
+            var index = (this._search.index && this._search.index != -1) ? this._search.index : 0,
                 re = new RegExp('^' + ((this._search.full) ? this._search.text : this._search.char), 'i'),
+                isFirstCharsEqual = re.test(this.items[index].caption),
                 itemCandidate, idxCandidate;
 
             for (var i=0; i<this.items.length; i++) {
@@ -943,6 +1073,8 @@ define([
                     if (!itemCandidate) {
                         itemCandidate = item;
                         idxCandidate = i;
+                        if(!isFirstCharsEqual) 
+                            break;                    
                     }
                     if (this._search.full && i==index || i>index) {
                         itemCandidate = item;

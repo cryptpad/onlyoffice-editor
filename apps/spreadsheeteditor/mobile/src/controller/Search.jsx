@@ -29,7 +29,7 @@ class SearchSettings extends SearchSettingsView {
 
         const markup = (
             <Page>
-                <Navbar title={_t.textFindAndReplace}>
+                <Navbar title={isEdit ? _t.textFindAndReplace : _t.textFind}>
                     {!show_popover &&
                         <NavRight>
                             <Link popupClose=".search-settings-popup">{_t.textDone}</Link>
@@ -123,10 +123,10 @@ class SESearchView extends SearchView {
     }
 
     onSearchbarShow(isshowed, bar) {
-        super.onSearchbarShow(isshowed, bar);
-
+        // super.onSearchbarShow(isshowed, bar);
         const api = Common.EditorApi.get();
-        if ( isshowed ) {
+
+        if ( isshowed && this.state.searchQuery.length ) {
             const checkboxMarkResults = f7.toggle.get('.toggle-mark-results');
             api.asc_selectSearchingResults(checkboxMarkResults.checked);
         } else api.asc_selectSearchingResults(false);
@@ -137,11 +137,19 @@ const Search = withTranslation()(props => {
     const { t } = props;
     const _t = t('View.Settings', {returnObjects: true});
 
+    useEffect(() => {
+        if (f7.searchbar.get('.searchbar')?.enabled && Device.phone) {
+            const api = Common.EditorApi.get();
+            $$('.searchbar-input').focus();
+            api.asc_enableKeyEvents(false);
+        }
+    });
+
     const onSearchQuery = params => {
         const api = Common.EditorApi.get();
       
         let lookIn = +params.lookIn === 0;
-        let searchIn = +params.searchIn === 1;
+        let searchIn = +params.searchIn;
         let searchBy = +params.searchBy === 0;
 
         if (params.find && params.find.length) {
@@ -155,19 +163,27 @@ const Search = withTranslation()(props => {
             options.asc_setScanByRows(searchBy);
             options.asc_setLookIn(lookIn ? Asc.c_oAscFindLookIn.Formulas : Asc.c_oAscFindLookIn.Value);
 
-            if (!api.asc_findText(options)) {
-                f7.dialog.alert(null, _t.textNoTextFound);
-            }
+            if (params.highlight) api.asc_selectSearchingResults(true);
+
+            api.asc_findText(options, function(resultCount) {
+                !resultCount && f7.dialog.alert(null, _t.textNoTextFound);
+            });
         }
     };
+
+    const onchangeSearchQuery = params => {
+        const api = Common.EditorApi.get();
+        
+        if(params.length === 0) api.asc_selectSearchingResults(false);
+    }
 
     const onReplaceQuery = params => {
         const api = Common.EditorApi.get();
         let lookIn = +params.lookIn === 0;
-        let searchIn = +params.searchIn === 1;
+        let searchIn = +params.searchIn;
         let searchBy = +params.searchBy === 0;
 
-        if (params.find && params.find.length) {
+        // if (params.find && params.find.length) {
             api.isReplaceAll = false;
 
             let options = new Asc.asc_CFindOptions();
@@ -182,16 +198,16 @@ const Search = withTranslation()(props => {
             options.asc_setIsReplaceAll(false);
 
             api.asc_replaceText(options);
-        }
+        // }
     }
 
     const onReplaceAllQuery = params => {
         const api = Common.EditorApi.get();
         let lookIn = +params.lookIn === 0;
-        let searchIn = +params.searchIn === 1;
+        let searchIn = +params.searchIn;
         let searchBy = +params.searchBy === 0;
 
-        if (params.find && params.find.length) {
+        // if (params.find && params.find.length) {
             api.isReplaceAll = true;
 
             let options = new Asc.asc_CFindOptions();
@@ -206,10 +222,10 @@ const Search = withTranslation()(props => {
             options.asc_setIsReplaceAll(true);
 
             api.asc_replaceText(options);
-        }
+        // }
     }
 
-    return <SESearchView _t={_t} onSearchQuery={onSearchQuery} onReplaceQuery={onReplaceQuery} onReplaceAllQuery={onReplaceAllQuery} />
+    return <SESearchView _t={_t} onSearchQuery={onSearchQuery} onchangeSearchQuery={onchangeSearchQuery} onReplaceQuery={onReplaceQuery} onReplaceAllQuery={onReplaceAllQuery} />
 });
 
 const SearchSettingsWithTranslation = inject("storeAppOptions")(observer(withTranslation()(SearchSettings)));

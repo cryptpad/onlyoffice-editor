@@ -69,12 +69,6 @@ define([
         // Delegated events for creating new items, and clearing completed ones.
         events: function() {
             return {
-                /** coauthoring begin **/
-                'click #left-btn-comments': _.bind(this.onCoauthOptions, this),
-                'click #left-btn-chat': _.bind(this.onCoauthOptions, this),
-                /** coauthoring end **/
-                'click #left-btn-plugins': _.bind(this.onCoauthOptions, this),
-                'click #left-btn-navigation': _.bind(this.onCoauthOptions, this),
                 'click #left-btn-support': function() {
                     var config = this.mode.customization;
                     config && !!config.feedback && !!config.feedback.url ?
@@ -86,19 +80,21 @@ define([
 
         initialize: function () {
             this.minimizedMode = true;
-            this._state = {};
+            this._state = {disabled: false};
         },
 
         render: function () {
             var $markup = $(this.template({}));
 
-            this.btnSearch = new Common.UI.Button({
-                action: 'search',
-                el: $markup.elementById('#left-btn-search'),
-                hint: this.tipSearch + Common.Utils.String.platformKey('Ctrl+F'),
+            this.btnSearchBar = new Common.UI.Button({
+                action: 'advancedsearch',
+                el: $markup.elementById('#left-btn-searchbar'),
+                hint: this.tipSearch,
                 disabled: true,
-                enableToggle: true
+                enableToggle: true,
+                toggleGroup: 'leftMenuGroup'
             });
+            this.btnSearchBar.on('click',       this.onBtnMenuClick.bind(this));
 
             this.btnAbout = new Common.UI.Button({
                 action: 'about',
@@ -108,6 +104,7 @@ define([
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
+            this.btnAbout.on('toggle',          this.onBtnMenuToggle.bind(this));
 
             this.btnSupport = new Common.UI.Button({
                 action: 'support',
@@ -124,21 +121,21 @@ define([
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
+            this.btnComments.on('click',        this.onBtnMenuClick.bind(this));
+            this.btnComments.on('toggle',       this.onBtnCommentsToggle.bind(this));
 
             this.btnChat = new Common.UI.Button({
                 el: $markup.elementById('#left-btn-chat'),
-                hint: this.tipChat + Common.Utils.String.platformKey('Alt+Q'),
+                hint: this.tipChat + Common.Utils.String.platformKey('Alt+Q', ' (' + (Common.Utils.isMac ? Common.Utils.String.textCtrl + '+' : '') + '{0})'),
                 enableToggle: true,
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
+            this.btnChat.on('click',            this.onBtnMenuClick.bind(this));
 
             this.btnComments.hide();
             this.btnChat.hide();
 
-            this.btnComments.on('click',        this.onBtnMenuClick.bind(this));
-            this.btnComments.on('toggle',       this.onBtnCommentsToggle.bind(this));
-            this.btnChat.on('click',            this.onBtnMenuClick.bind(this));
             /** coauthoring end **/
 
             this.btnPlugins = new Common.UI.Button({
@@ -153,18 +150,25 @@ define([
 
             this.btnNavigation = new Common.UI.Button({
                 el: $markup.elementById('#left-btn-navigation'),
-                hint: this.tipNavigation,
+                hint: this.tipOutline,
                 enableToggle: true,
                 disabled: true,
                 toggleGroup: 'leftMenuGroup'
             });
             this.btnNavigation.on('click',         this.onBtnMenuClick.bind(this));
 
-            this.btnSearch.on('click',          this.onBtnMenuClick.bind(this));
-            this.btnAbout.on('toggle',          this.onBtnMenuToggle.bind(this));
-
             this.menuFile = new DE.Views.FileMenu();
-            this.btnAbout.panel = new Common.Views.About({el: '#about-menu-panel', appName: 'Document Editor'});
+            this.btnAbout.panel = new Common.Views.About({el: '#about-menu-panel', appName: this.txtEditor});
+
+            this.btnThumbnails = new Common.UI.Button({
+                el: $markup.elementById('#left-btn-thumbnails'),
+                hint: this.tipPageThumbnails,
+                enableToggle: true,
+                disabled: true,
+                toggleGroup: 'leftMenuGroup'
+            });
+            this.btnThumbnails.hide();
+            this.btnThumbnails.on('click', this.onBtnMenuClick.bind(this));
 
             this.$el.html($markup);
 
@@ -176,9 +180,6 @@ define([
                 btn.panel['show']();
                 if (!this._state.pluginIsRunning)
                     this.$el.width(SCALE_MIN);
-
-                if (this.btnSearch.isActive())
-                    this.btnSearch.toggle(false);
             } else {
                 btn.panel['hide']();
             }
@@ -196,19 +197,20 @@ define([
             this.supressEvents = true;
             this.btnAbout.toggle(false);
 
-            if (btn.options.action == 'search') {
-            } else {
-                if (btn.pressed) {
-                    if (!(this.$el.width() > SCALE_MIN)) {
-                        this.$el.width(parseInt(Common.localStorage.getItem('de-mainmenu-width')) || MENU_SCALE_PART);
-                    }
-                } else if (!this._state.pluginIsRunning) {
-                    Common.localStorage.setItem('de-mainmenu-width',this.$el.width());
-                    this.$el.width(SCALE_MIN);
+            if (btn.pressed) {
+                if (!(this.$el.width() > SCALE_MIN)) {
+                    this.$el.width(parseInt(Common.localStorage.getItem('de-mainmenu-width')) || MENU_SCALE_PART);
                 }
+            } else if (!this._state.pluginIsRunning) {
+                var width = this.$el.width();
+                this.isVisible() && (width>SCALE_MIN) && Common.localStorage.setItem('de-mainmenu-width', width);
+                this.$el.width(SCALE_MIN);
             }
 
             this.supressEvents = false;
+
+            this.onCoauthOptions();
+            btn.pressed && btn.options.action == 'advancedsearch' && this.fireEvent('search:aftershow', this);
             Common.NotificationCenter.trigger('layout:changed', 'leftmenu');
         },
 
@@ -238,6 +240,21 @@ define([
                 } else
                     this.panelNavigation['hide']();
             }
+            if (this.panelThumbnails) {
+                if (this.btnThumbnails.pressed) {
+                    this.panelThumbnails.show();
+                } else {
+                    this.panelThumbnails.hide();
+                }
+            }
+            if (this.panelSearch) {
+                if (this.btnSearchBar.pressed) {
+                    this.panelSearch.show();
+                    this.panelSearch.focus();
+                } else {
+                    this.panelSearch.hide();
+                }
+            }
             /** coauthoring end **/
             // if (this.mode.canPlugins && this.panelPlugins) {
             //     if (this.btnPlugins.pressed) {
@@ -262,6 +279,12 @@ define([
             } else
             if (name == 'navigation' && !this.panelNavigation) {
                 this.panelNavigation = panel.render('#left-panel-navigation');
+            } else
+            if (name == 'thumbnails') {
+                this.panelThumbnails = panel.render('#left-panel-thumbnails');
+            } else
+            if (name == 'advancedsearch') {
+                this.panelSearch = panel.render('#left-panel-search');
             }
         },
 
@@ -305,13 +328,21 @@ define([
                 }
                 if (this.panelNavigation) {
                     this.panelNavigation['hide']();
-                    this.btnNavigation.toggle(false, true);
+                    this.btnNavigation.toggle(false);
+                }
+                if (this.panelSearch) {
+                    this.panelSearch['hide']();
+                    this.btnSearchBar.toggle(false, true);
+                }
+                if (this.panelThumbnails) {
+                    this.panelThumbnails['hide']();
+                    this.btnThumbnails.toggle(false, true);
                 }
             }
         },
 
         isOpened: function() {
-            var isopened = this.btnSearch.pressed;
+            var isopened = this.btnSearchBar.pressed;
             /** coauthoring begin **/
             !isopened && (isopened = this.btnComments.pressed || this.btnChat.pressed);
             /** coauthoring end **/
@@ -319,7 +350,7 @@ define([
         },
 
         disableMenu: function(menu, disable) {
-            this.btnSearch.setDisabled(false);
+            this.btnSearchBar.setDisabled(false);
             this.btnAbout.setDisabled(false);
             this.btnSupport.setDisabled(false);
             /** coauthoring begin **/
@@ -328,9 +359,10 @@ define([
             /** coauthoring end **/
             this.btnPlugins.setDisabled(false);
             this.btnNavigation.setDisabled(false);
+            this.btnThumbnails.setDisabled(false);
         },
 
-        showMenu: function(menu, opts) {
+        showMenu: function(menu, opts, suspendAfter) {
             var re = /^(\w+):?(\w*)$/.exec(menu);
             if ( re[1] == 'file' ) {
                 if ( !this.menuFile.isVisible() ) {
@@ -344,7 +376,6 @@ define([
                             !this.btnChat.isDisabled() && !this.btnChat.pressed) {
                         this.btnChat.toggle(true);
                         this.onBtnMenuClick(this.btnChat);
-                        this.onCoauthOptions();
                         this.panelChat.focus();
                     }
                 } else
@@ -353,7 +384,20 @@ define([
                             !this.btnComments.isDisabled() && !this.btnComments.pressed) {
                         this.btnComments.toggle(true);
                         this.onBtnMenuClick(this.btnComments);
-                        this.onCoauthOptions();
+                    }
+                } else if (menu == 'navigation') {
+                    if (this.btnNavigation.isVisible() &&
+                        !this.btnNavigation.isDisabled() && !this.btnNavigation.pressed) {
+                        this.btnNavigation.toggle(true);
+                        this.onBtnMenuClick(this.btnNavigation);
+                    }
+                } else if (menu == 'advancedsearch') {
+                    if (this.btnSearchBar.isVisible() &&
+                        !this.btnSearchBar.isDisabled() && !this.btnSearchBar.pressed) {
+                        this.btnSearchBar.toggle(true);
+                        this.onBtnMenuClick(this.btnSearchBar);
+                        this.panelSearch.focus();
+                        !suspendAfter && this.fireEvent('search:aftershow', this);
                     }
                 }
                 /** coauthoring end **/
@@ -371,6 +415,7 @@ define([
         setMode: function(mode) {
             this.mode = mode;
             this.btnAbout.panel.setMode(mode);
+            mode.canUseThumbnails && this.btnThumbnails.show();
             return this;
         },
 
@@ -454,6 +499,11 @@ define([
             }
             this.limitHint && this.limitHint.css('top', top);
         },
+
+        isVisible: function () {
+            return this.$el && this.$el.is(':visible');
+        },
+
         /** coauthoring begin **/
         tipComments : 'Comments',
         tipChat     : 'Chat',
@@ -462,10 +512,13 @@ define([
         tipSupport  : 'Feedback & Support',
         tipSearch   : 'Search',
         tipPlugins  : 'Plugins',
+        tipPageThumbnails: 'Page Thumbnails',
         txtDeveloper: 'DEVELOPER MODE',
         txtTrial: 'TRIAL MODE',
         txtTrialDev: 'Trial Developer Mode',
         tipNavigation: 'Navigation',
-        txtLimit: 'Limit Access'
+        tipOutline: 'Headings',
+        txtLimit: 'Limit Access',
+        txtEditor: 'Document Editor'
     }, DE.Views.LeftMenu || {}));
 });

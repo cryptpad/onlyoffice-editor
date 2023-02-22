@@ -3,22 +3,28 @@ import { inject } from 'mobx-react';
 import { f7 } from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 
-const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocument}) => {
-    const {t} = useTranslation();
+const ErrorController = inject('storeAppOptions','storeSpreadsheetInfo')(({storeAppOptions, storeSpreadsheetInfo, LoadingDocument}) => {
+    const { t } = useTranslation();
     const _t = t("Error", { returnObjects: true });
 
     useEffect(() => {
-        Common.Notifications.on('engineCreated', (api) => {
-            api.asc_registerCallback('asc_onError', onError);
-        });
+        const on_engine_created = k => { k.asc_registerCallback('asc_onError', onError); };
+
+        const api = Common.EditorApi.get();
+        if ( !api ) Common.Notifications.on('engineCreated', on_engine_created);
+        else on_engine_created(api);
+
         return () => {
             const api = Common.EditorApi.get();
-            api.asc_unregisterCallback('asc_onError', onError);
+            if ( api ) api.asc_unregisterCallback('asc_onError', onError);
+
+            Common.Notifications.off('engineCreated', on_engine_created);
         }
     });
 
     const onError = (id, level, errData) => {
-
+        const api = Common.EditorApi.get();
+        
         if (id === Asc.c_oAscError.ID.LoadingScriptError) {
             f7.notification.create({
                 title: _t.criticalErrorTitle,
@@ -30,8 +36,6 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
 
         Common.Notifications.trigger('preloader:close');
         Common.Notifications.trigger('preloader:endAction', Asc.c_oAscAsyncActionType['BlockInteraction'], LoadingDocument,true);
-
-        const api = Common.EditorApi.get();
 
         const config = {
             closable: false
@@ -218,15 +222,16 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
 
             case Asc.c_oAscError.ID.DataValidate:
                 errData && errData.asc_getErrorTitle() && (config.title = Common.Utils.String.htmlEncode(errData.asc_getErrorTitle()));
+                config.buttons  = ['OK', 'Cancel'];
                 config.msg = errData && errData.asc_getError() ? Common.Utils.String.htmlEncode(errData.asc_getError()) : _t.errorDataValidate;
                 break;
 
             case Asc.c_oAscError.ID.VKeyEncrypt:
-                config.msg = _t.errorKeyEncrypt;
+                config.msg = _t.errorToken;
                 break;
 
             case Asc.c_oAscError.ID.KeyExpire:
-                config.msg = _t.errorKeyExpire;
+                config.msg = _t.errorTokenExpire;
                 break;
 
             case Asc.c_oAscError.ID.UserCountExceed:
@@ -302,9 +307,39 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
             case Asc.c_oAscError.ID.UpdateVersion:
                 config.msg = _t.errorUpdateVersionOnDisconnect;
                 break;
+            
+            case Asc.c_oAscError.ID.ChangeOnProtectedSheet:
+                config.msg = t('Error.errorChangeOnProtectedSheet');
+                break;
 
             case Asc.c_oAscError.ID.LoadingFontError:
                 config.msg = _t.errorLoadingFont;
+                break;
+
+            case Asc.c_oAscError.ID.PasswordIsNotCorrect:
+                config.msg = t('Error.textErrorPasswordIsNotCorrect');
+                break;
+
+            case Asc.c_oAscError.ID.CannotUseCommandProtectedSheet:
+                config.msg = t('Error.errorCannotUseCommandProtectedSheet');
+                break;
+
+            case Asc.c_oAscError.ID.DirectUrl:
+                config.msg = _t.errorDirectUrl;
+                break;
+
+            case Asc.c_oAscError.ID.ConvertationOpenFormat:
+                let docExt = storeSpreadsheetInfo.dataDoc ? storeSpreadsheetInfo.dataDoc.fileType || '' : '';
+                if (errData === 'pdf')
+                    config.msg = _t.errorInconsistentExtPdf.replace('%1', docExt);
+                else if  (errData === 'docx')
+                    config.msg = _t.errorInconsistentExtDocx.replace('%1', docExt);
+                else if  (errData === 'xlsx')
+                    config.msg = _t.errorInconsistentExtXlsx.replace('%1', docExt);
+                else if  (errData === 'pptx')
+                    config.msg = _t.errorInconsistentExtPptx.replace('%1', docExt);
+                else
+                    config.msg = _t.errorInconsistentExt;
                 break;
 
             default:
@@ -334,8 +369,9 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
             Common.Gateway.reportWarning(id, config.msg);
 
             config.title    = config.title || _t.notcriticalErrorTitle;
-            config.callback = (btn) => {
-                if (id == Asc.c_oAscError.ID.DataValidate) {
+            config.buttons  = config.buttons || ['OK'];
+            config.callback = (_, btn) => {
+                if (id == Asc.c_oAscError.ID.DataValidate && btn.target.textContent !== 'OK') {
                     api.asc_closeCellEditor(true);
                 }
                 storeAppOptions.changeEditingRights(false);
@@ -346,10 +382,15 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
             cssClass: 'error-dialog',
             title   : config.title,
             text    : config.msg,
-            buttons: [
+            buttons: config.buttons ? config.buttons.map(button => (
                 {
-                    text: 'OK',
-                    onClick: config.callback
+                    text: button,
+                    onClick: (_, btn) => config.callback(_, btn)
+                }
+            )) : [
+                {
+                    text: t('Error.textOk'),
+                    onClick: (dlg, _) => dlg.close()
                 }
             ]
         }).open();

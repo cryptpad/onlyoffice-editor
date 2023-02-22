@@ -75,6 +75,8 @@ DE.ApplicationController = new(function(){
         embedConfig = $.extend(embedConfig, data.config.embedded);
 
         common.controller.modals.init(embedConfig);
+        common.controller.SearchBar.init(embedConfig);
+
 
         // Docked toolbar
         if (embedConfig.toolbarDocked === 'bottom') {
@@ -98,8 +100,7 @@ DE.ApplicationController = new(function(){
         if (docConfig) {
             permissions = $.extend(permissions, docConfig.permissions);
 
-            var _permissions = $.extend({}, docConfig.permissions),
-                docInfo = new Asc.asc_CDocInfo(),
+            var docInfo = new Asc.asc_CDocInfo(),
                 _user = new Asc.asc_CUserInfo();
 
             var canRenameAnonymous = !((typeof (config.customization) == 'object') && (typeof (config.customization.anonymous) == 'object') && (config.customization.anonymous.request===false)),
@@ -117,13 +118,17 @@ DE.ApplicationController = new(function(){
 
             docInfo.put_Id(docConfig.key);
             docInfo.put_Url(docConfig.url);
+            docInfo.put_DirectUrl(docConfig.directUrl);
             docInfo.put_Title(docConfig.title);
             docInfo.put_Format(docConfig.fileType);
             docInfo.put_VKey(docConfig.vkey);
             docInfo.put_UserInfo(_user);
+            docInfo.put_CallbackUrl(config.callbackUrl);
             docInfo.put_Token(docConfig.token);
-            docInfo.put_Permissions(_permissions);
+            docInfo.put_Permissions(docConfig.permissions);
             docInfo.put_EncryptedInfo(config.encryptionKeys);
+            docInfo.put_Lang(config.lang);
+            docInfo.put_Mode(config.mode);
 
             var enable = !config.customization || (config.customization.macros!==false);
             docInfo.asc_putIsEnabledMacroses(!!enable);
@@ -225,7 +230,7 @@ DE.ApplicationController = new(function(){
             if (type == Asc.c_oAscMouseMoveDataTypes.Hyperlink || type==Asc.c_oAscMouseMoveDataTypes.Form) { // hyperlink
                 me.isHideBodyTip = false;
 
-                var str = (type == Asc.c_oAscMouseMoveDataTypes.Hyperlink) ? me.txtPressLink : data.get_FormHelpText();
+                var str = (type == Asc.c_oAscMouseMoveDataTypes.Hyperlink) ? (me.txtPressLink.replace('%1', common.utils.isMac ? '⌘' : me.textCtrl)) : data.get_FormHelpText();
                 if (str.length>500)
                     str = str.substr(0, 500) + '...';
                 str = common.utils.htmlEncode(str);
@@ -266,8 +271,8 @@ DE.ApplicationController = new(function(){
         }
     }
 
-    function onDownloadUrl(url) {
-        Common.Gateway.downloadAs(url);
+    function onDownloadUrl(url, fileType) {
+        Common.Gateway.downloadAs(url, fileType);
     }
 
     function onPrint() {
@@ -397,11 +402,10 @@ DE.ApplicationController = new(function(){
 
         if ( permissions.print === false) {
             $('#idt-print').hide();
-            $(dividers[0]).hide();
             itemsCount--;
         }
 
-        if ( !embedConfig.saveUrl && permissions.print === false || appOptions.canFillForms) {
+        if ( !embedConfig.saveUrl || permissions.download === false || appOptions.canFillForms) {
             $('#idt-download').hide();
             itemsCount--;
         }
@@ -409,8 +413,6 @@ DE.ApplicationController = new(function(){
         if ( !appOptions.canFillForms || permissions.download === false) {
             $('#idt-download-docx').hide();
             $('#idt-download-pdf').hide();
-            $(dividers[0]).hide();
-            $(dividers[1]).hide();
             itemsCount -= 2;
         }
 
@@ -424,8 +426,10 @@ DE.ApplicationController = new(function(){
             itemsCount--;
         }
 
-        if (itemsCount<3)
-            $(dividers[2]).hide();
+        if (itemsCount < 7) {
+            $(dividers[0]).hide();
+            $(dividers[1]).hide();
+        }
 
         if ( !embedConfig.embedUrl || appOptions.canFillForms) {
             $('#idt-embed').hide();
@@ -437,7 +441,6 @@ DE.ApplicationController = new(function(){
             itemsCount--;
         }
 
-        // if ( !embedConfig.saveUrl && permissions.print === false && (!embedConfig.shareUrl || appOptions.canFillForms) && (!embedConfig.embedUrl || appOptions.canFillForms) && !embedConfig.fullscreenUrl && !config.canBackToFolder)
         if (itemsCount<1)
             $('#box-tools').addClass('hidden');
         else if ((!embedConfig.embedUrl || appOptions.canFillForms) && !embedConfig.fullscreenUrl)
@@ -475,11 +478,8 @@ DE.ApplicationController = new(function(){
 
         DE.ApplicationView.tools.get('#idt-download')
             .on('click', function(){
-                    if ( !!embedConfig.saveUrl ){
+                    if ( !!embedConfig.saveUrl && permissions.download !== false){
                         common.utils.openLink(embedConfig.saveUrl);
-                    } else
-                    if (api && permissions.print!==false){
-                        api.asc_Print(new Asc.asc_CDownloadOptions(null, $.browser.chrome || $.browser.safari || $.browser.opera || $.browser.mozilla && $.browser.versionNumber>86));
                     }
 
                     Common.Analytics.trackEvent('Save');
@@ -496,8 +496,13 @@ DE.ApplicationController = new(function(){
             if (config.customization && config.customization.goback) {
                 if (config.customization.goback.requestClose && config.canRequestClose)
                     Common.Gateway.requestClose();
-                else if (config.customization.goback.url)
-                    window.parent.location.href = config.customization.goback.url;
+                else if (config.customization.goback.url) {
+                    if (config.customization.goback.blank!==false) {
+                        window.open(config.customization.goback.url, "_blank");
+                    } else {
+                        window.parent.location.href = config.customization.goback.url;
+                    }
+                }
             }
         });
 
@@ -513,6 +518,11 @@ DE.ApplicationController = new(function(){
         DE.ApplicationView.tools.get('#idt-download-pdf')
             .on('click', function(){
                 downloadAs(Asc.c_oAscFileType.PDF);
+            });
+
+        DE.ApplicationView.tools.get('#idt-search')
+            .on('click', function(){
+                common.controller.SearchBar.show();
             });
 
         $('#id-btn-zoom-in').on('click', api.zoomIn.bind(this));
@@ -599,23 +609,12 @@ DE.ApplicationController = new(function(){
     }
 
     function onEditorPermissions(params) {
-        if ( (params.asc_getLicenseType() === Asc.c_oLicenseResult.Success) && (typeof config.customization == 'object') &&
-             config.customization && config.customization.logo ) {
-
-            var logo = $('#header-logo');
-            if (config.customization.logo.imageEmbedded) {
-                logo.html('<img src="'+config.customization.logo.imageEmbedded+'" style="max-width:124px; max-height:20px;"/>');
-                logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
-            }
-
-            if (config.customization.logo.url) {
-                logo.attr('href', config.customization.logo.url);
-            }
-        }
         var licType = params.asc_getLicenseType();
         appOptions.canLicense     = (licType === Asc.c_oLicenseResult.Success || licType === Asc.c_oLicenseResult.SuccessLimit);
-        appOptions.canFillForms   = appOptions.canLicense && (permissions.fillForms===true) && (config.mode !== 'view');
+        appOptions.canFillForms   = false; // use forms editor for filling forms
         appOptions.canSubmitForms = appOptions.canLicense && (typeof (config.customization) == 'object') && !!config.customization.submitForm;
+        appOptions.canBranding  = params.asc_getCustomization();
+        appOptions.canBranding && setBranding(config.customization);
 
         api.asc_setViewMode(!appOptions.canFillForms);
 
@@ -703,6 +702,10 @@ DE.ApplicationController = new(function(){
                 message = me.convertationErrorText;
                 break;
 
+            case Asc.c_oAscError.ID.ConvertationOpenError:
+                message = me.openErrorText;
+                break;
+
             case Asc.c_oAscError.ID.DownloadError:
                 message = me.downloadErrorText;
                 break;
@@ -744,6 +747,23 @@ DE.ApplicationController = new(function(){
 
             case Asc.c_oAscError.ID.LoadingFontError:
                 message = me.errorLoadingFont;
+                break;
+
+            case Asc.c_oAscError.ID.KeyExpire:
+                message = me.errorTokenExpire;
+                break;
+
+            case Asc.c_oAscError.ID.ConvertationOpenFormat:
+                if (errData === 'pdf')
+                    message = me.errorInconsistentExtPdf.replace('%1', docConfig.fileType || '');
+                else if  (errData === 'docx')
+                    message = me.errorInconsistentExtDocx.replace('%1', docConfig.fileType || '');
+                else if  (errData === 'xlsx')
+                    message = me.errorInconsistentExtXlsx.replace('%1', docConfig.fileType || '');
+                else if  (errData === 'pptx')
+                    message = me.errorInconsistentExtPptx.replace('%1', docConfig.fileType || '');
+                else
+                    message = me.errorInconsistentExt;
                 break;
 
             default:
@@ -821,6 +841,24 @@ DE.ApplicationController = new(function(){
     function onBeforeUnload () {
         common.localStorage.save();
     }
+
+    function setBranding(value) {
+        if ( value && value.logo) {
+            var logo = $('#header-logo');
+            if (value.logo.image || value.logo.imageEmbedded) {
+                logo.html('<img src="'+(value.logo.image || value.logo.imageEmbedded)+'" style="max-width:100px; max-height:20px;"/>');
+                logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
+
+                value.logo.imageEmbedded && console.log("Obsolete: The 'imageEmbedded' parameter of the 'customization.logo' section is deprecated. Please use 'image' parameter instead.");
+            }
+
+            if (value.logo.url) {
+                logo.attr('href', value.logo.url);
+            } else if (value.logo.url!==undefined) {
+                logo.removeAttr('href');logo.removeAttr('target');
+            }
+        }
+    }
         // Helpers
     // -------------------------
 
@@ -893,6 +931,8 @@ DE.ApplicationController = new(function(){
             Common.Gateway.on('opendocument',       loadDocument);
             Common.Gateway.on('showmessage',        onExternalMessage);
             Common.Gateway.appReady();
+
+            common.controller.SearchBar.setApi(api);
         }
 
         return me;
@@ -931,7 +971,15 @@ DE.ApplicationController = new(function(){
         textGotIt: 'Got it',
         errorForceSave: "An error occurred while saving the file. Please use the 'Download as' option to save the file to your computer hard drive or try again later.",
         txtEmpty: '(Empty)',
-        txtPressLink: 'Press Ctrl and click link',
-        errorLoadingFont: 'Fonts are not loaded.<br>Please contact your Document Server administrator.'
+        txtPressLink: 'Press %1 and click link',
+        errorLoadingFont: 'Fonts are not loaded.<br>Please contact your Document Server administrator.',
+        errorTokenExpire: 'The document security token has expired.<br>Please contact your Document Server administrator.',
+        openErrorText: 'An error has occurred while opening the file',
+        textCtrl: 'Ctrl',
+        errorInconsistentExtDocx: 'An error has occurred while opening the file.<br>The file content corresponds to text documents (e.g. docx), but the file has the inconsistent extension: %1.',
+        errorInconsistentExtXlsx: 'An error has occurred while opening the file.<br>The file content corresponds to spreadsheets (e.g. xlsx), but the file has the inconsistent extension: %1.',
+        errorInconsistentExtPptx: 'An error has occurred while opening the file.<br>The file content corresponds to presentations (e.g. pptx), but the file has the inconsistent extension: %1.',
+        errorInconsistentExtPdf: 'An error has occurred while opening the file.<br>The file content corresponds to one of the following formats: pdf/djvu/xps/oxps, but the file has the inconsistent extension: %1.',
+        errorInconsistentExt: 'An error has occurred while opening the file.<br>The file content does not match the file extension.'
     }
 })();

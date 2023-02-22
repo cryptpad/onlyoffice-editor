@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { f7 } from 'framework7-react';
 import {observer, inject} from "mobx-react"
-import { LocalStorage } from '../../../utils/LocalStorage';
+import { LocalStorage } from '../../../utils/LocalStorage.mjs';
 import { withTranslation } from 'react-i18next';
 
 class CollaborationController extends Component {
@@ -43,6 +43,11 @@ class CollaborationController extends Component {
             }
         } else if (!appOptions.isEdit && appOptions.isRestrictedEdit) {
             isFastCoauth = true;
+            api.asc_SetFastCollaborative(isFastCoauth);
+            window.editorType === 'de' && api.SetCollaborativeMarksShowType(Asc.c_oAscCollaborativeMarksShowType.None);
+            api.asc_setAutoSaveGap(1);
+        } else if (appOptions.canLiveView) { // viewer
+            isFastCoauth = !(appOptions.config.coEditing && appOptions.config.coEditing.mode==='strict');
             api.asc_SetFastCollaborative(isFastCoauth);
             window.editorType === 'de' && api.SetCollaborativeMarksShowType(Asc.c_oAscCollaborativeMarksShowType.None);
             api.asc_setAutoSaveGap(1);

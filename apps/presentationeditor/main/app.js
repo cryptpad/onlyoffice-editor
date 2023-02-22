@@ -53,9 +53,7 @@ require.config({
         perfectscrollbar: 'common/main/lib/mods/perfect-scrollbar',
         jmousewheel     : '../vendor/perfect-scrollbar/src/jquery.mousewheel',
         xregexp         : '../vendor/xregexp/xregexp-all-min',
-        sockjs          : '../vendor/sockjs/sockjs.min',
-        jszip           : '../vendor/jszip/jszip.min',
-        jsziputils      : '../vendor/jszip-utils/jszip-utils.min',
+        socketio        : '../vendor/socketio/socket.io.min',
         allfonts        : '../../sdkjs/common/AllFonts',
         sdk             : '../../sdkjs/slide/sdk-all-min',
         api             : 'api/documents/api',
@@ -105,12 +103,9 @@ require.config({
         sdk: {
             deps: [
                 'jquery',
-                'underscore',
                 'allfonts',
                 'xregexp',
-                'sockjs',
-                'jszip',
-                'jsziputils'
+                'socketio'
             ]
         },
         gateway: {
@@ -127,15 +122,16 @@ require.config({
 });
 
 require([
+    'sdk',
     'backbone',
     'bootstrap',
     'core',
-    'sdk',
-    'api',
     'analytics',
     'gateway',
     'locale'
-], function (Backbone, Bootstrap, Core) {
+], function (Sdk, Backbone, Bootstrap, Core) {
+    if (Backbone.History && Backbone.History.started)
+        return;
     Backbone.history.start();
 
     /**
@@ -152,6 +148,9 @@ require([
             'RightMenu',
             'LeftMenu',
             'Main',
+            'ViewTab',
+            'Search',
+            'Print',
             'Common.Controllers.Fonts',
             'Common.Controllers.History'
             /** coauthoring begin **/
@@ -160,13 +159,19 @@ require([
             /** coauthoring end **/
             ,'Common.Controllers.Plugins'
             ,'Common.Controllers.ExternalDiagramEditor'
+            ,'Common.Controllers.ExternalOleEditor'
             ,'Common.Controllers.ReviewChanges'
             ,'Common.Controllers.Protection'
+            ,'Transitions'
+            ,'Animation'
         ]
     });
 
     Common.Locale.apply(function(){
         require([
+            'common/main/lib/util/LocalStorage',
+            'common/main/lib/controller/Themes',
+            'common/main/lib/controller/Desktop',
             'presentationeditor/main/app/controller/Viewport',
             'presentationeditor/main/app/controller/DocumentHolder',
             'presentationeditor/main/app/controller/Toolbar',
@@ -174,6 +179,9 @@ require([
             'presentationeditor/main/app/controller/RightMenu',
             'presentationeditor/main/app/controller/LeftMenu',
             'presentationeditor/main/app/controller/Main',
+            'presentationeditor/main/app/controller/ViewTab',
+            'presentationeditor/main/app/controller/Search',
+            'presentationeditor/main/app/controller/Print',
             'presentationeditor/main/app/view/FileMenuPanels',
             'presentationeditor/main/app/view/ParagraphSettings',
             'presentationeditor/main/app/view/ImageSettings',
@@ -183,7 +191,6 @@ require([
             'presentationeditor/main/app/view/TextArtSettings',
             'presentationeditor/main/app/view/SignatureSettings',
             'common/main/lib/util/utils',
-            'common/main/lib/util/LocalStorage',
             'common/main/lib/controller/Fonts',
             'common/main/lib/controller/History'
             /** coauthoring begin **/
@@ -193,10 +200,11 @@ require([
             'common/main/lib/controller/Plugins',
             'presentationeditor/main/app/view/ChartSettings',
             'common/main/lib/controller/ExternalDiagramEditor'
+            ,'common/main/lib/controller/ExternalOleEditor'
             ,'common/main/lib/controller/ReviewChanges'
             ,'common/main/lib/controller/Protection'
-            ,'common/main/lib/controller/Themes'
-            ,'common/main/lib/controller/Desktop'
+            ,'presentationeditor/main/app/controller/Transitions'
+            ,'presentationeditor/main/app/controller/Animation'
         ], function() {
             app.start();
         });

@@ -4,28 +4,6 @@
 .icon-advanced-wrap {
 }
 
-.combo-arrow-style {
-    .form-control {
-        cursor: pointer;
-        background-color: white;
-
-        &.image {
-            background-position: 10px 0;
-            background-attachment: scroll;
-            background-color: @background-normal;
-        }
-    }
-}
-
-.img-arrows {
-    .background-ximage-v2('right-panels/Begin-EndStyle.png', 480px, @commonimage: true);
-}
-
-.item-arrow {
-    width:44px;
-    height:20px;
-}
-
 .header-styles-tableview {
     .list-item > div{
         &:nth-child(1) {
@@ -73,4 +51,81 @@
 #page-margins-preview {
     border: @scaled-one-px-value-ie solid @border-regular-control-ie;
     border: @scaled-one-px-value solid @border-regular-control;
+}
+
+#id-text-table-radio-fixed {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+
+    .pixel-ratio__1_75 &, .pixel-ratio__2 & {
+        padding-bottom: 1px;
+    }
+}
+
+#bookmarks-radio-name {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+#id-text-table-spn-fixed, #bookmarks-radio-location {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.advanced-settings-dlg {
+    .roles-tableview {
+        &.no-borders > .listview .item {
+            border-width: 0 !important;
+        }
+        .item {
+            padding: 0 6px;
+        }
+
+        @item-width: 20px;
+        @item-height: 28px;
+        .list-item {
+            display: flex;
+            align-items: center;
+            height: @item-height;
+
+            span.color {
+                display: block;
+                width: 12px;
+                height: 12px;
+                border: @scaled-one-px-value-ie solid @border-color-shading-ie;
+                border: @scaled-one-px-value solid @border-color-shading;
+            }
+        }
+        .list-item > div{
+            vertical-align: middle;
+            display: inline-block;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: pre;
+        }
+
+        .listitem-icon {
+            width: @item-width;
+            height: @item-height;
+            margin-right: 5px;
+
+            svg {
+                width: @item-width;
+                height: @item-height;
+                fill: @text-normal-ie;
+                fill: @text-normal;
+            }
+        }
+
+        .selected {
+            .listitem-icon {
+                svg {
+                    fill: @text-normal-pressed-ie;
+                    fill: @text-normal-pressed;
+                }
+            }
+        }
+    }
 }

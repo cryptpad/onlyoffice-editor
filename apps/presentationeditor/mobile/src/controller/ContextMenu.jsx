@@ -2,11 +2,11 @@ import React, { useContext } from 'react';
 import { f7 } from 'framework7-react';
 import { inject, observer } from "mobx-react";
 import { withTranslation} from 'react-i18next';
-import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage';
+import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage.mjs';
 
 import ContextMenuController from '../../../../common/mobile/lib/controller/ContextMenu';
 import { idContextMenuElement } from '../../../../common/mobile/lib/view/ContextMenu';
-import { Device } from '../../../../common/mobile/utils/device';
+// import { Device } from '../../../../common/mobile/utils/device';
 import EditorUIController from '../lib/patch';
 
 @inject ( stores => ({
@@ -15,7 +15,8 @@ import EditorUIController from '../lib/patch';
     canViewComments: stores.storeAppOptions.canViewComments,
     canCoAuthoring: stores.storeAppOptions.canCoAuthoring,
     users: stores.users,
-    isDisconnected: stores.users.isDisconnected
+    isDisconnected: stores.users.isDisconnected,
+    objects: stores.storeFocusObjects.settings
 }))
 class ContextMenu extends ContextMenuController {
     constructor(props) {
@@ -25,6 +26,8 @@ class ContextMenu extends ContextMenuController {
         this.onApiShowComment = this.onApiShowComment.bind(this);
         this.onApiHideComment = this.onApiHideComment.bind(this);
         this.getUserName = this.getUserName.bind(this);
+        this.isUserVisible = this.isUserVisible.bind(this);
+        this.checkShapeSelection = this.checkShapeSelection.bind(this);
     }
 
     static closeContextMenu() {
@@ -36,12 +39,20 @@ class ContextMenu extends ContextMenuController {
         return AscCommon.UserInfoParser.getParsedName(user.asc_getUserName());
     }
 
+    isUserVisible(id) {
+        const user = this.props.users.searchUserByCurrentId(id);
+        return user ? (user.asc_getIdOriginal()===this.props.users.currentUser.asc_getIdOriginal() || AscCommon.UserInfoParser.isUserVisible(user.asc_getUserName())) : true;
+    }
+
     componentWillUnmount() {
         super.componentWillUnmount();
 
         const api = Common.EditorApi.get();
-        api.asc_unregisterCallback('asc_onShowComment', this.onApiShowComment);
-        api.asc_unregisterCallback('asc_onHideComment', this.onApiHideComment);
+        if ( api ) {
+            api.asc_unregisterCallback('asc_onShowComment', this.onApiShowComment);
+            api.asc_unregisterCallback('asc_onHideComment', this.onApiHideComment);
+            api.asc_unregisterCallback('asc_onShowPopMenu', this.checkShapeSelection);
+        }
     }
 
 
@@ -96,6 +107,15 @@ class ContextMenu extends ContextMenuController {
         }
     }
 
+    checkShapeSelection() {
+        const objects = this.props.objects;
+        const contextMenuElem = document.querySelector('#idx-context-menu-popover');
+
+        if(objects.indexOf('shape') > -1) {
+            contextMenuElem.style.top = `${+(contextMenuElem.style.top.replace(/px$/, '')) - 40}px`;
+        }
+    }
+
     showCopyCutPasteModal() {
         const { t } = this.props;
         const _t = t("ContextMenu", { returnObjects: true });
@@ -145,39 +165,64 @@ class ContextMenu extends ContextMenuController {
                         Common.EditorApi.get().SplitCell(parseInt(size[0]), parseInt(size[1]));
                     }
                 }
-            ]
+            ],
+            on: {
+                open: () => {
+                    picker = f7.picker.create({
+                        containerEl: document.getElementById('picker-split-size'),
+                        cols: [
+                            {
+                                textAlign: 'center',
+                                width: '100%',
+                                values: [1,2,3,4,5,6,7,8,9,10]
+                            },
+                            {
+                                textAlign: 'center',
+                                width: '100%',
+                                values: [1,2,3,4,5,6,7,8,9,10]
+                            }
+                        ],
+                        toolbar: false,
+                        rotateEffect: true,
+                        value: [3, 3]
+                    });
+                }
+            }
         }).open();
-        dialog.on('opened', () => {
-            picker = f7.picker.create({
-                containerEl: document.getElementById('picker-split-size'),
-                cols: [
-                    {
-                        textAlign: 'center',
-                        width: '100%',
-                        values: [1,2,3,4,5,6,7,8,9,10]
-                    },
-                    {
-                        textAlign: 'center',
-                        width: '100%',
-                        values: [1,2,3,4,5,6,7,8,9,10]
-                    }
-                ],
-                toolbar: false,
-                rotateEffect: true,
-                value: [3, 3]
-            });
-        });
     }
 
     openLink(url) {
-        const api = Common.EditorApi.get();
-        if (api.asc_getUrlType(url) > 0) {
-            const newDocumentPage = window.open(url, '_blank');
-            if (newDocumentPage) {
-                newDocumentPage.focus();
+        if (url) {
+            const api = Common.EditorApi.get();
+            if (url.indexOf("ppaction://hlink")>=0) { // internal link
+                api.asc_GoToInternalHyperlink(url);
+            } else {
+                const type = api.asc_getUrlType(url);
+                if (type===AscCommon.c_oAscUrlType.Http || type===AscCommon.c_oAscUrlType.Email) {
+                    const newDocumentPage = window.open(url, '_blank');
+                    if (newDocumentPage) {
+                        newDocumentPage.focus();
+                    }
+                } else {
+                    const { t } = this.props;
+                    const _t = t("ContextMenu", { returnObjects: true });
+                    f7.dialog.create({
+                        title: t('View.Settings', {returnObjects: true}).notcriticalErrorTitle,
+                        text  : _t.txtWarnUrl,
+                        buttons: [{
+                            text: t('View.Settings', {returnObjects: true}).textOk,
+                            bold: true,
+                            onClick: () => {
+                                const newDocumentPage = window.open(url, '_blank');
+                                if (newDocumentPage) {
+                                    newDocumentPage.focus();
+                                }
+                            }
+                        },
+                        { text: _t.menuCancel }]
+                    }).open();
+                }
             }
-        } else {
-            api.asc_GoToInternalHyperlink(url);
         }
     }
 
@@ -187,12 +232,13 @@ class ContextMenu extends ContextMenuController {
         const api = Common.EditorApi.get();
         api.asc_registerCallback('asc_onShowComment', this.onApiShowComment);
         api.asc_registerCallback('asc_onHideComment', this.onApiHideComment);
+        api.asc_registerCallback('asc_onShowPopMenu', this.checkShapeSelection);
     }
 
     initMenuItems() {
         if ( !Common.EditorApi ) return [];
 
-        const { isEdit } = this.props;
+        const { isEdit, isDisconnected } = this.props;
 
         if (isEdit && EditorUIController.ContextMenu) {
             return EditorUIController.ContextMenu.mapMenuItems(this);
@@ -249,18 +295,20 @@ class ContextMenu extends ContextMenuController {
                     icon: 'icon-copy'
                 });
             }
-            if (canViewComments && this.isComments && !isEdit) {
-                itemsText.push({
-                    caption: _t.menuViewComment,
-                    event: 'viewcomment'
-                });
-            }
-
-            if (!isChart && api.can_AddQuotedComment() !== false && canCoAuthoring && canComments && !locked) {
-                itemsText.push({
-                    caption: _t.menuAddComment,
-                    event: 'addcomment'
-                });
+            if(!isDisconnected) {
+                if (canViewComments && this.isComments && !isEdit) {
+                    itemsText.push({
+                        caption: _t.menuViewComment,
+                        event: 'viewcomment'
+                    });
+                }
+    
+                if (!isChart && api.can_AddQuotedComment() !== false && canCoAuthoring && canComments && !locked) {
+                    itemsText.push({
+                        caption: _t.menuAddComment,
+                        event: 'addcomment'
+                    });
+                }
             }
 
             if (isLink) {

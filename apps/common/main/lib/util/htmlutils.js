@@ -52,6 +52,30 @@ var checkLocalStorage = (function () {
     }
 })();
 
+if ( window.desktop ) {
+    var theme = desktop.theme
+
+    if ( theme ) {
+        if ( !theme.id && !!theme.type ) {
+            if ( theme.type == 'dark' ) theme.id = 'theme-dark'; else
+            if ( theme.type == 'light' ) theme.id = 'theme-classic-light';
+        }
+
+        if ( theme.id ) {
+            if ( theme.id == 'theme-system' ) {
+                localStorage.setItem("ui-theme-use-system", "1");
+                localStorage.removeItem("ui-theme-id");
+                delete params.uitheme;
+            } else {
+                localStorage.setItem("ui-theme-id", theme.id);
+                localStorage.removeItem("ui-theme-use-system");
+            }
+
+            localStorage.removeItem("ui-theme");
+        }
+    }
+}
+
 if ( !!params.uitheme && checkLocalStorage && !localStorage.getItem("ui-theme-id") ) {
     // const _t = params.uitheme.match(/([\w-]+)/g);
 
@@ -65,12 +89,26 @@ if ( !!params.uitheme && checkLocalStorage && !localStorage.getItem("ui-theme-id
 }
 
 var ui_theme_name = checkLocalStorage && localStorage.getItem("ui-theme-id") ? localStorage.getItem("ui-theme-id") : params.uitheme;
+var ui_theme_type;
 if ( !ui_theme_name ) {
     if ( window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ) {
         ui_theme_name = 'theme-dark';
+        ui_theme_type = 'dark';
         checkLocalStorage && localStorage.removeItem("ui-theme");
     }
 }
 if ( !!ui_theme_name ) {
     document.body.classList.add(ui_theme_name);
+}
+
+if ( checkLocalStorage ) {
+    let current_theme = localStorage.getItem("ui-theme");
+    if ( !!current_theme && /type":\s*"dark/.test(current_theme) || ui_theme_type == 'dark' ) {
+        document.body.classList.add("theme-type-dark");
+
+        let content_theme = localStorage.getItem("content-theme");
+        if ( content_theme == 'dark' ) {
+            document.body.classList.add("content-theme-dark");
+        }
+    }
 }

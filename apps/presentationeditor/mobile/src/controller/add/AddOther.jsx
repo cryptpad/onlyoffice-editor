@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import { f7 } from 'framework7-react';
+import {observer, inject} from "mobx-react";
 import {Device} from '../../../../../common/mobile/utils/device';
 import { withTranslation} from 'react-i18next';
 
@@ -8,10 +9,9 @@ import {AddOther} from '../../view/add/AddOther';
 class AddOtherController extends Component {
     constructor (props) {
         super(props);
-        this.onStyleClick = this.onStyleClick.bind(this);
-        this.initStyleTable = this.initStyleTable.bind(this);
 
-        this.initTable = false;
+        this.onStyleClick = this.onStyleClick.bind(this);
+        this.onGetTableStylesPreviews = this.onGetTableStylesPreviews.bind(this);
     }
 
     closeModal () {
@@ -19,14 +19,6 @@ class AddOtherController extends Component {
             f7.sheet.close('.add-popup', true);
         } else {
             f7.popover.close('#add-popover');
-        }
-    }
-
-    initStyleTable () {
-        if (!this.initTable) {
-            const api = Common.EditorApi.get();
-            api.asc_GetDefaultTableStyles();
-            this.initTable = true;
         }
     }
 
@@ -45,7 +37,7 @@ class AddOtherController extends Component {
             text: '',
             content:
                 '<div class="content-block">' +
-                '<div class="row">' +
+                '<div class="row row-picker">' +
                 '<div class="col-50">' + _t.textColumns + '</div>' +
                 '<div class="col-50">' + _t.textRows + '</div>' +
                 '</div>' +
@@ -90,6 +82,13 @@ class AddOtherController extends Component {
         }).open();
     }
 
+    onGetTableStylesPreviews = () => {
+        if(this.props.storeTableSettings.arrayStylesDefault.length == 0) {
+            const api = Common.EditorApi.get();
+            setTimeout(() => this.props.storeTableSettings.setStyles(api.asc_getTableStylesPreviews(true), 'default'), 1);
+        }
+    }
+
     hideAddComment () {
         const api = Common.EditorApi.get();
         const stack = api.getSelectedElements();
@@ -120,13 +119,14 @@ class AddOtherController extends Component {
         return (
             <AddOther closeModal={this.closeModal}
                       onStyleClick={this.onStyleClick}
-                      initStyleTable={this.initStyleTable}
                       hideAddComment={this.hideAddComment}
+                      onGetTableStylesPreviews = {this.onGetTableStylesPreviews}
+                      onCloseLinkSettings={this.props.onCloseLinkSettings}
             />
         )
     }
 }
 
-const AddOtherWithTranslation = withTranslation()(AddOtherController);
+const AddOtherWithTranslation = inject("storeTableSettings")(withTranslation()(AddOtherController));
 
 export {AddOtherWithTranslation as AddOtherController};

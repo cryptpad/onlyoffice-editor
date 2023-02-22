@@ -7,6 +7,7 @@ const PageDocumentInfo = (props) => {
     const { t } = useTranslation();
     const _t = t("Settings", { returnObjects: true });
     const storeInfo = props.storeDocumentInfo;
+    const fileType = storeInfo.dataDoc.fileType;
     const dataApp = props.getAppProps();
     
     const {
@@ -17,13 +18,29 @@ const PageDocumentInfo = (props) => {
         wordsCount,
     } = storeInfo.infoObj;
 
+    const {
+        pageSize,
+        title,
+        subject,
+        description,
+        dateCreated,
+        modifyBy,
+        modifyDate,
+        author,
+        producer,
+        version,
+        tagged,
+        fastWebView,
+        creators
+    } = props.docInfoObject;
+
     const dataDoc = JSON.parse(JSON.stringify(storeInfo.dataDoc));
     const isLoaded = storeInfo.isLoaded;
   
     return (
         <Page>
             <Navbar title={_t.textDocumentInfo} backLink={_t.textBack} />
-            {dataDoc.title ? (
+            {dataDoc?.title ? (
                 <Fragment>
                     <BlockTitle>{_t.textDocumentTitle}</BlockTitle>
                     <List>
@@ -31,7 +48,7 @@ const PageDocumentInfo = (props) => {
                     </List>
                 </Fragment>
             ) : null}
-            {dataDoc.info.author || dataDoc.info.owner ? (
+            {dataDoc?.info?.author || dataDoc?.info?.owner ? (
                 <Fragment>
                     <BlockTitle>{_t.textOwner}</BlockTitle>
                     <List>
@@ -39,7 +56,7 @@ const PageDocumentInfo = (props) => {
                     </List>
                 </Fragment>
             ) : null}
-            {dataDoc.info.folder ? (
+            {dataDoc?.info?.folder ? (
                 <Fragment>  
                     <BlockTitle>{_t.textLocation}</BlockTitle>
                     <List>
@@ -47,7 +64,7 @@ const PageDocumentInfo = (props) => {
                     </List>
                 </Fragment>
             ) : null}
-            {dataDoc.info.uploaded || dataDoc.info.created ? (  
+            {dataDoc?.info?.uploaded || dataDoc?.info?.created ? (
                 <Fragment>
                     <BlockTitle>{_t.textUploaded}</BlockTitle>
                     <List>
@@ -57,75 +74,107 @@ const PageDocumentInfo = (props) => {
             ) : null}
             <BlockTitle>{_t.textStatistic}</BlockTitle>
             <List> 
-                <ListItem title="Pages" after={isLoaded ? String(pageCount) : _t.textLoading}></ListItem>
-                <ListItem title="Paragraphs" after={isLoaded ? String(paragraphCount) : _t.textLoading}></ListItem>
-                <ListItem title="Words" after={isLoaded ? String(wordsCount) : _t.textLoading}></ListItem>
-                <ListItem title="Symbols" after={isLoaded ? String(symbolsCount) : _t.textLoading}></ListItem>
-                <ListItem title="Spaces" after={isLoaded ? String(symbolsWSCount) : _t.textLoading}></ListItem>
+                <ListItem title={t('Settings.textPages')} after={isLoaded ? String(pageCount) : _t.textLoading}></ListItem>
+                <ListItem title={t('Settings.textParagraphs')} after={isLoaded ? String(paragraphCount) : _t.textLoading}></ListItem>
+                <ListItem title={t('Settings.textWords')} after={isLoaded ? String(wordsCount) : _t.textLoading}></ListItem>
+                <ListItem title={t('Settings.textSymbols')} after={isLoaded ? String(symbolsCount) : _t.textLoading}></ListItem>
+                <ListItem title={t('Settings.textSpaces')} after={isLoaded ? String(symbolsWSCount) : _t.textLoading}></ListItem>
+                {pageSize && <ListItem title={t('Settings.textPageSize')} after={pageSize}></ListItem>}
             </List>
-            {props.title ? (
+            {title ? (
                 <Fragment>
-                    <BlockTitle>{_t.textTitle}</BlockTitle>
+                    <BlockTitle>{t('Settings.textTitle')}</BlockTitle>
                     <List>
-                        <ListItem title={props.title}></ListItem>
+                        <ListItem title={title}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
-            {props.subject ? (
+            {subject ? (
                 <Fragment>
-                    <BlockTitle>{_t.textSubject}</BlockTitle>
+                    <BlockTitle>{t('Settings.textSubject')}</BlockTitle>
                     <List>
-                        <ListItem title={props.subject}></ListItem>
+                        <ListItem title={subject}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
-            {props.description ? (
+            {description ? (
                 <Fragment>
-                    <BlockTitle>{_t.textComment}</BlockTitle>
+                    <BlockTitle>{t('Settings.textComment')}</BlockTitle>
                     <List>
-                        <ListItem title={props.description}></ListItem>
+                        <ListItem title={description}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
-            {props.modified ? (
+            {modifyDate ? (
                 <Fragment>
-                    <BlockTitle>{_t.textLastModified}</BlockTitle>
+                    <BlockTitle>{t('Settings.textLastModified')}</BlockTitle>
                     <List>
-                        <ListItem title={props.modified}></ListItem>
+                        <ListItem title={modifyDate}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
-            {props.modifiedBy ? (
+            {modifyBy ? (
                 <Fragment>
-                    <BlockTitle>{_t.textLastModifiedBy}</BlockTitle>
+                    <BlockTitle>{t('Settings.textLastModifiedBy')}</BlockTitle>
                     <List>
-                        <ListItem title={props.modifiedBy}></ListItem>
+                        <ListItem title={modifyBy}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
-            {props.created ? (
+            {dateCreated ? (
                 <Fragment>
-                    <BlockTitle>{_t.textCreated}</BlockTitle>
+                    <BlockTitle>{t('Settings.textCreated')}</BlockTitle>
                     <List>
-                        <ListItem title={props.created}></ListItem>
+                        <ListItem title={dateCreated}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
             {dataApp ? (
                 <Fragment>
-                    <BlockTitle>{_t.textApplication}</BlockTitle>
+                    <BlockTitle>{t('Settings.textApplication')}</BlockTitle>
                     <List>
                         <ListItem title={dataApp}></ListItem>
                     </List>
                 </Fragment>
             ) : null}
-            {props.creators ? (
+            {fileType === 'xps' && author ? (
                 <Fragment>
-                    <BlockTitle>{_t.textAuthor}</BlockTitle>
+                    <BlockTitle>{t('Settings.textAuthor')}</BlockTitle>
+                    <List>
+                        <ListItem title={author}></ListItem>
+                    </List>
+                </Fragment>
+            ) : null}
+            {fileType === 'pdf' && author ? (
+                <Fragment>
+                    <BlockTitle>{t('Settings.textAuthor')}</BlockTitle>
+                    <List>
+                        <ListItem title={author}></ListItem>
+                    </List>
+                </Fragment>
+            ) : null}
+            { fileType === 'pdf' && producer ? (
+                <Fragment>
+                    <BlockTitle>{t('Settings.textPdfProducer')}</BlockTitle>
+                    <List>
+                        <ListItem title={producer}></ListItem>
+                    </List>
+                </Fragment>
+            ) : null}
+            { fileType === 'pdf' ? (
+                <List>
+                    <ListItem title={t('Settings.textPdfVer')} after={version} />
+                    <ListItem title={t('Settings.textPdfTagged')} after={tagged} />
+                    <ListItem title={t('Settings.textFastWV')} after={fastWebView} />
+                </List>
+            ) : null}
+            {creators ? (
+                <Fragment>
+                    <BlockTitle>{t('Settings.textAuthor')}</BlockTitle>
                     <List>
                         {
-                            props.creators.split(/\s*[,;]\s*/).map(item => {
-                                return <ListItem title={item}></ListItem>
+                            creators.split(/\s*[,;]\s*/).map(item => {
+                                return <ListItem key="item" title={item}></ListItem>
                             })
                         }
                     </List>

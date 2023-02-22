@@ -9,7 +9,9 @@
     border: @scaled-one-px-value solid @border-regular-control;
     background-color: @background-normal-ie;
     background-color: @background-normal;
-
+    &:-ms-input-placeholder {
+        color: @text-tertiary-ie;
+    }
     &:focus {
         border-color: @border-control-focus-ie;
         border-color: @border-control-focus;
@@ -42,7 +44,7 @@
         content: '';
         position: absolute;
         right: 3px;
-        top: 4px;
+        top: 3px;
         width: 16px;
         height: 16px;
         background-position: @input-error-offset-x @input-error-offset-y;
@@ -96,6 +98,7 @@ input.error {
 }
 
 .disabled .form-control {
+    opacity: @component-disabled-opacity-ie;
     opacity: @component-disabled-opacity;
     cursor: default !important;
 }
@@ -126,10 +129,13 @@ textarea.form-control:focus {
         position: absolute;
         right: @scaled-one-px-value-ie;
         right: @scaled-one-px-value;
+        top: @scaled-one-px-value-ie;
+        top: @scaled-one-px-value;
 
-        > .btn-toolbar {
-            height: 22px;
-            padding-top: 1px;
+        .btn-group > .btn-toolbar,
+        & > .btn-toolbar {
+            height: 20px;
+            height: calc(22px - @scaled-one-px-value * 2);
         }
     }
 

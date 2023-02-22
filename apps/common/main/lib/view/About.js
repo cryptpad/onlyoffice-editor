@@ -55,6 +55,10 @@ define([
 
             this.txtVersionNum = '{{PRODUCT_VERSION}}';
 
+            !(/\s$/.test(this.txtAddress)) && (this.txtAddress += " ");
+            !(/\s$/.test(this.txtMail)) && (this.txtMail += " ");
+            !(/\s$/.test(this.txtTel)) && (this.txtTel += " ");
+
             this.template = _.template([
                 '<table id="id-about-licensor-logo" cols="1" style="width: 100%; margin-top: 20px;">',
                     '<tr>',
@@ -124,6 +128,12 @@ define([
                     '</tr>',
                     '<tr>',
                         '<td align="center" class="padding-small">',
+                            '<label class="asc-about-desc-name">' + this.txtTel + '</label>',
+                            '<label class="asc-about-desc" id="id-about-company-tel"></label>',
+                        '</td>',
+                    '</tr>',
+                    '<tr>',
+                        '<td align="center" class="padding-small">',
                             '<a href="" target="_blank" id="id-about-company-url"></a>',
                         '</td>',
                     '</tr>',
@@ -144,7 +154,7 @@ define([
                     '</tr>',
                     '<tr>',
                         '<td colspan="3" align="center">',
-                            '<label class="asc-about-desc"><% print(publisherurl.replace(/https?:\\/{2}/, "").replace(/\\/$/,"")) %></label>',
+                            '<a href="<%= publisherurl %>" target="_blank"><% print(publisherurl.replace(/https?:\\/{2}/, "").replace(/\\/$/,"")) %></a>',
                         '</td>',
                     '</tr>',
                 '</table>'
@@ -173,6 +183,7 @@ define([
                 this.lblCompanyMail = _$l.findById('#id-about-company-mail');
                 this.lblCompanyUrl = _$l.findById('#id-about-company-url');
                 this.lblCompanyLic = _$l.findById('#id-about-company-lic');
+                this.lblCompanyTel = _$l.findById('#id-about-company-tel');
 
                 this.$el.html(_$l);
                 this.$el.addClass('about-dlg');
@@ -195,7 +206,8 @@ define([
             if ( !this.rendered ) {
                 this.licData = data || true;
             } else {
-                if (data && typeof data == 'object' && typeof(data.customer)=='object') {
+                if (data && typeof data == 'object' && data.customer && typeof(data.customer)=='object') {
+                    this.licData = data;
                     var customer = data.customer;
 
                     $('#id-about-licensor-logo').addClass('hidden');
@@ -219,6 +231,11 @@ define([
                         this.lblCompanyMail.attr('href', "mailto:"+value).text(value) :
                         this.lblCompanyMail.parents('tr').addClass('hidden');
 
+                    value = customer.phone;
+                    value && value.length ?
+                        this.lblCompanyTel.text(value) :
+                        this.lblCompanyTel.parents('tr').addClass('hidden');
+
                     if ((value = customer.www) && value.length) {
                         var http = !/^https?:\/{2}/i.test(value) ? "http:\/\/" : '';
                         this.lblCompanyUrl.attr('href', http+value).text(value);
@@ -229,13 +246,24 @@ define([
                         this.lblCompanyLic.text(value) :
                         this.lblCompanyLic.parents('tr').addClass('hidden');
 
-                    (value = customer.logo) && value.length ?
+                    value = Common.UI.Themes.isDarkTheme() ? (customer.logoDark || customer.logo) : (customer.logo || customer.logoDark);
+                    value && value.length ?
                         this.divCompanyLogo.html('<img src="'+value+'" style="max-width:216px; max-height: 35px;" />') :
                         this.divCompanyLogo.parents('tr').addClass('hidden');
+                    value && value.length && Common.NotificationCenter.on('uitheme:changed', this.changeLogo.bind(this));
                 } else {
                     this.cntLicenseeInfo.addClass('hidden');
                     this.cntLicensorInfo.addClass('margin-bottom');
                 }
+            }
+        },
+
+        changeLogo: function () {
+            if (!this.licData) return;
+
+            var customer = this.licData.customer;
+            if ( customer.logo && customer.logoDark && customer.logo !== customer.logoDark) {
+                this.divCompanyLogo.find('img').attr('src', Common.UI.Themes.isDarkTheme() ? (customer.logoDark || customer.logo) : (customer.logo || customer.logoDark));
             }
         },
 

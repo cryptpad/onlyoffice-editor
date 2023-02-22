@@ -10,8 +10,10 @@ import DocumentInfoController from "../../controller/settings/DocumentInfo";
 import { DownloadController } from "../../controller/settings/Download";
 import ApplicationSettingsController from "../../controller/settings/ApplicationSettings";
 import { DocumentFormats, DocumentMargins, DocumentColorSchemes } from "./DocumentSettings";
-import { MacrosSettings } from "./ApplicationSettings";
+import { MacrosSettings, Direction } from "./ApplicationSettings";
 import About from '../../../../../common/mobile/lib/view/About';
+import NavigationController from '../../controller/settings/Navigation';
+import SharingSettings from "../../../../../common/mobile/lib/view/SharingSettings";
 
 const routes = [
     {
@@ -53,6 +55,27 @@ const routes = [
     {
         path: '/about/',
         component: About
+    },
+
+    // Navigation
+
+    {
+        path: '/navigation/',
+        component: NavigationController
+    },
+
+    // Direction 
+
+    {
+        path: '/direction/',
+        component: Direction
+    },
+
+    // Sharing Settings
+
+    {
+        path: '/sharing-settings/',
+        component: SharingSettings
     }
 ];
 
@@ -60,6 +83,7 @@ const routes = [
 const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => {
     const { t } = useTranslation();
     const _t = t('Settings', {returnObjects: true});
+    const appOptions = props.storeAppOptions;
     const storeReview = props.storeReview;
     const displayMode = storeReview.displayMode;
     const navbar = <Navbar title={_t.textSettings}>
@@ -79,20 +103,23 @@ const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => 
         }
     };
 
-    const onOpenCollaboration = async () => {
-        await closeModal();
-        await props.openOptions('coauth');
+    const onOpenCollaboration = () => {
+        closeModal();
+        props.openOptions('coauth');
     }
 
-    useEffect(() => {
-    });
+    const onOpenNavigation = () => {
+        closeModal();
+        props.openOptions('navigation');
+    }
 
     // set mode
-    const appOptions = props.storeAppOptions;
+    const isViewer = appOptions.isViewer;
+    const isMobileView = appOptions.isMobileView;
+
     let _isEdit = false,
         _canDownload = false,
         _canDownloadOrigin = false,
-        _canReader = false,
         _canAbout = true,
         _canHelp = true,
         _canPrint = false;
@@ -102,7 +129,6 @@ const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => 
             _canPrint = _canDownload = _canDownloadOrigin = false;
     } else {
         _isEdit = appOptions.isEdit;
-        _canReader = !appOptions.isEdit && !appOptions.isRestrictedEdit && appOptions.canReader;
         _canDownload = appOptions.canDownload;
         _canDownloadOrigin = appOptions.canDownloadOrigin;
         _canPrint = appOptions.canPrint;
@@ -120,33 +146,46 @@ const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => 
                 {navbar}
                 <List>
                     {!props.inPopover &&
-                        <ListItem disabled={appOptions.readerMode ? true : false} title={!_isEdit ? _t.textFind : _t.textFindAndReplace} link='#' searchbarEnable='.searchbar' onClick={closeModal} className='no-indicator'>
+                        <ListItem title={!_isEdit || isViewer ? _t.textFind : _t.textFindAndReplace} link='#' searchbarEnable='.searchbar' onClick={closeModal} className='no-indicator'>
                             <Icon slot="media" icon="icon-search"></Icon>
                         </ListItem>
                     }
+                    <ListItem title={t('Settings.textNavigation')} link='#' onClick={() => {
+                        if(Device.phone) {
+                            onOpenNavigation();
+                        } else {
+                            onoptionclick.bind(this, "/navigation/")();
+                        }}}>
+                        <Icon slot="media" icon="icon-navigation"></Icon>
+                    </ListItem>
                     {window.matchMedia("(max-width: 359px)").matches ?
                         <ListItem title={_t.textCollaboration} link="#" onClick={onOpenCollaboration} className='no-indicator'>
                             <Icon slot="media" icon="icon-collaboration"></Icon>
                         </ListItem> 
                     : null}
-                    {_canReader &&
-                        <ListItem title={_t.textReaderMode}> {/*ToDo*/}
-                            <Icon slot="media" icon="icon-reader"></Icon>
-                            <Toggle checked={appOptions.readerMode} onChange={() => {props.onReaderMode()}}/>
-                        </ListItem>
-                    }
                     {Device.sailfish && _isEdit &&
                         <ListItem title={_t.textSpellcheck} onClick={() => {props.onOrthographyCheck()}} className='no-indicator' link="#">
                             <Icon slot="media" icon="icon-spellcheck"></Icon>
                         </ListItem>
                     }
-                    {_isEdit &&
+                    {!isViewer && Device.phone &&
+                        <ListItem title={t('Settings.textMobileView')}>
+                            <Icon slot="media" icon="icon-mobile-view"></Icon>
+                            <Toggle checked={isMobileView} onToggleChange={() => {
+                                closeModal();
+                                props.onChangeMobileView();
+                                props.openOptions('snackbar');
+                            }} />
+                        </ListItem>
+                    }
+                    {(_isEdit && !isViewer) &&
                         <ListItem link="#" title={_t.textDocumentSettings} disabled={displayMode !== 'markup'} 
                             onClick={onoptionclick.bind(this, '/document-settings/')}>
                             <Icon slot="media" icon="icon-doc-setup"></Icon>
                         </ListItem>
                     }
-                    <ListItem title={_t.textApplicationSettings} link="#" onClick={onoptionclick.bind(this, "/application-settings/")}>
+                    <ListItem title={_t.textApplicationSettings} link="#"
+                              onClick={onoptionclick.bind(this, "/application-settings/")}>
                         <Icon slot="media" icon="icon-app-settings"></Icon>
                     </ListItem>
                     {_canDownload &&
@@ -155,9 +194,9 @@ const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => 
                         </ListItem>
                     }
                     {_canDownloadOrigin &&
-                    <ListItem title={_t.textDownload} link="#" onClick={props.onDownloadOrigin} className='no-indicator'>
-                        <Icon slot="media" icon="icon-download"></Icon>
-                    </ListItem>
+                        <ListItem title={_t.textDownload} link="#" onClick={props.onDownloadOrigin} className='no-indicator'>
+                            <Icon slot="media" icon="icon-download"></Icon>
+                        </ListItem>
                     }
                     {_canPrint &&
                         <ListItem title={_t.textPrint} onClick={props.onPrint} link='#' className='no-indicator'>
@@ -168,7 +207,7 @@ const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => 
                         <Icon slot="media" icon="icon-info"></Icon>
                     </ListItem>
                     {_canHelp &&
-                        <ListItem title={_t.textHelp} link="#" onClick={props.showHelp}>
+                        <ListItem title={_t.textHelp} link="#" className='no-indicator' onClick={props.showHelp}>
                             <Icon slot="media" icon="icon-help"></Icon>
                         </ListItem>
                     }
@@ -177,6 +216,9 @@ const SettingsList = inject("storeAppOptions", "storeReview")(observer(props => 
                             <Icon slot="media" icon="icon-about"></Icon>
                         </ListItem>
                     }
+                    <ListItem title={t('Settings.textFeedback')} link="#" className='no-indicator' onClick={props.showFeedback}>
+                            <Icon slot="media" icon="icon-feedback"></Icon>
+                    </ListItem>
                 </List>
             </Page>
         </View>
@@ -198,11 +240,11 @@ class SettingsView extends Component {
         const show_popover = this.props.usePopover;
         return (
             show_popover ?
-                <Popover id="settings-popover" className="popover__titled" onPopoverClosed={() => this.props.onclosed()}>
-                    <SettingsList inPopover={true} onOptionClick={this.onoptionclick} openOptions={this.props.openOptions} style={{height: '410px'}} onReaderMode={this.props.onReaderMode} onPrint={this.props.onPrint} showHelp={this.props.showHelp} onOrthographyCheck={this.props.onOrthographyCheck} onDownloadOrigin={this.props.onDownloadOrigin}/>
+                <Popover id="settings-popover" closeByOutsideClick={false} className="popover__titled" onPopoverClosed={() => this.props.closeOptions('settings')}>
+                    <SettingsList inPopover={true} onOptionClick={this.onoptionclick} closeOptions={this.props.closeOptions} openOptions={this.props.openOptions} style={{height: '410px'}} onChangeMobileView={this.props.onChangeMobileView} onPrint={this.props.onPrint} showHelp={this.props.showHelp} showFeedback={this.props.showFeedback} onOrthographyCheck={this.props.onOrthographyCheck} onDownloadOrigin={this.props.onDownloadOrigin}/>
                 </Popover> :
-                <Popup className="settings-popup" onPopupClosed={() => this.props.onclosed()}>
-                    <SettingsList onOptionClick={this.onoptionclick} openOptions={this.props.openOptions} onReaderMode={this.props.onReaderMode} onPrint={this.props.onPrint} showHelp={this.props.showHelp} onOrthographyCheck={this.props.onOrthographyCheck} onDownloadOrigin={this.props.onDownloadOrigin}/>
+                <Popup className="settings-popup" onPopupClosed={() => this.props.closeOptions('settings')}>
+                    <SettingsList onOptionClick={this.onoptionclick} closeOptions={this.props.closeOptions} openOptions={this.props.openOptions} onChangeMobileView={this.props.onChangeMobileView} onPrint={this.props.onPrint} showHelp={this.props.showHelp} showFeedback={this.props.showFeedback} onOrthographyCheck={this.props.onOrthographyCheck} onDownloadOrigin={this.props.onDownloadOrigin}/>
                 </Popup>
         )
     }
