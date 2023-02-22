@@ -7438,31 +7438,33 @@ function SaveContentSourceFormatting(aSourceContent, aCopyContent, oTheme, oColo
 
 function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr){
     var bMergeRunPr = (aCopyContent === aSourceContent);
-    for(var i = 0; i < aCopyContent.length; ++i){
-        if(aCopyContent[i] instanceof ParaRun && aCopyContent[i].Pr){
-            if(bMergeRunPr){
-                var oCoprPr = oPr.DefaultRunPr.Copy();
-                oCoprPr.Merge(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
-                aCopyContent[i].Set_Pr(oCoprPr)
-            }
-            else {
-                aCopyContent[i].Set_Pr(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
-            }
+	if(aCopyContent.length === aSourceContent.length) {
+		for(var i = 0; i < aCopyContent.length; ++i){
+			if(aCopyContent[i] instanceof ParaRun && aCopyContent[i].Pr){
+				if(bMergeRunPr){
+					var oCoprPr = oPr.DefaultRunPr.Copy();
+					oCoprPr.Merge(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
+					aCopyContent[i].Set_Pr(oCoprPr)
+				}
+				else {
+					aCopyContent[i].Set_Pr(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
+				}
 
-        }
-        else if(aSourceContent[i].Content){
-            var oElem = aSourceContent[i];
-            SaveRunsFormatting(oElem.Content, aCopyContent[i].Content, oTheme, oColorMap, oPr);
-            if(oElem.Get_CompiledCtrPrp && aCopyContent[i].setCtrPrp){
-                var oCtrPr = oElem.Get_CompiledCtrPrp();
-                aCopyContent[i].setCtrPrp(oCtrPr);
-            }
-        }
-        else if(aSourceContent[i] instanceof AscCommonWord.ParaMath && aSourceContent[i].Root && aSourceContent[i].Root.Content){
-            SaveRunsFormatting(aSourceContent[i].Root.Content, aCopyContent[i].Root.Content, oTheme, oColorMap, oPr);
+			}
+			else if(aSourceContent[i].Content){
+				var oElem = aSourceContent[i];
+				SaveRunsFormatting(oElem.Content, aCopyContent[i].Content, oTheme, oColorMap, oPr);
+				if(oElem.Get_CompiledCtrPrp && aCopyContent[i].setCtrPrp){
+					var oCtrPr = oElem.Get_CompiledCtrPrp();
+					aCopyContent[i].setCtrPrp(oCtrPr);
+				}
+			}
+			else if(aSourceContent[i] instanceof AscCommonWord.ParaMath && aSourceContent[i].Root && aSourceContent[i].Root.Content){
+				SaveRunsFormatting(aSourceContent[i].Root.Content, aCopyContent[i].Root.Content, oTheme, oColorMap, oPr);
 
-        }
-    }
+			}
+		}
+	}
 }
 
 
