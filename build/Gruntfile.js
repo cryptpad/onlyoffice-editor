@@ -117,7 +117,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-inline');
     grunt.loadNpmTasks('grunt-svgmin');
     grunt.loadNpmTasks('grunt-exec');
-    grunt.loadNpmTasks('grunt-terser');
 
     function doRegisterTask(name, callbackConfig) {
         return grunt.registerTask(name + '-init', function() {
@@ -475,7 +474,7 @@ module.exports = function(grunt) {
         });
 
 
-        grunt.task.run(['terser', 'copy']);
+        grunt.task.run(['copy']);
     });
 
     grunt.registerTask('mobile-app-init', function() {
@@ -681,17 +680,17 @@ module.exports = function(grunt) {
     grunt.registerTask('deploy-iscroll',                ['iscroll-init', 'clean', 'copy']);
     grunt.registerTask('deploy-fetch',                  ['fetch-init', 'clean', 'copy']);
     grunt.registerTask('deploy-bootstrap',              ['bootstrap-init', 'clean', 'copy']);
-    grunt.registerTask('deploy-requirejs',              ['requirejs-init', 'clean', 'terser']);
+    grunt.registerTask('deploy-requirejs',              ['requirejs-init', 'clean']);
     grunt.registerTask('deploy-es6-promise',            ['es6-promise-init', 'clean', 'copy']);
     grunt.registerTask('deploy-common-embed',           ['common-embed-init', 'clean', 'copy']);
 
     grunt.registerTask('deploy-app-main',               ['prebuild-icons-sprite', 'main-app-init', 'clean:prebuild', 'imagemin', 'less',
-                                                            'requirejs', 'terser', 'concat', 'copy', 'svgmin', 'inline', 'json-minify',
+                                                            'requirejs', 'concat', 'copy', 'svgmin', 'inline', 'json-minify',
                                                             'replace:writeVersion', 'replace:prepareHelp', 'clean:postbuild']);
 
     grunt.registerTask('deploy-app-mobile',             []);
 
-    grunt.registerTask('deploy-app-embed',              ['embed-app-init', 'clean:prebuild', 'terser', 'less', 'copy', 'clean:postbuild']);
+    grunt.registerTask('deploy-app-embed',              ['embed-app-init', 'clean:prebuild', 'less', 'copy', 'clean:postbuild']);
 
     doRegisterInitializeAppTask('common',               'Common',               'common.json');
     doRegisterInitializeAppTask('documenteditor',       'DocumentEditor',       'documenteditor.json');
