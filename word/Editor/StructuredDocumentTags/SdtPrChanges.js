@@ -690,16 +690,6 @@ CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
 			newFieldMaster.setLogicField(form)
 		
 		form.Pr.FormPr = Value;
-		
-		let logicDocument = form.GetLogicDocument();
-		let formManager   = logicDocument ? logicDocument.GetFormsManager() : null;
-		if (formManager)
-		{
-			if (Value)
-				formManager.Register(form);
-			else
-				formManager.Unregister(form);
-		}
 	}
 	else
 	{
@@ -708,6 +698,16 @@ CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
 		
 		if (form.Pr.FormPr)
 			form.Pr.FormPr.Field = fieldMaster;
+	}
+	
+	let logicDocument = form.GetLogicDocument();
+	let formManager   = logicDocument ? logicDocument.GetFormsManager() : null;
+	if (formManager)
+	{
+		if (Value)
+			formManager.Register(form);
+		else
+			formManager.Unregister(form);
 	}
 };
 CChangesSdtPrFormPr.prototype.private_CreateObject = function()
