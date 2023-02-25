@@ -899,9 +899,9 @@
 		if (!info)
 			return;
 		
-		let userId      = info["UserId"];
-		let cursorInfo  = info["CursorInfo"];
-		let shortUserId = info["UserShortId"];
+		let userId      = info.UserId ? info.UserId : info["UserId"];
+		let cursorInfo  = info.CursorInfo ? info.CursorInfo : info["CursorInfo"];
+		let shortUserId = info.UserShortId ? info.UserShortId : info["UserShortId"];
 		
 		if (!userId || !cursorInfo || !shortUserId)
 			return;
