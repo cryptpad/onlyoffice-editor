@@ -931,6 +931,8 @@
 
 		this.RevisionChangesStack = [];
 
+		this.isDarkMode = false;
+
 		//g_clipboardBase.Init(this);
 
 		this._init();
@@ -2117,11 +2119,21 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.Undo           = function()
 	{
-		this.WordControl.m_oLogicDocument.Document_Undo();
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (oLogicDocument.CanEdit() || oLogicDocument.IsEditCommentsMode() || oLogicDocument.IsFillingFormMode())
+			oLogicDocument.Document_Undo();
 	};
 	asc_docs_api.prototype.Redo           = function()
 	{
-		this.WordControl.m_oLogicDocument.Document_Redo();
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (oLogicDocument.CanEdit() || oLogicDocument.IsEditCommentsMode() || oLogicDocument.IsFillingFormMode())
+			oLogicDocument.Document_Redo();
 	};
 	asc_docs_api.prototype.Copy           = function()
 	{
@@ -2578,7 +2590,7 @@ background-repeat: no-repeat;\
 					var url = input["data"];
 					if (url)
 					{
-						t.processSavedFile(url, downloadType);
+						t.processSavedFile(url, downloadType, input["filetype"]);
 					}
 					else
 					{
@@ -2700,7 +2712,7 @@ background-repeat: no-repeat;\
 		if (this.bInit_word_control)
 			this.WordControl.OnScroll();
 	};
-	asc_docs_api.prototype.processSavedFile             = function(url, downloadType)
+	asc_docs_api.prototype.processSavedFile             = function(url, downloadType, filetype)
 	{
 		var t = this;
 		if (this.mailMergeFileData)
@@ -2728,7 +2740,7 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
+			AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType, filetype);
 		}
 	};
 	asc_docs_api.prototype.endInsertDocumentUrls = function()
@@ -5284,23 +5296,20 @@ background-repeat: no-repeat;\
 	{
 		this.asc_addImage();
 	};
-	asc_docs_api.prototype.AddImageUrl2 = function(url)
-	{
-		this.AddImageUrl(AscCommon.getFullImageSrc2(url));
-	};
-        // CRYPTPAD
-        // This method is necessary to add the loaded images to the list of loaded images
-        asc_docs_api.prototype.asc_addImageCallback = function(res)
-        {
-               g_oDocumentUrls.addImageUrl(res.name, res.url)
-        }
-        asc_docs_api.prototype.asyncImageEndLoadedBackground = function(_image)
-        {
-        };
+    // CRYPTPAD
+    // This method is necessary to add the loaded images to the list of loaded images
+    asc_docs_api.prototype.asc_addImageCallback = function(res)
+    {
+        g_oDocumentUrls.addImageUrl(res.name, res.url)
+    }
+    asc_docs_api.prototype.asyncImageEndLoadedBackground = function(_image)
+    {
+    };
+
 	asc_docs_api.prototype._addImageUrl      = function(urls, obj)
 	{
         if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj["obj"] || (obj instanceof AscCommon.CContentControlPr && obj.GetInternalId()))){
-            this.AddImageUrl(urls[0], undefined, undefined, obj);
+            this.AddImageUrlAction(urls[0], undefined, obj);
         }
         else{
             if(this.ImageLoader){
@@ -5333,23 +5342,7 @@ background-repeat: no-repeat;\
             }
         }
 	};
-	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, token, obj)
-	{
-		if (g_oDocumentUrls.getLocal(url))
-		{
-			this.AddImageUrlAction(url, imgProp, obj);
-		}
-		else
-		{
-		    var t = this;
-			AscCommon.sendImgUrls(this, [url], function(data) {
 
-                if (data && data[0] && data[0].url !== "error")
-                    t.AddImageUrlAction(data[0].url, imgProp, obj);
-
-            }, false, undefined, token);
-		}
-	};
 	asc_docs_api.prototype.AddImageUrlAction = function(url, imgProp, obj)
 	{
 		var _image = this.ImageLoader.LoadImage(url, 1);
@@ -8191,6 +8184,7 @@ background-repeat: no-repeat;\
 			// ToDo select csv params
 			oAdditionalData['codepage']  = AscCommon.c_oAscCodePageUtf8;
 			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma;
+			dataContainer.data = this.mailMergeFileData['data'];
 		}
 		else if (this.insertDocumentUrlsData)
 		{
@@ -8407,8 +8401,28 @@ background-repeat: no-repeat;\
 	//----------------------------------------------------------------------------------------------------------------------
 	asc_docs_api.prototype.asc_StartMailMerge              = function(oData)
 	{
-		this.mailMergeFileData = oData;
-		this.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
+		var t = this;
+		if (oData) {
+			this.mailMergeFileData = oData;
+			this.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
+		} else {
+			AscCommon.ShowSpreadsheetFileDialog(function (error, files) {
+				if (Asc.c_oAscError.ID.No !== error) {
+					t.sendEvent("asc_onError", error, Asc.c_oAscError.Level.NoCritical);
+					return;
+				}
+				var format = AscCommon.GetFileExtension(files[0].name);
+				var reader = new FileReader();
+				reader.onload = function () {
+					t.mailMergeFileData = {'url': undefined, 'fileType': format, 'data': new Uint8Array(reader.result)};
+					t.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
+				};
+				reader.onerror = function () {
+					t.sendEvent("asc_onError", Asc.c_oAscError.ID.Unknown, Asc.c_oAscError.Level.NoCritical);
+				};
+				reader.readAsArrayBuffer(files[0]);
+			});
+		}
 	};
 	asc_docs_api.prototype.asc_StartMailMergeByList        = function(aList)
 	{
@@ -10638,21 +10652,13 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.SetAutoCorrectFirstLetterOfSentences(isCorrect);
 	};
-	asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
+	asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks = function(isCorrect)
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
 		if (!oLogicDocument)
 			return;
 
-		return oLogicDocument.SetFirstLetterAutoCorrectExceptions(arrExceptions);
-	};
-	asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions = function()
-	{
-		var oLogicDocument = this.WordControl.m_oLogicDocument;
-		if (!oLogicDocument)
-			return [];
-
-		return oLogicDocument.GetFirstLetterAutoCorrectExceptions();
+		return oLogicDocument.SetAutoCorrectHyperlinks(isCorrect);
 	};
 
 	asc_docs_api.prototype.asc_GetSelectedText = function()
@@ -11461,6 +11467,32 @@ background-repeat: no-repeat;\
 		return true;
 	};
 
+    asc_docs_api.prototype.asc_setContentDarkMode = function(isDarkMode)
+	{
+		if (this.isDarkMode === isDarkMode)
+			return;
+
+        this.isDarkMode = isDarkMode;
+        if (this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			this.WordControl.m_oDrawingDocument.ClearCachePages();
+            this.WordControl.m_oDrawingDocument.FirePaint();
+            this.WordControl.m_oDrawingDocument.UpdateTargetNoAttack();
+        }
+	};
+    asc_docs_api.prototype.getPageBackgroundColor = function()
+    {
+		if (this.isDarkMode)
+			return [0x26, 0x26, 0x26];
+		return [0xFF, 0xFF, 0xFF];
+    };
+	asc_docs_api.prototype.getPageStrokeColor = function()
+	{
+		if (this.isDarkMode)
+			return "#8C8C8C";
+		return GlobalSkin.PageOutline;
+	};
+
 	asc_docs_api.prototype.asc_GetSelectionBounds = function()
 	{
 		var oLogicDocument   = this.private_GetLogicDocument();
@@ -11828,7 +11860,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['ChangeShapeImageFromFile']                  = asc_docs_api.prototype.ChangeShapeImageFromFile;
 	asc_docs_api.prototype['AddImage']                                  = asc_docs_api.prototype.AddImage;
 	asc_docs_api.prototype['asc_addImage']                              = asc_docs_api.prototype.asc_addImage;
-	asc_docs_api.prototype['AddImageUrl2']                              = asc_docs_api.prototype.AddImageUrl2;
 	asc_docs_api.prototype['AddImageUrl']                               = asc_docs_api.prototype.AddImageUrl;
 	asc_docs_api.prototype['AddImageUrlAction']                         = asc_docs_api.prototype.AddImageUrlAction;
 	asc_docs_api.prototype['AddImageToPage']                            = asc_docs_api.prototype.AddImageToPage;
@@ -12150,8 +12181,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutoCorrectSmartQuotes']             = asc_docs_api.prototype.asc_SetAutoCorrectSmartQuotes;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyphensWithDash']         = asc_docs_api.prototype.asc_SetAutoCorrectHyphensWithDash;
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
-	asc_docs_api.prototype['asc_SetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_SetFirstLetterAutoCorrectExceptions;
-	asc_docs_api.prototype['asc_GetFirstLetterAutoCorrectExceptions']   = asc_docs_api.prototype.asc_GetFirstLetterAutoCorrectExceptions;
+	asc_docs_api.prototype['asc_SetAutoCorrectHyperlinks']              = asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks;
 
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
@@ -12210,6 +12240,9 @@ background-repeat: no-repeat;\
 	// passwords
 	asc_docs_api.prototype["asc_setCurrentPassword"] 					= asc_docs_api.prototype.asc_setCurrentPassword;
 	asc_docs_api.prototype["asc_resetPassword"] 						= asc_docs_api.prototype.asc_resetPassword;
+
+	// view modes
+    asc_docs_api.prototype["asc_setContentDarkMode"]					= asc_docs_api.prototype.asc_setContentDarkMode;
 
 	CDocInfoProp.prototype['get_PageCount']             = CDocInfoProp.prototype.get_PageCount;
 	CDocInfoProp.prototype['put_PageCount']             = CDocInfoProp.prototype.put_PageCount;

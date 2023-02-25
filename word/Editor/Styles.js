@@ -164,7 +164,7 @@ CTableStylePr.prototype =
             || true !== this.TableCellPr.Is_Equal(TableStylePr.TableCellPr))
             return false;
 
-        return false;
+        return true;
     },
 
     Check_PresentationPr : function(Theme)
@@ -10580,8 +10580,8 @@ CDocumentBorder.prototype.IsEqual = function(oBorder)
 
 	return (IsEqualStyleObjects(this.Color, oBorder.Color)
 		&& IsEqualStyleObjects(this.Unifill, oBorder.Unifill)
-		&& this.Space !== oBorder.Space
-		&& this.Size !== oBorder.Size);
+		&& this.Space === oBorder.Space
+		&& this.Size === oBorder.Size);
 };
 CDocumentBorder.prototype.WriteToBinary = function(oWriter)
 {

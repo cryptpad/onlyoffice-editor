@@ -320,14 +320,18 @@
      * @memberof Api
      * @typeofeditors ["CDE"]
      * @alias GetSelectedText
+     * @param {boolean} numbering is an option that includes numbering in the return value
+     * @return {string} selected text
+	 * @example
+     * window.Asc.plugin.executeMethod("GetSelectedText", [true])
      */
-    window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function()
+    window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function(numbering)
     {
         var oLogicDocument = this.private_GetLogicDocument();
         if (!oLogicDocument)
             return;
 
-        return oLogicDocument.GetSelectedText(false, {NewLine : true, NewLineParagraph : true});
+        return oLogicDocument.GetSelectedText(false, {NewLine : true, NewLineParagraph : true, Numbering: numbering});
     };
     /**
      * Remove selection in document
@@ -517,6 +521,7 @@
 	window["asc_docs_api"].prototype["pluginMethod_MoveToComment"] = function(sId)
 	{
 		this.asc_selectComment(sId);
+		this.asc_showComment(sId);
 	};
 	/**
 	 * Set the display mode for track changes

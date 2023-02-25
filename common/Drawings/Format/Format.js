@@ -5740,8 +5740,23 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     {
         _result_shape_prop.shadow = null;
     }
-
+    _result_shape_prop.protectionLockText = CompareProtectionFlags(shapeProp1.protectionLockText, shapeProp2.protectionLockText);
+    _result_shape_prop.protectionLocked = CompareProtectionFlags(shapeProp1.protectionLocked, shapeProp2.protectionLocked);
+    _result_shape_prop.protectionPrint = CompareProtectionFlags(shapeProp1.protectionPrint, shapeProp2.protectionPrint);
     return _result_shape_prop;
+}
+
+function CompareProtectionFlags(bFlag1, bFlag2)
+{
+    if(bFlag1 === null || bFlag2 === null)
+    {
+        return null;
+    }
+    else if(bFlag1 === bFlag2)
+    {
+        return bFlag1;
+    }
+    return undefined;
 }
 
 function CompareTextArtProperties(oProps1, oProps2)
@@ -13365,6 +13380,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].CompareUniFill = CompareUniFill;
     window['AscFormat'].CompareUnifillBool = CompareUnifillBool;
     window['AscFormat'].CompareShapeProperties = CompareShapeProperties;
+    window['AscFormat'].CompareProtectionFlags = CompareProtectionFlags;
     window['AscFormat'].EndArrow = EndArrow;
     window['AscFormat'].ConvertJoinAggType = ConvertJoinAggType;
     window['AscFormat'].LineJoin = LineJoin;

@@ -2557,7 +2557,7 @@ CGraphicObjects.prototype =
     },
 
     handleDblClickEmptyShape: function(oShape){
-        if(!oShape.getDocContent() && !AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+        if(!oShape.getDocContent() && oShape.canEditText()){
 
             if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props))
             {
@@ -4349,6 +4349,10 @@ CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
 
     if (oDocContent)
         oDocContent.Document_Is_SelectionLocked(CheckType);
+};
+CGraphicObjects.prototype.getAnimationPlayer = function()
+{
+    return null;
 };
 
 function ComparisonByZIndexSimpleParent(obj1, obj2)

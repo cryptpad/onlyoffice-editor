@@ -2494,7 +2494,6 @@ background-repeat: no-repeat;\
 		{
 			History.Create_NewPoint(AscDFH.historydescription_Presentation_ParagraphAdd);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize : Math.min(size, 300)}), false);
-			this.WordControl.m_oLogicDocument.CheckResetShapesAutoFit(true);
 			// для мобильной версии это важно
 			if (this.isMobileVersion)
 				this.UpdateInterfaceState();
@@ -4113,7 +4112,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._addImageUrl = function(urls, obj)
 	{
 		if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isSlideImageChangeUrl || obj.isTextArtChangeUrl)){
-            this.AddImageUrl(urls[0], undefined, undefined, obj);
+            this.AddImageUrlAction(urls[0], undefined, obj);
 		}
 		else{
 			if(this.ImageLoader){
@@ -4129,23 +4128,6 @@ background-repeat: no-repeat;\
                     oApi.WordControl.m_oLogicDocument.addImages(aImages, obj);
                 }, []);
 			}
-		}
-	};
-	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, token, obj)
-	{
-		if (g_oDocumentUrls.getLocal(url))
-		{
-			this.AddImageUrlAction(url, obj);
-		}
-		else
-		{
-            var t = this;
-            AscCommon.sendImgUrls(this, [url], function(data) {
-
-                if (data && data[0] && data[0].url !== "error")
-                    t.AddImageUrlAction(data[0].url, obj);
-
-            }, false, undefined, token);
 		}
 	};
 
@@ -4218,7 +4200,7 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.AddImageUrlAction = function(url, obj)
+	asc_docs_api.prototype.AddImageUrlAction = function(url, imgProp, obj)
 	{
 		var _image = this.ImageLoader.LoadImage(url, 1);
 		if (null != _image)
@@ -6658,12 +6640,12 @@ background-repeat: no-repeat;\
 				}
 				case "next":
 				{
-					_this.WordControl.DemonstrationManager.NextSlide();
+					_this.WordControl.DemonstrationManager.OnNextSlide();
 					break;
 				}
 				case "prev":
 				{
-					_this.WordControl.DemonstrationManager.PrevSlide();
+					_this.WordControl.DemonstrationManager.OnPrevSlide();
 					break;
 				}
 				case "go_to_slide":
@@ -6701,6 +6683,11 @@ background-repeat: no-repeat;\
 				case "resize":
 				{
 					_this.WordControl.DemonstrationManager.Resize(true);
+					break;
+				}
+				case "on_mouse_down":
+				{
+					_this.WordControl.DemonstrationManager.CheckMouseDown(_obj["x"], _obj["y"], _obj["page"]);
 					break;
 				}
 				default:
@@ -6821,11 +6808,11 @@ background-repeat: no-repeat;\
 			}
 			else if (true === _obj["next"])
 			{
-				_this.WordControl.DemonstrationManager.NextSlide(true);
+				_this.WordControl.DemonstrationManager.OnNextSlide(true);
 			}
 			else if (true === _obj["prev"])
 			{
-				_this.WordControl.DemonstrationManager.PrevSlide(true);
+				_this.WordControl.DemonstrationManager.OnPrevSlide(true);
 			}
 			else if (undefined !== _obj["go_to_slide"])
 			{
@@ -6865,6 +6852,10 @@ background-repeat: no-repeat;\
 					_this.WordControl.reporterTimerAdd = _this.WordControl.reporterTimerFunc(true);
 				}
 			}
+			else if(true === _obj["on_mouse_down"])
+			{
+				_this.WordControl.DemonstrationManager.CheckMouseDown(_obj["x"], _obj["y"], _obj["page"]);
+			}
 		}
 		catch (err)
 		{
@@ -6901,14 +6892,14 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.DemonstrationNextSlide = function()
 	{
-		this.WordControl.DemonstrationManager.NextSlide();
+		this.WordControl.DemonstrationManager.OnNextSlide();
 		if (this.reporterWindow)
 			this.sendToReporter("{ \"main_command\" : true, \"next\" : true }");
 	};
 
 	asc_docs_api.prototype.DemonstrationPrevSlide = function()
 	{
-		this.WordControl.DemonstrationManager.PrevSlide();
+		this.WordControl.DemonstrationManager.OnPrevSlide();
 		if (this.reporterWindow)
 			this.sendToReporter("{ \"main_command\" : true, \"prev\" : true }");
 	};
@@ -7335,6 +7326,14 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.SetAutoCorrectFirstLetterOfSentences(isCorrect);
 	};
+	asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks = function(isCorrect)
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetAutoCorrectHyperlinks(isCorrect);
+	};
 
 	asc_docs_api.prototype.asc_GetSelectedText = function()
 	{
@@ -7422,6 +7421,28 @@ background-repeat: no-repeat;\
 
         return oLogicDocument.GetAddedTextOnKeyDown(e);
     };
+	asc_docs_api.prototype.sync_OnConvertEquationToMath = function(oEquation)
+	{
+		this.sendEvent("asc_onConvertEquationToMath", oEquation);
+	};
+	asc_docs_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
+	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+
+		// TODO: Вообще здесь нужно запрашивать шрифты, которые использовались в старой формуле,
+		//      но пока это только 1 шрифт "Cambria Math".
+		var loader   = AscCommon.g_font_loader;
+		var fontinfo = AscFonts.g_fontApplication.GetFontInfo("Cambria Math");
+		var isasync  = loader.LoadFont(fontinfo, function()
+		{
+			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
+		}, this);
+
+		if (false === isasync)
+		{
+			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
+		}
+	};
 
     //test
 	window["asc_docs_api"]                                 = asc_docs_api;
@@ -8254,6 +8275,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SetAutoCorrectSmartQuotes']             = asc_docs_api.prototype.asc_SetAutoCorrectSmartQuotes;
 	asc_docs_api.prototype['asc_SetAutoCorrectHyphensWithDash']         = asc_docs_api.prototype.asc_SetAutoCorrectHyphensWithDash;
 	asc_docs_api.prototype['asc_SetAutoCorrectFirstLetterOfSentences']  = asc_docs_api.prototype.asc_SetAutoCorrectFirstLetterOfSentences;
+	asc_docs_api.prototype['asc_SetAutoCorrectHyperlinks']              = asc_docs_api.prototype.asc_SetAutoCorrectHyperlinks;
 
 	asc_docs_api.prototype["asc_GetSelectedText"]                 = asc_docs_api.prototype.asc_GetSelectedText;
 
@@ -8311,6 +8333,9 @@ background-repeat: no-repeat;\
 	// password
 	asc_docs_api.prototype["asc_setCurrentPassword"] 				= asc_docs_api.prototype.asc_setCurrentPassword;
 	asc_docs_api.prototype["asc_resetPassword"] 					= asc_docs_api.prototype.asc_resetPassword;
+
+	asc_docs_api.prototype["sync_OnConvertEquationToMath"] 		    = asc_docs_api.prototype.sync_OnConvertEquationToMath;
+	asc_docs_api.prototype["asc_ConvertEquationToMath"] 		    = asc_docs_api.prototype.asc_ConvertEquationToMath;
 
 
 	window['Asc']['asc_CCommentData'] = window['Asc'].asc_CCommentData = asc_CCommentData;

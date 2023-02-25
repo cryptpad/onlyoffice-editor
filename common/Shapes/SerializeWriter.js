@@ -1195,6 +1195,11 @@ function CBinaryFileWriter()
                 this.EndRecord();
             }
         }
+        if (presentation.Api.vbaMacros) {
+            this.StartRecord(8);
+            this.WriteBuffer(presentation.Api.vbaMacros, 0, presentation.Api.vbaMacros.length);
+            this.EndRecord();
+        }
 		var macros = presentation.Api.macros.GetData();
 		if (macros) {
 			this.StartRecord(9);
@@ -3612,6 +3617,7 @@ function CBinaryFileWriter()
             oThis.StartRecord(1);
             oThis.WriteUChar(g_nodeAttributeStart);
             oThis._WriteBool2(0, shape.attrUseBgFill);
+            oThis._WriteString2(2, shape.modelId);
             oThis.WriteUChar(g_nodeAttributeEnd);
         }
 
@@ -3651,6 +3657,9 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(3, shape.txBody, oThis.WriteTxBody);
 
         oThis.WriteRecord2(7, shape.signatureLine, oThis.WriteSignatureLine);
+        oThis.WriteRecord2(9, shape.fLocksText, function() {
+            oThis._WriteBool1(0, shape.fLocksText);
+        });
         shape.writeMacro(oThis);
 
         if (isUseTmpFill)
@@ -5584,6 +5593,7 @@ function CBinaryFileWriter()
                 _writer.StartRecord(1);
                 _writer.WriteUChar(g_nodeAttributeStart);
                 _writer._WriteBool2(0, shape.attrUseBgFill);
+                _writer._WriteString2(2, shape.modelId);
                 _writer.WriteUChar(g_nodeAttributeEnd);
             }
 

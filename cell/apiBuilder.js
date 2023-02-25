@@ -782,19 +782,28 @@
 			return this.GetCells();
 		} else if (typeof value == "number" || value.indexOf(':') == -1) {
 			value = parseInt(value);
-			if (value > 0) {
+			if (value > 0 && value <=  AscCommon.gc_nMaxRow0 + 1 && value[0] !== NaN) {
 				value --;
+			} else {
+				return new Error('The nRow must be greater than 0 and less then ' + (AscCommon.gc_nMaxRow0 + 1));
 			}
 			return new ApiRange(this.worksheet.getRange3(value, 0, value, AscCommon.gc_nMaxCol0));
 		} else {
 			value = value.split(':');
+			var isError = false;
 			for (var i = 0; i < value.length; ++i) {
 				value[i] = parseInt(value[i]);
-				if (value[i] > 0) {
+				if (value[i] > 0 && value[i] <= AscCommon.gc_nMaxRow0 + 1 && value[0] !== NaN) {
 					value[i] --;
+				} else {
+					isError = true;
 				}
 			}
-			return new ApiRange(this.worksheet.getRange3(value[0], 0, value[1], AscCommon.gc_nMaxCol0));
+			if (isError) {
+				return new Error('The nRow must be greater than 0 and less then ' + (AscCommon.gc_nMaxRow0 + 1));
+			} else {
+				return new ApiRange(this.worksheet.getRange3(value[0], 0, value[1], AscCommon.gc_nMaxCol0));
+			}
 		}
 	};
 
@@ -1478,6 +1487,20 @@
 	 * @typedef {("None" | "Double" | "Hair" | "DashDotDot" | "DashDot" | "Dotted" | "Dashed" | "Thin" | "MediumDashDotDot" | "SlantDashDot" | "MediumDashDot" | "MediumDashed" | "Medium" | "Thick")} LineStyle
 	 */
 
+	//TODO xlManual param
+	/**
+	 * @typedef {("xlAscending" | "xlDescending")}  SortOrder
+	 * */
+
+	//TODO xlGuess param
+	/**
+	 * @typedef {("xlNo" | "xlYes")} SortHeader
+	 * */
+
+	/**
+	 * @typedef {("xlSortColumns" | "xlSortRows")} SortOrientation
+	 * */
+
 	/**
 	 * Specifies the range angle.
 	 * @typedef {("xlDownward" | "xlHorizontal" | "xlUpward" | "xlVertical")} Angle
@@ -1546,17 +1569,19 @@
 	 */
 	ApiRange.prototype.GetRows = function (nRow) {
 		if (typeof nRow === "undefined") {
-			var r1 = this.range.bbox.r1 + 1;
-			var r2 = this.range.bbox.r2 + 1;
-			return new ApiWorksheet(this.range.worksheet).GetRows(r1 + ":" + r2);
+			return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, 0, this.range.bbox.r2, AscCommon.gc_nMaxCol0));
 			// return new ApiWorksheet(this.range.worksheet).GetRows();	// return all rows from current sheet
-		} else if ( (nRow >= this.range.bbox.r1) && (nRow <= this.range.bbox.r2) ) {
-			return new ApiWorksheet(this.range.worksheet).GetRows(nRow);
 		} else {
-			var bbox = this.range.bbox;
-			if (nRow)
+			if (typeof nRow === "number" && nRow > 0 && nRow <= AscCommon.gc_nMaxRow0 + 1) {
 				nRow--;
-			return new ApiRange(this.range.worksheet.getRange3(nRow, bbox.c1, nRow, bbox.c2));
+				if ( (nRow >= this.range.bbox.r1) && (nRow <= this.range.bbox.r2) ) {
+					return new ApiRange(this.range.worksheet.getRange3(nRow, 0, nRow, AscCommon.gc_nMaxCol0));
+				} else {
+					return new ApiRange(this.range.worksheet.getRange3(nRow, this.range.bbox.c1, nRow, this.range.bbox.c2));
+				}
+			} else {
+				return new Error('The nRow must be greater than 0 and less then ' + (AscCommon.gc_nMaxRow0 + 1));
+			}
 		}
 	};
 	Object.defineProperty(ApiRange.prototype, "Rows", {
@@ -1573,14 +1598,23 @@
 	 * @returns {ApiRange}
 	 */
 	 ApiRange.prototype.GetCols = function (nCol) {
-		if (nCol) nCol--;
 		if (typeof nCol === "undefined") {
 			return new ApiRange(this.range.worksheet.getRange3(0, this.range.bbox.c1, AscCommon.gc_nMaxRow0, this.range.bbox.c2));
-		} else if ( (nCol >= this.range.bbox.c1) && (nCol <= this.range.bbox.c2) ) {
-			return new ApiRange(this.range.worksheet.getRange3(0, nCol, AscCommon.gc_nMaxRow0, nCol));
 		} else {
-			return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, nCol, this.range.bbox.r2, nCol));
-		}
+			if (typeof nCol === "number" && nCol > 0 && nCol <= AscCommon.gc_nMaxCol0 + 1)
+			{
+				nCol--;
+				if ( (nCol >= this.range.bbox.c1) && (nCol <= this.range.bbox.c2) ) {
+					return new ApiRange(this.range.worksheet.getRange3(0, nCol, AscCommon.gc_nMaxRow0, nCol));
+				}
+				else {
+					return new ApiRange(this.range.worksheet.getRange3(this.range.bbox.r1, nCol, this.range.bbox.r2, nCol));
+				}
+			} else {
+				return new Error('The nCol must be greater than 0 and less then ' + (AscCommon.gc_nMaxCol0 + 1));
+			}
+		} 
+		
 	};
 	Object.defineProperty(ApiRange.prototype, "Cols", {
 		get: function () {
@@ -2509,6 +2543,99 @@
 			return this.SetOrientation();
 		}
 	});
+
+	/**
+	 * Add a comment to the range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {ApiRange | String} key1 - first sort field
+	 * @param {SortOrder} sSortOrder1 - determines the sort order for the values specified in Key1
+	 * @param {ApiRange | String} key2 - second sort field
+	 * @param {SortOrder} sSortOrder2 - determines the sort order for the values specified in Key2
+	 * @param {ApiRange | String} key3 - third sort field
+	 * @param {SortOrder} sSortOrder3 - determines the sort order for the values specified in Key3
+	 * @param {SortHeader} sHeader - specifies whether the first row contains header information
+	 * @param {SortOrientation} sOrientation - specifies if the sort should be by row (default) or column
+	 */
+
+	ApiRange.prototype.SetSort = function (key1, sSortOrder1, key2, /*Type,*/ sSortOrder2, key3, sSortOrder3, sHeader, /*OrderCustom, MatchCase,*/ sOrientation/*, SortMethod, DataOption1, DataOption2, DataOption3*/) {
+		var ws = this.range.worksheet;
+		var sortSettings = new Asc.CSortProperties(ws);
+		var range = this.range.bbox;
+
+		var aMerged = ws.mergeManager.get(range);
+		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == window['AscCommonExcel']._isSameSizeMerged(range, aMerged.inner, true))) {
+			return;
+		}
+
+		sortSettings.hasHeaders = sHeader === "xlYes";
+		var columnSort = sortSettings.columnSort = sOrientation !== "xlSortRows";
+
+		var getSortLevel = function(_key, _order) {
+			var index = null;
+			if (_key instanceof ApiRange) {
+				index = columnSort ? _key.range.bbox.c1 - range.c1 : _key.range.bbox.r1 - range.r1;
+			} else if (typeof _key === "string") {
+				//named range
+				var _defName = ws.workbook.getDefinesNames(_key);
+				if (_defName) {
+					var defNameRef;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						defNameRef = AscCommonExcel.getRangeByRef(_defName.ref, ws, true, true)
+					});
+					if (defNameRef && defNameRef[0] && defNameRef[0].worksheet) {
+						if (range.contains(defNameRef[0].bbox.c1, defNameRef[0].bbox.r1)) {
+							if (defNameRef[0].worksheet.Id === ws.Id) {
+								index = columnSort ? defNameRef[0].bbox.c1 - range.c1 : defNameRef[0].bbox.r1 - range.r1;
+							}
+						} else {
+							//error
+							return false;
+						}
+					}
+				}
+			}
+
+			if (null === index) {
+				return null;
+			}
+
+			var level = new Asc.CSortPropertiesLevel();
+			level.index = index;
+			level.descending = _order === "xlDescending" ? Asc.c_oAscSortOptions.Descending : Asc.c_oAscSortOptions.Ascending;
+			sortSettings.levels.push(level);
+		};
+
+		sortSettings.levels = [];
+		if (key1 && false === getSortLevel(key1, sSortOrder1)) {
+			return;
+		}
+		if (key2 && false === getSortLevel(key2, sSortOrder2)) {
+			return;
+		}
+		if (key3 && false === getSortLevel(key3, sSortOrder3)) {
+			return;
+		}
+
+		var oWorksheet = Asc['editor'].wb.getWorksheet();
+		var tables = ws.autoFilters.getTablesIntersectionRange(range);
+		var obj;
+		if(tables && tables.length) {
+			obj = tables[0];
+		} else if(ws.AutoFilter && ws.AutoFilter.Ref && ws.AutoFilter.Ref.intersection(range)) {
+			obj = ws.AutoFilter;
+		}
+		ws.setCustomSort(sortSettings, obj, null, oWorksheet && oWorksheet.cellCommentator, range);
+	};
+
+	/*Object.defineProperty(ApiRange.prototype, "Sort", {
+		set: function (obj) {
+			return this.SetSort(obj.Key1, obj.Order1, obj.Key2, obj.Type, obj.Order2, obj.Key3, obj.Order3, obj.Header,
+				obj.OrderCustom, obj.MatchCase, obj.Orientation, obj.SortMethod, obj.DataOption1, obj.DataOption2,
+				obj.DataOption3);
+		}
+	});*/
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -3243,6 +3370,7 @@
 	ApiRange.prototype["Select"] = ApiRange.prototype.Select;
 	ApiRange.prototype["SetOrientation"] = ApiRange.prototype.SetOrientation;
 	ApiRange.prototype["GetOrientation"] = ApiRange.prototype.GetOrientation;
+	ApiRange.prototype["SetSort"] = ApiRange.prototype.SetSort;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;

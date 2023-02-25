@@ -98,7 +98,8 @@
 			return;
 		}
 		var t = this;
-		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
+		var formulaText = isNum(this.text) ? this.text + "" : this.text;
+		this._formula = new AscCommonExcel.parserFormula(formulaText, this, ws);
 		if (!locale) {
 			AscCommonExcel.executeInR1C1Mode(false, function () {
 				t._formula.parse();

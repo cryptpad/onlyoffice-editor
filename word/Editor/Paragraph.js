@@ -184,7 +184,7 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
-    if(bFromPresentation === true)
+    if(bFromPresentation === true && History.Is_On())
     {
         this.Save_StartState();
     }
@@ -12619,11 +12619,19 @@ Paragraph.prototype.Continue = function(NewParagraph)
 	}
 	else
 	{
-		var EndPos = this.Get_EndPos2(false);
 		var CurPos = this.Get_ParaContentPos(false, false);
-		this.Set_ParaContentPos(EndPos, true, -1, -1);
-		TextPr = this.Get_TextPr(this.Get_ParaContentPos(false, false)).Copy();
-		this.Set_ParaContentPos(CurPos, false, -1, -1, false);
+
+		if (!this.IsCursorAtEnd(CurPos))
+		{
+			var EndPos = this.Get_EndPos2(false);
+			this.Set_ParaContentPos(EndPos, true, -1, -1);
+			TextPr = this.Get_TextPr(this.Get_ParaContentPos(false, false)).Copy();
+			this.Set_ParaContentPos(CurPos, false, -1, -1, false);
+		}
+		else
+		{
+			TextPr = this.Get_TextPr(this.Get_ParaContentPos(false, false)).Copy();
+		}
 
 		// 1. Выделение не продолжаем
 		// 2. Стиль сноски не продолжаем

@@ -214,6 +214,8 @@ function Slide(presentation, slideLayout, slideNum)
 
     this.NotesWidth = -10.0;
 
+    this.animationPlayer = null;
+
     if(presentation)
     {
         this.Width = presentation.GetWidthMM();
@@ -683,7 +685,6 @@ Slide.prototype =
        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideSetComments, this.slideComments, comments));
         this.slideComments = comments;
     },
-
 
     setShow: function(bShow)
     {
@@ -1254,6 +1255,13 @@ Slide.prototype =
 
     draw: function(graphics)
     {
+        //For animation testing
+        if (graphics.IsSlideBoundsCheckerType) {
+            if(editor.WordControl.DemonstrationManager && editor.WordControl.DemonstrationManager.Mode) {
+                graphics.rect(0, 0, this.Width, this.Height);
+                return;
+            }
+        }
         var _bounds, i;
         DrawBackground(graphics, this.backgroundFill, this.Width, this.Height);
         if(this.needMasterSpDraw())
@@ -1682,6 +1690,14 @@ Slide.prototype =
         if(this.notesShape) {
             this.notesShape.createFontMap(oFontsMap);
         }
+    },
+
+    getAnimationPlayer: function() {
+        if(!this.animationPlayer) {
+            var oDemoManager = editor.WordControl.DemonstrationManager;
+            this.animationPlayer = new AscFormat.CAnimationPlayer(this, oDemoManager);
+        }
+        return this.animationPlayer;
     }
 };
 

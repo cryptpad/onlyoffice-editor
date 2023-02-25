@@ -349,6 +349,9 @@ CCommentData.prototype.ReadFromSimpleObject = function(oData)
 
 	if (oData["UserName"])
 		this.m_sUserName = oData["UserName"];
+	
+	if (oData["UserId"])
+		this.m_sUserId = oData["UserId"];
 
 	if (oData["Solved"])
 		this.m_bSolved = oData["Solved"];

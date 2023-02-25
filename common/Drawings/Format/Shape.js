@@ -62,7 +62,7 @@ var c_oAscFill = Asc.c_oAscFill;
 
 function CheckObjectLine(obj)
 {
-    return (obj instanceof CShape && obj.spPr && obj.spPr.geometry && AscFormat.CheckLinePreset(obj.spPr.geometry.preset));
+    return (obj instanceof CShape && obj.spPr && obj.spPr.geometry && AscFormat.CheckLinePresetForParagraphAdd(obj.spPr.geometry.preset));
 }
 
 
@@ -1273,7 +1273,7 @@ CShape.prototype.createTextBoxContent = function () {
 CShape.prototype.paragraphAdd = function (paraItem, bRecalculate) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -1293,7 +1293,7 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     var content_to_add = this.getDocContent();
     if (!content_to_add)
     {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
 
             if (this.bWordShape)
             {
@@ -1359,6 +1359,7 @@ CShape.prototype.getBodyPr = function () {
         }
     }, this, []);
 };
+
 
 CShape.prototype.GetRevisionsChangeElement = function(SearchEngine){
     var oContent = this.getDocContent();
@@ -1805,7 +1806,7 @@ CShape.prototype.getPhIndex = function () {
 CShape.prototype.setVerticalAlign = function (align) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -1831,7 +1832,7 @@ CShape.prototype.setVerticalAlign = function (align) {
 CShape.prototype.setVert = function (vert) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+        if(this.canEditText()) {
             if (this.bWordShape) {
                 this.createTextBoxContent();
             }
@@ -2921,6 +2922,12 @@ CShape.prototype.fillObject = function(copy, oPr){
     if(this.textLink !== null) {
         copy.setTextLink(this.textLink);
     }
+    if(this.clientData) {
+        copy.setClientData(this.clientData.createDuplicate());
+    }
+    if(this.fLocksText !== null) {
+        copy.setFLocksText(this.fLocksText);
+    }
     copy.setWordShape(this.bWordShape);
     copy.setBDeleted(this.bDeleted);
     copy.setLocks(this.locks);
@@ -2933,6 +2940,9 @@ CShape.prototype.copy = function (oPr) {
     var copy = new CShape();
     this.fillObject(copy, oPr);
     return copy;
+};
+CShape.prototype.getProtectionLockText = function () {
+    return this.fLocksText !== false;
 };
 
 CShape.prototype.Get_Styles = function (level) {
@@ -4922,6 +4932,10 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         if(!oUR.isIntersectOther(this.bounds)) {
             return;
         }
+    }
+    if(graphics.animationDrawer) {
+        graphics.animationDrawer.drawObject(this, graphics);
+        return;
     }
 
     var _transform = transform ? transform : this.transform;

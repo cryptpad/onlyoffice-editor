@@ -1869,7 +1869,7 @@
 			}
 		}
 		this._state = ConnectionState.Reconnect;
-		var bIsDisconnectAtAll = ((c_oCloseCode.serverShutdown <= evt.code && evt.code <= c_oCloseCode.drop) ||
+		var bIsDisconnectAtAll = (-1 !== Object.values(c_oCloseCode).indexOf(evt.code) ||
 			this.attemptCount >= this.maxAttemptCount);
 		var code = null;
 		if (bIsDisconnectAtAll) {

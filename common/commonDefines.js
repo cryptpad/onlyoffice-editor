@@ -99,7 +99,22 @@
 		POTX : 0x0087,
 		POTM : 0x0088,
 		FODP : 0x0089,
-		OTP  : 0x008a
+		OTP  : 0x008a,
+
+		//image
+		JPG  : 0x0401,
+		TIFF : 0x0402,
+		TGA  : 0x0403,
+		GIF  : 0x0404,
+		PNG  : 0x0405,
+		EMF  : 0x0406,
+		WMF  : 0x0407,
+		BMP  : 0x0408,
+		CR2  : 0x0409,
+		PCX  : 0x040a,
+		RAS  : 0x040b,
+		PSD  : 0x040c,
+		ICO  : 0x040d
 	};
 
 	var c_oAscError = {
@@ -280,7 +295,12 @@
 			ErrorTop10Between: 1010,
 
 			SingleColumnOrRowError: 1020,
-			LocationOrDataRangeError: 1021
+			LocationOrDataRangeError: 1021,
+
+			ChangeOnProtectedSheet: 1030,
+			PasswordIsNotCorrect: 1031,
+			DeleteColumnContainsLockedCell: 1032,
+			DeleteRowContainsLockedCell: 1033
 		}
 	};
 
@@ -305,7 +325,8 @@
 		ForceSaveButton   : 16,
 		ForceSaveTimeout  : 17,
 		Waiting	: 18,
-		Submit : 19
+		Submit : 19,
+		Disconnect :20
 	};
 
 	var c_oAscAdvancedOptionsID = {
@@ -2247,6 +2268,21 @@
 	prot['POTM']                 = prot.POTM;
 	prot['FODP']                 = prot.FODP;
 	prot['OTP']                  = prot.OTP;
+
+	prot['JPG']                  = prot.JPG;
+	prot['TIFF']                 = prot.TIFF;
+	prot['TGA']                  = prot.TGA;
+	prot['GIF']                  = prot.GIF;
+	prot['PNG']                  = prot.PNG;
+	prot['EMF']                  = prot.EMF;
+	prot['WMF']                  = prot.WMF;
+	prot['BMP']                  = prot.BMP;
+	prot['CR2']                  = prot.CR2;
+	prot['PCX']                  = prot.PCX;
+	prot['RAS']                  = prot.RAS;
+	prot['PSD']                  = prot.PSD;
+	prot['ICO']                  = prot.ICO;
+
 	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
 	prot                                     = c_oAscError;
 	prot['Level']                            = prot.Level;
@@ -2383,6 +2419,10 @@
 	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
 	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
 	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
+	prot['ChangeOnProtectedSheet']           = prot.ChangeOnProtectedSheet;
+	prot['PasswordIsNotCorrect']             = prot.PasswordIsNotCorrect;
+	prot['DeleteColumnContainsLockedCell']   = prot.DeleteColumnContainsLockedCell;
+	prot['DeleteRowContainsLockedCell']      = prot.DeleteRowContainsLockedCell;
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
@@ -2406,6 +2446,7 @@
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
 	prot['Waiting']                          = prot.Waiting;
 	prot['Submit']                           = prot.Submit;
+	prot['Disconnect']                       = prot.Disconnect;
 	window['Asc']['c_oAscAdvancedOptionsID'] = window['Asc'].c_oAscAdvancedOptionsID = c_oAscAdvancedOptionsID;
 	prot                                         = c_oAscAdvancedOptionsID;
 	prot['CSV']                                  = prot.CSV;

@@ -126,7 +126,7 @@ function CTransitionAnimation(htmlpage)
         this.Rect.y = _centerY - _centerSlideY - _ver_height_top;
         this.Rect.w = _slideW;
         this.Rect.h = _slideH;
-    }
+    };
 
     this.CalculateRectDemonstration = function()
     {
@@ -164,7 +164,7 @@ function CTransitionAnimation(htmlpage)
         this.Rect.y = _t >> 0;
         this.Rect.w = _w >> 0;
         this.Rect.h = _h >> 0;
-    }
+    };
 
     this.SetBaseTransform = function()
     {
@@ -182,7 +182,17 @@ function CTransitionAnimation(htmlpage)
             var _ctx2 = oThis.DemonstrationObject.Overlay.getContext('2d');
             _ctx2.setTransform(1, 0, 0, 1, 0, 0);
         }
-    }
+    };
+
+    this.DrawImage = function(CacheImage, slide_num)
+    {
+        var _w = this.Rect.w;
+        var _h = this.Rect.h;
+        CacheImage.Image = this.CreateImage(_w, _h);
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
+        var oPlayer = oSlide.getAnimationPlayer();
+        oPlayer.drawFrame(CacheImage.Image, {x: 0, y: 0, w: _w, h: _h});
+    };
 
     this.DrawImage1 = function(slide_num, _not_use_prev)
     {
@@ -204,26 +214,9 @@ function CTransitionAnimation(htmlpage)
 
         if (slide_num > 0 && (_not_use_prev !== true))
         {
-            var _w = this.Rect.w;
-            var _h = this.Rect.h;
-            var _w_mm = this.HtmlPage.m_oLogicDocument.GetWidthMM();
-            var _h_mm = this.HtmlPage.m_oLogicDocument.GetHeightMM();
-
-            this.CacheImage1.Image = this.CreateImage(_w, _h);
-
-            var g = new AscCommon.CGraphics();
-            g.init(this.CacheImage1.Image.getContext('2d'), _w, _h, _w_mm, _h_mm);
-            g.m_oFontManager = AscCommon.g_fontManager;
-
-            g.transform(1,0,0,1,0,0);
-            g.IsNoDrawingEmptyPlaceholder = true;
-
-            if (this.HtmlPage.DemonstrationManager.Mode)
-                g.IsDemonstrationMode = true;
-
-            this.HtmlPage.m_oLogicDocument.DrawPage(slide_num - 1, g);
+            this.DrawImage(this.CacheImage1, slide_num - 1);
         }
-    }
+    };
 
     this.DrawImage2 = function(slide_num)
     {
@@ -245,26 +238,9 @@ function CTransitionAnimation(htmlpage)
 
         if (slide_num >= 0)
         {
-            var _w = this.Rect.w;
-            var _h = this.Rect.h;
-            var _w_mm = this.HtmlPage.m_oLogicDocument.GetWidthMM();
-            var _h_mm = this.HtmlPage.m_oLogicDocument.GetHeightMM();
-
-            this.CacheImage2.Image = this.CreateImage(_w, _h);
-
-            var g = new AscCommon.CGraphics();
-            g.init(this.CacheImage2.Image.getContext('2d'), _w, _h, _w_mm, _h_mm);
-            g.m_oFontManager = AscCommon.g_fontManager;
-
-            g.transform(1,0,0,1,0,0);
-            g.IsNoDrawingEmptyPlaceholder = true;
-
-            if (this.HtmlPage.DemonstrationManager.Mode)
-                g.IsDemonstrationMode = true;
-
-            this.HtmlPage.m_oLogicDocument.DrawPage(slide_num, g);
+            this.DrawImage(this.CacheImage2, slide_num);
         }
-    }
+    };
 
     this.StopIfPlaying = function()
     {
@@ -273,7 +249,7 @@ function CTransitionAnimation(htmlpage)
             __cancelFrame(this.TimerId);
             this.TimerId = null;
         }
-    }
+    };
 
     this.Start = function(isButtonPreview)
     {
@@ -350,7 +326,7 @@ function CTransitionAnimation(htmlpage)
                 break;
             }
         }
-    }
+    };
 
     this.End = function(bIsAttack)
     {
@@ -374,14 +350,14 @@ function CTransitionAnimation(htmlpage)
 
         var ctx1 = this.HtmlPage.m_oEditor.HtmlElement.getContext('2d');
         ctx1.setTransform(1, 0, 0, 1, 0, 0);
-
         this.HtmlPage.OnScroll();
-    }
+
+    };
 
     this.IsPlaying = function()
     {
         return (null != this.TimerId) ? true : false;
-    }
+    };
 
     this.CreateImage = function(w, h)
     {
@@ -389,7 +365,7 @@ function CTransitionAnimation(htmlpage)
         _im.width = w;
         _im.height = h;
         return _im;
-    }
+    };
 
     // animations
     this._startFade = function()
@@ -594,7 +570,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startFade);
-    }
+    };
 
     this._startPush = function()
     {
@@ -736,7 +712,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startPush);
-    }
+    };
 
     this._startWipe = function()
     {
@@ -1288,7 +1264,7 @@ function CTransitionAnimation(htmlpage)
 
         _ctx2.globalCompositeOperation = "source-over";
         oThis.TimerId = __nextFrame(oThis._startWipe);
-    }
+    };
 
     this._startSplit = function()
     {
@@ -1641,7 +1617,7 @@ function CTransitionAnimation(htmlpage)
 
         _ctx2.globalCompositeOperation = "source-over";
         oThis.TimerId = __nextFrame(oThis._startSplit);
-    }
+    };
 
     this._startUnCover = function()
     {
@@ -1792,7 +1768,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startUnCover);
-    }
+    };
 
     this._startCover = function()
     {
@@ -1943,7 +1919,7 @@ function CTransitionAnimation(htmlpage)
         }
 
         oThis.TimerId = __nextFrame(oThis._startCover);
-    }
+    };
 
     this._startClock = function()
     {
@@ -2405,7 +2381,7 @@ function CTransitionAnimation(htmlpage)
         _ctx2.restore();
 
         oThis.TimerId = __nextFrame(oThis._startClock);
-    }
+    };
 
     this._startZoom = function()
     {
@@ -2639,7 +2615,7 @@ function CTransitionAnimation(htmlpage)
 
 
         oThis.TimerId = __nextFrame(oThis._startZoom);
-    }
+    };
 }
 
 function CDemonstrationManager(htmlpage)
@@ -2691,27 +2667,14 @@ function CDemonstrationManager(htmlpage)
     {
         var _w = this.Transition.Rect.w;
         var _h = this.Transition.Rect.h;
-        var _w_mm = this.HtmlPage.m_oLogicDocument.GetWidthMM();
-        var _h_mm = this.HtmlPage.m_oLogicDocument.GetHeightMM();
-
         var _image = this.CacheImagesManager.Lock(_w, _h);
-
-        var g = new AscCommon.CGraphics();
-        g.init(_image.image.getContext('2d'), _w, _h, _w_mm, _h_mm);
-        g.m_oFontManager = AscCommon.g_fontManager;
-
-        g.transform(1,0,0,1,0,0);
-        g.IsNoDrawingEmptyPlaceholder = true;
-
-        if (this.HtmlPage.DemonstrationManager.Mode)
-            g.IsDemonstrationMode = true;
-
-        this.HtmlPage.m_oLogicDocument.DrawPage(slide_num, g);
-
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(slide_num);
+        var oPlayer = oSlide.getAnimationPlayer();
+        oPlayer.drawFrame(_image.image, {x:0, y: 0, w: _w, h: _h});
         this.SlideImages[slide_index] = new CCacheSlideImage();
         this.SlideImages[slide_index].Image = _image;
         this.SlideIndexes[slide_index] = slide_num;
-    }
+    };
 
     this.PrepareTransition = function(is_first, is_backward)
     {
@@ -2738,79 +2701,34 @@ function CDemonstrationManager(htmlpage)
 
         this.Transition.CalculateRectDemonstration();
 
-        if (this.SlideIndexes[0] != -1 && this.SlideIndexes[0] != _slide1 && this.SlideIndexes[0] != _slide2)
-        {
-            if (this.SlideImages[0])
-                this.CacheImagesManager.UnLock(this.SlideImages[0].Image);
-            this.SlideImages[0] = null;
-            this.SlideIndexes[0] = -1;
-        }
-        if (this.SlideIndexes[1] != -1 && this.SlideIndexes[1] != _slide1 && this.SlideIndexes[1] != _slide2)
-        {
-            if (this.SlideImages[1])
-                this.CacheImagesManager.UnLock(this.SlideImages[1].Image);
-            this.SlideImages[1] = null;
-            this.SlideIndexes[1] = -1;
-        }
+        if (this.SlideImages[0])
+            this.CacheImagesManager.UnLock(this.SlideImages[0].Image);
+        this.SlideImages[0] = null;
+        this.SlideIndexes[0] = -1;
 
+        if (this.SlideImages[1])
+            this.CacheImagesManager.UnLock(this.SlideImages[1].Image);
+        this.SlideImages[1] = null;
+        this.SlideIndexes[1] = -1;
         if (_slide1 == -1)
         {
             this.Transition.CacheImage1.Image = null;
         }
         else
         {
-            if (_slide1 == this.SlideIndexes[0])
-            {
-                this.Transition.CacheImage1.Image = this.SlideImages[0].Image.image;
-            }
-            else if (_slide1 == this.SlideIndexes[1])
-            {
-                this.Transition.CacheImage1.Image = this.SlideImages[1].Image.image;
-            }
-            else
-            {
-                if (-1 == this.SlideIndexes[0])
-                {
-                    this.CacheSlide(_slide1, 0);
-                    this.Transition.CacheImage1.Image = this.SlideImages[0].Image.image;
-                }
-                else
-                {
-                    this.CacheSlide(_slide1, 1);
-                    this.Transition.CacheImage1.Image = this.SlideImages[1].Image.image;
-                }
-            }
+            this.CacheSlide(_slide1, 0);
+            this.Transition.CacheImage1.Image = this.SlideImages[0].Image.image;
         }
-
         if (_slide2 == -1)
         {
             this.Transition.CacheImage2.Image = null;
         }
         else
         {
-            if (_slide2 == this.SlideIndexes[0])
-            {
-                this.Transition.CacheImage2.Image = this.SlideImages[0].Image.image;
-            }
-            else if (_slide2 == this.SlideIndexes[1])
-            {
-                this.Transition.CacheImage2.Image = this.SlideImages[1].Image.image;
-            }
-            else
-            {
-                if (-1 == this.SlideIndexes[0])
-                {
-                    this.CacheSlide(_slide2, 0);
-                    this.Transition.CacheImage2.Image = this.SlideImages[0].Image.image;
-                }
-                else
-                {
-                    this.CacheSlide(_slide2, 1);
-                    this.Transition.CacheImage2.Image = this.SlideImages[1].Image.image;
-                }
-            }
+            this.CacheSlide(_slide2, 1);
+            this.Transition.CacheImage2.Image = this.SlideImages[1].Image.image;
         }
-    }
+    };
 
     this.PrepareSlide = function()
     {
@@ -2850,14 +2768,14 @@ function CDemonstrationManager(htmlpage)
                 this.SlideImage = 0;
             }
         }
-    }
+    };
 
     this.CorrectSlideNum = function()
     {
         this.SlidesCount = this.HtmlPage.m_oDrawingDocument.SlidesCount;
         if (this.SlideNum > this.SlidesCount)
             this.SlideNum = this.SlidesCount;
-    }
+    };
 
     this.StartWaitReporter = function(main_div_id, start_slide_num, is_play_mode)
     {
@@ -2878,7 +2796,7 @@ function CDemonstrationManager(htmlpage)
 			this.HtmlPage.m_oApi.hideVideoControl();
 			window["AscDesktopEditor"]["SetFullscreen"](true);
 		}
-    }
+    };
 
     this.EndWaitReporter = function(isNoStart)
     {
@@ -2895,7 +2813,7 @@ function CDemonstrationManager(htmlpage)
         if (true !== isNoStart)
             this.Start(this.waitReporterObject[0], this.waitReporterObject[1], this.waitReporterObject[2], true);
         this.waitReporterObject = null;
-    }
+    };
 
     this.Start = function(main_div_id, start_slide_num, is_play_mode, is_no_fullscreen)
     {
@@ -2921,8 +2839,8 @@ function CDemonstrationManager(htmlpage)
         this.Mode = true;
         this.Canvas = document.createElement('canvas');
         this.Canvas.setAttribute("style", "position:absolute;margin:0;padding:0;left:0px;top:0px;width:100%;height:100%;zIndex:2;background-color:#000000;");
-        this.Canvas.width = _width;
-        this.Canvas.height = _height;
+        this.Canvas.width = AscCommon.AscBrowser.convertToRetinaValue(_width, true);
+        this.Canvas.height = AscCommon.AscBrowser.convertToRetinaValue(_height, true);
 
         this.SlideNum = start_slide_num;
 
@@ -2947,7 +2865,7 @@ function CDemonstrationManager(htmlpage)
         this.SlideIndexes[1] = -1;
 
         this.StartSlide(true, true);
-    }
+    };
 
     this.StartSlide = function(is_transition_use, is_first_play)
     {
@@ -2999,16 +2917,58 @@ function CDemonstrationManager(htmlpage)
                 oThis.StartTransition(_transition, is_first_play, false);
                 return;
             }
+            else
+            {
+                oThis.StartAnimation(oThis.SlideNum);
+            }
         }
 
         oThis.OnPaintSlide(false);
-    }
+    };
+
+    this.StartAnimation = function(nSlideNum)
+    {
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(nSlideNum);
+        if(oSlide)
+        {
+            oSlide.getAnimationPlayer().start();
+        }
+    };
+
+    this.StopAnimation = function(nSlideNum)
+    {
+        if(this.HtmlPage.m_oLogicDocument)
+        {
+            var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(nSlideNum);
+            if(oSlide)
+            {
+                oSlide.getAnimationPlayer().stop();
+            }
+        }
+    };
+    this.StopAllAnimations = function()
+    {
+        if(this.HtmlPage.m_oLogicDocument)
+        {
+            this.HtmlPage.m_oLogicDocument.StopAnimation();
+        }
+    };
+
+    this.PauseAnimation = function(nSlideNum)
+    {
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(nSlideNum);
+        if(oSlide)
+        {
+            oSlide.getAnimationPlayer().pause();
+        }
+    };
 
     this.StartSlideBackward = function()
     {
         oThis.HtmlPage.m_oApi.hideVideoControl();
         var _is_transition = oThis.Transition.IsPlaying();
         oThis.StopTransition();
+        var nOldSlideNum = this.SlideNum;
 
         if (oThis.SlideNum == oThis.SlidesCount)
         {
@@ -3036,14 +2996,17 @@ function CDemonstrationManager(htmlpage)
         if (!_is_transition && (_transition.TransitionType != c_oAscSlideTransitionTypes.None && _transition.TransitionDuration > 0))
         {
             oThis.StartTransition(_transition, false, true);
+            oThis.StopAnimation(nOldSlideNum);
             return;
         }
 
+        oThis.StopAnimation(nOldSlideNum);
         if (!_is_transition)
             oThis.SlideNum = this.GetPrevVisibleSlide(true);
 
+
         oThis.OnPaintSlide(false);
-    }
+    };
 
     this.StopTransition = function()
     {
@@ -3054,7 +3017,7 @@ function CDemonstrationManager(htmlpage)
             clearTimeout(this.CheckSlideDuration);
 
         this.CheckSlideDuration = -1;
-    }
+    };
 
     this.StartTransition = function(_transition, is_first, is_backward)
     {
@@ -3085,7 +3048,7 @@ function CDemonstrationManager(htmlpage)
 
         oThis.PrepareTransition(is_first, is_backward);
         oThis.Transition.Start(false);
-    }
+    };
 
     this.OnEndTransition = function(bIsAttack)
     {
@@ -3094,9 +3057,9 @@ function CDemonstrationManager(htmlpage)
             oThis.SlideNum = oThis.GetPrevVisibleSlide(true);
             oThis.HtmlPage.m_oApi.sync_DemonstrationSlideChanged(oThis.SlideNum);
         }
-
-        this.OnPaintSlide(true);
-    }
+        oThis.OnPaintSlide(true);
+        oThis.StartAnimation(oThis.SlideNum);
+    };
 
     this.OnPaintSlide = function(is_clear_overlay)
     {
@@ -3129,7 +3092,7 @@ function CDemonstrationManager(htmlpage)
         if (!_transition)
             return;
 
-        if (_transition.SlideAdvanceAfter === true)
+        if (_transition.SlideAdvanceAfter === true && !_transition.SlideAdvanceOnMouseClick)
         {
             oThis.CheckSlideDuration = setTimeout(function()
             {
@@ -3149,7 +3112,7 @@ function CDemonstrationManager(htmlpage)
             },
                 _transition.SlideAdvanceDuration);
         }
-    }
+    };
 
     this.End = function(isNoUseFullScreen)
     {
@@ -3214,7 +3177,9 @@ function CDemonstrationManager(htmlpage)
 		}
 
 		this.StartSlideNum = -1;
-    }
+        this.StopAllAnimations();
+
+    };
 
     this.IsVisibleSlide = function(slideNum)
     {
@@ -3330,15 +3295,40 @@ function CDemonstrationManager(htmlpage)
 		return this.SlidesCount - 1;
 	};
 
-    this.NextSlide = function(isNoSendFormReporter)
+	this.GetCurrentAnimPlayer = function()
+	{
+        var oSlide = this.HtmlPage.m_oLogicDocument.GetSlide(this.SlideNum);
+        if(!oSlide)
+        {
+            return null;
+        }
+        return oSlide.getAnimationPlayer();
+	};
+
+    this.OnNextSlide = function()
+    {
+        var oPlayer = this.GetCurrentAnimPlayer();
+        if(oPlayer)
+        {
+            if(oPlayer.onNextSlide())
+            {
+                return;
+            }
+        }
+        this.NextSlide();
+    };
+
+    this.NextSlide = function(isNoSendFormReporter, isNoFromEvent)
     {
         if (!this.Mode)
             return;
 
 		this.TmpSlideVisible = this.SlideNum;
+        this.PauseAnimation(this.SlideNum);
 
         if (this.HtmlPage.m_oApi.isReporterMode && !isNoSendFormReporter)
 			this.HtmlPage.m_oApi.sendFromReporter("{ \"reporter_command\" : \"next\" }");
+
 
         this.CorrectSlideNum();
 
@@ -3349,8 +3339,10 @@ function CDemonstrationManager(htmlpage)
             this.GoToNextVisibleSlide();
 		}
 
-        if (this.isLoop() && (this.SlideNum >= this.SlidesCount))
+        if (this.isLoop() && (this.SlideNum >= this.SlidesCount)) {
+            this.StopAllAnimations();
             this.SlideNum = this.GetFirstVisibleSlide();
+        }
 
         if (this.SlideNum > this.SlidesCount)
             this.End();
@@ -3363,12 +3355,25 @@ function CDemonstrationManager(htmlpage)
         }
 
         this.TmpSlideVisible = -1;
-    }
+    };
 
     this.isLoop = function()
     {
         return (this.HtmlPage.m_oApi.WordControl.m_oLogicDocument.isLoopShowMode() || this.HtmlPage.m_oApi.isEmbedVersion);
-    }
+    };
+
+    this.OnPrevSlide = function()
+    {
+        var oPlayer = this.GetCurrentAnimPlayer();
+        if(oPlayer)
+        {
+            if(oPlayer.onPrevSlide())
+            {
+                return;
+            }
+        }
+        return this.PrevSlide();
+    };
 
     this.PrevSlide = function(isNoSendFormReporter)
     {
@@ -3397,12 +3402,19 @@ function CDemonstrationManager(htmlpage)
         }
 
 		this.TmpSlideVisible = -1;
-    }
+    };
 
     this.GoToSlide = function(slideNum, isNoSendFormReporter)
     {
         if (!this.Mode)
             return;
+
+        if(this.SlideNum === slideNum)
+        {
+            return;
+        }
+
+        this.PauseAnimation(this.SlideNum);
 
 		if (this.HtmlPage.m_oApi.isReporterMode && !isNoSendFormReporter)
 			this.HtmlPage.m_oApi.sendFromReporter("{ \"reporter_command\" : \"go_to_slide\", \"slide\" : " + slideNum + " }");
@@ -3416,22 +3428,31 @@ function CDemonstrationManager(htmlpage)
         this.HtmlPage.m_oApi.sync_DemonstrationSlideChanged(this.SlideNum);
 
         this.StartSlide(true, false);
-    }
+    };
 
     this.Play = function(isNoSendFormReporter)
     {
         this.IsPlayMode = true;
-
         if (-1 == this.CheckSlideDuration)
         {
             this.NextSlide(isNoSendFormReporter);
         }
-    }
+        else
+        {
+            this.StartAnimation(this.SlideNum);
+        }
+    };
 
     this.Pause = function()
     {
         this.IsPlayMode = false;
-    }
+        this.PauseAnimation(this.SlideNum);
+    };
+
+    this.OnRecalculateAnimationFrame = function(oPlayer)
+    {
+        oPlayer.drawFrame(oThis.Canvas, this.Transition.Rect);
+    };
 
     // manipulators
     this.onKeyDownCode = function(code)
@@ -3444,14 +3465,14 @@ function CDemonstrationManager(htmlpage)
 			case 39:    // right arrow
 			case 40:    // bottom arrow
 			{
-				oThis.NextSlide();
+				oThis.OnNextSlide();
 				break;
 			}
 			case 33:
 			case 37:
 			case 38:
 			{
-				oThis.PrevSlide();
+				oThis.OnPrevSlide();
 				break;
 			}
 			case 36:    // home
@@ -3472,7 +3493,7 @@ function CDemonstrationManager(htmlpage)
 			default:
 				break;
 		}
-    }
+    };
 
     this.onKeyDown = function(e)
     {
@@ -3494,7 +3515,7 @@ function CDemonstrationManager(htmlpage)
 
         oThis.HtmlPage.IsKeyDownButNoPress = true;
         return false;
-    }
+    };
 
     this.documentMouseInfo = function(e)
     {
@@ -3503,13 +3524,13 @@ function CDemonstrationManager(htmlpage)
         {
             AscCommon.check_MouseDownEvent(e, false);
 
-            var _w = transition.Rect.w;
-            var _h = transition.Rect.h;
+            var _w = AscCommon.AscBrowser.convertToRetinaValue(transition.Rect.w);
+            var _h = AscCommon.AscBrowser.convertToRetinaValue(transition.Rect.h);
             var _w_mm = oThis.HtmlPage.m_oLogicDocument.GetWidthMM();
             var _h_mm = oThis.HtmlPage.m_oLogicDocument.GetHeightMM();
 
-            var _x = global_mouseEvent.X - transition.Rect.x;
-            var _y = global_mouseEvent.Y - transition.Rect.y;
+            var _x = AscCommon.global_mouseEvent.X - AscCommon.AscBrowser.convertToRetinaValue(transition.Rect.x);
+            var _y = AscCommon.global_mouseEvent.Y - AscCommon.AscBrowser.convertToRetinaValue(transition.Rect.y);
 
             if (oThis.HtmlPage.m_oApi.isReporterMode)
             {
@@ -3522,26 +3543,62 @@ function CDemonstrationManager(htmlpage)
             return { x : _x, y : _y, page : oThis.SlideNum };
         }
         return null;
-    }
+    };
+
+    this.CheckMouseDown = function(x, y, page)
+    {
+        var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseDown(AscCommon.global_mouseEvent, x, y, page);
+        if (ret == keydownresult_PreventAll)
+        {
+            // mouse up will not sended!!!
+            oThis.HtmlPage.m_oLogicDocument.OnMouseUp(AscCommon.global_mouseEvent, x, y, page);
+            return true;
+        }
+        return false;
+    };
 
     this.onMouseDown = function(e)
     {
         var documentMI = oThis.documentMouseInfo(e);
         if (documentMI)
         {
-            var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseDown(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
-            if (ret == keydownresult_PreventAll)
+            var oApi = oThis.HtmlPage.m_oApi;
+            oThis.HtmlPage.m_oApi.disableReporterEvents = true;
+            if(oThis.CheckMouseDown(documentMI.x, documentMI.y, documentMI.page))
             {
-                // mouse up will not sended!!!
-                oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
+                oThis.HtmlPage.m_oApi.disableReporterEvents = false;
+                var oMsg;
+                if (oApi.isReporterMode)
+                {
+                    oMsg =
+                    {
+                        "reporter_command": "on_mouse_down",
+                        "x": documentMI.x,
+                        "y": documentMI.y,
+                        "page": documentMI.page
+                    };
+                    oApi.sendFromReporter(JSON.stringify(oMsg));
+                }
+                if (oApi.reporterWindow)
+                {
+                    oMsg =
+                    {
+                        "main_command": true,
+                        "on_mouse_down": true,
+                        "x": documentMI.x,
+                        "y": documentMI.y,
+                        "page": documentMI.page
+                    };
+                    oApi.sendToReporter(JSON.stringify(oMsg));
+                }
                 return;
             }
+            oThis.HtmlPage.m_oApi.disableReporterEvents = false;
         }
-
         oThis.isMouseDown = true;
         e.preventDefault();
         return false;
-    }
+    };
 
     this.onMouseLeave = function(e)
     {
@@ -3554,7 +3611,7 @@ function CDemonstrationManager(htmlpage)
 
         e.preventDefault();
         return false;
-    }
+    };
 
     this.onMouseMove = function(e)
     {
@@ -3562,7 +3619,7 @@ function CDemonstrationManager(htmlpage)
         {
             var documentMI = oThis.documentMouseInfo(e);
             if (documentMI)
-                oThis.HtmlPage.m_oLogicDocument.OnMouseMove(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
+                oThis.HtmlPage.m_oLogicDocument.OnMouseMove(AscCommon.global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
         }
 
 		if (!oThis.HtmlPage.reporterPointer)
@@ -3597,7 +3654,7 @@ function CDemonstrationManager(htmlpage)
 
         e.preventDefault();
         return false;
-    }
+    };
 
     this.onMouseUp = function(e, isAttack, isFromMainToReporter)
     {
@@ -3633,7 +3690,7 @@ function CDemonstrationManager(htmlpage)
         var documentMI = oThis.documentMouseInfo(e);
         if (documentMI)
         {
-            var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseUp(global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
+            var ret = oThis.HtmlPage.m_oLogicDocument.OnMouseUp(AscCommon.global_mouseEvent, documentMI.x, documentMI.y, documentMI.page);
             if (ret == keydownresult_PreventAll)
                 return;
         }
@@ -3644,13 +3701,13 @@ function CDemonstrationManager(htmlpage)
         var _is_transition = oThis.Transition.IsPlaying();
         if (_is_transition)
         {
-            oThis.NextSlide();
+            oThis.OnNextSlide();
         }
         else
         {
             if (oThis.SlideNum < 0 || oThis.SlideNum >= oThis.SlidesCount)
             {
-                oThis.NextSlide();
+                oThis.OnNextSlide();
             }
             else
             {
@@ -3659,26 +3716,26 @@ function CDemonstrationManager(htmlpage)
 
                 if (_transition.SlideAdvanceOnMouseClick === true)
                 {
-                    oThis.NextSlide();
+                    oThis.OnNextSlide();
                 }
             }
         }
 
 		AscCommon.stopEvent(e);
         return false;
-    }
+    };
 
     this.onMouseWheelDelta = function(delta)
     {
 		if (delta > 0)
 		{
-			this.NextSlide();
+			this.OnNextSlide();
 		}
 		else
 		{
-			this.PrevSlide();
+			this.OnPrevSlide();
 		}
-    }
+    };
 
     this.onMouseWhell = function(e)
     {
@@ -3710,7 +3767,7 @@ function CDemonstrationManager(htmlpage)
 
         AscCommon.stopEvent(e);
         return false;
-    }
+    };
 
     this.Resize = function(isNoSend)
     {
@@ -3746,8 +3803,8 @@ function CDemonstrationManager(htmlpage)
         this.DivWidth = _width;
         this.DivHeight = _height;
 
-        this.Canvas.width = _width;
-        this.Canvas.height = _height;
+        this.Canvas.width = AscCommon.AscBrowser.convertToRetinaValue(_width, true);
+        this.Canvas.height = AscCommon.AscBrowser.convertToRetinaValue(_height, true);
 
         this.Transition.CalculateRectDemonstration();
 
@@ -3764,7 +3821,7 @@ function CDemonstrationManager(htmlpage)
             this.StartSlide(this.Transition.IsPlaying(), false);
 
 		oThis.HtmlPage.m_oApi.disableReporterEvents = false;
-    }
+    };
 
     this.PointerMove = function(x, y, w, h)
     {
@@ -3798,7 +3855,7 @@ function CDemonstrationManager(htmlpage)
             };
 			this.HtmlPage.m_oApi.sendFromReporter(JSON.stringify(_msg_));
         }
-    }
+    };
 
     this.PointerRemove = function()
     {
@@ -3816,5 +3873,5 @@ function CDemonstrationManager(htmlpage)
 
 			this.HtmlPage.m_oApi.sendFromReporter("{ \"reporter_command\" : \"pointer_remove\" }");
 		}
-    }
+    };
 }

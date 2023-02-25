@@ -941,6 +941,41 @@ var g_oFontProperties = {
 			this.repeat = oDefVal.repeat;
 		}
 	};
+	Font.prototype.subtractEqual = function (oFont, oDefVal) {
+		if (this.fn === oFont.fn) {
+			this.fn = oDefVal.fn;
+		}
+		if (this.scheme === oFont.scheme) {
+			this.scheme = oDefVal.scheme;
+		}
+		if (this.fs === oFont.fs) {
+			this.fs = oDefVal.fs;
+		}
+		if (this.b === oFont.b) {
+			this.b = oDefVal.b;
+		}
+		if (this.i === oFont.i) {
+			this.i = oDefVal.i;
+		}
+		if (this.u === oFont.u) {
+			this.u = oDefVal.u;
+		}
+		if (this.s === oFont.s) {
+			this.s = oDefVal.s;
+		}
+		if (g_oColorManager.isEqual(this.c, oFont.c)) {
+			this.c = oDefVal.c;
+		}
+		if (this.va === oFont.va) {
+			this.va = oDefVal.va;
+		}
+		if (this.skip === oFont.skip) {
+			this.skip = oDefVal.skip;
+		}
+		if (this.repeat === oFont.repeat) {
+			this.repeat = oDefVal.repeat;
+		}
+	};
 	Font.prototype.getName = function () {
 		return this.fn || g_oDefaultFormat.Font.fn;
 	};
@@ -2675,7 +2710,10 @@ var g_oBorderProperties = {
         align: 4,
         QuotePrefix: 5,
         XfId: 6,
-        PivotButton: 7
+        PivotButton: 7,
+		applyProtection: 8,
+		hidden: 9,
+		locked: 10
     };
 
     /** @constructor */
@@ -2688,6 +2726,10 @@ var g_oBorderProperties = {
         this.QuotePrefix = null;
         this.PivotButton = null;
         this.XfId = null;
+
+        this.applyProtection = null;
+        this.locked = null;
+        this.hidden = null;
 
         //inner
         this._hash;
@@ -2706,6 +2748,9 @@ var g_oBorderProperties = {
             this._hash += this.QuotePrefix + '|';
             this._hash += this.PivotButton + '|';
             this._hash += this.XfId + '|';
+            this._hash += this.applyProtection + '|';
+            this._hash += this.locked + '|';
+            this._hash += this.hidden + '|';
         }
         return this._hash;
     };
@@ -2767,6 +2812,9 @@ var g_oBorderProperties = {
             cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
             cache.PivotButton = this._mergeProperty(null, xfs.PivotButton, this.PivotButton);
             cache.XfId = this._mergeProperty(null, xfs.XfId, this.XfId);
+            cache.applyProtection = this._mergeProperty(null, xfs.applyProtection, this.applyProtection);
+            cache.locked = this._mergeProperty(null, xfs.locked, this.locked);
+            cache.hidden = this._mergeProperty(null, xfs.hidden, this.hidden);
             cache = g_StyleCache.addXf(cache);
             this.setOperationCache("merge", xfIndexNumber, cache);
         }
@@ -2788,12 +2836,17 @@ var g_oBorderProperties = {
         res.QuotePrefix = this.QuotePrefix;
         res.PivotButton = this.PivotButton;
         res.XfId = this.XfId;
+        res.applyProtection = this.applyProtection;
+        res.locked = this.locked;
+        res.hidden = this.hidden;
+
         return res;
     };
     CellXfs.prototype.isEqual = function (xfs) {
-        return this.font === xfs.font && this.fill === xfs.fill && this.border === xfs.border && this.num === xfs.num &&
-            this.align === xfs.align && this.QuotePrefix === xfs.QuotePrefix && this.PivotButton === xfs.PivotButton &&
-            this.XfId === xfs.XfId;
+		return this.font === xfs.font && this.fill === xfs.fill && this.border === xfs.border && this.num === xfs.num &&
+			this.align === xfs.align && this.QuotePrefix === xfs.QuotePrefix && this.PivotButton === xfs.PivotButton &&
+			this.XfId === xfs.XfId && this.applyProtection === xfs.applyProtection && this.locked === xfs.locked &&
+			this.hidden === xfs.hidden;
     };
     CellXfs.prototype.getType = function () {
         return UndoRedoDataTypes.StyleXfs;
@@ -2819,6 +2872,12 @@ var g_oBorderProperties = {
                 return this.PivotButton;
             case this.Properties.XfId:
                 return this.XfId;
+            case this.Properties.applyProtection:
+                return this.applyProtection;
+            case this.Properties.locked:
+                return this.locked;
+            case this.Properties.hidden:
+                return this.hidden;
         }
     };
     CellXfs.prototype.setProperty = function (nType, value) {
@@ -2846,6 +2905,15 @@ var g_oBorderProperties = {
                 break;
             case this.Properties.XfId:
                 this.XfId = value;
+                break;
+            case this.Properties.applyProtection:
+                this.applyProtection = value;
+                break;
+            case this.Properties.locked:
+                this.locked = value;
+                break;
+            case this.Properties.hidden:
+                this.hidden = value;
                 break;
         }
     };
@@ -2919,6 +2987,24 @@ var g_oBorderProperties = {
     CellXfs.prototype.setQuotePrefix = function (val) {
         this.QuotePrefix = val;
     };
+	CellXfs.prototype.getApplyProtection = function () {
+		return this.applyProtection;
+	};
+	CellXfs.prototype.setApplyProtection = function (val) {
+		this.applyProtection = val;
+	};
+	CellXfs.prototype.getLocked = function () {
+		return this.locked;
+	};
+	CellXfs.prototype.setLocked = function (val) {
+		this.locked = val;
+	};
+	CellXfs.prototype.getHidden = function () {
+		return this.hidden;
+	};
+	CellXfs.prototype.setHidden = function (val) {
+		this.hidden = val;
+	};
     CellXfs.prototype.getPivotButton = function () {
         return this.PivotButton;
     };
@@ -3042,6 +3128,13 @@ var g_oBorderProperties = {
 
 		return res;
 	};
+	CellXfs.prototype.asc_getLocked = function () {
+		return this.locked === null || this.locked === true;
+	};
+	CellXfs.prototype.asc_getHidden = function () {
+		return this.hidden;
+	};
+
 	CellXfs.prototype.asc_setFillColor = function (val) {
 		//TODO не применяю цвета темы?
 		var fill = null;
@@ -3689,6 +3782,18 @@ StyleManager.prototype =
 	{
 		return this._setProperty(oItemWithXfs, val, "quotePrefix", CellXfs.prototype.getQuotePrefix, CellXfs.prototype.setQuotePrefix);
 	},
+	setApplyProtection : function(oItemWithXfs, val)
+	{
+		return this._setProperty(oItemWithXfs, val, "applyProtection", CellXfs.prototype.getApplyProtection, CellXfs.prototype.setApplyProtection);
+	},
+	setLocked : function(oItemWithXfs, val)
+	{
+		return this._setProperty(oItemWithXfs, val, "locked", CellXfs.prototype.getLocked, CellXfs.prototype.setLocked);
+	},
+	setHiddenFormulas : function(oItemWithXfs, val)
+	{
+		return this._setProperty(oItemWithXfs, val, "hidden", CellXfs.prototype.getHidden, CellXfs.prototype.setHidden);
+	},
 	setPivotButton : function(oItemWithXfs, val)
 	{
 		return this._setProperty(oItemWithXfs, val, "pivotButton", CellXfs.prototype.getPivotButton, CellXfs.prototype.setPivotButton);
@@ -3946,7 +4051,8 @@ StyleManager.prototype =
 	/** @constructor */
 	function SheetMergedStyles() {
 		this.stylesTablePivot = [];
-		this.stylesConditional = [];
+		this.stylesConditional = {};
+		this.stylesConditionalIterator = null;
 	}
 
 	SheetMergedStyles.prototype.setTablePivotStyle = function(range, xf, stripe) {
@@ -3960,14 +4066,19 @@ StyleManager.prototype =
 			}
 		}
 	};
-	SheetMergedStyles.prototype.setConditionalStyle = function(multiplyRange, formula) {
-		this.stylesConditional.push({multiplyRange: multiplyRange, formula: formula});
+	SheetMergedStyles.prototype.setConditionalStyle = function(rule, ranges, formula) {
+		this.stylesConditionalIterator = null;
+		this.stylesConditional[rule.Get_Id()] = {ranges: ranges, formula: formula, rule: rule};
 	};
 	SheetMergedStyles.prototype.clearConditionalStyle = function(multiplyRange) {
-		for (var i = this.stylesConditional.length - 1; i >= 0; --i) {
-			var style = this.stylesConditional[i];
-			if (style.multiplyRange.isIntersect(multiplyRange)) {
-				this.stylesConditional.splice(i, 1);
+		this.stylesConditionalIterator = null;
+		for (var i in this.stylesConditional) {
+			if (this.stylesConditional.hasOwnProperty(i)) {
+				var style = this.stylesConditional[i];
+				var mr = new AscCommonExcel.MultiplyRange(style.ranges);
+				if (mr.isIntersect(multiplyRange)) {
+					delete this.stylesConditional[i];
+				}
 			}
 		}
 	};
@@ -3976,13 +4087,22 @@ StyleManager.prototype =
 		if (opt_ws) {
 			opt_ws._updateConditionalFormatting();
 		}
-		for (var i = 0; i < this.stylesConditional.length; ++i) {
-			var style = this.stylesConditional[i];
-			if (style.multiplyRange.contains(col, row)) {
-				var xf = style.formula(row, col);
-				if (xf) {
-					res.conditional.push(xf);
-				}
+		if (!this.stylesConditionalIterator) {
+			this.stylesConditionalIterator = new AscCommon.RangeTopBottomIterator();
+			//todo lose stylesConditional sorting
+			this.stylesConditionalIterator.init(Object.values(this.stylesConditional), function(elem) {
+				return elem.ranges;
+			});
+		}
+		var rules = this.stylesConditionalIterator.get(row, col);
+		//todo sort inside RangeTopBottomIterator ?
+		rules.sort(function(v1, v2) {
+			return v2.rule.priority - v1.rule.priority;
+		});
+		for (var i = 0; i < rules.length; ++i) {
+			var xf = rules[i].formula(row, col);
+			if (xf) {
+				res.conditional.push(xf);
 			}
 		}
 		for (var i = 0; i < this.stylesTablePivot.length; ++i) {
@@ -4589,6 +4709,27 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
 		}
 	};
+	Col.prototype.setApplyProtection = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setApplyProtection(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_ApplyProtection, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Col.prototype.setLocked = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setLocked(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_Locked, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Col.prototype.setHiddenFormulas = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setHiddenFormulas(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_HiddenFormulas, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
 	Col.prototype.setHidden = function (val) {
 		if (this.index >= 0 && (!this.hd !== !val)) {
 			this.ws.hiddenManager.addHidden(false, this.index);
@@ -4971,6 +5112,27 @@ StyleManager.prototype =
 		var oRes = this.ws.workbook.oStyleManager.setIndent(this, val);
 		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
 			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Indent, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setApplyProtection = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setApplyProtection(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_ApplyProtection, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setLocked = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setLocked(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Locked, this.ws.getId(),
+				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
+		}
+	};
+	Row.prototype.setHiddenFormulas = function (val) {
+		var oRes = this.ws.workbook.oStyleManager.setHiddenFormulas(this, val);
+		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
+			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_HiddenFormulas, this.ws.getId(),
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
@@ -6313,6 +6475,9 @@ function RangeDataManagerElem(bbox, data)
 		this.TableColumns = null;
 		this.TableStyleInfo = null;
 
+		this.QueryTable = null;
+		this.tableType = null;
+		
 		this.altText = null;
 		this.altTextSummary = null;
 
@@ -6347,6 +6512,12 @@ function RangeDataManagerElem(bbox, data)
 				res.result.push(this.result[i].clone());
 			}
 		}
+
+		if (this.QueryTable) {
+			res.QueryTable = this.QueryTable.clone();
+		}
+		res.tableType = this.tableType;
+
 		res.DisplayName = this.DisplayName;
 
 		res.altText = this.altText;
@@ -6521,6 +6692,12 @@ function RangeDataManagerElem(bbox, data)
 			var deleted = this.TableColumns.splice(startCol, diff);
 			this.removeDependencies(deleted);
 
+			if (this.QueryTable) {
+				this.cleanQueryTables();
+				//this.QueryTable.deleteTableColumns(deleted);
+				//this.QueryTable.syncIndexes(this.TableColumns);
+			}
+
 			//todo undo
 			var deletedMap = {};
 			for (var i = 0; i < deleted.length; ++i) {
@@ -6562,6 +6739,11 @@ function RangeDataManagerElem(bbox, data)
 
 		this.TableColumns = newTableColumns;
 
+		if (this.QueryTable) {
+			this.cleanQueryTables();
+			//this.QueryTable.syncIndexes(this.TableColumns);
+		}
+
 		/*if(this.SortState && this.SortState.SortConditions && this.SortState.SortConditions[0])
 		 {
 		 var SortConditions = this.SortState.SortConditions[0];
@@ -6587,6 +6769,10 @@ function RangeDataManagerElem(bbox, data)
 		newTableColumns[newTableColumns.length - 1].Name = autoFilters._generateColumnName2(newTableColumns);
 
 		this.TableColumns = newTableColumns;
+		if (this.QueryTable) {
+			this.cleanQueryTables();
+			//this.QueryTable.syncIndexes(this.TableColumns);
+		}
 		this.buildDependencies();
 	};
 
@@ -6876,6 +7062,21 @@ function RangeDataManagerElem(bbox, data)
 					}
 				}
 			}
+		}
+	};
+	TablePart.prototype.cleanQueryTables = function () {
+		//удаляю инфомарцию об queryTables после удаления/добавления колонки таблицы
+		//связано это с тем, что необходимо следить за всеми полями из queryTables + синхронизировать их с tableColumns,
+		//+ есть нюанс - id колонок таблиц сейчас записывается в x2t по порядку в массиве. queryTables связаны с id таблиц
+		//необходимо перейти на генерацию id в js и следить за id
+		//+ записывать в историю, обрабатывать undo/redo
+		//поля, которые попадают в список удаленных, необходимо при undo вовращать с прежними индексами и айдишниками
+		//TODO в следующих версиях необходимо реализовать данный функционал в полном объеме
+		this.QueryTable = null;
+		this.tableType = null;
+		for(var i = 0; i < this.TableColumns.length; i++) {
+			this.TableColumns[i].queryTableFieldId = null;
+			this.TableColumns[i].uniqueName = null;
 		}
 	};
 
@@ -7552,7 +7753,7 @@ function RangeDataManagerElem(bbox, data)
 		this.CalculatedColumnFormula = null;
 
 		//формируется на сохранения
-		//this.queryTableFieldId = null;
+		this.queryTableFieldId = null;
 		this.uniqueName = null;
 
 		//queryTableField
@@ -7610,6 +7811,9 @@ function RangeDataManagerElem(bbox, data)
 		res.fillFormulas = this.fillFormulas;
 		res.queryName = this.queryName;
 		res.rowNumbers = this.rowNumbers;
+
+		res.queryTableFieldId = this.queryTableFieldId;
+		res.uniqueName = this.uniqueName;
 
 		return res;
 	};
@@ -9949,6 +10153,219 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	this.dateTimeGrouping = oDateGroupItem.DateTimeGrouping;
 };
 
+/** @constructor */
+function QueryTable() {
+	this.queryTableRefresh = null;
+
+	this.adjustColumnWidth = null;
+	this.applyAlignmentFormats = null;
+	this.applyBorderFormats = null;
+	this.applyFontFormats = null;
+	this.applyNumberFormats = null;
+	this.applyPatternFormats = null;
+	this.applyWidthHeightFormats = null;
+	this.autoFormatId = null;
+	this.backgroundRefresh = null;
+
+	this.connectionId = null;
+	this.disableEdit = null;
+	this.disableRefresh = null;
+	this.fillFormulas = null;
+	this.firstBackgroundRefresh = null;
+	this.growShrinkType = null;
+	this.headers = null;
+	this.intermediate = null;
+	this.name = null;
+	this.preserveFormatting = null;
+	this.refreshOnLoad = null;
+	this.removeDataOnSave = null;
+	this.rowNumbers = null;
+}
+QueryTable.prototype.clone = function() {
+	var res = new QueryTable();
+
+	res.queryTableRefresh = this.queryTableRefresh ? this.queryTableRefresh : null;
+
+	res.adjustColumnWidth = this.adjustColumnWidth;
+	res.applyAlignmentFormats = this.applyAlignmentFormats;
+	res.applyBorderFormats = this.applyBorderFormats;
+	res.applyFontFormats = this.applyFontFormats;
+	res.applyNumberFormats = this.applyNumberFormats;
+	res.applyPatternFormats = this.applyPatternFormats;
+	res.applyWidthHeightFormats = this.applyWidthHeightFormats;
+	res.autoFormatId = this.autoFormatId;
+	res.backgroundRefresh = this.backgroundRefresh;
+
+	res.connectionId = this.connectionId;
+	res.disableEdit = this.disableEdit;
+	res.disableRefresh = this.disableRefresh;
+	res.fillFormulas = this.fillFormulas;
+	res.firstBackgroundRefresh = this.firstBackgroundRefresh;
+	res.growShrinkType = this.growShrinkType;
+	res.headers = this.headers;
+	res.intermediate = this.intermediate;
+	res.name = this.name;
+	res.preserveFormatting = this.preserveFormatting;
+	res.refreshOnLoad = this.refreshOnLoad;
+	res.removeDataOnSave = this.removeDataOnSave;
+	res.rowNumbers = this.rowNumbers;
+
+	return res;
+};
+
+QueryTable.prototype.deleteTableColumns = function(deletedTableColumns) {
+	if (!deletedTableColumns) {
+		return;
+	}
+
+	if (this.queryTableRefresh) {
+		this.queryTableRefresh.deleteTableColumns(deletedTableColumns);
+	}
+};
+QueryTable.prototype.syncIndexes = function(tableColumns) {
+	//при удалении приходится меняться tableColumnId, поскольку id  у колонок таблиц у нас формируются на сохранение
+	//а соотсетствие именно по id tableColumn
+
+	if (this.queryTableRefresh) {
+		this.queryTableRefresh.syncIndexes(tableColumns);
+	}
+};
+
+
+
+/** @constructor */
+function QueryTableRefresh() {
+	this.queryTableDeletedFields = null;
+	this.queryTableFields = null;
+	this.sortState = null;
+
+	this.fieldIdWrapped = null;
+	this.headersInLastRefr = null;
+	this.minimumVersion = null;
+	this.nextId = null;
+	this.preserveSortFilterLayout = null;
+	this.unboundColumnsLeft = null;
+	this.unboundColumnsRight = null;
+}
+QueryTableRefresh.prototype.clone = function() {
+	var res = new QueryTableRefresh();
+
+	res.queryTableDeletedFields = this.queryTableDeletedFields ? this.queryTableDeletedFields.clone() : null;
+	res.queryTableFields = this.queryTableFields ? this.queryTableFields.clone() : null;
+	res.sortState = this.sortState ? this.sortState.clone() : null;
+
+	res.fieldIdWrapped = this.fieldIdWrapped;
+	res.headersInLastRefr = this.headersInLastRefr;
+	res.minimumVersion = this.minimumVersion;
+	res.nextId = this.nextId;
+	res.preserveSortFilterLayout = this.preserveSortFilterLayout;
+	res.unboundColumnsLeft = this.unboundColumnsLeft;
+	res.unboundColumnsRight = this.unboundColumnsRight;
+
+	return res;
+};
+QueryTableRefresh.prototype.deleteTableColumns = function(deletedTableColumns) {
+	if (!deletedTableColumns) {
+		return;
+	}
+
+	if (this.queryTableFields) {
+		for (var i = 0; i < deletedTableColumns.length; i++) {
+			for (var j = 0; j < this.queryTableFields.length; j++) {
+				if (deletedTableColumns[i].queryTableFieldId === this.queryTableFields[j].tableColumnId) {
+					var deletedField = this.queryTableFields.splice(j, 1);
+					this.addDeletedField(deletedField[0]);
+				}
+			}
+		}
+	}
+};
+QueryTableRefresh.prototype.addDeletedField = function(deletedField) {
+	if (!this.queryTableDeletedFields) {
+		this.queryTableDeletedFields = [];
+	}
+	var newDeletedField = new QueryTableDeletedField();
+	newDeletedField.name = deletedField.name;
+	this.queryTableDeletedFields.push(newDeletedField);
+};
+QueryTableRefresh.prototype.syncIndexes = function(tableColumns) {
+	//при удалении приходится меняться tableColumnId, поскольку id  у колонок таблиц у нас формируются на сохранение
+	//а соотсетствие именно по id tableColumn
+
+	if (this.queryTableFields) {
+		for (var i = 0; i < tableColumns.length; i++) {
+			for (var j = 0; j < this.queryTableFields.length; j++) {
+				if (tableColumns[i].queryTableFieldId === this.queryTableFields[j].tableColumnId) {
+					this.queryTableFields[j].tableColumnId = i + 1;
+				}
+			}
+		}
+	}
+};
+QueryTableRefresh.prototype.syncIndexes2 = function(tableColumns) {
+	//при удалении приходится меняться tableColumnId, поскольку id  у колонок таблиц у нас формируются на сохранение
+	//а соотсетствие именно по id tableColumn
+
+	if (this.queryTableFields) {
+		var i;
+		var changeQueryTableFieldId = [];
+		for (var j = 0; j < this.queryTableFields.length; j++) {
+			for (i = 0; i < tableColumns.length; i++) {
+				if (tableColumns[i].queryTableFieldId === this.queryTableFields[j].tableColumnId) {
+					this.queryTableFields[j].tableColumnId = i + 1;
+					this.queryTableFields[j].id = i + 1;
+					changeQueryTableFieldId[i] =  i + 1;
+					break;
+				}
+			}
+		}
+		for (i = 0; i < changeQueryTableFieldId.length; i++) {
+			tableColumns[i].queryTableFieldId = changeQueryTableFieldId[i];
+			if (null !== tableColumns[i].uniqueName) {
+				tableColumns[i].uniqueName = changeQueryTableFieldId[i];
+			}
+		}
+	}
+
+};
+
+
+/** @constructor */
+function QueryTableField() {
+	this.name = null;
+	this.id = null;
+	this.tableColumnId = null;
+
+	this.rowNumbers = null;
+	this.fillFormulas = null;
+	this.dataBound = null;
+	this.clipped = null;
+}
+QueryTableField.prototype.clone = function() {
+	var res = new QueryTableField();
+
+	res.name = this.name;
+	res.id = this.id;
+	res.tableColumnId = this.tableColumnId;
+	res.rowNumbers = this.rowNumbers;
+	res.fillFormulas = this.fillFormulas;
+	res.dataBound = this.dataBound;
+	res.clipped = this.clipped;
+
+	return res;
+};
+
+/** @constructor */
+function QueryTableDeletedField() {
+	this.name = null;
+}
+QueryTableField.prototype.clone = function() {
+	var res = new QueryTableDeletedField();
+	res.name = this.name;
+	return res;
+};
+
+
 	if (typeof Map === 'undefined') {
 		(function() {
 			var Map = function() {
@@ -11174,6 +11591,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.name;
 	};
 
+
+
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
 	window['Asc'] = window['Asc'] || {};
@@ -11279,6 +11698,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	prot["asc_getPreview"] = prot.asc_getPreview;
+	prot["asc_getLocked"] = prot.asc_getLocked;
+	prot["asc_getHidden"] = prot.asc_getHidden;
 	prot["asc_setFillColor"] = prot.asc_setFillColor;
 	prot["asc_setFill"] = prot.asc_setFill;
 	prot["asc_setFontName"] = prot.asc_setFontName;
@@ -11374,7 +11795,12 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].DateGroupItem = DateGroupItem;
 	window['AscCommonExcel'].SortCondition = SortCondition;
 	window['AscCommonExcel'].AutoFilterDateElem = AutoFilterDateElem;
+	window['AscCommonExcel'].QueryTable = QueryTable;
+	window['AscCommonExcel'].QueryTableRefresh = QueryTableRefresh;
+	window['AscCommonExcel'].QueryTableField = QueryTableField;
+	window['AscCommonExcel'].QueryTableDeletedField = QueryTableDeletedField;
 	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
+
 
 	window["Asc"]["CustomFilters"]			= window["Asc"].CustomFilters = CustomFilters;
 	prot									= CustomFilters.prototype;

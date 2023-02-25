@@ -3631,6 +3631,20 @@ function CDrawingDocument()
     {
     };
 
+    // collaborative targets
+    this.Collaborative_UpdateTarget      = function(_id, _shortId, _x, _y, _size, _page, _transform, is_from_paint)
+    {
+    };
+    this.Collaborative_RemoveTarget      = function(_id)
+    {
+    };
+    this.Collaborative_TargetsUpdate     = function(bIsChangePosition)
+    {
+    };
+    this.Collaborative_GetTargetPosition = function(UserId)
+    {
+    };
+
 }
 
 //--------------------------------------------------------export----------------------------------------------------
