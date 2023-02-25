@@ -56,6 +56,7 @@ define([
         initialize: function() {
             this.addListeners({
                 'Statusbar': {
+                    'show:tab': _.bind(this.showTab, this),
                     'show:hidden': _.bind(function (obj, index) {
                         this.hideWorksheet(false, index);
                     }, this),
@@ -66,6 +67,9 @@ define([
                     'sheet:setcolor':       _.bind(this.setWorksheetColor, this),
                     'sheet:updateColors':   _.bind(this.updateTabsColors, this),
                     'sheet:move':           _.bind(this.moveWorksheet, this)
+                },
+                'Common.Views.Header': {
+                    'statusbar:setcompact': _.bind(this.onChangeViewMode, this)
                 }
             });
         },
@@ -100,6 +104,7 @@ define([
             /** coauthoring begin **/
             this.api.asc_registerCallback('asc_onWorkbookLocked', _.bind(this.onWorkbookLocked, this));
             this.api.asc_registerCallback('asc_onWorksheetLocked', _.bind(this.onWorksheetLocked, this));
+            this.api.asc_registerCallback('asc_onChangeProtectWorkbook',_.bind(this.onChangeProtectWorkbook, this));
             /** coauthoring end **/
             this.api.asc_registerCallback('asc_onError', _.bind(this.onError, this));
             this.api.asc_registerCallback('asc_onFilterInfo',   _.bind(this.onApiFilterInfo , this));
@@ -154,7 +159,8 @@ define([
             this.statusbar.tabbar[locked?'addClass':'removeClass']('coauth-locked');
             this.statusbar.btnAddWorksheet.setDisabled(locked || this.api.isCellEdited || this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.Chart ||
                                                                                           this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.FormatTable||
-                                                                                          this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.PrintTitles);
+                                                                                          this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.PrintTitles ||
+                                                       this.api.asc_isProtectedWorkbook());
             var item, i = this.statusbar.tabbar.getCount();
             while (i-- > 0) {
                 item = this.statusbar.tabbar.getAt(i);
@@ -170,16 +176,34 @@ define([
 
         onWorksheetLocked: function(index,locked) {
             var count = this.statusbar.tabbar.getCount(), tab;
+            var wbprotected = this.api.asc_isProtectedWorkbook();
             for (var i = count; i-- > 0; ) {
                 tab = this.statusbar.tabbar.getAt(i);
                 if (index == tab.sheetindex) {
                     tab[locked?'addClass':'removeClass']('coauth-locked');
-                    tab.isLockTheDrag = locked || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.FormatTable) || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.PrintTitles);
+                    tab.isLockTheDrag = locked || wbprotected || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.FormatTable) || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.PrintTitles);
                     tab.$el.children(':first-child').attr('draggable', tab.isLockTheDrag?'false':'true');
                     break;
                 }
             }
+            var listItem =this.statusbar.sheetListMenu.items[index];
+            if (listItem.$el.children().first().data('hidden')) {
+                listItem.setDisabled(locked);
+            }
         },
+
+        onChangeProtectWorkbook: function() {
+            this.statusbar.btnAddWorksheet.setDisabled(this.api.isCellEdited || this.api.asc_isWorkbookLocked() || this.api.asc_isProtectedWorkbook() || this.statusbar.rangeSelectionMode!=Asc.c_oAscSelectionDialogType.None);
+            var count = this.statusbar.tabbar.getCount(), tab;
+            var wbprotected = this.api.asc_isProtectedWorkbook();
+            for (var i = count; i-- > 0; ) {
+                tab = this.statusbar.tabbar.getAt(i);
+                var islocked = tab.hasClass('coauth-locked');
+                tab.isLockTheDrag = islocked || wbprotected || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.FormatTable) || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.PrintTitles);
+                tab.$el.children(':first-child').attr('draggable', tab.isLockTheDrag?'false':'true');
+            }
+        },
+
         /** coauthoring end **/
 
         onApiMathChanged: function(info) {
@@ -213,7 +237,7 @@ define([
             statusbar.btnZoomUp.setDisabled(disable);
             statusbar.btnZoomDown.setDisabled(disable);
             statusbar.labelZoom[disable?'addClass':'removeClass']('disabled');
-            statusbar.btnAddWorksheet.setDisabled(disable || this.api.asc_isWorkbookLocked() || statusbar.rangeSelectionMode!=Asc.c_oAscSelectionDialogType.None);
+            statusbar.btnAddWorksheet.setDisabled(disable || this.api.asc_isWorkbookLocked() || this.api.asc_isProtectedWorkbook() || statusbar.rangeSelectionMode!=Asc.c_oAscSelectionDialogType.None);
 
             statusbar.$el.find('#statusbar_bottom li span').attr('oo_editor_input', !disableAdd);
 
@@ -244,15 +268,17 @@ define([
         onRangeDialogMode: function (mode) {
             var islocked = this.statusbar.tabbar.hasClass('coauth-locked'),
                 currentIdx = this.api.asc_getActiveWorksheetIndex();
-            this.statusbar.btnAddWorksheet.setDisabled(islocked || this.api.isCellEdited || mode!=Asc.c_oAscSelectionDialogType.None);
+            this.statusbar.btnAddWorksheet.setDisabled(islocked || this.api.isCellEdited || this.api.asc_isProtectedWorkbook() || mode!=Asc.c_oAscSelectionDialogType.None);
+            this.statusbar.btnSheetList[mode==Asc.c_oAscSelectionDialogType.FormatTable || mode==Asc.c_oAscSelectionDialogType.PrintTitles ? 'addClass' : 'removeClass']('disabled');
 
             var item, i = this.statusbar.tabbar.getCount();
+            var wbprotected = this.api.asc_isProtectedWorkbook();
             while (i-- > 0) {
                 item = this.statusbar.tabbar.getAt(i);
                 if (item.sheetindex !== currentIdx) {
                     item.disable(mode==Asc.c_oAscSelectionDialogType.FormatTable || mode==Asc.c_oAscSelectionDialogType.PrintTitles);
                 }
-                item.isLockTheDrag = (item.hasClass('coauth-locked') || (mode!=Asc.c_oAscSelectionDialogType.None));
+                item.isLockTheDrag = (item.hasClass('coauth-locked') || wbprotected || (mode!=Asc.c_oAscSelectionDialogType.None));
             }
             this.statusbar.rangeSelectionMode = mode;
         },
@@ -290,6 +316,9 @@ define([
                     setTimeout(function () {
                         me.hideWorksheet(true, arrIndex);
                     }, 1);
+                    break;
+                case 'protect':
+                    this.protectWorksheet();
                     break;
             }
         },
@@ -430,7 +459,7 @@ define([
             }
         },
 
-        moveWorksheet: function(selectArr, cut, silent, index, destPos) {
+        moveWorksheet: function(selectArr, cut, silent, indTo) {
             var me = this;
             var wc = me.api.asc_getWorksheetsCount(), items = [], arrIndex = [], i = -1;
             while (++i < wc) {
@@ -448,19 +477,17 @@ define([
                     }
                 });
             }
+
             if (!_.isUndefined(silent)) {
-                if (_.isUndefined(selectArr)) {
-                    me.api.asc_showWorksheet(items[index].inindex);
-
-                    Common.NotificationCenter.trigger('comments:updatefilter', ['doc', 'sheet' + this.api.asc_getActiveWorksheetId()]);
-
-                    if (!_.isUndefined(destPos)) {
-                        me.api.asc_moveWorksheet(items.length === destPos ? wc : items[destPos].inindex);
-                    }
+                if (cut) {
+                    me.api.asc_moveWorksheet(indTo, arrIndex);
+                    me.api.asc_enableKeyEvents(true);
                 } else {
-                    if (!_.isUndefined(destPos)) {
-                        me.api.asc_moveWorksheet(items.length === destPos ? wc : items[destPos].inindex, arrIndex);
-                    }
+                    var arrNames = [];
+                    arrIndex.forEach(function (item) {
+                        arrNames.push(me.createCopyName(me.api.asc_getWorksheetName(item), arrNames));
+                    });
+                    me.api.asc_copyWorksheet(indTo, arrNames, arrIndex);
                 }
                 return;
             }
@@ -496,6 +523,17 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this.statusbar);
         },
 
+        showTab: function (sheetIndex) {
+            if (this.api && this.api.asc_getActiveWorksheetIndex() !== sheetIndex) {
+                this.api.asc_showWorksheet(sheetIndex);
+                this.loadTabColor(sheetIndex);
+            }
+            var me = this;
+            setTimeout(function(){
+                me.statusbar.sheetListMenu.hide();
+            }, 1);
+        },
+
         selectTab: function (sheetindex) {
             if (this.api) {
                 var hidden = this.api.asc_isWorksheetHidden(sheetindex);
@@ -503,41 +541,6 @@ define([
                     var tab = _.findWhere(this.statusbar.tabbar.tabs, {sheetindex: sheetindex});
                     if (tab) {
                         this.statusbar.tabbar.setActive(tab);
-                    }
-                }
-            }
-        },
-
-        moveCurrentTab: function (direction) {
-            if (this.api) {
-                var indTab = 0,
-                    tabBar = this.statusbar.tabbar,
-                    index = this.api.asc_getActiveWorksheetIndex(),
-                    length = tabBar.tabs.length;
-
-                this.statusbar.tabMenu.hide();
-                this.api.asc_closeCellEditor();
-
-                for (var i = 0; i < length; ++i) {
-                    if (tabBar.tabs[i].sheetindex === index) {
-                        indTab = i;
-
-                        if (direction > 0) {
-                            indTab++;
-                            if (indTab >= length) {
-                                indTab = 0;
-                            }
-                        } else {
-                            indTab--;
-                            if (indTab < 0) {
-                                indTab = length - 1;
-                            }
-                        }
-
-                        tabBar.setActive(indTab);
-                        this.api.asc_showWorksheet(tabBar.getAt(indTab).sheetindex);
-
-                        break;
                     }
                 }
             }
@@ -686,6 +689,8 @@ define([
                 }
 
                 if (color.length) {
+                    this.statusbar.sheetListMenu.items[tab.sheetindex].$el.find('.color').css('background-color', color);
+
                     if (!tab.isActive()) {
                         color = '0px 4px 0 ' + Common.Utils.RGBColor(color).toRGBA(1) + ' inset';
                     } else {
@@ -695,6 +700,7 @@ define([
                     tab.$el.find('span').css('box-shadow', color);
                 } else {
                     tab.$el.find('span').css('box-shadow', '');
+                    this.statusbar.sheetListMenu.items[tab.sheetindex].$el.find('.color').css('background-color', '');
                 }
             }
         },
@@ -712,6 +718,11 @@ define([
 
         onApiActiveSheetChanged: function (index) {
             this.statusbar.tabMenu.hide();
+            this.statusbar.sheetListMenu.hide();
+            if (this.statusbar.sheetListMenu.items[index]) {
+                this.statusbar.sheetListMenu.clearAll();
+                this.statusbar.sheetListMenu.items[index].setChecked(true);
+            }
             if (this._sheetViewTip && this._sheetViewTip.isVisible() && this.api.asc_getActiveNamedSheetView && !this.api.asc_getActiveNamedSheetView(index)) { // hide tip when sheet in the default mode
                 this._sheetViewTip.hide();
             }
@@ -760,6 +771,32 @@ define([
                     this._sheetViewTip.show();
             } else if (!active && this._sheetViewTip && this._sheetViewTip.isVisible())
                 this._sheetViewTip.hide();
+        },
+
+        onChangeViewMode: function(item, compact) {
+            this.statusbar.fireEvent('view:compact', [this.statusbar, compact]);
+            Common.localStorage.setBool('sse-compact-statusbar', compact);
+            Common.NotificationCenter.trigger('layout:changed', 'status');
+            this.statusbar.onChangeCompact(compact);
+
+            Common.NotificationCenter.trigger('edit:complete', this.statusbar);
+        },
+
+        setStatusCaption: function(text, force, delay) {
+            if (this.timerCaption && ( ((new Date()) < this.timerCaption) || text.length==0 ) && !force )
+                return;
+
+            this.timerCaption = undefined;
+            if (text.length) {
+                this.statusbar.showStatusMessage(text);
+                if (delay>0)
+                    this.timerCaption = (new Date()).getTime() + delay;
+            } else
+                this.statusbar.clearStatusMessage();
+        },
+
+        protectWorksheet: function() {
+            Common.NotificationCenter.trigger('protect:sheet', !this.api.asc_isProtectedSheet());
         },
 
         zoomText        : 'Zoom {0}%',

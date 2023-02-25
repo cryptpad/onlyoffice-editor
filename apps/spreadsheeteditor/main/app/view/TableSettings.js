@@ -86,6 +86,8 @@ define([
             };
             this.lockedControls = [];
             this._locked = false;
+            this.wsLock = false;
+            this.wsProps = [];
             this.isEditCell = false;
 
             this._originalProps = null;
@@ -192,43 +194,64 @@ define([
             var me = this;
             this.chHeader = new Common.UI.CheckBox({
                 el: $('#table-checkbox-header'),
-                labelText: this.textHeader
+                labelText: this.textHeader,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chHeader);
 
             this.chTotal = new Common.UI.CheckBox({
                 el: $('#table-checkbox-total'),
-                labelText: this.textTotal
+                labelText: this.textTotal,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chTotal);
 
             this.chBanded = new Common.UI.CheckBox({
                 el: $('#table-checkbox-banded'),
-                labelText: this.textBanded
+                labelText: this.textBanded,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chBanded);
 
             this.chFirst = new Common.UI.CheckBox({
                 el: $('#table-checkbox-first'),
-                labelText: this.textFirst
+                labelText: this.textFirst,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chFirst);
 
             this.chLast = new Common.UI.CheckBox({
                 el: $('#table-checkbox-last'),
-                labelText: this.textLast
+                labelText: this.textLast,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chLast);
 
             this.chColBanded = new Common.UI.CheckBox({
                 el: $('#table-checkbox-col-banded'),
-                labelText: this.textBanded
+                labelText: this.textBanded,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chColBanded);
 
             this.chFilter = new Common.UI.CheckBox({
                 el: $('#table-checkbox-filter'),
-                labelText: this.textFilter
+                labelText: this.textFilter,
+                dataHint: '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.lockedControls.push(this.chFilter);
 
@@ -276,7 +299,10 @@ define([
                         { caption: this.deleteColumnText,   value: Asc.c_oAscDeleteOptions.DeleteColumns,   idx: 9 },
                         { caption: this.deleteTableText,    value: Asc.c_oAscDeleteOptions.DeleteTable,     idx: 10 }
                     ]
-                })
+                }),
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'medium'
             });
             this.btnEdit.menu.on('show:after', _.bind( function(menu){
                 if (this.api) {
@@ -298,7 +324,10 @@ define([
                 cls         : 'btn-toolbar',
                 iconCls     : 'toolbar__icon btn-convert-to-range',
                 caption     : this.textConvertRange,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;text-align: left;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
 
             this.btnConvertRange.on('click', _.bind(function(btn){
@@ -312,7 +341,10 @@ define([
                 cls         : 'btn-toolbar',
                 iconCls     : 'toolbar__icon btn-remove-duplicates',
                 caption     : this.textRemDuplicates,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;text-align: left;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnRemDuplicates.on('click', _.bind(function(btn){
                 Common.NotificationCenter.trigger('data:remduplicates', this);
@@ -324,7 +356,10 @@ define([
                 cls         : 'btn-toolbar',
                 iconCls     : 'toolbar__icon btn-slicer',
                 caption     : this.textSlicer,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;text-align: left;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnSlicer.on('click', _.bind(this.onInsertSlicerClick, this));
             this.lockedControls.push(this.btnSlicer);
@@ -334,7 +369,10 @@ define([
                 cls         : 'btn-toolbar',
                 iconCls     : 'toolbar__icon btn-pivot-sum',
                 caption     : this.textPivot,
-                style       : 'width: 100%;text-align: left;'
+                style       : 'width: 100%;text-align: left;',
+                dataHint    : '1',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
             });
             this.btnPivot.on('click', _.bind(this.onInsertPivotClick, this));
             this.lockedControls.push(this.btnPivot);
@@ -367,10 +405,12 @@ define([
             }
         },
 
-        ChangeSettings: function(props) {
+        ChangeSettings: function(props, wsLock, wsProps) {
             if (this._initSettings)
                 this.createDelayedControls();
 
+            this.wsLock = wsLock;
+            this.wsProps = wsProps;
             this.disableControls(this._locked); // need to update combodataview after disabled state
 
             if (props )//formatTableInfo
@@ -434,7 +474,7 @@ define([
                     this._state.CheckFilter=value;
                 }
                 if (this.chFilter.isDisabled() !== (!this._state.CheckHeader || this._locked || value===null))
-                    this.chFilter.setDisabled(!this._state.CheckHeader || this._locked || value===null);
+                    this.chFilter.setDisabled(!this._state.CheckHeader || this._locked || value===null || this.wsLock);
 
                 if (needTablePictures || !this.mnuTableTemplatePicker)
                     this.onApiInitTableTemplates(this.api.asc_getTablePictures(props));
@@ -478,7 +518,10 @@ define([
                         items: [
                             { template: _.template('<div id="id-table-menu-template" class="menu-table-template"  style="margin: 5px 5px 5px 10px;"></div>') }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'big'
                 });
                 this.btnTableTemplate.on('render:after', function(btn) {
                     self.mnuTableTemplatePicker = new Common.UI.DataView({
@@ -494,7 +537,7 @@ define([
                 this.btnTableTemplate.render($('#table-btn-template'));
                 this.lockedControls.push(this.btnTableTemplate);
                 this.mnuTableTemplatePicker.on('item:click', _.bind(this.onTableTemplateSelect, this, this.btnTableTemplate));
-                if (this._locked) this.btnTableTemplate.setDisabled(this._locked);
+                if (this._locked) this.btnTableTemplate.setDisabled(this._locked || this.wsProps['FormatCells']);
             }
 
 
@@ -597,13 +640,16 @@ define([
             if (this._initSettings) return;
             disable = disable || this.isEditCell;
 
-            if (this._state.DisabledControls!==disable) {
-                this._state.DisabledControls = disable;
-                _.each(this.lockedControls, function(item) {
-                    item.setDisabled(disable);
-                });
-                this.linkAdvanced.toggleClass('disabled', disable);
-            }
+            var me = this;
+            _.each(this.lockedControls, function(item) {
+                item.setDisabled(disable || me.wsLock);
+            });
+            this.linkAdvanced.toggleClass('disabled', disable || this.wsLock);
+            this.btnTableTemplate && this.btnTableTemplate.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chBanded.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chFirst.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chLast.setDisabled(disable || this.wsProps['FormatCells']);
+            this.chColBanded.setDisabled(disable || this.wsProps['FormatCells']);
         },
 
         textEdit:           'Rows & Columns',

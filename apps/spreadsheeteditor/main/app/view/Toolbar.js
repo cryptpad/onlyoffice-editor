@@ -98,7 +98,13 @@ define([
         cantSort: 'cant-sort',
         pivotLock: 'pivot-lock',
         tableHasSlicer: 'table-has-slicer',
-        sheetView: 'sheet-view'
+        sheetView: 'sheet-view',
+        wbLock: 'workbook-lock',
+        wsLock: 'worksheet-lock',
+        itemsDisabled: 'all-items-disabled',
+        wsLockText: 'worksheet-lock-text',
+        wsLockShape: 'worksheet-lock-shape',
+        wsLockFormat: 'worksheet-lock-format'
     };
 
     SSE.Views.Toolbar =  Common.UI.Mixtbar.extend(_.extend({
@@ -179,14 +185,20 @@ define([
             me.btnCopy = new Common.UI.Button({
                 id          : 'id-toolbar-btn-copy',
                 cls         : 'btn-toolbar',
-                iconCls     : 'toolbar__icon btn-copy'
+                iconCls     : 'toolbar__icon btn-copy',
+                dataHint: '1',
+                dataHintDirection: 'top',
+                dataHintTitle: 'C'
             });
 
             me.btnPaste = new Common.UI.Button({
                 id          : 'id-toolbar-btn-paste',
                 cls         : 'btn-toolbar',
                 iconCls     : 'toolbar__icon btn-paste',
-                lock        : [/*_set.editCell,*/ _set.coAuth, _set.lostConnect]
+                lock        : [/*_set.editCell,*/ _set.coAuth, _set.lostConnect],
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintTitle: 'P'
             });
 
             me.btnUndo = new Common.UI.Button({
@@ -267,7 +279,9 @@ define([
                     lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selRangeEdit, _set.lostConnect, _set.coAuth],
                     itemsTemplate: formatTemplate,
                     editable    : false,
-                    data        : me.numFormatData
+                    data        : me.numFormatData,
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnEditChart = new Common.UI.Button({
@@ -372,7 +386,9 @@ define([
                         { value: 48, displayValue: "48" },
                         { value: 72, displayValue: "72" },
                         { value: 96, displayValue: "96" }
-                    ]
+                    ],
+                    dataHint: '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.cmbFontName = new Common.UI.ComboBoxFonts({
@@ -381,7 +397,9 @@ define([
                     menuStyle   : 'min-width: 325px;',
                     hint        : me.tipFontName,
                     lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    store       : new Common.Collections.Fonts()
+                    store       : new Common.Collections.Fonts(),
+                    dataHint: '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnPrint = new Common.UI.Button({
@@ -396,6 +414,7 @@ define([
                     id          : 'id-toolbar-btn-save',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon no-mask ' + me.btnSaveCls,
+                    lock        : [_set.lostConnect],
                     signals     : ['disabled']
                 });
                 me.btnCollabChanges = me.btnSave;
@@ -404,46 +423,58 @@ define([
                     id          : 'id-toolbar-btn-incfont',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-incfont',
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect]
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnDecFontSize = new Common.UI.Button({
                     id          : 'id-toolbar-btn-decfont',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-decfont',
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect]
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnBold = new Common.UI.Button({
                     id          : 'id-toolbar-btn-bold',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-bold',
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    enableToggle: true
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    enableToggle: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnItalic = new Common.UI.Button({
                     id          : 'id-toolbar-btn-italic',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-italic',
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    enableToggle: true
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    enableToggle: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnUnderline = new Common.UI.Button({
                     id          : 'id-toolbar-btn-underline',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-underline',
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    enableToggle: true
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    enableToggle: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnStrikeout = new Common.UI.Button({
                     id: 'id-toolbar-btn-strikeout',
                     cls: 'btn-toolbar',
                     iconCls: 'toolbar__icon btn-strikeout',
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    enableToggle: true
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    enableToggle: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnSubscript = new Common.UI.Button({
@@ -453,7 +484,7 @@ define([
                     icls     : 'btn-subscript',
                     split       : true,
                     enableToggle: true,
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
                     menu        : new Common.UI.Menu({
                         items: [
                             {
@@ -477,7 +508,10 @@ define([
                                 value       : 'sub'
                             }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.mnuTextColorPicker = dummyCmp();
@@ -486,20 +520,12 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-fontcolor',
                     split       : true,
-                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    menu        : new Common.UI.Menu({
-                        cls: 'shifted-left',
-                        items: [
-                            {
-                                id: 'id-toolbar-menu-auto-fontcolor',
-                                caption: this.textAutoColor,
-                                template: _.template('<a tabindex="-1" type="menuitem"><span class="menu-item-icon color-auto" style="background-image: none; width: 12px; height: 12px; margin: 1px 7px 0 1px; background-color: #000;"></span><%= caption %></a>')
-                            },
-                            {caption: '--'},
-                            { template: _.template('<div id="id-toolbar-menu-fontcolor" style="width: 169px; height: 216px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="id-toolbar-menu-new-fontcolor" style="padding-left:12px;">' + me.textNewColor + '</a>') }
-                        ]
-                    })
+                    lock        : [_set.selImage, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    menu: true,
+                    auto: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.mnuBackColorPicker = dummyCmp();
@@ -508,13 +534,12 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-paracolor',
                     split       : true,
-                    lock        : [_set.selImage, _set.editCell, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
-                    menu        : new Common.UI.Menu({
-                        items: [
-                            { template: _.template('<div id="id-toolbar-menu-paracolor" style="width: 169px; height: 216px; margin: 10px;"></div>') },
-                            { template: _.template('<a id="id-toolbar-menu-new-paracolor" style="padding-left:12px;">' + me.textNewColor + '</a>') }
-                        ]
-                    })
+                    lock        : [_set.selImage, _set.editCell, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect, _set.wsLockFormat],
+                    transparent: true,
+                    menu: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.btnBorders = new Common.UI.Button({
@@ -524,9 +549,12 @@ define([
                     icls        : 'btn-border-out',
                     borderId    : 'outer',
                     borderswidth: Asc.c_oAscBorderStyles.Thin,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
                     split       : true,
-                    menu        : true
+                    menu        : true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.btnAlignLeft = new Common.UI.Button({
@@ -534,8 +562,10 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-left',
                     enableToggle: true,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    toggleGroup : 'alignGroup'
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
+                    toggleGroup : 'alignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnAlignCenter = new Common.UI.Button({
@@ -543,8 +573,10 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-center',
                     enableToggle: true,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    toggleGroup : 'alignGroup'
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
+                    toggleGroup : 'alignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnAlignRight = new Common.UI.Button({
@@ -552,8 +584,10 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-right',
                     enableToggle: true,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    toggleGroup : 'alignGroup'
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
+                    toggleGroup : 'alignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnAlignJust = new Common.UI.Button({
@@ -561,8 +595,10 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-just',
                     enableToggle: true,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    toggleGroup: 'alignGroup'
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
+                    toggleGroup: 'alignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnMerge = new Common.UI.Button({
@@ -572,7 +608,7 @@ define([
                     enableToggle: true,
                     allowDepress: true,
                     split       : true,
-                    lock        : [_set.editCell, _set.selShape, _set.selShapeText, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.ruleMerge, _set.editPivot],
+                    lock        : [_set.editCell, _set.selShape, _set.selShapeText, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.ruleMerge, _set.editPivot, _set.wsLock],
                     menu        : new Common.UI.Menu({
                         items: [
                             {
@@ -596,16 +632,21 @@ define([
                                 value   : Asc.c_oAscMergeOptions.None
                             }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.btnAlignTop = new Common.UI.Button({
                     id          : 'id-toolbar-rtn-valign-top',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-top',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
                     enableToggle: true,
-                    toggleGroup : 'vAlignGroup'
+                    toggleGroup : 'vAlignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnAlignMiddle = new Common.UI.Button({
@@ -613,33 +654,39 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-middle',
                     enableToggle: true,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    toggleGroup : 'vAlignGroup'
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
+                    toggleGroup : 'vAlignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnAlignBottom = new Common.UI.Button({
                     id          : 'id-toolbar-rtn-valign-bottom',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-align-bottom',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
                     enableToggle: true,
-                    toggleGroup : 'vAlignGroup'
+                    toggleGroup : 'vAlignGroup',
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnWrap = new Common.UI.Button({
                     id          : 'id-toolbar-rtn-wrap',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-wrap',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
                     enableToggle: true,
-                    allowDepress: true
+                    allowDepress: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnTextOrient = new Common.UI.Button({
                     id          : 'id-toolbar-rtn-textorient',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon text-orient-ccw',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.wsLockFormat],
                     menu        : new Common.UI.Menu({
                         items: [
                             {
@@ -691,7 +738,9 @@ define([
                                 value       : 'rotatedown'
                             }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnInsertImage = new Common.UI.Button({
@@ -699,14 +748,17 @@ define([
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-insertimage',
                     caption     : me.capInsertImage,
-                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set['Objects']],
                     menu        : new Common.UI.Menu({
                         items: [
                             { caption: me.mniImageFromFile, value: 'file' },
                             { cls: 'cp-from-url', caption: me.mniImageFromUrl,  value: 'url' },
                             { caption: me.mniImageFromStorage, value: 'storage'}
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertHyperlink = new Common.UI.Button({
@@ -714,25 +766,34 @@ define([
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-inserthyperlink',
                     caption     : me.capInsertHyperlink,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selShape, _set.cantHyperlink, _set.selSlicer, _set.multiselect, _set.lostConnect, _set.coAuth, _set.editPivot]
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selShape, _set.cantHyperlink, _set.selSlicer, _set.multiselect, _set.lostConnect, _set.coAuth, _set.editPivot, _set['InsertHyperlinks']],
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertChart = new Common.UI.Button({
                     id          : 'tlbtn-insertchart',
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-insertchart',
-                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set.coAuthText],
+                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set.coAuthText, _set['Objects']],
                     caption     : me.capInsertChart,
-                    menu        : true
+                    menu        : true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertSparkline = new Common.UI.Button({
                     id          : 'tlbtn-insertsparkline',
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-sparkline',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selShape, _set.selSlicer, _set.multiselect, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.editPivot],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selImage, _set.selShape, _set.selSlicer, _set.multiselect, _set.lostConnect, _set.coAuth, _set.coAuthText, _set.editPivot, _set.wsLock],
                     caption     : me.capInsertSpark,
-                    menu        : true
+                    menu        : true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertShape = new Common.UI.Button({
@@ -741,8 +802,11 @@ define([
                     iconCls     : 'toolbar__icon btn-insertshape',
                     enableToggle: true,
                     caption     : me.capInsertShape,
-                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth],
-                    menu        : new Common.UI.Menu({cls: 'menu-shapes'})
+                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set['Objects']],
+                    menu        : new Common.UI.Menu({cls: 'menu-shapes'}),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertText = new Common.UI.Button({
@@ -750,8 +814,11 @@ define([
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-text',
                     caption     : me.capInsertText,
-                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth],
-                    enableToggle: true
+                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set['Objects']],
+                    enableToggle: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertTextArt = new Common.UI.Button({
@@ -759,13 +826,16 @@ define([
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-textart',
                     caption     : me.capInsertTextart,
-                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set['Objects']],
                     menu        : new Common.UI.Menu({
                         cls: 'menu-shapes',
                         items: [
                             {template: _.template('<div id="id-toolbar-menu-insart" style="width: 239px; margin-left: 5px;"></div>')}
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertEquation = new Common.UI.Button({
@@ -775,7 +845,10 @@ define([
                     caption     : me.capInsertEquation,
                     split       : true,
                     lock        : [_set.editCell, _set.lostConnect, _set.coAuth],
-                    menu        : new Common.UI.Menu({cls: 'menu-shapes'})
+                    menu        : new Common.UI.Menu({cls: 'menu-shapes'}),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertSymbol = new Common.UI.Button({
@@ -783,7 +856,10 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-symbol',
                     caption: me.capBtnInsSymbol,
-                    lock: [_set.selImage, _set.selChart, _set.selShape, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect]
+                    lock: [_set.selImage, _set.selChart, _set.selShape, _set.editFormula, _set.selRangeEdit, _set.selSlicer, _set.coAuth, _set.coAuthText, _set.lostConnect],
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnInsertSlicer = new Common.UI.Button({
@@ -791,19 +867,25 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-slicer',
                     caption: me.capBtnInsSlicer,
-                    lock: [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.multiselect, _set.noSlicerSource]
+                    lock: [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.multiselect, _set.noSlicerSource, _set.wsLock],
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnTableTemplate = new Common.UI.Button({
                     id          : 'id-toolbar-btn-ttempl',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-menu-table',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.ruleFilter, _set.multiselect, _set.cantModifyFilter],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.ruleFilter, _set.multiselect, _set.cantModifyFilter, _set.wsLock],
                     menu        : new Common.UI.Menu({
                         items: [
                             { template: _.template('<div id="id-toolbar-menu-table-templates" style="width: 487px; height: 300px; margin: 0px 4px;"></div>') }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -6'
                 });
 
                 me.btnInsertTable = new Common.UI.Button({
@@ -811,7 +893,10 @@ define([
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-inserttable',
                     caption     : me.capInsertTable,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.ruleFilter, _set.multiselect, _set.cantModifyFilter, _set.ruleMerge, _set.editPivot]
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set.ruleFilter, _set.multiselect, _set.cantModifyFilter, _set.ruleMerge, _set.editPivot, _set.wsLock],
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.listStyles = new Common.UI.ComboDataView({
@@ -820,7 +905,10 @@ define([
                     itemWidth       : 112,
                     itemHeight      : 40,
                     menuMaxHeight   : 226,
-                    lock            : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
+                    lock            : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
+                    dataHint        : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset  : '-16, 0',
                     beforeOpenHandler: function(e) {
                         var cmp = this,
                             menu = cmp.openButton.menu,
@@ -868,25 +956,29 @@ define([
                     cls         : 'input-group-nr',
                     menuStyle   : 'min-width: 180px;',
                     hint        : me.tipNumFormat,
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.selRangeEdit, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.selRangeEdit, _set.lostConnect, _set.coAuth, _set['FormatCells']],
                     itemsTemplate: formatTemplate,
                     editable    : false,
-                    data        : me.numFormatData
+                    data        : me.numFormatData,
+                    dataHint    : '1',
+                    dataHintDirection: 'top'
                 });
 
                 me.btnPercentStyle = new Common.UI.Button({
                     id          : 'id-toolbar-btn-percent-style',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-percent-style',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
-                    styleName   : 'Percent'
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
+                    styleName   : 'Percent',
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnCurrencyStyle = new Common.UI.Button({
                     id          : 'id-toolbar-btn-accounting-style',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-currency-style',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
                     styleName    : 'Currency',
                     split       : true,
                     menu        : new Common.UI.Menu({
@@ -917,21 +1009,28 @@ define([
                                 value   : -1
                             }
                         ]
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.btnDecDecimal = new Common.UI.Button({
                     id          : 'id-toolbar-btn-decdecimal',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-decdecimal',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth]
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnIncDecimal = new Common.UI.Button({
                     id          : 'id-toolbar-btn-incdecimal',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-incdecimal',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth]
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnInsertFormula = new Common.UI.Button({
@@ -955,14 +1054,17 @@ define([
                                 hint: me.txtFormula + Common.Utils.String.platformKey('Shift+F3')
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'top',
+                    dataHintOffset: '0, -16'
                 });
 
                 me.btnNamedRange = new Common.UI.Button({
                     id          : 'id-toolbar-btn-insertrange',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-named-range',
-                    lock        : [_set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    lock        : [_set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.lostConnect, _set.coAuth, _set.selRangeEdit, _set.wsLock],
                     menu        : new Common.UI.Menu({
                         style : 'min-width: 110px',
                         items : [
@@ -981,7 +1083,10 @@ define([
                                 value: 'paste'
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -6'
                 });
 
                 me.btnClearStyle = new Common.UI.Button({
@@ -1018,7 +1123,10 @@ define([
                                 value   : Asc.c_oAscCleanOptions.Hyperlinks
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'top',
+                    dataHintOffset: '0, -6'
                 });
 
                 me.btnCopyStyle = new Common.UI.Button({
@@ -1026,23 +1134,27 @@ define([
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-copystyle',
                     lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set.selChart, _set.selSlicer],
-                    enableToggle: true
+                    enableToggle: true,
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom'
                 });
 
                 me.btnAddCell = new Common.UI.Button({
                     id          : 'id-toolbar-btn-addcell',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-addcell',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.itemsDisabled, _set.lostConnect, _set.coAuth],
                     menu        : new Common.UI.Menu({
                         items : [
                             {
                                 caption : me.textInsRight,
-                                value   : Asc.c_oAscInsertOptions.InsertCellsAndShiftRight
+                                value   : Asc.c_oAscInsertOptions.InsertCellsAndShiftRight,
+                                lock        : [_set.wsLock]
                             },
                             {
                                 caption : me.textInsDown,
-                                value   : Asc.c_oAscInsertOptions.InsertCellsAndShiftDown
+                                value   : Asc.c_oAscInsertOptions.InsertCellsAndShiftDown,
+                                lock        : [_set.wsLock]
                             },
                             {
                                 caption : me.textEntireRow,
@@ -1053,23 +1165,28 @@ define([
                                 value   : Asc.c_oAscInsertOptions.InsertColumns
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'top',
+                    dataHintOffset: '0, -6'
                 });
 
                 me.btnDeleteCell = new Common.UI.Button({
                     id          : 'id-toolbar-btn-delcell',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-delcell',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.itemsDisabled, _set.lostConnect, _set.coAuth],
                     menu        : new Common.UI.Menu({
                         items : [
                             {
                                 caption : me.textDelLeft,
-                                value   : Asc.c_oAscDeleteOptions.DeleteCellsAndShiftLeft
+                                value   : Asc.c_oAscDeleteOptions.DeleteCellsAndShiftLeft,
+                                lock        : [_set.wsLock]
                             },
                             {
                                 caption : me.textDelUp,
-                                value   : Asc.c_oAscDeleteOptions.DeleteCellsAndShiftTop
+                                value   : Asc.c_oAscDeleteOptions.DeleteCellsAndShiftTop,
+                                lock        : [_set.wsLock]
                             },
                             {
                                 caption : me.textEntireRow,
@@ -1080,15 +1197,21 @@ define([
                                 value   : Asc.c_oAscDeleteOptions.DeleteColumns
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: '0, -6'
                 });
 
                 me.btnCondFormat = new Common.UI.Button({
                     id          : 'id-toolbar-btn-condformat',
                     cls         : 'btn-toolbar',
                     iconCls     : 'toolbar__icon btn-cond-format',
-                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.lostConnect, _set.coAuth],
-                    menu        : true
+                    lock        : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.lostConnect, _set.coAuth, _set['FormatCells']],
+                    menu        : true,
+                    dataHint    : '1',
+                    dataHintDirection: 'top',
+                    dataHintOffset: '0, -6'
                 });
 
                 me.btnColorSchemas = new Common.UI.Button({
@@ -1096,12 +1219,15 @@ define([
                     cls         : 'btn-toolbar x-huge icon-top',
                     iconCls     : 'toolbar__icon btn-colorschemas',
                     caption     : me.capBtnColorSchemas,
-                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth],
+                    lock        : [_set.editCell, _set.lostConnect, _set.coAuth, _set.wsLock],
                     menu        : new Common.UI.Menu({
                         cls: 'shifted-left',
                         items: [],
                         restoreHeight: true
-                    })
+                    }),
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 var hidetip = Common.localStorage.getItem("sse-hide-synch");
@@ -1134,7 +1260,10 @@ define([
                                 value: Asc.c_oAscPageOrientation.PageLandscape
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 var pageMarginsTemplate = _.template('<a id="<%= id %>" tabindex="-1" type="menuitem"><div><b><%= caption %></b></div>' +
@@ -1183,7 +1312,10 @@ define([
                             {caption: '--'},
                             {caption: me.textPageMarginsCustom, value: 'advanced'}
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 var pageSizeTemplate = _.template('<a id="<%= id %>" tabindex="-1" type="menuitem"><div><b><%= caption %></b></div>' +
@@ -1305,7 +1437,10 @@ define([
                                 value: [330.2, 482.5]
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
                 me.mnuPageSize = me.btnPageSize.menu;
 
@@ -1333,7 +1468,10 @@ define([
                                 value: Asc.c_oAscChangePrintAreaType.add
                             }
                         ]
-                    })
+                    }),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.mnuCustomScale = new Common.UI.MenuItem({
@@ -1360,7 +1498,10 @@ define([
                     lock: [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
                     menu: new Common.UI.Menu({
                         items: [],
-                        cls: 'scale-menu'})
+                        cls: 'scale-menu'}),
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
                 var menuWidthItem = new Common.UI.MenuItem({
                     caption: me.textWidth,
@@ -1420,39 +1561,54 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-print-titles',
                     caption: me.capBtnPrintTitles,
-                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit]
+                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    dataHint    : '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnImgAlign = new Common.UI.Button({
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-img-align',
                     caption: me.capImgAlign,
-                    lock        : [_set.selRange, _set.selRangeEdit, _set.cantGroup, _set.lostConnect,  _set.coAuth, _set.coAuthText],
-                    menu: true
+                    lock        : [_set.selRange, _set.selRangeEdit, _set.cantGroup, _set.lostConnect,  _set.coAuth, _set.coAuthText, _set["Objects"]],
+                    menu: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
                 me.btnImgGroup = new Common.UI.Button({
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-img-group',
                     caption: me.capImgGroup,
-                    lock        : [_set.selRange, _set.selRangeEdit, _set.cantGroupUngroup, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    menu: true
+                    lock        : [_set.selRange, _set.selRangeEdit, _set.cantGroupUngroup, _set.lostConnect, _set.coAuth, _set.coAuthText, _set["Objects"]],
+                    menu: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
                 me.btnImgForward = new Common.UI.Button({
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-img-frwd',
                     caption: me.capImgForward,
                     split: true,
-                    lock        : [_set.selRange, _set.selRangeEdit, _set.lostConnect, _set.coAuth, _set.coAuthText],
-                    menu: true
+                    lock        : [_set.selRange, _set.selRangeEdit, _set.lostConnect, _set.coAuth, _set.coAuthText, _set["Objects"]],
+                    menu: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
                 me.btnImgBackward = new Common.UI.Button({
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-img-bkwd',
                     caption: me.capImgBackward,
-                    lock        : [_set.selRange, _set.selRangeEdit, _set.lostConnect, _set.coAuth, _set.coAuthText],
+                    lock        : [_set.selRange, _set.selRangeEdit, _set.lostConnect, _set.coAuth, _set.coAuthText, _set["Objects"]],
                     split: true,
-                    menu: true
+                    menu: true,
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
 
             } else {
@@ -1692,7 +1848,7 @@ define([
             _injectComponent('#slot-btn-scale',         this.btnScale);
             _injectComponent('#slot-btn-condformat',    this.btnCondFormat);
             this.btnsEditHeader = Common.Utils.injectButtons($host.find('.slot-editheader'), 'tlbtn-editheader-', 'toolbar__icon btn-editheader', this.capBtnInsHeader,
-                                [SSE.enumLock.editCell, SSE.enumLock.selRangeEdit, SSE.enumLock.headerLock, SSE.enumLock.lostConnect, SSE.enumLock.coAuth]);
+                                [SSE.enumLock.editCell, SSE.enumLock.selRangeEdit, SSE.enumLock.headerLock, SSE.enumLock.lostConnect, SSE.enumLock.coAuth], undefined, undefined, undefined, '1', 'bottom', 'small');
             Array.prototype.push.apply(this.lockControls, this.btnsEditHeader);
 
             return $host;
@@ -1895,7 +2051,7 @@ define([
                                         stopPropagation: true
                                     },
                                     {caption: '--'},
-                                    { template: _.template('<div id="id-toolbar-menu-bordercolor" style="width: 169px; height: 216px; margin: 10px;"></div>'), stopPropagation: true },
+                                    { template: _.template('<div id="id-toolbar-menu-bordercolor" style="width: 169px; height: 240px;"></div>'), stopPropagation: true },
                                     { template: _.template('<a id="id-toolbar-menu-new-bordercolor" style="padding-left:12px;">' + this.textNewColor + '</a>'),  stopPropagation: true }
                                 ]
                             })
@@ -2153,17 +2309,14 @@ define([
             // DataView and pickers
             //
             if (this.btnTextColor && this.btnTextColor.cmpEl) {
+                this.btnTextColor.setMenu();
+                this.mnuTextColorPicker = this.btnTextColor.getPicker();
                 this.btnTextColor.setColor(this.btnTextColor.currentColor || 'transparent');
-                this.mnuTextColorPicker = new Common.UI.ThemeColorPalette({
-                    el: $('#id-toolbar-menu-fontcolor')
-                });
             }
             if (this.btnBackColor && this.btnBackColor.cmpEl) {
+                this.btnBackColor.setMenu();
+                this.mnuBackColorPicker = this.btnBackColor.getPicker();
                 this.btnBackColor.setColor(this.btnBackColor.currentColor || 'transparent');
-                this.mnuBackColorPicker = new Common.UI.ThemeColorPalette({
-                    el: $('#id-toolbar-menu-paracolor'),
-                    transparent: true
-                });
             }
         },
 
@@ -2213,7 +2366,9 @@ define([
             if (mode.isDisconnected) {
                 this.lockToolbar( SSE.enumLock.lostConnect, true );
                 this.lockToolbar( SSE.enumLock.lostConnect, true,
-                    {array:[this.btnEditChart, this.btnEditChartData, this.btnEditChartType, this.btnUndo,this.btnRedo]} );
+                    {array:[this.btnEditChart, this.btnEditChartData, this.btnEditChartType, this.btnUndo,this.btnRedo,this.btnSave]} );
+                if ( this.synchTooltip )
+                    this.synchTooltip.hide();
                 if (!mode.enableDownload)
                     this.lockToolbar(SSE.enumLock.cantPrint, true, {array: [this.btnPrint]});
             } else {

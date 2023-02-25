@@ -98,7 +98,10 @@ define([
                         iconCls: 'toolbar__icon btn-sheet-view',
                         caption: me.capBtnSheetView,
                         lock        : [_set.lostConnect, _set.coAuth],
-                        menu: true
+                        menu: true,
+                        dataHint    : '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
                     });
                     this.lockedControls.push(this.btnSheetView);
 
@@ -107,7 +110,10 @@ define([
                         cls         : 'btn-toolbar',
                         iconCls     : 'toolbar__icon btn-sheet-view-new',
                         caption     : this.textCreate,
-                        lock        : [_set.coAuth, _set.lostConnect]
+                        lock        : [_set.coAuth, _set.lostConnect],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'big'
                     });
                     this.lockedControls.push(this.btnCreateView);
                     Common.Utils.injectComponent($host.find('#slot-createview'), this.btnCreateView);
@@ -117,7 +123,10 @@ define([
                         cls         : 'btn-toolbar',
                         iconCls     : 'toolbar__icon btn-sheet-view-close',
                         caption     : this.textClose,
-                        lock        : [_set.sheetView, _set.coAuth, _set.lostConnect]
+                        lock        : [_set.sheetView, _set.coAuth, _set.lostConnect],
+                        dataHint    : '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'big'
                     });
                     this.lockedControls.push(this.btnCloseView);
                     Common.Utils.injectComponent($host.find('#slot-closeview'), this.btnCloseView);
@@ -129,7 +138,10 @@ define([
                     iconCls: 'toolbar__icon btn-freeze-panes',
                     caption: this.capBtnFreeze,
                     menu: true,
-                    lock: [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                    lock: [_set.sheetLock, _set.lostConnect, _set.coAuth],
+                    dataHint: '1',
+                    dataHintDirection: 'bottom',
+                    dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.btnFreezePanes);
 
@@ -148,7 +160,10 @@ define([
                         { displayValue: "150%", value: 150 },
                         { displayValue: "175%", value: 175 },
                         { displayValue: "200%", value: 200 }
-                    ]
+                    ],
+                    dataHint    : '1',
+                    dataHintDirection: 'top',
+                    dataHintOffset: 'small'
                 });
                 this.cmbZoom.setValue(100);
 
@@ -156,28 +171,40 @@ define([
                     el: $host.findById('#slot-chk-formula'),
                     labelText: this.textFormula,
                     value: !Common.localStorage.getBool('sse-hidden-formula'),
-                    lock        : [_set.lostConnect, _set.coAuth]
+                    lock        : [_set.lostConnect, _set.coAuth],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.chFormula);
 
                 this.chHeadings = new Common.UI.CheckBox({
                     el: $host.findById('#slot-chk-heading'),
                     labelText: this.textHeadings,
-                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.chHeadings);
 
                 this.chGridlines = new Common.UI.CheckBox({
                     el: $host.findById('#slot-chk-gridlines'),
                     labelText: this.textGridlines,
-                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.chGridlines);
 
                 this.chZeros = new Common.UI.CheckBox({
                     el: $host.findById('#slot-chk-zeros'),
                     labelText: this.textZeros,
-                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth]
+                    lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth],
+                    dataHint    : '1',
+                    dataHintDirection: 'left',
+                    dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.chZeros);
 

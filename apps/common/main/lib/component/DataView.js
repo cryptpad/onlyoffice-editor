@@ -125,6 +125,9 @@ define([
             var me = this;
 
             me.template = me.options.template || me.template;
+            me.dataHint = me.options.dataHint || '';
+            me.dataHintDirection = me.options.dataHintDirection || '';
+            me.dataHintOffset = me.options.dataHintOffset || '';
 
             me.listenTo(me.model, 'change', this.model.get('skipRenderOnChange') ? me.onChange : me.render);
             me.listenTo(me.model, 'change:selected',    me.onSelectChange);
@@ -140,6 +143,15 @@ define([
             el.html(this.template(this.model.toJSON()));
             el.addClass('item');
             el.toggleClass('selected', this.model.get('selected') && this.model.get('allowSelected'));
+            
+            if (this.dataHint !== '') {
+                el.attr('data-hint', this.dataHint);
+                el.attr('data-hint-direction', this.dataHintDirection);
+                el.attr('data-hint-offset', this.dataHintOffset);
+            }
+            if (!_.isUndefined(this.model.get('contentTarget')))
+                el.attr('content-target', this.model.get('contentTarget'));
+
             el.off('click dblclick contextmenu');
             el.on({ 'click': _.bind(this.onClick, this),
                 'dblclick': _.bind(this.onDblClick, this),
@@ -244,6 +256,9 @@ define([
             me.store          = me.options.store          || new Common.UI.DataViewStore();
             me.groups         = me.options.groups         || null;
             me.itemTemplate   = me.options.itemTemplate   || null;
+            me.itemDataHint   = me.options.itemDataHint   || '';
+            me.itemDataHintDirection = me.options.itemDataHintDirection || '';
+            me.itemDataHintOffset = me.options.itemDataHintOffset || '';
             me.multiSelect    = me.options.multiSelect;
             me.handleSelect   = me.options.handleSelect;
             me.parentMenu     = me.options.parentMenu;
@@ -413,7 +428,10 @@ define([
         onAddItem: function(record, store, opts) {
             var view = new Common.UI.DataViewItem({
                 template: this.itemTemplate,
-                model: record
+                model: record,
+                dataHint: this.itemDataHint,
+                dataHintDirection: this.itemDataHintDirection,
+                dataHintOffset: this.itemDataHintOffset
             });
 
             if (view) {
@@ -806,7 +824,7 @@ define([
             '<div class="dataview inner" style="<%= style %>">',
             '<% _.each(items, function(item) { %>',
                 '<% if (!item.id) item.id = Common.UI.getId(); %>',
-                '<div class="item" <% if(!!item.tip) { %> data-toggle="tooltip" <% } %> ><%= itemTemplate(item) %></div>',
+                '<div class="item" <% if(!!item.tip) { %> data-toggle="tooltip" <% } %> data-hint="<%= item.dataHint %>" data-hint-direction="<%= item.dataHintDirection %>" data-hint-offset="<%= item.dataHintOffset %>"><%= itemTemplate(item) %></div>',
             '<% }) %>',
             '</div>'
         ].join('')),
@@ -968,7 +986,7 @@ define([
             var template = _.template([
                 '<% _.each(items, function(item) { %>',
                     '<% if (!item.id) item.id = Common.UI.getId(); %>',
-                    '<div class="item" <% if(!!item.tip) { %> data-toggle="tooltip" <% } %> ><%= itemTemplate(item) %></div>',
+                    '<div class="item" <% if(!!item.tip) { %> data-toggle="tooltip" <% } %> data-hint="<%= item.dataHint %>" data-hint-direction="<%= item.dataHintDirection %>" data-hint-offset="<%= item.dataHintOffset %>"><%= itemTemplate(item) %></div>',
                 '<% }) %>'
             ].join(''));
             this.cmpEl && this.cmpEl.find('.inner').html(template({

@@ -219,6 +219,8 @@ define([
             };
 
             var onContextMenu = function(event){
+                if (Common.UI.HintManager.isHintVisible())
+                    Common.UI.HintManager.clearHints();
                 _.delay(function(){
                     if (event.get_Type() == Asc.c_oAscContextMenuTypes.Thumbnails) {
                         showPopupMenu.call(me, (me.mode.isEdit && !me._isDisabled) ? me.slideMenu : me.viewModeMenuSlide, {isSlideSelect: event.get_IsSlideSelect(), isSlideHidden: event.get_IsSlideHidden(), fromThumbs: true}, event);
@@ -303,7 +305,8 @@ define([
                     }
                     if (key == Common.UI.Keys.ESC) {
                         Common.UI.Menu.Manager.hideAll();
-                        Common.NotificationCenter.trigger('leftmenu:change', 'hide');
+                        if (!Common.UI.HintManager.isHintVisible())
+                            Common.NotificationCenter.trigger('leftmenu:change', 'hide');
                     }
                 }
             };
@@ -451,8 +454,18 @@ define([
             });
 
             var onHyperlinkClick = function(url) {
-                if (url /*&& me.api.asc_getUrlType(url)>0*/) {
-                    window.open(url);
+                if (url) {
+                    if (me.api.asc_getUrlType(url)>0)
+                        window.open(url);
+                    else
+                        Common.UI.warning({
+                            msg: me.txtWarnUrl,
+                            buttons: ['yes', 'no'],
+                            primary: 'yes',
+                            callback: function(btn) {
+                                (btn == 'yes') && window.open(url);
+                            }
+                        });
                 }
             };
 
@@ -3642,7 +3655,7 @@ define([
                             var checkUrl = value.replace(/ /g, '');
                             if (!_.isEmpty(checkUrl)) {
                                 if (placeholder)
-                                    me.api.AddImageUrl(checkUrl, undefined, undefined, obj);
+                                    me.api.AddImageUrl([checkUrl], undefined, undefined, obj);
                                 else {
                                     var props = new Asc.asc_CImgProperty();
                                     props.put_ImageUrl(checkUrl);
@@ -3963,7 +3976,8 @@ define([
         addToLayoutText: 'Add to Layout',
         txtResetLayout: 'Reset Slide',
         mniCustomTable: 'Insert Custom Table',
-        textFromStorage: 'From Storage'
+        textFromStorage: 'From Storage',
+        txtWarnUrl: 'Clicking this link can be harmful to your device and data.<br>Are you sure you want to continue?'
 
     }, PE.Views.DocumentHolder || {}));
 });
