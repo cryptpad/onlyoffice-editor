@@ -13019,7 +13019,7 @@
 			return "";
 		}
 		//https://gist.github.com/oryanmoshe/6b3ecd895c8a5eb9ae4ec4554f687737#file-window-performance-memory-1-js
-		return JSON.stringify(Object.getOwnPropertyNames(window.performance.memory.__proto__).reduce((acc,key) => {
+		return JSON.stringify(Object.getOwnPropertyNames(window.performance.memory.__proto__).reduce(function(acc,key) {
 				if (key !== 'constructor')
 					acc[key] = window.performance.memory[key];
 				return acc;
