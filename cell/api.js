@@ -2812,12 +2812,7 @@ var editor;
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeOther, oRecalcIndexColumns, oRecalcIndexRows);
       }
         if (true === AscCommon.CollaborativeEditing.Is_Fast()) {
-            var UserId = tmpAdditionalInfo["UserId"];
-            var CursorInfo = tmpAdditionalInfo["CursorInfo"];
-            var UserShortId = tmpAdditionalInfo["UserShortId"];
-            if(UserId && CursorInfo && UserShortId) {
-                AscCommon.CollaborativeEditing.Add_ForeignCursorToUpdate(UserId, CursorInfo, UserShortId);
-            }
+            AscCommon.CollaborativeEditing.UpdateForeignCursorByAdditionalInfo(tmpAdditionalInfo);
         }
     };
     this.CoAuthoringApi.onCursor = function(e) {
