@@ -2859,8 +2859,8 @@
 		{
 			// если исходный шрифт символьный (и все глифы там 0xF000+) - то вычетаем, так как
 			// если подобранный шрифт символьный - прибавится на CacheGlyph. а если нет - то надо вычитать.
-			if (objDst.IsSymbolDst && 0xF000 < src)
-				return src - 0xF000;
+			if (objDst.IsSymbolDst)
+				return (0xF000 < src) ? (src - 0xF000) : src;
 
 			// TODO: must be faster!!!
 			var _arr = objDst.MapSrc;
