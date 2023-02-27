@@ -18377,6 +18377,7 @@ CRunRecalculateObject.prototype =
 		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
 		{
 			var oItem = oRun.Content[nIndex];
+            console.log('XXX SaveRunContent', oItem, oRun);  // XXX CryptPad debugging
 			if (oItem.IsNeedSaveRecalculateObject())
 				this.Content[nIndex2++] = oItem.SaveRecalculateObject(isCopy);
 		}

@@ -2556,7 +2556,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		Hyperlinks             : true
 	};
 
-    this.private_InitDefaultFirstLetterAutoCorrectExceptions();
+    // XXX CryptPad, remove because implementation does not exist
+    //this.private_InitDefaultFirstLetterAutoCorrectExceptions();
 
     // Контролируем изменения интерфейса
     this.ChangedStyles      = []; // Объект с Id стилями, которые были изменены/удалены/добавлены
