@@ -58,6 +58,8 @@ define([
                 'embedded' : true
             });
 
+            Common.UI.Themes.init(this.api);
+
             $(window).on('resize', this.onDocumentResize.bind(this));
 
             this.boxSdk = $('#editor_sdk');
@@ -216,6 +218,10 @@ define([
                 case Asc.c_oAscError.ID.ForceSaveButton:
                 case Asc.c_oAscError.ID.ForceSaveTimeout:
                     config.msg = this.errorForceSave;
+                    break;
+
+                case Asc.c_oAscError.ID.LoadingFontError:
+                    config.msg = this.errorLoadingFont;
                     break;
 
                 default:
@@ -427,20 +433,6 @@ define([
 
             if ( this.onServerVersion(params.asc_getBuildVersion())) return;
 
-            if ( (licType === Asc.c_oLicenseResult.Success) && (typeof this.appOptions.customization == 'object') &&
-                this.appOptions.customization && this.appOptions.customization.logo ) {
-
-                var logo = $('#header-logo');
-                if (this.appOptions.customization.logo.imageEmbedded) {
-                    logo.html('<img src="'+this.appOptions.customization.logo.imageEmbedded+'" style="max-width:124px; max-height:20px;"/>');
-                    logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
-                }
-
-                if (this.appOptions.customization.logo.url) {
-                    logo.attr('href', this.appOptions.customization.logo.url);
-                }
-            }
-
             this.permissions.review = (this.permissions.review === undefined) ? (this.permissions.edit !== false) : this.permissions.review;
             if (params.asc_getRights() !== Asc.c_oRights.Edit)
                 this.permissions.edit = this.permissions.review = false;
@@ -452,9 +444,10 @@ define([
             this.appOptions.canFillForms   = this.appOptions.canLicense && (this.permissions.fillForms===true) && (this.editorConfig.mode !== 'view');
             this.api.asc_setViewMode(!this.appOptions.canFillForms);
 
-            var type = /^(?:(pdf|djvu|xps))$/.exec(this.document.fileType);
-            this.appOptions.canDownloadOrigin = this.permissions.download !== false && (type && typeof type[1] === 'string');
-            this.appOptions.canDownload       = this.permissions.download !== false && (!type || typeof type[1] !== 'string');
+            this.appOptions.canBranding  = params.asc_getCustomization();
+            this.appOptions.canBranding && this.setBranding(this.appOptions.customization);
+
+            this.appOptions.canDownload       = this.permissions.download !== false;
             this.appOptions.canPrint          = (this.permissions.print !== false);
 
             this.appOptions.fileKey = this.document.key;
@@ -572,6 +565,23 @@ define([
                                 window.open('mailto:{{SALES_EMAIL}}', "_blank");
                         }
                     });
+                }
+            }
+        },
+
+        setBranding: function (value) {
+            if ( value && value.logo) {
+                var logo = $('#header-logo');
+                if (value.logo.image || value.logo.imageDark) {
+                    var image = Common.UI.Themes.isDarkTheme() ? (value.logo.imageDark || value.logo.image) : (value.logo.image || value.logo.imageDark);
+                    logo.html('<img src="' + image + '" style="max-width:100px; max-height:20px;"/>');
+                    logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
+                }
+
+                if (value.logo.url) {
+                    logo.attr('href', value.logo.url);
+                } else if (value.logo.url!==undefined) {
+                    logo.removeAttr('href');logo.removeAttr('target');
                 }
             }
         },
@@ -772,11 +782,11 @@ define([
         },
 
         onDownloadAs: function() {
-            if ( !this.appOptions.canDownload && !this.appOptions.canDownloadOrigin ) {
+            if ( !this.appOptions.canDownload ) {
                 Common.Gateway.reportError(Asc.c_oAscError.ID.AccessDeny, this.errorAccessDeny);
                 return;
             }
-            var type = /^(?:(pdf|djvu|xps))$/.exec(this.document.fileType);
+            var type = /^(?:(pdf|djvu|xps|oxps))$/.exec(this.document.fileType);
             if (type && typeof type[1] === 'string')
                 this.api.asc_DownloadOrigin(true);
             else
@@ -1059,17 +1069,67 @@ define([
             }
         },
 
+        onThemeClick: function(menu, item) {
+            Common.UI.Themes.setTheme(item.value);
+        },
+
+        onThemeChange: function() {
+            var current = Common.UI.Themes.currentThemeId();
+            _.each(this.view.mnuThemes.items, function(item){
+                item.setChecked(current===item.value, true);
+            });
+            if (this.appOptions.canBranding) {
+                var value = this.appOptions.customization;
+                if ( value && value.logo && (value.logo.image || value.logo.imageDark) && (value.logo.image !== value.logo.imageDark)) {
+                    var image = Common.UI.Themes.isDarkTheme() ? (value.logo.imageDark || value.logo.image) : (value.logo.image || value.logo.imageDark);
+                    $('#header-logo img').attr('src', image);
+                }
+            }
+        },
+
         createDelayedElements: function() {
-            var menuItems = this.view.btnOptions.menu.items;
-            var itemsCount = menuItems.length-3;
+            var me = this,
+                menuItems = this.view.btnOptions.menu.items,
+                itemsCount = menuItems.length-4;
+            var initMenu = function(menu) {
+                var last;
+                // print
+                if (!menuItems[0].isVisible())
+                    menuItems[1].setVisible(false);
+                else
+                    last = menuItems[1];
+
+                // download
+                if (!menuItems[2].isVisible() && !menuItems[3].isVisible() && !menuItems[4].isVisible())
+                    menuItems[5].setVisible(false);
+                else
+                    last = menuItems[5];
+
+                // theme
+                if (!menuItems[6].isVisible())
+                    menuItems[7].setVisible(false);
+                else
+                    last = menuItems[7];
+
+                // share, location
+                if (!menuItems[8].isVisible() && !menuItems[9].isVisible())
+                    menuItems[10].setVisible(false);
+                else
+                    last = menuItems[10];
+
+                // embed, fullscreen
+                if (!menuItems[11].isVisible() && !menuItems[12].isVisible())
+                    last && last.setVisible(false);
+
+                menu.off('show:after', initMenu);
+            };
 
             if (!this.appOptions.canPrint) {
                 menuItems[0].setVisible(false);
-                menuItems[1].setVisible(false);
                 itemsCount--;
             }
 
-            if ( !this.embedConfig.saveUrl && !this.appOptions.canPrint || this.appOptions.canFillForms) {
+            if ( !this.embedConfig.saveUrl || !this.appOptions.canDownload || this.appOptions.canFillForms) {
                 menuItems[2].setVisible(false);
                 itemsCount--;
             }
@@ -1077,38 +1137,52 @@ define([
             if ( !this.appOptions.canFillForms || !this.appOptions.canDownload) {
                 menuItems[3].setVisible(false);
                 menuItems[4].setVisible(false);
-                menuItems[1].setVisible(false);
-                menuItems[5].setVisible(false);
                 itemsCount -= 2;
             }
 
-            if ( !this.embedConfig.shareUrl || this.appOptions.canFillForms) {
+            if (Common.UI.Themes.available()) {
+                var current = Common.UI.Themes.currentThemeId();
+                for (var t in Common.UI.Themes.map()) {
+                    this.view.mnuThemes.addItem(new Common.UI.MenuItem({
+                        caption     : Common.UI.Themes.get(t).text,
+                        value       : t,
+                        toggleGroup : 'themes',
+                        checkable   : true,
+                        checked     : t===current
+                    }));
+                }
+            }
+            if (this.view.mnuThemes.items.length<1) {
                 menuItems[6].setVisible(false);
+                itemsCount--;
+            } else {
+                this.view.mnuThemes.on('item:click', _.bind(this.onThemeClick, this));
+                Common.NotificationCenter.on('uitheme:changed', this.onThemeChange.bind(this));
+            }
+
+            if ( !this.embedConfig.shareUrl || this.appOptions.canFillForms) {
+                menuItems[8].setVisible(false);
                 itemsCount--;
             }
 
             if (!this.appOptions.canBackToFolder) {
-                menuItems[7].setVisible(false);
-                itemsCount--;
-            }
-
-            if (itemsCount<3)
-                menuItems[8].setVisible(false);
-
-            if ( !this.embedConfig.embedUrl || this.appOptions.canFillForms) {
                 menuItems[9].setVisible(false);
                 itemsCount--;
             }
 
-            if ( !this.embedConfig.fullscreenUrl ) {
-                menuItems[10].setVisible(false);
+            if ( !this.embedConfig.embedUrl || this.appOptions.canFillForms) {
+                menuItems[11].setVisible(false);
                 itemsCount--;
             }
 
+            if ( !this.embedConfig.fullscreenUrl ) {
+                menuItems[12].setVisible(false);
+                itemsCount--;
+            }
             if (itemsCount<1)
                 this.view.btnOptions.setVisible(false);
-            else if ((!this.embedConfig.embedUrl || this.appOptions.canFillForms) && !this.embedConfig.fullscreenUrl)
-                menuItems[8].setVisible(false);
+
+            this.view.btnOptions.menu.on('show:after', initMenu);
 
             screenTip = {
                 toolTip: new Common.UI.Tooltip({
@@ -1261,7 +1335,8 @@ define([
         warnNoLicenseUsers: "You've reached the user limit for %1 editors. Contact %1 sales team for personal upgrade terms.",
         textBuyNow: 'Visit website',
         textNoLicenseTitle: 'License limit reached',
-        textContactUs: 'Contact sales'
+        textContactUs: 'Contact sales',
+        errorLoadingFont: 'Fonts are not loaded.<br>Please contact your Document Server administrator.'
 
     }, DE.Controllers.ApplicationController));
 });

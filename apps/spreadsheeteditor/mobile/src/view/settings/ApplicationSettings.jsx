@@ -47,7 +47,7 @@ const PageApplicationSettings = props => {
                     </List>
                     <BlockTitle>{_t.textFormulaLanguage}</BlockTitle>
                     <List mediaList>
-                        <ListItem title={currentFormulaLang.displayValue} subtitle={`Example: ${currentFormulaLang.exampleValue}`} link="/formula-languages/" 
+                        <ListItem title={currentFormulaLang.displayValue} subtitle={`${t('View.Settings.textExample')}: ${currentFormulaLang.exampleValue}`} link="/formula-languages/" 
                             routeProps={{
                                 onFormulaLangChange: props.onFormulaLangChange
                             }}>
@@ -55,7 +55,7 @@ const PageApplicationSettings = props => {
                     </List>
                     <BlockTitle>{_t.textRegionalSettings}</BlockTitle>
                     <List mediaList>
-                        <ListItem title={currentRegSetting.displayName} subtitle={`Example: ${regExample}`} link="/regional-settings/" routeProps={{
+                        <ListItem title={currentRegSetting.displayName} subtitle={`${t('View.Settings.textExample')}: ${regExample}`} link="/regional-settings/" routeProps={{
                             onRegSettings: props.onRegSettings
                         }}></ListItem>
                     </List>
@@ -147,7 +147,7 @@ const PageFormulaLanguage = props => {
             <List mediaList>
                 {dataLang.map((elem, index) => {
                     return (
-                        <ListItem radio key={index} title={elem.displayValue} subtitle={`Example: ${elem.exampleValue}`} checked={elem.value === formulaLang}
+                        <ListItem radio key={index} title={elem.displayValue} subtitle={`${t('View.Settings.textExample')}: ${elem.exampleValue}`} checked={elem.value === formulaLang}
                             onChange={() => {
                                 storeApplicationSettings.changeFormulaLang(elem.value);
                                 props.onFormulaLangChange(elem.value);

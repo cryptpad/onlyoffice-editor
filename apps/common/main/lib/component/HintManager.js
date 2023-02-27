@@ -252,7 +252,7 @@ Common.UI.HintManager = new(function() {
 
     var _getHints = function() {
         var docH = Common.Utils.innerHeight() - 20,
-            docW = Common.Utils.innerWidth() - 20,
+            docW = Common.Utils.innerWidth(),
             topSection = _currentLevel !== 0 && $(_currentSection).length > 0 ? $(_currentSection).offset().top : 0,
             bottomSection = _currentLevel !== 0 && $(_currentSection).length > 0 ? topSection + $(_currentSection).height() : docH;
 
@@ -463,7 +463,9 @@ Common.UI.HintManager = new(function() {
                                         }
                                     }
                                 }
-                                if (curr.prop('id') === 'btn-goback' || curr.closest('.btn-slot').prop('id') === 'slot-btn-options' || curr.prop('id') === 'left-btn-thumbs' || curr.hasClass('scroll')) {
+                                if (curr.prop('id') === 'btn-goback' || curr.closest('.btn-slot').prop('id') === 'slot-btn-options' ||
+                                    curr.closest('.btn-slot').prop('id') === 'slot-btn-mode' || curr.prop('id') === 'btn-favorite' || curr.parent().prop('id') === 'tlb-box-users' ||
+                                    curr.prop('id') === 'left-btn-thumbs' || curr.hasClass('scroll')) {
                                     _resetToDefault();
                                     return;
                                 }

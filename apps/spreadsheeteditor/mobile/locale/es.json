@@ -61,7 +61,7 @@
     "notcriticalErrorTitle": "Advertencia",
     "textCopyCutPasteActions": "Acciones de Copiar, Cortar y Pegar",
     "textDoNotShowAgain": "No mostrar de nuevo",
-    "warnMergeLostData": "La operación puede destruir los datos de las celdas seleccionadas. ¿Continuar?"
+    "warnMergeLostData": "En la celda unida permanecerán sólo los datos de la celda de la esquina superior izquierda.<br>Está seguro de que quiere continuar?"
   },
   "Controller": {
     "Main": {
@@ -224,7 +224,8 @@
     "unknownErrorText": "Error desconocido.",
     "uploadImageExtMessage": "Formato de imagen desconocido.",
     "uploadImageFileCountMessage": "No hay imágenes subidas.",
-    "uploadImageSizeMessage": "La imagen es demasiado grande. El tamaño máximo es de 25 MB."
+    "uploadImageSizeMessage": "La imagen es demasiado grande. El tamaño máximo es de 25 MB.",
+    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password."
   },
   "LongActions": {
     "applyChangesTextText": "Cargando datos...",
@@ -561,6 +562,7 @@
       "textEnableAll": "Habilitar todo",
       "textEnableAllMacrosWithoutNotification": "Habilitar todas las macros sin notificación ",
       "textEncoding": "Codificación",
+      "textExample": "Ejemplo",
       "textFind": "Buscar",
       "textFindAndReplace": "Buscar y reemplazar",
       "textFindAndReplaceAll": "Buscar y reemplazar todo",

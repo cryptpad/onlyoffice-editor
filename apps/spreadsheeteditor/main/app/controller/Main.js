@@ -1245,8 +1245,10 @@ define([
                     if (this.permissions.editCommentAuthorOnly===undefined && this.permissions.deleteCommentAuthorOnly===undefined)
                         this.appOptions.canEditComments = this.appOptions.canDeleteComments = this.appOptions.isOffline;
                 }
-                this.appOptions.isSignatureSupport= this.appOptions.isEdit && this.appOptions.isDesktopApp && this.appOptions.isOffline && this.api.asc_isSignaturesSupport() && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge);
-                this.appOptions.isPasswordSupport = this.appOptions.isEdit && this.api.asc_isProtectionSupport() && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge);
+                this.appOptions.isSignatureSupport= this.appOptions.isEdit && this.appOptions.isDesktopApp && this.appOptions.isOffline && this.api.asc_isSignaturesSupport() && (this.permissions.protect!==false)
+                                                    && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge);
+                this.appOptions.isPasswordSupport = this.appOptions.isEdit && this.api.asc_isProtectionSupport() && (this.permissions.protect!==false)
+                                                    && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge);
                 this.appOptions.canProtect     = (this.appOptions.isSignatureSupport || this.appOptions.isPasswordSupport);
                 this.appOptions.canHelp        = !((typeof (this.editorConfig.customization) == 'object') && this.editorConfig.customization.help===false);
                 this.appOptions.isRestrictedEdit = !this.appOptions.isEdit && this.appOptions.canComments;
@@ -1393,11 +1395,13 @@ define([
                 Common.Utils.Metric.setCurrentMetric(value);
                 Common.Utils.InternalSettings.set("sse-settings-unit", value);
 
-                if (this.appOptions.isEdit || this.appOptions.isRestrictedEdit) { // set api events for toolbar in the Restricted Editing mode
+                if (this.appOptions.isRestrictedEdit) {
                     var toolbarController   = application.getController('Toolbar');
                     toolbarController   && toolbarController.setApi(me.api);
-
-                    if (!this.appOptions.isEdit) return;
+                    application.getController('WBProtection').setMode(me.appOptions).setConfig({config: me.editorConfig}, me.api);
+                } else if (this.appOptions.isEdit) { // set api events for toolbar in the Restricted Editing mode
+                    var toolbarController   = application.getController('Toolbar');
+                    toolbarController   && toolbarController.setApi(me.api);
 
                     var statusbarController = application.getController('Statusbar'),
                         rightmenuController = application.getController('RightMenu'),
@@ -1885,7 +1889,7 @@ define([
                             }
                         }
                     }
-                    if (id == Asc.c_oAscError.ID.DataEncrypted) {
+                    if (id == Asc.c_oAscError.ID.DataEncrypted || id == Asc.c_oAscError.ID.ConvertationOpenLimitError) {
                         this.api.asc_coAuthoringDisconnect();
                         Common.NotificationCenter.trigger('api:disconnect');
                     }

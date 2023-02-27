@@ -322,7 +322,6 @@ define([
             this.rightmenu.tableSettings.UpdateThemeColors();
             this.rightmenu.shapeSettings.UpdateThemeColors();
             this.rightmenu.textartSettings.UpdateThemeColors();
-            //XXX Cryptpad add null check
             this.rightmenu.formSettings && this.rightmenu.formSettings.UpdateThemeColors();
         },
 

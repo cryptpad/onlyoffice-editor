@@ -61,7 +61,7 @@
     "notcriticalErrorTitle": "Waarschuwing",
     "textCopyCutPasteActions": "Acties Kopiëren, Knippen en Plakken",
     "textDoNotShowAgain": "Niet meer laten zien.",
-    "warnMergeLostData": "De bewerking kan gegevens in de geselecteerde cellen vernietigen. Doorgaan?"
+    "warnMergeLostData": "Alleen de gegevens in de cel linksboven blijven behouden in de samengevoegde cel.<br>Wilt u doorgaan?"
   },
   "Controller": {
     "Main": {
@@ -224,6 +224,7 @@
     "uploadImageExtMessage": "Onbekende afbeeldingsindeling.",
     "uploadImageFileCountMessage": "Geen afbeeldingen geüpload.",
     "uploadImageSizeMessage": "De afbeelding is te groot. De maximale grote is 25MB.",
+    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password.",
     "errorLoadingFont": "Fonts are not loaded.<br>Please contact your Document Server administrator."
   },
   "LongActions": {
@@ -556,6 +557,7 @@
       "textEmail": "E-mail",
       "textEnableAll": "Alles inschakelen",
       "textEnableAllMacrosWithoutNotification": "Schakel alle macro's in zonder een notificatie",
+      "textExample": "Voorbeeld",
       "textFind": "Zoeken",
       "textFindAndReplace": "Zoeken en vervangen",
       "textFindAndReplaceAll": "Zoek en vervang alles",

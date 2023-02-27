@@ -82,6 +82,7 @@ define([
             "text-inverse",
             "text-toolbar-header",
             "text-contrast-background",
+            "text-alt-key-hint",
 
             "icon-normal",
             "icon-normal-pressed",
@@ -117,6 +118,8 @@ define([
             "canvas-dark-cell-title-border",
             "canvas-dark-cell-title-border-hover",
             "canvas-dark-cell-title-border-selected",
+            "canvas-dark-content-background",
+            "canvas-dark-page-border",
 
             "canvas-scroll-thumb",
             "canvas-scroll-thumb-hover",
@@ -250,8 +253,17 @@ define([
                 if ( !theme_name ) {
                     if ( !(Common.Utils.isIE10 || Common.Utils.isIE11) )
                         document.body.classList.forEach(function (classname, i, o) {
-                            if ( !theme_name && classname.startsWith('theme-') && !classname.startsWith('theme-type-') ) {
+                            if ( !theme_name && classname.startsWith('theme-') &&
+                                    !classname.startsWith('theme-type-') && themes_map[classname] )
+                            {
                                 theme_name = classname;
+                                // Common.localStorage.setItem('ui-theme-id', theme_name);
+                                var theme_obj = {
+                                    id: theme_name,
+                                    type: themes_map[theme_name].type
+                                };
+
+                                Common.localStorage.setItem('ui-theme', JSON.stringify(theme_obj));
                             }
                         });
                 }

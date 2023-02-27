@@ -52,6 +52,21 @@ var checkLocalStorage = (function () {
     }
 })();
 
+if ( window.desktop && !!window.RendererProcessVariable ) {
+    var theme = window.RendererProcessVariable.theme
+
+    if ( theme ) {
+        if ( theme.id ) {
+            // params.uitheme = undefined;
+            localStorage.setItem("ui-theme-id", theme.id);
+        } else
+        if ( !!theme.type ) {
+            if ( theme.type == 'dark' ) params.uitheme = 'default-dark'; else
+            if ( theme.type == 'light' ) params.uitheme = 'default-light';
+        }
+    }
+}
+
 if ( !!params.uitheme && checkLocalStorage && !localStorage.getItem("ui-theme-id") ) {
     // const _t = params.uitheme.match(/([\w-]+)/g);
 

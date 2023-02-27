@@ -401,7 +401,7 @@ DE.ApplicationController = new(function(){
             itemsCount--;
         }
 
-        if ( !embedConfig.saveUrl && permissions.print === false || appOptions.canFillForms) {
+        if ( !embedConfig.saveUrl || permissions.download === false || appOptions.canFillForms) {
             $('#idt-download').hide();
             itemsCount--;
         }
@@ -437,7 +437,6 @@ DE.ApplicationController = new(function(){
             itemsCount--;
         }
 
-        // if ( !embedConfig.saveUrl && permissions.print === false && (!embedConfig.shareUrl || appOptions.canFillForms) && (!embedConfig.embedUrl || appOptions.canFillForms) && !embedConfig.fullscreenUrl && !config.canBackToFolder)
         if (itemsCount<1)
             $('#box-tools').addClass('hidden');
         else if ((!embedConfig.embedUrl || appOptions.canFillForms) && !embedConfig.fullscreenUrl)
@@ -475,11 +474,8 @@ DE.ApplicationController = new(function(){
 
         DE.ApplicationView.tools.get('#idt-download')
             .on('click', function(){
-                    if ( !!embedConfig.saveUrl ){
+                    if ( !!embedConfig.saveUrl && permissions.download !== false){
                         common.utils.openLink(embedConfig.saveUrl);
-                    } else
-                    if (api && permissions.print!==false){
-                        api.asc_Print(new Asc.asc_CDownloadOptions(null, $.browser.chrome || $.browser.safari || $.browser.opera || $.browser.mozilla && $.browser.versionNumber>86));
                     }
 
                     Common.Analytics.trackEvent('Save');
@@ -599,23 +595,12 @@ DE.ApplicationController = new(function(){
     }
 
     function onEditorPermissions(params) {
-        if ( (params.asc_getLicenseType() === Asc.c_oLicenseResult.Success) && (typeof config.customization == 'object') &&
-             config.customization && config.customization.logo ) {
-
-            var logo = $('#header-logo');
-            if (config.customization.logo.imageEmbedded) {
-                logo.html('<img src="'+config.customization.logo.imageEmbedded+'" style="max-width:124px; max-height:20px;"/>');
-                logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
-            }
-
-            if (config.customization.logo.url) {
-                logo.attr('href', config.customization.logo.url);
-            }
-        }
         var licType = params.asc_getLicenseType();
         appOptions.canLicense     = (licType === Asc.c_oLicenseResult.Success || licType === Asc.c_oLicenseResult.SuccessLimit);
         appOptions.canFillForms   = appOptions.canLicense && (permissions.fillForms===true) && (config.mode !== 'view');
         appOptions.canSubmitForms = appOptions.canLicense && (typeof (config.customization) == 'object') && !!config.customization.submitForm;
+        appOptions.canBranding  = params.asc_getCustomization();
+        appOptions.canBranding && setBranding(config.customization);
 
         api.asc_setViewMode(!appOptions.canFillForms);
 
@@ -820,6 +805,24 @@ DE.ApplicationController = new(function(){
 
     function onBeforeUnload () {
         common.localStorage.save();
+    }
+
+    function setBranding(value) {
+        if ( value && value.logo) {
+            var logo = $('#header-logo');
+            if (value.logo.image || value.logo.imageEmbedded) {
+                logo.html('<img src="'+(value.logo.image || value.logo.imageEmbedded)+'" style="max-width:100px; max-height:20px;"/>');
+                logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
+
+                value.logo.imageEmbedded && console.log("Obsolete: The 'imageEmbedded' parameter of the 'customization.logo' section is deprecated. Please use 'image' parameter instead.");
+            }
+
+            if (value.logo.url) {
+                logo.attr('href', value.logo.url);
+            } else if (value.logo.url!==undefined) {
+                logo.removeAttr('href');logo.removeAttr('target');
+            }
+        }
     }
         // Helpers
     // -------------------------

@@ -101,7 +101,7 @@ define([
             this.collection     =   this.getApplication().getCollection('Common.Collections.ReviewChanges');
             this.userCollection =   this.getApplication().getCollection('Common.Collections.Users');
 
-            this._state = {posx: -1000, posy: -1000, popoverVisible: false, previewMode: false, compareSettings: null /*new AscCommon.CComparisonPr()*/};
+            this._state = {posx: -1000, posy: -1000, popoverVisible: false, previewMode: false, compareSettings: null, wsLock: false, wsProps: []};
 
             Common.NotificationCenter.on('reviewchanges:turn', this.onTurnPreview.bind(this));
             Common.NotificationCenter.on('spelling:turn', this.onTurnSpelling.bind(this));
@@ -1017,7 +1017,7 @@ define([
                 var wbprotect = this.getApplication().getController('WBProtection');
                 props = wbprotect ? wbprotect.getWSProps() : null;
             }
-            this._state.wsProps = props ? props.wsProps : {};
+            this._state.wsProps = props ? props.wsProps : [];
             this._state.wsLock = props ? props.wsLock : false;
 
             if (!this.view) return;

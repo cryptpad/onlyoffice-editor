@@ -37,6 +37,7 @@ PE.ApplicationController = new(function(){
         docConfig = {},
         embedConfig = {},
         permissions = {},
+        appOptions = {},
         maxPages = 0,
         created = false,
         currentPage = 0,
@@ -76,11 +77,13 @@ PE.ApplicationController = new(function(){
         if (embedConfig.toolbarDocked === 'bottom') {
             $('#toolbar').addClass('bottom');
             $('#editor_sdk').addClass('bottom');
+            $('#box-preview').addClass('bottom');
             $('#box-tools').removeClass('dropdown').addClass('dropup');
             ttOffset[1] = -40;
         } else {
             $('#toolbar').addClass('top');
             $('#editor_sdk').addClass('top');
+            $('#box-preview').addClass('top');
         }
 
         config.canBackToFolder = (config.canBackToFolder!==false) && config.customization && config.customization.goback &&
@@ -259,7 +262,7 @@ PE.ApplicationController = new(function(){
         if ( permissions.print === false)
             $('#idt-print').hide();
 
-        if (!embedConfig.saveUrl && permissions.print === false)
+        if (!embedConfig.saveUrl || permissions.download === false)
             $('#idt-download').hide();
 
         if ( !embedConfig.shareUrl )
@@ -274,7 +277,7 @@ PE.ApplicationController = new(function(){
         if ( !embedConfig.fullscreenUrl )
             $('#idt-fullscreen').hide();
 
-        if ( !embedConfig.saveUrl && permissions.print === false && !embedConfig.shareUrl && !embedConfig.embedUrl && !embedConfig.fullscreenUrl && !config.canBackToFolder)
+        if ( (!embedConfig.saveUrl || permissions.download === false) && permissions.print === false && !embedConfig.shareUrl && !embedConfig.embedUrl && !embedConfig.fullscreenUrl && !config.canBackToFolder)
             $('#box-tools').addClass('hidden');
         else if (!embedConfig.embedUrl && !embedConfig.fullscreenUrl)
             $('#box-tools .divider').hide();
@@ -309,11 +312,8 @@ PE.ApplicationController = new(function(){
 
         PE.ApplicationView.tools.get('#idt-download')
             .on('click', function(){
-                if ( !!embedConfig.saveUrl ){
+                if ( !!embedConfig.saveUrl && permissions.download !== false){
                     common.utils.openLink(embedConfig.saveUrl);
-                } else
-                if (api && permissions.print!==false){
-                    api.asc_Print(new Asc.asc_CDownloadOptions(null, $.browser.chrome || $.browser.safari || $.browser.opera || $.browser.mozilla && $.browser.versionNumber>86));
                 }
 
                 Common.Analytics.trackEvent('Save');
@@ -454,19 +454,8 @@ PE.ApplicationController = new(function(){
     }
 
     function onEditorPermissions(params) {
-        if ( (params.asc_getLicenseType() === Asc.c_oLicenseResult.Success) && (typeof config.customization == 'object') &&
-            config.customization && config.customization.logo ) {
-
-            var logo = $('#header-logo');
-            if (config.customization.logo.imageEmbedded) {
-                logo.html('<img src="'+config.customization.logo.imageEmbedded+'" style="max-width:124px; max-height:20px;"/>');
-                logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
-            }
-
-            if (config.customization.logo.url) {
-                logo.attr('href', config.customization.logo.url);
-            }
-        }
+        appOptions.canBranding  = params.asc_getCustomization();
+        appOptions.canBranding && setBranding(config.customization);
 
         var $parent = labelDocName.parent();
         var _left_width = $parent.position().left,
@@ -651,6 +640,24 @@ PE.ApplicationController = new(function(){
 
     function onBeforeUnload () {
         common.localStorage.save();
+    }
+
+    function setBranding(value) {
+        if ( value && value.logo) {
+            var logo = $('#header-logo');
+            if (value.logo.image || value.logo.imageEmbedded) {
+                logo.html('<img src="'+(value.logo.image || value.logo.imageEmbedded)+'" style="max-width:100px; max-height:20px;"/>');
+                logo.css({'background-image': 'none', width: 'auto', height: 'auto'});
+
+                value.logo.imageEmbedded && console.log("Obsolete: The 'imageEmbedded' parameter of the 'customization.logo' section is deprecated. Please use 'image' parameter instead.");
+            }
+
+            if (value.logo.url) {
+                logo.attr('href', value.logo.url);
+            } else if (value.logo.url!==undefined) {
+                logo.removeAttr('href');logo.removeAttr('target');
+            }
+        }
     }
     // Helpers
     // -------------------------

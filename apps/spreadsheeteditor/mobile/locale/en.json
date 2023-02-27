@@ -61,7 +61,7 @@
     "notcriticalErrorTitle": "Warning",
     "textCopyCutPasteActions": "Copy, Cut and Paste Actions",
     "textDoNotShowAgain": "Don't show again",
-    "warnMergeLostData": "The operation can destroy data in the selected cells. Continue?"
+    "warnMergeLostData": "Only the data from the upper-left cell will remain in the merged cell. <br>Are you sure you want to continue?"
   },
   "Controller": {
     "Main": {
@@ -169,6 +169,7 @@
     "errorAutoFilterHiddenRange": "The operation cannot be performed because the area contains filtered cells.<br>Please, unhide the filtered elements and try again.",
     "errorBadImageUrl": "Image url is incorrect",
     "errorChangeArray": "You cannot change part of an array.",
+    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password.",
     "errorConnectToServer": "Can't save this doc. Check your connection settings or contact your admin.<br>When you click the 'OK' button, you will be prompted to download the document.",
     "errorCopyMultiselectArea": "This command cannot be used with multiple selections.<br>Select a single range and try again.",
     "errorCountArg": "An error in the formula.<br>Invalid number of arguments.",
@@ -561,6 +562,7 @@
       "textEnableAll": "Enable All",
       "textEnableAllMacrosWithoutNotification": "Enable all macros without a notification",
       "textEncoding": "Encoding",
+      "textExample": "Example",
       "textFind": "Find",
       "textFindAndReplace": "Find and Replace",
       "textFindAndReplaceAll": "Find and Replace All",

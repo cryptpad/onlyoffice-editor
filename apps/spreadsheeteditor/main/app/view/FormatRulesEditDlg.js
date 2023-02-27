@@ -320,11 +320,11 @@ define([ 'text!spreadsheeteditor/main/app/template/FormatRulesEditDlg.template',
                         fontColor: preset[0],
                         fillColor: preset[1],
                         borderColor: preset[2],
-                        styleObj: {'background-color': preset[1] ? '#' + preset[1] : 'transparent', color: preset[0] ? '#' + preset[0] : 'transparent', border: preset[2] ? '1px solid #' + preset[2] : '', 'text-align': 'center' }
+                        styleObj: {'background-color': preset[1] ? '#' + preset[1] : '#ffffff', color: preset[0] ? '#' + preset[0] : 'transparent', border: preset[2] ? '1px solid #' + preset[2] : '', 'text-align': 'center' }
                     },
                     caption: preset[0] ? Common.define.conditionalData.exampleText : '',
                     template: presetTemplate,
-                    styleStr: 'background-color: ' + (preset[1] ? '#' + preset[1] : 'transparent') + ';color:'  + (preset[0] ? '#' + preset[0] : 'transparent') + ';' + (preset[2] ? 'border: 1px solid #' + preset[2] + ';' : '' + 'text-align: center;')
+                    styleStr: 'background-color: ' + (preset[1] ? '#' + preset[1] : '#ffffff') + ';color:'  + (preset[0] ? '#' + preset[0] : 'transparent') + ';' + (preset[2] ? 'border: 1px solid #' + preset[2] + ';' : '' + 'text-align: center;')
                 });
             });
 
@@ -664,11 +664,13 @@ define([ 'text!spreadsheeteditor/main/app/template/FormatRulesEditDlg.template',
             var picker = new Common.UI.DataView({
                 el: $('#format-rules-combo-menu-icon-' + (i+1)),
                 parentMenu: menu,
+                outerMenu: {menu: menu, index: 1},
                 store: new Common.UI.DataViewStore(me.iconsList),
                 itemTemplate: _.template('<img id="<%= id %>" class="item-icon" src="<%= imgUrl %>" style="width: 16px; height: 16px;">'),
                 type        : i
             });
             picker.on('item:click', _.bind(this.onSelectIcon, this, combo, menu.items[0]));
+            menu.setInnerMenu([{menu: picker, index: 1}]);
             menu.items[0].on('toggle', _.bind(this.onSelectNoIcon, this, combo, picker));
 
             this.iconsControls[i].cmbIcons = combo;

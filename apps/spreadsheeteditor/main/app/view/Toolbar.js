@@ -908,7 +908,7 @@ define([
                     lock            : [_set.editCell, _set.selChart, _set.selChartText, _set.selShape, _set.selShapeText, _set.selImage, _set.selSlicer, _set.lostConnect, _set.coAuth, _set['FormatCells']],
                     dataHint        : '1',
                     dataHintDirection: 'bottom',
-                    dataHintOffset  : '-16, 0',
+                    dataHintOffset  : '-16, -4',
                     beforeOpenHandler: function(e) {
                         var cmp = this,
                             menu = cmp.openButton.menu,
@@ -917,10 +917,10 @@ define([
                         if (menu.cmpEl) {
                             var itemEl = $(cmp.cmpEl.find('.dataview.inner .style').get(0)).parent();
                             var itemMargin = /*parseInt($(itemEl.get(0)).parent().css('margin-right'))*/-1;
-                            Common.Utils.applicationPixelRatio() > 1 && Common.Utils.applicationPixelRatio() < 2 && (itemMargin = itemMargin + 1/Common.Utils.applicationPixelRatio());
-                            var itemWidth = itemEl.is(':visible') ? parseInt(itemEl.css('width')) :
-                                (cmp.itemWidth + parseInt(itemEl.css('padding-left')) + parseInt(itemEl.css('padding-right')) +
-                                parseInt(itemEl.css('border-left-width')) + parseInt(itemEl.css('border-right-width')));
+                            Common.Utils.applicationPixelRatio() > 1 && Common.Utils.applicationPixelRatio() < 2 && (itemMargin = -1/Common.Utils.applicationPixelRatio());
+                            var itemWidth = itemEl.is(':visible') ? parseFloat(itemEl.css('width')) :
+                                (cmp.itemWidth + parseFloat(itemEl.css('padding-left')) + parseFloat(itemEl.css('padding-right')) +
+                                parseFloat(itemEl.css('border-left-width')) + parseFloat(itemEl.css('border-right-width')));
 
                             var minCount        = cmp.menuPicker.store.length >= minMenuColumn ? minMenuColumn : cmp.menuPicker.store.length,
                                 columnCount     = Math.min(cmp.menuPicker.store.length, Math.round($('.dataview', $(cmp.fieldPicker.el)).width() / (itemMargin + itemWidth) + 0.5));
@@ -1239,7 +1239,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-pageorient',
                     caption: me.capBtnPageOrient,
-                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.editCell, _set.selRangeEdit],
                     menu: new Common.UI.Menu({
                         cls: 'ppm-toolbar',
                         items: [
@@ -1279,7 +1279,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-pagemargins',
                     caption: me.capBtnMargins,
-                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.editCell, _set.selRangeEdit],
                     menu: new Common.UI.Menu({
                         items: [
                             {
@@ -1327,7 +1327,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-pagesize',
                     caption: me.capBtnPageSize,
-                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.editCell, _set.selRangeEdit],
                     menu: new Common.UI.Menu({
                         restoreHeight: true,
                         items: [
@@ -1495,7 +1495,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-scale',
                     caption: me.capBtnScale,
-                    lock: [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    lock: [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.editCell, _set.selRangeEdit],
                     menu: new Common.UI.Menu({
                         items: [],
                         cls: 'scale-menu'}),
@@ -1561,7 +1561,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon btn-print-titles',
                     caption: me.capBtnPrintTitles,
-                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.selRangeEdit],
+                    lock        : [_set.docPropsLock, _set.lostConnect, _set.coAuth, _set.editCell, _set.selRangeEdit],
                     dataHint    : '1',
                     dataHintDirection: 'bottom',
                     dataHintOffset: 'small'
