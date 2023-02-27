@@ -4203,9 +4203,6 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								if (fieldtype_NUMPAGES === oInstruction.GetType())
 								{
 									oHdrFtr.Add_PageCountElement(Item);
-
-									if (!Item.IsNumValue() && Para.LogicDocument && Para.LogicDocument.IsDocumentEditor())
-										Item.SetNumValue(Para.LogicDocument.Pages.length);
 								}
 								else if (fieldtype_PAGE === oInstruction.GetType())
 								{
@@ -5204,7 +5201,7 @@ ParaRun.prototype.private_RecalculateLastTab = function(LastTab, X, XEnd, Word, 
 
         LastTab.Reset();
 
-		return X + TabCalcW;
+        return X + TabCalcW;
     }
 
     return X;
@@ -5288,13 +5285,13 @@ ParaRun.prototype.SaveRecalculateObject = function(Copy)
 {
     var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);
     RecalcObj.Save_Lines( this, Copy );
-	RecalcObj.SaveRunContent(this, Copy);
+    RecalcObj.Save_RunContent( this, Copy );
     return RecalcObj;
 };
 ParaRun.prototype.LoadRecalculateObject = function(RecalcObj)
 {
     RecalcObj.Load_Lines(this);
-    RecalcObj.LoadRunContent(this);
+    RecalcObj.Load_RunContent(this);
 };
 ParaRun.prototype.PrepareRecalculateObject = function()
 {
@@ -12873,10 +12870,6 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 	if (arrElements.length <= 0)
 		return false;
 
-	var oHistory = oDocument.GetHistory();
-	if (oHistory.CheckAsYouTypeAutoCorrect && !oHistory.CheckAsYouTypeAutoCorrect(arrElements[0]))
-		return false;
-
 	for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
 	{
 		if (para_Text !== arrElements[nIndex].Type)
@@ -12911,7 +12904,6 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 			oNextContentPos = arrContentPos[arrContentPos.length - 1];
 
 		var oRunElements = new CParagraphRunElements(oNextContentPos, 1, null, true);
-		oRunElements.SetSaveContentPositions(true);
 		oParagraph.GetPrevRunElements(oRunElements);
 
 		// TODO: Надо проверить окончание предложения со скобками, возможно надо проверять два последних символа
@@ -12920,31 +12912,6 @@ ParaRun.prototype.private_ProcessCapitalizeFirstLetterOfSentencesAutoCorrect = f
 			&& !oRunElements.Elements[0].IsExclamationMark()
 			&& !oRunElements.Elements[0].IsQuestionMark())
 			return false;
-
-		// Проверяем исключения
-		if (1 === oRunElements.Elements.length && oDocument.IsDocumentEditor())
-		{
-			var nExceptionMaxLen = oDocument.GetFirstLetterAutoCorrectExceptionsMaxLen() + 1;
-			var oDotContentPos   = oRunElements.GetContentPositions()[0];
-			oRunElements         = new CParagraphRunElements(oDotContentPos, nExceptionMaxLen, null, false);
-			oParagraph.GetPrevRunElements(oRunElements);
-
-			arrElements         = oRunElements.GetElements();
-			var sCheckException = "";
-			for (var nIndex = 0, nCount = arrElements.length; nIndex < nCount; ++nIndex)
-			{
-				var oElement = arrElements[nIndex];
-
-				// TODO: Заменить на (!oElement.IsLetter())
-				if (para_Text !== oElement.Type || oElement.Is_Number() || oElement.IsPunctuation())
-					break;
-
-				sCheckException = String.fromCharCode(oElement.Value) + sCheckException;
-			}
-
-			if (oDocument.CheckFirstLetterAutoCorrectException(sCheckException))
-				return false;
-		}
 	}
 
 	// Если мы дошли до этого момента, значит можно производить автозамену
