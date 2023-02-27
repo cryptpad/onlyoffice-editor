@@ -584,7 +584,7 @@
       if (this.input && this.input.addEventListener) {
 				var eventInfo = new AscCommon.CEventListenerInfo(this.input, "focus", function () {
 					if (this.Api.isEditVisibleAreaOleEditor) {
-						this.input.blur();
+						this._blurCellEditor();
 						return;
 					}
 					this.input.isFocused = true;
@@ -592,7 +592,7 @@
 						return;
 					}
 					if (this.isProtectActiveCell()) {
-						this.input.blur();
+						this._blurCellEditor();
 						this.handlers.trigger("asc_onError", c_oAscError.ID.ChangeOnProtectedSheet, c_oAscError.Level.NoCritical);
 						return;
 					}
@@ -825,7 +825,9 @@
 				  self.handlers.trigger("asc_onFormulaInfo", fName, pos);
 			  }, "onSelectionEnd" : function () {
 				  self.handlers.trigger("asc_onSelectionEnd");
-        }
+			  }, "doEditorFocus" : function () {
+				  self._setEditorFocus();
+			  }
 		  }, this.defaults.worksheetView.cells.padding);
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
@@ -1909,7 +1911,7 @@
     var activeWsModel = this.model.getActiveWs();
     if (activeWsModel.inPivotTable(activeCellRange)) {
 		if (t.input.isFocused) {
-			t.input.blur();
+			t._blurCellEditor();
 		}
 		this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
 		return;
@@ -1959,11 +1961,19 @@
 	var needBlurFunc;
 	if (t.input && t.input.isFocused) {
 		needBlurFunc = function () {
-			t.input && t.input.blur();
+			t._blurCellEditor();
 			needBlur = true;
 		}
 	}
     ws.checkProtectRangeOnEdit([new Asc.Range(activeCellRange.c1, activeCellRange.r1, activeCellRange.c1, activeCellRange.r1)], doEdit, null, needBlurFunc);
+  };
+
+  WorkbookView.prototype._blurCellEditor = function () {
+	 this._setEditorFocus();
+  };
+
+  WorkbookView.prototype._setEditorFocus = function () {
+	 this.element && this.element.focus();
   };
 
   /**
@@ -3037,7 +3047,7 @@
 
   WorkbookView.prototype.setOleSize = function (oPr) {
     this.model.setOleSize(oPr);
-  }
+  };
   WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
       var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;
 
