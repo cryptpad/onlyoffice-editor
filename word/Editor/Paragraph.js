@@ -11377,9 +11377,7 @@ Paragraph.prototype.Document_Get_AllFontNames = function(AllFonts)
 	var Count = this.Content.length;
 	for (var Index = 0; Index < Count; Index++)
 	{
-		if (this.Content[Index] && typeof(this.Content[Index].Get_AllFontNames) === "function") {
-            this.Content[Index].Get_AllFontNames(AllFonts);
-        }
+		this.Content[Index].Get_AllFontNames(AllFonts);
 	}
 };
 /**
@@ -18372,26 +18370,29 @@ CRunRecalculateObject.prototype =
         Obj.Load_MathInfo(this.MathInfo);
     },
 
-	SaveRunContent : function(oRun, isCopy)
-	{
-		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
-		{
-			var oItem = oRun.Content[nIndex];
-            console.log('XXX SaveRunContent', oItem, oRun);  // XXX CryptPad debugging
-			if (oItem.IsNeedSaveRecalculateObject())
-				this.Content[nIndex2++] = oItem.SaveRecalculateObject(isCopy);
-		}
-	},
+    Save_RunContent : function(Run, Copy)
+    {
+        var ContentLen = Run.Content.length;
+        for ( var Index = 0, Index2 = 0; Index < ContentLen; Index++ )
+        {
+            var Item = Run.Content[Index];
 
-	LoadRunContent : function(oRun)
-	{
-		for (var nIndex = 0, nIndex2 = 0, nCount = oRun.Content.length; nIndex < nCount; ++nIndex)
-		{
-			var oItem = oRun.Content[nIndex];
-			if (oItem.IsNeedSaveRecalculateObject())
-				oItem.LoadRecalculateObject(this.Content[nIndex2++]);
-		}
-	},
+			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type || para_Separator === Item.Type || para_ContinuationSeparator === Item.Type)
+				this.Content[Index2++] = Item.SaveRecalculateObject(Copy);
+        }
+    },
+
+    Load_RunContent : function(Run)
+    {
+        var Count = Run.Content.length;
+        for ( var Index = 0, Index2 = 0; Index < Count; Index++ )
+        {
+            var Item = Run.Content[Index];
+
+			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type || para_Separator === Item.Type || para_ContinuationSeparator === Item.Type)
+				Item.LoadRecalculateObject(this.Content[Index2++]);
+        }
+    },
 
     Get_DrawingFlowPos : function(FlowPos)
     {

@@ -1738,25 +1738,7 @@ ParaTab.prototype.Copy = function()
 {
 	return new ParaTab();
 };
-ParaTab.prototype.IsNeedSaveRecalculateObject = function()
-{
-	return true;
-};
-ParaTab.prototype.SaveRecalculateObject = function()
-{
-	return {
-		Width        : this.Width,
-		WidthVisible : this.WidthVisible
-	};
-};
-ParaTab.prototype.LoadRecalculateObject = function(RecalcObj)
-{
-	this.Width        = RecalcObj.Width;
-	this.WidthVisible = RecalcObj.WidthVisible;
-};
-ParaTab.prototype.PrepareRecalculateObject = function()
-{
-};
+
 
 /**
  * Класс представляющий элемент номер страницы
@@ -1843,10 +1825,6 @@ ParaPageNum.prototype.Set_Page = function(PageNum)
 
 	this.Width        = RealWidth;
 	this.WidthVisible = RealWidth;
-};
-ParaPageNum.prototype.IsNeedSaveRecalculateObject = function()
-{
-	return true;
 };
 ParaPageNum.prototype.SaveRecalculateObject = function(Copy)
 {
@@ -2357,10 +2335,6 @@ ParaSeparator.prototype.UpdateWidth = function(PRS)
 	this.Width        = nWidth;
 	this.WidthVisible = nWidth;
 };
-ParaSeparator.prototype.IsNeedSaveRecalculateObject = function()
-{
-	return true;
-};
 ParaSeparator.prototype.SaveRecalculateObject = function(isCopy)
 {
 	return {
@@ -2429,10 +2403,6 @@ ParaContinuationSeparator.prototype.UpdateWidth = function(PRS)
 
 	this.Width        = nWidth;
 	this.WidthVisible = nWidth;
-};
-ParaContinuationSeparator.prototype.IsNeedSaveRecalculateObject = function()
-{
-	return true;
 };
 ParaContinuationSeparator.prototype.SaveRecalculateObject = function(isCopy)
 {
