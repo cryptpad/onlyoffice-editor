@@ -48,7 +48,6 @@
 	var c_nMaxDownloadTitleLen= 255;
 	var c_nVersionNoBase64 = 10;
 	var c_dMaxParaRunContentLength = 256;
-	var c_rUneditableTypes = /^(?:(pdf|djvu|xps|oxps))$/;
 	var c_nMaxHyperlinkLength = 2083;
 
 	//files type for Saving & DownloadAs
@@ -73,6 +72,11 @@
 		DOTM : 0x004d,
 		FODT : 0x004e,
 		OTT  : 0x004f,
+		DOC_FLAT  : 0x0050,
+		DOCX_FLAT  : 0x0051,
+		HTML_IN_CONTAINER  : 0x0052,
+		DOCX_PACKAGE  : 0x0054,
+		OFORM  : 0x0055,
 		DOCY : 0x1001,
 		CANVAS_WORD : 0x2001,
 		JSON : 0x0808,	// Для mail-merge
@@ -448,6 +452,7 @@
 	var align_Center  = 2;
 	var align_Justify = 3;
 	var align_Distributed = 4;
+	var align_CenterContinuous = 5;
 
 
 	var linerule_AtLeast = 0x00;
@@ -2222,7 +2227,6 @@
 	window['Asc']['c_nMaxDownloadTitleLen'] = window['Asc'].c_nMaxDownloadTitleLen = c_nMaxDownloadTitleLen;
 	window['Asc']['c_nVersionNoBase64'] = window['Asc'].c_nVersionNoBase64 = c_nVersionNoBase64;
 	window['Asc']['c_dMaxParaRunContentLength'] = window['Asc'].c_dMaxParaRunContentLength = c_dMaxParaRunContentLength;
-	window['Asc']['c_rUneditableTypes'] = window['Asc'].c_rUneditableTypes = c_rUneditableTypes;
 	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
@@ -2246,6 +2250,11 @@
 	prot['DOTM']                 = prot.DOTM;
 	prot['FODT']                 = prot.FODT;
 	prot['OTT']                  = prot.OTT;
+	prot['DOC_FLAT']             = prot.DOC_FLAT;
+	prot['DOCX_FLAT']            = prot.DOCX_FLAT;
+	prot['HTML_IN_CONTAINER']    = prot.HTML_IN_CONTAINER;
+	prot['DOCX_PACKAGE']         = prot.DOCX_PACKAGE;
+	prot['OFORM']                = prot.OFORM;
 	prot['DOCY']                 = prot.DOCY;
 	prot['JSON']                 = prot.JSON;
 	prot['XLSX']                 = prot.XLSX;
@@ -3112,6 +3121,7 @@
 	window['AscCommon']['align_Center'] = window['AscCommon'].align_Center = align_Center;
 	window['AscCommon']['align_Justify'] = window['AscCommon'].align_Justify = align_Justify;
 	window['AscCommon']['align_Distributed'] = window['AscCommon'].align_Distributed = align_Distributed;
+	window['AscCommon']['align_CenterContinuous'] = window['AscCommon'].align_CenterContinuous = align_CenterContinuous;
 
 
 	window["AscCommon"]["c_oAscFormatPainterState"]    = c_oAscFormatPainterState;

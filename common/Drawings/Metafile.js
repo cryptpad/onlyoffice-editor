@@ -2002,7 +2002,7 @@
 				nFlag |= (1 << 3);
 
 			// 7-ой и 8-ой биты зарезервированы для бордера
-			var oBorder = oForm.GetTextFormPr() ? oForm.GetTextFormPr().CombBorder : null;
+			var oBorder = oFormPr.GetBorder();
 			if (oBorder && !oBorder.IsNone())
 			{
 				nFlag |= (1 << 6);
@@ -2016,6 +2016,18 @@
 				this.Memory.WriteByte(0x255);
 			}
 
+			var oShd = oFormPr.GetShd();
+			if (oShd && !oShd.IsNil())
+			{
+				nFlag |= (1 << 9);
+
+				var oParagraph = oForm.GetParagraph();
+				var oColor     = oShd.GetSimpleColor(oParagraph.GetTheme(), oParagraph.GetColorMap());
+				this.Memory.WriteByte(oColor.r);
+				this.Memory.WriteByte(oColor.g);
+				this.Memory.WriteByte(oColor.b);
+				this.Memory.WriteByte(0x255);
+			}
 
 			// 0 - Unknown
 			// 1 - Text
@@ -2043,6 +2055,12 @@
 					nFlag |= (1 << 22);
 					this.Memory.WriteString(sValue);
 				}
+
+				if (oTextFormPr.MultiLine)
+					nFlag |= (1 << 23);
+
+				if (oTextFormPr.AutoFit)
+					nFlag |= (1 << 24);
 			}
 			else if (oForm.IsComboBox() || oForm.IsDropDownList())
 			{
@@ -2116,7 +2134,18 @@
 			else if (oForm.IsPicture())
 			{
 				this.Memory.WriteLong(4);
-				// TODO: Параметры для картиночной формы
+
+				var oPicturePr = oForm.GetPictureFormPr();
+
+				if (oPicturePr.IsConstantProportions())
+					nFlag |= (1 << 20);
+
+				if (oPicturePr.IsRespectBorders())
+					nFlag |= (1 << 21);
+
+				nFlag |= ((oPicturePr.GetScaleFlag() & 0xF) << 24);
+				this.Memory.WriteLong(oPicturePr.GetShiftX() * 1000);
+				this.Memory.WriteLong(oPicturePr.GetShiftY() * 1000);
 			}
 			else
 			{

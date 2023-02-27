@@ -2930,6 +2930,7 @@
                     case AscCommon.align_Justify :ha = 5;break;
                     case AscCommon.align_Left :ha = 6;break;
                     case AscCommon.align_Right :ha = 7;break;
+                    case AscCommon.align_CenterContinuous :ha = 8;break;
                 }
                 this.memory.WriteByte(c_oSerAligmentTypes.Horizontal);
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
@@ -4888,10 +4889,7 @@
                     this.bs.WriteItem(c_oSer_DrawingType.ClientData, function(){oThis.WriteClientData(oDrawingForWriting.clientData);});
                 }
             }
-            if(curDrawing)
-                this.bs.WriteItem(c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, curDrawing, null, null, null);});
-            else
-                this.bs.WriteItem(c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, oDrawing.graphicObject, null, null, null);});
+            this.bs.WriteItem(c_oSer_DrawingType.pptxDrawing, function(){pptx_content_writer.WriteDrawing(oThis.memory, oDrawingToWrite, null, null, null);});
         };
         this.WriteFromTo = function(oFromTo)
         {
@@ -7507,6 +7505,7 @@
                     case 4 : oAligment.hor = null;break;
                     case 6 : oAligment.hor = AscCommon.align_Left;break;
                     case 7 : oAligment.hor = AscCommon.align_Right;break;
+                    case 8 : oAligment.hor = AscCommon.align_CenterContinuous;break;
                 }
             }
             else if ( c_oSerAligmentTypes.Indent == type )

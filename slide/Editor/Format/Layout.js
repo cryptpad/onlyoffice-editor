@@ -992,7 +992,7 @@ function CLayoutThumbnailDrawer()
 
 
                 _sp_elem.draw(g);
-                if(!_sp_elem.pen || !_sp_elem.pen.Fill)
+                if(!_sp_elem.pen || !_sp_elem.pen.Fill || _sp_elem.pen.isNoFillLine())
                 {
                     if(!window["NATIVE_EDITOR_ENJINE"])
                     {

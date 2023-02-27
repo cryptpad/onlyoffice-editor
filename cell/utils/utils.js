@@ -2223,10 +2223,8 @@
 		function generateSlicerStyles(w, h, wb) {
 			var result = [];
 
-			if (AscCommon.AscBrowser.isRetina) {
-				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
-				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
-			}
+			w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+			h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
 
 			var ctx = getContext(w, h, wb);
 			var oCanvas = ctx.getCanvas();
@@ -2257,14 +2255,10 @@
 
 			var dxf, dxfWhole;
 
-			var nIns = 2;
-			var nBH = 8;
+			var nBH = (height / 6)  >> 0;
 
-			if (AscCommon.AscBrowser.isRetina) {
-				nIns = AscCommon.AscBrowser.convertToRetinaValue(nIns, true);
-				nBH = AscCommon.AscBrowser.convertToRetinaValue(nBH, true);
-			}
-
+			var nIns = (height / 6 / 5) >> 0;
+			var nHIns = (height / 6 / 5 + 0.5) >> 0;
 			//whole
 			dxfWhole = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
 			drawSlicerPreviewElement(dxfWhole, null, ctx, graphics, 0, 0, width, height);
@@ -2283,8 +2277,8 @@
 			];
 			for(var nType = 0; nType < aBT.length; ++nType) {
 				dxf = oSlicerStyle[aBT[nType]];
-				drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, nIns, nPos, width - nIns, nPos + nBH);
-				nPos += nBH + nIns;
+				drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, nHIns, nPos, width - nHIns, nPos + nBH);
+				nPos += (nBH + nIns);
 			}
 		}
 		function drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, x0, y0, x1, y1) {
@@ -2322,10 +2316,9 @@
 			if (dxfWhole) {
 				var nTIns = 5;
 				var nTW = 8;
-				if (AscCommon.AscBrowser.isRetina) {
-					nTIns = AscCommon.AscBrowser.convertToRetinaValue(nTIns, true);
-					nTW = AscCommon.AscBrowser.convertToRetinaValue(nTW, true);
-				}
+
+				nTIns = AscCommon.AscBrowser.convertToRetinaValue(nTIns, true);
+				nTW = AscCommon.AscBrowser.convertToRetinaValue(nTW, true);
 
 				var oFont = dxf && dxf.getFont() || dxfWhole && dxfWhole.getFont && dxfWhole.getFont();
 				var oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
@@ -2333,7 +2326,7 @@
 				ctx.setLineWidth(1);
 				ctx.setLineDash([]);
 				ctx.beginPath();
-				ctx.lineHor(nTIns, y0 + (y1 - y0) / 2.0, nTIns + nTW);
+				ctx.lineHor(nTIns, (y0 + (y1 - y0) / 2.0 + 0.5) >> 0, nTIns + nTW);
 				ctx.stroke();
 			}
 		}

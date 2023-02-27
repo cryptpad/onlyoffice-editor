@@ -7105,6 +7105,10 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 	}
 	else
 	{
+		var oLogicDocument = this.GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
 		if (true === this.IsInnerTable())
 			return this.CurCell.Content.MoveCursorToCell(bNext);
 
@@ -7115,18 +7119,26 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 			Cell : Pos_c,
 			Row  : Pos_r
 		};
+		
+		var oCheckAutoCorrectPara = null;
+		if (!this.IsSelectionUse())
+		{
+			oCheckAutoCorrectPara = this.CurCell.GetContent().GetCurrentParagraph();
+			if (oCheckAutoCorrectPara && !oCheckAutoCorrectPara.IsCursorAtEnd())
+				oCheckAutoCorrectPara = null;
+		}
 
 		if (true === bNext)
 		{
 			var TempCell = this.Internal_Get_NextCell(Pos);
-			while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+			while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 				TempCell = this.Internal_Get_NextCell(Pos);
 
 			if (null != TempCell)
 				CurCell = TempCell;
 			else
 			{
-				if (false == editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
 						Type      : AscCommon.changestype_2_Element_and_Type,
 						Element   : this,
 						CheckType : AscCommon.changestype_Table_Properties
@@ -7134,14 +7146,26 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 				{
 					this.LogicDocument.StartAction(AscDFH.historydescription_Document_TableAddNewRowByTab);
 					this.AddTableRow(false);
+
+					if (oCheckAutoCorrectPara)
+					{
+						var oParaEndRun = oCheckAutoCorrectPara.GetParaEndRun();
+						if (oParaEndRun)
+							oParaEndRun.ProcessAutoCorrectOnParaEnd(1);
+
+						oCheckAutoCorrectPara = null;
+					}
+
 					this.LogicDocument.Recalculate();
 					this.LogicDocument.FinalizeAction();
 				}
 				else
+				{
 					return;
+				}
 
 				var TempCell = this.Internal_Get_NextCell(Pos);
-				while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+				while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 					TempCell = this.Internal_Get_NextCell(Pos);
 
 				if (null != TempCell)
@@ -7151,15 +7175,25 @@ CTable.prototype.MoveCursorToCell = function(bNext)
 		else
 		{
 			var TempCell = this.Internal_Get_PrevCell(Pos);
-			while (null != TempCell && vmerge_Restart != TempCell.GetVMerge())
+			while (null != TempCell && vmerge_Restart !== TempCell.GetVMerge())
 				TempCell = this.Internal_Get_PrevCell(Pos);
 
 			if (null != TempCell)
 				CurCell = TempCell;
 		}
 
-		// Предварительно очистим текущий селект
-		editor.WordControl.m_oLogicDocument.RemoveSelection();
+		if (oCheckAutoCorrectPara)
+		{
+			var oParaEndRun = oCheckAutoCorrectPara.GetParaEndRun();
+			if (oParaEndRun)
+				oParaEndRun.ProcessAutoCorrectOnParaEnd(0);
+
+			oCheckAutoCorrectPara = null;
+		}
+
+
+		// Т.к. мы собираемся выставить селект заново, то предварительно очистим текущий селект
+		oLogicDocument.RemoveSelection();
 
 		this.CurCell = CurCell;
 		this.CurCell.Content.SelectAll();

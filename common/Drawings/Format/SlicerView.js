@@ -141,9 +141,7 @@
                 zoom = window.Asc.editor.asc_getZoom();
             }
             vector_koef = 25.4 / (ppiX * zoom);
-            if (AscCommon.AscBrowser.isRetina) {
-                vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
-            }
+            vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
         }
         return vector_koef;
     }

@@ -1028,12 +1028,17 @@
 			}
 
 			t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = false;
+            }
 			t.changeWorksheet("update", {reinitRanges: true});
 			t._updateGroups(true, undefined, undefined, true);
 			t._updateVisibleColsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
-
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = true;
+            }
 			if (bIsHiddenArr) {
 				if (bIsHiddenArr.length) {
 					Asc.editor.wb.handleChartsOnWorkbookChange(bIsHiddenArr);
@@ -1044,10 +1049,12 @@
 			}
 
 			if (t.objectRender) {
-				t.objectRender.updateSizeDrawingObjects({
-					target: AscCommonExcel.c_oTargetType.ColumnResize,
-					col: startUpdateCol
-				});
+                var oTarget = {
+                    target: AscCommonExcel.c_oTargetType.ColumnResize,
+                    col: startUpdateCol
+                };
+				t.objectRender.updateSizeDrawingObjects(oTarget);
+                t.objectRender.updateDrawingsTransform(oTarget);
 			}
 			if (viewMode) {
 				History.TurnOn();
@@ -1157,12 +1164,17 @@
 			var updateRange = new asc_Range(0, startUpdateRow, t.cols.length - 1, endUpdateRow);
 			t.model.autoFilters.reDrawFilter(updateRange);
 			t._cleanCache(updateRange);
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = false;
+            }
 			t.changeWorksheet("update", {reinitRanges: true});
 			t._updateGroups(false, undefined, undefined, true);
 			t._updateVisibleRowsCount();
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
-
+            if(t.objectRender) {
+                t.objectRender.bUpdateMetrics = true;
+            }
 
 			if (bIsHiddenArr) {
 				if (bIsHiddenArr.length) {
@@ -1174,10 +1186,12 @@
 			}
 
 			if (t.objectRender) {
-				t.objectRender.updateSizeDrawingObjects({
-					target: AscCommonExcel.c_oTargetType.RowResize,
-					row: startUpdateRow
-				});
+                var oTarget = {
+                    target: AscCommonExcel.c_oTargetType.RowResize,
+                    row: startUpdateRow
+                };
+				t.objectRender.updateSizeDrawingObjects(oTarget);
+                t.objectRender.updateDrawingsTransform(oTarget);
 			}
 			if (viewMode) {
 				History.TurnOn();
@@ -1207,8 +1221,14 @@
             return null;
         }
 
-        for (var c = selectionRange.c1; c <= selectionRange.c2; ++c) {
-            for (var r = selectionRange.r1; r <= selectionRange.r2; ++r) {
+		if (c_oAscSelectionType.RangeMax === selectionRange.getType()) {
+			return null;
+		}
+
+		var c2 = Math.min(selectionRange.c2, this.nColsCount - 1);
+		var r2 = Math.min(selectionRange.r2, this.nRowsCount - 1);
+        for (var c = selectionRange.c1; c <= c2; ++c) {
+            for (var r = selectionRange.r1; r <= r2; ++r) {
                 cell = this._getCellTextCache(c, r, true);
                 if (cell) {
                     // Нашли не пустую ячейку, проверим формат
@@ -5415,20 +5435,26 @@
             ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
         }
 
-        ctx.setLineWidth(isDashLine ? 1 : 2).setStrokeStyle(strokeColor);
+		//меняю толщину линии для селекта(только в случае сплошной линии) и масштаба 200%
+		var isRetina = !isDashLine && AscCommon.AscBrowser.convertToRetinaValue(1, true) === 2;
+		var widthLine = isDashLine ? 1 : 2;
+		if (isRetina) {
+			widthLine = AscCommon.AscBrowser.convertToRetinaValue(widthLine, true);
+		}
+		ctx.setLineWidth(widthLine).setStrokeStyle(strokeColor);
 
         ctx.beginPath();
         if (drawTopSide && !firstRow) {
-            fHorLine.apply(ctx, [x1 - !isDashLine * 2, y1, x2 + !isDashLine * 1]);
+            fHorLine.apply(ctx, [x1 - !isDashLine * (2 + isRetina * 1), y1, x2 + !isDashLine * (1 + isRetina * 1)]);
         }
         if (drawBottomSide) {
             fHorLine.apply(ctx, [x1, y2 + !isDashLine * 1, x2]);
         }
         if (drawLeftSide && !firstCol) {
-            fVerLine.apply(ctx, [x1, y1, y2 + !isDashLine * 1]);
+            fVerLine.apply(ctx, [x1, y1, y2 + !isDashLine * (1 + isRetina * 1)]);
         }
         if (drawRightSide) {
-            fVerLine.apply(ctx, [x2 + !isDashLine * 1, y1, y2 + !isDashLine * 1]);
+            fVerLine.apply(ctx, [x2 + !isDashLine * 1, y1, y2 + !isDashLine * (1 + isRetina * 1)]);
         }
         ctx.closePath().stroke();
 
@@ -5443,8 +5469,8 @@
 			    var left = this._getColLeft(fs.c1);
 				var _x1 = left - offsetX + 1;
 				var _y1 = top - offsetY + 1;
-				var _w = this._getColLeft(fs.c2 + 1) - left - 2;
-				var _h = this._getRowTop(fs.r2 + 1) - top - 2;
+				var _w = this._getColLeft(fs.c2 + 1) - left - 2 - isRetina * 1;
+				var _h = this._getRowTop(fs.r2 + 1) - top - 2  - isRetina * 1;
 				if (0 < _w && 0 < _h) {
 					ctx.clearRect(_x1, _y1, _w, _h);
 				}
@@ -5456,16 +5482,16 @@
             ctx.setStrokeStyle(colorN);
             ctx.beginPath();
             if (drawTopSide) {
-                fHorLine.apply(ctx, [x1, y1 + 1, x2 - 1]);
+                fHorLine.apply(ctx, [x1 + isRetina * 1, y1 + 1 + isRetina * !firstRow * 1, x2 - 1 - isRetina * 1]);
             }
             if (drawBottomSide) {
-                fHorLine.apply(ctx, [x1, y2 - 1, x2 - 1]);
+                fHorLine.apply(ctx, [x1 + isRetina * 1, y2 - 1 - isRetina * 1, x2 - 1 - isRetina * 1]);
             }
             if (drawLeftSide) {
-                fVerLine.apply(ctx, [x1 + 1, y1, y2 - 2]);
+                fVerLine.apply(ctx, [x1 + 1 + isRetina * !firstCol * 1, y1 + isRetina * 1, y2 - 2 - isRetina * !firstCol * 1]);
             }
             if (drawRightSide) {
-                fVerLine.apply(ctx, [x2 - 1, y1, y2 - 2]);
+                fVerLine.apply(ctx, [x2 - 1 - isRetina * 1, y1 + isRetina * 1, y2 - 2 - isRetina * 1]);
             }
             ctx.closePath().stroke();
         }
@@ -5842,6 +5868,7 @@
 
         this._activateOverlayCtx();
         var t = this;
+		var isRetinaWidth = AscCommon.AscBrowser.convertToRetinaValue(1, true) === 2;
         var selectionRange = this.model.getSelection();
         selectionRange.ranges.forEach(function (item, index) {
             var arnIntersection = item.intersectionSimple(range);
@@ -5849,7 +5876,7 @@
                 _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 3;
                 _x2 = t._getColLeft(arnIntersection.c2 + 1) - offsetX +
                   1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
-                _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
+                _y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2 - isRetinaWidth * 1;
                 _y2 = t._getRowTop(arnIntersection.r2 + 1) - offsetY +
                   1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
 
@@ -5991,7 +6018,8 @@
                 }
             });
         }
-
+		
+        //todo для ретины все сдвиги необходимо сделать общими
 		//clean foreign cursors
 		if (this.collaborativeEditing.getCollaborativeEditing() && this.collaborativeEditing.getFast()) {
 			var foreignCursors = this.collaborativeEditing.m_aForeignCursorsData;
@@ -6001,9 +6029,9 @@
 						var _range = foreignCursors[n].ranges[j];
 						arnIntersection = _range.intersectionSimple(range);
 						if (arnIntersection) {
-							_x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
+							_x1 = t._getColLeft(arnIntersection.c1) - offsetX - 3;
 							_x2 = t._getColLeft(arnIntersection.c2 + 1) - offsetX + 1 + /* Это ширина "квадрата" для автофильтра от границы ячейки */2;
-							_y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2;
+							_y1 = t._getRowTop(arnIntersection.r1) - offsetY - 2 - isRetinaWidth * 1;
 							_y2 = t._getRowTop(arnIntersection.r2 + 1) - offsetY + 1 + /* Это высота "квадрата" для автофильтра от границы ячейки */2;
 
 							x1 = Math.min(x1, _x1);
@@ -8919,7 +8947,7 @@
         return d;
     };
 
-    WorksheetView.prototype._calcRangeOffset = function (range) {
+    WorksheetView.prototype._calcRangeOffset = function (range, diffRange) {
         var vr = this.visibleRange;
         var ar = range || this._getSelection().getLast();
         if (this.getFormulaEditMode()) {
@@ -8937,6 +8965,23 @@
         var incX = ar.c1 < vr.c1 && isMC ? arn.c1 - vr.c1 : ar.c2 < vr.c1 ? ar.c2 - vr.c1 : 0;
         var incY = ar.r1 < vr.r1 && isMC ? arn.r1 - vr.r1 : ar.r2 < vr.r1 ? ar.r2 - vr.r1 : 0;
         var type = ar.getType();
+
+        if (diffRange) {
+            if (diffRange.c1 < 0 && ar.c1 < vr.c1) {
+                incX = arn.c1 - vr.c1;
+                adjustRight = false;
+            }
+
+            if (diffRange.r1 < 0 && ar.r1 < vr.r1) {
+                incY = arn.r1 - vr.r1;
+                adjustBottom = false;
+            }
+
+            if(diffRange.c1 === 0 && diffRange.c2 === 0 && diffRange.r1 === 0 && diffRange.r2 === 0) {
+                adjustRight = false;
+                adjustBottom = false;
+            }
+        }
 
         var offsetFrozen = this.getFrozenPaneOffset();
 
@@ -9764,6 +9809,7 @@
 
 		var newRange = isCoord ? this._calcSelectionEndPointByXY(x, y, keepType) :
 			this._calcSelectionEndPointByOffset(x, y);
+		var diffRange = {c1: newRange.c1 - ar.c1, c2: newRange.c2 - ar.c2, r1: newRange.r1 - ar.r1, r2: newRange.r2 - ar.r2};
         var isEqual = newRange.isEqual(ar);
         if (!isEqual || isChangeSelectionShape) {
 
@@ -9796,7 +9842,7 @@
 
         this.model.workbook.handlers.trigger("asc_onHideComment");
 
-        return isCoord ? this._calcActiveRangeOffsetIsCoord(x, y) : this._calcRangeOffset();
+        return isCoord ? this._calcActiveRangeOffsetIsCoord(x, y) : this._calcRangeOffset(undefined, diffRange);
     };
 
     // Окончание выделения
@@ -13726,6 +13772,27 @@
 		} else {
 			var visibleRange = this.getVisibleRange();
 			var intersectionVisibleRange = visibleRange.intersection(range);
+			if (!intersectionVisibleRange && this.topLeftFrozenCell) {
+				var cFrozen = this.topLeftFrozenCell.getCol0();
+				var rFrozen = this.topLeftFrozenCell.getRow0();
+				cFrozen -= 1;
+				rFrozen -= 1;
+
+				var frozenRange;
+				if (0 <= cFrozen && 0 <= rFrozen) {
+					frozenRange = new asc_Range(0, 0, cFrozen, rFrozen);
+					intersectionVisibleRange = frozenRange.intersection(range);
+				}
+				if (!intersectionVisibleRange && 0 <= cFrozen) {
+					frozenRange = new asc_Range(0, this.visibleRange.r1, cFrozen, this.visibleRange.r2);
+					intersectionVisibleRange = frozenRange.intersection(range);
+
+				}
+				if (!intersectionVisibleRange && 0 <= rFrozen) {
+					frozenRange = new asc_Range(this.visibleRange.c1, 0, this.visibleRange.c2, rFrozen);
+					intersectionVisibleRange = frozenRange.intersection(range);
+				}
+			}
 
 			if (intersectionVisibleRange) {
 				cellCoord = [];

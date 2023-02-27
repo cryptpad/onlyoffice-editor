@@ -338,6 +338,14 @@ CRunElementBase.prototype.IsLetter = function()
 {
 	return false;
 };
+/**
+ * Нужно ли сохранять данные этого элемента при сохранении состояния пересчета
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsNeedSaveRecalculateObject = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -1738,7 +1746,29 @@ ParaTab.prototype.Copy = function()
 {
 	return new ParaTab();
 };
-
+ParaTab.prototype.IsNeedSaveRecalculateObject = function()
+{
+	return true;
+};
+ParaTab.prototype.SaveRecalculateObject = function()
+{
+	return {
+		Width        : this.Width,
+		WidthVisible : this.WidthVisible
+	};
+};
+ParaTab.prototype.LoadRecalculateObject = function(RecalcObj)
+{
+	this.Width        = RecalcObj.Width;
+	this.WidthVisible = RecalcObj.WidthVisible;
+};
+ParaTab.prototype.PrepareRecalculateObject = function()
+{
+};
+ParaTab.prototype.GetAutoCorrectFlags = function()
+{
+	return AUTOCORRECT_FLAGS_ALL;
+};
 
 /**
  * Класс представляющий элемент номер страницы

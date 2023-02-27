@@ -1977,7 +1977,7 @@
     };
     CGraphicEl.prototype.assignConnection = function(oObjectsMap) {
         if(AscCommon.isRealObject(oObjectsMap[this.spid])){
-            this.setSpid(oObjectsMap[this.dgmId].Id);
+            this.setSpid(oObjectsMap[this.spid].Id);
         }
         else {
             if(this.parent) {
@@ -6409,6 +6409,7 @@
     function CAnimTexture(oCache, oCanvas, fScale, nX, nY) {
         CBaseAnimTexture.call(this, oCanvas, fScale, nX, nY);
         this.cache = oCache;
+        this.effectTexture = null;
     }
     CAnimTexture.prototype.checkScale = function(fScale) {
         if(!AscFormat.fApproxEqual(this.scale, fScale)) {
@@ -6462,7 +6463,7 @@
                     break;
                 }
                 case FILTER_TYPE_BLINDS_VERTICAL: {
-                    return this.createBlindsVertical(x);
+                    return this.createBlindsVertical(oEffectData.time);
                     break;
                 }
                 case FILTER_TYPE_BOX_IN: {
@@ -6616,10 +6617,20 @@
         return this;
     };
     CAnimTexture.prototype.createTexture = function() {
-        var oCanvas = document.createElement('canvas');
-        oCanvas.width = this.canvas.width;
-        oCanvas.height = this.canvas.height;
-        return new CAnimTexture(this.cache, oCanvas, this.scale, this.x, this.y);
+        if(!this.effectTexture) {
+            var oCanvas = document.createElement('canvas');
+            oCanvas.width = this.canvas.width;
+            oCanvas.height = this.canvas.height;
+            this.effectTexture = new CAnimTexture(this.cache, oCanvas, this.scale, this.x, this.y);
+        }
+        else {
+            //this.effectTexture.canvas.width = this.effectTexture.canvas.width;
+           var oCtx = this.effectTexture.canvas.getContext('2d');
+           oCtx.globalCompositeOperation = 'source-over';
+           oCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+           //oCtx.setTransform(1, 0, 0, 1, 0, 0);
+        }
+        return this.effectTexture;
     };
     CAnimTexture.prototype.createCopy = function() {
         var oTexture = this.createTexture();
@@ -7391,7 +7402,6 @@
         if(!oSandwich) {
             if(!this.isDrawingHidden(sDrawingId)) {
                 var oTexture = this.texturesCache.checkTexture(sDrawingId, fScale);
-                var oBounds = oDrawing.getBoundsByDrawing();
                 oTexture.draw(oGraphics);
             }
         }

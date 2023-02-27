@@ -2085,6 +2085,20 @@ var editor;
 			return;
         }
 
+		//история версий - возможно стоит грамотно чистить wbview, но не пересоздавать
+		if (this.VersionHistory && this.controller) {
+			var elem = document.getElementById("ws-v-scrollbar");
+			if (elem) {
+				elem.parentNode.removeChild(elem);
+			}
+			elem = document.getElementById("ws-h-scrollbar");
+			if (elem) {
+				elem.parentNode.removeChild(elem);
+			}
+			this.controller.vsbApi = null;
+			this.controller.hsbApi = null;
+		}
+
 		this.wb = new AscCommonExcel.WorkbookView(this.wbModel, this.controller, this.handlers, this.HtmlElement,
 			this.topLineEditorElement, this, this.collaborativeEditing, this.fontRenderingMode);
 
@@ -3826,6 +3840,15 @@ var editor;
 
           this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
           this.spellcheckState.clean();
+        } else {
+          var ws = this.wb.getWorksheet();
+          if (ws) {
+            var maxC = ws.model.getColsCount() - 1;
+            var maxR = ws.model.getRowsCount() - 1;
+            if (-1 !== maxC || -1 !== maxR) {
+              this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
+            }
+          }
         }
       }
     };
@@ -6128,14 +6151,13 @@ var editor;
 	}
   	this.wb.undo({All : true});
   };
-
+	
   spreadsheet_api.prototype.asc_restartCheckSpelling = function()
   {
   	if (this.wb /*&& !this.spellcheckState.lockSpell*/) {
 		this._spellCheckRestart();
   	}
   };
-
   spreadsheet_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
   {
       // TODO: Вообще здесь нужно запрашивать шрифты, которые использовались в старой формуле,

@@ -738,7 +738,8 @@
 		var t = this;
 		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
-			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
+			var signature = result.data && String.fromCharCode(result.data[0], result.data[1], result.data[2], result.data[3]);
+			if (error || (!result.bSerFormat && (t.editorId !== c_oEditorId.Word || 'XLSY' === signature || 'PPTY' === signature)))
 			{
 				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
@@ -2271,7 +2272,10 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 			asc_color_scheme = AscCommon.getAscColorScheme(_scheme, theme);
 			nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
 			if(nIndex === -1) {
-				aCustomSchemes.push(asc_color_scheme);
+				var nIdxInCustom = AscCommon.getIndexColorSchemeInArray(aCustomSchemes, asc_color_scheme);
+				if(nIdxInCustom === -1) {
+					aCustomSchemes.push(asc_color_scheme);
+				}
 			}
 			aCustomSchemes.sort(function (a, b) {
 				if(a.name === "" || a.name === null) return -1;
@@ -2290,12 +2294,7 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 			result = result.concat(aCustomSchemes);
 
 			if(nIndex === -1) {
-				for (i = 0; i < result.length; ++i) {
-					if (result[i] === asc_color_scheme) {
-						nIndex = i;
-						break;
-					}
-				}
+				nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
 			}
 		}
 		return {schemes: result, index: nIndex};
