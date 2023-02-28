@@ -41,7 +41,7 @@ PE.ApplicationController = new(function(){
         maxPages = 0,
         created = false,
         currentPage = 0,
-        ttOffset = [0, -10],
+        ttOffset = [5, -10],
         labelDocName;
 
     var LoadingDocument = -256;
@@ -119,9 +119,12 @@ PE.ApplicationController = new(function(){
             docInfo.put_Format(docConfig.fileType);
             docInfo.put_VKey(docConfig.vkey);
             docInfo.put_UserInfo(_user);
+            docInfo.put_CallbackUrl(config.callbackUrl);
             docInfo.put_Token(docConfig.token);
             docInfo.put_Permissions(_permissions);
             docInfo.put_EncryptedInfo(config.encryptionKeys);
+            docInfo.put_Lang(config.lang);
+            docInfo.put_Mode(config.mode);
 
             var enable = !config.customization || (config.customization.macros!==false);
             docInfo.asc_putIsEnabledMacroses(!!enable);
@@ -205,10 +208,11 @@ PE.ApplicationController = new(function(){
                     $ttEl.tooltip({'container':'body', 'trigger':'manual'});
                     $ttEl.on('shown.bs.tooltip', function(e) {
                         $tooltip = $ttEl.data('bs.tooltip').tip();
-
+                        var pos = $ttEl.ttpos[1] - $tooltip.height() + ttOffset[1];
+                        (pos<0) && (pos = 0);
                         $tooltip.css({
                             left: $ttEl.ttpos[0] + ttOffset[0],
-                            top: $ttEl.ttpos[1] + ttOffset[1]
+                            top: pos
                         });
 
                         $tooltip.find('.tooltip-arrow').css({left: 10});
@@ -219,9 +223,11 @@ PE.ApplicationController = new(function(){
                     $ttEl.ttpos = [data.get_X(), data.get_Y()];
                     $ttEl.tooltip('show');
                 } else {
+                    var pos = $ttEl.ttpos[1] - $tooltip.height() + ttOffset[1];
+                    (pos<0) && (pos = 0);
                     $tooltip.css({
                         left:data.get_X() + ttOffset[0],
-                        top:data.get_Y() + ttOffset[1]
+                        top:pos
                     });
                 }
             }
@@ -330,8 +336,13 @@ PE.ApplicationController = new(function(){
                 if (config.customization && config.customization.goback) {
                     if (config.customization.goback.requestClose && config.canRequestClose)
                         Common.Gateway.requestClose();
-                    else if (config.customization.goback.url)
-                        window.parent.location.href = config.customization.goback.url;
+                    else if (config.customization.goback.url) {
+                        if (config.customization.goback.blank!==false) {
+                            window.open(config.customization.goback.url, "_blank");
+                        } else {
+                            window.parent.location.href = config.customization.goback.url;
+                        }
+                    }
                 }
             });
 
@@ -533,6 +544,10 @@ PE.ApplicationController = new(function(){
                 message = me.convertationErrorText;
                 break;
 
+            case Asc.c_oAscError.ID.ConvertationOpenError:
+                message = me.openErrorText;
+                break;
+
             case Asc.c_oAscError.ID.DownloadError:
                 message = me.downloadErrorText;
                 break;
@@ -564,6 +579,10 @@ PE.ApplicationController = new(function(){
 
             case Asc.c_oAscError.ID.LoadingFontError:
                 message = me.errorLoadingFont;
+                break;
+
+            case Asc.c_oAscError.ID.KeyExpire:
+                message = me.errorTokenExpire;
                 break;
 
             default:
@@ -730,6 +749,8 @@ PE.ApplicationController = new(function(){
         textGuest: 'Guest',
         textAnonymous: 'Anonymous',
         errorForceSave: "An error occurred while saving the file. Please use the 'Download as' option to save the file to your computer hard drive or try again later.",
-        errorLoadingFont: 'Fonts are not loaded.<br>Please contact your Document Server administrator.'
+        errorLoadingFont: 'Fonts are not loaded.<br>Please contact your Document Server administrator.',
+        errorTokenExpire: 'The document security token has expired.<br>Please contact your Document Server administrator.',
+        openErrorText: 'An error has occurred while opening the file'
     }
 })();

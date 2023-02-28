@@ -4,8 +4,9 @@ import { f7,Sheet,Popover } from 'framework7-react';
 import { Device } from '../../../../common/mobile/utils/device';
 import { useTranslation } from 'react-i18next';
 
-const FilterOptionsController = memo( () => {
+const FilterOptionsController = memo(props => {
     const { t } = useTranslation();
+    const wsProps = props.wsProps;
     const _t = t('View.Edit', {returnObjects: true});
     const configRef = useRef();
 
@@ -19,7 +20,7 @@ const FilterOptionsController = memo( () => {
             api.asc_registerCallback('asc_onSetAFDialog',onApiFilterOptions);
         }
         
-        if ( !Common.EditorApi ) {
+        if ( !Common.EditorApi.get() ) {
             Common.Notifications.on('document:ready',onDocumentReady);
         } else {
             onDocumentReady();
@@ -28,13 +29,18 @@ const FilterOptionsController = memo( () => {
         return () => { 
             Common.Notifications.off('document:ready', onDocumentReady);
             const api = Common.EditorApi.get();
-            api.asc_unregisterCallback('asc_onSetAFDialog',onApiFilterOptions);
+            if ( api ) {
+                api.asc_unregisterCallback('asc_onSetAFDialog', onApiFilterOptions);
+            }
         }
     }, []);
 
-    const onApiFilterOptions= (config) => {
+    const onApiFilterOptions = (config) => {
         setDataFilterCells(config);
         configRef.current = config;
+
+        if (wsProps.PivotTables && config.asc_getPivotObj() || 
+            wsProps.AutoFilter && !config.asc_getPivotObj()) return;
         
         setCheckSort((config.asc_getSortState() === Asc.c_oAscSortOptions.Ascending ? 'down' : '') || 
         (config.asc_getSortState() === Asc.c_oAscSortOptions.Descending ? 'up' : ''));

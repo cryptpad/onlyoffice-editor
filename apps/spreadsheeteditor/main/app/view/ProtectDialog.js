@@ -53,7 +53,7 @@ define([
                 title: options.title ? options.title : (options.type=='sheet' ? this.txtSheetTitle : this.txtWBTitle),
                 cls: 'modal-dlg',
                 width: 350,
-                height: options.type=='sheet' ? 447 : (options.type=='range' ? 338 : 306),
+                height: 'auto',
                 buttons: options.buttons ? options.buttons : [{
                     value: 'ok',
                     caption: this.txtProtect
@@ -111,14 +111,7 @@ define([
 
             var me = this;
             this.$window.find('.dlg-btn').on('click', _.bind(this.onBtnClick, this));
-            this.inputPwd = new Common.UI.InputField({
-                el: $('#id-password-txt'),
-                type: 'password',
-                allowBlank  : true,
-                style       : 'width: 100%;',
-                maxLength: 255,
-                validateOnBlur: false
-            });
+
             this.repeatPwd = new Common.UI.InputField({
                 el: $('#id-repeat-txt'),
                 type: 'password',
@@ -129,6 +122,17 @@ define([
                 validation  : function(value) {
                     return me.txtIncorrectPwd;
                 }
+            });
+
+            this.inputPwd = new Common.UI.InputFieldBtnPassword({
+                el: $('#id-password-txt'),
+                type: 'password',
+                allowBlank  : true,
+                style       : 'width: 100%;',
+                maxLength: 255,
+                validateOnBlur: false,
+                repeatInput: this.repeatPwd,
+                showPwdOnClick: true
             });
 
             if (this.type == 'sheet') {

@@ -70,12 +70,9 @@ define([
             }
 
             if (me.btnParameters) {
-                me.btnParameters.on('click', function (e) {
-                    me.fireEvent('transit:parameters', ['current']);
-                });
 
                 me.btnParameters.menu.on('item:click', function (menu, item, e) {
-                    me.fireEvent('transit:parameters', [item]);
+                    me.fireEvent('transit:parameters', [item.value]);
                 });
             }
 
@@ -133,18 +130,30 @@ define([
                     {title: this.textUnCover, imageUrl: "transition-uncover", value: Asc.c_oAscSlideTransitionTypes.UnCover, id: Common.UI.getId()},
                     {title: this.textCover, imageUrl: "transition-cover", value: Asc.c_oAscSlideTransitionTypes.Cover, id: Common.UI.getId()},
                     {title: this.textClock, imageUrl: "transition-clock", value: Asc.c_oAscSlideTransitionTypes.Clock, id: Common.UI.getId()},
-                    {title: this.textZoom,  imageUrl: "transition-zoom", value: Asc.c_oAscSlideTransitionTypes.Zoom, id: Common.UI.getId()}
+                    {title: this.textZoom,  imageUrl: "transition-zoom", value: Asc.c_oAscSlideTransitionTypes.Zoom, id: Common.UI.getId(), cls: 'last-item'}
                 ];
+                this._arrEffectName.forEach(function(item) {
+                    item.tip = item.title;
+                });
 
+                var itemWidth = 87,
+                    itemHeight = 40;
                 this.listEffects = new Common.UI.ComboDataView({
-                    cls: 'combo-styles',
-                    itemWidth: 87,
-                    itemHeight: 40,
+                    cls: 'combo-transitions',
+                    itemWidth: itemWidth,
+                    itemHeight: itemHeight,
+                    itemTemplate: _.template([
+                        '<div  class = "btn_item x-huge" id = "<%= id %>" style = "width: ' + itemWidth + 'px;height: ' + itemHeight + 'px;">',
+                            '<div class = "icon toolbar__icon <%= imageUrl %>"></div>',
+                            '<div class = "caption"><%= title %></div>',
+                        '</div>'
+                    ].join('')),
                     enableKeyEvents: true,
                     lock: [_set.slideDeleted, _set.noSlides, _set.disableOnStart, _set.transitLock],
                     dataHint: '1',
                     dataHintDirection: 'bottom',
                     dataHintOffset: '-16, 0',
+                    delayRenderTips: true,
                     beforeOpenHandler: function (e) {
                         var cmp = this,
                             menu = cmp.openButton.menu;
@@ -171,14 +180,6 @@ define([
                 });
                 this.lockedControls.push(this.listEffects);
                 this.listEffects.menuPicker.store.add(this._arrEffectName);
-
-                this.listEffects.fieldPicker.itemTemplate = _.template([
-                    '<div  class = "btn_item x-huge" id = "<%= id %>" style = "width: ' + (this.listEffects.itemWidth) + 'px;height: ' + (this.listEffects.itemHeight) + 'px;">',
-                        '<div class = "icon toolbar__icon <%= imageUrl %>"></div>',
-                        '<div class = "caption"><%= title %></div>',
-                    '</div>'
-                ].join(''));
-                this.listEffects.menuPicker.itemTemplate = this.listEffects.fieldPicker.itemTemplate;
 
                 this.btnPreview = new Common.UI.Button({
                     cls: 'btn-toolbar', // x-huge icon-top',
@@ -220,7 +221,7 @@ define([
                 this.numDuration = new Common.UI.MetricSpinner({
                     el: this.$el.find('#transit-spin-duration'),
                     step: 1,
-                    width: 50,
+                    width: 55,
                     value: '',
                     defaultUnit: this.txtSec,
                     maxValue: 300,
@@ -235,7 +236,7 @@ define([
                 this.numDelay = new Common.UI.MetricSpinner({
                     el: this.$el.find('#transit-spin-delay'),
                     step: 1,
-                    width: 60,
+                    width: 55,
                     value: '',
                     defaultUnit: this.txtSec,
                     maxValue: 300,
@@ -393,16 +394,16 @@ define([
                 }
 
                 var selectedElement;
-                _.each(this.btnParameters.menu.items, function (element, index) {
-                    if (((index < minMax[0])||(index > minMax[1])))
-                        element.$el.css('display', 'none');
-                    else {
-                        element.$el.css('display', '');
 
+                _.each(this.btnParameters.menu.items, function (element, index) {
+                    if ((index >= minMax[0])&&(index <= minMax[1])) {
+                        element.setVisible(true);
                         if (value != undefined) {
                             if (value == element.value) selectedElement = element;
                         }
                     }
+                    else
+                        element.setVisible(false);
                 });
 
                 if (selectedElement == undefined)
@@ -417,7 +418,7 @@ define([
                     this.btnPreview.setDisabled(effect === Asc.c_oAscSlideTransitionTypes.None);
                     this.numDuration.setDisabled(effect === Asc.c_oAscSlideTransitionTypes.None);
                 }
-                return selectedElement;
+                return (selectedElement)?selectedElement.value:-1;
             },
 
 

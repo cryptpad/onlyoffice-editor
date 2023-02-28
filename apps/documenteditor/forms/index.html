@@ -21,6 +21,12 @@
             --canvas-background: #555;
         }
 
+        .content-theme-dark {
+            --skeleton-canvas-content-background: #3a3a3a;
+            --skeleton-canvas-page-border: #2a2a2a;
+            --skeleton-canvas-line: rgba(255,255,255,.05);
+        }
+
         .theme-classic-light {
         }
 
@@ -88,17 +94,26 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .loadmask > .placeholder {
-            background: #fbfbfb;
+        .loadmask .placeholder-outer {
             width: 100%;
-            height: 100%;
-            padding-top: 56px;
+            padding-right: 14px;
         }
 
-        .loadmask > .placeholder > .line {
+        .loadmask .placeholder {
+            background: #fff;
+            background: var(--skeleton-canvas-content-background, #fff);
+            width: 796px;
+            margin: 59px auto;
+            height: 100%;
+            border: 1px solid #bbbec2;
+            border: var(--scaled-one-px-value, 1px) solid var(--skeleton-canvas-page-border, #bbbec2);
+            padding-top: 50px;
+        }
+
+        .loadmask .placeholder > .line {
             height: 15px;
-            margin: 30px;
-            background: rgba(0,0,0,.05);
+            margin: 30px 80px;
+            background: var(--skeleton-canvas-line, rgba(0,0,0,.05));
             overflow: hidden;
             position: relative;
 
@@ -137,7 +152,26 @@
 
   <body class="embed-body">
       <script src="../../common/main/lib/util/htmlutils.js"></script>
-      <div id="loading-mask" class="loadmask"><div class="brendpanel"><div><div class="brand-logo loading-logo"><img src=""></div><div class="doc-title"></div><div class="circle"></div></div></div><div class="placeholder"><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div></div></div>
+      <script>
+          if ( !!window.desktop ) {
+              var sheet = document.createElement('style')
+              sheet.innerHTML = ".device-desktop .loading-logo {display:none;}";
+              document.body.appendChild(sheet);
+
+              document.body.classList.add('device-desktop');
+          }
+      </script>
+
+      <div id="loading-mask" class="loadmask">
+          <div class="brendpanel">
+            <div><div class="brand-logo loading-logo"><img src=""></div><div class="doc-title"></div><div class="circle"></div></div>
+          </div>
+          <div class="placeholder-outer">
+          <div class="placeholder">
+              <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
+          </div>
+          </div>
+      </div>
 
        <script>
            var  userAgent = navigator.userAgent.toLowerCase(),
@@ -237,6 +271,7 @@
                   <div id="page-number" style="display: inline-block; vertical-align: middle;"></div><span class="text" id="pages" tabindex="-1">of 1</span>
               </div>
               <div id="id-submit-group" style="display: inline-block;"></div>
+              <div id="id-download-group" style="display: inline-block;"></div>
               <span id="box-tools"></span>
           </div>
       </div>
@@ -262,6 +297,7 @@
               else if ( lang == 'es') reqerr = 'La conexión es muy lenta, algunos de los componentes no han podido cargar. Por favor recargue la página.';
               else if ( lang == 'fr') reqerr = 'La connexion est trop lente, certains des composants n\'ons pas pu être chargé. Veuillez recharger la page.';
               else if ( lang == 'ru') reqerr = 'Слишком медленное соединение, не удается загрузить некоторые компоненты. Пожалуйста, обновите страницу.';
+              else if ( lang == 'tr') reqerr = 'Bağlantı çok yavaş, bileşenlerin bazıları yüklenemedi. Lütfen sayfayı yenileyin.';
               else reqerr = 'The connection is too slow, some of the components could not be loaded. Please reload the page.';
 
               return reqerr;

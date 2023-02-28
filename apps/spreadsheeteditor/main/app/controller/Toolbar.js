@@ -145,10 +145,16 @@ define([
                 },
                 'CellSettings': {
                     'cf:init': this.onShowBeforeCondFormat
+                },
+                'ViewTab': {
+                    'viewtab:showtoolbar': this.onChangeViewMode.bind(this)
                 }
             });
             Common.NotificationCenter.on('page:settings', _.bind(this.onApiSheetChanged, this));
             Common.NotificationCenter.on('formula:settings', _.bind(this.applyFormulaSettings, this));
+            Common.NotificationCenter.on('toolbar:collapse', _.bind(function () {
+                this.toolbar.collapse();
+            }, this));
 
             this.editMode = true;
             this._isAddingShape = false;
@@ -193,7 +199,9 @@ define([
                 cf_locked: [],
                 selectedCells: 0,
                 wsLock: false,
-                wsProps: []
+                wsProps: [],
+                is_lockText: false,
+                is_lockShape: false
             };
             this.binding = {};
 
@@ -396,6 +404,8 @@ define([
                     button.on('click', _.bind(me.onEditHeaderClick, me));
                 });
                 toolbar.btnPrintTitles.on('click',                          _.bind(this.onPrintTitlesClick, this));
+                toolbar.chPrintGridlines.on('change',                        _.bind(this.onPrintGridlinesChange, this));
+                toolbar.chPrintHeadings.on('change',                         _.bind(this.onPrintHeadingsChange, this));
                 if (toolbar.btnCondFormat.rendered) {
                     toolbar.btnCondFormat.menu.on('show:before',            _.bind(this.onShowBeforeCondFormat, this, this.toolbar, 'toolbar'));
                 }
@@ -604,39 +614,35 @@ define([
         },
 
         onTextColor: function() {
-            this.toolbar.mnuTextColorPicker.trigger('select', this.toolbar.mnuTextColorPicker, this.toolbar.mnuTextColorPicker.currentColor, true);
+            this.toolbar.mnuTextColorPicker.trigger('select', this.toolbar.mnuTextColorPicker, this.toolbar.mnuTextColorPicker.currentColor);
         },
 
         onBackColor: function() {
-            this.toolbar.mnuBackColorPicker.trigger('select', this.toolbar.mnuBackColorPicker, this.toolbar.mnuBackColorPicker.currentColor, true);
+            this.toolbar.mnuBackColorPicker.trigger('select', this.toolbar.mnuBackColorPicker, this.toolbar.mnuBackColorPicker.currentColor);
         },
 
-        onTextColorSelect: function(btn, color, fromBtn) {
+        onTextColorSelect: function(btn, color) {
             this._state.clrtext_asccolor = this._state.clrtext = undefined;
 
             this.toolbar.btnTextColor.currentColor = color;
 
             this.toolbar.mnuTextColorPicker.currentColor = color;
             if (this.api) {
-                this.toolbar.btnTextColor.ischanged = (fromBtn!==true);
                 this.api.asc_setCellTextColor(color.isAuto ? color.color : Common.Utils.ThemeColor.getRgbColor(color));
-                this.toolbar.btnTextColor.ischanged = false;
             }
 
             Common.NotificationCenter.trigger('edit:complete', this.toolbar, {restorefocus:true});
             Common.component.Analytics.trackEvent('ToolBar', 'Text Color');
         },
 
-        onBackColorSelect: function(btn, color, fromBtn) {
+        onBackColorSelect: function(btn, color) {
             this._state.clrshd_asccolor = this._state.clrback = undefined;
 
             this.toolbar.btnBackColor.currentColor = color;
 
             this.toolbar.mnuBackColorPicker.currentColor = color;
             if (this.api) {
-                this.toolbar.btnBackColor.ischanged = (fromBtn!==true);
                 this.api.asc_setCellBackgroundColor(color == 'transparent' ? null : Common.Utils.ThemeColor.getRgbColor(color));
-                this.toolbar.btnBackColor.ischanged = false;
             }
 
             Common.component.Analytics.trackEvent('ToolBar', 'Background Color');
@@ -2250,6 +2256,8 @@ define([
             this.onApiPageSize(opt.asc_getWidth(), opt.asc_getHeight());
             this.onApiPageMargins(props.asc_getPageMargins());
             this.onChangeScaleSettings(opt.asc_getFitToWidth(),opt.asc_getFitToHeight(),opt.asc_getScale());
+            this.onApiGridLines(props.asc_getGridLines());
+            this.onApiHeadings(props.asc_getHeadings());
 
             this.api.asc_isLayoutLocked(currentSheet) ? this.onApiLockDocumentProps(currentSheet) : this.onApiUnLockDocumentProps(currentSheet);
             this.toolbar.lockToolbar(SSE.enumLock.printAreaLock, this.api.asc_isPrintAreaLocked(currentSheet), {array: [this.toolbar.btnPrintArea]});
@@ -2258,6 +2266,14 @@ define([
         onUpdateDocumentProps: function(nIndex) {
             if (nIndex == this.api.asc_getActiveWorksheetIndex())
                 this.onApiSheetChanged();
+        },
+
+        onApiGridLines: function (checked) {
+            this.toolbar.chPrintGridlines.setValue(checked, true);
+        },
+
+        onApiHeadings: function (checked) {
+            this.toolbar.chPrintHeadings.setValue(checked, true);
         },
 
         onApiPageSize: function(w, h) {
@@ -2446,7 +2462,7 @@ define([
                 color,
                 fontColorPicker      = this.toolbar.mnuTextColorPicker;
 
-            if (!toolbar.btnTextColor.ischanged && !fontColorPicker.isDummy) {
+            if (!fontColorPicker.isDummy) {
                 color = fontobj.asc_getFontColor();
                 if (color) {
                     if (color.get_auto()) {
@@ -2548,7 +2564,8 @@ define([
             // lock formatting controls in cell with FormatCells protection or in shape and Objects protection
             need_disable = (selectionType === Asc.c_oAscSelectionType.RangeImage || selectionType === Asc.c_oAscSelectionType.RangeChart || selectionType === Asc.c_oAscSelectionType.RangeChartText ||
                             selectionType === Asc.c_oAscSelectionType.RangeShape || selectionType === Asc.c_oAscSelectionType.RangeShapeText || selectionType === Asc.c_oAscSelectionType.RangeSlicer);
-            toolbar.lockToolbar(SSE.enumLock.wsLockFormat, need_disable && !!this._state.wsProps['Objects'] || !need_disable && !!this._state.wsProps['FormatCells']);
+            toolbar.lockToolbar(SSE.enumLock.wsLockFormat, need_disable && !!this._state.wsProps['Objects'] && !!this._state.is_lockText || !need_disable && !!this._state.wsProps['FormatCells']);
+            toolbar.lockToolbar(SSE.enumLock.wsLockFormatFill, need_disable && !!this._state.wsProps['Objects'] && !!this._state.is_lockShape || !need_disable && !!this._state.wsProps['FormatCells']);
 
             toolbar.lockToolbar(SSE.enumLock['Objects'], !!this._state.wsProps['Objects']);
             toolbar.lockToolbar(SSE.enumLock['FormatCells'], !!this._state.wsProps['FormatCells']);
@@ -2608,7 +2625,7 @@ define([
                 fontColorPicker      = this.toolbar.mnuTextColorPicker,
                 paragraphColorPicker = this.toolbar.mnuBackColorPicker;
 
-            if (!toolbar.btnTextColor.ischanged && !fontColorPicker.isDummy) {
+            if (!fontColorPicker.isDummy) {
                 color = xfs.asc_getFontColor();
                 if (color) {
                     if (color.get_auto()) {
@@ -2651,9 +2668,9 @@ define([
             }
 
             /* read cell background color */
-            if (!toolbar.btnBackColor.ischanged && !paragraphColorPicker.isDummy) {
+            if (!paragraphColorPicker.isDummy) {
                 color = xfs.asc_getFillColor();
-                if (color) {
+                if (color && !color.get_auto()) {
                     if (color.get_type() == Asc.c_oAscColor.COLOR_TYPE_SCHEME) {
                         clr = {color: Common.Utils.ThemeColor.getHexColor(color.get_r(), color.get_g(), color.get_b()), effectValue: color.get_value() };
                     } else {
@@ -3157,53 +3174,40 @@ define([
         },
 
         fillAutoShapes: function() {
-            var me = this,
-                shapesStore = this.getApplication().getCollection('ShapeGroups');
+            var me = this;
 
-            var onShowAfter = function(menu) {
-                for (var i = 0; i < shapesStore.length; i++) {
-                    var shapePicker = new Common.UI.DataViewSimple({
-                        el: $('#id-toolbar-menu-shapegroup' + i, menu.items[i].$el),
-                        store: shapesStore.at(i).get('groupStore'),
-                        parentMenu: menu.items[i].menu,
-                        itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="21" height="21" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>')
-                    });
-                    shapePicker.on('item:click', function(picker, item, record, e) {
-                        if (me.api) {
-                            if (record) {
-                                me._addAutoshape(true, record.get('data').shapeType);
-                                me._isAddingShape = true;
-                            }
+            var menuitem = new Common.UI.MenuItem({
+                template: _.template('<div id="id-toolbar-menu-insertshape" class="menu-insertshape"></div>')
+            });
+            me.toolbar.btnInsertShape.menu.addItem(menuitem);
 
-                            if (me.toolbar.btnInsertText.pressed) {
-                                me.toolbar.btnInsertText.toggle(false, true);
-                            }
-                            if (e.type !== 'click')
-                                me.toolbar.btnInsertShape.menu.hide();
-                            Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertShape);
-                            Common.component.Analytics.trackEvent('ToolBar', 'Add Shape');
-                        }
-                    });
+            var recents = Common.localStorage.getItem('sse-recent-shapes');
+
+            var shapePicker = new Common.UI.DataViewShape({
+                el: $('#id-toolbar-menu-insertshape'),
+                itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>'),
+                groups: me.getApplication().getCollection('ShapeGroups'),
+                parentMenu: me.toolbar.btnInsertShape.menu,
+                restoreHeight: 640,
+                textRecentlyUsed: me.textRecentlyUsed,
+                recentShapes: recents ? JSON.parse(recents) : null
+            });
+            shapePicker.on('item:click', function(picker, item, record, e) {
+                if (me.api) {
+                    if (record) {
+                        me._addAutoshape(true, record.get('data').shapeType);
+                        me._isAddingShape = true;
+                    }
+
+                    if (me.toolbar.btnInsertText.pressed) {
+                        me.toolbar.btnInsertText.toggle(false, true);
+                    }
+                    if (e.type !== 'click')
+                        me.toolbar.btnInsertShape.menu.hide();
+                    Common.NotificationCenter.trigger('edit:complete', me.toolbar, me.toolbar.btnInsertShape);
+                    Common.component.Analytics.trackEvent('ToolBar', 'Add Shape');
                 }
-                menu.off('show:after', onShowAfter);
-            };
-            me.toolbar.btnInsertShape.menu.on('show:after', onShowAfter);
-
-            for (var i = 0; i < shapesStore.length; i++) {
-                var shapeGroup = shapesStore.at(i);
-
-                var menuItem = new Common.UI.MenuItem({
-                    caption: shapeGroup.get('groupName'),
-                    menu: new Common.UI.Menu({
-                        menuAlign: 'tl-tr',
-                        items: [
-                            { template: _.template('<div id="id-toolbar-menu-shapegroup' + i + '" class="menu-shape" style="width: ' + (shapeGroup.get('groupWidth') - 8) + 'px; margin-left: 5px;"></div>') }
-                        ]
-                    })
-                });
-
-                me.toolbar.btnInsertShape.menu.addItem(menuItem);
-            }
+            });
         },
 
         fillEquations: function() {
@@ -3470,7 +3474,10 @@ define([
                 is_image        = seltype == Asc.c_oAscSelectionType.RangeImage,
                 is_slicer       = seltype == Asc.c_oAscSelectionType.RangeSlicer,
                 is_mode_2       = is_shape_text || is_shape || is_chart_text || is_chart || is_slicer,
-                is_objLocked    = false;
+                is_objLocked    = false,
+                is_smartart_internal = false,
+                is_lockShape    = false,
+                is_lockText = false;
 
             if (!(is_mode_2 || is_image) && this._state.selection_type===seltype && this._state.coauthdisable===coauth_disable) return (seltype===Asc.c_oAscSelectionType.RangeImage);
 
@@ -3478,9 +3485,19 @@ define([
                 var SelectedObjects = this.api.asc_getGraphicObjectProps();
                 for (var i=0; i<SelectedObjects.length; ++i)
                 {
-                    if (SelectedObjects[i].asc_getObjectType() == Asc.c_oAscTypeSelectElement.Image)
-                        is_objLocked = is_objLocked || SelectedObjects[i].asc_getObjectValue().asc_getLocked();
+                    if (SelectedObjects[i].asc_getObjectType() == Asc.c_oAscTypeSelectElement.Image) {
+                        var value = SelectedObjects[i].asc_getObjectValue(),
+                            shapeProps = value ? value.asc_getShapeProperties() : null;
+                        if (shapeProps) {
+                            is_smartart_internal = shapeProps.asc_getFromSmartArtInternal();
+                        }
+                        is_objLocked = is_objLocked || value.asc_getLocked();
+                        is_lockText = is_lockText || value.asc_getProtectionLockText();
+                        is_lockShape = is_lockShape || value.asc_getProtectionLocked();
+                    }
                 }
+                this._state.is_lockText = is_lockText;
+                this._state.is_lockShape = is_lockShape;
             }
 
             if ( coauth_disable ) {
@@ -3511,6 +3528,7 @@ define([
 
                 toolbar.lockToolbar(SSE.enumLock.coAuthText, is_objLocked);
                 toolbar.lockToolbar(SSE.enumLock.coAuthText, is_objLocked && (seltype==Asc.c_oAscSelectionType.RangeChart || seltype==Asc.c_oAscSelectionType.RangeChartText), { array: [toolbar.btnInsertChart] } );
+                toolbar.lockToolbar(SSE.enumLock.inSmartartInternal, is_smartart_internal);
             }
 
             this._state.controlsdisabled.filters = is_image || is_mode_2 || coauth_disable;
@@ -3719,11 +3737,11 @@ define([
             me.toolbar.render(_.extend({isCompactView: compactview}, config));
 
             if ( !config.isEditDiagram && !config.isEditMailMerge ) {
-                var tab = {action: 'review', caption: me.toolbar.textTabCollaboration};
+                var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
                 var $panel = me.getApplication().getController('Common.Controllers.ReviewChanges').createToolbarPanel();
                 if ($panel) {
                     me.toolbar.addTab(tab, $panel, 6);
-                    me.toolbar.setVisible('review', config.isEdit || config.canViewReview || config.canCoAuthoring && config.canComments);
+                    me.toolbar.setVisible('review', (config.isEdit || config.canViewReview || config.canCoAuthoring && config.canComments) && Common.UI.LayoutManager.isElementVisible('toolbar-collaboration'));
                 }
             }
 
@@ -3759,7 +3777,7 @@ define([
                     Array.prototype.push.apply(me.toolbar.lockControls, formulatab.getButtons());
 
                     if ( config.canFeaturePivot ) {
-                        tab = {action: 'pivot', caption: me.textPivot};
+                        tab = {action: 'pivot', caption: me.textPivot, dataHintTitle: 'B'};
                         var pivottab = me.getApplication().getController('PivotTable');
                         pivottab.setApi(me.api).setConfig({toolbar: me});
                         $panel = pivottab.createToolbarPanel();
@@ -3779,10 +3797,11 @@ define([
 
                         // move 'paste' button to the container instead of 'undo' and 'redo'
                         me.toolbar.btnPaste.$el.detach().appendTo($box);
+                        me.toolbar.btnPaste.$el.find('button').attr('data-hint-direction', 'bottom');
                         me.toolbar.btnCopy.$el.removeClass('split');
                     }
 
-                    var tab = {action: 'protect', caption: me.toolbar.textTabProtect};
+                    var tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
                     var $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
                     if ($panel) {
                         config.canProtect && $panel.append($('<div class="separator long"></div>'));
@@ -4074,6 +4093,16 @@ define([
                 this.toolbar.lockToolbar(SSE.enumLock['InsertHyperlinks'], this._state.wsProps['InsertHyperlinks'], {array: [this.toolbar.btnInsertHyperlink]});
                 this.appConfig && this.appConfig.isEdit ? this.onApiSelectionChanged(this.api.asc_getCellInfo()) : this.onApiSelectionChangedRestricted(this.api.asc_getCellInfo());
             }
+        },
+
+        onPrintGridlinesChange: function (field, value) {
+            this.api.asc_SetPrintGridlines(value === 'checked');
+            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
+        },
+
+        onPrintHeadingsChange: function (field, value) {
+            this.api.asc_SetPrintHeadings(value === 'checked');
+            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
         },
 
         textEmptyImgUrl     : 'You need to specify image URL.',
@@ -4443,7 +4472,8 @@ define([
         textShapes: 'Shapes',
         textIndicator: 'Indicators',
         textRating: 'Ratings',
-        txtLockSort: 'Data is found next to your selection, but you do not have sufficient permissions to change those cells.<br>Do you wish to continue with the current selection?'
+        txtLockSort: 'Data is found next to your selection, but you do not have sufficient permissions to change those cells.<br>Do you wish to continue with the current selection?',
+        textRecentlyUsed: 'Recently Used'
 
     }, SSE.Controllers.Toolbar || {}));
 });

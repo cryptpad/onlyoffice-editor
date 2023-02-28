@@ -84,7 +84,7 @@
                 user: {
                     id: 'user id',
                     name: 'user name',
-                    group: 'group name' // for customization.reviewPermissions parameter
+                    group: 'group name' // for customization.reviewPermissions or permissions.reviewGroups or permissions.commentGroups. Can be multiple groups separated by commas (,) : 'Group1' or 'Group1,Group2'
                 },
                 recent: [
                     {
@@ -145,12 +145,54 @@
                         reviewDisplay: 'original', // original for viewer, markup for editor
                         trackChanges: undefined // true/false - open editor with track changes mode on/off,
                     },
+                    layout: { // hide elements, but don't disable feature
+                        toolbar: {
+                            file: { // menu file
+                                close: false / true, // close menu button
+                                settings: false / true, // advanced settings
+                                info: false / true // document info
+                                save: false/true // save button
+                            } / false / true,
+                            home:  {
+                                mailmerge: false/true // mail merge button
+                            },
+                            layout:  false / true, // layout tab
+                            references:  false / true, // de references tab
+                            collaboration:  false / true // collaboration tab
+                            protect:  false / true, // protect tab
+                            plugins:  false / true // plugins tab
+                            view: {
+                                navigation: false/true // navigation button in de
+                            } / false / true, // view tab
+                            save: false/true // save button on toolbar in 
+                        },
+                        header: {
+                            users: false/true // users list button
+                            save: false/true // save button
+                        },
+                        leftMenu: {
+                            navigation: false/true,
+                            spellcheck: false/true // spellcheck button in sse
+                        } / false / true, // use instead of customization.leftMenu
+                        rightMenu: false/true, // use instead of customization.rightMenu
+                        statusBar: {
+                            textLang: false/true // text language button in de/pe
+                            docLang: false/true // document language button in de/pe
+                            actionStatus: false/true // status of operation
+                        }
+                    },
+                    features: { // disable feature
+                        spellcheck: {
+                            mode: false/true // init value in de/pe
+                            change: false/true // hide/show feature in de/pe/sse
+                        } / false / true // if false/true - use as init value in de/pe. use instead of customization.spellcheck parameter
+                    },
                     chat: true,
                     comments: true,
                     zoom: 100,
                     compactToolbar: false,
-                    leftMenu: true,
-                    rightMenu: true,
+                    leftMenu: true, // must be deprecated. use layout.leftMenu instead
+                    rightMenu: true, // must be deprecated. use layout.rightMenu instead
                     hideRightMenu: false, // hide or show right panel on first loading
                     toolbar: true,
                     statusBar: true,
@@ -163,7 +205,7 @@
                     toolbarNoTabs: false,
                     toolbarHideFileName: false,
                     reviewDisplay: 'original', // must be deprecated. use customization.review.reviewDisplay instead
-                    spellcheck: true,
+                    spellcheck: true, // must be deprecated. use customization.features.spellcheck instead
                     compatibleFeatures: false,
                     unit: 'cm' // cm, pt, inch,
                     mentionShare : true // customize tooltip for mention,
@@ -329,36 +371,6 @@
             }
         };
 
-        var _callLocalStorage = function(data) {
-            if (data.cmd == 'get') {
-                if (data.keys && data.keys.length) {
-                    var af = data.keys.split(','), re = af[0];
-                    for (i = 0; ++i < af.length;)
-                        re += '|' + af[i];
-
-                    re = new RegExp(re); k = {};
-                    for (i in localStorage)
-                        if (re.test(i)) k[i] = localStorage[i];
-                } else {
-                    k = localStorage;
-                }
-
-                _sendCommand({
-                    command: 'internalCommand',
-                    data: {
-                        type: 'localstorage',
-                        keys: k
-                    }
-                });
-            } else
-            if (data.cmd == 'set') {
-                var k = data.keys, i;
-                for (i in k) {
-                    localStorage.setItem(i, k[i]);
-                }
-            }
-        };
-
         var _onMessage = function(msg) {
             if ( msg ) {
                 if ( msg.type === "onExternalPluginMessage" ) {
@@ -373,8 +385,6 @@
 
                     if (msg.event === 'onRequestEditRights' && !handler) {
                         _applyEditRights(false, 'handler isn\'t defined');
-                    } else if (msg.event === 'onInternalMessage' && msg.data && msg.data.type == 'localstorage') {
-                        _callLocalStorage(msg.data.data);
                     } else {
                         if (msg.event === 'onAppReady') {
                             _onAppReady();
@@ -421,7 +431,7 @@
 
                 if (typeof _config.document.fileType === 'string' && _config.document.fileType != '') {
                     _config.document.fileType = _config.document.fileType.toLowerCase();
-                    var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp)|(doc|docx|doct|odt|gdoc|txt|rtf|pdf|mht|htm|html|epub|djvu|xps|oxps|docm|dot|dotm|dotx|fodt|ott|fb2|xml|oform|docxf))$/
+                    var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp)|(doc|docx|doct|odt|gdoc|txt|rtf|pdf|mht|htm|html|epub|djvu|xps|oxps|docm|dot|dotm|dotx|fodt|ott|fb2|xml|oform|docxf))$/
                                     .exec(_config.document.fileType);
                     if (!type) {
                         window.alert("The \"document.fileType\" parameter for the config object is invalid. Please correct it.");
@@ -841,9 +851,24 @@
         return extensionParams["url"] + "apps/";
     }
 
+
+    function getTestPath() {
+        var scripts = document.getElementsByTagName('script'),
+            match;
+
+        for (var i = scripts.length - 1; i >= 0; i--) {
+            match = scripts[i].src.match(/(.*)apps\/api\/documents\/api.js/i);
+            if (match) {
+                return match[1] + "test/";
+            }
+        }
+
+        return "";
+    }
+
     function getAppPath(config) {
         var extensionPath = getExtensionPath(),
-            path = extensionPath ? extensionPath : getBasePath(),
+            path = extensionPath ? extensionPath : (config.type=="test" ? getTestPath() : getBasePath()),
             appMap = {
                 'text': 'documenteditor',
                 'text-pdf': 'documenteditor',
@@ -859,7 +884,7 @@
             app = appMap[config.documentType.toLowerCase()];
         } else
         if (!!config.document && typeof config.document.fileType === 'string') {
-            var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp))$/
+            var type = /^(?:(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp))$/
                             .exec(config.document.fileType);
             if (type) {
                 if (typeof type[1] === 'string') app = appMap['cell']; else
@@ -875,21 +900,10 @@
             path_type;
 
         path += app + "/";
-        if (config.document && typeof config.document.fileType === 'string' && config.document.fileType.toLowerCase() === 'oform') {
-            if (config.document.permissions) {
-                (config.document.permissions.fillForms===undefined) && (config.document.permissions.fillForms = (config.document.permissions.edit !== false));
-                config.document.permissions.edit = config.document.permissions.review = config.document.permissions.comment = false;
-            }
-            path_type = (config.type === "mobile" || isSafari_mobile)
-                        ? "mobile" : config.document.permissions && (config.document.permissions.fillForms === true) && (config.editorConfig.mode !== 'view')
-                        ? "forms" : "embed";
-        } else {
-            path_type = (config.type === "mobile" || isSafari_mobile)
-                        ? "mobile" : ((app==='documenteditor') && config.document && config.document.permissions && (config.document.permissions.fillForms===true) &&
-                                     (config.document.permissions.edit === false) && (config.document.permissions.review !== true) && (config.editorConfig.mode !== 'view'))
-                        ? "forms" : (config.type === "embedded")
-                        ? "embed" : "main";
-        }
+        path_type = (config.type === "mobile" || isSafari_mobile)
+                    ? "mobile" : (config.type === "embedded")
+                    ? "embed" : (config.document && typeof config.document.fileType === 'string' && config.document.fileType.toLowerCase() === 'oform')
+                    ? "forms" : "main";
 
         path += path_type;
         var index = "/index.html";

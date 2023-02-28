@@ -37,6 +37,9 @@
       "textCustomColors": "Пользовательские цвета",
       "textStandartColors": "Стандартные цвета",
       "textThemeColors": "Цвета темы"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -373,6 +376,7 @@
       "textTopRight": "Сверху справа",
       "textTotalRow": "Строка итогов",
       "textTransition": "Переход",
+      "textTransitions": "Переходы",
       "textType": "Тип",
       "textUnCover": "Открывание",
       "textVerticalIn": "По вертикали внутрь",
@@ -382,7 +386,9 @@
       "textZoom": "Масштабирование",
       "textZoomIn": "Увеличение",
       "textZoomOut": "Уменьшение",
-      "textZoomRotate": "Увеличение с поворотом"
+      "textZoomRotate": "Увеличение с поворотом",
+      "textAutomatic": "Automatic",
+      "textDesign": "Design"
     },
     "Settings": {
       "mniSlideStandard": "Стандартный (4:3)",
@@ -461,7 +467,8 @@
       "txtScheme6": "Открытая",
       "txtScheme7": "Справедливость",
       "txtScheme8": "Поток",
-      "txtScheme9": "Литейная"
+      "txtScheme9": "Литейная",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

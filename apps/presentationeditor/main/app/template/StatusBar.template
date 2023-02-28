@@ -24,18 +24,14 @@
         <div class="separator short" style="margin-left: 10px;"></div>
     </div>
     <div class="status-group" style="width:100%; text-align:center;">
-        <label id="status-label-action" class="status-label"></label>
+        <label id="status-label-action" class="status-label" data-layout-name="statusBar-actionStatus"></label>
     </div>
     <div class="status-group" style="">
-        <div class="cnt-lang el-edit">
-            <div class="dropdown-toggle" data-toggle="dropdown" data-hint="0" data-hint-direction="top">
-                <label id="status-label-lang" class="status-label">English (United States)</label>
-                <div class="caret"></div>
-            </div>
-        </div>
-        <span id="btn-doc-lang" class="el-edit"></span>
+        <span id="btn-cnt-lang" class="el-edit" data-layout-name="statusBar-textLang"></span>
+        <span id="btn-doc-lang" class="el-edit" data-layout-name="statusBar-docLang"></span>
+        <div class="separator short el-edit space"></div>
         <span id="btn-doc-spell" class="el-edit"></span>
-        <div class="separator short el-edit"></div>
+        <div class="separator short el-edit el-lang"></div>
         <button id="btn-zoom-topage" type="button" class="btn small btn-toolbar" data-hint="0" data-hint-direction="top" data-hint-offset="small"><i class="icon toolbar__icon btn-ic-zoomtoslide"></i></button>
         <button id="btn-zoom-towidth" type="button" class="btn small btn-toolbar" data-hint="0" data-hint-direction="top" data-hint-offset="small"><i class="icon toolbar__icon btn-ic-zoomtowidth"></i></button>
         <button id="btn-zoom-down" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-zoomdown"></i></button>

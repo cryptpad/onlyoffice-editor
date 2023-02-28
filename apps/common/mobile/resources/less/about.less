@@ -1,4 +1,5 @@
-@text-normal: #000;
+// @text-normal: #000;
+// @common-image-about-path - defined in webpack config
 
 .about {
     .page-content {
@@ -12,14 +13,24 @@
     .content-block {
         margin: 0 auto 15px;
 
-        a {
-            color: @text-normal;
+        // a {
+        //     color: @text-normal;
+        // }
+    }
+
+    .settings-about-logo {
+        display: flex;
+        justify-content: center;
+        img {
+            max-width: 100%;
+            height: auto;
         }
     }
 
     h3 {
         font-weight: normal;
         margin: 0;
+        color: @text-secondary;
 
         &.vendor {
             color: @text-normal;
@@ -29,13 +40,27 @@
     }
 
     p > label {
+        color: @text-normal;
         margin-right: 5px;
+        color: @text-secondary;
     }
 
     .logo {
-          display: inline-block;
-          width: 100%;
-          height: 55px;
-          background: url('../../../../common/main/resources/img/about/logo_s.svg') no-repeat center;
+        display: inline-block;
+        width: 100%;
+        height: 55px;
+        background: ~"url(@{common-image-about-path}/logo_s.svg) no-repeat center";
+    }
+
+    .theme-type-dark {
+        .about .logo {
+            background: ~"url(@{common-image-about-path}/logo-white_s.svg) no-repeat center";
+        }
+    } 
+}
+
+.theme-type-dark {
+    .about .logo {
+        background: ~"url(@{common-image-about-path}/logo-white_s.svg) no-repeat center";
     }
 }

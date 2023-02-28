@@ -118,6 +118,11 @@ define([
                         if ( me.header.btnSave )
                             me.header.btnSave.setDisabled(state);
                     }
+                },
+                'ViewTab': {
+                    'freeze:shadow': function (checked) {
+                        me.header.mnuitemFreezePanesShadow.setChecked(checked, true);
+                    }
                 }
             });
 
@@ -261,7 +266,7 @@ define([
 
                 me.header.mnuZoom = new Common.UI.MenuItem({
                     template: _.template([
-                        '<div id="hdr-menu-zoom" class="menu-zoom" style="height: 25px;" ',
+                        '<div id="hdr-menu-zoom" class="menu-zoom" style="height: 26px;" ',
                             '<% if(!_.isUndefined(options.stopPropagation)) { %>',
                             'data-stopPropagation="true"',
                             '<% } %>', '>',
@@ -317,7 +322,7 @@ define([
                     if ( btn == 'up' ) {
                         var _f = Math.floor(this.api.asc_getZoom() * 10)/10;
                         _f += .1;
-                        if (_f > 0 && !(_f > 2.))
+                        if (_f > 0 && !(_f > 5.))
                             this.api.asc_setZoom(_f);
                     } else {
                         _f = Math.ceil(this.api.asc_getZoom() * 10)/10;
@@ -511,6 +516,7 @@ define([
             case 'freezepanesshadow':
                 me.api.asc_setFrozenPaneBorderType(item.isChecked() ? Asc.c_oAscFrozenPaneBorderType.shadow : Asc.c_oAscFrozenPaneBorderType.line);
                 Common.localStorage.setBool('sse-freeze-shadow', item.isChecked());
+                me.header.fireEvent('toolbar:freezeshadow', [item.isChecked()]);
                 break;
             case 'advanced': me.header.fireEvent('file:settings', me.header); break;
             }

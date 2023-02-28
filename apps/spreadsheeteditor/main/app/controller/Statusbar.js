@@ -70,6 +70,9 @@ define([
                 },
                 'Common.Views.Header': {
                     'statusbar:setcompact': _.bind(this.onChangeViewMode, this)
+                },
+                'ViewTab': {
+                    'statusbar:setcompact': _.bind(this.onChangeViewMode, this)
                 }
             });
         },
@@ -121,7 +124,7 @@ define([
                 case 'up':
                     var f = Math.floor(this.api.asc_getZoom() * 10)/10;
                     f += .1;
-                    !(f > 4.) && this.api.asc_setZoom(f);
+                    !(f > 5.) && this.api.asc_setZoom(f);
                     break;
                 case 'down':
                     f = Math.ceil(this.api.asc_getZoom() * 10)/10;
@@ -193,15 +196,16 @@ define([
         },
 
         onChangeProtectWorkbook: function() {
-            this.statusbar.btnAddWorksheet.setDisabled(this.api.isCellEdited || this.api.asc_isWorkbookLocked() || this.api.asc_isProtectedWorkbook() || this.statusbar.rangeSelectionMode!=Asc.c_oAscSelectionDialogType.None);
-            var count = this.statusbar.tabbar.getCount(), tab;
             var wbprotected = this.api.asc_isProtectedWorkbook();
+            this.statusbar.btnAddWorksheet.setDisabled(this.api.isCellEdited || this.api.asc_isWorkbookLocked() || wbprotected || this.statusbar.rangeSelectionMode!=Asc.c_oAscSelectionDialogType.None);
+            var count = this.statusbar.tabbar.getCount(), tab;
             for (var i = count; i-- > 0; ) {
                 tab = this.statusbar.tabbar.getAt(i);
                 var islocked = tab.hasClass('coauth-locked');
                 tab.isLockTheDrag = islocked || wbprotected || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.FormatTable) || (this.statusbar.rangeSelectionMode==Asc.c_oAscSelectionDialogType.PrintTitles);
                 tab.$el.children(':first-child').attr('draggable', tab.isLockTheDrag?'false':'true');
             }
+            this.statusbar.update();
         },
 
         /** coauthoring end **/
@@ -254,6 +258,11 @@ define([
             this.statusbar.$el.css('z-index', '');
             this.statusbar.tabMenu.on('item:click', _.bind(this.onTabMenu, this));
             this.statusbar.btnAddWorksheet.on('click', _.bind(this.onAddWorksheetClick, this));
+            if (!Common.UI.LayoutManager.isElementVisible('statusBar-actionStatus')) {
+                this.statusbar.customizeStatusBarMenu.items[0].setVisible(false);
+                this.statusbar.customizeStatusBarMenu.items[1].setVisible(false);
+                this.statusbar.boxAction.addClass('hide');
+            }
 
             Common.NotificationCenter.on('window:resize', _.bind(this.onWindowResize, this));
             Common.NotificationCenter.on('cells:range',   _.bind(this.onRangeDialogMode, this));
@@ -782,13 +791,13 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this.statusbar);
         },
 
-        setStatusCaption: function(text, force, delay) {
+        setStatusCaption: function(text, force, delay, callback) {
             if (this.timerCaption && ( ((new Date()) < this.timerCaption) || text.length==0 ) && !force )
                 return;
 
             this.timerCaption = undefined;
             if (text.length) {
-                this.statusbar.showStatusMessage(text);
+                this.statusbar.showStatusMessage(text, callback);
                 if (delay>0)
                     this.timerCaption = (new Date()).getTime() + delay;
             } else
@@ -799,12 +808,47 @@ define([
             Common.NotificationCenter.trigger('protect:sheet', !this.api.asc_isProtectedSheet());
         },
 
+        getIsDragDrop: function () {
+            var isDragDrop = this.statusbar.tabbar.isDragDrop;
+            this.statusbar.tabbar.isDragDrop = false;
+            return isDragDrop;
+        },
+
+        showDisconnectTip: function () {
+            var me = this;
+            if (!this.disconnectTip) {
+                var target = this.statusbar.getStatusLabel();
+                target = target.is(':visible') ? target.parent() : this.statusbar.isVisible() ? this.statusbar.$el : $(document.body);
+                this.disconnectTip = new Common.UI.SynchronizeTip({
+                    target  : target,
+                    text    : this.textDisconnect,
+                    placement: 'top',
+                    position: this.statusbar.isVisible() ? undefined : {bottom: 0},
+                    showLink: false,
+                    style: 'max-width: 310px;'
+                });
+                this.disconnectTip.on({
+                    'closeclick': function() {
+                        me.disconnectTip.hide();
+                        me.disconnectTip = null;
+                    }
+                });
+            }
+            this.disconnectTip.show();
+        },
+
+        hideDisconnectTip: function() {
+            this.disconnectTip && this.disconnectTip.hide();
+            this.disconnectTip = null;
+        },
+
         zoomText        : 'Zoom {0}%',
         errorLastSheet  : 'Workbook must have at least one visible worksheet.',
         errorRemoveSheet: 'Can\'t delete the worksheet.',
         warnDeleteSheet : 'The worksheet maybe has data. Proceed operation?',
         strSheet        : 'Sheet',
         textSheetViewTip: 'You are in Sheet View mode. Filters and sorting are visible only to you and those who are still in this view.',
-        textSheetViewTipFilters: 'You are in Sheet View mode. Filters are visible only to you and those who are still in this view.'
+        textSheetViewTipFilters: 'You are in Sheet View mode. Filters are visible only to you and those who are still in this view.',
+        textDisconnect: '<b>Connection is lost</b><br>Trying to connect. Please check connection settings.'
     }, SSE.Controllers.Statusbar || {}));
 });

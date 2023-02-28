@@ -34,6 +34,7 @@ define([
             window.currentLoaderTheme = undefined;
         }
 
+        var is_dark_mode_allowed = true;
         var id_default_light_theme = 'theme-classic-light',
             id_default_dark_theme = 'theme-dark';
 
@@ -51,6 +52,9 @@ define([
             "background-notification-badge",
             "background-scrim",
             "background-loader",
+            "background-accent-button",
+            "background-contrast-popover",
+            "shadow-contrast-popover",
 
             "highlight-button-hover",
             "highlight-button-pressed",
@@ -60,6 +64,8 @@ define([
             "highlight-header-button-pressed",
             "highlight-toolbar-tab-underline",
             "highlight-text-select",
+            "highlight-accent-button-hover",
+            "highlight-accent-button-pressed",
 
             "border-toolbar",
             "border-divider",
@@ -70,6 +76,7 @@ define([
             "border-control-focus",
             "border-color-shading",
             "border-error",
+            "border-contrast-popover",
 
             "text-normal",
             "text-normal-pressed",
@@ -169,10 +176,13 @@ define([
         }
 
         var parse_themes_object = function (obj) {
+            var curr_lang = Common.Locale.getCurrentLanguage(),
+                theme_label;
             if ( !!obj.themes && obj.themes instanceof Array ) {
                 obj.themes.forEach(function (item) {
                     if ( !!item.id ) {
-                        themes_map[item.id] = {text: item.name, type: item.type};
+                        theme_label = !item.l10n || !item.l10n[curr_lang] ? item.name : item.l10n[curr_lang];
+                        themes_map[item.id] = {text: theme_label, type: item.type};
                         write_theme_css(create_colors_css(item.id, item.colors));
                     } else
                     if ( typeof item == 'string' ) {
@@ -181,7 +191,8 @@ define([
                 });
             } else
             if ( obj.id ) {
-                themes_map[obj.id] = {text: obj.name, type: obj.type};
+                theme_label = !obj.l10n || !obj.l10n[curr_lang] ? obj.name : obj.l10n[curr_lang];
+                themes_map[obj.id] = {text: theme_label, type: obj.type};
                 write_theme_css( create_colors_css(obj.id, obj.colors) );
             }
         }
@@ -222,7 +233,8 @@ define([
         }
 
         var on_document_ready = function (el) {
-            get_themes_config('../../common/main/resources/themes/themes.json');
+            // get_themes_config('../../common/main/resources/themes/themes.json');
+            get_themes_config('../../../../themes.json');
         }
 
         var get_ui_theme_name = function (objtheme) {
@@ -238,13 +250,26 @@ define([
             return objtheme;
         }
 
+        var on_document_open = function (data) {
+            if ( !!this.api.asc_setContentDarkMode && this.isDarkTheme() ) {
+                this.api.asc_setContentDarkMode(this.isContentThemeDark());
+            }
+        };
+
         return {
             init: function (api) {
                 var me = this;
 
+                Common.Gateway.on('opendocument', on_document_open.bind(this));
                 $(window).on('storage', function (e) {
                     if ( e.key == 'ui-theme' || e.key == 'ui-theme-id' ) {
-                        me.setTheme(e.originalEvent.newValue, true);
+                        if ( !!e.originalEvent.newValue ) {
+                            me.setTheme(e.originalEvent.newValue, true);
+                        }
+                    } else
+                    if ( e.key == 'content-theme' ) {
+                        me.setContentTheme(e.originalEvent.newValue, true);
+                        console.log('changed content', e.originalEvent.newValue);
                     }
                 })
 
@@ -254,10 +279,9 @@ define([
                     if ( !(Common.Utils.isIE10 || Common.Utils.isIE11) )
                         document.body.classList.forEach(function (classname, i, o) {
                             if ( !theme_name && classname.startsWith('theme-') &&
-                                    !classname.startsWith('theme-type-') && themes_map[classname] )
+                                !classname.startsWith('theme-type-') && themes_map[classname] )
                             {
                                 theme_name = classname;
-                                // Common.localStorage.setItem('ui-theme-id', theme_name);
                                 var theme_obj = {
                                     id: theme_name,
                                     type: themes_map[theme_name].type
@@ -283,10 +307,6 @@ define([
                 obj.type = themes_map[theme_name].type;
                 obj.name = theme_name;
                 api.asc_setSkin(obj);
-
-                if ( !!this.api.asc_setContentDarkMode && this.isDarkTheme() ) {
-                    this.api.asc_setContentDarkMode(this.isContentThemeDark());
-                }
 
                 Common.NotificationCenter.on('document:ready', on_document_ready.bind(this));
             },
@@ -329,6 +349,22 @@ define([
                 return Common.localStorage.getItem("content-theme") == 'dark';
             },
 
+            setContentTheme: function (mode, force) {
+                var set_dark = mode == 'dark';
+                if ( set_dark && !this.isDarkTheme() )
+                    return;
+
+                if ( set_dark != this.isContentThemeDark() || force ) {
+                    if ( this.api.asc_setContentDarkMode )
+                        this.api.asc_setContentDarkMode(set_dark);
+
+                    if ( Common.localStorage.getItem('content-theme') != mode )
+                        Common.localStorage.setItem('content-theme', mode);
+
+                    Common.NotificationCenter.trigger('contenttheme:dark', set_dark);
+                }
+            },
+
             toggleContentTheme: function () {
                 var is_current_dark = this.isContentThemeDark();
                 is_current_dark ? Common.localStorage.setItem('content-theme', 'light') : Common.localStorage.setItem('content-theme', 'dark');
@@ -340,20 +376,22 @@ define([
             },
 
             setTheme: function (obj, force) {
+                if ( !obj ) return;
+
                 var id = get_ui_theme_name(obj);
                 if ( (this.currentThemeId() != id || force) && !!themes_map[id] ) {
                     document.body.className = document.body.className.replace(/theme-[\w-]+\s?/gi, '').trim();
                     document.body.classList.add(id, 'theme-type-' + themes_map[id].type);
 
-                    if ( this.api.asc_setContentDarkMode )
-                        if ( themes_map[id].type == 'light' ) {
-                            this.api.asc_setContentDarkMode(false);
-                        } else {
-                            this.api.asc_setContentDarkMode(this.isContentThemeDark());
-                            Common.NotificationCenter.trigger('contenttheme:dark', this.isContentThemeDark());
-                        }
-
                     if ( this.api ) {
+                        if ( this.api.asc_setContentDarkMode && is_dark_mode_allowed )
+                            if ( themes_map[id].type == 'light' ) {
+                                this.api.asc_setContentDarkMode(false);
+                            } else {
+                                this.api.asc_setContentDarkMode(this.isContentThemeDark());
+                                Common.NotificationCenter.trigger('contenttheme:dark', this.isContentThemeDark());
+                            }
+
                         var obj = get_current_theme_colors(name_colors);
                         obj.type = themes_map[id].type;
                         obj.name = id;

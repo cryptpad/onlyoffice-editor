@@ -11,6 +11,7 @@ export class storeAppOptions {
 
             lostEditingRights: observable,
             changeEditingRights: action,
+            canBrandingExt: observable,
 
             isDocReady: observable,
             changeDocReady: action
@@ -19,6 +20,7 @@ export class storeAppOptions {
 
     isEdit = false;
     canViewComments = false;
+    canBrandingExt = false;
     config = {};
 
     lostEditingRights = false;
@@ -92,7 +94,7 @@ export class storeAppOptions {
         this.canViewComments = this.canComments || !((typeof (this.customization) == 'object') && this.customization.comments===false);
         this.canEditComments = this.isOffline || !(typeof (this.customization) == 'object' && this.customization.commentAuthorOnly);
         this.canDeleteComments= this.isOffline || !permissions.deleteCommentAuthorOnly;
-        this.canChat = this.canLicense && !this.isOffline && !((typeof (this.customization) == 'object') && this.customization.chat === false);
+        this.canChat = this.canLicense && !this.isOffline && (permissions.chat !== false);
         this.canEditStyles = this.canLicense && this.canEdit;
         this.canPrint = (permissions.print !== false);
         this.isRestrictedEdit = !this.isEdit && this.canComments;

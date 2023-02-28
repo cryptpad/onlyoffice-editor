@@ -37,6 +37,9 @@
       "textCustomColors": "Colores personalizados",
       "textStandartColors": "Colores estándar",
       "textThemeColors": "Colores de tema"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -373,6 +376,7 @@
       "textTopRight": "Arriba a la derecha",
       "textTotalRow": "Fila de totales",
       "textTransition": "Transición",
+      "textTransitions": "Transiciones",
       "textType": "Tipo",
       "textUnCover": "Revelar",
       "textVerticalIn": "Vertical entrante",
@@ -382,7 +386,9 @@
       "textZoom": "Zoom",
       "textZoomIn": "Acercar",
       "textZoomOut": "Alejar",
-      "textZoomRotate": "Zoom y giro"
+      "textZoomRotate": "Zoom y giro",
+      "textAutomatic": "Automatic",
+      "textDesign": "Design"
     },
     "Settings": {
       "mniSlideStandard": "Estándar (4:3)",
@@ -461,7 +467,8 @@
       "txtScheme6": "Concurrencia",
       "txtScheme7": "Equidad ",
       "txtScheme8": "Flujo",
-      "txtScheme9": "Fundición"
+      "txtScheme9": "Fundición",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

@@ -61,7 +61,8 @@
     "notcriticalErrorTitle": "Warning",
     "textCopyCutPasteActions": "Copy, Cut and Paste Actions",
     "textDoNotShowAgain": "Don't show again",
-    "warnMergeLostData": "The operation can destroy data in the selected cells. Continue?"
+    "warnMergeLostData": "The operation can destroy data in the selected cells. Continue?",
+    "errorInvalidLink": "The link reference does not exist. Please correct the link or delete it."
   },
   "Controller": {
     "Main": {
@@ -153,7 +154,9 @@
       "warnLicenseUsersExceeded": "You've reached the user limit for %1 editors. Contact your administrator to learn more.",
       "warnNoLicense": "You've reached the limit for simultaneous connections to %1 editors. This document will be opened for viewing only. Contact %1 sales team for personal upgrade terms.",
       "warnNoLicenseUsers": "You've reached the user limit for %1 editors. Contact %1 sales team for personal upgrade terms.",
-      "warnProcessRightsChange": "You don't have permission to edit the file."
+      "warnProcessRightsChange": "You don't have permission to edit the file.",
+      "textNoChoices": "There are no choices for filling the cell.<br>Only text values from the column can be selected for replacement.",
+      "textOk": "Ok"
     }
   },
   "Error": {
@@ -214,7 +217,7 @@
     "errorUsersExceed": "The number of users allowed by the pricing plan was exceeded",
     "errorViewerDisconnect": "Connection is lost. You can still view the document,<br>but you won't be able to download it until the connection is restored and the page is reloaded.",
     "errorWrongBracketsCount": "An error in the formula.<br>Wrong number of brackets.",
-    "errorWrongOperator": "An error in the entered formula. The wrong operator is used.<br>Correct the error or use the Esc button to cancel the formula editing.",
+    "errorWrongOperator": "An error in the entered formula. Wrong operator is used.<br> Please correct the error.",
     "notcriticalErrorTitle": "Warning",
     "openErrorText": "An error has occurred while opening the file",
     "pastInMergeAreaError": "Cannot change a part of a merged cell",
@@ -225,7 +228,8 @@
     "uploadImageFileCountMessage": "No images uploaded.",
     "uploadImageSizeMessage": "The image is too big. The maximum size is 25 MB.",
     "errorLoadingFont": "Fonts are not loaded.<br>Please contact your Document Server administrator.",
-    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password."
+    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password.",
+    "textErrorPasswordIsNotCorrect": "The password you supplied is not correct.<br>Verify that the CAPS LOCK key is off and be sure to use the correct capitalization."
   },
   "LongActions": {
     "applyChangesTextText": "Loading data...",
@@ -261,7 +265,12 @@
     "txtEditingMode": "Set editing mode...",
     "uploadImageTextText": "Uploading image...",
     "uploadImageTitleText": "Uploading Image",
-    "waitText": "Please, wait..."
+    "waitText": "Please, wait...",
+    "advDRMPassword": "Password",
+    "textCancel": "Cancel",
+    "textErrorWrongPassword": "The password you supplied is not correct.",
+    "textUnlockRange": "Unlock Range",
+    "textUnlockRangeWarning": "A range you are trying to change is password protected."
   },
   "Statusbar": {
     "notcriticalErrorTitle": "Warning",
@@ -281,7 +290,10 @@
     "textSheetName": "Sheet Name",
     "textUnhide": "Unhide",
     "textWarnDeleteSheet": "The worksheet maybe has data. Proceed operation?",
-    "textOk": "Ok"
+    "textOk": "Ok",
+    "textMove": "Move",
+    "textMoveBack": "Move back",
+    "textMoveForward": "Move forward"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "You have unsaved changes in this document. Click 'Stay on this Page' to wait for autosave. Click 'Leave this Page' to discard all the unsaved changes.",
@@ -521,7 +533,8 @@
       "textYen": "Yen",
       "txtNotUrl": "This field should be a URL in the format \"http://www.example.com\"",
       "txtSortHigh2Low": "Sort Highest to Lowest",
-      "txtSortLow2High": "Sort Lowest to Highest"
+      "txtSortLow2High": "Sort Lowest to Highest",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "advCSVOptions": "Choose CSV options",
@@ -651,7 +664,8 @@
       "txtDownloadCsv": "Download CSV",
       "txtOk": "Ok",
       "txtSemicolon": "Semicolon",
-      "textExample": "Example"
+      "textExample": "Example",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

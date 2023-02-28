@@ -16,9 +16,15 @@
             --border-toolbar: #2a2a2a;
             --highlight-button-hover: #555;
             --highlight-header-button-hover: rgba(255,255,255,.05);
-            --canvas-background: #666666;
+            --canvas-background: #555;
             /*--canvas-content-background: #fff;*/
-            --canvas-page-border: #555;
+            --skeleton-canvas-page-border: #555;
+        }
+
+        .content-theme-dark {
+            --skeleton-canvas-content-background: #3a3a3a;
+            --skeleton-canvas-page-border: #2a2a2a;
+            --skeleton-canvas-line: rgba(255,255,255,.05);
         }
 
         .theme-classic-light {
@@ -30,7 +36,7 @@
             --highlight-button-hover: #ccc;
             --highlight-header-button-hover: rgba(255,255,255,.15);
             --canvas-background: #eee;
-            --canvas-page-border: #ccc;
+            --loadmask-canvas-page-border: #ccc;
         }
 
         .loadmask {
@@ -43,7 +49,7 @@
             border: none;
             background: #e2e2e2;
             background: var(--canvas-background, #e2e2e2);
-            z-index: 1001;
+            z-index: 1002;
         }
 
         .loadmask > .brendpanel {
@@ -130,19 +136,19 @@
 
         .loadmask > .placeholder {
             background: #fff;
-            background: var(--canvas-content-background, #fff);
+            background: var(--skeleton-canvas-content-background, #fff);
             width: 794px;
             margin: 46px auto;
             height: 100%;
             border: 1px solid #bbbec2;
-            border: var(--scaled-one-px-value, 1px) solid var(--canvas-page-border, #bbbec2);
+            border: var(--scaled-one-px-value, 1px) solid var(--skeleton-canvas-page-border, #bbbec2);
             padding-top: 50px;
         }
 
         .loadmask > .placeholder > .line {
             height: 15px;
             margin: 30px 80px;
-            background: rgba(0,0,0,.05);
+            background: var(--skeleton-canvas-line, rgba(0,0,0,.05));
             overflow: hidden;
             position: relative;
 
@@ -316,6 +322,8 @@
     <img class="inline-svg" src="../../common/main/resources/img/doc-formats/fb2.svg">
     <img class="inline-svg" src="../../common/main/resources/img/doc-formats/epub.svg">
     <img class="inline-svg" src="../../common/main/resources/img/doc-formats/docm.svg">
+    <img class="inline-svg" src="../../common/main/resources/img/doc-formats/oform.svg">
+    <img class="inline-svg" src="../../common/main/resources/img/doc-formats/docxf.svg">
     <img class="inline-svg" src="resources/img/blank.svg">
     <img class="inline-svg" src="resources/img/recent-file.svg">
     <img class="inline-svg" src="resources/img/file-template.svg">
@@ -345,6 +353,7 @@
             else if ( lang == 'es') reqerr = 'La conexión es muy lenta, algunos de los componentes no han podido cargar. Por favor recargue la página.';
             else if ( lang == 'fr') reqerr = 'La connexion est trop lente, certains des composants n\'ons pas pu être chargé. Veuillez recharger la page.';
             else if ( lang == 'ru') reqerr = 'Слишком медленное соединение, не удается загрузить некоторые компоненты. Пожалуйста, обновите страницу.';
+            else if ( lang == 'tr') reqerr = 'Bağlantı çok yavaş, bileşenlerin bazıları yüklenemedi. Lütfen sayfayı yenileyin.';
             else reqerr = 'The connection is too slow, some of the components could not be loaded. Please reload the page.';
 
             return reqerr;

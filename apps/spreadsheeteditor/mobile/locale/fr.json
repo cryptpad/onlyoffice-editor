@@ -41,6 +41,7 @@
   },
   "ContextMenu": {
     "errorCopyCutPaste": "Actions de copie, de coupe et de collage du menu contextuel seront appliquées seulement dans le fichier actuel.",
+    "errorInvalidLink": "La référence du lien n'existe pas. Veuillez corriger le lien ou le supprimer.",
     "menuAddComment": "Ajouter un commentaire",
     "menuAddLink": "Ajouter un lien",
     "menuCancel": "Annuler",
@@ -153,7 +154,9 @@
       "warnLicenseUsersExceeded": "Vous avez dépassé le nombre maximal d’utilisateurs des éditeurs %1. Pour en savoir plus, contactez votre administrateur.",
       "warnNoLicense": "Vous avez dépassé le nombre maximal de connexions simultanées aux éditeurs %1. Ce document sera ouvert en lecture seule. Contactez l’équipe des ventes %1 pour mettre à jour les termes de la licence.",
       "warnNoLicenseUsers": "Vous avez dépassé le nombre maximal d’utilisateurs des éditeurs %1. Contactez l’équipe des ventes %1 pour mettre à jour les termes de la licence.",
-      "warnProcessRightsChange": "Vous n'avez pas la permission de modifier ce fichier."
+      "warnProcessRightsChange": "Vous n'avez pas la permission de modifier ce fichier.",
+      "textNoChoices": "There are no choices for filling the cell.<br>Only text values from the column can be selected for replacement.",
+      "textOk": "Ok"
     }
   },
   "Error": {
@@ -169,6 +172,7 @@
     "errorAutoFilterHiddenRange": "L'opération ne peut pas être effectuée car la zone contient des cellules filtrées.<br>Veuillez supprimer les filtres et réessayez.",
     "errorBadImageUrl": "L'URL de l'image est incorrecte",
     "errorChangeArray": "Impossible de modifier une partie de matrice.",
+    "errorChangeOnProtectedSheet": "La cellule ou le graphique que vous essayé de changer est sur une feuille protégée. Pour effectuer le changement, retirer al protection de la feuille. Un mot de passe pourrait vous être demandé.",
     "errorConnectToServer": "Impossible d'enregistrer ce document. Veuillez vérifier vos paramètres de connexion ou contactez l'administrateur.<br>Lorsque vous cliquez sur le bouton 'OK', vous serez invité à télécharger le document.",
     "errorCopyMultiselectArea": "Impossible d'exécuter cette commande sur des sélections multiples.<br>Sélectionnez une seule plage et essayez à nouveau.",
     "errorCountArg": "Il y a une erreur dans la formule : nombre d'arguments incorrecte.",
@@ -215,19 +219,20 @@
     "errorUsersExceed": "Le nombre d'utilisateurs autorisés par le plan tarifaire a été dépassé",
     "errorViewerDisconnect": "La connexion a été perdue. Vous pouvez toujours afficher le document,<br>mais ne pouvez pas le télécharger jusqu'à ce que la connexion soit rétablie et que la page soit rafraichit.",
     "errorWrongBracketsCount": "Il y a une erreur dans la formule : Mauvais nombre de parenthèses.",
-    "errorWrongOperator": "Une erreur dans la formule. L'opérateur n'est pas valide. Corriger l'erreur ou presser Echap pour annuler l'édition de la formule.",
+    "errorWrongOperator": "Une erreur dans la formule entrée. Opérateur utilisé est incorrect.<br>Veuillez corriger l'erreur.",
     "notcriticalErrorTitle": "Avertissement",
     "openErrorText": "Une erreur s’est produite lors de l’ouverture du fichier",
     "pastInMergeAreaError": "Impossible de modifier une partie d'une cellule fusionnée",
     "saveErrorText": "Une erreur s'est produite lors de l'enregistrement du fichier",
     "scriptLoadError": "La connexion est trop lente, certains  éléments ne peuvent pas être chargés. Veuillez recharger la page.",
+    "textErrorPasswordIsNotCorrect": "Le mot de passe que vous avez fourni n'est pas correct.<br>Veuillez vérifier que la touche CAPS LOCK est désactivée et assurez-vous d'utiliser la bonne majuscule.",
     "unknownErrorText": "Erreur inconnue.",
     "uploadImageExtMessage": "Format d'image inconnu.",
     "uploadImageFileCountMessage": "Aucune image chargée.",
-    "uploadImageSizeMessage": "L'image est trop grande. La taille limite est de 25 Mo.",
-    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password."
+    "uploadImageSizeMessage": "L'image est trop grande. La taille limite est de 25 Mo."
   },
   "LongActions": {
+    "advDRMPassword": "Mot de passe",
     "applyChangesTextText": "Chargement des données en cours...",
     "applyChangesTitleText": "Chargement des données",
     "confirmMoveCellRange": "La plage de cellules finale peut contenir des données.Voulez-vous continuer?",
@@ -254,9 +259,13 @@
     "savePreparingTitle": "Préparation à l'enregistrement en cours. Veuillez patienter...",
     "saveTextText": "Enregistrement du document...",
     "saveTitleText": "Enregistrement du document",
+    "textCancel": "Annuler",
+    "textErrorWrongPassword": "Le mot de passe que vous avez fourni n'est pas correct.",
     "textLoadingDocument": "Chargement du document",
     "textNo": "Non",
     "textOk": "OK",
+    "textUnlockRange": "Déverouiller la plage",
+    "textUnlockRangeWarning": "La plage que vous essayez de modifier est protégée par un mot de passe.",
     "textYes": "Oui",
     "txtEditingMode": "Réglage mode d'édition...",
     "uploadImageTextText": "Chargement d'une image en cours...",
@@ -281,7 +290,10 @@
     "textSheet": "Feuille",
     "textSheetName": "Nom de la feuille",
     "textUnhide": "Afficher",
-    "textWarnDeleteSheet": "La feuille de calcul peut contenir des données. Êtes-vous sûr de vouloir continuer?"
+    "textWarnDeleteSheet": "La feuille de calcul peut contenir des données. Êtes-vous sûr de vouloir continuer?",
+    "textMove": "Move",
+    "textMoveBack": "Move back",
+    "textMoveForward": "Move forward"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "Vous avez des modifications non enregistrées dans ce document. Cliquez sur Rester sur cette page et attendez l'enregistrement automatique. Cliquez sur Quitter cette page pour annuler toutes les modifications non enregistrées.",
@@ -521,7 +533,8 @@
       "textYen": "Yen",
       "txtNotUrl": "Ce champ doit contenir une URL au format \"http://www.example.com\"",
       "txtSortHigh2Low": "Trier du plus élevé au plus bas",
-      "txtSortLow2High": "Trier le plus bas au plus élevé"
+      "txtSortLow2High": "Trier le plus bas au plus élevé",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "advCSVOptions": "Choisir les options CSV",
@@ -651,7 +664,8 @@
       "txtSemicolon": "Point-virgule",
       "txtSpace": "Espace",
       "txtTab": "Tabulation",
-      "warnDownloadAs": "Si vous continuez à enregistrer dans ce format toutes les fonctions sauf le texte seront perdues.<br>Êtes-vous sûr de vouloir continuer?"
+      "warnDownloadAs": "Si vous continuez à enregistrer dans ce format toutes les fonctions sauf le texte seront perdues.<br>Êtes-vous sûr de vouloir continuer?",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

@@ -5,12 +5,16 @@ import EditorUIController from '../lib/patch'
 
 const ToolbarView = props => {
     const isDisconnected = props.isDisconnected;
+    const wsProps = props.wsProps;
+    const focusOn = props.focusOn;
+    const isShapeLocked = props.isShapeLocked;
     const undo_box = props.isEdit && EditorUIController.toolbarOptions ? EditorUIController.toolbarOptions.getUndoRedo({
             disabledUndo: !props.isCanUndo || isDisconnected,
             disabledRedo: !props.isCanRedo || isDisconnected,
             onUndoClick: props.onUndo,
             onRedoClick: props.onRedo
         }) : null;
+
     return (
         <Fragment>
             <NavLeft>
@@ -25,6 +29,9 @@ const ToolbarView = props => {
                 }
                 {props.isEdit && EditorUIController.toolbarOptions && EditorUIController.toolbarOptions.getEditOptions({
                     disabled: props.disabledEditControls || props.disabledControls || isDisconnected,
+                    wsProps,
+                    focusOn,
+                    isShapeLocked,
                     onEditClick: () => props.openOptions('edit'),
                     onAddClick: () => props.openOptions('add')
                 })}

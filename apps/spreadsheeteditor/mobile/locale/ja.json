@@ -41,6 +41,7 @@
   },
   "ContextMenu": {
     "errorCopyCutPaste": "コンテキストメニューを使う中コピーしたり切り取り貼り付きたりするの操作がこのファイルだけに実行されます。",
+    "errorInvalidLink": "リンクの参照先が存在しません。リンクを修正するか、削除してください。",
     "menuAddComment": "コメントを追加する",
     "menuAddLink": "リンクを追加する",
     "menuCancel": "キャンセル",
@@ -77,7 +78,7 @@
         "txtAll": "すべて",
         "txtArt": "テキストを入力…",
         "txtBlank": "（空白）",
-        "txtByField": "％2分の％1",
+        "txtByField": "%2分の%1",
         "txtClearFilter": "フィルターをクリア(Alt+C)",
         "txtColLbls": "列ラベル",
         "txtColumn": "列",
@@ -153,7 +154,9 @@
       "warnLicenseUsersExceeded": "％1エディターのユーザー制限に達しました。 詳細についてはアドミニストレータを連絡してください。",
       "warnNoLicense": "％１エディター　時接続数の制限に達しました。この文書が見るだけのために開かれる。個人的なアップグレード条件については、％1営業チームを連絡してください。",
       "warnNoLicenseUsers": "％1エディターのユーザー制限に達しました。 個人的なアップグレード条件については、％1営業チームを連絡してください。",
-      "warnProcessRightsChange": "ファイルを編集する権限がありません！"
+      "warnProcessRightsChange": "ファイルを編集する権限がありません！",
+      "textNoChoices": "There are no choices for filling the cell.<br>Only text values from the column can be selected for replacement.",
+      "textOk": "Ok"
     }
   },
   "Error": {
@@ -169,6 +172,7 @@
     "errorAutoFilterHiddenRange": "範囲がフィルターセルがありますから操作を実行できません。フィルターした要素を表示してもう一度してください。",
     "errorBadImageUrl": "画像のURLが正しくありません。",
     "errorChangeArray": "配列の一部を変更することはできません。",
+    "errorChangeOnProtectedSheet": "変更しようとしているセルやチャートが保護されたシートにあります。変更するには、対象のシートの保護を解除してください。パスワードの入力を求められる場合があります。",
     "errorConnectToServer": "この文書を保存できません。接続設定をチェックし、アドミニストレータを連絡してください。<br> 「OK」をクリックすると、文書をダウンロードするに提案されます。",
     "errorCopyMultiselectArea": "このコマンドを複数選択において使用することはできません。<br>単一の範囲を選択して、再ご試行ください。",
     "errorCountArg": "数式でエラーがあります。<br> 引数の数が無効です",
@@ -215,19 +219,20 @@
     "errorUsersExceed": "料金プランで許可されているユーザー数を超えました。",
     "errorViewerDisconnect": "接続が失われました。あなたはまだ文書を見えるけど, <br>接続が復元されたしページが再読み込まれたまで文書をダウンロードと印刷できません。",
     "errorWrongBracketsCount": "数式でエラーがあります。<br> ブラケットの数が正しくありません。",
-    "errorWrongOperator": "入力した数式にエラーがあります。間違った演算子が使用されています。<br>エラーを修正するか、Escキーを使用して数式の編集をキャンセルしてください。",
+    "errorWrongOperator": "入力した数式にエラーがあります。間違った演算子が使用されています。<br>エラーを修正する。",
     "notcriticalErrorTitle": " 警告",
     "openErrorText": "ファイルを開く際にエラーが発生しました。",
     "pastInMergeAreaError": "結合したセルの一部は変更できません",
     "saveErrorText": "ファイルの保存中にエラーが発生しました",
     "scriptLoadError": "接続が遅すぎる、一部のコンポーネントが読み込みされません。ページを再びお読み込みしてください。",
+    "textErrorPasswordIsNotCorrect": "入力されたパスワードが間違っています。<br> CapsLock キーがオフになっていること、大文字と小文字が正しく使われていることを確認してください。　",
     "unknownErrorText": "不明なエラー",
     "uploadImageExtMessage": "不明なイメージ形式",
     "uploadImageFileCountMessage": "アップロードしたイメージがない",
-    "uploadImageSizeMessage": "イメージのサイズの上限が超えさせました。サイズの上限が２５MB。",
-    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password."
+    "uploadImageSizeMessage": "イメージのサイズの上限が超えさせました。サイズの上限が２５MB。"
   },
   "LongActions": {
+    "advDRMPassword": "パスワード",
     "applyChangesTextText": "データを読み込んでいます...",
     "applyChangesTitleText": "データを読み込んでいます",
     "confirmMoveCellRange": "最終のセル範囲にはデータがあるそうです。操作を続けてもよろしいですか？",
@@ -254,14 +259,18 @@
     "savePreparingTitle": "保存の準備中です。お待ちください...",
     "saveTextText": "文書を保存中...",
     "saveTitleText": "文書を保存中",
+    "textCancel": "キャンセル",
+    "textErrorWrongPassword": "パスワードが正しくありません。",
     "textLoadingDocument": "ドキュメントを読み込んでいます",
     "textNo": "いいえ",
     "textOk": "OK",
+    "textUnlockRangeWarning": "変更しようとしている範囲がパスワードで保護されています。",
     "textYes": "Yes",
     "txtEditingMode": "編集モードを設定する",
     "uploadImageTextText": "イメージのアップロード中...",
     "uploadImageTitleText": "イメージのアップロード中",
-    "waitText": "少々お待ちください..."
+    "waitText": "少々お待ちください...",
+    "textUnlockRange": "Unlock Range"
   },
   "Statusbar": {
     "notcriticalErrorTitle": " 警告",
@@ -281,7 +290,10 @@
     "textSheet": "シート",
     "textSheetName": "シートの名",
     "textUnhide": "表示する",
-    "textWarnDeleteSheet": "ワークシートはデータがあるそうです。操作を続けてもよろしいですか？"
+    "textWarnDeleteSheet": "ワークシートはデータがあるそうです。操作を続けてもよろしいですか？",
+    "textMove": "Move",
+    "textMoveBack": "Move back",
+    "textMoveForward": "Move forward"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "保存されていない変更があります。自動保存を待つように「このページから移動しない」をクリックしてください。保存されていない変更を破棄ように「このページから移動する」をクリックしてください。",
@@ -521,7 +533,8 @@
       "textYen": "円",
       "txtNotUrl": "このフィールドは、「http://www.example.com」の形式のURLである必要があります。",
       "txtSortHigh2Low": " 大きい順に並べ替えます",
-      "txtSortLow2High": "小さい順に並べ替えます。"
+      "txtSortLow2High": "小さい順に並べ替えます。",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "advCSVOptions": "CSVオプションを選択する",
@@ -651,7 +664,8 @@
       "txtSemicolon": "セミコロン",
       "txtSpace": "スペース",
       "txtTab": "タブ",
-      "warnDownloadAs": "この形式で保存する続けば、テクスト除いて全てが失います。続けてもよろしいですか？"
+      "warnDownloadAs": "この形式で保存する続けば、テクスト除いて全てが失います。続けてもよろしいですか？",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

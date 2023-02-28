@@ -67,10 +67,8 @@ define([
         }
 
         function _clickLanguage(menu, item) {
-            var $parent = menu.$el.parent();
-            $parent.find('#status-label-lang').text(item.caption);
             this.langMenu.prevTip = item.value.value;
-
+            this.btnLanguage.setCaption(item.caption);
             this.fireEvent('langchanged', [this, item.value.code, item.caption]);
         }
 
@@ -83,23 +81,6 @@ define([
 
             if (me.btnLanguage && me.btnLanguage.cmpEl) {
                 me.btnLanguage.updateHint(me.tipSetLang);
-                me.btnLanguage.cmpEl.on({
-                    'show.bs.dropdown': function () {
-                        _.defer(function () {
-                            me.btnLanguage.cmpEl.find('ul').focus();
-                        }, 100);
-                    },
-                    'hide.bs.dropdown': function () {
-                        _.defer(function () {
-                            me.api.asc_enableKeyEvents(true);
-                        }, 100);
-                    },
-                    'click': function (e) {
-                        if (me.btnLanguage.isDisabled()) {
-                            return false;
-                        }
-                    }
-                });
                 me.langMenu.on('item:click', _.bind(_clickLanguage, this));
             }
 
@@ -223,9 +204,13 @@ define([
                 });
 
                 this.btnLanguage = new Common.UI.Button({
-                    // el: panelLang,
-                    hintAnchor: 'top-left',
-                    disabled: true
+                    cls         : 'btn-toolbar',
+                    caption     : 'English (United States)',
+                    hintAnchor  : 'top-left',
+                    disabled: true,
+                    dataHint    : '0',
+                    dataHintDirection: 'top',
+                    menu: true
                 });
 
                 this.langMenu = new Common.UI.MenuSimple({
@@ -252,7 +237,10 @@ define([
                         { caption: "125%", value: 125 },
                         { caption: "150%", value: 150 },
                         { caption: "175%", value: 175 },
-                        { caption: "200%", value: 200 }
+                        { caption: "200%", value: 200 },
+                        { caption: "300%", value: 300 },
+                        { caption: "400%", value: 400 },
+                        { caption: "500%", value: 500 }
                     ]
                 });
 
@@ -299,11 +287,8 @@ define([
                 _btn_render(me.txtGoToPage, $('#status-goto-page', me.$layout));
 
                 if ( !config || config.isEdit ) {
-                    var panelLang = $('.cnt-lang', me.$layout);
-                    _btn_render(me.btnLanguage, panelLang);
-
-                    me.langMenu.render(panelLang);
-                    me.langMenu.cmpEl.attr({tabindex: -1});
+                    me.btnLanguage.render($('#btn-cnt-lang', me.$layout));
+                    me.btnLanguage.setMenu(me.langMenu);
                     me.langMenu.prevTip = 'en';
                 }
 
@@ -340,6 +325,10 @@ define([
                     : this.hide();
             },
 
+            isVisible: function() {
+                return this.$el && this.$el.is(':visible');
+            },
+
             reloadLanguages: function(array) {
                 var arr = [],
                     saved = this.langMenu.saved;
@@ -360,9 +349,7 @@ define([
 
             setLanguage: function(info) {
                 if (this.langMenu.prevTip != info.value && info.code !== undefined) {
-                    var $parent = $(this.langMenu.el.parentNode, this.$el);
-                    $parent.find('#status-label-lang').text(info.displayValue);
-
+                    this.btnLanguage.setCaption(info.displayValue);
                     this.langMenu.prevTip = info.value;
 
                     var lang = _.find(this.langMenu.items, function(item) { return item.caption == info.displayValue; });
@@ -375,17 +362,21 @@ define([
                 }
             },
 
+            getStatusLabel: function() {
+                return $('.statusbar #label-action');
+            },
+
             showStatusMessage: function(message) {
-                $('.statusbar #label-action').text(message);
+                this.getStatusLabel().text(message);
             },
 
             clearStatusMessage: function() {
-                $('.statusbar #label-action').text('');
+                this.getStatusLabel().text('');
             },
 
             SetDisabled: function(disable) {
-                var langs = this.langMenu.items.length>0;
-                this.btnLanguage.setDisabled(disable || !langs);
+                this.btnLanguage.setDisabled(disable || this.langMenu.items.length<1);
+                this.btnTurnReview && this.btnTurnReview.setDisabled(disable);
             },
 
             onApiCoAuthoringDisconnect: function() {

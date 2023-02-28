@@ -17,6 +17,8 @@ import ErrorController from "./Error";
 import LongActionsController from "./LongActions";
 import PluginsController from '../../../../common/mobile/lib/controller/Plugins.jsx';
 import EncodingController from "./Encoding";
+import DropdownListController from "./DropdownList";
+import { Device } from '../../../../common/mobile/utils/device';
 @inject(
     "users",
     "storeAppOptions",
@@ -38,6 +40,7 @@ class MainController extends Component {
 
         this.LoadingDocument = -256;
         this.ApplyEditRights = -255;
+        this.boxSdk = $$('#editor_sdk');
 
         this._state = {
             licenseType: false,
@@ -127,16 +130,24 @@ class MainController extends Component {
                     docInfo.put_Token(data.doc.token);
                     docInfo.put_Permissions(_permissions);
                     docInfo.put_EncryptedInfo(this.editorConfig.encryptionKeys);
-
+                    docInfo.put_Lang(this.editorConfig.lang);
+                    docInfo.put_Mode(this.editorConfig.mode);
+                    
                     let enable = !this.editorConfig.customization || (this.editorConfig.customization.macros !== false);
                     docInfo.asc_putIsEnabledMacroses(!!enable);
                     enable = !this.editorConfig.customization || (this.editorConfig.customization.plugins !== false);
                     docInfo.asc_putIsEnabledPlugins(!!enable);
 
-                    const type = /^(?:(pdf|djvu|xps|oxps))$/.exec(data.doc.fileType);
+                    let type = /^(?:(pdf|djvu|xps|oxps))$/.exec(data.doc.fileType);
                     if (type && typeof type[1] === 'string') {
                         this.permissions.edit = this.permissions.review = false;
                     }
+                }
+
+                let type = data.doc ? /^(?:(oform))$/.exec(data.doc.fileType) : false;
+                if (type && typeof type[1] === 'string') {
+                    (this.permissions.fillForms===undefined) && (this.permissions.fillForms = (this.permissions.edit!==false));
+                    this.permissions.edit = this.permissions.review = this.permissions.comment = false;
                 }
 
                 this.api.asc_registerCallback('asc_onGetEditorPermissions', onEditorPermissions);
@@ -210,6 +221,8 @@ class MainController extends Component {
                 Common.Notifications.trigger('preloader:close');
                 Common.Notifications.trigger('preloader:endAction', Asc.c_oAscAsyncActionType['BlockInteraction'], this.LoadingDocument);
 
+                appOptions.isRestrictedEdit && appOptions.canFillForms && this.api.asc_SetHighlightRequiredFields(true);
+
                 let value = LocalStorage.getItem("de-settings-zoom");
                 const zf = (value !== null) ? parseInt(value) : (appOptions.customization && appOptions.customization.zoom ? parseInt(appOptions.customization.zoom) : 100);
                 (zf === -1) ? this.api.zoomFitToPage() : ((zf === -2) ? this.api.zoomFitToWidth() : this.api.zoom(zf>0 ? zf : 100));
@@ -277,7 +290,7 @@ class MainController extends Component {
                     });
 
                     Common.Notifications.trigger('engineCreated', this.api);
-                    Common.EditorApi = {get: () => this.api};
+                    // Common.EditorApi = {get: () => this.api};
 
                     // Set font rendering mode
                     let value = LocalStorage.getItem("de-settings-fontrender");
@@ -403,7 +416,9 @@ class MainController extends Component {
     }
 
     applyLicense () {
-        const _t = this._t;
+        const { t } = this.props;
+        const _t = t('Main', {returnObjects:true});
+
         const warnNoLicense  = _t.warnNoLicense.replace(/%1/g, __COMPANY_NAME__);
         const warnNoLicenseUsers = _t.warnNoLicenseUsers.replace(/%1/g, __COMPANY_NAME__);
         const textNoLicenseTitle = _t.textNoLicenseTitle.replace(/%1/g, __COMPANY_NAME__);
@@ -516,6 +531,14 @@ class MainController extends Component {
             this.api.Resize();
         });
 
+        $$(window).on('popover:open popup:open sheet:open actions:open dialog:open', () => {
+            this.api.asc_enableKeyEvents(false);
+        });
+
+        $$(window).on('popover:close popup:close sheet:close actions:close dialog:close', () => {
+            this.api.asc_enableKeyEvents(true);
+        });
+
         this.api.asc_registerCallback('asc_onDocumentUpdateVersion', this.onUpdateVersion.bind(this));
         this.api.asc_registerCallback('asc_onServerVersion', this.onServerVersion.bind(this));
         this.api.asc_registerCallback('asc_onDocumentName', this.onDocumentName.bind(this));
@@ -534,7 +557,29 @@ class MainController extends Component {
             storeDocumentSettings.changeDocSize(w, h);
         });
 
-        //text settings
+        this.api.asc_registerCallback('asc_onShowContentControlsActions', (obj, x, y) => {
+            switch (obj.type) {
+                case Asc.c_oAscContentControlSpecificType.DateTime:
+                    this.onShowDateActions(obj, x, y);
+                    break;
+                case Asc.c_oAscContentControlSpecificType.Picture:
+                    if (obj.pr && obj.pr.get_Lock) {
+                        let lock = obj.pr.get_Lock();
+                        if (lock == Asc.c_oAscSdtLockType.SdtContentLocked || lock == Asc.c_oAscSdtLockType.ContentLocked)
+                            return;
+                    }
+                    this.api.asc_addImage(obj);
+                    setTimeout(() => {
+                        this.api.asc_UncheckContentControlButtons();
+                    }, 500);
+                    break;
+                case Asc.c_oAscContentControlSpecificType.DropDownList:
+                case Asc.c_oAscContentControlSpecificType.ComboBox:
+                    this.onShowListActions(obj, x, y);
+                    break;
+            }
+        });
+
         const storeTextSettings = this.props.storeTextSettings;
         storeTextSettings.resetFontsRecent(LocalStorage.getItem('dde-settings-recent-fonts'));
 
@@ -571,9 +616,14 @@ class MainController extends Component {
         this.api.asc_registerCallback('asc_onParaSpacingLine', (vc) => {
             storeTextSettings.resetLineSpacing(vc);
         });
-        this.api.asc_registerCallback('asc_onTextShd', (shd) => {
-            let color = shd.get_Color();
-            storeTextSettings.resetBackgroundColor(color);
+
+        this.api.asc_registerCallback('asc_onTextHighLight', color => {
+            let textPr = this.api.get_TextProps().get_TextPr();
+
+            if(textPr) {
+                color = textPr.get_HighLight();
+                storeTextSettings.resetHighlightColor(color);
+            }
         });
 
         // link settings
@@ -639,6 +689,63 @@ class MainController extends Component {
             if (this.props.users.isDisconnected) return;
             storeToolbarSettings.setCanRedo(can);
         });
+    }
+
+    onShowDateActions(obj, x, y) {
+        const { t } = this.props;
+        let props = obj.pr,
+            specProps = props.get_DateTimePr(),
+            isPhone = Device.isPhone;
+
+        this.controlsContainer = this.boxSdk.find('#calendar-target-element');
+        this._dateObj = props;
+
+        if (this.controlsContainer.length < 1) {
+            this.controlsContainer = $$('<div id="calendar-target-element" style="position: absolute;"></div>');
+            this.boxSdk.append(this.controlsContainer);
+        }
+
+        this.controlsContainer.css({left: `${x}px`, top: `${y}px`});
+
+        this.cmpCalendar = f7.calendar.create({
+            inputEl: '#calendar-target-element',
+            dayNamesShort: [t('Edit.textSu'), t('Edit.textMo'), t('Edit.textTu'), t('Edit.textWe'), t('Edit.textTh'), t('Edit.textFr'), t('Edit.textSa')],
+            monthNames: [t('Edit.textJanuary'), t('Edit.textFebruary'), t('Edit.textMarch'), t('Edit.textApril'), t('Edit.textMay'), t('Edit.textJune'), t('Edit.textJuly'), t('Edit.textAugust'), t('Edit.textSeptember'), t('Edit.textOctober'), t('Edit.textNovember'), t('Edit.textDecember')],
+            backdrop: isPhone ? false : true,
+            closeByBackdropClick: isPhone ? false : true,
+            value: [new Date(specProps ? specProps.get_FullDate() : undefined)],
+            openIn: isPhone ? 'sheet' : 'popover',
+            on: {
+                change: (calendar, value) => {
+                    if(calendar.initialized && value[0]) {
+                        let specProps = this._dateObj.get_DateTimePr();
+                        specProps.put_FullDate(new Date(value[0]));
+                        this.api.asc_SetContentControlDatePickerDate(specProps);
+                        calendar.close();
+                        this.api.asc_UncheckContentControlButtons();
+                    }
+                }
+            }
+        });
+
+        setTimeout(() => {
+            this.cmpCalendar.open();
+        }, 100)
+    }
+
+    onShowListActions(obj, x, y) {
+        if(!Device.isPhone) {
+            this.dropdownListTarget = this.boxSdk.find('#dropdown-list-target');
+        
+            if (this.dropdownListTarget.length < 1) {
+                this.dropdownListTarget = $$('<div id="dropdown-list-target" style="position: absolute;"></div>');
+                this.boxSdk.append(this.dropdownListTarget);
+            }
+        
+            this.dropdownListTarget.css({left: `${x}px`, top: `${y}px`});
+        }
+
+        Common.Notifications.trigger('openDropdownList', obj);
     }
 
     onProcessSaveResult (data) {
@@ -844,11 +951,13 @@ class MainController extends Component {
                 <ViewCommentsController />
                 <PluginsController />
                 <EncodingController />
+                <DropdownListController />
             </Fragment>
             )
     }
 
     componentDidMount() {
+        Common.EditorApi = {get: () => this.api};
         this.initSdk();
     }
 }

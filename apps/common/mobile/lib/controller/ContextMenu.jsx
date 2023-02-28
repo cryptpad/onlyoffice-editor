@@ -111,6 +111,8 @@ class ContextMenuController extends Component {
             });
 
             if ( this.state.items.length > 0 ) {
+                const api = Common.EditorApi.get();
+
                 this.$targetEl.css({left: `${x}px`, top: `${y}px`});
                 const popover = f7.popover.open(idContextMenuElement, idCntextMenuTargetElement);
 
@@ -120,6 +122,8 @@ class ContextMenuController extends Component {
                 this.setState(state => {
                     return {opened: true}
                 });
+
+                api.asc_enableKeyEvents(true);
             }
         }
     }
@@ -206,10 +210,12 @@ class ContextMenuController extends Component {
         Common.Notifications.off('document:ready', this.onDocumentReady);
 
         const api = Common.EditorApi.get();
-        api.asc_unregisterCallback('asc_onShowPopMenu', this.onApiOpenContextMenu);
-        api.asc_unregisterCallback('asc_onHidePopMenu', this.onApiHideContextMenu);
-        api.asc_unregisterCallback('asc_onShowForeignCursorLabel', this.onApiShowForeignCursorLabel);
-        api.asc_unregisterCallback('asc_onHideForeignCursorLabel', this.onApiHideForeignCursorLabel);
+        if ( api ) {
+            api.asc_unregisterCallback('asc_onShowPopMenu', this.onApiOpenContextMenu);
+            api.asc_unregisterCallback('asc_onHidePopMenu', this.onApiHideContextMenu);
+            api.asc_unregisterCallback('asc_onShowForeignCursorLabel', this.onApiShowForeignCursorLabel);
+            api.asc_unregisterCallback('asc_onHideForeignCursorLabel', this.onApiHideForeignCursorLabel);
+        }
     }
 
     componentDidMount() {

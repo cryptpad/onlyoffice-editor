@@ -37,6 +37,9 @@
       "textCustomColors": "Benutzerdefinierte Farben",
       "textStandartColors": "Standardfarben",
       "textThemeColors": "Farben des Themas"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -373,6 +376,7 @@
       "textTopRight": "Oben rechts",
       "textTotalRow": "Ergebniszeile",
       "textTransition": "Übergang",
+      "textTransitions": "Übergänge",
       "textType": "Typ",
       "textUnCover": "Aufdecken",
       "textVerticalIn": "Vertikal nach innen",
@@ -382,7 +386,9 @@
       "textZoom": "Zoom",
       "textZoomIn": "Vergrößern",
       "textZoomOut": "Verkleinern",
-      "textZoomRotate": "Vergrößern und drehen"
+      "textZoomRotate": "Vergrößern und drehen",
+      "textAutomatic": "Automatic",
+      "textDesign": "Design"
     },
     "Settings": {
       "mniSlideStandard": "Standard (4:3)",
@@ -461,7 +467,8 @@
       "txtScheme6": "Konzertsaal",
       "txtScheme7": "Eigenkapital",
       "txtScheme8": "Fluss",
-      "txtScheme9": "Gießerei"
+      "txtScheme9": "Gießerei",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

@@ -1,7 +1,8 @@
-import React, {Fragment} from "react";
+import React, {Fragment, useState} from "react";
 import { observer, inject } from "mobx-react";
 import { Page, Navbar, List, ListItem, BlockTitle, Toggle } from "framework7-react";
 import { useTranslation } from "react-i18next";
+import { Themes } from '../../../../../common/mobile/lib/controller/Themes.js';
 
 const PageApplicationSettings = props => {
     const { t } = useTranslation();
@@ -14,6 +15,7 @@ const PageApplicationSettings = props => {
     const isHiddenTableBorders = store.isHiddenTableBorders;
     const isComments = store.isComments;
     const isResolvedComments = store.isResolvedComments;
+    const [isThemeDark, setIsThemeDark] = useState(Themes.isCurrentDark);
 
     const changeMeasureSettings = value => {
         store.changeUnitMeasurement(value);
@@ -42,17 +44,22 @@ const PageApplicationSettings = props => {
                     <List>
                         <ListItem title={_t.textSpellcheck}>
                             <Toggle checked={isSpellChecking}
-                                    onChange={() => {
+                                    onToggleChange={() => {
                                         store.changeSpellCheck(!isSpellChecking);
                                         props.switchSpellCheck(!isSpellChecking);
                                     }}
                             />
                         </ListItem>
+                        <ListItem title={'Dark theme'}>
+                            <Toggle checked={isThemeDark}
+                                onToggleChange={toggle => {Themes.switchDarkTheme(!toggle), setIsThemeDark(!toggle)}}>
+                            </Toggle>
+                        </ListItem>
                     </List>
                     <List>
                         <ListItem title={_t.textNoCharacters} disabled={displayMode !== 'markup'}>{/*ToDo: if (DisplayMode == "final" || DisplayMode == "original") {disabled} */}
                             <Toggle checked={isNonprintingCharacters}
-                                    onChange={() => {
+                                    onToggleChange={() => {
                                         store.changeNoCharacters(!isNonprintingCharacters);
                                         props.switchNoCharacters(!isNonprintingCharacters);
                                     }}
@@ -60,7 +67,7 @@ const PageApplicationSettings = props => {
                         </ListItem>
                         <ListItem title={_t.textHiddenTableBorders} disabled={displayMode !== 'markup'}>{/*ToDo: if (DisplayMode == "final" || DisplayMode == "original") {disabled} */}
                             <Toggle checked={isHiddenTableBorders}
-                                    onChange={() => {
+                                    onToggleChange={() => {
                                         store.changeShowTableEmptyLine(!isHiddenTableBorders);
                                         props.switchShowTableEmptyLine(!isHiddenTableBorders);
                                     }}
@@ -73,7 +80,7 @@ const PageApplicationSettings = props => {
             <List>
                 <ListItem title={_t.textComments}>
                     <Toggle checked={isComments}
-                        onChange={() => {
+                        onToggleChange={() => {
                             store.changeDisplayComments(!isComments);
                             props.switchDisplayComments(!isComments);
                         }}
@@ -81,7 +88,7 @@ const PageApplicationSettings = props => {
                 </ListItem>
                 <ListItem title={_t.textResolvedComments}>
                     <Toggle checked={isResolvedComments} disabled={!isComments}
-                        onChange={() => {
+                        onToggleChange={() => {
                             store.changeDisplayResolved(!isResolvedComments);
                             props.switchDisplayResolved(!isResolvedComments);
                         }}

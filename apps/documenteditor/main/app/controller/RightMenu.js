@@ -71,7 +71,7 @@ define([
         },
 
         onRightMenuAfterRender: function(rightMenu) {
-            rightMenu.shapeSettings.application = rightMenu.textartSettings.application = this.getApplication();
+            rightMenu.imageSettings.application = rightMenu.shapeSettings.application = rightMenu.textartSettings.application = this.getApplication();
 
             this._settings = [];
             this._settings[Common.Utils.documentSettingsType.Paragraph] = {panelId: "id-paragraph-settings",  panel: rightMenu.paragraphSettings,btn: rightMenu.btnText,        hidden: 1, locked: false};
@@ -205,6 +205,8 @@ define([
                     this._settings[settingsType].props = control_props;
                     this._settings[settingsType].locked = control_lock;
                     this._settings[settingsType].hidden = 0;
+                    if (control_props.get_FormPr().get_Fixed())
+                        this._settings[Common.Utils.documentSettingsType.TextArt].hidden = 1;
                 }
             }
 

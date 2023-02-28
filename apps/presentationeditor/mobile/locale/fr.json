@@ -37,6 +37,9 @@
       "textCustomColors": "Couleurs personnalisées",
       "textStandartColors": "Couleurs standard",
       "textThemeColors": "Couleurs de thème"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -373,6 +376,7 @@
       "textTopRight": "Haut à droite",
       "textTotalRow": "Ligne de total",
       "textTransition": "Transition",
+      "textTransitions": "Transitions",
       "textType": "Type",
       "textUnCover": "Découvrir",
       "textVerticalIn": "Vertical intérieur",
@@ -382,7 +386,9 @@
       "textZoom": "Zoom",
       "textZoomIn": "Zoom avant",
       "textZoomOut": "Zoom arrière",
-      "textZoomRotate": "Zoom et rotation"
+      "textZoomRotate": "Zoom et rotation",
+      "textAutomatic": "Automatic",
+      "textDesign": "Design"
     },
     "Settings": {
       "mniSlideStandard": "Standard (4:3)",
@@ -461,7 +467,8 @@
       "txtScheme6": "Rotonde",
       "txtScheme7": "Capitaux",
       "txtScheme8": "Flux",
-      "txtScheme9": "Fonderie"
+      "txtScheme9": "Fonderie",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

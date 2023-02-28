@@ -10,7 +10,7 @@ import {
     AddCommentController,
     CommentsController,
     EditCommentController,
-    ViewCommentsController
+    ViewCommentsSheetsController
 } from "../../../../common/mobile/lib/controller/collaboration/Comments";
 import {LocalStorage} from "../../../../common/mobile/utils/LocalStorage";
 import LongActionsController from "./LongActions";
@@ -19,7 +19,10 @@ import app from "../page/app";
 import About from "../../../../common/mobile/lib/view/About";
 import PluginsController from '../../../../common/mobile/lib/controller/Plugins.jsx';
 import EncodingController from "./Encoding";
+import DropdownListController from "./DropdownList";
 import { StatusbarController } from "./Statusbar";
+import { useTranslation } from 'react-i18next';
+import { Device } from '../../../../common/mobile/utils/device';
 
 @inject(
     "users",
@@ -31,7 +34,8 @@ import { StatusbarController } from "./Statusbar";
     "storeSpreadsheetSettings",
     "storeSpreadsheetInfo",
     "storeApplicationSettings",
-    "storeToolbarSettings"
+    "storeToolbarSettings",
+    "storeWorksheets"
     )
 class MainController extends Component {
     constructor(props) {
@@ -47,6 +51,9 @@ class MainController extends Component {
             licenseType: false,
             isDocModified: false
         };
+        
+        this.wsLockOptions = ['SelectLockedCells', 'SelectUnlockedCells', 'FormatCells', 'FormatColumns', 'FormatRows', 'InsertColumns', 'InsertRows', 'InsertHyperlinks', 'DeleteColumns',
+                'DeleteRows', 'Sort', 'AutoFilter', 'PivotTables', 'Objects', 'Scenarios'];
 
         this.defaultTitleText = __APP_TITLE_TEXT__;
 
@@ -161,6 +168,8 @@ class MainController extends Component {
                     docInfo.put_Token(data.doc.token);
                     docInfo.put_Permissions(_permissions);
                     docInfo.put_EncryptedInfo(this.editorConfig.encryptionKeys);
+                    docInfo.put_Lang(this.editorConfig.lang);
+                    docInfo.put_Mode(this.editorConfig.mode);
 
                     const appOptions = this.props.storeAppOptions;
                     let enable = !appOptions.customization || (appOptions.customization.macros !== false);
@@ -279,7 +288,6 @@ class MainController extends Component {
                     });
 
                     Common.Notifications.trigger('engineCreated', this.api);
-                    Common.EditorApi = {get: () => this.api};
 
                     this.appOptions = {};
                     this.bindEvents();
@@ -330,6 +338,14 @@ class MainController extends Component {
     bindEvents() {
         $$(window).on('resize', () => {
             this.api.asc_Resize();
+        });
+
+        $$(window).on('popover:open popup:open sheet:open actions:open', () => {
+            this.api.asc_enableKeyEvents(false);
+        });
+
+        $$(window).on('popover:close popup:close sheet:close actions:close', () => {
+            this.api.asc_enableKeyEvents(true);
         });
 
         this.api.asc_registerCallback('asc_onDocumentUpdateVersion',      this.onUpdateVersion.bind(this));
@@ -395,7 +411,86 @@ class MainController extends Component {
                     storeFocusObjects.setEditFormulaMode(isFormula);
                 }
             }
+
+            storeFocusObjects.setFunctionsDisabled(state === Asc.c_oAscCellEditorState.editText);
         });
+
+        this.api.asc_registerCallback('asc_onChangeProtectWorksheet', this.onChangeProtectSheet.bind(this));
+        this.api.asc_registerCallback('asc_onActiveSheetChanged', this.onChangeProtectSheet.bind(this)); 
+        
+        this.api.asc_registerCallback('asc_onEntriesListMenu', this.onEntriesListMenu.bind(this, false));
+        this.api.asc_registerCallback('asc_onValidationListMenu', this.onEntriesListMenu.bind(this, true));
+    }
+
+    onEntriesListMenu(validation, textArr, addArr) {
+        const { t } = this.props;
+        const boxSdk = $$('#editor_sdk');
+    
+        if (textArr && textArr.length) { 
+            if(!Device.isPhone) {
+                let dropdownListTarget = boxSdk.find('#dropdown-list-target');
+            
+                if (!dropdownListTarget.length) {
+                    dropdownListTarget = $$('<div id="dropdown-list-target" style="position: absolute;"></div>');
+                    boxSdk.append(dropdownListTarget);
+                }
+
+                let coord  = this.api.asc_getActiveCellCoord(),
+                    offset = {left: 0, top: 0},
+                    showPoint = [coord.asc_getX() + offset.left, (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
+            
+                dropdownListTarget.css({left: `${showPoint[0]}px`, top: `${showPoint[1]}px`});
+            }
+
+            Common.Notifications.trigger('openDropdownList', addArr);
+        } else {
+            !validation && f7.dialog.create({
+                title: t('Controller.Main.notcriticalErrorTitle'),
+                text: t('Controller.Main.textNoChoices'),
+                buttons: [
+                    {
+                        text: t('Controller.Main.textOk')
+                    }
+                ]
+            });
+        }
+    }
+
+    onChangeProtectSheet() {
+        const storeWorksheets = this.props.storeWorksheets;
+        let {wsLock, wsProps} = this.getWSProps(true);
+
+        if(wsProps) {
+            storeWorksheets.setWsLock(wsLock);
+            storeWorksheets.setWsProps(wsProps);
+        }
+    }
+
+    getWSProps(update) {
+        const storeAppOptions = this.props.storeAppOptions;
+        let wsProtection = {};
+        if (!storeAppOptions.config || !storeAppOptions.isEdit && !storeAppOptions.isRestrictedEdit) 
+            return wsProtection;
+
+        if (update) {
+            let wsLock = !!this.api.asc_isProtectedSheet();
+            let wsProps = {};
+
+            if (wsLock) {
+                let props = this.api.asc_getProtectedSheet();
+                props && this.wsLockOptions.forEach(function(item){
+                    wsProps[item] = props['asc_get' + item] ? props['asc_get' + item]() : false;
+                });
+            } else {
+                this.wsLockOptions.forEach(function(item){
+                    wsProps[item] = false;
+                });
+            }
+
+            wsProtection = {wsLock, wsProps};
+            
+            return wsProtection;
+        }
     }
 
     _onLongActionEnd(type, id) {
@@ -505,8 +600,10 @@ class MainController extends Component {
     }
 
     applyLicense () {
-        const _t = this._t;
-        const warnNoLicense  = _t.warnNoLicense.replace(/%1/g, __COMPANY_NAME__);
+        const { t } = this.props;
+        const _t = t('Controller.Main', {returnObjects:true});
+
+        const warnNoLicense = _t.warnNoLicense.replace(/%1/g, __COMPANY_NAME__);
         const warnNoLicenseUsers = _t.warnNoLicenseUsers.replace(/%1/g, __COMPANY_NAME__);
         const textNoLicenseTitle = _t.textNoLicenseTitle.replace(/%1/g, __COMPANY_NAME__);
         const warnLicenseExceeded = _t.warnLicenseExceeded.replace(/%1/g, __COMPANY_NAME__);
@@ -841,14 +938,16 @@ class MainController extends Component {
                 <CommentsController />
                 <AddCommentController />
                 <EditCommentController />
-                <ViewCommentsController />
+                <ViewCommentsSheetsController />
                 <PluginsController />
                 <EncodingController />
+                <DropdownListController />
             </Fragment>
         )
     }
 
     componentDidMount() {
+        Common.EditorApi = {get: () => this.api};
         this.initSdk();
     }
 }

@@ -107,6 +107,7 @@ define([
                 if ( !this.leftMenu.panelHistory.isVisible() )
                     this.clickMenuFileItem(null, 'history');
             }, this));
+            Common.NotificationCenter.on('file:print', _.bind(this.clickToolbarPrint, this));
         },
 
         onLaunch: function() {
@@ -239,8 +240,8 @@ define([
                 this.leftMenu.btnComments.hide();
             }
 
-            if (this.mode.isEdit) {
-                this.leftMenu.btnSpellcheck.show();
+            if (this.mode.isEdit && Common.UI.FeaturesManager.canChange('spellcheck')) {
+                Common.UI.LayoutManager.isElementVisible('leftMenu-spellcheck') && this.leftMenu.btnSpellcheck.show();
                 this.leftMenu.setOptionsPanel('spellcheck', this.getApplication().getController('Spellcheck').getView('Spellcheck'));
             }
             if (this.mode.canUseHistory)
@@ -482,7 +483,7 @@ define([
         },
 
         applySpellcheckSettings: function(menu) {
-            if (this.mode.isEdit && this.api) {
+            if (this.mode.isEdit && this.api && Common.UI.FeaturesManager.canChange('spellcheck')) {
                 var value = Common.localStorage.getBool("sse-spellcheck-ignore-uppercase-words");
                 this.api.asc_ignoreUppercase(value);
                 value = Common.localStorage.getBool("sse-spellcheck-ignore-numbers-words");
@@ -534,6 +535,10 @@ define([
                 this.leftMenu.menuFile.hide();
         },
 
+        clickToolbarPrint: function () {
+            this.leftMenu.showMenu('file:printpreview');
+        },
+
         changeToolbarSaveState: function (state) {
             var btnSave = this.leftMenu.menuFile.getButton('save');
             btnSave && btnSave.setDisabled(state);
@@ -551,7 +556,7 @@ define([
         /** coauthoring end **/
 
         onQuerySearch: function(d, w, opts) {
-            if (opts.textsearch && opts.textsearch.length) {
+            // if (opts.textsearch && opts.textsearch.length) {
                 var options = this.dlgSearch.findOptions;
                 options.asc_setFindWhat(opts.textsearch);
                 options.asc_setScanForward(d != 'back');
@@ -570,11 +575,11 @@ define([
                         }
                     });
                 }
-            }
+            // }
         },
 
         onQueryReplace: function(w, opts) {
-            if (!_.isEmpty(opts.textsearch)) {
+            // if (!_.isEmpty(opts.textsearch)) {
                 this.api.isReplaceAll = false;
 
                 var options = this.dlgSearch.findOptions;
@@ -588,11 +593,11 @@ define([
                 options.asc_setIsReplaceAll(false);
 
                 this.api.asc_replaceText(options);
-            }
+            // }
         },
 
         onQueryReplaceAll: function(w, opts) {
-            if (!_.isEmpty(opts.textsearch)) {
+            // if (!_.isEmpty(opts.textsearch)) {
                 this.api.isReplaceAll = true;
 
                 var options = this.dlgSearch.findOptions;
@@ -606,7 +611,7 @@ define([
                 options.asc_setIsReplaceAll(true);
 
                 this.api.asc_replaceText(options);
-            }
+            // }
         },
 
         onSearchHighlight: function(w, highlight) {

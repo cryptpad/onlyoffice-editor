@@ -269,6 +269,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon previous-field',
                     caption: this.capBtnPrev,
+                    disabled: this.appConfig.isEdit && this.appConfig.canFeatureContentControl && this.appConfig.canFeatureForms, // disable only for edit mode
                     dataHint: '1',
                     dataHintDirection: 'bottom',
                     dataHintOffset: 'small'
@@ -279,6 +280,7 @@ define([
                     cls: 'btn-toolbar x-huge icon-top',
                     iconCls: 'toolbar__icon next-field',
                     caption: this.capBtnNext,
+                    disabled: this.appConfig.isEdit && this.appConfig.canFeatureContentControl && this.appConfig.canFeatureForms, // disable only for edit mode,
                     dataHint: '1',
                     dataHintDirection: 'bottom',
                     dataHintOffset: 'small'
@@ -290,6 +292,7 @@ define([
                         cls: 'btn-toolbar x-huge icon-top',
                         iconCls: 'toolbar__icon submit-form',
                         caption: this.capBtnSubmit,
+                        disabled: this.appConfig.isEdit && this.appConfig.canFeatureContentControl && this.appConfig.canFeatureForms, // disable only for edit mode,
                         dataHint: '1',
                         dataHintDirection: 'bottom',
                         dataHintOffset: 'small'
@@ -301,6 +304,7 @@ define([
                         cls: 'btn-toolbar x-huge icon-top',
                         iconCls: 'toolbar__icon save-form',
                         caption: this.capBtnSaveForm,
+                        disabled: this.appConfig.isEdit && this.appConfig.canFeatureContentControl && this.appConfig.canFeatureForms, // disable only for edit mode,
                         dataHint: '1',
                         dataHintDirection: 'bottom',
                         dataHintOffset: 'small'
@@ -323,10 +327,11 @@ define([
                 (new Promise(function (accept, reject) {
                     accept();
                 })).then(function(){
-                    if (config.isEdit && config.canFeatureContentControl) {
+                    if (config.isEdit && config.canFeatureContentControl && config.canFeatureForms) {
                         if (config.canEditContentControl) {
                             me.btnHighlight.setMenu();
                             me.mnuFormsColorPicker = me.btnHighlight.getPicker();
+                            me.btnHighlight.currentColor && me.mnuFormsColorPicker.selectByRGB(me.btnHighlight.currentColor, true);
                             me.mnuNoFormsColor.setChecked(me.btnHighlight.currentColor === null);
                             me.btnHighlight.setColor(me.btnHighlight.currentColor || 'transparent');
                         } else {
@@ -429,7 +434,10 @@ define([
             textSubmited: 'Form submitted successfully',
             textRequired: 'Fill all required fields to send form.',
             capBtnSaveForm: 'Save as a Form',
-            tipSaveForm: 'Save a file as a fillable OFORM document'
+            tipSaveForm: 'Save a file as a fillable OFORM document',
+            txtUntitled: 'Untitled',
+            textCreateForm: 'Add fields and create a fillable OFORM document',
+            textGotIt: 'Got it'
         }
     }()), DE.Views.FormsTab || {}));
 });

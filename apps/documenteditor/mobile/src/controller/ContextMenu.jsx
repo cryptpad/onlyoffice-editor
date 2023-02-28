@@ -15,6 +15,7 @@ import EditorUIController from '../lib/patch';
     canViewComments: stores.storeAppOptions.canViewComments,
     canCoAuthoring: stores.storeAppOptions.canCoAuthoring,
     canReview: stores.storeAppOptions.canReview,
+    canFillForms: stores.storeAppOptions.canFillForms,
     users: stores.users,
     isDisconnected: stores.users.isDisconnected,
     displayMode: stores.storeReview.displayMode
@@ -165,28 +166,30 @@ class ContextMenu extends ContextMenuController {
                         Common.EditorApi.get().SplitCell(parseInt(size[0]), parseInt(size[1]));
                     }
                 }
-            ]
+            ],
+            on: {
+                open: () => {
+                    picker = f7.picker.create({
+                        containerEl: document.getElementById('picker-split-size'),
+                        cols: [
+                            {
+                                textAlign: 'center',
+                                width: '100%',
+                                values: [1,2,3,4,5,6,7,8,9,10]
+                            },
+                            {
+                                textAlign: 'center',
+                                width: '100%',
+                                values: [1,2,3,4,5,6,7,8,9,10]
+                            }
+                        ],
+                        toolbar: false,
+                        rotateEffect: true,
+                        value: [3, 3]
+                    });
+                }
+            }
         }).open();
-        dialog.on('opened', () => {
-            picker = f7.picker.create({
-                containerEl: document.getElementById('picker-split-size'),
-                cols: [
-                    {
-                        textAlign: 'center',
-                        width: '100%',
-                        values: [1,2,3,4,5,6,7,8,9,10]
-                    },
-                    {
-                        textAlign: 'center',
-                        width: '100%',
-                        values: [1,2,3,4,5,6,7,8,9,10]
-                    }
-                ],
-                toolbar: false,
-                rotateEffect: true,
-                value: [3, 3]
-            });
-        });
     }
 
     openLink(url) {
@@ -210,7 +213,7 @@ class ContextMenu extends ContextMenuController {
 
     initMenuItems() {
         if ( !Common.EditorApi ) return [];
-        const { isEdit } = this.props;
+        const { isEdit, canFillForms } = this.props;
 
         if (isEdit && EditorUIController.ContextMenu) {
             return EditorUIController.ContextMenu.mapMenuItems(this);
@@ -253,6 +256,20 @@ class ContextMenu extends ContextMenuController {
                 itemsIcon.push({
                     event: 'copy',
                     icon: 'icon-copy'
+                });
+            }
+
+            if ( canFillForms && canCopy && !locked ) {
+                itemsIcon.push({
+                    event: 'cut',
+                    icon: 'icon-cut'
+                });
+            }
+
+            if ( canFillForms && !locked ) {
+                itemsIcon.push({
+                    event: 'paste',
+                    icon: 'icon-paste'
                 });
             }
 

@@ -51,23 +51,8 @@ const FunctionsList = props => {
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     let functionInfo = functions[elem.name];
-    
                                     if(functionInfo) {    
-                                        if(isPhone) {                                      
-                                            f7.dialog.create({
-                                                title: functionInfo.caption,
-                                                content: `<h3>${functionInfo.caption} ${functionInfo.args}</h3><p>${functionInfo.descr}</p>`,
-                                                buttons: [
-                                                    {text: t('View.Add.textCancel')},
-                                                    {
-                                                        text: t('View.Add.textInsert'),
-                                                        onClick: () => props.insertFormula(elem.name, elem.type)
-                                                    }
-                                                ]
-                                            }).open();
-                                        } else {
-                                            f7.views.current.router.navigate('/function-info/', {props: {functionInfo, functionObj: elem, insertFormula: props.insertFormula}});
-                                        }
+                                        f7.views.current.router.navigate('/function-info/', {props: {functionInfo, functionObj: elem, insertFormula: props.insertFormula}});
                                     }
                                 }}>
                                 <Icon icon='icon-info'/>
@@ -87,6 +72,9 @@ const CellEditorView = props => {
     const isPhone = Device.isPhone;
     const storeAppOptions = props.storeAppOptions;
     const storeFunctions = props.storeFunctions;
+    const storeWorksheets = props.storeWorksheets;
+    const wsLock = storeWorksheets.wsLock;
+    const {functionsDisable} = props.storeFocusObjects;
     const functions = storeFunctions.functions;
     const isEdit = storeAppOptions.isEdit;
     const funcArr = props.funcArr;
@@ -100,27 +88,19 @@ const CellEditorView = props => {
             <View id="idx-celleditor" style={viewStyle} routes={routes} className={expanded ? 'cell-editor expanded' : 'cell-editor collapsed'}>
                 <div id="box-cell-name" className="ce-group">
                     <span id="idx-cell-name">{props.cellName}</span>
-                    <a href="#" id="idx-btn-function" className='link icon-only' disabled={(!isEdit && true) || props.stateCoauth} onClick={() => {props.onClickToOpenAddOptions('function', '#idx-btn-function');}}>
+                    <a href="#" id="idx-btn-function" className='link icon-only' disabled={(!isEdit && true) || props.stateFunctions || functionsDisable || wsLock} onClick={() => {props.onClickToOpenAddOptions('function', '#idx-btn-function');}}>
                         <i className="icon icon-function" />
                     </a>
                 </div>
                 <div className="ce-group group--content" style={contentStyle}>
                     <div id="idx-list-target" className="target-function-list"></div>
-                    <textarea id="idx-cell-content" spellCheck="false" />
+                    <textarea id="idx-cell-content" spellCheck="false"/>
                 </div>
                 <div className="ce-group">
                     <Link icon="caret" onClick={expandClick} />
                 </div>
-                {funcArr && funcArr.length ?
-                    isPhone &&
-                        <FunctionsList 
-                            functions={functions} 
-                            funcArr={funcArr} 
-                            insertFormula={props.insertFormula} 
-                        />
-                : null}
             </View>
-            {!isPhone &&
+            {
                 <Popover 
                     id="idx-functions-list" 
                     className="popover__titled popover__functions" 
@@ -129,7 +109,7 @@ const CellEditorView = props => {
                     closeByOutsideClick={true}
                 >
                     {funcArr && funcArr.length ?
-                        <View style={{height: '175px'}} routes={routes}>
+                        <View style={{height: '200px'}} routes={routes}>
                             <Page pageContent={false}>
                                 <Navbar className="navbar-hidden" />
                                 <FunctionsList 
@@ -154,4 +134,4 @@ const routes = [
 ];
 
 
-export default inject("storeAppOptions", "storeFunctions")(observer(CellEditorView));
+export default inject("storeAppOptions", "storeFunctions", "storeFocusObjects", "storeWorksheets")(observer(CellEditorView));

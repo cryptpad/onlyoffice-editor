@@ -82,7 +82,7 @@ define([
                                     '<div class="btn-slot" id="slot-hbtn-print"></div>' +
                                     '<div class="btn-slot" id="slot-hbtn-download"></div>' +
                                 '</div>' +
-                                '<div class="hedset">' +
+                                '<div class="hedset" data-layout-name="header-users">' +
                                     // '<span class="btn-slot text" id="slot-btn-users"></span>' +
                                     '<section id="tlb-box-users" class="box-cousers dropdown"">' +
                                         '<div class="btn-users" data-hint="0" data-hint-direction="bottom" data-hint-offset="big">' +
@@ -118,7 +118,7 @@ define([
         var templateTitleBox = '<section id="box-document-title">' +
                                 '<div class="extra"></div>' +
                                 '<div class="hedset">' +
-                                    '<div class="btn-slot" id="slot-btn-dt-save"></div>' +
+                                    '<div class="btn-slot" id="slot-btn-dt-save" data-layout-name="header-save"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-print"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-undo"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-redo"></div>' +
@@ -130,11 +130,11 @@ define([
                             '</section>';
 
         function onResetUsers(collection, opts) {
-            var usercount = collection.getEditingCount();
+            var usercount = collection.getVisibleEditingCount();
             if ( $userList ) {
                 if ( usercount > 1 || usercount > 0 && appConfig && !appConfig.isEdit && !appConfig.isRestrictedEdit) {
                     $userList.html(templateUserList({
-                        users: collection.chain().filter(function(item){return item.get('online') && !item.get('view')}).groupBy(function(item) {return item.get('idOriginal');}).value(),
+                        users: collection.chain().filter(function(item){return item.get('online') && !item.get('view') && !item.get('hidden')}).groupBy(function(item) {return item.get('idOriginal');}).value(),
                         usertpl: _.template(templateUserItem),
                         fnEncode: function(username) {
                             return Common.Utils.String.htmlEncode(AscCommon.UserInfoParser.getParsedName(username));
@@ -153,7 +153,7 @@ define([
                 }
             }
 
-            applyUsers( usercount, collection.getEditingOriginalCount() );
+            applyUsers( usercount, collection.getVisibleEditingOriginalCount() );
         };
 
         function onUsersChanged(model) {
@@ -270,7 +270,7 @@ define([
                 $panelUsers.find('.cousers-menu')
                     .on('click', function(e) { return false; });
 
-                var editingUsers = storeUsers.getEditingCount();
+                var editingUsers = storeUsers.getVisibleEditingCount();
                 $btnUsers.tooltip({
                     title: (editingUsers > 1 || editingUsers>0 && !appConfig.isEdit && !appConfig.isRestrictedEdit) ? me.tipViewUsers : me.tipAccessRights,
                     titleNorm: me.tipAccessRights,
@@ -351,10 +351,6 @@ define([
 
             if ( me.btnOptions )
                 me.btnOptions.updateHint(me.tipViewSettings);
-
-            if ( me.btnContentMode ) {
-                me.btnContentMode.on('click', function (e) { Common.UI.Themes.toggleContentTheme(); });
-            }
         }
 
         function onDocNameKeyDown(e) {
@@ -392,9 +388,6 @@ define([
         }
 
         function onContentThemeChangedToDark(isdark) {
-            if ( this.btnContentMode ) {
-                this.btnContentMode.changeIcon(!isdark ? {curr: 'btn-mode-light', next: 'btn-mode-dark'} : {curr: 'btn-mode-dark', next: 'btn-mode-light'});
-            }
         }
 
         return {
@@ -477,14 +470,15 @@ define([
             getPanel: function (role, config) {
                 var me = this;
 
-                function createTitleButton(iconid, slot, disabled, hintDirection, hintOffset) {
+                function createTitleButton(iconid, slot, disabled, hintDirection, hintOffset, hintTitle) {
                     return (new Common.UI.Button({
                         cls: 'btn-header',
                         iconCls: iconid,
                         disabled: disabled === true,
                         dataHint:'0',
-                        dataHintDirection: hintDirection ? hintDirection : 'left',
-                        dataHintOffset: hintOffset ? hintOffset : '10, 10'
+                        dataHintDirection: hintDirection ? hintDirection : (config.isDesktopApp ? 'right' : 'left'),
+                        dataHintOffset: hintOffset ? hintOffset : (config.isDesktopApp ? '10, -10' : '10, 10'),
+                        dataHintTitle: hintTitle
                     })).render(slot);
                 }
 
@@ -539,7 +533,7 @@ define([
                             this.btnDownload = createTitleButton('toolbar__icon icon--inverse btn-download', $html.findById('#slot-hbtn-download'), undefined, 'bottom', 'big');
 
                         if ( config.canPrint )
-                            this.btnPrint = createTitleButton('toolbar__icon icon--inverse btn-print', $html.findById('#slot-hbtn-print'), undefined, 'bottom', 'big');
+                            this.btnPrint = createTitleButton('toolbar__icon icon--inverse btn-print', $html.findById('#slot-hbtn-print'), undefined, 'bottom', 'big', 'P');
 
                         if ( config.canEdit && config.canRequestEditRights )
                             this.btnEdit = createTitleButton('toolbar__icon icon--inverse btn-edit', $html.findById('#slot-hbtn-edit'), undefined, 'bottom', 'big');
@@ -548,7 +542,7 @@ define([
 
                     if (!config.isEdit || config.customization && !!config.customization.compactHeader) {
                         if (config.user.guest && config.canRenameAnonymous)
-                            me.btnUserName = createTitleButton('toolbar__icon icon--inverse btn-user', $html.findById('#slot-btn-user-name'), undefined, 'bottom', 'big');
+                            me.btnUserName = createTitleButton('toolbar__icon icon--inverse btn-user', $html.findById('#slot-btn-user-name'), undefined, 'bottom', 'big' );
                         else {
                             me.elUserName = $html.find('.btn-current-user');
                             me.elUserName.removeClass('hidden');
@@ -561,15 +555,6 @@ define([
                     $btnUsers = $html.find('.btn-users');
 
                     $panelUsers.hide();
-
-                    if ( !!window.DE ) {
-                        var mode_cls = Common.UI.Themes.isContentThemeDark() ? 'btn-mode-light' : 'btn-mode-dark';
-                        me.btnContentMode = createTitleButton('toolbar__icon icon--inverse ' + mode_cls, $html.findById('#slot-btn-mode'), undefined, 'bottom', 'big');
-
-                        var document = window.DE.getController('Main').document;
-                        me.btnContentMode.setVisible(Common.UI.Themes.isDarkTheme() && !/^pdf|djvu|xps|oxps$/.test(document.fileType));
-                    }
-
                     return $html;
                 } else
                 if ( role == 'title' ) {
@@ -583,12 +568,12 @@ define([
                     me.setUserName(me.options.userName);
 
                     if ( config.canPrint && config.isEdit ) {
-                        me.btnPrint = createTitleButton('toolbar__icon icon--inverse btn-print', $html.findById('#slot-btn-dt-print'), true);
+                        me.btnPrint = createTitleButton('toolbar__icon icon--inverse btn-print', $html.findById('#slot-btn-dt-print'), true, undefined, undefined, 'P');
                     }
 
-                    me.btnSave = createTitleButton('toolbar__icon icon--inverse btn-save', $html.findById('#slot-btn-dt-save'), true);
-                    me.btnUndo = createTitleButton('toolbar__icon icon--inverse btn-undo', $html.findById('#slot-btn-dt-undo'), true);
-                    me.btnRedo = createTitleButton('toolbar__icon icon--inverse btn-redo', $html.findById('#slot-btn-dt-redo'), true);
+                    me.btnSave = createTitleButton('toolbar__icon icon--inverse btn-save', $html.findById('#slot-btn-dt-save'), true, undefined, undefined, 'S');
+                    me.btnUndo = createTitleButton('toolbar__icon icon--inverse btn-undo', $html.findById('#slot-btn-dt-undo'), true, undefined, undefined, 'Z');
+                    me.btnRedo = createTitleButton('toolbar__icon icon--inverse btn-redo', $html.findById('#slot-btn-dt-redo'), true, undefined, undefined, 'Y');
 
                     if ( me.btnSave.$icon.is('svg') ) {
                         me.btnSave.$icon.addClass('icon-save btn-save');
@@ -737,7 +722,7 @@ define([
                         this.btnUserName.updateHint(name);
                     } else if (this.elUserName) {
                         this.elUserName.tooltip({
-                            title: name,
+                            title: Common.Utils.String.htmlEncode(name),
                             placement: 'cursor',
                             html: true
                         });

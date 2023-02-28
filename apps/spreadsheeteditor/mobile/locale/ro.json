@@ -41,6 +41,7 @@
   },
   "ContextMenu": {
     "errorCopyCutPaste": "Operațiuni de copiere, decupare și lipire din meniul contextual se execută numai în fișierul curent.",
+    "errorInvalidLink": "Legătură de referință nu există. Corectați sau eliminați legătura.",
     "menuAddComment": "Adaugă comentariu",
     "menuAddLink": "Adăugare link",
     "menuCancel": "Anulează",
@@ -153,7 +154,9 @@
       "warnLicenseUsersExceeded": "Ați atins numărul maxim de utilizatori ai %1 editoare. Pentru detalii, contactați administratorul dvs.",
       "warnNoLicense": "Ați atins numărul maxim de conexiuni simultane la %1 de editoare. Documentul este disponibil numai pentru vizualizare. Contactați %1 Departamentul de Vânzări pentru acordarea condițiilor personale de actualizare.",
       "warnNoLicenseUsers": "Ați atins numărul maxim de utilizatori ai %1 editoare. Contactați Grup Vânzări %1 pentru acordarea condițiilor personale de licențiere.",
-      "warnProcessRightsChange": "Nu aveți permisiunea de editare pentru fișier."
+      "warnProcessRightsChange": "Nu aveți permisiunea de editare pentru fișier.",
+      "textNoChoices": "There are no choices for filling the cell.<br>Only text values from the column can be selected for replacement.",
+      "textOk": "Ok"
     }
   },
   "Error": {
@@ -216,18 +219,20 @@
     "errorUsersExceed": "Limita de utilizatori stipulată de planul tarifar a fost depășită",
     "errorViewerDisconnect": "Conexiunea a fost pierdută. Încă mai puteți vizualiza documentul,<br>dar nu și să-l descărcați până când conexiunea se restabilește și pagina se reîmprospătează.",
     "errorWrongBracketsCount": "Eroare în formulă.<br>Numărul de paranteze incorect.",
-    "errorWrongOperator": "Eroare în formulă. Operator necorespunzător.<br>Corectați eroarea sau apăsați Esc pentru anularea editărilor formulei.",
+    "errorWrongOperator": "Eroare în formulă. Operator necorespunzător.<br>Corectați eroarea.",
     "notcriticalErrorTitle": "Avertisment",
     "openErrorText": "Eroare la deschiderea fișierului",
     "pastInMergeAreaError": "O parte din celulă îmbinată nu poate fi modificată ",
     "saveErrorText": "Eroare la salvarea fișierului",
     "scriptLoadError": "Conexeunea e prea lentă și unele elemente nu se încarcă. Încercați să reîmprospătati pagina.",
+    "textErrorPasswordIsNotCorrect": "Parola introdusă este incorectă.<br>Verificaţi dacă nu este activată tasta CAPS LOCK și vă asigurați că utilizați introducerea corectă a majusculelor.",
     "unknownErrorText": "Eroare necunoscută.",
     "uploadImageExtMessage": "Format de imagine nerecunoscut.",
     "uploadImageFileCountMessage": "Nicio imagine nu a fost încărcată.",
     "uploadImageSizeMessage": "Imaginea este prea mare. Limita de dimensiune este de 25 MB."
   },
   "LongActions": {
+    "advDRMPassword": "Parola",
     "applyChangesTextText": "Încărcarea datelor...",
     "applyChangesTitleText": "Încărcare date",
     "confirmMoveCellRange": "Celulele din zonă de destinație pot conține datele. Doriți să continuați?",
@@ -254,9 +259,13 @@
     "savePreparingTitle": "Pregătire pentru salvare. Vă rugăm să așteptați...",
     "saveTextText": "Salvarea documentului...",
     "saveTitleText": "Salvare document",
+    "textCancel": "Anulare",
+    "textErrorWrongPassword": "Parola introdusă este incorectă.",
     "textLoadingDocument": "Încărcare document",
     "textNo": "Nu",
     "textOk": "OK",
+    "textUnlockRange": "Deblocare zonă",
+    "textUnlockRangeWarning": "Zonă, pe care doriţi să o modificaţi, este protejată prin parolă. ",
     "textYes": "Da",
     "txtEditingMode": "Setare modul de editare...",
     "uploadImageTextText": "Încărcarea imaginii...",
@@ -281,7 +290,10 @@
     "textSheet": "Foaie",
     "textSheetName": "Numele foii",
     "textUnhide": "Reafișare",
-    "textWarnDeleteSheet": "Foaie de calcul poate conține datele. Sigur doriți să continuați?"
+    "textWarnDeleteSheet": "Foaie de calcul poate conține datele. Sigur doriți să continuați?",
+    "textMove": "Move",
+    "textMoveBack": "Move back",
+    "textMoveForward": "Move forward"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "Nu ați salvat modificările din documentul. Faceți clic pe Rămâi în pagină și așteptați la salvare automată. Faceți clic pe Părăsește aceasta pagina ca să renunțați la toate modificările nesalvate.",
@@ -521,7 +533,8 @@
       "textYen": "Yen",
       "txtNotUrl": "Câmpul trebuie să conțină adresa URL in format \"http://www.example.com\"",
       "txtSortHigh2Low": "Sortare de la cea mai mare la cea mai mică valoare",
-      "txtSortLow2High": "Sortare de la cea mai mică la cea mai mare valoare"
+      "txtSortLow2High": "Sortare de la cea mai mică la cea mai mare valoare",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "advCSVOptions": "Alegerea opțiunilor CSV",
@@ -625,7 +638,7 @@
       "txtEncoding": "Codificare",
       "txtIncorrectPwd": "Parolă incorectă",
       "txtOk": "OK",
-      "txtProtected": "Parola curentă va fi resetată, de îndată ce parola este introdusă și fișierul este deschis.",
+      "txtProtected": "Parola curentă va fi resetată de îndată ce parola este introdusă și fișierul este deschis.",
       "txtScheme1": "Office",
       "txtScheme10": "Median",
       "txtScheme11": "Metrou",
@@ -651,7 +664,8 @@
       "txtSemicolon": "Punct și virgulă",
       "txtSpace": "Spațiu",
       "txtTab": "Tabulator",
-      "warnDownloadAs": "Dacă salvați în acest format de fișier, este posibil ca unele dintre caracteristici să se piardă, cu excepția textului.<br>Sunteți sigur că doriți să continuați?"
+      "warnDownloadAs": "Dacă salvați în acest format de fișier, este posibil ca unele dintre caracteristici să se piardă, cu excepția textului.<br>Sunteți sigur că doriți să continuați?",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

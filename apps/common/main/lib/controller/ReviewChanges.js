@@ -210,6 +210,7 @@ define([
                             this.dlgChanges.btnReject.setDisabled(btnlock);
                         }
                         this._state.lock = btnlock;
+                        Common.Utils.InternalSettings.set(this.view.appPrefix + "accept-reject-lock", btnlock);
                     }
                     this._state.posx = posX;
                     this._state.posy = posY;
@@ -585,13 +586,15 @@ define([
             }
         },
 
-        onTurnSpelling: function (state) {
+        onTurnSpelling: function (state, suspend) {
             state = (state == 'on');
-            this.view.turnSpelling(state);
+            this.view && this.view.turnSpelling(state);
 
-            Common.localStorage.setItem(this.view.appPrefix + "settings-spellcheck", state ? 1 : 0);
-            this.api.asc_setSpellCheck(state);
-            Common.Utils.InternalSettings.set(this.view.appPrefix + "settings-spellcheck", state);
+            if (Common.UI.FeaturesManager.canChange('spellcheck') && !suspend) {
+                Common.localStorage.setItem(this.view.appPrefix + "settings-spellcheck", state ? 1 : 0);
+                this.api.asc_setSpellCheck(state);
+                Common.Utils.InternalSettings.set(this.view.appPrefix + "settings-spellcheck", state);
+            }
         },
 
         onReviewViewClick: function(menu, item, e) {
@@ -802,9 +805,6 @@ define([
 
         onAppReady: function (config) {
             var me = this;
-            if ( me.view && Common.localStorage.getBool(me.view.appPrefix + "settings-spellcheck", !(config.customization && config.customization.spellcheck===false)))
-                me.view.turnSpelling(true);
-
             if ( config.canReview ) {
                 (new Promise(function (resolve) {
                     resolve();
@@ -918,6 +918,8 @@ define([
         applySettings: function(menu) {
             this.view && this.view.turnSpelling( Common.localStorage.getBool(this.view.appPrefix + "settings-spellcheck", true) );
             this.view && this.view.turnCoAuthMode( Common.localStorage.getBool(this.view.appPrefix + "settings-coauthmode", true) );
+            if ((this.appConfig.canReview || this.appConfig.canViewReview) && this.appConfig.reviewHoverMode)
+                this.onApiShowChange();
         },
 
         synchronizeChanges: function() {

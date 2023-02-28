@@ -41,6 +41,7 @@
   },
   "ContextMenu": {
     "errorCopyCutPaste": "As ações de copiar, recortar e colar usando o menu de contexto serão executadas apenas no arquivo atual.",
+    "errorInvalidLink": "A referência de link não existe. Corrija o link ou o exclua.",
     "menuAddComment": "Adicionar comentário",
     "menuAddLink": "Adicionar Link",
     "menuCancel": "Cancelar",
@@ -153,7 +154,9 @@
       "warnLicenseUsersExceeded": "Você atingiu o limite de usuários para editores %1. Entre em contato com seu administrador para saber mais.",
       "warnNoLicense": "Você atingiu o limite de conexões simultâneas para% 1 editores. Este documento será aberto apenas para visualização. Contate a equipe de vendas% 1 para termos de atualização pessoal.",
       "warnNoLicenseUsers": "Você atingiu o limite de usuários para editores %1.<br>Entre em contato com a equipe de vendas da %1 para obter os termos de atualização pessoais.",
-      "warnProcessRightsChange": "Você não tem permissão para editar o arquivo."
+      "warnProcessRightsChange": "Você não tem permissão para editar o arquivo.",
+      "textNoChoices": "There are no choices for filling the cell.<br>Only text values from the column can be selected for replacement.",
+      "textOk": "Ok"
     }
   },
   "Error": {
@@ -169,6 +172,7 @@
     "errorAutoFilterHiddenRange": "A operação não pode ser realizada porque a área contém células filtradas.<br>Por favor, desamarre os elementos filtrados e tente novamente.",
     "errorBadImageUrl": "URL de imagem está incorreta",
     "errorChangeArray": "Você não pode mudar parte de uma matriz.",
+    "errorChangeOnProtectedSheet": "A célula ou gráfico que você está tentando alterar está em uma folha protegida. Para fazer uma alteração, desproteja a folha. Você pode ser solicitado a inserir a senha.",
     "errorConnectToServer": "Não é possível salvar este documento. Verifique as configurações de conexão ou entre em contato com o administrador. <br> Ao clicar no botão 'OK', você será solicitado a baixar o documento.",
     "errorCopyMultiselectArea": "Este comando não pode ser usado com várias seleções.<br>Selecione um intervalo único e tente novamente.",
     "errorCountArg": "Um erro na fórmula. <br> Número inválido de argumentos.",
@@ -215,19 +219,20 @@
     "errorUsersExceed": "O número de usuários permitidos pelo plano de preços foi excedido",
     "errorViewerDisconnect": "A conexão foi perdida. Você ainda pode ver o documento, <br> mas não poderá baixá-lo até que a conexão seja restaurada e a página recarregada.",
     "errorWrongBracketsCount": "Erro na fórmula. <br> Número incorreto de colchetes.",
-    "errorWrongOperator": "Um erro na fórmula inserida. O operador errado é usado. <br> Corrija o erro ou use o botão Esc para cancelar a edição da fórmula.",
+    "errorWrongOperator": "Um erro na fórmula inserida. O operador errado é usado. <br> Corrija o erro.",
     "notcriticalErrorTitle": "Aviso",
     "openErrorText": "Ocorreu um erro ao abrir o arquivo",
     "pastInMergeAreaError": "Não é possível alterar uma parte de uma célula mesclada",
     "saveErrorText": "Ocorreu um erro ao gravar o arquivo",
     "scriptLoadError": "A conexão está muito lenta, alguns dos componentes não puderam ser carregados. Por favor recarregue a página.",
+    "textErrorPasswordIsNotCorrect": "A senha fornecida não está correta. <br> Verifique se a tecla CAPS LOCK está desligada e use a capitalização correta.",
     "unknownErrorText": "Erro desconhecido.",
     "uploadImageExtMessage": "Formato de imagem desconhecido.",
     "uploadImageFileCountMessage": "Sem imagens carregadas.",
-    "uploadImageSizeMessage": "Tamanho limite máximo da imagem excedido. O tamanho máximo é de 25 MB.",
-    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password."
+    "uploadImageSizeMessage": "Tamanho limite máximo da imagem excedido. O tamanho máximo é de 25 MB."
   },
   "LongActions": {
+    "advDRMPassword": "Senha",
     "applyChangesTextText": "Carregando dados...",
     "applyChangesTitleText": "Carregando dados",
     "confirmMoveCellRange": "O intervalo de células de destino pode conter dados. Continuar a operação?",
@@ -254,9 +259,13 @@
     "savePreparingTitle": "Preparando para salvar. Aguarde...",
     "saveTextText": "Salvando documento...",
     "saveTitleText": "Salvando documento",
+    "textCancel": "Cancelar",
+    "textErrorWrongPassword": "A senha que você forneceu não está correta.",
     "textLoadingDocument": "Carregando documento",
     "textNo": "Não",
     "textOk": "OK",
+    "textUnlockRange": "Desbloquear intervalo",
+    "textUnlockRangeWarning": "Um intervalo que você está tentando alterar está protegido por senha.",
     "textYes": "Sim",
     "txtEditingMode": "Definir modo de edição...",
     "uploadImageTextText": "Carregando imagem...",
@@ -281,7 +290,10 @@
     "textSheet": "Folha",
     "textSheetName": "Nome da folha",
     "textUnhide": "Reexibir",
-    "textWarnDeleteSheet": "A folha de trabalho talvez tenha dados. Proceder à operação?"
+    "textWarnDeleteSheet": "A folha de trabalho talvez tenha dados. Proceder à operação?",
+    "textMove": "Move",
+    "textMoveBack": "Move back",
+    "textMoveForward": "Move forward"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "Você tem alterações não salvas neste documento. Clique em 'Permanecer nesta página' para aguardar o salvamento automático. Clique em 'Sair desta página' para descartar todas as alterações não salvas.",
@@ -521,7 +533,8 @@
       "textYen": "Iene",
       "txtNotUrl": "Este campo deve ser uma URL no formato \"http://www.example.com\"",
       "txtSortHigh2Low": "Classificar do maior para o menor",
-      "txtSortLow2High": "Classificar do menor para o maior"
+      "txtSortLow2High": "Classificar do menor para o maior",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "advCSVOptions": "Escolher opções CSV",
@@ -651,7 +664,8 @@
       "txtSemicolon": "Ponto e vírgula ",
       "txtSpace": "Espaço",
       "txtTab": "Aba",
-      "warnDownloadAs": "If you continue saving in this format all features except the text will be lost.<br>Are you sure you want to continue?"
+      "warnDownloadAs": "If you continue saving in this format all features except the text will be lost.<br>Are you sure you want to continue?",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

@@ -57,6 +57,7 @@ define([
             userid              : 0,
             username            : 'Guest',
             parsedName          : 'Guest',
+            parsedGroups        : undefined,
             usercolor           : null,
             date                : undefined,
             quote               : '',
@@ -66,6 +67,7 @@ define([
             lockuserid          : '',
             unattached          : false,
             userdata            : '',
+            position            : -1,
 
             id                  : Common.UI.getId(),        //  internal
             time                : 0,
@@ -78,6 +80,7 @@ define([
             hideAddReply        : false,
             scope               : null,
             hide                : false,
+            filtered            : false,
             hint                : false,
             dummy               : undefined,
             editable            : true,

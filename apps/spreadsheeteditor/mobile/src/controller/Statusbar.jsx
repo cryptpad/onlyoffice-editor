@@ -1,5 +1,5 @@
 
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import {StatusbarView} from '../view/Statusbar';
 import { inject, observer } from 'mobx-react';
 import { f7 } from 'framework7-react';
@@ -22,6 +22,7 @@ const StatusbarController = inject('sheets', 'storeFocusObjects', 'users')(obser
             api.asc_registerCallback('asc_onChangeProtectWorkbook', () => {
                 sheets.setProtectedWorkbook(api.asc_isProtectedWorkbook());
             });
+            api.asc_registerCallback('asc_onEditCell', onApiEditCell);
             api.asc_registerCallback('asc_onSheetsChanged', onApiSheetsChanged);
             api.asc_registerCallback('asc_onActiveSheetChanged', onApiActiveSheetChanged);
             api.asc_registerCallback('asc_onHidePopMenu', onApiHideTabContextMenu);
@@ -31,6 +32,11 @@ const StatusbarController = inject('sheets', 'storeFocusObjects', 'users')(obser
         Common.Notifications.on('document:ready', onApiSheetsChanged);
         Common.Notifications.on('api:disconnect', onApiDisconnect);
     });
+
+    const onApiEditCell = state => {
+        let isDisable = state !== Asc.c_oAscCellEditorState.editEnd;
+        sheets.setDisabledEditSheet(isDisable);
+    }
 
     const onApiDisconnect = () => {
         users.resetDisconnected(true);
@@ -127,6 +133,8 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
     const isEdit = storeAppOptions.isEdit;
     const isDisconnected = users.isDisconnected;
     const isProtectedWorkbook = sheets.isProtectedWorkbook;
+    const isDisabledEditSheet = sheets.isDisabledEditSheet;
+    const targetRef = useRef();
 
     useEffect(() => {
         const on_main_view_click = e => {
@@ -176,6 +184,7 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
     const onTabClick = (i, target) => {
         const api = Common.EditorApi.get();
         const model = sheets.at(i);
+        targetRef.current = target;
 
         let opened = $$('.document-menu.modal-in').length;
         let index = model.index;
@@ -184,7 +193,7 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
 
         if (index == api.asc_getActiveWorksheetIndex()) {
             if (!opened) {
-                if (isEdit && !isDisconnected && !model.locked && !isProtectedWorkbook) {
+                if (isEdit && !isDisconnected && !model.locked && !isProtectedWorkbook && !isDisabledEditSheet) {
                     api.asc_closeCellEditor();
                     f7.popover.open('#idx-tab-context-menu-popover', target);
                 }
@@ -325,6 +334,9 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
                 api.asc_copyWorksheet(index, name);
                 break;
             case 'ren': renameWorksheet(); break;
+            case 'move': 
+                Device.phone ? f7.sheet.open('.move-sheet') : f7.popover.open('#idx-move-sheet-popover', targetRef.current); 
+                break;
             case 'unhide':
                 f7.popover.open('#idx-hidden-sheets-popover', '.active');
                 break;
@@ -339,12 +351,27 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
         }
     };
 
+    const onMenuMoveClick = (action) => {
+        const api = Common.EditorApi.get();
+        const visibleSheets = sheets.visibleWorksheets();
+        let activeIndex;
+
+        visibleSheets.forEach((item, index) => {
+            if(item.index === api.asc_getActiveWorksheetIndex()) {
+                activeIndex = visibleSheets[action === "forward" ? index+2 : index-1 ]?.index;  
+            }
+        });
+
+        api.asc_moveWorksheet(activeIndex === undefined ? api.asc_getWorksheetsCount() : activeIndex, [api.asc_getActiveWorksheetIndex()]);
+    }
+
     return (
         <StatusbarView 
             onTabClick={onTabClick}
             onTabClicked={onTabClicked}
             onAddTabClicked={onAddTabClicked}
             onTabMenu={onTabMenu}
+            onMenuMoveClick = {onMenuMoveClick}
         />
     )
 }));

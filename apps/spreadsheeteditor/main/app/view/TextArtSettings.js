@@ -95,7 +95,9 @@ define([
                 GradFillType: Asc.c_oAscFillGradType.GRAD_LINEAR,
                 FormId: null,
                 DisabledControls: false,
-                applicationPixelRatio: Common.Utils.applicationPixelRatio()
+                applicationPixelRatio: Common.Utils.applicationPixelRatio(),
+                isFromSmartArtInternal: false,
+                HideTransformSettings: false
             };
             this.lockedControls = [];
             this._locked = false;
@@ -125,6 +127,8 @@ define([
             this.FillPatternContainer = $('#textart-panel-pattern-fill');
             this.FillGradientContainer = $('#textart-panel-gradient-fill');
             this.TransparencyContainer = $('#textart-panel-transparent-fill');
+
+            this.TransformSettings = $('.textart-transform');
 
             SSE.getCollection('Common.Collections.TextArt').bind({
                 reset: this.fillTextArt.bind(this)
@@ -694,6 +698,9 @@ define([
             if (this._initSettings)
                 this.createDelayedElements();
 
+            this._state.isFromSmartArtInternal = props.asc_getShapeProperties() && props.asc_getShapeProperties().asc_getFromSmartArtInternal();
+            this.hideTransformSettings(this._state.isFromSmartArtInternal);
+
             if (props && props.asc_getShapeProperties() && props.asc_getShapeProperties().get_TextArtProperties())
             {
                 var shapeprops = props.asc_getShapeProperties().get_TextArtProperties();
@@ -1099,23 +1106,25 @@ define([
             this.cmbFillSrc.on('selected', _.bind(this.onFillSrcSelect, this));
             this.lockedControls.push(this.cmbFillSrc);
 
+            var itemWidth = 28,
+                itemHeight = 28;
             this.cmbPattern = new Common.UI.ComboDataView({
-                itemWidth: 28,
-                itemHeight: 28,
+                itemWidth: itemWidth,
+                itemHeight: itemHeight,
                 menuMaxHeight: 300,
                 enableKeyEvents: true,
                 cls: 'combo-pattern',
                 dataHint: '1',
                 dataHintDirection: 'bottom',
-                dataHintOffset: 'big'
-            });
-            this.cmbPattern.menuPicker.itemTemplate = this.cmbPattern.fieldPicker.itemTemplate = _.template([
+                dataHintOffset: 'big',
+                itemTemplate: _.template([
                     '<div class="style" id="<%= id %>">',
                         '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" class="combo-pattern-item" ',
-                        'width="' + this.cmbPattern.itemWidth + '" height="' + this.cmbPattern.itemHeight + '" ',
+                        'width="' + itemWidth + '" height="' + itemHeight + '" ',
                         'style="background-position: -<%= offsetx %>px -<%= offsety %>px;"/>',
                     '</div>'
-                ].join(''));
+                ].join(''))
+            });
             this.cmbPattern.render($('#textart-combo-pattern'));
             this.cmbPattern.openButton.menu.cmpEl.css({
                 'min-width': 178,
@@ -1789,6 +1798,13 @@ define([
                 this.fillTransform(this.api.asc_getPropertyEditorTextArts());
 
             this._state.applicationPixelRatio = Common.Utils.applicationPixelRatio();
+        },
+
+        hideTransformSettings: function(value) {
+            if (this._state.HideTransformSettings !== value) {
+                this._state.HideTransformSettings = value;
+                this.TransformSettings.toggleClass('hidden', value === true);
+            }
         },
 
         txtNoBorders            : 'No Line',

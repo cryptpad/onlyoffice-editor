@@ -13,12 +13,13 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
         });
         return () => {
             const api = Common.EditorApi.get();
-            api.asc_unregisterCallback('asc_onError', onError);
+            if ( api ) api.asc_unregisterCallback('asc_onError', onError);
         }
     });
 
     const onError = (id, level, errData) => {
-
+        const api = Common.EditorApi.get();
+        
         if (id === Asc.c_oAscError.ID.LoadingScriptError) {
             f7.notification.create({
                 title: _t.criticalErrorTitle,
@@ -30,8 +31,6 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
 
         Common.Notifications.trigger('preloader:close');
         Common.Notifications.trigger('preloader:endAction', Asc.c_oAscAsyncActionType['BlockInteraction'], LoadingDocument,true);
-
-        const api = Common.EditorApi.get();
 
         const config = {
             closable: false
@@ -311,6 +310,10 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
                 config.msg = _t.errorLoadingFont;
                 break;
 
+            case Asc.c_oAscError.ID.PasswordIsNotCorrect:
+                config.msg = t('Error.textErrorPasswordIsNotCorrect');
+                break;
+
             default:
                 config.msg = _t.errorDefaultMessage.replace('%1', id);
                 break;
@@ -353,7 +356,7 @@ const ErrorController = inject('storeAppOptions')(({storeAppOptions, LoadingDocu
             buttons: [
                 {
                     text: 'OK',
-                    onClick: config.callback
+                    onClick: () => config.callback
                 }
             ]
         }).open();

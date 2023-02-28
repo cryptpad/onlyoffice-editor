@@ -86,13 +86,22 @@ class MainPage extends Component {
   render() {
       const appOptions = this.props.storeAppOptions;
       const config = appOptions.config;
-      const showLogo = !(appOptions.canBrandingExt && (config.customization && (config.customization.loaderName || config.customization.loaderLogo)));
+
+      let showLogo = !(appOptions.canBrandingExt && (config.customization && (config.customization.loaderName || config.customization.loaderLogo)));
+      if ( !Object.keys(config).length ) {
+          showLogo = !/&(?:logo)=/.test(window.location.search);
+      }
+
       const showPlaceholder = !appOptions.isDocReady && (!config.customization || !(config.customization.loaderName || config.customization.loaderLogo));
+      if ( $$('.skl-container').length ) {
+          $$('.skl-container').remove();
+      }
+
       return (
           <Page name="home" className={`editor${ showLogo ? ' page-with-logo' : ''}`}>
               {/* Top Navbar */}
               <Navbar id='editor-navbar' className={`main-navbar${showLogo ? ' navbar-with-logo' : ''}`}>
-                  {showLogo && <div className="main-logo"><Icon icon="icon-logo"></Icon></div>}
+                  {showLogo && appOptions.canBranding !== undefined && <div className="main-logo"><Icon icon="icon-logo"></Icon></div>}
                   <Subnavbar>
                       <Toolbar openOptions={this.handleClickToOpenOptions} closeOptions={this.handleOptionsViewClosed}/>
                       <Search useSuspense={false}/>

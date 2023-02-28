@@ -52,17 +52,19 @@ var checkLocalStorage = (function () {
     }
 })();
 
-if ( window.desktop && !!window.RendererProcessVariable ) {
-    var theme = window.RendererProcessVariable.theme
+if ( window.desktop ) {
+    var theme = desktop.theme
 
     if ( theme ) {
+        if ( !theme.id && !!theme.type ) {
+            if ( theme.type == 'dark' ) theme.id = 'theme-dark'; else
+            if ( theme.type == 'light' ) theme.id = 'theme-classic-light';
+        }
+
         if ( theme.id ) {
             // params.uitheme = undefined;
             localStorage.setItem("ui-theme-id", theme.id);
-        } else
-        if ( !!theme.type ) {
-            if ( theme.type == 'dark' ) params.uitheme = 'default-dark'; else
-            if ( theme.type == 'light' ) params.uitheme = 'default-light';
+            localStorage.removeItem("ui-theme");
         }
     }
 }
@@ -88,4 +90,14 @@ if ( !ui_theme_name ) {
 }
 if ( !!ui_theme_name ) {
     document.body.classList.add(ui_theme_name);
+}
+
+if ( checkLocalStorage ) {
+    var content_theme = localStorage.getItem("content-theme");
+    if ( content_theme == 'dark' ) {
+        var current_theme = localStorage.getItem("ui-theme");
+        if ( !!current_theme && /type":\s*"dark/.test(current_theme) ) {
+            document.body.classList.add("content-theme-dark");
+        }
+    }
 }

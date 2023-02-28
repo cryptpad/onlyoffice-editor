@@ -1,6 +1,6 @@
 import React, {Fragment, useState, useEffect} from 'react';
 import {observer, inject} from "mobx-react";
-import {f7, List, ListItem, Icon, Row, Button, Page, Navbar, Segmented, BlockTitle, NavRight, Link, Toggle} from 'framework7-react';
+import {f7, List, ListItem, Icon, Row, Button, Page, Navbar, Segmented, BlockTitle, NavRight, Link, Toggle, Swiper, SwiperSlide} from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 import {Device} from '../../../../../common/mobile/utils/device';
 import { ThemeColorPalette, CustomColorPicker } from '../../../../../common/mobile/lib/component/ThemeColorPalette.jsx';
@@ -11,7 +11,11 @@ const EditCell = props => {
     const { t } = useTranslation();
     const _t = t('View.Edit', {returnObjects: true});
     const storeCellSettings = props.storeCellSettings;
+    const storeWorksheets = props.storeWorksheets;
+    const wsProps = storeWorksheets.wsProps;
     const cellStyles = storeCellSettings.cellStyles;
+    const countSlides = Math.floor(cellStyles.length / 9);
+    const arraySlides = Array(countSlides).fill(countSlides);
     const styleName = storeCellSettings.styleName;
 
     const fontInfo = storeCellSettings.fontInfo;
@@ -27,7 +31,7 @@ const EditCell = props => {
 
     const fontColorPreview = fontColor !== 'auto' ?
         <span className="color-preview" style={{ background: `#${(typeof fontColor === "object" ? fontColor.color : fontColor)}`}}></span> :
-        <span className="color-preview"></span>;
+        <span className="color-preview auto"></span>;
     
     const fillColorPreview = fillColor !== 'transparent' ?
         <span className="color-preview" style={{ background: `#${(typeof fillColor === "object" ? fillColor.color : fillColor)}`}}></span> :
@@ -40,79 +44,91 @@ const EditCell = props => {
                     onFontSize: props.onFontSize,
                     onFontClick: props.onFontClick
                 }}/>
-                <ListItem className='buttons'>
-                    <Row>
-                        <a className={'button' + (isBold ? ' active' : '')} onClick={() => {props.toggleBold(!isBold)}}><b>B</b></a>
-                        <a className={'button' + (isItalic ? ' active' : '')} onClick={() => {props.toggleItalic(!isItalic)}}><i>I</i></a>
-                        <a className={'button' + (isUnderline ? ' active' : '')} onClick={() => {props.toggleUnderline(!isUnderline)}} style={{textDecoration: "underline"}}>U</a>
-                    </Row>
-                </ListItem>
-                <ListItem title={_t.textTextColor} link="/edit-cell-text-color/" routeProps={{
-                    onTextColor: props.onTextColor
-                }}>
-                    {!isAndroid ?
-                        <Icon slot="media" icon="icon-text-color">{fontColorPreview}</Icon> :
-                        fontColorPreview
-                    }
-                </ListItem>
-                <ListItem title={_t.textFillColor} link="/edit-cell-fill-color/" routeProps={{
-                    onFillColor: props.onFillColor
-                }}>
-                    {!isAndroid ?
-                        <Icon slot="media" icon="icon-fill-color">{fillColorPreview}</Icon> :
-                        fillColorPreview
-                    }
-                </ListItem>
-                <ListItem title={_t.textTextFormat} link="/edit-cell-text-format/" routeProps={{
-                    onHAlignChange: props.onHAlignChange,
-                    onVAlignChange: props.onVAlignChange,
-                    onWrapTextChange: props.onWrapTextChange
-                }}>
-                    {!isAndroid ?
-                        <Icon slot="media" icon="icon-text-align-left"></Icon> : null
-                    }
-                </ListItem>
-                <ListItem title={_t.textTextOrientation} link="/edit-cell-text-orientation/" routeProps={{
-                    onTextOrientationChange: props.onTextOrientationChange
-                }}>
-                    {!isAndroid ?
-                        <Icon slot="media" icon="icon-text-orientation-horizontal"></Icon> : null
-                    }
-                </ListItem>
-                <ListItem title={_t.textBorderStyle} link="/edit-cell-border-style/" routeProps={{
-                    onBorderStyle: props.onBorderStyle
-                }}>
-                    {!isAndroid ?
-                        <Icon slot="media" icon="icon-table-borders-all"></Icon> : null
-                    }
-                </ListItem>
-            </List>
-            <List>
-                <ListItem title={_t.textFormat} link="/edit-format-cell/" routeProps={{
-                    onCellFormat: props.onCellFormat,
-                    onCurrencyCellFormat: props.onCurrencyCellFormat,
-                    onAccountingCellFormat: props.onAccountingCellFormat,
-                    dateFormats: props.dateFormats,
-                    timeFormats: props.timeFormats
-                }}>
-                    {!isAndroid ?
-                        <Icon slot="media" icon="icon-format-general"></Icon> : null
-                    }
-                </ListItem>
-            </List>
-            <BlockTitle>{_t.textCellStyles}</BlockTitle>
-            {cellStyles.length ? (
-                <List className="cell-styles-list">
-                    {cellStyles.map((elem, index) => {
-                        return (
-                            <ListItem key={index}
-                                className={elem.name === styleName ? "item-theme active" : "item-theme"} onClick={() => props.onStyleClick(elem.name)}>
-                                <div className='thumb' style={{backgroundImage: `url(${elem.image})`}}></div>
-                            </ListItem>
-                        )
-                    })}
-                </List>
-            ) : null}    
+                {!wsProps.FormatCells && 
+                <>
+                    <List>
+                        <ListItem className='buttons'>
+                            <Row>
+                                <a className={'button' + (isBold ? ' active' : '')} onClick={() => {props.toggleBold(!isBold)}}><b>B</b></a>
+                                <a className={'button' + (isItalic ? ' active' : '')} onClick={() => {props.toggleItalic(!isItalic)}}><i>I</i></a>
+                                <a className={'button' + (isUnderline ? ' active' : '')} onClick={() => {props.toggleUnderline(!isUnderline)}} style={{textDecoration: "underline"}}>U</a>
+                            </Row>
+                        </ListItem>
+                        <ListItem title={_t.textTextColor} link="/edit-cell-text-color/" routeProps={{
+                            onTextColor: props.onTextColor,
+                            onTextColorAuto: props.onTextColorAuto,
+                        }}>
+                            {!isAndroid ?
+                                <Icon slot="media" icon="icon-text-color">{fontColorPreview}</Icon> :
+                                fontColorPreview
+                            }
+                        </ListItem>
+                        <ListItem title={_t.textFillColor} link="/edit-cell-fill-color/" routeProps={{
+                            onFillColor: props.onFillColor
+                        }}>
+                            {!isAndroid ?
+                                <Icon slot="media" icon="icon-fill-color">{fillColorPreview}</Icon> :
+                                fillColorPreview
+                            }
+                        </ListItem>
+                        <ListItem title={_t.textTextFormat} link="/edit-cell-text-format/" routeProps={{
+                            onHAlignChange: props.onHAlignChange,
+                            onVAlignChange: props.onVAlignChange,
+                            onWrapTextChange: props.onWrapTextChange
+                        }}>
+                            {!isAndroid ?
+                                <Icon slot="media" icon="icon-text-align-left"></Icon> : null
+                            }
+                        </ListItem>
+                        <ListItem title={_t.textTextOrientation} link="/edit-cell-text-orientation/" routeProps={{
+                            onTextOrientationChange: props.onTextOrientationChange
+                        }}>
+                            {!isAndroid ?
+                                <Icon slot="media" icon="icon-text-orientation-horizontal"></Icon> : null
+                            }
+                        </ListItem>
+                        <ListItem title={_t.textBorderStyle} link="/edit-cell-border-style/" routeProps={{
+                            onBorderStyle: props.onBorderStyle
+                        }}>
+                            {!isAndroid ?
+                                <Icon slot="media" icon="icon-table-borders-all"></Icon> : null
+                            }
+                        </ListItem>
+                    </List>
+                    <List>
+                        <ListItem title={_t.textFormat} link="/edit-format-cell/" routeProps={{
+                            onCellFormat: props.onCellFormat,
+                            onCurrencyCellFormat: props.onCurrencyCellFormat,
+                            onAccountingCellFormat: props.onAccountingCellFormat,
+                            dateFormats: props.dateFormats,
+                            timeFormats: props.timeFormats
+                        }}>
+                            {!isAndroid ?
+                                <Icon slot="media" icon="icon-format-general"></Icon> : null
+                            }
+                        </ListItem>
+                    </List>
+                    <BlockTitle>{_t.textCellStyles}</BlockTitle>
+                    {cellStyles.length ? (
+                        <Swiper pagination>
+                            {arraySlides.map((_, indexSlide) => {
+                                let stylesSlide = cellStyles.slice(indexSlide * 9, (indexSlide * 9) + 9);
+                                
+                                return (
+                                    <SwiperSlide key={indexSlide}>
+                                        <List className="cell-styles-list">
+                                            {stylesSlide.map((elem, index) => (
+                                                <ListItem key={index} className={elem.name === styleName ? "item-theme active" : "item-theme"} onClick={() => props.onStyleClick(elem.name)}>
+                                                    <div className='thumb' style={{backgroundImage: `url(${elem.image})`}}></div>
+                                                </ListItem> 
+                                            ))}
+                                        </List>
+                                    </SwiperSlide>
+                            )})}
+                        </Swiper>
+                    ) : null}
+                </>}
+            </List>    
         </Fragment>
     )
 };
@@ -277,16 +293,25 @@ const PageTextColorCell = props => {
   
     return (
         <Page>
-            <Navbar title={_t.textTextColor} backLink={_t.textBack}>
+            <Navbar title={t('View.Edit.textTextColor')} backLink={t('View.Edit.textBack')}>
                 {Device.phone &&
                     <NavRight>
                         <Link icon='icon-expand-down' sheetClose></Link>
                     </NavRight>
                 }
             </Navbar>
+            <List>
+                <ListItem  className={'item-color-auto' + (fontColor === 'auto' ? ' active' : '')} title={t('View.Edit.textAutomatic')} onClick={() => {
+                   props.onTextColorAuto();
+                }}>
+                    <div slot="media">
+                        <div id='font-color-auto' className={'color-auto'}></div>
+                    </div>
+                </ListItem>
+            </List>
             <ThemeColorPalette changeColor={changeColor} curColor={fontColor} customColors={customColors} />
             <List>
-                <ListItem title={_t.textAddCustomColor} link={'/edit-cell-text-custom-color/'} routeProps={{
+                <ListItem title={t('View.Edit.textAddCustomColor')} link={'/edit-cell-text-custom-color/'} routeProps={{
                     onTextColor: props.onTextColor
                 }}></ListItem>
             </List>
@@ -353,13 +378,13 @@ const PageCustomTextColorCell = props => {
         fontColor = fontColor.color;
     }
 
+    const autoColor = fontColor === 'auto' ? window.getComputedStyle(document.getElementById('font-color-auto')).backgroundColor : null;
     const onAddNewColor = (colors, color) => {
         props.storePalette.changeCustomColors(colors);
         props.onTextColor(color);
         props.storeCellSettings.changeFontColor(color);
         props.f7router.back();
     };
-
     return (
         <Page>
             <Navbar title={_t.textCustomColor} backLink={_t.textBack}>
@@ -369,7 +394,7 @@ const PageCustomTextColorCell = props => {
                     </NavRight>
                 }
             </Navbar>
-            <CustomColorPicker currentColor={fontColor} onAddNewColor={onAddNewColor} />
+            <CustomColorPicker autoColor={autoColor} currentColor={fontColor} onAddNewColor={onAddNewColor} />
         </Page>
     )
 };
@@ -479,7 +504,7 @@ const PageTextFormatCell = props => {
             <List>
                 <ListItem title={_t.textWrapText}>
                     {!isAndroid ? <Icon slot="media" icon="icon-cell-wrap"></Icon> : null}
-                    <Toggle checked={isWrapText} onChange={() => {props.onWrapTextChange(!isWrapText)}} />
+                    <Toggle checked={isWrapText} onToggleChange={() => {props.onWrapTextChange(!isWrapText)}} />
                 </ListItem>
             </List>
         </Page>
@@ -579,7 +604,8 @@ const PageBorderStyleCell = props => {
         $$('.sheet-modal.modal-in').length > 0 && f7.sheet.close();
         return null;
     }
-
+    
+    const displayBorderColor = `#${(typeof borderInfo.color === "object" ? borderInfo.color.color : borderInfo.color)}`;
     return (
         <Page>
             <Navbar title={_t.textBorderStyle} backLink={_t.textBack}>
@@ -669,7 +695,7 @@ const PageBorderStyleCell = props => {
                 }}>
                     <span className="color-preview"
                         slot="after"
-                        style={{background:`#${(typeof borderInfo.color === "object" ? borderInfo.color.color : borderInfo.color)}`}}
+                        style={{background: storeCellSettings.colorAuto === 'auto' ? '#000' : displayBorderColor}}
                     ></span>
                 </ListItem>
                 <ListItem title={_t.textSize} link='/edit-border-size-cell/' after={borderSizes[borderInfo.width]} routeProps={{
@@ -683,16 +709,15 @@ const PageBorderStyleCell = props => {
 
 const PageBorderColorCell = props => {
     const { t } = useTranslation();
-    const _t = t("View.Edit", { returnObjects: true });
     const storePalette = props.storePalette;
     const storeCellSettings = props.storeCellSettings;
     const borderInfo = storeCellSettings.borderInfo;
     const borderColor = borderInfo.color;
     const borderStyle = storeCellSettings.borderStyle;
     const customColors = storePalette.customColors;
-
     const changeColor = (color, effectId, effectValue) => {
         if (color !== 'empty') {
+            storeCellSettings.setAutoColor(null);
             if (effectId !== undefined ) {
                 const newColor = {color: color, effectId: effectId, effectValue: effectValue};
                 storeCellSettings.changeBorderColor(newColor);
@@ -709,16 +734,25 @@ const PageBorderColorCell = props => {
   
     return (
         <Page>
-            <Navbar backLink={_t.textBack}>
+            <Navbar backLink={t('View.Edit.textBack')}>
                 {Device.phone &&
                     <NavRight>
                         <Link icon='icon-expand-down' sheetClose></Link>
                     </NavRight>
                 }
             </Navbar>
-            <ThemeColorPalette changeColor={changeColor} curColor={borderColor} customColors={customColors} />
             <List>
-                <ListItem title={_t.textAddCustomColor} link={'/edit-border-custom-color-cell/'} routeProps={{
+                <ListItem className={'item-color-auto' + (storeCellSettings.colorAuto === 'auto' ? ' active' : '')} title={t('View.Edit.textAutomatic')} onClick={() => {
+                   storeCellSettings.setAutoColor('auto');
+                }}>
+                    <div slot="media">
+                        <div id='font-color-auto' className={'color-auto'}></div>
+                    </div>
+                </ListItem>
+            </List>
+            <ThemeColorPalette changeColor={changeColor} curColor={storeCellSettings.colorAuto || borderColor} customColors={customColors} />
+            <List>
+                <ListItem title={t('View.Edit.textAddCustomColor')} link={'/edit-border-custom-color-cell/'} routeProps={{
                     onBorderStyle: props.onBorderStyle
                 }}></ListItem>
             </List>
@@ -739,7 +773,7 @@ const PageCustomBorderColorCell = props => {
     }
 
     const borderStyle = storeCellSettings.borderStyle;
-    
+    const autoColor = storeCellSettings.colorAuto === 'auto' ? window.getComputedStyle(document.getElementById('font-color-auto')).backgroundColor : null;
     const onAddNewColor = (colors, color) => {
         storePalette.changeCustomColors(colors);
         storeCellSettings.changeBorderColor(color);
@@ -756,7 +790,7 @@ const PageCustomBorderColorCell = props => {
                     </NavRight>
                 }
             </Navbar>
-            <CustomColorPicker currentColor={borderColor} onAddNewColor={onAddNewColor} />
+            <CustomColorPicker autoColor={autoColor} currentColor={borderColor} onAddNewColor={onAddNewColor} />
         </Page>
     )
 };
@@ -977,7 +1011,7 @@ const PageTimeFormatCell = props => {
 }
 
 
-const PageEditCell = inject("storeCellSettings")(observer(EditCell));
+const PageEditCell = inject("storeCellSettings", "storeWorksheets")(observer(EditCell));
 const TextColorCell = inject("storeCellSettings", "storePalette", "storeFocusObjects")(observer(PageTextColorCell));
 const FillColorCell = inject("storeCellSettings", "storePalette", "storeFocusObjects")(observer(PageFillColorCell));
 const CustomTextColorCell = inject("storeCellSettings", "storePalette", "storeFocusObjects")(observer(PageCustomTextColorCell));

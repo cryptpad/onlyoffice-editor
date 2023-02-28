@@ -41,6 +41,7 @@
   },
   "ContextMenu": {
     "errorCopyCutPaste": "Kopieren, Ausschneiden und Einfügen über das Kontextmenü werden nur in der aktuellen Datei ausgeführt.",
+    "errorInvalidLink": "Der Linkverweis ist nicht vorhanden. Bitte korrigieren oder löschen Sie den Link.",
     "menuAddComment": "Kommentar hinzufügen",
     "menuAddLink": "Link hinzufügen",
     "menuCancel": "Abbrechen",
@@ -153,7 +154,9 @@
       "warnLicenseUsersExceeded": "Sie haben das Benutzerlimit für %1-Editoren erreicht. Bitte wenden Sie sich an Ihren Administrator, um weitere Informationen zu erhalten.",
       "warnNoLicense": "Sie haben die maximale Anzahl von gleichzeitigen Verbindungen in %1-Editoren erreicht. Die Bearbeitung ist jetzt in diesem Dokument nicht verfügbar. Bitte kontaktieren Sie unser Verkaufsteam, um persönliche Upgrade-Bedingungen zu erhalten.",
       "warnNoLicenseUsers": "Sie haben das Benutzerlimit für %1-Editoren erreicht. Bitte kontaktieren Sie unser Verkaufsteam, um persönliche Upgrade-Bedingungen zu erhalten.",
-      "warnProcessRightsChange": "Sie können diese Datei nicht bearbeiten."
+      "warnProcessRightsChange": "Sie können diese Datei nicht bearbeiten.",
+      "textNoChoices": "There are no choices for filling the cell.<br>Only text values from the column can be selected for replacement.",
+      "textOk": "Ok"
     }
   },
   "Error": {
@@ -169,6 +172,7 @@
     "errorAutoFilterHiddenRange": "Die Operation kann nicht ausgeführt werden, weil der Bereich gefilterte Zellen enthält.<br>Bitte machen Sie die gefilterten Elemente sichtbar und versuchen Sie es erneut.",
     "errorBadImageUrl": "URL des Bildes ist falsch",
     "errorChangeArray": "Sie können einen Teil eines Arrays nicht ändern.",
+    "errorChangeOnProtectedSheet": "Die Zelle oder das Diagramm, die bzw. das Sie ändern möchten, befindet sich auf einem schreibgeschützten Blatt. Um eine Änderung vorzunehmen, heben Sie den Schutz des Blatts auf. Möglicherweise werden Sie aufgefordert, ein Kennwort einzugeben.",
     "errorConnectToServer": "Das Dokument kann nicht gespeichert werden. Überprüfen Sie Ihre Verbindungseinstellungen oder wenden Sie sich an den Administrator.<br>Beim Klicken auf OK können Sie das Dokument herunterladen.",
     "errorCopyMultiselectArea": "Bei einer Markierung von nicht angrenzenden Zellen ist die Ausführung dieses Befehls nicht möglich.<br>Wählen Sie nur einen einzelnen Bereich aus und versuchen Sie es noch mal.",
     "errorCountArg": "Die Formel enthält einen Fehler.<br>Ungültige Anzahl von Argumenten.",
@@ -215,19 +219,20 @@
     "errorUsersExceed": "Die nach dem Zahlungsplan erlaubte Anzahl der Benutzer ist überschritten",
     "errorViewerDisconnect": "Die Verbindung wurde abgebrochen. Das Dokument wird angezeigt,<br>das Herunterladen wird aber nur verfügbar, wenn die Verbindung wiederhergestellt ist.",
     "errorWrongBracketsCount": "Die Formel enthält einen Fehler.<br>Falsche Anzahl von Klammern.",
-    "errorWrongOperator": "Die eingegebene Formel enthält einen Fehler. Falscher Operator wurde genutzt.<br>Bitte korrigieren Sie den Fehler oder brechen Sie die Formel mit Esc ab.",
+    "errorWrongOperator": "Die eingegebene Formel enthält einen Fehler. Falscher Operator wurde genutzt.<br>Bitte korrigieren Sie den Fehler.",
     "notcriticalErrorTitle": "Warnung",
     "openErrorText": "Beim Öffnen dieser Datei ist ein Fehler aufgetreten",
     "pastInMergeAreaError": "Teil einer verbundenen Zelle kann nicht geändert werden",
     "saveErrorText": "Beim Speichern dieser Datei ist ein Fehler aufgetreten",
     "scriptLoadError": "Die Verbindung ist zu langsam, manche Elemente wurden nicht geladen. Bitte die Seite neu laden.",
+    "textErrorPasswordIsNotCorrect": "Das eingegebene Kennwort ist ungültig.<br>Stellen Sie sicher, dass die FESTSTELLTASTE nicht aktiviert ist und dass Sie die korrekte Groß-/Kleinschreibung verwenden.",
     "unknownErrorText": "Unbekannter Fehler.",
     "uploadImageExtMessage": "Unbekanntes Bildformat.",
     "uploadImageFileCountMessage": "Keine Bilder hochgeladen.",
-    "uploadImageSizeMessage": "Die maximal zulässige Bildgröße von 25 MB ist überschritten.",
-    "errorChangeOnProtectedSheet": "The cell or chart you are trying to change is on a protected sheet. To make a change, unprotect the sheet. You might be requested to enter a password."
+    "uploadImageSizeMessage": "Die maximal zulässige Bildgröße von 25 MB ist überschritten."
   },
   "LongActions": {
+    "advDRMPassword": "Passwort",
     "applyChangesTextText": "Daten werden geladen...",
     "applyChangesTitleText": "Daten werden geladen",
     "confirmMoveCellRange": "Der Zielzellenbereich kann Daten enthalten. Möchten Sie fortsetzen?",
@@ -254,9 +259,13 @@
     "savePreparingTitle": "Speichervorbereitung. Bitte warten...",
     "saveTextText": "Dokument wird gespeichert...",
     "saveTitleText": "Dokument wird gespeichert...",
+    "textCancel": "Abbrechen",
+    "textErrorWrongPassword": "Inkorrektes Passwort.",
     "textLoadingDocument": "Dokument wird geladen...",
     "textNo": "Nein",
     "textOk": "OK",
+    "textUnlockRange": "Bereich aufsperren",
+    "textUnlockRangeWarning": "Ein Bereich, den Sie zu bearbeiten versuchen, ist durch ein Kennwort geschützt.",
     "textYes": "Ja",
     "txtEditingMode": "Bearbeitungsmodul wird festgelegt...",
     "uploadImageTextText": "Das Bild wird hochgeladen...",
@@ -281,7 +290,10 @@
     "textSheet": "Blatt",
     "textSheetName": "Blattname",
     "textUnhide": "Einblenden",
-    "textWarnDeleteSheet": "Das Arbeitsblatt kann Daten enthalten. Möchten Sie fortsetzen?"
+    "textWarnDeleteSheet": "Das Arbeitsblatt kann Daten enthalten. Möchten Sie fortsetzen?",
+    "textMove": "Move",
+    "textMoveBack": "Move back",
+    "textMoveForward": "Move forward"
   },
   "Toolbar": {
     "dlgLeaveMsgText": "Sie haben nicht gespeicherte Änderungen. Klicken Sie auf \"Auf dieser Seite bleiben\" und warten Sie, bis die Datei automatisch gespeichert wird. Klicken Sie auf \"Seite verlassen\", um nicht gespeicherte Änderungen zu verwerfen.",
@@ -521,7 +533,8 @@
       "textYen": "Yen",
       "txtNotUrl": "Dieser Bereich soll eine URL im Format \"http://www.example.com\" sein.",
       "txtSortHigh2Low": "Absteigend sortieren",
-      "txtSortLow2High": "Aufsteigend sortieren"
+      "txtSortLow2High": "Aufsteigend sortieren",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "advCSVOptions": "CSV-Optionen auswählen",
@@ -651,7 +664,8 @@
       "txtSemicolon": "Semikolon",
       "txtSpace": "Leerzeichen",
       "txtTab": "Tab",
-      "warnDownloadAs": "Wenn Sie mit dem Speichern in diesem Format fortsetzen, werden alle Objekte außer Text verloren gehen.<br>Möchten Sie wirklich fortsetzen?"
+      "warnDownloadAs": "Wenn Sie mit dem Speichern in diesem Format fortsetzen, werden alle Objekte außer Text verloren gehen.<br>Möchten Sie wirklich fortsetzen?",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

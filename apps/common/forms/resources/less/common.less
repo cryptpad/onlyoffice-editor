@@ -67,6 +67,7 @@
 @import "../../../../common/main/resources/less/dropdown-submenu.less";
 @import "../../../../common/main/resources/less/separator.less";
 @import "../../../../common/main/resources/less/input.less";
+@import "../../../../common/main/resources/less/combobox.less";
 @import "../../../../common/main/resources/less/window.less";
 @import "../../../../common/main/resources/less/loadmask.less";
 @import "../../../../common/main/resources/less/dataview.less";
@@ -77,6 +78,8 @@
 @import "../../../../common/main/resources/less/winxp_fix.less";
 @import "../../../../common/main/resources/less/calendar.less";
 @import "../../../../common/main/resources/less/spinner.less";
+@import "../../../../common/main/resources/less/checkbox.less";
+@import "../../../../common/main/resources/less/opendialog.less";
 
 @toolbarBorderColor:            @border-toolbar-ie;
 @toolbarBorderColor:            @border-toolbar;
@@ -228,22 +231,27 @@
 }
 
 .btn-text-default {
+    width: auto;
     &.colored {
         padding: 0 16px;
         height: 28px;
+        background-color: @background-accent-button-ie;
         background-color: @background-accent-button;
         border: 1px solid transparent;
         border-radius: 3px;
+        color: @text-contrast-background-ie !important;
         color: @text-contrast-background !important;
         font-weight: 700;
 
         &:hover:not(.disabled),
         .over:not(.disabled) {
+            background-color: @highlight-accent-button-hover-ie !important;
             background-color: @highlight-accent-button-hover !important;
         }
 
         &:active:not(.disabled),
         &.active:not(.disabled) {
+            background-color: @highlight-accent-button-pressed-ie !important;
             background-color: @highlight-accent-button-pressed !important;
         }
     }
@@ -430,7 +438,7 @@
 
 .svg-icon {
     background: data-uri('../../../../common/forms/resources/img/icon-menu-sprite.svg') no-repeat;
-    background-size: @icon-width*19 @icon-height*2;
+    background-size: @icon-width*24 @icon-height*2;
 
     &.download {
         background-position: -@icon-width 0;
@@ -447,6 +455,14 @@
     &.fullscr {
         background-position: -@icon-width*4 0;
         background-position: -@icon-width*4 @icon-normal-top;
+    }
+    &.zoom-in {
+        background-position: -@icon-width*5 0;
+        background-position: -@icon-width*5 @icon-normal-top;
+    }
+    &.zoom-out {
+        background-position: -@icon-width*6 0;
+        background-position: -@icon-width*6 @icon-normal-top;
     }
     &.zoom-up {
         background-position: -@icon-width*5 -@icon-height;
@@ -493,6 +509,26 @@
     &.more-vertical {
         background-position: -@icon-width*14 0;
         background-position: -@icon-width*14 @icon-normal-top;
+    }
+    &.cut {
+        background-position: -@icon-width*19 0;
+        background-position: -@icon-width*19 @icon-normal-top;
+    }
+    &.copy {
+        background-position: -@icon-width*20 0;
+        background-position: -@icon-width*20 @icon-normal-top;
+    }
+    &.paste {
+        background-position: -@icon-width*21 0;
+        background-position: -@icon-width*21 @icon-normal-top;
+    }
+    &.undo {
+        background-position: -@icon-width*22 0;
+        background-position: -@icon-width*22 @icon-normal-top;
+    }
+    &.redo {
+        background-position: -@icon-width*23 0;
+        background-position: -@icon-width*23 @icon-normal-top;
     }
 }
 
@@ -572,11 +608,13 @@
     display: inline-block;
     line-height: 22px;
     padding: 0 0 0 3px;
+    vertical-align: middle;
 }
 
 #page-number {
     .masked {
         cursor: pointer;
+        line-height: 22px;
     }
 }
 
@@ -594,36 +632,29 @@
     font-size: 11px;
 }
 
-.synch-tip-root {
-    &.colored {
-        @tip-width: 240px;
-        width: @tip-width;
-        .tip-text {
-            width: @tip-width - 40px;
-        }
+.menu-zoom {
+    line-height: @line-height-base;
 
-        .asc-synchronizetip {
-            background-color: @background-contrast-popover;
-            color: @text-contrast-background;
-            .close {
-                &:before, &:after {
-                    background-color: @text-contrast-background;
-                }
-            }
-        }
+    .title {
+        padding: 5px 5px 5px 28px;
+        float: left;
+        font-weight: normal;
+        font-size: 11px;
+        margin: 0px;
+        text-overflow: ellipsis;
+    }
 
-        .tip-arrow:after {
-            background-color: @background-contrast-popover;
-        }
-
-        .btn-div {
-            display: inline-block;
-            border: 1px solid @border-regular-control-ie;
-            border: 1px solid @border-regular-control;
-            border-radius: 2px;
-            padding: 3px 12px;
-            margin-top: 10px;
-        }
+    .zoom {
+        padding: 5px 3px;
+        float: right;
+        min-width: 40px;
+        text-align: center;
+        font-weight: normal;
+        font-size: 11px;
+        padding-bottom: 0px;
+    }
+    .mi-icon  {
+        margin: 0;
     }
 }
 

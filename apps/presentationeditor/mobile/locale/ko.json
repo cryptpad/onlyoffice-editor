@@ -37,6 +37,9 @@
       "textCustomColors": "사용자 정의 색상",
       "textStandartColors": "표준 색상",
       "textThemeColors": "테마 색"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -373,6 +376,7 @@
       "textTopRight": "오른쪽 위",
       "textTotalRow": "합계",
       "textTransition": "전환",
+      "textTransitions": "전환",
       "textType": "유형",
       "textUnCover": "당기기",
       "textVerticalIn": "덮기",
@@ -382,7 +386,9 @@
       "textZoom": "확대/축소",
       "textZoomIn": "확대",
       "textZoomOut": "축소",
-      "textZoomRotate": "확대 / 축소 및 회전"
+      "textZoomRotate": "확대 / 축소 및 회전",
+      "textAutomatic": "Automatic",
+      "textDesign": "Design"
     },
     "Settings": {
       "mniSlideStandard": "표준 (4 : 3)",
@@ -461,7 +467,8 @@
       "txtScheme6": "광장",
       "txtScheme7": "같음",
       "txtScheme8": "플로우",
-      "txtScheme9": "발견"
+      "txtScheme9": "발견",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }

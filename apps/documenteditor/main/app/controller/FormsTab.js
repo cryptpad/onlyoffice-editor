@@ -73,6 +73,7 @@ define([
                 this.api.asc_registerCallback('asc_onStartAction', _.bind(this.onLongActionBegin, this));
                 this.api.asc_registerCallback('asc_onEndAction', _.bind(this.onLongActionEnd, this));
                 this.api.asc_registerCallback('asc_onError', _.bind(this.onError, this));
+                this.api.asc_registerCallback('asc_onDownloadUrl', _.bind(this.onDownloadUrl, this));
 
                 // this.api.asc_registerCallback('asc_onShowContentControlsActions',_.bind(this.onShowContentControlsActions, this));
                 // this.api.asc_registerCallback('asc_onHideContentControlsActions',_.bind(this.onHideContentControlsActions, this));
@@ -97,6 +98,9 @@ define([
                     'forms:goto': this.onGoTo,
                     'forms:submit': this.onSubmitClick,
                     'forms:save': this.onSaveFormClick
+                },
+                'Toolbar': {
+                    'tab:active': this.onActiveTab
                 }
             });
         },
@@ -187,6 +191,11 @@ define([
                 oPr = new AscCommon.CSdtTextFormPr();
                 this.api.asc_AddContentControlTextForm(oPr, oFormPr);
             }
+
+            var me = this;
+            setTimeout(function() {
+                me.showSaveFormTip();
+            }, 500);
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
         },
 
@@ -247,7 +256,43 @@ define([
         },
 
         onSaveFormClick: function() {
-            this.api.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.OFORM));
+            this.isFromFormSaveAs = this.appConfig.canRequestSaveAs || !!this.appConfig.saveAsUrl;
+            this.api.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.OFORM, this.isFromFormSaveAs));
+        },
+
+        onDownloadUrl: function(url, fileType) {
+            if (this.isFromFormSaveAs) {
+                var me = this,
+                    defFileName = this.getApplication().getController('Viewport').getView('Common.Views.Header').getDocumentCaption();
+                !defFileName && (defFileName = me.view.txtUntitled);
+
+                var idx = defFileName.lastIndexOf('.');
+                if (idx>0)
+                    defFileName = defFileName.substring(0, idx) + '.oform';
+
+                if (me.appConfig.canRequestSaveAs) {
+                    Common.Gateway.requestSaveAs(url, defFileName, fileType);
+                } else {
+                    me._saveCopyDlg = new Common.Views.SaveAsDlg({
+                        saveFolderUrl: me.appConfig.saveAsUrl,
+                        saveFileUrl: url,
+                        defFileName: defFileName
+                    });
+                    me._saveCopyDlg.on('saveaserror', function(obj, err){
+                        Common.UI.warning({
+                            closable: false,
+                            msg: err,
+                            callback: function(btn){
+                                Common.NotificationCenter.trigger('edit:complete', me);
+                            }
+                        });
+                    }).on('close', function(obj){
+                        me._saveCopyDlg = undefined;
+                    });
+                    me._saveCopyDlg.show();
+                }
+            }
+            this.isFromFormSaveAs = false;
         },
 
         disableEditing: function(disable) {
@@ -323,7 +368,60 @@ define([
                     clr && (clr = Common.Utils.ThemeColor.getHexColor(clr.get_r(), clr.get_g(), clr.get_b()));
                     me.view.btnHighlight.currentColor = clr;
                 }
+                config.isEdit && config.canFeatureContentControl && config.isFormCreator && me.showCreateFormTip(); // show tip only when create form in docxf
             });
+        },
+
+        showCreateFormTip: function() {
+            if (!Common.localStorage.getItem("de-hide-createform-tip")) {
+                var target = $('.toolbar').find('.ribtab [data-tab=forms]').parent();
+                var tip = new Common.UI.SynchronizeTip({
+                    extCls: 'colored',
+                    placement: 'bottom-right',
+                    target: target,
+                    text: this.view.textCreateForm,
+                    showLink: false,
+                    closable: false,
+                    showButton: true,
+                    textButton: this.view.textGotIt
+                });
+                tip.on({
+                    'buttonclick': function() {
+                        Common.localStorage.setItem("de-hide-createform-tip", 1);
+                        tip.close();
+                    }
+                });
+                tip.show();
+            }
+        },
+
+        showSaveFormTip: function() {
+            if (this.view.btnSaveForm && !Common.localStorage.getItem("de-hide-saveform-tip") && !this.tipSaveForm) {
+                var me = this;
+                me.tipSaveForm = new Common.UI.SynchronizeTip({
+                    extCls: 'colored',
+                    placement: 'bottom-right',
+                    target: this.view.btnSaveForm.$el,
+                    text: this.view.tipSaveForm,
+                    showLink: false,
+                    closable: false,
+                    showButton: true,
+                    textButton: this.view.textGotIt
+                });
+                me.tipSaveForm.on({
+                    'buttonclick': function() {
+                        Common.localStorage.setItem("de-hide-saveform-tip", 1);
+                        me.tipSaveForm.close();
+                    }
+                });
+                me.tipSaveForm.show();
+            }
+        },
+
+        onActiveTab: function(tab) {
+            if (tab !== 'forms') {
+                this.tipSaveForm && this.tipSaveForm.close();
+            }
         }
 
     }, DE.Controllers.FormsTab || {}));

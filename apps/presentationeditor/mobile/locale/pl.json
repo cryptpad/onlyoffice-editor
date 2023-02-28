@@ -37,6 +37,9 @@
       "textCustomColors": "Custom Colors",
       "textStandartColors": "Standard Colors",
       "textThemeColors": "Theme Colors"
+    },
+    "HighlightColorPalette": {
+      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -382,7 +385,10 @@
       "textZoom": "Zoom",
       "textZoomIn": "Zoom In",
       "textZoomOut": "Zoom Out",
-      "textZoomRotate": "Zoom and Rotate"
+      "textZoomRotate": "Zoom and Rotate",
+      "textTransitions": "Transitions",
+      "textDesign": "Design",
+      "textAutomatic": "Automatic"
     },
     "Settings": {
       "mniSlideStandard": "Standard (4:3)",
@@ -461,7 +467,8 @@
       "txtScheme6": "Concourse",
       "txtScheme7": "Equity",
       "txtScheme8": "Flow",
-      "txtScheme9": "Foundry"
+      "txtScheme9": "Foundry",
+      "textDarkTheme": "Dark Theme"
     }
   }
 }
