@@ -1064,7 +1064,7 @@
 		{
 			let fieldData = AscWord.CAddinFieldData.FromField(field);
 			if (fieldData)
-				result.push(fieldData);
+				result.push(fieldData.ToJson());
 		});
 		
 		return result;
@@ -1088,7 +1088,7 @@
 		let arrAddinData = [];
 		arrData.forEach(function(data)
 		{
-			arrAddinData.push(AscWord.CAddinFieldData.FromObject(data));
+			arrAddinData.push(AscWord.CAddinFieldData.FromJson(data));
 		})
 		
 		logicDocument.UpdateAddinFieldsByData(arrAddinData);
@@ -1109,7 +1109,7 @@
 		if (!logicDocument)
 			return;
 		
-		logicDocument.AddAddinField(AscWord.CAddinFieldData.FromObject(data));
+		logicDocument.AddAddinField(AscWord.CAddinFieldData.FromJson(data));
 	};
 	/**
 	 * Remove field wrapper, leave only the content of the field

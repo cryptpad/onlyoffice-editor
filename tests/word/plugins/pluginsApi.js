@@ -58,7 +58,7 @@ $(function () {
 		
 		assert.deepEqual(PluginsApi.pluginMethod_GetAllAddinFields(),
 			[
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "1", "Value" : "Test addin", "Content" : "123"})
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "1", "Value" : "Test addin", "Content" : "123"})
 			],
 			"Add addin field and check get function");
 		
@@ -73,28 +73,28 @@ $(function () {
 		PluginsApi.pluginMethod_AddAddinField({"Value" : "Addin №2", "Content" : "This is the second addin field"});
 		assert.deepEqual(PluginsApi.pluginMethod_GetAllAddinFields(),
 			[
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "1", "Value" : "Test addin", "Content" : "123"}),
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "3", "Value" : "Addin №2", "Content" : "This is the second addin field"})
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "1", "Value" : "Test addin", "Content" : "123"}),
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "3", "Value" : "Addin №2", "Content" : "This is the second addin field"})
 			],
 			"Add addin field and check get function");
 		
 		PluginsApi.pluginMethod_UpdateAddinFields(
 			[
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "1", "Value" : "Addin №1", "Content" : "This is the first addin field"}),
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "1", "Value" : "Addin №1", "Content" : "This is the first addin field"}),
 			],
 			"Add addin field and check get function");
 		
 		assert.deepEqual(PluginsApi.pluginMethod_GetAllAddinFields(),
 			[
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "1", "Value" : "Addin №1", "Content" : "This is the first addin field"}),
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "3", "Value" : "Addin №2", "Content" : "This is the second addin field"})
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "1", "Value" : "Addin №1", "Content" : "This is the first addin field"}),
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "3", "Value" : "Addin №2", "Content" : "This is the second addin field"})
 			],
 			"Change the first adding and check get function");
 		
 		logicDocument.RemoveFromContent(1, 1);
 		assert.deepEqual(PluginsApi.pluginMethod_GetAllAddinFields(),
 			[
-				AscWord.CAddinFieldData.FromObject({"FieldId" : "3", "Value" : "Addin №2", "Content" : "This is the second addin field"})
+				AscWord.CAddinFieldData.FromJson({"FieldId" : "3", "Value" : "Addin №2", "Content" : "This is the second addin field"})
 			],
 			"Remove the paragraph with the first field and check get addin function");
 	});

@@ -68,7 +68,15 @@
 	{
 		return this.Content;
 	};
-	CAddinFieldData.FromObject = function(obj)
+	CAddinFieldData.prototype.ToJson = function()
+	{
+		return {
+			"FieldId" : this.FieldId,
+			"Value"   : this.Value,
+			"Content" : this.Content
+		};
+	};
+	CAddinFieldData.FromJson = function(obj)
 	{
 		let newData = new CAddinFieldData();
 		if (!obj)
