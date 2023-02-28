@@ -13320,7 +13320,8 @@
 							} else {
 								//like in CellXfs.prototype.merge
 								var isTableColor = oCurtext.format.isNormalXfColor();
-								oCurFormat = xfs._mergeProperty(g_StyleCache.addFont, oCurtext.format, xfs.font, true, isTableColor);
+								let mergedFont = xfs._mergeProperty(g_StyleCache.addFont, oCurtext.format, xfs.font, true, isTableColor);
+								oCurFormat.assign(mergedFont);
 							}
 						} else {
 							oCurFormat.assign(cellfont);
