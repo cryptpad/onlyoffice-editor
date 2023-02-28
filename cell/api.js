@@ -958,13 +958,30 @@ var editor;
       this.wb.savePagePrintOptions(arrPagesPrint);
   };
 
-  spreadsheet_api.prototype.asc_getPageOptions = function(index, initPrintTitles) {
+  spreadsheet_api.prototype.asc_getPageOptions = function(index, initPrintTitles, opt_copy) {
     var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
     var ws = this.wbModel.getWorksheet(sheetIndex);
-    if(initPrintTitles && ws.PagePrintOptions) {
-		ws.PagePrintOptions.initPrintTitles();
+    var printOptions = ws.PagePrintOptions;
+	//TODO похожая инициализация в getPrintOptionsJson - сделать общую
+	if(initPrintTitles && printOptions) {
+		printOptions.initPrintTitles();
     }
-    return ws.PagePrintOptions;
+    if(printOptions && opt_copy) {
+		printOptions = ws.PagePrintOptions.clone();
+		printOptions.pageSetup.headerFooter = ws && ws.headerFooter && ws.headerFooter.getForInterface();
+		var printArea = this.wbModel.getDefinesNames("Print_Area", ws.getId());
+		printOptions.pageSetup.printArea = printArea ? printArea.clone() : false;
+
+		printOptions.printTitlesHeight = ws.PagePrintOptions.printTitlesHeight;
+		printOptions.printTitlesWidth = ws.PagePrintOptions.printTitlesWidth;
+
+		if (ws.PagePrintOptions && ws.PagePrintOptions.pageSetup) {
+			printOptions.pageSetup.fitToHeight = ws.PagePrintOptions.pageSetup.asc_getFitToHeight();
+			printOptions.pageSetup.fitToWidth = ws.PagePrintOptions.pageSetup.asc_getFitToWidth();
+		}
+    }
+
+    return printOptions;
   };
 
   spreadsheet_api.prototype.asc_setPageOption = function (func, val, index) {
@@ -1142,8 +1159,13 @@ var editor;
   spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer, downloadType) {
     var fileType = options.fileType;
     if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType) {
-      var printPagesData = this.wb.calcPagesPrint(options.advancedOptions);
-      var pdfPrinterMemory = this.wb.printSheets(printPagesData).DocumentRenderer.Memory;
+      var printPagesData, pdfPrinterMemory, t = this;
+      this.wb._executeWithoutZoom(function () {
+      	t.wb.printPreviewState.advancedOptions = options.advancedOptions;
+        printPagesData = t.wb.calcPagesPrint(options.advancedOptions);
+        pdfPrinterMemory = t.wb.printSheets(printPagesData).DocumentRenderer.Memory;
+      	t.wb.printPreviewState.advancedOptions = null;
+      });
       dataContainer.data = oAdditionalData["nobase64"] ? pdfPrinterMemory.GetData() : pdfPrinterMemory.GetBase64Memory();
     } else if (this.insertDocumentUrlsData) {
       var last = this.insertDocumentUrlsData.documents.shift();
@@ -1181,7 +1203,7 @@ var editor;
     }
   };
 
-	spreadsheet_api.prototype.asc_initPrintPreview = function (containerId) {
+	spreadsheet_api.prototype.asc_initPrintPreview = function (containerId, options) {
 		var curElem = document.getElementById(containerId);
 		if (curElem) {
 			var canvasId = containerId + "-canvas"
@@ -1202,27 +1224,50 @@ var editor;
 			}
 		}
 
+		this.wb.printPreviewState.isDrawPrintPreview = true;
 		this.wb.printPreviewState.init();
-		var pages = this.wb.calcPagesPrint();
+		var pages = this.wb.calcPagesPrint(options ? options.advancedOptions : null);
 		this.wb.printPreviewState.setPages(pages);
+		this.wb.printPreviewState.setAdvancedOptions(options && options.advancedOptions);
+		this.wb.printPreviewState.isDrawPrintPreview = false;
 
-		this.asc_drawPrintPreview(0);
+		if (pages.arrPages.length) {
+			this.asc_drawPrintPreview(0);
+		}
 		return pages.arrPages.length;
 	};
 
 	spreadsheet_api.prototype.asc_updatePrintPreview = function (options) {
+		this.wb.printPreviewState.isDrawPrintPreview = true;
 		var pages = this.wb.calcPagesPrint(options.advancedOptions);
 		this.wb.printPreviewState.setPages(pages);
-		var pagesCount = pages.arrPages.length;
-		return pagesCount ? pagesCount : 1;
+		this.wb.printPreviewState.setAdvancedOptions(options && options.advancedOptions);
+		this.wb.printPreviewState.isDrawPrintPreview = false;
+		return pages.arrPages.length;
 	};
 
-	spreadsheet_api.prototype.asc_drawPrintPreview = function (index) {
+	spreadsheet_api.prototype.asc_drawPrintPreview = function (index, indexSheet) {
+		if (this.wb.printPreviewState.isDrawPrintPreview) {
+			return;
+		}
+		this.wb.printPreviewState.isDrawPrintPreview = true;
+		if (indexSheet != null) {
+			index = this.wb.printPreviewState.getIndexPageByIndexSheet(indexSheet);
+		}
+		if (index == null) {
+			index = this.wb.printPreviewState.activePage;
+		}
 		this.wb.printPreviewState.setPage(index, true);
 		this.wb.printSheetPrintPreview(index);
 		var curPage = this.wb.printPreviewState.getPage(index);
 		//возвращаю инфомарцию об активном листе, который печатаем
-		this.handlers.trigger("asc_onPrintPreviewSheetChanged", curPage && curPage.indexWorksheet);
+		var indexActiveWs = curPage && curPage.indexWorksheet;
+		if (indexActiveWs === undefined) {
+			indexActiveWs = this.wbModel.getActive();
+		}
+		this.handlers.trigger("asc_onPrintPreviewSheetChanged", indexActiveWs);
+		this.handlers.trigger("asc_onPrintPreviewPageChanged", index);
+		this.wb.printPreviewState.isDrawPrintPreview = false;
 	};
 
 	spreadsheet_api.prototype.asc_closePrintPreview = function () {
@@ -1295,6 +1340,7 @@ var editor;
    * asc_onUpdateDocumentProps                            - эвент о том, что необходимо обновить данные во вкладке layout
    * asc_onLockPrintArea/asc_onUnLockPrintArea            - эвент о локе в меню опции print area во вкладке layout
    * asc_onPrintPreviewSheetChanged                 - эвент о смене печатаемого листа при предварительной печати
+   * asc_onPrintPreviewPageChanged                  - эвент о смене печатаемой страницы при предварительной печати
    */
 
   spreadsheet_api.prototype.asc_registerCallback = function(name, callback, replaceOldCallback) {
@@ -3010,26 +3056,36 @@ var editor;
   spreadsheet_api.prototype.asc_searchEnabled = function(bIsEnabled) {
   };
 
-  spreadsheet_api.prototype.asc_findText = function(options) {
+  spreadsheet_api.prototype.asc_findText = function(options, callback) {
+    var result = null;
     if (window["NATIVE_EDITOR_ENJINE"]) {
       if (this.wb.findCellText(options)) {
         var ws = this.wb.getWorksheet();
         var activeCell = this.wbModel.getActiveWs().selectionRange.activeCell;
-        return [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
+        result = [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
       }
-
-      return null;
+    } else {
+      var d = this.wb.findCellText(options);
+      this.controller.scroll(d);
+      result = !!d;
     }
 
-    var d = this.wb.findCellText(options);
-    this.controller.scroll(d);
-    return !!d;
+    if (callback)
+      callback(result);
+    return result;
   };
 
   spreadsheet_api.prototype.asc_replaceText = function(options) {
     if (this.collaborativeEditing.getGlobalLock() || !this.canEdit()) {
       return;
     }
+
+    var ws = this.wb.getWorksheet();
+    if (ws.model.getSheetProtection()) {
+        this.handlers.trigger("asc_onError", c_oAscError.ID.CannotUseCommandProtectedSheet, c_oAscError.Level.NoCritical);
+        return;
+    }
+
     options.lookIn = Asc.c_oAscFindLookIn.Formulas; // При замене поиск только в формулах
     this.wb.replaceCellText(options);
   };
@@ -3669,7 +3725,7 @@ var editor;
         }
     };
 
-  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix)
+  spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect)
   {
     var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
     if (null != _image){
@@ -3680,20 +3736,20 @@ var editor;
 
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        ws.objectRender.addOleObject(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
         this.asc_endPaste();
       }
     }
   };
 
-  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, nPixWidth, nPixHeight)
+  spreadsheet_api.prototype.asc_editOleObjectAction = function(bResize, oOleObject, sImageUrl, sData, fWidth, fHeight, nPixWidth, nPixHeight)
   {
     if (oOleObject)
     {
       var ws = this.wb.getWorksheet();
       if(ws.objectRender){
         this.asc_canPaste();
-        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+        ws.objectRender.editOleObject(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
         this.asc_endPaste();
       }
     }
@@ -3747,7 +3803,8 @@ var editor;
     }
     return null;
   };
-  spreadsheet_api.prototype.asc_GetSelectedText = function() {
+  spreadsheet_api.prototype.asc_GetSelectedText = function(bClearText, select_Pr) {
+    bClearText = typeof(bClearText) === "boolean" ? bClearText : false;
     var ws = this.wb.getWorksheet();
     if (this.wb.getCellEditMode()) {
       var fragments = this.wb.cellEditor.copySelection();
@@ -3756,7 +3813,7 @@ var editor;
       }
     }
     if (ws && ws.objectRender && ws.objectRender.controller) {
-      return ws.objectRender.controller.GetSelectedText(true);
+      return ws.objectRender.controller.GetSelectedText(bClearText, select_Pr);
     }
     return "";
   };
@@ -3974,7 +4031,7 @@ var editor;
           }
 
           if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1
-            || (isIgnoreUppercase && AscCommon.private_IsAbbreviation(usrWords[i]))) {
+            || (isIgnoreUppercase && AscCommon.IsAbbreviation(usrWords[i]))) {
             usrCorrect[i] = true;
           }
         }
@@ -4398,14 +4455,14 @@ var editor;
   };
 
   // Получить координаты активной ячейки
-  spreadsheet_api.prototype.asc_getActiveCellCoord = function() {
+  spreadsheet_api.prototype.asc_getActiveCellCoord = function(useUpRightMerge) {
     var oWorksheet = this.wb.getWorksheet();
     if(oWorksheet){
       if(oWorksheet.isSelectOnShape){
         return oWorksheet.objectRender.getContextMenuPosition();
       }
       else{
-          return oWorksheet.getActiveCellCoord();
+          return oWorksheet.getActiveCellCoord(useUpRightMerge);
       }
     }
 
@@ -5136,6 +5193,15 @@ var editor;
   spreadsheet_api.prototype.asc_nativeCalculate = function() {
   };
 
+	spreadsheet_api.prototype.getPrintOptionsJson = function() {
+		var res = {};
+		//отдельного флага для дополнительных настроек не делаю, общие опции тоже читаются, но пока не сделан мерж опций - верхние настройки перекроют внутренниие(если они заданы)
+		res["spreadsheetLayout"] = {};
+		res["spreadsheetLayout"]["ignorePrintArea"] = false;
+		res["spreadsheetLayout"]["sheetsProps"] = this.wbModel && this.wbModel.getPrintOptionsJson();
+		return res;
+	};
+
   spreadsheet_api.prototype.asc_nativePrint = function (_printer, _page, _options) {
     var _adjustPrint = (window.AscDesktopEditor_PrintOptions && window.AscDesktopEditor_PrintOptions.advancedOptions) || new Asc.asc_CAdjustPrint();
     window.AscDesktopEditor_PrintOptions = undefined;
@@ -5193,7 +5259,12 @@ var editor;
 
 	   for (var index = 0; index < this.wbModel.getWorksheetCount(); ++index) {
            ws = this.wbModel.getWorksheet(index);
-           newPrintOptions = ws.PagePrintOptions.clone();
+		   if (spreadsheetLayout && spreadsheetLayout["sheetsProps"] && spreadsheetLayout["sheetsProps"][index]) {
+			   newPrintOptions = new Asc.asc_CPageOptions();
+			   newPrintOptions.setJson(spreadsheetLayout["sheetsProps"][index]);
+		   } else {
+			   newPrintOptions = ws.PagePrintOptions.clone();
+		   }
            //regionalSettings ?
 
            var _pageSetup = newPrintOptions.pageSetup;
@@ -5232,6 +5303,8 @@ var editor;
            _adjustPrint.pageOptionsMap[index] = newPrintOptions;
        }
     }
+
+    this.wb.setPrintOptionsJson(spreadsheetLayout && spreadsheetLayout["sheetsProps"]);
 
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
 
@@ -5287,6 +5360,8 @@ var editor;
     } else {
       this.wb.printSheets(_printPagesData, _printer);
     }
+
+    this.wb.setPrintOptionsJson(null);
 
     return _printer.Memory;
   };
@@ -5477,19 +5552,22 @@ var editor;
 			this._asc_insertPivot(wb, dataRef, ws, location.bbox, false);
 		}
 	};
-	spreadsheet_api.prototype._asc_insertPivot = function(wb, dataRef, ws, location, confirmation) {
+	spreadsheet_api.prototype._asc_insertPivot = function(wb, dataRef, ws, bbox, confirmation) {
 		var t = this;
 		History.Create_NewPoint();
 		History.StartTransaction();
 		var pivotName = wb.dependencyFormulas.getNextPivotName();
 		var pivot = new Asc.CT_pivotTableDefinition(true);
-		var cacheDefinition = wb.getPivotCacheByDataRef(dataRef);
+		var dataLocation = AscFormat.ExecuteNoHistory(function() {
+			return Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRef);
+		}, this, []);
+		var cacheDefinition = wb.getPivotCacheByDataLocation(dataLocation);
 		if (!cacheDefinition) {
 			cacheDefinition = new Asc.CT_PivotCacheDefinition();
 			cacheDefinition.asc_create();
 			cacheDefinition.fromDataRef(dataRef);
 		}
-		pivot.asc_create(ws, pivotName, cacheDefinition, location);
+		pivot.asc_create(ws, pivotName, cacheDefinition, bbox);
 		pivot.stashEmptyReportRange();
 		this._changePivotWithLockExt(pivot, confirmation, true, function() {
 			ws.insertPivotTable(pivot, true, false);
@@ -5498,7 +5576,7 @@ var editor;
 			t._changePivotEndCheckError(error, warn, function(can) {
 				if (can) {
 					//repeate with whole checks because of collaboration changes
-					t._asc_insertPivot(wb, dataRef, ws, location, true);
+					t._asc_insertPivot(wb, dataRef, ws, bbox, true);
 				}
 			});
 		});
@@ -6190,7 +6268,7 @@ var editor;
 				t.collaborativeEditing.lock([lockInfo], callback);
 			} else {
 				if (props.sheet) {
-					props.hashValue = hash && hash[0];
+					props.hashValue = hash && hash[0] ? hash[0] : null;
 					t.collaborativeEditing.lock([lockInfo], callback);
 				} else {
 					if (props.isPasswordXL() && hash && hash[0] && hash[0].toLowerCase() === props.password.toLowerCase()) {
@@ -6300,7 +6378,7 @@ var editor;
 				t.collaborativeEditing.lock(arrLocks, callback);
 			} else {
 				if (props.lockStructure) {
-					props.workbookHashValue = hash && hash[0];
+					props.workbookHashValue = hash && hash[0] ? hash[0] : null;
 					t.collaborativeEditing.lock(arrLocks, callback);
 				} else {
 					if (props.isPasswordXL() && hash && hash[0] && hash[0].toLowerCase() === props.workbookPassword.toLowerCase()) {
@@ -6327,8 +6405,10 @@ var editor;
 
 		//only lockStructure
 		this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction);
-		if (props && props.temporaryPassword) {
-			if (props.isPasswordXL()) {
+		if (props && props.temporaryPassword != null) {
+			if (props.temporaryPassword === "") {
+				checkPassword([""]);
+			} else if (props.isPasswordXL()) {
 				checkPassword([AscCommonExcel.getPasswordHash(props.temporaryPassword, true)]);
 			} else {
 				var checkHash = {password: props.temporaryPassword, salt: props.workbookSaltValue, spinCount: props.workbookSpinCount,
@@ -7268,5 +7348,7 @@ var editor;
   prot["asc_deleteNamedSheetViews"] = prot.asc_deleteNamedSheetViews;
   prot["asc_setActiveNamedSheetView"] = prot.asc_setActiveNamedSheetView;
   prot["asc_getActiveNamedSheetView"] = prot.asc_getActiveNamedSheetView;
+
+  prot["getPrintOptionsJson"] = prot.getPrintOptionsJson;
 
 })(window);

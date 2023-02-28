@@ -1754,6 +1754,26 @@
 		AscCommon.History.Create_NewPoint();
 		AscCommon.History.StartTransaction();
 	};
+	asc_ChartSettings.prototype.updateInterface = function () {
+		var oApi = Asc.editor || editor;
+		if(oApi) {
+			if(oApi.UpdateInterfaceState) {
+				oApi.UpdateInterfaceState();
+			}
+			else {
+				var oWbView = oApi.wb;
+				if(oWbView) {
+					var oWSView = oWbView.getWorksheet();
+					if(oWSView) {
+						var oRender = oWSView.objectRender;
+						if(oRender) {
+							oRender.sendGraphicObjectProps();
+						}
+					}
+				}
+			}
+		}
+	};
 	asc_ChartSettings.prototype.endEdit = function() {
 		if(AscCommon.History.Is_LastPointEmpty()) {
 			this.cancelEdit();
@@ -1762,6 +1782,7 @@
 		this.bStartEdit = false;
 		AscCommon.History.EndTransaction();
 		this.updateChart();
+		this.updateInterface();
 	};
 	asc_ChartSettings.prototype.cancelEdit = function() {
 		this.bStartEdit = false;
@@ -1770,6 +1791,7 @@
 		AscCommon.History.Clear_Redo();
 		AscCommon.History._sendCanUndoRedo();
 		this.updateChart();
+		this.updateInterface();
 	};
 	asc_ChartSettings.prototype.startEditData = function() {
 		AscCommon.History.SavePointIndex();
@@ -3593,8 +3615,6 @@
 			//oleObjects
 			this.pluginGuid = obj.pluginGuid !== undefined ? obj.pluginGuid : undefined;
 			this.pluginData = obj.pluginData !== undefined ? obj.pluginData : undefined;
-			this.oleWidth = obj.oleWidth != undefined ? obj.oleWidth : undefined;
-			this.oleHeight = obj.oleHeight != undefined ? obj.oleHeight : undefined;
 
 			this.title = obj.title != undefined ? obj.title : undefined;
 			this.description = obj.description != undefined ? obj.description : undefined;
@@ -3650,8 +3670,6 @@
 			this.pluginGuid = undefined;
 			this.pluginData = undefined;
 
-			this.oleWidth = undefined;
-			this.oleHeight = undefined;
             this.title = undefined;
             this.description = undefined;
 
@@ -3821,10 +3839,6 @@
 
 		asc_getOriginSize: function (api)
 		{
-			if (window['AscFormat'].isRealNumber(this.oleWidth) && window['AscFormat'].isRealNumber(this.oleHeight))
-			{
-				return new asc_CImageSize(this.oleWidth, this.oleHeight, true);
-			}
 			if (this.ImageUrl === null)
 			{
 				return new asc_CImageSize(50, 50, false);
@@ -5457,6 +5471,8 @@
 		_object["index"]       = this.index;
 
 		_object["icons"]          = this.icons;
+		_object["icons2"]         = this.icons2;
+
 		_object["isViewer"]       = this.isViewer;
 		_object["EditorsSupport"] = this.EditorsSupport;
 
@@ -5486,6 +5502,7 @@
 		this.index       = (_object["index"] != null) ? _object["index"] : this.index;
 
 		this.icons          = (_object["icons"] != null) ? _object["icons"] : this.icons;
+		this.icons2         = (_object["icons2"] != null) ? _object["icons2"] : this.icons2;
 		this.isViewer       = (_object["isViewer"] != null) ? _object["isViewer"] : this.isViewer;
 		this.EditorsSupport = (_object["EditorsSupport"] != null) ? _object["EditorsSupport"] : this.EditorsSupport;
 
@@ -5588,6 +5605,213 @@
 		}
 	};
 
+
+	function CAutoCorrectOptions() 
+	{
+		this.SmartQuotes            = true;
+		this.HyphensWithDash        = true;
+		this.AutomaticBulletedLists = true;
+		this.AutomaticNumberedLists = true;
+		this.FrenchPunctuation      = true;
+		this.DoubleSpaceWithPeriod  = false;
+		this.FirstLetterOfSentences = true;
+		this.FirstLetterOfCells     = true;
+		this.Hyperlinks             = true;
+		this.FirstLetterExceptions  = {};
+		this.FirstLetterExcMaxLen   = 0;
+		this.InitDefaultFirstLetterAutoCorrectExceptions();
+	}
+	//getters
+	CAutoCorrectOptions.prototype.IsSmartQuotes  = function() 
+	{
+		return this.SmartQuotes;
+	};
+	CAutoCorrectOptions.prototype.IsHyphensWithDash = function() 
+	{
+		return this.HyphensWithDash;
+	};
+	CAutoCorrectOptions.prototype.IsAutomaticBulletedLists = function() 
+	{
+		return this.AutomaticBulletedLists;
+	};
+	CAutoCorrectOptions.prototype.IsAutomaticNumberedLists = function() 
+	{
+		return this.AutomaticNumberedLists;
+	};
+	CAutoCorrectOptions.prototype.IsFrenchPunctuation = function() 
+	{
+		return this.FrenchPunctuation;
+	};
+	CAutoCorrectOptions.prototype.IsDoubleSpaceWithPeriod = function() 
+	{
+		return this.DoubleSpaceWithPeriod;
+	};
+	CAutoCorrectOptions.prototype.IsFirstLetterOfSentences = function() 
+	{
+		return this.FirstLetterOfSentences;
+	};
+	CAutoCorrectOptions.prototype.IsFirstLetterOfCells = function() 
+	{
+		return this.FirstLetterOfCells;
+	};
+	CAutoCorrectOptions.prototype.IsHyperlinks = function() 
+	{
+		return this.Hyperlinks;
+	};
+	//setters
+	CAutoCorrectOptions.prototype.SetSmartQuotes  = function(bVal) 
+	{
+		this.SmartQuotes = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetHyphensWithDash = function(bVal) 
+	{
+		this.HyphensWithDash = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetAutomaticBulletedLists = function(bVal) 
+	{
+		this.AutomaticBulletedLists = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetAutomaticNumberedLists = function(bVal) 
+	{
+		this.AutomaticNumberedLists = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetFrenchPunctuation = function(bVal) 
+	{
+		this.FrenchPunctuation = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetDoubleSpaceWithPeriod = function(bVal) 
+	{
+		this.DoubleSpaceWithPeriod = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetFirstLetterOfSentences = function(bVal) 
+	{
+		this.FirstLetterOfSentences = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetFirstLetterOfCells = function(bVal) 
+	{
+		this.FirstLetterOfCells = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetHyperlinks = function(bVal) 
+	{
+		this.Hyperlinks = bVal;
+	};
+	CAutoCorrectOptions.prototype.SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
+	{
+		this.FirstLetterExceptions = {};
+		var nMaxLen = 0;
+		for (var nIndex = 0, nCount = arrExceptions.length; nIndex < nCount; ++nIndex)
+		{
+			if (!arrExceptions[nIndex].length)
+				continue;
+
+			if (arrExceptions[nIndex].length > nMaxLen)
+				nMaxLen = arrExceptions[nIndex].length;
+
+			var nChar = arrExceptions[nIndex].charAt(0);
+
+			if (!this.FirstLetterExceptions[nChar])
+				this.FirstLetterExceptions[nChar] = [];
+
+			this.FirstLetterExceptions[nChar].push(arrExceptions[nIndex]);
+		}
+
+		this.FirstLetterExcMaxLen = nMaxLen;
+	};
+	CAutoCorrectOptions.prototype.InitDefaultFirstLetterAutoCorrectExceptions = function()
+	{
+		// Init default for Latin and Cyrillic
+		this.SetFirstLetterAutoCorrectExceptions([
+			"a", "abbr", "abs", "acct", "addn", "adj", "advt", "al", "alt", "amt", "anon", "approx", "appt", "apr", "apt", "assn", "assoc", "asst", "attn", "attrib", "aug", "aux", "ave", "avg",
+			"b", "bal", "bldg", "blvd", "bot", "bro", "bros",
+			"c", "ca", "calc", "cc", "cert", "certif", "cf", "cit", "cm", "co", "comp", "conf", "confed", "const", "cont", "contrib", "coop", "corp", "ct",
+			"d", "dbl", "dec", "decl", "def", "defn", "dept", "deriv", "diag", "diff", "div", "dm", "dr", "dup", "dupl",
+			"e", "encl", "eq", "eqn", "equip", "equiv", "esp", "esq", "est", "etc", "excl", "ext",
+			"f", "feb", "ff", "fig", "freq", "fri", "ft", "fwd",
+			"g", "gal", "gen", "gov", "govt",
+			"h", "hdqrs", "hgt", "hist", "hosp", "hq", "hr", "hrs", "ht", "hwy",
+			"i", "ib", "ibid", "illus", "in", "inc", "incl", "incr", "int", "intl", "irreg", "ital",
+			"j", "jan", "jct", "jr", "jul", "jun",
+			"k", "kg", "km", "kmh",
+			"l", "lang", "lb", "lbs", "lg", "lit", "ln", "lt",
+			"m", "mar", "masc", "max", "mfg", "mg", "mgmt", "mgr", "mgt", "mhz", "mi", "min", "misc", "mkt", "mktg", "ml", "mm", "mngr", "mon", "mph", "mr", "mrs", "msec", "msg", "mt", "mtg", "mtn", "mun",
+			"n", "na", "name", "nat", "natl", "ne", "neg", "ng", "no", "norm", "nos", "nov", "num", "nw",
+			"o", "obj", "occas", "oct", "op", "opt", "ord", "org", "orig", "oz",
+			"p", "pa", "pg", "pkg", "pl", "pls", "pos", "pp", "ppt", "pred", "pref", "prepd", "prev", "priv", "prof", "proj", "pseud", "psi", "pt", "publ",
+			"q", "qlty", "qt", "qty",
+			"r", "rd", "re", "rec", "ref", "reg", "rel", "rep", "req", "reqd", "resp", "rev",
+			"s", "sat", "sci", "se", "sec", "sect", "sep", "sept", "seq", "sig", "soln", "soph", "spec", "specif", "sq", "sr", "st", "sta", "stat", "std", "subj", "subst", "sun", "supvr", "sw",
+			"t", "tbs", "tbsp", "tech", "tel", "temp", "thur", "thurs", "tkt", "tot", "transf", "transl", "tsp", "tues",
+			"u", "univ", "util",
+			"v", "var", "veg", "vert", "viz", "vol", "vs",
+			"w", "wed", "wk", "wkly", "wt",
+			"x",
+			"y", "yd", "yr",
+			"z",
+
+			"а",
+			"б",
+			"вв",
+			"гг", "гл",
+			"д", "др",
+			"е", "ед",
+			"ё",
+			"ж",
+			"з",
+			"и",
+			"й",
+			"к", "кв", "кл", "коп", "куб",
+			"лл",
+			"м", "мл", "млн", "млрд",
+			"н", "наб", "нач",
+			"о", "обл", "обр", "ок",
+			"п", "пер", "пл", "пос", "пр",
+			"руб",
+			"сб", "св", "см", "соч", "ср", "ст", "стр",
+			"тт", "тыс",
+			"у",
+			"ф",
+			"х",
+			"ц",
+			"ш", "шт",
+			"щ",
+			"ъ",
+			"ы",
+			"ь",
+			"э", "экз",
+			"ю"]
+		);
+	};
+	CAutoCorrectOptions.prototype.GetFirstLetterAutoCorrectExceptions = function()
+	{
+		var arrResult = [];
+		for (var nChar in this.FirstLetterExceptions)
+		{
+			arrResult = arrResult.concat(this.FirstLetterExceptions[nChar]);
+		}
+		return arrResult;
+	};
+	CAutoCorrectOptions.prototype.CheckFirstLetterAutoCorrectException = function(sWord)
+	{
+		var _sWord = sWord.toLowerCase();
+
+		var nChar = _sWord.charAt(0);
+		if (!this.FirstLetterExceptions[nChar])
+			return false;
+
+		var arrExceptions = this.FirstLetterExceptions[nChar];
+		for (var nIndex = 0, nCount = arrExceptions.length; nIndex < nCount; ++nIndex)
+		{
+			if (_sWord === arrExceptions[nIndex])
+				return true;
+		}
+
+		return false;
+	};
+	CAutoCorrectOptions.prototype.GetFirstLetterAutoCorrectExceptionsMaxLen = function()
+	{ 
+		return this.FirstLetterExcMaxLen;
+	};
+	
     /*
      * Export
      * -----------------------------------------------------------------------------
@@ -6517,6 +6741,7 @@
     window["AscCommon"].CWatermarkOnDraw = CWatermarkOnDraw;
     window["AscCommon"].isFileBuild = isFileBuild;
     window["AscCommon"].checkCanvasInDiv = checkCanvasInDiv;
+    window["AscCommon"].CAutoCorrectOptions = CAutoCorrectOptions;
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;

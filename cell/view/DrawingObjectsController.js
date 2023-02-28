@@ -464,24 +464,22 @@ DrawingObjectsController.prototype.addImageFromParams = function(rasterImageId, 
     image.addToRecalculate();
 };
 
-DrawingObjectsController.prototype.addOleObjectFromParams = function(fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId){
+DrawingObjectsController.prototype.addOleObjectFromParams = function(fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect){
     var oOleObject = this.createOleObject(sData, sApplicationId, sLocalUrl, fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix);
     this.resetSelection();
     oOleObject.setWorksheet(this.drawingObjects.getWorksheetModel());
     oOleObject.setDrawingObjects(this.drawingObjects);
     oOleObject.addToDrawingObjects();
     oOleObject.checkDrawingBaseCoords();
-    this.selectObject(oOleObject, 0);
+    if(bSelect !== false) {
+        this.selectObject(oOleObject, 0);
+    }
     oOleObject.addToRecalculate();
     this.startRecalculate();
 };
 
-DrawingObjectsController.prototype.editOleObjectFromParams = function(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize){
-    oOleObject.setData(sData);
-    var _blipFill           = new AscFormat.CBlipFill();
-    _blipFill.RasterImageId = sImageUrl;
-    oOleObject.setBlipFill(_blipFill);
-    oOleObject.setPixSizes(nPixWidth, nPixHeight);
+DrawingObjectsController.prototype.editOleObjectFromParams = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight){
+    oOleObject.editExternal(sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight);
     this.startRecalculate();
 };
 

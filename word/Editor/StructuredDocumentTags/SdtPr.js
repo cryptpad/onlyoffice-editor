@@ -521,11 +521,16 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 
 	if (undefined !== this.TextFormPr && oContentControl.IsInlineLevel())
 	{
-		var isCombChanged = (!oContentControl.Pr.TextForm || this.TextFormPr.Comb !== oContentControl.Pr.TextForm.Comb);
+		let isCombChanged = (!oContentControl.Pr.TextForm || this.TextFormPr.Comb !== oContentControl.Pr.TextForm.Comb);
+		let isMaxChanged  = (!oContentControl.Pr.TextForm || this.TextFormPr.MaxCharacters !== oContentControl.Pr.TextForm.MaxCharacters);
+
 		if (oContentControl.IsFixedForm() && isCombChanged)
 			oContentControl.UpdateFixedFormCombWidthByFormSize(this.TextFormPr);
 
 		oContentControl.SetTextFormPr(this.TextFormPr);
+
+		if (this.TextFormPr.Comb && (isCombChanged || isMaxChanged))
+			oContentControl.TrimCombForm();
 
 		if (oContentControl.IsFixedForm() && !isCombChanged)
 			oContentControl.UpdateFixedFormSizeByCombWidth();
@@ -1249,7 +1254,8 @@ CSdtTextFormPr.prototype.Copy = function()
 };
 CSdtTextFormPr.prototype.IsEqual = function(oOther)
 {
-	return (this.MaxCharacters === oOther.MaxCharacters
+	return (oOther
+		&& this.MaxCharacters === oOther.MaxCharacters
 		&& this.Comb === oOther.Comb
 		&& this.Width === oOther.Width
 		&& this.CombPlaceholderSymbol === oOther.CombPlaceholderSymbol
@@ -1333,7 +1339,10 @@ CSdtTextFormPr.prototype.GetMaxCharacters = function()
 };
 CSdtTextFormPr.prototype.SetMaxCharacters = function(nMax)
 {
-	this.MaxCharacters = nMax;
+	if (undefined === nMax || null === nMax || nMax <= 0)
+		this.MaxCharacters = -1;
+	else
+		this.MaxCharacters = nMax | 0;
 };
 CSdtTextFormPr.prototype.GetComb = function()
 {
@@ -1443,7 +1452,8 @@ CSdtFormPr.prototype.Copy = function()
 };
 CSdtFormPr.prototype.IsEqual = function(oOther)
 {
-	return (this.Key === oOther.Key
+	return (oOther
+		&& this.Key === oOther.Key
 		&& this.Label === oOther.Label
 		&& this.HelpText === oOther.HelpText
 		&& this.Required === oOther.Required
@@ -1665,7 +1675,12 @@ CSdtPictureFormPr.prototype.Copy = function()
 };
 CSdtPictureFormPr.prototype.IsEqual = function(oOther)
 {
-	return (this.ScaleFlag === oOther.ScaleFlag && this.Proportions === oOther.Proportions && this.Borders === oOther.Borders && Math.abs(this.ShiftX - oOther.ShiftX) < 0.001 && Math.abs(this.ShiftY - oOther.ShiftY) < 0.001);
+	return (oOther
+		&& this.ScaleFlag === oOther.ScaleFlag
+		&& this.Proportions === oOther.Proportions
+		&& this.Borders === oOther.Borders
+		&& Math.abs(this.ShiftX - oOther.ShiftX) < 0.001
+		&& Math.abs(this.ShiftY - oOther.ShiftY) < 0.001);
 };
 CSdtPictureFormPr.prototype.WriteToBinary = function(oWriter)
 {

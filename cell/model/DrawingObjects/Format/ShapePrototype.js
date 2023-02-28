@@ -117,13 +117,15 @@ function addToDrawings(worksheet, graphic, position, lockByDefault, anchor)
 {
 
     var drawingObjects;
-    var wsViews = Asc["editor"].wb.wsViews;
-    for(var i = 0; i < wsViews.length; ++i)
-    {
-        if(wsViews[i] && wsViews[i].model === worksheet)
+    var wsViews = Asc["editor"].wb && Asc["editor"].wb.wsViews;
+    if(wsViews) {
+        for(var i = 0; i < wsViews.length; ++i)
         {
-            drawingObjects = wsViews[i].objectRender;
-            break;
+            if(wsViews[i] && wsViews[i].model === worksheet)
+            {
+                drawingObjects = wsViews[i].objectRender;
+                break;
+            }
         }
     }
     if(!drawingObjects)
@@ -849,24 +851,10 @@ CShape.prototype.Get_Worksheet = function()
 
     CShape.prototype.Set_CurrentElement = function()
     {
-
         var drawing_objects = this.getDrawingObjectsController();
         if(drawing_objects)
         {
-            drawing_objects.resetSelection(true);
-            if(this.group)
-            {
-                var main_group = this.group.getMainGroup();
-                drawing_objects.selectObject(main_group, 0);
-                main_group.selectObject(this, 0);
-                main_group.selection.textSelection = this;
-                drawing_objects.selection.groupSelection = main_group;
-            }
-            else
-            {
-                drawing_objects.selectObject(this, 0);
-                drawing_objects.selection.textSelection = this;
-            }
+            this.SetControllerTextSelection(drawing_objects, 0);
         }
     };
 

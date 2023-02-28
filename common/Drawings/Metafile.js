@@ -240,6 +240,28 @@
 			{
 				this.Clips[i].ToRenderer(renderer);
 			}
+		},
+
+		Apply : function(parent)
+		{
+			for (var i = 0, len = this.Clips.length; i < len; i++)
+			{
+				parent.transform3(this.Clips[i].Transform);
+				parent.SetIntegerGrid(this.Clips[i].IsIntegerGrid);
+
+				var _r = this.Clips[i].Rect;
+
+				parent.StartClipPath();
+
+				parent._s();
+				parent._m(_r.x, _r.y);
+				parent._l(_r.x + _r.w, _r.y);
+				parent._l(_r.x + _r.w, _r.y + _r.h);
+				parent._l(_r.x, _r.y + _r.h);
+				parent._l(_r.x, _r.y);
+
+				parent.EndClipPath();
+			}
 		}
 	};
 
@@ -348,7 +370,7 @@
 				return;
 
 			var _state = this.States[_ind];
-			if (_state.Type == gr_state_state)
+			if (_state.Type === gr_state_state)
 			{
 				if (this.Clips.length > 0)
 				{
@@ -357,33 +379,8 @@
 
 					for (var i = 0; i <= _ind; i++)
 					{
-						var _s = this.States[i];
-
-						if (_s.Type == gr_state_state)
-						{
-							var _c = _s.Clips;
-							var _l = _c.length;
-
-							for (var j = 0; j < _l; j++)
-							{
-								this.Parent.transform3(_c[j].Transform);
-								this.Parent.SetIntegerGrid(_c[j].IsIntegerGrid);
-
-								var _r = _c[j].Rect;
-								//this.Parent.AddClipRect(_r.x, _r.y, _r.w, _r.h);
-
-								this.Parent.StartClipPath();
-
-								this.Parent._s();
-								this.Parent._m(_r.x, _r.y);
-								this.Parent._l(_r.x + _r.w, _r.y);
-								this.Parent._l(_r.x + _r.w, _r.y + _r.h);
-								this.Parent._l(_r.x, _r.y + _r.h);
-								this.Parent._l(_r.x, _r.y);
-
-								this.Parent.EndClipPath();
-							}
-						}
+						if (this.States[i].Type === gr_state_state)
+							this.States[i].Apply(this.Parent);
 					}
 				}
 
@@ -393,6 +390,41 @@
 				this.Parent.transform3(_state.Transform);
 				this.Parent.SetIntegerGrid(_state.IsIntegerGrid);
 			}
+		},
+
+		RemoveLastClip : function()
+		{
+			// цель - убрать примененные this.Clips
+			if (this.Clips.length === 0)
+				return;
+
+			this.lastState = new CGrState_State();
+			this.lastState.Init(this.Parent.m_oTransform, !!this.Parent.m_bIntegerGrid, this.Clips);
+
+			this.Parent.RemoveClip();
+			for (var i = 0, len = this.States.length; i < len; i++)
+			{
+				if (this.States[i].Type === gr_state_state)
+					this.States[i].Apply(this.Parent);
+			}
+
+			this.Clips = [];
+			this.Parent.transform3(this.lastState.Transform);
+			this.Parent.SetIntegerGrid(this.lastState.IsIntegerGrid);
+		},
+		RestoreLastClip : function()
+		{
+			// цель - вернуть примененные this.lastState.Clips
+			if (!this.lastState)
+				return;
+
+			this.lastState.Apply(this.Parent);
+
+			this.Clips = this.lastState.Clips;
+			this.Parent.transform3(this.lastState.Transform);
+			this.Parent.SetIntegerGrid(this.lastState.IsIntegerGrid);
+
+			this.lastState = null;
 		},
 
 		Save : function()
@@ -1451,6 +1483,45 @@
 			}
 
 			var _colors = gradFill.colors;
+			var firstColor = null;
+			var lastColor = null;
+
+			if (_colors.length > 0)
+			{
+				if (_colors[0].pos > 0)
+				{
+					firstColor = {
+						color : {
+							RGBA : {
+								R : _colors[0].color.RGBA.R,
+								G : _colors[0].color.RGBA.G,
+								B : _colors[0].color.RGBA.B,
+								A : _colors[0].color.RGBA.A
+							}
+						},
+						pos : 0
+					};
+					_colors.unshift(firstColor);
+				}
+
+				var posLast = _colors.length - 1;
+				if (_colors[posLast].pos < 100000)
+				{
+					lastColor = {
+						color : {
+							RGBA : {
+								R : _colors[posLast].color.RGBA.R,
+								G : _colors[posLast].color.RGBA.G,
+								B : _colors[posLast].color.RGBA.B,
+								A : _colors[posLast].color.RGBA.A
+							}
+						},
+						pos : 100000
+					};
+					_colors.push(lastColor);
+				}
+			}
+
 			this.Memory.WriteByte(2);
 			this.Memory.WriteLong(_colors.length);
 
@@ -1467,6 +1538,11 @@
 				else
 					this.Memory.WriteByte(transparent);
 			}
+
+			if (firstColor)
+				_colors.shift();
+			if (lastColor)
+				_colors.pop();
 
 			this.Memory.WriteByte(AscCommon.g_nodeAttributeEnd);
 		},
@@ -2847,6 +2923,21 @@
 			var _t                = this.m_oBaseTransform;
 			this.m_oBaseTransform = null;
 			this.GrState.RestoreGrState();
+			this.m_oBaseTransform = _t;
+		},
+
+		RemoveLastClip : function()
+		{
+			var _t                = this.m_oBaseTransform;
+			this.m_oBaseTransform = null;
+			this.GrState.RemoveLastClip();
+			this.m_oBaseTransform = _t;
+		},
+		RestoreLastClip : function()
+		{
+			var _t                = this.m_oBaseTransform;
+			this.m_oBaseTransform = null;
+			this.GrState.RestoreLastClip();
 			this.m_oBaseTransform = _t;
 		},
 

@@ -1463,12 +1463,12 @@ CEndnotesController.prototype.AddImages = function(aImages)
 
 	return this.CurEndnote.AddImages(aImages);
 };
-CEndnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
+CEndnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
 {
 	if (false === this.private_CheckEndnotesSelectionBeforeAction())
 		return false;
 
-	return this.CurEndnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+	return this.CurEndnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
 };
 CEndnotesController.prototype.AddTextArt = function(nStyle)
 {
@@ -3415,6 +3415,20 @@ CEndnotesController.prototype.FindNextFillingForm = function(isNext, isCurrent)
 	}
 
 	return null;
+};
+CEndnotesController.prototype.CollectSelectedReviewChanges = function(oTrackManager)
+{
+	if (this.Selection.Use)
+	{
+		for (var sId in this.Selection.Endnotes)
+		{
+			this.Selection.Endnotes[sId].CollectSelectedReviewChanges(oTrackManager);
+		}
+	}
+	else if (this.CurEndnote)
+	{
+		this.CurEndnote.CollectSelectedReviewChanges(oTrackManager);
+	}
 };
 
 /**

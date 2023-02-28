@@ -736,8 +736,6 @@ CDrawingCollaborativeTarget.prototype.CheckNeedDraw = function()
 
 function CDrawingDocument()
 {
-
-
 	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
 	this.IsLockObjectsEnable = false;
 
@@ -802,7 +800,6 @@ function CDrawingDocument()
 
 	this.TargetCursorColor = {R : 0, G : 0, B : 0};
 
-	this.TableStylesLastLook = null;
 
 	this.InlineTextTrackEnabled = false;
 	this.InlineTextTrack = null;
@@ -834,6 +831,11 @@ function CDrawingDocument()
 
 	this.isTabButtonShow = true;
 
+	this.TableStylesLastTheme = null;
+	this.TableStylesLastColorScheme = null;
+	this.TableStylesLastColorMap = null;
+	this.TableStylesLastLook = null;
+
     // placeholders
     this.placeholders = new AscCommon.DrawingPlaceholders(this);
 
@@ -849,7 +851,7 @@ function CDrawingDocument()
 
 		// check dark theme
 		if (AscCommon.GlobalSkin.Type !== "dark" || (this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10 || this.TargetCursorColor.R > 10))
-			return this.TargetCursorColor.R;
+			return this.TargetCursorColor;
 
 		return { R : 255 - this.TargetCursorColor.R, G : 255 - this.TargetCursorColor.G, B : 255 - this.TargetCursorColor.B };
 	};
@@ -1629,8 +1631,8 @@ function CDrawingDocument()
 				__y = transform.TransformPointY(x, y);
 			}
 
-			var x_pix = (__x * g_dKoef_mm_to_pix + 10 + (_word_control.m_oMainParent.AbsolutePosition.L + _word_control.m_oNotesContainer.AbsolutePosition.L) * g_dKoef_mm_to_pix) >> 0;
-			var y_pix = (__y * g_dKoef_mm_to_pix + (_word_control.m_oMainParent.AbsolutePosition.T + _word_control.m_oNotesContainer.AbsolutePosition.T) * g_dKoef_mm_to_pix) >> 0;
+			var x_pix = (__x * g_dKoef_mm_to_pix + 10 + (_word_control.m_oMainParent.AbsolutePosition.L + _word_control.m_oBottomPanesContainer.AbsolutePosition.L + _word_control.m_oNotesContainer.AbsolutePosition.L) * g_dKoef_mm_to_pix) >> 0;
+			var y_pix = (__y * g_dKoef_mm_to_pix + (_word_control.m_oMainParent.AbsolutePosition.T + _word_control.m_oBottomPanesContainer.AbsolutePosition.T + _word_control.m_oNotesContainer.AbsolutePosition.T) * g_dKoef_mm_to_pix) >> 0;
 
 			return {X: x_pix, Y: y_pix, Error: false};
 		}
@@ -3089,82 +3091,45 @@ function CDrawingDocument()
 		_div_elem.appendChild(this.GuiCanvasFillTextureTextArt);
 	};
 
-	this.CheckTableStyles = function()
+	this.CheckTableStyles = function(tableLook)
 	{
 		// сначала проверим, подписан ли кто на этот евент
 		// а то во вьюере не стоит ничего посылать
-
 		if (!this.m_oWordControl.m_oApi.asc_checkNeedCallback("asc_onInitTableTemplates"))
 			return;
+		var isChanged = this.m_oWordControl.m_oLogicDocument.CheckNeedUpdateTableStyles(tableLook);
+		if(!isChanged)
+		{
+			return;
+		}
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
+	};
+	this.CheckTableStylesDefault = function ()
+	{
+		let tableLook = new AscCommon.CTableLook(true, true, false, false, true, false);
+		return this.CheckTableStyles(tableLook);
 	};
 
 	this.GetTableStylesPreviews = function(bUseDefault)
 	{
-		var logicDoc    = this.m_oWordControl.m_oLogicDocument;
-		if(!logicDoc)
+		return (new AscCommon.CTableStylesPreviewGenerator(this.m_oWordControl.m_oLogicDocument)).GetAllPreviews(bUseDefault);
+	};
+
+	this.GetTableLook = function(isDefault)
+	{
+		let oTableLook;
+
+		if (isDefault)
 		{
-			return [];
+			oTableLook = new AscCommon.CTableLook();
+			oTableLook.SetDefault();
 		}
-		var oCurrentSlide = logicDoc.GetCurrentSlide();
-		if(!oCurrentSlide)
+		else
 		{
-			return [];
-		}
-		var oLastTableLook = logicDoc.LastTableLook;
-		if(bUseDefault)
-		{
-			var oFormatTableLook = new AscCommonWord.CTableLook();
-			oFormatTableLook.SetDefault();
-			logicDoc.CheckTableStyles(oCurrentSlide, oFormatTableLook)
+			oTableLook = this.TableStylesLastLook;
 		}
 
-		var _dst_styles = [];
-		var _pageW      = 297;
-		var _pageH      = 210;
-		var _canvas     = document.createElement('canvas');
-		_canvas.width   = (TABLE_STYLE_WIDTH_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-		_canvas.height  = (TABLE_STYLE_HEIGHT_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-		var ctx         = _canvas.getContext('2d');
-		var oTable;
-		for (var i = 0; i < logicDoc.TablesForInterface.length; i++)
-		{
-			oTable = logicDoc.TablesForInterface[i].graphicObject;
-			ctx.fillStyle = "#FFFFFF";
-			ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-
-			var graphics = new AscCommon.CGraphics();
-			graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
-			graphics.m_oFontManager = AscCommon.g_fontManager;
-			graphics.transform(1, 0, 0, 1, 0, 0);
-			oTable.Draw(0, graphics);
-
-			var _styleD   = new AscCommon.CStyleImage();
-			_styleD.type  = AscCommon.c_oAscStyleImage.Default;
-			_styleD.image = _canvas.toDataURL("image/png");
-			var oStyleObject = AscCommon.g_oTableId.Get_ById(oTable.TableStyle);
-			if(oStyleObject)
-			{
-				_styleD.name = oTable.TableStyle;
-				_styleD.displayName = oStyleObject.Name;
-			}
-			else
-			{
-
-				_styleD.name = oTable.TableStyle;
-				_styleD.displayName = "";
-
-			}
-			_dst_styles.push(_styleD);
-		}
-		if(bUseDefault)
-		{
-			if(oLastTableLook)
-			{
-				logicDoc.CheckTableStyles(oCurrentSlide, oLastTableLook);
-			}
-		}
-		return _dst_styles;
+		return oTableLook;
 	};
 
 	this.OnSelectEnd = function()
@@ -3478,7 +3443,7 @@ function CDrawingDocument()
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.GetOLang());
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.get_OLang());
                     break;
                 default:
                     break;
@@ -3607,6 +3572,7 @@ function CDrawingDocument()
 						oLvl		= new Asc.CAscNumberingLvl(i),
 						oLvlTextPr	= new CTextPr(),
 						sLvlText	= "";
+					oLvlTextPr.Color = new AscCommonWord.CDocumentColor(0, 0, 0, false);
 					switch (i)
 					{
 						case 1:
@@ -3675,6 +3641,7 @@ function CDrawingDocument()
 					c_oAscNumberingLevel.UpperRomanDot_Right,
 					c_oAscNumberingLevel.LowerRomanDot_Right
 				];
+
 				for (var i = 0; i < arrTypes.length; i++)
 				{
 					var lvl = new CNumberingLvl();
@@ -3682,6 +3649,10 @@ function CDrawingDocument()
 					lvl.SetByType(arrTypes[i], 0);
 					lvl.FillToAscNumberingLvl(oLvl);
 					oLvl.Align = 1;
+					if(oLvl.TextPr)
+					{
+						oLvl.TextPr.Color = new AscCommonWord.CDocumentColor(0, 0, 0, false);
+					}
 					props.push(oLvl);
 				}
 			}
@@ -3703,7 +3674,7 @@ function CDrawingDocument()
 							text += curLvl.Text[j].Value;
 							break;
 						case Asc.c_oAscNumberingLvlTextType.Num:
-							text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
+							text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
 							break;
 						default:
 							break;
@@ -3840,7 +3811,7 @@ function CDrawingDocument()
 							var correctNum = 1;
 							if (levelNum === props[i].Text[k].Value)
 								correctNum = counterCurrent;
-							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].GetOLang());
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].get_OLang());
 							break;
 						default:
 							break;
@@ -3919,10 +3890,15 @@ function CDrawingDocument()
 
 	this.OnAnimPaneChanged = function(nSlideNum, oRect)
 	{
+		if(!this.m_oWordControl || !this.m_oWordControl.m_oAnimPaneApi)
+		{
+			return;
+		}
 		if(nSlideNum !== this.SlideCurrent)
 		{
 			return;
 		}
+
 		this.m_oWordControl.m_oAnimPaneApi.OnAnimPaneChanged(nSlideNum, oRect);
 	};
 }
@@ -6689,6 +6665,10 @@ function CPaneDrawerBase(page, htmlElement, parentDrawer, pageControl)
 	};
 	oThis.CheckControl = function()
 	{
+		if(!oThis.HtmlPage.m_oApi.isDocumentLoadComplete)
+		{
+			return;
+		}
 		if(!oThis.Control)
 		{
 			if(oThis.HtmlPage.m_oLogicDocument)

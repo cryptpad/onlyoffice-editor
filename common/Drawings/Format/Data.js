@@ -37,9 +37,27 @@
    * @param {undefined} undefined
    */
   function (window, undefined) {
+/*
+The current module is designed to implement SmartArt support.
+At the moment, there is partial support for the format, its saving and editing.
+At the moment, there is support for the drawing.xml file - this should be abandoned, smart arts are built with information from the data.xml file, drawn by bypassing the layout.xml file.
+Need to support:
+1. The connection must be built data -> drawing, at the moment the opposite is happening.
+
+2. Rendering should take place according to the layout.xml file.
+
+3. Synchronous filling of a paragraph in data and drawing, at the moment this is not done correctly - available paragraphs are divided evenly and filled in contentpoints.
+CShape.prototype.copyTextInfoFromShapeToPoint = function (paddings) {
+Because of this, the display is sometimes not correct.
+
+4. Support placeholders for individual paragraphs. At the moment, there are two contents that replace each other when in focus and out of focus.
+
+5. Support changing the smartart tree to add new nodes.
+*/
     // imports
 
     var InitClass = AscFormat.InitClass;
+    var InitClassWithoutType = AscFormat.InitClassWithoutType;
     var CBaseFormatObject = AscFormat.CBaseFormatObject;
     var oHistory = AscCommon.History;
     var CChangeBool = AscDFH.CChangesDrawingsBool;
@@ -277,8 +295,6 @@
     var Constr_type_wOff = 62;
 
     var kForInsFitFontSize = 71.12 / 360;
-
-    var ptToMm = 2.834645669291;
 
     var LayoutShapeType_outputShapeType_conn = 0;
     var LayoutShapeType_outputShapeType_none = 1;
@@ -1565,43 +1581,6 @@
     drawingsChangesMap[AscDFH.historyitem_PointInfoAssociation] = function (oClass, value) {
       oClass.association = value;
     };
-    function PointInfo() {
-      CBaseFormatObject.call(this);
-      this.point = null;
-      this.association = null;
-    }
-    InitClass(PointInfo, CBaseFormatObject, AscDFH.historyitem_type_PointInfo);
-
-    PointInfo.prototype.getPoint = function () {
-      return this.point;
-    }
-
-    PointInfo.prototype.getAssociation = function () {
-      return this.association;
-    }
-
-    PointInfo.prototype.setPoint = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointInfoPoint, this.getPoint(), oPr));
-      this.point = oPr;
-      this.setParentToChild(oPr);
-    }
-    PointInfo.prototype.setAssociation = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_PointInfoAssociation, this.getAssociation(), oPr));
-      this.association = oPr;
-      this.setParentToChild(oPr);
-    }
-
-    PointInfo.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.point) {
-        oCopy.setPoint(this.getPoint().createDuplicate());
-      }
-      if (this.association) {
-        oCopy.setAssociation(this.getAssociation().createDuplicate());
-      }
-    }
-
-
-
 
     changesFactory[AscDFH.historyitem_PointCxnId] = CChangeString;
     changesFactory[AscDFH.historyitem_PointModelId] = CChangeString;
@@ -1649,6 +1628,10 @@
     Point.prototype.getDrawingDocument = function () {
     }
 
+    Point.prototype.isForm = function () {
+      return false;
+    }
+
     Point.prototype.Get_Theme = function () {
       return null;
     }
@@ -1672,6 +1655,28 @@
       if (this.parent && this.parent.parent instanceof CShape) {
         return this.parent.parent;
       }
+    }
+
+    Point.prototype.isRecalculateInsets = function () {
+      const insets = {Top: true, Bottom: true, Left: true, Right: true};
+      if (this.t) {
+        var bodyPr = this.t.bodyPr;
+        if (bodyPr) {
+          if (AscFormat.isRealNumber(bodyPr.tIns)) {
+            insets.Top = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.bIns)) {
+            insets.Bottom = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.lIns)) {
+            insets.Left = false;
+          }
+          if (AscFormat.isRealNumber(bodyPr.rIns)) {
+            insets.Right = false;
+          }
+        }
+      }
+      return insets;
     }
 
     Point.prototype.setType = function (pr) {
@@ -1703,6 +1708,11 @@
       this.setParentToChild(oPr);
     }
 
+    Point.prototype.setPhldrT = function(pr) {
+      var prSet = this.getPrSet();
+      prSet && prSet.setPhldrT(pr);
+    }
+
     Point.prototype.getCxnId = function () {
       return this.cxnId;
     }
@@ -1730,6 +1740,46 @@
 
     Point.prototype.getT = function () {
       return this.t;
+    }
+
+    Point.prototype.initSpPr = function () {
+      if (!this.spPr) {
+        this.setSpPr(new AscFormat.CSpPr());
+      }
+    }
+
+    Point.prototype.changeFlipH = function (bFlipH) {
+      var prSet = this.getPrSet();
+      prSet && prSet.setCustFlipHor(bFlipH);
+    }
+
+    Point.prototype.changeFlipV = function (bFlipV) {
+      var prSet = this.getPrSet();
+      prSet && prSet.setCustFlipVert(bFlipV);
+    }
+
+    Point.prototype.resetUniFill = function () {
+      this.spPr && this.spPr.setFill(null);
+    }
+
+    Point.prototype.setUniFill = function (unifill) {
+      this.initSpPr();
+      this.spPr.setFill(unifill);
+    }
+
+    Point.prototype.changeShadow = function (shadow) {
+      this.initSpPr(shadow);
+      this.spPr.changeShadow(shadow);
+    }
+
+    Point.prototype.setLine = function (line) {
+      this.initSpPr();
+      this.spPr.setLn(line);
+    }
+
+    Point.prototype.setGeometry = function (geometry) {
+      this.initSpPr();
+      this.spPr.setGeometry(geometry);
     }
 
     Point.prototype.isBlipFillPlaceholder = function () {
@@ -1804,12 +1854,23 @@
       return [this.spPr, this.t, this.prSet];
     };
 
+    Point.prototype.getPresStyleLbl = function () {
+      return this.prSet && this.prSet.presStyleLbl;
+    };
+
+    Point.prototype.getCustAng = function () {
+      var prSet = this.getPrSet();
+      if (prSet) {
+        return prSet.getCustAng();
+      }
+    };
+
 
 
     changesFactory[AscDFH.historyitem_PrSetCoherent3DOff] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCsCatId] = CChangeString;
     changesFactory[AscDFH.historyitem_PrSetCsTypeId] = CChangeString;
-    changesFactory[AscDFH.historyitem_PrSetCustAng] = CChangeLong;
+    changesFactory[AscDFH.historyitem_PrSetCustAng] = CChangeDouble2;
     changesFactory[AscDFH.historyitem_PrSetCustFlipHor] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCustFlipVert] = CChangeBool;
     changesFactory[AscDFH.historyitem_PrSetCustLinFactNeighborX] = CChangeDouble2;
@@ -1981,7 +2042,7 @@
     }
 
     PrSet.prototype.setCustAng = function (pr) {
-      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_PrSetCustAng, this.getCustAng(), pr));
+      oHistory.Add(new CChangeDouble2(this, AscDFH.historyitem_PrSetCustAng, this.getCustAng(), pr));
       this.custAng = pr;
     }
 
@@ -2277,17 +2338,17 @@
       pWriter._WriteBool2(1, this.coherent3DOff);
       pWriter._WriteString2(2, this.csCatId);
       pWriter._WriteString2(3, this.csTypeId);
-      pWriter._WriteInt2(4, this.custAng ? this.custAng / AscFormat.cToRad : null);
+      pWriter._WriteInt2(4, this.custAng ? (this.custAng / AscFormat.cToRad + 0.5) >> 0 : null);
       pWriter._WriteBool2(5, this.custFlipHor);
       pWriter._WriteBool2(6, this.custFlipVert);
-      pWriter._WriteInt2(7, this.custLinFactNeighborX ? this.custLinFactNeighborX * 100000 : null);
-      pWriter._WriteInt2(8, this.custLinFactNeighborY ? this.custLinFactNeighborY * 100000 : null);
-      pWriter._WriteInt2(9, this.custLinFactX);
-      pWriter._WriteInt2(10, this.custLinFactY);
+      pWriter._WriteInt2(7, this.custLinFactNeighborX ? Math.floor(this.custLinFactNeighborX * 100000) : null);
+      pWriter._WriteInt2(8, this.custLinFactNeighborY ? Math.floor(this.custLinFactNeighborY * 100000) : null);
+      pWriter._WriteInt2(9, this.custLinFactX ? Math.floor(this.custLinFactX * 100000) : null);
+      pWriter._WriteInt2(10, this.custLinFactY ? Math.floor(this.custLinFactY * 100000) : null);
       pWriter._WriteInt2(11, this.custRadScaleInc);
       pWriter._WriteInt2(12, this.custRadScaleRad);
-      pWriter._WriteInt2(13, this.custScaleX ? this.custScaleX * 100000 : null);
-      pWriter._WriteInt2(14, this.custScaleY ? this.custScaleY * 100000 : null);
+      pWriter._WriteInt2(13, this.custScaleX ? Math.floor(this.custScaleX * 100000) : null);
+      pWriter._WriteInt2(14, this.custScaleY ? Math.floor(this.custScaleY * 100000) : null);
       pWriter._WriteInt2(15, this.custSzX);
       pWriter._WriteInt2(16, this.custSzY);
       pWriter._WriteBool2(17, this.custT);
@@ -2305,7 +2366,7 @@
     };
     PrSet.prototype.writeChildren = function(pWriter) {
       this.writeRecord2(pWriter, 0, this.presLayoutVars);
-      this.writeRecord2(pWriter, 1, this.style);
+      pWriter.WriteRecord2(1, this.style, pWriter.WriteShapeStyle);
     };
     PrSet.prototype.readAttribute = function(nType, pReader) {
       var oStream = pReader.stream;
@@ -2317,8 +2378,8 @@
       else if (6 === nType) this.setCustFlipVert(oStream.GetBool());
       else if (7 === nType) this.setCustLinFactNeighborX(oStream.GetLong() / 100000);
       else if (8 === nType) this.setCustLinFactNeighborY(oStream.GetLong() / 100000);
-      else if (9 === nType) this.setCustLinFactX(oStream.GetLong());
-      else if (10 === nType) this.setCustLinFactY(oStream.GetLong());
+      else if (9 === nType) this.setCustLinFactX(oStream.GetLong() / 100000);
+      else if (10 === nType) this.setCustLinFactY(oStream.GetLong() / 100000);
       else if (11 === nType) this.setCustRadScaleInc(oStream.GetLong());
       else if (12 === nType) this.setCustRadScaleRad(oStream.GetLong());
       else if (13 === nType) this.setCustScaleX(oStream.GetLong() / 100000);
@@ -2347,8 +2408,7 @@
           break;
         }
         case 1: {
-          this.setStyle(new StyleData());
-          this.style.fromPPTY(pReader);
+          this.setStyle(pReader.ReadShapeStyle());
           break;
         }
         default: {
@@ -4822,7 +4882,7 @@
       this.setPtType(new ElementType());
       this.refFor = null;
       this.refForName = null;
-      this.refPtType = null;
+      this.setRefPtType(new ElementType());
       this.refType = null;
       this.type = null;
       this.val = null;
@@ -4869,7 +4929,7 @@
 
     Constr.prototype.setRefPtType = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ConstrRefPtType, this.getRefPtType(), oPr));
-      this.ptRefType = oPr;
+      this.refPtType = oPr;
       this.setParentToChild(oPr);
     }
 
@@ -4971,7 +5031,7 @@
       pWriter._WriteUChar2(4, this.ptType.getVal());
       pWriter._WriteUChar2(5, this.refFor);
       pWriter._WriteString2(6, this.refForName);
-      pWriter._WriteUChar2(7, this.refPtType);
+      pWriter._WriteUChar2(7, this.refPtType.getVal());
       pWriter._WriteUChar2(8, this.refType);
       pWriter._WriteUChar2(9, this.type);
       pWriter._WriteDoubleReal2(10, this.val);
@@ -4991,7 +5051,11 @@
       }
       else if (5 === nType) this.setRefFor(oStream.GetUChar());
       else if (6 === nType) this.setRefForName(oStream.GetString2());
-      else if (7 === nType) this.setRefPtType(oStream.GetUChar());
+      else if (7 === nType) {
+        var pt = new ElementType();
+        pt.setVal(oStream.GetUChar());
+        this.setRefPtType(pt);
+      }
       else if (8 === nType) this.setRefType(oStream.GetUChar());
       else if (9 === nType) this.setType(oStream.GetUChar());
       else if (10 === nType) this.setVal(oStream.GetDouble());
@@ -7287,14 +7351,44 @@
     }
 
 
+    function CChangesDrawingsContentStyleLbl(Class, Type, Pos, Items, isAdd) {
+      AscDFH.CChangesDrawingsContent.call(this, Class, Type, Pos, Items, isAdd);
+    }
+
+    CChangesDrawingsContentStyleLbl.prototype = Object.create(AscDFH.CChangesDrawingsContent.prototype);
+    CChangesDrawingsContentStyleLbl.prototype.constructor = CChangesDrawingsContentStyleLbl;
+
+    CChangesDrawingsContentStyleLbl.prototype.Undo = function () {
+      AscDFH.CChangesDrawingsContent.prototype.Undo.call(this);
+      this.updateStyleLbl();
+    };
+
+    CChangesDrawingsContentStyleLbl.prototype.Redo = function () {
+      AscDFH.CChangesDrawingsContent.prototype.Redo.call(this);
+      this.updateStyleLbl();
+    };
+
+    CChangesDrawingsContentStyleLbl.prototype.updateStyleLbl = function () {
+      //console.log(this.Items);
+      if (this.IsAdd()) {
+        for (var i = 0; i < this.Items.length; i += 1) {
+          this.Class.styleLblByName[this.Items[i].name] = this.Items[i];
+        }
+      } else {
+        for (var i = 0; i < this.Items.length; i += 1) {
+          delete this.Class.styleLblByName[this.Items[i].name];
+        }
+      }
+    };
+
     changesFactory[AscDFH.historyitem_ColorsDefMinVer] = CChangeString;
     changesFactory[AscDFH.historyitem_ColorsDefUniqueId] = CChangeString;
     changesFactory[AscDFH.historyitem_ColorsDefCatLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefExtLst] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefDesc] = CChangeObject;
     changesFactory[AscDFH.historyitem_ColorsDefTitle] = CChangeObject;
-    changesFactory[AscDFH.historyitem_ColorsDefAddStyleLbl] = CChangeContent;
-    changesFactory[AscDFH.historyitem_ColorsDefRemoveStyleLbl] = CChangeContent;
+    changesFactory[AscDFH.historyitem_ColorsDefAddStyleLbl] = CChangesDrawingsContentStyleLbl;
+    changesFactory[AscDFH.historyitem_ColorsDefRemoveStyleLbl] = CChangesDrawingsContentStyleLbl;
     drawingsChangesMap[AscDFH.historyitem_ColorsDefMinVer] = function (oClass, value) {
       oClass.minVer = value;
     };
@@ -7329,6 +7423,7 @@
       this.desc = null;
       this.title = null;
       this.styleLbl = [];
+      this.styleLblByName = {};
     }
 
     InitClass(ColorsDef, CBaseFormatObject, AscDFH.historyitem_type_ColorsDef);
@@ -7369,16 +7464,18 @@
 
     ColorsDef.prototype.addToLstStyleLbl = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.styleLbl.length, Math.max(0, nIdx));
-      oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefAddStyleLbl, nInsertIdx, [oPr], true));
+      oHistory.Add(new CChangesDrawingsContentStyleLbl(this, AscDFH.historyitem_ColorsDefAddStyleLbl, nInsertIdx, [oPr], true));
       this.styleLbl.splice(nInsertIdx, 0, oPr);
       this.setParentToChild(oPr);
+      this.styleLblByName[oPr.name] = oPr;
     };
 
     ColorsDef.prototype.removeFromLstStyleLbl = function (nIdx) {
       if (nIdx > -1 && nIdx < this.styleLbl.length) {
         this.styleLbl[nIdx].setParent(null);
-        oHistory.Add(new CChangeContent(this, AscDFH.historyitem_ColorsDefRemoveStyleLbl, nIdx, [this.styleLbl[nIdx]], false));
-        this.styleLbl.splice(nIdx, 1);
+        oHistory.Add(new CChangesDrawingsContentStyleLbl(this, AscDFH.historyitem_ColorsDefRemoveStyleLbl, nIdx, [this.styleLbl[nIdx]], false));
+        var deleteObj = this.styleLbl.splice(nIdx, 1);
+        delete this.styleLblByName[deleteObj[0].name];
       }
     };
 
@@ -8635,9 +8732,9 @@
       oCopy.setUniversalMeasure(this.getUniversalMeasure());
     }
 
-    changesFactory[AscDFH.historyitem_BackdropAnchorX] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BackdropAnchorY] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BackdropAnchorZ] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropAnchorX] = CChangeLong;
+    changesFactory[AscDFH.historyitem_BackdropAnchorY] = CChangeLong;
+    changesFactory[AscDFH.historyitem_BackdropAnchorZ] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_BackdropAnchorX] = function (oClass, value) {
       oClass.x = value;
     };
@@ -8658,17 +8755,17 @@
     InitClass(BackdropAnchor, CBaseFormatObject, AscDFH.historyitem_type_BackdropAnchor);
 
     BackdropAnchor.prototype.setX = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropAnchorX, this.getX(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropAnchorX, this.getX(), oPr));
       this.x = oPr;
     }
 
     BackdropAnchor.prototype.setY = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropAnchorY, this.getY(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropAnchorY, this.getY(), oPr));
       this.y = oPr;
     }
 
     BackdropAnchor.prototype.setZ = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropAnchorZ, this.getZ(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropAnchorZ, this.getZ(), oPr));
       this.z = oPr;
     }
 
@@ -8685,14 +8782,14 @@
     }
 
     BackdropAnchor.prototype.fillObject = function (oCopy, oIdMap) {
-      if (this.getX()) {
-        oCopy.setX(this.getX().createDuplicate(oIdMap));
+      if (this.getX() !== null) {
+        oCopy.setX(this.getX());
       }
-      if (this.getY()) {
-        oCopy.setY(this.getY().createDuplicate(oIdMap));
+      if (this.getY() !== null) {
+        oCopy.setY(this.getY());
       }
-      if (this.getZ()) {
-        oCopy.setZ(this.getZ().createDuplicate(oIdMap));
+      if (this.getZ() !== null) {
+        oCopy.setZ(this.getZ());
       }
     }
 
@@ -8784,10 +8881,35 @@
       }
     };
 
+    Drawing.prototype.setXfrmByParent = function () {
+      var oXfrm = this.spPr.xfrm;
+      if (oXfrm.isZero()) {
+        var parent = this.group;
+        if (parent && parent.spPr.xfrm) {
+          oXfrm.setExtX(parent.spPr.xfrm.extX);
+          oXfrm.setExtY(parent.spPr.xfrm.extY);
+        }
+      }
+    };
 
-    changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BackdropNormDz] = CChangeObject;
+    Drawing.prototype.handleUpdateExtents = function(bExt)
+    {
+      this.recalcTransform();
+      this.recalcBounds();
+      this.addToRecalculate();
+      this.recalcWrapPolygon();
+      if(this.spTree)
+      {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+          this.spTree[i].handleUpdateExtents(bExt);
+        }
+      }
+    };
+
+    changesFactory[AscDFH.historyitem_BackdropNormDx] = CChangeLong;
+    changesFactory[AscDFH.historyitem_BackdropNormDy] = CChangeLong;
+    changesFactory[AscDFH.historyitem_BackdropNormDz] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_BackdropNormDx] = function (oClass, value) {
       oClass.dx = value;
     };
@@ -8808,17 +8930,17 @@
     InitClass(BackdropNorm, CBaseFormatObject, AscDFH.historyitem_type_BackdropNorm);
 
     BackdropNorm.prototype.setDx = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropNormDx, this.getDx(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropNormDx, this.getDx(), oPr));
       this.dx = oPr;
     }
 
     BackdropNorm.prototype.setDy = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropNormDy, this.getDy(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropNormDy, this.getDy(), oPr));
       this.dy = oPr;
     }
 
     BackdropNorm.prototype.setDz = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropNormDz, this.getDz(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropNormDz, this.getDz(), oPr));
       this.dz = oPr;
     }
 
@@ -8836,20 +8958,20 @@
 
     BackdropNorm.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.getDx()) {
-        oCopy.setDx(this.getDx().createDuplicate(oIdMap));
+        oCopy.setDx(this.getDx());
       }
       if (this.getDy()) {
-        oCopy.setDy(this.getDy().createDuplicate(oIdMap));
+        oCopy.setDy(this.getDy());
       }
       if (this.getDz()) {
-        oCopy.setDz(this.getDz().createDuplicate(oIdMap));
+        oCopy.setDz(this.getDz());
       }
     }
 
 
-    changesFactory[AscDFH.historyitem_BackdropUpDx] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BackdropUpDy] = CChangeObject;
-    changesFactory[AscDFH.historyitem_BackdropUpDz] = CChangeObject;
+    changesFactory[AscDFH.historyitem_BackdropUpDx] = CChangeLong;
+    changesFactory[AscDFH.historyitem_BackdropUpDy] = CChangeLong;
+    changesFactory[AscDFH.historyitem_BackdropUpDz] = CChangeLong;
     drawingsChangesMap[AscDFH.historyitem_BackdropUpDx] = function (oClass, value) {
       oClass.dx = value;
     };
@@ -8870,17 +8992,17 @@
     InitClass(BackdropUp, CBaseFormatObject, AscDFH.historyitem_type_BackdropUp);
 
     BackdropUp.prototype.setDx = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropUpDx, this.getDx(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropUpDx, this.getDx(), oPr));
       this.dx = oPr;
     }
 
     BackdropUp.prototype.setDy = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropUpDy, this.getDy(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropUpDy, this.getDy(), oPr));
       this.dy = oPr;
     }
 
     BackdropUp.prototype.setDz = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_BackdropUpDz, this.getDz(), oPr));
+      oHistory.Add(new CChangeLong(this, AscDFH.historyitem_BackdropUpDz, this.getDz(), oPr));
       this.dz = oPr;
     }
 
@@ -8898,13 +9020,13 @@
 
     BackdropUp.prototype.fillObject = function (oCopy, oIdMap) {
       if (this.getDx()) {
-        oCopy.setDx(this.getDx().createDuplicate(oIdMap));
+        oCopy.setDx(this.getDx());
       }
       if (this.getDy()) {
-        oCopy.setDy(this.getDy().createDuplicate(oIdMap));
+        oCopy.setDy(this.getDy());
       }
       if (this.getDz()) {
-        oCopy.setDz(this.getDz().createDuplicate(oIdMap));
+        oCopy.setDz(this.getDz());
       }
     }
 
@@ -9700,17 +9822,10 @@
 
     function ShapeSmartArtInfo() {
       CBaseFormatObject.call(this);
-      this.spPrPoint = null;
       this.shapePoint = null;
       this.contentPoint = [];
     }
     InitClass(ShapeSmartArtInfo, CBaseFormatObject, AscDFH.historyitem_type_ShapeSmartArtInfo);
-
-    ShapeSmartArtInfo.prototype.setSpPrPoint = function (oPr) {
-      oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ShapeSmartArtInfoSpPrPoint, this.spPrPoint, oPr));
-      this.spPrPoint = oPr;
-      this.setParentToChild(oPr);
-    }
 
     ShapeSmartArtInfo.prototype.setShapePoint = function (oPr) {
       oHistory.Add(new CChangeObject(this, AscDFH.historyitem_ShapeSmartArtInfoShapePoint, this.shapePoint, oPr));
@@ -9784,6 +9899,32 @@
       return 'SmartArt';
     };
 
+    SmartArt.prototype.recalculate = function () {
+    var oldParaMarks = editor && editor.ShowParaMarks;
+      if (oldParaMarks) {
+        editor.ShowParaMarks = false;
+      }
+      CGroupShape.prototype.recalculate.call(this);
+      if (oldParaMarks) {
+        editor.ShowParaMarks = oldParaMarks;
+      }
+    }
+
+    SmartArt.prototype.handleUpdateExtents = function(bExt)
+    {
+      this.recalcTransform();
+      this.recalcBounds();
+      this.addToRecalculate();
+      this.recalcWrapPolygon();
+      if(this.spTree)
+      {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+          this.spTree[i].handleUpdateExtents(bExt);
+        }
+      }
+    };
+
     SmartArt.prototype.startAlgorithm = function (pointTree) {
       var layoutDef = this.getLayoutDef();
       if (layoutDef) {
@@ -9834,35 +9975,39 @@
       var ptLst = this.getPtLst();
       var cxnLst = this.getCxnLst();
       var elements = [];
-      var ptLstWithNoType = [];
+      var nodePoints = [];
       var ptLstWithTypePres = [];
       var docPoint;
       if (cxnLst && ptLst) {
-        var cxnWithNoPres = cxnLst.filter(function (cxn) {return !cxn.type;});
+        var connectionsParOf = cxnLst.filter(function (cxn) {return !cxn.type;});
 
         ptLst.forEach(function (point) {
           if (point.type === Point_type_pres) {
             ptLstWithTypePres.push(point);
-          } else if (!point.type || point.type === Point_type_node) {
-            ptLstWithNoType.push(point);
+          } else if (!point.type || point.type === Point_type_node || point.type === Point_type_asst) {
+            nodePoints.push(point);
           } else if (point.type === Point_type_doc) {
             docPoint = point;
           }
         });
 
-        for (var i = 0; i < ptLstWithNoType.length + 1; i += 1) {
+        for (var i = 0; i <= nodePoints.length; i += 1) {
           var elem = new SmartArtNodeData();
 
-          if (i === ptLstWithNoType.length) {
+          if (i === nodePoints.length) {
             var mPoint = docPoint;
             elem.setDocPoint(mPoint);
 
           } else {
-            mPoint = ptLstWithNoType[i];
-            elem.setNodePoint(mPoint);
+            mPoint = nodePoints[i];
+            if (!mPoint.type || mPoint.type === Point_type_node) {
+              elem.setNodePoint(mPoint);
+            } else if (mPoint.type === Point_type_asst) {
+              elem.setAsstPoint(mPoint);
+            }
           }
 
-          cxnWithNoPres.forEach(function (cxn) {
+          connectionsParOf.forEach(function (cxn) {
             if (cxn.destId === mPoint.modelId) {
               elem.setCxn(cxn);
               if (ptMap) {
@@ -9913,7 +10058,8 @@
             for (var j = 0; j < cxnWithNoPres.length; j += 1) {
               var _cxn = cxnWithNoPres[j];
               var childData = elements.reduce(function (acc, next) {
-                if (next.nodePoint && next.nodePoint.modelId === _cxn.destId) {
+                var nodePoint = next.nodePoint || next.asstPoint;
+                if (nodePoint && nodePoint.modelId === _cxn.destId) {
                   return next;
                 }
                 return acc;
@@ -9924,6 +10070,40 @@
         }
       }
       return tree;
+    }
+
+    SmartArt.prototype.getDefColorsByName = function () {
+      var colorsDef = this.getColorsDef();
+      return colorsDef && colorsDef.styleLblByName;
+    }
+
+    SmartArt.prototype.getDefaultColorsForPoint = function (point) {
+      var styleLbl = point.getPresStyleLbl();
+      var defaultColors = this.getDefColorsByName();
+      if (defaultColors && styleLbl) {
+        return defaultColors[styleLbl];
+      }
+    }
+
+    SmartArt.prototype.getDefaultTxColorFromPoint = function (point) {
+      var currentDefaultColors = this.getDefaultColorsForPoint(point);
+      if (currentDefaultColors) {
+        var txFillLst = currentDefaultColors.txFillClrLst;
+        if (txFillLst) {
+          return txFillLst.list[0];
+        }
+      }
+    }
+
+    SmartArt.prototype.getSmartArtDefaultTxFill = function (shape) {
+      var shapePoint = shape && shape.getSmartArtShapePoint();
+      var defaultTxColorFromShape = shapePoint && this.getDefaultTxColorFromPoint(shapePoint);
+      var defaultTxFill;
+
+      if (defaultTxColorFromShape) {
+        defaultTxFill = AscFormat.CreateUniFillByUniColorCopy(defaultTxColorFromShape);
+      }
+      return defaultTxFill;
     }
 
     SmartArt.prototype.getTypeOfSmartArt = function () {
@@ -10072,6 +10252,7 @@
           if (point.prSet && point.prSet.loTypeId) {
             var typeSplit = point.prSet.loTypeId.split('/');
             type = typeSplit[typeSplit.length - 1];
+            type = type.split('#')[0];
           }
         }
       });
@@ -10083,14 +10264,15 @@
       var smartArtType = this.getTypeOfSmartArt();
       var shapeGeometry = callShape.getPresetGeom();
       var shapes = this.arrGraphicObjects.slice();
-      var association = callShape.getPointAssociation();
-      var prSet = association && association.prSet;
+      var callShapePoint = callShape.getSmartArtShapePoint();
+      var prSet = callShapePoint && callShapePoint.prSet;
       var getShapesFromPresStyleLbl = function(arrOfStyleLbl, returnThis) {
         if (prSet) {
           for (var i = 0; i < arrOfStyleLbl.length; i += 1) {
             if (prSet.presStyleLbl === arrOfStyleLbl[i]) {
               return shapes.filter(function (shape) {
-                var shapePrSet = shape.getPointAssociation() && shape.getPointAssociation().prSet;
+                var smartArtShapePoint = shape.getSmartArtShapePoint();
+                var shapePrSet = smartArtShapePoint && smartArtShapePoint.prSet;
                 return shapePrSet.presStyleLbl === arrOfStyleLbl[i];
               });
             }
@@ -10103,7 +10285,8 @@
           for (var i = 0; i < arrOfPresName.length; i += 1) {
             if (typeof prSet.presName === 'string' && prSet.presName.includes(arrOfPresName[i])) {
               return shapes.filter(function (shape) {
-                var shapePrSet = shape.getPointAssociation() && shape.getPointAssociation().prSet;
+                var smartArtShapePoint = shape.getSmartArtShapePoint();
+                var shapePrSet = smartArtShapePoint && smartArtShapePoint.prSet;
                 return typeof shapePrSet.presName === 'string' && shapePrSet.presName.includes(arrOfPresName[i]);
               });
             }
@@ -10286,47 +10469,6 @@
       }
     }
 
-    SmartArt.prototype.setPointsForShapes = function () {
-      var oDrawing = this.getDrawing();
-      if(!oDrawing) {
-        return;
-      }
-      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
-      var ptLst = dataModel.ptLst.list;
-      var cxnLst = dataModel.cxnLst.list;
-      oDrawing.spTree.forEach(function (shape) {
-        if (shape.isObjectInSmartArt()) {
-          var cxn;
-          var isPresParOf = true;
-          for (var i = 0; i < cxnLst.length; i += 1) {
-            if (cxnLst[i].type === 'presOf' && cxnLst[i].destId === shape.modelId) {
-              isPresParOf = false;
-              cxn = cxnLst[i];
-            }
-          }
-          if (isPresParOf) {
-            for (i = 0; i < cxnLst.length; i += 1) {
-              if (cxnLst[i].type === 'presParOf' && cxnLst[i].destId === shape.modelId) {
-                isPresParOf = false;
-                cxn = cxnLst[i];
-              }
-            }
-          }
-          var pointInfo = new PointInfo();
-          for (i = 0; i < ptLst.length; i += 1) {
-            if (cxn) {
-              if (cxn.destId === ptLst[i].modelId) {
-                pointInfo.setAssociation(ptLst[i]);
-              }
-              if (cxn.srcId === ptLst[i].modelId) {
-                pointInfo.setPoint(ptLst[i]);
-              }
-            }
-          }
-          shape.setSmartArtPoint(pointInfo);
-        }
-      })
-    };
 
     SmartArt.prototype.setParent = function (parent) {
       History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SmartArtParent, this.parent, parent));
@@ -10400,85 +10542,96 @@
       }
     };
 
-    SmartArt.prototype.setConnections = function () {
+    SmartArt.prototype.getRelationOfContent = function () {
       var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
       if (dataModel) {
-        var connections = [];
+        var connections = {};
+        var ptMap = this.getPtMap();
+        var shapeMap = this.getShapeMap();
         var cxnLst = dataModel.cxnLst.list;
-        var ptLst = dataModel.ptLst.list;
-        cxnLst.forEach(function (cxn) {
-          ptLst.forEach(function (point) {
-            if (point.modelId === cxn.destId) {
-              var isCheck = connections.some(function (con) {
-                return con.id === cxn.destId;
-              });
-              if (!isCheck) {
-                connections.push({
-                  point: point,
-                  id: cxn.destId,
-                  conn: [],
-                  srcOrd: cxn.srcOrd,
-                  destOrd: cxn.destOrd
-                })
-              }
-            }
-          })
+        var presCxnLst = cxnLst.filter(function (cxn) {
+          return cxn.type === 'presOf';
         });
-        cxnLst.forEach(function (cxn) {
-          ptLst.forEach(function (point) {
-            if (point.modelId === cxn.srcId) {
-              connections.forEach(function (c) {
-                if (c.id === cxn.destId && point.type !== Point_type_pres/*&&  && point.type !== 3*/ /*&& (cxn.srcOrd !== c.srcOrd || cxn.destOrd !== c.destOrd)*/) {
-                  c.conn.push({
-                    point: point,
-                    srcOrd: cxn.srcOrd,
-                    destOrd: cxn.destOrd,
-                  });
-                }
-              })
-            }
-          });
-        })
-        var shapeMap = {};
-        var shapeTree = this.getDrawing().spTree;
-        var shapeLst = shapeTree.map(function (shape) {
-          shapeMap[shape.modelId] = shape;
-          return shape.modelId;
-        });
-        connections = connections.filter(function (conn) {
-          return shapeLst.indexOf(conn.id) !== -1;
-        })
-        connections.forEach(function (connect) {
-          var smartArtInfo = new ShapeSmartArtInfo();
-          var shape = shapeMap[connect.id];
-          smartArtInfo.setShapePoint(connect.point);
-          var content = shape.txBody && shape.txBody.content && shape.txBody.content.Content;
-          if (content && content.length) {
-            if (connect.conn.length === content.length) {
-              content.forEach(function (paragraph, idx) {
-                connect.conn.forEach(function (contentPoint) {
-                  if (contentPoint.srcOrd === connect.srcOrd && parseInt(contentPoint.destOrd) === idx) {
-                    smartArtInfo.addToLstContentPoint(smartArtInfo.contentPoint.length ,contentPoint.point);
-                  }
-                })
-              })
-            } else {
 
+        presCxnLst.forEach(function (cxn) {
+          var shape = shapeMap[cxn.destId];
+          if (shape) {
+            if (!connections[cxn.destId]) {
+              connections[cxn.destId] = [];
             }
-          } else if (connect.point.isBlipFillPlaceholder()) {
-
-            if (connect.conn.length !== 0) {
-              smartArtInfo.setSpPrPoint(connect.conn[0].point);
-            } else {
-              smartArtInfo.setSpPrPoint(connect.point);
-            }
+            connections[cxn.destId].push({
+              point: ptMap[cxn.srcId],
+              srcOrd: parseInt(cxn.srcOrd, 10),
+              destOrd: parseInt(cxn.destOrd, 10)
+            });
           }
-          shape.setShapeSmartArtInfo(smartArtInfo);
-        })
+        });
+
+        for (var key in connections) {
+          connections[key].sort(function (firstConnection, secondConnection) {
+            return firstConnection.destOrd - secondConnection.destOrd;
+          });
+        }
+
         return connections;
       }
-    }
+    };
 
+    SmartArt.prototype.getRelationOfShapes = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      if (dataModel) {
+        var connections = {};
+        var ptMap = this.getPtMap();
+        var shapeMap = this.getShapeMap();
+        var cxnLst = dataModel.cxnLst.list;
+        var presCxnLst = cxnLst.filter(function (cxn) {
+          return cxn.type === 'presOf' || cxn.type === 'presParOf';
+        });
+
+        presCxnLst.forEach(function (cxn) {
+          var shape = shapeMap[cxn.destId];
+          if (shape) {
+            if (!connections[cxn.destId]) {
+              connections[cxn.destId] = ptMap[cxn.destId];
+            }
+          }
+        });
+        return connections;
+      }
+    };
+
+    SmartArt.prototype.setConnections2 = function () {
+      var dataModel = this.getDataModel() && this.getDataModel().getDataModel();
+      if (dataModel) {
+
+        var shapeMap = this.getShapeMap();
+        var contentConnections = this.getRelationOfContent();
+        var shapeConnections = this.getRelationOfShapes();
+
+        for (var modelId in shapeMap) {
+          var shape = shapeMap[modelId];
+          var smartArtInfo = new ShapeSmartArtInfo();
+          shape.setShapeSmartArtInfo(smartArtInfo);
+          if (contentConnections[modelId]) {
+            contentConnections[modelId].forEach(function (el) {
+              smartArtInfo.addToLstContentPoint(smartArtInfo.contentPoint.length, el.point);
+            });
+          }
+          if (shapeConnections[modelId]) {
+            smartArtInfo.setShapePoint(shapeConnections[modelId]);
+          }
+        }
+      }
+    };
+
+    SmartArt.prototype.getShapeMap = function () {
+      var result = {};
+      var shapeTree = this.getDrawing().spTree;
+      shapeTree.forEach(function (shape) {
+        result[shape.modelId] = shape;
+      });
+      return result;
+    };
 
     SmartArt.prototype.privateWriteAttributes = null;
     SmartArt.prototype.writeChildren = function(pWriter) {
@@ -10506,8 +10659,7 @@
         case 1: {
           this.setDataModel(new DiagramData());
           this.dataModel.fromPPTY(pReader);
-          this.setPointsForShapes();
-          this.setConnections();
+          this.setConnections2();
           break;
         }
         case 2: {
@@ -10603,6 +10755,21 @@
       oXfrm.setExtY(this.extY);
       return {posX: oXfrm.offX, posY: oXfrm.offY};
     };
+
+    SmartArt.prototype.setXfrmByParent = function () {
+      var oXfrm = this.spPr.xfrm;
+      if (oXfrm.isZero()) {
+        var parent = this.parent;
+        if (parent instanceof AscCommonWord.ParaDrawing) {
+          oXfrm.setExtX(parent.Extent.W);
+          oXfrm.setExtY(parent.Extent.H);
+        }
+      }
+      for (var i = 0; i < this.spTree.length; i += 1) {
+        this.spTree[i].setXfrmByParent();
+      }
+    };
+
     SmartArt.prototype.recalculateTransform = function() {
       var oThis = this;
       AscFormat.ExecuteNoHistory(function(){
@@ -10615,6 +10782,12 @@
       if(this.checkNeedRecalculate()){
         return;
       }
+
+      var oldParaMarks = editor && editor.ShowParaMarks;
+      if (oldParaMarks) {
+        editor.ShowParaMarks = false;
+      }
+
       if(this.calcGeometry) {
         graphics.SaveGrState();
         graphics.SetIntegerGrid(false);
@@ -10625,6 +10798,9 @@
         graphics.RestoreGrState();
       }
       AscFormat.CGroupShape.prototype.draw.call(this, graphics);
+      if (oldParaMarks) {
+        editor.ShowParaMarks = oldParaMarks;
+      }
     };
     SmartArt.prototype.getBg = function() {
       var oDataModel = this.getDataModel() && this.getDataModel().getDataModel();
@@ -10761,6 +10937,15 @@
     {
       var copy = new SmartArt();
       this.copy2(copy, oPr);
+      var drawing = copy.getDrawing();
+      if (drawing) {
+        for (var i = 0; i < drawing.spTree.length; i += 1) {
+          var obj = drawing.spTree[i];
+          if (obj.getObjectType() === AscDFH.historyitem_type_Shape) {
+            obj.copyTextInfoFromShapeToPoint();
+          }
+        }
+      }
       return copy;
     };
     SmartArt.prototype.copy2 = function(copy, oPr)
@@ -10803,8 +10988,7 @@
       copy.cachedPixH = this.cachedPixH;
       copy.cachedPixW = this.cachedPixW;
       copy.setLocks(this.locks);
-      copy.setPointsForShapes();
-      copy.setConnections();
+      copy.setConnections2();
       return copy;
     };
     SmartArt.prototype.handleUpdateFill = function() {
@@ -11212,7 +11396,7 @@
       this.docPoint = null;
       this.nodePoint = null;
       this.normPoint = [];
-      this.asstPoint = [];
+      this.asstPoint = null;
       this.presPoint = [];
       this.shapes = [];
     }
@@ -11244,6 +11428,10 @@
     SmartArtNodeData.prototype.addToLstAsstPoint = function (nIdx, oPr) {
       var nInsertIdx = Math.min(this.asstPoint.length, Math.max(0, nIdx));
       this.asstPoint.splice(nInsertIdx, 0, oPr);
+    }
+
+    SmartArtNodeData.prototype.setAsstPoint = function (oPr) {
+      this.asstPoint = oPr;
     }
 
     SmartArtNodeData.prototype.setNodePoint = function (oPr) {
@@ -11375,6 +11563,810 @@
       }
     }
 
+    // Акцентируемый рисунок
+    function SmartArtAccentedPicture() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtAccentedPicture, SmartArt);
+
+    // Баланс
+    function SmartArtBalance1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBalance1, SmartArt);
+
+    // Блоки рисунков с названиями
+    function SmartArtTitledPictureBlocks() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtTitledPictureBlocks, SmartArt);
+
+    // Блоки со смещенными рисунками
+    function SmartArtPictureAccentBlocks() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPictureAccentBlocks, SmartArt);
+    // Блочный цикл
+    function SmartArtCycle5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle5, SmartArt);
+
+    // Венна в столбик
+    function SmartArtVenn2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVenn2, SmartArt);
+
+    // Вертикальное уравнение
+    function SmartArtEquation2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtEquation2, SmartArt);
+
+    // Вертикальный блочный список
+    function SmartArtVList5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVList5, SmartArt);
+
+    // Вертикальный ломаный процесс
+    function SmartArtBProcess4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBProcess4, SmartArt);
+
+    // Вертикальный маркированный список
+    function SmartArtVList2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVList2, SmartArt);
+
+    // Вертикальный нелинейный список
+    function SmartArtVerticalCurvedList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVerticalCurvedList, SmartArt);
+
+    // Вертикальный процесс
+    function SmartArtProcess2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtProcess2, SmartArt);
+
+    // Вертикальный список
+    function SmartArtList1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtList1, SmartArt);
+
+    // Вертикальный список рисунков
+    function SmartArtVList4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVList4, SmartArt);
+
+    // Вертикальный список с кругами
+    function SmartArtVerticalCircleList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVerticalCircleList, SmartArt);
+
+    // Вертикальный список со смещенными рисунками
+    function SmartArtVList3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVList3, SmartArt);
+
+    // Вертикальный список со стрелкой
+    function SmartArtVList6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVList6, SmartArt);
+
+    // Вертикальный уголковый список
+    function SmartArtChevron2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtChevron2, SmartArt);
+
+    // Вертикальный уголковый список2
+    function SmartArtVerticalAccentList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVerticalAccentList, SmartArt);
+
+    // Вложенная целевая
+    function SmartArtTarget2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtTarget2, SmartArt);
+
+    // Воронка
+    function SmartArtFunnel1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtFunnel1, SmartArt);
+
+    // Восходящая стрелка
+    function SmartArtArrow2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtArrow2, SmartArt);
+
+    // Восходящая стрелка процесса
+    function SmartArtIncreasingArrowsProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtIncreasingArrowsProcess, SmartArt);
+
+    // Восходящий процесс
+    function SmartArtStepUpProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtStepUpProcess, SmartArt);
+
+    // Выноска с круглыми рисунками
+    function SmartArtCircularPictureCallout() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCircularPictureCallout, SmartArt);
+
+    // Горизонтальная иерархия
+    function SmartArtHierarchy2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHierarchy2, SmartArt);
+
+    // Горизонтальная иерархия с подписями
+    function SmartArtHierarchy5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHierarchy5, SmartArt);
+
+    // Горизонтальная многоуровневая иерархия
+    function SmartArtHorizontalMultiLevelHierarchy() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHorizontalMultiLevelHierarchy, SmartArt);
+
+    // Горизонтальная организационная диаграмма
+    function SmartArtHorizontalOrganizationChart() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHorizontalOrganizationChart, SmartArt);
+
+    // Горизонтальный маркированный список
+    function SmartArtHList1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHList1, SmartArt);
+
+    // Горизонтальный список рисунков
+    function SmartArtPList2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPList2, SmartArt);
+
+    // Закрытый уголковый процесс
+    function SmartArtHChevron3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHChevron3, SmartArt);
+
+    // Иерархический список
+    function SmartArtHierarchy3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHierarchy3, SmartArt);
+
+    // Иерархия
+    function SmartArtHierarchy1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHierarchy1, SmartArt);
+
+    // Иерархия с круглыми рисунками
+    function SmartArtCirclePictureHierarchy() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCirclePictureHierarchy, SmartArt);
+
+    // Иерархия с подписями
+    function SmartArtHierarchy6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHierarchy6, SmartArt);
+
+    // Инвертированная пирамида
+    function SmartArtPyramid3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPyramid3, SmartArt);
+
+    // Кластер шестиугольников
+    function SmartArtHexagonCluster() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHexagonCluster, SmartArt);
+
+    // Круг связей
+    function SmartArtCircleRelationship() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCircleRelationship, SmartArt);
+
+    // Круглая временная шкала
+    function SmartArtCircleAccentTimeline() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCircleAccentTimeline, SmartArt);
+
+    // Круглый ломаный процесс
+    function SmartArtBProcess2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBProcess2, SmartArt);
+
+    // Лента со стрелками
+    function SmartArtArrow6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtArrow6, SmartArt);
+
+    // Линейная Венна
+    function SmartArtVenn3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVenn3, SmartArt);
+
+    // Линия рисунков
+    function SmartArtPictureLineup() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPictureLineup, SmartArt);
+
+    // Линия рисунков с названиями
+    function SmartArtTitlePictureLineup() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtTitlePictureLineup, SmartArt);
+
+    // Ломаный список рисунков с подписями
+    function SmartArtBendingPictureCaptionList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBendingPictureCaptionList, SmartArt);
+
+    // Ломаный список со смещенными рисунками
+    function SmartArtBList2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBList2, SmartArt);
+
+    // Матрица с заголовками
+    function SmartArtMatrix1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtMatrix1, SmartArt);
+
+    // Нарастающий процесс с кругами
+    function SmartArtIncreasingCircleProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtIncreasingCircleProcess, SmartArt);
+
+    // Нелинейные рисунки с блоками
+    function SmartArtBendingPictureBlocks() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBendingPictureBlocks, SmartArt);
+
+    // Нелинейные рисунки с подписями
+    function SmartArtBendingPictureCaption() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBendingPictureCaption, SmartArt);
+
+    // Нелинейные рисунки с полупрозрачным текстом
+    function SmartArtBendingPictureSemiTransparentText() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBendingPictureSemiTransparentText, SmartArt);
+
+    // Ненаправленный цикл
+    function SmartArtCycle6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle6, SmartArt);
+
+    // Непрерывный блочный процесс
+    function SmartArtHProcess9() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess9, SmartArt);
+
+    // Непрерывный список с рисунками
+    function SmartArtHList7() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHList7, SmartArt);
+
+    // Непрерывный цикл
+    function SmartArtCycle3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle3, SmartArt);
+
+    // Нисходящий блочный список
+    function SmartArtBlockDescendingList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBlockDescendingList, SmartArt);
+
+    // Нисходящий процесс
+    function SmartArtStepDownProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtStepDownProcess, SmartArt);
+
+    // Обратный список
+    function SmartArtReverseList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtReverseList, SmartArt);
+
+    // Организационная диаграмма
+    function SmartArtOrgChart1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtOrgChart1, SmartArt);
+
+    // Организационная диаграмма с именами и должностями
+    function SmartArtNameandTitleOrganizationalChart() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtNameandTitleOrganizationalChart, SmartArt);
+
+    // Переменный поток
+    function SmartArtHProcess4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess4, SmartArt);
+
+    // Пирамидальный список
+    function SmartArtPyramid2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPyramid2, SmartArt);
+
+    // Плюс и минус
+    function SmartArtPlusandMinus() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPlusandMinus, SmartArt);
+
+    // Повторяющийся ломаный процесс
+    function SmartArtBProcess3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBProcess3, SmartArt);
+
+    // Подписанные рисунки
+    function SmartArtCaptionedPictures() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCaptionedPictures, SmartArt);
+
+    // Подробный процесс
+    function SmartArtHProcess7() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess7, SmartArt);
+
+    // Полосы рисунков
+    function SmartArtPictureStrips() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPictureStrips, SmartArt);
+
+    // Полукруглая организационная диаграмма
+    function SmartArtHalfCircleOrganizationChart() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHalfCircleOrganizationChart, SmartArt);
+
+    // Поэтапный процесс
+    function SmartArtPhasedProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPhasedProcess, SmartArt);
+
+    // Простая Венна
+    function SmartArtVenn1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVenn1, SmartArt);
+
+    // Простая временная шкала
+    function SmartArtHProcess11() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess11, SmartArt);
+
+    // Простая круговая
+    function SmartArtChart3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtChart3, SmartArt);
+
+    // Простая матрица
+    function SmartArtMatrix3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtMatrix3, SmartArt);
+
+    // Простая пирамида
+    function SmartArtPyramid1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPyramid1, SmartArt);
+
+    // Простая радиальная
+    function SmartArtRadial1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadial1, SmartArt);
+
+    // Простая целевая
+    function SmartArtTarget1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtTarget1, SmartArt);
+
+    // Простой блочный список
+    function SmartArtDefault() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtDefault, SmartArt);
+
+    // Простой ломаный процесс
+    function SmartArtProcess5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtProcess5, SmartArt);
+
+    // Простой процесс
+    function SmartArtProcess1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtProcess1, SmartArt);
+
+    // Простой уголковый процесс
+    function SmartArtChevron1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtChevron1, SmartArt);
+
+    // Простой цикл
+    function SmartArtCycle2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle2, SmartArt);
+
+    // Противоположные идеи
+    function SmartArtOpposingIdeas() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtOpposingIdeas, SmartArt);
+
+    // Противостоящие стрелки
+    function SmartArtArrow4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtArrow4, SmartArt);
+
+    // Процесс от случайности к результату
+    function SmartArtRandomtoResultProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRandomtoResultProcess, SmartArt);
+
+    // Процесс с вложенными шагами
+    function SmartArtSubStepProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtSubStepProcess, SmartArt);
+
+    // Процесс с круговой диаграммой
+    function SmartArtPieProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPieProcess, SmartArt);
+
+    // Процесс со смещением
+    function SmartArtProcess3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtProcess3, SmartArt);
+
+    // Процесс со смещенными по возрастанию рисунками
+    function SmartArtAscendingPictureAccentProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtAscendingPictureAccentProcess, SmartArt);
+
+    // Процесс со смещенными рисунками
+    function SmartArtHProcess10() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess10, SmartArt);
+
+    // Радиальная Венна
+    function SmartArtRadial3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadial3, SmartArt);
+
+    // Радиальная циклическая
+    function SmartArtRadial6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadial6, SmartArt);
+
+    // Радиальный кластер
+    function SmartArtRadialCluster() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadialCluster, SmartArt);
+
+    // Радиальный список
+    function SmartArtRadial2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadial2, SmartArt);
+
+    // Разнонаправленный цикл
+    function SmartArtCycle7() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle7, SmartArt);
+
+    // Расходящаяся радиальная
+    function SmartArtRadial5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadial5, SmartArt);
+
+    // Расходящиеся стрелки
+    function SmartArtArrow1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtArrow1, SmartArt);
+
+    // Рисунок с текстом в рамке
+    function SmartArtFramedTextPicture() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtFramedTextPicture, SmartArt);
+
+    // Сгруппированный список
+    function SmartArtLProcess2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtLProcess2, SmartArt);
+
+    // Сегментированная пирамида
+    function SmartArtPyramid4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPyramid4, SmartArt);
+
+    // Сегментированный процесс
+    function SmartArtProcess4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtProcess4, SmartArt);
+
+    // Сегментированный цикл
+    function SmartArtCycle8() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle8, SmartArt);
+
+    // Сетка рисунков
+    function SmartArtPictureGrid() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPictureGrid, SmartArt);
+
+    // Сетчатая матрица
+    function SmartArtMatrix2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtMatrix2, SmartArt);
+
+    // Спираль рисунков
+    function SmartArtSpiralPicture() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtSpiralPicture, SmartArt);
+
+    // Список в столбик
+    function SmartArtHList9() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHList9, SmartArt);
+
+    // Список названий рисунков
+    function SmartArtPList1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPList1, SmartArt);
+
+    // Список процессов
+    function SmartArtLProcess1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtLProcess1, SmartArt);
+
+    // Список рисунков с выносками
+    function SmartArtBubblePictureList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtBubblePictureList, SmartArt);
+
+    // Список с квадратиками
+    function SmartArtSquareAccentList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtSquareAccentList, SmartArt);
+
+    // Список с линиями
+    function SmartArtLinedList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtLinedList, SmartArt);
+
+    // Список со смещенными рисунками
+    function SmartArtHList2() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHList2, SmartArt);
+
+    // Список со смещенными рисунками и заголовком
+    function SmartArtPictureAccentList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtPictureAccentList, SmartArt);
+
+    // Список со снимками
+    function SmartArtSnapshotPictureList() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtSnapshotPictureList, SmartArt);
+
+    // Стрелка непрерывного процесса
+    function SmartArtHProcess3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess3, SmartArt);
+
+    // Стрелка процесса с кругами
+    function SmartArtCircleArrowProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCircleArrowProcess, SmartArt);
+
+    // Стрелки процесса
+    function SmartArtHProcess6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHProcess6, SmartArt);
+
+    // Ступенчатый процесс
+    function SmartArtVProcess5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtVProcess5, SmartArt);
+
+    // Сходящаяся радиальная
+    function SmartArtRadial4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtRadial4, SmartArt);
+
+    // Сходящиеся стрелки
+    function SmartArtArrow5() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtArrow5, SmartArt);
+
+    // Табличная иерархия
+    function SmartArtHierarchy4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHierarchy4, SmartArt);
+
+    // Табличный список
+    function SmartArtHList3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHList3, SmartArt);
+
+    // Текстовый цикл
+    function SmartArtCycle1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle1, SmartArt);
+
+    // Трапецевидный список
+    function SmartArtHList6() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtHList6, SmartArt);
+
+    // Убывающий процесс
+    function SmartArtDescendingProcess() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtDescendingProcess, SmartArt);
+
+    // Уголковый список
+    function SmartArtLProcess3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtLProcess3, SmartArt);
+
+    // Уравнение
+    function SmartArtEquation1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtEquation1, SmartArt);
+
+    // Уравновешивающие стрелки
+    function SmartArtArrow3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtArrow3, SmartArt);
+
+    // Целевой список
+    function SmartArtTarget3() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtTarget3, SmartArt);
+
+    // Циклическая матрица
+    function SmartArtCycle4() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtCycle4, SmartArt);
+
+    // Чередующиеся блоки рисунков
+    function SmartArtAlternatingPictureBlocks() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtAlternatingPictureBlocks, SmartArt);
+
+    // Чередующиеся круги рисунков
+    function SmartArtAlternatingPictureCircles() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtAlternatingPictureCircles, SmartArt);
+
+    // Чередующиеся шестиугольники
+    function SmartArtAlternatingHexagons() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtAlternatingHexagons, SmartArt);
+
+    // Шестеренки
+    function SmartArtGear1() {
+      SmartArt.call(this);
+    }
+    InitClassWithoutType(SmartArtGear1, SmartArt);
+
+
 
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].kForInsFitFontSize     = kForInsFitFontSize;
@@ -11468,11 +12460,9 @@
     window['AscFormat'].Drawing                = Drawing;
     window['AscFormat'].DiagramData            = DiagramData;
     window['AscFormat'].FunctionValue          = FunctionValue;
-    window['AscFormat'].PointInfo              = PointInfo;
     window['AscFormat'].ShapeSmartArtInfo      = ShapeSmartArtInfo;
     window['AscFormat'].SmartArtTree           = SmartArtTree;
     window['AscFormat'].SmartArtNode           = SmartArtNode;
     window['AscFormat'].SmartArtNodeData       = SmartArtNodeData;
-    window['AscFormat'].ptToMm                 = ptToMm;
 
   })(window)

@@ -46,9 +46,6 @@ var global_MatrixTransformer = AscCommon.global_MatrixTransformer;
 var g_dKoef_pix_to_mm = AscCommon.g_dKoef_pix_to_mm;
 var g_dKoef_mm_to_pix = AscCommon.g_dKoef_mm_to_pix;
 
-var _canvas_tables = null;
-var _table_styles = null;
-
 function CColumnsMarkupColumn()
 {
 	this.W = 0;
@@ -3308,70 +3305,49 @@ function CDrawingDocument()
 			bIsPageChanged = true;
 		}
 
-		var targetSize = Number(this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+		var targetSizePx = (this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
 
 		var pos = null;
-		var __x = x;
-		var __y = y;
 		if (!this.TextMatrix)
 		{
 			pos = this.ConvertCoordsToCursor2(x, y, this.m_lCurrentPage);
 		}
 		else
 		{
-			__x = this.TextMatrix.TransformPointX(x, y);
-			__y = this.TextMatrix.TransformPointY(x, y);
-
-			pos = this.ConvertCoordsToCursor2(__x, __y, this.m_lCurrentPage);
+			pos = this.ConvertCoordsToCursor2(this.TextMatrix.TransformPointX(x, y),
+				this.TextMatrix.TransformPointY(x, y), this.m_lCurrentPage);
 		}
-
-		//pos.Y -= targetSize;
 
 		if (true == pos.Error && (false == bIsPageChanged))
 			return;
 
 		// смотрим, виден ли курсор на экране
-
-		var _ww = this.m_oWordControl.m_oEditor.HtmlElement.width;
-		var _hh = this.m_oWordControl.m_oEditor.HtmlElement.height;
-		_ww /= AscCommon.AscBrowser.retinaPixelRatio;
-		_hh /= AscCommon.AscBrowser.retinaPixelRatio;
+		var wScreen = AscCommon.AscBrowser.convertToRetinaValue(this.m_oWordControl.m_oEditor.HtmlElement.width, false);
+		var hScreen = AscCommon.AscBrowser.convertToRetinaValue(this.m_oWordControl.m_oEditor.HtmlElement.height, false);
 
 		var boxX = 0;
 		var boxY = 0;
-		var boxR = _ww - 2;
-		var boxB = _hh - targetSize;
-
-		/*
-		 if (true == this.m_oWordControl.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
+		var boxR = wScreen - 2;
+		var boxB = hScreen;
 
 		var nValueScrollHor = 0;
 		if (pos.X < boxX)
 		{
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(__x - 5, pageIndex);
+			nValueScrollHor = (pos.X - 5) - boxX;
 		}
 		if (pos.X > boxR)
 		{
-			var _mem = __x + 5 - g_dKoef_pix_to_mm * _ww * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(_mem, pageIndex);
+			nValueScrollHor = (pos.X + 5) - boxR;
 		}
 
 		var nValueScrollVer = 0;
 		if (pos.Y < boxY)
 		{
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(__y - 5, pageIndex);
+			nValueScrollVer = (pos.Y - 5) - boxY;
 		}
-		if (pos.Y > boxB)
+		if ((pos.Y + targetSizePx) > boxB)
 		{
-			var _mem = __y + targetSize + 5 - g_dKoef_pix_to_mm * _hh * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(_mem, pageIndex);
+			nValueScrollVer = (pos.Y + targetSizePx + 5) - boxB;
 		}
 
 		if (!bNeedScrollToTarget)
@@ -3397,19 +3373,17 @@ function CDrawingDocument()
 		this.m_dTargetY = y;
 		this.m_lTargetPage = pageIndex;
 		var isNeedScroll = false;
-		if (0 != nValueScrollHor)
+		if (0 !== nValueScrollHor)
 		{
 			isNeedScroll = true;
 			this.m_oWordControl.m_bIsUpdateTargetNoAttack = true;
-			var temp = nValueScrollHor * this.m_oWordControl.m_dScrollX_max / (this.m_oWordControl.m_dDocumentWidth - _ww);
-			this.m_oWordControl.m_oScrollHorApi.scrollToX(parseInt(temp), false);
+			this.m_oWordControl.m_oScrollHorApi.scrollByX(nValueScrollHor);
 		}
-		if (0 != nValueScrollVer)
+		if (0 !== nValueScrollVer)
 		{
 			isNeedScroll = true;
 			this.m_oWordControl.m_bIsUpdateTargetNoAttack = true;
-			var temp = nValueScrollVer * this.m_oWordControl.m_dScrollY_max / (this.m_oWordControl.m_dDocumentHeight - _hh);
-			this.m_oWordControl.m_oScrollVerApi.scrollToY(parseInt(temp), false);
+			this.m_oWordControl.m_oScrollVerApi.scrollByY(nValueScrollVer);
 		}
 
 		if (true == isNeedScroll)
@@ -3420,94 +3394,6 @@ function CDrawingDocument()
 		}
 
 		this.CheckTargetDraw(x, y);
-	};
-	this.UpdateTarget2 = function (x, y, pageIndex)
-	{
-		if (pageIndex >= this.m_arrPages.length)
-			return;
-
-		this.m_oWordControl.m_oLogicDocument.Set_TargetPos(x, y, pageIndex);
-
-		var bIsPageChanged = false;
-		if (this.m_lCurrentPage != pageIndex)
-		{
-			this.m_lCurrentPage = pageIndex;
-			this.m_oWordControl.SetCurrentPage2();
-			this.m_oWordControl.OnScroll();
-			bIsPageChanged = true;
-		}
-
-		this.m_dTargetX = x;
-		this.m_dTargetY = y;
-		this.m_lTargetPage = pageIndex;
-
-		var pos = this.ConvertCoordsToCursor(x, y, this.m_lCurrentPage);
-
-		if (true == pos.Error && (false == bIsPageChanged))
-			return;
-
-		var _ww = this.m_oWordControl.m_oEditor.HtmlElement.width;
-		var _hh = this.m_oWordControl.m_oEditor.HtmlElement.height;
-		_ww /= AscCommon.AscBrowser.retinaPixelRatio;
-		_hh /= AscCommon.AscBrowser.retinaPixelRatio;
-
-		// смотрим, виден ли курсор на экране
-		var boxX = 0;
-		var boxY = 0;
-		var boxR = _ww;
-		var boxB = _hh;
-
-		/*
-		 if (true == this.m_oWordControl.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
-
-		var nValueScrollHor = 0;
-		if (pos.X < boxX)
-		{
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(x - 5, pageIndex);
-		}
-		if (pos.X > boxR)
-		{
-			var _mem = x + 5 - g_dKoef_pix_to_mm * _ww * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollHor = this.m_oWordControl.GetHorizontalScrollTo(_mem, pageIndex);
-		}
-
-		var nValueScrollVer = 0;
-		if (pos.Y < boxY)
-		{
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(y - 5, pageIndex);
-		}
-		if (pos.Y > boxB)
-		{
-			var _mem = y + this.m_dTargetSize + 5 - g_dKoef_pix_to_mm * _hh * 100 / this.m_oWordControl.m_nZoomValue;
-			nValueScrollVer = this.m_oWordControl.GetVerticalScrollTo(_mem, pageIndex);
-		}
-
-		var isNeedScroll = false;
-		if (0 != nValueScrollHor)
-		{
-			isNeedScroll = true;
-			var temp = nValueScrollHor * this.m_oWordControl.m_dScrollX_max / (this.m_oWordControl.m_dDocumentWidth - _ww);
-			this.m_oWordControl.m_oScrollHorApi.scrollToX(parseInt(temp), false);
-		}
-		if (0 != nValueScrollVer)
-		{
-			isNeedScroll = true;
-			var temp = nValueScrollVer * this.m_oWordControl.m_dScrollY_max / (this.m_oWordControl.m_dDocumentHeight - _hh);
-			this.m_oWordControl.m_oScrollVerApi.scrollToY(parseInt(temp), false);
-		}
-
-		if (true == isNeedScroll)
-		{
-			this.m_oWordControl.OnScroll();
-			return;
-		}
 	};
 
 	this.UpdateTargetTimer = function ()
@@ -3535,61 +3421,53 @@ function CDrawingDocument()
 		oThis.m_dTargetY = y;
 		oThis.m_lTargetPage = pageIndex;
 
-		var targetSize = Number(oThis.m_dTargetSize * oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
+		var targetSizePx = (oThis.m_dTargetSize * oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
 		var pos = oThis.ConvertCoordsToCursor2(x, y, oThis.m_lCurrentPage);
-		//pos.Y -= targetSize;
 
 		if (true === pos.Error && (false === bIsPageChanged))
 			return;
 
 		// смотрим, виден ли курсор на экране
+		var wScreen = AscCommon.AscBrowser.convertToRetinaValue(oWordControl.m_oEditor.HtmlElement.width, false);
+		var hScreen = AscCommon.AscBrowser.convertToRetinaValue(oWordControl.m_oEditor.HtmlElement.height, false);
+
 		var boxX = 0;
 		var boxY = 0;
-		var boxR = oWordControl.m_oEditor.HtmlElement.width - 2;
-		var boxB = oWordControl.m_oEditor.HtmlElement.height - targetSize;
-
-		/*
-		 if (true === oWordControl.m_bIsRuler)
-		 {
-		 boxX += Number(5 * g_dKoef_mm_to_pix);
-		 boxY += Number(7 * g_dKoef_mm_to_pix);
-		 boxR += Number(5 * g_dKoef_mm_to_pix);
-		 boxB += Number(7 * g_dKoef_mm_to_pix);
-		 }
-		 */
+		var boxR = wScreen - 2;
+		var boxB = hScreen;
 
 		var nValueScrollHor = 0;
 		if (pos.X < boxX)
 		{
-			nValueScrollHor = boxX - pos.X;
+			nValueScrollHor = (pos.X - 5) - boxX;
 		}
 		if (pos.X > boxR)
 		{
-			nValueScrollHor = boxR - pos.X;
+			nValueScrollHor = (pos.X + 5) - boxR;
 		}
 
 		var nValueScrollVer = 0;
 		if (pos.Y < boxY)
 		{
-			nValueScrollVer = boxY - pos.Y;
+			nValueScrollVer = (pos.Y - 5) - boxY;
 		}
-		if (pos.Y > boxB)
+		if ((pos.Y + targetSizePx) > boxB)
 		{
-			nValueScrollVer = boxB - pos.Y;
+			nValueScrollVer = (pos.Y + targetSizePx + 5) - boxB;
 		}
 
 		var isNeedScroll = false;
-		if (0 != nValueScrollHor)
+		if (0 !== nValueScrollHor)
 		{
 			isNeedScroll = true;
 			oWordControl.m_bIsUpdateTargetNoAttack = true;
-			oWordControl.m_oScrollHorApi.scrollByX(-nValueScrollHor, false);
+			oWordControl.m_oScrollHorApi.scrollByX(nValueScrollHor);
 		}
-		if (0 != nValueScrollVer)
+		if (0 !== nValueScrollVer)
 		{
 			isNeedScroll = true;
 			oWordControl.m_bIsUpdateTargetNoAttack = true;
-			oWordControl.m_oScrollVerApi.scrollByY(-nValueScrollVer, false);
+			oWordControl.m_oScrollVerApi.scrollByY(nValueScrollVer);
 		}
 
 		if (true === isNeedScroll)
@@ -3827,6 +3705,8 @@ function CDrawingDocument()
 
 		overlay.Show();
 
+		var rPR = AscCommon.AscBrowser.retinaPixelRatio;
+
 		for (var nIndex = 0, nCount = this.FieldTrack.Rects.length; nIndex < nCount; nIndex++)
 		{
 			var FieldRect = this.FieldTrack.Rects[nIndex];
@@ -3839,10 +3719,10 @@ function CDrawingDocument()
 
 			if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity(this.TextMatrix))
 			{
-				var _x = (drPage.left + dKoefX * FieldRect.X0);
-				var _y = (drPage.top + dKoefY * FieldRect.Y0);
-				var _r = (drPage.left + dKoefX * FieldRect.X1);
-				var _b = (drPage.top + dKoefY * FieldRect.Y1);
+				var _x = (drPage.left + dKoefX * FieldRect.X0) * rPR;
+				var _y = (drPage.top + dKoefY * FieldRect.Y0) * rPR;
+				var _r = (drPage.left + dKoefX * FieldRect.X1) * rPR;
+				var _b = (drPage.top + dKoefY * FieldRect.Y1) * rPR;
 
 				if (_x < overlay.min_x)
 					overlay.min_x = _x;
@@ -3868,6 +3748,9 @@ function CDrawingDocument()
 			else
 			{
 				var _arrSelect = TransformRectByMatrix(this.TextMatrix, [FieldRect.X0, FieldRect.Y0, FieldRect.X1, FieldRect.Y1], drPage.left, drPage.top, dKoefX, dKoefY);
+
+				for (var i = 0; i < 8; i++)
+					_arrSelect[i] *= rPR;
 
 				overlay.CheckPoint(_arrSelect[0], _arrSelect[1]);
 				overlay.CheckPoint(_arrSelect[2], _arrSelect[3]);
@@ -6588,7 +6471,7 @@ function CDrawingDocument()
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.GetOLang());
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.get_OLang());
                     break;
                 default:
                     break;
@@ -6709,7 +6592,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
                             break;
                         default:
                             break;
@@ -6941,7 +6824,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
                             break;
                         default:
                             break;
@@ -7186,7 +7069,7 @@ function CDrawingDocument()
 									text += curLvl.Text[j].Value;
 									break;
 								case Asc.c_oAscNumberingLvlTextType.Num:
-									text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
+									text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
 									break;
 								default:
 									break;
@@ -7216,7 +7099,7 @@ function CDrawingDocument()
 								text += curLvl.Text[j].Value;
 								break;
 							case Asc.c_oAscNumberingLvlTextType.Num:
-								text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
+								text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.get_OLang());
 								break;
 							default:
 								break;
@@ -7355,7 +7238,7 @@ function CDrawingDocument()
 							var correctNum = 1;
 							if (levelNum === props[i].Text[k].Value)
 								correctNum = counterCurrent;
-							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].GetOLang());
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].get_OLang());
 							break;
 						default:
 							break;
@@ -7465,204 +7348,46 @@ function CDrawingDocument()
         if (logicDoc && logicDoc.theme && logicDoc.theme.themeElements)
         	newClrScheme = logicDoc.theme.themeElements.clrScheme;
 
-		var bIsChanged = false;
-		if (null == this.TableStylesLastLook)
-		{
-			this.TableStylesLastLook = new Asc.CTablePropLook();
+		let isChanged = false;
 
-			this.TableStylesLastLook.FirstCol = tableLook.FirstCol;
-			this.TableStylesLastLook.FirstRow = tableLook.FirstRow;
-			this.TableStylesLastLook.LastCol = tableLook.LastCol;
-			this.TableStylesLastLook.LastRow = tableLook.LastRow;
-			this.TableStylesLastLook.BandHor = tableLook.BandHor;
-			this.TableStylesLastLook.BandVer = tableLook.BandVer;
-			bIsChanged = true;
-
-            this.TableStylesLastClrScheme = newClrScheme;
-		}
-		else
+		if (!this.TableStylesLastLook || !this.TableStylesLastLook.IsEqual(tableLook))
 		{
-			if (this.TableStylesLastLook.FirstCol != tableLook.FirstCol)
-			{
-				this.TableStylesLastLook.FirstCol = tableLook.FirstCol;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.FirstRow != tableLook.FirstRow)
-			{
-				this.TableStylesLastLook.FirstRow = tableLook.FirstRow;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.LastCol != tableLook.LastCol)
-			{
-				this.TableStylesLastLook.LastCol = tableLook.LastCol;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.LastRow != tableLook.LastRow)
-			{
-				this.TableStylesLastLook.LastRow = tableLook.LastRow;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.BandHor != tableLook.BandHor)
-			{
-				this.TableStylesLastLook.BandHor = tableLook.BandHor;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastLook.BandVer != tableLook.BandVer)
-			{
-				this.TableStylesLastLook.BandVer = tableLook.BandVer;
-				bIsChanged = true;
-			}
-			if (this.TableStylesLastClrScheme !== newClrScheme)
-			{
-				this.TableStylesLastClrScheme = newClrScheme;
-				bIsChanged = true;
-			}
+			this.TableStylesLastLook = tableLook.Copy();
+			isChanged = true;
 		}
 
-		if (!bIsChanged)
+		if (this.TableStylesLastClrScheme !== newClrScheme)
+		{
+			this.TableStylesLastClrScheme = newClrScheme;
+			isChanged = true;
+		}
+
+		if (!isChanged)
 			return;
+
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
 	};
 
 	this.GetTableStylesPreviews = function(bUseDefault)
 	{
-		var logicDoc = this.m_oWordControl.m_oLogicDocument;
-		var _dst_styles = [];
+		return (new AscCommon.CTableStylesPreviewGenerator(this.m_oWordControl.m_oLogicDocument)).GetAllPreviews(bUseDefault);
+	};
 
-		var _styles = logicDoc.Styles.Get_AllTableStyles();
-		var _styles_len = _styles.length;
+	this.GetTableLook = function(isDefault)
+	{
+		let oTableLook;
 
-		if (_styles_len == 0)
-			return _dst_styles;
-
-		var tableLook;
-		if(bUseDefault)
+		if (isDefault)
 		{
-			var oFormatTableLook = new AscCommonWord.CTableLook();
-			oFormatTableLook.SetDefault();
-			tableLook = new Asc.CTablePropLook(oFormatTableLook);
+			oTableLook = new AscCommon.CTableLook();
+			oTableLook.SetDefault();
 		}
 		else
 		{
-			tableLook = this.TableStylesLastLook;
+			oTableLook = this.TableStylesLastLook;
 		}
 
-		if(!tableLook)
-		{
-			return _dst_styles;
-		}
-
-		var _x_mar = 10;
-		var _y_mar = 10;
-		var _r_mar = 10;
-		var _b_mar = 10;
-		var _pageW = 297;
-		var _pageH = 210;
-
-		var W = (_pageW - _x_mar - _r_mar);
-		var H = (_pageH - _y_mar - _b_mar);
-
-		if (_canvas_tables == null)
-		{
-			_canvas_tables = document.createElement('canvas');
-
-			_canvas_tables.width = (TABLE_STYLE_WIDTH_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-			_canvas_tables.height = (TABLE_STYLE_HEIGHT_PIX * AscCommon.AscBrowser.retinaPixelRatio) >> 0;
-		}
-
-		var _canvas = _canvas_tables;
-		var ctx = _canvas.getContext('2d');
-
-		var Rows = 5;
-
-		History.TurnOff();
-		g_oTableId.m_bTurnOff = true;
-
-		var isTrackRevision = false;
-		if (logicDoc && logicDoc.IsTrackRevisions())
-		{
-			isTrackRevision = logicDoc.GetLocalTrackRevisions();
-			logicDoc.SetLocalTrackRevisions(false);
-		}
-
-		for (var i1 = 0; i1 < _styles_len; i1++)
-		{
-			var i = _styles[i1];
-			var _style = logicDoc.Styles.Style[i];
-
-			if (!_style || _style.Type != styletype_Table)
-				continue;
-
-			if (_table_styles == null)
-			{
-				var Cols = 5;
-
-				var Grid = [];
-				for (var ii = 0; ii < Cols; ii++)
-					Grid[ii] = W / Cols;
-
-				_table_styles = new CTable(this, logicDoc, true, Rows, Cols, Grid);
-				_table_styles.Reset(_x_mar, _y_mar, 1000, 1000, 0, 0, 1);
-				_table_styles.Set_Props({
-					TableStyle: i,
-					TableLook: tableLook,
-					TableLayout: c_oAscTableLayout.Fixed
-				});
-				_table_styles.Set_Props({
-					TableDefaultMargins : {Top : 0, Bottom : 0}
-				});
-
-				for (var j = 0; j < Rows; j++)
-					_table_styles.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-			}
-			else
-			{
-				_table_styles.Set_Props({
-					TableStyle: i,
-					TableLook: tableLook,
-					TableLayout: c_oAscTableLayout.Fixed,
-					CellSelect: false
-				});
-				_table_styles.Set_Props({
-					TableDefaultMargins : {Top : 0, Bottom : 0}
-				});
-				_table_styles.Recalc_CompiledPr2();
-
-				for (var j = 0; j < Rows; j++)
-					_table_styles.Content[j].Set_Height(H / Rows, Asc.linerule_AtLeast);
-			}
-
-
-			ctx.fillStyle = "#FFFFFF";
-			ctx.fillRect(0, 0, _canvas.width, _canvas.height);
-
-			var graphics = new AscCommon.CGraphics();
-			graphics.init(ctx, _canvas.width, _canvas.height, _pageW, _pageH);
-			graphics.m_oFontManager = AscCommon.g_fontManager;
-			graphics.transform(1, 0, 0, 1, 0, 0);
-
-			_table_styles.Recalculate_Page(0);
-
-			var _old_mode = editor.isViewMode;
-			editor.isViewMode = true;
-			editor.isShowTableEmptyLineAttack = true;
-			_table_styles.Draw(0, graphics, false);
-			editor.isShowTableEmptyLineAttack = false;
-			editor.isViewMode = _old_mode;
-
-			var _styleD = new AscCommon.CStyleImage();
-			_styleD.type = AscCommon.c_oAscStyleImage.Default;
-			_styleD.image = _canvas.toDataURL("image/png");
-			_styleD.name = i;
-			_styleD.displayName = _style.Name;
-			_dst_styles.push(_styleD);
-		}
-		g_oTableId.m_bTurnOff = false;
-		History.TurnOn();
-
-		if (false !== isTrackRevision)
-			logicDoc.SetLocalTrackRevisions(isTrackRevision);
-		return _dst_styles;
+		return oTableLook;
 	};
 
 	this.IsMobileVersion = function ()

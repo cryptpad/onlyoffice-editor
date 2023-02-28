@@ -6663,6 +6663,8 @@
             oCopy.setGapWidth(this.gapWidth);
         if(AscFormat.isRealNumber(this.gapDepth) && oCopy.setGapDepth)
             oCopy.setGapDepth(this.gapDepth);
+        if(AscFormat.isRealNumber(this.shape) && oCopy.setShape)
+            oCopy.setShape(this.shape);
         if(AscFormat.isRealNumber(this.grouping) && oCopy.setGrouping)
             oCopy.setGrouping(this.grouping);
         if(AscFormat.isRealNumber(this.overlap) && oCopy.setOverlap)

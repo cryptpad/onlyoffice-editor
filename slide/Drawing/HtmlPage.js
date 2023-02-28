@@ -79,7 +79,7 @@ function CEditorPage(api)
 	// ------------------------------------------------------------------
 	this.Name           = "";
 	this.IsSupportNotes = true;
-	this.IsSupportAnimPane = true;
+	this.IsSupportAnimPane = false;
 
 	this.EditorType = "presentations";
 
@@ -414,7 +414,7 @@ function CEditorPage(api)
 
 		this.Splitter1Pos    = 67.5;
         this.Splitter1PosSetUp = this.Splitter1Pos;
-		this.Splitter2Pos    = (this.IsSupportNotes === true) ? 11 : 0;
+		this.Splitter2Pos    = (this.IsSupportNotes === true && this.m_oApi.isEmbedVersion !== true) ? 11 : 0;
 		this.Splitter3Pos = 0;//top of animation pane
 
 		this.OldSplitter1Pos = this.Splitter1Pos;
@@ -637,6 +637,11 @@ function CEditorPage(api)
 		this.m_oAnimPaneTimeline.Anchor = (g_anchor_left | g_anchor_right | g_anchor_top | g_anchor_bottom);
 		this.m_oAnimPaneTimelineContainer.AddControl(this.m_oAnimPaneTimeline);
 
+
+		if(!this.IsSupportAnimPane)
+		{
+			this.m_oAnimationPaneContainer.HtmlElement.style.display = "none";
+		}
 		// ----------
 
 		this.m_oMainView = CreateControlContainer("id_main_view");
@@ -982,6 +987,7 @@ function CEditorPage(api)
 			this.m_oNotes.HtmlElement.style.backgroundColor = GlobalSkin.BackgroundColor;
 			this.m_oNotesContainer.HtmlElement.style.backgroundColor = GlobalSkin.BackgroundColor;
 			this.m_oBottomPanesContainer.HtmlElement.style.borderTop = ("1px solid " + GlobalSkin.BorderSplitterColor);
+			this.m_oBottomPanesContainer.HtmlElement.style.backgroundColor = GlobalSkin.BackgroundColor;
 			this.m_oAnimationPaneContainer.HtmlElement.style.borderTop = ("1px solid " + GlobalSkin.BorderSplitterColor);
 		}
 
@@ -2369,9 +2375,11 @@ function CEditorPage(api)
 
 		if (oWordControl.m_oDrawingDocument.InlineTextTrackEnabled)
 		{
-			var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
-			if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
-				return;
+			if (oWordControl.m_oLogicDocument.IsFocusOnNotes()) {
+				var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
+				if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
+					return;
+			}
 		}
 
 		oWordControl.StartUpdateOverlay();
@@ -2461,9 +2469,11 @@ function CEditorPage(api)
 
 		if (oWordControl.m_oDrawingDocument.InlineTextTrackEnabled)
 		{
-			var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
-			if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
-				return;
+			if (oWordControl.m_oLogicDocument.IsFocusOnNotes()) {
+				var pos2 = oWordControl.m_oDrawingDocument.ConvertCoordsToCursorWR(pos.X, pos.Y, pos.Page, undefined, true);
+				if (pos2.Y > oWordControl.m_oNotesContainer.AbsolutePosition.T * g_dKoef_mm_to_pix)
+					return;
+			}
 		}
 
 		oWordControl.StartUpdateOverlay();
@@ -3897,7 +3907,7 @@ function CEditorPage(api)
 			_c.m_nCurrentTimeClearCache = 0;
 			_c.m_oDrawingDocument.CheckFontCache();
 		}
-        oThis.m_oLogicDocument.ContinueCheckSpelling();
+        oThis.m_oLogicDocument.ContinueSpellCheck();
 	};
 	this.OnScroll       = function()
 	{
@@ -4182,7 +4192,10 @@ function CEditorPage(api)
 		}
 
 		oWordControl.m_oDrawingDocument.Collaborative_TargetsUpdate(isRepaint);
-
+		if (oThis.DemonstrationManager.Mode && !oThis.m_oApi.isReporterMode)
+		{
+			oThis.DemonstrationManager.CheckHideCursor();
+		}
 		oWordControl.m_nPaintTimerId = setTimeout(oWordControl.onTimerScroll, oWordControl.m_nTimerScrollInterval);
 		//window.requestAnimationFrame(oWordControl.onTimerScroll);
 	};

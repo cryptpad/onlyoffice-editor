@@ -281,6 +281,7 @@
     this.LastUpdateTargetTime = 0;
 
 	this.printPreviewState = new AscCommonExcel.CPrintPreviewState(this);
+	this.printOptionsJson = null;
 
     return this;
   }
@@ -516,7 +517,7 @@
 				  if (self.oSelectionInfo && self.oSelectionInfo.dataValidation) {
 					  var list = self.oSelectionInfo.dataValidation.getListValues(self.model.getActiveWs());
 					  if (list) {
-						  self.handlers.trigger("asc_onValidationListMenu", list[0], list[1]);
+						 self.handlers.trigger("asc_onValidationListMenu", list[0], list[1]);
 					  }
 					  return !!list;
 				  }
@@ -967,6 +968,9 @@
 	});
 	this.model.handlers.add("updateGroupData", function() {
 	  self.updateGroupData();
+	});
+	this.model.handlers.add("updatePrintPreview", function() {
+	  self.updatePrintPreview();
 	});
     this.cellCommentator = new AscCommonExcel.CCellCommentator({
       model: new WorkbookCommentsModel(this.handlers, this.model.aComments),
@@ -2250,7 +2254,7 @@
     return this.drawingCtx.getZoom();
   };
 
-  WorkbookView.prototype.changeZoom = function(factor, changeZoomOnPrint) {
+  WorkbookView.prototype.changeZoom = function(factor, changeZoomOnPrint, doNotDraw) {
   	if (factor === this.getZoom()) {
       return;
     }
@@ -2294,7 +2298,7 @@
       item.changeZoom(/*isDraw*/i == activeIndex, changeZoomOnPrint);
       this._reInitGraphics();
       item.objectRender.changeZoom(this.drawingCtx.scaleFactor);
-      if (i == activeIndex && factor) {
+      if (i == activeIndex && factor && !doNotDraw) {
         item.draw();
         //ToDo item.drawDepCells();
       }
@@ -2481,7 +2485,7 @@
                 }
                 tmp = this.cellEditor.skipTLUpdate;
                 this.cellEditor.skipTLUpdate = false;
-                this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
+                this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, type === c_oAscPopUpSelectorType.TableThisRow ? "@" : name);
                 this.cellEditor.skipTLUpdate = tmp;
             } else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
                 // Не смогли вставить формулу, закроем редактор, с сохранением текста
@@ -2491,7 +2495,9 @@
             this.skipHelpSelector = false;
         } else {
             if (c_oAscPopUpSelectorType.None === type) {
-                ws.setSelectionInfo("value", name, /*onlyActive*/true);
+				ws.executeWithFirstActiveCellInMerge(function () {
+					ws.setSelectionInfo("value", name, /*onlyActive*/true);
+				})
                 return;
             } else if (c_oAscPopUpSelectorType.TotalRowFunc === type) {
                 ws.setSelectionInfo("totalRowFunc", name, /*onlyActive*/true);
@@ -3123,15 +3129,15 @@
 		//приходится несколько раз выполнять действия, чтобы ppi выставился правильно
 		//если не делать init, то не сбросится ppi от системного зума - смотри функцию DrawingContext.prototype.changeZoom
 		if (viewZoom !== 1) {
-			this.changeZoom(1, true);
+			this.changeZoom(1, true, true);
 		}
-		this.changeZoom(null, true);
+		this.changeZoom(null, true, true);
 
 		runFunction();
 
 		AscCommon.AscBrowser.retinaPixelRatio = trueRetinaPixelRatio;
-		this.changeZoom(null, true);
-		this.changeZoom(viewZoom, true);
+		this.changeZoom(null, true, true);
+		this.changeZoom(viewZoom, true, true);
 	};
 
 	WorkbookView.prototype.printSheetPrintPreview = function(index) {
@@ -3143,18 +3149,24 @@
 			page = page.clone();
 		}
 
-		var kF = printPreviewState.pageZoom;
+		var kF = printPreviewState.pageZoom * AscCommon.AscBrowser.retinaPixelRatio;
 		//TODO 1 -
 		if (page) {
 			page.leftFieldInPx = Math.floor(page.leftFieldInPx * kF)  - 1;
-			page.pageClipRectHeight = Math.ceil(page.pageClipRectHeight * kF) + 2;
+			page.pageClipRectHeight = Math.ceil(page.pageClipRectHeight * kF);
 			page.pageClipRectLeft = Math.floor(page.pageClipRectLeft * kF);
 			page.pageClipRectTop = Math.floor(page.pageClipRectTop * kF);
-			page.pageClipRectWidth = Math.ceil(page.pageClipRectWidth * kF) + 2;
+			page.pageClipRectWidth = Math.ceil(page.pageClipRectWidth * kF);
 			page.topFieldInPx = Math.floor(page.topFieldInPx * kF) - 1;
+
+			page.titleWidth = Math.floor(page.titleWidth * kF);
+			page.titleHeight = Math.floor(page.titleHeight * kF);
 		}
 
 		printPreviewContext.clear();
+		printPreviewContext.setFillStyle( this.defaults.worksheetView.cells.defaultState.background )
+			.fillRect( 0, 0, printPreviewContext.getWidth(), printPreviewContext.getHeight() );
+
 		var ws;
 		if (!page) {
 			// Печать пустой страницы
@@ -3181,12 +3193,15 @@
 	}
 
     var viewZoom = this.getZoom();
-    this.changeZoom(1);
+    this.changeZoom(1, true, true);
+
+	var isPrintPreview = this.printPreviewState.isStart();
+	var nActive = isPrintPreview && null !== this.printPreviewState.realActiveSheet ? this.printPreviewState.realActiveSheet : this.model.getActive();
 
     var printPagesData = new asc_CPrintPagesData();
     var printType = adjustPrint.asc_getPrintType();
     if (printType === Asc.c_oAscPrintType.ActiveSheets) {
-      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, false, adjustPrint);
+      this._calcPagesPrintSheet(nActive, printPagesData, false, adjustPrint);
     } else if (printType === Asc.c_oAscPrintType.EntireWorkbook) {
       // Колличество листов
       var countWorksheets = this.model.getWorksheetCount();
@@ -3197,14 +3212,14 @@
       	this._calcPagesPrintSheet(i, printPagesData, false, adjustPrint);
       }
     } else if (printType === Asc.c_oAscPrintType.Selection) {
-      this._calcPagesPrintSheet(this.model.getActive(), printPagesData, true, adjustPrint);
+      this._calcPagesPrintSheet(nActive, printPagesData, true, adjustPrint);
     }
 
-    if (AscCommonExcel.c_kMaxPrintPages === printPagesData.arrPages.length) {
-      this.handlers.trigger("asc_onError", c_oAscError.ID.PrintMaxPagesCount, c_oAscError.Level.NoCritical);
+    if (this.printPreviewState.isNeedShowError(AscCommonExcel.c_kMaxPrintPages === printPagesData.arrPages.length)) {
+		this.handlers.trigger("asc_onError", c_oAscError.ID.PrintMaxPagesCount, c_oAscError.Level.NoCritical);
     }
 
-    this.changeZoom(viewZoom);
+    this.changeZoom(viewZoom, true, true);
 
     return printPagesData;
   };
@@ -3886,11 +3901,16 @@
 			}
 		};
 
+		//разом лочу и настройки и колонтитулы. будут проблема - можно раъединить
 		var lockInfoArr = [];
 		var lockInfo;
 		for(var i in arrPagesPrint) {
 			lockInfo = this.getWorksheet(parseInt(i)).getLayoutLockInfo();
 			lockInfoArr.push(lockInfo);
+			if (arrPagesPrint[i].pageSetup && arrPagesPrint[i].pageSetup.headerFooter) {
+				lockInfo = this.getWorksheet(parseInt(i)).getHeaderFooterLockInfo();
+				lockInfoArr.push(lockInfo);
+			}
 		}
 
 		if(viewMode) {
@@ -4293,6 +4313,41 @@
 		oWriter.WriteString2(rangeStr);
 		var BinaryLen = oWriter.GetCurPosition() - BinaryPos;
 		return (BinaryLen + ";" + oWriter.GetBase64Memory2(BinaryPos, BinaryLen));
+	};
+
+	WorkbookView.prototype.updatePrintPreview = function () {
+		if (!this.printPreviewState || !this.printPreviewState.isStart()) {
+			return;
+		}
+		for(var i in this.wsViews) {
+			this.wsViews[i]._recalculate();
+		}
+		if (!this.printPreviewState.isDrawPrintPreview) {
+			var needUpdate;
+			//if (this.workbook.printPreviewState.isNeedUpdate(this.model, this.getMaxRowColWithData())) {
+			//возможно стоит добавить эвент об изменении количетсва страниц
+			needUpdate = true;
+			//}
+			this.model.handlers.trigger("asc_onPrintPreviewSheetDataChanged", needUpdate);
+		}
+	};
+
+	WorkbookView.prototype.setPrintOptionsJson = function (val) {
+		//протаскиваю временные опции для печати
+		//из данных опций пока испольуются только колонтитулы
+		this.printOptionsJson = val;
+	};
+
+	WorkbookView.prototype.getPrintHeaderFooterFromJson = function (index) {
+		var res = null;
+		if (this.printOptionsJson) {
+			var ws = this.model.getWorksheet(index);
+			res = new Asc.CHeaderFooter(ws);
+			if (this.printOptionsJson[index] && this.printOptionsJson[index]["pageSetup"] && this.printOptionsJson[index]["pageSetup"]["headerFooter"]) {
+				res.initFromJson(this.printOptionsJson[index]["pageSetup"]["headerFooter"]);
+			}
+		}
+		return res;
 	};
 
 	//------------------------------------------------------------export---------------------------------------------------

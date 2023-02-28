@@ -97,6 +97,7 @@ var textdirection_LRTBV = 0x03;
 var textdirection_TBRLV = 0x04;
 var textdirection_TBLRV = 0x05;
 
+
 function IsEqualStyleObjects(Object1, Object2)
 {
     if (undefined === Object1 && undefined === Object2)
@@ -1488,18 +1489,24 @@ CStyle.prototype =
         this.Set_TableBand1Vert( TableBand1Vert );
     },
 
-    Create_Table_Lined : function(unifill1, unifill2)
+    Create_Table_Lined : function(oUnifill1, oUnifill2)
     {
         var TextColor1 = new CDocumentColor(0xF2, 0xF2, 0xF2, false);
         var TextFont1  = { Name : "Arial", Index : -1 };
         var TextSize1  = 11;
 
         var CellShd1   = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = unifill1;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oUnifill1,
+			ThemeFill  : oUnifill1
+		});
 		var CellShd2 = new CDocumentShd();
-		CellShd2.Value = c_oAscShdClear;
-		CellShd2.Unifill = unifill2;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oUnifill2,
+			ThemeFill  : oUnifill2
+		});
 
         var TableStylePrBoundary =
         {
@@ -1632,10 +1639,14 @@ CStyle.prototype =
         this.Set_TableBand2Vert(TableStylePrBand2);
 	},
 
-    Create_TableGrid_Light: function (oBorderUnifill) {
+    Create_TableGrid_Light: function (oBorderUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
 
         var ParaPr =
         {
@@ -1741,13 +1752,14 @@ CStyle.prototype =
         this.Set_ParaPr(ParaPr);
     },
 
-    Create_Table_Plain_1: function (oBorderUnifill, oBandUnifill) {
-        var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+    Create_Table_Plain_1: function (oBorderUnifill, oBandUnifill)
+	{
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
 
         var ParaPr =
         {
@@ -1777,7 +1789,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 Left:
@@ -1786,7 +1798,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 Bottom:
@@ -1795,7 +1807,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 Right:
@@ -1804,7 +1816,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 InsideH:
@@ -1813,7 +1825,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 InsideV:
@@ -1822,7 +1834,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 }
             },
 
@@ -1877,11 +1889,8 @@ CStyle.prototype =
         this.Set_TableLastCol(TableText);
     },
 
-    Create_Table_Plain_2: function (oBorderUnifill) {
-        var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
-
+    Create_Table_Plain_2: function (oBorderUnifill)
+	{
         var ParaPr =
         {
             Spacing:
@@ -1898,7 +1907,7 @@ CStyle.prototype =
             Value: border_Single,
             Size: 0.5 * g_dKoef_pt_to_mm,
             Space: 0,
-            Unifill: CellShd1.Unifill
+            Unifill: oBorderUnifill
         };
 
         var TableTextPr =
@@ -1920,7 +1929,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 Left:
@@ -1929,7 +1938,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_None,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 Bottom:
@@ -1938,7 +1947,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_Single,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 },
 
                 Right:
@@ -1947,7 +1956,7 @@ CStyle.prototype =
                     Space: 0,
                     Size: 0.5 * g_dKoef_pt_to_mm,
                     Value: border_None,
-                    Unifill: CellShd1.Unifill
+                    Unifill: oBorderUnifill
                 }
             },
 
@@ -2040,13 +2049,14 @@ CStyle.prototype =
         this.Set_TableLastCol(TableCol);
     },
 
-    Create_Table_Plain_3: function (oBorderUnifill, oBandUnifill) {
-        var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+    Create_Table_Plain_3: function (oBorderUnifill, oBandUnifill)
+	{
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
 
         var TableTextPr =
         {
@@ -2203,11 +2213,14 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_Plain_4: function (oBandUnifill) {
-
+    Create_Table_Plain_4: function (oBandUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBandUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
 
         var TableTextPr =
         {
@@ -2307,13 +2320,22 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_Plain_5: function (oTableCellUnifill, oBandUnifill) {
+    Create_Table_Plain_5: function (oTableCellUnifill, oBandUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oTableCellUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -2482,13 +2504,22 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_Grid_1: function (oFirstRowBottomBorderUnifill, oBorderUnifill) {
+    Create_Table_Grid_1: function (oFirstRowBottomBorderUnifill, oBorderUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oFirstRowBottomBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oFirstRowBottomBorderUnifill,
+			ThemeFill  : oFirstRowBottomBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBorderUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -2641,16 +2672,29 @@ CStyle.prototype =
         this.Set_TableBand1Horz(TableBand1Horz);
     },
 
-    Create_Table_Grid_2: function (oBorderUnifill, oBandUniFill, oTableCellUnifill) {
+    Create_Table_Grid_2: function (oBorderUnifill, oBandUniFill, oTableCellUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUniFill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUniFill,
+			ThemeFill  : oBandUniFill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTableCellUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -2813,16 +2857,28 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_Grid_3: function (oBorderUnifill, oBandUnifill, oTableCellUnifill) {
+    Create_Table_Grid_3: function (oBorderUnifill, oBandUnifill, oTableCellUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTableCellUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
 
         var TableTextPr =
         {
@@ -3016,16 +3072,28 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_Grid_4: function (oHeaderUnifill, oBandUnifill, oBorderUnifill) {
+    Create_Table_Grid_4: function (oHeaderUnifill, oBandUnifill, oBorderUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oHeaderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oHeaderUnifill,
+			ThemeFill  : oHeaderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oBorderUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
 
         var TableTextPr =
         {
@@ -3199,19 +3267,36 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_Grid_5: function (oHeaderUnifill, oTableCellUnifill, oBorderUnifill, oBandUnifill) {
-        var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oHeaderUnifill;
-        var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oTableCellUnifill;
-        var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oBorderUnifill;
-        var CellShd4 = new CDocumentShd();
-        CellShd4.Value = c_oAscShdClear;
-        CellShd4.Unifill = oBandUnifill;
+    Create_Table_Grid_5: function (oHeaderUnifill, oTableCellUnifill, oBorderUnifill, oBandUnifill)
+	{
+		var CellShd1 = new CDocumentShd();
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oHeaderUnifill,
+			ThemeFill  : oHeaderUnifill
+		});
+
+		var CellShd2 = new CDocumentShd();
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
+
+		var CellShd3 = new CDocumentShd();
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
+		var CellShd4 = new CDocumentShd();
+		CellShd4.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -3364,16 +3449,29 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1Vert);
     },
 
-    Create_Table_Grid_6: function (oBorderUnifill, oBandUnifill, oTextUnifill) {
+    Create_Table_Grid_6: function (oBorderUnifill, oBandUnifill, oTextUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTextUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTextUnifill,
+			ThemeFill  : oTextUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -3535,19 +3633,35 @@ CStyle.prototype =
         this.Set_TableWholeTable(TableWholeTable);
     },
 
-    Create_Table_Grid_7: function (oBorderUnifill, oBandUnifill, oTableCellUnifill, oTextUnifill) {
+    Create_Table_Grid_7: function (oBorderUnifill, oBandUnifill, oTableCellUnifill, oTextUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTableCellUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
+
         var CellShd4 = new CDocumentShd();
-        CellShd4.Value = c_oAscShdClear;
-        CellShd4.Unifill = oTextUnifill;
+		CellShd4.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTextUnifill,
+			ThemeFill  : oTextUnifill
+		});
 
         var TableTextPr =
         {
@@ -3772,16 +3886,29 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1Vert);
     },
 
-    Create_Table_List_1: function (oBorderUnifill, oBandUnifill, oTableCellUnifill) {
+    Create_Table_List_1: function (oBorderUnifill, oBandUnifill, oTableCellUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTableCellUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -3927,13 +4054,22 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_List_2: function (unifill1, oBandUnifill) {
+    Create_Table_List_2: function (oUnifill, oBandUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = unifill1;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oUnifill,
+			ThemeFill  : oUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var TableTextPr =
         {
             RFonts: { Ascii: { Name: "Arial", Index: -1 }, HAnsi: { Name: "Arial", Index: -1 } },
@@ -4092,13 +4228,21 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_List_3: function (oHeaderUnifill, oBorderUnifill) {
+    Create_Table_List_3: function (oHeaderUnifill, oBorderUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oHeaderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oHeaderUnifill,
+			ThemeFill  : oHeaderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBorderUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
 
         var TableTextPr =
         {
@@ -4254,16 +4398,28 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1Vert);
     },
 
-    Create_Table_List_4: function (oHeaderUnifill, oBandUnifill, oBorderUnifill) {
+    Create_Table_List_4: function (oHeaderUnifill, oBandUnifill, oBorderUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oHeaderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oHeaderUnifill,
+			ThemeFill  : oHeaderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oBorderUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
 
         var TableTextPr =
         {
@@ -4413,13 +4569,21 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1);
     },
 
-    Create_Table_List_5: function (oTableCellUnifill, oBorderUnifill) {
+    Create_Table_List_5: function (oTableCellUnifill, oBorderUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oTableCellUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableCellUnifill,
+			ThemeFill  : oTableCellUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBorderUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
 
         var TableTextPr =
         {
@@ -4647,16 +4811,28 @@ CStyle.prototype =
         this.Set_TableWholeTable(TableWholeTable);
     },
 
-    Create_Table_List_6: function (oBorderUnifill, oBandUnifill, oTextUnifill) {
+    Create_Table_List_6: function (oBorderUnifill, oBandUnifill, oTextUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTextUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTextUnifill,
+			ThemeFill  : oTextUnifill
+		});
 
         var TableTextPr =
         {
@@ -4811,19 +4987,35 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1Vert);
     },
 
-    Create_Table_List_7: function (oBorderUnifill, oBandUnifill, oTableTextUnifill, oTextUnifill) {
+    Create_Table_List_7: function (oBorderUnifill, oBandUnifill, oTableTextUnifill, oTextUnifill)
+	{
         var CellShd1 = new CDocumentShd();
-        CellShd1.Value = c_oAscShdClear;
-        CellShd1.Unifill = oBorderUnifill;
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderUnifill,
+			ThemeFill  : oBorderUnifill
+		});
+
         var CellShd2 = new CDocumentShd();
-        CellShd2.Value = c_oAscShdClear;
-        CellShd2.Unifill = oBandUnifill;
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBandUnifill,
+			ThemeFill  : oBandUnifill
+		});
+
         var CellShd3 = new CDocumentShd();
-        CellShd3.Value = c_oAscShdClear;
-        CellShd3.Unifill = oTableTextUnifill;
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTableTextUnifill,
+			ThemeFill  : oTableTextUnifill
+		});
+
         var CellShd4 = new CDocumentShd();
-        CellShd4.Value = c_oAscShdClear;
-        CellShd4.Unifill = oTextUnifill;
+		CellShd4.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oTextUnifill,
+			ThemeFill  : oTextUnifill
+		});
 
         var TableTextPr =
         {
@@ -5042,15 +5234,27 @@ CStyle.prototype =
 
     Create_Table_BorderedAndLined : function(oBorderFillUnifill, oHorBandUniFill, oVertBandUnifill,  oBorderUnifill)
     {
-		var CellShd1   = new CDocumentShd();
-		CellShd1.Value = c_oAscShdClear;
-		CellShd1.Unifill = oBorderFillUnifill;
-		var CellShd2   = new CDocumentShd();
-		CellShd2.Value = c_oAscShdClear;
-		CellShd2.Unifill = oHorBandUniFill;
-		var CellShd3   = new CDocumentShd();
-		CellShd3.Value = c_oAscShdClear;
-		CellShd3.Unifill = oVertBandUnifill;
+		var CellShd1 = new CDocumentShd();
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oBorderFillUnifill,
+			ThemeFill  : oBorderFillUnifill
+		});
+
+		var CellShd2 = new CDocumentShd();
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oHorBandUniFill,
+			ThemeFill  : oHorBandUniFill
+		});
+
+		var CellShd3 = new CDocumentShd();
+		CellShd3.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : oVertBandUnifill,
+			ThemeFill  : oVertBandUnifill
+		});
+
         var TextPr1 =
         {
             RFonts   : { Ascii : { Name : "Arial", Index : -1 }, HAnsi : { Name : "Arial", Index : -1 } },
@@ -5235,12 +5439,20 @@ CStyle.prototype =
 
 	Create_Grid_Table_Light : function(unifill1, unifill2)
     {
-		var CellShd1   = new CDocumentShd();
-		CellShd1.Value = c_oAscShdClear;
-		CellShd1.Unifill = unifill1;
-		var CellShd2   = new CDocumentShd();
-		CellShd2.Value = c_oAscShdClear;
-		CellShd2.Unifill = unifill2;
+		var CellShd1 = new CDocumentShd();
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : unifill1,
+			ThemeFill  : unifill1
+		});
+
+		var CellShd2 = new CDocumentShd();
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : unifill2,
+			ThemeFill  : unifill2
+		});
+
         var TableTextPr =
         {
             RFonts   : {Ascii : {Name : "Arial", Index : -1}, HAnsi : {Name : "Arial", Index : -1}},
@@ -5429,12 +5641,20 @@ CStyle.prototype =
 		var TextFont1  = { Name : "Arial", Index : -1 };
 		var TextSize1  = 11;
 
-		var CellShd1   = new CDocumentShd();
-		CellShd1.Value = c_oAscShdClear;
-		CellShd1.Unifill = unifill1;
-		var CellShd2   = new CDocumentShd();
-		CellShd2.Value = c_oAscShdClear;
-		CellShd2.Unifill = unifill2;
+		var CellShd1 = new CDocumentShd();
+		CellShd1.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : unifill1,
+			ThemeFill  : unifill1
+		});
+
+		var CellShd2 = new CDocumentShd();
+		CellShd2.Set_FromObject({
+			Value      : Asc.c_oAscShd.Clear,
+			ThemeColor : unifill2,
+			ThemeFill  : unifill2
+		});
+
         var TableTextPr =
         {
             RFonts   : {Ascii : {Name : "Arial", Index : -1}, HAnsi : {Name : "Arial", Index : -1}},
@@ -7337,9 +7557,18 @@ CStyle.prototype.Document_Is_SelectionLocked = function(CheckType)
 		}
 	}
 };
+/**
+ * @returns {boolean}
+ */
+CStyle.prototype.IsTableStyle = function()
+{
+	return (this.Type === styletype_Table);
+};
 
 function CStyles(bCreateDefault)
 {
+	this.ValidDefaultEastAsiaFont = false;
+
     if (bCreateDefault !== false)
     {
         this.Id = AscCommon.g_oIdCounter.Get_NewId();
@@ -8078,6 +8307,7 @@ function CStyles(bCreateDefault)
 	}
 
     this.LogicDocument = null;
+	this.OnChangeDefaultTextPr();
 }
 
 CStyles.prototype =
@@ -8425,6 +8655,7 @@ CStyles.prototype =
             Styles.Style[StyleId] = this.Style[StyleId].Copy();
         }
 
+        Styles.OnChangeDefaultTextPr();
         return Styles;
     },
 
@@ -8463,7 +8694,7 @@ CStyles.prototype =
 		History.Add(new CChangesStylesChangeDefaultTextPr(this, this.Default.TextPr, TextPr));
         this.Default.TextPr.InitDefault();
 		this.Default.TextPr.Merge(TextPr);
-
+		this.OnChangeDefaultTextPr();
 		// TODO: Пока данная функция используется только в билдере, как только будет использоваться в самом редакторе,
 		//       надо будет сделать, чтобы происходил пересчет всех стилей.
 	},
@@ -8853,19 +9084,6 @@ CStyles.prototype =
         this.Default.TextPr.Document_Get_AllFontNames(AllFonts);
     },
 
-    Get_AllTableStyles : function()
-    {
-        var TableStyles = [];
-        for ( var Id in this.Style )
-        {
-            var Style = this.Style[Id];
-            if ( styletype_Table === Style.Type )
-                TableStyles.push( Id );
-        }
-
-        return TableStyles;
-    },
-
     Update_Interface : function(StyleId)
     {
         if (null != this.LogicDocument && undefined !== this.LogicDocument)
@@ -9065,6 +9283,18 @@ CStyles.prototype =
 CStyles.prototype.Get = function(sStyleId)
 {
 	return (this.Style[sStyleId] ? this.Style[sStyleId] : null);
+};
+CStyles.prototype.GetAllTableStyles = function()
+{
+	let arrTableStyles = [];
+	for (let Id in this.Style)
+	{
+		let oStyle = this.Style[Id];
+		if (oStyle.IsTableStyle())
+			arrTableStyles.push(oStyle);
+	}
+
+	return arrTableStyles;
 };
 /**
  * Получаем идентификатор стиля по его имени
@@ -9770,6 +10000,8 @@ CStyles.prototype.UpdateDefaultsDependingOnCompatibility = function(nCompatibili
 	g_oDocumentDefaultTableCellPr.InitDefault(nCompatibilityMode);
 	g_oDocumentDefaultTableRowPr.InitDefault(nCompatibilityMode);
 	g_oDocumentDefaultTableStylePr.InitDefault(nCompatibilityMode);
+
+	this.OnChangeDefaultTextPr();
 };
 CStyles.prototype.GetDefaultParaPrForWrite = function()
 {
@@ -9782,6 +10014,24 @@ CStyles.prototype.GetDefaultTextPrForWrite = function()
 	var oTextPr = new CTextPr();
 	oTextPr.InitDefault();
 	return this.Default.TextPr.GetDiff(oTextPr);
+};
+CStyles.prototype.OnChangeDefaultTextPr = function()
+{
+	this.ValidDefaultEastAsiaFont = false;
+	if (this.Default.TextPr.RFonts && this.Default.TextPr.RFonts.EastAsia)
+		this.ValidDefaultEastAsiaFont = AscCommon.IsEastAsianFont(this.Default.TextPr.RFonts.EastAsia.Name);
+};
+CStyles.prototype.IsValidDefaultEastAsiaFont = function()
+{
+	return this.ValidDefaultEastAsiaFont;
+};
+CStyles.prototype.OnEndDocumentLoad = function(oDocument)
+{
+	// Специальная проверка плохо заданных нумераций через стиль. Когда ссылка на нумерацию в стиле есть,
+	// а обратной ссылки в нумерации на стиль - нет.
+	this.Check_StyleNumberingOnLoad(oDocument.GetNumbering());
+
+	this.OnChangeDefaultTextPr();
 };
 
 function CDocumentColor(r,g,b, Auto)
@@ -9890,6 +10140,10 @@ CDocumentColor.prototype.SetFromColor = function(oColor)
 	this.Auto = undefined !== oColor.Auto ? oColor.Auto : false;
 };
 
+CDocumentColor.prototype.ConvertToUniColor = function()
+{
+	return AscFormat.CreateUniColorRGB(this.r, this.g, this.b);
+};
 
 function CDocumentShd()
 {
@@ -9898,10 +10152,11 @@ function CDocumentShd()
 	this.Fill    = undefined;
 	this.Unifill = undefined;
 	this.FillRef = undefined;
-	this.themeFill = undefined;
+	this.ThemeFill = undefined;
+
 	// TODO:
 	//  1. this.Color по умолчанию должен быть undefined
-	//  2. Добавить аналог для themeFill и переименовать Unifill в themeColor
+	//  2. Переименовать Unifill в ThemeColor
 }
 
 CDocumentShd.prototype =
@@ -9978,6 +10233,9 @@ CDocumentShd.prototype.Copy = function()
 	if (undefined !== this.Fill)
 		Shd.Fill = new CDocumentColor(this.Fill.r, this.Fill.g, this.Fill.b, this.Fill.Auto);
 
+	if (undefined !== this.ThemeFill)
+		Shd.ThemeFill = this.ThemeFill.createDuplicate();
+
 	return Shd;
 };
 CDocumentShd.prototype.Compare = function(oShd)
@@ -9992,7 +10250,10 @@ CDocumentShd.prototype.IsEqual = function(oShd)
 	if (Asc.c_oAscShd.Nil === this.Value)
 		return true;
 
-	return (IsEqualStyleObjects(this.Color, oShd.Color) && IsEqualStyleObjects(this.Fill, oShd.Fill) && IsEqualStyleObjects(this.Unifill, oShd.Unifill));
+	return (IsEqualStyleObjects(this.Color, oShd.Color)
+		&& IsEqualStyleObjects(this.Fill, oShd.Fill)
+		&& IsEqualStyleObjects(this.Unifill, oShd.Unifill)
+		&& IsEqualStyleObjects(this.ThemeFill, oShd.ThemeFill));
 };
 CDocumentShd.prototype.Is_Equal = function(Shd)
 {
@@ -10000,11 +10261,12 @@ CDocumentShd.prototype.Is_Equal = function(Shd)
 };
 CDocumentShd.prototype.InitDefault = function()
 {
-	this.Value   = Asc.c_oAscShd.Nil;
-	this.Color   = new CDocumentColor(0, 0, 0, false);
-	this.Unifill = undefined;
-	this.FillRef = undefined;
-	this.Fill    = undefined;
+	this.Value     = Asc.c_oAscShd.Nil;
+	this.Color     = new CDocumentColor(0, 0, 0, false);
+	this.Unifill   = undefined;
+	this.FillRef   = undefined;
+	this.Fill      = undefined;
+	this.ThemeFill = undefined;
 };
 CDocumentShd.prototype.Set_FromObject = function(oShd)
 {
@@ -10021,14 +10283,20 @@ CDocumentShd.prototype.Set_FromObject = function(oShd)
 		if (oShd.Color)
 			this.Color = new CDocumentColor(oShd.Color.r, oShd.Color.g, oShd.Color.b, oShd.Color.Auto);
 
-		if (oShd.Unifill)
+		if (oShd.ThemeColor)
+			this.Unifill = oShd.ThemeColor.createDuplicate();
+		else if (oShd.Unifill)
 			this.Unifill = oShd.Unifill.createDuplicate();
+
 
 		if (oShd.FillRef)
 			this.FillRef = oShd.FillRef.createDuplicate();
 
 		if (oShd.Fill)
 			this.Fill = new CDocumentColor(oShd.Fill.r, oShd.Fill.g, oShd.Fill.b, oShd.Fill.Auto);
+
+		if (oShd.ThemeFill)
+			this.ThemeFill = oShd.ThemeFill.createDuplicate();
 	}
 	else if (oShd.Color)
 	{
@@ -10047,12 +10315,12 @@ CDocumentShd.prototype.GetSimpleColor = function(oTheme, oColorMap)
 	// TODO: Пока у нас неправильно работает сохранение и открытие в DOCX, поэтому считаем, что
 	//       цвет, заданный в теме влияет на оба цвета, чтобы работало нормально в текущей схеме
 
-	if (undefined !== this.Unifill)
+	if (undefined !== this.ThemeFill)
 	{
 		if (oTheme && oColorMap)
-			this.Unifill.check(oTheme, oColorMap);
+			this.ThemeFill.check(oTheme, oColorMap);
 
-		var RGBA = this.Unifill.getRGBAColor();
+		var RGBA = this.ThemeFill.getRGBAColor();
 		oFillColor = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, false);
 	}
 	else if (undefined !== this.Fill)
@@ -10298,6 +10566,16 @@ CDocumentShd.prototype.Write_ToBinary = function(Writer)
 		{
 			Writer.WriteBool(false);
 		}
+
+		if (this.ThemeFill)
+		{
+			Writer.WriteBool(true);
+			this.ThemeFill.Write_ToBinary(Writer);
+		}
+		else
+		{
+			Writer.WriteBool(false);
+		}
 	}
 };
 CDocumentShd.prototype.Read_FromBinary = function(Reader)
@@ -10333,6 +10611,12 @@ CDocumentShd.prototype.Read_FromBinary = function(Reader)
 		{
 			this.Fill = new CDocumentColor();
 			this.Fill.Read_FromBinary(Reader);
+		}
+
+		if (Reader.GetBool())
+		{
+			this.ThemeFill = new AscFormat.CUniFill();
+			this.ThemeFill.Read_FromBinary(Reader);
 		}
 	}
 	else
@@ -12274,6 +12558,12 @@ CTableCellPr.prototype.RemovePrChange = function()
 	delete this.ReviewInfo;
 };
 
+const rfont_None     = 0x00;
+const rfont_ASCII    = 0x01;
+const rfont_EastAsia = 0x02;
+const rfont_CS       = 0x04;
+const rfont_HAnsi    = 0x08;
+
 function CRFonts()
 {
     this.Ascii    = undefined;
@@ -12936,10 +13226,16 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 	TextPr.Bold      = this.Bold;
 	TextPr.Italic    = this.Italic;
 	TextPr.Strikeout = this.Strikeout;
+	TextPr.DStrikeout = this.DStrikeout;
+	TextPr.Caps       = this.Caps;
+	TextPr.SmallCaps  = this.SmallCaps;
+
 	TextPr.Underline = this.Underline;
 	TextPr.Lang       = this.Lang.Copy();
 	TextPr.Spacing    = this.Spacing;
-	TextPr.RFonts     = this.RFonts.Copy();
+	TextPr.RFonts     = this.RFonts.Copy()
+
+	TextPr.Vanish = this.Vanish;
 
 	if (oPr.custT) {
 		TextPr.FontSize = this.FontSize;
@@ -12960,15 +13256,15 @@ CTextPr.prototype.createDuplicateForSmartArt = function(oPr) {
 
 	if (undefined != this.Unifill)
 		TextPr.Unifill = this.Unifill.createDuplicate();
+
 	if (undefined != this.FontRef)
 		TextPr.FontRef = this.FontRef.createDuplicate();
 
 	if (undefined !== this.Shd)
 		TextPr.Shd = this.Shd.Copy();
+
 	if (undefined !== this.FontScale)
 		TextPr.FontScale = this.FontScale;
-
-	TextPr.Vanish = this.Vanish;
 
 	if (undefined != this.TextOutline)
 	{
@@ -14774,6 +15070,59 @@ CTextPr.prototype.GetDescription = function()
 
 	return Description;
 };
+CTextPr.prototype.GetTextMetrics = function(oTheme, nFontFlags)
+{
+	let oMetrics = new CTextMetrics();
+
+	g_oTextMeasurer.SetTextPr(this, oTheme);
+
+	if ((nFontFlags & rfont_ASCII) && this.RFonts.Ascii)
+		oMetrics.Update(this.RFonts.Ascii.Name, fontslot_ASCII);
+
+	if ((nFontFlags & rfont_CS) && this.RFonts.CS)
+		oMetrics.Update(this.RFonts.CS.Name, fontslot_CS);
+
+	if ((nFontFlags & rfont_HAnsi) && this.RFonts.HAnsi)
+		oMetrics.Update(this.RFonts.HAnsi.Name, fontslot_HAnsi);
+
+	if ((nFontFlags & rfont_EastAsia) && this.RFonts.EastAsia)
+		oMetrics.Update(this.RFonts.EastAsia.Name, fontslot_EastAsia);
+
+	return oMetrics;
+};
+
+function CTextMetrics()
+{
+	this.Ascent  = 0;
+	this.Descent = 0;
+	this.LineGap = 0;
+	this.Height  = 0;
+}
+CTextMetrics.prototype.Update = function(fontName, fontSlot)
+{
+	g_oTextMeasurer.SetFontSlot(fontSlot);
+
+	let nHeight  = g_oTextMeasurer.GetHeight();
+	let nAscent  = g_oTextMeasurer.GetAscender();
+	let nDescent = Math.abs(g_oTextMeasurer.GetDescender());
+
+	let _nHeight  = nHeight;
+	let _nDescent = nDescent;
+	let _nAscent  = Math.min(nAscent, nHeight - nDescent);
+	let _nLineGap = Math.max(0, nHeight - nAscent - nDescent);
+
+	if (this.Height < _nHeight)
+		this.Height = _nHeight;
+
+	if (this.Descent < _nDescent)
+		this.Descent = _nDescent;
+
+	if (this.Ascent < _nAscent)
+		this.Ascent = _nAscent;
+
+	if (this.LineGap < _nLineGap)
+		this.LineGap = _nLineGap;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // CTextPr Export
 //----------------------------------------------------------------------------------------------------------------------
@@ -15998,6 +16347,18 @@ CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
 CParaPr.prototype.createDuplicateForSmartArt = function (bCopyPrChange, oPr) {
 	var ParaPr = new CParaPr();
 	ParaPr.Jc              = this.Jc;
+
+	if (undefined != this.Spacing)
+		ParaPr.Spacing = this.Spacing.Copy();
+
+	if (undefined != this.Ind) // TODO: apply only changed ind
+		ParaPr.Ind = this.Ind.Copy();
+
+	if (undefined != this.Tabs)
+		ParaPr.Tabs = this.Tabs.Copy();
+
+	if (undefined != this.DefaultTab)
+		ParaPr.DefaultTab = this.DefaultTab;
 	return ParaPr;
 };
 CParaPr.prototype.Merge = function(ParaPr)
@@ -17359,7 +17720,6 @@ asc_CStyle.prototype.get_TextPr = function()
 {
     return this.TextPr;
 };
-
 //---------------------------------------------------------export---------------------------------------------------
 window['Asc'] = window['Asc'] || {};
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -17387,6 +17747,7 @@ window["AscCommonWord"].g_dKoef_in_to_mm = g_dKoef_in_to_mm;
 window["AscCommonWord"].g_dKoef_mm_to_twips = g_dKoef_mm_to_twips;
 window["AscCommonWord"].g_dKoef_mm_to_pt = g_dKoef_mm_to_pt;
 window["AscCommonWord"].g_dKoef_mm_to_emu = g_dKoef_mm_to_emu;
+window["AscCommonWord"].g_dKoef_emu_to_mm = g_dKoef_emu_to_mm;
 window["AscCommonWord"].border_Single = border_Single;
 window["AscCommonWord"].Default_Tab_Stop = Default_Tab_Stop;
 window["AscCommonWord"].highlight_None = highlight_None;

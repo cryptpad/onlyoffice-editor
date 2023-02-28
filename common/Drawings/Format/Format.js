@@ -97,11 +97,15 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
     };
     CBaseObject.prototype.Refresh_RecalcData = function (oChange) {
     };
-
-    function InitClass(fClass, fBase, nType) {
+    
+    function InitClassWithoutType(fClass, fBase) {
         fClass.prototype = Object.create(fBase.prototype);
         fClass.prototype.superclass = fBase;
         fClass.prototype.constructor = fClass;
+    }
+
+    function InitClass(fClass, fBase, nType) {
+        InitClassWithoutType(fClass, fBase);
         fClass.prototype.classType = nType;
     }
 
@@ -2931,6 +2935,68 @@ CBlipFill.prototype =
             _ret.rotWithShape = this.rotWithShape;
         }
         return _ret;
+    },
+
+    getBase64RasterImageId: function (bReduce)
+    {
+        var sRasterImageId = this.RasterImageId;
+        if(typeof sRasterImageId !== "string" || sRasterImageId.length === 0)
+        {
+            return null;
+        }
+        if(sRasterImageId.indexOf("data:") === 0 && sRasterImageId.index("base64") > 0)
+        {
+            return sRasterImageId;
+        }
+        var oApi = Asc.editor || editor;
+        var sDefaultResult = sRasterImageId;
+        if(!oApi)
+        {
+            return sDefaultResult;
+        }
+        var oImageLoader = oApi.ImageLoader;
+        if(!oImageLoader)
+        {
+            return sDefaultResult;
+        }
+        var oImage = oImageLoader.map_image_index[AscCommon.getFullImageSrc2(sRasterImageId)];
+        if(!oImage || !oImage.Image || oImage.Status !== AscFonts.ImageLoadStatus.Complete)
+        {
+            return sDefaultResult;
+        }
+        var sResult = sDefaultResult;
+        if(!window["NATIVE_EDITOR_ENJINE"])
+        {
+            var oCanvas = document.createElement("canvas");
+            var nW = Math.max(oImage.Image.width, 1);
+            var nH = Math.max(oImage.Image.height, 1);
+            if(bReduce)
+            {
+                var nMaxSize = 640;
+                var dWK = nW/nMaxSize;
+                var dHK = nH/nMaxSize;
+                var dK = Math.max(dWK, dHK);
+                if(dK > 1)
+                {
+                    nW = ((nW / dK) + 0.5 >> 0);
+                    nH = ((nH / dK) + 0.5 >> 0);
+                }
+            }
+            oCanvas.width = nW;
+            oCanvas.height = nH;
+            var oCtx = oCanvas.getContext("2d");
+            oCtx.drawImage(oImage.Image, 0, 0, oCanvas.width, oCanvas.height);
+            try
+            {
+                sResult = oCanvas.toDataURL("image/png");
+            }
+            catch (err)
+            {
+                sResult = sDefaultResult;
+            }
+            return sResult;
+        }
+        return sRasterImageId;
     }
 };
 
@@ -5421,6 +5487,10 @@ function FormatRGBAColor()
         return (this.fill && this.fill.color && this.fill.color.color
         && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SRGB)
     };
+    CUniFill.prototype.isSolidFillScheme = function() {
+        return (this.fill && this.fill.color && this.fill.color.color
+        && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME)
+    };
     CUniFill.prototype.isNoFill = function() {
         return this.fill && this.fill.type === window['Asc'].c_oAscFill.FILL_TYPE_NOFILL;
     };
@@ -7370,6 +7440,28 @@ CXfrm.prototype =
             && isRealNumber(this.chOffX) && isRealNumber(this.chOffY)
             && isRealNumber(this.extX) && isRealNumber(this.extY)
             && isRealNumber(this.chExtX) && isRealNumber(this.chExtY);
+    },
+
+    isZero: function () {
+        return (
+          this.offX === 0 &&
+          this.offY === 0 &&
+          this.extX === 0 &&
+          this.extY === 0
+        );
+    },
+
+    isZeroCh: function () {
+        return (
+          this.chOffX === 0 &&
+          this.chOffY === 0 &&
+          this.chExtX === 0 &&
+          this.chExtY === 0
+        );
+    },
+
+    isZeroInGroup: function () {
+        return this.isZero() && this.isZeroCh();
     },
 
     isEqual: function(xfrm)
@@ -9789,10 +9881,6 @@ CTextFit.prototype =
     {}
 };
 
-//Overflow Types
-var nOTClip     = 0;
-var nOTEllipsis = 1;
-var nOTOwerflow = 2;
 //-----------------------------
 
 //Text Anchoring Types
@@ -10288,7 +10376,7 @@ CBodyPr.prototype =
         this.compatLnSpc    = false;
         this.forceAA        = false;
         this.fromWordArt    = false;
-        this.horzOverflow   = nOTOwerflow;
+        this.horzOverflow   = AscFormat.nOTOwerflow;
         this.lIns           = 91440/36000;
         this.numCol         = 1;
         this.rIns           = 91440/36000;
@@ -10299,7 +10387,7 @@ CBodyPr.prototype =
         this.tIns           = 45720/36000;
         this.upright        = false;
         this.vert           = AscFormat.nVertTThorz;
-        this.vertOverflow   = nOTOwerflow;
+        this.vertOverflow   = AscFormat.nOTOwerflow;
         this.wrap           = AscFormat.nTWTSquare;
         this.prstTxWarp     = null;
         this.textFit        = null;
@@ -10805,7 +10893,7 @@ function CTextParagraphPr()
 function CreateNoneBullet() {
     var ret = new CBullet();
     ret.bulletType = new CBulletType();
-    ret.bulletType.type = BULLET_TYPE_BULLET_NONE;
+    ret.bulletType.type = AscFormat.BULLET_TYPE_BULLET_NONE;
     return ret;
 }
 
@@ -10821,21 +10909,21 @@ function CompareBullets(bullet1, bullet2)
         ret.bulletType = new CBulletType();
         switch(bullet1.bulletType.type)
         {
-            case BULLET_TYPE_BULLET_CHAR:
+            case AscFormat.BULLET_TYPE_BULLET_CHAR:
             {
-                ret.bulletType.type = BULLET_TYPE_BULLET_CHAR;
+                ret.bulletType.type = AscFormat.BULLET_TYPE_BULLET_CHAR;
                 if(bullet1.bulletType.Char === bullet2.bulletType.Char)
                 {
                     ret.bulletType.Char = bullet1.bulletType.Char;
                 }
                 break;
             }
-            case BULLET_TYPE_BULLET_BLIP:
+            case AscFormat.BULLET_TYPE_BULLET_BLIP:
             {
-                ret.bulletType.type = BULLET_TYPE_BULLET_CHAR; //TODO: в меню отдаем, что символьный.
+                ret.bulletType.type = AscFormat.BULLET_TYPE_BULLET_CHAR; //TODO: в меню отдаем, что символьный.
                 break;
             }
-            case BULLET_TYPE_BULLET_AUTONUM:
+            case AscFormat.BULLET_TYPE_BULLET_AUTONUM:
             {
                 if(bullet1.bulletType.AutoNumType === bullet2.bulletType.AutoNumType)
                 {
@@ -11496,10 +11584,6 @@ CBulletTypeface.prototype =
     }
 };
 
-var BULLET_TYPE_BULLET_NONE		= 0;
-var BULLET_TYPE_BULLET_CHAR		= 1;
-var BULLET_TYPE_BULLET_AUTONUM	= 2;
-var BULLET_TYPE_BULLET_BLIP		= 3;
 
 function CBulletType()
 {
@@ -12068,6 +12152,9 @@ function CreateAscFill(unifill)
 }
 function CorrectUniFill(asc_fill, unifill, editorId)
 {
+    if (asc_fill instanceof CUniFill) {
+        return asc_fill;
+    }
     if (null == asc_fill)
         return unifill;
 
@@ -13687,10 +13774,6 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].nTWTNone   = 0;
     window['AscFormat'].nTWTSquare = 1;
 
-    window['AscFormat']["text_fit_No"]         = window['AscFormat'].text_fit_No         = 0;
-    window['AscFormat']["text_fit_Auto"]       = window['AscFormat'].text_fit_Auto       = 1;
-    window['AscFormat']["text_fit_NormAuto"]   = window['AscFormat'].text_fit_NormAuto   = 2;
-
     window['AscFormat'].BULLET_TYPE_COLOR_NONE	= 0;
     window['AscFormat'].BULLET_TYPE_COLOR_CLRTX	= 1;
     window['AscFormat'].BULLET_TYPE_COLOR_CLR	= 2;
@@ -13732,14 +13815,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat']._arr_lt_types_weight = _arr_lt_types_weight;
     window['AscFormat']._global_layout_summs_array = _global_layout_summs_array;
 
-    window['AscFormat'].nOTOwerflow = window['AscFormat']['nOTOwerflow'] = nOTOwerflow;
-    window['AscFormat'].nOTClip = window['AscFormat']['nOTClip'] = nOTClip;
-    window['AscFormat'].nOTEllipsis = window['AscFormat']['nOTEllipsis'] = nOTEllipsis;
 
-    window['AscFormat'].BULLET_TYPE_BULLET_NONE = window['AscFormat']['BULLET_TYPE_BULLET_NONE'] = BULLET_TYPE_BULLET_NONE;
-    window['AscFormat'].BULLET_TYPE_BULLET_CHAR = window['AscFormat']['BULLET_TYPE_BULLET_CHAR'] = BULLET_TYPE_BULLET_CHAR;
-    window['AscFormat'].BULLET_TYPE_BULLET_AUTONUM = window['AscFormat']['BULLET_TYPE_BULLET_AUTONUM'] = BULLET_TYPE_BULLET_AUTONUM;
-    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = window['AscFormat']['BULLET_TYPE_BULLET_BLIP'] = BULLET_TYPE_BULLET_BLIP;
 
     window['AscFormat'].AUDIO_CD = AUDIO_CD;
     window['AscFormat'].WAV_AUDIO_FILE = WAV_AUDIO_FILE;
@@ -13780,6 +13856,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         window['AscFormat'].CreateNoneBullet = CreateNoneBullet;
         window['AscFormat'].ChartBuilderTypeToInternal = ChartBuilderTypeToInternal;
         window['AscFormat'].InitClass = InitClass;
+        window['AscFormat'].InitClassWithoutType = InitClassWithoutType;
         window['AscFormat'].CBaseObject           = CBaseObject;
         window['AscFormat'].CBaseFormatObject = CBaseFormatObject;
 

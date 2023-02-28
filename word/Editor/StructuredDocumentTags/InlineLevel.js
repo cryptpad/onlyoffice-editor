@@ -97,7 +97,9 @@ CInlineLevelSdt.prototype.Add = function(Item)
 	var oTextFormRun;
 	if (this.IsTextForm())
 	{
-		if (Item.Type !== para_Text && Item.Type !== para_Space)
+		if (para_Tab === Item.Type)
+			return CParagraphContentWithParagraphLikeContent.prototype.Add.call(this, new ParaSpace());
+		else if (Item.Type !== para_Text && Item.Type !== para_Space)
 			return;
 
 		oTextFormRun = this.MakeSingleRunElement(false);
@@ -381,8 +383,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 	PDSH.AddInlineSdt(this);
 	var oGraphics = PDSH.Graphics;
 
-	var isPrintMode = oGraphics.isPrintMode;
-	if (isPrintMode && this.IsForm() && this.IsPlaceHolder())
+	if (this.IsSkipDraw(oGraphics))
 		return this.SkipDraw(PDSH);
 
 	// Для экспорта в PDF записываем поля. Поля, находящиеся в автофигурах, пока не пишем
@@ -456,12 +457,6 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 			if ((this.IsTextForm() || this.IsDropDownList() || this.IsComboBox())
 				&& (!this.IsFixedForm() || !this.IsMultiLineForm()))
 			{
-				if (oTransform)
-				{
-					var oParagraph = this.GetParagraph();
-					nBaseLine += (oTransform.TransformPointY(oParagraph.X, oParagraph.Y) - Y);
-				}
-
 				var oLimits = g_oTextMeasurer.GetLimitsY();
 
 				var nMidPoint = ((nBaseLine - oLimits.min) + (nBaseLine - oLimits.max)) / 2;
@@ -485,7 +480,7 @@ CInlineLevelSdt.prototype.Draw_HighLights = function(PDSH)
 CInlineLevelSdt.prototype.Draw_Elements = function(PDSE)
 {
 	if ((!PDSE.Graphics.isPrintMode && this.private_IsAddFormFieldToGraphics(PDSE.Graphics))
-		|| (PDSE.Graphics.isPrintMode && this.IsForm() && this.IsPlaceHolder()))
+		|| (this.IsSkipDraw(PDSE.Graphics)))
 		this.SkipDraw(PDSE);
 	else
 		CParagraphContentWithParagraphLikeContent.prototype.Draw_Elements.apply(this, arguments);
@@ -499,6 +494,22 @@ CInlineLevelSdt.prototype.Draw_Lines = function(PDSL)
 		this.SkipDraw(PDSL);
 	else
 		CParagraphContentWithParagraphLikeContent.prototype.Draw_Lines.apply(this, arguments);
+};
+CInlineLevelSdt.prototype.IsSkipDraw = function(oGraphics)
+{
+	if (!this.IsPlaceHolder() || !this.IsForm())
+		return false;
+
+	let oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument)
+	{
+		if (true === oLogicDocument.ForceDrawPlaceHolders)
+			return false;
+		else if (false === oLogicDocument.ForceDrawPlaceHolders)
+			return true;
+	}
+
+	return !!oGraphics.isPrintMode;
 };
 CInlineLevelSdt.prototype.GetRangeBounds = function(_CurLine, _CurRange)
 {
@@ -748,7 +759,7 @@ CInlineLevelSdt.prototype.IsFixedForm = function()
 		return false;
 
 	var oShape = this.Paragraph.Parent ? this.Paragraph.Parent.Is_DrawingShape(true) : null;
-	return (oShape && oShape.isForm());
+	return !!(oShape && oShape.isForm());
 };
 CInlineLevelSdt.prototype.GetFixedFormBounds = function(isUsePaddings)
 {
@@ -1074,6 +1085,7 @@ CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSel
 	var isUseSelection = this.IsSelectionUse();
 
 	this.private_FillPlaceholderContent();
+	this.TrimCombForm();
 
 	if (false !== isSelect)
 		this.SelectContentControl();
@@ -2150,6 +2162,9 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 		{
 			var oInfo = this.Paragraph.LogicDocument.GetSelectedElementsInfo();
 			bSelectedOnlyThis = (oInfo.GetInlineLevelSdt() === this);
+
+			if (bSelectedOnlyThis && oInfo.IsFixedFormShape())
+				bSelectedOnlyThis = false;
 		}
 
 		if (c_oAscSdtLockType.SdtContentLocked === nContentControlLock
@@ -2563,13 +2578,36 @@ CInlineLevelSdt.prototype.IsFormFilled = function()
 
 	return false;
 }
-CInlineLevelSdt.prototype.ConvertFormToFixed = function()
+CInlineLevelSdt.prototype.ConvertFormToFixed = function(nW, nH)
 {
 	var oParagraph        = this.GetParagraph();
 	var oParent           = this.GetParent();
-	var oParentDocContent = oParagraph.GetParent();
+	var oParentDocContent = oParagraph ? oParagraph.GetParent() : null;
 	var oLogicDocument    = oParagraph ? oParagraph.GetLogicDocument() : null;
 	var nPosInParent      = this.GetPosInParent(oParent);
+
+	if (undefined === nW)
+	{
+		nW = 50;
+		nH = 50;
+
+		if (oParent)
+		{
+			for (var Key in this.Bounds)
+			{
+				if (this.Bounds[Key].W > 0.001 && this.Bounds[Key].H > 0.001)
+				{
+					nW = this.Bounds[Key].W + 0.5;
+					nH = this.Bounds[Key].H + 0.1;
+					break;
+				}
+			}
+		}
+	}
+
+	// Для билдера, чтобы мы могли конвертить форму, даже если она нигде не лежит
+	if (!oParent)
+		return this.private_ConvertFormToFixed(nW, nH);
 
 	if (!oParagraph
 		|| !oParent
@@ -2579,22 +2617,41 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function()
 		|| oParagraph.IsInFixedForm())
 		return null;
 
+	let oParaDrawing = this.private_ConvertFormToFixed(nW, nH);
+
+	var oRun = new ParaRun(oParagraph, false);
+	oRun.AddToContent(0, oParaDrawing);
+
+	// Этот код выравнивает позицию рана по вертикали, чтобы после конвертации типа формы текст внутри автофигуры
+	// визуально оставался на месте, но сама настройка позиции по вертикали вызывает много непонятных ситуаций у
+	// пользователей (баг 55524)
+	//
+	// if (this.Content.length > 0 && this.Content[0] instanceof ParaRun)
+	// {
+	// 	var oInnerRun = this.Content[0];
+	// 	var oTextPr   = oInnerRun.Get_CompiledPr(false);
+	//
+	// 	g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
+	// 	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+	//
+	// 	var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
+	// 	oRun.Set_Position(oTextPr.Position - nTextDescent);
+	// 	oInnerRun.Recalc_CompiledPr(true);
+	// }
+
+	oParent.RemoveFromContent(nPosInParent, 1, true);
+	oParent.AddToContent(nPosInParent, oRun, true);
+
+	if (this.IsAutoFitContent())
+		oLogicDocument.CheckFormAutoFit(this);
+
+	return oParaDrawing;
+};
+CInlineLevelSdt.prototype.private_ConvertFormToFixed = function(nW, nH)
+{
 	var oShape = new AscFormat.CShape();
 	oShape.setWordShape(true);
 	oShape.setBDeleted(false);
-
-	var nW = 50;
-	var nH = 50;
-
-	for (var Key in this.Bounds)
-	{
-		if (this.Bounds[Key].W > 0.001 && this.Bounds[Key].H > 0.001)
-		{
-			nW = this.Bounds[Key].W + 0.5;
-			nH = this.Bounds[Key].H + 0.1;
-			break;
-		}
-	}
 
 	var oSpPr = new AscFormat.CSpPr();
 	var oXfrm = new AscFormat.CXfrm();
@@ -2616,12 +2673,12 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function()
 
 	var oInnerParagraph = oContent.GetElement(0);
 	if (!oInnerParagraph)
-		return this;
+		return null;
 
 	oInnerParagraph.MoveCursorToStartPos();
 	oInnerParagraph.Add(this);
 	oInnerParagraph.SetParagraphAlign(this.IsCheckBox() ? AscCommon.align_Center : AscCommon.align_Left);
-	oInnerParagraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : AscCommon.linerule_Auto});
+	oInnerParagraph.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
 
 	var oBodyPr = oShape.getBodyPr().createDuplicate();
 
@@ -2647,32 +2704,10 @@ CInlineLevelSdt.prototype.ConvertFormToFixed = function()
 
 	oShape.setBodyPr(oBodyPr);
 
-	var oParaDrawing = new ParaDrawing(oShape.spPr.xfrm.extX, oShape.spPr.xfrm.extY, oShape, oLogicDocument.GetDrawingDocument(), oParentDocContent, null);
+	var oParaDrawing = new ParaDrawing(oShape.spPr.xfrm.extX, oShape.spPr.xfrm.extY, oShape, editor.WordControl.m_oDrawingDocument, null, null);
 	oShape.setParent(oParaDrawing);
 	oParaDrawing.Set_DrawingType(drawing_Inline);
 	oParaDrawing.SetForm(true);
-
-	var oRun = new ParaRun(oParagraph, false);
-	oRun.AddToContent(0, oParaDrawing);
-
-	if (this.Content.length > 0 && this.Content[0] instanceof ParaRun)
-	{
-		var oInnerRun = this.Content[0];
-		var oTextPr   = oInnerRun.Get_CompiledPr(false);
-
-		g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
-		g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
-
-		var nTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
-		oRun.Set_Position(oTextPr.Position - nTextDescent);
-		oInnerRun.Recalc_CompiledPr(true);
-	}
-
-	oParent.RemoveFromContent(nPosInParent, 1, true);
-	oParent.AddToContent(nPosInParent, oRun, true);
-
-	if (this.IsAutoFitContent())
-		oLogicDocument.CheckFormAutoFit(this);
 
 	var oTextPr = this.GetTextFormPr();
 	if (oTextPr && oTextPr.GetMultiLine())
@@ -2690,21 +2725,35 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 	var oParent      = this.GetParent();
 	var nPosInParent = this.GetPosInParent(oParent);
 	if (!oParagraph || !oParent || !oParagraph.IsInFixedForm() || -1 === nPosInParent || this.IsPicture())
-		return false;
+		return null;
 
 	var oShape = oParagraph.Parent.Is_DrawingShape(true);
 	if (!oShape || !oShape.parent)
-		return false;
+		return null;
+
+	var oTextPr = this.GetTextFormPr();
+	if (oTextPr && oTextPr.GetMultiLine())
+	{
+		var oNewTextPr = oTextPr.Copy();
+		oNewTextPr.SetMultiLine(false);
+		this.SetTextFormPr(oNewTextPr);
+	}
 
 	var oParaDrawing = oShape.parent;
 	var oRun = oParaDrawing.GetRun();
-	if (!oRun)
-		return false;
+	if (!oRun || !oRun.GetParent())
+	{
+		// Это специальная ветка для билдера, чтобы дать возможность конвертить форму, даже если она никуда не добавлена
+		oParent.RemoveFromContent(nPosInParent, 1, true);
+		this.SetParent(null);
+		this.SetParagraph(null);
+		return this;
+	}
 
 	var oRunParent = oRun.GetParent();
 	var nInRunParentPos = oRun.GetPosInParent(oRunParent);
 	if (!oRunParent || -1 === nInRunParentPos)
-		return false;
+		return null;
 
 	if (1 === oRun.GetElementsCount())
 	{
@@ -2725,7 +2774,7 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 		}
 
 		if (-1 === nInRunPos)
-			return false;
+			return null;
 
 		oParent.RemoveFromContent(nPosInParent, 1, true);
 		oRun.RemoveFromContent(nInRunPos, 1);
@@ -2740,7 +2789,7 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 		this.SetTextFormPr(oNewTextPr);
 	}
 
-	return true;
+	return this;
 };
 CInlineLevelSdt.prototype.IsMultiLineForm = function()
 {
@@ -2813,9 +2862,6 @@ CInlineLevelSdt.prototype.IsAutoFitContent = function()
 };
 CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 {
-	if (this.IsMultiLineForm() && isFastRecalc)
-		return;
-
 	var oParagraph = this.GetParagraph();
 	var oRun       = this.GetElement(0);
 	var oTextPr    = this.Get_CompiledTextPr();
@@ -2823,7 +2869,7 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 	if (!oShape || !oShape.isForm())
 		return;
 
-	var oShapeBounds = oShape.getFormRelRect();
+	var oShapeBounds = oShape.getFormRelRect(true);
 
 	g_oTextMeasurer.SetTextPr(oTextPr, oParagraph.GetTheme());
 	g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
@@ -2840,59 +2886,54 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 	History.TurnOff();
 	if (this.IsMultiLineForm())
 	{
-		var nFontStep = 0.1;
+		const nFontStep = 0.1;
 
-		if (nMaxWidth > oShapeBounds.W)
+		oParagraph.Recalculate_Page(0);
+		var oContentBounds = oParagraph.GetContentBounds(0);
+		if (oContentBounds.Bottom - oContentBounds.Top > oShapeBounds.H)
 		{
-			oParagraph.Recalculate_Page(0);
-			var oContentBounds = oParagraph.GetContentBounds(0);
-			if (oContentBounds.Bottom - oContentBounds.Top > oShapeBounds.H)
+			nNewFontSize = AscCommon.CorrectFontSize(nFontSize, true);
+			while (nNewFontSize > 1)
 			{
-				nNewFontSize = AscCommon.CorrectFontSize(nFontSize, true);
-				while (nNewFontSize > 1)
+				oRun.Set_FontSize(nNewFontSize);
+				oParagraph.Recalculate_Page(0);
+
+				oContentBounds = oParagraph.GetContentBounds(0);
+				if (oContentBounds.Bottom - oContentBounds.Top < oShapeBounds.H)
+					break;
+
+				nNewFontSize -= nFontStep;
+			}
+		}
+		else
+		{
+			var nMaxFontSize = this.Pr.TextPr.FontSize;
+			if (!nMaxFontSize)
+				nMaxFontSize = 12;
+
+			//nNewFontSize = AscCommon.CorrectFontSize(nFontSize, true);
+			while (nNewFontSize <= nMaxFontSize)
+			{
+				oRun.Set_FontSize(nNewFontSize);
+				oParagraph.Recalculate_Page(0);
+
+				var oContentBounds = oParagraph.GetContentBounds(0);
+				if (oContentBounds.Bottom - oContentBounds.Top > oShapeBounds.H)
 				{
-					oRun.Set_FontSize(nNewFontSize);
-					oParagraph.Recalculate_Page(0);
-
-					oContentBounds = oParagraph.GetContentBounds(0);
-					if (oContentBounds.Bottom - oContentBounds.Top < oShapeBounds.H)
-						break;
-
 					nNewFontSize -= nFontStep;
-				}
-			}
-			else
-			{
-				var nMaxFontSize = this.Pr.TextPr.FontSize;
-				if (!nMaxFontSize)
-					nMaxFontSize = 12;
-
-				//nNewFontSize = AscCommon.CorrectFontSize(nFontSize, true);
-				while (nNewFontSize <= nMaxFontSize)
-				{
 					oRun.Set_FontSize(nNewFontSize);
-					oParagraph.Recalculate_Page(0);
-
-					var oContentBounds = oParagraph.GetContentBounds(0);
-					if (oContentBounds.Bottom - oContentBounds.Top > oShapeBounds.H)
-					{
-						nNewFontSize -= nFontStep;
-						oRun.Set_FontSize(nNewFontSize);
-						break;
-					}
-
-					nNewFontSize += nFontStep;
+					break;
 				}
 
-				nNewFontSize = Math.min(nNewFontSize, nMaxFontSize);
+				nNewFontSize += nFontStep;
 			}
+
+			nNewFontSize = Math.min(nNewFontSize, nMaxFontSize);
 		}
 
 		oParagraph.Recalculate_Page(0);
 		oShape.recalcContent();
 		oShape.recalculateText();
-		// Восстанавливаем старое значение, чтобы в историю все правильно записалось
-		oRun.Set_FontSize(nFontSize);
 	}
 	else
 	{
@@ -2904,17 +2945,16 @@ CInlineLevelSdt.prototype.ProcessAutoFitContent = function(isFastRecalc)
 			oParagraph.Recalculate_Page(0);
 			oShape.recalcContent();
 			oShape.recalculateText();
-			// Восстанавливаем старое значение, чтобы в историю все правильно записалось
-			oRun.Set_FontSize(nFontSize);
 		}
 		else if (AscCommon.align_Left !== oParagraph.GetParagraphAlign())
 		{
 			oRun.Set_FontSize(nNewFontSize);
 			oParagraph.private_RecalculateFastRange(0, 0);
-			// Восстанавливаем старое значение, чтобы в историю все правильно записалось
-			oRun.Set_FontSize(nFontSize);
 		}
 	}
+	// Восстанавливаем старое значение, чтобы в историю все правильно записалось
+	oRun.Set_FontSize(nFontSize);
+
 	nNewFontSize = ((nNewFontSize * 100) | 0) / 100;
 	History.TurnOn();
 
@@ -3079,6 +3119,49 @@ CInlineLevelSdt.prototype.IsFormExceedsBounds = function()
 
 	var oParaBounds = oParagraph.GetContentBounds(0);
 	return (oParaBounds.Right - oParaBounds.Left > oFormBounds.W || oParaBounds.Bottom - oParaBounds.Top > oFormBounds.H);
+};
+CInlineLevelSdt.prototype.CheckSpelling = function(oCollector, nDepth)
+{
+	let isForm = this.IsForm();
+	if (isForm)
+		oCollector.FlushWord();
+
+	CParagraphContentWithParagraphLikeContent.prototype.CheckSpelling.apply(this, arguments);
+
+	if (isForm)
+		oCollector.FlushWord();
+};
+CInlineLevelSdt.prototype.MoveCursorOutsideForm = function(isBefore)
+{
+	let oShape;
+	if (this.IsForm()
+		&& this.Paragraph
+		&& (oShape = this.Paragraph.Parent ? this.Paragraph.Parent.Is_DrawingShape(true) : null)
+		&& oShape.isForm())
+	{
+		let oParaDrawing = oShape.GetParaDrawing();
+		if (oParaDrawing)
+			oParaDrawing.GoTo_Text(isBefore);
+	}
+	else
+	{
+		this.MoveCursorOutsideElement(isBefore);
+	}
+};
+CInlineLevelSdt.prototype.TrimCombForm = function()
+{
+	let oTextFormPr = this.GetTextFormPr();
+	if (!oTextFormPr || !oTextFormPr.IsComb())
+		return;
+
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
+	let nMax = oTextFormPr.GetMaxCharacters();
+
+	let oRun = this.MakeSingleRunElement(false);
+	if (oRun.GetElementsCount() > nMax)
+		oRun.RemoveFromContent(nMax, oRun.GetElementsCount() - nMax);
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

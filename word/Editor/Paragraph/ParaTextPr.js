@@ -82,7 +82,7 @@ ParaTextPr.prototype.Is_RealContent = function()
 {
 	return true;
 };
-ParaTextPr.prototype.Can_AddNumbering = function()
+ParaTextPr.prototype.CanAddNumbering = function()
 {
 	return false;
 };
@@ -100,6 +100,22 @@ ParaTextPr.prototype.GetParagraph = function()
 ParaTextPr.prototype.IsParagraphSimpleChanges = function()
 {
 	return true;
+};
+ParaTextPr.prototype.GetCompiledPr = function()
+{
+	let oTextPr;
+	if (!this.Parent || !this.Parent.Get_CompiledPr2)
+	{
+		oTextPr = new CTextPr();
+		oTextPr.InitDefault();
+	}
+	else
+	{
+		oTextPr = this.Parent.Get_CompiledPr2(false).TextPr.Copy();
+	}
+
+	oTextPr.Merge(this.Value);
+	return oTextPr;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для изменения свойств
@@ -585,7 +601,7 @@ ParaTextPr.prototype.SetRFontsAsciiTheme = function(sValue)
 	if (_sValue !== this.Value.RFonts.AsciiTheme)
 	{
 		AscCommon.History.Add(new CChangesParaTextPrRFontsAsciiTheme(this, this.Value.RFonts.Ascii, _sValue));
-		this.Value.RFonts.Ascii = _sValue;
+		this.Value.RFonts.AsciiTheme = _sValue;
 	}
 };
 ParaTextPr.prototype.SetRFontsHAnsiTheme = function(sValue)

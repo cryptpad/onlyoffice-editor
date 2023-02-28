@@ -522,10 +522,10 @@ CBlockLevelSdt.prototype.AddSignatureLine = function(oSignatureDrawing)
 	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddSignatureLine(oSignatureDrawing);
 };
-CBlockLevelSdt.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
+CBlockLevelSdt.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect)
 {
 	this.private_ReplacePlaceHolderWithContent();
-	this.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+	this.Content.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect);
 };
 CBlockLevelSdt.prototype.AddTextArt = function(nStyle)
 {
@@ -1168,6 +1168,8 @@ CBlockLevelSdt.prototype.Is_UseInDocument = function(Id)
 {
 	if (Id === this.Content.GetId() && this.Parent)
 		return this.Parent.Is_UseInDocument(this.GetId());
+	else if (this.Parent && this.Parent.Is_UseInDocument)
+		return this.Parent.Is_UseInDocument(this.Get_Id());
 
 	return false;
 };
@@ -1576,9 +1578,9 @@ CBlockLevelSdt.prototype.GetContentControlPr = function()
 	oPr.FillFromContentControl(this);
 	return oPr;
 };
-CBlockLevelSdt.prototype.Restart_CheckSpelling = function()
+CBlockLevelSdt.prototype.RestartSpellCheck = function()
 {
-	this.Content.Restart_CheckSpelling();
+	this.Content.RestartSpellCheck();
 };
 CBlockLevelSdt.prototype.ClearContentControl = function()
 {
@@ -2592,6 +2594,10 @@ CBlockLevelSdt.prototype.CheckHitInContentControlByXY = function(X, Y, nPageAbs)
 CBlockLevelSdt.prototype.CalculateTextToTable = function(oEngine)
 {
 	this.Content.CalculateTextToTable(oEngine);
+};
+CBlockLevelSdt.prototype.CollectSelectedReviewChanges = function(oTrackManager)
+{
+	return this.Content.CollectSelectedReviewChanges(oTrackManager);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

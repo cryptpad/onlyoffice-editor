@@ -403,7 +403,7 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
     this.CurPos.Line  = -1;
     this.CurPos.Range = -1;
 
-    this.Internal_CheckSpelling();
+    this.RequestSpellCheck();
 	this.SetIsRecalculated(true);
 
 	//console.log("Recalc Fast Range");
@@ -432,7 +432,7 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
 
     this.FontMap.NeedRecalc = true;
 
-    this.Internal_CheckSpelling();
+    this.RequestSpellCheck();
     this.RecalculateEndInfo();
 
     var RecalcResult = this.private_RecalculatePage( CurPage );
@@ -1264,18 +1264,14 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 		{
 			// TODO: Как только переделаем para_End переделать тут
 
-			// Выставляем настройки для символа параграфа
-			var EndTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-			EndTextPr.Merge(this.TextPr.Value);
-            EndTextPr.CheckFontScale();
-			g_oTextMeasurer.SetTextPr(EndTextPr, this.Get_Theme());
-			g_oTextMeasurer.SetFontSlot(fontslot_ASCII);
+			let oTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
+			oTextPr.Merge(this.TextPr.Value);
+			oTextPr.CheckFontScale();
 
-			// Запрашиваем текущие метрики шрифта, под TextAscent мы будем понимать ascent + linegap(которые записаны в шрифте)
-			var EndTextHeight  = g_oTextMeasurer.GetHeight();
-			var EndTextDescent = Math.abs(g_oTextMeasurer.GetDescender());
-			var EndTextAscent  = EndTextHeight - EndTextDescent;
-			var EndTextAscent2 = g_oTextMeasurer.GetAscender();
+            let oMetrics = oTextPr.GetTextMetrics(this.GetTheme(), rfont_ASCII);
+			let EndTextDescent = oMetrics.Descent;
+			let EndTextAscent  = oMetrics.Ascent + oMetrics.LineGap;
+			let EndTextAscent2 = oMetrics.Ascent;
 
 			PRS.LineTextAscent  = EndTextAscent;
 			PRS.LineTextAscent2 = EndTextAscent2;
@@ -1334,6 +1330,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 				// Адобовский вариант отступа первой строки для многострочных форм
 				var oTextPr = oRun.Get_CompiledTextPr(false);
 				g_oTextMeasurer.SetTextPr(oTextPr, this.GetTheme());
+				g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
 				var oLimits = g_oTextMeasurer.GetLimitsY();
 				var nBBoxH  = oLimits.max - oLimits.min + 2 * 25.4 / 72;
 
@@ -1641,7 +1638,7 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
 	}
 	else
 	{
-		PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(CurPage), this.GetAbsolutePage(CurPage)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(CurPage));
+		PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(CurPage), this.GetAbsolutePage(CurPage)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(CurPage), this.Parent.IsHdrFtr());
 	}
 
     var Ranges = PRS.Ranges;
@@ -2825,6 +2822,18 @@ CParaLineRange.prototype =
         return NewRange;
     }
 };
+CParaLineRange.prototype.CorrectX = function(nX)
+{
+	let x = nX;
+
+	if (x > this.XEnd)
+		x = this.XEnd;
+
+	if (x < this.X)
+		x = this.X;
+
+	return x;
+};
 
 function CParaPage(X, Y, XLimit, YLimit, FirstLine)
 {
@@ -2936,6 +2945,7 @@ function CParagraphRecalculateStateWrap(Para)
 	this.InTable         = false;
     this.SectPr          = null; // настройки секции, к которой относится данный параграф
 	this.CondensedSpaces = false;
+	this.BalanceSBDB     = false; // BalanceSingleByteDoubleByteWidth
 
 	this.Fast            = false; // Быстрый ли пересчет
 
@@ -3071,7 +3081,8 @@ CParagraphRecalculateStateWrap.prototype =
 		this.InTable     = Paragraph.Parent.IsTableCellContent();
         this.SectPr      = null;
 
-		this.CondensedSpaces = Paragraph && Paragraph.IsCondensedSpaces();
+		this.CondensedSpaces = Paragraph.IsCondensedSpaces();
+		this.BalanceSBDB     = Paragraph.IsBalanceSingleByteDoubleByteWidth();
 
 		this.Page               = CurPage;
 		this.RunRecalcInfoLast  = (0 === CurPage ? null : Paragraph.Pages[CurPage - 1].EndInfo.RunRecalcInfo);
@@ -3663,6 +3674,40 @@ CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfoLine = function(nLine)
 CParagraphRecalculateStateWrap.prototype.IsCondensedSpaces = function()
 {
 	return this.CondensedSpaces;
+};
+CParagraphRecalculateStateWrap.prototype.IsBalanceSingleByteDoubleByteWidth = function(oRun, nPos)
+{
+	if (this.BalanceSBDB)
+	{
+		let oParaPos = this.Paragraph.GetPosByElement(oRun);
+		if (!oParaPos)
+			return true;
+
+		oParaPos.Add(nPos);
+
+		let oRunElements = new CParagraphRunElements(oParaPos, 1, null);
+		this.Paragraph.GetPrevRunElements(oRunElements);
+		let arrElements = oRunElements.GetElements();
+		if (arrElements.length <= 0)
+			return true;
+
+		let oItem = arrElements[0];
+		if (!oItem || para_Text !== oItem.Type || AscCommon.isEastAsianScript(oItem.Value))
+			return true;
+
+		oParaPos.Update(nPos + 1, oParaPos.GetDepth());
+
+		oRunElements = new CParagraphRunElements(oParaPos, 1, null);
+		this.Paragraph.GetNextRunElements(oRunElements);
+		arrElements = oRunElements.GetElements();
+		if (arrElements.length <= 0)
+			return true;
+
+		oItem = arrElements[0];
+		return (!oItem || para_Text !== oItem.Type || AscCommon.isEastAsianScript(oItem.Value));
+	}
+
+	return false;
 };
 CParagraphRecalculateStateWrap.prototype.AddCondensedSpaceToRange = function(oSpace)
 {

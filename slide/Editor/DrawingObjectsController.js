@@ -59,7 +59,8 @@ DrawingObjectsController.prototype.fitImagesToSlide = function()
         for(var i = 0; i < aSelectedObjects.length; ++i)
         {
             var oDrawing = aSelectedObjects[i];
-            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ImageShape)
+            if(oDrawing.getObjectType() === AscDFH.historyitem_type_ImageShape ||
+                oDrawing.getObjectType() === AscDFH.historyitem_type_OleObject)
             {
                 var sImageId = oDrawing.getImageUrl();
                 if(typeof sImageId === "string")

@@ -320,7 +320,7 @@ CDocumentControllerBase.prototype.AddImages = function(aImages){};
  * @param oData
  * @param sApplicationId
  */
-CDocumentControllerBase.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId){};
+CDocumentControllerBase.prototype.AddOleObject = function(nW, nH, nWidthPix, nHeightPix, oImage, oData, sApplicationId, bSelect){};
 /**
  * Добавляем графический объект TextArt.
  * @param nStyle
@@ -822,3 +822,8 @@ CDocumentControllerBase.prototype.IsSelectionLocked  = function(CheckType)
  * @return {?CInlineLevelSdt}
  */
 CDocumentControllerBase.prototype.FindNextFillingForm = function(isNext, isCurrent) {return null;};
+/**
+ * Заполняем массив текущих изменений в рецензировании
+ * @param oTrackManager {CTrackRevisionsManager}
+ */
+CDocumentControllerBase.prototype.CollectSelectedReviewChanges = function(oTrackManager) {};

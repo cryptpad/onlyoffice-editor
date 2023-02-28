@@ -261,7 +261,7 @@ CDocumentSearch.prototype.Set = function(sText, oProps)
 	this.Word      = oProps ? oProps.Word : false;
 
 	var _sText = sText;
-	if (this.MatchCase)
+	if (!this.MatchCase)
 		_sText = sText.toLowerCase();
 
 	this.Pattern.Set(_sText);
@@ -385,7 +385,8 @@ function CSearchTextItemChar(nCharCode)
 CSearchTextItemChar.prototype = Object.create(CSearchTextItemBase.prototype);
 CSearchTextItemChar.prototype.IsMatch = function(oItem)
 {
-	return (oItem.IsChar() && this.GetValue() === oItem.GetValue());
+	return ((oItem.IsChar() && this.GetValue() === oItem.GetValue())
+		|| (0x2D === this.GetValue() && oItem.GetType() === c_oSearchItemType.NonBreakingHyphen));
 };
 CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
 {
@@ -397,7 +398,13 @@ CSearchTextItemChar.prototype.ToRunElement = function(isMathRun)
 	}
 	else
 	{
-		if (AscCommon.IsSpace(this.Value))
+		if (9 === this.Value) // \t
+			return new ParaTab();
+		else if (10 === this.Value) // \n
+			return new ParaNewLine(break_Line);
+		else if (13 === this.Value) // \r
+			return null;
+		else if (AscCommon.IsSpace(this.Value)) // space
 			return new ParaSpace(this.Value);
 		else
 			return new ParaText(this.Value);
@@ -581,8 +588,7 @@ CSearchTextSpecialNonBreakingHyphen.prototype = Object.create(CSearchTextItemBas
 CSearchTextSpecialNonBreakingHyphen.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
-		|| c_oSearchItemType.NonBreakingHyphen === nType
+	return (c_oSearchItemType.NonBreakingHyphen === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
 CSearchTextSpecialNonBreakingHyphen.prototype.ToRunElement = function(isMathRun)
@@ -630,7 +636,7 @@ CSearchTextSpecialAnySpace.prototype = Object.create(CSearchTextItemBase.prototy
 CSearchTextSpecialAnySpace.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && AscCommon.IsSpace(oItem.GetValue()))
+	return ((c_oSearchItemType.Text === nType && (AscCommon.IsSpace(oItem.GetValue()) || nbsp_charcode === oItem.GetValue()))
 		|| c_oSearchItemType.AnySpace === nType
 		|| c_oSearchItemType.NonBreakingSpace === nType
 		|| c_oSearchItemType.AnySymbol === nType);
@@ -645,7 +651,7 @@ CSearchTextSpecialEmDash.prototype = Object.create(CSearchTextItemBase.prototype
 CSearchTextSpecialEmDash.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2010 <= oItem.GetValue() && oItem.GetValue() <= 0x2015)
+	return ((c_oSearchItemType.Text === nType && 0x2014 === oItem.GetValue())
 		|| c_oSearchItemType.EmDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
@@ -672,11 +678,11 @@ CSearchTextSpecialEnDash.prototype = Object.create(CSearchTextItemBase.prototype
 CSearchTextSpecialEnDash.prototype.IsMatch = function(oItem)
 {
 	var nType = oItem.GetType();
-	return ((c_oSearchItemType.Text === nType && 0x2D === oItem.GetValue())
+	return ((c_oSearchItemType.Text === nType && 0x2013 === oItem.GetValue())
 		|| c_oSearchItemType.EnDash === nType
 		|| c_oSearchItemType.AnySymbol === nType);
 };
-CSearchTextSpecialEmDash.prototype.ToRunElement = function(isMathRun)
+CSearchTextSpecialEnDash.prototype.ToRunElement = function(isMathRun)
 {
 	if (isMathRun)
 	{
@@ -2041,3 +2047,28 @@ CSearchPatternEngine.prototype.Check = function(nPos, oRunItem, oProps)
 
 	return this.Elements[nPos].IsMatch(oSearchElement);
 };
+CSearchPatternEngine.prototype.GetErrorForReplaceString = function(sString)
+{
+	for (var oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+	{
+		var nCharCode = oIterator.value();
+
+		if (0x005E === nCharCode)
+		{
+			oIterator.next();
+			if (!oIterator.check())
+				break;
+
+			var nNextCharCode   = oIterator.value();
+			var oSpecialElement = this.private_GetSpecialElement(nNextCharCode);
+			if (oSpecialElement && !oSpecialElement.ToRunElement(false))
+				return String.fromCodePoint(0x005E, nNextCharCode);
+		}
+	}
+
+	return null;
+};
+
+//--------------------------------------------------------export----------------------------------------------------
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+window['AscCommonWord'].CSearchPatternEngine = CSearchPatternEngine;

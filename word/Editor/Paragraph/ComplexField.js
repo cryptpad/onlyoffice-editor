@@ -238,6 +238,23 @@ ParaFieldChar.prototype.PrepareRecalculateObject = function()
 	this.Widths = [];
 	this.String = "";
 };
+ParaFieldChar.prototype.IsValid = function()
+{
+	var oRun = this.GetRun();
+	return (oRun && oRun.IsUseInDocument() && -1 !== oRun.GetElementPosition(this));
+};
+ParaFieldChar.prototype.RemoveThisFromDocument = function()
+{
+	var oRun = this.GetRun();
+	var nInRunPos = oRun.GetElementPosition(this);
+	if (-1 !== nInRunPos)
+		oRun.RemoveFromContent(nInRunPos, 1);
+};
+ParaFieldChar.prototype.PreDelete = function()
+{
+	if (this.LogicDocument && this.ComplexField)
+		this.LogicDocument.ValidateComplexField(this.ComplexField);
+};
 
 /**
  * Класс представляющий символ инструкции сложного поля
@@ -382,6 +399,17 @@ CComplexField.prototype.SetSeparateChar = function(oChar)
 	this.SeparateChar = oChar;
 	this.EndChar      = null;
 };
+CComplexField.prototype.ReplaceChar = function(oChar)
+{
+	oChar.SetComplexField(this);
+
+	if (oChar.IsBegin())
+		this.BeginChar = oChar;
+	else if (oChar.IsSeparate())
+		this.SeparateChar = oChar;
+	else if (oChar.IsEnd())
+		this.EndChar = oChar;
+};
 CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculate)
 {
 	this.private_CheckNestedComplexFields();
@@ -495,6 +523,21 @@ CComplexField.prototype.CalculateValue = function()
 	}
 
 	return sResult;
+};
+CComplexField.prototype.UpdateTIME = function(ms)
+{
+	this.private_CheckNestedComplexFields();
+	this.private_UpdateInstruction();
+
+	if (!this.Instruction
+		|| !this.BeginChar
+		|| !this.EndChar
+		|| !this.SeparateChar
+		|| (fieldtype_TIME !== this.Instruction.GetType() && fieldtype_DATE !== this.Instruction.GetType()))
+		return;
+
+	this.SelectFieldValue();
+	this.private_UpdateTIME(ms);
 };
 
 CComplexField.prototype.private_UpdateSEQ = function()
@@ -989,14 +1032,14 @@ CComplexField.prototype.private_CalculateNUMPAGES = function()
 {
 	return this.LogicDocument.GetPagesCount();
 };
-CComplexField.prototype.private_UpdateTIME = function()
+CComplexField.prototype.private_UpdateTIME = function(ms)
 {
-	var sDate = this.private_CalculateTIME();
+	var sDate = this.private_CalculateTIME(ms);
 
 	if (sDate)
 		this.LogicDocument.AddText(sDate);
 };
-CComplexField.prototype.private_CalculateTIME = function()
+CComplexField.prototype.private_CalculateTIME = function(ms)
 {
 	var nLangId = 1033;
 	var oSepChar = this.GetSeparateChar();
@@ -1013,8 +1056,17 @@ CComplexField.prototype.private_CalculateTIME = function()
 	{
 		var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];
 
-		var oDateTime = new Asc.cDate();
-		sDate = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+		if (undefined !== ms)
+		{
+			var oDateTime = new Asc.cDate(ms);
+			sDate         = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getUTCHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+
+		}
+		else
+		{
+			let oDateTime = new Asc.cDate();
+			sDate         = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+		}
 	}
 
 	return sDate;
@@ -1453,7 +1505,10 @@ CComplexField.prototype.GetEndDocumentPosition = function()
 };
 CComplexField.prototype.IsValid = function()
 {
-	return this.IsUse() && this.BeginChar && this.SeparateChar && this.EndChar;
+	return (this.IsUse()
+		&& this.BeginChar && this.BeginChar.IsValid()
+		&& this.SeparateChar && this.SeparateChar.IsValid()
+		&& this.EndChar && this.EndChar.IsValid());
 };
 CComplexField.prototype.GetInstruction = function()
 {
@@ -1498,10 +1553,7 @@ CComplexField.prototype.RemoveFieldWrap = function()
 	if (!this.IsValid())
 		return;
 
-	var oRun = this.EndChar.GetRun();
-	var nInRunPos = oRun.GetElementPosition(this.EndChar);
-	if (-1 !== nInRunPos)
-		oRun.RemoveFromContent(nInRunPos, 1);
+	this.EndChar.RemoveThisFromDocument();
 
 	var oDocument = this.GetTopDocumentContent();
 	if (!oDocument)
@@ -1559,6 +1611,17 @@ CComplexField.prototype.RemoveField = function()
 	this.SelectField();
 	oDocument.Remove();
 };
+CComplexField.prototype.RemoveFieldChars = function()
+{
+	if (this.BeginChar)
+		this.BeginChar.RemoveThisFromDocument();
+
+	if (this.EndChar)
+		this.EndChar.RemoveThisFromDocument();
+
+	if (this.SeparateChar)
+		this.SeparateChar.RemoveThisFromDocument();
+};
 /**
  * Выставляем свойства для данного поля
  * @param oPr (зависит от типа данного поля)
@@ -1612,7 +1675,6 @@ CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
 	this.InstructionCF      = [];
 	this.private_UpdateInstruction();
 };
-
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CComplexField = CComplexField;

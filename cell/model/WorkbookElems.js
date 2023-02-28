@@ -2112,6 +2112,11 @@ var g_oFontProperties = {
 		this.patternFill = null;
 		this.gradientFill = value;
 	};
+	Fill.prototype.checkEmptyContent = function () {
+		if (!this.patternFill && !this.gradientFill) {
+			this.fromPatternParams(AscCommonExcel.c_oAscPatternType.None, null);
+		}
+	};
 
 	function FromXml_ST_BorderStyle(val) {
 		var res = -1;
@@ -4557,6 +4562,9 @@ StyleManager.prototype =
 	Col.prototype.isEmpty = function () {
 		return null == this.BestFit && null == this.hd && null == this.width && null == this.xfs &&
 			null == this.CustomWidth && 0 === this.outlineLevel && false == this.collapsed;
+	};
+	Col.prototype.isUpdateScroll = function () {
+		return null !== this.hd || null !== this.xfs || 0 !== this.outlineLevel || false !== this.collapsed;
 	};
 	Col.prototype.clone = function (oNewWs) {
 		if (!oNewWs) {
@@ -7200,6 +7208,16 @@ function RangeDataManagerElem(bbox, data)
 		return null;
 	};
 
+	TablePart.prototype.getIndexTableColumnById = function(id) {
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (id === this.TableColumns[i].id) {
+				return i + 1;
+			}
+		}
+		return null;
+	};
+
+
 	/** @constructor */
 	function AutoFilter() {
 		this.Ref = null;
@@ -7464,6 +7482,9 @@ function RangeDataManagerElem(bbox, data)
 				if (colId !== cellId) {
 					var cell = worksheet.getCell3(row, colId + col);
 					var isDateTimeFormat = cell.getType() === window["AscCommon"].CellValueType.Number && cell.getNumFormat().isDateTimeFormat();
+					if (isDateTimeFormat) {
+						isDateTimeFormat = cell.getNumFormat().getType() === Asc.c_oAscNumFormatType.Data;
+					}
 
 					var isNumberFilter = filterColumn.isApplyCustomFilter();
 					var val = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
@@ -7507,6 +7528,10 @@ function RangeDataManagerElem(bbox, data)
 					var isNumberFilter = false;
 					if (newFilterColumn.CustomFiltersObj || newFilterColumn.Top10 || newFilterColumn.DynamicFilter) {
 						isNumberFilter = true;
+					}
+
+					if (isDateTimeFormat) {
+						isDateTimeFormat = cell.getNumFormat().getType() === Asc.c_oAscNumFormatType.Data;
 					}
 
 					var currentValue = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
@@ -7873,6 +7898,8 @@ function RangeDataManagerElem(bbox, data)
 		this.fillFormulas = null;
 		this.queryName = null;
 		this.rowNumbers = null;
+
+		this.id = null;
 		//формируется на сохранения
 		//this.tableColumnId = null;
 	}
@@ -7925,6 +7952,8 @@ function RangeDataManagerElem(bbox, data)
 
 		res.queryTableFieldId = this.queryTableFieldId;
 		res.uniqueName = this.uniqueName;
+
+		res.id = this.id;
 
 		return res;
 	};
@@ -10744,6 +10773,10 @@ QueryTableField.prototype.clone = function() {
 		this.verticalDpi = 600;
 		this.paperUnits = 0;
 
+		//для превью передаём из интерфейса
+		this.headerFooter = null;
+		this.printArea = null;
+
 		this.ws = ws;
 
 		return this;
@@ -10888,6 +10921,17 @@ QueryTableField.prototype.clone = function() {
 		}
 	};
 
+	asc_CPageSetup.prototype.getPreviewHeaderFooter = function () {
+		var res = null;
+		if (this.headerFooter) {
+			res = new CHeaderFooter();
+			var tempEditor = new AscCommonExcel.CHeaderFooterEditor();
+			tempEditor.setPropsFromInterface(this.headerFooter, true);
+			tempEditor._saveToModel(this, res);
+		}
+		return res;
+	};
+
 	/** @constructor */
 	//этот объект используется как в модели, так и в меню для передачи измененных опций page layout
 	//если определена ws - это означает, что этот объект лежит в модели и при изменении его свойств идёт запись в историю
@@ -10912,6 +10956,113 @@ QueryTableField.prototype.clone = function() {
 			this.gridLines = c_oAscPrintDefaultSettings.PageGridLines;
 		if (null == this.headings)
 			this.headings = c_oAscPrintDefaultSettings.PageHeadings;
+	};
+	asc_CPageOptions.prototype.getJson = function (ws) {
+		var res = {};
+
+		res["gridLines"] = this.gridLines;
+		res["headings"] = this.headings;
+		res["pageMargins"] = {};
+		res["pageMargins"]["bottom"] = this.pageMargins.bottom;
+		res["pageMargins"]["footer"] = this.pageMargins.footer;
+		res["pageMargins"]["header"] = this.pageMargins.header;
+		res["pageMargins"]["left"] = this.pageMargins.left;
+		res["pageMargins"]["right"] = this.pageMargins.right;
+		res["pageMargins"]["top"] = this.pageMargins.top;
+
+
+		res["pageSetup"] = {};
+		res["pageSetup"]["blackAndWhite"] = this.pageSetup.blackAndWhite;
+		res["pageSetup"]["cellComments"] = this.pageSetup.cellComments;
+		res["pageSetup"]["copies"] = this.pageSetup.copies;
+		res["pageSetup"]["draft"] = this.pageSetup.draft;
+		res["pageSetup"]["errors"] = this.pageSetup.errors;
+		res["pageSetup"]["firstPageNumber"] = this.pageSetup.firstPageNumber;
+		res["pageSetup"]["fitToHeight"] = this.pageSetup.fitToHeight;
+		res["pageSetup"]["fitToWidth"] = this.pageSetup.fitToWidth;
+		res["pageSetup"]["headerFooter"] = this.pageSetup.headerFooter;
+		res["pageSetup"]["height"] = this.pageSetup.height;
+		res["pageSetup"]["horizontalDpi"] = this.pageSetup.horizontalDpi;
+		res["pageSetup"]["orientation"] = this.pageSetup.orientation;
+		res["pageSetup"]["pageOrder"] = this.pageSetup.pageOrder;
+		res["pageSetup"]["paperUnits"] = this.pageSetup.paperUnits;
+		res["pageSetup"]["printArea"] = this.pageSetup.printArea;
+		res["pageSetup"]["scale"] = this.pageSetup.scale;
+		res["pageSetup"]["useFirstPageNumber"] = this.pageSetup.useFirstPageNumber;
+		res["pageSetup"]["usePrinterDefaults"] = this.pageSetup.usePrinterDefaults;
+		res["pageSetup"]["verticalDpi"] = this.pageSetup.verticalDpi;
+		res["pageSetup"]["width"] = this.pageSetup.width;
+
+		if (ws.headerFooter) {
+			res["pageSetup"]["headerFooter"] = {};
+			res["pageSetup"]["headerFooter"]["alignWithMargins"] = ws.headerFooter.alignWithMargins;
+			res["pageSetup"]["headerFooter"]["differentFirst"] = ws.headerFooter.differentFirst;
+			res["pageSetup"]["headerFooter"]["differentOddEven"] = ws.headerFooter.differentOddEven;
+			res["pageSetup"]["headerFooter"]["evenFooter"] = ws.headerFooter.evenFooter && ws.headerFooter.evenFooter.getStr();
+			res["pageSetup"]["headerFooter"]["evenHeader"] = ws.headerFooter.evenHeader && ws.headerFooter.evenHeader.getStr();
+			res["pageSetup"]["headerFooter"]["firstFooter"] = ws.headerFooter.firstFooter && ws.headerFooter.firstFooter.getStr();
+			res["pageSetup"]["headerFooter"]["firstHeader"] = ws.headerFooter.firstHeader && ws.headerFooter.firstHeader.getStr();
+			res["pageSetup"]["headerFooter"]["oddFooter"] = ws.headerFooter.oddFooter && ws.headerFooter.oddFooter.getStr();
+			res["pageSetup"]["headerFooter"]["oddHeader"] = ws.headerFooter.oddHeader && ws.headerFooter.oddHeader.getStr();
+			res["pageSetup"]["headerFooter"]["scaleWithDoc"] = ws.headerFooter.scaleWithDoc;
+		}
+
+		res["printTitlesHeight"] = this.printTitlesHeight;
+		res["printTitlesWidth"] = this.printTitlesWidth;
+
+		return res;
+	};
+	asc_CPageOptions.prototype.setJson = function (props) {
+		this.gridLines = props["gridLines"];
+		this.headings = props["headings"];
+
+		this.pageMargins.bottom = props["pageMargins"]["bottom"];
+		this.pageMargins.footer = props["pageMargins"]["footer"];
+		this.pageMargins.header = props["pageMargins"]["header"];
+		this.pageMargins.left = props["pageMargins"]["left"];
+		this.pageMargins.right = props["pageMargins"]["right"];
+		this.pageMargins.top = props["pageMargins"]["top"];
+		this.pageMargins.bottom = props["pageMargins"]["bottom"];
+
+		this.pageSetup.blackAndWhite = props["pageSetup"]["blackAndWhite"];
+		this.pageSetup.cellComments = props["pageSetup"]["cellComments"];
+		this.pageSetup.copies = props["pageSetup"]["copies"];
+		this.pageSetup.draft = props["pageSetup"]["draft"];
+		this.pageSetup.errors = props["pageSetup"]["errors"];
+		this.pageSetup.firstPageNumber = props["pageSetup"]["firstPageNumber"];
+		this.pageSetup.fitToHeight = props["pageSetup"]["fitToHeight"];
+		this.pageSetup.fitToWidth = props["pageSetup"]["fitToWidth"];
+		this.pageSetup.headerFooter = props["pageSetup"]["headerFooter"];
+		this.pageSetup.height = props["pageSetup"]["height"];
+		this.pageSetup.horizontalDpi = props["pageSetup"]["horizontalDpi"];
+		this.pageSetup.orientation = props["pageSetup"]["orientation"];
+		this.pageSetup.pageOrder = props["pageSetup"]["pageOrder"];
+		this.pageSetup.paperUnits = props["pageSetup"]["paperUnits"];
+		this.pageSetup.printArea = props["pageSetup"]["printArea"];
+		this.pageSetup.scale = props["pageSetup"]["scale"];
+		this.pageSetup.useFirstPageNumber = props["pageSetup"]["useFirstPageNumber"];
+		this.pageSetup.usePrinterDefaults = props["pageSetup"]["usePrinterDefaults"];
+		this.pageSetup.verticalDpi = props["pageSetup"]["verticalDpi"];
+		this.pageSetup.width = props["pageSetup"]["width"];
+
+		this.pageSetup.headerFooter = props["pageSetup"]["headerFooter"];
+		/*if (ws.headerFooter) {
+			res["pageSetup"]["headerFooter"] = {
+				"alignWithMargins": ws.headerFooter.alignWithMargins,
+				"differentFirst": ws.headerFooter.differentFirst,
+				"differentOddEven": ws.headerFooter.differentOddEven,
+				"evenFooter": ws.headerFooter.evenFooter && ws.headerFooter.evenFooter.getStr(),
+				"evenHeader": ws.headerFooter.evenHeader && ws.headerFooter.evenHeader.getStr(),
+				"firstFooter": ws.headerFooter.firstFooter && ws.headerFooter.firstFooter.getStr(),
+				"firstHeader": ws.headerFooter.firstHeader && ws.headerFooter.firstHeader.getStr(),
+				"oddFooter": ws.headerFooter.oddFooter && ws.headerFooter.oddFooter.getStr(),
+				"oddHeader": ws.headerFooter.oddHeader && ws.headerFooter.oddHeader.getStr(),
+				"scaleWithDoc": ws.headerFooter.scaleWithDoc
+			};
+		}*/
+
+		this.printTitlesHeight = props["printTitlesHeight"];
+		this.printTitlesWidth = props["printTitlesWidth"];
 	};
 	asc_CPageOptions.prototype.initPrintTitles = function () {
 		//функция добавлена только для того, чтобы в интерфейс передать текущие заголовки печати, которые хранятся как именованный диапазон
@@ -11247,6 +11398,15 @@ QueryTableField.prototype.clone = function() {
 		}
 	};
 
+	CHeaderFooter.prototype.clean = function() {
+		this.setFirstHeader(null);
+		this.setOddHeader(null);
+		this.setEvenHeader(null);
+		this.setFirstFooter(null);
+		this.setOddFooter(null);
+		this.setEvenFooter(null);
+	};
+
 	CHeaderFooter.prototype.init = function () {
 		if(this.evenFooter) {
 			this.evenFooter.parse();
@@ -11287,6 +11447,56 @@ QueryTableField.prototype.clone = function() {
 			this.oddHeader.getAllFonts(oFontMap);
 		}
 	};
+	CHeaderFooter.prototype.getForInterface = function () {
+		var res = null;
+		var tempEditor = new AscCommonExcel.CHeaderFooterEditor();
+		tempEditor._createAndDrawSections(Asc.c_oAscHeaderFooterType.first, null, this);
+		tempEditor._createAndDrawSections(Asc.c_oAscHeaderFooterType.odd, null, this);
+		tempEditor._createAndDrawSections(Asc.c_oAscHeaderFooterType.even, null, this);
+		tempEditor.alignWithMargins = this.alignWithMargins;
+		tempEditor.differentFirst = this.differentFirst;
+		tempEditor.differentOddEven = this.differentOddEven;
+		tempEditor.scaleWithDoc = this.scaleWithDoc;
+
+		res = tempEditor.getPropsToInterface();
+
+		return res;
+	};
+	CHeaderFooter.prototype.initFromJson = function (val) {
+		this.alignWithMargins = val["alignWithMargins"];
+		this.differentFirst = val["differentFirst"];
+		this.differentOddEven = val["differentOddEven"];
+
+		this.scaleWithDoc = val["scaleWithDoc"];
+
+		if (val["evenFooter"]) {
+			this.evenFooter = new CHeaderFooterData();
+			this.evenFooter.setStr(val["evenFooter"]);
+		}
+		if (val["evenHeader"]) {
+			this.evenHeader = new CHeaderFooterData();
+			this.evenHeader.setStr(val["evenHeader"]);
+		}
+		if (val["firstFooter"]) {
+			this.firstFooter = new CHeaderFooterData();
+			this.firstFooter.setStr(val["firstFooter"]);
+		}
+		if (val["firstHeader"]) {
+			this.firstHeader = new CHeaderFooterData();
+			this.firstHeader.setStr(val["firstHeader"]);
+		}
+		if (val["oddFooter"]) {
+			this.oddFooter = new CHeaderFooterData();
+			this.oddFooter.setStr(val["oddFooter"]);
+		}
+		if (val["oddHeader"]) {
+			this.oddHeader = new CHeaderFooterData();
+			this.oddHeader.setStr(val["oddHeader"]);
+		}
+
+		this.init();
+	};
+
 
 	function CHeaderFooterData(str) {
 		this.str = str;
@@ -11709,6 +11919,7 @@ QueryTableField.prototype.clone = function() {
 		//отслеживаем активную страницу и активный лист
 		this.activePage = null;
 		this.activeSheet = null;
+		this.sheetsProps = null;
 
 		this.start = null;
 
@@ -11721,11 +11932,34 @@ QueryTableField.prototype.clone = function() {
 		this.realZoom = null;
 		this.realActiveSheet = null;
 
+		this.pixelRatio = null;
+
+		this.advancedOptions = null;
+
+		//избегаем повторных вызовов, пересмотреть
+		this.isDrawPrintPreview = null;
+		//избегаем повторного отображения ошибки(максимальное количество страниц)
+		this.maxPagesCount = null;
+
+		//опции измененного листа пока не мержу с теми, что в модели. перезатираю полностью. если будет необходимость - _pageOptionsMap использовать и при сохранении проверять что изменилось
+		//при закрытии окна с сохранением вычисляем только измененные настройки, для этого храним те настройки, которые были до открытия
+		//this._pageOptionsMap = null;
+
 		return this;
 	}
 
 	CPrintPreviewState.prototype.init = function () {
 		this.start = true;
+		/*var api = window["Asc"]["editor"];
+		this._pageOptionsMap = {};
+		for (var i = 0, length = this.wb.model.getWorksheetCount(); i < length; ++i) {
+			var wsModel = this.wb.model.getWorksheet(i);
+			var wsIndex = wsModel.getIndex();
+			var pageOptions = api.asc_getPageOptions(wsIndex, true);
+			if (pageOptions) {
+				this._pageOptionsMap[wsIndex] = pageOptions.clone();
+			}
+		}*/
 	};
 	CPrintPreviewState.prototype.isStart = function () {
 		return this.start;
@@ -11745,6 +11979,23 @@ QueryTableField.prototype.clone = function() {
 	CPrintPreviewState.prototype.getPage = function (index) {
 		return this.pages && this.pages.arrPages[index];
 	};
+	CPrintPreviewState.prototype.isNeedShowError = function (bMoreThenMax) {
+		var res = bMoreThenMax;
+
+		if (this.isStart()) {
+			if (bMoreThenMax) {
+				if (!this.maxPagesCount) {
+					this.maxPagesCount = true;
+				} else {
+					res = false;
+				}
+			} else {
+				this.maxPagesCount = null;
+			}
+		}
+
+		return res;
+	};
 	CPrintPreviewState.prototype.clean = function (revertZoom) {
 		//this.ctx = null;
 		this.pages = null;
@@ -11753,14 +12004,32 @@ QueryTableField.prototype.clone = function() {
 		this.start = null;
 
 		if (revertZoom) {
-			this.wb.model.setActive(this.realActiveSheet);
-			this.wb.changeZoom(this.realZoom);
+			if (null != this.realActiveSheet) {
+				this.wb.model.setActive(this.realActiveSheet);
+			}
+			if (null != this.realZoom) {
+				this.wb.changeZoom(this.realZoom, true);
+			}
 		}
 		this.realActiveSheet = null;
 		this.realZoom = null;
+		this._pageOptionsMap = null;
+
+		this.advancedOptions = null;
+		this.maxPagesCount = null;
 	};
 	CPrintPreviewState.prototype.getPagesLength = function () {
 		return this.pages && this.pages.arrPages.length;
+	};
+	CPrintPreviewState.prototype.getIndexPageByIndexSheet = function (indexSheet) {
+		if (this.pages && this.pages.arrPages.length) {
+			for (var i = 0; i < this.pages.arrPages.length; i++) {
+				if (indexSheet === this.pages.arrPages[i].indexWorksheet) {
+					return i;
+				}
+			}
+		}
+		return null;
 	};
 	CPrintPreviewState.prototype.setPage = function (index, checkZoom) {
 		this.activePage = index;
@@ -11782,6 +12051,8 @@ QueryTableField.prototype.clone = function() {
 		if (null === this.realActiveSheet) {
 			this.realActiveSheet = this.wb.model.getActive();
 		}
+
+		var isChangeSystemZoom = this.pixelRatio !== null && this.pixelRatio !== AscCommon.AscBrowser.retinaPixelRatio;
 
 		var page = this.getPage(this.activePage);
 		var pageWidth = page && page.pageWidth ? page.pageWidth : AscCommon.c_oAscPrintDefaultSettings.PageWidth;
@@ -11805,7 +12076,7 @@ QueryTableField.prototype.clone = function() {
 		kF *= (height * kF) / (height * kF + canvasTopPadding)
 
 		var isChangeForZoom;
-		var trueZoom = kF * AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var trueZoom = kF * AscCommon.AscBrowser.retinaPixelRatio;
 		var _height = Math.floor(height * kF);
 		var _width = Math.floor(width * kF);
 		if (trueZoom !== this.pageZoom) {
@@ -11832,7 +12103,10 @@ QueryTableField.prototype.clone = function() {
 			if (needUpdateActiveSheet) {
 				this.wb.model.setActive(this.activeSheet);
 			}
-			this.wb.changeZoom(this.pageZoom * this.printZoom);
+			this.wb.changeZoom(this.pageZoom * this.printZoom, true);
+			if (isChangeSystemZoom) {
+				this.ctx.changeZoom(null);
+			}
 			this.ctx.changeZoom(this.pageZoom* this.printZoom);
 		}
 		var oGraphics = new AscCommon.CGraphics();
@@ -11843,7 +12117,36 @@ QueryTableField.prototype.clone = function() {
 		oGraphics.init(this.ctx.canvas.getContext('2d'), nWidth, nHeight, dWidth, dHeight);
 		oGraphics.m_oFontManager = AscCommon.g_fontManager;
 		this.ctx.DocumentRenderer = oGraphics;
+		this.pixelRatio = AscCommon.AscBrowser.retinaPixelRatio;
 	};
+	CPrintPreviewState.prototype.setAdvancedOptions = function (val) {
+		this.advancedOptions = val;
+	};
+	CPrintPreviewState.prototype.isNeedUpdate = function (ws, data) {
+		if (!ws) {
+			return false;
+		}
+
+		var maxCol = data ? data.col : ws.nColsCount;
+		var maxRow = data ? data.row : ws.nRowsCount;
+		var res = true;
+		if (this.sheetsProps && this.sheetsProps[ws.index]) {
+			if (this.sheetsProps[ws.index].col === maxCol && this.sheetsProps[ws.index].row === maxRow) {
+				res = false;
+			}
+		}
+		if (!this.sheetsProps) {
+			this.sheetsProps = [];
+		}
+		if (!this.sheetsProps[ws.index]) {
+			this.sheetsProps[ws.index] = {};
+		}
+		this.sheetsProps[ws.index].col = maxCol;
+		this.sheetsProps[ws.index].row = maxRow;
+
+		return res;
+	};
+
 
 
 	//----------------------------------------------------------export----------------------------------------------------
@@ -12140,6 +12443,8 @@ QueryTableField.prototype.clone = function() {
 	prot["asc_setPrintTitlesHeight"] = prot.asc_setPrintTitlesHeight;
 	prot["asc_getPrintTitlesWidth"] = prot.asc_getPrintTitlesWidth;
 	prot["asc_getPrintTitlesHeight"] = prot.asc_getPrintTitlesHeight;
+	prot["asc_getHeaderFooter"] = prot.asc_getHeaderFooter;
+	prot["asc_setHeaderFooter"] = prot.asc_setHeaderFooter;
 
 	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;

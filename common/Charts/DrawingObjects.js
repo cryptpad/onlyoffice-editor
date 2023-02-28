@@ -3438,26 +3438,42 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                     oGraphicObject = drawingObject.graphicObject;
                     bRecalculate = true;
                     if(oGraphicObject){
+                        var oldX = oGraphicObject.x;
+                        var oldY = oGraphicObject.y;
+                        var oldExtX = oGraphicObject.extX;
+                        var oldExtY = oGraphicObject.extY;
                         if(drawingObject.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell
                         && drawingObject.editAs !== AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
                             if(drawingObject.editAs === AscCommon.c_oAscCellAnchorType.cellanchorAbsolute) {
                                 aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
                             }
                             else {
-                                    var oldExtX = oGraphicObject.extX;
-                                    var oldExtY = oGraphicObject.extY;
                                     oGraphicObject.recalculateTransform();
                                     oGraphicObject.extX = oldExtX;
                                     oGraphicObject.extY = oldExtY;
                                     aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
                             }
-                        }
-                        else {
+                        } else if (oGraphicObject.isSmartArtObject()) { // fixme: this is a crutch for resizing columns and rows, fix after normal recalculate smartart
+                            if (oGraphicObject.spPr.xfrm.isZeroCh()) {
+                                oGraphicObject.updateCoordinatesAfterInternalResize();
+                            }
+                            oGraphicObject.recalculateTransform();
+                            var coefficient = 1;
+                            if (oldExtX !== oGraphicObject.extX) {
+                                coefficient = oGraphicObject.extX / oldExtX;
+                                oGraphicObject.extY *= oGraphicObject.extX / oldExtX;
+                            } else if (oldExtY !== oGraphicObject.extY) {
+                                coefficient = oGraphicObject.extY / oldExtY;
+                                oGraphicObject.extX *= coefficient;
+                            }
+                            if (coefficient !== 1) {
+                                oGraphicObject.changeSize(coefficient, coefficient);
+                                oGraphicObject.spPr.xfrm.setChExtX(oGraphicObject.spPr.xfrm.extX);
+                                oGraphicObject.spPr.xfrm.setChExtY(oGraphicObject.spPr.xfrm.extY);
+                            }
+                            aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
+                        } else {
                             if(oGraphicObject.recalculateTransform) {
-                                var oldX = oGraphicObject.x;
-                                var oldY = oGraphicObject.y;
-                                var oldExtX = oGraphicObject.extX;
-                                var oldExtY = oGraphicObject.extY;
                                 oGraphicObject.recalculateTransform();
                                 var fDelta = 0.01;
                                 bRecalculate = false;
@@ -3500,6 +3516,9 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                             oC.Pos.X, oC.Pos.Y, oC.ext.cx, oC.ext.cy);
                     }
                     oGraphicObject.handleUpdateExtents();
+                    if (oGraphicObject.isSmartArtObject()) {
+                        oGraphicObject.checkExtentsByDocContent(true, true);
+                    }
                     oGraphicObject.recalculate();
                 }
                 _this.showDrawingObjects();
@@ -3558,7 +3577,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
     };
 
 
-    _this.addOleObject = function(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId){
+    _this.addOleObject = function(fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect){
         var drawingObject = _this.createDrawingObject();
         drawingObject.worksheet = worksheet;
 
@@ -3570,12 +3589,12 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 
         var coordsFrom = _this.calculateCoords(drawingObject.from);
         _this.controller.resetSelection();
-        _this.controller.addOleObjectFromParams(pxToMm(coordsFrom.x), pxToMm(coordsFrom.y), fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        _this.controller.addOleObjectFromParams(pxToMm(coordsFrom.x), pxToMm(coordsFrom.y), fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect);
         worksheet.setSelectionShape(true);
     };
 
-    _this.editOleObject = function(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize){
-        this.controller.editOleObjectFromParams(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize);
+    _this.editOleObject = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize){
+        this.controller.editOleObjectFromParams(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, bResize);
     };
 
     _this.startEditCurrentOleObject = function(){
@@ -3745,15 +3764,16 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         var selectedObjects = _this.controller.selectedObjects;
         if ( (selectedObjects.length == 1) ) {
 
-            if(AscFormat.isRealNumber(selectedObjects[0].m_fDefaultSizeX) && AscFormat.isRealNumber(selectedObjects[0].m_fDefaultSizeY)){
-                return new AscCommon.asc_CImageSize( selectedObjects[0].m_fDefaultSizeX, selectedObjects[0].m_fDefaultSizeY, true);
-            }
+
             if(selectedObjects[0].isImage()){
                 var imageUrl = selectedObjects[0].getImageUrl();
 
                 var oImagePr = new Asc.asc_CImgProperty();
                 oImagePr.asc_putImageUrl(imageUrl);
-                return oImagePr.asc_getOriginSize(api);
+                var oSize = oImagePr.asc_getOriginSize(api);
+                if(oSize.IsCorrect) {
+                    return oSize;
+                }
             }
         }
         return new AscCommon.asc_CImageSize( 50, 50, false );

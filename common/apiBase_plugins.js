@@ -266,6 +266,9 @@
         if (!AscCommon.g_clipboardBase)
             return null;
 
+		if (this.isViewMode)
+			return null;
+
         var _elem = document.getElementById("pmpastehtml");
         if (_elem)
             return;
@@ -524,6 +527,34 @@
      */
     Api.prototype["pluginMethod_SetProperties"] = function(obj)
     {
+		if (!this.isDocumentLoadComplete && obj)
+		{
+			if (!this.setPropertiesObj)
+			{
+				this.setPropertiesObj = obj;
+			}
+			else
+			{
+				for (var item in obj)
+					this.setPropertiesObj[item] = obj[item];
+			}
+			return;
+		}
+
+		if (this.setPropertiesObj)
+		{
+			if (!obj)
+			{
+				obj = this.setPropertiesObj;
+			}
+			else
+			{
+				for (var item in this.setPropertiesObj)
+					if (!obj[item]) obj[item] = this.setPropertiesObj[item];
+			}
+			delete this.setPropertiesObj;
+		}
+
         if (!obj)
             return;
 
@@ -841,5 +872,88 @@
     Api.prototype["pluginMethod_ConvertDocument"] = function(sConvertType, bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags)
     {
         return this.ConvertDocument(sConvertType, bHtmlHeadings, bBase64img, bDemoteHeadings, bRenderHTMLTags);
+    };
+    /**
+     * Get selection in document in text format
+     * @memberof Api
+     * @typeofeditors ["CDE", "CPE", "CSE"]
+     * @alias GetSelectedText
+     * @param {prop} numbering is an option that includes numbering in the return value.
+     * @return {string} selected text
+     * @example
+     * window.Asc.plugin.executeMethod("GetSelectedText", [{NewLine:true, NewLineParagraph:true, Numbering:true}])
+     */
+    Api.prototype["pluginMethod_GetSelectedText"] = function(prop)
+    {
+        var properties;
+        if (typeof prop === "object")
+        {
+            properties =
+            {
+                NewLine : (prop.hasOwnProperty("NewLine")) ? prop["NewLine"] : true,
+                NewLineParagraph : (prop.hasOwnProperty("NewLineParagraph")) ? prop["NewLineParagraph"] : true,
+                Numbering : (prop.hasOwnProperty("Numbering")) ? prop["Numbering"] : true,
+                Math : (prop.hasOwnProperty("Math")) ? prop["Math"] : true,
+                TableCellSeparator: prop["TableCellSeparator"],
+                TableRowSeparator: prop["TableRowSeparator"],
+                ParaSeparator: prop["ParaSeparator"],
+                TabSymbol: prop["TabSymbol"]
+            }
+        }
+        else
+        {
+            properties =
+            {
+                NewLine : true,
+                NewLineParagraph : true,
+                Numbering : true
+            }
+        }
+
+        return this.asc_GetSelectedText(false, properties);
+    };
+    /**
+     * Replaces each paragraph(or text in cell) in the select with the corresponding text from an array of strings.
+     * @memberof Api
+     * @typeofeditors ["CDE", "CSE", "CPE"]
+     * @alias ReplaceTextSmart
+     * @param {Array} arrString - represents an array of strings.
+     * @param {string} [sParaTab=" "] - specifies which character to use to define the tab in the source text.
+     * @param {string} [sParaNewLine=" "] - specifies which character to use to specify the line break character in the source text.
+     * @returns {boolean} - always returns true
+     */
+    Api.prototype["pluginMethod_ReplaceTextSmart"] = function(arrString, sParaTab, sParaNewLine)
+    {
+		let guid = window.g_asc_plugins ? window.g_asc_plugins.setPluginMethodReturnAsync() : null;
+		this.incrementCounterLongAction();
+
+		function ReplaceTextSmart()
+		{
+			this.asc_canPaste();
+			this.ReplaceTextSmart(arrString, sParaTab, sParaNewLine);
+			this.asc_Recalculate(true);
+			switch (this.editorId)
+			{
+				case AscCommon.c_oEditorId.Spreadsheet:
+					this.asc_endPaste();
+					break;
+				case AscCommon.c_oEditorId.Word:
+				case AscCommon.c_oEditorId.Presentation:
+					this.WordControl.m_oLogicDocument.FinalizeAction();
+					break;
+			}
+
+			this.decrementCounterLongAction();
+
+			if (guid)
+				window.g_asc_plugins.onPluginMethodReturn(guid, true);
+		}
+
+		let sOverAll = "";
+		for (let nIndex = 0, nCount = arrString.length; nIndex < nCount; ++nIndex)
+			sOverAll += arrString[nIndex];
+
+		AscFonts.FontPickerByCharacter.checkText(sOverAll, this, ReplaceTextSmart);
+        return true;
     };
 })(window);

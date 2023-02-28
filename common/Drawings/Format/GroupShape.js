@@ -140,7 +140,7 @@ function CGroupShape()
 
     CGroupShape.prototype.setBDeleted2 = function(pr)
     {
-        this.bDeleted = pr;
+        this.setBDeleted(pr);
         for(var i = 0; i < this.spTree.length; ++i)
         {
             if(this.spTree[i].setBDeleted2)
@@ -149,7 +149,7 @@ function CGroupShape()
             }
             else
             {
-                this.spTree[i].bDeleted = pr;
+                this.spTree[i].setBDeleted(pr);
             }
         }
     };
@@ -407,10 +407,6 @@ function CGroupShape()
         return false;
     };
 
-    CGroupShape.prototype.isImage = function()
-    {
-        return false;
-    };
 
     CGroupShape.prototype.isChart = function()
     {
@@ -492,7 +488,6 @@ function CGroupShape()
         }
         graphics.reset();
         graphics.SetIntegerGrid(true);
-        this.drawAnimLabels && this.drawAnimLabels(graphics);
     };
 
     CGroupShape.prototype.deselectObject = function(object)
@@ -1719,11 +1714,11 @@ function CGroupShape()
         this.nvGrpSpPr = pr;
     };
 
-    CGroupShape.prototype.Restart_CheckSpelling = function()
+    CGroupShape.prototype.RestartSpellCheck = function()
     {
         for(var i = 0; i < this.spTree.length; ++i)
         {
-            this.spTree[i].Restart_CheckSpelling && this.spTree[i].Restart_CheckSpelling();
+            this.spTree[i].RestartSpellCheck && this.spTree[i].RestartSpellCheck();
         }
     };
 
@@ -1967,9 +1962,13 @@ function CGroupShape()
             this.spTree[nSp].applySmartArtTextStyle();
         }
     };
-
     CGroupShape.prototype.getTypeName = function() {
         return AscCommon.translateManager.getValue("Group");
+    };
+    CGroupShape.prototype.GetAllOleObjects = function(sPluginId, arrObjects) {
+        for(let nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].GetAllOleObjects(sPluginId, arrObjects);
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

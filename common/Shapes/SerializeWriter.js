@@ -2231,8 +2231,13 @@ function CBinaryFileWriter()
         if(rPr.TextOutline)
             oThis.WriteRecord1(0, rPr.TextOutline, oThis.WriteLn);
 
-        if(rPr.Unifill)
+        var color = rPr.Color;
+        if (color && !(rPr.Unifill && rPr.Unifill.fill)) {
+            var unifill = AscFormat.CreateSolidFillRGBA(color.r, color.g, color.b, 255);
+            oThis.WriteRecord1(1, unifill, oThis.WriteUniFill);
+        } else if(rPr.Unifill) {
             oThis.WriteRecord1(1, rPr.Unifill, oThis.WriteUniFill);
+        }
 
         if (rPr.RFonts)
         {
@@ -2250,10 +2255,12 @@ function CBinaryFileWriter()
             oThis.WriteRecord1(7, hlinkObj, oThis.WriteHyperlink);
         }
 
-        if (rPr.HighlightColor)
-        {
+        if (rPr.HighlightColor) {
             oThis.WriteRecord1(12, rPr.HighlightColor, oThis.WriteHighlightColor);
+        } else if (rPr.HighLight && rPr.HighLight !== AscCommonWord.highlight_None) {
+            oThis.WriteRecord1(12, rPr.HighLight.ConvertToUniColor(), oThis.WriteHighlightColor);
         }
+
     };
 
     this.WriteHighlightColor = function (HighlightColor) {
@@ -3782,7 +3789,14 @@ function CBinaryFileWriter()
         }
         else
         {
-            nvGraphicFramePr = {};
+            if(grObj.getUniNvProps)
+            {
+                nvGraphicFramePr = grObj.getUniNvProps();
+            }
+            if(!nvGraphicFramePr)
+            {
+                nvGraphicFramePr = {};
+            }
         }
         nvGraphicFramePr.locks = grObj.locks;
         var nObjectType = grObj.getObjectType();
@@ -4192,12 +4206,12 @@ function CBinaryFileWriter()
         {
             oThis._WriteString1(0, oThis.tableStylesGuides[obj.style]);
         }
-        oThis._WriteBool1(2, obj.look.m_bFirst_Row);
-        oThis._WriteBool1(3, obj.look.m_bFirst_Col);
-        oThis._WriteBool1(4, obj.look.m_bLast_Row);
-        oThis._WriteBool1(5, obj.look.m_bLast_Col);
-        oThis._WriteBool1(6, obj.look.m_bBand_Hor);
-        oThis._WriteBool1(7, obj.look.m_bBand_Ver);
+        oThis._WriteBool1(2, obj.look.IsFirstRow());
+        oThis._WriteBool1(3, obj.look.IsFirstCol());
+        oThis._WriteBool1(4, obj.look.IsLastRow());
+        oThis._WriteBool1(5, obj.look.IsLastCol());
+        oThis._WriteBool1(6, obj.look.IsBandHor());
+        oThis._WriteBool1(7, obj.look.IsBandVer());
 
         oThis.WriteUChar(g_nodeAttributeEnd);
 
