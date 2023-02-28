@@ -1955,7 +1955,10 @@
 						}
 					}
 
-					if (!bUndoChanges && !bRedoChanges /*&& !notAddToHistory*/ && oldFilter) {
+					//для случая, когда вставляем последнюю строку в ф/т, не добавляю эти сдвиги в историю
+					//это делается при undo в функции _shiftCellsBottom
+					//2 раза дублировать сдвиги не нужно
+					if (!bUndoChanges && !bRedoChanges /*&& !notAddToHistory*/ && oldFilter && !(displayNameFormatTable && insertType === c_oAscInsertOptions.InsertCellsAndShiftDown)) {
 						var changeElement = {
 							oldFilter: oldFilter, newFilterRef: filter.Ref.clone()
 						};
@@ -5058,12 +5061,12 @@
 			_generateNextColumnName: function (tableColumns, val) {
 				var tableColumnMap = [];
 				for (var i = 0; i < tableColumns.length; i++) {
-					tableColumnMap[tableColumns[i].Name] = 1;
+					tableColumnMap[tableColumns[i].Name.toLowerCase()] = 1;
 				}
 				var res = val;
 				var index = 2;
 				while (true) {
-					if (tableColumnMap[res]) {
+					if (tableColumnMap[res.toLowerCase()]) {
 						res = val + index;
 					} else {
 						break;
@@ -5796,6 +5799,42 @@
 				return res;
 			},
 
+			_isContainEmptyCell: function (ar) {
+				var range = this.worksheet.getRange3(Math.max(0, ar.r1), Math.max(0, ar.c1), ar.r2, ar.c2);
+				var res = false;
+				range._foreach2(function (cell) {
+					if (!cell || cell.isNullText()) {
+						res = true;
+						return true;
+					}
+				});
+				return res;
+			},
+
+			_getFirstNotEmptyCell: function (ar) {
+				var range = this.worksheet.getRange3(Math.max(0, ar.r1), Math.max(0, ar.c1), ar.r2, ar.c2);
+				var res = null;
+				range._foreachNoEmpty(function (cell) {
+					if (!cell.isNullText()) {
+						res = cell;
+						return true;
+					}
+				});
+				return res;
+			},
+
+			_getFirstEmptyCellByRow: function (startRow, startCol, endCol) {
+				var range = this.worksheet.getRange3(startRow, startCol, this.worksheet.cellsByColRowsCount - 1, endCol);
+				var res = {nRow: this.worksheet.cellsByColRowsCount, nCol: startCol};
+				range._foreach2(function (cell, row, col) {
+					if (!cell || cell.isNullText()) {
+						res = {nRow: row, nCol: col};
+						return true;
+					}
+				});
+				return res;
+			},
+
 			_setStyleTables: function (range) {
 				var worksheet = this.worksheet;
 				if (worksheet.TableParts && worksheet.TableParts.length > 0) {
@@ -5998,22 +6037,35 @@
 				return [filterArr, otherArr];
 			},
 
-			containInFilter: function(row, checkApplyFilter) {
+			containInFilter: function(row, checkApplyFilter, checkNamedSheetView, ignoreHeader) {
 				var ws = this.worksheet;
 				var tables = ws.TableParts;
 				var autoFilter = ws.AutoFilter;
+				var t = this;
+
+				var activeNamedSheetView = checkNamedSheetView && ws.getActiveNamedSheetViewId() !== null
+				var _isApplyFilter = function (_filter) {
+					if (activeNamedSheetView) {
+						var nsvFilter = ws.getNvsFilterByTableName(_filter.DisplayName);
+						return nsvFilter && nsvFilter.isApplyAutoFilter();
+					} else {
+						return _filter.isApplyAutoFilter();
+					}
+				};
+
+				var headerDiff = ignoreHeader ? 1 : 0;
 				if (tables) {
 					for (var i = 0; i < tables.length; i++) {
 						var tableFilter = tables[i].AutoFilter;
-						if (tableFilter && (!checkApplyFilter || (checkApplyFilter && tableFilter.isApplyAutoFilter()))) {
-							if (row >= tables[i].Ref.r1 && row <= tables[i].Ref.r2) {
+						if (tableFilter && (!checkApplyFilter || (checkApplyFilter && _isApplyFilter(tables[i])))) {
+							if (row >= tables[i].Ref.r1 + headerDiff && row <= tables[i].Ref.r2) {
 								return true;
 							}
 						}
 					}
 				}
-				if (autoFilter && (!checkApplyFilter || (checkApplyFilter && autoFilter.isApplyAutoFilter()))) {
-					if (row >= autoFilter.Ref.r1 && row <= autoFilter.Ref.r2) {
+				if (autoFilter && (!checkApplyFilter || (checkApplyFilter && _isApplyFilter(autoFilter)))) {
+					if (row >= autoFilter.Ref.r1 + headerDiff && row <= autoFilter.Ref.r2) {
 						return true;
 					}
 				}

@@ -50,6 +50,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Workbook_DefinedNamesChangeUndo = 8;
 	window['AscCH'].historyitem_Workbook_Calculate = 9;
 	window['AscCH'].historyitem_Workbook_PivotWorksheetSource = 10;
+	window['AscCH'].historyitem_Workbook_Date1904 = 11;
 
 	window['AscCH'].historyitem_Worksheet_RemoveCell = 1;
 	window['AscCH'].historyitem_Worksheet_RemoveRows = 2;
@@ -234,6 +235,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_WorksheetSource = 52;
 	window['AscCH'].historyitem_PivotTable_PivotCacheId = 53;
 	window['AscCH'].historyitem_PivotTable_PivotFieldVisible = 54;
+	window['AscCH'].historyitem_PivotTable_UseAutoFormatting = 55;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -354,6 +356,7 @@ function CHistory()
     this.Index    = -1;
     this.Points   = [];
     this.TurnOffHistory = 0;
+	this.RegisterClasses = 0;
     this.Transaction = 0;
     this.LocalChange = false;//если true все добавленный изменения не пойдут в совместное редактирование.
 	this.RecIndex = -1;
@@ -640,7 +643,17 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			var curSheet = this.workbook.getWorksheetById(i);
 			if (curSheet)
 				this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
+
+			//this.workbook.oApi.onWorksheetChange(Point.UpdateRigions[i]);
 		}
+
+		// So far, the event call has been removed when undo/redo, since UpdateRigions does not always have the right range and you need to pick it up from another place
+		// if (Point.SelectRange) {
+		// 	this.workbook.oApi.onWorksheetChange(Point.SelectRange);
+		// }
+		// if (Point.SelectRangeRedo && (!Point.SelectRange || (Point.SelectRange && !Point.SelectRange.isEqual(Point.SelectRangeRedo)))) {
+		// 	this.workbook.oApi.onWorksheetChange(Point.SelectRangeRedo);
+		// }
 
 		if (oRedoObjectParam.bOnSheetsChanged)
 			this.workbook.handlers.trigger("asc_onSheetsChanged");
@@ -1095,12 +1108,30 @@ CHistory.prototype.TurnOff = function()
 {
 	this.TurnOffHistory++;
 };
-
 CHistory.prototype.TurnOn = function()
 {
 	this.TurnOffHistory--;
 	if(this.TurnOffHistory < 0)
 		this.TurnOffHistory = 0;
+};
+CHistory.prototype.CanRegisterClasses = function()
+{
+	return (0 === this.TurnOffHistory || this.RegisterClasses >= this.TurnOffHistory);
+};
+CHistory.prototype.TurnOffChanges = function()
+{
+	this.TurnOffHistory++;
+	this.RegisterClasses++;
+};
+CHistory.prototype.TurnOnChanges = function()
+{
+	this.TurnOffHistory--;
+	if(this.TurnOffHistory < 0)
+		this.TurnOffHistory = 0;
+
+	this.RegisterClasses--;
+	if (this.RegisterClasses < 0)
+		this.RegisterClasses = 0;
 };
 
 CHistory.prototype.StartTransaction = function()

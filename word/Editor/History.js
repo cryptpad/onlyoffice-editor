@@ -68,8 +68,9 @@ function CHistory(Document)
 		Update       : true
 	};
 
-	this.TurnOffHistory = 0;
-    this.MinorChanges   = false; // Данный параметр нужен, чтобы определить влияют ли добавленные изменения на пересчет
+	this.TurnOffHistory  = 0;
+	this.RegisterClasses = 0;
+    this.MinorChanges    = false; // Данный параметр нужен, чтобы определить влияют ли добавленные изменения на пересчет
 
     this.BinaryWriter = new AscCommon.CMemory();
 
@@ -100,11 +101,8 @@ CHistory.prototype =
         return this.UserSaveMode;
     },
 
-    Update_FileDescription : function(oStream)
+    Update_FileDescription : function(pData, nSize)
     {
-        var pData = oStream.data;
-        var nSize = oStream.size;
-
         this.FileCheckSum = AscCommon.g_oCRC32.Calculate_ByByteArray(pData, nSize);
         this.FileSize     = nSize;
     },
@@ -196,6 +194,8 @@ CHistory.prototype =
 
     UndoLastPoint : function(nBottomIndex)
     {
+    	// TODO: Данная функция почему-то НЕ меняет индекс, надо проверить на корректность те места, где она используется
+    	let arrChanges = [];
         var oPoint = this.Points[this.Index];
         if(oPoint)
         {
@@ -213,10 +213,13 @@ CHistory.prototype =
             {
                 var oItem = aItems[i];
                 oItem.Data.Undo();
+                arrChanges.push(oItem.Data);
             }
             oPoint.Items.length = _bottomIndex + 1;
             this.Document.SetSelectionState( oPoint.State );
         }
+
+        return arrChanges;
     },
 
     Undo : function(Options)
@@ -623,23 +626,30 @@ CHistory.prototype =
 
 	AddChangedNumberingToRecalculateData : function(NumId, Lvl, oNum)
 	{
-		if (!this.RecalculateData.ChangedNums)
-			this.RecalculateData.ChangedNums = {};
+        if(this.Document && this.Document.IsDocumentEditor())
+        {
+            if (!this.RecalculateData.ChangedNums)
+                this.RecalculateData.ChangedNums = {};
 
-		if (!this.RecalculateData.ChangedNums[NumId])
-			this.RecalculateData.ChangedNums[NumId] = {};
+            if (!this.RecalculateData.ChangedNums[NumId])
+                this.RecalculateData.ChangedNums[NumId] = {};
 
-		if (this.RecalculateData.ChangedNums[NumId][Lvl] === oNum)
-			return false;
+            if (this.RecalculateData.ChangedNums[NumId][Lvl] === oNum)
+                return false;
 
-		this.RecalculateData.ChangedNums[NumId][Lvl] = oNum;
-		return true;
+            this.RecalculateData.ChangedNums[NumId][Lvl] = oNum;
+            return true;
+        }
+        return false;
 	},
 
     Add_RecalcNumPr : function(NumPr)
     {
-        if (undefined !== NumPr && null !== NumPr && undefined !== NumPr.NumId)
-            this.RecalculateData.NumPr[NumPr.NumId] = true;
+        if(this.Document && this.Document.IsDocumentEditor())
+        {
+            if (undefined !== NumPr && null !== NumPr && undefined !== NumPr.NumId)
+                this.RecalculateData.NumPr[NumPr.NumId] = true;
+        }
     },
 
     Add_RecalcTableGrid : function(TableId)
@@ -658,7 +668,7 @@ CHistory.prototype =
         for (var TableId in this.RecalculateData.Tables)
         {
             var Table = AscCommon.g_oTableId.Get_ById(TableId);
-            if (null !== Table && Table.Is_UseInDocument())
+            if (null !== Table && Table.IsUseInDocument())
             {
                 if (true === Table.Check_ChangedTableGrid())
                 {
@@ -709,6 +719,9 @@ CHistory.prototype =
 
         var Point1 = this.Points[this.Points.length - 2];
         var Point2 = this.Points[this.Points.length - 1];
+
+        if (Point1.Additional.FormFilling !== Point2.Additional.FormFilling)
+        	return false;
 
         // Не объединяем слова больше 63 элементов
         if (Point1.Items.length > 63 && AscDFH.historydescription_Document_AddLetterUnion === Point1.Description)
@@ -773,6 +786,10 @@ CHistory.prototype =
             Description: NewDescription
         };
 
+        let oForm = Point1.Additional.FormFilling;
+        if (oForm)
+        	NewPoint.Additional.FormFilling = oForm;
+
 		if (null !== this.SavedIndex && this.SavedIndex >= this.Points.length - 2)
             this.Set_SavedIndex(this.Points.length - 3);
 
@@ -795,18 +812,6 @@ CHistory.prototype =
             return false;
 
         return true;
-    },
-
-    TurnOff : function()
-    {
-		this.TurnOffHistory++;
-    },
-
-    TurnOn : function()
-    {
-		this.TurnOffHistory--;
-		if(this.TurnOffHistory < 0)
-			this.TurnOffHistory = 0;
     },
 
 	/** @returns {boolean} */
@@ -989,18 +994,76 @@ CHistory.prototype =
         }
     }
 };
-/**
- * Проверяем, можно ли добавить изменение
- * @returns {boolean}
- */
-CHistory.prototype.CanAddChanges = function()
-{
-	return (0 === this.TurnOffHistory && this.Index >= 0);
-};
+	/**
+	 * Проверяем, можно ли добавить изменение
+	 * @returns {boolean}
+	 */
+	CHistory.prototype.CanAddChanges = function()
+	{
+		return (0 === this.TurnOffHistory && this.Index >= 0);
+	};
+	CHistory.prototype.CanRegisterClasses = function()
+	{
+		return (0 === this.TurnOffHistory || this.RegisterClasses >= this.TurnOffHistory);
+	};
+	CHistory.prototype.TurnOff = function()
+	{
+		this.TurnOffHistory++;
+	};
+	CHistory.prototype.TurnOn = function()
+	{
+		this.TurnOffHistory--;
+		if(this.TurnOffHistory < 0)
+			this.TurnOffHistory = 0;
+	};
+	CHistory.prototype.TurnOffChanges = function()
+	{
+		this.TurnOffHistory++;
+		this.RegisterClasses++;
+	};
+	CHistory.prototype.TurnOnChanges = function()
+	{
+		this.TurnOffHistory--;
+		if(this.TurnOffHistory < 0)
+			this.TurnOffHistory = 0;
+
+		this.RegisterClasses--;
+		if (this.RegisterClasses < 0)
+			this.RegisterClasses = 0;
+	};
+	CHistory.prototype.SetAdditionalFormFilling = function(oForm, nCount)
+	{
+		if (undefined === nCount)
+			nCount = 1;
+
+		for (let nIndex = this.Index; nIndex > this.Index - nCount && nIndex >= 0; --nIndex)
+		{
+			this.Points[nIndex].Additional.FormFilling = oForm;
+		}
+	};
+	CHistory.prototype.GetLastPointFormFilling = function()
+	{
+		let additional = this.Index >= 0 ? this.Points[this.Index].Additional : null;
+		return (additional && additional.FormFilling ? additional.FormFilling : null);
+	};
+	CHistory.prototype.ClearFormFillingInfo = function()
+	{
+		if (this.Points[this.Index] && this.Points[this.Index].Additional.FormFilling)
+			delete this.Points[this.Index].Additional.FormFilling;
+	};
 CHistory.prototype.ClearAdditional = function()
 {
 	if (this.Index >= 0)
+	{
+		// TODO: На создании новой точки не удаляем информацию о заполнении формы
+		//       надо переназвать функции по-нормальному
+
+		let form = this.GetLastPointFormFilling();
 		this.Points[this.Index].Additional = {};
+
+		if (form)
+			this.SetAdditionalFormFilling(form);
+	}
 
 	if (this.Api && true === this.Api.isMarkerFormat)
 		this.Api.sync_MarkerFormatCallback(false);

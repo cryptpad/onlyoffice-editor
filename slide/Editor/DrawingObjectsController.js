@@ -137,7 +137,7 @@ DrawingObjectsController.prototype.getColorMap = function()
             }
         }
     }
-    return AscFormat.G_O_DEFAULT_COLOR_MAP;
+    return AscFormat.GetDefaultColorMap();
 };
 
 
@@ -149,6 +149,10 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
     {
         if(oleObject.m_oMathObject) {
             editor.sendEvent("asc_onConvertEquationToMath", oleObject);
+        }
+        else if (oleObject.canEditTableOleObject())
+        {
+            editor.asc_doubleClickOnTableOleObject(oleObject);
         }
         else {
             var pluginData = new Asc.CPluginData();
@@ -359,6 +363,21 @@ DrawingObjectsController.prototype.editChart = function(binary)
             this.updateOverlay();
         }
     }
+};
+DrawingObjectsController.prototype.addImage = function(sImageUrl, nPixW, nPixH, videoUrl, audioUrl)
+{
+    let oPresentation = editor.WordControl.m_oLogicDocument;
+    let _w = oPresentation.GetWidthMM();
+    let _h = oPresentation.GetHeightMM();
+    var __w = Math.max((nPixW * AscCommon.g_dKoef_pix_to_mm), 1);
+    var __h = Math.max((nPixH * AscCommon.g_dKoef_pix_to_mm), 1);
+    var fKoeff = Math.min(1.0, 1.0 / Math.max(__w / _w, __h / _h));
+    _w = Math.max(5, __w * fKoeff);
+    _h = Math.max(5, __h * fKoeff);
+    var Image = this.createImage(sImageUrl, (oPresentation.GetWidthMM() - _w) / 2, (oPresentation.GetHeightMM() - _h) / 2, _w, _h, videoUrl, audioUrl);
+    Image.setParent(this.drawingObjects);
+    Image.addToDrawingObjects();
+    this.selectObject(Image, 0);
 };
 
 DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pageIndex)

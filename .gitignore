@@ -1,14 +1,6 @@
 .idea/
 build/node_modules
 build/$weak$.js
-build/sdk-min-tmp.js
-build/sdk-cell-tmp.js
-build/sdk-slide-tmp.js
-build/sdk-word-tmp.js
-common/libfont/wasm/build/emsdk
-common/libfont/wasm/build/freetype*
-common/libfont/wasm/build/fonts.*
-common/AllFonts.js
 common/libfont/js/fonts.js
 common/libfont/wasm/fonts.js
 common/Images/fonts_thumbnail*
@@ -27,3 +19,7 @@ slide/sdk-all.props.js.map
 slide/sdk-all.vars.js.map
 word/sdk-all.props.js.map
 word/sdk-all.vars.js.map
+node_modules
+package-lock.json
+*/node_modules
+*/package-lock.json

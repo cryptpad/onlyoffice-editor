@@ -56,6 +56,7 @@
 		this.Words       = {}; // Слова, которые пользователь решил пропустить(нажал "пропустить все") при проверке орфографии
 		this.CheckPara   = {}; // Параграфы, в которых нужно запустить проверку орфографии
 		this.CurPara     = {}; // Параграфы, в которых мы не проверили некотырые слова, из-за того что в них стоял курсор
+		this.Settings    = new AscCommon.CSpellCheckSettings();
 
 		this.WaitingParagraphs = {}; // Параграфы, которые ждут ответа от сервера
 
@@ -70,6 +71,20 @@
 	CDocumentSpellChecker.prototype.TurnOn = function()
 	{
 		this.TurnOn += 1;
+	};
+	CDocumentSpellChecker.prototype.SetSettings = function(oSettings)
+	{
+		if (!this.Settings.IsEqual(oSettings))
+		{
+			this.Settings = oSettings.Copy();
+			return true;
+		}
+
+		return false;
+	};
+	CDocumentSpellChecker.prototype.GetSettings = function()
+	{
+		return this.Settings;
 	};
 	CDocumentSpellChecker.prototype.IsOn = function()
 	{

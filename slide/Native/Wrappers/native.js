@@ -231,6 +231,7 @@ window["asc_docs_api"].prototype["asc_nativeGetCoreProps"] = function() {
         coreProps["asc_getTitle"] = props.asc_getTitle();
         coreProps["asc_getSubject"] = props.asc_getSubject();
         coreProps["asc_getDescription"] = props.asc_getDescription();
+        coreProps["asc_getCreated"] = props.asc_getCreated();
 
         var authors = [];
         value = props.asc_getCreator();//"123\"\"\"\<\>,456";
@@ -1069,7 +1070,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 62: //ASC_MENU_EVENT_TYPE_SEARCH_FINDTEXT
         {
-            var SearchEngine = this.WordControl.m_oLogicDocument.Search(_params[0], {MatchCase : _params[2]});
+        	let oProps = new AscCommon.CSearchSettings();
+        	oProps.SetText(_params[0]);
+			oProps.SetMatchCase(_params[2]);
+
+            var SearchEngine = this.WordControl.m_oLogicDocument.Search(oProps);
             var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(_params[1]);
             if (null != Id)
                 this.WordControl.m_oLogicDocument.SelectSearchElement(Id);

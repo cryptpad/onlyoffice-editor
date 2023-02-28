@@ -163,6 +163,16 @@
 	ApiGroup.prototype = Object.create(ApiDrawing.prototype);
 	ApiGroup.prototype.constructor = ApiGroup;
 
+    /**
+	 * Class representing an OLE object.
+	 * @constructor
+	 */
+	function ApiOleObject(OleObject)
+	{
+		ApiDrawing.call(this, OleObject);
+	}
+	ApiOleObject.prototype = Object.create(ApiDrawing.prototype);
+	ApiOleObject.prototype.constructor = ApiOleObject;
 
 	/**
      * Class representing a table.
@@ -312,6 +322,29 @@
      * @typedef {("cross" | "in" | "none" | "out")} TickMark
      * */
 
+    /**
+     * Text transform type.
+	 * @typedef {("textArchDown" | "textArchDownPour" | "textArchUp" | "textArchUpPour" | "textButton" | "textButtonPour" | "textCanDown"
+	 * | "textCanUp" | "textCascadeDown" | "textCascadeUp" | "textChevron" | "textChevronInverted" | "textCircle" | "textCirclePour"
+	 * | "textCurveDown" | "textCurveUp" | "textDeflate" | "textDeflateBottom" | "textDeflateInflate" | "textDeflateInflateDeflate" | "textDeflateTop"
+	 * | "textDoubleWave1" | "textFadeDown" | "textFadeLeft" | "textFadeRight" | "textFadeUp" | "textInflate" | "textInflateBottom" | "textInflateTop"
+	 * | "textPlain" | "textRingInside" | "textRingOutside" | "textSlantDown" | "textSlantUp" | "textStop" | "textTriangle" | "textTriangleInverted"
+	 * | "textWave1" | "textWave2" | "textWave4" | "textNoShape")} TextTransform
+	 * */
+
+    /**
+	 * Axis position in the chart.
+	 * @typedef {("top" | "bottom" | "right" | "left")} AxisPos
+	 */
+
+    /**
+	 * Standard numeric format.
+	 * @typedef {("General" | "0" | "0.00" | "#,##0" | "#,##0.00" | "0%" | "0.00%" |
+	 * "0.00E+00" | "# ?/?" | "# ??/??" | "m/d/yyyy" | "d-mmm-yy" | "d-mmm" | "mmm-yy" | "h:mm AM/PM" |
+	 * "h:mm:ss AM/PM" | "h:mm" | "h:mm:ss" | "m/d/yyyy h:mm" | "#,##0_);(#,##0)" | "#,##0_);[Red](#,##0)" | 
+	 * "#,##0.00_);(#,##0.00)" | "#,##0.00_);[Red](#,##0.00)" | "mm:ss" | "[h]:mm:ss" | "mm:ss.0" | "##0.0E+0" | "@")} NumFormat
+	 */
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // Base Api
@@ -341,7 +374,7 @@
      * @typeofeditors ["CPE"]
      * @memberof Api
      * @param {ApiTheme} [oTheme = ApiPresentation.GetMaster(0).GetTheme()] - The presentation theme object.
-     * @returns {ApiMaster | null} - returns null if presentation theme doesn't exist.
+     * @returns {?ApiMaster} - returns null if presentation theme doesn't exist.
      */
     Api.prototype.CreateMaster = function(oTheme){
         if (!oTheme || !oTheme.GetClassType || oTheme.GetClassType() !== "theme")
@@ -545,6 +578,7 @@
         return new ApiThemeFontScheme(oFontScheme);
     };
     
+
     /**
      * Creates a new slide.
      * @typeofeditors ["CPE"]
@@ -573,8 +607,34 @@
     Api.prototype.CreateImage = function(sImageSrc, nWidth, nHeight){
         var oImage = AscFormat.DrawingObjectsController.prototype.createImage(sImageSrc, 0, 0, nWidth/36000, nHeight/36000);
         oImage.setParent(private_GetCurrentSlide());
-        return new ApiImage(AscFormat.DrawingObjectsController.prototype.createImage(sImageSrc, 0, 0, nWidth/36000, nHeight/36000));
+        return new ApiImage(oImage);
     };
+
+    /**
+	 * Creates an OLE object with the parameters specified.
+	 * @memberof Api
+	 * @typeofeditors ["CPE"]
+	 * @param {string} sImageSrc - The image source where the image to be inserted should be taken from (currently, only internet URL or Base64 encoded images are supported).
+	 * @param {EMU} nWidth - The OLE object width in English measure units.
+	 * @param {EMU} nHeight - The OLE object height in English measure units.
+	 * @param {string} sData - The OLE object string data.
+	 * @param {string} sAppId - The application ID associated with the current OLE object.
+	 * @returns {ApiOleObject}
+	 */
+	Api.prototype.CreateOleObject = function(sImageSrc, nWidth, nHeight, sData, sAppId)
+	{
+		if (typeof sImageSrc === "string" && sImageSrc.length > 0 && typeof sData === "string"
+			&& typeof sAppId === "string" && sAppId.length > 0
+			&& AscFormat.isRealNumber(nWidth) && AscFormat.isRealNumber(nHeight)
+		)
+
+		var nW = private_EMU2MM(nWidth);
+		var nH = private_EMU2MM(nHeight);
+
+		var oOleObject = AscFormat.DrawingObjectsController.prototype.createOleObject(sData, sAppId, sImageSrc, 0, 0, nW, nH);
+		oOleObject.setParent(private_GetCurrentSlide());
+		return new ApiOleObject(oOleObject);
+	};
 
     /**
      * Creates a shape with the parameters specified.
@@ -610,11 +670,13 @@
      * @param {EMU} nWidth - The chart width in English measure units.
      * @param {EMU} nHeight - The chart height in English measure units.
      * @param {number} nStyleIndex - The chart color style index (can be <b>1 - 48</b>, as described in OOXML specification).
+     * @param {NumFormat[] | String[]} aNumFormats - Numeric formats which will be applied to the series (can be custom formats).
+     * The default numeric format is "General".
      * @returns {ApiChart}
      * */
-    Api.prototype.CreateChart = function(sType, aSeries, aSeriesNames, aCatNames, nWidth, nHeight, nStyleIndex)
+    Api.prototype.CreateChart = function(sType, aSeries, aSeriesNames, aCatNames, nWidth, nHeight, nStyleIndex, aNumFormats)
     {
-        var oChartSpace = AscFormat.builder_CreateChart(nWidth/36000, nHeight/36000, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex);
+        var oChartSpace = AscFormat.builder_CreateChart(nWidth/36000, nHeight/36000, sType, aCatNames, aSeriesNames, aSeries, nStyleIndex, aNumFormats);
         oChartSpace.setParent(private_GetCurrentSlide());
         return new ApiChart(oChartSpace);
     };
@@ -649,7 +711,7 @@
         var oSlide = private_GetCurrentSlide();
         if(oPresentation && oSlide){
             var oGraphicFrame = oPresentation.Create_TableGraphicFrame(nCols, nRows, oSlide, oPresentation.DefaultTableStyleId);
-            var content = oGraphicFrame.graphicObject.Content, i, j;
+            var content = oGraphicFrame.graphicObject.Content, i;
             for(i = 0; i < content.length; ++i)
             {
                 content[i].Set_Height(0, Asc.linerule_AtLeast );
@@ -745,8 +807,8 @@
 	 * @typeofeditors ["CPE"]
 	 * @memberof Api
      * @param {ApiSlide | ApiLayout | ApiMaster} object - Object in which placeholders will be checked.
-     * @param {ApiPlaceholder}  - Placeholder to be added. 
-     * @return {bool} - return false if object is unsupported or oPlaceholder isn't a placeholder.
+     * @param {ApiPlaceholder} oPlaceholder - Placeholder to be added.
+     * @return {boolean} - return false if object is unsupported or oPlaceholder isn't a placeholder.
 	 */
     Api.prototype.private_checkPlaceholders = function(object, oPlaceholder)
     {
@@ -777,11 +839,198 @@
         {
             noIdxPlaceholders[nPh].idx = String(maxIndex + 1);
             maxIndex++;
-        };
+        }
 
         return true;
     };
 
+    /**
+	 * Creates a Text Art object with the parameters specified.
+	 * @memberof Api
+	 * @typeofeditors ["CPE"]
+	 * @param {ApiTextPr} [oTextPr=Api.CreateTextPr()] - The text properties.
+	 * @param {string} [sText="Your text here"] - The text for the Text Art object.
+     * @param {TextTransform} [sTransform="textNoShape"] - Text transform type.
+	 * @param {ApiFill} [oFill=Api.CreateNoFill()] - The color or pattern used to fill the Text Art object.
+	 * @param {ApiStroke} [oStroke=Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the Text Art object shadow.
+	 * @param {number} [nRotAngle=0] - Rotation angle.
+	 * @param {EMU} [nWidth=1828800] - The Text Art width measured in English measure units.
+	 * @param {EMU} [nHeight=1828800] - The Text Art heigth measured in English measure units.
+     * @param {EMU} [nIndLeft=ApiPresentation.GetWidth() / 2] - The Text Art left side indentation value measured in English measure units.
+	 * @param {EMU} [nIndTop=ApiPresentation.GetHeight() / 2] - The Text Art top side indentation value measured in English measure units.
+	 * @returns {ApiDrawing}
+	 */
+    Api.prototype.CreateWordArt = function(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight, nIndLeft, nIndTop) {
+        var oPres = private_GetPresentation();
+		oTextPr   = oTextPr && oTextPr.TextPr ? oTextPr.TextPr : null;
+		nRotAngle = typeof(nRotAngle) === "number" && nRotAngle > 0 ? nRotAngle : 0;
+		nWidth    = typeof(nWidth) === "number" && nWidth > 0 ? nWidth : 1828800;
+		nHeight   = typeof(nHeight) === "number" && nHeight > 0 ? nHeight : 1828800;
+		oFill     = oFill && oFill.UniFill ? oFill.UniFill : this.CreateNoFill().UniFill;
+		oStroke   = oStroke && oStroke.Ln ? oStroke.Ln : this.CreateStroke(0, this.CreateNoFill()).Ln;
+        sTransform = typeof(sTransform) === "string" && sTransform !== "" ? sTransform : "textNoShape";
+
+		var oArt = this.private_createWordArt(oTextPr, sText, sTransform, oFill, oStroke, nRotAngle, nWidth, nHeight);
+
+        nIndLeft  = typeof(nIndLeft) === "number" && nIndLeft > -1 ? nIndLeft : (oPres.GetWidthMM() - oArt.spPr.xfrm.extX) / 2;
+        nIndTop  = typeof(nIndTop) === "number" && nIndTop > -1 ? nIndTop : (oPres.GetHeightMM() - oArt.spPr.xfrm.extY) / 2;
+
+        oArt.spPr.xfrm.setOffX(nIndLeft);
+        oArt.spPr.xfrm.setOffY(nIndTop);
+
+		return new ApiDrawing(oArt);
+	};
+
+    /**
+	 * Converts the specified JSON object into the Document Builder object of the corresponding type.
+	 * @memberof Api
+	 * @param {JSON} sMessage - The JSON object to convert.
+	 * @typeofeditors ["CDE"]
+	 */
+	Api.prototype.FromJSON = function(sMessage)
+	{
+		let oReader = new AscCommon.ReaderFromJSON();
+        let oApiPresentation = this.GetPresentation();
+        let oPresentation = private_GetPresentation();
+		let oParsedObj  = JSON.parse(sMessage);
+        let oResult = null;
+		switch (oParsedObj["type"])
+		{
+            case "presentation":
+                if (oParsedObj["tblStyleLst"])
+                    oReader.TableStylesFromJSON(oParsedObj["tblStyleLst"]);
+
+                let oSldSize = oParsedObj["sldSz"] ? oReader.SlideSizeFromJSON(oParsedObj["sldSz"]) : null;
+                let oShowPr  = oParsedObj["showPr"] ? oReader.ShowPrFromJSON(oParsedObj["showPr"]) : null;
+                oSldSize && oPresentation.setSldSz(oSldSize);
+                oShowPr && oPresentation.setShowPr(oShowPr);
+
+                for (let nNoteMaster = 0; nNoteMaster < oParsedObj["notesMasters"].length; nNoteMaster++)
+                    oReader.NotesMasterFromJSON(oParsedObj["notesMasters"][nNoteMaster], oPresentation);
+
+                for (let nMaster = 0; nMaster < oParsedObj["sldMasters"].length; nMaster++)
+                    oReader.MasterSlideFromJSON(oParsedObj["sldMasters"][nMaster], oPresentation);
+
+                for (let nSlide = 0; nSlide < oParsedObj["slides"].length; nSlide++)
+                {
+                    let oSlide = oReader.SlideFromJSON(oParsedObj["slides"][nSlide]);
+                    oSlide.setSlideSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
+                    oSlide.setSlideNum(oPresentation.Slides.length);
+                    oPresentation.insertSlide(oPresentation.Slides.length, oSlide);
+                }
+
+
+                let oCPres = new AscCommon.CPres();
+                oCPres.defaultTextStyle = oReader.LstStyleFromJSON(oParsedObj["defaultTextStyle"]);
+                oCPres.attrAutoCompressPictures = oParsedObj["autoCompressPictures"];
+                oCPres.attrBookmarkIdSeed = oParsedObj["bookmarkIdSeed"];
+                oCPres.attrCompatMode = oParsedObj["compatMode"];
+                oCPres.attrConformance = oParsedObj["conformance"] === "strict" ? c_oAscConformanceType.Strict : c_oAscConformanceType.Transitional;
+                oCPres.attrEmbedTrueTypeFonts = oParsedObj["embedTrueTypeFonts"];
+                oCPres.attrFirstSlideNum = oParsedObj["firstSlideNum"];
+                oCPres.attrRemovePersonalInfoOnSave = oParsedObj["removePersonalInfoOnSave"];
+                oCPres.attrRtl = oParsedObj["rtl"];
+                oCPres.attrSaveSubsetFonts = oParsedObj["saveSubsetFonts"];
+                oCPres.attrServerZoom = oParsedObj["serverZoom"];
+                oCPres.attrShowSpecialPlsOnTitleSld = oParsedObj["showSpecialPlsOnTitleSld"];
+                oCPres.attrStrictFirstAndLastChars = oParsedObj["strictFirstAndLastChars"];
+
+                oPresentation.pres = oCPres;
+                oPresentation.setDefaultTextStyle(oCPres.defaultTextStyle);
+                oPresentation.setShowSpecialPlsOnTitleSld(oCPres.attrShowSpecialPlsOnTitleSld);
+                oPresentation.setFirstSlideNum(oCPres.attrFirstSlideNum);
+
+                oResult = oApiPresentation;
+                break;
+			case "docContent":
+				oResult = this.private_CreateApiDocContent(oReader.DocContentFromJSON(oParsedObj));
+                break;
+			case "drawingDocContent":
+				oResult = this.private_CreateApiDocContent(oReader.DrawingDocContentFromJSON(oParsedObj));
+                break;
+			case "paragraph":
+				oResult = this.private_CreateApiParagraph(oReader.ParagraphFromJSON(oParsedObj));
+                break;
+			case "run":
+			case "mathRun":
+			case "endRun":
+				oResult = this.private_CreateApiRun(oReader.ParaRunFromJSON(oParsedObj));
+                break;
+			case "hyperlink":
+				oResult = this.private_CreateApiHyperlink(oReader.HyperlinkFromJSON(oParsedObj));
+                break;
+            case "graphicFrame":
+                if (oParsedObj["tblStyleLst"])
+                    oReader.TableStylesFromJSON(oParsedObj["tblStyleLst"]);
+                oResult = new ApiTable(oReader.GraphicObjFromJSON(oParsedObj));
+                break;
+			case "image":
+				oResult = new ApiImage(oReader.GraphicObjFromJSON(oParsedObj));
+                break;
+            case "shape":
+            case "connectShape":
+                oResult = new ApiShape(oReader.GraphicObjFromJSON(oParsedObj));
+                break;
+            case "chartSpace":
+                oResult = new ApiChart(oReader.GraphicObjFromJSON(oParsedObj));
+                break;
+			case "textPr":
+				oResult = this.private_CreateApiTextPr(oReader.TextPrDrawingFromJSON(oParsedObj));
+                break;
+			case "paraPr":
+				oResult = this.private_CreateApiParaPr(oReader.ParaPrDrawingFromJSON(oParsedObj));
+                break;
+			case "fill":
+				oResult = this.private_CreateApiFill(oReader.FillFromJSON(oParsedObj));
+                break;
+			case "stroke":
+				oResult = this.private_CreateApiStroke(oReader.LnFromJSON(oParsedObj));
+                break;
+			case "gradStop":
+				let oGs = oReader.GradStopFromJSON(oParsedObj);
+				oResult = this.private_CreateApiGradStop(this.private_CreateApiUniColor(oGs.color), oGs.pos);
+                break;
+			case "uniColor":
+				oResult = this.private_CreateApiUniColor(oReader.ColorFromJSON(oParsedObj));
+                break;
+			case "slide":
+                if (oParsedObj["tblStyleLst"])
+                    oReader.TableStylesFromJSON(oParsedObj["tblStyleLst"]);
+				oResult = new ApiSlide(oReader.SlideFromJSON(oParsedObj));
+                break;
+			case "sldLayout":
+                if (oParsedObj["tblStyleLst"])
+                    oReader.TableStylesFromJSON(oParsedObj["tblStyleLst"]);
+				oResult = new ApiLayout(oReader.SlideLayoutFromJSON(oParsedObj));
+                break;
+			case "sldMaster":
+                if (oParsedObj["tblStyleLst"])
+                    oReader.TableStylesFromJSON(oParsedObj["tblStyleLst"]);
+                oResult = new ApiMaster(oReader.MasterSlideFromJSON(oParsedObj));
+                break;
+			case "fontScheme":
+				oResult = new ApiThemeFontScheme(oReader.FontSchemeFromJSON(oParsedObj));
+                break;
+			case "fmtScheme":
+				oResult = new ApiThemeFormatScheme(oReader.FmtSchemeFromJSON(oParsedObj));
+                break;
+			case "clrScheme":
+				oResult = new ApiThemeColorScheme(oReader.ClrSchemeFromJSON(oParsedObj));
+                break;
+            case "slides":
+                if (oParsedObj["tblStyleLst"])
+                    oReader.TableStylesFromJSON(oParsedObj["tblStyleLst"]);
+                let aApiSlides = []
+                let aSlides = oReader.SlidesFromJSON(oParsedObj);
+                for (let nSlide = 0; nSlide < aSlides.length; nSlide++)
+                    aApiSlides.push(new ApiSlide(aSlides[nSlide]));
+                oResult = aApiSlides;
+                break;
+		}
+
+        oReader.AssignConnectedObjects();
+        return oResult;
+	};
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiPresentation
@@ -885,68 +1134,12 @@
      */
     ApiPresentation.prototype.ReplaceCurrentImage = function(sImageUrl, Width, Height)
     {
-        var oPr = this.Presentation;
+        let oPr = this.Presentation;
         if(oPr.Slides[oPr.CurPage]){
-            var _slide = oPr.Slides[oPr.CurPage];
-            var oController = _slide.graphicObjects;
-            var _w = Width/36000.0;
-            var _h = Height/36000.0;
-            var oImage = oController.createImage(sImageUrl, 0, 0, _w, _h);
-            oImage.setParent(_slide);
-            var selectedObjects, spTree;
-            if(oController.selection.groupSelection){
-                selectedObjects = oController.selection.groupSelection.selectedObjects;
-            }
-            else{
-                selectedObjects = oController.selectedObjects;
-            }
-            if(selectedObjects.length > 0 && !oController.getTargetDocContent()){
-                if(selectedObjects[0].group){
-                    spTree = selectedObjects[0].group.spTree;
-                }
-                else{
-                    spTree = _slide.cSld.spTree;
-                }
-                for(var i = 0; i < spTree.length; ++i){
-                    if(spTree[i] === selectedObjects[0]){
-                        var _xfrm = spTree[i].spPr && spTree[i].spPr.xfrm;
-                        var _xfrm2 = oImage.spPr.xfrm;
-                        if(_xfrm){
-                            _xfrm2.setOffX(_xfrm.offX);
-                            _xfrm2.setOffY(_xfrm.offY);
-                            //_xfrm2.setRot(_xfrm.rot);
-                        }
-                        else{
-                            if(AscFormat.isRealNumber(spTree[i].x) && AscFormat.isRealNumber(spTree[i].y)){
-                                _xfrm2.setOffX(spTree[i].x);
-                                _xfrm2.setOffY(spTree[i].y);
-                            }
-                        }
-                        if(selectedObjects[0].group){
-                            var _group = selectedObjects[0].group;
-                            _group.removeFromSpTreeByPos(i);
-                            _group.addToSpTree(i, oImage);
-                            oImage.setGroup(_group);
-                            oController.selection.groupSelection.resetInternalSelection();
-                            _group.selectObject(oImage, oPr.CurPage);
-                        }
-                        else{
-                            _slide.removeFromSpTreeByPos(i);
-                            _slide.addToSpTreeToPos(i, oImage);
-                            oController.resetSelection();
-                            oController.selectObject(oImage, oPr.CurPage);
-                        }
-                        return;
-                    }
-                }
-            }
-            var _x = (this.Presentation.GetWidthMM() - _w)/2.0;
-            var _y = (this.Presentation.GetHeightMM() - _h)/2.0;
-            oImage.spPr.xfrm.setOffX(_x);
-            oImage.spPr.xfrm.setOffY(_y);
-            _slide.addToSpTreeToPos(_slide.cSld.spTree.length, oImage);
-            oController.resetSelection();
-            oController.selectObject(oImage, oPr.CurPage);
+            let _slide = oPr.Slides[oPr.CurPage];
+            let oController = _slide.graphicObjects;
+            let dK = 1 / 36000 / AscCommon.g_dKoef_pix_to_mm;
+            oController.putImageToSelection(sImageUrl, Width * dK, Height * dK );
         }
     };
 
@@ -956,7 +1149,7 @@
 	 * @typeofeditors ["CPE"]
 	 * @param {string} sLangId - The possible value for this parameter is a language identifier as defined by
 	 * RFC 4646/BCP 47. Example: "en-CA".
-     * @returns {bool}
+     * @returns {boolean}
 	 */
     ApiPresentation.prototype.SetLanguage = function(sLangId)
     {
@@ -974,7 +1167,7 @@
      */
     ApiPresentation.prototype.GetSlidesCount = function()
     {
-        return this.Presentation.Slides.length;
+        return this.Presentation.GetSlidesCount();
     };
 
     /**
@@ -1006,7 +1199,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} [nPos    = ApiPresentation.GetMastersCount()]
      * @param {ApiMaster} oApiMaster - The slide master to be added.
-     * @returns {bool} - return false if position is invalid or oApiMaster doesn't exist.
+     * @returns {boolean} - return false if position is invalid or oApiMaster doesn't exist.
      */
     ApiPresentation.prototype.AddMaster = function(nPos, oApiMaster)
     {
@@ -1027,7 +1220,7 @@
      * Applies a theme to all the slides in the presentation.
      * @typeofeditors ["CPE"]
      * @param {ApiTheme} oApiTheme - The presentation theme.
-     * @returns {bool} - returns false if param isn't theme or presentation doesn't exist.
+     * @returns {boolean} - returns false if param isn't theme or presentation doesn't exist.
      * */
     ApiPresentation.prototype.ApplyTheme = function(oApiTheme){
        if (this.Presentation && oApiTheme.GetClassType && oApiTheme.GetClassType() === "theme")
@@ -1045,7 +1238,7 @@
      * @param {Number} [nStart=0] - The starting position for the deletion range.
      * @param {Number} [nCount=ApiPresentation.GetSlidesCount()] - The number of slides to delete.
 	 * @typeofeditors ["CPE"]
-	 * @returns {bool}
+	 * @returns {boolean}
 	 */
     ApiPresentation.prototype.RemoveSlides = function(nStart, nCount)
 	{
@@ -1065,6 +1258,87 @@
 
         return false;
 	};
+
+    /**
+     * Returns the presentation width in English measure units.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
+     * @returns {EMU}
+     */
+     ApiPresentation.prototype.GetWidth = function() {
+        if(this.Presentation){
+            this.Presentation.GetWidthEMU();
+        }
+    };
+
+    /**
+     * Returns the presentation height in English measure units.
+     * @typeofeditors ["CPE"]
+     * @memberof ApiPresentation
+     * @returns {EMU}
+     */
+    ApiPresentation.prototype.GetHeight = function() {
+        if(this.Presentation){
+            this.Presentation.GetHeightEMU();
+        }
+    };
+
+    /**
+	 * Converts the ApiPresentation object into the JSON object.
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CPE"]
+     * @param {bool} [bWriteTableStyles=false] - Specifies whether to write used table styles to the JSON object (true) or not (false).
+	 * @returns {JSON}
+	 */
+    ApiPresentation.prototype.ToJSON = function(bWriteTableStyles){
+        let oWriter = new AscCommon.WriterToJSON();
+        let oResult = oWriter.SerPresentation(this.Presentation);
+        if (bWriteTableStyles)
+            oResult["tblStyleLst"] = oWriter.SerTableStylesForWrite();
+		return JSON.stringify(oResult);
+    };
+    /**
+	 * Converts the slides from the current ApiPresentation object into the JSON objects.
+	 * @memberof ApiPresentation
+	 * @typeofeditors ["CPE"]
+     * @param {bool} [nStart=0] - The index to the start slide.
+     * @param {bool} [nStart=ApiPresentation.GetSlidesCount() - 1] - The index to the end slide.
+     * @param {bool} [bWriteLayout=false] - Specifies if the slide layout will be written to the JSON object or not.
+     * @param {bool} [bWriteMaster=false] - Specifies if the slide master will be written to the JSON object or not (bWriteMaster is false if bWriteLayout === false).
+     * @param {bool} [bWriteAllMasLayouts=false] - Specifies if all child layouts from the slide master will be written to the JSON object or not.
+     * @param {bool} [bWriteTableStyles=false] - Specifies whether to write used table styles to the JSON object (true) or not (false).
+	 * @returns {JSON[]}
+	 */
+    ApiPresentation.prototype.SlidesToJSON = function(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts, bWriteTableStyles){
+        let oWriter = new AscCommon.WriterToJSON();
+
+        nStart = nStart == undefined ? 0 : nStart;
+        nEnd = nEnd == undefined ? this.Presentation.Slides.length - 1 : nEnd;
+
+        if (nStart < 0 || nStart >= this.Presentation.Slides.length)
+            return;
+        if (nEnd < 0 || nEnd >= this.Presentation.Slides.length)
+            return;
+
+        let oResult = oWriter.SerSlides(nStart, nEnd, bWriteLayout, bWriteMaster, bWriteAllMasLayouts);
+        if (bWriteTableStyles)
+            oResult["tblStyleLst"] = oWriter.SerTableStylesForWrite();
+        return JSON.stringify(oResult);
+    };
+
+    ApiPresentation.prototype.GetInfoOle = function(){
+        for (var nSlide = 0; nSlide < this.Presentation.Slides.length; nSlide++)
+        {
+            var oSlide = this.Presentation.Slides[nSlide];
+            for (var nDrawing = 0; nDrawing < oSlide.cSld.spTree.length; nDrawing++)
+            {
+                var oDrawing = oSlide.cSld.spTree[nDrawing];
+
+                if (oDrawing instanceof AscFormat.COleObject)
+                    return {slide: nSlide, drawing: nDrawing}
+            }
+        }
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -1090,7 +1364,7 @@
      */
     ApiMaster.prototype.GetLayout = function(nPos)
     {
-        if (nPos < 0 | nPos > this.Master.sldLayoutLst.length)
+        if (nPos < 0 || nPos > this.Master.sldLayoutLst.length)
             return null;
         
         return new ApiLayout(this.Master.sldLayoutLst[nPos])
@@ -1101,7 +1375,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} [nPos = ApiMaster.GetLayoutsCount()] - Position where a layout will be added.
      * @param {ApiLayout} oLayout - A layout to be added.
-     * @returns {bool} - returns false if oLayout isn't a layout.
+     * @returns {boolean} - returns false if oLayout isn't a layout.
      */
     ApiMaster.prototype.AddLayout = function(nPos, oLayout)
     {
@@ -1121,7 +1395,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} nPos - Position from which a layout will be deleted.
      * @param {number} [nCount = 1] - Number of layouts to delete.
-     * @returns {bool} - return false if position is invalid.
+     * @returns {boolean} - return false if position is invalid.
      */
     ApiMaster.prototype.RemoveLayout = function(nPos, nCount)
     {
@@ -1155,7 +1429,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiMaster
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide master.
-     * @returns {bool} - returns false if slide master doesn't exist.
+     * @returns {boolean} - returns false if slide master doesn't exist.
      */
     ApiMaster.prototype.AddObject = function(oDrawing)
     {
@@ -1176,8 +1450,8 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiMaster
      * @param {number} nPos - Position from which the object will be deleted.
-     * @param {number} [nCount = 1] - Number of objects to delete. 
-     * @returns {bool} - returns false if master doesn't exist or position is invalid or master hasn't objects.
+     * @param {number} [nCount = 1] - Number of objects to delete.
+     * @returns {boolean} - returns false if master doesn't exist or position is invalid or master hasn't objects.
      */
     ApiMaster.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -1202,6 +1476,7 @@
      * @memberOf ApiMaster
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide master background.
+     * @returns {boolean}
      * */
     ApiMaster.prototype.SetBackground = function(oApiFill){
         if(oApiFill && oApiFill.GetClassType && oApiFill.GetClassType() === "fill" && this.Master){
@@ -1209,13 +1484,15 @@
             bg.bgPr      = new AscFormat.CBgPr();
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Master.changeBackground(bg);
+            return true;
         }
+        return false;
     };
 
     /**
      * Clears the slide master background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide master doesn't exist.
+     * @returns {boolean} - return false if slide master doesn't exist.
      * */
     ApiMaster.prototype.ClearBackground = function(){
         if (!this.Master)
@@ -1269,7 +1546,7 @@
     /**
      * Deletes the specified object from the parent if it exists.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if master doesn't exist or is not in the presentation.
+     * @returns {boolean} - return false if master doesn't exist or is not in the presentation.
      * */
     ApiMaster.prototype.Delete = function(){
         if (this.Master && this.Master.presentation)
@@ -1311,7 +1588,7 @@
      * Sets a copy of the theme object.
      * @typeofeditors ["CPE"]
      * @param {ApiTheme} oTheme - Presentation theme.
-     * @returns {bool} - return false if oTheme isn't a theme or slide master doesn't exist.
+     * @returns {boolean} - return false if oTheme isn't a theme or slide master doesn't exist.
      * */
     ApiMaster.prototype.SetTheme = function(oTheme){
         if (this.Master && oTheme && oTheme.GetClassType && oTheme.GetClassType() === "theme")
@@ -1353,7 +1630,7 @@
             var drawingObjects = this.Master.cSld.spTree;
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_Shape)
+                if (drawingObjects[nObject] instanceof AscFormat.CShape)
                 apiShapes.push(new ApiShape(drawingObjects[nObject]));
             }
         }
@@ -1373,7 +1650,7 @@
             var drawingObjects = this.Master.cSld.spTree;
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_ImageShape)
+                if (drawingObjects[nObject] instanceof AscFormat.CImageShape)
                 apiImages.push(new ApiImage(drawingObjects[nObject]));
             }
         }
@@ -1393,12 +1670,46 @@
             var drawingObjects = this.Master.cSld.spTree;
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_ChartSpace)
+                if (drawingObjects[nObject] instanceof AscFormat.CChartSpace)
                 apiCharts.push(new ApiChart(drawingObjects[nObject]));
             }
         }
            
         return apiCharts;
+    };
+
+    /**
+     * Returns an array with all the OLE objects from the slide master.
+     * @typeofeditors ["CPE"]
+     * @returns {ApiOleObject[]}
+     * */
+    ApiMaster.prototype.GetAllOleObjects = function(){
+        var apiOle = [];
+        if (this.Master)
+        {
+            var drawingObjects = this.Master.cSld.spTree;
+            for (var nObject = 0; nObject < drawingObjects.length; nObject++)
+            {
+                if (drawingObjects[nObject] instanceof AscFormat.COleObject)
+                    apiOle.push(new ApiOleObject(drawingObjects[nObject]));
+            }
+        }
+           
+        return apiOle;
+    };
+    /**
+	 * Converts the ApiMaster object into the JSON object.
+	 * @memberof ApiMaster
+	 * @typeofeditors ["CPE"]
+     * @param {bool} [bWriteTableStyles=false] - Specifies whether to write used table styles to the JSON object (true) or not (false).
+	 * @returns {JSON}
+	 */
+    ApiMaster.prototype.ToJSON = function(bWriteTableStyles){
+        let oWriter = new AscCommon.WriterToJSON();
+        let oResult = oWriter.SerMasterSlide(this.Master, true);
+        if (bWriteTableStyles)
+            oResult["tblStyleLst"] = oWriter.SerTableStylesForWrite();
+		return JSON.stringify(oResult);
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -1410,7 +1721,7 @@
     /**
      * Returns the type of the ApiLayout class.
      * @typeofeditors ["CPE"]
-     * @returns {"master"}
+     * @returns {"layout"}
      */
     ApiLayout.prototype.GetClassType = function()
     {
@@ -1421,7 +1732,7 @@
      * Sets a name to the current layout.
      * @typeofeditors ["CPE"]
      * @param {string} sName - Layout name to be set.
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiLayout.prototype.SetName = function(sName)
     {
@@ -1438,7 +1749,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiLayout
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide layout.
-     * @returns {bool} - returns false if slide layout doesn't exist.
+     * @returns {boolean} - returns false if slide layout doesn't exist.
      */
     ApiLayout.prototype.AddObject = function(oDrawing)
     {
@@ -1459,8 +1770,8 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiLayout
      * @param {number} nPos - Position from which the object will be deleted.
-     * @param {number} [nCount = 1] - The number of elements to delete. 
-     * @returns {bool} - returns false if layout doesn't exist or position is invalid or layout hasn't objects.
+     * @param {number} [nCount = 1] - The number of elements to delete.
+     * @returns {boolean} - returns false if layout doesn't exist or position is invalid or layout hasn't objects.
      */
     ApiLayout.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -1483,7 +1794,8 @@
      * Sets the background to the current slide layout.
      * @memberOf ApiLayout
      * @typeofeditors ["CPE"]
-     * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide layout background.
+     * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide layout background.\
+     * @returns {boolean}
      * */
     ApiLayout.prototype.SetBackground = function(oApiFill){
         if(oApiFill && oApiFill.GetClassType && oApiFill.GetClassType() === "fill" && this.Layout){
@@ -1491,13 +1803,15 @@
             bg.bgPr      = new AscFormat.CBgPr();
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Layout.changeBackground(bg);
+            return true;
         }
+        return false;
     };
 
     /**
      * Clears the slide layout background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide layout doesn't exist.
+     * @returns {boolean} - return false if slide layout doesn't exist.
      * */
     ApiLayout.prototype.ClearBackground = function(){
         if (!this.Layout)
@@ -1515,7 +1829,7 @@
     /**
      * Sets the master background as the background of the layout.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if master is null or master hasn't background.  
+     * @returns {boolean} - returns false if master is null or master hasn't background.
      * */
     ApiLayout.prototype.FollowMasterBackground = function(){
         if (!this.Layout)
@@ -1534,6 +1848,7 @@
 
     /**
      * Creates a copy of the specified slide layout object.
+     * Copies without master slide.
      * @typeofeditors ["CPE"]
      * @returns {ApiLayout | null} - returns new ApiLayout object that represents the copy of slide layout. 
      * Returns null if slide layout doesn't exist.
@@ -1549,7 +1864,7 @@
     /**
      * Deletes the specified object from the parent slide master if it exists.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if parent slide master doesn't exist.
+     * @returns {boolean} - return false if parent slide master doesn't exist.
      * */
     ApiLayout.prototype.Delete = function(){
         if (this.Layout && this.Layout.Master)
@@ -1593,7 +1908,7 @@
      * Moves the specified layout to a specific location within the same collection.
      * @typeofeditors ["CPE"]
      * @param {number} nPos - Position where the specified slide layout will be moved to.
-     * @returns {bool} - returns false if layout or parent slide master doesn't exist or position is invalid.
+     * @returns {boolean} - returns false if layout or parent slide master doesn't exist or position is invalid.
      * */
     ApiLayout.prototype.MoveTo = function(nPos){
         if (!this.Layout || !this.Layout.Master)
@@ -1640,8 +1955,8 @@
             var drawingObjects = this.Layout.cSld.spTree;
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_Shape)
-                apiShapes.push(new ApiShape(drawingObjects[nObject]));
+                if (drawingObjects[nObject] instanceof AscFormat.CShape)
+                    apiShapes.push(new ApiShape(drawingObjects[nObject]));
             }
         }
            
@@ -1660,8 +1975,8 @@
             var drawingObjects = this.Layout.cSld.spTree;
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_ImageShape)
-                apiImages.push(new ApiImage(drawingObjects[nObject]));
+                if (drawingObjects[nObject] instanceof AscFormat.CImageShape)
+                    apiImages.push(new ApiImage(drawingObjects[nObject]));
             }
         }
            
@@ -1680,12 +1995,32 @@
             var drawingObjects = this.Layout.cSld.spTree;
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_ChartSpace)
-                apiCharts.push(new ApiChart(drawingObjects[nObject]));
+                if (drawingObjects[nObject] instanceof AscFormat.CChartSpace)
+                    apiCharts.push(new ApiChart(drawingObjects[nObject]));
             }
         }
            
         return apiCharts;
+    };
+
+    /**
+     * Returns an array with all the OLE objects from the slide layout.
+     * @typeofeditors ["CPE"]
+     * @returns {ApiOleObject[]}
+     * */
+    ApiLayout.prototype.GetAllOleObjects = function(){
+        var apiOle = [];
+        if (this.Layout)
+        {
+            var drawingObjects = this.Layout.cSld.spTree;
+            for (var nObject = 0; nObject < drawingObjects.length; nObject++)
+            {
+                if (drawingObjects[nObject] instanceof AscFormat.COleObject)
+                    apiOle.push(new ApiOleObject(drawingObjects[nObject]));
+            }
+        }
+           
+        return apiOle;
     };
 
     /**
@@ -1698,6 +2033,21 @@
             return new ApiMaster(this.Layout.Master);
            
         return null;
+    };
+    /**
+	 * Converts the ApiLayout object into the JSON object.
+	 * @memberof ApiLayout
+     * @typeofeditors ["CPE"]
+     * @param {bool} [bWriteMaster=false] - Specifies if the slide master will be written to the JSON object or not.
+     * @param {bool} [bWriteTableStyles=false] - Specifies whether to write used table styles to the JSON object (true) or not (false).
+	 * @returns {JSON}
+	 */
+    ApiLayout.prototype.ToJSON = function(bWriteMaster, bWriteTableStyles){
+        let oWriter = new AscCommon.WriterToJSON();
+        let oResult = oWriter.SerSlideLayout(this.Layout, bWriteMaster);
+        if (bWriteTableStyles)
+            oResult["tblStyleLst"] = oWriter.SerTableStylesForWrite();
+		return JSON.stringify(oResult);
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -1719,11 +2069,11 @@
      * Sets the placeholder type.
      * @typeofeditors ["CPE"]
      * @param {string} sType - Placeholder type ("body", "chart", "clipArt", "ctrTitle", "diagram", "date", "footer", "header", "media", "object", "picture", "sldImage", "sldNumber", "subTitle", "table", "title").
-     * @returns {bool} - returns false if placeholder type doesn't exist.
+     * @returns {boolean} - returns false if placeholder type doesn't exist.
      */
     ApiPlaceholder.prototype.SetType = function(sType)
     {
-        var nType   = null;
+        var nType;
         switch (sType)
         {
             case "body":
@@ -1814,7 +2164,7 @@
      * Sets the color scheme to the current presentation theme.
      * @typeofeditors ["CPE"]
      * @param {ApiThemeColorScheme} oApiColorScheme - Theme color scheme.
-     * @returns {bool} - return false if color scheme doesn't exist.
+     * @returns {boolean} - return false if color scheme doesn't exist.
      */
     ApiTheme.prototype.SetColorScheme = function(oApiColorScheme)
     {
@@ -1846,7 +2196,7 @@
      * Sets the format scheme to the current presentation theme.
      * @typeofeditors ["CPE"]
      * @param {ApiThemeFormatScheme} oApiFormatScheme - Theme format scheme.
-     * @returns {bool} - return false if format scheme doesn't exist.
+     * @returns {boolean} - return false if format scheme doesn't exist.
      */
     ApiTheme.prototype.SetFormatScheme = function(oApiFormatScheme)
     {
@@ -1878,13 +2228,13 @@
      * Sets the font scheme to the current presentation theme.
      * @typeofeditors ["CPE"]
      * @param {ApiThemeFontScheme} oApiFontScheme - Theme font scheme.
-     * @returns {bool} - return false if font scheme doesn't exist.
+     * @returns {boolean} - return false if font scheme doesn't exist.
      */
     ApiTheme.prototype.SetFontScheme = function(oApiFontScheme)
     {
         if (oApiFontScheme && oApiFontScheme.GetClassType && oApiFontScheme.GetClassType() === "themeFontScheme")
         {
-            this.ThemeInfo.Theme.setFontScheme(oApiFontScheme.FontScheme);
+            this.ThemeInfo.Theme.changeFontScheme(oApiFontScheme.FontScheme);
             return true;
         }
 
@@ -1926,7 +2276,7 @@
      * Sets a name to the current theme color scheme.
      * @typeofeditors ["CPE"]
      * @param {string} sName - Theme color scheme name.
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeColorScheme.prototype.SetSchemeName = function(sName)
     {
@@ -1941,7 +2291,7 @@
      * @typeofeditors ["CPE"]
      * @param {number} nPos - Color position in the color scheme which will be changed.
      * @param {ApiUniColor | ApiRGBColor} oColor - New color of the theme color scheme.
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeColorScheme.prototype.ChangeColor = function(nPos, oColor)
     {
@@ -1966,6 +2316,17 @@
         return new ApiThemeColorScheme(this.ColorScheme.createDuplicate());
     };
 
+    /**
+	 * Converts the ApiThemeColorScheme object into the JSON object.
+	 * @memberof ApiThemeColorScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeColorScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerClrScheme(this.ColorScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiThemeFormatScheme
@@ -1975,7 +2336,7 @@
     /**
      * Returns the type of the ApiThemeFormatScheme class.
      * @typeofeditors ["CPE"]
-     * @returns {"formatColorScheme"}
+     * @returns {"themeFormatScheme"}
      */
     ApiThemeFormatScheme.prototype.GetClassType = function()
     {
@@ -1986,7 +2347,7 @@
      * Sets a name to the current theme format scheme.
      * @typeofeditors ["CPE"]
      * @param {string} sName - Theme format scheme name.
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeFormatScheme.prototype.SetSchemeName = function(sName)
     {
@@ -2068,7 +2429,7 @@
      * @typeofeditors ["CPE"]
      * @param {?Array} arrEffect - The array of effect styles must contain 3 elements - subtle, moderate and intense fills.
      * If an array is empty or NoFill elements are in the array, it will be filled with the Api.CreateStroke(0, Api.CreateNoFill()) elements.
-     * @returns {bool}
+     * @returns {boolean}
      */
     ApiThemeFormatScheme.prototype.ChangeEffectStyles = function(arrEffect)
     {
@@ -2098,6 +2459,17 @@
         return new ApiThemeFormatScheme(this.FormatScheme.createDuplicate());
     };
 
+    /**
+	 * Converts the ApiThemeFormatScheme object into the JSON object.
+	 * @memberof ApiThemeFormatScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeFormatScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFmtScheme(this.FormatScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiThemeFontScheme
@@ -2107,7 +2479,7 @@
     /**
      * Returns the type of the ApiThemeFontScheme class.
      * @typeofeditors ["CPE"]
-     * @returns {"fontScheme"}
+     * @returns {"themeFontScheme"}
      */
     ApiThemeFontScheme.prototype.GetClassType = function()
     {
@@ -2118,7 +2490,7 @@
      * Sets a name to the current theme font scheme.
      * @typeofeditors ["CPE"]
      * @param {string} sName - Theme font scheme name.
-     * @returns {bool} - returns false if font scheme doesn't exist.
+     * @returns {boolean} - returns false if font scheme doesn't exist.
      */
     ApiThemeFontScheme.prototype.SetSchemeName = function(sName)
     {
@@ -2174,7 +2546,18 @@
     {
         return new ApiThemeFontScheme(this.FontScheme.createDuplicate());
     };
-    
+
+    /**
+	 * Converts the ApiThemeFontScheme object into the JSON object.
+	 * @memberof ApiThemeFontScheme
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+    ApiThemeFontScheme.prototype.ToJSON = function(){
+        var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerFontScheme(this.FontScheme));
+    };
+
     //------------------------------------------------------------------------------------------------------------------
     //
     // ApiSlide
@@ -2210,7 +2593,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current presentation slide.
-     * @returns {bool} - returns false if slide doesn't exist.
+     * @returns {boolean} - returns false if slide doesn't exist.
      */
     ApiSlide.prototype.AddObject = function(oDrawing){
         if(this.Slide){
@@ -2229,8 +2612,8 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {number} nPos - Position from which the object will be deleted.
-     * @param {number} [nCount = 1] - The number of elements to delete. 
-     * @returns {bool} - returns false if slide doesn't exist or position is invalid or slide hasn't objects.
+     * @param {number} [nCount = 1] - The number of elements to delete.
+     * @returns {boolean} - returns false if slide doesn't exist or position is invalid or slide hasn't objects.
      */
     ApiSlide.prototype.RemoveObject = function(nPos, nCount)
     {
@@ -2254,6 +2637,7 @@
      * @memberOf ApiSlide
      * @typeofeditors ["CPE"]
      * @param {ApiFill} oApiFill - The color or pattern used to fill the presentation slide background.
+     * @returns {boolean}
      * */
     ApiSlide.prototype.SetBackground = function(oApiFill){
         if(oApiFill && oApiFill.GetClassType && oApiFill.GetClassType() === "fill" && this.Slide){
@@ -2262,7 +2646,9 @@
             bg.bgPr.Fill = oApiFill.UniFill;
             this.Slide.changeBackground(bg);
             this.Slide.recalculateBackground();
+            return true;
         }
+        return false;
     };
 
     /**
@@ -2291,12 +2677,13 @@
 
     /**
      * Applies the specified layout to the current slide.
+     * The layout must be in slide master.
      * @typeofeditors ["CPE"]
      * @param {ApiLayout} oLayout - Layout to be applied.
-     * @returns {bool} - returns false if slide doesn't exist.
+     * @returns {boolean} - returns false if slide doesn't exist.
      * */
     ApiSlide.prototype.ApplyLayout = function(oLayout){
-        if (!this.Slide || !oLayout)
+        if (!this.Slide || !oLayout || !oLayout.Layout.Master)
             return false;
 
         this.Slide.changeLayout(oLayout.Layout);
@@ -2306,7 +2693,7 @@
     /**
      * Deletes the current slide from the presentation.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if slide doesn't exist or is not in the presentation.
+     * @returns {boolean} - returns false if slide doesn't exist or is not in the presentation.
      * */
     ApiSlide.prototype.Delete = function(){
         if (!this.Slide)
@@ -2364,7 +2751,7 @@
      * Moves the current slide to a specific location within the same collection.
      * @typeofeditors ["CPE"]
      * @param {number} nPos - Position where the current slide will be moved to.
-     * @returns {bool} - returns false if slide doesn't exist or position is invalid or slide is not in the presentation.
+     * @returns {boolean} - returns false if slide doesn't exist or position is invalid or slide is not in the presentation.
      * */
     ApiSlide.prototype.MoveTo = function(nPos){
         var oPresentation = editor.GetPresentation().Presentation;
@@ -2387,7 +2774,7 @@
     /**
      * Returns a position of the current slide in the presentation.
      * @typeofeditors ["CPE"]
-     * @returns {number} - returns -1 if slide doesn't exist or is not in the presentation.  
+     * @returns {number} - returns -1 if slide doesn't exist or is not in the presentation.
      * */
     ApiSlide.prototype.GetSlideIndex = function (){
         if (!this.Slide)
@@ -2409,7 +2796,7 @@
     /**
      * Clears the slide background.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - return false if slide doesn't exist.
+     * @returns {boolean} - return false if slide doesn't exist.
      * */
     ApiSlide.prototype.ClearBackground = function(){
         if (!this.Slide)
@@ -2428,7 +2815,7 @@
     /**
      * Sets the layout background as the background of the slide.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if layout is null or layout hasn't background or slide doesn't exist.
+     * @returns {boolean} - returns false if layout is null or layout hasn't background or slide doesn't exist.
      * */
     ApiSlide.prototype.FollowLayoutBackground = function(){
         if (!this.Slide)
@@ -2449,7 +2836,7 @@
     /**
      * Sets the master background as the background of the slide.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - returns false if master is null or master hasn't background or slide doesn't exist.
+     * @returns {boolean} - returns false if master is null or master hasn't background or slide doesn't exist.
      * */
     ApiSlide.prototype.FollowMasterBackground = function(){
         if (!this.Slide)
@@ -2470,13 +2857,13 @@
      * Applies the specified theme to the current slide.
      * @typeofeditors ["CPE"]
      * @param {ApiTheme} oApiTheme - Presentation theme.
-     * @returns {bool} - returns false if master is null or master hasn't background.
+     * @returns {boolean} - returns false if master is null or master hasn't background.
      * */
     ApiSlide.prototype.ApplyTheme = function(oApiTheme){
-        if (!this.Slide || !oApiTheme || !oApiTheme.GetClassType ||oApiTheme.GetClassType() !== "theme")
+        if (!this.Slide || !oApiTheme || !oApiTheme.GetClassType || oApiTheme.GetClassType() !== "theme")
             return false;
 
-        var oPresentation = editor.GetPresentation().Presentation;
+        var oPresentation = private_GetPresentation();
         var i;
     
         oPresentation.clearThemeTimeouts();
@@ -2491,7 +2878,7 @@
         var oldMaster = this.Slide && this.Slide.Layout && this.Slide.Layout.Master;
         var _new_master = oApiTheme.ThemeInfo.Master;
         _new_master.presentation = oPresentation;
-        oApiTheme.ThemeInfo.Master.changeSize(oPresentation.Width, oPresentation.Height);
+        oApiTheme.ThemeInfo.Master.changeSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
         var oContent, oMasterSp, oMasterContent, oSp;
         if (oldMaster && oldMaster.hf) {
             oApiTheme.ThemeInfo.Master.setHF(oldMaster.hf.createDuplicate());
@@ -2557,7 +2944,7 @@
             }
         }
         for (i = 0; i < oApiTheme.ThemeInfo.Master.sldLayoutLst.length; ++i) {
-            oApiTheme.ThemeInfo.Master.sldLayoutLst[i].changeSize(oPresentation.Width, oPresentation.Height);
+            oApiTheme.ThemeInfo.Master.sldLayoutLst[i].changeSize(oPresentation.GetWidthMM(), oPresentation.GetHeightMM());
         }
         
         var new_layout;
@@ -2635,8 +3022,8 @@
             var drawingObjects = this.Slide.getDrawingObjects();
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_Shape)
-                apiShapes.push(new ApiShape(drawingObjects[nObject]));
+                if (drawingObjects[nObject] instanceof AscFormat.CShape)
+                    apiShapes.push(new ApiShape(drawingObjects[nObject]));
             }
         }
            
@@ -2655,8 +3042,8 @@
             var drawingObjects = this.Slide.getDrawingObjects();
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_ImageShape)
-                apiImages.push(new ApiImage(drawingObjects[nObject]));
+                if (drawingObjects[nObject] instanceof AscFormat.CImageShape)
+                    apiImages.push(new ApiImage(drawingObjects[nObject]));
             }
         }
            
@@ -2675,12 +3062,50 @@
             var drawingObjects = this.Slide.getDrawingObjects();
             for (var nObject = 0; nObject < drawingObjects.length; nObject++)
             {
-                if (drawingObjects[nObject].getObjectType() === AscDFH.historyitem_type_ChartSpace)
-                apiCharts.push(new ApiChart(drawingObjects[nObject]));
+                if (drawingObjects[nObject] instanceof AscFormat.CChartSpace)
+                    apiCharts.push(new ApiChart(drawingObjects[nObject]));
             }
         }
            
         return apiCharts;
+    };
+
+    /**
+     * Returns an array with all the OLE objects from the slide.
+     * @typeofeditors ["CPE"]
+     * @returns {ApiOleObject[]} 
+     * */
+    ApiSlide.prototype.GetAllOleObjects = function(){
+        var apiOle = [];
+        if (this.Slide)
+        {
+            var drawingObjects = this.Slide.getDrawingObjects();
+            for (var nObject = 0; nObject < drawingObjects.length; nObject++)
+            {
+                if (drawingObjects[nObject] instanceof AscFormat.COleObject)
+                    apiOle.push(new ApiOleObject(drawingObjects[nObject]));
+            }
+        }
+           
+        return apiOle;
+    };
+
+    /**
+	 * Converts the ApiSlide object into the JSON object.
+	 * @memberof ApiSlide
+     * @typeofeditors ["CPE"]
+     * @param {bool} [bWriteLayout=false] - Specifies if the slide layout will be written to the JSON object or not.
+     * @param {bool} [bWriteMaster=false] - Specifies if the slide master will be written to the JSON object or not (bWriteMaster is false if bWriteLayout === false).
+     * @param {bool} [bWriteAllMasLayouts=false] - Specifies if all child layouts from the slide master will be written to the JSON object or not.
+	 * @param {bool} [bWriteTableStyles=false] - Specifies whether to write used table styles to the JSON object (true) or not (false).
+	 * @returns {JSON}
+	 */
+    ApiSlide.prototype.ToJSON = function(bWriteLayout, bWriteMaster, bWriteAllMasLayouts, bWriteTableStyles){
+        let oWriter = new AscCommon.WriterToJSON();
+        let oResult = oWriter.SerSlide(this.Slide, bWriteLayout, bWriteMaster, bWriteAllMasLayouts);
+        if (bWriteTableStyles)
+            oResult["tblStyleLst"] = oWriter.SerTableStylesForWrite();
+		return JSON.stringify(oResult);
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -2813,7 +3238,7 @@
     /**
      * Deletes the specified drawing object from the parent.
      * @typeofeditors ["CPE"]
-     * @returns {bool} - false if drawing doesn't exist or drawing hasn't a parent.
+     * @returns {boolean} - false if drawing doesn't exist or drawing hasn't a parent.
      */
     ApiDrawing.prototype.Delete = function()
     {
@@ -2838,11 +3263,11 @@
      * Sets the specified placeholder to the current drawing object.
      * @typeofeditors ["CPE"]
      * @param {ApiPlaceholder} oPlaceholder - Placeholder object.
-     * @returns {bool} - returns false if parameter isn't a placeholder.
+     * @returns {boolean} - returns false if parameter isn't a placeholder.
      */
     ApiDrawing.prototype.SetPlaceholder = function(oPlaceholder)
     {
-        if (!this.Drawing || !oPlaceholder || !oPlaceholder.GetClassType || !oPlaceholder.GetClassType() === "placeholder")
+        if (!this.Drawing || !oPlaceholder || !oPlaceholder.GetClassType || oPlaceholder.GetClassType() !== "placeholder")
             return false;
 
         var drawingNvPr = null;
@@ -2911,6 +3336,7 @@
                     break;
                 case AscDFH.historyitem_type_GroupShape:
                     oPh = this.Drawing.nvGrpSpPr.ph;
+                    break;
                 case AscDFH.historyitem_type_ImageShape:
                 case AscDFH.historyitem_type_OleObject:
                     oPh = this.Drawing.nvPicPr.nvPr.ph;
@@ -2927,6 +3353,83 @@
 
         return null;
     };
+
+    /**
+	 * Returns the width of the current drawing.
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @returns {EMU}
+	 */
+	ApiDrawing.prototype.GetWidth = function()
+	{
+		return private_MM2EMU(this.Drawing.GetWidth());
+	};
+	/**
+	 * Returns the height of the current drawing.
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @returns {EMU}
+	 */
+	ApiDrawing.prototype.GetHeight = function()
+	{
+		return private_MM2EMU(this.Drawing.GetHeight());
+	};
+
+    /**
+     * Returns the lock value for the specified lock type of the current drawing.
+     * @typeofeditors ["CPE"]
+	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - Lock type in the string format.
+     * @returns {bool}
+     */
+	ApiDrawing.prototype.GetLockValue = function(sType)
+	{
+		var nLockType = private_GetDrawingLockType(sType);
+
+		if (nLockType === -1)
+			return false;
+
+		if (this.Drawing)
+			return this.Drawing.getLockValue(nLockType);
+
+		return false;
+	};
+
+	/**
+     * Sets the lock value to the specified lock type of the current drawing.
+     * @typeofeditors ["CPE"]
+	 * @param {"noGrp" | "noUngrp" | "noSelect" | "noRot" | "noChangeAspect" | "noMove" | "noResize" | "noEditPoints" | "noAdjustHandles"
+	 * 	| "noChangeArrowheads" | "noChangeShapeType" | "noDrilldown" | "noTextEdit" | "noCrop" | "txBox"} sType - Lock type in the string format.
+     * @param {bool} bValue - Specifies if the specified lock is applied to the current drawing.
+	 * @returns {bool}
+     */
+	ApiDrawing.prototype.SetLockValue = function(sType, bValue)
+	{
+		var nLockType = private_GetDrawingLockType(sType);
+
+		if (nLockType === -1)
+			return false;
+
+        if (this.Drawing)
+        {
+            this.Drawing.setLockValue(nLockType, bValue);
+            return true;
+        }
+
+		return false;
+	};
+
+    /**
+	 * Converts the ApiDrawing object into the JSON object.
+	 * @memberof ApiDrawing
+	 * @typeofeditors ["CPE"]
+	 * @returns {JSON}
+	 */
+	ApiDrawing.prototype.ToJSON = function()
+	{
+		var oWriter = new AscCommon.WriterToJSON();
+		return JSON.stringify(oWriter.SerGraphicObject(this.Drawing));
+	};
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -2962,7 +3465,7 @@
 
     /**
      * Deprecated in 6.2.
-     * Returns the shape inner contents where a paragraph or text runs can be inserted. 
+     * Returns the shape inner contents where a paragraph or text runs can be inserted.
      * @typeofeditors ["CPE"]
      * @returns {?ApiDocumentContent}
      */
@@ -2977,7 +3480,7 @@
     };
     
     /**
-     * Returns the shape inner contents where a paragraph or text runs can be inserted. 
+     * Returns the shape inner contents where a paragraph or text runs can be inserted.
      * @typeofeditors ["CPE"]
      * @returns {?ApiDocumentContent}
      */
@@ -3093,7 +3596,7 @@
 
     /**
      * Specifies the vertical axis orientation.
-     * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the vertical axis
+     * @param {boolean} bIsMinMax - The <code>true</code> value will set the normal data direction for the vertical axis
 	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the vertical axis (from maximum to minimum).
      * */
     ApiChart.prototype.SetVerAxisOrientation = function(bIsMinMax){
@@ -3102,7 +3605,7 @@
 
     /**
      * Specifies the horizontal axis orientation.
-     * @param {bool} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
+     * @param {boolean} bIsMinMax - The <code>true</code> value will set the normal data direction for the horizontal axis
 	 * (from minimum to maximum). The <code>false</code> value will set the inverted data direction for the horizontal axis (from maximum to minimum).
      * */
     ApiChart.prototype.SetHorAxisOrientation = function(bIsMinMax){
@@ -3247,6 +3750,429 @@
         AscFormat.builder_SetVerAxisFontSize(this.Chart, nFontSize);
     };
 
+    /**
+	 * Removes the specified series from the current chart.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {number} nSeria - The index of the chart series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.RemoveSeria = function(nSeria)
+	{
+		return this.Chart.RemoveSeria(nSeria);
+	};
+
+    /**
+	 * Sets values to the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE"]
+	 * @param {number[]} aValues - The array of the data which will be set to the specified chart series.
+	 * @param {number} nSeria - The index of the chart series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetSeriaValues = function(aValues, nSeria)
+	{
+		return this.Chart.SetValuesToDataPoints(aValues, nSeria);
+	};
+
+	/**
+	 * Sets the x-axis values to all chart series. It is used with the scatter charts only.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE"]
+	 * @param {string[]} aValues - The array of the data which will be set to the x-axis data points.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetXValues = function(aValues)
+	{
+		if (this.Chart.isScatterChartType())
+			return this.Chart.SetXValuesToDataPoints(aValues);
+		return false;
+	};
+
+	/**
+	 * Sets a name to the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE"]
+	 * @param {string} sName - The name which will be set to the specified chart series.
+	 * @param {number} nSeria - The index of the chart series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetSeriaName = function(sName, nSeria)
+	{
+		return this.Chart.SetSeriaName(sName, nSeria);
+	};
+
+	/**
+	 * Sets a name to the specified chart category.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE"]
+	 * @param {string} sName - The name which will be set to the specified chart category.
+	 * @param {number} nCategory - The index of the chart category.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetCategoryName = function(sName, nCategory)
+	{
+		return this.Chart.SetCatName(sName, nCategory);
+	};
+
+    /**
+	 * Sets a style to the current chart by style ID.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param nStyleId - One of the styles available in the editor.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.ApplyChartStyle = function(nStyleId)
+	{
+		if (typeof(nStyleId) !== "number" || nStyleId < 0)
+			return false;
+
+		var nChartType = this.Chart.getChartType();
+		var aStyle = AscCommon.g_oChartStyles[nChartType] && AscCommon.g_oChartStyles[nChartType][nStyleId];
+
+		if (aStyle)
+		{
+			this.Chart.applyChartStyleByIds(aStyle);
+			return true;
+		}
+
+		return false;
+	};
+
+	/**
+	 * Sets the fill to the chart plot area.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiFill} oFill - The fill type used to fill the plot area.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetPlotAreaFill = function(oFill)
+	{
+		if (!oFill || !oFill.GetClassType || oFill.GetClassType() !== "fill")
+			return false;
+
+		this.Chart.SetPlotAreaFill(oFill.UniFill);
+		return true;
+	};
+
+	/**
+	 * Sets the outline to the chart plot area.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiStroke} oStroke - The stroke used to create the plot area outline.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetPlotAreaOutLine = function(oStroke)
+	{
+		if (!oStroke || !oStroke.GetClassType || oStroke.GetClassType() !== "stroke")
+			return false;
+
+		this.Chart.SetPlotAreaOutLine(oStroke.Ln);
+		return true;
+	};
+
+	/**
+	 * Sets the fill to the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiFill} oFill - The fill type used to fill the series.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {boolean} [bAll=false] - Specifies if the fill will be applied to all series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetSeriesFill = function(oFill, nSeries, bAll)
+	{
+		if (!oFill || !oFill.GetClassType || oFill.GetClassType() !== "fill")
+			return false;
+
+		return this.Chart.SetSeriesFill(oFill.UniFill, nSeries, bAll);
+	};
+
+	/**
+	 * Sets the outline to the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiStroke} oStroke - The stroke used to create the series outline.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {boolean} [bAll=false] - Specifies if the outline will be applied to all series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetSeriesOutLine = function(oStroke, nSeries, bAll)
+	{
+		if (!oStroke || !oStroke.GetClassType || oStroke.GetClassType() !== "stroke")
+			return false;
+
+		return this.Chart.SetSeriesOutLine(oStroke.Ln, nSeries, bAll);
+	};
+
+	/**
+	 * Sets the fill to the data point in the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiFill} oFill - The fill type used to fill the data point.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} [bAllSeries=false] - Specifies if the fill will be applied to the specified data point in all series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetDataPointFill = function(oFill, nSeries, nDataPoint, bAllSeries)
+	{
+		if (!oFill || !oFill.GetClassType || oFill.GetClassType() !== "fill")
+			return false;
+
+		return this.Chart.SetDataPointFill(oFill.UniFill, nSeries, nDataPoint, bAllSeries);
+	};
+
+	/**
+	 * Sets the outline to the data point in the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiStroke} oStroke - The stroke used to create the data point outline.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nDataPoint - The index of the data point in the specified chart series.
+	 * @param {boolean} bAllSeries - Specifies if the outline will be applied to the specified data point in all series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetDataPointOutLine = function(oStroke, nSeries, nDataPoint, bAllSeries)
+	{
+		if (!oStroke || !oStroke.GetClassType || oStroke.GetClassType() !== "stroke")
+			return false;
+
+		return this.Chart.SetDataPointOutLine(oStroke.Ln, nSeries, nDataPoint, bAllSeries);
+	};
+
+	/**
+	 * Sets the fill to the marker in the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiFill} oFill - The fill type used to fill the marker.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nMarker - The index of the marker in the specified chart series.
+	 * @param {boolean} [bAllMarkers=false] - Specifies if the fill will be applied to all markers in the specified chart series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetMarkerFill = function(oFill, nSeries, nMarker, bAllMarkers)
+	{
+		if (!oFill || !oFill.GetClassType || oFill.GetClassType() !== "fill")
+			return false;
+
+		return this.Chart.SetMarkerFill(oFill.UniFill, nSeries, nMarker, bAllMarkers);
+	};
+
+	/**
+	 * Sets the outline to the marker in the specified chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiStroke} oStroke - The stroke used to create the marker outline.
+	 * @param {number} nSeries - The index of the chart series.
+	 * @param {number} nMarker - The index of the marker in the specified chart series.
+	 * @param {boolean} [bAllMarkers=false] - Specifies if the outline will be applied to all markers in the specified chart series.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetMarkerOutLine = function(oStroke, nSeries, nMarker, bAllMarkers)
+	{
+		if (!oStroke || !oStroke.GetClassType || oStroke.GetClassType() !== "stroke")
+			return false;
+
+		return this.Chart.SetMarkerOutLine(oStroke.Ln, nSeries, nMarker, bAllMarkers);
+	};
+
+	/**
+	 * Sets the fill to the chart title.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiFill} oFill - The fill type used to fill the title.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetTitleFill = function(oFill)
+	{
+		if (!oFill || !oFill.GetClassType || oFill.GetClassType() !== "fill")
+			return false;
+
+		return this.Chart.SetTitleFill(oFill.UniFill);
+	};
+
+	/**
+	 * Sets the outline to the chart title.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiStroke} oStroke - The stroke used to create the title outline.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetTitleOutLine = function(oStroke)
+	{
+		if (!oStroke || !oStroke.GetClassType || oStroke.GetClassType() !== "stroke")
+			return false;
+
+		return this.Chart.SetTitleOutLine(oStroke.Ln);
+	};
+
+	/**
+	 * Sets the fill to the chart legend.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiFill} oFill - The fill type used to fill the legend.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetLegendFill = function(oFill)
+	{
+		if (!oFill || !oFill.GetClassType || oFill.GetClassType() !== "fill")
+			return false;
+
+		return this.Chart.SetLegendFill(oFill.UniFill);
+	};
+
+	/**
+	 * Sets the outline to the chart legend.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {ApiStroke} oStroke - The stroke used to create the legend outline.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetLegendOutLine = function(oStroke)
+	{
+		if (!oStroke || !oStroke.GetClassType || oStroke.GetClassType() !== "stroke")
+			return false;
+
+		return this.Chart.SetLegendOutLine(oStroke.Ln);
+	};
+
+    /**
+	 * Sets the specified numeric format to the axis values.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+	 * @param {AxisPos} - Axis position.
+	 * @returns {boolean}
+	 */
+	ApiChart.prototype.SetAxieNumFormat = function(sFormat, sAxiePos)
+	{
+		var nAxiePos = -1;
+		switch (sAxiePos)
+		{
+			case "bottom":
+				nAxiePos = AscFormat.AX_POS_B;
+				break;
+			case "left":
+				nAxiePos = AscFormat.AX_POS_L;
+				break;
+			case "right":
+				nAxiePos = AscFormat.AX_POS_R;
+				break;
+			case "top":
+				nAxiePos = AscFormat.AX_POS_T;
+				break;
+			default:
+				return false;
+		}
+
+		return this.Chart.SetAxieNumFormat(sFormat, nAxiePos);
+	};
+
+	/**
+	 * Sets the specified numeric format to the chart series.
+	 * @memberof ApiChart
+	 * @typeofeditors ["CDE", "CPE"]
+	 * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+	 * @param {Number} nSeria - Series index.
+	 * @returns {boolean}
+	 */
+    ApiChart.prototype.SetSeriaNumFormat = function(sFormat, nSeria)
+    {
+        return this.Chart.SetSeriaNumFormat(sFormat, nSeria);
+    };
+
+    /**
+     * Sets the specified numeric format to the chart data point.
+     * @memberof ApiChart
+     * @typeofeditors ["CDE", "CPE"]
+     * @param {NumFormat | String} sFormat - Numeric format (can be custom format).
+     * @param {Number} nSeria - Series index.
+     * @param {number} nDataPoint - The index of the data point in the specified chart series.
+     * @param {boolean} bAllSeries - Specifies if the numeric format will be applied to the specified data point in all series.
+     * @returns {boolean}
+     */
+    ApiChart.prototype.SetDataPointNumFormat = function(sFormat, nSeria, nDataPoint, bAllSeries)
+    {
+        return this.Chart.SetDataPointNumFormat(sFormat, nSeria, nDataPoint, bAllSeries);
+    };
+
+    //------------------------------------------------------------------------------------------------------------------
+	//
+	// ApiOleObject
+	//
+	//------------------------------------------------------------------------------------------------------------------
+	
+	/**
+	 * Returns a type of the ApiOleObject class.
+	 * @memberof ApiOleObject
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @returns {"oleObject"}
+	 */
+	ApiOleObject.prototype.GetClassType = function()
+	{
+		return "oleObject";
+	};
+
+	/**
+	 * Sets the data to the current OLE object.
+	 * @memberof ApiOleObject
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {string} sData - The OLE object string data.
+	 * @returns {boolean}
+	 */
+	ApiOleObject.prototype.SetData = function(sData)
+	{
+		if (typeof(sData) !== "string" || sData === "")
+			return false;
+
+		this.Drawing.setData(sData);
+		return true;
+	};
+
+	/**
+	 * Returns the string data from the current OLE object.
+	 * @memberof ApiOleObject
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @returns {string}
+	 */
+	ApiOleObject.prototype.GetData = function()
+	{
+		if (typeof(this.Drawing.m_sData) === "string")
+			return this.Drawing.m_sData;
+		
+		return "";
+	};
+
+	/**
+	 * Sets the application ID to the current OLE object.
+	 * @memberof ApiOleObject
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @param {string} sAppId - The application ID associated with the current OLE object.
+	 * @returns {boolean}
+	 */
+	ApiOleObject.prototype.SetApplicationId = function(sAppId)
+	{
+		if (typeof(sAppId) !== "string" || sAppId === "")
+			return false;
+
+		this.Drawing.setApplicationId(sAppId);
+		return true;
+	};
+
+	/**
+	 * Returns the application ID from the current OLE object.
+	 * @memberof ApiOleObject
+	 * @typeofeditors ["CDE", "CPE", "CSE"]
+	 * @returns {string}
+	 */
+	ApiOleObject.prototype.GetApplicationId = function()
+	{
+		if (typeof(this.Drawing.m_sApplicationId) === "string")
+			return this.Drawing.m_sApplicationId;
+		
+		return "";
+	};
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3313,9 +4239,7 @@
                 }
                 else
                 {
-                    if (oCurPos.Cell < oPos.Cell)
-                        continue;
-                    else
+                    if (oCurPos.Cell >= oPos.Cell)
                         break;
                 }
             }
@@ -3440,8 +4364,7 @@
         this.private_PrepareTableForActions();
         this.Table.RemoveSelection();
         this.Table.CurCell = oCell.Cell;
-        var isEmpty = !(this.Table.RemoveTableRow());
-        return isEmpty;
+        return !(this.Table.RemoveTableRow());
     };
     /**
      * Removes a table column with the specified cell.
@@ -3455,9 +4378,7 @@
         this.private_PrepareTableForActions();
         this.Table.RemoveSelection();
         this.Table.CurCell = oCell.Cell;
-        var isEmpty = !(this.Table.RemoveTableColumn());
-
-        return isEmpty;
+        return !(this.Table.RemoveTableColumn());
     };
 
     /**
@@ -3509,6 +4430,21 @@
         this.Table.Set_Pr(oPr);
     };
 
+    /**
+	 * Converts the ApiTable object into the JSON object.
+	 * @memberof ApiTable
+	 * @typeofeditors ["CPE"]
+     * @param {bool} [bWriteTableStyles=false] - Specifies whether to write used table styles to the JSON object (true) or not (false).
+	 * @returns {JSON}
+	 */
+	ApiTable.prototype.ToJSON = function(bWriteTableStyles)
+	{
+		let oWriter = new AscCommon.WriterToJSON();
+        let oResult = oWriter.SerGraphicObject(this.Drawing);
+        if (bWriteTableStyles)
+            oResult["tblStyleLst"] = oWriter.SerTableStylesForWrite();
+		return JSON.stringify(oResult);
+	};
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -3865,6 +4801,7 @@
     Api.prototype["CreateShape"]                          = Api.prototype.CreateShape;
     Api.prototype["CreateChart"]                          = Api.prototype.CreateChart;
     Api.prototype["CreateGroup"]                          = Api.prototype.CreateGroup;
+    Api.prototype["CreateOleObject"]                      = Api.prototype.CreateOleObject;
     Api.prototype["CreateTable"]                          = Api.prototype.CreateTable;
     Api.prototype["CreateParagraph"]                      = Api.prototype.CreateParagraph;
     Api.prototype["Save"]                                 = Api.prototype.Save;
@@ -3875,6 +4812,9 @@
     Api.prototype["CreateThemeColorScheme"]               = Api.prototype.CreateThemeColorScheme;
     Api.prototype["CreateThemeFormatScheme"]              = Api.prototype.CreateThemeFormatScheme;
     Api.prototype["CreateThemeFontScheme"]                = Api.prototype.CreateThemeFontScheme;
+    Api.prototype["CreateWordArt"]                        = Api.prototype.CreateWordArt;
+	Api.prototype["FromJSON"]                             = Api.prototype.FromJSON;
+
 
     ApiPresentation.prototype["GetClassType"]             = ApiPresentation.prototype.GetClassType;
     ApiPresentation.prototype["GetCurSlideIndex"]         = ApiPresentation.prototype.GetCurSlideIndex;
@@ -3889,8 +4829,13 @@
     ApiPresentation.prototype["GetMaster"]                = ApiPresentation.prototype.GetMaster;
     ApiPresentation.prototype["AddMaster"]                = ApiPresentation.prototype.AddMaster;
     ApiPresentation.prototype["ApplyTheme"]               = ApiPresentation.prototype.ApplyTheme;
-    ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
+	ApiPresentation.prototype["RemoveSlides"]             = ApiPresentation.prototype.RemoveSlides;
     ApiPresentation.prototype["SetLanguage"]              = ApiPresentation.prototype.SetLanguage;
+    ApiPresentation.prototype["GetWidth"]                 = ApiPresentation.prototype.GetWidth;
+    ApiPresentation.prototype["GetHeight"]                = ApiPresentation.prototype.GetHeight;
+
+    ApiPresentation.prototype["SlidesToJSON"]             = ApiPresentation.prototype.SlidesToJSON;
+    ApiPresentation.prototype["ToJSON"]                   = ApiPresentation.prototype.ToJSON;
 
     ApiMaster.prototype["GetClassType"]                   = ApiMaster.prototype.GetClassType;
     ApiMaster.prototype["GetLayout"]                      = ApiMaster.prototype.GetLayout;
@@ -3910,7 +4855,9 @@
     ApiMaster.prototype["GetAllShapes"]                   = ApiMaster.prototype.GetAllShapes;
     ApiMaster.prototype["GetAllImages"]                   = ApiMaster.prototype.GetAllImages;
     ApiMaster.prototype["GetAllCharts"]                   = ApiMaster.prototype.GetAllCharts;
-    
+    ApiMaster.prototype["GetAllOleObjects"]               = ApiMaster.prototype.GetAllOleObjects;
+    ApiMaster.prototype["ToJSON"]                         = ApiMaster.prototype.ToJSON;
+
     
     ApiLayout.prototype["GetClassType"]                   = ApiLayout.prototype.GetClassType;
     ApiLayout.prototype["SetName"]                        = ApiLayout.prototype.SetName;
@@ -3927,7 +4874,9 @@
     ApiLayout.prototype["GetAllShapes"]                   = ApiLayout.prototype.GetAllShapes;
     ApiLayout.prototype["GetAllImages"]                   = ApiLayout.prototype.GetAllImages;
     ApiLayout.prototype["GetAllCharts"]                   = ApiLayout.prototype.GetAllCharts;
+    ApiLayout.prototype["GetAllOleObjects"]               = ApiLayout.prototype.GetAllOleObjects;
     ApiLayout.prototype["GetMaster"]                      = ApiLayout.prototype.GetMaster;
+    ApiLayout.prototype["ToJSON"]                         = ApiLayout.prototype.ToJSON;
 
     ApiPlaceholder.prototype["GetClassType"]              = ApiPlaceholder.prototype.GetClassType;
     ApiPlaceholder.prototype["SetType"]                   = ApiPlaceholder.prototype.SetType;
@@ -3945,6 +4894,7 @@
     ApiThemeColorScheme.prototype["SetSchemeName"]        = ApiThemeColorScheme.prototype.SetSchemeName;
     ApiThemeColorScheme.prototype["ChangeColor"]          = ApiThemeColorScheme.prototype.ChangeColor;
     ApiThemeColorScheme.prototype["Copy"]                 = ApiThemeColorScheme.prototype.Copy;
+    ApiThemeColorScheme.prototype["ToJSON"]               = ApiThemeColorScheme.prototype.ToJSON;
 
     ApiThemeFormatScheme.prototype["GetClassType"]        = ApiThemeFormatScheme.prototype.GetClassType;
     ApiThemeFormatScheme.prototype["SetSchemeName"]       = ApiThemeFormatScheme.prototype.SetSchemeName;
@@ -3952,12 +4902,13 @@
     ApiThemeFormatScheme.prototype["ChangeBgFillStyles"]  = ApiThemeFormatScheme.prototype.ChangeBgFillStyles;
     ApiThemeFormatScheme.prototype["ChangeLineStyles"]    = ApiThemeFormatScheme.prototype.ChangeLineStyles;
     ApiThemeFormatScheme.prototype["Copy"]                = ApiThemeFormatScheme.prototype.Copy;
+    ApiThemeFormatScheme.prototype["ToJSON"]              = ApiThemeFormatScheme.prototype.ToJSON;
 
     ApiThemeFontScheme.prototype["GetClassType"]          = ApiThemeFontScheme.prototype.GetClassType;
     ApiThemeFontScheme.prototype["SetSchemeName"]         = ApiThemeFontScheme.prototype.SetSchemeName;
     ApiThemeFontScheme.prototype["SetFonts"]              = ApiThemeFontScheme.prototype.SetFonts;
     ApiThemeFontScheme.prototype["Copy"]                  = ApiThemeFontScheme.prototype.Copy;
-
+    ApiThemeFontScheme.prototype["ToJSON"]                = ApiThemeFontScheme.prototype.ToJSON;
 
     ApiSlide.prototype["GetClassType"]                    = ApiSlide.prototype.GetClassType;
     ApiSlide.prototype["RemoveAllObjects"]                = ApiSlide.prototype.RemoveAllObjects;
@@ -3982,6 +4933,9 @@
     ApiSlide.prototype["GetAllShapes"]                    = ApiSlide.prototype.GetAllShapes;
     ApiSlide.prototype["GetAllImages"]                    = ApiSlide.prototype.GetAllImages;
     ApiSlide.prototype["GetAllCharts"]                    = ApiSlide.prototype.GetAllCharts;
+    ApiSlide.prototype["GetAllOleObjects"]                = ApiSlide.prototype.GetAllOleObjects;
+    ApiSlide.prototype["ToJSON"]                          = ApiSlide.prototype.ToJSON;
+
 
     ApiDrawing.prototype["GetClassType"]                  = ApiDrawing.prototype.GetClassType;
     ApiDrawing.prototype["SetSize"]                       = ApiDrawing.prototype.SetSize;
@@ -3994,6 +4948,13 @@
     ApiDrawing.prototype["Delete"]                        = ApiDrawing.prototype.Delete;
     ApiDrawing.prototype["SetPlaceholder"]                = ApiDrawing.prototype.SetPlaceholder;
     ApiDrawing.prototype["GetPlaceholder"]                = ApiDrawing.prototype.GetPlaceholder;
+    ApiDrawing.prototype["GetWidth"]                      = ApiDrawing.prototype.GetWidth;
+	ApiDrawing.prototype["GetHeight"]                     = ApiDrawing.prototype.GetHeight;
+    ApiDrawing.prototype["GetLockValue"]                  = ApiDrawing.prototype.GetLockValue;
+    ApiDrawing.prototype["SetLockValue"]                  = ApiDrawing.prototype.SetLockValue;
+
+
+    ApiDrawing.prototype["ToJSON"]                        = ApiDrawing.prototype.ToJSON;
 
     ApiImage.prototype["GetClassType"]                    = ApiImage.prototype.GetClassType;
 
@@ -4025,6 +4986,33 @@
     ApiChart.prototype["SetMinorHorizontalGridlines"]     = ApiChart.prototype.SetMinorHorizontalGridlines;
     ApiChart.prototype["SetHorAxisLablesFontSize"]        = ApiChart.prototype.SetHorAxisLablesFontSize;
     ApiChart.prototype["SetVertAxisLablesFontSize"]       = ApiChart.prototype.SetVertAxisLablesFontSize;
+    ApiChart.prototype["RemoveSeria"]                     = ApiChart.prototype.RemoveSeria;
+    ApiChart.prototype["SetSeriaValues"]                  = ApiChart.prototype.SetSeriaValues;
+    ApiChart.prototype["SetXValues"]                      = ApiChart.prototype.SetXValues;
+    ApiChart.prototype["SetSeriaName"]                    = ApiChart.prototype.SetSeriaName;
+    ApiChart.prototype["SetCategoryName"]                 = ApiChart.prototype.SetCategoryName;
+    ApiChart.prototype["ApplyChartStyle"]                 = ApiChart.prototype.ApplyChartStyle;
+	ApiChart.prototype["SetPlotAreaFill"]                 = ApiChart.prototype.SetPlotAreaFill;
+	ApiChart.prototype["SetPlotAreaOutLine"]              = ApiChart.prototype.SetPlotAreaOutLine;
+	ApiChart.prototype["SetSeriesFill"]                   = ApiChart.prototype.SetSeriesFill;
+	ApiChart.prototype["SetSeriesOutLine"]                = ApiChart.prototype.SetSeriesOutLine;
+	ApiChart.prototype["SetDataPointFill"]                = ApiChart.prototype.SetDataPointFill;
+	ApiChart.prototype["SetDataPointOutLine"]             = ApiChart.prototype.SetDataPointOutLine;
+	ApiChart.prototype["SetMarkerFill"]                   = ApiChart.prototype.SetMarkerFill;
+	ApiChart.prototype["SetMarkerOutLine"]                = ApiChart.prototype.SetMarkerOutLine;
+    ApiChart.prototype["SetTitleFill"]                    = ApiChart.prototype.SetTitleFill;
+	ApiChart.prototype["SetTitleOutLine"]                 = ApiChart.prototype.SetTitleOutLine;
+	ApiChart.prototype["SetLegendFill"]                   = ApiChart.prototype.SetLegendFill;
+	ApiChart.prototype["SetLegendOutLine"]                = ApiChart.prototype.SetLegendOutLine;
+    ApiChart.prototype["SetAxieNumFormat"]                = ApiChart.prototype.SetAxieNumFormat;
+    ApiChart.prototype["SetSeriaNumFormat"]               = ApiChart.prototype.SetSeriaNumFormat;
+    ApiChart.prototype["SetDataPointNumFormat"]           = ApiChart.prototype.SetDataPointNumFormat;
+
+    ApiOleObject.prototype["GetClassType"]                = ApiOleObject.prototype.GetClassType;
+	ApiOleObject.prototype["SetData"]                  = ApiOleObject.prototype.SetData;
+	ApiOleObject.prototype["GetData"]                  = ApiOleObject.prototype.GetData;
+	ApiOleObject.prototype["SetApplicationId"]            = ApiOleObject.prototype.SetApplicationId;
+	ApiOleObject.prototype["GetApplicationId"]            = ApiOleObject.prototype.GetApplicationId;
 
     ApiTable.prototype["GetClassType"]                    = ApiTable.prototype.GetClassType;
     ApiTable.prototype["GetRow"]                          = ApiTable.prototype.GetRow;
@@ -4035,6 +5023,7 @@
     ApiTable.prototype["RemoveRow"]                       = ApiTable.prototype.RemoveRow;
     ApiTable.prototype["RemoveColumn"]                    = ApiTable.prototype.RemoveColumn;
     ApiTable.prototype["SetShd"]                          = ApiTable.prototype.SetShd;
+    ApiTable.prototype["ToJSON"]    				      = ApiTable.prototype.ToJSON;
 
     ApiTableRow.prototype["GetClassType"]                 = ApiTableRow.prototype.GetClassType;
     ApiTableRow.prototype["GetCellsCount"]                = ApiTableRow.prototype.GetCellsCount;
@@ -4056,6 +5045,18 @@
     ApiTableCell.prototype["SetTextDirection"]            = ApiTableCell.prototype.SetTextDirection;
 
 
+    Api.prototype.private_CreateApiSlide = function(oSlide){
+        return new ApiSlide(oSlide);
+    };
+    Api.prototype.private_CreateApiMaster = function(oMaster){
+        return new ApiMaster(oMaster);
+    };
+    Api.prototype.private_CreateApiLayout = function(oLayout){
+        return new ApiLayout(oLayout);
+    };
+    Api.prototype.private_CreateApiPresentation = function(oPresentation){
+        return new ApiPresentation(oPresentation);
+    };
 
     function private_GetCurrentSlide(){
         var oApiPresentation = editor.GetPresentation();
@@ -4144,4 +5145,67 @@
 
         return new CTableMeasurement(nType, nW);
     }
+    function private_MM2EMU(mm)
+	{
+		return mm * 36000.0;
+	}
+    
+
+    function private_GetDrawingLockType(sType)
+	{
+		var nLockType = -1;
+		switch (sType)
+		{
+			case "noGrp":
+				nLockType = AscFormat.LOCKS_MASKS.noGrp;
+				break;
+			case "noUngrp":
+				nLockType = AscFormat.LOCKS_MASKS.noUngrp;
+				break;
+			case "noSelect":
+				nLockType = AscFormat.LOCKS_MASKS.noSelect;
+				break;
+			case "noRot":
+				nLockType = AscFormat.LOCKS_MASKS.noRot;
+				break;
+			case "noChangeAspect":
+				nLockType = AscFormat.LOCKS_MASKS.noChangeAspect;
+				break;
+			case "noMove":
+				nLockType = AscFormat.LOCKS_MASKS.noMove;
+				break;
+			case "noResize":
+				nLockType = AscFormat.LOCKS_MASKS.noResize;
+				break;
+			case "noEditPoints":
+				nLockType = AscFormat.LOCKS_MASKS.noEditPoints;
+				break;
+			case "noAdjustHandles":
+				nLockType = AscFormat.LOCKS_MASKS.noAdjustHandles;
+				break;
+			case "noChangeArrowheads":
+				nLockType = AscFormat.LOCKS_MASKS.noChangeArrowheads;
+				break;
+			case "noChangeShapeType":
+				nLockType = AscFormat.LOCKS_MASKS.noChangeShapeType;
+				break;
+			case "noDrilldown":
+				nLockType = AscFormat.LOCKS_MASKS.noDrilldown;
+				break;
+			case "noTextEdit":
+				nLockType = AscFormat.LOCKS_MASKS.noTextEdit;
+				break;
+			case "noCrop":
+				nLockType = AscFormat.LOCKS_MASKS.noCrop;
+				break;
+			case "txBox":
+				nLockType = AscFormat.LOCKS_MASKS.txBox;
+				break;
+		}
+
+		return nLockType;
+	}
+
 })(window, null);
+
+

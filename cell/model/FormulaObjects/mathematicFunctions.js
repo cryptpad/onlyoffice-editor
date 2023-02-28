@@ -5037,12 +5037,24 @@
 
 
 			arg1Range = getRange(arg1);
+			if (!arg1Range) {
+				return new cError(cErrorType.wrong_value_type);
+			}
 
 			var arg1C = arg1Range.c2 - arg1Range.c1 + 1;
 			var arg1R = arg1Range.r2 - arg1Range.r1 + 1;
 			if (arg0R !== arg1R || arg0C !== arg1C) {
 				return new cError(cErrorType.wrong_value_type);
 			}
+
+			//в кэш кладём истинное значение для поиска, а не весь диапазон
+			if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
+				arg2 = arg2.cross(arguments[1]);
+			} else if (cElementType.array === arg2.type) {
+				arg2 = arg2.getElementRowCol(0, 0);
+			}
+
+			arg2 = arg2.tocString();
 
 			parent = cacheElem;
 			cacheElem = getMatrixFromCache(arg1, arg2, cacheElem);
@@ -5059,14 +5071,6 @@
 						return new cError(cErrorType.wrong_value_type);
 					}
 				}
-
-				if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
-					arg2 = arg2.cross(arguments[1]);
-				} else if (cElementType.array === arg2.type) {
-					arg2 = arg2.getElementRowCol(0, 0);
-				}
-
-				arg2 = arg2.tocString();
 
 				if (cElementType.string !== arg2.type) {
 					return new cError(cErrorType.wrong_value_type);

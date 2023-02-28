@@ -52,6 +52,7 @@
     if (options) {
       this.onAuthParticipantsChanged = options.onAuthParticipantsChanged;
       this.onParticipantsChanged = options.onParticipantsChanged;
+      this.onParticipantsChangedOrigin = options.onParticipantsChangedOrigin;
       this.onMessage = options.onMessage;
       this.onServerVersion = options.onServerVersion;
       this.onCursor =  options.onCursor;
@@ -70,6 +71,7 @@
       this.onSetIndexUser = options.onSetIndexUser;
       this.onSpellCheckInit = options.onSpellCheckInit;
       this.onSaveChanges = options.onSaveChanges;
+      this.onChangesIndex = options.onChangesIndex;
       this.onStartCoAuthoring = options.onStartCoAuthoring;
       this.onEndCoAuthoring = options.onEndCoAuthoring;
       this.onUnSaveLock = options.onUnSaveLock;
@@ -89,6 +91,9 @@
       };
       this._CoAuthoringApi.onParticipantsChanged = function(e) {
         t.callback_OnParticipantsChanged(e);
+      };
+      this._CoAuthoringApi.onParticipantsChangedOrigin = function(e) {
+        t.callback_OnParticipantsChangedOrigin(e);
       };
       this._CoAuthoringApi.onMessage = function(e, clear) {
         t.callback_OnMessage(e, clear);
@@ -143,6 +148,9 @@
       };
       this._CoAuthoringApi.onSaveChanges = function(e, userId, bFirstLoad) {
         t.callback_OnSaveChanges(e, userId, bFirstLoad);
+      };
+      this._CoAuthoringApi.onChangesIndex = function(changesIndex) {
+        t.callback_OnChangesIndex(changesIndex);
       };
       // Callback есть пользователей больше 1
       this._CoAuthoringApi.onStartCoAuthoring = function(e, isWaitAuth) {
@@ -407,6 +415,12 @@
     }
   };
 
+  CDocsCoApi.prototype.callback_OnParticipantsChangedOrigin = function(e) {
+    if (this.onParticipantsChangedOrigin) {
+      this.onParticipantsChangedOrigin(e);
+    }
+  };
+
   CDocsCoApi.prototype.callback_OnMessage = function(e, clear) {
     if (this.onMessage) {
       this.onMessage(e, clear);
@@ -518,6 +532,11 @@
       this.onSaveChanges(e, userId, bFirstLoad);
     }
   };
+  CDocsCoApi.prototype.callback_OnChangesIndex = function(changesIndex) {
+    if (this.onChangesIndex) {
+      this.onChangesIndex(changesIndex);
+    }
+  };
   CDocsCoApi.prototype.callback_OnStartCoAuthoring = function(e, isWaitAuth) {
     if (this.onStartCoAuthoring) {
       this.onStartCoAuthoring(e, isWaitAuth);
@@ -570,6 +589,7 @@
     if (options) {
       this.onAuthParticipantsChanged = options.onAuthParticipantsChanged;
       this.onParticipantsChanged = options.onParticipantsChanged;
+      this.onParticipantsChangedOrigin = options.onParticipantsChangedOrigin;
       this.onMessage = options.onMessage;
       this.onServerVersion = options.onServerVersion;
       this.onCursor = options.onCursor;
@@ -587,6 +607,7 @@
       this.onSetIndexUser = options.onSetIndexUser;
       this.onSpellCheckInit = options.onSpellCheckInit;
       this.onSaveChanges = options.onSaveChanges;
+      this.onChangesIndex = options.onChangesIndex;
       this.onFirstLoadChangesEnd = options.onFirstLoadChangesEnd;
       this.onConnectionStateChanged = options.onConnectionStateChanged;
       this.onUnSaveLock = options.onUnSaveLock;
@@ -678,6 +699,7 @@
     this.jwtSession = undefined;
     this.encrypted = undefined;
     this.IsAnonymousUser = undefined;
+    this.coEditingMode = undefined;
     this._isViewer = false;
     this._isReSaveAfterAuth = false;	// Флаг для сохранения после повторной авторизации (для разрыва соединения во время сохранения)
     this._lockBuffer = [];
@@ -1323,6 +1345,7 @@
           }
         }
       }
+      this.onChangesIndex(changesIndex);
     }
   };
 
@@ -1426,6 +1449,7 @@
       if (this.onAuthParticipantsChanged) {
         this.onAuthParticipantsChanged(this._participants, this._userId);
       }
+      this.onParticipantsChangedOrigin(participants);
 
       // Посылаем эвент о совместном редактировании
       if (1 < this._countEditUsers) {
@@ -1456,6 +1480,8 @@
     if (this.onConnectionStateChanged && (!this._participantsTimestamp || this._participantsTimestamp <= data['participantsTimestamp'])) {
       this._participantsTimestamp = data['participantsTimestamp'];
       usersStateChanged = this._onParticipantsChanged(data['participants'], true);
+
+      this.onParticipantsChangedOrigin(data['participants']);
 
       if (isWaitAuth && !(usersStateChanged.length > 0 && 1 < this._countEditUsers)) {
         var errorMsg = 'Error: connection state changed waitAuth' +
@@ -1641,6 +1667,7 @@
 	this.jwtOpen = docInfo.get_Token();
     this.encrypted = docInfo.get_Encrypted();
     this.IsAnonymousUser = docInfo.get_IsAnonymousUser();
+    this.coEditingMode = docInfo.asc_getCoEditingMode();
 
     this.setDocId(docid);
     this._initSocksJs();
@@ -1696,6 +1723,7 @@
       'encrypted': this.encrypted,
       'IsAnonymousUser': this.IsAnonymousUser,
       'timezoneOffset': (new Date()).getTimezoneOffset(),
+      'coEditingMode': this.coEditingMode,
       'jwtOpen': this.jwtOpen,
       'jwtSession': this.jwtSession
     });

@@ -44,7 +44,7 @@
 		 * -----------------------------------------------------------------------------
 		 */
 		var prot;
-		var c_oAscBorderStyles = AscCommon.c_oAscBorderStyles;
+		var c_oAscBorderStyles = Asc.c_oAscBorderStyles;
 		var c_oAscMaxCellOrCommentLength = Asc.c_oAscMaxCellOrCommentLength;
 		var doc = window.document;
 		var copyPasteUseBinary = true;
@@ -317,6 +317,7 @@
 			
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 			ws.handlers.trigger("cleanCutData", true);
+			wb.handlers.trigger("cleanCopyData", true);
 
 			if (wb.getCellEditMode())//text in cell
 			{
@@ -394,6 +395,18 @@
 				ws.model.excludeHiddenRows(false);
 				ws.model.ignoreWriteFormulas(false);
 			}
+
+			if (ws && ws.workbook && !ws.workbook.getCellEditMode()) {
+				if (AscCommon.g_clipboardBase.bCut) {
+					//в данном случае не вырезаем, а записываем
+					if (!ws.isNeedSelectionCut() && false === ws.isMultiSelect()) {
+						ws.workbook.cutIdSheet = ws.model.Id;
+						ws.copyCutRange = [ws.model.selectionRange.getLast()];
+					}
+				} else {
+					ws.copyCutRange = ws.model.selectionRange.ranges;
+				}
+			}
 		};
 
 		Clipboard.prototype.pasteData = function (ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton, isPasteAll) {
@@ -469,6 +482,7 @@
 						//window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
 						t.pasteProcessor.pasteTextOnSheet(ws, data1);
 					}
+					wb.handlers.trigger("cleanCopyData", true);
 					break;
 				}
 			}
@@ -665,7 +679,7 @@
 			_getBinaryShapeContent: function (isIntoShape) {
 				var sBase64;
 
-				var selectedContent = new CSelectedContent();
+				var selectedContent = new AscCommonWord.CSelectedContent();
 				AscFormat.ExecuteNoHistory(function () {
 					isIntoShape.GetSelectedContent(selectedContent);
 				}, this, []);
@@ -793,6 +807,12 @@
 					var byCol = null;
 					for (var i = 1; i < ws.model.selectionRange.ranges.length; i++) {
 						var nextRange = ws.model.selectionRange.ranges[i];
+
+						if (nextRange.isIntersectWithRanges(ws.model.selectionRange.ranges, i)) {
+							res = false;
+							break;
+						}
+
 						if (byCol === null && firstRange.r1 === nextRange.r1 && firstRange.r2 === nextRange.r2) {
 							byCol = false;
 						} else if (byCol === null && firstRange.c1 === nextRange.c1 && firstRange.c2 === nextRange.c2) {
@@ -814,7 +834,7 @@
 				var htmlObj, container;
 				if (isIntoShape)//если курсор находится внутри шейпа
 				{
-					var selectedContent = new CSelectedContent();
+					var selectedContent = new AscCommonWord.CSelectedContent();
 					AscFormat.ExecuteNoHistory(function () {
 						isIntoShape.GetSelectedContent(selectedContent);
 					}, this, []);
@@ -850,55 +870,29 @@
 				if (window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) {
 					return false;
 				}
-				var isImage = false;
-				var objectRender = worksheet.objectRender;
+				let objectRender = worksheet.objectRender;
 
 				objectRender.preCopy();
-				var res = document.createElement('span');
-				var drawings = worksheet.model.Drawings;
+				let res = document.createElement('span');
+				let drawings = worksheet.model.Drawings;
 
-				for (var j = 0; j < isSelectedImages.length; ++j) {
-					var image = drawings[isSelectedImages[j]];
-					var cloneImg = objectRender.cloneDrawingObject(image);
-					var curImage = new Image();
-					var url;
-
-					if (cloneImg.graphicObject.isChart() && cloneImg.graphicObject.brush.fill.RasterImageId) {
-						url = cloneImg.graphicObject.brush.fill.RasterImageId;
-					} else if (cloneImg.graphicObject &&
-						(cloneImg.graphicObject.isShape() || cloneImg.graphicObject.isImage() ||
-						cloneImg.graphicObject.isGroup() || cloneImg.graphicObject.isChart())) {
-						var altAttr = null;
-						isImage = cloneImg.graphicObject.isImage();
-						var imageUrl;
-						if (isImage) {
-							imageUrl = cloneImg.graphicObject.getImageUrl();
-						}
-						if (isImage && imageUrl) {
-							//desktop - пишем все урлы в виде base64
-							if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] &&
-								window["AscDesktopEditor"]["IsLocalFile"]()) {
-								url = cloneImg.graphicObject.getBase64Img();
+				for (let j = 0; j < isSelectedImages.length; ++j) {
+					let oDrawing = drawings[isSelectedImages[j]];
+					if(oDrawing) {
+						let oGraphicObj = oDrawing.graphicObject;
+						if(oGraphicObj) {
+							let oHtmlImage = new Image();
+							oHtmlImage.src = oGraphicObj.getBase64Img();
+							if(oGraphicObj.cachedPixW && oGraphicObj.cachedPixH) {
+								oHtmlImage.width = oGraphicObj.cachedPixW;
+								oHtmlImage.height = oGraphicObj.cachedPixH;
 							} else {
-								url = AscCommon.getFullImageSrc2(imageUrl);
+								oHtmlImage.width = oDrawing.getWidthFromTo();
+								oHtmlImage.height = oDrawing.getHeightFromTo();
 							}
-						} else {
-							url = cloneImg.graphicObject.getBase64Img();
+							res.appendChild(oHtmlImage);
 						}
-						curImage.alt = altAttr;
-					} else {
-						url = cloneImg.image.src;
 					}
-
-					curImage.src = url;
-					curImage.width = cloneImg.getWidthFromTo();
-					curImage.height = cloneImg.getHeightFromTo();
-					if (image.guid) {
-						curImage.name = image.guid;
-					}
-
-					res.appendChild(curImage);
-					isImage = true;
 				}
 				return res;
 			},
@@ -1626,8 +1620,10 @@
 					this.activeRange = worksheet.model.selectionRange.getLast().clone(true);
 					result = this._pasteFromBinaryWord(worksheet, base64FromWord, isIntoShape, isCellEditMode);
 					window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = true;
+					worksheet.workbook.handlers.trigger("cleanCopyData", true);
 				} else if (base64FromPresentation) {
 					result = this._pasteFromBinaryPresentation(worksheet, base64FromPresentation, isIntoShape, isCellEditMode);
+					worksheet.workbook.handlers.trigger("cleanCopyData", true);
 				}
 
 				return result;
@@ -1709,7 +1705,7 @@
 							if(isPasteAll) {
 								doPasteData();
 							}
-						} else if (!(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
+						} else if (!(window["Asc"]["editor"] && (window["Asc"]["editor"].isChartEditor || window["Asc"]["editor"].isEditOleMode && aPastedImages && aPastedImages.length))) {
 
 							newFonts = {};
 							for (var i = 0; i < pasteData.Drawings.length; i++) {
@@ -1748,7 +1744,7 @@
 
 			_readExcelBinary: function(base64, tempWorkbook, selectAllSheet) {
 				var oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
-				oBinaryFileReader.copyPasteObj.selectAllSheet = selectAllSheet;
+				oBinaryFileReader.InitOpenManager.copyPasteObj.selectAllSheet = selectAllSheet;
 				var t = this;
 				var aPastedImages;
 
@@ -1799,7 +1795,7 @@
 						
 						if (diff !== 0) {
 							AscCommonExcel.executeInR1C1Mode(false, function () {
-								var pasteRange = AscCommonExcel.g_oRangeCache.getAscRange(oBinaryFileReader.copyPasteObj.activeRange);
+								var pasteRange = AscCommonExcel.g_oRangeCache.getAscRange(oBinaryFileReader.InitOpenManager.copyPasteObj.activeRange);
 								if (pasteRange) {
 									pasteRange = pasteRange.clone();
 									if (byCol) {
@@ -1807,13 +1803,13 @@
 									} else {
 										pasteRange.c2 -= diff;
 									}
-									oBinaryFileReader.copyPasteObj.activeRange = pasteRange.getName();
+									oBinaryFileReader.InitOpenManager.copyPasteObj.activeRange = pasteRange.getName();
 								}
 							});
 						}
 					}
 
-					t.activeRange = oBinaryFileReader.copyPasteObj.activeRange;
+					t.activeRange = oBinaryFileReader.InitOpenManager.copyPasteObj.activeRange;
 					
 					aPastedImages = pptx_content_loader.End_UseFullUrl();
 					pptx_content_loader.Reader.AssignConnectedObjects();
@@ -1829,11 +1825,12 @@
 				//проверяем, может это вырезанный фрагмент пытаемся вставить в пределах одного документа
 				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
 				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
-
-				if(this._checkPastedInOriginalDoc(pastedWb) && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+				var pasteInOriginalDoc = this._checkPastedInOriginalDoc(pastedWb);
+				if(pasteInOriginalDoc && null !== window["Asc"]["editor"].wb.cutIdSheet) {
 					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
-					var fromRange = wsFrom ? wsFrom.cutRange : null;
+					var fromRange = wsFrom ? wsFrom.copyCutRange : null;
 					if(fromRange) {
+						fromRange = fromRange[0];
 						var aRange = ws.model.selectionRange.getLast();
 						var toRange = new Asc.Range(aRange.c1, aRange.r1, aRange.c1 + (fromRange.c2 - fromRange.c1), aRange.r1 + (fromRange.r2 - fromRange.r1));
 
@@ -1850,6 +1847,8 @@
 
 						AscCommon.g_clipboardBase.needClearBuffer = true;
 					}
+				} else if (!pasteInOriginalDoc) {
+					ws.workbook.handlers.trigger("cleanCopyData", true);
 				}
 
 				return res;
@@ -2013,7 +2012,7 @@
 					}
 
 					var arr_shapes = content.Drawings;
-					if (arr_shapes && arr_shapes.length && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
+					if (arr_shapes && arr_shapes.length && !(window["Asc"]["editor"] && (window["Asc"]["editor"].isChartEditor || window["Asc"]["editor"].isEditOleMode && arr_Images.length !== 0))) {
 						if (!bSlideObjects && content.Drawings.length === selectedContent2[1].content.Drawings.length) {
 							var oEndContent = {
 								Drawings: []
@@ -2042,6 +2041,8 @@
 								t._insertImagesFromBinary(worksheet, {Drawings: arr_shapes}, isIntoShape, true);
 							}
 						});
+					} else {
+						window['AscCommon'].g_specialPasteHelper.buttonInfo.clean();
 					}
 
 					return true;
@@ -2061,11 +2062,14 @@
 				loader.stream = stream;
 
 				var readContent = function () {
-					var docContent = oThis.ReadPresentationText(stream, worksheet);
+					History.TurnOff();
+					var docContent = AscCommon.PasteProcessor.prototype.ReadPresentationText.call(this, stream, worksheet);
+					History.TurnOn();
+
 					if (docContent.length === 0) {
 						return;
 					}
-					presentationSelectedContent.DocContent = new CSelectedContent();
+					presentationSelectedContent.DocContent = new AscCommonWord.CSelectedContent();
 					presentationSelectedContent.DocContent.Elements = docContent;
 
 					//перебираем шрифты
@@ -2174,7 +2178,7 @@
 				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent(true);
 				isIntoShape.Remove(1, true, true);
 
-				var insertContent = new CSelectedContent();
+				var insertContent = new AscCommonWord.CSelectedContent();
 				var target_doc_content = isIntoShape;
 
 				insertContent.Elements =
@@ -2244,7 +2248,7 @@
 					bRemoveHyperlink = true;
 				}
 				for (var i = 0; i < content.length; i++) {
-					selectedElement = new CSelectedElement();
+					selectedElement = new AscCommonWord.CSelectedElement();
 					element = content[i];
 
 					if (type_Paragraph === element.GetType())//paragraph
@@ -2259,7 +2263,7 @@
 						var paragraphs = [];
 						element.GetAllParagraphs({All: true}, paragraphs);
 						for (var j = 0; j < paragraphs.length; j++) {
-							selectedElement = new CSelectedElement();
+							selectedElement = new AscCommonWord.CSelectedElement();
 							selectedElement.Element =
 								AscFormat.ConvertParagraphToPPTX(paragraphs[j], worksheet.getDrawingDocument(),
 									target_doc_content, true, bRemoveHyperlink);
@@ -2275,86 +2279,14 @@
 				var paragraph = target_doc_content.Content[target_doc_content.CurPos.ContentPos];
 				if (null != paragraph && type_Paragraph === paragraph.GetType() && selectedContent.Elements && selectedContent.Elements.length) {
 
-					var NearPos, ParaNearPos, LastClass, Element;
-
-					selectedContent.On_EndCollectElements(target_doc_content, false);
-
-					NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
+					selectedContent.EndCollect(target_doc_content);
+					let NearPos = {Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false)};
 					paragraph.Check_NearestPos(NearPos);
-
-					ParaNearPos = NearPos.Paragraph.Get_ParaNearestPos(NearPos);
-					if (null === ParaNearPos || ParaNearPos.Classes.length < 2) {
-						return;
-					}
-
-					LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-					if (para_Math_Run === LastClass.Type) {
-						// Проверяем, что вставляемый контент тоже формула
-						Element = selectedContent.Elements[0].Element;
-						if (1 !== selectedContent.Elements.length || type_Paragraph !== Element.Get_Type() ||
-							null === LastClass.Parent) {
-							return;
-						}
-
-						if (!selectedContent.CanConvertToMath) {
-							var Math = null;
-							var Count = Element.Content.length;
-							for (var Index = 0; Index < Count; Index++) {
-								var Item = Element.Content[Index];
-								if (para_Math === Item.Type && null === Math) {
-									Math = Element.Content[Index];
-								} else if (true !== Item.Is_Empty({SkipEnd: true})) {
-									return;
-								}
-							}
-						}
-					} else if (para_Run !== LastClass.Type) {
-						return;
-					}
-
-					if (null === paragraph.Parent || undefined === paragraph.Parent) {
-						return;
-					}
-
-					var Para = NearPos.Paragraph;
-					ParaNearPos = Para.Get_ParaNearestPos(NearPos);
-					LastClass = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-					var bInsertMath = false;
-					if (para_Math_Run === LastClass.Type) {
-						var NewMathRun = LastClass.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);
-						var MathContent = ParaNearPos.Classes[ParaNearPos.Classes.length - 2];
-						var MathContentPos = ParaNearPos.NearPos.ContentPos.Data[ParaNearPos.Classes.length - 2];
-						Element = selectedContent.Elements[0].Element;
-
-						var InsertMathContent = null;
-						for (var nPos = 0, nParaLen = Element.Content.length; nPos < nParaLen; nPos++) {
-							if (para_Math === Element.Content[nPos].Type) {
-								InsertMathContent = Element.Content[nPos];
-								break;
-							}
-						}
-
-						if (null === InsertMathContent) {
-							//try to convert content to ParaMath in simple cases.
-							InsertMathContent = selectedContent.ConvertToMath();
-						}
-
-						if (null !== InsertMathContent) {
-							MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);
-							MathContent.Insert_MathContent(InsertMathContent.Root, MathContentPos + 1, true);
-							bInsertMath = true;
-						}
-					}
-					if (!bInsertMath) {
-						paragraph.Check_NearestPos(NearPos);
-						target_doc_content.InsertContent(selectedContent, NearPos);
-					}
+					selectedContent.Insert(NearPos, false);
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent &&
 					oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
-
 				}
 			},
 
@@ -2772,7 +2704,7 @@
 				}
 
 				this.activeRange = worksheet.model.selectionRange.getLast().clone();
-
+				worksheet.workbook.handlers.trigger("cleanCopyData", true);
 
 				var callBackAfterLoadImages = function () {
 					History.TurnOff();
@@ -2815,10 +2747,10 @@
 				var aImagesToDownload = this._getImageFromHtml(node, true);
                 if (aImagesToDownload) { return; } // XXX CryptPad: Can't copy/paste images
 				var specialPasteProps = window['AscCommon'].g_specialPasteHelper.specialPasteProps;
-				if (aImagesToDownload !== null &&
+				var api = Asc["editor"];
+				if (!api.isFrameEditor() && aImagesToDownload !== null &&
 					(!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server
 				{
-					var api = Asc["editor"];
 					AscCommon.sendImgUrls(api, aImagesToDownload, function (data) {
 						for (var i = 0, length = Math.min(data.length, aImagesToDownload.length); i < length; ++i) {
 							var elem = data[i];
@@ -2854,8 +2786,10 @@
 				} else if (base64FromWord)//from word
 				{
 					result = this._pasteFromBinaryWord(worksheet, base64FromWord, isIntoShape);
+					worksheet.workbook.handlers.trigger("cleanCopyData", true);
 				} else if (base64FromPresentation) {
 					result = this._pasteFromBinaryPresentation(worksheet, base64FromPresentation, isIntoShape);
+					worksheet.workbook.handlers.trigger("cleanCopyData", true);
 				}
 
 				return result;
@@ -3086,37 +3020,6 @@
 				return {arrShapes: arr_shapes, arrImages: arrImages, arrTransforms: arr_transforms};
 			},
 
-			ReadPresentationText: function (stream, worksheet, cDocumentContent) {
-				History.TurnOff();
-
-				var loader = new AscCommon.BinaryPPTYLoader();
-				loader.Start_UseFullUrl();
-				loader.DrawingDocument = worksheet.getDrawingDocument();
-				loader.stream = stream;
-				loader.presentation = worksheet.model;
-
-				var count = stream.GetULong() / 100000;
-
-				//читаем контент, здесь только параграфы
-				//var newDocContent = new CDocumentContent(shape.txBody, editor.WordControl.m_oDrawingDocument, 0 , 0, 0, 0, false, false);
-				var elements = [], paragraph, selectedElement;
-
-				if (!cDocumentContent) {
-					cDocumentContent = worksheet;
-				}
-
-				for (var i = 0; i < count; ++i) {
-					loader.stream.Skip2(1); // must be 0
-					paragraph = loader.ReadParagraph(cDocumentContent);
-
-					elements.push(paragraph);
-				}
-
-				History.TurnOn();
-
-				return elements;
-			},
-
 			ReadFromBinaryWord: function (sBase64, worksheet) {
 				History.TurnOff();
 				AscCommon.g_oIdCounter.m_bRead = true;
@@ -3244,7 +3147,6 @@
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();
 					worksheet.objectRender.controller.startRecalculate();
-					worksheet.objectRender.controller.cursorMoveRight(false, false);
 					History.EndTransaction();
 
 					t._setShapeSpecialPasteProperties(worksheet, targetContent);
@@ -3318,9 +3220,9 @@
 						if (null != nUnicode) {
 							var Item;
 							if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-								Item = new ParaText(nUnicode);
+								Item = new AscWord.CRunText(nUnicode);
 							} else {
-								Item = new ParaSpace();
+								Item = new AscWord.CRunSpace();
 							}
 
 							//add text
@@ -3435,7 +3337,7 @@
 						var Count = text.length;
 
 						var newParagraph = new Paragraph(isIntoShape.DrawingDocument, isIntoShape);
-						var selectedElements = new CSelectedContent();
+						var selectedElements = new AscCommonWord.CSelectedContent();
 						var insertText = "";
 						for (var Index = 0; Index < Count; Index++) {
 							var _char = text.charAt(Index);
@@ -3449,7 +3351,7 @@
 								var newParaRun = new ParaRun();
 								window['AscCommon'].addTextIntoRun(newParaRun, insertText);
 								newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
-								var selectedElement = new CSelectedElement();
+								var selectedElement = new AscCommonWord.CSelectedElement();
 								selectedElement.Element = newParagraph;
 								selectedElements.Elements.push(selectedElement);
 
@@ -3484,7 +3386,7 @@
 					}
 				}
 				var aResult = this._getTableFromText(text, textImport);
-				if (aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
+				if (aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isFrameEditor())) {
 					if (textImport) {
 						var arn = worksheet.model.selectionRange.getLast().clone();
 						var width = aResult.content && aResult.content[0] ? aResult.content[0].length - 1 : 0;
@@ -3621,15 +3523,7 @@
 							width = colCounter;
 						}
 
-						if (13 === Code) {
-							if (i === length - 1) {
-								addTextIntoCell(rowCounter, colCounter, sCurChar);
-								sCurChar = "";
-							}
-							continue;
-						}
-
-						if ('\n' === Char || sCurChar.length >= Asc.c_oAscMaxCellOrCommentLength) {
+						if (13 === Code || '\n' === Char || sCurChar.length >= Asc.c_oAscMaxCellOrCommentLength) {
 							if ("" === sCurChar) {
 								addTextIntoCell(rowCounter, colCounter, sCurChar);
 								colCounter = 0;
@@ -3663,6 +3557,7 @@
 				};
 
 				if(!bPastedArray) {
+					text = text.replace(/\r\n/g,'\n');
 					_parseText(text);
 				} else {
 					for(var i = 0; i < text.length; i++) {
@@ -3910,10 +3805,11 @@
 				var documentContentBounds = new DocumentContentBounds();
 				var coverDocument = documentContentBounds.getBounds(0, 0, documentContent);
 				this._parseChildren(coverDocument);
+				var aImagesToDownload = pasteData.images && pasteData.images.length ? pasteData.images : this.aResult.props._images;
 
 				//не вставляем графику в редактор диаграмм
 				//если кроме графики есть ещё данные, то убираем только графику
-				if (window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) {
+				if (window["Asc"]["editor"] && (window["Asc"]["editor"].isChartEditor || window["Asc"]["editor"].isEditOleMode && aImagesToDownload && aImagesToDownload.length)) {
 					if (this.aResult.props && this.aResult.props.addImagesFromWord && this.aResult.props.addImagesFromWord.length === 1 && this.aResult.content) {
 						if (1 === this.aResult.content.length && 1 === this.aResult.content[0].length && this.aResult.content[0][0].content && this.aResult.content[0][0].content.length === 0) {
 							window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
@@ -3932,11 +3828,10 @@
 						newFonts[pasteData.fonts[i].name] = 1;
 					}
 				}
-
 				this.aResult.props.fontsNew = newFonts;
 				this.aResult.props.rowSpanSpCount = 0;
 				this.aResult.props.cellCount = this.maxCellCount + 1 > coverDocument.width ? this.maxCellCount + 1 : coverDocument.width;
-				this.aResult.props._images = pasteData.images && pasteData.images.length ? pasteData.images : this.aResult.props._images;
+				this.aResult.props._images = aImagesToDownload;
 				this.aResult.props._aPastedImages = pasteData.aPastedImages && pasteData.aPastedImages.length ? pasteData.aPastedImages : this.aResult.props._aPastedImages;
 
 
@@ -3945,8 +3840,7 @@
 				//грузим картинки для вствки из документов(если это необходимо)
 				//в данный момент в worksheetView не грузятся изображения
 				var specialPasteProps = window['AscCommon'].g_specialPasteHelper.specialPasteProps;
-				var aImagesToDownload = this.aResult.props._images;
-				if (!this.clipboard.alreadyLoadImagesOnServer && aImagesToDownload && (!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server
+				if (!this.clipboard.alreadyLoadImagesOnServer && aImagesToDownload && aImagesToDownload.length && (!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server
 				{
 					var oObjectsForDownload = AscCommon.GetObjectsForImageDownload(t.aResult.props._aPastedImages);
 					var api = window["Asc"]["editor"];
@@ -4302,7 +4196,7 @@
 				var newLine = "\n";
 
 				var cTextPr = prevTextPr ? prevTextPr : paraRun.Get_CompiledPr();
-				if (cTextPr && !(paraRunContent.length === 1 && paraRunContent[0] instanceof ParaEnd))//settings for text
+				if (cTextPr && !(paraRunContent.length === 1 && paraRunContent[0] instanceof AscWord.CRunParagraphMark))//settings for text
 				{
 					formatText = this._getPrParaRun(paraPr, cTextPr);
 				} else if (!formatText) {
@@ -4356,12 +4250,12 @@
 
 							break;
 						}
-						case para_Space://*paraSpace*
+						case para_Space:
 						{
 							text += " ";
 							break;
 						}
-						case para_Tab://*paraEnd / paraTab*
+						case para_Tab:
 						{
 							pushData();
 							lastTab = true;

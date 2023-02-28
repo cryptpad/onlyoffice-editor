@@ -52,6 +52,7 @@
 	var languages = window['Asc'].g_oLcidIdToNameMap;
 	var availableIdeographLanguages = window['Asc'].availableIdeographLanguages;
 	var availableBidiLanguages = window['Asc'].availableBidiLanguages;
+	const fontslot_ASCII    = 0x01;
 
 	String.prototype.sentenceCase = function ()
 	{
@@ -335,85 +336,6 @@
 	{
 		return window['SockJS'] || require('sockjs');
 	}
-	function getJSZipUtils()
-	{
-		return window['JSZipUtils'] || require('jsziputils');
-	}
-	function getJSZip()
-	{
-		return window['JSZip'] || require('jszip');
-	}
-
-	function JSZipWrapper() {
-		this.files = {};
-	}
-
-	JSZipWrapper.prototype.loadAsync = function(data, options) {
-		var t = this;
-
-		if (window["native"]) {
-			return new Promise(function(resolve, reject) {
-
-				var retFiles = null;
-				if (options && options["base64"] === true)
-					retFiles = window["native"]["ZipOpenBase64"](data);
-				else
-					retFiles = window["native"]["ZipOpen"](data);
-
-				if (null != retFiles)
-				{
-					for (var id in retFiles) {
-						t.files[id] = new JSZipObjectWrapper(retFiles[id]);
-					}
-
-					resolve(t);
-				}
-				else
-				{
-					reject(new Error("Failed archive"));
-				}
-
-			});
-		}
-
-		return AscCommon.getJSZip().loadAsync(data, options).then(function(zip){
-			for (var id in zip.files) {
-				t.files[id] = new JSZipObjectWrapper(zip.files[id]);
-			}
-			return t;
-		});
-	};
-	JSZipWrapper.prototype.close = function() {
-		if (window["native"])
-			window["native"]["ZipClose"]();
-	};
-
-	function JSZipObjectWrapper(data) {
-		this.data = data;
-	}
-	JSZipObjectWrapper.prototype.async = function(type) {
-
-		if (window["native"]) {
-			var t = this;
-
-			return new Promise(function(resolve, reject) {
-
-				var ret = window["native"]["ZipFileAsString"](t.data);
-
-				if (null != ret)
-				{
-					resolve(ret);
-				}
-				else
-				{
-					reject(new Error("Failed file in archive"));
-				}
-
-			});
-		}
-
-		return this.data.async(type);
-	};
 
 	function getBaseUrl()
 	{
@@ -516,7 +438,7 @@
 						 },
 		getImageUrl:     function (strPath)
 						 {
-							 return this.getUrl(this.mediaPrefix + strPath);
+							 return this.getUrl(this.mediaPrefix + strPath) || strPath;
 						 },
 		getImageLocal:   function (url)
 						 {
@@ -733,16 +655,47 @@
 		}
 		return false;
 	}
+	function checkOOXMLSignature(stream, Signature) {
+		if (!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] && 0x04 === stream[3])) {
+			//Local file header signature = 0x04034b50 (PK♥♦ or "PK\3\4")
+			return false;
+		}
+		let jsZlib = new AscCommon.ZLib();
+		if (!jsZlib.open(stream)) {
+			return false;
+		}
+		let contentTypesBytes = jsZlib.getFile("[Content_Types].xml");
+		let contentTypes = contentTypesBytes ? AscCommon.UTF8ArrayToString(contentTypesBytes, 0, contentTypesBytes.length) : "";
+		jsZlib.close();
+
+		return -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-word.document.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-word.template.macroEnabledTemplate.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.oform") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.docxf") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.template.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.binary.macroEnabled.main") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.template.macroEnabled.main+xml");
+	}
 	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
-		var bError = false, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
+		var nError = Asc.c_oAscError.ID.No, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
 		var onEndOpen = function ()
 		{
 			if (bEndLoadFile && bEndLoadChanges)
 			{
 				if (callback)
 				{
-					callback(bError, oResult);
+					callback(nError, oResult);
 				}
 			}
 		};
@@ -763,12 +716,12 @@
 							oResult.bSerFormat = checkStreamSignature(stream, Signature);
 							oResult.data = stream;
 						} else {
-							bError = true;
+							nError = Asc.c_oAscError.ID.Unknown;
 						}
 					}
 					else
 					{
-						bError = true;
+						nError = Asc.c_oAscError.ID.DownloadError;
 					}
 					bEndLoadFile = true;
 					onEndOpen();
@@ -780,37 +733,29 @@
 			oZipImages = {};
 			AscCommon.DownloadOriginalFile(docId, changesUrl, 'changesUrl', changesToken, function () {
 				bEndLoadChanges = true;
-				bError = true;
+				nError = Asc.c_oAscError.ID.DownloadError;
 				onEndOpen();
 			}, function(data) {
 				oResult.changes = [];
-				getJSZip().loadAsync(data).then(function (zipChanges)
-				{
-					var relativePaths = [];
-					var promises = [];
-					zipChanges.forEach(function (relativePath, file)
-					{
-						relativePaths.push(relativePath);
-						promises.push(file.async(relativePath.endsWith('.json') ? 'string' : 'uint8array'));
-					});
-					Promise.all(promises).then(function (values)
-					{
-						var relativePath;
-						for (var i = 0; i < values.length; ++i)
-						{
-							if ((relativePath = relativePaths[i]).endsWith('.json'))
-							{
-								oResult.changes[parseInt(relativePath.slice('changes'.length))] = JSON.parse(values[i]);
-							}
-							else
-							{
-								oZipImages[relativePath] = values[i];
+				let jsZlib = new AscCommon.ZLib();
+				if (jsZlib.open(data)) {
+					jsZlib.files.forEach(function(path){
+						let data = jsZlib.getFile(path);
+						if (data) {
+							if (path.endsWith('.json')) {
+								let text = AscCommon.UTF8ArrayToString(data, 0, data.length);
+								oResult.changes[parseInt(path.slice('changes'.length))] = JSON.parse(text);
+							} else {
+								oZipImages[path] = new Uint8Array(data);
 							}
 						}
-						bEndLoadChanges = true;
-						onEndOpen();
 					});
-				});
+					jsZlib.close();
+				} else {
+					nError = Asc.c_oAscError.ID.Unknown;
+				}
+				bEndLoadChanges = true;
+				onEndOpen();
 			});
 		}
 		else
@@ -832,7 +777,7 @@
                 oResult.bSerFormat = checkStreamSignature(stream, Signature);
 				oResult.data = stream;
             } else {
-                bError = true;
+				nError = Asc.c_oAscError.ID.Unknown;
             }
 
             bEndLoadFile = true;
@@ -1001,7 +946,22 @@
 		}
 		return stack.join("/");
 	}
-
+	function getSourceImageSize(src)
+	{
+		var oApi = (Asc.editor || editor);
+		if(oApi) {
+			var _img = oApi.ImageLoader.map_image_index[src];
+			if (_img && _img.Image) {
+				return {width: _img.Image.width, height: _img.Image.height};
+			}
+		}
+		if (window["NATIVE_EDITOR_ENJINE"] && window["native"]["GetImageOriginalSize"]) {
+			var sizes = window["native"]["GetImageOriginalSize"](src);
+			if (sizes)
+				return {width:sizes["W"], height:sizes["H"]};
+		}
+		return {width: 0, height: 0};
+	}
 	function getFullImageSrc2(src)
 	{
 		if (window["NATIVE_EDITOR_ENJINE"])
@@ -1200,6 +1160,57 @@
     {
         return new CUnicodeIterator(this);
     };
+	/**
+	 * @returns {number[]}
+	 */
+	String.prototype.codePointsArray = function(codePoints)
+	{
+		let _codePoints = codePoints ? codePoints : [];
+
+		for (let iter = this.getUnicodeIterator(); iter.check(); iter.next())
+			_codePoints.push(iter.value());
+
+		return _codePoints;
+	};
+
+	var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : undefined;
+	function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
+		var endIdx = idx + maxBytesToRead;
+		var endPtr = idx;
+		while (u8Array[endPtr] && !(endPtr >= endIdx)) {
+			++endPtr;
+		}
+		if (endPtr - idx > 16 && u8Array.subarray && UTF8Decoder) {
+			return UTF8Decoder.decode(u8Array.subarray(idx, endPtr));
+		} else {
+			var str = "";
+			while (idx < endPtr) {
+				var u0 = u8Array[idx++];
+				if (!(u0 & 128)) {
+					str += String.fromCharCode(u0);
+					continue;
+				}
+				var u1 = u8Array[idx++] & 63;
+				if ((u0 & 224) == 192) {
+					str += String.fromCharCode((u0 & 31) << 6 | u1);
+					continue;
+				}
+				var u2 = u8Array[idx++] & 63;
+				if ((u0 & 240) == 224) {
+					u0 = (u0 & 15) << 12 | u1 << 6 | u2;
+				} else {
+					u0 = (u0 & 7) << 18 | u1 << 12 | u2 << 6 | u8Array[idx++] & 63;
+				}
+				if (u0 < 65536) {
+					str += String.fromCharCode(u0);
+				} else {
+					var ch = u0 - 65536;
+					str += String.fromCharCode(55296 | ch >> 10, 56320 | ch & 1023);
+				}
+			}
+		}
+		return str;
+	}
 
 	function test_ws_name2()
 	{
@@ -1546,7 +1557,6 @@
 				return 'pdf';
 				break;
 			case c_oAscFileType.HTML:
-			case c_oAscFileType.HTML_TODO:
 				return 'html';
 				break;
 			// Word
@@ -1768,7 +1778,10 @@
 							if (!window.g_asc_plugins)
 								return;
 
-							if (data["subType"] == "internalCommand")
+							if (!window.g_asc_plugins.api.licenseResult || !window.g_asc_plugins.api.licenseResult['advancedApi'])
+								return;
+
+							if (data["subType"] === "internalCommand")
 							{
 								// такие команды перечисляем здесь и считаем их функционалом
 								switch (data.data.type)
@@ -1782,6 +1795,11 @@
 									default:
 										break;
 								}
+							}
+							if (data["subType"] === "connector")
+							{
+								window.g_asc_plugins.externalConnectorMessage(data["data"]);
+								return;
 							}
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
@@ -1866,10 +1884,10 @@
 	}
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
-		if (false === _ShowFileDialog("image/*", true, true, ValidateUploadImage, callback)) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscImageUploadProp.SupportedFormats), true, true, ValidateUploadImage, callback)) {
 			//todo remove this compatibility
 			var frameWindow = GetUploadIFrame();
-			var url = sUploadServiceLocalUrlOld + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+			var url = sUploadServiceLocalUrlOld + '/' + documentId;
 			if (jwt)
 			{
 				url += '?token=' + encodeURIComponent(jwt);
@@ -1935,6 +1953,19 @@
 				e.preventDefault();
 				var files = e.dataTransfer.files;
 				var nError = ValidateUploadImage(files);
+
+				if (nError === c_oAscServerError.UploadExtension && 1 === files.length)
+				{
+					let types = e.dataTransfer.types;
+					for (let i = 0, len = types.length; i < len; i++)
+					{
+						if (types[i] === "text" || types[i] === "text/plain" || types[i] === "text/html")
+						{
+							nError = c_oAscServerError.UploadCountFiles;
+							break;
+						}
+					}
+				}
 
                 var editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
                 editor.endInlineDropTarget(e);
@@ -2048,6 +2079,19 @@
 		}
 	}
 
+	function getImageFileFromDataURL(dataUrl) {
+		var arr = dataUrl.split(',');
+		var mime = arr[0].match(/:(.*?);/)[1];
+		var u8arr = AscCommon.Base64.decode(arr[1]);
+		return new File([u8arr], '1.' + mime.split('/')[1], {type:mime});
+	}
+
+	function uploadDataUrlAsFile(dataUrl, obj, callback) {
+		var file = getImageFileFromDataURL(dataUrl);
+		var nError = ValidateUploadImage([file]);
+		callback(nError, [file], obj);
+	}
+
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
            // CryptPad: we need to take control of the upload
@@ -2058,7 +2102,7 @@
 
 		if (files.length > 0)
 		{
-			var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+			var url = sUploadServiceLocalUrl + '/' + documentId;
 
 			var aFiles = [];
 			for(var i = files.length - 1;  i > - 1; --i){
@@ -2087,7 +2131,7 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
@@ -2121,7 +2165,7 @@
     {
         if (files.length > 0)
         {
-            var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+            var url = sUploadServiceLocalUrl + '/' + documentId;
 
             var aFiles = [];
             for(var i = files.length - 1;  i > - 1; --i){
@@ -2155,7 +2199,7 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
+                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
@@ -2405,6 +2449,7 @@
 		ipRe                  = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/i,
 		hostnameRe            = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
 		localRe               = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
+		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa):\/\/)|(mailto:)).*/i,
 
 		rx_table              = build_rx_table(null),
 		rx_table_local        = build_rx_table(null);
@@ -2416,15 +2461,20 @@
 		var isvalid = checkvalue.strongMatch(hostnameRe);
 		!isvalid && (isvalid = checkvalue.strongMatch(ipRe));
 		!isvalid && (isvalid = checkvalue.strongMatch(localRe));
-		isEmail = checkvalue.strongMatch(emailRe);
-		!isvalid && (isvalid = isEmail);
-
-		return isvalid ? (isEmail ? AscCommon.c_oAscUrlType.Email : AscCommon.c_oAscUrlType.Http) : AscCommon.c_oAscUrlType.Invalid;
+		if (isvalid) {
+			return AscCommon.c_oAscUrlType.Http;
+		} else if (checkvalue.strongMatch(emailRe)) {
+			return AscCommon.c_oAscUrlType.Email;
+		} else if (checkvalue.strongMatch(rx_allowedProtocols)) {
+			return AscCommon.c_oAscUrlType.Unsafe;
+		} else {
+			return AscCommon.c_oAscUrlType.Invalid
+		}
 	}
 
 	function prepareUrl(url, type)
 	{
-		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(url))
+		if (!rx_allowedProtocols.test(url))
 		{
 			url = ( (AscCommon.c_oAscUrlType.Email == type) ? 'mailto:' : 'http://' ) + url;
 		}
@@ -3313,7 +3363,7 @@
 			else if (Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
 			{
 				if (!Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRange)) {
-					return c_oAscError.ID.PivotLabledColumns;
+					return Asc.c_oAscError.ID.PivotLabledColumns;
 				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
@@ -3587,7 +3637,7 @@
 						// Some data has been received; however, neither responseText nor responseBody is available.
 						break;
 					case 4:
-						if (httpRequest.status === 200 || httpRequest.status === 1223)
+						if (httpRequest.status === 200 || httpRequest.status === 1223 || url.indexOf("file:") == 0)
 						{
 							if (typeof success === "function")
 								success(httpRequest);
@@ -8512,6 +8562,31 @@
 		return vietnameseCounting(nValue, digits).join(' ');
 	}
 
+	function IntToCustomGreece(nValue) {
+		nValue = repeatNumberingLvl(nValue, 9999);
+		const greeceNumbersMap = {
+			1: ['α', 'β', 'γ', 'δ', 'ε', 'στ', 'ζ', 'η', 'θ'],
+			10: ['ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'ο', 'π', 'ϟ'],
+			100: ['ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω', 'ϡ'],
+		};
+
+		const sResult = [];
+		const groups = {};
+		groups[1000] = Math.floor(nValue / 1000);
+		nValue %= 1000;
+		groups[100] = Math.floor(nValue / 100);
+		nValue %= 100;
+		groups[10] = Math.floor(nValue / 10);
+		nValue %= 10;
+		groups[1] = nValue;
+		if (groups[1000]) sResult.push(',' + greeceNumbersMap[1][groups[1000] - 1]);
+		if (groups[100]) sResult.push(greeceNumbersMap[100][groups[100] - 1]);
+		if (groups[10]) sResult.push(greeceNumbersMap[10][groups[10] - 1]);
+		if (groups[1]) sResult.push(greeceNumbersMap[1][groups[1] - 1]);
+
+		return sResult.join('');
+	}
+
 	/**
 	 * Переводим числовое значение в строку с заданным форматом нумерации
 	 * @param nValue {number}
@@ -8544,6 +8619,33 @@
 			case Asc.c_oAscNumberingFormat.Decimal:
 			{
 				sResult = "" + nValue;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.CustomDecimalFourZero:
+			{
+				sResult = "" + nValue;
+				if (sResult.length === 1) sResult = '0000' + sResult;
+				else if (sResult.length === 2) sResult = '000' + sResult;
+				else if (sResult.length === 3) sResult = '00' + sResult;
+				else if (sResult.length === 4) sResult = '0' + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.CustomDecimalThreeZero:
+			{
+				sResult = "" + nValue;
+				if (sResult.length === 1) sResult = '000' + sResult;
+				else if (sResult.length === 2) sResult = '00' + sResult;
+				else if (sResult.length === 3) sResult = '0' + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.CustomDecimalTwoZero:
+			{
+				sResult = "" + nValue;
+				if (sResult.length === 1) sResult = '00' + sResult;
+				else if (sResult.length === 2) sResult = '0' + sResult;
 				break;
 			}
 
@@ -8798,6 +8900,8 @@
 			case Asc.c_oAscNumberingFormat.VietnameseCounting:
 				sResult = IntToVietnameseCounting(nValue);
 				break;
+			case Asc.c_oAscNumberingFormat.CustomGreece:
+				sResult = IntToCustomGreece(nValue);
 		}
 
 		return sResult;
@@ -8846,6 +8950,59 @@
 		else if (sRes.length === 3)
 			sRes = "0" + sRes;
 		return sRes;
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function Int32ToHex(nValue)
+	{
+		return nValue.toString(16).padStart(8, "0").toUpperCase();
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function Int32ToHexOrNull(nValue)
+	{
+		if(null === nValue || undefined === nValue) {
+			return nValue;
+		} else {
+			return Int32ToHex(nValue);
+		}
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function Int16ToHex(nValue)
+	{
+		return nValue.toString(16).padStart(4, "0").toUpperCase();
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function Int16ToHexOrNull(nValue)
+	{
+		if(null === nValue || undefined === nValue) {
+			return nValue;
+		} else {
+			return Int16ToHex(nValue);
+		}
+	}
+	/**
+	 * Переводим числовое значение в Hex строку
+	 * @param nValue
+	 * @returns {string}
+	 */
+	function ByteToHex(nValue)
+	{
+		return nValue.toString(16).padStart(2, "0").toUpperCase();
 	}
 
 	/**
@@ -9016,6 +9173,315 @@
 		}
 		return null;
 	}
+	function getColorFromXml2(reader) {
+		var theme, rgb, tint;
+
+		var GetDefaultRGBAByIndex = function (index) {
+			var unR, unG, unB, unA = 255;
+			switch(index) {
+				case 0 : unR = 0x00; unG = 0x00; unB = 0x00; break;
+				case 1 : unR = 0xFF; unG = 0xFF; unB = 0xFF; break;
+				case 2 : unR = 0xFF; unG = 0x00; unB = 0x00; break;
+				case 3 : unR = 0x00; unG = 0xFF; unB = 0x00; break;
+				case 4 : unR = 0x00; unG = 0x00; unB = 0xFF; break;
+
+				case 5 : unR = 0xFF; unG = 0xFF; unB = 0x00; break;
+				case 6 : unR = 0xFF; unG = 0x00; unB = 0xFF; break;
+				case 7 : unR = 0x00; unG = 0xFF; unB = 0xFF; break;
+				case 8 : unR = 0x00; unG = 0x00; unB = 0x00; break;
+				case 9 : unR = 0xFF; unG = 0xFF; unB = 0xFF; break;
+
+				case 10: unR = 0xFF; unG = 0x00; unB = 0x00; break;
+				case 11: unR = 0x00; unG = 0xFF; unB = 0x00; break;
+				case 12: unR = 0x00; unG = 0x00; unB = 0xFF; break;
+				case 13: unR = 0xFF; unG = 0xFF; unB = 0x00; break;
+				case 14: unR = 0xFF; unG = 0x00; unB = 0xFF; break;
+
+				case 15: unR = 0x00; unG = 0xFF; unB = 0xFF; break;
+				case 16: unR = 0x80; unG = 0x00; unB = 0x00; break;
+				case 17: unR = 0x00; unG = 0x80; unB = 0x00; break;
+				case 18: unR = 0x00; unG = 0x00; unB = 0x80; break;
+				case 19: unR = 0x80; unG = 0x80; unB = 0x00; break;
+
+				case 20: unR = 0x80; unG = 0x00; unB = 0x80; break;
+				case 21: unR = 0x00; unG = 0x80; unB = 0x80; break;
+				case 22: unR = 0xC0; unG = 0xC0; unB = 0xC0; break;
+				case 23: unR = 0x80; unG = 0x80; unB = 0x80; break;
+				case 24: unR = 0x99; unG = 0x99; unB = 0xFF; break;
+
+				case 25: unR = 0x99; unG = 0x33; unB = 0x66; break;
+				case 26: unR = 0xFF; unG = 0xFF; unB = 0xCC; break;
+				case 27: unR = 0xCC; unG = 0xFF; unB = 0xFF; break;
+				case 28: unR = 0x66; unG = 0x00; unB = 0x66; break;
+				case 29: unR = 0xFF; unG = 0x80; unB = 0x80; break;
+
+				case 30: unR = 0x00; unG = 0x66; unB = 0xCC; break;
+				case 31: unR = 0xCC; unG = 0xCC; unB = 0xFF; break;
+				case 32: unR = 0x00; unG = 0x00; unB = 0x80; break;
+				case 33: unR = 0xFF; unG = 0x00; unB = 0xFF; break;
+				case 34: unR = 0xFF; unG = 0xFF; unB = 0x00; break;
+
+				case 35: unR = 0x00; unG = 0xFF; unB = 0xFF; break;
+				case 36: unR = 0x80; unG = 0x00; unB = 0x80; break;
+				case 37: unR = 0x80; unG = 0x00; unB = 0x00; break;
+				case 38: unR = 0x00; unG = 0x80; unB = 0x80; break;
+				case 39: unR = 0x00; unG = 0x00; unB = 0xFF; break;
+
+				case 40: unR = 0x00; unG = 0xCC; unB = 0xFF; break;
+				case 41: unR = 0xCC; unG = 0xFF; unB = 0xFF; break;
+				case 42: unR = 0xCC; unG = 0xFF; unB = 0xCC; break;
+				case 43: unR = 0xFF; unG = 0xFF; unB = 0x99; break;
+				case 44: unR = 0x99; unG = 0xCC; unB = 0xFF; break;
+
+				case 45: unR = 0xFF; unG = 0x99; unB = 0xCC; break;
+				case 46: unR = 0xCC; unG = 0x99; unB = 0xFF; break;
+				case 47: unR = 0xFF; unG = 0xCC; unB = 0x99; break;
+				case 48: unR = 0x33; unG = 0x66; unB = 0xFF; break;
+				case 49: unR = 0x33; unG = 0xCC; unB = 0xCC; break;
+
+				case 50: unR = 0x99; unG = 0xCC; unB = 0x00; break;
+				case 51: unR = 0xFF; unG = 0xCC; unB = 0x00; break;
+				case 52: unR = 0xFF; unG = 0x99; unB = 0x00; break;
+				case 53: unR = 0xFF; unG = 0x66; unB = 0x00; break;
+				case 54: unR = 0x66; unG = 0x66; unB = 0x99; break;
+
+				case 55: unR = 0x96; unG = 0x96; unB = 0x96; break;
+				case 56: unR = 0x00; unG = 0x33; unB = 0x66; break;
+				case 57: unR = 0x33; unG = 0x99; unB = 0x66; break;
+				case 58: unR = 0x00; unG = 0x33; unB = 0x00; break;
+				case 59: unR = 0x33; unG = 0x33; unB = 0x00; break;
+
+				case 60: unR = 0x99; unG = 0x33; unB = 0x00; break;
+				case 61: unR = 0x99; unG = 0x33; unB = 0x66; break;
+				case 62: unR = 0x33; unG = 0x33; unB = 0x99; break;
+				case 63: unR = 0x33; unG = 0x33; unB = 0x33; break;
+				case 64: unR = 0x00; unG = 0x00; unB = 0x00; break;
+
+				case 65: unR = 0xFF; unG = 0xFF; unB = 0xFF; break;
+				default: return null;
+			}
+
+			return (unR << 16) + (unG << 8) + unB;
+		}
+
+		while (reader.MoveToNextAttribute()) {
+			if ("auto" === reader.GetName()) {
+			} else if ("theme" === reader.GetName()) {
+				theme = reader.GetValue();
+			} else if ("tint" === reader.GetName()) {
+				tint = reader.GetValue();
+			} else if ("rgb" === reader.GetName()) {
+				rgb = reader.GetValue();
+				rgb = 0x00ffffff & "0x"+ rgb;
+			} else if ("indexed" === reader.GetName()) {
+				rgb = GetDefaultRGBAByIndex(reader.GetValueInt());
+			}
+		}
+
+		if(null != theme) {
+			return AscCommonExcel.g_oColorManager.getThemeColor(getNumFromXml(theme), getNumFromXml(tint));
+		} else if(null != rgb){
+			return new AscCommonExcel.RgbColor(rgb);
+		}
+
+		return null;
+	}
+	function writeColorToXml(writer, name, color, ns) {
+
+		/*writer.StartNodeWithNS(node_ns, node_name);
+		writer.StartAttributes();
+		WritingStringNullableAttrBool(L"auto", m_oAuto);
+		WritingStringNullableAttrInt(L"indexed", m_oIndexed, m_oIndexed->GetValue());
+		if(m_oRgb.IsInit() && !m_oIndexed.IsInit())
+		{
+			int nIndex = OOX::Spreadsheet::CIndexedColors::GetDefaultIndexByRGBA(m_oRgb->Get_R(), m_oRgb->Get_G(), m_oRgb->Get_B(), m_oRgb->Get_A());
+			if(-1 == nIndex)
+			{
+				WritingStringAttrString(L"rgb", m_oRgb->ToString());
+			}
+			else
+			{
+				WritingStringAttrInt(L"indexed", nIndex);
+			}
+		}
+		WritingStringNullableAttrInt(L"theme", m_oThemeColor, m_oThemeColor->GetValue());
+		WritingStringNullableAttrDouble(L"tint", m_oTint, m_oTint->GetValue());
+
+		writer.EndAttributesAndNode();*/
+
+		var GetDefaultIndexByRGBA = function (unR, unG, unB, unA) {
+			if (255 != unA) {
+				return -1;
+			}
+			var nIndex = -1;
+			if (unR == 0x00 && unG == 0x00 && unB == 0x00) {
+				nIndex = 64;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xFF) {
+				nIndex = 65;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x00) {
+				nIndex = 0;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xFF) {
+				nIndex = 1;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0x00) {
+				nIndex = 2;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0x00) {
+				nIndex = 3;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0xFF) {
+				nIndex = 4;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x00) {
+				nIndex = 5;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0xFF) {
+				nIndex = 6;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0xFF) {
+				nIndex = 7;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x00) {
+				nIndex = 8;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xFF) {
+				nIndex = 9;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0x00) {
+				nIndex = 10;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0x00) {
+				nIndex = 11;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0xFF) {
+				nIndex = 12;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x00) {
+				nIndex = 13;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0xFF) {
+				nIndex = 14;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0xFF) {
+				nIndex = 15;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x00) {
+				nIndex = 16;
+			} else if (unR == 0x00 && unG == 0x80 && unB == 0x00) {
+				nIndex = 17;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x80) {
+				nIndex = 18;
+			} else if (unR == 0x80 && unG == 0x80 && unB == 0x00) {
+				nIndex = 19;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x80) {
+				nIndex = 20;
+			} else if (unR == 0x00 && unG == 0x80 && unB == 0x80) {
+				nIndex = 21;
+			} else if (unR == 0xC0 && unG == 0xC0 && unB == 0xC0) {
+				nIndex = 22;
+			} else if (unR == 0x80 && unG == 0x80 && unB == 0x80) {
+				nIndex = 23;
+			} else if (unR == 0x99 && unG == 0x99 && unB == 0xFF) {
+				nIndex = 24;
+			} else if (unR == 0x99 && unG == 0x33 && unB == 0x66) {
+				nIndex = 25;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0xCC) {
+				nIndex = 26;
+			} else if (unR == 0xCC && unG == 0xFF && unB == 0xFF) {
+				nIndex = 27;
+			} else if (unR == 0x66 && unG == 0x00 && unB == 0x66) {
+				nIndex = 28;
+			} else if (unR == 0xFF && unG == 0x80 && unB == 0x80) {
+				nIndex = 29;
+			} else if (unR == 0x00 && unG == 0x66 && unB == 0xCC) {
+				nIndex = 30;
+			} else if (unR == 0xCC && unG == 0xCC && unB == 0xFF) {
+				nIndex = 31;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0x80) {
+				nIndex = 32;
+			} else if (unR == 0xFF && unG == 0x00 && unB == 0xFF) {
+				nIndex = 33;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x00) {
+				nIndex = 34;
+			} else if (unR == 0x00 && unG == 0xFF && unB == 0xFF) {
+				nIndex = 35;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x80) {
+				nIndex = 36;
+			} else if (unR == 0x80 && unG == 0x00 && unB == 0x00) {
+				nIndex = 37;
+			} else if (unR == 0x00 && unG == 0x80 && unB == 0x80) {
+				nIndex = 38;
+			} else if (unR == 0x00 && unG == 0x00 && unB == 0xFF) {
+				nIndex = 39;
+			} else if (unR == 0x00 && unG == 0xCC && unB == 0xFF) {
+				nIndex = 40;
+			} else if (unR == 0xCC && unG == 0xFF && unB == 0xFF) {
+				nIndex = 41;
+			} else if (unR == 0xCC && unG == 0xFF && unB == 0xCC) {
+				nIndex = 42;
+			} else if (unR == 0xFF && unG == 0xFF && unB == 0x99) {
+				nIndex = 43;
+			} else if (unR == 0x99 && unG == 0xCC && unB == 0xFF) {
+				nIndex = 44;
+			} else if (unR == 0xFF && unG == 0x99 && unB == 0xCC) {
+				nIndex = 45;
+			} else if (unR == 0xCC && unG == 0x99 && unB == 0xFF) {
+				nIndex = 46;
+			} else if (unR == 0xFF && unG == 0xCC && unB == 0x99) {
+				nIndex = 47;
+			} else if (unR == 0x33 && unG == 0x66 && unB == 0xFF) {
+				nIndex = 48;
+			} else if (unR == 0x33 && unG == 0xCC && unB == 0xCC) {
+				nIndex = 49;
+			} else if (unR == 0x99 && unG == 0xCC && unB == 0x00) {
+				nIndex = 50;
+			} else if (unR == 0xFF && unG == 0xCC && unB == 0x00) {
+				nIndex = 51;
+			} else if (unR == 0xFF && unG == 0x99 && unB == 0x00) {
+				nIndex = 52;
+			} else if (unR == 0xFF && unG == 0x66 && unB == 0x00) {
+				nIndex = 53;
+			} else if (unR == 0x66 && unG == 0x66 && unB == 0x99) {
+				nIndex = 54;
+			} else if (unR == 0x96 && unG == 0x96 && unB == 0x96) {
+				nIndex = 55;
+			} else if (unR == 0x00 && unG == 0x33 && unB == 0x66) {
+				nIndex = 56;
+			} else if (unR == 0x33 && unG == 0x99 && unB == 0x66) {
+				nIndex = 57;
+			} else if (unR == 0x00 && unG == 0x33 && unB == 0x00) {
+				nIndex = 58;
+			} else if (unR == 0x33 && unG == 0x33 && unB == 0x00) {
+				nIndex = 59;
+			} else if (unR == 0x99 && unG == 0x33 && unB == 0x00) {
+				nIndex = 60;
+			} else if (unR == 0x99 && unG == 0x33 && unB == 0x66) {
+				nIndex = 61;
+			} else if (unR == 0x33 && unG == 0x33 && unB == 0x99) {
+				nIndex = 62;
+			} else if (unR == 0x33 && unG == 0x33 && unB == 0x33) {
+				nIndex = 63;
+			}
+			return nIndex;
+		};
+
+		if (!ns) {
+			ns = "";
+		}
+
+		writer.WriteXmlNodeStart(ns + name);
+
+
+		if (color.rgb && !color.theme) {
+			var nIndex = GetDefaultIndexByRGBA(color.getR(), color.getG(), color.getB(), 255);
+			if (-1 === nIndex) {
+				//TODO проверить rgb
+				var hex = IntToHex(color.getRgb()).toUpperCase();
+				if (hex.length === 4) {
+					hex = "00" + hex;
+				}
+				writer.WriteXmlAttributeString("rgb", "FF" + hex);
+			} else {
+				writer.WriteXmlAttributeNumber("indexed", nIndex);
+			}
+		}
+
+		writer.WriteXmlNullableAttributeNumber("theme", color.theme);
+		writer.WriteXmlNullableAttributeDouble("tint", color.tint);
+
+		//TODO ?
+		if (!color.rgb && !color.theme && !color.tint) {
+			writer.WriteXmlNullableAttributeBool("auto", 1);
+		}
+
+		writer.WriteXmlAttributesEnd(true);
+	}
+
 	function getBoolFromXml(val) {
 		return "0" !== val && "false" !== val && "off" !== val;
 	}
@@ -9446,7 +9912,421 @@
 		return (0x2F800 <= nCharCode && nCharCode <= 0x2FA1F);
 	}
 
+
+	function IsComplexScript(nCharCode)
+	{
+		return ((0x0590 <= nCharCode && nCharCode <= 0x074F)
+			|| (0x0780 <= nCharCode && nCharCode <= 0x07BF)
+			|| (0x0900 <= nCharCode && nCharCode <= 0x109F)
+			|| (0x1780 <= nCharCode && nCharCode <= 0x18AF)
+			|| (0x200C <= nCharCode && nCharCode <= 0x200F)
+			|| (0x202A <= nCharCode && nCharCode <= 0x202F)
+			|| (0x2670 <= nCharCode && nCharCode <= 0x2671)
+			|| (0xFB1D <= nCharCode && nCharCode <= 0xFB4F));
+	}
+
 	var g_oIdCounter = new CIdCounter();
+
+	function CEventListenerInfo(listeningElement, eventName, listener, useCapture) {
+		this.eventName = eventName;
+		this.listener = listener;
+		this.listeningElement = listeningElement;
+		this.useCapture = useCapture;
+	}
+
+	const asc_PreviewBulletType = {
+		text: 0,
+		char: 1,
+		image: 2,
+		number: 3
+	}
+	window["Asc"].asc_PreviewBulletType = window["Asc"]["asc_PreviewBulletType"] = asc_PreviewBulletType;
+	asc_PreviewBulletType["text"] = asc_PreviewBulletType.text;
+	asc_PreviewBulletType["char"] = asc_PreviewBulletType.char;
+	asc_PreviewBulletType["image"] = asc_PreviewBulletType.image;
+	asc_PreviewBulletType["number"] = asc_PreviewBulletType.number;
+	function CBulletPreviewDrawer(infoOfDrawings, type) {
+		this.arrayOfBullets = this.getBulletArrayFromPreviewInfo(infoOfDrawings);
+		this.infoOfDrawings = infoOfDrawings;
+		this.type = type;
+		this.isNeedCheckFonts = true;
+		this.api = editor || Asc.editor || window["Asc"]["editor"];
+	}
+
+	CBulletPreviewDrawer.prototype.getBulletArrayFromPreviewInfo = function (infoOfDrawings) {
+		const arrayOfBullets = [];
+		AscFormat.ExecuteNoHistory(function () {
+			for (let i = 0; i < infoOfDrawings.length; i += 1) {
+				const drawInfo = infoOfDrawings[i];
+				const type = drawInfo["type"];
+				const bullet = new AscCommonWord.CPresentationBullet();
+				const textPr = new AscCommonWord.CTextPr();
+				textPr.Color = AscCommonWord.g_oDocumentDefaultStrokeColor;
+				switch (type)
+				{
+					case asc_PreviewBulletType.text:
+					{
+						const value = drawInfo["text"];
+						const bulletText = AscCommon.translateManager.getValue(value);
+						bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Char;
+						bullet.m_sChar = bulletText;
+						const fontName = AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.charCodeAt(0));
+						textPr.RFonts.SetAll(fontName);
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						break;
+					}
+					case asc_PreviewBulletType.char:
+					{
+						const bulletText	= drawInfo["char"];
+						const fontName = drawInfo["specialFont"] || AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.getUnicodeIterator().value());
+						textPr.RFonts.SetAll(fontName);
+						bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Char;
+						bullet.m_sChar = bulletText;
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						break;
+					}
+					case asc_PreviewBulletType.image:
+					{
+						const fullImageSrc = getFullImageSrc2(drawInfo["imageId"]);
+						bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Blip;
+						bullet.m_sSrc = fullImageSrc;
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						break;
+					}
+					case asc_PreviewBulletType.number:
+					{
+						const typeOfNumbering = drawInfo["numberingType"];
+						bullet.m_nType = bullet.convertFromAscTypeToPresentation(typeOfNumbering);
+						textPr.RFonts.SetAll('Arial');
+						arrayOfBullets.push({bullet: bullet, textPr: textPr});
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+			}
+
+
+		}, this);
+		return arrayOfBullets;
+	}
+
+	CBulletPreviewDrawer.prototype.getClearCanvasForPreview = function (divId) {
+		if (!divId) return;
+		const divElement = document.getElementById(divId);
+		const width_px = divElement.clientWidth;
+		const height_px = divElement.clientHeight;
+
+		let canvas = divElement.firstChild;
+		if (!canvas)
+		{
+			canvas = document.createElement('canvas');
+			canvas.style.cssText = "padding:0;margin:0;user-select:none;";
+			canvas.style.width = width_px + "px";
+			canvas.style.height = height_px + "px";
+			if (width_px > 0 && height_px > 0)
+				divElement.appendChild(canvas);
+		}
+
+		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+		canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+		const ctx = canvas.getContext("2d");
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		return canvas;
+	}
+
+	CBulletPreviewDrawer.prototype.drawSingleBullet = function (divId, numberInfo) {
+		const canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+
+		const width_px = parseFloat(canvas.style.width);
+		const height_px = parseFloat(canvas.style.height);
+		const ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+		const line_distance = 32, x = 0, y = 0;
+		const bullet = numberInfo.bullet;
+
+
+		const textPr = numberInfo.textPr.Copy();
+		textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
+		if (bullet.m_sSrc) {
+			const formatBullet = new AscFormat.CBullet();
+			formatBullet.fillBulletImage(bullet.m_sSrc);
+			formatBullet.drawSquareImage(divId, 0.125);
+		} else {
+			const text = bullet.getDrawingText();
+			AscCommon.g_oTextMeasurer.SetTextPr(textPr);
+			AscCommon.g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
+			const oInfo = AscCommon.g_oTextMeasurer.Measure2Code(text.getUnicodeIterator().value());
+
+			const x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
+			const y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
+			this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
+		}
+	}
+
+	CBulletPreviewDrawer.prototype.drawImageBulletsWithLines = function (fullImageSrc, textPr, x, y, lineHeight, ctx, w, h) {
+		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		const sizes = AscCommon.getSourceImageSize(fullImageSrc);
+
+		const imageHeight = sizes.height * rPR;
+		const imageWidth = sizes.width * rPR;
+		const adaptImageHeight = lineHeight * rPR;
+		const adaptImageWidth = (imageWidth * adaptImageHeight / (imageHeight ? imageHeight : 1));
+
+		const backTextWidth = adaptImageWidth / rPR + 4;
+		ctx.fillStyle = "#FFFFFF";
+		ctx.fillRect(Math.round(rPR * x), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
+		ctx.beginPath();
+
+		const graphics = new AscCommon.CGraphics();
+		graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+
+		graphics.drawImage(fullImageSrc, x * rPR, y * rPR - (adaptImageHeight * (0.85)), adaptImageWidth, adaptImageHeight);
+	}
+
+	CBulletPreviewDrawer.prototype.drawBulletsWithLines = function (divId, numberInfo, countOfLines) {
+		const canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+		const textPr = numberInfo.textPr.Copy();
+		const bullet = numberInfo.bullet;
+		const width_px = parseFloat(canvas.style.width);
+		const height_px = parseFloat(canvas.style.height);
+		const ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		const offsetBase = 4;
+		const line_w = 2;
+		// считаем расстояние между линиями
+		const line_distance = (((height_px - (offsetBase << 2)) - line_w * countOfLines) / countOfLines) >> 0;
+		// убираем погрешность в offset
+		const offset = (height_px - (line_w * countOfLines + line_distance * countOfLines)) >> 1;
+
+		ctx.lineWidth = 2 * Math.round(rPR);
+		ctx.strokeStyle = "#CBCBCB";
+		const text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+
+		let y = offset + 11;
+		for (let j = 0; j < countOfLines; j++)
+		{
+			ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
+			ctx.stroke();
+			ctx.beginPath();
+			const textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+			const	textYy = y + (line_w * 2.5);
+
+			if (bullet.m_sSrc) {
+				this.drawImageBulletsWithLines(bullet.m_sSrc, textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+			} else {
+				this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+			}
+			y += (line_w + line_distance);
+		}
+	}
+
+	CBulletPreviewDrawer.prototype.drawNoneTextPreview = function (divId, info)
+	{
+		const canvas = this.getClearCanvasForPreview(divId);
+		if (!canvas) return;
+		const width_px = parseFloat(canvas.style.width);
+		const height_px = parseFloat(canvas.style.height);
+		const ctx = canvas.getContext("2d");
+		ctx.beginPath();
+
+
+		const lvl = info;
+		const text = lvl.bullet.getDrawingText();
+		const line_distance = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
+
+
+
+		const oNewShape = new AscFormat.CShape();
+		oNewShape.createTextBody();
+		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
+		par.MoveCursorToStartPos();
+		par.Pr = new AscCommonWord.CParaPr();
+
+		const parRun = new AscCommonWord.ParaRun(par);
+		const textPr = lvl.textPr.Copy();
+		textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
+		parRun.Set_Pr(textPr);
+		parRun.AddText(text);
+		par.AddToContent(0, parRun);
+
+		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+		par.Recalculate_Page(0);
+
+		const bounds = par.Get_PageBounds(0);
+
+		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+		const parH = (bounds.Bottom - bounds.Top);
+		const x = (width_px - (parW >> 0)) >> 1;
+		const y = (height_px >> 1) + (parH >> 0);
+
+		this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
+	}
+
+	CBulletPreviewDrawer.prototype.privateGetParagraphByString = function(text, textPr, x, y, lineHeight, ctx, w, h)
+	{
+		const api = this.api;
+
+		const oldViewMode = api.isViewMode;
+		const oldMarks = api.ShowParaMarks;
+
+		api.isViewMode = true;
+		api.ShowParaMarks = false;
+
+		const oNewShape = new AscFormat.CShape();
+		oNewShape.createTextBody();
+
+		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
+		par.MoveCursorToStartPos();
+
+		//par.Pr = level.ParaPr.Copy();
+		par.Pr = new AscCommonWord.CParaPr();
+		textPr = textPr.Copy();
+		textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
+
+		const parRun = new AscCommonWord.ParaRun(par);
+		parRun.Set_Pr(textPr);
+		parRun.AddText(text);
+		par.AddToContent(0, parRun);
+
+		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+		par.Recalculate_Page(0);
+
+		const baseLineOffset = par.Lines[0].Y;
+		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+
+		const yOffset = y - ((baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0);
+		const xOffset = x;
+
+		const backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
+
+		ctx.fillStyle = "#FFFFFF";
+		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
+		ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
+		ctx.beginPath();
+
+		ctx.save();
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+		const graphics = new AscCommon.CGraphics();
+		graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+		graphics.m_oFontManager = AscCommon.g_fontManager;
+
+		graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
+		graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
+
+		graphics.transform(1, 0, 0, 1, 0, 0);
+		par.Draw(0, graphics);
+
+		ctx.restore();
+		api.isViewMode = oldViewMode;
+		api.ShowParaMarks = oldMarks;
+	};
+
+	CBulletPreviewDrawer.prototype.checkFonts = function (callback)
+	{
+		this.isNeedCheckFonts = false;
+		const api = this.api;
+		const fontsDict = {};
+		for (let i = 0, count = this.arrayOfBullets.length; i < count; i++)
+		{
+			const bullet = this.arrayOfBullets[i].bullet;
+			const text = bullet.getDrawingText();
+			if (text)
+			{
+				AscFonts.FontPickerByCharacter.checkTextLight(text);
+			}
+			const textPr = this.arrayOfBullets[i].textPr;
+			if (textPr && textPr.RFonts)
+			{
+				if (textPr.RFonts.Ascii) fontsDict[textPr.RFonts.Ascii.Name] = true;
+				if (textPr.RFonts.EastAsia) fontsDict[textPr.RFonts.EastAsia.Name] = true;
+				if (textPr.RFonts.HAnsi) fontsDict[textPr.RFonts.HAnsi.Name] = true;
+				if (textPr.RFonts.CS) fontsDict[textPr.RFonts.CS.Name] = true;
+			}
+		}
+
+		const fonts = [];
+		for (let familyName in fontsDict)
+		{
+			fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+		}
+		AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+		if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+		{
+			return callback();
+		}
+
+		const loader = new AscCommon.CGlobalFontLoader();
+		loader.put_Api(api);
+		loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function() {
+			callback();
+		});
+	}
+
+	CBulletPreviewDrawer.prototype.draw = function ()
+	{
+		AscFormat.ExecuteNoHistory(function () {
+			const _this = this;
+			if (this.isNeedCheckFonts)
+			{
+				this.checkFonts(function () {
+					_this.draw();
+				});
+				return;
+			}
+
+			for (let i = 0; i < this.infoOfDrawings.length; i++)
+			{
+				const drawingInfo = this.infoOfDrawings[i];
+				const id = drawingInfo["divId"];
+				const currentBullet = this.arrayOfBullets[i];
+				if (this.type === 0)
+				{
+					if (drawingInfo["type"] === asc_PreviewBulletType.text)
+					{
+						this.drawNoneTextPreview(id, currentBullet);
+					}
+					else
+					{
+						this.drawSingleBullet(id, currentBullet);
+					}
+				}
+				else if (this.type === 1)
+				{
+					if (drawingInfo["type"] === asc_PreviewBulletType.text)
+					{
+						this.drawNoneTextPreview(id, currentBullet);
+					}
+					else
+					{
+						this.drawBulletsWithLines(id, currentBullet, 3);
+					}
+				}
+				else if (this.type === 2)
+				{
+					//TODO: add multi level support
+				}
+			}
+		}, this);
+	};
 
 	window.Asc.g_signature_drawer = null;
 	function CSignatureDrawer(id, api, w, h)
@@ -11447,6 +12327,10 @@
 		}
 		return null;
 	}
+	function valueToInt(value, def, radix) {
+		var num = parseInt(value, radix);
+		return !isNaN(num) ? num : def;
+	}
 
 	function valueToMm(value) {
 		var obj = valueToMmType(value);
@@ -11454,6 +12338,81 @@
 			return obj.val;
 		}
 		return null;
+	}
+	function universalMeasureToPt(val, koef, def) {
+		var nVal = parseFloat(val);
+		var nRes = def;
+		if (!isNaN(nVal)) {
+			if (-1 != val.indexOf("mm"))
+				nRes = nVal * 72 / (2.54 * 10);
+			else if (-1 != val.indexOf("cm"))
+				nRes = nVal * 72 / 2.54;
+			else if (-1 != val.indexOf("in"))
+				nRes = nVal * 72;
+			else if (-1 != val.indexOf("pt"))
+				nRes = nVal;
+			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
+				nRes = nVal * 12;
+			else if (-1 != val.indexOf("px"))
+				nRes = nVal / AscCommon.g_dDpiX;
+			else
+				nRes = nVal * koef;
+		}
+		return nRes;
+	}
+	function universalMeasureToTwips(val, koef, def) {
+		var nVal = parseFloat(val);
+		var nRes = def;
+		if (!isNaN(nVal)) {
+			if (-1 != val.indexOf("mm"))
+				nRes = nVal * 72 / (2.54 * 10 * 20);
+			else if (-1 != val.indexOf("cm"))
+				nRes = nVal * 72 / (2.54 * 20);
+			else if (-1 != val.indexOf("in"))
+				nRes = nVal * 72 / 20;
+			else if (-1 != val.indexOf("pt"))
+				nRes = nVal / 20;
+			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
+				nRes = nVal * 12 / 20;
+			else if (-1 != val.indexOf("px"))
+				nRes = nVal / (AscCommon.g_dDpiX * 20);
+			else
+				nRes = nVal * koef;
+		}
+		return nRes;
+	}
+	function universalMeasureToMm(val, koef, def) {
+		var nVal = parseFloat(val);
+		var nRes = def;
+		if (!isNaN(nVal)) {
+			if (-1 != val.indexOf("mm"))
+				nRes = nVal;
+			else if (-1 != val.indexOf("cm"))
+				nRes = nVal * 10;
+			else if (-1 != val.indexOf("in"))
+				nRes = nVal * 2.54 * 10;
+			else if (-1 != val.indexOf("pt"))
+				nRes = nVal * 2.54 * 10 / 72;
+			else if (-1 != val.indexOf("pc") || -1 != val.indexOf("pi"))
+				nRes = nVal * 12 * 2.54 * 10 / 72;
+			else if (-1 != val.indexOf("px"))
+				nRes = nVal * AscCommon.g_dKoef_pix_to_mm;
+			else
+				nRes = nVal * koef;
+		}
+		return nRes;
+	}
+	function universalMeasureToUnsignedPt(val, koef, def) {
+		var res = universalMeasureToPt(val, koef, def);
+		return res >= 0 ? res : def;
+	}
+	function universalMeasureToUnsignedTwips(val, koef, def) {
+		var res = universalMeasureToPt(val, koef, def);
+		return res >= 0 ? res : def;
+	}
+	function universalMeasureToUnsignedMm(val, koef, def) {
+		var res = universalMeasureToMm(val, koef, def);
+		return res >= 0 ? res : def;
 	}
 
 	function arrayMove(array, from, to) {
@@ -11901,8 +12860,6 @@
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
-	window["AscCommon"].getJSZipUtils = getJSZipUtils;
-	window["AscCommon"].getJSZip = getJSZip;
 	window["AscCommon"].getBaseUrl = getBaseUrl;
 	window["AscCommon"].getEncodingParams = getEncodingParams;
 	window["AscCommon"].getEncodingByBOM = getEncodingByBOM;
@@ -11922,9 +12879,10 @@
 	window["AscCommon"].encodeSurrogateChar = encodeSurrogateChar;
 	window["AscCommon"].convertUnicodeToUTF16 = convertUnicodeToUTF16;
 	window["AscCommon"].convertUTF16toUnicode = convertUTF16toUnicode;
+	window["AscCommon"].UTF8ArrayToString = UTF8ArrayToString;
 	window["AscCommon"].build_local_rx = build_local_rx;
 	window["AscCommon"].GetFileName = GetFileName;
-	window["AscCommon"].GetFileExtension = GetFileExtension;
+	window["AscCommon"]['GetFileExtension'] = window["AscCommon"].GetFileExtension = GetFileExtension;
 	window["AscCommon"].changeFileExtention = changeFileExtention;
 	window["AscCommon"].getExtentionByFormat = getExtentionByFormat;
 	window["AscCommon"].InitOnMessage = InitOnMessage;
@@ -11936,6 +12894,7 @@
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
 	window["AscCommon"].DownloadOriginalFile = DownloadOriginalFile;
+	window["AscCommon"].uploadDataUrlAsFile = uploadDataUrlAsFile;
 	window["AscCommon"].DownloadFileFromBytes = DownloadFileFromBytes;
 	window["AscCommon"].CanDropFiles = CanDropFiles;
 	window["AscCommon"].getUrlType = getUrlType;
@@ -11946,9 +12905,12 @@
 	window["AscCommon"].readValAttr = readValAttr;
 	window["AscCommon"].getNumFromXml = getNumFromXml;
 	window["AscCommon"].getColorFromXml = getColorFromXml;
+	window["AscCommon"].getColorFromXml2 = getColorFromXml2;
+	window["AscCommon"].writeColorToXml = writeColorToXml;
 	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 	window["AscCommon"].checkStreamSignature = checkStreamSignature;
+	window["AscCommon"].checkOOXMLSignature = checkOOXMLSignature;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
 	window["AscCommon"].OpenFileResult = OpenFileResult;
@@ -11964,6 +12926,11 @@
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
 	window["AscCommon"].IntToHex = IntToHex;
+	window["AscCommon"].Int32ToHex = Int32ToHex;
+	window["AscCommon"].Int32ToHexOrNull = Int32ToHexOrNull;
+	window["AscCommon"].Int16ToHex = Int16ToHex;
+	window["AscCommon"].Int16ToHexOrNull = Int16ToHexOrNull;
+	window["AscCommon"].ByteToHex = ByteToHex;
 	window["AscCommon"].IsDigit = IsDigit;
 	window["AscCommon"].IsLetter = IsLetter;
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
@@ -11981,11 +12948,11 @@
 	window["AscCommon"].getIndexColorSchemeInArray = getIndexColorSchemeInArray;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
 	window["AscCommon"].IsEastAsianFont = IsEastAsianFont;
+	window["AscCommon"].IsComplexScript = IsComplexScript;
 	window["AscCommon"].CMathTrack = CMathTrack;
 	window["AscCommon"].CPolygon = CPolygon;
 	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;
 
-	window["AscCommon"].JSZipWrapper = JSZipWrapper;
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
 	window["AscCommon"].FormulaTablePartInfo = FormulaTablePartInfo;
 	window["AscCommon"].cBoolLocal = cBoolLocal;
@@ -11996,6 +12963,7 @@
 	window["AscCommon"].rx_space = rx_space;
 	window["AscCommon"].rx_defName = rx_defName;
 	window["AscCommon"].rx_r1c1DefError = rx_r1c1DefError;
+	window["AscCommon"].rx_allowedProtocols = rx_allowedProtocols;
 
 	window["AscCommon"].kCurFormatPainterWord = kCurFormatPainterWord;
 	window["AscCommon"].parserHelp = parserHelp;
@@ -12007,6 +12975,12 @@
 	window["AscCommon"].Backoff = Backoff;
 	window["AscCommon"].backoffOnErrorImg = backoffOnErrorImg;
 	window["AscCommon"].isEmptyObject = isEmptyObject;
+
+	window["AscCommon"].getSourceImageSize = getSourceImageSize;
+
+	window["AscCommon"].CEventListenerInfo = CEventListenerInfo;
+
+	window["AscCommon"].CBulletPreviewDrawer = window["AscCommon"]["CBulletPreviewDrawer"] = CBulletPreviewDrawer;
 
 	window["AscCommon"].CSignatureDrawer = window["AscCommon"]["CSignatureDrawer"] = CSignatureDrawer;
 	var prot = CSignatureDrawer.prototype;
@@ -12023,6 +12997,13 @@
 
 	window["AscCommon"].valueToMm = valueToMm;
 	window["AscCommon"].valueToMmType = valueToMmType;
+	window["AscCommon"].valueToInt = valueToInt;
+	window["AscCommon"].universalMeasureToMm = universalMeasureToMm;
+	window["AscCommon"].universalMeasureToUnsignedMm = universalMeasureToUnsignedMm;
+	window["AscCommon"].universalMeasureToPt = universalMeasureToPt;
+	window["AscCommon"].universalMeasureToUnsignedPt = universalMeasureToUnsignedPt;
+	window["AscCommon"].universalMeasureToTwips = universalMeasureToTwips;
+	window["AscCommon"].universalMeasureToUnsignedTwips = universalMeasureToUnsignedTwips;
 	window["AscCommon"].arrayMove = arrayMove;
 	window["AscCommon"].getRangeArray = getRangeArray;
 	window["AscCommon"].isEqualSortedArrays = isEqualSortedArrays;
@@ -12342,7 +13323,7 @@ window["NativeFileOpen_error"] = function(error, _file_hash, _docInfo)
     }
     else if ("error" == error)
     {
-        _api.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        _api.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationOpenError, Asc.c_oAscError.Level.Critical);
         return;
     }
 };

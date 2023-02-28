@@ -371,12 +371,16 @@ CWordCollaborativeEditing.prototype.OnCallback_AskLock = function(result)
             if (true === oEditor.isChartEditor)
                 oEditor.sync_closeChartEditor();
 
+          if (true === oEditor.isOleEditor)
+            oEditor.sync_closeOleEditor();
+
             // Делаем откат на 1 шаг назад и удаляем из Undo/Redo эту последнюю точку
             oEditor.WordControl.m_oLogicDocument.Document_Undo();
             AscCommon.History.Clear_Redo();
         }
 
         oEditor.isChartEditor = false;
+        oEditor.isOleEditor = false;
     }
 };
 CWordCollaborativeEditing.prototype.AddContentControlForSkippingOnCheckEditingLock = function(oContentControl)
@@ -456,7 +460,7 @@ CWordCollaborativeEditing.prototype.Update_ForeignCursorPosition = function(User
         DrawingDocument.Collaborative_RemoveTarget(UserId);
         return;
     }
-    ParaContentPos.Update(InRunPos, ParaContentPos.Get_Depth() + 1);
+    ParaContentPos.Update(InRunPos, ParaContentPos.GetDepth() + 1);
 
     var XY = Paragraph.Get_XYByContentPos(ParaContentPos);
     if (XY && XY.Height > 0.001)

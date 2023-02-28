@@ -130,7 +130,11 @@ DrawingObjectsController.prototype.setTableProps = function(props)
         props.TableCaption = sCaption;
         props.TableDescription = sDescription;
         props.RowHeight = dRowHeight;
-        editor.WordControl.m_oLogicDocument.Check_GraphicFrameRowHeight(by_type.tables[0], bIgnoreHeight);
+        if(!by_type.tables[0].setFrameTransform(props)) 
+        {
+            editor.WordControl.m_oLogicDocument.Check_GraphicFrameRowHeight(by_type.tables[0], bIgnoreHeight);
+        }
+        
     }
 };
 
@@ -336,11 +340,13 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
 {
     var drawingObjects = this.drawingObjects;
     var oThis = this;
+    var oApi = oThis.getEditorApi();
     var fCallback = function(){
         if(oleObject.m_oMathObject) {
             window["Asc"]["editor"].sendEvent("asc_onConvertEquationToMath", oleObject);
-        }
-        else {
+        } else if (oleObject.canEditTableOleObject()) {
+            window["Asc"]["editor"].asc_doubleClickOnTableOleObject(oleObject);
+        } else {
             var pluginData = new Asc.CPluginData();
             pluginData.setAttribute("data", oleObject.m_sData);
             pluginData.setAttribute("guid", oleObject.m_sApplicationId);
@@ -462,6 +468,23 @@ DrawingObjectsController.prototype.addImageFromParams = function(rasterImageId, 
     image.checkDrawingBaseCoords();
     this.selectObject(image, 0);
     image.addToRecalculate();
+};
+DrawingObjectsController.prototype.addImage = function(sImageUrl, nPixW, nPixH, videoUrl, audioUrl)
+{
+    let options = {
+        cell: this.drawingObjects.getWorksheetModel().selectionRange.activeCell,
+        width: nPixW,
+        height: nPixH
+    }
+    let _image = {
+        src:  sImageUrl,
+        Image: {
+          src: sImageUrl
+        }
+    };
+    this.drawingObjects.addImageObjectCallback(_image, options);
+    this.startRecalculate();
+    this.drawingObjects.getWorksheet().setSelectionShape(true);
 };
 
 DrawingObjectsController.prototype.addOleObjectFromParams = function(fPosX, fPosY, fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId, bSelect){
@@ -624,11 +647,11 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
             var oItem;
             if(AscCommon.IsSpace(Code))
             {
-                oItem = new ParaSpace(Code);
+                oItem = new AscWord.CRunSpace(Code);
             }
             else
             {
-                oItem = new ParaText(Code);
+                oItem = new AscWord.CRunText(Code);
             }
             this.paragraphAdd(oItem, false);
             this.checkMobileCursorPosition();

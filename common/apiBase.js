@@ -50,8 +50,11 @@
 	{
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
-        this.isLoadFonts = false;
+        this.modulesCount  = 0;
+		this.modulesLoaded = 0;
 		this.openResult    = null;
+		this.isOpenOOXInBrowser = false;
+		this.openOOXInBrowserZip = null;
 
 		this.HtmlElementName = config['id-view'] || '';
 		this.HtmlElement     = null;
@@ -123,6 +126,8 @@
 		this.isChartEditor         = false;
 		this.isOpenedChartFrame    = false;
 
+		this.isOleEditor = false;
+
 		this.MathMenuLoad          = false;
 
 		// CoAuthoring and Chat
@@ -185,6 +190,7 @@
 		this.disableAutostartMacros = false;
 		this.macros = null;
 		this.vbaMacros = null;
+		this.vbaMacrosXml = null;
 
         this.openFileCryptBinary = null;
 
@@ -252,13 +258,7 @@
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
 		});
 
-        AscFonts.load(t, function()
-        {
-            t.isLoadFonts = true;
-            t.onEndLoadFile(null);
-        }, function() {
-            t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
-        });
+		this._loadModules();
 
 		AscCommon.loadChartStyles(function() {}, function(err) {
 			t.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.NoCritical);
@@ -318,10 +318,50 @@
 		}
 		return res;
 	};
+	baseEditorsApi.prototype._editorDefaultExt                = function()
+	{
+		let res = '';
+		switch (this.editorId)
+		{
+			case c_oEditorId.Word:
+				res += 'docx';
+				break;
+			case c_oEditorId.Spreadsheet:
+				res += 'xlsx';
+				break;
+			case c_oEditorId.Presentation:
+				res += 'pptx';
+				break;
+		}
+		return res;
+	};
 	baseEditorsApi.prototype.getEditorId                     = function()
 	{
 		return this.editorId;
 	};
+
+	// modules
+	baseEditorsApi.prototype._loadModules = function()
+	{
+		this.modulesCount = 2;
+		AscFonts.load(this, this._onSuccessLoadModule.bind(this), this._onErrorLoadModule.bind(this));
+		AscCommon.zlib_load(this._onSuccessLoadModule.bind(this), this._onErrorLoadModule.bind(this));
+	};
+	baseEditorsApi.prototype._onSuccessLoadModule = function()
+	{
+		this.modulesLoaded++;
+		if (this.modulesLoaded === this.modulesCount)
+			this.onEndLoadFile(null);
+	};
+	baseEditorsApi.prototype._onErrorLoadModule = function()
+	{
+		this.sendEvent("asc_onError", Asc.c_oAscError.ID.LoadingScriptError, c_oAscError.Level.Critical);
+	};
+	baseEditorsApi.prototype._isLoadedModules = function()
+	{
+		return (this.modulesLoaded === this.modulesCount) ? true : false;
+	};
+
 	baseEditorsApi.prototype.asc_loadFontsFromServer             = function (fonts)
 	{
 		if (!fonts)
@@ -353,6 +393,9 @@
 	baseEditorsApi.prototype.getInternalCoreProps                = function()
 	{
 		return null;
+	};
+	baseEditorsApi.prototype.isFrameEditor = function () {
+		return !!(this.isChartEditor ||  this.isEditOleMode); // TODO: solve the confusion
 	};
 	baseEditorsApi.prototype.asc_setCoreProps                = function(oProps)
 	{
@@ -503,6 +546,10 @@
 	{
 		return false;
 	};
+	baseEditorsApi.prototype.isLiveViewer                     = function()
+	{
+		return this.isViewMode && AscCommon.CollaborativeEditing.Is_Fast() && !this.VersionHistory;
+	};
 	// Events
 	baseEditorsApi.prototype.sendEvent                       = function()
 	{
@@ -570,6 +617,94 @@
 	{
 		this.restrictions &= ~val;
 		this.onUpdateRestrictions();
+	};
+	baseEditorsApi.prototype.addTableOleObject = function(oleBinary)
+	{
+		var _this = this;
+		if (oleBinary) {
+			if (!oleBinary['imageUrl'])
+			{
+				var base64Image = oleBinary['base64Image'];
+				var fAfterUploadOleObjectImage = function (url) {
+					oleBinary['imageUrl'] = url;
+					_this.addTableOleObject(oleBinary);
+				}
+				var obj = {
+					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+				};
+				AscCommon.sendImgUrls(_this, [base64Image], function(data) {
+					if (data[0] && data[0].path != null && data[0].url !== "error")
+					{
+						oleBinary['imageUrl'] = data[0].url;
+						_this._addImageUrl([data[0].url], obj);
+					}
+				}, _this.editorId === c_oEditorId.Spreadsheet);
+				return;
+			}
+			var blipUrl = oleBinary['imageUrl'];
+			var binaryDataOfSheet = AscCommon.Base64.decode(oleBinary['binary']);
+			var sizes = AscCommon.getSourceImageSize(blipUrl);
+			var mmExtX = sizes.width * AscCommon.g_dKoef_pix_to_mm;
+			var mmExtY = sizes.height * AscCommon.g_dKoef_pix_to_mm;
+			this.asc_addOleObjectAction(blipUrl, binaryDataOfSheet, 'Excel.Sheet.12', mmExtX, mmExtY, sizes.width, sizes.height, true);
+		}
+	};
+	baseEditorsApi.prototype.asc_addTableOleObject = function(oleBinary)
+	{
+		this.addTableOleObject(oleBinary);
+	}
+
+	baseEditorsApi.prototype.asc_editTableOleObject = function(oleBinary)
+	{
+		this.editTableOleObject(oleBinary);
+	}
+	baseEditorsApi.prototype.editTableOleObject = function(oOleBinaryInfo)
+	{
+		const oThis = this;
+		if (oOleBinaryInfo)
+		{
+			if (!oOleBinaryInfo['imageUrl'])
+			{
+				const sBase64Image = oOleBinaryInfo['base64Image'];
+				const fAfterUploadOleObjectImage = function (sUrl) {
+					oOleBinaryInfo['imageUrl'] = sUrl;
+					oThis.editTableOleObject(oOleBinaryInfo);
+				}
+				const oOptions = {
+					fAfterUploadOleObjectImage: fAfterUploadOleObjectImage
+				};
+				AscCommon.sendImgUrls(oThis, [sBase64Image], function(data) {
+					if (data[0] && data[0].path != null && data[0].url !== "error")
+					{
+						oOleBinaryInfo['imageUrl'] = data[0].url;
+						oThis._addImageUrl([data[0].url], oOptions);
+					}
+				}, oThis.editorId === c_oEditorId.Spreadsheet);
+				return;
+			}
+
+			const oController = this.getGraphicController();
+			if (oController)
+			{
+				const arrSelectedObjects = AscFormat.getObjectsByTypesFromArr(oController.selectedObjects);
+				if (arrSelectedObjects.oleObjects.length === 1)
+				{
+					const oSelectedOleObject = arrSelectedObjects.oleObjects[0];
+					const sBlipUrl = oOleBinaryInfo['imageUrl'];
+					const arrBinaryDataOfSheet = AscCommon.Base64.decode(oOleBinaryInfo['binary']);
+					const oSizes = AscCommon.getSourceImageSize(sBlipUrl);
+					const nImageWidthCoefficient = oOleBinaryInfo['widthCoefficient'] || 1;
+					const nImageHeightCoefficient = oOleBinaryInfo['heightCoefficient'] || 1;
+
+					let nMMExtX, nMMExtY, nAdaptSizeHeight, nAdaptSizeWidth;
+					nAdaptSizeWidth = (oSizes.width || 0) * nImageWidthCoefficient;
+					nAdaptSizeHeight = (oSizes.height || 0) * nImageHeightCoefficient;
+					nMMExtY = nAdaptSizeHeight * AscCommon.g_dKoef_pix_to_mm;
+					nMMExtX = nAdaptSizeWidth * AscCommon.g_dKoef_pix_to_mm;
+					this.asc_editOleObjectAction(false, oSelectedOleObject, sBlipUrl, arrBinaryDataOfSheet, nMMExtX, nMMExtY, nAdaptSizeWidth, nAdaptSizeHeight);
+				}
+			}
+		}
 	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
@@ -689,6 +824,7 @@
 					locale = undefined;
 				}
 			}
+			let convertToOrigin = !!this.DocInfo.get_DirectUrl() ? '.docx.xlsx.pptx' : '';
 			rData = {
 				"c"             : 'open',
 				"id"            : this.documentId,
@@ -697,12 +833,13 @@
 				"url"           : this.documentUrl,
 				"title"         : this.documentTitle,
 				"lcid"          : locale,
-				"nobase64"      : true
+				"nobase64"      : true,
+				"convertToOrigin" : convertToOrigin
 			};
 
 			if (this.isUseNativeViewer)
 			{
-				rData["convertToOrigin"] = '.pdf.xps.oxps.djvu';
+				rData["convertToOrigin"] += '.pdf.xps.oxps.djvu';
 			}
 
 			if (versionHistory)
@@ -757,10 +894,10 @@
 		AscCommon.openFileCommand(this.documentId, data, this.documentUrlChanges, this.documentTokenChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
 		{
 			var signature = result.data && String.fromCharCode(result.data[0], result.data[1], result.data[2], result.data[3]);
-			if (error || (!result.bSerFormat && (t.editorId !== c_oEditorId.Word || 'XLSY' === signature || 'PPTY' === signature)))
+			if (c_oAscError.ID.No !== error || (!result.bSerFormat && 'PK' !== signature.substring(0, 2) && (t.editorId !== c_oEditorId.Word || 'XLSY' === signature || 'PPTY' === signature)))
 			{
 				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
-				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
+				var err = c_oAscError.ID.No !== error ? error : c_oAscError.ID.ConvertationOpenError;
 				t.sendEvent("asc_onError",  err, c_oAscError.Level.Critical);
 				return;
 			}
@@ -953,7 +1090,7 @@
 	baseEditorsApi.prototype._onSaveCallbackInner = function () {
 	};
 	baseEditorsApi.prototype._autoSave = function () {
-		if (this.canSave && !this.isViewMode && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
+		if (this.canSave && (!this.isViewMode || this.isLiveViewer()) && (this.canUnlockDocument || 0 !== this.autoSaveGap)) {
 			if (this.canUnlockDocument) {
 				this.lastSaveTime = new Date();
 				// Check edit mode after unlock document http://bugzilla.onlyoffice.com/show_bug.cgi?id=35971
@@ -1041,6 +1178,7 @@
 				oResult.setRights(this.licenseResult['rights']);
 				oResult.setBuildVersion(this.licenseResult['buildVersion']);
 				oResult.setBuildNumber(this.licenseResult['buildNumber']);
+				oResult.setLiveViewerSupport(this.licenseResult['liveViewerSupport']);
 
 				if (undefined !== this.licenseResult['protectionSupport']) {
 					this.isProtectionSupport = this.licenseResult['protectionSupport'];
@@ -1323,7 +1461,7 @@
 								t.setOpenedAt(input["openedAt"]);
 								var urls = input["data"];
 								AscCommon.g_oDocumentUrls.init(urls);
-								var documentUrl = urls['Editor.bin'];
+								var documentUrl = urls['Editor.bin'] || urls['origin.' + t._editorDefaultExt()];
 								if (t.isUseNativeViewer && !documentUrl)
 									documentUrl = urls['origin.' + t.documentFormat] || urls['origin.pdf'] || urls['origin.xps'] || urls['origin.oxps'] || urls['origin.djvu'];
 								if (null != documentUrl) {
@@ -1643,9 +1781,6 @@
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 		}
-		if (Asc.c_oAscFileType.HTML === options.fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData) {
-			options.fileType = Asc.c_oAscFileType.HTML_TODO;
-		}
 
 		var downloadType;
 		if (options.isDownloadEvent) {
@@ -1705,7 +1840,10 @@
 		{
 			return;
 		}
-
+		this._downloadAsUsingServer(actionType, options, oAdditionalData, dataContainer, downloadType);
+	};
+	baseEditorsApi.prototype._downloadAsUsingServer                        = function (actionType, options, oAdditionalData, dataContainer, downloadType)
+	{
 		var t = this;
 		this.fCurCallback = null;
 		if (!options.callback)
@@ -1839,6 +1977,7 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
         };
 	baseEditorsApi.prototype.asc_addImage                        = function(obj)
 	{
+		if (this.isFrameEditor()) return; //TODO: Fix in 7.2.1
 		var t = this;
 
                 // CryptPad: we need to take control of the upload
@@ -1948,20 +2087,20 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 		var sImgSrc    = oPluginData["imgSrc"];
 		var nWidthPix  = oPluginData["widthPix"];
 		var nHeightPix = oPluginData["heightPix"];
-		var fWidth     = oPluginData["width"];
-		var fHeight    = oPluginData["height"];
+		var fWidthMM   = oPluginData["width"];
+		var fHeightMM  = oPluginData["height"];
 		var sData      = oPluginData["data"];
 		var sGuid      = oPluginData["guid"];
 		var bSelect    = (oPluginData["select"] === true || oPluginData["select"] === false) ? oPluginData["select"] : true;
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
 			&& typeof sGuid === "string" && sGuid.length > 0
 			/*&& AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix)*/
-			&& AscFormat.isRealNumber(fWidth) && AscFormat.isRealNumber(fHeight)
+			&& AscFormat.isRealNumber(fWidthMM) && AscFormat.isRealNumber(fHeightMM)
 		)
 
 		this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
 		{
-			oThis.asc_addOleObjectAction(AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, sGuid, fWidth, fHeight, nWidthPix, nHeightPix, bSelect);
+			oThis.asc_addOleObjectAction(AscCommon.g_oDocumentUrls.getImageLocal(oImage.src), sData, sGuid, fWidthMM, fHeightMM, nWidthPix, nHeightPix, bSelect);
 		});
 	};
 
@@ -1980,7 +2119,8 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 		var fWidthMM   = oPluginData["width"];
 		var fHeightMM  = oPluginData["height"];
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
-			&& oOleObject && AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix))
+			&& oOleObject /*&& AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix)*/
+			&& AscFormat.isRealNumber(fWidthMM) && AscFormat.isRealNumber(fHeightMM))
 		{
             this.asc_checkImageUrlAndAction(sImgSrc, function(oImage)
 			{
@@ -2048,6 +2188,16 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 			sShapeName = "Shape";
 		}
 		return sShapeName;
+	};
+
+	baseEditorsApi.prototype.getGraphicController = function() {};
+
+	baseEditorsApi.prototype.asc_canEditTableOleObject = function(bReturnOle) {
+		var oController = this.getGraphicController();
+		if(oController) {
+			return oController.canEditTableOleObject(bReturnOle);
+		}
+		return bReturnOle ? null : false;
 	};
 
 
@@ -2165,12 +2315,74 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 	{
 		return AscCommon.getUrlType(url);
 	};
+	baseEditorsApi.prototype.asc_prepareUrl = function(url)
+	{
+		return AscCommon.prepareUrl(url);
+	};
 
 	baseEditorsApi.prototype.openDocument  = function(file)
 	{
 	};
 	baseEditorsApi.prototype.openDocumentFromZip  = function()
 	{
+	};
+	baseEditorsApi.prototype.saveDocumentToZip  = function(model, editorType, callback)
+	{
+		let t = this;
+		var context = new AscCommon.XmlWriterContext(editorType);
+		let jsZlibToSave = new AscCommon.ZLib();
+		jsZlibToSave.create();
+		model.toZip(jsZlibToSave, context);
+
+		let jsZlibOpened = new AscCommon.ZLib();
+		if (!jsZlibOpened.open(t.openOOXInBrowserZip)) {
+			jsZlibOpened = null;
+		}
+
+		//save embeddings
+		let oDataMap = context.dataMap;
+		if(jsZlibOpened) {
+			for(let sDataKey in oDataMap) {
+				if(oDataMap.hasOwnProperty(sDataKey)) {
+					let aEmbeddingData = jsZlibOpened.getFile(sDataKey);
+					if(aEmbeddingData) {
+						oDataMap[sDataKey].part.setData(aEmbeddingData);
+					}
+				}
+			}
+		}
+		let imageMapKeys = Object.keys(context.imageMap);
+		let downloadImages = function (imageMapKeys) {
+			if (imageMapKeys.length > 0) {
+				let elem = imageMapKeys.pop();
+				let data = jsZlibOpened && jsZlibOpened.getFile(elem);
+				if (data) {
+					context.imageMap[elem].part.setData(data);
+					downloadImages(imageMapKeys);
+				} else if (window["NATIVE_EDITOR_ENJINE"] === true && window["native"]["getImagesDirectory"] && window["native"]["GetFileBinary"]) {
+					let path = window["native"]["getImagesDirectory"]() + '/' + elem;
+					let data = window["native"]["GetFileBinary"](path);
+					if (data) {
+						context.imageMap[elem].part.setData(data);
+					}
+					downloadImages(imageMapKeys);
+				} else {
+					let url = AscCommon.g_oDocumentUrls.getImageUrl(elem);
+					AscCommon.loadFileContent(url, function (httpRequest) {
+						if (httpRequest && httpRequest.response) {
+							context.imageMap[elem].part.setData(httpRequest.response);
+						}
+						downloadImages(imageMapKeys);
+					}, "arraybuffer");
+				}
+			} else {
+				jsZlibOpened && jsZlibOpened.close();
+				let data = jsZlibToSave.save();
+				jsZlibToSave.close();
+				callback(data);
+			}
+		};
+		downloadImages(imageMapKeys);
 	};
 	baseEditorsApi.prototype.onEndLoadDocInfo = function()
 	{
@@ -2189,7 +2401,7 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 		{
 			this.openResult = result;
 		}
-		if (this.isLoadFullApi && this.DocInfo && this.openResult && this.isLoadFonts)
+		if (this.isLoadFullApi && this.DocInfo && this.openResult && this._isLoadedModules())
 		{
 			this.openDocument(this.openResult);
 			this.sendEvent("asc_onDocumentPassword", ("" !== this.currentPassword));
@@ -2405,9 +2617,9 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 					var zoom = AscCommon.g_dKoef_mm_to_pix * this.WordControl.m_nZoomValue / 100;
 
                     if (!transform)
-                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, zoom);
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X >> 0, pos.Y >> 0, extX, extY, zoom);
                     else
-                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X, pos.Y, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                        window["AscDesktopEditor"]["MediaStart"](sMediaName, pos.X >> 0, pos.Y >> 0, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
                 }
                 else
 				{
@@ -2430,9 +2642,9 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
                         var zoom = _w / _w_mm;
 
                         if (!transform)
-                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, _y, extX, extY, zoom);
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x >> 0, _y >> 0, extX, extY, zoom);
                         else
-                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x, _y, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+                            window["AscDesktopEditor"]["MediaStart"](sMediaName, _x >> 0, _y >> 0, extX, extY, zoom, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
                     }
 
 				}
@@ -2459,7 +2671,10 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
 		if (null != this.pluginsManager)
+		{
 			this.pluginsManager.register(basePath, plugins);
+			this.checkInstalledPlugins();
+		}
 		else
 		{
 			this.preSetupPlugins = {
@@ -2535,7 +2750,12 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 					{
 						var textPr = new AscCommonWord.CTextPr();
 						textPr.SetFontFamily(familyName);
-						this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+
+						let settings = new AscCommon.CAddTextSettings();
+						settings.SetTextPr(textPr);
+						settings.MoveCursorOutside(true);
+
+						this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), settings);
 					}
                     break;
                 }
@@ -2575,8 +2795,7 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
     // Builder
 	baseEditorsApi.prototype.asc_nativeInitBuilder = function()
 	{
-		// Disable history for builder
-		AscCommon.History.TurnOff();
+		AscCommon.History.TurnOffChanges();
 		this.asc_setDocInfo(new Asc.asc_CDocInfo());
 	};
 	baseEditorsApi.prototype.asc_SetSilentMode     = function()
@@ -3071,6 +3290,10 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 		if (this.isUseNativeViewer && this.isDocumentRenderer && this.isDocumentRenderer())
 			return 0;
 
+		//viewer
+		if (this.isViewMode)
+			return 0;
+
 		return new Date().getTime() - this.lastWorkTime;
 	};
 
@@ -3284,6 +3507,9 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
     	if (!this.macros || this.disableAutostartMacros)
     		return;
 
+		if (this.DocInfo && !this.DocInfo.asc_getIsEnabledMacroses())
+			return;
+
     	if (!this.asc_canPaste())
     		return;
 
@@ -3295,6 +3521,9 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
     {
     	if (!this.macros)
     		return;
+
+		if (this.DocInfo && !this.DocInfo.asc_getIsEnabledMacroses())
+			return;
 
     	if (!this.asc_canPaste())
     		return;
@@ -3324,6 +3553,16 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 
 		return this.macros.getNameByGuid(sGuid);
     };
+	baseEditorsApi.prototype.asc_getUserPermissionToMakeRequestFromMacros = function(url, callback)
+	{
+		var bNeedCallback = this.editorId === AscCommon.c_oEditorId.Spreadsheet ? this.handlers.hasTrigger('asc_onMacrosPermissionRequest') : this.asc_checkNeedCallback('asc_onMacrosPermissionRequest');
+		if (bNeedCallback) {
+			this.sendEvent('asc_onMacrosPermissionRequest', url, callback);
+		} else {
+			var permission = confirm("A macro makes a request to URL. Do you want to allow the request to the '" + url +"' ?");
+			callback(permission);
+		}
+	};
 
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
@@ -3612,11 +3851,36 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 	baseEditorsApi.prototype.asc_drawPrintPreview                     = function()
 	{
 	};
+	baseEditorsApi.prototype.asc_EditSelectAll = function()
+	{
+	};
+	//---------------------------------------------------------search-----------------------------------------------------
+	baseEditorsApi.prototype.asc_findText = function(oProps, isNext, callback)
+	{
+	};
+	baseEditorsApi.prototype.asc_endFindText = function()
+	{
+	};
+	baseEditorsApi.prototype.sync_setSearchCurrent = function(nCurrent, nOverallCount)
+	{
+	};
+	baseEditorsApi.prototype.sync_startTextAroundSearch = function()
+	{
+	};
+	baseEditorsApi.prototype.sync_endTextAroundSearch = function()
+	{
+	};
+	baseEditorsApi.prototype.sync_getTextAroundSearchPack = function(arrElements)
+	{
+	};
+	baseEditorsApi.prototype.sync_removeTextAroundSearch = function(sId)
+	{
+	};
 	//---------------------------------------------------------version----------------------------------------------------
 	baseEditorsApi.prototype["GetVersion"] = baseEditorsApi.prototype.GetVersion = function()
 	{
-		var ver = "@@Version";
-		return (ver === "0.0.0" || ver.substr(2) === "Version") ? "develop" : ver;
+		this.versionSdk = "@@Version";
+		return (this.versionSdk === "0.0.0" || this.versionSdk.substr(2) === "Version") ? "develop" : this.versionSdk;
 	};
 	//----------------------------------------------------------addons----------------------------------------------------
 	baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
@@ -3696,6 +3960,15 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 		this.openedAt = val;
 	};
 
+	baseEditorsApi.prototype.getImageDataFromSelection = function ()
+	{
+		return null;
+	};
+
+	baseEditorsApi.prototype.putImageToSelection = function (sImageSrc, nWidth, nHeight)
+	{
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
@@ -3703,6 +3976,8 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 	prot = baseEditorsApi.prototype;
 	prot['asc_loadFontsFromServer'] = prot.asc_loadFontsFromServer;
 	prot['asc_setRestriction'] = prot.asc_setRestriction;
+	prot['asc_addRestriction'] = prot.asc_addRestriction;
+	prot['asc_removeRestriction'] = prot.asc_removeRestriction;
 	prot['asc_selectSearchingResults'] = prot.asc_selectSearchingResults;
 	prot['asc_showRevision'] = prot.asc_showRevision;
 	prot['asc_getAdvancedOptions'] = prot.asc_getAdvancedOptions;
@@ -3731,6 +4006,10 @@ if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downl
 	prot['asc_wopi_renameFile'] = prot.asc_wopi_renameFile;
 	prot['asc_setShapeNames'] = prot.asc_setShapeNames;
 	prot['asc_generateChartPreviews'] = prot.asc_generateChartPreviews;
+	prot['asc_addTableOleObject'] = prot.asc_addTableOleObject;
+	prot['asc_editTableOleObject'] = prot.asc_editTableOleObject;
+	prot['asc_canEditTableOleObject'] = prot.asc_canEditTableOleObject;
+	prot['asc_EditSelectAll'] = prot.asc_EditSelectAll;
 	prot['setOpenedAt'] = prot.setOpenedAt;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
