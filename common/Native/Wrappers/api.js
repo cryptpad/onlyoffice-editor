@@ -2162,10 +2162,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
         case 202: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64
+        case 203: // ASC_MENU_EVENT_TYPE_DOCUMENT_PDFBASE64_PRINT
         {
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
-            _stream["WriteStringA"](this.WordControl.m_oDrawingDocument.ToRenderer());
+            _stream["WriteStringA"](this.WordControl.m_oDrawingDocument.ToRenderer(203 === type));
             _return = _stream;
             break;
         }
@@ -2774,6 +2775,30 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             if (json) {
                 var internalId = json["internalId"] || "";
                 _api.SetContentControlPictureUrlNative(_src, internalId)
+            }
+            break;
+        }
+
+        case 27001: //ASC_MENU_EVENT_TYPE_SET_FOOTNOTE_PROP
+        {
+            var json = JSON.parse(_params),
+                pos = json["Pos"],
+                numFormat = json["NumFormat"],
+                numStart = json["NumStart"],
+                numRestart = json["NumRestart"],
+                isAll = json["IsAll"] || true,
+                isEndnote = json["IsEndnote"] || false;
+
+            var props = new Asc.CAscFootnotePr();
+            props.put_Pos(pos);
+            props.put_NumFormat(numFormat);
+            props.put_NumStart(numStart);
+            props.put_NumRestart(numRestart);
+
+            if (isEndnote) {
+                _api.asc_SetEndnoteProps(props, isAll);
+            } else {
+                _api.asc_SetFootnoteProps(props, isAll);
             }
             break;
         }
@@ -4957,7 +4982,7 @@ Asc['asc_docs_api'].prototype.Send_Menu_Event = function(type)
     window["native"]["OnCallMenuEvent"](type, global_memory_stream_menu);
 };
 
-Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
+Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function(isExternalTrigger)
 {
     if (this.WordControl && this.WordControl.m_oDrawingDocument)
         this.WordControl.m_oDrawingDocument.EndTableStylesCheck();
@@ -5040,7 +5065,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
     }
 
     this.Send_Menu_Event(6);
-    this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack);
+    this.sendEvent("asc_onFocusObject", this.SelectedObjectsStack, !isExternalTrigger);
 };
 
 function Deserialize_Table_Markup(_params, _cols, _margins, _rows)
@@ -6462,8 +6487,8 @@ function onApiShowRevisionsChange(data) {
                         changes.push("|Change tabs|");
                     if (value.Get_NumPr() !== undefined)
                         changes.push("|Change numbering|");
-                    if (value.Get_PStyle() !== undefined) {
-                        var style = me.api.asc_GetStyleNameById(value.Get_PStyle());
+                    if (value.GetPStyle() !== undefined) {
+                        var style = me.api.asc_GetStyleNameById(value.GetPStyle());
                         if (!_.isEmpty(style)) {
                             changes.push(style)
                         }
@@ -6732,14 +6757,11 @@ function getHexColor(r, g, b) {
     return r + g + b;
 }
 
-function onFocusObject(SelectedObjects) {
+function onFocusObject(SelectedObjects, localTrigger) {
     var settings = [];
-    var isChart = false;
-    var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null,
-        control_lock = false;
+    var control_props = _api.asc_IsContentControl() ? _api.asc_GetContentControlProperties() : null;
 
-    for (i = 0; i < SelectedObjects.length; i++) {
-        var content_locked = false;
+    for (var i = 0; i < SelectedObjects.length; i++) {
         var eltype = SelectedObjects[i].get_ObjectType();
         var value = SelectedObjects[i].get_ObjectValue();
         
@@ -6754,6 +6776,7 @@ function onFocusObject(SelectedObjects) {
             {
                 settings.push({
                     type: eltype,
+                    localTrigger: (typeof localTrigger === 'boolean') ? localTrigger : true,
                     rawValue: JSON.prune(value, 5)
                 });
                 break;
@@ -6772,6 +6795,7 @@ function onFocusObject(SelectedObjects) {
         settings.push({
             type: Asc.c_oAscTypeSelectElement.ContentControl,
             spectype: spectype,
+            localTrigger: (typeof localTrigger === 'boolean') ? localTrigger : true,
             rawValue: JSON.prune(control_props, 4),
             value: readSDKContentControl(control_props, SelectedObjects)
         });

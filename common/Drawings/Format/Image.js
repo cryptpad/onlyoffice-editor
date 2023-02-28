@@ -717,6 +717,7 @@ CImageShape.prototype.draw = function(graphics, transform)
     }
     graphics.reset();
     graphics.SetIntegerGrid(true);
+    this.drawAnimLabels && this.drawAnimLabels(graphics);
 };
 
 
@@ -760,6 +761,9 @@ CImageShape.prototype.hit = CShape.prototype.hit;
 
 CImageShape.prototype.drawAdjustments = function(drawingDocument)
 {
+    if(!this.canChangeAdjustments()) {
+        return;
+    }
     if (this.calcGeometry) {
         this.calcGeometry.drawAdjustments(drawingDocument, this.transform, false);
     }
@@ -837,6 +841,9 @@ CImageShape.prototype.Load_LinkData = function(linkData)
 {
 };
 
+    CImageShape.prototype.getTypeName = function() {
+        return AscCommon.translateManager.getValue("Picture");
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CImageShape = CImageShape;

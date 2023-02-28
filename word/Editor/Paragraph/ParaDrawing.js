@@ -198,6 +198,20 @@ ParaDrawing.prototype = Object.create(CRunElementBase.prototype);
 ParaDrawing.prototype.constructor = ParaDrawing;
 
 ParaDrawing.prototype.Type = para_Drawing;
+ParaDrawing.prototype.SetParent = function(oParent)
+{
+	if (!oParent)
+		return;
+
+	if (oParent instanceof ParaRun)
+		this.Parent = oParent.GetParagraph();
+	else if (oParent instanceof Paragraph)
+		this.Parent = oParent;
+};
+ParaDrawing.prototype.GetParent = function()
+{
+	return this.Parent;
+};
 ParaDrawing.prototype.Get_Type = function()
 {
 	return this.Type;
@@ -235,26 +249,27 @@ ParaDrawing.prototype.FindNextFillingForm = function(isNext, isCurrent)
 
 	return null;
 };
-ParaDrawing.prototype.CheckCorrect = function(){
-	if(!this.GraphicObj){
+ParaDrawing.prototype.CheckCorrect = function()
+{
+	if (!this.GraphicObj)
+	{
 		return false;
 	}
-	if(this.GraphicObj && this.GraphicObj.checkCorrect){
+	if (this.GraphicObj && this.GraphicObj.checkCorrect)
+	{
 		return this.GraphicObj.checkCorrect();
 	}
 	return true;
 };
-
-ParaDrawing.prototype.GetAllDrawingObjects = function(DrawingObjects)
+ParaDrawing.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 {
-	if (null == DrawingObjects)
-	{
-		DrawingObjects = [];
-	}
+	if (!arrDrawingObjects)
+		arrDrawingObjects = [];
+
 	if (this.GraphicObj.GetAllDrawingObjects)
-	{
-		this.GraphicObj.GetAllDrawingObjects(DrawingObjects);
-	}
+		this.GraphicObj.GetAllDrawingObjects(arrDrawingObjects);
+
+	return arrDrawingObjects;
 };
 ParaDrawing.prototype.canRotate = function()
 {
@@ -1795,6 +1810,38 @@ ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 		Paragraph.Document_SetThisElementCurrent(undefined === bUpdateStates ? true : bUpdateStates);
 	}
 };
+ParaDrawing.prototype.GetDocumentPositionFromObject = function()
+{
+	var oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return [];
+
+	var oLogicDocument = oParagraph.GetLogicDocument();
+	if (!oLogicDocument)
+		return [];
+
+	var oParaContentPos = oParagraph.GetPosByDrawing(this.GetId());
+	if (!oParaContentPos)
+		return [];
+
+	var nInRunPos = oParaContentPos.Get(oParaContentPos.GetDepth());
+
+	var oRunPos = oParaContentPos.Copy();
+	oRunPos.DecreaseDepth(1);
+
+	var oRun = oParagraph.GetClassByPos(oRunPos);
+
+	if (!(oRun instanceof ParaRun))
+		return [];
+
+	var oRunDocPos = oRun.GetDocumentPositionFromObject();
+	if (!oRunDocPos || !oRunDocPos.length)
+		return [];
+
+	oRunDocPos.push({Class : oRun, Position : nInRunPos});
+
+	return oRunDocPos;
+};
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 {
 	var oResult = null;
@@ -2447,6 +2494,17 @@ ParaDrawing.prototype.setPageIndex = function(newPageIndex)
 {
 	this.pageIndex = newPageIndex;
 	this.PageNum   = newPageIndex;
+
+
+	if (this.IsShape())
+	{
+		var arrDrawings = this.GetAllDrawingObjects();
+		for (var nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+		{
+			var oParaDrawing = arrDrawings[nIndex];
+			oParaDrawing.setPageIndex(newPageIndex);
+		}
+	}
 };
 ParaDrawing.prototype.Get_PageNum = function()
 {
@@ -2902,7 +2960,7 @@ ParaDrawing.prototype.ConvertToMath = function(isUpdatePos)
 	if (!oLogicDocument)
 		return;
 
-	var oParaContentPos = oParagraph.Get_PosByDrawing(this.GetId());
+	var oParaContentPos = oParagraph.GetPosByDrawing(this.GetId());
 	if (!oParaContentPos)
 		return;
 
@@ -2981,6 +3039,7 @@ ParaDrawing.prototype.PreDelete = function()
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
 		arrDocContents[nIndex].PreDelete();
+		arrDocContents[nIndex].ClearContent(true);
 	}
 	var oGrObject = this.GraphicObj;
 	if(oGrObject && oGrObject.signatureLine)
@@ -3018,6 +3077,11 @@ ParaDrawing.prototype.CheckDeletingLock = function()
 		&& this.LogicDocument.IsDocumentEditor()
 		&& (!this.LogicDocument.CanEdit() || this.LogicDocument.IsFillingFormMode()))
 	{
+		// В формах мы не удаляем ничего, а чистим форму, если нужно
+		var oInnerForm = null;
+		if (this.IsForm() && (oInnerForm = this.GetInnerForm()) && !oInnerForm.IsPlaceHolder())
+			return;
+
 		return AscCommon.CollaborativeEditing.Add_CheckLock(true);
 	}
 
@@ -3082,7 +3146,7 @@ ParaDrawing.prototype.IsShape = function()
  */
 ParaDrawing.prototype.IsGroup = function()
 {
-	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
+	return (this.GraphicObj.isGroupObject());
 };
 ParaDrawing.prototype.IsComparable = function(oDrawing)
 {
@@ -3103,6 +3167,10 @@ ParaDrawing.prototype.IsComparable = function(oDrawing)
 		return false;
 	}
 	return this.GraphicObj.isComparable(oDrawing.GraphicObj);
+};
+ParaDrawing.prototype.ToSearchElement = function(oProps)
+{
+	return new CSearchTextSpecialGraphicObject();
 };
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.

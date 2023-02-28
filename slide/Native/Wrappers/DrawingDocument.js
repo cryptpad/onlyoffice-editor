@@ -946,6 +946,11 @@ CDrawingDocument.prototype.CheckTableStyles = function()
     this.isCreatedDefaultTableStyles = true;
 };
 
+CDrawingDocument.prototype.GetTableStylesPreviews = function()
+{
+    return [];
+};
+
 CDrawingDocument.prototype.CheckThemes = function(){   
 
     window["native"]["ClearCacheThemeThumbnails"]();
@@ -1730,7 +1735,7 @@ CDrawingDocument.prototype.OnCheckMouseDown = function(e)
     }
 
     return 0;
-}
+};
 
 
 CDrawingDocument.prototype.OnKeyboardEvent = function(_params){
@@ -1770,6 +1775,9 @@ CDrawingDocument.prototype.OnKeyboardEvent = function(_params){
 };
 
 
+CDrawingDocument.prototype.OnAnimPaneChanged = function(nSlideNum, oRect)
+{
+};
 
 function DrawBackground(graphics, unifill, w, h)
 {

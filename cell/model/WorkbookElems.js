@@ -694,6 +694,9 @@ g_oColorManager = new ColorManager();
 	function Fragment(val) {
 		this.text = null;
 		this.format = null;
+		//для отрисовки ввожу дополнительный массив
+		this.charCodes = null;//[]
+
 		if (null != val) {
 			this.set(val);
 		}
@@ -704,10 +707,13 @@ g_oColorManager = new ColorManager();
 	};
 	Fragment.prototype.set = function (oVal) {
 		if (null != oVal.text) {
-			this.text = oVal.text;
+			this.setFragmentText(oVal.text);
 		}
 		if (null != oVal.format) {
 			this.format = oVal.format;
+		}
+		if (null != oVal.charCodes) {
+			this.setCharCodes(oVal.charCodes && oVal.charCodes.slice());
 		}
 	};
 	Fragment.prototype.checkVisitedHyperlink = function (row, col, hyperlinkManager) {
@@ -720,6 +726,95 @@ g_oColorManager = new ColorManager();
 			}
 		}
 	};
+	Fragment.prototype.getCharCode = function (index) {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes && this.charCodes[index];
+	};
+	Fragment.prototype.getCharCodesLength = function () {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes ? this.charCodes.length : 0;
+	};
+	Fragment.prototype.initCharCodes = function () {
+		var test2 = this.getFragmentText();
+		if (test2) {
+			this.setCharCodes(AscCommon.convertUTF16toUnicode(test2), true);
+		} else {
+			this.setCharCodes([], true);
+		}
+	};
+	Fragment.prototype.initText = function () {
+		this.setFragmentText(this.charCodes ? AscCommon.convertUnicodeToUTF16(this.charCodes) : "", true);
+	};
+	Fragment.prototype.getCharCode = function (index) {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes && this.charCodes[index];
+	};
+	Fragment.prototype.isInitCharCodes = function () {
+		return this.charCodes !== null;
+	};
+	Fragment.prototype.getCharCodes = function () {
+		if (!this.isInitCharCodes()) {
+			this.initCharCodes();
+		}
+		return this.charCodes;
+	};
+	Fragment.prototype.setCharCodes = function (val, isInit) {
+		//если выставляем charCodes, контент меняется, нужно занулять текстовое поле
+		if (!isInit) {
+			this.text = null;
+		}
+		this.charCodes = val;
+	};
+	Fragment.prototype.getFragmentText = function () {
+		if (null === this.text) {
+			this.initText();
+		}
+		return this.text;
+	};
+	Fragment.prototype.setFragmentText = function (val, isInit) {
+		//если выставляем текстовое поле, контент меняется, нужно занулять charCodes
+		if (!isInit) {
+			this.charCodes = null;
+		}
+		this.text = val;
+	};
+	Fragment.prototype.getTextFromCodes = function () {
+		//если выставляем текстовое поле, контент меняется, нужно занулять charCodes
+		if (!isInit) {
+			this.charCodes = null;
+		}
+		this.text = val;
+	};
+	Fragment.prototype.convertPositionToText = function (codePos) {
+		var diff = 0;
+		for (var i = 0; i < codePos; i++) {
+			if (this.charCodes[i] >= 0x10000) {
+				diff++;
+			}
+		}
+		return codePos + diff;
+	};
+	Fragment.prototype.convertPositionFromText = function (textPos) {
+		var count = 0;
+		for (var i = 0; i < textPos; i++) {
+			if (this.charCodes[i] >= 0x10000) {
+				count++;
+			} else {
+				count += 2;
+			}
+			if (count >= textPos) {
+				return i;
+			}
+		}
+		return textPos;
+	};
+
 
 var g_oFontProperties = {
 		fn: 0,
@@ -859,12 +954,12 @@ var g_oFontProperties = {
 		if (isTable) {
 			oRes.i = null !== font.i ? font.i : this.i;
 			oRes.s = null !== font.s ? font.s : this.s;
-			oRes.u = font.u || this.u;
+			oRes.u = null !== font.u ? font.u : this.u;
 			oRes.va = font.va || this.va;
 		} else {
 			oRes.i = null !== this.i ? this.i : font.i;
 			oRes.s = null !== this.s ? this.s : font.s;
-			oRes.u = this.u || font.u;
+			oRes.u = null !== this.u ? this.u : font.u;
 			oRes.va = this.va || font.va;
 		}
 		if (isTable) {
@@ -900,6 +995,9 @@ var g_oFontProperties = {
 	};
 	Font.prototype.isEqual2 = function (font) {
 		return font && this.getName() === font.getName() && this.getSize() === font.getSize() && this.getBold() === font.getBold() && this.getItalic() === font.getItalic();
+	};
+	Font.prototype.isNormalXfColor = function () {
+		return this.c && this.c.isEqual(g_StyleCache.normalXf.font.c);
 	};
 	Font.prototype.clone = function () {
 		var font = new Font();
@@ -2777,6 +2875,9 @@ var g_oBorderProperties = {
         }
         return res;
     };
+	CellXfs.prototype.isNormalFont = function () {
+		return g_StyleCache.firstXf === this || g_StyleCache.normalXf.font === this.font;
+	};
     CellXfs.prototype.merge = function (xfs, isTable) {
         var xfIndexNumber = xfs.getIndexNumber();
         if (undefined === xfIndexNumber) {
@@ -2796,17 +2897,17 @@ var g_oBorderProperties = {
             } else {
                 cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
             }
-            var isTableColor = true;
-            if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
-                if (g_StyleCache.normalXf.font === xfs.font) {
-                    cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
-                } else {
-                    cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-                }
-            } else {
-                isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
-                cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-            }
+			var isTableColor = true;
+			if (isTable && xfs.isNormalFont()) {
+				if (g_StyleCache.normalXf.font === xfs.font) {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+				} else {
+					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+				}
+			} else {
+				isTableColor = isTable && xfs.font && xfs.font.isNormalXfColor();
+				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+			}
             cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
             cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
             cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
@@ -5312,8 +5413,9 @@ StyleManager.prototype =
 		if (multiText) {
 			for (var i = 0, length = multiText.length; i < length; ++i) {
 				var elem = multiText[i];
-				if (null != elem.text && !(elem.format && elem.format.getSkip())) {
-					sRes += elem.text;
+				var text = elem.getFragmentText ? elem.getFragmentText() : elem.text;
+				if (null != text && !(elem.format && elem.format.getSkip())) {
+					sRes += text;
 				}
 			}
 		}
@@ -5324,11 +5426,12 @@ StyleManager.prototype =
 		if (multiText) {
 			for (var i = 0, length = multiText.length; i < length; ++i) {
 				var elem = multiText[i];
-				if (null != elem.text) {
+				var text = elem.getFragmentText ? elem.getFragmentText() : elem.text;
+				if (null != text) {
 					if(elem.format && elem.format.getSkip()) {
 						sRes += " ";
 					} else if(!(elem.format && elem.format.getRepeat())) {
-						sRes += elem.text;
+						sRes += text;
 					} else {
 						var j = 0;
 					}
@@ -6636,6 +6739,12 @@ function RangeDataManagerElem(bbox, data)
 			var rangeTotal = autoFilters.worksheet.getRange3(this.Ref.r2, this.Ref.c1, this.Ref.r2, this.Ref.c2);
 			rangeTotal.cleanText()
 		}
+
+		if (this.QueryTable) {
+			this.cleanQueryTables();
+			//this.QueryTable.syncIndexes(this.TableColumns);
+		}
+
 		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 		//event
 		this.handlers.trigger("changeRefTablePart", this);
@@ -11593,6 +11702,148 @@ QueryTableField.prototype.clone = function() {
 		return this.name;
 	};
 
+	function CPrintPreviewState(wb) {
+		this.ctx = null;
+		this.pages = null;
+
+		//отслеживаем активную страницу и активный лист
+		this.activePage = null;
+		this.activeSheet = null;
+
+		this.start = null;
+
+		//зум для масштабирования страницы и зум печати
+		this.pageZoom = null;
+		this.printZoom = null;
+
+		this.wb = wb;
+		//после закрытия окна предварительной печати возвращаем зум и актиный лист
+		this.realZoom = null;
+		this.realActiveSheet = null;
+
+		return this;
+	}
+
+	CPrintPreviewState.prototype.init = function () {
+		this.start = true;
+	};
+	CPrintPreviewState.prototype.isStart = function () {
+		return this.start;
+	};
+	CPrintPreviewState.prototype.setCtx = function (val) {
+		this.ctx = val;
+	};
+	CPrintPreviewState.prototype.setPages = function (val) {
+		this.pages = val;
+	};
+	CPrintPreviewState.prototype.getCtx = function () {
+		return this.ctx;
+	};
+	CPrintPreviewState.prototype.getPages = function () {
+		return this.pages;
+	};
+	CPrintPreviewState.prototype.getPage = function (index) {
+		return this.pages && this.pages.arrPages[index];
+	};
+	CPrintPreviewState.prototype.clean = function (revertZoom) {
+		//this.ctx = null;
+		this.pages = null;
+		this.activePage = null;
+		this.activeSheet = null;
+		this.start = null;
+
+		if (revertZoom) {
+			this.wb.model.setActive(this.realActiveSheet);
+			this.wb.changeZoom(this.realZoom);
+		}
+		this.realActiveSheet = null;
+		this.realZoom = null;
+	};
+	CPrintPreviewState.prototype.getPagesLength = function () {
+		return this.pages && this.pages.arrPages.length;
+	};
+	CPrintPreviewState.prototype.setPage = function (index, checkZoom) {
+		this.activePage = index;
+		var page = this.getPage(this.activePage);
+		var newIndexSheet = page && page.indexWorksheet;
+		var needUpdateActiveSheet;
+		if (newIndexSheet !== this.activeSheet) {
+			this.activeSheet = newIndexSheet;
+			needUpdateActiveSheet = true;
+		}
+		if (checkZoom) {
+			this.checkZoom(needUpdateActiveSheet);
+		}
+	};
+	CPrintPreviewState.prototype.checkZoom = function (needUpdateActiveSheet) {
+		if (null === this.realZoom) {
+			this.realZoom = this.wb.getZoom();
+		}
+		if (null === this.realActiveSheet) {
+			this.realActiveSheet = this.wb.model.getActive();
+		}
+
+		var page = this.getPage(this.activePage);
+		var pageWidth = page && page.pageWidth ? page.pageWidth : AscCommon.c_oAscPrintDefaultSettings.PageWidth;
+		var pageHeight = page && page.pageHeight ? page.pageHeight : AscCommon.c_oAscPrintDefaultSettings.PageHeight;
+
+		var canvasTopPadding = 24;
+		var ppiX = AscCommon.AscBrowser.convertToRetinaValue(96, true);
+		var height = Math.floor(pageHeight * Asc.getCvtRatio(3/*mm*/, 0/*px*/, ppiX));
+		var width = Math.floor(pageWidth * Asc.getCvtRatio(3/*mm*/, 0/*px*/, ppiX));
+		var canvasHeight = this.ctx.canvas.parentElement.clientHeight;
+		var canvasWidth = this.ctx.canvas.parentElement.clientWidth;
+
+		var kF = 1;
+		if (height > canvasHeight) {
+			kF = canvasHeight / height;
+		}
+		if (width * kF > canvasWidth) {
+			kF = canvasWidth / width;
+		}
+
+		kF *= (height * kF) / (height * kF + canvasTopPadding)
+
+		var isChangeForZoom;
+		var trueZoom = kF * AscCommon.AscBrowser.convertToRetinaValue(1, true);
+		var _height = Math.floor(height * kF);
+		var _width = Math.floor(width * kF);
+		if (trueZoom !== this.pageZoom) {
+			this.pageZoom = trueZoom;
+			this.ctx.canvas.style.height = _height + 2 + "px";
+			this.ctx.canvas.style.width = _width + 2 + "px";
+			this.ctx.canvas.height = AscCommon.AscBrowser.convertToRetinaValue(_height, true);
+			this.ctx.canvas.width = AscCommon.AscBrowser.convertToRetinaValue(_width, true);
+			isChangeForZoom = true;
+		}
+		this.ctx.canvas.style.marginLeft = canvasWidth/2 - _width / 2 + "px";
+		this.ctx.canvas.style.marginTop = canvasHeight/2 - _height / 2 + canvasTopPadding * kF + "px";
+
+
+		kF = trueZoom;
+		if (!page || page.scale !== this.printZoom) {
+			this.printZoom = page ? page.scale : 1;
+			this.pageZoom = kF;
+			isChangeForZoom = true;
+		}
+
+		if (isChangeForZoom || needUpdateActiveSheet) {
+			//change zoom on default
+			if (needUpdateActiveSheet) {
+				this.wb.model.setActive(this.activeSheet);
+			}
+			this.wb.changeZoom(this.pageZoom * this.printZoom);
+			this.ctx.changeZoom(this.pageZoom* this.printZoom);
+		}
+		var oGraphics = new AscCommon.CGraphics();
+		var nWidth = this.ctx.getWidth(0);
+		var nHeight = this.ctx.getHeight(0);
+		var dWidth = this.ctx.getWidth(3);
+		var dHeight = this.ctx.getHeight(3);
+		oGraphics.init(this.ctx.canvas.getContext('2d'), nWidth, nHeight, dWidth, dHeight);
+		oGraphics.m_oFontManager = AscCommon.g_fontManager;
+		this.ctx.DocumentRenderer = oGraphics;
+	};
 
 
 	//----------------------------------------------------------export----------------------------------------------------
@@ -11951,5 +12202,7 @@ QueryTableField.prototype.clone = function() {
 	prot["asc_getFormulaResult"] = prot.asc_getFormulaResult;
 	prot["asc_getFunctionResult"] = prot.asc_getFunctionResult;
 	prot["asc_getName"] = prot.asc_getName;
+
+	window["AscCommonExcel"].CPrintPreviewState = CPrintPreviewState;
 
 })(window);

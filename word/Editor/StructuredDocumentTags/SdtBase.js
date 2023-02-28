@@ -68,6 +68,9 @@ CSdtBase.prototype.SetPlaceholderText = function(sText)
 	if (!sText)
 		return this.SetPlaceholder(undefined);
 
+	if (sText === this.GetPlaceholderText())
+		return;
+
 	var oLogicDocument = this.GetLogicDocument();
 	var oGlossary      = oLogicDocument.GetGlossaryDocument();
 
@@ -421,8 +424,23 @@ CSdtBase.prototype.ClearContentControlExt = function()
 	}
 	else if (this.IsPicture())
 	{
-		this.ReplaceContentWithPlaceHolder();
-		this.ApplyPicturePr(true);
+		if (this.IsPlaceHolder())
+			return;
+
+		var arrDrawings = this.GetAllDrawingObjects();
+		if (arrDrawings.length > 0 && arrDrawings[0].IsPicture())
+		{
+			var nW = arrDrawings[0].Extent.W;
+			var nH = arrDrawings[0].Extent.H;
+
+			this.ReplaceContentWithPlaceHolder();
+			this.ApplyPicturePr(true, nW, nH);
+		}
+		else
+		{
+			this.ReplaceContentWithPlaceHolder();
+			this.ApplyPicturePr(true);
+		}
 	}
 	else
 	{

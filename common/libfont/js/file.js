@@ -1018,8 +1018,11 @@
             oSizes.ushGID = unGID;
             oSizes.nCMapIndex = nCMapIndex.index;
 
-            if (0 != this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, this.GetCharLoadMode()))
-                return oSizes;
+			if (0 != this.FT_Load_Glyph_Wrapper(this.m_pFace, unGID, this.GetCharLoadMode()))
+			{
+				oSizes.fAdvanceX = (this.m_pFace.size.metrics.max_advance >> 6) / 2.0;
+				return oSizes;
+			}
 
             var pFaceGlyph = this.m_pFace.glyph;
             var pGlyph = AscFonts.FT_Get_Glyph(this.m_pFace.glyph);
@@ -1641,6 +1644,23 @@
                 ret.push(face.header.yMin);
             }
 			return ret;
+		};
+
+		this.GetLimitsY = function()
+		{
+			var header_yMin = this.m_lDescender;
+			var header_yMax = this.m_lAscender;
+
+			if ((this.m_pFace.face_flags & 8) !== 0)
+			{
+				header_yMin = this.m_pFace.header.yMin;
+				header_yMax = this.m_pFace.header.yMax;
+			}
+
+			return {
+				min : header_yMin,
+				max : header_yMax
+			};
 		};
 	}
 

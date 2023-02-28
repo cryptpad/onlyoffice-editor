@@ -599,6 +599,7 @@
 		this.isKeepLinesTogether  = false;
 		this.isPresentationEditor = true;
 		this.bSelectedSlidesTheme = false;
+		this.bIsShowAnimTab       = false;
 
 		this.isPaintFormat              = AscCommon.c_oAscFormatPainterState.kOff;
 		this.isMarkerFormat             = false;
@@ -1364,7 +1365,7 @@ background-repeat: no-repeat;\
                                 <div id=\"id_main_view\" class=\"block_elem\" style=\"overflow:hidden\">\
                                     <canvas id=\"id_viewer\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:6\"></canvas>\
                                     <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
-                                    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></canvas>\
+                                    <div id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></div>\
                                 </div>\
 							    <div id=\"id_panel_right\" class=\"block_elem\" style=\"margin-right:1px;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";z-index:0;\">\
 							        <div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
@@ -1381,14 +1382,30 @@ background-repeat: no-repeat;\
 
 		if (true)
 		{
-			_innerHTML += "<div id=\"id_panel_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
+			_innerHTML += "<div id=\"id_bottom_pannels_container\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
+							<div id=\"id_panel_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";\">\
                                 <canvas id=\"id_notes\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";z-index:6\"></canvas>\
                                 <canvas id=\"id_notes_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
                                 <div id=\"id_vertical_scroll_notes\" style=\"left:0;top:0;width:16px;overflow:hidden;position:absolute;\">\
                                     <div id=\"panel_right_scroll_notes\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:1px;\"></div>\
                                 </div>\
                             </div>\
-                            </div>";
+                            <div id=\"id_panel_animation\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;background-color:" + AscCommon.GlobalSkin.BackgroundColor + ";\">\
+								<div id=\"id_anim_header\" class=\"block_elem\">\
+									<canvas id=\"id_anim_header_canvas\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommon.GlobalSkin.BackgroundColorNotes + ";z-index:8\"></canvas>\
+								</div>\
+								<div id=\"id_anim_list_container\" class=\"block_elem\">\
+									<canvas id=\"id_anim_list_canvas\" class=\"block_elem\"></canvas>\
+									<div id=\"id_anim_list_scroll\" style=\"left:0;top:0;width:16px;overflow:hidden;position:absolute;\">\
+                                    	<div id=\"id_pane_anim_list_scroll\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:1px;\"></div>\
+                                	</div>\
+								</div>\
+								<div id=\"id_anim_timeline_container\" class=\"block_elem\">\
+									<canvas id=\"id_anim_timeline_canvas\" class=\"block_elem\"></canvas>\
+								</div>\
+                            </div>\
+						</div>\
+						</div>";
 		}
 
 		if (this.HtmlElement)
@@ -1420,7 +1437,8 @@ background-repeat: no-repeat;\
 			document.getElementById("id_panel_right").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_horscrollpanel").style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
 			document.getElementById("id_panel_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
-			document.getElementById("id_panel_notes").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_bottom_pannels_container").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
+			document.getElementById("id_panel_animation").style.borderTopColor = AscCommon.GlobalSkin.BorderSplitterColor;
 			document.getElementById("id_notes").style.backgroundColor = AscCommon.GlobalSkin.BackgroundColorNotes;
 		}
 
@@ -2141,6 +2159,9 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_DownloadAs = function(options)
 	{
+		if (this.isLongAction()) {
+			return;
+		}
 		this.downloadAs(c_oAscAsyncAction.DownloadAs, options);
 	};
 	asc_docs_api.prototype.Resize                       = function()
@@ -2617,6 +2638,14 @@ background-repeat: no-repeat;\
 			this.sendEvent("asc_onInitTableTemplates", styles);
 		}
 	};
+	asc_docs_api.prototype.asc_getTableStylesPreviews    = function(bUseDefault)
+	{
+		if(this.WordControl && this.WordControl.m_oDrawingDocument)
+		{
+			return this.WordControl.m_oDrawingDocument.GetTableStylesPreviews(bUseDefault);
+		}
+		return [];
+	};
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with paragraph*/
@@ -2978,12 +3007,14 @@ background-repeat: no-repeat;\
 		this.noCreatePoint  = true;
 		this.exucuteHistory = true;
 		this.incrementCounterLongAction();
+		this.WordControl.m_oLogicDocument.TurnOff_InterfaceEvents();
 	};
 	asc_docs_api.prototype.setEndPointHistory   = function()
 	{
 		this.noCreatePoint     = false;
 		this.exucuteHistoryEnd = true;
 		this.decrementCounterLongAction();
+		this.WordControl.m_oLogicDocument.TurnOn_InterfaceEvents();
 	};
 	asc_docs_api.prototype.SetSlideProps        = function(prop)
 	{
@@ -3888,6 +3919,78 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.AddToLayout();
 	};
+	asc_docs_api.prototype.asc_AddAnimation      = function(nPresetClass, nPresetId, nPresetSubtype, bReplace)
+	{
+		this.WordControl.m_oLogicDocument.AddAnimation(nPresetClass, nPresetId, nPresetSubtype, bReplace);
+	};
+	asc_docs_api.prototype.asc_getCurSlideObjectsNames = function()
+	{
+		return this.WordControl.m_oLogicDocument.GetCurSlideObjectsNames();
+	};
+	asc_docs_api.prototype.asc_StartAnimationPreview = function()
+	{
+		this.asc_StopAnimationPreview();
+		if(this.WordControl.m_oLogicDocument.StartAnimationPreview()) 
+		{
+			this.sendEvent("asc_onAnimPreviewStarted");
+		}
+		//this.sendEvent("asc_onStartDemonstration");//todo
+	};
+	
+	asc_docs_api.prototype.asc_canStartAnimationPreview = function()
+	{
+		return this.WordControl.m_oLogicDocument.CanStartAnimationPreview();
+	};
+	asc_docs_api.prototype.asc_StopAnimationPreview = function()
+	{
+		this.WordControl.m_oLogicDocument.StopAnimationPreview();
+	};
+	asc_docs_api.prototype.asc_SetAnimationProperties = function(oPr)
+	{
+		var oController = this.WordControl.m_oLogicDocument.GetCurrentController();
+		if(!oController)
+		{
+			return;
+		}
+		var oCurPr = oController.getDrawingProps().animProps;
+		if(oCurPr && oCurPr.isEqualProperties(oPr))
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.SetAnimationProperties(oPr)
+	};
+	asc_docs_api.prototype.asc_canMoveAnimationEarlier = function() 
+	{
+		return this.WordControl.m_oLogicDocument.CanMoveAnimation(true);
+	};
+	asc_docs_api.prototype.asc_canMoveAnimationLater = function() 
+	{
+		return this.WordControl.m_oLogicDocument.CanMoveAnimation(false);
+	};
+	asc_docs_api.prototype.asc_onShowAnimTab = function(bShow) 
+	{
+		this.bIsShowAnimTab = bShow;
+		if(this.WordControl && this.WordControl.m_oLogicDocument) 
+		{
+			var slide = this.WordControl.m_oLogicDocument.Slides[this.WordControl.m_oLogicDocument.CurPage];
+			if(slide) 
+			{
+				this.WordControl.m_oDrawingDocument.OnRecalculatePage(this.WordControl.m_oLogicDocument.CurPage, slide);
+			}
+		}
+	};
+	asc_docs_api.prototype.isDrawAnimLabels = function() 
+	{
+		return this.bIsShowAnimTab;
+	};
+	asc_docs_api.prototype.asc_moveAnimationEarlier = function() 
+	{
+		return this.WordControl.m_oLogicDocument.MoveAnimation(true);
+	};
+	asc_docs_api.prototype.asc_moveAnimationLater = function() 
+	{
+		return this.WordControl.m_oLogicDocument.MoveAnimation(false);
+	};
 	asc_docs_api.prototype.StartAddShape = function(prst, is_apply)
 	{
 		this.WordControl.m_oLogicDocument.StartAddShape(prst, is_apply);
@@ -3896,6 +3999,25 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oDrawingDocument.LockCursorType("crosshair");
 		}
+	};
+	asc_docs_api.prototype.asc_canEditGeometry = function ()
+	{
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		if(!oPresentation)
+		{
+			return false;
+		}
+		return oPresentation.CanEditGeometry();
+	};
+
+	asc_docs_api.prototype.asc_editPointsGeometry = function()
+	{
+		var oPresentation = this.WordControl && this.WordControl.m_oLogicDocument;
+		if(!oPresentation)
+		{
+			return;
+		}
+		return oPresentation.StartEditGeometry();
 	};
 
 	asc_docs_api.prototype.asc_addSlideNumber = function()
@@ -4860,6 +4982,11 @@ background-repeat: no-repeat;\
 		oPresentation.ResolveAllComments(isMine, isCurrent, arrIds);
 	};
 
+	asc_docs_api.prototype.asc_GetCommentLogicPosition = function()
+	{
+		return -1;
+	};
+
 	asc_docs_api.prototype.asc_onDeleteComment = function(Id, oCommentData)
 	{
 		var AscCommentData = new asc_CCommentData(oCommentData);
@@ -5223,6 +5350,11 @@ background-repeat: no-repeat;\
 			}
 		}
 		this.onDocumentContentReady();
+
+		if(this.asc_IsStartDemonstartionOnOpen())
+		{
+			this.sendEvent("asc_onStartDemonstration");
+		}
 		this.isApplyChangesOnOpen = false;
 
 		this.WordControl.InitControl();
@@ -5248,7 +5380,10 @@ background-repeat: no-repeat;\
 		this.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
 		this.goTo();
 	};
-
+	asc_docs_api.prototype.asc_IsStartDemonstartionOnOpen = function()
+	{
+		return this.documentFormat === "ppsx";
+	};
 
 	asc_docs_api.prototype.asc_AddMath = function(Type)
 	{
@@ -5577,6 +5712,62 @@ background-repeat: no-repeat;\
 		this.WordControl.Thumbnails.OnUpdateOverlay();
 	};
 
+	asc_docs_api.prototype.asc_moveSelectedSlidesToEnd = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSelectedSlidesToEnd();
+	};
+	asc_docs_api.prototype.asc_moveSlidesNextPos = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSlidesNextPos();
+	};
+	asc_docs_api.prototype.asc_moveSelectedSlidesToStart = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSelectedSlidesToStart();
+	};
+	asc_docs_api.prototype.asc_moveSlidesPrevPos = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.moveSlidesPrevPos();
+	};
+
+	asc_docs_api.prototype.asc_IsSlideSelected = function(nIdx)
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return false;
+		}
+		var aSelected = this.WordControl.m_oLogicDocument.GetSelectedSlides();
+		for(var nSld = 0; nSld < aSelected.length; ++nSld) {
+			if(aSelected[nSld] === nIdx) {
+				return true;
+			}
+		}
+		return false;
+	};
+	asc_docs_api.prototype.asc_IsFirstSlideSelected = function()
+	{
+		return this.asc_IsSlideSelected(0);
+	};
+	asc_docs_api.prototype.asc_IsLastSlideSelected = function()
+	{
+		return this.asc_IsSlideSelected(this.getCountPages() - 1);
+	};
+
 	asc_docs_api.prototype.AddShape        = function(shapetype)
 	{
 	};
@@ -5631,9 +5822,8 @@ background-repeat: no-repeat;\
 	{
 		if (Data.Hyperlink && typeof Data.Hyperlink.Value === "string")
 		{
-			var indAction = Data.Hyperlink.Value.indexOf("ppaction://hlink");
 			var Url       = Data.Hyperlink.Value;
-			if (0 == indAction)
+			if (AscCommon.IsLinkPPAction(Url))
 			{
 				if (Url == "ppaction://hlinkshowjump?jump=firstslide")
 				{
@@ -5699,21 +5889,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_ShowNotes = function(bIsShow)
 	{
-		if (bIsShow)
-		{
-			this.WordControl.Splitter2Pos = this.WordControl.OldSplitter2Pos;
-			if (this.WordControl.Splitter2Pos <= 1)
-				this.WordControl.Splitter2Pos = 11;
-			this.WordControl.OnResizeSplitter();
-		}
-		else
-		{
-			var old = this.WordControl.OldSplitter2Pos;
-			this.WordControl.Splitter2Pos = 0;
-			this.WordControl.OnResizeSplitter();
-			this.WordControl.OldSplitter2Pos = old;
-			this.WordControl.m_oLogicDocument.CheckNotesShow();
-		}
+		this.WordControl.ShowNotes(bIsShow);
+	};
+
+	asc_docs_api.prototype.asc_ShowAnimPane = function(bIsShow)
+	{
+		this.WordControl.ShowAnimPane(bIsShow);
 	};
 
 	asc_docs_api.prototype.asc_DeleteVerticalScroll = function()
@@ -5732,11 +5913,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.getIsNotesShow = function()
 	{
-		var bIsShow = true;
-		if (1 >= this.WordControl.Splitter2Pos)
-			bIsShow = false;
-
-		return bIsShow;
+		return this.WordControl.IsNotesShown();
 	};
 	asc_docs_api.prototype.syncOnNotesShow = function()
 	{
@@ -5959,6 +6136,21 @@ background-repeat: no-repeat;\
 		}
 
 		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Shape, obj);
+	};
+
+	asc_docs_api.prototype.sync_animPropCallback = function(pr)
+	{
+		var _len = this.SelectedObjectsStack.length;
+		if (_len > 0)
+		{
+			if (this.SelectedObjectsStack[_len - 1].Type == c_oAscTypeSelectElement.Animation)
+			{
+				this.SelectedObjectsStack[_len - 1].Value = obj;
+				return;
+			}
+		}
+
+		this.SelectedObjectsStack[this.SelectedObjectsStack.length] = new asc_CSelectedObject(c_oAscTypeSelectElement.Animation, pr);
 	};
 
 	asc_docs_api.prototype.sync_slidePropCallback = function(slide)
@@ -6195,8 +6387,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.sync_HyperlinkClickCallback = function(Url)
 	{
-		var indAction = Url.indexOf("ppaction://hlink");
-		if (0 == indAction)
+		if (AscCommon.IsLinkPPAction(Url))
 		{
 			if (Url == "ppaction://hlinkshowjump?jump=firstslide")
 			{
@@ -7220,7 +7411,7 @@ background-repeat: no-repeat;\
         }
 	};
 
-	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer)
+	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer, downloadType)
 	{
 		var fileType = options.fileType;
 		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
@@ -8080,7 +8271,22 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['AddImage']                            = asc_docs_api.prototype.AddImage;
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
 	asc_docs_api.prototype['asc_AddToLayout']                     = asc_docs_api.prototype.asc_AddToLayout;
+	asc_docs_api.prototype['asc_AddAnimation']                    = asc_docs_api.prototype.asc_AddAnimation;
+	asc_docs_api.prototype['asc_StartAnimationPreview']           = asc_docs_api.prototype.asc_StartAnimationPreview;
+	asc_docs_api.prototype['asc_canStartAnimationPreview']        = asc_docs_api.prototype.asc_canStartAnimationPreview;
+	asc_docs_api.prototype['asc_getCurSlideObjectsNames']         = asc_docs_api.prototype.asc_getCurSlideObjectsNames;
+	asc_docs_api.prototype['asc_StopAnimationPreview']            = asc_docs_api.prototype.asc_StopAnimationPreview;
+	asc_docs_api.prototype['asc_SetAnimationProperties']          = asc_docs_api.prototype.asc_SetAnimationProperties;
+	asc_docs_api.prototype['asc_canMoveAnimationEarlier']         = asc_docs_api.prototype.asc_canMoveAnimationEarlier;
+	asc_docs_api.prototype['asc_canMoveAnimationLater']           = asc_docs_api.prototype.asc_canMoveAnimationLater;
+	asc_docs_api.prototype['asc_moveAnimationEarlier']            = asc_docs_api.prototype.asc_moveAnimationEarlier;
+	asc_docs_api.prototype['asc_moveAnimationLater']              = asc_docs_api.prototype.asc_moveAnimationLater;
+	asc_docs_api.prototype['asc_onShowAnimTab']                   = asc_docs_api.prototype.asc_onShowAnimTab;
+	
+
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
+	asc_docs_api.prototype['asc_canEditGeometry']                 = asc_docs_api.prototype.asc_canEditGeometry;
+	asc_docs_api.prototype['asc_editPointsGeometry']              = asc_docs_api.prototype.asc_editPointsGeometry;
 	asc_docs_api.prototype['AddTextArt']                          = asc_docs_api.prototype.AddTextArt;
 	asc_docs_api.prototype['asc_canEditCrop']                     = asc_docs_api.prototype.asc_canEditCrop;
 	asc_docs_api.prototype['asc_startEditCrop']                   = asc_docs_api.prototype.asc_startEditCrop;
@@ -8130,6 +8336,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
 	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
 	asc_docs_api.prototype['asc_ResolveAllComments']              = asc_docs_api.prototype.asc_ResolveAllComments;
+	asc_docs_api.prototype['asc_GetCommentLogicPosition']         = asc_docs_api.prototype.asc_GetCommentLogicPosition;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
@@ -8167,6 +8374,13 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['DeleteSlide']                         = asc_docs_api.prototype.DeleteSlide;
 	asc_docs_api.prototype['DublicateSlide']                      = asc_docs_api.prototype.DublicateSlide;
 	asc_docs_api.prototype['SelectAllSlides']                     = asc_docs_api.prototype.SelectAllSlides;
+	asc_docs_api.prototype['asc_moveSelectedSlidesToEnd']         = asc_docs_api.prototype.asc_moveSelectedSlidesToEnd;
+	asc_docs_api.prototype['asc_moveSlidesNextPos']               = asc_docs_api.prototype.asc_moveSlidesNextPos;
+	asc_docs_api.prototype['asc_moveSelectedSlidesToStart']       = asc_docs_api.prototype.asc_moveSelectedSlidesToStart;
+	asc_docs_api.prototype['asc_moveSlidesPrevPos']               = asc_docs_api.prototype.asc_moveSlidesPrevPos;
+	asc_docs_api.prototype['asc_IsSlideSelected']                 = asc_docs_api.prototype.asc_IsSlideSelected;
+	asc_docs_api.prototype['asc_IsFirstSlideSelected']            = asc_docs_api.prototype.asc_IsFirstSlideSelected;
+	asc_docs_api.prototype['asc_IsLastSlideSelected']             = asc_docs_api.prototype.asc_IsLastSlideSelected;
 	asc_docs_api.prototype['AddShape']                            = asc_docs_api.prototype.AddShape;
 	asc_docs_api.prototype['ChangeShapeType']                     = asc_docs_api.prototype.ChangeShapeType;
 	asc_docs_api.prototype['AddText']                             = asc_docs_api.prototype.AddText;
@@ -8179,6 +8393,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_MouseMoveCallback']              = asc_docs_api.prototype.sync_MouseMoveCallback;
 	asc_docs_api.prototype['ShowThumbnails']                      = asc_docs_api.prototype.ShowThumbnails;
 	asc_docs_api.prototype['asc_ShowNotes']                       = asc_docs_api.prototype.asc_ShowNotes;
+	asc_docs_api.prototype['asc_ShowAnimPane']                    = asc_docs_api.prototype.asc_ShowAnimPane;
 	asc_docs_api.prototype['asc_DeleteVerticalScroll']            = asc_docs_api.prototype.asc_DeleteVerticalScroll;
 	asc_docs_api.prototype['syncOnThumbnailsShow']                = asc_docs_api.prototype.syncOnThumbnailsShow;
 	asc_docs_api.prototype['can_AddHyperlink']                    = asc_docs_api.prototype.can_AddHyperlink;
@@ -8345,6 +8560,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["sync_OnConvertEquationToMath"] 		    = asc_docs_api.prototype.sync_OnConvertEquationToMath;
 	asc_docs_api.prototype["asc_ConvertEquationToMath"] 		    = asc_docs_api.prototype.asc_ConvertEquationToMath;
+	asc_docs_api.prototype["asc_getTableStylesPreviews"] 		    = asc_docs_api.prototype.asc_getTableStylesPreviews;
 
 
 	window['Asc']['asc_CCommentData'] = window['Asc'].asc_CCommentData = asc_CCommentData;

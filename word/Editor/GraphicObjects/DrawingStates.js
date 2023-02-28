@@ -48,6 +48,15 @@ function checkEmptyPlaceholderContent(content)
 {
     if(!content || content.Parent && content.Parent.txWarpStruct && content.Parent.recalcInfo.warpGeometry && content.Parent.recalcInfo.warpGeometry.preset !== "textNoShape" )
         return content;
+
+    if(content && content.Is_Empty()){
+        if(content.Parent.parent.isPlaceholder && content.Parent.parent.isPlaceholder()) {
+            return content;
+        }
+        if(content.isDocumentContentInSmartArtShape && content.isDocumentContentInSmartArtShape) {
+            return content;
+        }
+    }
     return null;
 }
 
@@ -1013,9 +1022,20 @@ ResizeState.prototype =
             this.onMouseUp(e, x, y, pageIndex);
             return;
         }
+
         var coords = AscFormat.CheckCoordsNeedPage(x, y, pageIndex, this.majorObject.selectStartPage, this.drawingObjects.drawingDocument);
-        var resize_coef = this.majorObject.getResizeCoefficients(this.handleNum, coords.x, coords.y);
+        var startPage = this.drawingObjects.graphicPages[this.majorObject.selectStartPage];
+        var start_arr = startPage ? startPage.beforeTextObjects.concat(startPage.inlineObjects, startPage.behindDocObjects) : [];
+        var resize_coef = this.majorObject.getResizeCoefficients(this.handleNum, coords.x, coords.y, start_arr);
         this.drawingObjects.trackResizeObjects(resize_coef.kd1, resize_coef.kd2, e);
+        if(AscFormat.isRealNumber(resize_coef.snapX))
+        {
+            this.drawingObjects.drawingDocument.DrawVerAnchor(pageIndex, resize_coef.snapX);
+        }
+        if(AscFormat.isRealNumber(resize_coef.snapY))
+        {
+            this.drawingObjects.drawingDocument.DrawHorAnchor(pageIndex, resize_coef.snapY);
+        }
         this.drawingObjects.updateOverlay();
     },
 
@@ -1732,7 +1752,6 @@ TextAddState.prototype =
     }
 
 };
-
 
 
 function StartChangeWrapContourState(drawingObjects, majorObject)
@@ -2652,6 +2671,7 @@ window['AscFormat'].NullState = NullState;
 window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
 window['AscFormat'].PreMoveInlineObject = PreMoveInlineObject;
 window['AscFormat'].PreRotateState = PreRotateState;
+window['AscFormat'].RotateState = RotateState;
 window['AscFormat'].PreResizeState = PreResizeState;
 window['AscFormat'].PreMoveState = PreMoveState;
 window['AscFormat'].MoveState = MoveState;
@@ -2664,4 +2684,5 @@ window['AscFormat'].TextAddState = TextAddState;
 window['AscFormat'].SplineBezierState = SplineBezierState;
 window['AscFormat'].PolyLineAddState = PolyLineAddState;
 window['AscFormat'].AddPolyLine2State = AddPolyLine2State;
+window['AscFormat'].checkEmptyPlaceholderContent = checkEmptyPlaceholderContent;
 })(window);

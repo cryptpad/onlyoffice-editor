@@ -2536,16 +2536,17 @@ function CDrawingDocument()
 		}
 	};
 
-	this.ToRenderer = function ()
+	this.ToRenderer = function (isPrint)
 	{
 		var Renderer = new AscCommon.CDocumentRenderer();
+		Renderer.isPrintMode = isPrint ? true : false;
 		Renderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
 		Renderer.VectorMemoryForPrint = new AscCommon.CMemory();
 		var old_marks = this.m_oWordControl.m_oApi.ShowParaMarks;
 		this.m_oWordControl.m_oApi.ShowParaMarks = false;
 		this.RenderDocument(Renderer);
 		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
-        this.printedDocument = null;
+		this.printedDocument = null;
 		var ret = Renderer.Memory.GetBase64Memory();
 		//console.log(ret);
 		return ret;
@@ -2597,7 +2598,7 @@ function CDrawingDocument()
 		//console.log(ret);
 		return ret;
 	};
-	this.ToRendererPart = function (noBase64)
+	this.ToRendererPart = function (noBase64, isPrint)
 	{
         var _this = this.printedDocument ? this.printedDocument.DrawingDocument : this;
 
@@ -2613,6 +2614,7 @@ function CDrawingDocument()
 			this.m_oDocRenderer = new AscCommon.CDocumentRenderer();
             this.m_oDocRenderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
 			this.m_oDocRenderer.VectorMemoryForPrint = new AscCommon.CMemory();
+			this.m_oDocRenderer.isPrintMode = isPrint ? true : false;
 			this.m_lCurrentRendererPage = 0;
 			this.m_bOldShowMarks = this.m_oWordControl.m_oApi.ShowParaMarks;
 			this.m_oWordControl.m_oApi.ShowParaMarks = false;
@@ -3086,7 +3088,7 @@ function CDrawingDocument()
 		return {X: x_pix, Y: y_pix, Error: false};
 	};
 
-	this.ConvertCoordsToCursor4 = function (x, y, pageIndex)
+	this.ConvertCoordsToCursor4 = function (x, y, pageIndex, isNoRound)
 	{
 		// теперь крутить всякие циклы нет смысла
 		if (pageIndex < 0 || pageIndex >= this.m_lPagesCount)
@@ -3096,8 +3098,14 @@ function CDrawingDocument()
 
 		var dKoef = (this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100);
 
-		var x_pix = (this.m_arrPages[pageIndex].drawingPage.left + x * dKoef + 0.5) >> 0;
-		var y_pix = (this.m_arrPages[pageIndex].drawingPage.top + y * dKoef + 0.5) >> 0;
+		var x_pix = (this.m_arrPages[pageIndex].drawingPage.left + x * dKoef);
+		var y_pix = (this.m_arrPages[pageIndex].drawingPage.top + y * dKoef);
+
+		if (true !== isNoRound)
+		{
+			x_pix = (x_pix + 0.5) >> 0;
+			y_pix = (y_pix + 0.5) >> 0;
+		}
 
 		return {X: x_pix, Y: y_pix, Error: false};
 	};
@@ -3136,15 +3144,16 @@ function CDrawingDocument()
 		this.CheckTargetDraw(this.m_dTargetX, this.m_dTargetY);
 	};
 
+	this.GetTargetColor = function ()
+	{
+		if (!this.m_oWordControl.m_oApi.isDarkMode)
+			return this.TargetCursorColor;
+		return AscCommon.darkModeCorrectColor(this.TargetCursorColor.R, this.TargetCursorColor.G, this.TargetCursorColor.B);
+	};
 	this.GetTargetStyle = function ()
 	{
-		var color = this.TargetCursorColor;
-
-		if (!this.m_oWordControl.m_oApi.isDarkMode)
-			return "rgb(" + color.R + "," + color.G + "," + color.B + ")";
-
-		var newColor = AscCommon.darkModeCorrectColor(color.R, color.G, color.B);
-        return "rgb(" + newColor.R + "," + newColor.G + "," + newColor.B + ")";
+		var color = this.GetTargetColor();
+		return "rgb(" + color.R + "," + color.G + "," + color.B + ")";
 	};
 
 	this.SetTargetColor = function (r, g, b)
@@ -3156,131 +3165,83 @@ function CDrawingDocument()
 
 	this.CheckTargetDraw = function (x, y)
 	{
-		var _oldW = this.TargetHtmlElement.width;
-		var _oldH = this.TargetHtmlElement.height;
+		var oldW = this.TargetHtmlElement.width_old;
+		var oldH = this.TargetHtmlElement.height_old;
 
-		var _newW = 2;
-		var _newH = (this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
+		var newW = 2;
+		var newH = (this.m_dTargetSize * this.m_oWordControl.m_nZoomValue * g_dKoef_mm_to_pix / 100) >> 0;
 
-		if (null != this.TextMatrix && !global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+		this.TargetHtmlElement.style.transformOrigin = "top left";
+
+		if (oldW !== newW || oldH !== newH)
 		{
-			var _x1 = this.TextMatrix.TransformPointX(x, y);
-			var _y1 = this.TextMatrix.TransformPointY(x, y);
+			var pixNewW = ((newW * AscCommon.AscBrowser.retinaPixelRatio) >> 0) / AscCommon.AscBrowser.retinaPixelRatio;
 
-			var _x2 = this.TextMatrix.TransformPointX(x, y + this.m_dTargetSize);
-			var _y2 = this.TextMatrix.TransformPointY(x, y + this.m_dTargetSize);
-
-			var pos1 = this.ConvertCoordsToCursor2(_x1, _y1, this.m_lCurrentPage);
-			var pos2 = this.ConvertCoordsToCursor2(_x2, _y2, this.m_lCurrentPage);
-
-			_newW = (Math.abs(pos1.X - pos2.X) >> 0) + 1;
-			_newH = (Math.abs(pos1.Y - pos2.Y) >> 0) + 1;
-
-			if (2 > _newW)
-				_newW = 2;
-			if (2 > _newH)
-				_newH = 2;
-
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				if (_newW != 2 && _newH != 2)
-				{
-					// просто очищаем
-					this.TargetHtmlElement.width = _newW;
-				}
-			}
-			else
-			{
-				this.TargetHtmlElement.style.width = _newW + "px";
-				this.TargetHtmlElement.style.height = _newH + "px";
-
-				this.TargetHtmlElement.width = _newW;
-				this.TargetHtmlElement.height = _newH;
-			}
-			var ctx = this.TargetHtmlElement.getContext('2d');
-
-			if (_newW == 2 || _newH == 2)
-			{
-				ctx.fillStyle = this.GetTargetStyle();
-				ctx.fillRect(0, 0, _newW, _newH);
-			}
-			else
-			{
-				ctx.beginPath();
-				ctx.strokeStyle = this.GetTargetStyle();
-				ctx.lineWidth = 2;
-
-				if (((pos1.X - pos2.X) * (pos1.Y - pos2.Y)) >= 0)
-				{
-					ctx.moveTo(0, 0);
-					ctx.lineTo(_newW, _newH);
-				}
-				else
-				{
-					ctx.moveTo(0, _newH);
-					ctx.lineTo(_newW, 0);
-				}
-
-				ctx.stroke();
-			}
-
-			oThis.TargetHtmlElementLeft = Math.min(pos1.X, pos2.X) >> 0;
-			oThis.TargetHtmlElementTop = Math.min(pos1.Y, pos2.Y) >> 0;
-			if ((!oThis.m_oWordControl.MobileTouchManager && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit)
-			{
-				oThis.TargetHtmlElement.style.left = oThis.TargetHtmlElementLeft + "px";
-				oThis.TargetHtmlElement.style.top = oThis.TargetHtmlElementTop + "px";
-			}
-			else
-			{
-				oThis.TargetHtmlElement.style.left = "0px";
-				oThis.TargetHtmlElement.style.top = "0px";
-				oThis.TargetHtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + oThis.TargetHtmlElementLeft + "," + oThis.TargetHtmlElementTop + ")";
-			}
+			this.TargetHtmlElement.style.width = pixNewW + "px";
+			this.TargetHtmlElement.style.height = newH + "px";
+			this.TargetHtmlElement.width_old = newW;
+			this.TargetHtmlElement.height_old = newH;
+			this.TargetHtmlElement.oldColor = null;
 		}
-		else
+
+		var oldColor = this.TargetHtmlElement.oldColor;
+		var newColor = this.GetTargetColor();
+		if (!oldColor || oldColor.R !== newColor.R || oldColor.G !== newColor.G || oldColor.B !== newColor.B)
 		{
-			if (_oldW == _newW && _oldH == _newH)
-			{
-				// просто очищаем
-				this.TargetHtmlElement.width = _newW;
-			}
-			else
-			{
-				this.TargetHtmlElement.style.width = _newW + "px";
-				this.TargetHtmlElement.style.height = _newH + "px";
+			this.TargetHtmlElement.style.backgroundColor = "rgb(" + newColor.R + "," + newColor.G + "," + newColor.B + ")";
+			this.TargetHtmlElement.oldColor = { R : newColor.R, G : newColor.G, B : newColor.B };
+		}
 
-				this.TargetHtmlElement.width = _newW;
-				this.TargetHtmlElement.height = _newH;
-			}
-
-			var ctx = this.TargetHtmlElement.getContext('2d');
-
-			ctx.fillStyle = this.GetTargetStyle();
-			ctx.fillRect(0, 0, _newW, _newH);
-
+		if (null == this.TextMatrix || global_MatrixTransformer.IsIdentity2(this.TextMatrix))
+		{
 			if (null != this.TextMatrix)
 			{
 				x += this.TextMatrix.tx;
 				y += this.TextMatrix.ty;
 			}
 
-			var pos = this.ConvertCoordsToCursor2(x, y, this.m_lCurrentPage);
-
+			var pos = this.ConvertCoordsToCursor4(x, y, this.m_lCurrentPage, true);
 			this.TargetHtmlElementLeft = pos.X >> 0;
-			this.TargetHtmlElementTop = pos.Y >> 0;
+			this.TargetHtmlElementTop = (pos.Y + 0.5) >> 0;
 
-			if ((!oThis.m_oWordControl.MobileTouchManager && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit)
+			this.TargetHtmlElement.style["transform"] = "";
+			this.TargetHtmlElement.style["msTransform"] = "";
+			this.TargetHtmlElement.style["mozTransform"] = "";
+			this.TargetHtmlElement.style["webkitTransform"] = "";
+
+			if ((!this.m_oWordControl.MobileTouchManager && !AscCommon.AscBrowser.isSafariMacOs) || !AscCommon.AscBrowser.isWebkit)
 			{
 				this.TargetHtmlElement.style.left = this.TargetHtmlElementLeft + "px";
 				this.TargetHtmlElement.style.top = this.TargetHtmlElementTop + "px";
 			}
 			else
 			{
-				oThis.TargetHtmlElement.style.left = "0px";
-				oThis.TargetHtmlElement.style.top = "0px";
-				oThis.TargetHtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + oThis.TargetHtmlElementLeft + "," + oThis.TargetHtmlElementTop + ")";
+				this.TargetHtmlElement.style.left = "0px";
+				this.TargetHtmlElement.style.top = "0px";
+				this.TargetHtmlElement.style["webkitTransform"] = "matrix(1, 0, 0, 1, " + oThis.TargetHtmlElementLeft + "," + oThis.TargetHtmlElementTop + ")";
 			}
+		}
+		else
+		{
+			var x1 = this.TextMatrix.TransformPointX(x, y);
+			var y1 = this.TextMatrix.TransformPointY(x, y);
+
+			var pos1 = this.ConvertCoordsToCursor4(x1, y1, this.m_lCurrentPage, true);
+			pos1.X -= (newW / 2);
+
+			this.TargetHtmlElementLeft = pos1.X >> 0;
+			this.TargetHtmlElementTop = pos1.Y >> 0;
+
+			var transform = "matrix(" + this.TextMatrix.sx + ", " + this.TextMatrix.shy + ", " + this.TextMatrix.shx + ", " +
+				this.TextMatrix.sy + ", " + pos1.X + ", " + pos1.Y + ")";
+
+			this.TargetHtmlElement.style.left = "0px";
+			this.TargetHtmlElement.style.top = "0px";
+
+			this.TargetHtmlElement.style["transform"] = transform;
+			this.TargetHtmlElement.style["msTransform"] = transform;
+			this.TargetHtmlElement.style["mozTransform"] = transform;
+			this.TargetHtmlElement.style["webkitTransform"] = transform;
 		}
 
 		this.MoveTargetInInputContext();
@@ -6627,7 +6588,7 @@ function CDrawingDocument()
                     var correctNum = 1;
                     if (levelNum === level.Text[i].Value)
                         correctNum = counterCurrent;
-                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format, level.GetOLang());
                     break;
                 default:
                     break;
@@ -6748,7 +6709,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
                             break;
                         default:
                             break;
@@ -6980,7 +6941,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
                             break;
                         default:
                             break;
@@ -7225,7 +7186,7 @@ function CDrawingDocument()
 									text += curLvl.Text[j].Value;
 									break;
 								case Asc.c_oAscNumberingLvlTextType.Num:
-									text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+									text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
 									break;
 								default:
 									break;
@@ -7255,7 +7216,7 @@ function CDrawingDocument()
 								text += curLvl.Text[j].Value;
 								break;
 							case Asc.c_oAscNumberingLvlTextType.Num:
-								text += AscCommon.IntToNumberFormat(1, curLvl.Format);
+								text += AscCommon.IntToNumberFormat(1, curLvl.Format, curLvl.GetOLang());
 								break;
 							default:
 								break;
@@ -7394,7 +7355,7 @@ function CDrawingDocument()
 							var correctNum = 1;
 							if (levelNum === props[i].Text[k].Value)
 								correctNum = counterCurrent;
-							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format);
+							text += AscCommon.IntToNumberFormat(correctNum, props[i].Format, props[i].GetOLang());
 							break;
 						default:
 							break;
@@ -7560,7 +7521,12 @@ function CDrawingDocument()
 
 		if (!bIsChanged)
 			return;
+		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles();
+	};
 
+	this.GetTableStylesPreviews = function(bUseDefault)
+	{
+		var logicDoc = this.m_oWordControl.m_oLogicDocument;
 		var _dst_styles = [];
 
 		var _styles = logicDoc.Styles.Get_AllTableStyles();
@@ -7568,6 +7534,23 @@ function CDrawingDocument()
 
 		if (_styles_len == 0)
 			return _dst_styles;
+
+		var tableLook;
+		if(bUseDefault)
+		{
+			var oFormatTableLook = new AscCommonWord.CTableLook();
+			oFormatTableLook.SetDefault();
+			tableLook = new Asc.CTablePropLook(oFormatTableLook);
+		}
+		else
+		{
+			tableLook = this.TableStylesLastLook;
+		}
+
+		if(!tableLook)
+		{
+			return _dst_styles;
+		}
 
 		var _x_mar = 10;
 		var _y_mar = 10;
@@ -7679,9 +7662,8 @@ function CDrawingDocument()
 
 		if (false !== isTrackRevision)
 			logicDoc.SetLocalTrackRevisions(isTrackRevision);
-
-		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles, AscCommon.AscBrowser.isCustomScalingAbove2());
-	}
+		return _dst_styles;
+	};
 
 	this.IsMobileVersion = function ()
 	{

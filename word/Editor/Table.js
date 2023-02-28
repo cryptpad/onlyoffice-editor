@@ -129,7 +129,8 @@ function CTable(DrawingDocument, Parent, Inline, Rows, Cols, TableGrid, bPresent
 
     // TODO: TableLook и TableStyle нужно перемесить в TablePr
     this.TableStyle = (undefined !== this.DrawingDocument && null !== this.DrawingDocument && this.DrawingDocument.m_oLogicDocument && this.DrawingDocument.m_oLogicDocument.Styles ? this.DrawingDocument.m_oLogicDocument.Styles.Get_Default_TableGrid() : null);
-    this.TableLook  = new CTableLook(true, true, false, false, true, false);
+    this.TableLook  = new CTableLook(false, false, false, false, false, false);
+	this.TableLook.SetDefault();
 
     this.TableSumGrid  = []; // данный массив будет заполнен после private_RecalculateGrid
     this.TableGrid     = TableGrid ? TableGrid : [];
@@ -3030,7 +3031,7 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 
 	var _X      = this.X;
 	var _XLimit = this.XLimit;
-	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline())
+	if (this.LogicDocument && this.LogicDocument.IsDocumentEditor() && this.IsInline() && this.Parent && this.Parent.CheckRange)
 	{
 		var arrRanges = this.Parent.CheckRange(_X, this.Y, _XLimit, this.Y + 0.001, this.Y, this.Y + 0.001, _X, _XLimit, this.private_GetRelativePageIndex(0));
 		if (arrRanges.length > 0)
@@ -8435,11 +8436,16 @@ CTable.prototype.Clear_DirectFormatting = function(bClearMerge)
 };
 CTable.prototype.Set_Pr = function(TablePr)
 {
+	var isHavePrChange = this.HavePrChange();
+
 	this.private_AddPrChange();
 	History.Add(new CChangesTablePr(this, this.Pr, TablePr));
 	this.Pr = TablePr;
 	this.Recalc_CompiledPr2();
 	this.private_UpdateTableGrid();
+
+	if (isHavePrChange || this.HavePrChange())
+		this.UpdateTrackRevisions();
 };
 CTable.prototype.SetPr = function(oTablePr)
 {
@@ -17090,6 +17096,7 @@ CTable.prototype.SetTableGridChange = function(arrTableGridChange)
 {
 	History.Add(new CChangesTableTableGridChange(this, this.TableGridChange, arrTableGridChange));
 	this.TableGridChange = arrTableGridChange;
+	this.UpdateTrackRevisions();
 };
 /**
  * Получаем ширину заданного промежутка в сетке таблицы
@@ -19056,9 +19063,10 @@ CTable.prototype.GetMaxTableGridWidth = function()
 {
 	this.private_RecalculateGrid();
 
+	var nIndent = this.Get_CompiledPr(false).TablePr.TableInd;
 	return {
-		GapLeft   : -this.GetTableOffsetCorrection(),
-		GapRight  : this.GetRightTableOffsetCorrection(),
+		GapLeft   : -this.GetTableOffsetCorrection() - nIndent,
+		GapRight  : this.GetRightTableOffsetCorrection() + nIndent,
 		GridWidth : this.TableSumGrid[this.TableSumGrid.length - 1] + this.GetTableOffsetCorrection() - this.GetRightTableOffsetCorrection()
 	};
 };
@@ -19168,7 +19176,12 @@ CTableLook.prototype =
         this.m_bLast_Row  = Reader.GetBool();
         this.m_bBand_Hor  = Reader.GetBool();
         this.m_bBand_Ver  = Reader.GetBool();
-    }
+    },
+
+	SetDefault : function()
+	{
+		this.Set(true, true, false, false, true, false);
+	}
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableAnchorPosition
@@ -19534,4 +19547,5 @@ CTableRowsInfo.prototype.Init = function()
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CTable = CTable;
+window['AscCommonWord'].CTableLook = CTableLook;
 window['AscCommonWord'].type_Table = type_Table;

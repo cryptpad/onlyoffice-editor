@@ -766,7 +766,7 @@ CSpecialFormsGlobalSettings.prototype.Copy = function()
  */
 CSpecialFormsGlobalSettings.prototype.IsDefault = function()
 {
-	return (undefined === this.Highlight);
+	return (undefined === this.Highlight || (!this.Highlight.IsAuto() && this.Highlight.IsEqualRGB({r : 201, g: 200, b : 255})));
 };
 CSpecialFormsGlobalSettings.prototype.Write_ToBinary = function(oWriter)
 {
@@ -1229,7 +1229,7 @@ function CSdtTextFormPr(nMax, isComb, nWidth, nSymbol, sFont, oCombBorder)
 	this.CombPlaceholderSymbol = nSymbol;
 	this.CombPlaceholderFont   = sFont;
 	this.CombBorder            = undefined !== oCombBorder ? oCombBorder.Copy() : undefined;
-	this.MultiLine             = true;
+	this.MultiLine             = false;
 	this.AutoFit               = false;
 }
 CSdtTextFormPr.prototype.Copy = function()
@@ -1404,6 +1404,9 @@ CSdtTextFormPr.prototype.SetMultiLine = function(isMultiLine)
 };
 CSdtTextFormPr.prototype.GetAutoFit = function()
 {
+	if (this.Comb)
+		return false;
+
 	return this.AutoFit;
 };
 CSdtTextFormPr.prototype.SetAutoFit = function(isAutoFit)
@@ -1615,6 +1618,10 @@ CSdtFormPr.prototype.SetAscShd = function(isShd, oAscColor)
 		var oUnifill        = new AscFormat.CUniFill();
 		oUnifill.fill       = new AscFormat.CSolidFill();
 		oUnifill.fill.color = AscFormat.CorrectUniColor(oAscColor, oUnifill.fill.color, 1);
+
+		var oLogicDocument = editor.WordControl.m_oLogicDocument;
+		if (oLogicDocument && oLogicDocument.IsDocumentEditor())
+			oUnifill.check(oLogicDocument.GetTheme(), oLogicDocument.GetColorMap());
 
 		this.Shd = new CDocumentShd();
 		this.Shd.Set_FromObject({
