@@ -151,8 +151,8 @@
                 <div class="separator long"></div>
                 <div class="group small">
                     <div class="elset font-normal">
-                        <label id="transit-duration"></label>
-                        <span id="transit-spin-duration" class="btn-slot text spinner" style="margin-left: 10px;"></span>
+                        <span class="btn-slot text" id="transit-duration"></span>
+                        <span id="transit-spin-duration" class="btn-slot text spinner"></span>
                     </div>
                     <div class="elset">
                         <span class="btn-slot text" id="transit-button-preview"></span>
@@ -165,7 +165,7 @@
                     </div>
                     <div class="elset font-normal">
                         <span class="btn-slot text"  id="transit-checkbox-delay"></span>
-                        <div id="transit-spin-delay" class="btn-slot text spinner" style="margin-left: 10px;"></div>
+                        <div id="transit-spin-delay" class="btn-slot text spinner" style="margin-left: 5px;"></div>
                    </div>
                 </div>
                 <div class="separator long"></div>
@@ -199,7 +199,7 @@
                 <div class="group">
                     <span class="btn-slot text x-huge" id="slot-btn-interface-theme"></span>
                 </div>
-                <div class="separator long"></div>
+                <div class="separator long separator-theme"></div>
                 <div class="group small">
                     <div class="elset">
                         <span class="btn-slot text" id="slot-chk-notes"></span>
@@ -211,16 +211,15 @@
                 <div class="separator long"></div>
                 <div class="group small">
                     <div class="elset">
-                        <span class="btn-slot text" id="slot-chk-statusbar"></span>
+                        <span class="btn-slot text" id="slot-chk-toolbar"></span>
                     </div>
                     <div class="elset">
-                        <span class="btn-slot text" id="slot-chk-toolbar"></span>
+                        <span class="btn-slot text" id="slot-chk-statusbar"></span>
                     </div>
                 </div>
             </section>
             <section id="animation-panel" class="panel" data-tab="animate">
                 <div class="group flex small" id="animation-field-effects" style="width: 700px; max-width: 700px; min-width: 140px;" data-group-width="700px"></div>
-
                 <div class="group small">
                     <span class="btn-slot text x-huge" id="animation-button-parameters"></span>
                 </div>
@@ -238,29 +237,27 @@
                 <div class="separator long"></div>
                 <div class="group small">
                     <div class="elset font-normal">
-                        <label id="animation-label-start"></label>
+                        <span class="btn-slot text" id="animation-label-start"></span>
                         <div class="btn-slot" style="width: 96px; " id="animation-start"></div>
-                    </div>
-                    <div class="elset font-normal">
-                         <label id="animation-delay"></label>
-                         <span id="animation-spin-delay" class="btn-slot text spinner" ></span>
-                    </div>
-                </div>
-                <div class="separator long"></div>
-                <div class="group small">
-                    <div class="elset font-normal">
-                        <label id="animation-duration"></label>
-                        <span id="animation-spin-duration" class="btn-slot text spinner" ></span>
                     </div>
                     <div class="elset font-normal">
                         <div class="btn-slot text"  id="animation-trigger"></div>
                     </div>
                 </div>
-                <div class="separator long"></div>
                 <div class="group small">
                     <div class="elset font-normal">
-                        <label id="animation-repeat"></label>
-                        <span id="animation-spin-repeat" class="btn-slot text spinner" ></span>
+                        <span class="btn-slot text" id="animation-duration"></span>
+                        <span id="animation-spin-duration"  style="width: 96px; " class="btn-slot"></span>
+                    </div>
+                    <div class="elset font-normal">
+                        <span class="btn-slot text" id="animation-delay"></span>
+                        <span id="animation-spin-delay" class="btn-slot text spinner" ></span>
+                    </div>
+                </div>
+                <div class="group small">
+                    <div class="elset font-normal">
+                        <span class="btn-slot text" id="animation-repeat"></span>
+                        <div id="animation-spin-repeat" style="width: 96px; " class="btn-slot" ></div>
                     </div>
                     <div class="elset font-normal">
                          <span class="btn-slot text" id="animation-checkbox-rewind"></span>

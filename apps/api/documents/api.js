@@ -56,6 +56,7 @@
                          edit: ["Group1", ""] // current user can edit comments made by users from Group1 and users without a group.
                          remove: ["Group1", ""] // current user can remove comments made by users from Group1 and users without a group.
                     },
+                    userInfoGroups: ["Group1", ""], // show tooltips/cursors/info in header only for users in userInfoGroups groups. [""] - means users without group, [] - don't show any users, null/undefined/"" - show all users
                     protect: <can protect document> // default = true. show/hide protect tab or protect buttons
                 }
             },
@@ -165,7 +166,7 @@
                                 navigation: false/true // navigation button in de
                             } / false / true, // view tab
                             save: false/true // save button on toolbar in 
-                        },
+                        } / false / true, // use instead of customization.toolbar,
                         header: {
                             users: false/true // users list button
                             save: false/true // save button
@@ -179,7 +180,7 @@
                             textLang: false/true // text language button in de/pe
                             docLang: false/true // document language button in de/pe
                             actionStatus: false/true // status of operation
-                        }
+                        } / false / true, // use instead of customization.statusBar
                     },
                     features: { // disable feature
                         spellcheck: {
@@ -194,8 +195,8 @@
                     leftMenu: true, // must be deprecated. use layout.leftMenu instead
                     rightMenu: true, // must be deprecated. use layout.rightMenu instead
                     hideRightMenu: false, // hide or show right panel on first loading
-                    toolbar: true,
-                    statusBar: true,
+                    toolbar: true, // must be deprecated. use layout.toolbar instead
+                    statusBar: true, // must be deprecated. use layout.statusBar instead
                     autosave: true,
                     forcesave: false,
                     commentAuthorOnly: false, // must be deprecated. use permissions.editCommentAuthorOnly and permissions.deleteCommentAuthorOnly instead
@@ -931,14 +932,17 @@
                 if (config.editorConfig.customization.loaderName !== 'none') params += "&customer=" + encodeURIComponent(config.editorConfig.customization.loaderName);
             } else
                 params += "&customer={{APP_CUSTOMER_NAME}}";
-            if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.loaderLogo) {
-                if (config.editorConfig.customization.loaderLogo !== '') params += "&logo=" + encodeURIComponent(config.editorConfig.customization.loaderLogo);
-            } else if ( (typeof(config.editorConfig.customization) == 'object') && config.editorConfig.customization.logo) {
-                if (config.type=='embedded' && (config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageEmbedded))
-                    params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageEmbedded);
-                else if (config.type!='embedded' && (config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageDark)) {
-                    config.editorConfig.customization.logo.image && (params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image));
-                    config.editorConfig.customization.logo.imageDark && (params += "&headerlogodark=" + encodeURIComponent(config.editorConfig.customization.logo.imageDark));
+            if (typeof(config.editorConfig.customization) == 'object') {
+                if ( config.editorConfig.customization.loaderLogo && config.editorConfig.customization.loaderLogo !== '') {
+                    params += "&logo=" + encodeURIComponent(config.editorConfig.customization.loaderLogo);
+                }
+                if ( config.editorConfig.customization.logo ) {
+                    if (config.type=='embedded' && (config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageEmbedded))
+                        params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageEmbedded);
+                    else if (config.type!='embedded' && (config.editorConfig.customization.logo.image || config.editorConfig.customization.logo.imageDark)) {
+                        config.editorConfig.customization.logo.image && (params += "&headerlogo=" + encodeURIComponent(config.editorConfig.customization.logo.image));
+                        config.editorConfig.customization.logo.imageDark && (params += "&headerlogodark=" + encodeURIComponent(config.editorConfig.customization.logo.imageDark));
+                    }
                 }
             }
         }
@@ -961,8 +965,6 @@
 
         if (config.editorConfig && config.editorConfig.customization && (config.editorConfig.customization.toolbar===false))
             params += "&toolbar=false";
-        else if (config.document && config.document.permissions && (config.document.permissions.edit === false && config.document.permissions.fillForms ))
-            params += "&toolbar=true";
 
         if (config.parentOrigin)
             params += "&parentOrigin=" + config.parentOrigin;
@@ -971,6 +973,25 @@
             params += "&uitheme=" + config.editorConfig.customization.uiTheme;
 
         return params;
+    }
+
+    function getFrameTitle(config) {
+        var title = 'Powerful online editor for text documents, spreadsheets, and presentations';
+        var appMap = {
+            'text': 'text documents',
+            'spreadsheet': 'spreadsheets',
+            'presentation': 'presentations',
+            'word': 'text documents',
+            'cell': 'spreadsheets',
+            'slide': 'presentations'
+        };
+
+        if (typeof config.documentType === 'string') {
+            var app = appMap[config.documentType.toLowerCase()];
+            if (app)
+                title = 'Powerful online editor for ' + app;
+        }
+        return title;
     }
 
     function createIframe(config) {
@@ -982,6 +1003,7 @@
         iframe.align = "top";
         iframe.frameBorder = 0;
         iframe.name = "frameEditor";
+        iframe.title = getFrameTitle(config);
         iframe.allowFullscreen = true;
         iframe.setAttribute("allowfullscreen",""); // for IE11
         iframe.setAttribute("onmousewheel",""); // for Safari on Mac

@@ -33,13 +33,13 @@
       "textTryUndoRedo": "Функции отмены и повтора действий отключены в Быстром режиме совместного редактирования.",
       "textUsers": "Пользователи"
     },
+    "HighlightColorPalette": {
+      "textNoFill": "Без заливки"
+    },
     "ThemeColorPalette": {
       "textCustomColors": "Пользовательские цвета",
       "textStandartColors": "Стандартные цвета",
       "textThemeColors": "Цвета темы"
-    },
-    "HighlightColorPalette": {
-      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -107,9 +107,12 @@
       "textHasMacros": "Файл содержит автозапускаемые макросы.<br>Хотите запустить макросы?",
       "textNo": "Нет",
       "textNoLicenseTitle": "Лицензионное ограничение",
+      "textNoTextFound": "Текст не найден",
       "textOpenFile": "Введите пароль для открытия файла",
       "textPaidFeature": "Платная функция",
       "textRemember": "Запомнить мой выбор",
+      "textReplaceSkipped": "Замена выполнена. Пропущено вхождений - {0}.",
+      "textReplaceSuccess": "Поиск выполнен. Заменено вхождений: {0}",
       "textYes": "Да",
       "titleLicenseExp": "Истек срок действия лицензии",
       "titleServerVersion": "Редактор обновлен",
@@ -225,6 +228,7 @@
       "textLinkTo": "Связать с",
       "textLinkType": "Тип ссылки",
       "textNextSlide": "Следующий слайд",
+      "textOk": "Ok",
       "textOther": "Другое",
       "textPictureFromLibrary": "Рисунок из библиотеки",
       "textPictureFromURL": "Рисунок по URL",
@@ -257,6 +261,7 @@
       "textAllCaps": "Все прописные",
       "textApplyAll": "Применить ко всем слайдам",
       "textAuto": "Авто",
+      "textAutomatic": "Автоматический",
       "textBack": "Назад",
       "textBandedColumn": "Чередовать столбцы",
       "textBandedRow": "Чередовать строки",
@@ -281,6 +286,7 @@
       "textDefault": "Выделенный текст",
       "textDelay": "Задержка",
       "textDeleteSlide": "Удалить слайд",
+      "textDesign": "Дизайн",
       "textDisplay": "Отображать",
       "textDistanceFromText": "Расстояние до текста",
       "textDistributeHorizontally": "Распределить по горизонтали",
@@ -332,6 +338,7 @@
       "textNoTextFound": "Текст не найден",
       "textNotUrl": "Это поле должно быть URL-адресом в формате \"http://www.example.com\"",
       "textNumbers": "Нумерация",
+      "textOk": "Ok",
       "textOpacity": "Непрозрачность",
       "textOptions": "Параметры",
       "textPictureFromLibrary": "Рисунок из библиотеки",
@@ -375,7 +382,6 @@
       "textTopLeft": "Сверху слева",
       "textTopRight": "Сверху справа",
       "textTotalRow": "Строка итогов",
-      "textTransition": "Переход",
       "textTransitions": "Переходы",
       "textType": "Тип",
       "textUnCover": "Открывание",
@@ -386,9 +392,7 @@
       "textZoom": "Масштабирование",
       "textZoomIn": "Увеличение",
       "textZoomOut": "Уменьшение",
-      "textZoomRotate": "Увеличение с поворотом",
-      "textAutomatic": "Automatic",
-      "textDesign": "Design"
+      "textZoomRotate": "Увеличение с поворотом"
     },
     "Settings": {
       "mniSlideStandard": "Стандартный (4:3)",
@@ -405,6 +409,7 @@
       "textColorSchemes": "Цветовые схемы",
       "textComment": "Комментарий",
       "textCreated": "Создана",
+      "textDarkTheme": "Темная тема",
       "textDisableAll": "Отключить все",
       "textDisableAllMacrosWithNotification": "Отключить все макросы с уведомлением",
       "textDisableAllMacrosWithoutNotification": "Отключить все макросы без уведомления",
@@ -467,8 +472,7 @@
       "txtScheme6": "Открытая",
       "txtScheme7": "Справедливость",
       "txtScheme8": "Поток",
-      "txtScheme9": "Литейная",
-      "textDarkTheme": "Dark Theme"
+      "txtScheme9": "Литейная"
     }
   }
 }

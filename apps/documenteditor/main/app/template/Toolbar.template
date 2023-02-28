@@ -135,11 +135,11 @@
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
-                    <span class="btn-slot text x-huge" id="slot-img-align"></span>
-                    <span class="btn-slot text x-huge" id="slot-img-group"></span>
+                    <span class="btn-slot text x-huge" id="slot-img-wrapping"></span>
                     <span class="btn-slot text x-huge" id="slot-img-movefrwd"></span>
                     <span class="btn-slot text x-huge" id="slot-img-movebkwd"></span>
-                    <span class="btn-slot text x-huge" id="slot-img-wrapping"></span>
+                    <span class="btn-slot text x-huge" id="slot-img-align"></span>
+                    <span class="btn-slot text x-huge" id="slot-img-group"></span>
                 </div>
                 <div class="separator long"></div>
                 <div class="group">
@@ -200,16 +200,16 @@
                     <span class="btn-slot text x-huge" id="slot-btn-interface-theme"></span>
                     <span class="btn-slot text x-huge" id="slot-btn-dark-document"></span>
                 </div>
-                <div class="separator long"></div>
+                <div class="separator long separator-theme"></div>
                 <div class="group small">
-                    <div class="elset">
-                        <span class="btn-slot text" id="slot-chk-statusbar"></span>
-                    </div>
                     <div class="elset">
                         <span class="btn-slot text" id="slot-chk-toolbar"></span>
                     </div>
+                    <div class="elset">
+                        <span class="btn-slot text" id="slot-chk-statusbar"></span>
+                    </div>
                 </div>
-                <div class="separator long"></div>
+                <div class="separator long separator-rulers"></div>
                 <div class="group small">
                     <div class="elset">
                         <span class="btn-slot text" id="slot-chk-rulers"></span>

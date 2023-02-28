@@ -221,6 +221,12 @@ define([
                         menu_props.paraProps.value = elValue;
                         menu_props.paraProps.locked = (elValue) ? elValue.get_Locked() : false;
                         noobject = false;
+                    } else if (Asc.c_oAscTypeSelectElement.Text == elType)
+                    {
+                        if (!me.viewPDFModeMenu)
+                            me.createDelayedElementsPDFViewer();
+                        menu_to_show = me.viewPDFModeMenu;
+                        noobject = false;
                     }
                 }
                 return (!noobject) ? {menu_to_show: menu_to_show, menu_props: menu_props} : null;
@@ -236,6 +242,11 @@ define([
             var onContextMenu = function(event){
                 if (Common.UI.HintManager.isHintVisible())
                     Common.UI.HintManager.clearHints();
+                if (!event) {
+                    Common.UI.Menu.Manager.hideAll();
+                    return;
+                }
+
                 _.delay(function(){
                     if (event.get_Type() == 0) {
                         showObjectMenu.call(me, event);
@@ -354,7 +365,8 @@ define([
                     addEvent(me.el, eventname, handleDocumentWheel);
                 }
 
-                $(document).on('mousewheel', handleDocumentWheel);
+                !Common.Utils.isChrome ? $(document).on('mousewheel', handleDocumentWheel) :
+                    document.addEventListener('mousewheel', handleDocumentWheel, {passive: false});
                 $(document).on('keydown', handleDocumentKeyDown);
 
                 $(window).on('resize', onDocumentHolderResize);
@@ -1648,22 +1660,22 @@ define([
                     this.menuImageWrap.menu.items[0].setChecked(true);
                     break;
                 case Asc.c_oAscWrapStyle2.Square:
-                    this.menuImageWrap.menu.items[1].setChecked(true);
-                    break;
-                case Asc.c_oAscWrapStyle2.Tight:
                     this.menuImageWrap.menu.items[2].setChecked(true);
                     break;
-                case Asc.c_oAscWrapStyle2.Through:
+                case Asc.c_oAscWrapStyle2.Tight:
                     this.menuImageWrap.menu.items[3].setChecked(true);
                     break;
-                case Asc.c_oAscWrapStyle2.TopAndBottom:
+                case Asc.c_oAscWrapStyle2.Through:
                     this.menuImageWrap.menu.items[4].setChecked(true);
                     break;
+                case Asc.c_oAscWrapStyle2.TopAndBottom:
+                    this.menuImageWrap.menu.items[5].setChecked(true);
+                    break;
                 case Asc.c_oAscWrapStyle2.Behind:
-                    this.menuImageWrap.menu.items[6].setChecked(true);
+                    this.menuImageWrap.menu.items[8].setChecked(true);
                     break;
                 case Asc.c_oAscWrapStyle2.InFront:
-                    this.menuImageWrap.menu.items[5].setChecked(true);
+                    this.menuImageWrap.menu.items[7].setChecked(true);
                     break;
             }
         },
@@ -1693,6 +1705,7 @@ define([
                                 paragraphProps      : elValue,
                                 borderProps         : me.borderAdvancedProps,
                                 isChart             : (item.isChart===true),
+                                isSmartArtInternal  : (item.isSmartArtInternal===true),
                                 api             : me.api,
                                 handler: function(result, value) {
                                     if (result == 'ok') {
@@ -1906,6 +1919,16 @@ define([
             me.fireEvent('editcomplete', me);
         },
 
+        onAcceptRejectChange: function(item, e) {
+            if (this.api) {
+                if (item.value == 'accept')
+                    this.api.asc_AcceptChanges();
+                else if (item.value == 'reject')
+                    this.api.asc_RejectChanges();
+            }
+            this.fireEvent('editcomplete', this);
+        },
+
         onPrintSelection: function(item){
             if (this.api){
                 var printopt = new Asc.asc_CAdjustPrint();
@@ -2110,7 +2133,7 @@ define([
                     menuViewCut.setDisabled(disabled || !cancopy);
                     menuViewPaste.setVisible(me._fillFormwMode && canEditControl);
                     menuViewPaste.setDisabled(disabled);
-                    menuViewPrint.setVisible(me.mode.canPrint);
+                    menuViewPrint.setVisible(me.mode.canPrint && !me._fillFormwMode);
                     menuViewPrint.setDisabled(!cancopy);
 
                 },
@@ -2127,6 +2150,35 @@ define([
                     menuSignatureRemove,
                     menuViewSignSeparator,
                     menuViewAddComment
+                ]
+            }).on('hide:after', function (menu, e, isFromInputControl) {
+                if (me.suppressEditComplete) {
+                    me.suppressEditComplete = false;
+                    return;
+                }
+
+                if (!isFromInputControl) me.fireEvent('editcomplete', me);
+                me.currentMenu = null;
+            });
+
+        },
+
+        createDelayedElementsPDFViewer: function() {
+            var me = this;
+
+            var menuPDFViewCopy = new Common.UI.MenuItem({
+                iconCls: 'menu__icon btn-copy',
+                caption: me.textCopy,
+                value: 'copy'
+            }).on('click', _.bind(me.onCutCopyPaste, me));
+
+            this.viewPDFModeMenu = new Common.UI.Menu({
+                cls: 'shifted-right',
+                initMenu: function (value) {
+                    menuPDFViewCopy.setDisabled(!(me.api && me.api.can_CopyCut()));
+                },
+                items: [
+                    menuPDFViewCopy
                 ]
             }).on('hide:after', function (menu, e, isFromInputControl) {
                 if (me.suppressEditComplete) {
@@ -2340,6 +2392,7 @@ define([
                                 checkmark   : false,
                                 checkable   : true
                             }).on('click', onItemClick),
+                            { caption: '--' },
                             new Common.UI.MenuItem({
                                 caption     : me.txtSquare,
                                 iconCls     : 'menu__icon wrap-square',
@@ -2372,6 +2425,7 @@ define([
                                 checkmark   : false,
                                 checkable   : true
                             }).on('click', onItemClick),
+                            { caption: '--' },
                             new Common.UI.MenuItem({
                                 caption     : me.txtInFront,
                                 iconCls     : 'menu__icon wrap-infront',
@@ -2526,6 +2580,20 @@ define([
                 value : 'cut'
             }).on('click', _.bind(me.onCutCopyPaste, me));
 
+            var menuImgAccept = new Common.UI.MenuItem({
+                caption : me.textAccept,
+                value : 'accept'
+            }).on('click', _.bind(me.onAcceptRejectChange, me));
+
+            var menuImgReject = new Common.UI.MenuItem({
+                caption : me.textReject,
+                value : 'reject'
+            }).on('click', _.bind(me.onAcceptRejectChange, me));
+
+            var menuImgReviewSeparator = new Common.UI.MenuItem({
+                caption     : '--'
+            });
+
             var menuImgPrint = new Common.UI.MenuItem({
                 iconCls: 'menu__icon btn-print',
                 caption : me.txtPrintSelection
@@ -2617,6 +2685,7 @@ define([
 
             this.pictureMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
+                restoreHeightAndTop: true,
                 initMenu: function(value){
                     if (_.isUndefined(value.imgProps))
                         return;
@@ -2628,7 +2697,7 @@ define([
 
                     var cls = 'menu__icon ';
                     if (notflow) {
-                        for (var i = 0; i < 6; i++) {
+                        for (var i = 0; i < 8; i++) {
                             me.menuImageWrap.menu.items[i].setChecked(false);
                         }
                         cls += 'wrap-inline';
@@ -2639,31 +2708,31 @@ define([
                                 cls += 'wrap-inline';
                                 break;
                             case Asc.c_oAscWrapStyle2.Square:
-                                me.menuImageWrap.menu.items[1].setChecked(true);
+                                me.menuImageWrap.menu.items[2].setChecked(true);
                                 cls += 'wrap-square';
                                 break;
                             case Asc.c_oAscWrapStyle2.Tight:
-                                me.menuImageWrap.menu.items[2].setChecked(true);
+                                me.menuImageWrap.menu.items[3].setChecked(true);
                                 cls += 'wrap-tight';
                                 break;
                             case Asc.c_oAscWrapStyle2.Through:
-                                me.menuImageWrap.menu.items[3].setChecked(true);
+                                me.menuImageWrap.menu.items[4].setChecked(true);
                                 cls += 'wrap-through';
                                 break;
                             case Asc.c_oAscWrapStyle2.TopAndBottom:
-                                me.menuImageWrap.menu.items[4].setChecked(true);
+                                me.menuImageWrap.menu.items[5].setChecked(true);
                                 cls += 'wrap-topandbottom';
                                 break;
                             case Asc.c_oAscWrapStyle2.Behind:
-                                me.menuImageWrap.menu.items[6].setChecked(true);
+                                me.menuImageWrap.menu.items[8].setChecked(true);
                                 cls += 'wrap-behind';
                                 break;
                             case Asc.c_oAscWrapStyle2.InFront:
-                                me.menuImageWrap.menu.items[5].setChecked(true);
+                                me.menuImageWrap.menu.items[7].setChecked(true);
                                 cls += 'wrap-infront';
                                 break;
                             default:
-                                for (var i = 0; i < 6; i++) {
+                                for (var i = 0; i < 8; i++) {
                                     me.menuImageWrap.menu.items[i].setChecked(false);
                                 }
                                 cls += 'wrap-infront';
@@ -2711,9 +2780,11 @@ define([
                     menuImgReplace.menu.items[2].setVisible(me.mode.canRequestInsertImage || me.mode.fileChoiceUrl && me.mode.fileChoiceUrl.indexOf("{documentType}")>-1);
 
                     menuImgRotate.setVisible(!value.imgProps.isChart && (pluginGuid===null || pluginGuid===undefined));
-                    if (menuImgRotate.isVisible())
+                    if (menuImgRotate.isVisible()) {
                         menuImgRotate.setDisabled(islocked || value.imgProps.isSmartArt);
-
+                        menuImgRotate.menu.items[3].setDisabled(value.imgProps.isSmartArtInternal);
+                        menuImgRotate.menu.items[4].setDisabled(value.imgProps.isSmartArtInternal);
+                    }
                     me.menuImgCrop.setVisible(me.api.asc_canEditCrop());
                     if (me.menuImgCrop.isVisible())
                         me.menuImgCrop.setDisabled(islocked);
@@ -2755,6 +2826,11 @@ define([
                     menuImgPrint.setVisible(me.mode.canPrint);
                     menuImgPrint.setDisabled(!cancopy);
 
+                    var lockreview = Common.Utils.InternalSettings.get("de-accept-reject-lock");
+                    menuImgAccept.setVisible(!lockreview);
+                    menuImgReject.setVisible(!lockreview);
+                    menuImgReviewSeparator.setVisible(!lockreview);
+
                     var signGuid = (value.imgProps && value.imgProps.value && me.mode.isSignatureSupport) ? value.imgProps.value.asc_getSignatureId() : undefined,
                         isInSign = !!signGuid;
                     menuSignatureEditSign.setVisible(isInSign);
@@ -2777,6 +2853,9 @@ define([
                     menuImgPaste,
                     menuImgPrint,
                     { caption: '--' },
+                    menuImgAccept,
+                    menuImgReject,
+                    menuImgReviewSeparator,
                     menuSignatureEditSign,
                     menuSignatureEditSetup,
                     menuEditSignSeparator,
@@ -2921,9 +3000,15 @@ define([
                 })
             });
 
-            var menuTableRemoveControl = new Common.UI.MenuItem({
+            var menuTableRemoveForm = new Common.UI.MenuItem({
                 iconCls: 'menu__icon cc-remove',
                 caption: me.textRemove,
+                value: 'remove'
+            }).on('click', _.bind(me.onControlsSelect, me));
+
+            var menuTableRemoveControl = new Common.UI.MenuItem({
+                iconCls: 'menu__icon cc-remove',
+                caption: me.textRemoveControl,
                 value: 'remove'
             }).on('click', _.bind(me.onControlsSelect, me));
 
@@ -3091,6 +3176,20 @@ define([
                 value : 'cut'
             }).on('click', _.bind(me.onCutCopyPaste, me));
 
+            var menuTableAccept = new Common.UI.MenuItem({
+                caption : me.textAccept,
+                value : 'accept'
+            }).on('click', _.bind(me.onAcceptRejectChange, me));
+
+            var menuTableReject = new Common.UI.MenuItem({
+                caption : me.textReject,
+                value : 'reject'
+            }).on('click', _.bind(me.onAcceptRejectChange, me));
+
+            var menuTableReviewSeparator = new Common.UI.MenuItem({
+                caption     : '--'
+            });
+
             var menuTablePrint = new Common.UI.MenuItem({
                 iconCls: 'menu__icon btn-print',
                 caption : me.txtPrintSelection
@@ -3201,6 +3300,7 @@ define([
 
             this.tableMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
+                restoreHeightAndTop: true,
                 initMenu: function(value){
                     // table properties
                     if (_.isUndefined(value.tableProps))
@@ -3208,7 +3308,7 @@ define([
 
                     var isEquation= (value.mathProps && value.mathProps.value);
 
-                    for (var i = 8; i < 27; i++) {
+                    for (var i = 11; i < 30; i++) {
                         me.tableMenu.items[i].setVisible(!isEquation);
                     }
 
@@ -3249,8 +3349,8 @@ define([
                     me.menuTableDirect270.setChecked(dir == Asc.c_oAscCellTextDirection.BTLR);
 
                     var disabled = value.tableProps.locked || (value.headerProps!==undefined && value.headerProps.locked);
-                    me.tableMenu.items[11].setDisabled(disabled);
-                    me.tableMenu.items[12].setDisabled(disabled);
+                    me.tableMenu.items[14].setDisabled(disabled);
+                    me.tableMenu.items[15].setDisabled(disabled);
 
                     if (me.api) {
                         mnuTableMerge.setDisabled(disabled || !me.api.CheckBeforeMergeCells());
@@ -3269,6 +3369,11 @@ define([
                     menuTablePaste.setDisabled(disabled);
                     menuTablePrint.setVisible(me.mode.canPrint);
                     menuTablePrint.setDisabled(!cancopy);
+
+                    var lockreview = Common.Utils.InternalSettings.get("de-accept-reject-lock");
+                    menuTableAccept.setVisible(!lockreview);
+                    menuTableReject.setVisible(!lockreview);
+                    menuTableReviewSeparator.setVisible(!lockreview);
 
                     // bullets & numbering
                     var listId = me.api.asc_GetCurrentNumberingId(),
@@ -3347,27 +3452,34 @@ define([
                     //equation menu
                     var eqlen = 0;
                     if (isEquation) {
-                        eqlen = me.addEquationMenu(false, 7);
+                        eqlen = me.addEquationMenu(false, 10);
                     } else
-                        me.clearEquationMenu(false, 7);
+                        me.clearEquationMenu(false, 10);
                     menuEquationSeparatorInTable.setVisible(isEquation && eqlen>0);
 
                     var control_lock = (value.paraProps) ? (!value.paraProps.value.can_DeleteBlockContentControl() || !value.paraProps.value.can_EditBlockContentControl() ||
                                                             !value.paraProps.value.can_DeleteInlineContentControl() || !value.paraProps.value.can_EditInlineContentControl()) : false;
                     var in_toc = me.api.asc_GetTableOfContentsPr(true),
                         in_control = !in_toc && me.api.asc_IsContentControl();
-                    menuTableControl.setVisible(in_control);
                     if (in_control) {
                         var control_props = me.api.asc_GetContentControlProperties(),
                             lock_type = (control_props) ? control_props.get_Lock() : Asc.c_oAscSdtLockType.Unlocked,
                             is_form = control_props && control_props.get_FormPr();
-                        menuTableRemoveControl.setDisabled(lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.SdtLocked);
-                        menuTableRemoveControl.setCaption(is_form ? me.getControlLabel(control_props) : me.textRemoveControl);
-                        menuTableControlSettings.setVisible(me.mode.canEditContentControl && !is_form);
-
+                        menuTableRemoveForm.setVisible(is_form);
+                        menuTableControl.setVisible(!is_form);
+                        if (is_form) {
+                            menuTableRemoveForm.setDisabled(lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.SdtLocked);
+                            menuTableRemoveForm.setCaption(me.getControlLabel(control_props));
+                        } else {
+                            menuTableRemoveControl.setDisabled(lock_type==Asc.c_oAscSdtLockType.SdtContentLocked || lock_type==Asc.c_oAscSdtLockType.SdtLocked);
+                            menuTableControlSettings.setVisible(me.mode.canEditContentControl);
+                        }
                         var spectype = control_props ? control_props.get_SpecificType() : Asc.c_oAscContentControlSpecificType.None;
                         control_lock = control_lock || spectype==Asc.c_oAscContentControlSpecificType.CheckBox || spectype==Asc.c_oAscContentControlSpecificType.Picture ||
                                         spectype==Asc.c_oAscContentControlSpecificType.ComboBox || spectype==Asc.c_oAscContentControlSpecificType.DropDownList || spectype==Asc.c_oAscContentControlSpecificType.DateTime;
+                    } else {
+                        menuTableControl.setVisible(in_control);
+                        menuTableRemoveForm.setVisible(in_control);
                     }
                     menuTableTOC.setVisible(in_toc);
 
@@ -3393,6 +3505,9 @@ define([
                     menuTablePaste,
                     menuTablePrint,
                     { caption: '--' },
+                    menuTableAccept,
+                    menuTableReject,
+                    menuTableReviewSeparator,
                     menuEquationSeparatorInTable,
                     menuTableRefreshField,
                     menuTableFieldSeparator,
@@ -3525,6 +3640,7 @@ define([
                     menuHyperlinkTable,
                     menuTableFollow,
                     menuHyperlinkSeparator,
+                    menuTableRemoveForm,
                     menuTableControl,
                     menuTableTOC,
                     menuParagraphAdvancedInTable
@@ -3797,6 +3913,20 @@ define([
                 value : 'cut'
             }).on('click', _.bind(me.onCutCopyPaste, me));
 
+            var menuParaAccept = new Common.UI.MenuItem({
+                caption : me.textAccept,
+                value : 'accept'
+            }).on('click', _.bind(me.onAcceptRejectChange, me));
+
+            var menuParaReject = new Common.UI.MenuItem({
+                caption : me.textReject,
+                value : 'reject'
+            }).on('click', _.bind(me.onAcceptRejectChange, me));
+
+            var menuParaReviewSeparator = new Common.UI.MenuItem({
+                caption     : '--'
+            });
+
             var menuParaPrint = new Common.UI.MenuItem({
                 iconCls: 'menu__icon btn-print',
                 caption : me.txtPrintSelection
@@ -3891,6 +4021,7 @@ define([
 
             this.textMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
+                restoreHeightAndTop: true,
                 initMenu: function(value){
                     var isInShape = (value.imgProps && value.imgProps.value && !_.isNull(value.imgProps.value.get_ShapeProperties()));
                     var isInChart = (value.imgProps && value.imgProps.value && !_.isNull(value.imgProps.value.get_ChartProperties()));
@@ -3940,6 +4071,7 @@ define([
                         me.menuParagraphDirect270.setChecked(dir == Asc.c_oAscVertDrawingText.vert270);
                     }
                     menuParagraphAdvanced.isChart = (value.imgProps && value.imgProps.isChart);
+                    menuParagraphAdvanced.isSmartArtInternal = (value.imgProps && value.imgProps.isSmartArtInternal);
                     menuParagraphBreakBefore.setVisible(!isInShape && !isInChart && !isEquation);
                     menuParagraphKeepLines.setVisible(!isInShape && !isInChart && !isEquation);
                     if (value.paraProps) {
@@ -3995,6 +4127,11 @@ define([
                     menuParaPrint.setVisible(me.mode.canPrint);
                     menuParaPrint.setDisabled(!cancopy);
 
+                    var lockreview = Common.Utils.InternalSettings.get("de-accept-reject-lock");
+                    menuParaAccept.setVisible(!lockreview);
+                    menuParaReject.setVisible(!lockreview);
+                    menuParaReviewSeparator.setVisible(!lockreview);
+
                     // spellCheck
                     var spell = (value.spellProps!==undefined && value.spellProps.value.get_Checked()===false);
                     me.menuSpellPara.setVisible(spell);
@@ -4021,9 +4158,9 @@ define([
                     //equation menu
                     var eqlen = 0;
                     if (isEquation) {
-                        eqlen = me.addEquationMenu(true, 15);
+                        eqlen = me.addEquationMenu(true, 18);
                     } else
-                        me.clearEquationMenu(true, 15);
+                        me.clearEquationMenu(true, 18);
                     menuEquationSeparator.setVisible(isEquation && eqlen>0);
                     menuEquationInsertCaption.setVisible(isEquation);
                     menuEquationInsertCaptionSeparator.setVisible(isEquation);
@@ -4034,9 +4171,10 @@ define([
                     if (frame_pr)
                         menuDropCapAdvanced.setIconCls(frame_pr.get_DropCap()===Asc.c_oAscDropCap.Drop ? 'menu__icon dropcap-intext' : 'menu__icon dropcap-inmargin');
 
-                    menuStyleSeparator.setVisible(me.mode.canEditStyles && !isInChart);
-                    menuStyle.setVisible(me.mode.canEditStyles && !isInChart);
-                    if (me.mode.canEditStyles && !isInChart) {
+                    var edit_style = me.mode.canEditStyles && !isInChart && !(value.imgProps && value.imgProps.isSmartArtInternal);
+                    menuStyleSeparator.setVisible(edit_style);
+                    menuStyle.setVisible(edit_style);
+                    if (edit_style) {
                         me.menuStyleUpdate.setCaption(me.updateStyleText.replace('%1', DE.getController('Main').translationTable[window.currentStyleName] || window.currentStyleName));
                     }
 
@@ -4108,6 +4246,9 @@ define([
                     menuParaCopy,
                     menuParaPaste,
                     menuParaPrint,
+                    menuParaReviewSeparator,
+                    menuParaAccept,
+                    menuParaReject,
                     menuEquationInsertCaptionSeparator,
                     menuEquationInsertCaption,
                     { caption: '--' },
@@ -4753,7 +4894,9 @@ define([
         txtRemoveWarning: 'Do you want to remove this signature?<br>It can\'t be undone.',
         notcriticalErrorTitle: 'Warning',
         txtWarnUrl: 'Clicking this link can be harmful to your device and data.<br>Are you sure you want to continue?',
-        textEditPoints: 'Edit Points'
+        textEditPoints: 'Edit Points',
+        textAccept: 'Accept Change',
+        textReject: 'Reject Change'
 
 }, DE.Views.DocumentHolder || {}));
 });

@@ -351,19 +351,22 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
         }
     };
 
-    const onMenuMoveClick = (action) => {
+    const onMenuMoveClick = (index) => {
         const api = Common.EditorApi.get();
-        const visibleSheets = sheets.visibleWorksheets();
-        let activeIndex;
 
-        visibleSheets.forEach((item, index) => {
-            if(item.index === api.asc_getActiveWorksheetIndex()) {
-                activeIndex = visibleSheets[action === "forward" ? index+2 : index-1 ]?.index;  
-            }
-        });
+        let sheetsCount = api.asc_getWorksheetsCount();
+        let activeIndex = api.asc_getActiveWorksheetIndex();
 
-        api.asc_moveWorksheet(activeIndex === undefined ? api.asc_getWorksheetsCount() : activeIndex, [api.asc_getActiveWorksheetIndex()]);
-    }
+        api.asc_moveWorksheet(index === -255 ? sheetsCount : index , [activeIndex]);
+    };
+
+    const onTabListClick = (sheetIndex) => {
+        const api = Common.EditorApi.get();
+        if(api && api.asc_getActiveWorksheetIndex() !== sheetIndex) {
+            api.asc_showWorksheet(sheetIndex);
+            f7.popover.close('#idx-all-list');
+        }
+    };
 
     return (
         <StatusbarView 
@@ -371,6 +374,7 @@ const Statusbar = inject('sheets', 'storeAppOptions', 'users')(observer(props =>
             onTabClicked={onTabClicked}
             onAddTabClicked={onAddTabClicked}
             onTabMenu={onTabMenu}
+            onTabListClick={onTabListClick}
             onMenuMoveClick = {onMenuMoveClick}
         />
     )

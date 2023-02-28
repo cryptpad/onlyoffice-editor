@@ -91,7 +91,8 @@ class MainController extends Component {
             };
 
             const loadConfig = data => {
-                const _t = this._t;
+                const { t } = this.props;
+                const _t = t('Controller.Main', {returnObjects:true});
 
                 EditorUIController.isSupportEditFeature();
 
@@ -402,11 +403,18 @@ class MainController extends Component {
         this.api.asc_registerCallback('asc_onEditCell', (state) => {
             if (state == Asc.c_oAscCellEditorState.editStart || state == Asc.c_oAscCellEditorState.editEnd) {
                 const isEditCell = state === Asc.c_oAscCellEditorState.editStart;
+                const isEditEnd = state === Asc.c_oAscCellEditorState.editEnd;
+               
                 if (storeFocusObjects.isEditCell !== isEditCell) {
                     storeFocusObjects.setEditCell(isEditCell);
                 }
+
+                if(isEditEnd) {
+                    storeFocusObjects.setEditFormulaMode(false);
+                }
             } else {
                 const isFormula = state === Asc.c_oAscCellEditorState.editFormula;
+               
                 if (storeFocusObjects.editFormulaMode !== isFormula) {
                     storeFocusObjects.setEditFormulaMode(isFormula);
                 }
@@ -418,11 +426,17 @@ class MainController extends Component {
         this.api.asc_registerCallback('asc_onChangeProtectWorksheet', this.onChangeProtectSheet.bind(this));
         this.api.asc_registerCallback('asc_onActiveSheetChanged', this.onChangeProtectSheet.bind(this)); 
         
+        this.api.asc_registerCallback('asc_onRenameCellTextEnd', this.onRenameText.bind(this));
+
         this.api.asc_registerCallback('asc_onEntriesListMenu', this.onEntriesListMenu.bind(this, false));
         this.api.asc_registerCallback('asc_onValidationListMenu', this.onEntriesListMenu.bind(this, true));
     }
 
     onEntriesListMenu(validation, textArr, addArr) {
+        const storeAppOptions = this.props.storeAppOptions;
+       
+        if (!storeAppOptions.isEdit && !storeAppOptions.isRestrictedEdit || this.props.users.isDisconnected) return;
+
         const { t } = this.props;
         const boxSdk = $$('#editor_sdk');
     
@@ -435,14 +449,14 @@ class MainController extends Component {
                     boxSdk.append(dropdownListTarget);
                 }
 
-                let coord  = this.api.asc_getActiveCellCoord(),
+                let coord  = this.api.asc_getActiveCellCoord(validation),
                     offset = {left: 0, top: 0},
-                    showPoint = [coord.asc_getX() + offset.left, (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
+                    showPoint = [coord.asc_getX() + offset.left + (validation ? coord.asc_getWidth() : 0), (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
             
                 dropdownListTarget.css({left: `${showPoint[0]}px`, top: `${showPoint[1]}px`});
             }
 
-            Common.Notifications.trigger('openDropdownList', addArr);
+            Common.Notifications.trigger('openDropdownList', textArr, addArr);
         } else {
             !validation && f7.dialog.create({
                 title: t('Controller.Main.notcriticalErrorTitle'),
@@ -453,6 +467,14 @@ class MainController extends Component {
                     }
                 ]
             });
+        }
+    }
+
+    onRenameText(found, replaced) {
+        const { t } = this.props;
+
+        if (this.api.isReplaceAll) { 
+            f7.dialog.alert(null, (found) ? ((!found - replaced) ? t('Controller.Main.textReplaceSuccess').replace(/\{0\}/, `${replaced}`) : t('Controller.Main.textReplaceSkipped').replace(/\{0\}/, `${found - replaced}`)) : t('Controller.Main.textNoTextFound'));
         }
     }
 
@@ -590,7 +612,7 @@ class MainController extends Component {
         if (appOptions.isEditDiagram || appOptions.isEditMailMerge) return;
 
         const licType = params.asc_getLicenseType();
-        if (licType !== undefined && appOptions.canEdit && appOptions.config.mode !== 'view' &&
+        if (licType !== undefined && (appOptions.canEdit || appOptions.isRestrictedEdit) && appOptions.config.mode !== 'view' &&
             (licType === Asc.c_oLicenseResult.Connections || licType === Asc.c_oLicenseResult.UsersCount || licType === Asc.c_oLicenseResult.ConnectionsOS || licType === Asc.c_oLicenseResult.UsersCountOS
                 || licType === Asc.c_oLicenseResult.SuccessLimit && (appOptions.trialMode & Asc.c_oLicenseMode.Limited) !== 0))
             this._state.licenseType = licType;
@@ -714,7 +736,8 @@ class MainController extends Component {
             if (value === 1) {
                 this.api.asc_runAutostartMacroses();
             } else if (value === 0) {
-                const _t = this._t;
+                const { t } = this.props;
+                const _t = t('Controller.Main', {returnObjects:true});
                 f7.dialog.create({
                     title: _t.notcriticalErrorTitle,
                     text: _t.textHasMacros,
@@ -761,7 +784,8 @@ class MainController extends Component {
     }
 
     onBeforeUnload () {
-        const _t = this._t;
+        const { t } = this.props;
+        const _t = t('Controller.Main', {returnObjects:true});
 
         LocalStorage.save();
 
@@ -783,7 +807,8 @@ class MainController extends Component {
     }
 
     onUpdateVersion (callback) {
-        const _t = this._t;
+        const { t } = this.props;
+        const _t = t('Controller.Main', {returnObjects:true});
 
         this.needToUpdateVersion = true;
         Common.Notifications.trigger('preloader:endAction', Asc.c_oAscAsyncActionType['BlockInteraction'], this.LoadingDocument);
@@ -802,7 +827,8 @@ class MainController extends Component {
 
     onServerVersion (buildVersion) {
         if (this.changeServerVersion) return true;
-        const _t = this._t;
+        const { t } = this.props;
+        const _t = t('Controller.Main', {returnObjects:true});
 
         if (About.appVersion() !== buildVersion && !About.compareVersions()) {
             this.changeServerVersion = true;
@@ -888,7 +914,8 @@ class MainController extends Component {
         this.api.asc_OnSaveEnd(data.result);
 
         if (data && data.result === false) {
-            const _t = this._t;
+            const { t } = this.props;
+            const _t = t('Controller.Main', {returnObjects:true});
             f7.dialog.alert(
                 (!data.message) ? _t.errorProcessSaveResult : data.message,
                 _t.criticalErrorTitle
@@ -905,7 +932,8 @@ class MainController extends Component {
             Common.Notifications.trigger('api:disconnect');
 
             if (!old_rights) {
-                const _t = this._t;
+                const { t } = this.props;
+                const _t = t('Controller.Main', {returnObjects:true});
                 f7.dialog.alert(
                     (!data.message) ? _t.warnProcessRightsChange : data.message,
                     _t.notcriticalErrorTitle,
@@ -917,7 +945,9 @@ class MainController extends Component {
 
     onDownloadAs () {
         if ( this.props.storeAppOptions.canDownload) {
-            Common.Gateway.reportError(Asc.c_oAscError.ID.AccessDeny, this._t.errorAccessDeny);
+            const { t } = this.props;
+            const _t = t('Controller.Main', {returnObjects:true});
+            Common.Gateway.reportError(Asc.c_oAscError.ID.AccessDeny, _t.errorAccessDeny);
             return;
         }
         this._state.isFromGatewayDownloadAs = true;

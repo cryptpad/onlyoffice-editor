@@ -78,11 +78,19 @@ define([
 
         setConfig: function(config) {
             this.toolbar = config.toolbar;
+            var mode = config.mode;
             this.view = this.createView('ViewTab', {
                 toolbar: this.toolbar.toolbar,
-                mode: config.mode,
+                mode: mode,
                 compactToolbar: this.toolbar.toolbar.isCompactView
             });
+            if (!Common.UI.Themes.available()) {
+                this.view.btnInterfaceTheme.$el.closest('.group').remove();
+                this.view.cmpEl.find('.separator-theme').remove();
+            }
+            if (mode.canBrandingExt && mode.customization && mode.customization.statusBar === false || !Common.UI.LayoutManager.isElementVisible('statusBar')) {
+                this.view.chStatusbar.$el.remove();
+            }
             this.addListeners({
                 'ViewTab': {
                     'zoom:selected': _.bind(this.onSelectedZoomValue, this),
@@ -271,18 +279,19 @@ define([
         },
 
         onApiZoomChange: function(zf, type){
-            console.log('zoom');
             var value = Math.floor((zf + .005) * 100);
             this.view.cmbZoom.setValue(value, value + '%');
             this._state.zoomValue = value;
         },
 
         onThemeChanged: function () {
-            if (this.view) {
+            if (this.view && Common.UI.Themes.available()) {
                 var current_theme = Common.UI.Themes.currentThemeId() || Common.UI.Themes.defaultThemeId(),
                     menu_item = _.findWhere(this.view.btnInterfaceTheme.menu.items, {value: current_theme});
-                this.view.btnInterfaceTheme.menu.clearAll();
-                menu_item.setChecked(true, true);
+                if ( !!menu_item ) {
+                    this.view.btnInterfaceTheme.menu.clearAll();
+                    menu_item.setChecked(true, true);
+                }
             }
         }
 

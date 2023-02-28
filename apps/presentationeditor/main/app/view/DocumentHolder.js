@@ -354,7 +354,8 @@ define([
                     addEvent(me.el, eventname, handleDocumentWheel);
                 }
 
-                $(document).on('mousewheel', handleDocumentWheel);
+                !Common.Utils.isChrome ? $(document).on('mousewheel', handleDocumentWheel) :
+                    document.addEventListener('mousewheel', handleDocumentWheel, {passive: false});
                 $(document).on('keydown', handleDocumentKeyDown);
                 $(window).on('resize', onDocumentHolderResize);
                 var viewport = PE.getController('Viewport').getView('Viewport');
@@ -2067,6 +2068,7 @@ define([
 
             me.slideMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
+                restoreHeightAndTop: true,
                 initMenu: function(value) {
                     var selectedLast = me.api.asc_IsLastSlideSelected(),
                         selectedFirst = me.api.asc_IsFirstSlideSelected();
@@ -3354,6 +3356,7 @@ define([
 
             me.tableMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
+                restoreHeightAndTop: true,
                 initMenu: function(value){
                     // table properties
                     if (_.isUndefined(value.tableProps))
@@ -3567,6 +3570,7 @@ define([
 
             me.pictureMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
+                restoreHeightAndTop: true,
                 initMenu: function(value){
                     if (me.api) {
                         mnuUnGroupImg.setDisabled(!me.api.canUnGroup());
@@ -3587,8 +3591,11 @@ define([
                     mnuArrangeBackward.setDisabled(inSmartartInternal);
 
                     menuImgShapeRotate.setVisible(_.isUndefined(value.chartProps) && (pluginGuid===null || pluginGuid===undefined));
-                    if (menuImgShapeRotate.isVisible())
+                    if (menuImgShapeRotate.isVisible()) {
                         menuImgShapeRotate.setDisabled(disabled || (value.shapeProps && value.shapeProps.value.get_FromSmartArt()));
+                        menuImgShapeRotate.menu.items[3].setDisabled(inSmartartInternal);
+                        menuImgShapeRotate.menu.items[4].setDisabled(inSmartartInternal);
+                    }
 
                     // image properties
                     menuImgOriginalSize.setVisible(isimage);

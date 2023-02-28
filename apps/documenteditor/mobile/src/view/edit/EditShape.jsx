@@ -511,20 +511,26 @@ const EditShape = props => {
     const wrapType = props.storeShapeSettings.getWrapType(shapeObject);
 
     const shapeType = shapeObject.get_ShapeProperties().asc_getType();
-    const hideChangeType = shapeObject.get_ShapeProperties().get_FromChart() || shapeType=='line' || shapeType=='bentConnector2' || shapeType=='bentConnector3'
+    const hideChangeType = shapeObject.get_ShapeProperties().get_FromChart() || shapeObject.get_ShapeProperties().get_FromSmartArt() 
+    || shapeType=='line' || shapeType=='bentConnector2' || shapeType=='bentConnector3'
     || shapeType=='bentConnector4' || shapeType=='bentConnector5' || shapeType=='curvedConnector2'
     || shapeType=='curvedConnector3' || shapeType=='curvedConnector4' || shapeType=='curvedConnector5'
     || shapeType=='straightConnector1';
 
-    let controlProps = api && api.asc_IsContentControl() ? api.asc_GetContentControlProperties() : null,
-        fixedSize = false;
+    const isSmartArtInternal = shapeObject.get_ShapeProperties().get_FromSmartArtInternal();
+    const isFromGroup = shapeObject.get_ShapeProperties().get_FromGroup();
+    const inControl = api.asc_IsContentControl();
+    const controlProps = (api && inControl) ? api.asc_GetContentControlProperties() : null;
+    const lockType = controlProps ? controlProps.get_Lock() : Asc.c_oAscSdtLockType.Unlocked;
+
+    let fixedSize = false;
 
     if (controlProps) {
         let spectype = controlProps.get_SpecificType();
         fixedSize = (spectype == Asc.c_oAscContentControlSpecificType.CheckBox || spectype == Asc. c_oAscContentControlSpecificType.ComboBox || spectype == Asc.c_oAscContentControlSpecificType.DropDownList || spectype == Asc.c_oAscContentControlSpecificType.None || spectype == Asc.c_oAscContentControlSpecificType.Picture) && controlProps.get_FormPr() && controlProps.get_FormPr().get_Fixed();
     }
 
-    let disableRemove = !!props.storeFocusObjects.paragraphObject;
+    let disableRemove = !!props.storeFocusObjects.paragraphObject || (lockType == Asc.c_oAscSdtLockType.SdtContentLocked || lockType == Asc.c_oAscSdtLockType.SdtLocked);
 
     return (
         <Fragment>
@@ -542,19 +548,21 @@ const EditShape = props => {
                             onBorderColor: props.onBorderColor
                         }}></ListItem>
                 : null}
-                <ListItem title={_t.textWrap} link='/edit-shape-wrap/' routeProps={{
-                    onWrapType: props.onWrapType,
-                    onShapeAlign: props.onShapeAlign,
-                    onMoveText: props.onMoveText,
-                    onOverlap: props.onOverlap,
-                    onWrapDistance: props.onWrapDistance
-                }}></ListItem>
+                { !isFromGroup &&
+                    <ListItem title={_t.textWrap} link='/edit-shape-wrap/' routeProps={{
+                        onWrapType: props.onWrapType,
+                        onShapeAlign: props.onShapeAlign,
+                        onMoveText: props.onMoveText,
+                        onOverlap: props.onOverlap,
+                        onWrapDistance: props.onWrapDistance
+                    }}></ListItem>
+                }
                 {(!hideChangeType && !fixedSize) &&
                     <ListItem title={_t.textReplace} link='/edit-shape-replace/' routeProps={{
                         onReplace: props.onReplace
                     }}></ListItem>
                 }
-                {wrapType !== 'inline' && <ListItem  title={_t.textReorder} link='/edit-shape-reorder/' routeProps={{
+                { (wrapType !== 'inline' && !isSmartArtInternal) && <ListItem  title={_t.textReorder} link='/edit-shape-reorder/' routeProps={{
                     onReorder: props.onReorder
                 }}></ListItem> }
             </List>

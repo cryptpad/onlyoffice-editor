@@ -291,7 +291,6 @@ define([
                         dataHintOffset: '0, -16'
                     });
                     this.paragraphControls.push(this.btnHighlightColor);
-                    this.textOnlyControls.push(this.btnHighlightColor);
 
                     this.btnFontColor = new Common.UI.ButtonColored({
                         id: 'id-toolbar-btn-fontcolor',
@@ -1317,6 +1316,7 @@ define([
                         dataHintOffset: '-16, -4',
                         enableKeyEvents: true,
                         additionalMenuItems: [this.listStylesAdditionalMenuItem],
+                        delayRenderTips: true,
                         itemTemplate: _.template([
                             '<div class="style" id="<%= id %>">',
                                 '<div style="background-image: url(<%= imageUrl %>); width: ' + itemWidth + 'px; height: ' + itemHeight + 'px;"></div>',
@@ -1720,7 +1720,9 @@ define([
                                 wrapType    : Asc.c_oAscWrapStyle2.Inline,
                                 checkmark   : false,
                                 checkable   : true
-                            }, {
+                            },
+                            { caption: '--' },
+                            {
                                 caption     : _holder_view.txtSquare,
                                 iconCls     : 'menu__icon wrap-square',
                                 toggleGroup : 'imgwrapping',
@@ -1748,7 +1750,9 @@ define([
                                 wrapType    : Asc.c_oAscWrapStyle2.TopAndBottom,
                                 checkmark   : false,
                                 checkable   : true
-                            }, {
+                            },
+                            { caption: '--' },
+                            {
                                 caption     : _holder_view.txtInFront,
                                 iconCls     : 'menu__icon wrap-infront',
                                 toggleGroup : 'imgwrapping',

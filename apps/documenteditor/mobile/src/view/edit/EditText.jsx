@@ -25,26 +25,10 @@ const PageFonts = props => {
     const spriteThumbs = storeTextSettings.spriteThumbs;
     const arrayRecentFonts = storeTextSettings.arrayRecentFonts;
 
-    useEffect(() => {
-        setRecent(getImageUri(arrayRecentFonts));
-
-        return () => {
-        }
-    }, []);
-
     const addRecentStorage = () => {
-        let arr = [];
-        arrayRecentFonts.forEach(item => arr.push(item));
         setRecent(getImageUri(arrayRecentFonts));
-        LocalStorage.setItem('dde-settings-recent-fonts', JSON.stringify(arr));
-    }
-
-    const [stateRecent, setRecent] = useState([]);
-    const [vlFonts, setVlFonts] = useState({
-        vlData: {
-            items: [],
-        }
-    });
+        LocalStorage.setItem('dde-settings-recent-fonts', JSON.stringify(arrayRecentFonts));
+    };
 
     const getImageUri = fonts => {
         return fonts.map(font => {
@@ -54,6 +38,13 @@ const PageFonts = props => {
             return thumbCanvas.toDataURL();
         });
     };
+
+    const [stateRecent, setRecent] = useState(() => getImageUri(arrayRecentFonts));
+    const [vlFonts, setVlFonts] = useState({
+        vlData: {
+            items: [],
+        }
+    });
 
     const renderExternal = (vl, vlData) => {
         setVlFonts((prevState) => {
@@ -189,7 +180,7 @@ const PageAdditionalFormatting = props => {
     )
 };
 
-const PageBullets = props => {
+const PageBullets = observer(props => {
     const { t } = useTranslation();
     const bulletArrays = [
         [
@@ -216,11 +207,8 @@ const PageBullets = props => {
                             <ListItem key={'bullet-' + bullet.type} data-type={bullet.type} className={(bullet.type === typeBullets) && 
                                 (storeTextSettings.listType === 0 || storeTextSettings.listType === -1) ? 'active' : ''}
                                 onClick={() => {
-                                    if (bullet.type === -1) {
-                                        storeTextSettings.resetBullets(-1);
-                                    }
-                                    props.onBullet(bullet.type)
-                                    props.f7router.back();
+                                    storeTextSettings.resetBullets(bullet.type);
+                                    props.onBullet(bullet.type);
                                 }}>
                                 {bullet.thumb.length < 1 ?
                                     <Icon className="thumb" style={{position: 'relative'}}>
@@ -234,9 +222,9 @@ const PageBullets = props => {
             ))}
         </View>
     )
-};
+});
 
-const PageNumbers = props => {
+const PageNumbers = observer(props => {
     const { t } = useTranslation();
     const numberArrays = [
         [
@@ -264,11 +252,8 @@ const PageNumbers = props => {
                         <ListItem key={'number-' + number.type} data-type={number.type} className={(number.type === typeNumbers) && 
                             (storeTextSettings.listType === 1 || storeTextSettings.listType === -1) ? 'active' : ''}
                             onClick={() => {
-                                if (number.type === -1) {
-                                    storeTextSettings.resetNumbers(-1);
-                                }
-                                props.onNumber(number.type)
-                                props.f7router.back();
+                                storeTextSettings.resetNumbers(number.type);
+                                props.onNumber(number.type);
                             }}>
                             {number.thumb.length < 1 ?
                                 <Icon className="thumb" style={{position: 'relative'}}>
@@ -282,9 +267,9 @@ const PageNumbers = props => {
             ))}
         </View>
     )
-};
+});
 
-const PageMultiLevel = props => {
+const PageMultiLevel = observer(props => {
     const { t } = useTranslation();
     
     const arrayMultiLevel = [
@@ -301,12 +286,11 @@ const PageMultiLevel = props => {
         <View className='multilevels dataview'>
                 <List className="row" style={{listStyle: 'none'}}>
                     {arrayMultiLevel.map((item) => (
-                        <ListItem key={'multi-level-' + item.type} data-type={item.type} className={item.type === typeMultiLevel ? 'active' : ''}
-                        onClick={(e) => {
-                            item.type === -1 ? storeTextSettings.resetMultiLevel(-1) : storeTextSettings.resetMultiLevel(null);
-                            props.onMultiLevelList(item.type);
-                            props.f7router.back();
-                            }}>
+                        <ListItem 
+                        key={'multi-level-' + item.type} 
+                        data-type={item.type} 
+                        className={item.type === typeMultiLevel && storeTextSettings.listType === -1  ? 'active' : ''}
+                        onClick={() => props.onMultiLevelList(item.type)}>
                             {item.thumb.length < 1 ?
                                 <Icon className="thumb" style={{position: 'relative'}}>
                                     <label>{t('Edit.textNone')}</label>
@@ -319,7 +303,7 @@ const PageMultiLevel = props => {
         </View>
     )
         
-}
+});
 
 const PageBulletsAndNumbers = props => {
     const { t } = useTranslation();
@@ -337,9 +321,15 @@ const PageBulletsAndNumbers = props => {
                 }
             </Navbar>
             <Swiper pagination>
-                <SwiperSlide> <PageNumbers f7router={props.f7router}  storeTextSettings={storeTextSettings} onNumber={props.onNumber}/></SwiperSlide> 
-                <SwiperSlide> <PageBullets f7router={props.f7router} storeTextSettings={storeTextSettings} onBullet={props.onBullet}/></SwiperSlide>
-                <SwiperSlide> <PageMultiLevel f7router={props.f7router} storeTextSettings={storeTextSettings} onMultiLevelList={props.onMultiLevelList}/> </SwiperSlide>
+                <SwiperSlide> 
+                    <PageNumbers storeTextSettings={storeTextSettings} onNumber={props.onNumber} />
+                </SwiperSlide> 
+                <SwiperSlide>
+                    <PageBullets storeTextSettings={storeTextSettings} onBullet={props.onBullet} />
+                </SwiperSlide>
+                <SwiperSlide> 
+                    <PageMultiLevel storeTextSettings={storeTextSettings} onMultiLevelList={props.onMultiLevelList} />
+                </SwiperSlide>
             </Swiper>
         </Page>
     )

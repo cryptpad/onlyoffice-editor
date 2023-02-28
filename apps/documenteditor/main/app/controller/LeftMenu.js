@@ -314,7 +314,6 @@ define([
                 options.asc_setTextParams(textParams);
                 if (format == Asc.c_oAscFileType.TXT || format == Asc.c_oAscFileType.RTF) {
                     Common.UI.warning({
-                        closable: false,
                         title: this.notcriticalErrorTitle,
                         msg: (format == Asc.c_oAscFileType.TXT) ? this.warnDownloadAs : this.warnDownloadAsRTF,
                         buttons: ['ok', 'cancel'],
@@ -367,26 +366,28 @@ define([
         clickSaveAsFormat: function(menu, format, ext) { // ext isn't undefined for save copy as
             var me = this,
                 fileType = this.getApplication().getController('Main').document.fileType;
-            if ( /^pdf|xps|oxps$/.test(fileType)) {
-                if (format===undefined || format == Asc.c_oAscFileType.PDF || format == Asc.c_oAscFileType.PDFA || format == Asc.c_oAscFileType.XPS)
+            if ( /^pdf|xps|oxps|djvu$/.test(fileType)) {
+                if (format===undefined) {
                     this._saveAsFormat(undefined, format, ext); // download original
+                    menu && menu.hide();
+                } else if (format == Asc.c_oAscFileType.PDF || format == Asc.c_oAscFileType.PDFA)
+                    this._saveAsFormat(menu, format, ext);
                 else {
-                    (new Common.Views.OptionsDialog({
-                        width: 300,
-                        title: this.titleConvertOptions,
-                        label: this.textGroup,
-                        items: [
-                            {caption: this.textChar, value: Asc.c_oAscTextAssociation.Char, checked: true},
-                            {caption: this.textLine, value: Asc.c_oAscTextAssociation.Line, checked: false},
-                            {caption: this.textParagraph, value: Asc.c_oAscTextAssociation.Block, checked: false}
-                        ],
-                        handler: function (dlg, result) {
-                            if (result=='ok') {
-                                me._saveAsFormat(menu, format, ext, new AscCommon.asc_CTextParams(dlg.getSettings()));
-                            }
-                            Common.NotificationCenter.trigger('edit:complete', me.toolbar);
-                        }
-                    })).show();
+                    if (format == Asc.c_oAscFileType.TXT || format == Asc.c_oAscFileType.RTF) // don't show message about pdf/xps/oxps
+                        me._saveAsFormat(menu, format, ext, new AscCommon.asc_CTextParams(Asc.c_oAscTextAssociation.PlainLine));
+                    else {
+                        Common.UI.warning({
+                            width: 600,
+                            title: this.notcriticalErrorTitle,
+                            msg: Common.Utils.String.format(this.warnDownloadAsPdf, fileType.toUpperCase()),
+                            buttons: ['ok', 'cancel'],
+                            callback: _.bind(function(btn){
+                                if (btn == 'ok') {
+                                    me._saveAsFormat(menu, format, ext, new AscCommon.asc_CTextParams(Asc.c_oAscTextAssociation.PlainLine));
+                                }
+                            }, this)
+                        });
+                    }
                 }
             } else
                 this._saveAsFormat(menu, format, ext);
@@ -560,22 +561,35 @@ define([
 
         onQuerySearch: function(d, w, opts) {
             if (opts.textsearch && opts.textsearch.length) {
-                if (!this.api.asc_findText(opts.textsearch, d != 'back', opts.matchcase, opts.matchword)) {
-                    var me = this;
-                    Common.UI.info({
-                        msg: this.textNoTextFound,
+                var me = this;
+                this.api.asc_findText(opts.textsearch, d != 'back', opts.matchcase, function(resultCount) {
+                    !resultCount && Common.UI.info({
+                        msg: me.textNoTextFound,
                         callback: function() {
                             me.dlgSearch.focus();
                         }
                     });
-                }
+                });
             }
         },
 
         onQueryReplace: function(w, opts) {
             if (!_.isEmpty(opts.textsearch)) {
+                var me = this;
+                var str = this.api.asc_GetErrorForReplaceString(opts.textreplace);
+                if (str) {
+                    Common.UI.warning({
+                        title: this.notcriticalErrorTitle,
+                        msg: Common.Utils.String.format(this.warnReplaceString, str),
+                        buttons: ['ok'],
+                        callback: function(btn){
+                            me.dlgSearch.focus('replace');
+                        }
+                    });
+                    return;
+                }
+
                 if (!this.api.asc_replaceText(opts.textsearch, opts.textreplace, false, opts.matchcase, opts.matchword)) {
-                    var me = this;
                     Common.UI.info({
                         msg: this.textNoTextFound,
                         callback: function() {
@@ -588,6 +602,19 @@ define([
 
         onQueryReplaceAll: function(w, opts) {
             if (!_.isEmpty(opts.textsearch)) {
+                var me = this;
+                var str = this.api.asc_GetErrorForReplaceString(opts.textreplace);
+                if (str) {
+                    Common.UI.warning({
+                        title: this.notcriticalErrorTitle,
+                        msg: Common.Utils.String.format(this.warnReplaceString, str),
+                        buttons: ['ok'],
+                        callback: function(btn){
+                            me.dlgSearch.focus('replace');
+                        }
+                    });
+                    return;
+                }
                 this.api.asc_replaceText(opts.textsearch, opts.textreplace, true, opts.matchcase, opts.matchword);
             }
         },
@@ -775,6 +802,7 @@ define([
                         this.api.asc_enableKeyEvents(true);
                     } else if (this.leftMenu.btnThumbnails.isActive()) {
                         this.leftMenu.btnThumbnails.toggle(false);
+                        this.leftMenu.panelThumbnails.hide();
                         this.leftMenu.onBtnMenuClick(this.leftMenu.btnThumbnails);
                     }
                 }
@@ -926,11 +954,8 @@ define([
         warnDownloadAsRTF       : 'If you continue saving in this format some of the formatting might be lost.<br>Are you sure you want to continue?',
         txtUntitled: 'Untitled',
         txtCompatible: 'The document will be saved to the new format. It will allow to use all the editor features, but might affect the document layout.<br>Use the \'Compatibility\' option of the advanced settings if you want to make the files compatible with older MS Word versions.',
-        titleConvertOptions: 'Grouping options',
-        textGroup: 'Group by',
-        textChar: 'Char',
-        textLine: 'Line',
-        textParagraph: 'Paragraph'
+        warnDownloadAsPdf: 'Your {0} will be converted to an editable format. This may take a while. The resulting document will be optimized to allow you to edit the text, so it might not look exactly like the original {0}, especially if the original file contained lots of graphics.',
+        warnReplaceString: '{0} is not a valid special character for the Replace With box.'
 
     }, DE.Controllers.LeftMenu || {}));
 });

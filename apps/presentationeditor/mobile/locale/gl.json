@@ -33,13 +33,13 @@
       "textTryUndoRedo": "As funcións Desfacer/Refacer están activadas para o modo de coedición rápido.",
       "textUsers": "Usuarios"
     },
+    "HighlightColorPalette": {
+      "textNoFill": "Sen encher"
+    },
     "ThemeColorPalette": {
       "textCustomColors": "Cores personalizadas",
       "textStandartColors": "Cores estándar",
       "textThemeColors": "Cores do tema"
-    },
-    "HighlightColorPalette": {
-      "textNoFill": "No Fill"
     }
   },
   "ContextMenu": {
@@ -107,9 +107,12 @@
       "textHasMacros": "O ficheiro contén macros automáticas.<br>Quere executar macros?",
       "textNo": "Non",
       "textNoLicenseTitle": "Alcanzouse o límite da licenza",
+      "textNoTextFound": "Texto non atopado",
       "textOpenFile": "Insira o contrasinal para abrir o ficheiro",
       "textPaidFeature": "Característica de pago",
       "textRemember": "Lembrar a miña escolla",
+      "textReplaceSkipped": "A substitución foi realizada. {0} ocorrencias foron ignoradas.",
+      "textReplaceSuccess": "A busca foi realizada. Ocorrencias substituídas: {0}",
       "textYes": "Si",
       "titleLicenseExp": "A licenza expirou",
       "titleServerVersion": "Editor actualizado",
@@ -225,6 +228,7 @@
       "textLinkTo": "Vincular a",
       "textLinkType": "Tipo de ligazón",
       "textNextSlide": "Seguinte diapositiva",
+      "textOk": "Aceptar",
       "textOther": "Outro",
       "textPictureFromLibrary": "Imaxe da biblioteca",
       "textPictureFromURL": "Imaxe da URL",
@@ -257,6 +261,7 @@
       "textAllCaps": "Todo en maiúsculas",
       "textApplyAll": "Aplicar a todas as diapositivas",
       "textAuto": "Automático",
+      "textAutomatic": "Automático",
       "textBack": "Volver",
       "textBandedColumn": "Columna con bandas",
       "textBandedRow": "Fila con bandas",
@@ -281,6 +286,7 @@
       "textDefault": "Texto seleccionado",
       "textDelay": "Atraso",
       "textDeleteSlide": "Eliminar diapositiva",
+      "textDesign": "Deseño",
       "textDisplay": "Amosar",
       "textDistanceFromText": "Distancia desde o texto",
       "textDistributeHorizontally": "Distribuír horizontalmente",
@@ -332,6 +338,7 @@
       "textNoTextFound": "Texto non atopado",
       "textNotUrl": "Este campo debe ser unha URL no formato \"http://www.example.com\"",
       "textNumbers": "Números",
+      "textOk": "Aceptar",
       "textOpacity": "Opacidade",
       "textOptions": "Opcións",
       "textPictureFromLibrary": "Imaxe da biblioteca",
@@ -375,7 +382,6 @@
       "textTopLeft": "Parte superior esquerda",
       "textTopRight": "Parte superior dereita",
       "textTotalRow": "Fila total",
-      "textTransition": "Transición",
       "textTransitions": "Transicións",
       "textType": "Tipo",
       "textUnCover": "Rebelar",
@@ -386,9 +392,7 @@
       "textZoom": "Ampliar",
       "textZoomIn": "Ampliar",
       "textZoomOut": "Alonxar",
-      "textZoomRotate": "Ampliar e rotación",
-      "textAutomatic": "Automatic",
-      "textDesign": "Design"
+      "textZoomRotate": "Ampliar e rotación"
     },
     "Settings": {
       "mniSlideStandard": "Estándar (4:3)",
@@ -405,6 +409,7 @@
       "textColorSchemes": "Esquemas de cor",
       "textComment": "Comentario",
       "textCreated": "Creado",
+      "textDarkTheme": "Tema escuro",
       "textDisableAll": "Desactivar todo",
       "textDisableAllMacrosWithNotification": "Desactivar todas as macros con notificación",
       "textDisableAllMacrosWithoutNotification": "Desactivar todas as macros sen notificación",
@@ -467,8 +472,7 @@
       "txtScheme6": "Concorrencia",
       "txtScheme7": "Equidade",
       "txtScheme8": "Fluxo",
-      "txtScheme9": "Fundición",
-      "textDarkTheme": "Dark Theme"
+      "txtScheme9": "Fundición"
     }
   }
 }

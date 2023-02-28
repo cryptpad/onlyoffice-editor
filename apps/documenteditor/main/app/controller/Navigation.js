@@ -61,7 +61,12 @@ define([
                             if (!me._navigationObject)
                                 me._navigationObject = obj;
                             me.updateNavigation();
+                        } else {
+                            if (me.panelNavigation && me.panelNavigation.viewNavigationList && me.panelNavigation.viewNavigationList.scroller)
+                                me.panelNavigation.viewNavigationList.scroller.update({alwaysVisibleY: true});
                         }
+                        if (!me.mode.isEdit && !me.mode.isRestrictedEdit)
+                            me.panelNavigation.viewNavigationList.focus();
                     },
                     'hide': function() {
                         if (!this.canUseViwerNavigation) {
@@ -100,14 +105,25 @@ define([
         setMode: function(mode) {
             this.mode = mode;
             this.canUseViwerNavigation = this.mode.canUseViwerNavigation;
+            if (this.panelNavigation && this.panelNavigation.viewNavigationList) {
+                this.panelNavigation.viewNavigationList.setEmptyText(this.mode.isEdit ? this.panelNavigation.txtEmpty : this.panelNavigation.txtEmptyViewer);
+                this.panelNavigation.viewNavigationList.enableKeyEvents = !this.mode.isEdit && !this.mode.isRestrictedEdit;
+            }
             return this;
         },
 
         onAfterRender: function(panelNavigation) {
             panelNavigation.viewNavigationList.on('item:click', _.bind(this.onSelectItem, this));
             panelNavigation.viewNavigationList.on('item:contextmenu', _.bind(this.onItemContextMenu, this));
+            panelNavigation.viewNavigationList.on('item:add', _.bind(this.onItemAdd, this));
             panelNavigation.navigationMenu.on('item:click',           _.bind(this.onMenuItemClick, this));
             panelNavigation.navigationMenu.items[11].menu.on('item:click', _.bind(this.onMenuLevelsItemClick, this));
+
+            var viewport = this.getApplication().getController('Viewport').getView('Viewport');
+            viewport.hlayout.on('layout:resizedrag',  function () {
+                if (panelNavigation.viewNavigationList && panelNavigation.viewNavigationList.scroller)
+                    panelNavigation.viewNavigationList.scroller.update({alwaysVisibleY: true});
+            });
         },
 
         updateNavigation: function() {
@@ -157,6 +173,7 @@ define([
             } else {
                 item.set('name', this._navigationObject.get_Text(index));
                 item.set('isEmptyItem', this._navigationObject.isEmptyItem(index));
+                this.panelNavigation.viewNavigationList.updateTip(item.get('dataItem'));
             }
         },
 
@@ -219,7 +236,11 @@ define([
             } else if (this._viewerNavigationObject) {
                 this.api.asc_viewerNavigateTo(record.get('index'));
             }
-            Common.NotificationCenter.trigger('edit:complete', this.panelNavigation);
+            (this.mode.isEdit || this.mode.isRestrictedEdit) && Common.NotificationCenter.trigger('edit:complete', this.panelNavigation);
+        },
+
+        onItemAdd: function(picker, item, record, e){
+            record.set('dataItem', item);
         },
 
         onMenuItemClick: function (menu, item) {
@@ -287,6 +308,8 @@ define([
                     arr[0].set('tip', this.txtGotoBeginning);
                 }
                 this.getApplication().getCollection('Navigation').reset(arr);
+                if (this.panelNavigation && this.panelNavigation.viewNavigationList && this.panelNavigation.viewNavigationList.scroller)
+                    this.panelNavigation.viewNavigationList.scroller.update({alwaysVisibleY: true});
             }
         },
 

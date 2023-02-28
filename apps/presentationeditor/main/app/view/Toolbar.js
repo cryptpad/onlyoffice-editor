@@ -93,7 +93,10 @@ define([
         noTriggerObjects: 'no-trigger-objects',
         noMoveAnimationEarlier: 'no-move-animation-earlier',
         noMoveAnimationLater: 'no-move-animation-later',
-        noAnimationPreview: 'no-animation-preview'
+        noAnimationPreview: 'no-animation-preview',
+        noAnimationRepeat: 'no-animation-repeat',
+        noAnimationDuration: 'no-animation-duration',
+        timingLock: 'timing-lock'
     };
 
     PE.Views.Toolbar =  Common.UI.Mixtbar.extend(_.extend((function(){
@@ -400,7 +403,7 @@ define([
                         enableToggle: true,
                         allowDepress: true,
                         split: true,
-                        lock: [_set.slideDeleted, _set.paragraphLock, _set.lostConnect, _set.noSlides, _set.noTextSelected, _set.shapeLock, _set.inSmartart, _set.inSmartartInternal],
+                        lock: [_set.slideDeleted, _set.paragraphLock, _set.lostConnect, _set.noSlides, _set.noTextSelected, _set.shapeLock],
                         menu: new Common.UI.Menu({
                             style: 'min-width: 100px;',
                             items: [
@@ -1027,6 +1030,7 @@ define([
                         dataHint: '1',
                         dataHintDirection: 'bottom',
                         dataHintOffset: '-16, -4',
+                        delayRenderTips: true,
                         itemTemplate: _.template([
                             '<div class="style" id="<%= id %>">',
                             '<div class="item-theme" style="' + '<% if (typeof imageUrl !== "undefined") { %>' + 'background-image: url(<%= imageUrl %>);' + '<% } %> background-position: 0 -<%= offsety %>px;"></div>',
@@ -1075,7 +1079,7 @@ define([
                         style: 'min-width: 140px;',
                         itemWidth: 20,
                         itemHeight: 20,
-                        menuMaxHeight: 640,
+                        menuMaxHeight: 652,
                         menuWidth: 362,
                         enableKeyEvents: true,
                         lock: [PE.enumLock.slideDeleted, PE.enumLock.lostConnect, PE.enumLock.noSlides, PE.enumLock.disableOnStart],
@@ -1752,7 +1756,7 @@ define([
                     itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>'),
                     groups: collection,
                     parentMenu: menuShape,
-                    restoreHeight: 640,
+                    restoreHeight: 652,
                     textRecentlyUsed: me.textRecentlyUsed,
                     recentShapes: recents
                 });

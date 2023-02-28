@@ -1937,6 +1937,8 @@ define([
 
                 documentHolder.menuImgRotate.setVisible(!ischartmenu && (pluginGuid===null || pluginGuid===undefined) && !isslicermenu);
                 documentHolder.menuImgRotate.setDisabled(isObjLocked || isSmartArt);
+                documentHolder.menuImgRotate.menu.items[3].setDisabled(isSmartArtInternal);
+                documentHolder.menuImgRotate.menu.items[4].setDisabled(isSmartArtInternal);
 
                 documentHolder.menuImgCrop.setVisible(this.api.asc_canEditCrop());
                 documentHolder.menuImgCrop.setDisabled(isObjLocked);
@@ -2347,10 +2349,12 @@ define([
                     menu.cmpEl.attr({tabindex: "-1"});
                 }
 
-                var coord  = me.api.asc_getActiveCellCoord(),
+                var coord  = me.api.asc_getActiveCellCoord(validation), // get merged cell for validation
                     offset = {left:0,top:0},
-                    showPoint = [coord.asc_getX() + offset.left, (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
+                    showPoint = [coord.asc_getX() + offset.left + (validation ? coord.asc_getWidth() : 0), (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
+
                 menuContainer.css({left: showPoint[0], top : showPoint[1]});
+                menu.menuAlign = validation ? 'tr-br' : 'tl-bl';
 
                 me._preventClick = validation;
                 validation && menuContainer.attr('data-value', 'prevent-canvas-click');
@@ -2405,7 +2409,7 @@ define([
 
                 var coord  = me.api.asc_getActiveCellCoord(),
                     offset = {left:0,top:0},
-                    showPoint = [coord.asc_getX() + offset.left, (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
+                    showPoint = [coord.asc_getX() + offset.left + coord.asc_getWidth(), (coord.asc_getY() < 0 ? 0 : coord.asc_getY()) + coord.asc_getHeight() + offset.top];
                 menuContainer.css({left: showPoint[0], top : showPoint[1]});
 
                 me._preventClick = true;
@@ -2449,13 +2453,15 @@ define([
                 }
                 funcarr.sort(function (a,b) {
                     var atype = a.asc_getType(),
-                        btype = b.asc_getType(),
-                        aname = a.asc_getName(true).toLocaleUpperCase(),
-                        bname = b.asc_getName(true).toLocaleUpperCase();
+                        btype = b.asc_getType();
+                    if (atype===btype && (atype === Asc.c_oAscPopUpSelectorType.TableColumnName))
+                        return 0;
                     if (atype === Asc.c_oAscPopUpSelectorType.TableThisRow) return -1;
                     if (btype === Asc.c_oAscPopUpSelectorType.TableThisRow) return 1;
                     if ((atype === Asc.c_oAscPopUpSelectorType.TableColumnName || btype === Asc.c_oAscPopUpSelectorType.TableColumnName) && atype !== btype)
                         return atype === Asc.c_oAscPopUpSelectorType.TableColumnName ? -1 : 1;
+                    var aname = a.asc_getName(true).toLocaleUpperCase(),
+                        bname = b.asc_getName(true).toLocaleUpperCase();
                     if (aname < bname) return -1;
                     if (aname > bname) return 1;
                     return 0;

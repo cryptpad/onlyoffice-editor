@@ -80,8 +80,8 @@ class MainController extends Component {
             };
 
             const loadConfig = data => {
-                const _t = this._t;
-
+                const { t } = this.props;
+                const _t = t('Main', {returnObjects:true});
                 EditorUIController.isSupportEditFeature();
 
                 this.editorConfig = Object.assign({}, this.editorConfig, data.config);
@@ -177,13 +177,15 @@ class MainController extends Component {
             const onEditorPermissions = params => {
                 const licType = params.asc_getLicenseType();
 
+                const { t } = this.props;
+                const _t = t('Main', {returnObjects:true});
                 // check licType
                 if (Asc.c_oLicenseResult.Expired === licType ||
                     Asc.c_oLicenseResult.Error === licType ||
                     Asc.c_oLicenseResult.ExpiredTrial === licType) {
                     f7.dialog.create({
-                        title   : this._t.titleLicenseExp,
-                        text    : this._t.warnLicenseExp
+                        title   : _t.titleLicenseExp,
+                        text    : _t.warnLicenseExp
                     }).open();
                     return;
                 }
@@ -283,10 +285,18 @@ class MainController extends Component {
                 .then ( result => {
                     window["flat_desine"] = true;
                     const {t} = this.props;
+                    let _translate = t('Main.SDK', {returnObjects:true});
+                    for (let item in _translate) {
+                        if (_translate.hasOwnProperty(item)) {
+                            const str = _translate[item];
+                            if (item[item.length-1]===' ' && str[str.length-1]!==' ')
+                                _translate[item] += ' ';
+                        }
+                    }
                     this.api = new Asc.asc_docs_api({
                         'id-view'  : 'editor_sdk',
                         'mobile'   : true,
-                        'translate': t('Main.SDK', {returnObjects:true})
+                        'translate': _translate
                     });
 
                     Common.Notifications.trigger('engineCreated', this.api);
@@ -395,7 +405,9 @@ class MainController extends Component {
                 this.api.asc_continueSaving();
             }, 500);
 
-            return this._t.leavePageText;
+            const { t } = this.props;
+            const _t = t('Main', {returnObjects:true});
+            return _t.leavePageText;
         }
     }
 
@@ -407,7 +419,8 @@ class MainController extends Component {
     onLicenseChanged (params) {
         const appOptions = this.props.storeAppOptions;
         const licType = params.asc_getLicenseType();
-        if (licType !== undefined && appOptions.canEdit && appOptions.config.mode !== 'view' &&
+    
+        if (licType !== undefined && (appOptions.canEdit || appOptions.isRestrictedEdit) && appOptions.config.mode !== 'view' &&
             (licType === Asc.c_oLicenseResult.Connections || licType === Asc.c_oLicenseResult.UsersCount || licType === Asc.c_oLicenseResult.ConnectionsOS || licType === Asc.c_oLicenseResult.UsersCountOS
                 || licType === Asc.c_oLicenseResult.SuccessLimit && (appOptions.trialMode & Asc.c_oLicenseMode.Limited) !== 0))
             this._state.licenseType = licType;
@@ -511,7 +524,8 @@ class MainController extends Component {
 
     onServerVersion (buildVersion) {
         if (this.changeServerVersion) return true;
-        const _t = this._t;
+        const { t } = this.props;
+        const _t = t('Main', {returnObjects:true});
 
         if (About.appVersion() !== buildVersion && !About.compareVersions()) {
             this.changeServerVersion = true;
@@ -558,6 +572,9 @@ class MainController extends Component {
         });
 
         this.api.asc_registerCallback('asc_onShowContentControlsActions', (obj, x, y) => {
+            const storeAppOptions = this.props.storeAppOptions;
+            if (!storeAppOptions.isEdit && !(storeAppOptions.isRestrictedEdit && storeAppOptions.canFillForms) || this.props.users.isDisconnected) return;
+
             switch (obj.type) {
                 case Asc.c_oAscContentControlSpecificType.DateTime:
                     this.onShowDateActions(obj, x, y);
@@ -605,6 +622,7 @@ class MainController extends Component {
                 default: 
                     storeTextSettings.resetBullets(-1);
                     storeTextSettings.resetNumbers(-1);
+                    storeTextSettings.resetMultiLevel(-1);
             }
         });
         this.api.asc_registerCallback('asc_onPrAlign', (align) => {
@@ -646,7 +664,9 @@ class MainController extends Component {
         const storeDocumentInfo = this.props.storeDocumentInfo;
 
         this.api.asc_registerCallback("asc_onGetDocInfoStart", () => {
-            storeDocumentInfo.switchIsLoaded(false);
+            this.timerLoading = setTimeout(() => {
+                storeDocumentInfo.switchIsLoaded(false);
+            }, 2000);
         });
 
         this.api.asc_registerCallback("asc_onGetDocInfoStop", () => {
@@ -654,11 +674,21 @@ class MainController extends Component {
         });
 
         this.api.asc_registerCallback("asc_onDocInfo", (obj) => {
-            storeDocumentInfo.changeCount(obj);
+            clearTimeout(this.timerLoading);
+
+            this.objectInfo = obj;
+            if(!this.timerDocInfo) {
+                this.timerDocInfo = setInterval(() => {
+                    storeDocumentInfo.changeCount(this.objectInfo);
+                }, 300);
+                storeDocumentInfo.changeCount(this.objectInfo);
+            }
         });
 
         this.api.asc_registerCallback('asc_onGetDocInfoEnd', () => {
-          storeDocumentInfo.switchIsLoaded(true);
+          clearTimeout(this.timerLoading);
+          clearInterval(this.timerDocInfo);
+          storeDocumentInfo.changeCount(this.objectInfo);
         });
 
         // Color Schemes
@@ -689,23 +719,36 @@ class MainController extends Component {
             if (this.props.users.isDisconnected) return;
             storeToolbarSettings.setCanRedo(can);
         });
+
+        this.api.asc_registerCallback('asc_onReplaceAll', this.onApiTextReplaced.bind(this));
+    }
+
+    onApiTextReplaced(found, replaced) {
+        const { t } = this.props;
+
+        if (found) { 
+            f7.dialog.alert(null, !(found - replaced > 0) ? t('Main.textReplaceSuccess').replace(/\{0\}/, `${replaced}`) : t('Main.textReplaceSkipped').replace(/\{0\}/, `${found - replaced}`));
+        } else {
+            f7.dialog.alert(null, t('Main.textNoTextFound'));
+        }
     }
 
     onShowDateActions(obj, x, y) {
         const { t } = this.props;
+        const boxSdk = $$('#editor_sdk');
+
         let props = obj.pr,
             specProps = props.get_DateTimePr(),
-            isPhone = Device.isPhone;
+            isPhone = Device.isPhone,
+            controlsContainer = boxSdk.find('#calendar-target-element'),
+            _dateObj = props;
 
-        this.controlsContainer = this.boxSdk.find('#calendar-target-element');
-        this._dateObj = props;
-
-        if (this.controlsContainer.length < 1) {
-            this.controlsContainer = $$('<div id="calendar-target-element" style="position: absolute;"></div>');
-            this.boxSdk.append(this.controlsContainer);
+        if (controlsContainer.length < 1) {
+            controlsContainer = $$('<div id="calendar-target-element" style="position: absolute;"></div>');
+            boxSdk.append(controlsContainer);
         }
 
-        this.controlsContainer.css({left: `${x}px`, top: `${y}px`});
+        controlsContainer.css({left: `${x}px`, top: `${y}px`});
 
         this.cmpCalendar = f7.calendar.create({
             inputEl: '#calendar-target-element',
@@ -718,7 +761,7 @@ class MainController extends Component {
             on: {
                 change: (calendar, value) => {
                     if(calendar.initialized && value[0]) {
-                        let specProps = this._dateObj.get_DateTimePr();
+                        let specProps = _dateObj.get_DateTimePr();
                         specProps.put_FullDate(new Date(value[0]));
                         this.api.asc_SetContentControlDatePickerDate(specProps);
                         calendar.close();
@@ -735,14 +778,15 @@ class MainController extends Component {
 
     onShowListActions(obj, x, y) {
         if(!Device.isPhone) {
-            this.dropdownListTarget = this.boxSdk.find('#dropdown-list-target');
+            const boxSdk = $$('#editor_sdk');
+            let dropdownListTarget = boxSdk.find('#dropdown-list-target');
         
-            if (this.dropdownListTarget.length < 1) {
-                this.dropdownListTarget = $$('<div id="dropdown-list-target" style="position: absolute;"></div>');
-                this.boxSdk.append(this.dropdownListTarget);
+            if (dropdownListTarget.length < 1) {
+                dropdownListTarget = $$('<div id="dropdown-list-target" style="position: absolute;"></div>');
+                boxSdk.append(dropdownListTarget);
             }
         
-            this.dropdownListTarget.css({left: `${x}px`, top: `${y}px`});
+            dropdownListTarget.css({left: `${x}px`, top: `${y}px`});
         }
 
         Common.Notifications.trigger('openDropdownList', obj);
@@ -752,7 +796,9 @@ class MainController extends Component {
         this.api.asc_OnSaveEnd(data.result);
 
         if (data && data.result === false) {
-            const _t = this._t;
+            const { t } = this.props;
+            const _t = t('Main', {returnObjects:true});
+
             f7.dialog.alert(
                 (!data.message) ? _t.errorProcessSaveResult : data.message,
                 _t.criticalErrorTitle
@@ -769,7 +815,9 @@ class MainController extends Component {
             Common.Notifications.trigger('api:disconnect');
 
             if (!old_rights) {
-                const _t = this._t;
+                const { t } = this.props;
+                const _t = t('Main', {returnObjects:true});
+
                 f7.dialog.alert(
                     (!data.message) ? _t.warnProcessRightsChange : data.message,
                     _t.notcriticalErrorTitle,
@@ -782,7 +830,9 @@ class MainController extends Component {
     onDownloadAs () {
         const appOptions = this.props.storeAppOptions;
         if ( !appOptions.canDownload && !appOptions.canDownloadOrigin) {
-            Common.Gateway.reportError(Asc.c_oAscError.ID.AccessDeny, this._t.errorAccessDeny);
+            const { t } = this.props;
+            const _t = t('Main', {returnObjects:true});
+            Common.Gateway.reportError(Asc.c_oAscError.ID.AccessDeny, _t.errorAccessDeny);
             return;
         }
 
@@ -809,7 +859,8 @@ class MainController extends Component {
     }
 
     onUpdateVersion (callback) {
-        const _t = this._t;
+        const { t } = this.props;
+        const _t = t('Main', {returnObjects:true});
 
         this.needToUpdateVersion = true;
         Common.Notifications.trigger('preloader:endAction', Asc.c_oAscAsyncActionType['BlockInteraction'], this.LoadingDocument);
@@ -901,7 +952,8 @@ class MainController extends Component {
             if (value === 1) {
                 this.api.asc_runAutostartMacroses();
             } else if (value === 0) {
-                const _t = this._t;
+                const { t } = this.props;
+                const _t = t('Main', {returnObjects:true});
                 f7.dialog.create({
                     title: _t.notcriticalErrorTitle,
                     text: _t.textHasMacros,
