@@ -23,11 +23,28 @@ export class storeAppOptions {
             canBranding: observable,
 
             isDocReady: observable,
-            changeDocReady: action
+            changeDocReady: action,
+
+            isViewer: observable,
+            changeViewerMode: action,
+
+            isMobileView: observable,
+            changeMobileView: action
         });
     }
 
     isEdit = false;
+
+    isMobileView = true;
+    changeMobileView() {
+        this.isMobileView = !this.isMobileView;
+    }
+
+
+    isViewer = true;
+    changeViewerMode() {
+        this.isViewer = !this.isViewer;
+    }
 
     canViewComments = false;
     changeCanViewComments(value) {
@@ -86,6 +103,7 @@ export class storeAppOptions {
             && (!!(config.customization.goback.url) || config.customization.goback.requestClose && this.canRequestClose);
         this.canBack = this.canBackToFolder === true;
         this.canPlugins = false;
+        this.canFeatureForms = !!Common.EditorApi.get().asc_isSupportFeature("forms");
 
         AscCommon.UserInfoParser.setParser(true);
         AscCommon.UserInfoParser.setCurrentName(this.user.fullname);
@@ -150,6 +168,8 @@ export class storeAppOptions {
         this.canUseReviewPermissions && AscCommon.UserInfoParser.setReviewPermissions(permissions.reviewGroups, this.customization.reviewPermissions);
         this.canUseCommentPermissions && AscCommon.UserInfoParser.setCommentPermissions(permissions.commentGroups);    
         this.canUseUserInfoPermissions && AscCommon.UserInfoParser.setUserInfoPermissions(permissions.userInfoGroups);
+
+        this.canLiveView = !!params.asc_getLiveViewerSupport() && (this.config.mode === 'view') && !(type && typeof type[1] === 'string') && isSupportEditFeature;
     }
     setCanViewReview (value) {
         this.canViewReview = value;
