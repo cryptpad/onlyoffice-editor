@@ -62,9 +62,15 @@
 		}
 	};
 
-	AscCommon.baseEditorsApi.prototype["asc_setIsReadOnly"] = function(value, is_from_app)
+	AscCommon.baseEditorsApi.prototype["local_sendEvent"] = function()
 	{
-		if (value)
+		return this.sendEvent.apply(this, arguments);
+	};
+
+	AscCommon.baseEditorsApi.prototype["asc_setLocalRestrictions"] = function(value, is_from_app)
+	{
+		this.localRestrintions = value;
+		if (value !== Asc.c_oAscLocalRestrictionType.None)
 			this.asc_addRestriction(Asc.c_oAscRestrictionType.View);
 		else
 			this.asc_removeRestriction(Asc.c_oAscRestrictionType.View);
@@ -72,15 +78,13 @@
 		if (is_from_app)
 			return;
 
-		window["AscDesktopEditor"] && window["AscDesktopEditor"]["SetIsReadOnly"] && window["AscDesktopEditor"]["SetIsReadOnly"](value);
+		window["AscDesktopEditor"] && window["AscDesktopEditor"]["SetLocalRestrictions"] && window["AscDesktopEditor"]["SetLocalRestrictions"](value);
 	};
-	AscCommon.baseEditorsApi.prototype["asc_isReadOnly"] = function()
+	AscCommon.baseEditorsApi.prototype["asc_getLocalRestrictions"] = function()
 	{
-		return this.isRestrictionView();
-	};
-	AscCommon.baseEditorsApi.prototype["local_sendEvent"] = function()
-	{
-		return this.sendEvent.apply(this, arguments);
+		if (undefined === this.localRestrintions)
+			return Asc.c_oAscLocalRestrictionType.None;
+		return this.localRestrintions;
 	};
 })(window);
 
@@ -441,7 +445,25 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
             editor.endInlineDropTarget(e);
 
 			var _files = window["AscDesktopEditor"]["GetDropFiles"]();
-			if (0 == _files.length)
+			let countInserted = 0;
+			if (0 !== _files.length)
+			{
+				let countInserted = 0;
+				for (var i = 0; i < _files.length; i++)
+				{
+					if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
+					{
+						if (_files[i] === "")
+							continue;
+						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
+						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
+						++countInserted;
+						break;
+					}
+				}
+			}
+
+			if (0 === countInserted)
 			{
                 // test html
                 var htmlValue = e.dataTransfer.getData("text/html");
@@ -458,20 +480,6 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
                     return;
                 }
 			}
-			else
-			{
-                for (var i = 0; i < _files.length; i++)
-                {
-                    if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
-                    {
-						if (_files[i] == "")
-							continue;
-						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
-						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
-                        break;
-                    }
-                }
-            }
 		};
 	}
 };

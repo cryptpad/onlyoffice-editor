@@ -252,6 +252,11 @@
     }
   };
 
+  CDocsCoApi.prototype.sendClientLog = function(level, msg) {
+    if (this._CoAuthoringApi && this._onlineWork) {
+      this._CoAuthoringApi.sendClientLog(level, msg);
+    }
+  };
   CDocsCoApi.prototype.sendCursor = function(cursor) {
     if (this._CoAuthoringApi && this._onlineWork) {
       this._CoAuthoringApi.sendCursor(cursor);
@@ -345,6 +350,13 @@
     return "";
   };
   
+  CDocsCoApi.prototype.get_serverChangesSize = function() {
+    if (this._CoAuthoringApi && this._onlineWork) {
+      return this._CoAuthoringApi.get_serverChangesSize();
+    }
+    return 0;
+  };
+
   CDocsCoApi.prototype.get_indexUser = function() {
     if (this._CoAuthoringApi && this._onlineWork) {
       return this._CoAuthoringApi.get_indexUser();
@@ -651,6 +663,7 @@
     //xhr payload size is limited by nginx param client_max_body_size (current 100MB)
     //"1.5MB" is choosen to avoid disconnect(after 25s) while downloading/uploading oversized changes with 0.5Mbps connection
     this.websocketMaxPayloadSize = 1572864;
+    this._serverChangesSize = 0;
     // Текущий индекс для колличества изменений
     this.currentIndex = 0;
     this.currentIndexEnd = 0;
@@ -727,6 +740,10 @@
 
   DocsCoApi.prototype.get_indexUser = function() {
     return this._indexUser;
+  };
+
+  DocsCoApi.prototype.get_serverChangesSize = function() {
+    return this._serverChangesSize;
   };
 
   DocsCoApi.prototype.get_isAuth = function() {
@@ -902,7 +919,7 @@
     startIndex = endIndex = this.currentIndex;
     var curBytes = 0;
     for (; endIndex < arrayChanges.length && curBytes < this.websocketMaxPayloadSize; ++endIndex) {
-      curBytes += arrayChanges[endIndex].length + 9;//9 - for JSON overhead + escape
+      curBytes += arrayChanges[endIndex].length;
     }
     this.currentIndexEnd = endIndex;
     if (endIndex === arrayChanges.length) {
@@ -922,6 +939,9 @@
 
     // Выставляем состояние сохранения
     this._state = ConnectionState.SaveChanges;
+    if (!reSave) {
+      this._serverChangesSize += curBytes;
+    }
 
     this._send({'type': 'saveChanges', 'changes': JSON.stringify(arrayChanges.slice(startIndex, endIndex)),
       'startSaveChanges': (startIndex === 0), 'endSaveChanges': (endIndex === arrayChanges.length),
@@ -1011,6 +1031,10 @@
     if (typeof message === 'string') {
       this._send({"type": "message", "message": message});
     }
+  };
+
+  DocsCoApi.prototype.sendClientLog = function(level, msg) {
+    this._send({'type': 'clientLog', 'level': level, 'msg': msg});
   };
 
   DocsCoApi.prototype.sendCursor = function(cursor) {
@@ -1341,6 +1365,7 @@
             if (change['user'] !== this._userId) {
               this.lastOtherSaveTime = change['time'];
             }
+            this._serverChangesSize += changesOneUser.length;
             this.onSaveChanges(JSON.parse(changesOneUser), change['useridoriginal'], bFirstLoad);
           }
         }
@@ -1506,7 +1531,7 @@
   };
 
   DocsCoApi.prototype._onLicenseChanged = function (data) {
-    this.onLicenseChanged(data['licenseType']);
+    this.onLicenseChanged(data);
   };
 
   DocsCoApi.prototype._onDrop = function(data) {
@@ -1623,6 +1648,7 @@
   };
   DocsCoApi.prototype._onAuthChanges = function(data) {
     this._authChanges.push(data["changes"]);
+    this._send({'type': 'authChangesAck'});
   };
   DocsCoApi.prototype._updateAuthChanges = function() {
     //todo apply changes with chunk on arrival
@@ -1725,7 +1751,8 @@
       'timezoneOffset': (new Date()).getTimezoneOffset(),
       'coEditingMode': this.coEditingMode,
       'jwtOpen': this.jwtOpen,
-      'jwtSession': this.jwtSession
+      'jwtSession': this.jwtSession,
+      'supportAuthChangesAck': true
     });
   };
 

@@ -28,7 +28,8 @@
 			"slide/api.js",
 			"common/spell/spell.js",
 			"common/zlib/zlib.js",
-			"word/Editor/Table/TableLook.js"
+			"word/Editor/Table/TableLook.js",
+			"cell/utils/utils.js"
 		],
 		"common": [
 			"common/api/actionOnTimer.js",
@@ -72,7 +73,6 @@
 			"common/Drawings/States.js",
 			"common/Drawings/DrawingsChanges.js",
 			"common/Drawings/Format/Format.js",
-			"common/Drawings/Format/VML.js",
 			"common/Drawings/Format/CreateGeometry.js",
 			"common/Drawings/Format/Geometry.js",
 			"common/Drawings/Format/GraphicObjectBase.js",
@@ -119,7 +119,6 @@
 			"common/wordcopypaste.js",
 			"common/intervalTree.js",
 
-			"cell/utils/utils.js",
 			"cell/model/WorkbookElems.js",
 			"cell/model/Workbook.js",
 			"cell/model/Serialize.js",
@@ -143,6 +142,7 @@
 			"word/Editor/Numbering/Numbering.js",
 			"word/Drawing/GraphicsEvents.js",
 			"word/Drawing/Rulers.js",
+			"word/Drawing/printpreview.js",
 			"word/Editor/DocumentContentElementBase.js",
 			"word/Editor/Table.js",
 			"word/Editor/Table/TableChanges.js",
@@ -255,6 +255,7 @@
 			"word/Editor/EndnotesChanges.js",
 			"word/Editor/StructuredDocumentTags/SdtBase.js",
 			"word/Editor/StructuredDocumentTags/BlockLevel.js",
+			"word/Editor/StructuredDocumentTags/FormKeyGenerator.js",
 			"word/Editor/StructuredDocumentTags/FormsManager.js",
 			"word/Editor/StructuredDocumentTags/FormToJson.js",
 			"word/Editor/StructuredDocumentTags/InlineLevel.js",
@@ -292,7 +293,7 @@
 
 			"common/versionHistory.js",
 			"common/clipboard_base.js",
-			"common/text_input.js",
+			"common/text_input2.js",
 			"common/Drawings/Format/OleObject.js",
 			"common/Drawings/Format/DrawingContent.js",
 			"common/plugins.js",
@@ -300,12 +301,7 @@
 			"common/Native/native_graphics.js",
 			
 			"vendor/easysax.js",
-			"common/openxml.js",
-			"common/Shapes/SerializeXml.js",
-			"common/SerializeChartXml.js",
-			"common/SerializeMathXml.js",
-			"word/Editor/SerializeXml.js",
-			"word/Editor/SerializeXmlAssets.js"
+			"common/openxml.js"
 		],
 		"desktop": {
 			"min": [

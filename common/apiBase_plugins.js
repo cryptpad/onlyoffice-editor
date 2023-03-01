@@ -242,17 +242,13 @@
         if (this.isViewMode || !AscCommon.g_inputContext)
             return;
 
-        var codes = [];
-        for (var i = text.getUnicodeIterator(); i.check(); i.next())
-            codes.push(i.value());
-
         if (textReplace)
         {
             for (var i = 0; i < textReplace.length; i++)
                 AscCommon.g_inputContext.emulateKeyDownApi(8);
         }
 
-        AscCommon.g_inputContext.apiInputText(codes);
+        AscCommon.g_inputContext.addText(text);
         AscCommon.g_inputContext.keyPressInput = "";
     };
 
@@ -1264,7 +1260,7 @@
      * @memberof Api
      * @typeofeditors ["CDE", "CSE", "CPE"]
      * @alias GetInstalledPlugins
-     * @returns {[]} - Array of all installed plugins.
+     * @returns {object[]} - Array of all installed plugins.
      */
 	Api.prototype["pluginMethod_GetInstalledPlugins"] = function()
 	{

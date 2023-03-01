@@ -1457,35 +1457,6 @@
 			return res;
 		};
 
-		/**
-		 *
-		 * @param ws
-		 * @param range
-		 * @constructor
-		 * @extends {SelectionRange}
-		 */
-		function OleSizeSelectionRange(ws, range) {
-			SelectionRange.call(this, ws);
-			if (range) {
-				this.ranges = [range];
-				this.activeCell = new AscCommon.CellBase(range.r1, range.c1);
-			}
-		}
-		OleSizeSelectionRange.prototype = Object.create(SelectionRange.prototype);
-		OleSizeSelectionRange.prototype.constructor = OleSizeSelectionRange;
-
-		OleSizeSelectionRange.prototype.validActiveCell = function () {
-			return true;
-		};
-		OleSizeSelectionRange.prototype.clean = function () {
-			this.ranges = [new Range(0, 0, 10, 10)];
-			this.activeCellId = 0;
-			this.activeCell.clean();
-		};
-		OleSizeSelectionRange.prototype.getName = function () {
-			var range = this.getLast();
-			return range.getName();
-		};
     /**
      *
      * @constructor
@@ -2836,6 +2807,7 @@
 			this.ignorePrintArea = null;
 
 			this.isOnlyFirstPage = null;
+			this.nativeOptions = undefined;
 
 			// ToDo сюда же start и end page index
 
@@ -2847,6 +2819,8 @@
 		asc_CAdjustPrint.prototype.asc_setPageOptionsMap = function (val) { this.pageOptionsMap = val; };
 		asc_CAdjustPrint.prototype.asc_getIgnorePrintArea = function () { return this.ignorePrintArea; };
 		asc_CAdjustPrint.prototype.asc_setIgnorePrintArea = function (val) { this.ignorePrintArea = val; };
+		asc_CAdjustPrint.prototype.asc_getNativeOptions = function () { return this.nativeOptions; };
+		asc_CAdjustPrint.prototype.asc_setNativeOptions = function (val) { this.nativeOptions = val; };
 
 		/** @constructor */
 		function asc_CLockInfo () {
@@ -3607,7 +3581,6 @@
 		window["Asc"].Range = Range;
 		window["AscCommonExcel"].Range3D = Range3D;
 		window["AscCommonExcel"].SelectionRange = SelectionRange;
-		window["AscCommonExcel"].OleSizeSelectionRange = OleSizeSelectionRange;
 		window["AscCommonExcel"].ActiveRange = ActiveRange;
 		window["AscCommonExcel"].FormulaRange = FormulaRange;
 		window["AscCommonExcel"].MultiplyRange = MultiplyRange;
@@ -3662,6 +3635,8 @@
 		prot["asc_setPageOptionsMap"] = prot.asc_setPageOptionsMap;
 		prot["asc_getIgnorePrintArea"] = prot.asc_getIgnorePrintArea;
 		prot["asc_setIgnorePrintArea"] = prot.asc_setIgnorePrintArea;
+		prot["asc_getNativeOptions"] = prot.asc_getNativeOptions;
+		prot["asc_setNativeOptions"] = prot.asc_setNativeOptions;
 
 		window["AscCommonExcel"].asc_CLockInfo = asc_CLockInfo;
 

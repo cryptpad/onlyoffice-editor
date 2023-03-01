@@ -2449,7 +2449,7 @@
 		ipRe                  = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/i,
 		hostnameRe            = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
 		localRe               = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
-		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa):\/\/)|(mailto:)).*/i,
+		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa|smb):\/\/)|(mailto:)).*/i,
 
 		rx_table              = build_rx_table(null),
 		rx_table_local        = build_rx_table(null);
@@ -9581,9 +9581,12 @@
 
 	function getAltGr(e)
 	{
+		if (true === e["altGraphKey"])
+			return true;
+
 		var ctrlKey = e.metaKey || e.ctrlKey;
 		var altKey = e.altKey;
-		return (altKey && (AscBrowser.isMacOs ? !ctrlKey : ctrlKey));
+		return (altKey && ctrlKey);
 	}
 
 	function getColorSchemeByName(sName)
@@ -10053,7 +10056,7 @@
 
 
 		const textPr = numberInfo.textPr.Copy();
-		textPr.FontSize = textPr.FontSizeCS = ((2 * line_distance * 72 / 96) >> 0) / 2;
+		textPr.FontSize = textPr.FontSizeCS = this.getFontSizeByLineHeight(line_distance);
 		if (bullet.m_sSrc) {
 			const formatBullet = new AscFormat.CBullet();
 			formatBullet.fillBulletImage(bullet.m_sSrc);
@@ -10124,15 +10127,21 @@
 			ctx.beginPath();
 			const textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
 			const	textYy = y + (line_w * 2.5);
-
+			const nLineHeight = line_distance - 4;
+			textPr.FontSize = this.getFontSizeByLineHeight(nLineHeight);
 			if (bullet.m_sSrc) {
-				this.drawImageBulletsWithLines(bullet.m_sSrc, textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+				this.drawImageBulletsWithLines(bullet.m_sSrc, textPr, textYx, textYy, nLineHeight, ctx, width_px, height_px);
 			} else {
-				this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, (line_distance - 4), ctx, width_px, height_px);
+				this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, nLineHeight, ctx, width_px, height_px);
 			}
 			y += (line_w + line_distance);
 		}
 	}
+
+	CBulletPreviewDrawer.prototype.getFontSizeByLineHeight = function (nLineHeight)
+	{
+		return ((2 * nLineHeight * 72 / 96) >> 0) / 2;
+	};
 
 	CBulletPreviewDrawer.prototype.drawNoneTextPreview = function (divId, info)
 	{
@@ -10143,37 +10152,42 @@
 		const ctx = canvas.getContext("2d");
 		ctx.beginPath();
 
-
 		const lvl = info;
 		const text = lvl.bullet.getDrawingText();
-		const line_distance = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
-
-
 
 		const oNewShape = new AscFormat.CShape();
 		oNewShape.createTextBody();
+		oNewShape.extX = width_px * AscCommon.g_dKoef_pix_to_mm;
+		oNewShape.extY = height_px * AscCommon.g_dKoef_pix_to_mm;
+		oNewShape.contentWidth = oNewShape.extX;
+
 		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
 		par.MoveCursorToStartPos();
 		par.Pr = new AscCommonWord.CParaPr();
 
 		const parRun = new AscCommonWord.ParaRun(par);
 		const textPr = lvl.textPr.Copy();
-		textPr.FontSize = ((2 * line_distance * 72 / 96) >> 0) / 2;
 		parRun.Set_Pr(textPr);
 		parRun.AddText(text);
 		par.AddToContent(0, parRun);
 
-		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
-		par.Recalculate_Page(0);
+		let nLineHeight = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
+		textPr.FontSize = this.getFontSizeByLineHeight(nLineHeight);
 
-		const bounds = par.Get_PageBounds(0);
+		par.TextPr.SetFontSize(textPr.FontSize);
 
-		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
-		const parH = (bounds.Bottom - bounds.Top);
+		let parW = par.RecalculateMinMaxContentWidth().Max;
+		if (parW > oNewShape.contentWidth) {
+			oNewShape.findFitFontSizeForSmartArt(true);
+			parW = par.RecalculateMinMaxContentWidth().Max;
+		}
+
+		parW = parW * AscCommon.g_dKoef_mm_to_pix;
+
+		nLineHeight = par.Get_EmptyHeight();
 		const x = (width_px - (parW >> 0)) >> 1;
-		const y = (height_px >> 1) + (parH >> 0);
-
-		this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
+		const y = (height_px >> 1) + (nLineHeight >> 0);
+		this.privateGetParagraphByString(text, textPr, x, y, nLineHeight, ctx, width_px, height_px);
 	}
 
 	CBulletPreviewDrawer.prototype.privateGetParagraphByString = function(text, textPr, x, y, lineHeight, ctx, w, h)
@@ -10195,7 +10209,6 @@
 		//par.Pr = level.ParaPr.Copy();
 		par.Pr = new AscCommonWord.CParaPr();
 		textPr = textPr.Copy();
-		textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
 
 		const parRun = new AscCommonWord.ParaRun(par);
 		parRun.Set_Pr(textPr);
@@ -12857,6 +12870,92 @@
 		return sAction.indexOf("ppaction://hlink") === 0;
 	}
 
+	function getNativePrintRanges(sRanges, currentPageSrc, pagescount)
+	{
+		let pages = undefined;
+		switch (sRanges)
+		{
+			case "current":
+			{
+				let currentPage =  currentPageSrc;
+				if (undefined === currentPage)
+					currentPage = 1;
+				if (currentPage >= 1 && currentPage <= pagescount)
+				{
+					pages = new Array(pagescount);
+					pages[currentPage - 1] = true;
+				}
+				break;
+			}
+			case "all":
+			{
+				break;
+			}
+			default:
+			{
+				let ranges = sRanges.split(",");
+				for (let range = 0, rangesCount = ranges.length; range < rangesCount; range++)
+				{
+					if (ranges[range] === "")
+						continue;
+
+					let rangePages = ranges[range].split("-");
+					let rangeLen = rangePages.length;
+
+					let startPage = 1;
+					let endPage = pagescount;
+
+					switch (rangeLen)
+					{
+						case 0:
+						{
+							break;
+						}
+						case 1:
+						{
+							let pageNum = parseInt(rangePages[0]);
+							if (pageNum > 0 && pageNum <= pagescount)
+							{
+								startPage = pageNum;
+								endPage = pageNum;
+							}
+							break;
+						}
+						default:
+						{
+							if (rangePages[0] !== "")
+							{
+								let pageNum = parseInt(rangePages[0]);
+								if (pageNum > 0 && pageNum <= pagescount)
+								{
+									startPage = pageNum;
+								}
+							}
+							if (rangePages[1] !== "")
+							{
+								let pageNum = parseInt(rangePages[1]);
+								if (pageNum > 0 && pageNum <= pagescount)
+								{
+									endPage = pageNum;
+								}
+							}
+						}
+					}
+
+					if (startPage <= endPage)
+					{
+						if (pages === undefined)
+							pages = new Array(pagescount);
+
+						for (let i = startPage; i <= endPage; i++)
+							pages[i - 1] = true;
+					}
+				}
+			}
+		}
+		return pages;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -13034,6 +13133,8 @@
 	window['AscCommon'].g_oCRC32  = g_oCRC32;
 	window["AscCommon"].RangeTopBottomIterator = RangeTopBottomIterator;
 	window["AscCommon"].IsLinkPPAction = IsLinkPPAction;
+
+	window["AscCommon"].getNativePrintRanges = getNativePrintRanges;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
