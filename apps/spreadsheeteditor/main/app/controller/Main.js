@@ -871,8 +871,8 @@ define([
                 var zf = (value!==null) ? parseInt(value)/100 : (this.appOptions.customization && this.appOptions.customization.zoom ? parseInt(this.appOptions.customization.zoom)/100 : 1);
                 this.api.asc_setZoom(zf>0 ? zf : 1);
 
-                value = Common.localStorage.getBool("sse-settings-use-alt-key", true);
-                Common.Utils.InternalSettings.set("sse-settings-use-alt-key", value);
+                value = Common.localStorage.getBool("sse-settings-show-alt-hints", Common.Utils.isMac ? false : true);
+                Common.Utils.InternalSettings.set("sse-settings-show-alt-hints", value);
 
                 /** coauthoring begin **/
                 this.isLiveCommenting = Common.localStorage.getBool("sse-settings-livecomment", true);
@@ -1294,7 +1294,9 @@ define([
                                                  (this.editorConfig.canRequestEditRights || this.editorConfig.mode !== 'view'); // if mode=="view" -> canRequestEditRights must be defined
                 this.appOptions.isEdit         = (this.appOptions.canLicense || this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge || this.appOptions.isEditOle) && this.permissions.edit !== false && this.editorConfig.mode !== 'view';
                 this.appOptions.canDownload    = (this.permissions.download !== false);
-                this.appOptions.canPrint       = (this.permissions.print !== false);
+                this.appOptions.canPrint       = (this.permissions.print !== false) && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge || this.appOptions.isEditOle);
+                this.appOptions.canQuickPrint = this.appOptions.canPrint && !Common.Utils.isMac && this.appOptions.isDesktopApp &&
+                                                !(this.editorConfig.customization && this.editorConfig.customization.compactHeader);
                 this.appOptions.canForcesave   = this.appOptions.isEdit && !this.appOptions.isOffline && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge || this.appOptions.isEditOle) &&
                                                 (typeof (this.editorConfig.customization) == 'object' && !!this.editorConfig.customization.forcesave);
                 this.appOptions.forcesave      = this.appOptions.canForcesave;
@@ -1438,8 +1440,11 @@ define([
 
                     var printController = app.getController('Print');
                     printController && this.api && printController.setApi(this.api).setMode(this.appOptions);
-                } else if (this.appOptions.isEditOle)
-                    this.api.asc_registerCallback('asc_onSendThemeColors', _.bind(this.onSendThemeColors, this));
+                } else {
+                    this.api.asc_registerCallback('asc_sendFromFrameToGeneralEditor', _.bind(this.onSendFromFrameToGeneralEditor, this));
+                    if (this.appOptions.isEditOle)
+                        this.api.asc_registerCallback('asc_onSendThemeColors', _.bind(this.onSendThemeColors, this));
+                }
 
                 var celleditorController = this.getApplication().getController('CellEditor');
                 celleditorController && celleditorController.setApi(this.api).setMode(this.appOptions);
@@ -2366,6 +2371,19 @@ define([
                         }
                     });
                     win.show();
+                } else if (id == Asc.c_oAscConfirm.ConfirmMaxChangesSize) {
+                    Common.UI.warning({
+                        title: this.notcriticalErrorTitle,
+                        msg: this.confirmMaxChangesSize,
+                        buttons: [{value: 'ok', caption: this.textUndo, primary: true}, {value: 'cancel', caption: this.textContinue}],
+                        maxwidth: 600,
+                        callback: _.bind(function(btn) {
+                            if (apiCallback)  {
+                                apiCallback(btn === 'ok');
+                            }
+                            me.onEditComplete(me.application.getController('DocumentHolder').getView('DocumentHolder'));
+                        }, this)
+                    });
                 }
             },
 
@@ -2604,6 +2622,9 @@ define([
                             document.documentElement.className.replace(/theme-\w+\s?/, data.data);
                         this.api.asc_setSkin(data.data == "theme-dark" ? 'flatDark' : "flat");
                         break;
+                    case 'generalToFrameData':
+                        this.api.asc_getInformationBetweenFrameAndGeneralEditor(data.data);
+                        break;
                     }
                 }
             },
@@ -2682,6 +2703,10 @@ define([
                         });
                     }
                 }
+            },
+
+            onSendFromFrameToGeneralEditor: function(data) {
+                Common.Gateway.internalMessage('frameToGeneralData', data);
             },
 
             unitsChanged: function(m) {
@@ -2854,6 +2879,39 @@ define([
                     };
                 }
                 if (url) this.iframePrint.src = url;
+            },
+
+            onPrintQuick: function() {
+                if (!this.appOptions.canQuickPrint) return;
+
+                var value = Common.localStorage.getBool("sse-hide-quick-print-warning"),
+                    me = this,
+                    handler = function () {
+                        var printopt = new Asc.asc_CAdjustPrint();
+                        printopt.asc_setNativeOptions({quickPrint: true});
+                        var opts = new Asc.asc_CDownloadOptions();
+                        opts.asc_setAdvancedOptions(printopt);
+                        me.api.asc_Print(opts);
+                        Common.component.Analytics.trackEvent('Print');
+                    };
+
+                if (value) {
+                    handler.call(this);
+                } else {
+                    Common.UI.warning({
+                        msg: this.textTryQuickPrint,
+                        buttons: ['yes', 'no'],
+                        primary: 'yes',
+                        dontshow: true,
+                        maxwidth: 500,
+                        callback: function(btn, dontshow){
+                            dontshow && Common.localStorage.setBool("sse-hide-quick-print-warning", true);
+                            if (btn === 'yes') {
+                                setTimeout(handler, 1);
+                            }
+                        }
+                    });
+                }
             },
 
             warningDocumentIsLocked: function() {
@@ -3633,7 +3691,11 @@ define([
             textReconnect: 'Connection is restored',
             errorCannotUseCommandProtectedSheet: 'You cannot use this command on a protected sheet. To use this command, unprotect the sheet.<br>You might be requested to enter a password.',
             textRequestMacros: 'A macro makes a request to URL. Do you want to allow the request to the %1?',
-            textRememberMacros: 'Remember my choice for all macros'
+            textRememberMacros: 'Remember my choice for all macros',
+            confirmMaxChangesSize: 'The size of actions exceeds the limitation set for your server.<br>Press "Undo" to cancel your last action or press "Continue" to keep action locally (you need to download the file or copy its content to make sure nothing is lost).',
+            textUndo: 'Undo',
+            textContinue: 'Continue',
+            textTryQuickPrint: 'You have selected Quick print: the entire document will be printed on the last selected or default printer.<br>Do you want to continue?'
         }
     })(), SSE.Controllers.Main || {}))
 });

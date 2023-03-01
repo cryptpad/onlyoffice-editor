@@ -240,12 +240,6 @@ define([
                             if (this.mergeEditorView.binding.resize)  this.mergeEditorView.binding.resize({pageX:x, pageY:y});
                         }
                     } else
-                    if (eventData.type == "resize") {
-                        var w = eventData.data.width,
-                            h = eventData.data.height;
-                        if (w>0 && h>0)
-                            this.mergeEditorView.setInnerSize(w, h);
-                    } else
                     if (eventData.type == "frameToGeneralData") {
                         this.api && this.api.asc_getInformationBetweenFrameAndGeneralEditor(eventData.data);
                     } else

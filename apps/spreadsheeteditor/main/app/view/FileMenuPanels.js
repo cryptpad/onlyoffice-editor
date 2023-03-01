@@ -244,6 +244,12 @@ define([
                 '<tr>',
                     '<td colspan="2"><div id="fms-chb-use-alt-key"></div></td>',
                 '</tr>',
+                '<tr class="quick-print">',
+                    '<td colspan="2"><div style="display: flex;"><div id="fms-chb-quick-print"></div>',
+                        '<span style ="display: flex; flex-direction: column;"><label><%= scope.txtQuickPrint %></label>',
+                        '<label class="comment-text"><%= scope.txtQuickPrintTip %></label></span></div>',
+                    '</td>',
+                '</tr>',
                 '<tr class="themes">',
                     '<td><label><%= scope.strTheme %></label></td>',
                     '<td><span id="fms-cmb-theme"></span></td>',
@@ -718,6 +724,17 @@ define([
                 })).on('click', _.bind(me.applySettings, me));
             });
 
+            this.chQuickPrint = new Common.UI.CheckBox({
+                el: $markup.findById('#fms-chb-quick-print'),
+                labelText: '',
+                dataHint: '2',
+                dataHintDirection: 'left',
+                dataHintOffset: 'small'
+            });
+            this.chQuickPrint.$el.parent().on('click', function (){
+                me.chQuickPrint.setValue(!me.chQuickPrint.isChecked());
+            });
+
             this.pnlSettings = $markup.find('.flex-settings').addBack().filter('.flex-settings');
             this.pnlApply = $markup.find('.fms-flex-apply').addBack().filter('.fms-flex-apply');
             this.pnlTable = this.pnlSettings.find('table');
@@ -782,6 +799,7 @@ define([
             $('tr.coauth.changes', this.el)[mode.isEdit && !mode.isOffline && mode.canCoAuthoring && mode.canChangeCoAuthoring ? 'show' : 'hide']();
             $('tr.live-viewer', this.el)[mode.canLiveView && !mode.isOffline && mode.canChangeCoAuthoring ? 'show' : 'hide']();
             $('tr.macros', this.el)[(mode.customization && mode.customization.macros===false) ? 'hide' : 'show']();
+            $('tr.quick-print', this.el)[mode.canQuickPrint ? 'show' : 'hide']();
 
             if ( !Common.UI.Themes.available() ) {
                 $('tr.themes, tr.themes + tr.divider', this.el).hide();
@@ -798,7 +816,7 @@ define([
             value = (value!==null) ? parseInt(value) : (this.mode.customization && this.mode.customization.zoom ? parseInt(this.mode.customization.zoom) : 100);
             var item = this.cmbZoom.store.findWhere({value: value});
             this.cmbZoom.setValue(item ? parseInt(item.get('value')) : (value>0 ? value+'%' : 100));
-            this.chUseAltKey.setValue(Common.Utils.InternalSettings.get("sse-settings-use-alt-key"));
+            this.chUseAltKey.setValue(Common.Utils.InternalSettings.get("sse-settings-show-alt-hints"));
 
             /** coauthoring begin **/
             this.chLiveComment.setValue(Common.Utils.InternalSettings.get("sse-settings-livecomment"));
@@ -877,6 +895,7 @@ define([
             this.cmbMacros.setValue(item ? item.get('value') : 0);
 
             this.chPaste.setValue(Common.Utils.InternalSettings.get("sse-settings-paste-button"));
+            this.chQuickPrint.setValue(Common.Utils.InternalSettings.get("sse-settings-quick-print-button"));
 
             var data = [];
             for (var t in Common.UI.Themes.map()) {
@@ -930,8 +949,8 @@ define([
 
         applySettings: function() {
             Common.UI.Themes.setTheme(this.cmbTheme.getValue());
-            Common.localStorage.setItem("sse-settings-use-alt-key", this.chUseAltKey.isChecked() ? 1 : 0);
-            Common.Utils.InternalSettings.set("sse-settings-use-alt-key", Common.localStorage.getBool("sse-settings-use-alt-key"));
+            Common.localStorage.setItem("sse-settings-show-alt-hints", this.chUseAltKey.isChecked() ? 1 : 0);
+            Common.Utils.InternalSettings.set("sse-settings-show-alt-hints", Common.localStorage.getBool("sse-settings-show-alt-hints"));
             Common.localStorage.setItem("sse-settings-zoom", this.cmbZoom.getValue());
             Common.Utils.InternalSettings.set("sse-settings-zoom", Common.localStorage.getItem("sse-settings-zoom"));
             /** coauthoring begin **/
@@ -977,6 +996,7 @@ define([
             Common.Utils.InternalSettings.set("sse-macros-mode", this.cmbMacros.getValue());
 
             Common.localStorage.setItem("sse-settings-paste-button", this.chPaste.isChecked() ? 1 : 0);
+            Common.localStorage.setBool("sse-settings-quick-print-button", this.chQuickPrint.isChecked());
 
             Common.localStorage.save();
             if (this.menu) {
@@ -1169,7 +1189,9 @@ define([
         txtStrictTip: 'Use the \'Save\' button to sync the changes you and others make',
         strShowOthersChanges: 'Show changes from other users',
         txtCalculating: 'Calculating',
-        strDateFormat1904: 'Use 1904 date system'
+        strDateFormat1904: 'Use 1904 date system',
+        txtQuickPrint: 'Show the Quick Print button in the editor header',
+        txtQuickPrintTip: 'The document will be printed on the last selected or default printer'
 
 }, SSE.Views.FileMenuPanels.MainSettingsGeneral || {}));
 
@@ -1877,6 +1899,7 @@ SSE.Views.FileMenuPanels.RecentFiles = Common.UI.BaseView.extend({
             this.menu = options.menu;
             this.urlPref = 'resources/help/{{DEFAULT_LANG}}/';
             this.openUrl = null;
+            this.urlHelpCenter = '{{HELP_CENTER_WEB_SSE}}';
 
             this.en_data = [
                 {"src": "ProgramInterface/ProgramInterface.htm", "name": "Introducing Spreadsheet Editor user interface", "headername": "Program Interface"},
@@ -1984,9 +2007,10 @@ SSE.Views.FileMenuPanels.RecentFiles = Common.UI.BaseView.extend({
                             store.fetch(config);
                         } else {
                             if ( Common.Controllers.Desktop.isActive() ) {
-                                if ( store.contentLang === '{{DEFAULT_LANG}}' || !Common.Controllers.Desktop.helpUrl() )
+                                if ( store.contentLang === '{{DEFAULT_LANG}}' || !Common.Controllers.Desktop.helpUrl() ) {
+                                    me.noHelpContents = true;
                                     me.iFrame.src = '../../common/main/resources/help/download.html';
-                                else {
+                                } else {
                                     store.contentLang = store.contentLang === lang ? '{{DEFAULT_LANG}}' : lang;
                                     me.urlPref = Common.Controllers.Desktop.helpUrl() + '/' + store.contentLang + '/';
                                     store.url = me.urlPref + 'Contents.json';
@@ -2712,7 +2736,8 @@ SSE.Views.FileMenuPanels.RecentFiles = Common.UI.BaseView.extend({
 
         applySettings: function() {
             if (this.menu) {
-                this.menu.fireEvent('settings:apply', [this.menu]);
+                this.menu.hide();
+                // this.menu.fireEvent('settings:apply', [this.menu]);
             }
         },
 

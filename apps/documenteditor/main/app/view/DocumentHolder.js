@@ -165,7 +165,7 @@ define([
                         canComment = canComment && !(spectype==Asc.c_oAscContentControlSpecificType.CheckBox || spectype==Asc.c_oAscContentControlSpecificType.Picture ||
                                     spectype==Asc.c_oAscContentControlSpecificType.ComboBox || spectype==Asc.c_oAscContentControlSpecificType.DropDownList || spectype==Asc.c_oAscContentControlSpecificType.DateTime);
 
-                        canEditControl = spectype !== undefined && (spectype === Asc.c_oAscContentControlSpecificType.None || spectype === Asc.c_oAscContentControlSpecificType.ComboBox) && !control_lock;
+                        canEditControl = spectype !== undefined && (spectype === Asc.c_oAscContentControlSpecificType.None || spectype === Asc.c_oAscContentControlSpecificType.ComboBox || spectype === Asc.c_oAscContentControlSpecificType.Complex) && !control_lock;
                     }
 
                     me.menuViewUndo.setVisible(me.mode.canCoAuthoring && me.mode.canComments && !me._isDisabled);
@@ -732,9 +732,9 @@ define([
                     me.menuImgPrint.setDisabled(!cancopy);
 
                     var lockreview = Common.Utils.InternalSettings.get("de-accept-reject-lock");
-                    me.menuImgAccept.setVisible(!lockreview);
-                    me.menuImgReject.setVisible(!lockreview);
-                    menuImgReviewSeparator.setVisible(!lockreview);
+                    me.menuImgAccept.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
+                    me.menuImgReject.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
+                    menuImgReviewSeparator.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
 
                     var signGuid = (value.imgProps && value.imgProps.value && me.mode.isSignatureSupport) ? value.imgProps.value.asc_getSignatureId() : undefined,
                         isInSign = !!signGuid;
@@ -1302,9 +1302,9 @@ define([
                     me.menuTablePrint.setDisabled(!cancopy);
 
                     var lockreview = Common.Utils.InternalSettings.get("de-accept-reject-lock");
-                    me.menuTableAccept.setVisible(!lockreview);
-                    me.menuTableReject.setVisible(!lockreview);
-                    menuTableReviewSeparator.setVisible(!lockreview);
+                    me.menuTableAccept.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
+                    me.menuTableReject.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
+                    menuTableReviewSeparator.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
 
                     // bullets & numbering
                     var listId = me.api.asc_GetCurrentNumberingId(),
@@ -1420,13 +1420,10 @@ define([
                     me.menuAddCommentTable.setDisabled(value.paraProps!==undefined && value.paraProps.locked===true);
                     /** coauthoring end **/
 
-                    var in_field = me.api.asc_GetCurrentComplexField();
+                    var in_field = me.api.asc_HaveFields(true);
                     me.menuTableRefreshField.setVisible(!!in_field);
                     me.menuTableRefreshField.setDisabled(disabled);
                     menuTableFieldSeparator.setVisible(!!in_field);
-                    if (in_field) {
-                        me.menuTableRefreshField.options.fieldProps = in_field;
-                    }
                 },
                 items: [
                     me.menuSpellCheckTable,
@@ -1917,9 +1914,9 @@ define([
                     me.menuParaPrint.setDisabled(!cancopy);
 
                     var lockreview = Common.Utils.InternalSettings.get("de-accept-reject-lock");
-                    me.menuParaAccept.setVisible(!lockreview);
-                    me.menuParaReject.setVisible(!lockreview);
-                    menuParaReviewSeparator.setVisible(!lockreview);
+                    me.menuParaAccept.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
+                    me.menuParaReject.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
+                    menuParaReviewSeparator.setVisible(me.mode.canReview && !me.mode.isReviewOnly && !lockreview);
 
                     // spellCheck
                     var spell = (value.spellProps!==undefined && value.spellProps.value.get_Checked()===false);
@@ -1996,13 +1993,10 @@ define([
                     me.menuAddCommentPara.setDisabled(value.paraProps && value.paraProps.locked === true);
                     /** coauthoring end **/
 
-                    var in_field = me.api.asc_GetCurrentComplexField();
+                    var in_field = me.api.asc_HaveFields(true);
                     me.menuParaRefreshField.setVisible(!!in_field);
                     me.menuParaRefreshField.setDisabled(disabled);
                     menuParaFieldSeparator.setVisible(!!in_field);
-                    if (in_field) {
-                        me.menuParaRefreshField.options.fieldProps = in_field;
-                    }
 
                     var listId = me.api.asc_GetCurrentNumberingId(),
                         in_list = (listId !== null);

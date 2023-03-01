@@ -113,6 +113,7 @@ define([
                 if ( !this.leftMenu.panelHistory.isVisible() )
                     this.clickMenuFileItem(null, 'history');
             }, this));
+            Common.NotificationCenter.on('file:print', _.bind(this.clickToolbarPrint, this));
         },
 
         onLaunch: function() {
@@ -293,6 +294,9 @@ define([
                     }
                 })).show();
                 break;
+            case 'external-help':
+                close_menu = !!isopts;
+                break;
             default: close_menu = false;
             }
 
@@ -432,10 +436,6 @@ define([
         applySettings: function(menu) {
             var value;
 
-            value = Common.localStorage.getBool("de-settings-inputmode");
-            Common.Utils.InternalSettings.set("de-settings-inputmode", value);
-            this.api.SetTextBoxInputMode(value);
-
             var fast_coauth = Common.Utils.InternalSettings.get("de-settings-coauthmode");
             /** coauthoring begin **/
             if (this.mode.isEdit && !this.mode.isOffline && this.mode.canCoAuthoring ) {
@@ -548,6 +548,13 @@ define([
             if (tab == 'file')
                 this.leftMenu.showMenu('file'); else
                 this.leftMenu.menuFile.hide();
+        },
+
+        clickToolbarPrint: function () {
+            if (this.mode.canPreviewPrint)
+                this.leftMenu.showMenu('file:printpreview');
+            else if (this.mode.canPrint)
+                this.clickMenuFileItem(null, 'print');
         },
 
         changeToolbarSaveState: function (state) {
