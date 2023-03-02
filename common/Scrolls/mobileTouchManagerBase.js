@@ -512,7 +512,7 @@
 	};
 	CMobileDelegateEditor.prototype.GetScrollerOffset = function()
 	{
-		return { W : 0, H : this.HtmlPage.offsetTop };
+		return { W : 0, H : (this.HtmlPage.offsetTop === undefined) ? 0 : this.HtmlPage.offsetTop };
 	};
 	CMobileDelegateEditor.prototype.ScrollTo = function(_scroll)
 	{
