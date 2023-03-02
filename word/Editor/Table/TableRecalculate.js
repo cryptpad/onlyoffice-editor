@@ -1432,6 +1432,21 @@ CTable.prototype.private_RecalculateBorders = function()
                 {
                     X_content_start += CellMar.Left.W;
                     X_content_end   -= CellMar.Right.W;
+					
+					// Границы для этих ячеек рассчитываются во время расчета границ первой ячейки в вертикальном
+					// объединении. Но может случиться, что если что-то пошло не так и у нас первая же ячейка первой строки
+					// идет с флагом vmerge_Continue. Защищаемся от этого плохого случая
+					if (!Cell.GetBorderInfoLeft())
+					{
+						let leftBorder = Cell.GetBorders().Left;
+						Cell.Set_BorderInfo_Left([leftBorder], leftBorder.GetWidth());
+					}
+
+					if (!Cell.GetBorderInfoRight())
+					{
+						let rightBorder = Cell.GetBorders().Right;
+						Cell.Set_BorderInfo_Right([rightBorder], rightBorder.GetWidth());
+					}
                 }
                 else
                 {

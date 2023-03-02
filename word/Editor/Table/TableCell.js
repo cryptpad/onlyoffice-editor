@@ -1897,6 +1897,16 @@ CTableCell.prototype =
     {
         return this.BorderInfo;
     },
+	
+	GetBorderInfoLeft : function()
+	{
+		return this.BorderInfo.Left;
+	},
+	
+	GetBorderInfoRight : function()
+	{
+		return this.BorderInfo.Right;
+	},
 
     //-----------------------------------------------------------------------------------
     // Undo/Redo функции

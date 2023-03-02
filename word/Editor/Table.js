@@ -9368,7 +9368,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 	}
 
 	// Удаляем лишние строки
-	this.Internal_Check_TableRows(true !== isClearMerge ? true : false);
+	this.CorrectTableRows(true !== isClearMerge ? true : false);
 	for (var PageNum = 0; PageNum < this.Pages.length - 1; PageNum++)
 	{
 		if (Pos_tl.Row <= this.Pages[PageNum + 1].FirstRow)
@@ -10088,7 +10088,8 @@ CTable.prototype.Row_Remove2 = function()
 	let arrSelection = this.GetSelectionArray(false);
 	for (let nIndex = 0, nCount = arrSelection.length; nIndex < nCount; ++nIndex)
 	{
-		arrRowsToDelete[arrSelection[nIndex].Row]++;
+		let iRow = arrSelection[nIndex].Row;
+		arrRowsToDelete[iRow]++;
 	}
 
 	this.RemoveSelection();
@@ -10098,10 +10099,12 @@ CTable.prototype.Row_Remove2 = function()
 		if (arrRowsToDelete[nCurRow])
 			this.private_RemoveRow(nCurRow);
 	}
-
+	
+	this.CorrectTableRows(false);
+	
 	if (!this.GetRowsCount())
 		return false;
-
+	
 	// Проверяем текущую ячейку
 	if (this.CurCell.Row.Index >= this.Content.length)
 		this.CurCell = this.GetRow(this.GetRowsCount() - 1).GetCell(0);
@@ -11018,7 +11021,7 @@ CTable.prototype.EraseTable = function(X1, Y1, X2, Y2, CurPageStart)
 		}
 
 		// Удаляем лишние строки
-		this.Internal_Check_TableRows(true !== isClearMerge ? true : false);
+		this.CorrectTableRows(true !== isClearMerge ? true : false);
 		for (var PageNum = 0; PageNum < this.Pages.length - 1; PageNum++)
 		{
 			if (Pos_tl.Row <= this.Pages[PageNum + 1].FirstRow)
@@ -14517,7 +14520,7 @@ CTable.prototype.Internal_GetVertMergeCountUp = function(StartRow, StartGridCol,
  * таблицы.
  * @returns {boolean} произошли ли изменения в таблице
  */
-CTable.prototype.Internal_Check_TableRows = function(bSaveHeight)
+CTable.prototype.CorrectTableRows = function(bSaveHeight)
 {
 	// Пробегаемся по всем строкам, если в какой-то строке у всех ячеек стоит
 	// вертикальное объединение, тогда такую строку удаляем, а у предыдущей
@@ -15696,6 +15699,15 @@ CTable.prototype.private_UpdateSelectedCellsArray = function(bForceSelectByLines
 		for (var nCurRow = nStartRow; nCurRow <= nEndRow; ++nCurRow)
 		{
 			var oRow = this.GetRow(nCurRow);
+			
+			// Если строка, с которой мы начинаем селект целиком смержена по вертикали, то добавляем первую ячейку мержа
+			// чтобы у нас не получился пустой массив селекта
+			if (nCurRow === nStartRow && this.private_IsVMergedRow(nCurRow))
+			{
+				let cell = this.GetStartMergedCell(0, nCurRow);
+				arrSelectionData.push({Row : cell.GetRow().GetIndex(), Cell : cell.GetIndex()});
+			}
+			
 			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 			{
 				var oCell = oRow.GetCell(nCurCell);
@@ -17039,7 +17051,7 @@ CTable.prototype.CorrectBadTable = function()
     // TODO: Пока оставим эту заглушку на случай загрузки плохих таблиц. В будущем надо будет
     //       сделать нормальный обсчет для случая, когда у нас есть "пустые" строки (составленные
     //       из вертикально объединенных ячеек).
-    this.Internal_Check_TableRows(false);
+    this.CorrectTableRows(false);
 	this.CorrectBadGrid();
 	this.CorrectHMerge();
 	this.CorrectVMerge();
