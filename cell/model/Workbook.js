@@ -2279,7 +2279,10 @@
 	};
 	Workbook.prototype.setActiveById=function(sheetId){
 		var ws = this.getWorksheetById(sheetId);
-		return this.setActive(ws.getIndex());
+		if (ws) {
+			this.setActive(ws.getIndex());
+		}
+		return false;
 	};
 	Workbook.prototype.getSheetIdByIndex = function(index) {
 		var ws = this.getWorksheet(index);
