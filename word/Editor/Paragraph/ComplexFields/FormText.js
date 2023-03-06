@@ -35,37 +35,24 @@
 (function(window)
 {
 	/**
-	 * MERGEFIELD field
+	 * Данный класс не предназначен для использования в
+	 * FORMTEXT field
 	 * @constructor
 	 * @extends AscWord.CFieldInstructionBase
 	 */
-	function CFieldInstructionMERGEFIELD()
+	function CFieldInstructionFORMTEXT()
 	{
 		AscWord.CFieldInstructionBase.call(this);
-		
-		this.Name = "";
 	}
-	CFieldInstructionMERGEFIELD.prototype = Object.create(AscWord.CFieldInstructionBase.prototype);
-	CFieldInstructionMERGEFIELD.prototype.constructor = CFieldInstructionMERGEFIELD;
-	CFieldInstructionMERGEFIELD.prototype.Type = fieldtype_MERGEFIELD;
+	CFieldInstructionFORMTEXT.prototype = Object.create(AscWord.CFieldInstructionBase.prototype);
+	CFieldInstructionFORMTEXT.prototype.constructor = CFieldInstructionFORMTEXT;
+	CFieldInstructionFORMTEXT.prototype.Type = fieldtype_FORMTEXT;
 	
-	CFieldInstructionMERGEFIELD.prototype.SetName = function(value)
+	CFieldInstructionFORMTEXT.prototype.ToString = function()
 	{
-		this.Name = value;
-	};
-	CFieldInstructionMERGEFIELD.prototype.GetName = function()
-	{
-		return this.Name;
-	};
-	CFieldInstructionMERGEFIELD.prototype.ToString = function()
-	{
-		let result = " MERGEFIELD ";
-		if (this.Name)
-			result += this.Name + " ";
-		
-		return result;
+		return " FORMTEXT ";
 	};
 	//--------------------------------------------------------export----------------------------------------------------
-	window['AscWord'].CFieldInstructionMERGEFIELD = CFieldInstructionMERGEFIELD;
-	
+	window['AscWord'].CFieldInstructionFORMTEXT = CFieldInstructionFORMTEXT;
+
 })(window);
