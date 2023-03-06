@@ -17059,13 +17059,14 @@ CTable.prototype.private_StartTrackTable = function(CurPage)
 };
 CTable.prototype.CorrectBadTable = function()
 {
-    // TODO: Пока оставим эту заглушку на случай загрузки плохих таблиц. В будущем надо будет
-    //       сделать нормальный обсчет для случая, когда у нас есть "пустые" строки (составленные
-    //       из вертикально объединенных ячеек).
-    this.CorrectTableRows(false);
+	// TODO: Пока оставим эту заглушку на случай загрузки плохих таблиц. В будущем надо будет
+	//       сделать нормальный обсчет для случая, когда у нас есть "пустые" строки (составленные
+	//       из вертикально объединенных ячеек).
+	
+	this.CorrectVMerge();
+	this.CorrectTableRows(false);
 	this.CorrectBadGrid();
 	this.CorrectHMerge();
-	this.CorrectVMerge();
 };
 /**
  * Специальная функция, которая обрабатывает устаревший параметр HMerge и заменяет его на GridSpan во время открытия файла
