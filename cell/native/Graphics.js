@@ -982,6 +982,9 @@ CGraphics.prototype =
 
     SetIntegerGrid : function(param)
     {
+        // disable (поправить в native-sdk)
+        param = false;
+
         this.m_bIntegerGrid = param;
         this.Native["PD_SetIntegerGrid"](param);
     },
