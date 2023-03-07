@@ -2809,7 +2809,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                 }
             }
 			
-			if ((CurRow > FirstRow || CurPage > 0) && this.RowsInfo[CurRow - 1].VMerged)
+			if (CurRow > 0 && (CurRow > FirstRow || CurPage > 0) && this.RowsInfo[CurRow - 1].VMerged)
 			{
 				bContentOnFirstPage   = true;
 				bNoContentOnFirstPage = false;
@@ -2981,7 +2981,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                 }
             }
 	
-			if ((CurRow > FirstRow || CurPage > 0) && this.RowsInfo[CurRow - 1].VMerged)
+			if (CurRow > 0 && (CurRow > FirstRow || CurPage > 0) && this.RowsInfo[CurRow - 1].VMerged)
 				bContentOnFirstPage = true;
 
             this.RowsInfo[CurRow].FirstPage = bContentOnFirstPage;
