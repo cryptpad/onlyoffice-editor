@@ -446,7 +446,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 	this.private_CheckNestedComplexFields();
 	this.private_UpdateInstruction();
 
-	if (!this.Instruction || !this.BeginChar || !this.EndChar || !this.SeparateChar)
+	if (!this.Instruction || !this.IsValid())
 		return;
 
 	this.SelectFieldValue();
