@@ -1745,12 +1745,12 @@ Paragraph.prototype.GetNumberingTextPr = function()
 {
 	var oNumPr = this.GetNumPr();
 	if (!oNumPr)
-		return new CTextPr();
+		return AscWord.DEFAULT_TEXT_PR;
 
 	var oNumbering = this.Parent.GetNumbering();
 	var oNum       = oNumbering.GetNum(oNumPr.NumId);
 	if (!oNum)
-		return new CTextPr();
+		return AscWord.DEFAULT_TEXT_PR;
 
 	var oLvl = oNum.GetLvl(oNumPr.Lvl);
 
@@ -2926,7 +2926,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 							&& "0" !== oPrevNumPr.NumId))
 						{
 							var oPrevNumLvl = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
-							oPrevNumTextPr.Merge(oTextPrTemp);
+							oPrevNumTextPr.Merge(this.TextPr.Value.Copy());
 							oPrevNumTextPr.Merge(oPrevNumLvl.GetTextPr());
 						}
 
