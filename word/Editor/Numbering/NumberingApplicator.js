@@ -682,8 +682,9 @@
 	 */
 	function CNumInfo(numInfo)
 	{
-		this.Type = numInfo && numInfo["Type"] ? numInfo["Type"] : "";
-		this.Lvl  = numInfo && numInfo["Lvl"] && numInfo["Lvl"].length ? numInfo["Lvl"] : [];
+		this.Type     = numInfo && numInfo["Type"] ? numInfo["Type"] : "";
+		this.Lvl      = numInfo && numInfo["Lvl"] && numInfo["Lvl"].length ? numInfo["Lvl"] : [];
+		this.Headings = numInfo ? !!numInfo["Headings"] : false;
 	}
 	//---------------------------------------------------------export---------------------------------------------------
 	window["AscWord"].CNumberingApplicator = CNumberingApplicator;

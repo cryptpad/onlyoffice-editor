@@ -43,6 +43,7 @@ const allTests = [
 	'word/document-calculation/textShaper/textShaper.html',
 	'word/forms/forms.html',
 	'word/forms/complexForm.html',
+	'word/numbering/numberingApplicator.html',
 	'word/api/api.html',
 	'word/api/textInput.html',
 	'word/styles/paraPr.html',
