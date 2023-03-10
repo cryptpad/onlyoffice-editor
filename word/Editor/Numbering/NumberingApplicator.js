@@ -490,6 +490,10 @@
 			this.ApplyNumPr(numId, 0);
 			this.ApplyToHeadings(numId);
 		}
+		else
+		{
+			this.LinkNumWithHeadings(num);
+		}
 
 		return true;
 	};
@@ -647,7 +651,7 @@
 			return;
 
 		let num          = this.Numbering.GetNum(numId);
-		let styleManager = this.Document.GetStyles();
+		let styleManager = this.Document.GetStyleManager();
 		if (num && !styleManager.HaveHeadingsNum())
 		{
 			num.LinkWithHeadings(styleManager);
@@ -666,6 +670,15 @@
 
 			this.Document.UpdateStylePanel();
 		}
+	};
+	CNumberingApplicator.prototype.LinkNumWithHeadings = function(num)
+	{
+		if (!num || !this.NumInfo.Headings)
+			return;
+		
+		let styleManager = this.Document.GetStyleManager();
+		num.LinkWithHeadings(styleManager);
+		this.Document.UpdateStylePanel();
 	};
 	CNumberingApplicator.prototype.UpdateDocumentOutline = function()
 	{

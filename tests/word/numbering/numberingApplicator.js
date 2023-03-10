@@ -34,13 +34,36 @@
 
 $(function ()
 {
-	const logicDocument = AscTest.CreateLogicDocument();
-	const styleManager  = logicDocument.GetStyleManager();
+	const logicDocument    = AscTest.CreateLogicDocument();
+	const styleManager     = logicDocument.GetStyleManager();
+	const numberingManager = logicDocument.GetNumberingManager();
 	
 	QUnit.module("Test the application of numbering to the document");
 	
 	QUnit.test("Numbering for headings", function (assert)
 	{
+		function CheckHeading(iLvl, text)
+		{
+			let p     = logicDocument.GetElement(iLvl);
+			let numPr = p.GetNumPr();
+			let num   = numberingManager.GetNum(numPr.NumId);
+			if (!num)
+				return assert.strictEqual(false, true, "No numbering in heading " + (iLvl + 1));
+
+			let numLvl  = num.GetLvl(iLvl);
+			let styleId = styleManager.GetDefaultHeading(iLvl);
+			let style   = styleManager.Get(styleId);
+			if (!style)
+				return assert.strictEqual(false, true, "No style for heading " + (iLvl + 1));
+			
+			if (!style.ParaPr.NumPr)
+				return assert.strictEqual(false, true, "No numbering in style for heading " + (iLvl + 1));
+			
+			assert.strictEqual(p.GetNumberingText(false), text, "Check numbering text for heading " + (iLvl + 1));
+			assert.strictEqual(numLvl.GetPStyle(), styleId, "Check heading style in numbering for heading " + (iLvl + 1));
+			assert.deepEqual(numPr, style.ParaPr.NumPr, "Check numbering in heading style for heading " + (iLvl + 1));
+		}
+		
 		AscTest.ClearDocument();
 		
 		for (let iHead = 0; iHead < 9; ++iHead)
@@ -59,16 +82,27 @@ $(function ()
 		logicDocument.SetParagraphNumbering(AscWord.GetNumberingObjectByDeprecatedTypes(2, 4));
 		AscTest.Recalculate();
 		
-		assert.strictEqual(logicDocument.GetElement(0).GetNumberingText(false), "Article I.", "Check numbering text for heading 1");
-		assert.strictEqual(logicDocument.GetElement(1).GetNumberingText(false), "Section I.01", "Check numbering text for heading 2");
-		assert.strictEqual(logicDocument.GetElement(2).GetNumberingText(false), "(a)", "Check numbering text for heading 3");
-		assert.strictEqual(logicDocument.GetElement(3).GetNumberingText(false), "(i)", "Check numbering text for heading 4");
-		assert.strictEqual(logicDocument.GetElement(4).GetNumberingText(false), "1)", "Check numbering text for heading 5");
-		assert.strictEqual(logicDocument.GetElement(5).GetNumberingText(false), "a)", "Check numbering text for heading 6");
-		assert.strictEqual(logicDocument.GetElement(6).GetNumberingText(false), "i)", "Check numbering text for heading 7");
-		assert.strictEqual(logicDocument.GetElement(7).GetNumberingText(false), "a.", "Check numbering text for heading 8");
-		assert.strictEqual(logicDocument.GetElement(8).GetNumberingText(false), "i.", "Check numbering text for heading 8");
+		CheckHeading(0, "Article I.");
+		CheckHeading(1, "Section I.01");
+		CheckHeading(2, "(a)");
+		CheckHeading(3, "(i)");
+		CheckHeading(4, "1)");
+		CheckHeading(5, "a)");
+		CheckHeading(6, "i)");
+		CheckHeading(7, "a.");
+		CheckHeading(8, "i.");
 		
-
+		logicDocument.SetParagraphNumbering(AscWord.GetNumberingObjectByDeprecatedTypes(2, 7));
+		AscTest.Recalculate();
+		
+		CheckHeading(0, "1.");
+		CheckHeading(1, "1.1.");
+		CheckHeading(2, "1.1.1.");
+		CheckHeading(3, "1.1.1.1.");
+		CheckHeading(4, "1.1.1.1.1.");
+		CheckHeading(5, "1.1.1.1.1.1.");
+		CheckHeading(6, "1.1.1.1.1.1.1.");
+		CheckHeading(7, "1.1.1.1.1.1.1.1.");
+		CheckHeading(8, "1.1.1.1.1.1.1.1.1.");
 	});
 });

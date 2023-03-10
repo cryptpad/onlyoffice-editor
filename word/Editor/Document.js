@@ -10535,6 +10535,10 @@ CDocument.prototype.GetNumbering = function()
 {
 	return this.Numbering;
 };
+CDocument.prototype.GetNumberingManager = function()
+{
+	return this.GetNumbering();
+};
 /**
  * Получаем стиль по выделенному фрагменту
  */
