@@ -2383,6 +2383,19 @@ background-repeat: no-repeat;\
 				window["AscDesktopEditor"]["Print"](JSON.stringify(desktopOptions));
 				return true;
 			}
+			else
+			{
+				if (window["AscDesktopEditor"] && !window["AscDesktopEditor"]["IsLocalFile"]() && window["AscDesktopEditor"]["SetPdfCloudPrintFileInfo"])
+				{
+					if (!window["AscDesktopEditor"]["IsCachedPdfCloudPrintFileInfo"]())
+					{
+						var viewer = this.WordControl.m_oDrawingDocument.m_oDocumentRenderer;
+						window["AscDesktopEditor"]["SetPdfCloudPrintFileInfo"](AscCommon.Base64.encode(viewer.getFileNativeBinary()), viewer.savedPassword ? viewer.savedPassword : "");
+					}
+					window["AscDesktopEditor"]["Print"](JSON.stringify(desktopOptions));
+				}
+				return true;
+			}
 		}
 		else
 		{

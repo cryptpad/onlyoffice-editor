@@ -162,6 +162,7 @@
 		this.file = null;
 		this.isStarted = false;
 		this.isCMapLoading = false;
+		this.savedPassword = "";
 
 		this.scrollWidth = this.Api.isMobileVersion ? 0 : 14;
 		this.isVisibleHorScroll = false;
@@ -868,8 +869,18 @@
 				return;
 			}
 
+			if (window["AscDesktopEditor"] && !window["AscDesktopEditor"]["IsLocalFile"]())
+				this.savedPassword = password;
+
 			this.pagesInfo.setCount(this.file.pages.length);
 			this.checkLoadCMap();
+		};
+
+		this.getFileNativeBinary = function()
+		{
+			if (!this.file || !this.file.isValid())
+				return null;
+			return this.file.getFileBinary();
 		};
 
 		this.setZoom = function(value)
