@@ -869,7 +869,7 @@
 				return;
 			}
 
-			if (window["AscDesktopEditor"] && !window["AscDesktopEditor"]["IsLocalFile"]())
+			if (window["AscDesktopEditor"])
 				this.savedPassword = password;
 
 			this.pagesInfo.setCount(this.file.pages.length);
