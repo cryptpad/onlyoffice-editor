@@ -39,6 +39,7 @@
 	NON_LETTER_SYMBOLS[0x00AE] = 1;
 
 	const CHECKED_LIMIT = 2000;
+	
 
 	/**
 	 * Класс для проверки орфографии внутри параграфа
@@ -207,10 +208,11 @@
 	{
 		if (!oElement.IsPunctuation())
 			return false;
-
+		
 		// Исключения, полученнные опытным путем
 		let nUnicode = oElement.GetCodePoint();
-		return (!(0x2019 === nUnicode && lcid_frFR === this.CurLcid));
+		return (!(0x2019 === nUnicode && lcid_frFR === this.CurLcid)
+			&& !(0x2018 === nUnicode && (lcid_uzLatnUZ === this.CurLcid || lcid_uzCyrlUZ === this.CurLcid)));
 	};
 	CParagraphSpellCheckerCollector.prototype.IsWordLetter = function(oElement)
 	{

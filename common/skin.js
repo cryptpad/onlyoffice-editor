@@ -149,7 +149,7 @@ var EditorSkins = {
 		ColorDark                : "#ffffff",
 		ColorDarkActive          : "#ffffff",
 		ColorDarkHighlighted     : "#c1c1c1",
-		ColorDarkFiltering       : "#6BEC9F",
+		ColorDarkFiltering       : "#7AFFAF",
 
 		GroupDataBorder          : "#000000",
 		EditorBorder             : "#cbcbcb"
@@ -258,14 +258,14 @@ var EditorSkins = {
 		ColorHighlighted         : "#d9d9d9",
 		ColorFiltering           : "#6BEC9F",
 
-		BackgroundDark           : "#111111",
-		BackgroundDarkActive     : "#333333",
-		BackgroundDarkHighlighted: "#000000",
+		BackgroundDark           : "#55B27B",
+		BackgroundDarkActive     : "#7AFFAF",
+		BackgroundDarkHighlighted: "#6EE59F",
 
-		ColorDark                : "#ffffff",
-		ColorDarkActive          : "#ffffff",
-		ColorDarkHighlighted     : "#ffffff",
-		ColorDarkFiltering       : "#6BEC9F",
+		ColorDark                : "#333",
+		ColorDarkActive          : "#333",
+		ColorDarkHighlighted     : "#333",
+		ColorDarkFiltering       : "#ffffff",
 
 		GroupDataBorder          : "#ffffff",
 		EditorBorder             : "#2a2a2a"
@@ -358,17 +358,19 @@ function updateGlobalSkinColors(theme)
 		BorderActive                    : "canvas-cell-title-border-selected",
 		BorderHighlighted               : "canvas-cell-title-border-hover",
 
-		Color                           : "text-normal",
-		ColorActive                     : "text-normal",
-		ColorHighlighted                : "text-normal",
+		Color                           : "canvas-cell-title",
+		ColorActive                     : "canvas-cell-title",
+		ColorHighlighted                : "canvas-cell-title",
 
 		BackgroundDark                  : "canvas-dark-cell-title",
 		BackgroundDarkActive            : "canvas-dark-cell-title-selected",
 		BackgroundDarkHighlighted       : "canvas-dark-cell-title-hover",
 
-		ColorDark                       : "text-contrast-background",
-		ColorDarkActive                 : "text-contrast-background",
-		ColorDarkHighlighted            : "text-contrast-background",
+		ColorDark                       : "canvas-dark-cell-title-text",
+		ColorDarkActive                 : "canvas-dark-cell-title-text",
+		ColorDarkHighlighted            : "canvas-dark-cell-title-text",
+
+		ColorDarkFiltering              : "canvas-dark-cell-title-text-filtered",
 
 		GroupDataBorder                 : "canvas-high-contrast",
 		EditorBorder                    : "border-toolbar"

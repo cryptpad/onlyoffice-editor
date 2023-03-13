@@ -126,6 +126,13 @@ CNumberingLvl.prototype.GetParaPr = function()
 	return this.ParaPr;
 };
 /**
+ * @param paraPr {AscWord.CParaPr}
+ */
+CNumberingLvl.prototype.SetParaPr = function(paraPr)
+{
+	this.ParaPr = paraPr;
+};
+/**
  * Доступ к содержимому нумерации
  * @returns {[CNumberingLvlTextString | CNumberingLvlTextNum]}
  */
@@ -2758,9 +2765,24 @@ CNumberingLvl.prototype.private_CheckSymbols = function()
 			}
 		}
 	}
-}
+};
+CNumberingLvl.prototype.GetSymbols = function()
+{
+	let symbols = "";
+	for (let index = 0, count = this.LvlText.length; index < count; ++index)
+	{
+		let textItem = this.LvlText[index];
+		if (textItem.IsText())
+			symbols += textItem.GetValue();
+	}
 
+	if (this.IsLgl)
+		symbols += "0123456789";
 
+	// TODO: Добавить символы, в зависимости от формата
+
+	return symbols;
+};
 
 function CNumberingLvlTextString(Val)
 {
@@ -2872,3 +2894,6 @@ CNumberingLvlLegacy.prototype.ReadFromBinary = function(oReader)
 	this.Indent = oReader.GetLong();
 	this.Space  = oReader.GetLong();
 };
+//---------------------------------------------------------export---------------------------------------------------
+window['AscWord'] = window['AscWord'] || {};
+window["AscWord"].CNumberingLvl = CNumberingLvl;

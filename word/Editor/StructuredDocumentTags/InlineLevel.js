@@ -246,9 +246,30 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl, oPr)
 	oContentControl.SetPlaceholder(this.private_CopyPlaceholder(oPr));
 	oContentControl.SetContentControlEquation(this.Pr.Equation);
 	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
-
+	
 	if (undefined !== this.Pr.FormPr)
-		oContentControl.SetFormPr(this.Pr.FormPr);
+	{
+		let formPr = this.Pr.FormPr.Copy();
+		
+		let fieldMaster   = formPr.GetFieldMaster();
+		let logicDocument = this.GetLogicDocument();
+		let oform         = logicDocument ? logicDocument.GetOFormDocument() : null;
+		
+		// Если у нас не начато действие, то мы не должны создавать или регистрировать
+		// никакие поля
+		if (oform && fieldMaster && logicDocument.IsActionStarted())
+		{
+			let newFieldMaster = oform.getFormat().createFieldMaster();
+			fieldMaster.copyTo(newFieldMaster);
+			formPr.SetFieldMaster(newFieldMaster);
+		}
+		else
+		{
+			formPr.SetFieldMaster(undefined);
+		}
+		
+		oContentControl.SetFormPr(formPr);
+	}
 
 	if (undefined !== this.Pr.TextForm)
 		oContentControl.SetTextFormPr(this.Pr.TextForm);
@@ -321,6 +342,9 @@ CInlineLevelSdt.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 };
 CInlineLevelSdt.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	if (Count <= 0)
+		return;
+
 	// Получим массив удаляемых элементов
 	var DeletedItems = this.Content.slice(Pos, Pos + Count);
 	History.Add(new CChangesParaFieldRemoveItem(this, Pos, DeletedItems));
@@ -1330,9 +1354,12 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 
 	if (this.IsContentControlEquation())
 	{
+		let textPr = this.GetDefaultTextPr();
+		
 		var oParaMath = new ParaMath();
-		oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph());
+		oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph(), textPr.Copy());
 		oParaMath.Root.Correct_Content(true);
+		oParaMath.ApplyTextPr(textPr.Copy(), undefined, true);
 		this.AddToContent(0, oParaMath);
 	}
 	else
@@ -1522,6 +1549,9 @@ CInlineLevelSdt.prototype.SetPr = function(oPr)
 
 	if (undefined !== oPr.Color)
 		this.SetColor(oPr.Color);
+
+	if(undefined !== oPr.OForm)
+		this.SetOForm(oPr.OForm);
 };
 /**
  * Выставляем настройки текста по умолчанию для данного контрола
@@ -1637,6 +1667,11 @@ CInlineLevelSdt.prototype.SetContentControlLock = function(nLockType)
 		History.Add(new CChangesSdtPrLock(this, this.Pr.Lock, nLockType));
 		this.Pr.Lock = nLockType;
 	}
+};
+CInlineLevelSdt.prototype.SetOForm = function(oOForm)
+{
+	History.Add(new CChangesSdtPrOForm(this, this.Pr.OForm, oOForm));
+	this.Pr.OForm = oOForm;
 };
 CInlineLevelSdt.prototype.GetContentControlLock = function()
 {
@@ -2254,19 +2289,19 @@ CInlineLevelSdt.prototype.GetDatePickerPr = function()
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
  * @param oPr {AscWord.CSdtDatePickerPr}
+ * @param updateValue {boolean}
  */
-CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
+CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr, updateValue)
 {
 	this.SetDatePickerPr(oPr);
 
 	if (!this.IsDatePicker())
 		return;
 
-	this.SetPlaceholder(c_oAscDefaultPlaceholderName.DateTime);
-	if (this.IsPlaceHolder())
+	if (true === updateValue || !this.IsPlaceHolder())
+		this.private_UpdateDatePickerContent();
+	else
 		this.private_FillPlaceholderContent();
-
-	this.private_UpdateDatePickerContent();
 };
 CInlineLevelSdt.prototype.private_UpdateDatePickerContent = function()
 {

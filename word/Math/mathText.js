@@ -1019,6 +1019,40 @@ CMathText.prototype.ToSearchElement = function(oProps)
 
 	return new AscCommonWord.CSearchTextItemChar(nCodePoint);
 };
+CMathText.prototype.GetTextOfElement = function(isLaTeX) {
+	var strPre = "";
+
+	if (this.Parent) {
+		var oParentMathPrp = this.Parent.MathPrp.scr;
+
+		if (1 === oParentMathPrp) {
+			strPre = '\\script';
+		} else if (2 === oParentMathPrp) {
+			strPre = '\\fraktur';
+		} else if (3 === oParentMathPrp) {
+			strPre = '\\double';
+		}
+	}
+
+    if (isLaTeX)
+    {
+        let str = AscMath.SymbolsToLaTeX[String.fromCharCode(this.value)];
+        if (str)
+        {
+            return str + " ";
+        }
+
+    }
+
+    if (this.value && this.value !== 11034)
+        return strPre + AscCommon.encodeSurrogateChar(this.value);
+
+	return "";
+};
+CMathText.prototype.GetCodePoint = function()
+{
+    return this.value;
+};
 /*CMathText.prototype.Recalculate_Reset = function(StartRange, StartLine, PRS)
 {
     var bNotUpdate = PRS !== null && PRS!== undefined && PRS.bFastRecalculate == true;
@@ -1145,6 +1179,11 @@ CMathAmp.prototype.Write_ToBinary = function(Writer)
 CMathAmp.prototype.Read_FromBinary = function(Reader)
 {
 };
+CMathAmp.prototype.GetTextOfElement = function(isLaTeX)
+{
+	return '&'
+};
+
 
 function CMathInfoTextPr(InfoTextPr)
 {
@@ -1400,4 +1439,7 @@ var q_Math_BreakOperators =
     0x00D7: 1, 0x00F7:  1
 };
 
-
+//--------------------------------------------------------export----------------------------------------------------
+window['AscWord'] = window['AscWord'] || {};
+window['AscWord'].CMathText = CMathText;
+window['AscWord'].CMathAmp = CMathAmp;

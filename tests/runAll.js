@@ -33,9 +33,9 @@
 const path = require("path");
 
 const allTests = [
-	'../cell/.unit-tests/FormulaTests.html',
-	'../cell/.unit-tests/subdir/PivotTests.html',
-	'../cell/.unit-tests/CopyPasteTests.html',
+	'cell/spreadsheet-calculation/FormulaTests.html',
+	'cell/spreadsheet-calculation/PivotTests.html',
+	'cell/spreadsheet-calculation/CopyPasteTests.html',
 	'word/unit-tests/paragraphContentPos.html',
 	'word/document-calculation/paragraph.html',
 	'word/document-calculation/table/flowTablePosition.html',
@@ -44,7 +44,10 @@ const allTests = [
 	'word/forms/complexForm.html',
 	'word/api/api.html',
 	'word/api/textInput.html',
-	'word/styles/paraPr.html'
+	'word/styles/paraPr.html',
+	
+	
+	'oform/xml/oformXml.html'
 ];
 
 const {performance} = require('perf_hooks');
@@ -76,6 +79,8 @@ async function Run()
 			})
 			.catch(ex =>
 			{
+				count++;
+				failed.push(allTests[nIndex]);
 				console.error(ex);
 			});
 	}

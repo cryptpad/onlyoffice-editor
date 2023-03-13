@@ -74,6 +74,9 @@ var AscCommonExcel = window["AscCommonExcel"];
 window["AscCommonWord"] = {};
 var AscCommonWord = window["AscCommonWord"];
 
+window["AscMath"] = {};
+var AscMath = window["AscMath"];
+
 window["AscCommonSlide"] = {};
 var AscCommonSlide = window["AscCommonSlide"];
 
@@ -82,6 +85,9 @@ var AscBuilder = window["AscBuilder"];
 
 window["AscWord"] = {};
 var AscWord = window["AscWord"];
+
+window["AscJsonConverter"] = {};
+var AscJsonConverter = window["AscJsonConverter"];
 
 function Image()
 {

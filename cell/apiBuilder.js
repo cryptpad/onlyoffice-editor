@@ -49,6 +49,7 @@
 	 * @property {Array} Sheets - Returns the Sheets collection that represents all the sheets in the active workbook.
 	 * @property {ApiWorksheet} ActiveSheet - Returns an object that represents the active sheet.
 	 * @property {ApiRange} Selection - Returns an object that represents the selected range.
+	 * @property {ApiComment[]} Comments - Returns an array of ApiComment objects.
 	 */
 	var Api = window["Asc"]["spreadsheet_api"];
 
@@ -56,7 +57,7 @@
  	* The callback function which is called when the specified range of the current sheet changes.
  	* <note>Please note that the event is not called for the undo/redo operations.</note>
 	* @event Api#onWorksheetChange
-	* @property {ApiRange} range - The modified range represented as the ApiRange object.
+	* @param {ApiRange} range - The modified range represented as the ApiRange object.
  	*/
 
 	/**
@@ -215,10 +216,10 @@
 
 	/**
      * Possible values for the position of chart tick labels (either horizontal or vertical).
-     * * **"none"** - does not display the selected tick labels.
-     * * **"nextTo"** - sets the position of the selected tick labels next to the main label.
-     * * **"low"** - sets the position of the selected tick labels in the part of the chart with lower values.
-     * * **"high"** - sets the position of the selected tick labels in the part of the chart with higher values.
+     * * <b>"none"</b> - does not display the selected tick labels.
+     * * <b>"nextTo"</b> - sets the position of the selected tick labels next to the main label.
+     * * <b>"low"</b> - sets the position of the selected tick labels in the part of the chart with lower values.
+     * * <b>"high"</b> - sets the position of the selected tick labels in the part of the chart with higher values.
 	 * @typedef {("none" | "nextTo" | "low" | "high")} TickLabelPosition
 	 * **/
 	
@@ -279,9 +280,9 @@
 	 * @constructor
 	 * @property {string} Text - Returns the text from the first cell in range.
 	 */
-	function ApiComment(comment, ws) {
+	function ApiComment(comment, wb) {
 		this.Comment = comment;
-		this.WS = ws;
+		this.WB = wb;
 	}
 
 	/**
@@ -779,6 +780,25 @@
 	Api.prototype["detachEvent"] = Api.prototype.detachEvent;
 
 	/**
+	 * Returns an array of ApiComment objects.
+	 * @memberof Api
+	 * @typeofeditors ["CSE"]
+	 * @returns {ApiComment[]}
+	 */
+	Api.prototype.GetComments = function () {
+		var comments = [];
+		for (var i = 0; i < this.wbModel.aComments.length; i++) {
+			comments.push(new ApiComment(this.wbModel.aComments[i], this.wb));
+		}
+		return comments;
+	};
+	Object.defineProperty(Api.prototype, "Comments", {
+		get: function () {
+			return this.GetComments();
+		}
+	});
+
+	/**
 	 * Returns the state of sheet visibility.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
@@ -1018,11 +1038,33 @@
 	 * from a single row - <b>A1:E1</b>, or cells from a single column - <b>A1:A10</b>, or cells from several rows and columns - <b>A1:E10</b>.
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
-	 * @param {string} sRange - The range of cells from the current sheet.
+	 * @param {string | ApiRange} Range1 - The range of cells from the current sheet.
+	 * @param {string | ApiRange} Range2 - The range of cells from the current sheet.
 	 * @returns {ApiRange | null} - returns null if such a range does not exist.
 	 */
-	ApiWorksheet.prototype.GetRange = function (sRange) {
-		var Range = this.worksheet.getRange2(sRange);
+	ApiWorksheet.prototype.GetRange = function (Range1, Range2) {
+		var Range, r1, c1, r2, c2;
+		Range1 = (Range1 instanceof ApiRange) ? Range1.range : (typeof Range1 == 'string') ? this.worksheet.getRange2(Range1) : null;
+
+		if (!Range1) {
+			return new Error('Incorrect "Range1" or it is empty.')
+		}
+		
+		Range2 = (Range2 instanceof ApiRange) ? Range2.range : (typeof Range2 == 'string') ? this.worksheet.getRange2(Range2) : null;
+
+		if (Range2) {
+			r1 = Math.min(Range1.bbox.r1, Range2.bbox.r1);
+			c1 = Math.min(Range1.bbox.c1, Range2.bbox.c1);
+			r2 = Math.max(Range1.bbox.r2, Range2.bbox.r2);
+			c2 = Math.max(Range1.bbox.c1, Range2.bbox.c2);
+		} else {
+			r1 = Range1.bbox.r1;
+			c1 = Range1.bbox.c1;
+			r2 = Range1.bbox.r2;
+			c2 = Range1.bbox.c2;
+		}
+
+		Range = this.worksheet.getRange3(r1, c1, r2, c2);
 
 		if (!Range)
 			return null;
@@ -1362,7 +1404,7 @@
 	ApiWorksheet.prototype.GetComments = function () {
 		var comments = [];
 		for (var i = 0; i < this.worksheet.aComments.length; i++) {
-			comments.push(new ApiComment(this.worksheet.aComments[i], this.worksheet.workbook.getWorksheet(this.Index)));
+			comments.push(new ApiComment(this.worksheet.aComments[i], this.worksheet.workbook.oApi.wb));
 		}
 		return comments;
 	};
@@ -1387,23 +1429,36 @@
 	 * @typeofeditors ["CSE"]
 	 * @param {string} sRange - The range where the hyperlink will be added to.
 	 * @param {string} sAddress - The link address.
+	 * @param {string} subAddress - The link subaddress to insert internal sheet hyperlinks.
 	 * @param {string} sScreenTip - The screen tip text.
 	 * @param {string} sTextToDisplay - The link text that will be displayed on the sheet.
 	 * */
-	ApiWorksheet.prototype.SetHyperlink = function (sRange, sAddress, sScreenTip, sTextToDisplay)	{
+	ApiWorksheet.prototype.SetHyperlink = function (sRange, sAddress, subAddress, sScreenTip, sTextToDisplay) {
 		var range = new ApiRange(this.worksheet.getRange2(sRange));
-		if (range && range.range.isOneCell() && sAddress) {
-			var externalLink = AscCommon.rx_allowedProtocols.test(sAddress);
+		var address;
+		if ( range && range.range.isOneCell() && (sAddress || subAddress) ) {
+			var externalLink = sAddress ? AscCommon.rx_allowedProtocols.test(sAddress) : false;
 			if (externalLink && AscCommonExcel.getFullHyperlinkLength(sAddress) > Asc.c_nMaxHyperlinkLength) {
-				return null;
+				return new Error('Incorrect "sAddress".');
 			}
-
+			if (!externalLink) {
+				address = subAddress.split("!");
+				if (address.length == 1) 
+					address.unshift(this.GetName());
+				else if (this.worksheet.workbook.getWorksheetByName(address[0]) === null)
+					return new Error('Invalid "subAddress".')
+				
+				var res = this.worksheet.workbook.oApi.asc_checkDataRange(Asc.c_oAscSelectionDialogType.FormatTable, address[1], false);
+				if (res === Asc.c_oAscError.ID.DataRangeError) {
+					return new Error('Invalid "subAddress".');
+				}
+			}
 			this.worksheet.selectionRange.assign2(range.range.bbox);
 			var  Hyperlink = new Asc.asc_CHyperlink();
 			if (sScreenTip) {
 				Hyperlink.asc_setText(sScreenTip);
 			} else {
-				Hyperlink.asc_setText(sAddress);
+				Hyperlink.asc_setText( (externalLink ? sAddress : subAddress) );
 			}
 			if (sTextToDisplay) {
 				Hyperlink.asc_setTooltip(sTextToDisplay);
@@ -1411,8 +1466,8 @@
 			if (externalLink) {
 				Hyperlink.asc_setHyperlinkUrl(sAddress);
 			} else {
-				Hyperlink.asc_setRange(sAddress);
-				Hyperlink.asc_setSheet(this.GetName());
+				Hyperlink.asc_setRange(address[1]);
+				Hyperlink.asc_setSheet(address[0]);
 			}
 			this.worksheet.workbook.oApi.wb.insertHyperlink(Hyperlink);
 		}
@@ -2774,7 +2829,7 @@
 		}
 		var ws = this.range.worksheet.workbook.oApi.wb.getWorksheet(this.range.worksheet.getIndex());
 		var comment = ws.cellCommentator.getComment(this.range.bbox.c1, this.range.bbox.r1, false);
-		var res = comment ? new ApiComment(comment, ws) : null;
+		var res = comment ? new ApiComment(comment, this.range.worksheet.workbook.oApi.wb) : null;
 		return res;
 	};
 	Object.defineProperty(ApiRange.prototype, "Comments", {
@@ -4125,7 +4180,7 @@
 	 * @typeofeditors ["CSE"]
 	 */
 	ApiComment.prototype.Delete = function () {
-		this.WS.cellCommentator.removeComment(this.Comment.asc_getId());
+		this.WB.removeComment(this.Comment.asc_getId());
 	};
 
 	/**
@@ -4207,6 +4262,7 @@
 	Api.prototype["GetRange"] = Api.prototype.GetRange;
 
 	Api.prototype["RecalculateAllFormulas"] = Api.prototype.RecalculateAllFormulas;
+	Api.prototype["GetComments"] = Api.prototype.GetComments;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;

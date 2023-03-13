@@ -127,7 +127,7 @@ CDocumentControllerBase.prototype.Is_TopDocument = function(bReturnTopDocument)
 };
 /**
  * Получаем ссылку на объект, работающий с нумерацией.
- * @returns {CNumbering}
+ * @returns {AscWord.CNumbering}
  */
 CDocumentControllerBase.prototype.Get_Numbering = function()
 {

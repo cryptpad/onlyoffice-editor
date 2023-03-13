@@ -73,6 +73,8 @@ function CSdtPr()
 	this.FormPr        = undefined;
 	this.PictureFormPr = undefined;
 	this.ComplexFormPr = undefined;
+
+	this.OForm         = undefined;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -487,8 +489,10 @@ CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
 
 	if (oContentControl.IsForm())
 	{
-		this.FormPr = oContentControl.GetFormPr().Copy();
-		this.FormPr.SetFixed(oContentControl.IsFixedForm());
+		let mainForm = oContentControl.IsMainForm() ? oContentControl : oContentControl.GetMainForm();
+		
+		this.FormPr = mainForm.GetFormPr().Copy();
+		this.FormPr.SetFixed(mainForm.IsFixedForm());
 	}
 };
 CContentControlPr.prototype.SetToContentControl = function(oContentControl)
@@ -572,8 +576,7 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 	if (undefined !== this.PlaceholderText)
 		oContentControl.SetPlaceholderText(this.PlaceholderText);
 
-	if (undefined !== this.FormPr)
-		oContentControl.SetFormPr(this.FormPr);
+	this.SetFormPrToContentControl(oContentControl);
 
 	if (undefined !== this.PictureFormPr && oContentControl.IsInlineLevel())
 	{
@@ -583,6 +586,107 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 
 	if (undefined !== this.ComplexFormPr)
 		oContentControl.SetComplexFormPr(this.ComplexFormPr);
+};
+CContentControlPr.prototype.SetFormPrToContentControl = function(contentControl)
+{
+	if (!this.FormPr)
+		return;
+	
+	let formPr = this.FormPr;
+	
+	let newRole = formPr.GetRole();
+	if (contentControl.IsForm() && !contentControl.IsMainForm())
+	{
+		// Ключ у подформы должен сохраняться
+		let oldKey    = contentControl.GetFormKey();
+		let newFormPr = formPr.Copy();
+		newFormPr.SetKey(oldKey);
+		contentControl.SetFormPr(newFormPr);
+
+		contentControl = contentControl.GetMainForm();
+		if (!contentControl)
+			return;
+
+		formPr = contentControl.GetFormPr().Copy();
+		formPr.SetRole(newRole);
+	}
+
+	if (contentControl.IsComplexForm())
+	{
+		let subForms = contentControl.GetAllSubForms();
+		for (let index = 0, count = subForms.length; index < count; ++index)
+		{
+			subForms[index].SetFormRole(newRole);
+		}
+	}
+	
+	let newKey = formPr.GetKey();
+	let oldKey = contentControl.GetFormKey();
+	
+	let fieldMaster = contentControl.GetFieldMaster();
+	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
+	let oldRole     = userMaster ? userMaster.getRole() : null;
+	
+	let isKeyChanged = newKey && newKey !== oldKey;
+	let isRoleChanged = newRole && newRole !== oldRole;
+	
+	if (isKeyChanged && isRoleChanged)
+	{
+		// Такого не должно быть, ключ и роль не должны меняться одновременно, но если все же произошло,
+		// то выставляем все как задано в настройках, не делая ничего дополнительного
+	}
+	else if (isKeyChanged)
+	{
+		this.OnSetKeyToForm(newKey, contentControl);
+	}
+	else if (isRoleChanged)
+	{
+		this.OnSetRoleToForm(newRole, contentControl);
+	}
+	
+	contentControl.SetFormPr(formPr);
+};
+CContentControlPr.prototype.OnSetKeyToForm = function(newKey, form)
+{
+	let logicDocument = form.GetLogicDocument();
+	if (!logicDocument)
+		return;
+	
+	let formManager = logicDocument.GetFormsManager();
+	let role = formManager.GetRoleByKey(newKey, form.GetSpecificType());
+	if (!role)
+		return;
+	
+	this.FormPr.SetRole(role);
+};
+CContentControlPr.prototype.OnSetRoleToForm = function(newRole, form)
+{
+	let logicDocument = form.GetLogicDocument();
+	if (!logicDocument)
+		return;
+	
+	let formManager = logicDocument.GetFormsManager();
+	
+	let formKey = form.GetFormKey();
+	if (!formKey || "" === formKey)
+		return;
+	
+	let allForms = formManager.GetAllFormsByKey(formKey, form.GetSpecificType());
+	for (let index = 0, formCount = allForms.length; index < formCount; ++index)
+	{
+		let curForm = allForms[index];
+		if (curForm !== form)
+		{
+			let formPr = curForm.GetFormPr();
+			if (!formPr)
+				continue;
+			
+			let newFormPr = formPr.Copy();
+			newFormPr.SetRole(newRole);
+			newFormPr.SetFieldMaster(null);
+			curForm.SetFormPr(newFormPr);
+		}
+	}
 };
 CContentControlPr.prototype.GetId = function()
 {

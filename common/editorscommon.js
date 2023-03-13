@@ -54,131 +54,11 @@
 	var availableBidiLanguages = window['Asc'].availableBidiLanguages;
 	const fontslot_ASCII    = 0x01;
 
-	String.prototype.sentenceCase = function ()
-	{
-		var trimStr = this.trim();
-		if (trimStr.length === 0)
-		{
-			return "";
-		} else if (trimStr.length === 1)
-		{
-			return trimStr[0].toUpperCase();
-		}
-		return trimStr[0].toUpperCase() + trimStr.slice(1);
-	}
-	String.prototype['sentenceCase'] = String.prototype.sentenceCase;
-
-	if (typeof String.prototype.startsWith !== 'function')
-	{
-		String.prototype.startsWith = function (str)
-		{
-			return this.indexOf(str) === 0;
-		};
-		String.prototype['startsWith'] = String.prototype.startsWith;
-	}
-	if (typeof String.prototype.endsWith !== 'function')
-	{
-		String.prototype.endsWith = function (suffix)
-		{
-			return this.indexOf(suffix, this.length - suffix.length) !== -1;
-		};
-		String.prototype['endsWith'] = String.prototype.endsWith;
-	}
-	if (!String.prototype.trim) {
-		(function() {
-			// Вырезаем BOM и неразрывный пробел
-			String.prototype.trim = function() {
-				var reg = new RegExp('^[\\s\uFEFF\xA0]+|[\\s\uFEFF\xA0]+$', 'g');
-				return this.replace(reg, '');
-			};
-		})();
-	}
-	if (typeof String.prototype.repeat !== 'function')
-	{
-		String.prototype.repeat = function (count)
-		{
-			'use strict';
-			if (this == null)
-			{
-				throw new TypeError('can\'t convert ' + this + ' to object');
-			}
-			var str = '' + this;
-			count = +count;
-			if (count != count)
-			{
-				count = 0;
-			}
-			if (count < 0)
-			{
-				throw new RangeError('repeat count must be non-negative');
-			}
-			if (count == Infinity)
-			{
-				throw new RangeError('repeat count must be less than infinity');
-			}
-			count = Math.floor(count);
-			if (str.length == 0 || count == 0)
-			{
-				return '';
-			}
-			// Обеспечение того, что count является 31-битным целым числом, позволяет нам значительно
-			// соптимизировать главную часть функции. Впрочем, большинство современных (на август
-			// 2014 года) браузеров не обрабатывают строки, длиннее 1 << 28 символов, так что:
-			if (str.length * count >= 1 << 28)
-			{
-				throw new RangeError('repeat count must not overflow maximum string size');
-			}
-			var rpt = '';
-			for (; ;)
-			{
-				if ((count & 1) == 1)
-				{
-					rpt += str;
-				}
-				count >>>= 1;
-				if (count == 0)
-				{
-					break;
-				}
-				str += str;
-			}
-			return rpt;
-		};
-		String.prototype['repeat'] = String.prototype.repeat;
-	}
-	if (typeof String.prototype.padStart !== 'function') {
-		String.prototype.padStart = function padStart(targetLength,padString) {
-			targetLength = targetLength>>0; //floor if number or convert non-number to 0;
-			padString = String(padString || ' ');
-			if (this.length > targetLength) {
-				return String(this);
-			}
-			else {
-				targetLength = targetLength-this.length;
-				if (targetLength > padString.length) {
-					padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
-				}
-				return padString.slice(0,targetLength) + String(this);
-			}
-		};
-		String.prototype['padStart'] = String.prototype.padStart;
-	}
 	Number.isInteger = Number.isInteger || function(value) {
 		return typeof value === 'number' && Number.isFinite(value) && !(value % 1);
 	};
 	Number.isFinite = Number.isFinite || function(value) {
 		return typeof value === 'number' && isFinite(value);
-	};
-// Extend javascript String type
-	String.prototype.strongMatch = function (regExp)
-	{
-		if (regExp && regExp instanceof RegExp)
-		{
-			var arr = this.toString().match(regExp);
-			return !!(arr && arr.length > 0 && arr[0].length == this.length);
-		}
-
-		return false;
 	};
 
 	RegExp.escape = function ( text ) {
@@ -337,6 +217,11 @@
 		return window['SockJS'] || require('sockjs');
 	}
 
+	function getSocketIO()
+	{
+		return typeof window['io'] === 'function' ? window['io'] : require("socketio");
+	}
+
 	function getBaseUrl()
 	{
 		var indexHtml = window["location"]["href"];
@@ -346,6 +231,15 @@
 			indexHtml = indexHtml.substring(0, questInd);
 		}
     		return indexHtml.substring(0, indexHtml.lastIndexOf("/") + 1);
+	}
+	function getBaseUrlPathname()
+	{
+		let baseUrl = getBaseUrl();
+		return baseUrl.substring(getIndex(baseUrl, '/', 3));
+	}
+
+	function getIndex(str, substring, n) {
+		return str.split(substring).slice(0, n).join(substring).length;
 	}
 
 	function getEncodingParams()
@@ -438,7 +332,7 @@
 						 },
 		getImageUrl:     function (strPath)
 						 {
-							 return this.getUrl(this.mediaPrefix + strPath) || strPath;
+							 return this.getUrl(this.mediaPrefix + strPath);
 						 },
 		getImageLocal:   function (url)
 						 {
@@ -644,6 +538,43 @@
 		}
 		return stream;
 	}
+
+	function isPdfFormatFile(stream) {
+		let part = AscCommon.UTF8ArrayToString(stream, 0, 4096);//MIN_SIZE_BUFFER
+		return -1 !== part.indexOf("%PDF-");
+	}
+
+	function isDjvuFormatFile(stream) {
+		return stream.length > 4 && 0x41 == stream[0] && 0x54 == stream[1] && 0x26 == stream[2] &&
+			0x54 == stream[3] && 0x46 == stream[4] && 0x4f == stream[5] && 0x52 == stream[6] && 0x4d == stream[7];
+	}
+
+	function isXpsFormatFile(stream) {
+		if (!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] && 0x04 === stream[3])) {
+			//Local file header signature = 0x04034b50 (PK♥♦ or "PK\3\4")
+			return false;
+		}
+		let jsZlib = new AscCommon.ZLib();
+		if (!jsZlib.open(stream)) {
+			return false;
+		}
+		let _relsBytes = jsZlib.getFile("_rels/.rels");
+		let _rels = _relsBytes ? AscCommon.UTF8ArrayToString(_relsBytes, 0, _relsBytes.length) : "";
+
+		//todo combine pieces
+		let _relsPieceBytes = jsZlib.getFile("_rels/.rels/[0].piece");
+		let _relsPiece = _relsPieceBytes ? AscCommon.UTF8ArrayToString(_relsPieceBytes, 0, _relsPieceBytes.length) : "";
+		jsZlib.close();
+
+		if (-1 !== _rels.indexOf("fixedrepresentation") && (-1 !== _rels.indexOf("/xps/") || -1 !== _rels.indexOf("/oxps/"))) {
+			return true;
+		}
+
+		return !!_relsPiece;
+	}
+	function checkNativeViewerSignature(stream) {
+		return isPdfFormatFile(stream) || isDjvuFormatFile(stream) || isXpsFormatFile(stream);
+	}
 	function checkStreamSignature(stream, Signature) {
 		if (stream.length > Signature.length) {
 			for(var i = 0 ; i < Signature.length; ++i){
@@ -655,37 +586,67 @@
 		}
 		return false;
 	}
-	function checkOOXMLSignature(stream, Signature) {
-		if (!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] && 0x04 === stream[3])) {
+	function checkOOXMLSignature(stream) {
+		return null !== getEditorByOOXMLSignature(stream);
+	}
+	function getEditorByBinSignature(stream, Signature) {
+		if (stream.length > 4) {
+			let signature = AscCommon.UTF8ArrayToString(stream, 0, 4);
+			switch(signature) {
+				case "DOCY":
+					return AscCommon.c_oEditorId.Word;
+				case "XLSY":
+					return AscCommon.c_oEditorId.Spreadsheet;
+				case "PPTY":
+					return AscCommon.c_oEditorId.Presentation;
+			}
+		}
+		return null;
+	}
+	function getEditorByOOXMLSignature(stream) {
+		if (!(stream && stream.length > 4 && 0x50 === stream[0] && 0x4b === stream[1] && 0x03 === stream[2] &&
+			0x04 === stream[3])) {
 			//Local file header signature = 0x04034b50 (PK♥♦ or "PK\3\4")
-			return false;
+			return null;
 		}
 		let jsZlib = new AscCommon.ZLib();
 		if (!jsZlib.open(stream)) {
-			return false;
+			return null;
 		}
 		let contentTypesBytes = jsZlib.getFile("[Content_Types].xml");
 		let contentTypes = contentTypesBytes ? AscCommon.UTF8ArrayToString(contentTypesBytes, 0, contentTypesBytes.length) : "";
 		jsZlib.close();
 
-		return -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
+		if (-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-word.document.macroEnabled.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-word.template.macroEnabledTemplate.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.oform") ||
-			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.docxf") ||
-			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.docxf")) {
+			return AscCommon.c_oEditorId.Word;
+		} else if (-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.macroEnabled.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-excel.template.macroEnabled.main+xml") ||
-			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.binary.macroEnabled.main") ||
-			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.binary.macroEnabled.main")) {
+			return AscCommon.c_oEditorId.Spreadsheet;
+		} else if (-1 !== contentTypes.indexOf(
+				"application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml") ||
-			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.template.macroEnabled.main+xml");
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.template.macroEnabled.main+xml")) {
+			return AscCommon.c_oEditorId.Presentation;
+		} else {
+			return null;
+		}
 	}
+	function getEditorBySignature(stream) {
+		let res = getEditorByBinSignature(stream);
+		return null !== res ? res :getEditorByOOXMLSignature (stream);
+	}
+
 	function openFileCommand(docId, binUrl, changesUrl, changesToken, Signature, callback)
 	{
 		var nError = Asc.c_oAscError.ID.No, oResult = new OpenFileResult(), bEndLoadFile = false, bEndLoadChanges = false;
@@ -742,9 +703,14 @@
 					jsZlib.files.forEach(function(path){
 						let data = jsZlib.getFile(path);
 						if (data) {
-							if (path.endsWith('.json')) {
-								let text = AscCommon.UTF8ArrayToString(data, 0, data.length);
-								oResult.changes[parseInt(path.slice('changes'.length))] = JSON.parse(text);
+							if (path.endsWith('.bin') || path.endsWith('.json')) {
+								let index = parseInt(path.slice('changes'.length));
+								if(isBinaryChanges(data)) {
+									oResult.changes[index] = splitBinaryChanges(data);
+								} else {
+									let text = AscCommon.UTF8ArrayToString(data, 0, data.length);
+									oResult.changes[index] = JSON.parse(text);
+								}
 							} else {
 								oZipImages[path] = new Uint8Array(data);
 							}
@@ -862,9 +828,12 @@
 			case c_oAscServerError.ConvertLIMITS :
 				nRes = Asc.c_oAscError.ID.ConvertationOpenLimitError;
 				break;
+			case c_oAscServerError.ConvertPARAMS :
+				nRes = AscCommon.c_oAscAdvancedOptionsAction.Save === nAction ? Asc.c_oAscError.ID.ConvertationSaveError :
+						Asc.c_oAscError.ID.ConvertationOpenFormat;
+				break;
 			case c_oAscServerError.ConvertCONVERT_CORRUPTED :
 			case c_oAscServerError.ConvertLIBREOFFICE :
-			case c_oAscServerError.ConvertPARAMS :
 			case c_oAscServerError.ConvertNEED_PARAMS :
 			case c_oAscServerError.ConvertUnknownFormat :
 			case c_oAscServerError.ConvertReadFile :
@@ -1096,82 +1065,6 @@
 		return this.pos;
 	};
 	CUnicodeStringEmulator.prototype.check = CUnicodeStringEmulator.prototype.isInside;
-
-	function CUnicodeIterator(str)
-	{
-		this._position = 0;
-		this._index = 0;
-		this._str = str;
-	}
-
-	CUnicodeIterator.prototype.isOutside = function()
-	{
-		return (this._index >= this._str.length);
-	};
-	CUnicodeIterator.prototype.isInside = function()
-	{
-		return (this._index < this._str.length);
-	};
-	CUnicodeIterator.prototype.value = function()
-	{
-		if (this._index >= this._str.length)
-			return 0;
-
-		var nCharCode = this._str.charCodeAt(this._index);
-		if (!AscCommon.isLeadingSurrogateChar(nCharCode))
-			return nCharCode;
-
-		if ((this._str.length - 1) === this._index)
-			return nCharCode; // error
-
-		var nTrailingChar = this._str.charCodeAt(this._index + 1);
-		return AscCommon.decodeSurrogateChar(nCharCode, nTrailingChar);
-	};
-	CUnicodeIterator.prototype.next = function()
-	{
-		if (this._index >= this._str.length)
-			return;
-
-		this._position++;
-		if (!AscCommon.isLeadingSurrogateChar(this._str.charCodeAt(this._index)))
-		{
-			++this._index;
-			return;
-		}
-
-		if (this._index === (this._str.length - 1))
-		{
-			++this._index;
-			return;
-		}
-
-		this._index += 2;
-	};
-	CUnicodeIterator.prototype.position = function()
-	{
-		return this._position;
-	};
-	CUnicodeIterator.prototype.check = CUnicodeIterator.prototype.isInside;
-
-    /**
-	 * @returns {CUnicodeIterator}
-     */
-    String.prototype.getUnicodeIterator = function()
-    {
-        return new CUnicodeIterator(this);
-    };
-	/**
-	 * @returns {number[]}
-	 */
-	String.prototype.codePointsArray = function(codePoints)
-	{
-		let _codePoints = codePoints ? codePoints : [];
-
-		for (let iter = this.getUnicodeIterator(); iter.check(); iter.next())
-			_codePoints.push(iter.value());
-
-		return _codePoints;
-	};
 
 	var UTF8Decoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf8") : undefined;
 	function UTF8ArrayToString(u8Array, idx, maxBytesToRead) {
@@ -1508,6 +1401,10 @@
 		MaxFileSize:      25000000, //25 mb
 		SupportedFormats: ["txt", "csv"]
 	};
+	var c_oAscXmlUploadProp = {
+		MaxFileSize:      25000000, //25 mb
+		SupportedFormats: ["xml"]
+	};
 
 	/**
 	 *
@@ -1789,7 +1686,7 @@
 									case "onbeforedrop":
 									case "ondrop":
 									{
-										window.g_asc_plugins.api.privateDropEvent(data.data);
+										window.g_asc_plugins.api["plugin_Method_OnDropEvent"](data.data);
 										return;
 									}
 									default:
@@ -1932,6 +1829,11 @@
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
+	function ShowXmlFileDialog(callback) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscXmlUploadProp.SupportedFormats), false, false, ValidateUploadXml, callback)) {
+			callback(Asc.c_oAscError.ID.Unknown);
+		}
+	}
 
 	function InitDragAndDrop(oHtmlElement, callback)
 	{
@@ -2035,7 +1937,7 @@
 				'x-url': url
 			},
 			success: function(resp) {
-				fSuccess(resp.response);
+				fSuccess(AscCommon.initStreamFromResponse(resp));
 			},
 			error: fError
 		});
@@ -2284,6 +2186,10 @@
 	{
 		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscTextUploadProp);
 	}
+	function ValidateUploadXml(files)
+	{
+		return ValidateUpload(files, c_oAscServerError.UploadDocumentExtension, c_oAscServerError.UploadDocumentContentLength, c_oAscServerError.UploadDocumentCountFiles, c_oAscXmlUploadProp);
+	}
 
 	function CanDropFiles(event)
 	{
@@ -2419,6 +2325,8 @@
 		rx_ref3D_quoted       = new XRegExp("^'(?<name_from>(?:''|[^\\[\\]'\\/*?:])*)(?::(?<name_to>(?:''|[^\\[\\]'\\/*?:])*))?'!"),
 		rx_ref3D_non_quoted_2 = new XRegExp("^(?<name_from>[" + str_namedRanges + "\\d][" + str_namedRanges + "\\d.]*)(:(?<name_to>[" + str_namedRanges + "\\d][" + str_namedRanges + "\\d.]*))?!", "i"),
 		rx_ref3D              = new XRegExp("^(?<name_from>[^:]+)(:(?<name_to>[^:]+))?!"),
+		rx_ref_external       = /^(\[{1}(\d*)\]{1})/,
+		rx_ref_external2      = /^(\[{1}(\d*)\]{1})/,
 		rx_number             = /^ *[+-]?\d*(\d|\.)\d*([eE][+-]?\d+)?/,
 		rx_RightParentheses   = /^ *\)/,
 		rx_Comma              = /^ *[,;] */,
@@ -2445,17 +2353,81 @@
 
 		rx_ControlSymbols     = /^ *[\u0000-\u001F\u007F-\u009F] */,
 
-		emailRe               = /^(mailto:)?([a-z0-9'\._-]+@[a-z0-9\.-]+\.[a-z0-9]{2,4})([a-яё0-9\._%+-=\? :&]*)/i,
+		emailRe               = /^(mailto:)?([a-z0-9'\._+-]+@[a-z0-9\.+-]+\.[a-z0-9]{2,4})([a-яё0-9\._%+-=\? :&]*)/i,
 		ipRe                  = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(((1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9])\.){3}(1[0-9]{2}|2[0-4][0-9]|25[0-5]|[1-9][0-9]|[0-9]))(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?/i,
 		hostnameRe            = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
 		localRe               = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
+		fileRe                = /^((file):\/\/)[^'`"%^{}<>].*/i,//reserved symbols from word 2010
 		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa|smb):\/\/)|(mailto:)).*/i,
 
 		rx_table              = build_rx_table(null),
 		rx_table_local        = build_rx_table(null);
 
+
+	function parseExternalLink(url) {
+		//var regExpExceptExternalLink = /('?[a-zA-Z0-9\s\[\]\.]{1,99})?'?!?\$?[a-zA-Z]{1,3}\$?[0-9]{1,7}(:\$?[a-zA-Z]{1,3}\$?[0-9]{1,7})?/;
+
+		//'path/[name]Sheet1'!A1
+		var path, name, startLink, i;
+		if (url && url[0] === "'"/*url.match(/('[^\[]*\[[^\]]+\]([^'])+'!)/g)*/) {
+			for (i = url.length - 1; i >= 0; i--) {
+				if (url[i] === "!" && url[i - 1] === "'") {
+					startLink = true;
+					i--;
+					continue;
+				}
+				if (startLink) {
+					if (name) {
+						if (url[i] === "[" && (url[i - 1] === "/" || url[i - 1] === "/\/" ||  url[i - 1] === "\\" || (url[i - 1] === "'") && i === 1)) {
+							break;
+						} else {
+							name.end--;
+						}
+					} else {
+						if("]" === url[i]) {
+							name = {start: i, end: i};
+						}
+					}
+				}
+			}
+			if (name) {
+				var fullname = url.substring(0, name.start + 1);
+				path = url.substring(1, name.end - 1);
+				name = url.substring(name.end, name.start);
+				return {name: name, path: path, fullname: fullname};
+			}
+		} else if (url && url[0] === "[") { // [name]Sheet1!A1
+			for (i = 1; i < url.length; i++) {
+				if (url[i] === "]") {
+					return {name: url.substring(1, i), path: "", fullname:  url.substring(0, i + 1)};
+				}
+			}
+		} else if (true) { //https://s3.amazonaws.com/nct-files/xlsx/[ExternalLinksDestination.xlsx]Sheet1!A1:A2
+
+		}
+
+		return null;
+	}
+
+	function isValidFileUrl(url) {
+		if(!url.startsWith("file:")) {
+			return false;
+		}
+		if (true || AscBrowser.isIE) {
+			return url.strongMatch(fileRe);
+		}
+		try {
+			//https://stackoverflow.com/a/43467144
+			new URL(url);
+		} catch (err) {
+			return false;
+		}
+		return true;
+	}
 	function getUrlType(url)
 	{
+		//todo validate blob, ftp, http, https, ws, wss, file with new URL https://nodejs.org/api/url.html#special-schemes
+		//they are special-schemes https://url.spec.whatwg.org/#origin
 		var checkvalue = url.replace(new RegExp(' ', 'g'), '%20');
 		var isEmail;
 		var isvalid = checkvalue.strongMatch(hostnameRe);
@@ -2465,6 +2437,8 @@
 			return AscCommon.c_oAscUrlType.Http;
 		} else if (checkvalue.strongMatch(emailRe)) {
 			return AscCommon.c_oAscUrlType.Email;
+		} else if (checkvalue.startsWith("file:")) {
+			return isValidFileUrl(checkvalue) ? AscCommon.c_oAscUrlType.Unsafe : AscCommon.c_oAscUrlType.Invalid;
 		} else if (checkvalue.strongMatch(rx_allowedProtocols)) {
 			return AscCommon.c_oAscUrlType.Unsafe;
 		} else {
@@ -2841,17 +2815,42 @@
 			this._reset();
 		}
 
-		var subSTR = formula.substring(start_pos),
-			match  = XRegExp.exec(subSTR, rx_ref3D_quoted) || XRegExp.exec(subSTR, rx_ref3D_non_quoted);
+		//проверям на [0-9] - в таком виде мы получаем ссылки при открытии.
+		var subSTR = formula.substring(start_pos);
+		var external = XRegExp.exec(subSTR, rx_ref_external);
+		var externalLength = 0;
+		if (external && external[2]) {
+			externalLength = external[0].length;
+			subSTR = formula.substring(start_pos + externalLength);
+			external = external[2];
+		} else {
+			//1. при вводе в ячейку
+			//проверям на наличие ссылки при вводе 'C:\Users\[test.xlsx]Sheet1'!$A$1 (с обратным слэшем тоже нужно распознать) / 'https://test.net/[test.xlsx]Sheet1'!$A$1
+			//необходимо вычленить имя файла и путь к нему, затем проверить путь
+			//если путь указан, то ссылка должна быть в одинарных кавычках, если указан просто название файла в [] - в мс это означает, что данный файл открыт, при его закрытии путь проставляется
+			//пока не реализовываем с открытыми файлами, работаем только с путями
+			external = parseExternalLink(subSTR);
+			if (external) {
+				externalLength = external.fullname.length;
+				subSTR = formula.substring(start_pos + externalLength);
+				if (-1 !== subSTR.indexOf("'")) {
+					externalLength += 1;
+				}
+				subSTR = subSTR.replace("'", "");
+				external = external.path + external.name;
+			}
+		}
+
+		var match  = XRegExp.exec(subSTR, rx_ref3D_quoted) || XRegExp.exec(subSTR, rx_ref3D_non_quoted);
 		if(!match && support_digital_start) {
 			match = XRegExp.exec(subSTR, rx_ref3D_non_quoted_2);
 		}
 
 		if (match != null)
 		{
-			this.pCurrPos += match[0].length;
+			this.pCurrPos += match[0].length + externalLength;
 			this.operand_str = match[1];
-			return [true, match["name_from"] ? match["name_from"].replace(/''/g, "'") : null, match["name_to"] ? match["name_to"].replace(/''/g, "'") : null];
+			return [true, match["name_from"] ? match["name_from"].replace(/''/g, "'") : null, match["name_to"] ? match["name_to"].replace(/''/g, "'") : null, external];
 		}
 		return [false, null, null];
 	};
@@ -3272,7 +3271,7 @@
 				}
 			}
 		}
-		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType)
 		{
 			result = parserHelp.parse3DRef(dataRange);
 			if (result)
@@ -3282,7 +3281,7 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
-			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType) {
+			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType) {
 				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
@@ -3366,7 +3365,7 @@
 					return Asc.c_oAscError.ID.PivotLabledColumns;
 				}
 			}
-			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType)
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
@@ -3374,8 +3373,12 @@
 					if (!sheetModel) {
 						sheetModel = model.getActiveWs();
 					}
-					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-					return sheetModel.checkPivotReportLocationForError([newRange]);
+					if (Asc.c_oAscSelectionDialogType.ImportXml === dialogType) {
+						return sheetModel.checkImportXmlLocationForError([location.bbox]);
+					} else {
+						var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
+						return sheetModel.checkPivotReportLocationForError([newRange]);
+					}
 				} else {
 					return Asc.c_oAscError.ID.DataRangeError;
 				}
@@ -3390,6 +3393,7 @@
 			}
 			else if (Asc.c_oAscSelectionDialogType.ConditionalFormattingRule === dialogType)
 			{
+
 				if (dataRange === null || dataRange === "")
 				{
 					return Asc.c_oAscError.ID.DataRangeError;
@@ -3399,9 +3403,18 @@
 					if (dataRange[0] === "=") {
 						dataRange = dataRange.slice(1);
 					}
+
 					if (!parserHelp.isArea(dataRange) && !parserHelp.isRef(dataRange) && !parserHelp.isTable(dataRange))
 					{
 						return Asc.c_oAscError.ID.DataRangeError;
+					}
+
+					if (model) {
+						var aRanges = AscCommonExcel.getRangeByRef(dataRange, model.getActiveWs())
+						if (aRanges && aRanges.length === 0)
+						{
+							return Asc.c_oAscError.ID.DataRangeError;
+						}
 					}
 				}
 			}
@@ -3637,7 +3650,7 @@
 						// Some data has been received; however, neither responseText nor responseBody is available.
 						break;
 					case 4:
-						if (httpRequest.status === 200 || httpRequest.status === 1223 || url.indexOf("file:") == 0)
+						if (httpRequest.status === 200 || httpRequest.status === 1223 || location.href.indexOf("file:") == 0)
 						{
 							if (typeof success === "function")
 								success(httpRequest);
@@ -3862,9 +3875,17 @@
 		this.m_pData.Data.UseArray = true;
 		this.m_pData.Data.PosArray = this.m_aPositions;
 
-		Binary_Writer.WriteString2(this.m_pData.Class.Get_Id());
-		Binary_Writer.WriteLong(this.m_pData.Data.Type);
-		this.m_pData.Data.WriteToBinary(Binary_Writer);
+		if ((Asc.editor || editor).binaryChanges) {
+			Binary_Writer.WriteWithLen(this, function() {
+				Binary_Writer.WriteString2(this.m_pData.Class.Get_Id());
+				Binary_Writer.WriteLong(this.m_pData.Data.Type);
+				this.m_pData.Data.WriteToBinary(Binary_Writer);
+			});
+		} else {
+			Binary_Writer.WriteString2(this.m_pData.Class.Get_Id());
+			Binary_Writer.WriteLong(this.m_pData.Data.Type);
+			this.m_pData.Data.WriteToBinary(Binary_Writer);
+		}
 
 		var Binary_Len = Binary_Writer.GetCurPosition() - Binary_Pos;
 
@@ -9016,13 +9037,33 @@
 	}
 
 	/**
-	 * Проверяем является ли заданный юникод цифрой
+	 * Проверяем является ли заданный юникод буквой
 	 * @param nUnicode {number}
 	 * @returns {boolean}
 	 */
 	function IsLetter(nUnicode)
 	{
-		return (String.fromCodePoint(nUnicode).search(new RegExp("^\\p{L}", 'u')) !== -1);
+		let result = false;
+		let s = String.fromCodePoint(nUnicode);
+		try
+		{
+			result = (-1 !== s.search(new RegExp("^\\p{L}", 'u')));
+		}
+		catch (err)
+		{
+			result = (-1 !== s.search(new RegExp("^(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])")));
+		}
+		
+		return result;
+	}
+
+	/**
+	 * @param unicode
+	 * @returns {boolean}
+	 */
+	function IsPunctuation(unicode)
+	{
+		return !!(AscCommon.g_aPunctuation[unicode])
 	}
 
 	/**
@@ -9074,6 +9115,33 @@
 		}
 
 		return result;
+	}
+	
+	/**
+	 * Функция сравнивает две строки (они могут быть не заданы)
+	 * @param s1 {?string}
+	 * @param s2 {?string}
+	 * @returns {-1 | 0 | 1}
+	 */
+	function CompareStrings(s1, s2)
+	{
+		if ((undefined === s1 && undefined === s2)
+			|| (null === s1 && null === s2)
+			|| ("" === s1 && "" === s2))
+			return 0;
+		
+		if (!s1 && !s2)
+			return false;
+		else if (!s1 && s2)
+			return -1;
+		else if (s1 && !s2)
+			return 1;
+		else if (s1 < s2)
+			return -1;
+		else if (s2 > s2)
+			return 1;
+		
+		return s1 === s2 ? 0 : -1;
 	}
 
 	function IsAbbreviation(sWord)
@@ -9486,6 +9554,26 @@
 		return "0" !== val && "false" !== val && "off" !== val;
 	}
 
+	function isBinaryChanges(data) {
+		return 'CHANGES\t' === AscCommon.UTF8ArrayToString(data, 0, 'CHANGES;'.length);
+	}
+	function splitBinaryChanges(data) {
+		let changes = [];
+		let stream = new AscCommon.FT_Stream2(data, data.length);
+		//skip header
+		let charCode = "\n".charCodeAt(0);
+		while(charCode !== stream.GetByte()) {
+			;
+		}
+		while (stream.GetCurPos() < stream.GetSize()) {
+			let oldPos = stream.GetCurPos();
+			let size = stream.GetULong();
+			changes.push(data.subarray(oldPos, oldPos + size));
+			stream.Skip2(size);
+		}
+		return changes;
+	}
+
 	function CUserCacheColor(nColor)
 	{
 		this.Light = null;
@@ -9577,6 +9665,34 @@
 
 	function loadChartStyles(onSuccess, onError) {
 		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
+	}
+
+	function loadSmartArtBinary(fOnError) {
+		if (window["NATIVE_EDITOR_ENJINE"]) {
+			return;
+		}
+		loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
+			if (httpRequest && httpRequest.response) {
+				const arrStream = AscCommon.initStreamFromResponse(httpRequest);
+
+				AscCommon.g_oBinarySmartArts = {
+					shifts: {},
+					stream: arrStream
+				}
+
+				const oFileStream = new AscCommon.FileStream(arrStream, arrStream.length);
+				oFileStream.GetUChar();
+				const nLength = oFileStream.GetULong();
+				while (nLength + 4 > oFileStream.cur) {
+					const nType = oFileStream.GetUChar();
+					const nPosition = oFileStream.GetULong();
+					AscCommon.g_oBinarySmartArts.shifts[nType] = nPosition;
+				}
+			} else {
+				fOnError(httpRequest);
+			}
+
+		}, 'arraybuffer');
 	}
 
 	function getAltGr(e)
@@ -10160,6 +10276,7 @@
 		oNewShape.extX = width_px * AscCommon.g_dKoef_pix_to_mm;
 		oNewShape.extY = height_px * AscCommon.g_dKoef_pix_to_mm;
 		oNewShape.contentWidth = oNewShape.extX;
+		oNewShape.setPaddings({Left: 0, Top: 0, Right: 0, Bottom: 0});
 
 		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
 		par.MoveCursorToStartPos();
@@ -10178,7 +10295,9 @@
 
 		let parW = par.RecalculateMinMaxContentWidth().Max;
 		if (parW > oNewShape.contentWidth) {
-			oNewShape.findFitFontSizeForSmartArt(true);
+			const nNewFontSize = oNewShape.findFitFontSizeForSmartArt(true);
+			oNewShape.setFontSizeInSmartArt(nNewFontSize);
+			oNewShape.recalculateContentWitCompiledPr();
 			parW = par.RecalculateMinMaxContentWidth().Max;
 		}
 
@@ -10960,7 +11079,11 @@
                 {
                     if (_array[i]["change"].length > _checkPrefixLen)
                     {
-                    	_prefix = _array[i]["change"].substr(0, _checkPrefixLen);
+						if((Asc.editor || editor).binaryChanges) {
+							_prefix = String.prototype.fromUtf8(_array[i]["change"], 0, _checkPrefixLen);
+						} else {
+							_prefix = _array[i]["change"].substr(0, _checkPrefixLen);
+						}
                         if (-1 != _prefix.indexOf(this.cryptoPrefix))
                         {
                             isCrypted = true;
@@ -10979,7 +11102,11 @@
                 {
                     if (_array[i].length > _checkPrefixLen)
                     {
-                        _prefix = _array[i].substr(0, _checkPrefixLen);
+						if((Asc.editor || editor).binaryChanges) {
+							_prefix = String.prototype.fromUtf8(_array[i], 0, _checkPrefixLen);
+						} else {
+							_prefix = _array[i].substr(0, _checkPrefixLen);
+						}
                         if (-1 != _prefix.indexOf(this.cryptoPrefix))
                         {
                             isCrypted = true;
@@ -10994,7 +11121,11 @@
                 {
                     if (_array[i].m_pData.length > _checkPrefixLen)
                     {
-                        _prefix = _array[i].m_pData.substr(0, _checkPrefixLen);
+						if((Asc.editor || editor).binaryChanges) {
+							_prefix = String.prototype.fromUtf8(_array[i].m_pData, 0, _checkPrefixLen);
+						} else {
+							_prefix = _array[i].m_pData.substr(0, _checkPrefixLen);
+						}
                         if (-1 != _prefix.indexOf(this.cryptoPrefix))
                         {
                             isCrypted = true;
@@ -11584,9 +11715,25 @@
 			{
 				this.MathSelectPolygons.length = 0;
 			}
-			var arrBounds = oMath.Get_Bounds();
+			var arrBounds = oMath.GetBounds();
 			if (arrBounds.length <= 0)
 				return;
+			
+			if (!oMath.IsEmpty()
+				&& 1 === arrBounds.length
+				&& 1 === arrBounds[0].length
+				&& (arrBounds[0][0].W < 0.001 || arrBounds[0][0].H < 0.001))
+			{
+				let tmpBounds = arrBounds[0][0];
+				arrBounds = [[{
+						Page : tmpBounds.Page,
+						X    : tmpBounds.X,
+						Y    : tmpBounds.Y,
+						W    : Math.max(tmpBounds.W, 0.1),
+						H    : Math.max(tmpBounds.H, 0.1)
+					}]];
+			}
+			
 			var MPolygon = new CPolygon();
 			MPolygon.fill(arrBounds);
 			this.MathPolygons = MPolygon.GetPaths(PixelError);
@@ -12870,6 +13017,114 @@
 		return sAction.indexOf("ppaction://hlink") === 0;
 	}
 
+	function generateHashParams() {
+		return {spinCount: 100000, saltValue: AscCommon.randomBytes(16).base64()};
+	}
+
+	function fromModelAlgorithmName(alg) {
+		switch (alg) {
+			case AscCommon.c_oSerAlgorithmNameTypes.MD2 :
+				alg = AscCommon.HashAlgs.MD2;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.MD4 :
+				alg = AscCommon.HashAlgs.MD4;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.MD5 :
+				alg = AscCommon.HashAlgs.MD5;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.RIPEMD_160 :
+				alg = AscCommon.HashAlgs.RMD160;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.SHA_1 :
+				alg = AscCommon.HashAlgs.SHA1;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.SHA_256 :
+				alg = AscCommon.HashAlgs.SHA256;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.SHA_384 :
+				alg = AscCommon.HashAlgs.SHA384;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.SHA_512 :
+				alg = AscCommon.HashAlgs.SHA512;
+				break;
+			case AscCommon.c_oSerAlgorithmNameTypes.WHIRLPOOL :
+				alg = AscCommon.HashAlgs.WHIRLPOOL;
+				break;
+			default:
+				alg = AscCommon.HashAlgs.SHA256;
+		}
+		return alg;
+	}
+
+	function fromModelCryptAlgorithmSid(alg) {
+		var res = null;
+		switch (alg) {
+			case AscCommon.c_oSerCryptAlgorithmSid.MD2 :
+				res = AscCommon.HashAlgs.MD2;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.MD4 :
+				res = AscCommon.HashAlgs.MD4;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.MD5 :
+				res = AscCommon.HashAlgs.MD5;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.SHA_1 :
+				res = AscCommon.HashAlgs.SHA1;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.MAC :
+				//alg = AscCommon.HashAlgs.SHA1;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.RIPEMD :
+				//alg = AscCommon.HashAlgs.SHA256;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.RIPEMD_160 :
+				//alg = AscCommon.HashAlgs.SHA384;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.HMAC :
+				//alg = AscCommon.HashAlgs.SHA512;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.SHA_256 :
+				res = AscCommon.HashAlgs.SHA256;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.SHA_384 :
+				res = AscCommon.HashAlgs.SHA384;
+				break;
+			case AscCommon.c_oSerCryptAlgorithmSid.SHA_512 :
+				res = AscCommon.HashAlgs.SHA512;
+				break;
+		}
+		return res;
+	}
+
+	function getMemoryInfo() {
+		if(!(window.performance && window.performance.memory)) {
+			return "";
+		}
+		//https://gist.github.com/oryanmoshe/6b3ecd895c8a5eb9ae4ec4554f687737#file-window-performance-memory-1-js
+		return JSON.stringify(Object.getOwnPropertyNames(window.performance.memory.__proto__).reduce((acc,key) => {
+				if (key !== 'constructor')
+					acc[key] = window.performance.memory[key];
+				return acc;
+			}, {})
+		);
+	}
+	function getClientInfoString(type, opt_time, opt_memory) {
+		let res = type;
+		if (opt_time >= 0) {
+			res += ' time:' + Math.round(opt_time);
+		}
+		if (opt_memory) {
+			res += ' memory:' + opt_memory;
+		}
+		return res;
+	}
+	function sendClientLog(level, msg, api) {
+		if (!api) {
+			return;
+		}
+		api.CoAuthoringApi.sendClientLog(level, msg);
+	}
+
 	function getNativePrintRanges(sRanges, currentPageSrc, pagescount)
 	{
 		let pages = undefined;
@@ -12959,7 +13214,10 @@
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
+	window["AscCommon"].getSocketIO = getSocketIO;
 	window["AscCommon"].getBaseUrl = getBaseUrl;
+	window["AscCommon"].getBaseUrlPathname = getBaseUrlPathname;
+	window["AscCommon"].getIndex = getIndex;
 	window["AscCommon"].getEncodingParams = getEncodingParams;
 	window["AscCommon"].getEncodingByBOM = getEncodingByBOM;
 	window["AscCommon"].saveWithParts = saveWithParts;
@@ -12989,6 +13247,7 @@
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
 	window["AscCommon"].ShowSpreadsheetFileDialog = ShowSpreadsheetFileDialog;
 	window["AscCommon"].ShowTextFileDialog = ShowTextFileDialog;
+	window["AscCommon"].ShowXmlFileDialog = ShowXmlFileDialog;
 	window["AscCommon"].InitDragAndDrop = InitDragAndDrop;
 	window["AscCommon"].UploadImageFiles = UploadImageFiles;
     window["AscCommon"].UploadImageUrls = UploadImageUrls;
@@ -13010,6 +13269,8 @@
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 	window["AscCommon"].checkStreamSignature = checkStreamSignature;
 	window["AscCommon"].checkOOXMLSignature = checkOOXMLSignature;
+	window["AscCommon"].checkNativeViewerSignature = checkNativeViewerSignature;
+	window["AscCommon"].getEditorBySignature = getEditorBySignature;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
 	window["AscCommon"].OpenFileResult = OpenFileResult;
@@ -13022,7 +13283,7 @@
 	window["AscCommon"].MMToTwips = MMToTwips;
 	window["AscCommon"].RomanToInt = RomanToInt;
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
-	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
+	window["Asc"]["IntToNumberFormat"] = window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
 	window["AscCommon"].IntToHex = IntToHex;
 	window["AscCommon"].Int32ToHex = Int32ToHex;
@@ -13032,13 +13293,16 @@
 	window["AscCommon"].ByteToHex = ByteToHex;
 	window["AscCommon"].IsDigit = IsDigit;
 	window["AscCommon"].IsLetter = IsLetter;
+	window["AscCommon"].IsPunctuation = window["AscCommon"]['IsPunctuation'] = IsPunctuation;
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 	window["AscCommon"].IsAscFontSupport = IsAscFontSupport;
 	window["AscCommon"].ExecuteNoHistory = ExecuteNoHistory;
+	window["AscCommon"].CompareStrings = CompareStrings;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
     window["AscCommon"].loadChartStyles = loadChartStyles;
+	window["AscCommon"].loadSmartArtBinary = loadSmartArtBinary;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;
@@ -13133,8 +13397,30 @@
 	window['AscCommon'].g_oCRC32  = g_oCRC32;
 	window["AscCommon"].RangeTopBottomIterator = RangeTopBottomIterator;
 	window["AscCommon"].IsLinkPPAction = IsLinkPPAction;
+	window["AscCommon"].generateHashParams = generateHashParams;
+	window["AscCommon"].fromModelAlgorithmName = fromModelAlgorithmName;
+	window["AscCommon"].fromModelCryptAlgorithmSid = fromModelCryptAlgorithmSid;
+	window["AscCommon"].getMemoryInfo = getMemoryInfo;
+	window["AscCommon"].getClientInfoString = getClientInfoString;
+	window["AscCommon"].sendClientLog = sendClientLog;
 
 	window["AscCommon"].getNativePrintRanges = getNativePrintRanges;
+
+	window["AscCommon"].getEditorByBinSignature = getEditorByBinSignature;
+	window["AscCommon"].getEditorByOOXMLSignature = getEditorByOOXMLSignature;
+
+	window["AscCommon"].escapeHtmlCharacters = function(word)
+	{
+		if (!word)
+			return "";
+		word = word.replaceAll("&", "&#38;");
+		word = word.replaceAll("<", "&#60;");
+		word = word.replaceAll(">", "&#62;");
+		word = word.replaceAll("\"", "&#34;");
+		word = word.replaceAll("\'", "&#39;");
+		return word;
+	}
+
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
@@ -13208,7 +13494,7 @@ window["asc_IsNeedBuildCryptedFile"] = function()
         }
         else
         {
-            if (0 != AscCommon.CollaborativeEditing.m_aAllChanges.length)
+            if (0 != AscCommon.CollaborativeEditing.GetAllChangesCount())
                 _returnValue = true;
         }
     }

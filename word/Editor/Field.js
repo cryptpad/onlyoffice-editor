@@ -124,6 +124,9 @@ ParaField.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 };
 ParaField.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	if (Count <= 0)
+		return;
+
 	// Получим массив удаляемых элементов
 	var DeletedItems = this.Content.slice(Pos, Pos + Count);
 	History.Add(new CChangesParaFieldRemoveItem(this, Pos, DeletedItems));

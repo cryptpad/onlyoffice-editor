@@ -403,6 +403,10 @@ CDrawingsController.prototype.IsMovingTableBorder = function()
 {
 	return this.DrawingObjects.selectionIsTableBorder();
 };
+CDrawingsController.prototype.canEditTableOleObject = function()
+{
+	return this.DrawingObjects.canEditTableOleObject();
+};
 CDrawingsController.prototype.CheckPosInSelection = function(X, Y, PageAbs, NearPos)
 {
 	return this.DrawingObjects.selectionCheck(X, Y, PageAbs, NearPos);

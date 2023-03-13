@@ -474,7 +474,7 @@
 	};
 
 	CConditionalFormattingRule.prototype.setLocation = function (location, ws, addToHistory) {
-		if (addToHistory) {
+		if (addToHistory && !History.TurnOffHistory) {
 			var getUndoRedoRange = function (_ranges) {
 				var needRanges = [];
 				for (var i = 0; i < _ranges.length; i++) {
@@ -2734,6 +2734,10 @@
 			//для iconSet сравниваем числа для типов Number/Percent/Percentile - должны идти по убыванию, сраниваем только соседние
 
 			if (_prevNum && _isNum) {
+				if (_isNum && _prevNum) {
+					_val = parseFloat(_val);
+					_prevVal = parseFloat(_prevVal);
+				}
 				if (type === Asc.ECfType.colorScale) {
 					if (_prevType === _type && type !== AscCommonExcel.ECfvoType.Formula && _prevVal > _val) {
 						return asc_error.ValueMustBeGreaterThen;

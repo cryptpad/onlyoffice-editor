@@ -240,6 +240,8 @@ function CStyle(Name, BasedOnId, NextId, type, bNoCreateTablePr)
 {
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
+	this.StyleId = null;
+
     this.Name    = Name;
     this.BasedOn = BasedOnId;
     this.Next    = NextId;
@@ -5917,6 +5919,7 @@ CStyle.prototype =
             || this.Next !== oStyle.Next
             || this.Type !== oStyle.Type
             || this.Link !== oStyle.Link
+            || this.StyleId !== oStyle.StyleId
             || this.qFormat !== oStyle.qFormat
             || this.uiPriority !== oStyle.uiPriority
             || this.hidden !== oStyle.hidden
@@ -6321,6 +6324,23 @@ CStyle.prototype =
             }
         }
     }
+};
+/**
+ * Устаналиваем форматный идентификатор стиля
+ * @param styleId
+ * @constructor
+ */
+CStyle.prototype.SetStyleId = function(styleId)
+{
+	if (styleId === this.StyleId)
+		return;
+
+	History.Add(new CChangesStyleStyleId(this, this.StyleId, styleId));
+	this.StyleId = styleId;
+};
+CStyle.prototype.GetStyleId = function()
+{
+	return this.StyleId;
 };
 /**
  * Выставляем текстовые настройки
@@ -8438,6 +8458,16 @@ CStyles.prototype =
 		return Id;
 	},
 
+	GetStyleByStyleId: function (sStyleId)
+	{
+		for (let sId in this.Style)
+		{
+			const oStyle = this.Style[sId];
+			if (oStyle.GetStyleId() === sStyleId)
+				return oStyle;
+		}
+	},
+
 	Remove : function(Id)
 	{
 		History.Add(new CChangesStylesRemove(this, Id, this.Style[Id]));
@@ -10335,6 +10365,7 @@ CDocumentColor.prototype.ConvertToUniColor = function()
 {
 	return AscFormat.CreateUniColorRGB(this.r, this.g, this.b);
 };
+AscWord.CDocumentColor = CDocumentColor;
 
 function CDocumentShd()
 {
@@ -10405,6 +10436,12 @@ CDocumentShd.prototype =
             this.FillRef = undefined;
         }
     }
+};
+CDocumentShd.fromObject = function(val)
+{
+	let shd = new CDocumentShd();
+	shd.Set_FromObject(val);
+	return shd;
 };
 CDocumentShd.prototype.Copy = function()
 {
@@ -12822,6 +12859,10 @@ CRFonts.prototype.Is_Empty = function()
 		&& undefined === this.HAnsiTheme
 		&& undefined === this.CSTheme);
 };
+CRFonts.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 CRFonts.prototype.Copy = function()
 {
 	var oRFonts = new CRFonts();
@@ -13292,6 +13333,10 @@ CLang.prototype.Is_Empty = function()
 		return false;
 
 	return true;
+};
+CLang.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
 };
 CLang.prototype.IsEqual = function(oLang)
 {
@@ -14764,6 +14809,10 @@ CTextPr.prototype.Is_Empty = function()
 
 	return true;
 };
+CTextPr.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 /**
  * Сравниваем данные настройки с заданными, если настройка совпала ставим undefined, если нет, то берем из текущей
  * @param oTextPr {CTextPr}
@@ -15765,6 +15814,10 @@ CParaInd.prototype.Is_Empty = function()
 
 	return true;
 };
+CParaInd.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
 CParaInd.prototype.Get_Diff = function(Ind)
 {
     var DiffInd = new CParaInd();
@@ -15990,6 +16043,10 @@ CParaSpacing.prototype.Is_Empty = function()
 		return false;
 
 	return true;
+};
+CParaSpacing.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
 };
 CParaSpacing.prototype.IsEqual = function(oSpacing)
 {
@@ -17664,6 +17721,21 @@ CParaPr.prototype.Is_Empty = function()
 		|| undefined !== this.OutlineLvl
 		|| undefined !== this.SuppressLineNumbers);
 };
+CParaPr.prototype.IsEmpty = function()
+{
+	return this.Is_Empty();
+};
+CParaPr.prototype.IsEmptyBorders = function()
+{
+	return (!this.Brd
+		|| (!this.Brd.First
+			&& !this.Brd.Last
+			&& !this.Brd.Between
+			&& !this.Brd.Bottom
+			&& !this.Brd.Left
+			&& !this.Brd.Right
+			&& !this.Brd.Top));
+};
 CParaPr.prototype.GetDiffPrChange = function()
 {
 	var ParaPr = new CParaPr();
@@ -17927,6 +17999,7 @@ CParaPr.prototype.CheckBorderSpaces = function()
 	if (this.Brd.Between)
 		this.Brd.Between.Space = this.private_CorrectBorderSpace(this.Brd.Between.Space);
 };
+
 //----------------------------------------------------------------------------------------------------------------------
 // CParaPr Export
 //----------------------------------------------------------------------------------------------------------------------
@@ -18089,9 +18162,12 @@ window["AscCommonWord"].wrap_NotBeside = wrap_NotBeside;
 window["AscCommonWord"].wrap_Through = wrap_Through;
 window["AscCommonWord"].wrap_Tight = wrap_Tight;
 
+window["AscWord"].CTextPr = CTextPr;
+window["AscWord"].CParaPr = CParaPr;
 window["AscWord"].CStyle  = CStyle;
 window["AscWord"].CNumPr  = CNumPr;
 window["AscWord"].CBorder = CDocumentBorder;
+window["AscWord"].CShd    = CDocumentShd;
 
 
 // Создаем глобальные дефолтовые стили, чтобы быстро можно было отдать дефолтовые настройки

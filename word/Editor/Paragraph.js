@@ -594,6 +594,19 @@ Paragraph.prototype.GetAllTables = function(oProps, arrTables)
 
 	return arrTables;
 };
+Paragraph.prototype.GetAllParaMaths = function(arrParaMaths)
+{
+	if (!arrParaMaths)
+		arrParaMaths = [];
+
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (para_Math === this.Content[nCurPos].Type)
+			arrParaMaths.push(this.Content[nCurPos]);
+	}
+
+	return arrParaMaths;
+};
 
 Paragraph.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 {
@@ -1097,6 +1110,9 @@ Paragraph.prototype.Internal_Content_Remove = function(Pos)
  */
 Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
 {
+	if (Count <= 0)
+		return;
+
 	if (0 === Pos && this.Content.length === Count)
 		return this.ClearContent();
 
@@ -1204,6 +1220,9 @@ Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
  */
 Paragraph.prototype.ClearContent = function()
 {
+	if (this.Content.length <= 0)
+		return;
+
 	var arrCommentsToDelete = [];
 	var isDeleteComments = true === this.DeleteCommentOnRemove && null != this.LogicDocument && null != this.LogicDocument.Comments;
 	var oDocumentComments = null;
@@ -1732,23 +1751,38 @@ Paragraph.prototype.GetNumberingTextPr = function()
 
 	var oLvl = oNum.GetLvl(oNumPr.Lvl);
 
-	var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-	oNumTextPr.Merge(this.TextPr.Value);
-	oNumTextPr.Merge(oLvl.GetTextPr());
+	let numTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
 
-	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
-	if (undefined !== oNumTextPr.RFonts && null !== oNumTextPr.RFonts)
+	// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для символа параграфа
+	let _underline = numTextPr.Underline;
+
+	let paraMarkTextPr = this.TextPr.Value;
+	if (paraMarkTextPr.RStyle)
 	{
-		oNumTextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
-
-		if (!oNumTextPr.FontFamily)
-			oNumTextPr.FontFamily = {Name : "", Index : -1};
-
-		oNumTextPr.FontFamily.Name  = oNumTextPr.RFonts.Ascii.Name;
-		oNumTextPr.FontFamily.Index = oNumTextPr.RFonts.Ascii.Index;
+		let styleManager = this.Parent.GetStyles();
+		let styleTextPr  = styleManager.Get_Pr(paraMarkTextPr.RStyle, styletype_Character).TextPr;
+		numTextPr.Merge(styleTextPr);
 	}
 
-	return oNumTextPr;
+	numTextPr.Merge(paraMarkTextPr);
+
+	numTextPr.Underline = _underline;
+
+	numTextPr.Merge(oLvl.GetTextPr());
+
+	// TODO: Пока возвращаем всегда шрифт лежащий в Ascii, в будущем надо будет это переделать
+	if (undefined !== numTextPr.RFonts && null !== numTextPr.RFonts)
+	{
+		numTextPr.ReplaceThemeFonts(this.GetTheme().themeElements.fontScheme);
+
+		if (!numTextPr.FontFamily)
+			numTextPr.FontFamily = {Name : "", Index : -1};
+
+		numTextPr.FontFamily.Name  = numTextPr.RFonts.Ascii.Name;
+		numTextPr.FontFamily.Index = numTextPr.RFonts.Ascii.Index;
+	}
+
+	return numTextPr;
 };
 /**
  * Получаем рассчитанное значение нумерации для данного параграфа
@@ -2146,7 +2180,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			{
 				oInlineSdt = PDSH.InlineSdt[nSdtIndex];
 				isForm     = oInlineSdt.IsForm();
-				oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
+				oFormShd   = isForm ? oInlineSdt.GetFormShd() : null;
 
 				if (oFormShd && !oFormShd.IsNil())
 				{
@@ -2169,7 +2203,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 				{
 					oInlineSdt = PDSH.InlineSdt[nSdtIndex];
 					isForm     = oInlineSdt.IsForm();
-					oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
+					oFormShd   = isForm ? oInlineSdt.GetFormShd() : null;
 
 					if (!isForm || !oInlineSdt.IsFixedForm() || -1 !== fixedForms.indexOf(oInlineSdt))
 						continue;
@@ -2182,6 +2216,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 
 					oSdtBounds = oInlineSdt.GetFixedFormBounds();
 
+					let formHighlightColor;
 					if (oFormShd && !oFormShd.IsNil())
 					{
 						var oFormShdColor     = oFormShd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
@@ -2193,15 +2228,15 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 						}
 						else
 						{
-							if (FormsHighlight)
-								pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
+							if ((formHighlightColor = oInlineSdt.GetFormHighlightColor(FormsHighlight)))
+								pGraphics.b_color1(formHighlightColor.r, formHighlightColor.g, formHighlightColor.b, 255);
 							else
 								pGraphics.b_color1(oFormShdColorDark.r, oFormShdColorDark.g, oFormShdColorDark.b, 255);
 						}
 					}
-					else if (FormsHighlight && !oInlineSdt.IsCurrentComplexForm())
+					else if ((formHighlightColor = oInlineSdt.GetFormHighlightColor(FormsHighlight)) && !oInlineSdt.IsCurrentComplexForm())
 					{
-						pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
+						pGraphics.b_color1(formHighlightColor.r, formHighlightColor.g, formHighlightColor.b, 255);
 					}
 					else
 					{
@@ -2258,12 +2293,10 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 					}
 					else
 					{
-						var oNumbering = this.Parent.GetNumbering();
-						var oNumLvl    = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
-						var nNumJc     = oNumLvl.GetJc();
-						var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-						oNumTextPr.Merge(this.TextPr.Value);
-						oNumTextPr.Merge(oNumLvl.GetTextPr());
+						let oNumbering = this.Parent.GetNumbering();
+						let oNumLvl    = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+						let nNumJc     = oNumLvl.GetJc();
+						let numTextPr  = this.GetNumberingTextPr();
 
 						var X_start = X;
 
@@ -2273,8 +2306,8 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 							X_start = X - NumberingItem.WidthNum / 2;
 
 						// Если есть выделение текста, рисуем его сначала
-						if (highlight_None != oNumTextPr.HighLight)
-							PDSH.High.Add(Y0, Y1, X_start, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, 0, oNumTextPr.HighLight.r, oNumTextPr.HighLight.g, oNumTextPr.HighLight.b, undefined, oNumTextPr);
+						if (highlight_None !== numTextPr.HighLight)
+							PDSH.High.Add(Y0, Y1, X_start, X_start + NumberingItem.WidthNum + NumberingItem.WidthSuff, 0, numTextPr.HighLight.r, numTextPr.HighLight.g, numTextPr.HighLight.b, undefined, numTextPr);
 					}
 				}
 
@@ -2418,7 +2451,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 			{
 				oInlineSdt = PDSH.InlineSdt[nSdtIndex];
 				isForm     = oInlineSdt.IsForm();
-				oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
+				oFormShd   = isForm ? oInlineSdt.GetFormShd() : null;
 
 				if (oFormShd && !oFormShd.IsNil())
 				{
@@ -2443,7 +2476,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 					oInlineSdt = PDSH.InlineSdt[nSdtIndex];
 					isForm     = oInlineSdt.IsForm();
 					oSdtBounds = PDSH.InlineSdt[nSdtIndex].GetRangeBounds(CurLine, CurRange);
-					oFormShd   = isForm ? oInlineSdt.GetFormPr().GetShd() : null;
+					oFormShd   = isForm ? oInlineSdt.GetFormShd() : null;
 
 					if (-1 !== fixedForms.indexOf(oInlineSdt) || oInlineSdt.IsFixedForm())
 						continue;
@@ -2453,7 +2486,8 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 
 					if (!isDrawFormHighlight && isForm && (!oFormShd || oFormShd.IsNil()))
 						continue;
-
+					
+					let formHighlightColor;
 					if (oFormShd && !oFormShd.IsNil())
 					{
 						var oFormShdColor     = oFormShd.GetSimpleColor(this.GetTheme(), this.GetColorMap());
@@ -2469,12 +2503,12 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 						}
 						else
 						{
-							if (FormsHighlight)
+							if ((formHighlightColor = oInlineSdt.GetFormHighlightColor(FormsHighlight)))
 							{
-								if (!oPrevColor.IsEqualRGB(FormsHighlight))
+								if (!oPrevColor.IsEqualRGB(formHighlightColor))
 								{
-									pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
-									oPrevColor.SetFromColor(FormsHighlight);
+									pGraphics.b_color1(formHighlightColor.r, formHighlightColor.g, formHighlightColor.b, 255);
+									oPrevColor.SetFromColor(formHighlightColor);
 								}
 							}
 							else if (!oPrevColor.IsEqualRGB(oFormShdColorDark))
@@ -2484,12 +2518,12 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 							}
 						}
 					}
-					else if (isForm && FormsHighlight && !oInlineSdt.IsCurrentComplexForm())
+					else if (isForm && (formHighlightColor = oInlineSdt.GetFormHighlightColor(FormsHighlight)) && !oInlineSdt.IsCurrentComplexForm())
 					{
-						if (!oPrevColor.IsEqualRGB(FormsHighlight))
+						if (!oPrevColor.IsEqualRGB(formHighlightColor))
 						{
-							pGraphics.b_color1(FormsHighlight.r, FormsHighlight.g, FormsHighlight.b, 255);
-							oPrevColor.SetFromColor(FormsHighlight);
+							pGraphics.b_color1(formHighlightColor.r, formHighlightColor.g, formHighlightColor.b, 255);
+							oPrevColor.SetFromColor(formHighlightColor);
 						}
 					}
 					else if (!isForm && SdtHighlightColor)
@@ -2879,25 +2913,7 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 
 						var nNumSuff   = oNumLvl.GetSuff();
 						var nNumJc     = oNumLvl.GetJc();
-						var oNumTextPr = this.Get_CompiledPr2(false).TextPr.Copy();
-
-						// Word не рисует подчеркивание у символа списка, если оно пришло из настроек для
-						// символа параграфа.
-						
-						let underlineValue = oNumTextPr.Underline;
-
-						var oTextPrTemp = this.TextPr.Value.Copy();
-						if (undefined !== oTextPrTemp.RStyle && this.Parent)
-						{
-							let styleManager = this.Parent.GetStyles();
-							let styleTextPr  = styleManager.Get_Pr(oTextPrTemp.RStyle, styletype_Character).TextPr;
-							oNumTextPr.Merge(styleTextPr);
-						}
-						
-						oNumTextPr.Merge(oTextPrTemp);
-						oNumTextPr.Underline = underlineValue;
-						
-						oNumTextPr.Merge(oNumLvl.GetTextPr());
+						var oNumTextPr = this.GetNumberingTextPr();
 
 						var oPrevNumTextPr = oPrevNumPr ? this.Get_CompiledPr2(false).TextPr.Copy() : null;
 						if (oPrevNumTextPr && (oPrevNumPr
@@ -4207,11 +4223,31 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 			// TODO: В режиме рецензии элементы не удаляются, а позиция меняется прямо в ранах
 			//       Возможно стоит пересмотреть подход в выставлении позиции в данной функции, чтобы
 			//       не делать таких заглушек
-			if (!this.LogicDocument || !this.LogicDocument.IsTrackRevisions())
+			let logicDocument = this.GetLogicDocument();
+			if (!logicDocument || !logicDocument.IsTrackRevisions())
 			{
 				// TODO: Как только избавимся от para_End переделать здесь
 				// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
-				if (ContentPos < this.Content.length - 2 && true === this.Content[ContentPos].Is_Empty())
+				
+				if (logicDocument
+					&& logicDocument.IsDocumentEditor()
+					&& this.Content[ContentPos].IsMath()
+					&& this.Content[ContentPos].IsEmpty())
+				{
+					this.RemoveFromContent(ContentPos, 1);
+					
+					this.CurPos.ContentPos = ContentPos;
+					this.Content[ContentPos].MoveCursorToStartPos();
+					this.Correct_ContentPos2();
+					
+					let contentControl = this.AddContentControl(c_oAscSdtLevelType.Inline);
+					if (contentControl)
+					{
+						contentControl.ApplyContentControlEquationPr();
+						contentControl.SelectContentControl();
+					}
+				}
+				else if (ContentPos < this.Content.length - 2 && this.Content[ContentPos].IsEmpty())
 				{
 					this.Internal_Content_Remove(ContentPos);
 
@@ -4636,17 +4672,28 @@ Paragraph.prototype.Add = function(Item)
 				var NewElement = this.Content[CurPos].Split(ContentPos, 1);
 
 				if (null !== NewElement)
-					this.Internal_Content_Add(CurPos + 1, NewElement);
+					this.AddToContent(CurPos + 1, NewElement);
 
-				var MathElement = new ParaMath();
-				MathElement.Root.Load_FromMenu(Item.Menu, this, null, Item.GetText());
-				MathElement.Root.Correct_Content(true);
+				let paraMath = null;
+				if (Item instanceof ParaMath)
+				{
+					paraMath = Item;
+				}
+				else if (Item instanceof AscCommonWord.MathMenu)
+				{
+					let textPr = Item.GetTextPr();
+					paraMath = new ParaMath();
+					paraMath.Root.Load_FromMenu(Item.Menu, this, textPr.Copy(), Item.GetText());
+					paraMath.Root.Correct_Content(true);
+					paraMath.ApplyTextPr(textPr.Copy(), undefined, true);
+				}
 
-				this.Internal_Content_Add(CurPos + 1, MathElement);
-
-				// Перемещаем кусор в конец формулы
-				this.CurPos.ContentPos = CurPos + 1;
-				this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+				if (paraMath)
+				{
+					this.AddToContent(CurPos + 1, paraMath);
+					this.CurPos.ContentPos = CurPos + 1;
+					this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+				}
 			}
 			else
 			{
@@ -5878,7 +5925,7 @@ Paragraph.prototype.MoveCursorLeft = function(AddToSelect, Word)
 
 			var oResultPos = SelectPos;
 
-			if ((oPlaceHolderObject && oPlaceHolderObject instanceof CInlineLevelSdt) || oPresentationField)
+			if ((oPlaceHolderObject && ((oPlaceHolderObject instanceof CInlineLevelSdt) || (oPlaceHolderObject instanceof ParaMath))) || oPresentationField)
 			{
 				var oSearchPos = new CParagraphSearchPos();
 				this.GetCursorLeftPos(oSearchPos, SelectPos);
@@ -5998,8 +6045,8 @@ Paragraph.prototype.MoveCursorRight = function(AddToSelect, Word)
 				this.RemoveSelection();
 
 				var oResultPos = SelectPos;
-
-				if ((oPlaceHolderObject && oPlaceHolderObject instanceof CInlineLevelSdt) || oPresentationField)
+				
+				if ((oPlaceHolderObject && ((oPlaceHolderObject instanceof CInlineLevelSdt) || (oPlaceHolderObject instanceof ParaMath))) || oPresentationField)
 				{
 					var oSearchPos = new CParagraphSearchPos();
 					this.GetCursorRightPos(oSearchPos, SelectPos);
@@ -8202,6 +8249,7 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 		this.GetSelectedElementsInfo(oInfo);
 		var oField = oInfo.GetField();
 		var oSdt   = oInfo.GetInlineLevelSdt();
+		let oMath  = oInfo.GetMath();
 
 		let oForm = null;
 		if (oSdt && oSdt.IsForm() && this.GetLogicDocument() && this.GetLogicDocument().IsDocumentEditor() && this.GetLogicDocument().IsFillingFormMode())
@@ -8220,6 +8268,10 @@ Paragraph.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent, bTabl
 		else if (oSdt && oSdt.IsCheckBox())
 		{
 			this.RemoveSelection();
+		}
+		else if (oMath && oMath.IsMathContentPlaceholder())
+		{
+			oMath.SelectAllInCurrentMathContent();
 		}
 		else
 		{
@@ -9443,6 +9495,27 @@ Paragraph.prototype.IsInText = function(X, Y, CurPage)
 		return this;
 
 	return null;
+};
+/**
+ * Is paragraph inside SmartArt
+ * @param bReturnShape {boolean}
+ * @returns {boolean|null|AscFormat.CShape}
+ */
+Paragraph.prototype.IsInsideSmartArtShape = function (bReturnShape)
+{
+	const oShape = this.Parent && this.Parent.Is_DrawingShape(true);
+	if (oShape)
+	{
+		if (oShape.isObjectInSmartArt && oShape.isObjectInSmartArt())
+		{
+			if (bReturnShape)
+			{
+				return oShape;
+			}
+			return !!oShape;
+		}
+	}
+	return bReturnShape ? null : false;
 };
 Paragraph.prototype.IsUseInDocument = function(Id)
 {
@@ -17105,9 +17178,12 @@ Paragraph.prototype.GetPlaceHolderObject = function(oContentPos)
 	var oInfo = new CSelectedElementsInfo();
 	this.GetSelectedElementsInfo(oInfo, oContentPos, 0);
 
-	var oSdt = oInfo.GetInlineLevelSdt();
+	let oSdt  = oInfo.GetInlineLevelSdt();
+	let oMath = oInfo.GetMath();
 	if (oSdt && oSdt.IsPlaceHolder())
 		return oSdt;
+	else if (oMath && oMath.IsMathContentPlaceholder())
+		return oMath;
 
 	return null;
 };
@@ -18200,6 +18276,17 @@ Paragraph.prototype.IsEmptyBetweenClasses = function(class1, class2)
 	this.LoadSelectionState(state);
 	return result;
 };
+Paragraph.prototype.SelectFotMath = function()
+{
+	this.Selection.Use      = true;
+	this.Selection.Start    = false;
+	this.Selection.StartManually = false;
+	this.Selection.EndManually   = false;
+	this.Selection.StartPos      = this.CurPos.ContentPos;
+	this.Selection.EndPos        = this.CurPos.ContentPos;
+
+	this.Document_SetThisElementCurrent(false);
+}
 
 Paragraph.prototype.asc_getText = function()
 {

@@ -531,6 +531,99 @@ ParaRun.prototype.GetText = function(oText)
 	return oText.Text;
 };
 
+ParaRun.prototype.GetTextOfElement = function(isLaTeX)
+{
+    var str = "";
+	for (var i = 0; i < this.Content.length; i++) {
+		if (this.Content[i]) {
+			str += this.Content[i].GetTextOfElement(isLaTeX);
+		}
+	}
+	return str;
+};
+ParaRun.prototype.MathAutocorrection_GetBracketsOperatorsInfo = function (isLaTeX)
+{
+	const arrBracketsInfo = [];
+
+	for (let intCounter = 0; intCounter < this.Content.length; intCounter++)
+	{
+		let strContent = String.fromCharCode(this.Content[intCounter].value);
+		let intCount = null;
+
+		if ((strContent === "{" || strContent === "}") && isLaTeX)
+			continue;
+
+		if (AscMath.MathLiterals.lBrackets.IsIncludes(strContent))
+			intCount = -1;
+		else if (AscMath.MathLiterals.rBrackets.IsIncludes(strContent))
+			intCount = 1;
+		else if (AscMath.MathLiterals.lrBrackets.IsIncludes(strContent))
+			intCount = 0;
+		else if (AscMath.MathLiterals.operators.IsIncludes(strContent))
+			intCount = 2;
+
+		if (intCount !== null)
+			arrBracketsInfo.push([intCounter, intCount]);
+	}
+
+	return arrBracketsInfo;
+}
+ParaRun.prototype.MathAutocorrection_GetOperatorInfo = function ()
+{
+	const arrOperatorContent = [];
+
+	for (let intCounter = 0; intCounter < this.Content.length; intCounter++)
+	{
+		let strContent = String.fromCharCode(this.Content[intCounter].value);
+
+		if (AscMath.MathLiterals.operators.IsIncludes(strContent))
+			arrOperatorContent.push(intCounter);
+	}
+
+	return arrOperatorContent;
+}
+
+ParaRun.prototype.MathAutocorrection_GetSlashesInfo = function ()
+{
+	const arrOperatorContent = [];
+
+	for (let intCounter = 0; intCounter < this.Content.length; intCounter++)
+	{
+		let strContent = String.fromCharCode(this.Content[intCounter].value);
+
+		if (strContent === "\\")
+			arrOperatorContent.push(intCounter);
+	}
+
+	return arrOperatorContent;
+}
+
+ParaRun.prototype.MathAutocorrection_IsLastElement = function(type)
+{
+	if (this.Content.length === 0)
+		return false;
+
+	let oLastElement = this.Content[this.Content.length - 1];
+	let strLastElement = String.fromCharCode(oLastElement.value);
+	return type.IsIncludes(strLastElement);
+}
+
+ParaRun.prototype.MathAutoCorrection_DeleteLastSpace = function()
+{
+	if (this.Content.length === 0)
+		return false;
+
+	let oLastElement = this.Content[this.Content.length - 1];
+	if (oLastElement.value === 32)
+	{
+		this.Remove_FromContent(this.Content.length - 1, 1);
+		return true;
+	}
+
+	return false;
+}
+
+
 // Проверяем пустой ли ран
 ParaRun.prototype.Is_Empty = function(oProps)
 {
@@ -706,26 +799,39 @@ ParaRun.prototype.private_CheckTrackRevisionsBeforeAdd = function(oNewRun)
  */
 ParaRun.prototype.private_CheckTextScriptBeforeAdd = function(oNewRun, oItem)
 {
-	if (!oItem)
-		return null;
+	if (!oItem || !oItem.IsText())
+		return oNewRun;
+
+	let script = oItem.GetScript();
+	if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === script || AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON === script)
+		return oNewRun;
 
 	let oPr = this.Pr;
 
 	// TODO: Когда будет обрабатывать RTL добавить тут
 	let isAddRTL = false, isRemoveRTL = false;
 
-	let isAddCS    = (oItem.IsText() && AscCommon.IsComplexScript(oItem.GetCodePoint()) && !oPr.CS);
-	let isRemoveCS = (oItem.IsText() && !AscCommon.IsComplexScript(oItem.GetCodePoint()) && oPr.CS);
+	let isAddCS    = (AscCommon.IsComplexScript(oItem.GetCodePoint()) && !oPr.CS);
+	let isRemoveCS = (!AscCommon.IsComplexScript(oItem.GetCodePoint()) && oPr.CS);
 
 	if (!oNewRun
 		&& (isAddCS || isRemoveCS || isAddRTL || isRemoveRTL))
 	{
-		oNewRun = this.private_SplitRunInCurPos();
+		let runToApply;
+		if (this.IsOnlyCommonTextScript())
+		{
+			runToApply = this;
+		}
+		else
+		{
+			oNewRun    = this.private_SplitRunInCurPos();
+			runToApply = oNewRun;
+		}
 
 		if (isAddCS)
-			oNewRun.ApplyComplexScript(true);
+			runToApply.ApplyComplexScript(true);
 		else if (isRemoveCS)
-			oNewRun.ApplyComplexScript(false);
+			runToApply.ApplyComplexScript(false);
 	}
 
 	return oNewRun;
@@ -961,6 +1067,43 @@ ParaRun.prototype.CheckRunBeforeAdd = function(oItem)
 		oNewRun.Make_ThisElementCurrent();
 
 	return oNewRun;
+};
+/**
+ * Специальная функция проверяет, что в ране присутствуют текстовые элементы только из общих скриптов (т.е. не
+ * принадлижащие какой-то конкретной пиьменности). Если текстовых элементов нет вообще, то вернется false
+ * @returns {boolean}
+ */
+ParaRun.prototype.IsOnlyCommonTextScript = function()
+{
+	let isCommonScript = false;
+	for (let index = 0, count = this.Content.length; index < count; ++index)
+	{
+		let item = this.Content[index];
+		if (item.IsText())
+		{
+			let script = item.GetScript();
+			if (AscFonts.HB_SCRIPT.HB_SCRIPT_INHERITED === script || AscFonts.HB_SCRIPT.HB_SCRIPT_COMMON === script)
+				isCommonScript = true;
+			else
+				return false;
+		}
+	}
+
+	return isCommonScript;
+};
+/**
+ * Is a run inside smartArt
+ * @param [bReturnSmartArtShape] {boolean}
+ * @returns {boolean|null|AscFormat.CShape}
+ */
+ParaRun.prototype.IsInsideSmartArtShape = function (bReturnSmartArtShape)
+{
+	const oParagraph = this.GetParagraph();
+	if (oParagraph)
+	{
+		return oParagraph.IsInsideSmartArtShape(bReturnSmartArtShape);
+	}
+	return bReturnSmartArtShape ? null : false;
 };
 /**
  * Проверяем, предзназначен ли данный ран чисто для математических формул.
@@ -1709,6 +1852,9 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 
 ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
+	if (Count <= 0)
+		return;
+
 	if (this.GetTextForm() && this.GetTextForm().IsComb())
 		this.RecalcInfo.Measure = true;
 
@@ -4479,48 +4625,49 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         X += SpaceLen;
                         SpaceLen = 0;
                     }
-
-                    if (Item.IsPageBreak() || Item.IsColumnBreak())
-                    {
-                        PRS.BreakPageLine = true;
-                        if (Item.IsPageBreak())
-                            PRS.BreakRealPageLine = true;
-
-						// Учитываем разрыв страницы/колонки, только если мы находимся в главной части документа, либо
-						// во вложенной в нее SdtContent (вложение может быть многоуровневым)
-                        var oParent = Para.Parent;
-                        while (oParent instanceof CDocumentContent && oParent.IsBlockLevelSdtContent())
-							oParent = oParent.GetParent().GetParent();
-
-						if (!(oParent instanceof CDocument) || true !== Para.Is_Inline())
+					
+					let isLineBreak = Item.IsLineBreak();
+					if (Item.IsPageBreak() || Item.IsColumnBreak())
+					{
+						isLineBreak = false;
+						PRS.BreakPageLine = true;
+						if (Item.IsPageBreak())
+							PRS.BreakRealPageLine = true;
+						
+						if (Para.IsTableCellContent() || !Para.IsInline())
 						{
-							// TODO: Продумать, как избавиться от данного элемента, т.к. удалять его при пересчете нельзя,
-							//       иначе будут проблемы с совместным редактированием.
-
 							Item.Flags.Use = false;
 							continue;
 						}
-
-						if (Item.IsPageBreak() && !Para.CheckSplitPageOnPageBreak(Item))
-                            continue;
-
-                        Item.Flags.NewLine = true;
-
-                        NewPage       = true;
-                        NewRange      = true;
-                    }
-                    else
-                    {
-                    	PRS.BreakLine = true;
-
-                        NewRange = true;
-                        EmptyLine = false;
+						else if (!(PRS.GetTopDocument() instanceof CDocument))
+						{
+							// Везде кроме таблиц считаем такие разрывы обычными разрывами строки
+							isLineBreak = true;
+						}
+						else
+						{
+							if (Item.IsPageBreak() && !Para.CheckSplitPageOnPageBreak(Item))
+								continue;
+							
+							Item.Flags.NewLine = true;
+							
+							NewPage       = true;
+							NewRange      = true;
+						}
+					}
+					
+					if (isLineBreak)
+					{
+						PRS.BreakLine = true;
+						
+						NewRange = true;
+						EmptyLine = false;
 						TextOnLine = true;
-
-                        // здесь оставляем проверку, т.к. в случае, если после неинлайновой формулы нах-ся инлайновая необходимо в любом случае сделать перенос (проверка в private_RecalculateRange(), где выставляется PRS.ForceNewLine = true не пройдет)
-                        if (true === PRS.MathNotInline)
-                            PRS.ForceNewLine = true;
-                    }
+						
+						// здесь оставляем проверку, т.к. в случае, если после неинлайновой формулы нах-ся инлайновая необходимо в любом случае сделать перенос (проверка в private_RecalculateRange(), где выставляется PRS.ForceNewLine = true не пройдет)
+						if (true === PRS.MathNotInline)
+							PRS.ForceNewLine = true;
+					}
 
                     RangeEndPos = Pos + 1;
 
@@ -8386,9 +8533,9 @@ ParaRun.prototype.IsSelectionEmpty = function(CheckEnd)
     var Selection = this.State.Selection;
     if (true !== Selection.Use)
         return true;
-
-    if(this.Type == para_Math_Run && this.IsPlaceholder())
-        return true;
+	
+	if (this.IsMathRun() && this.IsPlaceholder())
+		return false;
 
     var StartPos = Selection.StartPos;
     var EndPos   = Selection.EndPos;
@@ -9261,7 +9408,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			}
 		}
 	}
-	if (undefined !== TextPr.AscLine)
+	if (undefined !== TextPr.AscLine && null !== TextPr.AscLine)
 	{
 		if(this.Paragraph)
 		{

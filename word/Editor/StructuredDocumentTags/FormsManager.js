@@ -149,16 +149,17 @@
 	/**
 	 * Получаем массив всех специальных форм с заданным ключом
 	 * @param sKey
+	 * @param [formType=undefined] {Asc.c_oAscContentControlSpecificType}
 	 * @returns {[]}
 	 */
-	CFormsManager.prototype.GetAllFormsByKey = function(sKey)
+	CFormsManager.prototype.GetAllFormsByKey = function(sKey, formType)
 	{
 		let arrForms  = this.GetAllForms();
 		let arrResult = [];
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
 			let oForm = arrForms[nIndex];
-			if (sKey === oForm.GetFormKey())
+			if (sKey === oForm.GetFormKey() && (undefined === formType || formType === oForm.GetSpecificType()))
 				arrResult.push(oForm);
 		}
 
@@ -245,9 +246,9 @@
 	 */
 	CFormsManager.prototype.OnChange = function(oForm)
 	{
-		if (!oForm || !oForm.IsUseInDocument())
+		if (!this.IsValidForm(oForm))
 			return;
-
+		
 		if (oForm.IsComplexForm())
 			this.OnChangeComplexForm(oForm);
 		else if (oForm.IsCheckBox())
@@ -279,6 +280,129 @@
 	{
 		return this.KeyGenerator;
 	};
+	/**
+	 * Получаем данные всех форм
+	 * @returns {object}
+	 */
+	CFormsManager.prototype.GetAllFormsData = function()
+	{
+		let data = {};
+		let allForms = this.GetAllForms();
+		let passedRadioGroups = {};
+		for (let index = 0, count = allForms.length; index < count; ++index)
+		{
+			let form = allForms[index];
+			let key  = form.GetFormKey();
+
+			if (form.IsRadioButton())
+			{
+				key = form.GetRadioButtonGroupKey();
+				if (passedRadioGroups[key])
+					continue;
+
+				passedRadioGroups[key] = true;
+			}
+
+			if (!key)
+				continue;
+
+			let val = {
+				"key"   : key,
+				"tag"   : form.GetTag(),
+				"value" : this.GetFormValue(form),
+				"type"  : "text"
+			};
+
+			if (data[key])
+			{
+				let oldVal = data[key];
+				if (Array.isArray(oldVal))
+					oldVal.push(oldVal);
+				else
+					data[key] = [oldVal, val];
+			}
+			else
+			{
+				data[key] = val;
+			}
+
+			if (form.IsComplexForm())
+				val["type"] = "complex";
+			else if (form.IsRadioButton())
+				val["type"] = "radioButton";
+			else if (form.IsCheckBox())
+				val["type"] = "checkBox";
+			else if (form.IsDropDownList())
+				val["type"] = "dropDownList";
+			else if (form.IsComboBox())
+				val["type"] = "comboBox";
+			else if (form.IsPicture())
+				val["type"] = "picture";
+		}
+
+		return data;
+	};
+	CFormsManager.prototype.GetFormValue = function(form)
+	{
+		if (!form)
+			return null;
+
+		if (form.IsRadioButton())
+			return this.GetRadioGroupValue(form.GetRadioButtonGroupKey());
+
+		return form.GetFormValue();
+	};
+	/**
+	 * Получем роль по текущему ключу и возможно заданному типу формы
+	 * @param key
+	 * @param [formType=undefined] {Asc.c_oAscContentControlSpecificType}
+	 * @returns {string}
+	 */
+	CFormsManager.prototype.GetRoleByKey = function(key, formType)
+	{
+		let allForms = this.GetAllFormsByKey(key);
+		for (let index = 0, count = allForms.length; index < count; ++index)
+		{
+			let form = allForms[index];
+			if (undefined !== formType && formType !== form.GetSpecificType())
+				continue;
+			
+			let role = form.GetFormRole();
+			if (role)
+				return role;
+		}
+		
+		return "";
+	};
+	CFormsManager.prototype.OnEndLoad = function()
+	{
+		// Проверим, что у всех форм есть ключи
+		let keyGenerator = this.GetKeyGenerator();
+		let allForms     = this.GetAllForms();
+		for (let index = 0, count = allForms.length; index < count; ++index)
+		{
+			let form = allForms[index];
+			
+			if (form.IsRadioButton())
+			{
+				let key = form.GetRadioButtonGroupKey();
+				if (key && "" !== key)
+					continue;
+				
+				key = keyGenerator.GetNewKey(form);
+				form.SetRadioButtonGroupKey(key);
+			}
+			else
+			{
+				let key = form.GetFormKey();
+				if (key && "" !== key)
+					continue;
+				
+				key = keyGenerator.GetNewKey(form);
+				form.SetFormKey(key);
+			}
+		}
+	};
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,8 +423,9 @@
 	};
 	CFormsManager.prototype.OnChangeCheckBox = function(oForm)
 	{
-		let isChecked = oForm.GetCheckBoxPr().Checked;
-		let arrForms  = this.GetAllForms();
+		let isChecked  = oForm.GetCheckBoxPr().Checked;
+		let userMaster = this.GetUserMasterByForm(oForm);
+		let arrForms   = this.GetAllForms();
 
 		if (oForm.IsRadioButton())
 		{
@@ -311,7 +436,8 @@
 				if (oTempForm.IsComplexForm()
 					|| oTempForm === oForm
 					|| !oTempForm.IsRadioButton()
-					|| sKey !== oTempForm.GetCheckBoxPr().GetGroupKey())
+					|| sKey !== oTempForm.GetCheckBoxPr().GetGroupKey()
+					|| userMaster !== this.GetUserMasterByForm(oTempForm))
 					continue;
 
 				if (oTempForm.GetCheckBoxPr().GetChecked())
@@ -329,7 +455,8 @@
 					|| !oTempForm.IsCheckBox()
 					|| oTempForm.IsRadioButton()
 					|| sKey !== oTempForm.GetFormKey()
-					|| isChecked === oTempForm.GetCheckBoxPr().GetChecked())
+					|| isChecked === oTempForm.GetCheckBoxPr().GetChecked()
+					|| userMaster !== this.GetUserMasterByForm(oTempForm))
 					continue;
 
 				oTempForm.ToggleCheckBox();
@@ -348,6 +475,7 @@
 
 		let sKey          = oForm.GetFormKey();
 		let isPlaceHolder = oForm.IsPlaceHolder();
+		let userMaster    = this.GetUserMasterByForm(oForm);
 		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
@@ -355,7 +483,8 @@
 			if (oTempForm.IsComplexForm()
 				|| oTempForm === oForm
 				|| sKey !== oTempForm.GetFormKey()
-				|| !oTempForm.IsPicture())
+				|| !oTempForm.IsPicture()
+				|| userMaster !== this.GetUserMasterByForm(oTempForm))
 				continue;
 
 			let arrDrawings = oTempForm.GetAllDrawingObjects();
@@ -374,6 +503,7 @@
 		let sKey          = oForm.GetFormKey();
 		let isPlaceHolder = oForm.IsPlaceHolder();
 		let oSrcRun       = !isPlaceHolder ? oForm.MakeSingleRunElement(false) : null;
+		let userMaster    = this.GetUserMasterByForm(oForm);
 		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
@@ -383,7 +513,8 @@
 				|| oTempForm.IsPicture()
 				|| oTempForm.IsCheckBox()
 				|| oTempForm === oForm
-				|| sKey !== oTempForm.GetFormKey())
+				|| sKey !== oTempForm.GetFormKey()
+				|| userMaster !== this.GetUserMasterByForm(oTempForm))
 				continue;
 
 			if (isPlaceHolder)
@@ -405,13 +536,15 @@
 	{
 		let sKey          = oForm.GetFormKey();
 		let isPlaceholder = oForm.IsPlaceHolder();
+		let userMaster    = this.GetUserMasterByForm(oForm);
 		let arrForms      = this.GetAllForms();
 		for (let nIndex = 0, nCount = arrForms.length; nIndex < nCount; ++nIndex)
 		{
 			let oTempForm = arrForms[nIndex];
 			if (!oTempForm.IsComplexForm()
 				|| oTempForm === oForm
-				|| sKey !== oTempForm.GetFormKey())
+				|| sKey !== oTempForm.GetFormKey()
+				|| userMaster !== this.GetUserMasterByForm(oTempForm))
 				continue;
 
 			// TODO: Сейчас мы полностью перезаписываем содержимое поля. Можно проверить, что поле состоит из таких
@@ -424,6 +557,33 @@
 				oTempForm.AddToContent(nPos, oForm.GetElement(nPos).Copy());
 			}
 		}
+	};
+	CFormsManager.prototype.GetRadioGroupValue = function(groupKey)
+	{
+		let group = this.GetRadioButtons(groupKey);
+		for (let index = 0, count = group.length; index < count; ++index)
+		{
+			let radioButton = group[index];
+			if (radioButton.IsCheckBoxChecked() && radioButton.GetFormKey())
+				return radioButton.GetFormKey();
+		}
+
+		return "";
+	};
+	CFormsManager.prototype.GetUserMasterByForm = function(form)
+	{
+		if (!form)
+			return null;
+		
+		let fieldMaster = form.GetFieldMaster();
+		if (!fieldMaster)
+			return null;
+		
+		return fieldMaster.getFirstUser();
+	};
+	CFormsManager.prototype.IsValidForm = function(form)
+	{
+		return (form && form.IsUseInDocument());
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscWord'] = window['AscWord'] || {};

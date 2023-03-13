@@ -53,7 +53,8 @@
 	var c_oAscAxisType = Asc.c_oAscAxisType;
 	// ---------------------------------------------------------------------------------------------------------------
 
-	var c_oAscArrUserColors = [16757719, 56805, 10081791, 12884479, 16751001, 6748927, 16762931, 6865407,
+	var c_oAscArrUserColors = [10646501, 16749875, 1087211, 103817, 16760641, 16272775, 8765789, 14707685, 48336,
+		5729515, 16757719, 56805, 10081791, 12884479, 16751001, 6748927, 16762931, 6865407,
 		15650047, 16737894, 3407768, 16759142, 10852863, 6750176, 16774656, 13926655, 13815039, 3397375, 11927347, 16752947,
 		9404671, 4980531, 16744678, 3407830, 15919360, 16731553, 52479, 13330175, 16743219, 3386367, 14221056, 16737966,
 		1896960, 65484, 10970879, 16759296, 16711680, 13496832, 62072, 49906, 16734720, 10682112, 7890687, 16731610, 65406,
@@ -189,6 +190,16 @@
 			oCanvas.height = Math.round(oCanvas.clientHeight * rPR);
 		}
 		return oCanvas;
+	}
+
+	function isValidJs(str) {
+		try {
+			eval("throw 0;" + str);
+		} catch(e) {
+			if (e === 0)
+				return true;
+		}
+		return false;
 	}
 
 	var c_oLicenseResult = {
@@ -1270,6 +1281,8 @@
 		this.horizontalAxes = [];
 		this.verticalAxes = [];
 		this.depthAxes = [];
+
+		this.view3D = null;
 	}
 
 	//TODO:remove this---------------------
@@ -1384,6 +1397,28 @@
 	asc_ChartSettings.prototype.getDepthAxesProps = function() {
 		return this.depthAxes;
 	};
+	asc_ChartSettings.prototype.getView3d = function() {
+		if(this.chartSpace) {
+			return this.chartSpace.getView3d();
+		}
+		return this.view3D ? this.view3D.createDuplicate() : null;
+	};
+	asc_ChartSettings.prototype.putView3d = function(v) {
+		this.view3D = v;
+	};
+	asc_ChartSettings.prototype.setView3d = function(v) {
+		this.putView3d(v);
+		if(this.chartSpace) {
+			if(v) {
+				this.chartSpace.changeView3d(v.createDuplicate());
+			}
+			else {
+				this.chartSpace.changeView3d(null);
+			}
+			this.updateChart();
+		}
+	};
+
 	asc_ChartSettings.prototype.addHorAxesProps = function(v) {
 		this.horizontalAxes.push(v);
 	};
@@ -1470,6 +1505,12 @@
 				return false;
 			}
 		}
+		if(this.view3D && !oPr.view3D || !this.view3D && oPr.view3D) {
+			return false;
+		}
+		if(this.view3D && oPr.view3D && !this.view3D.isEqual(oPr.view3D)) {
+			return false;
+		}
 		return true;
 	};
 	asc_ChartSettings.prototype.isEmpty = function() {
@@ -1544,11 +1585,24 @@
 	};
 	asc_ChartSettings.prototype.setRange = function(sRange) {
 		if(this.chartSpace) {
+			const oDataRefs = new AscFormat.CChartDataRefs(null);
+			const nCheckResult = oDataRefs.checkDataRange(sRange, this.getInRows(), this.getType());
+			if(nCheckResult !== Asc.c_oAscError.ID.No) {
+				this.sendError(nCheckResult);
+				return;
+			}
 			this.chartSpace.setRange(sRange);
 			this.updateChart();
 		}
 	};
 	asc_ChartSettings.prototype.isValidRange = function(sRange) {
+		if(this.getRange() !== sRange) {
+			const oDataRefs = new AscFormat.CChartDataRefs(null);
+			const nCheckResult = oDataRefs.checkDataRange(sRange, this.getInRows(), this.getType());
+			if(nCheckResult === Asc.c_oAscError.ID.MaxDataPointsError) {
+				return nCheckResult;
+			}
+		}
 		return AscFormat.isValidChartRange(sRange);
 	};
 	asc_ChartSettings.prototype.getRange = function() {
@@ -1654,6 +1708,9 @@
 		return this.separator;
 	};
 	asc_ChartSettings.prototype.sendErrorOnChangeType = function(nType) {
+		this.sendError(nType);
+	};
+	asc_ChartSettings.prototype.sendError = function(nType) {
 		var oApi = Asc.editor || editor;
 		if(oApi) {
 			oApi.sendEvent("asc_onError", nType, Asc.c_oAscError.Level.NoCritical);
@@ -4665,6 +4722,9 @@
 		this.EncryptedInfo;
 		this.IsEnabledPlugins = true;
         this.IsEnabledMacroses = true;
+
+		//for external reference
+		this.ReferenceData = null;
 	}
 
 	prot = asc_CDocInfo.prototype;
@@ -4802,6 +4862,9 @@
 	};
 	prot.put_CoEditingMode = prot.asc_putCoEditingMode = function (v) {
 		this.coEditingMode = v;
+	};
+	prot.put_ReferenceData = prot.asc_putReferenceData = function (v) {
+		this.ReferenceData = v;
 	};
 
 	function COpenProgress() {
@@ -5805,213 +5868,6 @@
 			this.variations.push(_variation);
 		}
 	};
-
-
-	function CAutoCorrectOptions() 
-	{
-		this.SmartQuotes            = true;
-		this.HyphensWithDash        = true;
-		this.AutomaticBulletedLists = true;
-		this.AutomaticNumberedLists = true;
-		this.FrenchPunctuation      = true;
-		this.DoubleSpaceWithPeriod  = false;
-		this.FirstLetterOfSentences = true;
-		this.FirstLetterOfCells     = true;
-		this.Hyperlinks             = true;
-		this.FirstLetterExceptions  = {};
-		this.FirstLetterExcMaxLen   = 0;
-		this.InitDefaultFirstLetterAutoCorrectExceptions();
-	}
-	//getters
-	CAutoCorrectOptions.prototype.IsSmartQuotes  = function() 
-	{
-		return this.SmartQuotes;
-	};
-	CAutoCorrectOptions.prototype.IsHyphensWithDash = function() 
-	{
-		return this.HyphensWithDash;
-	};
-	CAutoCorrectOptions.prototype.IsAutomaticBulletedLists = function() 
-	{
-		return this.AutomaticBulletedLists;
-	};
-	CAutoCorrectOptions.prototype.IsAutomaticNumberedLists = function() 
-	{
-		return this.AutomaticNumberedLists;
-	};
-	CAutoCorrectOptions.prototype.IsFrenchPunctuation = function() 
-	{
-		return this.FrenchPunctuation;
-	};
-	CAutoCorrectOptions.prototype.IsDoubleSpaceWithPeriod = function() 
-	{
-		return this.DoubleSpaceWithPeriod;
-	};
-	CAutoCorrectOptions.prototype.IsFirstLetterOfSentences = function() 
-	{
-		return this.FirstLetterOfSentences;
-	};
-	CAutoCorrectOptions.prototype.IsFirstLetterOfCells = function() 
-	{
-		return this.FirstLetterOfCells;
-	};
-	CAutoCorrectOptions.prototype.IsHyperlinks = function() 
-	{
-		return this.Hyperlinks;
-	};
-	//setters
-	CAutoCorrectOptions.prototype.SetSmartQuotes  = function(bVal) 
-	{
-		this.SmartQuotes = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetHyphensWithDash = function(bVal) 
-	{
-		this.HyphensWithDash = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetAutomaticBulletedLists = function(bVal) 
-	{
-		this.AutomaticBulletedLists = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetAutomaticNumberedLists = function(bVal) 
-	{
-		this.AutomaticNumberedLists = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetFrenchPunctuation = function(bVal) 
-	{
-		this.FrenchPunctuation = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetDoubleSpaceWithPeriod = function(bVal) 
-	{
-		this.DoubleSpaceWithPeriod = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetFirstLetterOfSentences = function(bVal) 
-	{
-		this.FirstLetterOfSentences = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetFirstLetterOfCells = function(bVal) 
-	{
-		this.FirstLetterOfCells = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetHyperlinks = function(bVal) 
-	{
-		this.Hyperlinks = bVal;
-	};
-	CAutoCorrectOptions.prototype.SetFirstLetterAutoCorrectExceptions = function(arrExceptions)
-	{
-		this.FirstLetterExceptions = {};
-		var nMaxLen = 0;
-		for (var nIndex = 0, nCount = arrExceptions.length; nIndex < nCount; ++nIndex)
-		{
-			if (!arrExceptions[nIndex].length)
-				continue;
-
-			if (arrExceptions[nIndex].length > nMaxLen)
-				nMaxLen = arrExceptions[nIndex].length;
-
-			var nChar = arrExceptions[nIndex].charAt(0);
-
-			if (!this.FirstLetterExceptions[nChar])
-				this.FirstLetterExceptions[nChar] = [];
-
-			this.FirstLetterExceptions[nChar].push(arrExceptions[nIndex]);
-		}
-
-		this.FirstLetterExcMaxLen = nMaxLen;
-	};
-	CAutoCorrectOptions.prototype.InitDefaultFirstLetterAutoCorrectExceptions = function()
-	{
-		// Init default for Latin and Cyrillic
-		this.SetFirstLetterAutoCorrectExceptions([
-			"a", "abbr", "abs", "acct", "addn", "adj", "advt", "al", "alt", "amt", "anon", "approx", "appt", "apr", "apt", "assn", "assoc", "asst", "attn", "attrib", "aug", "aux", "ave", "avg",
-			"b", "bal", "bldg", "blvd", "bot", "bro", "bros",
-			"c", "ca", "calc", "cc", "cert", "certif", "cf", "cit", "cm", "co", "comp", "conf", "confed", "const", "cont", "contrib", "coop", "corp", "ct",
-			"d", "dbl", "dec", "decl", "def", "defn", "dept", "deriv", "diag", "diff", "div", "dm", "dr", "dup", "dupl",
-			"e", "encl", "eq", "eqn", "equip", "equiv", "esp", "esq", "est", "etc", "excl", "ext",
-			"f", "feb", "ff", "fig", "freq", "fri", "ft", "fwd",
-			"g", "gal", "gen", "gov", "govt",
-			"h", "hdqrs", "hgt", "hist", "hosp", "hq", "hr", "hrs", "ht", "hwy",
-			"i", "ib", "ibid", "illus", "in", "inc", "incl", "incr", "int", "intl", "irreg", "ital",
-			"j", "jan", "jct", "jr", "jul", "jun",
-			"k", "kg", "km", "kmh",
-			"l", "lang", "lb", "lbs", "lg", "lit", "ln", "lt",
-			"m", "mar", "masc", "max", "mfg", "mg", "mgmt", "mgr", "mgt", "mhz", "mi", "min", "misc", "mkt", "mktg", "ml", "mm", "mngr", "mon", "mph", "mr", "mrs", "msec", "msg", "mt", "mtg", "mtn", "mun",
-			"n", "na", "name", "nat", "natl", "ne", "neg", "ng", "no", "norm", "nos", "nov", "num", "nw",
-			"o", "obj", "occas", "oct", "op", "opt", "ord", "org", "orig", "oz",
-			"p", "pa", "pg", "pkg", "pl", "pls", "pos", "pp", "ppt", "pred", "pref", "prepd", "prev", "priv", "prof", "proj", "pseud", "psi", "pt", "publ",
-			"q", "qlty", "qt", "qty",
-			"r", "rd", "re", "rec", "ref", "reg", "rel", "rep", "req", "reqd", "resp", "rev",
-			"s", "sat", "sci", "se", "sec", "sect", "sep", "sept", "seq", "sig", "soln", "soph", "spec", "specif", "sq", "sr", "st", "sta", "stat", "std", "subj", "subst", "sun", "supvr", "sw",
-			"t", "tbs", "tbsp", "tech", "tel", "temp", "thur", "thurs", "tkt", "tot", "transf", "transl", "tsp", "tues",
-			"u", "univ", "util",
-			"v", "var", "veg", "vert", "viz", "vol", "vs",
-			"w", "wed", "wk", "wkly", "wt",
-			"x",
-			"y", "yd", "yr",
-			"z",
-
-			"а",
-			"б",
-			"вв",
-			"гг", "гл",
-			"д", "др",
-			"е", "ед",
-			"ё",
-			"ж",
-			"з",
-			"и",
-			"й",
-			"к", "кв", "кл", "коп", "куб",
-			"лл",
-			"м", "мл", "млн", "млрд",
-			"н", "наб", "нач",
-			"о", "обл", "обр", "ок",
-			"п", "пер", "пл", "пос", "пр",
-			"руб",
-			"сб", "св", "см", "соч", "ср", "ст", "стр",
-			"тт", "тыс",
-			"у",
-			"ф",
-			"х",
-			"ц",
-			"ш", "шт",
-			"щ",
-			"ъ",
-			"ы",
-			"ь",
-			"э", "экз",
-			"ю"]
-		);
-	};
-	CAutoCorrectOptions.prototype.GetFirstLetterAutoCorrectExceptions = function()
-	{
-		var arrResult = [];
-		for (var nChar in this.FirstLetterExceptions)
-		{
-			arrResult = arrResult.concat(this.FirstLetterExceptions[nChar]);
-		}
-		return arrResult;
-	};
-	CAutoCorrectOptions.prototype.CheckFirstLetterAutoCorrectException = function(sWord)
-	{
-		var _sWord = sWord.toLowerCase();
-
-		var nChar = _sWord.charAt(0);
-		if (!this.FirstLetterExceptions[nChar])
-			return false;
-
-		var arrExceptions = this.FirstLetterExceptions[nChar];
-		for (var nIndex = 0, nCount = arrExceptions.length; nIndex < nCount; ++nIndex)
-		{
-			if (_sWord === arrExceptions[nIndex])
-				return true;
-		}
-
-		return false;
-	};
-	CAutoCorrectOptions.prototype.GetFirstLetterAutoCorrectExceptionsMaxLen = function()
-	{ 
-		return this.FirstLetterExcMaxLen;
-	};
 	
     /*
      * Export
@@ -6281,6 +6137,10 @@
 	prot["getHorAxesProps"] = prot.getHorAxesProps;
 	prot["getVertAxesProps"] = prot.getVertAxesProps;
 	prot["getDepthAxesProps"] = prot.getDepthAxesProps;
+	prot["getView3d"] = prot.getView3d;
+	prot["putView3d"] = prot.putView3d;
+	prot["setView3d"] = prot.setView3d;
+
 
 	window["AscCommon"].asc_CRect = asc_CRect;
 	prot = asc_CRect.prototype;
@@ -6929,6 +6789,7 @@
     prot["put_IsEnabledMacroses"] = prot["asc_putIsEnabledMacroses"] = prot.asc_putIsEnabledMacroses;
 	prot["get_CoEditingMode"] = prot["asc_getCoEditingMode"] = prot.asc_getCoEditingMode;
 	prot["put_CoEditingMode"] = prot["asc_putCoEditingMode"] = prot.asc_putCoEditingMode;
+	prot["put_ReferenceData"] = prot["asc_putReferenceData"] = prot.asc_putReferenceData;
 
 	window["AscCommon"].COpenProgress = COpenProgress;
 	prot = COpenProgress.prototype;
@@ -6972,7 +6833,7 @@
     window["AscCommon"].CWatermarkOnDraw = CWatermarkOnDraw;
     window["AscCommon"].isFileBuild = isFileBuild;
     window["AscCommon"].checkCanvasInDiv = checkCanvasInDiv;
-    window["AscCommon"].CAutoCorrectOptions = CAutoCorrectOptions;
+    window["AscCommon"].isValidJs = isValidJs;
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;

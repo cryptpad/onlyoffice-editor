@@ -614,7 +614,46 @@ CFraction.prototype.raw_SetFractionType = function(FractionType)
     this.Pr.type = FractionType;
     this.fillContent();
 };
+CFraction.prototype.GetTextOfElement = function(isLaTeX)
+{
+	let strTemp = "";
+	let strNumerator = this.getNumerator().GetMultipleContentForGetText(isLaTeX, );
+	let strDenominator = this.getDenominator().GetMultipleContentForGetText(isLaTeX, );
 
+	if (true === isLaTeX)
+    {
+        if (strNumerator[0] !== "{")
+            strNumerator = "{" + strNumerator + "}";
+        if (strDenominator[0] !== "{")
+            strDenominator = "{" + strDenominator + "}";
+
+		switch (this.Pr.type)
+        {
+			case 0:	strTemp += '\\frac'; break;
+			case 1:	strTemp += '\\sfrac'; break;
+			case 2:	strTemp += '\\cfrac'; break;
+            case 3: strTemp += '\\binom'; break;
+			default: strTemp += '\\frac';  break;
+		}
+
+		strTemp += strNumerator + strDenominator;
+	}
+    else
+    {
+		strTemp += strNumerator;
+		switch (this.Pr.type)
+        {
+			case 0:	strTemp += '/';	break;
+			case 1:	strTemp += '⁄';	break;
+			case 2:	strTemp += '⊘';	break;
+			case 3:	strTemp += String.fromCharCode(166); break;
+			default:strTemp += String.fromCharCode(47); break;
+		}
+
+		strTemp += strDenominator;
+	}
+	return strTemp;
+};
 /**
  *
  * @param CMathMenuFraction

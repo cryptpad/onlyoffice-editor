@@ -396,6 +396,7 @@ module.exports = function(grunt) {
 							cwd: '../common/',
 							src: [
 								'Charts/ChartStyles.js',
+								'SmartArts/SmartArts.bin',
 								'Images/*',
 								'Images/placeholders/*',
 								'Images/content_controls/*',

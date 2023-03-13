@@ -198,6 +198,11 @@
       return this._CoAuthoringApi.setDocId(docId)
     }
   };
+  CDocsCoApi.prototype.setBinaryChanges = function(binaryChanges) {
+    if (this._CoAuthoringApi) {
+      return this._CoAuthoringApi.binaryChanges = binaryChanges;
+    }
+  };
 
   CDocsCoApi.prototype.auth = function(isViewer, opt_openCmd, opt_isIdle) {
     if (this._CoAuthoringApi && this._onlineWork) {
@@ -252,20 +257,15 @@
     }
   };
 
-  CDocsCoApi.prototype.sendClientLog = function(level, msg) {
-    if (this._CoAuthoringApi && this._onlineWork) {
-      this._CoAuthoringApi.sendClientLog(level, msg);
-    }
-  };
   CDocsCoApi.prototype.sendCursor = function(cursor) {
     if (this._CoAuthoringApi && this._onlineWork) {
       this._CoAuthoringApi.sendCursor(cursor);
     }
   };
 
-  CDocsCoApi.prototype.sendChangesError = function(data) {
+  CDocsCoApi.prototype.sendClientLog = function(level, msg) {
     if (this._CoAuthoringApi && this._onlineWork) {
-      this._CoAuthoringApi.sendChangesError(data);
+      this._CoAuthoringApi.sendClientLog(level, msg);
     }
   };
 
@@ -628,6 +628,7 @@
       this.onFirstConnect = options.onFirstConnect;
       this.onLicense = options.onLicense;
       this.onLicenseChanged = options.onLicenseChanged;
+      this.binaryChanges = options.binaryChanges;
     }
     this._state = ConnectionState.None;
     // Online-пользователи в документе
@@ -685,8 +686,6 @@
 
     this._url = "";
 
-    this.reconnectTimeout = null;
-    this.attemptCount = 0;
     this.maxAttemptCount = 50;
     this.reconnectInterval = 2000;
     this.errorTimeOut = 10000;
@@ -698,8 +697,8 @@
     this._user = null;
     this._userId = "Anonymous";
     this.ownedLockBlocks = [];
-    this.sockjs_url = null;
-    this.sockjs = null;
+    this.socketio_url = null;
+    this.socketio = null;
     this.editorType = -1;
     this._isExcel = false;
     this._isPresentation = false;
@@ -942,8 +941,8 @@
     if (!reSave) {
       this._serverChangesSize += curBytes;
     }
-
-    this._send({'type': 'saveChanges', 'changes': JSON.stringify(arrayChanges.slice(startIndex, endIndex)),
+    let _changes = this.binaryChanges ? arrayChanges.slice(startIndex, endIndex) : JSON.stringify(arrayChanges.slice(startIndex, endIndex));
+    this._send({'type': 'saveChanges', 'changes': _changes,
       'startSaveChanges': (startIndex === 0), 'endSaveChanges': (endIndex === arrayChanges.length),
       'isCoAuthoring': this.isCoAuthoring, 'isExcel': this._isExcel, 'deleteIndex': this.deleteIndex,
       'excelAdditionalInfo': this.excelAdditionalInfo ? JSON.stringify(this.excelAdditionalInfo) : null,
@@ -970,7 +969,8 @@
     // Отключаемся сами
     this.isCloseCoAuthoring = true;
     if (opt_code) {
-      this.sockjs.close(opt_code, opt_reason);
+      this.onDisconnect(opt_reason, opt_code);
+      this.socketio.disconnect();
     } else {
       this._send({"type": "close"});
       this._state = ConnectionState.ClosedCoAuth;
@@ -1033,20 +1033,14 @@
     }
   };
 
-  DocsCoApi.prototype.sendClientLog = function(level, msg) {
-    this._send({'type': 'clientLog', 'level': level, 'msg': msg});
-  };
-
   DocsCoApi.prototype.sendCursor = function(cursor) {
     if (typeof cursor === 'string') {
       this._send({"type": "cursor", "cursor": cursor});
     }
   };
 
-  DocsCoApi.prototype.sendChangesError = function(data) {
-    if (typeof data === 'string') {
-      this._send({'type': 'changesError', 'stack': data});
-    }
+  DocsCoApi.prototype.sendClientLog = function(level, msg) {
+    this._send({'type': 'clientLog', 'level': level, 'msg': msg});
   };
 
   DocsCoApi.prototype._applyPrebuffered = function () {
@@ -1068,7 +1062,7 @@
 
     if (data !== null && typeof data === "object") {
       if (this._state > 0) {
-        this.sockjs.send(JSON.stringify(data));
+        this.socketio.emit("message", data);
       } else {
         this._msgBuffer.push(JSON.stringify(data));
       }
@@ -1078,7 +1072,7 @@
   DocsCoApi.prototype._sendRaw = function(data) {
     if (data !== null && typeof data === "string") {
       if (this._state > 0) {
-        this.sockjs.send(data);
+        this.socketio.emit("message", data);
       } else {
         this._msgBuffer.push(data);
       }
@@ -1277,7 +1271,7 @@
     if (isWaitAuth && false === this.isCoAuthoring && !this.onStartCoAuthoring) {
       var errorMsg = 'Error: connection state changed waitAuth' +
           ';this.onStartCoAuthoring:' + !!this.onStartCoAuthoring;
-      this.sendChangesError(errorMsg);
+      this.sendClientLog("error", "changesError: " + errorMsg);
     }
     if (false === this.isCoAuthoring) {
       this.isCoAuthoring = true;
@@ -1360,13 +1354,13 @@
       if (allServerChanges) {
         for (var i = 0; i < allServerChanges.length; ++i) {
           var change = allServerChanges[i];
-          var changesOneUser = change['change'];
+          var changesOneUser = this.binaryChanges ? new Uint8Array(change['change']) : JSON.parse(change['change']);
           if (changesOneUser) {
             if (change['user'] !== this._userId) {
               this.lastOtherSaveTime = change['time'];
             }
             this._serverChangesSize += changesOneUser.length;
-            this.onSaveChanges(JSON.parse(changesOneUser), change['useridoriginal'], bFirstLoad);
+            this.onSaveChanges(changesOneUser, change['useridoriginal'], bFirstLoad);
           }
         }
       }
@@ -1500,7 +1494,7 @@
           ';onConnectionStateChanged:' + !!this.onConnectionStateChanged +
           ';this._participantsTimestamp:' + this._participantsTimestamp +
           ';data.participantsTimestamp:' + data['participantsTimestamp'];
-      this.sendChangesError(errorMsg);
+      this.sendClientLog("error", "changesError: " + errorMsg);
     }
     if (this.onConnectionStateChanged && (!this._participantsTimestamp || this._participantsTimestamp <= data['participantsTimestamp'])) {
       this._participantsTimestamp = data['participantsTimestamp'];
@@ -1512,7 +1506,7 @@
         var errorMsg = 'Error: connection state changed waitAuth' +
             ';usersStateChanged:' + JSON.stringify(usersStateChanged) +
             ';this._countEditUsers:' + this._countEditUsers;
-        this.sendChangesError(errorMsg);
+        this.sendClientLog("error", "changesError: " + errorMsg);
       }
       if (usersStateChanged.length > 0) {
         // Посылаем эвент о совместном редактировании
@@ -1534,10 +1528,14 @@
     this.onLicenseChanged(data);
   };
 
-  DocsCoApi.prototype._onDrop = function(data) {
-    this.disconnect();
+  DocsCoApi.prototype._onDisconnectReason = function(data) {
     var code = data && data['code'] || c_oCloseCode.drop;
     this.onDisconnect(data ? data['description'] : '', code);
+  };
+
+  DocsCoApi.prototype._onDrop = function(data) {
+    this.disconnect();
+    this._onDisconnectReason(data);
   };
 
   DocsCoApi.prototype._onWarning = function(data) {
@@ -1604,8 +1602,11 @@
       this._sessionTimeConnect = data['sessionTimeConnect'];
       if (data['settings']) {
         if (data['settings']['reconnection']) {
-          this.maxAttemptCount = data['settings']['reconnection']['attempts'];
-          this.reconnectInterval = data['settings']['reconnection']['delay'];
+          let attempts = data['settings']['reconnection']['attempts'];
+          let delay = data['settings']['reconnection']['delay'];
+          this.socketio.io.reconnectionAttempts(attempts);
+          this.socketio.io.reconnectionDelay(delay);
+          this.socketio.io.reconnectionDelayMax(delay);
         }
         if (data['settings']['websocketMaxPayloadSize']) {
           this.websocketMaxPayloadSize = data['settings']['websocketMaxPayloadSize'];
@@ -1681,7 +1682,7 @@
     this._documentCallbackUrl = documentCallbackUrl;
     this._token = token;
     this.ownedLockBlocks = [];
-    this.sockjs_url = null;
+    this.socketio_url = null;
     this.editorType = editorType;
     this._isExcel = c_oEditorId.Spreadsheet === editorType;
     this._isPresentation = c_oEditorId.Presentation === editorType;
@@ -1704,7 +1705,7 @@
   DocsCoApi.prototype.setDocId = function(docid) {
     //todo возможно надо менять sockjs_url
     this._docid = docid;
-    this.sockjs_url = AscCommon.getBaseUrl() + '../../../../doc/' + docid + '/c';
+    this.socketio_url = AscCommon.getBaseUrlPathname() + '../../../../doc/' + docid + '/c';
   };
   // Авторизация (ее нужно делать после выставления состояния редактора view-mode)
   DocsCoApi.prototype.auth = function(isViewer, opt_openCmd, opt_isIdle) {
@@ -1752,118 +1753,96 @@
       'coEditingMode': this.coEditingMode,
       'jwtOpen': this.jwtOpen,
       'jwtSession': this.jwtSession,
+      'time': Math.round(performance.now()),
       'supportAuthChangesAck': true
     });
   };
 
-    DocsCoApi.prototype._initSocksJs = function () {
-        var t = this;
-        var sockjs;
-        sockjs = this.sockjs = {};
+  function CNativeSocket(settings)
+  {
+    this.engine = window['SockJS'];
+    this.settings = settings;
+    this.io = this;
+    this.settings["type"] = "socketio";
+  }
+  CNativeSocket.prototype.open = function() { return this.engine.open(this.settings); };
+  CNativeSocket.prototype.send = function(message) { return this.engine.send(message); };
+  CNativeSocket.prototype.close = function() { return this.engine.close(); };
+  CNativeSocket.prototype.emit = function(message, data) { return this.send(JSON.stringify(data)); };
 
-        var send = function (data) {
-            setTimeout(function () {
-                sockjs.onmessage({
-                    data: JSON.stringify(data)
-                });
-            });
-        };
-        var license = {
-            type: 'license',
-            license: {
-                type: 3,
-                mode: 0,
-                //light: false,
-                //trial: false,
-                rights: 1,
-                buildVersion: "5.2.6",
-                buildNumber: 2,
-                //branding: false
-            }
-        };
+  CNativeSocket.prototype.reconnectionAttempts = function(val) { this.settings["reconnectionAttempts"] = val; };
+  CNativeSocket.prototype.reconnectionDelay    = function(val) { this.settings["reconnectionDelay"] = val; };
+  CNativeSocket.prototype.reconnectionDelayMax = function(val) { this.settings["reconnectionDelayMax"] = val; };
+  CNativeSocket.prototype.randomizationFactor  = function(val) { this.settings["randomizationFactor"] = val; };
 
-        var channel;
-
-        require([
-            '/common/outer/worker-channel.js',
-            '/common/common-util.js'
-        ], function (Channel, Util) {
-            var msgEv = Util.mkEvent();
-            var p = window.parent;
-
-            // Presenter mode in slides
-            if (editor && editor.isReporterMode) {
-                // If we are in the presenter popup, we want a channel with the main OO.
-                // Since a lot of the code is using window.parent.APP, we need to override
-                // window.parent because in the case of a popup, window.parent === window
-                p = window.opener;
-                window.parent = p;
-            } else {
-                // If we're not in presenter mode, we're the parent if the presenter popup
-                // and this popup will need access to APP in order to load images
-                window.APP = p && p.APP;
-            }
-
-            window.addEventListener('message', function (msg) {
-                if (msg.source !== p) { return; }
-                msgEv.fire(msg);
-            });
-            var postMsg = function (data) {
-                p.postMessage(data, '*');
-            };
-            Channel.create(msgEv, postMsg, function (chan) {
-                channel = chan;
-                send(license);
-
-                chan.on('CMD', function (obj) {
-                    send(obj);
-                });
-            });
+	DocsCoApi.prototype._initSocksJs = function () {
+      var t = this;
+      let socket;
+      let firstConnection = true;
+      let options = {
+        "path": this.socketio_url,
+        "transports": ["websocket", "polling"],
+        "closeOnBeforeunload": false,
+        "reconnectionAttempts": 15,
+        "reconnectionDelay": 500,
+        "reconnectionDelayMax": 10000,
+        "randomizationFactor": 0.5,
+        "auth": {
+          "token": this.jwtOpen
+        }
+      };
+      if (window['IS_NATIVE_EDITOR']) {
+        socket = this.sockjs = new CNativeSocket(options);
+        socket.open();
+      } else {
+        let io = AscCommon.getSocketIO();
+        socket = io(options);
+        socket.on("connect", function () {
+          firstConnection = false;
+          t._onServerOpen();
         });
+        socket.on("disconnect", function (reason) {
+          //(explicit disconnection), the client will not try to reconnect and you need to manually call
+          let explicit = 'io server disconnect' === reason || 'io client disconnect' === reason;
+          t._onServerClose(explicit);
+          if (!explicit) {
+            //explicit disconnect sends disconnect reason on its own
+            t.onDisconnect();
+          }
+        });
+        socket.on('connect_error', function (err) {
+          //cases: every connect error and reconnect
+          if (err.data) {
+            //cases: authorization
+            t._onServerClose(true);
+            t.onDisconnect(err.data.description, err.data.code);
+          } else if (firstConnection) {
+            firstConnection = false;
+            socket.io.opts.transports = ["polling", "websocket"];
+          }
+        });
+        socket.io.on("reconnect_failed", function () {
+          //cases: connection restore, wrong socketio_url
+          t._onServerClose(true);
+          t.onDisconnect("reconnect_failed", c_oCloseCode.restore);
+        });
+        socket.on("message", function (data) {
+          t._onServerMessage(data);
+        });
+      }
+    this.socketio = socket;
 
-        sockjs.onopen = function() {
-          t._state = ConnectionState.WaitAuth;
-            t.onFirstConnect();
-        };
-        sockjs.onopen();
-
-        sockjs.close = function () {
-            console.error('Close realtime');
-        };
-
-        sockjs.send = function (data) {
-            try {
-                var obj = JSON.parse(data);
-            } catch (e) {
-                console.error(e);
-                return;
-            }
-            if (channel) {
-                channel.event('CMD', obj);
-            }
-        };
-
-        sockjs.onmessage = function (e) {
-            t._onServerMessage(e.data);
-        };
-
-        return sockjs;
-    };
+		return socket;
+	};
 
 	DocsCoApi.prototype._onServerOpen = function () {
-		if (this.reconnectTimeout) {
-			clearTimeout(this.reconnectTimeout);
-			this.reconnectTimeout = null;
-			this.attemptCount = 0;
-		}
-
 		this._state = ConnectionState.WaitAuth;
 		this.onFirstConnect();
 	};
 	DocsCoApi.prototype._onServerMessage = function (data) {
 		//TODO: add checks and error handling
 		//Get data type
-		var dataObject = JSON.parse(data);
+		var dataObject = data;
 		switch (dataObject['type']) {
 			case 'auth'        :
 				this._onAuth(dataObject);
@@ -1904,6 +1883,9 @@
 			case 'drop'        :
 				this._onDrop(dataObject);
 				break;
+			case 'disconnectReason':
+				this._onDisconnectReason(dataObject);
+				break;
 			case 'waitAuth'      : /*Ждем, когда придет auth, документ залочен*/
 				break;
 			case 'error'      : /*Старая версия sdk*/
@@ -1938,7 +1920,7 @@
 				break;
 		}
 	};
-	DocsCoApi.prototype._onServerClose = function (evt) {
+	DocsCoApi.prototype._onServerClose = function (explicit) {
 		if (ConnectionState.SaveChanges === this._state) {
 			// Мы сохраняли изменения и разорвалось соединение
 			this._isReSaveAfterAuth = true;
@@ -1948,38 +1930,12 @@
 				this.saveCallbackErrorTimeOutId = null;
 			}
 		}
-		this._state = ConnectionState.Reconnect;
-		var bIsDisconnectAtAll = (-1 !== Object.values(c_oCloseCode).indexOf(evt.code) ||
-			this.attemptCount >= this.maxAttemptCount);
-		var code = null;
-		if (bIsDisconnectAtAll) {
+		if (explicit) {
 			this._state = ConnectionState.ClosedAll;
-			code = evt.code;
-		}
-		if (this.onDisconnect) {
-			this.onDisconnect(evt.reason, code);
-		}
-		//Try reconect
-		if (!bIsDisconnectAtAll) {
-			this._tryReconnect();
+		} else {
+			this._state = ConnectionState.Reconnect;
 		}
 	};
-	DocsCoApi.prototype._reconnect = function () {
-		delete this.sockjs;
-		this._initSocksJs();
-	};
-	DocsCoApi.prototype._tryReconnect = function () {
-		var t = this;
-		if (this.reconnectTimeout) {
-			clearTimeout(this.reconnectTimeout);
-			t.reconnectTimeout = null;
-		}
-		++this.attemptCount;
-		this.reconnectTimeout = setTimeout(function () {
-			t._reconnect();
-		}, this.reconnectInterval);
-	};
-
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommon'] = window['AscCommon'] || {};
   window['AscCommon'].CDocsCoApi = CDocsCoApi;

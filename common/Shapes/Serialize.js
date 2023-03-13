@@ -421,7 +421,7 @@ function BinaryPPTYLoader()
             {
                 // view props
                 s.Seek2(_main_tables["4"]);
-                this.presentation.ViewProps = this.ReadViewProps();
+                this.presentation.setViewPr(this.ReadViewProps());
             }
 
             if (undefined != _main_tables["5"])
@@ -790,7 +790,12 @@ function BinaryPPTYLoader()
 
     this.ReadViewProps = function()
     {
-        return null;
+       //this.stream.SkipRecord();
+       //return null;
+        let oViewPr = new AscFormat.CViewPr();
+        this.stream.GetUChar();
+        oViewPr.fromPPTY(this);
+        return oViewPr;
     };
     this.ReadVmlDrawing = function()
     {
@@ -1043,7 +1048,7 @@ function BinaryPPTYLoader()
 
         s.Skip2(1); // start attributes
 
-        var _old_default = this.presentation.DefaultTableStyleId;
+        let sNewDefaultStyleStyleId;
         while (true)
         {
             var _at = s.GetUChar();
@@ -1054,8 +1059,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    var _def = s.GetString2();
-                    this.presentation.DefaultTableStyleId = _def;
+                    sNewDefaultStyleStyleId = s.GetString2();
                     break;
                 }
                 default:
@@ -1072,10 +1076,13 @@ function BinaryPPTYLoader()
             s.Skip2(1);
             this.ReadTableStyle();
         }
-
-        if(!this.presentation.globalTableStyles.Style[this.presentation.DefaultTableStyleId])
+        if(typeof sNewDefaultStyleStyleId === 'string' && this.presentation && this.presentation.globalTableStyles)
         {
-            this.presentation.DefaultTableStyleId = _old_default;
+            const oDefaultStyle = this.presentation.globalTableStyles.GetStyleByStyleId(sNewDefaultStyleStyleId);
+            if (oDefaultStyle)
+            {
+                this.presentation.DefaultTableStyleId = oDefaultStyle.Id;
+            }
         }
         s.Seek2(_end_rec);
     };
@@ -1102,10 +1109,24 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     var _id = s.GetString2();
+                    _style.SetStyleId(_id);
                    // _style.Id = _id;
 					if(AscCommon.isRealObject(this.presentation.TableStylesIdMap) && !bNotAddStyle)
 						this.presentation.TableStylesIdMap[_style.Id] = true;
-                    this.map_table_styles[_id] = _style;
+
+                    if (this.presentation && this.presentation.globalTableStyles)
+                    {
+                        const oOldStyle = this.presentation.globalTableStyles.GetStyleByStyleId(_id);
+                        if (oOldStyle)
+                        {
+                            this.presentation.globalTableStyles.Remove(oOldStyle.GetId());
+                            this.presentation.globalTableStyles.Add(_style);
+                        }
+                        else
+                        {
+                            this.map_table_styles[_id] = _style;
+                        }
+                    }
                     break;
                 }
                 case 1:
@@ -1264,7 +1285,7 @@ function BinaryPPTYLoader()
 		}
 		else
 		{
-			if(this.presentation.globalTableStyles)
+			if(this.presentation && this.presentation.globalTableStyles)
 				this.presentation.globalTableStyles.Add(_style);
 		}
     };
@@ -7781,6 +7802,11 @@ function BinaryPPTYLoader()
             if(this.map_table_styles[props.style])
             {
                 _table.Set_TableStyle(this.map_table_styles[props.style].Id);
+            }
+            else if (this.presentation && this.presentation.globalTableStyles && this.presentation.globalTableStyles.GetStyleByStyleId(props.style))
+            {
+                style = this.presentation.globalTableStyles.GetStyleByStyleId(props.style);
+                _table.Set_TableStyle(style.GetId());
             }
             _table.Set_Pr(props.props);
             _table.Set_TableLook(props.look);

@@ -60,7 +60,10 @@ var CShape = AscFormat.CShape;
 
     AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetNvGrpSpPr] = function(oClass, value){oClass.nvGrpSpPr = value;};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetSpPr] = function(oClass, value){oClass.spPr = value;};
-    AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetParent] = function(oClass, value){oClass.parent = value;};
+    AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetParent] = function(oClass, value){
+		oClass.oldParent = oClass.parent;
+		oClass.parent = value;
+	};
     AscDFH.drawingsChangesMap[AscDFH.historyitem_GroupShapeSetGroup] = function(oClass, value){oClass.group = value;};
 
     AscDFH.drawingContentChanges[AscDFH.historyitem_GroupShapeAddToSpTree] =  AscDFH.drawingContentChanges[AscDFH.historyitem_GroupShapeRemoveFromSpTree] = function(oClass){return oClass.spTree;};
@@ -119,6 +122,14 @@ AscFormat.InitClass(CGroupShape, AscFormat.CGraphicObjectBase, AscDFH.historyite
             }
         }
         return hasSmartArt;
+    };
+
+    CGroupShape.prototype.recalcTransformText = function () {
+        this.spTree.forEach(function (oDrawing) {
+            if (oDrawing.recalcTransformText) {
+                oDrawing.recalcTransformText();
+            }
+        });
     };
 
     CGroupShape.prototype.documentGetAllFontNames = function(allFonts)
@@ -555,35 +566,6 @@ AscFormat.InitClass(CGroupShape, AscFormat.CGraphicObjectBase, AscDFH.historyite
     CGroupShape.prototype.getInvertTransform = function()
     {
         return this.invertTransform;
-    };
-
-    CGroupShape.prototype.getRectBounds = function()
-    {
-        var transform = this.getTransformMatrix();
-        var w = this.extX;
-        var h = this.extY;
-        var rect_points = [{x:0, y:0}, {x: w, y: 0}, {x: w, y: h}, {x: 0, y: h}];
-        var min_x, max_x, min_y, max_y;
-        min_x = transform.TransformPointX(rect_points[0].x, rect_points[0].y);
-        min_y = transform.TransformPointY(rect_points[0].x, rect_points[0].y);
-        max_x = min_x;
-        max_y = min_y;
-        var cur_x, cur_y;
-        for(var i = 1; i < 4; ++i)
-        {
-            cur_x = transform.TransformPointX(rect_points[i].x, rect_points[i].y);
-            cur_y = transform.TransformPointY(rect_points[i].x, rect_points[i].y);
-            if(cur_x < min_x)
-                min_x = cur_x;
-            if(cur_x > max_x)
-                max_x = cur_x;
-
-            if(cur_y < min_y)
-                min_y = cur_y;
-            if(cur_y > max_y)
-                max_y = cur_y;
-        }
-        return {minX: min_x, maxX: max_x, minY: min_y, maxY: max_y};
     };
 
     CGroupShape.prototype.getResultScaleCoefficients = function()
@@ -1948,6 +1930,11 @@ AscFormat.InitClass(CGroupShape, AscFormat.CGraphicObjectBase, AscDFH.historyite
             this.spPr.setXfrm(oXfrm);
             this.updateCoordinatesAfterInternalResize();
             this.spPr.xfrm.setParent(this.spPr);
+        }
+    };
+    CGroupShape.prototype.clearChartDataCache = function () {
+        for(let nSp = 0; nSp < this.spTree.length; ++nSp) {
+            this.spTree[nSp].clearChartDataCache();
         }
     };
 

@@ -316,8 +316,8 @@ function PivotDataLocation(ws, bbox, headings) {
 }
 PivotDataLocation.prototype.isEqual = function (val) {
 	var res = val && this.ws === val.ws
-		&& (!this.bbox && !val.bbox) || (this.bbox && val.bbox && this.bbox.isEqual(val.bbox))
-		&& (!this.headings && !val.headings) || (this.headings && val.headings && AscCommon.isEqualSortedArrays(this.headings, val.headings));
+		&& ((!this.bbox && !val.bbox) || (this.bbox && val.bbox && this.bbox.isEqual(val.bbox)))
+		&& ((!this.headings && !val.headings) || (this.headings && val.headings && AscCommon.isEqualSortedArrays(this.headings, val.headings)));
 	return !!res;
 }
 function setTableProperty(pivot, oldVal, newVal, addToHistory, historyType, changeData) {
@@ -2443,6 +2443,7 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 		var maxValue = Number.NEGATIVE_INFINITY, maxDate = Number.NEGATIVE_INFINITY;
 		var minValue = Number.POSITIVE_INFINITY, minDate = Number.POSITIVE_INFINITY;
 		var records = new PivotRecords();
+		let stringCaseMap = new Map();
 		var lastRow, lastRowWithText;
 		lastRow = lastRowWithText = firstRow - 1;
 		ws.getRange3(lastRow + 1, bbox.c1 + i, bbox.r2, bbox.c1 + i)._foreachNoEmptyByCol(function(cell) {
@@ -2479,7 +2480,13 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 						break;
 					case AscCommon.CellValueType.String:
 						var text = cell.getValueWithoutFormat();
-						records.addString(text);
+						let textLower = text.toLowerCase();
+						let textWithCase = stringCaseMap.get(textLower);
+						if (!textWithCase) {
+							textWithCase = text;
+							stringCaseMap.set(textLower, textWithCase);
+						}
+						records.addString(textWithCase);
 						if (text.length > 255) {
 							si.longText = true;
 						}
@@ -2680,6 +2687,7 @@ function CT_pivotTableDefinition(setDefaults) {
 	this.ascDataRef = null;
 	this.ascAltText = null;
 	this.ascAltTextSummary = null;
+	this.ascHideValuesRow = null;
 
 	if (setDefaults) {
 		this.setDefaults();
@@ -4004,6 +4012,9 @@ CT_pivotTableDefinition.prototype.asc_getTitle = function () {
 CT_pivotTableDefinition.prototype.asc_getDescription = function () {
 	return this.pivotTableDefinitionX14 && this.pivotTableDefinitionX14.altTextSummary;
 };
+CT_pivotTableDefinition.prototype.asc_getHideValuesRow = function () {
+	return this.pivotTableDefinitionX14 && this.pivotTableDefinitionX14.hideValuesRow;
+};
 CT_pivotTableDefinition.prototype.asc_getStyleInfo = function () {
 	return this.pivotTableStyleInfo;
 };
@@ -4556,7 +4567,9 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 		location.firstDataCol = 0;
 		location.firstHeaderRow = 1;
 		if (1 === colFieldsCount && st_VALUES === colFields[0].asc_getIndex()) {
-			location.firstHeaderRow = 0;
+			if (!this.showHeaders || (this.pivotTableDefinitionX14 && this.pivotTableDefinitionX14.hideValuesRow)) {
+				location.firstHeaderRow = 0;
+			}
 			colFieldsCountWithoutValues = 0;
 		}
 		if (this.gridDropZones && (0 === colFieldsCountWithoutValues || 0 === rowFieldsCount)) {
@@ -4734,6 +4747,9 @@ CT_pivotTableDefinition.prototype.asc_set = function (api, newVal) {
 		if (null != newVal.ascAltTextSummary) {
 			pivot.setDescription(newVal.ascAltTextSummary, true);
 		}
+		if (null != newVal.ascHideValuesRow) {
+			pivot.setHideValuesRow(newVal.ascHideValuesRow, true);
+		}
 		if (null !== newVal.ascInsertBlankRow) {
 			pivot.setInsertBlankRow(newVal.ascInsertBlankRow, true);
 		}
@@ -4846,6 +4862,9 @@ CT_pivotTableDefinition.prototype.setTitle = function(newVal, addToHistory) {
 CT_pivotTableDefinition.prototype.asc_setDescription = function(newVal, addToHistory) {
 	this.ascAltTextSummary = newVal;
 };
+CT_pivotTableDefinition.prototype.asc_setHideValuesRow = function(newVal, addToHistory) {
+	this.ascHideValuesRow = newVal;
+};
 CT_pivotTableDefinition.prototype.setDescription = function(newVal, addToHistory) {
 	if (!this.pivotTableDefinitionX14) {
 		this.pivotTableDefinitionX14 = new CT_pivotTableDefinitionX14();
@@ -4853,6 +4872,14 @@ CT_pivotTableDefinition.prototype.setDescription = function(newVal, addToHistory
 	var oldVal = this.pivotTableDefinitionX14.altTextSummary;
 	setTableProperty(this, oldVal, newVal, addToHistory, AscCH.historyitem_PivotTable_SetAltTextSummary, true);
 	this.pivotTableDefinitionX14.altTextSummary = newVal;
+};
+CT_pivotTableDefinition.prototype.setHideValuesRow = function(newVal, addToHistory) {
+	if (!this.pivotTableDefinitionX14) {
+		this.pivotTableDefinitionX14 = new CT_pivotTableDefinitionX14();
+	}
+	var oldVal = this.pivotTableDefinitionX14.hideValuesRow;
+	setTableProperty(this, oldVal, newVal, addToHistory, AscCH.historyitem_PivotTable_HideValuesRow, true);
+	this.pivotTableDefinitionX14.hideValuesRow = newVal;
 };
 CT_pivotTableDefinition.prototype.asc_setInsertBlankRow = function(newVal) {
 	this.ascInsertBlankRow = newVal;
@@ -5292,6 +5319,13 @@ CT_pivotTableDefinition.prototype.moveField = function(arr, from, to, addToHisto
 		return true;
 	}
 	return false;
+};
+CT_pivotTableDefinition.prototype.checkRefresh = function() {
+	let dataRef = this.asc_getDataRef();
+	return Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef) ? c_oAscError.ID.No : c_oAscError.ID.PivotLabledColumns;
+};
+CT_pivotTableDefinition.prototype.refresh = function() {
+	this.updateCacheData(this.asc_getDataRef());
 };
 CT_pivotTableDefinition.prototype.asc_refresh = function(api) {
 	var dataRef = this.asc_getDataRef();
@@ -5784,7 +5818,7 @@ CT_pivotTableDefinition.prototype.filterByFieldIndex = function (api, autoFilter
 		}
 		api.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
-		api._changePivotEndCheckError(t, changeRes, function () {
+		api._changePivotEndCheckError(changeRes, function () {
 			var pivot = api.wbModel.getPivotTableById(t.Get_Id());
 			if (pivot) {
 				pivot.filterByFieldIndex(api, autoFilterObject, fld, true);
@@ -5919,7 +5953,7 @@ CT_pivotTableDefinition.prototype.removeFiltersWithLock = function(api, flds, co
 		}
 		api.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
-		api._changePivotEndCheckError(t, changeRes, function() {
+		api._changePivotEndCheckError(changeRes, function() {
 			var pivot = api.wbModel.getPivotTableById(t.Get_Id());
 			if (pivot) {
 				pivot.removeFiltersWithLock(api, flds, true);
@@ -15025,6 +15059,7 @@ function PivotRecords() {
 	this.startCount = 0;
 
 //inner
+	this.stringMap = new Map();
 	this._curBoolean = new CT_Boolean();
 	this._curDateTime = new CT_DateTime();
 	this._curError = new CT_Error();
@@ -15166,8 +15201,15 @@ PivotRecords.prototype.addMissing = function(count, addition) {
 PivotRecords.prototype.addNumber = function(val, addition) {
 	this._add(c_oAscPivotRecType.Number, val, addition);
 };
+PivotRecords.prototype._addString = function(val) {
+	let valLower = val.toLowerCase();
+	this.stringMap.get(valLower);
+	this.stringMap.set(valLower, {});
+};
 PivotRecords.prototype.addString = function(val, addition) {
 	//todo don't use global editor
+
+	//AscFonts.FontPickerByCharacter.getFontsByString(text);
 	val = window["Asc"]["editor"].wbModel.sharedStrings.addText(val);
 	this._add(c_oAscPivotRecType.String, val, addition);
 };

@@ -541,6 +541,56 @@ CDegree.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos == 1 && false === this.Is_SelectInside(); // находимся в итераторе
 };
+CDegree.prototype.GetTextOfElement = function(isLaTeX) {
+	var strTemp = "";
+	var strTypeOfScript = this.Pr.type === 1 ? '^' : '_';
+	var strBase = this.getBase().GetMultipleContentForGetText(isLaTeX);
+	var strIterator = this.getIterator().GetMultipleContentForGetText(isLaTeX);
+
+	if (isLaTeX)
+    {
+		switch (strBase) {
+			case 'cos':
+			case 'sin':
+			case 'tan':
+			case 'sec':
+			case 'cot':
+			case 'csc':
+			case 'arcsin':
+			case 'arccos':
+			case 'arctan':
+			case 'arcsec':
+			case 'arccot':
+			case 'arccsc':
+			case 'sinh':
+			case 'cosh':
+			case 'tanh':
+			case 'coth':
+			case 'sech':
+			case 'csch':
+			case 'srcsinh':
+			case 'arctanh':
+			case 'arcsech':
+			case 'arccosh':
+			case 'arccoth':
+			case 'arccsch':
+			case 'log':
+			case 'lim':
+			case 'ln':
+			case 'max':
+			case 'min':
+			case 'exp': strBase = '\\'+ strBase; break;
+			default: break;
+		}
+        
+		strTemp = strBase + strTypeOfScript + strIterator;
+	}
+    else
+    {
+		strTemp = strBase + strTypeOfScript + strIterator + " ";
+	}
+	return strTemp;
+};
 
 /**
  *
@@ -1194,6 +1244,40 @@ CDegreeSubSup.prototype.Get_InterfaceProps = function()
 CDegreeSubSup.prototype.Can_ModifyArgSize = function()
 {
     return this.CurPos !== 0 && false === this.Is_SelectInside(); // находимся в итераторе
+};
+CDegreeSubSup.prototype.GetTextOfElement = function(isLaTeX)
+{
+	let strTemp = "";
+	let Base = this.getBase().GetMultipleContentForGetText(isLaTeX);
+	let strLower = this.getLowerIterator().GetMultipleContentForGetText(isLaTeX);
+	let strUpper = this.getUpperIterator().GetMultipleContentForGetText(isLaTeX);
+
+	let isPreScript = this.Pr.type === -1;
+	
+    if (isLaTeX)
+    {
+		if(strLower.length === 0 || strLower === '⬚')
+			strLower = '{}'
+		if(strUpper.length === 0 || strUpper === '⬚')
+			strUpper = '{}'
+
+		if (true === isPreScript)
+			strTemp = '{' + '_' + strLower + '^' + strUpper + '}' + Base;
+        else
+			strTemp = Base + '_' + strLower + '^' + strUpper;
+	}
+    else
+    {
+
+		if (true === isPreScript)
+			strTemp = '(' + '_' + strLower + '^' + strUpper + ')' + Base;
+        else {
+            strTemp = Base + '_' + strLower + '^' + strUpper;
+        }
+
+        strTemp += " ";
+	}
+	return strTemp;
 };
 
 /**
