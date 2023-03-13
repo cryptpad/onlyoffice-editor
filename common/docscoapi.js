@@ -1758,22 +1758,31 @@
     });
   };
 
-  function CNativeSocket(settings)
-  {
-    this.engine = window['SockJS'];
-    this.settings = settings;
-    this.io = this;
-    this.settings["type"] = "socketio";
-  }
-  CNativeSocket.prototype.open = function() { return this.engine.open(this.settings); };
-  CNativeSocket.prototype.send = function(message) { return this.engine.send(message); };
-  CNativeSocket.prototype.close = function() { return this.engine.close(); };
-  CNativeSocket.prototype.emit = function(message, data) { return this.send(JSON.stringify(data)); };
+    DocsCoApi.prototype._initSocksJs = function () {
+        var t = this;
+        var socketio;
+        socketio = this.socketio = {};
 
-  CNativeSocket.prototype.reconnectionAttempts = function(val) { this.settings["reconnectionAttempts"] = val; };
-  CNativeSocket.prototype.reconnectionDelay    = function(val) { this.settings["reconnectionDelay"] = val; };
-  CNativeSocket.prototype.reconnectionDelayMax = function(val) { this.settings["reconnectionDelayMax"] = val; };
-  CNativeSocket.prototype.randomizationFactor  = function(val) { this.settings["randomizationFactor"] = val; };
+        var send = function (data) {
+            setTimeout(function () {
+                socketio.onmessage({
+                    data: JSON.stringify(data)
+                });
+            });
+        };
+        var license = {
+            type: 'license',
+            license: {
+                type: 3,
+                mode: 0,
+                //light: false,
+                //trial: false,
+                rights: 1,
+                buildVersion: "5.2.6",
+                buildNumber: 2,
+                //branding: false
+            }
+        };
 
 	DocsCoApi.prototype._initSocksJs = function () {
       var t = this;
@@ -1832,8 +1841,34 @@
       }
     this.socketio = socket;
 
-		return socket;
-	};
+        socketio.onopen = function() {
+          t._state = ConnectionState.WaitAuth;
+            t.onFirstConnect();
+        };
+        socketio.onopen();
+
+        socketio.close = function () {
+            console.error('Close realtime');
+        };
+
+        socketio.send = function (data) {
+            try {
+                var obj = JSON.parse(data);
+            } catch (e) {
+                console.error(e);
+                return;
+            }
+            if (channel) {
+                channel.event('CMD', obj);
+            }
+        };
+
+        socketio.onmessage = function (e) {
+            t._onServerMessage(e.data);
+        };
+
+        return socketio;
+    };
 
 	DocsCoApi.prototype._onServerOpen = function () {
 		this._state = ConnectionState.WaitAuth;
