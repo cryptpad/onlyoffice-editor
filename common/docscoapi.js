@@ -1758,7 +1758,7 @@
     });
   };
 
-    DocsCoApi.prototype._initSocksJs = function () {
+DocsCoApi.prototype._initSocksJs = function () {
         var t = this;
         var socketio;
         socketio = this.socketio = {};
@@ -1775,75 +1775,56 @@
             license: {
                 type: 3,
                 mode: 0,
-                //light: false,
-                //trial: false,
+                // light: false,
+                // trial: false,
                 rights: 1,
-                buildVersion: "5.2.6",
-                buildNumber: 2,
-                //branding: false
+                buildVersion: "7.3.3",
+                buildNumber: 8,
+                // branding: false
             }
         };
 
-	DocsCoApi.prototype._initSocksJs = function () {
-      var t = this;
-      let socket;
-      let firstConnection = true;
-      let options = {
-        "path": this.socketio_url,
-        "transports": ["websocket", "polling"],
-        "closeOnBeforeunload": false,
-        "reconnectionAttempts": 15,
-        "reconnectionDelay": 500,
-        "reconnectionDelayMax": 10000,
-        "randomizationFactor": 0.5,
-        "auth": {
-          "token": this.jwtOpen
-        }
-      };
-      if (window['IS_NATIVE_EDITOR']) {
-        socket = this.sockjs = new CNativeSocket(options);
-        socket.open();
-      } else {
-        let io = AscCommon.getSocketIO();
-        socket = io(options);
-        socket.on("connect", function () {
-          firstConnection = false;
-          t._onServerOpen();
+        var channel;
+
+        require([
+            '/common/outer/worker-channel.js',
+            '/common/common-util.js'
+        ], function (Channel, Util) {
+            var msgEv = Util.mkEvent();
+            var p = window.parent;
+
+            // Presenter mode in slides
+            if (editor && editor.isReporterMode) {
+                // If we are in the presenter popup, we want a channel with the main OO.
+                // Since a lot of the code is using window.parent.APP, we need to override
+                // window.parent because in the case of a popup, window.parent === window
+                p = window.opener;
+                window.parent = p;
+            } else {
+                // If we're not in presenter mode, we're the parent if the presenter popup
+                // and this popup will need access to APP in order to load images
+                window.APP = p && p.APP;
+            }
+
+            window.addEventListener('message', function (msg) {
+                if (msg.source !== p) { return; }
+                msgEv.fire(msg);
+            });
+            var postMsg = function (data) {
+                p.postMessage(data, '*');
+            };
+            Channel.create(msgEv, postMsg, function (chan) {
+                channel = chan;
+                send(license);
+
+                chan.on('CMD', function (obj) {
+                    send(obj);
+                });
+            });
         });
-        socket.on("disconnect", function (reason) {
-          //(explicit disconnection), the client will not try to reconnect and you need to manually call
-          let explicit = 'io server disconnect' === reason || 'io client disconnect' === reason;
-          t._onServerClose(explicit);
-          if (!explicit) {
-            //explicit disconnect sends disconnect reason on its own
-            t.onDisconnect();
-          }
-        });
-        socket.on('connect_error', function (err) {
-          //cases: every connect error and reconnect
-          if (err.data) {
-            //cases: authorization
-            t._onServerClose(true);
-            t.onDisconnect(err.data.description, err.data.code);
-          } else if (firstConnection) {
-            firstConnection = false;
-            socket.io.opts.transports = ["polling", "websocket"];
-          }
-        });
-        socket.io.on("reconnect_failed", function () {
-          //cases: connection restore, wrong socketio_url
-          t._onServerClose(true);
-          t.onDisconnect("reconnect_failed", c_oCloseCode.restore);
-        });
-        socket.on("message", function (data) {
-          t._onServerMessage(data);
-        });
-      }
-    this.socketio = socket;
 
         socketio.onopen = function() {
-          t._state = ConnectionState.WaitAuth;
-            t.onFirstConnect();
+            t._onServerOpen();
         };
         socketio.onopen();
 
@@ -1851,20 +1832,14 @@
             console.error('Close realtime');
         };
 
-        socketio.send = function (data) {
-            try {
-                var obj = JSON.parse(data);
-            } catch (e) {
-                console.error(e);
-                return;
-            }
+        socketio.emit = function(type, data) {
             if (channel) {
-                channel.event('CMD', obj);
+                channel.event('CMD', data);
             }
-        };
+        }
 
         socketio.onmessage = function (e) {
-            t._onServerMessage(e.data);
+            t._onServerMessage(JSON.parse(e.data));
         };
 
         return socketio;
