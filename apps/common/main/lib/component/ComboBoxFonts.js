@@ -90,6 +90,10 @@ define([
 
         function CThumbnailLoader() {
             this.supportBinaryFormat = !(Common.Controllers.Desktop.isActive() && !Common.Controllers.Desktop.isFeatureAvailable('isSupportBinaryFontsSprite'));
+
+            // XXX CryptPad: We do not support the binary image format
+            this.supportBinaryFormat = false;
+
             // наш формат - альфамаска с сжатием типа rle для полностью прозрачных пикселов
 
             this.image = null;
