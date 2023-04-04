@@ -3284,6 +3284,21 @@
 		}
 
 
+		//scale only int
+		/*wScale = wScale >> 0;
+		hScale = hScale >> 0;
+
+		var minScale;
+		if(width && height) {
+			minScale = Math.min(wScale, hScale);
+		} else if(width) {
+			minScale = wScale;
+		} else {
+			minScale = hScale;
+		}*/
+
+		//TODO revert old version for standardtester on hotfix
+		//up commented code is true, after release need change
 		var minScale;
 		if(width && height) {
 			minScale = Math.min(Math.round(wScale), Math.round(hScale));
@@ -7139,7 +7154,7 @@
 		var textBound = cache.textBound;
 		var rowInfo = this.rows[row];
 		// update row's descender
-		if (va !== Asc.c_oAscVAlign.Top && va !== Asc.c_oAscVAlign.Center && !mergeType && !cache.angle) {
+		if (rowInfo && va !== Asc.c_oAscVAlign.Top && va !== Asc.c_oAscVAlign.Center && !mergeType && !cache.angle) {
 			// ToDo move descender in model
 			var newDescender = tm.height - tm.baseline;
 			if (newDescender > this._getRowDescender(row)) {

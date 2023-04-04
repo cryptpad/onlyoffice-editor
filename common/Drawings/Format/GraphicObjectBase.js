@@ -1012,6 +1012,8 @@
     };
     CGraphicObjectBase.prototype.getAllFonts = function(mapUrl){
     };
+	CGraphicObjectBase.prototype.recalcText = function () {
+	};
     CGraphicObjectBase.prototype.collectEquations3 = function(aEquations) {
         if(Array.isArray(this.spTree)) {
             for(var nSp = 0; nSp < this.spTree.length; ++nSp) {

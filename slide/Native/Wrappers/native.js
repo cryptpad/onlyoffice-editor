@@ -1088,7 +1088,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 63: // ASC_MENU_EVENT_TYPE_SEARCH_REPLACETEXT
         {
-            var _ret = this.asc_replaceText(_params[0], _params[1], _params[2], _params[3]);
+            var searchSettings = new AscCommon.CSearchSettings();
+            searchSettings.put_Text(_params[0]);
+            searchSettings.put_MatchCase(_params[3]);
+
+            var _ret = this.asc_replaceText(searchSettings, _params[1], _params[2]);
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteBool"](_ret);
@@ -1431,30 +1435,31 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
-            this.CoAuthoringApi._CoAuthoringApi._onServerOpen();
+            this.CoAuthoringApi._CoAuthoringApi.socketio.onMessage("connect");
             break;
         }
 
         case 10010: // ASC_SOCKET_EVENT_TYPE_ON_CLOSE
         {
-
+            // NOT USED
             break;
         }
 
         case 10020: // ASC_SOCKET_EVENT_TYPE_MESSAGE
         {
-            this.CoAuthoringApi._CoAuthoringApi._onServerMessage(_params ? JSON.parse(_params) : {});
+            this.CoAuthoringApi._CoAuthoringApi.socketio.onMessage("message", _params ? JSON.parse(_params) : {});
             break;
         }
 
         case 11010: // ASC_SOCKET_EVENT_TYPE_ON_DISCONNECT
         {
+            this.CoAuthoringApi._CoAuthoringApi.socketio.onMessage("disconnect", _params || "");
             break;
         }
 
         case 11020: // ASC_SOCKET_EVENT_TYPE_TRY_RECONNECT
         {
-            this.CoAuthoringApi._CoAuthoringApi._reconnect();
+            // NOT USED
             break;
         }
         case 21000: // ASC_COAUTH_EVENT_TYPE_INSERT_URL_IMAGE

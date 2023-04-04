@@ -162,6 +162,7 @@
 		this.file = null;
 		this.isStarted = false;
 		this.isCMapLoading = false;
+		this.savedPassword = "";
 
 		this.scrollWidth = this.Api.isMobileVersion ? 0 : 14;
 		this.isVisibleHorScroll = false;
@@ -258,8 +259,6 @@
 
 		this.createComponents = function()
 		{
-			this.updateSkin();
-
 			var elements = "";
 			elements += "<canvas id=\"id_viewer\" class=\"block_elem\" style=\"left:0px;top:0px;width:100;height:100;\"></canvas>";
 			elements += "<canvas id=\"id_overlay\" class=\"block_elem\" style=\"left:0px;top:0px;width:100;height:100;\"></canvas>";
@@ -278,8 +277,9 @@
 			this.overlay = new AscCommon.COverlay();
 			this.overlay.m_oControl = { HtmlElement : this.canvasOverlay };
 			this.overlay.m_bIsShow = true;
+
+			this.updateSkin();
 		};
-		this.createComponents();
 
 		this.setThumbnailsControl = function(thumbnails)
 		{
@@ -748,7 +748,7 @@
 			var _t = this;
 			xhr.onload = function()
 			{
-				if (this.status === 200)
+				if (this.status === 200 || location.href.indexOf("file:") == 0)
 				{
 					_t.isCMapLoading = false;
 					_t.file.setCMap(new Uint8Array(this.response));
@@ -869,8 +869,18 @@
 				return;
 			}
 
+			if (window["AscDesktopEditor"])
+				this.savedPassword = password;
+
 			this.pagesInfo.setCount(this.file.pages.length);
 			this.checkLoadCMap();
+		};
+
+		this.getFileNativeBinary = function()
+		{
+			if (!this.file || !this.file.isValid())
+				return null;
+			return this.file.getFileBinary();
 		};
 
 		this.setZoom = function(value)
@@ -1851,7 +1861,7 @@
 
 		this._paint = function()
 		{
-			if (!this.file.isValid())
+			if (!this.file || !this.file.isValid())
 				return;
 
 			this.canvas.width = this.canvas.width;
@@ -2436,6 +2446,8 @@
 			}
 			return result;
 		};
+
+		this.createComponents();
 	}
 
 	function CCurrentPageDetector(w, h)

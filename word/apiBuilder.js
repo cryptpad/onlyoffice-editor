@@ -195,6 +195,22 @@
 			|| sFontName === 'Source Code Pro';
 	}
 
+	function private_CheckDrawingOnAdd(oApiDrawing) {
+		if(window.g_asc_plugins)
+		{
+			let oDrawing = oApiDrawing.Drawing;
+			if(oDrawing)
+			{
+				if(oDrawing.GraphicObj &&
+					oDrawing.GraphicObj.getObjectType() === AscDFH.historyitem_type_OleObject)
+				{
+					let oData = oDrawing.GraphicObj.getDataObject();
+					window.g_asc_plugins.onPluginEvent("onInsertOleObjects", [oData]);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Class representing a container for paragraphs and tables.
 	 * @param Document
@@ -4700,16 +4716,15 @@
 		var oDocument = this.GetDocument();
 		var oParsedObj  = JSON.parse(sMessage);
 		var oResult = null;
+		if (oParsedObj["styles"])
+			oReader.StylesFromJSON(oParsedObj["styles"]);
+
 		switch (oParsedObj["type"])
 		{
 			case "document":
 				if (oParsedObj["numbering"])
 				{
 					oReader.parsedNumbering = oParsedObj["numbering"];
-				}
-				if (oParsedObj["styles"])
-				{
-					oReader.StylesFromJSON(oParsedObj["styles"]);
 				}
 				if (oParsedObj["textPr"])
 				{
@@ -5304,6 +5319,36 @@
 		
 		return arrApiOleObjects;
 	};
+	/**
+	 * Returns an array of all paragraphs from the current document content
+	 * @memberof ApiDocumentContent
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiParagraph[]}
+	 */
+	ApiDocumentContent.prototype.GetAllParagraphs = function()
+	{
+		let result = [];
+		this.Document.GetAllParagraphs().forEach(function(paragraph)
+		{
+			result.push(new ApiParagraph(paragraph));
+		});
+		return result;
+	};
+	/**
+	 * Returns an array of all tables from the current document content
+	 * @memberof ApiDocumentContent
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiParagraph[]}
+	 */
+	ApiDocumentContent.prototype.GetAllTables = function()
+	{
+		let result = [];
+		this.Document.GetAllTables().forEach(function(table)
+		{
+			result.push(new ApiTable(table));
+		});
+		return result;
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDocument
@@ -5712,6 +5757,17 @@
 			return;
 
 		var sReplace = oProperties["replaceString"];
+		
+		sReplace = sReplace.replaceAll('\t', "^t");
+		sReplace = sReplace.replaceAll('\v', "^l");
+		sReplace = sReplace.replaceAll('\f', "^m");
+		// TODO: ^p пока не поддерживается для замены
+		//sReplace = sReplace.replaceAll('\r', "^p");
+		sReplace = sReplace.replaceAll('\x0e', "^n");
+		sReplace = sReplace.replaceAll('\x1e', "^~");
+		// TODO: Сделать поддержку softHyphen
+		//sReplace = sReplace.replaceAll('\x1f', "");
+		
 		this.Document.ReplaceSearchElement(sReplace, true, null, false);
 	};
 	/**
@@ -6910,6 +6966,19 @@
             "SymbolsWSCount" : oLogicDocument.Statistics.SymbolsWhSpaces
         }
 	};
+	/**
+	 * Returns the number of pages in a document
+	 * <note>This method can be slow for large documents, because it runs the document calculation
+	 * process before the full recalculation.</note>
+	 * @memberof ApiDocument
+	 * @typeofeditors ["CDE"]
+	 * @return {number}
+	 */
+	ApiDocument.prototype.GetPageCount = function()
+	{
+		this.ForceRecalculate();
+		return this.Document.GetPagesCount();
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -7254,7 +7323,7 @@
 		oRun.Add_ToContent(0, oDrawing.Drawing);
 		private_PushElementToParagraph(this.Paragraph, oRun);
 		oDrawing.Drawing.Set_Parent(oRun);
-
+		private_CheckDrawingOnAdd(oDrawing);
 		return new ApiRun(oRun);
 	};
 
@@ -8522,7 +8591,7 @@
 		oParaTo.GetAllSeqFieldsByType(sCaption, aTempCompFlds);
 		if (aTempCompFlds.length === 0)
 			return false;
-		if (nRefTo === 7 && oParaTo.asc_canAddRefToCaptionText(typeRec.displayValue) === false)
+		if (nRefTo === 7 && oParaTo.CanAddRefAfterSEQ(sCaption) === false)
 		{
 			console.log("The request reference is empty.");
 			return false;
@@ -8815,7 +8884,7 @@
 
 		this.Run.Add_ToContent(this.Run.Content.length, oDrawing.Drawing);
 		oDrawing.Drawing.Set_Parent(this.Run);
-
+		private_CheckDrawingOnAdd(oDrawing);
 		return true;
 	};
 	/**
@@ -11535,7 +11604,7 @@
 	ApiStyle.prototype.ToJSON = function(bWriteNumberings)
 	{
 		var oWriter = new AscJsonConverter.WriterToJSON();
-		var oJSON = oWriter.SerStyle(this.Style);
+		var oJSON = oWriter.SerWordStyle(this.Style);
 		if (bWriteNumberings)
 			oJSON["numbering"] = oWriter.jsonWordNumberings;
 		return JSON.stringify(oJSON);
@@ -18432,6 +18501,8 @@
 	ApiDocumentContent.prototype["GetAllImages"]         = ApiDocumentContent.prototype.GetAllImages;
 	ApiDocumentContent.prototype["GetAllCharts"]         = ApiDocumentContent.prototype.GetAllCharts;
 	ApiDocumentContent.prototype["GetAllOleObjects"]     = ApiDocumentContent.prototype.GetAllOleObjects;
+	ApiDocumentContent.prototype["GetAllParagraphs"]     = ApiDocumentContent.prototype.GetAllParagraphs;
+	ApiDocumentContent.prototype["GetAllTables"]         = ApiDocumentContent.prototype.GetAllTables;
 
 	ApiRange.prototype["GetClassType"]               = ApiRange.prototype.GetClassType
 	ApiRange.prototype["GetParagraph"]               = ApiRange.prototype.GetParagraph;
@@ -18513,6 +18584,7 @@
 	ApiDocument.prototype["GetAllComments"]              = ApiDocument.prototype.GetAllComments;
 	ApiDocument.prototype["GetCommentById"]              = ApiDocument.prototype.GetCommentById;
 	ApiDocument.prototype["GetStatistics"]               = ApiDocument.prototype.GetStatistics;
+	ApiDocument.prototype["GetPageCount"]                = ApiDocument.prototype.GetPageCount;
 	
 	ApiDocument.prototype["GetSelectedDrawings"]         = ApiDocument.prototype.GetSelectedDrawings;
 	ApiDocument.prototype["ReplaceCurrentImage"]         = ApiDocument.prototype.ReplaceCurrentImage;

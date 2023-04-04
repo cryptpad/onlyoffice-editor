@@ -1504,7 +1504,8 @@ var editor;
 	spreadsheet_api.prototype.asc_initPrintPreview = function (containerId, options) {
 		var curElem = document.getElementById(containerId);
 		if (curElem) {
-			var canvasId = containerId + "-canvas"
+			var isInitCanvas = false;
+			var canvasId = containerId + "-canvas";
 			var canvas = document.getElementById(canvasId);
 			if (!canvas) {
 				canvas = document.createElement('canvas');
@@ -1515,7 +1516,10 @@ var editor;
 				canvas.style.border = "1px solid";
 				canvas.style.borderColor = "#" + this.wb.defaults.worksheetView.cells.defaultState.border.get_hex();
 				curElem.appendChild(canvas);
+				isInitCanvas = true;
+			}
 
+			if (!this.wb.printPreviewState.getCtx() || isInitCanvas) {
 				this.wb.printPreviewState.setCtx(new asc.DrawingContext({
 					canvas: canvas, units: 0/*px*/, fmgrGraphics: this.wb.fmgrGraphics, font: this.wb.m_oFont
 				}));
@@ -1848,7 +1852,7 @@ var editor;
 											var relationship = externalWorkbookPart.getRelationship(oExternalReference.val.externalBook.Id);
 											//подменяем id на target
 											if (relationship && relationship.targetFullName) {
-												oExternalReference.val.externalBook.Id = relationship.targetFullName;
+												oExternalReference.val.externalBook.Id = AscCommonExcel.decodeXmlPath(relationship.targetFullName);
 											}
 											wb.externalReferences.push(oExternalReference.val.externalBook);
 
@@ -2815,12 +2819,7 @@ var editor;
         t.collaborativeEditing._recalcLockArray(c_oAscLockTypes.kLockTypeOther, oRecalcIndexColumns, oRecalcIndexRows);
       }
         if (true === AscCommon.CollaborativeEditing.Is_Fast()) {
-            var UserId = tmpAdditionalInfo["UserId"];
-            var CursorInfo = tmpAdditionalInfo["CursorInfo"];
-            var UserShortId = tmpAdditionalInfo["UserShortId"];
-            if(UserId && CursorInfo && UserShortId) {
-                AscCommon.CollaborativeEditing.Add_ForeignCursorToUpdate(UserId, CursorInfo, UserShortId);
-            }
+            AscCommon.CollaborativeEditing.UpdateForeignCursorByAdditionalInfo(tmpAdditionalInfo);
         }
     };
     this.CoAuthoringApi.onCursor = function(e) {
@@ -4012,27 +4011,22 @@ var editor;
 
   spreadsheet_api.prototype.asc_findText = function(options, callback) {
     var result = null;
-    if (window["NATIVE_EDITOR_ENJINE"]) {
-      if (this.wb.findCellText(options)) {
-        var ws = this.wb.getWorksheet();
-        var activeCell = this.wbModel.getActiveWs().selectionRange.activeCell;
-        result = [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
-      }
-    } else {
-		//***searchEngine
-		var SearchEngine = this.wb.Search(options);
-		var Id = this.wb.GetSearchElementId(!options || options.scanForward);
 
-		if (null != Id) {
-			this.wb.SelectSearchElement(Id);
-		}
+	//***searchEngine
+	var SearchEngine = this.wb.Search(options);
+	var Id = this.wb.GetSearchElementId(!options || options.scanForward);
 
+	if (null != Id) {
+		this.wb.SelectSearchElement(Id);
+	}
+
+	if (window["NATIVE_EDITOR_ENJINE"]) {
+		var ws = this.wb.getWorksheet();
+		var activeCell = this.wbModel.getActiveWs().selectionRange.activeCell;
+		result = [ws.getCellLeftRelative(activeCell.col, 0), ws.getCellTopRelative(activeCell.row, 0)];
+	} else {
 		result = SearchEngine.Count;
-
-		/* var d = this.wb.findCellText(options);
-		 this.controller.scroll(d);
-		 result = !!d;*/
-    }
+	}
 
     if (callback)
       callback(result);
@@ -6301,7 +6295,7 @@ var editor;
 		}
 	};
 	spreadsheet_api.prototype._onUpdateDocumentCanUndoRedo = function () {
-		AscCommon.History._sendCanUndoRedo();
+		AscCommon.History && AscCommon.History._sendCanUndoRedo();
 	};
 
   spreadsheet_api.prototype._onCheckCommentRemoveLock = function(lockElem) {
@@ -6481,6 +6475,7 @@ var editor;
 
     var pageSetup;
     var countWorksheets = this.wbModel.getWorksheetCount();
+    var t = this;
 
     if(_options) {
       //печатаем только 1 страницу первой книги
@@ -6584,8 +6579,9 @@ var editor;
     if (undefined === _printer && _page === undefined) {
       // ПУСТОЙ вызов, так как он должен быть ДО команд печати (картинки). А реальзый вызов - после (pagescount)
       window["AscDesktopEditor"] && window["AscDesktopEditor"]["Print_Start"]();
-      _printer = this.wb.printSheets(_printPagesData).DocumentRenderer;
-
+      this.wb.executeWithoutPreview(function () {
+        _printer = t.wb.printSheets(_printPagesData).DocumentRenderer;
+      });
       if (undefined !== window["AscDesktopEditor"]) {
         var pagescount = _printer.m_lPagesCount;
 

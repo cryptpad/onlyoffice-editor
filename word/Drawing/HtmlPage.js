@@ -3832,6 +3832,12 @@ function CEditorPage(api)
                 this.initEventsMobile();
         }
 
+		if (undefined !== this.m_oApi.startMobileOffset)
+		{
+			this.setOffsetTop(this.m_oApi.startMobileOffset.offset, this.m_oApi.startMobileOffset.offsetScrollTop);
+			delete this.m_oApi.startMobileOffset;
+		}
+
 		//this.m_oDrawingDocument.CheckFontCache();
 
 		this.IsInitControl = true;

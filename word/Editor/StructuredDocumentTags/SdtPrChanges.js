@@ -670,6 +670,7 @@ CChangesSdtPrTextForm.prototype.private_CreateObject = function()
 function CChangesSdtPrFormPr(Class, Old, New)
 {
 	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+	this.OformSupport = AscCommon.IsSupportOFormFeature();
 }
 CChangesSdtPrFormPr.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
 CChangesSdtPrFormPr.prototype.constructor = CChangesSdtPrFormPr;
@@ -677,17 +678,27 @@ CChangesSdtPrFormPr.prototype.Type = AscDFH.historyitem_SdtPr_FormPr;
 CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
 {
 	let form = this.Class;
-	
-	let oldFieldMaster = form.Pr.FormPr ? form.Pr.FormPr.Field : undefined;
-	let newFieldMaster = Value ? Value.Field : undefined;
-	
-	if (oldFieldMaster && oldFieldMaster !== newFieldMaster)
-		oldFieldMaster.setLogicField(null);
-	
-	if (newFieldMaster && newFieldMaster !== oldFieldMaster)
-		newFieldMaster.setLogicField(form)
-	
-	form.Pr.FormPr = Value;
+	if (this.OformSupport)
+	{
+		let oldFieldMaster = form.Pr.FormPr ? form.Pr.FormPr.Field : undefined;
+		let newFieldMaster = Value ? Value.Field : undefined;
+		
+		if (oldFieldMaster && oldFieldMaster !== newFieldMaster)
+			oldFieldMaster.setLogicField(null);
+		
+		if (newFieldMaster && newFieldMaster !== oldFieldMaster)
+			newFieldMaster.setLogicField(form)
+		
+		form.Pr.FormPr = Value;
+	}
+	else
+	{
+		let fieldMaster = form.Pr.FormPr ? form.Pr.FormPr.Field : undefined;
+		form.Pr.FormPr = Value;
+		
+		if (form.Pr.FormPr)
+			form.Pr.FormPr.Field = fieldMaster;
+	}
 	
 	let logicDocument = form.GetLogicDocument();
 	let formManager   = logicDocument ? logicDocument.GetFormsManager() : null;
@@ -702,6 +713,14 @@ CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
 CChangesSdtPrFormPr.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtFormPr();
+};
+CChangesSdtPrFormPr.prototype.WriteAdditional = function(writer)
+{
+	writer.WriteBool(this.OformSupport);
+};
+CChangesSdtPrFormPr.prototype.ReadAdditional = function(reader)
+{
+	this.OformSupport = reader.GetBool();
 };
 /**
  * @constructor

@@ -254,6 +254,9 @@ prot.getUrl = function(strPath){
 prot.getLocal = function(url){
 	return this.getImageLocal(url);
 };
+prot.isThemeUrl = function(sUrl){
+	return sUrl && (0 === sUrl.indexOf('theme'));
+};
 
 AscCommon.sendImgUrls = function(api, images, callback)
 {

@@ -910,6 +910,20 @@
     //----------------------------------------------------------------------------------------------------------------------
     // Функции для работы с обновлением курсоров после принятия изменений
     //----------------------------------------------------------------------------------------------------------------------
+	CCollaborativeEditingBase.prototype.UpdateForeignCursorByAdditionalInfo = function(info)
+	{
+		if (!info)
+			return;
+		
+		let userId      = undefined !== info["UserId"] ? info["UserId"] : info.UserId;
+		let cursorInfo  = undefined !== info["CursorInfo"] ? info["CursorInfo"] : info.CursorInfo;
+		let shortUserId = undefined !== info["UserShortId"] ? info["UserShortId"] : info.UserShortId;
+		
+		if (!userId || !cursorInfo || !shortUserId)
+			return;
+		
+		this.Add_ForeignCursorToUpdate(userId, cursorInfo, shortUserId);
+	};
     CCollaborativeEditingBase.prototype.Add_ForeignCursorToUpdate = function(UserId, CursorInfo, UserShortId)
     {
         this.m_aCursorsToUpdate[UserId] = CursorInfo;

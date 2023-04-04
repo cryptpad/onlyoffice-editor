@@ -4860,10 +4860,10 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         const arrMainContentPoints = this.getSmartArtPointContent();
         if (!arrMainContentPoints) return;
         const bIsFitText = arrMainContentPoints.every(function (point) {
-            return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && !point.prSet.phldr;
+            return point && point.prSet && (typeof point.prSet.phldrT === "string") && !point.prSet.custT && !point.prSet.phldr;
         });
         let bIsPlaceholder = arrMainContentPoints.every(function (point) {
-            return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && point.prSet.phldr;
+            return point && point.prSet && (typeof point.prSet.phldrT === "string") && !point.prSet.custT && point.prSet.phldr;
         });
 
         if (!bIsFitText && !bIsPlaceholder) {
@@ -4880,10 +4880,10 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
             const oShape = arrShapes[i];
             var contentPoints = oShape.getSmartArtPointContent();
             const isPlaceholder = contentPoints.every(function (point) {
-                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && point.prSet.phldr;
+                return point && point.prSet && (typeof point.prSet.phldrT === "string") && !point.prSet.custT && point.prSet.phldr;
             });
             const isNotPlaceholder = contentPoints.every(function (point) {
-                return point && point.prSet && point.prSet.phldrT && !point.prSet.custT && !point.prSet.phldr;
+                return point && point.prSet && (typeof point.prSet.phldrT === "string") && !point.prSet.custT && !point.prSet.phldr;
             });
             if (isPlaceholder) {
                 arrPlaceholders.push(oShape);
@@ -7438,31 +7438,33 @@ function SaveContentSourceFormatting(aSourceContent, aCopyContent, oTheme, oColo
 
 function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr){
     var bMergeRunPr = (aCopyContent === aSourceContent);
-    for(var i = 0; i < aCopyContent.length; ++i){
-        if(aCopyContent[i] instanceof ParaRun && aCopyContent[i].Pr){
-            if(bMergeRunPr){
-                var oCoprPr = oPr.DefaultRunPr.Copy();
-                oCoprPr.Merge(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
-                aCopyContent[i].Set_Pr(oCoprPr)
-            }
-            else {
-                aCopyContent[i].Set_Pr(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
-            }
+	if(aCopyContent.length === aSourceContent.length) {
+		for(var i = 0; i < aCopyContent.length; ++i){
+			if(aCopyContent[i] instanceof ParaRun && aCopyContent[i].Pr){
+				if(bMergeRunPr){
+					var oCoprPr = oPr.DefaultRunPr.Copy();
+					oCoprPr.Merge(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
+					aCopyContent[i].Set_Pr(oCoprPr)
+				}
+				else {
+					aCopyContent[i].Set_Pr(SaveSourceFormattingTextPr(aCopyContent[i].Pr.Copy(), oTheme, oColorMap));
+				}
 
-        }
-        else if(aSourceContent[i].Content){
-            var oElem = aSourceContent[i];
-            SaveRunsFormatting(oElem.Content, aCopyContent[i].Content, oTheme, oColorMap, oPr);
-            if(oElem.Get_CompiledCtrPrp && aCopyContent[i].setCtrPrp){
-                var oCtrPr = oElem.Get_CompiledCtrPrp();
-                aCopyContent[i].setCtrPrp(oCtrPr);
-            }
-        }
-        else if(aSourceContent[i] instanceof AscCommonWord.ParaMath && aSourceContent[i].Root && aSourceContent[i].Root.Content){
-            SaveRunsFormatting(aSourceContent[i].Root.Content, aCopyContent[i].Root.Content, oTheme, oColorMap, oPr);
+			}
+			else if(aSourceContent[i].Content){
+				var oElem = aSourceContent[i];
+				SaveRunsFormatting(oElem.Content, aCopyContent[i].Content, oTheme, oColorMap, oPr);
+				if(oElem.Get_CompiledCtrPrp && aCopyContent[i].setCtrPrp){
+					var oCtrPr = oElem.Get_CompiledCtrPrp();
+					aCopyContent[i].setCtrPrp(oCtrPr);
+				}
+			}
+			else if(aSourceContent[i] instanceof AscCommonWord.ParaMath && aSourceContent[i].Root && aSourceContent[i].Root.Content){
+				SaveRunsFormatting(aSourceContent[i].Root.Content, aCopyContent[i].Root.Content, oTheme, oColorMap, oPr);
 
-        }
-    }
+			}
+		}
+	}
 }
 
 

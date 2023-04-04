@@ -4237,10 +4237,12 @@ CT_pivotTableDefinition.prototype.getRowColIndexes = function(fields, withoutVal
 	return indexes;
 };
 CT_pivotTableDefinition.prototype.getCacheFieldName = function(index) {
-	return this.asc_getCacheFields()[index].name || "";
+	let cacheFields = this.asc_getCacheFields();
+	return (cacheFields && cacheFields[index] && cacheFields[index].name) || "";
 };
 CT_pivotTableDefinition.prototype.getPivotFieldName = function(index) {
-	return this.asc_getPivotFields()[index].name || this.getCacheFieldName(index);
+	let pivotFields = this.asc_getPivotFields();
+	return (pivotFields && pivotFields[index] && pivotFields[index].name) || this.getCacheFieldName(index);
 };
 CT_pivotTableDefinition.prototype.getDataFieldName = function(index) {
 	var dataField = this.asc_getDataFields()[index];

@@ -490,6 +490,10 @@
 			this.ApplyNumPr(numId, 0);
 			this.ApplyToHeadings(numId);
 		}
+		else
+		{
+			this.LinkNumWithHeadings(num);
+		}
 
 		return true;
 	};
@@ -647,7 +651,7 @@
 			return;
 
 		let num          = this.Numbering.GetNum(numId);
-		let styleManager = this.Document.GetStyles();
+		let styleManager = this.Document.GetStyleManager();
 		if (num && !styleManager.HaveHeadingsNum())
 		{
 			num.LinkWithHeadings(styleManager);
@@ -667,6 +671,15 @@
 			this.Document.UpdateStylePanel();
 		}
 	};
+	CNumberingApplicator.prototype.LinkNumWithHeadings = function(num)
+	{
+		if (!num || !this.NumInfo.Headings)
+			return;
+		
+		let styleManager = this.Document.GetStyleManager();
+		num.LinkWithHeadings(styleManager);
+		this.Document.UpdateStylePanel();
+	};
 	CNumberingApplicator.prototype.UpdateDocumentOutline = function()
 	{
 		for (let index = 0, count = this.Paragraphs.length; index < count; ++index)
@@ -682,8 +695,9 @@
 	 */
 	function CNumInfo(numInfo)
 	{
-		this.Type = numInfo && numInfo["Type"] ? numInfo["Type"] : "";
-		this.Lvl  = numInfo && numInfo["Lvl"] && numInfo["Lvl"].length ? numInfo["Lvl"] : [];
+		this.Type     = numInfo && numInfo["Type"] ? numInfo["Type"] : "";
+		this.Lvl      = numInfo && numInfo["Lvl"] && numInfo["Lvl"].length ? numInfo["Lvl"] : [];
+		this.Headings = numInfo ? !!numInfo["Headings"] : false;
 	}
 	//---------------------------------------------------------export---------------------------------------------------
 	window["AscWord"].CNumberingApplicator = CNumberingApplicator;

@@ -2478,30 +2478,31 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
-            _api.CoAuthoringApi._CoAuthoringApi._onServerOpen();
+            _api.CoAuthoringApi._CoAuthoringApi.socketio.onMessage("connect");
             break;
         }
 
         case 10010: // ASC_SOCKET_EVENT_TYPE_ON_CLOSE
         {
-
+            // NOT USED
             break;
         }
 
         case 10020: // ASC_SOCKET_EVENT_TYPE_MESSAGE
         {
-            _api.CoAuthoringApi._CoAuthoringApi._onServerMessage(_params ? JSON.parse(_params) : {});
+            _api.CoAuthoringApi._CoAuthoringApi.socketio.onMessage("message", _params ? JSON.parse(_params) : {});
             break;
         }
 
         case 11010: // ASC_SOCKET_EVENT_TYPE_ON_DISCONNECT
         {
+            _api.CoAuthoringApi._CoAuthoringApi.socketio.onMessage("disconnect", _params || "");
             break;
         }
 
         case 11020: // ASC_SOCKET_EVENT_TYPE_TRY_RECONNECT
         {
-            _api.CoAuthoringApi._CoAuthoringApi._reconnect();
+            // NOT USED
             break;
         }
 
@@ -2552,6 +2553,31 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             imageProp.ImageUrl = _src;
             this.ImgApply(imageProp);
 
+            break;
+        }
+
+        case 21003: // ASC_COAUTH_EVENT_TYPE_INSERT_SCREEN_URL_IMAGE
+        {
+            var urls = JSON.parse(_params[_current.pos++]);
+            AscCommon.g_oDocumentUrls.addUrls(urls);
+            var firstUrl;
+            for (var i in urls) {
+                if (urls.hasOwnProperty(i)) {
+                    firstUrl = urls[i];
+                    break;
+                }
+            }
+
+            var _src = firstUrl;
+            var _w = _params[_current.pos++];
+            var _h = _params[_current.pos++];
+            var _pageNum = _params[_current.pos++];
+            var _additionalParams = _params[_current.pos++];
+            var _posX = _params[_current.pos++];
+            var _posY = _params[_current.pos++];
+            var _wrapType = _params[_current.pos++];
+
+            this.AddImageUrlAtPosNative(_src, _w, _h, _pageNum, _posX, _posY, _wrapType);
             break;
         }
 
@@ -6738,6 +6764,7 @@ function onApiShowRevisionsChange(data) {
                     }
                     break;
                 case Asc.c_oAscRevisionsChangeType.TablePr:
+                case Asc.c_oAscRevisionsChangeType.TableRowPr:
                     commonChanges.push("|Table Settings Changed|");
                     break;
                 case Asc.c_oAscRevisionsChangeType.RowsAdd:
@@ -7352,7 +7379,7 @@ window["asc_docs_api"].prototype["asc_nativeSetContentControlDatePickerDate"] = 
     var oPr = oContentControl.GetContentControlPr().get_DateTimePr();
     oPr.put_FullDate(new  Date(textDate));
 
-    _api.asc_SetContentControlDatePickerPr(oPr, sId);
+    _api.asc_SetContentControlDatePickerPr(oPr, sId, true);
 }
 
 window["Asc"]["asc_docs_api"].prototype["asc_nativeAddText"] = function(text, wrapWithSpaces) {

@@ -18184,6 +18184,13 @@ g_oDocumentDefaultTableCellPr.InitDefault();
 g_oDocumentDefaultTableRowPr.InitDefault();
 g_oDocumentDefaultTableStylePr.InitDefault();
 
+window["AscWord"].DEFAULT_TEXT_PR        = g_oDocumentDefaultTextPr;
+window["AscWord"].DEFAULT_PARA_PR        = g_oDocumentDefaultParaPr;
+window["AscWord"].DEFAULT_TABLE_PR       = g_oDocumentDefaultTablePr;
+window["AscWord"].DEFAULT_TABLE_CELL_PR  = g_oDocumentDefaultTableCellPr;
+window["AscWord"].DEFAULT_TABLE_ROW_PR   = g_oDocumentDefaultTableRowPr;
+window["AscWord"].DEFAULT_TABLE_STYLE_PR = g_oDocumentDefaultTableStylePr;
+
 var g_oDocumentDefaultFillColor   = new CDocumentColor(255, 255, 255, true);
 var g_oDocumentDefaultStrokeColor = new CDocumentColor(0, 0, 0, true);
 

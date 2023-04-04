@@ -4399,6 +4399,9 @@
 	window['AscDFH'].historydescription_OForm_RemoveRole                            = 0x019e;
 	window['AscDFH'].historydescription_OForm_EditRole                              = 0x019f;
 	window['AscDFH'].historydescription_OForm_ChangeRoleOrder                       = 0x01a0;
+	window['AscDFH'].historydescription_Document_AddAddinField                      = 0x01a1;
+	window['AscDFH'].historydescription_Document_UpdateAddinFields                  = 0x01a2;
+	window['AscDFH'].historydescription_Document_RemoveComplexFieldWrapper          = 0x01a3;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4672,13 +4675,27 @@
 		else
 		{
 			let Pos = this.Pos;
-			for (let nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+			if (this.Add)
 			{
-				arrActions.push({
-					Item : this.Items[nIndex],
-					Pos  : Pos + nIndex,
-					Add  : this.Add
-				});
+				for (let nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+				{
+					arrActions.push({
+						Item : this.Items[nIndex],
+						Pos  : Pos + nIndex,
+						Add  : true
+					});
+				}
+			}
+			else
+			{
+				for (let nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
+				{
+					arrActions.push({
+						Item : this.Items[nIndex],
+						Pos  : Pos,
+						Add  : false
+					});
+				}
 			}
 		}
 
@@ -4981,6 +4998,8 @@
 
 		if (undefined !== this.Old && this.Old.Write_ToBinary)
 			this.Old.Write_ToBinary(Writer);
+		
+		this.WriteAdditional(Writer);
 	};
 	CChangesBaseObjectProperty.prototype.ReadFromBinary = function(Reader)
 	{
@@ -5025,6 +5044,14 @@
 			if (this.Old && this.Old.Read_FromBinary)
 				this.Old.Read_FromBinary(Reader);
 		}
+		
+		this.ReadAdditional(Reader);
+	};
+	CChangesBaseObjectProperty.prototype.WriteAdditional = function(writer)
+	{
+	};
+	CChangesBaseObjectProperty.prototype.ReadAdditional = function(reader)
+	{
 	};
 	CChangesBaseObjectProperty.prototype.private_CreateObject = function()
 	{

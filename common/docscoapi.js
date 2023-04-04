@@ -1123,8 +1123,24 @@
 
   DocsCoApi.prototype._onRefreshToken = function(jwt) {
     this.jwtOpen = undefined;
+    if (this.socketio) {
+      if (this.socketio.auth) {
+        this.socketio.auth.token = this.jwtOpen;
+      }
+      if (this.socketio.io && this.socketio.io.setOpenToken) {
+        this.socketio.io.setOpenToken(this.jwtOpen);
+      }
+    }
     if (jwt) {
       this.jwtSession = jwt;
+      if (this.socketio) {
+        if (this.socketio.auth) {
+          this.socketio.auth.session = this.jwtSession;
+        }
+        if (this.socketio.io && this.socketio.io.setSessionToken) {
+          this.socketio.io.setSessionToken(this.jwtSession);
+        }
+      }
     }
   };
 
@@ -1554,12 +1570,13 @@
     this._onRefreshToken(data['jwt']);
     if (true === this._isAuth) {
       this._state = ConnectionState.Authorized;
+
+      this._onServerVersion(data);
+
       // Мы должны только соединиться для получения файла. Совместное редактирование уже было отключено.
       if (this.isCloseCoAuthoring) {
-		  return;
-	  }
-
-	  this._onServerVersion(data);
+        return;
+      }
 
       this._onLicenseChanged(data);
       // Мы уже авторизовывались, нужно обновить пользователей (т.к. пользователи могли входить и выходить пока у нас не было соединения)

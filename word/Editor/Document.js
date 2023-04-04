@@ -1246,8 +1246,14 @@ function CDocumentFieldsManager()
 
 	this.m_aComplexFields = [];
 	this.m_oCurrentComplexField = null;
+	
+	this.ComplexFieldCounter = 0;
 }
 
+CDocumentFieldsManager.prototype.GetNewComplexFieldId = function()
+{
+	return "" + (++this.ComplexFieldCounter);
+};
 CDocumentFieldsManager.prototype.Register_Field = function(oField)
 {
     this.m_aFields.push(oField);
@@ -1911,11 +1917,12 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		UpdateInterface : false,
 		UpdateRulers    : false,
 		UpdateUndoRedo  : false,
-		UpadteStates    : false,
+		UpdateStates    : false,
 		Redraw          : {
 			Start : undefined,
 			End   : undefined
 		},
+		UndoRedo        : false, // В текущий момент идет действие Undo/Redo
 
 		Additional : {}
 	};
@@ -2029,6 +2036,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.ForceDrawFormHighlight    = null;  // null - редактор решает рисовать или нет в зависимости от других параметров
 	this.ConcatParagraphsOnRemove  = false; // Во время удаления объединять ли первый и последний параграфы
 	this.StartCheckTextFormFormat  = false; // Флаг, что в данный момент мы уже проверяем формат текстовых форм, чтобы не вызывать повторно
+	this.CompileStyleOnLoad        = false; // Компилировать ли принудительно стили во время загрузки
 
 
 	this.DrawTableMode = {
@@ -2161,7 +2169,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		isFastCollaboration : false,
 	};
 
-	this.OFormDocument           = window['AscOForm'] && false !== isMainLogicDocument ? new AscOForm.OForm(this) : null;
+	this.OFormDocument           = AscCommon.IsSupportOFormFeature() && false !== isMainLogicDocument ? new AscOForm.OForm(this) : null;
 	this.FormsManager            = new AscWord.CFormsManager(this);
 	this.CurrentForm             = null;
 	this.HighlightRequiredFields = false;  // Выделяем ли обязательные поля
@@ -2304,6 +2312,9 @@ CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 	let openedAt = this.Api ? this.Api.openedAt : undefined;
 	if (undefined === openedAt)
 		return;
+	
+	// Для правильного обновления полей нам нужно, чтобы стили компилировались в обход флага загрузки
+	this.CompileStyleOnLoad = true;
 
 	this.ProcessComplexFields();
 	this.controller_GetAllFields(false, arrFields);
@@ -2318,6 +2329,8 @@ CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 			oField.UpdateTIME(openedAt);
 		}
 	}
+	
+	this.CompileStyleOnLoad = false;
 
 	//console.log("FieldUpdateTime : " + ((performance.now() - nTime) / 1000) + "s");
 };
@@ -2815,6 +2828,25 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	this.Action.UpdatePlaceholders = false;
 	
 	this.Action.UpdateStates = false;
+};
+CDocument.prototype.StartUndoRedoAction = function()
+{
+	this.Action.UndoRedo = true;
+	
+	this.DrawingDocument.EndTrackTable(null, true);
+	this.DrawingObjects.TurnOffCheckChartSelection();
+	this.BookmarksManager.SetNeedUpdate(true);
+};
+CDocument.prototype.FinalizeUndoRedoAction = function()
+{
+	if (!this.Action.UndoRedo)
+		return;
+	
+	if (this.Action.Additional.ContentControlChange)
+		this.private_FinalizeContentControlChange();
+	
+	this.Action.UndoRedo   = false;
+	this.Action.Additional = {};
 };
 CDocument.prototype.private_CheckAdditionalOnFinalize = function()
 {
@@ -5933,7 +5965,7 @@ CDocument.prototype.AddImages = function(aImages){
 
 CDocument.prototype.AddOleObject  = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory)
 {
-	this.Controller.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
+	return this.Controller.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
 CDocument.prototype.EditOleObject = function(oOleObject, sData, sImageUrl, fWidth, fHeight, nPixWidth, nPixHeight, arrImagesForAddToHistory)
 {
@@ -10503,6 +10535,10 @@ CDocument.prototype.GetNumbering = function()
 {
 	return this.Numbering;
 };
+CDocument.prototype.GetNumberingManager = function()
+{
+	return this.GetNumbering();
+};
 /**
  * Получаем стиль по выделенному фрагменту
  */
@@ -11879,7 +11915,7 @@ CDocument.prototype.private_UpdateFormInnerText = function(form, text)
 		Type      : AscCommon.changestype_2_Element_and_Type,
 		Element   : paragraph,
 		CheckType : AscCommon.changestype_Paragraph_Content
-	}, true, this.IsFormFieldEditing()))
+	}, true, this.IsFillingFormMode()))
 	{
 		this.StartAction(AscDFH.historydescription_Document_CorrectFormTextByFormat);
 
@@ -12292,12 +12328,10 @@ CDocument.prototype.Document_Undo = function(Options)
 	{
 		if (this.History.Can_Undo())
 		{
-			this.DrawingDocument.EndTrackTable(null, true);
-			this.DrawingObjects.TurnOffCheckChartSelection();
-			this.BookmarksManager.SetNeedUpdate(true);
-
-			var arrChanges = this.History.Undo(Options);
-			this.UpdateAfterUndoRedo(arrChanges);
+			this.StartUndoRedoAction();
+			let changes = this.History.Undo(Options);
+			this.UpdateAfterUndoRedo(changes);
+			this.FinalizeUndoRedoAction();
 		}
 	}
 
@@ -12315,12 +12349,10 @@ CDocument.prototype.Document_Redo = function()
 
 	if (this.History.Can_Redo())
 	{
-		this.DrawingDocument.EndTrackTable(null, true);
-		this.DrawingObjects.TurnOffCheckChartSelection();
-		this.BookmarksManager.SetNeedUpdate(true);
-
-		var arrChanges = this.History.Redo();
-		this.UpdateAfterUndoRedo(arrChanges);
+		this.StartUndoRedoAction();
+		let changes = this.History.Redo();
+		this.UpdateAfterUndoRedo(changes);
+		this.FinalizeUndoRedoAction();
 	}
 
 	if (this.IsFillingFormMode())
@@ -18643,11 +18675,12 @@ CDocument.prototype.controller_AddOleObject = function(W, H, nWidthPix, nHeightP
 	if (true == this.Selection.Use)
 		this.Remove(1, true);
 
-	var Item = this.Content[this.CurPos.ContentPos];
+	let Item = this.Content[this.CurPos.ContentPos];
+	let Drawing;
 	if (type_Paragraph == Item.GetType())
 	{
-		var Drawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
-		var Image = this.DrawingObjects.createOleObject(Data, sApplicationId, Img, 0, 0, W, H, nWidthPix, nHeightPix, arrImagesForAddToHistory);
+		Drawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
+		let Image = this.DrawingObjects.createOleObject(Data, sApplicationId, Img, 0, 0, W, H, nWidthPix, nHeightPix, arrImagesForAddToHistory);
 		Image.setParent(Drawing);
 		Drawing.Set_GraphicObject(Image);
 		this.AddToParagraph(Drawing);
@@ -18658,8 +18691,9 @@ CDocument.prototype.controller_AddOleObject = function(W, H, nWidthPix, nHeightP
 	}
 	else
 	{
-		Item.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
+		Drawing = Item.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 	}
+	return Drawing;
 };
 CDocument.prototype.controller_AddTextArt = function(nStyle)
 {
@@ -21694,6 +21728,9 @@ CDocument.prototype.CheckOFormUserMaster = function(form)
 	if (!currentUserMaster || !form || !form.IsForm())
 		return true;
 	
+	if (!form.IsMainForm())
+		form = form.GetMainForm();
+	
 	let fieldMaster = form.GetFieldMaster();
 	if (!fieldMaster)
 		return false;
@@ -22829,7 +22866,180 @@ CDocument.prototype.GetAllFields = function(isUseSelection)
 	return arrFields;
 };
 /**
- * Обновляем поля в документе по выледелнию или вообще все
+ * Получаем список всех полей заданного аддона
+ * @param {boolean} [bySelection=false]
+ * @returns {Array.CComplexField}
+ */
+CDocument.prototype.GetAllAddinFields = function(bySelection)
+{
+	let allFields   = this.GetAllFields(bySelection);
+	let addinFields = [];
+	allFields.forEach(function(field)
+	{
+		if ((field instanceof AscWord.CComplexField) && field.IsAddin())
+			addinFields.push(field);
+	});
+	
+	return addinFields;
+};
+/**
+ * Create Addin field by data
+ * @param {AscWord.CAddinFieldData} data
+ */
+CDocument.prototype.AddAddinField = function(data)
+{
+	if (!data)
+		return;
+	
+	let instruction = data.GetValue();
+	if (!instruction)
+		return;
+	
+	let innerText = data.GetContent();
+	if (!innerText)
+		innerText = "    ";
+	
+	if (this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		return;
+	
+	this.StartAction(AscDFH.historydescription_Document_AddAddinField);
+	
+	if (this.IsTextSelectionUse())
+		this.RemoveBeforePaste();
+	else if (this.IsSelectionUse())
+		this.RemoveSelection();
+	
+	let field = this.AddFieldWithInstruction(" ADDIN " + instruction + " ");
+	if (field)
+	{
+		field.SelectFieldValue();
+		this.AddText(innerText);
+	}
+	
+	this.Recalculate();
+	this.UpdateInterface();
+	this.UpdateSelection();
+	this.FinalizeAction();
+};
+/**
+ * Update addin fields
+ * @param arrData
+ */
+CDocument.prototype.UpdateAddinFieldsByData = function(arrData)
+{
+	if (!arrData || !Array.isArray(arrData))
+		return;
+	
+	let allFields   = this.GetAllFields();
+	let paragraphs  = [];
+	let addinFields = {};
+	arrData.forEach(function(data)
+	{
+		let fieldId = data.GetFieldId();
+		for (let index = 0, count = allFields.length; index < count; ++index)
+		{
+			if (allFields[index] instanceof AscWord.CComplexField && allFields[index].GetFieldId() === fieldId)
+			{
+				addinFields[fieldId] = allFields[index];
+				break;
+			}
+		}
+	});
+	
+	for (let fieldId in addinFields)
+	{
+		let field = addinFields[fieldId];
+		field.SelectField();
+		let selectedParagraphs = this.GetSelectedParagraphs();
+		for (let index = 0, count = selectedParagraphs.length; index < count; ++index)
+		{
+			if (-1 === paragraphs.indexOf(selectedParagraphs[index]))
+				paragraphs.push(selectedParagraphs[index]);
+		}
+	}
+	
+	if (this.IsSelectionLocked(changestype_None, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : paragraphs,
+		CheckType : AscCommon.changestype_Paragraph_Content
+	}))
+		return;
+	
+	this.StartAction(AscDFH.historydescription_Document_UpdateAddinFields);
+	
+	let logicDocument = this;
+	arrData.forEach(function(data)
+	{
+		let field = addinFields[data.GetFieldId()];
+		if (!field)
+			return;
+		
+		let value = data.GetValue();
+		if (value)
+			field.ChangeInstruction(" ADDIN " + value + " ");
+		
+		let content = data.GetContent();
+		if (content)
+		{
+			field.SelectFieldValue();
+			logicDocument.Remove();
+			logicDocument.AddText(content);
+		}
+	});
+	
+	this.Recalculate();
+	this.UpdateInterface();
+	this.UpdateSelection();
+	this.FinalizeAction();
+};
+/**
+ * Remove field wrapper
+ * @param {string} [fieldId=undefined] if not specified then remove wrapper from current field
+ */
+CDocument.prototype.RemoveComplexFieldWrapper = function(fieldId)
+{
+	let field;
+	if (fieldId)
+	{
+		let allFields = this.GetAllFields();
+		for (let index = 0, count = allFields.length; index < count; ++index)
+		{
+			if (allFields[index] instanceof AscWord.CComplexField && allFields[index].GetFieldId() === fieldId)
+			{
+				field = allFields[index];
+				break;
+			}
+		}
+	}
+	else
+	{
+		field = this.GetCurrentComplexField();
+	}
+	
+	if (!field || !(field instanceof AscWord.CComplexField))
+		return;
+	
+	field.SelectField();
+	let paragraphs = this.GetSelectedParagraphs();
+	
+	if (this.IsSelectionLocked(changestype_None, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : paragraphs,
+		CheckType : AscCommon.changestype_Paragraph_Content
+	}))
+		return;
+	
+	this.StartAction(AscDFH.historydescription_Document_RemoveComplexFieldWrapper);
+	
+	field.RemoveFieldWrap();
+	
+	this.Recalculate();
+	this.UpdateInterface();
+	this.UpdateSelection();
+	this.FinalizeAction();
+};
+/**
+ * Update fields in the document by selection or all
  * @param isBySelection {boolean}
  */
 CDocument.prototype.UpdateFields = function(isBySelection)
@@ -22868,6 +23078,8 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 	{
 		this.StartAction(AscDFH.historydescription_Document_UpdateFields);
 
+		// TODO: Функция работает плохо. Обновляются вообще все поля, даже вложенные в другие
+		//       Вложенные сами по себе обновятся при обновлении внешних
 		for (var nIndex = 0, nCount = arrFields.length; nIndex < nCount; ++nIndex)
 		{
 			arrFields[nIndex].Update(false, false);
@@ -25021,7 +25233,7 @@ CDocument.prototype.AddParaMath = function(nType)
 };
 CDocument.prototype.OnChangeContentControl = function(oControl)
 {
-	if (!this.Action.Start)
+	if (!this.Action.Start && !this.Action.UndoRedo)
 		return;
 
 	if (!this.Action.Additional.ContentControlChange)

@@ -187,6 +187,10 @@
             this.nativeFile = null;
         }
     };
+    CFile.prototype.getFileBinary = function()
+    {
+        return this.nativeFile ? this.nativeFile["getFileAsBase64"]() : null;
+    };
     CFile.prototype.memory = function()
     {
         return this.nativeFile ? this.nativeFile["memory"]() : null;
