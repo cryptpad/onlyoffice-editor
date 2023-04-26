@@ -235,10 +235,13 @@ CWordCollaborativeEditing.prototype.OnEnd_Load_Objects = function()
 	this.m_oLogicDocument.ResumeRecalculate();
 	this.m_oLogicDocument.RecalculateByChanges(this.m_aAllChanges, this.m_nRecalcIndexStart, this.m_nRecalcIndexEnd, false, nPageIndex);
 	this.m_oLogicDocument.UpdateTracks();
-	
+
+    // XXX CryptPad GetOFormDocument() seems to be undefined sometimes
+    if (this.m_oLogicDocument.GetOFormDocument) {
 	let oform = this.m_oLogicDocument.GetOFormDocument();
 	if (oform)
 		oform.onEndLoadChanges();
+    }
 
     editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.ApplyChanges);
 };
