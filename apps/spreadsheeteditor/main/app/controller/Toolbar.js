@@ -3800,7 +3800,8 @@ define([
                     }
 
                     var tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
-                    var $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
+                    // XXX CryptPad: disable protect feature
+                    var $panel = null; // me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
                     if ($panel) {
                         config.canProtect && $panel.append($('<div class="separator long"></div>'));
                         var wbtab = me.getApplication().getController('WBProtection');
