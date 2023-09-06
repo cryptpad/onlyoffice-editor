@@ -1017,7 +1017,7 @@ define([
             },
 
             applyLicense: function() {
-                /*
+                /* XXX CryptPad
                 if (this.editorConfig.mode === 'view') {
                     if (this.appOptions.canLiveView && (this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLive || this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLiveOS ||
                                                         this._state.licenseType===Asc.c_oLicenseResult.UsersViewCount || this._state.licenseType===Asc.c_oLicenseResult.UsersViewCountOS)) {

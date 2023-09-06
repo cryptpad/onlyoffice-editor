@@ -554,6 +554,9 @@ define([
                 this.api.asc_registerCallback('asc_onRunAutostartMacroses', _.bind(this.onRunAutostartMacroses, this));
                 this.api.asc_setDocInfo(docInfo);
                 this.api.asc_getEditorPermissions(this.editorConfig.licenseUrl, this.editorConfig.customerId);
+
+                // XXX CryptPad: disable protect feature
+                this.permissions.protect = false;
             },
 
             onProcessSaveResult: function(data) {
@@ -1102,7 +1105,7 @@ define([
             },
 
             applyLicense: function() {
-                /*
+                /* XXX CryptPad
                 if (this.editorConfig.mode === 'view') {
                     if (this.appOptions.canLiveView && (this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLive || this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLiveOS ||
                                                         this._state.licenseType===Asc.c_oLicenseResult.UsersViewCount || this._state.licenseType===Asc.c_oLicenseResult.UsersViewCountOS)) {
@@ -1254,7 +1257,7 @@ define([
             onEditorPermissions: function(params) {
                 var licType = params ? params.asc_getLicenseType() : Asc.c_oLicenseResult.Error;
                 if ( params && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge || this.appOptions.isEditOle)) {
-                    /*
+                    /* XXX CryptPad
                     if (Asc.c_oLicenseResult.Expired === licType || Asc.c_oLicenseResult.Error === licType || Asc.c_oLicenseResult.ExpiredTrial === licType) {
                         Common.UI.warning({
                             title: this.titleLicenseExp,
