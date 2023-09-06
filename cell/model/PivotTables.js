@@ -315,6 +315,7 @@ function PivotDataLocation(ws, bbox, headings) {
 	this.headings = headings;
 }
 PivotDataLocation.prototype.isEqual = function (val) {
+    // XXX CryptPad: looks like the use of && and || was messed up here. Added () to fix this
 	var res = val && this.ws === val.ws
 		&& ((!this.bbox && !val.bbox) || (this.bbox && val.bbox && this.bbox.isEqual(val.bbox)))
 		&& ((!this.headings && !val.headings) || (this.headings && val.headings && AscCommon.isEqualSortedArrays(this.headings, val.headings)));
