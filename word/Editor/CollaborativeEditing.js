@@ -242,6 +242,13 @@ CWordCollaborativeEditing.prototype.OnEnd_Load_Objects = function()
 	if (oform)
 		oform.onEndLoadChanges();
 
+    // XXX CryptPad GetOFormDocument() seems to be undefined sometimes
+    if (this.m_oLogicDocument.GetOFormDocument) {
+	let oform = this.m_oLogicDocument.GetOFormDocument();
+	if (oform)
+		oform.onEndLoadChanges();
+    }
+
     editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.ApplyChanges);
 };
 CWordCollaborativeEditing.prototype.Check_MergeData = function()
