@@ -528,6 +528,9 @@ define([
                 this.api.asc_registerCallback('asc_onRunAutostartMacroses', _.bind(this.onRunAutostartMacroses, this));
                 this.api.asc_setDocInfo(docInfo);
                 this.api.asc_getEditorPermissions(this.editorConfig.licenseUrl, this.editorConfig.customerId);
+
+                // XXX CryptPad: disable protect feature
+                this.permissions.protect = false;
             },
 
             onProcessSaveResult: function(data) {

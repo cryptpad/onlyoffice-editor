@@ -522,6 +522,9 @@ define([
                 if (data.doc) {
                     appHeader.setDocumentCaption(data.doc.title);
                 }
+
+                // XXX CryptPad: disable protect feature
+                this.permissions.protect = false;
             },
 
             onProcessSaveResult: function(data) {
