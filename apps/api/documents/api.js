@@ -928,6 +928,7 @@
         isSafari_mobile = false;
 
         path += app + "/";
+        // XXX Cryptpad: Only main here?
         path_type = (config.type === "mobile" || isSafari_mobile)
                     ? "mobile" : (config.type === "embedded")
                     ? "embed" : (config.document && typeof config.document.fileType === 'string' && config.document.fileType.toLowerCase() === 'oform')
