@@ -923,6 +923,10 @@
             isSafari_mobile = !isIE && !isChrome && check(/safari/) && (navigator.maxTouchPoints>0),
             path_type;
 
+        //XXX CryptPad do not use mobile page for iOS Safari. The mobile page does not load require.js.
+        // We need require() in docscoapi.js
+        isSafari_mobile = false;
+
         path += app + "/";
         // XXX Cryptpad: Only main here?
         path_type = (config.type === "mobile" || isSafari_mobile)

@@ -1739,6 +1739,7 @@ define([
                             value: 0
                         }),
                         new Common.UI.MenuItem({
+                            cls         : 'cp-from-url',
                             caption     : this.textFromUrl,
                             value: 1
                         }),
