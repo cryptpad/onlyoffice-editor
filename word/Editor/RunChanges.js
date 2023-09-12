@@ -1281,6 +1281,10 @@ CChangesRunRFontsAscii.prototype.ReadFromBinary = function(Reader)
 CChangesRunRFontsAscii.prototype.private_SetValue = function(Value)
 {
 	var oRun = this.Class;
+    // CryptPad: This might be null, when the document is loaded
+    if (!oRun.Pr) {
+        return;
+    }
 	oRun.Pr.RFonts.Ascii = Value;
 
 	oRun.Recalc_CompiledPr(true);
@@ -1290,7 +1294,8 @@ CChangesRunRFontsAscii.prototype.Load = function(Color)
 {
 	this.Redo();
 
-	if (this.Color && Color)
+    // CryptPad: This might be null, when the document is loaded
+	if (this.Color && Color && this.Class.private_AddCollPrChangeOther)
 		this.Class.private_AddCollPrChangeOther(Color);
 };
 CChangesRunRFontsAscii.prototype.Merge = private_ParaRunChangesOnMergeRFontsTextPr;
@@ -1376,6 +1381,10 @@ CChangesRunRFontsHAnsi.prototype.ReadFromBinary = function(Reader)
 CChangesRunRFontsHAnsi.prototype.private_SetValue = function(Value)
 {
 	var oRun = this.Class;
+    // CryptPad: This might be null, when the document is loaded
+    if (!oRun.Pr) {
+        return;
+    }
 	oRun.Pr.RFonts.HAnsi = Value;
 
 	oRun.Recalc_CompiledPr(true);
@@ -1385,7 +1394,8 @@ CChangesRunRFontsHAnsi.prototype.Load = function(Color)
 {
 	this.Redo();
 
-	if (this.Color && Color)
+    // CryptPad: This might be null, when the document is loaded
+	if (this.Color && Color && this.Class.private_AddCollPrChangeOther)
 		this.Class.private_AddCollPrChangeOther(Color);
 };
 CChangesRunRFontsHAnsi.prototype.Merge = private_ParaRunChangesOnMergeRFontsTextPr;
@@ -1471,6 +1481,10 @@ CChangesRunRFontsCS.prototype.ReadFromBinary = function(Reader)
 CChangesRunRFontsCS.prototype.private_SetValue = function(Value)
 {
 	var oRun = this.Class;
+    // CryptPad: This might be null, when the document is loaded
+    if (!oRun.Pr) {
+        return;
+    }
 	oRun.Pr.RFonts.CS = Value;
 
 	oRun.Recalc_CompiledPr(true);
@@ -1480,7 +1494,8 @@ CChangesRunRFontsCS.prototype.Load = function(Color)
 {
 	this.Redo();
 
-	if (this.Color && Color)
+    // CryptPad: This might be null, when the document is loaded
+	if (this.Color && Color && this.Class.private_AddCollPrChangeOther)
 		this.Class.private_AddCollPrChangeOther(Color);
 };
 CChangesRunRFontsCS.prototype.Merge = private_ParaRunChangesOnMergeRFontsTextPr;
