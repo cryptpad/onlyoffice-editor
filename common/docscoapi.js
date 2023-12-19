@@ -1851,7 +1851,7 @@ DocsCoApi.prototype._initSocksJs = function () {
 
         socketio.emit = function(type, data) {
             if (channel) {
-                channel.event('CMD', data);
+                channel.event('CMD', structuredClone(data));
             }
         }
 
