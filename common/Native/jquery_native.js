@@ -8077,6 +8077,9 @@ jQuery.fn.extend({
 		prop = jQuery.extend( {}, prop );
 
 		function doAnimation() {
+			// XXX 'this' does not always have a nodeName when running the
+			// test suite
+
 			if ( optall.queue === false ) {
 				jQuery._mark( this );
 			}
