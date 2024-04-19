@@ -6,13 +6,21 @@
   "main": "dist/main.js",
   "module": "dist/module.js",
   "scripts": {
-    "watch": "parcel watch",
-    "build": "parcel build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . && prettier . --check",
+    "format": "prettier . --write"
   },
   "author": "Wolfgang Ginolas <wolfgang.ginolas@xwiki.com>",
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "parcel": "^2.12.0"
-  }
+    "@eslint/js": "^9.0.0",
+    "eslint": "^8.57.0",
+    "prettier": "3.2.5",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.7.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "type": "module"
 }
