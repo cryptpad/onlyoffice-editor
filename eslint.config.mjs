@@ -24,7 +24,7 @@ export default tseslint.config(
         },
     },
   {
-    files: ['*.m?js'],
+      files: ['*.js', '*.mjs'],
     ...tseslint.configs.disableTypeChecked,
   },
 );
