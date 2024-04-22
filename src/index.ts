@@ -1,14 +1,15 @@
-import { deepAssign, noop } from "./utils.ts";
+import { EventHandler } from "./eventHandler";
+import { deepAssign, noop } from "./utils";
 
 export function helloWorld() {
     console.log("XXX helloWorld!");
 }
 
-export class OnlyOfficeEditor {
+export class OnlyOfficeEditor<FROMOO, TOOO> {
     public waitForAppReady: Promise<void>;
     private editor: any;
-    private fromOOHandlers: EventHandlers;
-    private toOOHandlers: EventHandlers;
+    private fromOOHandlers: EventHandler<FROMOO> = new EventHandler();
+    private toOOHandlers: EventHandler<TOOO> = new EventHandler();
 
     constructor(placeholderId: string, config: any) {
         let onAppReady;
@@ -17,20 +18,19 @@ export class OnlyOfficeEditor {
             onAppReady = resolve;
         });
 
-        this.waitForAppReady.then(config?.events?.onAppReady ?? noop);
+        this.waitForAppReady
+            .then(config?.events?.onAppReady ?? noop)
+            .catch(noop);
 
         config = deepAssign(config, { events: { onAppReady } });
 
         const w = window as any;
         this.editor = new w.DocsAPI.DocEditor(placeholderId, config);
 
-        this.fromOOHandlers = new EventHandlers();
-        this.toOOHandlers = new EventHandlers();
-
-        w.APP = w.APP || {};
-        w.APP.addToOOHandler = (h) => {
+        w.APP = w.APP ?? {};
+        w.APP.addToOOHandler = (h: (e: TOOO) => void) => {
             console.log("XXX addToOOHandler", h);
-            this.toOOHandlers.add(h);
+            this.toOOHandlers.setHandler(h);
         };
     }
 
@@ -43,18 +43,18 @@ export class OnlyOfficeEditor {
     }
 
     injectCSS(css: string) {
-        const head = this.getIframe().contentDocument.querySelector("head");
+        const head = this.getIframe().ownerDocument.querySelector("head");
         const style = document.createElement("style");
         style.innerText = css;
         head.appendChild(style);
     }
 
-    sendMessageToOO(msg) {
+    sendMessageToOO(msg: TOOO) {
         console.log("XXX sendMessageToOO", msg);
         this.toOOHandlers.fire(msg);
     }
 
-    addOnMessageFromOOHandler(onMessage) {
-        this.fromOOHandlers.add(onMessage);
+    setOnMessageFromOOHandler(onMessage: (e: FROMOO) => void) {
+        this.fromOOHandlers.setHandler(onMessage);
     }
 }

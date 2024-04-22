@@ -22,7 +22,7 @@ export class EventHandler<T> {
         if (this.handler) {
             this.handler(e);
         } else {
-            console.log("XXX fire no handlers", ...args);
+            console.log("XXX fire no handlers", e);
             this.queue.push(e);
         }
     }
