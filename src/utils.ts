@@ -14,3 +14,12 @@ export function deepAssign<T, U>(target: T | undefined, source: U): T & U {
 }
 
 export function noop() {}
+
+export function waitForEvent(
+    element: Element,
+    eventType: string,
+): Promise<void> {
+    return new Promise((resolve) => {
+        element.addEventListener(eventType, () => resolve(), { once: true });
+    });
+}

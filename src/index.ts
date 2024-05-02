@@ -1,17 +1,17 @@
 import { EventHandler } from "./eventHandler";
 import { deepAssign, noop } from "./utils";
 
-export function helloWorld() {
-    console.log("XXX helloWorld!");
-}
-
 export class OnlyOfficeEditor<FROMOO, TOOO> {
     public waitForAppReady: Promise<void>;
-    private editor: any;
+    private editor?: DocEditor;
     private fromOOHandlers: EventHandler<FROMOO> = new EventHandler();
     private toOOHandlers: EventHandler<TOOO> = new EventHandler();
 
-    constructor(placeholderId: string, config: any) {
+    constructor(placeholderId: string, apiUrl: string, config: any) {
+        this.init(placeholderId, apiUrl, config);
+    }
+
+    init(placeholderId: string, apiUrl: string, config: any) {
         let onAppReady;
 
         this.waitForAppReady = new Promise((resolve) => {
@@ -22,10 +22,10 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
             .then(config?.events?.onAppReady ?? noop)
             .catch(noop);
 
-        config = deepAssign(config, { events: { onAppReady } });
+        const newConfig = deepAssign(config, { events: { onAppReady } });
 
         const w = window as any;
-        this.editor = new w.DocsAPI.DocEditor(placeholderId, config);
+        this.editor = new w.DocsAPI.DocEditor(placeholderId, newConfig);
 
         w.APP = w.APP ?? {};
         w.APP.addToOOHandler = (h: (e: TOOO) => void) => {
@@ -38,12 +38,12 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
         this.editor.destroyEditor();
     }
 
-    getIframe() {
+    getIframe(): HTMLIFrameElement {
         return document.querySelector('iframe[name="frameEditor"]');
     }
 
     injectCSS(css: string) {
-        const head = this.getIframe().ownerDocument.querySelector("head");
+        const head = this.getIframe().contentDocument.querySelector("head");
         const style = document.createElement("style");
         style.innerText = css;
         head.appendChild(style);
@@ -57,4 +57,8 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
     setOnMessageFromOOHandler(onMessage: (e: FROMOO) => void) {
         this.fromOOHandlers.setHandler(onMessage);
     }
+}
+
+interface DocEditor {
+    destroyEditor(): void;
 }
