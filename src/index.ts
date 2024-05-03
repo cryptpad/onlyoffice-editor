@@ -4,8 +4,8 @@ import { deepAssign, noop, waitForEvent } from "./utils";
 export class OnlyOfficeEditor<FROMOO, TOOO> {
     public waitForAppReady: Promise<void>;
     private editor?: DocEditor;
-    private fromOOHandlers: EventHandler<FROMOO> = new EventHandler();
-    private toOOHandlers: EventHandler<TOOO> = new EventHandler();
+    private fromOOHandler: EventHandler<FROMOO> = new EventHandler();
+    private toOOHandler: EventHandler<TOOO> = new EventHandler();
     private placeholderId: string;
     private scriptLoadedPromise: Promise<void>;
 
@@ -37,8 +37,11 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
         this.editor = new w.DocsAPI.DocEditor(this.placeholderId, newConfig);
 
         w.APP = w.APP ?? {};
-        w.APP.addToOOHandler = (h: (e: TOOO) => void) => {
-            this.toOOHandlers.setHandler(h);
+        w.APP.setToOOHandler = (h: (e: TOOO) => void) => {
+            this.toOOHandler.setHandler(h);
+        };
+        w.APP.sendMessageFromOO = (msg: FROMOO) => {
+            this.fromOOHandler.fire(msg);
         };
     }
 
@@ -58,11 +61,11 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
     }
 
     sendMessageToOO(msg: TOOO) {
-        this.toOOHandlers.fire(msg);
+        this.toOOHandler.fire(msg);
     }
 
     setOnMessageFromOOHandler(onMessage: (e: FROMOO) => void) {
-        this.fromOOHandlers.setHandler(onMessage);
+        this.fromOOHandler.setHandler(onMessage);
     }
 }
 
