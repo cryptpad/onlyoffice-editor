@@ -1,17 +1,26 @@
 import { EventHandler } from "./eventHandler";
-import { deepAssign, noop } from "./utils";
+import { deepAssign, noop, waitForEvent } from "./utils";
 
 export class OnlyOfficeEditor<FROMOO, TOOO> {
     public waitForAppReady: Promise<void>;
     private editor?: DocEditor;
     private fromOOHandlers: EventHandler<FROMOO> = new EventHandler();
     private toOOHandlers: EventHandler<TOOO> = new EventHandler();
+    private placeholderId: string;
+    private scriptLoadedPromise: Promise<void>;
 
-    constructor(placeholderId: string, apiUrl: string, config: any) {
-        this.init(placeholderId, apiUrl, config);
+    constructor(placeholderId: string, apiUrl: string) {
+        this.placeholderId = placeholderId;
+
+        const script = document.createElement('script');
+        script.setAttribute('type', 'text/javascript');
+        script.setAttribute('src', apiUrl);
+        this.scriptLoadedPromise = waitForEvent(script, 'load');
+        document.getElementById(placeholderId).after(script);
     }
 
-    init(placeholderId: string, apiUrl: string, config: any) {
+    async init(config: any) {
+        await this.scriptLoadedPromise;
         let onAppReady;
 
         this.waitForAppReady = new Promise((resolve) => {
@@ -25,11 +34,10 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
         const newConfig = deepAssign(config, { events: { onAppReady } });
 
         const w = window as any;
-        this.editor = new w.DocsAPI.DocEditor(placeholderId, newConfig);
+        this.editor = new w.DocsAPI.DocEditor(this.placeholderId, newConfig);
 
         w.APP = w.APP ?? {};
         w.APP.addToOOHandler = (h: (e: TOOO) => void) => {
-            console.log("XXX addToOOHandler", h);
             this.toOOHandlers.setHandler(h);
         };
     }
@@ -50,7 +58,6 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
     }
 
     sendMessageToOO(msg: TOOO) {
-        console.log("XXX sendMessageToOO", msg);
         this.toOOHandlers.fire(msg);
     }
 
