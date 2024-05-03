@@ -1823,6 +1823,10 @@ DocsCoApi.prototype._initSocksJs = function () {
                 window.APP = p && p.APP;
             }
 
+            APP.setToOOHandler((event) => {
+                send(event);
+            });
+
             window.addEventListener('message', function (msg) {
                 if (msg.source !== p) { return; }
                 msgEv.fire(msg);
@@ -1850,9 +1854,10 @@ DocsCoApi.prototype._initSocksJs = function () {
         };
 
         socketio.emit = function(type, data) {
-            if (channel) {
-                channel.event('CMD', structuredClone(data));
-            }
+            APP.sendMessageFromOO(structuredClone(data));
+            // if (channel) {
+            //     channel.event('CMD', structuredClone(data));
+            // }
         }
 
         socketio.onmessage = function (e) {
