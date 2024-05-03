@@ -19,11 +19,13 @@ export class EventHandler<T> {
     }
 
     fire(e: T) {
+        // We to not know, if sender or receiver will modify the event, so we
+        // clone it. At least OnlyOffice modifies events in some cases.
+        const clone = structuredClone(e);
         if (this.handler) {
-            this.handler(e);
+            this.handler(clone);
         } else {
-            console.log("XXX fire no handlers", e);
-            this.queue.push(e);
+            this.queue.push(clone);
         }
     }
 }
