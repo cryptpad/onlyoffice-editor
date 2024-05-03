@@ -1776,18 +1776,9 @@
   };
 
 DocsCoApi.prototype._initSocksJs = function () {
-        var t = this;
-        var socketio;
-        socketio = this.socketio = {};
+        const socketio = this.socketio = {};
 
-        var send = function (data) {
-            setTimeout(function () {
-                socketio.onmessage({
-                    data: JSON.stringify(data)
-                });
-            });
-        };
-        var license = {
+        const license = {
             type: 'license',
             license: {
                 type: 3,
@@ -1801,69 +1792,41 @@ DocsCoApi.prototype._initSocksJs = function () {
             }
         };
 
-        var channel;
+        let p = window.parent;
 
-        require([
-            '/common/outer/worker-channel.js',
-            '/common/common-util.js'
-        ], function (Channel, Util) {
-            var msgEv = Util.mkEvent();
-            var p = window.parent;
+        // Presenter mode in slides
+        if (editor && editor.isReporterMode) {
+            // If we are in the presenter popup, we want a channel with the main OO.
+            // Since a lot of the code is using window.parent.APP, we need to override
+            // window.parent because in the case of a popup, window.parent === window
+            p = window.opener;
+            window.parent = p;
+        } else {
+            // If we're not in presenter mode, we're the parent if the presenter popup
+            // and this popup will need access to APP in order to load images
+            window.APP = p && p.APP;
+        }
 
-            // Presenter mode in slides
-            if (editor && editor.isReporterMode) {
-                // If we are in the presenter popup, we want a channel with the main OO.
-                // Since a lot of the code is using window.parent.APP, we need to override
-                // window.parent because in the case of a popup, window.parent === window
-                p = window.opener;
-                window.parent = p;
-            } else {
-                // If we're not in presenter mode, we're the parent if the presenter popup
-                // and this popup will need access to APP in order to load images
-                window.APP = p && p.APP;
-            }
-
-            APP.setToOOHandler((event) => {
-                send(event);
-            });
-
-            window.addEventListener('message', function (msg) {
-                if (msg.source !== p) { return; }
-                msgEv.fire(msg);
-            });
-            var postMsg = function (data) {
-                p.postMessage(data, '*');
-            };
-            Channel.create(msgEv, postMsg, function (chan) {
-                channel = chan;
-                send(license);
-
-                chan.on('CMD', function (obj) {
-                    send(obj);
-                });
-            });
+        APP.setToOOHandler((data) => {
+            this._onServerMessage(data);
         });
 
-        socketio.onopen = function() {
-            t._onServerOpen();
+        socketio.onopen = () => {
+            this._onServerOpen();
         };
         socketio.onopen();
 
-        socketio.close = function () {
+        socketio.close = () => {
             console.error('Close realtime');
         };
 
-        socketio.emit = function(type, data) {
-            APP.sendMessageFromOO(structuredClone(data));
-            // if (channel) {
-            //     channel.event('CMD', structuredClone(data));
-            // }
+        socketio.emit = (type, data) => {
+            APP.sendMessageFromOO(data);
         }
 
-        socketio.onmessage = function (e) {
-            t._onServerMessage(JSON.parse(e.data));
-        };
-
+        setTimeout(() => {
+            this._onServerMessage(license);
+        });
         return socketio;
     };
 
