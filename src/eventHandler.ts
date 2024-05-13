@@ -11,7 +11,6 @@ export class EventHandler<T> {
         this.handler = handler;
         if (this.queue.length > 0) {
             for (const e of this.queue) {
-                console.log("XXX queue", e);
                 handler(e);
             }
             this.queue = [];

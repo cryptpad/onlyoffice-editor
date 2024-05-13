@@ -1,7 +1,7 @@
 import { EventHandler } from "./eventHandler";
 import { deepAssign, noop, waitForEvent } from "./utils";
 
-export class OnlyOfficeEditor<FROMOO, TOOO> {
+export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
     public waitForAppReady: Promise<void>;
     private editor?: DocEditor;
     private fromOOHandler: EventHandler<FROMOO> = new EventHandler();
@@ -12,10 +12,10 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
     constructor(placeholderId: string, apiUrl: string) {
         this.placeholderId = placeholderId;
 
-        const script = document.createElement('script');
-        script.setAttribute('type', 'text/javascript');
-        script.setAttribute('src', apiUrl);
-        this.scriptLoadedPromise = waitForEvent(script, 'load');
+        const script = document.createElement("script");
+        script.setAttribute("type", "text/javascript");
+        script.setAttribute("src", apiUrl);
+        this.scriptLoadedPromise = waitForEvent(script, "load");
         document.getElementById(placeholderId).after(script);
     }
 
@@ -43,6 +43,10 @@ export class OnlyOfficeEditor<FROMOO, TOOO> {
         w.APP.sendMessageFromOO = (msg: FROMOO) => {
             this.fromOOHandler.fire(msg);
         };
+    }
+
+    installLegacyChannel() {
+
     }
 
     destroyEditor() {
