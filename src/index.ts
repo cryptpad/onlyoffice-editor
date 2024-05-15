@@ -1,5 +1,6 @@
 import { EventHandler } from "./eventHandler";
 import { deepAssign, noop, waitForEvent } from "./utils";
+import { mkEvent, createChannel } from "./worker-channel";
 
 export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
     public waitForAppReady: Promise<void>;
@@ -46,7 +47,26 @@ export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
     }
 
     installLegacyChannel() {
+        const msgEv = mkEvent();
+        const iframe = this.getIframe().contentWindow;
+        window.addEventListener("message", (msg) => {
+            if (msg.source !== iframe) {
+                return;
+            }
+            msgEv.fire(msg);
+        });
+        const postMsg = (data: any) => {
+            iframe.postMessage(data);
+        };
+        createChannel(msgEv, postMsg, (chan: any) => {
+            this.toOOHandler.setHandler((obj: TOOO) => {
+                chan.event("CMD", obj);
+            });
 
+            chan.on("CMD", (e: FROMOO) => {
+                this.fromOOHandler.fire(e);
+            });
+        });
     }
 
     destroyEditor() {

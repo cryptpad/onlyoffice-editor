@@ -7,7 +7,7 @@ function mkTxid() {
 
 // If once is true, after the event has been fired, any further handlers which are
 // registered will fire immediately, and this type of event cannot be fired twice.
-function mkEvent(once: boolean): MkEvent {
+export function mkEvent(once: boolean = false): MkEvent {
     const handlers: any[] = [];
     let fired = false;
     return {
@@ -43,7 +43,11 @@ interface MkEvent {
     fire(...args: any[]): void;
 }
 
-export function create(onMsg: MkEvent, postMsg: (p: any) => void, cb: any) {
+export function createChannel(
+    onMsg: MkEvent,
+    postMsg: (p: any) => void,
+    cb: any,
+) {
     let chanLoaded = false;
     const waitingData: any[] = [];
 
