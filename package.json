@@ -1,5 +1,5 @@
 {
-  "name": "onlyoffice-api",
+  "name": "onlyoffice-editor",
   "version": "0.0.1",
   "description": "And API that wraps the OnlyOffice client in a nice interface",
   "source": "src/index.ts",
