@@ -1,17 +1,24 @@
 export class EventHandler<T> {
     private handler?: (e: T) => void;
     private queue: T[];
+    private debug: string;
 
-    constructor() {
+    constructor(debug?: string) {
         this.handler = undefined;
         this.queue = [];
+        this.debug = debug;
     }
 
     setHandler(handler: (e: T) => void) {
-        this.handler = handler;
+        this.handler = this.debug
+            ? (e: T) => {
+                console.log(this.debug, e);
+                handler(e);
+            }
+            : handler;
         if (this.queue.length > 0) {
             for (const e of this.queue) {
-                handler(e);
+                this.handler(e);
             }
             this.queue = [];
         }
