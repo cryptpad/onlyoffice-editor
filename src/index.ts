@@ -36,6 +36,8 @@ export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
 
         const w = window as any;
         this.editor = new w.DocsAPI.DocEditor(this.placeholderId, newConfig);
+        w.DocsAPIOrg = w.DocsAPI;
+        w.DocsAPI = this.createProxy(w.DocsAPI);
 
         w.APP = w.APP ?? {};
         w.APP.setToOOHandler = (h: (e: TOOO) => void) => {
@@ -90,6 +92,17 @@ export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
 
     setOnMessageFromOOHandler(onMessage: (e: FROMOO) => void) {
         this.fromOOHandler.setHandler(onMessage);
+    }
+
+    private createProxy(docsAPI: any) {
+        return new Proxy(docsAPI, {
+            get(target, prop, receiver) {
+              if (Object.hasOwn(this, prop)) {
+                return this[prop];
+              }
+              return Reflect.get(target, prop, receiver);
+            },
+        });
     }
 }
 
