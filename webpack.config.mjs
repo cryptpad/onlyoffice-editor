@@ -22,7 +22,7 @@ export default {
             amdContainer: "window",
             type: "amd", // or 'amd-require'
         },
-        filename: "bundle.js",
+        filename: "api.js",
         path: path.resolve(__dirname, "dist"),
     },
 };
