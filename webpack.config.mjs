@@ -19,8 +19,8 @@ export default {
     },
     output: {
         library: {
-            amdContainer: "window",
-            type: "amd", // or 'amd-require'
+            name: "DocsAPI",
+            type: "window",
         },
         filename: "api.js",
         path: path.resolve(__dirname, "dist"),
