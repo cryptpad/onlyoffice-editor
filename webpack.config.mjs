@@ -19,7 +19,7 @@ export default {
     },
     output: {
         library: {
-            name: "DocsAPI",
+            name: "DocsAPIXXX", // TODO is there a way, to not expose anything at all?
             type: "window",
         },
         filename: "api.js",
