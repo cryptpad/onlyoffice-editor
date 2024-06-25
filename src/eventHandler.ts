@@ -29,7 +29,7 @@ export class EventHandler<T> {
         // clone it. At least OnlyOffice modifies events in some cases.
         const clone = structuredClone(e);
         if (this.handler) {
-            this.handler(clone);
+            setTimeout(() => this.handler(clone));
         } else {
             this.queue.push(clone);
         }
