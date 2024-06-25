@@ -2,26 +2,59 @@ import { EventHandler } from "./eventHandler";
 import { deepAssign, noop, waitForEvent } from "./utils";
 import { mkEvent, createChannel } from "./worker-channel";
 
-export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
-    public waitForAppReady: Promise<void>;
-    private editor?: DocEditor;
-    private fromOOHandler: EventHandler<FROMOO> = new EventHandler();
-    private toOOHandler: EventHandler<TOOO> = new EventHandler();
-    private placeholderId: string;
-    private scriptLoadedPromise: Promise<void>;
+let DocEditorOrig: any;
 
-    constructor(placeholderId: string, apiUrl: string) {
+async function loadAndPatchOOOrig() {
+    let myScriptSrc: string;
+    let myScriptElement: HTMLScriptElement;
+
+    // TODO document.currentScript does not reaturn the correct tag?
+    // Use this as a workaround:
+    for(const e of document.getElementsByTagName('script')) {
+        if (e.src.endsWith('web-apps/apps/api/documents/api.js')) {
+            myScriptSrc = e.src;
+            myScriptElement = e;
+            break;
+        }
+    }
+    const script = document.createElement("script");
+    script.setAttribute("type", "text/javascript");
+    script.setAttribute(
+        "src",
+        new URL(
+            "api-orig.js",
+            myScriptSrc,
+        ).href,
+    );
+    const scriptLoadedPromise = waitForEvent(script, "load");
+    myScriptElement.after(script);
+    await scriptLoadedPromise;
+
+    const w = window as any;
+    DocEditorOrig = w.DocsAPI.DocEditor;
+    w.DocsAPI.DocEditor = DocEditor;
+}
+
+const scriptLoadedPromise = loadAndPatchOOOrig();
+
+export class DocEditor implements DocEditorInterface {
+    public waitForAppReady: Promise<void>;
+    private origEditor?: DocEditorInterface;
+    private fromOOHandler: EventHandler<FromOO> = new EventHandler();
+    private toOOHandler: EventHandler<ToOO> = new EventHandler();
+    private placeholderId: string;
+
+    constructor(placeholderId: string, config: any) {
         this.placeholderId = placeholderId;
 
-        const script = document.createElement("script");
-        script.setAttribute("type", "text/javascript");
-        script.setAttribute("src", apiUrl);
-        this.scriptLoadedPromise = waitForEvent(script, "load");
-        document.getElementById(placeholderId).after(script);
+        this.init(config).catch((e) => {
+            // TODO not sure, what to do here
+            console.error(e);
+        });
     }
 
-    async init(config: any) {
-        await this.scriptLoadedPromise;
+    private async init(config: any) {
+        await scriptLoadedPromise;
         let onAppReady;
 
         this.waitForAppReady = new Promise((resolve) => {
@@ -34,16 +67,18 @@ export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
 
         const newConfig = deepAssign(config, { events: { onAppReady } });
 
-        const w = window as any;
-        this.editor = new w.DocsAPI.DocEditor(this.placeholderId, newConfig);
-        w.DocsAPIOrg = w.DocsAPI;
-        w.DocsAPI = this.createProxy(w.DocsAPI);
+        this.origEditor = new DocEditorOrig(this.placeholderId, newConfig);
 
+        // TODO how do I do this?
+        // w.DocsAPI.DocEditorOrig = w.DocsAPI.DocEditor;
+        // w.DocsAPI = this.createProxy(w.DocsAPI);
+
+        const w = window as any;
         w.APP = w.APP ?? {};
-        w.APP.setToOOHandler = (h: (e: TOOO) => void) => {
+        w.APP.setToOOHandler = (h: (e: ToOO) => void) => {
             this.toOOHandler.setHandler(h);
         };
-        w.APP.sendMessageFromOO = (msg: FROMOO) => {
+        w.APP.sendMessageFromOO = (msg: FromOO) => {
             this.fromOOHandler.fire(msg);
         };
     }
@@ -61,18 +96,18 @@ export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
             iframe.postMessage(data);
         };
         createChannel(msgEv, postMsg, (chan: any) => {
-            this.toOOHandler.setHandler((obj: TOOO) => {
+            this.toOOHandler.setHandler((obj: ToOO) => {
                 chan.event("CMD", obj);
             });
 
-            chan.on("CMD", (e: FROMOO) => {
+            chan.on("CMD", (e: FromOO) => {
                 this.fromOOHandler.fire(e);
             });
         });
     }
 
     destroyEditor() {
-        this.editor.destroyEditor();
+        this.origEditor.destroyEditor();
     }
 
     getIframe(): HTMLIFrameElement {
@@ -86,26 +121,18 @@ export class OnlyOfficeEditor<FROMOO, TOOO> implements DocEditor {
         head.appendChild(style);
     }
 
-    sendMessageToOO(msg: TOOO) {
+    sendMessageToOO(msg: ToOO) {
         this.toOOHandler.fire(msg);
     }
 
-    setOnMessageFromOOHandler(onMessage: (e: FROMOO) => void) {
+    setOnMessageFromOOHandler(onMessage: (e: FromOO) => void) {
         this.fromOOHandler.setHandler(onMessage);
-    }
-
-    private createProxy(docsAPI: any) {
-        return new Proxy(docsAPI, {
-            get(target, prop, receiver) {
-              if (Object.hasOwn(this, prop)) {
-                return this[prop];
-              }
-              return Reflect.get(target, prop, receiver);
-            },
-        });
     }
 }
 
-interface DocEditor {
+type FromOO = any;
+type ToOO = any;
+
+interface DocEditorInterface {
     destroyEditor(): void;
 }

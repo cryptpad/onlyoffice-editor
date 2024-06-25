@@ -18,11 +18,11 @@ export default {
         extensions: [".ts", ".js"],
     },
     output: {
-        library: {
-            amdContainer: "window",
-            type: "amd", // or 'amd-require'
-        },
-        filename: "bundle.js",
+        // library: {
+        //     name: "DocsAPIXXX", // TODO is there a way, to not expose anything at all?
+        //     type: "window",
+        // },
+        filename: "api.js",
         path: path.resolve(__dirname, "dist"),
     },
 };

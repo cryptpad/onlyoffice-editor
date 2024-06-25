@@ -12,9 +12,9 @@ export class EventHandler<T> {
     setHandler(handler: (e: T) => void) {
         this.handler = this.debug
             ? (e: T) => {
-                console.log(this.debug, e);
-                handler(e);
-            }
+                  console.log(this.debug, e);
+                  handler(e);
+              }
             : handler;
         if (this.queue.length > 0) {
             for (const e of this.queue) {
@@ -29,7 +29,7 @@ export class EventHandler<T> {
         // clone it. At least OnlyOffice modifies events in some cases.
         const clone = structuredClone(e);
         if (this.handler) {
-            this.handler(clone);
+            setTimeout(() => this.handler(clone));
         } else {
             this.queue.push(clone);
         }

@@ -16,9 +16,10 @@ Please keep up with the latest release published here: https://github.com/cryptp
 Note that every GitHub release page has an RSS compatible feed that you can subscribe on to be informed of every new release.
 
 We do also communicate about this topic on:
-- [Our blog](https://blog.cryptpad.org)
-- [Our Matrix public space](https://matrix.to/#/#cryptpad:matrix.xwiki.com)
-- [Our Mastodon account](https://fosstodon.org/@cryptpad)
+
+-   [Our blog](https://blog.cryptpad.org)
+-   [Our Matrix public space](https://matrix.to/#/#cryptpad:matrix.xwiki.com)
+-   [Our Mastodon account](https://fosstodon.org/@cryptpad)
 
 ## Reporting a Vulnerability
 
