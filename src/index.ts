@@ -10,8 +10,8 @@ async function loadAndPatchOOOrig() {
 
     // TODO document.currentScript does not reaturn the correct tag?
     // Use this as a workaround:
-    for(const e of document.getElementsByTagName('script')) {
-        if (e.src.endsWith('web-apps/apps/api/documents/api.js')) {
+    for (const e of document.getElementsByTagName("script")) {
+        if (e.src.endsWith("web-apps/apps/api/documents/api.js")) {
             myScriptSrc = e.src;
             myScriptElement = e;
             break;
@@ -19,13 +19,7 @@ async function loadAndPatchOOOrig() {
     }
     const script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
-    script.setAttribute(
-        "src",
-        new URL(
-            "api-orig.js",
-            myScriptSrc,
-        ).href,
-    );
+    script.setAttribute("src", new URL("api-orig.js", myScriptSrc).href);
     const scriptLoadedPromise = waitForEvent(script, "load");
     myScriptElement.after(script);
     await scriptLoadedPromise;
@@ -40,9 +34,10 @@ const scriptLoadedPromise = loadAndPatchOOOrig();
 export class DocEditor implements DocEditorInterface {
     public waitForAppReady: Promise<void>;
     private origEditor?: DocEditorInterface;
-    private fromOOHandler: EventHandler<FromOO> = new EventHandler();
-    private toOOHandler: EventHandler<ToOO> = new EventHandler();
+    private fromOOHandler: EventHandler<FromOO> = new EventHandler("fromOO");
+    private toOOHandler: EventHandler<ToOO> = new EventHandler("toOO");
     private placeholderId: string;
+    private server: MockServer;
 
     constructor(placeholderId: string, config: any) {
         this.placeholderId = placeholderId;
@@ -125,8 +120,48 @@ export class DocEditor implements DocEditorInterface {
         this.toOOHandler.fire(msg);
     }
 
-    setOnMessageFromOOHandler(onMessage: (e: FromOO) => void) {
-        this.fromOOHandler.setHandler(onMessage);
+    connectMockServer(server: MockServer) {
+        this.server = server;
+
+        this.fromOOHandler.setHandler((msg) => {
+            if (msg.type == "auth") {
+                this.handleAuth(msg);
+            } else {
+                this.server.onMessage(msg);
+            }
+        });
+    }
+
+    private handleAuth(authMsg: FromOO) {
+        console.log("XXX TODO auth");
+
+        // Answer to the auth command
+        const p = this.server.getParticipants();
+        this.sendMessageToOO({
+            type: "auth",
+            result: 1,
+            sessionId: "session-id",
+            participants: p.list,
+            locks: [],
+            changes: [],
+            changesIndex: 0,
+            indexUser: p.index,
+            buildVersion: "5.2.6",
+            buildNumber: 2,
+            licenseType: 3,
+        });
+
+        // Open the document
+        this.sendMessageToOO({
+            type: "documentOpen",
+            data: {
+                type: "open",
+                status: "ok",
+                data: { "Editor.bin": authMsg.openCmd.url },
+            },
+        });
+
+        this.server?.onAuth();
     }
 }
 
@@ -135,4 +170,25 @@ type ToOO = any;
 
 interface DocEditorInterface {
     destroyEditor(): void;
+}
+
+interface MockServer {
+    onMessage: (msg: FromOO) => void;
+    getParticipants: () => Participants;
+    onAuth?: () => void;
+}
+
+interface Participants {
+    index: number;
+    list: [Participant];
+}
+
+interface Participant {
+    id: number;
+    idOriginal: string;
+    username: string;
+    indexUser: number;
+    connectionId: string;
+    isCloseCoAuthoring: boolean;
+    view: boolean;
 }
