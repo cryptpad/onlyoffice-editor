@@ -123,6 +123,20 @@ export class DocEditor implements DocEditorInterface {
     connectMockServer(server: MockServer) {
         this.server = server;
 
+        const w = window as any;
+        w.APP.getImageURL = server.getImageURL
+            ? (name: string, callback: (url: string) => void) => {
+                  console.log("XXX getImageUrl", name);
+                  server
+                      .getImageURL(name)
+                      .then((url) => {
+                          console.log("XXX getImageUrl result", url);
+                          callback(url);
+                      })
+                      .catch((e) => console.error(e));
+              }
+            : (name: string, callback: (url: string) => void) => callback("");
+
         this.fromOOHandler.setHandler((msg) => {
             if (msg.type == "auth") {
                 this.handleAuth(msg);
@@ -133,17 +147,24 @@ export class DocEditor implements DocEditorInterface {
     }
 
     private handleAuth(authMsg: FromOO) {
-        console.log("XXX TODO auth");
-
         // Answer to the auth command
+        const initalChanges = this.server.getInitialChanges
+            ? this.server.getInitialChanges()
+            : [];
         const p = this.server.getParticipants();
+
+        this.sendMessageToOO({
+            type: "authChanges",
+            changes: initalChanges,
+        });
+
         this.sendMessageToOO({
             type: "auth",
             result: 1,
             sessionId: "session-id",
             participants: p.list,
             locks: [],
-            changes: [],
+            changes: initalChanges,
             changesIndex: 0,
             indexUser: p.index,
             buildVersion: "5.2.6",
@@ -161,7 +182,9 @@ export class DocEditor implements DocEditorInterface {
             },
         });
 
-        this.server?.onAuth();
+        if (this.server.onAuth) {
+            this.server.onAuth();
+        }
     }
 }
 
@@ -173,9 +196,11 @@ interface DocEditorInterface {
 }
 
 interface MockServer {
-    onMessage: (msg: FromOO) => void;
+    getInitialChanges?: () => any[];
     getParticipants: () => Participants;
+    getImageURL?: (name: string) => Promise<string>;
     onAuth?: () => void;
+    onMessage: (msg: FromOO) => void;
 }
 
 interface Participants {
