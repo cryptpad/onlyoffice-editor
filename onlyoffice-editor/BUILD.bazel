@@ -1,0 +1,33 @@
+load("@aspect_rules_js//js:defs.bzl", "js_test")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle", "webpack_devserver")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+
+npm_link_all_packages()
+
+exports_files(
+    [".swcrc"],
+    visibility = ["//:__subpackages__"],
+)
+
+STATIC_ASSETS = glob(["public/**"])
+SRC = glob(["src/**"])
+
+ts_project(
+    name = "ts",
+    source_map = True,
+)
+
+webpack_bundle(
+    name = "api",
+    srcs = ["//onlyoffice-editor:ts"],
+    node_modules = ":node_modules",
+    entry_point = "src/index.js",
+    webpack_config = ":webpack.bazel.config.mjs",
+    deps = [
+        ":node_modules/ts-loader",
+        ":node_modules/typescript",
+    ],
+    output_dir = True,
+    visibility = ["//visibility:public"],
+)
