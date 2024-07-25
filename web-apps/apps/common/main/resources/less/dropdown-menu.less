@@ -1,0 +1,176 @@
+
+.dropdown-menu {
+    background-color: @background-normal-ie;
+    background-color: @background-normal;
+    border-color: @border-regular-control-ie;
+    border-color: @border-regular-control;
+    border-width: @scaled-one-px-value-ie;
+    border-width: @scaled-one-px-value;
+
+    &.scrollable-menu {
+        height: auto;
+        max-height: 400px;
+    }
+
+    &.ps-container {
+        overflow: hidden;
+        .ps-scrollbar-y-rail {
+            margin-top: 1px;
+            margin-bottom: 1px;
+            cursor: default;
+        }
+    }
+
+    &.internal-menu {
+        border: none;
+        border-radius: 0;
+        .box-shadow(none);
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    li {
+        & > a {
+            padding: 5px 20px;
+            line-height: 16px;
+            cursor: pointer;
+            color: @text-normal-ie;
+            color: @text-normal;
+
+            &:focus, &.focus {
+                outline: 0;
+                color: @text-normal-ie;
+                color: @text-normal;
+                background-color: @highlight-button-hover-ie;
+                background-color: @highlight-button-hover;
+            }
+
+            &:hover {
+                color: @text-normal-ie;
+                color: @text-normal;
+                background-color: @highlight-button-hover-ie;
+                background-color: @highlight-button-hover;
+            }
+        }
+
+        &.over > a {
+            text-decoration: none;
+            //color: @text-normal-pressed-ie;
+            //color: @text-normal-pressed;
+            background-color: @highlight-button-hover-ie;
+            background-color: @highlight-button-hover;
+
+            &:after {
+                border-left-color: @icon-normal-ie;
+                border-left-color: @icon-normal;
+            }
+        }
+
+        .checked:not(.no-checkmark) {
+            &:before {
+                content: '';
+                width: 16px;
+                height: 16px;
+                display: inline-block;
+                float: left;
+                margin-left: -18px;
+                background-position: @menu-check-offset-x @menu-check-offset-y;
+            }
+            &.custom-scale:before {
+                margin-top: 3px;
+            }
+        }
+
+        &.disabled {
+            .menu-item-icon {
+            }
+        }
+
+        .menu-item-icon {
+            display: inline-block;
+            float: left;
+            width: 20px;
+            height: 20px;
+            margin: -2px 5px 0 -15px;
+            background-repeat: no-repeat;
+            opacity: @component-normal-icon-opacity;
+        }
+
+        .no-checkmark.checked {
+            .menu-item-icon {
+                background-color: @background-normal-ie;
+                background-color: @background-normal;
+                .box-shadow(0 0 0 2px @border-preview-select-ie);
+                .box-shadow(0 0 0 @scaled-two-px-value @border-preview-select);
+            }
+        }
+
+        &.border-top {
+            border-top: @scaled-one-px-value-ie solid @border-divider-ie;
+            border-top: @scaled-one-px-value solid @border-divider;
+        }
+    }
+
+    > .disabled {
+        > a {
+            cursor: default;
+
+            color: @text-normal-ie;
+            color: @text-normal;
+
+            opacity: @component-disabled-opacity-ie;
+            opacity: @component-disabled-opacity;
+
+            &:hover, &:focus {
+                color: @text-normal-ie;
+                color: @text-normal;
+            }
+
+            .menu-item-icon {
+                opacity: 1;
+            }
+        }
+    }
+
+    &.shifted-right {
+        li {
+            & > a {
+                padding-left: 28px;
+            }
+            .menu-item-icon {
+                margin: -2px 0 0 -24px;
+            }
+            .checked:not(.no-checkmark):before  {
+                margin-left: -22px;
+            }
+        }
+    }
+    &.shifted-left {
+        li {
+            & > a {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+        }
+    }
+
+    .divider {
+        height: @scaled-one-px-value-ie;
+        height: @scaled-one-px-value;
+        background-color: @border-divider-ie;
+        background-color: @border-divider;
+        margin: 4px 0;
+    }
+
+    .dataview {
+        .item {
+            .options__icon {
+            }
+
+            .options__icon-huge {
+                background-position-x: var(--button-huge-normal-icon-offset-x, 0);
+            }
+        }
+    }
+}

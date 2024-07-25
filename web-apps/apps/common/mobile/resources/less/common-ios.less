@@ -1,0 +1,560 @@
+
+.device-ios .app-layout {
+    @blockTitleColor: #6d6d72;
+    @item-border-color: #c8c7cc;
+    @darkGreen: #40865c;
+    @text-normal: var(--text-normal);
+
+    --f7-navbar-link-color: @brandColor;
+    --f7-subnavbar-link-color: @brandColor;
+    --f7-navbar-text-color: @text-normal;
+    --f7-navbar-title-line-height: 44px;
+    --f7-navbar-link-line-height: 44px;
+    --f7-navbar-title-font-size: 17px;
+
+    --f7-list-bg-color: @background-primary;
+    --f7-navbar-bg-color: @toolbar-background;
+
+    --f7-tabbar-link-inactive-color: @toolbar-segment;
+
+    --f7-radio-active-color: @brandColor;
+    --f7-toggle-active-color: @brandColor;
+    --f7-range-bar-active-bg-color: @brandColor;
+
+    --f7-list-button-text-color: @brandColor;
+
+    --f7-list-item-border-color: @background-menu-divider;
+
+    --f7-page-bg-color: @background-tertiary;
+    --f7-list-item-title-text-color: @text-normal;
+    --f7-list-item-text-text-color: @text-normal;
+    --f7-list-item-subtitle-text-color: @text-secondary;
+    --f7-label-text-color: @text-normal;
+    --f7-list-item-after-text-color: @text-normal;
+    --f7-input-text-color: @text-normal;
+    --f7-block-title-text-color: @text-secondary;
+    --f7-input-placeholder-color: @text-secondary;
+
+    --f7-list-chevron-icon-color: @text-tertiary;
+    --f7-searchbar-search-icon-color: @text-tertiary;
+    --f7-searchbar-input-clear-button-color: @text-tertiary;
+
+    --f7-toggle-inactive-color: @background-menu-divider;
+    --f7-toggle-border-color: @background-menu-divider;
+    --f7-actions-button-border-color: @background-menu-divider;
+    --f7-popover-bg-color: @background-primary;
+    --f7-dialog-bg-color-rgb: @background-secondary;
+    --f7-dialog-title-text-color: @text-normal;
+    --f7-dialog-text-color: @text-normal;
+    --f7-dialog-button-text-color: @brandColor;
+    --f7-dialog-border-divider-color: @background-menu-divider;
+
+    --f7-subnavbar-border-color: @background-menu-divider;
+    --f7-list-border-color: @background-menu-divider;
+
+    --f7-picker-item-text-color: rgba(var(--text-normal), 0.45);
+    --f7-picker-item-selected-text-color: @text-normal;
+
+    // Main Toolbar
+    #editor-navbar.navbar .right a + a,
+    #editor-navbar.navbar .left a + a {
+        margin-left: 0;
+    }
+
+    .navbar, .navbar-bg, .subnavbar {
+        a.btn-doc-back {
+            width: 22px;
+        }
+        background-color: var(--f7-navbar-bg-color);
+        .title {
+            font-weight: 600;
+            color: @text-normal;
+            //line-height: 17px;
+            //max-height: 34px;
+            //overflow: hidden;
+        }
+        .navbar-inner, .subnavbar-inner {
+            z-index: auto;
+        }
+        .sheet-close {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            justify-content: center;
+        }
+    }
+
+    .subnavbar {
+        .icon-back {
+            color: @brandColor;
+        }
+    }
+
+    .popover__titled {
+        .list {
+            &:first-child, &:last-child {
+                ul {
+                    border-radius: 0;
+                }
+
+                li:first-child, li:last-child {
+                    > label {
+                        border-radius: 0;
+                    }
+                }
+            }
+        }
+
+        .popover-inner {
+            //border-radius: var(--f7-popover-border-radius);
+
+            > .view {
+                border-radius: var(--f7-popover-border-radius);
+            }
+        }
+
+        .navbar-bg {
+            //-webkit-backdrop-filter: none;
+            backdrop-filter: none;
+            &::after {
+                background: @background-menu-divider;
+            }
+        }
+
+        // .list:first-child {
+        //     li:first-child {
+        //         a {
+        //             border-radius: 0;
+        //         }
+        //     }
+        // }
+
+        .list:last-child {
+            li:last-child {
+                &:after {
+                    content: '';
+                    position: absolute;
+                    background-color: var(--f7-navbar-border-color, var(--f7-bars-border-color));
+                    display: block;
+                    //z-index: 15;
+                    top: auto;
+                    right: auto;
+                    bottom: 0;
+                    left: 0;
+                    height: 1px;
+                    width: 100%;
+                    transform-origin: 50% 100%;
+                    transform: scaleY(calc(1 / var(--f7-device-pixel-ratio)));
+
+                    -webkit-backface-visibility: hidden;
+                    backface-visibility: hidden;
+                }
+            }
+        }
+    }
+
+    .popover {
+        li:last-child {
+            .segmented a {
+                &:first-child {
+                    border-radius: var(--f7-button-border-radius) 0 0 var(--f7-button-border-radius);
+                }
+
+                &:last-child {
+                    border-radius: 0 var(--f7-button-border-radius) var(--f7-button-border-radius) 0;
+                }
+            }
+        }
+
+        .page-content {
+            > .list {
+                &:last-child {
+                    // margin-bottom: 30px;
+                }
+            }
+        }
+    }
+
+    .list {
+        .item-content {
+            .color-preview {
+                width: 22px;
+                height: 8px;
+                display: inline-block;
+                margin-top: 21px;
+                box-sizing: border-box;
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, .15) inset;
+                background: @fill-white;
+            }
+            .item-after {
+                .color-preview {
+                    width: 75px;
+                    height: 30px;
+                    margin-top: -3px;
+                }
+            }
+        }
+        .item-inner {
+            padding-top: 7px;
+            .item-after {
+                .after-start {
+                    margin: 0 5px;
+                }
+                .segmented {
+                    min-width: 90px;
+                    margin-left: 10px;
+                }
+            }
+        }
+        .buttons {
+            .item-inner {
+                padding-top: 0;
+                padding-bottom: 0;
+                align-items: stretch;
+                > .row {
+                    width: 100%;
+                    align-items: stretch;
+                    .button {
+                        flex: 1;
+                        border: none;
+                        height: inherit;
+                        border-radius: 0;
+                        font-size: 17px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                }
+            }
+        }
+        .list-input-right input {
+            text-align: right;
+        }
+    }
+
+    .tab-buttons {
+        width: 100%;
+        display: flex;
+        flex-wrap: nowrap;
+        align-self: center;
+        .tab-link {
+            display: block;
+            width: 100%;
+            line-height: 26px;
+            position: relative;
+            overflow: hidden;
+            -webkit-box-flex: 1;
+            border: 1px solid @toolbar-segment;
+            text-decoration: none;
+            text-align: center;
+            margin: 0;
+            padding: 0 1px;
+            height: 29px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 14px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: 0;
+            font-weight: 600;
+            color: @brandColor;
+            &:first-child {
+                border-radius: 5px 0 0 5px;
+                border-left-width: 1px;
+                border-left-style: solid;
+            }
+            &:last-child {
+                border-radius: 0 5px 5px 0;
+            }
+            &.tab-link-active {
+                // background: @brandColor;
+                // color: @fill-white;
+                background: @toolbar-segment;
+                color: @brand-text-on-brand;
+                i.icon {
+                    background-color: @brand-text-on-brand;
+                }
+            }
+        }
+    }
+
+    .button {
+        border: 1px solid @brandColor;
+        color: @brandColor;
+        text-decoration: none;
+        text-align: center;
+        display: block;
+        // border-radius: 5px;
+        line-height: 27px;
+        box-sizing: border-box;
+        background: 0 0;
+        padding: 0 10px;
+        margin: 0;
+        height: 29px;
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 14px;
+        font-family: inherit;
+        cursor: pointer;
+        outline: 0;
+    }
+
+    .button-fill {
+        color: @brandColor;
+        background-color: @background-primary;
+    }
+
+    .button-red {
+        color: @text-error;
+        background-color: @background-primary;
+    }
+
+    .buttons-list {
+        li {
+            border: 0;
+            border-radius: 0;
+            height: 43px;
+            min-height: 43px;
+            font-size: 17px;
+            text-transform: initial;
+            padding: 0;
+            box-shadow: none;
+        }
+    }
+
+    .button-red .list-button {
+        color: @text-error;
+    }
+
+    .list-button {
+        position: initial;
+    }
+
+    .block-title {
+        position: relative;
+        overflow: hidden;
+        margin: 0;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 14px;
+        text-transform: uppercase;
+        line-height: 1;
+        color: @blockTitleColor;
+        margin: 35px 15px 10px;
+    }
+
+    .shapes {
+        .page-content {
+            background: @fill-white;
+        }
+    }
+
+    .dialog {
+        background-color: var(--f7-dialog-bg-color-rgb);
+    }
+
+    #color-picker {
+        .right-block {
+            .button-round {
+                .icon {
+                    height: 30px;
+                    width: 30px;
+                }
+            }
+        }
+    }
+
+    .content-block {
+        color: @blockTitleColor;
+    }
+
+    .dataview, #add-table, #add-shape, #add-slide, #add-chart {
+        &.page-content, .page-content {
+            background-color: @background-tertiary;
+        }
+    }
+
+    // input[type="number"]
+
+    input[type="number"] {
+        &::placeholder,
+            &::-webkit-input-placeholder,
+            &::-moz-placeholder,
+            &:-moz-placeholder,
+            &:-ms-input-placeholder
+        {
+            color: @darkGreen;
+        }
+    }
+
+    // Regional Settings
+
+    .regional-settings {
+        .item-title-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            .item-title {
+                margin-left: 20px;
+                white-space: normal;
+            }
+        }
+    }
+
+    // Find and Replace 
+
+    .navbar {
+        .searchbar {
+            background: var(--f7-navbar-bg-color);
+        }
+        .searchbar-input-wrap {
+            margin-right: 10px;
+            height: 28px;
+        }
+        .buttons-row-replace a {
+            color: @brandColor;
+        }
+    }
+
+    .searchbar input {
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
+        display: block;
+        border: none;
+        appearance: none;
+        border-radius: 5px;
+        font-family: inherit;
+        color: @text-normal;
+        font-size: 14px;
+        font-weight: 400;
+        padding: 0 8px;
+        background-color: @background-button;
+        padding: 0 28px;
+        &::placeholder {
+            color: @text-tertiary;
+        }
+    }
+
+    .searchbar-inner {
+        &__left {
+            margin-right: 10px;
+            justify-content: center;
+        }
+        &__right {
+            .buttons-row a.next {
+                margin-left: 15px;
+            }
+        }
+    }
+
+    .searchbar-expandable.searchbar-enabled {
+        &.replace {
+            .searchbar-inner {
+                &__right {
+                    width: 28%;
+                }
+            }
+        }
+    } 
+
+    @media(max-width: 550px) {
+        .navbar {
+            .searchbar-input-wrap {
+                margin-right: 0; 
+            }
+        }
+        .searchbar-expandable.searchbar-enabled {
+            top: 0;
+            .searchbar-inner {
+                &__center {
+                    flex-direction: column;
+                }
+                &__right {
+                    flex-direction: column-reverse;
+                    margin-left: 10px;
+                }
+            }
+            &.replace {
+                height: 88px;
+                .searchbar-inner {
+                    height: 100%;
+                    &__center {
+                        .searchbar-input-wrap {
+                            margin: 8px 0;
+                        }
+                    }
+                    &__right {
+                        width: auto;
+                        height: 100%;
+                        justify-content: space-between;
+                        .buttons-row-replace {
+                            height: 50%;
+                        }
+                    }
+                }
+            }
+        } 
+    }
+
+    .actions-button {
+        background: @background-secondary;
+        --f7-actions-button-border-color: @background-menu-divider;
+    }
+    
+    .actions-button-text {
+        // height: 57px;
+        // line-height: 57px;
+        font-size: 20px;
+        color: @text-normal;
+        white-space: normal;
+        text-overflow: ellipsis;
+    }
+
+    input.modal-text-input {
+        box-sizing: border-box;
+        height: 26px;
+        background: @background-primary;
+        margin: 0;
+        margin-top: 15px;
+        padding: 0 5px;
+        border: 1px solid @text-tertiary;
+        border-radius: 0;
+        width: 100%;
+        font-size: 14px;
+        font-family: inherit;
+        display: block;
+        box-shadow: 0 0 0 transparent;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        -ms-appearance: none;
+        appearance: none;
+    }
+
+    // Fonts List 
+
+    .font-item {
+        .item-content {
+            padding-left: 0;
+        }
+    }
+
+    // Toggle Icon 
+
+    .toggle-icon {
+        background: transparent;
+    }
+
+    // Edit Comment Popup
+
+    .edit-comment-popup {
+        .navbar .title {
+            line-height: normal;
+        }
+    }
+
+}
+
+

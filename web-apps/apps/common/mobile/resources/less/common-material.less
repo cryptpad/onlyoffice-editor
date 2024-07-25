@@ -1,0 +1,540 @@
+
+.device-android .app-layout {
+    @tabLinkColor: rgba(255,255,255,.7);
+    @red: #f44336;
+    @white: #fff;
+    @darkGreen: #40865c;
+    @darkGrey: #757575;
+    @text-normal: var(--text-normal);
+    @brand-text-on-brand: var(--brand-text-on-brand);
+
+    @touchColor: rgba(255,255,255,0.1);
+
+    --f7-navbar-shadow-image: none;
+    --f7-theme-color: @brandColor;
+
+    --f7-navbar-bg-color: @toolbar-background;
+    --f7-navbar-link-color: @fill-white;
+    --f7-navbar-text-color: @fill-white;
+    --f7-navbar-height: 56px;
+
+    --f7-list-bg-color: @background-primary;
+    --f7-subnavbar-bg-color: @toolbar-background;
+    --f7-subnavbar-link-color: @toolbar-icons;
+    --f7-subnavbar-text-color: @fill-white;
+    --f7-subnavbar-height: 56px;
+
+    --f7-radio-active-color: @brandColor;
+    --f7-toggle-active-color: @brandColor;
+    --f7-range-bar-active-bg-color: @brandColor;
+    --f7-range-knob-color: @brandColor;
+    --f7-range-knob-size: 16px;
+
+    --f7-list-item-after-text-color: @text-normal;
+
+    --f7-link-highlight-color: transparent;
+    --f7-link-touch-ripple-color: @touchColor;
+
+    --f7-actions-bg-color: @background-secondary;
+    --f7-actions-button-border-color: @background-menu-divider;
+    --f7-popover-bg-color: @background-secondary;
+
+    --f7-dialog-bg-color: @background-secondary;
+    --f7-dialog-text-color: @text-secondary;
+    --f7-dialog-title-text-color: @text-normal;
+    --f7-dialog-button-text-color: @brandColor;
+
+    --f7-picker-item-text-color: rgba(var(--text-normal), 0.45);
+    --f7-picker-item-selected-text-color: @text-normal;
+
+    --f7-input-bg-color: @background-primary;
+    --f7-input-placeholder-color: @text-secondary;
+    --f7-input-text-color: @text-normal;
+
+    .button {
+        --f7-touch-ripple-color: transparent;
+    }
+
+    .segmented {
+        .button {
+            --f7-touch-ripple-color: var(--f7-list-link-pressed-bg-color);
+        }
+    }
+
+    --f7-input-focused-border-color: @brandColor;
+    --f7-label-focused-text-color: @brandColor;
+
+    .navbar {
+        --f7-touch-ripple-color: @touchColor;
+        .sheet-close {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            justify-content: center;
+        }
+        &-inner {
+            background: var(--f7-navbar-bg-color);
+            background-image: var(--f7-navbar-bg-image, var(--f7-bars-bg-image));
+            background-color: var(--f7-navbar-bg-color, var(--f7-bars-bg-color));
+        }
+    }
+
+    .page.page-with-subnavbar.page-with-logo {
+        .page-content {
+            --f7-page-navbar-offset: var(--f7-navbar-height);
+        }
+    }
+
+    .page {
+        --f7-text-color: @text-normal;
+        --f7-list-item-title-text-color: @text-normal;
+        --f7-list-item-text-text-color: @text-normal;
+        --f7-list-item-subtitle-text-color: @text-secondary;
+        --f7-block-title-text-color: @text-secondary;
+        --f7-label-text-color: @text-normal;
+        --f7-page-bg-color: @background-tertiary;
+        --f7-list-item-border-color: @background-menu-divider;
+        --f7-list-chevron-icon-color: @text-tertiary;
+        --f7-toggle-inactive-color: @background-menu-divider;
+        --f7-toggle-border-color: @background-menu-divider;
+        --f7-actions-button-text-color: @text-normal;
+        --f7-subnavbar-border-color: @background-menu-divider;
+        --f7-list-border-color: @background-menu-divider;
+    }
+
+    .add-popup {
+        .view {
+            .block-title {
+                // margin-bottom: 0;
+                // margin-top: 8px;
+            }
+            .add-image, .inputs-list {
+                ul:after {
+                    display: none;
+                }
+            }
+        }
+    }
+
+    .coauth__sheet {
+        max-height: 65%;
+    }
+
+    // Buttons
+    .segmented {
+        .decrement, .increment {
+            display: flex;
+            border: none;
+            min-width: 40px;
+            margin-left: 0;
+            border-radius: 0;
+            height: 32px;
+            i.icon-expand-down {
+                background: @brandColor;
+            }
+        }
+        label {
+            color: @text-normal;
+            margin: 0 5px;
+            line-height: 32px;
+        }
+    }
+    .button {
+        --f7-button-text-color: @brandColor;
+        color: @brandColor;
+        text-align: center;
+        display: block;
+        border-radius: 2px;
+        line-height: 36px;
+        box-sizing: border-box;
+        appearance: none;
+        background: 0 0;
+        margin: 0;
+        height: 36px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 14px;
+        text-transform: uppercase;
+        font-family: inherit;
+        cursor: pointer;
+        min-width: 64px;
+        padding: 0 8px;
+        position: relative;
+        overflow: hidden;
+        outline: 0;
+        -webkit-transition-duration: .3s;
+        transition-duration: .3s;
+        -webkit-transform: translate3d(0,0,0);
+        transform: translate3d(0,0,0);
+    }
+
+    .button-fill {
+        color: @brand-text-on-brand;
+        background-color: transparent;
+    }
+
+    .button-raised {
+        box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.24);
+    }
+
+    .button-red {
+        color: @brand-text-on-brand;
+        background-color: @text-error;
+    }
+
+    .buttons-list {
+        ul {
+            background-color: @background-tertiary;
+            &::before, &::after {
+                display: none;
+            }
+            li {
+                margin: 20px 16px;
+                color: @fill-white;
+                border-radius: 2px;
+                text-transform: uppercase;
+                height: 36px;
+                min-height: 36px;
+                font-size: 14px;
+            }
+        }
+    }
+
+    .table-presets {
+        .button {
+            min-width: 0;
+        }
+    }
+    .button-fill .list-button {
+        background-color: @brandColor;
+        color: @brand-text-on-brand;
+        height: 36px;
+        text-align: center;
+        line-height: 36px;
+        text-transform: uppercase;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 2px;
+        // margin: 20px 16px;
+        margin: 0;
+    }
+    .button-raised .list-button {
+        box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.24);
+    }
+    .button-red .list-button {
+        background-color: @text-error;
+    }
+    // Tabs
+    .tab-buttons {
+        position: relative;
+        display: flex;
+        height: 100%;
+        width: 100%;
+        justify-content: space-between;
+        .tab-link {
+            justify-content: center;
+            height: 100%;
+            box-sizing: border-box;
+            padding-left: 0;
+            padding-right: 0;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            align-items: center;
+            color: @tabLinkColor;
+            i.icon {
+                opacity: 0.5;
+            }
+            &.tab-link-active {
+                color: @fill-white;
+                i.icon {
+                    opacity: 1;
+                    background-color: @fill-white;
+                }
+            }
+        }
+        .tab-link-highlight {
+            --f7-tabbar-link-active-border-color: @toolbar-icons;
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 3px;
+        }
+    }
+    // List
+    .list {
+        &.inputs-list {
+            .item-input, .item-link {
+                .item-inner {
+                    display: block;
+                    .item-title, .item-label {
+                        width: 100%;
+                        font-size: 12px;
+                    }
+                    .item-input-wrap {
+                        margin-left: 0;
+                    }
+                }
+            }
+        }
+        .buttons {
+            box-sizing: border-box;
+            min-height: 48px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            .item-content {
+                width: 100%;
+                .item-inner {
+                    padding-bottom: 0;
+                    padding-top: 0;
+                    .row {
+                        width: 100%;
+                        .button {
+                            flex: 1;
+                            font-size: 17px;
+                            margin-left: 5px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            &:first-child {
+                                margin-left: 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .item-content {
+            .color-preview {
+                width: 30px;
+                height: 30px;
+                border-radius: 4px;
+                margin-top: -3px;
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, .15) inset;
+                background-color: @fill-white;
+                &.auto { 
+                    background-color: @autoColor;
+                }
+            }
+        }
+    }
+
+    // Color palette
+
+    #color-picker {
+        .right-block {
+            .button-round {
+                background-color: @brandColor;
+            }
+        }
+    }
+
+    // Regional Settings
+
+    .regional-settings {
+        .list {
+            .item-inner {
+                margin-left: 16px;
+            }
+            .item-title-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                flex-direction: row-reverse;
+                .item-title {
+                    white-space: normal;
+                }
+            }
+        }
+    }
+
+    // Find and Replace 
+
+    .searchbar-inner {
+        &__center {
+            flex-wrap: wrap;
+        }
+        // &__left {
+        //     padding-top: 4px;
+        // }
+    }
+
+    .navbar {
+        .searchbar-input-wrap {
+            height: 32px;
+            margin-right: 10px;
+            margin: 4px 0;
+        }
+        &-inner {
+            overflow: initial;
+        }
+    }
+
+    .searchbar .input-clear-button {
+        width: 18px;
+        height: 18px;
+        margin-top: -8px;
+        &:after {
+            color: @fill-white;
+            font-size: 19px;
+            line-height: 19px;
+        }
+    }
+
+    .searchbar-icon {
+        &:after {
+            color: @fill-white;
+            font-size: 19px;
+        }
+    }
+
+    .searchbar input {
+        box-sizing: border-box;
+        width: 100%;
+        display: block;
+        border: none;
+        appearance: none;
+        border-radius: 0;
+        font-family: inherit;
+        color: @fill-white;
+        font-size: 16px;
+        font-weight: 400;
+        padding: 0;
+        border-bottom: 1px solid @fill-white;
+        height: 100%;
+        padding: 0 36px 0 24px;
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: 0 center;
+        opacity: 1;
+        background-size: 24px 24px;
+        transition-duration: .3s;
+        .encoded-svg-background('<svg xmlns="http://www.w3.org/2000/svg" fill="@{white}" height="24" viewBox="0 0 24 24" width="24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+        &::placeholder {
+            color: @fill-white;
+        }
+    }
+    
+    .navbar {
+        .searchbar-expandable.searchbar-enabled {
+            top: 0;
+            // height: 100%;
+            .searchbar-inner {
+                height: 100%;
+                &__center {
+                    flex-direction: column;
+                }
+                &__right {
+                    flex-direction: column-reverse;
+                }
+            }
+            &.replace {
+                height: 96px;
+            }
+        }
+        a.link {
+            padding: 0 16px;
+        }
+        a.link.searchbar-enable {
+            i.icon-search {
+                background-color: @toolbar-icons;
+            }
+        }
+        a.icon-only {
+            width: auto;
+            height: 56px;
+        }
+        .buttons-row-replace a {
+            color: @fill-white;
+            padding: 0;
+        }
+        .searchbar .buttons-row {
+            align-self: flex-start;
+        }
+    }
+
+    @media(max-width: 550px) {
+        .searchbar-expandable.searchbar-enabled {
+            .searchbar-inner {
+                &__left {
+                    margin-right: 33px;
+                }
+            }
+        }
+    }
+
+    .actions-button-text {
+        cursor: pointer;
+        line-height: 48px;
+        font-size: 16px;
+        // color: rgba(0,0,0,.87);
+        color: @text-normal;
+        // color: var(--f7-actions-button-text-color, );
+    }
+
+    @media (min-width: 496px) {
+        .actions-modal {
+            width: 100%;
+            left: auto;
+            margin-left: 0;
+        }
+    }
+
+    input.modal-text-input {
+        box-sizing: border-box;
+        height: 36px;
+        background: #fff;
+        margin: 0;
+        margin-top: 15px;
+        padding: 0;
+        border: none;
+        width: 100%;
+        font-size: 16px;
+        font-family: inherit;
+        display: block;
+        box-shadow: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        -ms-appearance: none;
+        appearance: none;
+        -webkit-transition-duration: .2s;
+        transition-duration: .2s;
+    }
+
+    .input-field {
+        .inputs-list {
+            margin: 15px 0 0;
+            ul {
+                background: none;
+                &::before, &::after {
+                    display: none;
+                }
+            }
+            .item-input, .item-inner {
+                padding: 0;
+            }
+        }
+    }
+
+    // Fonts List 
+
+    .font-item {
+        .item-radio:not(.item-radio-icon-end) > .icon-radio {
+            margin-right: 0;
+        }
+    }
+
+    // Navbar link settings 
+
+    .navbar-link-settings {
+        .navbar-inner {
+            background: @background-primary;
+        }
+        .title, a {
+            color: @text-normal;
+        }
+    }
+}

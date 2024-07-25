@@ -1,0 +1,523 @@
+.statusbar {
+    padding: 0 2px 0;
+    z-index: 500;
+
+    #status-tabs-scroll {
+        width: 66px;
+        float: left;
+        padding: 3px 12px 0 10px;
+        height: 25px;
+    }
+
+    #status-zoom-box {
+        padding-top: 3px;
+
+        position: absolute;
+        right: 0;
+        height: 25px;
+
+        .separator {
+            margin-top: -3px;
+        }
+
+        #status-btn-zoomdown {
+            margin-left: 10px;
+        }
+
+        #status-label-zoom {
+            cursor: pointer;
+            text-align: center;
+
+            &.disabled {
+                cursor: default;
+            }
+        }
+    }
+
+    #status-users-ct {
+        width: 63px;
+        float: right;
+        height: 100%;
+
+        #status-users-icon,#status-users-count {
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        #status-users-count {
+            position: relative;
+            top: -3px;
+        }
+
+        #status-users-icon {
+            background-repeat: no-repeat;
+            background-position: -14px -197px;
+            width: 20px;
+            height: 20px;
+            top: 3px;
+            position: relative;
+        }
+
+        #status-users-menu {
+            padding: 14px 0 14px 14px;
+            margin-right: 160px;
+            margin-bottom: 2px;
+            width: 285px;
+            font-size: 12px;
+            left: auto;
+            right: 0;
+
+            > label {
+                white-space: normal;
+            }
+
+            #status-users-list {
+                margin-top: 15px;
+
+                ul {
+                    margin: 0;
+                    padding: 0;
+                    overflow: hidden;
+                    max-height: 190px;
+                    position: relative;
+
+                    li {
+                        list-style: none;
+                        padding: 2px 0;
+                        margin-right: 15px;
+                        overflow: hidden;
+
+                        &.offline, &.viewmode {
+                            display: none;
+                        }
+                    }
+                }
+
+                .color {
+                    width: 12px;
+                    height: 12px;
+                    display: inline-block;
+                    vertical-align: middle;
+                    border: @scaled-one-px-value-ie solid @border-toolbar-ie;
+                    border: @scaled-one-px-value solid @border-toolbar;
+                }
+
+                .name {
+                    display: block;
+                    padding-left: 16px;
+                    margin-top: -3px;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    vertical-align: middle;
+                }
+            }
+        }
+    }
+
+    #status-addtabs-box {
+        float: left;
+        padding: 3px 8px 0 8px;
+        border-left: @scaled-one-px-value-ie solid @border-toolbar-ie;
+        border-left: @scaled-one-px-value solid @border-toolbar;
+        border-right: @scaled-one-px-value-ie solid @border-toolbar-ie;
+        border-right: @scaled-one-px-value solid @border-toolbar;
+        height: 25px;
+    }
+
+    #status-math-box,
+    #status-filtered-box {
+        //float: right;
+        padding-top: 6px;
+
+        position: absolute;
+        height: 25px;
+
+        .separator {
+            position: relative;
+            padding-right: 11px;
+            margin-top: -6px;
+        }
+    }
+
+    #status-math-box {
+        padding-right: 4px;
+        label {
+            padding-right: 10px;
+        }
+    }
+
+    #status-filtered-box {
+        padding-right: 14px;
+        label {
+            &:not(:last-child) {
+                padding-right: 10px;
+            }
+        }
+    }
+
+    #status-sheets-bar-box {
+        position: absolute;
+        overflow: hidden;
+        height: 25px;
+        left: 66px;
+        right: 160px;
+        //margin-right: 3px;
+    }
+
+    #status-sheets-bar {
+        width: 100%;
+        height: 100%;
+
+        .dropdown-menu {
+            margin-top: -1px;
+        }
+
+        .nav-tabs {
+            height: 100%;
+            display: flex;
+
+            > li {
+                background-color: @background-toolbar-ie;
+                background-color: @background-toolbar;
+
+                &:first-of-type {
+                    span {
+                        border-left: none;
+                    }
+                }
+
+                &:last-of-type {
+                    span {
+                        margin-right: 0;
+                    }
+                }
+
+                &:not(.active) {
+                    > span {
+                        color: @text-secondary-ie;
+                        color: @text-secondary;
+                    }
+                }
+
+                > span {
+                    display: inline-block;
+                    .border-radius(0);
+                    padding: 0 10px 0;
+                    line-height: 24px;
+                    margin-right: -1px;
+                    background-color: @background-toolbar-additional-ie;
+                    background-color: @background-toolbar-additional;
+                    outline: none;
+                    border-left: @scaled-one-px-value-ie solid @border-toolbar-ie;
+                    border-left: @scaled-one-px-value solid @border-toolbar;
+                    border-right: @scaled-one-px-value-ie solid @border-toolbar-ie;
+                    border-right: @scaled-one-px-value solid @border-toolbar;
+                    border-top: @scaled-one-px-value-ie solid @border-toolbar-ie;
+                    border-top: @scaled-one-px-value solid @border-toolbar;
+
+                    &:hover {
+                        border-top-color: @border-toolbar-ie;
+                        border-top-color: @border-toolbar;
+                        border-bottom-color: @border-toolbar-ie;
+                        border-bottom-color: @border-toolbar;
+                        color: @text-normal-ie;
+                        color: @text-normal;
+                    }
+                }
+
+                &.active {
+                    > span {
+                        border-bottom-color: @background-toolbar-ie;
+                        border-bottom-color: @background-toolbar;
+                        background-color: @background-toolbar-ie;
+                        background-color: @background-toolbar;
+                        outline: none;
+
+                        box-shadow: 0px 4px 0 #49795d inset;
+                        border-top-width: 0;
+                        padding-top: 1px;
+                        .font-weight-bold();
+                    }
+                }
+
+                &.selected {
+                    > span {
+                        border-bottom-color: @highlight-header-button-hover-ie;
+                        border-bottom-color: @highlight-header-button-hover;
+                        background-color: @background-normal-ie;
+                        background-color: @background-normal;
+                        box-shadow: 0px 4px 0 #49795d inset;
+                        color: @text-normal-ie;
+                        color: @text-normal;
+                    }
+                }
+
+                &.coauth-locked {
+                    &.active {
+                        > span {
+                            border-top-width: 0px;
+                        }
+                    }
+                    > span {
+                        outline: none;
+                        position: relative;
+                    }
+                    > span:after {
+                        position: absolute;
+                        content: '';
+                        width: 7px;
+                        height: 7px;
+                        border-bottom: 7px solid red;
+                        border-left: 7px solid transparent;
+                        bottom: 0;
+                        margin-left: -7px;
+                        left: 100%;
+                    }
+                }
+
+                &.icon-visible {
+                    > span {
+                        padding-left: 25px;
+                        > .toolbar__icon {
+                            width: 20px;
+                            height: 20px;
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            margin: 3px;
+                        }
+                    }
+                }
+
+                &.disabled {
+                    opacity: @component-disabled-opacity-ie;
+                    opacity: @component-disabled-opacity;
+
+                    > span {
+                        cursor: default;
+                        color: @text-secondary-ie;
+                        color: @text-secondary;
+                    }
+                }
+
+                &.mousemove {
+
+                    &:first-child {
+                        > span {
+                            padding-left: 8px;
+                        }
+                    }
+
+                    > span {
+                        border-left: 2px solid @text-normal-ie;
+                        border-left: 2px solid @text-normal;
+                        padding-left: 9px;
+                    }
+                    
+                    &.right {
+                        > span {
+                            border-left: @scaled-one-px-value-ie solid @border-toolbar-ie;
+                            border-left: @scaled-one-px-value solid @border-toolbar;
+                            border-right: 2px solid @text-normal-ie;
+                            border-right: 2px solid @text-normal;
+                            padding-right: 9px;
+                            padding-left: 10px;
+                        }
+                    }
+                    &.icon-visible {
+                        > span {
+                            padding-left: 24px;
+                        }
+                        &.right {
+                            > span {
+                                padding-left: 25px;
+                            }
+                        }
+                    }
+                }
+                &.separator-item {
+                    margin-top: 1px;
+                    margin-left: 20px;
+                    width: @scaled-one-px-value-ie;
+                    width: @scaled-one-px-value;
+                    > span {
+                        display: none;
+                        padding: 0;
+                        margin: 0;
+                        width: @scaled-one-px-value-ie;
+                        width: @scaled-one-px-value;
+                        &::after {
+                            content: none;
+                        }
+                    }
+                }
+            }
+        }
+
+        .color-tab {
+            .border-radius(4px);
+          margin-top: -25px;
+        }
+    }
+
+    #status-number-of-sheet , #status-action {
+        position: absolute;
+        height: 25px;
+        bottom: 0;
+        display: flex;
+        justify-content: flex-start;
+        .status-label {
+            .font-weight-bold();
+            color: @text-normal;
+            margin-top: 6px;
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    #status-number-of-sheet {
+        width: 135px;
+    }
+
+    &.no-compact {
+        #status-tabs-scroll, #status-sheets-bar-box, #status-addtabs-box {
+            height: 26px;
+            border-bottom: @scaled-one-px-value-ie solid @border-toolbar-ie;
+            border-bottom: @scaled-one-px-value solid @border-toolbar;
+        }
+    }
+
+    .btn-tpl(@top-position) {
+        .btn-icon {
+            background-position: 0 @top-position;
+
+            &:active {
+                background-position: -20px @top-position;
+            }
+        }
+
+        &[disabled] .btn-icon {
+            background-position: -60px @top-position;
+        }
+
+        &.active {
+            .btn-icon {
+                background-position: -20px @top-position;
+            }
+        }
+    }
+
+    .status-group {
+        white-space: nowrap;
+        &.dropup {
+            position: static;
+        }
+    }
+
+    .cnt-tabslist {
+        display: inline-block;
+        position: relative;
+        .dropdown-menu {
+            min-width: 112px;
+            margin-left: -4px;
+
+            li {
+                text-align: left;
+                a {
+                    position: relative;
+                    padding-left: 26px;
+                    .color {
+                        height: 21px;
+                        width: 4px;
+                        position: absolute;
+                        top: 2px;
+                        left: 0;
+                    }
+                }
+                .hidden-mark {
+                    margin-left: 12px;
+                    font-style: italic;
+                    color: @text-secondary;
+                }
+            }
+        }
+    }
+
+    .cnt-zoom {
+        display: inline-block;
+        position: relative;
+        top: 1px;
+
+        .dropdown-menu {
+            min-width: 80px;
+            margin-left: -4px;
+
+            li {
+                text-align: center;
+
+                > span {
+                      padding-left: 15px;
+                      padding-right: 15px;
+                }
+            }
+        }
+    }
+
+    .dropdown-menu {
+        margin-bottom: 6px;
+
+        li {
+            text-align: left;
+        }
+    }
+
+    .separator {
+        &.short {
+            height: 25px;
+        }
+    }
+}
+
+#statusbar-menu {
+    .dropdown-menu {
+        margin-top: 0;
+        margin-left: -7px;
+        li {
+            > a {
+                padding: 5px 12px 5px 26px;
+                &::before {
+                    margin-left: -22px;
+                }
+                .item-caption {
+                    min-width: 98px;
+                    display: inline-block;
+                }
+                .item-value {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    text-align: right;
+                    vertical-align: bottom;
+                    padding-left: 5px;
+                    color: silver;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+}
+
+.statusbar-mask {
+    position: absolute;
+    bottom: 0;
+    left: 115px;
+    width: 36px;
+    height: 100%;
+    opacity: 0;
+    background-color: @background-toolbar-ie;
+    background-color: @background-toolbar;
+    z-index: @zindex-modal - 1;
+}
+
+.over-box {
+    display: none;
+}

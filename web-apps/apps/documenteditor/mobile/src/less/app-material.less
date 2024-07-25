@@ -1,0 +1,146 @@
+
+// Colors
+@themeColorLight: #a2bdde;
+@navBarIconColor: @toolbar-icons;
+
+
+.device-android {
+    // Main Toolbar
+    #editor-navbar.navbar .right {
+        padding-right: 4px;
+    }
+    #editor-navbar.navbar .right a.link,
+    #editor-navbar.navbar .left a.link {
+        padding: 0 13px;
+        justify-content: space-between;
+        box-sizing: border-box;
+        align-items: center;
+        width: auto;
+    }
+
+    .toggle input[type="checkbox"]:checked + .toggle-icon {
+        background-color: rgba(68,105,149,.5);
+    }
+
+    // Review
+    .page-review {
+        .header-change {
+            display: flex;
+        }
+        .toolbar {
+            height: 56px;
+            .toolbar-inner {
+                padding: 0 15px;
+                .link {
+                    padding: 0;
+                    font-size: 14px;
+                    text-transform: uppercase;
+                    font-weight: 500;
+                }
+            }
+        }
+        .initials {
+            height: 40px;
+            width: 40px;
+            border-radius: 50px;
+            color: @white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 16px;
+            font-size: 18px;
+        }
+    }
+
+    // Stepper 
+    .content-block.stepper-block {
+        display: flex;
+        justify-content: center;
+        margin: 25px 0 0;
+
+        .stepper {
+            --f7-touch-ripple-color: none;
+        }
+        
+        .stepper-button, .stepper-button-minus, .stepper-button-plus {
+            border: none;
+            border-radius: 0;
+
+            &:before, &:after{
+                display: none;
+            }
+        }
+
+        .stepper-button-minus.active-state, .stepper-button-plus.active-state {
+            background-color: var(--f7-list-link-pressed-bg-color);
+        }
+
+        .stepper-input-wrap{
+            border:none;
+
+            input {
+                color: @text-normal;
+                font-size: 16px;
+                width: 40px;
+                font-weight: var(--f7-list-item-after-line-height);
+            }
+        }
+    }
+
+    .navigation-sheet {
+        border-radius: 4px 4px 0px 0px;
+        &__title {
+            display: flex;
+            align-items: center;
+            background: @background-primary;
+            padding-bottom: 15px;
+            padding-left: 16px;
+            p {
+                font-style: normal;
+                font-weight: 500;
+                font-size: 20px;
+                line-height: 23px;
+                color: @text-normal;
+                margin: 0;
+            }
+        }
+    }
+
+    // Snackbar
+    .snackbar {
+        position: absolute;
+        width: 344px;
+        max-height: 48px;
+        left: calc(50% - 344px / 2);
+        bottom: 16px;
+        background: #333333;
+        border-radius: 4px;
+        z-index: 1000000;
+        &__content {
+            padding: 14px 16px;
+        }
+        &__text {
+            margin: 0;
+            color: @fill-white;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 20px;
+            letter-spacing: 0.25px;
+            text-align: center;
+        }
+    }
+
+    @media(max-width: 450px) {
+        .snackbar {
+            width: auto;
+            max-width: 100%;
+            left: 16px;
+            right: 16px;
+            bottom: 8px;
+            &__text {
+                text-align: left;
+            }
+        }
+    }
+}

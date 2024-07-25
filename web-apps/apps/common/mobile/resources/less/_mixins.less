@@ -1,0 +1,18 @@
+// Encoded SVG Background
+.encoded-svg-mask(@svg, @color: @brandColor) {
+  @url: `encodeURIComponent(@{svg})`;
+  background-color: @color;
+  -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,@{url}");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: round;
+}
+
+.encoded-svg-uncolored-mask(@svg) {
+    @url: `encodeURIComponent(@{svg})`;
+    -webkit-mask-image: url("data:image/svg+xml;charset=utf-8,@{url}");
+}
+
+.encoded-svg-background(@svg) {
+  @url: `encodeURIComponent(@{svg})`;
+  background-image: url("data:image/svg+xml;charset=utf-8,@{url}");
+}
