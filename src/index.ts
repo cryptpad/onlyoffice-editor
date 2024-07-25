@@ -140,9 +140,8 @@ export class DocEditor implements DocEditorInterface {
         this.fromOOHandler.setHandler((msg) => {
             if (msg.type == "auth") {
                 this.handleAuth(msg);
-            } else {
-                this.server.onMessage(msg);
             }
+            this.server.onMessage(msg);
         });
     }
 
