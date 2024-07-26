@@ -1,5 +1,5 @@
 GRUNT = grunt
-GRUNT_FLAGS = --no-color -v --noclosure --desktop=false 
+GRUNT_FLAGS = --no-color -v --noclosure --desktop=false
 
 OUTPUT_DIR = deploy
 OUTPUT = $(OUTPUT_DIR)
@@ -54,9 +54,10 @@ $(SDKJS_FILES): $(NODE_MODULES)
 
 desktop: GRUNT_FLAGS += --desktop=true
 desktop: all
-	
+
 clean:
 	rm -f $(WEBAPPS_FILES) $(SDKJS_FILES)
 
 %/node_modules: %/package.json
-	cd $(dir $@) && npm install
+	# CryptPad: Disable cache, so this can build inside bazel
+	cd $(dir $@) && npm install --cache .

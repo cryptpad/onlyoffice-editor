@@ -1,0 +1,17 @@
+load("@rules_tar//tar/unpack:defs.bzl", "tar_unpack")
+
+genrule(
+    name = "make-tar",
+    srcs = glob(["**"]) + [
+        "//web-apps:files",
+    ],
+    cmd = "sdkjs/make-in-bazel.sh $@",
+    outs = ["deploy.tar"],
+)
+
+# genrule can not output directories. We are using a tar file as workaround
+tar_unpack(
+    name = "make",
+    src = ":make-tar",
+    visibility = ["//visibility:public"],
+)
