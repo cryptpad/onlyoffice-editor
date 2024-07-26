@@ -21,8 +21,8 @@ pkg_files(
     srcs = [
         "//onlyoffice-editor:api",
     ],
-    prefix = "sdkjs/deploy/web-apps/apps/api/documents/",
-    strip_prefix = strip_prefix.from_pkg(),
+    prefix = "web-apps/apps/api/documents/",
+    strip_prefix = strip_prefix.from_pkg("api"),
 )
 
 pkg_files(
