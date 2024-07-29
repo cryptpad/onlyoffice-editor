@@ -40,6 +40,7 @@ pkg_tar(
         "//:editor-in-fork",
         "//:client-in-fork",
         "//fonts:fonts",
+        "//vendor:files",
     ],
 )
 
