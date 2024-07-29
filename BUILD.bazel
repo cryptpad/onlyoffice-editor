@@ -39,6 +39,7 @@ pkg_tar(
     srcs = [
         "//:editor-in-fork",
         "//:client-in-fork",
+        "//fonts:fonts",
     ],
 )
 

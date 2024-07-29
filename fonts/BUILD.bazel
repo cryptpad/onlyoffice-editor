@@ -1,0 +1,16 @@
+load("@rules_pkg//pkg:mappings.bzl", "pkg_filegroup", "pkg_files", "strip_prefix")
+
+filegroup(
+    name = "fonts-root",
+    srcs = glob(["*.ttf"]),
+)
+
+pkg_files(
+    name = "fonts",
+    srcs = [
+        ":fonts-root",
+    ],
+    prefix = "fonts/",
+    strip_prefix = strip_prefix.from_pkg(),
+    visibility = ["//visibility:public"],
+)
