@@ -1296,7 +1296,7 @@
     "@@rules_oci~//oci:extensions.bzl%oci": {
       "general": {
         "bzlTransitiveDigest": "nmsjGCYnCki848cqFoe/5MEl2Ruqo3Q/s1UCx+x2iyA=",
-        "usagesDigest": "D39DNxpoGRLwbFppMU1QVj68WJTJZHruXpwl4h1qbFA=",
+        "usagesDigest": "IdWgMo9udtLDinUY9X0lcglIEJI7A0Gc/wNO5tX71L8=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1504,7 +1504,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "onlyoffice/documentserver",
-              "identifier": "7.3.3",
+              "identifier": "sha256:1e254eee17380a63dec421fb77f3cb1c1131feeadbd31a2e7c01c21e1cf1335f",
               "platform": "linux/amd64",
               "target_name": "onlyoffice-documentserver_linux_amd64",
               "bazel_tags": []
@@ -1610,7 +1610,7 @@
               "scheme": "https",
               "registry": "index.docker.io",
               "repository": "onlyoffice/documentserver",
-              "identifier": "7.3.3",
+              "identifier": "sha256:1e254eee17380a63dec421fb77f3cb1c1131feeadbd31a2e7c01c21e1cf1335f",
               "platforms": {
                 "@@platforms//cpu:x86_64": "@onlyoffice-documentserver_linux_amd64"
               },

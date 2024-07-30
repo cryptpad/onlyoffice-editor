@@ -54,3 +54,10 @@ oci_image(
     name = "cryptpad-documentserver",
     base = "@onlyoffice-documentserver",
 )
+
+sh_test(
+    name = "oofork-files-test",
+    size = "small",
+    srcs = ["test-oofork-files.sh"],
+    data = [":oofork"],
+)
