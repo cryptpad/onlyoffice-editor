@@ -1,0 +1,13 @@
+load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_tar//tar/unpack:defs.bzl", "tar_unpack")
+
+tar_unpack(
+    name = "oofork-tar-files",
+    src = "//:oofork-tar",
+)
+
+oci_image(
+    name = "documentserver",
+    base = "@onlyoffice-documentserver",
+    tars = [ "//:oofork-tar" ],
+)

@@ -17,3 +17,4 @@ tar tfz $TGZ_FILE > $CONTENT_FILE
 assert_contains web-apps/apps/api/documents/api.js
 assert_contains web-apps/apps/api/documents/api-orig.js
 assert_contains fonts/arial.ttf
+assert_contains web-apps/vendor/requirejs/require.js
