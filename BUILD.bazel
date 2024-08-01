@@ -56,12 +56,3 @@ sh_test(
     srcs = ["test-oofork-files.sh"],
     data = [":oofork"],
 )
-
-pkg_tar(
-    name = "oofork-docker-tar",
-    package_file_name = "onlyoffice-editor-docker.tar",
-    srcs = [
-        "//:oofork-tar-files",
-    ],
-    strip_prefix = strip_prefix.from_pkg("oofork-tar-files"),
-)

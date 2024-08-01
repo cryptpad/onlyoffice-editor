@@ -1,4 +1,6 @@
-load("@rules_oci//oci:defs.bzl", "oci_image")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_pkg//pkg:mappings.bzl", "strip_prefix")
 load("@rules_tar//tar/unpack:defs.bzl", "tar_unpack")
 
 tar_unpack(
@@ -6,8 +8,24 @@ tar_unpack(
     src = "//:oofork-tar",
 )
 
+pkg_tar(
+    name = "oofork-docker-tar",
+    package_file_name = "onlyoffice-editor-docker.tar",
+    srcs = [
+        ":oofork-tar-files",
+    ],
+    strip_prefix = strip_prefix.from_pkg("oofork-tar-files"),
+    package_dir = "var/www/onlyoffice/documentserver/"
+)
+
 oci_image(
-    name = "documentserver",
+    name = "image",
     base = "@onlyoffice-documentserver",
-    tars = [ "//:oofork-tar" ],
+    tars = [ ":oofork-docker-tar" ],
+)
+
+oci_load(
+    name = "load",
+    image = ":image",
+    repo_tags = ["cp-documentserver:latest"],
 )
