@@ -28,4 +28,5 @@ oci_load(
     name = "load",
     image = ":image",
     repo_tags = ["cp-documentserver:latest"],
+    visibility = ["//visibility:public"],
 )

@@ -6,6 +6,18 @@ settings:
 
 importers:
 
+  e2etests:
+    devDependencies:
+      jasmine:
+        specifier: 4.6.0
+        version: 4.6.0
+      jasmine-core:
+        specifier: 4.6.0
+        version: 4.6.0
+      jasmine-reporters:
+        specifier: 2.5.2
+        version: 2.5.2
+
   onlyoffice-editor:
     devDependencies:
       '@eslint/js':
@@ -471,6 +483,11 @@ packages:
     dependencies:
       webpack: 5.91.0(webpack-cli@5.1.4)
       webpack-cli: 5.1.4(webpack@5.91.0)
+    dev: true
+
+  /@xmldom/xmldom@0.8.10:
+    resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
+    engines: {node: '>=10.0.0'}
     dev: true
 
   /@xtuc/ieee754@1.2.0:
@@ -1069,6 +1086,25 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /jasmine-core@4.6.0:
+    resolution: {integrity: sha512-O236+gd0ZXS8YAjFx8xKaJ94/erqUliEkJTDedyE7iHvv4ZVqi+q+8acJxu05/WJDKm512EUNn809In37nWlAQ==}
+    dev: true
+
+  /jasmine-reporters@2.5.2:
+    resolution: {integrity: sha512-qdewRUuFOSiWhiyWZX8Yx3YNQ9JG51ntBEO4ekLQRpktxFTwUHy24a86zD/Oi2BRTKksEdfWQZcQFqzjqIkPig==}
+    dependencies:
+      '@xmldom/xmldom': 0.8.10
+      mkdirp: 1.0.4
+    dev: true
+
+  /jasmine@4.6.0:
+    resolution: {integrity: sha512-iq7HQ5M8ydNUspjd9vbFW9Lu+6lQ1QLDIqjl0WysEllF5EJZy8XaUyNlhCJVwOx2YFzqTtARWbS56F/f0PzRFw==}
+    hasBin: true
+    dependencies:
+      glob: 7.2.3
+      jasmine-core: 4.6.0
+    dev: true
+
   /jest-worker@27.5.1:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
@@ -1183,6 +1219,12 @@ packages:
     engines: {node: '>=16 || 14 >=14.17'}
     dependencies:
       brace-expansion: 2.0.1
+    dev: true
+
+  /mkdirp@1.0.4:
+    resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
+    engines: {node: '>=10'}
+    hasBin: true
     dev: true
 
   /ms@2.1.2:

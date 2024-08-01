@@ -1,6 +1,4 @@
 # See https://pnpm.io/pnpm-workspace_yaml
 packages:
  - onlyoffice-editor
- # - sdkjs/build
- # - web-apps/build
- # - web-apps/build/sprites
+ - e2etests
