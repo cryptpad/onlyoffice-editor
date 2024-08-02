@@ -1,0 +1,11 @@
+{
+    "pnpm": {
+        "packageExtensions": {
+            "cpu-features": {
+                "optionalDependencies": {
+                    "node-gyp": "*"
+                }
+            }
+        }
+    }
+}

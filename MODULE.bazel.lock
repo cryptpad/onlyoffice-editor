@@ -1096,7 +1096,7 @@
     "@@rules_nodejs~//nodejs:extensions.bzl%node": {
       "general": {
         "bzlTransitiveDigest": "0IJr1Jg3Dns9QKY65MtauFLtHjjP3n1DgN0+ZAjFYXo=",
-        "usagesDigest": "gQy9Uk1cjxisIfuMJkfJTNZoAN/r8Wj5XH4sozgN360=",
+        "usagesDigest": "XnSLBSP3nR9ZLyC1y6NVzZfhgSZISYi7dfd5+VV6l4Q=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -1117,7 +1117,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "linux_s390x"
             }
@@ -1131,7 +1131,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "windows_amd64"
             }
@@ -1152,7 +1152,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "linux_amd64"
             }
@@ -1166,7 +1166,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "linux_ppc64le"
             }
@@ -1180,7 +1180,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "darwin_amd64"
             }
@@ -1194,7 +1194,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "linux_arm64"
             }
@@ -1215,7 +1215,7 @@
               "node_urls": [
                 "https://nodejs.org/dist/v{version}/{filename}"
               ],
-              "node_version": "18.20.3",
+              "node_version": "20.14.0",
               "include_headers": false,
               "platform": "darwin_arm64"
             }

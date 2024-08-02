@@ -1,8 +1,10 @@
 {
     "type": "module",
     "devDependencies": {
-      "jasmine": "4.6.0",
-      "jasmine-core": "4.6.0",
-      "jasmine-reporters": "2.5.2"
+        "jasmine": "4.6.0",
+        "jasmine-core": "4.6.0",
+        "jasmine-reporters": "2.5.2",
+        "node-fetch": "^3.3.2",
+        "testcontainers": "^10.11.0"
     }
 }

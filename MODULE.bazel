@@ -10,6 +10,10 @@ bazel_dep(name = "rules_tar", version = "1.0.0-beta.1")
 bazel_dep(name = "rules_pkg", version = "1.0.1")
 bazel_dep(name = "rules_gzip", version = "1.0.0-beta.1")
 bazel_dep(name = "rules_oci", version = "2.0.0-beta1")
+bazel_dep(name = "rules_nodejs", version = "6.2.0")
+
+node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node", dev_dependency = True)
+node.toolchain(node_version = "20.14.0")
 
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 
