@@ -1,4 +1,5 @@
 load("@aspect_rules_jasmine//jasmine:defs.bzl", "jasmine_test")
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages()
@@ -12,6 +13,27 @@ jasmine_test(
         "package.json",
         ":node_modules/testcontainers",
         ":node_modules/node-fetch",
+        ":image-tarball",
     ],
     node_modules = ":node_modules",
+)
+
+copy_to_bin(
+    name = "image-tarball",
+    srcs = [
+        "//docker:image-tarball",
+    ],
+)
+
+sh_test(
+    name = "sh-test",
+    size = "small",
+    srcs = ["test.sh"],
+    data = [
+        "test.spec.js",
+        "package.json",
+        ":node_modules/testcontainers",
+        ":node_modules/node-fetch",
+        "//docker:image-tarball",
+    ],
 )
