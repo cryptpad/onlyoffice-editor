@@ -9,8 +9,7 @@ describe("test documentserver", function () {
     let httpPort;
 
     beforeAll(async () => {
-        spawnSync('pwd', [], { stdio: 'inherit' });
-        spawnSync('ls', ['-l'], { stdio: 'inherit' });
+        spawnSync('docker', ['load', '-i', '../docker/load/tarball.tar'], { stdio: 'inherit' });
         container = await new GenericContainer("cp-documentserver:latest")
             .withExposedPorts(80)
             .start();
@@ -23,7 +22,6 @@ describe("test documentserver", function () {
     });
 
     it("welcome page", async function () {
-        expect(true).toBeFalse();
         const url = new URL("http://localhost/welcome/");
         url.port = httpPort;
         const response = await fetch(url);
