@@ -15,26 +15,5 @@ jasmine_test(
         ":node_modules/node-fetch",
         "//docker:image-tarball",
     ],
-    #copy_data_to_bin = False,
     node_modules = ":node_modules",
-)
-
-copy_to_bin(
-    name = "image-tarball",
-    srcs = [
-        "//docker:image-tarball",
-    ],
-)
-
-sh_test(
-    name = "sh-test",
-    size = "small",
-    srcs = ["test.sh"],
-    data = [
-        "test.spec.js",
-        "package.json",
-        ":node_modules/testcontainers",
-        ":node_modules/node-fetch",
-        "//docker:image-tarball",
-    ],
 )
