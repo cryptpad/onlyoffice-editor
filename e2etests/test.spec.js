@@ -16,6 +16,9 @@ describe("test documentserver", function () {
             .start();
 
         httpPort = container.getFirstMappedPort();
+
+        const { output, exitCode } = await container.exec(["supervisorctl", "start", "ds:example"]);
+        expect(exitCode).toBe(0);
     }, DOCKER_START_TIMEOUT_MS);
 
     afterAll(async () => {
@@ -33,5 +36,18 @@ describe("test documentserver", function () {
 
         const btn = dom.window.document.querySelector('.button');
         expect(btn.firstChild.nodeValue).toBe('GO TO TEST EXAMPLE');
+    });
+
+    it("example page", async function () {
+        const url = new URL("http://localhost/example/");
+        url.port = httpPort;
+        const dom = await JSDOM.fromURL(url, {
+            runScripts: "dangerously",
+            pretendToBeVisual: true,
+            resources: "usable",
+        });
+
+        const link = dom.window.document.querySelector('a.word');
+        expect(link.firstChild.nodeValue).toBe('Document');
     });
 });
