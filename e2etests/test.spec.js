@@ -1,6 +1,7 @@
 import { GenericContainer } from "testcontainers";
 import fetch from 'node-fetch';
 import { spawnSync } from 'child_process';
+import { JSDOM } from 'jsdom';
 
 const DOCKER_START_TIMEOUT_MS = 1 * 60 * 1000;
 
@@ -24,7 +25,13 @@ describe("test documentserver", function () {
     it("welcome page", async function () {
         const url = new URL("http://localhost/welcome/");
         url.port = httpPort;
-        const response = await fetch(url);
-        expect(response.status).toBe(200);
+        const dom = await JSDOM.fromURL(url, {
+            runScripts: "dangerously",
+            pretendToBeVisual: true,
+            resources: "usable",
+        });
+
+        const btn = dom.window.document.querySelector('.button');
+        expect(btn.firstChild.nodeValue).toBe('GO TO TEST EXAMPLE');
     });
 });

@@ -13,6 +13,8 @@ jasmine_test(
         "package.json",
         ":node_modules/testcontainers",
         ":node_modules/node-fetch",
+        ":node_modules/jsdom",
+        ":node_modules/canvas",
         "//docker:image-tarball",
     ],
     node_modules = ":node_modules",

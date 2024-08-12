@@ -16,7 +16,9 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@eslint/js": "^9.9.0",
+    "canvas": "^2.11.2",
     "eslint": "^9.9.0",
+    "jsdom": "^24.1.1",
     "prettier": "3.3.3",
     "ts-loader": "^9.5.1",
     "typescript": "^5.5.4",
