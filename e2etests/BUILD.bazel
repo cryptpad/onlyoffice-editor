@@ -19,3 +19,16 @@ jasmine_test(
     ],
     node_modules = ":node_modules",
 )
+
+sh_test(
+    name = "test-test",
+    srcs = ["run-tests.sh"],
+    args = ["$(execpath @nodejs//:npm)"],
+    data = [
+        "package.json",
+        "@nodejs//:npx",
+        "@nodejs//:npm",
+        ":node_modules/@playwright",
+        ":node_modules/playwright",
+    ],
+)

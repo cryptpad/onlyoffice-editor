@@ -2,7 +2,7 @@ bazel_dep(name = "aspect_bazel_lib", version = "2.7.8")
 bazel_dep(name = "aspect_rules_lint", version = "1.0.0-rc5")
 bazel_dep(name = "buildifier_prebuilt", version = "6.4.0")
 bazel_dep(name = "rules_multitool", version = "0.12.0")
-bazel_dep(name = "aspect_rules_js", version = "2.0.0-rc9")
+bazel_dep(name = "aspect_rules_js", version = "2.0.1")
 bazel_dep(name = "aspect_rules_ts", version = "3.0.0-rc1")
 bazel_dep(name = "aspect_rules_webpack", version = "0.16.0-rc0")
 bazel_dep(name = "aspect_rules_jasmine", version = "2.0.0-rc0")
@@ -15,6 +15,8 @@ bazel_dep(name = "rules_nodejs", version = "6.2.0")
 node = use_extension("@rules_nodejs//nodejs:extensions.bzl", "node", dev_dependency = True)
 node.toolchain(node_version = "20.14.0")
 
+use_repo(node, "nodejs")
+
 oci = use_extension("@rules_oci//oci:extensions.bzl", "oci")
 
 # Declare external images you need to pull, for example:
@@ -26,7 +28,7 @@ oci.pull(
 )
 
 # For each oci.pull call, repeat the "name" here to expose them as dependencies.
-use_repo(oci, "onlyoffice-documentserver", "onlyoffice-documentserver_linux_amd64")
+use_repo(oci, "onlyoffice-documentserver", "onlyoffice-documentserver_linux_amd64")  # TODO can we remove the last parameter?
 
 pnpm = use_extension("@aspect_rules_js//npm:extensions.bzl", "pnpm")
 
@@ -39,6 +41,11 @@ npm.npm_translate_lock(
     npmrc = "//:.npmrc",
     pnpm_lock = "//:pnpm-lock.yaml",
     verify_node_modules_ignored = "//:.bazelignore",
+    bins = {
+        "playwright": [
+            "playwright=./cli.js",
+        ],
+    }
 )
 use_repo(npm, "npm")
 
