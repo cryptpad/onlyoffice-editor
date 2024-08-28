@@ -11,5 +11,5 @@ PATH="$PWD/../$node_path:$PATH"
 
 cd e2etests
 
-npm exec -- playwright --help
+npm exec -- playwright install
 exit 1

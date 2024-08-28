@@ -1,6 +1,7 @@
 load("@aspect_rules_jasmine//jasmine:defs.bzl", "jasmine_test")
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
 
 npm_link_all_packages()
 
@@ -26,9 +27,37 @@ sh_test(
     args = ["$(execpath @nodejs//:npm)"],
     data = [
         "package.json",
-        "@nodejs//:npx",
         "@nodejs//:npm",
         ":node_modules/@playwright",
         ":node_modules/playwright",
     ],
+)
+#genrule(
+#    name = "cache-ms-playwright",
+#    outs = ["cache-ms-playwright"],
+#    srcs = [
+#        "package.json",
+#        "@nodejs//:npm",
+#        ":node_modules/@playwright",
+#        ":node_modules/playwright",
+#    ],
+#    cmd = "$(location @nodejs//:npm) --help > $@",
+#)
+
+js_binary(
+    name = "playwright",
+    entry_point = "playwright-install.mjs",
+    include_npm = True,
+    data = [
+        ":node_modules/playwright",
+    ],
+)
+
+js_run_binary(
+    name = "cache-ms-playwright",
+    tool = ":playwright",
+    args = ["$(@D)"],
+    out_dirs = ["ms-playwright"],
+    env = {
+    },
 )
