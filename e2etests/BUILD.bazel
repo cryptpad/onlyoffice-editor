@@ -1,63 +1,41 @@
 load("@aspect_rules_jasmine//jasmine:defs.bzl", "jasmine_test")
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_to_bin")
 load("@npm//:defs.bzl", "npm_link_all_packages")
-load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_run_binary")
+load("@aspect_rules_js//js:defs.bzl", "js_binary", "js_test", "js_run_binary")
 
 npm_link_all_packages()
 
-jasmine_test(
-    name = "test",
-    args = ["*.spec.js"],
-    chdir = package_name(),
-    data = [
-        "test.spec.js",
-        "package.json",
-        ":node_modules/testcontainers",
-        ":node_modules/node-fetch",
-        ":node_modules/jsdom",
-        ":node_modules/canvas",
-        "//docker:image-tarball",
-    ],
-    node_modules = ":node_modules",
-)
-
-sh_test(
-    name = "test-test",
-    srcs = ["run-tests.sh"],
-    args = ["$(execpath @nodejs//:npm)"],
-    data = [
-        "package.json",
-        "@nodejs//:npm",
-        ":node_modules/@playwright",
-        ":node_modules/playwright",
-    ],
-)
-#genrule(
-#    name = "cache-ms-playwright",
-#    outs = ["cache-ms-playwright"],
-#    srcs = [
-#        "package.json",
-#        "@nodejs//:npm",
-#        ":node_modules/@playwright",
-#        ":node_modules/playwright",
-#    ],
-#    cmd = "$(location @nodejs//:npm) --help > $@",
-#)
-
 js_binary(
-    name = "playwright",
-    entry_point = "playwright-install.mjs",
+    name = "playwright-run",
+    entry_point = "playwright-run.mjs",
     include_npm = True,
     data = [
         ":node_modules/playwright",
     ],
 )
 
+js_test(
+    name = "playwright-test",
+    entry_point = "playwright-test.mjs",
+    args = ["test"],
+    include_npm = True,
+    env = {
+        #"BROWSERS_PATH": "@(location :cache-ms-playwright)",
+        "BROWSERS_PATH": "@(location playwright-test.mjs)",
+    },
+    expand_env = True,
+    data =
+        glob(["tests/**/*.spec.js"]) + [
+            "playwright.config.js",
+            ":node_modules/playwright",
+            ":node_modules/@playwright/test",
+            ":cache-ms-playwright",
+        ],
+)
+
 js_run_binary(
     name = "cache-ms-playwright",
-    tool = ":playwright",
-    args = ["$(@D)"],
+    tool = ":playwright-run",
+    args = ["$(@D)", "install"],
     out_dirs = ["ms-playwright"],
-    env = {
-    },
 )

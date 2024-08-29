@@ -42,7 +42,7 @@ gzip_compress(
     src = "//:oofork-tar",
 )
 
-sh_test(
+sh_test(  # TODO can I use this here? https://docs.aspect.build/rulesets/aspect_bazel_lib/docs/testing#assert_directory_contains
     name = "oofork-files-test",
     size = "small",
     srcs = ["test-oofork-files.sh"],
