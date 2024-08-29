@@ -29,7 +29,9 @@ js_test(
             "playwright.config.js",
             ":node_modules/playwright",
             ":node_modules/@playwright/test",
+            ":node_modules/testcontainers",
             ":cache-ms-playwright",
+            "//docker:image-tarball",
         ],
 )
 
