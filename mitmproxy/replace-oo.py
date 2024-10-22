@@ -23,6 +23,8 @@ def request(flow: http.HTTPFlow) -> None:
                 content,
                 {"Content-Type": "application/javascript"},
             )
+            flow.response.headers["cross-origin-resource-policy"] = 'cross-origin';
+
             logging.info('Replaced %s (%d bytes)', path, len(content))
         except:
             logging.error('Could not read file %s', path, exc_info=True)
