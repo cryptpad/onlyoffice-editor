@@ -13,32 +13,26 @@ importers:
   e2etests:
     devDependencies:
       '@playwright/test':
-        specifier: ^1.46.1
-        version: 1.46.1
-      canvas:
-        specifier: ^2.11.2
-        version: 2.11.2
+        specifier: ^1.49.0
+        version: 1.49.0
       jasmine:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 5.4.0
+        version: 5.4.0
       jasmine-core:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 5.4.0
+        version: 5.4.0
       jasmine-reporters:
         specifier: 2.5.2
         version: 2.5.2
-      jsdom:
-        specifier: ^24.1.1
-        version: 24.1.1(canvas@2.11.2)
       node-fetch:
         specifier: ^3.3.2
         version: 3.3.2
       playwright:
-        specifier: ^1.46.1
-        version: 1.46.1
+        specifier: ^1.49.0
+        version: 1.49.0
       testcontainers:
-        specifier: ^10.11.0
-        version: 10.11.0
+        specifier: ^10.15.0
+        version: 10.15.0
 
   onlyoffice-editor:
     devDependencies:
@@ -269,12 +263,12 @@ packages:
     dev: true
     optional: true
 
-  /@playwright/test@1.46.1:
-    resolution: {integrity: sha512-Fq6SwLujA/DOIvNC2EL/SojJnkKf/rAwJ//APpJJHRyMi1PdKrY3Az+4XNQ51N4RTbItbIByQ0jgd1tayq1aeA==}
+  /@playwright/test@1.49.0:
+    resolution: {integrity: sha512-DMulbwQURa8rNIQrf94+jPJQ4FmOVdpE5ZppRNvWVjvhC+6sOeo28r8MgIpQRYouXRtt/FCCXU7zn20jnHR4Qw==}
     engines: {node: '>=18'}
     hasBin: true
     dependencies:
-      playwright: 1.46.1
+      playwright: 1.49.0
     dev: true
 
   /@types/docker-modem@3.0.6:
@@ -1846,8 +1840,8 @@ packages:
       '@pkgjs/parseargs': 0.11.0
     dev: true
 
-  /jasmine-core@4.6.0:
-    resolution: {integrity: sha512-O236+gd0ZXS8YAjFx8xKaJ94/erqUliEkJTDedyE7iHvv4ZVqi+q+8acJxu05/WJDKm512EUNn809In37nWlAQ==}
+  /jasmine-core@5.4.0:
+    resolution: {integrity: sha512-T4fio3W++llLd7LGSGsioriDHgWyhoL6YTu4k37uwJLF7DzOzspz7mNxRoM3cQdLWtL/ebazQpIf/yZGJx/gzg==}
     dev: true
 
   /jasmine-reporters@2.5.2:
@@ -1857,12 +1851,12 @@ packages:
       mkdirp: 1.0.4
     dev: true
 
-  /jasmine@4.6.0:
-    resolution: {integrity: sha512-iq7HQ5M8ydNUspjd9vbFW9Lu+6lQ1QLDIqjl0WysEllF5EJZy8XaUyNlhCJVwOx2YFzqTtARWbS56F/f0PzRFw==}
+  /jasmine@5.4.0:
+    resolution: {integrity: sha512-E2u4ylX5tgGYvbynImU6EUBKKrSVB1L72FEPjGh4M55ov1VsxR26RA2JU91L9YSPFgcjo4mCLyKn/QXvEYGBkA==}
     hasBin: true
     dependencies:
-      glob: 7.2.3
-      jasmine-core: 4.6.0
+      glob: 10.4.5
+      jasmine-core: 5.4.0
     dev: true
 
   /jest-worker@27.5.1:
@@ -2395,18 +2389,18 @@ packages:
       find-up: 4.1.0
     dev: true
 
-  /playwright-core@1.46.1:
-    resolution: {integrity: sha512-h9LqIQaAv+CYvWzsZ+h3RsrqCStkBHlgo6/TJlFst3cOTlLghBQlJwPOZKQJTKNaD3QIB7aAVQ+gfWbN3NXB7A==}
+  /playwright-core@1.49.0:
+    resolution: {integrity: sha512-R+3KKTQF3npy5GTiKH/T+kdhoJfJojjHESR1YEWhYuEKRVfVaxH3+4+GvXE5xyCngCxhxnykk0Vlah9v8fs3jA==}
     engines: {node: '>=18'}
     hasBin: true
     dev: true
 
-  /playwright@1.46.1:
-    resolution: {integrity: sha512-oPcr1yqoXLCkgKtD5eNUPLiN40rYEM39odNpIb6VE6S7/15gJmA1NzVv6zJYusV0e7tzvkU/utBFNa/Kpxmwng==}
+  /playwright@1.49.0:
+    resolution: {integrity: sha512-eKpmys0UFDnfNb3vfsf8Vx2LEOtflgRebl0Im2eQQnYMA4Aqd+Zw8bEOB+7ZKvN76901mRnqdsiOGKxzVTbi7A==}
     engines: {node: '>=18'}
     hasBin: true
     dependencies:
-      playwright-core: 1.46.1
+      playwright-core: 1.49.0
     optionalDependencies:
       fsevents: 2.3.2
     dev: true
@@ -2952,8 +2946,8 @@ packages:
       source-map-support: 0.5.21
     dev: true
 
-  /testcontainers@10.11.0:
-    resolution: {integrity: sha512-TYgpR+MjZSuX7kSUxTa0f/CsN6eErbMFrAFumW08IvOnU8b+EoRzpzEu7mF0d29M1ItnHfHPUP44HYiE4yP3Zg==}
+  /testcontainers@10.15.0:
+    resolution: {integrity: sha512-fQbWIdXverYhOVS7WJk3egII1b4OtUl3C9mXIJk7Q95o5HeY/PRbAif5Gxi8tzck7Lmer0rMbq2jSbSbMyYm8Q==}
     dependencies:
       '@balena/dockerignore': 1.0.2
       '@types/dockerode': 3.3.31

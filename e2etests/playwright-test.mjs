@@ -1,8 +1,8 @@
-import { promisify } from 'node:util';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { GenericContainer } from "testcontainers";
 import { spawnSync } from 'node:child_process';
+import { readdirSync } from 'node:fs';
 
 async function main() {
     let httpPort;
@@ -10,6 +10,10 @@ async function main() {
     const browserCache = join(process.cwd(), 'e2etests', 'ms-playwright');
 
     process.chdir('e2etests');
+
+    // console.log('XXX ls .', readdirSync('.'));
+    // console.log('XXX ls ms-playwright', readdirSync('ms-playwright'));
+
 
     const dockerInfo = spawnSync("docker", ["load", "-i", "../docker/load/tarball.tar"], {
         stdio: "inherit",
@@ -36,7 +40,7 @@ async function main() {
             stdio: 'inherit',
             env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: browserCache }
         });
-        assert.equal(npmInfo.status, 0);
+        assert.equal(npmInfo.status, 0, 'Error while calling playwright ' + npmInfo.stdout + ' ' + npmInfo.stderr);
     } finally {
         await container.stop();
     }

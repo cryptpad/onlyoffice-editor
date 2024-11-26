@@ -26,7 +26,7 @@ js_test(
     expand_env = True,
     data =
         glob(["tests/**/*.spec.js"]) + [
-            "playwright.config.js",
+            "playwright.config.cjs",
             ":node_modules/playwright",
             ":node_modules/@playwright/test",
             ":node_modules/testcontainers",
