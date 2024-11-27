@@ -2,17 +2,16 @@ import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { GenericContainer } from "testcontainers";
 import { spawnSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
+import { readdirSync, cpSync } from 'node:fs';
 
 async function main() {
     let httpPort;
-    const playwrightCommand = process.argv[2];
     const browserCache = join(process.cwd(), 'e2etests', 'ms-playwright');
 
     process.chdir('e2etests');
 
-    // console.log('XXX ls .', readdirSync('.'));
-    // console.log('XXX ls ms-playwright', readdirSync('ms-playwright'));
+    console.log('XXX ls .', readdirSync('.'));
+    console.log('XXX ls ms-playwright', readdirSync('ms-playwright'));
 
 
     const dockerInfo = spawnSync("docker", ["load", "-i", "../docker/load/tarball.tar"], {
@@ -36,10 +35,13 @@ async function main() {
         ]);
         assert.equal(exitCode, 0)
 
-        const npmInfo = spawnSync('npm', ['--cache', '.', 'exec', '--', 'playwright', playwrightCommand], {
+        const npmInfo = spawnSync('npm', ['--cache', '.', 'exec', '--', 'playwright', 'test'], {
             stdio: 'inherit',
             env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: browserCache }
         });
+        console.log('XXX ls .', readdirSync('.'));
+        console.log('XXX ls test-results', readdirSync('test-results'));
+        cpSync('test-results', process.env['TEST_UNDECLARED_OUTPUTS_DIR'], {recursive: true});
         assert.equal(npmInfo.status, 0, 'Error while calling playwright ' + npmInfo.stdout + ' ' + npmInfo.stderr);
     } finally {
         await container.stop();

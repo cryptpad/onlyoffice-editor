@@ -17,7 +17,6 @@ js_binary(
 js_test(
     name = "playwright-test",
     entry_point = "playwright-test.mjs",
-    args = ["test"],
     include_npm = True,
     env = {
         #"BROWSERS_PATH": "@(location :cache-ms-playwright)",
