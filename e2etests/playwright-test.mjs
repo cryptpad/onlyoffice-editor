@@ -10,8 +10,8 @@ async function main() {
 
     process.chdir('e2etests');
 
-    console.log('XXX ls .', readdirSync('.'));
-    console.log('XXX ls ms-playwright', readdirSync('ms-playwright'));
+    // console.log('XXX ls .', readdirSync('.'));
+    // console.log('XXX ls ms-playwright', readdirSync('ms-playwright'));
 
 
     const dockerInfo = spawnSync("docker", ["load", "-i", "../docker/load/tarball.tar"], {
@@ -39,9 +39,9 @@ async function main() {
             stdio: 'inherit',
             env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: browserCache }
         });
-        console.log('XXX ls .', readdirSync('.'));
-        console.log('XXX ls test-results', readdirSync('test-results'));
+
         cpSync('test-results', process.env['TEST_UNDECLARED_OUTPUTS_DIR'], {recursive: true});
+
         assert.equal(npmInfo.status, 0, 'Error while calling playwright ' + npmInfo.stdout + ' ' + npmInfo.stderr);
     } finally {
         await container.stop();
