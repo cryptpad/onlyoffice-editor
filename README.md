@@ -29,13 +29,17 @@ bazel run -- @pnpm//:pnpm --dir $PWD install --lockfile-only
 
 ## sdkjs
 
+```sh
 git fetch --depth=1 https://github.com/ONLYOFFICE/sdkjs.git v7.3.3.60
 git diff FETCH_HEAD HEAD:sdkjs
+```
 
 ## web-apps
 
+```sh
 git fetch --depth=1 https://github.com/ONLYOFFICE/web-apps.git v7.3.3.60
 git diff FETCH_HEAD HEAD:web-apps
+```
 
 ## diff UI
 
