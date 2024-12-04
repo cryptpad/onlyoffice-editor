@@ -2,3 +2,4 @@ bazel-*
 node_modules
 .zed
 e2etests/test-results
+styles
