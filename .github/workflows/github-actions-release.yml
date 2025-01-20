@@ -1,5 +1,5 @@
-name: Checks
-run-name: Checking ${{ github.ref }}
+name: Release
+run-name: Releasing ${{ github.ref }}
 on: [push]
 jobs:
   Explore-GitHub-Actions:

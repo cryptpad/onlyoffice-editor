@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-TGZ_FILE=onlyoffice-editor.tar.gz
+TGZ_FILE=onlyoffice-editor.zip
 CONTENT_FILE=content
 
 assert_contains() {
@@ -12,7 +12,7 @@ assert_contains() {
     fi
 }
 
-tar tfz $TGZ_FILE > $CONTENT_FILE
+unzip -l $TGZ_FILE | sed -e 's/^[^a-z]*//' > $CONTENT_FILE
 
 assert_contains web-apps/apps/api/documents/api.js
 assert_contains web-apps/apps/api/documents/api-orig.js

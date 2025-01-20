@@ -1,38 +1,39 @@
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
-load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-load("@rules_pkg//pkg:mappings.bzl", "strip_prefix")
-load("@rules_tar//tar/unpack:defs.bzl", "tar_unpack")
-
-tar_unpack(
-    name = "oofork-tar-files",
-    src = "//:oofork-tar",
-)
-
-pkg_tar(
-    name = "oofork-docker-tar",
-    package_file_name = "onlyoffice-editor-docker.tar",
-    srcs = [
-        ":oofork-tar-files",
-    ],
-    strip_prefix = strip_prefix.from_pkg("oofork-tar-files"),
-    package_dir = "var/www/onlyoffice/documentserver/"
-)
-
-oci_image(
-    name = "image",
-    base = "@onlyoffice-documentserver",
-    tars = [ ":oofork-docker-tar" ],
-)
-
-oci_load(
-    name = "load",
-    image = ":image",
-    repo_tags = ["cp-documentserver:latest"],
-)
-
-filegroup(
-    name = "image-tarball",
-    srcs=[':load'],
-    output_group = 'tarball',
-    visibility = ["//visibility:public"],
-)
+# TODO remove this when we are sure we do not need to build docker images
+# load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
+# load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+# load("@rules_pkg//pkg:mappings.bzl", "strip_prefix")
+# load("@rules_tar//tar/unpack:defs.bzl", "tar_unpack")
+#
+# tar_unpack(
+#     name = "oofork-tar-files",
+#     src = "//:oofork-tar",
+# )
+#
+# pkg_tar(
+#     name = "oofork-docker-tar",
+#     package_file_name = "onlyoffice-editor-docker.tar",
+#     srcs = [
+#         ":oofork-tar-files",
+#     ],
+#     strip_prefix = strip_prefix.from_pkg("oofork-tar-files"),
+#     package_dir = "var/www/onlyoffice/documentserver/"
+# )
+#
+# oci_image(
+#     name = "image",
+#     base = "@onlyoffice-documentserver",
+#     tars = [ ":oofork-docker-tar" ],
+# )
+#
+# oci_load(
+#     name = "load",
+#     image = ":image",
+#     repo_tags = ["cp-documentserver:latest"],
+# )
+#
+# filegroup(
+#     name = "image-tarball",
+#     srcs=[':load'],
+#     output_group = 'tarball',
+#     visibility = ["//visibility:public"],
+# )
