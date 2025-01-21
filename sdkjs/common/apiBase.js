@@ -1960,7 +1960,7 @@
 					return this.worker.checkDictionary(lang);
 				};
 				this.SpellCheckApi.spellCheck = function (spellData) {
-                    return; // XXX this.worker.command undefined (spellcheck disbaled in CryptPad)
+                    //return; // XXX this.worker.command undefined (spellcheck disbaled in CryptPad)
 					if (this.log) {
 						console.log("spellCheck:");
 						console.log(spellData);
