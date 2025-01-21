@@ -1,0 +1,23 @@
+name: Checks
+run-name: Checking ${{ github.ref }}
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Mount bazel cache
+        uses: actions/cache@v3
+        with:
+          path: "/home/runner/.cache/bazel"
+          key: bazel
+
+      - name: bazel build
+        run: |
+          bazel build ...
+
+      - name: bazel test
+        run: |
+          bazel test ...
