@@ -152,7 +152,7 @@ function CSpellchecker(settings)
 
 	this.restart = function()
 	{
-        return; // XXX CRYPTPAD HACK
+        //return; // XXX CRYPTPAD HACK
 		this.stop();
 
 		var worker_src = this.useWasm ? "spell.js" : "spell_ie.js";
