@@ -4,33 +4,6 @@ import { mkEvent, createChannel } from "./worker-channel";
 
 let DocEditorOrig: any;
 
-async function loadAndPatchOOOrig() {
-    let myScriptSrc: string;
-    let myScriptElement: HTMLScriptElement;
-
-    // TODO document.currentScript does not reaturn the correct tag?
-    // Use this as a workaround:
-    for (const e of document.getElementsByTagName("script")) {
-        if (e.src.endsWith("web-apps/apps/api/documents/api.js")) {
-            myScriptSrc = e.src;
-            myScriptElement = e;
-            break;
-        }
-    }
-    const script = document.createElement("script");
-    script.setAttribute("type", "text/javascript");
-    script.setAttribute("src", new URL("api-orig.js", myScriptSrc).href);
-    const scriptLoadedPromise = waitForEvent(script, "load");
-    myScriptElement.after(script);
-    await scriptLoadedPromise;
-
-    const w = window as any;
-    DocEditorOrig = w.DocsAPI.DocEditor;
-    w.DocsAPI.DocEditor = DocEditor;
-}
-
-const scriptLoadedPromise = loadAndPatchOOOrig();
-
 export class DocEditor implements DocEditorInterface {
     public waitForAppReady: Promise<void>;
     private origEditor?: DocEditorInterface;
@@ -216,3 +189,36 @@ interface Participant {
     isCloseCoAuthoring: boolean;
     view: boolean;
 }
+
+async function loadAndPatchOOOrig() {
+    console.log('XXX loadAndPatchOOOrig');
+    let myScriptSrc: string;
+    let myScriptElement: HTMLScriptElement;
+
+    // TODO document.currentScript does not return the correct tag?
+    // Use this as a workaround:
+    for (const e of document.getElementsByTagName("script")) {
+        if (e.src.endsWith("web-apps/apps/api/documents/api.js")) {
+            myScriptSrc = e.src;
+            myScriptElement = e;
+            break;
+        }
+    }
+    const script = document.createElement("script");
+    script.setAttribute("type", "text/javascript");
+    script.setAttribute("src", new URL("api-orig.js", myScriptSrc).href);
+    const scriptLoadedPromise = waitForEvent(script, "load");
+    myScriptElement.after(script);
+
+    // Setup window.DocsAPI.DocEditor
+    const w = window as any;
+    w.DocsAPI = w.DocsAPI || {};
+    w.DocsAPI.DocEditor = DocEditor;
+
+    await scriptLoadedPromise;
+    // Setup window.DocsAPI.DocEditor again after the original editor replaced it
+    DocEditorOrig = w.DocsAPI.DocEditor;
+    w.DocsAPI.DocEditor = DocEditor;
+}
+
+const scriptLoadedPromise = loadAndPatchOOOrig();

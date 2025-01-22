@@ -28,7 +28,7 @@ jobs:
 
       - name: bazel build :oofork
         run: |
-            bazel build :oofork
+            bazel build --compilation_mode opt :oofork
 
       - name: Release
         uses: softprops/action-gh-release@v2
