@@ -39,6 +39,15 @@ pkg_zip(
     visibility = ["//visibility:public"],
 )
 
+genrule(
+    name = "oofork-sha512sum",
+    srcs = [
+        "//:oofork",
+    ],
+    cmd = "sha512sum $(location :oofork) > $@",
+    outs = ["onlyoffice-editor.zip.sha512"],
+)
+
 sh_test(  # TODO can I use this here? https://docs.aspect.build/rulesets/aspect_bazel_lib/docs/testing#assert_directory_contains
     name = "oofork-files-test",
     size = "small",

@@ -26,11 +26,13 @@ jobs:
         run: |
             bazel test ...
 
-      - name: bazel build :oofork
+      - name: bazel build
         run: |
-            bazel build --compilation_mode opt :oofork
+            bazel build --compilation_mode opt :oofork :oofork-sha512sum
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./bazel-bin/onlyoffice-editor.zip
+          files: |
+            ./bazel-bin/onlyoffice-editor.zip
+            ./bazel-bin/onlyoffice-editor.zip.sha512
