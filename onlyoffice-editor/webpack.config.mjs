@@ -18,10 +18,6 @@ export default {
         extensions: [".ts", ".js"],
     },
     output: {
-        // library: {
-        //     name: "DocsAPIXXX", // TODO is there a way, to not expose anything at all?
-        //     type: "window",
-        // },
         filename: "api.js",
         path: path.resolve(__dirname, "dist"),
     },

@@ -31,3 +31,17 @@ webpack_bundle(
     output_dir = True,
     visibility = ["//visibility:public"],
 )
+
+js_test(
+    name = "eslint",
+    entry_point = "run-eslint.mjs",
+    include_npm = True,
+    chdir = package_name(),
+    data =
+        glob(["**/*.ts", "**/*.mjs", "**/*.json"]) + [
+            ":node_modules/eslint",
+            ":node_modules/@eslint/js",
+            ":node_modules/typescript-eslint",
+            ":node_modules/prettier",
+        ],
+)

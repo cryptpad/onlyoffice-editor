@@ -37,10 +37,6 @@ export class DocEditor implements DocEditorInterface {
 
         this.origEditor = new DocEditorOrig(this.placeholderId, newConfig);
 
-        // TODO how do I do this?
-        // w.DocsAPI.DocEditorOrig = w.DocsAPI.DocEditor;
-        // w.DocsAPI = this.createProxy(w.DocsAPI);
-
         const w = window as any;
         w.APP = w.APP ?? {};
         w.APP.setToOOHandler = (h: (e: ToOO) => void) => {
@@ -99,13 +95,9 @@ export class DocEditor implements DocEditorInterface {
         const w = window as any;
         w.APP.getImageURL = server.getImageURL
             ? (name: string, callback: (url: string) => void) => {
-                  console.log("XXX getImageUrl", name);
                   server
                       .getImageURL(name)
-                      .then((url) => {
-                          console.log("XXX getImageUrl result", url);
-                          callback(url);
-                      })
+                      .then(callback)
                       .catch((e) => console.error(e));
               }
             : (name: string, callback: (url: string) => void) => callback("");
@@ -158,13 +150,112 @@ export class DocEditor implements DocEditorInterface {
             this.server.onAuth();
         }
     }
+
+    serviceCommand(command: string, data: any) {
+        this.origEditor.serviceCommand(command, data);
+    }
+
+    showMessage(...args: any[]) {
+        return this.origEditor.showMessage(...args);
+    }
+    processSaveResult(...args: any[]) {
+        return this.origEditor.processSaveResult(...args);
+    }
+    processRightsChange(...args: any[]) {
+        return this.origEditor.processRightsChange(...args);
+    }
+    denyEditingRights(...args: any[]) {
+        return this.origEditor.denyEditingRights(...args);
+    }
+    refreshHistory(...args: any[]) {
+        return this.origEditor.refreshHistory(...args);
+    }
+    setHistoryData(...args: any[]) {
+        return this.origEditor.setHistoryData(...args);
+    }
+    setEmailAddresses(...args: any[]) {
+        return this.origEditor.setEmailAddresses(...args);
+    }
+    setActionLink(...args: any[]) {
+        return this.origEditor.setActionLink(...args);
+    }
+    processMailMerge(...args: any[]) {
+        return this.origEditor.processMailMerge(...args);
+    }
+    downloadAs(...args: any[]) {
+        return this.origEditor.downloadAs(...args);
+    }
+    attachMouseEvents(...args: any[]) {
+        return this.origEditor.attachMouseEvents(...args);
+    }
+    detachMouseEvents(...args: any[]) {
+        return this.origEditor.detachMouseEvents(...args);
+    }
+    setUsers(...args: any[]) {
+        return this.origEditor.setUsers(...args);
+    }
+    showSharingSettings(...args: any[]) {
+        return this.origEditor.showSharingSettings(...args);
+    }
+    setSharingSettings(...args: any[]) {
+        return this.origEditor.setSharingSettings(...args);
+    }
+    insertImage(...args: any[]) {
+        return this.origEditor.insertImage(...args);
+    }
+    setMailMergeRecipients(...args: any[]) {
+        return this.origEditor.setMailMergeRecipients(...args);
+    }
+    setRevisedFile(...args: any[]) {
+        return this.origEditor.setRevisedFile(...args);
+    }
+    setFavorite(...args: any[]) {
+        return this.origEditor.setFavorite(...args);
+    }
+    requestClose(...args: any[]) {
+        return this.origEditor.requestClose(...args);
+    }
+    grabFocus(...args: any[]) {
+        return this.origEditor.grabFocus(...args);
+    }
+    blurFocus(...args: any[]) {
+        return this.origEditor.blurFocus(...args);
+    }
+    setReferenceData(...args: any[]) {
+        return this.origEditor.setReferenceData(...args);
+    }
+
 }
 
 type FromOO = any;
 type ToOO = any;
 
 interface DocEditorInterface {
+    showMessage(...args: any[]): any;
+    processSaveResult(...args: any[]): any;
+    processRightsChange(...args: any[]): any;
+    denyEditingRights(...args: any[]): any;
+    refreshHistory(...args: any[]): any;
+    setHistoryData(...args: any[]): any;
+    setEmailAddresses(...args: any[]): any;
+    setActionLink(...args: any[]): any;
+    processMailMerge(...args: any[]): any;
+    downloadAs(...args: any[]): any;
+    serviceCommand(command: string, data: any): void;
+    attachMouseEvents(...args: any[]): any;
+    detachMouseEvents(...args: any[]): any;
     destroyEditor(): void;
+    setUsers(...args: any[]): any;
+    showSharingSettings(...args: any[]): any;
+    setSharingSettings(...args: any[]): any;
+    insertImage(...args: any[]): any;
+    setMailMergeRecipients(...args: any[]): any;
+    setRevisedFile(...args: any[]): any;
+    setFavorite(...args: any[]): any;
+    requestClose(...args: any[]): any;
+    grabFocus(...args: any[]): any;
+    blurFocus(...args: any[]): any;
+    setReferenceData(...args: any[]): any;
 }
 
 interface MockServer {
@@ -191,29 +282,41 @@ interface Participant {
 }
 
 async function loadAndPatchOOOrig() {
-    console.log('XXX loadAndPatchOOOrig');
+    console.log('XXX loadAndPatchOOOrig', window.location);
     let myScriptSrc: string;
     let myScriptElement: HTMLScriptElement;
 
     // TODO document.currentScript does not return the correct tag?
     // Use this as a workaround:
     for (const e of document.getElementsByTagName("script")) {
-        if (e.src.endsWith("web-apps/apps/api/documents/api.js")) {
-            myScriptSrc = e.src;
-            myScriptElement = e;
-            break;
+        try {
+            const pathname = new URL(e.src).pathname;
+            if (pathname.endsWith("web-apps/apps/api/documents/api.js")) {
+                myScriptSrc = e.src;
+                myScriptElement = e;
+                break;
+            }
+        } catch (error) {
+            if (error instanceof TypeError) {
+                // e.src is not a valid URL -> ignore
+            } else {
+                throw error;
+            }
         }
     }
+    console.log('XXX loadAndPatchOOOrig myScriptSrc', myScriptSrc);
     const script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
     script.setAttribute("src", new URL("api-orig.js", myScriptSrc).href);
     const scriptLoadedPromise = waitForEvent(script, "load");
+
     myScriptElement.after(script);
 
     // Setup window.DocsAPI.DocEditor
     const w = window as any;
-    w.DocsAPI = w.DocsAPI || {};
+    w.DocsAPI = w.DocsAPI ?? {};
     w.DocsAPI.DocEditor = DocEditor;
+    console.log('XXX loadAndPatchOOOrig window.DocsAPI was set', window.location);
 
     await scriptLoadedPromise;
     // Setup window.DocsAPI.DocEditor again after the original editor replaced it
