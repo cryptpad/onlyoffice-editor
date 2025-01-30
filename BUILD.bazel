@@ -9,6 +9,12 @@ load("@rules_gzip//gzip/compress:defs.bzl", "gzip_compress")
 
 npm_link_all_packages()
 
+filegroup(
+    name = "editorconfig",
+    srcs = [".editorconfig"],
+    visibility = ["//visibility:public"],
+)
+
 pkg_files(
     name = "editor-in-fork",
     srcs = [
