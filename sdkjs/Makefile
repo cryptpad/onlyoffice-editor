@@ -59,5 +59,4 @@ clean:
 	rm -f $(WEBAPPS_FILES) $(SDKJS_FILES)
 
 %/node_modules: %/package.json
-	# CryptPad: Disable cache, so this can build inside bazel
-	cd $(dir $@) && npm install --cache .
+	cd $(dir $@) && npm install .

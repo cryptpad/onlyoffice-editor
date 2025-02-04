@@ -1,9 +1,0 @@
-# files or directories Bazel should not read
-# NB: this does NOT follow .gitignore semantics, see
-# https://github.com/bazelbuild/bazel/issues/7093
-node_modules
-onlyoffice-editor/node_modules
-sdkjs/build/node_modules
-web-apps/build/node_modules
-web-apps/build/sprites/node_modules
-e2etests/node_modules
