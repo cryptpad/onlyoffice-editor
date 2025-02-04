@@ -16,23 +16,17 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Mount bazel cache
-        uses: actions/cache@v3
-        with:
-          path: "/home/runner/.cache/bazel"
-          key: bazel
-
-      - name: bazel test
+      - name: make test
         run: |
-            bazel test ...
+          make test
 
-      - name: bazel build
+      - name: make build
         run: |
-            bazel build --compilation_mode opt :oofork :oofork-sha512sum
+          make build
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ./bazel-bin/onlyoffice-editor.zip
-            ./bazel-bin/onlyoffice-editor.zip.sha512
+            ./output/onlyoffice-editor.zip
+            ./output/onlyoffice-editor.zip.sha512

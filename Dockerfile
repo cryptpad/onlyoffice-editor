@@ -1,6 +1,14 @@
+# Use this (large) base image in every build below, to reduce the overall docker cache size
+FROM ubuntu:24.04 AS base
+RUN apt-get update && apt-get install -y openjdk-21-jdk npm wget zip
+RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
+ENV PNPM_HOME="/root/.local/share/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN pnpm env use --global lts
+RUN pnpm install -g grunt
+
 ###################### onlyoffice-editor-build ################################
-FROM node AS onlyoffice-editor-build
-RUN corepack enable pnpm
+FROM base AS onlyoffice-editor-build
 WORKDIR /app
 COPY onlyoffice-editor/package.json /app
 COPY onlyoffice-editor/pnpm-lock.yaml /app
@@ -18,9 +26,8 @@ RUN pnpm lint
 
 
 ###################### sdkjs $ web-apps ################################
-FROM ubuntu AS sdkjs-build
+FROM base AS sdkjs-build
 RUN apt-get update && apt-get install -y openjdk-21-jdk npm
-RUN npm install -g grunt
 COPY sdkjs /app/sdkjs
 COPY web-apps /app/web-apps
 WORKDIR /app/sdkjs
@@ -28,8 +35,7 @@ RUN make
 RUN mv deploy/web-apps/apps/api/documents/api.js deploy/web-apps/apps/api/documents/api-orig.js
 
 
-FROM ubuntu AS zip-build
-RUN apt-get update && apt-get install -y zip
+FROM base AS zip-build
 COPY --from=sdkjs-build /app/sdkjs/deploy/web-apps /app/web-apps
 COPY --from=sdkjs-build /app/sdkjs/deploy/sdkjs /app/sdkjs
 COPY vendor /app/web-apps/vendor
