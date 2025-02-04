@@ -15,33 +15,43 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-pkg_files(
-    name = "editor-in-fork",
+#pkg_zip(
+#    name = "oofork",
+#    package_file_name = "onlyoffice-editor.zip",
+#    srcs = [
+#        "//:editor-in-fork",
+#        "//:client-in-fork",
+#        "//fonts:fonts",
+#        "//vendor:files",
+#        "//dictionaries:files",
+#    ],
+#    visibility = ["//visibility:public"],
+#)
+
+genrule(
+    name = "oofork",
     srcs = [
         "//onlyoffice-editor:api",
-    ],
-    prefix = "web-apps/apps/api/documents/",
-    strip_prefix = strip_prefix.from_pkg("api"),
-)
-
-pkg_files(
-    name = "client-in-fork",
-    srcs = [
         "//sdkjs:make",
-    ],
-    strip_prefix = strip_prefix.from_pkg("make"),
-)
-
-pkg_zip(
-    name = "oofork",
-    package_file_name = "onlyoffice-editor.zip",
-    srcs = [
-        "//:editor-in-fork",
-        "//:client-in-fork",
         "//fonts:fonts",
         "//vendor:files",
         "//dictionaries:files",
     ],
+    #cmd = "zip -r $@ $(location //onlyoffice-editor:api)",
+    cmd = """
+        mkdir -p "$(@D)/tmp/web-apps/apps/api/documents/"
+        #cp -Lr $(location //onlyoffice-editor:api)/api.js "$(@D)/tmp/web-apps/apps/api/documents/"
+        #cp -Lr $(location //sdkjs:make)/* "$(@D)/tmp/"
+        #mkdir -p "$(@D)/tmp/fonts"
+        #cp -Lr $(locations //fonts:fonts) "$(@D)/tmp/fonts"
+        #cp -Lr $(locations //vendor:files) "$(@D)/tmp"
+        mkdir -p "$(@D)/tmp/dictionaries"
+        cp -Lr --parents $(locations //dictionaries:files)/dictionaries "$(@D)/tmp/dictionaries"
+        cd "$(@D)/tmp"
+        zip -r ../onlyoffice-editor.zip .
+        rm -rf "$(@D)/tmp"
+    """,
+    outs = ["onlyoffice-editor.zip"],
     visibility = ["//visibility:public"],
 )
 
