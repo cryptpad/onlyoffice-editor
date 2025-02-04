@@ -1,4 +1,0 @@
-# See https://pnpm.io/pnpm-workspace_yaml
-packages:
- - onlyoffice-editor
- - e2etests
