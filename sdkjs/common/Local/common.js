@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -86,28 +86,38 @@
 			return Asc.c_oAscLocalRestrictionType.None;
 		return this.localRestrintions;
 	};
+
+	AscCommon.baseEditorsApi.prototype["startExternalConvertation"] = function(type)
+	{
+		let params = "";
+		try {
+			params = JSON.stringify(this["getAdditionalSaveParams"]());
+		}
+		catch (e) {
+			params = "";
+		}
+		this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+		window["AscDesktopEditor"]["startExternalConvertation"](type, params);
+	};
+	AscCommon.baseEditorsApi.prototype["endExternalConvertation"] = function()
+	{
+		this.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+	};
 })(window);
 
 /////////////////////////////////////////////////////////
 //////////////       FONTS       ////////////////////////
 /////////////////////////////////////////////////////////
-AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback, isEmbed)
+AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, callback)
 {
-	this.callback = _callback;
-    if (-1 != this.Status)
+	this.callback = callback;
+    if (-1 !== this.Status)
         return true;
 		
-	var oThis = this;
 	this.Status = 2;
-	if (window["AscDesktopEditor"] !== undefined && !this.CanUseOriginalFormat)
-	{
-		this.callback = null;		
-		window["AscDesktopEditor"]["LoadFontBase64"](this.Id);
-		this._callback_font_load();
-		return;
-	}
 
 	var xhr = new XMLHttpRequest();
+	xhr.fontFile = this;
 	xhr.open('GET', "ascdesktop://fonts/" + this.Id, true);
 	xhr.responseType = 'arraybuffer';
 
@@ -118,30 +128,32 @@ AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback,
 
 	xhr.onload = function()
 	{
-		if (this.status != 200)
+		if (this.status !== 200)
 		{
-			oThis.Status = 1;
+			xhr.fontFile.Status = 1;
 			return;
 		}
 
-		oThis.Status = 0;
+		this.fontFile.Status = 0;
 
-		var fontStreams = AscFonts.g_fonts_streams;
-		var __font_data_idx = fontStreams.length;
+		let fontStreams = AscFonts.g_fonts_streams;
+		let streamIndex = fontStreams.length;
 		if (this.response)
 		{
-			var _uintData = new Uint8Array(this.response);
-			fontStreams[__font_data_idx] = new AscFonts.FontStream(_uintData, _uintData.length);
+			let data = new Uint8Array(this.response);
+			fontStreams[streamIndex] = new AscFonts.FontStream(data, data.length);
 		}
 		else
 		{
-			fontStreams[__font_data_idx] = AscFonts.CreateFontData3(this.responseText);
+			fontStreams[streamIndex] = AscFonts.CreateFontData3(this.responseText);
 		}
 
-		oThis.SetStreamIndex(__font_data_idx);
+		this.fontFile.SetStreamIndex(streamIndex);
 
-		if (null != oThis.callback)
-			oThis.callback();
+		if (null != this.fontFile.callback)
+			this.fontFile.callback();
+		if (this.fontFile["externalCallback"])
+			this.fontFile["externalCallback"]();
 	};
 
 	xhr.send(null);
@@ -200,63 +212,83 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 /////////////////////////////////////////////////////////
 //////////////       IMAGES      ////////////////////////
 /////////////////////////////////////////////////////////
-var prot = AscCommon.DocumentUrls.prototype;
-prot.mediaPrefix = 'media/';
-prot.init = function(urls) {
-};
-prot.getUrls = function() {
-	return this.urls;
-};
-prot.addUrls = function(urls){
-};
-prot.addImageUrl = function(strPath, url){
-};
-prot.getImageUrl = function(strPath){
-	if (0 === strPath.indexOf('theme'))
-		return null;
 
-	if (window.editor && window.editor.ThemeLoader && window.editor.ThemeLoader.ThemesUrl != "" && strPath.indexOf(window.editor.ThemeLoader.ThemesUrl) == 0)
-		return null;
+let isOverrideDocumentUrls = window['Asc']['VisioEditorApi'] ? false : true;
 
-	return this.documentUrl + "/media/" + strPath;
-};
-prot.getImageLocal = function(url){
-	var _first = this.documentUrl + "/media/";
-	if (0 == url.indexOf(_first))
-		return url.substring(_first.length);
-
-	if (window.editor && window.editor.ThemeLoader && 0 == url.indexOf(editor.ThemeLoader.ThemesUrlAbs)) {
-		return url.substring(editor.ThemeLoader.ThemesUrlAbs.length);
-	}
-
-	return null;
-};
-prot.imagePath2Local = function(imageLocal){
-	return this.getImageLocal(imageLocal);
-};
-prot.getUrl = function(strPath){
-	if (0 === strPath.indexOf('theme'))
-		return null;
-
-	if (window.editor && window.editor.ThemeLoader && window.editor.ThemeLoader.ThemesUrl != "" && strPath.indexOf(window.editor.ThemeLoader.ThemesUrl) == 0)
-		return null;
-
-	if (strPath == "Editor.xlsx")
+if (isOverrideDocumentUrls)
+{
+	var prot = AscCommon.DocumentUrls.prototype;
+	prot.mediaPrefix = 'media/';
+	prot.init = function(urls)
 	{
-		var test = this.documentUrl + "/" + strPath;
-		if (window["AscDesktopEditor"]["IsLocalFileExist"](test))
-			return test;
-		return undefined;
-    }
+	};
+	prot.getUrls = function()
+	{
+		return this.urls;
+	};
+	prot.addUrls = function(urls)
+	{
+	};
+	prot.addImageUrl = function(strPath, url)
+	{
+	};
+	prot.getImageUrl = function(strPath)
+	{
+		if (0 === strPath.indexOf('theme'))
+			return null;
 
-	return this.documentUrl + "/media/" + strPath;
-};
-prot.getLocal = function(url){
-	return this.getImageLocal(url);
-};
-prot.isThemeUrl = function(sUrl){
-	return sUrl && (0 === sUrl.indexOf('theme'));
-};
+		if (window.editor && window.editor.ThemeLoader && window.editor.ThemeLoader.ThemesUrl != "" && strPath.indexOf(window.editor.ThemeLoader.ThemesUrl) == 0)
+			return null;
+
+		return this.documentUrl + "/media/" + strPath;
+	};
+	prot.getImageLocal = function(_url)
+	{
+		let url = _url.replaceAll("%20", " ");
+		var _first = this.documentUrl + "/media/";
+		if (0 === url.indexOf(_first))
+			return url.substring(_first.length);
+
+		if (window.editor && window.editor.ThemeLoader && 0 === url.indexOf(editor.ThemeLoader.ThemesUrlAbs))
+		{
+			return url.substring(editor.ThemeLoader.ThemesUrlAbs.length);
+		}
+
+		return null;
+	};
+	prot.imagePath2Local = function(imageLocal)
+	{
+		if (imageLocal && this.mediaPrefix === imageLocal.substring(0, this.mediaPrefix.length))
+			imageLocal = imageLocal.substring(this.mediaPrefix.length);
+		return imageLocal;
+	};
+	prot.getUrl = function(strPath)
+	{
+		if (0 === strPath.indexOf('theme'))
+			return null;
+
+		if (window.editor && window.editor.ThemeLoader && window.editor.ThemeLoader.ThemesUrl != "" && strPath.indexOf(window.editor.ThemeLoader.ThemesUrl) == 0)
+			return null;
+
+		if (strPath == "Editor.xlsx")
+		{
+			var test = this.documentUrl + "/" + strPath;
+			if (window["AscDesktopEditor"]["IsLocalFileExist"](test))
+				return test;
+			return undefined;
+		}
+
+		return this.documentUrl + "/media/" + strPath;
+	};
+	prot.getLocal = function(url)
+	{
+		return this.getImageLocal(url);
+	};
+	prot.isThemeUrl = function(sUrl)
+	{
+		return sUrl && (0 === sUrl.indexOf('theme'));
+	};
+}
 
 AscCommon.sendImgUrls = function(api, images, callback)
 {
@@ -264,7 +296,7 @@ AscCommon.sendImgUrls = function(api, images, callback)
 	for (var i = 0; i < images.length; i++)
 	{
 		var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](images[i]);
-		_data[i] = { url: images[i], path : AscCommon.g_oDocumentUrls.getImageUrl(_url) };
+		_data[i] = { url: AscCommon.g_oDocumentUrls.getUrl(_url), path : _url };
 	}
 	callback(_data);
 };
@@ -380,6 +412,8 @@ window["UpdateInstallPlugins"] = function()
 		var _len = _pluginsCur["pluginsData"].length;
 		for (var i = 0; i < _len; i++)
 		{
+			// TODO: здесь нужно прокинуть флаг isSystemInstall, указывающий на то, что этот плагин нельзя удалить, он не в папке пользователя
+			//_pluginsCur["pluginsData"][i]["isSystemInstall"] = (k == 0) ? true : false;
 			_pluginsCur["pluginsData"][i]["baseUrl"] = _pluginsCur["url"] + _pluginsCur["pluginsData"][i]["guid"].substring(4) + "/";
 			_plugins["pluginsData"].push(_pluginsCur["pluginsData"][i]);
 		}
@@ -426,7 +460,7 @@ window["UpdateInstallPlugins"] = function()
 	}
 
 	_editor.sendEvent("asc_onPluginsReset");
-	_editor.sendEvent("asc_onPluginsInit", _plugins);
+	window.g_asc_plugins.sendPluginsInit(_plugins);
 };
 
 AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
@@ -451,19 +485,28 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
 			let countInserted = 0;
 			if (0 !== _files.length)
 			{
-				let countInserted = 0;
+				let imageFiles = [];
 				for (var i = 0; i < _files.length; i++)
 				{
 					if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
 					{
 						if (_files[i] === "")
 							continue;
-						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
-						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
-						++countInserted;
+
+						let resImage = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
+
+						if (resImage)
+						{
+							imageFiles.push(AscCommon.g_oDocumentUrls.getImageUrl(resImage));
+							++countInserted;
+						}
 						break;
 					}
 				}
+
+				countInserted = imageFiles.length;
+				if (0 !== countInserted)
+					editor._addImageUrl(imageFiles);
 			}
 
 			if (0 === countInserted)
@@ -668,7 +711,7 @@ function getBinaryArray(_data, _len)
 }
 
 // encryption ----------------------------------
-var _proto = Asc['asc_docs_api'] ? Asc['asc_docs_api'] : Asc['spreadsheet_api'];
+var _proto = Asc['asc_docs_api'] || Asc['spreadsheet_api'] || Asc['VisioEditorApi'];
 _proto.prototype["pluginMethod_OnEncryption"] = function(obj)
 {
 	var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;

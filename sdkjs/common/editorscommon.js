@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -40,11 +40,11 @@
 {
 // Import
 	var AscBrowser = AscCommon.AscBrowser;
-	var locktype_None = AscCommon.locktype_None;
-	var locktype_Mine = AscCommon.locktype_Mine;
-	var locktype_Other = AscCommon.locktype_Other;
-	var locktype_Other2 = AscCommon.locktype_Other2;
-	var locktype_Other3 = AscCommon.locktype_Other3;
+	var locktype_None = AscCommon.c_oAscLockTypes.kLockTypeNone;
+	var locktype_Mine = AscCommon.c_oAscLockTypes.kLockTypeMine;
+	var locktype_Other = AscCommon.c_oAscLockTypes.kLockTypeOther;
+	var locktype_Other2 = AscCommon.c_oAscLockTypes.kLockTypeOther2;
+	var locktype_Other3 = AscCommon.c_oAscLockTypes.kLockTypeOther3;
 	var contentchanges_Add = AscCommon.contentchanges_Add;
 	var CColor = AscCommon.CColor;
 	var g_oCellAddressUtils = AscCommon.g_oCellAddressUtils;
@@ -53,6 +53,12 @@
 	var availableIdeographLanguages = window['Asc'].availableIdeographLanguages;
 	var availableBidiLanguages = window['Asc'].availableBidiLanguages;
 	const fontslot_ASCII    = 0x01;
+
+	let scriptDirectory = "";
+	if (document.currentScript) {
+		scriptDirectory = document.currentScript.src;
+		scriptDirectory = scriptDirectory.substring(0,scriptDirectory.replace(/[?#].*/,"").lastIndexOf("/") + 1);
+	}
 
 	Number.isInteger = Number.isInteger || function(value) {
 		return typeof value === 'number' && Number.isFinite(value) && !(value % 1);
@@ -188,7 +194,6 @@
 	var oZipImages = null;
 	var sDownloadServiceLocalUrl = "../../../../downloadas";
 	var sUploadServiceLocalUrl = "../../../../upload";
-	var sUploadServiceLocalUrlOld = "../../../../uploadold";
 	var sSaveFileLocalUrl = "../../../../savefile";
 	var sDownloadFileLocalUrl = "../../../../downloadfile";
 	var nMaxRequestLength = 5242880;//5mb <requestLimits maxAllowedContentLength="30000000" /> default 30mb
@@ -198,6 +203,10 @@
 			return;
 		}
 		var result = [];
+		if (number === 0)
+		{
+			return [0];
+		}
 		while (number > 0) {
 			var remainder = number % base;
 			if (remainder === 0) {
@@ -393,45 +402,223 @@
 	};
 	var g_oDocumentUrls = new DocumentUrls();
 
+	function CHTMLCursorItemBase(_name, _hotspot, _default)
+	{
+		this.name = _name;
+		this.hotspot = _hotspot;
+		this.default = _default;
+	}
+	CHTMLCursorItemBase.prototype.baseUrl = "../../../../sdkjs/common/Images/cursors/";
+	CHTMLCursorItemBase.prototype.getValue = function() { return this.default; };
+
+	/**
+	 * @extends {CHTMLCursorItemBase}
+	 */
+	function CHTMLCursorCur()
+	{
+		CHTMLCursorItemBase.apply(this, arguments);
+	}
+	CHTMLCursorCur.prototype = Object.create(CHTMLCursorItemBase.prototype);
+	CHTMLCursorCur.prototype.getValue = function(globalCursors)
+	{
+		if (AscCommon.AscBrowser.isCustomScalingAbove2())
+			return "url(" + this.baseUrl + this.name + "_2x.cur), " + this.default;
+		return "url(" + this.baseUrl + this.name + ".cur), " + this.default;
+	}
+
+	/**
+	 * @extends {CHTMLCursorItemBase}
+	 */
+	function CHTMLCursorSvgExternal()
+	{
+		CHTMLCursorItemBase.apply(this, arguments);
+	}
+	CHTMLCursorSvgExternal.prototype = Object.create(CHTMLCursorItemBase.prototype);
+	CHTMLCursorSvgExternal.prototype.getValue = function(globalCursors)
+	{
+		return "url(" + this.baseUrl + this.name + ".svg) " + this.hotspot + ", " + this.default;
+	}
+
+	/**
+	 * @extends {CHTMLCursorItemBase}
+	 */
+	function CHTMLCursorPng()
+	{
+		CHTMLCursorItemBase.apply(this, arguments);
+	}
+	CHTMLCursorPng.prototype = Object.create(CHTMLCursorItemBase.prototype);
+	CHTMLCursorPng.prototype.getValue = function(globalCursors)
+	{
+		return "-webkit-image-set(url(" + this.baseUrl + this.name + ".png) 1x," + " url(" + this.baseUrl + this.name + "_2x.png) 2x) " + this.hotspot + ", " + this.default;
+	}
+
+	/**
+	 * @extends {CHTMLCursorItemBase}
+	 */
+	function CHTMLCursorModern()
+	{
+		CHTMLCursorItemBase.apply(this, arguments);
+	}
+	CHTMLCursorModern.prototype = Object.create(CHTMLCursorItemBase.prototype);
+	CHTMLCursorModern.prototype.getValue = function(globalCursors)
+	{
+		if (1.2 > AscCommon.AscBrowser.retinaPixelRatio)
+			return "url(" + this.baseUrl + this.name + ".png) " + this.hotspot + ", " + this.default;
+
+		if (globalCursors.mapSvg && globalCursors.mapSvg[this.name])
+		{
+			return "url(\"data:image/svg+xml;utf8," + globalCursors.mapSvg[this.name] + "\") " + this.hotspot + ", " + this.default;
+		}
+
+		if (!AscCommon.AscBrowser.isChrome && !AscCommon.AscBrowser.isSafari)
+		{
+			return "url(" + this.baseUrl + this.name + ".svg) " + this.hotspot + ", " + "url(" + this.baseUrl + this.name + ".png) " + this.hotspot + ", " + this.default;
+		}
+
+		return "-webkit-image-set(url(" + this.baseUrl + this.name + ".png) 1x," + " url(" + this.baseUrl + this.name + "_2x.png) 2x) " + this.hotspot + ", " + this.default;
+	}
+
+	var Cursors = {
+		MarkerFormat        : "marker-format",
+
+		SelectTableRow      : "select-table-row",
+		SelectTableColumn   : "select-table-column",
+		SelectTableCell     : "select-table-cell",
+		SelectTableContent  : "select-table-content",
+
+		TableEraser         : "table-eraser",
+		TablePen            : "table-pen",
+
+		Grab                : "grab",
+		Grabbing            : "grabbing",
+
+		MoveBorderHor       : "move-border-horizontally",
+		MoveBorderVer       : "move-border-vertically",
+
+		CellCur             : "plus",
+		CellFormatPainter   : "plus-copy",
+
+		TextCopy            : "text-copy",
+		ShapeCopy           : "shape-copy",
+		Eyedropper          : "eyedropper"
+	};
+
 	function CHTMLCursor()
 	{
-		this.map = {};
-		this.mapRetina = {};
+		this.cursors = {};
+		this.mapSvg = null;
 
 		this.value = function(param)
 		{
-			var ret = this.map[param];
-			if (AscCommon.AscBrowser.isCustomScalingAbove2() && this.mapRetina[param])
-				ret = this.mapRetina[param];
-			return ret ? ret : param;
+			if (this.cursors[param])
+				return this.cursors[param].getValue(this);
+			return param;
 		};
 
-		this.register = function(type, name, target, default_css_value)
+		this.register = function(type, target, default_css_value)
 		{
 			if (AscBrowser.isIE || AscBrowser.isIeEdge)
 			{
-				this.map[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + ".cur), " + default_css_value);
-				this.mapRetina[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.cur), " + default_css_value);
+				this.cursors[type] = new CHTMLCursorCur(type, target, default_css_value);
 			}
 			else if (window.opera)
 			{
-				this.map[type] = default_css_value;
+				this.cursors[type] = new CHTMLCursorItemBase(type, target, default_css_value);
 			}
 			else
 			{
-				if (!AscCommon.AscBrowser.isChrome && !AscCommon.AscBrowser.isSafari)
-				{
-					this.map[type] = "url('../../../../sdkjs/common/Images/cursors/" + name + ".svg') " + target +
-						", url('../../../../sdkjs/common/Images/cursors/" + name + ".png') " + target + ", " + default_css_value;
-				}
-				else
-				{
-					this.map[type] = "-webkit-image-set(url(../../../../sdkjs/common/Images/cursors/" + name + ".png) 1x," +
-						" url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.png) 2x) " + target + ", " + default_css_value;
-				}
+				this.cursors[type] = new CHTMLCursorModern(type, target, default_css_value);
 			}
 		};
+
+		this.loadAllSvg = function()
+		{
+			try
+			{
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "../../../../sdkjs/common/Images/cursors/svg.json", true);
+				var t = this;
+				xhr.onload = function()
+				{
+					if (this.status === 200 || location.href.indexOf("file:") === 0)
+					{
+						try
+						{
+							t.mapSvg = JSON.parse(this.responseText);
+						}
+						catch (err) {}
+					}
+				};
+				xhr.send('');
+			}
+			catch (e) {}
+		};
+
+		this.getDrawCursor = function(ln)
+		{
+			if (!ln.Fill)
+				return "default";
+			let color = ln.Fill.fill.color.RGBA;
+			let w = (ln.w == null) ? 12700 : ln.w;
+
+			var scale = 1;
+			switch (Asc.editor.editorId)
+			{
+				case AscCommon.c_oEditorId.Word:
+				case AscCommon.c_oEditorId.Presentation:
+				{
+					scale = Asc.editor.WordControl.m_nZoomValue / 100;
+					break;
+				}
+				case AscCommon.c_oEditorId.Spreadsheet:
+				{
+					scale = Asc.editor.asc_getZoom();
+					break;
+				}
+				default:
+					break;
+			}
+
+			w = (scale * w / 9525) >> 0;
+			if (w < 4) w = 4;
+			if (w & 0x01) w += 1;
+
+			if (ln && ln.Fill && ln.Fill.transparent !== null)
+				color.A = ln.Fill.transparent;
+
+			let isRect = (254 < color.A) ? false : true;
+			let h = w;
+
+			if (isRect)
+				w = 10;
+
+			let url = "<svg width='" + w + "' height='" + h + "' viewBox='0 0 10 10' xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='none'>";
+			if (!isRect)
+			{
+				url = url + "<circle cx='5' cy='5' r='5' stroke='none' fill='rgb(" +
+					color.R + "," + color.G + "," + color.B + ")'/></svg>";
+			}
+			else
+			{
+				url = url + "<rect x='0' y='0' width='10' height='10' stroke='none' fill='rgb(" +
+					color.R + "," + color.G + "," + color.B + ")'/></svg>";
+			}
+			//console.log(url);
+
+			return "url(\"data:image/svg+xml;utf8," + url + "\") " + (w >> 1) + " " + (h >> 1) + ", default";
+		}
+
+		this.loadAllSvg();
 	}
+
+	var g_oHtmlCursor = new CHTMLCursor();
+
+	AscCommon.g_oHtmlCursor = g_oHtmlCursor;
+	AscCommon.Cursors = Cursors;
+
+	g_oHtmlCursor.register(AscCommon.Cursors.TextCopy, "2 2", "pointer");
+	g_oHtmlCursor.register(AscCommon.Cursors.ShapeCopy, "1 1", "pointer");
+	g_oHtmlCursor.register(AscCommon.Cursors.Eyedropper, "1 17", "pointer");
 
 	function OpenFileResult()
 	{
@@ -544,8 +731,14 @@
 	}
 
 	function isPdfFormatFile(stream) {
-		let part = AscCommon.UTF8ArrayToString(stream, 0, 4096);//MIN_SIZE_BUFFER
-		return -1 !== part.indexOf("%PDF-");
+		//x2t MIN_SIZE_BUFFER = 4096
+		for (let i = 0; i < 4096 && i < stream.length; ++i) {
+			//match "%PDF-"
+			if (0x25 === stream[i] && 0x50 === stream[i + 1] && 0x44 === stream[i + 2] && 0x46 === stream[i + 3] && 0x2D === stream[i + 4]) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	function isDjvuFormatFile(stream) {
@@ -595,7 +788,7 @@
 	}
 	function getEditorByBinSignature(stream, Signature) {
 		if (stream.length > 4) {
-			let signature = AscCommon.UTF8ArrayToString(stream, 0, 4);
+			let signature = typeof stream === 'string' ? stream.slice(0, 4) : AscCommon.UTF8ArrayToString(stream, 0, 4);
 			switch(signature) {
 				case "DOCY":
 					return AscCommon.c_oEditorId.Word;
@@ -621,27 +814,37 @@
 		let contentTypes = contentTypesBytes ? AscCommon.UTF8ArrayToString(contentTypesBytes, 0, contentTypesBytes.length) : "";
 		jsZlib.close();
 
-		if (-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
+		let isWord = -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-word.document.macroEnabled.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-word.template.macroEnabledTemplate.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.oform") ||
-			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.docxf")) {
-			return AscCommon.c_oEditorId.Word;
-		} else if (-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.wordprocessingml.document.docxf");
+		let isExcel = -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.spreadsheetml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.macroEnabled.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-excel.template.macroEnabled.main+xml") ||
-			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.binary.macroEnabled.main")) {
-			return AscCommon.c_oEditorId.Spreadsheet;
-		} else if (-1 !== contentTypes.indexOf(
-				"application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-excel.sheet.binary.macroEnabled.main");
+		let isSlide = -1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.slideshow.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.openxmlformats-officedocument.presentationml.template.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml") ||
 			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.slideshow.macroEnabled.main+xml") ||
-			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.template.macroEnabled.main+xml")) {
+			-1 !== contentTypes.indexOf("application/vnd.ms-powerpoint.template.macroEnabled.main+xml");
+		let isVisio = -1 !== contentTypes.indexOf("application/vnd.ms-visio.drawing.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-visio.stencil.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-visio.template.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-visio.drawing.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-visio.stencil.macroEnabled.main+xml") ||
+			-1 !== contentTypes.indexOf("application/vnd.ms-visio.template.macroEnabled.main+xml");
+		if (isWord) {
+			return AscCommon.c_oEditorId.Word;
+		} else if (isExcel) {
+			return AscCommon.c_oEditorId.Spreadsheet;
+		} else if (isSlide) {
 			return AscCommon.c_oEditorId.Presentation;
+		} else if (isVisio) {
+			return AscCommon.c_oEditorId.Visio;
 		} else {
 			return null;
 		}
@@ -737,7 +940,7 @@
 		if (window['IS_NATIVE_EDITOR'])
 		{
 			var stream = window["native"]["openFileCommand"](sFileUrl, changesUrl, Signature);
-
+ 
             //получаем url к папке с файлом
             var url;
             var nIndex = sFileUrl.lastIndexOf("/");
@@ -749,7 +952,7 @@
             } else {
 				nError = Asc.c_oAscError.ID.Unknown;
             }
-
+ 
             bEndLoadFile = true;
             onEndOpen();
 		}
@@ -758,21 +961,26 @@
 	function sendCommand(editor, fCallback, rdata, dataContainer)
 	{
 		//json не должен превышать размера 2097152, иначе при его чтении будет exception
-		var docConnectionId = editor.CoAuthoringApi.getDocId();
-		if (docConnectionId && docConnectionId !== rdata["id"])
-		{
-			//на случай если поменялся documentId в Version History
-			rdata['docconnectionid'] = docConnectionId;
-		}
 		if (null == rdata["savetype"])
 		{
 			editor.CoAuthoringApi.openDocument(rdata);
 			return;
 		}
 		rdata["userconnectionid"] = editor.CoAuthoringApi.getUserConnectionId();
+		let url = sDownloadServiceLocalUrl + '/' + rdata["id"];
+		url += '?cmd=' + encodeURIComponent(JSON.stringify(rdata));
+		if (editor.documentShardKey) {
+			url += '&' + Asc.c_sShardKeyName + '=' + encodeURIComponent(editor.documentShardKey);
+		}
+		if (editor.documentWopiSrc) {
+			url += '&' + Asc.c_sWopiSrcName + '=' + encodeURIComponent(editor.documentWopiSrc);
+		}
+		if (editor.documentUserSessionId) {
+			url += '&' + Asc.c_sUserSessionIdName + '=' + encodeURIComponent(editor.documentUserSessionId);
+		}
 		asc_ajax({
 			type:        'POST',
-			url:         sDownloadServiceLocalUrl + '/' + rdata["id"] + '?cmd=' + encodeURIComponent(JSON.stringify(rdata)),
+			url:         url,
 			data:        dataContainer.part || dataContainer.data,
 			contentType: "application/octet-stream",
 			error:       function (httpRequest, statusText, status)
@@ -792,12 +1000,23 @@
 		});
 	}
 
-	function sendSaveFile(docId, userId, title, jwt, data, fError, fsuccess)
+	function sendSaveFile(docId, userId, title, jwt, shardKey, wopiSrc, userSessionId, data, fError, fsuccess)
 	{
-		var cmd = {'id': docId, "userid": userId, "tokenSession": jwt, 'outputpath': title};
+		let cmd = {'id': docId, "userid": userId, "tokenSession": jwt, 'outputpath': title};
+		let url =sSaveFileLocalUrl + '/' + docId;
+		url += '?cmd=' + encodeURIComponent(JSON.stringify(cmd));
+		if (shardKey) {
+			url += '&' + Asc.c_sShardKeyName + '=' + encodeURIComponent(shardKey);
+		}
+		if (wopiSrc) {
+			url += '&' + Asc.c_sWopiSrcName + '=' + encodeURIComponent(wopiSrc);
+		}
+		if (userSessionId) {
+			url += '&' + Asc.c_sUserSessionIdName + '=' + encodeURIComponent(userSessionId);
+		}
 		asc_ajax({
 			type:        'POST',
-			url:         sSaveFileLocalUrl + '/' + docId + '?cmd=' + encodeURIComponent(JSON.stringify(cmd)),
+			url:         url,
 			data:        data,
 			contentType: "application/octet-stream",
 			error:       fError,
@@ -841,6 +1060,8 @@
 			case c_oAscServerError.ConvertNEED_PARAMS :
 			case c_oAscServerError.ConvertUnknownFormat :
 			case c_oAscServerError.ConvertReadFile :
+			case c_oAscServerError.ConvertTemporaty :
+			case c_oAscServerError.ConvertDetect :
 			case c_oAscServerError.Convert :
 				nRes =
 					AscCommon.c_oAscAdvancedOptionsAction.Save === nAction ? Asc.c_oAscError.ID.ConvertationSaveError :
@@ -938,7 +1159,12 @@
 	function getFullImageSrc2(src)
 	{
 		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			let localUrl = g_oDocumentUrls.getImageUrl(src);
+			if (localUrl && localUrl.startsWith("blob:"))
+				return localUrl;
 			return src;
+		}
 
 		var start = src.slice(0, 6);
 		if (0 === start.indexOf('theme') && editor.ThemeLoader)
@@ -1209,6 +1435,14 @@
 		return this;
 	}
 
+	function test_rx_protectedRangeName() {
+		var nameRangeRE = new RegExp("(^([" + str_namedRanges + " _])([" + str_namedRanges + " _0-9]*)$)", "i");
+		this.test = function (str)
+		{
+			return nameRangeRE.test(str);
+		};
+	}
+
 	var cStrucTableReservedWords = {
 		all: "#All", data: "#Data", headers: "#Headers", totals: "#Totals", thisrow: "#This Row", at: "@"
 	};
@@ -1233,15 +1467,19 @@
 		"num": "#NUM!",
 		"na": "#N\/A",
 		"getdata": "#GETTING_DATA",
-		"uf": "#UNSUPPORTED_FUNCTION!"
+		"uf": "#UNSUPPORTED_FUNCTION!",
+		"calc": "#CALC!",
+		"spill": "#SPILL!",
 	};
 	var cErrorLocal = {};
+	let cCellFunctionLocal = {};
 
 	function build_local_rx(data)
 	{
 		rx_table_local = build_rx_table(data ? data["StructureTables"] : null);
 		rx_bool_local = build_rx_bool((data && data["CONST_TRUE_FALSE"]) || cBoolOrigin);
 		rx_error_local = build_rx_error(data ? data["CONST_ERROR"] : null);
+		rx_cell_func_local = build_rx_cell_func(data ? data["CELL_FUNCTION_INFO_TYPE"] : null);
 	}
 
 	function build_rx_table(local)
@@ -1266,20 +1504,51 @@
 			structured_tables_headata        = new XRegExp('(?:\\[\\#' + loc_headers + '\\]\\' + FormulaSeparators.functionArgumentSeparator + '\\[\\#' + loc_data + '\\])'),
 			structured_tables_datals         = new XRegExp('(?:\\[\\#' + loc_data + '\\]\\' + FormulaSeparators.functionArgumentSeparator + '\\[\\#' + loc_totals + '\\])'),
 			structured_tables_userColumn     = new XRegExp('(?:\'\\[|\'\\]|[^[\\]])+'),
-			structured_tables_reservedColumn = new XRegExp('\\#(?:' + loc_all + '|' + loc_headers + '|' + loc_totals + '|' + loc_data + '|' + loc_this_row + ')|@');
+			structured_tables_reservedColumn = new XRegExp('\\#(?:' + loc_all + '|' + loc_headers + '|' + loc_totals + '|' + loc_data + /*'|' + loc_this_row + */')'),
+			structured_tables_thisRow        = new XRegExp('(?:\\#(?:' + loc_this_row +')|(?:\\@))');
 
-		return XRegExp.build('^(?<tableName>{{tableName}})\\[(?<columnName>{{columnName}})?\\]', {
+
+		//Table4[[#Data];[#Totals]]
+		//Table1[[#Headers],[#Data],[Column1]]
+		//Table4[[#Headers];[Column1]:[Column2]]
+		//Table1[[#Data],[#Totals],[Column1]]
+		//Table4[[#Totals];[Column1]:[Column2]]
+
+		//Table1[[#All];[Column1]:[Column2]]
+
+		//Table1[[#Data],[#Totals]]
+		//Table1[[#Headers],[#Data]]
+
+		//Table1[[#Headers],[#Data],[Column1]:[Column2]]
+
+		// @ === [#This Row],
+		// Table[@]
+		// Table[@Column1]
+		// Table[@Column1:[Column2]] === Table[@[Column1]:[Column2]]
+
+		let argsSeparator = FormulaSeparators.functionArgumentSeparator;
+		return XRegExp.build('^(?<tableName>{{tableName}})\\[(?<columnName1>{{columnName}})?\\]', {
 			"tableName":  new XRegExp("^(:?[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*)"),
-			"columnName": XRegExp.build('(?<reservedColumn>{{reservedColumn}})|(?<oneColumn>{{userColumn}})|(?<columnRange>{{userColumnRange}})|(?<hdtcc>{{hdtcc}})', {
+			"columnName": XRegExp.build('(?<reservedColumn>{{reservedColumn}}|{{thisRow}})|(?<oneColumn>{{userColumn}})|(?<columnRange>{{userColumnRange}})|(?<hdtcc>{{hdtcc}})', {
 				"userColumn":      structured_tables_userColumn,
 				"reservedColumn":  structured_tables_reservedColumn,
+				"thisRow": structured_tables_thisRow,
 				"userColumnRange": XRegExp.build('\\[(?<colStart>{{uc}})\\]\\:\\[(?<colEnd>{{uc}})\\]', {
 					"uc": structured_tables_userColumn
 				}),
-				"hdtcc":           XRegExp.build('(?<hdt>\\[{{rc}}\\]|{{hd}}|{{dt}})(?:\\' + FormulaSeparators.functionArgumentSeparator + '(?:\\[(?<hdtcstart>{{uc}})\\])(?:\\:(?:\\[(?<hdtcend>{{uc}})\\]))?)?', {
+				//fixed: added [{{rc}}\\]' + argsSeparator + '\\[{{rc}}\\] for:
+				//Table1[[#Data],[#Totals]]
+				//Table1[[#Headers],[#Data]]
+
+				// '(?<hdt>\\[{{rc}}\\]' + argsSeparator + '\\[{{rc}}\\]|\\[{{rc}}\\]|{{hd}}|{{dt}})(?:\\' + argsSeparator + '(?:\\[(?<hdtcstart>{{uc}})\\])(?:\\:(?:\\[(?<hdtcend>{{uc}})\\]))?)?'
+
+				// last used: '(?<hdt>(?:\\[{{rc}}\\])?(?:\@)?)(?:(?:\\'+argsSeparator+')?(?:\\\[?(?<hdtcstart>{{uc}})\\\]?)(?:\\:(?:\\[(?<hdtcend>{{uc}})\\]))?)?'
+				"hdtcc":           XRegExp.build('(?<hdt>(?:\\[{{rc}}\\]' + argsSeparator + '\\[{{rc}}\\]|\\[{{rc}}\\]|{{hd}}|{{dt}})|(?:\\[{{tr}}\\])|\@)(?:(?:\\' + argsSeparator + ')?(?:\\[(?<hdtcstart>{{uc}})\\])(?:\\:(?:\\[(?<hdtcend>{{uc}})\\]))?)?'
+					, {
 					"rc": structured_tables_reservedColumn,
 					"hd": structured_tables_headata,
 					"dt": structured_tables_datals,
+					"tr": structured_tables_thisRow,
 					"uc": structured_tables_userColumn
 				})
 			})
@@ -1306,7 +1575,9 @@
 			"num":     "#NUM!",
 			"na":      "#N\/A",
 			"getdata": "#GETTING_DATA",
-			"uf":      "#UNSUPPORTED_FUNCTION!"
+			"uf":      "#UNSUPPORTED_FUNCTION!",
+			"calc":    "#CALC!",
+			"spill":   "#SPILL!"
 		};
 		cErrorLocal['nil'] = local['nil'];
 		cErrorLocal['div'] = local['div'];
@@ -1317,6 +1588,8 @@
 		cErrorLocal['na'] = local['na'];
 		cErrorLocal['getdata'] = local['getdata'];
 		cErrorLocal['uf'] = local['uf'];
+		cErrorLocal['calc'] = local['calc'];
+		cErrorLocal['spill'] = local['spill'];
 
 		return new RegExp("^(" + cErrorLocal["nil"] + "|" +
 			cErrorLocal["div"] + "|" +
@@ -1326,7 +1599,53 @@
 			cErrorLocal["num"] + "|" +
 			cErrorLocal["na"] + "|" +
 			cErrorLocal["getdata"] + "|" +
-			cErrorLocal["uf"] + ")", "i");
+			cErrorLocal["uf"] + "|" +
+			cErrorLocal["calc"] + "|" +
+			cErrorLocal["spill"] + ")", "i")
+	}
+
+	function build_rx_cell_func(local)
+	{
+		// ToDo переделать на более правильную реализацию. Не особо правильное копирование
+		local = local ? local : {
+			"address": "address",
+			"col": "col",
+			"color": "color",
+			"contents": "contents",
+			"filename": "filename",
+			"format": "format",
+			"parentheses": "parentheses",
+			"prefix": "prefix",
+			"protect": "protect",
+			"row": "row",
+			"type": "type",
+			"width": "width"
+		};
+		cCellFunctionLocal['address'] = local['address'] && local['address'].toLowerCase();
+		cCellFunctionLocal['col'] =  local['col'] && local['col'].toLowerCase();
+		cCellFunctionLocal['color'] = local['color'] && local['color'].toLowerCase();
+		cCellFunctionLocal['contents'] = local['contents'] && local['contents'].toLowerCase();
+		cCellFunctionLocal['filename'] = local['filename'] && local['filename'].toLowerCase();
+		cCellFunctionLocal['format'] = local['format'] && local['format'].toLowerCase();
+		cCellFunctionLocal['parentheses'] = local['parentheses'] && local['parentheses'].toLowerCase();
+		cCellFunctionLocal['prefix'] = local['prefix'] && local['prefix'].toLowerCase();
+		cCellFunctionLocal['protect'] = local['protect'] && local['protect'].toLowerCase();
+		cCellFunctionLocal['row'] =  local['row'] && local['row'].toLowerCase();
+		cCellFunctionLocal['type'] = local['type'] && local['type'].toLowerCase();
+		cCellFunctionLocal['width'] = local['width'] && local['width'].toLowerCase();
+
+		return new RegExp("^(" + cCellFunctionLocal["address"] + "|" +
+			cCellFunctionLocal["col"] + "|" +
+			cCellFunctionLocal["color"] + "|" +
+			cCellFunctionLocal["contents"] + "|" +
+			cCellFunctionLocal["filename"] + "|" +
+			cCellFunctionLocal["format"] + "|" +
+			cCellFunctionLocal["parentheses"] + "|" +
+			cCellFunctionLocal["prefix"] + "|" +
+			cCellFunctionLocal["protect"] +
+			cCellFunctionLocal["row"] +
+			cCellFunctionLocal["type"] +
+			cCellFunctionLocal["width"] + ")", "i");
 	}
 
 	var PostMessageType = {
@@ -1366,6 +1685,8 @@
 		ConvertPASSWORD:          -91,
 		ConvertICU:               -92,
 		ConvertLIMITS:            -93,
+		ConvertTemporaty:         -94,
+		ConvertDetect:            -95,
 		ConvertDeadLetter:        -99,
 
 		Upload:              -100,
@@ -1388,7 +1709,7 @@
 	//todo get from server config
 	var c_oAscImageUploadProp = {//Не все браузеры позволяют получить информацию о файле до загрузки(например ie9), меняя параметры здесь надо поменять аналогичные параметры в web.common
 		MaxFileSize:      25000000, //25 mb
-		SupportedFormats: ["jpg", "jpeg", "jpe", "png", "gif", "bmp"]
+		SupportedFormats: ["jpg", "jpeg", "jpe", "png", "gif", "bmp", "svg", "tiff", "tif"]
 	};
 
 	var c_oAscDocumentUploadProp = {
@@ -1398,7 +1719,7 @@
 
 	var c_oAscSpreadsheetUploadProp = {
 		MaxFileSize:      104857600, //100 mb
-		SupportedFormats: ["xlsx", "xlsm", "xls", "ods", "csv", "xltx", "xltm", "xlt", "fods", "ots"]
+		SupportedFormats: ["xlsx", "xlsm", "xls", "ods", "csv", "xltx", "xltm", "xlsb", "xlt", "fods", "ots"]
 	};
 
 	var c_oAscTextUploadProp = {
@@ -1552,6 +1873,9 @@
 			case c_oAscFileType.XLTM:
 				return 'xltm';
 				break;
+			case c_oAscFileType.XLSB:
+				return 'xlsb';
+				break;
 			case c_oAscFileType.FODS:
 				return 'fods';
 				break;
@@ -1592,7 +1916,24 @@
 			case c_oAscFileType.OTP:
 				return 'otp';
 				break;
-
+			case c_oAscFileType.VSDX:
+				return 'vsdx';
+				break;
+			case c_oAscFileType.VSSX:
+				return 'vssx';
+				break;
+			case c_oAscFileType.VSTX:
+				return 'vstx';
+				break;
+			case c_oAscFileType.VSDM:
+				return 'vsdm';
+				break;
+			case c_oAscFileType.VSSM:
+				return 'vssm';
+				break;
+			case c_oAscFileType.VSTM:
+				return 'vstm';
+				break;
 			case c_oAscFileType.IMG:
 				return 'zip';
 				break;
@@ -1639,6 +1980,152 @@
 		return '';
 	}
 
+	function getFormatByExtention(ext)
+	{
+		switch (ext.toLowerCase()) {
+			case 'docx':
+				return c_oAscFileType.DOCX;
+			case 'doc':
+			case 'wps':
+				return c_oAscFileType.DOC;
+			case 'odt':
+				return c_oAscFileType.ODT;
+			case 'rtf':
+				return c_oAscFileType.RTF;
+			case 'txt':
+			case 'xml':
+			case 'xslt':
+				return c_oAscFileType.TXT;
+			case 'htm':
+			case 'html':
+				return c_oAscFileType.HTML;
+			case 'mht':
+			case 'mhtml':
+				return c_oAscFileType.MHT;
+			case 'epub':
+				return c_oAscFileType.MHT;
+			case 'fb2':
+				return c_oAscFileType.FB2;
+			case 'mobi':
+				return c_oAscFileType.MOBI;
+			case 'docm':
+				return c_oAscFileType.DOCM;
+			case 'dotx':
+				return c_oAscFileType.DOTX;
+			case 'dotm':
+				return c_oAscFileType.DOTM;
+			case 'fodt':
+				return c_oAscFileType.FODT;
+			case 'ott':
+				return c_oAscFileType.OTT;
+			case 'oform':
+				return c_oAscFileType.OFORM;
+			case 'docxf':
+				return c_oAscFileType.DOCXF;
+
+			case 'pptx':
+				return c_oAscFileType.PPTX;
+			case 'ppt':
+			case 'dps':
+				return c_oAscFileType.PPT;
+			case 'odp':
+				return c_oAscFileType.ODP;
+			case 'ppsx':
+				return c_oAscFileType.PPSX;
+			case 'pptm':
+				return c_oAscFileType.PPTM;
+			case 'ppsm':
+				return c_oAscFileType.PPSM;
+			case 'potx':
+				return c_oAscFileType.POTX;
+			case 'potm':
+				return c_oAscFileType.POTM;
+			case 'fodp':
+				return c_oAscFileType.FODP;
+			case 'otp':
+				return c_oAscFileType.OTP;
+			case 'vsdx':
+				return c_oAscFileType.VSDX;
+			case 'vssx':
+				return c_oAscFileType.VSSX;
+			case 'vstx':
+				return c_oAscFileType.VSTX;
+			case 'vsdm':
+				return c_oAscFileType.VSDM;
+			case 'vssm':
+				return c_oAscFileType.VSSM;
+			case 'vstm':
+				return c_oAscFileType.VSTM;
+			case 'xlsx':
+				return c_oAscFileType.XLSX;
+			case 'xls':
+			case 'et':
+				return c_oAscFileType.XLS;
+			case 'ods':
+				return c_oAscFileType.ODS;
+			case 'csv':
+				return c_oAscFileType.CSV;
+			case 'xlsm':
+				return c_oAscFileType.XLSM;
+			case 'xltx':
+				return c_oAscFileType.XLTX;
+			case 'xltm':
+				return c_oAscFileType.XLTM;
+			case 'xltb':
+				return c_oAscFileType.XLSB;
+			case 'fods':
+				return c_oAscFileType.FODS;
+			case 'ots':
+				return c_oAscFileType.OTS;
+
+			case 'jpeg':
+			case 'jpe':
+			case 'jpg':
+				return c_oAscFileType.JPG;
+			case 'tif':
+			case 'tiff':
+				return c_oAscFileType.TIFF;
+			case 'tga':
+				return c_oAscFileType.TGA;
+			case 'gif':
+				return c_oAscFileType.GIF;
+			case 'png':
+				return c_oAscFileType.PNG;
+			case 'emf':
+				return c_oAscFileType.EMF;
+			case 'wmf':
+				return c_oAscFileType.WMF;
+			case 'bmp':
+				return c_oAscFileType.BMP;
+			case 'cr2':
+				return c_oAscFileType.CR2;
+			case 'pcx':
+				return c_oAscFileType.PCX;
+			case 'ras':
+				return c_oAscFileType.RAS;
+			case 'psd':
+				return c_oAscFileType.PSD;
+			case 'ico':
+				return c_oAscFileType.ICO;
+
+			case 'pdf':
+				return c_oAscFileType.PDF;
+			case 'pdfa':
+				return c_oAscFileType.PDFA;
+			case 'djvu':
+				return c_oAscFileType.DJVU;
+			case 'xps':
+				return c_oAscFileType.XPS;
+			case 'doct':
+				return c_oAscFileType.DOCY;
+			case 'xlst':
+				return c_oAscFileType.XLSY;
+			case 'pptt':
+				return c_oAscFileType.PPTY;
+		}
+		return c_oAscFileType.UNKNOWN;
+	}
+
 	function InitOnMessage(callback)
 	{
 		if (window.addEventListener)
@@ -1682,24 +2169,9 @@
 							if (!window.g_asc_plugins.api.licenseResult || !window.g_asc_plugins.api.licenseResult['advancedApi'])
 								return;
 
-							if (data["subType"] === "internalCommand")
-							{
-								// такие команды перечисляем здесь и считаем их функционалом
-								switch (data.data.type)
-								{
-									case "onbeforedrop":
-									case "ondrop":
-									{
-										window.g_asc_plugins.api["plugin_Method_OnDropEvent"](data.data);
-										return;
-									}
-									default:
-										break;
-								}
-							}
 							if (data["subType"] === "connector")
 							{
-								window.g_asc_plugins.externalConnectorMessage(data["data"]);
+								window.g_asc_plugins.externalConnectorMessage(data["data"], event.origin);
 								return;
 							}
 
@@ -1773,53 +2245,48 @@
 				}
 				else
 				{
+					if (e.canceled == true)
+					{
+						if (Asc.editor.isPdfEditor())
+							callback(e);
+					}
+					else
 					callback(Asc.c_oAscError.ID.Unknown);
 				}
 			});
+
+			if (Asc.editor.isPdfEditor()) {
+				let oViewer = Asc.editor.getDocumentRenderer();
+				let oDoc = oViewer.doc;
+				let oActionsQueue = oDoc.GetActionsQueue();
+
+				function cancelFileDialog() {
+					AscCommon.global_mouseEvent.UnLockMouse();
+					oActionsQueue.Continue();
+				}
+
+				if (oActionsQueue.IsInProgress()) {
+					Asc.editor.sendEvent("asc_onOpenFilePdfForm", fileName.click.bind(fileName), cancelFileDialog);
+				}
+				else 
 			fileName.click();
+		}
+		else
+				fileName.click();
 		}
 		else
 		{
 			return false;
 		}
 	}
-	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
+	function ShowImageFileDialog(documentId, documentUserId, jwt, shardKey, wopiSrc, userSessionId, callback, callbackOld)
 	{
 		if (false === _ShowFileDialog(getAcceptByArray(c_oAscImageUploadProp.SupportedFormats), true, true, ValidateUploadImage, callback)) {
-			//todo remove this compatibility
-			var frameWindow = GetUploadIFrame();
-			var url = sUploadServiceLocalUrlOld + '/' + documentId;
-			if (jwt)
-			{
-				url += '?token=' + encodeURIComponent(jwt);
-			}
-			var content = '<html><head></head><body><form action="' + url + '" method="POST" enctype="multipart/form-data"><input id="apiiuFile" name="apiiuFile" type="file" accept="image/*" size="1"><input id="apiiuSubmit" name="apiiuSubmit" type="submit" style="display:none;"></form></body></html>';
-			frameWindow.document.open();
-			frameWindow.document.write(content);
-			frameWindow.document.close();
-
-			var fileName = frameWindow.document.getElementById("apiiuFile");
-			var fileSubmit = frameWindow.document.getElementById("apiiuSubmit");
-
-			fileName.onchange = function (e)
-			{
-				if (e && e.target && e.target.files)
-				{
-					var nError = ValidateUploadImage(e.target.files);
-					if (c_oAscServerError.NoError != nError)
-					{
-						callbackOld(mapAscServerErrorToAscError(nError));
-						return;
-					}
-				}
-				callbackOld(Asc.c_oAscError.ID.No);
-				fileSubmit.click();
-			};
-			fileName.click();
+			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
-	function ShowDocumentFileDialog(callback) {
-		if (false === _ShowFileDialog(getAcceptByArray(c_oAscDocumentUploadProp.SupportedFormats), false, false, ValidateUploadDocument, callback)) {
+	function ShowDocumentFileDialog(callback, isAllowMultiple) {
+		if (false === _ShowFileDialog(getAcceptByArray(c_oAscDocumentUploadProp.SupportedFormats), false, !!isAllowMultiple, ValidateUploadDocument, callback)) {
 			callback(Asc.c_oAscError.ID.Unknown);
 		}
 	}
@@ -1933,13 +2400,15 @@
 	}
 
 	function DownloadOriginalFile(documentId, url, urlPathInToken, token, fError, fSuccess) {
+		let data = JSON.stringify({
+			"url": url,
+			"token": token
+		});
 		asc_ajax({
 			url: sDownloadFileLocalUrl + '/' + documentId,
+			type: "POST",
 			responseType: "arraybuffer",
-			headers: {
-				'Authorization': 'Bearer ' + token,
-				'x-url': url
-			},
+			data: data,
 			success: function(resp) {
 				fSuccess(AscCommon.initStreamFromResponse(resp));
 			},
@@ -1998,18 +2467,24 @@
 		callback(nError, [file], obj);
 	}
 
-	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
+	function UploadImageFiles(files, documentId, documentUserId, jwt, shardKey, wopiSrc, userSessionId, callback)
 	{
-           // CryptPad: we need to take control of the upload
-           window.parent.APP.UploadImageFiles(files, documentId, documentUserId, jwt, function (err, urls) {
-               callback(err || Asc.c_oAscError.ID.No, urls);
-            });
-           return;
-
 		if (files.length > 0)
 		{
-			var url = sUploadServiceLocalUrl + '/' + documentId;
-
+			let url = sUploadServiceLocalUrl + '/' + documentId;
+			let queryParams = [];
+			if (shardKey) {
+				queryParams.push(Asc.c_sShardKeyName + '=' + encodeURIComponent(shardKey));
+			}
+			if (wopiSrc) {
+				queryParams.push(Asc.c_sWopiSrcName + '=' + encodeURIComponent(wopiSrc));
+			}
+			if (userSessionId) {
+				queryParams.push(Asc.c_sUserSessionIdName + '=' + encodeURIComponent(userSessionId));
+			}
+			if (queryParams.length > 0) {
+				url += '?' + queryParams.join('&');
+			}
 			var aFiles = [];
 			for(var i = files.length - 1;  i > - 1; --i){
                 aFiles.push(files[i]);
@@ -2037,17 +2512,18 @@
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
 
-                            url = sUploadServiceLocalUrl + '/' + documentId;
-
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
                             xhr.setRequestHeader('Authorization', 'Bearer ' + jwt);
                             xhr.onreadystatechange = fOnReadyChnageState;
                             xhr.send(file);
                         }
-                    }
-                    else if(this.status === 403){
+                    } else if(this.status === 403) {
 						callback(Asc.c_oAscError.ID.VKeyEncrypt);
+					} else if(this.status === 413) {
+						callback(Asc.c_oAscError.ID.UplImageSize);
+					} else if(this.status === 415) {
+						callback(Asc.c_oAscError.ID.UplImageExt);
 					} else {
 						callback(Asc.c_oAscError.ID.UplImageUrl);
 					}
@@ -2067,12 +2543,24 @@
 		}
 	}
 
-    function UploadImageUrls(files, documentId, documentUserId, jwt, callback)
+    function UploadImageUrls(files, documentId, documentUserId, jwt, shardKey, wopiSrc, userSessionId, callback)
     {
         if (files.length > 0)
         {
-            var url = sUploadServiceLocalUrl + '/' + documentId;
-
+            let url = sUploadServiceLocalUrl + '/' + documentId;
+			let queryParams = [];
+			if (shardKey) {
+				queryParams.push(Asc.c_sShardKeyName + '=' + encodeURIComponent(shardKey));
+			}
+			if (wopiSrc) {
+				queryParams.push(Asc.c_sWopiSrcName + '=' + encodeURIComponent(wopiSrc));
+			}
+			if (userSessionId) {
+				queryParams.push(Asc.c_sUserSessionIdName + '=' + encodeURIComponent(userSessionId));
+			}
+			if (queryParams.length > 0) {
+				url += '?' + queryParams.join('&');
+			}
             var aFiles = [];
             for(var i = files.length - 1;  i > - 1; --i){
                 aFiles.push(files[i]);
@@ -2104,8 +2592,6 @@
 						{
                             file = aFiles.pop();
                             var xhr = new XMLHttpRequest();
-
-                            url = sUploadServiceLocalUrl + '/' + documentId;
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
@@ -2279,11 +2765,66 @@
 		input.setAttribute('type', 'file');
 		input.setAttribute('accept', accept);
 		input.setAttribute('style', 'position:absolute;left:-2px;top:-2px;width:1px;height:1px;z-index:-1000;cursor:pointer;');
+		
 		if (allowMultiple) {
 			input.setAttribute('multiple', true);
 		}
-		input.onchange = onchange;
 		document.body.appendChild(input);
+
+		function addDialogClosedListener(input, callback) {
+			var id = null;
+			var active = false;
+			var wrapper = function() {
+				if (active) {
+					active = false;
+					callback(input);
+
+					// remove handlers
+					window.removeEventListener('focus', onFocus);
+					window.removeEventListener('blur', onBlur);
+				}
+			};
+			var cleanup = function() {
+				clearTimeout(id);
+			};
+			var shedule = function(delay) {
+				id = setTimeout(wrapper, delay);
+			};
+			var onFocus = function() {
+				cleanup();
+				shedule(1000);
+			};
+			var onBlur = function() {
+				cleanup();
+			};
+			var onClick = function() {
+				window.addEventListener('focus', onFocus);
+				window.addEventListener('blur', onBlur);
+
+				cleanup();
+				active = true;
+			};
+			var onChange = function() {
+				cleanup();
+				shedule(0);
+			};
+			input.addEventListener('click', onClick);
+			input.addEventListener('change', onChange);
+		}
+
+		addDialogClosedListener(input, checkCanceled);
+
+		function checkCanceled(input) {
+			let e = {};
+			if (input.files.length === 0) {
+				e.canceled = true;
+			}
+			else {
+				e.target = input;
+			}
+			onchange(e);
+		}
+	
 		return input;
 	}
 
@@ -2309,8 +2850,12 @@
 	var g_oCodeRightBrace = 125; // Code of }
 
 	/*Functions that checks of an element in formula*/
-	var str_namedRanges       = "A-Za-z\u005F\u0080-\u0081\u0083\u0085-\u0087\u0089-\u008A\u008C-\u0091\u0093-\u0094\u0096-\u0097\u0099-\u009A\u009C-\u009F\u00A1-\u00A5\u00A7-\u00A8\u00AA\u00AD\u00AF-\u00BA\u00BC-\u02B8\u02BB-\u02C1\u02C7\u02C9-\u02CB\u02CD\u02D0-\u02D1\u02D8-\u02DB\u02DD\u02E0-\u02E4\u02EE\u0370-\u0373\u0376-\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0523\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F2\u0621-\u064A\u066E-\u066F\u0671-\u06D3\u06D5\u06E5-\u06E6\u06EE-\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4-\u07F5\u07FA\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0972\u097B-\u097F\u0985-\u098C\u098F-\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC-\u09DD\u09DF-\u09E1\u09F0-\u09F1\u0A05-\u0A0A\u0A0F-\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32-\u0A33\u0A35-\u0A36\u0A38-\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2-\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0-\u0AE1\u0B05-\u0B0C\u0B0F-\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32-\u0B33\u0B35-\u0B39\u0B3D\u0B5C-\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99-\u0B9A\u0B9C\u0B9E-\u0B9F\u0BA3-\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D\u0C58-\u0C59\u0C60-\u0C61\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0-\u0CE1\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D28\u0D2A-\u0D39\u0D3D\u0D60-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E3A\u0E40-\u0E4E\u0E81-\u0E82\u0E84\u0E87-\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA-\u0EAB\u0EAD-\u0EB0\u0EB2-\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDD\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8B\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065-\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10D0-\u10FA\u10FC\u1100-\u1159\u115F-\u11A2\u11A8-\u11F9\u1200-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u1676\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F0\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1877\u1880-\u18A8\u18AA\u1900-\u191C\u1950-\u196D\u1970-\u1974\u1980-\u19A9\u19C1-\u19C7\u1A00-\u1A16\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE-\u1BAF\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u200e\u2010\u2013-\u2016\u2018\u201C-\u201D\u2020-\u2021\u2025-\u2027\u2030\u2032-\u2033\u2035\u203B\u2071\u2074\u207F\u2081-\u2084\u2090-\u2094\u2102-\u2103\u2105\u2107\u2109-\u2113\u2115-\u2116\u2119-\u211D\u2121-\u2122\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2153-\u2154\u215B-\u215E\u2160-\u2188\u2190-\u2199\u21D2\u21D4\u2200\u2202-\u2203\u2207-\u2208\u220B\u220F\u2211\u2215\u221A\u221D-\u2220\u2223\u2225\u2227-\u222C\u222E\u2234-\u2237\u223C-\u223D\u2248\u224C\u2252\u2260-\u2261\u2264-\u2267\u226A-\u226B\u226E-\u226F\u2282-\u2283\u2286-\u2287\u2295\u2299\u22A5\u22BF\u2312\u2460-\u24B5\u24D0-\u24E9\u2500-\u254B\u2550-\u2574\u2581-\u258F\u2592-\u2595\u25A0-\u25A1\u25A3-\u25A9\u25B2-\u25B3\u25B6-\u25B7\u25BC-\u25BD\u25C0-\u25C1\u25C6-\u25C8\u25CB\u25CE-\u25D1\u25E2-\u25E5\u25EF\u2605-\u2606\u2609\u260E-\u260F\u261C\u261E\u2640\u2642\u2660-\u2661\u2663-\u2665\u2667-\u266A\u266C-\u266D\u266F\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2C6F\u2C71-\u2C7D\u2C80-\u2CE4\u2D00-\u2D25\u2D30-\u2D65\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u3000-\u3003\u3005-\u3017\u301D-\u301F\u3021-\u3029\u3031-\u3035\u3038-\u303C\u3041-\u3096\u309B-\u309F\u30A1-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31B7\u31F0-\u321C\u3220-\u3229\u3231-\u3232\u3239\u3260-\u327B\u327F\u32A3-\u32A8\u3303\u330D\u3314\u3318\u3322-\u3323\u3326-\u3327\u332B\u3336\u333B\u3349-\u334A\u334D\u3351\u3357\u337B-\u337E\u3380-\u3384\u3388-\u33CA\u33CD-\u33D3\u33D5-\u33D6\u33D8\u33DB-\u33DD\u3400-\u4DB5\u4E00-\u9FC3\uA000-\uA48C\uA500-\uA60C\uA610-\uA61F\uA62A-\uA62B\uA640-\uA65F\uA662-\uA66E\uA680-\uA697\uA722-\uA787\uA78B-\uA78C\uA7FB-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA90A-\uA925\uA930-\uA946\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAC00-\uD7A3\uE000-\uF848\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40-\uFB41\uFB43-\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE30-\uFE31\uFE33-\uFE44\uFE49-\uFE52\uFE54-\uFE57\uFE59-\uFE66\uFE68-\uFE6B\uFE70-\uFE74\uFE76-\uFEFC\uFF01-\uFF5E\uFF61-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC\uFFE0-\uFFE6",
-		str_namedSheetsRange  = "\u0001-\u0026\u0028-\u0029\u002B-\u002D\u003B-\u003E\u0040\u005E\u0060\u007B-\u007F\u0082\u0084\u008B\u0092\u0095\u0098\u009B\u00A0\u00A6\u00A9\u00AB-\u00AC\u00AE\u00BB\u0378-\u0379\u037E-\u0383\u0387\u038B\u038D\u03A2\u0524-\u0530\u0557-\u0558\u055A-\u0560\u0588-\u0590\u05BE\u05C0\u05C3\u05C6\u05C8-\u05CF\u05EB-\u05EF\u05F3-\u05FF\u0604-\u0605\u0609-\u060A\u060C-\u060D\u061B-\u061E\u0620\u065F\u066A-\u066D\u06D4\u0700-\u070E\u074B-\u074C\u07B2-\u07BF\u07F7-\u07F9\u07FB-\u0900\u093A-\u093B\u094E-\u094F\u0955-\u0957\u0964-\u0965\u0970\u0973-\u097A\u0980\u0984\u098D-\u098E\u0991-\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BB\u09C5-\u09C6\u09C9-\u09CA\u09CF-\u09D6\u09D8-\u09DB\u09DE\u09E4-\u09E5\u09FB-\u0A00\u0A04\u0A0B-\u0A0E\u0A11-\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A3B\u0A3D\u0A43-\u0A46\u0A49-\u0A4A\u0A4E-\u0A50\u0A52-\u0A58\u0A5D\u0A5F-\u0A65\u0A76-\u0A80\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABB\u0AC6\u0ACA\u0ACE-\u0ACF\u0AD1-\u0ADF\u0AE4-\u0AE5\u0AF0\u0AF2-\u0B00\u0B04\u0B0D-\u0B0E\u0B11-\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3B\u0B45-\u0B46\u0B49-\u0B4A\u0B4E-\u0B55\u0B58-\u0B5B\u0B5E\u0B64-\u0B65\u0B72-\u0B81\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BBD\u0BC3-\u0BC5\u0BC9\u0BCE-\u0BCF\u0BD1-\u0BD6\u0BD8-\u0BE5\u0BFB-\u0C00\u0C04\u0C0D\u0C11\u0C29\u0C34\u0C3A-\u0C3C\u0C45\u0C49\u0C4E-\u0C54\u0C57\u0C5A-\u0C5F\u0C64-\u0C65\u0C70-\u0C77\u0C80-\u0C81\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBB\u0CC5\u0CC9\u0CCE-\u0CD4\u0CD7-\u0CDD\u0CDF\u0CE4-\u0CE5\u0CF0\u0CF3-\u0D01\u0D04\u0D0D\u0D11\u0D29\u0D3A-\u0D3C\u0D45\u0D49\u0D4E-\u0D56\u0D58-\u0D5F\u0D64-\u0D65\u0D76-\u0D78\u0D80-\u0D81\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE-\u0DBF\u0DC7-\u0DC9\u0DCB-\u0DCE\u0DD5\u0DD7\u0DE0-\u0DF1\u0DF4-\u0E00\u0E3B-\u0E3E\u0E4F\u0E5A-\u0E80\u0E83\u0E85-\u0E86\u0E89\u0E8B-\u0E8C\u0E8E-\u0E93\u0E98\u0EA0\u0EA4\u0EA6\u0EA8-\u0EA9\u0EAC\u0EBA\u0EBE-\u0EBF\u0EC5\u0EC7\u0ECE-\u0ECF\u0EDA-\u0EDB\u0EDE-\u0EFF\u0F04-\u0F12\u0F3A-\u0F3D\u0F48\u0F6D-\u0F70\u0F85\u0F8C-\u0F8F\u0F98\u0FBD\u0FCD\u0FD0-\u0FFF\u104A-\u104F\u109A-\u109D\u10C6-\u10CF\u10FB\u10FD-\u10FF\u115A-\u115E\u11A3-\u11A7\u11FA-\u11FF\u1249\u124E-\u124F\u1257\u1259\u125E-\u125F\u1289\u128E-\u128F\u12B1\u12B6-\u12B7\u12BF\u12C1\u12C6-\u12C7\u12D7\u1311\u1316-\u1317\u135B-\u135E\u1361-\u1368\u137D-\u137F\u139A-\u139F\u13F5-\u1400\u166D-\u166E\u1677-\u167F\u169B-\u169F\u16EB-\u16ED\u16F1-\u16FF\u170D\u1715-\u171F\u1735-\u173F\u1754-\u175F\u176D\u1771\u1774-\u177F\u17D4-\u17D6\u17D8-\u17DA\u17DE-\u17DF\u17EA-\u17EF\u17FA-\u180A\u180F\u181A-\u181F\u1878-\u187F\u18AB-\u18FF\u191D-\u191F\u192C-\u192F\u193C-\u193F\u1941-\u1945\u196E-\u196F\u1975-\u197F\u19AA-\u19AF\u19CA-\u19CF\u19DA-\u19DF\u1A1C-\u1AFF\u1B4C-\u1B4F\u1B5A-\u1B60\u1B7D-\u1B7F\u1BAB-\u1BAD\u1BBA-\u1BFF\u1C38-\u1C3F\u1C4A-\u1C4C\u1C7E-\u1CFF\u1DE7-\u1DFD\u1F16-\u1F17\u1F1E-\u1F1F\u1F46-\u1F47\u1F4E-\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E-\u1F7F\u1FB5\u1FC5\u1FD4-\u1FD5\u1FDC\u1FF0-\u1FF1\u1FF5\u1FFF\u200e\u2011-\u2012\u2017\u2019-\u201B\u201E-\u201F\u2022-\u2024\u2031\u2034\u2036-\u203A\u203C-\u2043\u2045-\u2051\u2053-\u205E\u2065-\u2069\u2072-\u2073\u207D-\u207E\u208D-\u208F\u2095-\u209F\u20B6-\u20CF\u20F1-\u20FF\u2150-\u2152\u2189-\u218F\u2329-\u232A\u23E8-\u23FF\u2427-\u243F\u244B-\u245F\u269E-\u269F\u26BD-\u26BF\u26C4-\u2700\u2705\u270A-\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u275F-\u2760\u2768-\u2775\u2795-\u2797\u27B0\u27BF\u27C5-\u27C6\u27CB\u27CD-\u27CF\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC-\u29FD\u2B4D-\u2B4F\u2B55-\u2BFF\u2C2F\u2C5F\u2C70\u2C7E-\u2C7F\u2CEB-\u2CFC\u2CFE-\u2CFF\u2D26-\u2D2F\u2D66-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF\u2E00-\u2E2E\u2E30-\u2E7F\u2E9A\u2EF4-\u2EFF\u2FD6-\u2FEF\u2FFC-\u2FFF\u3018-\u301C\u3030\u303D\u3040\u3097-\u3098\u30A0\u3100-\u3104\u312E-\u3130\u318F\u31B8-\u31BF\u31E4-\u31EF\u321F\u3244-\u324F\u32FF\u4DB6-\u4DBF\u9FC4-\u9FFF\uA48D-\uA48F\uA4C7-\uA4FF\uA60D-\uA60F\uA62C-\uA63F\uA660-\uA661\uA673-\uA67B\uA67E\uA698-\uA6FF\uA78D-\uA7FA\uA82C-\uA83F\uA874-\uA87F\uA8C5-\uA8CF\uA8DA-\uA8FF\uA92F\uA954-\uA9FF\uAA37-\uAA3F\uAA4E-\uAA4F\uAA5A-\uABFF\uD7A4-\uD7FF\uFA2E-\uFA2F\uFA6B-\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90-\uFD91\uFDC8-\uFDEF\uFDFE-\uFDFF\uFE10-\uFE1F\uFE27-\uFE2F\uFE32\uFE45-\uFE48\uFE53\uFE58\uFE67\uFE6C-\uFE6F\uFE75\uFEFD-\uFEFE\uFF00\uFF5F-\uFF60\uFFBF-\uFFC1\uFFC8-\uFFC9\uFFD0-\uFFD1\uFFD8-\uFFD9\uFFDD-\uFFDF\uFFE7\uFFEF-\uFFF8\uFFFE-\uFFFF",
+
+	//var str_namedRanges       = "\\p{L}\\p{M}*",
+	var str_namedRanges       = "A-Za-z\u005F\u0080-\u0081\u0083\u0085-\u0087\u0089-\u008A\u008C-\u0091\u0093-\u0094\u0096-\u0097\u0099-\u009A\u009C-\u009F\u00A1-\u00A5\u00A7-\u00A8\u00AA\u00AD\u00AF-\u00BA\u00BC-\u02B8\u02BB-\u02C1\u02C7\u02C9-\u02CB\u02CD\u02D0-\u02D1\u02D8-\u02DB\u02DD\u02E0-\u02E4\u02EE\u0370-\u0373\u0376-\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0523\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F2\u0621-\u064A\u066E-\u066F\u0671-\u06D3\u06D5\u06E5-\u06E6\u06EE-\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4-\u07F5\u07FA\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0972\u097B-\u097F\u0985-\u098C\u098F-\u0990\u0993-\u09A8\u09AA-\u09C0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC-\u09DD\u09DF-\u09E1\u09F0-\u09F1\u0A05-\u0A0A\u0A0F-\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32-\u0A33\u0A35-\u0A36\u0A38-\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2-\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0-\u0AE1\u0B05-\u0B0C\u0B0F-\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32-\u0B33\u0B35-\u0B39\u0B3D\u0B5C-\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99-\u0B9A\u0B9C\u0B9E-\u0B9F\u0BA3-\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D\u0C58-\u0C59\u0C60-\u0C61\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0-\u0CE1\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D28\u0D2A-\u0D39\u0D3D\u0D60-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E3A\u0E40-\u0E4E\u0E81-\u0E82\u0E84\u0E87-\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA-\u0EAB\u0EAD-\u0EB0\u0EB2-\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDD\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8B\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065-\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10D0-\u10FA\u10FC\u1100-\u1159\u115F-\u11A2\u11A8-\u11F9\u1200-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u1676\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F0\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1877\u1880-\u18A8\u18AA\u1900-\u191C\u1950-\u196D\u1970-\u1974\u1980-\u19A9\u19C1-\u19C7\u1A00-\u1A16\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE-\u1BAF\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u200e\u2010\u2013-\u2016\u2018\u201C-\u201D\u2020-\u2021\u2025-\u2027\u2030\u2032-\u2033\u2035\u203B\u2071\u2074\u207F\u2081-\u2084\u2090-\u2094\u2102-\u2103\u2105\u2107\u2109-\u2113\u2115-\u2116\u2119-\u211D\u2121-\u2122\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2153-\u2154\u215B-\u215E\u2160-\u2188\u2190-\u2199\u21D2\u21D4\u2200\u2202-\u2203\u2207-\u2208\u220B\u220F\u2211\u2215\u221A\u221D-\u2220\u2223\u2225\u2227-\u222C\u222E\u2234-\u2237\u223C-\u223D\u2248\u224C\u2252\u2260-\u2261\u2264-\u2267\u226A-\u226B\u226E-\u226F\u2282-\u2283\u2286-\u2287\u2295\u2299\u22A5\u22BF\u2312\u2460-\u24B5\u24D0-\u24E9\u2500-\u254B\u2550-\u2574\u2581-\u258F\u2592-\u2595\u25A0-\u25A1\u25A3-\u25A9\u25B2-\u25B3\u25B6-\u25B7\u25BC-\u25BD\u25C0-\u25C1\u25C6-\u25C8\u25CB\u25CE-\u25D1\u25E2-\u25E5\u25EF\u2605-\u2606\u2609\u260E-\u260F\u261C\u261E\u2640\u2642\u2660-\u2661\u2663-\u2665\u2667-\u266A\u266C-\u266D\u266F\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2C6F\u2C71-\u2C7D\u2C80-\u2CE4\u2D00-\u2D25\u2D30-\u2D65\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u3000-\u3003\u3005-\u3017\u301D-\u301F\u3021-\u3029\u3031-\u3035\u3038-\u303C\u3041-\u3096\u309B-\u309F\u30A1-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31B7\u31F0-\u321C\u3220-\u3229\u3231-\u3232\u3239\u3260-\u327B\u327F\u32A3-\u32A8\u3303\u330D\u3314\u3318\u3322-\u3323\u3326-\u3327\u332B\u3336\u333B\u3349-\u334A\u334D\u3351\u3357\u337B-\u337E\u3380-\u3384\u3388-\u33CA\u33CD-\u33D3\u33D5-\u33D6\u33D8\u33DB-\u33DD\u3400-\u4DB5\u4E00-\u9FC3\uA000-\uA48C\uA500-\uA60C\uA610-\uA61F\uA62A-\uA62B\uA640-\uA65F\uA662-\uA66E\uA680-\uA697\uA722-\uA787\uA78B-\uA78C\uA7FB-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA90A-\uA925\uA930-\uA946\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAC00-\uD7A3\uE000-\uF848\uF900-\uFA2D\uFA30-\uFA6A\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40-\uFB41\uFB43-\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE30-\uFE31\uFE33-\uFE44\uFE49-\uFE52\uFE54-\uFE57\uFE59-\uFE66\uFE68-\uFE6B\uFE70-\uFE74\uFE76-\uFEFC\uFF01-\uFF5E\uFF61-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC\uFFE0-\uFFE6";
+	str_namedRanges          += "\\p{M}";
+	
+	var	str_namedSheetsRange  = "\u0001-\u0026\u0028-\u0029\u002B-\u002D\u003B-\u003E\u0040\u005E\u0060\u007B-\u007F\u0082\u0084\u008B\u0092\u0095\u0098\u009B\u00A0\u00A6\u00A9\u00AB-\u00AC\u00AE\u00BB\u0378-\u0379\u037E-\u0383\u0387\u038B\u038D\u03A2\u0524-\u0530\u0557-\u0558\u055A-\u0560\u0588-\u0590\u05BE\u05C0\u05C3\u05C6\u05C8-\u05CF\u05EB-\u05EF\u05F3-\u05FF\u0604-\u0605\u0609-\u060A\u060C-\u060D\u061B-\u061E\u0620\u065F\u066A-\u066D\u06D4\u0700-\u070E\u074B-\u074C\u07B2-\u07BF\u07F7-\u07F9\u07FB-\u0900\u093A-\u093B\u094E-\u094F\u0955-\u0957\u0964-\u0965\u0970\u0973-\u097A\u0980\u0984\u098D-\u098E\u0991-\u0992\u09A9\u09B1\u09B3-\u09B5\u09BA-\u09BB\u09C5-\u09C6\u09C9-\u09CA\u09CF-\u09D6\u09D8-\u09DB\u09DE\u09E4-\u09E5\u09FB-\u0A00\u0A04\u0A0B-\u0A0E\u0A11-\u0A12\u0A29\u0A31\u0A34\u0A37\u0A3A-\u0A3B\u0A3D\u0A43-\u0A46\u0A49-\u0A4A\u0A4E-\u0A50\u0A52-\u0A58\u0A5D\u0A5F-\u0A65\u0A76-\u0A80\u0A84\u0A8E\u0A92\u0AA9\u0AB1\u0AB4\u0ABA-\u0ABB\u0AC6\u0ACA\u0ACE-\u0ACF\u0AD1-\u0ADF\u0AE4-\u0AE5\u0AF0\u0AF2-\u0B00\u0B04\u0B0D-\u0B0E\u0B11-\u0B12\u0B29\u0B31\u0B34\u0B3A-\u0B3B\u0B45-\u0B46\u0B49-\u0B4A\u0B4E-\u0B55\u0B58-\u0B5B\u0B5E\u0B64-\u0B65\u0B72-\u0B81\u0B84\u0B8B-\u0B8D\u0B91\u0B96-\u0B98\u0B9B\u0B9D\u0BA0-\u0BA2\u0BA5-\u0BA7\u0BAB-\u0BAD\u0BBA-\u0BBD\u0BC3-\u0BC5\u0BC9\u0BCE-\u0BCF\u0BD1-\u0BD6\u0BD8-\u0BE5\u0BFB-\u0C00\u0C04\u0C0D\u0C11\u0C29\u0C34\u0C3A-\u0C3C\u0C45\u0C49\u0C4E-\u0C54\u0C57\u0C5A-\u0C5F\u0C64-\u0C65\u0C70-\u0C77\u0C80-\u0C81\u0C84\u0C8D\u0C91\u0CA9\u0CB4\u0CBA-\u0CBB\u0CC5\u0CC9\u0CCE-\u0CD4\u0CD7-\u0CDD\u0CDF\u0CE4-\u0CE5\u0CF0\u0CF3-\u0D01\u0D04\u0D0D\u0D11\u0D29\u0D3A-\u0D3C\u0D45\u0D49\u0D4E-\u0D56\u0D58-\u0D5F\u0D64-\u0D65\u0D76-\u0D78\u0D80-\u0D81\u0D84\u0D97-\u0D99\u0DB2\u0DBC\u0DBE-\u0DBF\u0DC7-\u0DC9\u0DCB-\u0DCE\u0DD5\u0DD7\u0DE0-\u0DF1\u0DF4-\u0E00\u0E3B-\u0E3E\u0E4F\u0E5A-\u0E80\u0E83\u0E85-\u0E86\u0E89\u0E8B-\u0E8C\u0E8E-\u0E93\u0E98\u0EA0\u0EA4\u0EA6\u0EA8-\u0EA9\u0EAC\u0EBA\u0EBE-\u0EBF\u0EC5\u0EC7\u0ECE-\u0ECF\u0EDA-\u0EDB\u0EDE-\u0EFF\u0F04-\u0F12\u0F3A-\u0F3D\u0F48\u0F6D-\u0F70\u0F85\u0F8C-\u0F8F\u0F98\u0FBD\u0FCD\u0FD0-\u0FFF\u104A-\u104F\u109A-\u109D\u10C6-\u10CF\u10FB\u10FD-\u10FF\u115A-\u115E\u11A3-\u11A7\u11FA-\u11FF\u1249\u124E-\u124F\u1257\u1259\u125E-\u125F\u1289\u128E-\u128F\u12B1\u12B6-\u12B7\u12BF\u12C1\u12C6-\u12C7\u12D7\u1311\u1316-\u1317\u135B-\u135E\u1361-\u1368\u137D-\u137F\u139A-\u139F\u13F5-\u1400\u166D-\u166E\u1677-\u167F\u169B-\u169F\u16EB-\u16ED\u16F1-\u16FF\u170D\u1715-\u171F\u1735-\u173F\u1754-\u175F\u176D\u1771\u1774-\u177F\u17D4-\u17D6\u17D8-\u17DA\u17DE-\u17DF\u17EA-\u17EF\u17FA-\u180A\u180F\u181A-\u181F\u1878-\u187F\u18AB-\u18FF\u191D-\u191F\u192C-\u192F\u193C-\u193F\u1941-\u1945\u196E-\u196F\u1975-\u197F\u19AA-\u19AF\u19CA-\u19CF\u19DA-\u19DF\u1A1C-\u1AFF\u1B4C-\u1B4F\u1B5A-\u1B60\u1B7D-\u1B7F\u1BAB-\u1BAD\u1BBA-\u1BFF\u1C38-\u1C3F\u1C4A-\u1C4C\u1C7E-\u1CFF\u1DE7-\u1DFD\u1F16-\u1F17\u1F1E-\u1F1F\u1F46-\u1F47\u1F4E-\u1F4F\u1F58\u1F5A\u1F5C\u1F5E\u1F7E-\u1F7F\u1FB5\u1FC5\u1FD4-\u1FD5\u1FDC\u1FF0-\u1FF1\u1FF5\u1FFF\u200e\u2011-\u2012\u2017\u2019-\u201B\u201E-\u201F\u2022-\u2024\u2031\u2034\u2036-\u203A\u203C-\u2043\u2045-\u2051\u2053-\u205E\u2065-\u2069\u2072-\u2073\u207D-\u207E\u208D-\u208F\u2095-\u209F\u20B6-\u20CF\u20F1-\u20FF\u2150-\u2152\u2189-\u218F\u2329-\u232A\u23E8-\u23FF\u2427-\u243F\u244B-\u245F\u269E-\u269F\u26BD-\u26BF\u26C4-\u2700\u2705\u270A-\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u275F-\u2760\u2768-\u2775\u2795-\u2797\u27B0\u27BF\u27C5-\u27C6\u27CB\u27CD-\u27CF\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC-\u29FD\u2B4D-\u2B4F\u2B55-\u2BFF\u2C2F\u2C5F\u2C70\u2C7E-\u2C7F\u2CEB-\u2CFC\u2CFE-\u2CFF\u2D26-\u2D2F\u2D66-\u2D6E\u2D70-\u2D7F\u2D97-\u2D9F\u2DA7\u2DAF\u2DB7\u2DBF\u2DC7\u2DCF\u2DD7\u2DDF\u2E00-\u2E2E\u2E30-\u2E7F\u2E9A\u2EF4-\u2EFF\u2FD6-\u2FEF\u2FFC-\u2FFF\u3018-\u301C\u3030\u303D\u3040\u3097-\u3098\u30A0\u3100-\u3104\u312E-\u3130\u318F\u31B8-\u31BF\u31E4-\u31EF\u321F\u3244-\u324F\u32FF\u4DB6-\u4DBF\u9FC4-\u9FFF\uA48D-\uA48F\uA4C7-\uA4FF\uA60D-\uA60F\uA62C-\uA63F\uA660-\uA661\uA673-\uA67B\uA67E\uA698-\uA6FF\uA78D-\uA7FA\uA82C-\uA83F\uA874-\uA87F\uA8C5-\uA8CF\uA8DA-\uA8FF\uA92F\uA954-\uA9FF\uAA37-\uAA3F\uAA4E-\uAA4F\uAA5A-\uABFF\uD7A4-\uD7FF\uFA2E-\uFA2F\uFA6B-\uFA6F\uFADA-\uFAFF\uFB07-\uFB12\uFB18-\uFB1C\uFB37\uFB3D\uFB3F\uFB42\uFB45\uFBB2-\uFBD2\uFD3E-\uFD4F\uFD90-\uFD91\uFDC8-\uFDEF\uFDFE-\uFDFF\uFE10-\uFE1F\uFE27-\uFE2F\uFE32\uFE45-\uFE48\uFE53\uFE58\uFE67\uFE6C-\uFE6F\uFE75\uFEFD-\uFEFE\uFF00\uFF5F-\uFF60\uFFBF-\uFFC1\uFFC8-\uFFC9\uFFD0-\uFFD1\uFFD8-\uFFD9\uFFDD-\uFFDF\uFFE7\uFFEF-\uFFF8\uFFFE-\uFFFF",
 		rx_operators          = /^ *[-+*\/^&%<=>:] */,
 		rg                    = new XRegExp("^((?:_xlfn.)?[\\p{L}\\d._]+ *)[-+*/^&%<=>:;\\(\\)]"),
 		//TODO для правки ввода формулы SUM(A1:B1.) - меняю rgRange/rgRangeR1C1 ,
@@ -2338,6 +2883,7 @@
 
 		rx_error              = build_rx_error(null),
 		rx_error_local        = build_rx_error(null),
+		rx_cell_func_local    = build_rx_cell_func(null),
 
 		rx_bool               = build_rx_bool(cBoolOrigin),
 		rx_bool_local         = rx_bool,
@@ -2349,6 +2895,7 @@
 		rg_str_allLang        = /[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0345\u0370-\u0374\u0376\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0527\u0531-\u0556\u0559\u0561-\u0587\u05B0-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u05D0-\u05EA\u05F0-\u05F2\u0610-\u061A\u0620-\u0657\u0659-\u065F\u066E-\u06D3\u06D5-\u06DC\u06E1-\u06E8\u06ED-\u06EF\u06FA-\u06FC\u06FF\u0710-\u073F\u074D-\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0817\u081A-\u082C\u0840-\u0858\u08A0\u08A2-\u08AC\u08E4-\u08E9\u08F0-\u08FE\u0900-\u093B\u093D-\u094C\u094E-\u0950\u0955-\u0963\u0971-\u0977\u0979-\u097F\u0981-\u0983\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD-\u09C4\u09C7\u09C8\u09CB\u09CC\u09CE\u09D7\u09DC\u09DD\u09DF-\u09E3\u09F0\u09F1\u0A01-\u0A03\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A3E-\u0A42\u0A47\u0A48\u0A4B\u0A4C\u0A51\u0A59-\u0A5C\u0A5E\u0A70-\u0A75\u0A81-\u0A83\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD-\u0AC5\u0AC7-\u0AC9\u0ACB\u0ACC\u0AD0\u0AE0-\u0AE3\u0B01-\u0B03\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D-\u0B44\u0B47\u0B48\u0B4B\u0B4C\u0B56\u0B57\u0B5C\u0B5D\u0B5F-\u0B63\u0B71\u0B82\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCC\u0BD0\u0BD7\u0C01-\u0C03\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D-\u0C44\u0C46-\u0C48\u0C4A-\u0C4C\u0C55\u0C56\u0C58\u0C59\u0C60-\u0C63\u0C82\u0C83\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCC\u0CD5\u0CD6\u0CDE\u0CE0-\u0CE3\u0CF1\u0CF2\u0D02\u0D03\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D-\u0D44\u0D46-\u0D48\u0D4A-\u0D4C\u0D4E\u0D57\u0D60-\u0D63\u0D7A-\u0D7F\u0D82\u0D83\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DF2\u0DF3\u0E01-\u0E3A\u0E40-\u0E46\u0E4D\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB9\u0EBB-\u0EBD\u0EC0-\u0EC4\u0EC6\u0ECD\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F71-\u0F81\u0F88-\u0F97\u0F99-\u0FBC\u1000-\u1036\u1038\u103B-\u103F\u1050-\u1062\u1065-\u1068\u106E-\u1086\u108E\u109C\u109D\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u135F\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F0\u1700-\u170C\u170E-\u1713\u1720-\u1733\u1740-\u1753\u1760-\u176C\u176E-\u1770\u1772\u1773\u1780-\u17B3\u17B6-\u17C8\u17D7\u17DC\u1820-\u1877\u1880-\u18AA\u18B0-\u18F5\u1900-\u191C\u1920-\u192B\u1930-\u1938\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A1B\u1A20-\u1A5E\u1A61-\u1A74\u1AA7\u1B00-\u1B33\u1B35-\u1B43\u1B45-\u1B4B\u1B80-\u1BA9\u1BAC-\u1BAF\u1BBA-\u1BE5\u1BE7-\u1BF1\u1C00-\u1C35\u1C4D-\u1C4F\u1C5A-\u1C7D\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u24B6-\u24E9\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2DE0-\u2DFF\u2E2F\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FCC\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA674-\uA67B\uA67F-\uA697\uA69F-\uA6EF\uA717-\uA71F\uA722-\uA788\uA78B-\uA78E\uA790-\uA793\uA7A0-\uA7AA\uA7F8-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA827\uA840-\uA873\uA880-\uA8C3\uA8F2-\uA8F7\uA8FB\uA90A-\uA92A\uA930-\uA952\uA960-\uA97C\uA980-\uA9B2\uA9B4-\uA9BF\uA9CF\uAA00-\uAA36\uAA40-\uAA4D\uAA60-\uAA76\uAA7A\uAA80-\uAABE\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEF\uAAF2-\uAAF5\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uABC0-\uABEA\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]/,
 		rx_name               = new XRegExp("^(?<name>" + "[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*)([-+*\\/^&%<=>: ;/\n/),]|$)"),
 		rx_defName            = new test_defName(),
+		rx_protectedRangeName = new test_rx_protectedRangeName(),
 		rx_arraySeparatorsDef = /^ *[,;] */,
 		rx_numberDef          = /^ *[+-]?\d*(\d|\.)\d*([eE][+-]?\d+)?/,
 		rx_CommaDef           = /^ *[,;] */,
@@ -2362,7 +2909,7 @@
 		hostnameRe            = /^(((https?)|(ftps?)):\/\/)?([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+\.)+[\wа-яё\-]{2,}(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
 		localRe               = /^(((https?)|(ftps?)):\/\/)([\-\wа-яё]*:?[\-\wа-яё]*@)?(([\-\wа-яё]+)(:\d+)?(\/[%\-\wа-яё]*(\.[\wа-яё]{2,})?(([\wа-яё\-\.\?\\\/+@&#;:`'~=%!,\(\)]*)(\.[\wа-яё]{2,})?)*)*\/?)/i,
 		fileRe                = /^((file):\/\/)[^'`"%^{}<>].*/i,//reserved symbols from word 2010
-		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa|smb):\/\/)|(mailto:)).*/i,
+		rx_allowedProtocols      = /(^((https?|ftps?|file|tessa|joplin|smb):\/\/)|(mailto:)).*/i,
 
 		rx_table              = build_rx_table(null),
 		rx_table_local        = build_rx_table(null);
@@ -2372,45 +2919,125 @@
 		//var regExpExceptExternalLink = /('?[a-zA-Z0-9\s\[\]\.]{1,99})?'?!?\$?[a-zA-Z]{1,3}\$?[0-9]{1,7}(:\$?[a-zA-Z]{1,3}\$?[0-9]{1,7})?/;
 
 		//'path/[name]Sheet1'!A1
-		var path, name, startLink, i;
-		if (url && url[0] === "'"/*url.match(/('[^\[]*\[[^\]]+\]([^'])+'!)/g)*/) {
-			for (i = url.length - 1; i >= 0; i--) {
-				if (url[i] === "!" && url[i - 1] === "'") {
-					startLink = true;
-					i--;
-					continue;
+		let path, name, startLink, i, exclamationMarkIndex;
+		if (url && url.indexOf("[") !== -1) {
+			//todo check on other separators, exm -> SUM(A2 '[new.xlsx]Sheet1'!A1 '[new.xlsx]Sheet1'!A2)
+			for (let j = 0; j < url.length; j++) {
+				if (!exclamationMarkIndex && url[j] === "!") {
+					exclamationMarkIndex = j;
 				}
-				if (startLink) {
-					if (name) {
-						if (url[i] === "[" && (url[i - 1] === "/" || url[i - 1] === "/\/" ||  url[i - 1] === "\\" || (url[i - 1] === "'") && i === 1)) {
-							break;
+				
+				if (url[j] === FormulaSeparators.functionArgumentSeparator || url[j] === FormulaSeparators.functionArgumentSeparatorDef || url[j] === ";")  {
+					url = url.substring(0, j);
+					break;
+				}
+			}
+
+
+			if (url && url[0] === "'"/*url.match(/('[^\[]*\[[^\]]+\]([^'])+'!)/g)*/) {
+				for (i = exclamationMarkIndex ? exclamationMarkIndex : url.length - 1; i >= 0; i--) {
+					if (url[i] === "!" && url[i - 1] === "'") {
+						startLink = true;
+						i--;
+						continue;
+					}
+					if (startLink) {
+						if (name) {
+							if (url[i] === "[" && (url[i - 1] === "/" || url[i - 1] === "/\/" ||  url[i - 1] === "\\" || (url[i - 1] === "'") && i === 1)) {
+								break;
+							} else {
+								name.end--;
+							}
 						} else {
-							name.end--;
-						}
-					} else {
-						if("]" === url[i]) {
-							name = {start: i, end: i};
+							if("]" === url[i]) {
+								name = {start: i, end: i};
+							}
 						}
 					}
 				}
-			}
-			if (name) {
-				var fullname = url.substring(0, name.start + 1);
-				path = url.substring(1, name.end - 1);
-				name = url.substring(name.end, name.start);
-				return {name: name, path: path, fullname: fullname};
-			}
-		} else if (url && url[0] === "[") { // [name]Sheet1!A1
-			for (i = 1; i < url.length; i++) {
-				if (url[i] === "]") {
-					return {name: url.substring(1, i), path: "", fullname:  url.substring(0, i + 1)};
+				if (name) {
+					var fullname = url.substring(0, name.start + 1);
+					path = url.substring(1, name.end - 1);
+					name = url.substring(name.end, name.start);
+					return {name: name, path: path, fullname: fullname};
 				}
-			}
-		} else if (true) { //https://s3.amazonaws.com/nct-files/xlsx/[ExternalLinksDestination.xlsx]Sheet1!A1:A2
+			} else if (url && url[0] === "[") { // [name]Sheet1!A1
+				for (i = 1; i < url.length; i++) {
+					if (url[i] === "]") {
+						return {name: url.substring(1, i), path: "", fullname:  url.substring(0, i + 1)};
+					}
+				}
+			} else if (true) { //https://s3.amazonaws.com/nct-files/xlsx/[ExternalLinksDestination.xlsx]Sheet1!A1:A2
 
+			}
 		}
 
 		return null;
+	}
+
+	function isExternalShortLink (string) {
+		// short links that ms writes as [externalLink] + "!" + "Defname"
+		// strings come in "!"+"Defname" format only after external
+		if (string[0] !== "!") {
+			return null;
+		}
+
+		let secondPartOfString = string.slice(1);
+		let defname = XRegExp.exec(secondPartOfString, rx_name);
+
+		if (defname && defname["name"]) {
+			defname = defname["name"];
+		}
+
+		if (!defname || !AscCommon.rx_defName.test(defname)) {
+			return null;
+		}
+
+		return {
+			externalLink: "",
+			defname: defname,
+			fullString: "!" + defname,
+		}
+	}
+
+	function isExternalShortLinkLocal (string) {
+		// short links that user writes as "'externalLinkWithoutBrackets'" + "!" + "Defname"  -  "'DefTest.xlsx'!_s1"
+		// we split the string into two parts, where the separator is an exclamation point
+		if (!string) {
+			return null;
+		}
+
+		let shortLinkReg = /[\<\>\?\[\]\\\/\|\*\+\"\:\']/;	// reg contains special characters that are not allowed in the shortLink
+
+		let linkInQuotes;
+		let exclamationMarkIndex = string.indexOf("!");
+		let externalLink = exclamationMarkIndex !== -1 ? string.substring(0, exclamationMarkIndex) : null;
+		let secondPartOfString = exclamationMarkIndex !== -1 ? string.substring(exclamationMarkIndex + 1) : null;
+
+		let defname = XRegExp.exec(secondPartOfString, rx_name);
+		if (defname && defname["name"]) {
+			defname = defname["name"];
+		}
+
+		if (externalLink && externalLink[0] === "'" && externalLink[externalLink.length - 1] === "'") {
+			externalLink = externalLink.substring(1, externalLink.length - 1);
+			linkInQuotes = true;
+		}
+
+		if (!externalLink || !defname || shortLinkReg.test(externalLink) || !AscCommon.rx_defName.test(defname)) {
+			return null;
+		}
+
+		// external link without quotes is parsed using a regular parser for the name
+		if (!linkInQuotes && !rx_test_ws_name.test(externalLink)) {
+			return null;
+		}
+
+		return {
+			externalLink: externalLink,
+			defname: defname,
+			fullString: linkInQuotes ? ("'" + externalLink + "'" + "!" + defname) : (externalLink + "!" + defname)
+		}
 	}
 
 	function isValidFileUrl(url) {
@@ -2812,7 +3439,32 @@
 
 		return false;
 	};
-	parserHelper.prototype.is3DRef = function (formula, start_pos, support_digital_start)
+	/**
+	 * Checks if the provided formula is a 3D reference.
+	 *
+	 * A 3D reference in the context of formulas typically indicates a range of cells 
+	 * that can span multiple sheets in an Excel workbook. This function analyzes 
+	 * the formula to determine if it conforms to the format of a 3D reference.
+	 *
+	 * The function processes the formula starting from the specified position, 
+	 * handling external links, short links, and various formats of references.
+	 *
+	 * @param {string} formula - The formula to be checked for 3D reference.
+	 * @param {number} start_pos - The starting position in the formula for analysis.
+	 * @param {boolean} support_digital_start - Indicates whether the function 
+	 *     supports digital start references (e.g., "1Sheet").
+	 * @param {boolean} local - the flag that indicate is local context used or not, that may be used during 
+	 *     the analysis of the formula.
+	 * @returns {[boolean, (string|null), (string|null), (string|null), (number|Object|null), (string|null)]} 
+	 * Returns an array containing:
+	 * - A boolean indicating if the formula is a 3D reference.
+	 * - The name of the starting sheet or null if not applicable.
+	 * - The name of the ending sheet or null if not applicable.
+	 * - The external link if applicable, or null.
+	 * - The length of the external link if not applicable, or shortLink info object if it exists.
+	 * - The supposed defname or null.
+	 */
+	parserHelper.prototype.is3DRef = function (formula, start_pos, support_digital_start, local)
 	{
 		if (this instanceof parserHelper)
 		{
@@ -2833,19 +3485,45 @@
 			//необходимо вычленить имя файла и путь к нему, затем проверить путь
 			//если путь указан, то ссылка должна быть в одинарных кавычках, если указан просто название файла в [] - в мс это означает, что данный файл открыт, при его закрытии путь проставляется
 			//пока не реализовываем с открытыми файлами, работаем только с путями
+			//также ссылки типа [] + ! + Defname должны обрабатываться аналогично как [] + SheetName + ! + Defname
 			external = parseExternalLink(subSTR);
 			if (external) {
+				if (external.name && (external.name.indexOf("[") !== -1 || external.name.indexOf(":") !== -1)) {
+					// if the name contains '[' and ':' , then we return an error
+					return [false, null, null, external, externalLength];
+				}
+
 				externalLength = external.fullname.length;
 				subSTR = formula.substring(start_pos + externalLength);
-				if (-1 !== subSTR.indexOf("'")) {
-					externalLength += 1;
+				const posQuote =  subSTR.indexOf("'");
+				if (-1 !== posQuote) {
+					externalLength -= 1;
+					subSTR = "'" + subSTR;
 				}
-				subSTR = subSTR.replace("'", "");
+
 				external = external.path + external.name;
 			}
 		}
 
-		var match  = XRegExp.exec(subSTR, rx_ref3D_quoted) || XRegExp.exec(subSTR, rx_ref3D_non_quoted);
+		/* current file check */
+		let currentFileName = window["Asc"]["editor"].DocInfo && window["Asc"]["editor"].DocInfo.get_Title();
+
+		/* shortlink return obj {fullstring, externalLink, defname} */
+		let shortLink = isExternalShortLink(subSTR) || (local && !external && isExternalShortLinkLocal(subSTR));
+
+		if (shortLink) {
+			if ((shortLink.externalLink && shortLink.externalLink === currentFileName) || external === "0") {
+				external = null;
+				shortLink.currentFile = true;
+			}
+
+			this.pCurrPos += shortLink.fullString.length + externalLength;
+			this.operand_str = shortLink.defname;
+			return [true, null, null, external, shortLink];
+		}
+
+		let match = XRegExp.exec(subSTR, rx_ref3D_quoted) || XRegExp.exec(subSTR, rx_ref3D_non_quoted);
+		
 		if(!match && support_digital_start) {
 			match = XRegExp.exec(subSTR, rx_ref3D_non_quoted_2);
 		}
@@ -2854,9 +3532,17 @@
 		{
 			this.pCurrPos += match[0].length + externalLength;
 			this.operand_str = match[1];
-			return [true, match["name_from"] ? match["name_from"].replace(/''/g, "'") : null, match["name_to"] ? match["name_to"].replace(/''/g, "'") : null, external];
+
+			let currentFileDefname;
+			if (external && external === currentFileName) {
+				let exclamationMarkIndex = subSTR.lastIndexOf("!");
+				let defname = exclamationMarkIndex !== -1 ? subSTR.slice(exclamationMarkIndex + 1) : null;
+				currentFileDefname = defname ? defname : null;
+			}
+
+			return [true, match["name_from"] ? match["name_from"].replace(/''/g, "'") : null, match["name_to"] ? match["name_to"].replace(/''/g, "'") : null, external, null, currentFileDefname];
 		}
-		return [false, null, null];
+		return [false, null, null, external, externalLength];
 	};
 	parserHelper.prototype.isNextPtg = function (formula, start_pos, digitDelim)
 	{
@@ -3194,9 +3880,8 @@
 		{
 			this._reset();
 		}
-
-		var subSTR = formula.substring(start_pos),
-			match  = XRegExp.exec(subSTR, local ? rx_table_local : rx_table);
+		let subSTR = formula.substring(start_pos),
+		match = XRegExp.exec(subSTR, local ? rx_table_local : rx_table);
 
 		if (match != null && match["tableName"])
 		{
@@ -3205,6 +3890,71 @@
 			return match;
 		}
 
+		return false;
+	};
+	parserHelper.prototype.isPivot = function (formula, start_pos, local, opt_namesList)
+	{
+		if (this instanceof parserHelper)
+		{
+			this._reset();
+		}
+		const subSTR = formula.substring(start_pos);
+		const fullPatterns = [];
+		for (let i = 0; i < opt_namesList[0].length; i += 1) {
+			for (let j = 0; j < opt_namesList[1].length; j += 1) {
+				fullPatterns.push('^(' + opt_namesList[0][i] + ')\\s*\\[\\s*(' + opt_namesList[1][j] + ')\\s*\\]');
+			}
+		}
+		const fullRegs = fullPatterns.map(function(pattern) {
+			return new RegExp(pattern, 'i');
+		});
+		for (let i = 0; i < fullRegs.length; i += 1) {
+			const match = fullRegs[i].exec(subSTR);
+			if (match !== null) {
+				this.operand_str = match[0];
+				this.pCurrPos += match[0].length;
+				return [match[1], match[2]];
+			}
+		}
+		const shortPatterns = opt_namesList[1].map(function(name) {
+			return '^(' + name + ')(?:\\W|$)'
+		});
+		const shortRegs = shortPatterns.map(function(pattern) {
+			return new RegExp(pattern, 'i');
+		});
+		for (let i = 0; i < shortRegs.length; i += 1) {
+			const match = shortRegs[i].exec(subSTR);
+			if (match !== null) {
+				this.operand_str = match[1];
+				this.pCurrPos += match[1].length;
+				return [null, match[2] ? match[2] : match[1]];
+			}
+		}
+		return false;
+	};
+	parserHelper.prototype.isPivotRaw = function (formula, start_pos, local)
+	{
+		if (this instanceof parserHelper)
+		{
+			this._reset();
+		}
+		const subSTR = formula.substring(start_pos);
+		const reg = XRegExp.build('(?x) ^({{fieldName}})\\[({{itemName}})\\]', {
+			'fieldName': XRegExp.build('{{simple}}|{{quotes}}', {
+				'simple': '[\\p{L}_][\\p{L}\\p{N}_]*',
+				'quotes': "\\'.+?\\'(?!\\')",
+			}),
+			'itemName': XRegExp.build('{{simple}}|{{quotes}}', {
+				'simple': '[\\p{L}\\p{N}_]+',
+				'quotes': "\\'.+?\\'(?!\\')",
+			})
+		});
+		const match = reg.exec(subSTR);
+		if (match !== null && match[1] && match[2]) {
+			this.operand_str = match[0];
+			this.pCurrPos += match[0].length;
+			return [match[1], match[2]];
+		}
 		return false;
 	};
 // Парсим ссылку на диапазон в листе
@@ -3247,8 +3997,11 @@
 		}
 	};
 // Возвращает экранируемое название листа
-	parserHelper.prototype.getEscapeSheetName = function (sheet)
+	parserHelper.prototype.getEscapeSheetName = function (sheet, shortLink)
 	{
+		if (shortLink) {
+			return rx_test_ws_name.test(sheet) ? sheet : sheet.replace(/'/g, "''");
+		}
 		return rx_test_ws_name.test(sheet) ? sheet : "'" + sheet.replace(/'/g, "''") + "'";
 	};
 	/**
@@ -3264,8 +4017,9 @@
 	 */
 	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, subType)
 	{
-		var result, range, sheetModel, checkChangeRange;
-		if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
+		let result, range, sheetModel, checkChangeRange;
+		let cDialogType = Asc.c_oAscSelectionDialogType;
+		if (cDialogType.Chart === dialogType)
 		{
 			if(dataRange)
 			{
@@ -3275,7 +4029,7 @@
 				}
 			}
 		}
-		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType)
+		else if(cDialogType.PivotTableData === dialogType || cDialogType.PivotTableReport === dialogType || cDialogType.ImportXml === dialogType)
 		{
 			result = parserHelp.parse3DRef(dataRange);
 			if (result)
@@ -3285,7 +4039,7 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
-			} else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType) {
+			} else if (cDialogType.PivotTableReport === dialogType || cDialogType.ImportXml === dialogType) {
 				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
@@ -3295,7 +4049,7 @@
 				range = parserHelp.isTable(dataRange, 0, true);
 			}
 		}
-		else if(Asc.c_oAscSelectionDialogType.PrintTitles === dialogType)
+		else if(cDialogType.PrintTitles === dialogType)
 		{
 			if(dataRange === "")
 			{
@@ -3306,7 +4060,7 @@
 				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 		}
-		else if (Asc.c_oAscSelectionDialogType.DataValidation === dialogType)
+		else if (cDialogType.DataValidation === dialogType)
 		{
 			if (dataRange === null || dataRange === "") {
 				return Asc.c_oAscError.ID.DataValidateMustEnterValue;
@@ -3327,19 +4081,20 @@
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 		}
 
-		if (!range && Asc.c_oAscSelectionDialogType.DataValidation !== dialogType && Asc.c_oAscSelectionDialogType.ConditionalFormattingRule !== dialogType)
+		if (!range && cDialogType.DataValidation !== dialogType && cDialogType.ConditionalFormattingRule !== dialogType && cDialogType.GoalSeek_Cell !== dialogType &&
+			cDialogType.GoalSeek_ChangingCell !== dialogType)
 		{
 			return Asc.c_oAscError.ID.DataRangeError;
 		}
 
 		if (fullCheck)
 		{
-			if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
+			if (cDialogType.Chart === dialogType)
 			{
 				var oDataRefs = new AscFormat.CChartDataRefs(null);
 				return oDataRefs.checkDataRange(dataRange, isRows, subType);
 			}
-			else if (Asc.c_oAscSelectionDialogType.FormatTable === dialogType)
+			else if (cDialogType.FormatTable === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
 				if (true === wb.getWorksheet().model.autoFilters.isRangeIntersectionTableOrFilter(range)) {
@@ -3350,26 +4105,26 @@
 					return Asc.c_oAscError.ID.LargeRangeWarning;
 				}
 			}
-			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
+			else if (cDialogType.FormatTableChangeRange === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
 				checkChangeRange = wb.getWorksheet().af_checkChangeRange(range);
 				if (null !== checkChangeRange)
 					return checkChangeRange;
 			}
-			else if(Asc.c_oAscSelectionDialogType.CustomSort === dialogType)
+			else if(cDialogType.CustomSort === dialogType)
 			{
 				checkChangeRange = wb.getWorksheet().checkCustomSortRange(range, isRows);
 				if (null !== checkChangeRange)
 					return checkChangeRange;
 			}
-			else if (Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
+			else if (cDialogType.PivotTableData === dialogType)
 			{
 				if (!Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRange)) {
 					return Asc.c_oAscError.ID.PivotLabledColumns;
 				}
 			}
-			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType || Asc.c_oAscSelectionDialogType.ImportXml === dialogType)
+			else if (cDialogType.PivotTableReport === dialogType || cDialogType.ImportXml === dialogType)
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
@@ -3377,7 +4132,7 @@
 					if (!sheetModel) {
 						sheetModel = model.getActiveWs();
 					}
-					if (Asc.c_oAscSelectionDialogType.ImportXml === dialogType) {
+					if (cDialogType.ImportXml === dialogType) {
 						return sheetModel.checkImportXmlLocationForError([location.bbox]);
 					} else {
 						var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
@@ -3387,7 +4142,7 @@
 					return Asc.c_oAscError.ID.DataRangeError;
 				}
 			}
-			else if (Asc.c_oAscSelectionDialogType.DataValidation === dialogType)
+			else if (cDialogType.DataValidation === dialogType)
 			{
 				var dataValidaionTest = AscCommonExcel.CDataValidation.prototype.isValidDataRef(model.getActiveWs(), dataRange, subType);
 				if (null !== dataValidaionTest)
@@ -3395,7 +4150,7 @@
 					return dataValidaionTest;
 				}
 			}
-			else if (Asc.c_oAscSelectionDialogType.ConditionalFormattingRule === dialogType)
+			else if (cDialogType.ConditionalFormattingRule === dialogType)
 			{
 
 				if (dataRange === null || dataRange === "")
@@ -3422,7 +4177,25 @@
 					}
 				}
 			}
+			else if (cDialogType.GoalSeek_Cell === dialogType || cDialogType.GoalSeek_ChangingCell === dialogType)
+			{
+				result = parserHelp.parse3DRef(dataRange);
+				if (result)
+				{
+					sheetModel = model.getWorksheetByName(result.sheet);
+					if (sheetModel)
+					{
+						range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 		}
+				}
+
+				if (!sheetModel) {
+					sheetModel = model.getActiveWs();
+				}
+				return AscCommonExcel.CGoalSeek.prototype.isValidDataRef(sheetModel, range, dialogType);
+			}
+		}
+
 		return Asc.c_oAscError.ID.No;
 	};
 	parserHelper.prototype.setDigitSeparator = function (sep)
@@ -3528,12 +4301,21 @@
 		}
 		return null;
 	};
+	parserHelper.prototype.escapeTableCharacters = function (string, doEscape) {
+		if (!string) {
+			return "";
+		}
+		
+		// make escape for the special character inside the string
+		if (doEscape) {
+			return string.replace(/(['#@\[\]])/g, "'$1");
+		}
+
+		// return only the character from the capture group(without escaping)
+		return string.replace(/'(['#@\[\]])/g, "$1");
+	};
 
 	var parserHelp = new parserHelper();
-
-	var g_oHtmlCursor = new CHTMLCursor();
-	var kCurFormatPainterWord = 'de-formatpainter';
-	g_oHtmlCursor.register(kCurFormatPainterWord, "text_copy", "2 11", "pointer");
 
 	function asc_ajax(obj)
 	{
@@ -3679,13 +4461,18 @@
 		this.m_bRead = false;
 		this.m_nIdCounterLoad = 0; // Счетчик Id для загрузки
 		this.m_nIdCounterEdit = 0; // Счетчик Id для работы
-		
+
 		this.m_nOFormLoadCounter = 0;
 		this.m_nOFormEditCounter = 0;
+		
+		this.m_nTurnOffCounter = 0;
 	}
 
 	CIdCounter.prototype.Get_NewId = function ()
 	{
+		if (!AscCommon.g_oTableId.IsOn())
+			return ("off_" + (++this.m_nTurnOffCounter));
+		
 		if (true === this.m_bLoad || null === this.m_sUserId)
 		{
 			this.m_nIdCounterLoad++;
@@ -3782,6 +4569,11 @@
 				oLogicDocument.Document_UpdateInterfaceState(false);
 			}
 		}
+		let oCustomProperties = oApi.getCustomProperties && oApi.getCustomProperties();
+		if(oCustomProperties && oCustomProperties.Lock === this)
+		{
+			oApi.sendEvent("asc_onCustomPropertiesLocked", this.Is_Locked());
+		}
 	};
 	CLock.prototype.Check = function (Id)
 	{
@@ -3850,13 +4642,17 @@
 	{
 		this.m_aChanges.length = 0;
 	};
-	CContentChanges.prototype.Check = function (Type, Pos)
+	CContentChanges.prototype.GetPos = function(pos)
+	{
+		return this.Check(AscCommon.contentchanges_Remove, pos, true);
+	};
+	CContentChanges.prototype.Check = function (Type, Pos, checkPos)
 	{
 		var CurPos = Pos;
 		var Count = this.m_aChanges.length;
 		for (var Index = 0; Index < Count; Index++)
 		{
-			var NewPos = this.m_aChanges[Index].Check_Changes(Type, CurPos);
+			var NewPos = this.m_aChanges[Index].Check_Changes(Type, CurPos, checkPos);
 			if (false === NewPos)
 				return false;
 
@@ -3909,20 +4705,23 @@
 		this.m_pData.Binary.Pos = Binary_Pos;
 		this.m_pData.Binary.Len = Binary_Len;
 	};
-	CContentChangesElement.prototype.Check_Changes = function (Type, Pos)
+	CContentChangesElement.prototype.Check_Changes = function (Type, Pos, checkPos)
 	{
 		var CurPos = Pos;
-		if (contentchanges_Add === Type)
+		if (AscCommon.contentchanges_Add === Type)
 		{
 			for (var Index = 0; Index < this.m_nCount; Index++)
 			{
 				if (false !== this.m_aPositions[Index])
 				{
 					if (CurPos <= this.m_aPositions[Index])
-						this.m_aPositions[Index]++;
+					{
+						if (!checkPos)
+							this.m_aPositions[Index]++;
+					}
 					else
 					{
-						if (contentchanges_Add === this.m_nType)
+						if (AscCommon.contentchanges_Add === this.m_nType)
 							CurPos++;
 						else //if ( contentchanges_Remove === this.m_nType )
 							CurPos--;
@@ -3934,29 +4733,35 @@
 		{
 			for (var Index = 0; Index < this.m_nCount; Index++)
 			{
-				if (false !== this.m_aPositions[Index])
+				if (false === this.m_aPositions[Index])
+					continue;
+				
+				if (CurPos < this.m_aPositions[Index])
 				{
-					if (CurPos < this.m_aPositions[Index])
+					if (!checkPos)
 						this.m_aPositions[Index]--;
-					else if (CurPos > this.m_aPositions[Index])
+				}
+				else if (CurPos > this.m_aPositions[Index])
+				{
+					if (AscCommon.contentchanges_Add === this.m_nType)
+						CurPos++;
+					else //if ( contentchanges_Remove === this.m_nType )
+						CurPos--;
+				}
+				else //if ( CurPos === this.m_aPositions[Index] )
+				{
+					if (AscCommon.contentchanges_Remove === this.m_nType)
 					{
-						if (contentchanges_Add === this.m_nType)
-							CurPos++;
-						else //if ( contentchanges_Remove === this.m_nType )
-							CurPos--;
-					}
-					else //if ( CurPos === this.m_aPositions[Index] )
-					{
-						if (AscCommon.contentchanges_Remove === this.m_nType)
-						{
-							// Отмечаем, что действия совпали
+						// Мы попали в позицию, удаленную другим пользователем
+						// Если наше действие удаляем тоже самое место, то помечаем, что удалять ничего не нужно
+						if (!checkPos)
 							this.m_aPositions[Index] = false;
-							return false;
-						}
-						else
-						{
-							CurPos++;
-						}
+						
+						return false;
+					}
+					else
+					{
+						CurPos++;
 					}
 				}
 			}
@@ -4005,11 +4810,17 @@
 	/**
 	 * Конвертируем миллиметры в ближайшее целое значение твипсов
 	 * @param mm - значение в миллиметрах
+	 * @param [mode=0]
 	 * @returns {number}
 	 */
-	function MMToTwips(mm)
+	function MMToTwips(mm, mode)
 	{
-		return (((mm * 20 * 72 / 25.4) + 0.5) | 0);
+		if (!mode)
+			return Math.trunc((mm * 20 * 72 / 25.4) + 0.5);
+		else if (-1 === mode)
+			return Math.floor((mm * 20 * 72 / 25.4) + 0.5);
+		else
+			return Math.ceil((mm * 20 * 72 / 25.4) + 0.5);
 	}
 
 	/**
@@ -4079,9 +4890,102 @@
 		return (nFirstCharCode - 64) + 26 * (nLen - 1);
 	}
 
+	function RussianNumberingToInt(sLetters)
+	{
+		sLetters = sLetters.toUpperCase();
+
+		if (sLetters.length <= 0)
+			return NaN;
+
+		const nLen = sLetters.length;
+		const nFirstCharCode = sLetters[0].charCodeAt(0);
+		let nSub;
+		if (1040 <= nFirstCharCode && nFirstCharCode <= 1048)
+		{
+			nSub = 1039;
+		}
+		else if (1050 <= nFirstCharCode && nFirstCharCode <= 1065)
+		{
+			nSub = 1040;
+		}
+		else if (1069 <= nFirstCharCode && nFirstCharCode <= 1071)
+		{
+			nSub = 1042;
+		}
+		else if (nFirstCharCode === 1067)
+		{
+			nSub = 1041;
+		}
+
+		if (!nSub)
+			return NaN;
+
+		for (let nPos = 1; nPos < nLen; ++nPos)
+		{
+			if (sLetters.charCodeAt(nPos) !== nFirstCharCode)
+				return NaN;
+		}
+		return nFirstCharCode - nSub + 29 * (nLen - 1);
+	}
+
 	function repeatNumberingLvl(num, nLastTrueSymbol)
 	{
 		return ((num - 1) % nLastTrueSymbol) + 1;
+	}
+
+	function getANDConjunctionLang(nLang)
+	{
+		const sLang = languages[nLang];
+		switch (sLang)
+		{
+			case "tr-TR":
+				return "ve";
+			case 'fr-FR':
+				return "et";
+			case 'de-DE':
+				return "und";
+			case 'es-ES':
+				return "con";
+			case 'nl-NL':
+				return "en";
+			case 'sv-SE':
+			case 'sk-SK':
+				return "";
+			case 'pt-BR':
+			case 'pt-PT':
+			case 'it-IT':
+				return "e";
+			case 'el-GR':
+				return "και";
+			case "sr-Cyrl-RS":
+			case 'pl-PL':
+			case "sr-Latn-RS":
+				return "i";
+			case 'cs-CZ':
+				return "a";
+			case 'ru-RU':
+				return "и";
+			case "eu-ES":
+				return "koma";
+			case "hy-AM":
+			case "gl-ES":
+			case 'ko-KR':
+			case 'vi-VN':
+			case 'zh-CN':
+			case 'ja-JP':
+			case 'en-GB':
+			case "ms-MY":
+			case 'bg-BG':
+			case 'lv-LV':
+			case 'az-Latn-AZ':
+			case "si-LK":
+			case "ar-SA":
+			case 'en-US':
+			case "zh-TW":
+			case 'uk-UA':
+			default:
+				return "and";
+		}
 	}
 
 	function getAlphaBetForOrdinalText(language)
@@ -4089,8 +4993,126 @@
 		var alphaBet = {};
 		switch (language)
 		{
+			case "sr-Cyrl-RS": {
+				alphaBet = {
+					"нула"      : "нулти",
+					"један"     : "први",
+					"два"       : "други",
+					"три"       : "трећи",
+					"четири"    : "четврти",
+					"пет"       : "пети",
+					"шест"      : "шести",
+					"седам"     : "седми",
+					"осам"      : "осми",
+					"девет"     : "девети",
+					"десет"     : "десети",
+					"једанаест" : "једанаести",
+					"дванаест"  : "дванаести",
+					"тринаест"  : "тринаести",
+					"четрнаест" : "четрнаести",
+					"петнаест"  : "петнаести",
+					"шеснаест"  : "шеснаести",
+					"седамнаест": "седамнаести",
+					"осамнаест" : "осамнаести",
+					"деветнаест": "деветнаести",
+					"двадесет"  : "двадесети",
+					"тридесет"  : "тридесети",
+					"четрдесет" : "четрдесети",
+					"педесет"   : "педесети",
+					"шездесет"  : "шездесети",
+					"седамдесет": "седамдесети",
+					"осамдесет" : "осамдесети",
+					"деведесет" : "деведесети",
+					"сто"       : "стоти",
+					"двјесто"   : "двјестоти",
+					"тристо"    : "тристоти",
+					"четиристо" : "четиристоти",
+					"петсто"    : "петстоти",
+					"шесто"     : "шестстоти",
+					"седамсто"  : "седамстоти",
+					"осамсто"   : "осамстоти",
+					"деветсто"  : "деветстоти",
+					"тисућу"    : "тисућити",
+					"тисуће"    : "тисућити",
+					"тисућа"    : "тисућити"
+				};
+				break;
+			}
+			case "sr-Latn-RS": {
+				alphaBet = {
+					"nula"      : "nulti",
+					"jedan"     : "prvi",
+					"dva"       : "drugi",
+					"tri"       : "treći",
+					"četiri"    : "četvrti",
+					"pet"       : "peti",
+					"šest"      : "šesti",
+					"sedam"     : "sedmi",
+					"osam"      : "osmi",
+					"devet"     : "deveti",
+					"deset"     : "deseti",
+					"jedanaest" : "jedanaesti",
+					"dvanaest"  : "dvanaesti",
+					"trinaest"  : "trinaesti",
+					"četrnaest" : "četrnaesti",
+					"petnaest"  : "petnaesti",
+					"šesnaest"  : "šesnaesti",
+					"sedamnaest": "sedamnaesti",
+					"osamnaest" : "osamnaesti",
+					"devetnaest": "devetnaesti",
+					"dvadeset"  : "dvadeseti",
+					"trideset"  : "trideseti",
+					"četrdeset" : "četrdeseti",
+					"pedeset"   : "pedeseti",
+					"šezdeset"  : "šezdeseti",
+					"sedamdeset": "sedamdeseti",
+					"osamdeset" : "osamdeseti",
+					"devedeset" : "devedeseti",
+					"sto"       : "stoti",
+					"dvjesto"   : "dvjestoti",
+					"tristo"    : "tristoti",
+					"četiristo" : "četiristoti",
+					"petsto"    : "petstoti",
+					"šesto"     : "šeststoti",
+					"sedamsto"  : "sedamstoti",
+					"osamsto"   : "osamstoti",
+					"devetsto"  : "devetstoti",
+					"tisuću"    : "tisućiti",
+					"tisuće"    : "tisućiti",
+					"tisuća"    : "tisućiti"
+
+				};
+				break;
+			}
+			case "tr-TR": {
+				alphaBet = {
+					"sıfır" : "sıfırıncı",
+					"bir"   : "birinci",
+					"iki"   : "ikinci",
+					"üç"    : "üçüncü",
+					"dört"  : "dördüncü",
+					"beş"   : "beşinci",
+					"altı"  : "altıncı",
+					"yedi"  : "yedinci",
+					"sekiz" : "sekizinci",
+					"dokuz" : "dokuzuncu",
+					"on"    : "onuncu",
+					"yirmi" : "yirminci",
+					"otuz"  : "otuzuncu",
+					"kırk"  : "kırkıncı",
+					"elli"  : "ellinci",
+					"altmış": "altmışıncı",
+					"yetmiş": "yetmişinci",
+					"seksen": "sekseninci",
+					"doksan": "doksanıncı",
+					"yüz"   : "yüzüncü",
+					"bin"   : "bininci"
+				};
+				break;
+			}
 			case "bg-BG":
 				alphaBet = {
+					0: ['нулевят'],
 					1:
 						{
 						'един': 'първият',
@@ -4119,6 +5141,7 @@
 				break;
 			case "cs-CZ":
 				alphaBet = {
+					'nula': 'nultý',
 					'jedna': 'první',
 					'dva': 'druhý',
 					'tři': 'třetí',
@@ -4161,6 +5184,7 @@
 				break;
 			case "de-DE":
 				alphaBet = {
+					'null': 'nullte',
 					'eins': 'erste',
 					'zwei': 'zweite',
 					'drei': 'dritte',
@@ -4184,6 +5208,7 @@
 				break;
 			case "el-GR":
 				alphaBet = {
+					0: ['μηδενικό'],
 					1: [
 						'πρώτο',
 						'δεύτερο',
@@ -4252,6 +5277,7 @@
 				break;
 			case "es-ES":
 				alphaBet = {
+					'cero': 'cero',
 					'uno': 'primero',
 					'dos': 'segundo',
 					'tres': 'tercero',
@@ -4299,6 +5325,7 @@
 				break;
 			case "it-IT":
 				alphaBet = {
+					'zero': 'zero',
 					'uno': 'primo',
 					'due': 'secondo',
 					'tre': 'terzo',
@@ -4313,6 +5340,7 @@
 				break;
 			case "lv-LV":
 				alphaBet = {
+					'nulle': 'nultais',
 					'viens': 'pirmais',
 					'divi': 'otrais',
 					'trīs': 'trešais',
@@ -4353,6 +5381,7 @@
 					},
 					'numbers':
 					{
+						'zero': 'zerowy',
 						'jeden': 'pierwszy',
 						'dwa': 'drugi',
 						'trzy': 'trzeci',
@@ -4441,6 +5470,7 @@
 			case "pt-BR":
 			case "pt-PT":
 				alphaBet = {
+					'zero': 'zero',
 					'um': 'primeiro',
 					'dois': 'segundo',
 					'três': 'terceiro',
@@ -4485,6 +5515,7 @@
 				alphaBet = {
 					'numbers':
 					{
+						'ноль': 'нулевой',
 						'один': 'первый',
 						'два': 'второй',
 						'три': 'третий',
@@ -4573,6 +5604,7 @@
 				break;
 			case "sk-SK":
 				alphaBet = {
+					'nula': 'nultý',
 					'jeden': 'prvý',
 					'dva': 'druhý',
 					'tri': 'tretí',
@@ -4637,6 +5669,7 @@
 				break;
 			case "sv-SE":
 				alphaBet = {
+					'noll': 'nollte',
 					'ett': 'första',
 					'två': 'andra',
 					'tre': 'tredje',
@@ -4655,6 +5688,7 @@
 				alphaBet = {
 					'numbers':
 					{
+						"нуль": "нульовий",
 						"один": "перший",
 						"два": "другий",
 						"три": "третій",
@@ -4746,6 +5780,12 @@
 			case 'ko-KR':
 			case 'az-Latn-AZ':
 			case 'en-US':
+			case 'si-LK':
+			case 'ar-SA':
+			case 'gl-ES':
+			case 'hy-AM':
+			case 'ms-MY':
+			case 'zh-TW':
 			case 'vi-VN':
 			case 'en-GB':
 			default:
@@ -4773,8 +5813,79 @@
 		var alphaBet = {};
 		switch (language)
 		{
+			case "eu-ES":
+				alphaBet = {
+					0  : ["zero"],
+					1  : [
+						"bat",
+						"bi",
+						"hiru",
+						"lau",
+						"bost",
+						"sei",
+						"zazpi",
+						"zortzi",
+						"bederatzi",
+						"hamar",
+						"hamaika",
+						"hamabi",
+						"hamairu",
+						"hamalau",
+						"hamabost",
+						"hamasei",
+						"hamazazpi",
+						"hemezortzi",
+						"hemeretzi"
+					],
+					10 : [
+						"hogei",
+						"berrogei",
+						"hirurogei",
+						"laurogei"
+					],
+					100: [
+						"ehun",
+						"berrehun",
+						"hirurehun",
+						"laurehun",
+						"bostehun",
+						"seiehun",
+						"zazpiehun",
+						"zortziehun",
+						"bederatziehun"
+					]
+				};
+				break;
+			case "tr-TR":
+				alphaBet = {
+					0 : ["sıfır"],
+					1 : [
+						"bir",
+						"iki",
+						"üç",
+						"dört",
+						"beş",
+						"altı",
+						"yedi",
+						"sekiz",
+						"dokuz"
+					],
+					10: [
+						"on",
+						"yirmi",
+						"otuz",
+						"kırk",
+						"elli",
+						"altmış",
+						"yetmiş",
+						"seksen",
+						"doksan"
+					]
+				};
+				break;
 			case"bg-BG":
 				alphaBet = {
+					0: ['нула'],
 					1: [
 						'един',
 						'два',
@@ -4828,8 +5939,121 @@
 					]
 				};
 				break;
+			case "sr-Cyrl-RS":
+				alphaBet = {
+					0: ["нула"],
+					1: [
+						"један",
+						"два",
+						"три",
+						"четири",
+						"пет",
+						"шест",
+						"седам",
+						"осам",
+						"девет",
+						"десет",
+						"једанаест",
+						"дванаест",
+						"тринаест",
+						"четрнаест",
+						"петнаест",
+						"шеснаест",
+						"седамнаест",
+						"осамнаест",
+						"деветнаест"
+					],
+					10: [
+						"двадесет",
+						"тридесет",
+						"четрдесет",
+						"педесет",
+						"шездесет",
+						"седамдесет",
+						"осамдесет",
+						"деведесет"
+					],
+					100: [
+						"сто",
+						"двјесто",
+						"тристо",
+						"четиристо",
+						"петсто",
+						"шесто",
+						"седамсто",
+						"осамсто",
+						"деветсто"
+					],
+					"thousand": [
+						"тисућу",
+						"тисуће",
+						"тисућа"
+					],
+					'thousandType': [
+						"један",
+						"двије"
+					]
+				};
+				break;
+			case "sr-Latn-RS":
+				alphaBet = {
+					0: ["nula"],
+					1: [
+						"jedan",
+						"dva",
+						"tri",
+						"četiri",
+						"pet",
+						"šest",
+						"sedam",
+						"osam",
+						"devet",
+						"deset",
+						"jedanaest",
+						"dvanaest",
+						"trinaest",
+						"četrnaest",
+						"petnaest",
+						"šesnaest",
+						"sedamnaest",
+						"osamnaest",
+						"devetnaest"
+					],
+					10: [
+						"dvadeset",
+						"trideset",
+						"četrdeset",
+						"pedeset",
+						"šezdeset",
+						"sedamdeset",
+						"osamdeset",
+						"devedeset"
+					],
+					100: [
+						"sto",
+						"dvjesto",
+						"tristo",
+						"četiristo",
+						"petsto",
+						"šesto",
+						"sedamsto",
+						"osamsto",
+						"devetsto"
+					],
+					"thousand": [
+						"tisuću",
+						"tisuće",
+						"tisuća"
+					],
+					'thousandType': [
+						"jedan",
+						"dvije"
+					]
+				};
+				break;
 			case"cs-CZ":
 				alphaBet = {
+					0: ['nula'],
 					1: [
 						'jedna',
 						'dva',
@@ -4885,6 +6109,7 @@
 				break;
 			case"de-DE":
 				alphaBet = {
+					0: ['null'],
 					1: [
 						'eins',
 						'zwei',
@@ -4920,6 +6145,7 @@
 				break;
 			case"el-GR":
 				alphaBet = {
+					0: ['μηδέν'],
 					1: [
 						'ένα',
 						'δύο',
@@ -4975,6 +6201,7 @@
 				break;
 			case"es-ES":
 				alphaBet = {
+					0: ['cero'],
 					1: [
 						'uno',
 						'dos',
@@ -5027,6 +6254,7 @@
 				break;
 			case"fr-FR":
 				alphaBet = {
+					0: ['zéro'],
 					1: [
 						'un',
 						'deux',
@@ -5062,6 +6290,7 @@
 				break;
 			case"it-IT":
 				alphaBet = {
+					0: ['zero'],
 					1: [
 						'uno',
 						'due',
@@ -5097,6 +6326,7 @@
 				break;
 			case"lv-LV":
 				alphaBet = {
+					0: ['nulle'],
 					1: [
 						'viens',
 						'divi',
@@ -5152,6 +6382,7 @@
 				break;
 			case"nl-NL":
 				alphaBet = {
+					0: ['nul'],
 					1: [
 						'één',
 						'twee',
@@ -5187,6 +6418,7 @@
 				break;
 			case"pl-PL":
 				alphaBet = {
+					0: ['zero'],
 					1: [
 						'jeden',
 						'dwa',
@@ -5243,6 +6475,7 @@
 			case"pt-BR":
 			case"pt-PT":
 				alphaBet = {
+					0: ['zero'],
 					1: [
 						'um',
 						'dois',
@@ -5289,6 +6522,7 @@
 				break;
 			case"ru-RU":
 				alphaBet = {
+					0: ['ноль'],
 					1: [
 						'один',
 						'два',
@@ -5344,6 +6578,7 @@
 				break;
 			case"sk-SK":
 				alphaBet = {
+					0: ['nula'],
 					1: [
 						'jeden',
 						'dva',
@@ -5379,6 +6614,7 @@
 				break;
 			case"sv-SE":
 				alphaBet = {
+					0: ['noll'],
 					1: [
 						'ett',
 						'två',
@@ -5414,6 +6650,7 @@
 				break;
 			case"uk-UA":
 				alphaBet = {
+					0: ['нуль'],
 					1: [
 						"один",
 						"два",
@@ -5468,6 +6705,12 @@
 				};
 				break;
 			case 'en-US':
+			case 'si-LK':
+			case 'ar-SA':
+			case 'gl-ES':
+			case 'hy-AM':
+			case 'ms-MY':
+			case 'zh-TW':
 			case 'az-Latn-AZ':
 			case 'en-GB':
 			case 'ja-JP':
@@ -5476,6 +6719,7 @@
 			case 'ko-KR':
 			default:
 				alphaBet = {
+					0: ['zero'],
 					1: [
 						'one',
 						'two',
@@ -5522,8 +6766,15 @@
 			return array.join(' ');
 		}
 
+		if (nValue === 0)
+		{
+			return {arrAnswer: [alphaBet[0][0]], getConcatStringByRule: getConcatStringByRule};
+		}
+
 		switch (lang)
 		{
+			case 'sr-Latn-RS':
+			case 'sr-Cyrl-RS':
 			case 'ru-RU':
 			case 'uk-UA':
 			case 'cs-CZ':
@@ -5642,7 +6893,7 @@
 					return resArr;
 				};
 
-				if (lang === 'uk-UA' || lang === 'cs-CZ' || lang === 'pl-PL' || lang === 'el-GR' || lang === 'lv-LV')
+				if (lang === 'uk-UA' || lang === 'cs-CZ' || lang === 'pl-PL' || lang === 'el-GR' || lang === 'lv-LV' || lang === 'sr-Latn-RS' || lang === 'sr-Cyrl-RS')
 				{
 					arrAnswer = cardinalSplittingCyrillicMim(nValue, true);
 				} else if (lang === 'ru-RU')
@@ -6147,6 +7398,74 @@
 				};
 				break;
 			}
+			case "eu-ES":
+			{
+				const letterNumberLessThen100EU = function (nNum)
+				{
+					var resArr = [];
+					if (nNum < 100 && nNum > 0)
+					{
+						const nDegree1 = nNum % 20;
+						const nDegree10 = Math.floor(nNum / 20);
+						if (nDegree10 && nDegree1)
+						{
+							resArr.push(alphaBet[10][nDegree10 - 1] + "ta", alphaBet[1][nDegree1 - 1]);
+						}
+						else if (nDegree10)
+						{
+							resArr.push(alphaBet[10][nDegree10 - 1]);
+						}
+						else
+						{
+							resArr.push(alphaBet[1][nDegree1 - 1]);
+						}
+					}
+
+					return resArr;
+				};
+				const cardinalSplittingEU = function (nNum, bNotPushEta)
+				{
+					const resArr = [];
+					if (nNum < 1000000 && nNum > 0)
+					{
+						const oGroups = {};
+						oGroups[1000] = Math.floor(nNum / 1000);
+						nNum %= 1000;
+						oGroups[100] = Math.floor(nNum / 100);
+						nNum %= 100;
+						oGroups[1] = nNum;
+						if (oGroups[1000])
+						{
+							if (oGroups[1000] >= 100)
+							{
+								resArr.push.apply(resArr, cardinalSplittingEU(oGroups[1000], true));
+							}
+							else if (oGroups[1000] !== 1)
+							{
+								resArr.push.apply(resArr, letterNumberLessThen100EU(oGroups[1000]));
+							}
+							resArr.push("mila");
+						}
+
+						if (oGroups[100])
+						{
+							resArr.push(alphaBet[100][oGroups[100] - 1]);
+						}
+
+						if (oGroups[1])
+						{
+							if ((oGroups[100] || oGroups[1000]) && !bNotPushEta)
+							{
+								resArr.push("eta");
+							}
+							resArr.push.apply(resArr, letterNumberLessThen100EU(oGroups[1]));
+						}
+					}
+					return resArr;
+				}
+				arrAnswer = cardinalSplittingEU(nValue);
+				break;
+			}
 			case 'it-IT':
 			{
 				var letterNumberLessThen100IT = function(num)
@@ -6428,7 +7747,77 @@
 
 				break;
 			}
+			case 'tr-TR':
+				const letterNumberLessThen100TR = function (nNum)
+				{
+					const resArr = [];
+					if (nNum < 100 && nNum > 0)
+					{
+						const nDegree1 = nNum % 10;
+						const nDegree10 = Math.floor(nNum / 10);
+
+						if (nDegree10)
+						{
+							resArr.push(alphaBet[10][nDegree10 - 1]);
+						}
+						if (nDegree1)
+						{
+							resArr.push(alphaBet[1][nDegree1 - 1]);
+						}
+					}
+					return resArr;
+				}
+				const cardinalSplittingTR = function (nNum)
+				{
+					const resArr = [];
+					if (nNum < 1000000 && nNum > 0)
+					{
+						const oGroups = {};
+						oGroups[1000] = Math.floor(nNum / 1000);
+						nNum = nNum % 1000;
+						oGroups[100] = Math.floor(nNum / 100);
+						nNum = nNum % 100;
+						oGroups[1] = nNum;
+						if (oGroups[1000])
+						{
+							if (oGroups[1000] >= 100)
+							{
+								resArr.push.apply(resArr, cardinalSplittingTR(oGroups[1000]));
+							}
+							else if (oGroups[1000] !== 1)
+							{
+								resArr.push.apply(resArr, letterNumberLessThen100TR(oGroups[1000]));
+							}
+							resArr.push("bin");
+						}
+						if (oGroups[100])
+						{
+							if (oGroups[100] !== 1)
+							{
+								resArr.push.apply(resArr, letterNumberLessThen100TR(oGroups[100]));
+							}
+							resArr.push("yüz");
+						}
+						if (oGroups[1])
+						{
+							resArr.push.apply(resArr, letterNumberLessThen100TR(oGroups[1]));
+						}
+					}
+					return resArr;
+				}
+				arrAnswer = cardinalSplittingTR(nValue);
+				getConcatStringByRule = function (array)
+				{
+					return array.join("");
+				}
+				break;
 			case 'en-US':
+			case 'gl-ES':
+			case 'si-LK':
+			case 'ar-SA':
+			case 'hy-AM':
+			case 'ms-MY':
+			case 'zh-TW':
 			case 'az-Latn-AZ':
 			case 'en-GB':
 			case 'ja-JP':
@@ -6525,6 +7914,10 @@
 		var addFirstDegreeSymbol = true;
 		if (nFormat === Asc.c_oAscNumberingFormat.KoreanCounting)
 		{
+			if (nValue === 0)
+			{
+				return String.fromCharCode(0xC601);
+			}
 			addFirstDegreeSymbol = false;
 			var digits = [
 				String.fromCharCode(0xC77C),
@@ -6545,6 +7938,10 @@
 			];
 		} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseLegal)
 		{
+			if (nValue === 0)
+			{
+				return String.fromCharCode(0x3007);
+			}
 			digits = [
 				String.fromCharCode(0x58F1),
 				String.fromCharCode(0x5F10),
@@ -6564,6 +7961,10 @@
 			];
 		} else if (nFormat === Asc.c_oAscNumberingFormat.JapaneseCounting)
 		{
+			if (nValue === 0)
+			{
+				return String.fromCharCode(0x3007);
+			}
 			addFirstDegreeSymbol = false;
 			digits = [
 				String.fromCharCode(0x4E00),
@@ -6715,6 +8116,10 @@
 
 	function IntToAiueo(nValue)
 	{
+		if (nValue === 0)
+		{
+			return '0';
+		}
 		var sResult = '';
 		var count = 1, numberOfLetters = 46;
 		nValue = repeatNumberingLvl(nValue, 46);
@@ -6742,34 +8147,47 @@
 			++count;
 			nValue -= numberOfLetters;
 		}
-		if (nValue >= 1 && nValue <= 5)
+		if (nValue === 0)
+		{
+			letter = 0x0030;
+		}
+		else if (nValue >= 1 && nValue <= 5)
 		{
 			letter = 0x30A2 + (nValue - 1) * 2;
-		} else if (nValue >= 6 && nValue <= 17)
+		}
+		else if (nValue >= 6 && nValue <= 17)
 		{
 			letter = 0x30AB + (nValue - 6) * 2;
-		} else if (nValue >= 18 && nValue <= 21)
+		}
+		else if (nValue >= 18 && nValue <= 21)
 		{
 			letter = 0x30C4 + (nValue - 18) * 2;
-		} else if (nValue >= 22 && nValue <= 26)
+		}
+		else if (nValue >= 22 && nValue <= 26)
 		{
 			letter = 0x30CB + nValue - 22;
-		} else if (nValue >= 27 && nValue <= 31)
+		}
+		else if (nValue >= 27 && nValue <= 31)
 		{
 			letter = 0x30D2 + (nValue - 27) * 3;
-		} else if (nValue >= 32 && nValue <= 35)
+		}
+		else if (nValue >= 32 && nValue <= 35)
 		{
 			letter = 0x30DF + nValue - 32;
-		} else if (nValue >= 36 && nValue <= 38)
+		}
+		else if (nValue >= 36 && nValue <= 38)
 		{
 			letter = 0x30E4 + nValue - 36;
-		} else if (nValue >= 39 && nValue <= 43)
+		}
+		else if (nValue >= 39 && nValue <= 43)
 		{
 			letter = 0x30E9 + nValue - 39;
-		} else if (nValue === 44)
+		}
+		else if (nValue === 44)
 		{
 			letter = 0x30EF + nValue - 44;
-		} else if (nValue >= 45 && nValue <= 46)
+		}
+		else if (nValue >= 45 && nValue <= 46)
 		{
 			letter = 0x30F2 + nValue - 45;
 		}
@@ -6815,6 +8233,10 @@
 			charArr = [0x002A, 0x2020, 0x2021, 0x00A7]
 		} else if(nFormat === Asc.c_oAscNumberingFormat.Chosung)
 		{
+			if (nValue === 0)
+			{
+				return '0';
+			}
 			nValue = repeatNumberingLvl(nValue, 14);
 			charArr = [
 				0x3131, 0x3134, 0x3137, 0x3139,
@@ -6824,6 +8246,10 @@
 			]
 		} else if (nFormat === Asc.c_oAscNumberingFormat.Ganada)
 		{
+			if (nValue === 0)
+			{
+				return '0';
+			}
 			nValue = repeatNumberingLvl(nValue, 14);
 			charArr = [
 				0xAC00, 0xB098, 0xB2E4, 0xB77C,
@@ -6983,12 +8409,16 @@
 				0x7533, 0x9149, 0x620C, 0x4EA5
 			];
 
-		sResult += nValue <= digits.length ? String.fromCharCode(digits[nValue - 1]) : nValue;
+		sResult += (nValue >= 1 && nValue <= digits.length) ? String.fromCharCode(digits[nValue - 1]) : nValue;
 		return sResult;
 	}
 
 	function IntToIdeographZodiacTraditional(nValue)
 	{
+		if (nValue === 0)
+		{
+			return '0';
+		}
 		var sResult = '';
 		var digits = [
 			0x7532, 0x5B50, 0x4E59, 0x4E11, 0x4E19, 0x5BC5,
@@ -7024,6 +8454,10 @@
 
 	function IntToIroha(nValue, nFormat)
 	{
+		if (nValue === 0)
+		{
+			return '0';
+		}
 		var sResult = '';
 		var digits = [];
 		if (nFormat === Asc.c_oAscNumberingFormat.Iroha)
@@ -7135,7 +8569,11 @@
 			1000  : String.fromCharCode(0x5343),
 			10000 : String.fromCharCode(0x4E07)
 		};
-		if (nValue < 1000000)
+		if (nValue === 0)
+		{
+			sResult += arrChinese[0];
+		}
+		else if (nValue < 1000000)
 		{
 			var nRemValue = nValue;
 
@@ -7260,7 +8698,11 @@
 			1000  : String.fromCharCode(0x4EDF),
 			10000 : String.fromCharCode(0x842C)
 		};
-		if (nValue < 1000000)
+		if (nValue === 0)
+		{
+			sResult += arrChinese[0];
+		}
+		else if (nValue < 1000000)
 		{
 			var nRemValue = nValue;
 
@@ -7440,7 +8882,11 @@
 			'拾'
 		];
 
-		if (nValue < 10000)
+		if (nValue === 0)
+		{
+			sResult = String.fromCharCode(0x96F6);
+		}
+		else if (nValue < 10000)
 		{
 			sResult = IdeographLegalTraditionalSplitting(digits, degrees, nValue).join('');
 		} else {
@@ -7529,7 +8975,7 @@
 			String.fromCharCode(0x4E5D)
 		];
 		var conv = decimalNumberConversion(nValue, digits.length);
-		if(nValue >= digits.length * 10)
+		if(nValue >= digits.length * 10 || nValue === 0)
 		{
 			digits[0] = String.fromCharCode(0x25CB);
 			sResult = conv.map(function (num)
@@ -7664,6 +9110,10 @@
 		switch (textLang)
 		{
 			case 'de-DE':
+			case 'eu-ES':
+			case 'tr-TR':
+			case 'sr-Cyrl-RS':
+			case 'sr-Latn-RS':
 			case 'pl-PL':
 			case 'cs-CZ':
 			{
@@ -7680,7 +9130,7 @@
 				if (nValue === 1)
 				{
 					sResult += 'er';
-				} else {
+				} else if (nValue !== 0) {
 					sResult += 'e';
 				}
 				break;
@@ -7727,6 +9177,12 @@
 			}
 			case 'bg-BG':
 			case 'en-GB':
+			case 'gl-ES':
+			case 'si-LK':
+			case 'ar-SA':
+			case 'hy-AM':
+			case 'ms-MY':
+			case 'zh-TW':
 			case 'en-US':
 			case 'zh-CN':
 			case 'uk-UA':
@@ -7852,8 +9308,11 @@
 			'百',
 			'十'
 		];
-
-		if (nValue < 100000)
+		if (nValue === 0)
+		{
+			return String.fromCharCode(0x96F6);
+		}
+		else if (nValue < 100000)
 		{
 			sResult = taiwaneseCountingSplitting(digits, degrees, nValue).join('');
 		} else if (nValue >= 100000 && nValue < 1000000)
@@ -7866,7 +9325,11 @@
 	function IntToKoreanLegal(nValue, nFormat)
 	{
 		var sResult = '';
-		if (nValue < 100)
+		if (nValue === 0)
+		{
+			return '0';
+		}
+		else if (nValue < 100)
 		{
 			var answer = [];
 			var digits = {
@@ -7908,13 +9371,58 @@
 		return sResult;
 	}
 
+	function getCardinalTextToSentenceCase(sText, sLang)
+	{
+		switch (sLang)
+		{
+			case "tr-TR":
+				if (sText[0] === "i")
+				{
+					return "İ" + sText.slice(1, sText.length);
+				}
+				return sText.sentenceCase();
+			default:
+				return sText.sentenceCase();
+		}
+	}
+
 	function IntToOrdinalText(nValue, nLang)
 	{
 		var textLang = languages[nLang];
-		var ordinalText = getCardinalTextFromValue(textLang, nValue);
 		var alphaBet = getAlphaBetForOrdinalText(textLang);
+		if (nValue === 0)
+		{
+			if (alphaBet[0] && alphaBet[0][0])
+			{
+				return getCardinalTextToSentenceCase(alphaBet[0][0], textLang);
+			}
+		}
+		var ordinalText = getCardinalTextFromValue(textLang, nValue);
 		switch (textLang)
 		{
+			case 'eu-ES':
+			{
+				const arrOfDigits = ordinalText.arrAnswer;
+				if (nValue === 1)
+				{
+					arrOfDigits[arrOfDigits.length - 1] = "lehenengo";
+				}
+				else if (arrOfDigits[arrOfDigits.length - 1])
+				{
+					arrOfDigits[arrOfDigits.length - 1] = arrOfDigits[arrOfDigits.length - 1] + "garren";
+				}
+				break;
+			}
+			case 'tr-TR':
+			{
+				const arrOfDigits = ordinalText.arrAnswer;
+				const sLastWord = arrOfDigits[arrOfDigits.length - 1];
+				if (alphaBet[sLastWord])
+				{
+					arrOfDigits[arrOfDigits.length - 1] = alphaBet[sLastWord];
+				}
+				break;
+			}
 			case 'de-DE':
 			{
 				var arrOfDigits = ordinalText.arrAnswer;
@@ -8056,7 +9564,7 @@
 					{
 						switchingValue[switchingValue.length - 1] = lastWord.slice(0, lastWord.length - 1);
 					}
-					if (switchingValue[switchingValue.length - 1] !== 'premier')
+					if (lastWord !== 'premier' && lastWord !== 'zéro')
 					{
 						switchingValue[switchingValue.length - 1] += 'ième';
 					}
@@ -8171,6 +9679,28 @@
 						arrOfDigits[arrOfDigits.length - 1] = lastWord.slice(0, lastWord.length - 1);
 					}
 					arrOfDigits[arrOfDigits.length - 1] += 'ais';
+				}
+				break;
+			}
+			case 'sr-Cyrl-RS':
+			case 'sr-Latn-RS':
+			{
+				const arrOfDigits = ordinalText.arrAnswer;
+				const sLastWord = arrOfDigits[arrOfDigits.length - 1];
+				if (sLastWord)
+				{
+					const reminder100 = nValue % 100;
+					const degree10 = Math.floor(reminder100 / 10);
+					const degree1 = reminder100 % 10;
+					if (degree10 && degree1 && reminder100 >= 20)
+					{
+						arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
+						arrOfDigits[arrOfDigits.length - 2] = alphaBet[arrOfDigits[arrOfDigits.length - 2]];
+					}
+					else
+					{
+						arrOfDigits[arrOfDigits.length - 1] = alphaBet[arrOfDigits[arrOfDigits.length - 1]];
+					}
 				}
 				break;
 			}
@@ -8339,6 +9869,12 @@
 			case 'ko-KR':
 			case 'az-Latn-AZ':
 			case 'en-US':
+			case 'si-LK':
+			case 'ar-SA':
+			case 'gl-ES':
+			case 'zh-TW':
+			case 'ms-MY':
+			case 'hy-AM':
 			case 'vi-VN':
 			case 'en-GB':
 			default:
@@ -8363,7 +9899,7 @@
 				break;
 			}
 		}
-		return ordinalText.getConcatStringByRule(ordinalText.arrAnswer).sentenceCase();
+		return getCardinalTextToSentenceCase(ordinalText.getConcatStringByRule(ordinalText.arrAnswer), textLang);
 	}
 
 	var splitHindiCounting = function(alphaBet, degrees, num)
@@ -8392,6 +9928,10 @@
 
 	function IntToHindiCounting(nValue)
 	{
+		if (nValue === 0)
+		{
+			return "शून्य";
+		}
 		var alphaBet = [
 			"एक","दो","तीन","चार","पांच","छह","सात","आठ","नौ","दस","ग्यारह",
 			"बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस",
@@ -8465,7 +10005,7 @@
 
 	function splitThaiCounting(num, digits)
 	{
-		if (num >= 1000000000)
+		if (num >= 1000000000 || num === 0)
 		{
 			return ['ศูนย์'];
 		}
@@ -8518,6 +10058,43 @@
 			resArr = resArr.concat(thaiCountingLess100(groups[1], digits, groups[100] || groups[1000] || groups[10000] || groups[100000] || groups[1000000]));
 		}
 		return resArr;
+	}
+
+	function NumberToDollarText(nValue, nLang, bIsSkipFractValue)
+	{
+		const nIntValue = Math.floor(nValue);
+		const oCardinalText = getCardinalTextFromValue(languages[nLang], nIntValue);
+		const sIntResult = oCardinalText.getConcatStringByRule(oCardinalText.arrAnswer);
+		if (!bIsSkipFractValue)
+		{
+			const nFractValue = Math.round(nValue * 100) % 100;
+			const sFractValue = nFractValue.toString();
+			const sDollarValue = sFractValue.length === 1 ? "0" + sFractValue : sFractValue;
+			const sFractResult = sDollarValue + "/100";
+
+			const sAndConjunction = getANDConjunctionLang(nLang);
+			return sIntResult + (sAndConjunction.length ? " " + sAndConjunction + " " : " ") + sFractResult;
+		}
+		return sIntResult;
+	}
+
+	function NumberToBahtText(nValue, isSkipFractValue)
+	{
+		const nIntValue = Math.floor(nValue);
+		const nFractValue = Math.round(nValue * 100) % 100;
+		const sIntValue = IntToNumberFormat(nIntValue, Asc.c_oAscNumberingFormat.ThaiCounting);
+
+		if (isSkipFractValue)
+		{
+			return sIntValue;
+		}
+		if (nFractValue)
+		{
+			const sFractValue = IntToNumberFormat(nFractValue, Asc.c_oAscNumberingFormat.ThaiCounting);
+			return sIntValue + "บาท" + sFractValue + "สตางค์";
+		}
+
+		return sIntValue + "บาทถ้วน";
 	}
 
 	function IntToThaiCounting(nValue)
@@ -8595,9 +10172,38 @@
 
 	function IntToVietnameseCounting(nValue)
 	{
+		if (nValue === 0)
+		{
+			return 'không';
+		}
 		var digits = ['một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín', 'mười'];
 
 		return vietnameseCounting(nValue, digits).join(' ');
+	}
+
+	function IntToCustomTurkish(nValue, bLowerCase)
+	{
+		let arrLetters;
+		if (bLowerCase)
+		{
+			arrLetters = [0x0061, 0x0062, 0x0063, 0x00e7, 0x0064, 0x0065, 0x0066, 0x0067, 0x011f, 0x0068, 0x0131, 0x0069, 0x006a,
+				0x006b, 0x006c, 0x006d, 0x006e, 0x006f, 0x00f6, 0x0070, 0x0072, 0x0073, 0x015f, 0x0074, 0x0075, 0x00fc, 0x0076,
+				0x0079, 0x007a];
+		}
+		else
+		{
+			arrLetters = [0x0041, 0x0042, 0x0043, 0x00c7, 0x0044, 0x0045, 0x0046, 0x0047, 0x011e, 0x0048, 0x0049, 0x0130, 0x004a,
+				0x004b, 0x004c, 0x004d, 0x004e, 0x004f, 0x00d6, 0x0050, 0x0052, 0x0053, 0x015e, 0x0054, 0x0055, 0x00dc, 0x0056,
+				0x0059, 0x005a];
+		}
+		nValue = repeatNumberingLvl(nValue, 870);
+		const nNum = nValue - 1;
+
+		const nAlphabetLength = arrLetters.length;
+		const nOst   = nNum % nAlphabetLength;
+		const nCount = ((nNum - nOst) / nAlphabetLength) + 1;
+
+		return String.fromCharCode(arrLetters[nOst]).repeat(nCount);
 	}
 
 	function IntToCustomGreece(nValue) {
@@ -8624,16 +10230,80 @@
 
 		return sResult.join('');
 	}
+	
+	function IsLessMinimumNumberingFormat(nFormat, nValue)
+	{
+		switch (nFormat)
+		{
+			case Asc.c_oAscNumberingFormat.Decimal:
+			case Asc.c_oAscNumberingFormat.CustomDecimalFourZero:
+			case Asc.c_oAscNumberingFormat.CustomDecimalThreeZero:
+			case Asc.c_oAscNumberingFormat.CustomDecimalTwoZero:
+			case Asc.c_oAscNumberingFormat.DecimalZero:
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
+			case Asc.c_oAscNumberingFormat.Aiueo:
+			case Asc.c_oAscNumberingFormat.AiueoFullWidth:
+			case Asc.c_oAscNumberingFormat.Chosung:
+			case Asc.c_oAscNumberingFormat.Ganada:
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedFullstop:
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedParen:
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth:
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth2:
+			case Asc.c_oAscNumberingFormat.DecimalHalfWidth:
+			case Asc.c_oAscNumberingFormat.Hex:
+			case Asc.c_oAscNumberingFormat.HindiNumbers:
+			case Asc.c_oAscNumberingFormat.IdeographDigital:
+			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand:
+			case Asc.c_oAscNumberingFormat.IdeographEnclosedCircle:
+			case Asc.c_oAscNumberingFormat.IdeographTraditional:
+			case Asc.c_oAscNumberingFormat.IdeographZodiac:
+			case Asc.c_oAscNumberingFormat.IdeographZodiacTraditional:
+			case Asc.c_oAscNumberingFormat.Iroha:
+			case Asc.c_oAscNumberingFormat.IrohaFullWidth:
+			case Asc.c_oAscNumberingFormat.ChineseCounting:
+			case Asc.c_oAscNumberingFormat.ChineseCountingThousand:
+			case Asc.c_oAscNumberingFormat.ChineseLegalSimplified:
+			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
+			case Asc.c_oAscNumberingFormat.JapaneseLegal:
+			case Asc.c_oAscNumberingFormat.KoreanCounting:
+			case Asc.c_oAscNumberingFormat.JapaneseCounting:
+			case Asc.c_oAscNumberingFormat.KoreanDigital:
+			case Asc.c_oAscNumberingFormat.ThaiNumbers:
+			case Asc.c_oAscNumberingFormat.KoreanDigital2:
+			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
+			case Asc.c_oAscNumberingFormat.None:
+			case Asc.c_oAscNumberingFormat.NumberInDash:
+			case Asc.c_oAscNumberingFormat.TaiwaneseCounting:
+			case Asc.c_oAscNumberingFormat.CardinalText:
+			case Asc.c_oAscNumberingFormat.Custom:
+			case Asc.c_oAscNumberingFormat.Ordinal:
+			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
+			case Asc.c_oAscNumberingFormat.KoreanLegal:
+			case Asc.c_oAscNumberingFormat.OrdinalText:
+			case Asc.c_oAscNumberingFormat.HindiCounting:
+			case Asc.c_oAscNumberingFormat.ThaiCounting:
+			case Asc.c_oAscNumberingFormat.DollarText:
+			case Asc.c_oAscNumberingFormat.BahtText:
+			case Asc.c_oAscNumberingFormat.VietnameseCounting:
+				return nValue < 0;
+			default:
+				return nValue < 1;
+		}
+	}
 
 	/**
 	 * Переводим числовое значение в строку с заданным форматом нумерации
 	 * @param nValue {number}
 	 * @param nFormat {Asc.c_oAscNumberingFormat}
+	 * @param [oPr] {Object}
 	 * @returns {string}
 	 */
-	function IntToNumberFormat(nValue, nFormat, oLang)
+	function IntToNumberFormat(nValue, nFormat, oPr)
 	{
+		oPr = oPr || {};
 		var nLang;
+		const oLang = oPr.lang;
 		if (oLang)
 		{
 			nLang = oLang.Val;
@@ -8646,6 +10316,10 @@
 			}
 		}
 		var sResult = "";
+		if (IsLessMinimumNumberingFormat(nFormat, nValue))
+		{
+			return sResult;
+		}
 
 		switch (nFormat)
 		{
@@ -8698,7 +10372,7 @@
 
 			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
 			{
-				if (nValue <= 10)
+				if (nValue >= 1 && nValue <= 10)
 				{
 					sResult = String.fromCharCode(0x2460 + nValue - 1);
 				}
@@ -8711,7 +10385,7 @@
 
 			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
 			{
-				if (nValue <= 20)
+				if (nValue >= 1 && nValue <= 20)
 				{
 					sResult = String.fromCharCode(0x2460 + nValue - 1);
 				}
@@ -8779,13 +10453,14 @@
 			}
 
 			case Asc.c_oAscNumberingFormat.DecimalFullWidth:
+			case Asc.c_oAscNumberingFormat.DecimalFullWidth2:
 			case Asc.c_oAscNumberingFormat.DecimalHalfWidth:
 			{
-				var zeroInHex = nFormat === Asc.c_oAscNumberingFormat.DecimalFullWidth ? 0xFF10 : 0x0030;
+				var zero = (nFormat === Asc.c_oAscNumberingFormat.DecimalFullWidth || nFormat === Asc.c_oAscNumberingFormat.DecimalFullWidth2) ? 0xFF10 : 0x0030;
 				var strValue = String(nValue);
 				for(var i = 0; i < strValue.length; i++)
 				{
-					sResult += String.fromCharCode(zeroInHex + parseInt(strValue[i]));
+					sResult += String.fromCharCode(zero + parseInt(strValue[i]));
 				}
 				break;
 			}
@@ -8798,7 +10473,11 @@
 
 			case Asc.c_oAscNumberingFormat.Hex:
 			{
-				if (nValue <= 0xFFFF)
+				if (nValue === 0)
+				{
+					sResult = '0';
+				}
+				else if (nValue <= 0xFFFF)
 				{
 					sResult = (nValue+0x10000).toString(16).substr(-4).toUpperCase();
 					sResult = sResult.replace(/^0+/, '');
@@ -8828,7 +10507,7 @@
 
 			case Asc.c_oAscNumberingFormat.IdeographEnclosedCircle:
 			{
-				sResult += nValue <= 10 ? String.fromCharCode(0x3220 + nValue - 1) : nValue;
+				sResult += (nValue >= 1 && nValue <= 10) ? String.fromCharCode(0x3220 + nValue - 1) : nValue;
 				break;
 			}
 
@@ -8901,7 +10580,7 @@
 				break;
 			case Asc.c_oAscNumberingFormat.CardinalText:
 				var cardinalText = getCardinalTextFromValue(languages[nLang], nValue);
-				sResult = cardinalText.getConcatStringByRule(cardinalText.arrAnswer).sentenceCase();
+				sResult = getCardinalTextToSentenceCase(cardinalText.getConcatStringByRule(cardinalText.arrAnswer), languages[nLang]);
 				break;
 
 			case Asc.c_oAscNumberingFormat.Custom:
@@ -8930,16 +10609,39 @@
 				sResult = IntToThaiCounting(nValue, nFormat);
 				break;
 			case Asc.c_oAscNumberingFormat.DollarText:
-				sResult += nValue;
+				if (oPr.isFromField)
+				{
+					sResult = NumberToDollarText(nValue, nLang, oPr.isSkipFractPart);
+				}
+				else
+				{
+					sResult += nValue;
+				}
 				break;
 			case Asc.c_oAscNumberingFormat.BahtText:
-				sResult += nValue;
+				if (oPr.isFromField)
+				{
+					sResult = NumberToBahtText(nValue, oPr.isSkipFractPart);
+				}
+				else
+				{
+					sResult += nValue;
+				}
 				break;
 			case Asc.c_oAscNumberingFormat.VietnameseCounting:
 				sResult = IntToVietnameseCounting(nValue);
 				break;
 			case Asc.c_oAscNumberingFormat.CustomGreece:
 				sResult = IntToCustomGreece(nValue);
+				break;
+			case Asc.c_oAscNumberingFormat.CustomUpperTurkish:
+				sResult = IntToCustomTurkish(nValue);
+				break;
+			case Asc.c_oAscNumberingFormat.CustomLowerTurkish:
+				sResult = IntToCustomTurkish(nValue, true);
+				break;
+			default:
+				break;
 		}
 
 		return sResult;
@@ -9070,7 +10772,7 @@
 		{
 			result = (-1 !== s.search(new RegExp("^(?:[A-Za-z\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0560-\u0588\u05D0-\u05EA\u05EF-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u0870-\u0887\u0889-\u088E\u08A0-\u08C9\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C5D\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D04-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E86-\u0E8A\u0E8C-\u0EA3\u0EA5\u0EA7-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16F1-\u16F8\u1700-\u1711\u171F-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1878\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4C\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1C90-\u1CBA\u1CBD-\u1CBF\u1CE9-\u1CEC\u1CEE-\u1CF3\u1CF5\u1CF6\u1CFA\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312F\u3131-\u318E\u31A0-\u31BF\u31F0-\u31FF\u3400-\u4DBF\u4E00-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA7CA\uA7D0\uA7D1\uA7D3\uA7D5-\uA7D9\uA7F2-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA8FE\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB69\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF40\uDF42-\uDF49\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDD70-\uDD7A\uDD7C-\uDD8A\uDD8C-\uDD92\uDD94\uDD95\uDD97-\uDDA1\uDDA3-\uDDB1\uDDB3-\uDDB9\uDDBB\uDDBC\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67\uDF80-\uDF85\uDF87-\uDFB0\uDFB2-\uDFBA]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE35\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2\uDD00-\uDD23\uDE80-\uDEA9\uDEB0\uDEB1\uDF00-\uDF1C\uDF27\uDF30-\uDF45\uDF70-\uDF81\uDFB0-\uDFC4\uDFE0-\uDFF6]|\uD804[\uDC03-\uDC37\uDC71\uDC72\uDC75\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD44\uDD47\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE3F\uDE40\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC5F-\uDC61\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDEB8\uDF00-\uDF1A\uDF40-\uDF46]|\uD806[\uDC00-\uDC2B\uDCA0-\uDCDF\uDCFF-\uDD06\uDD09\uDD0C-\uDD13\uDD15\uDD16\uDD18-\uDD2F\uDD3F\uDD41\uDDA0-\uDDA7\uDDAA-\uDDD0\uDDE1\uDDE3\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE89\uDE9D\uDEB0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46\uDD60-\uDD65\uDD67\uDD68\uDD6A-\uDD89\uDD98\uDEE0-\uDEF2\uDF02\uDF04-\uDF10\uDF12-\uDF33\uDFB0]|\uD808[\uDC00-\uDF99]|\uD809[\uDC80-\uDD43]|\uD80B[\uDF90-\uDFF0]|[\uD80C\uD81C-\uD820\uD822\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879\uD880-\uD883\uD885-\uD887][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2F\uDC41-\uDC46]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE70-\uDEBE\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDE40-\uDE7F\uDF00-\uDF4A\uDF50\uDF93-\uDF9F\uDFE0\uDFE1\uDFE3]|\uD821[\uDC00-\uDFF7]|\uD823[\uDC00-\uDCD5\uDD00-\uDD08]|\uD82B[\uDFF0-\uDFF3\uDFF5-\uDFFB\uDFFD\uDFFE]|\uD82C[\uDC00-\uDD22\uDD32\uDD50-\uDD52\uDD55\uDD64-\uDD67\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD837[\uDF00-\uDF1E\uDF25-\uDF2A]|\uD838[\uDC30-\uDC6D\uDD00-\uDD2C\uDD37-\uDD3D\uDD4E\uDE90-\uDEAD\uDEC0-\uDEEB]|\uD839[\uDCD0-\uDCEB\uDFE0-\uDFE6\uDFE8-\uDFEB\uDFED\uDFEE\uDFF0-\uDFFE]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43\uDD4B]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDEDF\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF39\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uD884[\uDC00-\uDF4A\uDF50-\uDFFF]|\uD888[\uDC00-\uDFAF])")));
 		}
-		
+
 		return result;
 	}
 
@@ -9097,7 +10799,7 @@
 				|| 0x2611 === nUnicode
 				|| 0x2610 === nUnicode));
 	}
-
+	
 	function ExecuteNoHistory(f, oLogicDocument, oThis, args)
 	{
 		// TODO: Надо перевести все редакторы на StartNoHistoryMode/EndNoHistoryMode
@@ -9134,6 +10836,82 @@
 		return result;
 	}
 	
+	function executeNoRevisions(f, logicDocument, t, args)
+	{
+		if (!logicDocument
+			|| !logicDocument.IsDocumentEditor
+			|| !logicDocument.IsDocumentEditor()
+			|| !logicDocument.IsTrackRevisions())
+			return f.apply(t, args);
+		
+		let localFlag = logicDocument.GetLocalTrackRevisions();
+		logicDocument.SetLocalTrackRevisions(false);
+		let result = f.apply(t, args);
+		logicDocument.SetLocalTrackRevisions(localFlag);
+		return result;
+	}
+	
+	function ExecuteEditorAction(actionPr, f, logicDocument, t, args)
+	{
+		if (!logicDocument
+			|| !logicDocument.IsDocumentEditor
+			|| !logicDocument.IsDocumentEditor())
+			return f.apply(t, args);
+		
+		let description = actionPr && actionPr.description ? actionPr.description : AscDFH.historydescription_Unknown;
+		let flags       = actionPr && actionPr.flags ? actionPr.flags : AscWord.ACTION_FLAGS.UPDATEALL_RECALCULATE;
+		
+		logicDocument.StartAction(description, null, flags);
+		let result = f.apply(t, args);
+		logicDocument.FinalizeAction();
+		
+		return result;
+	}
+	
+	function AddAndExecuteChange(change)
+	{
+		AscCommon.History.Add(change);
+		change.Redo();
+	}
+
+	function mockLogicDoc(doc){
+		doc.Get_PageLimits = function(PageAbs) {
+			return {X: 0, Y: 0, XLimit: Page_Width, YLimit: Page_Height};
+		};
+		doc.Get_PageFields = function (PageAbs, isInHdrFtr) {
+			return {X: 0, Y: 0, XLimit: 2000, YLimit: 2000};
+		};
+
+		doc.IsTrackRevisions = function() {
+			return false;
+		};
+
+		doc.IsDocumentEditor = function() {
+			return false;
+		};
+		doc.Spelling = {
+			AddParagraphToCheck: function(Para) {}
+		};
+
+		doc.IsSplitPageBreakAndParaMark = function () {
+			return false;
+		};
+		doc.IsDoNotExpandShiftReturn = function () {
+			return false;
+		};
+
+		doc.GetApi = function() {
+			return Asc.editor;
+		};
+
+		doc.GetDrawingDocument = function() {
+			return Asc.editor.getDrawingDocument();
+		};
+
+		doc.SearchEngine = {
+			Selection: []
+		};
+	}
 	/**
 	 * Функция сравнивает две строки (они могут быть не заданы)
 	 * @param s1 {?string}
@@ -9146,7 +10924,7 @@
 			|| (null === s1 && null === s2)
 			|| ("" === s1 && "" === s2))
 			return 0;
-		
+
 		if (!s1 && !s2)
 			return false;
 		else if (!s1 && s2)
@@ -9157,7 +10935,7 @@
 			return -1;
 		else if (s2 > s2)
 			return 1;
-		
+
 		return s1 === s2 ? 0 : -1;
 	}
 
@@ -9185,7 +10963,7 @@
 
 		return true;
 	}
-	
+
 	/**
 	 * Проверяем поддержку заданного функционала
 	 * @param type
@@ -9195,7 +10973,7 @@
 	{
 		return !!(window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true);
 	}
-	
+
 	/**
 	 * Проверяем поддержку всего функционала, связанного с oform
 	 * @returns {boolean}
@@ -9206,19 +10984,9 @@
 	}
 
 	var g_oUserColorById = {}, g_oUserNextColorIndex = 0;
-
-	function getUserColorById(userId, userName, isDark, isNumericValue)
+	
+	function _getUserColorById(userId, userName, isDark, isNumericValue)
 	{
-        if (window.parent.APP && window.parent.APP.getUserColor) {
-            try {
-                var CPColor = window.parent.APP.getUserColor(userId);
-                if (CPColor) {
-                    return true === isNumericValue ? ((CPColor.r << 16) & 0xFF0000) | ((CPColor.g << 8) & 0xFF00) | (CPColor.b & 0xFF)
-                                        : new CColor(CPColor.r, CPColor.g, CPColor.b, CPColor.a);
-                }
-            } catch (e) {} // CRYPTPAD XXX
-        }
-
 		if ((!userId || "" === userId) && (!userName || "" === userName))
 			return new CColor(0, 0, 0, 255);
 
@@ -9242,8 +11010,12 @@
 		if (!res)
 			return new CColor(0, 0, 0, 255);
 
-		var oColor = true === isDark ? res.Dark : res.Light;
-		return true === isNumericValue ? ((oColor.r << 16) & 0xFF0000) | ((oColor.g << 8) & 0xFF00) | (oColor.b & 0xFF) : oColor;
+		return true === isDark ? res.Dark : res.Light;
+	}
+	function getUserColorById(userId, userName, isDark, isNumericValue)
+	{
+		let color = _getUserColorById(userId, userName, isDark);
+		return true === isNumericValue ? ((color.r << 16) & 0xFF0000) | ((color.g << 8) & 0xFF00) | (color.b & 0xFF) : color;
 	}
 
 	function isNullOrEmptyString(str)
@@ -9640,7 +11412,7 @@
 
 	function loadScript(url, onSuccess, onError)
 	{
-		if (window["NATIVE_EDITOR_ENJINE"] === true || window["Native"] !== undefined)
+		if (window["NATIVE_EDITOR_ENJINE"] === true || window["native"] !== undefined)
 		{
 			onSuccess();
 			return;
@@ -9694,8 +11466,11 @@
 		}
 		else
 		{
-            var urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
-			loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js?' + urlArgs, onSuccess, onError);
+			if (scriptDirectory) {
+				loadScript(scriptDirectory + 'sdk-all.js', onSuccess, onError);
+			} else {
+				loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
+			}
 		}
 	}
 
@@ -9703,32 +11478,8 @@
 		loadScript('../../../../sdkjs/common/Charts/ChartStyles.js', onSuccess, onError);
 	}
 
-	function loadSmartArtBinary(fOnError) {
-		if (window["NATIVE_EDITOR_ENJINE"]) {
-			return;
-		}
-		loadFileContent('../../../../sdkjs/common/SmartArts/SmartArts.bin', function (httpRequest) {
-			if (httpRequest && httpRequest.response) {
-				const arrStream = AscCommon.initStreamFromResponse(httpRequest);
-
-				AscCommon.g_oBinarySmartArts = {
-					shifts: {},
-					stream: arrStream
-				}
-
-				const oFileStream = new AscCommon.FileStream(arrStream, arrStream.length);
-				oFileStream.GetUChar();
-				const nLength = oFileStream.GetULong();
-				while (nLength + 4 > oFileStream.cur) {
-					const nType = oFileStream.GetUChar();
-					const nPosition = oFileStream.GetULong();
-					AscCommon.g_oBinarySmartArts.shifts[nType] = nPosition;
-				}
-			} else {
-				fOnError(httpRequest);
-			}
-
-		}, 'arraybuffer');
+	function loadPathBoolean(onSuccess, onError) {
+		loadScript('../../../../sdkjs/common/Drawings/Format/path-boolean-min.js', onSuccess, onError);
 	}
 
 	function getAltGr(e)
@@ -9746,7 +11497,7 @@
 		for(var i = 0; i <  AscCommon.g_oUserColorScheme.length; ++i)
 		{
 			var tmp = AscCommon.g_oUserColorScheme[i];
-			if(tmp && tmp.name === sName)
+			if(tmp && tmp.get_name() === sName)
 			{
 				return getColorSchemeByIdx(i);
 			}
@@ -10079,6 +11830,13 @@
 			|| (0x2670 <= nCharCode && nCharCode <= 0x2671)
 			|| (0xFB1D <= nCharCode && nCharCode <= 0xFB4F));
 	}
+	
+	function IsGeorgianScript(charCode)
+	{
+		return ((0x10A0 <= charCode && charCode <= 0x10FF)
+			|| (0x2D00 <= charCode && charCode <= 0x2D2F)
+			|| (0x1C90 <= charCode && charCode <= 0x1CBF));
+	}
 
 	var g_oIdCounter = new CIdCounter();
 
@@ -10088,413 +11846,6 @@
 		this.listeningElement = listeningElement;
 		this.useCapture = useCapture;
 	}
-
-	const asc_PreviewBulletType = {
-		text: 0,
-		char: 1,
-		image: 2,
-		number: 3
-	}
-	window["Asc"].asc_PreviewBulletType = window["Asc"]["asc_PreviewBulletType"] = asc_PreviewBulletType;
-	asc_PreviewBulletType["text"] = asc_PreviewBulletType.text;
-	asc_PreviewBulletType["char"] = asc_PreviewBulletType.char;
-	asc_PreviewBulletType["image"] = asc_PreviewBulletType.image;
-	asc_PreviewBulletType["number"] = asc_PreviewBulletType.number;
-	function CBulletPreviewDrawer(infoOfDrawings, type) {
-		this.arrayOfBullets = this.getBulletArrayFromPreviewInfo(infoOfDrawings);
-		this.infoOfDrawings = infoOfDrawings;
-		this.type = type;
-		this.isNeedCheckFonts = true;
-		this.api = editor || Asc.editor || window["Asc"]["editor"];
-	}
-
-	CBulletPreviewDrawer.prototype.getBulletArrayFromPreviewInfo = function (infoOfDrawings) {
-		const arrayOfBullets = [];
-		AscFormat.ExecuteNoHistory(function () {
-			for (let i = 0; i < infoOfDrawings.length; i += 1) {
-				const drawInfo = infoOfDrawings[i];
-				const type = drawInfo["type"];
-				const bullet = new AscCommonWord.CPresentationBullet();
-				const textPr = new AscCommonWord.CTextPr();
-				textPr.Color = AscCommonWord.g_oDocumentDefaultStrokeColor;
-				switch (type)
-				{
-					case asc_PreviewBulletType.text:
-					{
-						const value = drawInfo["text"];
-						const bulletText = AscCommon.translateManager.getValue(value);
-						bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Char;
-						bullet.m_sChar = bulletText;
-						const fontName = AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.charCodeAt(0));
-						textPr.RFonts.SetAll(fontName);
-						arrayOfBullets.push({bullet: bullet, textPr: textPr});
-						break;
-					}
-					case asc_PreviewBulletType.char:
-					{
-						const bulletText	= drawInfo["char"];
-						const fontName = drawInfo["specialFont"] || AscFonts.FontPickerByCharacter.getFontBySymbol(bulletText.getUnicodeIterator().value());
-						textPr.RFonts.SetAll(fontName);
-						bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Char;
-						bullet.m_sChar = bulletText;
-						arrayOfBullets.push({bullet: bullet, textPr: textPr});
-						break;
-					}
-					case asc_PreviewBulletType.image:
-					{
-						const fullImageSrc = getFullImageSrc2(drawInfo["imageId"]);
-						bullet.m_nType = AscFormat.numbering_presentationnumfrmt_Blip;
-						bullet.m_sSrc = fullImageSrc;
-						arrayOfBullets.push({bullet: bullet, textPr: textPr});
-						break;
-					}
-					case asc_PreviewBulletType.number:
-					{
-						const typeOfNumbering = drawInfo["numberingType"];
-						bullet.m_nType = bullet.convertFromAscTypeToPresentation(typeOfNumbering);
-						textPr.RFonts.SetAll('Arial');
-						arrayOfBullets.push({bullet: bullet, textPr: textPr});
-						break;
-					}
-					default:
-					{
-						break;
-					}
-				}
-			}
-
-
-		}, this);
-		return arrayOfBullets;
-	}
-
-	CBulletPreviewDrawer.prototype.getClearCanvasForPreview = function (divId) {
-		if (!divId) return;
-		const divElement = document.getElementById(divId);
-		const width_px = divElement.clientWidth;
-		const height_px = divElement.clientHeight;
-
-		let canvas = divElement.firstChild;
-		if (!canvas)
-		{
-			canvas = document.createElement('canvas');
-			canvas.style.cssText = "padding:0;margin:0;user-select:none;";
-			canvas.style.width = width_px + "px";
-			canvas.style.height = height_px + "px";
-			if (width_px > 0 && height_px > 0)
-				divElement.appendChild(canvas);
-		}
-
-		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
-		canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
-
-		const ctx = canvas.getContext("2d");
-		ctx.fillStyle = "#FFFFFF";
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-		return canvas;
-	}
-
-	CBulletPreviewDrawer.prototype.drawSingleBullet = function (divId, numberInfo) {
-		const canvas = this.getClearCanvasForPreview(divId);
-		if (!canvas) return;
-
-		const width_px = parseFloat(canvas.style.width);
-		const height_px = parseFloat(canvas.style.height);
-		const ctx = canvas.getContext("2d");
-		ctx.beginPath();
-
-		const line_distance = 32, x = 0, y = 0;
-		const bullet = numberInfo.bullet;
-
-
-		const textPr = numberInfo.textPr.Copy();
-		textPr.FontSize = textPr.FontSizeCS = this.getFontSizeByLineHeight(line_distance);
-		if (bullet.m_sSrc) {
-			const formatBullet = new AscFormat.CBullet();
-			formatBullet.fillBulletImage(bullet.m_sSrc);
-			formatBullet.drawSquareImage(divId, 0.125);
-		} else {
-			const text = bullet.getDrawingText();
-			AscCommon.g_oTextMeasurer.SetTextPr(textPr);
-			AscCommon.g_oTextMeasurer.SetFontSlot(fontslot_ASCII, 1);
-			const oInfo = AscCommon.g_oTextMeasurer.Measure2Code(text.getUnicodeIterator().value());
-
-			const x = (width_px >> 1) - Math.round((oInfo.WidthG / 2 + oInfo.rasterOffsetX) * AscCommon.g_dKoef_mm_to_pix);
-			const y = (width_px >> 1) + Math.round((oInfo.Height / 2 + (oInfo.Ascent - oInfo.Height + oInfo.rasterOffsetY)) * AscCommon.g_dKoef_mm_to_pix);
-			this.privateGetParagraphByString(text, textPr, x, y, line_distance, ctx, width_px, height_px);
-		}
-	}
-
-	CBulletPreviewDrawer.prototype.drawImageBulletsWithLines = function (fullImageSrc, textPr, x, y, lineHeight, ctx, w, h) {
-		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
-		const sizes = AscCommon.getSourceImageSize(fullImageSrc);
-
-		const imageHeight = sizes.height * rPR;
-		const imageWidth = sizes.width * rPR;
-		const adaptImageHeight = lineHeight * rPR;
-		const adaptImageWidth = (imageWidth * adaptImageHeight / (imageHeight ? imageHeight : 1));
-
-		const backTextWidth = adaptImageWidth / rPR + 4;
-		ctx.fillStyle = "#FFFFFF";
-		ctx.fillRect(Math.round(rPR * x), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
-		ctx.beginPath();
-
-		const graphics = new AscCommon.CGraphics();
-		graphics.init(ctx,
-			AscCommon.AscBrowser.convertToRetinaValue(w, true),
-			AscCommon.AscBrowser.convertToRetinaValue(h, true),
-			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
-		graphics.m_oFontManager = AscCommon.g_fontManager;
-
-		graphics.drawImage(fullImageSrc, x * rPR, y * rPR - (adaptImageHeight * (0.85)), adaptImageWidth, adaptImageHeight);
-	}
-
-	CBulletPreviewDrawer.prototype.drawBulletsWithLines = function (divId, numberInfo, countOfLines) {
-		const canvas = this.getClearCanvasForPreview(divId);
-		if (!canvas) return;
-		const textPr = numberInfo.textPr.Copy();
-		const bullet = numberInfo.bullet;
-		const width_px = parseFloat(canvas.style.width);
-		const height_px = parseFloat(canvas.style.height);
-		const ctx = canvas.getContext("2d");
-		ctx.beginPath();
-
-		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
-		const offsetBase = 4;
-		const line_w = 2;
-		// считаем расстояние между линиями
-		const line_distance = (((height_px - (offsetBase << 2)) - line_w * countOfLines) / countOfLines) >> 0;
-		// убираем погрешность в offset
-		const offset = (height_px - (line_w * countOfLines + line_distance * countOfLines)) >> 1;
-
-		ctx.lineWidth = 2 * Math.round(rPR);
-		ctx.strokeStyle = "#CBCBCB";
-		const text_base_offset_x = offset + ((2.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
-
-		let y = offset + 11;
-		for (let j = 0; j < countOfLines; j++)
-		{
-			ctx.moveTo(Math.round(text_base_offset_x * rPR), Math.round(y * rPR)); ctx.lineTo(Math.round((width_px - offsetBase) * rPR), Math.round(y * rPR));
-			ctx.stroke();
-			ctx.beginPath();
-			const textYx =  text_base_offset_x - ((3.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
-			const	textYy = y + (line_w * 2.5);
-			const nLineHeight = line_distance - 4;
-			textPr.FontSize = this.getFontSizeByLineHeight(nLineHeight);
-			if (bullet.m_sSrc) {
-				this.drawImageBulletsWithLines(bullet.m_sSrc, textPr, textYx, textYy, nLineHeight, ctx, width_px, height_px);
-			} else {
-				this.privateGetParagraphByString(bullet.getDrawingText(j + 1), textPr, textYx, textYy, nLineHeight, ctx, width_px, height_px);
-			}
-			y += (line_w + line_distance);
-		}
-	}
-
-	CBulletPreviewDrawer.prototype.getFontSizeByLineHeight = function (nLineHeight)
-	{
-		return ((2 * nLineHeight * 72 / 96) >> 0) / 2;
-	};
-
-	CBulletPreviewDrawer.prototype.drawNoneTextPreview = function (divId, info)
-	{
-		const canvas = this.getClearCanvasForPreview(divId);
-		if (!canvas) return;
-		const width_px = parseFloat(canvas.style.width);
-		const height_px = parseFloat(canvas.style.height);
-		const ctx = canvas.getContext("2d");
-		ctx.beginPath();
-
-		const lvl = info;
-		const text = lvl.bullet.getDrawingText();
-
-		const oNewShape = new AscFormat.CShape();
-		oNewShape.createTextBody();
-		oNewShape.extX = width_px * AscCommon.g_dKoef_pix_to_mm;
-		oNewShape.extY = height_px * AscCommon.g_dKoef_pix_to_mm;
-		oNewShape.contentWidth = oNewShape.extX;
-		oNewShape.setPaddings({Left: 0, Top: 0, Right: 0, Bottom: 0});
-
-		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
-		par.MoveCursorToStartPos();
-		par.Pr = new AscCommonWord.CParaPr();
-
-		const parRun = new AscCommonWord.ParaRun(par);
-		const textPr = lvl.textPr.Copy();
-		parRun.Set_Pr(textPr);
-		parRun.AddText(text);
-		par.AddToContent(0, parRun);
-
-		let nLineHeight = (height_px === 80) ? (height_px / 5 - 1) : ((height_px >> 2) + ((text.length > 6) ? 1 : 2));
-		textPr.FontSize = this.getFontSizeByLineHeight(nLineHeight);
-
-		par.TextPr.SetFontSize(textPr.FontSize);
-
-		let parW = par.RecalculateMinMaxContentWidth().Max;
-		if (parW > oNewShape.contentWidth) {
-			const nNewFontSize = oNewShape.findFitFontSizeForSmartArt(true);
-			oNewShape.setFontSizeInSmartArt(nNewFontSize);
-			oNewShape.recalculateContentWitCompiledPr();
-			parW = par.RecalculateMinMaxContentWidth().Max;
-		}
-
-		parW = parW * AscCommon.g_dKoef_mm_to_pix;
-
-		nLineHeight = par.Get_EmptyHeight();
-		const x = (width_px - (parW >> 0)) >> 1;
-		const y = (height_px >> 1) + (nLineHeight >> 0);
-		this.privateGetParagraphByString(text, textPr, x, y, nLineHeight, ctx, width_px, height_px);
-	}
-
-	CBulletPreviewDrawer.prototype.privateGetParagraphByString = function(text, textPr, x, y, lineHeight, ctx, w, h)
-	{
-		const api = this.api;
-
-		const oldViewMode = api.isViewMode;
-		const oldMarks = api.ShowParaMarks;
-
-		api.isViewMode = true;
-		api.ShowParaMarks = false;
-
-		const oNewShape = new AscFormat.CShape();
-		oNewShape.createTextBody();
-
-		const par = oNewShape.txBody.content.GetAllParagraphs()[0];
-		par.MoveCursorToStartPos();
-
-		//par.Pr = level.ParaPr.Copy();
-		par.Pr = new AscCommonWord.CParaPr();
-		textPr = textPr.Copy();
-
-		const parRun = new AscCommonWord.ParaRun(par);
-		parRun.Set_Pr(textPr);
-		parRun.AddText(text);
-		par.AddToContent(0, parRun);
-
-		par.Reset(0, 0, 1000, 1000, 0, 0, 1);
-		par.Recalculate_Page(0);
-
-		const baseLineOffset = par.Lines[0].Y;
-		const parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
-
-		const yOffset = y - ((baseLineOffset * AscCommon.g_dKoef_mm_to_pix) >> 0);
-		const xOffset = x;
-
-		const backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
-
-		ctx.fillStyle = "#FFFFFF";
-		const rPR = AscCommon.AscBrowser.retinaPixelRatio;
-		ctx.fillRect(Math.round(rPR * xOffset), Math.round((y - lineHeight) * rPR), Math.round(backTextWidth * rPR), Math.round((lineHeight + (lineHeight >> 1)) * rPR));
-		ctx.beginPath();
-
-		ctx.save();
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-		const graphics = new AscCommon.CGraphics();
-		graphics.init(ctx,
-			AscCommon.AscBrowser.convertToRetinaValue(w, true),
-			AscCommon.AscBrowser.convertToRetinaValue(h, true),
-			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
-		graphics.m_oFontManager = AscCommon.g_fontManager;
-
-		graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
-		graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
-
-		graphics.transform(1, 0, 0, 1, 0, 0);
-		par.Draw(0, graphics);
-
-		ctx.restore();
-		api.isViewMode = oldViewMode;
-		api.ShowParaMarks = oldMarks;
-	};
-
-	CBulletPreviewDrawer.prototype.checkFonts = function (callback)
-	{
-		this.isNeedCheckFonts = false;
-		const api = this.api;
-		const fontsDict = {};
-		for (let i = 0, count = this.arrayOfBullets.length; i < count; i++)
-		{
-			const bullet = this.arrayOfBullets[i].bullet;
-			const text = bullet.getDrawingText();
-			if (text)
-			{
-				AscFonts.FontPickerByCharacter.checkTextLight(text);
-			}
-			const textPr = this.arrayOfBullets[i].textPr;
-			if (textPr && textPr.RFonts)
-			{
-				if (textPr.RFonts.Ascii) fontsDict[textPr.RFonts.Ascii.Name] = true;
-				if (textPr.RFonts.EastAsia) fontsDict[textPr.RFonts.EastAsia.Name] = true;
-				if (textPr.RFonts.HAnsi) fontsDict[textPr.RFonts.HAnsi.Name] = true;
-				if (textPr.RFonts.CS) fontsDict[textPr.RFonts.CS.Name] = true;
-			}
-		}
-
-		const fonts = [];
-		for (let familyName in fontsDict)
-		{
-			fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
-		}
-		AscFonts.FontPickerByCharacter.extendFonts(fonts);
-
-		if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
-		{
-			return callback();
-		}
-
-		const loader = new AscCommon.CGlobalFontLoader();
-		loader.put_Api(api);
-		loader.LoadDocumentFonts2(fonts, Asc.c_oAscAsyncActionType.Information, function() {
-			callback();
-		});
-	}
-
-	CBulletPreviewDrawer.prototype.draw = function ()
-	{
-		AscFormat.ExecuteNoHistory(function () {
-			const _this = this;
-			if (this.isNeedCheckFonts)
-			{
-				this.checkFonts(function () {
-					_this.draw();
-				});
-				return;
-			}
-
-			for (let i = 0; i < this.infoOfDrawings.length; i++)
-			{
-				const drawingInfo = this.infoOfDrawings[i];
-				const id = drawingInfo["divId"];
-				const currentBullet = this.arrayOfBullets[i];
-				if (this.type === 0)
-				{
-					if (drawingInfo["type"] === asc_PreviewBulletType.text)
-					{
-						this.drawNoneTextPreview(id, currentBullet);
-					}
-					else
-					{
-						this.drawSingleBullet(id, currentBullet);
-					}
-				}
-				else if (this.type === 1)
-				{
-					if (drawingInfo["type"] === asc_PreviewBulletType.text)
-					{
-						this.drawNoneTextPreview(id, currentBullet);
-					}
-					else
-					{
-						this.drawBulletsWithLines(id, currentBullet, 3);
-					}
-				}
-				else if (this.type === 2)
-				{
-					//TODO: add multi level support
-				}
-			}
-		}, this);
-	};
 
 	window.Asc.g_signature_drawer = null;
 	function CSignatureDrawer(id, api, w, h)
@@ -11066,7 +12417,7 @@
 						obj.options.callback(Asc.c_oAscError.ID.No, data);
 					else
 					{
-						AscCommon.UploadImageUrls(data, obj.options.api.documentId, obj.options.api.documentUserId, obj.options.api.CoAuthoringApi.get_jwt(), function(urls)
+						AscCommon.UploadImageUrls(data, obj.options.api.documentId, obj.options.api.documentUserId, obj.options.api.CoAuthoringApi.get_jwt(), obj.options.api.documentShardKey, obj.options.api.documentWopiSrc, obj.options.api.documentUserSessionId, function(urls)
                         {
                             obj.options.api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
 
@@ -11754,7 +13105,7 @@
 			var arrBounds = oMath.GetBounds();
 			if (arrBounds.length <= 0)
 				return;
-			
+
 			if (!oMath.IsEmpty()
 				&& 1 === arrBounds.length
 				&& 1 === arrBounds[0].length
@@ -11769,7 +13120,7 @@
 						H    : Math.max(tmpBounds.H, 0.1)
 					}]];
 			}
-			
+
 			var MPolygon = new CPolygon();
 			MPolygon.fill(arrBounds);
 			this.MathPolygons = MPolygon.GetPaths(PixelError);
@@ -12283,6 +13634,295 @@
 		this.CheckStyleDisplay();
 	};
 
+	function CFormatPainter(oApi) {
+		this.api = oApi;
+		this.state = AscCommon.c_oAscFormatPainterState.kOff;
+		this.data = null
+	}
+	CFormatPainter.prototype.isOn = function() {
+		return !this.isOff();
+	};
+	CFormatPainter.prototype.isOff = function() {
+		return this.state === AscCommon.c_oAscFormatPainterState.kOff;
+	};
+	CFormatPainter.prototype.isMultiple = function() {
+		return this.state === AscCommon.c_oAscFormatPainterState.kMultiple;
+	};
+	CFormatPainter.prototype.toggle = function() {
+		if(this.isOn()) {
+			this.changeState(AscCommon.c_oAscFormatPainterState.kOff);
+		}
+		else {
+			this.changeState(AscCommon.c_oAscFormatPainterState.kOn);
+		}
+	};
+	CFormatPainter.prototype.setState = function(nState) {
+		this.state = nState;
+	};
+	CFormatPainter.prototype.getState = function(nState) {
+		return this.state;
+	};
+	CFormatPainter.prototype.toggleState = function() {
+		if(this.isOn()) {
+			this.setState(AscCommon.c_oAscFormatPainterState.kOff);
+		}
+		else {
+			this.setState(AscCommon.c_oAscFormatPainterState.kOn);
+		}
+	};
+	CFormatPainter.prototype.putState = function(nState) {
+		if(nState !== null && nState !== undefined) {
+			this.setState(nState);
+		}
+		else {
+			this.toggleState();
+		}
+	};
+	CFormatPainter.prototype.changeState = function(nState) {
+		this.setState(nState);
+		if(this.isOn()) {
+			this.checkData();
+		}
+	};
+	CFormatPainter.prototype.checkData = function() {
+		this.data = this.api.retrieveFormatPainterData();
+		return this.data;
+	};
+	CFormatPainter.prototype.clearData = function() {
+		this.data = null;
+	};
+
+	function CFormattingPasteDataBase() {
+
+	}
+	CFormattingPasteDataBase.prototype.isDrawingData = function()
+	{
+		return false;
+	};
+	CFormattingPasteDataBase.prototype.getDocData = function()
+	{
+		return null;
+	};
+	function CTextFormattingPasteData(textPr, paraPr)
+	{
+		CFormattingPasteDataBase.call();
+		this.TextPr = textPr;
+		this.ParaPr = paraPr;
+	}
+	CTextFormattingPasteData.prototype = Object.create(CFormattingPasteDataBase.prototype);
+	CTextFormattingPasteData.prototype.getDocData = function()
+	{
+		return this;
+	};
+	function CDrawingFormattingPasteData(drawing)
+	{
+		CFormattingPasteDataBase.call();
+		this.Drawing = drawing;
+	}
+	CDrawingFormattingPasteData.prototype = Object.create(CFormattingPasteDataBase.prototype);
+	CDrawingFormattingPasteData.prototype.isDrawingData = function()
+	{
+		return true;
+	};
+	CDrawingFormattingPasteData.prototype.getDocData = function()
+	{
+		return this;
+	};
+	
+
+	function CEyedropper(oAPI)
+	{
+		this.api = oAPI;
+		this.started = false;
+		this.imgData = null;
+		this.r = null;
+		this.g = null;
+		this.b = null;
+	}
+	CEyedropper.prototype.isStarted = function()
+	{
+		return this.started;
+	};
+	CEyedropper.prototype.setColor = function(r, g, b)
+	{
+		const fN = AscFormat.isRealNumber;
+		if(!fN(r) || !fN(g) || !fN(b)) {
+			this.r = null;
+			this.g = null;
+			this.b = null;
+		}
+		this.r = r;
+		this.g = g;
+		this.b = b;
+	};
+	CEyedropper.prototype.getColor = function()
+	{
+		const fN = AscFormat.isRealNumber;
+		if(!fN(this.r) || !fN(this.g) || !fN(this.b)) {
+			return null;
+		}
+		return new Asc.asc_CColor(this.r, this.g, this.b)
+	};
+	CEyedropper.prototype.clearColor = function()
+	{
+		this.setColor(null, null, null);
+	};
+	CEyedropper.prototype.start = function(fEndCallback)
+	{
+		this.started = true;
+		this.endCallback = fEndCallback;
+	};
+	CEyedropper.prototype.cancel = function()
+	{
+		this.end();
+	};
+	CEyedropper.prototype.end = function()
+	{
+		this.started = false;
+		this.endCallback = null;
+		this.api.sendEvent("asc_onHideEyedropper");
+		this.clearColor();
+		this.clearImageData();
+	};
+	CEyedropper.prototype.clearImageData = function()
+	{
+		if(this.imgData !== null)
+		{
+			this.imgData = null;
+		}
+	};
+	CEyedropper.prototype.finish = function()
+	{
+		if(!this.isStarted())
+		{
+			return;
+		}
+		if(this.r !== null && this.g !== null && this.b !== null && this.endCallback)
+		{
+			this.endCallback(this.r, this.g, this.b);
+		}
+		this.end();
+	};
+	CEyedropper.prototype.getImageData = function()
+	{
+		if(!this.imgData) {
+			this.imgData = this.api.getEyedropperImgData();
+		}
+		return this.imgData;
+	};
+	CEyedropper.prototype.checkColor = function(nX, nY)
+	{
+		if(!this.isStarted())
+		{
+			return;
+		}
+		const oImgData = this.getImageData();
+		if(!oImgData)
+		{
+			this.cancel();
+			return;
+		}
+		const nXFixed = nX + 0.5 >> 0;
+		const nYFixed = nY + 0.5 >> 0;
+		const nXImg = Math.max(0, Math.min(oImgData.width, nXFixed));
+		const nYImg = Math.max(0, Math.min(oImgData.height, nYFixed));
+		const nArrayPos = (nYImg * oImgData.width + nXImg) * 4;
+		const aPixels = oImgData.data;
+		const nR = aPixels[nArrayPos];
+		const nG = aPixels[nArrayPos + 1];
+		const nB = aPixels[nArrayPos + 2];
+		this.setColor(nR, nG, nB);
+		//console.log("Check Color r: " + nR + " g: " + nG + " b: " + nB);
+	};
+
+	const INK_DRAWER_STATE_OFF = 0;
+	const INK_DRAWER_STATE_DRAW = 1;
+	const INK_DRAWER_STATE_ERASE = 2;
+	function CInkDrawer(oApi) {
+		this.api = oApi;
+		this.state = INK_DRAWER_STATE_OFF;
+		this.pen = null;
+		this.silentMode = false;
+	}
+	CInkDrawer.prototype.setState = function(nState) {
+		const bChange = this.state !== nState;
+		if(bChange || this.isDraw()) {
+			this.state = nState;
+			this.api.onInkDrawerChangeState();
+		}
+		return bChange;
+	};
+	CInkDrawer.prototype.startDraw = function(oAscPen) {
+		this.pen = AscFormat.CorrectUniStroke(oAscPen);
+		if(!this.pen || !this.pen.Fill || !this.pen.Fill) {
+			this.pen = new AscFormat.CLn();
+			this.pen.w = 180000;
+			this.pen.Fill = AscFormat.CreateSolidFillRGB(255, 255, 0);
+			this.pen.Fill.transparent = 127;
+		}
+		this.pen.Fill.check(AscFormat.GetDefaultTheme(), AscFormat.GetDefaultColorMap());
+		this.setState(INK_DRAWER_STATE_DRAW);
+	};
+	CInkDrawer.prototype.startErase = function() {
+		this.pen = null;
+		this.setState(INK_DRAWER_STATE_ERASE);
+	};
+	CInkDrawer.prototype.startSilentMode = function() {
+		this.silentMode = true;
+	};
+	CInkDrawer.prototype.endSilentMode = function() {
+		this.silentMode = false;
+	};
+	CInkDrawer.prototype.isSilentMode = function() {
+		return this.silentMode;
+	};
+	CInkDrawer.prototype.turnOff = function() {
+		if(!this.isOn()) {
+			return;
+		}
+		if(this.isSilentMode()) {
+			return;
+		}
+		this.pen = null;
+		this.setState(INK_DRAWER_STATE_OFF);
+		this.api.sendEvent("asc_onInkDrawerStop");
+	};
+	CInkDrawer.prototype.isOn = function() {
+		return this.state !== INK_DRAWER_STATE_OFF;
+	};
+	CInkDrawer.prototype.isDraw = function() {
+		return this.state === INK_DRAWER_STATE_DRAW;
+	};
+	CInkDrawer.prototype.isErase = function() {
+		return this.state === INK_DRAWER_STATE_ERASE;
+	};
+	CInkDrawer.prototype.getPen = function() {
+		return this.pen;
+	};
+	CInkDrawer.prototype.getState = function() {
+		return {state: this.state, pen: this.pen, silentMode: this.silentMode};
+	};
+	CInkDrawer.prototype.restoreState = function(oState) {
+		if(!oState) {
+			return;
+		}
+		this.state = oState.state;
+		this.pen = oState.pen;
+		this.silentMode = oState.silentMode;
+	};
+	CInkDrawer.prototype.getCursorType = function() {
+		if(this.isOn()) {
+			if(this.isDraw()) {
+				return AscCommon.g_oHtmlCursor.getDrawCursor(this.getPen());
+			}
+			else if(this.isErase()) {
+				return "table-eraser";
+			}
+		}
+		return null;
+	};
+
+	//------------------------------------------------------------fill polyfill--------------------------------------------
 	if (!Object.values) {
 		Object.values = function (obj) {
 			return Object.keys(obj).map(function (e) {
@@ -12290,7 +13930,7 @@
 			});
 		}
 	}
-
+	
 	function parseText(text, options, bTrimSpaces) {
 		var delimiterChar;
 		if (options.asc_getDelimiterChar()) {
@@ -12321,7 +13961,12 @@
 		var textQualifier = options.asc_getTextQualifier();
 		var matrix = [];
 		//var rows = text.match(/[^\r\n]+/g);
-		var rows = text.split(/\r?\n/);
+		var rows;
+		if (delimiterChar === '\n') {
+			rows = [text];
+		} else {
+			rows = text.split(/\r?\n/);
+		}
 		for (var i = 0; i < rows.length; ++i) {
 			var row = rows[i];
 			if(" " === delimiterChar && bTrimSpaces) {
@@ -12415,6 +14060,9 @@
 			} else if (-1 !== value.indexOf("pc")) {
 				oType = "pc";
 				oVal *= AscCommonWord.g_dKoef_pc_to_mm;
+			} else if (-1 !== value.indexOf("em")) {
+				oType = "em";
+				oVal *= AscCommonWord.g_dKoef_em_to_mm;
 			} else {
 				oType = "none";
 			}
@@ -12740,7 +14388,30 @@
 			return;
 		}
 
-		var rect = element.getBoundingClientRect();
+		
+		var rect;
+		if (!AscBrowser.isIE)
+			rect = AscCommon.UI.getBoundingClientRect(element);
+		else {
+			function getCanvasBoundingClientRect(canvas) {
+				const offsetLeft	= canvas.offsetLeft;
+				const offsetTop		= canvas.offsetTop;
+				const offsetWidth	= canvas.offsetWidth;
+				const offsetHeight	= canvas.offsetHeight;
+			
+				return {
+					top:	offsetTop,
+					right:	offsetLeft + offsetWidth,
+					bottom:	offsetTop + offsetHeight,
+					left:	offsetLeft,
+					width:	offsetWidth,
+					height:	offsetHeight,
+				};
+			}
+
+			rect = getCanvasBoundingClientRect(element);
+		}
+
 		var isCorrectRect = (rect.width === 0 && rect.height === 0) ? false : true;
 		if (is_wait_correction || !isCorrectRect)
 		{
@@ -13057,6 +14728,9 @@
 		if (!api) {
 			return;
 		}
+		if (api.documentOpenOptions && api.documentOpenOptions["debug"]) {
+			console.log("[speed]: "+ msg);
+		}
 		api.CoAuthoringApi.sendClientLog(level, msg);
 	}
 
@@ -13146,8 +14820,78 @@
 		return pages;
 	}
 
+
+	function CPluginCtxMenuInfo(sType, sOlePluginGuid) {
+		if(!sType) {
+			this["type"] = Asc.c_oPluginContextMenuTypes.None;
+		}
+		else {
+			this["type"] = sType;
+			this["guid"] = sOlePluginGuid;
+		}
+	}
+	CPluginCtxMenuInfo.prototype.setHdrFtr = function(isHeader) {
+		if (isHeader) {
+			delete this["footer"];
+			this["header"] = true;
+		} else {
+			delete this["header"];
+			this["footer"] = true;
+		}
+	};
+	CPluginCtxMenuInfo.prototype.setHdrFtrArea = function(isHeader) {
+		if (isHeader) {
+			delete this["footerArea"];
+			this["headerArea"] = true;
+		} else {
+			delete this["headerArea"];
+			this["footerArea"] = true;
+		}
+	};
+	
+
+
+	function deg2rad(deg)
+	{
+		return deg * Math.PI / 180.0;
+	}
+
+	function rad2deg(rad)
+	{
+		return rad * 180.0 / Math.PI;
+	}
+
+	function trimMinMaxValue(value, min, max) {
+		if (value < min)
+			return min;
+		if (value > max)
+			return max;
+		return value;
+	}
+
+	function getArrayRandomElement(aArray) {
+		return aArray[Math.random() * aArray.length | 0];
+	}
+
+	function consoleLog(val) {
+		// console.log(val);
+		const showMessages = false;
+
+		if (!showMessages) {
+			return;
+		}
+
+		// see v8 arguments leak - performance loss
+		// console.log.apply(console, arguments);
+
+		for (let i = 0; i < arguments.length; i++) {
+			console.log(arguments[i]);
+		}
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
+	window["AscCommon"].consoleLog = consoleLog;
 	window["AscCommon"].getSockJs = getSockJs;
 	window["AscCommon"].getSocketIO = getSocketIO;
 	window["AscCommon"].getBaseUrl = getBaseUrl;
@@ -13177,6 +14921,7 @@
 	window["AscCommon"]['GetFileExtension'] = window["AscCommon"].GetFileExtension = GetFileExtension;
 	window["AscCommon"].changeFileExtention = changeFileExtention;
 	window["AscCommon"].getExtentionByFormat = getExtentionByFormat;
+	window["AscCommon"].getFormatByExtention = getFormatByExtention;
 	window["AscCommon"].InitOnMessage = InitOnMessage;
 	window["AscCommon"].ShowImageFileDialog = ShowImageFileDialog;
 	window["AscCommon"].ShowDocumentFileDialog = ShowDocumentFileDialog;
@@ -13216,9 +14961,10 @@
 	window["AscCommon"].CorrectMMToTwips = CorrectMMToTwips;
 	window["AscCommon"].TwipsToMM = TwipsToMM;
 	window["AscCommon"].MMToTwips = MMToTwips;
-	window["AscCommon"].RomanToInt = RomanToInt;
-	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
-	window["Asc"]["IntToNumberFormat"] = window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
+	window["AscCommon"]["RomanToInt"] = window["AscCommon"].RomanToInt = RomanToInt;
+	window["AscCommon"]["LatinNumberingToInt"] = window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
+	window["AscCommon"]["RussianNumberingToInt"] = window["AscCommon"].RussianNumberingToInt = RussianNumberingToInt;
+	window["AscCommon"]["IntToNumberFormat"] = window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 	window["AscCommon"].IsSpace = IsSpace;
 	window["AscCommon"].IntToHex = IntToHex;
 	window["AscCommon"].Int32ToHex = Int32ToHex;
@@ -13232,14 +14978,18 @@
 	window["AscCommon"].CorrectFontSize = CorrectFontSize;
 	window["AscCommon"].IsAscFontSupport = IsAscFontSupport;
 	window["AscCommon"].ExecuteNoHistory = ExecuteNoHistory;
+	window["AscCommon"].executeNoRevisions = executeNoRevisions;
+	window["AscCommon"].ExecuteEditorAction = ExecuteEditorAction;
+	window["AscCommon"].AddAndExecuteChange = AddAndExecuteChange;
 	window["AscCommon"].CompareStrings = CompareStrings;
 	window["AscCommon"].IsSupportAscFeature = IsSupportAscFeature;
 	window["AscCommon"].IsSupportOFormFeature = IsSupportOFormFeature;
+	window["AscCommon"].mockLogicDoc = mockLogicDoc;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
     window["AscCommon"].loadChartStyles = loadChartStyles;
-	window["AscCommon"].loadSmartArtBinary = loadSmartArtBinary;
+    window["AscCommon"].loadPathBoolean = loadPathBoolean;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
 	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;
@@ -13249,6 +14999,7 @@
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
 	window["AscCommon"].IsEastAsianFont = IsEastAsianFont;
 	window["AscCommon"].IsComplexScript = IsComplexScript;
+	window["AscCommon"].IsGeorgianScript = IsGeorgianScript;
 	window["AscCommon"].CMathTrack = CMathTrack;
 	window["AscCommon"].CPolygon = CPolygon;
 	window['AscCommon'].CDrawingCollaborativeTargetBase = CDrawingCollaborativeTargetBase;
@@ -13256,20 +15007,20 @@
 	window["AscCommon"].g_oDocumentUrls = g_oDocumentUrls;
 	window["AscCommon"].FormulaTablePartInfo = FormulaTablePartInfo;
 	window["AscCommon"].cBoolLocal = cBoolLocal;
+	window["AscCommon"].cBoolOrigin = cBoolOrigin;
 	window["AscCommon"].cErrorOrigin = cErrorOrigin;
 	window["AscCommon"].cErrorLocal = cErrorLocal;
+	window["AscCommon"].cCellFunctionLocal = cCellFunctionLocal;
 	window["AscCommon"].FormulaSeparators = FormulaSeparators;
 	window["AscCommon"].rx_space_g = rx_space_g;
 	window["AscCommon"].rx_space = rx_space;
 	window["AscCommon"].rx_defName = rx_defName;
+	window["AscCommon"].rx_protectedRangeName = rx_protectedRangeName;
 	window["AscCommon"].rx_r1c1DefError = rx_r1c1DefError;
 	window["AscCommon"].rx_allowedProtocols = rx_allowedProtocols;
 
-	window["AscCommon"].kCurFormatPainterWord = kCurFormatPainterWord;
 	window["AscCommon"].parserHelp = parserHelp;
 	window["AscCommon"].g_oIdCounter = g_oIdCounter;
-
-	window["AscCommon"].g_oHtmlCursor = g_oHtmlCursor;
 
 	window["AscCommon"].g_oBackoffDefaults = g_oBackoffDefaults;
 	window["AscCommon"].Backoff = Backoff;
@@ -13279,8 +15030,6 @@
 	window["AscCommon"].getSourceImageSize = getSourceImageSize;
 
 	window["AscCommon"].CEventListenerInfo = CEventListenerInfo;
-
-	window["AscCommon"].CBulletPreviewDrawer = window["AscCommon"]["CBulletPreviewDrawer"] = CBulletPreviewDrawer;
 
 	window["AscCommon"].CSignatureDrawer = window["AscCommon"]["CSignatureDrawer"] = CSignatureDrawer;
 	var prot = CSignatureDrawer.prototype;
@@ -13356,11 +15105,23 @@
 		word = word.replaceAll("\"", "&#34;");
 		word = word.replaceAll("\'", "&#39;");
 		return word;
-	}
-
+	};
+	window["AscCommon"].CFormatPainter = CFormatPainter;
+	window["AscCommon"].CFormattingPasteDataBase = CFormattingPasteDataBase;
+	window["AscCommon"].CTextFormattingPasteData = CTextFormattingPasteData;
+	window["AscCommon"].CDrawingFormattingPasteData = CDrawingFormattingPasteData;
+	window["AscCommon"].CEyedropper = CEyedropper;
+	window["AscCommon"].CInkDrawer = CInkDrawer;
+	window["AscCommon"].CPluginCtxMenuInfo = CPluginCtxMenuInfo;
+	window['AscCommon'].deg2rad = deg2rad;
+	window['AscCommon'].rad2deg = rad2deg;
+	window["AscCommon"].c_oAscImageUploadProp = c_oAscImageUploadProp;
+	window["AscCommon"].trimMinMaxValue = trimMinMaxValue;
+	window["AscCommon"].cStrucTableReservedWords = cStrucTableReservedWords;
+	window["AscCommon"].getArrayRandomElement = getArrayRandomElement;
 })(window);
 
-window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
+window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo, csv_data)
 {
     if (window.isNativeOpenPassword)
 	{
@@ -13390,7 +15151,14 @@ window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
     }
 
     window.checkPasswordFromPlugin = false;
-    _editor._onNeedParams(undefined, (_code == 90 || _code == 91) ? true : undefined);
+	let data = undefined;
+	if (csv_data && window["AscDesktopEditor"])
+	{
+		var bufferArray = window["AscDesktopEditor"]["GetOpenedFile"](csv_data);
+		if (bufferArray)
+			data = new Uint8Array(bufferArray);
+	}
+    _editor._onNeedParams(data, (_code == 90 || _code == 91) ? true : undefined);
 };
 
 window["asc_IsNeedBuildCryptedFile"] = function()
@@ -13575,7 +15343,7 @@ window["buildCryptoFile_End"] = function(url, error, hash, password)
 					ext = ".docxf";
 			}
 
-			AscCommon.sendSaveFile(_editor.documentId, _editor.documentUserId, "output" + ext, _editor.asc_getSessionToken(), fileData, function(err) {
+			AscCommon.sendSaveFile(_editor.documentId, _editor.documentUserId, "output" + ext, _editor.asc_getSessionToken(), _editor.documentShardKey, _editor.documentWopiSrc, _editor.documentUserSessionId, fileData, function(err) {
 
                 _editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Save);
                 _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationSaveError, Asc.c_oAscError.Level.Critical);

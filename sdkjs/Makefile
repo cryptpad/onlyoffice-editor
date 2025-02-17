@@ -41,8 +41,7 @@ all: $(WEBAPPS)
 
 $(WEBAPPS): $(WEBAPPS_FILES)
 	mkdir -p $(OUTPUT)/$(WEBAPPS_DIR) && \
-        cp common/AllFonts.js ./deploy/sdkjs/common/ && \
-		cp -r ../$(WEBAPPS_DIR)/deploy/$(WEBAPPS_DIR) $(OUTPUT)/
+		cp -r -t $(OUTPUT)/$(WEBAPPS_DIR) ../$(WEBAPPS_DIR)/deploy/** 
 
 $(WEBAPPS_FILES): $(NODE_MODULES) $(SDKJS_FILES)
 	cd ../$(WEBAPPS_DIR)/build  && \

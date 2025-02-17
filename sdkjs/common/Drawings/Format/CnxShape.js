@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -524,6 +524,11 @@
         this.fillObject(copy, oPr);
         return copy;
     };
+    CConnectionShape.prototype.convertToPdf = function(oPr) {
+        let copy = new AscPDF.CPdfConnectionShape();
+        this.fillObject(copy, oPr);
+        return copy;
+    };
 
     CConnectionShape.prototype.resetShape = function (oShape) {
 		if (!this.nvSpPr)
@@ -565,7 +570,7 @@
         if(AscFormat.isRealNumber(oPr.stCnxId)){
             oStartSp = oObjectsMap[oPr.stCnxId];
             if(AscCommon.isRealObject(oStartSp)){
-                aCnx = oStartSp.getGeom().cnxLstInfo;
+                aCnx = oStartSp.getTrackGeometry().cnxLstInfo;
                 if(aCnx) {
                     oCnx = aCnx[oPr.stCnxIdx];
                 }
@@ -585,7 +590,7 @@
         if(AscFormat.isRealNumber(oPr.endCnxId)){
             oEndSp = oObjectsMap[oPr.endCnxId];
             if(AscCommon.isRealObject(oEndSp)){
-                aCnx = oEndSp.getGeom().cnxLstInfo;
+                aCnx = oEndSp.getTrackGeometry().cnxLstInfo;
                 if(aCnx) {
                     oCnx = aCnx[oPr.endCnxIdx];
                 }
@@ -683,7 +688,7 @@
                 var _oCnxInfo;
                 var _groupTransform;
                 if(oBeginDrawing){
-                    _oCnxInfo = oBeginDrawing.getGeom().cnxLst[this.getStCxnIdx()];
+                    _oCnxInfo = oBeginDrawing.getTrackGeometry().cnxLst[this.getStCxnIdx()];
                     if(_oCnxInfo){
                         _spX = oBeginDrawing.transform.TransformPointX(_oCnxInfo.x, _oCnxInfo.y);
                         _spY = oBeginDrawing.transform.TransformPointY(_oCnxInfo.x, _oCnxInfo.y);
@@ -693,7 +698,7 @@
                     }
                 }
                 else {
-                    _oCnxInfo = oEndDrawing.getGeom().cnxLst[this.getEndCxnIdx()];
+                    _oCnxInfo = oEndDrawing.getTrackGeometry().cnxLst[this.getEndCxnIdx()];
                     if(_oCnxInfo){
                         _spX = oEndDrawing.transform.TransformPointX(_oCnxInfo.x, _oCnxInfo.y);
                         _spY = oEndDrawing.transform.TransformPointY(_oCnxInfo.x, _oCnxInfo.y);

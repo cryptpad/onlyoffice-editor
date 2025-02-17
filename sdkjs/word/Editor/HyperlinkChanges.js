@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 08.11.2016
- * Time: 18:59
- */
 
 AscDFH.changesFactory[AscDFH.historyitem_Hyperlink_Value]      = CChangesHyperlinkValue;
 AscDFH.changesFactory[AscDFH.historyitem_Hyperlink_ToolTip]    = CChangesHyperlinkToolTip;
@@ -74,6 +69,7 @@ CChangesHyperlinkValue.prototype.private_SetValue = function(Value)
 {
 	this.Class.Value = Value;
 };
+CChangesHyperlinkValue.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringValue}
@@ -89,6 +85,7 @@ CChangesHyperlinkToolTip.prototype.private_SetValue = function(Value)
 {
 	this.Class.ToolTip = Value;
 };
+CChangesHyperlinkToolTip.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseContentChange}
@@ -104,7 +101,7 @@ CChangesHyperlinkAddItem.prototype.Undo = function()
 {
 	var oHyperlink = this.Class;
 	oHyperlink.Content.splice(this.Pos, this.Items.length);
-	oHyperlink.private_UpdateTrackRevisions();
+	oHyperlink.updateTrackRevisions();
 	oHyperlink.private_CheckUpdateBookmarks(this.Items);
 	oHyperlink.private_UpdateSpellChecking();
 };
@@ -115,7 +112,7 @@ CChangesHyperlinkAddItem.prototype.Redo = function()
 	var Array_end   = oHyperlink.Content.slice(this.Pos);
 
 	oHyperlink.Content = Array_start.concat(this.Items, Array_end);
-	oHyperlink.private_UpdateTrackRevisions();
+	oHyperlink.updateTrackRevisions();
 	oHyperlink.private_CheckUpdateBookmarks(this.Items);
 	oHyperlink.private_UpdateSpellChecking();
 };
@@ -148,7 +145,7 @@ CChangesHyperlinkAddItem.prototype.Load = function(Color)
 		}
 	}
 
-	oHyperlink.private_UpdateTrackRevisions();
+	oHyperlink.updateTrackRevisions();
 	oHyperlink.private_CheckUpdateBookmarks(this.Items);
 	oHyperlink.private_UpdateSpellChecking();
 };
@@ -163,6 +160,7 @@ CChangesHyperlinkAddItem.prototype.CreateReverseChange = function()
 {
 	return this.private_CreateReverseChange(CChangesHyperlinkRemoveItem);
 };
+CChangesHyperlinkAddItem.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseContentChange}
@@ -181,7 +179,7 @@ CChangesHyperlinkRemoveItem.prototype.Undo = function()
 	var Array_end   = oHyperlink.Content.slice(this.Pos);
 
 	oHyperlink.Content = Array_start.concat(this.Items, Array_end);
-	oHyperlink.private_UpdateTrackRevisions();
+	oHyperlink.updateTrackRevisions();
 	oHyperlink.private_CheckUpdateBookmarks(this.Items);
 	oHyperlink.private_UpdateSpellChecking();
 };
@@ -189,7 +187,7 @@ CChangesHyperlinkRemoveItem.prototype.Redo = function()
 {
 	var oHyperlink  = this.Class;
 	oHyperlink.Content.splice(this.Pos, this.Items.length);
-	oHyperlink.private_UpdateTrackRevisions();
+	oHyperlink.updateTrackRevisions();
 	oHyperlink.private_CheckUpdateBookmarks(this.Items);
 	oHyperlink.private_UpdateSpellChecking();
 };
@@ -214,7 +212,7 @@ CChangesHyperlinkRemoveItem.prototype.Load = function(Color)
 		oHyperlink.Content.splice(ChangesPos, 1);
 		AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oHyperlink, ChangesPos, 1);
 	}
-	oHyperlink.private_UpdateTrackRevisions();
+	oHyperlink.updateTrackRevisions();
 	oHyperlink.private_CheckUpdateBookmarks(this.Items);
 	oHyperlink.private_UpdateSpellChecking();
 };
@@ -229,6 +227,7 @@ CChangesHyperlinkRemoveItem.prototype.CreateReverseChange = function()
 {
 	return this.private_CreateReverseChange(CChangesHyperlinkAddItem);
 };
+CChangesHyperlinkRemoveItem.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringValue}
@@ -244,3 +243,4 @@ CChangesHyperlinkAnchor.prototype.private_SetValue = function(Value)
 {
 	this.Class.Anchor = Value;
 };
+CChangesHyperlinkAnchor.prototype.CheckLock = private_ParagraphContentChangesCheckLock;

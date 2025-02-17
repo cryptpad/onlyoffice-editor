@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -37,17 +37,17 @@
 	/**
 	 * ADDIN field
 	 * @constructor
-	 * @extends AscWord.CFieldInstructionBase
+	 * @extends AscWord.FieldInstructionBase
 	 */
 	function CFieldInstructionADDIN()
 	{
-		AscWord.CFieldInstructionBase.call(this);
+		AscWord.FieldInstructionBase.call(this);
 		this.Name  = null;
 		this.Value = null;
 	}
-	CFieldInstructionADDIN.prototype = Object.create(AscWord.CFieldInstructionBase.prototype);
+	CFieldInstructionADDIN.prototype = Object.create(AscWord.FieldInstructionBase.prototype);
 	CFieldInstructionADDIN.prototype.constructor = CFieldInstructionADDIN;
-	CFieldInstructionADDIN.prototype.Type = fieldtype_ADDIN;
+	CFieldInstructionADDIN.prototype.Type = AscWord.fieldtype_ADDIN;
 	
 	CFieldInstructionADDIN.prototype.SetValue = function(value)
 	{

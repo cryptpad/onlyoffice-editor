@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -199,6 +199,8 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.startShape = null;
         this.endShape = null;
 
+				this.smartartParent = this.originalObject.isObjectInSmartArt() ? this.originalObject.group.group.parent : null;
+
         this.beginShapeId = null;
         this.beginShapeIdx = null;
 
@@ -311,7 +313,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.resizedRot = originalObject.rot;
 
         this.transform = originalObject.transform.CreateDublicate();
-        this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
+        this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getTrackGeometry().createDuplicate();}, this, []);
         this.cropObject = originalObject.cropObject;
         var nObjectType = originalObject.getObjectType && originalObject.getObjectType();
         if(nObjectType === AscDFH.historyitem_type_Chart
@@ -396,10 +398,13 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
             }
 
+            if (Asc.editor.isPdfEditor())
+                oConnectionInfo = null;
+            
             var _beginConnectionInfo, _endConnectionInfo;
             if(this.numberHandle === 0){
                 if(oEndShape){
-                    var oConectionObject = oEndShape.getGeom().cnxLst[oConnectorInfo.endCnxIdx];
+                    var oConectionObject = oEndShape.getTrackGeometry().cnxLst[oConnectorInfo.endCnxIdx];
                     var g_conn_info =  {idx: oConnectorInfo.endCnxIdx, ang: oConectionObject.ang, x: oConectionObject.x, y: oConectionObject.y};
                     var _flipH = oEndShape.flipH;
                     var _flipV = oEndShape.flipV;
@@ -424,7 +429,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
             else{
                 if(oBeginShape){
-                    var oConectionObject = oBeginShape.getGeom().cnxLst[oConnectorInfo.stCnxIdx];
+                    var oConectionObject = oBeginShape.getTrackGeometry().cnxLst[oConnectorInfo.stCnxIdx];
                     var g_conn_info =  {idx: oConnectorInfo.stCnxIdx, ang: oConectionObject.ang, x: oConectionObject.x, y: oConectionObject.y};
                     var _flipH = oBeginShape.flipH;
                     var _flipV = oBeginShape.flipV;
@@ -512,6 +517,92 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.resize(kd1, kd2, e.ShiftKey);
             }
         };
+        this.correctKDForPdfFreeText = function(kd1, kd2) {
+            // точка коннектора соединённая с перпендикулярной линией должна двигаться только по одной из осей
+            // этот метод обрабатывает данный случай и корректирует координаты
+
+            let oFreeText               = this.originalObject.group;
+            let oFreeTextRect           = oFreeText.GetTextBoxRect().map(function(measure) {
+                return measure * g_dKoef_pt_to_mm;
+            });
+            let aCallout                = oFreeText.GetCallout();
+            let oExitPoint              = undefined; // перпендикулярная линия выходящая из freetext аннотации
+            let oCalloutArrowPt         = undefined; // x2, y2 точка линии (точка начала стрелки)
+            let oCalloutArrowEndPt      = undefined; // x1, y1 точка линии (точка конца стрелки)
+
+            if (aCallout && aCallout.length == 6) {
+                // точка выхода callout из аннотации
+                oExitPoint = {
+                    x: (aCallout[2 * 2]) * g_dKoef_pt_to_mm,
+                    y: (aCallout[2 * 2 + 1]) * g_dKoef_pt_to_mm
+                };
+
+                // x2, y2 линии
+                oCalloutArrowPt = {
+                    x: aCallout[1 * 2] * g_dKoef_pt_to_mm,
+                    y: (aCallout[1 * 2 + 1]) * g_dKoef_pt_to_mm
+                };
+
+                oCalloutArrowEndPt = {
+                    x: aCallout[0 * 2] * g_dKoef_pt_to_mm,
+                    y: (aCallout[0 * 2 + 1]) * g_dKoef_pt_to_mm
+                }
+            }
+            else {
+                return;
+            }
+
+            if (this.numberHandle == 4) {
+                // если x начала стрелки находится в пределах ректа аннотации то фиксируем x
+                if (oCalloutArrowPt.x < oFreeTextRect[0] || oCalloutArrowPt.x > oFreeTextRect[2]) {
+                    kd2 = 1;
+                }
+                else {
+                    kd1 = 1;
+                }
+            }
+
+            return {kd1: kd1, kd2: kd2};
+        };
+        this.correctXYForPdfFreeText = function(x, y) {
+            let oFreeText       = this.originalObject.group;
+            let aCallout        = oFreeText.GetCallout(true);
+            let aCalloutMM      = aCallout ? aCallout.map(function(measure) {return measure * g_dKoef_pt_to_mm}) : undefined;
+            let aTextBoxRectMM  = oFreeText.GetTextBoxRect().map(function(measure) {return measure * g_dKoef_pt_to_mm});
+            let nExitPos        = oFreeText.GetCalloutExitPos();
+
+            if (!aCalloutMM)
+                return {x: x, y: y};
+
+            // x1, y1 линии callout
+            if (this.numberHandle == 0) {
+                // если конец стрелки внутри textbox то поднимаем выше/ниже
+                if (x >= aTextBoxRectMM[0] && x <= aTextBoxRectMM[2] && y >= aTextBoxRectMM[1] && y <= aTextBoxRectMM[3]) {
+                    if (y <= aTextBoxRectMM[1] + (aTextBoxRectMM[3] - aTextBoxRectMM[1]) / 2) {
+                        y = aTextBoxRectMM[1] - 10;
+                    }
+                    else if (y >= aTextBoxRectMM[3] - (aTextBoxRectMM[3] - aTextBoxRectMM[1]) / 2) {
+                        y = aTextBoxRectMM[3] + 10;
+                    }
+                }
+            }
+            // x2, y2 линии
+            else if (this.numberHandle == 4) {
+                // фиксируем x или y в зависимости от положения стрелки
+                switch (nExitPos) {
+                    case AscPDF.CALLOUT_EXIT_POS.left:
+                    case AscPDF.CALLOUT_EXIT_POS.right:
+                        y = aCalloutMM[1 * 2 + 1];
+                        break;
+                    case AscPDF.CALLOUT_EXIT_POS.top:
+                    case AscPDF.CALLOUT_EXIT_POS.bottom:
+                        x = aCalloutMM[1 * 2];
+                        break;
+                }
+            }
+            
+            return {x: x, y: y};
+        };
 
         this.track = function(kd1, kd2, e, x, y){
             AscFormat.ExecuteNoHistory(function () {
@@ -541,6 +632,16 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             var _new_used_half_width;
             var _new_used_half_height;
             var _temp;
+
+            if (Asc.editor.isPdfEditor()) {
+                let isFreeText = this.originalObject.group && this.originalObject.group.IsAnnot() && this.originalObject.group.IsFreeText();
+
+                if (isFreeText && this.originalObject.getPresetGeom() == "line" && this.numberHandle == 4) {
+                    let oXY = this.correctKDForPdfFreeText(kd1, kd2);
+                    kd1 = oXY.kd1;
+                    kd2 = oXY.kd2;
+                }
+            }
 
            if(this.originalObject.getObjectType && this.originalObject.getObjectType() === AscDFH.historyitem_type_GraphicFrame){
                if(kd1 < 0){
@@ -859,7 +960,19 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.resizedflipH = false;
                 this.resizedflipV = false;
             }
-            this.geometry.Recalculate(this.resizedExtX, this.resizedExtY);
+            
+            if (Asc.editor.isPdfEditor() && this.originalObject.IsAnnot()) {
+                let xMin = this.resizedPosX;
+                let xMax = this.resizedPosX + this.resizedExtX;
+                let yMin = this.resizedPosY;
+                let yMax = this.resizedPosY + this.resizedExtY;
+                
+                this.originalObject.RefillGeometry(this.geometry, [xMin, yMin, xMax, yMax]);
+            }
+            else {
+                this.geometry.Recalculate(this.resizedExtX, this.resizedExtY);
+            }
+
             this.overlayObject.updateExtents(this.resizedExtX, this.resizedExtY);
 
             this.recalculateTransform();
@@ -1001,6 +1114,14 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 global_MatrixTransformer.MultiplyAppend(_transform, this.originalObject.group.transform);
             }
+						if (this.smartartParent)
+						{
+							var parent_transform = this.smartartParent.Get_ParentTextTransform && this.smartartParent.Get_ParentTextTransform();
+							if(parent_transform)
+							{
+								global_MatrixTransformer.MultiplyAppend(_transform, parent_transform);
+							}
+						}
 
             if(this.originalObject.parent)
             {
@@ -1156,6 +1277,11 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 return;
             }
 
+            if (this.originalObject.IsAnnot && this.originalObject.IsAnnot()) {
+                // changed size in SetRect method
+                return;
+            }
+
             if(this.originalObject.animMotionTrack) 
             {
                 this.originalObject.updateAnimation(this.resizedPosX, this.resizedPosY, 
@@ -1212,7 +1338,14 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 {
                     oObjectToSet.setLayout(new AscFormat.CLayout());
                 }
-                var pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject);
+                let pos;
+                if(this.originalObject.parent && this.originalObject.parent.getObjectType() === AscDFH.historyitem_type_TrendLine) {
+                    pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject.parent);
+                    pos = {x: pos.coordinate.catVal, y: pos.coordinate.valVal};
+                }
+                else {
+                    pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject);
+                }
                 oObjectToSet.layout.setXMode(AscFormat.LAYOUT_MODE_EDGE);
                 oObjectToSet.layout.setYMode(AscFormat.LAYOUT_MODE_EDGE);
                 if(oObjectToSet instanceof AscFormat.CPlotArea)
@@ -1330,17 +1463,7 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
                 if(this.originalObject.getObjectType && this.originalObject.getObjectType() === AscDFH.historyitem_type_OleObject)
                 {
-                    var api = window.editor || window["Asc"]["editor"];
-                    if(api)
-                    {
-                        var pluginData = new Asc.CPluginData();
-                        pluginData.setAttribute("data", this.originalObject.m_sData);
-                        pluginData.setAttribute("guid", this.originalObject.m_sApplicationId);
-                        pluginData.setAttribute("width", xfrm.extX);
-                        pluginData.setAttribute("height", xfrm.extY);
-                        pluginData.setAttribute("objectId", this.originalObject.Get_Id());
-                        api.asc_pluginResize(pluginData);
-                    }
+                    this.originalObject.callPluginOnResize();
                 }
 
                 if(this.bConnector){
@@ -1440,6 +1563,14 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
 			}
 
 		};
+    this.checkDrawingPartWithHistory = function () {
+	    if (this.originalObject.checkDrawingPartWithHistory) {
+		    const newObject = this.originalObject.checkDrawingPartWithHistory();
+				if (newObject) {
+					this.originalObject = newObject;
+				}
+	    }
+    };
     }, this, []);
 }
 
@@ -1867,6 +1998,14 @@ function ResizeTrackGroup(originalObject, cardDirection, parentTrack)
             global_MatrixTransformer.TranslateAppend(_transform, this.resizedPosX, this.resizedPosY);
             global_MatrixTransformer.TranslateAppend(_transform, _horizontal_center, _vertical_center);
 
+						if(this.originalObject.parent)
+	        {
+		        var parent_transform = this.originalObject.parent.Get_ParentTextTransform && this.originalObject.parent.Get_ParentTextTransform();
+		        if(parent_transform)
+		        {
+			        global_MatrixTransformer.MultiplyAppend(_transform, parent_transform);
+		        }
+	        }
 
 
 
@@ -2162,6 +2301,15 @@ function ResizeTrackGroup(originalObject, cardDirection, parentTrack)
 
 
         };
+	    this.checkDrawingPartWithHistory = function () {
+				if (this.originalObject.getObjectType && this.originalObject.getObjectType() === AscDFH.historyitem_type_SmartArt) {
+					this.originalObject.checkDrawingPartWithHistory();
+				}
+		    for(var i = 0; i < this.childs.length; ++i)
+		    {
+			    this.childs[i].checkDrawingPartWithHistory();
+		    }
+	    };
     }, this, []);
 
 
@@ -2192,7 +2340,7 @@ function ShapeForResizeInGroup(originalObject, parentTrack)
         this.centerDistX = this.x + this.extX*0.5 - this.parentTrack.extX*0.5;
         this.centerDistY = this.y + this.extY*0.5 - this.parentTrack.extY*0.5;
 
-        this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
+        this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getTrackGeometry().createDuplicate();}, this, []);
         if(this.geometry)
         {
             this.geometry.Recalculate(this.extX, this.extY);
@@ -2322,6 +2470,7 @@ function ShapeForResizeInGroup(originalObject, parentTrack)
             if(this.parentTrack)
                 global_MatrixTransformer.MultiplyAppend(t, this.parentTrack.transform);
         };
+	    this.checkDrawingPartWithHistory = function () {};
     }, this, []);
 }
 

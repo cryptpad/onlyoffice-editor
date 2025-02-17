@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,7 +32,7 @@
 
 "use strict";
 
-(	/**
+(/**
 	 * @param {jQuery} $
 	 * @param {Window} window
 	 * @param {undefined} undefined
@@ -60,16 +60,16 @@
 				wheelScrollLinesV: 3
 			};
 
-			this.view     = undefined;
-			this.widget   = undefined;
-			this.element  = undefined;
+			this.view = undefined;
+			this.widget = undefined;
+			this.element = undefined;
 			this.handlers = undefined;
-			this.vsb	= undefined;
-			this.vsbApi	= undefined;
-			this.vsbMax	= undefined;
-			this.hsb	= undefined;
+			this.vsb = undefined;
+			this.vsbApi = undefined;
+			this.vsbMax = undefined;
+			this.hsb = undefined;
 			this.hsbApi = undefined;
-			this.hsbMax	= undefined;
+			this.hsbMax = undefined;
 
 			this.resizeTimerId = undefined;
 			this.scrollTimerId = undefined;
@@ -85,19 +85,19 @@
 			this.targetInfo = undefined;
 			this.isResizeMode = false;
 			this.isResizeModeMove = false;
-						
+
 			// Режим автозаполнения
 			this.isFillHandleMode = false;
 			this.isMoveRangeMode = false;
 			this.isMoveResizeRange = false;
 			// Режим установки закреплённых областей
 			this.frozenAnchorMode = false;
-			
+
 			// Обработчик кликов для граф.объектов
 			this.clickCounter = new AscFormat.ClickCounter();
 			this.isMousePressed = false;
 			this.isShapeAction = false;
-            this.isUpOnCanvas = false;
+			this.isUpOnCanvas = false;
 
 			// Был ли DblClick обработан в onMouseDown эвенте
 			this.isDblClickInMouseDown = false;
@@ -107,33 +107,33 @@
 			this.mouseDownLastCord = null;
 			//-----------------------
 
-            this.vsbApiLockMouse = false;
-            this.hsbApiLockMouse = false;
+			this.vsbApiLockMouse = false;
+			this.hsbApiLockMouse = false;
 
-            //когда нажали на кнопку свертывания/развертывания группы строк
-            this.isRowGroup = false;
+			//когда нажали на кнопку свертывания/развертывания группы строк
+			this.isRowGroup = false;
 
-            this.smoothWheelCorrector = null;
-            if (AscCommon.AscBrowser.isMacOs) {
-                this.smoothWheelCorrector = new AscCommon.CMouseSmoothWheelCorrector(this, function (deltaX, deltaY) {
+			this.smoothWheelCorrector = null;
+			if (AscCommon.AscBrowser.isMacOs) {
+				this.smoothWheelCorrector = new AscCommon.CMouseSmoothWheelCorrector(this, function (deltaX, deltaY) {
 
-                    if (deltaX) {
-                        deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
-                        this.scrollHorizontal(deltaX, null);
-                    }
-                    if (deltaY) {
-                        deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * this.settings.wheelScrollLinesV / 3));
-                        this.scrollVertical(deltaY, null);
-                    }
+					if (deltaX) {
+						deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
+						this.scrollHorizontal(deltaX, null);
+					}
+					if (deltaY) {
+						deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * this.settings.wheelScrollLinesV / 3));
+						this.scrollVertical(deltaY, null);
+					}
 
-                });
+				});
 
-                this.smoothWheelCorrector.setNormalDeltaActive(3);
-            }
+				this.smoothWheelCorrector.setNormalDeltaActive(3);
+			}
 
-            this.lastTab = null;
+			this.lastTab = null;
 
-            return this;
+			return this;
 		}
 
 		/**
@@ -144,42 +144,66 @@
 		 */
 		asc_CEventsController.prototype.init = function (view, widgetElem, canvasElem, handlers) {
 			var self = this;
-			this.view     = view;
-			this.widget   = widgetElem;
-			this.element  = canvasElem;
+			this.view = view;
+			this.widget = widgetElem;
+			this.element = canvasElem;
 			this.handlers = new AscCommonExcel.asc_CHandlersList(handlers);
-            this._createScrollBars();
+			this._createScrollBars();
 
-			if(Asc.editor.isEditOleMode) {
+			if (Asc.editor.isEditOleMode) {
 				return;
 			}
 
-			if( this.view.Api.isMobileVersion ){
-                /*раньше события на ресайз вызывался из меню через контроллер. теперь контроллер в меню не доступен, для ресайза подписываемся на глобальный ресайз от window.*/
-                window.addEventListener("resize", function () {self._onWindowResize.apply(self, arguments);}, false);
-                return this;
-            }
+			if (this.view.Api.isUseOldMobileVersion()) {
+				/*раньше события на ресайз вызывался из меню через контроллер. теперь контроллер в меню не доступен, для ресайза подписываемся на глобальный ресайз от window.*/
+				window.addEventListener("resize", function () {
+					self._onWindowResize.apply(self, arguments);
+				}, false);
+				return this;
+			}
 
 			// initialize events
 			if (window.addEventListener) {
-				window.addEventListener("resize"	, function () {self._onWindowResize.apply(self, arguments);}				, false);
-				window.addEventListener("mousemove"	, function () {return self._onWindowMouseMove.apply(self, arguments);}		, false);
-				window.addEventListener("mouseup"	, function () {return self._onWindowMouseUp.apply(self, arguments);}		, false);
-				window.addEventListener("mouseleave", function () {return self._onWindowMouseLeaveOut.apply(self, arguments);}	, false);
-				window.addEventListener("mouseout"	, function () {return self._onWindowMouseLeaveOut.apply(self, arguments);}	, false);
+				window.addEventListener("resize", function () {
+					self._onWindowResize.apply(self, arguments);
+				}, false);
+				window.addEventListener(AscCommon.getPtrEvtName("move"), function () {
+					return self._onWindowMouseMove.apply(self, arguments);
+				}, false);
+				window.addEventListener(AscCommon.getPtrEvtName("up"), function () {
+					return self._onWindowMouseUp.apply(self, arguments);
+				}, false);
+				window.addEventListener(AscCommon.getPtrEvtName("leave"), function () {
+					return self._onWindowMouseLeaveOut.apply(self, arguments);
+				}, false);
+				window.addEventListener(AscCommon.getPtrEvtName("out"), function () {
+					return self._onWindowMouseLeaveOut.apply(self, arguments);
+				}, false);
 			}
 
 			// prevent changing mouse cursor when 'mousedown' is occurred
 			if (this.element.onselectstart) {
-				this.element.onselectstart = function () {return false;};
+				this.element.onselectstart = function () {
+					return false;
+				};
 			}
 
 			if (this.element.addEventListener) {
-				this.element.addEventListener("mousedown"	, function () {return self._onMouseDown.apply(self, arguments);}		, false);
-				this.element.addEventListener("mouseup"		, function () {return self._onMouseUp.apply(self, arguments);}			, false);
-				this.element.addEventListener("mousemove"	, function () {return self._onMouseMove.apply(self, arguments);}		, false);
-				this.element.addEventListener("mouseleave"	, function () {return self._onMouseLeave.apply(self, arguments);}		, false);
-				this.element.addEventListener("dblclick"	, function () {return self._onMouseDblClick.apply(self, arguments);}	, false);
+				this.element.addEventListener(AscCommon.getPtrEvtName("down"), function () {
+					return self._onMouseDown.apply(self, arguments);
+				}, false);
+				this.element.addEventListener(AscCommon.getPtrEvtName("up"), function () {
+					return self._onMouseUp.apply(self, arguments);
+				}, false);
+				this.element.addEventListener(AscCommon.getPtrEvtName("move"), function () {
+					return self._onMouseMove.apply(self, arguments);
+				}, false);
+				this.element.addEventListener(AscCommon.getPtrEvtName("leave"), function () {
+					return self._onMouseLeave.apply(self, arguments);
+				}, false);
+				this.element.addEventListener("dblclick", function () {
+					return self._onMouseDblClick.apply(self, arguments);
+				}, false);
 			}
 			if (this.widget.addEventListener) {
 				// https://developer.mozilla.org/en-US/docs/Web/Reference/Events/wheel
@@ -201,13 +225,21 @@
 			// Курсор для графических объектов. Определяем mousedown и mouseup для выделения текста.
 			var oShapeCursor = document.getElementById("id_target_cursor");
 			if (null != oShapeCursor && oShapeCursor.addEventListener) {
-				oShapeCursor.addEventListener("mousedown"	, function () {return self._onMouseDown.apply(self, arguments);}, false);
-				oShapeCursor.addEventListener("mouseup"		, function () {return self._onMouseUp.apply(self, arguments);}, false);
-				oShapeCursor.addEventListener("mousemove"	, function () {return self._onMouseMove.apply(self, arguments);}, false);
-                oShapeCursor.addEventListener("mouseleave"	, function () {return self._onMouseLeave.apply(self, arguments);}, false);
+				oShapeCursor.addEventListener(AscCommon.getPtrEvtName("down"), function () {
+					return self._onMouseDown.apply(self, arguments);
+				}, false);
+				oShapeCursor.addEventListener(AscCommon.getPtrEvtName("up"), function () {
+					return self._onMouseUp.apply(self, arguments);
+				}, false);
+				oShapeCursor.addEventListener(AscCommon.getPtrEvtName("move"), function () {
+					return self._onMouseMove.apply(self, arguments);
+				}, false);
+				oShapeCursor.addEventListener(AscCommon.getPtrEvtName("leave"), function () {
+					return self._onMouseLeave.apply(self, arguments);
+				}, false);
 			}
 
-    		return this;
+			return this;
 		};
 
 		asc_CEventsController.prototype.destroy = function () {
@@ -267,8 +299,12 @@
 		 */
 		asc_CEventsController.prototype.scroll = function (delta) {
 			if (delta) {
-				if (delta.col) {this.scrollHorizontal(delta.col);}
-				if (delta.row) {this.scrollVertical(delta.row);}
+				if (delta.col) {
+					this.scrollHorizontal(delta.col);
+				}
+				if (delta.row) {
+					this.scrollVertical(delta.row);
+				}
 			}
 		};
 
@@ -306,22 +342,30 @@
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
 			// Для формулы не нужно выходить из редактирования ячейки
-			if (this.getFormulaEditMode() || this.getSelectionDialogMode()) {return true;}
+			if (this.getFormulaEditMode() || this.getSelectionDialogMode()) {
+				return true;
+			}
 
-			if (this.view.Api.isEditVisibleAreaOleEditor) {return true;}
+			if (this.view.Api.isEditVisibleAreaOleEditor) {
+				return true;
+			}
 
 			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
 				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
 				return false;
 			}
 
-			if(this.targetInfo && (this.targetInfo.target === c_oTargetType.MoveResizeRange ||
+			if (this.targetInfo && (this.targetInfo.target === c_oTargetType.MoveResizeRange ||
 				this.targetInfo.target === c_oTargetType.MoveRange ||
 				this.targetInfo.target === c_oTargetType.FilterObject ||
 				this.targetInfo.target === c_oTargetType.TableSelectionChange))
 				return true;
 
-			if (t.getCellEditMode()) {if (!t.handlers.trigger("stopCellEditing")) {return true;}}
+			if (t.getCellEditMode()) {
+				if (!t.handlers.trigger("stopCellEditing")) {
+					return true;
+				}
+			}
 
 			var coord = t._getCoordinates(event);
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
@@ -333,7 +377,9 @@
 				t.handlers.trigger("mouseDblClick", coord.x, coord.y, event, function () {
 					// Мы изменяли размеры колонки/строки, не редактируем ячейку. Обновим состояние курсора
 					t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey,
-						function (info) {t.targetInfo = info;});
+						function (info) {
+							t.targetInfo = info;
+						});
 				});
 			}, 100);
 
@@ -388,7 +434,7 @@
 				settings.isVerticalScroll = true;
 				settings.isHorizontalScroll = false;
 				this.vsbApi.canvasH = null;
-				this.reinitScrollY(settings, ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
+				this.reinitScrollY(settings, ws.workbook.getSmoothScrolling() ? ws.getFirstVisibleRowSmoothScroll(true) : ws.getFirstVisibleRow(true), ws.getVerticalScrollRange(), ws.getVerticalScrollMax());
 				this.vsbApi.settings = settings;
 			}
 			if (this.hsbApi) {
@@ -398,7 +444,7 @@
 				settings.isVerticalScroll = false;
 				settings.isHorizontalScroll = true;
 				this.hsbApi.canvasW = null;
-				this.reinitScrollX(settings, ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
+				this.reinitScrollX(settings, ws.workbook.getSmoothScrolling() ? ws.getFirstVisibleColSmoothScroll(true) : ws.getFirstVisibleCol(true), ws.getHorizontalScrollRange(), ws.getHorizontalScrollMax());
 				this.hsbApi.settings = settings;
 			}
 		};
@@ -410,7 +456,16 @@
 			this.vsb = document.createElement('div');
 			this.vsb.id = "ws-v-scrollbar";
 			this.vsb.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor;
-			this.widget.appendChild(this.vsb);
+
+			//TODO test rtl
+			/*if (window.rightToleft) {
+				this.vsb.style.left = "0px";
+				this.widget.prepend(this.vsb);
+				this.widget.children[1].style.left = this.vsb.clientWidth + "px";
+				this.widget.children[1].style.overflow = "visible"
+			} else {*/
+				this.widget.appendChild(this.vsb);
+			//}
 
 			if (!this.vsbApi) {
 				settings = this.createScrollSettings();
@@ -421,19 +476,19 @@
 				settings.isHorizontalScroll = false;
 
 				this.vsbApi = new AscCommon.ScrollObject(this.vsb.id, settings);
-				this.vsbApi.bind("scrollvertical", function(evt) {
+				this.vsbApi.bind("scrollvertical", function (evt) {
 					self.handlers.trigger("scrollY", evt.scrollPositionY / self.settings.vscrollStep, !self.vsbApi.scrollerMouseDown);
 				});
-				this.vsbApi.bind("mouseup", function(evt) {
+				this.vsbApi.bind(AscCommon.getPtrEvtName("up"), function (evt) {
 					if (self.vsbApi.scrollerMouseDown) {
 						self.handlers.trigger('initRowsCount');
 					}
 				});
-				this.vsbApi.onLockMouse = function(evt){
-                    self.vsbApiLockMouse = true;
+				this.vsbApi.onLockMouse = function (evt) {
+					self.vsbApiLockMouse = true;
 				};
-				this.vsbApi.offLockMouse = function(){
-                    self.vsbApiLockMouse = false;
+				this.vsbApi.offLockMouse = function () {
+					self.vsbApiLockMouse = false;
 				};
 			}
 
@@ -451,39 +506,39 @@
 				settings.isHorizontalScroll = true;
 
 				this.hsbApi = new AscCommon.ScrollObject(this.hsb.id, settings);
-				this.hsbApi.bind("scrollhorizontal",function(evt) {
+				this.hsbApi.bind("scrollhorizontal", function (evt) {
 					self.handlers.trigger("scrollX", evt.scrollPositionX / self.settings.hscrollStep, !self.hsbApi.scrollerMouseDown);
 				});
-				this.hsbApi.bind("mouseup", function(evt) {
+				this.hsbApi.bind(AscCommon.getPtrEvtName("up"), function (evt) {
 					if (self.hsbApi.scrollerMouseDown) {
 						self.handlers.trigger('initColsCount');
 					}
 				});
-				this.hsbApi.onLockMouse = function(){
-                    self.hsbApiLockMouse = true;
+				this.hsbApi.onLockMouse = function () {
+					self.hsbApiLockMouse = true;
 				};
-				this.hsbApi.offLockMouse = function(){
-                    self.hsbApiLockMouse = false;
+				this.hsbApi.offLockMouse = function () {
+					self.hsbApiLockMouse = false;
 				};
 			}
 
-            if(!this.view.Api.isMobileVersion){
-                // right bottom corner
-                var corner = document.createElement('div');
-                corner.id = "ws-scrollbar-corner";
+			if (!this.view.Api.isMobileVersion) {
+				// right bottom corner
+				var corner = document.createElement('div');
+				corner.id = "ws-scrollbar-corner";
 				corner.style.backgroundColor = AscCommon.GlobalSkin.ScrollBackgroundColor
-                this.widget.appendChild(corner);
-            }
-            else{
-                this.hsb.style.zIndex = -10;
-                this.hsb.style.right = 0;
-                this.hsb.style.display = "none";
-                this.vsb.style.zIndex = -10;
-                this.vsb.style.bottom = 0;
-                this.vsb.style.display = "none";
-            }
+				this.widget.appendChild(corner);
+			} else {
+				this.hsb.style.zIndex = -10;
+				this.hsb.style.right = 0;
+				this.hsb.style.display = "none";
+				this.vsb.style.zIndex = -10;
+				this.vsb.style.bottom = 0;
+				this.vsb.style.display = "none";
+			}
 
-
+			this.showVerticalScroll(this.view.getShowVerticalScroll());
+			this.showHorizontalScroll(this.view.getShowHorizontalScroll());
 		};
 
 		/**
@@ -509,7 +564,9 @@
 		 */
 		asc_CEventsController.prototype._continueChangeVisibleArea2 = function (event) {
 			var t = this;
-			var fn = function () {t._continueChangeVisibleArea2(event);};
+			var fn = function () {
+				t._continueChangeVisibleArea2(event);
+			};
 
 			var callback = function () {
 				if (t.isChangeVisibleAreaMode && !t.hasCursor) {
@@ -555,7 +612,9 @@
 		asc_CEventsController.prototype._changeSelection2 = function (event) {
 			var t = this;
 
-			var fn = function () { t._changeSelection2(event); };
+			var fn = function () {
+				t._changeSelection2(event);
+			};
 			var callback = function () {
 				if (t.isSelectMode && !t.hasCursor) {
 					t.scrollTimerId = window.setTimeout(fn, t.settings.scrollTimeout);
@@ -580,7 +639,7 @@
 
 			var callback = function () {
 				if (t.isMoveRangeMode && !t.hasCursor) {
-					t.moveRangeTimerId  = window.setTimeout(fn, t.settings.scrollTimeout);
+					t.moveRangeTimerId = window.setTimeout(fn, t.settings.scrollTimeout);
 				}
 			};
 
@@ -602,7 +661,7 @@
 
 			var callback = function () {
 				if (t.isMoveResizeRange && !t.hasCursor) {
-					t.moveResizeRangeTimerId  = window.setTimeout(fn, t.settings.scrollTimeout);
+					t.moveResizeRangeTimerId = window.setTimeout(fn, t.settings.scrollTimeout);
 				}
 			};
 
@@ -667,7 +726,7 @@
 
 			var callback = function () {
 				if (t.isFillHandleMode && !t.hasCursor) {
-					t.fillHandleModeTimerId  = window.setTimeout(fn, t.settings.scrollTimeout);
+					t.fillHandleModeTimerId = window.setTimeout(fn, t.settings.scrollTimeout);
 				}
 			};
 
@@ -691,7 +750,7 @@
 		 * @param event {MouseEvent}
 		 * @param callback {Function}
 		 */
-		asc_CEventsController.prototype._moveRangeHandle = function (event, callback) {
+		asc_CEventsController.prototype._moveRangeHandle = function (event, callback, colRowMoveProps) {
 			var t = this;
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
@@ -700,7 +759,7 @@
 					if (!d) return;
 					t.scroll(d);
 					asc_applyFunction(callback);
-				});
+				}, colRowMoveProps);
 		};
 
 		/**
@@ -712,7 +771,7 @@
 			var coord = t._getCoordinates(event);
 			t.handlers.trigger("moveFrozenAnchorHandle", coord.x, coord.y, target);
 		};
-		
+
 		/**
 		 * @param event {MouseEvent}
 		 * @param target
@@ -760,16 +819,18 @@
 			this.handlers.trigger("moveRangeHandleDone", ctrlKey);
 		};
 
-		asc_CEventsController.prototype._moveResizeRangeHandleDone = function () {
+		asc_CEventsController.prototype._moveResizeRangeHandleDone = function (isPageBreakPreview) {
 			// Закончили перемещение диапазона, пересчитаем
-			this.handlers.trigger("moveResizeRangeHandleDone");
+			this.handlers.trigger("moveResizeRangeHandleDone", isPageBreakPreview);
 		};
 
 		/** @param event {jQuery.Event} */
 		asc_CEventsController.prototype._onWindowResize = function (event) {
 			var self = this;
 			window.clearTimeout(this.resizeTimerId);
-			this.resizeTimerId = window.setTimeout(function () {self.handlers.trigger("resize", event);}, 150);
+			this.resizeTimerId = window.setTimeout(function () {
+				self.handlers.trigger("resize", event);
+			}, 150);
 		};
 
 		/** @param event {KeyboardEvent} */
@@ -827,9 +888,8 @@
 
 			switch (event.which) {
 				case 116:
-					//todo ctrl+alt
 					if (canEdit && !t.getCellEditMode() && !selectionDialogMode &&
-						event.altKey && t.handlers.trigger("refreshConnections", !!ctrlKey)) {
+						event.altKey && t.handlers.trigger("refreshConnections", !!event.ctrlKey)) {
 						return result;
 					}
 					t._setSkipKeyPress(false);
@@ -847,14 +907,10 @@
 
 				case 120: // F9
 					var type;
-					if (ctrlKey && event.altKey && shiftKey) {
-						type = Asc.c_oAscCalculateType.All;
-					} else if (ctrlKey && event.altKey) {
-						type = Asc.c_oAscCalculateType.Workbook;
-					} else if (shiftKey) {
+					if (shiftKey) {
 						type = Asc.c_oAscCalculateType.ActiveSheet;
 					} else {
-						type = Asc.c_oAscCalculateType.WorkbookOnlyChanged;
+						type = Asc.c_oAscCalculateType.All;
 					}
 					t.handlers.trigger("calculate", type);
 					return result;
@@ -872,6 +928,7 @@
 					t.handlers.trigger("editCell", enterOptions);
 					return result;
 
+				case 59:
 				case 186: // add current date or time Ctrl + (Shift) + ;
 					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
@@ -961,6 +1018,7 @@
 					t.handlers.trigger("stopAddShape");
 					t.handlers.trigger("cleanCutData", true, true);
 					t.handlers.trigger("cleanCopyData", true, true);
+					t.view.Api.cancelEyedropper();
 					window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 					return result;
 
@@ -975,7 +1033,7 @@
 					if (t.getCellEditMode()) {
 						return true;
 					}
-					var isSelectColumns = ctrlKey;
+					var isSelectColumns = !AscCommon.getAltGr(event) && (!!event.metaKey !== !!event.ctrlKey);
 					var isSelectAllMacOs = isSelectColumns && shiftKey && macOs;
 					// Обработать как обычный текст
 					if ((!isSelectColumns && !shiftKey) || isSelectAllMacOs) {
@@ -989,13 +1047,24 @@
 					}
 					// Отключим стандартную обработку браузера нажатия
 					// Ctrl+Shift+Spacebar, Ctrl+Spacebar, Shift+Spacebar
-					stop();
 					if (isSelectColumns) {
 						t.handlers.trigger("selectColumnsByRange");
 					}
 					if (shiftKey) {
 						t.handlers.trigger("selectRowsByRange");
 					}
+					if (shiftKey || isSelectColumns) {
+						stop();
+					}
+					return result;
+
+				case 110: //NumpadDecimal
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+					window["Asc"]["editor"].wb.EnterText(this.view.Api.asc_getDecimalSeparator().charCodeAt(0), true);
+					//stop to prevent double enter
+					stop();
 					return result;
 
 				case 33: // PageUp
@@ -1055,6 +1124,9 @@
 					stop();                          // Отключим стандартную обработку браузера нажатия down
 					// Обработка Alt + down
 					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey) {
+						if (t.handlers.trigger("onShowFilterOptionsActiveCell")) {
+							return result;
+						}
 						if (t.handlers.trigger("onDataValidation")) {
 							return result;
 						}
@@ -1106,9 +1178,14 @@
 
 				case 89:  // redo					Ctrl + y
 				case 90:  // undo					Ctrl + z
-					if (!(canEdit || t.handlers.trigger('isRestrictionComments'))|| selectionDialogMode) {
+					if (!(canEdit || t.handlers.trigger('isRestrictionComments')) || selectionDialogMode) {
 						return true;
 					}
+					//TODO temporary fix for speaker. in the future need to switch to a common scheme
+					if (event.altKey && (event.metaKey || event.ctrlKey)) {
+						ctrlKey = true;
+					}
+
 					isNeedCheckActiveCellChanged = true;
 
 				case 65: // select all      Ctrl + a
@@ -1162,8 +1239,9 @@
 							}
 							break;
 						case 65:
-							t.handlers.trigger("selectColumnsByRange");
-							t.handlers.trigger("selectRowsByRange");
+							//t.handlers.trigger("selectColumnsByRange");
+							//t.handlers.trigger("selectRowsByRange");
+							t.handlers.trigger("selectAllByRange");
 							action = true;
 							break;
 						case 66:
@@ -1191,12 +1269,19 @@
 							action = true;
 							break;
 						case 90:
-							t.handlers.trigger("undo");
+							if (event.altKey) {
+								AscCommon.EditorActionSpeaker.toggle();
+							} else {
+								t.handlers.trigger("undo");
+							}
 							action = true;
 							break;
 						case 192:
 							if (shiftKey) {
 								t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.General);
+								action = true;
+							} else {
+								t.handlers.trigger("showFormulas");
 								action = true;
 							}
 							break;
@@ -1230,6 +1315,14 @@
 						return result;
 					}
 
+				case 219:
+				case 221:
+					if (!ctrlKey || t.getCellEditMode() || !canEdit || selectionDialogMode) {
+						return true;
+					}
+					stop();
+					t.view.setFontAttributes("changeFontSize", event.which === 221);
+					return result;
 				default:
 					t._setSkipKeyPress(false);
 					return true;
@@ -1251,9 +1344,13 @@
 			};
 
 			if ((dc !== 0 || dr !== 0) && false === t.handlers.trigger("isGlobalLockEditCell")) {
+				const wb = window["Asc"]["editor"].wb;
+				let ws = wb.getWorksheet();
+				if (ws && ws.getRightToLeft()) {
+					dc = -dc;
+				}
 				if (isChangeVisibleAreaMode) {
-				t.handlers.trigger("changeVisibleArea", !shiftKey, dc, dr, false, function (d) {
-						const wb = window["Asc"]["editor"].wb;
+					t.handlers.trigger("changeVisibleArea", !shiftKey, dc, dr, false, function (d) {
 						if (t.targetInfo) {
 							wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
 						}
@@ -1274,7 +1371,539 @@
 							if (t.targetInfo) {
 								wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
 							}
-							t.scroll(d);
+							const ws = wb.getWorksheet();
+							t.scroll(ws.convertOffsetToSmooth(d));
+							_checkLastTab();
+						});
+				}
+			}
+
+			return result;
+		};
+
+		asc_CEventsController.prototype.executeShortcut = function(type) {
+			let result = false;
+			let t = this;
+			let canEdit = this.canEdit();
+			let selectionDialogMode = this.getSelectionDialogMode();
+			let selectionActivePointChanged, dc = 0, dr = 0, shiftKey, isNeedCheckActiveCellChanged, enterOptions;
+			let isFormulaEditMode = this.getFormulaEditMode();
+			let isChangeVisibleAreaMode = this.view.Api.isEditVisibleAreaOleEditor;
+
+			// While not removed for compatibility with key down
+			function stop(immediate) {
+				/*event.stopPropagation();
+				immediate ? event.stopImmediatePropagation() : true;
+				event.preventDefault();
+				result = false;*/
+			}
+			function _setSkipKeyPress(val) {
+				/*event.stopPropagation();
+				immediate ? event.stopImmediatePropagation() : true;
+				event.preventDefault();
+				result = false;*/
+			}
+
+			switch (type) {
+				case Asc.c_oAscCellShortcutType.refreshAllConnections:
+				case Asc.c_oAscCellShortcutType.refreshSelectedConnections: {
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && t.handlers.trigger("refreshConnections", type === Asc.c_oAscCellShortcutType.refreshAllConnections)) {
+						return true;
+					}
+					_setSkipKeyPress(false);
+					result = true;
+					break;
+				}
+				case Asc.c_oAscCellShortcutType.changeFormatTableInfo: {
+					stop();
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode) {
+						t.handlers.trigger("changeFormatTableInfo");
+					}
+
+					_setSkipKeyPress(false);
+					result = true;
+					break;
+				}
+				case Asc.c_oAscCellShortcutType.calculateActiveSheet:
+				case Asc.c_oAscCellShortcutType.calculateAll: {
+					let calcType;
+					if (Asc.c_oAscCellShortcutType.calculateActiveSheet === type) {
+						calcType = Asc.c_oAscCalculateType.ActiveSheet;
+					} else {
+						calcType = Asc.c_oAscCalculateType.All;
+					}
+					t.handlers.trigger("calculate", calcType);
+					result = true;
+					break;
+				}
+				case Asc.c_oAscCellShortcutType.focusOnCellEditor: {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+					if (AscBrowser.isOpera) {
+						stop();
+					}
+					// When pressing F2, set focus in the editor
+					let enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.focus = true;
+					t.handlers.trigger("editCell", enterOptions);
+					result = true;
+
+					break;
+				}
+				case Asc.c_oAscCellShortcutType.addDate:
+				case Asc.c_oAscCellShortcutType.addTime: // add current date or time Ctrl + (Shift) + ;
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+
+					// When a character is pressed, do not set focus. Clear the cell content
+					// Next event processed by cellEditor
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.newText = '';
+					enterOptions.quickInput = true;
+					this.handlers.trigger("editCell", enterOptions);
+					result = true;
+
+					break;
+				case Asc.c_oAscCellShortcutType.removeActiveCell: // backspace
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+					stop();
+
+					// When backspace is pressed, focus is not in the editor (clearing content)
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.newText = '';
+					t.handlers.trigger("editCell", enterOptions);
+					result = true;
+
+					break;
+
+				case Asc.c_oAscCellShortcutType.emptyRange: // Del
+					if (!canEdit || this.getCellEditMode() || selectionDialogMode || shiftKey) {
+						return true;
+					}
+					// Удаляем содержимое
+					this.handlers.trigger("empty");
+					result = true;
+
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveActiveCellToLeft: // tab
+				case Asc.c_oAscCellShortcutType.moveActiveCellToRight:
+					if (t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+					// Disable standard browser handling of the tab key press
+					stop();
+
+					// Special case (possibly moving within a selected area)
+					selectionActivePointChanged = true;
+					if (Asc.c_oAscCellShortcutType.moveActiveCellToLeft === type) {
+						dc = -1;      // (shift + tab) - move left by 1 column
+						shiftKey = false;  // Reset shift, because we are not selecting
+					} else {
+						let _activeCell = t.handlers.trigger("getActiveCell");
+						if (t.lastTab === null) {
+							if (_activeCell) {
+								t.lastTab = _activeCell.c2;
+							}
+						} else if (!_activeCell) {
+							t.lastTab = null;
+						}
+						dc = +1;      // (tab) - move right by 1 column
+					}
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveActiveCellToDown: // "enter"
+				case Asc.c_oAscCellShortcutType.moveActiveCellToUp:
+					if (t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+					// Special case (possibly moving within a selected area)
+					selectionActivePointChanged = true;
+					if (Asc.c_oAscCellShortcutType.moveActiveCellToUp === type) {
+						dr = -1;      // (shift + enter) - move up by 1 row
+						shiftKey = false;  // Reset shift, because we are not selecting
+						t.lastTab = null;
+					} else {
+						if (t.lastTab !== null) {
+							let _activeCell = t.handlers.trigger("getActiveCell");
+							if (_activeCell) {
+								dc = t.lastTab - _activeCell.c2;
+							} else {
+								t.lastTab = null;
+							}
+						}
+						dr = +1;      // (enter) - move down by 1 row
+					}
+					break;
+
+				case Asc.c_oAscCellShortcutType.reset: // Esc
+					t.handlers.trigger("stopFormatPainter");
+					t.handlers.trigger("stopAddShape");
+					t.handlers.trigger("cleanCutData", true, true);
+					t.handlers.trigger("cleanCopyData", true, true);
+					t.view.Api.cancelEyedropper();
+					window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+					result = true;
+					break;
+				case Asc.c_oAscCellShortcutType.disableNumLock: // Num Lock
+				case Asc.c_oAscCellShortcutType.disableScrollLock: // Scroll Lock
+					if (AscBrowser.isOpera) {
+						stop();
+					}
+					result = true;
+					break;
+				case Asc.c_oAscCellShortcutType.selectSheet: // Spacebar
+				case Asc.c_oAscCellShortcutType.selectColumn: // Spacebar
+				case Asc.c_oAscCellShortcutType.selectRow: // Spacebar
+					if (t.getCellEditMode()) {
+						return true;
+					}
+
+					// Disable standard browser handling for key presses
+					// Ctrl+Shift+Spacebar, Ctrl+Spacebar, Shift+Spacebar
+					if (Asc.c_oAscCellShortcutType.selectColumn === type || Asc.c_oAscCellShortcutType.selectSheet === type) {
+						t.handlers.trigger("selectColumnsByRange");
+					}
+					if (Asc.c_oAscCellShortcutType.selectRow === type || Asc.c_oAscCellShortcutType.selectSheet === type) {
+						t.handlers.trigger("selectRowsByRange");
+					}
+					stop();
+
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.addSeparator: //NumpadDecimal
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+					t.view.Api.wb.EnterText(this.view.Api.asc_getDecimalSeparator().charCodeAt(0), true);
+					//stop to prevent double enter
+					stop();
+
+					result = true;
+					break;
+				case Asc.c_oAscCellShortcutType.goToPreviousSheet: // PageUp
+				case Asc.c_oAscCellShortcutType.moveToUpperCell:
+				case Asc.c_oAscCellShortcutType.selectToUpperCell:
+					// Disable standard browser handling of the PageUp key press
+					stop();
+					if (/*TODO ctrlKey */ Asc.c_oAscCellShortcutType.goToPreviousSheet === type) {
+						// Moving through sheets from right to left
+						// Not working in Chrome (because it has its own handling for certain key presses with Ctrl)
+						t.handlers.trigger("showNextPrevWorksheet", -1);
+						return true;
+					} else {
+						// Solution design department to handle Alt + PgUp  Alt + PgDown as a transition between sheets
+						/*event.altKey ? dc = -0.5 : */
+						dr = -0.5;
+					}
+					isNeedCheckActiveCellChanged = true;
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveToNextSheet: // PageDown
+				case Asc.c_oAscCellShortcutType.moveToLowerCell:
+				case Asc.c_oAscCellShortcutType.selectToLowerCell:
+					// Disable standard browser handling of the PageDown key press
+					stop();
+					if (/*TODO ctrlKey */ Asc.c_oAscCellShortcutType.moveToNextSheet) {
+						// Moving through sheets from left to right
+						// Not working in Chrome (because it has its own handling for certain key presses with Ctrl)
+						t.handlers.trigger("showNextPrevWorksheet", +1);
+						return true;
+					} else {
+						// Solution design department to handle Alt + PgUp  Alt + PgDown as a transition between sheets
+						/*event.altKey ? dc = +0.5 : */
+						dr = +0.5;
+					}
+					isNeedCheckActiveCellChanged = true;
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveToLeftEdgeCell: // left
+				case Asc.c_oAscCellShortcutType.selectToLeftEdgeCell: // + shift
+				case Asc.c_oAscCellShortcutType.moveToLeftCell:
+				case Asc.c_oAscCellShortcutType.selectToLeftCell: // + shift
+					stop(); // Disable standard browser handling of the left key press
+					dc = (Asc.c_oAscCellShortcutType.moveToLeftEdgeCell === type || Asc.c_oAscCellShortcutType.selectToLeftEdgeCell === type) ? -1.5 : -1; // Arrow key movement (left-right, up-down)
+					isNeedCheckActiveCellChanged = true;
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveToTopCell: // up
+				case Asc.c_oAscCellShortcutType.selectToTopCell: // + shift
+				case Asc.c_oAscCellShortcutType.moveToUpCell:
+				case Asc.c_oAscCellShortcutType.selectToUpCell: // + shift
+					stop(); // Disable standard browser handling of the up key press
+					/*if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey && t.handlers.trigger("onDataValidation")) {
+						return result;
+					}*/
+					dr = (Asc.c_oAscCellShortcutType.moveToTopCell === type || Asc.c_oAscCellShortcutType.selectToTopCell === type) ? -1.5 : -1; // Arrow key movement (left-right, up-down)
+					isNeedCheckActiveCellChanged = true;
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveToRightEdgeCell: // right
+				case Asc.c_oAscCellShortcutType.selectToRightEdgeCell: // + shift
+				case Asc.c_oAscCellShortcutType.moveToRightCell:
+				case Asc.c_oAscCellShortcutType.selectToRightCell: // + shift
+					stop(); // Disable standard browser handling of the right key press
+					dc = (Asc.c_oAscCellShortcutType.moveToRightEdgeCell === type || Asc.c_oAscCellShortcutType.selectToRightEdgeCell === type) ? +1.5 : +1; // Arrow key movement (left-right, up-down)
+					isNeedCheckActiveCellChanged = true;
+					result = true;
+					break;
+				case Asc.c_oAscCellShortcutType.moveToBottomCell: // down
+				case Asc.c_oAscCellShortcutType.selectToBottomCell:
+				case Asc.c_oAscCellShortcutType.moveToDownCell:
+				case Asc.c_oAscCellShortcutType.selectToDownCell:
+				case Asc.c_oAscCellShortcutType.showFilterOptions:
+				case Asc.c_oAscCellShortcutType.showAutoComplete:
+				case Asc.c_oAscCellShortcutType.showDataValidation:
+					stop(); // Disable standard browser handling of the down key press
+					// Handling Alt + down
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && (Asc.c_oAscCellShortcutType.showFilterOptions === type
+						|| Asc.c_oAscCellShortcutType.showAutoComplete === type || Asc.c_oAscCellShortcutType.showDataValidation === type)) {
+						if (Asc.c_oAscCellShortcutType.showFilterOptions === type && t.handlers.trigger("onShowFilterOptionsActiveCell")) {
+							return result;
+						}
+						if (Asc.c_oAscCellShortcutType.showDataValidation === type && t.handlers.trigger("onDataValidation")) {
+							return result;
+						}
+						Asc.c_oAscCellShortcutType.showAutoComplete === type && t.handlers.trigger("showAutoComplete");
+						return result;
+					}
+					dr = Asc.c_oAscCellShortcutType.selectToBottomCell === type ? +1.5 : +1; // Arrow key movement (left-right, up-down)
+					isNeedCheckActiveCellChanged = true;
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveToFirstColumn: // home
+				case Asc.c_oAscCellShortcutType.selectToFirstColumn:
+				case Asc.c_oAscCellShortcutType.moveToLeftEdgeTop:
+				case Asc.c_oAscCellShortcutType.selectToLeftEdgeTop:
+					stop(); // Disable standard browser handling of the home key press
+					if (isFormulaEditMode) {
+						break;
+					}
+					dc = -2.5;
+					if (type === Asc.c_oAscCellShortcutType.moveToLeftEdgeTop || type === Asc.c_oAscCellShortcutType.selectToLeftEdgeTop) {
+						dr = -2.5;
+					}
+					isNeedCheckActiveCellChanged = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.moveToRightBottomEdge: // end
+				case Asc.c_oAscCellShortcutType.selectToRightBottomEdge:
+					stop(); // Disable standard browser handling of the end key press
+					if (isFormulaEditMode) {
+						break;
+					}
+					dc = 2.5;
+					if (type === Asc.c_oAscCellShortcutType.moveToRightBottomEdge || type === Asc.c_oAscCellShortcutType.selectToRightBottomEdge) {
+						dr = 2.5;
+					}
+					isNeedCheckActiveCellChanged = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.setNumberFormat:  // set number format		Ctrl + Shift + !
+				case Asc.c_oAscCellShortcutType.setTimeFormat:  // set time format		Ctrl + Shift + @
+				case Asc.c_oAscCellShortcutType.setDateFormat:  // set date format		Ctrl + Shift + #
+				case Asc.c_oAscCellShortcutType.setCurrencyFormat:  // set currency format	Ctrl + Shift + $
+				case Asc.c_oAscCellShortcutType.setPercentFormat:  // make strikethrough		Ctrl + 5
+				case Asc.c_oAscCellShortcutType.setStrikethrough:  // make strikethrough		Ctrl + 5
+				case Asc.c_oAscCellShortcutType.setExponentialFormat:  // set exponential format Ctrl + Shift + ^
+				case Asc.c_oAscCellShortcutType.setBold:  // make bold				Ctrl + b
+				case Asc.c_oAscCellShortcutType.setItalic:  // make italic			Ctrl + i
+				//case 83: // save					Ctrl + s
+				case Asc.c_oAscCellShortcutType.setUnderline:  // make underline			Ctrl + u
+				case Asc.c_oAscCellShortcutType.setGeneralFormat: // set general format 	Ctrl + Shift + ~
+					if (!canEdit || selectionDialogMode) {
+						return true;
+					}
+
+				case Asc.c_oAscCellShortcutType.redo:  // redo					Ctrl + y
+				case Asc.c_oAscCellShortcutType.undo:  // undo					Ctrl + z
+					if (!(canEdit || t.handlers.trigger('isRestrictionComments')) || selectionDialogMode) {
+						return true;
+					}
+					isNeedCheckActiveCellChanged = true;
+
+				case Asc.c_oAscCellShortcutType.selectAll: // select all      Ctrl + a
+				case Asc.c_oAscCellShortcutType.print: // print           Ctrl + p
+					if (t.getCellEditMode()) {
+						return true;
+					}
+
+					let action = false;
+					switch (/*event.which*/type) {
+						case Asc.c_oAscCellShortcutType.setNumberFormat: //49:
+							if (shiftKey) {
+								t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.Number);
+								action = true;
+							}
+							break;
+						case  Asc.c_oAscCellShortcutType.setTimeFormat: //50:
+							if (shiftKey) {
+								t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.Time);
+								action = true;
+							}
+							break;
+						case  Asc.c_oAscCellShortcutType.setDateFormat: //51:
+							if (shiftKey) {
+								t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.Date);
+								action = true;
+							}
+							break;
+						case  Asc.c_oAscCellShortcutType.setCurrencyFormat: //52:
+							if (shiftKey) {
+								t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.Currency);
+								action = true;
+							}
+							break;
+						case  Asc.c_oAscCellShortcutType.setPercentFormat: //53:
+							if (shiftKey) {
+								t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.Percent);
+							} else {
+								t.handlers.trigger("setFontAttributes", "s");
+							}
+							action = true;
+							break;
+						case  Asc.c_oAscCellShortcutType.setExponentialFormat: //54:
+							t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.Scientific);
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.selectSheet:
+							//t.handlers.trigger("selectColumnsByRange");
+							//t.handlers.trigger("selectRowsByRange");
+							t.handlers.trigger("selectAllByRange");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.setBold:
+							t.handlers.trigger("setFontAttributes", "b");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.setItalic:
+							t.handlers.trigger("setFontAttributes", "i");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.print:
+							t.handlers.trigger("print");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.save:
+							t.handlers.trigger("save");
+							 action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.setUnderline:
+							t.handlers.trigger("setFontAttributes", "u");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.redo:
+							t.handlers.trigger("redo");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.undo:
+							t.handlers.trigger("undo");
+							action = true;
+							break;
+						case Asc.c_oAscCellShortcutType.setGeneralFormat:
+							t.handlers.trigger("setCellFormat", Asc.c_oAscNumFormatType.General);
+							action = true;
+							break;
+					}
+
+					if (!action) {
+						_setSkipKeyPress(false);
+						return true;
+					}
+					stop();
+					result = true;
+					break;
+				case Asc.c_oAscCellShortcutType.addSum:  // Firefox, Opera (+/=)
+					//case 187: // +/=
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
+						return true;
+					}
+
+					t.handlers.trigger('addFunction',
+						AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale['SUM'] :
+							'SUM', Asc.c_oAscPopUpSelectorType.Func, true);
+					stop();
+
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.contextMenu:
+					stop();
+					this.handlers.trigger('onContextMenu');
+					result = true;
+					break;
+
+				case Asc.c_oAscCellShortcutType.decreaseFontSize:
+				case Asc.c_oAscCellShortcutType.increaseFontSize:
+					if (t.getCellEditMode() || !canEdit || selectionDialogMode) {
+						return true;
+					}
+					stop();
+					t.view.setFontAttributes("changeFontSize", type === Asc.c_oAscCellShortcutType.increaseFontSize);
+					result = true;
+					break;
+				default:
+					_setSkipKeyPress(false);
+					result = true;
+					break;
+
+			}
+
+
+
+			var activeCellBefore;
+			if (isNeedCheckActiveCellChanged) {
+				activeCellBefore = t.handlers.trigger("getActiveCell");
+			}
+			var _checkLastTab = function () {
+				if (isNeedCheckActiveCellChanged) {
+					var activeCellAfter = t.handlers.trigger("getActiveCell");
+					if (!activeCellBefore || !activeCellAfter || !activeCellAfter.isEqual(activeCellBefore)) {
+						t.lastTab = null;
+					}
+				}
+			};
+
+			if ((dc !== 0 || dr !== 0) && false === t.handlers.trigger("isGlobalLockEditCell")) {
+				const wb = window["Asc"]["editor"].wb;
+				let ws = wb.getWorksheet();
+				if (ws && ws.getRightToLeft()) {
+					dc = -dc;
+				}
+				if (isChangeVisibleAreaMode) {
+					t.handlers.trigger("changeVisibleArea", !shiftKey, dc, dr, false, function (d) {
+						if (t.targetInfo) {
+							wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
+						}
+						t.scroll(d);
+						const oOleSize = wb.getOleSize();
+						oOleSize.addPointToLocalHistory();
+						_checkLastTab();
+					}, true);
+				} else if (selectionActivePointChanged) { // Проверка на движение в выделенной области
+					t.handlers.trigger("selectionActivePointChanged", dc, dr, function (d) {
+						t.scroll(d);
+						_checkLastTab();
+					});
+				} else {
+					t.handlers.trigger("changeSelection", /*isStartPoint*/!shiftKey, dc, dr, /*isCoord*/false, false,
+						function (d) {
+							var wb = window["Asc"]["editor"].wb;
+							if (t.targetInfo) {
+								wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
+							}
+							const ws = wb.getWorksheet();
+							t.scroll(ws.convertOffsetToSmooth(d));
 							_checkLastTab();
 						});
 				}
@@ -1382,15 +2011,17 @@
 				this.handlers.trigger("updateSelectionName");
 			}
 			this.handlers.trigger("graphicObjectWindowKeyUp", event);
-			
+
 			return true;
 		};
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onWindowMouseMove = function (event) {
 			var coord = this._getCoordinates(event);
-				
-			if (this.isSelectMode && !this.hasCursor) {this._changeSelection2(event);}
+
+			if (this.isSelectMode && !this.hasCursor) {
+				this._changeSelection2(event);
+			}
 			if (this.isChangeVisibleAreaMode && !this.hasCursor) {
 				this._continueChangeVisibleArea2(event);
 			}
@@ -1398,11 +2029,11 @@
 				this.isResizeModeMove = true;
 				this._resizeElement(event);
 			}
-            if (this.hsbApiLockMouse)
-                this.hsbApi.mouseDown ? this.hsbApi.evt_mousemove.call(this.hsbApi,event) : false;
-            else if (this.vsbApiLockMouse)
-                this.vsbApi.mouseDown ? this.vsbApi.evt_mousemove.call(this.vsbApi,event) : false;
-				
+			if (this.hsbApiLockMouse)
+				this.hsbApi.mouseDown ? this.hsbApi.evt_mousemove.call(this.hsbApi, event) : false;
+			else if (this.vsbApiLockMouse)
+				this.vsbApi.mouseDown ? this.vsbApi.evt_mousemove.call(this.vsbApi, event) : false;
+
 			// Режим установки закреплённых областей
 			if (this.frozenAnchorMode) {
 				this._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
@@ -1415,7 +2046,7 @@
 			}
 
 			if (this.isRowGroup) {
-				if(!this._groupRowClick(event, this.targetInfo)) {
+				if (!this._groupRowClick(event, this.targetInfo)) {
 					this.isRowGroup = false;
 				}
 			}
@@ -1427,26 +2058,27 @@
 		asc_CEventsController.prototype._onWindowMouseUp = function (event) {
 			AscCommon.global_mouseEvent.UnLockMouse();
 
+			var button = AscCommon.getMouseButton(event);
 			var coord = this._getCoordinates(event);
-            if (this.hsbApiLockMouse)
-                this.hsbApi.mouseDown ? this.hsbApi.evt_mouseup.call(this.hsbApi, event) : false;
-            else if (this.vsbApiLockMouse)
-                this.vsbApi.mouseDown ? this.vsbApi.evt_mouseup.call(this.vsbApi, event) : false;
+			if (this.hsbApiLockMouse)
+				this.hsbApi.mouseDown ? this.hsbApi.evt_mouseup.call(this.hsbApi, event) : false;
+			else if (this.vsbApiLockMouse)
+				this.vsbApi.mouseDown ? this.vsbApi.evt_mouseup.call(this.vsbApi, event) : false;
 
 			this.isMousePressed = false;
 			// Shapes
 			if (this.isShapeAction) {
-                if(!this.isUpOnCanvas) {
+				if (!this.isUpOnCanvas) {
 					let oDrawingsController = this.view.getWorksheet().objectRender.controller;
-					if(oDrawingsController.haveTrackedObjects()) {
+					if (oDrawingsController.haveTrackedObjects()) {
 						event.isLocked = this.isMousePressed;
 						event.ClickCount = this.clickCounter.clickCount;
 						event.fromWindow = true;
 						this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
 						this._changeSelectionDone(event);
 					}
-                }
-                this.isUpOnCanvas = false;
+				}
+				this.isUpOnCanvas = false;
 				return true;
 			}
 
@@ -1470,7 +2102,11 @@
 			if (this.isFillHandleMode) {
 				// Закончили автозаполнение
 				this.isFillHandleMode = false;
-				this._changeFillHandleDone(event);
+				if (2 === button && this.handlers.trigger('isRightClickFill')) {
+					this.handlers.trigger('onContextMenu', event, Asc.c_oAscContextMenuTypes.changeSeries);
+				} else {
+					this._changeFillHandleDone(event);
+				}
 			}
 
 			// Режим перемещения диапазона
@@ -1482,7 +2118,7 @@
 
 			if (this.isMoveResizeRange) {
 				this.isMoveResizeRange = false;
-				this.handlers.trigger("moveResizeRangeHandleDone");
+				this._moveResizeRangeHandleDone(this.targetInfo && this.targetInfo.isPageBreakPreview);
 			}
 			// Режим установки закреплённых областей
 			if (this.frozenAnchorMode) {
@@ -1510,7 +2146,7 @@
 			this._onWindowMouseUp(event);
 
 			if (window.g_asc_plugins)
-                window.g_asc_plugins.onExternalMouseUp();
+				window.g_asc_plugins.onExternalMouseUp();
 		};
 
 		/** @param event {MouseEvent} */
@@ -1534,6 +2170,17 @@
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseDown = function (event) {
+			let touchManager = this.view.Api.wb.MobileTouchManager;
+			if (touchManager && touchManager.checkTouchEvent(event))
+			{
+				touchManager.startTouchingInProcess();
+				let res = touchManager.mainOnTouchStart(event);
+				touchManager.stopTouchingInProcess();
+				return res;
+			}
+			if (touchManager)
+				touchManager.checkMouseFocus(event);
+
 			var t = this;
 			asc["editor"].checkInterfaceElementBlur();
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
@@ -1543,7 +2190,7 @@
 			this.isShapeAction = false;
 			// Shapes
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
-			if(!graphicsInfo) {
+			if (!graphicsInfo) {
 				// Update state for device without cursor
 				this._onMouseMove(event);
 			}
@@ -1567,7 +2214,9 @@
 
 			AscCommon.global_mouseEvent.LockMouse();
 
-
+			if (t.view.Api.isEyedropperStarted()) {
+				return;
+			}
 			if (t.handlers.trigger("isGlobalLockEditCell")) {
 				return;
 			}
@@ -1576,36 +2225,36 @@
 				t.handlers.trigger("canvasClick");
 			}
 
-			if (!(asc["editor"].isStartAddShape || this.getSelectionDialogMode() || this.getCellEditMode() && !this.handlers.trigger("stopCellEditing"))) {
+			if (!(asc["editor"].isStartAddShape || asc["editor"].isInkDrawerOn() || this.getSelectionDialogMode() || this.getCellEditMode() && !this.handlers.trigger("stopCellEditing"))) {
 				const isPlaceholder = t.handlers.trigger("onPointerDownPlaceholder", coord.x, coord.y);
 				if (isPlaceholder) {
 					return;
 				}
 			}
 
-			if (asc["editor"].isStartAddShape || graphicsInfo) {
-				// При выборе диапазона не нужно выделять автофигуру
-				if (this.getSelectionDialogMode()) {
+			// do not work with drawings in selection dialog mode
+			if (!this.getSelectionDialogMode()) {
+				if (asc["editor"].isStartAddShape || asc["editor"].isInkDrawerOn() || graphicsInfo) {
+
+
+					if (this.getCellEditMode() && !this.handlers.trigger("stopCellEditing")) {
+						return;
+					}
+
+					t.isShapeAction = true;
+					t.isUpOnCanvas = false;
+
+
+					t.clickCounter.mouseDownEvent(coord.x, coord.y, button);
+					event.ClickCount = t.clickCounter.clickCount;
+					if (0 === event.ClickCount % 2) {
+						t.isDblClickInMouseDown = true;
+					}
+
+					t.handlers.trigger("graphicObjectMouseDown", event, coord.x, coord.y);
+					t.handlers.trigger("updateSelectionShape", /*isSelectOnShape*/true);
 					return;
 				}
-
-				if (this.getCellEditMode() && !this.handlers.trigger("stopCellEditing")) {
-					return;
-				}
-
-				t.isShapeAction = true;
-				t.isUpOnCanvas = false;
-
-
-				t.clickCounter.mouseDownEvent(coord.x, coord.y, button);
-				event.ClickCount = t.clickCounter.clickCount;
-				if (0 === event.ClickCount % 2) {
-					t.isDblClickInMouseDown = true;
-				}
-
-				t.handlers.trigger("graphicObjectMouseDown", event, coord.x, coord.y);
-				t.handlers.trigger("updateSelectionShape", /*isSelectOnShape*/true);
-				return;
 			}
 
 
@@ -1640,7 +2289,7 @@
 
 			if (!t.getCellEditMode() && !t.getSelectionDialogMode()) {
 				this.gotFocus(true);
-				if (event.shiftKey) {
+				if (event.shiftKey && !(t.targetInfo.target === c_oTargetType.ColumnRowHeaderMove && this.canEdit())) {
 					t.isSelectMode = true;
 					t._changeSelection(event);
 					return;
@@ -1665,7 +2314,7 @@
 						if (0 === button) {
 							if (t.targetInfo.isDataValidation) {
 								this.handlers.trigger('onDataValidation');
-							} else if (t.targetInfo.idPivot && Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
+							} else if (t.targetInfo.idPivot) {
 								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
 							} else if (t.targetInfo.idPivotCollapse) {
 								this.handlers.trigger("pivotCollapseClick", t.targetInfo.idPivotCollapse);
@@ -1691,12 +2340,12 @@
 						t._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
 						return;
 					} else if (t.targetInfo.target === c_oTargetType.GroupRow && 0 === button) {
-						if(t._groupRowClick(event, t.targetInfo)) {
+						if (t._groupRowClick(event, t.targetInfo)) {
 							t.isRowGroup = true;
 						}
 						return;
 					} else if (t.targetInfo.target === c_oTargetType.GroupCol && 0 === button) {
-						if(t._groupRowClick(event, t.targetInfo)) {
+						if (t._groupRowClick(event, t.targetInfo)) {
 							t.isRowGroup = true;
 						}
 						return;
@@ -1705,6 +2354,9 @@
 						return;
 					} else if (t.targetInfo.target === c_oTargetType.TableSelectionChange) {
 						this.handlers.trigger('onChangeTableSelection', t.targetInfo);
+						return;
+					} else if (t.targetInfo.target === c_oTargetType.TraceDependents) {
+						// if we do a single click on traces, do nothing
 						return;
 					}
 				}
@@ -1746,15 +2398,31 @@
 					this.isFillHandleMode = true;
 					this._changeFillHandle(event, null, t.targetInfo.tableIndex);
 				} else {
-					this.isSelectMode = true;
-					this.handlers.trigger("changeSelection", /*isStartPoint*/true, coord.x, coord.y, /*isCoord*/true,
-						ctrlKey);
+					if (this.targetInfo && this.targetInfo.target === c_oTargetType.ColumnRowHeaderMove) {
+						this.isMoveRangeMode = true;
+						t._moveRangeHandle(event, null, {ctrlKey: ctrlKey, shiftKey: event.shiftKey});
+						t.handlers.trigger("updateWorksheet", coord.x, coord.y);
+						//t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey, function(info){t.targetInfo = info;});
+					} else {
+						this.isSelectMode = true;
+						this.handlers.trigger("changeSelection", /*isStartPoint*/true, coord.x, coord.y, /*isCoord*/true,
+							ctrlKey);
+					}
 				}
 			}
 		};
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseUp = function (event) {
+			let touchManager = this.view.Api.wb.MobileTouchManager;
+			if (touchManager && touchManager.checkTouchEvent(event))
+			{
+				touchManager.startTouchingInProcess();
+				let res = touchManager.mainOnTouchEnd(event);
+				touchManager.stopTouchingInProcess();
+				return res;
+			}
+
 			var button = AscCommon.getMouseButton(event);
 			AscCommon.global_mouseEvent.UnLockMouse();
 
@@ -1764,30 +2432,37 @@
 				oOleSize.addPointToLocalHistory();
 			}
 
+			var coord = this._getCoordinates(event);
+			// Shapes
+			event.isLocked = this.isMousePressed = false;
 			if (2 === button) {
 				if (this.isShapeAction) {
+					event.ClickCount = this.clickCounter.clickCount;
+					this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
 					this.handlers.trigger('onContextMenu', event);
 				}
 				return true;
 			}
 
-			// Shapes
-			var coord = this._getCoordinates(event);
-			event.isLocked = this.isMousePressed = false;
+			if (this.view.Api.isEyedropperStarted()) {
+				this.view.Api.finishEyedropper();
+				var t = this;
+				t.handlers.trigger("updateWorksheet", coord.x, coord.y, false, function (info) {
+					t.targetInfo = info;
+				});
+				return true;
+			}
 
 			if (this.isShapeAction) {
 				event.ClickCount = this.clickCounter.clickCount;
 				this.handlers.trigger("graphicObjectMouseUp", event, coord.x, coord.y);
 				this._changeSelectionDone(event);
-                if (asc["editor"].isStartAddShape)
-                {
-                    event.preventDefault && event.preventDefault();
-                    event.stopPropagation && event.stopPropagation();
-                }
-                else
-                {
-                    this.isUpOnCanvas = true;
-                }
+				if (asc["editor"].isStartAddShape || asc["editor"].isInkDrawerOn()) {
+					event.preventDefault && event.preventDefault();
+					event.stopPropagation && event.stopPropagation();
+				} else {
+					this.isUpOnCanvas = true;
+				}
 
 				return true;
 			}
@@ -1815,7 +2490,7 @@
 
 			if (this.isMoveResizeRange) {
 				this.isMoveResizeRange = false;
-				this._moveResizeRangeHandleDone();
+				this._moveResizeRangeHandleDone(this.targetInfo && this.targetInfo.pageBreakSelectionType);
 				return true;
 			}
 			// Режим установки закреплённых областей
@@ -1830,21 +2505,41 @@
 				return;
 			}
 
+			if (this.targetInfo && this.targetInfo.target === c_oTargetType.ColumnHeader) {
+				this._onMouseMove(event);
+			}
+
 			// Мы можем dblClick и не отработать, если вышли из области и отпустили кнопку мыши, нужно отработать
 			this.showCellEditorCursor();
 		};
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseMove = function (event) {
+			let touchManager = this.view.Api.wb.MobileTouchManager;
+			if (touchManager && touchManager.checkTouchEvent(event))
+			{
+				touchManager.startTouchingInProcess();
+				let res = touchManager.mainOnTouchMove(event);
+				touchManager.stopTouchingInProcess();
+				return res;
+			}
+
 			var t = this;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var coord = t._getCoordinates(event);
 
 			t.hasCursor = true;
 
+			if (t.view.Api.isEyedropperStarted()) {
+				t.view.Api.checkEyedropperColor(coord.x, coord.y);
+				t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey, function (info) {
+					t.targetInfo = info;
+				});
+				return true;
+			}
 			// Shapes
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
-			if ( graphicsInfo )
+			if (graphicsInfo)
 				this.clickCounter.mouseMoveEvent(coord.x, coord.y);
 
 			if (t.isSelectMode) {
@@ -1879,25 +2574,29 @@
 				t._moveResizeRangeHandle(event, t.targetInfo);
 				return true;
 			}
-			
+
 			// Режим установки закреплённых областей
 			if (t.frozenAnchorMode) {
 				t._moveFrozenAnchorHandle(event, this.frozenAnchorMode);
 				return true;
 			}
 
-			if (t.isShapeAction || graphicsInfo) {
+			if (t.isShapeAction || graphicsInfo || asc["editor"].isInkDrawerOn()) {
 				event.isLocked = t.isMousePressed;
 				t.handlers.trigger("graphicObjectMouseMove", event, coord.x, coord.y);
-				t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey, function(info){t.targetInfo = info;});
+				t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey, function (info) {
+					t.targetInfo = info;
+				});
 				return true;
 			}
 
-			t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey, function(info){t.targetInfo = info;});
+			t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey, function (info) {
+				t.targetInfo = info;
+			});
 			return true;
 		};
 
-    	/** @param event {MouseEvent} */
+		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseLeave = function (event) {
 			var t = this;
 			var coord = t._getCoordinates(event);
@@ -1907,13 +2606,22 @@
 				this.handlers.trigger("updateWorksheet", coord.x, coord.y);
 			}
 			if (this.isMoveRangeMode) {
-				t.moveRangeTimerId = window.setTimeout(function(){t._moveRangeHandle2(event)},0);
+				t.moveRangeTimerId = window.setTimeout(function () {
+					t._moveRangeHandle2(event)
+				}, 0);
 			}
 			if (this.isMoveResizeRange) {
-				t.moveResizeRangeTimerId = window.setTimeout(function(){t._moveResizeRangeHandle2(event)},0);
+				t.moveResizeRangeTimerId = window.setTimeout(function () {
+					t._moveResizeRangeHandle2(event)
+				}, 0);
 			}
 			if (this.isFillHandleMode) {
-				t.fillHandleModeTimerId = window.setTimeout(function(){t._changeFillHandle2(event)},0);
+				t.fillHandleModeTimerId = window.setTimeout(function () {
+					t._changeFillHandle2(event)
+				}, 0);
+			}
+			if (t.view.Api.isEyedropperStarted()) {
+				this.view.Api.sendEvent("asc_onHideEyedropper");
 			}
 			return true;
 		};
@@ -1934,57 +2642,103 @@
 				return true;
 			}
 
-			if (undefined !== window["AscDesktopEditor"])
-            {
-                if (false === window["AscDesktopEditor"]["CheckNeedWheel"]())
-                    return true;
-            }
+			if (undefined !== window["AscDesktopEditor"]) {
+				if (false === window["AscDesktopEditor"]["CheckNeedWheel"]())
+					return true;
+			}
 
 			var self = this;
 			var deltaX = 0, deltaY = 0;
-			if (undefined !== event.wheelDelta && 0 !== event.wheelDelta) {
-				deltaY = -1 * event.wheelDelta / 40;
-			} else if (undefined !== event.detail && 0 !== event.detail) {
-				// FF
-				deltaY = event.detail;
-			} else if (undefined !== event.deltaY && 0 !== event.deltaY) {
-				// FF
-				//ограничиваем шаг из-за некорректного значения deltaY после обновления FF
-				//TODO необходимо пересмотреть. нужны корректные значения и учетом системного шага.
-				var _maxDelta = 3;
-				if (AscCommon.AscBrowser.isMozilla && Math.abs(event.deltaY) > _maxDelta) {
-					deltaY = Math.sign(event.deltaY) * _maxDelta;
-				} else {
-					deltaY = event.deltaY;
+
+			const wb = window["Asc"]["editor"].wb;
+			//TODO for mac touchpads. need review
+			if (wb.smoothScroll && AscCommon.AscBrowser.isMacOs) {
+				var delta  = 0;
+
+				if (undefined != event.wheelDelta && event.wheelDelta != 0) {
+					delta = -45 * event.wheelDelta / 120;
+				}
+				{
+					delta = 45 * event.detail / 3;
+				}
+
+				// New school multidimensional scroll (touchpads) deltas
+				deltaY = delta;
+
+
+				// Webkit
+				if (undefined !== event.wheelDeltaY && 0 !== event.wheelDeltaY) {
+					deltaY = -45 * event.wheelDeltaY / 120;
+				}
+				if (undefined !== event.wheelDeltaX && 0 !== event.wheelDeltaX) {
+					deltaX = -45 * event.wheelDeltaX / 120;
+				}
+
+
+				deltaX >>= 0;
+				deltaY >>= 0;
+
+				deltaX = (deltaX / wb.getWorksheet().getHScrollStep()) * AscCommon.AscBrowser.retinaPixelRatio;
+				deltaY = (deltaY / wb.getWorksheet().getVScrollStep()) * AscCommon.AscBrowser.retinaPixelRatio;
+			} else {
+				if (undefined !== event.wheelDelta && 0 !== event.wheelDelta) {
+					deltaY = -1 * event.wheelDelta / 40;
+				} else if (undefined !== event.detail && 0 !== event.detail) {
+					// FF
+					deltaY = event.detail;
+				} else if (undefined !== event.deltaY && 0 !== event.deltaY) {
+					// FF
+					//ограничиваем шаг из-за некорректного значения deltaY после обновления FF
+					//TODO необходимо пересмотреть. нужны корректные значения и учетом системного шага.
+					var _maxDelta = 3;
+					if (AscCommon.AscBrowser.isMozilla && Math.abs(event.deltaY) > _maxDelta) {
+						deltaY = Math.sign(event.deltaY) * _maxDelta;
+					} else {
+						deltaY = event.deltaY;
+					}
+				}
+				if (undefined !== event.deltaX && 0 !== event.deltaX) {
+					deltaX = event.deltaX;
+				}
+				if (event.axis !== undefined && event.axis === event.HORIZONTAL_AXIS) {
+					deltaX = deltaY;
+					deltaY = 0;
+				}
+
+				if (undefined !== event.wheelDeltaX && 0 !== event.wheelDeltaX) {
+					// Webkit
+					deltaX = -1 * event.wheelDeltaX / 40;
+				}
+				if (undefined !== event.wheelDeltaY && 0 !== event.wheelDeltaY) {
+					// Webkit
+					deltaY = -1 * event.wheelDeltaY / 40;
 				}
 			}
-            if (undefined !== event.deltaX && 0 !== event.deltaX) {
-                deltaX = event.deltaX;
-            }
-			if (event.axis !== undefined && event.axis === event.HORIZONTAL_AXIS) {
-				deltaX = deltaY;
-				deltaY = 0;
-			}
 
-			if (undefined !== event.wheelDeltaX && 0 !== event.wheelDeltaX) {
-				// Webkit
-				deltaX = -1 * event.wheelDeltaX / 40;
-			}
-			if (undefined !== event.wheelDeltaY && 0 !== event.wheelDeltaY) {
-				// Webkit
-				deltaY = -1 * event.wheelDeltaY / 40;
-			}
 			if (event.shiftKey) {
 				deltaX = deltaY;
 				deltaY = 0;
 			}
 
-			if (this.smoothWheelCorrector)
-			{
-				deltaX = this.smoothWheelCorrector.get_DeltaX(deltaX);
-                deltaY = this.smoothWheelCorrector.get_DeltaY(deltaY);
+			//TODO!!! while only check direction. need refactor, and replace up code on checkMouseWhell function
+			let values = AscCommon.checkMouseWhell(event, {
+				isSupportBidirectional : false,
+				isAllowHorizontal : true,
+				isUseMaximumDelta : true
+			});
+
+			if (values.x === 0) {
+				deltaX = 0;
 			}
-			if(this.handlers.trigger("graphicObjectMouseWheel", deltaX, deltaY)) {
+			if (values.y === 0) {
+				deltaY = 0;
+			}
+
+			if (this.smoothWheelCorrector && !wb.smoothScroll) {
+				deltaX = this.smoothWheelCorrector.get_DeltaX(deltaX);
+				deltaY = this.smoothWheelCorrector.get_DeltaY(deltaY);
+			}
+			if (this.handlers.trigger("graphicObjectMouseWheel", deltaX, deltaY)) {
 				self._onMouseMove(event);
 				AscCommon.stopEvent(event);
 				return true;
@@ -1993,23 +2747,27 @@
 			this.handlers.trigger("updateWorksheet", /*x*/undefined, /*y*/undefined, /*ctrlKey*/undefined,
 				function () {
 					if (deltaX && (!self.smoothWheelCorrector || !self.smoothWheelCorrector.isBreakX())) {
-						deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
+						if (!wb.smoothScroll) {
+							deltaX = Math.sign(deltaX) * Math.ceil(Math.abs(deltaX / 3));
+						}
 						self.scrollHorizontal(deltaX, event);
 					}
 					if (deltaY && (!self.smoothWheelCorrector || !self.smoothWheelCorrector.isBreakY())) {
-						deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * self.settings.wheelScrollLinesV / 3));
+						if (!wb.smoothScroll) {
+							deltaY = Math.sign(deltaY) * Math.ceil(Math.abs(deltaY * self.settings.wheelScrollLinesV / 3));
+						}
 						self.scrollVertical(deltaY, event);
 					}
 					self._onMouseMove(event);
 				});
 
-            this.smoothWheelCorrector && this.smoothWheelCorrector.checkBreak();
-            AscCommon.stopEvent(event);
+			this.smoothWheelCorrector && this.smoothWheelCorrector.checkBreak();
+			AscCommon.stopEvent(event);
 			return true;
 		};
 
 		/** @param event {KeyboardEvent} */
-		asc_CEventsController.prototype._onMouseDblClick = function(event) {
+		asc_CEventsController.prototype._onMouseDblClick = function (event) {
 			if (this.handlers.trigger('isGlobalLockEditCell') || this.handlers.trigger('isFormatPainter')) {
 				return false;
 			}
@@ -2033,7 +2791,7 @@
 				return event.coord;
 			}
 
-			var offs = this.element.getBoundingClientRect();
+			var offs = AscCommon.UI.getBoundingClientRect(this.element);
 			var x = ((event.pageX * AscBrowser.zoom) >> 0) - offs.left;
 			var y = ((event.pageY * AscBrowser.zoom) >> 0) - offs.top;
 
@@ -2046,6 +2804,22 @@
 		asc_CEventsController.prototype._setSkipKeyPress = function (val) {
 			this.skipKeyPress = val;
 		};
+
+		asc_CEventsController.prototype.showHorizontalScroll = function (val) {
+			this.hsb.style.visibility = val ? "visible" : "hidden";
+			let cornerStyle = !val && this.vsb.style.visibility === "hidden" ? "hidden" : "visible";
+			let corner = document.getElementById("ws-scrollbar-corner");
+			corner.style.visibility = cornerStyle;
+		};
+
+		asc_CEventsController.prototype.showVerticalScroll = function (val) {
+			this.vsb.style.visibility = val ? "visible" : "hidden";
+			let cornerStyle = !val && this.hsb.style.visibility === "hidden" ? "hidden" : "visible";
+			let corner = document.getElementById("ws-scrollbar-corner");
+			corner.style.visibility = cornerStyle;
+		};
+
+
 
 		//------------------------------------------------------------export---------------------------------------------------
 		window['AscCommonExcel'] = window['AscCommonExcel'] || {};

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -36,7 +36,7 @@
  * @param {Window} window
  * @param {undefined} undefined
  */
-	function (window, undefined) {
+function (window, undefined) {
 	var cErrorType = AscCommonExcel.cErrorType;
 	var cNumber = AscCommonExcel.cNumber;
 	var cString = AscCommonExcel.cString;
@@ -446,6 +446,9 @@
 		var res = null;
 		for (var i = 1; i < argClone.length; i++) {
 			var argN = argClone[i].getValue();
+			if (cElementType.cell === argClone[i].type || cElementType.cell3D === argClone[i].type) {
+				argN = argN.getValue();
+			}
 			if (arg0 === argN) {
 				if (!argClone[i + 1]) {
 					return new cError(cErrorType.not_available);
@@ -514,7 +517,7 @@
 					} else if (argArr[j] instanceof cString || emptyArg || argArr[j] instanceof cBool) {
 						argResult = new cBool(true);
 						nTrueValues++;
-					} else if(argArr.length === 1 && argArr[j] instanceof cNumber) {
+					} else if (argArr.length === 1 && argArr[j] instanceof cNumber) {
 						if (argResult == null) {
 							argResult = argArr[j].tocBool();
 						} else {
@@ -525,7 +528,7 @@
 							nTrueValues++;
 						}
 					}
-					if(!emptyArg) {
+					if (!emptyArg) {
 						allCellsEmpty = false;
 					}
 				}
@@ -533,7 +536,7 @@
 				//если диапазон содержит хоть одну непустую ячейку(без ошибки) - результат false
 				if (argResult == null && !allCellsEmpty) {
 					argResult = new cBool(false);
-				} else if(allCellsEmpty) {
+				} else if (allCellsEmpty) {
 					argResult = null;
 				}
 			} else {

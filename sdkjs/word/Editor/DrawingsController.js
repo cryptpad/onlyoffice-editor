@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -98,9 +98,9 @@ CDrawingsController.prototype.AddNewParagraph = function(bRecalculate, bForceAdd
 {
 	return this.DrawingObjects.addNewParagraph(bRecalculate, bForceAdd);
 };
-CDrawingsController.prototype.AddInlineImage = function(nW, nH, oImage, oChart, bFlow)
+CDrawingsController.prototype.AddInlineImage = function(nW, nH, oImage, oGraphicObject, bFlow)
 {
-	return this.DrawingObjects.addInlineImage(nW, nH, oImage, oChart, bFlow);
+	return this.DrawingObjects.addInlineImage(nW, nH, oImage, oGraphicObject, bFlow);
 };
 CDrawingsController.prototype.AddImages = function(aImages)
 {
@@ -119,7 +119,7 @@ CDrawingsController.prototype.AddTextArt = function(nStyle)
 	var ParaDrawing = this.DrawingObjects.getMajorParaDrawing();
 	if (ParaDrawing)
 	{
-		ParaDrawing.GoTo_Text(undefined, false);
+		ParaDrawing.GoToText(undefined, false);
 		this.LogicDocument.AddTextArt(nStyle);
 	}
 };
@@ -380,7 +380,7 @@ CDrawingsController.prototype.RemoveSelection = function(bNoCheckDrawing)
 				oParaDrawing = arrDrawings[0];
 		}
 
-		oParaDrawing.GoTo_Text(undefined, false);
+		oParaDrawing.GoToText(undefined, false);
 	}
 };
 CDrawingsController.prototype.IsSelectionEmpty = function(bCheckHidden)
@@ -424,9 +424,9 @@ CDrawingsController.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEv
 	// TODO: Надо вызывать не у LogicDocument, а у DocumentContent заданного
 	this.LogicDocument.controller_UpdateCursorType(X, Y, PageAbs, MouseEvent);
 };
-CDrawingsController.prototype.PasteFormatting = function(TextPr, ParaPr)
+CDrawingsController.prototype.PasteFormatting = function(oData)
 {
-	this.DrawingObjects.paragraphFormatPaste(TextPr, ParaPr, false);
+	this.DrawingObjects.pasteFormatting(oData);
 };
 CDrawingsController.prototype.IsSelectionUse = function()
 {
@@ -577,10 +577,21 @@ CDrawingsController.prototype.GetSelectionState = function()
 CDrawingsController.prototype.SetSelectionState = function(State, StateIndex)
 {
 	this.DrawingObjects.setSelectionState(State, StateIndex);
+	
+	let parentCC = this.private_GetParentContentControl();
+	if (parentCC && parentCC.IsPicture() && parentCC.IsForm() && parentCC.GetParagraph())
+	{
+		let parentShape = parentCC.GetParagraph().GetParentShape();
+		if (parentShape)
+		{
+			let paraDrawing = parentShape.GetParaDrawing();
+			this.DrawingObjects.selectById(paraDrawing.GetId(), paraDrawing.GetPageNum());
+		}
+	}
 };
 CDrawingsController.prototype.AddHyperlink = function(Props)
 {
-	this.DrawingObjects.hyperlinkAdd(Props);
+	return this.DrawingObjects.hyperlinkAdd(Props);
 };
 CDrawingsController.prototype.ModifyHyperlink = function(Props)
 {
@@ -697,13 +708,26 @@ CDrawingsController.prototype.IsTableCellSelection = function()
 
 	return false;
 };
-CDrawingsController.prototype.IsSelectionLocked = function(nCheckType)
+CDrawingsController.prototype.IsSelectionLocked = function(checkType)
 {
-	this.DrawingObjects.documentIsSelectionLocked(nCheckType);
+	this.DrawingObjects.documentIsSelectionLocked(checkType);
 
-	var oContentControl = this.private_GetParentContentControl();
-	if (oContentControl)
-		oContentControl.Document_Is_SelectionLocked(nCheckType);
+	let contentControl = this.private_GetParentContentControl();
+	if (contentControl)
+	{
+		if (contentControl.IsPicture()
+			&& (AscCommon.changestype_Remove === checkType
+				|| AscCommon.changestype_Delete === checkType))
+		{
+			contentControl.SkipSpecialContentControlLock(true);
+			contentControl.Document_Is_SelectionLocked(checkType);
+			contentControl.SkipSpecialContentControlLock(false);
+		}
+		else
+		{
+			contentControl.Document_Is_SelectionLocked(checkType);
+		}
+	}
 };
 CDrawingsController.prototype.CollectSelectedReviewChanges = function(oTrackManager)
 {

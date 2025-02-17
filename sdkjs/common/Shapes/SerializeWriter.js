@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -106,16 +106,11 @@ function CBinaryFileWriter()
     // memory functions ----------
     this.Init = function()
     {
-        var _canvas = document.createElement('canvas');
-        var _ctx = _canvas.getContext('2d');
-        this.len = 1024*1024*5;
-        this.ImData = _ctx.createImageData(this.len / 4, 1);
-        this.data = this.ImData.data;
+        this.len = 1024*1024*2;
+        this.data = new Uint8Array(this.len);
         this.pos = 0;
     };
 
-    this.IsWordWriter = false;
-    this.ImData = null;
     this.data = null;
     this.len = 0;
     this.pos = 0;
@@ -143,14 +138,12 @@ function CBinaryFileWriter()
     };
 
     this.ImportFromMemory = function(memory) {
-        this.ImData = memory.ImData;
         this.data = memory.data;
         this.len = memory.len;
         this.pos = memory.pos;
     };
 
     this.ExportToMemory = function(memory) {
-        memory.ImData = this.ImData;
         memory.data = this.data;
         memory.len = this.len;
         memory.pos = this.pos;
@@ -184,17 +177,10 @@ function CBinaryFileWriter()
     {
         if (this.pos + count >= this.len)
         {
-            var _canvas = document.createElement('canvas');
-            var _ctx = _canvas.getContext('2d');
-
-            var oldImData = this.ImData;
             var oldData = this.data;
-            var oldPos = this.pos;
 
             this.len = Math.max(this.len * 2, this.pos + ((3 * count / 2) >> 0));
-
-            this.ImData = _ctx.createImageData(this.len / 4, 1);
-            this.data = this.ImData.data;
+            this.data = new Uint8Array(this.len);
             var newData = this.data;
 
             for (var i=0;i<this.pos;i++)
@@ -211,14 +197,8 @@ function CBinaryFileWriter()
     };
     this.GetData   = function(nPos, nLen)
     {
-        var _canvas = document.createElement('canvas');
-        var _ctx    = _canvas.getContext('2d');
-
         var len = this.GetCurPosition();
-
-        //todo ImData.data.length multiple of 4
-        var ImData = _ctx.createImageData(Math.ceil(len / 4), 1);
-        var res = ImData.data;
+        var res = new Uint8Array(len);
 
         for (var i = 0; i < len; i++)
             res[i] = this.data[i];
@@ -602,7 +582,7 @@ function CBinaryFileWriter()
 			this.WriteCore(presentation.Core, presentation.Api);
 
 		// Core
-		if (presentation.CustomProperties)
+		if (presentation.CustomProperties && presentation.CustomProperties.hasProperties())
 			this.WriteCustomProperties(presentation.CustomProperties, presentation.Api);
 
         // ViewProps
@@ -631,44 +611,32 @@ function CBinaryFileWriter()
         var _slides = presentation.Slides;
         var _slide_count = _slides.length;
 
+
+        for (let nIdx = 0; nIdx < presentation.slideMasters.length; ++nIdx) {
+            let _m = presentation.slideMasters[nIdx];
+            let _len_dst = _dst_masters.length;
+            _dst_masters[_len_dst] = _m;
+
+            let _m_rels = { ThemeIndex : 0, Layouts : [] };
+            let _lay_c = _m.sldLayoutLst.length;
+
+            let _ind_l = _dst_layouts.length;
+            for (let k = 0; k < _lay_c; k++)
+            {
+                _dst_layouts[_ind_l] = _m.sldLayoutLst[k];
+                _m_rels.Layouts[k] = _ind_l;
+                _ind_l++;
+            }
+            _master_rels[_len_dst] = _m_rels;
+        }
+
         for (var i = 0; i < _slide_count; i++)
         {
             _dst_slides[i] = _slides[i];
-            if(_slides[i].notes && !_slides[i].notes.isEmptyBody())
+            if(_slides[i].notes)
             {
                 _dst_notes.push(_slides[i].notes);
             }
-            var _m = _slides[i].Layout.Master;
-
-            var is_found = false;
-            var _len_dst = _dst_masters.length;
-            for (var j = 0; j < _len_dst; j++)
-            {
-                if (_dst_masters[j] == _m)
-                {
-                    is_found = true;
-                    break;
-                }
-            }
-
-            if (!is_found)
-            {
-                _dst_masters[_len_dst] = _m;
-
-                var _m_rels = { ThemeIndex : 0, Layouts : [] };
-                var _lay_c = _m.sldLayoutLst.length;
-
-                var _ind_l = _dst_layouts.length;
-                for (var k = 0; k < _lay_c; k++)
-                {
-                    _dst_layouts[_ind_l] = _m.sldLayoutLst[k];
-                    _m_rels.Layouts[k] = _ind_l;
-                    _ind_l++;
-                }
-
-                _master_rels[_len_dst] = _m_rels;
-            }
-
             var _layoutsC = _dst_layouts.length;
             for (var ii = 0; ii < _layoutsC; ii++)
             {
@@ -1004,21 +972,18 @@ function CBinaryFileWriter()
 
 	this.WriteDocument3 = function(presentation, base64) {
 		var _memory = new AscCommon.CMemory(true);
-		_memory.ImData = this.ImData;
 		_memory.data = this.data;
 		_memory.len = this.len;
 		_memory.pos = this.pos;
 
 		_memory.WriteXmlString("PPTY;v" + Asc.c_nVersionNoBase64 + ";0;");
 
-		this.ImData = _memory.ImData;
 		this.data = _memory.data;
 		this.len = _memory.len;
 		this.pos = _memory.pos;
 
 		this.WriteDocument2(presentation);
 
-		_memory.ImData = this.ImData;
 		_memory.data = this.data;
 		_memory.len = this.len;
 		_memory.pos = this.pos;
@@ -1029,14 +994,12 @@ function CBinaryFileWriter()
 	};
 	this.WriteByMemory = function(callback) {
 		var _memory = new AscCommon.CMemory(true);
-		_memory.ImData = this.ImData;
 		_memory.data = this.data;
 		_memory.len = this.len;
 		_memory.pos = this.pos;
 
 		callback(_memory);
 
-		this.ImData = _memory.ImData;
 		this.data = _memory.data;
 		this.len = _memory.len;
 		this.pos = _memory.pos;
@@ -1164,6 +1127,19 @@ function CBinaryFileWriter()
 
         this.WriteRecord2(0, presentation.defaultTextStyle, this.WriteTextListStyle);
 
+        var oNotesSz = presentation.notesSz;
+        if(oNotesSz)
+        {
+            this.StartRecord(3);
+            this.WriteUChar(g_nodeAttributeStart);
+
+            this._WriteInt1(0, oNotesSz.cx);
+            this._WriteInt1(1, oNotesSz.cy);
+
+            this.WriteUChar(g_nodeAttributeEnd);
+            this.EndRecord();
+        }
+
         // 5
         var oSldSz = presentation.sldSz;
         if(oSldSz)
@@ -1178,16 +1154,6 @@ function CBinaryFileWriter()
             this.WriteUChar(g_nodeAttributeEnd);
             this.EndRecord();
         }
-
-        // 3
-        this.StartRecord(3);
-        this.WriteUChar(g_nodeAttributeStart);
-
-        this._WriteInt1(0, presentation.GetWidthEMU());
-        this._WriteInt1(1, presentation.GetHeightEMU());
-
-        this.WriteUChar(g_nodeAttributeEnd);
-        this.EndRecord();
 
         if (!this.IsUseFullUrl)
         {
@@ -2306,9 +2272,7 @@ function CBinaryFileWriter()
                 mods.splice(nIndex, 1);
             }
 
-            mods[_len] = new AscFormat.CColorMod();
-            mods[_len].name = "alpha";
-            mods[_len].val = (trans * 100000 / 255) >> 0;
+            mods[_len] = new AscFormat.CColorMod("alpha", (trans * 100000 / 255) >> 0);
         }
     };
 
@@ -2321,7 +2285,7 @@ function CBinaryFileWriter()
         oThis._WriteLimit2(1, oEffect.type);
         oThis.WriteUChar(g_nodeAttributeEnd);
 
-        oThis.StartRecord(type);
+        oThis.StartRecord(0);
         var len__ = oEffect.effectList.length;
         oThis._WriteInt2(0, len__);
 
@@ -2749,7 +2713,7 @@ function CBinaryFileWriter()
         if (undefined === unifill || null == unifill)
             return;
 
-        var trans = ((unifill.transparent != null) && (unifill.transparent != 255)) ? unifill.transparent : null;
+        var trans = ((unifill.transparent != null)) ? unifill.transparent : null;
         var fill = unifill.fill;
         if (undefined === fill || null == fill)
             return;
@@ -3007,8 +2971,10 @@ function CBinaryFileWriter()
         {
             oThis.WriteRecord2(1, txBody.lstStyle, oThis.WriteTextListStyle);
         }
-        var _content = txBody.content.Content;
-        oThis.WriteRecordArray(2, 0, _content, oThis.WriteParagraph);
+        var _content = txBody.content && txBody.content.Content;
+				if (_content) {
+					oThis.WriteRecordArray(2, 0, _content, oThis.WriteParagraph);
+				}
     };
 
     this.WriteParagraph = function(paragraph, startPos, endPos)
@@ -3173,7 +3139,6 @@ function CBinaryFileWriter()
                                     oThis.StartRecord(0); // subtype
                                     oThis.StartRecord(AscFormat.PARRUN_TYPE_MATHPARA);
                                     var _memory = new AscCommon.CMemory(true);
-                                    _memory.ImData = oThis.ImData;
                                     _memory.data = oThis.data;
                                     _memory.len = oThis.len;
                                     _memory.pos = oThis.pos;
@@ -3185,13 +3150,11 @@ function CBinaryFileWriter()
                                     var boMaths = new Binary_oMathWriter(_memory, null, oThis.DocSaveParams);
                                     boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem_h)});
 
-                                    oThis.ImData = _memory.ImData;
                                     oThis.data = _memory.data;
                                     oThis.len = _memory.len;
                                     oThis.pos = _memory.pos;
                                     oThis.UseContinueWriter--;
 
-                                    _memory.ImData = null;
                                     _memory.data = null;
 
                                     oThis.EndRecord();
@@ -3213,7 +3176,6 @@ function CBinaryFileWriter()
 						oThis.StartRecord(0); // subtype
 						oThis.StartRecord(AscFormat.PARRUN_TYPE_MATHPARA);
 						var _memory = new AscCommon.CMemory(true);
-						_memory.ImData = oThis.ImData;
 						_memory.data = oThis.data;
 						_memory.len = oThis.len;
 						_memory.pos = oThis.pos;
@@ -3225,13 +3187,11 @@ function CBinaryFileWriter()
 						var boMaths = new Binary_oMathWriter(_memory, null, oThis.DocSaveParams);
 						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});
 
-						oThis.ImData = _memory.ImData;
 						oThis.data = _memory.data;
 						oThis.len = _memory.len;
 						oThis.pos = _memory.pos;
 						oThis.UseContinueWriter--;
 
-						_memory.ImData = null;
 						_memory.data = null;
 
 						oThis.EndRecord();
@@ -3371,7 +3331,7 @@ function CBinaryFileWriter()
         else{
             oThis.StartRecord(1);
             oThis.WriteUChar(g_nodeAttributeStart);
-            oThis._WriteBool2(0, shape.attrUseBgFill);
+            oThis._WriteBool2(0, shape.useBgFill);
             oThis.WriteUChar(g_nodeAttributeEnd);
         }
 
@@ -3476,21 +3436,12 @@ function CBinaryFileWriter()
 
         image.spPr.WriteXfrm = image.spPr.xfrm;
 
-        var bSetGeometry = false;
-        if (image.spPr.geometry === undefined || image.spPr.geometry == null)
-        {
-            // powerpoint!
-            bSetGeometry = true;
-            image.spPr.geometry = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreateGeometry("rect");}, this, []);
-        }
+
 
         var unifill = new AscFormat.CUniFill();
         unifill.fill = image.blipFill;
         oThis.WriteRecord1(1, unifill, oThis.WriteUniFill);
         oThis.WriteRecord1(2, image.spPr, oThis.WriteSpPr);
-        if(bSetGeometry){
-            image.spPr.geometry = null;
-        }
         oThis.WriteRecord2(3, image.style, oThis.WriteShapeStyle);
         image.writeMacro(oThis);
         image.spPr.WriteXfrm = null;
@@ -3558,7 +3509,14 @@ function CBinaryFileWriter()
             }
             case AscDFH.historyitem_type_ChartSpace:
             {
-                oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
+                if(grObj.isChartEx())
+                {
+                    oThis.WriteRecord2(7, grObj, oThis.WriteChart2);
+                }
+                else
+                {
+                    oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
+                }
                 break;
             }
             case AscDFH.historyitem_type_SlicerView:
@@ -3570,11 +3528,19 @@ function CBinaryFileWriter()
                 });
                 break;
             }
+            case AscDFH.historyitem_type_TimelineSlicerView:
+            {
+                oThis.WriteRecord2(9, grObj, function () {
+                    grObj.toStream(oThis)
+                });
+                break;
+            }
             case AscDFH.historyitem_type_SmartArt:
             {
                 oThis.WriteRecord2(8, grObj, function() {
                     grObj.toPPTY(oThis);
-                })
+                });
+                break;
             }
         }
         grObj.writeMacro(oThis);
@@ -3584,7 +3550,6 @@ function CBinaryFileWriter()
     this.WriteChart2 = function(grObj)
     {
         var _memory = new AscCommon.CMemory(true);
-        _memory.ImData = oThis.ImData;
         _memory.data = oThis.data;
         _memory.len = oThis.len;
         _memory.pos = oThis.pos;
@@ -3592,16 +3557,18 @@ function CBinaryFileWriter()
         oThis.UseContinueWriter++;
 
         var oBinaryChartWriter = new AscCommon.BinaryChartWriter(_memory);
-        oBinaryChartWriter.WriteCT_ChartSpace(grObj);
+        if (grObj.isChartEx()) {
+            oBinaryChartWriter.WriteCT_ChartExSpace(grObj);
+        } else {
+            oBinaryChartWriter.WriteCT_ChartSpace(grObj);
+        }
 
-        oThis.ImData = _memory.ImData;
         oThis.data = _memory.data;
         oThis.len = _memory.len;
         oThis.pos = _memory.pos;
 
         oThis.UseContinueWriter--;
 
-        _memory.ImData = null;
         _memory.data = null;
     };
 
@@ -4002,8 +3969,6 @@ function CBinaryFileWriter()
 
     this.WriteXfrm = function(xfrm)
     {
-        if (oThis.IsWordWriter === true)
-            return oThis.WriteXfrmRot(xfrm);
 
         oThis.WriteUChar(g_nodeAttributeStart);
         oThis._WriteInt4(0, xfrm.offX, c_dScalePPTXSizes);
@@ -5050,7 +5015,6 @@ function CBinaryFileWriter()
     {
         this.BinaryFileWriter = new AscCommon.CBinaryFileWriter();
         this.BinaryFileWriter.Init();
-        //this.BinaryFileWriter.IsWordWriter = true;
 
         this.TreeDrawingIndex = 0;
 
@@ -5084,7 +5048,6 @@ function CBinaryFileWriter()
         this.WritePPTXObject = function(memory, fCallback) {
             if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
-                this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
                 this.BinaryFileWriter.len = memory.len;
                 this.BinaryFileWriter.pos = memory.pos;
@@ -5099,7 +5062,6 @@ function CBinaryFileWriter()
 
             if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
-                memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
                 memory.len = this.BinaryFileWriter.len;
                 memory.pos = this.BinaryFileWriter.pos;
@@ -5254,6 +5216,7 @@ function CBinaryFileWriter()
                 }
                 case AscDFH.historyitem_type_ChartSpace:
                 case AscDFH.historyitem_type_SlicerView:
+                case AscDFH.historyitem_type_TimelineSlicerView:
                 case AscDFH.historyitem_type_SmartArt:
                 {
                     this.BinaryFileWriter.WriteGrFrame(grObject);
@@ -5276,7 +5239,7 @@ function CBinaryFileWriter()
             else{
                 _writer.StartRecord(1);
                 _writer.WriteUChar(g_nodeAttributeStart);
-                _writer._WriteBool2(0, shape.attrUseBgFill);
+                _writer._WriteBool2(0, shape.useBgFill);
                 _writer.WriteUChar(g_nodeAttributeEnd);
             }
 

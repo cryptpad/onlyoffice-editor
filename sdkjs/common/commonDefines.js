@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -425,12 +425,26 @@ var lcid_iuLatn = 0x7c5d; // Inuktitut, Latin
 var lcid_tzmLatn = 0x7c5f; // Central Atlas Tamazight, Latin
 var lcid_haLatn = 0x7c68; // Hausa, Latin
 
+//Defines are only allowed in the global scope.
+//https://github.com/google/closure-compiler/wiki/Annotating-JavaScript-for-the-Closure-Compiler#define-type-description
+window['AscCommon'] = window.AscCommon = window['AscCommon'] || {};
+/** @define {string} */
+window.AscCommon.g_cCompanyName  = "onlyoffice";
+/** @define {string} */
+window.AscCommon.g_cProductVersion  = "0.0.0";
+/** @define {string} */
+window.AscCommon.g_cBuildNumber = "0";
+/** @define {string} */
+window.AscCommon.g_cIsBeta = "false";
+
 (/**
  * @param {Window} window
  * @param {undefined} undefined
  */
 	function(window, undefined)
 {
+	window['Asc'] = window['Asc'] || {};
+	
 	var g_cCharDelimiter      = String.fromCharCode(5);
 	var g_cGeneralFormat      = 'General';
 	var FONT_THUMBNAIL_HEIGHT = (window["AscDesktopEditor"] && window["AscDesktopEditor"]["GetFontThumbnailHeight"]) ? window["AscDesktopEditor"]["GetFontThumbnailHeight"]() : 28;
@@ -443,6 +457,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	var c_dMaxParaRunContentLength = 256;
 	var c_nMaxHyperlinkLength = 2083;
 	var c_sNativeViewerFormats = '.pdf.xps.oxps.djvu';
+	var c_sShardKeyName = 'shardkey';
+	var c_sWopiSrcName = 'WOPISrc';
+	var c_sUserSessionIdName = 'usid';
 
 	//files type for Saving & DownloadAs
 	var c_oAscFileType = {
@@ -492,6 +509,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		XLSX_FLAT  : 0x010b,
 		XLSX_PACKAGE  : 0x010c,
 		XLSY : 0x1002,
+		CANVAS_SPREADSHEET : 0x2002,
 
 		// PowerPoint
 		PPTX : 0x0081,
@@ -505,6 +523,16 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		FODP : 0x0089,
 		OTP  : 0x008a,
 		PPTX_PACKAGE  : 0x008b,
+		PPTY : 0x1003,
+		CANVAS_PRESENTATION : 0x2003,
+
+		//Draw
+		VSDX : 0x4001,
+		VSSX : 0x4002,
+		VSTX : 0x4003,
+		VSDM : 0x4004,
+		VSSM : 0x4005,
+		VSTM : 0x4006,
 
 		//image
 		IMG  : 0x0400,
@@ -530,204 +558,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		PlainParagraph : 3
 	};
 
-	var c_oAscError = {
-		Level : {
-			Critical   : -1,
-			NoCritical : 0
-		},
-		ID    : {
-			ServerSaveComplete   : 3,
-			ConvertationProgress : 2,
-			DownloadProgress     : 1,
-			No                   : 0,
-			Unknown              : -1,
-			ConvertationTimeout  : -2,
-
-			DownloadError        : -4,
-			UnexpectedGuid       : -5,
-			Database             : -6,
-			FileRequest          : -7,
-			FileVKey             : -8,
-			UplImageSize         : -9,
-			UplImageExt          : -10,
-			UplImageFileCount    : -11,
-			NoSupportClipdoard   : -12,
-			UplImageUrl          : -13,
-			DirectUrl            : -14,
-
-
-			MaxDataPointsError    : -16,
-			StockChartError       : -17,
-			CoAuthoringDisconnect : -18,
-			ConvertationPassword  : -19,
-			VKeyEncrypt           : -20,
-			KeyExpire             : -21,
-			UserCountExceed       : -22,
-			AccessDeny            : -23,
-			LoadingScriptError    : -24,
-			EditingError          :	-25,
-			LoadingFontError      : -26,
-			LoadingBinError       : -27,
-
-			SplitCellMaxRows     : -30,
-			SplitCellMaxCols     : -31,
-			SplitCellRowsDivider : -32,
-
-			MobileUnexpectedCharCount : -35,
-
-			// Mail Merge
-			MailMergeLoadFile : -40,
-			MailMergeSaveFile : -41,
-
-			// Data Validate
-			DataValidate : -45,
-			MoreOneTypeDataValidate: -46,
-			ContainsCellsWithoutDataValidate: -47,
-
-			// for AutoFilter
-			AutoFilterDataRangeError         : -50,
-			AutoFilterChangeFormatTableError : -51,
-			AutoFilterChangeError            : -52,
-			AutoFilterMoveToHiddenRangeError : -53,
-			LockedAllError                   : -54,
-			LockedWorksheetRename            : -55,
-			FTChangeTableRangeError          : -56,
-			FTRangeIncludedOtherTables       : -57,
-			ChangeFilteredRangeError         : -58,
-
-			CanNotPasteImage: -63,
-			PasteMaxRangeError   : -64,
-			PastInMergeAreaError : -65,
-			CopyMultiselectAreaError : -66,
-			PasteSlicerError: 67,
-			MoveSlicerError: 68,
-			PasteMultiSelectError : -69,
-
-			NoValues         : -70,
-			NoSingleRowCol   : -71,
-			InvalidReference : -72,
-			ErrorInFormula   : -73,
-			CannotMoveRange  : -74,
-			DataRangeError   : -75,
-
-			MaxDataSeriesError : -80,
-			CannotFillRange    : -81,
-
-			ConvertationOpenError      : -82,
-            ConvertationSaveError      : -83,
-			ConvertationOpenLimitError : -84,
-			ConvertationOpenFormat     : -85,
-
-			UserDrop : -100,
-			Warning  : -101,
-			UpdateVersion : -102,
-
-			PrintMaxPagesCount					: -110,
-
-			SessionAbsolute: -120,
-			SessionIdle: -121,
-			SessionToken: -122,
-
-			/* для формул */
-			FrmlMaxReference            : -297,
-			FrmlMaxLength               : -298,
-			FrmlMaxTextLength           : -299,
-			FrmlWrongCountParentheses   : -300,
-			FrmlWrongOperator           : -301,
-			FrmlWrongMaxArgument        : -302,
-			FrmlWrongCountArgument      : -303,
-			FrmlWrongFunctionName       : -304,
-			FrmlAnotherParsingError     : -305,
-			FrmlWrongArgumentRange      : -306,
-			FrmlOperandExpected         : -307,
-			FrmlParenthesesCorrectCount : -308,
-			FrmlWrongReferences         : -309,
-
-			InvalidReferenceOrName : -310,
-			LockCreateDefName      : -311,
-
-			LockedCellPivot				: -312,
-			PivotLabledColumns			: -313,
-			PivotOverlap				: -314,
-			PivotGroup					: -315,
-			PivotWithoutUnderlyingData	: -316,
-
-			ForceSaveButton: -331,
-			ForceSaveTimeout: -332,
-			Submit: -333,
-
-			OpenWarning : 500,
-
-            DataEncrypted : -600,
-
-			CannotChangeFormulaArray: -450,
-			MultiCellsInTablesFormulaArray: -451,
-
-			MailToClientMissing	: -452,
-
-			NoDataToParse : -601,
-
-			CannotCompareInCoEditing : 651,
-
-			CannotUngroupError : -700,
-
-			UplDocumentSize         : -751,
-			UplDocumentExt          : -752,
-			UplDocumentFileCount    : -753,
-
-			CustomSortMoreOneSelectedError: -800,
-			CustomSortNotOriginalSelectError: -801,
-
-			// Data Validate
-			DataValidateNotNumeric: -830,
-			DataValidateNegativeTextLength: -831,
-			DataValidateMustEnterValue: -832,
-			DataValidateMinGreaterMax: 833,
-			DataValidateInvalid: 834,
-			NamedRangeNotFound: 835,
-			FormulaEvaluateError: 836,
-			DataValidateInvalidList: 837,
-
-
-			RemoveDuplicates : -850,
-
-			LargeRangeWarning: -900,
-
-			LockedEditView: -950,
-
-			Password : -1000,
-
-			ComplexFieldEmptyTOC : -1101,
-			ComplexFieldNoTOC    : -1102,
-
-			TextFormWrongFormat : -1201,
-
-			SecondaryAxis: 1001,
-			ComboSeriesError: 1002,
-
-			//conditional formatting
-			NotValidPercentile : 1003,
-			CannotAddConditionalFormatting: 1004,
-			NotValidPercentage: 1005,
-			NotSingleReferenceCannotUsed: 1006,
-			CannotUseRelativeReference: 1007,
-			ValueMustBeGreaterThen: 1008,
-			IconDataRangesOverlap: 1009,
-			ErrorTop10Between: 1010,
-
-			SingleColumnOrRowError: 1020,
-			LocationOrDataRangeError: 1021,
-
-			ChangeOnProtectedSheet: 1030,
-			PasswordIsNotCorrect: 1031,
-			DeleteColumnContainsLockedCell: 1032,
-			DeleteRowContainsLockedCell: 1033,
-			CannotUseCommandProtectedSheet: 1034,
-
-			FillAllRowsWarning: 1040
-		}
-	};
-
 	var c_oAscAsyncAction = {
 		Open               : 0,  // открытие документа
 		Save               : 1,  // сохранение
@@ -750,7 +580,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		ForceSaveTimeout  : 17,
 		Waiting	: 18,
 		Submit : 19,
-		Disconnect :20
+		Disconnect :20,
+		RefreshFile: 21
 	};
 
 	var c_oAscAdvancedOptionsID = {
@@ -770,9 +601,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		OnlyForms      : 0x01,
 		OnlyComments   : 0x02,
 		OnlySignatures : 0x04,
-		View           : 0x80 // Отличие данного ограничения от обычного ViewMode в том, что редактор открывается
-		                      // как полноценный редактор, просто мы запрещаем ЛЮБОЕ редактирование. А во ViewMode
-		                      // открывается именно просмотрщик.
+		View           : 0x80 // the difference between this restriction and the simple ViewMode -
+		                      // the editor opens as a full editor, but we forbid ANY editing
+		                      // in the ViewMode - opens viewer
 	};
 
 	var c_oAscLocalRestrictionType = {
@@ -831,11 +662,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		Accounting : 3,
 		Currency   : 4,
 		Date       : 5,
-		Time       : 6,
-		Percent    : 7,
-		Fraction   : 8,
-		Text       : 9,
-		Custom     : 10
+		LongDate   : 6,
+		Time       : 7,
+		Percent    : 8,
+		Fraction   : 9,
+		Text       : 10,
+		Custom     : 11
 	};
 
 	var c_oAscDrawingLayerType = {
@@ -875,7 +707,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		MailMerge      : 10,
 		ContentControl : 11,
 		Animation      : 12,
-		Text           : 13 // viewer
+		Text           : 13, // viewer
+		Annot          : 14
 	};
 
 	var c_oAscLineDrawingRule = {
@@ -1054,7 +887,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		comboBarLine           : 39,
 		comboBarLineSecondary  : 40,
 		comboAreaBar           : 41,
-		unknown                : 42
+		radar                  : 42,
+		radarMarker            : 43,
+		radarFilled            : 44,
+		unknown                : 45
 	};
 
 	var c_oAscValAxisRule = {
@@ -1247,7 +1083,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 
 	var ST_ChildOrderType = {
 		b: 0,
-		t: 1	
+		t: 1
 	}
 
 	var ST_AlgorithmType = {
@@ -1274,7 +1110,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		equ:  1,
 		gte:  2,
 		lte:  3
-	} 
+	}
 
 	var ST_ElementType = {
 		all:      0,
@@ -1859,7 +1695,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	};
 	/**
 	 * lock types
-	 * @const
+	 * @enum {number}
 	 */
 	var c_oAscLockTypes       = {
 		kLockTypeNone   : 1, // никто не залочил данный объект
@@ -2006,7 +1842,10 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		LockedObject : 2,
 		Footnote     : 3,
 		Form         : 4,
-		Review       : 5
+		Review       : 5,
+		Eyedropper   : 6,
+		Placeholder  : 7,
+		EffectInfo   : 8,
 	};
 
 	// selection type
@@ -2087,7 +1926,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		ChangeDefName: 5,
 		ChangeSheet: 6,
 		DelColumnTable: 7,
-		Prepare: 8
+		Prepare: 8,
+		ChangeExternalLink: 9
 	};
 
 	var c_oNotifyParentType = {
@@ -2111,7 +1951,33 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		sysDash       : 7,
 		sysDashDot    : 8,
 		sysDashDotDot : 9,
-		sysDot        : 10
+		sysDot        : 10,
+		// visio types
+		vsdxTransparent		: 11, // 0 visio value
+		vsdxSolid			: 12,
+		vsdxDash			: 13,
+		vsdxDot				: 14,
+		vsdxDashDot			: 15,
+		vsdxDashDotDot		: 16,
+		vsdxDashDashDot		: 17,
+		vsdxLongDashShortDash   		: 18,
+		vsdxLongDashShortDashShortDash  : 19,
+		vsdxHalfDash  			: 20,
+		vsdxHalfDot				: 21,
+		vsdxHalfDashDot			: 22,
+		vsdxHalfDashDotDot		: 23,
+		vsdxHalfDashDashDot   	: 24,
+		vsdxHalfLongDashShortDash   		 : 25,
+		vsdxHalfLongDashShortDashShortDash   : 26,
+		vsdxDoubleDash   		: 27,
+		vsdxDoubleDot   		: 28,
+		vsdxDoubleDashDot   	: 29,
+		vsdxDoubleDashDotDot   	: 30,
+		vsdxDoubleDashDashDot   : 31,
+		vsdxDoubleLongDashShortDash   			: 32,
+		vsdxDoubleLongDashShortDashShortDash    : 33,
+		vsdxHalfHalfDash   		: 34,
+
 	};
 
 
@@ -2313,12 +2179,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	var c_oAscMaxFormulaReferenceLength = 2048;
 	var c_oAscMaxTableColumnTextLength  = 256;
 
-	var locktype_None   = 1; // никто не залочил данный объект
-	var locktype_Mine   = 2; // данный объект залочен текущим пользователем
-	var locktype_Other  = 3; // данный объект залочен другим(не текущим) пользователем
-	var locktype_Other2 = 4; // данный объект залочен другим(не текущим) пользователем (обновления уже пришли)
-	var locktype_Other3 = 5; // данный объект был залочен (обновления пришли) и снова стал залочен
-
 	var changestype_None                      = 0; // Ничего не происходит с выделенным элементом (проверка идет через дополнительный параметр)
 	var changestype_Paragraph_Content         = 1; // Добавление/удаление элементов в параграф
 	var changestype_Paragraph_Properties      = 2; // Изменение свойств параграфа
@@ -2359,6 +2219,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	var changestype_Timing                    = 78;
 	var changestype_ViewPr                    = 79;
 	var changestype_DocumentProtection        = 80;
+	var changestype_CustomPr                  = 81;
 
 	var changestype_2_InlineObjectMove       = 1; // Передвигаем объект в заданную позцию (проверяем место, в которое пытаемся передвинуть)
 	var changestype_2_HdrFtr                 = 2; // Изменения с колонтитулом
@@ -2609,15 +2470,16 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 
 	var offlineMode = '_offline_';
 	var chartMode = '_chart_';
-	
+	var dataMode = '_data_';
+
 	var c_oSpecialPasteProps = {
 		paste: 0,
 		pasteOnlyFormula: 1,
 		formulaNumberFormat: 2,
 		formulaAllFormatting: 3,
-		formulaWithoutBorders: 4, 
+		formulaWithoutBorders: 4,
 		formulaColumnWidth: 5,
-		mergeConditionalFormating: 6, 
+		mergeConditionalFormating: 6,
 		pasteOnlyValues: 7,
 		valueNumberFormat: 8,
 		valueAllFormating: 9,
@@ -2653,6 +2515,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		subtract: 2,
 		multiply: 3,
 		divide: 4
+	};
+
+	var c_oAbstractNumMultiLvlTypes = {
+		HybridMultiLevel: 0,
+		MultiLevel: 1,
+		SingleLevel: 2
 	};
 
 
@@ -3079,6 +2947,13 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	c_oAscSmartArtSections[c_oAscSmartArtSectionNames.OfficeCom]    = c_oAscSmartArtOfficeComTypes;
 
 
+	var c_oAscJSONNumberingType = {
+		Remove : "remove",
+		Bullet : "bullet",
+		Number : "number",
+		Hybrid : "hybrid"
+	};
+
 	/** @enum {number} */
 	var c_oAscNumberingFormat = {
 		Aiueo                        :  0,
@@ -3145,9 +3020,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		UpperRoman                   : 61,
 		VietnameseCounting           : 62,
 
-		BulletFlag                   : 0x1000,
-		NumberedFlag                 : 0x2000,
-
 		Ea1JpnKor                    : 0x3000,
 		CircleNumWdBlack             : 0x3001,
 		Ea1JpnChsDb                  : 0x3002,
@@ -3157,26 +3029,40 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		CustomGreece                 : 0x4000,
 		CustomDecimalFourZero        : 0x4001,
 		CustomDecimalThreeZero       : 0x4002,
-		CustomDecimalTwoZero         : 0x4003
+		CustomDecimalTwoZero         : 0x4003,
+		CustomUpperTurkish           : 0x4004,
+		CustomLowerTurkish           : 0x4005
 	};
 
 	var c_oAscCustomNumberingFormatAssociation = {
 		'α, β, γ, ...': c_oAscNumberingFormat.CustomGreece,
 		'00001, 00002, 00003, ...': c_oAscNumberingFormat.CustomDecimalFourZero,
 		'0001, 0002, 0003, ...': c_oAscNumberingFormat.CustomDecimalThreeZero,
-		'001, 002, 003, ...': c_oAscNumberingFormat.CustomDecimalTwoZero
+		'001, 002, 003, ...': c_oAscNumberingFormat.CustomDecimalTwoZero,
+		'A, Ç, Ĝ, ...': c_oAscNumberingFormat.CustomUpperTurkish,
+		'a, ç, ĝ, ...': c_oAscNumberingFormat.CustomLowerTurkish
 	};
+
+	var c_oAscAllNumberingTypes = [c_oAscNumberingFormat.Aiueo, c_oAscNumberingFormat.AiueoFullWidth, c_oAscNumberingFormat.ArabicAbjad, c_oAscNumberingFormat.ArabicAlpha, c_oAscNumberingFormat.BahtText, c_oAscNumberingFormat.CardinalText, c_oAscNumberingFormat.Chicago, c_oAscNumberingFormat.ChineseCounting, c_oAscNumberingFormat.ChineseCountingThousand, c_oAscNumberingFormat.ChineseLegalSimplified, c_oAscNumberingFormat.Chosung, c_oAscNumberingFormat.Decimal, c_oAscNumberingFormat.DecimalEnclosedCircle, c_oAscNumberingFormat.DecimalEnclosedCircleChinese, c_oAscNumberingFormat.DecimalEnclosedFullstop, c_oAscNumberingFormat.DecimalEnclosedParen, c_oAscNumberingFormat.DecimalFullWidth, c_oAscNumberingFormat.DecimalFullWidth2, c_oAscNumberingFormat.DecimalHalfWidth, c_oAscNumberingFormat.DecimalZero, c_oAscNumberingFormat.Ganada, c_oAscNumberingFormat.Hebrew1, c_oAscNumberingFormat.Hebrew2, c_oAscNumberingFormat.Hex, c_oAscNumberingFormat.HindiConsonants, c_oAscNumberingFormat.HindiCounting, c_oAscNumberingFormat.HindiNumbers, c_oAscNumberingFormat.HindiVowels, c_oAscNumberingFormat.IdeographDigital, c_oAscNumberingFormat.IdeographEnclosedCircle, c_oAscNumberingFormat.IdeographLegalTraditional, c_oAscNumberingFormat.IdeographTraditional, c_oAscNumberingFormat.IdeographZodiac, c_oAscNumberingFormat.IdeographZodiacTraditional, c_oAscNumberingFormat.Iroha, c_oAscNumberingFormat.IrohaFullWidth, c_oAscNumberingFormat.JapaneseCounting, c_oAscNumberingFormat.JapaneseDigitalTenThousand, c_oAscNumberingFormat.JapaneseLegal, c_oAscNumberingFormat.KoreanCounting, c_oAscNumberingFormat.KoreanDigital, c_oAscNumberingFormat.KoreanDigital2, c_oAscNumberingFormat.KoreanLegal, c_oAscNumberingFormat.LowerLetter, c_oAscNumberingFormat.LowerRoman, c_oAscNumberingFormat.NumberInDash, c_oAscNumberingFormat.Ordinal, c_oAscNumberingFormat.OrdinalText, c_oAscNumberingFormat.RussianLower, c_oAscNumberingFormat.RussianUpper, c_oAscNumberingFormat.TaiwaneseCounting, c_oAscNumberingFormat.TaiwaneseCountingThousand, c_oAscNumberingFormat.TaiwaneseDigital, c_oAscNumberingFormat.ThaiCounting, c_oAscNumberingFormat.ThaiLetters, c_oAscNumberingFormat.ThaiNumbers, c_oAscNumberingFormat.UpperLetter, c_oAscNumberingFormat.UpperRoman, c_oAscNumberingFormat.VietnameseCounting, c_oAscNumberingFormat.CustomGreece, c_oAscNumberingFormat.CustomDecimalFourZero, c_oAscNumberingFormat.CustomDecimalThreeZero, c_oAscNumberingFormat.CustomDecimalTwoZero, c_oAscNumberingFormat.CustomUpperTurkish, c_oAscNumberingFormat.CustomLowerTurkish];
 
 	/** enum {number} */
 	var c_oAscNumberingSuff = {
-		Tab   : 0x01,
-		Space : 0x02,
-		None  : 0x03
+		None  : 0x00,
+		Space : 0x01,
+		Tab   : 0x02
 	};
 
 	var c_oAscNumberingLvlTextType = {
 		Text : 0x00,
 		Num  : 0x01
+	};
+	
+	var c_oAscChapterSep = {
+		Colon : 0,
+		EmDash : 1,
+		EnDash : 2,
+		Hyphen : 3,
+		Period : 4
 	};
 
 	var c_oAscSdtAppearance = {
@@ -3313,7 +3199,56 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		DateTime     : 5,
 
 		TOC          : 10,
-		Complex      : 11
+		Complex      : 11,
+		
+		toString : function(type)
+		{
+			switch (type)
+			{
+				case c_oAscContentControlSpecificType.None:
+					return "text";
+				case c_oAscContentControlSpecificType.CheckBox:
+					return "checkBox";
+				case c_oAscContentControlSpecificType.Picture:
+					return "picture";
+				case c_oAscContentControlSpecificType.ComboBox:
+					return "comboBox";
+				case c_oAscContentControlSpecificType.DropDownList:
+					return "dropDownList";
+				case c_oAscContentControlSpecificType.DateTime:
+					return "dateTime";
+				case c_oAscContentControlSpecificType.TOC:
+					return "toc";
+				case c_oAscContentControlSpecificType.Complex:
+					return "complex";
+			}
+			
+			return "unknown";
+		},
+		
+		fromString : function(value)
+		{
+			switch (value)
+			{
+				case "checkBox":
+				case "radio":
+					return c_oAscContentControlSpecificType.CheckBox;
+				case "picture":
+					return c_oAscContentControlSpecificType.Picture;
+				case "comboBox":
+					return c_oAscContentControlSpecificType.ComboBox;
+				case "dropDownList":
+					return c_oAscContentControlSpecificType.DropDownList;
+				case "dateTime":
+					return c_oAscContentControlSpecificType.DateTime;
+				case "toc":
+					return c_oAscContentControlSpecificType.TOC;
+				case "complex":
+					return c_oAscContentControlSpecificType.Complex;
+			}
+			
+			return c_oAscContentControlSpecificType.None;
+		}
 	};
 
 	var c_oAscDefNameType = {
@@ -3864,12 +3799,779 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 		ConfirmReplaceFormulaInTable: 2,
 		ConfirmChangeProtectRange: 3,
 		ConfirmMaxChangesSize: 4,
-		ConfirmAddCellWatches: 5
+		ConfirmAddCellWatches: 5,
+		ConfirmReplaceHeaderFooterPicture: 6
 	};
+
+
+	const c_oPluginContextMenuTypes = {
+		None: "None",
+		Target: "Target",
+		Selection: "Selection",
+		Image: "Image",
+		Shape: "Shape",
+		OleObject: "OleObject"
+	};
+	
+	// 17.18.21 ST_EdGrp
+	const ST_EdGrp = {
+		administrators : 0,
+		contributors   : 1,
+		current        : 2,
+		editors        : 3,
+		everyone       : 4,
+		none           : 5,
+		owners         : 6
+	};
+	
+	window['Asc']['ST_EdGrp'] = window['Asc'].ST_EdGrp = ST_EdGrp;
+	ST_EdGrp['administrators'] = ST_EdGrp.administrators;
+	ST_EdGrp['contributors']   = ST_EdGrp.contributors;
+	ST_EdGrp['current']        = ST_EdGrp.current;
+	ST_EdGrp['editors']        = ST_EdGrp.editors;
+	ST_EdGrp['everyone']       = ST_EdGrp.everyone;
+	ST_EdGrp['none']           = ST_EdGrp.none;
+
+	// 17.18.13 ST_DisplacedByCustomXml
+	const ST_DisplacedByCustomXml = {
+		next : 0,
+		prev : 1
+	};
+	window['Asc']['ST_DisplacedByCustomXml'] = window['Asc'].ST_DisplacedByCustomXml = ST_DisplacedByCustomXml;
+	ST_DisplacedByCustomXml['next'] = ST_DisplacedByCustomXml.next;
+	ST_DisplacedByCustomXml['prev'] = ST_DisplacedByCustomXml.prev;
+	
+	
+	var c_oAscDateTimeFormat = {};
+	c_oAscDateTimeFormat[lcid_arSA] = [
+		"dd/MM/yyyy",
+		"dddd, dd MMMM, yyyy",
+		"dd MMMM, yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd.MM.yyyy",
+		"dd MMM, yy",
+		"d MMMM yyyy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd/MM/yyyy hh:mm am/pm",
+		"dd/MM/yyyy hh:mm:ss am/pm",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_azLatnAZ] = [
+		"dd.MM.yyyy",
+		"d MMMM yyyy, dddd",
+		"d MMMM yyyy",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd/MM/yyyy",
+		"d MMM. yy",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd.MM.yyyy HH:mm",
+		"dd.MM.yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_bgBG]     = [
+		"d.M.yyyy 'г.'",
+		"dddd, dd MMMM yyyy 'г.'",
+		"dd MMMM yyyy 'г.'",
+		"d.M.yy 'г.'",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/M/yyyy",
+		"dd MMM. yy 'г.'",
+		"d/M/yy",
+		"MMMM yy 'г'",
+		"MMM-yy",
+		"d.M.yyyy 'г.' H:mm",
+		"d.M.yyyy 'г.' H:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_csCZ]     = [
+		"dd.MM.yyyy",
+		"dddd d. MMMM yyyy",
+		"d. MMMM yyyy",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd/MM/yyyy",
+		"d. MMM. yy",
+		"dd/MM/yy",
+		"MMMM ’yy",
+		"MMM-yy",
+		"dd.MM.yyyy H:mm",
+		"dd.MM.yyyy H:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_daDK]     = [
+		"dd-MM-yyyy",
+		"d. MMMM yyyy",
+		"yy-MM-dd",
+		"yyyy.MM.dd",
+		"yyyy-MM-dd",
+		"MMMM yyyy",
+		"d.M.yy",
+		"d/M yyyy",
+		"dd.MM.yyyy",
+		"d.M.yyyy",
+		"dd/MM yyyy",
+		"dd-MM-yyyy HH:mm",
+		"dd-MM-yyyy HH:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_deAT]     = c_oAscDateTimeFormat[lcid_deDE] = [
+		"dd.MM.yyyy",
+		"dddd, d. MMMM yyyy",
+		"d. MMMM yyyy",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"yy-MM-dd",
+		"dd/MM/yyyy",
+		"dd. MMM. yyyy",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd.MM.yyyy HH:mm",
+		"dd.MM.yyyy HH:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_deCH]     = [
+		"dd.MM.yyyy",
+		"dddd, d. MMMM yyyy",
+		"d. MMMM yyyy",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"yy-MM-dd",
+		"dd/MM/yyyy",
+		"dd. MMM. yyyy",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd.MM.yyyy HH:mm",
+		"dd.MM.yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_elGR]     = [
+		"d/M/yyyy",
+		"dddd, d MMMM yyyy",
+		"d MMMM yyyy",
+		"d/M/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d.M.yyyy",
+		"d MMM. yy",
+		"d.M.yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d/M/yyyy h:mm am/pm",
+		"d/M/yyyy h:mm:ss am/pm",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_enAU]     = [
+		"d/MM/yyyy",
+		"dddd, d MMMM yyyy",
+		"d MMMM yyyy",
+		"d/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yyyy",
+		"d.MM.yyyy",
+		"d MMM. yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d/MM/yyyy h:mm AM/PM",
+		"d/MM/yyyy h:mm:ss AM/PM",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_enGB]     = [
+		"dd/MM/yyyy",
+		"dddd, dd MMMM yyyy",
+		"dd MMMM yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd.MM.yyyy",
+		"dd MMM. yy",
+		"d MMMM yyyy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_esES]     = [
+		"dd/MM/yyyy",
+		"dddd, d 'de' MMMM 'de' yyyy",
+		"d 'de' MMMM 'de' yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM.-yy",
+		"dd.MM.yyyy",
+		"d MMM. yy",
+		"dd.MM.yy",
+		"MMMM 'de' yyyy",
+		"MMM.-yy",
+		"dd/MM/yyyy H:mm",
+		"dd/MM/yyyy H:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_esMX]     = [
+		"dd/MM/yyyy",
+		"dddd, d 'de' MMMM 'de' yyyy",
+		"d 'de' MMMM 'de' yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM.-yy",
+		"dd.MM.yyyy",
+		"d MMM. yy",
+		"dd.MM.yy",
+		"MMMM 'de' yyyy",
+		"MMM.-yy",
+		"dd/MM/yyyy hh:mm am/pm",
+		"dd/MM/yyyy hh:mm:ss am/pm",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_fiFI]     = [
+		"d.M.yyyy",
+		"dddd d. MMMM yyyy",
+		"d. MMMM yyyy",
+		"d.M.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/M/yyyy",
+		"d. MMM. yy",
+		"d/M/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d.M.yyyy H.mm",
+		"d.M.yyyy H.mm.ss",
+		"h.mm am/pm",
+		"h.mm.ss am/pm",
+		"HH.mm",
+		"HH.mm.ss"
+	];
+	c_oAscDateTimeFormat[lcid_frCH]     = [
+		"dd/MM/yyyy",
+		"dddd, d MMMM yyyy",
+		"d MMMM yyyy",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM.-yy",
+		"dd/MM/yyyy",
+		"d MMM. yy",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM.-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_frFR]     = [
+		"dd/MM/yyyy",
+		"dddd d MMMM yyyy",
+		"d MMMM yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM.-yy",
+		"dd.MM.yyyy",
+		"d MMM. yy",
+		"dd.MM.yy",
+		"MMMM yy",
+		"MMM.-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_enID]     = c_oAscDateTimeFormat[lcid_idID] = [
+		"dd/MM/yyyy",
+		"dddd, dd MMMM yyyy",
+		"dd MMMM yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd.MM.yyyy",
+		"dd MMM. yy",
+		"dd.MM.yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_itIT]     = c_oAscDateTimeFormat[lcid_itCH] = [
+		"dd/MM/yyyy",
+		"dddd d MMMM yyyy",
+		"d MMMM yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MM.-yy",
+		"dd.MM.yyyy",
+		"d MMM. yy",
+		"MMM. ’yy",
+		"MMMM ’yy",
+		"MMM-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_jaJP]     = [
+		"yyyy/MM/dd",
+		"yyyy年M月d日",
+		"yyyy年M月d日(JDDD)",
+		"yyyy年M月",
+		"JYYYY年JM月JD日(JDDD)",
+		"yyyy/M/d",
+		"yy/M/d H時m分",
+		"yy/M/d H時m分s秒",
+		"AM/PMh時m分",
+		"AM/PMh時m分s秒",
+		"H時m分",
+		"H時m分s秒",
+		"yyyy-MM-dd"
+	];
+	c_oAscDateTimeFormat[lcid_koKR]     = [
+		"yyyy-MM-dd",
+		"yyyy년 M월 d일 dddd",
+		"yyyy년 M월 d일",
+		"yyyy/M/d",
+		"yyMMdd",
+		"yyyy년 M월",
+		"yyyy년 M월 d일 AM/PM h시 m분",
+		"y년 m월 d일 H시 m분 s초",
+		"AM/PM h시 m분",
+		"AM/PM h시 m분 s초",
+		"H시 m분",
+		"H시 m분 s초"
+	];
+	c_oAscDateTimeFormat[lcid_lvLV]     = [
+		"dd.MM.yyyy",
+		"dddd, yyyy. 'gada' d. MMMM",
+		"yyyy. 'gada' d. MMMM",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM.-yy",
+		"dd/MM/yyyy",
+		"yy. 'gada' d. MMM.",
+		"dd/MM/yy",
+		"yy MMMM",
+		"MMM.-yy",
+		"dd.MM.yyyy HH:mm",
+		"dd.MM.yyyy HH:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_huHU]     = [
+		"yyyy. MM. dd.",
+		"yyyy. MMMM d., dddd",
+		"yyyy. MMMM d.",
+		"yy. MM. dd.",
+		"yyyy-MM-dd",
+		"yy-MMM.-d",
+		"yyyy/MM/dd",
+		"yy. MMM. d.",
+		"’yy MMM.",
+		"’yy MMMM",
+		"MMM.-yy",
+		"yyyy. MM. dd. H:mm",
+		"yyyy. MM. dd. H:mm:ss",
+		"am/pm h:mm",
+		"am/pm h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_nlNL]     = [
+		"d-M-yyyy",
+		"dddd d MMMM yyyy",
+		"d MMMM yyyy",
+		"d-M-yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/M/yyyy",
+		"d MMM. yy",
+		"d/M/yy",
+		"MMMM ’yy",
+		"MMM-yy",
+		"d-M-yyyy HH:mm",
+		"d-M-yyyy HH:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_plPL]     = [
+		"dd.MM.yyyy",
+		"dddd, d MMMM yyyy",
+		"d MMMM yyyy",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd/MM/yyyy",
+		"dd MMM yy",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd.MM.yyyy HH:mm",
+		"dd.MM.yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_ptBR]     = [
+		"dd/MM/yyyy",
+		"dddd, d 'de' MMMM 'de' yyyy",
+		"d 'de' MMMM 'de' yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd.MM.yyyy",
+		"d MMM. yy",
+		"dd.MM.yy",
+		"MMMM 'de' yy",
+		"MMM-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_ptPT]     = [
+		"dd/MM/yyyy",
+		"dddd, d 'de' MMMM 'de' yyyy",
+		"d 'de' MMMM 'de' yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd.MM.yyyy",
+		"d MMM. yy",
+		"dd.MM.yy",
+		"MMMM 'de' yy",
+		"MMM-yy",
+		"dd/MM/yyyy HH:mm",
+		"dd/MM/yyyy HH:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_ruRU]     = [
+		"dd.MM.yyyy",
+		"dddd, d MMMM yyyy 'г.'",
+		"d MMMM yyyy 'г.'",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd/MM/yyyy",
+		"d MMM. yy 'г.'",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd.MM.yyyy H:mm",
+		"dd.MM.yyyy H:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_srCyrlRS]     = [
+		"dd.MM.yyyy.",
+		"dddd, d. MMMM yyyy.",
+		"d. MMMM yyyy.",
+		"dd.MM.yy.",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd/MM/yyyy",
+		"d. MMM. yy.",
+		"dd/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd.MM.yyyy. H:mm",
+		"dd.MM.yyyy. H:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_srLatnRS]     = [
+		"d.M.yyyy.",
+		"dddd, dd. MMMM yyyy.",
+		"dd. MMMM yyyy.",
+		"d.M.yy.",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/M/yyyy",
+		"dd. MMM. yy.",
+		"d/M/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d.M.yyyy. HH:mm",
+		"d.M.yyyy. HH:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_skSK]     = [
+		"d. M. yyyy",
+		"dddd d. MMMM yyyy",
+		"d. MMMM yyyy",
+		"d. M. yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/M/yyyy",
+		"d. MMM. yy",
+		"d/M/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d. M. yyyy H:mm",
+		"d. M. yyyy H:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_slSI]     = [
+		"d. MM. yyyy",
+		"dddd, dd. MMMM yyyy",
+		"dd. MMMM yyyy",
+		"d. MM. yy",
+		"yyyy-MM-dd",
+		"d-MMM.-yy",
+		"d/MM/yyyy",
+		"dd. MMM. yy",
+		"d/MM/yy",
+		"MMMM yy",
+		"MMM.-yy",
+		"d. MM. yyyy HH:mm",
+		"d. MM. yyyy HH:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_srLatnCS]     = [
+		"d.MM.yyyy.",
+		"dddd, dd. MMMM yyyy.",
+		"dd. MMMM yyyy.",
+		"d.MM.yyyy.",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/MM/yyyy",
+		"dd. MMM. yy.",
+		"d/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d.MM.yyyy. HH:mm",
+		"d.MM.yyyy. HH:mm:ss",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_svFI]     = [
+		"yyyy-MM-dd",
+		"dddd 'den' d MMMM yyyy",
+		"d MMMM yyyy",
+		"yy-MM-dd",
+		"yyMMdd",
+		"d MMM. yy",
+		"d/M yyyy",
+		"d MMM. -yy",
+		"M/d/yy",
+		"MMMM yyyy",
+		"'den' d MMMM yyyy",
+		"yyyy-MM-dd HH:mm",
+		"yy-MM-dd hh:mm",
+		"h.mm am/pm",
+		"h.mm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_svSE]     = [
+		"yyyy-MM-dd",
+		"dddd 'den' d MMMM yyyy",
+		"d MMMM yyyy",
+		"yy-MM-dd",
+		"yyMMdd",
+		"d MMM yy",
+		"d/M yyyy",
+		"d MMM -yy",
+		"M/d/yy",
+		"MMMM yyyy",
+		"'den' d MMMM yyyy",
+		"yyyy-MM-dd HH:mm",
+		"yy-MM-dd hh:mm",
+		"h.mm am/pm",
+		"h.mm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_sqAL]     = [
+		"d.M.yyyy",
+		"dddd, d MMMM yyyy",
+		"d MMMM yyyy",
+		"d.M.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/M/yyyy",
+		"d MMM. yy",
+		"d/M/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d.M.yyyy h:mm am/pm",
+		"d.M.yyyy h:mm:ss am/pm",
+		"h:mm am/pm",
+		"h:mm:ss am/pm",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_trTR]     = [
+		"d.MM.yyyy",
+		"d MMMM yyyy dddd",
+		"d MMMM yyyy",
+		"d.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d/MM/yyyy",
+		"d MMM. yy",
+		"d/MM/yy",
+		"MMMM yy",
+		"MMM-yy",
+		"d.MM.yyyy HH:mm",
+		"d.MM.yyyy HH:mm:ss",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_ukUA]     = [
+		"dd.MM.yyyy",
+		"dddd, d MMMM yyyy 'р.'",
+		"d MMMM yyyy 'р.'",
+		"dd.MM.yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"dd/MM/yyyy",
+		"d MMM. yy 'р.'",
+		"dd/MM/yy",
+		"MMMM yy 'р'",
+		"MMM-yy",
+		"dd.MM.yyyy H:mm",
+		"dd.MM.yyyy H:mm:ss",
+		"h:mm",
+		"h:mm:ss",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_viVN]     = [
+		"dd/MM/yyyy",
+		"dddd, dd MMMM yyyy",
+		"dd MMMM yyyy",
+		"dd/MM/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"d-MMMM-yy",
+		"dd MMM. yy",
+		"dd.MM.yy",
+		"MMMM yy",
+		"MMM-yy",
+		"dd/MM/yyyy h:mm AM/PM",
+		"dd/MM/yyyy h:mm:ss AM/PM",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+	c_oAscDateTimeFormat[lcid_zhCN]     = c_oAscDateTimeFormat[lcid_zhTW] = [
+		"yyyy/M/d",
+		"yyyy'年'M'月'd'日'",
+		"yyyy年M月d日星期W",
+		"yy.M.d",
+		"yyyy年M月",
+		"h时m分s秒",
+		"h时m分",
+		"AM/PMh时m分",
+		"YYYY年M月d日",
+		"YYYY年M月d日星期W",
+		"YYYY年M月"
+	];
+	c_oAscDateTimeFormat[lcid_enUS]     = [
+		"M/d/yyyy",
+		"dddd, MMMM d, yyyy",
+		"MMMM d, yyyy",
+		"M/d/yy",
+		"yyyy-MM-dd",
+		"d-MMM-yy",
+		"M.d.yyyy",
+		"MMM. d, yy",
+		"d MMMM yyyy",
+		"MMMM yy",
+		"MMM-yy",
+		"M/d/yyyy h:mm AM/PM",
+		"M/d/yyyy h:mm:ss AM/PM",
+		"h:mm AM/PM",
+		"h:mm:ss AM/PM",
+		"HH:mm",
+		"HH:mm:ss"
+	];
+
 
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
-	window['Asc']                          = window['Asc'] || {};
 	window['Asc']['FONT_THUMBNAIL_HEIGHT'] = FONT_THUMBNAIL_HEIGHT;
 	window['Asc']['c_oAscMaxColumnWidth']  = window['Asc'].c_oAscMaxColumnWidth = c_oAscMaxColumnWidth;
 	window['Asc']['c_oAscMaxRowHeight'] = window['Asc'].c_oAscMaxRowHeight = c_oAscMaxRowHeight;
@@ -3880,6 +4582,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window['Asc']['c_dMaxParaRunContentLength'] = window['Asc'].c_dMaxParaRunContentLength = c_dMaxParaRunContentLength;
 	window['Asc']['c_nMaxHyperlinkLength'] = window['Asc'].c_nMaxHyperlinkLength = c_nMaxHyperlinkLength;
 	window['Asc']['c_sNativeViewerFormats'] = window['Asc'].c_sNativeViewerFormats = c_sNativeViewerFormats;
+	window['Asc']['c_sShardKeyName'] = window['Asc'].c_sShardKeyName = c_sShardKeyName;
+	window['Asc']['c_sWopiSrcName'] = window['Asc'].c_sWopiSrcName = c_sWopiSrcName;
+	window['Asc']['c_sUserSessionIdName'] = window['Asc'].c_sUserSessionIdName = c_sUserSessionIdName;
 	window['Asc']['c_oAscFileType'] = window['Asc'].c_oAscFileType = c_oAscFileType;
 	window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
 	window['Asc'].availableIdeographLanguages = availableIdeographLanguages;
@@ -3927,6 +4632,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['XLSX_FLAT']            = prot.XLSX_FLAT;
 	prot['XLSX_PACKAGE']         = prot.XLSX_PACKAGE;
 	prot['XLSY']                 = prot.XLSY;
+	prot['CANVAS_SPREADSHEET']   = prot.CANVAS_SPREADSHEET;
 	prot['PPTX']                 = prot.PPTX;
 	prot['PPT']                  = prot.PPT;
 	prot['ODP']                  = prot.ODP;
@@ -3938,6 +4644,13 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['FODP']                 = prot.FODP;
 	prot['OTP']                  = prot.OTP;
 	prot['PPTX_PACKAGE']         = prot.PPTX_PACKAGE;
+	prot['CANVAS_PRESENTATION']  = prot.CANVAS_PRESENTATION;
+
+	prot['VSDX']        		 = prot.VSDX;
+	prot['VSSX']        		 = prot.VSSX;
+	prot['VSTX']        		 = prot.VSTX;
+	prot['VSDM']        		 = prot.VSDM;
+	prot['VSTM']        		 = prot.VSTM;
 
 	prot['JPG']                  = prot.JPG;
 	prot['TIFF']                 = prot.TIFF;
@@ -3959,155 +4672,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['BlockLine'] = prot.BlockLine;
 	prot['PlainLine'] = prot.PlainLine;
 	prot['PlainParagraph'] = prot.PlainParagraph;
-
-	window['Asc']['c_oAscError'] = window['Asc'].c_oAscError = c_oAscError;
-	prot                                     = c_oAscError;
-	prot['Level']                            = prot.Level;
-	prot['ID']                               = prot.ID;
-	prot                                     = c_oAscError.Level;
-	prot['Critical']                         = prot.Critical;
-	prot['NoCritical']                       = prot.NoCritical;
-	prot                                     = c_oAscError.ID;
-	prot['ServerSaveComplete']               = prot.ServerSaveComplete;
-	prot['ConvertationProgress']             = prot.ConvertationProgress;
-	prot['DownloadProgress']                 = prot.DownloadProgress;
-	prot['No']                               = prot.No;
-	prot['Unknown']                          = prot.Unknown;
-	prot['ConvertationTimeout']              = prot.ConvertationTimeout;
-	prot['DownloadError']                    = prot.DownloadError;
-	prot['UnexpectedGuid']                   = prot.UnexpectedGuid;
-	prot['Database']                         = prot.Database;
-	prot['FileRequest']                      = prot.FileRequest;
-	prot['FileVKey']                         = prot.FileVKey;
-	prot['UplImageSize']                     = prot.UplImageSize;
-	prot['UplImageExt']                      = prot.UplImageExt;
-	prot['UplImageFileCount']                = prot.UplImageFileCount;
-	prot['NoSupportClipdoard']               = prot.NoSupportClipdoard;
-	prot['UplImageUrl']                      = prot.UplImageUrl;
-	prot['DirectUrl']                        = prot.DirectUrl;
-	prot['MaxDataPointsError']               = prot.MaxDataPointsError;
-	prot['StockChartError']                  = prot.StockChartError;
-	prot['CoAuthoringDisconnect']            = prot.CoAuthoringDisconnect;
-	prot['ConvertationPassword']             = prot.ConvertationPassword;
-	prot['VKeyEncrypt']                      = prot.VKeyEncrypt;
-	prot['KeyExpire']                        = prot.KeyExpire;
-	prot['UserCountExceed']                  = prot.UserCountExceed;
-	prot['AccessDeny']                       = prot.AccessDeny;
-	prot['LoadingScriptError']               = prot.LoadingScriptError;
-	prot['EditingError']                     = prot.EditingError;
-	prot['LoadingFontError']                 = prot.LoadingFontError;
-	prot['SplitCellMaxRows']                 = prot.SplitCellMaxRows;
-	prot['SplitCellMaxCols']                 = prot.SplitCellMaxCols;
-	prot['SplitCellRowsDivider']             = prot.SplitCellRowsDivider;
-	prot['MobileUnexpectedCharCount']        = prot.MobileUnexpectedCharCount;
-	prot['MailMergeLoadFile']                = prot.MailMergeLoadFile;
-	prot['MailMergeSaveFile']                = prot.MailMergeSaveFile;
-	prot['DataValidate']                     = prot.DataValidate;
-	prot['MoreOneTypeDataValidate']          = prot.MoreOneTypeDataValidate;
-	prot['ContainsCellsWithoutDataValidate'] = prot.ContainsCellsWithoutDataValidate;
-	prot['AutoFilterDataRangeError']         = prot.AutoFilterDataRangeError;
-	prot['AutoFilterChangeFormatTableError'] = prot.AutoFilterChangeFormatTableError;
-	prot['AutoFilterChangeError']            = prot.AutoFilterChangeError;
-	prot['AutoFilterMoveToHiddenRangeError'] = prot.AutoFilterMoveToHiddenRangeError;
-	prot['LockedAllError']                   = prot.LockedAllError;
-	prot['LockedWorksheetRename']            = prot.LockedWorksheetRename;
-	prot['FTChangeTableRangeError']          = prot.FTChangeTableRangeError;
-	prot['FTRangeIncludedOtherTables']       = prot.FTRangeIncludedOtherTables;
-	prot['ChangeFilteredRangeError']         = prot.ChangeFilteredRangeError;
-	prot['PasteMaxRangeError']               = prot.PasteMaxRangeError;
-	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
-	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
-	prot['PasteSlicerError']                 = prot.PasteSlicerError;
-	prot['MoveSlicerError']                  = prot.MoveSlicerError;
-	prot['PasteMultiSelectError']            = prot.PasteMultiSelectError;
-	prot['CanNotPasteImage']                 = prot.CanNotPasteImage;
-	prot['DataRangeError']                   = prot.DataRangeError;
-	prot['CannotMoveRange']                  = prot.CannotMoveRange;
-	prot['MaxDataSeriesError']               = prot.MaxDataSeriesError;
-	prot['CannotFillRange']                  = prot.CannotFillRange;
-	prot['ConvertationOpenError']            = prot.ConvertationOpenError;
-	prot['ConvertationSaveError']            = prot.ConvertationSaveError;
-	prot['ConvertationOpenLimitError']       = prot.ConvertationOpenLimitError;
-	prot['ConvertationOpenFormat']       	 = prot.ConvertationOpenFormat;
-	prot['UserDrop']                         = prot.UserDrop;
-	prot['Warning']                          = prot.Warning;
-	prot['UpdateVersion']                    = prot.UpdateVersion;
-	prot['PrintMaxPagesCount']               = prot.PrintMaxPagesCount;
-	prot['SessionAbsolute']                  = prot.SessionAbsolute;
-	prot['SessionIdle']                      = prot.SessionIdle;
-	prot['SessionToken']                     = prot.SessionToken;
-	prot['FrmlMaxTextLength']                = prot.FrmlMaxTextLength;
-	prot['FrmlMaxLength']                    = prot.FrmlMaxLength;
-	prot['FrmlMaxReference']                 = prot.FrmlMaxReference;
-	prot['FrmlWrongCountParentheses']        = prot.FrmlWrongCountParentheses;
-	prot['FrmlWrongOperator']                = prot.FrmlWrongOperator;
-	prot['FrmlWrongMaxArgument']             = prot.FrmlWrongMaxArgument;
-	prot['FrmlWrongCountArgument']           = prot.FrmlWrongCountArgument;
-	prot['FrmlWrongFunctionName']            = prot.FrmlWrongFunctionName;
-	prot['FrmlAnotherParsingError']          = prot.FrmlAnotherParsingError;
-	prot['FrmlWrongArgumentRange']           = prot.FrmlWrongArgumentRange;
-	prot['FrmlOperandExpected']              = prot.FrmlOperandExpected;
-	prot['FrmlParenthesesCorrectCount']      = prot.FrmlParenthesesCorrectCount;
-	prot['FrmlWrongReferences']              = prot.FrmlWrongReferences;
-	prot['InvalidReferenceOrName']           = prot.InvalidReferenceOrName;
-	prot['LockCreateDefName']                = prot.LockCreateDefName;
-	prot['LockedCellPivot']                  = prot.LockedCellPivot;
-	prot['PivotLabledColumns']               = prot.PivotLabledColumns;
-	prot['PivotOverlap']                     = prot.PivotOverlap;
-	prot['PivotGroup']                       = prot.PivotGroup;
-	prot['PivotWithoutUnderlyingData']       = prot.PivotWithoutUnderlyingData;
-	prot['ForceSaveButton']                  = prot.ForceSaveButton;
-	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
-	prot['Submit']                           = prot.Submit;
-	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
-	prot['MultiCellsInTablesFormulaArray']   = prot.MultiCellsInTablesFormulaArray;
-	prot['MailToClientMissing']				 = prot.MailToClientMissing;
-	prot['OpenWarning']                      = prot.OpenWarning;
-	prot['DataEncrypted']                    = prot.DataEncrypted;
-	prot['NoDataToParse']                    = prot.NoDataToParse;
-	prot['CannotCompareInCoEditing']         = prot.CannotCompareInCoEditing;
-	prot['CannotUngroupError']               = prot.CannotUngroupError;
-	prot['UplDocumentSize']                  = prot.UplDocumentSize;
-	prot['UplDocumentExt']                   = prot.UplDocumentExt;
-	prot['UplDocumentFileCount']             = prot.UplDocumentFileCount;
-	prot['CustomSortMoreOneSelectedError']   = prot.CustomSortMoreOneSelectedError;
-	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
-	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
-	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
-	prot['LockedEditView']                   = prot.LockedEditView;
-	prot['Password']                         = prot.Password;
-	prot['ComplexFieldEmptyTOC']             = prot.ComplexFieldEmptyTOC;
-	prot['ComplexFieldNoTOC']                = prot.ComplexFieldNoTOC;
-	prot['TextFormWrongFormat']              = prot.TextFormWrongFormat;
-	prot['SecondaryAxis']                    = prot.SecondaryAxis;
-	prot['ComboSeriesError']                 = prot.ComboSeriesError;
-
-	prot['DataValidateNotNumeric']           = prot.DataValidateNotNumeric;
-	prot['DataValidateNegativeTextLength']   = prot.DataValidateNegativeTextLength;
-	prot['DataValidateMustEnterValue']       = prot.DataValidateMustEnterValue;
-	prot['DataValidateMinGreaterMax']        = prot.DataValidateMinGreaterMax;
-	prot['DataValidateInvalid']              = prot.DataValidateInvalid;
-	prot['NamedRangeNotFound']               = prot.NamedRangeNotFound;
-	prot['FormulaEvaluateError']             = prot.FormulaEvaluateError;
-	prot['DataValidateInvalidList']          = prot.DataValidateInvalidList;
-
-	prot['NotValidPercentile']               = prot.NotValidPercentile;
-	prot['CannotAddConditionalFormatting']   = prot.CannotAddConditionalFormatting;
-	prot['NotValidPercentage']               = prot.NotValidPercentage;
-	prot['NotSingleReferenceCannotUsed']     = prot.NotSingleReferenceCannotUsed;
-	prot['CannotUseRelativeReference']       = prot.CannotUseRelativeReference;
-	prot['ValueMustBeGreaterThen']           = prot.ValueMustBeGreaterThen;
-	prot['IconDataRangesOverlap']            = prot.IconDataRangesOverlap;
-	prot['ErrorTop10Between']                = prot.ErrorTop10Between;
-	prot['SingleColumnOrRowError']           = prot.SingleColumnOrRowError;
-	prot['LocationOrDataRangeError']         = prot.LocationOrDataRangeError;
-	prot['ChangeOnProtectedSheet']           = prot.ChangeOnProtectedSheet;
-	prot['PasswordIsNotCorrect']             = prot.PasswordIsNotCorrect;
-	prot['DeleteColumnContainsLockedCell']   = prot.DeleteColumnContainsLockedCell;
-	prot['DeleteRowContainsLockedCell']      = prot.DeleteRowContainsLockedCell;
-	prot['FillAllRowsWarning']               = prot.FillAllRowsWarning;
-	prot['CannotUseCommandProtectedSheet']   = prot.CannotUseCommandProtectedSheet;
-
 
 
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
@@ -4132,6 +4696,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Waiting']                          = prot.Waiting;
 	prot['Submit']                           = prot.Submit;
 	prot['Disconnect']                       = prot.Disconnect;
+	prot['RefreshFile']                      = prot.RefreshFile;
 	window['Asc']['c_oAscAdvancedOptionsID'] = window['Asc'].c_oAscAdvancedOptionsID = c_oAscAdvancedOptionsID;
 	prot                                         = c_oAscAdvancedOptionsID;
 	prot['CSV']                                  = prot.CSV;
@@ -4182,6 +4747,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['ContentControl']            = prot.ContentControl;
 	prot['Animation']                 = prot.Animation;
 	prot['Text']                      = prot.Text;
+	prot['Annot']                     = prot.Annot;
 	window['Asc']['linerule_AtLeast'] = window['Asc'].linerule_AtLeast = linerule_AtLeast;
 	window['Asc']['linerule_Auto'] = window['Asc'].linerule_Auto = linerule_Auto;
 	window['Asc']['linerule_Exact'] = window['Asc'].linerule_Exact = linerule_Exact;
@@ -4321,6 +4887,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['comboBarLine']               = prot.comboBarLine;
 	prot['comboBarLineSecondary']      = prot.comboBarLineSecondary;
 	prot['comboAreaBar']               = prot.comboAreaBar;
+	prot['radar']                      = prot.radar;
+	prot['radarMarker']                = prot.radarMarker;
+	prot['radarFilled']                = prot.radarFilled;
 	prot['unknown']                    = prot.unknown;
 
 	window['Asc']['c_oAscValAxisRule'] = window['Asc'].c_oAscValAxisRule = c_oAscValAxisRule;
@@ -4529,6 +5098,9 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Footnote']     = prot.Footnote;
 	prot['Form']         = prot.Form;
 	prot['Review']       = prot.Review;
+	prot['Eyedropper']   = prot.Eyedropper;
+	prot['Placeholder']   = prot.Placeholder;
+	prot['EffectInfo']   = prot.EffectInfo;
 
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
@@ -4753,11 +5325,6 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot["Email"] = prot.Email;
 	prot["Unsafe"] = prot.Unsafe;
 
-	window["AscCommon"].locktype_None   = locktype_None;
-	window["AscCommon"].locktype_Mine   = locktype_Mine;
-	window["AscCommon"].locktype_Other  = locktype_Other;
-	window["AscCommon"].locktype_Other2 = locktype_Other2;
-	window["AscCommon"].locktype_Other3 = locktype_Other3;
 
 	window["AscCommon"].changestype_None                      = changestype_None;
 	window["AscCommon"].changestype_Paragraph_Content         = changestype_Paragraph_Content;
@@ -4797,6 +5364,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	window["AscCommon"].changestype_Timing                    = changestype_Timing;
 	window["AscCommon"].changestype_ViewPr                    = changestype_ViewPr;
 	window["AscCommon"].changestype_DocumentProtection        = changestype_DocumentProtection;
+	window["AscCommon"].changestype_CustomPr                  = changestype_CustomPr;
 
 	window["AscCommon"].changestype_2_InlineObjectMove        = changestype_2_InlineObjectMove;
 	window["AscCommon"].changestype_2_HdrFtr                  = changestype_2_HdrFtr;
@@ -4818,6 +5386,7 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 
 	window["AscCommon"].offlineMode = offlineMode;
 	window["AscCommon"].chartMode = chartMode;
+	window["AscCommon"].dataMode = dataMode;
 
 	window['AscCommon']['align_Right'] = window['AscCommon'].align_Right = align_Right;
 	window['AscCommon']['align_Left'] = window['AscCommon'].align_Left = align_Left;
@@ -4869,6 +5438,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['subtract'] = prot.subtract;
 	prot['multiply'] = prot.multiply;
 	prot['divide'] = prot.divide;
+
+	window['Asc']['c_oAbstractNumMultiLvlTypes'] = window['Asc'].c_oAbstractNumMultiLvlTypes = c_oAbstractNumMultiLvlTypes;
+	prot = c_oAbstractNumMultiLvlTypes;
+	prot['HybridMultiLevel'] = prot.HybridMultiLevel;
+	prot['MultiLevel']       = prot.MultiLevel;
+	prot['SingleLevel']      = prot.SingleLevel;
 
 	window['Asc']['c_oAscSmartArtTypes'] = window['Asc'].c_oAscSmartArtTypes = c_oAscSmartArtTypes;
 	prot = c_oAscSmartArtTypes;
@@ -5036,7 +5611,12 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['Picture']      = prot.Picture;
 	prot['OfficeCom']    = prot.OfficeCom;
 
-
+	window['Asc']['c_oAscJSONNumberingType'] = window['Asc'].c_oAscJSONNumberingType = c_oAscJSONNumberingType;
+	prot = c_oAscJSONNumberingType;
+	prot["Remove"] = prot.Remove;
+	prot["Bullet"] = prot.Bullet;
+	prot["Number"] = prot.Number;
+	prot["Hybrid"] = prot.Hybrid;
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
@@ -5104,6 +5684,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['UpperRoman']                   = prot.UpperRoman;
 	prot['VietnameseCounting']           = prot.VietnameseCounting;
 
+	window['Asc']['c_oAscAllNumberingTypes'] = window['Asc'].c_oAscAllNumberingTypes = c_oAscAllNumberingTypes;
+
 	// new presentation types
 	prot['Ea1JpnKor']                    = prot.Ea1JpnKor;
 	prot['CircleNumWdBlack']             = prot.CircleNumWdBlack;
@@ -5116,6 +5698,8 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['CustomDecimalFourZero']        = prot.CustomDecimalFourZero;
 	prot['CustomDecimalThreeZero']       = prot.CustomDecimalThreeZero;
 	prot['CustomDecimalTwoZero']         = prot.CustomDecimalTwoZero;
+	prot['CustomUpperTurkish']           = prot.CustomUpperTurkish;
+	prot['CustomLowerTurkish']           = prot.CustomLowerTurkish;
 
 	window['Asc']['c_oAscCustomNumberingFormatAssociation'] = window['Asc'].c_oAscCustomNumberingFormatAssociation = c_oAscCustomNumberingFormatAssociation;
 
@@ -5129,6 +5713,14 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot = c_oAscNumberingLvlTextType;
 	prot['Text'] = c_oAscNumberingLvlTextType.Text;
 	prot['Num']  = c_oAscNumberingLvlTextType.Num;
+	
+	window['Asc']['c_oAscChapterSep'] = window['Asc'].c_oAscChapterSep = c_oAscChapterSep;
+	prot = c_oAscChapterSep;
+	prot['Colon'] = c_oAscChapterSep.Colon;
+	prot['EmDash']  = c_oAscChapterSep.EmDash;
+	prot['EnDash']  = c_oAscChapterSep.EnDash;
+	prot['Hyphen']  = c_oAscChapterSep.Hyphen;
+	prot['Period']  = c_oAscChapterSep.Period;
 
 	prot = window['Asc']['c_oAscSdtAppearance'] = window['Asc'].c_oAscSdtAppearance = c_oAscSdtAppearance;
 	prot['Frame']  = c_oAscSdtAppearance.Frame;
@@ -5412,7 +6004,20 @@ var lcid_haLatn = 0x7c68; // Hausa, Latin
 	prot['ConfirmChangeProtectRange'] = prot.ConfirmChangeProtectRange;
 	prot['ConfirmMaxChangesSize'] = prot.ConfirmMaxChangesSize;
 	prot['ConfirmAddCellWatches'] = prot.ConfirmAddCellWatches;
+	prot['ConfirmReplaceHeaderFooterPicture'] = prot.ConfirmReplaceHeaderFooterPicture;
 
-	window['Asc'].c_oAscSmartArtSections = c_oAscSmartArtSections;
+	window['Asc']['c_oAscSmartArtSections'] = window['Asc'].c_oAscSmartArtSections = c_oAscSmartArtSections;
+
+
+
+	prot = window['Asc']['c_oPluginContextMenuTypes'] = window['Asc'].c_oPluginContextMenuTypes = c_oPluginContextMenuTypes;
+	prot['None'] = prot.None;
+	prot['Target'] = prot.Target;
+	prot['Selection'] = prot.Selection;
+	prot['Image'] = prot.Image;
+	prot['Shape'] = prot.Shape;
+	prot['OleObject'] = prot.OleObject;
+
+	window['Asc']['c_oAscDateTimeFormat'] = window['Asc'].c_oAscDateTimeFormat = c_oAscDateTimeFormat;
 
 })(window);

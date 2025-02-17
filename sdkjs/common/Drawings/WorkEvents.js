@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,23 +64,37 @@
 			e.stopPropagation();
 	};
 
-	// для мозиллы пока отключаем, так как браузер не распознает это как "юзерское действие". (window.open, input[file].click)
-	var isUsePointerEvents = (AscBrowser.isChrome && (AscBrowser.chromeVersion > 70)/* || AscBrowser.isMozilla*/) ? true : false;
+	var isUsePointerEvents = true;
+	if (AscBrowser.isChrome && (AscBrowser.chromeVersion <= 70)) // xp
+		isUsePointerEvents = false;
+	else if (AscBrowser.isSafari && (AscBrowser.safariVersion < 15000000))
+		isUsePointerEvents = false;
+	else if (AscBrowser.isIE)
+		isUsePointerEvents = false;
+
+	AscCommon.getPtrEvtName = function (sType)
+	{
+		return (isUsePointerEvents ? "pointer" : "mouse") + sType;
+	};
+	AscCommon.getPtrEvtType = function (sType)
+	{
+		return "on" + AscCommon.getPtrEvtName(sType);
+	};
 
 	AscCommon.addMouseEvent = function(elem, type, handler)
 	{
-		var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
+		var _type = AscCommon.getPtrEvtType(type);
 		elem[_type] = handler;
 	};
     AscCommon.removeMouseEvent = function(elem, type)
     {
-        var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
+        var _type = AscCommon.getPtrEvtType(type);
         if (elem[_type])
         	delete elem[_type];
     };
 	AscCommon.getMouseEvent = function(elem, type)
 	{
-		var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
+		var _type = AscCommon.getPtrEvtType(type);
 		return elem[_type];
 	};
 
@@ -90,6 +104,7 @@
 		this.Y = 0;                            // позиция курсора Y
 
 		this.Button = g_mouse_button_left;          // кнопка мыши
+		this.ButtonOverride = -1;
 		this.Type   = g_mouse_event_type_move;      // тип евента
 
 		this.AltKey   = false;                        // нажата ли кнопка alt
@@ -319,6 +334,8 @@
 
 	function getMouseButton(e)
 	{
+		if (-1 !== global_mouseEvent.ButtonOverride)
+			return global_mouseEvent.ButtonOverride;
 		var res = e.button;
 		return (res && -1 !== res) ? res : 0;
 	}
@@ -741,6 +758,206 @@
 		return oEvent.defaultPrevented;
 	}
 
+	function PaintMessageLoop(interval, api)
+	{
+		this.isUseInterval = api.isMobileVersion !== true;
+		this.interval = interval || 40;
+		this.id = null;
+
+		this.requestAnimationFrame = window.requestAnimationFrame ||
+			window.webkitRequestAnimationFrame ||
+			window.mozRequestAnimationFrame ||
+			window.oRequestAnimationFrame ||
+			window.msRequestAnimationFrame || null;
+		this.cancelAnimationFrame = window.cancelRequestAnimationFrame ||
+			window.webkitCancelAnimationFrame ||
+			window.webkitCancelRequestAnimationFrame ||
+			window.mozCancelRequestAnimationFrame ||
+			window.oCancelRequestAnimationFrame ||
+			window.msCancelRequestAnimationFrame || null;
+
+		this.isUseRequestAnimationFrame = AscCommon.AscBrowser.isChrome || AscCommon.AscBrowser.isSafari;
+		if (this.isUseRequestAnimationFrame && !this.requestAnimationFrame)
+			this.isUseRequestAnimationFrame = false;
+
+		this.requestAnimationOldTime = -1;
+
+		this.engine = null;
+		this.step = null;
+	}
+
+	PaintMessageLoop.prototype.Start = function(engine)
+	{
+		this.engine = engine;
+		if (null !== this.id)
+			return;
+
+		if (this.isUseRequestAnimationFrame)
+		{
+			this.step = this._animation.bind(this);
+		}
+		else
+		{
+			this.step = this._timer.bind(this);
+		}
+
+		this.step();
+	};
+	PaintMessageLoop.prototype.Stop = function()
+	{
+		if (null === this.id)
+			return;
+
+		if (this.isUseRequestAnimationFrame)
+		{
+			this.cancelAnimationFrame.call(window, this.id);
+		}
+		else
+		{
+			this.clearTimeout(this.id);
+		}
+
+		this.id = null;
+	};
+
+	PaintMessageLoop.prototype._animation = function()
+	{
+		var now = Date.now();
+		if (!this.isUseInterval || -1 === this.requestAnimationOldTime || (now >= (this.requestAnimationOldTime + this.interval)) || (now < this.requestAnimationOldTime))
+		{
+			this.requestAnimationOldTime = now;
+			this.engine();
+		}
+		this.id = this.requestAnimationFrame.call(window, this.step);
+	};
+
+	PaintMessageLoop.prototype._timer = function()
+	{
+		this.engine();
+		this.id = setTimeout(this.step, this.interval);
+	};
+
+	PaintMessageLoop.prototype.delayRun = function(_this, _func)
+	{
+		if (window.requestAnimationFrame)
+		{
+			if (undefined !== _this._delayRunId)
+				window.cancelAnimationFrame(_this._delayRunId);
+
+			_this._delayRunId = window.requestAnimationFrame(function () {
+				_func.call(_this);
+				delete _this._delayRunId;
+			});
+		}
+		else
+		{
+			if (undefined !== _this._delayRunId)
+				clearTimeout(_this._delayRunId);
+
+			_this._delayRunId = setTimeout(function () {
+				_func.call(_this);
+				delete _this._delayRunId;
+			}, 40);
+		}
+	};
+
+	function isSupportDoublePx()
+	{
+		var isSupport = true;
+
+		var oTestSpan       = document.createElement("span");
+		oTestSpan.setAttribute("style", "font-size:8pt");
+		document.body.appendChild(oTestSpan);
+		var defaultView   = oTestSpan.ownerDocument.defaultView;
+		var computedStyle = defaultView.getComputedStyle(oTestSpan, null);
+		if (null != computedStyle)
+		{
+			var fontSize = computedStyle.getPropertyValue("font-size");
+			if (-1 !== fontSize.indexOf("px") && parseFloat(fontSize) === parseInt(fontSize))
+				isSupport = false;
+		}
+		document.body.removeChild(oTestSpan);
+
+		return isSupport;
+	}
+
+	function checkMouseWhell(e, options)
+	{
+		let isSupportBidirectional = false;
+		let isAllowHorizontal = false;
+		let isUseMaximumDelta = false;
+
+		if (options)
+		{
+			isSupportBidirectional = (true === options.isSupportBidirectional);
+			isAllowHorizontal = (true === options.isAllowHorizontal);
+			isUseMaximumDelta = (true === options.isUseMaximumDelta);
+		}
+
+		let delta  = 0;
+		let deltaX = 0;
+		let deltaY = 0;
+
+		// delta
+		if (undefined !== e.wheelDelta && 0 !== e.wheelDelta)
+		{
+			delta = -45 * e.wheelDelta / 120;
+		}
+		else if (undefined !== e.detail && 0 == e.detail)
+		{
+			delta = 45 * e.detail / 3;
+		}
+
+		// y
+		if (undefined !== e.wheelDeltaY)
+		{
+			deltaY = -45 * e.wheelDeltaY / 120;
+		}
+		else
+			deltaY = delta;
+
+		// x
+		if (isAllowHorizontal)
+		{
+			if (undefined !== e.wheelDeltaX)
+			{
+				deltaX = -45 * e.wheelDeltaX / 120;
+			}
+
+			if (e.axis !== undefined && e.axis === e.HORIZONTAL_AXIS)
+			{
+				deltaY = 0;
+
+				if (0 === deltaX)
+					deltaX = delta;
+			}
+		}
+
+		deltaX >>= 0;
+		deltaY >>= 0;
+
+		if (!isSupportBidirectional)
+		{
+			if (isUseMaximumDelta)
+			{
+				if (Math.abs(deltaY) >= Math.abs(deltaX))
+					deltaX = 0;
+				else
+					deltaY = 0;
+			}
+			else
+			{
+				if (0 !== deltaX)
+					deltaY = 0;
+			}
+		}
+
+		return {
+			x : deltaX,
+			y : deltaY
+		};
+	}
+
 	//--------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                          = window['AscCommon'] || {};
 	window['AscCommon'].g_mouse_event_type_down  = g_mouse_event_type_down;
@@ -765,5 +982,10 @@
 	window['AscCommon'].button_eventHandlers     = button_eventHandlers;
 	window['AscCommon'].emulateKeyDown 			 = emulateKeyDown;
     window['AscCommon'].check_MouseClickOnUp 	 = check_MouseClickOnUp;
+
+	window['AscCommon'].PaintMessageLoop 	     = PaintMessageLoop;
+	window['AscCommon'].isSupportDoublePx 	     = isSupportDoublePx;
+
+	window['AscCommon'].checkMouseWhell 	     = checkMouseWhell;
 
 })(window);

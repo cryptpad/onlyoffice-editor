@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -126,8 +126,26 @@
 	var currentHashWorker = null;
 
 	window['AscCommon'] = window['AscCommon'] || {};
+	var AscCommon = window['AscCommon'];
 
 	window['AscCommon'].calculateProtectHash = function(args, callback) {
+		if (window["NATIVE_EDITOR_ENJINE"])
+		{
+			if (!AscCommon.hashEngine) {
+				/** @suppress {checkVars} */
+				AscCommon.hashEngine = CreateEmbedObject("CHashEmbed");
+			}
+
+			let retArray = [];
+			for (var i = 0, len = args.length; i < len; i++)
+			{
+				retArray.push(AscCommon.Base64.encode(AscCommon.hashEngine["hash2"](args[i].password, args[i].salt, args[i].spinCount, args[i].alg)));
+			}
+
+			callback(retArray);
+			return;
+		}
+
 		var sendedData = [];
 		for (var i = 0, len = args.length; i < len; i++)
 		{
@@ -192,8 +210,7 @@
 			return null;
 		}
 
-		let textEncoder = new TextEncoder();
-		let passwordBytes = textEncoder.encode(password);
+		let passwordBytes = AscCommon.Utf8.encode(password);
 
 		let maxPasswordLength = 15;
 		passwordBytes = passwordBytes.slice(0, maxPasswordLength);

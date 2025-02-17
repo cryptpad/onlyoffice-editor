@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -66,7 +66,11 @@ var c_oAscAlignType = {
 /** @enum {number} */
 var c_oAscContextMenuTypes = {
 	Main       : 0,
-	Thumbnails : 1
+	Thumbnails : 1,
+	AnimEffect: 3,
+	Master: 4,
+	Layout: 5,
+	TimelineZoom: 6
 };
 
 var THEME_THUMBNAIL_WIDTH   = 180;
@@ -108,35 +112,41 @@ var c_oAscSlideTransitionTypes = {
 	UnCover : 5,
 	Cover   : 6,
 	Clock   : 7,
-	Zoom    : 8
+	Zoom    : 8,
+	Morph   : 9,
+	Random  : 10
 };
 
 /** @enum {number} */
 var c_oAscSlideTransitionParams = {
-	Fade_Smoothly      : 0,
-	Fade_Through_Black : 1,
+	Fade_Smoothly          : 0,
+	Fade_Through_Black     : 1,
 
-	Param_Left        : 0,
-	Param_Top         : 1,
-	Param_Right       : 2,
-	Param_Bottom      : 3,
-	Param_TopLeft     : 4,
-	Param_TopRight    : 5,
-	Param_BottomLeft  : 6,
-	Param_BottomRight : 7,
+	Param_Left             : 2,
+	Param_Top              : 3,
+	Param_Right            : 4,
+	Param_Bottom           : 5,
+	Param_TopLeft          : 6,
+	Param_TopRight         : 7,
+	Param_BottomLeft       : 8,
+	Param_BottomRight      : 9,
 
-	Split_VerticalIn    : 8,
-	Split_VerticalOut   : 9,
-	Split_HorizontalIn  : 10,
-	Split_HorizontalOut : 11,
+	Split_VerticalIn       : 10,
+	Split_VerticalOut      : 11,
+	Split_HorizontalIn     : 12,
+	Split_HorizontalOut    : 13,
 
-	Clock_Clockwise        : 0,
-	Clock_Counterclockwise : 1,
-	Clock_Wedge            : 2,
+	Clock_Clockwise        : 14,
+	Clock_Counterclockwise : 15,
+	Clock_Wedge            : 16,
 
-	Zoom_In        : 0,
-	Zoom_Out       : 1,
-	Zoom_AndRotate : 2
+	Zoom_In                : 17,
+	Zoom_Out               : 18,
+	Zoom_AndRotate         : 19,
+
+	Morph_Objects          : 20,
+	Morph_Words            : 21,
+	Morph_Letters          : 22
 };
 
 /** @enum {number} */
@@ -405,7 +415,7 @@ var c_oAscSlideAnimChartBuildType = {
 };
 
 /** @enum {number} */
-var c_oAscSlideOleChartBuildType = {
+var c_oAscSlideOleChartBuildTypec_oAscSlideOleChartBuildType = {
 	AllAtOnce:  0,
 	Category:   1,
 	CategoryEl: 2,
@@ -472,7 +482,36 @@ var c_oAscPresentationShortcutType = {
 	Duplicate       : 7,
 	Print           : 8,
 	Save            : 9,
-	ShowContextMenu : 10
+	ShowContextMenu : 10,
+	ShowParaMarks   : 11,
+	Bold            : 12,
+	CopyFormat      : 13,
+	CenterAlign     : 14,
+	EuroSign        : 15,
+	Group           : 16,
+	Italic          : 17,
+	JustifyAlign    : 18,
+	AddHyperlink    : 19,
+	BulletList      : 20,
+	LeftAlign       : 21,
+	RightAlign      : 22,
+	Underline       : 23,
+	Strikethrough   : 24,
+	Superscript     : 25,
+	Subscript       : 26,
+	EnDash          : 27,
+	DecreaseFont    : 28,
+	IncreaseFont    : 29,
+	PasteFormat     : 30,
+	UnGroup         : 31,
+	SpeechWorker    : 32
+};
+
+
+const c_oAscPresentationViewMode = {
+	normal: 0,
+	masterSlide: 1,
+	sorter: 2
 };
 
 var TABLE_STYLE_WIDTH_PIX  = 72;
@@ -494,6 +533,10 @@ prot['Bottom'] = c_oAscVertAlignJc.Bottom;
 prot = window['Asc']['c_oAscContextMenuTypes'] = window['Asc'].c_oAscContextMenuTypes = c_oAscContextMenuTypes;
 prot['Main']       = c_oAscContextMenuTypes.Main;
 prot['Thumbnails'] = c_oAscContextMenuTypes.Thumbnails;
+prot['AnimEffect'] = c_oAscContextMenuTypes.AnimEffect;
+prot['Master'] = c_oAscContextMenuTypes.Master;
+prot['Layout'] = c_oAscContextMenuTypes.Layout;
+prot['TimelineZoom'] = c_oAscContextMenuTypes.TimelineZoom;
 
 prot = window['Asc']['c_oAscAlignShapeType'] = c_oAscAlignShapeType;
 prot['ALIGN_LEFT']   = c_oAscAlignShapeType.ALIGN_LEFT;
@@ -517,6 +560,8 @@ prot['UnCover'] = c_oAscSlideTransitionTypes.UnCover;
 prot['Cover']   = c_oAscSlideTransitionTypes.Cover;
 prot['Clock']   = c_oAscSlideTransitionTypes.Clock;
 prot['Zoom']    = c_oAscSlideTransitionTypes.Zoom;
+prot['Morph']   = c_oAscSlideTransitionTypes.Morph;
+prot['Random']   = c_oAscSlideTransitionTypes.Random;
 
 prot = window['Asc']['c_oAscSlideTransitionParams'] = c_oAscSlideTransitionParams;
 prot['Fade_Smoothly']          = c_oAscSlideTransitionParams.Fade_Smoothly;
@@ -539,18 +584,55 @@ prot['Clock_Wedge']            = c_oAscSlideTransitionParams.Clock_Wedge;
 prot['Zoom_In']                = c_oAscSlideTransitionParams.Zoom_In;
 prot['Zoom_Out']               = c_oAscSlideTransitionParams.Zoom_Out;
 prot['Zoom_AndRotate']         = c_oAscSlideTransitionParams.Zoom_AndRotate;
+prot['Morph_Objects']          = c_oAscSlideTransitionParams.Morph_Objects;
+prot['Morph_Words']            = c_oAscSlideTransitionParams.Morph_Words;
+prot['Morph_Letters']          = c_oAscSlideTransitionParams.Morph_Letters;
 
 prot = window['Asc']['c_oAscPresentationShortcutType'] = window['Asc'].c_oAscPresentationShortcutType = c_oAscPresentationShortcutType;
-prot['EditSelectAll']   = c_oAscPresentationShortcutType.EditSelectAll;
-prot['EditUndo']        = c_oAscPresentationShortcutType.EditUndo;
-prot['EditRedo']        = c_oAscPresentationShortcutType.EditRedo;
-prot['Cut']             = c_oAscPresentationShortcutType.Cut;
-prot['Copy']            = c_oAscPresentationShortcutType.Copy;
-prot['Paste']           = c_oAscPresentationShortcutType.Paste;
-prot['Duplicate']       = c_oAscPresentationShortcutType.Duplicate;
-prot['Print']           = c_oAscPresentationShortcutType.Print;
-prot['Save']            = c_oAscPresentationShortcutType.Save;
-prot['ShowContextMenu'] = c_oAscPresentationShortcutType.ShowContextMenu;
+prot['EditSelectAll']                 = c_oAscPresentationShortcutType.EditSelectAll;
+prot['EditUndo']                      = c_oAscPresentationShortcutType.EditUndo;
+prot['EditRedo']                      = c_oAscPresentationShortcutType.EditRedo;
+prot['Cut']                           = c_oAscPresentationShortcutType.Cut;
+prot['Copy']                          = c_oAscPresentationShortcutType.Copy;
+prot['Paste']                         = c_oAscPresentationShortcutType.Paste;
+prot['Duplicate']                     = c_oAscPresentationShortcutType.Duplicate;
+prot['Print']                         = c_oAscPresentationShortcutType.Print;
+prot['Save']                          = c_oAscPresentationShortcutType.Save;
+prot['ShowContextMenu']               = c_oAscPresentationShortcutType.ShowContextMenu;
+prot['ShowParaMarks']                 = c_oAscPresentationShortcutType.ShowParaMarks;
+prot['Bold']                          = c_oAscPresentationShortcutType.Bold;
+prot['CopyFormat']                    = c_oAscPresentationShortcutType.CopyFormat;
+prot['CenterAlign']                   = c_oAscPresentationShortcutType.CenterAlign;
+prot['EuroSign']                      = c_oAscPresentationShortcutType.EuroSign;
+prot['Group']                         = c_oAscPresentationShortcutType.Group;
+prot['Italic']                        = c_oAscPresentationShortcutType.Italic;
+prot['JustifyAlign']                  = c_oAscPresentationShortcutType.JustifyAlign;
+prot['AddHyperlink']                  = c_oAscPresentationShortcutType.AddHyperlink;
+prot['BulletList']                    = c_oAscPresentationShortcutType.BulletList;
+prot['LeftAlign']                     = c_oAscPresentationShortcutType.LeftAlign;
+prot['RightAlign']                    = c_oAscPresentationShortcutType.RightAlign;
+prot['Underline']                     = c_oAscPresentationShortcutType.Underline;
+prot['Strikethrough']                 = c_oAscPresentationShortcutType.Strikethrough;
+prot['Superscript']                   = c_oAscPresentationShortcutType.Superscript;
+prot['Subscript']                     = c_oAscPresentationShortcutType.Subscript;
+prot['EnDash']                        = c_oAscPresentationShortcutType.EnDash;
+prot['DecreaseFont']                  = c_oAscPresentationShortcutType.DecreaseFont;
+prot['IncreaseFont']                  = c_oAscPresentationShortcutType.IncreaseFont;
+prot['PasteFormat']                   = c_oAscPresentationShortcutType.PasteFormat;
+prot['UnGroup']                       = c_oAscPresentationShortcutType.UnGroup;
+prot['SpeechWorker']                  = c_oAscPresentationShortcutType.SpeechWorker;
+
+prot = window['Asc']['c_oAscPresetShadowVal'] = window['Asc'].c_oAscPresetShadowVal = c_oAscPresetShadowVal;
+
+prot = window['Asc']['c_oAscBlendModeType'] = window['Asc'].c_oAscBlendModeType = c_oAscBlendModeType;
+
+prot = window['Asc']['c_oAscConformanceType'] = window['Asc'].c_oAscConformanceType = c_oAscConformanceType;
+
+prot = window['Asc']['c_oAscPresentationViewMode'] = window['Asc'].c_oAscPresentationViewMode = c_oAscPresentationViewMode;
+prot['normal']      = c_oAscPresentationViewMode.normal;
+prot['masterSlide'] = c_oAscPresentationViewMode.masterSlide;
+prot['sorter']      = c_oAscPresentationViewMode.sorter;
+
 
 window['AscCommon']                = window['AscCommon'] || {};
 window['AscCommon'].c_oSerFormat   = c_oSerFormat;

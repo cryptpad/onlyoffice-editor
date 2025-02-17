@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -43,507 +43,6 @@ var History = AscCommon.History;
 
 var g_dMathArgSizeKoeff_1 = 0.76;
 var g_dMathArgSizeKoeff_2 = 0.6498; // 0.76 * 0.855
-
-function CMathPropertiesSettings()
-{
-    this.brkBin     = null;
-
-    this.defJc      = null;
-    this.dispDef    = null;  // свойство: применять/ не применять paragraph settings (в тч defJc)
-
-    this.intLim     = null;
-    this.naryLim    = null;
-
-    this.lMargin    = null;
-    this.rMargin    = null;
-    this.wrapIndent = null;
-    this.wrapRight  = null;
-
-    this.smallFrac  = null;
-
-    //   не реализовано    //
-
-    // for minus operator
-    // when brkBin is set to repeat
-    this.brkBinSub  = null;
-
-    //***** WORD IGNORES followings parameters *****//
-
-    // mathFont: в качестве font поддерживается только Cambria Math
-    // остальные шрифты  возможно будут поддержаны MS Word в будущем
-
-    this.mathFont   = null;
-
-    // Default font for math zones
-    // Gives a drop-down list of math fonts that can be used as the default math font to be used in the document.
-    // Currently only Cambria Math has thorough math support, but others such as the STIX fonts are coming soon.
-
-    // http://blogs.msdn.com/b/murrays/archive/2008/10/27/default-document-math-properties.aspx
-
-
-    // http://msdn.microsoft.com/en-us/library/ff529906(v=office.12).aspx
-    // Word ignores the interSp attribute and fails to write it back out.
-    this.interSp    = null;
-    // http://msdn.microsoft.com/en-us/library/ff529301(v=office.12).aspx
-    // Word does not implement this feature and does not write the intraSp element.
-    this.intraSp    = null;
-
-    // http://msdn.microsoft.com/en-us/library/ff533406(v=office.12).aspx
-    this.postSp     = null;
-    this.preSp      = null;
-
-    // RichEdit Hot Keys
-    // http://blogs.msdn.com/b/murrays/archive/2013/10/30/richedit-hot-keys.aspx
-
-    //*********************//
-}
-CMathPropertiesSettings.prototype.SetDefaultPr = function()
-{
-    this.brkBin     = BREAK_BEFORE;
-    this.defJc      = align_Justify;
-    this.dispDef    = true;
-    this.intLim     = NARY_SubSup;
-    this.mathFont   = {Name  : "Cambria Math", Index : -1 };
-    this.lMargin    = 0;
-    this.naryLim    = NARY_UndOvr;
-    this.rMargin    = 0;
-    this.smallFrac  = false;
-    this.wrapIndent = 25; // mm
-    this.wrapRight  = false;
-};
-CMathPropertiesSettings.prototype.Merge = function(Pr)
-{
-    if(Pr.wrapIndent !== null && Pr.wrapIndent !== undefined)
-        this.wrapIndent = Pr.wrapIndent;
-
-    if(Pr.lMargin !== null && Pr.lMargin !== undefined)
-        this.lMargin = Pr.lMargin;
-
-    if(Pr.rMargin !== null && Pr.rMargin !== undefined)
-        this.rMargin = Pr.rMargin;
-
-    if(Pr.intLim !== null && Pr.intLim !== undefined)
-        this.intLim = Pr.intLim;
-
-    if(Pr.naryLim !== null && Pr.naryLim !== undefined)
-        this.naryLim = Pr.naryLim;
-
-    if(Pr.defJc !== null && Pr.defJc !== undefined)
-        this.defJc = Pr.defJc;
-
-    if(Pr.brkBin !== null && Pr.brkBin !== undefined)
-        this.brkBin = Pr.brkBin;
-
-    if(Pr.brkBinSub !== null && Pr.brkBinSub !== undefined)
-        this.brkBinSub = Pr.brkBinSub;
-
-    if(Pr.dispDef !== null && Pr.dispDef !== undefined)
-        this.dispDef = Pr.dispDef;
-	
-    if(Pr.mathFont !== null && Pr.mathFont !== undefined)
-        this.mathFont = Pr.mathFont;
-
-    if(Pr.wrapRight !== null && Pr.wrapRight !== undefined)
-        this.wrapRight = Pr.wrapRight;
-
-    if(Pr.smallFrac !== null && Pr.smallFrac !== undefined)
-        this.smallFrac = Pr.smallFrac;
-};
-CMathPropertiesSettings.prototype.Copy = function()
-{
-    var NewPr = new CMathPropertiesSettings();
-
-    NewPr.brkBin     = this.brkBin;
-    NewPr.defJc      = this.defJc;
-    NewPr.dispDef    = this.dispDef;
-    NewPr.intLim     = this.intLim;
-    NewPr.lMargin    = this.lMargin;
-    NewPr.naryLim    = this.naryLim;
-    NewPr.rMargin    = this.rMargin;
-    NewPr.wrapIndent = this.wrapIndent;
-    NewPr.brkBinSub  = this.brkBinSub;
-    NewPr.interSp    = this.interSp;
-    NewPr.intraSp    = this.intraSp;
-    NewPr.mathFont   = this.mathFont;
-    NewPr.postSp     = this.postSp;
-    NewPr.preSp      = this.preSp;
-    NewPr.smallFrac  = this.smallFrac;
-    NewPr.wrapRight  = this.wrapRight;
-
-    return NewPr;
-};
-CMathPropertiesSettings.prototype.Write_ToBinary = function(Writer)
-{
-    var StartPos = Writer.GetCurPosition();
-    Writer.Skip(4);
-    var Flags = 0;
-
-    if(undefined !== this.brkBin)
-    {
-        Writer.WriteLong( this.brkBin );
-        Flags |= 1;
-    }
-
-    if(undefined !== this.brkBinSub)
-    {
-        Writer.WriteLong( this.brkBinSub );
-        Flags |= 2;
-    }
-
-    if(undefined !== this.defJc)
-    {
-        Writer.WriteLong( this.defJc );
-        Flags |= 4;
-    }
-
-    if(undefined !== this.dispDef)
-    {
-        Writer.WriteBool( this.dispDef );
-        Flags |= 8;
-    }
-
-    if(undefined !== this.interSp)
-    {
-        Writer.WriteLong( this.interSp );
-        Flags |= 16;
-    }
-
-    if(undefined !== this.intLim)
-    {
-        Writer.WriteLong( this.intLim );
-        Flags |= 32;
-    }
-
-    if(undefined !== this.intraSp)
-    {
-        Writer.WriteLong( this.intraSp );
-        Flags |= 64;
-    }
-
-    if(undefined !== this.lMargin)
-    {
-        Writer.WriteLong( this.lMargin );
-        Flags |= 128;
-    }
-
-    if(undefined !== this.mathFont)
-    {
-        Writer.WriteString2( this.mathFont.Name );
-        Flags |= 256;
-    }
-
-    if(undefined !== this.naryLim)
-    {
-        Writer.WriteLong( this.naryLim );
-        Flags |= 512;
-    }
-
-    if(undefined !== this.postSp)
-    {
-        Writer.WriteLong( this.postSp );
-        Flags |= 1024;
-    }
-
-    if(undefined !== this.preSp)
-    {
-        Writer.WriteLong( this.preSp );
-        Flags |= 2048;
-    }
-
-    if(undefined !== this.rMargin)
-    {
-        Writer.WriteLong( this.rMargin );
-        Flags |= 4096;
-    }
-
-    if(undefined !== this.smallFrac)
-    {
-        Writer.WriteBool( this.smallFrac );
-        Flags |= 8192;
-    }
-
-    if(undefined !== this.wrapIndent)
-    {
-        Writer.WriteLong( this.wrapIndent );
-        Flags |= 16384;
-    }
-
-    if(undefined !== this.wrapRight)
-    {
-        Writer.WriteBool( this.wrapRight );
-        Flags |= 32768;
-    }
-
-    var EndPos = Writer.GetCurPosition();
-    Writer.Seek( StartPos );
-    Writer.WriteLong( Flags );
-    Writer.Seek( EndPos );
-};
-CMathPropertiesSettings.prototype.Read_FromBinary = function(Reader)
-{
-    var Flags = Reader.GetLong();
-
-    if ( Flags & 1 )
-        this.brkBin = Reader.GetLong();
-
-    if( Flags & 2 )
-        this.brkBinSub = Reader.GetLong();
-
-    if( Flags & 4 )
-        this.defJc = Reader.GetLong();
-
-    if( Flags & 8 )
-        this.dispDef = Reader.GetBool();
-
-    if( Flags & 16 )
-        this.interSp = Reader.GetLong();
-
-    if( Flags & 32 )
-        this.intLim = Reader.GetLong();
-
-    if( Flags & 64 )
-        this.intraSp = Reader.GetLong();
-
-    if( Flags & 128 )
-        this.lMargin = Reader.GetLong();
-
-    if( Flags & 256 )
-    {
-        this.mathFont =
-        {
-            Name  : Reader.GetString2(),
-            Index : -1
-        };
-    }
-
-    if( Flags & 512 )
-        this.naryLim = Reader.GetLong();
-
-    if( Flags & 1024 )
-        this.postSp = Reader.GetLong();
-
-    if( Flags & 2048 )
-        this.preSp = Reader.GetLong();
-
-    if( Flags & 4096 )
-        this.rMargin = Reader.GetLong();
-
-    if( Flags & 8192 )
-        this.smallFrac = Reader.GetBool();
-
-    if( Flags & 16384 )
-        this.wrapIndent = Reader.GetLong();
-
-    if( Flags & 32768 )
-        this.wrapRight = Reader.GetBool();
-
-
-};
-
-function CMathSettings()
-{
-    this.Pr         = new CMathPropertiesSettings();
-    this.CompiledPr = new CMathPropertiesSettings();
-    this.DefaultPr  = new CMathPropertiesSettings();
-
-    this.DefaultPr.SetDefaultPr();
-
-    this.bNeedCompile = true;
-}
-CMathSettings.prototype.SetPr = function(Pr)
-{
-    this.bNeedCompile = true;
-    this.Pr.Merge(Pr);
-    this.SetCompiledPr();
-};
-CMathSettings.prototype.GetPr = function()
-{
-    return this.Pr;
-};
-CMathSettings.prototype.SetCompiledPr = function()
-{
-    if(this.bNeedCompile)
-    {
-        this.CompiledPr.Merge(this.DefaultPr);
-        this.CompiledPr.Merge(this.Pr);
-
-        this.bNeedCompile = false;
-    }
-};
-CMathSettings.prototype.GetPrDispDef = function()
-{
-    var Pr;
-    if(this.CompiledPr.dispDef ==  false)
-        Pr = this.DefaultPr;
-    else
-        Pr = this.CompiledPr;
-
-    return Pr;
-};
-CMathSettings.prototype.Get_WrapIndent = function(WrapState)
-{
-    this.SetCompiledPr();
-
-    var wrapIndent = 0;
-    if(this.wrapRight == false && (WrapState == ALIGN_MARGIN_WRAP || WrapState == ALIGN_WRAP))
-        wrapIndent = this.GetPrDispDef().wrapIndent;
-
-    return wrapIndent;
-};
-CMathSettings.prototype.Get_LeftMargin = function(WrapState)
-{
-    this.SetCompiledPr();
-
-    var lMargin = 0;
-    if(WrapState == ALIGN_MARGIN_WRAP || WrapState == ALIGN_MARGIN)
-        lMargin = this.GetPrDispDef().lMargin;
-
-    return lMargin;
-};
-CMathSettings.prototype.Get_RightMargin = function(WrapState)
-{
-    this.SetCompiledPr();
-    var rMargin    =  0;
-    if(WrapState == ALIGN_MARGIN_WRAP || WrapState == ALIGN_MARGIN)
-        rMargin = this.GetPrDispDef().rMargin;
-
-    return rMargin;
-};
-CMathSettings.prototype.Get_IntLim = function()
-{
-    this.SetCompiledPr();
-    return this.CompiledPr.intLim;
-};
-CMathSettings.prototype.Get_NaryLim = function()
-{
-    this.SetCompiledPr();
-    return this.CompiledPr.naryLim;
-};
-CMathSettings.prototype.Get_DefJc = function()
-{
-    this.SetCompiledPr();
-    return this.GetPrDispDef().defJc;
-};
-CMathSettings.prototype.Get_DispDef = function()
-{
-    this.SetCompiledPr();
-    return this.CompiledPr.dispDef;
-};
-CMathSettings.prototype.Get_BrkBin = function()
-{
-    this.SetCompiledPr();
-    return this.CompiledPr.brkBin;
-};
-CMathSettings.prototype.Get_WrapRight = function()
-{
-    this.SetCompiledPr();
-    return this.CompiledPr.wrapRight;
-};
-CMathSettings.prototype.Get_SmallFrac = function()
-{
-    this.SetCompiledPr();
-    return this.CompiledPr.smallFrac;
-};
-CMathSettings.prototype.Get_MenuProps = function()
-{
-    return new CMathMenuSettings(this.CompiledPr);
-};
-CMathSettings.prototype.Set_MenuProps = function(Props)
-{
-    if(Props.BrkBin !== undefined)
-    {
-        this.Pr.brkBin = Props.BrkBin == c_oAscMathInterfaceSettingsBrkBin.BreakAfter ? BREAK_AFTER : BREAK_BEFORE;
-    }
-
-    if(Props.Justification !== undefined)
-    {
-        switch(Props.Justification)
-        {
-            case c_oAscMathInterfaceSettingsAlign.Justify:
-            {
-                this.Pr.defJc = align_Justify;
-                break;
-            }
-            case c_oAscMathInterfaceSettingsAlign.Center:
-            {
-                this.Pr.defJc = align_Center;
-                break;
-            }
-            case c_oAscMathInterfaceSettingsAlign.Left:
-            {
-                this.Pr.defJc = align_Left;
-                break;
-            }
-            case c_oAscMathInterfaceSettingsAlign.Right:
-            {
-                this.Pr.defJc = align_Right;
-                break;
-            }
-        }
-    }
-
-    if(Props.UseSettings !== undefined)
-    {
-        this.Pr.dispDef = Props.UseSettings;
-    }
-
-    if(Props.IntLim !== undefined)
-    {
-        if(Props.IntLim == Asc.c_oAscMathInterfaceNaryLimitLocation.SubSup)
-        {
-            this.Pr.intLim = NARY_SubSup;
-        }
-        else if(Props.IntLim == Asc.c_oAscMathInterfaceNaryLimitLocation.UndOvr)
-        {
-            this.Pr.intLim = NARY_UndOvr;
-        }
-    }
-
-    if(Props.NaryLim !== undefined)
-    {
-        if(Props.NaryLim == Asc.c_oAscMathInterfaceNaryLimitLocation.SubSup)
-        {
-            this.Pr.naryLim = NARY_SubSup;
-        }
-        else if(Props.NaryLim == Asc.c_oAscMathInterfaceNaryLimitLocation.UndOvr)
-        {
-            this.Pr.naryLim = NARY_UndOvr;
-        }
-    }
-
-    if(Props.LeftMargin !== undefined && Props.LeftMargin == Props.LeftMargin + 0)
-    {
-        this.Pr.lMargin = Props.LeftMargin;
-    }
-
-    if(Props.RightMargin !== undefined && Props.RightMargin == Props.RightMargin + 0)
-    {
-        this.Pr.rMargin = Props.RightMargin;
-    }
-
-    if(Props.WrapIndent !== undefined && Props.WrapIndent == Props.WrapIndent + 0)
-    {
-        this.Pr.wrapIndent = Props.WrapIndent;
-    }
-
-    if(Props.WrapRight !== undefined && Props.WrapRight !== null)
-    {
-        this.Pr.wrapRight = Props.WrapRight;
-    }
-
-    this.bNeedCompile = true;
-
-};
-CMathSettings.prototype.Write_ToBinary = function(Writer)
-{
-    this.Pr.Write_ToBinary(Writer);
-};
-CMathSettings.prototype.Read_FromBinary = function(Reader)
-{
-    this.Pr.Read_FromBinary(Reader);
-    this.bNeedCompile = true;
-};
-
 
 function CMathMenuSettings(oMathPr)
 {
@@ -652,7 +151,7 @@ CMathMenuSettings.prototype["put_SmallFraction"]   = CMathMenuSettings.prototype
 function Get_WordDocumentDefaultMathSettings()
 {
     if (!editor || !editor.WordControl.m_oLogicDocument || !editor.WordControl.m_oLogicDocument.Settings)
-        return new CMathSettings();
+        return new AscWord.MathSettings();
 
     return editor.WordControl.m_oLogicDocument.Settings.MathSettings;
 }
@@ -1069,7 +568,7 @@ function ParaMath()
     this.DefaultTextPr.RFonts.SetAll("Cambria Math", -1);
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
-	g_oTableId.Add( this, this.Id );
+	AscCommon.g_oTableId.Add( this, this.Id );
 }
 
 ParaMath.prototype = Object.create(CParagraphContentWithContentBase.prototype);
@@ -1125,6 +624,8 @@ ParaMath.prototype.Get_Text = function(Text)
 {
 	if (true === Text.BreakOnNonText)
 		Text.Text = null;
+    else if (true === Text.Math)
+        Text.Text += this.GetText();
 };
 
 ParaMath.prototype.Is_Empty = function(oPr)
@@ -1181,116 +682,93 @@ ParaMath.prototype.GetCompiledDefaultTextPr = function()
 	oTextPr.Merge(this.DefaultTextPr);
 	return oTextPr;
 };
+ParaMath.prototype.GetDirectTextPr = function()
+{
+	let mathContent = this.GetSelectContent().Content;
+	return mathContent.GetDirectTextPr();
+};
 /**
  * Добавляем элемент в текущую позицию (с учетом возможной глубины)
  * @param Item
  */
 ParaMath.prototype.Add = function(Item)
 {
-    var LogicDocument  = (this.Paragraph ? this.Paragraph.LogicDocument : undefined);
-    var TrackRevisions = (LogicDocument && true === LogicDocument.IsTrackRevisions() ? true : false);
+	let logicDocument = this.GetLogicDocument();
 
-    var Type = Item.Type;
-    var oSelectedContent = this.GetSelectContent();
+	var Type = Item.Type;
+	var oSelectedContent = this.GetSelectContent();
 
-    var oContent = oSelectedContent.Content;
+	var oContent = oSelectedContent.Content;
 
-    var StartPos = oSelectedContent.Start;
-    var Run = oContent.Content[StartPos];
+	var StartPos = oSelectedContent.Start;
+	var Run = oContent.Content[StartPos];
 
-    // Мы вставляем только в Run
-    if (para_Math_Run !== Run.Type)
-        return;
+	// Мы вставляем только в Run
+	if (para_Math_Run !== Run.Type)
+		return;
 
-    var NewElement = null;
-    if (para_Text === Type)
-    {
-        // заглушка для текстовых настроек плейсхолдера
+	var NewElement = null;
+	if (para_Text === Type)
+	{
+		// заглушка для текстовых настроек плейсхолдера
 
-        if(oContent.bRoot == false && Run.IsPlaceholder())
-        {
-            var CtrRunPr = oContent.Get_ParentCtrRunPr(false); // ctrPrp (не копия)
-
-			var isLocalTrack = false;
-            if (TrackRevisions)
-			{
-				isLocalTrack = LogicDocument.GetLocalTrackRevisions();
-				LogicDocument.SetLocalTrackRevisions(false);
-			}
-
-            Run.Apply_TextPr(CtrRunPr, undefined, true);
-
-            if (false !== isLocalTrack)
-                LogicDocument.SetLocalTrackRevisions(isLocalTrack);
-        }
-
-        if(Item.Value == 38)
-        {
-            NewElement = new CMathAmp();
-            Run.Add(NewElement, true);
-        }
-        else
-        {
-            NewElement = new CMathText(false);
-            NewElement.add(Item.Value);
-            Run.Add(NewElement, true);
-        }
-    }
-    else if (para_Space === Type)
-    {
-        NewElement = new CMathText(false);
-        NewElement.add(32);
-        Run.Add(NewElement, true);
-    }
-    else if (para_Math === Type)
-    {
-        var ContentPos = new AscWord.CParagraphContentPos();
-
-        if(this.bSelectionUse == true)
-            this.Get_ParaContentPos(true, true, ContentPos);
-        else
-            this.Get_ParaContentPos(false, false, ContentPos);
-
-        var TextPr = this.Root.GetMathTextPrForMenu(ContentPos, 0);
-        var bPlh = oContent.IsPlaceholder();
-
-        // Нам нужно разделить данный Run на 2 части
-        var RightRun = Run.Split2(Run.State.ContentPos);
-
-        oContent.Internal_Content_Add(StartPos + 1, RightRun, false);
-        // Выставляем позицию в начало этого рана
-        oContent.CurPos = StartPos + 1;
-        RightRun.MoveCursorToStartPos();
-
-        var lng = oContent.Content.length;
-        oContent.Load_FromMenu(Item.Menu, this.Paragraph, null, Item.GetText());
-        oContent.Correct_ContentCurPos();
-
-        var lng2 = oContent.Content.length;
-
-        TextPr.RFonts.SetAll("Cambria Math", -1);
-
-		var isLocalTrack = false;
-		if (TrackRevisions)
+		if(oContent.bRoot == false && Run.IsPlaceholder())
 		{
-			isLocalTrack = LogicDocument.GetLocalTrackRevisions();
-			LogicDocument.SetLocalTrackRevisions(false);
+			AscCommon.executeNoRevisions(function()
+			{
+				var CtrRunPr = oContent.Get_ParentCtrRunPr(false); // ctrPrp (не копия)
+				Run.Apply_TextPr(CtrRunPr, undefined, true);
+			}, logicDocument, this);
 		}
 
-        if(bPlh)
-            oContent.Apply_TextPr(TextPr, undefined, true);
-        else
-            oContent.Apply_TextPr(TextPr, undefined, false, StartPos + 1, StartPos + lng2 - lng);
+		if(Item.Value == 38)
+		{
+			NewElement = new CMathAmp();
+			Run.Add(NewElement, true);
+		}
+		else
+		{
+			NewElement = new CMathText(false);
+			NewElement.add(Item.Value);
+			Run.Add(NewElement, true);
+		}
+	}
+	else if (para_Space === Type)
+	{
+		NewElement = new CMathText(false);
+		NewElement.add(32);
+		Run.Add(NewElement, true);
+	}
+	else if (para_Math === Type)
+	{
+		var ContentPos = new AscWord.CParagraphContentPos();
 
-		if (false !== isLocalTrack)
-			LogicDocument.SetLocalTrackRevisions(isLocalTrack);
-    }
+		if(this.bSelectionUse == true)
+			this.Get_ParaContentPos(true, true, ContentPos);
+		else
+			this.Get_ParaContentPos(false, false, ContentPos);
+		
+		var TextPr = this.Root.GetMathTextPrForMenu(ContentPos, 0);
+		if (Item.TextPr)
+			TextPr.Merge(Item.TextPr);
+		
+		// Нам нужно разделить данный Run на 2 части
+		var RightRun = Run.Split2(Run.State.ContentPos);
+
+		oContent.Internal_Content_Add(StartPos + 1, RightRun, false);
+		// Выставляем позицию в начало этого рана
+		oContent.CurPos = StartPos + 1;
+		RightRun.MoveCursorToStartPos();
+
+		oContent.Load_FromMenu(Item.Menu, this.Paragraph, TextPr, Item.GetText());
+		oContent.Correct_ContentCurPos();
+	}
 	
 	if ((para_Text === Type || para_Space === Type) && null !== NewElement)
 		this.ProcessAutoCorrect(oContent, NewElement);
 
-    // Корректируем данный контент
-    oContent.Correct_Content(true);
+	// Корректируем данный контент
+	oContent.Correct_Content(true);
 };
 ParaMath.prototype.ProcessAutoCorrect = function(content, triggerElement)
 {
@@ -1443,7 +921,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                 this.Root.Remove_FromContent(0, 1);
                 return true;
             }
-            else if ((true === oElement.IsPlaceholder() && !bOnAddText) || (false === oElement.Remove(Direction) && true !== this.bSelectionUse))
+            else if ((true === oElement.IsPlaceholder() && !bOnAddText) || (false === oElement.IsPlaceholder() && false === oElement.Remove(Direction) && true !== this.bSelectionUse))
             {
                 if ((Direction > 0 && oContent.Content.length - 1 === nStartPos) || (Direction < 0 && 0 === nStartPos))
                 {
@@ -1632,6 +1110,13 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
         }
         oContent.Correct_Content();
         oContent.Correct_ContentPos(Direction);
+
+		// если в контенте остался только плейсхолдер, то нам нужно выделить его
+		if (oContent.IsPlaceholder())
+		{
+			oContent.SelectThisElement(1);
+			oContent.SelectAll(1);
+		}
     }
 };
 
@@ -1640,7 +1125,7 @@ ParaMath.prototype.GetSelectContent = function(isAll)
     return this.Root.GetSelectContent(isAll);
 };
 
-ParaMath.prototype.GetCurrentParaPos = function()
+ParaMath.prototype.GetCurrentParaPos = function(align)
 {
     return this.Root.GetCurrentParaPos();
 };
@@ -1792,14 +1277,13 @@ ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 
 ParaMath.prototype.GetText = function(isLaTeX)
 {
-    var res = "";
-    if (this.Root && this.Root.GetTextContent) {
-        var textContent = this.Root.GetTextContent(false, isLaTeX);
-        if (textContent && textContent.str) {
-            res = textContent.str;
-        }
-    }
-    return res;
+    let oMathText = this.GetTextOfElement(isLaTeX);
+    return oMathText.GetText();
+};
+
+ParaMath.prototype.GetTextOfElement = function (isLaTeX, isDefaultText)
+{
+    return this.Root.GetTextOfElement(isLaTeX, isDefaultText);
 };
 
 ParaMath.prototype.GetSelectDirection = function()
@@ -1847,9 +1331,9 @@ ParaMath.prototype.Set_MenuProps = function(Props)
         this.Root.Set_MenuProps(Props);
 };
 
-ParaMath.prototype.CheckRunContent = function(fCheck)
+ParaMath.prototype.CheckRunContent = function(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos, isForward)
 {
-    this.Root.CheckRunContent(fCheck);
+	return this.Root.CheckRunContent(fCheck, oStartPos, oEndPos, nDepth, oCurrentPos, isForward);
 };
 
 //-----------------------------------------------------------------------------------
@@ -2311,9 +1795,9 @@ ParaMath.prototype.private_RecalculateRoot = function(PRS, ParaPr, Depth)
 };
 ParaMath.prototype.private_SetRestartRecalcInfo = function(PRS)
 {
-	var Page = this.Paragraph == null ? 0 : this.Paragraph.GetAbsolutePage(PRS.Page);
-	var Line = this.PageInfo.Get_FirstLineOnPage(Page);
-	PRS.SetMathRecalcInfo(Line, this, PRS.Ranges, PRS.RangesCount);
+	let absPage   = PRS.Paragraph.GetAbsolutePage(PRS.Page);
+	let firstLine = this.PageInfo.Get_FirstLineOnPage(absPage);
+	PRS.SetMathRecalcInfo(firstLine, this);
 	PRS.RecalcResult = recalcresult_ParaMath;
 	PRS.NewRange     = true;
 };
@@ -2542,12 +2026,10 @@ ParaMath.prototype.Get_ParaPosByContentPos = function(ContentPos, Depth)
 {
     return this.Root.Get_ParaPosByContentPos(ContentPos, Depth);
 };
-
-ParaMath.prototype.Recalculate_CurPos = function(_X, Y, CurrentRun, _CurRange, _CurLine, _CurPage, UpdateCurPos, UpdateTarget, ReturnTarget)
+ParaMath.prototype.recalculateCursorPosition = function(positionCalculator, isCurrent)
 {
-    return this.Root.Recalculate_CurPos(_X, Y, CurrentRun, _CurRange, _CurLine, _CurPage, UpdateCurPos, UpdateTarget, ReturnTarget);
+	positionCalculator.handleParaMath(this, isCurrent);
 };
-
 ParaMath.prototype.Refresh_RecalcData = function(Data)
 {
     this.Paragraph.Refresh_RecalcData2(0);
@@ -2564,6 +2046,7 @@ ParaMath.prototype.RecalculateMinMaxContentWidth = function(MinMax)
     RPI.MergeMathInfo(this.ParaMathRPI);
 
     this.Root.PreRecalc(null, this, new CMathArgSize(), RPI);
+	this.Root.recalculateAllSize(AscCommon.g_oTextMeasurer);
     this.Root.RecalculateMinMaxContentWidth(MinMax);
 };
 
@@ -2618,9 +2101,20 @@ ParaMath.prototype.ConvertToInlineMode = function()
 
 	if (this.IsInlineMode())
 		return true;
-
-	let oParent      = this.GetParent();
-	let nPosInParent = this.GetPosInParent(oParent);
+	
+	let oParent = this.GetParent();
+	let oInlineLevel, nPosInParent;
+	if (oParent instanceof AscWord.CInlineLevelSdt && oParent.IsContentControlEquation())
+	{
+		oInlineLevel = oParent;
+		oParent      = oParent.GetParent();
+		nPosInParent = oInlineLevel.GetPosInParent(oParent);
+	}
+	else
+	{
+		nPosInParent = this.GetPosInParent(oParent);
+	}
+	
 	if (!oParent || -1 === nPosInParent)
 		return false;
 
@@ -2667,12 +2161,23 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 
 	if (!this.IsInlineMode())
 		return true;
-
-	let oParent      = this.GetParent();
-	let nPosInParent = this.GetPosInParent(oParent);
+	
+	let oParent = this.GetParent();
+	let oInlineLevel, nPosInParent;
+	if (oParent instanceof AscWord.CInlineLevelSdt && oParent.IsContentControlEquation())
+	{
+		oInlineLevel = oParent;
+		oParent      = oParent.GetParent();
+		nPosInParent = oInlineLevel.GetPosInParent(oParent);
+	}
+	else
+	{
+		nPosInParent = this.GetPosInParent(oParent);
+	}
+	
 	if (!oParent || -1 === nPosInParent)
 		return false;
-
+	
 	let oContentPos = this.GetStartPosInParagraph();
 
     let oRunElementsBefore = new CParagraphRunElements(oContentPos, 1, null, false);
@@ -2712,18 +2217,23 @@ ParaMath.prototype.ConvertToDisplayMode = function()
 };
 ParaMath.prototype.IsInlineMode = function()
 {
-	// TODO: Сейчас у нас формула может быть только на верхнем уровне параграфа, когда это изменится тут
-	//       надо переделать проверку
-
-	let oParagraph = this.GetParagraph();
-	if (!oParagraph)
+	let paragraph = this.GetParagraph();
+	if (!paragraph)
 		return false;
-
-	let oParaPos = oParagraph.GetPosByElement(this);
-	if (!oParaPos)
+	
+	let paraPos = paragraph.GetPosByElement(this);
+	if (!paraPos)
 		return false;
-
-	return !oParagraph.CheckMathPara(oParaPos.Get(0));
+	
+	let startPos = this.GetStartPosInParagraph();
+	let endPos   = this.GetEndPosInParagraph();
+	
+	let prev = paragraph.GetPrevRunElement(startPos);
+	let next = paragraph.GetNextRunElement(endPos);
+	
+	return ((prev && !prev.IsBreak())
+		|| (!prev && paragraph.HaveNumbering())
+		|| (next && !next.IsBreak() && !next.IsParaEnd()));
 };
 ParaMath.prototype.NeedDispOperators = function(Line)
 {
@@ -2748,6 +2258,10 @@ ParaMath.prototype.Get_Align = function()
 	}
 
 	return Jc;
+};
+ParaMath.prototype.GetAlign = function()
+{
+	return this.Get_Align();
 };
 ParaMath.prototype.Set_Align = function(Align)
 {
@@ -2972,44 +2486,9 @@ ParaMath.prototype.Get_Default_TPrp = function()
 //-----------------------------------------------------------------------------------
 // Функции отрисовки
 //-----------------------------------------------------------------------------------
-ParaMath.prototype.Draw_HighLights = function(PDSH)
+ParaMath.prototype.Draw_HighLights = function(drawState)
 {
-    if(false == this.Root.IsEmptyRange(PDSH.Line, PDSH.Range))
-    {
-        var X  = PDSH.X;
-        var Y0 = PDSH.Y0;
-        var Y1 = PDSH.Y1;
-
-        var Comm = PDSH.Save_Comm();
-        var Coll = PDSH.Save_Coll();
-
-        this.Root.Draw_HighLights(PDSH, false);
-
-        var CommFirst = PDSH.Comm.Get_Next();
-        var CollFirst = PDSH.Coll.Get_Next();
-
-        PDSH.Load_Comm(Comm);
-        PDSH.Load_Coll(Coll);
-
-        if (null !== CommFirst)
-        {
-            var CommentsCount = PDSH.Comments.length;
-            var CommentId     = ( CommentsCount > 0 ? PDSH.Comments[CommentsCount - 1] : null );
-            var CommentsFlag  = PDSH.CommentsFlag;
-
-            var Bounds = this.Root.Get_LineBound(PDSH.Line, PDSH.Range);
-            Comm.Add(Bounds.Y, Bounds.Y + Bounds.H, Bounds.X, Bounds.X + Bounds.W, 0, 0, 0, 0, { Active : CommentsFlag === AscCommon.comments_ActiveComment ? true : false, CommentId : CommentId } );
-        }
-
-        if (null !== CollFirst)
-        {
-            var Bounds = this.Root.Get_LineBound(PDSH.Line, PDSH.Range);
-            Coll.Add(Bounds.Y, Bounds.Y + Bounds.H, Bounds.X, Bounds.X + Bounds.W, 0, CollFirst.r, CollFirst.g, CollFirst.b);
-        }
-
-        PDSH.Y0 = Y0;
-        PDSH.Y1 = Y1;
-    }
+	drawState.handleParaMath(this);
 };
 ParaMath.prototype.Draw_Elements = function(PDSE)
 {
@@ -3092,7 +2571,14 @@ ParaMath.prototype.IsCursorPlaceable = function()
 {
     return true;
 };
-
+ParaMath.prototype.IsCursorAtEnd = function()
+{
+	return this.Cursor_Is_End();
+};
+ParaMath.prototype.IsCursorAtBegin = function()
+{
+	return this.Cursor_Is_Start();
+};
 ParaMath.prototype.Cursor_Is_Start = function()
 {
     // TODO: ParaMath.Cursor_Is_Start
@@ -3122,42 +2608,9 @@ ParaMath.prototype.MoveCursorToEndPos = function(SelectFromEnd)
 	this.Root.MoveCursorToEndPos(SelectFromEnd);
 };
 
-ParaMath.prototype.Get_ParaContentPosByXY = function(SearchPos, Depth, _CurLine, _CurRange, StepEnd, Flag) // получить логическую позицию по XY
+ParaMath.prototype.getParagraphContentPosByXY = function(searchState)
 {
-	var Result = false;
-
-	var CurX = SearchPos.CurX;
-
-	var MathX = SearchPos.CurX;
-	var MathW = this.Root.GetWidth(_CurLine, _CurRange);
-
-	// Если мы попадаем четко в формулу, тогда ищем внутри нее, если нет, тогда не заходим внутрь
-	if ((SearchPos.X > MathX && SearchPos.X < MathX + MathW) || SearchPos.DiffX > 1000000 - 1)
-	{
-		var bFirstItem = SearchPos.DiffX > 1000000 - 1 ? true : false;
-
-		Result = this.Root.Get_ParaContentPosByXY(SearchPos, Depth, _CurLine, _CurRange, StepEnd);
-
-		if (SearchPos.InText)
-			SearchPos.DiffX = 0.001; // чтобы всегда встать в формулу, если попали в текст
-
-		// TODO: Пересмотреть данную проверку. Надо выяснить насколько сильно она вообще нужна
-		// Если мы попадаем в формулу, тогда не ищем позицию вне ее. За исключением, случая когда формула идет в начале
-		// строки. Потому что в последнем случае из формулы 100% придет true, а позиция, возможно, находится за формулой.
-		if (Result && !bFirstItem)
-			SearchPos.DiffX = 0;
-	}
-
-	// Такое возможно, если все элементы до этого (в том числе и этот) были пустыми, тогда, чтобы не возвращать
-	// неправильную позицию вернем позицию начала данного элемента.
-	if (SearchPos.DiffX > 1000000 - 1)
-	{
-		this.Get_StartPos(SearchPos.Pos, Depth);
-		Result = true;
-	}
-
-	SearchPos.CurX = CurX + MathW;
-	return Result;
+	searchState.handleParaMath(this);
 };
 
 ParaMath.prototype.Get_ParaContentPos = function(bSelection, bStart, ContentPos, bUseCorrection)
@@ -3280,9 +2733,9 @@ ParaMath.prototype.SelectAll = function(Direction)
     this.Root.SelectAll(Direction);
 };
 
-ParaMath.prototype.Selection_DrawRange = function(_CurLine, _CurRange, SelectionDraw)
+ParaMath.prototype.drawSelectionInRange = function(line, range, drawState)
 {
-    this.Root.Selection_DrawRange(_CurLine, _CurRange, SelectionDraw);
+    this.Root.drawSelectionInRange(line, range, drawState);
 };
 
 ParaMath.prototype.IsSelectionEmpty = function(CheckEnd)
@@ -3703,48 +3156,49 @@ ParaMath.prototype.CalculateTextToTable = function(oEngine)
 };
 ParaMath.prototype.ConvertFromLaTeX = function()
 {
-	var strLaTeX = this.GetText(true);
-    this.Root.Remove_Content(0, this.Root.Content.length);
-    this.Root.Correct_Content(true);
-    AscMath.ConvertLaTeXToTokensList(strLaTeX, this.Root);
-    this.Root.CorrectAllMathWords(true);
-    this.Root.ConvertAllSpecialWords(true);
+	let oLaTeX = this.GetTextOfElement(true, true);
+	this.Root.Remove_Content(0, this.Root.Content.length);
+	this.Root.CurPos = 0;
+	AscMath.ConvertLaTeXToTokensList(oLaTeX, this.Root);
 	this.Root.Correct_Content(true);
+    this.Root.CurPos++;
 };
 ParaMath.prototype.ConvertToLaTeX = function()
 {
-	var strLatex = this.GetText(true);
+	let oLaTeXContent = this.GetTextOfElement(true);
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	this.Root.Add_Text(strLatex, this.Paragraph);
-    this.Root.CurPos = this.Root.Content.length - 1;
+	this.Root.AddDataFromFlatMathTextAndStyles(oLaTeXContent.Flat());
 };
 ParaMath.prototype.ConvertFromUnicodeMath = function()
 {
-    this.Root.CorrectAllMathWords(false);
-    this.Root.ConvertAllSpecialWords(false);
-	var strUnicode = this.GetText();
-	this.Root.Remove_Content(0,this.Root.Content.length);
-    this.Root.Correct_Content(true);
-	AscMath.CUnicodeConverter(strUnicode, this.Root);
+	let oUnicode = this.GetTextOfElement(false);
+	this.Root.Remove_Content(0, this.Root.Content.length);
+	this.Root.CurPos = 0;
+	AscMath.CUnicodeConverter(oUnicode, this.Root);
 	this.Root.Correct_Content(true);
+	this.Root.CurPos++;
 };
 ParaMath.prototype.ConvertToUnicodeMath = function()
 {
-	var strUnicode = this.GetText();
-    if (strUnicode[strUnicode.length - 1] === " ")
-    {
-        strUnicode = strUnicode.slice(0, -1)
-    }
+	let oUnicodeContent = this.GetTextOfElement(false);
 	this.Root.Remove_Content(0,this.Root.Content.length);
-	this.Root.Add_Text(strUnicode, this.Paragraph);
+	this.Root.AddDataFromFlatMathTextAndStyles(oUnicodeContent.Flat());
+	this.Paragraph.updateTrackRevisions();
 };
 ParaMath.prototype.ConvertView = function(isToLinear, nInputType)
+{
+	AscCommon.executeNoRevisions(this._convertView, this.GetLogicDocument(), this, arguments);
+};
+ParaMath.prototype._convertView = function(isToLinear, nInputType)
 {
 	if (undefined === nInputType)
 	{
 		let oApi = Asc.editor || editor;
 		nInputType = oApi ? oApi.getMathInputType() : Asc.c_oAscMathInputType.Unicode;
 	}
+
+	if (this.IsEmpty())
+		return;
 
 	if (isToLinear)
 	{
@@ -3773,6 +3227,10 @@ ParaMath.prototype.SplitSelectedContent = function()
 };
 ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
 {
+	AscCommon.executeNoRevisions(this._convertViewBySelection, this.GetLogicDocument(), this, arguments);
+};
+ParaMath.prototype._convertViewBySelection = function(isToLinear, nInputType)
+{
     this.SplitSelectedContent();
 
     var oSelection = this.GetSelectContent();
@@ -3783,12 +3241,6 @@ ParaMath.prototype.ConvertViewBySelection = function(isToLinear, nInputType)
         nInputType,
         isToLinear
     );
-};
-ParaMath.prototype.SplitSelectedContent = function()
-{
-    var oSelection = this.GetSelectContent();
-    var oContent = oSelection.Content;
-    oContent.SplitSelectedContent();
 };
 ParaMath.prototype.CheckSpelling = function(oCollector, nDepth)
 {
@@ -3821,7 +3273,18 @@ ParaMath.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentP
 	return this.Root.GetSearchElementId(bNext, bUseContentPos, ContentPos, Depth);
 };
 //----------------------------------------------------------------------------------------------------------------------
-
+ParaMath.prototype.IsContentControlEquation = function()
+{
+	let parent = this.GetParent();
+	return (parent
+		&& parent instanceof AscWord.CInlineLevelSdt
+		&& parent.IsContentControlEquation()
+		&& parent.IsPlaceHolder());
+};
+ParaMath.prototype.ProcessingOldEquationConvert = function()
+{
+	this.Root.ProcessingOldEquationConvert();
+};
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {
@@ -3955,3 +3418,4 @@ CMathRecalculateObject.prototype.Compare = function(PageInfo)
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].MathMenu = MathMenu;
 window['AscCommonWord'].ParaMath = ParaMath;
+window['AscWord'].ParaMath = ParaMath;

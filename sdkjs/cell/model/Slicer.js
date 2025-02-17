@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,7 +32,7 @@
 
 "use strict";
 
-(function(window, undefined){
+(function (window, undefined) {
 
 	var insertSlicerType = {
 		table: 0,
@@ -72,14 +72,14 @@
 		return this;
 	}
 
-	CT_slicerStyleElement.prototype.toStream = function(s) {
+	CT_slicerStyleElement.prototype.toStream = function (s) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s._WriteUChar2(0, this.type);
 		s._WriteUInt2(1, this.dxfId);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
 	};
-	CT_slicerStyleElement.prototype.fromStream = function(s) {
+	CT_slicerStyleElement.prototype.fromStream = function (s) {
 		var _type;
 		var _len = s.GetULong();
 		var _start_pos = s.cur;
@@ -128,14 +128,14 @@
 		return this;
 	}
 
-	CT_slicerStyle.prototype.toStream = function(s) {
+	CT_slicerStyle.prototype.toStream = function (s) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s._WriteString2(0, this.name);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
 		s.WriteRecordArray4(0, 0, this.slicerStyleElements);
 	};
-	CT_slicerStyle.prototype.fromStream = function(s) {
+	CT_slicerStyle.prototype.fromStream = function (s) {
 		var _type;
 		var _len = s.GetULong();
 		var _start_pos = s.cur;
@@ -190,14 +190,15 @@
 		this.slicerStyle = [];
 		return this;
 	}
-	CT_slicerStyles.prototype.toStream = function(s) {
+
+	CT_slicerStyles.prototype.toStream = function (s) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s._WriteString2(0, this.defaultSlicerStyle);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
 		s.WriteRecordArray4(0, 0, this.slicerStyle);
 	};
-	CT_slicerStyles.prototype.fromStream = function(s) {
+	CT_slicerStyles.prototype.fromStream = function (s) {
 		var _type;
 		var _len = s.GetULong();
 		var _start_pos = s.cur;
@@ -246,12 +247,14 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_slicers(opt_ws) {
 		this.slicer = [];
 
 		this._ws = opt_ws;
 		return this;
 	}
+
 	CT_slicers.prototype.toStream = function (s) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
@@ -265,13 +268,11 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
+			switch (_at) {
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -279,19 +280,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_slicer(ws);
 						tmp.fromStream(s, slicerCaches);
@@ -299,8 +296,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -308,7 +304,7 @@
 		}
 		s.Seek2(_end_pos);
 	};
-	
+
 	function CT_slicer(ws) {
 		//from documentation
 		this.name = null;
@@ -338,7 +334,8 @@
 
 		return this;
 	}
-	CT_slicer.prototype.getType = function() {
+
+	CT_slicer.prototype.getType = function () {
 		return AscCommonExcel.UndoRedoDataTypes.Slicer;
 	};
 	CT_slicer.prototype.clone = function (ws) {
@@ -376,57 +373,57 @@
 
 		return res;
 	};
-	CT_slicer.prototype.merge = function(val) {
-		if(val.name !== this.name) {
+	CT_slicer.prototype.merge = function (val) {
+		if (val.name !== this.name) {
 			this.name = undefined;
 		}
-		if(val.caption !== this.caption) {
+		if (val.caption !== this.caption) {
 			this.caption = undefined;
 		}
-		if(val.startItem !== this.startItem) {
+		if (val.startItem !== this.startItem) {
 			this.startItem = undefined;
 		}
-		if(val.columnCount !== this.columnCount) {
+		if (val.columnCount !== this.columnCount) {
 			this.columnCount = undefined;
 		}
-		if(val.showCaption !== this.showCaption) {
+		if (val.showCaption !== this.showCaption) {
 			this.showCaption = undefined;
 		}
-		if(val.level !== this.level) {
+		if (val.level !== this.level) {
 			this.level = undefined;
 		}
-		if(val.style !== this.style) {
+		if (val.style !== this.style) {
 			this.style = undefined;
 		}
-		if(val.lockedPosition !== this.lockedPosition) {
+		if (val.lockedPosition !== this.lockedPosition) {
 			this.lockedPosition = undefined;
 		}
-		if(val.rowHeight !== this.rowHeight) {
+		if (val.rowHeight !== this.rowHeight) {
 			this.rowHeight = undefined;
 		}
 
-		if(val._ascSourceName !== this._ascSourceName) {
+		if (val._ascSourceName !== this._ascSourceName) {
 			this._ascSourceName = undefined;
 		}
-		if(val._ascNameInFormulas !== this._ascNameInFormulas) {
+		if (val._ascNameInFormulas !== this._ascNameInFormulas) {
 			this._ascNameInFormulas = undefined;
 		}
-		if(val._ascSortOrder !== this._ascSortOrder) {
+		if (val._ascSortOrder !== this._ascSortOrder) {
 			this._ascSortOrder = undefined;
 		}
-		if(val._ascCustomListSort !== this._ascCustomListSort) {
+		if (val._ascCustomListSort !== this._ascCustomListSort) {
 			this._ascCustomListSort = undefined;
 		}
-		if(val._ascHideItemsWithNoData !== this._ascHideItemsWithNoData) {
+		if (val._ascHideItemsWithNoData !== this._ascHideItemsWithNoData) {
 			this._ascHideItemsWithNoData = undefined;
 		}
-		if(val._ascIndicateItemsWithNoData !== this._ascIndicateItemsWithNoData) {
+		if (val._ascIndicateItemsWithNoData !== this._ascIndicateItemsWithNoData) {
 			this._ascIndicateItemsWithNoData = undefined;
 		}
-		if(val._ascShowItemsWithNoDataLast !== this._ascShowItemsWithNoDataLast) {
+		if (val._ascShowItemsWithNoDataLast !== this._ascShowItemsWithNoDataLast) {
 			this._ascShowItemsWithNoDataLast = undefined;
 		}
-		if(val._ascButtonWidth !== this._ascButtonWidth) {
+		if (val._ascButtonWidth !== this._ascButtonWidth) {
 			this._ascButtonWidth = undefined;
 		}
 	};
@@ -509,7 +506,7 @@
 		this._ascShowItemsWithNoDataLast = this.getShowItemsWithNoDataLast();
 	};
 
-	CT_slicer.prototype.Write_ToBinary2 = function(w) {
+	CT_slicer.prototype.Write_ToBinary2 = function (w) {
 		this._writeBinaryForHistory = true;
 
 		var old = new AscCommon.CMemory(true);
@@ -522,7 +519,7 @@
 		this._writeBinaryForHistory = false;
 	};
 
-	CT_slicer.prototype.Read_FromBinary2 = function(r) {
+	CT_slicer.prototype.Read_FromBinary2 = function (r) {
 		var fileStream = r.ToFileStream();
 		fileStream.GetUChar();
 		this.fromStream(fileStream, null, true);
@@ -560,15 +557,19 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.name = s.GetString2(); break; }
-				case 1: { this.uid = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.name = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.uid = s.GetString2();
+					break;
+				}
 				case 2: {
 					var cache = s.GetString2();
 					this.cacheDefinition = slicerCaches[cache] || null;
@@ -576,41 +577,58 @@
 				}
 				case 3: {
 					this.caption = s.GetString2();
-					if(typeof this.caption === "string") {
-						if(AscFonts.IsCheckSymbols) {
+					if (typeof this.caption === "string") {
+						if (AscFonts.IsCheckSymbols) {
 							AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
 						}
 					}
 					break;
 				}
-				case 4: { this.startItem = s.GetULong(); break; }
-				case 5: { this.columnCount = s.GetULong(); break; }
-				case 6: { this.showCaption = s.GetBool(); break; }
-				case 7: { this.level = s.GetULong(); break; }
-				case 8: { this.style = s.GetString2(); break; }
-				case 9: { this.lockedPosition = s.GetBool(); break; }
-				case 10: { this.rowHeight = s.GetULong(); break; }
+				case 4: {
+					this.startItem = s.GetULong();
+					break;
+				}
+				case 5: {
+					this.columnCount = s.GetULong();
+					break;
+				}
+				case 6: {
+					this.showCaption = s.GetBool();
+					break;
+				}
+				case 7: {
+					this.level = s.GetULong();
+					break;
+				}
+				case 8: {
+					this.style = s.GetString2();
+					break;
+				}
+				case 9: {
+					this.lockedPosition = s.GetBool();
+					break;
+				}
+				case 10: {
+					this.rowHeight = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
 			}
 		}
 
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_at = s.GetUChar();
-			switch (_at)
-			{
-				case 0:
-				{
+			switch (_at) {
+				case 0: {
 					this.cacheDefinition = new CT_slicerCacheDefinition();
 					this.cacheDefinition.fromStream(s, historySerialize);
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -632,8 +650,8 @@
 	CT_slicer.prototype.setCaption = function (val) {
 		var oldVal = this.caption;
 		this.caption = val;
-		if(typeof this.caption === "string") {
-			if(AscFonts.IsCheckSymbols) {
+		if (typeof this.caption === "string") {
+			if (AscFonts.IsCheckSymbols) {
 				AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
 			}
 		}
@@ -923,7 +941,7 @@
 	CT_slicer.prototype.asc_setShowItemsWithNoDataLast = function (val) {
 		this._ascShowItemsWithNoDataLast = val;
 	};
-	
+
 	CT_slicer.prototype.asc_setButtonWidth = function (val) {
 		this._ascButtonWidth = val;
 	};
@@ -954,11 +972,11 @@
 
 	CT_slicer.prototype.asc_getStyle = function () {
 		var sStyle = this.style;
-		if(sStyle) {
+		if (sStyle) {
 			return sStyle;
 		}
 		var wb = Asc.editor.wbModel;
-		if(wb) {
+		if (wb) {
 			return wb.SlicerStyles.DefaultStyle;
 		}
 		return null;
@@ -1039,6 +1057,7 @@
 
 		return this;
 	}
+
 	CT_slicerCacheDefinition.prototype.isInit = function () {
 		return !!this.wb && (insertSlicerType.pivotTable !== this.getType() || !!this.getPivotCache());
 	};
@@ -1056,10 +1075,10 @@
 			case insertSlicerType.pivotTable: {
 				var cacheDefinition = pivotTable.cacheDefinition;
 				var cacheFields = cacheDefinition.getFields();
-				var fieldIndex = cacheDefinition.getFieldIndexByName(name);
+				var fieldIndex = pivotTable.asc_getFieldIndexByName(name);
 				var cacheField = -1 !== fieldIndex && cacheFields[fieldIndex];
 				if (cacheField) {
-					this.sourceName = name;
+					this.sourceName = cacheField.asc_getName();
 					//TODO для генерации имени нужна отдельная функция
 					this.name = this.generateSlicerCacheName(name);
 					this.data = new CT_slicerCacheData();
@@ -1104,9 +1123,9 @@
 		var realPivotTables = wb.getPivotTablesByCacheId(this.getPivotCacheId());
 		var oldPivotTables = this.pivotTables;
 		this.pivotTables = [];
-		for(var i = 0; i < oldPivotTables.length; ++i) {
-			for(var j = 0; j < realPivotTables.length; ++j) {
-				if(oldPivotTables[i].name === realPivotTables[j].name) {
+		for (var i = 0; i < oldPivotTables.length; ++i) {
+			for (var j = 0; j < realPivotTables.length; ++j) {
+				if (oldPivotTables[i].name === realPivotTables[j].name) {
 					this.addPivotTable(realPivotTables[j]);
 				}
 			}
@@ -1173,15 +1192,14 @@
 		};
 
 		//replace not valid symbols
-		name = name.replace(/[-+*\/^&%<=>: ;//),]/g,"_");
+		name = name.replace(/[-+*\/^&%<=>: ;//),]/g, "_");
 		//TODO дополнительная проверка - пересмотреть
 		if (!AscCommon.rx_defName.test(name)) {
-			name = name.replace(/[^a-zA-ZА-Яа-яЁё0-9]/gi,"_")
+			name = name.replace(/[^a-zA-ZА-Яа-яЁё0-9]/gi, "_")
 		}
 
-		//TODO перевод - проверить на другом языке?
 		var index = 1;
-		name = "Slicer_" + name;
+		name = AscCommon.translateManager.getValue("Slicer") + "_" + name;
 		var newName = name;
 		while (checkAlreadyAdd(newName)) {
 			newName = name + index;
@@ -1189,8 +1207,8 @@
 		}
 		return newName;
 	};
-	
-	CT_slicerCacheDefinition.prototype.Write_ToBinary2 = function(w) {
+
+	CT_slicerCacheDefinition.prototype.Write_ToBinary2 = function (w) {
 		var old = new AscCommon.CMemory(true);
 		pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
 		pptx_content_writer.BinaryFileWriter.ImportFromMemory(w);
@@ -1201,7 +1219,7 @@
 		pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
 	};
 
-	CT_slicerCacheDefinition.prototype.Read_FromBinary2 = function(r) {
+	CT_slicerCacheDefinition.prototype.Read_FromBinary2 = function (r) {
 		var fileStream = r.ToFileStream();
 		fileStream.GetUChar();
 		this.fromStream(fileStream, true, null);
@@ -1214,11 +1232,10 @@
 		s._WriteString2(2, this.sourceName);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
-		if (this.pivotTables.length > 0)
-		{
+		if (this.pivotTables.length > 0) {
 			s.StartRecord(0);
 			s.WriteULong(this.pivotTables.length);
-			for (var i = 0; i < this.pivotTables.length; i++){
+			for (var i = 0; i < this.pivotTables.length; i++) {
 				s.StartRecord(0);
 				this.pivotTables[i].toStream(s, sheetIds, historySerialize);
 				s.EndRecord();
@@ -1226,13 +1243,12 @@
 			s.EndRecord();
 		}
 		s.WriteRecord4(1, this.data);
-		if (null != this.tableSlicerCache)
-		{
+		if (null != this.tableSlicerCache) {
 			s.StartRecord(3);
 			this.tableSlicerCache.toStream(s, tableIds, historySerialize);
 			s.EndRecord();
 		}
-		if(null != this.slicerCacheHideItemsWithNoData) {
+		if (null != this.slicerCacheHideItemsWithNoData) {
 			var hideNoData = new CT_slicerCacheHideNoData();
 			hideNoData.slicerCacheOlapLevelName = this.slicerCacheHideItemsWithNoData;
 			hideNoData.count = this.slicerCacheHideItemsWithNoData.length;
@@ -1247,36 +1263,39 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.name = s.GetString2(); break; }
-				case 1: { this.uid = s.GetString2(); break; }
-				case 2: { this.sourceName = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.name = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.uid = s.GetString2();
+					break;
+				}
+				case 2: {
+					this.sourceName = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
 			}
 		}
 //members
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
+			switch (_type) {
 				case 0:
-				case 2:
-				{
+				case 2: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_slicerCachePivotTable();
 						tmp.fromStream(s, historySerialize);
@@ -1284,27 +1303,23 @@
 					}
 					break;
 				}
-				case 1:
-				{
+				case 1: {
 					this.data = new CT_slicerCacheData();
 					this.data.fromStream(s);
 					break;
 				}
-				case 3:
-				{
+				case 3: {
 					this.tableSlicerCache = new CT_tableSlicerCache();
 					this.tableSlicerCache.fromStream(s, historySerialize);
 					break;
 				}
-				case 4:
-				{
+				case 4: {
 					var hideNoData = new CT_slicerCacheHideNoData();
 					hideNoData.fromStream(s);
 					this.slicerCacheHideItemsWithNoData = hideNoData.slicerCacheOlapLevelName;
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -1365,11 +1380,22 @@
 			case insertSlicerType.pivotTable: {
 				var tabular = this.data.tabular;
 				var cacheDefinition = tabular.pivotCacheDefinition;
+				let pivotTables = this.getPivotTables();
 				if (cacheDefinition) {
 					var fieldIndex = cacheDefinition.getFieldIndexByName(this.sourceName);
-					if(-1 !== fieldIndex){
+					if (-1 !== fieldIndex) {
+						let pivotField;
+						if (pivotTables.length > 0) {
+							const slicerCachePivotTable = this.pivotTables[0];
+							const pivotTable = slicerCachePivotTable.getPivotTable(wb);
+							pivotField = pivotTable.asc_getPivotFields()[fieldIndex];
+						}
 						var cacheField = cacheDefinition.getFields()[fieldIndex];
-						res = {values: tabular.getFilterObject(cacheField, this.slicerCacheHideItemsWithNoData), automaticRowCount: null, ignoreCustomFilter: null};
+						res = {
+							values: tabular.getFilterObject(cacheField, this.slicerCacheHideItemsWithNoData, pivotField),
+							automaticRowCount: null,
+							ignoreCustomFilter: null
+						};
 					}
 				}
 				break;
@@ -1415,12 +1441,12 @@
 		});
 		return res;
 	};
-	CT_slicerCacheDefinition.prototype.applyPivotFilterWithLock = function(api, values, slicerName, excludePivot, confirmation) {
+	CT_slicerCacheDefinition.prototype.applyPivotFilterWithLock = function (api, values, slicerName, excludePivot, confirmation) {
 		var t = this;
 		var fld = this.getPivotFieldIndex();
 		var pivotTables = this.getPivotTables();
 		if (-1 !== fld && pivotTables.length > 0) {
-			api._isLockedPivotAndConnectedBySlicer(pivotTables[0], [fld], function(res) {
+			api._isLockedPivotAndConnectedBySlicer(pivotTables[0], [fld], function (res) {
 				if (!res) {
 					api.wbModel.onSlicerUpdate(slicerName);
 					return;
@@ -1432,16 +1458,20 @@
 				api.wbModel.dependencyFormulas.unlockRecal();
 				History.EndTransaction();
 
-				api._changePivotEndCheckError(changeRes, function() {
+				let success = api._changePivotEndCheckError(changeRes, function () {
 					t.applyPivotFilterWithLock(api, values, slicerName, excludePivot, true);
 				});
+				if (success) {
+					//todo pivot
+					api.updateWorksheetByPivotTable(pivotTables[0], changeRes, true, false);
+				}
 			});
 		} else {
 			api.wbModel.onSlicerUpdate(slicerName);
 		}
 	};
-	CT_slicerCacheDefinition.prototype.applyPivotFilter = function(api, values, excludePivot, confirmation) {
-		var changeRes = {error: c_oAscError.ID.No, warning: c_oAscError.ID.No};
+	CT_slicerCacheDefinition.prototype.applyPivotFilter = function (api, values, excludePivot, confirmation) {
+		var changeRes =  new AscCommonExcel.PivotChangeResult();
 		var fld = this.getPivotFieldIndex();
 		if (-1 === fld) {
 			return;
@@ -1467,14 +1497,15 @@
 			pivotTable.fillAutoFiltersOptions(autoFilterObject, fld);
 			autoFilterObject.setVisibleFromValues(visible);
 			autoFilterObject.filter.type = Asc.c_oAscAutoFilterTypes.Filters;
-			changeRes = api._changePivot(pivotTable, confirmation, false, function(ws) {
+			let changeResCur = api._changePivot(pivotTable, confirmation, true, function (ws) {
 				pivotTable.filterPivotItems(fld, autoFilterObject);
 			});
+			changeRes.merge(changeResCur);
 			if (c_oAscError.ID.No !== changeRes.error || c_oAscError.ID.No !== changeRes.warning) {
 				return changeRes;
 			}
-			if (changeRes.updateRes) {
-				pivotTable.syncSlicersWithPivot(changeRes.updateRes.cacheFieldsWithData);
+			if (changeResCur.updateRes) {
+				pivotTable.syncSlicersWithPivot(changeResCur.updateRes.cacheFieldsWithData);
 			}
 		}
 		var oldVal = new AscCommonExcel.UndoRedoData_BinaryWrapper2(this);
@@ -1508,7 +1539,7 @@
 		return this.data && this.data.olap;
 	};
 
-	CT_slicerCacheDefinition.prototype.checkObjApply = function (name, obj_name, type, pivotTable){
+	CT_slicerCacheDefinition.prototype.checkObjApply = function (name, obj_name, type, pivotTable) {
 		var res = false;
 		var _obj;
 		switch (type) {
@@ -1527,7 +1558,7 @@
 		return res;
 	};
 
-	CT_slicerCacheDefinition.prototype.setName = function (val){
+	CT_slicerCacheDefinition.prototype.setName = function (val) {
 		this.name = val;
 	};
 
@@ -1589,7 +1620,7 @@
 			var oldVal = obj.customListSort;
 			obj.setCustomListSort(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheCustomListSort,
-				null , null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
+				null, null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 		}
 	};
 
@@ -1618,11 +1649,11 @@
 		return false;
 	};
 
-	CT_slicerCacheDefinition.prototype.updateItemsWithNoData = function() {
+	CT_slicerCacheDefinition.prototype.updateItemsWithNoData = function () {
 		var tabular = this.getTabular();
 		var pivotTables = this.getPivotTables();
 		if (tabular && pivotTables.length > 0) {
-			var pivotTable = pivotTables[pivotTables.length - 1];
+			var pivotTable = pivotTables[0];
 			var calculateRes = pivotTable.calculateDataRow();
 			this.syncWithPivot(pivotTable, calculateRes.cacheFieldsWithData);
 		}
@@ -1684,16 +1715,16 @@
 		}
 		return res;
 	};
-	CT_slicerCacheDefinition.prototype.getPivotCache = function() {
+	CT_slicerCacheDefinition.prototype.getPivotCache = function () {
 		var tabular = this.getTabular();
 		return tabular && tabular.pivotCacheDefinition || null;
 	};
-	CT_slicerCacheDefinition.prototype.getPivotCacheId = function() {
+	CT_slicerCacheDefinition.prototype.getPivotCacheId = function () {
 		//todo olap
 		var tabular = this.getTabular();
 		return tabular && tabular.pivotCacheDefinition && tabular.pivotCacheDefinition.getPivotCacheId() || null;
 	};
-	CT_slicerCacheDefinition.prototype.getPivotFieldIndex = function() {
+	CT_slicerCacheDefinition.prototype.getPivotFieldIndex = function () {
 		var tabular = this.getTabular();
 		if (tabular && tabular.pivotCacheDefinition) {
 			var fieldIndex = tabular.pivotCacheDefinition.getFieldIndexByName(this.sourceName);
@@ -1703,10 +1734,10 @@
 		}
 		return -1;
 	};
-	CT_slicerCacheDefinition.prototype.getPivotTables = function() {
+	CT_slicerCacheDefinition.prototype.getPivotTables = function () {
 		var res = [];
 		var wb = this.wb;
-		this.pivotTables.forEach(function(table) {
+		this.pivotTables.forEach(function (table) {
 			var pivotTable = table.getPivotTable(wb);
 			if (pivotTable) {
 				res.push(pivotTable);
@@ -1714,8 +1745,8 @@
 		});
 		return res;
 	};
-	CT_slicerCacheDefinition.prototype.indexOfPivotTable = function(sheetId, pivotName) {
-		return this.pivotTables.findIndex(function(elem) {
+	CT_slicerCacheDefinition.prototype.indexOfPivotTable = function (sheetId, pivotName) {
+		return this.pivotTables.findIndex(function (elem) {
 			return elem.sheetId === sheetId && elem.name === pivotName;
 		});
 	};
@@ -1729,7 +1760,7 @@
 		History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheData,
 			null, null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, newVal));
 	};
-	CT_slicerCacheDefinition.prototype.getPivotTablesCount = function() {
+	CT_slicerCacheDefinition.prototype.getPivotTablesCount = function () {
 		return this.pivotTables.length;
 	};
 	CT_slicerCacheDefinition.prototype.syncWithPivot = function (pivotTable, cacheFieldsWithData) {
@@ -1752,8 +1783,8 @@
 		}
 	};
 	CT_slicerCacheDefinition.prototype.movePivotTable = function (sheetIdFrom, nameFrom, sheetIdTo, nameTo) {
-		this.pivotTables.forEach(function(table) {
-			if(table.sheetId === sheetIdFrom && table.name===nameFrom){
+		this.pivotTables.forEach(function (table) {
+			if (table.sheetId === sheetIdFrom && table.name === nameFrom) {
 				table.sheetId = sheetIdTo;
 				table.name = nameTo;
 			}
@@ -1764,8 +1795,8 @@
 			null, null, new AscCommonExcel.UndoRedoData_Slicer(this.name, from, to));
 	};
 	CT_slicerCacheDefinition.prototype.forCopySheet = function (sheetIdFrom, sheetIdTo) {
-		this.pivotTables.forEach(function(table) {
-			if(table.sheetId === sheetIdFrom){
+		this.pivotTables.forEach(function (table) {
+			if (table.sheetId === sheetIdFrom) {
 				table.sheetId = sheetIdTo;
 			}
 		});
@@ -1777,6 +1808,7 @@
 		this.olap = null;//OlapSlicerCache
 		this.tabular = null;//TabularSlicerCache
 	}
+
 	CT_slicerCacheData.prototype.clone = function () {
 		var res = new CT_slicerCacheData();
 
@@ -1802,13 +1834,11 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
+			switch (_at) {
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -1816,27 +1846,22 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					this.olap = new CT_olapSlicerCache();
 					this.olap.fromStream(s);
 					break;
 				}
-				case 1:
-				{
+				case 1: {
 					this.tabular = new CT_tabularSlicerCache();
 					this.tabular.fromStream(s);
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -1850,6 +1875,7 @@
 		this.tabIdOpen = null;
 		this.name = null;
 	}
+
 	CT_slicerCachePivotTable.prototype.initPostOpen = function (sheetIds) {
 		var ws = null;
 		if (null != this.tabIdOpen) {
@@ -1887,13 +1913,11 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
+			switch (_at) {
 				case 0: {
 					if (historySerialize) {
 						this.sheetId = s.GetString2();
@@ -1902,7 +1926,10 @@
 					}
 					break;
 				}
-				case 1: { this.name = s.GetString2(); break; }
+				case 1: {
+					this.name = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -1910,7 +1937,7 @@
 		}
 		s.Seek2(_end_pos);
 	};
-	CT_slicerCachePivotTable.prototype.getPivotTable = function(wb) {
+	CT_slicerCachePivotTable.prototype.getPivotTable = function (wb) {
 		var ws = wb.getWorksheetById(this.sheetId);
 		if (ws) {
 			return ws.getPivotTableByName(this.name);
@@ -1925,6 +1952,7 @@
 		this.c = null;
 		this.nd = false;
 	}
+
 	CT_olapSlicerCacheItem.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheItem();
 
@@ -1943,8 +1971,8 @@
 		s._WriteBool2(2, this.nd);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
-		if(this.p.length > 0){
-			var p = this.p.map(function(currentValue){
+		if (this.p.length > 0) {
+			var p = this.p.map(function (currentValue) {
 				var res = new CT_olapSlicerCacheItemParent();
 				res.n = currentValue;
 				return res;
@@ -1959,16 +1987,23 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.n = s.GetString2(); break; }
-				case 1: { this.c = s.GetString2(); break; }
-				case 2: { this.nd = s.GetBool(); break; }
+			switch (_at) {
+				case 0: {
+					this.n = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.c = s.GetString2();
+					break;
+				}
+				case 2: {
+					this.nd = s.GetBool();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -1976,19 +2011,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_olapSlicerCacheItemParent();
 						tmp.fromStream(s);
@@ -1996,8 +2027,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2010,6 +2040,7 @@
 		this.i = [];//OlapSlicerCacheItem
 		this.startItem = null
 	}
+
 	CT_olapSlicerCacheRange.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheRange();
 
@@ -2033,14 +2064,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.startItem = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.startItem = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2048,19 +2080,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_olapSlicerCacheItem();
 						tmp.fromStream(s);
@@ -2068,8 +2096,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2086,6 +2113,7 @@
 		this.sortOrder = ST_olapSlicerCacheSortOrder.Natural;
 		this.crossFilter = ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop;
 	}
+
 	CT_olapSlicerCacheLevelData.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheLevelData();
 
@@ -2119,18 +2147,31 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.uniqueName = s.GetString2(); break; }
-				case 1: { this.sourceCaption = s.GetString2(); break; }
-				case 2: { this.count = s.GetULong(); break; }
-				case 3: { this.sortOrder = s.GetUChar(); break; }
-				case 4: { this.crossFilter = s.GetUChar(); break; }
+			switch (_at) {
+				case 0: {
+					this.uniqueName = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.sourceCaption = s.GetString2();
+					break;
+				}
+				case 2: {
+					this.count = s.GetULong();
+					break;
+				}
+				case 3: {
+					this.sortOrder = s.GetUChar();
+					break;
+				}
+				case 4: {
+					this.crossFilter = s.GetUChar();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2138,19 +2179,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_olapSlicerCacheRange();
 						tmp.fromStream(s);
@@ -2158,8 +2195,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2174,6 +2210,7 @@
 		this.pivotCacheId = null;
 		this.pivotCacheDefinition = null;
 	}
+
 	CT_olapSlicerCache.prototype.initAfterSerialize = function (wb, pivotCachesOpen) {
 		if (null !== this.pivotCacheId) {
 			this.pivotCacheDefinition = wb.getPivotCacheById(this.pivotCacheId, pivotCachesOpen);
@@ -2227,14 +2264,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.pivotCacheId = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.pivotCacheId = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2242,29 +2280,24 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					var levelsData = new CT_olapSlicerCacheLevelsData();
 					levelsData.fromStream(s);
 					this.levels = levelsData.level;
 					break;
 				}
-				case 1:
-				{
+				case 1: {
 					var selections = new CT_olapSlicerCacheSelections();
 					selections.fromStream(s);
 					this.selections = selections.selection;
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2272,14 +2305,16 @@
 		}
 		s.Seek2(_end_pos);
 	};
-	CT_olapSlicerCache.prototype.getPivotCacheId = function() {
+	CT_olapSlicerCache.prototype.getPivotCacheId = function () {
 		return this.pivotCacheDefinition && this.pivotCacheDefinition.getPivotCacheId() || 0;
 	};
+
 	function CT_olapSlicerCacheLevelsData() {
 		this.count = null;
 		this.level = [];
 		return this;
 	}
+
 	CT_olapSlicerCacheLevelsData.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheLevelsData();
 
@@ -2305,14 +2340,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.count = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.count = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2320,19 +2356,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_olapSlicerCacheLevelData();
 						tmp.fromStream(s);
@@ -2340,8 +2372,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2349,11 +2380,13 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_olapSlicerCacheSelections() {
 		this.count = null;
 		this.selection = [];
 		return this;
 	}
+
 	CT_olapSlicerCacheSelections.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheSelections();
 
@@ -2379,14 +2412,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.count = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.count = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2394,19 +2428,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_olapSlicerCacheSelection();
 						tmp.fromStream(s);
@@ -2414,8 +2444,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2423,10 +2452,12 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_olapSlicerCacheSelection() {
 		this.p = [];//OlapSlicerCacheItemParent - состоит из одного поля, поэтому данную структуру не добавляю
 		this.n = null;
 	}
+
 	CT_olapSlicerCacheSelections.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheSelection();
 
@@ -2443,8 +2474,8 @@
 		s._WriteString2(0, this.n);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
-		if(this.p.length > 0){
-			var p = this.p.map(function(currentValue){
+		if (this.p.length > 0) {
+			var p = this.p.map(function (currentValue) {
 				var res = new CT_olapSlicerCacheItemParent();
 				res.n = currentValue;
 				return res;
@@ -2459,14 +2490,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.n = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.n = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2474,19 +2506,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_olapSlicerCacheItemParent();
 						tmp.fromStream(s);
@@ -2494,8 +2522,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2503,10 +2530,12 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_olapSlicerCacheItemParent() {
 		this.n = null;
 		return this;
 	}
+
 	CT_olapSlicerCacheItemParent.prototype.clone = function () {
 		var res = new CT_olapSlicerCacheItemParent();
 
@@ -2527,14 +2556,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.n = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.n = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2554,6 +2584,7 @@
 
 		return this;
 	}
+
 	CT_tableSlicerCache.prototype.clone = function () {
 		var res = new CT_tableSlicerCache();
 
@@ -2614,13 +2645,11 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
+			switch (_at) {
 				case 0: {
 					if (historySerialize) {
 						this.tableId = s.GetString2();
@@ -2637,9 +2666,18 @@
 					}
 					break;
 				}
-				case 2: { this.sortOrder = s.GetUChar(); break; }
-				case 3: { this.customListSort = s.GetBool(); break; }
-				case 4: { this.crossFilter = s.GetUChar(); break; }
+				case 2: {
+					this.sortOrder = s.GetUChar();
+					break;
+				}
+				case 3: {
+					this.customListSort = s.GetBool();
+					break;
+				}
+				case 4: {
+					this.crossFilter = s.GetUChar();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2676,6 +2714,7 @@
 		this.showMissing = true;
 		this.crossFilter = ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop;
 	}
+
 	CT_tabularSlicerCache.prototype.initAfterSerialize = function (wb, pivotCachesOpen) {
 		if (null !== this.pivotCacheId) {
 			this.pivotCacheDefinition = wb.getPivotCacheById(this.pivotCacheId, pivotCachesOpen);
@@ -2729,18 +2768,31 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.pivotCacheId = s.GetULong(); break; }
-				case 1: { this.sortOrder = s.GetUChar(); break; }
-				case 2: { this.customListSort = s.GetBool(); break; }
-				case 3: { this.showMissing = s.GetBool(); break; }
-				case 4: { this.crossFilter = s.GetUChar(); break; }
+			switch (_at) {
+				case 0: {
+					this.pivotCacheId = s.GetULong();
+					break;
+				}
+				case 1: {
+					this.sortOrder = s.GetUChar();
+					break;
+				}
+				case 2: {
+					this.customListSort = s.GetBool();
+					break;
+				}
+				case 3: {
+					this.showMissing = s.GetBool();
+					break;
+				}
+				case 4: {
+					this.crossFilter = s.GetUChar();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2748,22 +2800,18 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					var items = new CT_tabularSlicerCacheItems();
 					items.fromStream(s);
 					this.items = items.i;
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2792,7 +2840,7 @@
 		}
 		this.sortItems(this.sortOrder, cacheField.getGroupOrSharedItems());
 	};
-	CT_tabularSlicerCache.prototype.sortItems = function(type, sharedItems) {
+	CT_tabularSlicerCache.prototype.sortItems = function (type, sharedItems) {
 		var sign = ST_tabularSlicerCacheSortOrder.Ascending === type ? 1 : -1;
 		if (this.crossFilter === ST_slicerCacheCrossFilter.ShowItemsWithDataAtTop) {
 			this.items.sort(function (a, b) {
@@ -2803,21 +2851,31 @@
 				}
 			});
 		} else {
-			this.items.sort(function(a, b) {
+			this.items.sort(function (a, b) {
 				return sign * AscCommonExcel.cmpPivotItems(sharedItems, a, b);
 			});
 		}
 	};
-	CT_tabularSlicerCache.prototype.getFilterObject = function(cacheField, slicerCacheHideItemsWithNoData) {
+	CT_tabularSlicerCache.prototype.getFilterObject = function (cacheField, slicerCacheHideItemsWithNoData, opt_pivotField) {
 		var values = [];
+		let pivotItems;
+		if (opt_pivotField) {
+			pivotItems = opt_pivotField.getItems();
+		}
 		for (var i = 0; i < this.items.length; ++i) {
 			var item = this.items[i];
 			var elem = AscCommonExcel.AutoFiltersOptionsElements();
 			var sharedItem = cacheField.getGroupOrSharedItem(item.x);
 			var num = sharedItem.isDateOrNum() && cacheField.getNumFormat();
-			var cellValue = sharedItem.getCellValue();
+			let name;
+			if (pivotItems) {
+				const pivotItem = pivotItems[opt_pivotField.getItemIndexByValue(item.x)];
+				name = pivotItem.getName(cacheField, num);
+			} else {
+				name = sharedItem.getCellValue().getTextValue(num);
+			}
 			elem.val = item.x;
-			elem.text = cellValue.getTextValue(num);
+			elem.text = name;
 			elem.visible = item.s;
 			elem.hiddenByOtherColumns = item.nd || undefined;//todo
 			elem.isDateFormat = false;
@@ -2829,8 +2887,8 @@
 		}
 		return values;
 	};
-	CT_tabularSlicerCache.prototype.fromAutoFiltersOptionsElements = function(visible) {
-		for(var i = 0; i < this.items.length; ++i){
+	CT_tabularSlicerCache.prototype.fromAutoFiltersOptionsElements = function (visible) {
+		for (var i = 0; i < this.items.length; ++i) {
 			this.items[i].s = !!visible[this.items[i].x];
 		}
 	};
@@ -2843,7 +2901,7 @@
 	CT_tabularSlicerCache.prototype.setCrossFilter = function (val) {
 		this.crossFilter = val;
 	};
-	CT_tabularSlicerCache.prototype.getPivotCacheId = function() {
+	CT_tabularSlicerCache.prototype.getPivotCacheId = function () {
 		return this.pivotCacheDefinition && this.pivotCacheDefinition.getPivotCacheId() || 0;
 	};
 
@@ -2852,6 +2910,7 @@
 		this.count = null;
 		return this;
 	}
+
 	CT_slicerCacheOlapLevelName.prototype.clone = function () {
 		var res = new CT_slicerCacheOlapLevelName();
 
@@ -2874,15 +2933,19 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.uniqueName = s.GetString2(); break; }
-				case 1: { this.count = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.uniqueName = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.count = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2890,11 +2953,13 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_slicerCacheHideNoData() {
 		this.count = 0;
 		this.slicerCacheOlapLevelName = [];
 		return this;
 	}
+
 	CT_slicerCacheHideNoData.prototype.clone = function () {
 		var res = new CT_slicerCacheHideNoData();
 
@@ -2919,14 +2984,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.count = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.count = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -2934,19 +3000,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_slicerCacheOlapLevelName();
 						tmp.fromStream(s);
@@ -2954,8 +3016,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -2970,6 +3031,7 @@
 		this.i = [];
 		return this;
 	}
+
 	CT_tabularSlicerCacheItems.prototype.clone = function () {
 		var res = new CT_tabularSlicerCacheItems();
 
@@ -2994,14 +3056,15 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.count = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.count = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -3009,19 +3072,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_tabularSlicerCacheItem();
 						tmp.fromStream(s);
@@ -3029,8 +3088,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -3038,11 +3096,13 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_tabularSlicerCacheItem() {
 		this.x = null;
 		this.s = false;
 		this.nd = false;
 	}
+
 	CT_tabularSlicerCacheItem.prototype.clone = function () {
 		var res = new CT_tabularSlicerCacheItem();
 		res.x = this.x;
@@ -3065,16 +3125,23 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.x = s.GetULong(); break; }
-				case 1: { this.s = s.GetBool(); break; }
-				case 2: { this.nd = s.GetBool(); break; }
+			switch (_at) {
+				case 0: {
+					this.x = s.GetULong();
+					break;
+				}
+				case 1: {
+					this.s = s.GetBool();
+					break;
+				}
+				case 2: {
+					this.nd = s.GetBool();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -3086,7 +3153,7 @@
 	var prot;
 	window['Asc'] = window['Asc'] || {};
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
-	
+
 	window['Asc']['CT_slicer'] = window['Asc'].CT_slicer = CT_slicer;
 	prot = CT_slicer.prototype;
 	prot["asc_setName"] = prot.asc_setName;
@@ -3141,7 +3208,7 @@
 	window['Asc']['CT_slicerCacheHideNoData'] = window['Asc'].CT_slicerCacheHideNoData = CT_slicerCacheHideNoData;
 	window['Asc']['CT_slicerCacheOlapLevelName'] = window['Asc'].CT_slicerCacheOlapLevelName = CT_slicerCacheOlapLevelName;
 	window['Asc']['CT_olapSlicerCacheItemParent'] = window['Asc'].CT_olapSlicerCacheItemParent = CT_olapSlicerCacheItemParent;
-	
+
 	window['Asc']['ST_olapSlicerCacheSortOrder'] = window['AscCommonExcel'].ST_olapSlicerCacheSortOrder = ST_olapSlicerCacheSortOrder;
 	prot = ST_olapSlicerCacheSortOrder;
 	prot['Natural'] = prot.Natural;
@@ -3153,7 +3220,7 @@
 	prot['Ascending'] = prot.Ascending;
 	prot['Descending'] = prot.Descending;
 
-	window['Asc']['ST_slicerCacheCrossFilter'] = window['AscCommonExcel'].ST_slicerCacheCrossFilter = ST_slicerCacheCrossFilter;
+	window['Asc']['ST_slicerCacheCrossFilter'] = window['Asc'].ST_slicerCacheCrossFilter = ST_slicerCacheCrossFilter;
 	prot = ST_slicerCacheCrossFilter;
 	prot['None'] = prot.None;
 	prot['ShowItemsWithDataAtTop'] = prot.ShowItemsWithDataAtTop;

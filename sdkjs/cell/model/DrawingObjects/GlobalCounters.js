@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,20 +34,8 @@
 
 (function(window, undefined){
 
-    /**
-     *
-     * @constructor
-     * @extends {AscCommon.CCollaborativeEditingBase}
-     */
-    function CCollaborativeEditing()
-    {
-        AscCommon.CCollaborativeEditingBase.call(this);
-        this.WaitImages = {};
-    }
-
-    CCollaborativeEditing.prototype = Object.create(AscCommon.CCollaborativeEditingBase.prototype);
-    CCollaborativeEditing.prototype.constructor = CCollaborativeEditing;
-
+    let CCollaborativeEditing = AscCommonExcel.CCollaborativeEditing;
+    //constructor in cell/model/CollaborativeEditing.js
     CCollaborativeEditing.prototype.GetEditorApi = function()
     {
         return Asc.editor;
@@ -129,7 +117,6 @@
     //-----------------------------------------------------------------------------------
     CCollaborativeEditing.prototype.Apply_LinkData = function()
     {
-        AscCommon.CCollaborativeEditingBase.prototype.Apply_LinkData.call(this);
         //stub for asc_nativeApplyChanges2(Load_Images clears m_aNewImages) remove it together with Load_Images above
         if (window["NATIVE_EDITOR_ENJINE"] === true)
         {
@@ -330,14 +317,6 @@
     //-----------------------------------------------------------------------------------
     // Функции для работы с новыми объектами, созданными на других клиентах
     //-----------------------------------------------------------------------------------
-    CCollaborativeEditing.prototype.Clear_NewObjects = function()
-    {
-    };
-
-    CCollaborativeEditing.prototype.Add_NewObject = function(Class)
-    {
-    };
-
     CCollaborativeEditing.prototype.OnEnd_ReadForeignChanges = function()
     {
     };
@@ -357,5 +336,4 @@
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};
-    window['AscCommon'].CollaborativeEditing = new CCollaborativeEditing();
 })(window);

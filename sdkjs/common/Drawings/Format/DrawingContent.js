@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -161,6 +161,50 @@
             }
         }
         return dHeight;
+    };
+
+    // function to find the maximum width of the text inside the rect, as each line contains different widths  
+    CDrawingDocContent.prototype.GetSummaryWidth =function () {
+        // width of single line label 
+        let width = 20000;
+        if (!this.Content || !Array.isArray(this.Content )) {
+            return width;
+        }
+        const lines = this.Content[0].Lines;
+        if (lines && Array.isArray(lines)) {
+            for (let i = 0; i < lines.length; i++) {
+                const newWidth = lines[i] && lines[i].Ranges && Array.isArray(lines[i].Ranges) && lines[i].Ranges.length > 0 ? lines[i].Ranges[0].W : null;
+                if (newWidth !== null && (i === 0 || width < newWidth)) {
+                    width = newWidth;
+                }
+            }
+        }
+
+        return width;
+    };
+
+    // function to find the width of the unfolded 2d array, simply add width of each line
+    CDrawingDocContent.prototype.getUnfoldedWidth = function (nLines) {
+        // width of single line label 
+        if (!this.Content || !Array.isArray(this.Content )) {
+            return 20000;
+        }
+        let width = 0;
+        const boxError = 0.1;
+        const lines = this.Content[0].Lines;
+        if (lines && Array.isArray(lines)) {
+            for (let i = 0; i < nLines; i++) {
+                if (lines.length < i) {
+                    break;
+                }
+                const newWidth = lines[i] && lines[i].Ranges && Array.isArray(lines[i].Ranges) && lines[i].Ranges.length > 0 ? lines[i].Ranges[0].W : null;
+                if (newWidth !== null) {
+                    width += newWidth;
+                }
+            }
+        }
+        
+        return width + boxError;
     };
 
     CDrawingDocContent.prototype.Get_ColumnsCount = function(){
@@ -468,10 +512,7 @@
             var oSection = this.Pages[0].Sections[0];
             if(oSection){
 
-                if (pGraphics.Start_Command)
-                {
-                    pGraphics.Start_Command(AscFormat.DRAW_COMMAND_CONTENT);
-                }
+                pGraphics.Start_Command(AscFormat.DRAW_COMMAND_CONTENT);
 
                 for (var ColumnIndex = 0, ColumnsCount = oSection.Columns.length; ColumnIndex < ColumnsCount; ++ColumnIndex)
                 {
@@ -503,10 +544,7 @@
                      }*/
                 }
 
-                if (pGraphics.End_Command)
-                {
-                    pGraphics.End_Command();
-                }
+                pGraphics.End_Command();
             }
 
             else{
@@ -795,7 +833,8 @@
                 var oShape = this.Parent.parent;
                 var contentPoints = oShape.getSmartArtPointContent();
                 if (contentPoints && contentPoints.length !== 0) {
-                    var isPhldr = contentPoints.every(function (point) {
+                    var isPhldr = contentPoints.every(function (node) {
+												const point = node.point;
                         return point && point.prSet && point.prSet.phldr;
                     });
                     if (isPhldr) {
@@ -809,7 +848,29 @@
 
     CDrawingDocContent.prototype.isDocumentContentInSmartArtShape = function () {
         return this.Parent && this.Parent.parent && this.Parent.parent.isObjectInSmartArt && this.Parent.parent.isObjectInSmartArt();
-    }
+    };
+
+	CDrawingDocContent.prototype.RecalcAllFields = function() {
+		const aFields = this.AllFields;
+		for(let nField = 0; nField < aFields.length; ++nField)
+		{
+			let oField = aFields[nField];
+			oField.RecalcMeasure();
+			oField.Refresh_RecalcData2();
+		}
+	};
+
+    CDrawingDocContent.prototype.getDrawingDocument = function() {
+        if(this.Parent && this.Parent.getDrawingDocument) {
+            return this.Parent.getDrawingDocument();
+        }
+        return null;
+    };
+    CDrawingDocContent.prototype.GetLogicDocument = function() {
+        if(Asc.editor.private_GetLogicDocument)
+            return Asc.editor.private_GetLogicDocument();
+        return null;
+    };
     // TODO: сделать по-нормальному!!!
     function CDocument_prototype_private_GetElementPageIndexByXY(ElementPos, X, Y, PageIndex)
     {

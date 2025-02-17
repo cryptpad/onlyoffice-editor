@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -45,45 +45,12 @@
   var c_oAscForceSaveTypes = AscCommon.c_oAscForceSaveTypes;
 
   // Класс надстройка, для online и offline работы
-  function CDocsCoApi(options) {
+  function CDocsCoApi() {
     this._CoAuthoringApi = new DocsCoApi();
     this._onlineWork = false;
-
-    if (options) {
-      this.onAuthParticipantsChanged = options.onAuthParticipantsChanged;
-      this.onParticipantsChanged = options.onParticipantsChanged;
-      this.onParticipantsChangedOrigin = options.onParticipantsChangedOrigin;
-      this.onMessage = options.onMessage;
-      this.onServerVersion = options.onServerVersion;
-      this.onCursor =  options.onCursor;
-      this.onMeta =  options.onMeta;
-      this.onSession =  options.onSession;
-      this.onExpiredToken =  options.onExpiredToken;
-	  this.onForceSave =  options.onForceSave;
-      this.onHasForgotten =  options.onHasForgotten;
-      this.onLocksAcquired = options.onLocksAcquired;
-      this.onLocksReleased = options.onLocksReleased;
-      this.onLocksReleasedEnd = options.onLocksReleasedEnd; // ToDo переделать на массив release locks
-      this.onDisconnect = options.onDisconnect;
-      this.onWarning = options.onWarning;
-      this.onFirstLoadChangesEnd = options.onFirstLoadChangesEnd;
-      this.onConnectionStateChanged = options.onConnectionStateChanged;
-      this.onSetIndexUser = options.onSetIndexUser;
-      this.onSpellCheckInit = options.onSpellCheckInit;
-      this.onSaveChanges = options.onSaveChanges;
-      this.onChangesIndex = options.onChangesIndex;
-      this.onStartCoAuthoring = options.onStartCoAuthoring;
-      this.onEndCoAuthoring = options.onEndCoAuthoring;
-      this.onUnSaveLock = options.onUnSaveLock;
-      this.onRecalcLocks = options.onRecalcLocks;
-      this.onDocumentOpen = options.onDocumentOpen;
-      this.onFirstConnect = options.onFirstConnect;
-      this.onLicense = options.onLicense;
-      this.onLicenseChanged = options.onLicenseChanged;
-    }
   }
 
-  CDocsCoApi.prototype.init = function(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo) {
+  CDocsCoApi.prototype.init = function(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo, shardKey, wopiSrc, userSessionId, openCmd) {
     if (this._CoAuthoringApi && this._CoAuthoringApi.isRightURL()) {
       var t = this;
       this._CoAuthoringApi.onAuthParticipantsChanged = function(e, id) {
@@ -178,7 +145,7 @@
         t.callback_OnLicenseChanged(res);
 	  };
 
-      this._CoAuthoringApi.init(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo);
+      this._CoAuthoringApi.init(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo, shardKey, wopiSrc, userSessionId, openCmd);
       this._onlineWork = true;
     } else {
       // Фиктивные вызовы
@@ -390,15 +357,15 @@
     }
   };
 
-  CDocsCoApi.prototype.extendSession = function(idleTime) {
+  CDocsCoApi.prototype.connect = function() {
     if (this._CoAuthoringApi && this._onlineWork) {
-      this._CoAuthoringApi.extendSession(idleTime);
+      this._CoAuthoringApi.connect();
     }
   };
 
-  CDocsCoApi.prototype.versionHistory = function(data) {
+  CDocsCoApi.prototype.extendSession = function(idleTime) {
     if (this._CoAuthoringApi && this._onlineWork) {
-      this._CoAuthoringApi.versionHistory(data);
+      this._CoAuthoringApi.extendSession(idleTime);
     }
   };
 
@@ -597,39 +564,7 @@
     this._callback = callback;
   }
 
-  function DocsCoApi(options) {
-    if (options) {
-      this.onAuthParticipantsChanged = options.onAuthParticipantsChanged;
-      this.onParticipantsChanged = options.onParticipantsChanged;
-      this.onParticipantsChangedOrigin = options.onParticipantsChangedOrigin;
-      this.onMessage = options.onMessage;
-      this.onServerVersion = options.onServerVersion;
-      this.onCursor = options.onCursor;
-      this.onMeta = options.onMeta;
-      this.onSession =  options.onSession;
-      this.onExpiredToken =  options.onExpiredToken;
-	  this.onForceSave =  options.onForceSave;
-      this.onHasForgotten =  options.onHasForgotten;
-      this.onLocksAcquired = options.onLocksAcquired;
-      this.onLocksReleased = options.onLocksReleased;
-      this.onLocksReleasedEnd = options.onLocksReleasedEnd; // ToDo переделать на массив release locks
-      this.onRelockFailed = options.onRelockFailed;
-      this.onDisconnect = options.onDisconnect;
-      this.onWarning = options.onWarning;
-      this.onSetIndexUser = options.onSetIndexUser;
-      this.onSpellCheckInit = options.onSpellCheckInit;
-      this.onSaveChanges = options.onSaveChanges;
-      this.onChangesIndex = options.onChangesIndex;
-      this.onFirstLoadChangesEnd = options.onFirstLoadChangesEnd;
-      this.onConnectionStateChanged = options.onConnectionStateChanged;
-      this.onUnSaveLock = options.onUnSaveLock;
-      this.onRecalcLocks = options.onRecalcLocks;
-      this.onDocumentOpen = options.onDocumentOpen;
-      this.onFirstConnect = options.onFirstConnect;
-      this.onLicense = options.onLicense;
-      this.onLicenseChanged = options.onLicenseChanged;
-      this.binaryChanges = options.binaryChanges;
-    }
+  function DocsCoApi() {
     this._state = ConnectionState.None;
     // Online-пользователи в документе
     this._participants = {};
@@ -652,7 +587,7 @@
     this._id = null;
     this._sessionTimeConnect = null;
 	this._allChangesSaved = null;
-	this._lastForceSaveButtonTime = null;
+	this._lastForceSaveButtonTime = -2;//-2 to allow first save without changes
 	this._lastForceSaveTimeoutTime = null;
     this._indexUser = -1;
     // Если пользователей больше 1, то совместно редактируем
@@ -677,6 +612,9 @@
 	this.lastOwnSaveTime = -1;
     // Локальный индекс изменений
     this.changesIndex = 0;
+    //server changes index
+    //todo: replace changesIndex with syncChangesIndex. changesIndex has different value in single editing mode
+    this.syncChangesIndex = 0;
     // Дополнительная информация для Excel
     this.excelAdditionalInfo = null;
     // Unlock document
@@ -707,12 +645,12 @@
     this.mode = undefined;
     this.permissions = undefined;
     this.lang = undefined;
+    this.openCmd = undefined;
     this.jwtOpen = undefined;
     this.jwtSession = undefined;
     this.encrypted = undefined;
     this.IsAnonymousUser = undefined;
     this.coEditingMode = undefined;
-    this._isViewer = false;
     this._isReSaveAfterAuth = false;	// Флаг для сохранения после повторной авторизации (для разрыва соединения во время сохранения)
     this._lockBuffer = [];
     this._saveChangesChunks = [];
@@ -794,7 +732,7 @@
     var isLock = false;
     var idLockInArray = null;
     for (; i < lengthArray; ++i) {
-      idLockInArray = (this._isExcel || this._isPresentation) ? arrayBlockId[i]['guid'] : arrayBlockId[i];
+      idLockInArray = (this._isExcel || this._isPresentation || this._isPDF) ? arrayBlockId[i]['guid'] : arrayBlockId[i];
       if (this._locks[idLockInArray] && 0 !== this._locks[idLockInArray].state) {
         isLock = true;
         break;
@@ -804,7 +742,7 @@
       isLock = true;
     }
 
-    idLockInArray = (this._isExcel || this._isPresentation) ? arrayBlockId[0]['guid'] : arrayBlockId[0];
+    idLockInArray = (this._isExcel || this._isPresentation || this._isPDF) ? arrayBlockId[0]['guid'] : arrayBlockId[0];
 
     if (!isLock) {
       if (this._lockCallbacksErrorTimerId.hasOwnProperty(idLockInArray)) {
@@ -878,7 +816,7 @@
       }, this.errorTimeOut);
     }
     this._state = ConnectionState.AskSaveChanges;
-    this._send({"type": "isSaveLock"});
+    this._send({"type": "isSaveLock", "syncChangesIndex": this.syncChangesIndex});
   };
 
   DocsCoApi.prototype.unSaveLock = function() {
@@ -965,6 +903,11 @@
     }
   };
 
+  DocsCoApi.prototype.connect = function() {
+    this.isCloseCoAuthoring = false;
+    this.socketio.connect();
+  };
+
   DocsCoApi.prototype.disconnect = function(opt_code, opt_reason) {
     // Отключаемся сами
     this.isCloseCoAuthoring = true;
@@ -979,10 +922,6 @@
 
   DocsCoApi.prototype.extendSession = function(idleTime) {
     this._send({'type': 'extendSession', 'idletime': idleTime});
-  };
-
-  DocsCoApi.prototype.versionHistory = function(data) {
-    this._send({'type': 'versionHistory', 'cmd': data});
   };
 
 	DocsCoApi.prototype.forceSave = function() {
@@ -1124,8 +1063,8 @@
   DocsCoApi.prototype._onRefreshToken = function(jwt) {
     this.jwtOpen = undefined;
     if (this.socketio) {
-      if (this.socketio.auth) {
-        this.socketio.auth.token = this.jwtOpen;
+      if (this.socketio["auth"]) {
+        this.socketio["auth"]["token"] = this.jwtOpen;
       }
       if (this.socketio.io && this.socketio.io.setOpenToken) {
         this.socketio.io.setOpenToken(this.jwtOpen);
@@ -1134,8 +1073,8 @@
     if (jwt) {
       this.jwtSession = jwt;
       if (this.socketio) {
-        if (this.socketio.auth) {
-          this.socketio.auth.session = this.jwtSession;
+        if (this.socketio["auth"]) {
+          this.socketio["auth"]["session"] = this.jwtSession;
         }
         if (this.socketio.io && this.socketio.io.setSessionToken) {
           this.socketio.io.setSessionToken(this.jwtSession);
@@ -1177,7 +1116,7 @@
     if (this.check_state() && data["locks"]) {
       for (var key in data["locks"]) {
         if (data["locks"].hasOwnProperty(key)) {
-          var lock = data["locks"][key], blockTmp = (this._isExcel || this._isPresentation) ? lock["block"]["guid"] : key, blockValue = (this._isExcel || this._isPresentation) ? lock["block"] : key;
+          var lock = data["locks"][key], blockTmp = (this._isExcel || this._isPresentation || this._isPDF) ? lock["block"]["guid"] : key, blockValue = (this._isExcel || this._isPresentation || this._isPDF) ? lock["block"] : key;
           if (lock !== null) {
             var changed = true;
             if (this._locks[blockTmp] && 1 !== this._locks[blockTmp].state /*asked for it*/) {
@@ -1216,7 +1155,7 @@
       var bSendEnd = false;
       for (var block in data["locks"]) {
         if (data["locks"].hasOwnProperty(block)) {
-          var lock = data["locks"][block], blockTmp = (this._isExcel || this._isPresentation) ? lock["block"]["guid"] : lock["block"];
+          var lock = data["locks"][block], blockTmp = (this._isExcel || this._isPresentation || this._isPDF) ? lock["block"]["guid"] : lock["block"];
           if (lock !== null) {
             this._locks[blockTmp] = {"state": 0, "user": lock["user"], "time": lock["time"], "changes": lock["changes"], "block": lock["block"]};
             if (this.onLocksReleased) {
@@ -1260,9 +1199,8 @@
       var bSendEnd = false;
       for (var block in data["locks"]) {
         if (data["locks"].hasOwnProperty(block)) {
-          var lock = data["locks"][block];
+          var lock = data["locks"][block], blockTmp = (this._isExcel || this._isPresentation || this._isPDF) ? lock["block"]["guid"] : lock["block"];
           if (lock !== null) {
-            var blockTmp = (this._isExcel || this._isPresentation) ? lock["block"]["guid"] : lock["block"];
             this._locks[blockTmp] = {"state": 0, "user": lock["user"], "time": lock["time"], "changes": lock["changes"], "block": lock["block"]};
             if (this.onLocksReleased) {
               // true - lock with save
@@ -1276,7 +1214,7 @@
         this.onLocksReleasedEnd();
       }
     }
-    this._updateChanges(data["changes"], data["changesIndex"], false);
+    this._updateChanges(data["changes"], data["changesIndex"], data["syncChangesIndex"], false);
 
     if (this.onRecalcLocks) {
       this.onRecalcLocks(data["excelAdditionalInfo"]);
@@ -1358,15 +1296,22 @@
     if (-1 !== data['time']) {
       this.lastOwnSaveTime = data['time'];
     }
+
+    if (undefined !== data['syncChangesIndex'] && -1 !== data['syncChangesIndex']) {
+      this.syncChangesIndex = data['syncChangesIndex'];
+    }
 	
     if (this.onUnSaveLock) {
       this.onUnSaveLock();
     }
   };
 
-  DocsCoApi.prototype._updateChanges = function(allServerChanges, changesIndex, bFirstLoad) {
+  DocsCoApi.prototype._updateChanges = function(allServerChanges, changesIndex, syncChangesIndex, bFirstLoad) {
     if (this.onSaveChanges) {
       this.changesIndex = changesIndex;
+      if (undefined !== syncChangesIndex && -1 !== syncChangesIndex) {
+        this.syncChangesIndex = syncChangesIndex;
+      }
       if (allServerChanges) {
         for (var i = 0; i < allServerChanges.length; ++i) {
           var change = allServerChanges[i];
@@ -1404,6 +1349,10 @@
 
     if (-1 !== data['changesIndex']) {
       this.changesIndex = data['changesIndex'];
+    }
+
+    if (undefined !== data['syncChangesIndex'] && -1 !== data['syncChangesIndex']) {
+      this.syncChangesIndex = data['syncChangesIndex'];
     }
 
     this.saveChanges(this.arrayChanges, this.currentIndexEnd);
@@ -1674,7 +1623,7 @@
     for (i = 0; i < this._authChanges.length; ++i) {
       changes = this._authChanges[i];
       changesIndex += changes.length;
-      this._updateChanges(changes, changesIndex, true);
+      this._updateChanges(changes, changesIndex, changesIndex, true);
     }
     this._authChanges = [];
     for (i = 0; i < this._authOtherChanges.length; ++i) {
@@ -1687,13 +1636,13 @@
           changes = data["changes"].splice(data["changes"].length - indexDiff, indexDiff);
         }
         changesIndex += changes.length;
-        this._updateChanges(changes, changesIndex, true);
+        this._updateChanges(changes, changesIndex, changesIndex, true);
       }
     }
     this._authOtherChanges = [];
   };
 
-  DocsCoApi.prototype.init = function(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo) {
+  DocsCoApi.prototype.init = function(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo, shardKey, wopiSrc, userSessionId, openCmd) {
     this._user = user;
     this._docid = null;
     this._documentCallbackUrl = documentCallbackUrl;
@@ -1703,15 +1652,20 @@
     this.editorType = editorType;
     this._isExcel = c_oEditorId.Spreadsheet === editorType;
     this._isPresentation = c_oEditorId.Presentation === editorType;
+    this._isPDF = Asc.editor.isPdfEditor();
     this._isAuth = false;
     this._documentFormatSave = documentFormatSave;
 	this.mode = docInfo.get_Mode();
 	this.permissions = docInfo.get_Permissions();
 	this.lang = docInfo.get_Lang();
+    this.openCmd = openCmd;
 	this.jwtOpen = docInfo.get_Token();
-    this.encrypted = docInfo.get_Encrypted();
+    this.encrypted = docInfo.get_Encrypted() || docInfo.get_IsWebOpening();
     this.IsAnonymousUser = docInfo.get_IsAnonymousUser();
     this.coEditingMode = docInfo.asc_getCoEditingMode();
+    this.shardKey = shardKey;
+    this.wopiSrc = wopiSrc;
+    this.userSessionId = userSessionId;
 
     this.setDocId(docid);
     this._initSocksJs();
@@ -1724,9 +1678,7 @@
     this._docid = docid;
     this.socketio_url = AscCommon.getBaseUrlPathname() + '../../../../doc/' + docid + '/c';
   };
-  // Авторизация (ее нужно делать после выставления состояния редактора view-mode)
-  DocsCoApi.prototype.auth = function(isViewer, opt_openCmd, opt_isIdle) {
-    this._isViewer = isViewer;
+  DocsCoApi.prototype.getAuthCommand = function(opt_openCmd, opt_isIdle) {
     if (this._locks) {
       this.ownedLockBlocks = [];
       //If we already have locks
@@ -1739,7 +1691,7 @@
       }
       this._locks = {};
     }
-    this._send({
+    return {
       'type': 'auth',
       'docid': this._docid,
       'documentCallbackUrl': this._documentCallbackUrl,
@@ -1755,10 +1707,9 @@
       'lastOtherSaveTime': this.lastOtherSaveTime,
       'block': this.ownedLockBlocks,
       'sessionId': this._id,
-	  'sessionTimeConnect': this._sessionTimeConnect,
+      'sessionTimeConnect': this._sessionTimeConnect,
       'sessionTimeIdle': opt_isIdle >= 0 ? opt_isIdle : 0,
       'documentFormatSave': this._documentFormatSave,
-      'view': this._isViewer,
       'isCloseCoAuthoring': this.isCloseCoAuthoring,
       'openCmd': opt_openCmd,
       'lang': this.lang,
@@ -1772,63 +1723,130 @@
       'jwtSession': this.jwtSession,
       'time': Math.round(performance.now()),
       'supportAuthChangesAck': true
-    });
+    };
+  };
+  // Авторизация (ее нужно делать после выставления состояния редактора view-mode)
+  DocsCoApi.prototype.auth = function(isViewer, opt_openCmd, opt_isIdle) {
+    this._send(this.getAuthCommand(opt_openCmd, opt_isIdle));
+  };
+  function CNativeSocket(settings)
+  {
+    this.engine = window['SockJS'];
+    this.settings = settings;
+    this.io = this;
+    this.settings["type"] = "socketio";
+
+    this.events = {};
+  }
+  CNativeSocket.prototype.open = function() { return this.engine.open(this.settings); };
+  CNativeSocket.prototype.send = function(message) { return this.engine.send(message); };
+  CNativeSocket.prototype.close = function() { return this.engine.close(); };
+  CNativeSocket.prototype.emit = function(message, data) { return this.send(JSON.stringify(data)); };
+
+  CNativeSocket.prototype.reconnectionAttempts = function(val) { this.settings["reconnectionAttempts"] = val; };
+  CNativeSocket.prototype.reconnectionDelay    = function(val) { this.settings["reconnectionDelay"] = val; };
+  CNativeSocket.prototype.reconnectionDelayMax = function(val) { this.settings["reconnectionDelayMax"] = val; };
+  CNativeSocket.prototype.randomizationFactor  = function(val) { this.settings["randomizationFactor"] = val; };
+  CNativeSocket.prototype.setOpenToken = function (val) {
+    if (this.settings["auth"]) {
+      this.settings["auth"]["token"] = val;
+    }
+  };
+  CNativeSocket.prototype.setSessionToken = function (val) {
+    if (this.settings["auth"]) {
+      this.settings["auth"]["session"] = val;
+    }
   };
 
-DocsCoApi.prototype._initSocksJs = function () {
-        const socketio = this.socketio = {};
+  CNativeSocket.prototype.on = function(name, callback) {
+    if (!this.events.hasOwnProperty(name))
+      this.events[name] = [];
+    this.events[name].push(callback);
+  };
+  CNativeSocket.prototype.onMessage = function() {
+    var name = arguments[0];
+    if (this.events.hasOwnProperty(name))
+    {
+      for (var i = 0; i < this.events[name].length; ++i)
+        this.events[name][i].apply(this, Array.prototype.slice.call(arguments, 1));
+      return true;
+    }
+    return false;
+  };
 
-        const license = {
-            type: 'license',
-            license: {
-                type: 3,
-                mode: 0,
-                // light: false,
-                // trial: false,
-                rights: 1,
-                buildVersion: "7.3.3",
-                buildNumber: 8,
-                // branding: false
-            }
-        };
-
-        let p = window.parent;
-
-        // Presenter mode in slides
-        if (editor && editor.isReporterMode) {
-            // If we are in the presenter popup, we want a channel with the main OO.
-            // Since a lot of the code is using window.parent.APP, we need to override
-            // window.parent because in the case of a popup, window.parent === window
-            p = window.opener;
-            window.parent = p;
-        } else {
-            // If we're not in presenter mode, we're the parent if the presenter popup
-            // and this popup will need access to APP in order to load images
-            window.APP = p && p.APP;
+	DocsCoApi.prototype._initSocksJs = function () {
+      var t = this;
+      let socket;
+      let firstConnection = true;
+      let options = {
+        "path": this.socketio_url,
+        "transports": ["websocket", "polling"],
+        "closeOnBeforeunload": false,
+        "reconnectionAttempts": 15,
+        "reconnectionDelay": 500,
+        "reconnectionDelayMax": 10000,
+        "randomizationFactor": 0.5,
+        "auth": {
+          "data": this.getAuthCommand(this.openCmd),
+          "token": this.jwtOpen,
+          "session": this.jwtSession
         }
+      };
+      options["query"] = {};
+      if (this.shardKey) {
+        options["query"][Asc.c_sShardKeyName] = this.shardKey;
+      }
+      if (this.wopiSrc) {
+        options["query"][Asc.c_sWopiSrcName] = this.wopiSrc;
+      }
+      if (this.userSessionId) {
+        options["query"][Asc.c_sUserSessionIdName] = this.userSessionId;
+      }
 
-        APP.setToOOHandler((data) => {
-            this._onServerMessage(data);
-        });
-
-        socketio.onopen = () => {
-            this._onServerOpen();
-        };
-        socketio.onopen();
-
-        socketio.close = () => {
-            console.error('Close realtime');
-        };
-
-        socketio.emit = (type, data) => {
-            APP.sendMessageFromOO(data);
+      if (window['IS_NATIVE_EDITOR']) {
+        socket = this.sockjs = new CNativeSocket(options);
+        socket.open();
+      } else {
+        let io = AscCommon.getSocketIO();
+        socket = io(options);
+      }
+      socket.on("connect", function () {
+        firstConnection = false;
+        t._onServerOpen();
+      });
+      socket.on("disconnect", function (reason) {
+        //(explicit disconnection), the client will not try to reconnect and you need to manually call
+        let explicit = 'io server disconnect' === reason || 'io client disconnect' === reason;
+        t._onServerClose(explicit);
+        if (!explicit) {
+          //explicit disconnect sends disconnect reason on its own
+          t.onDisconnect();
         }
-
-        setTimeout(() => {
-            this._onServerMessage(license);
-        });
-        return socketio;
-    };
+      });
+      socket.on('connect_error', function (err) {
+        //cases: every connect error and reconnect
+        if (err.data) {
+          //cases: authorization
+          t._onServerClose(true);
+          t.onDisconnect(err.data.description, err.data.code);
+        } else if (firstConnection) {
+          firstConnection = false;
+          if (socket.io.opts) {
+            socket.io.opts.transports = ["polling", "websocket"];
+          }
+        }
+      });
+      socket.io.on("reconnect_failed", function () {
+        //cases: connection restore, wrong socketio_url
+        t._onServerClose(true);
+        t.onDisconnect("reconnect_failed", c_oCloseCode.restore);
+      });
+      socket.on("message", function (data) {
+        t._onServerMessage(data);
+      });
+      this.socketio = socket;
+      return socket;
+	};
 
 	DocsCoApi.prototype._onServerOpen = function () {
 		this._state = ConnectionState.WaitAuth;

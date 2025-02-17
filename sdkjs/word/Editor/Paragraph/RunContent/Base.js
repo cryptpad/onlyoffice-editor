@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -64,7 +64,7 @@
 	};
 	CRunElementBase.prototype.GetWidth = function()
 	{
-		return (this.Width / TEXTWIDTH_DIVIDER);
+		return (this.Width > 0 ? this.Width / TEXTWIDTH_DIVIDER : 0);
 	};
 	CRunElementBase.prototype.Set_Width = function(nWidth)
 	{
@@ -86,9 +86,9 @@
 	CRunElementBase.prototype.GetWidthVisible = function()
 	{
 		if (undefined !== this.WidthVisible)
-			return (this.WidthVisible / TEXTWIDTH_DIVIDER);
+			return (this.WidthVisible > 0 ? this.WidthVisible / TEXTWIDTH_DIVIDER : 0);
 
-		return (this.Width / TEXTWIDTH_DIVIDER);
+		return (this.Width > 0 ? this.Width / TEXTWIDTH_DIVIDER : 0);
 	};
 	CRunElementBase.prototype.SetWidthVisible = function(nWidthVisible)
 	{
@@ -106,7 +106,7 @@
 	};
 	CRunElementBase.prototype.Copy = function()
 	{
-		return new CRunElementBase();
+		return new this.constructor();
 	};
 	CRunElementBase.prototype.Write_ToBinary = function(Writer)
 	{
@@ -173,6 +173,14 @@
 		return false;
 	};
 	/**
+	 * Проверяем является ли элемент символом конца предложения
+	 * @returns {boolean}
+	 */
+	CRunElementBase.prototype.IsSentenceEndMark = function()
+	{
+		return (this.IsDot() ||this.IsQuestionMark() || this.IsExclamationMark());
+	};
+	/**
 	 * Является ли данный элемент символом дефиса
 	 * @returns {boolean}
 	 */
@@ -193,6 +201,14 @@
 	 * @returns {boolean}
 	 */
 	CRunElementBase.prototype.IsSpaceAfter = function()
+	{
+		return false;
+	};
+	/**
+	 * Нужно ли ставить дефис для автоматического переноса
+	 * @returns {boolean}
+	 */
+	CRunElementBase.prototype.isHyphenAfter = function()
 	{
 		return false;
 	};
@@ -257,6 +273,14 @@
 	 * @returns {boolean}
 	 */
 	CRunElementBase.prototype.IsText = function()
+	{
+		return false;
+	};
+	/**
+	 * Является ли данный элемент текстовым элементом внутри математического выражения
+	 * @returns {boolean}
+	 */
+	CRunElementBase.prototype.IsMathText = function()
 	{
 		return false;
 	};
@@ -332,6 +356,13 @@
 		return false;
 	};
 	/**
+	 * return {AscBidi.TYPE}
+	 */
+	CRunElementBase.prototype.getBidiType = function()
+	{
+		return AscBidi.TYPE.ON;
+	};
+	/**
 	 * @return {number}
 	 */
 	CRunElementBase.prototype.GetCombWidth = function()
@@ -364,7 +395,7 @@
 			oCurTextPr.SetFontFamily(sFont);
 
 			oContext.SetTextPr(oCurTextPr, oTheme);
-			oContext.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
+			oContext.SetFontSlot(this.RGapFontSlot, oTextPr.getFontCoef());
 		}
 
 		this.RGapCharWidth = !nCharCode ? nCombBorderW : Math.max(oContext.MeasureCode(nCharCode).Width + oTextPr.Spacing + nCombBorderW, nCombBorderW);
@@ -384,7 +415,7 @@
 			oCurTextPr.SetFontFamily(this.RGapFont);
 
 			oGraphics.SetTextPr(oCurTextPr, PDSE.Theme);
-			oGraphics.SetFontSlot(this.RGapFontSlot, oTextPr.Get_FontKoef());
+			oGraphics.SetFontSlot(this.RGapFontSlot, oTextPr.getFontCoef());
 		}
 
 		if (this.RGap && this.RGapCount)

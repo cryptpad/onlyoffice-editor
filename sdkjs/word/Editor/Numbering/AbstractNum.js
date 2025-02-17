@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 08.05.2018
- * Time: 15:08
- */
 
 // Import
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
@@ -52,7 +47,7 @@ function CAbstractNum()
 	this.Lock = new AscCommon.CLock();
 	if (false === AscCommon.g_oIdCounter.m_bLoad)
 	{
-		this.Lock.Set_Type(AscCommon.locktype_Mine, false);
+		this.Lock.Set_Type(AscCommon.c_oAscLockTypes.kLockTypeMine, false);
 		if (typeof AscCommon.CollaborativeEditing !== "undefined")
 			AscCommon.CollaborativeEditing.Add_Unlock2(this);
 	}
@@ -64,8 +59,9 @@ function CAbstractNum()
 	for (var nLvl = 0; nLvl < 9; ++nLvl)
 	{
 		this.Lvl[nLvl] = new CNumberingLvl();
-		this.Lvl[nLvl].InitDefault(nLvl);
 	}
+
+	this.MultiLvlType = Asc.c_oAbstractNumMultiLvlTypes.MultiLevel;
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	AscCommon.g_oTableId.Add(this, this.Id);
@@ -125,31 +121,21 @@ CAbstractNum.prototype.RecalculateRelatedParagraphs = function(nLvl)
 	let logicDocument = editor.WordControl.m_oLogicDocument;
 	if (!logicDocument || !logicDocument.IsDocumentEditor())
 		return;
+	
+	let numberingManager = logicDocument.GetNumbering();
+	numberingManager.GetAllNumsByAbstractNum(this).forEach(function(num)
+	{
+		num.RecalculateRelatedParagraphs(nLvl);
+	});
+};
+CAbstractNum.prototype.GetMultiLvlType = function()
+{
+	return this.MultiLvlType;
+};
 
-	let styleManager = logicDocument.GetStyles();
-	if (undefined !== nLvl)
-	{
-		let lvl   = this.GetLvl(nLvl);
-		let style = styleManager.Get(lvl.GetPStyle());
-		if (style)
-			logicDocument.Add_ChangedStyle(style.GetId());
-	}
-	else
-	{
-		for (let iLvl = 0; iLvl <= 8; ++iLvl)
-		{
-			let lvl   = this.GetLvl(iLvl);
-			let style = styleManager.Get(lvl.GetPStyle());
-			if (style)
-				logicDocument.Add_ChangedStyle(style.GetId());
-		}
-	}
-
-	var arrParagraphs = logicDocument.GetAllParagraphsByNumbering({NumId : this.Id, Lvl : nLvl});
-	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
-	{
-		arrParagraphs[nIndex].RecalcCompiledPr();
-	}
+CAbstractNum.prototype.SetMultiLvlType = function(nMultiLvlType)
+{
+	this.MultiLvlType = nMultiLvlType;
 };
 /**
  * Получаем заданный уровень
@@ -354,7 +340,7 @@ CAbstractNum.prototype.Refresh_RecalcData = function(Data)
 		var oNum = oNumbering.Num[sId];
 		if (this.Id === oNum.GetAbstractNumId())
 		{
-			arrNumPr.push(new CNumPr(oNum.GetId(), Data.Index));
+			arrNumPr.push(new AscWord.NumPr(oNum.GetId(), Data.Index));
 		}
 	}
 
@@ -491,3 +477,6 @@ CAbstractNum.prototype._isEqualLvlText = function(LvlTextOld, LvlTextNew)
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CAbstractNum = CAbstractNum;
+
+window['AscWord'] = window['AscWord'] || {};
+window['AscWord'].CAbstractNum = CAbstractNum;

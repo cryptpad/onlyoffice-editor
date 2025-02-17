@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,9 +31,6 @@
  */
 
 "use strict";
-
-// Import
-var History = AscCommon.History;
 
 /**
  *
@@ -106,7 +103,7 @@ ParaHyperlink.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
         return;
     }
 
-	History.Add(new CChangesHyperlinkAddItem(this, Pos, [Item]));
+	AscCommon.History.Add(new CChangesHyperlinkAddItem(this, Pos, [Item]));
 
     CParagraphContentWithParagraphLikeContent.prototype.Add_ToContent.apply(this, arguments);
 };
@@ -115,7 +112,7 @@ ParaHyperlink.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition
 {
     // Получим массив удаляемых элементов
     var DeletedItems = this.Content.slice( Pos, Pos + Count );
-    History.Add(new CChangesHyperlinkRemoveItem(this, Pos, DeletedItems));
+    AscCommon.History.Add(new CChangesHyperlinkRemoveItem(this, Pos, DeletedItems));
 
     CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent.apply(this, arguments);
 };
@@ -171,14 +168,14 @@ ParaHyperlink.prototype.Clear_TextPr = function()
     }
 };
 
-ParaHyperlink.prototype.Clear_TextFormatting = function( DefHyper )
+ParaHyperlink.prototype.Clear_TextFormatting = function( DefHyper, bHighlight )
 {
     var Count = this.Content.length;
 
     for (var Pos = 0; Pos < Count; Pos++)
     {
         var Item = this.Content[Pos];
-        Item.Clear_TextFormatting(DefHyper);
+        Item.Clear_TextFormatting(DefHyper, bHighlight);
 
         if (para_Run === Item.Type && null !== DefHyper && undefined !== DefHyper)
             Item.Set_RStyle(DefHyper);
@@ -227,11 +224,11 @@ ParaHyperlink.prototype.Draw_Lines = function(PDSL)
 	PDSL.VisitedHyperlink = false;
 	PDSL.Hyperlink        = false;
 };
-ParaHyperlink.prototype.Draw_HighLights = function(PDSH)
+ParaHyperlink.prototype.Draw_HighLights = function(drawState)
 {
-	PDSH.Hyperlink = this;
+	drawState.pushHyperlink(this);
 	CParagraphContentWithParagraphLikeContent.prototype.Draw_HighLights.apply(this, arguments);
-	PDSH.Hyperlink = null;
+	drawState.popHyperlink();
 };
 //-----------------------------------------------------------------------------------
 // Работаем со значениями
@@ -246,13 +243,37 @@ ParaHyperlink.prototype.SetVisited = function(isVisited)
 };
 ParaHyperlink.prototype.SetToolTip = function(ToolTip)
 {
-    History.Add(new CChangesHyperlinkToolTip(this, this.ToolTip, ToolTip));
+    AscCommon.History.Add(new CChangesHyperlinkToolTip(this, this.ToolTip, ToolTip));
     this.ToolTip = ToolTip;
 };
 ParaHyperlink.prototype.GetToolTip = function()
 {
 	if (!this.ToolTip)
 	{
+        if (Asc.editor.isPdfEditor() && AscCommon.IsLinkPPAction(this.Value)) {
+            if (this.Value == "ppaction://hlinkshowjump?jump=firstslide") {
+				return AscCommon.translateManager.getValue("First Page");
+			}
+			else if (this.Value == "ppaction://hlinkshowjump?jump=lastslide") {
+				return AscCommon.translateManager.getValue("Last Page");
+			}
+			else if (this.Value == "ppaction://hlinkshowjump?jump=nextslide") {
+				return AscCommon.translateManager.getValue("Next Page");
+			}
+			else if (this.Value == "ppaction://hlinkshowjump?jump=previousslide") {
+				return AscCommon.translateManager.getValue("Previous Page");
+			}
+			else {
+				let mask	= "ppaction://hlinksldjumpslide";
+				let posStr	= this.Value.indexOf(mask);
+
+				if (0 == posStr) {
+					let pageNum = parseInt(this.Value.substring(mask.length));
+					return AscCommon.translateManager.getValue("Page " + (pageNum + 1));
+				}
+			}
+        }
+
 		if ("string" === typeof(this.Value))
 			return (this.Anchor ? this.Value + "#" + this.Anchor : this.Value);
 		else if (this.Anchor)
@@ -267,7 +288,7 @@ ParaHyperlink.prototype.GetToolTip = function()
 };
 ParaHyperlink.prototype.Set_Value = function(Value)
 {
-    History.Add(new CChangesHyperlinkValue(this, this.Value, Value));
+    AscCommon.History.Add(new CChangesHyperlinkValue(this, this.Value, Value));
     this.Value = Value;
 };
 ParaHyperlink.prototype.GetAnchor = function()
@@ -276,7 +297,7 @@ ParaHyperlink.prototype.GetAnchor = function()
 };
 ParaHyperlink.prototype.SetAnchor = function(sBookmarkName)
 {
-	History.Add(new CChangesHyperlinkAnchor(this, this.Anchor, sBookmarkName));
+	AscCommon.History.Add(new CChangesHyperlinkAnchor(this, this.Anchor, sBookmarkName));
 	this.Anchor = sBookmarkName;
 };
 ParaHyperlink.prototype.GetValue = function()

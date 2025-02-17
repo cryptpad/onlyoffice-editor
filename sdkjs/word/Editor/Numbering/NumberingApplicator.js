@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,12 +34,7 @@
 
 (function(window)
 {
-	const NumberingType = {
-		Remove : "remove",
-		Bullet : "bullet",
-		Number : "number",
-		Hybrid : "hybrid"
-	};
+	const NumberingType = Asc.c_oAscJSONNumberingType;
 
 	/**
 	 * Класс для применения нумерации к документу
@@ -53,7 +48,7 @@
 
 		this.NumPr      = null;
 		this.Paragraphs = [];
-		this.NumInfo    = new CNumInfo();
+		this.NumInfo    = new AscWord.CNumInfo();
 
 		this.LastBulleted = null;
 		this.LastNumbered = null;
@@ -68,7 +63,7 @@
 		if (!this.Document || !numInfo)
 			return false;
 
-		this.NumInfo    = new CNumInfo(numInfo);
+		this.NumInfo    = numInfo;
 		this.NumPr      = this.GetCurrentNumPr();
 		this.Paragraphs = this.GetParagraphs();
 
@@ -92,6 +87,11 @@
 
 		return result;
 	};
+	CNumberingApplicator.prototype.ResetLast = function()
+	{
+		this.SetLastNumbered(null);
+		this.SetLastBulleted(null);
+	};
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@
 		if (!numId)
 			this.LastBulleted = null;
 		else
-			this.LastBulleted = new AscWord.CNumPr(numId, ilvl);
+			this.LastBulleted = new AscWord.NumPr(numId, ilvl);
 	};
 	CNumberingApplicator.prototype.GetLastNumbered = function()
 	{
@@ -115,7 +115,7 @@
 		if (!numId)
 			this.LastNumbered = null;
 		else
-			this.LastNumbered = new AscWord.CNumPr(numId, ilvl);
+			this.LastNumbered = new AscWord.NumPr(numId, ilvl);
 	};
 	CNumberingApplicator.prototype.GetCurrentNumPr = function()
 	{
@@ -167,7 +167,6 @@
 		{
 			this.Paragraphs[index].RemoveNumPr();
 		}
-
 		return true;
 	};
 	CNumberingApplicator.prototype.ApplyBulleted = function()
@@ -240,10 +239,10 @@
 				ilvl  = result.Lvl;
 			}
 		}
-
+		
+		this.MergeTextPrFromCommonNum(numId, ilvl);
 		this.SetLastBulleted(numId, ilvl);
 		this.ApplyNumPr(numId, ilvl);
-
 		return true;
 	};
 	CNumberingApplicator.prototype.ApplyBulletedToCurrent = function()
@@ -268,7 +267,7 @@
 		{
 			lvl = num.GetLvl(numPr.Lvl).Copy();
 
-			let textPr = new AscWord.CTextPr();
+			let textPr = lvl.GetTextPr().Copy();
 			textPr.RFonts.SetAll("Symbol");
 			lvl.SetByType(c_oAscNumberingLevel.Bullet, numPr.Lvl, String.fromCharCode(0x00B7), textPr);
 		}
@@ -298,7 +297,7 @@
 		if (prevNumPr && numberingManager.CheckFormat(prevNumPr.NumId, prevNumPr.Lvl, Asc.c_oAscNumberingFormat.Decimal))
 		{
 			numId = prevNumPr.NumId;
-			ilvl  = prevNumPr.Lvl;
+			ilvl  = undefined;
 		}
 
 		if (!numId)
@@ -307,7 +306,7 @@
 			if (nextNumPr && numberingManager.CheckFormat(nextNumPr.NumId, nextNumPr.Lvl, Asc.c_oAscNumberingFormat.Decimal))
 			{
 				numId = nextNumPr.NumId;
-				ilvl  = nextNumPr.Lvl;
+				ilvl  = undefined;
 			}
 		}
 
@@ -360,10 +359,12 @@
 				ilvl  = result.Lvl;
 			}
 		}
-
-		this.SetLastNumbered(numId, ilvl);
+		
+		let _ilvl = undefined !== ilvl ? ilvl : 0;
+		
+		this.MergeTextPrFromCommonNum(numId, _ilvl);
+		this.SetLastNumbered(numId, _ilvl);
 		this.ApplyNumPr(numId, ilvl);
-
 		return true;
 	};
 	CNumberingApplicator.prototype.ApplyNumberedToCurrent = function()
@@ -385,9 +386,9 @@
 			if (lastNum.IsHaveRelatedLvlText())
 			{
 				// В этом случае мы не можем подменить просто текущий уровень, меняем целиком весь список
-				for (let ilvl = 0; ilvl < 9; ++ilvl)
+				for (let iLvl = 0; iLvl < 9; ++iLvl)
 				{
-					num.SetLvl(lastNum.GetLvl(nLvl).Copy(), ilvl);
+					num.SetLvl(lastNum.GetLvl(iLvl).Copy(), iLvl);
 				}
 			}
 			else
@@ -416,14 +417,13 @@
 		if (!numLvl)
 			return false;
 
-		let commonNumPr = this.NumPr ? this.NumPr : this.GetCommonNumPr();
+		let commonNumPr = this.NumPr ? this.NumPr : null;
 		if (commonNumPr && commonNumPr.NumId)
 		{
 			let num = this.Numbering.GetNum(commonNumPr.NumId);
 			if (num)
 			{
-				let oldNumLvl = num.GetLvl(commonNumPr.Lvl);
-				numLvl.SetParaPr(oldNumLvl.GetParaPr());
+				this.MergePrToLvl(num.GetLvl(commonNumPr.Lvl), numLvl);
 				numLvl.ResetNumberedText(commonNumPr.Lvl);
 				num.SetLvl(numLvl, commonNumPr.Lvl);
 				this.SetLastSingleLevel(commonNumPr.NumId, commonNumPr.Lvl);
@@ -434,9 +434,9 @@
 			let num   = this.CreateBaseNum();
 			let numId = num.GetId();
 			let ilvl  = !commonNumPr || !commonNumPr.Lvl ? 0 : commonNumPr.Lvl;
+			
+			this.MergePrToLvl(num.GetLvl(ilvl), numLvl);
 
-			let oldNumLvl = num.GetLvl(commonNumPr.Lvl);
-			numLvl.SetParaPr(oldNumLvl.GetParaPr());
 			numLvl.ResetNumberedText(ilvl);
 			num.SetLvl(numLvl, ilvl);
 
@@ -462,7 +462,7 @@
 	};
 	CNumberingApplicator.prototype.ApplyMultilevel = function()
 	{
-		let commonNumId = this.NumPr ? this.NumPr.NumId : this.GetCommonNumId();
+		let commonNumId = this.NumPr ? this.NumPr.NumId : null;
 
 		let num, numId;
 		if (commonNumId)
@@ -478,11 +478,17 @@
 		if (!num)
 			return false;
 
-		for (let ilvl = 0; ilvl < 9; ++ilvl)
+		for (let iLvl = 0; iLvl < 9; ++iLvl)
 		{
-			let numLvl = this.CreateSingleNumberingLvl(ilvl);
+			let numLvl = this.CreateSingleNumberingLvl(iLvl);
 			if (numLvl)
-				num.SetLvl(numLvl, ilvl);
+			{
+				let pStyle = num.GetLvl(iLvl).GetPStyle();
+				if (pStyle)
+					numLvl.SetPStyle(pStyle);
+				
+				num.SetLvl(numLvl, iLvl);
+			}
 		}
 
 		if (numId)
@@ -502,21 +508,37 @@
 		if (!this.Paragraphs || !this.Paragraphs.length)
 			return null;
 
-		let prevParagraph = this.Paragraphs[0];
+		let prevParagraph = this.Paragraphs[0].GetPrevParagraph();
+		while (prevParagraph)
+		{
+			if (prevParagraph.GetNumPr() || !prevParagraph.IsEmpty())
+				break;
+			
+			prevParagraph = prevParagraph.GetPrevParagraph();
+		}
+		
 		return prevParagraph ? prevParagraph.GetNumPr() : null;
 	};
 	CNumberingApplicator.prototype.GetNextNumPr = function()
 	{
 		if (!this.Paragraphs || !this.Paragraphs.length)
 			return null;
-
-		let nextParagraph = this.Paragraphs[this.Paragraphs.length - 1];
+		
+		let nextParagraph = this.Paragraphs[this.Paragraphs.length - 1].GetNextParagraph();
+		while (nextParagraph)
+		{
+			if (nextParagraph.GetNumPr() || !nextParagraph.IsEmpty())
+				break;
+			
+			nextParagraph = nextParagraph.GetNextParagraph();
+		}
+		
 		return nextParagraph ? nextParagraph.GetNumPr() : null;
 	};
 	CNumberingApplicator.prototype.CheckPrevNumPr = function(numId, ilvl)
 	{
 		if (this.Paragraphs.length !== 1 || this.Document.IsSelectionUse())
-			return new AscWord.CNumPr(numId, ilvl);
+			return new AscWord.NumPr(numId, ilvl);
 
 		var prevParagraph = this.Paragraphs[0].GetPrevParagraph();
 		while (prevParagraph)
@@ -534,12 +556,29 @@
 			let currLvl = this.Numbering.GetNum(numId).GetLvl(ilvl);
 
 			if (prevLvl.IsSimilar(currLvl))
-				return new AscWord.CNumPr(prevNumPr.NumId, prevNumPr.Lvl);
+				return new AscWord.NumPr(prevNumPr.NumId, prevNumPr.Lvl);
 		}
 
-		return new AscWord.CNumPr(numId, ilvl);
+		return new AscWord.NumPr(numId, ilvl);
 	};
-	CNumberingApplicator.prototype.GetCommonNumPr = function()
+	CNumberingApplicator.prototype.MergeTextPrFromCommonNum = function(numId, iLvl)
+	{
+		let commonNumPr = this.NumPr ? this.NumPr : this.GetCommonNumPr(true);
+		if (!commonNumPr || !commonNumPr.NumId)
+			return;
+		
+		let num       = this.Numbering.GetNum(numId);
+		let commonNum = this.Numbering.GetNum(commonNumPr.NumId);
+		if (!num || !commonNum)
+			return;
+		
+		let numLvl = num.GetLvl(iLvl);
+		
+		numLvl = numLvl.Copy();
+		this.MergePrToLvl(commonNum.GetLvl(commonNumPr.Lvl), numLvl);
+		num.SetLvl(numLvl, iLvl);
+	};
+	CNumberingApplicator.prototype.GetCommonNumPr = function(skipBulletedCheck)
 	{
 		let isDiffLvl = false;
 		let isDiffId  = false;
@@ -581,14 +620,16 @@
 		}
 		else if (numId)
 		{
-			if (NumberingType.Bullet === this.NumInfo.Type
+			// TODO: Проверить нужна ли эта проверка, если да, то написать тесты (если нет - тоже)
+			if (!skipBulletedCheck &&
+				this.NumInfo.IsBulleted()
 				&& !this.Numbering.CheckFormat(numId, ilvl, Asc.c_oAscNumberingFormat.Bullet))
 			{
 				numId = null;
 			}
 		}
 
-		return new AscWord.CNumPr(numId, ilvl);
+		return new AscWord.NumPr(numId, ilvl);
 	};
 	CNumberingApplicator.prototype.GetCommonNumId = function()
 	{
@@ -634,15 +675,17 @@
 	};
 	CNumberingApplicator.prototype.ApplyNumPr = function(numId, ilvl)
 	{
+		// TODO: Надо перенести сюда всю логику подбора уровня по отступам, а в классе параграфа делать простое выставление
+		let checkIndents = this.IsCheckIndents();
 		for (let index = 0, count = this.Paragraphs.length; index < count; ++index)
 		{
 			let paragraph = this.Paragraphs[index];
 			let oldNumPr  = paragraph.GetNumPr();
 
 			if (oldNumPr)
-				paragraph.ApplyNumPr(numId, oldNumPr.Lvl);
+				paragraph.ApplyNumPr(numId, oldNumPr.Lvl, checkIndents);
 			else
-				paragraph.ApplyNumPr(numId, ilvl);
+				paragraph.ApplyNumPr(numId, ilvl, checkIndents);
 		}
 	};
 	CNumberingApplicator.prototype.ApplyToHeadings = function(numId)
@@ -652,7 +695,7 @@
 
 		let num          = this.Numbering.GetNum(numId);
 		let styleManager = this.Document.GetStyleManager();
-		if (num && !styleManager.HaveHeadingsNum())
+		if (num)
 		{
 			num.LinkWithHeadings(styleManager);
 
@@ -661,7 +704,7 @@
 				let paragraph = this.Paragraphs[index];
 				let numPr     = paragraph.GetNumPr();
 				let iLvl      = numPr ? numPr.Lvl : 0;
-				paragraph.SetNumPr(undefined);
+				paragraph.SetNumPr(null);
 
 				let pStyle = paragraph.GetParagraphStyle();
 				if (!pStyle || -1 === styleManager.GetHeadingLevelById(pStyle))
@@ -687,18 +730,41 @@
 			this.Paragraphs[index].UpdateDocumentOutline();
 		}
 	};
-
-	/**
-	 * Класс для информации о нумерации
-	 * @param numInfo
-	 * @constructor
-	 */
-	function CNumInfo(numInfo)
+	CNumberingApplicator.prototype.MergePrToLvl = function(oldLvl, newLvl)
 	{
-		this.Type     = numInfo && numInfo["Type"] ? numInfo["Type"] : "";
-		this.Lvl      = numInfo && numInfo["Lvl"] && numInfo["Lvl"].length ? numInfo["Lvl"] : [];
-		this.Headings = numInfo ? !!numInfo["Headings"] : false;
-	}
+		if (!oldLvl || !newLvl)
+			return;
+		
+		let textPr = oldLvl.GetTextPr().Copy();
+		textPr.Merge(newLvl.GetTextPr());
+		textPr.RFonts = newLvl.GetTextPr().RFonts.Copy();
+		newLvl.SetTextPr(textPr);
+		
+		let paraPr = oldLvl.GetParaPr().Copy();
+		paraPr.Merge(newLvl.GetParaPr());
+		newLvl.SetParaPr(paraPr);
+		
+		newLvl.SetPStyle(oldLvl.GetPStyle());
+	};
+	CNumberingApplicator.prototype.IsCheckIndents = function()
+	{
+		// TODO: Возможно, наоборот, надо тут false возвращать
+		if (this.Paragraphs.length <= 1)
+			return true;
+		
+		let paraPr = this.Paragraphs[0].Get_CompiledPr2(false).ParaPr;
+		let left   = paraPr.Ind.Left;
+		let first  = paraPr.Ind.FirstLine;
+		
+		for (let index = 1, count = this.Paragraphs.length; index < count; ++index)
+		{
+			let paraPr = this.Paragraphs[index].Get_CompiledPr2(false).ParaPr;
+			if (Math.abs(left - paraPr.Ind.Left) > 0.001 || Math.abs(first - paraPr.Ind.FirstLine) > 0.001)
+				return true;
+		}
+		
+		return false;
+	};
 	//---------------------------------------------------------export---------------------------------------------------
 	window["AscWord"].CNumberingApplicator = CNumberingApplicator;
 

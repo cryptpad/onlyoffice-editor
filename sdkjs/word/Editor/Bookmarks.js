@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 11.10.2017
- * Time: 13:47
- */
 
 /**
  *
@@ -70,9 +65,22 @@ CParagraphBookmark.prototype.GetId = function()
 {
 	return this.Id;
 };
-CParagraphBookmark.prototype.Copy = function()
+CParagraphBookmark.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 {
-	return new CParagraphBookmark(this.Start, this.BookmarkId, this.BookmarkName);
+	let nId = this.BookmarkId;
+	let nComparisonId;
+	if (oPr && oPr.Comparison)
+	{
+		nComparisonId = oPr.Comparison.oBookmarkManager.getId(this);
+		if (AscFormat.isRealNumber(nComparisonId))
+			nId = nComparisonId;
+	}
+	const oCopy = new CParagraphBookmark(this.Start, nId, this.BookmarkName);
+
+	if (AscFormat.isRealNumber(nComparisonId))
+		oPr.Comparison.oBookmarkManager.addToLink(oCopy.Id, nComparisonId);
+
+	return oCopy;
 };
 CParagraphBookmark.prototype.GetBookmarkId = function()
 {
@@ -115,11 +123,14 @@ CParagraphBookmark.prototype.GetXY = function()
 };
 CParagraphBookmark.prototype.GoToBookmark = function()
 {
+	// Данный метод широко используется в макросах, если будет переделываться, то надо иметь ввиду, что сейчас
+	// мы считаем, что курсор ставится ПЕРЕД меткой закладки
+	
 	var oParagraph = this.Paragraph;
 	if (!oParagraph)
 		return;
 
-	var oLogicDocument = oParagraph.LogicDocument;
+	var oLogicDocument = oParagraph.GetLogicDocument();
 	if (!oLogicDocument)
 		return;
 
@@ -133,24 +144,10 @@ CParagraphBookmark.prototype.GoToBookmark = function()
 };
 CParagraphBookmark.prototype.GetDestinationXY = function()
 {
-	var oParagraph = this.Paragraph;
-	if (!oParagraph)
+	if (!this.Paragraph)
 		return null;
-
-	var oLogicDocument = oParagraph.LogicDocument;
-	if (!oLogicDocument)
-		return null;
-
-	var oCurPos = oParagraph.Get_PosByElement(this);
-	if (!oCurPos)
-		return null;
-
-	var oState = oParagraph.SaveSelectionState();
-	oParagraph.Set_ParaContentPos(oCurPos, false, -1, -1, true); // Корректировать позицию нужно обязательно
-	var oResult = oParagraph.GetCalculatedCurPosXY();
-	oParagraph.LoadSelectionState(oState);
-
-	return oResult;
+	
+	return this.Paragraph.GetStartPosXY();
 };
 CParagraphBookmark.prototype.RemoveBookmark = function()
 {
@@ -174,17 +171,17 @@ CParagraphBookmark.prototype.ChangeBookmarkName = function(sNewName)
 {
 	var oParagraph = this.Paragraph;
 	if (!oParagraph)
-		return;
+		return null;
 
 	var oCurPos = oParagraph.Get_PosByElement(this);
 	if (!oCurPos)
-		return;
+		return null;
 
 	var oParent      = this.GetParent();
 	var nPosInParent = this.GetPosInParent(oParent);
 
 	if (!oParent || -1 === nPosInParent)
-		return;
+		return null;
 
 	var oNewMark = new CParagraphBookmark(this.IsStart(), this.GetBookmarkId(), sNewName);
 	oParent.RemoveFromContent(nPosInParent, 1);
@@ -325,11 +322,30 @@ CBookmarksManager.prototype.GetBookmarkById = function(Id)
 
 	for (var nIndex = 0, nCount = this.Bookmarks.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Bookmarks[nIndex].GetBookmarkId() === Id)
+		var oStart = this.Bookmarks[nIndex][0];
+		if (oStart.GetBookmarkId() === Id)
 			return this.Bookmarks[nIndex];
 	}
 
 	return null;
+};
+CBookmarksManager.prototype.GetBookmarkStart = function(index)
+{
+	this.Update();
+	
+	if (index < 0 || index > this.Bookmarks.length)
+		return null;
+	
+	return this.Bookmarks[index][0];
+};
+CBookmarksManager.prototype.GetBookmarkEnd = function(index)
+{
+	this.Update();
+	
+	if (index < 0 || index > this.Bookmarks.length)
+		return null;
+	
+	return this.Bookmarks[index][1];
 };
 CBookmarksManager.prototype.GetBookmarkByName = function(sName)
 {
@@ -355,7 +371,7 @@ CBookmarksManager.prototype.HaveBookmark = function(sName)
 	for (var nIndex = 0, nCount = this.Bookmarks.length; nIndex < nCount; ++nIndex)
 	{
 		var oStart = this.Bookmarks[nIndex][0];
-		if (oStart.GetBookmarkName().toLowerCase() === sName)
+		if (oStart.GetBookmarkName().toLowerCase() === _sName)
 			return true;
 	}
 
@@ -437,29 +453,11 @@ CBookmarksManager.prototype.RemoveBookmark = function(sName)
 CBookmarksManager.prototype.AddBookmark = function(sName)
 {
 	this.Update();
-
-	if (this.GetBookmarkByName(sName))
-	{
-		if (this.IsHiddenBookmark(sName))
-			return;
-
-		var sTempName = "_temp_" + sName;
-		this.LogicDocument.AddBookmark(sTempName);
-		this.LogicDocument.RemoveBookmark(sName);
-
-		this.NeedUpdate = true;
-		var oBookmark = this.GetBookmarkByName(sTempName);
-		if (oBookmark)
-		{
-			this.NeedUpdate = true;
-			oBookmark[0].ChangeBookmarkName(sName);
-			oBookmark[1].ChangeBookmarkName(sName);
-		}
-	}
-	else
-	{
-		this.LogicDocument.AddBookmark(sName);
-	}
+	
+	if (this.GetBookmarkByName(sName) && this.IsHiddenBookmark(sName))
+		return;
+	
+	this.LogicDocument.AddBookmark(sName);
 };
 CBookmarksManager.prototype.GoToBookmark = function(sName)
 {
@@ -557,11 +555,36 @@ CBookmarksManager.prototype.SelectBookmark = function(sName)
 
 	return false;
 };
+/**
+ * Возвращаем список связанных с данной закладкой параграфов (где лежит начало и конец)
+ * @param {string} bookmarkName
+ * @returns {AscWord.Paragraph[]}
+ */
+CBookmarksManager.prototype.GetRelatedParagraphs = function(bookmarkName)
+{
+	let chars = this.GetBookmarkByName(bookmarkName);
+	if (!chars)
+		return [];
+	
+	let result = [];
+	
+	let startPara = chars[0].GetParagraph();
+	let endPara   = chars[1].GetParagraph();
+	
+	if (startPara)
+		result.push(startPara);
+	
+	if (endPara !== startPara)
+		result.push(endPara);
+	
+	return result;
+};
 
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CParagraphBookmark = CParagraphBookmark;
+window['AscWord'].CParagraphBookmark = CParagraphBookmark;
 CBookmarksManager.prototype['asc_GetCount']              = CBookmarksManager.prototype.GetCount;
 CBookmarksManager.prototype['asc_GetName']               = CBookmarksManager.prototype.GetName;
 CBookmarksManager.prototype['asc_GetId']                 = CBookmarksManager.prototype.GetId;

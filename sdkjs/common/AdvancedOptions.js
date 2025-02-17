@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -42,8 +42,10 @@
 		function asc_CDownloadOptions(fileType, isDownloadEvent) {
 			this.fileType = fileType;
 			this.isDownloadEvent = !!isDownloadEvent;
+			this.isSaveAs = false;
+			this.wopiSaveAsPath = null;
 			this.advancedOptions = null;
-			this.compatible = false;
+			this.compatible = true;
 
 			this.isNaturalDownload = false;
 			this.errorDirect = null;
@@ -53,12 +55,15 @@
 			
 			this.isGetTextFromUrl = null;
 			this.isPdfPrint = false;
+			this.pdfChanges = null;
 
 			this.textParams = null;
 		}
 
 		asc_CDownloadOptions.prototype.asc_setFileType = function (fileType) {this.fileType = fileType;};
 		asc_CDownloadOptions.prototype.asc_setIsDownloadEvent = function (isDownloadEvent) {this.isDownloadEvent = isDownloadEvent;};
+		asc_CDownloadOptions.prototype.asc_setIsSaveAs = function (isSaveAs) {this.isSaveAs = isSaveAs;};
+		asc_CDownloadOptions.prototype.asc_setWopiSaveAsPath = function (wopiSaveAsPath) {this.wopiSaveAsPath = wopiSaveAsPath;};
 		asc_CDownloadOptions.prototype.asc_setAdvancedOptions = function (advancedOptions) {this.advancedOptions = advancedOptions;};
 		asc_CDownloadOptions.prototype.asc_setCompatible = function (compatible) {this.compatible = compatible;};
 		asc_CDownloadOptions.prototype.asc_setTextParams = function (textParams) {this.textParams = textParams;};
@@ -208,6 +213,8 @@
 		prot = asc_CDownloadOptions.prototype;
 		prot["asc_setFileType"] = prot.asc_setFileType;
 		prot["asc_setIsDownloadEvent"] = prot.asc_setIsDownloadEvent;
+		prot["asc_setIsSaveAs"] = prot.asc_setIsSaveAs;
+		prot["asc_setWopiSaveAsPath"] = prot.asc_setWopiSaveAsPath;
 		prot["asc_setAdvancedOptions"] = prot.asc_setAdvancedOptions;
 		prot["asc_setCompatible"] = prot.asc_setCompatible;
 		prot["asc_setTextParams"] = prot.asc_setTextParams;
@@ -259,7 +266,8 @@
 		window["AscCommon"].asc_CFormula = asc_CFormula;
 		prot = asc_CFormula.prototype;
 		prot["asc_getName"]				= prot.asc_getName;
-		prot["asc_getLocaleName"]	= prot.asc_getLocaleName;
+		prot["asc_getLocaleName"]	    = prot.asc_getLocaleName;
+
 
 		window["AscCommon"].asc_CTextParams = window["AscCommon"]["asc_CTextParams"] = asc_CTextParams;
 		prot = asc_CTextParams.prototype;

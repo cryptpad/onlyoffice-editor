@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -125,7 +125,8 @@
 
 		for (var nIndex = 0, nCount = this.WordBuffer.length; nIndex < nCount; ++nIndex)
 		{
-			var nCharCode   = this.WordBuffer[nIndex].Run.GetElement(this.WordBuffer[nIndex].Pos).Value;
+			var nCharCode   = this.WordBuffer[nIndex].Run.GetElement(this.WordBuffer[nIndex].Pos).GetCodePoint();
+
 			var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
 			var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
 
@@ -173,8 +174,9 @@
 
 				var oRun      = this.WordBuffer[nIndex].Run;
 				var nInRunPos = this.WordBuffer[nIndex].Pos;
-
-				var nCharCode  = oRun.GetElement(nInRunPos).Value;
+				
+				var nCharCode  = oRun.GetElement(nInRunPos).GetCodePoint();
+				
 				var nLowerCode = String.fromCharCode(nCharCode).toLowerCase().charCodeAt(0);
 				var nUpperCode = String.fromCharCode(nCharCode).toUpperCase().charCodeAt(0);
 
@@ -378,10 +380,12 @@
 				this.isAllinTable = false;
 
 			let oThis = this;
-			oParagraph.CheckRunContent(function(oRun)
+			oParagraph.CheckRunContent(function(oRun, nStartPos, nEndPos)
 			{
-				let nStartPos = 0;
-				let nEndPos   = -1;
+				if (undefined === nStartPos)
+					nStartPos = 0;
+				if (undefined === nEndPos)
+					nEndPos   = -1;
 
 				if (oRun.IsSelectionUse())
 				{
@@ -394,7 +398,7 @@
 					oThis.CheckItemOnCollect(oRun.GetElement(nPos), nPos >= nStartPos && nPos < nEndPos);
 				}
 			});
-
+			
 			this.CurrentParagraph++;
 		}
 	};

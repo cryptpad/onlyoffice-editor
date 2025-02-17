@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -90,6 +90,9 @@
         }, this, []);
     }
     EditShapeGeometryTrack.prototype.getOriginalObjectGeometry = function() {
+        if(Asc.editor.isPdfEditor() && this.originalObject instanceof AscPDF.CAnnotationPolygon) {
+            return this.originalObject.GetGeometryEdit();
+        }
         return this.originalObject.spPr.geometry;
     };
     EditShapeGeometryTrack.prototype.draw = function(overlay)
@@ -111,7 +114,7 @@
                 dOldAlpha = oGraphics.globalAlpha;
                 oGraphics.put_GlobalAlpha(false, 1);
             }
-            if(overlay.DrawGeomEditPoint)
+            if(overlay.DrawGeomEditPoint && !Asc.editor.isPdfEditor())
             {
                 overlay.DrawGeomEditPoint(this.transform, gmEditPoint);
             }
@@ -145,6 +148,9 @@
         oBounds.min_y -= 5;
         oBounds.max_x += 5;
         oBounds.max_y += 5;
+        if(Asc.editor.isPdfEditor()) {
+            gmEditPoint = null;
+        }
         oDrawingDocument.AutoShapesTrack.DrawGeometryEdit(matrix, pathLst, gmEditList, gmEditPoint, oBounds);
     };
 
@@ -207,6 +213,7 @@
             var prevPoint = gmEditPoint.prevPoint;
             var currentPath = geometry.pathLst[gmEditPoint.pathIndex];
             var arrPathCommand = currentPath.ArrPathCommand;
+            this.gmEditPtIdx = this.drawingObjects.selection.geometrySelection.getGmEditPtIdx();
 
             var cur_command_type_array = this.arrPathCommandsType[gmEditPoint.pathIndex];
             var cur_command_type_1 = cur_command_type_array[gmEditPoint.pathC1];
@@ -497,7 +504,15 @@
         return {OffX: dOffX, OffY: dOffY};
 
     };
-
+		EditShapeGeometryTrack.prototype.checkDrawingPartWithHistory = function () {
+			if (this.originalObject.checkDrawingPartWithHistory) {
+				const newObject = this.originalObject.checkDrawingPartWithHistory();
+				if (newObject) {
+					this.originalObject = newObject;
+					this.originalShape = newObject;
+				}
+			}
+		};
     EditShapeGeometryTrack.prototype.trackEnd = function(bWord) {
         this.addCommandsInPathInfo();
         //set new extents
@@ -1304,20 +1319,27 @@
         var tx = this.invertTransform.TransformPointX(x, y);
         var ty = this.invertTransform.TransformPointY(x, y);
         if(gmEditPoint) {
-            dxC1 = tx - gmEditPoint.g1X;
-            dyC1 = ty - gmEditPoint.g1Y;
-            dxC2 = tx - gmEditPoint.g2X;
-            dyC2 = ty - gmEditPoint.g2Y;
-            if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
-                return new CGeomHitData(this.getGmEditPtIdx(), true, false, false);
-            } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
-                return new CGeomHitData(this.getGmEditPtIdx(), false, true, false);
+            // не разрешаем ломать линии в pdf
+            if (Asc.editor.isPdfEditor() == false) {
+                dxC1 = tx - gmEditPoint.g1X;
+                dyC1 = ty - gmEditPoint.g1Y;
+                dxC2 = tx - gmEditPoint.g2X;
+                dyC2 = ty - gmEditPoint.g2Y;
+                if (Math.sqrt(dxC1 * dxC1 + dyC1 * dyC1) < distance) {
+                    return new CGeomHitData(this.getGmEditPtIdx(), true, false, false);
+                } else if (Math.sqrt(dxC2 * dxC2 + dyC2 * dyC2) < distance) {
+                    return new CGeomHitData(this.getGmEditPtIdx(), false, true, false);
+                }
             }
         }
         var oGeomData = this.hitToGmEditLst(x, y, false);
         if(oGeomData) {
             return oGeomData;
         }
+
+        // не разрешаем ломать линии в pdf
+        if (Asc.editor.isPdfEditor())
+            return null;
 
         var oAddingPoint = {pathIndex: null, commandIndex: null};
         var isHitInPath = geometry.hitInPath(oCanvas, tx, ty, oAddingPoint);

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -100,6 +100,10 @@
 				"usrLang"     : arrLangs
 			});
 		}
+		else
+		{
+			this.private_ClearMarksForCorrectWords();
+		}
 
 		return (arrWords.length || isFirst);
 	};
@@ -153,7 +157,7 @@
 			}
 		}
 	};
-	CParagraphSpellChecker.prototype.Add = function(StartPos, EndPos, Word, Lang, Prefix, Ending)
+	CParagraphSpellChecker.prototype.Add = function(startRun, startInRunPos, endRun, endInRunPos, Word, Lang, Prefix, Ending, apostrophe)
 	{
 		if (Word.length > 0)
 		{
@@ -163,8 +167,12 @@
 				Word = Word.substr(1);
 		}
 
-		let oElement = new AscCommonWord.CParagraphSpellCheckerElement(StartPos, EndPos, Word, Lang, Prefix, Ending);
-		this.Paragraph.AddSpellCheckerElement(oElement);
+		if (!this.HaveDictionary(Lang) || !this.IsNeedCheckWord(Word))
+			return;
+		
+		let oElement = new AscWord.CParagraphSpellCheckerElement(startRun, startInRunPos, endRun, endInRunPos, Word, Lang, Prefix, Ending, apostrophe);
+		startRun.AddSpellCheckerElement(new AscWord.SpellMarkStart(oElement));
+		endRun.AddSpellCheckerElement(new AscWord.SpellMarkEnd(oElement));
 		this.Elements.push(oElement);
 	};
 	CParagraphSpellChecker.prototype.SpellCheckResponse = function(nRecalcId, usrCorrect)
@@ -331,7 +339,7 @@
 	/**
 	 * Получаем элемент проверки орфографии по номеру
 	 * @param nIndex
-	 * @returns {AscCommonWord.CParagraphSpellCheckerElement}
+	 * @returns {AscWord.CParagraphSpellCheckerElement}
 	 */
 	CParagraphSpellChecker.prototype.GetElement = function(nIndex)
 	{
@@ -339,7 +347,7 @@
 	};
 	/**
 	 * Приостанавливаем проверку орфографии, если параграф слишком большой
-	 * @param {CParagraphSpellCheckerCollector} oCollector
+	 * @param {AscWord.CParagraphSpellCheckerCollector} oCollector
 	 */
 	CParagraphSpellChecker.prototype.Pause = function(oCollector)
 	{
@@ -424,7 +432,7 @@
 		}
 		else
 		{
-			oCollector = new AscCommonWord.CParagraphSpellCheckerCollector(this, isForceFullCheck);
+			oCollector = new AscWord.CParagraphSpellCheckerCollector(this, isForceFullCheck);
 			this.Elements = [];
 		}
 
@@ -493,9 +501,9 @@
 			}
 		}
 
-		this.private_ClearMarksForRightWords();
+		this.private_ClearMarksForCorrectWords();
 	};
-	CParagraphSpellChecker.prototype.private_ClearMarksForRightWords = function()
+	CParagraphSpellChecker.prototype.private_ClearMarksForCorrectWords = function()
 	{
 		for (let nCount = this.Elements.length, nIndex = nCount - 1; nIndex >= 0; --nIndex)
 		{
@@ -525,7 +533,7 @@
 		{
 			if (EASTEGGS[nIndex] === this.Elements[sId].Word)
 			{
-				this.Elements[sId].Variants = EASTEGGS_VARIANTS[Index];
+				this.Elements[sId].Variants = EASTEGGS_VARIANTS[nIndex];
 				return;
 			}
 		}
@@ -535,12 +543,11 @@
 		return editor.WordControl.m_oLogicDocument.Spelling;
 	};
 
-	const EASTEGGS          = [String.fromCharCode(0x4b, 0x69, 0x72, 0x69, 0x6c, 0x6c, 0x6f, 0x76, 0x49, 0x6c, 0x79, 0x61), String.fromCharCode(0x4b, 0x69, 0x72, 0x69, 0x6c, 0x6c, 0x6f, 0x76, 0x53, 0x65, 0x72, 0x67, 0x65, 0x79)];
-	const EASTEGGS_VARIANTS = [[String.fromCharCode(0x4b, 0x69, 0x72, 0x69, 0x6c, 0x6c, 0x6f, 0x76, 0x20, 0x49, 0x6c, 0x79, 0x61), String.fromCharCode(0x47, 0x6f, 0x6f, 0x64, 0x20, 0x6d, 0x61, 0x6e), String.fromCharCode(0x46, 0x6f, 0x75, 0x6e, 0x64, 0x69, 0x6e, 0x67, 0x20, 0x66, 0x61, 0x74, 0x68, 0x65, 0x72, 0x20, 0x6f, 0x66, 0x20, 0x74, 0x68, 0x69, 0x73, 0x20, 0x45, 0x64, 0x69, 0x74, 0x6f, 0x72, 0x21)], [String.fromCharCode(0x4b, 0x69, 0x72, 0x69, 0x6c, 0x6c, 0x6f, 0x76, 0x20, 0x53, 0x65, 0x72, 0x67, 0x65, 0x79, 0x20, 0x41, 0x6c, 0x62, 0x65, 0x72, 0x74, 0x6f, 0x76, 0x69, 0x63, 0x68), String.fromCharCode(0x4f, 0x6c, 0x64, 0x20, 0x77, 0x6f, 0x6c, 0x66), String.fromCharCode(0x46, 0x6f, 0x75, 0x6e, 0x64, 0x65, 0x72, 0x20, 0x66, 0x61, 0x74, 0x68, 0x65, 0x72, 0x27, 0x73, 0x20, 0x66, 0x61, 0x74, 0x68, 0x65, 0x72)]];
+	const EASTEGGS          = [];
+	const EASTEGGS_VARIANTS = [];
 
 
 	//--------------------------------------------------------export----------------------------------------------------
-	window['AscCommonWord'] = window['AscCommonWord'] || {};
-	window['AscCommonWord'].CParagraphSpellChecker= CParagraphSpellChecker;
+	AscWord.CParagraphSpellChecker = CParagraphSpellChecker;
 
 })(window);
