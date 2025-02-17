@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -162,8 +162,11 @@ function (window, undefined) {
 		w.WriteBool(this.bSizeWithCells);
 	};
 	asc_CCommentCoords.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
+		let nColOld = this.nCol;
+		let nRowOld = this.nRow;
 		this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
 		this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
+		return this.nCol !== nColOld || this.nRow !== nRowOld;
 	};
 
 	/** @constructor */
@@ -225,6 +228,25 @@ function (window, undefined) {
 		for (var i = 0; i < comment.aReplies.length; i++) {
 			this.aReplies.push(comment.aReplies[i].clone(uniqueGuid));
 		}
+	};
+	asc_CCommentData.prototype.ConvertToSimpleObject = function(bIsReply)
+	{
+		var obj = {};
+
+		obj["Text"]      = this.sText;
+		obj["Time"]      = this.sTime;
+		obj["UserName"]  = this.sUserName;
+		obj["QuoteText"] = bIsReply ? null : this.asc_getQuoteText();
+		obj["Solved"]    = this.bSolved;
+		obj["UserData"]  = this.m_sUserData;
+		obj["Replies"]   = [];
+
+		for (var nIndex = 0, nCount = this.aReplies.length; nIndex < nCount; ++nIndex)
+		{
+			obj["Replies"].push(this.aReplies[nIndex].ConvertToSimpleObject(true));
+		}
+
+		return obj;
 	};
 	asc_CCommentData.prototype.ReadFromSimpleObject = function(oData)
     {
@@ -403,8 +425,11 @@ function (window, undefined) {
 
 	asc_CCommentData.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
 		if ( !this.bDocument ) {
+			let nColOld = this.nCol;
+			let nRowOld = this.nRow;
 			this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
 			this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
+			return this.nCol !== nColOld || this.nRow !== nRowOld;
 		}
 	};
 
@@ -423,6 +448,65 @@ function (window, undefined) {
 	asc_CCommentData.prototype.isValidThreadComment = function () {
 		//CT_ThreadedComment.personId, CT_ThreadedComment.id, CT_Person.id also required but they generated
 		return !!this.sUserName;
+	};
+	asc_CCommentData.prototype.fromCValue = function (value) {
+		if (!value) {
+			return value;
+		}
+		let comment = new Asc.asc_CCommentData();
+		comment.asc_putRow(value["Row"]);
+		comment.asc_putCol(value["Col"]);
+		comment.asc_putId(value["Id"]);
+		comment.asc_putLevel(value["Level"]);
+		comment.asc_putText(value["Text"]);
+		comment.asc_putQuoteText(value["QuoteText"]);
+		comment.asc_putTime(value["Time"]);
+		comment.asc_putOnlyOfficeTime(value["OnlyOfficeTime"]);
+		comment.asc_putUserId(value["UserId"]);
+		comment.asc_putUserName(value["Name"]);
+		comment.asc_putProviderId(value["ProviderId"]);
+		comment.asc_putDocumentFlag(value["DocumentFlag"]);
+		comment.asc_putHiddenFlag(value["HiddenFlag"]);
+		comment.asc_putSolved(value["Solved"]);
+		comment.asc_putUserData(value["UserData"]);
+		if(Array.isArray(value["asc_getReplies"])) {
+			for(let nIdx = 0; nIdx < value["asc_getReplies"].length; ++nIdx) {
+				let reply = Asc.asc_CCommentData.prototype.fromCValue(value["asc_getReplies"][nIdx]);
+				if(reply) {
+					this.asc_addReply(reply);
+				}
+			}
+		}
+		comment.asc_putGuid(value["Guid"]);
+		return comment;
+	};
+	asc_CCommentData.prototype.toCValue = function () {
+		let value = {};
+		value["Row"] = this.asc_getRow();
+		value["Col"] = this.asc_getCol();
+		value["Id"] = this.asc_getId();
+		value["Level"] = this.asc_getLevel();
+		value["Text"] = this.asc_getText();
+		value["QuoteText"] = this.asc_getQuoteText();
+		value["Time"] = this.asc_getTime();
+		value["OnlyOfficeTime"] = this.asc_getOnlyOfficeTime();
+		value["UserId"] = this.asc_getUserId();
+		value["UserName"] = this.asc_getUserName();
+		value["ProviderId"] = this.asc_getProviderId();
+		value["DocumentFlag"] = this.asc_getDocumentFlag();
+		value["HiddenFlag"] = this.asc_getHiddenFlag();
+		value["Solved"] = this.asc_getSolved();
+		value["UserData"] = this.asc_getUserData();
+		value["asc_getReplies"] = [];
+		for(let nIdx = 0; nIdx < this.aReplies.length; ++nIdx) {
+			let replyVal = this.aReplies[nIdx].toCValue();
+			if(replyVal) {
+				value["asc_getReplies"].push(replyVal);
+			}
+		}
+		value["MasterCommentId"] = this.asc_getMasterCommentId();
+		value["Guid"] = this.asc_getGuid();
+		return value;
 	};
 
 /** @constructor */
@@ -572,17 +656,27 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 			nCol = mergedRange ? mergedRange.c2 : commentCell.nCol;
 			nRow = mergedRange ? mergedRange.r1 : commentCell.nRow;
 
-			if (metrics = this.worksheet.getCellMetrics(nCol, nRow)) {
+			if (metrics = this.worksheet.getCellMetrics(nCol, nRow, true)) {
 				if (0 === metrics.width || 0 === metrics.height) {
 					continue;
 				}
+
+				let isClip = false;
+				if (this.worksheet._clipDrawingRect(this.drawingCtx, new Asc.Range(nCol, nRow, nCol, nRow))) {
+					isClip = true;
+				}
+
 				x = metrics.left + metrics.width;
 				y = metrics.top;
 				this.drawingCtx.beginPath();
-				this.drawingCtx.moveTo(x - (size + borderW), y);
-				this.drawingCtx.lineTo(x - borderW, y);
-				this.drawingCtx.lineTo(x - borderW, y + size);
+				this.worksheet._moveTo(this.drawingCtx, x - (size + borderW), y);
+				this.worksheet._lineTo(this.drawingCtx, x - borderW, y);
+				this.worksheet._lineTo(this.drawingCtx, x - borderW, y + size);
 				this.drawingCtx.fill();
+
+				if (isClip) {
+					this.drawingCtx.RemoveClipRect();
+				}
 			}
 		}
 	};
@@ -768,9 +862,16 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 	var metrics;
 	if (this.lastSelectedId) {
 		var lastComment = this.findComment(this.lastSelectedId);
-		if (lastComment && (metrics = this.worksheet.getCellMetrics(lastComment.nCol, lastComment.nRow))) {
+		if (lastComment && (metrics = this.worksheet.getCellMetrics(lastComment.nCol, lastComment.nRow, true))) {
 			var extraOffset = 1;
-			this.overlayCtx.clearRect(metrics.left, metrics.top, metrics.width - extraOffset, metrics.height - extraOffset);
+			let x = this.worksheet.checkRtl(metrics.left);
+			let y = metrics.top;
+			let width = metrics.width - extraOffset;
+			if (this.worksheet.getRightToLeft()) {
+				x -= width;
+			}
+			let height = metrics.height - extraOffset;
+			this.overlayCtx.clearRect(x, y, width, height);
 		}
 	}
 };
@@ -840,23 +941,28 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		var left = mergedRange ? mergedRange.c2 : comment.nCol;
 		var top = mergedRange ? mergedRange.r1 : comment.nRow;
 
+		let scrollCorrectX = this.worksheet.getHorizontalScrollCorrect();
+		let scrollCorrectY = this.worksheet.getScrollCorrect();
 		var frozenOffset = this.worksheet.getFrozenPaneOffset();
 		if (this.worksheet.topLeftFrozenCell) {
 			if (comment.nCol < fvc) {
 				frozenOffset.offsetX = 0;
 				fvc = 0;
+				scrollCorrectX = 0;
 			}
 			if (comment.nRow < fvr) {
 				frozenOffset.offsetY = 0;
 				fvr = 0;
+				scrollCorrectY = 0;
 			}
 		}
 
-		pos.dReverseLeftPX = this.worksheet._getColLeft(left) - this.worksheet._getColLeft(fvc) +
-			headerCellsOffset.left + frozenOffset.offsetX;
-		pos.dLeftPX = pos.dReverseLeftPX + this.worksheet.getColumnWidth(left, 0);
+		pos.dReverseLeftPX = this.worksheet.checkRtl(this.worksheet._getColLeft(left) - this.worksheet._getColLeft(fvc) +
+			headerCellsOffset.left + frozenOffset.offsetX - scrollCorrectX);
+		let colWidth = (this.worksheet.getRightToLeft() ? -1 : 1) * this.worksheet.getColumnWidth(left, 0);
+		pos.dLeftPX = pos.dReverseLeftPX + colWidth;
 		pos.dTopPX = this.worksheet._getRowTop(top) + ((this.worksheet._getRowHeight(top) / 2) | 0) -
-			this.worksheet._getRowTop(fvr) + headerCellsOffset.top + frozenOffset.offsetY;
+			this.worksheet._getRowTop(fvr) + headerCellsOffset.top + frozenOffset.offsetY - scrollCorrectY;
 
 		pos.dLeftPX = AscCommon.AscBrowser.convertToRetinaValue(pos.dLeftPX);
 		pos.dTopPX = AscCommon.AscBrowser.convertToRetinaValue(pos.dTopPX);
@@ -870,8 +976,15 @@ CCellCommentator.prototype.cleanLastSelection = function() {
 		if (this.lastSelectedId) {
 			var comment = this.findComment(this.lastSelectedId);
 			if (comment && !this._checkHidden(comment) &&
-				(metrics = this.worksheet.getCellMetrics(comment.asc_getCol(), comment.asc_getRow()))) {
-				this.overlayCtx.clearRect(metrics.left, metrics.top, metrics.width, metrics.height);
+				(metrics = this.worksheet.getCellMetrics(comment.asc_getCol(), comment.asc_getRow(), true))) {
+				let x = this.worksheet.checkRtl(metrics.left);
+				let y = metrics.top;
+				let width = metrics.width;
+				if (this.worksheet.getRightToLeft()) {
+					x -= width;
+				}
+				let height = metrics.height;
+				this.overlayCtx.clearRect(x, y, width, height);
 			}
 		}
 	};
@@ -924,15 +1037,33 @@ CCellCommentator.prototype.selectComment = function(id) {
 
 		this.worksheet._scrollToRange(new Asc.Range(col, row, col, row));
 
-		metrics = this.worksheet.getCellMetrics(col, row);
+		metrics = this.worksheet.getCellMetrics(col, row, true);
 		if (metrics) {
+
+			let isClip = false;
+			let mc = this.model.getMergedByCell(row, col);
+			if (this.worksheet._clipDrawingRect(this.overlayCtx, mc ? mc : new Asc.Range(col, row, col, row))) {
+				isClip = true;
+			}
+
 			var extraOffset = 1;
 			this.overlayCtx.ctx.globalAlpha = 0.2;
 			this.overlayCtx.beginPath();
-			this.overlayCtx.clearRect(metrics.left, metrics.top, metrics.width - extraOffset, metrics.height - extraOffset);
+			let x = this.worksheet.checkRtl(metrics.left);
+			let y = metrics.top;
+			let width = metrics.width - extraOffset;
+			if (this.worksheet.getRightToLeft()) {
+				x -= width;
+			}
+			let height = metrics.height - extraOffset;
+			this.overlayCtx.clearRect(x, y, width, height);
 			this.overlayCtx.setFillStyle(this.commentFillColor);
-			this.overlayCtx.fillRect(metrics.left, metrics.top, metrics.width - extraOffset, metrics.height - extraOffset);
+			this.overlayCtx.fillRect(x, y, width, height);
 			this.overlayCtx.ctx.globalAlpha = 1;
+
+			if (isClip) {
+				this.overlayCtx.RemoveClipRect();
+			}
 		}
 	}
 };

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -45,6 +45,26 @@
 	const AUTOCORRECT_FLAGS_FIRST_LETTER_SENTENCE    = 0x00000010;
 	const AUTOCORRECT_FLAGS_NUMBERING                = 0x00000020;
 	const AUTOCORRECT_FLAGS_DOUBLE_SPACE_WITH_PERIOD = 0x00000040;
+	
+	const ALLOWED_SYMBOLS_DOUBLE_SPACE_TO_PERIOD = {
+		0x0022 : 1, // "
+		0x0023 : 1, // #
+		0x0024 : 1, // $
+		0x0025 : 1, // %
+		0x0027 : 1, // '
+		0x0028 : 1, // (
+		0x0029 : 1, // )
+		0x0040 : 1, // @
+		0x005B : 1, // [
+		0x005D : 1, // ]
+		0x007D : 1, // {
+		0x007B : 1, // }
+		
+		0x2018 : 1, // ‘
+		0x2019 : 1, // ’
+		0x201C : 1, // “
+		0x201D : 1  // ”
+	};
 
 	/**
 	 * Класс для выполнения автозамены
@@ -87,7 +107,7 @@
 			return;
 
 		let oDocument = this.Paragraph.GetLogicDocument();
-		if (!oDocument || !(oDocument instanceof CDocument) && !(oDocument instanceof CPresentation))
+		if (!oDocument || (!oDocument.IsDocumentEditor() && !oDocument.IsPresentationEditor()))
 			return;
 
 		this.Document = oDocument;
@@ -297,11 +317,7 @@
 	CRunAutoCorrect.prototype.private_CheckPrevSymbolForDoubleSpaceWithDot = function(oItem)
 	{
 		return (oItem.IsText()
-			&& (!oItem.IsPunctuation()
-				|| 0x23 === oItem.Value
-				|| 0x24 === oItem.Value
-				|| 0x25 === oItem.Value
-				|| 0x40 === oItem.Value));
+			&& (!oItem.IsPunctuation() || ALLOWED_SYMBOLS_DOUBLE_SPACE_TO_PERIOD[oItem.Value]));
 	};
 	/**
 	 * Производим автозамену для французской пунктуации
@@ -753,17 +769,13 @@
 
 		if (!this.AsYouType)
 			return false;
-
-		if (!oDocument.IsAutoCorrectFirstLetterOfSentences())
+		
+		let isCellFistLetter = (oRunElementsBefore.IsEnd() && oParagraph.IsTableCellContent());
+		
+		if ((isCellFistLetter && !oDocument.IsAutoCorrectFirstLetterOfCells())
+			|| (!isCellFistLetter && !oDocument.IsAutoCorrectFirstLetterOfSentences()))
 			return false;
-
-		if (oRunElementsBefore.IsEnd()
-			&& oParagraph.IsTableCellContent()
-			&& !oDocument.IsAutoCorrectFirstLetterOfCells())
-		{
-			return false;
-		}
-
+		
 		if ("www" === sText || "http" === sText || "https" === sText)
 			return false;
 
@@ -816,7 +828,7 @@
 				return false;
 
 			// Проверяем исключения
-			if (1 === oRunElements.Elements.length && oDocument.IsDocumentEditor())
+			if (1 === oRunElements.Elements.length)
 			{
 				let autoCorrectSettings = oDocument.GetAutoCorrectSettings();
 
@@ -856,13 +868,17 @@
 		var oItem = oRun.GetElement(nInRunPos);
 		if (!oItem || oItem.Type !== para_Text)
 			return false;
+		
+		let codePoint = oItem.GetCodePoint();
+		if (AscCommon.IsGeorgianScript(codePoint))
+			return false;
 
 		if (this.private_IsDocumentLocked())
 			return false;
 
 		oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectFirstLetterOfSentence);
 
-		var oNewItem = new AscWord.CRunText(String.fromCharCode(oItem.Value).toUpperCase().charCodeAt(0));
+		var oNewItem = new AscWord.CRunText(String.fromCharCode(codePoint).toUpperCase().charCodeAt(0));
 		oRun.RemoveFromContent(nInRunPos, 1, true);
 		oRun.AddToContent(nInRunPos, oNewItem, true);
 
@@ -982,7 +998,7 @@
 					var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
 					if (oPrevNumLvl.IsSimilar(oNumLvl))
 					{
-						oNumPr = new CNumPr(oPrevNumPr.NumId, oPrevNumPr.Lvl);
+						oNumPr = new AscWord.NumPr(oPrevNumPr.NumId, oPrevNumPr.Lvl);
 					}
 				}
 
@@ -991,7 +1007,7 @@
 					var oNum = oDocument.GetNumbering().CreateNum();
 					oNum.CreateDefault(c_oAscMultiLevelNumbering.Bullet);
 					oNum.SetLvl(oNumLvl, 0);
-					oNumPr = new CNumPr(oNum.GetId(), 0);
+					oNumPr = new AscWord.NumPr(oNum.GetId(), 0);
 				}
 			}
 		}
@@ -1057,7 +1073,7 @@
 					}
 
 					if (isAdd)
-						oNumPr = new CNumPr(oPrevNumPr.NumId, nResultLvL);
+						oNumPr = new AscWord.NumPr(oPrevNumPr.NumId, nResultLvL);
 				}
 				else
 				{
@@ -1076,12 +1092,15 @@
 					{
 						var oNum = oDocument.GetNumbering().CreateNum();
 						oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
-						for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
+						for (var iLvl = 0, nCount = arrResult.length; iLvl < nCount; ++iLvl)
 						{
-							oNum.SetLvl(arrResult[nIndex].Lvl, nIndex);
+							let oldLvl = oNum.GetLvl(iLvl);
+							let newLvl = arrResult[iLvl].Lvl;
+							newLvl.SetParaPr(oldLvl.GetParaPr());
+							oNum.SetLvl(newLvl, iLvl);
 						}
 
-						oNumPr = new CNumPr(oNum.GetId(), arrResult.length - 1);
+						oNumPr = new AscWord.NumPr(oNum.GetId(), arrResult.length - 1);
 					}
 				}
 			}
@@ -1182,6 +1201,7 @@
 				nPos = oNum.Pos;
 
 				var oNumberingLvl = new CNumberingLvl();
+				oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Numbered);
 				if ('.' === oNum.Char)
 					oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalDot_Left, nCurLvl);
 				else if (')' === oNum.Char)

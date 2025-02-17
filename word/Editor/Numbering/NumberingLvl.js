@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,18 +31,13 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 08.05.2018
- * Time: 17:06
- */
 
 function CNumberingLvl()
 {
 	this.Jc      = AscCommon.align_Left;
 	this.Format  = Asc.c_oAscNumberingFormat.Bullet;
 	this.PStyle  = undefined;
-	this.Start   = 1;
+	this.Start   = 0;
 	this.Restart = -1; // -1 - делаем нумерацию сначала всегда, 0 - никогда не начинаем нумерацию заново
 	this.Suff    = Asc.c_oAscNumberingSuff.Tab;
 	this.TextPr  = new CTextPr();
@@ -60,6 +55,14 @@ function CNumberingLvl()
 CNumberingLvl.prototype.GetJc = function()
 {
 	return this.Jc;
+};
+/**
+ * Устанавливаем тип прилегания
+ * @param nJc {AscCommon.align_Left | AscCommon.align_Right | AscCommon.align_Center}
+ */
+CNumberingLvl.prototype.SetJc = function(nJc)
+{
+	this.Jc = nJc;
 };
 /**
  * Доступ к типу данного уровня
@@ -116,6 +119,13 @@ CNumberingLvl.prototype.GetSuff = function()
 CNumberingLvl.prototype.GetTextPr = function()
 {
 	return this.TextPr;
+};
+/**
+ * @param paraPr {AscWord.CTextPr}
+ */
+CNumberingLvl.prototype.SetTextPr = function(oTextPr)
+{
+	this.TextPr = oTextPr;
 };
 /**
  * Доступ к настройкам параграфа данного уровня
@@ -203,6 +213,17 @@ CNumberingLvl.prototype.GetLegacyIndent = function()
 CNumberingLvl.prototype.IsLegalStyle = function()
 {
 	return this.IsLgl;
+};
+/**
+ * Выставляем значения по умолчанию для заданного уровня
+ * @param iLvl {number} 0..8
+ * @param type {c_oAscMultiLevelNumbering}
+ */
+CNumberingLvl.CreateDefault = function(iLvl, type)
+{
+	let numLvl = new CNumberingLvl();
+	numLvl.InitDefault(iLvl, type);
+	return numLvl;
 };
 /**
  * Выставляем значения по умолчанию для заданного уровня
@@ -1174,6 +1195,22 @@ CNumberingLvl.prototype.IsSimilar = function(oLvl)
 
 	return true;
 };
+CNumberingLvl.prototype.IsEqual = function(numLvl)
+{
+	// Формат и текст проверяются в IsSimilar
+	if (!this.IsSimilar(numLvl))
+		return false;
+	
+	return (this.Jc === numLvl.Jc
+		&& this.PStyle === numLvl.PStyle
+		&& this.Start === numLvl.Start
+		&& this.Restart === numLvl.Restart
+		&& this.Suff === numLvl.Suff
+		&& this.TextPr.IsEqual(numLvl.TextPr)
+		&& this.ParaPr.IsEqual(numLvl.ParaPr)
+		&& this.Legacy === numLvl.Legacy
+		&& this.IsLgl === numLvl.IsLgl);
+};
 /**
  * Заполняем специальный класс для работы с интерфейсом
  * @param oAscLvl {CAscNumberingLvl}
@@ -1256,6 +1293,147 @@ CNumberingLvl.prototype.FillFromAscNumberingLvl = function(oAscLvl)
 
 	if (undefined !== oAscLvl.get_PStyle())
 		this.PStyle = oAscLvl.get_PStyle();
+};
+CNumberingLvl.prototype.FillLvlText = function(arrOfInfo)
+{
+	for (let i = 0; i < arrOfInfo.length; i += 1)
+	{
+		if (AscFormat.isRealNumber(arrOfInfo[i]))
+		{
+			this.LvlText.push(new CNumberingLvlTextNum(arrOfInfo[i]));
+		}
+		else if (typeof arrOfInfo[i] === "string")
+		{
+			for (const oUnicodeIterator = arrOfInfo[i].getUnicodeIterator(); oUnicodeIterator.check(); oUnicodeIterator.next())
+			{
+				this.LvlText.push(new CNumberingLvlTextString(AscCommon.encodeSurrogateChar(oUnicodeIterator.value())));
+			}
+		}
+	}
+};
+// TODO: исправить при добавлении картиночных буллетов
+CNumberingLvl.prototype.IsImageBullet = function ()
+{
+	return false;
+};
+/**
+ *
+ * @returns {AscFonts.CImage}
+ */
+CNumberingLvl.prototype.GetImage = function ()
+{
+
+};
+/**
+ *
+ * @returns {String | Object}
+ */
+CNumberingLvl.prototype.GetDrawingContent = function (arrLvls, nLvl, nNum, oLang)
+{
+	if (this.IsImageBullet())
+	{
+		const oImage = this.GetImage();
+		const oResult = {image: oImage, amount: 0};
+		if (oImage)
+		{
+			for (let i = 0; i < this.LvlText.length; i += 1)
+			{
+				const oNumberingLvlText = this.LvlText[i];
+				if (oNumberingLvlText.IsText())
+				{
+					oResult.amount += 1;
+				}
+			}
+		}
+		return oResult;
+	}
+	else
+	{
+		return this.GetStringByLvlText(arrLvls, nLvl, nNum, oLang);
+	}
+}
+
+CNumberingLvl.prototype.GetStringByLvlText = function (arrLvls, nLvl, nNum, oLang)
+{
+	const arrResult = [];
+	for (let i = 0; i < this.LvlText.length; i += 1)
+	{
+		const oNumberingLvlText = this.LvlText[i];
+
+		if (oNumberingLvlText.IsText())
+		{
+			arrResult.push(oNumberingLvlText.GetValue());
+		}
+		else
+		{
+			if (AscFormat.isRealNumber(nNum))
+			{
+				const nNumberingLvl = oNumberingLvlText.GetValue();
+				let nFormat = this.GetFormat();
+				if (nNumberingLvl === nLvl)
+				{
+					nNum = (this.GetStart() - 1) + nNum;
+				}
+				else if (arrLvls[nNumberingLvl] && nLvl > nNumberingLvl)
+				{
+					nFormat = arrLvls[nNumberingLvl].GetFormat();
+					nNum = arrLvls[nNumberingLvl].GetStart();
+				}
+				arrResult.push(AscCommon.IntToNumberFormat(nNum, nFormat, {lang: oLang}));
+			}
+		}
+	}
+
+	return arrResult.join('');
+};
+CNumberingLvl.prototype.GetNumberPosition = function ()
+{
+	const nLeft = this.GetIndentSize() || 0;
+	if (AscFormat.isRealNumber(this.ParaPr.Ind.FirstLine))
+	{
+		return nLeft + this.ParaPr.Ind.FirstLine;
+	}
+	return nLeft;
+};
+CNumberingLvl.prototype.GetIndentSize = function ()
+{
+	return this.ParaPr && this.ParaPr.Ind ? this.ParaPr.Ind.Left : 0;
+};
+CNumberingLvl.prototype.GetStopTab = function ()
+{
+	const oParaPr = this.GetParaPr();
+	if (oParaPr)
+	{
+		const oTabs = oParaPr.GetTabs();
+		if (oTabs)
+		{
+			if (oTabs && oTabs.GetCount() === 1)
+			{
+				return oTabs.Get(0).Pos;
+			}
+		}
+	}
+	return null;
+};
+
+CNumberingLvl.prototype.SetStopTab = function (nValue)
+{
+	var oParaPr = this.ParaPr;
+	if (!oParaPr)
+	{
+		oParaPr = new AscCommonWord.CParaPr;
+		this.ParaPr = oParaPr;
+	}
+	if (AscFormat.isRealNumber(nValue))
+	{
+		var oTabs = new AscCommonWord.CParaTabs;
+		oTabs.Add(new AscCommonWord.CParaTab(Asc.c_oAscTabType.Num, nValue));
+		oParaPr.Tabs = oTabs;
+	}
+	else
+	{
+		delete oParaPr.Tabs;
+	}
 };
 CNumberingLvl.prototype.WriteToBinary = function(oWriter)
 {
@@ -1372,7 +1550,7 @@ CNumberingLvl.prototype.private_ReadLvlTextFromBinary = function(oReader)
  */
 CNumberingLvl.prototype.IsBulleted = function()
 {
-	return this.GetFormat() === Asc.c_oAscNumberingFormat.Bullet;
+	return AscWord.IsBulletedNumbering(this.GetFormat());
 };
 /**
  * Проверяем является ли данный уровень нумерованным
@@ -1380,8 +1558,7 @@ CNumberingLvl.prototype.IsBulleted = function()
  */
 CNumberingLvl.prototype.IsNumbered = function()
 {
-	var nFormat = this.GetFormat();
-	return (nFormat !== Asc.c_oAscNumberingFormat.Bullet && nFormat !== Asc.c_oAscNumberingFormat.None);
+	return AscWord.IsNumberedNumbering(this.GetFormat());
 };
 /**
  * Получаем список связанных уровней с данным
@@ -1389,1399 +1566,59 @@ CNumberingLvl.prototype.IsNumbered = function()
  */
 CNumberingLvl.prototype.GetRelatedLvlList = function()
 {
-	var arrLvls = [];
+	let relatedLvl = [];
 	for (var nIndex = 0, nCount = this.LvlText.length; nIndex < nCount; ++nIndex)
 	{
-		if (numbering_lvltext_Num === this.LvlText[nIndex].Type)
+		if (numbering_lvltext_Num !== this.LvlText[nIndex].Type)
+			continue;
+		
+		var nLvl  = this.LvlText[nIndex].Value;
+		let insertIndex = 0;
+		for (let lvlCount = relatedLvl.length; insertIndex < lvlCount; ++insertIndex)
 		{
-			var nLvl  = this.LvlText[nIndex].Value;
-
-			if (arrLvls.length <= 0)
-				arrLvls.push(nLvl);
-
-			for (var nLvlIndex = 0, nLvlsCount = arrLvls.length; nLvlIndex < nLvlsCount; ++nLvlIndex)
-			{
-				if (arrLvls[nLvlIndex] === nLvl)
-					break;
-				else if (arrLvls[nLvlIndex] > nLvl)
-					arrLvls.splice(nLvlIndex, 0, nLvl);
-			}
+			if (relatedLvl[insertIndex] < nLvl)
+				continue;
+			
+			if (relatedLvl[insertIndex] === nLvl)
+				insertIndex = -1;
+			
+			break;
 		}
+		
+		if (insertIndex === relatedLvl.length)
+			relatedLvl.push(nLvl);
+		else if (-1 !== insertIndex)
+			relatedLvl.splice(insertIndex, 0, nLvl);
 	}
-
-	return arrLvls;
+	
+	return relatedLvl;
 };
 CNumberingLvl.prototype.SetFormat = function(nFormat)
 {
 	this.Format = nFormat;
 	this.private_CheckSymbols();
 };
-CNumberingLvl.prototype.private_CheckSymbols = function()
+
+CNumberingLvl.prototype.private_CheckSymbols = function ()
 {
-
-	function pickDecimal() {
-		for (var i = 0; i < 10; i += 1) {
-			AscFonts.FontPickerByCharacter.getFontBySymbol(0x30 + i);
-		}
-	}
-
 	if (AscFonts.IsCheckSymbols)
 	{
-		for (var nIndex = 0, nCount = this.LvlText.length; nIndex < nCount; ++nIndex)
-		{
-			var oItem = this.LvlText[nIndex];
-			if (oItem.IsText())
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(oItem.GetValue().charCodeAt(0));
-			}
-		}
-
-		switch (this.Format)
-		{
-			case Asc.c_oAscNumberingFormat.Bullet:
-			{
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.CustomDecimalTwoZero:
-			case Asc.c_oAscNumberingFormat.CustomDecimalThreeZero:
-			case Asc.c_oAscNumberingFormat.CustomDecimalFourZero:
-			case Asc.c_oAscNumberingFormat.Custom:
-			case Asc.c_oAscNumberingFormat.BahtText:
-			case Asc.c_oAscNumberingFormat.Decimal:
-			case Asc.c_oAscNumberingFormat.DecimalZero:
-			case Asc.c_oAscNumberingFormat.DollarText:
-			case Asc.c_oAscNumberingFormat.DecimalHalfWidth:
-			{
-				pickDecimal();
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.CustomGreece:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03B9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03BF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03DF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03C9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x03E1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x002C);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircleChinese:
-			{
-				pickDecimal();
-				for (var nValue = 0; nValue < 10; ++nValue)
-				{
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x2460 + nValue);
-				}
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
-			{
-				pickDecimal();
-				for (var nValue = 0; nValue < 20; ++nValue)
-				{
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x2460 + nValue);
-				}
-				break;
-			}
-
-			case Asc.c_oAscNumberingFormat.LowerLetter:
-			case Asc.c_oAscNumberingFormat.UpperLetter:
-			case Asc.c_oAscNumberingFormat.LowerRoman:
-			case Asc.c_oAscNumberingFormat.UpperRoman:
-			{
-				for (var nValue = 0; nValue < 26; ++nValue)
-				{
-					AscFonts.FontPickerByCharacter.getFontBySymbol(97 + nValue);
-					AscFonts.FontPickerByCharacter.getFontBySymbol(65 + nValue);
-				}
-				break;
-			}
-
-			case Asc.c_oAscNumberingFormat.RussianLower:
-			case Asc.c_oAscNumberingFormat.RussianUpper:
-			{
-				for (var nValue = 0; nValue < 32; ++nValue)
-				{
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x0430 + nValue);
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x0410 + nValue);
-				}
-				break;
-			}
-
-
-			case Asc.c_oAscNumberingFormat.ChineseCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x25CB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5341);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.ChineseCountingThousand:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x25CB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5341);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x767E);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5343);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E07);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.ChineseLegalSimplified:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x96F6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58F9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8D30);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x53C1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8086);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F0D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x9646);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x67D2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x634C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7396);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x62FE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F70);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4EDF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x842C);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.ThaiNumbers:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E50);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E51);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E52);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E53);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E54);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E55);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E56);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E57);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E58);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E59);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Aiueo:
-			{
-				var iter = 0xFF71;
-				while (iter !== 0xFF9C) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(iter);
-					iter += 1;
-				}
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF66);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF9D);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.AiueoFullWidth:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30BB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30BD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30BF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30D2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30D5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30D8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30DE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30DF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30ED);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F3);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.ArabicAbjad:
-			case Asc.c_oAscNumberingFormat.ArabicAlpha:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0623);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0628);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x062A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x062B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x062C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x062D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x062E);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x062F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0630);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0631);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0632);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0633);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0634);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0635);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0636);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0637);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0638);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0639);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x063A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0641);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0642);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0643);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0644);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0645);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0646);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0647);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0648);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x064A);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.CardinalText:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(32);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(45);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(97);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(98);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(99);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(100);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(101);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(102);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(103);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(104);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(105);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(106);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(107);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(108);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(109);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(110);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(111);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(112);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(113);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(114);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(115);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(116);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(117);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(118);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(119);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(120);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(121);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(122);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(223);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(225);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(228);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(229);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(233);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(234);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(235);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(237);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(243);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(246);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(252);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(261);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(263);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(269);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(281);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(283);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(299);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(326);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(345);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(347);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(353);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(357);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(363);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(940);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(941);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(942);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(943);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(945);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(946);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(947);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(948);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(949);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(953);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(954);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(955);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(956);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(957);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(958);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(959);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(960);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(961);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(962);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(963);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(964);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(966);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(967);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(972);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(973);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(974);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1072);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1074);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1076);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1077);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1080);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1082);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1083);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1084);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1085);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1086);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1087);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1088);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1089);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1090);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1093);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1094);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1095);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1096);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1099);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1100);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1103);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1110);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(45);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(65);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(66);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(67);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(68);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(69);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(70);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(71);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(72);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(73);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(74);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(75);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(76);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(77);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(78);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(79);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(80);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(81);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(82);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(83);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(84);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(85);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(86);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(87);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(88);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(89);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(90);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(193);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(196);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(197);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(201);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(202);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(203);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(205);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(211);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(214);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(220);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(260);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(262);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(268);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(280);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(282);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(298);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(325);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(344);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(346);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(352);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(356);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(362);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(902);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(904);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(905);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(906);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(908);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(910);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(911);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(913);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(914);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(915);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(916);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(917);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(921);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(922);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(923);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(924);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(925);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(926);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(927);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(928);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(929);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(931);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(932);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(934);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(935);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1030);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1040);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1042);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1044);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1045);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1048);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1050);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1051);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1052);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1053);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1054);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1055);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1056);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1057);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1058);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1061);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1062);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1063);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1064);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1067);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1068);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1071);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Chicago:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x002A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x00A7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x2020);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x2021);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Chosung:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3131);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3134);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3137);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3139);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3141);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3142);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3145);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3147);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3148);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x314A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x314B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x314C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x314D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x314E);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedFullstop:
-			{
-				for (var i  = 0;i < 20; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x2488 + i);
-				}
-				pickDecimal();
-
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.DecimalEnclosedParen:
-			{
-				for (var i = 0; i < 20; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x2474 + i);
-				}
-				pickDecimal();
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.DecimalFullWidth:
-			{
-				for (var i = 0; i < 10; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF10 + i);
-				}
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Ganada:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xAC00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB098);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB2E4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB77C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB9C8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xBC14);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0AC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC544);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC790);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCC28);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCE74);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD0C0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD30C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD558);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Hebrew1:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05EA);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Hebrew2:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05D9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05DE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05E9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x05EA);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Hex:
-			{
-				for (var i = 0; i < 6; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(0x0041 + i);
-				}
-				pickDecimal();
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.HindiConsonants:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2306);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2307);
-				for (var i = 0x0905; i <= 0x0914; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(i);
-				}
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.HindiCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2306);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2309);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2310);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2311);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2312);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2313);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2319);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2325);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2327);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2330);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2331);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2332);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2335);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2336);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2337);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2340);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2342);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2344);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2346);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2348);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2351);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2352);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2354);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2357);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2360);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2361);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2364);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2366);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2367);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2368);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2375);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2376);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2379);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2380);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(2381);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.HindiNumbers:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0967);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0968);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0969);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x096A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x096B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x096C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x096D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x096E);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x096F);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.HindiVowels:
-			{
-				for (var i = 0x0915; i <= 0x0939; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(i);
-				}
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IdeographDigital:
-			case Asc.c_oAscNumberingFormat.JapaneseDigitalTenThousand:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3007);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IdeographEnclosedCircle:
-			{
-				for (var i = 0x3220; i <= 0x3229; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(i);
-				}
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IdeographLegalTraditional:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58F9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8CB3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x53C3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8086);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F0D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x9678);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x67D2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x634C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7396);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x62FE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F70);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4EDF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x842C);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IdeographTraditional:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E01);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E19);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E59);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5DF1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5E9A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x620A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7532);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7678);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8F9B);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IdeographZodiac:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E11);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4EA5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5348);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x536F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5B50);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5BC5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5DF3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x620C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x672A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7533);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8FB0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x9149);
-				pickDecimal();
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IdeographZodiacTraditional:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E01);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E11);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E19);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E59);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4EA5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5348);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x536F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5B50);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5BC5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5DF1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5DF3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5E9A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x620A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x620D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x672A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7532);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7533);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x7678);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8F9B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x8FB0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x9149);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Iroha:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF66);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF71);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF72);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF73);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF74);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF75);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF76);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF77);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF78);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF79);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF7A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF7B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF7C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF7D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF7E);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF7F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF80);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF81);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF82);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF83);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF84);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF85);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF86);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF87);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF88);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF89);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF8A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF8B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF8D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF8E);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF8F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF90);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF91);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF92);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF93);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF95);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF96);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF97);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF98);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF99);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF9A);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF9B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF9C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xFF9D);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.IrohaFullWidth:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30A8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30AF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B3);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B7);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30B9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30BB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30BD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30BF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30C8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CD);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30CF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30D2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30D5);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30D8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30DE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30DF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E6);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30E9);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EA);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30ED);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30EF);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x30F3);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.JapaneseCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x3007);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5341);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5343);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x767E);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.JapaneseLegal:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x58F1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5F10);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x53C2);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4F0D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x62FE);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x767E);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x842C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x9621);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.KoreanCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC774);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0BC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0AC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC624);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC721);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCE60);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD314);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xAD6C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC2ED);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB9CC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCC9C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xBC31);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.KoreanDigital:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xAD6C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0AC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC0BC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC601);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC624);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC721);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC774);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xCE60);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD314);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.KoreanDigital2:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x96F6);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.KoreanLegal:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD558);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB098);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB458);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC14B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB137);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB2E4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC12F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC12F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xACF1);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB35F);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC544);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD649);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5F4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC2A4);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xBB3C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC11C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB978);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB9C8);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD754);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC270);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC608);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC21C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC77C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD754);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC5EC);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xB4E0);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xC544);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0xD754);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.None:
-			{
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.NumberInDash:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x002D);
-				pickDecimal();
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.Ordinal:
-			{
-				pickDecimal();
-				AscFonts.FontPickerByCharacter.getFontBySymbol(45);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(46);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(58);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(97);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(100);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(101);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(104);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(110);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(114);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(115);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(116);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(176);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(186);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(959);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1081);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.OrdinalText:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(32);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(45);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(97);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(98);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(99);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(100);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(101);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(102);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(103);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(104);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(105);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(106);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(107);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(108);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(109);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(110);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(111);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(112);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(113);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(114);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(115);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(116);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(117);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(118);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(119);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(120);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(121);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(122);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(223);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(225);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(228);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(229);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(233);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(234);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(235);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(237);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(243);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(246);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(252);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(261);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(263);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(269);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(281);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(283);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(299);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(326);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(345);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(347);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(353);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(357);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(363);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(940);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(941);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(942);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(943);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(945);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(946);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(947);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(948);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(949);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(953);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(954);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(955);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(956);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(957);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(958);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(959);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(960);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(961);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(962);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(963);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(964);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(966);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(967);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(972);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(973);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(974);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1072);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1074);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1076);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1077);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1080);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1082);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1083);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1084);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1085);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1086);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1087);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1088);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1089);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1090);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1093);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1094);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1095);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1096);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1099);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1100);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1103);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1110);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(65);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(66);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(67);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(68);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(69);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(70);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(71);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(72);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(73);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(74);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(75);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(76);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(77);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(78);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(79);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(80);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(81);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(82);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(83);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(84);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(85);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(86);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(87);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(88);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(89);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(90);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(193);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(196);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(197);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(201);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(202);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(203);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(205);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(211);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(214);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(220);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(260);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(262);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(268);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(280);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(282);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(298);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(325);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(344);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(346);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(352);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(356);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(362);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(902);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(904);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(905);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(906);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(908);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(910);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(911);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(913);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(914);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(915);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(916);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(917);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(921);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(922);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(923);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(924);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(925);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(926);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(927);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(928);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(929);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(931);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(932);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(934);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(935);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1030);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1040);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1042);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1044);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1045);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1048);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1050);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1051);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1052);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1053);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1054);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1055);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1056);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1057);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1058);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1061);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1062);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1063);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1064);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1067);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1068);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1071);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(200);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(212);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(221);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(919);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(937);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1043);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1049);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1059);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1066);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(232);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(244);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(253);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(951);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(969);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1075);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1081);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1091);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(1098);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.TaiwaneseCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x5341);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.TaiwaneseCountingThousand:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.TaiwaneseDigital:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x25CB);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E00);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E03);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E09);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E5D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E8C);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x4E94);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516B);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x516D);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x56DB);
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.ThaiCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3627);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3609);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3638);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3656);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3591);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3626);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3629);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3634);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3617);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3637);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3657);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3585);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3648);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3592);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3655);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3604);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3649);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3611);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3636);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3610);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3618);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3621);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3639);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3619);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3614);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(3633);
-
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.ThaiLetters:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E01);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E02);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E04);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(0x0E25);
-				for (var i = 0x0E07; i <= 0x0E23; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(i);
-				}
-				for (var i = 0x0E27; i <= 0x0E2E; i += 1) {
-					AscFonts.FontPickerByCharacter.getFontBySymbol(i);
-				}
-				break;
-			}
-			case Asc.c_oAscNumberingFormat.VietnameseCounting:
-			{
-				AscFonts.FontPickerByCharacter.getFontBySymbol(97);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(98);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(99);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(104);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(105);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(109);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(110);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(115);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(116);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(117);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(121);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(225);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(237);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(259);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(432);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(7843);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(7889);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(7897);
-				AscFonts.FontPickerByCharacter.getFontBySymbol(7901);
-				break;
-			}
-		}
+		const sSymbols = this.GetSymbols();
+		AscFonts.FontPickerByCharacter.checkTextLight(sSymbols);
 	}
-};
+}
+
 CNumberingLvl.prototype.GetSymbols = function()
 {
-	let symbols = "";
+	let arrSymbols = [];
 	for (let index = 0, count = this.LvlText.length; index < count; ++index)
 	{
 		let textItem = this.LvlText[index];
 		if (textItem.IsText())
-			symbols += textItem.GetValue();
+			arrSymbols.push(textItem.GetValue());
 	}
-
-	if (this.IsLgl)
-		symbols += "0123456789";
-
-	// TODO: Добавить символы, в зависимости от формата
-
-	return symbols;
+	
+	return arrSymbols.join('') + AscWord.GetNumberingSymbolsByFormat(this.Format);
 };
 
 function CNumberingLvlTextString(Val)
@@ -2811,6 +1648,16 @@ CNumberingLvlTextString.prototype.GetValue = function()
 CNumberingLvlTextString.prototype.Copy = function()
 {
 	return new CNumberingLvlTextString(this.Value);
+};
+CNumberingLvlTextString.prototype.IsEqual = function (oAnotherElement)
+{
+	if (this.Type !== oAnotherElement.Type)
+		return false;
+
+	if (this.Value !==  oAnotherElement.Value)
+		return false;
+
+	return true;
 };
 CNumberingLvlTextString.prototype.WriteToBinary = function(Writer)
 {
@@ -2852,6 +1699,17 @@ CNumberingLvlTextNum.prototype.GetValue = function()
 CNumberingLvlTextNum.prototype.Copy = function()
 {
 	return new CNumberingLvlTextNum(this.Value);
+};
+CNumberingLvlTextNum.prototype.IsEqual = function (oAnotherElement, oPr)
+{
+	const bIsSingleLvlPreviewPresetEquals = oPr && oPr.isSingleLvlPreviewPreset;
+	if (this.Type !== oAnotherElement.Type)
+		return false;
+
+	if (!bIsSingleLvlPreviewPresetEquals && this.Value !==  oAnotherElement.Value)
+		return false;
+
+	return true;
 };
 CNumberingLvlTextNum.prototype.WriteToBinary = function(Writer)
 {
@@ -2897,3 +1755,6 @@ CNumberingLvlLegacy.prototype.ReadFromBinary = function(oReader)
 //---------------------------------------------------------export---------------------------------------------------
 window['AscWord'] = window['AscWord'] || {};
 window["AscWord"].CNumberingLvl = CNumberingLvl;
+
+window["AscCommonWord"] = window.AscCommonWord = window["AscCommonWord"] || {};
+window["AscCommonWord"].CNumberingLvl = CNumberingLvl;

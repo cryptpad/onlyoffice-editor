@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2020
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 02.04.2020
- * Time: 15:50
- */
 
 /**
  * Базовый класс для контент контролов
@@ -332,6 +327,9 @@ CSdtBase.prototype.IsFixedForm = function()
  */
 CSdtBase.prototype.IsFormRequired = function()
 {
+	if (this.IsSignatureForm())
+		return true;
+	
 	return (this.Pr.FormPr ? this.Pr.FormPr.GetRequired() : false);
 };
 /**
@@ -391,6 +389,30 @@ CSdtBase.prototype.IsCheckBox = function()
 CSdtBase.prototype.IsRadioButton = function()
 {
 	return !!(this.IsCheckBox() && this.Pr.CheckBox && this.Pr.CheckBox.GroupKey);
+};
+/**
+ * Проверяем является ли данный контейнер специальным для поля со списком
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsComboBox = function()
+{
+	return (undefined !== this.Pr.ComboBox);
+};
+/**
+ * Проверяем является ли данный контейнер специальным для выпадающего списка
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsDropDownList = function()
+{
+	return (undefined !== this.Pr.DropDown);
+};
+/**
+ * Проверяем является ли данный контейнер специальным для даты
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsDatePicker = function()
+{
+	return (undefined !== this.Pr.Date);
 };
 /**
  * Является ли данный контейнер специальной текстовой формой
@@ -490,6 +512,17 @@ CSdtBase.prototype.IsCurrent = function()
 CSdtBase.prototype.SetCurrent = function(isCurrent)
 {
 	this.Current = isCurrent;
+	
+	if (this.IsForm() && this.IsFixedForm())
+	{
+		let logicDocument   = this.GetLogicDocument();
+		let drawingDocument = logicDocument ? logicDocument.GetDrawingDocument() : null;
+		if (drawingDocument && !logicDocument.IsFillingOFormMode())
+		{
+			drawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.In);
+			drawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.Hover);
+		}
+	}
 };
 /**
  * Специальная функция, которая обновляет текстовые настройки у плейсхолдера для форм
@@ -621,6 +654,10 @@ CSdtBase.prototype.IsPictureForm = function()
 {
 	return false;
 };
+CSdtBase.prototype.IsSignatureForm = function()
+{
+	return false;
+};
 /**
  * Функция обновления картиночной формы
  */
@@ -719,12 +756,40 @@ CSdtBase.prototype.GetAllSubForms = function(arrForms)
 	return arrForms;
 };
 /**
+ * Получаем порядковый номер данного подполя в родительском сложном поле
+ * Если данный объект не является полем или подполем в сложном поле, то вернется -1
+ * @returns {number}
+ */
+CSdtBase.prototype.GetSubFormIndex = function()
+{
+	if (!this.IsForm())
+		return -1;
+	
+	let mainForm = this.GetMainForm();
+	if (this === mainForm)
+		return -1;
+	
+	let subForms = mainForm.GetAllSubForms();
+	for (let index = 0, count = subForms.length; index < count; ++index)
+	{
+		if (subForms[index] === this)
+			return index;
+	}
+	
+	return -1;
+};
+/**
  * Провяеряем является ли данная форма текущей, с учетом того, что она либо сама является составной формой, либо
  * лежит в составной
  * @returns {boolean}
  */
 CSdtBase.prototype.IsCurrentComplexForm = function()
 {
+	// Текущая форма есть только в режиме заполнения. В режиме редактирования не даем заполнять форму
+	let logicDocument = this.GetLogicDocument();
+	if (logicDocument && logicDocument.IsDocumentEditor() && !logicDocument.IsFillingFormMode())
+		return false;
+	
 	if (this.IsCurrent())
 		return true;
 
@@ -866,6 +931,10 @@ CSdtBase.prototype.IsBuiltInUnique = function()
 {
 	return (this.Pr && this.Pr.DocPartObj && true === this.Pr.DocPartObj.Unique);
 };
+CSdtBase.prototype.GetBuiltInGallery = function()
+{
+	return (this.Pr && this.Pr.DocPartObj && this.Pr.DocPartObj.Gallery ? this.Pr.DocPartObj.Gallery : undefined)
+};
 CSdtBase.prototype.GetInnerText = function()
 {
 	return "";
@@ -903,6 +972,64 @@ CSdtBase.prototype.GetFormValue = function()
 	}
 
 	return this.GetInnerText();
+};
+CSdtBase.prototype.SetInnerText = function(value)
+{
+	// Must be overridden
+};
+CSdtBase.prototype.SetFormValue = function(value)
+{
+	if (!this.IsForm())
+		return;
+	
+	if (this.IsTextForm() || this.IsComboBox())
+	{
+		this.SetInnerText(AscBuilder.GetStringParameter(value, ""));
+	}
+	else if (this.IsDropDownList())
+	{
+		let dropDownPr = this.GetDropDownListPr();
+		let listIndex = dropDownPr.FindByText(AscBuilder.GetStringParameter(value, ""));
+		if (-1 !== listIndex)
+			this.SelectListItem(dropDownPr.GetItemValue(listIndex));
+	}
+	else if (this.IsCheckBox())
+	{
+		let isChecked = value === "true" ? true : value === "false" ? false : AscBuilder.GetBoolParameter(value, false);
+		this.SetCheckBoxChecked(isChecked);
+	}
+	else if (this.IsPictureForm())
+	{
+		let imageId = AscBuilder.GetStringParameter(value, "");
+		if (!imageId)
+			return;
+		
+		let image = null;
+		let allDrawings = this.GetAllDrawingObjects();
+		for (let nDrawing = 0; nDrawing < allDrawings.length; ++nDrawing)
+		{
+			if (allDrawings[nDrawing].IsPicture())
+			{
+				image = allDrawings[nDrawing].GraphicObj;
+				break;
+			}
+		}
+		
+		if (image)
+		{
+			this.SetShowingPlcHdr(false);
+			image.setBlipFill(AscFormat.CreateBlipFillRasterImageId(imageId));
+		}
+	}
+	else if (this.IsDatePicker())
+	{
+		this.SetInnerText(AscBuilder.GetStringParameter(value, ""));
+		
+		// TODO: Надо FullDate попытаться выставить по заданному значение. Сейчас мы всегда сбрасываем на текущую дату
+		let datePickerPr = this.GetDatePickerPr().Copy();
+		datePickerPr.SetFullDate(null);
+		this.SetDatePickerPr(datePickerPr);
+	}
 };
 CSdtBase.prototype.MoveCursorOutsideForm = function(isBefore)
 {
@@ -1000,4 +1127,136 @@ CSdtBase.prototype.CheckOFormUserMaster = function()
 		return true;
 	
 	return logicDocument.CheckOFormUserMaster(this);
+};
+/**
+ * Проверяем, можно ли ставить курсор внутрь
+ */
+CSdtBase.prototype.CanPlaceCursorInside = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	return (!this.IsPicture() && (!this.IsForm() || this.IsComplexForm() || !logicDocument || !logicDocument.IsDocumentEditor() || logicDocument.IsFillingFormMode()))
+};
+CSdtBase.prototype.SkipFillingFormModeCheck = function(isSkip)
+{
+};
+/**
+ * Нужно ли рисовать рамку вокруг контрола
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsHideContentControlTrack = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	if (logicDocument && logicDocument.IsForceHideContentControlTrack())
+		return true;
+	
+	if (this.GetBuiltInGallery()
+		&& !this.IsBuiltInTableOfContents())
+		return true;
+	
+	return Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance();
+};
+CSdtBase.prototype.setDataBinding = function(dataBinding)
+{
+	AscCommon.History.Add(new CChangesSdtPrDataBinding(this, this.Pr.DataBinding, dataBinding));
+	this.Pr.DataBinding = dataBinding;
+};
+CSdtBase.prototype.getDataBinding = function()
+{
+	return this.Pr.DataBinding;
+};
+/**
+ * Проверяем, есть ли привязанные данные, и если есть заполняем ими содержимое контрола
+ */
+CSdtBase.prototype.checkDataBinding = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	if (!logicDocument || !this.Pr.DataBinding)
+		return;
+	
+	let customXmlManager = logicDocument.getCustomXmlManager();
+	if (!customXmlManager || !customXmlManager.isSupported())
+		return;
+	
+	let content = customXmlManager.getContentByDataBinding(this.Pr.DataBinding, this);
+	if (!content)
+		return;
+	
+	if (this.IsPicture())
+	{
+		let allDrawings = this.GetAllDrawingObjects();
+		if (!allDrawings.length)
+			return;
+
+		let drawing = allDrawings[0];
+		let imageData = "data:image/jpeg;base64," + content;
+		let editor = logicDocument.GetApi();
+		editor.ImageLoader.LoadImagesWithCallback([imageData], function(){}, 0, true);
+		
+		let w = drawing.getXfrmExtX();
+		let h = drawing.getXfrmExtY();
+		
+		let imageShape = logicDocument.DrawingObjects.createImage(imageData, 0, 0, w, h);
+		imageShape.setParent(drawing);
+		drawing.Set_GraphicObject(imageShape);
+	}
+	else if (this.IsCheckBox())
+	{
+		if (content === "true" || content === "1")
+		{
+			let checkBoxPr = this.Pr.CheckBox.Copy();
+			checkBoxPr.SetChecked(true);
+			this.SetCheckBoxPr(checkBoxPr)
+		}
+		else if (content === "false" || content === "0")
+		{
+			let checkBoxPr = this.Pr.CheckBox.Copy();
+			checkBoxPr.SetChecked(false);
+			this.SetCheckBoxPr(checkBoxPr)
+		}
+	}
+	else if (this.IsDatePicker())
+	{
+		let date = new Date(content);
+		if (isNaN(date))
+		{
+			if (typeof content === "string")
+				this.SetInnerText(content);
+		}
+		else
+		{
+			let datePr = this.Pr.Date.Copy();
+			datePr.SetFullDate(content);
+			this.SetDatePickerPr(datePr);
+			this.private_UpdateDatePickerContent();
+		}
+	}
+	else if (this.IsDropDownList() || this.IsComboBox() || this.Pr.Text === true)
+	{
+		if (typeof content === "string")
+			this.SetInnerText(content);
+	}
+	else if (this.canFillWithComplexDataBindingContent())
+	{
+		let customXmlManager = logicDocument.getCustomXmlManager();
+		let arrContent       = customXmlManager.proceedLinearXMl(content);
+		this.fillContentWithDataBinding(arrContent);
+	}
+};
+CSdtBase.prototype.canFillWithComplexDataBindingContent = function()
+{
+	return false;
+};
+CSdtBase.prototype.fillContentWithDataBinding = function(content)
+{
+
+};
+CSdtBase.prototype.updateDataBinding = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	let dataBinding = this.Pr.DataBinding;
+	if (!dataBinding || !logicDocument || !logicDocument.IsDocumentEditor())
+		return;
+	
+	let customXmlManager = logicDocument.getCustomXmlManager();
+	customXmlManager.updateDataBinding(this);
 };

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -158,8 +158,8 @@
 
     function CChangesDrawingsDouble2(Class, Type, OldPr, NewPr) {
         this.Type = Type;
-        var _OldPr = (AscFormat.isRealNumber(OldPr) || isNaN(OldPr)) ? OldPr : undefined;
-        var _NewPr = (AscFormat.isRealNumber(NewPr) || isNaN(NewPr)) ? NewPr : undefined;
+        var _OldPr = typeof OldPr === "number" ? OldPr : undefined;
+        var _NewPr = typeof NewPr === "number" ? NewPr : undefined;
 		AscDFH.CChangesBaseDoubleProperty.call(this, Class, _OldPr, _NewPr);
     }
 
@@ -288,6 +288,12 @@
     CChangesDrawingsObjectNoId.prototype.CreateReverseChange = function()
     {
         return new this.constructor(this.Class, this.Type, this.New, this.Old, this.Color);
+    };
+    CChangesDrawingsObjectNoId.prototype.CommuteRelated = function (oActionToUndo, oActionOther) {
+        if (this.New && this.New.CommuteRelated) {
+            return this.New.CommuteRelated(oActionToUndo, oActionOther);
+        }
+        return true;
     };
     CChangesDrawingsObjectNoId.prototype.private_SetValue = private_SetValue;
     CChangesDrawingsObjectNoId.prototype.Load = function(){
@@ -824,7 +830,7 @@
     };
     CChangesDrawingSlideLocks.prototype.CreateReverseChange = function()
     {
-        return new this.constructor(this.Class, null, null, null, null, null);
+        return new this.constructor(this.Class, null, null, null, null, null, null);
     };
 
     window['AscDFH'].CChangesDrawingSlideLocks = CChangesDrawingSlideLocks;
@@ -938,18 +944,29 @@
         var collaborativeEditing = wb.oApi.collaborativeEditing;
         var nSheetId = this.Class && this.Class.worksheet && this.Class.worksheet.Id;
 
+        let res = false;
         if (this.NewPr && this.NewPr.length) {
             for (var i = 0; i < this.NewPr.length; i++) {
+                let r1old = this.NewPr[i].sqRef.r1;
+                let r2old = this.NewPr[i].sqRef.r2;
+                let c1old = this.NewPr[i].sqRef.c1;
+                let c2old = this.NewPr[i].sqRef.c2;
                 this.NewPr[i].sqRef.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r1);
                 this.NewPr[i].sqRef.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c1);
                 this.NewPr[i].sqRef.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i].sqRef.r2);
                 this.NewPr[i].sqRef.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i].sqRef.c2);
+                res = res || this.NewPr[i].sqRef.r1  !== r1old || this.NewPr[i].sqRef.r2  !== r2old || this.NewPr[i].sqRef.c1  !== c1old || this.NewPr[i].sqRef.c2  !== c2old;
 
                 if (this.NewPr[i]._f) {
+                    r1old = this.NewPr[i]._f.r1;
+                    r2old = this.NewPr[i]._f.r2;
+                    c1old = this.NewPr[i]._f.c1;
+                    c2old = this.NewPr[i]._f.c2;
                     this.NewPr[i]._f.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r1);
                     this.NewPr[i]._f.c1 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c1);
                     this.NewPr[i]._f.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.NewPr[i]._f.r2);
                     this.NewPr[i]._f.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.NewPr[i]._f.c2);
+                    res = res || this.NewPr[i]._f.r1  !== r1old || this.NewPr[i]._f.r2  !== r2old || this.NewPr[i]._f.c1  !== c1old || this.NewPr[i]._f.c2  !== c2old;
 
                     AscCommonExcel.executeInR1C1Mode(false, function () {
                         t.NewPr[i].f = t.NewPr[i]._f.getName();
@@ -957,6 +974,7 @@
                 }
             }
         }
+        return res;
 	};
     CChangesSparklinesChangeData.prototype.Load = function(){
         this.Redo();

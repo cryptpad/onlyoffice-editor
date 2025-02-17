@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -32,14 +32,17 @@
 
 "use strict";
 
-$(function () {
-
+$(function ()
+{
+	// Temporary we use epsilon equal to 2 twips instead of 1
+	const epsilon = AscCommon.TwipsToMM(2);
+	
 	const logicDocument = AscTest.CreateLogicDocument();
 
 
 	QUnit.module("Test the positioning of flow tables");
 
-	QUnit.test("Test: flow table inside another table", function (assert)
+	QUnit.test("Flow table inside another table", function (assert)
 	{
 		// Здесь мы проверяем горизонтальную позицию вложенной таблицы
 
@@ -148,5 +151,126 @@ $(function () {
 		assert.strictEqual(logicDocument.GetPagesCount(), 1, "Check pages count of the document");
 		assert.strictEqual(table.GetPageBounds(0).Left, 20, "Add section to the page and check the left position of the float table");
 	});
+	
+	QUnit.test("Check table overlap", function (assert)
+	{
+		AscTest.ClearDocument();
 
+		let sectPr = logicDocument.GetLastSection();
+		sectPr.SetPageMargins(20, 20, 20, 20);
+		
+		const rowHeight = 30;
+		function createTable(rows, cols)
+		{
+			let t = AscTest.CreateTable(rows, cols);
+			for (let iRow = 0; iRow < t.GetRowsCount(); ++iRow)
+			{
+				t.GetRow(iRow).SetHeight(rowHeight, Asc.linerule_AtLeast);
+			}
+			
+			t.SetInline(false);
+			t.SetPositionH(Asc.c_oAscHAnchor.Page, false, 0);
+			t.SetPositionV(Asc.c_oAscVAnchor.Page, false, 0);
+			AscTest.RemoveTableBorders(t);
+			return t;
+		}
+		
+		let table1 = createTable(2, 2);
+		logicDocument.AddToContent(0, table1);
+		
+		let table2 = createTable(2, 2);
+		logicDocument.AddToContent(1, table2);
+		
+		table1.setAllowOverlap(true);
+		table2.setAllowOverlap(true);
+		
+		table1.SetPositionV(Asc.c_oAscVAnchor.Page, false, 0);
+		table2.SetPositionV(Asc.c_oAscVAnchor.Page, false, 10);
+
+		AscTest.Recalculate();
+		assert.close(table1.GetPageBounds(0).Top, 0, epsilon, "Check top position of the first table");
+		assert.close(table2.GetPageBounds(0).Top, 10, epsilon, "Check top position of the second table");
+		
+		table1.setAllowOverlap(false);
+		table2.setAllowOverlap(true);
+		
+		AscTest.Recalculate();
+		assert.close(table1.GetPageBounds(0).Top, 0, epsilon, "Check top position of the first table");
+		assert.close(table2.GetPageBounds(0).Top, 2 * rowHeight, epsilon, "Check top position of the second table");
+		
+		table1.SetPositionH(Asc.c_oAscHAnchor.Page, false, 50);
+		table2.SetPositionH(Asc.c_oAscHAnchor.Page, false, 50);
+
+		table1.setAllowOverlap(true);
+		table2.setAllowOverlap(true);
+		
+		table1.SetPositionV(Asc.c_oAscVAnchor.Text, false, 0);
+		table2.SetPositionV(Asc.c_oAscVAnchor.Text, false, 10);
+		
+		AscTest.Recalculate();
+		assert.close(table1.GetPageBounds(0).Top, 20, epsilon, "Check top position of the first table");
+		assert.close(table2.GetPageBounds(0).Top, 30, epsilon, "Check top position of the second table");
+		
+		table1.setAllowOverlap(false);
+		table2.setAllowOverlap(false);
+		
+		AscTest.Recalculate();
+		assert.close(table1.GetPageBounds(0).Top, 20, epsilon, "Check top position of the first table");
+		assert.close(table2.GetPageBounds(0).Top, 20 + 2 * rowHeight, epsilon, "Check top position of the second table");
+	});
+	
+	
+	QUnit.test("Check flow table positioning in a header/footer (bug 67673)", function (assert)
+	{
+		AscTest.ClearDocument();
+		let p1 = AscTest.CreateParagraph();
+		logicDocument.PushToContent(p1);
+		
+		let sectPr = logicDocument.GetLastSection();
+		sectPr.SetPageMargins(50, 50, 50, 50);
+		sectPr.SetPageSize(100, 200);
+		sectPr.SetPageMarginHeader(20);
+		
+		let t = AscTest.CreateTable(1, 1);
+		t.GetRow(0).SetHeight(150, Asc.linerule_AtLeast);
+		t.SetInline(false);
+		t.SetPositionH(Asc.c_oAscHAnchor.Page, false, 0);
+		t.SetPositionV(Asc.c_oAscVAnchor.Page, false, 20);
+		AscTest.RemoveTableBorders(t);
+		
+		let header = AscTest.CreateDefaultHeader(sectPr);
+		header.AddToContent(1, t);
+		
+		p1 = header.GetElement(0);
+		p1.SetParagraphSpacing({Before : 0, After : 0, Line : 1, LineRule : Asc.linerule_Auto});
+		
+		AscTest.SetCompatibilityMode(AscCommon.document_compatibility_mode_Word15);
+		AscTest.Recalculate();
+		assert.strictEqual(t.GetPagesCount(), 1, "Check page count");
+		assert.strictEqual(t.IsEmptyPage(0), false, "Check page content");
+		assert.close(t.GetPageBounds(0).Top, 20, epsilon, "Check top position of the table");
+		
+		AscTest.SetCompatibilityMode(AscCommon.document_compatibility_mode_Word14);
+		AscTest.Recalculate();
+		assert.strictEqual(t.GetPagesCount(), 1, "Check top position of the first table");
+		assert.strictEqual(t.IsEmptyPage(0), false, "Check page content");
+		assert.close(t.GetPageBounds(0).Top, 20, epsilon, "Check top position of the table");
+		
+		t.SetPositionV(Asc.c_oAscVAnchor.Text, false, 0);
+
+		AscTest.SetCompatibilityMode(AscCommon.document_compatibility_mode_Word14);
+		AscTest.Recalculate();
+		assert.strictEqual(t.GetPagesCount(), 2, "Check page count");
+		assert.strictEqual(t.IsEmptyPage(0), true, "Check page content");
+		assert.strictEqual(t.IsEmptyPage(1), false, "Check page content");
+		assert.close(t.GetPageBounds(0).Top, 20 + AscTest.FontHeight, epsilon, "Check top position of the table");
+		
+		AscTest.SetCompatibilityMode(AscCommon.document_compatibility_mode_Word15);
+		AscTest.Recalculate();
+		assert.strictEqual(t.GetPagesCount(), 1, "Check page count");
+		assert.strictEqual(t.IsEmptyPage(0), false, "Check page content");
+		assert.close(t.GetPageBounds(0).Top, 20 + AscTest.FontHeight, epsilon, "Check top position of the table");
+		
+		AscTest.SetCompatibilityMode(AscCommon.document_compatibility_mode_Current);
+	});
 });

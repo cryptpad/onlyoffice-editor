@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -101,8 +101,7 @@ function (window, undefined)
 				if (true !== obj["macrosArray"][i]["autostart"])
 					continue;
 
-				var script = "(function(Api, window, alert, document, XMLHttpRequest){\n" + "\"use strict\"" + ";\n" + obj["macrosArray"][i]["value"] + "\n})(window.g_asc_plugins.api, {}, function(){}, {}," + customXMLHttpRequest.toString() + ");";
-				eval(script);
+				AscCommon.safePluginEval(obj["macrosArray"][i]["value"]);
 			}
 		}
 		catch (err)
@@ -121,8 +120,7 @@ function (window, undefined)
 			{
 				if (sGuid === obj["macrosArray"][i]["guid"])
 				{
-					var script = "(function(Api, window, alert, document, XMLHttpRequest){\n" + "\"use strict\"" + ";\n" + obj["macrosArray"][i]["value"] + "\n})(window.g_asc_plugins.api, {}, function(){}, {}," + customXMLHttpRequest.toString() + ");";
-					eval(script);
+					AscCommon.safePluginEval(obj["macrosArray"][i]["value"]);
 					break;
 				}
 			}
@@ -433,9 +431,59 @@ function (window, undefined)
 				}
 			});
 		};
-	};
+	}
 
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].CDocumentMacros = CDocumentMacros;
 	window['AscCommon'].VbaProject = VbaProject;
+
+	var _safe_eval_closure = new Function("Function", "Api", "window", "alert", "document", "XMLHttpRequest", "self", "globalThis", "setTimeout", "setInterval", "value", "return eval(\"\\\"use strict\\\";\\r\\n\" + value)");
+	window['AscCommon'].safePluginEval = function(value) {
+		let protoFunc = Object.getPrototypeOf(function(){});
+		// for minimization we use eval!!!
+		let protoFuncGen = null;
+		try {
+			protoFuncGen = eval("Object.getPrototypeOf(function*(){})");
+		} catch (err) {
+			protoFuncGen = null;
+		}
+		const normalConstructor = protoFunc.constructor;
+		const generatorNext = protoFuncGen ? protoFuncGen.prototype.next : null;
+		protoFunc.constructor = function(){};
+		if (protoFuncGen)
+			protoFuncGen.prototype.next = function(){};
+
+		const timeout = function(cb, delay) {
+			var args = Array.prototype.slice.call(arguments, 2);
+			return setTimeout(function() {
+				cb.apply({}, args);
+			}, delay);
+		};
+		const interval = function(cb, delay) {
+			var args = Array.prototype.slice.call(arguments, 2);
+			return setInterval(function() {
+				cb.apply({}, args);
+			}, delay);
+		};
+		const Api = window.g_asc_plugins.api;
+		// clear this field on each run
+		delete Api.parsedJSDoc;
+		// check if we add a custom function into this macros we will parse a jsdoc
+		if (value.includes('AddCustomFunction') && value.includes('@customfunction')) {
+			// calculate how any times the function of adding will be called
+			const countOfAdding = (value.match(/\.AddCustomFunction\(/g) || []).length;
+			// parse JSDOC and put it to Api
+			Api.parsedJSDoc = AscCommon.parseJSDoc(value);
+			// remove extra parsed JSDOC
+			if (Api.parsedJSDoc.length > countOfAdding)
+				Api.parsedJSDoc.length = countOfAdding;
+		}
+		const result = _safe_eval_closure.call(null, {}, Api, {}, function(){}, {}, customXMLHttpRequest, {}, {}, timeout, interval, value);
+		protoFunc.constructor = normalConstructor;
+		if (protoFuncGen)
+			protoFuncGen.prototype.next = generatorNext;
+		return result;
+	};
+
+
 })(window);

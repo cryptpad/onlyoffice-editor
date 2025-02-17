@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -83,7 +83,8 @@ var c_oSerBorderType = {
     Value: 3,
 	ColorTheme: 4,
 	SpacePoint: 5,
-	Size8Point: 6
+	Size8Point: 6,
+	ValueType: 7
 };
 var c_oSerBordersType = {
     left: 0,
@@ -239,6 +240,10 @@ BinaryCommonWriter.prototype.WriteBorder = function(border)
         this.memory.WriteByte(c_oSerBorderType.Value);
         this.memory.WriteByte(c_oSerPropLenType.Byte);
         this.memory.WriteByte(border.Value);
+		
+		this.memory.WriteByte(c_oSerBorderType.ValueType);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.memory.WriteLong(border.getValue());
     }
 };
 BinaryCommonWriter.prototype.WriteBorders = function(Borders)
@@ -1283,6 +1288,13 @@ function isRealObject(obj)
         return 0;
       return this.data[this.cur++];
     }
+	  this.GetUChar_TypeNode = function()
+	  {
+		  if (this.cur >= this.size)
+			  return c_nodeAttribute.nodeAttributeEnd;
+		  return this.data[this.cur++];
+	  }
+
     this.GetBool = function()
     {
       if (this.cur >= this.size)
@@ -1332,12 +1344,12 @@ function isRealObject(obj)
     
     this.ReadByteFromPPTY = function ()
     {
-      var value = 0;
+      var value = null;
       var end = this.cur + this.GetULong() + 4;
       this.Skip2(1);
       while (true)
       {
-        var _at = this.GetUChar();
+        var _at = this.GetUChar_TypeNode();
         if (_at === c_nodeAttribute.nodeAttributeEnd)
         {
           break;

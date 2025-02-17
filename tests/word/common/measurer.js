@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,6 +34,8 @@
 
 (function(window)
 {
+	window.AscFonts = window.AscFonts || {};
+	onLoadFontsModule = function () {};
 
 	const CharWidth   = 0.5;
 	const FontSize    = 10;
@@ -51,6 +53,17 @@
 	const GraphemeCombining_xyz = 40;
 	const GraphemeCombining_xy  = 45;
 
+	function GetCharWidth(codePoint)
+	{
+		if (0x00BC === codePoint) // ¼
+			return 0.25 * CharWidth;
+		else if (0x00BD === codePoint) // ½
+			return 0.5 * CharWidth;
+		else if (0x00BE === codePoint) // ¾
+			return 0.75 * CharWidth;
+		
+		return CharWidth;
+	}
 
 	let HB_String                            = [];
 	AscFonts.HB_StartString                  = function()
@@ -64,6 +77,10 @@
 	AscFonts.HB_AppendToString               = function(u)
 	{
 		HB_String.push(u);
+	};
+	AscFonts.GetGraphemeWidth = function()
+	{
+		return CharWidth;
 	};
 	AscFonts.CTextShaper.prototype.FlushWord = function()
 	{
@@ -110,12 +127,14 @@
 			}
 			else
 			{
-				this.FlushGrapheme(GraphemeNormal, CharWidth, 1, false);
+				this.Direction = this.GetDirection(HB_String[nIndex]);
+				this.FlushGrapheme(GraphemeNormal, GetCharWidth(HB_String[nIndex]), 1, false);
 			}
 		}
 
 		AscFonts.HB_StartString();
 	};
+	const g_oTextMeasurer = window.g_oTextMeasurer || AscCommon.g_oTextMeasurer;
 	g_oTextMeasurer.SetFontInternal = function()
 	{
 	};
@@ -140,13 +159,21 @@
 	{
 		return FontDescent;
 	};
-	g_oTextMeasurer.MeasureCode     = function()
+	g_oTextMeasurer.MeasureCode     = function(codePoint)
+	{
+		return {Width : GetCharWidth(codePoint) * FontSize};
+	};
+	g_oTextMeasurer.Measure2Code     = function()
 	{
 		return {Width : CharWidth * FontSize};
 	};
-	g_oTextMeasurer.Measure         = function()
+	g_oTextMeasurer.Measure         = function(char)
 	{
-		return {Width : CharWidth * FontSize};
+		return g_oTextMeasurer.MeasureCode(char ? char.codePointAt(0) : 0x0020);
+	};
+	AscCommon.g_fontApplication = AscCommon.g_fontApplication || window.g_fontApplication || {};
+	AscCommon.g_fontApplication.LoadFont = function () {
+
 	};
 	//--------------------------------------------------------export----------------------------------------------------
 	AscTest.CharWidth   = CharWidth;

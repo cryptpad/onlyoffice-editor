@@ -1,5 +1,5 @@
 ﻿/*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -365,6 +365,74 @@
 
         result.reverse();
         return String.fromCharCode.apply(null, result);
+    };
+
+    window.AscCommon["Utf8"] = window.AscCommon.Utf8 = {};
+
+    window.AscCommon.Utf8.encode = function(text, isEndNull)
+    {
+        //return new (TextEncoder()).encode(password);
+
+        var inputLen = text.length;
+        var testLen  = 6 * inputLen + 1;
+        var tmpStrings = new ArrayBuffer(testLen);
+
+        var code  = 0;
+        var index = 0;
+
+        var outputIndex = 0;
+        var outputDataTmp = new Uint8Array(tmpStrings);
+        var outputData = outputDataTmp;
+
+        while (index < inputLen)
+        {
+            code = text.charCodeAt(index++);
+            if (code >= 0xD800 && code <= 0xDFFF && index < inputLen)
+                code = 0x10000 + (((code & 0x3FF) << 10) | (0x03FF & text.charCodeAt(index++)));
+
+            if (code < 0x80)
+                outputData[outputIndex++] = code;
+            else if (code < 0x0800)
+            {
+                outputData[outputIndex++] = 0xC0 | (code >> 6);
+                outputData[outputIndex++] = 0x80 | (code & 0x3F);
+            }
+            else if (code < 0x10000)
+            {
+                outputData[outputIndex++] = 0xE0 | (code >> 12);
+                outputData[outputIndex++] = 0x80 | ((code >> 6) & 0x3F);
+                outputData[outputIndex++] = 0x80 | (code & 0x3F);
+            }
+            else if (code < 0x1FFFFF)
+            {
+                outputData[outputIndex++] = 0xF0 | (code >> 18);
+                outputData[outputIndex++] = 0x80 | ((code >> 12) & 0x3F);
+                outputData[outputIndex++] = 0x80 | ((code >> 6) & 0x3F);
+                outputData[outputIndex++] = 0x80 | (code & 0x3F);
+            }
+            else if (code < 0x3FFFFFF)
+            {
+                outputData[outputIndex++] = 0xF8 | (code >> 24);
+                outputData[outputIndex++] = 0x80 | ((code >> 18) & 0x3F);
+                outputData[outputIndex++] = 0x80 | ((code >> 12) & 0x3F);
+                outputData[outputIndex++] = 0x80 | ((code >> 6) & 0x3F);
+                outputData[outputIndex++] = 0x80 | (code & 0x3F);
+            }
+            else if (code < 0x7FFFFFFF)
+            {
+                outputData[outputIndex++] = 0xFC | (code >> 30);
+                outputData[outputIndex++] = 0x80 | ((code >> 24) & 0x3F);
+                outputData[outputIndex++] = 0x80 | ((code >> 18) & 0x3F);
+                outputData[outputIndex++] = 0x80 | ((code >> 12) & 0x3F);
+                outputData[outputIndex++] = 0x80 | ((code >> 6) & 0x3F);
+                outputData[outputIndex++] = 0x80 | (code & 0x3F);
+            }
+        }
+
+        if (isEndNull === true)
+            outputData[outputIndex++] = 0;
+
+        return new Uint8Array(tmpStrings, 0, outputIndex);
     };
 
 

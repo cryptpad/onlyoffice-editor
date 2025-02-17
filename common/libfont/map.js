@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -1063,17 +1063,20 @@
 			 sCandName.MakeLower(); sReqName.MakeLower();
 			 */
 
-			if ( 0 == sReqName.length )
+			if ( 0 === sReqName.length )
 				return 0;
 
-			if ( 0 == sMyName.length )
+			if ( 0 === sMyName.length )
 				return 10000;
 
 			if ( sReqName == sMyName )
 				return 0;
 
+			let cand1 = sReqName.replace(/[\s-,]/g, '').toLowerCase();
+			let cand2 = sMyName.replace(/[\s-,]/g, '').toLowerCase();
+
 			// check equals, inst
-			if (sReqName.replace(/[\s-,]/g, '').toLowerCase() == sMyName.replace(/[\s-,]/g, '').toLowerCase())
+			if (cand1 === cand2)
 				return 100;
 
 			if (-1 !== sReqName.indexOf(sMyName) || -1 !== sMyName.indexOf(sReqName))
@@ -1089,7 +1092,14 @@
 				return 999;
 			}
 
-			return this.CheckEqualFonts2(sReqName, sMyName);
+			// TODO:
+			// MS не так подбирает. На стандартных шрифтах работает. на всех - нет
+			if (0 === cand1.indexOf(cand2))
+			{
+				return 2000 + 10 * Math.abs(cand1.length - cand2.length);
+			}
+
+			return 10000;
 		},
 
 		GetFaceNamePenalty : function(sReqName)
@@ -2825,7 +2835,14 @@
 			this.DefaultIndex = this.g_fontDictionary.GetFontIndex(oSelect, this.g_fontSelections.List, undefined);
 		};
 
-		this.LoadFont = function(name, font_loader, fontManager, fEmSize, lStyle, dHorDpi, dVerDpi, transform, objDst)
+		this.LoadFontWithEmbed = function(name, font_loader, fontManager, fEmSize, lStyle, dHorDpi, dVerDpi, transform, objDst)
+		{
+			if (name.startsWith(AscFonts.getEmbeddedFontPrefix()))
+				return AscFonts.g_font_infos_embed[AscFonts.g_map_font_index_embed[name]].LoadFont(AscCommon.g_font_loader, fontManager, fEmSize, /*_font.GetStyle()*/lStyle, dHorDpi, dVerDpi, transform);
+
+			return this.LoadFontWithoutEmbed(name, font_loader, fontManager, fEmSize, lStyle, dHorDpi, dVerDpi, transform, objDst)
+		};
+		this.LoadFontWithoutEmbed = function(name, font_loader, fontManager, fEmSize, lStyle, dHorDpi, dVerDpi, transform, objDst)
 		{
 			var _font = this.GetFontFileWeb(name, lStyle);
 			var font_name_index = AscFonts.g_map_font_index[_font.m_wsFontName];
@@ -2839,6 +2856,7 @@
 			// так как подвираем вез стиля в Web версии
 			return AscFonts.g_font_infos[font_name_index].LoadFont(AscCommon.g_font_loader, fontManager, fEmSize, /*_font.GetStyle()*/lStyle, dHorDpi, dVerDpi, transform);
 		};
+		this.LoadFont = this.LoadFontWithoutEmbed;
 
 		this.CheckReplaceGlyphsMap = function(name, objDst)
 		{
@@ -2922,7 +2940,14 @@
 			}
 		};
 
-		this.GetFontInfo = function(name, lStyle, objDst)
+		this.GetFontInfoWithEmbed = function(name, lStyle, objDst)
+		{
+			if (name.startsWith(AscFonts.getEmbeddedFontPrefix()))
+				return AscFonts.g_font_infos_embed[AscFonts.g_map_font_index_embed[name]];
+
+			return this.GetFontInfoWithoutEmbed(name, lStyle, objDst);
+		};
+		this.GetFontInfoWithoutEmbed = function(name, lStyle, objDst)
 		{
 			var _font = this.GetFontFileWeb(name, lStyle);
 			var font_name_index = AscFonts.g_map_font_index[_font.m_wsFontName];
@@ -2935,6 +2960,8 @@
 
 			return AscFonts.g_font_infos[font_name_index];
 		};
+		this.GetFontInfo = this.GetFontInfoWithoutEmbed;
+
 		this.GetFontInfoName = function(name, objDst)
 		{
 			var _font = this.GetFontFileWeb(name);
@@ -3091,6 +3118,13 @@
 	};
 	window['AscFonts']['getFontStream'] = function(index) {
 		var s = AscFonts.g_fonts_streams[index];
+		if (true === s.asc_marker)
+		{
+			return {
+				"data" : AscFonts.GetUint8ArrayFromPointer(s.data, s.len),
+				"size" : s.len
+			};
+		}
 		return {
 			"data" : s.data,
 			"size" : s.size

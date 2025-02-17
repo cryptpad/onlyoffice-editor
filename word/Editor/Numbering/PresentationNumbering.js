@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 08.05.2018
- * Time: 15:52
- */
 
 // Import
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
@@ -327,6 +322,20 @@ function getAdaptedNumberingFormat(nType) {
 	}
 }
 
+CPresentationBullet.prototype.GetDrawingContent = function (arrLvls, nLvl, nNum)
+{
+	const oApi = Asc.editor || editor;
+	if (this.m_sSrc)
+	{
+		const oImage = oApi.ImageLoader.map_image_index[this.m_sSrc];
+		return oImage ? {image: oImage, amount: 1} : {amount: 0};
+	}
+	else
+	{
+		return this.GetDrawingText(nNum);
+	}
+
+}
 CPresentationBullet.prototype.Get_Type = function()
 {
 	return this.m_nType;
@@ -335,10 +344,25 @@ CPresentationBullet.prototype.Get_StartAt = function()
 {
 	return this.m_nStartAt;
 };
+CPresentationBullet.prototype.GetIndentSize = function ()
+{
+	return 0;
+};
+CPresentationBullet.prototype.GetNumberPosition = function ()
+{
+	return 0;
+};
 
-CPresentationBullet.prototype.getDrawingText = function (Num) {
+CPresentationBullet.prototype.GetDrawingText = function () {
+	let nNum;
+	if (arguments.length === 1) {
+		nNum = arguments[0];
+	} else if (arguments.length === 3) {
+		nNum = arguments[2];
+	} else {
+		nNum = 1;
+	}
 	var sT = "";
-	Num = Num || 1;
 	if (this.m_nType === AscFormat.numbering_presentationnumfrmt_Char)
 	{
 		if ( null != this.m_sChar )
@@ -347,17 +371,15 @@ CPresentationBullet.prototype.getDrawingText = function (Num) {
 		}
 	} else if (this.m_nType !== AscFormat.numbering_presentationnumfrmt_Blip)
 	{
-		var typeOfNum = getAdaptedNumberingFormat(this.m_nType);
-		var formatNum = IntToNumberFormat(Num, typeOfNum);
-		sT = this.getHighlightForNumbering(formatNum);
+		var nTypeOfNum = getAdaptedNumberingFormat(this.m_nType);
+		var nFormatNum = IntToNumberFormat(nNum, nTypeOfNum);
+		sT = this.getHighlightForNumbering(nFormatNum);
 	}
 	return sT;
 }
 
-CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Theme)
+CPresentationBullet.prototype.MergeTextPr = function (FirstTextPr)
 {
-	this.m_nNum = Num;
-	this.m_sString = this.getDrawingText(Num);
 	var dFontSize = FirstTextPr.FontSize;
 	if ( false === this.m_bSizeTx )
 	{
@@ -423,7 +445,13 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Them
 	});
 	FirstTextPr_.Merge(TextPr_);
 	this.m_oTextPr = FirstTextPr_;
+}
 
+CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Theme)
+{
+	this.m_nNum = Num;
+	this.m_sString = this.GetDrawingText(Num);
+	this.MergeTextPr(FirstTextPr);
 	if (this.m_nType === AscFormat.numbering_presentationnumfrmt_Blip)
 	{
 		var sizes = AscCommon.getSourceImageSize(this.m_sSrc);
@@ -508,78 +536,98 @@ CPresentationBullet.prototype.Draw = function(X, Y, Context, PDSE)
 		return;
 	}
 
-		var OldTextPr  = Context.GetTextPr();
-		var OldTextPr2 = g_oTextMeasurer.GetTextPr();
+	var OldTextPr  = Context.GetTextPr();
+	var OldTextPr2 = g_oTextMeasurer.GetTextPr();
 
-		var sT = this.m_sString;
+	var sT = this.m_sString;
 	var FontSlot;
-		if (sT)
-		{
-			FontSlot = AscWord.GetFontSlotByTextPr( sT.getUnicodeIterator().value(), this.m_oTextPr);
-		}
+	if (sT)
+	{
+		FontSlot = AscWord.GetFontSlotByTextPr( sT.getUnicodeIterator().value(), this.m_oTextPr);
+	}
 
+	if(this.m_oTextPr.Unifill){
+		this.m_oTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
+	}
+	Context.SetTextPr( this.m_oTextPr, PDSE.Theme );
+	Context.SetFontSlot( FontSlot );
+	if(!Context.isTextDrawer()){
 		if(this.m_oTextPr.Unifill){
-			this.m_oTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
+			var RGBA = this.m_oTextPr.Unifill.getRGBAColor();
+			this.m_oColor.r = RGBA.R;
+			this.m_oColor.g = RGBA.G;
+			this.m_oColor.b = RGBA.B;
 		}
-		Context.SetTextPr( this.m_oTextPr, PDSE.Theme );
-		Context.SetFontSlot( FontSlot );
-		if(!Context.Start_Command){
-			if(this.m_oTextPr.Unifill){
-				var RGBA = this.m_oTextPr.Unifill.getRGBAColor();
-				this.m_oColor.r = RGBA.R;
-				this.m_oColor.g = RGBA.G;
-				this.m_oColor.b = RGBA.B;
-			}
-			var r = this.m_oColor.r;
-			var g = this.m_oColor.g;
-			var b = this.m_oColor.b;
-			if(PDSE.Paragraph && PDSE.Paragraph.IsEmpty())
+		var r = this.m_oColor.r;
+		var g = this.m_oColor.g;
+		var b = this.m_oColor.b;
+		if(PDSE.Paragraph && PDSE.Paragraph.IsEmpty())
+		{
+			var dAlpha = 0.4;
+			var rB, gB, bB;
+			if(PDSE.BgColor)
 			{
-				var dAlpha = 0.4;
-				var rB, gB, bB;
-				if(PDSE.BgColor)
-				{
-					rB = PDSE.BgColor.r;
-					gB = PDSE.BgColor.g;
-					bB = PDSE.BgColor.b;
-				}
-				else
-				{
-					rB = 255;
-					gB = 255;
-					bB = 255;
-				}
-				r = Math.min(255, (r  * dAlpha + rB * (1 - dAlpha) + 0.5) >> 0);
-				g = Math.min(255, (g  * dAlpha + gB * (1 - dAlpha) + 0.5) >> 0);
-				b = Math.min(255, (b  * dAlpha + bB * (1 - dAlpha) + 0.5) >> 0);
+				rB = PDSE.BgColor.r;
+				gB = PDSE.BgColor.g;
+				bB = PDSE.BgColor.b;
 			}
-			Context.p_color(r, g, b, 255 );
-			Context.b_color1(r, g, b, 255 );
+			else
+			{
+				rB = 255;
+				gB = 255;
+				bB = 255;
+			}
+			r = Math.min(255, (r  * dAlpha + rB * (1 - dAlpha) + 0.5) >> 0);
+			g = Math.min(255, (g  * dAlpha + gB * (1 - dAlpha) + 0.5) >> 0);
+			b = Math.min(255, (b  * dAlpha + bB * (1 - dAlpha) + 0.5) >> 0);
 		}
-		g_oTextMeasurer.SetTextPr( this.m_oTextPr, PDSE.Theme  );
-		g_oTextMeasurer.SetFontSlot( FontSlot );
+		Context.p_color(r, g, b, 255 );
+		Context.b_color1(r, g, b, 255 );
+	}
+	g_oTextMeasurer.SetTextPr( this.m_oTextPr, PDSE.Theme  );
+	g_oTextMeasurer.SetFontSlot( FontSlot );
 
-		for (var iter = sT.getUnicodeIterator(); iter.check(); iter.next())
+	for (var iter = sT.getUnicodeIterator(); iter.check(); iter.next())
+	{
+		var charCode = iter.value();
+		if (Context.m_bIsTextDrawer === true)
 		{
-			var charCode = iter.value();
-			Context.FillTextCode( X, Y, charCode );
-			X += g_oTextMeasurer.MeasureCode(charCode).Width;
+			Context.CheckAddNewPath(X, Y, charCode);
 		}
-		
-		if(OldTextPr)
-		{
-			Context.SetTextPr( OldTextPr, PDSE.Theme );
-		}
-		if(OldTextPr2)
-		{
-			g_oTextMeasurer.SetTextPr( OldTextPr2, PDSE.Theme  );
-		}
+		Context.FillTextCode( X, Y, charCode );
+		X += g_oTextMeasurer.MeasureCode(charCode).Width;
+	}
+
+	if(OldTextPr)
+	{
+		Context.SetTextPr( OldTextPr, PDSE.Theme );
+	}
+	if(OldTextPr2)
+	{
+		g_oTextMeasurer.SetTextPr( OldTextPr2, PDSE.Theme  );
+	}
 };
 CPresentationBullet.prototype.IsNumbered = function()
 {
 	return this.m_nType >= AscFormat.numbering_presentationnumfrmt_AlphaLcParenBoth
 		&& this.m_nType <= AscFormat.numbering_presentationnumfrmt_ThaiNumPeriod;
 };
+CPresentationBullet.prototype.GetStringByLvlText = CPresentationBullet.prototype.GetDrawingText;
+CPresentationBullet.prototype.GetTextPr = function ()
+{
+	if (!this.m_oTextPr)
+		this.m_oTextPr = new AscCommonWord.CTextPr();
+	return this.m_oTextPr;
+};
+CPresentationBullet.prototype.SetTextPr = function (oTextPr)
+{
+	this.m_oTextPr = oTextPr;
+};
+CPresentationBullet.prototype.SetJc = function (nJc) {};
+CPresentationBullet.prototype.GetJc = function () {return AscCommon.align_Left};
+CPresentationBullet.prototype.GetSymbols = function () {};
+CPresentationBullet.prototype.GetSuff = function () {};
+
 CPresentationBullet.prototype.IsNone = function()
 {
 	return this.m_nType === AscFormat.numbering_presentationnumfrmt_None;

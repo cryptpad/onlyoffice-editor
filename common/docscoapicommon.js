@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -133,7 +133,8 @@
   var c_oEditorId = {
     Word:0,
     Spreadsheet:1,
-    Presentation:2
+    Presentation:2,
+    Visio:3
   };
 
   var c_oCloseCode = {
@@ -146,7 +147,8 @@
 	drop: 4007,
 	updateVersion: 4008,
 	noCache: 4009,
-	restore: 4010
+	restore: 4010,
+	quiet: 4011
   };
   
 	var c_oAscServerCommandErrors = {

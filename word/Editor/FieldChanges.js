@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 10.11.2016
- * Time: 18:59
- */
 
 AscDFH.changesFactory[AscDFH.historyitem_Field_AddItem]              = CChangesParaFieldAddItem;
 AscDFH.changesFactory[AscDFH.historyitem_Field_RemoveItem]           = CChangesParaFieldRemoveItem;
@@ -67,7 +62,7 @@ CChangesParaFieldAddItem.prototype.Undo = function()
 	var oField = this.Class;
 	oField.Content.splice(this.Pos, this.Items.length);
 	oField.OnContentChange();
-	oField.private_UpdateTrackRevisions();
+	oField.updateTrackRevisions();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.private_UpdateSelectionPosOnRemove(this.Pos, this.Items.length);
 	oField.SetIsRecalculated(false);
@@ -80,7 +75,7 @@ CChangesParaFieldAddItem.prototype.Redo = function()
 	var Array_end   = oField.Content.slice(this.Pos);
 
 	oField.Content = Array_start.concat(this.Items, Array_end);
-	oField.private_UpdateTrackRevisions();
+	oField.updateTrackRevisions();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.OnContentChange();
 	oField.private_UpdateSelectionPosOnAdd(this.Pos, this.Items.length);
@@ -136,7 +131,7 @@ CChangesParaFieldAddItem.prototype.Load = function(Color)
 		}
 	}
 
-	oField.private_UpdateTrackRevisions();
+	oField.updateTrackRevisions();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.OnContentChange();
 	oField.SetIsRecalculated(false);
@@ -152,6 +147,7 @@ CChangesParaFieldAddItem.prototype.CreateReverseChange = function()
 {
 	return this.private_CreateReverseChange(CChangesParaFieldRemoveItem);
 };
+CChangesParaFieldAddItem.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseContentChange}
@@ -173,7 +169,7 @@ CChangesParaFieldRemoveItem.prototype.Undo = function()
 	oField.Content = Array_start.concat(this.Items, Array_end);
 	oField.OnContentChange();
 	oField.private_CheckUpdateBookmarks(this.Items);
-	oField.private_UpdateTrackRevisions();
+	oField.updateTrackRevisions();
 	oField.private_UpdateSelectionPosOnAdd(this.Pos, this.Items.length);
 	oField.SetIsRecalculated(false);
 
@@ -196,7 +192,7 @@ CChangesParaFieldRemoveItem.prototype.Redo = function()
 {
 	var oField = this.Class;
 	oField.Content.splice(this.Pos, this.Items.length);
-	oField.private_UpdateTrackRevisions();
+	oField.updateTrackRevisions();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.OnContentChange();
 	oField.private_UpdateSelectionPosOnRemove(this.Pos, this.Items.length);
@@ -224,7 +220,7 @@ CChangesParaFieldRemoveItem.prototype.Load = function(Color)
 		oField.private_UpdateSelectionPosOnRemove(ChangesPos, 1);
 		AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oField, ChangesPos, 1);
 	}
-	oField.private_UpdateTrackRevisions();
+	oField.updateTrackRevisions();
 	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.OnContentChange();
 	oField.SetIsRecalculated(false);
@@ -240,6 +236,7 @@ CChangesParaFieldRemoveItem.prototype.CreateReverseChange = function()
 {
 	return this.private_CreateReverseChange(CChangesParaFieldAddItem);
 };
+CChangesParaFieldRemoveItem.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringProperty}
@@ -255,6 +252,7 @@ CChangesParaFieldFormFieldName.prototype.private_SetValue = function(Value)
 {
 	this.Class.FormFieldName = Value;
 };
+CChangesParaFieldFormFieldName.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringProperty}
@@ -270,3 +268,4 @@ CChangesParaFieldFormFieldDefaultText.prototype.private_SetValue = function(Valu
 {
 	this.Class.FormFieldDefaultText = Value;
 };
+CChangesParaFieldFormFieldDefaultText.prototype.CheckLock = private_ParagraphContentChangesCheckLock;

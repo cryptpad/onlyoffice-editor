@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,10 +31,9 @@
  */
 
 var editor = undefined;
-var window = ("undefined" === typeof window) ? {} : window;
 var navigator = {};
 navigator.userAgent = "chrome";
-window.navigator = navigator;
+
 window.location = {};
 
 window.location.protocol = "";
@@ -48,46 +47,21 @@ window.NATIVE_EDITOR_ENJINE = true;
 window.NATIVE_EDITOR_ENJINE_SYNC_RECALC = true;
 
 var document = {};
-window.document = document;
 
-window["Asc"] = {};
-var Asc = window["Asc"];
-
-window["AscFonts"] = {};
-var AscFonts = window["AscFonts"];
-
-window["AscCommon"] = {};
-var AscCommon = window["AscCommon"];
-
-window["AscFormat"] = {};
-var AscFormat = window["AscFormat"];
-
-window["AscDFH"] = {};
-var AscDFH = window["AscDFH"];
-
-window["AscCH"] = {};
-var AscCH = window["AscCH"];
-
-window["AscCommonExcel"] = {};
-var AscCommonExcel = window["AscCommonExcel"];
-
-window["AscCommonWord"] = {};
-var AscCommonWord = window["AscCommonWord"];
-
-window["AscMath"] = {};
-var AscMath = window["AscMath"];
-
-window["AscCommonSlide"] = {};
-var AscCommonSlide = window["AscCommonSlide"];
-
-window["AscBuilder"] = {};
-var AscBuilder = window["AscBuilder"];
-
-window["AscWord"] = {};
-var AscWord = window["AscWord"];
-
-window["AscJsonConverter"] = {};
-var AscJsonConverter = window["AscJsonConverter"];
+var Asc = {};
+var AscFonts = {};
+var AscCommon = {};
+var AscFormat = {};
+var AscDFH = {};
+var AscCH = {};
+var AscCommonExcel = {};
+var AscCommonWord = {};
+var AscMath = {};
+var AscCommonSlide = {};
+var AscBuilder = {};
+var AscWord = {};
+var AscJsonConverter = {};
+var AscBidi = {};
 
 function Image()
 {
@@ -240,9 +214,7 @@ _null_object.val = function () { return this; };
 _null_object.remove = function () {};
 _null_object.getComputedStyle = function () { return null; };
 _null_object.getContext = function (type) { return (type == "2d") ? new native_context2d(this) : null; };
-_null_object.getBoundingClientRect = function() { return { left : 0, top : 0, right : this.width(), bottom : this.height() }; };
-
-window._null_object = _null_object;
+_null_object.getBoundingClientRect = function() { return { left : 0, top : 0, right : 0, bottom : 0 }; };
 
 document.createElement = function (type)
 {
@@ -269,45 +241,90 @@ document.documentElement = _null_object;
 document.body = _null_object;
 
 // NATIVE OBJECT
-var native = (typeof native === undefined) ? undefined : native;
-if (!native)
-{
-	if (typeof NativeEngine === "undefined")
-		native = CreateNativeEngine();
-	else
-		native = NativeEngine;
-}
-
-window.native = native;
 function GetNativeEngine() { return window.native; }
 
 var Api = null; // main builder object
 window.devicePixelRatio = 1;
-if (window.native && window.native.GetDevicePixelRatio)
-	window.devicePixelRatio = window.native.GetDevicePixelRatio();
+
+window.InitNativeObject = function()
+{
+	window.native = native;
+	window.devicePixelRatio = 1;
+	if (window.native && window.native.GetDevicePixelRatio)
+		window.devicePixelRatio = window.native.GetDevicePixelRatio();
+};
+
+if (undefined !== native)
+	window.InitNativeObject();
 
 // OPEN
-function NativeOpenFileData(data, version, xlsx_file_path, options)
+function NativeCreateApi(options)
 {
 	window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-    Api = null;
+	Api = null;
 
-    if (options && options["printOptions"] && options["printOptions"]["retina"])
-        AscBrowser.isRetina = true;
+	var configApi = {};
+	if (options && undefined !== options["translate"])
+		configApi["translate"] = options["translate"];
 
-	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
+	switch (window.NATIVE_DOCUMENT_TYPE)
 	{
-        Api = new window["Asc"]["asc_docs_api"]({});
-		if (options && options["documentLayout"] && undefined !== options["documentLayout"]["openedAt"])
-			Api.setOpenedAt(options["documentLayout"]["openedAt"]);
-        Api.asc_nativeOpenFile(data, version);
+		case "document":
+		case "presentation":
+		{
+			Api = new window["Asc"]["asc_docs_api"](configApi);
+			if (options && options["documentLayout"] && undefined !== options["documentLayout"]["openedAt"])
+				Api.setOpenedAt(options["documentLayout"]["openedAt"]);
+			break;
+		}
+		case "spreadsheet":
+		{
+			Api = new window["Asc"]["spreadsheet_api"](configApi);
+			break;
+		}
+		case "pdf":
+		{
+			Api = new window["Asc"]["PDFEditorApi"](configApi);
+			break;
+		}
+		case "visio":
+		{
+			Api = new window["Asc"]["VisioEditorApi"](configApi);
+			break;
+		}
+		default:
+			break;
 	}
-	else
+
+	if (options && undefined !== options["locale"])
+		Api.asc_setLocale(options["locale"]);
+}
+
+function NativeOpenFileData(data, version, xlsx_file_path, options)
+{
+    NativeCreateApi(options);
+
+	switch (window.NATIVE_DOCUMENT_TYPE)
 	{
-        Api = new window["Asc"]["spreadsheet_api"]({});
-        if (options && undefined !== options["locale"])
-            Api.asc_setLocale(options["locale"]);
-        Api.asc_nativeOpenFile(data, version, undefined, xlsx_file_path);
+		case "visio":
+		case "document":
+		case "presentation":
+		{
+			Api.asc_nativeOpenFile(data, version);
+			break;
+		}
+		case "spreadsheet":
+		{
+			Api.asc_nativeOpenFile(data, version, undefined, xlsx_file_path);
+			break;
+		}
+		case "pdf":
+		{
+			Api.asc_nativeOpenFile(data, version);
+			break;
+		}
+		default:
+			break;
 	}
 }
 
@@ -317,10 +334,11 @@ var clearInterval = window.clearInterval = function() {};
 var setInterval = window.setInterval = function() {};
 
 var console = {
-	log: function (param) { window.native.ConsoleLog(param); },
+	log: function (param) { window.native && window.native.ConsoleLog(param); },
 	time: function (param) {},
 	timeEnd: function (param) {},
-	warn: function() {}
+	warn: function() {},
+	error: function() {}
 };
 
 var performance = window.performance = (function(){
@@ -329,42 +347,3 @@ var performance = window.performance = (function(){
 		now : function() { return Date.now() - basePerformanceOffset; }
 	};
 })();
-
-(function(window, undefined){
-	function ZLib()
-	{
-		this.engine = CreateNativeZip();
-		this.files = {};
-	}
-	ZLib.prototype.isModuleInit = true;
-	ZLib.prototype.open = function(buf)
-	{
-		return this.engine.open((undefined !== buf.byteLength) ? new Uint8Array(buf) : buf);
-	};
-	ZLib.prototype.create = function()
-	{
-		return this.engine.create();
-	};
-	ZLib.prototype.save = function()
-	{
-		return this.engine.save();
-	};
-	ZLib.prototype.getFile = function(path)
-	{
-		return this.engine.getFile(path);
-	};
-	ZLib.prototype.addFile = function(path, data)
-	{
-		return this.engine.addFile(path, (undefined !== data.byteLength) ? new Uint8Array(data) : data);
-	};
-	ZLib.prototype.removeFile = function(path)
-	{
-		return this.engine.removeFile(path);
-	};
-	ZLib.prototype.close = function()
-	{
-		return this.engine.close();
-	};
-
-	window.nativeZlibEngine = new ZLib();
-})(window, undefined);

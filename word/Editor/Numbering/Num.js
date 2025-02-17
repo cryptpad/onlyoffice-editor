@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 08.05.2018
- * Time: 15:08
- */
 
 /**
  * Класс представляющий нумерацию параграфов в документах
@@ -50,7 +45,7 @@ function CNum(oNumbering, sAbstractNumId)
 	this.Lock = new AscCommon.CLock();
 	if (!AscCommon.g_oIdCounter.m_bLoad)
 	{
-		this.Lock.Set_Type(AscCommon.locktype_Mine, false);
+		this.Lock.Set_Type(AscCommon.c_oAscLockTypes.kLockTypeMine, false);
 		if (typeof AscCommon.CollaborativeEditing !== "undefined")
 			AscCommon.CollaborativeEditing.Add_Unlock2(this);
 	}
@@ -275,26 +270,33 @@ CNum.prototype.LinkWithHeadings = function(styles)
 {
 	for (let iLvl = 0; iLvl <= 8; ++iLvl)
 	{
-		let styleId = styles.GetDefaultHeading(iLvl);
-		let style   = styles.Get(styleId);
-		if (style)
-		{
-			let paraPr = style.GetParaPr().Copy();
-			paraPr.NumPr = new CNumPr(this.GetId(), iLvl);
-			style.SetParaPr(paraPr);
-			this.LinkWithStyle(iLvl, styleId);
-		}
+		this.LinkWithStyle(iLvl, styles.GetDefaultHeading(iLvl), styles);
 	}
 };
 /**
  * Связываем заданный уровень с заданным стилем
  * @param {number} iLvl 0..8
  * @param {string} styleId
+ * @param {AscWord.CStyles} styleManager
  */
-CNum.prototype.LinkWithStyle = function(iLvl, styleId)
+CNum.prototype.LinkWithStyle = function(iLvl, styleId, styleManager)
 {
 	if ("number" !== typeof(iLvl) || iLvl < 0 || iLvl >= 9)
 		return;
+	
+	let numLvl = this.GetLvl(iLvl);
+	let pStyle = numLvl.GetPStyle();
+	if (pStyle && styleManager.Get(pStyle))
+	{
+		let oldStyle = styleManager.Get(pStyle);
+		oldStyle.SetNumPr(null);
+	}
+
+	let style = styleManager.Get(styleId);
+	if (!style)
+		return;
+
+	style.SetNumPr(this.GetId(), iLvl);
 
 	if (this.private_HaveLvlOverride(iLvl))
 	{
@@ -414,7 +416,9 @@ CNum.prototype.RecalculateRelatedParagraphs = function(nLvl)
 				logicDocument.Add_ChangedStyle(style.GetId());
 		}
 	}
-
+	
+	logicDocument.GetNumberingCollection().CheckNum(this.Id, nLvl);
+	
 	var arrParagraphs = logicDocument.GetAllParagraphsByNumbering({NumId : this.Id, Lvl : nLvl});
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
 	{
@@ -511,9 +515,9 @@ CNum.prototype.GetLvlByStyle = function(sStyleId)
  * @param nLvl {number} 0..8
  * @param nNumShift {number}
  * @param [isForceArabic=false] {boolean}
- * @param langForTextNumbering {number}
+ * @param oLangForTextNumbering {AscCommonWord.CLang}
  */
-CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceArabic, langForTextNumbering)
+CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceArabic, oLangForTextNumbering)
 {
 	var nFormat = this.GetLvl(nLvl).GetFormat();
 	if (true === isForceArabic
@@ -521,7 +525,7 @@ CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceAra
 		&& nFormat !== Asc.c_oAscNumberingFormat.DecimalZero)
 		nFormat = Asc.c_oAscNumberingFormat.Decimal;
 
-	return AscCommon.IntToNumberFormat(nNumShift, nFormat, langForTextNumbering);
+	return AscCommon.IntToNumberFormat(nNumShift, nFormat, {lang: oLangForTextNumbering});
 };
 /**
  * Функция отрисовки заданного уровня нумерации в заданной позиции
@@ -554,7 +558,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 				let strValue  = arrText[nTextIndex].Value;
 				let codePoint = strValue.charCodeAt(0);
 				let curCoef   = dKoef;
-				
+
 				let info;
 				if ((info = this.ApplyTextPrToCodePoint(codePoint, oNumTextPr)))
 				{
@@ -562,7 +566,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 					codePoint = info.CodePoint;
 					strValue  = String.fromCodePoint(codePoint);
 				}
-				
+
 				var FontSlot = AscWord.GetFontSlotByTextPr(codePoint, oNumTextPr);
 
 				oContext.SetFontSlot(FontSlot, curCoef);
@@ -625,9 +629,9 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 			case numbering_lvltext_Text:
 			{
 				let strValue  = arrText[nTextIndex].Value;
-				let codePoint = strValue.charCodeAt(0);
+				let codePoint = strValue.getUnicodeIterator().value();
 				let curCoef   = dKoef;
-				
+
 				let info;
 				if ((info = this.ApplyTextPrToCodePoint(codePoint, oNumTextPr)))
 				{
@@ -635,11 +639,11 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 					codePoint = info.CodePoint;
 					strValue  = String.fromCodePoint(codePoint);
 				}
-				
+
 				var FontSlot = AscWord.GetFontSlotByTextPr(codePoint, oNumTextPr);
 
 				oContext.SetFontSlot(FontSlot, curCoef);
-				nX += oContext.Measure(strValue).Width;
+				nX += oContext.MeasureCode(codePoint).Width;
 
 				break;
 			}
@@ -647,11 +651,11 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 			{
 				oContext.SetFontSlot(AscWord.fontslot_ASCII, dKoef);
 				var nCurLvl = arrText[nTextIndex].Value;
-				var langForTextNumbering = oNumTextPr.Lang;
+				var sLangForTextNumbering = oNumTextPr.Lang;
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl, langForTextNumbering);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl, sLangForTextNumbering);
 
 				for (var iter = T.getUnicodeIterator(); iter.check(); iter.next())
 				{
@@ -728,9 +732,10 @@ CNum.prototype.GetAllFontNames = function(arrAllFonts)
  * @param nLvl {number} 0..8
  * @param oNumInfo
  * @param bWithoutLastLvlText {?boolean}
+ * @param [oLang] {AscCommonWord.CLang}
  * @returns {string}
  */
-CNum.prototype.GetText = function(nLvl, oNumInfo, bWithoutLastLvlText)
+CNum.prototype.GetText = function(nLvl, oNumInfo, bWithoutLastLvlText, oLang)
 {
 	var oLvl    = this.GetLvl(nLvl);
 	var arrText = oLvl.GetLvlText();
@@ -753,7 +758,7 @@ CNum.prototype.GetText = function(nLvl, oNumInfo, bWithoutLastLvlText)
 			{
 				var nCurLvl = arrText[Index].Value;
 				if (nCurLvl < oNumInfo.length)
-					sResult += this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl]);
+					sResult += this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], false, oLang);
 
 				break;
 			}
@@ -927,6 +932,25 @@ CNum.prototype.IsSimilar = function(oNum)
 
 	return true;
 };
+/**
+ * Проверяем, одинаковы ли две заданные нумерации
+ * @param oNum {CNum}
+ * @returns {boolean}
+ */
+CNum.prototype.IsEqual = function(oNum)
+{
+	if (!oNum)
+		return false;
+
+	for (var nLvl = 0; nLvl < 9; ++nLvl)
+	{
+		var oLvl = this.GetLvl(nLvl);
+		if (!oLvl.IsEqual(oNum.GetLvl(nLvl)))
+			return false;
+	}
+
+	return true;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
 //----------------------------------------------------------------------------------------------------------------------
@@ -1020,11 +1044,11 @@ CNum.prototype.ApplyTextPrToCodePoint = function(codePoint, textPr)
 {
 	if (!textPr || (!textPr.Caps && !textPr.SmallCaps))
 		return null;
-	
+
 	let resultCodePoint = (String.fromCharCode(codePoint).toUpperCase()).charCodeAt(0);
 	if (resultCodePoint === codePoint)
 		return null;
-	
+
 	return {
 		CodePoint : resultCodePoint,
 		FontCoef  : !textPr.Caps ? smallcaps_Koef : 1,
@@ -1094,3 +1118,7 @@ CLvlOverride.prototype.ReadFromBinary = function(oReader)
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CNum = CNum;
+
+window['AscWord'] = window['AscWord'] || {};
+window['AscWord'].CNum = CNum;
+

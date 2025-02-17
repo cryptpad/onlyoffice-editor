@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -77,11 +77,15 @@
 		if (this.Flags & FLAGS_GAPS)
 			nWidth += this.LGap + this.RGap;
 
-		return nWidth;
+		return (nWidth > 0 ? nWidth : 0);
 	};
 	CRunSpace.prototype.GetCodePoint = function()
 	{
 		return this.Value;
+	};
+	CRunSpace.prototype.getBidiType = function()
+	{
+		return AscBidi.TYPE.WS;
 	};
 	CRunSpace.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 	{
@@ -91,6 +95,10 @@
 			X += this.LGap;
 		}
 
+		if(Context.m_bIsTextDrawer)
+		{
+			Context.CheckSpaceDraw();
+		}
 		if (undefined !== editor && editor.ShowParaMarks)
 		{
 			Context.SetFontSlot(AscWord.fontslot_ASCII, this.GetFontCoef());
@@ -118,10 +126,13 @@
 		if (1 !== FontKoef)
 			FontKoef = (((FontSize * FontKoef * 2 + 0.5) | 0) / 2) / FontSize;
 
-		Context.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
-
+		if (0x3000 === this.Value)
+			Context.SetFontSlot(AscWord.fontslot_EastAsia, FontKoef);
+		else
+			Context.SetFontSlot(AscWord.fontslot_ASCII, FontKoef);
+		
 		var Temp  = Context.MeasureCode(this.Value).Width;
-
+		
 		var ResultWidth  = (Math.max((Temp + TextPr.Spacing), 0) * 16384) | 0;
 		this.Width       = ResultWidth;
 		this.WidthOrigin = ResultWidth;
@@ -216,6 +227,10 @@
 	};
 	CRunSpace.prototype.BalanceSingleByteDoubleByteWidth = function()
 	{
+		// ea-space doesn't need to be balanced (bug 58483)
+		if (this.Value === 0x3000)
+			return;
+		
 		this.Width = this.WidthEn;
 	};
 	CRunSpace.prototype.SetGaps = function(nLeftGap, nRightGap, nCellWidth)

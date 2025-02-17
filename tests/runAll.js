@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -36,22 +36,52 @@ const allTests = [
 	'cell/spreadsheet-calculation/FormulaTests.html',
 	'cell/spreadsheet-calculation/PivotTests.html',
 	'cell/spreadsheet-calculation/CopyPasteTests.html',
+	'cell/spreadsheet-calculation/AutoFilterTests.html',
 	'word/unit-tests/paragraphContentPos.html',
+	'word/unit-tests/deleted-text-recovery.html',
+	'word/content-control/block-level/cursorAndSelection.html',
+	'word/content-control/inline-level/checkbox.html',
+	'word/content-control/inline-level/cursorAndSelection.html',
+	'word/content-control/inline-level/date-time.html',
+	'word/custom-xml/custom-xml.html',
+	'word/document-calculation/floating-position/drawing.html',
 	'word/document-calculation/paragraph.html',
 	'word/document-calculation/table/correctBadTable.html',
 	'word/document-calculation/table/flowTablePosition.html',
+	'word/document-calculation/table/pageBreak.html',
+	'word/document-calculation/table/table-flow.html',
+	'word/document-calculation/table/table-header.html',
 	'word/document-calculation/textShaper/textShaper.html',
+	'word/document-calculation/text-hyphenator/text-hyphenator.html',
 	'word/forms/forms.html',
 	'word/forms/complexForm.html',
 	'word/numbering/numberingApplicator.html',
+	'word/numbering/numberingCalculation.html',
+	'word/numbering/numberingAutocorrect.html',
 	'word/api/api.html',
+	'word/api/cross-ref.html',
 	'word/api/textInput.html',
+	'word/styles/displayStyle.html',
 	'word/styles/paraPr.html',
+	'word/styles/styleApplicator.html',
+	'word/text-autocorrection/as-you-type.html',
 	'word/plugins/pluginsApi.html',
+	'word/revisions/document-content.html',
+	'word/revisions/paragraph.html',
+	'word/merge-documents/mergeDocuments.html',
+	'word/math-autocorrection/math-autocorrection.html',
+	'word/change-case/change-case.html',
 
+	'cell/shortcuts/shortcuts.html',
+	'slide/shortcuts/shortcuts.html',
+	'word/shortcuts/shortcuts.html',
 
-	'oform/xml/oformXml.html'
+	// related ooxml tests
+	'oform/xml/oformXml.html',
+	'word/custom-xml/custom-xml-ooxml.html',
 ];
+
+const maxTestsAtOnce = require('events').defaultMaxListeners;
 
 const {performance} = require('perf_hooks');
 
@@ -61,17 +91,26 @@ const {
   printFailedTests
 } = require("node-qunit-puppeteer");
 
-async function Run()
+(async function()
 {
 	let startTime = performance.now();
 	let count  = 0;
 	let failed = [];
+	let promiseTests = [];
+	
+	async function flushTests()
+	{
+		await Promise.all(promiseTests);
+		promiseTests = [];
+	}
+	
 	for (let nIndex = 0, nCount = allTests.length; nIndex < nCount; ++nIndex)
 	{
-		await runQunitPuppeteer({targetUrl : path.join(__dirname, allTests[nIndex])})
+		promiseTests.push(runQunitPuppeteer({targetUrl : path.join(__dirname, allTests[nIndex]), timeout : 60000})
 			.then(result =>
 			{
 				count++;
+				console.log("\n" + allTests[nIndex].yellow.bold);
 				printResultSummary(result, console);
 
 				if (result.stats.failed > 0)
@@ -85,9 +124,14 @@ async function Run()
 				count++;
 				failed.push(allTests[nIndex]);
 				console.error(ex);
-			});
+			}));
+		
+		if (maxTestsAtOnce === promiseTests.length)
+			await flushTests();
 	}
-
+	
+	await flushTests();
+	
 	console.log("\nOverall Elapsed " + (Math.round(( ((performance.now() - startTime) / 1000) + Number.EPSILON) * 1000) / 1000) + "s");
 	console.log("\n"+ (count - failed.length) + "/" + count + " modules successfully passed the tests");
 
@@ -103,7 +147,7 @@ async function Run()
 	{
 		console.log("\nPASSED".green.bold);
 	}
-}
-
-Run();
+	
+	process.exit();
+})();
 

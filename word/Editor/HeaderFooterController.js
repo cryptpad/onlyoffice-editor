@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -75,9 +75,9 @@ CHdrFtrController.prototype.AddSignatureLine = function(oSignatureDrawing)
 {
 	this.HdrFtr.AddSignatureLine(oSignatureDrawing);
 };
-CHdrFtrController.prototype.AddInlineImage = function(nW, nH, oImage, oChart, bFlow)
+CHdrFtrController.prototype.AddInlineImage = function(nW, nH, oImage, oGraphicObject, bFlow)
 {
-	this.HdrFtr.AddInlineImage(nW, nH, oImage, oChart, bFlow);
+	this.HdrFtr.AddInlineImage(nW, nH, oImage, oGraphicObject, bFlow);
 };
 CHdrFtrController.prototype.AddImages = function(aImages)
 {
@@ -297,9 +297,9 @@ CHdrFtrController.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEven
 {
 	this.HdrFtr.UpdateCursorType(X, Y, PageAbs, MouseEvent);
 };
-CHdrFtrController.prototype.PasteFormatting = function(TextPr, ParaPr)
+CHdrFtrController.prototype.PasteFormatting = function(oData)
 {
-	this.HdrFtr.PasteFormatting(TextPr, ParaPr, false);
+	this.HdrFtr.PasteFormatting(oData);
 };
 CHdrFtrController.prototype.IsSelectionUse = function()
 {
@@ -402,7 +402,7 @@ CHdrFtrController.prototype.SetSelectionState = function(State, StateIndex)
 };
 CHdrFtrController.prototype.AddHyperlink = function(Props)
 {
-	this.HdrFtr.AddHyperlink(Props);
+	return this.HdrFtr.AddHyperlink(Props);
 };
 CHdrFtrController.prototype.ModifyHyperlink = function(Props)
 {

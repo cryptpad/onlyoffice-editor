@@ -220,7 +220,7 @@ function EasySAXParser(config) {
         };
 
         if (!ns || typeof root !== 'string') {
-            throw error('required args ns(string, object)');
+            throw Error('required args ns(string, object)');
         };
 
         isNamespace = !!(useNS = ns || null);
@@ -1414,6 +1414,9 @@ StaxParser.prototype.GetDoubleOrNaN = function (val, def) {
     if(val === "NaN") {
         return NaN;
     }
+		if (val === "INF") {
+			return Infinity;
+		}
     return this.GetDouble(val, def);
 };
 StaxParser.prototype.GetValueBool = function () {
@@ -1621,9 +1624,10 @@ function XmlParserContext(){
     this.DrawingDocument = null;
     this.imageMap = {};
     this.curChart = null;
+		this.smartarts = [];
     //docx
     this.commentDataById = {};
-    this.oReadResult = new AscCommonWord.DocReadResult();
+    this.oReadResult = AscCommonWord.DocReadResult && new AscCommonWord.DocReadResult();
     this.maxZIndex = 0;
 
     this.oformContext = null;
@@ -1811,11 +1815,9 @@ XmlParserContext.prototype.loadDataLinks = function() {
             oImageMap[_cur_ind++] = path;
             let data = this.zip.getFile(path);
             if (data) {
-                if (!window["NATIVE_EDITOR_ENJINE"]) {
-                    let blob = this.zip.getImageBlob(path);
-                    let url = window.URL.createObjectURL(blob);
-                    AscCommon.g_oDocumentUrls.addImageUrl(path, url);
-                }
+                let blobUrl = AscCommon.g_oDocumentBlobUrls.getBlobUrl(path, this.zip);
+                AscCommon.g_oDocumentUrls.addImageUrl(path, blobUrl);
+
                 this.imageMap[path].forEach(function(blipFill) {
                     AscCommon.pptx_content_loader.Reader.initAfterBlipFill(path, blipFill);
                 });
@@ -1823,6 +1825,15 @@ XmlParserContext.prototype.loadDataLinks = function() {
         }
     }
     return oImageMap;
+};
+XmlParserContext.prototype.GenerateSmartArts = function() {
+	while (this.smartarts.length) {
+		const smartart = this.smartarts.pop();
+		smartart.generateDrawingPart();
+	}
+};
+XmlParserContext.prototype.ClearSmartArts = function() {
+	this.smartarts.length = 0;
 };
 function XmlWriterContext(editorId){
     //common
@@ -1869,7 +1880,7 @@ function XmlWriterContext(editorId){
     this.sheetIds = [];
     this.sharedStrings = null;
     this.isCopyPaste = null;
-    this.stylesForWrite = new AscCommonExcel.StylesForWrite();
+    this.stylesForWrite = AscCommonExcel.StylesForWrite && new AscCommonExcel.StylesForWrite(); //no StylesForWrite in vsdx now
     this.oSharedStrings = {index: 0, strings: {}};
     this.oleDrawings = [];
     this.signatureDrawings = [];

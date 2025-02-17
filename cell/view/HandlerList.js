@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -63,7 +63,9 @@
 			}
 			if (t === "array") {
 				for (i = 0; i < h.length; i += 1) {
-					if (asc_typeOf(h[i]) === "function") {h[i].apply(this, a);}
+					if (asc_typeOf(h[i]) === "function") {
+						h[i].apply(this, a);
+					}
 				}
 				return true;
 			}
@@ -78,7 +80,9 @@
 				t = asc_typeOf(old);
 				if (t !== "array") {
 					h = th[eventName] = [];
-					if (t === "function") {h.push(old);}
+					if (t === "function") {
+						h.push(old);
+					}
 				}
 				h.push(eventHandler);
 			}

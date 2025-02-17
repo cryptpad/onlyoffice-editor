@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -51,39 +51,6 @@
 	CDocumentPrintView.prototype.IsPrintMode = function()
 	{
 		return true;
-	};
-	CDocumentPrintView.prototype.GetSectionHdrFtr = function(nPageAbs, isFirst, isEven)
-	{
-		let oLogicDocument = this.LogicDocument;
-
-		let nSectionIndex = this.SectionsInfo.Get_Index(oLogicDocument.GetPage(nPageAbs).GetStartPos());
-		let oSectPr       = this.SectionsInfo.Get_SectPr2(nSectionIndex).SectPr;
-		let startSectPr   = oSectPr;
-
-		isEven  = isEven && oSectPr.IsEvenAndOdd();
-		isFirst = isFirst && oSectPr.IsTitlePage();
-
-		let oHeader = null;
-		let oFooter = null;
-		while (nSectionIndex >= 0)
-		{
-			oSectPr = this.SectionsInfo.Get_SectPr2(nSectionIndex--).SectPr;
-
-			if (!oHeader)
-				oHeader = oSectPr.GetHdrFtr(true, isFirst, isEven);
-
-			if (!oFooter)
-				oFooter = oSectPr.GetHdrFtr(false, isFirst, isEven);
-
-			if (oHeader && oFooter)
-				break;
-		}
-
-		return {
-			Header : oHeader,
-			Footer : oFooter,
-			SectPr : startSectPr
-		};
 	};
 	CDocumentPrintView.prototype.GetPageContentFrame = function(nPageAbs, oSectPr)
 	{
@@ -159,26 +126,6 @@
 			ColumnSpaceBefore : nColumnSpaceBefore,
 			ColumnSpaceAfter  : nColumnSpaceAfter
 		};
-	};
-	CDocumentPrintView.prototype.GetSection = function(nPageAbs, nContentIndex)
-	{
-		let oPage;
-		if (undefined === nContentIndex && (oPage = this.LogicDocument.GetPage(nPageAbs)))
-			nContentIndex = oPage.GetStartPos();
-
-		return this.SectionsInfo.Get_SectPr(nContentIndex).SectPr;
-	};
-	CDocumentPrintView.prototype.GetSectionByPos = function(nContentIndex)
-	{
-		return this.SectionsInfo.Get_SectPr(nContentIndex).SectPr;
-	};
-	CDocumentPrintView.prototype.GetSectionInfo = function(nContentIndex)
-	{
-		return this.SectionsInfo.Get_SectPr(nContentIndex);
-	};
-	CDocumentPrintView.prototype.GetSectionIndex = function(oSectPr)
-	{
-		return this.SectionsInfo.Find(oSectPr);
 	};
 	CDocumentPrintView.prototype.GetCalculateTimeLimit = function()
 	{

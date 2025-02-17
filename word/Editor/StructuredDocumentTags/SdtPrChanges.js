@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 03.05.2017
- * Time: 14:58
- */
 
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Alias]            = CChangesSdtPrAlias;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Id]               = CChangesSdtPrId;
@@ -61,6 +56,8 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_TextForm]         = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_FormPr]           = CChangesSdtPrFormPr;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_PictureFormPr]    = CChangesSdtPrPictureFormPr;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ComplexFormPr]    = CChangesSdtPrComplexFormPr;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_OForm]            = CChangesSdtPrOForm;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DataBinding]      = CChangesSdtPrDataBinding;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -87,6 +84,9 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Appearance] = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Color] = [
 	AscDFH.historyitem_SdtPr_Color
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_DataBinding] = [
+	AscDFH.historyitem_SdtPr_DataBinding
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_CheckBox] = [
 	AscDFH.historyitem_SdtPr_CheckBox,
@@ -138,6 +138,16 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_PictureFormPr] = [
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_ComplexFormPr] = [
 	AscDFH.historyitem_SdtPr_ComplexFormPr
 ];
+
+function private_SdtPrChangesCheckLock(lockData)
+{
+	if (lockData && lockData.isFillingForm())
+		lockData.setLock(true);
+
+	if (this instanceof AscWord.CInlineLevelSdt)
+		private_ParagraphContentChangesCheckLock.apply(this, arguments);
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -159,7 +169,7 @@ CChangesSdtPrAlias.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
-
+CChangesSdtPrAlias.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseLongProperty}
@@ -179,6 +189,7 @@ CChangesSdtPrId.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrId.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringProperty}
@@ -198,6 +209,7 @@ CChangesSdtPrTag.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrTag.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseLongProperty}
@@ -217,6 +229,7 @@ CChangesSdtPrLabel.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrLabel.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseLongProperty}
@@ -236,6 +249,7 @@ CChangesSdtPrLock.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrLock.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseProperty}
@@ -373,6 +387,7 @@ CChangesSdtPrDocPartObj.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrDocPartObj.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseLongProperty}
@@ -392,6 +407,7 @@ CChangesSdtPrAppearance.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrAppearance.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -415,6 +431,31 @@ CChangesSdtPrColor.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
+CChangesSdtPrColor.prototype.CheckLock = private_SdtPrChangesCheckLock;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrDataBinding(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrDataBinding.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrDataBinding.prototype.constructor = CChangesSdtPrDataBinding;
+CChangesSdtPrDataBinding.prototype.Type = AscDFH.historyitem_SdtPr_DataBinding;
+CChangesSdtPrDataBinding.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.DataBinding = Value;
+};
+CChangesSdtPrDataBinding.prototype.private_CreateObject = function()
+{
+	return new AscWord.DataBinding();
+};
+CChangesSdtPrDataBinding.prototype.IsNeedRecalculate = function()
+{
+	return true;
+};
+
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -444,6 +485,7 @@ CChangesSdtPrCheckBox.prototype.Merge = function(oChange)
 
 	return true;
 };
+CChangesSdtPrCheckBox.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -470,6 +512,7 @@ CChangesSdtPrCheckBoxChecked.prototype.Merge = function(oChange)
 
 	return true;
 };
+CChangesSdtPrCheckBoxChecked.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -485,6 +528,7 @@ CChangesSdtPrPicture.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Picture = Value;
 };
+CChangesSdtPrPicture.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -504,6 +548,7 @@ CChangesSdtPrComboBox.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtComboBoxPr();
 };
+CChangesSdtPrComboBox.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -523,6 +568,7 @@ CChangesSdtPrDropDownList.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtComboBoxPr();
 };
+CChangesSdtPrDropDownList.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -542,6 +588,7 @@ CChangesSdtPrDatePicker.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtDatePickerPr();
 };
+CChangesSdtPrDatePicker.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -561,6 +608,7 @@ CChangesSdtPrTextPr.prototype.private_CreateObject = function()
 {
 	return new CTextPr();
 };
+CChangesSdtPrTextPr.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringProperty}
@@ -580,7 +628,7 @@ CChangesSdtPrPlaceholder.prototype.IsNeedRecalculate = function()
 {
 	return false;
 };
-
+CChangesSdtPrPlaceholder.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -596,6 +644,7 @@ CChangesSdtPrShowingPlcHdr.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.ShowingPlcHdr = Value;
 };
+CChangesSdtPrShowingPlcHdr.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -611,6 +660,7 @@ CChangesSdtPrEquation.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Equation = Value;
 };
+CChangesSdtPrEquation.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -626,6 +676,7 @@ CChangesSdtPrText.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Text = Value;
 };
+CChangesSdtPrText.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseBoolProperty}
@@ -641,6 +692,7 @@ CChangesSdtPrTemporary.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Temporary = Value;
 };
+CChangesSdtPrTemporary.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -663,6 +715,7 @@ CChangesSdtPrTextForm.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtTextFormPr();
 };
+CChangesSdtPrTextForm.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -700,15 +753,10 @@ CChangesSdtPrFormPr.prototype.private_SetValue = function(Value)
 			form.Pr.FormPr.Field = fieldMaster;
 	}
 	
-	let logicDocument = form.GetLogicDocument();
-	let formManager   = logicDocument ? logicDocument.GetFormsManager() : null;
-	if (formManager)
-	{
-		if (Value)
-			formManager.Register(form);
-		else
-			formManager.Unregister(form);
-	}
+	if (Value)
+		AscWord.registerForm(form);
+	else
+		AscWord.unregisterForm(form);
 };
 CChangesSdtPrFormPr.prototype.private_CreateObject = function()
 {
@@ -722,6 +770,7 @@ CChangesSdtPrFormPr.prototype.ReadAdditional = function(reader)
 {
 	this.OformSupport = reader.GetBool();
 };
+CChangesSdtPrFormPr.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -741,6 +790,7 @@ CChangesSdtPrPictureFormPr.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtPictureFormPr();
 };
+CChangesSdtPrPictureFormPr.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseObjectProperty}
@@ -760,6 +810,7 @@ CChangesSdtPrComplexFormPr.prototype.private_CreateObject = function()
 {
 	return new AscWord.CSdtComplexFormPr();
 };
+CChangesSdtPrComplexFormPr.prototype.CheckLock = private_SdtPrChangesCheckLock;
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseStringProperty}
@@ -790,3 +841,4 @@ CChangesSdtPrOForm.prototype.private_SetValue = function(Value)
 	}
 	this.Class.Pr.OForm = oValue;
 };
+CChangesSdtPrOForm.prototype.CheckLock = private_SdtPrChangesCheckLock;

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,24 +31,24 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 27.10.2016
- * Time: 13:02
- */
 
-AscDFH.changesFactory[AscDFH.historyitem_Document_AddItem]                    = CChangesDocumentAddItem;
-AscDFH.changesFactory[AscDFH.historyitem_Document_RemoveItem]                 = CChangesDocumentRemoveItem;
-AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultTab]                 = CChangesDocumentDefaultTab;
-AscDFH.changesFactory[AscDFH.historyitem_Document_EvenAndOddHeaders]          = CChangesDocumentEvenAndOddHeaders;
-AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultLanguage]            = CChangesDocumentDefaultLanguage;
-AscDFH.changesFactory[AscDFH.historyitem_Document_MathSettings]               = CChangesDocumentMathSettings;
-AscDFH.changesFactory[AscDFH.historyitem_Document_SdtGlobalSettings]          = CChangesDocumentSdtGlobalSettings;
-AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_GutterAtTop]       = CChangesDocumentSettingsGutterAtTop;
-AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_MirrorMargins]     = CChangesDocumentSettingsMirrorMargins;
-AscDFH.changesFactory[AscDFH.historyitem_Document_SpecialFormsGlobalSettings] = CChangesDocumentSpecialFormsGlobalSettings;
-AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_TrackRevisions]    = CChangesDocumentSettingsTrackRevisions;
-
+AscDFH.changesFactory[AscDFH.historyitem_Document_AddItem]                         = CChangesDocumentAddItem;
+AscDFH.changesFactory[AscDFH.historyitem_Document_RemoveItem]                      = CChangesDocumentRemoveItem;
+AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultTab]                      = CChangesDocumentDefaultTab;
+AscDFH.changesFactory[AscDFH.historyitem_Document_EvenAndOddHeaders]               = CChangesDocumentEvenAndOddHeaders;
+AscDFH.changesFactory[AscDFH.historyitem_Document_DefaultLanguage]                 = CChangesDocumentDefaultLanguage;
+AscDFH.changesFactory[AscDFH.historyitem_Document_MathSettings]                    = CChangesDocumentMathSettings;
+AscDFH.changesFactory[AscDFH.historyitem_Document_SdtGlobalSettings]               = CChangesDocumentSdtGlobalSettings;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_GutterAtTop]            = CChangesDocumentSettingsGutterAtTop;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_MirrorMargins]          = CChangesDocumentSettingsMirrorMargins;
+AscDFH.changesFactory[AscDFH.historyitem_Document_SpecialFormsGlobalSettings]      = CChangesDocumentSpecialFormsGlobalSettings;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_TrackRevisions]         = CChangesDocumentSettingsTrackRevisions;
+AscDFH.changesFactory[AscDFH.historydescription_Document_DocumentProtection]       = CChangesDocumentProtection;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_AutoHyphenation]        = CChangesDocumentSettingsAutoHyphenation;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_ConsecutiveHyphenLimit] = CChangesDocumentSettingsConsecutiveHyphenLimit;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_DoNotHyphenateCaps]     = CChangesDocumentSettingsDoNotHyphenateCaps;
+AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_HyphenationZone]        = CChangesDocumentSettingsHyphenationZone;
+AscDFH.changesFactory[AscDFH.historyitem_Document_PageColor]                       = CChangesDocumentPageColor;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -538,9 +538,9 @@ CChangesDocumentMathSettings.prototype.ReadFromBinary = function(Reader)
 {
 	// Variable : New
 	// Variable : Old
-	this.New = new CMathSettings();
+	this.New = new AscWord.MathSettings();
 	this.New.Read_FromBinary(Reader);
-	this.Old = new CMathSettings();
+	this.Old = new AscWord.MathSettings();
 	this.Old.Read_FromBinary(Reader);
 };
 CChangesDocumentMathSettings.prototype.CreateReverseChange = function()
@@ -568,7 +568,7 @@ CChangesDocumentSdtGlobalSettings.prototype.private_SetValue = function(Value)
 };
 CChangesDocumentSdtGlobalSettings.prototype.private_CreateObject = function()
 {
-	return new CSdtGlobalSettings();
+	return new AscWord.SdtGlobalSettings();
 };
 CChangesDocumentSdtGlobalSettings.prototype.private_IsCreateEmptyObject = function()
 {
@@ -625,7 +625,7 @@ CChangesDocumentSpecialFormsGlobalSettings.prototype.private_SetValue = function
 };
 CChangesDocumentSpecialFormsGlobalSettings.prototype.private_CreateObject = function()
 {
-	return new CSpecialFormsGlobalSettings();
+	return new AscWord.SpecialFormsGlobalSettings();
 };
 CChangesDocumentSpecialFormsGlobalSettings.prototype.private_IsCreateEmptyObject = function()
 {
@@ -723,7 +723,10 @@ CChangesDocumentSettingsTrackRevisions.prototype.CreateReverseChange = function(
 {
 	return new CChangesDocumentSettingsTrackRevisions(this.Class, this.New, this.Old, this.UserId);
 };
-
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBase}
+ */
 function CChangesDocumentProtection(Class, Old, New, sUserId) {
 	AscDFH.CChangesBase.call(this, Class, Old, New);
 	if (Old && New) {
@@ -797,7 +800,6 @@ function CChangesDocumentProtection(Class, Old, New, sUserId) {
 	}
 	this.UserId = sUserId;
 }
-
 CChangesDocumentProtection.prototype = Object.create(AscDFH.CChangesBase.prototype);
 CChangesDocumentProtection.prototype.constructor = CChangesDocumentProtection;
 CChangesDocumentProtection.prototype.Type = AscDFH.historydescription_Document_DocumentProtection;
@@ -1090,5 +1092,109 @@ CChangesDocumentProtection.prototype.CreateReverseChange = function () {
 	return ret;
 };
 
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesDocumentSettingsAutoHyphenation(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesDocumentSettingsAutoHyphenation.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesDocumentSettingsAutoHyphenation.prototype.constructor = CChangesDocumentSettingsAutoHyphenation;
+CChangesDocumentSettingsAutoHyphenation.prototype.Type = AscDFH.historyitem_Document_Settings_AutoHyphenation;
+CChangesDocumentSettingsAutoHyphenation.prototype.private_SetValue = function(value)
+{
+	this.Class.Settings.autoHyphenation = value;
+	this.Class.OnChangeAutoHyphenation();
+};
 
-AscDFH.changesFactory[AscDFH.historydescription_Document_DocumentProtection] = CChangesDocumentProtection;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesDocumentSettingsConsecutiveHyphenLimit(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
+}
+CChangesDocumentSettingsConsecutiveHyphenLimit.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesDocumentSettingsConsecutiveHyphenLimit.prototype.constructor = CChangesDocumentSettingsConsecutiveHyphenLimit;
+CChangesDocumentSettingsConsecutiveHyphenLimit.prototype.Type = AscDFH.historyitem_Document_Settings_ConsecutiveHyphenLimit;
+CChangesDocumentSettingsConsecutiveHyphenLimit.prototype.private_SetValue = function(value)
+{
+	this.Class.Settings.consecutiveHyphenLimit = value;
+	this.Class.OnChangeAutoHyphenation();
+};
+
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesDocumentSettingsDoNotHyphenateCaps(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesDocumentSettingsDoNotHyphenateCaps.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesDocumentSettingsDoNotHyphenateCaps.prototype.constructor = CChangesDocumentSettingsDoNotHyphenateCaps;
+CChangesDocumentSettingsDoNotHyphenateCaps.prototype.Type = AscDFH.historyitem_Document_Settings_DoNotHyphenateCaps;
+CChangesDocumentSettingsDoNotHyphenateCaps.prototype.private_SetValue = function(value)
+{
+	this.Class.Settings.doNotHyphenateCaps = value;
+	this.Class.OnChangeAutoHyphenation();
+};
+
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesDocumentSettingsHyphenationZone(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
+}
+CChangesDocumentSettingsHyphenationZone.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesDocumentSettingsHyphenationZone.prototype.constructor = CChangesDocumentSettingsHyphenationZone;
+CChangesDocumentSettingsHyphenationZone.prototype.Type = AscDFH.historyitem_Document_Settings_HyphenationZone;
+CChangesDocumentSettingsHyphenationZone.prototype.private_SetValue = function(value)
+{
+	this.Class.Settings.hyphenationZone = value;
+	this.Class.OnChangeAutoHyphenation();
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBase}
+ */
+function CChangesDocumentPageColor(Class, Old, New)
+{
+	AscDFH.CChangesBase.call(this, Class);
+	
+	this.Old = Old;
+	this.New = New;
+}
+CChangesDocumentPageColor.prototype = Object.create(AscDFH.CChangesBase.prototype);
+CChangesDocumentPageColor.prototype.constructor = CChangesDocumentPageColor;
+CChangesDocumentPageColor.prototype.Type = AscDFH.historyitem_Document_PageColor;
+CChangesDocumentPageColor.prototype.Undo = function()
+{
+	this.Class.Background = this.Old;
+};
+CChangesDocumentPageColor.prototype.Redo = function()
+{
+	this.Class.Background = this.New;
+};
+CChangesDocumentPageColor.prototype.WriteToBinary = function(writer)
+{
+	this.New.writeToBinary(writer);
+	this.Old.writeToBinary(writer);
+};
+CChangesDocumentPageColor.prototype.ReadFromBinary = function(reader)
+{
+	this.New = new AscWord.DocumentBackground();
+	this.Old = new AscWord.DocumentBackground();
+	
+	this.New.readFromBinary(reader);
+	this.Old.readFromBinary(reader);
+};
+CChangesDocumentPageColor.prototype.CreateReverseChange = function()
+{
+	return new CChangesDocumentPageColor(this.Class, this.New, this.Old);
+};

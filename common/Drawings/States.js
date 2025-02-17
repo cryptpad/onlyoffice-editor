@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -44,7 +44,9 @@ var isRealObject = AscCommon.isRealObject;
 var MOVE_DELTA = 1/100000;
 var SNAP_DISTANCE = 1.27;
 
-function StartAddNewShape(drawingObjects, preset)
+
+
+function StartAddNewShape(drawingObjects, preset, nPlaceholderType, bVertical)
 {
     this.drawingObjects = drawingObjects;
     this.preset = preset;
@@ -56,7 +58,8 @@ function StartAddNewShape(drawingObjects, preset)
     this.startY = null;
 
     this.oldConnector = null;
-
+    this.placeholderType = nPlaceholderType;
+    this.bVertical = bVertical;
 }
 
 StartAddNewShape.prototype =
@@ -91,7 +94,7 @@ StartAddNewShape.prototype =
                 }
             }
         }
-        this.drawingObjects.arrPreTrackObjects.push(new AscFormat.NewShapeTrack(this.preset, dStartX, dStartY, this.drawingObjects.getTheme(), master, layout, slide, 0, this.drawingObjects));
+        this.drawingObjects.arrPreTrackObjects.push(new AscFormat.NewShapeTrack(this.preset, dStartX, dStartY, this.drawingObjects.getTheme(), master, layout, slide, 0, this.drawingObjects, this.placeholderType, this.bVertical));
         this.bStart = true;
         this.drawingObjects.swapTrackObjects();
     },
@@ -167,7 +170,7 @@ StartAddNewShape.prototype =
                     this.drawingObjects.clearTrackObjects();
                     this.drawingObjects.clearPreTrackObjects();
                     this.drawingObjects.updateOverlay();
-                    if(Asc["editor"])
+                    if(Asc["editor"] && Asc["editor"].wb)
                     {
                         if(!e.fromWindow || this.bStart)
                         {
@@ -194,9 +197,9 @@ StartAddNewShape.prototype =
                     if(oCurSlide) {
                         if(oPresentation.IsSelectionLocked(AscCommon.changestype_Timing) === false) {
                             oPresentation.StartAction(0);
-                            let oTiming = oCurSlide.timing;
+                            let oTiming;
                             let aAddedEffects;
-                            aAddedEffects = oCurSlide.addAnimation(AscFormat.PRESET_CLASS_PATH, AscFormat.MOTION_SQUARE, 0, this.bReplace);
+                            aAddedEffects = oCurSlide.addAnimation(AscFormat.PRESET_CLASS_PATH, AscFormat.MOTION_SQUARE, 0, null, this.bReplace);
                             oTiming = oCurSlide.timing;
                             if(!oTiming) {
                                 oPresentation.FinalizeAction();
@@ -250,7 +253,7 @@ StartAddNewShape.prototype =
                                 oEffect.cTn.setPresetSubtype(0);
                             }
                             oPresentation.FinalizeAction();
-                            if(Asc["editor"])
+                            if(Asc["editor"] && Asc["editor"].wb)
                             {
                                 if(!e.fromWindow || this.bStart)
                                 {
@@ -275,7 +278,7 @@ StartAddNewShape.prototype =
                                 }
                             }
                             else {
-                                oPresentation.DrawingDocument.OnRecalculatePage(oPresentation.CurPage, oCurSlide);
+                                oPresentation.DrawingDocument.OnRecalculateSlide(oPresentation.CurPage);
                             }
                         }
                     }
@@ -309,20 +312,67 @@ StartAddNewShape.prototype =
                     }
                     shape.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
                     shape.checkDrawingBaseCoords();
-                    oThis.drawingObjects.checkChartTextSelection();
-                    oThis.drawingObjects.resetSelection();
-                    shape.select(oThis.drawingObjects, 0);
-                    if(oThis.preset === "textRect")
-                    {
-                        oThis.drawingObjects.selection.textSelection = shape;
-                        shape.recalculate();
-                        shape.selectionSetStart(e, x, y, 0);
-                        shape.selectionSetEnd(e, x, y, 0);
-                    }
+	                let oAPI = oThis.drawingObjects.getEditorApi();
+					if(!oAPI.isDrawInkMode())
+					{
+						oThis.drawingObjects.checkChartTextSelection();
+						oThis.drawingObjects.resetSelection();
+						shape.select(oThis.drawingObjects, 0);
+						if(oThis.preset === "textRect")
+						{
+							oThis.drawingObjects.selection.textSelection = shape;
+							shape.recalculate();
+							shape.selectionSetStart(e, x, y, 0);
+							shape.selectionSetEnd(e, x, y, 0);
+						}
+					}
                     oThis.drawingObjects.startRecalculate();
-                    oThis.drawingObjects.drawingObjects.sendGraphicObjectProps();
-                }
+					if(!oAPI.isDrawInkMode())
+					{
+						oThis.drawingObjects.drawingObjects.sendGraphicObjectProps();
+					}
+                    if(oThis.preset && oThis.preset.startsWith("actionButton"))
+                    {
+                        let sHyperText = "", sHyperValue, sHyperTooltip;
+                        switch (oThis.preset) {
+                            case "actionButtonBackPrevious": {
+                                sHyperValue = "ppaction://hlinkshowjump?jump=previousslide";
+                                sHyperTooltip = AscCommon.translateManager.getValue("Previous Slide");
+                                break;
+                            }
+                            case "actionButtonBeginning": {
+                                sHyperValue = "ppaction://hlinkshowjump?jump=firstslide";
+                                sHyperTooltip = AscCommon.translateManager.getValue("First Slide");
+                                break;
+                            }
+                            case "actionButtonEnd": {
+                                sHyperValue = "ppaction://hlinkshowjump?jump=lastslide";
+                                sHyperTooltip = AscCommon.translateManager.getValue("Last Slide");
+                                break;
+                            }
+                            case "actionButtonForwardNext": {
+                                sHyperValue = "ppaction://hlinkshowjump?jump=nextslide";
+                                sHyperTooltip = AscCommon.translateManager.getValue("Next Slide");
+                                break;
+                            }
+                            case "actionButtonHome": {
+                                sHyperValue = "ppaction://hlinkshowjump?jump=firstslide";
+                                sHyperTooltip = AscCommon.translateManager.getValue("First Slide");
+                                break;
+                            }
+                            case "actionButtonReturn": {
+                                sHyperValue = "ppaction://hlinkshowjump?jump=previousslide";
+                                sHyperTooltip = AscCommon.translateManager.getValue("Previous Slide");
+                                break;
+                            }
+                        }
+                        if(sHyperValue) {
+                            oAPI.sendEvent("asc_onDialogAddHyperlink", new Asc.CHyperlinkProperty({Text: sHyperText, Value: sHyperValue, ToolTip: sHyperTooltip}));
+                        }
+                    }
 
+                }
+	            oThis.drawingObjects.updateOverlay();
             };
             if(Asc.editor && Asc.editor.checkObjectsLock)
             {
@@ -335,8 +385,7 @@ StartAddNewShape.prototype =
         }
         this.drawingObjects.clearTrackObjects();
         this.drawingObjects.clearPreTrackObjects();
-        this.drawingObjects.updateOverlay();
-        if(Asc["editor"])
+        if(Asc["editor"] && Asc["editor"].wb)
         {
             if(!e.fromWindow || this.bStart)
             {
@@ -403,13 +452,14 @@ NullState.prototype =
     {
         this.drawingObjects.checkRedrawOnChangeCursorPosition(oStartContent, oStartPara);
     },
-    onMouseDown: function(e, x, y, pageIndex, bTextFlag)
+    onMouseDown: function(e, x, y, pageIndex)
     {
         let start_target_doc_content, end_target_doc_content, selected_comment_index = -1;
         let oStartPara = null;
         let bHandleMode = this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_HANDLE;
         let sHitGuideId = this.drawingObjects.hitInGuide(x, y);
         let oAnimPlayer = this.drawingObjects.getAnimationPlayer && this.drawingObjects.getAnimationPlayer();
+		let oAPI = this.drawingObjects.getEditorApi();
         if(bHandleMode)
         {
             start_target_doc_content = checkEmptyPlaceholderContent(this.drawingObjects.getTargetDocContent());
@@ -422,6 +472,29 @@ NullState.prototype =
                 }
             }
             this.startTargetTextObject = AscFormat.getTargetTextObject(this.drawingObjects);
+        }
+		else
+		{
+			if(oAPI.editorId === AscCommon.c_oEditorId.Presentation)
+			{
+				if(oAPI.isFormatPainterOn())
+				{
+					let oPainterData = oAPI.getFormatPainterData();
+					let sType = "default";
+					if(oPainterData)
+					{
+						if(oPainterData.isDrawingData())
+						{
+							sType = AscCommon.Cursors.ShapeCopy;
+						}
+						else
+						{
+							sType = AscCommon.Cursors.TextCopy;
+						}
+					}
+					return {cursorType: sType, objectId: "1"};
+				}
+			}
         }
         var ret;
         ret = this.drawingObjects.handleSlideComments(e, x, y, pageIndex);
@@ -592,6 +665,7 @@ NullState.prototype =
                 _x = -1000;
             }
         }
+        this.drawingObjects.checkShowMediaControlOnHover(this.lastMoveHandler);
     },
 
     onMouseUp: function(e, x, y, pageIndex)
@@ -622,7 +696,8 @@ NullState.prototype =
     };
     SlicerState.prototype.onMouseMove = function (e, x, y, pageIndex) {
         if(!e.IsLocked) {
-            return this.onMouseUp(e, x, y, pageIndex);
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         this.slicer.onMouseMove(e, x, y, pageIndex);
     };
@@ -732,7 +807,8 @@ TrackSelectionRect.prototype =
     };
     TrackGuideState.prototype.onMouseMove = function (e, x, y, pageIndex) {
         if(!e.IsLocked) {
-            return this.onMouseUp(e, x, y, pageIndex);
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         let bHor = this.guide.isHorizontal();
         if(!this.tracked) {
@@ -833,8 +909,8 @@ ChangeAdjState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         var t = AscFormat.CheckCoordsNeedPage(x, y, pageIndex, this.majorObject.selectStartPage, this.drawingObjects.getDrawingDocument());
         for(var i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i){
@@ -901,8 +977,8 @@ PreRotateState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         this.drawingObjects.swapTrackObjects();
         this.drawingObjects.changeCurrentState(new RotateState(this.drawingObjects, this.majorObject));
@@ -936,8 +1012,8 @@ RotateState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         var coords = AscFormat.CheckCoordsNeedPage(x, y, pageIndex, this.majorObject.selectStartPage, this.drawingObjects.getDrawingDocument());
         this.drawingObjects.handleRotateTrack(e, coords.x, coords.y);
@@ -955,7 +1031,7 @@ RotateState.prototype =
             var bIsChartFrame = Asc["editor"] && Asc["editor"].isChartEditor === true;
             var bIsTrackInChart = (tracks.length > 0 && (tracks[0] instanceof AscFormat.MoveChartObjectTrack));
             var bCopyOnMove = e.CtrlKey && bIsMoveState && !bIsChartFrame && !bIsTrackInChart;
-            var bCopyOnMoveInGroup = (e.CtrlKey && oThis instanceof MoveInGroupState);
+            var bCopyOnMoveInGroup = (e.CtrlKey && oThis instanceof MoveInGroupState && !oThis.hasObjectInSmartArt);
             var i, j;
             var copy;
             if(bCopyOnMove)
@@ -968,6 +1044,7 @@ RotateState.prototype =
                 History.Create_NewPoint(AscDFH.historydescription_CommonDrawings_CopyCtrl);
                 for(i = 0; i < tracks.length; ++i)
                 {
+	                tracks[i].checkDrawingPartWithHistory();
                     copy = tracks[i].originalObject.copy(oCopyPr);
                     oIdMap[tracks[i].originalObject.Id] = copy.Id;
                     this.drawingObjects.drawingObjects.getWorksheetModel && copy.setWorksheet(this.drawingObjects.drawingObjects.getWorksheetModel());
@@ -1165,6 +1242,7 @@ RotateState.prototype =
                         this.drawingObjects.checkSelectedObjectsAndCallback(function () {
 
                                 for(i = 0; i < tracks.length; ++i){
+	                                tracks[i].checkDrawingPartWithHistory();
                                     tracks[i].trackEnd(false, bFlag);
                                 }
                                 if(tracks.length === 1 && tracks[0].chartSpace){
@@ -1268,8 +1346,8 @@ PreResizeState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         this.drawingObjects.swapTrackObjects();
         this.drawingObjects.changeCurrentState(new ResizeState(this.drawingObjects, this.majorObject, this.handleNum, this.cardDirection));
@@ -1305,8 +1383,8 @@ ResizeState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         var start_arr = this.drawingObjects.getDrawingArray();
         var coords = AscFormat.CheckCoordsNeedPage(x, y, pageIndex, this.majorObject.selectStartPage, this.drawingObjects.getDrawingDocument());
@@ -1360,7 +1438,8 @@ PreMoveState.prototype =
             return {objectId: this.majorObject.Get_Id(), cursorType: "move", bMarker: true};
         }
         else{
-            this.onMouseUp(e, x, y, pageIndex);
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
     },
 
@@ -1369,8 +1448,8 @@ PreMoveState.prototype =
 
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         if(Math.abs(this.startX - x) > MOVE_DELTA || Math.abs(this.startY - y) > MOVE_DELTA || pageIndex !== this.majorObject.selectStartPage)
         {
@@ -1434,8 +1513,7 @@ MoveState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         let aTracks = this.drawingObjects.arrTrackObjects;
         let nTracksCount = aTracks.length;
@@ -1661,8 +1739,8 @@ PreMoveInGroupState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         if(Math.abs(this.startX - x) > MOVE_DELTA || Math.abs(this.startY - y) > MOVE_DELTA || pageIndex !== this.majorObject.selectStartPage)
         {
@@ -1702,20 +1780,26 @@ function MoveInGroupState(drawingObjects, majorObject, group, startX, startY)
     this.startX = startX;
     this.startY = startY;
     this.bSamePos = true;
+	this.hasObjectInSmartArt = false;
 
     var arr_x = [], arr_y = [];
     for(var i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
     {
         var track = this.drawingObjects.arrTrackObjects[i];
-        var transform = track.originalObject.transform;
+	    const oOriginalObject = track.originalObject;
+	    var transform = oOriginalObject.transform;
         arr_x.push(transform.TransformPointX(0, 0));
         arr_y.push(transform.TransformPointY(0, 0));
-        arr_x.push(transform.TransformPointX(track.originalObject.extX, 0));
-        arr_y.push(transform.TransformPointY(track.originalObject.extX, 0));
-        arr_x.push(transform.TransformPointX(track.originalObject.extX, track.originalObject.extY));
-        arr_y.push(transform.TransformPointY(track.originalObject.extX, track.originalObject.extY));
-        arr_x.push(transform.TransformPointX(0, track.originalObject.extY));
-        arr_y.push(transform.TransformPointY(0, track.originalObject.extY));
+        arr_x.push(transform.TransformPointX(oOriginalObject.extX, 0));
+        arr_y.push(transform.TransformPointY(oOriginalObject.extX, 0));
+        arr_x.push(transform.TransformPointX(oOriginalObject.extX, oOriginalObject.extY));
+        arr_y.push(transform.TransformPointY(oOriginalObject.extX, oOriginalObject.extY));
+        arr_x.push(transform.TransformPointX(0, oOriginalObject.extY));
+        arr_y.push(transform.TransformPointY(0, oOriginalObject.extY));
+				if (!this.hasObjectInSmartArt)
+				{
+					this.hasObjectInSmartArt = oOriginalObject.isObjectInSmartArt();
+				}
     }
     this.rectX = Math.min.apply(Math, arr_x);
     this.rectY = Math.min.apply(Math, arr_y);
@@ -1760,8 +1844,8 @@ PreRotateInGroupState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         this.drawingObjects.swapTrackObjects();
         this.drawingObjects.changeCurrentState(new RotateInGroupState(this.drawingObjects, this.group, this.majorObject))
@@ -1890,12 +1974,13 @@ ChangeAdjInGroupState.prototype =
     onMouseUp: MoveInGroupState.prototype.onMouseUp
 };
 
-function TextAddState(drawingObjects, majorObject, startX, startY)
+function TextAddState(drawingObjects, majorObject, startX, startY, button)
 {
     this.drawingObjects = drawingObjects;
     this.majorObject = majorObject;
     this.startX = startX;
     this.startY = startY;
+    this.button = button;
     this.bIsSelectionEmpty = this.isSelectionEmpty();
 }
 
@@ -1947,8 +2032,12 @@ TextAddState.prototype =
     {
         if(!e.IsLocked)
         {
-            this.onMouseUp(e, x, y, pageIndex);
-            return;
+            if(this.button === AscCommon.g_mouse_button_right)
+            {
+                return this.endState(e, x, y, pageIndex);
+            }
+            //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+            return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
         }
         if(AscFormat.isRealNumber(this.startX) && AscFormat.isRealNumber(this.startY))
         {
@@ -1981,6 +2070,11 @@ TextAddState.prototype =
         {
             e.CtrlKey = oldCtrl;
         }
+        return this.endState(e, x, y, pageIndex);
+    },
+
+    endState: function(e, x, y, pageIndex)
+    {
         this.drawingObjects.updateSelectionState();
         this.drawingObjects.drawingObjects.sendGraphicObjectProps();
         this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
@@ -2003,17 +2097,21 @@ TextAddState.prototype =
         {
             if(oApi.editorId === AscCommon.c_oEditorId.Presentation)
             {
-                if(AscCommon.c_oAscFormatPainterState.kOff !== oApi.isPaintFormat)
+                let oPresentation = oApi.WordControl && oApi.WordControl.m_oLogicDocument;
+                if(oApi.isFormatPainterOn())
                 {
                     this.drawingObjects.paragraphFormatPaste2();
-                    if (AscCommon.c_oAscFormatPainterState.kOn === oApi.isPaintFormat)
+                    if (oApi.canTurnOffFormatPainter())
                     {
                         oApi.sync_PaintFormatCallback(c_oAscFormatPainterState.kOff);
+                        if(oPresentation)
+                        {
+                            oPresentation.OnMouseMove(e, x, y, pageIndex)
+                        }
                     }
                 }
                 else if(oApi.isMarkerFormat)
                 {
-                    var oPresentation = oApi.WordControl && oApi.WordControl.m_oLogicDocument;
                     if(oPresentation)
                     {
                         if(oPresentation.HighlightColor)
@@ -2028,6 +2126,10 @@ TextAddState.prototype =
                         oApi.sync_MarkerFormatCallback(true);
                     }
                 }
+            }
+            else if(oApi.editorId === AscCommon.c_oEditorId.Spreadsheet)
+            {
+                this.drawingObjects.checkFormatPainterOnMouseEvent();
             }
         }
     }
@@ -2066,7 +2168,7 @@ SplineBezierState.prototype =
 
     onMouseUp: function(e, X, Y, pageIndex)
     {
-        if(Asc["editor"])
+        if(Asc["editor"] && Asc["editor"].wb)
         {
             Asc["editor"].asc_endAddShape();
         }
@@ -2568,7 +2670,7 @@ PolyLineAddState.prototype =
     onMouseUp: function()
     {
 
-        if(Asc["editor"])
+        if(Asc["editor"] && Asc["editor"].wb)
         {
             Asc["editor"].asc_endAddShape();
         }
@@ -2601,6 +2703,11 @@ PolyLineAddState2.prototype =
 
     onMouseMove: function(e, x, y, pageIndex)
     {
+	    if(!e.IsLocked)
+	    {
+		    //todo: implement inheritance from AscCommon.CDrawingControllerStateBase
+		    return AscCommon.CDrawingControllerStateBase.prototype.emulateMouseUp.call(this, e, x, y, pageIndex);
+	    }
         var tr_x, tr_y;
         if(pageIndex === this.drawingObjects.startTrackPos.pageIndex)
         {
@@ -2631,7 +2738,7 @@ PolyLineAddState2.prototype =
             this.drawingObjects.updateOverlay();
             this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
 
-            if(Asc["editor"])
+            if(Asc["editor"] && Asc["editor"].wb)
             {
                 Asc["editor"].asc_endAddShape();
             }
@@ -2700,7 +2807,7 @@ AddPolyLine2State2.prototype =
             return {objectId: "1", bMarker: true, cursorType: "crosshair"};
         if(e.ClickCount > 1)
         {
-            if(Asc["editor"])
+            if(Asc["editor"] && Asc["editor"].wb)
             {
                 Asc["editor"].asc_endAddShape();
             }

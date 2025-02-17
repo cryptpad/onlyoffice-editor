@@ -1,5 +1,5 @@
 GRUNT = grunt
-GRUNT_FLAGS = --no-color -v --noclosure --desktop=false 
+GRUNT_FLAGS = --no-color -v 
 
 OUTPUT_DIR = deploy
 OUTPUT = $(OUTPUT_DIR)
@@ -41,8 +41,7 @@ all: $(WEBAPPS)
 
 $(WEBAPPS): $(WEBAPPS_FILES)
 	mkdir -p $(OUTPUT)/$(WEBAPPS_DIR) && \
-        cp common/AllFonts.js ./deploy/sdkjs/common/ && \
-		cp -r ../$(WEBAPPS_DIR)/deploy/$(WEBAPPS_DIR) $(OUTPUT)/
+		cp -r -t $(OUTPUT)/$(WEBAPPS_DIR) ../$(WEBAPPS_DIR)/deploy/** 
 
 $(WEBAPPS_FILES): $(NODE_MODULES) $(SDKJS_FILES)
 	cd ../$(WEBAPPS_DIR)/build  && \

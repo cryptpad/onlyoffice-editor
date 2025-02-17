@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -31,11 +31,6 @@
  */
 
 "use strict";
-/**
- * User: Ilja.Kirillov
- * Date: 05.04.2019
- * Time: 16:02
- */
 
 /**
  * Класс для обозначения элемента начала/конца переноса текста во время рецензирования внутри параграфа
@@ -60,7 +55,7 @@ function CParaRevisionMove(isStart, isFrom, sName, oInfo)
 	}
 	else
 	{
-		this.ReviewInfo = new CReviewInfo();
+		this.ReviewInfo = new AscWord.ReviewInfo();
 		this.ReviewInfo.Update();
 	}
 
@@ -79,8 +74,10 @@ CParaRevisionMove.prototype.GetId = function()
 {
 	return this.Get_Id();
 };
-CParaRevisionMove.prototype.Copy = function(Selected)
+CParaRevisionMove.prototype.Copy = function(Selected, oPr)
 {
+	if (oPr && oPr.Comparison)
+		return new CParaRevisionMove(this.Start, this.From, this.Name, this.ReviewInfo.Copy());
 	return new CParaRevisionMove(this.Start, this.From, this.Name);
 };
 CParaRevisionMove.prototype.Refresh_RecalcData = function()
@@ -94,7 +91,7 @@ CParaRevisionMove.prototype.Write_ToBinary2 = function(oWriter)
 	// Bool        : is Start
 	// Bool        : is From
 	// String      : Name
-	// CReviewInfo : Info
+	// AscWord.ReviewInfo : Info
 
 	oWriter.WriteString2("" + this.Id);
 	oWriter.WriteBool(this.Start);
@@ -114,7 +111,7 @@ CParaRevisionMove.prototype.Read_FromBinary2 = function(oReader)
 	this.From  = oReader.GetBool();
 	this.Name  = oReader.GetString2();
 
-	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo = new AscWord.ReviewInfo();
 	this.ReviewInfo.ReadFromBinary(oReader);
 };
 CParaRevisionMove.prototype.SetParagraph = function(oParagraph)
@@ -159,9 +156,15 @@ CParaRevisionMove.prototype.GetReviewInfo = function()
 };
 CParaRevisionMove.prototype.PreDelete = function()
 {
-	var oParagraph = this.GetParagraph();
+	const oParagraph = this.GetParagraph();
 	if (oParagraph && oParagraph.LogicDocument)
-		oParagraph.LogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
+	{
+		const oTrackRevisionManager = oParagraph.LogicDocument.TrackRevisionsManager;
+		if (!oTrackRevisionManager.SkipPreDeleteMoveMarks)
+		{
+			oParagraph.LogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
+		}
+	}
 };
 CParaRevisionMove.prototype.IsUseInDocument = function()
 {
@@ -224,7 +227,7 @@ function CRunRevisionMove(isStart, isFrom, sName, oInfo)
 	}
 	else
 	{
-		this.ReviewInfo = new CReviewInfo();
+		this.ReviewInfo = new AscWord.ReviewInfo();
 		this.ReviewInfo.Update();
 	}
 }
@@ -233,8 +236,10 @@ CRunRevisionMove.prototype = Object.create(AscWord.CRunElementBase.prototype);
 CRunRevisionMove.prototype.constructor = CRunRevisionMove;
 CRunRevisionMove.prototype.Type = para_RevisionMove;
 
-CRunRevisionMove.prototype.Copy = function()
+CRunRevisionMove.prototype.Copy = function(oPr)
 {
+	if (oPr && oPr.Comparison)
+		return new CRunRevisionMove(this.Start, this.From, this.Name, this.ReviewInfo.Copy());
 	return new CRunRevisionMove(this.Start, this.From, this.Name);
 };
 CRunRevisionMove.prototype.Write_ToBinary  = function(oWriter)
@@ -244,7 +249,7 @@ CRunRevisionMove.prototype.Write_ToBinary  = function(oWriter)
 	// Bool        : Start
 	// Bool        : From
 	// String      : Name
-	// CReviewInfo : Info
+	// AscWord.ReviewInfo : Info
 
 	oWriter.WriteBool(this.Start);
 	oWriter.WriteBool(this.From);
@@ -256,13 +261,13 @@ CRunRevisionMove.prototype.Read_FromBinary = function(oReader)
 	// Bool        : Start
 	// Bool        : From
 	// String      : Name
-	// CReviewInfo : Info
+	// AscWord.ReviewInfo : Info
 
 	this.Start = oReader.GetBool();
 	this.From  = oReader.GetBool();
 	this.Name  = oReader.GetString2();
 
-	this.ReviewInfo = new CReviewInfo();
+	this.ReviewInfo = new AscWord.ReviewInfo();
 	this.ReviewInfo.ReadFromBinary(oReader);
 };
 CRunRevisionMove.prototype.SetParent = function(oParent)
@@ -310,7 +315,13 @@ CRunRevisionMove.prototype.PreDelete = function()
 	var oLogicDocument = oParagraph ? oParagraph.LogicDocument : null;
 
 	if (oLogicDocument)
-		oLogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
+	{
+		const oTrackRevisionManager = oParagraph.LogicDocument.TrackRevisionsManager;
+		if (!oTrackRevisionManager.SkipPreDeleteMoveMarks)
+		{
+			oLogicDocument.RemoveTrackMoveMarks(this.GetMarkId());
+		}
+	}
 };
 CRunRevisionMove.prototype.IsUseInDocument = function()
 {

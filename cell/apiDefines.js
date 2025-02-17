@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -109,17 +109,21 @@ var c_oAscSelectionDialogType = {
   Function: 9,
   DataValidation: 10,
   ConditionalFormattingRule: 11,
-  ImportXml: 12
+  ImportXml: 12,
+  GoalSeek_Cell: 13,
+  GoalSeek_ChangingCell: 14
 };
 
 var c_oAscScrollType = {
   ScrollVertical: 1,
-  ScrollHorizontal: 2
+  ScrollHorizontal: 2,
+  ScrollInitRowsColsCount: 4
 };
 
 var c_oAscHyperlinkType = {
   WebLink: 1,
-  RangeLink: 2
+  RangeLink: 2,
+  FileLink: 3
 };
 
 var c_oAscMouseMoveType = {
@@ -131,7 +135,8 @@ var c_oAscMouseMoveType = {
   ResizeRow: 5,
   Filter: 6,
   Tooltip: 7,
-  ForeignSelect: 8
+  ForeignSelect: 8,
+  Eyedropper: 9
 };
 
 var c_oAscMouseMoveLockedObjectType = {
@@ -154,7 +159,8 @@ var c_oAscLockTypeElemSubType = {
   InsertRows: 4,
   ChangeProperties: 5,
   DefinedNames: 6,
-  NamedSheetView: 7
+  NamedSheetView: 7,
+  UserProtectedRange: 8
 };
 
 var c_oAscRecalcIndexTypes = {
@@ -309,7 +315,9 @@ var c_oTargetType = {
   GroupRow: 16,
   GroupCol: 17,
   TableSelectionChange: 18,
-  Placeholder: 19
+  Placeholder: 19,
+  ColumnRowHeaderMove: 20,
+  TraceDependents: 21
 };
 
 var c_oAscAutoFilterTypes = {
@@ -346,7 +354,9 @@ var c_oAscVisibleAreaOleEditorBorderColor = new CColor(32, 139, 255);
     Resize      : 4,
     Promote     : 8,
     Dash        : 16,
-    DashThick   : 32
+    DashThick   : 32,
+    ResizeRange : 64,
+    NotStroke   : 128
   };
 
   var docChangedType = {
@@ -356,7 +366,9 @@ var c_oAscVisibleAreaOleEditorBorderColor = new CColor(32, 139, 255);
     sheetRemove: 3,
     sheetRename: 4,
     sheetChangeIndex: 5,
-    markModifiedSearch: 6
+    markModifiedSearch: 6,
+    mergeRange: 7,
+    removeRows: 8
   };
 
   var c_oAscLockNameFrozenPane = "frozenPane";
@@ -425,7 +437,8 @@ var c_oAscPopUpSelectorType = {
   var c_oAscChangePrintAreaType = {
       set: 0,
       clear: 1,
-      add: 2
+      add: 2,
+      change: 3
   };
 
   //поля header/footer
@@ -437,7 +450,9 @@ var c_oAscPopUpSelectorType = {
       filePath: 4,
       date: 5,
       time: 6,
-      lineBreak: 7
+      lineBreak: 7,
+	  picture: 8,
+	  text: 9
   };
 
   var c_oAscPageHFType = {
@@ -487,7 +502,8 @@ var c_oAscPopUpSelectorType = {
     text: 1,
     reference: 2,
     any: 3,
-    logical: 4
+    logical: 4,
+    array: 5
   };
 
   var c_oAscSelectionForCFType = {
@@ -564,6 +580,145 @@ var c_oAscPopUpSelectorType = {
     referenceData: 0,
     link: 1,
     path: 2
+  };
+
+  var c_oAscPageBreaksDisableType = {
+    none: 0,
+    all: 1,
+    insertRemove: 2,
+    reset: 3
+  };
+
+  var c_oAscSeriesInType = {
+    rows: 0,
+    columns: 1
+  };
+
+  var c_oAscSeriesType = {
+    linear: 0,
+    growth: 1,
+    date: 2,
+    autoFill: 3
+  };
+
+  var c_oAscDateUnitType = {
+    day: 0,
+    weekday: 1,
+    month: 2,
+    year: 3
+  };
+
+  var c_oAscRemoveArrowsType = {
+    all: 0,
+    precedent: 1,
+    dependent: 2
+  };
+
+  var c_oAscFillType = {
+    copyCells: 0,
+    fillSeries: 1,
+    fillFormattingOnly: 2,
+    fillWithoutFormatting: 3,
+    fillDays: 4,
+    fillWeekdays: 5,
+    fillMonths: 6,
+    fillYears: 7,
+    linearTrend: 8,
+    growthTrend: 9,
+    flashFill: 10,
+    series: 11,
+    fillDown: 12,
+    fillRight: 13,
+    fillUp: 14,
+    fillLeft: 15,
+    justify: 16
+  };
+
+  /** @enum {number} */
+  var c_oAscContextMenuTypes = {
+    common       : 0, // default context menu
+    changeSeries : 1  // fill right click mouse - series menu
+  };
+
+  var c_oAscCalcMode = {
+    auto: 0,
+    autoNoTable: 1,
+    manual: 2
+  };
+
+  const c_oAscCellShortcutType = {
+    refreshAllConnections     : 0,
+    refreshSelectedConnections: 1,
+    changeFormatTableInfo     : 2,
+    calculateAll              : 3,
+    calculateActiveSheet      : 5,
+    focusOnCellEditor         : 7,
+    addDate                   : 8,
+    addTime                   : 9,
+    removeActiveCell          : 10,
+    emptyRange                : 11,
+    moveActiveCellToLeft      : 12,
+    moveActiveCellToRight     : 13,
+    moveActiveCellToDown      : 14,
+    moveActiveCellToUp        : 15,
+    reset                     : 16,
+    disableNumLock            : 17,
+    disableScrollLock         : 18,
+    selectColumn              : 19,
+    selectRow                 : 20,
+    selectSheet               : 21,
+    addSeparator              : 22,
+    goToPreviousSheet         : 23,
+    moveToTopCell             : 24,
+    moveToNextSheet           : 25,
+    moveToLeftEdgeCell        : 26,
+    selectToLeftEdgeCell      : 27,
+    moveToLeftCell            : 28,
+    selectToLeftCell          : 29,
+    moveToRightEdgeCell       : 30,
+    selectToRightEdgeCell     : 31,
+    moveToRightCell           : 32,
+    selectToRightCell         : 33,
+    selectToTopCell           : 34,
+    moveToUpCell              : 35,
+    selectToUpCell            : 36,
+    moveToBottomCell          : 37,
+    selectToBottomCell        : 38,
+    moveToDownCell            : 39,
+    selectToDownCell          : 40,
+    moveToFirstColumn         : 41,
+    selectToFirstColumn       : 42,
+    moveToLeftEdgeTop         : 43,
+    selectToLeftEdgeTop       : 44,
+    moveToRightBottomEdge     : 45,
+    selectToRightBottomEdge   : 46,
+    setNumberFormat           : 47,
+    setTimeFormat             : 48,
+    setDateFormat             : 49,
+    setCurrencyFormat         : 50,
+    setPercentFormat          : 51,
+    setStrikethrough          : 52,
+    setExponentialFormat      : 53,
+    setBold                   : 54,
+    setItalic                 : 55,
+    setUnderline              : 56,
+    setGeneralFormat          : 57,
+    redo                      : 58,
+    undo                      : 59,
+    print                     : 60,
+    addSum                    : 61,
+    moveToUpperCell           : 62,
+    contextMenu               : 63,
+    moveToLowerCell           : 64,
+    selectToLowerCell         : 65,
+    selectToUpperCell         : 66,
+    showFilterOptions         : 67,
+    showAutoComplete          : 68,
+    showDataValidation        : 69,
+    increaseFontSize          : 70,
+    decreaseFontSize          : 71,
+    selectAll                 : 72,
+    save                      : 73
   };
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -661,11 +816,15 @@ var c_oAscPopUpSelectorType = {
   prot['DataValidation'] = prot.DataValidation;
   prot['ImportXml'] = prot.ImportXml;
   prot['ConditionalFormattingRule'] = prot.ConditionalFormattingRule;
+  prot['GoalSeek_Cell'] = prot.GoalSeek_Cell;
+  prot['GoalSeek_ChangingCell'] = prot.GoalSeek_ChangingCell;
+
 
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;
   prot['RangeLink'] = prot.RangeLink;
+  prot['FileLink'] = prot.FileLink;
   window['Asc']['c_oAscMouseMoveType'] = window['Asc'].c_oAscMouseMoveType = c_oAscMouseMoveType;
   prot = c_oAscMouseMoveType;
   prot['None'] = prot.None;
@@ -677,6 +836,7 @@ var c_oAscPopUpSelectorType = {
   prot['Filter'] = prot.Filter;
   prot['Tooltip'] = prot.Tooltip;
   prot['ForeignSelect'] = prot.ForeignSelect;
+  prot['Eyedropper'] = prot.Eyedropper;
   window['Asc']['c_oAscMouseMoveLockedObjectType'] = window['Asc'].c_oAscMouseMoveLockedObjectType = c_oAscMouseMoveLockedObjectType;
   prot = c_oAscMouseMoveLockedObjectType;
   prot['None'] = prot.None;
@@ -701,6 +861,38 @@ var c_oAscPopUpSelectorType = {
   prot = c_oAscDynamicAutoFilter;
   prot['aboveAverage'] = prot.aboveAverage;
   prot['belowAverage'] = prot.belowAverage;
+  prot['lastMonth']    = prot.lastMonth;
+  prot['lastQuarter']  = prot.lastQuarter;
+  prot['lastWeek']     = prot.lastWeek;
+  prot['lastYear']     = prot.lastYear;
+  prot['m1']           = prot.m1;
+  prot['m11']          = prot.m11;
+  prot['m12']          = prot.m12;
+  prot['m2']           = prot.m2;
+  prot['m3']           = prot.m3;
+  prot['m4']           = prot.m4;
+  prot['m5']           = prot.m5;
+  prot['m6']           = prot.m6;
+  prot['m7']           = prot.m7;
+  prot['m8']           = prot.m8;
+  prot['m9']           = prot.m9;
+  prot['nextMonth']    = prot.nextMonth;
+  prot['nextQuarter']  = prot.nextQuarter;
+  prot['nextWeek']     = prot.nextWeek;
+  prot['nextYear']     = prot.nextYear;
+  prot['nullType']     = prot.nullType;
+  prot['q1']           = prot.q1;
+  prot['q2']           = prot.q2;
+  prot['q3']           = prot.q3;
+  prot['q4']           = prot.q4;
+  prot['thisMonth']    = prot.thisMonth;
+  prot['thisQuarter']  = prot.thisQuarter;
+  prot['thisWeek']     = prot.thisWeek;
+  prot['thisYear']     = prot.thisYear;
+  prot['today']        = prot.today;
+  prot['tomorrow']     = prot.tomorrow;
+  prot['yearToDate']   = prot.yearToDate;
+  prot['yesterday']    = prot.yesterday;
   window['Asc']['c_oAscTop10AutoFilter'] = window['Asc'].c_oAscTop10AutoFilter = c_oAscTop10AutoFilter;
   prot = c_oAscTop10AutoFilter;
   prot['max'] = prot.max;
@@ -810,8 +1002,10 @@ var c_oAscPopUpSelectorType = {
   prot['date'] = prot.date;
   prot['time'] = prot.time;
   prot['lineBreak'] = prot.lineBreak;
+  prot['picture'] = prot.picture;
+  prot['text'] = prot.text;
   window['Asc']['c_oAscPageHFType'] = window['Asc'].c_oAscPageHFType = c_oAscPageHFType;
-  prot = c_oAscHeaderFooterField;
+  prot = c_oAscPageHFType;
   prot['firstHeader'] = prot.firstHeader;
   prot['oddHeader'] = prot.oddHeader;
   prot['evenHeader'] = prot.evenHeader;
@@ -856,6 +1050,7 @@ var c_oAscPopUpSelectorType = {
   prot['reference'] = prot.reference;
   prot['any'] = prot.any;
   prot['logical'] = prot.logical;
+  prot['array'] = prot.array;
 
   window['Asc']['c_oAscSelectionForCFType'] = window['Asc'].c_oAscSelectionForCFType = c_oAscSelectionForCFType;
   prot = c_oAscSelectionForCFType;
@@ -926,5 +1121,142 @@ var c_oAscPopUpSelectorType = {
   prot['link'] = prot.link;
   prot['path'] = prot.path;
 
+  window['Asc']['c_oAscPageBreaksDisableType'] = window['Asc'].c_oAscPageBreaksDisableType = c_oAscPageBreaksDisableType;
+  prot = c_oAscPageBreaksDisableType;
+  prot['none'] = prot.none;
+  prot['all'] = prot.all;
+  prot['insertRemove'] = prot.insertRemove;
+  prot['reset'] = prot.reset;
+  window['Asc']['c_oAscRemoveArrowsType'] = window['Asc'].c_oAscRemoveArrowsType = c_oAscRemoveArrowsType;
+  prot = c_oAscRemoveArrowsType;
+  prot['all'] = prot.all;
+  prot['precedent'] = prot.precedent;
+  prot['dependent'] = prot.dependent;
+
+  window['Asc']['c_oAscSeriesInType'] = window['Asc'].c_oAscSeriesInType = c_oAscSeriesInType;
+  prot = c_oAscSeriesInType;
+  prot['rows'] = prot.rows;
+  prot['columns'] = prot.columns;
+
+  window['Asc']['c_oAscSeriesType'] = window['Asc'].c_oAscSeriesType = c_oAscSeriesType;
+  prot = c_oAscSeriesType;
+  prot['linear'] = prot.linear;
+  prot['growth'] = prot.growth;
+  prot['date'] = prot.date;
+  prot['autoFill'] = prot.autoFill;
+
+  window['Asc']['c_oAscDateUnitType'] = window['Asc'].c_oAscDateUnitType = c_oAscDateUnitType;
+  prot = c_oAscDateUnitType;
+  prot['day'] = prot.day;
+  prot['weekday'] = prot.weekday;
+  prot['month'] = prot.month;
+  prot['year'] = prot.year;
+
+  window['Asc']['c_oAscFillType'] = window['Asc'].c_oAscFillType = c_oAscFillType;
+  prot = c_oAscFillType;
+  prot['copyCells'] = prot.copyCells;
+  prot['fillSeries'] = prot.fillSeries;
+  prot['fillFormattingOnly'] = prot.fillFormattingOnly;
+  prot['fillWithoutFormatting'] = prot.fillWithoutFormatting;
+  prot['fillDays'] = prot.fillDays;
+  prot['fillWeekdays'] = prot.fillWeekdays;
+  prot['fillMonths'] = prot.fillMonths;
+  prot['fillYears'] = prot.fillYears;
+  prot['linearTrend'] = prot.linearTrend;
+  prot['growthTrend'] = prot.growthTrend;
+  prot['flashFill'] = prot.flashFill;
+  prot['series'] = prot.series;
+  prot['fillDown'] = prot.fillDown;
+  prot['fillRight'] = prot.fillRight;
+  prot['fillUp'] = prot.fillUp;
+  prot['fillLeft'] = prot.fillLeft;
+  prot['justify'] = prot.justify;
+
+  window['Asc']['c_oAscContextMenuTypes'] = window['Asc'].c_oAscContextMenuTypes = c_oAscContextMenuTypes;
+  prot = c_oAscContextMenuTypes;
+  prot['common'] = prot.common;
+  prot['changeSeries'] = prot.changeSeries;
+
+  window['Asc']['c_oAscCalcMode'] = window['Asc'].c_oAscCalcMode = c_oAscCalcMode;
+  prot = c_oAscCalcMode;
+  prot['auto'] = prot.auto;
+  prot['autoNoTable'] = prot.autoNoTable;
+  prot['manual'] = prot.manual;
+
+
+  window['Asc']['c_oAscCellShortcutType'] = window['Asc'].c_oAscCellShortcutType = c_oAscCellShortcutType;
+  prot = c_oAscCellShortcutType;
+  prot['refreshAllConnections']       = c_oAscCellShortcutType.refreshAllConnections;
+  prot['refreshSelectedConnections']  = c_oAscCellShortcutType.refreshSelectedConnections;
+  prot['changeFormatTableInfo']       = c_oAscCellShortcutType.changeFormatTableInfo;
+  prot['calculateAll']                = c_oAscCellShortcutType.calculateAll;
+  prot['calculateActiveSheet']        = c_oAscCellShortcutType.calculateActiveSheet;
+  prot['focusOnCellEditor']           = c_oAscCellShortcutType.focusOnCellEditor;
+  prot['addDate']                     = c_oAscCellShortcutType.addDate;
+  prot['addTime']                     = c_oAscCellShortcutType.addTime;
+  prot['removeActiveCell']            = c_oAscCellShortcutType.removeActiveCell;
+  prot['emptyRange']                  = c_oAscCellShortcutType.emptyRange;
+  prot['moveActiveCellToLeft']        = c_oAscCellShortcutType.moveActiveCellToLeft;
+  prot['moveActiveCellToRight']       = c_oAscCellShortcutType.moveActiveCellToRight;
+  prot['moveActiveCellToDown']        = c_oAscCellShortcutType.moveActiveCellToDown;
+  prot['moveActiveCellToUp']          = c_oAscCellShortcutType.moveActiveCellToUp;
+  prot['reset']                       = c_oAscCellShortcutType.reset;
+  prot['disableNumLock']              = c_oAscCellShortcutType.disableNumLock;
+  prot['disableScrollLock']           = c_oAscCellShortcutType.disableScrollLock;
+  prot['selectColumn']                = c_oAscCellShortcutType.selectColumn;
+  prot['selectRow']                   = c_oAscCellShortcutType.selectRow;
+  prot['selectSheet']                 = c_oAscCellShortcutType.selectSheet;
+  prot['addSeparator']                = c_oAscCellShortcutType.addSeparator;
+  prot['goToPreviousSheet']           = c_oAscCellShortcutType.goToPreviousSheet;
+  prot['moveToTopCell']               = c_oAscCellShortcutType.moveToTopCell;
+  prot['moveToNextSheet']             = c_oAscCellShortcutType.moveToNextSheet;
+  prot['moveToLeftEdgeCell']          = c_oAscCellShortcutType.moveToLeftEdgeCell;
+  prot['selectToLeftEdgeCell']        = c_oAscCellShortcutType.selectToLeftEdgeCell;
+  prot['moveToLeftCell']              = c_oAscCellShortcutType.moveToLeftCell;
+  prot['selectToLeftCell']            = c_oAscCellShortcutType.selectToLeftCell;
+  prot['moveToRightEdgeCell']         = c_oAscCellShortcutType.moveToRightEdgeCell;
+  prot['selectToRightEdgeCell']       = c_oAscCellShortcutType.selectToRightEdgeCell;
+  prot['moveToRightCell']             = c_oAscCellShortcutType.moveToRightCell;
+  prot['selectToRightCell']           = c_oAscCellShortcutType.selectToRightCell;
+  prot['selectToTopCell']             = c_oAscCellShortcutType.selectToTopCell;
+  prot['moveToUpCell']                = c_oAscCellShortcutType.moveToUpCell;
+  prot['selectToUpCell']              = c_oAscCellShortcutType.selectToUpCell;
+  prot['moveToBottomCell']            = c_oAscCellShortcutType.moveToBottomCell;
+  prot['selectToBottomCell']          = c_oAscCellShortcutType.selectToBottomCell;
+  prot['moveToDownCell']              = c_oAscCellShortcutType.moveToDownCell;
+  prot['selectToDownCell']            = c_oAscCellShortcutType.selectToDownCell;
+  prot['moveToFirstColumn']           = c_oAscCellShortcutType.moveToFirstColumn;
+  prot['selectToFirstColumn']         = c_oAscCellShortcutType.selectToFirstColumn;
+  prot['moveToLeftEdgeTop']           = c_oAscCellShortcutType.moveToLeftEdgeTop;
+  prot['selectToLeftEdgeTop']         = c_oAscCellShortcutType.selectToLeftEdgeTop;
+  prot['moveToRightBottomEdge']       = c_oAscCellShortcutType.moveToRightBottomEdge;
+  prot['selectToRightBottomEdge']     = c_oAscCellShortcutType.selectToRightBottomEdge;
+  prot['setNumberFormat']             = c_oAscCellShortcutType.setNumberFormat;
+  prot['setTimeFormat']               = c_oAscCellShortcutType.setTimeFormat;
+  prot['setDateFormat']               = c_oAscCellShortcutType.setDateFormat;
+  prot['setCurrencyFormat']           = c_oAscCellShortcutType.setCurrencyFormat;
+  prot['setPercentFormat']            = c_oAscCellShortcutType.setPercentFormat;
+  prot['setStrikethrough']            = c_oAscCellShortcutType.setStrikethrough;
+  prot['setExponentialFormat']        = c_oAscCellShortcutType.setExponentialFormat;
+  prot['setBold']                     = c_oAscCellShortcutType.setBold;
+  prot['setItalic']                   = c_oAscCellShortcutType.setItalic;
+  prot['setUnderline']                = c_oAscCellShortcutType.setUnderline;
+  prot['setGeneralFormat']            = c_oAscCellShortcutType.setGeneralFormat;
+  prot['redo']                        = c_oAscCellShortcutType.redo;
+  prot['undo']                        = c_oAscCellShortcutType.undo;
+  prot['print']                       = c_oAscCellShortcutType.print;
+  prot['addSum']                      = c_oAscCellShortcutType.addSum;
+  prot['moveToUpperCell']             = c_oAscCellShortcutType.moveToUpperCell;
+  prot['contextMenu']                 = c_oAscCellShortcutType.contextMenu;
+  prot['moveToLowerCell']             = c_oAscCellShortcutType.moveToLowerCell;
+  prot['selectToLowerCell']           = c_oAscCellShortcutType.selectToLowerCell;
+  prot['selectToUpper Cell']          = c_oAscCellShortcutType.selectToUpperCell;
+  prot['showFilterOptions']           = c_oAscCellShortcutType.showFilterOptions;
+  prot['showAutoComplete']            = c_oAscCellShortcutType.showAutoComplete;
+  prot['showDataValidation']          = c_oAscCellShortcutType.showDataValidation;
+  prot['increaseFontSize']            = c_oAscCellShortcutType.increaseFontSize;
+  prot['decreaseFontSize']            = c_oAscCellShortcutType.decreaseFontSize;
+  prot['selectAll']                   = c_oAscCellShortcutType.selectAll;
+  prot['save']                        = c_oAscCellShortcutType.save;
 
 })(window);

@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -49,6 +49,10 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             break;
         case AscFormat.LineEndType.Arrow:
         {
+            if (Asc.editor.isPdfEditor() == true) {
+                drawer.CheckDash();
+            }
+
             var _ex = xPrev - xEnd;
             var _ey = yPrev - yEnd;
             var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
@@ -60,6 +64,39 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
 
             var tmpx = xEnd + len * _ex;
             var tmpy = yEnd + len * _ey;
+
+            var x1 = tmpx + _vx * w/2;
+            var y1 = tmpy + _vy * w/2;
+
+            var x3 = tmpx - _vx * w/2;
+            var y3 = tmpy - _vy * w/2;
+
+            drawer._s();
+            drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+            drawer._l(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
+            drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+            drawer.ds();
+            drawer._e();
+
+            break;
+        }
+        case AscFormat.LineEndType.ReverseArrow:
+        {
+            if (Asc.editor.isPdfEditor() == true) {
+                drawer.CheckDash();
+            }
+
+            var _ex = xPrev - xEnd;
+            var _ey = yPrev - yEnd;
+            var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+            _ex /= _elen;
+            _ey /= _elen;
+
+            var _vx = _ey;
+            var _vy = -_ex;
+
+            var tmpx = xEnd - len * _ex;
+            var tmpy = yEnd - len * _ey;
 
             var x1 = tmpx + _vx * w/2;
             var y1 = tmpy + _vy * w/2;
@@ -105,6 +142,21 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             drawer._l(trans.TransformPointX(tmpx2, tmpy2), trans.TransformPointY(tmpx2, tmpy2));
             drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
             drawer._z();
+            if (Asc.editor.isPdfEditor()) {
+                let oRGBColor;
+                if (drawer.Shape.GetRGBColor) {
+                    oRGBColor = drawer.Shape.GetRGBColor(drawer.Shape.GetFillColor());
+                }
+                else if (drawer.Shape.group) {
+                    oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
+                }
+
+                if (oRGBColor) {
+                    drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
+                    drawer.Graphics.m_oPen.Color.G = oRGBColor.g;
+                    drawer.Graphics.m_oPen.Color.B = oRGBColor.b;
+                }
+            }
             drawer.drawStrokeFillStyle();
             drawer._e();
 
@@ -117,6 +169,101 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             drawer.ds();
             drawer._e();
 
+            break;
+        }
+        case AscFormat.LineEndType.Square:
+        {
+            var angle = Math.atan2(yEnd - yPrev, xEnd - xPrev);
+            function rotatePoints(aPoints) {
+                // Поворачиваем каждую вершину вокруг центра
+                for (var i = 0; i < aPoints.length; i++) {
+                    var x = aPoints[i].x - xEnd;
+                    var y = aPoints[i].y - yEnd;
+
+                    // Применяем матрицу поворота
+                    var rotatedX = x * Math.cos(angle) - y * Math.sin(angle);
+                    var rotatedY = x * Math.sin(angle) + y * Math.cos(angle);
+
+                    // Возвращаем вершины на место
+                    aPoints[i].x = rotatedX + xEnd;
+                    aPoints[i].y = rotatedY + yEnd;
+                }
+            }
+
+            var x1 = xEnd - w/2;
+            var y1 = yEnd + w/2;
+
+            var x2 = xEnd - w/2;
+            var y2 = yEnd - w/2;
+
+            var x3 = xEnd + w/2;
+            var y3 = yEnd - w/2;
+
+            var x4 = xEnd + w/2;
+            var y4 = yEnd + w/2;
+
+            let aSmall = [
+                { x: x1, y: y1 },
+                { x: x2, y: y2 },
+                { x: x3, y: y3 },
+                { x: x4, y: y4 }
+            ]
+
+            rotatePoints(aSmall);
+            
+            drawer._s();
+            drawer._m(trans.TransformPointX(aSmall[0].x, aSmall[0].y), trans.TransformPointY(aSmall[0].x, aSmall[0].y));
+            for (var i = 1; i < aSmall.length; i++) {
+                drawer._l(trans.TransformPointX(aSmall[i].x, aSmall[i].y), trans.TransformPointY(aSmall[i].x, aSmall[i].y));
+            }
+            drawer._z();
+            if (Asc.editor.isPdfEditor()) {
+                let oRGBColor;
+                if (drawer.Shape.GetRGBColor) {
+                    oRGBColor = drawer.Shape.GetRGBColor(drawer.Shape.GetFillColor());
+                }
+                else if (drawer.Shape.group) {
+                    oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
+                }
+
+                if (oRGBColor) {
+                    drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
+                    drawer.Graphics.m_oPen.Color.G = oRGBColor.g;
+                    drawer.Graphics.m_oPen.Color.B = oRGBColor.b;
+                }
+            }
+            drawer.drawStrokeFillStyle();
+            drawer._e();
+
+            x1 = xEnd - w * 2/4;
+            y1 = yEnd + w * 2/4;
+
+            x2 = xEnd - w * 2/4;
+            y2 = yEnd - w * 2/4;
+
+            x3 = xEnd + w * 2/4;
+            y3 = yEnd - w * 2/4;
+
+            x4 = xEnd + w * 2/4;
+            y4 = yEnd + w * 2/4;
+
+            let aBig = [
+                { x: x1, y: y1 },
+                { x: x2, y: y2 },
+                { x: x3, y: y3 },
+                { x: x4, y: y4 }
+            ]
+
+            rotatePoints(aBig);
+            
+            drawer._s();
+            drawer._m(trans.TransformPointX(aBig[0].x, aBig[0].y), trans.TransformPointY(aBig[0].x, aBig[0].y));
+            for (var i = 1; i < aBig.length; i++) {
+                drawer._l(trans.TransformPointX(aBig[i].x, aBig[i].y), trans.TransformPointY(aBig[i].x, aBig[i].y));
+            }
+            drawer._z();
+            drawer.ds();
+            drawer._e();
             break;
         }
         case AscFormat.LineEndType.Oval:
@@ -156,6 +303,21 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
                 trans.TransformPointX(cx3, cy3), trans.TransformPointY(cx3, cy3),
                 trans.TransformPointX(tmpx, tmpy), trans.TransformPointY(tmpx, tmpy));
 
+            if (Asc.editor.isPdfEditor()) {
+                let oRGBColor;
+                if (drawer.Shape.GetRGBColor) {
+                    oRGBColor = drawer.Shape.GetRGBColor(drawer.Shape.GetFillColor());
+                }
+                else if (drawer.Shape.group) {
+                    oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
+                }
+
+                if (oRGBColor) {
+                    drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
+                    drawer.Graphics.m_oPen.Color.G = oRGBColor.g;
+                    drawer.Graphics.m_oPen.Color.B = oRGBColor.b;
+                }
+            }
             drawer.drawStrokeFillStyle();
             drawer._e();
 
@@ -216,6 +378,59 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
 
             break;
         }
+        case AscFormat.LineEndType.ReverseTriangle:
+        {
+            var _ex = xPrev - xEnd;
+            var _ey = yPrev - yEnd;
+            var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+            _ex /= _elen;
+            _ey /= _elen;
+
+            var _vx = _ey;
+            var _vy = -_ex;
+
+            var tmpx = xEnd - len * _ex;
+            var tmpy = yEnd - len * _ey;
+
+            var x1 = tmpx + _vx * w/2;
+            var y1 = tmpy + _vy * w/2;
+
+            var x3 = tmpx - _vx * w/2;
+            var y3 = tmpy - _vy * w/2;
+
+            drawer._s();
+            drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+            drawer._l(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
+            drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+            drawer._z();
+            if (Asc.editor.isPdfEditor()) {
+                let oRGBColor;
+                if (drawer.Shape.GetRGBColor) {
+                    oRGBColor = drawer.Shape.GetRGBColor(drawer.Shape.GetFillColor());
+                }
+                else if (drawer.Shape.group) {
+                    oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
+                } 
+
+                if (oRGBColor) {
+                    drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
+                    drawer.Graphics.m_oPen.Color.G = oRGBColor.g;
+                    drawer.Graphics.m_oPen.Color.B = oRGBColor.b;
+                }
+            }
+
+            drawer.drawStrokeFillStyle();
+            drawer._e();
+
+            drawer._s();
+            drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+            drawer._l(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
+            drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+            drawer._z();
+            drawer.ds();
+            drawer._e();
+            break;
+        }
         case AscFormat.LineEndType.Triangle:
         {
             var _ex = xPrev - xEnd;
@@ -241,6 +456,22 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             drawer._l(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
             drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
             drawer._z();
+            if (Asc.editor.isPdfEditor()) {
+                let oRGBColor;
+                if (drawer.Shape.GetRGBColor) {
+                    oRGBColor = drawer.Shape.GetRGBColor(drawer.Shape.GetFillColor());
+                }
+                else if (drawer.Shape.group) {
+                    oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
+                }
+
+                if (oRGBColor) {
+                    drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
+                    drawer.Graphics.m_oPen.Color.G = oRGBColor.g;
+                    drawer.Graphics.m_oPen.Color.B = oRGBColor.b;
+                }
+            }
+
             drawer.drawStrokeFillStyle();
             drawer._e();
 
@@ -253,6 +484,671 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             drawer._e();
             break;
         }
+        case AscFormat.LineEndType.Butt:
+        {
+            var _ex = xPrev - xEnd;
+            var _ey = yPrev - yEnd;
+            var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+            _ex /= _elen;
+            _ey /= _elen;
+
+            var _vx = _ey;
+            var _vy = -_ex;
+
+            var tmpx = xEnd + len * _ex;
+            var tmpy = yEnd + len * _ey;
+
+            var angle = Math.atan2(yEnd - yPrev, xEnd - xPrev);
+            // Вычисляем координаты конца перпендикулярной линии
+            var perpendicularLength = w;
+            var x1 = xEnd + perpendicularLength * Math.cos(angle - Math.PI / 2);
+            var y1 = yEnd + perpendicularLength * Math.sin(angle - Math.PI / 2);
+            var x2 = xEnd - perpendicularLength * Math.cos(angle - Math.PI / 2);
+            var y2 = yEnd - perpendicularLength * Math.sin(angle - Math.PI / 2);
+
+            drawer._s();
+            drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+            drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+            drawer.ds();
+            break;
+        }
+        case AscFormat.LineEndType.Slash:
+        {
+            var _ex = xPrev - xEnd;
+            var _ey = yPrev - yEnd;
+            var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+            _ex /= _elen;
+            _ey /= _elen;
+
+            var _vx = _ey;
+            var _vy = -_ex;
+
+            var tmpx = xEnd + len * _ex;
+            var tmpy = yEnd + len * _ey;
+
+            var angle = Math.atan2(yEnd - yPrev, xEnd - xPrev) + (30 * Math.PI / 180);
+
+            // Вычисляем координаты конца перпендикулярной линии
+            var perpendicularLength = w;
+            var x1 = xEnd + perpendicularLength * Math.cos(angle - Math.PI / 2);
+            var y1 = yEnd + perpendicularLength * Math.sin(angle - Math.PI / 2);
+            var x2 = xEnd - perpendicularLength * Math.cos(angle - Math.PI / 2);
+            var y2 = yEnd - perpendicularLength * Math.sin(angle - Math.PI / 2);
+
+            drawer._s();
+            drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+            drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+            drawer.ds();
+            break;
+        }
+        // visio types are handled below
+    }
+
+    if (type === AscFormat.LineEndType.vsdxOpenASMEArrow ||
+        type === AscFormat.LineEndType.vsdxFilledASMEArrow ||
+        type === AscFormat.LineEndType.vsdxClosedASMEArrow) {
+        len *= 1.5;
+        let isFilled = type === AscFormat.LineEndType.vsdxFilledASMEArrow;
+        let isOpen = type === AscFormat.LineEndType.vsdxOpenASMEArrow;
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, isFilled, isOpen, w, len);
+    } else if (type === AscFormat.LineEndType.vsdxOpenSharpArrow ||
+        type === AscFormat.LineEndType.vsdxFilledSharpArrow ||
+        type === AscFormat.LineEndType.vsdxClosedSharpArrow) {
+        let isFilled = type === AscFormat.LineEndType.vsdxFilledSharpArrow;
+        let isOpen = type === AscFormat.LineEndType.vsdxOpenSharpArrow;
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, isFilled, isOpen, w, len);
+    } else if (type === AscFormat.LineEndType.vsdxOpen90Arrow ||
+        type === AscFormat.LineEndType.vsdxFilled90Arrow ||
+        type === AscFormat.LineEndType.vsdxClosed90Arrow) {
+        len /= 2;
+        let isFilled = type === AscFormat.LineEndType.vsdxFilled90Arrow;
+        let isOpen = type === AscFormat.LineEndType.vsdxOpen90Arrow;
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, isFilled, isOpen, w, len);
+    } else if (type === AscFormat.LineEndType.vsdxIndentedFilledArrow ||
+        type === AscFormat.LineEndType.vsdxIndentedClosedArrow ||
+        type === AscFormat.LineEndType.vsdxOutdentedFilledArrow ||
+        type === AscFormat.LineEndType.vsdxOutdentedClosedArrow) {
+        let isArrowFilled = type === AscFormat.LineEndType.vsdxIndentedFilledArrow ||
+            type === AscFormat.LineEndType.vsdxOutdentedFilledArrow;
+
+        let isIndented = type === AscFormat.LineEndType.vsdxIndentedFilledArrow ||
+            type === AscFormat.LineEndType.vsdxIndentedClosedArrow;
+
+        var _ex = xPrev - xEnd;
+        var _ey = yPrev - yEnd;
+        var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+        _ex /= _elen; // cos a
+        _ey /= _elen; // sin a
+
+        // a now is 90 - a + invert cos
+        var _vx = _ey;
+        var _vy = -_ex;
+
+        // (xEnd, yEnd) - right arrow point
+        var tmpx = xEnd + len * _ex;
+        var tmpy = yEnd + len * _ey;
+
+        // (x1, y1) - top arrow point
+        var x1 = tmpx + _vx * w/2;
+        var y1 = tmpy + _vy * w/2;
+
+        // (x3, y3) - bottom arrow point
+        var x3 = tmpx - _vx * w/2;
+        var y3 = tmpy - _vy * w/2;
+
+        let controlPointShift = isIndented? 0.75 * len : 1.25 * len;
+
+        var x4 = xEnd + controlPointShift * _ex;
+        var y4 = yEnd + controlPointShift * _ey;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
+        drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+        let cpxLocal = trans.TransformPointX(x4, y4);
+        let cpyLocal = trans.TransformPointY(x4, y4);
+        let endXLocal = trans.TransformPointX(x1, y1);
+        let endYLocal = trans.TransformPointY(x1, y1);
+        drawer._c2(cpxLocal, cpyLocal, endXLocal, endYLocal);
+        drawer._z();
+
+        stokeOrFillPath(drawer, isArrowFilled);
+
+        drawer._e();
+    } else if (type === AscFormat.LineEndType.vsdxOpenFletch ||
+        type === AscFormat.LineEndType.vsdxFilledFletch ||
+        type === AscFormat.LineEndType.vsdxClosedFletch) {
+        let isArrowFilled = false;
+        let isArrowClosed = false;
+        if (type === AscFormat.LineEndType.vsdxFilledFletch) {
+            isArrowClosed = true;
+            isArrowFilled = true;
+        } else if (type === AscFormat.LineEndType.vsdxClosedFletch) {
+            isArrowFilled = false;
+            isArrowClosed = true;
+        }
+        var _ex = xPrev - xEnd;
+        var _ey = yPrev - yEnd;
+        var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+        _ex /= _elen; // cos a
+        _ey /= _elen; // sin a
+
+        // a now is 90 - a + invert cos
+        var _vx = _ey;
+        var _vy = -_ex;
+
+        // (xEnd, yEnd) - right arrow point
+
+        // left arrow point?
+        var tmpx = xEnd + len * _ex;
+        var tmpy = yEnd + len * _ey;
+
+        // (x1, y1) - top arrow point
+        var x1 = tmpx + _vx * w/2;
+        var y1 = tmpy + _vy * w/2;
+
+        // (x3, y3) - bottom arrow point
+        var x3 = tmpx - _vx * w/2;
+        var y3 = tmpy - _vy * w/2;
+
+        let controlPointShift = 0.5 * len;
+
+        var x4 = xEnd + controlPointShift * _ex;
+        var y4 = yEnd + controlPointShift * _ey;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        let cpxLocal = trans.TransformPointX(x4, y4);
+        let cpyLocal = trans.TransformPointY(x4, y4);
+        let endXLocal = trans.TransformPointX(xEnd, yEnd);
+        let endYLocal = trans.TransformPointY(xEnd, yEnd);
+        drawer._c2(cpxLocal, cpyLocal, endXLocal, endYLocal);
+
+        // drawer._m(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+        drawer._c2(cpxLocal, cpyLocal, trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+
+        if (isArrowClosed) {
+            // drawer._m(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+            drawer._c2(cpxLocal, cpyLocal, trans.TransformPointX(x1, y1),  trans.TransformPointY(x1, y1));
+        }
+
+        // drawer._z();
+
+        stokeOrFillPath(drawer, isArrowFilled);
+
+        drawer._e();
+    } else if (type === AscFormat.LineEndType.vsdxDimensionLine) {
+        const drawLineAngle = Math.atan2(yEnd - yPrev, xEnd - xPrev) + (45 * Math.PI / 180);
+
+        // Вычисляем координаты конца перпендикулярной линии
+        const perpendicularLength = w * Math.sin(Math.PI / 4); // don't know why it's not just =w here
+        const x1 = xEnd + perpendicularLength * Math.cos(drawLineAngle); // top right point for visio
+        const y1 = yEnd + perpendicularLength * Math.sin(drawLineAngle); // top right point for visio
+        const x2 = xEnd - perpendicularLength * Math.cos(drawLineAngle);
+        const y2 = yEnd - perpendicularLength * Math.sin(drawLineAngle);
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+        drawer.ds();
+    } else if (type === AscFormat.LineEndType.vsdxFilledDot ||
+        type === AscFormat.LineEndType.vsdxClosedDot) {
+        let isFilled = type === AscFormat.LineEndType.vsdxFilledDot;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, 0, w, len, isFilled);
+    } else if (type === AscFormat.LineEndType.vsdxFilledSquare ||
+        type === AscFormat.LineEndType.vsdxClosedSquare) {
+        let isArrowFilled = type === AscFormat.LineEndType.vsdxFilledSquare;
+        let _ex = xPrev - xEnd;
+        let _ey = yPrev - yEnd;
+        let _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+        _ex /= _elen; // cos a
+        _ey /= _elen; // sin a
+
+        let isRotated = false;
+        _ex = isRotated? _ex : 1; // cos a
+        _ey = isRotated? _ey : 0; // sin a
+
+        // a now is 90 - a + invert cos
+        let _vx = _ey;
+        let _vy = -_ex;
+
+        // (xEnd, yEnd) - right arrow point
+
+        let paramsScale = 0.4;
+
+        // left arrow point?
+        let tmpx = xEnd + len * paramsScale * _ex;
+        let tmpy = yEnd + len * paramsScale * _ey;
+
+        // (x1, y1) - left top arrow point
+        let x1 = tmpx + _vx * w * paramsScale;
+        let y1 = tmpy + _vy * w * paramsScale;
+
+        // (x2, y2) - left bottom arrow point
+        let x2 = tmpx - _vx * w * paramsScale;
+        let y2 = tmpy - _vy * w * paramsScale;
+
+        // right arrow point?
+        let tmpxRight = xEnd - len * paramsScale * _ex;
+        let tmpyRight = yEnd - len * paramsScale * _ey;
+
+        // (x3, y3) - left top arrow point
+        let x3 = tmpxRight + _vx * w * paramsScale;
+        let y3 = tmpyRight + _vy * w * paramsScale;
+
+        // (x4, y4) - left bottom arrow point
+        let x4 = tmpxRight - _vx * w * paramsScale;
+        let y4 = tmpyRight - _vy * w * paramsScale;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+        drawer._l(trans.TransformPointX(x4, y4), trans.TransformPointY(x4, y4));
+        drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+
+        drawer._z();
+
+        stokeOrFillPath(drawer, isArrowFilled);
+
+        drawer._e();
+    } else if (type === AscFormat.LineEndType.vsdxDiamond) {
+        drawRhomb(drawer, xPrev, yPrev, xEnd, yEnd, 0);
+    } else if (type === AscFormat.LineEndType.vsdxBackslash) {
+        let _ex = xPrev - xEnd;
+        let _ey = yPrev - yEnd;
+
+        const arrowPartLen =  Math.sqrt(_ex * _ex + _ey * _ey);
+        const arrowCos = _ex / arrowPartLen;
+        const arrowSin = _ey / arrowPartLen;
+        const xShift = len * arrowCos;
+        const yShift = len * arrowSin;
+        const drawLineAngle = Math.atan2(yEnd - yPrev, xEnd - xPrev) - (45 * Math.PI / 180);
+
+        // Вычисляем координаты конца перпендикулярной линии
+        const perpendicularLength = w * Math.sin(Math.PI / 4); // don't know why it's not just =w here
+        const x1 = xEnd + perpendicularLength * Math.cos(drawLineAngle) + xShift; // top right point for visio
+        const y1 = yEnd + perpendicularLength * Math.sin(drawLineAngle) + yShift; // top right point for visio
+        const x2 = xEnd - perpendicularLength * Math.cos(drawLineAngle) + xShift;
+        const y2 = yEnd - perpendicularLength * Math.sin(drawLineAngle) + yShift;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+        drawer.ds();
+
+        drawer._e();
+    } else if (type === AscFormat.LineEndType.vsdxOpenOneDash) {
+        let shift = 0.75 * len;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+    } else if (type === AscFormat.LineEndType.vsdxOpenTwoDash) {
+        let shift = 0.75 * len;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift * 1.5);
+    } else if (type === AscFormat.LineEndType.vsdxOpenThreeDash) {
+        let shift = 0.75 * len;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift * 1.5);
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift * 2);
+    } else if (type === AscFormat.LineEndType.vsdxFork) {
+        drawFork(drawer, xPrev, yPrev, xEnd, yEnd);
+    } else if (type === AscFormat.LineEndType.vsdxDashFork) {
+        drawFork(drawer, xPrev, yPrev, xEnd, yEnd);
+
+        let shift = 1.5 * len * 0.75;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+    } else if (type === AscFormat.LineEndType.vsdxClosedFork) {
+        let isFilled = false;
+        drawFork(drawer, xPrev, yPrev, xEnd, yEnd);
+
+        let shift = 0.75 * len * 1.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, isFilled);
+    } else if (type === AscFormat.LineEndType.vsdxClosedPlus) {
+        let shift = 0.75 * len * 1.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, false);
+
+        shift = 0.75 * len * 0.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+    } else if (type === AscFormat.LineEndType.vsdxClosedOneDash) {
+        let shift = 0.75 * len * 1.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, false);
+    } else if (type === AscFormat.LineEndType.vsdxClosedTwoDash) {
+        let shift = 0.75 * len * 2;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+
+        shift = 0.75 * len * 1.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, false);
+    } else if (type === AscFormat.LineEndType.vsdxClosedThreeDash) {
+        let shift = 0.75 * len * 2.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 2;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 1.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, false);
+    } else if (type === AscFormat.LineEndType.vsdxClosedDiamond) {
+        let shift = 0.75 * len * 1.25;
+        drawRhomb(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, false);
+    } else if (type === AscFormat.LineEndType.vsdxFilledOneDash) {
+        let shift = 0.75 * len * 1.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, true);
+    } else if (type === AscFormat.LineEndType.vsdxFilledTwoDash) {
+        let shift = 0.75 * len * 2;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 1.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, true);
+    } else if (type === AscFormat.LineEndType.vsdxFilledThreeDash) {
+        let shift = 0.75 * len * 2.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 2;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 1.5;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, true);
+    } else if (type === AscFormat.LineEndType.vsdxFilledDiamond) {
+        let shift = 0.75 * len * 1.25;
+        drawRhomb(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+        shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, true);
+    } else if (type === AscFormat.LineEndType.vsdxFilledDoubleArrow) {
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, true, false, w, len);
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, len, true, false, w, len);
+    } else if (type === AscFormat.LineEndType.vsdxClosedDoubleArrow) {
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, false, false, w, len);
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, len, false, false, w, len);
+    } else if (type === AscFormat.LineEndType.vsdxClosedNoDash) {
+        let shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, false);
+    } else if (type === AscFormat.LineEndType.vsdxFilledNoDash) {
+        let shift = 0.75 * len * 0.5;
+        drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, true);
+    } else if (type === AscFormat.LineEndType.vsdxOpenDoubleArrow) {
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, false, true, w, len);
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, len, false, true, w, len);
+    } else if (type === AscFormat.LineEndType.vsdxOpenArrowSingleDash) {
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, false, true, w, len);
+        let shift = 0.75 * len * 2;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+    } else if (type === AscFormat.LineEndType.vsdxOpenDoubleArrowSingleDash) {
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, 0, false, true, w, len);
+        drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, len, false, true, w, len);
+        let shift = 0.75 * len * 2 + len;
+        drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift);
+    }
+
+    /**
+     * @param {CShapeDrawer} drawer
+     * @param {boolean} isFilled - if not filled it is stroke bcs if both repeat all commands
+     */
+    function stokeOrFillPath(drawer, isFilled) {
+        if (isFilled) {
+            if (Asc.editor.isPdfEditor()) {
+                let oRGBColor;
+                if (drawer.Shape.GetRGBColor) {
+                    oRGBColor = drawer.Shape.GetRGBColor(drawer.Shape.GetFillColor());
+                }
+                else if (drawer.Shape.group) {
+                    oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
+                }
+
+                if (oRGBColor) {
+                    drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
+                    drawer.Graphics.m_oPen.Color.G = oRGBColor.g;
+                    drawer.Graphics.m_oPen.Color.B = oRGBColor.b;
+                }
+            }
+            drawer.drawStrokeFillStyle();
+        }
+        let isStroke = !isFilled;
+        if (isStroke) {
+            drawer.ds();
+        }
+    }
+
+    /**
+     * Draws fork BEFORE line end
+     * @param drawer
+     * @param xPrev
+     * @param yPrev
+     * @param xEnd
+     * @param yEnd
+     */
+    function drawFork(drawer, xPrev, yPrev, xEnd, yEnd) {
+        var arrowAngle = Math.atan2(yEnd - yPrev, xEnd - xPrev);
+        var perpendicularAngle = arrowAngle - (90 * Math.PI / 180);
+
+
+        // Вычисляем координаты конца перпендикулярной линии
+        var perpendicularLength = w / 2;
+        let horLength = w * 0.75;
+        var x1 = xEnd + perpendicularLength * Math.cos(perpendicularAngle); // top right point
+        var y1 = yEnd + perpendicularLength * Math.sin(perpendicularAngle); // top right point
+        var x2 = xEnd - perpendicularLength * Math.cos(perpendicularAngle); // bottom right point
+        var y2 = yEnd - perpendicularLength * Math.sin(perpendicularAngle); // bottom right point
+        let x3 = xEnd - horLength * Math.cos(arrowAngle); // left point
+        let y3 = yEnd - horLength * Math.sin(arrowAngle); // left point
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+        drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+        drawer.ds();
+
+        drawer._e();
+    }
+
+    /**
+     * Draws vertical line ON line end
+     * @param drawer
+     * @param xPrev
+     * @param yPrev
+     * @param xEnd
+     * @param yEnd
+     * @param shift
+     */
+    function drawVerticalLine(drawer, xPrev, yPrev, xEnd, yEnd, shift) {
+        let arrowAngle = Math.atan2(yEnd - yPrev, xEnd - xPrev);
+        var drawLineAngle = arrowAngle  - (90 * Math.PI / 180);
+
+        // Вычисляем координаты конца перпендикулярной линии
+        var perpendicularLength = w / 2;
+        var x1 = xEnd + perpendicularLength * Math.cos(drawLineAngle) - shift * Math.cos(arrowAngle); // top right point for visio
+        var y1 = yEnd + perpendicularLength * Math.sin(drawLineAngle) - shift * Math.sin(arrowAngle); // top right point for visio
+        var x2 = xEnd - perpendicularLength * Math.cos(drawLineAngle) - shift * Math.cos(arrowAngle);
+        var y2 = yEnd - perpendicularLength * Math.sin(drawLineAngle) - shift * Math.sin(arrowAngle);
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+        drawer.ds();
+
+        drawer._e();
+    }
+
+    /**
+     * Draws center ON line end
+     * @param drawer
+     * @param xPrev
+     * @param yPrev
+     * @param xEnd
+     * @param yEnd
+     * @param shift - horizontal shift distance
+     * @param w
+     * @param len
+     * @param isArrowFilled
+     */
+    function drawCircle(drawer, xPrev, yPrev, xEnd, yEnd, shift, w, len, isArrowFilled) {
+        len *= 0.75;
+        w *= 0.75;
+
+        var _ex = xPrev - xEnd;
+        var _ey = yPrev - yEnd;
+        var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+        _ex /= _elen; // cos a
+        _ey /= _elen; // sin a
+
+        var _vx = _ey;
+        var _vy = -_ex;
+
+        var tmpx = xEnd + (len / 2 + shift) * _ex; // left circle point
+        var tmpy = yEnd + (len / 2 + shift) * _ey; // left circle point
+
+        var tmpx2 = xEnd - (len / 2 - shift) * _ex; // right circle point
+        var tmpy2 = yEnd - (len / 2 - shift) * _ey; // right circle point
+
+        // left top control point
+        var cx1 = tmpx + _vx * 3*w/4;
+        var cy1 = tmpy + _vy * 3*w/4;
+        // right top control point
+        var cx2 = tmpx2 + _vx * 3*w/4;
+        var cy2 = tmpy2 + _vy * 3*w/4;
+
+        // left bottom control point
+        var cx3 = tmpx - _vx * 3*w/4;
+        var cy3 = tmpy - _vy * 3*w/4;
+        // right bottom control point
+        var cx4 = tmpx2 - _vx * 3*w/4;
+        var cy4 = tmpy2 - _vy * 3*w/4;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(tmpx, tmpy), trans.TransformPointY(tmpx, tmpy));
+        drawer._c(trans.TransformPointX(cx1, cy1), trans.TransformPointY(cx1, cy1),
+            trans.TransformPointX(cx2, cy2), trans.TransformPointY(cx2, cy2),
+            trans.TransformPointX(tmpx2, tmpy2), trans.TransformPointY(tmpx2, tmpy2));
+
+        drawer._c(trans.TransformPointX(cx4, cy4), trans.TransformPointY(cx4, cy4),
+            trans.TransformPointX(cx3, cy3), trans.TransformPointY(cx3, cy3),
+            trans.TransformPointX(tmpx, tmpy), trans.TransformPointY(tmpx, tmpy));
+
+        stokeOrFillPath(drawer, isArrowFilled);
+        drawer._e();
+    }
+
+    /**
+     * Draws BEFORE line end
+     * @param drawer
+     * @param xPrev
+     * @param yPrev
+     * @param xEnd
+     * @param yEnd
+     * @param shift
+     */
+    function drawRhomb(drawer, xPrev, yPrev, xEnd, yEnd, shift) {
+        let isArrowFilled = false;
+        let _ex = xPrev - xEnd;
+        let _ey = yPrev - yEnd;
+        const _elen = Math.sqrt(_ex * _ex + _ey * _ey);
+        _ex /= _elen; // cos a
+        _ey /= _elen; // sin a
+
+        let isRotated = true;
+        _ex = isRotated? _ex : 1; // cos a
+        _ey = isRotated? _ey : 0; // sin a
+
+        // a now is 90 - a + invert cos
+        const _vx = _ey;
+        const _vy = -_ex;
+
+        // (xEnd, yEnd) - right arrow point
+        xEnd = xEnd + shift * _ex;
+        yEnd = yEnd + shift * _ey;
+
+        let heightScale = 0.5;
+        let widthScale = 1;
+
+        // middle arrow point
+        const tmpx = xEnd + len * widthScale * _ex;
+        const tmpy = yEnd + len * widthScale * _ey;
+
+        // (x1, y1) - middle top arrow point
+        const x1 = tmpx + _vx * w * heightScale;
+        const y1 = tmpy + _vy * w * heightScale;
+
+        // (x2, y2) - middle bottom arrow point
+        const x2 = tmpx - _vx * w * heightScale;
+        const y2 = tmpy - _vy * w * heightScale;
+
+        // most left point
+        const x3 = tmpx + len * widthScale * _ex;
+        const y3 = tmpy + len * widthScale * _ey;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
+        drawer._l(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+        drawer._l(trans.TransformPointX(x2, y2), trans.TransformPointY(x2, y2));
+
+        drawer._z();
+
+        stokeOrFillPath(drawer, isArrowFilled);
+
+        drawer._e();
+    }
+
+    /**
+     * Draws arrow BEFORE line end
+     * @param drawer
+     * @param xPrev
+     * @param yPrev
+     * @param xEnd
+     * @param yEnd
+     * @param shift
+     * @param isFilled
+     * @param isOpen
+     * @param w
+     * @param len
+     */
+    function drawArrow(drawer, xPrev, yPrev, xEnd, yEnd, shift, isFilled, isOpen, w, len) {
+        if (Asc.editor.isPdfEditor() == true) {
+            drawer.CheckDash();
+        }
+
+        var _ex = xPrev - xEnd;
+        var _ey = yPrev - yEnd;
+        var _elen = Math.sqrt(_ex*_ex + _ey*_ey);
+        _ex /= _elen;
+        _ey /= _elen;
+
+        var _vx = _ey;
+        var _vy = -_ex;
+
+        xEnd += shift * _ex;
+        yEnd += shift * _ey;
+
+        // (xEnd, yEnd) - right arrow point
+        var tmpx = xEnd + len * _ex;
+        var tmpy = yEnd + len * _ey;
+
+        // (x1, y1) - top arrow point
+        var x1 = tmpx + _vx * w/2;
+        var y1 = tmpy + _vy * w/2;
+
+        // (x3, y3) - bottom arrow point
+        var x3 = tmpx - _vx * w/2;
+        var y3 = tmpy - _vy * w/2;
+
+        drawer._s();
+        drawer._m(trans.TransformPointX(x1, y1), trans.TransformPointY(x1, y1));
+        drawer._l(trans.TransformPointX(xEnd, yEnd), trans.TransformPointY(xEnd, yEnd));
+        drawer._l(trans.TransformPointX(x3, y3), trans.TransformPointY(x3, y3));
+        if (!isOpen) {
+            drawer._z();
+        }
+        stokeOrFillPath(drawer, isFilled);
+        drawer._e();
     }
 }
 
@@ -318,6 +1214,11 @@ CShapeDrawer.prototype =
         this.IsRectShape = false;
     },
 
+    isPdf : function()
+    {
+        return this.Graphics.isPdf() || this.Graphics.isNativeDrawer();
+    },
+
     CheckPoint : function(_x,_y)
     {
         // TODO: !!!
@@ -342,14 +1243,34 @@ CShapeDrawer.prototype =
 
     CheckDash : function()
     {
-        if (this.Ln.prstDash != null && AscCommon.DashPatternPresets[this.Ln.prstDash])
+        if (Asc.editor.isPdfEditor()) {
+            let aDash;
+            if (this.Shape.GetDash)
+                aDash = this.Shape.GetDash();
+            else if (this.Shape.group && this.Shape.group.GetDash)
+                aDash = this.Shape.group.GetDash();
+            else if (this.Shape.IsDrawing && this.Shape.IsDrawing()) {
+                if (AscCommon.DashPatternPresets[this.Ln.prstDash]) {
+                    aDash = AscCommon.DashPatternPresets[this.Ln.prstDash].slice();
+                    for (var indexD = 0; indexD < aDash.length; indexD++)
+                        aDash[indexD] *= 2 * this.StrokeWidth;
+                }
+            }
+
+            if (aDash) {
+                this.Graphics.p_dash(aDash.map(function(measure) {
+                    return measure / 2;
+                }));
+            }
+        }
+        else if (this.Ln.prstDash != null && AscCommon.DashPatternPresets[this.Ln.prstDash])
         {
             var _arr = AscCommon.DashPatternPresets[this.Ln.prstDash].slice();
             for (var indexD = 0; indexD < _arr.length; indexD++)
                 _arr[indexD] *= this.StrokeWidth;
             this.Graphics.p_dash(_arr);
         }
-        else if (this.Graphics.RENDERER_PDF_FLAG)
+        else if (this.isPdf())
         {
             this.Graphics.p_dash(null);
         }
@@ -452,7 +1373,7 @@ CShapeDrawer.prototype =
         if (this.Ln == null || this.Ln.Fill == null || this.Ln.Fill.fill == null)
         {
             this.bIsNoStrokeAttack = true;
-            if (true === graphics.IsTrack)
+            if (graphics.isTrack())
                 graphics.Graphics.ArrayPoints = null;
             else
                 graphics.ArrayPoints = null;
@@ -529,14 +1450,14 @@ CShapeDrawer.prototype =
             
             this.CheckDash();
 
-            if (graphics.IsSlideBoundsCheckerType && !this.bIsNoStrokeAttack)
+            if (graphics.isBoundsChecker() && !this.bIsNoStrokeAttack)
                 graphics.LineWidth = this.StrokeWidth;
 
             var isUseArrayPoints = false;
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
                 isUseArrayPoints = true;
 
-            if (true === graphics.IsTrack && graphics.Graphics != undefined && graphics.Graphics != null)
+            if (graphics.isTrack() && graphics.Graphics)
                 graphics.Graphics.ArrayPoints = isUseArrayPoints ? [] : null;
             else
                 graphics.ArrayPoints = isUseArrayPoints ? [] : null;
@@ -566,17 +1487,10 @@ CShapeDrawer.prototype =
             bIsPatt = true;
         }
 
-        if (this.Graphics.RENDERER_PDF_FLAG && (this.bIsTexture || bIsPatt))
+        if (this.isPdf() && (this.bIsTexture || bIsPatt))
         {
             this.Graphics.put_TextureBoundsEnabled(true);
             this.Graphics.put_TextureBounds(this.min_x, this.min_y, this.max_x - this.min_x, this.max_y - this.min_y);
-        }
-
-        var _old_composite = null;
-        if (this.Graphics.ClearMode === true)
-        {
-            _old_composite = this.Graphics.m_oContext.globalCompositeOperation;
-            this.Graphics.m_oContext.globalCompositeOperation = "destination-out";
         }
 
         if(geom)
@@ -596,19 +1510,14 @@ CShapeDrawer.prototype =
         }
         this.Graphics.ArrayPoints = null;
 
-        if (this.Graphics.RENDERER_PDF_FLAG && (this.bIsTexture || bIsPatt))
+        if (this.isPdf() && (this.bIsTexture || bIsPatt))
         {
             this.Graphics.put_TextureBoundsEnabled(false);
         }
 
-        if (this.Graphics.IsSlideBoundsCheckerType && this.Graphics.AutoCheckLineWidth)
+        if (this.Graphics.isBoundsChecker() && this.Graphics.AutoCheckLineWidth)
         {
             this.Graphics.CorrectBounds2();
-        }
-
-        if (this.Graphics.ClearMode === true)
-        {
-            this.Graphics.m_oContext.globalCompositeOperation = _old_composite;
         }
 
         this.Graphics.p_dash(null);
@@ -654,6 +1563,12 @@ CShapeDrawer.prototype =
         this.Graphics._c(x1, y1, x2, y2, x3, y3);
     },
 
+    /**
+     * @param x1 - cpx
+     * @param y1 - cpy
+     * @param x2 - end x
+     * @param y2 - end y
+     */
     _c2 : function(x1, y1, x2, y2)
     {
         if (this.bIsCheckBounds)
@@ -664,6 +1579,26 @@ CShapeDrawer.prototype =
         }
 
         this.Graphics._c2(x1, y1, x2, y2);
+    },
+
+    /**
+     * @param {{x: Number, y: Number, z? :Number}} startPoint
+     * @param {{x: Number, y: Number, z? :Number}[]} controlPoints
+     * @param {{x: Number, y: Number, z? :Number}} endPoint
+     */
+    _cN : function(startPoint, controlPoints, endPoint)
+    {
+        if (this.bIsCheckBounds)
+        {
+            this.CheckPoint(startPoint.x, startPoint.y);
+            controlPoints.forEach(function (controlPoint) {
+                this.CheckPoint(controlPoint.x, controlPoint.y);
+            })
+            this.CheckPoint(endPoint.x, endPoint.y);
+            return;
+        }
+
+        this.Graphics._cN(startPoint, controlPoints, endPoint);
     },
 
     _z : function()
@@ -690,15 +1625,30 @@ CShapeDrawer.prototype =
             this.Graphics.ArrayPoints = [];
     },
 
+    drawTransitionTextures : function(oCanvas1, dAlpha1, oCanvas2, dAlpha2)
+    {
+        const dOldGlobalAlpha = this.Graphics.m_oContext.globalAlpha;
+        const dX = this.min_x;
+        const dY = this.min_y;
+        const dW = this.max_x - this.min_x;
+        const dH = this.max_y - this.min_y;
+        this.Graphics.m_oContext.globalAlpha = dAlpha1;
+        this.Graphics.drawImage(null, dX, dY, dW, dH, undefined, null, oCanvas1);
+        this.Graphics.m_oContext.globalAlpha = dAlpha2;
+        this.Graphics.drawImage(null, dX, dY, dW, dH, undefined, null, oCanvas2);
+        this.Graphics.m_oContext.globalAlpha = dOldGlobalAlpha;
+    },
+
+
     df : function(mode)
     {
         if (mode == "none" || this.bIsNoFillAttack)
             return;
 
-        if (this.Graphics.IsTrack)
+        if (this.Graphics.isTrack())
             this.Graphics.m_oOverlay.ClearAll = true;
 
-        if (this.Graphics.IsSlideBoundsCheckerType === true)
+        if (this.Graphics.isBoundsChecker() === true)
             return;
 
         var editorInfo = this.getEditorInfo();
@@ -712,7 +1662,7 @@ CShapeDrawer.prototype =
                 bIsIntegerGridTRUE = true;
             }
 
-            if (this.Graphics.RENDERER_PDF_FLAG)
+            if (this.isPdf())
             {
                 if (null == this.UniFill.fill.tile || this.Graphics.m_oContext === undefined)
                 {
@@ -745,7 +1695,11 @@ CShapeDrawer.prototype =
             {
                 if (this.IsRectShape)
                 {
-                    if ((null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
+                    if(this.UniFill.IsTransitionTextures)
+                    {
+                        this.drawTransitionTextures(this.UniFill.canvas1, this.UniFill.alpha1, this.UniFill.canvas2, this.UniFill.alpha2);
+                    }
+                    else if ((null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                     {
                         this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect, this.UniFill.fill.canvas);
                     }
@@ -762,7 +1716,11 @@ CShapeDrawer.prototype =
                     this.Graphics.save();
                     this.Graphics.clip();
 
-                    if (this.Graphics.IsNoSupportTextDraw == true || true == this.Graphics.IsTrack || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
+                    if(this.UniFill.IsTransitionTextures)
+                    {
+                        this.drawTransitionTextures(this.UniFill.canvas1, this.UniFill.alpha1, this.UniFill.canvas2, this.UniFill.alpha2);
+                    }
+                    else if (!this.Graphics.isSupportTextDraw() || this.Graphics.isTrack() || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                     {
                         this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect, this.UniFill.fill.canvas);
                     }
@@ -786,7 +1744,7 @@ CShapeDrawer.prototype =
                     this.Graphics.save();
                     this.Graphics.clip();
 
-                    if (this.Graphics.IsNoSupportTextDraw === true || true == this.Graphics.IsTrack || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
+                    if (!this.Graphics.isSupportTextDraw() || this.Graphics.isTrack() || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                     {
                         this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y));
                     }
@@ -803,7 +1761,7 @@ CShapeDrawer.prototype =
                 else
                 {
                     var _is_ctx = false;
-                    if (this.Graphics.IsNoSupportTextDraw === true || undefined === this.Graphics.m_oContext || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
+                    if (!this.Graphics.isSupportTextDraw() || undefined === this.Graphics.m_oContext || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                     {
                         _is_ctx = false;
                     }
@@ -812,7 +1770,7 @@ CShapeDrawer.prototype =
                         _is_ctx = true;
                     }
 
-                    var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                    var _gr = this.Graphics.isTrack() ? this.Graphics.Graphics : this.Graphics;
                     var _ctx = _gr.m_oContext;
 
                     var patt = !_img_native ? _ctx.createPattern(_img.Image, "repeat") : _ctx.createPattern(_img_native, "repeat");
@@ -879,7 +1837,7 @@ CShapeDrawer.prototype =
                 }
 
                 var _is_ctx = false;
-                if (this.Graphics.IsNoSupportTextDraw === true || undefined === this.Graphics.m_oContext || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
+                if (!this.Graphics.isSupportTextDraw() || undefined === this.Graphics.m_oContext || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                 {
                     _is_ctx = false;
                 }
@@ -888,7 +1846,7 @@ CShapeDrawer.prototype =
                     _is_ctx = true;
                 }
 
-                var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                var _gr = this.Graphics.isTrack() ? this.Graphics.Graphics : this.Graphics;
                 var _ctx = _gr.m_oContext;
 
                 var _patt_name = AscCommon.global_hatch_names[_fill.ftype];
@@ -963,7 +1921,7 @@ CShapeDrawer.prototype =
                 }
 
                 var _is_ctx = false;
-                if (this.Graphics.IsNoSupportTextDraw === true || undefined === this.Graphics.m_oContext || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
+                if (!this.Graphics.isSupportTextDraw() || undefined === this.Graphics.m_oContext || (null == this.UniFill.transparent) || (this.UniFill.transparent == 255))
                 {
                     _is_ctx = false;
                 }
@@ -972,7 +1930,7 @@ CShapeDrawer.prototype =
                     _is_ctx = true;
                 }
 
-                var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                var _gr = this.Graphics.isTrack() ? this.Graphics.Graphics : this.Graphics;
                 var _ctx = _gr.m_oContext;
 
                 var gradObj = null;
@@ -981,7 +1939,7 @@ CShapeDrawer.prototype =
                     var _angle = _fill.lin.angle;
                     if (_fill.rotateWithShape === false)
                     {
-                        var matrix_transform = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oTransform : this.Graphics.m_oTransform;
+                        var matrix_transform = this.Graphics.isTrack() ? this.Graphics.Graphics.m_oTransform : this.Graphics.m_oTransform;
                         if (matrix_transform)
                         {
                             //_angle -= (60000 * this.Graphics.m_oTransform.GetRotation());
@@ -1006,14 +1964,32 @@ CShapeDrawer.prototype =
                     gradObj = _ctx.createLinearGradient(points.x0, points.y0, points.x1, points.y1);
                 }
 
-                for (var i = 0; i < _fill.colors.length; i++)
+                const nTransparent = this.UniFill.transparent;
+                let bUseGlobalAlpha = (null !== nTransparent && undefined !== nTransparent);
+                const aColors = _fill.colors;
+                const nClrCount = aColors.length;
+                if(_fill.path && AscCommon.AscBrowser.isMozilla && bUseGlobalAlpha)
                 {
-                    gradObj.addColorStop(_fill.colors[i].pos / 100000, _fill.colors[i].color.getCSSColor(this.UniFill.transparent));
+                    bUseGlobalAlpha = false;
+                    const dTransparent = nTransparent / 255.0;
+                    for (let nClr = 0; nClr < nClrCount; nClr++)
+                    {
+                        let oClr = aColors[nClr];
+                        gradObj.addColorStop(oClr.pos / 100000, oClr.color.getCSSWithTransparent(dTransparent));
+                    }
+                }
+                else
+                {
+                    for (let nClr = 0; nClr < nClrCount; nClr++)
+                    {
+                        let oClr = aColors[nClr];
+                        gradObj.addColorStop(oClr.pos / 100000, oClr.color.getCSSColor(nTransparent));
+                    }
                 }
 
                 _ctx.fillStyle = gradObj;
 
-                if (null !== this.UniFill.transparent && undefined !== this.UniFill.transparent)
+                if (bUseGlobalAlpha)
                 {
                     var _old_global_alpha = this.Graphics.m_oContext.globalAlpha;
                     _ctx.globalAlpha = this.UniFill.transparent / 255;
@@ -1063,7 +2039,7 @@ CShapeDrawer.prototype =
         }
         if(rgba)
         {
-            if (this.UniFill != null && this.UniFill.transparent != null && this.Graphics.ClearMode !== true)
+            if (this.UniFill != null && this.UniFill.transparent != null)
                 rgba.A = this.UniFill.transparent;
             this.Graphics.b_color1(rgba.R, rgba.G, rgba.B, rgba.A);
         }
@@ -1075,7 +2051,7 @@ CShapeDrawer.prototype =
         if (this.bIsNoStrokeAttack)
             return;
 
-        if (this.Graphics.IsTrack)
+        if (this.Graphics.isTrack())
             this.Graphics.m_oOverlay.ClearAll = true;
 
         if (null != this.OldLineJoin && !this.IsArrowsDrawing)
@@ -1105,14 +2081,18 @@ CShapeDrawer.prototype =
             }
         }
 
-		var arr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.ArrayPoints : this.Graphics.ArrayPoints;
+		var arr = this.Graphics.isTrack() ? this.Graphics.Graphics.ArrayPoints : this.Graphics.ArrayPoints;
         var isArrowsPresent = (arr != null && arr.length > 1 && this.IsCurrentPathCanArrows === true) ? true : false;
 
         var rgba = this.StrokeUniColor;
-		if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null && !isArrowsPresent)
-			rgba.A = this.Ln.Fill.transparent;
+        let nAlpha = 0xFF;
+        if(!isArrowsPresent && !this.IsArrowsDrawing || Asc.editor.isPdfEditor())
+        {
+            if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null)
+                nAlpha = this.Ln.Fill.transparent;
+        }
 
-        this.Graphics.p_color(rgba.R, rgba.G, rgba.B, rgba.A);
+        this.Graphics.p_color(rgba.R, rgba.G, rgba.B, nAlpha);
 
         if (this.IsRectShape && this.Graphics.AddSmartRect !== undefined)
         {
@@ -1140,7 +2120,7 @@ CShapeDrawer.prototype =
             // трансформируем точки в окончательные.
             // и отправляем на отрисовку (с матрицей)
 
-			var _graphicsCtx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+			var _graphicsCtx = this.Graphics.isTrack() ? this.Graphics.Graphics : this.Graphics;
 
 			var trans = _graphicsCtx.m_oFullTransform;
             var trans1 = AscCommon.global_MatrixTransformer.Invert(trans);
@@ -1150,7 +2130,7 @@ CShapeDrawer.prototype =
             var x2 = trans.TransformPointX(1, 1);
             var y2 = trans.TransformPointY(1, 1);
             var dKoef = Math.sqrt(((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))/2);
-            var _pen_w = (this.Graphics.IsTrack === true) ? (this.Graphics.Graphics.m_oContext.lineWidth * dKoef) : (this.Graphics.m_oContext.lineWidth * dKoef);
+            var _pen_w = this.Graphics.isTrack() ? (this.Graphics.Graphics.m_oContext.lineWidth * dKoef) : (this.Graphics.m_oContext.lineWidth * dKoef);
 			var _max_w = undefined;
 			if (_graphicsCtx.IsThumbnail === true)
 			    _max_w = 2;
@@ -1220,12 +2200,12 @@ CShapeDrawer.prototype =
 
     drawFillStroke : function(bIsFill, fill_mode, bIsStroke)
     {
-        if (this.Graphics.IsTrack)
+        if (this.Graphics.isTrack())
             this.Graphics.m_oOverlay.ClearAll = true;
 
-        if(this.Graphics.IsSlideBoundsCheckerType)
+        if(this.Graphics.isBoundsChecker())
             return;
-        if (this.Graphics.RENDERER_PDF_FLAG === undefined)
+        if (!this.isPdf())
         {
             if (bIsFill)
                 this.df(fill_mode);
@@ -1248,10 +2228,15 @@ CShapeDrawer.prototype =
                 }
 
                 var rgba = this.StrokeUniColor;
-				if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null && !isArrowsPresent)
-					rgba.A = this.Ln.Fill.transparent;
+                let nAlpha = 0xFF;
+                if(!isArrowsPresent && !this.IsArrowsDrawing)
+                {
+                    if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null)
+                        nAlpha = this.Ln.Fill.transparent;
+                }
 
-                this.Graphics.p_color(rgba.R, rgba.G, rgba.B, rgba.A);
+                this.Graphics.p_color(rgba.R, rgba.G, rgba.B, nAlpha);
+
             }
 
             if (fill_mode == "none" || this.bIsNoFillAttack)
@@ -1404,7 +2389,7 @@ CShapeDrawer.prototype =
                         }
                         if (rgba)
                         {
-                            if (this.UniFill != null && this.UniFill.transparent != null && this.Graphics.ClearMode !== true)
+                            if (this.UniFill != null && this.UniFill.transparent != null)
                                 rgba.A = this.UniFill.transparent;
                             this.Graphics.b_color1(rgba.R, rgba.G, rgba.B, rgba.A);
                         }
@@ -1448,10 +2433,10 @@ CShapeDrawer.prototype =
                 // трансформируем точки в окончательные.
                 // и отправляем на отрисовку (с матрицей)
 
-                var trans = (this.Graphics.RENDERER_PDF_FLAG === undefined) ? this.Graphics.m_oFullTransform : this.Graphics.GetTransform();
+                var trans = (!this.isPdf()) ? this.Graphics.m_oFullTransform : this.Graphics.GetTransform();
                 var trans1 = AscCommon.global_MatrixTransformer.Invert(trans);
 
-                var lineSize = (this.Graphics.RENDERER_PDF_FLAG === undefined) ? this.Graphics.m_oContext.lineWidth : this.Graphics.GetLineWidth();
+                var lineSize = (!this.isPdf()) ? this.Graphics.m_oContext.lineWidth : this.Graphics.GetLineWidth();
 
                 var x1 = trans.TransformPointX(0, 0);
                 var y1 = trans.TransformPointY(0, 0);
@@ -1520,9 +2505,9 @@ CShapeDrawer.prototype =
 
     drawStrokeFillStyle : function()
     {
-        if (this.Graphics.RENDERER_PDF_FLAG === undefined)
+        if (!this.isPdf())
         {
-            var gr = (this.Graphics.IsTrack == true) ? this.Graphics.Graphics : this.Graphics;
+            var gr = this.Graphics.isTrack() ? this.Graphics.Graphics : this.Graphics;
 
             var tmp = gr.m_oBrush.Color1;
             var p_c = gr.m_oPen.Color;
@@ -1778,7 +2763,7 @@ CShapeDrawer.prototype =
     }
 };
 
-function ShapeToImageConverter(shape, pageIndex)
+function ShapeToImageConverter(shape, pageIndex, sImageFormat)
 {
     AscCommon.IsShapeToImageConverter = true;
     var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
@@ -1856,7 +2841,8 @@ function ShapeToImageConverter(shape, pageIndex)
     var _ret = { ImageNative : _canvas, ImageUrl : "" };
     try
     {
-        _ret.ImageUrl = _canvas.toDataURL("image/png");
+        const sFormat = sImageFormat || "image/png";
+        _ret.ImageUrl = _canvas.toDataURL(sFormat);
     }
     catch (err)
     {
@@ -1875,4 +2861,5 @@ window['AscCommon'] = window['AscCommon'] || {};
 window['AscCommon'].CShapeDrawer = CShapeDrawer;
 window['AscCommon'].ShapeToImageConverter = ShapeToImageConverter;
 window['AscCommon'].IsShapeToImageConverter = false;
+window['AscCommon'].DrawLineEnd = DrawLineEnd;
 })(window);

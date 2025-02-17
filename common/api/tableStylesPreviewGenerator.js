@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -127,29 +127,6 @@
 		this.TableLook = oTableLookOld;
 
 		return arrPreviews;
-	};
-	CTableStylesPreviewGenerator.prototype.GetAllPreviewsNative = function(isDefaultTableLook, oGraphics, oStream, oNative, dW, dH, nW, nH)
-	{
-		let oTableLookOld = this.TableLook;
-		this.TableLook    = this.DrawingDocument.GetTableLook(isDefaultTableLook);
-		let arrStyles = this.LogicDocument.GetAllTableStyles();
-		oNative["DD_PrepareNativeDraw"]();
-		for (let nIndex = 0 , nCount = arrStyles.length; nIndex < nCount; ++nIndex)
-		{
-			let oStyle = arrStyles[nIndex];
-			let oTable = this.GetTable(oStyle);
-			oNative["DD_StartNativeDraw"](nW, nH, dW, dH);
-			this.DrawTable(oGraphics, oTable);
-			oStream["ClearNoAttack"]();
-			oStream["WriteByte"](2);
-			oStream["WriteString2"]("" + oStyle.GetId());
-			oNative["DD_EndNativeDraw"](oStream);
-			oGraphics.ClearParams();
-		}
-		oStream["ClearNoAttack"]();
-		oStream["WriteByte"](3);
-		oNative["DD_EndNativeDraw"](oStream);
-		this.TableLook = oTableLookOld;
 	};
 	CTableStylesPreviewGenerator.prototype.GetPreview = function(oStyle)
 	{

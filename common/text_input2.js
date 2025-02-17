@@ -1,5 +1,5 @@
 /*
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -12,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -48,6 +48,23 @@
 	// baseEditorsApi.prototype.onKeyPress = function(e)
 	// baseEditorsApi.prototype.onKeyUp = function(e)
 	///
+
+	window['AscCommon'] = window['AscCommon'] || {};
+	window['AscCommon'].inputMethodAddInitEvent = function(callback)
+	{
+		AscCommon.g_inputContext_create_events = AscCommon.g_inputContext_create_events || [];
+		AscCommon.g_inputContext_create_events.push(callback);
+	};
+	window['AscCommon'].inputMethodCheckInitEvents = function()
+	{
+		if (!AscCommon.g_inputContext_create_events)
+			return;
+
+		for (let i = 0, len = AscCommon.g_inputContext_create_events.length; i < len; i++)
+			AscCommon.g_inputContext_create_events[i]();
+
+		delete AscCommon.g_inputContext_create_events;
+	};
 
 	var InputTextElementType = {
 		TextArea           : 0,
@@ -95,6 +112,7 @@
 		this.nativeFocusElementNoRemoveOnElementFocus = false;
 		this.InterfaceEnableKeyEvents = true;
 		this.isNoClearOnFocus = false;
+		this.isGlobalDisableFocus = false;
 
 		this.ReadOnlyCounter = 0;
 
@@ -104,11 +122,20 @@
 
 		// параметры для показа/скрытия виртуальной клавиатуры.
 		this.isHardCheckKeyboard = AscCommon.AscBrowser.isSailfish;
+
 		this.virtualKeyboardClickTimeout = -1;
-		this.virtualKeyboardClickPrevent = false;
+		this.virtualKeyboardReadOnly_ShowKeyboard = AscCommon.AscBrowser.isAndroid && AscCommon.AscBrowser.isMozilla;
 
 		// для сброса текста при фокусе
 		this.checkClearTextOnFocusTimerId = -1;
+
+		this.isDisableKeyboard = false;
+
+		this.moveAccurateInfo = {
+			id : -1,
+			x : 0,
+			y : 0
+		};
 	}
 
 	var CTextInputPrototype = CTextInput2.prototype;
@@ -237,13 +264,40 @@
 			}
 		}
 
+		// ios копирование и вырезка через клавиатуру внешнюю - требует селекта в фокусном textarea
+		// но если селектить - его видно. да и куча проблем. попробуем сэмулировать
+		if (this.Api.isMobileVersion && AscCommon.AscBrowser.isAppleDevices)
+		{
+			if (e.metaKey)
+			{
+				if (e.keyCode === 67)
+				{
+					AscCommon.g_clipboardBase.Button_Copy();
+					return;
+				}
+				else if (e.keyCode === 88)
+				{
+					AscCommon.g_clipboardBase.Button_Cut();
+					return;
+				}
+			}
+			else if (e.ctrlKey)
+			{
+				// safari send code 13 on ctrl + c. disable it
+				if (e.keyCode === 13 && e.code === "KeyC")
+					return;
+			}
+		}
+
 		let ret = undefined;
 		if (!isSpaceAsText)
 			ret = this.Api.onKeyDown(e);
 
+		let isSpecialClearInComposition = true;
 		switch (e.keyCode)
 		{
 			case 8:		// backspace
+				isSpecialClearInComposition = false;
 			case 9:		// tab
 			case 13:	// enter
 			case 37:	// left
@@ -256,7 +310,8 @@
 			case 36: 	// home
 			case 46:	// delete
 			{
-				this.clear();
+				if (!this.IsComposition || isSpecialClearInComposition)
+					this.clear();
 			}
 			default:
 				break;
@@ -508,6 +563,8 @@
 
 		if (!isAsync)
 		{
+			window.LOCK_DRAW = true;
+
 			if (this.IsComposition)
 			{
 				this.compositeReplace(codes);
@@ -810,7 +867,7 @@
 	};
 	CTextInputPrototype.setReadOnlyWrapper = function(val)
 	{
-		this.HtmlArea.readOnly = this.Api.isViewMode ? true : val;
+		this.HtmlArea.readOnly = this.isDisableKeyboard ? true : val;
 	};
 	CTextInputPrototype.setInterfaceEnableKeyEvents = function(value)
 	{
@@ -824,7 +881,8 @@
 					return;
 			}
 
-			focusHtmlElement(this.HtmlArea);
+			if (!this.isGlobalDisableFocus)
+				focusHtmlElement(this.HtmlArea);
 		}
 	};
 	CTextInputPrototype.externalEndCompositeInput = function()
@@ -887,7 +945,11 @@
 		{
 			_style = ("left:-" + (this.HtmlAreaWidth >> 1) + "px;top:" + (-this.HtmlAreaOffset) + "px;");
 			_style += "color:transparent;caret-color:transparent;background:transparent;";
-			_style += AscCommon.AscBrowser.isAppleDevices ? "font-size:0px;" : "font-size:8px;";
+
+			if (this.Api.isUseOldMobileVersion())
+				_style += (AscCommon.AscBrowser.isAppleDevices && !AscCommon.AscBrowser.isTelegramWebView && (AscCommon.AscBrowser.maxTouchPoints > 0)) ? "font-size:0px;" : "font-size:8px;";
+			else
+				_style += "font-size:8px;";
 		}
 		else
 		{
@@ -901,7 +963,16 @@
 		this.HtmlArea.setAttribute("spellcheck", false);
 
 		this.HtmlArea.setAttribute("autocapitalize", "none");
-		this.HtmlArea.setAttribute("autocomplete", "off");
+		if(AscCommon.AscBrowser.isChrome)
+		{
+			//Bug in Chrome. Autofill does not respect autocomplete="off"
+			//https://bugs.chromium.org/p/chromium/issues/detail?id=914451
+			this.HtmlArea.setAttribute("autocomplete", "extremely_off");
+		}
+		else
+		{
+			this.HtmlArea.setAttribute("autocomplete", "off");
+		}
 		this.HtmlArea.setAttribute("autocorrect", "off");
 
 		this.HtmlDiv.appendChild(this.HtmlArea);
@@ -951,6 +1022,8 @@
 		}
 
 		this.Api.Input_UpdatePos();
+
+		this.checkViewMode();
 	};
 	CTextInputPrototype.appendInputToCanvas = function(parent_id)
 	{
@@ -984,7 +1057,7 @@
 
 		if (AscCommon.AscBrowser.isChrome)
 		{
-			var rectObject = _elemSrc.getBoundingClientRect();
+			var rectObject = AscCommon.UI.getBoundingClientRect(_elemSrc);
 			this.FixedPosCheckElementX = rectObject.left;
 			this.FixedPosCheckElementY = rectObject.top;
 		}
@@ -1006,7 +1079,7 @@
 			_elem.style.height = _elemSrc.style.height;
 		}
 
-		if (this.Api.isMobileVersion)
+		if (this.Api.isUseOldMobileVersion())
 		{
 			var _elem1 = document.getElementById("area_id_parent");
 			var _elem2 = document.getElementById("area_id");
@@ -1015,7 +1088,17 @@
 
 
 			_elem1.style.left = "0px";
-			_elem1.style.top = "-1000px";
+			let topStyle = "-1000px";
+
+			if (AscCommon.AscBrowser.isTelegramWebView)
+			{
+				if (!AscCommon.AscBrowser.isAndroid && !AscCommon.AscBrowser.isAppleDevices)
+					topStyle = "0px";
+				else if (AscCommon.AscBrowser.isAppleDevices && navigator.maxTouchPoints === 0)
+					topStyle = "0px";
+			}
+
+			_elem1.style.top = topStyle;
 			_elem1.style.right = "0px";
 			_elem1.style.bottom = "-100px";
 			_elem1.style.width = "auto";
@@ -1047,9 +1130,27 @@
 				focusHtmlElement(this.HtmlArea);
 		}
 	};
+	CTextInputPrototype.moveAccurate = function(x, y)
+	{
+		if (!this.moveAccurateFunc)
+		{
+			this.moveAccurateFunc = function() {
+				let ctx = AscCommon.g_inputContext;
+				ctx.move(ctx.moveAccurateInfo.x, ctx.moveAccurateInfo.y);
+				ctx.moveAccurateInfo.id = -1;
+			};
+		}
+
+		if (-1 !== this.moveAccurateInfo.id)
+			clearTimeout(this.moveAccurateInfo.id);
+
+		this.moveAccurateInfo.x = x;
+		this.moveAccurateInfo.y = y;
+		this.moveAccurateInfo.id = setTimeout(this.moveAccurateFunc, 20);
+	};
 	CTextInputPrototype.move = function(x, y)
 	{
-		if (this.Api.isMobileVersion)
+		if (this.Api.isUseOldMobileVersion())
 			return;
 
 		var oTarget = document.getElementById(this.TargetId);
@@ -1061,6 +1162,13 @@
 
 		if (AscCommon.AscBrowser.isSafari && AscCommon.AscBrowser.isMobile)
 			xPos = -100;
+
+		if (this.Api.editorId === AscCommon.c_oEditorId.Presentation)
+		{
+			let offset = this.Api.getTextInputOffset();
+			xPos += offset.X;
+			yPos += offset.Y;
+		}
 
 		this.HtmlDiv.style.left = xPos + this.FixedPosCheckElementX + "px";
 		this.HtmlDiv.style.top  = yPos + this.FixedPosCheckElementY + this.TargetOffsetY + this.HtmlAreaOffset + "px";
@@ -1082,7 +1190,9 @@
 		if (AscCommon.AscBrowser.isAndroid)
 		{
 			this.setReadOnlyWrapper(true);
-			this.virtualKeyboardClickPrevent = true;
+
+			if (this.virtualKeyboardReadOnly_ShowKeyboard)
+				return;
 
 			this.virtualKeyboardClickTimeout = setTimeout(function ()
 			{
@@ -1098,6 +1208,9 @@
 
 		if (AscCommon.AscBrowser.isAndroid)
 		{
+			if (this.virtualKeyboardReadOnly_ShowKeyboard)
+				return;
+
 			if (-1 != this.virtualKeyboardClickTimeout)
 			{
 				clearTimeout(this.virtualKeyboardClickTimeout);
@@ -1105,7 +1218,6 @@
 			}
 
 			this.setReadOnlyWrapper(false);
-			this.virtualKeyboardClickPrevent = false;
 		}
 	};
 	CTextInputPrototype.preventVirtualKeyboard_Hard = function()
@@ -1115,6 +1227,54 @@
 	CTextInputPrototype.enableVirtualKeyboard_Hard = function()
 	{
 		this.setReadOnlyWrapper(false);
+	};
+
+	CTextInputPrototype.showKeyboard = function()
+	{
+		if (this.virtualKeyboardReadOnly_ShowKeyboard)
+		{
+			if (this.HtmlArea.readOnly === true)
+			{
+				this.setReadOnlyWrapper(false);
+			}
+		}
+
+		if (!this.Api.asc_IsFocus())
+			this.Api.asc_enableKeyEvents(true);
+		else
+			focusHtmlElement(this.HtmlArea);
+	}
+
+	CTextInputPrototype.checkViewMode = function()
+	{
+		let oldDisableKeyboard = this.isDisableKeyboard;
+		this.isDisableKeyboard = this.Api.isViewMode;
+
+		if (!this.isDisableKeyboard)
+		{
+			switch (this.Api.editorId)
+			{
+				case AscCommon.c_oEditorId.Word:
+				{
+					// use canEnterText instead this
+					break;
+				}
+				case AscCommon.c_oEditorId.Presentation:
+				case AscCommon.c_oEditorId.Spreadsheet:
+				{
+					if (this.Api.isRestrictionView() && !this.Api.isRestrictionForms())
+						this.isDisableKeyboard = true;
+					break;
+				}
+				default:
+					break;
+			}
+		}
+
+		if (oldDisableKeyboard !== this.isDisableKeyboard)
+		{
+			this.setReadOnlyWrapper(false);
+		}
 	};
 
 	function _getAttirbute(_elem, _attr, _depth)
@@ -1168,6 +1328,8 @@
 		window['AscCommon'].g_inputContext.init(target_id, parent_id);
 		window['AscCommon'].g_clipboardBase.Init(api);
 		window['AscCommon'].g_clipboardBase.inputContext = window['AscCommon'].g_inputContext;
+
+		window['AscCommon'].inputMethodCheckInitEvents();
 
 		if (window['AscCommon'].TextBoxInputMode === true)
 		{
@@ -1314,5 +1476,23 @@
 
 		window['AscCommon'].g_inputContext.debugInputEnable(true);
 		window['AscCommon'].g_inputContext.show();
+	};
+
+	window['AscCommon'].StartIntervalDrawText = function (isStart) {
+		if (isStart) {
+			window.renderIntervalId = setInterval(function(){
+
+				window.LOCK_DRAW = false;
+
+				if (undefined !== window.TEXT_DRAW_INSTANCE)
+					window.TEXT_DRAW_INSTANCE._renderText(window.TEXT_DRAW_INSTANCE_POS);
+
+				window.TEXT_DRAW_INSTANCE = undefined;
+				window.TEXT_DRAW_INSTANCE_POS = 0;
+
+			}, 20);
+		} else {
+			clearInterval(window.renderIntervalId);
+		}
 	};
 })(window);
