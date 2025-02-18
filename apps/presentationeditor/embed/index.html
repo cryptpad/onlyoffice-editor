@@ -23,7 +23,7 @@
             overflow: hidden;
             border: none;
             background-color: #f4f4f4;
-            z-index: 10000;
+            z-index: 1000;
         }
 
         .loadmask > .brendpanel {
@@ -41,19 +41,6 @@
             height: 100%;
         }
 
-        .loadmask > .brendpanel .loading-logo {
-            max-width: 200px;
-            height: 20px;
-            margin-left: 10px;
-            text-align: center;
-        }
-
-        .loadmask > .brendpanel .loading-logo > img {
-            display: inline-block;
-            max-width: 100px;
-            max-height: 20px;
-            opacity: 0;
-        }
         .loadmask > .brendpanel .doc-title {
             flex-grow: 1;
         }
@@ -138,20 +125,28 @@
             50%  { opacity:0.3; }
             100% { opacity:1; }
         }
+
+        .loadmask.none-animation > .placeholder .slide-container {
+            animation: none;
+        }
     </style>
 
     <!--[if lt IE 9]>
       <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.6.1/html5shiv.js"></script>
     <![endif]-->
+      <script>
+          if(/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) {
+              document.write('<script src="../../common/main/lib/util/fix-ie-compat.js"><\/script>');
+              document.write('<script src="../../../../sdkjs/vendor/string.js"><\/script>');
+          }
+      </script>
   </head>
 
   <body class="embed-body">
+    <script type="text/javascript" src="../../common/embed/lib/util/htmlutils.js"></script>
       <div id="loading-mask" class="loadmask">
           <div class="brendpanel">
               <div>
-                  <div class="brand-logo loading-logo">
-                      <img src="">
-                  </div>
                   <div class="doc-title"></div>
                   <div class="circle"></div>
               </div>
@@ -212,21 +207,10 @@
           }
 
           var params = getUrlParams(),
-              lang = (params["lang"] || 'en').split(/[\-\_]/)[0],
-              logo = params["headerlogo"] ? encodeUrlParam(params["headerlogo"]) : null;
+              lang = (params["lang"] || 'en').split(/[\-\_]/)[0];
 
           window.frameEditorId = params["frameEditorId"];
           window.parentOrigin = params["parentOrigin"];
-
-          var elem = document.querySelector('.loading-logo');
-          if (elem && logo) {
-              elem.style.backgroundImage= 'none';
-              elem.style.width = 'auto';
-              elem.style.height = 'auto';
-              var img = document.querySelector('.loading-logo img');
-              img && img.setAttribute('src', logo);
-              img.style.opacity = 1;
-          }
       </script>
 
       <div id="box-preview">
@@ -254,6 +238,7 @@
               <div id="box-tools" class="dropdown">
                   <button class="control-btn svg-icon more-vertical"></button>
               </div>
+              <button id="id-btn-close-editor" class="control-btn svg-icon search-close hidden"></button>
           </div>
       </div>
 
@@ -267,18 +252,17 @@
                       <p id="id-critical-error-message"></p>
                   </div>
                   <div class="modal-footer">
-                      <button id="id-critical-error-close" class="btn btn-sm btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+                      <button id="id-critical-error-close" class="btn btn-sm" data-dismiss="modal" aria-hidden="true">Close</button>
                   </div>
               </div>
           </div>
       </div>
 
-      <div class="hyperlink-tooltip" data-toggle="tooltip" title="Click the link to open it" style="display:none;"></div>
+      <div class="hyperlink-tooltip" data-toggle="tooltip" title="" style="display:none;"></div>
 
       <!--vendor-->
       <script type="text/javascript" src="../../../vendor/jquery/jquery.min.js"></script>
       <script type="text/javascript" src="../../../vendor/jquery.browser/dist/jquery.browser.min.js"></script>
-      <script type="text/javascript" src="../../../vendor/bootstrap/dist/js/bootstrap.js"></script>
       <script type="text/javascript" src="../../../vendor/socketio/socket.io.min.js"></script>
       <script type="text/javascript" src="../../../vendor/xregexp/xregexp-all-min.js"></script>
 
@@ -300,6 +284,9 @@
       <script type="text/javascript" src="../../common/locale.js"></script>
       <script type="text/javascript" src="../../common/Gateway.js"></script>
       <script type="text/javascript" src="../../common/Analytics.js"></script>
+      <script type="text/javascript" src="../../common/main/lib/mods/dropdown.js"></script>
+      <script type="text/javascript" src="../../common/main/lib/mods/modal.js"></script>
+      <script type="text/javascript" src="../../common/main/lib/mods/tooltip.js"></script>
       <script type="text/javascript" src="../../common/embed/lib/util/LocalStorage.js"></script>
       <script type="text/javascript" src="../../common/embed/lib/util/utils.js"></script>
       <script type="text/javascript" src="../../common/embed/lib/view/LoadMask.js"></script>
@@ -316,6 +303,7 @@
                       ($.browser.chrome   && parseFloat($.browser.version) > 7)     ||
                       ($.browser.safari   && parseFloat($.browser.version) > 4)     ||
                       ($.browser.opera    && parseFloat($.browser.version) > 10.4)  ||
+                      ($.browser.webkit   && parseFloat($.browser.version) > 534.53)  ||
                       ($.browser.mozilla  && parseFloat($.browser.version) > 3.9);
           };
 

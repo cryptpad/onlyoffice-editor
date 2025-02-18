@@ -1,9 +1,5 @@
-<svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-
-<rect width="15" height="15" fill="white"/>
-<rect width="15" height="15" rx="1" fill="#446995"/>
-<rect x="3" y="4" width="9" height="1" fill="white"/>
-<rect x="3" y="7" width="9" height="1" fill="white"/>
-<rect x="3" y="10" width="9" height="1" fill="white"/>
-
+<svg width="24" height="30" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1 2a2 2 0 0 1 2-2h14l6 6v22a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2z" fill="#287CA9"/>
+    <path d="m17 0 6 6h-5a1 1 0 0 1-1-1z" fill="#000" fill-opacity=".25"/>
+    <path d="M5.5 12a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1zM5 16.5a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5m0 4a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 0 1h-8a.5.5 0 0 1-.5-.5" fill="#fff"/>
 </svg>

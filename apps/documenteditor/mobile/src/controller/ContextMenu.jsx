@@ -7,7 +7,7 @@ import ContextMenuController from '../../../../common/mobile/lib/controller/Cont
 import { idContextMenuElement } from '../../../../common/mobile/lib/view/ContextMenu';
 import EditorUIController from '../lib/patch';
 
-@inject ( stores => ({
+@inject(stores => ({
     isEdit: stores.storeAppOptions.isEdit,
     canComments: stores.storeAppOptions.canComments,
     canViewComments: stores.storeAppOptions.canViewComments,
@@ -20,12 +20,14 @@ import EditorUIController from '../lib/patch';
     displayMode: stores.storeReview.displayMode,
     dataDoc: stores.storeDocumentInfo.dataDoc,
     objects: stores.storeFocusObjects.settings,
-    isViewer: stores.storeAppOptions.isViewer
+    isViewer: stores.storeAppOptions.isViewer,
+    isProtected: stores.storeAppOptions.isProtected,
+    typeProtection: stores.storeAppOptions.typeProtection,
+    isForm: stores.storeAppOptions.isForm
 }))
 class ContextMenu extends ContextMenuController {
     constructor(props) {
         super(props);
-
         // console.log('context menu controller created');
         this.onApiShowComment = this.onApiShowComment.bind(this);
         this.onApiHideComment = this.onApiHideComment.bind(this);
@@ -168,7 +170,7 @@ class ContextMenu extends ContextMenuController {
                       <span class="right-text">${_t.textDoNotShowAgain}</span>
                       </div>`,
             buttons: [{
-                text: 'OK',
+                text: _t.textOk,
                 onClick: () => {
                     const dontShow = $$('input[name="checkbox-show"]').prop('checked');
                     if (dontShow) LocalStorage.setItem("de-hide-copy-cut-paste-warning", 1);
@@ -197,7 +199,7 @@ class ContextMenu extends ContextMenuController {
                     text: _t.menuCancel
                 },
                 {
-                    text: 'OK',
+                    text: _t.textOk,
                     bold: true,
                     onClick: function () {
                         const size = picker.value;
@@ -275,7 +277,7 @@ class ContextMenu extends ContextMenuController {
     initMenuItems() {
         if ( !Common.EditorApi ) return [];
 
-        const { isEdit, canFillForms, isDisconnected, isViewer, canEditComments } = this.props;
+        const { isEdit, canFillForms, isDisconnected, isViewer, canEditComments, isProtected, typeProtection, isForm } = this.props;
 
         if (isEdit && EditorUIController.ContextMenu) {
             return EditorUIController.ContextMenu.mapMenuItems(this);
@@ -289,6 +291,8 @@ class ContextMenu extends ContextMenuController {
             const stack = api.getSelectedElements();
             const canCopy = api.can_CopyCut();
             const docExt = dataDoc ? dataDoc.fileType : '';
+            const isAllowedEditing = !isProtected || typeProtection === Asc.c_oAscEDocProtect.TrackedChanges;
+            const isAllowedCommenting = typeProtection === Asc.c_oAscEDocProtect.Comments; 
 
             let isText = false,
                 isObject = false,
@@ -324,14 +328,14 @@ class ContextMenu extends ContextMenuController {
             }
 
             if (!isDisconnected) {
-                if (canFillForms && canCopy && !locked && (!isViewer || docExt === 'oform')) {
+                if (canFillForms && canCopy && !locked && (!isViewer || isForm) && isAllowedEditing) {
                     itemsIcon.push({
                         event: 'cut',
                         icon: 'icon-cut'
                     });
                 }
 
-                if (canFillForms && canCopy && !locked && (!isViewer || docExt === 'oform')) {
+                if (canFillForms && canCopy && !locked && (!isViewer || isForm) && isAllowedEditing) {
                     itemsIcon.push({
                         event: 'paste',
                         icon: 'icon-paste'
@@ -345,7 +349,7 @@ class ContextMenu extends ContextMenuController {
                     });
                 }
 
-                if (api.can_AddQuotedComment() !== false && canCoAuthoring && canComments && !locked && !(!isText && isObject) && !isViewer && canEditComments) {
+                if (api.can_AddQuotedComment() !== false && canCoAuthoring && canComments && !locked && !(!isText && isObject) && (!isViewer || canEditComments) && (isAllowedEditing || isAllowedCommenting)) {
                     itemsText.push({
                         caption: _t.menuAddComment,
                         event: 'addcomment'
@@ -358,13 +362,16 @@ class ContextMenu extends ContextMenuController {
                     caption: _t.menuOpenLink,
                     event: 'openlink'
                 });
-                itemsText.push({
-                    caption: t('ContextMenu.menuEditLink'),
-                    event: 'editlink'
-                });
+
+                if(isAllowedEditing && !isViewer) {
+                    itemsText.push({
+                        caption: t('ContextMenu.menuEditLink'),
+                        event: 'editlink'
+                    });
+                }
             }
 
-            if(inToc && isEdit && !isViewer) {
+            if(inToc && isEdit && !isViewer && isAllowedEditing) {
                 itemsText.push({
                     caption: t('ContextMenu.textRefreshEntireTable'),
                     event: 'refreshEntireTable'

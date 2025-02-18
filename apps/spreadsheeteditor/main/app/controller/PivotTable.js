@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,19 +28,17 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
  *  PivotTable.js
  *
- *  Created by Julia.Radzhabova on 06.27.17
- *  Copyright (c) 2018 Ascensio System SIA. All rights reserved.
+ *  Created on 06.27.17
  *
  */
 
 define([
     'core',
-    'spreadsheeteditor/main/app/view/PivotTable',
-    'spreadsheeteditor/main/app/view/CreatePivotDialog'
+    'spreadsheeteditor/main/app/view/PivotTable'
 ], function () {
     'use strict';
 
@@ -61,6 +58,9 @@ define([
                     'pivottable:create':        _.bind(this.onCreateClick, this),
                     'pivottable:refresh':       _.bind(this.onRefreshClick, this),
                     'pivottable:select':        _.bind(this.onSelectClick, this),
+                    'pivottable:calculated':    _.bind(this.onCalculatedClick, this),
+                    'pivottable:expand':        _.bind(this.onExpandClick, this),
+                    'pivottable:collapse':      _.bind(this.onCollapseClick, this),
                     'pivottable:style':         _.bind(this.onPivotStyleSelect, this),
                     'pivottable:layout':        _.bind(this.onPivotLayout, this),
                     'pivottable:blankrows':     _.bind(this.onPivotBlankRows, this),
@@ -70,6 +70,9 @@ define([
                 },
                 'TableSettings': {
                     'pivottable:create':        _.bind(this.onCreateClick, this)
+                },
+                'Toolbar': {
+                    'tab:active':               _.bind(this.onActiveTab, this)
                 }
             });
         },
@@ -192,6 +195,73 @@ define([
         onSelectClick: function(btn, opts){
             if (this.api) {
                 this._originalProps.asc_select(this.api);
+            }
+            Common.NotificationCenter.trigger('edit:complete', this);
+        },
+
+        onCalculatedClick: function(btn, opts){
+            Common.UI.TooltipManager.closeTip('calcItems');
+
+            var me = this;
+            var pivotInfo = this.api.asc_getCellInfo().asc_getPivotTableInfo();
+            var pivotFieldIndex = pivotInfo.asc_getFieldIndexByActiveCell();
+            var error = pivotInfo.asc_hasTablesErrorForCalculatedItems(pivotFieldIndex);
+            
+            function getWarningMessage(error) {
+                var message = '';
+                switch (error) {
+                    case Asc.c_oAscError.ID.PivotItemNameNotFound:
+                        message = me.txtPivotItemNameNotFound;
+                        break;
+                    case Asc.c_oAscError.ID.CalculatedItemInPageField:
+                        message = me.txtCalculatedItemInPageField;
+                        break;
+                    case Asc.c_oAscError.ID.NotUniqueFieldWithCalculated:
+                        message = me.txtNotUniqueFieldWithCalculated;
+                        break;
+                    case Asc.c_oAscError.ID.WrongDataFieldSubtotalForCalculatedItems:
+                        message = me.txtWrongDataFieldSubtotalForCalculatedItems;
+                        break;
+                    case Asc.c_oAscError.ID.PivotFieldCustomSubtotalsWithCalculatedItems:
+                        message = me.txtPivotFieldCustomSubtotalsWithCalculatedItems;
+                        break;
+                    default:
+                        message = me.txtCalculatedItemWarningDefault;
+                }
+                return message;
+            };
+
+            function showWarningDialog(error) {
+                Common.UI.warning({
+                    msg: getWarningMessage(error),
+                    maxwidth: 600
+                });
+            };
+
+            if(error) {
+               showWarningDialog(error);
+            } else {
+                var winList = new SSE.Views.PivotCalculatedItemsDialog({
+                    api: this.api,
+                    handlerWarning: function(error) {
+                        showWarningDialog(error);
+                    },
+                    getWarningMessage: getWarningMessage,
+                });
+                winList.show();
+            }
+        },
+
+        onExpandClick: function(){
+            if (this.api) {
+                this._originalProps.asc_setExpandCollapseByActiveCell(this.api, true, true);
+            }
+            Common.NotificationCenter.trigger('edit:complete', this);
+        },
+
+        onCollapseClick: function(){
+            if (this.api) {
+                this._originalProps.asc_setExpandCollapseByActiveCell(this.api, true, false);
             }
             Common.NotificationCenter.trigger('edit:complete', this);
         },
@@ -360,31 +430,41 @@ define([
 
             if (count>0 && count==Templates.length) {
                 var data = styles.menuPicker.dataViewItems;
+                var findDataViewItem = function(template) {
+                    for(var i = 0; i < data.length; i++) {
+                        if(data[i].model.get('name') && data[i].model.get('name') === template.asc_getName()) return data[i];
+                        else if(data[i].model.get('caption') === template.asc_getDisplayName()) return data[i];
+                    }
+                    return undefined;
+                };
+
                 data && _.each(Templates, function(template, index){
                     var img = template.asc_getImage();
-                    data[index].model.set('imageUrl', img, {silent: true});
-                    $(data[index].el).find('img').attr('src', img);
+                    var dataViewItem = findDataViewItem(template);
+                    dataViewItem && dataViewItem.model.set('imageUrl', img, {silent: true});
+                    dataViewItem && $(dataViewItem.el).find('img').attr('src', img);
                 });
                 styles.fieldPicker.store.reset(styles.fieldPicker.store.models);
             } else {
                 styles.menuPicker.store.reset([]);
                 var templates = [];
                 var groups = [
-                    {id: 'menu-table-group-custom',    caption: self.view.__proto__.txtGroupPivot_Custom, templates: []},
-                    {id: 'menu-table-group-light',     caption: self.view.__proto__.txtGroupPivot_Light,  templates: []},
-                    {id: 'menu-table-group-medium',    caption: self.view.__proto__.txtGroupPivot_Medium, templates: []},
-                    {id: 'menu-table-group-dark',      caption: self.view.__proto__.txtGroupPivot_Dark,   templates: []},
-                    {id: 'menu-table-group-no-name',   caption: '&nbsp',                                  templates: []},
+                    {id: 'menu-table-group-custom',    caption: self.view.txtGroupPivot_Custom, templates: []},
+                    {id: 'menu-table-group-light',     caption: self.view.txtGroupPivot_Light,  templates: []},
+                    {id: 'menu-table-group-medium',    caption: self.view.txtGroupPivot_Medium, templates: []},
+                    {id: 'menu-table-group-dark',      caption: self.view.txtGroupPivot_Dark,   templates: []},
+                    {id: 'menu-table-group-no-name',   caption: '&nbsp',                        templates: []},
                 ];
                 _.each(Templates, function(template, index){
-                    var tip = template.asc_getDisplayName();
-                    var groupItem = '';
+                    var tip = template.asc_getDisplayName(),
+                        groupItem = '',
+                        lastWordInTip = null;
                     
                     if (template.asc_getType()==0) {
-                        var arr = tip.split(' '),
-                            last = arr.pop();
+                        var arr = tip.split(' ');
+                        lastWordInTip = arr.pop();
                             
-                        if(tip == 'None'){
+                        if(template.asc_getName() === null){
                             groupItem = 'menu-table-group-light';
                         }
                         else {
@@ -396,7 +476,8 @@ define([
                             }
                         }
                         arr = 'txtTable_' + arr.join('');
-                        tip = self.view.__proto__[arr] ? self.view.__proto__[arr] + ' ' + last : tip;
+                        tip = self.view[arr] ? self.view[arr] + ' ' + lastWordInTip : tip;
+                        lastWordInTip = parseInt(lastWordInTip);
                     }
                     else {
                         groupItem = 'menu-table-group-custom'
@@ -410,9 +491,21 @@ define([
                         group       : groupItem, 
                         allowSelected : true,
                         selected    : false,
-                        tip         : tip
+                        tip         : tip,
+                        numInGroup  : (lastWordInTip != null && !isNaN(lastWordInTip) ? lastWordInTip : null)
                     });
                 });
+
+                var sortFunc = function(a, b) {
+                    var aNum = a.numInGroup,
+                        bNum = b.numInGroup;
+                    return aNum - bNum;
+                };
+
+                groups[1].templates.sort(sortFunc);
+                groups[2].templates.sort(sortFunc);
+                groups[3].templates.sort(sortFunc);
+
                 groups = groups.filter(function(item, index){
                     return item.templates.length > 0
                 });
@@ -444,6 +537,10 @@ define([
             Common.Utils.lockControls(Common.enumLock.noPivot, !pivotInfo, {array: this.view.lockedControls});
             Common.Utils.lockControls(Common.enumLock.pivotLock, pivotInfo && (info.asc_getLockedPivotTable()===true), {array: this.view.lockedControls});
             Common.Utils.lockControls(Common.enumLock.editPivot, !!pivotInfo, {array: this.view.btnsAddPivot});
+            Common.Utils.lockControls(Common.enumLock.pivotExpandLock, !(pivotInfo && pivotInfo.asc_canExpandCollapseByActiveCell(this.api)), {array: [this.view.btnExpandField, this.view.btnCollapseField]});
+            Common.Utils.lockControls(Common.enumLock.pivotCalcItemsLock, !(pivotInfo && pivotInfo.asc_canChangeCalculatedItemByActiveCell()), {array: [this.view.btnCalculatedItems]});
+            if (!this.view.btnCalculatedItems.isDisabled() && this.view.toolbar && this.view.toolbar.isTabActive('pivot'))
+                Common.UI.TooltipManager.showTip('calcItems');
 
             if (pivotInfo)
                 this.ChangeSettings(pivotInfo);
@@ -481,7 +578,20 @@ define([
             }
         },
 
-        strSheet        : 'Sheet'
+        onActiveTab: function(tab) {
+            if (tab !== 'pivot')
+                Common.UI.TooltipManager.closeTip('calcItems');
+            else if (this.view && this.view.btnCalculatedItems && !this.view.btnCalculatedItems.isDisabled())
+                Common.UI.TooltipManager.showTip('calcItems');
+        },
+
+        strSheet        : 'Sheet',
+        txtPivotItemNameNotFound: 'An item name cannot be found. Check that you\'ve typed name correctly and the item is present in the PivotTable report.',
+        txtCalculatedItemInPageField: 'The item cannot be added or modified. PivotTable report has this field in Filters.',
+        txtNotUniqueFieldWithCalculated: 'If one or more PivotTable have calculated items, no fields can be used in data area two or more times, or in the data area and another area at the same time.',
+        txtWrongDataFieldSubtotalForCalculatedItems: 'Averages, standard deviations, and variances are not supported when a PivotTable report has calculated items.',
+        txtPivotFieldCustomSubtotalsWithCalculatedItems: 'Calculated items do not work with custom subtotals.',
+        txtCalculatedItemWarningDefault: 'No actions with calculated items are allowed for this active cell.'
 
     }, SSE.Controllers.PivotTable || {}));
 });

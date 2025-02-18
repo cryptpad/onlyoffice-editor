@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,19 +28,15 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
  *  RoleEditDlg.js
  *
- *  Created by Julia Radzhabova on 13/04/22
- *  Copyright (c) 2022 Ascensio System SIA. All rights reserved.
+ *  Created on 13/04/22
  *
  */
 
-define([
-    'common/main/lib/component/Window',
-    'common/main/lib/component/InputField'
-], function () { 'use strict';
+define([], function () { 'use strict';
 
     DE.Views.RoleEditDlg = Common.UI.Window.extend(_.extend({
         options: {
@@ -57,7 +52,7 @@ define([
                 '<div class="box">',
                     '<table cols="2" style="width: 100%;">',
                         '<tr>',
-                            '<td style="width: 50px; padding-right: 10px;">',
+                            '<td class="padding-right-10" style="width: 50px;">',
                                 '<label></label>',
                                 '<div id="id-dlg-role-color" style="margin-bottom: 10px;"></div>',
                             '</td>',
@@ -91,6 +86,7 @@ define([
                 allowBlank  : false,
                 blankError  : me.textEmptyError,
                 style       : 'width: 100%;',
+                placeHolder: me.textNameEx,
                 validateOnBlur: false,
                 validation  : function(value) {
                     value = value.trim();
@@ -104,18 +100,20 @@ define([
 
             this.btnColor = new Common.UI.ColorButton({
                 parentEl: $window.find('#id-dlg-role-color'),
-                additionalItems: [ this.mnuNoFormsColor = new Common.UI.MenuItem({
+                additionalItemsBefore: [ this.mnuNoFormsColor = new Common.UI.MenuItem({
                                       id: 'id-dlg-role-menu-no-highlight',
                                       caption: this.textNoHighlight,
                                       checkable: true,
-                                      style: 'padding-left: 20px;'
+                                      style: Common.UI.isRTL() ? 'padding-right:20px;' : 'padding-left:20px;',
                                   }),
                                   {caption: '--'}],
                 additionalAlign: this.menuAddAlign,
                 colors: ['FEF8E5', 'FFEFBF', 'E2EFD8', 'C6E0B3', 'EDEDED', 'DBDBDB', 'CDD6E4', 'A2B2CA', 'F2F2F2', 'D9D9D9', 'DDEBF6', 'C2DDF2', 'FBECE2',
                         'F7D9C6', 'D6E3EE', 'B9CAE7', 'F2DADA', 'F2C2C2', 'F0DDF6', 'E5C2F2', 'E6FBD6', 'CDF7AC', 'EED6D6', 'E7B9B9', 'CCE1FF', '9AC4FF', 'E4CDDB', 'D9ADC7'],
                 color: this.lastColor,
-                cls: 'move-focus',
+                themecolors: 0,
+                effects: 0,
+                colorHints: false,
                 takeFocusOnClose: true
             });
             this.btnColor.on('color:select', _.bind(this.onColorsSelect, this));
@@ -186,7 +184,7 @@ define([
         },
 
         getFocusedComponents: function() {
-            return [this.btnColor, this.inputName];
+            return [this.btnColor, this.inputName].concat(this.getFooterButtons());
         },
 
         getDefaultFocusableComponent: function () {
@@ -212,6 +210,7 @@ define([
         textName: 'Role name',
         textEmptyError: 'Role name must not be empty.',
         textNoHighlight: 'No highlighting',
-        errNameExists: 'Role with such a name already exists.'
+        errNameExists: 'Role with such a name already exists.',
+        textNameEx: 'Example: Applicant, Client, Sales Rep'
     }, DE.Views.RoleEditDlg || {}));
 });

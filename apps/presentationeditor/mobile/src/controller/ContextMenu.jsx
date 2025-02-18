@@ -9,14 +9,15 @@ import { idContextMenuElement } from '../../../../common/mobile/lib/view/Context
 // import { Device } from '../../../../common/mobile/utils/device';
 import EditorUIController from '../lib/patch';
 
-@inject ( stores => ({
+@inject(stores => ({
     isEdit: stores.storeAppOptions.isEdit,
     canComments: stores.storeAppOptions.canComments,
     canViewComments: stores.storeAppOptions.canViewComments,
     canCoAuthoring: stores.storeAppOptions.canCoAuthoring,
     users: stores.users,
     isDisconnected: stores.users.isDisconnected,
-    objects: stores.storeFocusObjects.settings
+    objects: stores.storeFocusObjects.settings,
+    isVersionHistoryMode: stores.storeVersionHistory.isVersionHistoryMode
 }))
 class ContextMenu extends ContextMenuController {
     constructor(props) {
@@ -130,7 +131,7 @@ class ContextMenu extends ContextMenuController {
                       <span class="right-text">${_t.textDoNotShowAgain}</span>
                       </div>`,
             buttons: [{
-                text: 'OK',
+                text: _t.textOk,
                 onClick: () => {
                     const dontShow = $$('input[name="checkbox-show"]').prop('checked');
                     if (dontShow) LocalStorage.setItem("pe-hide-copy-cut-paste-warning", 1);
@@ -158,7 +159,7 @@ class ContextMenu extends ContextMenuController {
                     text: _t.menuCancel
                 },
                 {
-                    text: 'OK',
+                    text: _t.textOk,
                     bold: true,
                     onClick: function () {
                         const size = picker.value;
@@ -238,7 +239,7 @@ class ContextMenu extends ContextMenuController {
     initMenuItems() {
         if ( !Common.EditorApi ) return [];
 
-        const { isEdit, isDisconnected } = this.props;
+        const { isEdit, isDisconnected, isVersionHistoryMode } = this.props;
 
         if (isEdit && EditorUIController.ContextMenu) {
             return EditorUIController.ContextMenu.mapMenuItems(this);
@@ -295,8 +296,8 @@ class ContextMenu extends ContextMenuController {
                     icon: 'icon-copy'
                 });
             }
-            if(!isDisconnected) {
-                if (canViewComments && this.isComments && !isEdit) {
+            if(!isDisconnected && !isVersionHistoryMode) {
+                if (canViewComments && this.isComments) {
                     itemsText.push({
                         caption: _t.menuViewComment,
                         event: 'viewcomment'

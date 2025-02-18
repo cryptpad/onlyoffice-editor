@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,27 +28,24 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
  *  ShapeSettingsAdvanced.js
  *
- *  Created by Julia Radzhabova on 4/15/14
- *  Copyright (c) 2018 Ascensio System SIA. All rights reserved.
+ *  Created on 4/15/14
  *
  */
 
-define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.template',
+define([
+    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.template',
     'common/main/lib/view/AdvancedSettingsWindow',
-    'common/main/lib/component/ComboBox',
-    'common/main/lib/component/MetricSpinner',
-    'common/main/lib/component/CheckBox'
 ], function (contentTemplate) {
     'use strict';
 
     PE.Views.ShapeSettingsAdvanced = Common.Views.AdvancedSettingsWindow.extend(_.extend({
         options: {
             contentWidth: 300,
-            height: 342,
+            contentHeight: 257,
             toggleGroup: 'shape-adv-settings-group',
             sizeOriginal: {width: 0, height: 0},
             sizeMax: {width: 55.88, height: 55.88},
@@ -61,6 +57,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             _.extend(this.options, {
                 title: this.textTitle,
                 items: [
+                    {panelId: 'id-adv-shape-general',    panelCaption: this.textGeneral},
                     {panelId: 'id-adv-shape-width',      panelCaption: this.textPlacement},
                     {panelId: 'id-adv-shape-rotate',     panelCaption: this.textRotation},
                     {panelId: 'id-adv-shape-shape',      panelCaption: this.textWeightArrows},
@@ -89,6 +86,17 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
 
             var me = this;
 
+            // General
+            this.inputShapeName = new Common.UI.InputField({
+                el          : $('#shape-general-object-name'),
+                allowBlank  : true,
+                validateOnBlur: false,
+                style       : 'width: 100%;'
+            }).on('changed:after', function() {
+                me.isShapeNameChanged = true;
+            });
+
+            // Placement
             this.spnWidth = new Common.UI.MetricSpinner({
                 el: $('#shape-advanced-spin-width'),
                 step: .1,
@@ -146,7 +154,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             this.btnRatio = new Common.UI.Button({
                 parentEl: $('#shape-advanced-button-ratio'),
                 cls: 'btn-toolbar',
-                iconCls: 'toolbar__icon advanced-btn-ratio',
+                iconCls: 'toolbar__icon btn-advanced-ratio',
                 style: 'margin-bottom: 1px;',
                 enableToggle: true,
                 hint: this.textKeepRatio
@@ -378,18 +386,18 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
 
 
             var _arrStyles = [], _arrSize = [];
-            for ( var i=0; i<6; i++ )
-                _arrStyles.push({value: i, offsetx: 80*i+10, offsety: 0});
+            _arrStyles.push({type: Asc.c_oAscLineBeginType.None, idsvg: 'no-'});
+            _arrStyles.push({type: Asc.c_oAscLineBeginType.Triangle, idsvg: ''});
+            _arrStyles.push({type: Asc.c_oAscLineBeginType.Arrow, idsvg: 'open-'});
+            _arrStyles.push({type: Asc.c_oAscLineBeginType.Stealth, idsvg: 'stealth-'});
+            _arrStyles.push({type: Asc.c_oAscLineBeginType.Diamond, idsvg: 'dimond-'});
+            _arrStyles.push({type: Asc.c_oAscLineBeginType.Oval, idsvg: 'oval-'});
 
-            _arrStyles[0].type = Asc.c_oAscLineBeginType.None;
-            _arrStyles[1].type = Asc.c_oAscLineBeginType.Triangle;
-            _arrStyles[2].type = Asc.c_oAscLineBeginType.Arrow;
-            _arrStyles[3].type = Asc.c_oAscLineBeginType.Stealth;
-            _arrStyles[4].type = Asc.c_oAscLineBeginType.Diamond;
-            _arrStyles[5].type = Asc.c_oAscLineBeginType.Oval;
+            for ( var i=0; i<6; i++ )
+                _arrStyles[i].value = i;
 
             for ( i=0; i<9; i++ )
-                _arrSize.push({value: i, offsetx: 80+10, offsety: 20*(i+1)});
+                _arrSize.push({value: i, typearrow:''});
 
             _arrSize[0].type = Asc.c_oAscLineBeginSize.small_small;
             _arrSize[1].type = Asc.c_oAscLineBeginSize.small_mid;
@@ -401,64 +409,47 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             _arrSize[7].type = Asc.c_oAscLineBeginSize.large_mid;
             _arrSize[8].type = Asc.c_oAscLineBeginSize.large_large;
 
-
-            this.btnBeginStyle = new Common.UI.ComboBox({
+            this.btnBeginStyle = new Common.UI.ComboBoxDataView({
                 el: $('#shape-advanced-begin-style'),
-                template: _.template([
-                    '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                    '<div class="form-control" style="width: 100px;">',
-                        '<i class="image img-arrows"></i>',
-                    '</div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret"></span></button>',
-                    '</div>'
-                ].join(''))
-            });
-            this.btnBeginStyleMenu = (new Common.UI.Menu({
-                style: 'min-width: 105px;',
                 additionalAlign: this.menuAddAlign,
-                items: [
-                    { template: _.template('<div id="shape-advanced-menu-begin-style" style="width: 105px; margin: 0 5px;"></div>') }
-                ]
-            })).render($('#shape-advanced-begin-style'));
-
-            this.mnuBeginStylePicker = new Common.UI.DataView({
-                el: $('#shape-advanced-menu-begin-style'),
-                parentMenu: this.btnBeginStyleMenu,
+                cls: 'combo-arrow-style move-focus',
+                menuStyle: 'min-width: 105px;',
+                dataViewStyle: 'width: 105px; margin: 0 5px;',
                 store: new Common.UI.DataViewStore(_arrStyles),
-                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows" style="background-position: -<%= offsetx %>px -<%= offsety %>px;"></div>')
-            });
-            this.mnuBeginStylePicker.on('item:click', _.bind(this.onSelectBeginStyle, this));
-            this._selectStyleItem(this.btnBeginStyle, null);
-
-            this.btnBeginSize = new Common.UI.ComboBox({
-                el: $('#shape-advanced-begin-size'),
-                template: _.template([
-                    '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
+                formTemplate: _.template([
                     '<div class="form-control" style="width: 100px;">',
-                        '<i class="image img-arrows"></i>',
-                    '</div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret"></span></button>',
+                        '<i class="img-arrows"><svg><use xlink:href="#no-arrow-5"></use></svg></i>',
                     '</div>'
-                ].join(''))
+                ].join('')),
+                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows">' +
+                    '<svg><use xlink:href= "#<%= idsvg %>arrow-5"></use></svg></div>'),
+                takeFocusOnClose: true,
+                updateFormControl: this.updateFormControl
             });
-            this.btnBeginSizeMenu = (new Common.UI.Menu({
-                style: 'min-width: 160px;',
-                additionalAlign: this.menuAddAlign,
-                items: [
-                    { template: _.template('<div id="shape-advanced-menu-begin-size" style="width: 160px; margin: 0 5px;"></div>') }
-                ]
-            })).render($('#shape-advanced-begin-size'));
+            this.btnBeginStyle.on('item:click', _.bind(this.onSelectBeginStyle, this));
+            this.mnuBeginStylePicker = this.btnBeginStyle.getPicker();
+            this.btnBeginStyle.updateFormControl();
 
-            this.mnuBeginSizePicker = new Common.UI.DataView({
-                el: $('#shape-advanced-menu-begin-size'),
-                parentMenu: this.btnBeginSizeMenu,
+            this.btnBeginSize = new Common.UI.ComboBoxDataView({
+                el: $('#shape-advanced-begin-size'),
+                additionalAlign: this.menuAddAlign,
+                cls: 'combo-arrow-style move-focus',
+                menuStyle: 'min-width: 105px;',
+                dataViewStyle: 'width: 160px; margin: 0 5px;',
                 store: new Common.UI.DataViewStore(_arrSize),
-                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows" style="background-position: -<%= offsetx %>px -<%= offsety %>px;"></div>')
+                formTemplate: _.template([
+                    '<div class="form-control" style="width: 100px;">',
+                    '<i class="img-arrows"><svg><use xlink:href=""></use></svg></i>',
+                    '</div>'
+                ].join('')),
+                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows">' +
+                    '<svg><use xlink:href="#<%= typearrow %>arrow-<%= (value+1) %>"></use></svg></div>'),
+                takeFocusOnClose: true,
+                updateFormControl: this.updateFormControl
             });
-            this.mnuBeginSizePicker.on('item:click', _.bind(this.onSelectBeginSize, this));
-            this._selectStyleItem(this.btnBeginSize, null);
+            this.btnBeginSize.on('item:click', _.bind(this.onSelectBeginSize, this));
+            this.mnuBeginSizePicker = this.btnBeginSize.getPicker();
+            this.btnBeginSize.updateFormControl();
 
             for ( i=0; i<_arrStyles.length; i++ )
                 _arrStyles[i].offsety += 200;
@@ -466,63 +457,47 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             for ( i=0; i<_arrSize.length; i++ )
                 _arrSize[i].offsety += 200;
 
-            this.btnEndStyle = new Common.UI.ComboBox({
+            this.btnEndStyle = new Common.UI.ComboBoxDataView({
                 el: $('#shape-advanced-end-style'),
-                template: _.template([
-                    '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
-                    '<div class="form-control" style="width: 100px;">',
-                        '<i class="image img-arrows"></i>',
-                    '</div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret"></span></button>',
-                    '</div>'
-                ].join(''))
-            });
-            this.btnEndStyleMenu = (new Common.UI.Menu({
-                style: 'min-width: 105px;',
                 additionalAlign: this.menuAddAlign,
-                items: [
-                    { template: _.template('<div id="shape-advanced-menu-end-style" style="width: 105px; margin: 0 5px;"></div>') }
-                ]
-            })).render($('#shape-advanced-end-style'));
-
-            this.mnuEndStylePicker = new Common.UI.DataView({
-                el: $('#shape-advanced-menu-end-style'),
-                parentMenu: this.btnEndStyleMenu,
+                cls: 'combo-arrow-style move-focus',
+                menuStyle: 'min-width: 105px;',
+                dataViewStyle: 'width: 105px; margin: 0 5px;',
                 store: new Common.UI.DataViewStore(_arrStyles),
-                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows" style="background-position: -<%= offsetx %>px -<%= offsety %>px;"></div>')
-            });
-            this.mnuEndStylePicker.on('item:click', _.bind(this.onSelectEndStyle, this));
-            this._selectStyleItem(this.btnEndStyle, null);
-
-            this.btnEndSize = new Common.UI.ComboBox({
-                el: $('#shape-advanced-end-size'),
-                template: _.template([
-                    '<div class="input-group combobox combo-dataview-menu input-group-nr dropdown-toggle combo-arrow-style"  data-toggle="dropdown">',
+                formTemplate: _.template([
                     '<div class="form-control" style="width: 100px;">',
-                        '<i class="image img-arrows"></i>',
-                    '</div>',
-                    '<div style="display: table-cell;"></div>',
-                    '<button type="button" class="btn btn-default"><span class="caret"></span></button>',
+                    '<i class="img-arrows"><svg class ="svg-mirror"><use xlink:href="#no-arrow-5"></use></svg></i>',
                     '</div>'
-                ].join(''))
+                ].join('')),
+                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows">' +
+                    '<svg class ="svg-mirror"><use xlink:href="#<%= idsvg %>arrow-5"></use></svg></div>'),
+                takeFocusOnClose: true,
+                updateFormControl: this.updateFormControl
             });
-            this.btnEndSizeMenu = (new Common.UI.Menu({
-                style: 'min-width: 160px;',
-                additionalAlign: this.menuAddAlign,
-                items: [
-                    { template: _.template('<div id="shape-advanced-menu-end-size" style="width: 160px; margin: 0 5px;"></div>') }
-                ]
-            })).render($('#shape-advanced-end-size'));
+            this.btnEndStyle.on('item:click', _.bind(this.onSelectEndStyle, this));
+            this.mnuEndStylePicker = this.btnEndStyle.getPicker();
+            this.btnEndStyle.updateFormControl();
 
-            this.mnuEndSizePicker = new Common.UI.DataView({
-                el: $('#shape-advanced-menu-end-size'),
-                parentMenu: this.btnEndSizeMenu,
+            this.btnEndSize = new Common.UI.ComboBoxDataView({
+                el: $('#shape-advanced-end-size'),
+                additionalAlign: this.menuAddAlign,
+                cls: 'combo-arrow-style move-focus',
+                menuStyle: 'min-width: 105px;',
+                dataViewStyle: 'width: 160px; margin: 0 5px;',
                 store: new Common.UI.DataViewStore(_arrSize),
-                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows" style="background-position: -<%= offsetx %>px -<%= offsety %>px;"></div>')
+                formTemplate: _.template([
+                    '<div class="form-control" style="width: 100px;">',
+                    '<i class="img-arrows"><svg class ="svg-mirror"><use xlink:href=""></use></svg></i>',
+                    '</div>'
+                ].join('')),
+                itemTemplate: _.template('<div id="<%= id %>" class="item-arrow img-arrows">' +
+                    '<svg class ="svg-mirror"><use xlink:href="#<%= typearrow %>arrow-<%= (value + 1) %>"></use></svg></div>'),
+                takeFocusOnClose: true,
+                updateFormControl: this.updateFormControl
             });
-            this.mnuEndSizePicker.on('item:click', _.bind(this.onSelectEndSize, this));
-            this._selectStyleItem(this.btnEndSize, null);
+            this.btnEndSize.on('item:click', _.bind(this.onSelectEndSize, this));
+            this.mnuEndSizePicker = this.btnEndSize.getPicker();
+            this.btnEndSize.updateFormControl();
 
             // Columns
 
@@ -579,14 +554,15 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
         },
 
         getFocusedComponents: function() {
-            return [
-                this.spnWidth, this.spnHeight, this.spnX, this.cmbFromX, this.spnY, this.cmbFromY, // 0 tab
-                this.spnAngle, this.chFlipHor, this.chFlipVert, // 1 tab
-                this.cmbCapType, this.cmbJoinType, // 2 tab
-                this.radioNofit, this.radioShrink, this.radioFit, this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 3 tab
-                this.spnColumns, this.spnSpacing, // 4 tab
-                this.inputAltTitle, this.textareaAltDescription  // 5 tab
-            ];
+            return this.btnsCategory.concat([
+                this.inputShapeName,// 0 tab
+                this.spnWidth, this.btnRatio, this.spnHeight, this.spnX, this.cmbFromX, this.spnY, this.cmbFromY, // 1 tab
+                this.spnAngle, this.chFlipHor, this.chFlipVert, // 2 tab
+                this.cmbCapType, this.cmbJoinType, this.btnBeginStyle, this.btnEndStyle, this.btnBeginSize, this.btnEndSize, // 3 tab
+                this.radioNofit, this.radioShrink, this.radioFit, this.spnMarginTop, this.spnMarginLeft, this.spnMarginBottom, this.spnMarginRight, // 4 tab
+                this.spnColumns, this.spnSpacing, // 5 tab
+                this.inputAltTitle, this.textareaAltDescription  // 6 tab
+            ]).concat(this.getFooterButtons());
         },
 
         onCategoryClick: function(btn, index) {
@@ -596,21 +572,24 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             setTimeout(function(){
                 switch (index) {
                     case 0:
-                        me.spnWidth.focus();
+                        me.inputShapeName.focus();
                         break;
                     case 1:
-                        me.spnAngle.focus();
+                        me.spnWidth.focus();
                         break;
                     case 2:
-                        me.cmbCapType.focus();
+                        me.spnAngle.focus();
                         break;
                     case 3:
-                        me.spnMarginTop.focus();
+                        me.cmbCapType.focus();
                         break;
                     case 4:
-                        me.spnColumns.focus();
+                        me.spnMarginTop.focus();
                         break;
                     case 5:
+                        me.spnColumns.focus();
+                        break;
+                    case 6:
                         me.inputAltTitle.focus();
                         break;
                 }
@@ -629,7 +608,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
         _setDefaults: function(props) {
             if (props ){
                 if (props.get_FromSmartArt()) {
-                    this.btnsCategory[1].setDisabled(true);
+                    this.btnsCategory[2].setDisabled(true);
                 }
                 if (props.get_FromSmartArtInternal()) {
                     this.radioNofit.setDisabled(true);
@@ -637,8 +616,11 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                     this.radioFit.setDisabled(true);
                     this.chFlipHor.setDisabled(true);
                     this.chFlipVert.setDisabled(true);
-                    this.btnsCategory[0].setDisabled(true);
+                    this.btnsCategory[1].setDisabled(true);
                 }
+
+                var value = props.asc_getName();
+                this.inputShapeName.setValue(value ? value : '');
 
                 this.spnWidth.setValue(Common.Utils.Metric.fnRecalcFromMM(props.asc_getWidth()).toFixed(2), true);
                 this.spnHeight.setValue(Common.Utils.Metric.fnRecalcFromMM(props.asc_getHeight()).toFixed(2), true);
@@ -646,7 +628,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 if (props.asc_getHeight()>0)
                     this._nRatio = props.asc_getWidth()/props.asc_getHeight();
 
-                var value = props.asc_getLockAspect();
+                value = props.asc_getLockAspect();
                 this.btnRatio.toggle(value || props.get_FromSmartArt());
                 this.btnRatio.setDisabled(!!props.get_FromSmartArt()); // can resize smart art only proportionately
 
@@ -687,10 +669,10 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                         this.radioShrink.setValue(true, true);
                         break;
                 }
-                this.btnsCategory[3].setDisabled(null === margins);   // Margins
+                this.btnsCategory[4].setDisabled(null === margins);   // Margins
 
                 var shapetype = props.asc_getType();
-                this.btnsCategory[4].setDisabled(props.get_FromSmartArtInternal()
+                this.btnsCategory[5].setDisabled(props.get_FromSmartArtInternal() || props.get_FromSmartArt()
                     || shapetype=='line' || shapetype=='bentConnector2' || shapetype=='bentConnector3'
                     || shapetype=='bentConnector4' || shapetype=='bentConnector5' || shapetype=='curvedConnector2'
                     || shapetype=='curvedConnector3' || shapetype=='curvedConnector4' || shapetype=='curvedConnector5'
@@ -720,6 +702,9 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
         },
 
         getSettings: function() {
+            if (this.isShapeNameChanged)
+                this._changedProps.asc_putName(this.inputShapeName.getValue());
+
             var Position = new Asc.CPosition();
             if (this.spnX.getValue() !== '') {
                 var x = Common.Utils.Metric.fnRecalcToMM(this.spnX.getNumberValue());
@@ -757,7 +742,7 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             if (props ){
                 var stroke = props.get_stroke();
                 if (stroke) {
-                    this.btnsCategory[2].setDisabled(stroke.get_type() == Asc.c_oAscStrokeType.STROKE_NONE);   // Weights & Arrows
+                    this.btnsCategory[3].setDisabled(stroke.get_type() == Asc.c_oAscStrokeType.STROKE_NONE);   // Weights & Arrows
 
                     var value = stroke.get_linejoin();
                     for (var i=0; i<this._arrJoinType.length; i++) {
@@ -789,17 +774,13 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                             this._beginSizeIdx = rec.get('value');
                         } else {
                             this._beginSizeIdx = null;
-                            this._selectStyleItem(this.btnBeginSize, null);
+                            this.btnBeginSize.updateFormControl();
                         }
 
                         value = stroke.get_linebeginstyle();
                         rec = this.mnuBeginStylePicker.store.findWhere({type: value});
-                        if (rec) {
-                            this.mnuBeginStylePicker.selectRecord(rec, true);
-                            this._updateSizeArr(this.btnBeginSize, this.mnuBeginSizePicker, rec, this._beginSizeIdx);
-                            this._selectStyleItem(this.btnBeginStyle, rec);
-                        } else
-                            this._selectStyleItem(this.btnBeginStyle, null);
+                        this.btnBeginStyle.selectRecord(rec);
+                        rec && this._updateSizeArr(this.btnBeginSize, this.mnuBeginSizePicker, rec, this._beginSizeIdx);
 
                         value = stroke.get_lineendsize();
                         rec = this.mnuEndSizePicker.store.findWhere({type: value});
@@ -807,22 +788,13 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                             this._endSizeIdx = rec.get('value');
                         } else {
                             this._endSizeIdx = null;
-                            this._selectStyleItem(this.btnEndSize, null);
+                            this.btnEndSize.updateFormControl();
                         }
 
                         value = stroke.get_lineendstyle();
                         rec = this.mnuEndStylePicker.store.findWhere({type: value});
-                        if (rec) {
-                            this.mnuEndStylePicker.selectRecord(rec, true);
-                            this._updateSizeArr(this.btnEndSize, this.mnuEndSizePicker, rec, this._endSizeIdx);
-                            this._selectStyleItem(this.btnEndStyle, rec);
-                        } else
-                            this._selectStyleItem(this.btnEndStyle, null);
-                    } else {
-                        this._selectStyleItem(this.btnBeginStyle);
-                        this._selectStyleItem(this.btnEndStyle);
-                        this._selectStyleItem(this.btnBeginSize);
-                        this._selectStyleItem(this.btnEndSize);
+                        this.btnEndStyle.selectRecord(rec);
+                        rec && this._updateSizeArr(this.btnEndSize, this.mnuEndSizePicker, rec, this._endSizeIdx);
                     }
                 }
             }
@@ -850,26 +822,29 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
         _updateSizeArr: function(combo, picker, record, sizeidx) {
             if (record.get('value')>0) {
                 picker.store.each( function(rec){
-                    rec.set({offsetx: record.get('value')*80 + 10});
+                    rec.set({typearrow: record.get('idsvg')});
                 }, this);
                 combo.setDisabled(false);
-                if (sizeidx !== null) {
-                    picker.selectByIndex(sizeidx, true);
-                    this._selectStyleItem(combo, picker.store.at(sizeidx));
-                } else
-                    this._selectStyleItem(combo, null);
+                combo.selectRecord(sizeidx !== null ? picker.store.at(sizeidx) : null);
             } else {
-                this._selectStyleItem(combo, null);
+                combo.updateFormControl();
                 combo.setDisabled(true);
             }
         },
 
-        _selectStyleItem: function(combo, record) {
-            var formcontrol = $(combo.el).find('.form-control > .image');
-            formcontrol.css('background-position', ((record) ? (-record.get('offsetx')+20) + 'px' : '0') + ' ' + ((record) ? '-' + record.get('offsety') + 'px' : '-30px'));
+        updateFormControl: function(record) {
+            var formcontrol = $(this.el).find('.form-control > .img-arrows use');
+            if(formcontrol.length) {
+                var str = '';
+                if(record){
+                    var styleId  = record.get('idsvg');
+                    str = (styleId !== undefined) ? styleId + 'arrow-5' : record.get('typearrow') + 'arrow-' + (record.get('value')+1);
+                }
+                formcontrol[0].setAttribute('xlink:href', '#' + str);
+            }
         },
 
-        onSelectBeginStyle: function(picker, view, record){
+        onSelectBeginStyle: function(combo, picker, view, record){
             if (this._changedProps) {
                 if (this._changedProps.get_stroke()===null)
                     this._changedProps.put_stroke(new Asc.asc_CStroke());
@@ -879,10 +854,9 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             if (this._beginSizeIdx===null || this._beginSizeIdx===undefined)
                 this._beginSizeIdx = 4;
             this._updateSizeArr(this.btnBeginSize, this.mnuBeginSizePicker, record, this._beginSizeIdx);
-            this._selectStyleItem(this.btnBeginStyle, record);
         },
 
-        onSelectBeginSize: function(picker, view, record){
+        onSelectBeginSize: function(combo, picker, view, record){
             if (this._changedProps) {
                 if (this._changedProps.get_stroke()===null)
                     this._changedProps.put_stroke(new Asc.asc_CStroke());
@@ -890,10 +864,9 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 this._changedProps.get_stroke().put_linebeginsize(record.get('type'));
             }
             this._beginSizeIdx = record.get('value');
-            this._selectStyleItem(this.btnBeginSize, record);
         },
 
-        onSelectEndStyle: function(picker, view, record){
+        onSelectEndStyle: function(combo, picker, view, record){
             if (this._changedProps) {
                 if (this._changedProps.get_stroke()===null)
                     this._changedProps.put_stroke(new Asc.asc_CStroke());
@@ -903,10 +876,9 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
             if (this._endSizeIdx===null || this._endSizeIdx===undefined)
                 this._endSizeIdx = 4;
             this._updateSizeArr(this.btnEndSize, this.mnuEndSizePicker, record, this._endSizeIdx);
-            this._selectStyleItem(this.btnEndStyle, record);
         },
 
-        onSelectEndSize: function(picker, view, record){
+        onSelectEndSize: function(combo, picker, view, record){
             if (this._changedProps) {
                 if (this._changedProps.get_stroke()===null)
                     this._changedProps.put_stroke(new Asc.asc_CStroke());
@@ -914,7 +886,6 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
                 this._changedProps.get_stroke().put_lineendsize(record.get('type'));
             }
             this._endSizeIdx = record.get('value');
-            this._selectStyleItem(this.btnEndSize, record);
         },
 
         onRadioFitChange: function(field, newValue, eOpts) {
@@ -971,7 +942,9 @@ define([    'text!presentationeditor/main/app/template/ShapeSettingsAdvanced.tem
         textFrom: 'From',
         textVertical: 'Vertical',
         textTopLeftCorner: 'Top Left Corner',
-        textCenter: 'Center'
+        textCenter: 'Center',
+        textGeneral: 'General',
+        textShapeName: 'Shape name'
 
     }, PE.Views.ShapeSettingsAdvanced || {}));
 });

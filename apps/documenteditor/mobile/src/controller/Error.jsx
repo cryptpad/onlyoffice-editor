@@ -41,8 +41,7 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
             closable: false
         };
 
-        switch (id)
-        {
+        switch (id) {
             case Asc.c_oAscError.ID.Unknown:
                 config.msg = _t.unknownErrorText;
                 break;
@@ -75,6 +74,18 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
                 config.msg = _t.uploadImageFileCountMessage;
                 break;
 
+            case Asc.c_oAscError.ID.UplDocumentSize:
+                config.msg = t('Error.uploadDocSizeMessage');
+                break;
+
+            case Asc.c_oAscError.ID.UplDocumentExt:
+                config.msg = t('Error.uploadDocExtMessage');
+                break;
+
+            case Asc.c_oAscError.ID.UplDocumentFileCount:
+                config.msg = t('Error.uploadDocFileCountMessage');
+                break;
+
             case Asc.c_oAscError.ID.SplitCellMaxRows:
                 config.msg = _t.splitMaxRowsErrorText.replace('%1', errData.get_Value());
                 break;
@@ -105,6 +116,10 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
 
             case Asc.c_oAscError.ID.ConvertationPassword:
                 config.msg = _t.errorFilePassProtect;
+                break;
+
+            case Asc.c_oAscError.ID.PasswordIsNotCorrect:
+                config.msg = t('Error.errorPasswordIsNotCorrect');
                 break;
 
             case Asc.c_oAscError.ID.StockChartError:
@@ -164,9 +179,18 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
             case Asc.c_oAscError.ID.AccessDeny:
                 config.msg = _t.errorAccessDeny;
                 break;
+            
+            case Asc.c_oAscError.ID.ForceSaveButton:
+            case Asc.c_oAscError.ID.ForceSaveTimeout:
+                config.msg = t('Error.errorForceSave');
+                break;
 
             case Asc.c_oAscError.ID.EditingError:
                 config.msg = _t.errorEditingDownloadas;
+                break;
+
+            case Asc.c_oAscError.ID.MailToClientMissing:
+                config.msg = this.errorEmailClient;
                 break;
 
             case Asc.c_oAscError.ID.ConvertationOpenLimitError:
@@ -197,6 +221,22 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
                 config.msg = _t.errorDirectUrl;
                 break;
 
+            case Asc.c_oAscError.ID.CannotCompareInCoEditing:
+                config.msg = t('Error.errorCompare');
+                break;
+
+            case Asc.c_oAscError.ID.ComboSeriesError:
+                config.msg = t('Error.errorComboSeries');
+                break;
+
+            case Asc.c_oAscError.ID.Password:
+                config.msg = t('Error.errorSetPassword');
+                break;
+
+            case Asc.c_oAscError.ID.Submit:
+                config.msg = t('Error.errorSubmit');
+                break;
+
             case Asc.c_oAscError.ID.ConvertationOpenFormat:
                 let docExt = storeDocumentInfo.dataDoc ? storeDocumentInfo.dataDoc.fileType || '' : '';
                 if (errData === 'pdf')
@@ -209,6 +249,14 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
                     config.msg = _t.errorInconsistentExtPptx.replace('%1', docExt);
                 else
                     config.msg = _t.errorInconsistentExt;
+                break;
+
+            case Asc.c_oAscError.ID.CannotSaveWatermark:
+                config.msg = t('Error.errorSaveWatermark');
+                break;
+
+            case Asc.c_oAscError.ID.PDFFormsLocked:
+                config.msg = t('Error.errorPDFFormsLocked');
                 break;
 
             default:
@@ -256,7 +304,7 @@ const ErrorController = inject('storeAppOptions','storeDocumentInfo')(({storeApp
             text    : config.msg,
             buttons: [
                 {
-                    text: 'OK',
+                    text: _t.textOk,
                     onClick: config.callback
                 }
             ]

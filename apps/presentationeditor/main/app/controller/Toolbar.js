@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,14 +28,13 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
  *  Toolbar.js
  *
  *  Toolbar controller
  *
- *  Created by Alexander Yuzhin on 4/16/14
- *  Copyright (c) 2018 Ascensio System SIA. All rights reserved.
+ *  Created on 4/16/14
  *
  */
 
@@ -44,22 +42,11 @@
 define([
     'core',
     'common/main/lib/component/Window',
-    'common/main/lib/view/CopyWarningDialog',
-    'common/main/lib/view/ImageFromUrlDialog',
-    'common/main/lib/view/InsertTableDialog',
-    'common/main/lib/view/SelectFileDlg',
-    'common/main/lib/view/ListSettingsDialog',
-    'common/main/lib/view/SymbolTableDialog',
-    'common/main/lib/util/define',
     'presentationeditor/main/app/collection/SlideThemes',
     'presentationeditor/main/app/controller/Transitions',
     'presentationeditor/main/app/controller/Animation',
     'presentationeditor/main/app/view/Toolbar',
-    'presentationeditor/main/app/view/DateTimeDialog',
-    'presentationeditor/main/app/view/HeaderFooterDialog',
-    'presentationeditor/main/app/view/HyperlinkSettingsDialog',
     'presentationeditor/main/app/view/SlideSizeSettings',
-    'presentationeditor/main/app/view/SlideshowSettings',
     'presentationeditor/main/app/view/define'
 ], function () { 'use strict';
 
@@ -84,6 +71,7 @@ define([
                 no_paragraph: undefined,
                 no_text: undefined,
                 no_object: undefined,
+                no_drawing_objects: undefined,
                 clrtext: undefined,
                 linespace: undefined,
                 pralign: undefined,
@@ -111,7 +99,11 @@ define([
                 no_columns: false,
                 clrhighlight: undefined,
                 can_copycut: undefined,
-                needCallApiBullets: undefined
+                needCallApiBullets: undefined,
+                isLockedSlideHeaderAppyToAll: false,
+                customPluginItems: undefined,
+                activeTab: 'home',
+                viewMode: 'normal'
             };
             this._isAddingShape = false;
             this.slideSizeArr = [
@@ -120,7 +112,8 @@ define([
             this.currentPageSize = {
                 type: Asc.c_oAscSlideSZType.SzCustom,
                 width: 0,
-                height: 0
+                height: 0,
+                firstNum: 1
             };
             this.flg = {};
             this.diagramEditor = null;
@@ -139,8 +132,21 @@ define([
                     'change:slide'      : this.onChangeSlide.bind(this),
                     'change:compact'    : this.onClickChangeCompact,
                     'add:chart'         : this.onSelectChart,
-                    'generate:smartart' : this.generateSmartArt,
-                    'insert:smartart'   : this.onInsertSmartArt
+                    'insert:smartart'   : this.onInsertSmartArt,
+                    'smartart:mouseenter': this.mouseenterSmartArt,
+                    'smartart:mouseleave': this.mouseleaveSmartArt,
+                    'insert:slide-master': this.onInsertSlideMaster.bind(this),
+                    'insert:layout'      : this.onInsertLayout.bind(this),
+                    'insert:placeholder-btn': this.onBtnInsertPlaceholder.bind(this),
+                    'insert:placeholder-menu': this.onMenuInsertPlaceholder.bind(this),
+                    'title:hide'         : this.onTitleHide.bind(this),
+                    'footers:hide'       : this.onFootersHide.bind(this),
+                    'tab:active'         : this.onActiveTab.bind(this),
+                    'tab:collapse'       : this.onTabCollapse.bind(this)
+                },
+                'DocumentHolder': {
+                    'smartart:mouseenter': this.mouseenterSmartArt,
+                    'smartart:mouseleave': this.mouseleaveSmartArt,
                 },
                 'FileMenu': {
                     'menu:hide': this.onFileMenu.bind(this, 'hide'),
@@ -160,6 +166,9 @@ define([
                     },
                     'undo': this.onUndo,
                     'redo': this.onRedo,
+                    'startover': function(opts) {
+                        this.onPreview(0); 
+                    },
                     'downloadas': function (opts) {
                         var _main = this.getApplication().getController('Main');
                         var _file_type = _main.document.fileType,
@@ -189,13 +198,18 @@ define([
                     }
                 },
                 'ViewTab': {
-                    'toolbar:setcompact': this.onChangeCompactView.bind(this)
+                    'toolbar:setcompact': this.onChangeCompactView.bind(this),
+                    'viewmode:change': this.onChangeViewMode.bind(this)
                 }
             });
             Common.NotificationCenter.on('toolbar:collapse', _.bind(function () {
                 this.toolbar.collapse();
             }, this));
-
+            Common.NotificationCenter.on('tab:set-active', _.bind(function(action){
+                this.toolbar.setTab(action);
+                this.onChangeCompactView(null, false, true);
+            }, this));
+            
             var me = this;
 
             var checkInsertAutoshape =  function(e) {
@@ -209,22 +223,20 @@ define([
 
                 if (cmp.attr('id') != 'editor_sdk' && cmp_sdk.length<=0) {
                     if ( me.toolbar.btnsInsertText.pressed() && !me.toolbar.btnsInsertText.contains(btn_id) ||
-                            me.toolbar.btnsInsertShape.pressed() && !me.toolbar.btnsInsertShape.contains(btn_id) ||
-                            me.toolbar.cmbInsertShape.isComboViewRecActive() && me.toolbar.cmbInsertShape.id !== btn_id)
+                        me.toolbar.cmbsInsertShape.some(function(cmb) {
+                            return cmb.isComboViewRecActive() && cmb.id !== btn_id;
+                        }) ||
+                        me.toolbar.btnInsertPlaceholder.pressed && me.toolbar.btnInsertPlaceholder.id !== btn_id)
                     {
                         me._isAddingShape         = false;
 
                         me._addAutoshape(false);
-                        me.toolbar.btnsInsertShape.toggle(false, true);
                         me.toolbar.btnsInsertText.toggle(false, true);
-                        me.toolbar.cmbInsertShape.deactivateRecords();
+                        me.toolbar.cmbsInsertShape.forEach(function(cmb) {
+                            cmb.deactivateRecords();
+                        });
+                        me.toolbar.btnInsertPlaceholder.toggle(false, true);
                         Common.NotificationCenter.trigger('edit:complete', me.toolbar);
-                    } else
-                    if ( me.toolbar.btnsInsertShape.pressed() && me.toolbar.btnsInsertShape.contains(btn_id) ) {
-                        _.defer(function(){
-                            me.api.StartAddShape('', false);
-                            Common.NotificationCenter.trigger('edit:complete', me.toolbar);
-                        }, 100);
                     }
                 }
             };
@@ -232,18 +244,20 @@ define([
             this.onApiEndAddShape = function() {
                 this.toolbar.fireEvent('insertshape', this.toolbar);
 
-                if ( this.toolbar.btnsInsertShape.pressed() )
-                    this.toolbar.btnsInsertShape.toggle(false, true);
-
                 if ( this.toolbar.btnsInsertText.pressed() ) {
                     this.toolbar.btnsInsertText.toggle(false, true);
                     this.toolbar.btnsInsertText.forEach(function(button) {
-                        button.menu.clearAll();
+                        button.menu.clearAll(true);
                     });
                 }
 
-                if ( this.toolbar.cmbInsertShape.isComboViewRecActive() )
-                    this.toolbar.cmbInsertShape.deactivateRecords();
+                this.toolbar.cmbsInsertShape.forEach(function(cmb) {
+                    if (cmb.isComboViewRecActive())
+                        cmb.deactivateRecords();
+                });
+
+                if (this.toolbar.btnInsertPlaceholder.pressed)
+                    this.toolbar.btnInsertPlaceholder.toggle(false, true);
 
                 $(document.body).off('mouseup', checkInsertAutoshape);
             };
@@ -259,6 +273,18 @@ define([
                     }
                 }
             };
+
+            this._addPlaceHolder = function (isstart, type, isVertical) {
+                if (this.api) {
+                    if (isstart) {
+                        this.api.asc_StartAddPlaceholder(type, isVertical, true);
+                        $(document.body).on('mouseup', checkInsertAutoshape);
+                    } else {
+                        this.api.asc_StartAddPlaceholder('', undefined, false);
+                        $(document.body).off('mouseup', checkInsertAutoshape);
+                    }
+                }
+            }
         },
 
         onLaunch: function() {
@@ -280,17 +306,35 @@ define([
         },
 
         setMode: function(mode) {
+            var _main = this.getApplication().getController('Main'),
+                me = this;
             this.mode = mode;
             this.toolbar.applyLayout(mode);
+            Common.UI.TooltipManager.addTips({
+                'tabDesign' : {name: 'pe-help-tip-tab-design', placement: 'bottom-right', text: this.helpTabDesign, header: this.helpTabDesignHeader, target: 'li.ribtab #design', automove: true, closable: false,
+                                callback: function() {
+                                    if (!me.toolbar.btnShapesMerge.isDisabled() && me.toolbar.isTabActive('home'))
+                                        Common.UI.TooltipManager.showTip('mergeShapes');
+                                }},
+                'mergeShapes' : {name: 'help-tip-merge-shapes', placement: 'bottom-left', text: this.helpMergeShapes, header: this.helpMergeShapesHeader, target: '#slot-btn-shapes-merge', closable: false, prev: 'tabDesign'},
+                'refreshFile' : {text: _main.textUpdateVersion, header: _main.textUpdating, target: '#toolbar', maxwidth: 'none', showButton: false, automove: true, noHighlight: true, multiple: true},
+                'disconnect' : {text: _main.textConnectionLost, header: _main.textDisconnect, target: '#toolbar', maxwidth: 'none', showButton: false, automove: true, noHighlight: true, multiple: true},
+                'updateVersion' : {text: _main.errorUpdateVersionOnDisconnect, header: _main.titleUpdateVersion, target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, multiple: true},
+                'sessionIdle' : {text: _main.errorSessionIdle, target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, multiple: true},
+                'sessionToken' : {text: _main.errorSessionToken, target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, multiple: true}
+            });
+
         },
 
         attachUIEvents: function(toolbar) {
             /**
              * UI Events
              */
+            const me = this;
 
-            toolbar.btnPreview.on('click',                              _.bind(this.onPreviewBtnClick, this));
-            toolbar.btnPreview.menu.on('item:click',                    _.bind(this.onPreviewItemClick, this));
+            toolbar.btnPreview.on('click',                                         _.bind(me.onPreviewBtnClick, me));
+            toolbar.btnPreview.menu.on('item:click',                               _.bind(me.onPreviewItemClick, me));
+            toolbar.btnPreview.on('disabled',                           _.bind(me.onBtnChangeState, me, 'startover:disabled'));
             toolbar.btnPrint.on('click',                                _.bind(this.onPrint, this));
             toolbar.btnPrint.on('disabled',                             _.bind(this.onBtnChangeState, this, 'print:disabled'));
             toolbar.btnPrint.menu && toolbar.btnPrint.menu.on('item:click', _.bind(this.onPrintMenu, this));
@@ -303,6 +347,7 @@ define([
             toolbar.btnPaste.on('click',                                _.bind(this.onCopyPaste, this, 'paste'));
             toolbar.btnCut.on('click',                                  _.bind(this.onCopyPaste, this, 'cut'));
             toolbar.btnSelectAll.on('click',                            _.bind(this.onSelectAll, this));
+            toolbar.btnReplace.on('click',                              _.bind(this.onReplace, this));
             toolbar.btnIncFontSize.on('click',                          _.bind(this.onIncrease, this));
             toolbar.btnDecFontSize.on('click',                          _.bind(this.onDecrease, this));
             toolbar.btnBold.on('click',                                 _.bind(this.onBold, this));
@@ -338,15 +383,21 @@ define([
             toolbar.btnNumbers.menu.on('show:after',                    _.bind(this.onListShowAfter, this, 1, toolbar.mnuNumbersPicker));
             toolbar.btnFontColor.on('click',                            _.bind(this.onBtnFontColor, this));
             toolbar.btnFontColor.on('color:select',                     _.bind(this.onSelectFontColor, this));
+            toolbar.btnFontColor.on('eyedropper:start',                 _.bind(this.onEyedropperStart, this));
+            toolbar.btnFontColor.on('eyedropper:end',                   _.bind(this.onEyedropperEnd, this));
+            this.mode.isEdit && Common.NotificationCenter.on('eyedropper:start', _.bind(this.eyedropperStart, this));
             toolbar.btnHighlightColor.on('click',                       _.bind(this.onBtnHighlightColor, this));
             toolbar.mnuHighlightColorPicker.on('select',                _.bind(this.onSelectHighlightColor, this));
             toolbar.mnuHighlightTransparent.on('click',                 _.bind(this.onHighlightTransparentClick, this));
             toolbar.btnLineSpace.menu.on('item:toggle',                 _.bind(this.onLineSpaceToggle, this));
+            toolbar.btnLineSpace.menu.on('item:click',                  _.bind(this.onLineSpaceClick, this));
             toolbar.btnColumns.menu.on('item:click',                    _.bind(this.onColumnsSelect, this));
             toolbar.btnColumns.menu.on('show:before',                   _.bind(this.onBeforeColumns, this));
             toolbar.btnShapeAlign.menu.on('item:click',                 _.bind(this.onShapeAlign, this));
             toolbar.btnShapeAlign.menu.on('show:before',                _.bind(this.onBeforeShapeAlign, this));
             toolbar.btnShapeArrange.menu.on('item:click',               _.bind(this.onShapeArrange, this));
+            toolbar.btnShapesMerge.menu.on('item:click',                _.bind(this.onClickMenuShapesMerge, this));
+            toolbar.btnShapesMerge.menu.on('show:before',               _.bind(this.onBeforeShapesMerge, this));
             toolbar.btnInsertHyperlink.on('click',                      _.bind(this.onHyperlinkClick, this));
             toolbar.mnuTablePicker.on('select',                         _.bind(this.onTablePickerSelect, this));
             toolbar.btnInsertTable.menu.on('item:click',                _.bind(this.onInsertTableClick, this));
@@ -357,7 +408,8 @@ define([
             toolbar.btnSlideSize.menu.on('item:click',                  _.bind(this.onSlideSize, this));
             toolbar.listTheme.on('click',                               _.bind(this.onListThemeSelect, this));
             toolbar.btnInsertEquation.on('click',                       _.bind(this.onInsertEquationClick, this));
-            toolbar.btnInsertSymbol.on('click',                         _.bind(this.onInsertSymbolClick, this));
+            toolbar.btnInsertSymbol.menu.items[2].on('click',                         _.bind(this.onInsertSymbolClick, this));
+            toolbar.mnuInsertSymbolsPicker.on('item:click',             _.bind(this.onInsertSymbolItemClick, this));
             toolbar.btnEditHeader.on('click',                           _.bind(this.onEditHeaderClick, this, 'header'));
             toolbar.btnInsDateTime.on('click',                          _.bind(this.onEditHeaderClick, this, 'datetime'));
             toolbar.btnInsSlideNum.on('click',                          _.bind(this.onEditHeaderClick, this, 'slidenum'));
@@ -366,6 +418,8 @@ define([
             toolbar.btnInsVideo && toolbar.btnInsVideo.on('click',      _.bind(this.onAddVideo, this));
 
             this.onSetupCopyStyleButton();
+            this.onBtnChangeState('undo:disabled', toolbar.btnUndo, toolbar.btnUndo.isDisabled());
+            this.onBtnChangeState('redo:disabled', toolbar.btnRedo, toolbar.btnRedo.isDisabled());
         },
 
         setApi: function(api) {
@@ -422,16 +476,28 @@ define([
                 this.api.asc_registerCallback('asc_onBeginSmartArtPreview', _.bind(this.onApiBeginSmartArtPreview, this));
                 this.api.asc_registerCallback('asc_onAddSmartArtPreview', _.bind(this.onApiAddSmartArtPreview, this));
                 this.api.asc_registerCallback('asc_onEndSmartArtPreview', _.bind(this.onApiEndSmartArtPreview, this));
+
+                this.api.asc_registerCallback('asc_onLockSlideHdrFtrApplyToAll', _.bind(this.onApiLockSlideHdrFtrApplyToAll, this, true));
+                this.api.asc_registerCallback('asc_onUnLockSlideHdrFtrApplyToAll', _.bind(this.onApiLockSlideHdrFtrApplyToAll, this, false));
+
+                this.api.asc_registerCallback('asc_onLayoutTitle',          _.bind(this.onApiLayoutTitle, this));
+                this.api.asc_registerCallback('asc_onLayoutFooter',         _.bind(this.onApiLayoutFooter, this));
             } else if (this.mode.isRestrictedEdit) {
                 this.api.asc_registerCallback('asc_onCountPages',           _.bind(this.onApiCountPagesRestricted, this));
             }
+            this.api.asc_registerCallback('onPluginToolbarMenu', _.bind(this.onPluginToolbarMenu, this));
+            this.api.asc_registerCallback('onPluginToolbarCustomMenuItems', _.bind(this.onPluginToolbarCustomMenuItems, this));
+            Common.NotificationCenter.on('document:ready', _.bind(this.onDocumentReady, this));
         },
 
-        onChangeCompactView: function(view, compact) {
+        onChangeCompactView: function(view, compact, suppressSave) {
             this.toolbar.setFolded(compact);
             this.toolbar.fireEvent('view:compact', [this.toolbar, compact]);
 
-            Common.localStorage.setBool('pe-compact-toolbar', compact);
+            compact && this.onTabCollapse();
+
+            !suppressSave && Common.localStorage.setBool(this.mode.isEdit ? "pe-compact-toolbar" : "pe-view-compact-toolbar", compact);
+
             Common.NotificationCenter.trigger('layout:changed', 'toolbar');
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
         },
@@ -562,8 +628,13 @@ define([
                                 if (type == Asc.asc_PreviewBulletType.char) {
                                     var symbol = bullet.asc_getChar();
                                     if (symbol) {
+                                        var custombullet = new Asc.asc_CBullet();
+                                        custombullet.asc_putSymbol(symbol);
+                                        custombullet.asc_putFont(bullet.asc_getSpecialFont());
+
                                         rec.get('data').subtype = 0x1000;
-                                        rec.set('drawdata', {type: type, char: symbol, specialFont: bullet.asc_getSpecialFont()});
+                                        rec.set('customBullet', custombullet);
+                                        rec.set('numberingInfo', JSON.stringify(custombullet.asc_getJsonBullet()));
                                         rec.set('tip', '');
                                         this.toolbar.mnuMarkersPicker.dataViewItems && this.updateBulletTip(this.toolbar.mnuMarkersPicker.dataViewItems[8], '');
                                         drawDefBullet = false;
@@ -572,8 +643,12 @@ define([
                                 } else if (type == Asc.asc_PreviewBulletType.image) {
                                     var id = bullet.asc_getImageId();
                                     if (id) {
+                                        var custombullet = new Asc.asc_CBullet();
+                                        custombullet.asc_fillBulletImage(id);
+
                                         rec.get('data').subtype = 0x1000;
-                                        rec.set('drawdata', {type: type, imageId: id});
+                                        rec.set('customBullet', custombullet);
+                                        rec.set('numberingInfo', JSON.stringify(custombullet.asc_getJsonBullet()));
                                         rec.set('tip', '');
                                         this.toolbar.mnuMarkersPicker.dataViewItems && this.updateBulletTip(this.toolbar.mnuMarkersPicker.dataViewItems[8], '');
                                         drawDefBullet = false;
@@ -620,7 +695,7 @@ define([
                 }
                 if (drawDefBullet) {
                     rec.get('data').subtype = 8;
-                    rec.set('drawdata', this.toolbar._markersArr[8]);
+                    rec.set('numberingInfo', this.toolbar._markersArr[8]);
                     rec.set('tip', this.toolbar.tipMarkersDash);
                     this.toolbar.mnuMarkersPicker.dataViewItems && this.updateBulletTip(this.toolbar.mnuMarkersPicker.dataViewItems[8], this.toolbar.tipMarkersDash);
                 }
@@ -645,7 +720,7 @@ define([
                 if (!(index < 0)) {
                     btnHorizontalAlign.menu.items[index].setChecked(true);
                 } else if (index == -255) {
-                    btnHorizontalAlign.menu.clearAll();
+                    btnHorizontalAlign.menu.clearAll(true);
                 }
 
                 if ( btnHorizontalAlign.rendered && btnHorizontalAlign.$icon ) {
@@ -673,7 +748,7 @@ define([
                 if (!(index < 0)) {
                     btnVerticalAlign.menu.items[index].setChecked(true);
                 } else if (index == -255) {
-                    btnVerticalAlign.menu.clearAll();
+                    btnVerticalAlign.menu.clearAll(true);
                 }
 
                 if ( btnVerticalAlign.rendered && btnVerticalAlign.$icon ) {
@@ -690,9 +765,7 @@ define([
                 this._state.linespace = line;
 
                 var mnuLineSpace = this.toolbar.btnLineSpace.menu;
-                _.each(mnuLineSpace.items, function(item){
-                    item.setChecked(false, true);
-                });
+                mnuLineSpace.clearAll(true);
                 if (line<0) return;
 
                 if ( Math.abs(line-1.)<0.0001 )
@@ -717,7 +790,7 @@ define([
             }
         },
 
-        onApiPageSize: function(width, height, type) {
+        onApiPageSize: function(width, height, type, firstNum) {
             if (Math.abs(this.currentPageSize.width - width) > 0.001 ||
                 Math.abs(this.currentPageSize.height - height) > 0.001 ||
                 this.currentPageSize.type !== type) {
@@ -737,22 +810,25 @@ define([
                 this.toolbar.btnSlideSize.menu.items[0].setChecked(idx == 0);
                 this.toolbar.btnSlideSize.menu.items[1].setChecked(idx == 1);
             }
+            (firstNum!==undefined) && (this.currentPageSize.firstNum = firstNum);
         },
 
         onApiCountPages: function(count) {
             if (this._state.no_slides !== (count<=0)) {
                 this._state.no_slides = (count<=0);
                 this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides, {array: this.toolbar.paragraphControls});
-                this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides, {array: [
-                    this.toolbar.btnChangeSlide, this.toolbar.btnPreview, this.toolbar.btnPrint, this.toolbar.btnCopy, this.toolbar.btnCut, this.toolbar.btnSelectAll, this.toolbar.btnPaste,
+                this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides, {array: this.toolbar.cmbsInsertShape.concat([
+                    this.toolbar.btnChangeSlide, this.toolbar.btnPreview, this.toolbar.btnPrint, this.toolbar.btnCopy, this.toolbar.btnCut, this.toolbar.btnSelectAll, this.toolbar.btnReplace, this.toolbar.btnPaste,
                     this.toolbar.btnCopyStyle, this.toolbar.btnInsertTable, this.toolbar.btnInsertChart, this.toolbar.btnInsertSmartArt,
-                    this.toolbar.btnColorSchemas, this.toolbar.btnShapeAlign, this.toolbar.cmbInsertShape,
+                    this.toolbar.btnColorSchemas, this.toolbar.btnShapeAlign, this.toolbar.btnShapesMerge,
                     this.toolbar.btnShapeArrange, this.toolbar.btnSlideSize,  this.toolbar.listTheme, this.toolbar.btnEditHeader, this.toolbar.btnInsDateTime, this.toolbar.btnInsSlideNum
-                ]});
+                ])});
                 this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides,
-                    { array:  this.toolbar.btnsInsertImage.concat(this.toolbar.btnsInsertText, this.toolbar.btnsInsertShape, this.toolbar.btnInsertEquation, this.toolbar.btnInsertTextArt, this.toolbar.btnInsAudio, this.toolbar.btnInsVideo) });
+                    { array:  this.toolbar.btnsInsertImage.concat(this.toolbar.btnsInsertText, this.toolbar.btnInsertEquation, this.toolbar.btnInsertTextArt, this.toolbar.btnInsAudio, this.toolbar.btnInsVideo) });
                 if (this.btnsComment)
                     this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides, { array:  this.btnsComment });
+                if (this.btnsDrawTab)
+                    this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides, { array:  this.btnsDrawTab });
             }
         },
 
@@ -776,12 +852,15 @@ define([
                 no_paragraph = true,
                 no_text = true,
                 no_object = true,
+                no_drawing_objects = this.api.asc_getSelectedDrawingObjectsCount()<1,
                 in_equation = false,
                 in_chart = false,
+                in_para = false,
                 layout_index = -1,
                 no_columns = false,
                 in_smartart = false,
-                in_smartart_internal = false;
+                in_smartart_internal = false,
+                in_slide_master = false;
 
             while (++i < selectedObjects.length) {
                 type = selectedObjects[i].get_ObjectType();
@@ -790,10 +869,12 @@ define([
                     paragraph_locked = pr.get_Locked();
                     no_paragraph = false;
                     no_text = false;
+                    in_para = true;
                 } else if (type == Asc.c_oAscTypeSelectElement.Slide) {
                     slide_deleted = pr.get_LockDelete();
                     slide_layout_lock = pr.get_LockLayout();
                     layout_index = pr.get_LayoutIndex();
+                    in_slide_master = pr.get_IsMasterSelected();
                 } else if (type == Asc.c_oAscTypeSelectElement.Image || type == Asc.c_oAscTypeSelectElement.Shape || type == Asc.c_oAscTypeSelectElement.Chart || type == Asc.c_oAscTypeSelectElement.Table) {
                     shape_locked = pr.get_Locked();
                     no_object = false;
@@ -833,6 +914,9 @@ define([
                 this._state.in_chart = in_chart;
             }
 
+            this.toolbar.lockToolbar(Common.enumLock.noParagraphObject, !in_para, {array: [me.toolbar.btnLineSpace]});
+            this.toolbar.lockToolbar(Common.enumLock.cantMergeShape, !this.api.asc_canMergeSelectedShapes(), { array: [this.toolbar.btnShapesMerge] });
+
             if (this._state.prcontrolsdisable !== paragraph_locked) {
                 if (this._state.activated) this._state.prcontrolsdisable = paragraph_locked;
                 if (paragraph_locked!==undefined)
@@ -851,14 +935,23 @@ define([
                 this.toolbar.lockToolbar(Common.enumLock.noTextSelected, no_text, {array: me.toolbar.paragraphControls});
             }
 
+            if (this._state.no_object !== no_object ) {
+                if (this._state.activated) this._state.no_object = no_object;
+                this.toolbar.lockToolbar(Common.enumLock.noObjectSelected, no_object, {array: [me.toolbar.btnVerticalAlign ]});
+            }
+
+            if (this._state.no_drawing_objects !== no_drawing_objects ) {
+                if (this._state.activated) this._state.no_drawing_objects = no_drawing_objects;
+                this.toolbar.lockToolbar(Common.enumLock.noDrawingObjects, no_drawing_objects, {array: [me.toolbar.btnShapeAlign, me.toolbar.btnShapeArrange, me.toolbar.btnShapesMerge]});
+            }
+
             if (shape_locked!==undefined && this._state.shapecontrolsdisable !== shape_locked) {
                 if (this._state.activated) this._state.shapecontrolsdisable = shape_locked;
                 this.toolbar.lockToolbar(Common.enumLock.shapeLock, shape_locked, {array: me.toolbar.shapeControls.concat(me.toolbar.paragraphControls)});
             }
 
-            if (this._state.no_object !== no_object ) {
-                if (this._state.activated) this._state.no_object = no_object;
-                this.toolbar.lockToolbar(Common.enumLock.noObjectSelected, no_object, {array: [me.toolbar.btnShapeAlign, me.toolbar.btnShapeArrange, me.toolbar.btnVerticalAlign ]});
+            if (shape_locked===undefined && !this._state.no_drawing_objects) { // several tables selected
+                this.toolbar.lockToolbar(Common.enumLock.shapeLock, false, {array: me.toolbar.shapeControls});
             }
 
             if (slide_layout_lock !== undefined && this._state.slidelayoutdisable !== slide_layout_lock ) {
@@ -902,6 +995,14 @@ define([
                 this.toolbar.mnuArrangeForward.setDisabled(in_smartart_internal);
                 this.toolbar.mnuArrangeBackward.setDisabled(in_smartart_internal);
             }
+
+            if (this._state.in_slide_master !== in_slide_master) {
+                this.toolbar.lockToolbar(Common.enumLock.inSlideMaster, in_slide_master, {array: [me.toolbar.btnInsertPlaceholder, me.toolbar.chTitle, me.toolbar.chFooters]});
+                this._state.in_slide_master = in_slide_master;
+            }
+
+            if (!this.toolbar.btnShapesMerge.isDisabled() && this.toolbar.isTabActive('home'))
+                Common.UI.TooltipManager.showTip('mergeShapes');
         },
 
         onApiStyleChange: function(v) {
@@ -1103,7 +1204,7 @@ define([
             if(newType != oldType) {
                 this.toolbar.btnPrint.changeIcon({
                     next: e.options.iconClsForMainBtn,
-                    curr: this.toolbar.btnPrint.menu.items.filter(function(item){return item.value == oldType;})[0].options.iconClsForMainBtn
+                    curr: this.toolbar.btnPrint.menu.getItems().filter(function(item){return item.value == oldType;})[0].options.iconClsForMainBtn
                 });
                 this.toolbar.btnPrint.updateHint([e.caption + e.options.platformKey]);
                 this.toolbar.btnPrint.options.printType = newType;
@@ -1116,13 +1217,13 @@ define([
             if (this.api && this.api.asc_isDocumentCanSave) {
                 var isModified = this.api.asc_isDocumentCanSave();
                 var isSyncButton = toolbar.btnCollabChanges && toolbar.btnCollabChanges.cmpEl.hasClass('notify');
-                if (!isModified && !isSyncButton && !this.toolbar.mode.forcesave)
+                if (!isModified && !isSyncButton && !this.toolbar.mode.forcesave && !toolbar.mode.canSaveDocumentToBinary)
                     return;
 
                 this.api.asc_Save();
             }
 
-            toolbar.btnSave.setDisabled(!toolbar.mode.forcesave);
+            toolbar.btnSave.setDisabled(!toolbar.mode.forcesave && !toolbar.mode.canSaveDocumentToBinary);
 
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             Common.component.Analytics.trackEvent('Save');
@@ -1179,6 +1280,10 @@ define([
 
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             Common.component.Analytics.trackEvent('ToolBar', 'Select All');
+        },
+
+        onReplace: function(e) {
+            this.getApplication().getController('LeftMenu').onShortcut('replace');
         },
 
         onIncrease: function(e) {
@@ -1396,7 +1501,8 @@ define([
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
         },
 
-        onComboOpen: function(needfocus, combo) {
+        onComboOpen: function(needfocus, combo, e, params) {
+            if (params && params.fromKeyDown) return;
             _.delay(function() {
                 var input = $('input', combo.cmpEl).select();
                 if (needfocus) input.focus();
@@ -1462,9 +1568,10 @@ define([
             var store = picker.store;
             var arr = [];
             store.each(function(item){
-                var data = item.get('drawdata');
-                data['divId'] = item.get('id');
-                arr.push(data);
+                arr.push({
+                    numberingInfo: {bullet: item.get('numberingInfo')==='undefined' ? undefined : JSON.parse(item.get('numberingInfo'))},
+                    divId: item.get('id')
+                });
             });
             if (this.api && this.api.SetDrawImagePreviewBulletForMenu) {
                 this.api.SetDrawImagePreviewBulletForMenu(arr, type);
@@ -1492,20 +1599,17 @@ define([
 
             if (this.api){
                 if (rawData.data.type===0 && rawData.data.subtype===0x1000) {// custom bullet
-                    var bullet = new Asc.asc_CBullet();
-                    if (rawData.drawdata.type===Asc.asc_PreviewBulletType.char) {
-                        bullet.asc_putSymbol(rawData.drawdata.char);
-                        bullet.asc_putFont(rawData.drawdata.specialFont);
-                    } else if (rawData.drawdata.type===Asc.asc_PreviewBulletType.image)
-                        bullet.asc_fillBulletImage(rawData.drawdata.imageId);
-                    var selectedElements = this.api.getSelectedElements();
-                    if (selectedElements && _.isArray(selectedElements)) {
-                        for (var i = 0; i< selectedElements.length; i++) {
-                            if (Asc.c_oAscTypeSelectElement.Paragraph == selectedElements[i].get_ObjectType()) {
-                                var props = selectedElements[i].get_ObjectValue();
-                                props.asc_putBullet(bullet);
-                                this.api.paraApply(props);
-                                break;
+                    var bullet = rawData.customBullet;
+                    if (bullet) {
+                        var selectedElements = this.api.getSelectedElements();
+                        if (selectedElements && _.isArray(selectedElements)) {
+                            for (var i = 0; i< selectedElements.length; i++) {
+                                if (Asc.c_oAscTypeSelectElement.Paragraph == selectedElements[i].get_ObjectType()) {
+                                    var props = selectedElements[i].get_ObjectValue();
+                                    props.asc_putBullet(bullet);
+                                    this.api.paraApply(props);
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1525,6 +1629,13 @@ define([
 
                 Common.NotificationCenter.trigger('edit:complete', this.toolbar);
                 Common.component.Analytics.trackEvent('ToolBar', 'Line Spacing');
+            }
+        },
+
+        onLineSpaceClick: function(menu, item) {
+            if (item.value==='options') {
+                this.getApplication().getController('RightMenu').onRightMenuOpen(Common.Utils.documentSettingsType.Paragraph);
+                Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             }
         },
 
@@ -1555,11 +1666,12 @@ define([
                                                     me.api.ShapeApply(value.shapeProps);
                                                 }
                                             }
-                                            me.fireEvent('editcomplete', me);
+
+                                            Common.NotificationCenter.trigger('edit:complete', me.toolbar);
                                         }
                                     });
                                 win.show();
-                                win.setActiveCategory(4);
+                                win.setActiveCategory(5);
                                 break;
                             }
                         }
@@ -1594,7 +1706,7 @@ define([
                 return;
 
             if (index < 0)
-                this.toolbar.btnColumns.menu.clearAll();
+                this.toolbar.btnColumns.menu.clearAll(true);
             else
                 this.toolbar.btnColumns.menu.items[index].setChecked(true);
             this._state.columns = index;
@@ -1659,6 +1771,21 @@ define([
             }
         },
 
+        onBeforeShapesMerge: function() {
+            Common.UI.TooltipManager.closeTip('mergeShapes', true);
+            this.toolbar.btnShapesMerge.menu.getItems(true).forEach(function (item) {
+                item.setDisabled(!this.api.asc_canMergeSelectedShapes(item.value)); 
+            }, this);
+        },
+
+        onClickMenuShapesMerge: function (menu, item) {
+            if (item && item.value) {
+                this.api.asc_mergeSelectedShapes(item.value); 
+                Common.component.Analytics.trackEvent('ToolBar', 'Shapes Merge'); 
+            }
+            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
+        },
+
         onHyperlinkClick: function(btn) {
             var me = this,
                 win, props, text;
@@ -1700,6 +1827,7 @@ define([
                 if (props) {
                     win = new PE.Views.HyperlinkSettingsDialog({
                         api: me.api,
+                        appOptions: me.appOptions,
                         handler: handlerDlg,
                         slides: _arr
                     });
@@ -1769,10 +1897,6 @@ define([
                                     me.api.AddImageUrl([checkUrl]);
 
                                     Common.component.Analytics.trackEvent('ToolBar', 'Image');
-                                } else {
-                                    Common.UI.warning({
-                                        msg: this.textEmptyImgUrl
-                                    });
                                 }
                             }
 
@@ -1826,12 +1950,12 @@ define([
         },
 
         onBtnInsertTextClick: function(btn, e) {
-            btn.menu.items.forEach(function(item) {
+            btn.menu.getItems(true).forEach(function(item) {
                 if(item.value == btn.options.textboxType) 
                 item.setChecked(true);
             });
             if(!btn.pressed) {
-                btn.menu.clearAll();
+                btn.menu.clearAll(true);
             } 
             this.onInsertText(btn.options.textboxType, btn, e);
         },
@@ -1847,7 +1971,7 @@ define([
                     button.updateHint([e.caption, self.views.Toolbar.prototype.tipInsertText]);
                     button.changeIcon({
                         next: e.options.iconClsForMainBtn,
-                        curr: button.menu.items.filter(function(item){return item.value == oldType})[0].options.iconClsForMainBtn
+                        curr: button.menu.getItems(true).filter(function(item){return item.value == oldType})[0].options.iconClsForMainBtn
                     });
                     button.options.textboxType = newType; 
                 });
@@ -1859,9 +1983,6 @@ define([
             if (this.api) 
                 this._addAutoshape(btn.pressed, type);
 
-            if ( this.toolbar.btnsInsertShape.pressed() )
-                this.toolbar.btnsInsertShape.toggle(false, true);
-
             Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             Common.component.Analytics.trackEvent('ToolBar', 'Add Text');
         },
@@ -1869,9 +1990,6 @@ define([
         onInsertShape: function (type) {
             var me = this;
             if ( type == 'menu:hide' ) {
-                if ( me.toolbar.btnsInsertShape.pressed() && !me._isAddingShape ) {
-                    me.toolbar.btnsInsertShape.toggle(false, true);
-                }
                 me._isAddingShape = false;
 
                 Common.NotificationCenter.trigger('edit:complete', me.toolbar);
@@ -1892,9 +2010,6 @@ define([
 
             me.toolbar.fireEvent('inserttextart', me.toolbar);
             me.api.AddTextArt(data);
-
-            if ( me.toolbar.btnsInsertShape.pressed() )
-                me.toolbar.btnsInsertShape.toggle(false, true);
 
             Common.NotificationCenter.trigger('edit:complete', me.toolbar);
             Common.component.Analytics.trackEvent('ToolBar', 'Add Text Art');
@@ -1934,6 +2049,7 @@ define([
                     api: this.api,
                     lang: this.api.asc_getDefaultLanguage(),
                     props: this.api.asc_getHeaderFooterProperties(),
+                    isLockedApplyToAll: this._state.isLockedSlideHeaderAppyToAll,
                     handler: function(result, value) {
                         if (result == 'ok' || result == 'all') {
                             if (me.api) {
@@ -1973,8 +2089,8 @@ define([
         onColorSchemaShow: function(menu) {
             if (this.api) {
                 var value = this.api.asc_GetCurrentColorSchemeIndex();
-                var item = _.find(menu.items, function(item) { return item.value == value; });
-                (item) ? item.setChecked(true) : menu.clearAll();
+                var item = _.find(menu.getItems(true), function(item) { return item.value == value; });
+                (item) ? item.setChecked(true) : menu.clearAll(true);
             }
         },
 
@@ -1984,11 +2100,12 @@ define([
                 this.currentPageSize = {
                     type    : this.slideSizeArr[item.value].type,
                     width   : newwidth,
-                    height  : this.currentPageSize.height
+                    height  : this.currentPageSize.height,
+                    firstNum  : this.currentPageSize.firstNum
                 };
 
                 if (this.api)
-                    this.api.changeSlideSize(this.currentPageSize.width, this.currentPageSize.height, this.currentPageSize.type);
+                    this.api.changeSlideSize(this.currentPageSize.width, this.currentPageSize.height, this.currentPageSize.type, this.currentPageSize.firstNum);
 
                 Common.NotificationCenter.trigger('edit:complete', this.toolbar);
                 Common.component.Analytics.trackEvent('ToolBar', 'Slide Size');
@@ -1999,7 +2116,7 @@ define([
                 var handlerDlg = function(dlg, result) {
                     if (result == 'ok') {
                         props = dlg.getSettings();
-                        me.currentPageSize = { type: props[0], width: props[1], height: props[2] };
+                        me.currentPageSize = { type: props[0], width: props[1], height: props[2], firstNum: props[3] };
                         var ratio = me.currentPageSize.height/me.currentPageSize.width,
                             idx = -1;
                         for (var i = 0; i < me.slideSizeArr.length; i++) {
@@ -2012,7 +2129,7 @@ define([
                         me.toolbar.btnSlideSize.menu.items[0].setChecked(idx == 0);
                         me.toolbar.btnSlideSize.menu.items[1].setChecked(idx == 1);
                         if (me.api)
-                            me.api.changeSlideSize(props[1], props[2], props[0]);
+                            me.api.changeSlideSize(props[1], props[2], props[0], props[3]);
                     }
 
                     Common.NotificationCenter.trigger('edit:complete', me.toolbar);
@@ -2022,7 +2139,7 @@ define([
                     handler: handlerDlg
                 });
                 win.show();
-                win.setSettings(me.currentPageSize.type, me.currentPageSize.width, me.currentPageSize.height);
+                win.setSettings(me.currentPageSize.type, me.currentPageSize.width, me.currentPageSize.height, me.currentPageSize.firstNum);
 
                 Common.component.Analytics.trackEvent('ToolBar', 'Slide Size');
             }
@@ -2130,19 +2247,7 @@ define([
                 (clr.effectValue !== this._state.clrtext.effectValue || this._state.clrtext.color.indexOf(clr.color) < 0)) ||
                 (type1 != 'object' && this._state.clrtext.indexOf(clr) < 0)) {
 
-                if (typeof(clr) == 'object') {
-                    var isselected = false;
-                    for ( var i = 0; i < 10; i++) {
-                        if (Common.Utils.ThemeColor.ThemeValues[i] == clr.effectValue) {
-                            picker.select(clr, true);
-                            isselected = true;
-                            break;
-                        }
-                    }
-                    if (!isselected) picker.clearSelection();
-                } else {
-                    picker.select(clr,true);
-                }
+                Common.Utils.ThemeColor.selectPickerColorByEffect(clr, picker);
                 this._state.clrtext = clr;
             }
             this._state.clrtext_asccolor = color;
@@ -2229,28 +2334,26 @@ define([
         onResetAutoshapes: function () {
             var me = this,
                 collection = PE.getCollection('ShapeGroups');
-            var onShowBefore = function(menu) {
-                me.toolbar.updateAutoshapeMenu(menu, collection);
-                menu.off('show:before', onShowBefore);
-            };
-            me.toolbar.btnsInsertShape.forEach(function (btn, index) {
-                btn.menu.on('show:before', onShowBefore);
-            });
             var onComboShowBefore = function (menu) {
                 me.toolbar.updateComboAutoshapeMenu(collection);
                 menu.off('show:before', onComboShowBefore);
             }
-            me.toolbar.cmbInsertShape.openButton.menu.on('show:before', onComboShowBefore);
-            me.toolbar.cmbInsertShape.fillComboView(collection);
-            me.toolbar.cmbInsertShape.on('click', function (btn, record, cancel) {
+            var onComboClick = function(btn, record, cancel) {
                 if (cancel) {
                     me._addAutoshape(false);
                     return;
                 }
                 if (record) {
-                    me.toolbar.cmbInsertShape.updateComboView(record);
+                    me.toolbar.cmbsInsertShape.forEach(function(cmb) {
+                        cmb.updateComboView(record);
+                    });
                     me.onInsertShape(record.get('data').shapeType);
                 }
+            }
+            me.toolbar.cmbsInsertShape.forEach(function(cmb) {
+                cmb.openButton.menu.on('show:before', onComboShowBefore);
+                cmb.fillComboView(collection);
+                cmb.on('click', onComboClick);
             });
         },
 
@@ -2261,11 +2364,9 @@ define([
         },
 
         fillEquations: function() {
-            if (!this.toolbar.btnInsertEquation.rendered || this.toolbar.btnInsertEquation.menu.items.length>0) return;
+            if (!this.toolbar.btnInsertEquation.rendered || this.toolbar.btnInsertEquation.menu.getItemsLength(true)>0) return;
 
             var me = this, equationsStore = this.getApplication().getCollection('EquationGroups');
-
-            me.toolbar.btnInsertEquation.menu.removeAll();
             var onShowAfter = function(menu) {
                 for (var i = 0; i < equationsStore.length; ++i) {
                     var equationPicker = new Common.UI.DataViewSimple({
@@ -2285,9 +2386,6 @@ define([
 
                             if (me.toolbar.btnsInsertText.pressed()) {
                                 me.toolbar.btnsInsertText.toggle(false, true);
-                            }
-                            if (me.toolbar.btnsInsertShape.pressed()) {
-                                me.toolbar.btnsInsertShape.toggle(false, true);
                             }
 
                             if (e.type !== 'click')
@@ -2309,12 +2407,12 @@ define([
                         menuAlign: 'tl-tr',
                         items: [
                             { template: _.template('<div id="id-toolbar-menu-equationgroup' + i +
-                                '" class="menu-shape" style="width:' + (equationGroup.get('groupWidth') + 8) + 'px; ' +
-                                equationGroup.get('groupHeightStr') + 'margin-left:5px;"></div>') }
+                                '" class="menu-shape margin-left-5" style="width:' + (equationGroup.get('groupWidth') + 8) + 'px; ' +
+                                equationGroup.get('groupHeightStr') + '"></div>') }
                         ]
                     })
                 });
-                me.toolbar.btnInsertEquation.menu.addItem(menuItem);
+                me.toolbar.btnInsertEquation.menu.addItem(menuItem, true);
             }
         },
 
@@ -2340,16 +2438,26 @@ define([
                         symbol: selected && selected.length>0 ? selected.charAt(0) : undefined,
                         handler: function(dlg, result, settings) {
                             if (result == 'ok') {
-                                me.api.asc_insertSymbol(settings.font ? settings.font : me.api.get_TextProps().get_TextPr().get_FontFamily().get_Name(), settings.code, settings.special);
+                                me.insertSymbol(settings.font, settings.code, settings.special, settings.speccharacter);
                             } else
                                 Common.NotificationCenter.trigger('edit:complete', me.toolbar);
                         }
                     });
                 win.show();
                 win.on('symbol:dblclick', function(cmp, result, settings) {
-                    me.api.asc_insertSymbol(settings.font ? settings.font : me.api.get_TextProps().get_TextPr().get_FontFamily().get_Name(), settings.code, settings.special);
-                });
+                    me.insertSymbol(settings.font, settings.code, settings.special, settings.speccharacter);                });
             }
+        },
+
+        onInsertSymbolItemClick: function(picker, item, record, e) {
+            if (this.api && record)
+                this.insertSymbol(record.get('font') , record.get('symbol'), record.get('special'));
+        },
+
+        insertSymbol: function(fontRecord, symbol, special, specCharacter){
+            var font = fontRecord ? fontRecord: this.api.get_TextProps().get_TextPr().get_FontFamily().get_Name();
+            this.api.asc_insertSymbol(font, symbol, special);
+            !specCharacter && this.toolbar.saveSymbol(symbol, font);
         },
 
         onApiMathTypes: function(equation) {
@@ -2571,7 +2679,7 @@ define([
 
                 Common.NotificationCenter.trigger('edit:complete', this);
             }
-
+            this._state.themeId = undefined;
             window.styles_loaded = true;
         },
 
@@ -2621,16 +2729,17 @@ define([
             toolbar.hideMoreBtns();
             toolbar.$el.find('.toolbar').toggleClass('masked', disable);
 
-            if (toolbar.btnsAddSlide) // toolbar buttons are rendered
-                this.toolbar.lockToolbar(Common.enumLock.menuFileOpen, disable, {array: toolbar.btnsAddSlide.concat(toolbar.btnChangeSlide, toolbar.btnPreview)});
+            if (toolbar.btnAddSlide) // toolbar buttons are rendered
+                this.toolbar.lockToolbar(Common.enumLock.menuFileOpen, disable, {array: [toolbar.btnAddSlide, toolbar.btnChangeSlide, toolbar.btnPreview]});
 
-            var hkComments = Common.Utils.isMac ? 'command+alt+a' : 'alt+h';
+            var hkComments = Common.Utils.isMac ? 'command+alt+a' : 'alt+h',
+                hkPreview = Common.Utils.isMac ? 'command+shift+enter' : 'ctrl+f5';
             if(disable) {
                 mask = $("<div class='toolbar-mask'>").appendTo(toolbar.$el.find('.toolbar'));
-                Common.util.Shortcuts.suspendEvents('command+k, ctrl+k, command+f5, ctrl+f5, ' + hkComments);
+                Common.util.Shortcuts.suspendEvents('command+k, ctrl+k, ' + hkPreview + ', ' + hkComments);
             } else {
                 mask.remove();
-                Common.util.Shortcuts.resumeEvents('command+k, ctrl+k, command+f5, ctrl+f5, ' + hkComments);
+                Common.util.Shortcuts.resumeEvents('command+k, ctrl+k, ' + hkPreview + ', ' + hkComments);
             }
         },
 
@@ -2638,31 +2747,44 @@ define([
             this.toolbar.createDelayedElements();
             this.attachUIEvents(this.toolbar);
             this._state.needCallApiBullets && this.onApiBullets(this._state.needCallApiBullets);
+            Common.Utils.injectSvgIcons();
         },
 
         onAppShowed: function (config) {
             var me = this;
 
-            var compactview = !config.isEdit;
-            if ( config.isEdit ) {
-                if ( Common.localStorage.itemExists("pe-compact-toolbar") ) {
-                    compactview = Common.localStorage.getBool("pe-compact-toolbar");
-                } else
-                if ( config.customization && config.customization.compactToolbar )
-                    compactview = true;
-
+            var editmode = config.isEdit,
+                compactview = !editmode;
+            if ( Common.localStorage.itemExists(editmode ? "pe-compact-toolbar" : "pe-view-compact-toolbar") ) {
+                compactview = Common.localStorage.getBool(editmode ? "pe-compact-toolbar" : "pe-view-compact-toolbar");
+            } else if (config.customization) {
+                compactview = editmode ? !!config.customization.compactToolbar : config.customization.compactToolbar!==false;
             }
-            me.toolbar.render(_.extend({compactview: compactview}, config));
+            Common.Utils.InternalSettings.set('toolbar-active-tab', !editmode && !compactview);
+
+            me.toolbar.render(_.extend({compactview: editmode ? compactview : true}, config));
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
             var $panel = me.getApplication().getController('Common.Controllers.ReviewChanges').createToolbarPanel();
             if ( $panel ) {
-                me.toolbar.addTab(tab, $panel, 4);
+                me.toolbar.addTab(tab, $panel, 5);
                 me.toolbar.setVisible('review', (config.isEdit || config.canViewReview || config.canCoAuthoring && config.canComments) && Common.UI.LayoutManager.isElementVisible('toolbar-collaboration'));
             }
 
             if ( config.isEdit ) {
                 me.toolbar.setMode(config);
+
+                var drawtab = me.getApplication().getController('Common.Controllers.Draw');
+                drawtab.setApi(me.api).setMode(config);
+                $panel = drawtab.createToolbarPanel();
+                if ($panel) {
+                    tab = {action: 'draw', caption: me.toolbar.textTabDraw, extcls: 'canedit', layoutname: 'toolbar-draw', dataHintTitle: 'C'};
+                    me.toolbar.addTab(tab, $panel, 2);
+                    me.toolbar.setVisible('draw', Common.UI.LayoutManager.isElementVisible('toolbar-draw'));
+                    me.btnsDrawTab = drawtab.getView().getButtons();
+                    Array.prototype.push.apply(me.toolbar.lockControls, me.btnsDrawTab);
+                    Array.prototype.push.apply(me.toolbar.slideOnlyControls, me.btnsDrawTab);
+                }
 
                 var transitController = me.getApplication().getController('Transitions');
                 transitController.setApi(me.api).setConfig({toolbar: me,mode:config}).createToolbarPanel();
@@ -2671,10 +2793,11 @@ define([
 
                 var animationController = me.getApplication().getController('Animation');
                 animationController.setApi(me.api).setConfig({toolbar: me,mode:config}).createToolbarPanel();
+                Array.prototype.push.apply(me.toolbar.slideOnlyControls,animationController.getView().getButtons());
 
                 me.toolbar.btnSave.on('disabled', _.bind(me.onBtnChangeState, me, 'save:disabled'));
 
-                if (!(config.customization && config.customization.compactHeader)) {
+                if (!config.compactHeader) {
                     // hide 'print' and 'save' buttons group and next separator
                     me.toolbar.btnPrint.$el.parents('.group').hide().next().hide();
 
@@ -2685,7 +2808,7 @@ define([
                     me.toolbar.btnPaste.$el.detach().appendTo($box);
                     me.toolbar.btnPaste.$el.find('button').attr('data-hint-direction', 'bottom');
                     me.toolbar.btnCopy.$el.removeClass('split');
-                    me.toolbar.processPanelVisible(null, true, true);
+                    me.toolbar.processPanelVisible(null, true);
                 }
 
                 if ( config.isDesktopApp ) {
@@ -2693,7 +2816,7 @@ define([
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
                         $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
                         if ($panel)
-                            me.toolbar.addTab(tab, $panel, 5);
+                            me.toolbar.addTab(tab, $panel, 6);
                     }
                 }
             }
@@ -2703,8 +2826,10 @@ define([
             viewtab.setApi(me.api).setConfig({toolbar: me, mode: config});
             $panel = viewtab.createToolbarPanel();
             if ($panel) {
-                me.toolbar.addTab(tab, $panel, 6);
-                me.toolbar.setVisible('view', Common.UI.LayoutManager.isElementVisible('toolbar-view'));
+                var visible = Common.UI.LayoutManager.isElementVisible('toolbar-view');
+                me.toolbar.addTab(tab, $panel, 7);
+                me.toolbar.setVisible('view', visible);
+                !editmode && !compactview && visible && Common.Utils.InternalSettings.set('toolbar-active-tab', 'view'); // need to activate later
             }
         },
 
@@ -2715,11 +2840,12 @@ define([
             this.btnsComment = [];
             if ( config.canCoAuthoring && config.canComments ) {
                 var _set = Common.enumLock;
-                this.btnsComment = Common.Utils.injectButtons(this.toolbar.$el.find('.slot-comment'), 'tlbtn-addcomment-', 'toolbar__icon btn-menu-comments', me.toolbar.capBtnComment, [_set.lostConnect, _set.noSlides], undefined, undefined, undefined, '1', 'bottom', 'small');
+                this.btnsComment = Common.Utils.injectButtons(this.toolbar.$el.find('.slot-comment'), 'tlbtn-addcomment-', 'toolbar__icon btn-big-add-comment', me.toolbar.capBtnComment, [_set.lostConnect, _set.noSlides, _set.slideMasterMode], undefined, undefined, undefined, '1', 'bottom', 'small');
 
                 if ( this.btnsComment.length ) {
                     var _comments = PE.getController('Common.Controllers.Comments').getView();
                     Array.prototype.push.apply(me.toolbar.lockControls, this.btnsComment);
+                    Common.UI.LayoutManager.addControls(this.btnsComment);
                     this.btnsComment.forEach(function (btn) {
                         btn.updateHint( _comments.textHintAddComment );
                         btn.on('click', function (btn, e) {
@@ -2728,10 +2854,18 @@ define([
                         if (btn.cmpEl.closest('#review-changes-panel').length>0)
                             btn.setCaption(me.toolbar.capBtnAddComment);
                     }, this);
-
+                    if (_comments.buttonAddNew) {
+                        _comments.buttonAddNew.options.lock = [ _set.lostConnect, _set.noSlides ];
+                        this.btnsComment.add(_comments.buttonAddNew);
+                    }
                     this.toolbar.lockToolbar(Common.enumLock.noSlides, this._state.no_slides, { array: this.btnsComment });
                 }
             }
+            Common.Utils.asyncCall(function () {
+                if ( config.isEdit ) {
+                    Common.UI.TooltipManager.showTip('tabDesign');
+                }
+            });
         },
 
         onFileMenu: function (opts) {
@@ -2763,12 +2897,31 @@ define([
             }
         },
 
-        generateSmartArt: function (groupName) {
+        mouseenterSmartArt: function (groupName, menu) {
+            if (this.smartArtGenerating === undefined) {
+                this.generateSmartArt(groupName, menu);
+            } else {
+                this.delayedSmartArt = groupName;
+                this.delayedSmartArtMenu = menu;
+            }
+        },
+
+        mouseleaveSmartArt: function (groupName) {
+            if (this.delayedSmartArt === groupName) {
+                this.delayedSmartArt = undefined;
+            }
+        },
+
+        generateSmartArt: function (groupName, menu) {
+            this.docHolderMenu = menu;
             this.api.asc_generateSmartArtPreviews(groupName);
         },
 
-        onApiBeginSmartArtPreview: function () {
-            this.smartArtGroups = this.toolbar.btnInsertSmartArt.menu.items;
+        onApiBeginSmartArtPreview: function (type) {
+            this.smartArtGenerating = type;
+            this.smartArtGroups = this.docHolderMenu ? this.docHolderMenu.items : this.toolbar.btnInsertSmartArt.menu.getItems(true);
+            var menuPicker = _.findWhere(this.smartArtGroups, {value: type}).menuPicker;
+            menuPicker.loaded = true;
             this.smartArtData = Common.define.smartArt.getSmartArtData();
         },
 
@@ -2779,27 +2932,32 @@ define([
                     section = _.findWhere(this.smartArtData, {sectionId: sectionId}),
                     item = _.findWhere(section.items, {type: image.asc_getName()}),
                     menu = _.findWhere(this.smartArtGroups, {value: sectionId}),
-                    menuPicker = menu.menuPicker;
-                if (item) {
-                    var arr = [{
-                        tip: item.tip,
-                        value: item.type,
-                        imageUrl: image.asc_getImage()
-                    }];
-                    if (menuPicker.store.length < 1) {
-                        menuPicker.store.reset(arr);
-                    } else {
-                        menuPicker.store.add(arr);
-                    }
+                    menuPicker = menu.menuPicker,
+                    pickerItem = menuPicker.store.findWhere({isLoading: true});
+                if (pickerItem) {
+                    pickerItem.set('isLoading', false, {silent: true});
+                    pickerItem.set('value', item.type, {silent: true});
+                    pickerItem.set('imageUrl', image.asc_getImage(), {silent: true});
+                    pickerItem.set('tip', item.tip);
                 }
-                this.currentSmartArtMenu = menu;
+                this.currentSmartArtCategoryMenu = menu;
             }, this));
         },
 
         onApiEndSmartArtPreview: function () {
-            if (this.currentSmartArtMenu) {
-                this.currentSmartArtMenu.menu.alignPosition();
+            this.smartArtGenerating = undefined;
+            if (this.currentSmartArtCategoryMenu) {
+                this.currentSmartArtCategoryMenu.menu.alignPosition();
             }
+            if (this.delayedSmartArt !== undefined) {
+                var delayedSmartArt = this.delayedSmartArt;
+                this.delayedSmartArt = undefined;
+                this.generateSmartArt(delayedSmartArt, this.delayedSmartArtMenu);
+            }
+        },
+
+        onApiLockSlideHdrFtrApplyToAll: function(isLocked) {
+            this._state.isLockedSlideHeaderAppyToAll = isLocked;
         },
 
         onInsertSmartArt: function (value) {
@@ -2808,352 +2966,205 @@ define([
             }
         },
 
-        textEmptyImgUrl : 'You need to specify image URL.',
-        textWarning     : 'Warning',
-        textFontSizeErr : 'The entered value is incorrect.<br>Please enter a numeric value between 1 and 300',
-        confirmAddFontName: 'The font you are going to save is not available on the current device.<br>The text style will be displayed using one of the device fonts, the saved font will be used when it is available.<br>Do you want to continue?',
-        textSymbols                                : 'Symbols',
-        textFraction                               : 'Fraction',
-        textScript                                 : 'Script',
-        textRadical                                : 'Radical',
-        textIntegral                               : 'Integral',
-        textLargeOperator                          : 'Large Operator',
-        textBracket                                : 'Bracket',
-        textFunction                               : 'Function',
-        textAccent                                 : 'Accent',
-        textLimitAndLog                            : 'Limit And Log',
-        textOperator                               : 'Operator',
-        textMatrix                                 : 'Matrix',
+        eyedropperStart: function () {
+            if (this.toolbar.btnCopyStyle.pressed) {
+                this.toolbar.btnCopyStyle.toggle(false, true);
+                this.api.SetPaintFormat(AscCommon.c_oAscFormatPainterState.kOff);
+                this.modeAlwaysSetStyle = false;
+            }
+            if (this.toolbar.btnHighlightColor.pressed)
+                this.toolbar.btnHighlightColor.toggle(false, true);
+        },
 
-        txtSymbol_pm                               : 'Plus Minus',
-        txtSymbol_infinity                         : 'Infinity',
-        txtSymbol_equals                           : 'Equal',
-        txtSymbol_neq                              : 'Not Equal To',
-        txtSymbol_about                            : 'Approximately',
-        txtSymbol_times                            : 'Multiplication Sign',
-        txtSymbol_div                              : 'Division Sign',
-        txtSymbol_factorial                        : 'Factorial',
-        txtSymbol_propto                           : 'Proportional To',
-        txtSymbol_less                             : 'Less Than',
-        txtSymbol_ll                               : 'Much Less Than',
-        txtSymbol_greater                          : 'Greater Than',
-        txtSymbol_gg                               : 'Much Greater Than',
-        txtSymbol_leq                              : 'Less Than or Equal To',
-        txtSymbol_geq                              : 'Greater Than or Equal To',
-        txtSymbol_mp                               : 'Minus Plus',
-        txtSymbol_cong                             : 'Approximately Equal To',
-        txtSymbol_approx                           : 'Almost Equal To',
-        txtSymbol_equiv                            : 'Identical To',
-        txtSymbol_forall                           : 'For All',
-        txtSymbol_additional                       : 'Complement',
-        txtSymbol_partial                          : 'Partial Differential',
-        txtSymbol_sqrt                             : 'Radical Sign',
-        txtSymbol_cbrt                             : 'Cube Root',
-        txtSymbol_qdrt                             : 'Fourth Root',
-        txtSymbol_cup                              : 'Union',
-        txtSymbol_cap                              : 'Intersection',
-        txtSymbol_emptyset                         : 'Empty Set',
-        txtSymbol_percent                          : 'Percentage',
-        txtSymbol_degree                           : 'Degrees',
-        txtSymbol_fahrenheit                       : 'Degrees Fahrenheit',
-        txtSymbol_celsius                          : 'Degrees Celsius',
-        txtSymbol_inc                              : 'Increment',
-        txtSymbol_nabla                            : 'Nabla',
-        txtSymbol_exists                           : 'There Exist',
-        txtSymbol_notexists                        : 'There Does Not Exist',
-        txtSymbol_in                               : 'Element Of',
-        txtSymbol_ni                               : 'Contains as Member',
-        txtSymbol_leftarrow                        : 'Left Arrow',
-        txtSymbol_uparrow                          : 'Up Arrow',
-        txtSymbol_rightarrow                       : 'Right Arrow',
-        txtSymbol_downarrow                        : 'Down Arrow',
-        txtSymbol_leftrightarrow                   : 'Left-Right Arrow',
-        txtSymbol_therefore                        : 'Therefore',
-        txtSymbol_plus                             : 'Plus',
-        txtSymbol_minus                            : 'Minus',
-        txtSymbol_not                              : 'Not Sign',
-        txtSymbol_ast                              : 'Asterisk Operator',
-        txtSymbol_bullet                           : 'Bulet Operator',
-        txtSymbol_vdots                            : 'Vertical Ellipsis',
-        txtSymbol_cdots                            : 'Midline Horizontal Ellipsis',
-        txtSymbol_rddots                           : 'Up Right Diagonal Ellipsis',
-        txtSymbol_ddots                            : 'Down Right Diagonal Ellipsis',
-        txtSymbol_aleph                            : 'Alef',
-        txtSymbol_beth                             : 'Bet',
-        txtSymbol_qed                              : 'End of Proof',
-        txtSymbol_alpha                            : 'Alpha',
-        txtSymbol_beta                             : 'Beta',
-        txtSymbol_gamma                            : 'Gamma',
-        txtSymbol_delta                            : 'Delta',
-        txtSymbol_varepsilon                       : 'Epsilon Variant',
-        txtSymbol_epsilon                          : 'Epsilon',
-        txtSymbol_zeta                             : 'Zeta',
-        txtSymbol_eta                              : 'Eta',
-        txtSymbol_theta                            : 'Theta',
-        txtSymbol_vartheta                         : 'Theta Variant',
-        txtSymbol_iota                             : 'Iota',
-        txtSymbol_kappa                            : 'Kappa',
-        txtSymbol_lambda                           : 'Lambda',
-        txtSymbol_mu                               : 'Mu',
-        txtSymbol_nu                               : 'Nu',
-        txtSymbol_xsi                              : 'Xi',
-        txtSymbol_o                                : 'Omicron',
-        txtSymbol_pi                               : 'Pi',
-        txtSymbol_varpi                            : 'Pi Variant',
-        txtSymbol_rho                              : 'Rho',
-        txtSymbol_varrho                           : 'Rho Variant',
-        txtSymbol_sigma                            : 'Sigma',
-        txtSymbol_varsigma                         : 'Sigma Variant',
-        txtSymbol_tau                              : 'Tau',
-        txtSymbol_upsilon                          : 'Upsilon',
-        txtSymbol_varphi                           : 'Phi Variant',
-        txtSymbol_phi                              : 'Phi',
-        txtSymbol_chi                              : 'Chi',
-        txtSymbol_psi                              : 'Psi',
-        txtSymbol_omega                            : 'Omega',
+        onEyedropperStart: function (btn) {
+            this.toolbar._isEyedropperStart = true;
+            this.api.asc_startEyedropper(_.bind(btn.eyedropperEnd, btn));
+        },
 
-        txtFractionVertical                        : 'Stacked Fraction',
-        txtFractionDiagonal                        : 'Skewed Fraction',
-        txtFractionHorizontal                      : 'Linear Fraction',
-        txtFractionSmall                           : 'Small Fraction',
-        txtFractionDifferential_1                  : 'Differential',
-        txtFractionDifferential_2                  : 'Differential',
-        txtFractionDifferential_3                  : 'Differential',
-        txtFractionDifferential_4                  : 'Differential',
-        txtFractionPi_2                            : 'Pi Over 2',
+        onEyedropperEnd: function () {
+            this.toolbar._isEyedropperStart = false;
+        },
 
-        txtScriptSup                               : 'Superscript',
-        txtScriptSub                               : 'Subscript',
-        txtScriptSubSup                            : 'Subscript-Superscript',
-        txtScriptSubSupLeft                        : 'Left Subscript-Superscript',
-        txtScriptCustom_1                          : 'Script',
-        txtScriptCustom_2                          : 'Script',
-        txtScriptCustom_3                          : 'Script',
-        txtScriptCustom_4                          : 'Script',
+        onPluginToolbarMenu: function(data) {
+            var api = this.api;
+            this.toolbar && Array.prototype.push.apply(this.toolbar.lockControls, Common.UI.LayoutManager.addCustomControls(this.toolbar, data, function(guid, value, pressed) {
+                api && api.onPluginToolbarMenuItemClick(guid, value, pressed);
+            }));
+        },
 
-        txtRadicalSqrt                             : 'Square Root',
-        txtRadicalRoot_n                           : 'Radical With Degree',
-        txtRadicalRoot_2                           : 'Square Root With Degree',
-        txtRadicalRoot_3                           : 'Cubic Root',
-        txtRadicalCustom_1                         : 'Radical',
-        txtRadicalCustom_2                         : 'Radical',
+        onPluginToolbarCustomMenuItems: function(action, data) {
+            if (!this._isDocReady) {
+                this._state.customPluginData = (this._state.customPluginData || []).concat([{action: action, data: data}]);
+                return;
+            }
+            var api = this.api;
+            this.toolbar && Common.UI.LayoutManager.addCustomMenuItems(action, data, function(guid, value) {
+                api && api.onPluginContextMenuItemClick(guid, value);
+            });
+        },
 
-        txtIntegral                                : 'Integral',
-        txtIntegralSubSup                          : 'Integral',
-        txtIntegralCenterSubSup                    : 'Integral',
-        txtIntegralDouble                          : 'Double Integral',
-        txtIntegralDoubleSubSup                    : 'Double Integral',
-        txtIntegralDoubleCenterSubSup              : 'Double Integral',
-        txtIntegralTriple                          : 'Triple Integral',
-        txtIntegralTripleSubSup                    : 'Triple Integral',
-        txtIntegralTripleCenterSubSup              : 'Triple Integral',
-        txtIntegralOriented                        : 'Contour Integral',
-        txtIntegralOrientedSubSup                  : 'Contour Integral',
-        txtIntegralOrientedCenterSubSup            : 'Contour Integral',
-        txtIntegralOrientedDouble                  : 'Surface Integral',
-        txtIntegralOrientedDoubleSubSup            : 'Surface Integral',
-        txtIntegralOrientedDoubleCenterSubSup      : 'Surface Integral',
-        txtIntegralOrientedTriple                  : 'Volume Integral',
-        txtIntegralOrientedTripleSubSup            : 'Volume Integral',
-        txtIntegralOrientedTripleCenterSubSup      : 'Volume Integral',
-        txtIntegral_dx                             : 'Differential x',
-        txtIntegral_dy                             : 'Differential y',
-        txtIntegral_dtheta                         : 'Differential theta',
+        onDocumentReady: function() {
+            this._isDocReady = true;
+            var me = this;
+            this._state.customPluginData && this._state.customPluginData.forEach(function(plugin) {
+                me.onPluginToolbarCustomMenuItems(plugin.action, plugin.data);
+            });
+            this._state.customPluginData = null;
+        },
 
-        txtLargeOperator_Sum                       : 'Summation',
-        txtLargeOperator_Sum_CenterSubSup          : 'Summation',
-        txtLargeOperator_Sum_SubSup                : 'Summation',
-        txtLargeOperator_Sum_CenterSub             : 'Summation',
-        txtLargeOperator_Sum_Sub                   : 'Summation',
-        txtLargeOperator_Prod                      : 'Product',
-        txtLargeOperator_Prod_CenterSubSup         : 'Product',
-        txtLargeOperator_Prod_SubSup               : 'Product',
-        txtLargeOperator_Prod_CenterSub            : 'Product',
-        txtLargeOperator_Prod_Sub                  : 'Product',
-        txtLargeOperator_CoProd                    : 'Co-Product',
-        txtLargeOperator_CoProd_CenterSubSup       : 'Co-Product',
-        txtLargeOperator_CoProd_SubSup             : 'Co-Product',
-        txtLargeOperator_CoProd_CenterSub          : 'Co-Product',
-        txtLargeOperator_CoProd_Sub                : 'Co-Product',
-        txtLargeOperator_Union                     : 'Union',
-        txtLargeOperator_Union_CenterSubSup        : 'Union',
-        txtLargeOperator_Union_SubSup              : 'Union',
-        txtLargeOperator_Union_CenterSub           : 'Union',
-        txtLargeOperator_Union_Sub                 : 'Union',
-        txtLargeOperator_Intersection              : 'Intersection',
-        txtLargeOperator_Intersection_CenterSubSup : 'Intersection',
-        txtLargeOperator_Intersection_SubSup       : 'Intersection',
-        txtLargeOperator_Intersection_CenterSub    : 'Intersection',
-        txtLargeOperator_Intersection_Sub          : 'Intersection',
-        txtLargeOperator_Disjunction               : 'Vee',
-        txtLargeOperator_Disjunction_CenterSubSup  : 'Vee',
-        txtLargeOperator_Disjunction_SubSup        : 'Vee',
-        txtLargeOperator_Disjunction_CenterSub     : 'Vee',
-        txtLargeOperator_Disjunction_Sub           : 'Vee',
-        txtLargeOperator_Conjunction               : 'Wedge',
-        txtLargeOperator_Conjunction_CenterSubSup  : 'Wedge',
-        txtLargeOperator_Conjunction_SubSup        : 'Wedge',
-        txtLargeOperator_Conjunction_CenterSub     : 'Wedge',
-        txtLargeOperator_Conjunction_Sub           : 'Wedge',
-        txtLargeOperator_Custom_1                  : 'Summation',
-        txtLargeOperator_Custom_2                  : 'Summation',
-        txtLargeOperator_Custom_3                  : 'Summation',
-        txtLargeOperator_Custom_4                  : 'Product',
-        txtLargeOperator_Custom_5                  : 'Union',
+        onChangeViewMode: function (mode) { // master or normal
+            var isMaster = mode==='master';
+            this.toolbar.$el.find('.master-slide-mode')[isMaster?'show':'hide']();
+            this.toolbar.$el.find('.normal-mode')[!isMaster?'show':'hide']();
+            this.toolbar.lockToolbar(Common.enumLock.slideMasterMode, isMaster, { array:  this.btnsComment.concat([this.toolbar.btnInsertHyperlink]) });
 
-        txtBracket_Round                           : 'Brackets',
-        txtBracket_Square                          : 'Brackets',
-        txtBracket_Curve                           : 'Brackets',
-        txtBracket_Angle                           : 'Brackets',
-        txtBracket_LowLim                          : 'Brackets',
-        txtBracket_UppLim                          : 'Brackets',
-        txtBracket_Line                            : 'Brackets',
-        txtBracket_LineDouble                      : 'Brackets',
-        txtBracket_Square_OpenOpen                 : 'Brackets',
-        txtBracket_Square_CloseClose               : 'Brackets',
-        txtBracket_Square_CloseOpen                : 'Brackets',
-        txtBracket_SquareDouble                    : 'Brackets',
+            this._state.viewMode = mode;
 
-        txtBracket_Round_Delimiter_2               : 'Brackets with Separators',
-        txtBracket_Curve_Delimiter_2               : 'Brackets with Separators',
-        txtBracket_Angle_Delimiter_2               : 'Brackets with Separators',
-        txtBracket_Angle_Delimiter_3               : 'Brackets with Separators',
-        txtBracket_Round_OpenNone                  : 'Single Bracket',
-        txtBracket_Round_NoneOpen                  : 'Single Bracket',
-        txtBracket_Square_OpenNone                 : 'Single Bracket',
-        txtBracket_Square_NoneOpen                 : 'Single Bracket',
-        txtBracket_Curve_OpenNone                  : 'Single Bracket',
-        txtBracket_Curve_NoneOpen                  : 'Single Bracket',
-        txtBracket_Angle_OpenNone                  : 'Single Bracket',
-        txtBracket_Angle_NoneOpen                  : 'Single Bracket',
-        txtBracket_LowLim_OpenNone                 : 'Single Bracket',
-        txtBracket_LowLim_NoneNone                 : 'Single Bracket',
-        txtBracket_UppLim_OpenNone                 : 'Single Bracket',
-        txtBracket_UppLim_NoneOpen                 : 'Single Bracket',
-        txtBracket_Line_OpenNone                   : 'Single Bracket',
-        txtBracket_Line_NoneOpen                   : 'Single Bracket',
-        txtBracket_LineDouble_OpenNone             : 'Single Bracket',
-        txtBracket_LineDouble_NoneOpen             : 'Single Bracket',
-        txtBracket_SquareDouble_OpenNone           : 'Single Bracket',
-        txtBracket_SquareDouble_NoneOpen           : 'Single Bracket',
-        txtBracket_Custom_1                        : 'Case (Two Conditions)',
-        txtBracket_Custom_2                        : 'Cases (Three Conditions)',
-        txtBracket_Custom_3                        : 'Stack Object',
-        txtBracket_Custom_4                        : 'Stack Object',
-        txtBracket_Custom_5                        : 'Cases Example',
-        txtBracket_Custom_6                        : 'Binomial Coefficient',
-        txtBracket_Custom_7                        : 'Binomial Coefficient',
+            if(isMaster) this.toolbar.setTab('ins');
+            else this.showStaticElements();
 
-        txtFunction_Sin                            : 'Sine Function',
-        txtFunction_Cos                            : 'Cosine Function',
-        txtFunction_Tan                            : 'Tangent Function',
-        txtFunction_Csc                            : 'Cosecant Function',
-        txtFunction_Sec                            : 'Secant Function',
-        txtFunction_Cot                            : 'Cotangent Function',
-        txtFunction_1_Sin                          : 'Inverse Sine Function',
-        txtFunction_1_Cos                          : 'Inverse Cosine Function',
-        txtFunction_1_Tan                          : 'Inverse Tangent Function',
-        txtFunction_1_Csc                          : 'Inverse Cosecant Function',
-        txtFunction_1_Sec                          : 'Inverse Secant Function',
-        txtFunction_1_Cot                          : 'Inverse Cotangent Function',
-        txtFunction_Sinh                           : 'Hyperbolic Sine Function',
-        txtFunction_Cosh                           : 'Hyperbolic Cosine Function',
-        txtFunction_Tanh                           : 'Hyperbolic Tangent Function',
-        txtFunction_Csch                           : 'Hyperbolic Cosecant Function',
-        txtFunction_Sech                           : 'Hyperbolic Secant Function',
-        txtFunction_Coth                           : 'Hyperbolic Cotangent Function',
-        txtFunction_1_Sinh                         : 'Hyperbolic Inverse Sine Function',
-        txtFunction_1_Cosh                         : 'Hyperbolic Inverse Cosine Function',
-        txtFunction_1_Tanh                         : 'Hyperbolic Inverse Tangent Function',
-        txtFunction_1_Csch                         : 'Hyperbolic Inverse Cosecant Function',
-        txtFunction_1_Sech                         : 'Hyperbolic Inverse Secant Function',
-        txtFunction_1_Coth                         : 'Hyperbolic Inverse Cotangent Function',
-        txtFunction_Custom_1                       : 'Sine theta',
-        txtFunction_Custom_2                       : 'Cos 2x',
-        txtFunction_Custom_3                       : 'Tangent formula',
+            Common.NotificationCenter.trigger('tab:visible', 'transit', !isMaster);
+            Common.NotificationCenter.trigger('tab:visible', 'animate', !isMaster);
+        },
 
-        txtAccent_Dot                              : 'Dot',
-        txtAccent_DDot                             : 'Double Dot',
-        txtAccent_DDDot                            : 'Triple Dot',
-        txtAccent_Hat                              : 'Hat',
-        txtAccent_Check                            : 'Check',
-        txtAccent_Accent                           : 'Acute',
-        txtAccent_Grave                            : 'Grave',
-        txtAccent_Smile                            : 'Breve',
-        txtAccent_Tilde                            : 'Tilde',
-        txtAccent_Bar                              : 'Bar',
-        txtAccent_DoubleBar                        : 'Double Overbar',
-        txtAccent_CurveBracketTop                  : 'Overbrace',
-        txtAccent_CurveBracketBot                  : 'Underbrace',
-        txtAccent_GroupTop                         : 'Grouping Character Above',
-        txtAccent_GroupBot                         : 'Grouping Character Below',
-        txtAccent_ArrowL                           : 'Leftwards Arrow Above',
-        txtAccent_ArrowR                           : 'Rightwards Arrow Above',
-        txtAccent_ArrowD                           : 'Right-Left Arrow Above',
-        txtAccent_HarpoonL                         : 'Leftwards Harpoon Above',
-        txtAccent_HarpoonR                         : 'Rightwards Harpoon Above',
-        txtAccent_BorderBox                        : 'Boxed Formula (With Placeholder)',
-        txtAccent_BorderBoxCustom                  : 'Boxed Formula (Example)',
-        txtAccent_BarTop                           : 'Overbar',
-        txtAccent_BarBot                           : 'Underbar',
-        txtAccent_Custom_1                         : 'Vector A',
-        txtAccent_Custom_2                         : 'ABC With Overbar',
-        txtAccent_Custom_3                         : 'x XOR y With Overbar',
+        onInsertSlideMaster: function () {
+            this.api.asc_AddMasterSlide();
+        },
 
-        txtLimitLog_LogBase                        : 'Logarithm',
-        txtLimitLog_Log                            : 'Logarithm',
-        txtLimitLog_Lim                            : 'Limit',
-        txtLimitLog_Min                            : 'Minimum',
-        txtLimitLog_Max                            : 'Maximum',
-        txtLimitLog_Ln                             : 'Natural Logarithm',
-        txtLimitLog_Custom_1                       : 'Limit Example',
-        txtLimitLog_Custom_2                       : 'Maximum Example',
+        onInsertLayout: function () {
+            this.api.asc_AddSlideLayout();
+        },
 
-        txtOperator_ColonEquals                    : 'Colon Equal',
-        txtOperator_EqualsEquals                   : 'Equal Equal',
-        txtOperator_PlusEquals                     : 'Plus Equal',
-        txtOperator_MinusEquals                    : 'Minus Equal',
-        txtOperator_Definition                     : 'Equal to By Definition',
-        txtOperator_UnitOfMeasure                  : 'Measured By',
-        txtOperator_DeltaEquals                    : 'Delta Equal To',
-        txtOperator_ArrowL_Top                     : 'Leftwards Arrow Above',
-        txtOperator_ArrowR_Top                     : 'Rightwards Arrow Above',
-        txtOperator_ArrowL_Bot                     : 'Leftwards Arrow Below',
-        txtOperator_ArrowR_Bot                     : 'Rightwards Arrow Below',
-        txtOperator_DoubleArrowL_Top               : 'Leftwards Arrow Above',
-        txtOperator_DoubleArrowR_Top               : 'Rightwards Arrow Above',
-        txtOperator_DoubleArrowL_Bot               : 'Leftwards Arrow Below',
-        txtOperator_DoubleArrowR_Bot               : 'Rightwards Arrow Below',
-        txtOperator_ArrowD_Top                     : 'Right-Left Arrow Above',
-        txtOperator_ArrowD_Bot                     : 'Right-Left Arrow Above',
-        txtOperator_DoubleArrowD_Top               : 'Right-Left Arrow Below',
-        txtOperator_DoubleArrowD_Bot               : 'Right-Left Arrow Below',
-        txtOperator_Custom_1                       : 'Yileds',
-        txtOperator_Custom_2                       : 'Delta Yields',
+        onBtnInsertPlaceholder: function (btn, e) {
+            btn.menu.getItems(true).forEach(function(item) {
+                if(item.value == btn.options.currentType)
+                    item.setChecked(true);
+            });
+            if(!btn.pressed) {
+                btn.menu.clearAll(true);
+            }
+            this.onInsertPlaceholder(btn.options.currentType, btn, e);
+        },
 
-        txtMatrix_1_2                              : '1x2 Empty Matrix',
-        txtMatrix_2_1                              : '2x1 Empty Matrix',
-        txtMatrix_1_3                              : '1x3 Empty Matrix',
-        txtMatrix_3_1                              : '3x1 Empty Matrix',
-        txtMatrix_2_2                              : '2x2 Empty Matrix',
-        txtMatrix_2_3                              : '2x3 Empty Matrix',
-        txtMatrix_3_2                              : '3x2 Empty Matrix',
-        txtMatrix_3_3                              : '3x3 Empty Matrix',
-        txtMatrix_Dots_Center                      : 'Midline Dots',
-        txtMatrix_Dots_Baseline                    : 'Baseline Dots',
-        txtMatrix_Dots_Vertical                    : 'Vertical Dots',
-        txtMatrix_Dots_Diagonal                    : 'Diagonal Dots',
-        txtMatrix_Identity_2                       : '2x2 Identity Matrix',
-        txtMatrix_Identity_2_NoZeros               : '3x3 Identity Matrix',
-        txtMatrix_Identity_3                       : '3x3 Identity Matrix',
-        txtMatrix_Identity_3_NoZeros               : '3x3 Identity Matrix',
-        txtMatrix_2_2_RoundBracket                 : 'Empty Matrix with Brackets',
-        txtMatrix_2_2_SquareBracket                : 'Empty Matrix with Brackets',
-        txtMatrix_2_2_LineBracket                  : 'Empty Matrix with Brackets',
-        txtMatrix_2_2_DLineBracket                 : 'Empty Matrix with Brackets',
-        txtMatrix_Flat_Round                       : 'Sparse Matrix',
-        txtMatrix_Flat_Square                      : 'Sparse Matrix',
-        textInsert: 'Insert'
+        onMenuInsertPlaceholder: function (btn, e) {
+            var oldType = btn.options.currentType;
+            var newType = e.value;
+
+            if(newType != oldType){
+                btn.updateHint([e.options.hintForMainBtn, this.views.Toolbar.prototype.tipInsertPlaceholder]);
+                btn.changeIcon({
+                    next: e.options.iconClsForMainBtn,
+                    curr: btn.menu.getItems(true).filter(function(item){return item.value == oldType})[0].options.iconClsForMainBtn
+                });
+                btn.options.currentType = newType;
+            }
+            this.onInsertPlaceholder(newType, btn, e);
+        },
+
+        onInsertPlaceholder: function (type, btn, e) {
+            var value,
+                isVertical;
+            switch (type) {
+                case 1:
+                    value = null;
+                    break;
+                case 2:
+                    value = null;
+                    isVertical = true;
+                    break;
+                case 3:
+                    value = AscFormat.phType_body;
+                    break;
+                case 4:
+                    value = AscFormat.phType_body;
+                    isVertical = true;
+                    break;
+                case 5:
+                    value = AscFormat.phType_pic;
+                    break;
+                case 6:
+                    value = AscFormat.phType_chart;
+                    break;
+                case 7:
+                    value = AscFormat.phType_tbl;
+                    break;
+                case 8:
+                    value = AscFormat.phType_dgm;
+                    break;
+            }
+
+            this._addPlaceHolder(btn.pressed, value, isVertical);
+
+            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
+            Common.component.Analytics.trackEvent('ToolBar', 'Add Placeholder');
+        },
+
+        onTitleHide: function (view, status) {
+            this.api.asc_setLayoutTitle(status);
+        },
+
+        onFootersHide: function (view, status) {
+            this.api.asc_setLayoutFooter(status);
+        },
+
+        onApiLayoutTitle: function (status) {
+            if ((this.toolbar.chTitle.getValue() === 'checked') !== status)
+                this.toolbar.chTitle.setValue(status, true);
+        },
+
+        onApiLayoutFooter: function (status) {
+            if ((this.toolbar.chFooters.getValue() === 'checked') !== status)
+                this.toolbar.chFooters.setValue(status, true);
+        },
+
+        onActiveTab: function(tab) {
+            if (tab !== 'home') {
+                Common.UI.TooltipManager.closeTip('tabDesign');
+                Common.UI.TooltipManager.closeTip('mergeShapes');
+            } else if (this.toolbar && this.toolbar.btnShapesMerge && !this.toolbar.btnShapesMerge.isDisabled())
+                setTimeout(function() {
+                    Common.UI.TooltipManager.showTip('mergeShapes');
+                }, 10);
+            this._state.activeTab = tab;
+            this.showStaticElements();
+        },
+
+        onTabCollapse: function(tab) {
+            Common.UI.TooltipManager.closeTip('mergeShapes');
+        },
+
+        showStaticElements: function() {
+            var me = this;
+            var showingStaticElements = [
+                {
+                    el: this.toolbar.btnAddSlide ? this.toolbar.btnAddSlide.$el.closest('.group') : null,
+                    tabs: ['home', 'design', 'ins'],
+                    viewMode: 'normal'
+                },
+                {
+                    el: this.toolbar.btnChangeSlide ? this.toolbar.btnChangeSlide.$el.closest('.group') : null,
+                    tabs: ['home', 'design'],
+                    viewMode: 'normal'
+                },
+                {
+                    el: this.toolbar.btnAddSlideMaster ? this.toolbar.btnAddSlideMaster.$el.closest('.group') : null,
+                    tabs: ['home', 'design', 'ins'],
+                    viewMode: 'master'
+                }
+            ];
+            var countShowingButtons = 0;
+
+            showingStaticElements.forEach(function(item) {
+                if(!item.el) return;
+                
+                if(item.tabs.includes(me._state.activeTab) && (item.viewMode === me._state.viewMode || !item.viewMode)) {
+                    item.el.show();
+                    countShowingButtons += 1;
+                }
+                else item.el.hide();
+            });
+            this.toolbar.$el.find('#id-toolbar-separator-end-static')[countShowingButtons > 0 ? 'show' : 'hide']();
+        }
 
     }, PE.Controllers.Toolbar || {}));
 });

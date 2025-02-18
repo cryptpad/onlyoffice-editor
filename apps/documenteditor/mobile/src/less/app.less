@@ -2,7 +2,7 @@
 @import '../../../../common/mobile/resources/less/_mixins.less';
 @import '../../../../common/mobile/resources/less/colors-table.less';
 @import '../../../../common/mobile/resources/less/colors-table-dark.less';
-@import './app.rtl.less';
+@import './app-rtl.less';
 
 @brandColor: var(--brand-word);
 
@@ -36,6 +36,7 @@
 @import '../../../../common/mobile/resources/less/search.less';
 @import '../../../../common/mobile/resources/less/contextmenu.less';
 @import '../../../../common/mobile/resources/less/comments.less';
+@import '../../../../common/mobile/resources/less/draw.less';
 @import './app-material.less';
 @import './app-ios.less';
 @import './icons-ios.less';
@@ -83,16 +84,16 @@
 // Review
 .page-review {
     --f7-toolbar-link-color: @brandColor;
+    
     .toolbar {
         background-color: @background-secondary;
         box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
         position: absolute;
-        #btn-reject-change {
-            margin-left: 20px;
-        }
+
         #btn-goto-change {
             margin-left: 10px;
         }
+
         .next-prev {
             .link {
                 width: 44px;
@@ -260,6 +261,7 @@
         z-index: 100;
         top: 40px;
         z-index: 1000;
+        right: 0;
     }
 }
 
@@ -285,9 +287,12 @@
         color: @text-normal;
         font-size: 16px;
     }
-    .calendar-day-selected .calendar-day-number {
+    .calendar-day-selected .calendar-day-number, .calendar-day-today.calendar-day-selected .calendar-day-number {
         border: 1px solid transparent;
         background-color: @brandColor;
+        color: @fill-white;
+    }
+    .calendar-day-selected.calendar-day-weekend .calendar-day-number {
         color: @fill-white;
     }
     .calendar-day-today .calendar-day-number {
@@ -295,7 +300,7 @@
         background-color: transparent;
     }
     .calendar-day-weekend .calendar-day-number {
-       color: #D25252;
+        color: @text-secondary;
     }
     .calendar-day-number {
         color: @text-normal;
@@ -354,6 +359,7 @@
     z-index: 10000;
     a {
         background-color: @background-primary;
+        border-radius: 50%;
 
         &:focus, &:focus-within, &:active, &.active-state {
             background-color: @background-primary;
@@ -376,5 +382,14 @@
     opacity: 0;
     transition: opacity 300ms;
 }
-
+//
+#btn-submit-form {
+    background-color: @toolbar-icons;
+    color: @toolbar-background;
+    height: 2em;
+    border-radius: 1em;
+    padding-left: 15px;
+    padding-right: 15px;
+    margin-right: 5px;
+}
 

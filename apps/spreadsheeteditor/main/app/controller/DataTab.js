@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,20 +33,13 @@
 /**
  *  DataTab.js
  *
- *  Created by Julia Radzhabova on 30.05.2019
- *  Copyright (c) 2019 Ascensio System SIA. All rights reserved.
+ *  Created on 30.05.2019
  *
  */
 
 define([
     'core',
-    'spreadsheeteditor/main/app/view/DataTab',
-    'spreadsheeteditor/main/app/view/SortDialog',
-    'spreadsheeteditor/main/app/view/RemoveDuplicatesDialog',
-    'spreadsheeteditor/main/app/view/DataValidationDialog',
-    'spreadsheeteditor/main/app/view/ExternalLinksDlg',
-    'spreadsheeteditor/main/app/view/ImportFromXmlDialog',
-    'common/main/lib/view/OptionsDialog'
+    'spreadsheeteditor/main/app/view/DataTab'
 ], function () {
     'use strict';
 
@@ -71,6 +63,9 @@ define([
                 isUpdating: false,
                 linkStatus: {}
             };
+            this.externalSource = {
+                externalRef: undefined
+            };
         },
         onLaunch: function () {
         },
@@ -81,6 +76,7 @@ define([
                 this.api.asc_registerCallback('asc_onSelectionChanged',     _.bind(this.onSelectionChanged, this));
                 this.api.asc_registerCallback('asc_onWorksheetLocked',      _.bind(this.onWorksheetLocked, this));
                 this.api.asc_registerCallback('asc_onChangeProtectWorkbook',_.bind(this.onChangeProtectWorkbook, this));
+                this.api.asc_registerCallback('asc_onGoalSeekUpdate',       _.bind(this.onUpdateGoalSeekStatus, this));
                 this.api.asc_registerCallback('asc_onCoAuthoringDisconnect',_.bind(this.onCoAuthoringDisconnect, this));
                 Common.NotificationCenter.on('api:disconnect', _.bind(this.onCoAuthoringDisconnect, this));
                 Common.NotificationCenter.on('protect:wslock',              _.bind(this.onChangeProtectSheet, this));
@@ -106,7 +102,8 @@ define([
                     'data:remduplicates': this.onRemoveDuplicates,
                     'data:datavalidation': this.onDataValidation,
                     'data:fromtext': this.onDataFromText,
-                    'data:externallinks': this.onExternalLinks
+                    'data:externallinks': this.onExternalLinks,
+                    'data:goalseek': this.onGoalSeek
                 },
                 'Statusbar': {
                     'sheet:changed': this.onApiSheetChanged
@@ -121,6 +118,9 @@ define([
                 this.api.asc_registerCallback('asc_onErrorUpdateExternalReference', _.bind(this.onErrorUpdateExternalReference, this));
                 this.api.asc_registerCallback('asc_onNeedUpdateExternalReference', _.bind(this.onNeedUpdateExternalReference, this));
                 Common.Gateway.on('setreferencedata', _.bind(this.setReferenceData, this));
+            }
+            if (this.toolbar.mode.canRequestReferenceSource) {
+                Common.Gateway.on('setreferencesource', _.bind(this.setReferenceSource, this));
             }
         },
 
@@ -140,9 +140,11 @@ define([
         onSelectionChanged: function(info) {
             if (!this.toolbar.editMode || !this.view) return;
 
+            var view = this.view;
             // special disable conditions
-            Common.Utils.lockControls(Common.enumLock.multiselectCols, info.asc_getSelectedColsCount()>1, {array: [this.view.btnTextToColumns]});
-            Common.Utils.lockControls(Common.enumLock.multiselect, info.asc_getMultiselect(), {array: [this.view.btnTextToColumns]});
+            Common.Utils.lockControls(Common.enumLock.multiselectCols, info.asc_getSelectedColsCount()>1, {array: [view.btnTextToColumns]});
+            Common.Utils.lockControls(Common.enumLock.multiselect, info.asc_getMultiselect(), {array: [view.btnTextToColumns]});
+            Common.Utils.lockControls(Common.enumLock.userProtected, info.asc_getUserProtected(), {array: view.lockedControls});
         },
 
         onUngroup: function(type) {
@@ -215,7 +217,7 @@ define([
         },
 
         onTextToColumn: function() {
-            this.api.asc_TextImport(this._state.CSVOptions, _.bind(this.onTextToColumnCallback, this), false);
+            this.api.asc_TextImport(this._state.CSVOptions.asc_getCodePage(), _.bind(this.onTextToColumnCallback, this), false);
         },
 
         onTextToColumnCallback: function(data) {
@@ -247,7 +249,7 @@ define([
                 Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             } else if (type === 'url') {
                 (new Common.Views.ImageFromUrlDialog({
-                    title: me.txtUrlTitle,
+                    label: me.txtUrlTitle,
                     handler: function(result, value) {
                         if (result == 'ok') {
                             if (me.api) {
@@ -351,7 +353,7 @@ define([
                             title: this.toolbar.txtSorting,
                             msg: this.toolbar.txtExpandSort,
                             buttons: [  {caption: this.toolbar.txtExpand, primary: true, value: 'expand'},
-                                {caption: this.toolbar.txtSortSelected, primary: true, value: 'sort'},
+                                {caption: this.toolbar.txtSortSelected, value: 'sort'},
                                 'cancel'],
                             callback: function(btn){
                                 if (btn == 'expand' || btn == 'sort') {
@@ -387,19 +389,32 @@ define([
         },
 
         showCustomSort: function(expand) {
-            var me = this,
-                props = me.api.asc_getSortProps(expand);
-                // props = new Asc.CSortProperties();
-            if (props) {
-                (new SSE.Views.SortDialog({
-                    props: props,
-                    api: me.api,
-                    handler: function (result, settings) {
-                        if (me && me.api) {
-                            me.api.asc_setSortProps(settings, result != 'ok');
+            if (this.api.asc_getCellInfo().asc_getPivotTableInfo()) {
+                var info = this.api.asc_getPivotInfo();
+                if (info) {
+                    var dlgSort = new SSE.Views.SortFilterDialog({api:this.api}).on({
+                        'close': function() {
+                            Common.NotificationCenter.trigger('edit:complete');
                         }
-                    }
-                })).show();
+                    });
+                    dlgSort.setSettings({filter : info.asc_getFilter(), rowFilter: info.asc_getFilterRow(), colFilter: info.asc_getFilterCol()});
+                    dlgSort.show();
+                }
+            } else {
+                var me = this,
+                    props = me.api.asc_getSortProps(expand);
+                // props = new Asc.CSortProperties();
+                if (props) {
+                    (new SSE.Views.SortDialog({
+                        props: props,
+                        api: me.api,
+                        handler: function (result, settings) {
+                            if (me && me.api) {
+                                me.api.asc_setSortProps(settings, result != 'ok');
+                            }
+                        }
+                    })).show();
+                }
             }
         },
 
@@ -413,7 +428,7 @@ define([
                         title: this.txtRemDuplicates,
                         msg: this.txtExpandRemDuplicates,
                         buttons: [  {caption: this.txtExpand, primary: true, value: 'expand'},
-                            {caption: this.txtRemSelected, primary: true, value: 'remove'},
+                            {caption: this.txtRemSelected, value: 'remove'},
                             'cancel'],
                         callback: function(btn){
                             if (btn == 'expand' || btn == 'remove') {
@@ -493,6 +508,8 @@ define([
                 api: this.api,
                 isUpdating: this.externalData.isUpdating,
                 canRequestReferenceData: this.toolbar.mode.canRequestReferenceData || this.toolbar.mode.isOffline,
+                canRequestOpen: this.toolbar.mode.canRequestOpen || this.toolbar.mode.isOffline,
+                canRequestReferenceSource: this.toolbar.mode.canRequestReferenceSource || this.toolbar.mode.isOffline,
                 isOffline: this.toolbar.mode.isOffline,
                 handler: function(result) {
                     Common.NotificationCenter.trigger('edit:complete');
@@ -500,8 +517,49 @@ define([
             }));
             this.externalLinksDlg.on('close', function(win){
                 me.externalLinksDlg = null;
-            })
+            });
+            this.externalLinksDlg.on('change:source', function(win, externalRef){
+                me.externalSource = {
+                    externalRef: externalRef
+                };
+                Common.Gateway.requestReferenceSource();
+            });
             this.externalLinksDlg.show()
+        },
+
+        onGoalSeek: function() {
+            var me = this;
+            (new SSE.Views.GoalSeekDlg({
+                api: me.api,
+                handler: function(result, settings) {
+                    if (result == 'ok' && settings) {
+                        me.api.asc_StartGoalSeek(settings.formulaCell, settings.expectedValue, settings.changingCell);
+                    }
+                    Common.NotificationCenter.trigger('edit:complete');
+                }
+            })).show();
+        },
+
+        onUpdateGoalSeekStatus: function (targetValue, currentValue, iteration, cellName) {
+            var me = this;
+            if (!this.GoalSeekStatusDlg) {
+                this.GoalSeekStatusDlg = new SSE.Views.GoalSeekStatusDlg({
+                    api: me.api,
+                    handler: function (result) {
+                        me.api.asc_CloseGoalClose(result == 'ok');
+                        me.GoalSeekStatusDlg = undefined;
+                        Common.NotificationCenter.trigger('edit:complete');
+                    }
+                });
+                this.GoalSeekStatusDlg.on('close', function() {
+                    if (me.GoalSeekStatusDlg !== undefined) {
+                        me.api.asc_CloseGoalClose(false);
+                        me.GoalSeekStatusDlg = undefined;
+                    }
+                });
+                this.GoalSeekStatusDlg.show();
+            }
+            this.GoalSeekStatusDlg.setSettings({targetValue: targetValue, currentValue: currentValue, iteration: iteration, cellName: cellName});
         },
 
         onUpdateExternalReference: function(arr, callback) {
@@ -526,7 +584,8 @@ define([
                         case Asc.c_oAscExternalReferenceType.referenceData:
                             data = {
                                 referenceData: item.asc_getData(),
-                                path: item.asc_getPath()
+                                path: item.asc_getPath(),
+                                link: item.asc_getLink()
                             };
                             break;
                     }
@@ -570,15 +629,17 @@ define([
         },
 
         onNeedUpdateExternalReferenceOnOpen: function() {
+            var value = this.api.asc_getUpdateLinks();
             Common.UI.warning({
-                msg: this.warnUpdateExternalData,
-                buttons: [{value: 'ok', caption: this.textUpdate, primary: true}, {value: 'cancel', caption: this.textDontUpdate}],
-                maxwidth: 600,
+                msg: value ? this.warnUpdateExternalAutoupdate : this.warnUpdateExternalData,
+                buttons: [{value: 'ok', caption: value ? this.textContinue : this.textUpdate, primary: true}, {value: 'cancel', caption: value ? this.textTurnOff : this.textDontUpdate}],
+                maxwidth: 500,
                 callback: _.bind(function(btn) {
                     if (btn==='ok') {
                         var links = this.api.asc_getExternalReferences();
                         links && (links.length>0) && this.api.asc_updateExternalReferences(links);
                     }
+                    value && this.api.asc_setUpdateLinks(btn==='ok', true);
                 }, this)
             });
         },
@@ -591,6 +652,12 @@ define([
 
         onNeedUpdateExternalReference: function() {
             Common.NotificationCenter.trigger('showmessage', {msg: this.textAddExternalData});
+        },
+
+        setReferenceSource: function(data) { // gateway
+            if (this.toolbar.mode.isEdit && this.toolbar.editMode) {
+                this.api.asc_changeExternalReference(this.externalSource.externalRef, data);
+            }
         },
 
         onWorksheetLocked: function(index,locked) {
@@ -640,7 +707,10 @@ define([
         warnUpdateExternalData: 'This workbook contains links to one or more external sources that could be unsafe.<br>If you trust the links, update them to get the latest data.',
         textUpdate: 'Update',
         textDontUpdate: 'Don\'t Update',
-        textAddExternalData: 'The link to an external source has been added. You can update such links in the Data tab.'
+        textAddExternalData: 'The link to an external source has been added. You can update such links in the Data tab.',
+        warnUpdateExternalAutoupdate: 'This workbook contains links that are updated automatically from external sources that could be unsafe.<br>If you trust the links, press \'Continue\' to update.',
+        textTurnOff: 'Turn off auto update',
+        textContinue: 'Continue'
 
     }, SSE.Controllers.DataTab || {}));
 });

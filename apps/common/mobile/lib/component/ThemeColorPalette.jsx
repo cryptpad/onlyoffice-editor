@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { f7, ListItem, List, Icon } from 'framework7-react';
+import React from 'react';
+import { ListItem, List } from 'framework7-react';
 import { useTranslation } from 'react-i18next';
+import { LocalStorage } from '../../utils/LocalStorage.mjs';
+import { WheelColorPicker } from "./WheelColorPicker";
 
 const ThemeColors = ({ themeColors, onColorClick, curColor, isTypeColors, isTypeCustomColors }) => {
     return (
@@ -28,15 +30,15 @@ const StandartColors = ({ options, standartColors, onColorClick, curColor }) => 
     return (
         <div className='palette'>
             {standartColors?.length && standartColors.map((color, index) => {
-                return(
+                return (
                     index === 0 && options.transparent ?
                         <a key={`sc-${index}`}
                            className={`transparent ${'transparent' === curColor ? 'active' : ''}`}
                            onClick={() => {onColorClick('transparent')}}
                         ></a> :
                         <a key={`sc-${index}`}
-                           className={curColor && curColor === color ? ' active' : ''}
-                           style={{ background: `#${color}` }}
+                           className={curColor && (curColor?.color === color?.color || curColor === color?.color) ? ' active' : ''}
+                           style={{ background: `#${color?.color}` }}
                            onClick={() => {onColorClick(color)}}
                         ></a>
                 )
@@ -110,7 +112,7 @@ const ThemeColorPalette = props => {
     let customColors = props.customColors;
 
     if (customColors.length < 1) {
-        customColors = localStorage.getItem('mobile-custom-colors');
+        customColors = LocalStorage.getItem('mobile-custom-colors');
         customColors = customColors ? customColors.toLowerCase().split(',') : [];
     }
 
@@ -158,47 +160,17 @@ const CustomColorPicker = props => {
     }
 
     const countDynamicColors = props.countdynamiccolors || 10;
-    const [stateColor, setColor] = useState(`#${currentColor}`);
-
-    useEffect(() => {
-        if (document.getElementsByClassName('color-picker-wheel').length < 1) {
-            const colorPicker = f7.colorPicker.create({
-                containerEl: document.getElementsByClassName('color-picker-container')[0],
-                value: {
-                    hex: `#${currentColor}`
-                },
-                on: {
-                    change: function (value) {
-                        setColor(value.getValue().hex);
-                    }
-                }
-            });
-        }
-    });
 
     const addNewColor = (color) => {
-        let colors = localStorage.getItem('mobile-custom-colors');
+        let colors = LocalStorage.getItem('mobile-custom-colors');
         colors = colors ? colors.split(',') : [];
         const newColor = color.slice(1);
         if (colors.push(newColor) > countDynamicColors) colors.shift(); // 10 - dynamiccolors
-        localStorage.setItem('mobile-custom-colors', colors.join().toLowerCase());
+        LocalStorage.setItem('mobile-custom-colors', colors.join().toLowerCase());
         props.onAddNewColor && props.onAddNewColor(colors, newColor);
     };
 
-    return (
-        <div id='color-picker'>
-            <div className='color-picker-container'></div>
-            <div className='right-block'>
-                <div className='color-hsb-preview'>
-                    <div className='new-color-hsb-preview' style={{backgroundColor: stateColor}}></div>
-                    <div className='current-color-hsb-preview' style={{backgroundColor: `#${currentColor}`}}></div>
-                </div>
-                <a href='#' id='add-new-color' className='button button-round' onClick={()=>{addNewColor(stateColor)}}>
-                    <Icon icon={'icon-plus'} slot="media" />
-                </a>
-            </div>
-        </div>
-    )
+    return <WheelColorPicker initialColor={`#${currentColor}`} onSelectColor={addNewColor}/>
 };
 
 export { ThemeColorPalette, CustomColorPicker };

@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,12 +28,11 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
  *  ImageSettings.js
  *
- *  Created by Julia Radzhabova on 2/05/14
- *  Copyright (c) 2018 Ascensio System SIA. All rights reserved.
+ *  Created on 2/05/14
  *
  */
 
@@ -43,9 +41,7 @@ define([
     'jquery',
     'underscore',
     'backbone',
-    'common/main/lib/component/Button',
-    'common/main/lib/view/ImageFromUrlDialog',
-    'documenteditor/main/app/view/ImageSettingsAdvanced'
+    'common/main/lib/component/Button'
 ], function (menuTemplate, $, _, Backbone) {
     'use strict';
 
@@ -93,6 +89,7 @@ define([
 
             this.labelWidth = el.find('#image-label-width');
             this.labelHeight = el.find('#image-label-height');
+            this.ResetCrop = el.find('#image-button-reset-crop').closest('tr');
         },
 
         setApi: function(api) {
@@ -141,12 +138,14 @@ define([
                 dataHintDirection: 'bottom',
                 dataHintOffset: '-10, 0',
                 delayRenderTips: true,
+                fillOnChangeVisibility: true,
                 itemTemplate: _.template([
                     '<div class="item-icon-box" id="<%= id %>" style="">',
                         '<img src="data:image/gif;base64,R0lGODlhAQABAID/AMDAwAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" ' +
                             'class="combo-wrap-item options__icon options__icon-huge <%= icon %>"',
                     '</div>'
-                ].join(''))
+                ].join('')),
+                ariaLabel: this.textWrap
             });
             this.cmbWrapType.render($('#image-combo-wrap'));
             this.cmbWrapType.openButton.menu.cmpEl.css({
@@ -181,6 +180,7 @@ define([
             this.btnOriginalSize.on('click', _.bind(this.setOriginalSize, this));
 
             this.btnEditObject.on('click', _.bind(function(btn){
+                if (!Common.Controllers.LaunchController.isScriptLoaded()) return;
                 if (this.api) {
                     var oleobj = this.api.asc_canEditTableOleObject(true);
                     if (oleobj) {
@@ -288,13 +288,59 @@ define([
                 }),
                 dataHint: '1',
                 dataHintDirection: 'bottom',
-                dataHintOffset: 'big'
+                dataHintOffset: 'big',
+                ariaLabel: this.textCrop
             });
             this.btnCrop.on('click', _.bind(this.onCrop, this));
             this.btnCrop.menu.on('item:click', _.bind(this.onCropMenu, this));
             this.lockedControls.push(this.btnCrop);
             this.btnChangeShape= this.btnCrop.menu.items[1];
 
+            this.btnResetCrop = new Common.UI.Button({
+                parentEl: $('#image-button-reset-crop'),
+                cls: 'btn-toolbar align-left',
+                caption: this.textResetCrop,
+                iconCls: 'toolbar__icon btn-reset',
+                style: "min-width:100px",       
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big',
+                ariaLabel: this.textResetCrop
+            });
+            this.btnResetCrop.on('click', _.bind(this.onResetCrop, this));
+            this.lockedControls.push(this.btnResetCrop);
+
+            this.numTransparency = new Common.UI.MetricSpinner({
+                el: $('#image-spin-transparency'),
+                step: 1,
+                width: 62,
+                value: '100 %',
+                defaultUnit : "%",
+                maxValue: 100,
+                minValue: 0,
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'big',
+                ariaLabel: this.strTransparency
+            });
+            this.numTransparency.on('change', _.bind(this.onNumTransparencyChange, this));
+            this.numTransparency.on('inputleave', function(){ this.fireEvent('editcomplete', this);});
+            this.lockedControls.push(this.numTransparency);
+
+            this.sldrTransparency = new Common.UI.SingleSlider({
+                el: $('#image-slider-transparency'),
+                width: 75,
+                minValue: 0,
+                maxValue: 100,
+                value: 100
+            });
+            this.sldrTransparency.on('change', _.bind(this.onTransparencyChange, this));
+            this.sldrTransparency.on('changecomplete', _.bind(this.onTransparencyChangeComplete, this));
+            this.lockedControls.push(this.sldrTransparency);
+
+            this.lblTransparencyStart = $(this.el).find('#image-lbl-transparency-start');
+            this.lblTransparencyEnd = $(this.el).find('#image-lbl-transparency-end');
+            
             this.btnSelectImage = new Common.UI.Button({
                 parentEl: $('#image-button-replace'),
                 cls: 'btn-text-menu-default',
@@ -305,7 +351,7 @@ define([
                     maxHeight: 200,
                     items: [
                         {caption: this.textFromFile, value: 0},
-                        {cls: 'cp-from-url', caption: this.textFromUrl, value: 1},
+                        {caption: this.textFromUrl, value: 1},
                         {caption: this.textFromStorage, value: 2}
                     ]
                 }),
@@ -357,13 +403,14 @@ define([
 
                 var shapePicker = new Common.UI.DataViewShape({
                     el: $('#id-img-change-shape-menu'),
-                    itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>'),
+                    itemTemplate: _.template('<div class="item-shape" id="<%= id %>"><svg width="20" height="20" class=\"icon uni-scale\"><use xlink:href=\"#svg-icon-<%= data.shapeType %>\"></use></svg></div>'),
                     groups: me.application.getCollection('ShapeGroups'),
                     parentMenu: me.btnChangeShape.menu,
                     restoreHeight: 652,
                     textRecentlyUsed: me.textRecentlyUsed,
                     recentShapes: recents ? JSON.parse(recents) : null,
-                    hideTextRect: true
+                    hideTextRect: true,
+                    hideLines: true
                 });
                 shapePicker.on('item:click', function(picker, item, record, e) {
                     if (me.api) {
@@ -417,6 +464,8 @@ define([
                     this._state.Height = value;
                 }
 
+                this.ResetCrop.toggleClass('hidden', !props.asc_getIsCrop());
+                this.btnResetCrop.setDisabled(!props.asc_getIsCrop() || this._locked);
                 this.btnOriginalSize.setDisabled(props.get_ImageUrl()===null || props.get_ImageUrl()===undefined || this._locked);
 
                 var pluginGuid = props.asc_getPluginGuid();
@@ -430,12 +479,27 @@ define([
                 this.btnRotate90.setDisabled(value || this._locked);
                 this.btnFlipV.setDisabled(value || this._locked);
                 this.btnFlipH.setDisabled(value || this._locked);
+                this.numTransparency.setDisabled(value || this._locked);
+                this.sldrTransparency.setDisabled(value || this._locked);
 
                 if (this._state.isOleObject) {
                     var plugin = DE.getCollection('Common.Collections.Plugins').findWhere({guid: pluginGuid});
                     this.btnEditObject.setDisabled(!this.api.asc_canEditTableOleObject() && (plugin===null || plugin ===undefined) || this._locked);
                 } else {
                     this.btnSelectImage.setDisabled(pluginGuid===null || this._locked);
+                }
+
+                var transparency = props.asc_getTransparent();
+                if (Math.abs(this._state.Transparency - transparency) > 0.001 || 
+                    Math.abs(this.numTransparency.getNumberValue() - transparency) > 0.001 || 
+                    (this._state.Transparency === null || transparency === null) && 
+                    (this._state.Transparency !== transparency || this.numTransparency.getNumberValue() !== transparency)) {
+        
+                    if (transparency !== undefined) {
+                        this.sldrTransparency.setValue((transparency === null) ? 100 : transparency / 255 * 100, true);
+                        this.numTransparency.setValue(this.sldrTransparency.getValue(), true);
+                    }
+                    this._state.Transparency = transparency;
                 }
             }
         },
@@ -662,6 +726,55 @@ define([
                         }
                     }
                 }
+            }
+        },
+
+        onResetCrop: function() {
+            if (this.api) {
+                var properties = new Asc.asc_CImgProperty();
+                properties.put_ResetCrop(true);
+                this.api.ImgApply(properties);
+                this.fireEvent('editcomplete', this);
+            }
+        },
+
+        onNumTransparencyChange: function(field, newValue, oldValue, eOpts){
+            this.sldrTransparency.setValue(field.getNumberValue(), true);
+            if (this.api)  {
+                var num = field.getNumberValue();
+                var properties = new Asc.asc_CImgProperty();
+                properties.asc_putTransparent(num * 2.55); 
+                this.api.ImgApply(properties);
+            }
+        },
+
+        onTransparencyChange: function(field, newValue, oldValue){
+            this._sliderChanged = newValue;
+            this.numTransparency.setValue(newValue, true);
+
+            if (this._sendUndoPoint) {
+                this.api.setStartPointHistory();
+                this._sendUndoPoint = false;
+                this.updateslider = setInterval(_.bind(this._transparencyApplyFunc, this), 100);
+            }
+        },
+
+        onTransparencyChangeComplete: function(field, newValue, oldValue){
+            clearInterval(this.updateslider);
+            this._sliderChanged = newValue;
+            if (!this._sendUndoPoint) { 
+                this.api.setEndPointHistory();
+                this._transparencyApplyFunc();
+            }
+            this._sendUndoPoint = true;
+        },
+
+         _transparencyApplyFunc: function() {
+            if (this._sliderChanged!==undefined) {
+                var properties = new Asc.asc_CImgProperty();
+                properties.asc_putTransparent(this._sliderChanged * 2.55);
+                this.api.ImgApply(properties);
+                this._sliderChanged = undefined;
             }
         },
 
