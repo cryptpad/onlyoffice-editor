@@ -61,6 +61,17 @@
     {
         var CollaborativeEditing = AscCommon.CollaborativeEditing;
 
+        // XXX CryptPad
+        if (this.m_pData && this.m_pData.type === "cp_theme") {
+            clearTimeout(window.CP_theme_to);
+            var data = this.m_pData;
+            window.CP_theme_to = setTimeout(function () {
+                window.parent.APP.remoteTheme();
+                window.editor.ChangeTheme(data.id, null, true);
+            });
+            return true;
+        }
+
         var Reader  = this.private_LoadData(this.m_pData);
         if ((Asc.editor || editor).binaryChanges) {
             Reader.GetULong();
@@ -561,6 +572,10 @@
         if(false === oApi.isSaveFonts_Images){
             oApi.isSaveFonts_Images = true;
         }
+        // CryptPad - bypassing image loading which is breaking
+        AscCommon.CollaborativeEditing.SendImagesCallback(aImagesToLoad);
+
+        /*
         var callback = function (isTimeout, oRes) {
             var aData, i, oUrls;
             if(oRes && oRes['status'] === 'ok')
@@ -579,6 +594,7 @@
         if (!oApi.CoAuthoringApi.callPRC(rData, Asc.c_nCommonRequestTime, callback)) {
             callback(false, undefined);
         }
+        */
     };
 
     CCollaborativeEditingBase.prototype.SendImagesCallback = function (aImages) {

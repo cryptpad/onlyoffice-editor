@@ -399,7 +399,7 @@
         this.images_loading = null;
 
         this.bIsLoadDocumentFirst = false;
-        this.bIsAsyncLoadDocumentImages = false;
+        this.bIsAsyncLoadDocumentImages = true;
 
         this.nNoByOrderCounter = 0;
 
@@ -462,6 +462,14 @@
             else
                 image.src = url;
         };
+
+        this.LoadDocumentImagesCallback = function() {
+
+            if (this.ThemeLoader == null)
+               this.Api.asyncImagesDocumentEndLoaded();
+           else
+               this.ThemeLoader.asyncImagesEndLoaded();
+        }
         
         this.LoadDocumentImages = function(images, isCheckExists)
         {
@@ -500,10 +508,30 @@
             else
             {
                 let len = this.images_loading.length;
+                if (_len === 0) {
+                    return void this.LoadDocumentImagesCallback();
+                }
+                var todo = _len;
+                var that = this;
+                var done = function () {
+                    todo--;
+                    if (todo === 0) {
+                        that.images_loading.splice(0, _len);
+                        setTimeout(function () {
+                            that.LoadDocumentImagesCallback();
+                        }, 100);
+                        done = function () {};
+                    }
+                };
                 for (let i = 0; i < len; i++)
-                    this.LoadImageAsync(i);
+                    this.LoadImageAsync(i, done);
+
+                return;
 
                 this.images_loading.splice(0, len);
+
+                var that = this;
+                setTimeout(function() { that.LoadDocumentImagesCallback() }, 3000);
 
                 if (this.ThemeLoader == null)
                     this.Api.asyncImagesDocumentEndLoaded();
@@ -621,28 +649,41 @@
             return null;
         };
 
-        this.LoadImageAsync = function(i)
+        this.LoadImageAsync = function(i, cb)
         {
             var oImage = new CImage(this.images_loading[i]);
 
             oImage.Status = ImageLoadStatus.Loading;
             oImage.Image = new Image();
             oThis.map_image_index[oImage.src] = oImage;
+            var oThat = oThis;
 
             oImage.Image.onload = function() {
                 oImage.Status = ImageLoadStatus.Complete;
-                oThis.Api.asyncImageEndLoadedBackground(oImage);
+                oThat.Api.asyncImageEndLoadedBackground(oImage);
             };
             oImage.Image.onerror = function() {
                 oImage.Status = ImageLoadStatus.Complete;
                 oImage.Image = null;
-                oThis.Api.asyncImageEndLoadedBackground(oImage);
+                oThat.Api.asyncImageEndLoadedBackground(oImage);
             };
             AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
                 oThis.loadImageByUrl(img, img.src);
             });
             //oImage.Image.crossOrigin = 'anonymous';
-            oThis.loadImageByUrl(oImage.Image, oImage.src);
+            //console.log("Loading image " + i);
+            //console.log(oImage);
+            // CRYPTPAD: if we find an image URL with #channel= in it
+            // then we need to ask cryptpad to get the blob
+            window.parent.APP.getImageURL(oImage.src, function(url) {
+                if (url=="") {
+                  oThis.loadImageByUrl(oImage.Image, oImage.src);
+                } else {
+                  oThis.loadImageByUrl(oImage.Image, url);
+                  oThis.map_image_index[url] = oImage;
+                }
+                if (typeof(cb) === "function") { cb(); }
+          });
         };
 
         this.LoadImagesWithCallback = function(arr, loadImageCallBack, loadImageCallBackArgs, isDisableCrypto)

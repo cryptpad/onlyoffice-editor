@@ -2375,6 +2375,18 @@
 				}
 			};
 		}
+		// CryptPad print
+		if (window.parent.APP.printPdf && (DownloadType.Print === downloadType || !downloadType)) {
+			var _cb = options.callback || this.fCurCallback;
+			window.parent.APP.printPdf(dataContainer, function (obj) {
+				if (!obj) {
+					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+					return;
+				}
+				_cb(obj);
+			});
+			return;
+		}
 		AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1) {
 			AscCommon.sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
 		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
@@ -2476,6 +2488,12 @@
 	baseEditorsApi.prototype._addImageUrl                        = function()
 	{
 	};
+	// CRYPTPAD
+	// This method is necessary to add the loaded images to the list of loaded images
+	// The code is in slide/api.js
+	baseEditorsApi.prototype.asc_addImageCallback                = function(res)
+	{
+	};
 	baseEditorsApi.prototype.asc_addImage                        = function(obj)
 	{
 		if (this.isEditOleMode)
@@ -2486,6 +2504,25 @@
 			});
 			return;
 		}
+		var t = this;
+		// CryptPad: we need to take control of the upload
+		// t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+		// This method calls back to the cryptpad onlyoffice inner.js to load the cryptad file dialog
+		window.parent.APP.AddImage(function(res) {
+			// This method adds the loaded image to the list of  loaded images
+                        console.log("AddImageCallback");
+			t.asc_addImageCallback(res);
+			// This method activats the image
+			t._addImageUrl([res.url], obj);
+			// t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+		}, function() {
+			// t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			t.sendEvent("asc_onError", error, c_oAscError.Level.NoCritical);
+		});
+		return;
+		// Cryptpad end
+
+        // CRYPTPAD XXX
 		var t = this;
         if (this.WordControl) // после показа диалога может не прийти mouseUp
         	this.WordControl.m_bIsMouseLock = false;

@@ -228,7 +228,7 @@ CGraphicPage.prototype =
     delObjectById: function(id)
     {
         var oDrawing = AscCommon.g_oTableId.Get_ById(id);
-        if(oDrawing){
+        if(oDrawing && oDrawing.getDrawingArrayType){ // XXX CryptPad fix
             var drawing_array;
 
             var Type = oDrawing.getDrawingArrayType();

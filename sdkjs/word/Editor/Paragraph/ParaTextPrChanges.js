@@ -459,7 +459,7 @@ CChangesParaTextPrHighLight.prototype.constructor = CChangesParaTextPrHighLight;
 CChangesParaTextPrHighLight.prototype.Type = AscDFH.historyitem_TextPr_HighLight;
 CChangesParaTextPrHighLight.prototype.private_SetValue = function(Value)
 {
-	this.Class.Value.HighLight = Value;
+	if (this.Class.Value) { this.Class.Value.HighLight = Value; }
 };
 CChangesParaTextPrHighLight.prototype.WriteToBinary = function(Writer)
 {

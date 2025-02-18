@@ -1155,8 +1155,9 @@
       var bSendEnd = false;
       for (var block in data["locks"]) {
         if (data["locks"].hasOwnProperty(block)) {
-          var lock = data["locks"][block], blockTmp = (this._isExcel || this._isPresentation || this._isPDF) ? lock["block"]["guid"] : lock["block"];
+          var lock = data["locks"][block];
           if (lock !== null) {
+            var blockTmp = (this._isExcel || this._isPresentation) ? lock["block"]["guid"] : lock["block"];
             this._locks[blockTmp] = {"state": 0, "user": lock["user"], "time": lock["time"], "changes": lock["changes"], "block": lock["block"]};
             if (this.onLocksReleased) {
               // false - user not save changes
@@ -1729,124 +1730,60 @@
   DocsCoApi.prototype.auth = function(isViewer, opt_openCmd, opt_isIdle) {
     this._send(this.getAuthCommand(opt_openCmd, opt_isIdle));
   };
-  function CNativeSocket(settings)
-  {
-    this.engine = window['SockJS'];
-    this.settings = settings;
-    this.io = this;
-    this.settings["type"] = "socketio";
+  DocsCoApi.prototype._initSocksJs = function () {
+    const socketio = this.socketio = {};
 
-    this.events = {};
-  }
-  CNativeSocket.prototype.open = function() { return this.engine.open(this.settings); };
-  CNativeSocket.prototype.send = function(message) { return this.engine.send(message); };
-  CNativeSocket.prototype.close = function() { return this.engine.close(); };
-  CNativeSocket.prototype.emit = function(message, data) { return this.send(JSON.stringify(data)); };
-
-  CNativeSocket.prototype.reconnectionAttempts = function(val) { this.settings["reconnectionAttempts"] = val; };
-  CNativeSocket.prototype.reconnectionDelay    = function(val) { this.settings["reconnectionDelay"] = val; };
-  CNativeSocket.prototype.reconnectionDelayMax = function(val) { this.settings["reconnectionDelayMax"] = val; };
-  CNativeSocket.prototype.randomizationFactor  = function(val) { this.settings["randomizationFactor"] = val; };
-  CNativeSocket.prototype.setOpenToken = function (val) {
-    if (this.settings["auth"]) {
-      this.settings["auth"]["token"] = val;
-    }
-  };
-  CNativeSocket.prototype.setSessionToken = function (val) {
-    if (this.settings["auth"]) {
-      this.settings["auth"]["session"] = val;
-    }
-  };
-
-  CNativeSocket.prototype.on = function(name, callback) {
-    if (!this.events.hasOwnProperty(name))
-      this.events[name] = [];
-    this.events[name].push(callback);
-  };
-  CNativeSocket.prototype.onMessage = function() {
-    var name = arguments[0];
-    if (this.events.hasOwnProperty(name))
-    {
-      for (var i = 0; i < this.events[name].length; ++i)
-        this.events[name][i].apply(this, Array.prototype.slice.call(arguments, 1));
-      return true;
-    }
-    return false;
-  };
-
-	DocsCoApi.prototype._initSocksJs = function () {
-      var t = this;
-      let socket;
-      let firstConnection = true;
-      let options = {
-        "path": this.socketio_url,
-        "transports": ["websocket", "polling"],
-        "closeOnBeforeunload": false,
-        "reconnectionAttempts": 15,
-        "reconnectionDelay": 500,
-        "reconnectionDelayMax": 10000,
-        "randomizationFactor": 0.5,
-        "auth": {
-          "data": this.getAuthCommand(this.openCmd),
-          "token": this.jwtOpen,
-          "session": this.jwtSession
+    const license = {
+        type: 'license',
+        license: {
+            type: 3,
+            mode: 0,
+            // light: false,
+            // trial: false,
+            rights: 1,
+            buildVersion: "7.3.3",
+            buildNumber: 8,
+            // branding: false
         }
-      };
-      options["query"] = {};
-      if (this.shardKey) {
-        options["query"][Asc.c_sShardKeyName] = this.shardKey;
-      }
-      if (this.wopiSrc) {
-        options["query"][Asc.c_sWopiSrcName] = this.wopiSrc;
-      }
-      if (this.userSessionId) {
-        options["query"][Asc.c_sUserSessionIdName] = this.userSessionId;
-      }
+    };
 
-      if (window['IS_NATIVE_EDITOR']) {
-        socket = this.sockjs = new CNativeSocket(options);
-        socket.open();
-      } else {
-        let io = AscCommon.getSocketIO();
-        socket = io(options);
-      }
-      socket.on("connect", function () {
-        firstConnection = false;
-        t._onServerOpen();
-      });
-      socket.on("disconnect", function (reason) {
-        //(explicit disconnection), the client will not try to reconnect and you need to manually call
-        let explicit = 'io server disconnect' === reason || 'io client disconnect' === reason;
-        t._onServerClose(explicit);
-        if (!explicit) {
-          //explicit disconnect sends disconnect reason on its own
-          t.onDisconnect();
-        }
-      });
-      socket.on('connect_error', function (err) {
-        //cases: every connect error and reconnect
-        if (err.data) {
-          //cases: authorization
-          t._onServerClose(true);
-          t.onDisconnect(err.data.description, err.data.code);
-        } else if (firstConnection) {
-          firstConnection = false;
-          if (socket.io.opts) {
-            socket.io.opts.transports = ["polling", "websocket"];
-          }
-        }
-      });
-      socket.io.on("reconnect_failed", function () {
-        //cases: connection restore, wrong socketio_url
-        t._onServerClose(true);
-        t.onDisconnect("reconnect_failed", c_oCloseCode.restore);
-      });
-      socket.on("message", function (data) {
-        t._onServerMessage(data);
-      });
-      this.socketio = socket;
-      return socket;
-	};
+    let p = window.parent;
+
+    // Presenter mode in slides
+    if (editor && editor.isReporterMode) {
+        // If we are in the presenter popup, we want a channel with the main OO.
+        // Since a lot of the code is using window.parent.APP, we need to override
+        // window.parent because in the case of a popup, window.parent === window
+        p = window.opener;
+        window.parent = p;
+    } else {
+        // If we're not in presenter mode, we're the parent if the presenter popup
+        // and this popup will need access to APP in order to load images
+        window.APP = p && p.APP;
+    }
+
+    APP.setToOOHandler((data) => {
+        this._onServerMessage(data);
+    });
+
+    socketio.onopen = () => {
+        this._onServerOpen();
+    };
+    socketio.onopen();
+
+    socketio.close = () => {
+        console.error('Close realtime');
+    };
+
+    socketio.emit = (type, data) => {
+        APP.sendMessageFromOO(data);
+    }
+
+    setTimeout(() => {
+        this._onServerMessage(license);
+    });
+    return socketio;
+};
 
 	DocsCoApi.prototype._onServerOpen = function () {
 		this._state = ConnectionState.WaitAuth;

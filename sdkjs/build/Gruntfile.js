@@ -180,7 +180,9 @@ module.exports = function(grunt) {
 	const slide = path.join(deploy, 'slide');
 	const visio = path.join(deploy, 'visio');
 
-	const level = grunt.option('level') || 'ADVANCED';
+	//const pathConfigs = grunt.option('src') || './configs';
+	const level = grunt.option('level') || 'WHITESPACE_ONLY';
+	//const level = grunt.option('level') || 'ADVANCED'; // CRYPTPAD XXX
 	const formatting = grunt.option('formatting') || '';
 
 	require('google-closure-compiler').grunt(grunt, {
@@ -499,6 +501,8 @@ module.exports = function(grunt) {
 		grunt.task.run(compilerTasks);
 		grunt.task.run(copyTasks);
 	});
+	/*
+	// /* // CRYPTPAD XXX
 	grunt.registerTask('clean-develop', 'Clean develop scripts', function () {
 		const develop = '../develop/sdkjs/';
 		grunt.initConfig({
@@ -523,6 +527,7 @@ module.exports = function(grunt) {
 		writeScripts(configs.slide['sdk'], 'slide');
 		writeScripts(configs.visio['sdk'], 'visio');
 	});
+	// */ // CRYPTPAD XXX
 	const defaultTasks = ['clean-deploy', 'compile-sdk', 'copy-other'];
 	if (grunt.option('map')) {
 		defaultTasks.push('copy-maps');

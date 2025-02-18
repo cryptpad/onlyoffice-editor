@@ -1129,7 +1129,7 @@ CParagraphContentWithContentBase.prototype.protected_FillRangeEndPos = function(
 };
 CParagraphContentWithContentBase.prototype.private_UpdateSpellChecking = function()
 {
-	if (this.Paragraph)
+	if (this.Paragraph && this.Paragraph.SpellChecker)
 	{
 		this.Paragraph.SpellChecker.ClearCollector();
 		this.Paragraph.RecalcInfo.NeedSpellCheck();
@@ -1268,7 +1268,7 @@ CParagraphContentWithContentBase.prototype.PreDelete = function(isDeep)
 };
 CParagraphContentWithContentBase.prototype.private_UpdateDocumentOutline = function()
 {
-	if (this.Paragraph)
+	if (this.Paragraph && this.Paragraph.UpdateDocumentOutline)
 		this.Paragraph.UpdateDocumentOutline();
 };
 CParagraphContentWithContentBase.prototype.IsSolid = function()

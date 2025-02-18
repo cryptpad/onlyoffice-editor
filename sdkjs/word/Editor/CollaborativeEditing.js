@@ -245,6 +245,13 @@ CWordCollaborativeEditing.prototype.OnEnd_Load_Objects = function()
 	if (oform)
 		oform.onEndLoadChanges();
 
+    // XXX CryptPad GetOFormDocument() seems to be undefined sometimes
+    if (this.m_oLogicDocument.GetOFormDocument) {
+        let oform = this.m_oLogicDocument.GetOFormDocument();
+        if (oform)
+            oform.onEndLoadChanges();
+    }
+
     editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.ApplyChanges);
 };
 CWordCollaborativeEditing.prototype.Check_MergeData = function()
@@ -348,8 +355,10 @@ CWordCollaborativeEditing.prototype.private_LockByMe = function()
 			var oClass = AscCommon.g_oTableId.Get_ById(oItem);
 			if (oClass)
 			{
-				oClass.Lock.Set_Type(AscCommon.c_oAscLockTypes.kLockTypeMine);
-				this.Add_Unlock2(oClass);
+				if (oClass.Lock) {  // XXX CryptPad: Lock seems to be unset sometimes
+                    oClass.Lock.Set_Type(AscCommon.locktype_Mine);
+                    this.Add_Unlock2(oClass);
+                }
 			}
 		}
 	}

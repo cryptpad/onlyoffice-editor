@@ -250,7 +250,8 @@ AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_RTL] = [
 function private_ParaRunChangesLoadTextPr(color)
 {
 	this.Redo();
-	if (this.Color && color)
+	// CryptPad: This might be null, when the document is loaded
+	if (this.Color && Color && this.Class.private_AddCollPrChangeOther)
 		this.Class.setCollPrChangeColor(color);
 }
 /**
@@ -358,6 +359,9 @@ CChangesRunAddItem.prototype.private_ReadItem = function(Reader)
 CChangesRunAddItem.prototype.Load = function(Color)
 {
 	var oRun = this.Class;
+
+	if (!oRun.m_oContentChanges) { return; } // XXX CryptPad: Error after checkpoints
+
 	for (var Index = 0, Count = this.Items.length; Index < Count; Index++)
 	{
 		var Pos = oRun.m_oContentChanges.Check(AscCommon.contentchanges_Add, this.PosArray[Index]);
@@ -450,6 +454,8 @@ CChangesRunRemoveItem.prototype.private_ReadItem = function(Reader)
 CChangesRunRemoveItem.prototype.Load = function()
 {
 	var oRun = this.Class;
+
+	if (!oRun.m_oContentChanges) { return; } // XXX CryptPad: Error after checkpoints
 
 	var nLastChangesPos = null;
 	var nChangesCount   = 0;
@@ -1195,6 +1201,10 @@ CChangesRunRFontsAscii.prototype.ReadFromBinary = function(Reader)
 CChangesRunRFontsAscii.prototype.private_SetValue = function(Value)
 {
 	var oRun = this.Class;
+	// CryptPad: This might be null, when the document is loaded
+    if (!oRun.Pr) {
+        return;
+    }
 	oRun.Pr.RFonts.Ascii = Value;
 
 	oRun.Recalc_CompiledPr(true);
@@ -1375,6 +1385,12 @@ CChangesRunRFontsCS.prototype.ReadFromBinary = function(Reader)
 CChangesRunRFontsCS.prototype.private_SetValue = function(Value)
 {
 	var oRun = this.Class;
+
+	// CryptPad: This might be null, when the document is loaded
+    if (!oRun.Pr) {
+        return;
+    }
+	
 	oRun.Pr.RFonts.CS = Value;
 
 	oRun.Recalc_CompiledPr(true);

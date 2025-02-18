@@ -2469,6 +2469,11 @@
 
 	function UploadImageFiles(files, documentId, documentUserId, jwt, shardKey, wopiSrc, userSessionId, callback)
 	{
+		// CryptPad: we need to take control of the upload
+		window.parent.APP.UploadImageFiles(files, documentId, documentUserId, jwt, function (err, urls) {
+			callback(err || Asc.c_oAscError.ID.No, urls);
+		 });
+		return;
 		if (files.length > 0)
 		{
 			let url = sUploadServiceLocalUrl + '/' + documentId;
@@ -10987,6 +10992,15 @@
 	
 	function _getUserColorById(userId, userName, isDark, isNumericValue)
 	{
+		if (window.parent.APP && window.parent.APP.getUserColor) {
+            try {
+                var CPColor = window.parent.APP.getUserColor(userId);
+                if (CPColor) {
+                    return true === isNumericValue ? ((CPColor.r << 16) & 0xFF0000) | ((CPColor.g << 8) & 0xFF00) | (CPColor.b & 0xFF)
+                                        : new CColor(CPColor.r, CPColor.g, CPColor.b, CPColor.a);
+                }
+            } catch (e) {} // CRYPTPAD XXX
+        }
 		if ((!userId || "" === userId) && (!userName || "" === userName))
 			return new CColor(0, 0, 0, 255);
 
@@ -11469,7 +11483,8 @@
 			if (scriptDirectory) {
 				loadScript(scriptDirectory + 'sdk-all.js', onSuccess, onError);
 			} else {
-				loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js', onSuccess, onError);
+				var urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
+				loadScript('./../../../../sdkjs/' + sdkName + '/sdk-all.js?' + urlArgs, onSuccess, onError);
 			}
 		}
 	}
