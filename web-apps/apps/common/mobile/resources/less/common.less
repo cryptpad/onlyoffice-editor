@@ -8,29 +8,37 @@
 @red: #f00;
 @autoColor: @black;
 
+.row {
+    --f7-cols-per-row: 1;
+    align-items: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.row + .row {
+    margin-top: var(--f7-grid-row-gap);
+}
+
 .navbar.main-navbar {
     height: 0;
+
     &.navbar-with-logo {
         height: 26px;
     }
+
     .navbar-inner {
         display: flex;
         justify-content: center;
-        padding-top: 8px;
+        padding: 0;
     }
+
     .navbar-bg {
         &:before, &:after {
             content: none;
         }
     }
 }
-
-//.navbar {
-//    .title {
-//        text-overflow: initial;
-//        white-space: normal;
-//    }
-//}
 
 .navbar-hidden {
     transform: translate3d(0, calc(-1 * (var(--f7-navbar-height) + var(--f7-subnavbar-height))), 0);
@@ -44,16 +52,32 @@
     transition: padding-top .3s ease-in;
 }
 
+.main-logo {
+    max-width: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+
+    .custom-logo-image {
+        max-height: 20px;
+        height: auto;
+        width: auto;
+    }
+}
+
 .subnavbar {
     .subnavbar-inner {
         padding: 0;
+
         .title {
-            //white-space: nowrap;
+            white-space: nowrap;
             overflow: hidden;
-            text-overflow: initial;
             margin: 0;
             padding: 0;
             flex-shrink: initial;
+            text-overflow: ellipsis;
         }
     }
     .icon-back {
@@ -107,11 +131,15 @@
     padding: 14px 10px 0 10px;
 }
 
-.list {
+.view .list {
     max-width: 100%;
+    --menu-list-offset: 0px;
+
     ul {
-        width: 100%;
+        max-width: 100%;
+        background: var(--f7-list-bg-color);
     }
+
     li.no-indicator {
         .item-link {
             .item-inner{
@@ -174,13 +202,13 @@
                 html.pixel-ratio-3 & {
                     border: 0.33px solid @gray;
                 }
-    
+
                 .thumb {
                     width: 100%;
                     height: 100%;
                     background-color: @fill-white;
                     background-size: cover;
-    
+
                     label {
                         width: 100%;
                         text-align: center;
@@ -197,7 +225,7 @@
             }
         }
     }
-    
+
     .row.list .item-content {
         padding-left: 0;
         padding-right: 0;
@@ -212,8 +240,9 @@
 }
 
 .popover {
-    .page .list {
+    .page .list:first-child:last-child {
         ul {
+            border-radius: 0;
             background-color: var(--f7-list-bg-color);
             li:first-child, li:last-child {
                 .item-link {
@@ -395,7 +424,7 @@
 
 .style-effect, .style-type {
     .list .item-title {
-        font-weight: normal; 
+        font-weight: normal;
     }
 }
 
@@ -422,7 +451,7 @@
         cursor: pointer;
         box-shadow: 0 2px 4px rgba(0, 0, 0, .3);
     }
-    &::-ms-thumb { 
+    &::-ms-thumb {
         appearance: none;
         height: 28px;
         width: 28px;
@@ -504,7 +533,7 @@
                             background-size: 100% 100%;
                             .encoded-svg-background("<svg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 22 22' xml:space='preserve'><line stroke='#ff0000' stroke-linecap='undefined' stroke-linejoin='undefined' id='svg_1' y2='0' x2='22' y1='22' x1='0' stroke-width='2' fill='none'/></svg>");
                         }
-                    } 
+                    }
                 }
             }
         }
@@ -748,7 +777,8 @@ input[type="number"]::-webkit-inner-spin-button {
   background-position: -16px -120px;
 }
 .lang-flag.id,
-.lang-flag.id-ID {
+.lang-flag.id-ID,
+.lang-flag.en-ID {
   background-position: -32px -120px;
 }
 .lang-flag.bg,
@@ -848,7 +878,7 @@ input[type="number"]::-webkit-inner-spin-button {
     .content-block {
         padding: 0;
     }
-    .picker-3d { 
+    .picker-3d {
         .picker-item {
             padding: 0;
             text-align: left;
@@ -904,15 +934,6 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .statusbar .statusbar--box-tabs > ul > .locked a {
     box-shadow: inset 0 2px red;
-}
-
-.statusbar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 10000;
 }
 
 // Fonts List 
@@ -1043,12 +1064,18 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .target-function-list {
-    position: absolute; 
+    position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
-    width: 0; 
+    width: 0;
     height: 100%;
+}
+
+.dropdown-list-popup {
+    height: 260px;
+    bottom: 0;
+    top: auto;
 }
 
 .dropdown-list {
@@ -1115,6 +1142,98 @@ input[type="number"]::-webkit-inner-spin-button {
     }
 }
 
+// Block 
+.block {
+    margin-top: 8px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+// Inputs List 
+.block-title + .list, .block-title + .block, .block-title + .card, .block-title + .timeline, .block-title + .block-header {
+    margin: 0;
+}
+
+.inputs-list {
+    margin-bottom: 0;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        background: var(--f7-list-bg-color);
+    }
+}
+
+.list input[type='password'],
+.list input[type='text'] {
+    background: transparent;
+}
+
+// Dialog with password
+.dialog {
+    .modal-password {
+        position: relative;
+
+        &__icon {
+            position: absolute;
+            right: 4px;
+            top: calc(50% - 12.5px);
+        }
+
+        .item-input-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+}
+
+// Version History 
+.version-history {
+    &__user {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        min-width: 40px;
+        min-height: 40px;
+        text-align: center;
+        border-radius: 50px;
+        line-height: 40px;
+        color: var(--fill-white);
+        font-size: 18px;
+    }
+}
+
+// Review change
+.accept-reject .link {
+    margin-right: 20px;
+}
+
+// Beta badge
+.beta-badge {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    letter-spacing: 0.5px;
+    color: @fill-white;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+// Close editor button
+.close-editor-btn {
+    .item-inner {
+        padding-left: 36px;
+    }
+
+    .item-title {
+        color: @text-error;
+    }
+}
 
 
 

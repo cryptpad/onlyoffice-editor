@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2020
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -33,8 +32,7 @@
 /**
  *  ViewTab.js
  *
- *  Created by Julia Radzhabova on 08.07.2020
- *  Copyright (c) 2020 Ascensio System SIA. All rights reserved.
+ *  Created on 08.07.2020
  *
  */
 
@@ -46,7 +44,7 @@ define([
     'use strict';
 
     SSE.Views.ViewTab = Common.UI.BaseView.extend(_.extend((function(){
-        var template = '<section class="panel" data-tab="view">' +
+        var template = '<section class="panel" data-tab="view" role="tabpanel" aria-labelledby="view">' +
             '<div class="group sheet-views">' +
                 '<span class="btn-slot text x-huge" id="slot-btn-sheet-view"></span>' +
             '</div>' +
@@ -59,12 +57,17 @@ define([
                 '</div>' +
             '</div>' +
             '<div class="separator long sheet-views"></div>' +
+            '<div class="group doc-preview">' +
+                '<span class="btn-slot text x-huge" id="slot-btn-view-normal"></span>' +
+                '<span class="btn-slot text x-huge" id="slot-btn-view-pagebreak"></span>' +
+            '</div>' +
+            '<div class="separator long doc-preview"></div>' +
             '<div class="group small">' +
                 '<div class="elset" style="display: flex;">' +
                     '<span class="btn-slot" id="slot-field-zoom" style="flex-grow: 1;"></span>' +
                 '</div>' +
                 '<div class="elset" style="text-align: center;">' +
-                    '<span class="btn-slot text" id="slot-lbl-zoom" style="font-size: 11px;text-align: center;margin-top: 4px;"></span>' +
+                    '<span class="btn-slot text font-size-normal" id="slot-lbl-zoom" style="text-align: center;margin-top: 4px;"></span>' +
                 '</div>' +
             '</div>' +
             '<div class="separator long"></div>' +
@@ -109,6 +112,10 @@ define([
                     '<span class="btn-slot text" id="slot-chk-rightmenu"></span>' +
                 '</div>' +
             '</div>' +
+            '<div class="separator long"></div>' +
+            '<div class="group">' +
+                '<span class="btn-slot text x-huge" id="slot-btn-macros"></span>' +
+            '</div>' +
         '</section>';
 
         function setEvents() {
@@ -122,7 +129,7 @@ define([
                 });
             }
 
-            me.btnFreezePanes && me.btnFreezePanes.menu.on('item:click', function (menu, item, e) {
+            me.btnFreezePanes && me.btnFreezePanes.menu && (typeof me.btnFreezePanes.menu === 'object') && me.btnFreezePanes.menu.on('item:click', function (menu, item, e) {
                 if (item.value === 'shadow') {
                     me.fireEvent('viewtab:freezeshadow', [item.checked]);
                 } else {
@@ -163,6 +170,15 @@ define([
             me.chRightMenu.on('change', _.bind(function (checkbox, state) {
                 me.fireEvent('rightmenu:hide', [me.chRightMenu, state === 'checked']);
             }, me));
+            me.btnMacros && me.btnMacros.on('click', function () {
+                me.fireEvent('macros:click');
+            });
+            me.btnViewNormal && me.btnViewNormal.on('click', function (btn, e) {
+                btn.pressed && me.fireEvent('viewtab:viewmode', [Asc.c_oAscESheetViewType.normal]);
+            });
+            me.btnViewPageBreak && me.btnViewPageBreak.on('click', function (btn, e) {
+                btn.pressed && me.fireEvent('viewtab:viewmode', [Asc.c_oAscESheetViewType.pageBreakPreview]);
+            });
         }
 
         return {
@@ -181,10 +197,11 @@ define([
                 if ( me.appConfig.canFeatureViews && me.appConfig.isEdit ) {
                     this.btnSheetView = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
-                        iconCls: 'toolbar__icon btn-sheet-view',
+                        iconCls: 'toolbar__icon btn-big-sheet-view',
                         caption: me.capBtnSheetView,
                         lock        : [_set.lostConnect, _set.coAuth, _set.editCell],
                         menu: true,
+                        action: 'sheet-view',
                         dataHint    : '1',
                         dataHintDirection: 'bottom',
                         dataHintOffset: 'small'
@@ -222,6 +239,7 @@ define([
                         iconCls: 'toolbar__icon btn-freeze-panes',
                         caption: this.capBtnFreeze,
                         menu: true,
+                        action: 'freeze-panes',
                         lock: [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
                         dataHint: '1',
                         dataHintDirection: 'bottom',
@@ -255,6 +273,43 @@ define([
                         dataHintOffset: 'small'
                     });
                     this.lockedControls.push(this.chZeros);
+
+                    this.btnViewNormal = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        iconCls: 'toolbar__icon btn-normal-view',
+                        enableToggle: true,
+                        allowDepress: false,
+                        caption: this.txtViewNormal,
+                        lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.btnViewNormal);
+
+                    this.btnViewPageBreak = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        iconCls: 'toolbar__icon btn-page-break-preview',
+                        enableToggle: true,
+                        allowDepress: false,
+                        caption: this.txtViewPageBreak,
+                        lock        : [_set.sheetLock, _set.lostConnect, _set.coAuth, _set.editCell],
+                        dataHint    : '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.btnViewPageBreak);
+
+                    this.btnMacros = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        iconCls: 'toolbar__icon btn-macros',
+                        lock: [_set.selRangeEdit, _set.editFormula, _set.lostConnect, _set.disableOnStart],
+                        caption: this.textMacros,
+                        dataHint: '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.btnMacros);
                 }
 
                 this.cmbZoom = new Common.UI.ComboBox({
@@ -283,12 +338,13 @@ define([
 
                 this.btnInterfaceTheme = new Common.UI.Button({
                     cls: 'btn-toolbar x-huge icon-top',
-                    iconCls: 'toolbar__icon day',
+                    iconCls: 'toolbar__icon btn-day',
                     caption: this.textInterfaceTheme,
                     menu: true,
                     dataHint: '1',
                     dataHintDirection: 'bottom',
-                    dataHintOffset: 'small'
+                    dataHintOffset: 'small',
+                    action: 'interface-theme'
                 });
                 this.lockedControls.push(this.btnInterfaceTheme);
 
@@ -324,7 +380,7 @@ define([
 
                 this.chRightMenu = new Common.UI.CheckBox({
                     lock: [_set.lostConnect],
-                    labelText: this.textRightMenu,
+                    labelText: !Common.UI.isRTL() ? this.textRightMenu : this.textLeftMenu,
                     dataHint    : '1',
                     dataHintDirection: 'left',
                     dataHintOffset: 'small'
@@ -333,13 +389,14 @@ define([
 
                 this.chLeftMenu = new Common.UI.CheckBox({
                     lock: [_set.lostConnect],
-                    labelText: this.textLeftMenu,
+                    labelText: !Common.UI.isRTL() ? this.textLeftMenu : this.textRightMenu,
                     dataHint    : '1',
                     dataHintDirection: 'left',
                     dataHintOffset: 'small'
                 });
                 this.lockedControls.push(this.chLeftMenu);
 
+                Common.UI.LayoutManager.addControls(this.lockedControls);
                 Common.NotificationCenter.on('app:ready', this.onAppReady.bind(this));
             },
 
@@ -369,6 +426,9 @@ define([
                 this.chZeros && this.chZeros.render($host.find('#slot-chk-zeros'));
                 this.chLeftMenu.render($host.find('#slot-chk-leftmenu'));
                 this.chRightMenu.render($host.find('#slot-chk-rightmenu'));
+                this.btnMacros && this.btnMacros.render($host.find('#slot-btn-macros'));
+                this.btnViewNormal && this.btnViewNormal.render($host.find('#slot-btn-view-normal'));
+                this.btnViewPageBreak && this.btnViewPageBreak.render($host.find('#slot-btn-view-pagebreak'));
                 return this.$el;
             },
 
@@ -387,7 +447,7 @@ define([
                         me.btnCreateView.updateHint(me.tipCreate);
                         me.btnCloseView.updateHint(me.tipClose);
                     }
-
+                    me.btnMacros && me.btnMacros.updateHint(me.tipMacros);
                     me.btnInterfaceTheme.updateHint(me.tipInterfaceTheme);
 
                     if (config.isEdit) {
@@ -415,10 +475,15 @@ define([
                             ]
                         }));
                         me.btnFreezePanes.updateHint(me.tipFreeze);
+                        me.btnViewNormal.updateHint(me.tipViewNormal);
+                        me.btnViewPageBreak.updateHint(me.tipViewPageBreak);
                     } else {
+                        me.toolbar && me.toolbar.$el.find('.group.doc-preview').hide();
+                        me.toolbar && me.toolbar.$el.find('.separator.doc-preview').hide();
                         me.toolbar && me.toolbar.$el.find('.group.sheet-freeze').hide();
                         me.toolbar && me.toolbar.$el.find('.separator.sheet-freeze').hide();
                         me.toolbar && me.toolbar.$el.find('.group.sheet-gridlines').hide();
+                        me.toolbar.$el.find('#slot-btn-macros').closest('.group').prev().addBack().remove();
                     }
 
                     if (!Common.UI.Themes.available()) {
@@ -452,14 +517,41 @@ define([
                     }
 
                     if (Common.UI.Themes.available()) {
+                        function _add_tab_styles() {
+                            let btn = me.btnInterfaceTheme;
+                            if ( typeof(btn.menu) === 'object' )
+                                btn.menu.addItem({caption: '--'}, true);
+                            else
+                                btn.setMenu(new Common.UI.Menu());
+                            let mni = new Common.UI.MenuItem({
+                                value: -1,
+                                caption: me.textTabStyle,
+                                menu: new Common.UI.Menu({
+                                    menuAlign: 'tl-tr',
+                                    items: [
+                                        {value: 'fill', caption: me.textFill, checkable: true, toggleGroup: 'tabstyle'},
+                                        {value: 'line', caption: me.textLine, checkable: true, toggleGroup: 'tabstyle'}
+                                    ]
+                                })
+                            });
+                            _.each(mni.menu.items, function(item){
+                                item.setChecked(Common.Utils.InternalSettings.get("settings-tab-style")===item.value, true);
+                            });
+                            mni.menu.on('item:click', _.bind(function (menu, item) {
+                                Common.UI.TabStyler.setStyle(item.value);
+                            }, me));
+                            btn.menu.addItem(mni, true);
+                            me.menuTabStyle = mni.menu;
+                        }
                         function _fill_themes() {
-                            var btn = this.btnInterfaceTheme;
-                            if ( typeof(btn.menu) == 'object' ) btn.menu.removeAll();
+                            let btn = this.btnInterfaceTheme;
+                            if ( typeof(btn.menu) == 'object' ) btn.menu.removeAll(true);
                             else btn.setMenu(new Common.UI.Menu());
 
-                            var currentTheme = Common.UI.Themes.currentThemeId() || Common.UI.Themes.defaultThemeId();
+                            var currentTheme = Common.UI.Themes.currentThemeId() || Common.UI.Themes.defaultThemeId(),
+                                idx = 0;
                             for (var t in Common.UI.Themes.map()) {
-                                btn.menu.addItem({
+                                btn.menu.insertItem(idx++, {
                                     value: t,
                                     caption: Common.UI.Themes.get(t).text,
                                     checked: t === currentTheme,
@@ -467,12 +559,13 @@ define([
                                     toggleGroup: 'interface-theme'
                                 });
                             }
+                            // Common.UI.FeaturesManager.canChange('tabStyle', true) && _add_tab_styles();
                         }
 
                         Common.NotificationCenter.on('uitheme:countchanged', _fill_themes.bind(me));
                         _fill_themes.call(me);
 
-                        if (me.btnInterfaceTheme.menu.items.length) {
+                        if (me.btnInterfaceTheme.menu.getItemsLength(true)) {
                             me.btnInterfaceTheme.menu.on('item:click', _.bind(function (menu, item) {
                                 var value = item.value;
                                 Common.UI.Themes.setTheme(value);
@@ -489,6 +582,9 @@ define([
                     me.chRightMenu.setValue(!Common.localStorage.getBool("sse-hidden-rightmenu", value));
 
                     setEvents.call(me);
+
+                    if (Common.Utils.InternalSettings.get('toolbar-active-tab')==='view')
+                        Common.NotificationCenter.trigger('tab:set-active', 'view');
                 });
             },
 
@@ -559,7 +655,8 @@ define([
                 }, this);
             },
 
-            onComboOpen: function (needfocus, combo) {
+            onComboOpen: function (needfocus, combo, e, params) {
+                if (params && params.fromKeyDown) return;
                 _.delay(function() {
                     var input = $('input', combo.cmpEl).select();
                     if (needfocus) input.focus();
@@ -591,7 +688,16 @@ define([
             textShowFrozenPanesShadow: 'Show frozen panes shadow',
             tipInterfaceTheme: 'Interface theme',
             textLeftMenu: 'Left panel',
-            textRightMenu: 'Right panel'
+            textRightMenu: 'Right panel',
+            txtViewNormal: 'Normal',
+            txtViewPageBreak: 'Page Break Preview',
+            tipViewNormal: 'See your document in Normal view',
+            tipViewPageBreak: 'See where the page breaks will appear when your document is printed',
+            textTabStyle: 'Tab style',
+            textFill: 'Fill',
+            textLine: 'Line',
+            textMacros: 'Macros',
+            tipMacros: 'Macros'
         }
     }()), SSE.Views.ViewTab || {}));
 });

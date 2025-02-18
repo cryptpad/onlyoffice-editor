@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,7 +28,7 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 if (Common === undefined)
     var Common = {};
 
@@ -46,7 +45,8 @@ define([
                 placement: 'right-bottom',
                 showLink: true,
                 showButton: false,
-                closable: true
+                closable: true,
+                textHeader: ''
             },
 
             template: _.template([
@@ -54,7 +54,11 @@ define([
                     '<div class="asc-synchronizetip">',
                         '<div class="tip-arrow <%= scope.placement %>"></div>',
                         '<div>',
-                            '<div class="tip-text"><%= scope.text %></div>',
+                            '<div class="tip-text">',
+                            '<% if ( scope.textHeader !== "" ) { %>',
+                            '<label class="tip-header"><%= scope.textHeader %></label><br>',
+                            '<% } %>',
+                            '<%= scope.text %></div>',
                             '<% if ( scope.closable ) { %>',
                             '<div class="close"></div>',
                             '<% } %>',
@@ -80,9 +84,13 @@ define([
                 this.showLink = this.options.showLink;
                 this.showButton = this.options.showButton;
                 this.closable = this.options.closable;
-                this.textButton = this.options.textButton || '';
+                this.textButton = this.options.textButton || this.textGotIt;
+                this.textHeader = this.options.textHeader || '';
                 this.position = this.options.position; // show in the position relative to target
+                this.offset = this.options.offset; // shift from target
                 this.style = this.options.style || '';
+                this.automove = this.options.automove;
+                this.binding = {};
             },
 
             render: function() {
@@ -94,6 +102,7 @@ define([
                     this.cmpEl.find('.btn-div').on('click', _.bind(function() { this.trigger('buttonclick');}, this));
 
                     this.closable && this.cmpEl.addClass('closable');
+                    this.binding.windowresize = _.bind(this.applyPlacement, this);
                 }
 
                 this.applyPlacement();
@@ -107,20 +116,25 @@ define([
                     this.cmpEl.show()
                 } else
                     this.render();
+                this.automove && $(window).on('resize', this.binding.windowresize);
             },
 
             hide: function() {
                 if (this.cmpEl) this.cmpEl.hide();
                 this.trigger('hide');
+                this.automove && $(window).off('resize', this.binding.windowresize);
             },
 
             close: function() {
                 if (this.cmpEl) this.cmpEl.remove();
+                this.trigger('close');
+                this.automove && $(window).off('resize', this.binding.windowresize);
             },
 
             applyPlacement: function () {
                 var target = this.target && this.target.length>0 ? this.target : $(document.body);
-                var showxy = target.offset();
+                var showxy = Common.Utils.getOffset(target),
+                    offset = this.offset || {x: 0, y: 0};
                 if (this.placement=='target' && !this.position) {
                     this.cmpEl.css({top : showxy.top + 5 + 'px', left: showxy.left + 5 + 'px'});
                     return;
@@ -146,31 +160,31 @@ define([
                     var top, left, bottom, right;
                     var pos = placement[0];
                     if (pos=='top') {
-                        bottom = Common.Utils.innerHeight() - showxy.top;
+                        bottom = Common.Utils.innerHeight() - showxy.top + offset.y;
                     } else if (pos == 'bottom') {
-                        top = showxy.top + target.height();
+                        top = showxy.top + target.height() + offset.y;
                     } else if (pos == 'left') {
-                        right = Common.Utils.innerWidth() - showxy.left;
+                        right = Common.Utils.innerWidth() - showxy.left + offset.x;
                     } else if (pos == 'right') {
-                        left = showxy.left + target.width();
+                        left = showxy.left + target.width() + offset.x;
                     }
                     pos = placement[1];
                     if (pos=='top') {
-                        bottom = Common.Utils.innerHeight() - showxy.top - target.height()/2;
+                        bottom = Common.Utils.innerHeight() - showxy.top - target.height()/2 + offset.y;
                     } else if (pos == 'bottom') {
-                        top = showxy.top + target.height()/2;
+                        top = showxy.top + target.height()/2 + offset.y;
                         var height = this.cmpEl.height();
                         if (top+height>Common.Utils.innerHeight())
                             top = Common.Utils.innerHeight() - height - 10;
                     } else if (pos == 'left') {
-                        right = Common.Utils.innerWidth() - showxy.left - target.width()/2;
+                        right = Common.Utils.innerWidth() - showxy.left - target.width()/2 + offset.x;
                     } else if (pos == 'right') {
-                        left = showxy.left + target.width()/2;
+                        left = showxy.left + target.width()/2 + offset.x;
                     } else {
                         if (bottom!==undefined || top!==undefined)
-                            left = showxy.left + (target.width() - this.cmpEl.width())/2;
+                            left = showxy.left + (target.width() - this.cmpEl.width())/2 + offset.x;
                         else
-                            top = showxy.top + (target.height() - this.cmpEl.height())/2;
+                            top = showxy.top + (target.height() - this.cmpEl.height())/2 + offset.y;
                     }
                     top = (top!==undefined) ? (top + 'px') : 'auto';
                     bottom = (bottom!==undefined) ? (bottom + 'px') : 'auto';
@@ -190,9 +204,173 @@ define([
                 return this.cmpEl && this.cmpEl.is(':visible');
             },
 
+            setText: function(text) {
+                if (this.text !== text) {
+                    this.text = text;
+                    this.cmpEl.find('.tip-text').text(text);
+                }
+            },
+
             textDontShow        : 'Don\'t show this message again',
-            textSynchronize     : 'The document has been changed by another user.<br>Please click to save your changes and reload the updates.'
+            textSynchronize     : 'The document has been changed by another user.<br>Please click to save your changes and reload the updates.',
+            textGotIt: 'Got it'
         }
     })(), Common.UI.SynchronizeTip || {}));
+
+    Common.UI.TooltipManager = new(function() {
+        var _helpTips = {
+            // 'step': {
+            //     name: 'localstorage-id', // (or undefined when don't save option to localstorage) save 1 to localstorage to not show message again
+            //     placement: 'bottom',
+            //     position: '',
+            //     offset: {x: 0, y: 0}
+            //     text: '',
+            //     header: '',
+            //     target: '#id', // string or $el
+            //     link: {text: 'link text', src: 'UsageInstructions\/....htm'}, // (or false) Open help page
+            //     showButton: true, // true by default
+            //     closable: true, // true by default
+            //     callback: function() {} // call when close tip,
+            //     next: '' // show next tooltip on close
+            //     prev: '' // don't show tooltip if the prev was not shown
+            //     automove: false // applyPlacement on window resize
+            //     maxwidth: 250 // number or string '123px/none/...', 250 by default,
+            //     extCls: '' //
+            //     noHighlight: false // false by default,
+            //     multiple: false // false by default, show tip multiple times
+            // }
+        },
+        _targetStack = {
+            // 'targetStr' : [targetEl1, targetEl2...]
+        };
+
+        var _addTips = function(arr) {
+            for (var step in arr) {
+                if (arr.hasOwnProperty(step) && !Common.localStorage.getItem(arr[step].name) && !(_helpTips[step] && _helpTips[step].tip && _helpTips[step].tip.isVisible())) { // don't replace tip when it's visible
+                    _helpTips[step] = arr[step];
+                }
+            }
+        };
+
+        var _removeTip = function(step) {
+            if (_helpTips[step]) {
+                delete _helpTips[step];
+                _helpTips[step] = undefined;
+            }
+        };
+
+        var _getNeedShow = function(step) {
+            return _helpTips[step] && !(_helpTips[step].name && Common.localStorage.getItem(_helpTips[step].name));
+        };
+
+        var _closeTip = function(step, force, preventNext) {
+            var props = _helpTips[step];
+            if (props) {
+                preventNext && (props.next = undefined);
+                props.tip && props.tip.close();
+                props.tip = undefined;
+                force && props.name && Common.localStorage.setItem(props.name, 1);
+            }
+        };
+
+        var _findTarget = function(target) {
+            if (typeof target === 'string') {
+                if (!_targetStack[target])
+                    _targetStack[target] = [];
+                for (let i=_targetStack[target].length-1; i>=0; i--) {
+                    if (_targetStack[target][i]) {
+                        return _targetStack[target][i];
+                    } else {
+                        _targetStack[target].pop();
+                    }
+                }
+                return $(target);
+            }
+            return target;
+        };
+
+        var _showTip = function(step) {
+            if (typeof step === 'object') { // init and show tip, object must have 'step' field
+                if (step.step) {
+                    if (!_helpTips[step.step])
+                        _helpTips[step.step] = step;
+                    else
+                        _helpTips[step.step].text = step.text; // change text
+                    step = step.step;
+                }
+            }
+            if (!_helpTips[step]) return;
+            if (_getNeedShow(step) && !(_helpTips[step].prev && _getNeedShow(_helpTips[step].prev))) { // show current tip if previous tip has already been shown
+                var props = _helpTips[step],
+                    target = props.target,
+                    targetEl = _findTarget(target);
+
+                if (props.tip && props.tip.isVisible())
+                    return true;
+
+                if (!(targetEl && targetEl.length && targetEl.is(':visible')))
+                    return false;
+
+                var placement = props.placement || 'bottom';
+                if (Common.UI.isRTL()) {
+                    placement = placement.indexOf('right')>-1 ? placement.replace('right', 'left') : placement.replace('left', 'right');
+                }
+                !props.noHighlight && targetEl.addClass('highlight-tip');
+                props.tip = new Common.UI.SynchronizeTip({
+                    extCls: 'colored' + (props.extCls ? ' ' + props.extCls : '') + (props.noHighlight ? ' no-arrow' : ''),
+                    style: 'min-width:200px;max-width:' + (props.maxwidth ? props.maxwidth + (typeof props.maxwidth === 'number' ? 'px;' : ';') : '250px;'),
+                    placement: placement,
+                    position: props.position,
+                    offset: props.offset,
+                    target: targetEl,
+                    text: props.text,
+                    textHeader: props.header,
+                    showLink: !!props.link,
+                    textLink: props.link ? props.link.text : '',
+                    closable: props.closable !== false, // true by default
+                    showButton: props.showButton !== false, // true by default
+                    automove: !!props.automove
+                });
+                props.tip.on({
+                    'buttonclick': function() {
+                        props.tip && props.tip.close();
+                        props.tip = undefined;
+                    },
+                    'closeclick': function() {
+                        props.tip && props.tip.close();
+                        props.tip = undefined;
+                    },
+                    'dontshowclick': function() {
+                        Common.NotificationCenter.trigger('file:help', props.link.src);
+                    },
+                    'close': function() {
+                        targetEl.removeClass('highlight-tip');
+                        props.name && Common.localStorage.setItem(props.name, 1);
+                        props.callback && props.callback();
+                        props.next && _showTip(props.next);
+                        !props.multiple && (delete _helpTips[step]);
+                        if (typeof target === 'string' && props.stackIdx) {
+                            _targetStack[target][props.stackIdx-1] = undefined;
+                            props.stackIdx = undefined;
+                        }
+                    }
+                });
+                props.tip.show();
+                if (typeof target === 'string') {
+                    _targetStack[target].push(props.tip.cmpEl);
+                    props.stackIdx = _targetStack[target].length;
+                }
+            }
+            return true;
+        };
+
+        return {
+            showTip: _showTip,
+            closeTip: _closeTip,
+            removeTip: _removeTip,
+            addTips: _addTips,
+            getNeedShow: _getNeedShow
+        }
+    })();
 });
 

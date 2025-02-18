@@ -9,6 +9,7 @@ class DownloadController extends Component {
     constructor(props) {
         super(props);
         this.onSaveFormat = this.onSaveFormat.bind(this);
+        this.appOptions = this.props.storeAppOptions;
     }
 
     closeModal() {
@@ -20,70 +21,76 @@ class DownloadController extends Component {
     }
 
     onSaveFormat(format) {
+        const { t } = this.props;
+        const _t = t("Settings", { returnObjects: true });
         const api = Common.EditorApi.get();
         const storeDocumentInfo = this.props.storeDocumentInfo;
         const dataDoc = storeDocumentInfo.dataDoc;
         const fileType = dataDoc.fileType;
-        const { t } = this.props;
-        const _t = t("Settings", { returnObjects: true });
-
+        const isNeedDownload = !!format;
+        const options = new Asc.asc_CDownloadOptions(format);
+        options.asc_setIsSaveAs(isNeedDownload);
+       
         if(/^pdf|xps|oxps|djvu$/.test(fileType)) {
-            if(format) {
-                this.closeModal();
+            this.closeModal();
 
-                if (format == Asc.c_oAscFileType.TXT || format == Asc.c_oAscFileType.RTF) {
-                    f7.dialog.create({
-                        title: _t.notcriticalErrorTitle,
-                        text: (format === Asc.c_oAscFileType.TXT) ? _t.textDownloadTxt : _t.textDownloadRtf,
-                        buttons: [
-                            {
-                                text: _t.textCancel
-                            },
-                            {
-                                text: _t.textOk,
-                                onClick: () => {
-                                    if (format == Asc.c_oAscFileType.TXT) {
-                                        const advOptions = api.asc_getAdvancedOptions();
-                                        Common.Notifications.trigger('openEncoding', Asc.c_oAscAdvancedOptionsID.TXT, advOptions, 2, new Asc.asc_CDownloadOptions(format));
-                                    } else {
-                                        setTimeout(() => {
-                                            api.asc_DownloadAs(new Asc.asc_CDownloadOptions(format));
-                                        }, 400);
-                                    }
-                                }
-                            }
-                        ],
-                    }).open();
-                } else {
-                    f7.dialog.create({
-                        title: _t.notcriticalErrorTitle,
-                        text: t('Main.warnDownloadAsPdf').replaceAll('{0}', fileType.toUpperCase()), 
-                        buttons: [
-                            {
-                                text: _t.textCancel
-                            },
-                            {
-                                text: _t.textOk,
-                                onClick: () => {
-                                    const options = new Asc.asc_CDownloadOptions(format);
-                                    options.asc_setTextParams(new AscCommon.asc_CTextParams(Asc.c_oAscTextAssociation.PlainLine));
+            if (format === Asc.c_oAscFileType.DJVU) {
+                api.asc_DownloadOrigin(options);
+            } else if(format === Asc.c_oAscFileType.PDF || format === Asc.c_oAscFileType.PDFA || format === Asc.c_oAscFileType.JPG || format === Asc.c_oAscFileType.PNG) {
+                api.asc_DownloadAs(options);
+            } else if (format === Asc.c_oAscFileType.TXT || format === Asc.c_oAscFileType.RTF) {
+                options.asc_setTextParams(new AscCommon.asc_CTextParams(Asc.c_oAscTextAssociation.PlainLine));
+
+                f7.dialog.create({
+                    title: _t.notcriticalErrorTitle,
+                    text: (format === Asc.c_oAscFileType.TXT) ? _t.textDownloadTxt : _t.textDownloadRtf,
+                    buttons: [
+                        {
+                            text: _t.textCancel
+                        },
+                        {
+                            text: _t.textOk,
+                            onClick: () => {
+                                if (format === Asc.c_oAscFileType.TXT) {
+                                    const advOptions = api.asc_getAdvancedOptions();
+                                    Common.Notifications.trigger('openEncoding', Asc.c_oAscAdvancedOptionsID.TXT, advOptions, 2, options);
+                                } else {
                                     api.asc_DownloadAs(options);
                                 }
                             }
-                        ],
-                    }).open();
-                }
+                        }
+                    ],
+                }).open();
+            } else {
+                f7.dialog.create({
+                    title: _t.notcriticalErrorTitle,
+                    text: t('Main.warnDownloadAsPdf').replaceAll('{0}', fileType.toUpperCase()), 
+                    buttons: [
+                        {
+                            text: _t.textCancel
+                        },
+                        {
+                            text: _t.textOk,
+                            onClick: () => {
+                                options.asc_setTextParams(new AscCommon.asc_CTextParams(Asc.c_oAscTextAssociation.PlainLine));
+                                api.asc_DownloadAs(options);
+                            }
+                        }
+                    ],
+                }).open();
             }
         } else {
-            setTimeout(() => {
-                api.asc_DownloadAs(new Asc.asc_CDownloadOptions(format));
-            }, 400);
+            api.asc_DownloadAs(options);
         }
     }
 
     render() {
         return (
-            <Download onSaveFormat={this.onSaveFormat} />
+            <Download 
+                onSaveFormat={this.onSaveFormat} 
+                isForm={this.appOptions.isForm}
+                canFillForms={this.appOptions.canFillForms}
+            />
         );
     }
 }
@@ -99,7 +106,7 @@ const onAdvancedOptions = (type, _t, isDocReady, canRequestClose, isDRM) => {
     Common.Notifications.trigger('preloader:endAction', Asc.c_oAscAsyncActionType['BlockInteraction'], -256, true);
 
     const buttons = [{
-        text: 'OK',
+        text: _t.textOk,
         bold: true,
         onClick: function () {
             const password = document.getElementById('modal-password').value;
@@ -114,26 +121,40 @@ const onAdvancedOptions = (type, _t, isDocReady, canRequestClose, isDRM) => {
         f7.dialog.create({
             text: _t.txtIncorrectPwd,
             buttons : [{
-                text: 'OK',
+                text: _t.textOk,
                 bold: true,
             }]
         }).open();
     }
 
-    if (canRequestClose)
+    if (canRequestClose) {
         buttons.push({
             text: _t.closeButtonText,
             onClick: function () {
                 Common.Gateway.requestClose();
             }
         });
+    }
+
     f7.dialog.create({
         title: _t.advDRMOptions,
         text: _t.textOpenFile,
         content: Device.ios ?
-        '<div class="input-field"><input type="password" class="modal-text-input" name="modal-password" placeholder="' + _t.advDRMPassword + '" id="modal-password"></div>' : '<div class="input-field"><div class="inputs-list list inline-labels"><ul><li><div class="item-content item-input"><div class="item-inner"><div class="item-input-wrap"><input type="password" name="modal-password" id="modal-password" placeholder=' + _t.advDRMPassword + '></div></div></div></li></ul></div></div>',
+        '<div class="input-field modal-password"><input type="password" class="modal-text-input" name="modal-password" placeholder="' + _t.advDRMPassword + '" id="modal-password"><i class="modal-password__icon icon icon-show-password"></i></div>' : '<div class="input-field modal-password"><div class="inputs-list list inline-labels"><ul><li><div class="item-content item-input"><div class="item-inner"><div class="item-input-wrap"><input type="password" name="modal-password" id="modal-password" placeholder=' + _t.advDRMPassword + '><i class="modal-password__icon icon icon-show-password"></i></div></div></div></li></ul></div></div>',
         buttons: buttons,
-        cssClass: 'dlg-adv-options'
+        cssClass: 'dlg-adv-options',
+        on: {
+            opened: () => {
+                const passwordIcon = document.querySelector('.modal-password__icon');
+                const passwordField = document.querySelector('#modal-password');
+
+                passwordIcon.addEventListener('click', () => {
+                    passwordIcon.classList.toggle('icon-show-password');
+                    passwordIcon.classList.toggle('icon-hide-password');
+                    passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+                });
+            },
+        }
     }).open();
 };
 

@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2019
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,11 +28,9 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
- * User: Julia.Radzhabova
  * Date: 17.05.16
- * Time: 15:38
  */
 
 if (Common === undefined)
@@ -50,25 +47,7 @@ define([
     'use strict';
 
     Common.Views.Plugins = Common.UI.BaseView.extend(_.extend({
-        el: '#left-panel-plugins',
-
         storePlugins: undefined,
-        template: _.template([
-            '<div id="plugins-box" class="layout-ct vbox">',
-                '<label id="plugins-header"><%= scope.strPlugins %></label>',
-                '<div id="plugins-list" class="">',
-                '</div>',
-            '</div>',
-            '<div id="current-plugin-box" class="layout-ct vbox hidden">',
-                '<div id="current-plugin-frame" class="">',
-                '</div>',
-                '<div id="current-plugin-header">',
-                    '<label></label>',
-                    '<div id="id-plugin-close" class="close"></div>',
-                '</div>',
-            '</div>',
-            '<div id="plugins-mask" style="display: none;">'
-        ].join('')),
 
         initialize: function(options) {
             _.extend(this, options);
@@ -83,12 +62,13 @@ define([
                 }
             };
             this.lockedControls = [];
+            this.pluginPanels = {};
+            this.customPluginPanels = {};
             Common.UI.BaseView.prototype.initialize.call(this, arguments);
         },
 
         render: function(el) {
             el && (this.$el = $(el));
-            this.$el.html(this.template({scope: this}));
 
             // this.viewPluginsList = new Common.UI.DataView({
             //     el: $('#plugins-list'),
@@ -107,19 +87,6 @@ define([
             // this.lockedControls.push(this.viewPluginsList);
             // this.viewPluginsList.cmpEl.off('click');
 
-            this.pluginName = $('#current-plugin-header label');
-            this.pluginsPanel = $('#plugins-box');
-            this.pluginsMask = $('#plugins-mask', this.$el);
-            this.currentPluginPanel = $('#current-plugin-box');
-            this.currentPluginFrame = $('#current-plugin-frame');
-
-            this.pluginClose = new Common.UI.Button({
-                parentEl: $('#id-plugin-close'),
-                cls: 'btn-toolbar',
-                iconCls: 'toolbar__icon btn-close',
-                hint: this.textClosePanel
-            });
-
             this.pluginMenu = new Common.UI.Menu({
                 menuAlign   : 'tr-br',
                 items: []
@@ -130,7 +97,7 @@ define([
         },
 
         getPanel: function () {
-            var _panel = $('<section id="plugins-panel" class="panel" data-tab="plugins"></section>');
+            var _panel = $('<section id="plugins-panel" class="panel" data-tab="plugins" role="tabpanel" aria-labelledby="plugins"></section>');
             var _group = $('<div class="group"></div>');
             if ( !this.storePlugins.isEmpty() ) {
                 this.storePlugins.each(function (model) {
@@ -165,7 +132,7 @@ define([
                             btn = new Common.UI.Button({
                                 cls: 'btn-toolbar x-huge icon-top',
                                 iconImg: _icon_url,
-                                caption: model.get('name'),
+                                caption: Common.Utils.String.htmlEncode(model.get('name')),
                                 menu: modes && modes.length > 1,
                                 split: modes && modes.length > 1,
                                 value: guid,
@@ -222,52 +189,7 @@ define([
             }
         },
 
-        openInsideMode: function(name, url, frameId) {
-            if (!this.pluginsPanel) return false;
-
-            this.pluginsPanel.toggleClass('hidden', true);
-            this.currentPluginPanel.toggleClass('hidden', false);
-
-            this.pluginName.text(name);
-            if (!this.iframePlugin) {
-                this.iframePlugin = document.createElement("iframe");
-                this.iframePlugin.id           = (frameId === undefined) ? 'plugin_iframe' : frameId;
-                this.iframePlugin.name         = 'pluginFrameEditor';
-                this.iframePlugin.width        = '100%';
-                this.iframePlugin.height       = '100%';
-                this.iframePlugin.align        = "top";
-                this.iframePlugin.frameBorder  = 0;
-                this.iframePlugin.scrolling    = "no";
-                this.iframePlugin.allow = "camera; microphone; display-capture";
-                this.iframePlugin.onload       = _.bind(this._onLoad,this);
-                this.currentPluginFrame.append(this.iframePlugin);
-
-                if (!this.loadMask)
-                    this.loadMask = new Common.UI.LoadMask({owner: this.currentPluginFrame});
-                this.loadMask.setTitle(this.textLoading);
-                this.loadMask.show();
-
-                this.iframePlugin.src = url;
-            }
-
-            this.fireEvent('plugin:open', [this, 'onboard', 'open']);
-            return true;
-        },
-
-        closeInsideMode: function() {
-            if (!this.pluginsPanel) return;
-
-            if (this.iframePlugin) {
-                this.currentPluginFrame.empty();
-                this.iframePlugin = null;
-            }
-            this.currentPluginPanel.toggleClass('hidden', true);
-            // this.pluginsPanel.toggleClass('hidden', false);
-
-            this.fireEvent('plugin:open', [this, 'onboard', 'close']);
-        },
-
-        openedPluginMode: function(pluginGuid) {
+        openedPluginMode: function(pluginGuid, insideMode) {
             // var rec = this.viewPluginsList.store.findWhere({guid: pluginGuid});
             // if ( rec ) {
             //     this.viewPluginsList.cmpEl.find('#' + rec.get('id')).parent().addClass('selected');
@@ -277,90 +199,49 @@ define([
             if ( model ) {
                 var _btn = model.get('button');
                 if (_btn) {
-                    _btn.toggle(true);
-                    this.updatePluginButton(model);
+                    if (!insideMode) {
+                        _btn.toggle(true);
+                    }
                     if (_btn.menu && _btn.menu.items.length>0) {
                         _btn.menu.items[0].setCaption(this.textStop);
+                        _btn.menu.items[0].isRun = true;
                     }
+                    _btn.options.isRun = true;
                 }
             }
         },
 
-        closedPluginMode: function(guid) {
+        closedPluginMode: function(guid, insideMode) {
             // this.viewPluginsList.cmpEl.find('.selected').removeClass('selected');
 
             var model = this.storePlugins.findWhere({guid: guid});
             if ( model ) {
                 var _btn = model.get('button');
                 if (_btn) {
-                    _btn.toggle(false);
-                    this.updatePluginButton(model);
+                    if (!insideMode) {
+                        _btn.toggle(false);
+                    }
                     if (_btn.menu && _btn.menu.items.length>0) {
                         _btn.menu.items[0].setCaption(this.textStart);
+                        _btn.menu.items[0].isRun = false;
                     }
+                    _btn.options.isRun = false;
                 }
             }
         },
 
-        _onLoad: function() {
-            if (this.loadMask)
-                this.loadMask.hide();
+        iconsStr2IconsObj: function(icons) {
+            let result = icons;
+            if (typeof result === 'string') {
+                if (result.indexOf('%') === -1)
+                    return [icons, icons];
+                return Common.UI.iconsStr2IconsObj(icons);
+            }
+            return result;
         },
 
         parseIcons: function(icons) {
-            if (icons.length && typeof icons[0] !== 'string') {
-                var theme = Common.UI.Themes.currentThemeId().toLowerCase(),
-                    style = Common.UI.Themes.isDarkTheme() ? 'dark' : 'light',
-                    idx = -1;
-                for (var i=0; i<icons.length; i++) {
-                    if (icons[i].theme && icons[i].theme.toLowerCase() == theme) {
-                        idx = i;
-                        break;
-                    }
-                }
-                if (idx<0)
-                    for (var i=0; i<icons.length; i++) {
-                        if (icons[i].style && icons[i].style.toLowerCase() == style) {
-                            idx = i;
-                            break;
-                        }
-                    }
-                (idx<0) && (idx = 0);
-
-                var ratio = Common.Utils.applicationPixelRatio()*100,
-                    current = icons[idx],
-                    bestDistance = 10000,
-                    currentDistance = 0,
-                    defUrl,
-                    bestUrl;
-                for (var key in current) {
-                    if (current.hasOwnProperty(key)) {
-                        if (key=='default') {
-                            defUrl = current[key];
-                        } else if (!isNaN(parseInt(key))) {
-                            currentDistance = Math.abs(ratio-parseInt(key));
-                            if (currentDistance < (bestDistance - 0.01))
-                            {
-                                bestDistance = currentDistance;
-                                bestUrl = current[key];
-                            }
-                        }
-                    }
-                }
-                (bestDistance>0.01 && defUrl) && (bestUrl = defUrl);
-                return {
-                    'normal': bestUrl['normal'],
-                    'hover': bestUrl['hover'] || bestUrl['normal'],
-                    'active': bestUrl['active'] || bestUrl['normal']
-                };
-            } else { // old version
-                var url = icons[((Common.Utils.applicationPixelRatio() > 1) ? 1 : 0) + (icons.length > 2 ? 2 : 0)];
-                return {
-                    'normal': url,
-                    'hover': url,
-                    'active': url
-                };
-            }
+            return Common.UI.getSuitableIcons(this.iconsStr2IconsObj(icons)); // TODO: fix format for icons string and use Common.UI.iconsStr2IconsObj
         },
 
         updatePluginIcons: function(model) {
@@ -369,18 +250,43 @@ define([
 
             var modes = model.get('variations'),
                 icons = modes[model.get('currentVariation')].get('icons');
+            if (icons === '') return;
             model.set('parsedIcons', this.parseIcons(icons));
             this.updatePluginButton(model);
         },
 
         updatePluginButton: function(model) {
-            if (!model.get('visible'))
+            if (!model.get('visible') || !model.get('parsedIcons'))
                 return null;
+            var menuItem = model.get('backgroundPlugin');
+            menuItem && menuItem.cmpEl && menuItem.cmpEl.find("img").attr("src", model.get('baseUrl') + model.get('parsedIcons')['normal']);
+        },
 
-            var btn = model.get('button');
-            if (btn && btn.cmpEl) {
-                btn.cmpEl.find(".inner-box-icon img").attr("src", model.get('baseUrl') + model.get('parsedIcons')[btn.isActive() ? 'active' : 'normal']);
-            }
+        createBackgroundPluginsButton: function () {
+            var _set = Common.enumLock;
+            var btn = new Common.UI.Button({
+                cls: 'btn-toolbar x-huge icon-top',
+                iconCls: 'toolbar__icon btn-background-plugins',
+                caption: this.textBackgroundPlugins,
+                menu: new Common.UI.Menu({
+                    cls: 'background-plugins',
+                    style: 'min-width: 230px;',
+                    items: [
+                        {
+                            template: _.template('<div class="menu-header">' + this.textTheListOfBackgroundPlugins + '</div>'),
+                            stopPropagation: true
+                        }
+                    ],
+                    restoreHeight: true
+                }),
+                hint: this.textBackgroundPlugins,
+                lock: [_set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.docLockView, _set.docLockForms, _set.docLockComments, _set.selRangeEdit, _set.editFormula],
+                dataHint: '1',
+                dataHintDirection: 'bottom',
+                dataHintOffset: 'small'
+            });
+            this.lockedControls.push(btn);
+            return btn;
         },
 
         createPluginButton: function (model) {
@@ -392,26 +298,33 @@ define([
             var modes = model.get('variations'),
                 guid = model.get('guid'),
                 icons = modes[model.get('currentVariation')].get('icons'),
-                parsedIcons = this.parseIcons(icons),
-                icon_url = model.get('baseUrl') + parsedIcons['normal'];
-            model.set('parsedIcons', parsedIcons);
+                icon_cls;
+            if (icons === '') {
+                icon_cls = 'toolbar__icon btn-plugin-default'
+            } else {
+                model.set('parsedIcons', this.parseIcons(icons));
+            }
             var _menu_items = [];
             _.each(model.get('variations'), function(variation, index) {
                 if (variation.get('visible'))
                     _menu_items.push({
                         caption     : index > 0 ? variation.get('description') : me.textStart,
-                        value       : parseInt(variation.get('index'))
+                        value       : parseInt(variation.get('index')),
+                        isRun       : false
                     });
             });
 
             var _set = Common.enumLock;
-            var btn = new Common.UI.Button({
+            var btn = new Common.UI.ButtonCustom({
                 cls: 'btn-toolbar x-huge icon-top',
-                iconImg: icon_url,
-                caption: model.get('name'),
+                iconCls: icon_cls,
+                iconsSet: this.iconsStr2IconsObj(icons),
+                baseUrl: model.get('baseUrl'), // icons have a relative path, so need to use the base url
+                caption: Common.Utils.String.htmlEncode(model.get('name')),
                 menu: _menu_items.length > 1,
                 split: _menu_items.length > 1,
                 value: guid,
+                isRun: false,
                 hint: model.get('name'),
                 lock: model.get('isDisplayedInViewer') ? [_set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.selRangeEdit, _set.editFormula] : [_set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.docLockView, _set.docLockForms, _set.docLockComments, _set.selRangeEdit, _set.editFormula ],
                 dataHint: '1',
@@ -428,12 +341,12 @@ define([
                 );
 
                 btn.menu.on('item:click', function(menu, item, e) {
-                    me.fireEvent('plugin:select', [menu.options.pluginGuid, item.value]);
+                    me.fireEvent('plugin:select', [menu.options.pluginGuid, item.value, item.isRun, item.value === 0 && item.isRun]);
                 });
             }
 
             btn.on('click', function(b, e) {
-                me.fireEvent('plugin:select', [b.options.value, 0]);
+                me.fireEvent('plugin:select', [b.options.value, 0, btn.options.isRun]);
             });
 
             model.set('button', btn);
@@ -446,12 +359,44 @@ define([
             this.fireEvent('hide', this );
         },
 
+        showPluginPanel: function (show, id) {
+            var panel = this.pluginPanels[id] ? this.pluginPanels[id] : this.customPluginPanels[id],
+                menu = this.pluginPanels[id] ? this.storePlugins.findWhere({guid: id}).get('menu') : panel.menu;
+            if (show) {
+                for (var key in this.pluginPanels) {
+                    if (this.pluginPanels[key].menu === menu) {
+                        this.pluginPanels[key].$el.removeClass('active');
+                    }
+                }
+                for (var key in this.customPluginPanels) {
+                    if (this.customPluginPanels[key].menu === menu) {
+                        this.customPluginPanels[key].$el.removeClass('active');
+                    }
+                }
+                panel.$el.addClass('active');
+            } else {
+                panel.$el.removeClass('active');
+                this.fireEvent(menu === 'right' ? 'pluginsright:hide' : 'pluginsleft:hide', this);
+            }
+            //this.updateLeftPluginButton(guid);
+        },
+
+        /*updateLeftPluginButton: function(guid) {
+            var model = this.storePlugins.findWhere({guid: guid}),
+                btn = this.pluginBtns[guid];
+            if (btn && btn.cmpEl) {
+                btn.cmpEl.find("img").attr("src", model.get('baseUrl') + model.get('parsedIcons')[btn.pressed ? 'active' : 'normal']);
+            }
+        },*/
+
         strPlugins: 'Plugins',
-        textLoading: 'Loading',
         textStart: 'Start',
         textStop: 'Stop',
         groupCaption: 'Plugins',
-        textClosePanel: 'Close plugin'
+        tipMore: 'More',
+        textBackgroundPlugins: 'Background Plugins',
+        textTheListOfBackgroundPlugins: 'The list of background plugins',
+        textSettings: 'Settings'
 
     }, Common.Views.Plugins || {}));
 });

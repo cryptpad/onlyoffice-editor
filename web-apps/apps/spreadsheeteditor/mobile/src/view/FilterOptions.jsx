@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import {f7, List, Popover, Sheet, ListItem, Icon, Row, Button, ListButton, Page, Navbar, Segmented, BlockTitle, NavRight, Link, Toggle,View} from 'framework7-react';
+import React from 'react';
+import {f7, List, Popover, Sheet, ListItem, Icon, ListButton, Page, Navbar, NavRight, Link, View} from 'framework7-react';
 import { useTranslation } from 'react-i18next';
 import { Device } from '../../../../common/mobile/utils/device';
 import {observer, inject} from "mobx-react";
@@ -23,9 +23,7 @@ const FilterOptions = inject('storeAppOptions')(observer(props => {
                 title: _t.textErrorTitle,
                 text: _t.textErrorMsg,
                 buttons: [
-                    {
-                        text: 'OK',
-                    }
+                    { text: _t.textOk }
                 ]
             }).open();
         }
@@ -45,7 +43,7 @@ const FilterOptions = inject('storeAppOptions')(observer(props => {
                 </Navbar>
                 <List>
                     <ListItem className='buttons'>
-                        <Row>
+                        <div className="row">
                             <a className={'button' + (props.checkSort === 'down' ? ' active' : '')} onClick={() => {
                                 props.onSort('sortdown');
                                 onValidChecked();
@@ -58,7 +56,7 @@ const FilterOptions = inject('storeAppOptions')(observer(props => {
                             }}>
                                 <Icon slot="media" icon="sortup"/>
                             </a>
-                        </Row>
+                        </div>
                     </ListItem>
                 </List>
                 <List>
@@ -92,7 +90,7 @@ const FilterView = (props) => {
             <Popover id="picker-popover" className="popover__titled popover-filter">
                 <FilterOptions style={{height: '410px'}} {...props}></FilterOptions>
             </Popover> :
-            <Sheet className="picker__sheet sheet-filter" push>
+            <Sheet className="picker__sheet sheet-filter">
                 <FilterOptions  {...props}></FilterOptions>
             </Sheet>
     )

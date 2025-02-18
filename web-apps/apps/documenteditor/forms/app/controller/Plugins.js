@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,16 +28,14 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
- * User: Julia.Radzhabova
  * Date: 22.02.2022
  */
 
 define([
     'core',
-    'common/main/lib/collection/Plugins',
-    'common/main/lib/view/PluginDlg'
+    'common/main/lib/collection/Plugins'
 ], function () {
     'use strict';
 
@@ -57,10 +54,10 @@ define([
         },
 
         onLaunch: function() {
-            this._moveOffset = {x:0, y:0};
             this.autostart = [];
-
+            this.startOnPostLoad = false;
             Common.Gateway.on('init', this.loadConfig.bind(this));
+            Common.NotificationCenter.on('script:loaded', this.onPostLoadComplete.bind(this));
         },
 
         loadConfig: function(data) {
@@ -81,6 +78,8 @@ define([
                     {
                         me.configPlugins.plugins = false;
                     });
+                if (this.configPlugins.config.options)
+                    this.api.setPluginsOptions(this.configPlugins.config.options);
             } else
                 this.configPlugins.plugins = false;
 
@@ -111,8 +110,6 @@ define([
                 this.api.asc_registerCallback("asc_onPluginShow", _.bind(this.onPluginShow, this));
                 this.api.asc_registerCallback("asc_onPluginClose", _.bind(this.onPluginClose, this));
                 this.api.asc_registerCallback("asc_onPluginResize", _.bind(this.onPluginResize, this));
-                this.api.asc_registerCallback("asc_onPluginMouseUp", _.bind(this.onPluginMouseUp, this));
-                this.api.asc_registerCallback("asc_onPluginMouseMove", _.bind(this.onPluginMouseMove, this));
                 this.api.asc_registerCallback('asc_onPluginsReset', _.bind(this.resetPluginsList, this));
                 this.api.asc_registerCallback('asc_onPluginsInit', _.bind(this.onPluginsInit, this));
 
@@ -174,14 +171,23 @@ define([
                     url: url,
                     frameId : frameId,
                     buttons: isCustomWindow ? undefined : newBtns,
-                    toolcallback: _.bind(this.onToolClose, this),
+                    toolcallback: function(event) {
+                        me.api.asc_pluginButtonClick(-1, plugin.get_Guid());
+                    },
                     help: !!help,
                     loader: plugin.get_Loader(),
-                    modal: isModal!==undefined ? isModal : true
+                    modal: isModal!==undefined ? isModal : !variation.get_InsideMode(),
+                    resizable: !!variation.get_InsideMode(),
+                    minwidth: variation.get_InsideMode() ? 300 : undefined,
+                    minheight: variation.get_InsideMode() ? 300 : undefined,
+                    maxwidth: variation.get_InsideMode() ? Common.Utils.innerWidth() : undefined,
+                    maxheight: variation.get_InsideMode() ? Common.Utils.innerHeight() : undefined
                 });
                 me.pluginDlg.on({
                     'render:after': function(obj){
-                        obj.getChild('.footer .dlg-btn').on('click', _.bind(me.onDlgBtnClick, me));
+                        obj.getChild('.footer .dlg-btn').on('click', function(event) {
+                            me.api.asc_pluginButtonClick(parseInt(event.currentTarget.attributes['result'].value), plugin.get_Guid());
+                        });
                         me.pluginContainer = me.pluginDlg.$window.find('#id-plugin-container');
                     },
                     'close': function(obj){
@@ -189,9 +195,11 @@ define([
                     },
                     'drag': function(args){
                         me.api.asc_pluginEnableMouseEvents(args[1]=='start');
+                        args[0].enablePointerEvents(args[1]!=='start');
                     },
                     'resize': function(args){
                         me.api.asc_pluginEnableMouseEvents(args[1]=='start');
+                        args[0].enablePointerEvents(args[1]!=='start');
                     },
                     'help': function(){
                         help && window.open(help, '_blank');
@@ -218,33 +226,9 @@ define([
             }
         },
 
-        onDlgBtnClick: function(event) {
-            var state = event.currentTarget.attributes['result'].value;
-            this.api.asc_pluginButtonClick(parseInt(state));
-        },
-
-        onToolClose: function() {
-            this.api.asc_pluginButtonClick(-1);
-        },
-
-        onPluginMouseUp: function(x, y) {
-            if (this.pluginDlg) {
-                if (this.pluginDlg.binding.dragStop) this.pluginDlg.binding.dragStop();
-                if (this.pluginDlg.binding.resizeStop) this.pluginDlg.binding.resizeStop();
-            }
-        },
-
-        onPluginMouseMove: function(x, y) {
-            if (this.pluginDlg) {
-                var offset = this.pluginContainer.offset();
-                if (this.pluginDlg.binding.drag) this.pluginDlg.binding.drag({ pageX: x*Common.Utils.zoom()+offset.left, pageY: y*Common.Utils.zoom()+offset.top });
-                if (this.pluginDlg.binding.resize) this.pluginDlg.binding.resize({ pageX: x*Common.Utils.zoom()+offset.left, pageY: y*Common.Utils.zoom()+offset.top });
-            }
-        },
-
         onPluginsInit: function(pluginsdata) {
             !(pluginsdata instanceof Array) && (pluginsdata = pluginsdata["pluginsData"]);
-            this.parsePlugins(pluginsdata)
+            this.parsePlugins(pluginsdata, true);
         },
 
         runAutoStartPlugins: function() {
@@ -253,11 +237,15 @@ define([
             }
         },
 
+        onPostLoadComplete: function() {
+            this.startOnPostLoad && this.runAutoStartPlugins();
+        },
+
         resetPluginsList: function() {
             this.getApplication().getCollection('Common.Collections.Plugins').reset();
         },
 
-        parsePlugins: function(pluginsdata) {
+        parsePlugins: function(pluginsdata, forceUpdate) {
             var me = this;
             var pluginStore = this.getApplication().getCollection('Common.Collections.Plugins'),
                 isEdit = false,
@@ -267,18 +255,28 @@ define([
                 var arr = [],
                     lang = me.appOptions.lang.split(/[\-_]/)[0];
                 pluginsdata.forEach(function(item){
-                    if ( arr.some(function(i) {
-                            return (i.get('baseUrl') == item.baseUrl || i.get('guid') == item.guid);
+                    var updatedItem;
+                    if (forceUpdate) {
+                        updatedItem = arr.find(function (i){
+                            return i.get('baseUrl') == item.baseUrl || i.get('guid') == item.guid}
+                        );
+                        !updatedItem && (updatedItem = pluginStore.findWhere({baseUrl: item.baseUrl}));
+                        !updatedItem && (updatedItem = pluginStore.findWhere({guid: item.guid}));
+                    } else {
+                        if ( arr.some(function(i) {
+                                return (i.get('baseUrl') == item.baseUrl || i.get('guid') == item.guid);
+                            }
+                        ) || pluginStore.findWhere({baseUrl: item.baseUrl}) || pluginStore.findWhere({guid: item.guid}))
+                        {
+                            return;
                         }
-                    ) || pluginStore.findWhere({baseUrl: item.baseUrl}) || pluginStore.findWhere({guid: item.guid}))
-                    {
-                        return;
                     }
 
                     var variationsArr = [],
                         pluginVisible = false;
                     item.variations.forEach(function(itemVar){
-                        var visible = (isEdit || itemVar.isViewer && (itemVar.isDisplayedInViewer!==false)) && _.contains(itemVar.EditorsSupport, editor) && !itemVar.isSystem;
+                        var isSystem = (true === itemVar.isSystem) || (Asc.PluginType.System === Asc.PluginType.getType(itemVar.type));
+                        var visible = (isEdit || itemVar.isViewer && (itemVar.isDisplayedInViewer!==false)) && _.contains(itemVar.EditorsSupport, editor) && !isSystem;
                         if ( visible ) pluginVisible = true;
 
                         if (!item.isUICustomizer ) {
@@ -315,7 +313,7 @@ define([
                         if (pluginVisible)
                             pluginVisible = me.checkPluginVersion(apiVersion, item.minVersion);
 
-                        arr.push(new Common.Models.Plugin({
+                        var props = {
                             name : name,
                             guid: item.guid,
                             baseUrl : item.baseUrl,
@@ -326,7 +324,8 @@ define([
                             groupRank: (item.group) ? item.group.rank : 0,
                             minVersion: item.minVersion,
                             original: item
-                        }));
+                        };
+                        updatedItem ? updatedItem.set(props) : arr.push(new Common.Models.Plugin(props));
                     }
                 });
 
@@ -352,7 +351,8 @@ define([
 
             if (this.appOptions.canPlugins) {
                 this.refreshPluginsList();
-                this.runAutoStartPlugins();
+                this.startOnPostLoad = !Common.Controllers.LaunchController.isScriptLoaded();
+                !this.startOnPostLoad && this.runAutoStartPlugins();
             }
         },
 

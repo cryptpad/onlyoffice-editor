@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2020
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -34,8 +33,7 @@
 /**
  *  ViewTab.js
  *
- *  Created by Julia Svinareva on 07.12.2021
- *  Copyright (c) 2021 Ascensio System SIA. All rights reserved.
+ *  Created on 07.12.2021
  *
  */
 
@@ -62,11 +60,14 @@ define([
                 zoom_type: undefined,
                 zoom_percent: undefined,
                 unitsChanged: true,
-                lock_viewProps: false
+                lock_viewProps: false,
+                slideMasterMode: false
             };
             Common.NotificationCenter.on('uitheme:changed', this.onThemeChanged.bind(this));
             Common.NotificationCenter.on('document:ready', _.bind(this.onDocumentReady, this));
             Common.NotificationCenter.on('settings:unitschanged', _.bind(this.unitsChanged, this));
+            Common.NotificationCenter.on('tabstyle:changed', this.onTabStyleChange.bind(this));
+            Common.NotificationCenter.on('app:ready', this.onAppReady.bind(this));
         },
 
         setApi: function (api) {
@@ -78,6 +79,7 @@ define([
                 Common.NotificationCenter.on('api:disconnect', _.bind(this.onCoAuthoringDisconnect, this));
                 this.api.asc_registerCallback('asc_onLockViewProps', _.bind(this.onLockViewProps, this, true));
                 this.api.asc_registerCallback('asc_onUnLockViewProps', _.bind(this.onLockViewProps, this, false));
+                this.api.asc_registerCallback('asc_onChangeViewMode', _.bind(this.onApiChangeViewMode, this));
             }
             return this;
         },
@@ -92,6 +94,8 @@ define([
             });
             this.addListeners({
                 'ViewTab': {
+                    'mode:normal': _.bind(this.onChangeViewMode, this, 'normal'),
+                    'mode:master': _.bind(this.onChangeViewMode, this, 'master'),
                     'zoom:selected': _.bind(this.onSelectedZoomValue, this),
                     'zoom:changedbefore': _.bind(this.onZoomChanged, this),
                     'zoom:changedafter': _.bind(this.onZoomChanged, this),
@@ -108,11 +112,17 @@ define([
                     'gridlines:snap': _.bind(this.onGridlinesSnap, this),
                     'gridlines:spacing': _.bind(this.onGridlinesSpacing, this),
                     'gridlines:custom': _.bind(this.onGridlinesCustom, this),
-                    'gridlines:aftershow': _.bind(this.onGridlinesAfterShow, this)
+                    'gridlines:aftershow': _.bind(this.onGridlinesAfterShow, this),
+                    'macros:click':  _.bind(this.onClickMacros, this),
+                    'pointer:select': _.bind(this.onPointerType, this, 'select'),
+                    'pointer:hand': _.bind(this.onPointerType, this, 'hand')
                 },
                 'Toolbar': {
                     'view:compact': _.bind(function (toolbar, state) {
                         this.view.chToolbar.setValue(!state, true);
+                    }, this),
+                    'close:slide-master': _.bind(function () {
+                        this.onChangeViewMode('normal');
                     }, this)
                 },
                 'Statusbar': {
@@ -135,6 +145,11 @@ define([
                 'LeftMenu': {
                     'view:hide': _.bind(function (leftmenu, state) {
                         this.view.chLeftMenu.setValue(!state, true);
+                    }, this)
+                },
+                'RightMenu': {
+                    'view:hide': _.bind(function (leftmenu, state) {
+                        this.view.chRightMenu.setValue(!state, true);
                     }, this)
                 }
             });
@@ -206,9 +221,9 @@ define([
         onThemeChanged: function () {
             if (this.view && Common.UI.Themes.available()) {
                 var current_theme = Common.UI.Themes.currentThemeId() || Common.UI.Themes.defaultThemeId(),
-                    menu_item = _.findWhere(this.view.btnInterfaceTheme.menu.items, {value: current_theme});
+                    menu_item = _.findWhere(this.view.btnInterfaceTheme.menu.getItems(true), {value: current_theme});
                 if ( !!menu_item ) {
-                    this.view.btnInterfaceTheme.menu.clearAll();
+                    this.view.btnInterfaceTheme.menu.clearAll(true);
                     menu_item.setChecked(true, true);
                 }
             }
@@ -336,7 +351,7 @@ define([
             if (this.view) {
                 var menu = this.view.btnGridlines.menu;
                 if (this._state.unitsChanged) {
-                    for (var i = 3; i < menu.items.length-2; i++) {
+                    for (var i = 3; i < menu.getItemsLength(true)-2; i++) {
                         menu.removeItem(menu.items[i]);
                         i--;
                     }
@@ -357,7 +372,7 @@ define([
                 menu.items[1].setChecked(this.api.asc_getSnapToGrid(), true);
 
                 var value = Common.Utils.Metric.fnRecalcFromMM(this.api.asc_getGridSpacing()/36000),
-                    items = menu.items;
+                    items = menu.getItems(true);
                 for (var i=3; i<items.length-2; i++) {
                     var item = items[i];
                     if (item.value<1 && Math.abs(item.value - value)<0.005)
@@ -373,6 +388,14 @@ define([
             }
         },
 
+        onClickMacros: function() {
+            var me = this;
+            var macrosWindow = new Common.Views.MacrosDialog({
+                api: this.api,
+            });
+            macrosWindow.show();
+        },
+
         onLockViewProps: function(lock) {
             this._state.lock_viewProps = lock;
             Common.Utils.InternalSettings.set("pe-lock-view-props", lock);
@@ -386,6 +409,56 @@ define([
 
         unitsChanged: function(m) {
             this._state.unitsChanged = true;
+        },
+
+        changeViewMode: function (mode) {
+            if (!this.view.btnSlideMaster || !this.view.btnNormal) return;
+            
+            var isMaster = mode === 'master';
+            this.view.btnSlideMaster.toggle(isMaster, true);
+            this.view.btnNormal.toggle(!isMaster, true);
+            if (this._state.slideMasterMode !== isMaster) {
+                this._state.slideMasterMode = isMaster;
+                this.view.fireEvent('viewmode:change', [isMaster ? 'master' : 'normal']);
+                this.api.asc_changePresentationViewMode(isMaster ? Asc.c_oAscPresentationViewMode.masterSlide : Asc.c_oAscPresentationViewMode.normal);
+            } // Asc.c_oAscPresentationViewMode.sorter;
+        },
+
+        onApiChangeViewMode: function (mode) {
+            var isMaster = mode === Asc.c_oAscPresentationViewMode.masterSlide;
+            this.changeViewMode(isMaster ? 'master' : 'normal');
+        },
+
+        onChangeViewMode: function (mode) {
+            this.changeViewMode(mode);
+        },
+
+        onPointerType: function (type) {
+            if (this.api) {
+                this.api.asc_setViewerTargetType(type);
+                Common.NotificationCenter.trigger('edit:complete', this.view);
+            }
+        },
+
+        onTabStyleChange: function () {
+            if (this.view && this.view.menuTabStyle) {
+                _.each(this.view.menuTabStyle.items, function(item){
+                    item.setChecked(Common.Utils.InternalSettings.get("settings-tab-style")===item.value, true);
+                });
+            }
+        },
+
+        onAppReady: function (config) {
+            var me = this;
+            (new Promise(function (accept, reject) {
+                accept();
+            })).then(function () {
+                if (me.view && me.view.btnHandTool) {
+                    var hand = config && config.customization && config.customization.pointerMode==='hand';
+                    me.api && me.api.asc_setViewerTargetType(hand ? 'hand' : 'select');
+                    me.view[hand ? 'btnHandTool' : 'btnSelectTool'].toggle(true, true);
+                }
+            });
         }
 
     }, PE.Controllers.ViewTab || {}));

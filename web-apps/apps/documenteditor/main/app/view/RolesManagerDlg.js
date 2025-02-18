@@ -1,6 +1,5 @@
 /*
- *
- * (c) Copyright Ascensio System SIA 2010-2022
+ * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
  * modify it under the terms of the GNU Affero General Public License (AGPL)
@@ -13,7 +12,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-12 Ernesta Birznieka-Upisha
+ * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
  * street, Riga, Latvia, EU, LV-1050.
  *
  * The  interactive user interfaces in modified source and object code versions
@@ -29,21 +28,18 @@
  * Creative Commons Attribution-ShareAlike 4.0 International. See the License
  * terms at http://creativecommons.org/licenses/by-sa/4.0/legalcode
  *
-*/
+ */
 /**
  *
  *  RolesManagerDlg.js
  *
- *  Created by Julia.Radzhabova on 12.04.22
- *  Copyright (c) 2022 Ascensio System SIA. All rights reserved.
+ *  Created on 12.04.22
  *
  */
 
-define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
+define([
+    'text!documenteditor/main/app/template/RolesManagerDlg.template',
     'common/main/lib/view/AdvancedSettingsWindow',
-    'common/main/lib/component/ListView',
-    'documenteditor/main/app/view/RoleEditDlg',
-    'documenteditor/main/app/view/RoleDeleteDlg'
 ], function (contentTemplate) {
     'use strict';
 
@@ -53,23 +49,16 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
         options: {
             alias: 'RolesManagerDlg',
             contentWidth: 500,
-            height: 353,
-            buttons: null
+            separator: false,
+            buttons: ['close']
         },
 
         initialize: function (options) {
             var me = this;
             _.extend(this.options, {
                 title: this.txtTitle,
-                template: [
-                    '<div class="box" style="height:' + (this.options.height-85) + 'px;">',
-                    '<div class="content-panel" style="padding: 0;">' + _.template(contentTemplate)({scope: this}) + '</div>',
-                    '</div>',
-                    '<div class="separator horizontal"></div>',
-                    '<div class="footer center">',
-                    '<button class="btn normal dlg-btn" result="cancel" style="width: 86px;">' + this.closeButtonText + '</button>',
-                    '</div>'
-                ].join('')
+                contentStyle: 'padding: 0;',
+                contentTemplate: _.template(contentTemplate)({scope: this})
             }, options);
 
             this.api        = options.api;
@@ -95,12 +84,12 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
                 itemTemplate: _.template([
                     '<div id="<%= id %>" class="list-item" style="">',
                     '<div class="listitem-icon" style="flex-shrink: 0;"><svg class=""><use xlink:href="#svg-icon-<%= scope.getIconCls(index) %>"></use></svg></div>',
-                    '<div style="width: 25px;text-align:center; padding-right: 5px;flex-shrink: 0;"><%= index+1 %></div>',
+                    '<div class="padding-right-5" style="width: 25px;text-align:center;flex-shrink: 0;"><%= index+1 %></div>',
                     '<div style="width: 25px;flex-shrink: 0;">',
                         '<span class="color" style="background: <% if (color) { %>#<%= color %><% } else { %> transparent <% } %>;"></span>',
                     '</div>',
-                    '<div style="flex-grow: 1;padding-right: 5px;"><%= Common.Utils.String.htmlEncode(name) %></div>',
-                    '<div style="width: 25px;text-align: right;opacity: 0.8;flex-shrink: 0;"><%= fields %></div>',
+                    '<div class="padding-right-5" style="flex-grow: 1;"><%= Common.Utils.String.htmlEncode(name) %></div>',
+                    '<div class="text-align-right" style="width: 25px;opacity: 0.8;flex-shrink: 0;"><%= fields %></div>',
                     '</div>'
                 ].join('')),
                 tabindex: 1
@@ -129,6 +118,7 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
                 parentEl: $('#roles-manager-btn-up', this.$window),
                 cls: 'btn-toolbar bg-white',
                 iconCls: 'caret-up',
+                scaling: false,
                 hint: this.textUp
             });
             this.btnUp.on('click', _.bind(this.onMoveClick, this, true));
@@ -137,6 +127,7 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
                 parentEl: $('#roles-manager-btn-down', this.$window),
                 cls: 'btn-toolbar bg-white',
                 iconCls: 'caret-down',
+                scaling: false,
                 hint: this.textDown
             });
             this.btnDown.on('click', _.bind(this.onMoveClick, this, false));
@@ -145,7 +136,7 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
         },
 
         getFocusedComponents: function() {
-            return [ this.btnUp, this.btnDown, this.rolesList, this.btnNewRole, this.btnEditRole, this.btnDeleteRole ];
+            return [ this.btnUp, this.btnDown, this.btnNewRole, this.btnEditRole, this.btnDeleteRole, this.rolesList].concat(this.getFooterButtons());
         },
 
         getDefaultFocusableComponent: function () {
@@ -218,7 +209,7 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
             if (this._isWarningVisible) return;
 
             var me = this,
-                xy = me.$window.offset(),
+                xy = Common.Utils.getOffset(me.$window),
                 rec = this.rolesList.getSelectedRec();
 
             var win = new DE.Views.RoleEditDlg({
@@ -264,7 +255,7 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
             if (store.length===1 || rec.get('fields')<1) {
                 me._isWarningVisible = true;
                 Common.UI.warning({
-                    msg: Common.Utils.String.format(store.length===1 ? me.textDeleteLast : me.warnDelete, rec.get('name')),
+                    msg: Common.Utils.String.format(store.length===1 ? me.textDeleteLast : me.warnDelete, Common.Utils.String.htmlEncode(rec.get('name'))),
                     maxwidth: 600,
                     buttons: ['ok', 'cancel'],
                     callback: function(btn) {
@@ -276,7 +267,7 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
                     }
                 });
             } else {
-                var xy = me.$window.offset();
+                var xy = Common.Utils.getOffset(me.$window);
                 var win = new DE.Views.RoleDeleteDlg({
                     props   : {roles: this.rolesList.store, excludeName: rec.get('name')},
                     handler : function(result, settings) {
@@ -355,7 +346,6 @@ define([  'text!documenteditor/main/app/template/RolesManagerDlg.template',
         },
 
         txtTitle: 'Manage Roles',
-        closeButtonText : 'Close',
         textNew: 'New',
         textEdit: 'Edit',
         textDelete: 'Delete',

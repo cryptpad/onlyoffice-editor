@@ -12,32 +12,12 @@
     position: absolute !important;
 }
 
-.dimension-picker div.dimension-picker-highlighted {
-    left: 0;
-    top: 0;
-    overflow: hidden;
-    position: absolute;
-
-    //background: transparent repeat scroll 0 0;
-    .background-ximage-all('dimension-picker/dimension-highlighted.png', 20px);
-    background-repeat: repeat;
-
-    .pixel-ratio__1_25 &, .pixel-ratio__1_75 & {
-        image-rendering: pixelated;
-    }
+.rtl .dimension-picker-unhighlighted {
 }
 
-.dimension-picker-unhighlighted {
-    //background: transparent repeat scroll 0 0;
-    .background-ximage-all('dimension-picker/dimension-unhighlighted.png', 20px);
-    background-repeat: repeat;
 
-    .pixel-ratio__1_25 &, .pixel-ratio__1_75 & {
-        image-rendering: pixelated;
-    }
-}
 
 .dimension-picker-status {
-    font-size: 12px;
+    .font-size-medium();
     text-align: center;
 }
