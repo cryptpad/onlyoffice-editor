@@ -53,17 +53,11 @@ define([
             thumbContext    = thumbCanvas.getContext('2d'),
             postfix = (/^(zh|ja|ko)$/i.test(Common.Locale.getCurrentLanguage())) ? '_ea' : '',
             thumbs       = [
-                {ratio: 1,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '.png', width: iconWidth, height: iconHeight},
-                {ratio: 1.25,   path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@1.25x.png', width: iconWidth * 1.25, height: iconHeight * 1.25},
-                {ratio: 1.5,    path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@1.5x.png', width: iconWidth * 1.5, height: iconHeight * 1.5},
-                {ratio: 1.75,   path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@1.75x.png', width: iconWidth * 1.75, height: iconHeight * 1.75},
-                {ratio: 2,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@2x.png', width: iconWidth * 2, height: iconHeight * 2},
-                /*{ratio: 2.5,    path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@2.5x.png', width: iconWidth * 2.5, height: iconHeight * 2.5},
-                {ratio: 3,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@3x.png', width: iconWidth * 3, height: iconHeight * 3},
-                {ratio: 3.5,    path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@3.5x.png', width: iconWidth * 3.5, height: iconHeight * 3.5},
-                {ratio: 4,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@4x.png', width: iconWidth * 4, height: iconHeight * 4},
-                {ratio: 4.5,    path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@4.5x.png', width: iconWidth * 4.5, height: iconHeight * 4.5},
-                {ratio: 5,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@5x.png', width: iconWidth * 5, height: iconHeight * 5},*/
+                {ratio: 1,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '.png?'+window.CP_urlArgs, width: iconWidth, height: iconHeight},
+                {ratio: 1.25,   path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@1.25x.png?'+window.CP_urlArgs, width: iconWidth * 1.25, height: iconHeight * 1.25},
+                {ratio: 1.5,    path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@1.5x.png?'+window.CP_urlArgs, width: iconWidth * 1.5, height: iconHeight * 1.5},
+                {ratio: 1.75,   path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@1.75x.png?'+window.CP_urlArgs, width: iconWidth * 1.75, height: iconHeight * 1.75},
+                {ratio: 2,      path: '../../../../sdkjs/common/Images/fonts_thumbnail' + postfix + '@2x.png?'+window.CP_urlArgs, width: iconWidth * 2, height: iconHeight * 2}
             ],
             thumbIdx = 0,
             listItemHeight  = 28,
@@ -101,6 +95,9 @@ define([
         function CThumbnailLoader() {
             this.supportBinaryFormat = !(Common.Controllers.Desktop.isActive() && !Common.Controllers.Desktop.isFeatureAvailable('isSupportBinaryFontsSprite'));
             // наш формат - альфамаска с сжатием типа rle для полностью прозрачных пикселов
+
+            // XXX CryptPad: We do not support the binary image format
+            this.supportBinaryFormat = false;
 
             this.image = null;
             this.binaryFormat = null;

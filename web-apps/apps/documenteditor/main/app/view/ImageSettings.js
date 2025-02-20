@@ -351,7 +351,7 @@ define([
                     maxHeight: 200,
                     items: [
                         {caption: this.textFromFile, value: 0},
-                        {caption: this.textFromUrl, value: 1},
+                        {cls: 'cp-from-url', caption: this.textFromUrl, value: 1},
                         {caption: this.textFromStorage, value: 2}
                     ]
                 }),

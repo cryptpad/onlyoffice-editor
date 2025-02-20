@@ -599,6 +599,9 @@ define([
                 if (data.doc) {
                     appHeader.setDocumentCaption(data.doc.title);
                 }
+
+                // XXX CryptPad: disable protect feature
+                this.permissions.protect = false;
             },
 
             onProcessSaveResult: function(data) {
@@ -1551,6 +1554,7 @@ define([
             },
 
             applyLicense: function() {
+                /* XXX CryptPad
                 if (this.editorConfig.mode === 'view') {
                     if (this.appOptions.canLiveView && (this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLive || this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLiveOS ||
                                                         this._state.licenseType===Asc.c_oLicenseResult.UsersViewCount || this._state.licenseType===Asc.c_oLicenseResult.UsersViewCountOS ||
@@ -1621,6 +1625,7 @@ define([
                         }
                     });
                 }
+                */
             },
 
             onOpenDocument: function(progress) {
@@ -1632,6 +1637,7 @@ define([
 
             onEditorPermissions: function(params) {
                 var licType = params.asc_getLicenseType();
+                /*
                 if (Asc.c_oLicenseResult.Expired === licType || Asc.c_oLicenseResult.Error === licType || Asc.c_oLicenseResult.ExpiredTrial === licType ||
                     Asc.c_oLicenseResult.NotBefore === licType || Asc.c_oLicenseResult.ExpiredLimited === licType) {
                     Common.UI.warning({
@@ -1646,6 +1652,7 @@ define([
                     }
                     return;
                 }
+                */
                 if ( this.onServerVersion(params.asc_getBuildVersion()) || !this.onLanguageLoaded() ) return;
                 if ( this._isDocReady || this._isPermissionsInited ) {
                     this.api.asc_LoadDocument();
@@ -2605,6 +2612,7 @@ define([
             },
 
             onServerVersion: function(buildVersion) {
+                /*
                 if (this.changeServerVersion) return true;
 
                 const cur_version = this.getApplication().getController('LeftMenu').leftMenu.getMenu('about').txtVersionNum;
@@ -2626,6 +2634,7 @@ define([
                     }
                     return true;
                 }
+                */
                 return false;
             },
 

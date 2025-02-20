@@ -132,9 +132,12 @@
             let stream = g_fonts_streams[g_fonts_streams.length - 1];
             let data = stream.data;
 
+            /*
+            // CRYPTPAD: deactivating decoding so that we use native ttf files
             let count_decode = Math.min(32, stream.size);
             for (let i = 0; i < count_decode; ++i)
                 data[i] ^= guidOdttf[i % 16];
+            */
 
             if (null != this.fontFile.callback)
                 this.fontFile.callback();

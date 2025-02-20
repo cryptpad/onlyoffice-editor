@@ -378,5 +378,11 @@
     </script>
 
     <link rel="stylesheet" href="../../../apps/documenteditor/main/resources/css/app.css" media="print" onload="this.media='all'">
+    <script>
+    window.CP_urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
+    require.config({
+        urlArgs: window.CP_urlArgs,
+    });
+    </script>
 </body>
 </html>

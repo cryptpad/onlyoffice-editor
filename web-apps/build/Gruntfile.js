@@ -829,12 +829,7 @@ module.exports = function(grunt) {
                                                             'requirejs', 'babel', 'terser', 'concat', 'copy', 'svgmin', 'inline', 'json-minify',
                                                             'replace:writeVersion', 'replace:prepareHelp', 'clean:postbuild']);
 
-    grunt.registerTask('deploy-app-mobile',             ['mobile-app-init', 'clean:deploy', /*'cssmin',*/ /*'copy:template-backup',*/
-                                                            'htmlmin', /*'requirejs',*/ 'exec:webpack_install', 'exec:webpack_app_build', /*'copy:template-restore',*/
-                                                            /*'clean:template-backup',*/ 'copy:localization', 'copy:index-page',
-                                                            'copy:images-app', 'copy:webpack-dist', 'concat', 'json-minify'/*,*/
-                                                            /*'replace:writeVersion', 'replace:fixResourceUrl'*/]);
-
+    grunt.registerTask('deploy-app-mobile',             []);
     grunt.registerTask('deploy-app-embed',              ['embed-app-init', 'clean:prebuild', 'terser', 'less', 'copy', 'inline', 'clean:postbuild']);
     grunt.registerTask('deploy-app-test',               ['test-app-init', 'clean:prebuild', 'terser', 'less', 'copy']);
 

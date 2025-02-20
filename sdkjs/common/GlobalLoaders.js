@@ -507,7 +507,7 @@
             }
             else
             {
-                let len = this.images_loading.length;
+                let _len = this.images_loading.length;
                 if (_len === 0) {
                     return void this.LoadDocumentImagesCallback();
                 }
@@ -523,7 +523,7 @@
                         done = function () {};
                     }
                 };
-                for (let i = 0; i < len; i++)
+                for (let i = 0; i < _len; i++)
                     this.LoadImageAsync(i, done);
 
                 return;

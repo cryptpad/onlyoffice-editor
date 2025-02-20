@@ -1153,6 +1153,9 @@
             }
         }
 
+        if (window.APP && window.APP.urlArgs) {
+            params += "&"+ window.APP.urlArgs;
+        }
         if (config.editorConfig && (config.editorConfig.mode == 'editdiagram' || config.editorConfig.mode == 'editmerge' || config.editorConfig.mode == 'editole'))
             params += "&internal=true";
 

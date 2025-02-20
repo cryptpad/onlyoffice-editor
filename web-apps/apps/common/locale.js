@@ -110,7 +110,7 @@ Common.Locale = new(function() {
         var idx4Letters = _4letterLangs.indexOf(lang); // try to load 4 letters language
         lang = (idx4Letters<0) ? lang.split(/[\-]/)[0] : _4letterLangs[idx4Letters];
         currentLang = lang;
-        fetch('locale/' + lang + '.json')
+        fetch('locale/' + lang + '.json?'+window.CP_urlArgs)
             .then(function(response) {
                 if (!response.ok) {
                     if (idx4Letters>=0) { // try to load 2-letters language
