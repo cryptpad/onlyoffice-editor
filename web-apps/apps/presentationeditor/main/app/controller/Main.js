@@ -1130,6 +1130,7 @@ define([
             },
 
             applyLicense: function() {
+                /* XXX CryptPad
                 if (this.editorConfig.mode === 'view') {
                     if (this.appOptions.canLiveView && (this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLive || this._state.licenseType===Asc.c_oLicenseResult.ConnectionsLiveOS ||
                                                         this._state.licenseType===Asc.c_oLicenseResult.UsersViewCount || this._state.licenseType===Asc.c_oLicenseResult.UsersViewCountOS ||
@@ -1200,6 +1201,7 @@ define([
                         }
                     });
                 }
+                */
             },
 
             disableEditing: function(disable, type) {
@@ -1298,20 +1300,20 @@ define([
 
             onEditorPermissions: function(params) {
                 var licType = params.asc_getLicenseType();
-                if (Asc.c_oLicenseResult.Expired === licType || Asc.c_oLicenseResult.Error === licType || Asc.c_oLicenseResult.ExpiredTrial === licType ||
-                    Asc.c_oLicenseResult.NotBefore === licType || Asc.c_oLicenseResult.ExpiredLimited === licType) {
-                    Common.UI.warning({
-                        title: Asc.c_oLicenseResult.NotBefore === licType ? this.titleLicenseNotActive : this.titleLicenseExp,
-                        msg: Asc.c_oLicenseResult.NotBefore === licType ? this.warnLicenseBefore : this.warnLicenseExp,
-                        buttons: [],
-                        closable: false
-                    });
-                    if (this._isDocReady || this._isPermissionsInited) { // receive after refresh file
-                        this.disableEditing(true);
-                        Common.NotificationCenter.trigger('api:disconnect');
-                    }
-                    return;
-                }
+                // if (Asc.c_oLicenseResult.Expired === licType || Asc.c_oLicenseResult.Error === licType || Asc.c_oLicenseResult.ExpiredTrial === licType ||
+                //     Asc.c_oLicenseResult.NotBefore === licType || Asc.c_oLicenseResult.ExpiredLimited === licType) {
+                //     Common.UI.warning({
+                //         title: Asc.c_oLicenseResult.NotBefore === licType ? this.titleLicenseNotActive : this.titleLicenseExp,
+                //         msg: Asc.c_oLicenseResult.NotBefore === licType ? this.warnLicenseBefore : this.warnLicenseExp,
+                //         buttons: [],
+                //         closable: false
+                //     });
+                //     if (this._isDocReady || this._isPermissionsInited) { // receive after refresh file
+                //         this.disableEditing(true);
+                //         Common.NotificationCenter.trigger('api:disconnect');
+                //     }
+                //     return;
+                // }
 
                 if ( this.onServerVersion(params.asc_getBuildVersion()) || !this.onLanguageLoaded() ) return;
                 if ( this._isDocReady || this._isPermissionsInited ) {
@@ -2093,27 +2095,27 @@ define([
             },
 
             onServerVersion: function(buildVersion) {
-                if (this.changeServerVersion) return true;
+                // if (this.changeServerVersion) return true;
 
-                const cur_version = this.getApplication().getController('LeftMenu').leftMenu.getMenu('about').txtVersionNum;
-                const cropped_version = cur_version.match(/^(\d+.\d+.\d+)/);
-                if (!window.compareVersions && (!cropped_version || cropped_version[1] !== buildVersion)) {
-                    this.changeServerVersion = true;
-                    Common.UI.warning({
-                        title: this.titleServerVersion,
-                        msg: this.errorServerVersion,
-                        callback: function() {
-                            _.defer(function() {
-                                Common.Gateway.updateVersion();
-                            })
-                        }
-                    });
-                    if (this._isDocReady) { // receive after refresh file
-                        this.disableEditing(true);
-                        Common.NotificationCenter.trigger('api:disconnect');
-                    }
-                    return true;
-                }
+                // const cur_version = this.getApplication().getController('LeftMenu').leftMenu.getMenu('about').txtVersionNum;
+                // const cropped_version = cur_version.match(/^(\d+.\d+.\d+)/);
+                // if (!window.compareVersions && (!cropped_version || cropped_version[1] !== buildVersion)) {
+                //     this.changeServerVersion = true;
+                //     Common.UI.warning({
+                //         title: this.titleServerVersion,
+                //         msg: this.errorServerVersion,
+                //         callback: function() {
+                //             _.defer(function() {
+                //                 Common.Gateway.updateVersion();
+                //             })
+                //         }
+                //     });
+                //     if (this._isDocReady) { // receive after refresh file
+                //         this.disableEditing(true);
+                //         Common.NotificationCenter.trigger('api:disconnect');
+                //     }
+                //     return true;
+                // }
                 return false;
             },
 

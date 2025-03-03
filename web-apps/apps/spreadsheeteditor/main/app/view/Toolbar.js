@@ -1232,7 +1232,7 @@ define([
                     menu        : new Common.UI.Menu({
                         items: [
                             { caption: me.mniImageFromFile, value: 'file' },
-                            { caption: me.mniImageFromUrl,  value: 'url' },
+                            { cls: 'cp-from-url', caption: me.mniImageFromUrl,  value: 'url' },
                             { caption: me.mniImageFromStorage, value: 'storage'}
                         ]
                     }),

@@ -3206,7 +3206,15 @@
 		return null;
 	};
 	Workbook.prototype.getWorksheetById=function(id){
-		return this.aWorksheetsById[id];
+		if (this.aWorksheetsById[id]) { return this.aWorksheetsById[id]; }
+        var s;
+        this.aWorksheets.some(function (_s) {
+            if (_s.Id === id) {
+                s = _s;
+                return true;
+            }
+        });
+        return s;
 	};
 	Workbook.prototype.getWorksheetByName=function(name, ignoreCaseSensitive){
 		for(var i = 0; i < this.aWorksheets.length; i++) {

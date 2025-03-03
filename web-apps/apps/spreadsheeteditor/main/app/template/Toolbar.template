@@ -262,10 +262,13 @@
                     <span class="btn-slot text x-huge" id="slot-btn-data-from-text"></span>
                 </div>
                 <div class="separator long"></div>
+                <!--
+                XXX Cryptpad: Disable external links
                 <div class="group">
                     <span class="btn-slot text x-huge" id="slot-btn-data-external-links"></span>
                 </div>
                 <div class="separator long"></div>
+                -->
                 <div class="group">
                     <div class="elset">
                         <span class="btn-slot split slot-btn-setfilter"></span>

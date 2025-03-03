@@ -5811,7 +5811,7 @@ StyleManager.prototype =
 		return res;
 	};
 	StyleCache.prototype._add = function(container, newVal, forceAdd) {
-		if (newVal && undefined === newVal.getIndexNumber()) {
+		if (newVal && newVal.getIndexNumber && undefined === newVal.getIndexNumber()) {
 			var hash = newVal.getHash();
 			var res = container.vals[hash];
 			if (!res || forceAdd) {

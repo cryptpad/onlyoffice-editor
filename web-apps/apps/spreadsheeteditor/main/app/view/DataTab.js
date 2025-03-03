@@ -103,9 +103,10 @@ define([
                 me.fireEvent('data:sortcustom');
             });
 
-            me.btnExternalLinks.on('click', function (b, e) {
-                me.fireEvent('data:externallinks');
-            });
+            // XXX Cryptpad: Disable external links
+            // me.btnExternalLinks.on('click', function (b, e) {
+            //     me.fireEvent('data:externallinks');
+            // });
 
             me.btnGoalSeek.on('click', function (b, e) {
                 me.fireEvent('data:goalseek');
@@ -253,18 +254,18 @@ define([
                 });
                 this.lockedControls.push(this.btnCustomSort);
 
-                this.btnExternalLinks = new Common.UI.Button({
-                    parentEl: $host.find('#slot-btn-data-external-links'),
-                    cls: 'btn-toolbar x-huge icon-top',
-                    iconCls: 'toolbar__icon btn-edit-links',
-                    caption: this.capDataExternalLinks,
-                    disabled: true,
-                    lock: [_set.editCell, _set.sheetLock, _set.wbLock, _set.lostConnect, _set.coAuth, _set.wsLock],
-                    dataHint: '1',
-                    dataHintDirection: 'bottom',
-                    dataHintOffset: 'small'
-                });
-                this.lockedControls.push(this.btnExternalLinks);
+                // this.btnExternalLinks = new Common.UI.Button({
+                //     parentEl: $host.find('#slot-btn-data-external-links'),
+                //     cls: 'btn-toolbar x-huge icon-top',
+                //     iconCls: 'toolbar__icon btn-edit-links',
+                //     caption: this.capDataExternalLinks,
+                //     disabled: true,
+                //     lock: [_set.editCell, _set.sheetLock, _set.wbLock, _set.lostConnect, _set.coAuth, _set.wsLock],
+                //     dataHint: '1',
+                //     dataHintDirection: 'bottom',
+                //     dataHintOffset: 'small'
+                // });
+                // this.lockedControls.push(this.btnExternalLinks);
 
                 this.btnGoalSeek = new Common.UI.Button({
                     parentEl: $host.find('#slot-btn-goal-seek'),
@@ -345,7 +346,8 @@ define([
                     me.btnTextToColumns.updateHint(me.tipToColumns);
                     me.btnRemoveDuplicates.updateHint(me.tipRemDuplicates);
                     me.btnDataValidation.updateHint(me.tipDataValidation);
-                    me.btnExternalLinks.updateHint(me.tipExternalLinks);
+                    // XXX Cryptpad: Disable external links
+                    // me.btnExternalLinks.updateHint(me.tipExternalLinks);
                     me.btnGoalSeek.updateHint(me.tipGoalSeek);
 
                     me.btnsSortDown.forEach( function(btn) {

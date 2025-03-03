@@ -4976,6 +4976,16 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.canUnGroup();
 	};
 
+	// CRYPTPAD
+	// This method is necessary to add the loaded images to the list of loaded images
+	asc_docs_api.prototype.asc_addImageCallback = function(res)
+	{
+			g_oDocumentUrls.addImageUrl(res.name, res.url)
+	}
+	asc_docs_api.prototype.asyncImageEndLoadedBackground = function(_image)
+	{
+	};
+
 	asc_docs_api.prototype._addImageUrl = function(urls, obj)
 	{
 		if (obj && obj.sendUrlsToFrameEditor && this.isOpenedChartFrame) {
@@ -7519,8 +7529,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asyncImageEndLoaded2 = null;
 
-	asc_docs_api.prototype.ChangeTheme = function(indexTheme, bSelectedSlides)
+	asc_docs_api.prototype.ChangeTheme = function(indexTheme, bSelectedSlides, isRemote)
 	{
+		// XXX CryptPad
+        if (window.parent && window.parent.APP && !isRemote && !bSelectedSlides) {
+            window.parent.APP.changeTheme(indexTheme);
+        }
 		if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
 			return;
 
@@ -7749,13 +7763,53 @@ background-repeat: no-repeat;\
 		var top = ((height / 2) - (h / 2)) + dualScreenTop;
 
 		var _windowPos = "width=" + w + ",height=" + h + ",left=" + left + ",top=" + top;
-		var _url = "index.reporter.html";
+		var urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
+		var _url = "index.reporter.html?" + urlArgs;
 		if (this.locale)
-			_url += ("?lang=" + this.locale);
+			_url += ("&lang=" + this.locale);
 		this.reporterWindow = window.open(_url, "_blank", "resizable=yes,status=0,toolbar=0,location=0,menubar=0,directories=0,scrollbars=0," + _windowPos);
 
 		if (!this.reporterWindow)
 			return;
+
+		// CryptPad: we need a channel with the popup in order to send it the content.
+        // In classic OO, the popup gets the content directly from the server
+        var w = this.reporterWindow;
+        require(["/common/outer/worker-channel.js","/common/common-util.js"], function (Channel, Util) {
+            var msgEv = Util.mkEvent();
+            window.addEventListener("message", function (msg) {
+                if (msg.source !== w) { return; }
+                msgEv.fire(msg)
+            });
+            var postMsg=function(data){ w.postMessage(data,"*") };
+            Channel.create(msgEv, postMsg, function (chan) {
+                var send = function (obj) { chan.event('CMD', obj); };
+                chan.on('CMD', function (obj) {
+                    if (obj.type !== 'auth') { return; }
+                    send({
+                        type: "authChanges",
+                        changes: []
+                    });
+                    send({
+                        type: "auth",
+                        result: 1,
+                        sessionId: "06348ca8f861a0af3548ae38360aa617",
+                        participants: [],
+                        locks: [],
+                        changes: [],
+                        changesIndex: 0,
+                        indexUser: 0,
+                        buildVersion: "5.2.6",
+                        buildNumber: 2,
+                        licenseType: 3,
+                    });
+                    send({
+                        type: "documentOpen",
+                        data: {"type":"open","status":"ok","data":{"Editor.bin":editor.reporterStartObject.url}}
+                    });
+                });
+            });
+        });
 
 		this.reporterWindowCounter = 0;
 		if (!AscCommon.AscBrowser.isSafariMacOs)
@@ -7816,6 +7870,10 @@ background-repeat: no-repeat;\
 		var _this = window.editor;
 		if ( e.data == 'i:am:ready' )
 		{
+			var bin = editor.asc_nativeGetFile();
+            var blob = new Blob([bin], {type: 'plain/text'});
+            var url = URL.createObjectURL(blob);
+            _this.reporterStartObject.url = url;
 			var _msg_ = {
 				type: 'file:open',
 				data: _this.reporterStartObject

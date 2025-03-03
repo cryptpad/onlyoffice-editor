@@ -135,6 +135,10 @@ var editor;
 
     this.insertDocumentUrlsData = null;
 
+	if (window.editor == undefined) {
+		window.editorCell = this;
+	 }
+
     this._init();
     return this;
   }
@@ -1075,7 +1079,8 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_getCanUndo = function () {
-		let bCanUndo = History.Can_Undo();
+		// Cryptpad Hotfix
+		let bCanUndo = true; //History.Can_Undo();
 
 		if (true !== bCanUndo && this.collaborativeEditing && true === this.collaborativeEditing.Is_Fast() && true !== this.collaborativeEditing.Is_SingleUser()) {
 			bCanUndo = this.collaborativeEditing.CanUndo();
@@ -1780,6 +1785,9 @@ var editor;
 
   spreadsheet_api.prototype.asc_SetFastCollaborative = function(bFast) {
     if (this.collaborativeEditing) {
+	  if (window.parent && window.parent.APP && window.parent.APP.onFastChange) {
+		window.parent.APP.onFastChange(bFast);
+	  }
       AscCommon.CollaborativeEditing.Set_Fast(bFast);
       this.collaborativeEditing.setFast(bFast);
     }
@@ -4972,6 +4980,15 @@ var editor;
   spreadsheet_api.prototype.asc_showImageFileDialog = function() {
     // ToDo заменить на общую функцию для всех
     this.asc_addImage();
+  };
+  // CRYPTPAD
+  // This method is necessary to add the loaded images to the list of loaded images
+  spreadsheet_api.prototype.asc_addImageCallback = function(res)
+  {
+    g_oDocumentUrls.addImageUrl(res.name, res.url)
+  };
+  spreadsheet_api.prototype.asyncImageEndLoadedBackground = function(_image)
+  {
   };
   spreadsheet_api.prototype._addImageUrl = function(arrUrls, oOptionObject) {
     if (oOptionObject && oOptionObject.sendUrlsToFrameEditor && this.isOpenedChartFrame) {
