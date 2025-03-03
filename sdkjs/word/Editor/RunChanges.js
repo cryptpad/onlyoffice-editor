@@ -251,7 +251,7 @@ function private_ParaRunChangesLoadTextPr(color)
 {
 	this.Redo();
 	// CryptPad: This might be null, when the document is loaded
-	if (this.Color && Color && this.Class.private_AddCollPrChangeOther)
+	if (this.Color && color && this.Class.private_AddCollPrChangeOther)
 		this.Class.setCollPrChangeColor(color);
 }
 /**
