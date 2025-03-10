@@ -313,9 +313,6 @@ async function loadAndPatchOOOrig() {
     const w = window as any;
     w.DocsAPI = w.DocsAPI ?? {};
     w.DocsAPI.DocEditor = DocEditor;
-    console.log(
-        window.location,
-    );
 
     await scriptLoadedPromise;
     // Setup window.DocsAPI.DocEditor again after the original editor replaced it
