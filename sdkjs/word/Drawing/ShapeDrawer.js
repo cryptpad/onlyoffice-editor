@@ -210,7 +210,7 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             ]
 
             rotatePoints(aSmall);
-            
+
             drawer._s();
             drawer._m(trans.TransformPointX(aSmall[0].x, aSmall[0].y), trans.TransformPointY(aSmall[0].x, aSmall[0].y));
             for (var i = 1; i < aSmall.length; i++) {
@@ -255,7 +255,7 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
             ]
 
             rotatePoints(aBig);
-            
+
             drawer._s();
             drawer._m(trans.TransformPointX(aBig[0].x, aBig[0].y), trans.TransformPointY(aBig[0].x, aBig[0].y));
             for (var i = 1; i < aBig.length; i++) {
@@ -410,7 +410,7 @@ function DrawLineEnd(xEnd, yEnd, xPrev, yPrev, type, w, len, drawer, trans)
                 }
                 else if (drawer.Shape.group) {
                     oRGBColor = drawer.Shape.group.GetRGBColor(drawer.Shape.group.GetFillColor());
-                } 
+                }
 
                 if (oRGBColor) {
                     drawer.Graphics.m_oPen.Color.R = oRGBColor.r;
@@ -1447,7 +1447,7 @@ CShapeDrawer.prototype =
             this.StrokeWidth /= 36000.0;
 
             this.p_width(1000 * this.StrokeWidth);
-            
+
             this.CheckDash();
 
             if (graphics.isBoundsChecker() && !this.bIsNoStrokeAttack)
@@ -2254,7 +2254,8 @@ CShapeDrawer.prototype =
                         {
                             if (this.UniFill.fill.RasterImageId && this.UniFill.fill.RasterImageId.indexOf(".svg") != 0)
                             {
-                                this.Graphics.put_brushTexture(getFullImageSrc2(this.UniFill.fill.RasterImageId), 0);
+                                // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
+                                this.Graphics.put_brushTexture(this.UniFill.fill.RasterImageId, 0);
                             }
                             else
                             {
@@ -2264,7 +2265,8 @@ CShapeDrawer.prototype =
                                 }
                                 else
                                 {
-                                    this.Graphics.put_brushTexture(getFullImageSrc2(this.UniFill.fill.RasterImageId), 0);
+                                    // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
+                                    this.Graphics.put_brushTexture(this.UniFill.fill.RasterImageId, 0);
                                 }
                             }
                         }
@@ -2272,13 +2274,15 @@ CShapeDrawer.prototype =
                         {
                             if (this.IsRectShape)
                             {
-                                this.Graphics.drawImage(getFullImageSrc2(this.UniFill.fill.RasterImageId), this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect);
+                                // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
+                                this.Graphics.drawImage(this.UniFill.fill.RasterImageId, this.min_x, this.min_y, (this.max_x - this.min_x), (this.max_y - this.min_y), undefined, this.UniFill.fill.srcRect);
                                 bIsFill = false;
                             }
                             else
                             {
                                 // TODO: support srcRect
-                                this.Graphics.put_brushTexture(getFullImageSrc2(this.UniFill.fill.RasterImageId), 0);
+                                // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
+                                this.Graphics.put_brushTexture(this.UniFill.fill.RasterImageId, 0);
                             }
                         }
                     }
@@ -2290,7 +2294,8 @@ CShapeDrawer.prototype =
                         }
                         else
                         {
-                            this.Graphics.put_brushTexture(getFullImageSrc2(this.UniFill.fill.RasterImageId), 1);
+                            // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
+                            this.Graphics.put_brushTexture(this.UniFill.fill.RasterImageId, 1);
                         }
                     }
                     this.Graphics.put_BrushTextureAlpha(this.UniFill.transparent);

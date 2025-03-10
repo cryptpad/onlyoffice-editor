@@ -281,7 +281,6 @@ interface Participant {
 }
 
 async function loadAndPatchOOOrig() {
-    console.log("XXX loadAndPatchOOOrig", window.location);
     let myScriptSrc: string;
     let myScriptElement: HTMLScriptElement;
 
@@ -303,7 +302,6 @@ async function loadAndPatchOOOrig() {
             }
         }
     }
-    console.log("XXX loadAndPatchOOOrig myScriptSrc", myScriptSrc);
     const script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
     script.setAttribute("src", new URL("api-orig.js", myScriptSrc).href);
@@ -316,7 +314,6 @@ async function loadAndPatchOOOrig() {
     w.DocsAPI = w.DocsAPI ?? {};
     w.DocsAPI.DocEditor = DocEditor;
     console.log(
-        "XXX loadAndPatchOOOrig window.DocsAPI was set",
         window.location,
     );
 
