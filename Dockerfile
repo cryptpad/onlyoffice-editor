@@ -42,6 +42,7 @@ COPY --from=sdkjs-build /app/sdkjs/deploy/web-apps /app/web-apps
 COPY --from=sdkjs-build /app/sdkjs/deploy/sdkjs /app/sdkjs
 COPY vendor /app/web-apps/vendor
 COPY fonts/*.ttf /app/fonts/fonts/
+COPY fonts/*.otf /app/fonts/fonts/
 COPY dictionaries /app/dictionaries
 COPY --from=onlyoffice-editor-build /app/dist/api.js /app/web-apps/apps/api/documents/api.js
 WORKDIR /app
