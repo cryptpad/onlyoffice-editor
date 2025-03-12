@@ -6,5 +6,9 @@ build:
 onlyoffice-editor-test:
 	docker build --target onlyoffice-editor-test .
 
+.PHONY: zip-test
+zip-test:
+	docker build --target zip-test .
+
 .PHONY: test
-test: onlyoffice-editor-test
+test: onlyoffice-editor-test zip-test
