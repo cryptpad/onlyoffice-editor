@@ -27,7 +27,6 @@ RUN pnpm lint
 
 ###################### sdkjs & web-apps ################################
 FROM base AS sdkjs-build
-RUN apt-get update && apt-get install -y openjdk-21-jdk npm
 COPY sdkjs /app/sdkjs
 COPY web-apps /app/web-apps
 COPY fonts/*.png /app/sdkjs/common/Images

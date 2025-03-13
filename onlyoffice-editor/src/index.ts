@@ -39,12 +39,16 @@ export class DocEditor implements DocEditorInterface {
 
         const w = window as any;
         w.APP = w.APP ?? {};
-        w.APP.setToOOHandler = (h: (e: ToOO) => void) => {
-            this.toOOHandler.setHandler(h);
-        };
-        w.APP.sendMessageFromOO = (msg: FromOO) => {
-            this.fromOOHandler.fire(msg);
-        };
+        if (!w.APP.setToOOHandler) {
+            w.APP.setToOOHandler = (h: (e: ToOO) => void) => {
+                this.toOOHandler.setHandler(h);
+            };
+        }
+        if (!w.APP.sendMessageFromOO) {
+            w.APP.sendMessageFromOO = (msg: FromOO) => {
+                this.fromOOHandler.fire(msg);
+            };
+        }
     }
 
     installLegacyChannel() {
