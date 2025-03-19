@@ -1,6 +1,6 @@
-import { EventHandler } from "./eventHandler";
+import { EventHandler, HandlerHandle } from "./eventHandler";
 import { deepAssign, noop, waitForEvent } from "./utils";
-import { mkEvent, createChannel } from "./worker-channel";
+import { createChannel, mkEvent } from "./worker-channel";
 
 let DocEditorOrig: any;
 
@@ -11,6 +11,7 @@ export class DocEditor implements DocEditorInterface {
     private toOOHandler: EventHandler<ToOO> = new EventHandler("toOO");
     private placeholderId: string;
     private server: MockServer;
+    private fromOOHandle?: HandlerHandle<FromOO>;
 
     constructor(placeholderId: string, config: any) {
         this.placeholderId = placeholderId;
@@ -39,9 +40,9 @@ export class DocEditor implements DocEditorInterface {
 
         const w = window as any;
         w.APP = w.APP ?? {};
-        if (!w.APP.setToOOHandler) {
-            w.APP.setToOOHandler = (h: (e: ToOO) => void) => {
-                this.toOOHandler.setHandler(h);
+        if (!w.APP.addToOOHandler) {
+            w.APP.addToOOHandler = (h: (e: ToOO) => void) => {
+                this.toOOHandler.addHandler(h);
             };
         }
         if (!w.APP.sendMessageFromOO) {
@@ -75,6 +76,7 @@ export class DocEditor implements DocEditorInterface {
     }
 
     destroyEditor() {
+        this.fromOOHandle?.remove();
         this.origEditor.destroyEditor();
     }
 
@@ -106,7 +108,7 @@ export class DocEditor implements DocEditorInterface {
               }
             : (name: string, callback: (url: string) => void) => callback("");
 
-        this.fromOOHandler.setHandler((msg) => {
+        this.fromOOHandle = this.fromOOHandler.addHandler((msg) => {
             if (msg.type == "auth") {
                 this.handleAuth(msg);
             }

@@ -1762,7 +1762,7 @@
         window.APP = p && p.APP;
     }
 
-    APP.setToOOHandler((data) => {
+    const handlerHandle = APP.addToOOHandler((data) => {
         this._onServerMessage(data);
     });
 
@@ -1772,7 +1772,8 @@
     socketio.onopen();
 
     socketio.close = () => {
-        console.error('Close realtime');
+        handlerHandle.remove();
+        console.log('Close realtime');
     };
 
     socketio.emit = (type, data) => {
