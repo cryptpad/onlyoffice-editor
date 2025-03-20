@@ -65,7 +65,7 @@ export class DocEditor implements DocEditorInterface {
             iframe.postMessage(data);
         };
         createChannel(msgEv, postMsg, (chan: any) => {
-            this.toOOHandler.setHandler((obj: ToOO) => {
+            this.toOOHandler.addHandler((obj: ToOO) => {
                 chan.event("CMD", obj);
             });
 

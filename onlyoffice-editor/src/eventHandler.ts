@@ -1,14 +1,11 @@
 export class EventHandler<T> {
-    setHandler(h: (e: any) => void) {
-        throw new Error("Method not implemented.");
-    }
-    private handlers: ((e: T) => void)[];
+    private handlers: Map<number, (e: T) => void>;
     private counter = 0;
     private queue: T[];
     private debug: string;
 
     constructor(debug?: string) {
-        this.handlers = [];
+        this.handlers = new Map();
         this.queue = [];
         this.debug = debug;
     }
@@ -22,7 +19,7 @@ export class EventHandler<T> {
             : handler;
         const id = this.counter;
         this.counter++;
-        this.handlers[id] = h;
+        this.handlers.set(id, h);
 
         if (this.queue.length > 0) {
             for (const e of this.queue) {
@@ -34,7 +31,7 @@ export class EventHandler<T> {
     }
 
     fire(e: T) {
-        if (this.handlers.length > 0) {
+        if (this.handlers.size > 0) {
             this.callHandlers(e);
         } else {
             this.queue.push(structuredClone(e));
@@ -42,7 +39,7 @@ export class EventHandler<T> {
     }
 
     private callHandlers(e: T) {
-        for (const h of Object.values(this.handlers)) {
+        for (const h of this.handlers.values()) {
             // We to not know, if sender or receiver will modify the event, so we
             // clone it. At least OnlyOffice modifies events in some cases.
             const clone = structuredClone(e);
@@ -52,15 +49,15 @@ export class EventHandler<T> {
 }
 
 export class HandlerHandle<T> {
-    private handlers: ((e: T) => void)[];
+    private handlers: Map<number, (e: T) => void>;
     private id: number;
 
-    constructor(handlers: ((e: T) => void)[], id: number) {
+    constructor(handlers: Map<number, (e: T) => void>, id: number) {
         this.handlers = handlers;
         this.id = id;
     }
 
     remove() {
-        delete this.handlers[this.id];
+        this.handlers.delete(this.id);
     }
 }
