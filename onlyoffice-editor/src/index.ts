@@ -6,7 +6,7 @@ let DocEditorOrig: any;
 
 export class DocEditor implements DocEditorInterface {
     public waitForAppReady: Promise<void>;
-    private origEditor?: DocEditorInterface;
+    private origEditor?: OrigDocEditorInterface;
     private fromOOHandler: EventHandler<FromOO> = new EventHandler("fromOO");
     private toOOHandler: EventHandler<ToOO> = new EventHandler("toOO");
     private placeholderId: string;
@@ -34,22 +34,19 @@ export class DocEditor implements DocEditorInterface {
             .then(config?.events?.onAppReady ?? noop)
             .catch(noop);
 
-        const newConfig = deepAssign(config, { events: { onAppReady } });
+        const newConfig = deepAssign(config, {
+            events: {
+                onAppReady,
+                cryptPadSendMessageFromOO: (msg: { data: { msg: FromOO } }) => {
+                    this.fromOOHandler.fire(msg.data.msg);
+                },
+            },
+        });
 
         this.origEditor = new DocEditorOrig(this.placeholderId, newConfig);
-
-        const w = window as any;
-        w.APP = w.APP ?? {};
-        if (!w.APP.addToOOHandler) {
-            w.APP.addToOOHandler = (h: (e: ToOO) => void) => {
-                this.toOOHandler.addHandler(h);
-            };
-        }
-        if (!w.APP.sendMessageFromOO) {
-            w.APP.sendMessageFromOO = (msg: FromOO) => {
-                this.fromOOHandler.fire(msg);
-            };
-        }
+        this.toOOHandler.addHandler((msg) =>
+            this.origEditor.cryptPadMessageToOO(msg),
+        );
     }
 
     installLegacyChannel() {
@@ -261,6 +258,10 @@ interface DocEditorInterface {
     grabFocus(...args: any[]): any;
     blurFocus(...args: any[]): any;
     setReferenceData(...args: any[]): any;
+}
+
+interface OrigDocEditorInterface extends DocEditorInterface {
+    cryptPadMessageToOO(msg: ToOO): void;
 }
 
 interface MockServer {

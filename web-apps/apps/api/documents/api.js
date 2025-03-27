@@ -904,7 +904,8 @@
             setRequestedSpreadsheet: _setRequestedSpreadsheet,
             setReferenceSource: _setReferenceSource,
             openDocument: _openDocumentFromBinary,
-            startFilling: _startFilling
+            startFilling: _startFilling,
+            cryptPadMessageToOO: function (msg) { _sendCommand({command:'cryptPadMessageToOO', data: msg}); }
         }
     };
 

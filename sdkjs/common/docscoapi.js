@@ -1762,7 +1762,7 @@
         window.APP = p && p.APP;
     }
 
-    const handlerHandle = APP.addToOOHandler((data) => {
+    window.Common.Gateway.on('cryptPadMessageToOO', (data) => {
         this._onServerMessage(data);
     });
 
@@ -1777,7 +1777,7 @@
     };
 
     socketio.emit = (type, data) => {
-        APP.sendMessageFromOO(data);
+        window.Common.Gateway.cryptPadSendMessageFromOO(data);
     }
 
     setTimeout(() => {

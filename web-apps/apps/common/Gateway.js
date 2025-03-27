@@ -165,6 +165,10 @@ if (window.Common === undefined) {
 
             'startFilling': function(data) {
                 $me.trigger('startfilling', data);
+            },
+
+            'cryptPadMessageToOO': function(data) {
+                $me.trigger('cryptPadMessageToOO', data);
             }
         };
 
@@ -431,6 +435,10 @@ if (window.Common === undefined) {
 
             submitForm: function() {
                 _postMessage({event: 'onSubmit'});
+            },
+
+            cryptPadSendMessageFromOO: function(msg) {
+                _postMessage({ event: 'cryptPadSendMessageFromOO', data: {msg: msg}});
             },
 
             on: function(event, handler){
