@@ -117,7 +117,8 @@ define([
                 el: $markup.elementById('#left-btn-support'),
                 hint: this.tipSupport,
                 disabled: true,
-                iconCls: 'btn-menu-support'
+                iconCls: 'btn-menu-support',
+                visible: false, // CryptPad: We do not want to direct CryptPad users to the OO support site
             });
             this.btnSupport.on('click', _.bind(function() {
                 var config = this.mode.customization;

@@ -88,7 +88,7 @@ define([], function () {
                         '<% } %>',
                         '<% if (type=="sheet") { %>',
                         '<table cols="2" style="width: 100%;">',
-                            '<tr>',
+                            '<tr style="display: none">', // CryptPad: Hide password since we did not implement this feature
                                 '<td class="padding-right-5" style="width:50%;">',
                                     '<label class="input-label">' + t.txtPassword + ' (' + t.txtOptional + ')' + '</label>',
                                     '<div id="' + t.winId + '-id-password-txt" class="input-row" style="width: 100%;margin-bottom: 10px;"></div>',

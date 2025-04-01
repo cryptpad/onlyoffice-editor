@@ -333,7 +333,7 @@ define([
                     me.btnDataFromText.menu && me.btnDataFromText.setMenu(new Common.UI.Menu({
                         items: [
                             { caption: me.mniFromFile, value: 'file' },
-                            { caption: me.mniFromUrl,  value: 'url' },
+                            // { caption: me.mniFromUrl,  value: 'url' }, CryptPad: Disable URL import, because it is broken because CSP rules
                             { caption: '--'},
                             {   caption: me.mniFromXMLFile,
                                 value: 'xml'

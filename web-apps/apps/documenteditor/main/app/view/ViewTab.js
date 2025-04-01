@@ -95,8 +95,8 @@ define([
                 '</div>' +
                 '<div class="elset"></div>' +
             '</div>' +
-            '<div class="separator long"></div>' +
-            '<div class="group">' +
+            '<div class="separator long" style="display: none"></div>' + // CryptPad: Hide Macros because there are broken because of CryptPads security
+            '<div class="group" style="display: none">' + // CryptPad: Hide Macros because there are broken because of CryptPads security
                 '<span class="btn-slot text x-huge" id="slot-btn-macros"></span>' +
             '</div>' +
         '</section>';
