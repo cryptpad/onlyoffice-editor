@@ -6828,19 +6828,19 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	this.WriteSdtPrDataBinding = function (val)
 	{
 		var oThis = this;
-		if (null != val.prefixMappings) {
+		if (undefined !== val.prefixMappings) {
 			this.memory.WriteByte(c_oSerSdt.PrefixMappings);
 			this.memory.WriteString2(val.prefixMappings);
 		}
-		if (null != val.storeItemID) {
+		if (undefined !== val.storeItemID) {
 			this.memory.WriteByte(c_oSerSdt.StoreItemID);
 			this.memory.WriteString2(val.storeItemID);
 		}
-		if (null != val.xpath) {
+		if (undefined !== val.xpath) {
 			this.memory.WriteByte(c_oSerSdt.XPath);
 			this.memory.WriteString2(val.xpath);
 		}
-		if (null !== val.storeItemCheckSum)
+		if (undefined !== val.storeItemCheckSum)
 		{
 			//let strCustomXmlContent = this.Document.customXml.getContentByDataBinding(val);
 			//val.recalculateCheckSum(strCustomXmlContent);
@@ -8473,7 +8473,11 @@ function BinaryFileReader(doc, openParams)
 				api && api.asc_addRestriction(restrictionType);
 			}
 		}
-	    pptx_content_loader.Reader.GenerateSmartArts();
+		if (this.openParams && this.openParams.noGenerateSmartArts) {
+			pptx_content_loader.Reader.smartarts.length = 0;
+		} else {
+			pptx_content_loader.Reader.GenerateSmartArts();
+		}
 
 		if (bClearPptxLoader) {
 			//чтобы удалялся stream с бинарником

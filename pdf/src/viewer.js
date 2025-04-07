@@ -1329,6 +1329,10 @@
 				{
 					oForm.SetOptions(oFormInfo["opt"]);
 				}
+				if (null != oFormInfo["TI"])
+				{
+					oForm.SetTopIndex(oFormInfo["TI"]);
+				}
 
 				// checkbox - radiobutton
 				if (oFormInfo["ExportValue"])
@@ -2254,7 +2258,7 @@
 							return pageQuads.page == pageCoords.index;
 						}) : null;
 
-						if (oThis.canSelectPageText() && pageCoords && isSelectionUse && AscPDF.IsInQuads(pageSelQuads.quads, pageCoords.x, pageCoords.y))
+						if (oThis.canSelectPageText() && (pageCoords && isSelectionUse && pageSelQuads) && AscPDF.IsInQuads(pageSelQuads.quads, pageCoords.x, pageCoords.y))
 						{
 							isInSelection = true;
 						}
@@ -2532,7 +2536,7 @@
 
 			let values = AscCommon.checkMouseWhell(e, {
 				isSupportBidirectional : false,
-				isAllowHorizontal : oThis.m_bIsHorScrollVisible,
+				isAllowHorizontal : oThis.isVisibleHorScroll,
 				isUseMaximumDelta : true
 			});
 			

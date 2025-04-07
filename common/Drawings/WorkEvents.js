@@ -903,7 +903,7 @@
 		{
 			delta = -45 * e.wheelDelta / 120;
 		}
-		else if (undefined !== e.detail && 0 == e.detail)
+		else if (undefined !== e.detail && 0 !== e.detail)
 		{
 			delta = 45 * e.detail / 3;
 		}

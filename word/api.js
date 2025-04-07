@@ -1145,6 +1145,9 @@
 			case c_oAscTypeSelectElement.Header:
 				oUnkTypeObj = new CHeaderProp(obj);
 				break;
+			case Asc.c_oAscTypeSelectElement.UnProtectedRegion:
+				oUnkTypeObj = new Asc.RangePermProp(obj);
+				break;
 		}
 
 		var _i       = this.SelectedObjectsStack.length - 1;
@@ -1464,6 +1467,13 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.isDocumentRenderer = function()
 	{
 		return !!this.WordControl.m_oDrawingDocument.m_oDocumentRenderer;
+	};
+	
+	asc_docs_api.prototype.canUndoRedoByRestrictions = function()
+	{
+		// В режиме вью можно редактировать в разрешенных областях
+		return (this.canEdit() || this.isRestrictionComments() || this.isRestrictionForms() || this.isRestrictionView());
+
 	};
 
 	asc_docs_api.prototype["asc_setViewerThumbnailsZoom"] = function(value) {
@@ -2261,7 +2271,6 @@ background-repeat: no-repeat;\
 		this.sync_PrAlignCallBack(ParaPr.Jc);
 		this.sync_PrPropCallback(ParaPr);
 	};
-
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
 	asc_docs_api.prototype._printDesktop = function (options)
@@ -2751,8 +2760,8 @@ background-repeat: no-repeat;\
 				window["AscDesktopEditor"]["emulateCloudPrinting"](false);
 		}
 
-		if (changes) {
-			if (isCloudLocal) {
+		if (changes || this.watermarkDraw) {
+			if (changes && isCloudLocal) {
 				this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.DownloadAs);
 				this.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Save);
 
@@ -4970,6 +4979,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.sync_SpaceBetweenPrgCallback = function()
 	{
 		this.sendEvent("asc_onSpaceBetweenPrg");
+	};
+	asc_docs_api.prototype.sync_RangePermPropCallback = function(pr)
+	{
+		this.sync_ChangeLastSelectedElement(Asc.c_oAscTypeSelectElement.UnProtectedRegion, pr);
 	};
 	asc_docs_api.prototype.sync_PrPropCallback          = function(prProp)
 	{
@@ -14412,6 +14425,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_KeepLinesCallback']                    = asc_docs_api.prototype.sync_KeepLinesCallback;
 	asc_docs_api.prototype['sync_ShowParaMarksCallback']                = asc_docs_api.prototype.sync_ShowParaMarksCallback;
 	asc_docs_api.prototype['sync_SpaceBetweenPrgCallback']              = asc_docs_api.prototype.sync_SpaceBetweenPrgCallback;
+	asc_docs_api.prototype['sync_RangePermPropCallback']                = asc_docs_api.prototype.sync_RangePermPropCallback;
 	asc_docs_api.prototype['sync_PrPropCallback']                       = asc_docs_api.prototype.sync_PrPropCallback;
 	asc_docs_api.prototype['sync_MathPropCallback']                     = asc_docs_api.prototype.sync_MathPropCallback;
 	asc_docs_api.prototype['sync_EndAddShape']                          = asc_docs_api.prototype.sync_EndAddShape;

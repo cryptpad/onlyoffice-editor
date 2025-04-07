@@ -1337,7 +1337,29 @@
 				this.themes.push(theme);
 			}
 		} else {
-			this.themes.push(AscFormat.GenerateDefaultTheme(null, null));
+			AscCommon.consoleLog("Themes to parse not found. Mb no rels. Trying to get themes by filenames");
+			let themeNum = 1;
+			while (true) {
+				let uInt8ArrayTheme = documentPart.pkg.zip.getFile("visio/theme/theme" + themeNum + ".xml");
+				if (uInt8ArrayTheme === null) {
+					break;
+				}
+				if (!uInt8ArrayTheme) {
+					uInt8ArrayTheme = new Uint8Array(0);
+				}
+				let themeXml = AscCommon.UTF8ArrayToString(uInt8ArrayTheme, 0, uInt8ArrayTheme.length);
+
+				reader = new StaxParser(themeXml, undefined, context);
+				let theme = new AscFormat.CTheme();
+				theme.fromXml(reader, true);
+				this.themes.push(theme);
+
+				themeNum++;
+			}
+			if (themeNum === 1) {
+				AscCommon.consoleLog("No themes found by filenames. Creating default theme");
+				this.themes.push(AscFormat.GenerateDefaultTheme(null, null));
+			}
 		}
 	}
 

@@ -99,7 +99,7 @@
             res = res.replace(/^file:\/\/\//, '');
             res = res.replace(/^file:\/\//, '');
 
-            const currentFilePath = window["AscDesktopEditor"].LocalFileGetSourcePath();
+            const currentFilePath = window["AscDesktopEditor"]["LocalFileGetSourcePath"]();
             let currentPathParts = currentFilePath && currentFilePath.split(/[\\/]/).slice(0, -1);    // remove file name
 
             let receivedPathParts = res.split(/[\\/]/);

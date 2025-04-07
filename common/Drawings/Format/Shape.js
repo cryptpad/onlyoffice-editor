@@ -2723,7 +2723,15 @@
 				copy.setBodyPr(this.bodyPr.createDuplicate());
 			}
 			if (this.textBoxContent) {
-				copy.setTextBoxContent(this.textBoxContent.Copy(copy, oPr && oPr.drawingDocument, oPr && oPr.contentCopyPr));
+				const contentCopyPr = oPr && oPr.contentCopyPr;
+				const fCallback = function () {
+					copy.setTextBoxContent(this.textBoxContent.Copy(copy, oPr && oPr.drawingDocument, contentCopyPr));
+				}.bind(this);
+				if (contentCopyPr && contentCopyPr.Comparison && !contentCopyPr.Comparison.options.textBoxes) {
+					contentCopyPr.Comparison.executeWithSkipCopiedElements(fCallback);
+				} else {
+					fCallback();
+				}
 			}
 			if (this.signatureLine && copy.setSignature) {
 				copy.setSignature(this.signatureLine.copy());

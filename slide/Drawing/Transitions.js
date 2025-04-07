@@ -2951,9 +2951,16 @@ function CDemonstrationManager(htmlpage)
 
     this.CheckBackgroundColor = function()
     {
-        if(Asc.editor.demoBackgroundColor && this.Canvas)
+        if(this.Canvas)
         {
-            this.Canvas.style.backgroundColor = Asc.editor.demoBackgroundColor;
+            if(Asc.editor.demoBackgroundColor)
+            {
+                this.Canvas.style.backgroundColor = Asc.editor.demoBackgroundColor;
+            }
+            else
+            {
+                this.Canvas.style.backgroundColor = Asc.editor.demoBackgroundColor;
+            }
         }
     };
 

@@ -667,7 +667,7 @@
 	 * @memberof CBaseField
 	 * @typeofeditors ["PDF"]
 	 */
-    CBaseField.prototype.GetApiValue = function(bInherit) {
+    CBaseField.prototype.GetParentValue = function(bInherit) {
         let oParent = this.GetParent();
         if (oParent == null && this._value == null)
             return undefined;
@@ -676,19 +676,21 @@
         }
         
         if (oParent)
-            return oParent.GetApiValue();
+            return oParent.GetParentValue();
     };
     /**
 	 * Sets api value of form.
 	 * @memberof CBaseField
 	 * @typeofeditors ["PDF"]
 	 */
-    CBaseField.prototype.SetApiValue = function(value) {
+    CBaseField.prototype.SetParentValue = function(value) {
         let oParent = this.GetParent();
         if (oParent && this.IsWidget() && oParent.IsAllKidsWidgets())
-            oParent.SetApiValue(value);
+            oParent.SetParentValue(value);
         else {
             this.SetWasChanged(true);
+            let oDoc = this.GetDocument();
+            oDoc.History.Add(new CChangesPDFFormParentValue(this, this._value, value));
             this._value = value;
         }
     };
@@ -1254,23 +1256,22 @@
     };
     CBaseField.prototype.Refresh_RecalcData = function(){};
     CBaseField.prototype.SetWasChanged = function(isChanged) {
-        if (this._wasChanged == isChanged) {
+        let oViewer = Asc.editor.getDocumentRenderer();
+        let oDoc = Asc.editor.getPDFDoc();
+        let canChange = !oViewer.IsOpenFormsInProgress && !oDoc.History.UndoRedoInProgress;
+        if (this._wasChanged == isChanged || !canChange) {
             return;
         }
+        
+        oDoc.History.Add(new CChangesPDFFormChanged(this, this._wasChanged, isChanged));
 
-        let oViewer = editor.getDocumentRenderer();
-        if (oViewer.IsOpenFormsInProgress == false) {
-            // let oDoc = this.GetDocument();
-            // oDoc.History.Add(new CChangesPDFFormChanged(this, this._wasChanged, isChanged));
-
-            this._wasChanged = isChanged;
-            this.IsWidget() && this.SetDrawFromStream(!isChanged);
-        }
+        this._wasChanged = isChanged;
+        this.IsWidget() && this.SetDrawFromStream(!isChanged);
     };
 
     CBaseField.prototype.UndoNotAppliedChanges = function() {
         let isChanged = this.IsChanged();
-        this.SetValue(this.GetApiValue());
+        this.SetValue(this.GetParentValue());
         this.SetNeedRecalc(true);
         this.SetNeedCommit(false);
 
@@ -2313,7 +2314,7 @@
         }
 
         // value
-        let value = this.GetApiValue();
+        let value = this.GetParentValue();
         if (value != null && Array.isArray(value) == false) {
             nFlags |= (1 << 1);
             memory.WriteString(value);
@@ -2329,7 +2330,7 @@
         // combobox/listbox
         let curIdxs = [];
         if ([AscPDF.FIELD_TYPES.combobox, AscPDF.FIELD_TYPES.listbox].includes(this.GetType())) {
-            curIdxs = this.GetApiCurIdxs();
+            curIdxs = this.GetParentCurIdxs();
         }
         if (curIdxs.length > 0) {
             nFlags |= (1 << 3);

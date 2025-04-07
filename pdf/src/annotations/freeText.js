@@ -78,6 +78,8 @@
         this.recalcInfo.recalculateGeometry = true;
         this.isInTextBox                    = false; // флаг, что внутри текстбокса
         this.defaultPerpLength              = 12; // длина выступающего перпендикуляра callout по умолчанию
+
+        this.lastClickCoords = {}; // for onPreMove
     };
     CAnnotationFreeText.prototype.constructor = CAnnotationFreeText;
     AscFormat.InitClass(CAnnotationFreeText, AscFormat.CGroupShape, AscDFH.historyitem_type_Pdf_Annot_FreeText);
@@ -955,6 +957,9 @@
         let oDoc                = this.GetDocument();
         let oController         = oDoc.GetController();
         
+        this.lastClickCoords.X = x;
+        this.lastClickCoords.Y = y;
+
         if (this.IsInTextBox() == false) {
             if (oController.selectedObjects.length > 1) {
                 AscPDF.CAnnotationBase.prototype.onMouseDown.call(this, x, y, e);
@@ -1371,13 +1376,33 @@
         }
     };
     CAnnotationFreeText.prototype.onAfterMove = function() {
-        this.onMouseDown();
+        let oDoc = this.GetDocument();
+        let oController = oDoc.GetController();
+        let _t = this;
+        this.lastClickCoords.X = undefined;
+        this.lastClickCoords.Y = undefined;
+
+        // селектим все фигуры в группе (кроме перпендикулярной линии) если до сих пор не заселекчены
+        if (oController.selectedObjects.length == 1) {
+            oController.selection.groupSelection = this;
+        }
+        
+        this.selectedObjects.length = 0;
+        this.spTree.forEach(function(sp) {
+            if (!(sp instanceof AscPDF.CPdfConnectionShape)) {
+                sp.selectStartPage = _t.selectStartPage;
+                _t.selectedObjects.push(sp);
+            }
+        });
     };
     CAnnotationFreeText.prototype.onPreMove = function(x, y, e) {
         let oViewer         = editor.getDocumentRenderer();
         let oDrawingObjects = oViewer.DrawingObjects;
 
         this.selectStartPage = this.GetPage();
+
+        x = this.lastClickCoords.X;
+        y = this.lastClickCoords.Y;
 
         // координаты клика на странице в MM
         var pageObject = oViewer.getPageByCoords2(x, y);
@@ -1540,7 +1565,7 @@
 		}, undefined, this);
 
         this.SetNeedRecalc(true);
-        this.SetWasChanged(true);
+        this.SetWasChanged(true, false);
     };
 
     // shape methods

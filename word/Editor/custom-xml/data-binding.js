@@ -39,10 +39,10 @@
 	 */
 	function DataBinding(prefix, itemID, xpath, checkSum)
 	{
-		this.prefixMappings		= prefix ? prefix : undefined;
-		this.storeItemID 		= itemID ? itemID : undefined;
-		this.xpath				= xpath ? xpath : undefined;
-		this.storeItemCheckSum	= checkSum ? checkSum : undefined;
+		this.prefixMappings		= prefix	?	prefix		: undefined;
+		this.storeItemID 		= itemID	?	itemID		: undefined;
+		this.xpath				= xpath		?	xpath		: undefined;
+		this.storeItemCheckSum	= checkSum	?	checkSum	: undefined;
 	}
 	DataBinding.prototype.copy = function()
 	{
@@ -85,7 +85,7 @@
 			flags |= 4;
 		}
 		
-		let endPos = startPos.GetCurPosition();
+		let endPos = writer.GetCurPosition();
 		writer.Seek(startPos);
 		writer.WriteLong(flags);
 		writer.Seek(endPos);

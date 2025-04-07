@@ -188,18 +188,41 @@
             let oDoc        = this.GetDocument();
             let isOnOpen    = oDoc.Viewer.IsOpenFormsInProgress;
 
+            oDoc.History.Add(new CChangesPDFFormValue(this, this.GetParentValue(), sValue));
+
 			if (isOnOpen != true)
 				this.SetWasChanged(true);
 			
 			if (isOnOpen == true && !this.GetParent())
-				this.SetApiValue(sValue);
+				this.SetParentValue(sValue);
 			
 			this.UpdateDisplayValue(sValue);
 		}
 		else {
-			this.SetApiValue(sValue);
+			this.SetParentValue(sValue);
 		}
 	};
+    CTextField.prototype.private_SetValue = function(sValue) {
+        if (this.IsWidget()) {
+			this.UpdateDisplayValue(sValue);
+		}
+		else {
+			this.SetParentValue(sValue);
+		}
+    };
+
+    CTextField.prototype.SetFormatValue = function(sValue) {
+        let oDoc = this.GetDocument();
+        oDoc.History.Add(new CChangesPDFFormFormatValue(this, this.GetFormatValue(), sValue));
+
+        oDoc.StartNoHistoryMode();
+        this.contentFormat.replaceAllText(sValue);
+        this.SetNeedRecalc(true);
+        oDoc.EndNoHistoryMode();
+    };
+    CTextField.prototype.GetFormatValue = function() {
+        return this.contentFormat.getAllText();
+    };
 	CTextField.prototype.UpdateDisplayValue = function(displayValue) {
         let oDoc        = this.GetDocument();
         let isOnOpen    = oDoc.Viewer.IsOpenFormsInProgress;
@@ -1103,35 +1126,19 @@
         let oDoc        = this.GetDocument();
         let aFields     = this.GetDocument().GetAllWidgets(this.GetFullName());
 
-        oDoc.StartNoHistoryMode();
         if (this.DoFormatAction() == false) {
             this.UndoNotAppliedChanges();
             if (this.IsChanged() == false)
                 this.SetDrawFromStream(true);
 
-            oDoc.EndNoHistoryMode();
             return;
         }
-        oDoc.EndNoHistoryMode();
         
-        if (this.GetApiValue() != this.GetValue()) {
-            oDoc.History.Add(new CChangesPDFFormValue(this, this.GetApiValue(), this.GetValue()));
-            this.RevertContentView();
-            this.SetApiValue(this.GetValue());
-        }
-
-        oDoc.StartNoHistoryMode();
-
-        if (aFields.length == 1)
-            this.SetNeedCommit(false);
-
+        let sNewValue = this.GetValue();
         if (oDoc.event["rc"] == false) {
             this.needValidate = true;
             return;
         }
-
-		let sValue = this.GetValue();
-        this.UpdateDisplayValue(sValue);
 
         for (let i = 0; i < aFields.length; i++) {
             if (aFields[i].IsChanged() == false)
@@ -1139,29 +1146,25 @@
 
             if (aFields[i].HasShiftView()) {
                 aFields[i].content.MoveCursorToStartPos();
-
-                if (aFields[i] == this) {
-                    aFields[i].AddToRedraw();
-                    continue;
-                }
             }
                 
-            if (aFields[i] == this)
-                continue;
-
-            aFields[i].UpdateDisplayValue(sValue);
+            aFields[i].SetValue(sNewValue);
             aFields[i].SetNeedRecalc(true);
         }
 
-        let sFormatValue = this.contentFormat.getAllText();
+        let sFormatValue = this.GetFormatValue();
         for (let i = 0; i < aFields.length; i++) {
-            if (aFields[i] == this)
+            if (aFields[i] == this) {
                 continue;
-
-            aFields[i].contentFormat.replaceAllText(sFormatValue);
-            aFields[i].SetNeedRecalc(true);
+            }
+            
+            aFields[i].SetFormatValue(sFormatValue);
         }
 
+        if (this.GetParentValue() != sNewValue) {
+            this.RevertContentView();
+            this.SetParentValue(sNewValue);
+        }
         // когда выравнивание посередине или справа, то после того
         // как ширина контента будет больше чем размер формы, выравнивание становится слева, пока текста вновь не станет меньше чем размер формы
         aFields.forEach(function(field) {
@@ -1170,8 +1173,6 @@
 
         this.SetNeedCommit(false);
         this.needValidate = true;
-
-        oDoc.EndNoHistoryMode();
     };
 	CTextField.prototype.SetAlign = function(nAlignType) {
         this._alignment = nAlignType;
@@ -1587,7 +1588,7 @@
         this.WriteToBinaryBase(memory);
         this.WriteToBinaryBase2(memory);
 
-        let sValue = this.GetApiValue(false);
+        let sValue = this.GetParentValue(false);
         if (sValue != null && this.IsPassword() == false) {
             memory.fieldDataFlags |= (1 << 9);
             memory.WriteString(sValue);

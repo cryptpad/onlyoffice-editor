@@ -89,8 +89,20 @@
 	};
 	CustomXml.prototype.addContentByXMLString = function (strCustomXml)
 	{
+		let nXmlHeaderStart	= strCustomXml.indexOf('<?', 0);
+		let nXmlHeaderEnd	= strCustomXml.indexOf('?>', nXmlHeaderStart);
+		let strXmlHeader 	= null;
+		if (nXmlHeaderStart !== -1 && nXmlHeaderEnd !== -1)
+		{
+			strXmlHeader = strCustomXml.substring(nXmlHeaderStart, nXmlHeaderEnd + "?>".length);
+			strCustomXml = strCustomXml.substring(nXmlHeaderEnd + '?>'.length, strCustomXml.length);
+		}
+
 		let oStax			= new StaxParser(strCustomXml),
 			rootContent		= new CustomXmlContent(null);
+
+		if (strXmlHeader !== null)
+			rootContent.xmlQuestionHeader = strXmlHeader;
 
 		while (oStax.Read())
 		{
@@ -130,6 +142,7 @@
 		this.content		= [];
 		this.attribute		= {};
 		this.textContent	= "";
+		this.xmlQuestionHeader = null;
 
 		this.addAttribute = function (name, value)
 		{
@@ -178,7 +191,9 @@
 
 				if (!content.name)
 				{
-					writer.WriteXmlString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+					if (content.xmlQuestionHeader !== null)
+						writer.WriteXmlString(content.xmlQuestionHeader + "\n");
+
 					current = content.content[0];
 				}
 				else

@@ -8852,7 +8852,7 @@
 				ws.removeSparklines(locationRange);
 
 				var modelSparkline = new AscCommonExcel.sparklineGroup(true);
-				modelSparkline.worksheet = ws;
+				modelSparkline.setWorksheet(ws);
 				modelSparkline.set(newSparkLine);
 				modelSparkline.setSparklinesFromRange(dataRange, locationRange, true);
 				ws.addSparklineGroups(modelSparkline);

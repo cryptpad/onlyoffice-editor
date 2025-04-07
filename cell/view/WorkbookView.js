@@ -5631,10 +5631,10 @@
 
 					let oPortalData = _arrAfterPromise[i].data;
 					let path = oPortalData && oPortalData["path"];
-					let referenceData = oPortalData.referenceData;
+					let referenceData = oPortalData && oPortalData.referenceData;
 
 					//if after update get short path, check on added such link
-					let eR = t.model.getExternalReferenceByReferenceData(referenceData);
+					let eR = referenceData && t.model.getExternalReferenceByReferenceData(referenceData);
 					let noRefDataER = t.model.getExternalReferenceById(eRId);
 
 					if (!eR && noRefDataER) {

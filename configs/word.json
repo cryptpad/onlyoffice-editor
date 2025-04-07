@@ -143,7 +143,6 @@
 			"common/scroll.js",
 			"vendor/iscroll.js",
 			"vendor/delta.js",
-			"vendor/minhash.js",
 			"common/Scrolls/mobileTouchManagerBase.js",
 			"word/Drawing/mobileTouchManager.js",
 

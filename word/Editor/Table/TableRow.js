@@ -137,13 +137,7 @@ CTableRow.prototype =
 		Row.private_UpdateTableGrid();
         if(oPr && oPr.Comparison)
         {
-            if (oPr.SkipUpdateInfo) {
-                oPr.Comparison.saveReviewInfo(Row, this);
-            } else if (oPr.bSaveCustomReviewType) {
-                oPr.Comparison.saveCustomReviewInfo(Row, this, oPr.Comparison.nInsertChangesType);
-            } else {
-                oPr.Comparison.updateReviewInfo(Row, oPr.Comparison.nInsertChangesType);
-            }
+					oPr.Comparison.checkReviewInfoOfCopiedElements(Row, this);
         }
 		return Row;
 	},
