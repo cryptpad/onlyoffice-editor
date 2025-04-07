@@ -1031,6 +1031,12 @@
 		 */
 		this.cImageShape = null;
 
+		/**
+		 * see MS-VSDX 2.2.7.4.9	Connector. if true shape is connector
+		 * @type {boolean}
+		 */
+		this.isConnectorStyleIherited = false;
+
 		// call parent class constructor
 		let parentClassConstructor = SheetStorageAndStyles;
 		parentClassConstructor.call(this);
@@ -1423,6 +1429,15 @@
 			return;
 		}
 
+		/**
+		 * see MS-VSDX 2.2.7.4.9	Connector.
+		 * @param {Shape_Type | StyleSheet_Type} object
+		 * @param {StyleSheet_Type} style
+		 */
+		function setIsConnectorStyleInherited(object, style) {
+			object.isConnectorStyleIherited = object.isConnectorStyleIherited ? true : style.nameU === "Connector";
+		}
+
 		if (!(thisArgument.lineStyle === thisArgument.fillStyle && thisArgument.lineStyle === thisArgument.textStyle)) {
 			// Attribute	Cell_Type elements
 
@@ -1482,6 +1497,7 @@
 				let styleSheet = styles.find(function(style) {
 					return style.iD === styleId;
 				});
+				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
 				mergeElementArrays(thisArgument.elements, styleSheet.elements, lineStyleElements);
 			}
@@ -1491,6 +1507,7 @@
 				let styleSheet = styles.find(function(style) {
 					return style.iD === styleId;
 				});
+				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
 				mergeElementArrays(thisArgument.elements, styleSheet.elements, fillStyleElements);
 			}
@@ -1500,6 +1517,7 @@
 				let styleSheet = styles.find(function(style) {
 					return style.iD === styleId;
 				});
+				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
 				mergeElementArrays(thisArgument.elements, styleSheet.elements, textStyleElements);
 			}
@@ -1521,9 +1539,9 @@
 		let styleSheet = styles.find(function(style) {
 			return style.iD === styleId;
 		});
+		setIsConnectorStyleInherited(thisArgument, styleSheet);
 
 		realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
-
 		mergeElementArrays(thisArgument.elements, styleSheet.elements)
 		if (thisArgument.constructor === AscVisio.StyleSheet_Type) {
 			// memorize: that style has realized inheritance
@@ -1760,6 +1778,12 @@
 		this.nameU = null;
 		this.isCustomName = null;
 		this.isCustomNameU = null;
+
+		/**
+		 * see MS-VSDX 2.2.7.4.9	Connector.
+		 * @type {boolean}
+		 */
+		this.isConnectorStyleIherited = false;
 
 		// call parent class constructor
 		let parentClassConstructor = SheetStorageAndStyles;

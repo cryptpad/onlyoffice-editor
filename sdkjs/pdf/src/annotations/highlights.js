@@ -479,7 +479,7 @@
     };
     
     function drawZigZagLine(oGraphicsPDF, X1, Y1, X2, Y2, nLineW) {
-        let length = Math.sqrt((X2 - X1)**2 + (Y2 - Y1)**2);
+        let length = Math.sqrt(Math.pow(X2 - X1, 2) + Math.pow(Y2 - Y1, 2));
         // Параметры волны
         let wavelength = 2;          // длина одного "зубчика"
         let amplitude = nLineW * 1;  // высота волны

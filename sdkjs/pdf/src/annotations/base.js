@@ -278,11 +278,18 @@
     CAnnotationBase.prototype.GetOriginPage = function() {
         return this._origPage;
     };
-    CAnnotationBase.prototype.SetWasChanged = function(isChanged) {
-        let oViewer = editor.getDocumentRenderer();
+    CAnnotationBase.prototype.SetWasChanged = function(isChanged, viewSync) {
+        let oViewer = Asc.editor.getDocumentRenderer();
+        let oDoc = Asc.editor.getPDFDoc();
+        let canChange = !oViewer.IsOpenAnnotsInProgress && oDoc.History.CanAddChanges();
+        if ((this._wasChanged == isChanged && this._wasChanged !== this.IsNeedDrawFromStream()) || !canChange) {
+            return;
+        }
 
-        if (this._wasChanged !== isChanged && oViewer.IsOpenAnnotsInProgress == false) {
-            this._wasChanged = isChanged;
+        oDoc.History.Add(new CChangesPDFAnnotChanged(this, [this._wasChanged, !this.IsNeedDrawFromStream()], [isChanged, viewSync]));
+
+        this._wasChanged = isChanged;
+        if (false !== viewSync) {
             this.SetDrawFromStream(!isChanged);
         }
     };
@@ -502,7 +509,7 @@
         }
 
         this.SetNeedRecalc(true);
-        this.SetWasChanged(true);
+        this.SetWasChanged(true, false);
     };
     CAnnotationBase.prototype.IsShapeBased = function() {
         return this instanceof AscPDF.CPdfShape || this instanceof AscFormat.CGroupShape;
@@ -561,6 +568,12 @@
         return this._bDrawFromStream;
     };
     CAnnotationBase.prototype.SetDrawFromStream = function(bFromStream) {
+        let oDoc = Asc.editor.getPDFDoc();
+
+        if (this.IsChanged() && this.IsNeedDrawFromStream() && false == bFromStream) {
+            oDoc.History.Add(new CChangesPDFAnnotChangedView(this, this._bDrawFromStream, bFromStream));
+        }
+
         this._bDrawFromStream = bFromStream;
     };
     CAnnotationBase.prototype.SetRect = function(aOrigRect) {
@@ -1330,7 +1343,7 @@
     };
     CAnnotationBase.prototype.WriteRenderToBinary = function(memory) {
         // пока только для основанных на фигурах
-        if (false == this.IsShapeBased()) {
+        if (false == this.IsShapeBased() || this.IsNeedDrawFromStream()) {
             return;
         }
 

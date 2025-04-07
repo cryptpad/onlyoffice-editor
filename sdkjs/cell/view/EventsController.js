@@ -2715,11 +2715,6 @@
 				}
 			}
 
-			if (event.shiftKey) {
-				deltaX = deltaY;
-				deltaY = 0;
-			}
-
 			//TODO!!! while only check direction. need refactor, and replace up code on checkMouseWhell function
 			let values = AscCommon.checkMouseWhell(event, {
 				isSupportBidirectional : false,
@@ -2731,6 +2726,11 @@
 				deltaX = 0;
 			}
 			if (values.y === 0) {
+				deltaY = 0;
+			}
+
+			if (event.shiftKey) {
+				deltaX = deltaY;
 				deltaY = 0;
 			}
 
@@ -2807,16 +2807,24 @@
 
 		asc_CEventsController.prototype.showHorizontalScroll = function (val) {
 			this.hsb.style.visibility = val ? "visible" : "hidden";
-			let cornerStyle = !val && this.vsb.style.visibility === "hidden" ? "hidden" : "visible";
-			let corner = document.getElementById("ws-scrollbar-corner");
-			corner.style.visibility = cornerStyle;
+			if (!this.view.Api.isMobileVersion) {
+				let cornerStyle = !val && this.vsb.style.visibility === "hidden" ? "hidden" : "visible";
+				let corner = document.getElementById("ws-scrollbar-corner");
+				if (corner) {
+					corner.style.visibility = cornerStyle;
+				}
+			}
 		};
 
 		asc_CEventsController.prototype.showVerticalScroll = function (val) {
 			this.vsb.style.visibility = val ? "visible" : "hidden";
-			let cornerStyle = !val && this.hsb.style.visibility === "hidden" ? "hidden" : "visible";
-			let corner = document.getElementById("ws-scrollbar-corner");
-			corner.style.visibility = cornerStyle;
+			if (!this.view.Api.isMobileVersion) {
+				let cornerStyle = !val && this.vsb.style.visibility === "hidden" ? "hidden" : "visible";
+				let corner = document.getElementById("ws-scrollbar-corner");
+				if (corner) {
+					corner.style.visibility = cornerStyle;
+				}
+			}
 		};
 
 

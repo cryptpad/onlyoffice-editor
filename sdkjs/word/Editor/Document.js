@@ -12277,6 +12277,7 @@ CDocument.prototype.private_UpdateInterface = function(isSaveCurrentReviewChange
 	// Уберем из интерфейса записи о том где мы находимся (параграф, таблица, картинка или колонтитул)
 	oApi.ClearPropObjCallback();
 
+	this.UpdateInterfaceRangePermPr();
 	this.Controller.UpdateInterfaceState();
 
 	// Сообщаем, что список составлен
@@ -12289,6 +12290,23 @@ CDocument.prototype.private_UpdateInterface = function(isSaveCurrentReviewChange
 	this.Document_UpdateSectionPr();
 	this.UpdateStylePanel();
 	this.UpdateNumberingPanel();
+};
+CDocument.prototype.UpdateInterfaceRangePermPr = function()
+{
+	if (!this.IsViewModeInEditor() && !this.IsEditCommentsMode())
+		return;
+	
+	let api = this.GetApi();
+	if (!api)
+		return;
+	
+	let pr = new Asc.RangePermProp();
+	
+	pr.editText      = this.IsPermRangeEditing(AscCommon.changestype_Paragraph_Content);
+	pr.editParagraph = this.IsPermRangeEditing(AscCommon.changestype_Paragraph_Properties);
+	pr.insertObject  = this.IsPermRangeEditing(AscCommon.changestype_Paragraph_Content);
+	
+	api.sync_RangePermPropCallback(pr);
 };
 CDocument.prototype.private_UpdateRulers = function()
 {
@@ -13425,11 +13443,19 @@ CDocument.prototype.IsCursorInHyperlink = function(bCheckEnd)
  * @param [isIgnoreCanEditFlag=false]
  * @param [checkType=undefined]
  * @param [additionalData=undefined]
+ * @param [sendEvent=false]
  * @returns {boolean}
  */
-CDocument.prototype.CanPerformAction = function(isIgnoreCanEditFlag, checkType, additionalData)
+CDocument.prototype.CanPerformAction = function(isIgnoreCanEditFlag, checkType, additionalData, sendEvent)
 {
-	return (this.IsPermRangeEditing(checkType, additionalData) || !((!this.CanEdit() && true !== isIgnoreCanEditFlag) || (true === this.CollaborativeEditing.Get_GlobalLock())));
+	let isPermRange = this.IsPermRangeEditing(checkType, additionalData);
+	if (sendEvent)
+	{
+		if (!isPermRange && this.IsNeedNotificationOnEditProtectedRange(checkType, additionalData))
+			this.sendEvent("asc_onError", c_oAscError.ID.EditProtectedRange, c_oAscError.Level.NoCritical);
+	}
+	
+	return (isPermRange || !((!this.CanEdit() && true !== isIgnoreCanEditFlag) || (true === this.CollaborativeEditing.Get_GlobalLock())));
 };
 /**
  * Проверяем, что действие с заданным типом произойдет в разрешенной области
@@ -13472,8 +13498,11 @@ CDocument.prototype.IsPermRangeEditing = function(changesType, additionalData)
 		}
 	}
 	
-	if (additionalData)
+	function checkAdditional(additionalData)
 	{
+		if (!additionalData)
+			return true;
+		
 		if (AscCommon.changestype_2_InlineObjectMove === additionalData.Type)
 		{
 			// TODO: Надо проверить не целиком параграф, а только то место, куда происходит вставка
@@ -13530,7 +13559,29 @@ CDocument.prototype.IsPermRangeEditing = function(changesType, additionalData)
 		}
 	}
 	
-	return true;
+	if (!additionalData)
+		return true;
+	
+	if (Array.isArray(additionalData))
+	{
+		for (let i = 0; i < additionalData.length; ++i)
+		{
+			if (!checkAdditional(additionalData[i]))
+				return false;
+		}
+		
+		return true;
+	}
+	else
+	{
+		return checkAdditional(additionalData);
+	}
+};
+CDocument.prototype.IsNeedNotificationOnEditProtectedRange = function(changesType, additionalData)
+{
+	return (AscCommon.changestype_Document_SectPr === changesType
+		|| AscCommon.changestype_Document_Settings === changesType
+		|| AscCommon.changestype_HdrFtr === changesType);
 };
 CDocument.prototype._checkActionForPermRange = function(changesType, additionalData)
 {
@@ -13576,24 +13627,38 @@ CDocument.prototype._checkChangesTypeForPermRangeForSelection = function(changes
 };
 CDocument.prototype._checkPermRangeForCurrentSelection = function()
 {
-	// TODO: Пока запрещаем любые действия, связанные с выделением автофигур
-	if (this.IsTextSelectionUse())
+	let docPosType = this.GetDocPosType();
+	
+	// TODO: Для сносок нужна отдельная проверка, что сама ссылка на сноску лежит в резрешенном диапазоне
+	//       Диапазоны внутри самих сносок не учитываются
+	if (docpostype_Footnotes === docPosType || docpostype_Endnotes === docPosType)
+		return false;
+	
+	let docContent = this;
+	if (docPosType === docpostype_HdrFtr)
 	{
-		if (true !== this.Selection.Use || this.Controller !== this.LogicDocumentController)
-			return;
+		let hdrftr = this.HdrFtr.CurHdrFtr;
+		if (!hdrftr)
+			return null;
 		
+		docContent = hdrftr.GetContent();
+	}
+	
+	// TODO: Пока запрещаем любые действия, связанные с выделением автофигур
+	if (this.IsTextSelectionUse() && this.Selection.Use)
+	{
 		// Надо проверить, что у нас начало и конец попали хотя бы в один общий промежуток
-		let startPos = this.GetContentPosition(true, true);
-		let endPos   = this.GetContentPosition(true, false);
+		let startPos = docContent.GetContentPosition(true, true);
+		let endPos   = docContent.GetContentPosition(true, false);
 		
-		let startRanges = this.GetPermRangesByContentPos(startPos);
-		let endRanges   = this.GetPermRangesByContentPos(endPos);
+		let startRanges = this.GetPermRangesByContentPos(startPos, docContent);
+		let endRanges   = this.GetPermRangesByContentPos(endPos, docContent);
 		return AscWord.PermRangesManager.isInPermRange(startRanges, endRanges);
 	}
 	else if (!this.IsSelectionUse())
 	{
-		let currentPos = this.GetContentPosition();
-		return this.GetPermRangesByContentPos(currentPos).length > 0;
+		let currentPos = docContent.GetContentPosition();
+		return this.GetPermRangesByContentPos(currentPos, docContent).length > 0;
 	}
 	
 	return false;
@@ -13613,7 +13678,7 @@ CDocument.prototype.Document_Is_SelectionLocked = function(CheckType, Additional
 	if (this.IsActionStarted() && this.IsPostActionLockCheck())
 		return false;
 	
-	if (!this.CanPerformAction(isIgnoreCanEditFlag, CheckType, AdditionalData))
+	if (!this.CanPerformAction(isIgnoreCanEditFlag, CheckType, AdditionalData, true))
 	{
 		if (fCallback)
 			fCallback(true);
@@ -16151,6 +16216,18 @@ CDocument.prototype.SetContentPosition = function(DocPos, Depth, Flag)
 
 	if (this.Content[Pos])
 		this.Content[Pos].SetContentPosition(_DocPos, Depth + 1, _Flag);
+};
+CDocument.prototype.GetControllerContentPosition = function(isSelection, start, posArray)
+{
+	return this.Controller.GetControllerContentPosition(isSelection, start, posArray);
+};
+CDocument.prototype.SetControllerContentPosition = function(docPos)
+{
+	return this.Controller.SetControllerContentPosition(docPos);
+};
+CDocument.prototype.SetControllerContentSelection = function(startPos, endPos)
+{
+	return this.Controller.SetControllerContentSelection(startPos, endPos);
 };
 CDocument.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
@@ -23901,17 +23978,17 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 	}
 
 };
-CDocument.prototype.GetPermRangesByContentPos = function(docPos)
+CDocument.prototype.GetPermRangesByContentPos = function(docPos, docContent)
 {
 	if (!docPos)
 		return [];
 	
 	let state = this.SaveDocumentState();
 	
-	this.SetContentPosition(docPos, 0, 0);
+	docContent.SetContentPosition(docPos, 0, 0);
 	
 	let result = [];
-	let currentParagraph = this.controller_GetCurrentParagraph(true, null);
+	let currentParagraph = this.GetCurrentParagraph(true, null);
 	if (currentParagraph)
 		result = currentParagraph.GetCurrentPermRanges();
 	

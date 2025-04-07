@@ -295,7 +295,7 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	{
 		var Item = this.Content[Index];
 
-		if (para_Comment === Item.Type && true === oPr.SkipComments)
+		if (para_Comment === Item.Type && (true === oPr.SkipComments || oPr.Comparison && oPr.Comparison.skipCommentElementOnCopyParagraph(Item)))
 			continue;
 		if (para_Bookmark === Item.Type && true === oPr.SkipBookmarks)
 			continue;

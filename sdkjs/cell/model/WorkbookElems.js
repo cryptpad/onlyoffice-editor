@@ -7743,7 +7743,12 @@ function RangeDataManagerElem(bbox, data)
 		this.colorLow = new RgbColor(defaultOtherColor);
 	};
 	sparklineGroup.prototype.setWorksheet = function (worksheet, oldWorksheet) {
+
+		let sOldId = this.worksheet ? this.worksheet.Id : null;
+		let sNewId = worksheet ? worksheet.Id : null;
+		AscCommon.History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_Sparkline_Worksheet, sOldId, sNewId));
 		this.worksheet = worksheet;
+
 		if (oldWorksheet) {
 			var oldSparklines = [];
 			var newSparklines = [];
@@ -14739,6 +14744,14 @@ function RangeDataManagerElem(bbox, data)
 		oClass.resetHistory();
 		oClass.applyRange(value);
 		oClass.addPointToLocalHistory(true);
+	};
+
+	AscDFH.changesFactory[AscDFH.historyitem_Sparkline_Worksheet] = AscDFH.CChangesDrawingsString;
+	AscDFH.drawingsChangesMap[AscDFH.historyitem_Sparkline_Worksheet] = function (oClass, value) {
+		let oWB = Asc.editor.wbModel;
+		if(!oWB) return;
+		let oWS = oWB.getWorksheetById(value);
+		oClass.worksheet = oWS;
 	};
 	/**
 	 *

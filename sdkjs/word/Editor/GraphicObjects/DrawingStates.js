@@ -905,6 +905,39 @@ RotateState.prototype =
     
                                     oAnnot.SetRect(aResultRect);
                                 }
+                                else if (oAnnot.IsCircle() || oAnnot.IsSquare()) {
+                                    // aRect in this case is an annot OrigRect - Rectangle Diff
+                                    AscCommon.History.StartNoHistoryMode();
+                                    let aCurRect = oAnnot.GetOrigRect().slice();
+                                    let aCurRD = oAnnot.GetRectangleDiff().slice();
+                                    let nLineW = oAnnot.GetWidth() * g_dKoef_pt_to_mm;
+                                    oAnnot.SetRect(aRect);
+                                    oAnnot.SetRectangleDiff([0, 0, 0, 0]);
+                                    oAnnot.recalcBounds();
+                                    oAnnot.recalcGeometry();
+                                    oAnnot.Recalculate(true);
+                                    
+                                    AscCommon.History.EndNoHistoryMode();
+                                    
+                                    let oGrBounds = oAnnot.bounds;
+                                    let oShapeBounds = oAnnot.getRectBounds();
+
+                                    aRect[0] = Math.round(oGrBounds.l - nLineW) * g_dKoef_mm_to_pt;
+                                    aRect[1] = Math.round(oGrBounds.t - nLineW) * g_dKoef_mm_to_pt;
+                                    aRect[2] = Math.round(oGrBounds.r + nLineW) * g_dKoef_mm_to_pt;
+                                    aRect[3] = Math.round(oGrBounds.b + nLineW) * g_dKoef_mm_to_pt;
+
+                                    oAnnot._origRect = aCurRect;
+                                    oAnnot._rectDiff = aCurRD;
+
+                                    oAnnot.SetRect(aRect);
+                                    oAnnot.SetRectangleDiff([
+                                        Math.round(oShapeBounds.l - oGrBounds.l + nLineW) * g_dKoef_mm_to_pt,
+                                        Math.round(oShapeBounds.t - oGrBounds.t + nLineW) * g_dKoef_mm_to_pt,
+                                        Math.round(oGrBounds.r - oShapeBounds.r + nLineW) * g_dKoef_mm_to_pt,
+                                        Math.round(oGrBounds.b - oShapeBounds.b + nLineW) * g_dKoef_mm_to_pt
+                                    ]);
+                                }
                                 else {
                                     oAnnot.SetRect(aRect);
                                 }

@@ -15460,7 +15460,11 @@
 	 */
 	Cell.prototype.containInFormula = function () {
 		const oThis = this;
-		const aOutStack = this.getFormulaParsed().outStack;
+		const formulaParsed = this.getFormulaParsed();
+		const aOutStack = formulaParsed && formulaParsed.outStack;
+		if (!aOutStack) {
+			return false;
+		}
 		let bContainsInFormula = false;
 		_foreachRefElements(function (oRange) {
 			if (oRange.containCell2(oThis)) {

@@ -191,9 +191,10 @@
 		}
 
 		// lets define if shape is connector
-		// TODO rewrite consider 2.2.7.4.9	Connector
-		let isConnectorShape = shape.getCellNumberValue("EndArrow") !== 0
-			|| shape.getCellNumberValue("BeginArrow") !== 0;
+		// consider 2.2.7.4.9	Connector
+		// let isConnectorShape = shape.getCellNumberValue("EndArrow") !== 0
+		// 	|| shape.getCellNumberValue("BeginArrow") !== 0;
+		let isConnectorShape = shape.isConnectorStyleIherited;
 
 		// TODO rewrite themeScopeCellName choose consider 2.2.7.4.2	Dynamic Theme Identification
 		// find theme index

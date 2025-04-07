@@ -499,7 +499,7 @@ void main() {\n\
                 }
             }
         }
-        return { Page1, Page2, Line1, Line2, Glyph1, Glyph2 };
+        return { Page1: Page1, Page2: Page2, Line1: Line1, Line2: Line2, Glyph1: Glyph1, Glyph2: Glyph2 };
     };
     CFile.prototype.getSelection = function() {
         return this.Selection;
@@ -638,7 +638,17 @@ void main() {\n\
                         if (_arrayGlyphOffsets[_glyph] > _distX)
                             break;
                     }
-                    return { Line : _numLine, Glyph : --_glyph, ...(bNeedLinePos ? { LinePos: _linePos } : {}) };
+
+                    let result = {
+                        Line: _numLine,
+                        Glyph: --_glyph
+                    };
+                    
+                    if (bNeedLinePos) {
+                        result.LinePos = _linePos;
+                    }
+                    
+                    return result;
                 }
 
                 tmp = Infinity;
@@ -699,7 +709,17 @@ void main() {\n\
                         if (_arrayGlyphOffsets[_glyph] > w)
                             break;
                     }
-                    return { Line : _numLine, Glyph : --_glyph, ...(bNeedLinePos ? { LinePos: _linePos } : {}) };
+
+                    let result = {
+                        Line: _numLine,
+                        Glyph: --_glyph
+                    };
+                    
+                    if (bNeedLinePos) {
+                        result.LinePos = _linePos;
+                    }
+                    
+                    return result;
                 }
 
                 if (w >= 0 && w <= _lineWidth)
@@ -737,7 +757,17 @@ void main() {\n\
             _predY = _lineY;
             _numLine++;
         }
-        return { Line : _line, Glyph : _glyph, ...(bNeedLinePos ? { LinePos: _minLinePos } : {}) };
+
+        let result = {
+            Line: _line,
+            Glyph: _glyph
+        };
+        
+        if (bNeedLinePos) {
+            result.LinePos = _minLinePos;
+        }
+        
+        return result;
     };
     CFile.prototype.selectWholeWord = function(pageIndex, x, y) {
         let ret = this.getNearestPos(pageIndex, x, y, true);
@@ -901,7 +931,13 @@ void main() {\n\
         else if (this.Selection.quads.length)
             return this.Selection.quads;
         
-        const { Page1, Page2, Line1, Line2, Glyph1, Glyph2 } = this.sortSelection();
+        let selection = this.sortSelection();
+        let Page1 = selection.Page1;
+        let Page2 = selection.Page2;
+        let Line1 = selection.Line1;
+        let Line2 = selection.Line2;
+        let Glyph1 = selection.Glyph1;
+        let Glyph2 = selection.Glyph2;
 
         for (let iPage = Page1; iPage <= Page2; ++iPage)
         {
@@ -1052,7 +1088,13 @@ void main() {\n\
         if (!stream)
             return;
 
-        const { Page1, Page2, Line1, Line2, Glyph1, Glyph2 } = this.sortSelection();
+        let selection = this.sortSelection();
+        let Page1 = selection.Page1;
+        let Page2 = selection.Page2;
+        let Line1 = selection.Line1;
+        let Line2 = selection.Line2;
+        let Glyph1 = selection.Glyph1;
+        let Glyph2 = selection.Glyph2;
 
         if (Page1 > pageIndex || Page2 < pageIndex)
             return;
@@ -1208,7 +1250,13 @@ void main() {\n\
         if (!stream || !this.isSelectionUse())
             return "";
 
-        const { Page1, Page2, Line1, Line2, Glyph1, Glyph2 } = this.sortSelection();
+        let selection = this.sortSelection();
+        let Page1 = selection.Page1;
+        let Page2 = selection.Page2;
+        let Line1 = selection.Line1;
+        let Line2 = selection.Line2;
+        let Glyph1 = selection.Glyph1;
+        let Glyph2 = selection.Glyph2;
 
         if (Page1 > pageIndex || Page2 < pageIndex)
             return "";

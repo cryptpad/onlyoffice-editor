@@ -389,7 +389,7 @@
         if (oThis.IsChecked()) {
             if (oThis.IsNoToggleToOff() == false) {
                 oThis.SetChecked(false);
-                oThis.SetApiValue("Off");
+                oThis.SetParentValue("Off");
                 bCommit = true;
             }
         }
@@ -399,10 +399,10 @@
             let aKids   = oParent ? oParent.GetKids() : undefined;
             oThis.SetChecked(true);
             if (aOpt && aKids) {
-                oThis.SetApiValue(String(aKids.indexOf(oThis)));
+                oThis.SetParentValue(String(aKids.indexOf(oThis)));
             }
             else {
-                oThis.SetApiValue(oThis.GetExportValue());
+                oThis.SetParentValue(oThis.GetExportValue());
             }
 
             bCommit = true;
@@ -476,8 +476,9 @@
             this.SetChecked(false);
         
         if (editor.getDocumentRenderer().IsOpenFormsInProgress && this.GetParent() == null)
-            this.SetApiValue(value);
+            this.SetParentValue(value);
     };
+    CBaseCheckBoxField.prototype.private_SetValue = CBaseCheckBoxField.prototype.SetValue;
     CBaseCheckBoxField.prototype.GetValue = function() {
         return this.IsChecked() ? this.GetExportValue() : "Off";
     };

@@ -5470,6 +5470,7 @@ function(window, undefined) {
 				if(oLabelsBox.x < fL) {
 					fL = oLabelsBox.x;
 				}
+				let oldFR = fR;
 				if(oLabelsBox.x + oLabelsBox.extX > fR) {
 					fR = oLabelsBox.x + oLabelsBox.extX;
 				}
@@ -5478,6 +5479,9 @@ function(window, undefined) {
 				}
 				if(oLabelsBox.y + oLabelsBox.extY > fB) {
 					fB = oLabelsBox.y + oLabelsBox.extY;
+				}
+				if (oCurAxis.axPos === AscFormat.AX_POS_R && oldFR === fR) {
+					fR = oLabelsBox.extX + fR;
 				}
 			}
 		}
@@ -5530,9 +5534,9 @@ function(window, undefined) {
 				fDiff = oBaseRect.x - fL;
 				if(/*fDiff > 0.0 && */!AscFormat.fApproxEqual(fDiff, 0.0, fPrecision)) {
 					oCorrectedRect.x += fDiff;
-					if(bWEdge) {
+					// if(bWEdge) {
 						oCorrectedRect.w -= fDiff;
-					}
+					// }
 					bCorrected = true;
 				}
 				fDiff = oBaseRect.x + oBaseRect.w - fR;

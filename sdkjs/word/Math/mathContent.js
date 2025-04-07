@@ -2505,13 +2505,7 @@ CMathContent.prototype.CopyTo = function(OtherContent, Selected, oPr)
     }
     if(oPr && oPr.Comparison)
     {
-        if (oPr.SkipUpdateInfo) {
-            oPr.Comparison.saveReviewInfo(OtherContent, OtherContent);
-        } else if (oPr.bSaveCustomReviewType) {
-            oPr.Comparison.saveCustomReviewInfo(OtherContent, OtherContent, oPr.Comparison.nInsertChangesType);
-        } else {
-            oPr.Comparison.updateReviewInfo(OtherContent, oPr.Comparison.nInsertChangesType);
-        }
+	    oPr.Comparison.checkReviewInfoOfCopiedElements(OtherContent, OtherContent);
     }
 };
 CMathContent.prototype.getElem = function(nNum)

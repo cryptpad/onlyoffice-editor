@@ -9061,6 +9061,9 @@ Because of this, the display is sometimes not correct.
           }
         }
       }
+	    if (oPr && oPr.contentCopyPr && oPr.contentCopyPr.Comparison) {
+		    copy.generateDrawingPart();
+	    }
       return copy;
     };
     SmartArt.prototype.copy2 = function(copy, oPr)
