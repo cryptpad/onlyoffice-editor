@@ -60,7 +60,7 @@ define([
         var templateUserItem =
                 '<li id="<%= user.get("iid") %>" class="<% if (!user.get("online")) { %> offline <% } if (user.get("view")) {%> viewmode <% } %>">' +
                     '<div class="user-name">' +
-                        '<div class="color"' + 
+                        '<div class="color"' +
                             '<% if (user.get("avatar")) { %>' +
                                 'style="background-image: url(<%=user.get("avatar")%>); <% if (user.get("color")!==null) { %> border-color:<%=user.get("color")%>; border-style: solid;<% }%>"' +
                             '<% } else { %>' +
@@ -83,7 +83,7 @@ define([
                             '<section id="box-doc-name">' +
                                 // '<input type="text" id="rib-doc-name" spellcheck="false" data-can-copy="false" style="pointer-events: none;" disabled="disabled">' +
                                 //'<label id="rib-doc-name" />' +
-                                '<input id="rib-doc-name" autofill="off" autocomplete="off"/></input>' +
+                                '<input id="rib-doc-name" autofill="off" autocomplete="off" style="display:none"/></input>' + // CryptPad: Hide file name in header
                             '</section>' +
                             '<section id="box-right-btn-group" style="display: inherit;">' +
                                 '<div class="hedset">' +
@@ -150,7 +150,7 @@ define([
                                     '<div class="btn-slot" id="slot-btn-dt-print-quick"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-undo"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-redo"></div>' +
-                                    '<div class="btn-slot" id="slot-btn-dt-start-over"></div>' +    
+                                    '<div class="btn-slot" id="slot-btn-dt-start-over"></div>' +
                                     '<div class="btn-slot" id="slot-btn-dt-quick-access"></div>' +
                                 '</div>' +
                                 '<div class="lr-separator" id="id-box-doc-name">' +
@@ -580,7 +580,7 @@ define([
                             break;
                         case 'startover':
                             props.startOver = item.checked;
-                            break;        
+                            break;
                     }
                     onChangeQuickAccess.call(me, 'header', props);
                 });
