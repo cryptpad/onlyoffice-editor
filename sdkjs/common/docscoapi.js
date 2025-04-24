@@ -1756,15 +1756,23 @@
         // window.parent because in the case of a popup, window.parent === window
         p = window.opener;
         window.parent = p;
+        p.Common.Gateway.on('cryptPadMessageToOO', (data) => {
+          this._onServerMessage(data);
+        });
+        socketio.emit = (type, data) => {
+          p.Common.Gateway.cryptPadSendMessageFromOO(data);
+        }
     } else {
         // If we're not in presenter mode, we're the parent if the presenter popup
         // and this popup will need access to APP in order to load images
         window.APP = p && p.APP;
+        window.Common.Gateway.on('cryptPadMessageToOO', (data) => {
+          this._onServerMessage(data);
+        });
+        socketio.emit = (type, data) => {
+          window.Common.Gateway.cryptPadSendMessageFromOO(data);
+        }
     }
-
-    window.Common.Gateway.on('cryptPadMessageToOO', (data) => {
-        this._onServerMessage(data);
-    });
 
     socketio.onopen = () => {
         this._onServerOpen();
@@ -1776,9 +1784,6 @@
         console.log('Close realtime');
     };
 
-    socketio.emit = (type, data) => {
-        window.Common.Gateway.cryptPadSendMessageFromOO(data);
-    }
 
     setTimeout(() => {
         this._onServerMessage(license);
