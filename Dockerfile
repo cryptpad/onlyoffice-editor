@@ -1,6 +1,6 @@
 # Use this (large) base image in every build below, to reduce the overall docker cache size
 FROM ubuntu:24.04 AS base
-RUN apt-get update && apt-get install -y openjdk-21-jdk npm wget zip
+RUN apt-get update && apt-get install -y openjdk-21-jdk npm wget zip brotli
 RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
 ENV PNPM_HOME="/root/.local/share/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -45,6 +45,13 @@ COPY fonts/*.otf /app/fonts/fonts/
 COPY dictionaries /app/dictionaries
 COPY --from=onlyoffice-editor-build /app/dist/api.js /app/web-apps/apps/api/documents/api.js
 WORKDIR /app
+RUN find . -name "*.wasm" \
+    -o -name "*.js" \
+    -o -name "*.html" \
+    -o -name "*.css" \
+    -o -name "*.aff" \
+    -o -name "*.dic" \
+    | xargs -P 8 -n 16 -- brotli
 RUN zip -r onlyoffice-editor.zip .
 RUN sha512sum onlyoffice-editor.zip > onlyoffice-editor.zip.sha512
 
