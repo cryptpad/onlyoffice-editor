@@ -229,6 +229,12 @@
     "textRows": "الصفوف",
     "txtWarnUrl": "النقر على هذا الرابط يمكن أن يكون ضارًا بجهازك وبياناتك.  هل أنت متأكد من أنك تريد المتابعة؟<br>"
   },
+  "Draw": {
+    "textColor": "اللون",
+    "textCustomColor": "لون مخصص",
+    "textOpacity": "معدل الشفافية",
+    "textLineSize": "Line size"
+  },
   "Edit": {
     "notcriticalErrorTitle": "تحذير",
     "textActualSize": "الحجم الاصلي",
@@ -300,7 +306,7 @@
     "textFonts": "الخطوط",
     "textFooter": "التذييل",
     "textFormal": "رسمي",
-    "textFr": "الجمعة",
+    "textFr": "جم",
     "textHeader": "الرأس",
     "textHeaderRow": "الصف الرأسي",
     "textHighlightColor": "لون تمييز النص",
@@ -326,7 +332,7 @@
     "textLinkToPrevious": "اربط بالسابق",
     "textMarch": "أذار",
     "textMay": "ايار",
-    "textMo": "الاثنين",
+    "textMo": "اث",
     "textModern": "حديث",
     "textMoveBackward": "تحرك للخلف",
     "textMoveForward": "تحرك للأمام",
@@ -368,7 +374,7 @@
     "textRightAlign": "محاذاة لليمين",
     "textRotateTextDown": "تدوير النص للأسفل",
     "textRotateTextUp": "تدوير النص للأعلى",
-    "textSa": "السبت",
+    "textSa": "سب",
     "textSameCreatedNewStyle": "تماما كالنمط الجديد المنشأ",
     "textSave": "حفظ",
     "textScreenTip": "تلميح شاشة",
@@ -389,7 +395,7 @@
     "textStyle": "النمط",
     "textStyleOptions": "خيارات النمط",
     "textStyles": "الأنماط",
-    "textSu": "الأحد",
+    "textSu": "أح",
     "textSubscript": "نص منخفض",
     "textSuperscript": "نص مرتفع",
     "textTable": "جدول",
@@ -398,15 +404,15 @@
     "textText": "نص",
     "textTextOrientation": "اتجاه النص",
     "textTextWrapping": "التفاف النص",
-    "textTh": "الخميس",
+    "textTh": "خم",
     "textThrough": "خلال",
     "textTight": "ضيق",
     "textTitle": "العنوان",
     "textTopAndBottom": "الأعلى و الأسفل",
     "textTotalRow": "صف الإجمالي",
-    "textTu": "الثلاثاء",
+    "textTu": "ثل",
     "textType": "النوع",
-    "textWe": "الأربعاء",
+    "textWe": "أر",
     "textWrap": "التفاف",
     "textWrappingStyle": "نمط الالتفاف",
     "textYourOption": "خيارك"
@@ -818,11 +824,5 @@
     "warnEmptyRequiredField": "قم بملء كل الحقول المطلوبة لارسال  الاستمارة.",
     "btnRestartNow": "Restart now",
     "textSwitchToDesktop": "Switch to Desktop"
-  },
-  "Draw": {
-    "textColor": "Color",
-    "textCustomColor": "Custom color",
-    "textLineSize": "Line size",
-    "textOpacity": "Opacity"
   }
 }
