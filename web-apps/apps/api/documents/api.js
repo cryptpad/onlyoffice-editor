@@ -14,7 +14,7 @@
             type: 'desktop or mobile or embedded',
             width: '100% by default',
             height: '100% by default',
-            documentType: 'word' | 'cell' | 'slide' | 'pdf' | 'diagram' ,// deprecate 'text' | 'spreadsheet' | 'presentation',
+            documentType: 'word' | 'cell' | 'slide' | 'pdf' ,// deprecate 'text' | 'spreadsheet' | 'presentation',
             token: <string> encrypted signature
             document: {
                 title: 'document title',
@@ -74,7 +74,7 @@
                 location: <location>,
                 canCoAuthoring: <can coauthoring documents>,
                 canBackToFolder: <can return to folder> - deprecated. use "customization.goback" parameter,
-                createUrl: 'create document url', 
+                createUrl: 'create document url',
                 sharingSettingsUrl: 'document sharing settings url',
                 fileChoiceUrl: 'source url', // for mail merge or image from storage
                 callbackUrl: <url for connection between sdk and portal>,
@@ -88,7 +88,8 @@
                     id: 'user id',
                     name: 'user name',
                     group: 'group name' // for customization.reviewPermissions or permissions.reviewGroups or permissions.commentGroups. Can be multiple groups separated by commas (,) : 'Group1' or 'Group1,Group2'
-                    image: 'image url'
+                    image: 'image url',
+                    roles: ['Role1'] // used for pdf-forms, fill form with Role1
                 },
                 recent: [
                     {
@@ -167,7 +168,13 @@
                             home:  {
                                 mailmerge: false/true // mail merge button // deprecated, button is moved to collaboration tab. use toolbar->collaboration->mailmerge instead
                             },
-                            layout:  false / true, // layout tab
+                            insert: {
+                                file: false/true // text from file button in de
+                                field: false/true // field button in de
+                            }, false / true, // insert tab
+                            layout: {
+                                pagecolor: false/true // page color button in de
+                            }, false / true, // layout tab
                             references:  false / true, // de references tab
                             collaboration:  {
                                 mailmerge: false/true // mail merge button in de
@@ -178,7 +185,7 @@
                             view: {
                                 navigation: false/true // navigation button in de
                             } / false / true, // view tab
-                            save: false/true // save button on toolbar in 
+                            save: false/true // save button on toolbar in
                         } / false / true, // use instead of customization.toolbar,
                         header: {
                             users: false/true // users list button
@@ -212,7 +219,8 @@
                         tabBackground: {
                             mode: 'header'/'toolbar' // init value, 'header' by default
                             change: true/false // show/hide feature
-                        } / 'header'/'toolbar' // if string - use as init value
+                        } / 'header'/'toolbar' // if string - use as init value,
+                        featuresTips: false/true // show tips about new feature
                     },
                     font: {
                         name: "Arial",
@@ -258,8 +266,13 @@
                         visible: true/false (default: true)
                         resultMessage: 'text'/''/null/undefined // if '' - don't show a message after submitting form, null/undefined - show the default message
                     },
+                    startFillingForm: {
+                        text: 'Share & collect' // caption of the start filling button, used for pdf-forms
+                    },
                     slidePlayerBackground: '#000000', // background color for slide show in presentation editor
                     wordHeadingsColor: '#00ff00' // set color for default heading styles in document editor
+                    showVerticalScroll: true/false, //  show/hide scroll in the spreadsheet editor by default
+                    showHorizontalScroll: true/false //  show/hide scroll in the spreadsheet editor by default
                 },
                  coEditing: {
                      mode: 'fast', // <coauthoring mode>, 'fast' or 'strict'. if 'fast' and 'customization.autosave'=false -> set 'customization.autosave'=true. 'fast' - default for editor
@@ -315,6 +328,8 @@
                 'onSubmit': <filled form is submitted> // send when filled form is submitted successfully
                 'onRequestRefreshFile': <request new file version> // send when file version is updated. use instead of onOutdatedVersion
                 'onUserActionRequired': <user action callback> // send if the user needs to enter a password or select encoding/delimiters when opening a file
+                'onRequestFillingStatus': <request filling status for current role> // used in pdf-form fill forms mode
+                'onStartFilling': <send when can start filling (form is completed and users are disconnected)> // send after startFilling method, used in pdf-form editing
             }
         }
 
@@ -330,7 +345,8 @@
                 url: 'document url',
                 fileType: 'document file type',
                 key: 'key',
-                vkey: 'vkey'
+                vkey: 'vkey',
+                isForm: 'pdf form' / false/true
             },
             editorConfig: {
                 licenseUrl: <url for license>,
@@ -386,6 +402,7 @@
         _config.editorConfig.canSaveDocumentToBinary = _config.events && !!_config.events.onSaveDocument;
         _config.editorConfig.canStartFilling = _config.events && !!_config.events.onRequestStartFilling;
         _config.editorConfig.canRequestRefreshFile = _config.events && !!_config.events.onRequestRefreshFile;
+        _config.editorConfig.canRequestFillingStatus = _config.events && !!_config.events.onRequestFillingStatus;
         _config.editorConfig.canUpdateVersion = _config.events && !!_config.events.onOutdatedVersion;
         _config.frameEditorId = placeholderId;
         _config.parentOrigin = window.location.origin;
@@ -474,12 +491,11 @@
                         'word': 'docx',
                         'cell': 'xlsx',
                         'slide': 'pptx',
-                        'pdf': 'pdf',
-                        'diagram': 'vsdx'
+                        'pdf': 'pdf'
                     }, app;
 
                 if (_config.documentType=='text' || _config.documentType=='spreadsheet' ||_config.documentType=='presentation')
-                    console.warn("The \"documentType\" parameter for the config object must take one of the values word/cell/slide/pdf/diagram.");
+                    console.warn("The \"documentType\" parameter for the config object must take one of the values word/cell/slide/pdf.");
 
                 if (typeof _config.documentType === 'string' && _config.documentType != '') {
                     app = appMap[_config.documentType.toLowerCase()];
@@ -493,7 +509,7 @@
 
                 if (typeof _config.document.fileType === 'string' && _config.document.fileType != '') {
                     _config.document.fileType = _config.document.fileType.toLowerCase();
-                    var type = /^(?:(xls|xlsx|ods|csv|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb|sxc|et|ett|numbers)|(pps|ppsx|ppt|pptx|odp|gslides|pot|potm|potx|ppsm|pptm|fodp|otp|sxi|dps|dpt|key)|(pdf|djvu|xps|oxps)|(doc|docx|odt|gdoc|txt|rtf|mht|htm|html|mhtml|epub|docm|dot|dotm|dotx|fodt|ott|fb2|xml|oform|docxf|sxw|stw|wps|wpt|pages|hwp|hwpx)|(vsdx|vssx|vstx|vsdm|vssm|vstm))$/
+                    var type = /^(?:(xls|xlsx|ods|csv|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb|sxc|et|ett|numbers)|(pps|ppsx|ppt|pptx|odp|gslides|pot|potm|potx|ppsm|pptm|fodp|otp|sxi|dps|dpt|key)|(pdf|djvu|xps|oxps)|(doc|docx|odt|gdoc|txt|rtf|mht|htm|html|mhtml|epub|docm|dot|dotm|dotx|fodt|ott|fb2|xml|oform|docxf|sxw|stw|wps|wpt|pages|hwp|hwpx))$/
                                     .exec(_config.document.fileType);
                     if (!type) {
                         window.alert("The \"document.fileType\" parameter for the config object is invalid. Please correct it.");
@@ -502,8 +518,7 @@
                         if (typeof type[1] === 'string') _config.documentType = 'cell'; else
                         if (typeof type[2] === 'string') _config.documentType = 'slide'; else
                         if (typeof type[3] === 'string') _config.documentType = 'pdf'; else
-                        if (typeof type[4] === 'string') _config.documentType = 'word'; else
-                        if (typeof type[5] === 'string') _config.documentType = 'diagram';
+                        if (typeof type[4] === 'string') _config.documentType = 'word';
                     }
                 }
 
@@ -529,7 +544,7 @@
 
                 _config.document.token = _config.token;
             }
-            
+
             return true;
         };
 
@@ -819,6 +834,13 @@
             });
         };
 
+        var _requestRoles = function(data) {
+            _sendCommand({
+                command: 'requestRoles',
+                data: data
+            });
+        };
+
         var _processMouse = function(evt) {
             var r = iframe.getBoundingClientRect();
             var data = {
@@ -906,6 +928,7 @@
             setReferenceSource: _setReferenceSource,
             openDocument: _openDocumentFromBinary,
             startFilling: _startFilling,
+            requestRoles: _requestRoles,
             cryptPadMessageToOO: function (msg) { _sendCommand({command:'cryptPadMessageToOO', data: msg}); }
         }
     };
@@ -1066,7 +1089,6 @@
                 'cell': 'spreadsheeteditor',
                 'slide': 'presentationeditor',
                 'pdf': 'pdfeditor',
-                'diagram': 'visioeditor',
                 'common': 'common'
             },
             appType = 'word',
@@ -1075,7 +1097,7 @@
             isForm = false;
         if (config.document) {
             if (typeof config.document.fileType === 'string')
-                type = /^(?:(pdf)|(djvu|xps|oxps)|(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb|numbers)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp|key)|(oform|docxf)|(vsdx|vssx|vstx|vsdm|vssm|vstm))$/
+                type = /^(?:(pdf)|(djvu|xps|oxps)|(xls|xlsx|ods|csv|xlst|xlsy|gsheet|xlsm|xlt|xltm|xltx|fods|ots|xlsb|numbers)|(pps|ppsx|ppt|pptx|odp|pptt|ppty|gslides|pot|potm|potx|ppsm|pptm|fodp|otp|key)|(oform|docxf))$/
                     .exec(config.document.fileType);
 
             if (config.document.permissions)
@@ -1098,8 +1120,7 @@
                 appType = config.documentType.toLowerCase();
             else {
                 if (type && typeof type[3] === 'string') appType = 'cell'; else
-                if (type && typeof type[4] === 'string') appType = 'slide'; else
-                if (type && typeof type[6] === 'string') appType = 'diagram';
+                if (type && typeof type[4] === 'string') appType = 'slide';
             }
         }
         if (!(config.editorConfig && config.editorConfig.shardkey && config.document && config.editorConfig.shardkey!==config.document.key))
@@ -1279,4 +1300,3 @@
     }
 
 })(window.DocsAPI = window.DocsAPI || {}, window, document);
-
