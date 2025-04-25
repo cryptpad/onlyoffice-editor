@@ -349,6 +349,24 @@
 			return ret;
 		}
 
+		function CopyPresentationFieldToPPTX(oOldPF, oParagraph) {
+			const oPF = new AscCommonWord.CPresentationField(oParagraph);
+			oPF.Set_Pr( oOldPF.Pr.Copy() );
+			oPF.SetGuid(AscCommon.CreateGUID());
+			oPF.SetFieldType( oOldPF.FieldType );
+			if(oOldPF.PPr)
+			{
+				oPF.SetPPr(oOldPF.PPr.Copy());
+			}
+
+			oPF.CanAddToContent = true;
+			for (let CurPos = 0; CurPos < oOldPF.Content.length; CurPos++) {
+				const oItem = oOldPF.Content[CurPos];
+				oPF.Add_ToContent(CurPos, oItem.Copy(), false);
+			}
+			oPF.CanAddToContent = false;
+			return oPF;
+		}
 		function CopyRunToPPTX(Run, Paragraph, bHyper) {
 			var NewRun = new ParaRun(Paragraph, false);
 			var RunPr = Run.Pr.Copy();
@@ -390,7 +408,9 @@
 			var Count = aOrigContent.length;
 			for (var Index = 0; Index < Count; Index++) {
 				var Item = aOrigContent[Index];
-				if (Item.Type === para_Run) {
+				if (Item instanceof AscCommonWord.CPresentationField) {
+					oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, CopyPresentationFieldToPPTX(Item, oNewParagraph), false);
+				} else if (Item.Type === para_Run) {
 					oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, CopyRunToPPTX(Item, oNewParagraph), false);
 				} else if (Item.Type === para_Hyperlink) {
 					if (bRemoveHyperlink === true) {
@@ -6413,7 +6433,12 @@
 			oProps.put_Type(Asc.c_oAscWatermarkType.Text);
 			oProps.setXfrmRot(AscFormat.normalizeRotate(this.getXfrmRot() || 0));
 			oContent.SetApplyToAll(true);
-			oProps.put_Text(oContent.GetSelectedText(true, {NewLineParagraph: false, NewLine: false}));
+			oProps.put_Text(oContent.GetSelectedText(true, {
+				ParaSeparator : "",
+				NewLineSeparator : "",
+				TableCellSeparator : "",
+				TableRowSeparator : ""
+			}));
 			oTextPr = oContent.GetCalculatedTextPr();
 			oProps.put_Opacity(255);
 			if (!AscFormat.isRealNumber(oTextPr.FontSize) ||
@@ -7261,6 +7286,17 @@
 			var memoryData = AscCommon.Base64.decode(szSrc, true, srcLen, offset);
 			return new AscCommon.FT_Stream2(memoryData, memoryData.length);
 		}
+		function CreatePPTYLoader(szSrc, offset, srcLen) {
+			let stream = CreateBinaryReader(szSrc, offset, srcLen);
+			let oBinaryReader = new AscCommon.BinaryPPTYLoader();
+			oBinaryReader.stream = new AscCommon.FileStream();
+			oBinaryReader.stream.obj = stream.obj;
+			oBinaryReader.stream.data = stream.data;
+			oBinaryReader.stream.size = stream.size;
+			oBinaryReader.stream.pos = stream.pos;
+			oBinaryReader.stream.cur = stream.cur;
+			return oBinaryReader;
+		}
 
 		function getParaDrawing(oDrawing) {
 			var oCurDrawing = oDrawing;
@@ -7388,6 +7424,7 @@
 		window['AscFormat'].SetXfrmFromMetrics = SetXfrmFromMetrics;
 		window['AscFormat'].CShape = CShape;
 		window['AscFormat'].CreateBinaryReader = CreateBinaryReader;
+		window['AscFormat'].CreatePPTYLoader = CreatePPTYLoader;
 		window['AscFormat'].getParaDrawing = getParaDrawing;
 		window['AscFormat'].ConvertGraphicFrameToWordTable = ConvertGraphicFrameToWordTable;
 		window['AscFormat'].ConvertTableToGraphicFrame = ConvertTableToGraphicFrame;

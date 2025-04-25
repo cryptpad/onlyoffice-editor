@@ -58,6 +58,8 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_PictureFormPr]    = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ComplexFormPr]    = CChangesSdtPrComplexFormPr;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_OForm]            = CChangesSdtPrOForm;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DataBinding]      = CChangesSdtPrDataBinding;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ShdColor]         = CChangesSdtPrShdColor;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_BorderColor]      = CChangesSdtPrBorderColor;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -137,6 +139,12 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_PictureFormPr] = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_ComplexFormPr] = [
 	AscDFH.historyitem_SdtPr_ComplexFormPr
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_ShdColor] = [
+	AscDFH.historyitem_SdtPr_ShdColor
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_BorderColor] = [
+	AscDFH.historyitem_SdtPr_BorderColor
 ];
 
 function private_SdtPrChangesCheckLock(lockData)
@@ -842,3 +850,51 @@ CChangesSdtPrOForm.prototype.private_SetValue = function(Value)
 	this.Class.Pr.OForm = oValue;
 };
 CChangesSdtPrOForm.prototype.CheckLock = private_SdtPrChangesCheckLock;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrShdColor(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrShdColor.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrShdColor.prototype.constructor = CChangesSdtPrShdColor;
+CChangesSdtPrShdColor.prototype.Type = AscDFH.historyitem_SdtPr_ShdColor;
+CChangesSdtPrShdColor.prototype.private_SetValue = function(value)
+{
+	this.Class.Pr.ShdColor = value;
+};
+CChangesSdtPrShdColor.prototype.private_CreateObject = function()
+{
+	return new AscWord.CDocumentColorA();
+};
+CChangesSdtPrShdColor.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
+CChangesSdtPrShdColor.prototype.CheckLock = private_SdtPrChangesCheckLock;
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrBorderColor(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrBorderColor.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrBorderColor.prototype.constructor = CChangesSdtPrBorderColor;
+CChangesSdtPrBorderColor.prototype.Type = AscDFH.historyitem_SdtPr_BorderColor;
+CChangesSdtPrBorderColor.prototype.private_SetValue = function(value)
+{
+	this.Class.Pr.BorderColor = value;
+};
+CChangesSdtPrBorderColor.prototype.private_CreateObject = function()
+{
+	return new AscWord.CDocumentColorA();
+};
+CChangesSdtPrBorderColor.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};
+CChangesSdtPrBorderColor.prototype.CheckLock = private_SdtPrChangesCheckLock;

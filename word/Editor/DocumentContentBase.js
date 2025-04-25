@@ -635,8 +635,21 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 					}
 				}
 			}
-
-			this.CurPos.ContentPos = StartPos;
+			
+			if (StartPos < this.Content.length)
+			{
+				this.CurPos.ContentPos = StartPos;
+			}
+			else if (this.Content.length > 0)
+			{
+				this.CurPos.ContentPos = this.Content.length - 1;
+				this.Content[this.CurPos.ContentPos].MoveCursorToEndPos();
+			}
+			else
+			{
+				// This shouldn't happen
+				this.CurPos.ContentPos = 0;
+			}
 		}
 		else
 		{
@@ -1769,6 +1782,41 @@ CDocumentContentBase.prototype.SelectNumbering = function(oNumPr, oPara)
 	}
 };
 /**
+ * Select numbering in a single paragraph
+ * @param para {Paragraph} - current paragraph
+ */
+CDocumentContentBase.prototype.SelectNumberingSingleParagraph = function(para)
+{
+	let topDocContent = this.GetTopDocumentContent();
+	if (topDocContent === this)
+	{
+		this.RemoveSelection();
+		
+		para.Document_SetThisElementCurrent(false);
+		
+		this.Selection.Use      = true;
+		this.Selection.Flag     = selectionflag_Numbering;
+		this.Selection.StartPos = this.CurPos.ContentPos;
+		this.Selection.EndPos   = this.CurPos.ContentPos;
+		this.Selection.Data     = {
+			Paragraphs : [para],
+			CurPara    : para
+		};
+		
+		para.SelectNumbering(true, true);
+
+		this.DrawingDocument.SelectEnabled(true);
+		
+		let logicDocument = this.GetLogicDocument();
+		logicDocument.UpdateSelection();
+		logicDocument.UpdateInterface();
+	}
+	else
+	{
+		topDocContent.SelectNumberingSingleParagraph(para);
+	}
+};
+/**
  * Проверяем является ли текущее выделение выделением нумерации
  * @returns {boolean}
  */
@@ -2562,7 +2610,6 @@ CDocumentContentBase.prototype.OnTextPrChange = function()
 		shape.OnTextPrChange();
 	}
 };
-
 CDocumentContentBase.prototype.GetCalculatedTextPr = function()
 {
 	var oTextPr = new CTextPr();

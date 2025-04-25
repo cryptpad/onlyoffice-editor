@@ -49,7 +49,7 @@ CSdtBase.prototype.GetPlaceholderText = function()
 	if (oDocPart)
 	{
 		var oFirstParagraph = oDocPart.GetFirstParagraph();
-		return oFirstParagraph.GetText({ParaEndToSpace : false});
+		return oFirstParagraph.GetText({ParaSeparator : ""});
 	}
 
 	return String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode);
@@ -512,17 +512,6 @@ CSdtBase.prototype.IsCurrent = function()
 CSdtBase.prototype.SetCurrent = function(isCurrent)
 {
 	this.Current = isCurrent;
-	
-	if (this.IsForm() && this.IsFixedForm())
-	{
-		let logicDocument   = this.GetLogicDocument();
-		let drawingDocument = logicDocument ? logicDocument.GetDrawingDocument() : null;
-		if (drawingDocument && !logicDocument.IsFillingOFormMode())
-		{
-			drawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.In);
-			drawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.Hover);
-		}
-	}
 };
 /**
  * Специальная функция, которая обновляет текстовые настройки у плейсхолдера для форм
@@ -1061,6 +1050,32 @@ CSdtBase.prototype.SetFormRole = function(roleName)
 	formPr.SetRole(roleName);
 	this.SetFormPr(formPr);
 };
+CSdtBase.prototype.GetRoleColor = function()
+{
+	let logicDocument = this.GetLogicDocument();
+	
+	if (!logicDocument || !this.IsForm())
+		return null;
+	
+	let formPr = this.GetFormPr();
+	if (!this.IsMainForm())
+	{
+		let mainForm = this.GetMainForm();
+		if (!mainForm)
+			return null;
+		
+		formPr = mainForm.GetFormPr();
+	}
+	
+	if (!formPr)
+		return null;
+	
+	let fieldMaster = formPr.GetFieldMaster();
+	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
+	let userColor   = userMaster ? userMaster.getColor() : null;
+	
+	return userColor ? userColor : null;
+};
 CSdtBase.prototype.SetFieldMaster = function(fieldMaster)
 {
 	if (!fieldMaster)
@@ -1259,4 +1274,51 @@ CSdtBase.prototype.updateDataBinding = function()
 	
 	let customXmlManager = logicDocument.getCustomXmlManager();
 	customXmlManager.updateDataBinding(this);
+};
+/**
+ * @returns {?AscWord.CDocumentColorA}
+ */
+CSdtBase.prototype.getShdColor = function()
+{
+	return this.Pr.ShdColor;
+};
+/**
+ * @param color {?AscWord.CDocumentColorA}
+ */
+CSdtBase.prototype.setShdColor = function(color)
+{
+	if (!color)
+		color = undefined;
+	
+	if ((!color && !this.Pr.ShdColor) || (color && this.Pr.ShdColor && color.isEqual(this.Pr.ShdColor)))
+		return;
+	
+	AscCommon.AddAndExecuteChange(new CChangesSdtPrShdColor(this, this.Pr.ShdColor, color));
+};
+/**
+ * @return {?AscWord.CDocumentColorA}
+ */
+CSdtBase.prototype.getBorderColor = function()
+{
+	return this.Pr.BorderColor;
+};
+/**
+ * @param color {?AscWord.CDocumentColorA}
+ */
+CSdtBase.prototype.setBorderColor = function(color)
+{
+	if (!color)
+		color = undefined;
+	
+	if ((!color && !this.Pr.BorderColor) || (color && this.Pr.BorderColor && color.isEqual(this.Pr.BorderColor)))
+		return;
+		
+	AscCommon.AddAndExecuteChange(new CChangesSdtPrBorderColor(this, this.Pr.BorderColor, color));
+};
+/**
+ * @param padding {number}
+ */
+CSdtBase.prototype.drawContentControlsTrackIn = function(padding)
+{
+	return this.DrawContentControlsTrack(AscCommon.ContentControlTrack.In, undefined, undefined, undefined, undefined, padding);
 };

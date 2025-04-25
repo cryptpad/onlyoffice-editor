@@ -177,6 +177,7 @@
 
         this.m_aUsers       = []; // Список текущих пользователей, редактирующих данный документ
         this.m_aChanges     = []; // Массив с изменениями других пользователей
+		this.m_nUndoBeforeApply = 0; // The number of changes we need to undo before the other changes can be accepted
 
         this.m_aNeedUnlock  = []; // Массив со списком залоченных объектов(которые были залочены другими пользователями)
         this.m_aNeedUnlock2 = []; // Массив со списком залоченных объектов(которые были залочены на данном клиенте)
@@ -348,10 +349,18 @@
     };
     CCollaborativeEditingBase.prototype.Have_OtherChanges = function()
     {
-        return (0 < this.m_aChanges.length);
+        return (0 < this.m_aChanges.length || this.m_nUndoBeforeApply > 0);
     };
     CCollaborativeEditingBase.prototype.Apply_Changes = function(fEndCallBack)
     {
+		if (this.m_nUndoBeforeApply)
+		{
+			let state   = this._PreUndo();
+			let changes = this.CoHistory.UndoGlobalChanges(this.m_nUndoBeforeApply);
+			this._PostUndo(state, changes);
+			this.m_nUndoBeforeApply = 0;
+		}
+		
         if (this.m_aChanges.length > 0)
         {
             this.GetEditorApi().sendEvent("asc_onBeforeApplyChanges");
@@ -1239,15 +1248,37 @@
 	};
 	CCollaborativeEditingBase.prototype.UndoGlobal = function(count)
 	{
+		// If we have unaccepted changes then we first remove from them
+		if (this.m_aChanges.length >= count)
+		{
+			this.m_aChanges.length -= count;
+			count = 0;
+		}
+		else
+		{
+			count -= this.m_aChanges.length;
+			this.m_aChanges.length = 0;
+		}
+		
 		if (!count)
 			return;
-
-		let state   = this.PreUndo();
-		let changes = this.CoHistory.UndoGlobalChanges(count);
-		this.PostUndo(state, changes);
+		
+		let editor = this.GetEditorApi();
+		if (editor.getViewMode() && !editor.isLiveViewer())
+		{
+			this.m_nUndoBeforeApply += count;
+		}
+		else
+		{
+			let state   = this.PreUndo();
+			let changes = this.CoHistory.UndoGlobalChanges(count);
+			this.PostUndo(state, changes);
+		}
 	};
 	CCollaborativeEditingBase.prototype.UndoGlobalPoint = function()
 	{
+		// TODO: Handle unaccepted changes from this.m_aChanges
+		
 		let state   = this.PreUndo();
 		let changes = this.CoHistory.UndoGlobalPoint();
 		this.PostUndo(state, changes);
@@ -1256,6 +1287,8 @@
 	{
 		if (true === this.Get_GlobalLock())
 			return;
+		
+		// TODO: Handle unaccepted changes from this.m_aChanges
 
 		let state   = this.PreUndo();
 		let changes = this.CoHistory.UndoOwnPoint();
@@ -1267,7 +1300,7 @@
 	};
 	CCollaborativeEditingBase.prototype.GetAllChangesCount = function()
 	{
-		return this.CoHistory.GetChangeCount();
+		return this.CoHistory.GetChangeCount() - this.m_nUndoBeforeApply + this.m_aChanges.length;
 	};
 	CCollaborativeEditingBase.prototype.CanUndo = function()
 	{

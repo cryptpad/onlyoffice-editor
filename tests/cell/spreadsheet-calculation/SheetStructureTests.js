@@ -496,7 +496,7 @@ $(function () {
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col4", "row2col5", "row2col6"]], desc);
 		}, function (desc){
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col2", "row2col5", "row2col6"]], desc);
-		}, " move_col_1 ");
+		}, " move_col_1_ctrl ");
 
 		//move from 1-2 to 3-4 cols
 		wsView.activeMoveRange = getRange(3, 0, 4, AscCommon.gc_nMaxRow);
@@ -509,7 +509,7 @@ $(function () {
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col4", "row2col5", "row2col6"]], desc);
 		}, function (desc){
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col2", "row2col3", "row2col6"]], desc);
-		}, " move_col_2 ");
+		}, " move_col_2_ctrl ");
 
 
 		//***move without ctrl***
@@ -523,8 +523,8 @@ $(function () {
 		checkUndoRedo(function (desc) {
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col4", "row2col5", "row2col6"]], desc);
 		}, function (desc){
-			compareData(assert, rangeCompare, [["row2col1", "", "row2col3", "row2col4", "row2col2", "row2col5"]], desc);
-		}, " move_col_1 ");
+			compareData(assert, rangeCompare, [["row2col1", "row2col3", "row2col4", "row2col2", "row2col5", "row2col6"]], desc);
+		}, " move_col_1_shift ");
 
 		//***move with ctrl***
 		//***move with shift***
@@ -538,7 +538,7 @@ $(function () {
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col4", "row2col5", "row2col6"]], desc);
 		}, function (desc){
 			compareData(assert, rangeCompare, [["row2col1", "row2col2", "row2col3", "row2col4", "row2col2", "row2col5"]], desc);
-		}, " move_col_1 ");
+		}, " move_col_1_shift_ctrl ");
 
 
 		//***ROWS***
@@ -571,7 +571,7 @@ $(function () {
 			compareData(assert, rangeCompare, [["row1col2"], ["row2col2"], ["row3col2"], ["row4col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"], ["row9col2"]], desc);
 		}, function (desc){
 			compareData(assert, rangeCompare, [["row1col2"], ["row2col2"], ["row3col2"], ["row2col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"], ["row9col2"]], desc);
-		}, " move_row_2 ");
+		}, " move_row_2_ctrl ");
 
 		//***move without ctrl***
 		//***move with shift***
@@ -586,8 +586,8 @@ $(function () {
 		checkUndoRedo(function (desc) {
 			compareData(assert, rangeCompare, [["row1col2"], ["row2col2"], ["row3col2"], ["row4col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"], ["row9col2"]], desc);
 		}, function (desc){
-			compareData(assert, rangeCompare, [["row1col2"], [""], ["row3col2"], ["row4col2"], ["row2col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"]], desc);
-		}, " move_row_3 ");
+			compareData(assert, rangeCompare, [["row1col2"], ["row3col2"], ["row4col2"], ["row2col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"], ["row9col2"]], desc);
+		}, " move_row_3_shift ");
 
 
 		//***move with ctrl***
@@ -604,7 +604,7 @@ $(function () {
 			compareData(assert, rangeCompare, [["row1col2"], ["row2col2"], ["row3col2"], ["row4col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"], ["row9col2"]], desc);
 		}, function (desc){
 			compareData(assert, rangeCompare, [["row1col2"], ["row2col2"], ["row3col2"], ["row4col2"], ["row2col2"], ["row5col2"], ["row6col2"], ["row7col2"], ["row8col2"]], desc);
-		}, " move_row_4 ");
+		}, " move_row_4_shift_ctrl ");
 
 		clearData(0, 0, AscCommon.gc_nMaxCol, AscCommon.gc_nMaxRow);
 	});
@@ -3039,8 +3039,7 @@ $(function () {
 
 		let tables = wsView.model.autoFilters.getTablesIntersectionRange(new Asc.Range(0, 100, 0, 100));
 		assert.strictEqual(tables.length, 1, "compare tables length");
-
-		debugger
+		
 		let table = tables[0];
 		let tableName = table.DisplayName;	// due to the fact that other tables are used in file, get the name of the one we need by this way
 		wsView.af_changeFormatTableInfo(tableName, Asc.c_oAscChangeTableStyleInfo.rowTotal, true);

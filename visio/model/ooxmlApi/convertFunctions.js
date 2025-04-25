@@ -1946,6 +1946,18 @@
 				groupShape.pen = cShapeOrCGroupShape.pen;
 				groupShape.Id = cShapeOrCGroupShape.Id + "_Group";
 
+				// add group geometry to bottom
+				if (cShapeOrCGroupShape instanceof CGroupShape) {
+					groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape.spTree[0]);
+				} else {
+					groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape);
+				}
+				groupShape.spTree[groupShape.spTree.length - 1].setGroup(groupShape);
+
+
+				cShapeOrCGroupShape.spPr.xfrm.setOffX(0);
+				cShapeOrCGroupShape.spPr.xfrm.setOffY(0);
+
 				// cShape.setLocks(1)?;
 
 				groupShape.setParent2(visioDocument);
@@ -1966,7 +1978,7 @@
 
 					currentGroupHandling.addToSpTree(currentGroupHandling.spTree.length, groupShape);
 					currentGroupHandling.spTree[currentGroupHandling.spTree.length - 1].setGroup(currentGroupHandling);
-					groupShape.recalculateLocalTransform(groupShape.transform);
+					// groupShape.recalculateLocalTransform(groupShape.transform);
 
 					currentGroupHandling = groupShape;
 					let subShapes = this.getSubshapes();
@@ -1976,15 +1988,39 @@
 					}
 				}
 
-				// add group own geometry and text to bottom of spTree bcs so it will be brought to top on drawing
-				groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape);
-				groupShape.spTree[groupShape.spTree.length - 1].setGroup(groupShape);
-
-				cShapeOrCGroupShape.spPr.xfrm.setOffX(0);
-				cShapeOrCGroupShape.spPr.xfrm.setOffY(0);
+				// add group text to top
+				if (cShapeOrCGroupShape instanceof CGroupShape) {
+					groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape.spTree[1]);
+					groupShape.spTree[groupShape.spTree.length - 1].setGroup(groupShape);
+				}
 
 				// recalculate positions to local (group) coordinates
-				cShapeOrCGroupShape.recalculateLocalTransform(cShapeOrCGroupShape.transform);
+				// cShapeOrCGroupShape.recalculateLocalTransform(cShapeOrCGroupShape.transform);
+
+				if (cShapeOrCGroupShape instanceof CGroupShape) {
+					cShapeOrCGroupShape.spTree[0].recalculateLocalTransform(cShapeOrCGroupShape.spTree[0].transform);
+					cShapeOrCGroupShape.spTree[0].recalculateTransformText && cShapeOrCGroupShape.spTree[0].recalculateTransformText();
+					cShapeOrCGroupShape.spTree[0].recalculateContent && cShapeOrCGroupShape.spTree[0].recalculateContent();
+					cShapeOrCGroupShape.spTree[0].recalculate();
+
+
+					cShapeOrCGroupShape.spTree[1].recalculateLocalTransform(cShapeOrCGroupShape.spTree[1].transform);
+					cShapeOrCGroupShape.spTree[1].recalculateTransformText && cShapeOrCGroupShape.spTree[1].recalculateTransformText();
+					cShapeOrCGroupShape.spTree[1].recalculateContent && cShapeOrCGroupShape.spTree[1].recalculateContent();
+
+					cShapeOrCGroupShape.spTree[1].recalculate();
+				} else {
+					cShapeOrCGroupShape.recalculateLocalTransform(cShapeOrCGroupShape.transform);
+					cShapeOrCGroupShape.recalculateTransformText && cShapeOrCGroupShape.recalculateTransformText();
+					cShapeOrCGroupShape.recalculateContent && cShapeOrCGroupShape.recalculateContent();
+					cShapeOrCGroupShape.recalculate();
+				}
+
+				groupShape.recalculateTransformText && groupShape.recalculateTransformText();
+				groupShape.recalculateContent && groupShape.recalculateContent();
+				groupShape.recalculateLocalTransform(groupShape.transform);
+				groupShape.recalculate();
+
 				// cShapes.geometryCShape.recalculateTransformText();
 				// cShapes.geometryCShape.recalculateContent();
 				// cShapes.geometryCShape.recalculate(); // doesnt work here
@@ -2023,6 +2059,9 @@
 		}
 
 		if (currentGroupHandling) {
+			currentGroupHandling.recalculateLocalTransform(currentGroupHandling.transform);
+			currentGroupHandling.recalculateTransformText && currentGroupHandling.recalculateTransformText();
+			currentGroupHandling.recalculateContent && currentGroupHandling.recalculateContent();
 			currentGroupHandling.recalculate();
 		}
 

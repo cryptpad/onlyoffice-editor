@@ -202,9 +202,7 @@ $(function () {
 		let c1			= CreateComboBox(0);
 		CreateDataBindingForCC(c1);
 
-		let oValue		= c1.GetCurrentParagraph().GetText();
-
-		assert.strictEqual(oValue, "hello ", "Data loaded from CustomXml");
+		assert.strictEqual(AscTest.GetParagraphText(c1.GetCurrentParagraph()), "hello", "Data loaded from CustomXml");
 		assert.strictEqual(
 			oXMLManager.getCustomXMLString(oXMLManager.getCustomXml(0)),
 			'<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<documentData xmlns=\"http://example.com/picture\"><simpleText>hello</simpleText></documentData>',
@@ -212,9 +210,7 @@ $(function () {
 		);
 
 		SetDataToContentControl(c1, oCustomXMLData.checkboxMess2);
-		oValue		= c1.GetInnerText();
-
-		assert.strictEqual(oValue, "hello123\r\n", "Data loaded from CustomXml");
+		assert.strictEqual(c1.GetInnerText(), "hello123\r\n", "Data loaded from CustomXml");
 		assert.strictEqual(
 			oXMLManager.getCustomXMLString(oXMLManager.getCustomXml(0)),
 			'<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<documentData xmlns=\"http://example.com/picture\"><simpleText>hello123</simpleText></documentData>',
@@ -229,9 +225,7 @@ $(function () {
 		let c1			= 	CreateDropDown(0);
 		CreateDataBindingForCC(c1);
 
-		let oValue		= c1.GetCurrentParagraph().GetText();
-
-		assert.strictEqual(oValue, "hello ", "Data loaded from CustomXml");
+		assert.strictEqual(AscTest.GetParagraphText(c1.GetCurrentParagraph()), "hello", "Data loaded from CustomXml");
 		assert.strictEqual(
 			oXMLManager.getCustomXMLString(oXMLManager.getCustomXml(0)),
 			'<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<documentData xmlns=\"http://example.com/picture\"><simpleText>hello</simpleText></documentData>',
@@ -239,9 +233,7 @@ $(function () {
 		);
 
 		SetDataToContentControl(c1, oCustomXMLData.checkboxMess2);
-		oValue		= c1.GetInnerText();
-
-		assert.strictEqual(oValue, "hello123\r\n", "Data loaded from CustomXml");
+		assert.strictEqual(c1.GetInnerText(), "hello123\r\n", "Data loaded from CustomXml");
 		assert.strictEqual(
 			oXMLManager.getCustomXMLString(oXMLManager.getCustomXml(0)),
 			'<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<documentData xmlns=\"http://example.com/picture\"><simpleText>hello123</simpleText></documentData>',

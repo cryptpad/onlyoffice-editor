@@ -255,7 +255,6 @@
 	};
 	CGraphicsBase.prototype.p_width = function(w)
 	{
-		this.textAlpha = undefined;
 	};
 	CGraphicsBase.prototype.p_dash = function(params)
 	{
@@ -589,9 +588,9 @@
 		this.drawHorLine(align, y, x + leftMW, r + rightMW, penW);
 	};
 
-	CGraphicsBase.prototype.DrawPolygon = function(oPath, lineWidth, shift)
+	CGraphicsBase.prototype.drawPolygon = function(oPath, lineWidth, shift)
 	{
-		this.p_width(lineWidth);
+		this.p_width(lineWidth * 1000);
 		this._s();
 
 		let Points = oPath.Points;
@@ -643,6 +642,17 @@
 		this._z();
 		this.ds();
 		this._e();
+	};
+	
+	CGraphicsBase.prototype.drawPolygonByRects = function(rects, lineWidth, shift)
+	{
+		let polygon = new AscCommon.CPolygon();
+		polygon.fill(rects);
+		let paths = polygon.GetPaths(shift ? shift : 0);
+		for (let i = 0, count = paths.length; i < count; ++i)
+		{
+			this.drawPolygon(paths[i], lineWidth, 0);
+		}
 	};
 
 	/**
@@ -859,6 +869,10 @@
 	{
 	};
 	CGraphicsBase.prototype.End_Command = function(commandId)
+	{
+	};
+	
+	CGraphicsBase.prototype.SetBorder = function(border)
 	{
 	};
 

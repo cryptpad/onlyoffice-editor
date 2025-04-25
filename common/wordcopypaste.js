@@ -4617,7 +4617,7 @@ PasteProcessor.prototype =
 			this.oLogicDocument.RemoveBeforePaste();
 			this.oDocument = this._GetTargetDocument(this.oDocument);
 
-			var oPr = {NewLineParagraph: true, Numbering: true};
+			var oPr = {Numbering: true};
 
 			this._initSelectedElem();
 			if (this.pasteIntoElem && this.pasteIntoElem.GetNumPr && this.pasteIntoElem.GetNumPr()) {
@@ -6699,7 +6699,7 @@ PasteProcessor.prototype =
 			oThis._AddNextPrevToContent(oThis.oDocument);
 
 			if (isPasteTextIntoList) {
-				oThis._pasteText(oThis._getTextFromContent(oThis.aContent, {NewLineParagraph: true, Numbering: false}));
+				oThis._pasteText(oThis._getTextFromContent(oThis.aContent, {Numbering: false}));
 				return;
 			}
 

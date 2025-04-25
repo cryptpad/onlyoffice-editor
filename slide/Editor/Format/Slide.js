@@ -2127,6 +2127,14 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         }
         return false;
     };
+Slide.prototype.removeAllInks = function () {
+	this.cSld.removeAllInks();
+};
+Slide.prototype.getAllInks = function (arrInks) {
+	arrInks = arrInks || [];
+	this.cSld.getAllInks(arrInks);
+	return arrInks;
+};
 
 function fLoadComments(oObject, authors)
 {

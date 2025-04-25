@@ -1108,12 +1108,15 @@
 		self.changeUpdateLinks(val);
 	});
 	this.model.handlers.add("updateScrollVisibility", function() {
-		self.controller.showVerticalScroll(self.getShowVerticalScroll());
-		self.controller.showHorizontalScroll(self.getShowHorizontalScroll());
-		self._canResize();
+		let isChangedVertScroll = self.controller.showVerticalScroll(self.getShowVerticalScroll());
+		let isChangedHorScroll = self.controller.showHorizontalScroll(self.getShowHorizontalScroll());
+		if (isChangedVertScroll || isChangedHorScroll) {
+			self._canResize();
 
-		let ws = self.getWorksheet();
-		ws.draw();
+			let ws = self.getWorksheet();
+			ws._updateRange(new Asc.Range(0, 0, ws.model.getColsCount(), ws.model.getRowsCount()), true);
+			ws.draw();
+		}
 	});
     this.cellCommentator = new AscCommonExcel.CCellCommentator({
       model: new WorkbookCommentsModel(this.handlers, this.model.aComments),
@@ -6313,8 +6316,13 @@
 		}
 
 		let t = this;
-		let verticalScroll = this.getShowVerticalScroll();
-		if (verticalScroll !== val) {
+		let verticalScroll = this.model.getShowVerticalScroll();
+		let configVal = this.Api.DocInfo && this.Api.DocInfo.asc_getShowVerticalScroll();
+
+		let fromWithDefault = verticalScroll == null || verticalScroll === true;
+		let valWithDefault = val === true || val == null;
+
+		if ((fromWithDefault !== valWithDefault) || (verticalScroll == null && configVal !== null)) {
 			var callback = function () {
 				History.Create_NewPoint();
 				History.StartTransaction();
@@ -6328,7 +6336,10 @@
 	};
 	WorkbookView.prototype.getShowVerticalScroll = function() {
 		let val = this.model.getShowVerticalScroll();
-		return val == null || val === true;
+		if (val == null) {
+			val = this.Api.DocInfo && this.Api.DocInfo.asc_getShowVerticalScroll();
+		}
+		return val === true || val == null;
 	};
 	WorkbookView.prototype.setShowHorizontalScroll = function(val) {
 		// Проверка глобального лока
@@ -6337,8 +6348,13 @@
 		}
 
 		let t = this;
-		let horizontalScroll = this.getShowHorizontalScroll();
-		if (horizontalScroll !== val) {
+		let horizontalScroll = this.model.getShowHorizontalScroll();
+		let configVal = this.Api.DocInfo && this.Api.DocInfo.asc_getShowHorizontalScroll();
+
+		let fromWithDefault = horizontalScroll == null || horizontalScroll === true;
+		let valWithDefault = val === true || val == null;
+
+		if ((fromWithDefault !== valWithDefault) || (horizontalScroll == null && configVal !== null)) {
 			var callback = function () {
 				History.Create_NewPoint();
 				History.StartTransaction();
@@ -6352,7 +6368,30 @@
 	};
 	WorkbookView.prototype.getShowHorizontalScroll = function() {
 		let val = this.model.getShowHorizontalScroll();
-		return val == null || val === true;
+		if (val == null) {
+			val = this.Api.DocInfo && this.Api.DocInfo.asc_getShowHorizontalScroll();
+		}
+		return val === true || val == null;
+	};
+	WorkbookView.prototype.removeAllInks = function() {
+		const oThis = this;
+		const oCurrentWs = this.getWorksheet();
+
+		const oCurrentController = oCurrentWs.objectRender && oCurrentWs.objectRender.controller;
+		if (oCurrentController) {
+			const oWbModel = this.model;
+			const arrInks = oWbModel.getAllInks();
+			if (arrInks.length > 0) {
+				oCurrentController.checkObjectsAndCallback(function() {
+					for (let i = 0; i < oWbModel.aWorksheets.length; i++) {
+						const oWs = oThis.getWorksheet(i);
+						oWs.removeAllInks();
+					}
+					oCurrentController.updateSelectionState();
+					oCurrentController.updateOverlay();
+				}, [], false, AscDFH.historydescription_RemoveAllInks, arrInks);
+			}
+		}
 	};
 
 

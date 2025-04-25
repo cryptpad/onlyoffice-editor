@@ -1009,6 +1009,18 @@
         }
         return false;
     };
+    CGraphicObjects.prototype.checkSelectedObjectsAndCallback = function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects, bNoCheckLock) {
+    	let oDoc = this.document;
+        let check_type = AscCommon.changestype_Drawing_Props;
+
+        if(bNoCheckLock || oDoc.Document_Is_SelectionLocked(check_type, null, false, false) === false) {
+            let nPointType = AscFormat.isRealNumber(nHistoryPointType) ? nHistoryPointType : AscDFH.historydescription_CommonControllerCheckSelected;
+			oDoc.StartAction(nPointType);
+            callback.apply(this, args);
+			oDoc.Recalculate();
+			oDoc.FinalizeAction(true);
+        }
+    };
     CGraphicObjects.prototype.selectObject = function (object, pageIndex) {
         let oDoc = this.document;
         object.select(this, pageIndex);
@@ -1138,9 +1150,10 @@
             }
         } else if (oGrp) {
             if (oGrp.selectStartPage === pageIndex) {
-                isDrawHandles = !oGrp.IsAnnot;
+                isDrawHandles = !oGrp.IsAnnot();
+                let bDrawGroupTrack = !oGrp.IsAnnot() || oGrp.IsAnnot() && !oGrp.IsInTextBox(); 
 
-                drawingDocument.DrawTrack(
+                bDrawGroupTrack && drawingDocument.DrawTrack(
                     AscFormat.TYPE_TRACK.GROUP_PASSIVE,
                     oGrp.getTransformMatrix(),
                     0,

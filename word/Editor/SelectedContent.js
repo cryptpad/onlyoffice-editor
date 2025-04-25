@@ -469,7 +469,7 @@
 		{
 			var oElement = this.Elements[nIndex].Element;
 			if (oElement.IsParagraph())
-				sText += oElement.GetText({ParaEndToSpace : false});
+				sText += oElement.GetText({ParaSeparator : ""});
 		}
 
 		var oRun = new ParaRun(oParagraph, null);
@@ -938,7 +938,7 @@
 		if ((!oForm.IsTextForm() && !oForm.IsComboBox()))
 			return;
 
-		let sInsertedText = this.GetText({ParaEndToSpace : false});
+		let sInsertedText = this.GetText({ParaSeparator : ""});
 		if (!sInsertedText || !sInsertedText.length)
 			return;
 

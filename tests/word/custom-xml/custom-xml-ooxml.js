@@ -43,10 +43,9 @@ $(function () {
 		CreateDataBindingForCC(c1);
 		
 		let p	= c1.GetFirstParagraph();
-		let strContentInParagraph = p.GetText();
 		assert.strictEqual(
-			strContentInParagraph,
-			'12345+2 ',
+			AscTest.GetParagraphText(p),
+			'12345+2',
 			"Content in Paragraph after load CustomXML"
 		);
 		

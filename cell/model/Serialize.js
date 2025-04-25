@@ -3766,14 +3766,16 @@
                 this.memory.WriteByte(c_oSerWorkbookViewTypes.ActiveTab);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
                 this.memory.WriteLong(this.wb.nActive);
-            } else if (null != this.wb.showVerticalScroll) {
+            }
+            if (null != this.wb.showVerticalScroll) {
                 this.memory.WriteByte(c_oSerWorkbookViewTypes.ShowVerticalScroll);
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
                 this.memory.WriteBool(this.wb.showVerticalScroll);
-            } else if (null != this.wb.showHorizontalScroll) {
-                this.memory.WriteByte(c_oSerWorkbookViewTypes.showHorizontalScroll);
+            }
+            if (null != this.wb.showHorizontalScroll) {
+                this.memory.WriteByte(c_oSerWorkbookViewTypes.ShowHorizontalScroll);
                 this.memory.WriteByte(c_oSerPropLenType.Byte);
-                this.memory.WriteBool(this.wb.showVerticalScroll);
+                this.memory.WriteBool(this.wb.showHorizontalScroll);
             }
         };
         this.WriteDefinedNames = function()
@@ -6061,7 +6063,9 @@
                 range = ws.getRange3(0, 0, gc_nMaxRow0, gc_nMaxCol0);
             }
 
-            var curRow = -1;
+            var curRowIndex = -1;
+            var curRow = null;
+            var curCol = null;
             var allRow = ws.getAllRowNoEmpty();
             var tempRow = new AscCommonExcel.Row(ws);
             if (allRow) {
@@ -6071,21 +6075,26 @@
 			this.memory.XlsbEndRecord();
 
             range._foreachRowNoEmpty(function(row, excludedCount) {
-				row.toXLSB(oThis.memory, -excludedCount, oThis.stylesForWrite);
-                curRow = row.getIndex();
+                row.toXLSB(oThis.memory, -excludedCount, oThis.stylesForWrite);
+                curRowIndex = row.getIndex();
+                curRow = row;
             }, function(cell, nRow0, nCol0, nRowStart0, nColStart0, excludedCount) {
-                if (curRow != nRow0) {
+                if (curRowIndex != nRow0) {
                     tempRow.setIndex(nRow0);
 					tempRow.toXLSB(oThis.memory, -excludedCount, oThis.stylesForWrite);
-					curRow = tempRow.getIndex();
+					curRowIndex = tempRow.getIndex();
+                    curRow = tempRow;
                 }
                 //готовим ячейку к записи
                 var nXfsId;
                 var cellXfs = cell.xfs;
                 nXfsId = oThis.stylesForWrite.add(cell.xfs);
 
-                //сохраняем как и Excel даже пустой стиль(нужно чтобы убрать стиль строки/колонки)
-                if (null != cellXfs || false == cell.isNullText()) {
+                // save even an empty style like Excel (needed to remove row/column style)
+                let needWrite = cellXfs || !cell.isNullText()
+                    || (curRow && curRow.xfs) //override row style
+                    || ((curCol = (ws.aCols[nCol0] || ws.oAllCol)) && curCol && curCol.xfs);//override col style
+                if (needWrite) {
 					var formulaToWrite;
 					if (cell.isFormula() && !(oThis.isCopyPaste && cell.ws && cell.ws.bIgnoreWriteFormulas)) {
 						formulaToWrite = oThis.InitSaveManager.PrepareFormulaToWrite(cell);
@@ -9739,6 +9748,9 @@
 				res = this.bcr.Read1(length, function(t, l) {
 					return oThis.ReadExternalCell(t, l, cell);
 				});
+				if (cell.CellType === Asc.ECellTypeType.celltypeError && cell.CellValue && AscCommon.rx_error && !cell.CellValue.match(AscCommon.rx_error)) {
+					cell.CellValue = null;
+				}
 				row.Cell.push(cell);
 			} else {
 				res = c_oSerConstants.ReadUnknown;

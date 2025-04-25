@@ -173,7 +173,7 @@
 
         // currentRect
         var currentRect = null;
-        if (PageStyle.isDrawCurrentRect && doc.selectPageRect.num === this.num)
+        if (PageStyle.isDrawCurrentRect && doc.selectPageRect && doc.selectPageRect.num === this.num)
             currentRect = doc.selectPageRect;
         if (currentRect)
         {
@@ -222,8 +222,14 @@
         {
             let isLandscape = oViewer.isLandscapePage(this.pages[i].num);
 
-            if (this.pages[i].page.height > maxPageHeight)
-                maxPageHeight = false == isLandscape ? this.pages[i].page.height : this.pages[i].page.width;
+            if (isLandscape) {
+                if (this.pages[i].page.width > maxPageHeight)
+                    maxPageHeight = this.pages[i].page.width;
+            }
+            else {
+                if (this.pages[i].page.height > maxPageHeight)
+                    maxPageHeight = this.pages[i].page.height;
+            }
         }
 
         var blockHeight = (maxPageHeight * zoom) >> 0;
@@ -382,7 +388,8 @@
         elements += "<canvas id=\"id_viewer_th\" class=\"block_elem\" style=\"left:0px;top:0px;width:100;height:100;\"></canvas>";
         elements += "<canvas id=\"id_overlay_th\" class=\"block_elem\" style=\"left:0px;top:0px;width:100;height:100;\"></canvas>";
         elements += "<div id=\"id_vertical_scroll_th\" class=\"block_elem\" style=\"display:none;left:0px;top:0px;width:0px;height:0px;\"></div>";
-    
+        elements += '<canvas id="id_drag_canvas" style="position:absolute;display:none;z-index:999;pointer-events:none;"></canvas>';
+
         parent.style.backgroundColor = ThumbnailsStyle.backgroundColor;
         parent.innerHTML = elements;
 
@@ -391,6 +398,9 @@
 
         this.canvasOverlay = document.getElementById("id_overlay_th");
         this.canvasOverlay.style.pointerEvents = "none";
+
+        this.dragCanvas= document.getElementById("id_drag_canvas");
+        this.dragCtx= this.dragCanvas.getContext("2d");
 
         parent.onmousewheel = this.onMouseWhell.bind(this);
         if (parent.addEventListener)
@@ -494,7 +504,11 @@
     CDocument.prototype.checkTasks = function(isViewerTask)
     {
 		let pdfDoc = this.viewer.getPDFDoc();
-	
+        let element = document.getElementById(this.id);
+
+        if (0 === element.offsetWidth || !this.canvas)
+            return;
+
 		if (pdfDoc.fontLoader.isWorking() || AscCommon.CollaborativeEditing.waitingImagesForLoad)
 			return true;
 		
@@ -606,22 +620,26 @@
         return this.selectedPages;
     };
 
-    // сама отрисовка
-    CDocument.prototype._paint = function()
-    {
-        this.canvas.width = this.canvas.width;
-        var ctx = this.canvas.getContext("2d");
-        ctx.fillStyle = ThumbnailsStyle.backgroundColor;
-        ctx.fillRect(0, 0, this.panelWidth, this.panelHeight);
+    // rendering
+    CDocument.prototype._paint= function() {
+        if (!this.canvas || !this.viewer.canInteract()) return;
+        if (this.isNeedResize()) {
+            this.resize();
+        }
 
-        if (-1 == this.startBlock)
-            return;
-        
-        ctx.font = PageStyle.font();
-        ctx.textAlign = "center";
-        for (var block = this.startBlock; block <= this.endBlock; block++)
-        {
-            this.blocks[block].draw(ctx, this.scrollY >> 0, this);
+        let ctx= this.canvas.getContext("2d");
+        this.canvas.width= this.canvas.width;
+        ctx.fillStyle= ThumbnailsStyle.backgroundColor;
+        ctx.fillRect(0,0, this.panelWidth, this.panelHeight);
+
+        if (this.startBlock<0) return;
+        for (let i=this.startBlock; i<= this.endBlock; i++) {
+            this.blocks[i].draw(ctx, this.scrollY, this);
+        }
+
+        // If dragging, show insertion position
+        if (this.isDragging && this.dropInsertPosition>=0) {
+            this.drawDropPosition(ctx);
         }
     };
 
@@ -644,6 +662,12 @@
         this.resize();
     };
 
+    CDocument.prototype.setNeedResize = function(bResize) {
+        this.needResize = bResize;
+    };
+    CDocument.prototype.isNeedResize = function() {
+        return !!this.needResize;
+    };
     CDocument.prototype._resize = function(isZoomUpdated)
     {
         var element = document.getElementById(this.id);
@@ -759,6 +783,7 @@
 
         this.documentHeight = blockTop;
 
+        this.setNeedResize(false);
         this.updateScroll(scrollV);
         this.calculateVisibleBlocks();
         this.repaint();
@@ -958,105 +983,327 @@
     };
 
     // UI-EVENTS
-    CDocument.prototype.onMouseDown = function(e)
-    {
+    CDocument.prototype.onMouseDown = function(e) {
         AscCommon.check_MouseDownEvent(e, true);
         AscCommon.global_mouseEvent.LockMouse();
-        this.viewer.isFocusOnThumbnails = true;
-        
-        let drPage = this.getPageByCoords(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
-        if (drPage)
-        {
-            if (true == e.shiftKey) {
-                let nMinPage = Math.min.apply(null, this.selectedPages.concat([drPage.num]))
-                let nMaxPage = Math.max.apply(null, this.selectedPages.concat([drPage.num]))
+    
+        let dp = this.getPageByCoords(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+        if (!dp) {
+            // Клик вне страницы
+            return false;
+        }
+    
+        if (e.button === 0) { // Левая кнопка мыши
+            // Вместо выбора страницы - просто запомним, что было нажато.
+            this._mouseDownPage  = dp.num;
+            this._shiftPressed   = e.shiftKey;
+            this._ctrlPressed    = e.ctrlKey;
+    
+            // Готовимся к потенциальному drag&drop
+            this.pendingDrag = true;
+            this.dragStartX = AscCommon.global_mouseEvent.X;
+            this.dragStartY = AscCommon.global_mouseEvent.Y;
+            this.dragPageIndex = dp.num;  // какую страницу потащим
+        }
+    
+        AscCommon.stopEvent(e);
+        return false;
+    };
+    
+    CDocument.prototype.onMouseMove = function(e) {
+        AscCommon.check_MouseMoveEvent(e);
+    
+        let mx = AscCommon.global_mouseEvent.X;
+        let my = AscCommon.global_mouseEvent.Y;
+    
+        // Если зажата ЛКМ и мы еще не начали drag, проверяем порог смещения
+        if (this.pendingDrag && !this.isDragging && !Asc.editor.isRestrictionView()) {
+            this.isDragging = true;
+            this.canvas.style.cursor = AscCommon.Cursors.Grabbing;
 
-                this.resetSelection();
-                for (let i = nMinPage; i <= nMaxPage; i++) {
-                    this.selectedPages.push(i);
-                }
-                this._paint();
-            }
-            else if (true == e.ctrlKey) {
-                if (!this.selectedPages.includes(drPage.num)) {
-                    this.selectedPages.push(drPage.num);
-                    this._paint();
-                }
-                else {
-                    this.selectedPages.splice(this.selectedPages.indexOf(drPage.num), 1);
-                    this._paint();
-                }
-            }
-            else {
-                if (!this.selectedPages.includes(drPage.num) || (this.selectedPages.length > 1 && e.button != 2)) {
+            let dp = this.getDrawingPage(this.dragPageIndex);
+            if (dp) {
+                // Если страница под курсором не в выделении, делаем её выделенной
+                // (или добавляем в выделение — зависит от задачи; здесь пример «заменить всё»)
+                if (!this.selectedPages.includes(dp.num)) {
                     this.resetSelection();
-                    this.viewer.navigateToPage(drPage.num);
+                    this.selectedPages.push(dp.num);
+                    this.viewer.navigateToPage(dp.num);
+                }
 
-                    if (this.selectedPages.length == 0) {
-                        this.selectedPages.push(drPage.num);
-                        this._paint();
+                this.prepareDragGhost(dp, this.selectedPages.length);
+            }
+        }
+    
+        if (this.isDragging) {
+            // Уже «тащим» — перемещаем «призрак» и проверяем, над какой страницей курсор
+            this.moveDragGhost(mx, my);
+    
+            let dp = this.getPageByCoords(mx, my);
+            if (dp) {
+                // Определяем позицию для вставки (до или после dp.num)
+                let bottom = dp.pageRect.y + dp.pageRect.h;
+                let yLocal = (my - this.coordsOffset.y + this.scrollY);
+                if (yLocal > bottom) {
+                    this.dropInsertPosition = dp.num + 1;
+                } else {
+                    this.dropInsertPosition = dp.num;
+                }
+            } else {
+                this.dropInsertPosition = -1;
+            }
+    
+            this.repaint();
+            AscCommon.stopEvent(e);
+            return false;
+        } else {
+            // Если мы не «тащим», просто обновляем hover для курсора
+            if (!AscCommon.global_mouseEvent.IsLocked) {
+                let dp = this.getPageByCoords(mx, my);
+                let hov = dp ? dp.num : -1;
+                if (hov !== this.hoverPage) {
+                    this.hoverPage = hov;
+                    this._paint();
+                }
+                this.canvas.style.cursor = (hov >= 0) ? "pointer" : "default";
+            }
+        }
+    
+        if (e && e.preventDefault) e.preventDefault();
+        return false;
+    };
+    
+    CDocument.prototype.onMouseUp = function(e) {
+        AscCommon.check_MouseUpEvent(e);
+    
+        // Если действительно «тащили» страницу, завершаем drag&drop
+        if (this.isDragging) {
+            this.isDragging = false;
+            this.canvas.style.cursor = "default";
+            if (this.dragCanvas) {
+                this.dragCanvas.style.display = "none";
+            }
+            // Перенос страниц в новое место, если dropInsertPosition валиден
+            if (this.dropInsertPosition >= 0) {
+                let selected = this.selectedPages.slice();
+                // Может оказаться, что в selected ничего нет,
+                // тогда берем страницу, которую начинали тащить
+                if (!selected.length) {
+                    selected = [this.dragPageIndex];
+                }
+                // Сортируем и убираем дубли, если нужно
+                selected = Array.from(new Set(selected)).sort((a, b) => a - b);
+    
+                this.reorderPagesMultiple(selected, this.dropInsertPosition);
+            }
+            this.dropInsertPosition = -1;
+            this.dragPageIndex = -1;
+            this.repaint();
+        }
+        // Иначе это был простой клик (или минимальное движение, не дотянувшее до drag)
+        else if (this.pendingDrag) {
+            let dp = this.getPageByCoords(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+            if (dp) {
+                // Выполняем логику выделения по shift/ctrl/одиночному клику
+                if (this._shiftPressed) {
+                    let minp = Math.min(...this.selectedPages.concat(dp.num));
+                    let maxp = Math.max(...this.selectedPages.concat(dp.num));
+                    this.resetSelection();
+                    for (let i = minp; i <= maxp; i++) {
+                        this.selectedPages.push(i);
+                    }
+                    this.repaint();
+                } else if (this._ctrlPressed) {
+                    let idx = this.selectedPages.indexOf(dp.num);
+                    if (idx === -1) {
+                        this.selectedPages.push(dp.num);
+                    } else {
+                        this.selectedPages.splice(idx, 1);
+                    }
+                    this.repaint();
+                } else {
+                    // Обычный клик без модификаторов
+                    if (!this.selectedPages.includes(dp.num) || this.selectedPages.length > 1) {
+                        this.resetSelection();
+                        this.selectedPages.push(dp.num);
+                        this.viewer.navigateToPage(dp.num);
+                        this.repaint();
                     }
                 }
             }
         }
+        else {
+            if (e && e.preventDefault)
+                e.preventDefault();
 
-        AscCommon.stopEvent(e);
-        return false;
-    };
-    CDocument.prototype.resetSelection = function() {
-        this.selectedPages.length = 0;
-    };
-    CDocument.prototype.onMouseUp = function(e)
-    {
-        AscCommon.check_MouseUpEvent(e);
-        if (e && e.preventDefault)
-            e.preventDefault();
-
-        if (global_mouseEvent.Button == 2) {
-            this.viewer.Api.sync_ContextMenuCallback({
-                X_abs   : AscCommon.global_mouseEvent.X - this.viewer.x,
-                Y_abs   : AscCommon.global_mouseEvent.Y - this.viewer.y,
-                Type    : Asc.c_oAscPdfContextMenuTypes.Thumbnails,
-                PageNum : this.getHoverPage()
-            });
+            if (global_mouseEvent.Button == 2) {
+                this.viewer.Api.sync_ContextMenuCallback({
+                    X_abs   : AscCommon.global_mouseEvent.X - this.viewer.x,
+                    Y_abs   : AscCommon.global_mouseEvent.Y - this.viewer.y,
+                    Type    : Asc.c_oAscPdfContextMenuTypes.Thumbnails,
+                    PageNum : this.getHoverPage()
+                });
+            }
         }
-
+    
+        // Сбрасываем временные флаги
+        this.pendingDrag = false;
+        this._mouseDownPage = null;
+        this._shiftPressed = false;
+        this._ctrlPressed = false;
+    
+        if (e && e.preventDefault) e.preventDefault();
         return false;
     };
+    
+    // Create "ghost" for dragging
+    CDocument.prototype.prepareDragGhost = function(dp, countPages) {
+        if (!this.dragCanvas) return;
+    
+        // Reduce the "ghost" to 70% of the original page size
+        let w = dp.pageRect.w * 0.7;
+        let h = dp.pageRect.h * 0.7;
+    
+        this.dragCanvas.width  = w + 15;
+        this.dragCanvas.height = h + 15;
+        this.dragCanvas.style.display = "block";
+    
+        // Set opacity
+        this.dragCanvas.style.opacity = 0.95;
 
-    CDocument.prototype.onMouseMove = function(e)
-    {
-        AscCommon.check_MouseMoveEvent(e);
-
-        if (AscCommon.global_mouseEvent.IsLocked &&
-            this.canvas != AscCommon.global_mouseEvent.Sender)
-        {
+        // Clear the canvas
+        this.dragCtx.clearRect(0, 0, this.dragCanvas.width, this.dragCanvas.height);
+    
+        // If a stack of pages needs to be created
+        if (countPages && countPages > 1) {
+            let offsets = [];
+            if (countPages === 2) {
+                // For two pages — one additional copy
+                offsets.push({ x: 5, y: 5 });
+            } else if (countPages >= 3) {
+                // For three or more — two additional copies
+                offsets.push({ x: 10, y: 10 });
+                offsets.push({ x: 5, y: 5 });
+            }
+    
+            // Draw additional copies (background pages)
+            for (let offset of offsets) {
+                this.dragCtx.fillStyle = PageStyle.emptyColor;
+                this.dragCtx.fillRect(offset.x, offset.y, w, h);
+                this.dragCtx.strokeRect(offset.x, offset.y, w, h);
+            }
+        }
+    
+        // Draw the main page on top (without offset)
+        if (dp.page.image) {
+            this.dragCtx.drawImage(dp.page.image, 0, 0, w, h);
+        } else {
+            this.dragCtx.fillStyle = PageStyle.emptyColor;
+            this.dragCtx.fillRect(0, 0, w, h);
+        }
+        this.dragCtx.strokeRect(0, 0, w, h);
+    
+        // If more than one page is being dragged, display text with the number of pages
+        if (countPages && countPages > 1) {
+            let text = countPages + " pages";
+            let fontSize = 16; // can be parsed from ctx.font
+            this.dragCtx.font = fontSize + "px Arial";
+    
+            // Calculate text dimensions
+            let metrics = this.dragCtx.measureText(text);
+            let textWidth = metrics.width;
+            let textHeight = fontSize;
+            let textX = (w - textWidth) / 2;
+            let textY = (h - textHeight);
+            let padding = 4;
+            let centerX = w / 2;
+    
+            // Draw background for text
+            this.dragCtx.fillStyle = "rgba(255, 255, 255, 1)";
+            this.dragCtx.fillRect(
+                centerX - textWidth / 2 - padding,
+                textY - textHeight,
+                textWidth + padding * 2,
+                textHeight + padding * 2
+            );
+    
+            // Draw text
+            this.dragCtx.fillStyle = "rgba(0, 0, 0, 1)";
+            this.dragCtx.fillText(text, textX, textY);
+        }
+    
+        // Move the "ghost" to the cursor position
+        this.moveDragGhost(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+    };
+    
+    CDocument.prototype.moveDragGhost = function(mx, my) {
+        if (!this.dragCanvas) return;
+        let left = mx - this.coordsOffset.x;
+        let top = my - this.coordsOffset.y;
+        this.dragCanvas.style.left = left + "px";
+        this.dragCanvas.style.top = top + "px";
+    };
+    
+    // Multiple page rearrangement
+    CDocument.prototype.reorderPagesMultiple = function(selectedIndices, toIndex) {
+        if (selectedIndices.includes(toIndex)) {
             return;
         }
 
-        if (!AscCommon.global_mouseEvent.IsLocked)
-        {
-            var drPage = this.getPageByCoords(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
-            var hoverNum = drPage ? drPage.num : -1;
-            
-            if (hoverNum !== this.hoverPage)
-            {
-                this.hoverPage = hoverNum;
-                this._paint();
+        let minIdx = toIndex;
+        let maxIdx = toIndex;
+
+        selectedIndices.forEach(function(idx) {
+            if (idx < minIdx) {
+                minIdx = idx;
             }
 
-            if (hoverNum != -1) {
-                this.canvas.style.cursor = 'pointer';
+            if (idx > maxIdx) {
+                maxIdx = idx;
             }
-            else {
-                this.canvas.style.cursor = 'default';
-            }
+        });
+
+        let aToCheckLock = [];
+        for (let i = minIdx; i <= maxIdx; i++) {
+            aToCheckLock.push(i);
         }
 
-        if (e && e.preventDefault)
-            e.preventDefault();
-        return false;
+        let oDoc = this.viewer.doc;
+
+        oDoc.DoAction(function() {
+			oDoc.MovePages(selectedIndices, toIndex);
+            oDoc.Viewer.navigateToPage(toIndex);
+
+        }, AscDFH.historydescription_Pdf_MovePage, null, aToCheckLock);
     };
+    
+    // Draw drop indicator line
+    CDocument.prototype.drawDropPosition = function(ctx) {
+        if (this.dropInsertPosition < 0) return;
+        let dp = this.getDrawingPage(this.dropInsertPosition);
+        if (!dp) return;
+    
+        let isAfter = (this.dropInsertPosition === dp.num + 1);
+        let lineX1 = dp.pageRect.x - 10;
+        let lineX2 = dp.pageRect.x + dp.pageRect.w + 10;
+        let yPos = dp.pageRect.y - this.scrollY - this.betweenH / 2;
+        if (isAfter) {
+            yPos += dp.pageRect.h;
+        }
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = PageStyle.selectColor;
+        ctx.lineWidth = 2;
+        ctx.moveTo(lineX1, yPos);
+        ctx.lineTo(lineX2, yPos);
+        ctx.stroke();
+        ctx.restore();
+    };
+    
+    CDocument.prototype.resetSelection = function() {
+        this.selectedPages.length = 0;
+    };
+    
     CDocument.prototype.getHoverPage = function()
     {
         return this.hoverPage;

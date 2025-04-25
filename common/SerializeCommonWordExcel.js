@@ -273,11 +273,23 @@ BinaryCommonWriter.prototype.WriteBorders = function(Borders)
 };
 BinaryCommonWriter.prototype.WriteColor = function(type, color)
 {
-    this.memory.WriteByte(type);
-    this.memory.WriteByte(c_oSerPropLenType.Three);
-    this.memory.WriteByte(color.r);
-    this.memory.WriteByte(color.g);
-    this.memory.WriteByte(color.b);
+	if (color instanceof AscWord.CDocumentColorA)
+	{
+		this.memory.WriteByte(type);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.memory.WriteByte(color.a);
+		this.memory.WriteByte(color.r);
+		this.memory.WriteByte(color.g);
+		this.memory.WriteByte(color.b);
+	}
+	else
+	{
+		this.memory.WriteByte(type);
+		this.memory.WriteByte(c_oSerPropLenType.Three);
+		this.memory.WriteByte(color.r);
+		this.memory.WriteByte(color.g);
+		this.memory.WriteByte(color.b);
+	}
 };
 BinaryCommonWriter.prototype.WriteShd = function(Shd)
 {
@@ -578,12 +590,23 @@ Binary_CommonReader.prototype.ReadDouble = function()
     dRes /= 100000;
     return dRes;
 };
-Binary_CommonReader.prototype.ReadColor = function()
+Binary_CommonReader.prototype.ReadColor = function(length)
 {
-    var r = this.stream.GetUChar();
-    var g = this.stream.GetUChar();
-    var b = this.stream.GetUChar();
-    return new AscCommonWord.CDocumentColor(r, g, b);
+	if (length && 4 === length)
+	{
+		let a = this.stream.GetUChar();
+		let r = this.stream.GetUChar();
+		let g = this.stream.GetUChar();
+		let b = this.stream.GetUChar();
+		return new AscWord.CDocumentColorA(r, g, b, a);
+	}
+	else
+	{
+		let r = this.stream.GetUChar();
+		let g = this.stream.GetUChar();
+		let b = this.stream.GetUChar();
+		return new AscWord.CDocumentColor(r, g, b);
+	}
 };
 Binary_CommonReader.prototype.ReadShd = function(type, length, Shd, themeColor, themeFill)
 {
@@ -592,14 +615,14 @@ Binary_CommonReader.prototype.ReadShd = function(type, length, Shd, themeColor, 
     switch(type)
     {
         case c_oSerShdType.Value: Shd.Value = this.stream.GetUChar();break;
-        case c_oSerShdType.Color: Shd.Color = this.ReadColor();break;
+        case c_oSerShdType.Color: Shd.Color = this.ReadColor(length);break;
 		case c_oSerShdType.ColorTheme:
 			res = this.Read2(length, function(t, l){
 				return oThis.ReadColorTheme(t, l, themeColor);
 			});
 			break;
 		case c_oSerShdType.Fill:
-            Shd.Fill = this.ReadColor();
+            Shd.Fill = this.ReadColor(length);
 			break;
 		case c_oSerShdType.FillTheme:
 			res = this.Read2(length, function(t, l){

@@ -866,10 +866,10 @@ RotateState.prototype =
                                     // расширяем рект на ширину линии (или на радиус cloud бордера)
                                     let nLineWidth = oAnnot.GetWidth();
                                     if (oAnnot.GetBorderEffectStyle() === AscPDF.BORDER_EFFECT_STYLES.Cloud) {
-                                        aRect[0] -= oAnnot.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                                        aRect[1] -= oAnnot.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                                        aRect[2] += oAnnot.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                                        aRect[3] += oAnnot.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
+                                        aRect[0] -= 12 * oAnnot.GetBorderEffectIntensity();
+                                        aRect[1] -= 12 * oAnnot.GetBorderEffectIntensity();
+                                        aRect[2] += 12 * oAnnot.GetBorderEffectIntensity();
+                                        aRect[3] += 12 * oAnnot.GetBorderEffectIntensity();
                                     }
                                     else {
                                         aRect[0] -= nLineWidth;
@@ -950,7 +950,7 @@ RotateState.prototype =
                             
                             oTrack.originalObject.SetNeedRecalc(true);
                         }
-                }, AscDFH.historydescription_CommonDrawings_EndTrack, this);
+                }, AscDFH.historydescription_CommonDrawings_EndTrack, this, pageIndex);
 
                 this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
                 this.drawingObjects.clearTrackObjects();
@@ -1831,10 +1831,10 @@ MoveInGroupState.prototype =
                     // расширяем рект на ширину линии (или на радиус cloud бордера)
                     let nLineWidth = oFreeText.GetWidth();
                     if (oFreeText.GetBorderEffectStyle() === AscPDF.BORDER_EFFECT_STYLES.Cloud) {
-                        aNewTextBoxRect[0] -= oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                        aNewTextBoxRect[1] -= oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                        aNewTextBoxRect[2] += oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                        aNewTextBoxRect[3] += oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
+                        aNewTextBoxRect[0] -= 12 * oFreeText.GetBorderEffectIntensity();
+                        aNewTextBoxRect[1] -= 12 * oFreeText.GetBorderEffectIntensity();
+                        aNewTextBoxRect[2] += 12 * oFreeText.GetBorderEffectIntensity();
+                        aNewTextBoxRect[3] += 12 * oFreeText.GetBorderEffectIntensity();
                     }
                     else {
                         aNewTextBoxRect[0] -= nLineWidth;
@@ -1964,10 +1964,10 @@ MoveInGroupState.prototype =
                     // расширяем рект на ширину линии (или на радиус cloud бордера)
                     let nLineWidth = oFreeText.GetWidth();
                     if (oFreeText.GetBorderEffectStyle() === AscPDF.BORDER_EFFECT_STYLES.Cloud) {
-                        aNewTextBoxRect[0] -= oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                        aNewTextBoxRect[1] -= oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                        aNewTextBoxRect[2] += oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
-                        aNewTextBoxRect[3] += oFreeText.GetBorderEffectIntensity() * nLineWidth / 4 * g_dKoef_mm_to_pt;
+                        aNewTextBoxRect[0] -= 12 * oFreeText.GetBorderEffectIntensity();
+                        aNewTextBoxRect[1] -= 12 * oFreeText.GetBorderEffectIntensity();
+                        aNewTextBoxRect[2] += 12 * oFreeText.GetBorderEffectIntensity();
+                        aNewTextBoxRect[3] += 12 * oFreeText.GetBorderEffectIntensity();
                     }
                     else {
                         aNewTextBoxRect[0] -= nLineWidth;

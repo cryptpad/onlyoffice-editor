@@ -1211,13 +1211,19 @@ ParaMath.prototype.Get_Layout = function(DrawingLayout, UseContentPos, ContentPo
 
 ParaMath.prototype.GetNextRunElements = function(oRunElements, isUseContentPos, nDepth)
 {
+	if (oRunElements.IsBreakOnMath())
+		return oRunElements.Stop();
+	
 	if (oRunElements.IsSkipMath())
 		return;
-
+	
 	this.Root.GetNextRunElements(oRunElements, isUseContentPos, nDepth);
 };
 ParaMath.prototype.GetPrevRunElements = function(oRunElements, isUseContentPos, nDepth)
 {
+	if (oRunElements.IsBreakOnMath())
+		return oRunElements.Stop();
+	
 	if (oRunElements.IsSkipMath())
 		return;
 
@@ -1533,6 +1539,9 @@ ParaMath.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 			
 			// TODO: Вообще инлайновая формула должна вести себя как буква на строке, т.е. идти как часть слова, но
 			//       пока будем считать, что на ней всегда заканчивается слово
+			
+			PRS.X += PRS.WordLen + PRS.SpaceLen;
+			
 			PRS.Word            = false;
 			PRS.FirstItemOnLine = false;
 			PRS.EmptyLine       = false;

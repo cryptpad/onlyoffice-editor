@@ -701,7 +701,7 @@ $(function () {
 		AscTest.SelectParagraphRange(p,5, 9);
 		DelLast(1, false);
 
-		assert.strictEqual(p.GetText(), "Hello are you ", "Text is \"Hello are you\"");
+		assert.strictEqual(AscTest.GetParagraphText(p), "Hello are you", "Text is \"Hello are you\"");
 
 		Init(2);
 		ShowDelText();
@@ -725,12 +725,12 @@ $(function () {
 		AscTest.EnterText("World");
 		let p = logicDocument.Content[0];
 
-		assert.strictEqual(p.GetText(), "World ", "Text is \"World\"");
+		assert.strictEqual(AscTest.GetParagraphText(p), "World", "Text is \"World\"");
 
 		Init(0);
 		ShowDelText();
 		assert.ok(true, 'Show del text');
-		assert.strictEqual(p.GetText(), "World ", "Text is \"World\", 'Hello' not show");
+		assert.strictEqual(AscTest.GetParagraphText(p), "World", "Text is \"World\", 'Hello' not show");
 
 		CheckRuns(assert, p, [
 			["World",		reviewtype_Common],

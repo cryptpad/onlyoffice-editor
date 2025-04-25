@@ -49,6 +49,7 @@ function CInlineLevelSdt()
 
 	this.BoundsPaths          = null;
 	this.BoundsPathsStartPage = -1;
+	this.BoundsShift          = -1;
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	AscCommon.g_oTableId.Add(this, this.Id);
@@ -204,6 +205,7 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl, oPr)
 	oContentControl.SetTag(this.GetTag());
 	oContentControl.SetAlias(this.GetAlias());
 	oContentControl.SetContentControlLock(this.GetContentControlLock());
+	oContentControl.SetContentControlId(this.GetContentControlId());
 	oContentControl.SetAppearance(this.GetAppearance());
 	oContentControl.SetColor(this.GetColor());
 
@@ -280,45 +282,25 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl, oPr)
 
 	if (this.Pr.ComplexFormPr)
 		oContentControl.SetComplexFormPr(this.Pr.ComplexFormPr);
+	
+	if (this.Pr.BorderColor)
+		oContentControl.setBorderColor(this.Pr.BorderColor.Copy());
+	
+	if (this.Pr.ShdColor)
+		oContentControl.setShdColor(this.Pr.ShdColor.Copy());
 };
-CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
+CInlineLevelSdt.prototype.GetSelectedContent = function(selectedContent)
 {
-	var oNewElement = new CInlineLevelSdt();
-	this.private_CopyPrTo(oNewElement);
-
 	if (this.IsPlaceHolder())
-	{
-		return oNewElement;
-	}
-	else
-	{
-		oNewElement.ReplacePlaceHolderWithContent();
-
-		var nStartPos = this.State.Selection.StartPos;
-		var nEndPos   = this.State.Selection.EndPos;
-
-		if (nStartPos > nEndPos)
-		{
-			nStartPos = this.State.Selection.EndPos;
-			nEndPos   = this.State.Selection.StartPos;
-		}
-
-		var nItemPos = 0;
-		for (var nPos = nStartPos, nItemPos = 0; nPos <= nEndPos; ++nPos)
-		{
-			var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
-			if (oNewItem)
-			{
-				oNewElement.AddToContent(nItemPos, oNewItem);
-				nItemPos++;
-			}
-		}
-
-		if (0 === nItemPos)
-			return null;
-
-		return oNewElement;
-	}
+		this.SelectAll(1);
+	
+	let inlineSdt = CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContent.apply(this, arguments);
+	if (!inlineSdt)
+		return null;
+	
+	this.private_CopyPrTo(inlineSdt);
+	inlineSdt.SetShowingPlcHdr(this.IsPlaceHolder());
+	return inlineSdt;
 };
 CInlineLevelSdt.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 {
@@ -973,13 +955,13 @@ CInlineLevelSdt.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth
 
 	}
 };
-CInlineLevelSdt.prototype.GetBoundingPolygon = function()
+CInlineLevelSdt.prototype.GetBoundingPolygon = function(shift)
 {
 	var oHdrFtr     = this.Paragraph.Parent.IsHdrFtr(true);
 	var nHdrFtrPage = oHdrFtr ? oHdrFtr.GetContent().GetAbsolutePage(0) : null;
 
 	var StartPage = this.Paragraph.Get_StartPage_Absolute();
-	if (null === this.BoundsPaths || StartPage !== this.BoundsPathsStartPage)
+	if (null === this.BoundsPaths || StartPage !== this.BoundsPathsStartPage || shift !== this.BoundsShift)
 	{
 		var arrBounds = [], arrRects = [], CurPage = -1, isAllEmpty = true;
 		for (var Key in this.Bounds)
@@ -1008,10 +990,11 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 		{
 			var oPolygon = new AscCommon.CPolygon();
 			oPolygon.fill([arrBounds[nIndex]]);
-			this.BoundsPaths = this.BoundsPaths.concat(oPolygon.GetPaths(0));
+			this.BoundsPaths = this.BoundsPaths.concat(oPolygon.GetPaths(shift));
 		}
 
 		this.BoundsPathsStartPage = StartPage;
+		this.BoundsShift          = shift;
 	}
 
 	return this.BoundsPaths;
@@ -1106,49 +1089,33 @@ CInlineLevelSdt.prototype.GetFixedFormBounds = function(isUsePaddings)
 
 	return {X : 0, Y : 0, W : 0, H : 0, Page : 0};
 };
-CInlineLevelSdt.prototype.DrawContentControlsTrack = function(nType, X, Y, nCurPage, isCheckHit)
+CInlineLevelSdt.prototype.DrawContentControlsTrack = function(nType, X, Y, nCurPage, isCheckHit, padding)
 {
 	if (!this.Paragraph)
-		return;
+		return false;
 
 	let logicDocument   = this.Paragraph.GetLogicDocument();
 	let drawingDocument = this.Paragraph.getDrawingDocument();
 	if (!logicDocument || !drawingDocument)
-		return;
+		return false;
 	
 	if (this.IsContentControlEquation())
-	{
-		drawingDocument.OnDrawContentControl(null, nType);
-		return;
-	}
-
-	// Не рисуем трек для фиксед форм, т.к. он уже есть от рамки автофигуры
-	if (this.IsFixedForm() && this.IsCurrent() && logicDocument.IsDocumentEditor() && !logicDocument.IsFillingOFormMode())
-	{
-		drawingDocument.OnDrawContentControl(null, nType);
-		return;
-	}
+		return false;
+	
+	if (this.IsHideContentControlTrack())
+		return false;
+	
+	// Don't show inner inline-track for fixed forms
+	if (this.IsFixedForm() && logicDocument.IsDocumentEditor() && !logicDocument.IsFillingOFormMode())
+		return false;
 	
 	let oMainForm;
 	if (this.IsForm() && (oMainForm = this.GetMainForm()) && oMainForm !== this)
 	{
 		if (AscCommon.ContentControlTrack.Hover === nType)
-		{
 			return oMainForm.DrawContentControlsTrack(AscCommon.ContentControlTrack.Hover, X, Y, nCurPage, isCheckHit);
-		}
-		else
-		{
-			// В режиме заполнения, у внутренних текстовых форм и чекбоксов не рисуем собственный трек, а только внешний
-			if (logicDocument.IsFillingFormMode()
-				&& (this.IsTextForm() || this.IsCheckBox()))
-			{
-				drawingDocument.OnDrawContentControl(null, nType);
-				oMainForm.DrawContentControlsTrack(AscCommon.ContentControlTrack.Main, X, Y, nCurPage, isCheckHit);
-				return;
-			}
-
-			oMainForm.DrawContentControlsTrack(AscCommon.ContentControlTrack.Main, X, Y, nCurPage, isCheckHit);
-		}
+		else if (logicDocument.IsFillingFormMode() && (this.IsTextForm() || this.IsCheckBox()))
+			return false;
 	}
 	
 	if (undefined !== X && undefined !== Y && undefined !== nCurPage)
@@ -1166,7 +1133,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(nType, X, Y, nCurP
 		}
 
 		if (false !== isCheckHit && !isHit)
-			return;
+			return false;
 
 		var sHelpText = "";
 		if (AscCommon.ContentControlTrack.Hover === nType && this.IsForm() && (sHelpText = this.GetFormPr().HelpText))
@@ -1184,23 +1151,17 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(nType, X, Y, nCurP
 	var oShape = this.Paragraph.Parent ? this.Paragraph.Parent.Is_DrawingShape(true) : null;
 	if (this.IsForm() && oShape && oShape.isForm())
 	{
-		let oPolygon = new AscCommon.CPolygon();
-		oPolygon.fill([[oShape.getFormRelRect()]]);
-		drawingDocument.OnDrawContentControl(this, nType, oPolygon.GetPaths(0));
-		return;
+		let polygon = new AscCommon.CPolygon();
+		polygon.fill([[oShape.getFormRelRect()]]);
+		drawingDocument.addContentControlTrack(this, nType, polygon.GetPaths(0));
+		return true;
 	}
-
-	if (this.IsHideContentControlTrack())
-	{
-		drawingDocument.OnDrawContentControl(null, nType);
-		return;
-	}
-
-	let oPolygon = this.GetBoundingPolygon();
-	if (!oPolygon || !oPolygon.length)
-		drawingDocument.OnDrawContentControl(null, nType);
-	else
-		drawingDocument.OnDrawContentControl(this, nType, oPolygon);
+	
+	let polygon = this.GetBoundingPolygon(padding ? padding : 0);
+	if (polygon && polygon.length)
+		drawingDocument.addContentControlTrack(this, nType, polygon);
+	
+	return true;
 };
 CInlineLevelSdt.prototype.IsDrawContentControlsTrackBounds = function()
 {
@@ -1542,7 +1503,7 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 		if (this.IsContentControlEquation())
 		{
 			var oParaMath = new ParaMath();
-			oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph(), null, oFirstParagraph.GetText());
+			oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph(), null, oFirstParagraph.GetText({ParaSeparator : "", TableRowSeparator : "", TableCellSeparator : ""}));
 			oParaMath.Root.Correct_Content(true);
 			this.AddToContent(0, oParaMath);
 		}
@@ -2946,11 +2907,19 @@ CInlineLevelSdt.prototype.IntersectWithRect = function(X, Y, W, H, nPageAbs)
 };
 CInlineLevelSdt.prototype.IsSelectedAll = function(Props)
 {
+	if (this.IsPicture())
+	{
+		let allDrawings = this.GetAllDrawingObjects();
+		if (allDrawings && 1 === allDrawings.length && allDrawings[0].isSelected())
+			return true;
+	}
+
 	if (!this.Selection.Use)
 		return false;
 
 	if (this.IsPlaceHolder())
 		return true;
+	
 
 	return CParagraphContentWithParagraphLikeContent.prototype.IsSelectedAll.apply(this, arguments);
 };

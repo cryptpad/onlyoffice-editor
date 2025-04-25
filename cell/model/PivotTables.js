@@ -9785,7 +9785,7 @@ PivotRangeMapper.prototype.getFieldIndexByCell = function(row, col) {
 	const rowLabelsRange = this.getRowLabelsRange();
 	const range = this.pivot.getRange();
 	const location = this.pivot.location;
-	if (rowLabelsRange && rowLabelsRange.bbox.intersection(selected)) {
+	if (rowLabelsRange && rowLabelsRange.bbox.intersection(selected) && this.pivot.getRowItems() && this.pivot.asc_getRowFields()) {
 		const rowItems = this.pivot.getRowItems();
 		const rowFields = this.pivot.asc_getRowFields();
 		const rowFieldsOffset = this.getRowFieldsOffset();
@@ -9812,7 +9812,7 @@ PivotRangeMapper.prototype.getFieldIndexByCell = function(row, col) {
 		return null;
 	}
 	const colLabelsRange = this.getColLabelsRange();
-	if (colLabelsRange && colLabelsRange.bbox.intersection(selected)) {
+	if (colLabelsRange && colLabelsRange.bbox.intersection(selected) && this.pivot.getColItems() && this.pivot.asc_getColumnFields()) {
 		const colItems = this.pivot.getColItems();
 		const colFields = this.pivot.asc_getColumnFields();
 		const colItemIndex = selected.c1 - (range.c1 + location.firstDataCol);
@@ -9834,7 +9834,7 @@ PivotRangeMapper.prototype.getFieldIndexByCell = function(row, col) {
 		return null;
 	}
 	const rowHeadersRange = this.getRowHeadersRange();
-	if (rowHeadersRange && rowHeadersRange.bbox.intersection(selected)) {
+	if (rowHeadersRange && rowHeadersRange.bbox.intersection(selected) && this.pivot.asc_getRowFields()) {
 		const rowFields = this.pivot.asc_getRowFields();
 		const range = this.pivot.getRange();
 		if (this.pivot.compact && selected.c1 === range.c1) {

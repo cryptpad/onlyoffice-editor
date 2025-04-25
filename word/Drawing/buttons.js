@@ -923,8 +923,7 @@
 
 	AscCommon.ContentControlTrack = {
 		Hover : 0,
-		In    : 1,
-		Main  : 2
+		In    : 1
 	};
 
 	function getOutlineCC(isActive)
@@ -1054,6 +1053,7 @@
 		this.isForm = this.base.IsForm();
 		this.formInfo = null;
 		this.state = state;
+		this.visualState = - 1;
 
 		this.isFixedForm = this.base.IsFixedForm();
 
@@ -1516,13 +1516,13 @@
 			}
 		}
 
-		return {
+		return new Asc.CButtonData( {
 			"obj" : this.base,
 			"type" : this.type,
 			"button" : button,
 			"isForm" : this.isForm,
 			"pr" : this.base.GetContentControlPr ? this.base.GetContentControlPr() : null
-		}
+		});
 	};
 	CContentControlTrack.prototype.Copy = function()
 	{
@@ -1538,6 +1538,88 @@
 			return true;
 		}
 		return false;
+	};
+	CContentControlTrack.prototype.isHitInMoveRect = function(xPos, yPos, koefX, koefY)
+	{
+		let rectMove = this.CalculateMoveRect(koefX, koefY, true);
+		return (rectMove && rectMove.W > 0.001 && xPos > rectMove.X && xPos < (rectMove.X + rectMove.W) && yPos > rectMove.Y && yPos < (rectMove.Y + rectMove.H))
+	};
+	CContentControlTrack.prototype.isHitInNameRect = function(xPos, yPos, koefX, koefY)
+	{
+		let rectName = this.IsNameAdvanced() ? this.CalculateNameRect(koefX, koefY) : null;
+		return (rectName && xPos > rectName.X && xPos < (rectName.X + rectName.W) && yPos > rectName.Y && yPos < (rectName.Y + rectName.H))
+	};
+	CContentControlTrack.prototype.isHitInComboRect = function(xPos, yPos, koefX, koefY)
+	{
+		let rectCombo = this.CalculateComboRect(koefX, koefY);
+		return (rectCombo && xPos > rectCombo.X && xPos < (rectCombo.X + rectCombo.W) && yPos > rectCombo.Y && yPos < (rectCombo.Y + rectCombo.H));
+	};
+	CContentControlTrack.prototype.getButton = function(xPos, yPos, koefX, koefY)
+	{
+		if (!this.Buttons.length)
+			return null;
+		
+		var indexButton = -1;
+		
+		var x, y, w, h;
+		let resX = 0, resY = 0;
+		if (this.formInfo)
+		{
+			if (this.isFormFullOneButtonHover())
+			{
+				x = this.formInfo.bounds.x;
+				y = this.formInfo.bounds.y;
+				w = this.formInfo.bounds.w;
+				h = this.formInfo.bounds.h;
+			}
+			else
+			{
+				w = CONTENT_CONTROL_TRACK_H / koefX;
+				h = CONTENT_CONTROL_TRACK_H / koefY;
+				
+				x = this.formInfo.bounds.x + (this.formInfo.bounds.w - w) / 2;
+				y = this.formInfo.bounds.y + (this.formInfo.bounds.h - h) / 2;
+			}
+			
+			if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
+			{
+				indexButton = 0;
+				resX = x;
+				resY = y + h;
+			}
+		}
+		else
+		{
+			let rectOrigin = this.CalculateNameRect(koefX, koefY) || this.CalculateMoveRect(koefX, koefY);
+			if (!rectOrigin)
+				return null;
+			
+			x = rectOrigin.X + rectOrigin.W;
+			y = rectOrigin.Y;
+			w = CONTENT_CONTROL_TRACK_H / koefX;
+			h = CONTENT_CONTROL_TRACK_H / koefY;
+			
+			for (var indexB = 0; indexB < this.Buttons.length; indexB++)
+			{
+				if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
+				{
+					resX = x + this.OffsetX;
+					resY = rectOrigin.Y + rectOrigin.H + this.OffsetY;
+					indexButton = indexB;
+					break;
+				}
+				x += w;
+			}
+		}
+		
+		if (-1 === indexButton)
+			return null;
+		
+		return {
+			index : indexButton,
+			x : resX,
+			y : resY
+		};
 	};
 
 	// draw methods
@@ -1566,8 +1648,10 @@
 
 		this.ContentControlObjects = [];
 		this.ContentControlObjectsLast = [];
-		this.ContentControlObjectState = -1;
 		this.ContentControlSmallChangesCheck = { X: 0, Y: 0, Page: 0, Min: 2, IsSmall : true };
+		this.lastActive = null;
+		this.lastHover  = null;
+		this.lastInline = null;
 
 		this.measures = {};
 
@@ -1575,7 +1659,6 @@
 		{
 			this.ContentControlObjects = [];
 			this.ContentControlObjectsLast = [];
-			this.ContentControlObjectState = -1;
 		};
 
 		this.getFont = function(koef)
@@ -1970,7 +2053,7 @@
 								if (_object.IsUseMoveRect())
 								{
 									ctx.rect(_x, _y, Math.round(CONTENT_CONTROL_HEADER_MOVER_W * rPR), cctw);
-									ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommon.GlobalSkin.ContentControlsAnchorActive : AscCommon.GlobalSkin.ContentControlsBack;
+									ctx.fillStyle = (1 === _object.visualState) ? AscCommon.GlobalSkin.ContentControlsAnchorActive : AscCommon.GlobalSkin.ContentControlsBack;
 									ctx.fill();
 									ctx.beginPath();
 
@@ -1982,7 +2065,7 @@
 									var px10 = Math.round(8 * rPR);
 
 									var _color = "#ADADAD";
-									if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
+									if (0 === _object.visualState || 1 === _object.visualState)
 										_color = "#444444";
 
 									overlay.AddRect(cx, cy, px3, px3);
@@ -2177,7 +2260,7 @@
 								if (_object.IsUseMoveRect())
 								{
 									ctx.rect(_x, _y, scaleX_15, scaleY_20);
-									ctx.fillStyle = (1 == this.ContentControlObjectState) ? AscCommon.GlobalSkin.ContentControlsAnchorActive : AscCommon.GlobalSkin.ContentControlsBack;
+									ctx.fillStyle = (1 === _object.visualState) ? AscCommon.GlobalSkin.ContentControlsAnchorActive : AscCommon.GlobalSkin.ContentControlsBack;
 									ctx.fill();
 									ctx.beginPath();
 
@@ -2205,7 +2288,7 @@
 									overlay.AddEllipse2(cx6, cy6, rad);
 
 									var _color1 = "#ADADAD";
-									if (0 == this.ContentControlObjectState || 1 == this.ContentControlObjectState)
+									if (0 === _object.visualState || 1 === _object.visualState)
 										_color1 = "#444444";
 
 									ctx.fillStyle = _color1;
@@ -2328,58 +2411,118 @@
 
 			this.ContentControlsSaveLast();
 		};
-
-		this.OnDrawContentControl = function(obj, state, geom)
+		
+		this.startCollectTracks = function()
 		{
-			var isActiveRemove = false;
-			// всегда должен быть максимум один hover и in
-			for (var i = 0; i < this.ContentControlObjects.length; i++)
+			// We can have many Track.In and just one Track.Hover
+			// If we have an inline move, then we hold the current stack of tracks (which ends with track being moved)
+			
+			this.lastActive = null;
+			this.lastHover  = null;
+			this.lastInline = null;
+			
+			for (let i = 0; i < this.ContentControlObjects.length; ++i)
 			{
-				if (state === this.ContentControlObjects[i].state && obj === this.ContentControlObjects[i].base)
+				let ccTrack = this.ContentControlObjects[i];
+				if (AscCommon.ContentControlTrack.In === ccTrack.state && -2 !== ccTrack.ActiveButtonIndex)
+					this.lastActive = ccTrack;
+				
+				if (AscCommon.ContentControlTrack.Hover === ccTrack.state)
+					this.lastHover = ccTrack;
+				
+				if (-1 !== ccTrack.visualState)
 				{
-					this.ContentControlObjects[i].UpdateGeom(geom);
-					return;
-				}
-
-				if (state == this.ContentControlObjects[i].state
-					|| ((!obj || !obj.IsForm() || obj.IsMainForm()) && AscCommon.ContentControlTrack.In === state && AscCommon.ContentControlTrack.Main === this.ContentControlObjects[i].state))
-				{
-					if (-2 != this.ContentControlObjects[i].ActiveButtonIndex)
-						isActiveRemove = true;
-
-					this.ContentControlObjects.splice(i, 1);
-					i--;
+					this.lastInline = ccTrack;
+					this.ContentControlObjects.length = i + 1;
+					break;
 				}
 			}
-
-			if (null == obj)
-			{
-				if (isActiveRemove)
-					this.document.m_oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+			
+			if (!this.lastInline)
+				this.ContentControlObjects.length = 0;
+		};
+		this.addTrackIn = function(obj, geom)
+		{
+			if (!geom || (Array.isArray(geom) && geom.length === 0) || this.lastInline)
 				return;
-			}
-
-			if (this.ContentControlObjects.length != 0 && this.ContentControlObjects[0].base.GetId() == obj.GetId())
+			
+			if (this.lastActive && this.lastActive.base && obj && this.lastActive.base.GetId() === obj.GetId())
 			{
-				if (state === AscCommon.ContentControlTrack.Hover)
-					return;
-
-				// In
-				if (-2 != this.ContentControlObjects[0].ActiveButtonIndex)
-					isActiveRemove = true;
-
-				this.ContentControlObjects.splice(0, 1);
+				this.lastActive.UpdateGeom(geom);
+				this.ContentControlObjects.push(this.lastActive);
 			}
-
-			var isNormal = true;
-			if (Array.isArray(geom) && geom.length === 0)
-				isNormal = false;
-
-			if (isNormal)
-				this.ContentControlObjects.push(new CContentControlTrack(this, obj, state, geom));
-
-			if (isActiveRemove)
-				this.document.m_oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+			else
+			{
+				this.ContentControlObjects.push(new CContentControlTrack(this, obj, AscCommon.ContentControlTrack.In, geom));
+			}
+			
+		};
+		this.endCollectTracks = function()
+		{
+			if (this.lastActive)
+			{
+				if (-1 === this.ContentControlObjects.indexOf(this.lastActive))
+					this.document.m_oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+			}
+			
+			if (this.lastHover)
+			{
+				for (let i = 0; i < this.ContentControlObjects.length; ++i)
+				{
+					let ccTrack = this.ContentControlObjects[i];
+					if (AscCommon.ContentControlTrack.In === ccTrack.state
+						&& this.lastHover.base
+						&& ccTrack.base
+						&& this.lastHover.base.GetId() === ccTrack.base.GetId())
+					{
+						this.lastHover = null;
+						break;
+					}
+				}
+				
+				if (this.lastHover)
+					this.ContentControlObjects.push(this.lastHover);
+			}
+			
+			if (!this.lastInline)
+				this.ContentControlObjects = this.ContentControlObjects.reverse();
+			
+			this.lastHover  = null;
+			this.lastActive = null;
+			this.lastInline = null;
+		};
+		this.addTrackHover = function(obj, geom)
+		{
+			if (!geom || (Array.isArray(geom) && geom.length === 0))
+				return this.removeTrackHover();
+			
+			for (let i = 0; i < this.ContentControlObjects.length; ++i)
+			{
+				let ccTrack = this.ContentControlObjects[i];
+				if (ccTrack.state === AscCommon.ContentControlTrack.In && obj.GetId() === ccTrack.base.GetId())
+					return;
+			}
+			
+			for (let i = 0; i < this.ContentControlObjects.length; ++i)
+			{
+				let ccTrack = this.ContentControlObjects[i];
+				if (ccTrack.state === AscCommon.ContentControlTrack.Hover && obj === ccTrack.base)
+				{
+					ccTrack.UpdateGeom(geom);
+					return;
+				}
+			}
+			
+			this.removeTrackHover();
+			this.ContentControlObjects.push(new CContentControlTrack(this, obj, AscCommon.ContentControlTrack.Hover, geom));
+		};
+		this.removeTrackHover = function()
+		{
+			for (let i = this.ContentControlObjects.length - 1; i >= 0; --i)
+			{
+				if (AscCommon.ContentControlTrack.Hover === this.ContentControlObjects[i].state)
+					this.ContentControlObjects.splice(i, 1);
+			}
 		};
 
 		this.checkSmallChanges = function(pos)
@@ -2395,349 +2538,213 @@
 			}
 		};
 
-		this.isInlineTrack = function()
+		this.getInlineMoveTrack = function()
 		{
-			return (this.ContentControlObjectState == 1) ? true : false;
+			for (let i = 0; i < this.ContentControlObjects.length; ++i)
+			{
+				if (AscCommon.ContentControlTrack.In === this.ContentControlObjects[i].state && 1 === this.ContentControlObjects[i].visualState)
+					return this.ContentControlObjects[i];
+			}
+			return null;
 		};
-
+		
 		this.checkPointerInButtons = function(pos)
 		{
 			for (var i = 0; i < this.ContentControlObjects.length; i++)
 			{
-				var _object = this.ContentControlObjects[i];
-				if (_object.state !== AscCommon.ContentControlTrack.In)
+				let _object = this.ContentControlObjects[i];
+				if (AscCommon.ContentControlTrack.In !== _object.state || _object.Pos.Page !== pos.Page)
 					continue;
-
-				// check header
-				var _page = this.document.m_arrPages[_object.Pos.Page];
-				if (!_page)
-					return false;
-
-				var drawingPage = _page.drawingPage;
-
-				var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
-				var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
-
-				var xPos = pos.X - _object.OffsetX;
-				var yPos = pos.Y - _object.OffsetY;
-
-				if (_object.transform)
-				{
-					var tmp = _object.invertTransform.TransformPointX(xPos, yPos);
-					yPos = _object.invertTransform.TransformPointY(xPos, yPos);
-					xPos = tmp;
-				}
-
-				if (_object.Pos.Page == pos.Page && !_object.IsNoUseButtons())
-				{
-					// move
-					var rectMove = _object.CalculateMoveRect(koefX, koefY, true);
-					if (rectMove && rectMove.W > 0.001 && xPos > rectMove.X && xPos < (rectMove.X + rectMove.W) && yPos > rectMove.Y && yPos < (rectMove.Y + rectMove.H))
-					{
-						return true;
-					}
-
-					// check buttons
-					if (_object.Buttons.length > 0)
-					{
-						var indexButton = -1;
-						var xCC, yCC;
-
-						var x, y, w, h;
-						if (_object.formInfo)
-						{
-							w = CONTENT_CONTROL_TRACK_H / koefX;
-							h = CONTENT_CONTROL_TRACK_H / koefY;
-
-							x = _object.formInfo.bounds.x + (_object.formInfo.bounds.w - w) / 2;
-							y = _object.formInfo.bounds.y + (_object.formInfo.bounds.h - h) / 2;
-
-							if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
-							{
-								indexButton = 0;
-								xCC = x;
-								yCC = y + h;
-							}
-						}
-						else
-						{
-							var rectOrigin = rectMove;
-							if (!rectOrigin)
-								return false;
-							x = rectOrigin.X + rectOrigin.W;
-							y = rectOrigin.Y;
-							w = CONTENT_CONTROL_TRACK_H / koefX;
-							h = CONTENT_CONTROL_TRACK_H / koefY;
-
-							for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
-							{
-								if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
-								{
-									xCC = x + _object.OffsetX;
-									yCC = rectOrigin.Y + rectOrigin.H + _object.OffsetY;
-
-									indexButton = indexB;
-									break;
-								}
-								x += w;
-							}
-						}
-
-						if (-1 !== indexButton)
-						{
-							return true;
-						}
-					}
-				}
-
-				var rectCombo = _object.CalculateComboRect(koefX, koefY);
-
-				if (rectCombo && pos.Page == rectCombo.Page)
-				{
-					if (xPos > rectCombo.X && xPos < (rectCombo.X + rectCombo.W) && yPos > rectCombo.Y && yPos < (rectCombo.Y + rectCombo.H))
-					{
-						return true;
-					}
-				}
-
-				break;
+				
+				let _pos = this._getTrackRelativePos(pos, _object);
+				
+				let xPos  = _pos.xPos;
+				let yPos  = _pos.yPos;
+				let koefX = _pos.koefX;
+				let koefY = _pos.koefY;
+				
+				if (_object.isHitInMoveRect(xPos, yPos, koefX, koefY))
+					return true;
+				
+				if (_object.getButton(xPos, yPos, koefX, koefY))
+					return true;
+				
+				if (_object.isHitInNameRect(xPos, yPos, koefX, koefY))
+					return true;
+				
+				if (_object.isHitInComboRect(xPos, yPos, koefX, koefY))
+					return true;
 			}
-
+			
 			return false;
+		};
+		
+		this._getTrackRelativePos = function(pos, ccTrack)
+		{
+			var _page = this.document.m_arrPages[ccTrack.Pos.Page];
+			if (!_page)
+				return null;
+			
+			var drawingPage = _page.drawingPage;
+			
+			var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
+			var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
+			
+			var xPos = pos.X - ccTrack.OffsetX;
+			var yPos = pos.Y - ccTrack.OffsetY;
+			if (ccTrack.transform)
+			{
+				var tmp = ccTrack.invertTransform.TransformPointX(xPos, yPos);
+				yPos = ccTrack.invertTransform.TransformPointY(xPos, yPos);
+				xPos = tmp;
+			}
+			return {
+				xPos : xPos,
+				yPos : yPos,
+				koefX : koefX,
+				koefY : koefY
+			}
 		};
 
 		this.onPointerDown = function(pos)
 		{
 			var oWordControl = this.document.m_oWordControl;
 
-			for (var i = 0; i < this.ContentControlObjects.length; i++)
+			for (var i = this.ContentControlObjects.length - 1; i >= 0; --i)
 			{
-				var _object = this.ContentControlObjects[i];
-				if (_object.state == AscCommon.ContentControlTrack.In)
+				let _object = this.ContentControlObjects[i];
+				if (AscCommon.ContentControlTrack.In !== _object.state || _object.Pos.Page !== pos.Page)
+					continue;
+				
+				let _pos = this._getTrackRelativePos(pos, _object);
+				
+				let xPos  = _pos.xPos;
+				let yPos  = _pos.yPos;
+				let koefX = _pos.koefX;
+				let koefY = _pos.koefY;
+				
+				if (_object.isHitInMoveRect(xPos, yPos, koefX, koefY))
 				{
-					if (_object.Pos.Page == pos.Page && !_object.IsNoUseButtons())
+					oWordControl.m_oLogicDocument.SelectContentControl(_object.base.GetId());
+					_object.visualState = 1;
+					this.ContentControlSmallChangesCheck.X = pos.X;
+					this.ContentControlSmallChangesCheck.Y = pos.Y;
+					this.ContentControlSmallChangesCheck.Page = pos.Page;
+					this.ContentControlSmallChangesCheck.IsSmall = true;
+
+					this.document.InlineTextTrack = null;
+					this.document.InlineTextTrackPage = -1;
+
+					oWordControl.ShowOverlay();
+					oWordControl.OnUpdateOverlay();
+					oWordControl.EndUpdateOverlay();
+
+					this.document.LockCursorType("default");
+					return true;
+				}
+				
+				if (_object.isHitInNameRect(xPos, yPos, koefX, koefY))
+				{
+					if (_object.ActiveButtonIndex == -1)
 					{
-						// check header
-						var _page = this.document.m_arrPages[_object.Pos.Page];
-						if (!_page)
-							return false;
+						_object.ActiveButtonIndex = -2;
+						oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+					}
+					else
+					{
+						_object.ActiveButtonIndex = -1;
 
-						var drawingPage = _page.drawingPage;
-
-						var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
-						var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
-
-						var xPos = pos.X - _object.OffsetX;
-						var yPos = pos.Y - _object.OffsetY;
-						if (_object.transform)
-						{
-							var tmp = _object.invertTransform.TransformPointX(xPos, yPos);
-							yPos = _object.invertTransform.TransformPointY(xPos, yPos);
-							xPos = tmp;
+						let rectName = _object.CalculateNameRect(koefX, koefY);
+						var xCC = rectName.X + _object.OffsetX;
+						var yCC = rectName.Y + rectName.H + _object.OffsetY;
+						if (_object.transform) {
+							var tmp = _object.transform.TransformPointX(xCC, yCC);
+							yCC = _object.transform.TransformPointY(xCC, yCC);
+							xCC = tmp;
 						}
 
-						// move
-						var rectMove = _object.CalculateMoveRect(koefX, koefY, true);
-						if (rectMove && rectMove.W > 0.001 && xPos > rectMove.X && xPos < (rectMove.X + rectMove.W) && yPos > rectMove.Y && yPos < (rectMove.Y + rectMove.H))
-						{
-							oWordControl.m_oLogicDocument.SelectContentControl(_object.base.GetId());
-							this.ContentControlObjectState = 1;
-							this.ContentControlSmallChangesCheck.X = pos.X;
-							this.ContentControlSmallChangesCheck.Y = pos.Y;
-							this.ContentControlSmallChangesCheck.Page = pos.Page;
-							this.ContentControlSmallChangesCheck.IsSmall = true;
-
-							this.document.InlineTextTrack = null;
-							this.document.InlineTextTrackPage = -1;
-
-							oWordControl.ShowOverlay();
-							oWordControl.OnUpdateOverlay();
-							oWordControl.EndUpdateOverlay();
-
-							this.document.LockCursorType("default");
-							return true;
-						}
-
-						// name
-						var rectName = _object.IsNameAdvanced() ? _object.CalculateNameRect(koefX, koefY) : null;
-						if (rectName && xPos > rectName.X && xPos < (rectName.X + rectName.W) && yPos > rectName.Y && yPos < (rectName.Y + rectName.H))
-						{
-							if (_object.ActiveButtonIndex == -1)
-							{
-								_object.ActiveButtonIndex = -2;
-								oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
-							}
-							else
-							{
-								_object.ActiveButtonIndex = -1;
-
-								var xCC = rectName.X + _object.OffsetX;
-								var yCC = rectName.Y + rectName.H + _object.OffsetY;
-								if (_object.transform) {
-									var tmp = _object.transform.TransformPointX(xCC, yCC);
-									yCC = _object.transform.TransformPointY(xCC, yCC);
-									xCC = tmp;
-								}
-
-								var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-								_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(-1), posOnScreen.X, posOnScreen.Y);
-							}
-
-							oWordControl.ShowOverlay();
-							oWordControl.OnUpdateOverlay();
-							oWordControl.EndUpdateOverlay();
-
-							this.document.LockCursorType("default");
-							return true;
-						}
-
-						// check buttons
-						if (_object.Buttons.length > 0)
-						{
-							var indexButton = -1;
-							var xCC, yCC;
-
-							var x, y, w, h;
-							if (_object.formInfo)
-							{
-								if (_object.isFormFullOneButtonHover())
-								{
-									x = _object.formInfo.bounds.x;
-									y = _object.formInfo.bounds.y;
-									w = _object.formInfo.bounds.w;
-									h = _object.formInfo.bounds.h;
-								}
-								else
-								{
-									w = CONTENT_CONTROL_TRACK_H / koefX;
-									h = CONTENT_CONTROL_TRACK_H / koefY;
-
-									x = _object.formInfo.bounds.x + (_object.formInfo.bounds.w - w) / 2;
-									y = _object.formInfo.bounds.y + (_object.formInfo.bounds.h - h) / 2;
-								}
-
-								if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
-								{
-									indexButton = 0;
-									xCC = x;
-									yCC = y + h;
-								}
-							}
-							else
-							{
-								var rectOrigin = rectName || rectMove;
-								if (!rectOrigin)
-									return false;
-								x = rectOrigin.X + rectOrigin.W;
-								y = rectOrigin.Y;
-								w = CONTENT_CONTROL_TRACK_H / koefX;
-								h = CONTENT_CONTROL_TRACK_H / koefY;
-
-								for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
-								{
-									if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
-									{
-										xCC = x + _object.OffsetX;
-										yCC = rectOrigin.Y + rectOrigin.H + _object.OffsetY;
-
-										indexButton = indexB;
-										break;
-									}
-									x += w;
-								}
-							}
-
-							if (-1 !== indexButton)
-							{
-								if (_object.ActiveButtonIndex === indexButton)
-								{
-									_object.ActiveButtonIndex = -2;
-									oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
-								}
-								else
-								{
-									_object.ActiveButtonIndex = indexButton;
-
-									xCC += _object.OffsetX;
-									yCC += _object.OffsetY;
-
-									if (_object.transform)
-									{
-										var tmp = _object.transform.TransformPointX(xCC, yCC);
-										yCC = _object.transform.TransformPointY(xCC, yCC);
-										xCC = tmp;
-									}
-
-									var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-									_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(indexButton), posOnScreen.X, posOnScreen.Y);
-								}
-
-								oWordControl.ShowOverlay();
-								oWordControl.OnUpdateOverlay();
-								oWordControl.EndUpdateOverlay();
-
-								this.document.LockCursorType("default");
-								return true;
-							}
-						}
+						var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
+						_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(-1), posOnScreen.X, posOnScreen.Y);
 					}
 
-					var _page = this.document.m_arrPages[pos.Page];
-					if (!_page) return false;
+					oWordControl.ShowOverlay();
+					oWordControl.OnUpdateOverlay();
+					oWordControl.EndUpdateOverlay();
 
-					var drawingPage = _page.drawingPage;
-
-					var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
-					var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
-
-					var rectCombo = _object.CalculateComboRect(koefX, koefY);
-
-					if (rectCombo && pos.Page == rectCombo.Page)
+					this.document.LockCursorType("default");
+					return true;
+				}
+				
+				let buttonInfo = _object.getButton(xPos, yPos, koefX, koefY);
+				if (buttonInfo && -1 !== buttonInfo.index)
+				{
+					let indexButton = buttonInfo.index;
+					let xCC = buttonInfo.x;
+					let yCC = buttonInfo.y;
+					
+					if (_object.ActiveButtonIndex === indexButton)
 					{
-						var xPos = pos.X - _object.OffsetX;
-						var yPos = pos.Y - _object.OffsetY;
+						_object.ActiveButtonIndex = -2;
+						oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+					}
+					else
+					{
+						_object.ActiveButtonIndex = indexButton;
+
+						xCC += _object.OffsetX;
+						yCC += _object.OffsetY;
+
 						if (_object.transform)
 						{
-							var tmp = _object.invertTransform.TransformPointX(xPos, yPos);
-							yPos = _object.invertTransform.TransformPointY(xPos, yPos);
-							xPos = tmp;
+							var tmp = _object.transform.TransformPointX(xCC, yCC);
+							yCC = _object.transform.TransformPointY(xCC, yCC);
+							xCC = tmp;
 						}
 
-						if (xPos > rectCombo.X && xPos < (rectCombo.X + rectCombo.W) && yPos > rectCombo.Y && yPos < (rectCombo.Y + rectCombo.H))
-						{
-							var indexB = _object.Buttons.length;
-							if (_object.ActiveButtonIndex == indexB)
-							{
-								_object.ActiveButtonIndex = -2;
-								oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
-							}
-							else
-							{
-								_object.ActiveButtonIndex = indexB;
-
-								var xCC = rectCombo.X + _object.OffsetX + CONTENT_CONTROL_TRACK_H / koefX;
-								var yCC = rectCombo.Y + rectCombo.H + _object.OffsetY;
-								if (_object.transform)
-								{
-									var tmp = _object.transform.TransformPointX(xCC, yCC);
-									yCC = _object.transform.TransformPointY(xCC, yCC);
-									xCC = tmp;
-								}
-
-								var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, rectCombo.Page);
-								_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
-							}
-
-							oWordControl.ShowOverlay();
-							oWordControl.OnUpdateOverlay();
-							oWordControl.EndUpdateOverlay();
-
-							this.document.LockCursorType("default");
-							return true;
-						}
+						var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
+						_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(indexButton), posOnScreen.X, posOnScreen.Y);
 					}
 
-					break;
+					oWordControl.ShowOverlay();
+					oWordControl.OnUpdateOverlay();
+					oWordControl.EndUpdateOverlay();
+
+					this.document.LockCursorType("default");
+					return true;
+				}
+
+				if (_object.isHitInComboRect(xPos, yPos, koefX, koefY))
+				{
+					var indexB = _object.Buttons.length;
+					if (_object.ActiveButtonIndex == indexB)
+					{
+						_object.ActiveButtonIndex = -2;
+						oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
+					}
+					else
+					{
+						_object.ActiveButtonIndex = indexB;
+						
+						let rectCombo = _object.CalculateComboRect(koefX, koefY)
+						var xCC = rectCombo.X + _object.OffsetX + CONTENT_CONTROL_TRACK_H / koefX;
+						var yCC = rectCombo.Y + rectCombo.H + _object.OffsetY;
+						if (_object.transform)
+						{
+							var tmp = _object.transform.TransformPointX(xCC, yCC);
+							yCC = _object.transform.TransformPointY(xCC, yCC);
+							xCC = tmp;
+						}
+
+						var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, rectCombo.Page);
+						_sendEventToApi(oWordControl.m_oApi, _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
+					}
+
+					oWordControl.ShowOverlay();
+					oWordControl.OnUpdateOverlay();
+					oWordControl.EndUpdateOverlay();
+
+					this.document.LockCursorType("default");
+					return true;
 				}
 			}
 
@@ -2746,39 +2753,53 @@
 
 		this.onPointerLeave = function()
 		{
-			var oWordControl = this.document.m_oWordControl;
-			var isChangeHover = false;
+			let updateOverlay = false;
 			for (var i = 0; i < this.ContentControlObjects.length; i++)
 			{
-				if (-2 !== this.ContentControlObjects[i].HoverButtonIndex)
-					isChangeHover = true;
-				this.ContentControlObjects[i].HoverButtonIndex = -2;
+				let ccTrack = this.ContentControlObjects[i];
+				
+				if (-2 !== ccTrack.HoverButtonIndex)
+				{
+					updateOverlay = true;
+					ccTrack.HoverButtonIndex = -2;
+				}
+				
+				if (-1 !== ccTrack.visualState)
+				{
+					updateOverlay = true;
+					ccTrack.visualState = -1;
+				}
 			}
 
-			if (isChangeHover)
-				oWordControl.OnUpdateOverlay();
+			if (updateOverlay)
+				this.document.m_oWordControl.OnUpdateOverlay();
 		};
 
 		this.onPointerMove = function(pos, isWithoutCoords)
 		{
 			var oWordControl = this.document.m_oWordControl;
-			var _object = null;
-			var isChangeHover = false;
-			for (var i = 0; i < this.ContentControlObjects.length; i++)
+			let updateOverlay = false;
+			for (let i = 0; i < this.ContentControlObjects.length; i++)
 			{
-				if (-2 != this.ContentControlObjects[i].HoverButtonIndex)
-					isChangeHover = true;
-				this.ContentControlObjects[i].HoverButtonIndex = -2;
-				if (this.ContentControlObjects[i].state == AscCommon.ContentControlTrack.In)
+				let ccTrack = this.ContentControlObjects[i];
+				
+				if (-2 !== ccTrack.HoverButtonIndex)
 				{
-					_object = this.ContentControlObjects[i];
-					break;
+					updateOverlay = true;
+					ccTrack.HoverButtonIndex = -2;
 				}
 			}
-
-			if (_object && !_object.IsNoUseButtons() && pos.Page == _object.Pos.Page)
+			
+			for (var i = this.ContentControlObjects.length - 1; i >= 0; --i)
 			{
-				if (1 == this.ContentControlObjectState)
+				let _object = this.ContentControlObjects[i];
+				
+				if (AscCommon.ContentControlTrack.In !== _object.state
+					|| pos.Page !== _object.Pos.Page
+					|| !this.document.m_arrPages[pos.Page])
+					continue;
+				
+				if (!_object.IsNoUseButtons() && 1 === _object.visualState)
 				{
 					if (pos.Page == this.ContentControlSmallChangesCheck.Page &&
 						Math.abs(pos.X - this.ContentControlSmallChangesCheck.X) < this.ContentControlSmallChangesCheck.Min &&
@@ -2789,182 +2810,96 @@
 						oWordControl.EndUpdateOverlay();
 						return true;
 					}
-
+					
 					this.document.InlineTextTrackEnabled = true;
 					this.ContentControlSmallChangesCheck.IsSmall = false;
-
+					
 					this.document.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
 					this.document.InlineTextTrackPage = pos.Page;
-
+					
 					oWordControl.ShowOverlay();
 					oWordControl.OnUpdateOverlay();
 					oWordControl.EndUpdateOverlay();
 					return true;
 				}
-
-				var _page = this.document.m_arrPages[_object.Pos.Page];
-				if (!_page)
-					return false;
-
-				var drawingPage = _page.drawingPage;
-
-				var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
-				var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
-
-				var xPos = pos.X - _object.OffsetX;
-				var yPos = pos.Y - _object.OffsetY;
-				if (_object.transform)
+				
+				if (-1 !== _object.visualState)
 				{
-					var tmp = _object.invertTransform.TransformPointX(xPos, yPos);
-					yPos = _object.invertTransform.TransformPointY(xPos, yPos);
-					xPos = tmp;
+					updateOverlay = true;
+					_object.visualState = -1;
 				}
-
-				var oldState = this.ContentControlObjectState;
-				this.ContentControlObjectState = -1;
-
-				// move
-				var rectMove = _object.CalculateMoveRect(koefX, koefY, true);
-				if (rectMove && rectMove.W > 0.001 && xPos > rectMove.X && xPos < (rectMove.X + rectMove.W) && yPos > rectMove.Y && yPos < (rectMove.Y + rectMove.H))
+				
+				let _pos = this._getTrackRelativePos(pos, _object);
+				
+				let xPos  = _pos.xPos;
+				let yPos  = _pos.yPos;
+				let koefX = _pos.koefX;
+				let koefY = _pos.koefY;
+				
+				if (!_object.IsNoUseButtons())
 				{
-					this.ContentControlObjectState = 0;
-					oWordControl.ShowOverlay();
-					oWordControl.OnUpdateOverlay();
-					oWordControl.EndUpdateOverlay();
-
-					this.document.SetCursorType("default");
-
-					oWordControl.m_oApi.sync_MouseMoveStartCallback();
-					oWordControl.m_oApi.sync_MouseMoveEndCallback();
-					return true;
-				}
-
-				// name
-				var rectName = _object.IsNameAdvanced() ? _object.CalculateNameRect(koefX, koefY) : null;
-				if (rectName && xPos > rectName.X && xPos < (rectName.X + rectName.W) && yPos > rectName.Y && yPos < (rectName.Y + rectName.H))
-				{
-					_object.HoverButtonIndex = -1;
-					oWordControl.ShowOverlay();
-					oWordControl.OnUpdateOverlay();
-					oWordControl.EndUpdateOverlay();
-
-					this.document.SetCursorType("default");
-
-					oWordControl.m_oApi.sync_MouseMoveStartCallback();
-					oWordControl.m_oApi.sync_MouseMoveEndCallback();
-					return true;
-				}
-
-				// check buttons
-				if (_object.Buttons.length > 0 && (isWithoutCoords !== true))
-				{
-					var indexButton = -1;
-
-					var x, y, w, h;
-					if (_object.formInfo)
+					if (_object.isHitInMoveRect(xPos, yPos, koefX, koefY))
 					{
-						if (_object.isFormFullOneButtonHover())
-						{
-							x = _object.formInfo.bounds.x;
-							y = _object.formInfo.bounds.y;
-							w = _object.formInfo.bounds.w;
-							h = _object.formInfo.bounds.h;
-						}
-						else
-						{
-							w = CONTENT_CONTROL_TRACK_H / koefX;
-							h = CONTENT_CONTROL_TRACK_H / koefY;
-
-							x = _object.formInfo.bounds.x + (_object.formInfo.bounds.w - w) / 2;
-							y = _object.formInfo.bounds.y + (_object.formInfo.bounds.h - h) / 2;
-						}
-
-						if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
-						{
-							indexButton = 0;
-						}
-					}
-					else
-					{
-						var rectOrigin = rectName || rectMove;
-						if (!rectOrigin)
-							return false;
-						x = rectOrigin.X + rectOrigin.W;
-						y = rectOrigin.Y;
-						w = CONTENT_CONTROL_TRACK_H / koefX;
-						h = CONTENT_CONTROL_TRACK_H / koefY;
-
-						for (var indexB = 0; indexB < _object.Buttons.length; indexB++)
-						{
-							if (xPos > x && xPos < (x + w) && yPos > y && yPos < (y + h))
-							{
-								indexButton = indexB;
-								break;
-							}
-							x += w;
-						}
-					}
-
-					if (-1 != indexButton)
-					{
-						_object.HoverButtonIndex = indexButton;
+						_object.visualState = 0;
 						oWordControl.ShowOverlay();
 						oWordControl.OnUpdateOverlay();
 						oWordControl.EndUpdateOverlay();
-
+						
 						this.document.SetCursorType("default");
-
+						
+						oWordControl.m_oApi.sync_MouseMoveStartCallback();
+						oWordControl.m_oApi.sync_MouseMoveEndCallback();
+						return true;
+					}
+					
+					if (_object.isHitInNameRect(xPos, yPos, koefX, koefY))
+					{
+						_object.HoverButtonIndex = -1;
+						oWordControl.ShowOverlay();
+						oWordControl.OnUpdateOverlay();
+						oWordControl.EndUpdateOverlay();
+						
+						this.document.SetCursorType("default");
+						
+						oWordControl.m_oApi.sync_MouseMoveStartCallback();
+						oWordControl.m_oApi.sync_MouseMoveEndCallback();
+						return true;
+					}
+					
+					let buttonInfo =  (isWithoutCoords !== true) ? _object.getButton(xPos, yPos, koefX, koefY) : null;
+					if (buttonInfo && 1 !== buttonInfo.index)
+					{
+						_object.HoverButtonIndex = buttonInfo.index;
+						oWordControl.ShowOverlay();
+						oWordControl.OnUpdateOverlay();
+						oWordControl.EndUpdateOverlay();
+						
+						this.document.SetCursorType("default");
+						
 						oWordControl.m_oApi.sync_MouseMoveStartCallback();
 						oWordControl.m_oApi.sync_MouseMoveEndCallback();
 						return true;
 					}
 				}
-
-				if (oldState != this.ContentControlObjectState)
-					oWordControl.OnUpdateOverlay();
-			}
-
-			if (_object)
-			{
-				var _page = this.document.m_arrPages[pos.Page];
-				if (!_page) return false;
-
-				var drawingPage = _page.drawingPage;
-				var koefX = (drawingPage.right - drawingPage.left) / _page.width_mm;
-				var koefY = (drawingPage.bottom - drawingPage.top) / _page.height_mm;
-
-				var rectCombo = _object.CalculateComboRect(koefX, koefY);
-
-				if (rectCombo && pos.Page == rectCombo.Page)
+				
+				if (_object.isHitInComboRect(xPos, yPos, koefX, koefY))
 				{
-					var xPos = pos.X - _object.OffsetX;
-					var yPos = pos.Y - _object.OffsetY;
-					if (_object.transform)
-					{
-						var tmp = _object.invertTransform.TransformPointX(xPos, yPos);
-						yPos = _object.invertTransform.TransformPointY(xPos, yPos);
-						xPos = tmp;
-					}
-
-					if (xPos > rectCombo.X && xPos < (rectCombo.X + rectCombo.W) && yPos > rectCombo.Y && yPos < (rectCombo.Y + rectCombo.H))
-					{
-						_object.HoverButtonIndex = _object.Buttons.length;
-						oWordControl.ShowOverlay();
-						oWordControl.OnUpdateOverlay();
-						oWordControl.EndUpdateOverlay();
-
-						this.document.SetCursorType("default");
-
-						oWordControl.m_oApi.sync_MouseMoveStartCallback();
-						oWordControl.m_oApi.sync_MouseMoveEndCallback();
-						return true;
-					}
+					_object.HoverButtonIndex = _object.Buttons.length;
+					oWordControl.ShowOverlay();
+					oWordControl.OnUpdateOverlay();
+					oWordControl.EndUpdateOverlay();
+					
+					this.document.SetCursorType("default");
+					
+					oWordControl.m_oApi.sync_MouseMoveStartCallback();
+					oWordControl.m_oApi.sync_MouseMoveEndCallback();
+					return true;
 				}
 			}
-
-			if (isChangeHover)
+			
+			if (updateOverlay)
 				oWordControl.OnUpdateOverlay();
-
+			
 			return false;
 		};
 
@@ -2975,40 +2910,31 @@
 			var oldContentControlSmall = this.ContentControlSmallChangesCheck.IsSmall;
 			this.ContentControlSmallChangesCheck.IsSmall = true;
 
-			if (this.ContentControlObjectState == 1)
+			let ccTrack = this.getInlineMoveTrack();
+			if (!ccTrack)
+				return false;
+			
+			ccTrack.visualState = -1;
+			if (this.document.InlineTextTrackEnabled)
 			{
-				for (var i = 0; i < this.ContentControlObjects.length; i++)
+				if (this.document.InlineTextTrack && !oldContentControlSmall) // значит был MouseMove
 				{
-					var _object = this.ContentControlObjects[i];
-					if (_object.state == AscCommon.ContentControlTrack.In)
-					{
-						if (this.document.InlineTextTrackEnabled)
-						{
-							if (this.document.InlineTextTrack && !oldContentControlSmall) // значит был MouseMove
-							{
-								this.document.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
-								this.document.m_oLogicDocument.OnContentControlTrackEnd(_object.base.GetId(), this.document.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
-								this.document.InlineTextTrackEnabled = false;
-								this.document.InlineTextTrack = null;
-								this.document.InlineTextTrackPage = -1;
-							}
-							else
-							{
-								this.document.InlineTextTrackEnabled = false;
-							}
-						}
-						break;
-					}
+					this.document.InlineTextTrack = oWordControl.m_oLogicDocument.Get_NearestPos(pos.Page, pos.X, pos.Y);
+					this.document.m_oLogicDocument.OnContentControlTrackEnd(ccTrack.base.GetId(), this.document.InlineTextTrack, AscCommon.global_keyboardEvent.CtrlKey);
+					this.document.InlineTextTrackEnabled = false;
+					this.document.InlineTextTrack = null;
+					this.document.InlineTextTrackPage = -1;
 				}
-
-				this.ContentControlObjectState = 0;
-				oWordControl.ShowOverlay();
-				oWordControl.OnUpdateOverlay();
-				oWordControl.EndUpdateOverlay();
-				return true;
+				else
+				{
+					this.document.InlineTextTrackEnabled = false;
+				}
 			}
-
-			return false;
+			
+			oWordControl.ShowOverlay();
+			oWordControl.OnUpdateOverlay();
+			oWordControl.EndUpdateOverlay();
+			return true;
 		}
 	}
 
@@ -3613,7 +3539,7 @@
 							ctx.strokeStyle = AscCommon.GlobalSkin.FormsContentControlsOutlineHover;
 						else
 						{
-							switch (object.parent.ContentControlObjectState)
+							switch (object.visualState)
 							{
 								case 0:
 									ctx.strokeStyle = AscCommon.GlobalSkin.FormsContentControlsOutlineMoverHover;
@@ -3936,7 +3862,7 @@
 							ctx.strokeStyle = AscCommon.GlobalSkin.FormsContentControlsOutlineHover;
 						else
 						{
-							switch (object.parent.ContentControlObjectState)
+							switch (object.visualState)
 							{
 								case 0:
 									ctx.strokeStyle = AscCommon.GlobalSkin.FormsContentControlsOutlineMoverHover;

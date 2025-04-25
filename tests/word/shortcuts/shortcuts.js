@@ -930,7 +930,7 @@
 			CheckSelectedText('Hello World Hello ', 'Select up');
 
 			ExecuteHotkey(testHotkeyActions.selectToEndDocument);
-			CheckSelectedText('Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello Hello World Hello Hello World Hello Hello World Hello World Hello World', 'Select to end document');
+			CheckSelectedText('Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello Hello World Hello Hello World Hello Hello World Hello World Hello World\r\n', 'Select to end document');
 
 			ExecuteHotkey(testHotkeyActions.selectToStartDocument);
 			CheckSelectedText('', 'Select to start document');
@@ -1051,7 +1051,7 @@
 			SelectDrawings([drawing2]);
 
 			ExecuteHotkey(testHotkeyActions.selectAllShapeEnter);
-			assert.strictEqual(logicDocument.GetSelectedText(), 'Hello', 'Check select non empty content');
+			assert.strictEqual(logicDocument.GetSelectedText(), 'Hello\r\n', 'Check select non empty content');
 
 			SelectDrawings([drawing1, drawing2]);
 
@@ -1259,7 +1259,7 @@
 			chart.selectTitle(titles[0], 0);
 
 			ExecuteHotkey(testHotkeyActions.selectAllInChartTitle);
-			assert.strictEqual(logicDocument.GetSelectedText(), 'Diagram Title', 'Check select all in title');
+			assert.strictEqual(logicDocument.GetSelectedText(), 'Diagram Title\r\n', 'Check select all in title');
 		});
 
 		QUnit.test('Check add new paragraph in content', (assert) =>
@@ -1386,7 +1386,7 @@
 			ClearDocumentAndAddParagraph('2601');
 			AscTest.MoveCursorLeft(true, true);
 			ExecuteHotkey(testHotkeyActions.unicodeToChar, 0);
-			assert.strictEqual(logicDocument.GetSelectedText(), '☁', 'Check replace unicode code to symbol');
+			assert.strictEqual(logicDocument.GetSelectedText(), '☁\r\n', 'Check replace unicode code to symbol');
 			AscTest.MoveCursorRight();
 			AscTest.EnterText(' 261d');
 

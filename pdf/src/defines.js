@@ -100,8 +100,17 @@
     FIELD_TYPES["listbox"]      = FIELD_TYPES.listbox;
     FIELD_TYPES["signature"]    = FIELD_TYPES.signature;
 
+    let CommandType = {
+        editPage:   0,
+        addPage:    1,
+        removePage: 2,
+        widgetInfo: 3,
+        movePage:   4
+    }
+
     Object.freeze(FIELD_TYPES);
     asc["FIELD_TYPES"]          = asc.FIELD_TYPES            = FIELD_TYPES;
     asc["BORDER_EFFECT_STYLES"] = asc.BORDER_EFFECT_STYLES   = BORDER_EFFECT_STYLES;
     asc["REF_TO_REASON"]        = asc.REF_TO_REASON          = REF_TO_REASON;
+    asc.CommandType             = CommandType;
 })();

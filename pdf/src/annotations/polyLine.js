@@ -42,10 +42,10 @@
 	 * Class representing a Ink annotation.
 	 * @constructor
     */
-    function CAnnotationPolyLine(sName, nPage, aRect, oDoc)
+    function CAnnotationPolyLine(sName, aRect, oDoc)
     {
         AscPDF.CPdfShape.call(this);
-        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.PolyLine, nPage, aRect, oDoc);
+        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.PolyLine, aRect, oDoc);
         
         AscPDF.initShape(this);
 
@@ -139,7 +139,7 @@
         let oDoc = this.GetDocument();
         oDoc.StartNoHistoryMode();
 
-        let oPolyline = new CAnnotationPolyLine(AscCommon.CreateGUID(), this.GetPage(), this.GetOrigRect().slice(), oDoc);
+        let oPolyline = new CAnnotationPolyLine(AscCommon.CreateGUID(), this.GetOrigRect().slice(), oDoc);
         oPolyline.lazyCopy = true;
 
         this.fillObject(oPolyline);

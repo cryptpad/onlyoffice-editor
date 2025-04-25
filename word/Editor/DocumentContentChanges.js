@@ -87,6 +87,7 @@ CChangesDocumentContentAddItem.prototype.Undo = function()
 			oDocument.Content[Pos].Prev = null;
 		}
 	}
+	this.Class.Recalculated = false;
 };
 CChangesDocumentContentAddItem.prototype.Redo = function()
 {
@@ -123,6 +124,7 @@ CChangesDocumentContentAddItem.prototype.Redo = function()
 
 		Element.Parent = oDocument;
 	}
+	this.Class.Recalculated = false;
 };
 CChangesDocumentContentAddItem.prototype.private_WriteItem = function(Writer, Item)
 {
@@ -176,6 +178,8 @@ CChangesDocumentContentAddItem.prototype.Load = function(Color)
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(oDocument, Pos);
 		}
 	}
+	
+	this.Class.Recalculated = false;
 };
 CChangesDocumentContentAddItem.prototype.IsRelated = function(oChanges)
 {
@@ -232,6 +236,7 @@ CChangesDocumentContentRemoveItem.prototype.Undo = function()
 
 		oElement.Parent = oDocument;
 	}
+	this.Class.Recalculated = false;
 };
 CChangesDocumentContentRemoveItem.prototype.Redo = function()
 {
@@ -261,6 +266,7 @@ CChangesDocumentContentRemoveItem.prototype.Redo = function()
 	{
 		oDocument.Content[Pos].Prev = null;
 	}
+	this.Class.Recalculated = false;
 };
 CChangesDocumentContentRemoveItem.prototype.private_WriteItem = function(Writer, Item)
 {
@@ -305,6 +311,7 @@ CChangesDocumentContentRemoveItem.prototype.Load = function(Color)
 
 		oDocument.private_ReindexContent(Pos);
 	}
+	this.Class.Recalculated = false;
 };
 CChangesDocumentContentRemoveItem.prototype.IsRelated = function(oChanges)
 {

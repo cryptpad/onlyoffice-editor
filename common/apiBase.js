@@ -170,6 +170,9 @@
         this.forceSaveTimeoutTimeout = null;
 		this.forceSaveForm = null;
 		this.forceSaveUndoRequest = false; // Флаг нужен, чтобы мы знали, что данное сохранение пришло по запросу Undo в совместке
+		this.forceSaveSendFormRequest = false;
+		this.forceSaveDisconnectRequest = false;
+		this.forceSaveOformRequest = false;
 		this.saveRelativePrev = {};
 
 		// Version History
@@ -221,6 +224,8 @@
 
 		this.skinObject = config['skin'];
 		this.isDarkMode = false;
+
+		this.isRtlInterface = config['isRtlInterface'] === true;
 
 		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
@@ -396,6 +401,9 @@
 			case c_oEditorId.Presentation:
 				res = 'slide';
 				break;
+			case c_oEditorId.Visio:
+				res = 'visio';
+				break;
 		}
 		return res;
 	};
@@ -405,7 +413,15 @@
 		switch (this.editorId)
 		{
 			case c_oEditorId.Word:
-				res = isOpenOoxml ? Asc.c_oAscFileType.DOCX : Asc.c_oAscFileType.CANVAS_WORD;
+				if (this.isPdfEditor())
+				{
+					//todo выставить формат
+					res = undefined;
+				}
+				else
+				{
+					res = isOpenOoxml ? Asc.c_oAscFileType.DOCX : Asc.c_oAscFileType.CANVAS_WORD;
+				}
 				break;
 			case c_oEditorId.Spreadsheet:
 				res = isOpenOoxml ? Asc.c_oAscFileType.XLSX: Asc.c_oAscFileType.CANVAS_SPREADSHEET;
@@ -1107,6 +1123,10 @@
 			case c_oEditorId.Presentation:
 				res = true;
 				break;
+			case c_oEditorId.Visio:
+				//todo сделать как в презентациях когда будет редактор
+				res = false;
+				break;
 		}
 		return res;
 	};
@@ -1347,7 +1367,10 @@
 	};
 	baseEditorsApi.prototype.forceSave = function()
 	{
-		return this.CoAuthoringApi.forceSave();
+		if (!this.getViewMode()) {
+			return this.CoAuthoringApi.forceSave();
+		}
+		return false;
 	};
 	baseEditorsApi.prototype.saveFromChanges = function(data, timeout, callback) {
 		var t = this;
@@ -2029,7 +2052,7 @@
 		this._coAuthoringInitEnd();
 
 		let openCmd = this._getOpenCmd();
-		this.CoAuthoringApi.init(this.User, this.documentId, this.documentCallbackUrl, 'fghhfgsjdgfjs', this.editorId, this.documentFormatSave, this.DocInfo, this.documentShardKey, this.documentWopiSrc, this.documentUserSessionId, openCmd);
+		this.CoAuthoringApi.init(this.User, this.documentId, this.documentCallbackUrl, 'fghhfgsjdgfjs', this.editorId, this.documentFormatSave, this.DocInfo, this.documentShardKey, this.documentWopiSrc, this.documentUserSessionId, this.headingsColor, openCmd);
 	};
 	baseEditorsApi.prototype._coAuthoringInitEnd                 = function()
 	{
@@ -2315,7 +2338,7 @@
 			jsonparams["locale"] = this.asc_getLocale();
 			//todo move cmd from header to body and uncomment
 			// jsonparams["translate"] = AscCommon.translateManager.mapTranslate;
-			jsonparams["documentLayout"] = { "openedAt" : this.openedAt};
+			jsonparams["documentLayout"] = { "openedAt" : this.openedAt, "headingsColor" : this.headingsColor};
 			if (this.watermarkDraw && this.watermarkDraw.inputContentSrc) {
 				jsonparams["watermark"] = JSON.parse(this.watermarkDraw.inputContentSrc);
 			}
@@ -2840,8 +2863,14 @@
 		if (this.canSave && this._saveCheck() && this.canSendChanges()) {
 			this.IsUserSave = !isAutoSave;
 
-			if (this.asc_isDocumentCanSave() || this._haveChanges() || this._haveOtherChanges() ||
-				this.canUnlockDocument || this.forceSaveUndoRequest) {
+			if (this.asc_isDocumentCanSave()
+				|| this._haveChanges()
+				|| this._haveOtherChanges()
+				|| this.canUnlockDocument
+				|| this.forceSaveUndoRequest
+				|| this.forceSaveSendFormRequest
+				|| this.forceSaveDisconnectRequest
+				|| this.forceSaveOformRequest) {
 				if (this._prepareSave(isIdle)) {
 					// Не даем пользователю сохранять, пока не закончится сохранение (если оно началось)
 					this.canSave = false;
@@ -3337,6 +3366,11 @@
 		}
 	};
 
+	baseEditorsApi.prototype.isDrawSlideshowAnnotations = function()
+	{
+		return false;
+	};
+
 	// plugins
 	baseEditorsApi.prototype._checkLicenseApiFunctions   = function()
 	{
@@ -3384,6 +3418,11 @@
 	{
 		if (null != this.pluginsManager)
 			this.pluginsManager.buttonClick(id, guid, windowId);
+	};
+	baseEditorsApi.prototype.asc_pluginButtonDockChanged = function(type, guid, windowId, callback)
+	{
+		if (null != this.pluginsManager)
+			this.pluginsManager.onPluginWindowDockChanged(type, guid, windowId, callback);
 	};
 
 	baseEditorsApi.prototype.asc_pluginEnableMouseEvents = function(isEnable)
@@ -5175,7 +5214,7 @@
         return this.canRemoveAllInks();
 	};
 	baseEditorsApi.prototype.canRemoveAllInks = function() {
-        return true;
+        return this.haveInks();
 	};
 	baseEditorsApi.prototype.stopInkDrawer = function() {
 		this.inkDrawer.turnOff();
@@ -5196,6 +5235,9 @@
 	};
 	baseEditorsApi.prototype.getInkCursorType = function() {
 		return this.inkDrawer.getCursorType();
+	};
+	baseEditorsApi.prototype.getAnnotations = function() {
+		return null;
 	};
 	baseEditorsApi.prototype.isMasterMode = function(){
 		return false;
@@ -5441,6 +5483,28 @@
 	baseEditorsApi.prototype.asc_mergeSelectedShapesAction = function(operation) {
 
 	};
+	baseEditorsApi.prototype.asc_setRtlTextDirection = function(isRtl) {
+	};
+	baseEditorsApi.prototype.asc_isRtlTextDirection = function() {
+		return false;
+	};
+	
+	baseEditorsApi.prototype.asc_CheckCopy = function(data, format) {
+	};
+	baseEditorsApi.prototype.getSelectedContent = function(format) {
+		let text_data = {
+			data     : "",
+			pushData : function(format, value) {
+				this.data = value;
+			}
+		};
+		
+		this.asc_CheckCopy(text_data, format);
+		if (text_data.data == null)
+			text_data.data = "";
+		
+		return text_data.data;
+	};
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
@@ -5523,6 +5587,7 @@
 	prot['asc_getInputLanguage'] = prot.asc_getInputLanguage;
 
 	prot['setPluginsOptions'] = prot.setPluginsOptions;
+	prot['asc_pluginButtonDockChanged'] = prot.asc_pluginButtonDockChanged;
 
 	// passwords
 	prot["asc_setCurrentPassword"] = prot.asc_setCurrentPassword;

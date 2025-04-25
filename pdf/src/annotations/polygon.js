@@ -42,10 +42,10 @@
 	 * Class representing a Ink annotation.
 	 * @constructor
     */
-    function CAnnotationPolygon(sName, nPage, aRect, oDoc)
+    function CAnnotationPolygon(sName, aRect, oDoc)
     {
         AscPDF.CPdfShape.call(this);
-        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.Polygon, nPage, aRect, oDoc);
+        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.Polygon, aRect, oDoc);
         
         AscPDF.initShape(this);
 
@@ -148,7 +148,7 @@
         let oDoc = this.GetDocument();
         oDoc.StartNoHistoryMode();
 
-        let oPolygon = new CAnnotationPolygon(AscCommon.CreateGUID(), this.GetPage(), this.GetOrigRect().slice(), oDoc);
+        let oPolygon = new CAnnotationPolygon(AscCommon.CreateGUID(), this.GetOrigRect().slice(), oDoc);
         oPolygon.lazyCopy = true;
 
         this.fillObject(oPolygon);

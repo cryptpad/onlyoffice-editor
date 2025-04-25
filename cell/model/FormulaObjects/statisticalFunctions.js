@@ -5175,6 +5175,9 @@ function (window, undefined) {
 	cCOUNTIFS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	//TODO все четные - на вход должны приходить как array/area
 	cCOUNTIFS.prototype.arrayIndexes = {0: 1, 2: 1, 4: 1, 6: 1, 8: 1};
+	cCOUNTIFS.prototype.getArrayIndex = function (index) {
+		return index % 2 === 0 ? 1 : null;
+	};
 	cCOUNTIFS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cCOUNTIFS.prototype.argumentsType = [[argType.reference, argType.any]];
 	cCOUNTIFS.prototype.Calculate = function (arg) {

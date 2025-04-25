@@ -547,6 +547,8 @@
 					shapeOrGroup.recalculate();
 					shapeOrGroup.recalculateTransformText && shapeOrGroup.recalculateTransformText();
 					shapeOrGroup.recalculateLocalTransform(shapeOrGroup.transform);
+					shapeOrGroup.recalculateContent && shapeOrGroup.recalculateContent();
+
 				}
 			}
 		}

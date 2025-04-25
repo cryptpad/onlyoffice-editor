@@ -215,7 +215,7 @@
 			return "";
 		
 		paragraph.SetApplyToAll(true);
-		let text = paragraph.GetSelectedText(true, {NewLine: true});
+		let text = paragraph.GetSelectedText(true);
 		paragraph.SetApplyToAll(false);
 		return text;
 	};

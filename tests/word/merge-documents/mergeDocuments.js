@@ -899,9 +899,9 @@ const arrWordTestDocumentInfo = [
 	///////////////////////// -> 38 <- /////////////////////////////
 	{
 		originalDocument: [
-			[createParagraphInfo('Привет привет ', undefined, undefined), createParagraphInfo('привет', undefined, undefined, undefined, {comments:{start:[{start: true, id: 0}]}})], [createParagraphInfo('Привет привет привет', undefined, undefined), createParagraphInfo(undefined, undefined, undefined, undefined, {comments:{start:[{start: false, id: 0, data:{text: '123', quoteText: 'приветПривет привет привет', arrAnswers: null}}]}})]		],
+			[createParagraphInfo('Привет привет ', undefined, undefined), createParagraphInfo('привет', undefined, undefined, undefined, {comments:{start:[{start: true, id: 0}]}})], [createParagraphInfo('Привет привет привет', undefined, undefined), createParagraphInfo(undefined, undefined, undefined, undefined, {comments:{start:[{start: false, id: 0, data:{text: '123', quoteText: 'привет\r\nПривет привет привет', arrAnswers: null}}]}})]		],
 		revisedDocument : [
-			[createParagraphInfo('Привет ', undefined, undefined), createParagraphInfo('привет привет', undefined, undefined, undefined, {comments:{start:[{start: true, id: 0}]}})], [createParagraphInfo('Привет привет привет', undefined, undefined), createParagraphInfo(undefined, undefined, undefined, undefined, {comments:{start:[{start: false, id: 0, data:{text: '123', quoteText: 'привет приветПривет привет привет', arrAnswers: null}}]}})]
+			[createParagraphInfo('Привет ', undefined, undefined), createParagraphInfo('привет привет', undefined, undefined, undefined, {comments:{start:[{start: true, id: 0}]}})], [createParagraphInfo('Привет привет привет', undefined, undefined), createParagraphInfo(undefined, undefined, undefined, undefined, {comments:{start:[{start: false, id: 0, data:{text: '123', quoteText: 'привет привет\r\nПривет привет привет', arrAnswers: null}}]}})]
 		]
 	},
 	///////////////////////// -> 39 <- /////////////////////////////
@@ -2418,7 +2418,7 @@ const arrWordAnswers = [
 	/////////////////////////////////// -> 38 <- ////////////////////////////////////////////
 	{
 		finalDocument: [
-			[createParagraphInfo('Привет ', undefined, undefined), createParagraphInfo('привет привет', undefined, undefined, undefined, {comments:{start:[{start: true, id: 0}]}})], [createParagraphInfo('Привет привет привет', undefined, undefined), createParagraphInfo(undefined, undefined, undefined, undefined, {comments:{start:[{start: false, id: 0, data:{text: '123', quoteText: 'привет приветПривет привет привет', arrAnswers: null}}]}})]
+			[createParagraphInfo('Привет ', undefined, undefined), createParagraphInfo('привет привет', undefined, undefined, undefined, {comments:{start:[{start: true, id: 0}]}})], [createParagraphInfo('Привет привет привет', undefined, undefined), createParagraphInfo(undefined, undefined, undefined, undefined, {comments:{start:[{start: false, id: 0, data:{text: '123', quoteText: 'привет привет\r\nПривет привет привет', arrAnswers: null}}]}})]
 		]
 	},
 	/////////////////////////////////// -> 39 <- ////////////////////////////////////////////

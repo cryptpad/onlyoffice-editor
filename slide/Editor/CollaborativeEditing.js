@@ -686,6 +686,24 @@ CCollaborativeEditing.prototype.private_UpdateForeignCursor = function(CursorInf
 {
     this.GetPresentation().Update_ForeignCursor(CursorInfo, UserId, Show, UserShortId);
 };
+CCollaborativeEditing.prototype._PreUndo = function() {
+	let logicDocument = this.m_oLogicDocument;
+
+	logicDocument.DrawingDocument.EndTrackTable(null, true);
+	logicDocument.TurnOffCheckChartSelection();
+
+	return this.private_SaveDocumentState();
+};
+CCollaborativeEditing.prototype._PostUndo = function(state, changes) {
+	this.private_RestoreDocumentState(state);
+	this.private_RecalculateDocument(changes);
+
+	let logicDocument = this.m_oLogicDocument;
+	logicDocument.TurnOnCheckChartSelection();
+	logicDocument.UpdateSelection();
+	logicDocument.UpdateInterface();
+	logicDocument.UpdateRulers();
+};
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};

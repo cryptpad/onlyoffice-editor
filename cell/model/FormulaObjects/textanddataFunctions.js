@@ -1245,6 +1245,30 @@ function (window, undefined) {
 			AscCommonExcel.importRangeLinksState.importRangeLinks[linkName].push(is3DRef);
 		}
 
+		let checkHyperlink = function (string) {
+			if (!string) {
+				return false;
+			}
+			if (typeof string !== 'string') {
+				return false;
+			}
+
+			// protocol check
+			let protocols = ['http://', 'https://', 'ftp://'];
+			let hasValidProtocol = false;
+
+			for (let i = 0; i < protocols.length; i++) {
+				if (string.indexOf(protocols[i]) === 0) {
+					hasValidProtocol = true;
+					break;
+				}
+			}
+
+			// domain check
+			let hasDomain = string.indexOf('.') !== -1 && string.charAt(0) !== '.';
+			return hasValidProtocol && hasDomain;
+		}
+
 		let api = window["Asc"]["editor"];
 		let wb = api && api.wbModel;
 		let eR = wb && wb.getExternalLinkByName(arg0.toString());
@@ -1273,6 +1297,9 @@ function (window, undefined) {
 								let externalCell = row.getCell(j);
 								if (externalCell) {
 									let cellValue = externalCell.getFormulaValue();
+									if (cellValue && cellValue.value && checkHyperlink(cellValue.value)) {
+										cellValue.hyperlink = cellValue.value;
+									}
 									ret.addElement(cellValue);
 								}
 							}
