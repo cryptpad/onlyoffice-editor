@@ -3019,9 +3019,12 @@
 		let externalLink = exclamationMarkIndex !== -1 ? string.substring(0, exclamationMarkIndex) : null;
 		let secondPartOfString = exclamationMarkIndex !== -1 ? string.substring(exclamationMarkIndex + 1) : null;
 
-		let defname = XRegExp.exec(secondPartOfString, rx_name);
-		if (defname && defname["name"]) {
-			defname = defname["name"];
+		let defname = null;
+		if (secondPartOfString && !parserHelp.isArea(secondPartOfString, 0) && !parserHelp.isRef(secondPartOfString, 0)) {
+			defname = XRegExp.exec(secondPartOfString, rx_name);
+			if (defname && defname["name"]) {
+				defname = defname["name"];
+			}
 		}
 
 		if (externalLink && externalLink[0] === "'" && externalLink[externalLink.length - 1] === "'") {
@@ -3493,8 +3496,8 @@
 			//также ссылки типа [] + ! + Defname должны обрабатываться аналогично как [] + SheetName + ! + Defname
 			external = parseExternalLink(subSTR);
 			if (external) {
-				if (external.name && (external.name.indexOf("[") !== -1 || external.name.indexOf(":") !== -1)) {
-					// if the name contains '[' and ':' , then we return an error
+				if (external.name && (external.name.indexOf("[") !== -1)) {
+					// if the link/path to the file inside brackets contains '[' then we return an error
 					return [false, null, null, external, externalLength];
 				}
 
@@ -3907,7 +3910,7 @@
 		const fullPatterns = [];
 		for (let i = 0; i < opt_namesList[0].length; i += 1) {
 			for (let j = 0; j < opt_namesList[1].length; j += 1) {
-				fullPatterns.push('^(' + opt_namesList[0][i] + ')\\s*\\[\\s*(' + opt_namesList[1][j] + ')\\s*\\]');
+				fullPatterns.push('^(' + XRegExp.escape(opt_namesList[0][i]) + ')\\s*\\[\\s*(' + XRegExp.escape(opt_namesList[1][j]) + ')\\s*\\]');
 			}
 		}
 		const fullRegs = fullPatterns.map(function(pattern) {
@@ -3922,7 +3925,7 @@
 			}
 		}
 		const shortPatterns = opt_namesList[1].map(function(name) {
-			return '^(' + name + ')(?:\\W|$)'
+			return '^(' + XRegExp.escape(name) + ')(?:\\W|$)';
 		});
 		const shortRegs = shortPatterns.map(function(pattern) {
 			return new RegExp(pattern, 'i');
@@ -4533,7 +4536,7 @@
 		this.Type = NewType;
 
 		var oApi = editor;
-		var oLogicDocument = oApi.WordControl.m_oLogicDocument;
+		var oLogicDocument = oApi && oApi.WordControl && oApi.WordControl.m_oLogicDocument;
 		if (false != Redraw && oLogicDocument)
 		{
 			// TODO: переделать перерисовку тут
@@ -4574,7 +4577,7 @@
 				oLogicDocument.Document_UpdateInterfaceState(false);
 			}
 		}
-		let oCustomProperties = oApi.getCustomProperties && oApi.getCustomProperties();
+		let oCustomProperties = oApi && oApi.getCustomProperties && oApi.getCustomProperties();
 		if(oCustomProperties && oCustomProperties.Lock === this)
 		{
 			oApi.sendEvent("asc_onCustomPropertiesLocked", this.Is_Locked());
@@ -15134,6 +15137,7 @@
 	window["AscCommon"].trimMinMaxValue = trimMinMaxValue;
 	window["AscCommon"].cStrucTableReservedWords = cStrucTableReservedWords;
 	window["AscCommon"].getArrayRandomElement = getArrayRandomElement;
+	window["AscCommon"].rx_error = rx_error;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo, csv_data)
@@ -15345,6 +15349,9 @@ window["buildCryptoFile_End"] = function(url, error, hash, password)
 					break;
 				case AscCommon.c_oEditorId.Spreadsheet:
 					ext = ".xlsx";
+					break;
+				case AscCommon.c_oEditorId.Visio:
+					ext = ".vsdx";
 					break;
 				default:
 					break;

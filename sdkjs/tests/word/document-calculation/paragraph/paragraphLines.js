@@ -45,69 +45,111 @@ $(function () {
 	let run = new AscWord.CRun();
 	para.AddToContent(0, run);
 
-	function Recalculate(width)
+	function recalculate(width)
 	{
 		dc.Reset(0, 0, width, 10000);
 		dc.Recalculate_Page(0, true);
 	}
 
-	function SetText(text)
+	function setText(text)
 	{
 		run.ClearContent();
 		run.AddText(text);
 	}
+	
+	function checkLines(assert, para, lines)
+	{
+		assert.strictEqual(para.GetLinesCount(), lines.length, "Check number of lines");
+		
+		for (let i = 0, lineCount = Math.min(lines.length, para.GetLinesCount()); i < lineCount; ++i)
+		{
+			assert.strictEqual(para.GetTextOnLine(i), lines[i], "Check text on line " + i);
+		}
+	}
 
 	QUnit.module("Paragraph Lines");
 
-	QUnit.test("Test: \"Test regular line break cases\"", function (assert)
+	QUnit.test("Test regular line break cases", function (assert)
 	{
-		SetText("1234");
-		Recalculate(charWidth * 3.5);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "1234", "Paragraph text: 1234");
-		assert.strictEqual(para.GetLinesCount(), 2, "Lines count 2");
-		assert.strictEqual(para.GetTextOnLine(0), "123", "Text on line 0 '123'");
-		assert.strictEqual(para.GetTextOnLine(1), "4", "Text on line 1 '4'");
-
-		SetText("12 34");
-		Recalculate(charWidth * 3.5);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "12 34", "Paragraph text: 12 34");
-		assert.strictEqual(para.GetLinesCount(), 2, "Lines count 2");
-		assert.strictEqual(para.GetTextOnLine(0), "12 ", "Text on line 0 '12 ");
-		assert.strictEqual(para.GetTextOnLine(1), "34", "Text on line 1 '34'");
-
+		setText("1234");
+		recalculate(charWidth * 3.5);
+		checkLines(assert, para, [
+			"123",
+			"4"
+		]);
+		
+		setText("12 34");
+		recalculate(charWidth * 3.5);
+		checkLines(assert, para, [
+			"12 ",
+			"34"
+		]);
 	});
+	
+	QUnit.test("Test line breaks for Asian text", function (assert)
+	{
+		setText("你好世界! 你好世界! 你好世界! 你好世界! ");
+		recalculate(charWidth * 8.5);
+		checkLines(assert, para, [
+			"你好世界! 你好",
+			"世界! 你好世",
+			"界! 你好世界! "
+		]);
+		
+		setText("你好世界! Hello! 你好世界! 你好世界! ");
+		recalculate(charWidth * 8.5);
+		checkLines(assert, para, [
+			"你好世界! ",
+			"Hello! 你",
+			"好世界! 你好世",
+			"界! "
+		]);
+		
+		// check non asian text with the eastAsian hint (71108)
+		run.SetRFontsHint(AscWord.fonthint_EastAsia);
+		setText("你好世界! Hello! 你好世界! 你好世界! ");
+		recalculate(charWidth * 8.5);
+		checkLines(assert, para, [
+			"你好世界! He",
+			"llo! 你好世",
+			"界! 你好世界! "
+		]);
+		
+		run.SetRFontsHint(undefined);
+	});
+	
 
 	QUnit.test("Test: \"Test paragraph with very narrow width\"", function (assert)
 	{
 		assert.strictEqual(dc.GetElementsCount(), 1, "Paragraphs count");
 
 		let narrowWidth = charWidth / 2;
-
-		SetText("");
-		Recalculate(narrowWidth);
+		
+		setText("");
+		recalculate(narrowWidth);
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count of empty paragraph");
 		assert.deepEqual(para.GetLineBounds(0), new AscWord.CDocumentBounds(0, 0, narrowWidth, AscTest.FontHeight), "Line bounds of empty paragraph");
 		assert.strictEqual(para.GetPagesCount(), 1, "Pages count of paragraph");
-
-		SetText("123");
-		Recalculate(narrowWidth);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "123", "Paragraph text: 123");
+		
+		setText("123");
+		recalculate(narrowWidth);
+		assert.strictEqual(AscTest.GetParagraphText(para), "123", "Paragraph text: 123");
 		assert.strictEqual(para.GetLinesCount(), 3, "Lines count 3");
 		assert.deepEqual(para.GetLineBounds(0), new AscWord.CDocumentBounds(0, 0, narrowWidth, AscTest.FontHeight), "Check line bounds");
 		assert.deepEqual(para.GetLineBounds(1), new AscWord.CDocumentBounds(0, AscTest.FontHeight, narrowWidth, AscTest.FontHeight * 2), "Check line bounds");
 		assert.deepEqual(para.GetLineBounds(2), new AscWord.CDocumentBounds(0, AscTest.FontHeight * 2, narrowWidth, AscTest.FontHeight * 3), "Check line bounds");
 		assert.strictEqual(para.GetPagesCount(), 1, "Pages count of paragraph");
-
-		SetText("Q");
-		Recalculate(narrowWidth);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "Q", "Paragraph text: Q");
+		
+		setText("Q");
+		recalculate(narrowWidth);
+		assert.strictEqual(AscTest.GetParagraphText(para), "Q", "Paragraph text: Q");
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count 1");
 		assert.deepEqual(para.GetLineBounds(0), new AscWord.CDocumentBounds(0, 0, narrowWidth, AscTest.FontHeight), "Check line bounds");
 		assert.strictEqual(para.GetPagesCount(), 1, "Pages count of paragraph");
-
-		SetText("Q ");
-		Recalculate(narrowWidth);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "Q ", "Paragraph text: Q'<'space'>'");
+		
+		setText("Q ");
+		recalculate(narrowWidth);
+		assert.strictEqual(AscTest.GetParagraphText(para), "Q ", "Paragraph text: Q'<'space'>'");
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count 1");
 		assert.deepEqual(para.GetLineBounds(0), new AscWord.CDocumentBounds(0, 0, narrowWidth, AscTest.FontHeight), "Check line bounds");
 		assert.strictEqual(para.GetPagesCount(), 1, "Pages count of paragraph");
@@ -115,14 +157,14 @@ $(function () {
 
 	QUnit.test("Test: \"Test line break of ligatures\"", function (assert)
 	{
-		SetText("ffi");
+		setText("ffi");
 
 		let text_f_0 = run.GetElement(0);
 		let text_f_1 = run.GetElement(1);
 		let text_i   = run.GetElement(2);
 
-		Recalculate(charWidth * 3.5);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "ffi", "Paragraph text: ffi");
+		recalculate(charWidth * 3.5);
+		assert.strictEqual(AscTest.GetParagraphText(para), "ffi", "Paragraph text: ffi");
 
 		assert.strictEqual(text_f_0.GetCodePointType(), AscWord.CODEPOINT_TYPE.LIGATURE, "Check f code point type");
 		assert.strictEqual(text_f_1.GetCodePointType(), AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE, "Check f code point type");
@@ -131,7 +173,7 @@ $(function () {
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count 1");
 		assert.strictEqual(para.GetTextOnLine(0), "ffi", "Text on line 0 'ffi ");
 
-		Recalculate(charWidth * 2.5);
+		recalculate(charWidth * 2.5);
 
 		assert.strictEqual(text_f_0.GetCodePointType(), AscWord.CODEPOINT_TYPE.LIGATURE, "Check f code point type");
 		assert.strictEqual(text_f_1.GetCodePointType(), AscWord.CODEPOINT_TYPE.LIGATURE_CONTINUE, "Check f code point type");
@@ -141,7 +183,7 @@ $(function () {
 		assert.strictEqual(para.GetTextOnLine(0), "ff", "Text on line 0 'ff'");
 		assert.strictEqual(para.GetTextOnLine(1), "i", "Text on line 1 'i'");
 
-		Recalculate(charWidth * 1.5);
+		recalculate(charWidth * 1.5);
 
 		assert.strictEqual(text_f_0.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check f code point type");
 		assert.strictEqual(text_f_1.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check f code point type");
@@ -155,14 +197,14 @@ $(function () {
 
 	QUnit.test("Test: \"Test line break of combining marks\"", function (assert)
 	{
-		SetText("xyz");
+		setText("xyz");
 
 		let text_x = run.GetElement(0);
 		let text_y = run.GetElement(1);
 		let text_z = run.GetElement(2);
 
-		Recalculate(charWidth * 3.5);
-		assert.strictEqual(para.GetText({ParaEndToSpace : false}), "xyz", "Paragraph text: xyz");
+		recalculate(charWidth * 3.5);
+		assert.strictEqual(AscTest.GetParagraphText(para), "xyz", "Paragraph text: xyz");
 
 		assert.strictEqual(text_x.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check x code point type");
 		assert.strictEqual(text_y.GetCodePointType(), AscWord.CODEPOINT_TYPE.COMBINING_MARK, "Check y code point type");
@@ -172,7 +214,7 @@ $(function () {
 		assert.strictEqual(para.GetTextOnLine(0), "xyz", "Text on line 0 'xyz ");
 
 		// Комбинированные символы НЕ ДОЛЖНЫ отдельно переносится на новую строку
-		Recalculate(charWidth * 2.5);
+		recalculate(charWidth * 2.5);
 
 		assert.strictEqual(text_x.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check x code point type");
 		assert.strictEqual(text_y.GetCodePointType(), AscWord.CODEPOINT_TYPE.COMBINING_MARK, "Check y code point type");
@@ -181,7 +223,7 @@ $(function () {
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count 1");
 		assert.strictEqual(para.GetTextOnLine(0), "xyz", "Text on line 0 'xyz'");
 
-		Recalculate(charWidth * 1.5);
+		recalculate(charWidth * 1.5);
 
 		assert.strictEqual(text_x.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check x code point type");
 		assert.strictEqual(text_y.GetCodePointType(), AscWord.CODEPOINT_TYPE.COMBINING_MARK, "Check y code point type");
@@ -190,7 +232,7 @@ $(function () {
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count 1");
 		assert.strictEqual(para.GetTextOnLine(0), "xyz", "Text on line 0 'xyz'");
 
-		Recalculate(charWidth * 1.5);
+		recalculate(charWidth * 1.5);
 
 		assert.strictEqual(text_x.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check x code point type");
 		assert.strictEqual(text_y.GetCodePointType(), AscWord.CODEPOINT_TYPE.COMBINING_MARK, "Check y code point type");
@@ -199,7 +241,7 @@ $(function () {
 		assert.strictEqual(para.GetLinesCount(), 1, "Lines count 1");
 		assert.strictEqual(para.GetTextOnLine(0), "xyz", "Text on line 0 'xyz'");
 
-		Recalculate(charWidth * 0.5);
+		recalculate(charWidth * 0.5);
 
 		assert.strictEqual(text_x.GetCodePointType(), AscWord.CODEPOINT_TYPE.BASE, "Check x code point type");
 		assert.strictEqual(text_y.GetCodePointType(), AscWord.CODEPOINT_TYPE.COMBINING_MARK, "Check y code point type");

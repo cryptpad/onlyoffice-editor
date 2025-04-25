@@ -611,7 +611,7 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 	}
 	var curPoint = this.Points[this.Index];
 	//if(Class)
-	this.Add(Class, Type, sheetid, range, Data, LocalChange);
+	this.Add(Class, Type, sheetid, range, Data, LocalChange, true);
 	if(bNeedOff)
 		this.TurnOff();
 
@@ -1188,7 +1188,7 @@ CHistory.prototype.Create_NewPoint = function()
 // Регистрируем новое изменение:
 // Class - объект, в котором оно произошло
 // Data  - сами изменения
-CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange)
+CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange, isRedoAdd)
 {
 	if (!this.CanAddChanges())
 		return;
@@ -1231,7 +1231,9 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 	if(null != LocalChange)
 		Item.LocalChange = LocalChange;
 
-	this.Refresh_SpreadsheetChanges(Item);
+	if (!isRedoAdd) {
+		this.Refresh_SpreadsheetChanges(Item);
+	}
 
     var curPoint = this.Points[this.Index];
 	curPoint.Items.push( Item );
@@ -1247,7 +1249,7 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 	if (null != sheetid)
 		curPoint.UndoSheetId = sheetid;
 
-	if(1 === curPoint.Items.length)
+	if((1 === curPoint.Items.length && curPoint.Items[0].Type !== AscCH.historyitem_Unknown) || 2 === curPoint.Items.length)
 		this._sendCanUndoRedo();
 
 	if (!this.CollaborativeEditing)
@@ -1402,6 +1404,9 @@ CHistory.prototype.EndTransaction = function(checkLockLastAction)
 	if(this.Transaction < 0)
 		this.Transaction = 0;
 	if (this.IsEndTransaction() && this.workbook) {
+		if (AscCommonExcel.g_cCalcRecursion) {
+			AscCommonExcel.g_cCalcRecursion.setIsCellEdited(true);
+		}
 		this.workbook.dependencyFormulas.unlockRecal();
 		this.workbook.handlers.trigger("updateCellWatches");
 		this.workbook.oApi.sendEvent("asc_onUserActionEnd");
@@ -1590,8 +1595,11 @@ CHistory.prototype.GetSerializeArray = function()
 	};
 	CHistory.prototype.Is_LastPointEmpty = function()
 	{
-		if (!this.Points[this.Index] || this.Points[this.Index].Items.length <= 0)
+		if (!this.Points[this.Index] || this.Points[this.Index].Items.length <= 0 || (this.Points[this.Index].Items.length === 1
+			&& this.Points[this.Index].Items[0].Type === AscCH.historyitem_Unknown))
+		{
 			return true;
+		}
 
 		return false;
 	};

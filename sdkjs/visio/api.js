@@ -426,10 +426,10 @@
 	window["VisioEditorApi"].prototype["asc_nativeOpenFile"] = function(base64File, version)
 	{
 		// this.SpellCheckUrl = '';
-		//
-		// this.User = new AscCommon.asc_CUser();
-		// this.User.setId("TM");
-		// this.User.setUserName("native");
+
+		this.User = new AscCommon.asc_CUser();
+		this.User.setId("TM");
+		this.User.setUserName("native");
 
 		this.InitEditor();
 

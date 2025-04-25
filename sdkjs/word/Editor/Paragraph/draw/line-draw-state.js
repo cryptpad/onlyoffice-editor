@@ -75,6 +75,7 @@
 		this.Spaces          = 0;
 		
 		this.complexFields = new AscWord.ParagraphComplexFieldStack();
+		this.contentControls = [];
 		
 		this.run = null;
 		
@@ -89,9 +90,10 @@
 		this.isStrikeout  = false;
 		this.isDStrikeout = false;
 		
-		this.form       = null;
-		this.formBorder = null;
-		this.combMax    = -1;
+		this.form            = null;
+		this.formBorderColor = null;
+		this.formBorderWidth = 0;
+		this.combMax         = -1;
 		
 		this.reviewAdd    = false;
 		this.reviewRem    = false;
@@ -303,13 +305,16 @@
 		let combMax    = -1;
 		if (form)
 		{
+			if (form.IsTextForm() && form.GetTextFormPr().IsComb())
+				combMax = form.GetTextFormPr().GetMaxCharacters();
+
+			if (!form.IsMainForm())
+				form = form.GetMainForm();
+			
 			if (form.IsFormRequired() && this.logicDocument.IsHighlightRequiredFields() && !this.Graphics.isPrintMode)
 				formBorder = this.logicDocument.GetRequiredFieldsBorder();
 			else if (form.GetFormPr().GetBorder())
 				formBorder = form.GetFormPr().GetBorder();
-			
-			if (form.IsTextForm() && form.GetTextFormPr().IsComb())
-				combMax = form.GetTextFormPr().GetMaxCharacters();
 			
 			this.isFormPlaceholder = (form.IsPlaceHolder() && this.Graphics.isPrintMode);
 			
@@ -320,9 +325,33 @@
 				this.isFormPlaceholder = true;
 		}
 		
-		this.form       = form;
-		this.formBorder = formBorder;
-		this.combMax    = combMax;
+		this.form    = form;
+		this.combMax = combMax;
+		
+		this.formBorderWidth = 0;
+		this.formBorderColor = null;
+		
+		if (this.form && formBorder)
+		{
+			this.formBorderWidth = formBorder.GetWidth();
+			this.formBorderColor = AscWord.CDocumentColorA.fromObjectRgb(formBorder.GetColor());
+		}
+		else
+		{
+			// TODO: It's better to handle CC stack on the fly instead of getting it for each run
+			let contentControls = run.GetParentContentControls();
+			for (let i = contentControls.length - 1; i >= 0; --i)
+			{
+				let cc = contentControls[i];
+				if (cc instanceof AscWord.CInlineLevelSdt && cc.getBorderColor())
+				{
+					this.form            = cc;
+					this.formBorderWidth = 0;
+					this.formBorderColor = cc.getBorderColor();
+					break;
+				}
+			}
+		}
 		
 		this.yOffset = run.getYOffset();
 		
@@ -352,11 +381,11 @@
 	ParagraphLineDrawState.prototype.handleFormBorder = function(item, run, inRunPos)
 	{
 		let itemWidth = item.GetWidthVisible();
-		if (!this.formBorder || itemWidth <= 0.001)
+		if (!this.form || itemWidth <= 0.001 || !this.formBorderColor)
 			return;
 		
-		let borderW     = this.formBorder.GetWidth();
-		let borderColor = this.formBorder.GetColor();
+		let borderW     = this.formBorderWidth;
+		let borderColor = this.formBorderColor;
 		
 		let Y = this.Baseline;
 		let X = this.X;
@@ -381,32 +410,35 @@
 		if (item.RGapCount)
 		{
 			var nGapEnd = X + itemWidth;
-			this.FormBorder.Add(Y, Y, X, nGapEnd - item.RGapCount * item.RGapShift,
+			this.FormBorder.addWithAlpha(Y, Y, X, nGapEnd - item.RGapCount * item.RGapShift,
 				borderW,
 				borderColor.r,
 				borderColor.g,
 				borderColor.b,
+				borderColor.a,
 				additional
 			);
 			
 			for (var nGapIndex = 0; nGapIndex < item.RGapCount; ++nGapIndex)
 			{
-				this.FormBorder.Add(Y, Y, nGapEnd - (item.RGapCount - nGapIndex) * item.RGapShift, nGapEnd - (item.RGapCount - nGapIndex - 1) * item.RGapShift,
+				this.FormBorder.addWithAlpha(Y, Y, nGapEnd - (item.RGapCount - nGapIndex) * item.RGapShift, nGapEnd - (item.RGapCount - nGapIndex - 1) * item.RGapShift,
 					borderW,
 					borderColor.r,
 					borderColor.g,
 					borderColor.b,
+					borderColor.a,
 					additional
 				);
 			}
 		}
 		else
 		{
-			this.FormBorder.Add(Y, Y, X, X + itemWidth,
+			this.FormBorder.addWithAlpha(Y, Y, X, X + itemWidth,
 				borderW,
 				borderColor.r,
 				borderColor.g,
 				borderColor.b,
+				borderColor.a,
 				additional
 			);
 		}

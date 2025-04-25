@@ -1920,6 +1920,9 @@ function(window, undefined) {
 		if (allSeries.length === 0) {
 			return false;
 		}
+		if(this.isChartEx()) {
+
+		}
 		return true;
 	};
 	CChartSpace.prototype.isSupported = function () {
@@ -4342,7 +4345,17 @@ function(window, undefined) {
 		this.group = group;
 	};
 	CChartSpace.prototype.hasCharts = function () {
-		if (this.isChartEx() || !this.isChartEx() && this.chart && this.chart.plotArea && this.chart.plotArea.charts.length > 0) {
+		if(this.isChartEx()) {
+			let plotAreaRegion = this.chart.plotArea.plotAreaRegion;
+			if (!plotAreaRegion) {
+				return false;
+			}
+
+			let oSeries = plotAreaRegion.series[0];
+			if(!oSeries) return false;
+			return true;
+		}
+		if (this.chart && this.chart.plotArea && this.chart.plotArea.charts.length > 0) {
 			return true;
 		}
 		return false;
@@ -4415,11 +4428,15 @@ function(window, undefined) {
 			return true;
 		}
 		if (this.isChartEx()) {
-			if (!this.chart.plotArea.plotAreaRegion) {
+			let plotAreaRegion = this.chart.plotArea.plotAreaRegion;
+			if (!plotAreaRegion) {
 				return true;
 			}
 
-			const numLit = this.chart.plotArea.plotAreaRegion.series[0].getValLit();
+			let oSeries = plotAreaRegion.series[0];
+			if(!oSeries) return true;
+
+			const numLit = oSeries.getValLit();
 			if (!numLit) {
 				return true;
 			}

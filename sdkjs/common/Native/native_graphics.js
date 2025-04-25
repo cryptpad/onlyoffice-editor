@@ -73,7 +73,11 @@ CNativeGraphics.prototype.create = function(nativecontrol, width_px, height_px, 
 {
     this.TextureFillTransformScaleX = width_mm  / (width_px  >> 0);
     this.TextureFillTransformScaleY = height_mm / (height_px >> 0);
-    this.Native["create"](nativecontrol, width_px, height_px, width_mm, height_mm);
+
+    let native_object = nativecontrol;
+    if (window["IS_NATIVE_EDITOR"])
+        native_object = window["native"]["GetResourcesForGraphics"]();
+    this.Native["create"](native_object, width_px, height_px, width_mm, height_mm);
 };
 CNativeGraphics.prototype.put_GlobalAlpha = function(enable, alpha)
 {

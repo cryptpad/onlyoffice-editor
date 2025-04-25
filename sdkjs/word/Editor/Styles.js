@@ -9529,6 +9529,137 @@ CDocumentColor.prototype.ConvertToUniColor = function()
 };
 AscWord.CDocumentColor = CDocumentColor;
 
+(function()
+{
+	/**
+	 * @param r
+	 * @param g
+	 * @param b
+	 * @param a
+	 * @constructor
+	 */
+	function CDocumentColorA(r, g, b, a)
+	{
+		this.r = r;
+		this.g = g;
+		this.b = b;
+		this.a = a;
+	}
+	CDocumentColorA.prototype.Copy = function()
+	{
+		return new CDocumentColorA(this.r, this.g, this.b, this.a);
+	};
+	CDocumentColorA.fromBinary = function(reader)
+	{
+		let r = reader.GetByte();
+		let g = reader.GetByte();
+		let b = reader.GetByte();
+		let a = reader.GetByte();
+		return new CDocumentColorA(r, g, b, a);
+	};
+	CDocumentColorA.fromObjectRgb = function(obj)
+	{
+		return new CDocumentColorA(obj.r, obj.g, obj.b, 255);
+	};
+	CDocumentColorA.fromObjectRgba = function(obj)
+	{
+		return new CDocumentColorA(obj.r, obj.g, obj.b, obj.a);
+	};
+	CDocumentColorA.prototype.toBinary = function(writer)
+	{
+		writer.WriteByte(this.r);
+		writer.WriteByte(this.g);
+		writer.WriteByte(this.b);
+		writer.WriteByte(this.a);
+	};
+	CDocumentColorA.prototype.isEqual = function(color)
+	{
+		return (this.r === color.r
+			&& this.g === color.g
+			&& this.b === color.b
+			&& this.a === color.a);
+	};
+	CDocumentColorA.prototype.isEqualRgb = function(color)
+	{
+		return (this.r === color.r
+			&& this.g === color.g
+			&& this.b === color.b
+			&& 255 === this.a);
+	};
+	CDocumentColorA.prototype.setRgb = function(color)
+	{
+		this.r = color.r;
+		this.g = color.g;
+		this.b = color.b;
+		this.a = 255;
+	};
+	CDocumentColorA.prototype.setRgba = function(color)
+	{
+		this.r = color.r;
+		this.g = color.g;
+		this.b = color.b;
+		this.a = color.a;
+	};
+	/**
+	 * @return {Asc.asc_CColor}
+	 */
+	CDocumentColorA.prototype.getAscColor = function()
+	{
+		return new Asc.asc_CColor(this.r, this.g, this.b, this.a);
+	};
+	CDocumentColorA.prototype.SetFromHexColor = function(val)
+	{
+		if (AscFormat.mapPrstColor[val])
+		{
+			let rgb = AscFormat.mapPrstColor[val];
+			this.r = (rgb >> 16) & 0xFF;
+			this.g = (rgb >> 8) & 0xFF;
+			this.b = rgb & 0xFF;
+			this.a = 255;
+		}
+		else if (val.length >= 8)
+		{
+			let index = "#" === val[0] ? 1 : 0;
+			this.r = parseInt(val.substring(index, index + 2), 16);
+			this.g = parseInt(val.substring(index + 2, index + 4), 16);
+			this.b = parseInt(val.substring(index + 4, index + 6), 16);
+			this.a = parseInt(val.substring(index + 6, index + 8), 16);
+		}
+		else
+		{
+			this.r = 0;
+			this.g = 0;
+			this.b = 0;
+			this.a = 255;
+		}
+	};
+	CDocumentColorA.prototype.ToHexColor = function()
+	{
+		return AscCommon.ByteToHex(this.r) + AscCommon.ByteToHex(this.g) + AscCommon.ByteToHex(this.b) + AscCommon.ByteToHex(this.a);
+	};
+	CDocumentColorA.prototype.WriteToBinary = function(writer)
+	{
+		this.toBinary(writer);
+	};
+	CDocumentColorA.prototype.ReadFromBinary = function(reader)
+	{
+		this.r = reader.GetByte();
+		this.g = reader.GetByte();
+		this.b = reader.GetByte();
+		this.a = reader.GetByte();
+	};
+	CDocumentColorA.prototype.Write_ToBinary = function(writer)
+	{
+		return this.WriteToBinary(writer);
+	};
+	CDocumentColorA.prototype.Read_FromBinary = function(reader)
+	{
+		return this.ReadFromBinary(reader);
+	};
+	//------------------------------------------------------------------------------------------------------------------
+	AscWord.CDocumentColorA = CDocumentColorA;
+})();
+
 function CDocumentShd()
 {
 	this.Value   = Asc.c_oAscShd.Nil;

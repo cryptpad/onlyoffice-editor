@@ -4461,7 +4461,7 @@ BinaryChartWriter.prototype.WriteCT_BarSer = function (oVal) {
     }
 
 	for (let nIdx = 0; nIdx < oVal.errBars.length; ++nIdx) {
-		this.bs.WriteItem(c_oserct_bubbleserERRBARS, function () {
+		this.bs.WriteItem(c_oserct_barserERRBARS, function () {
 			oThis.WriteCT_ErrBars(oVal.errBars[nIdx]);
 		});
 	}

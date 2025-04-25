@@ -1038,6 +1038,8 @@ $(function () {
 		wb.dependencyFormulas.addDefName("currentDef", "Sheet2!$A$1:$B$2");
 		wb.createWorksheet(0, "Sheet2");
 
+		ws.getRange2("A1:A1000").cleanAll();
+
 		// local = false. Read/open file with formulas. Try to parse string to external ref similiar as read the file
 		oParser = new parserFormula(fullLink, cellWithFormula, ws);
 		assert.ok(oParser.parse(false/*isLocal*/, null, parseResult), "Full link. isLocal = false. " + fullLink);
@@ -1190,6 +1192,39 @@ $(function () {
 			assert.ok(elemInStack.externalLink == null);
 			assert.strictEqual(elemInStack.wsFrom && elemInStack.wsFrom.sName, "Sheet1", "Location for WS in cArea3D");
 		}
+
+		oParser = new parserFormula("'[" + fileName + "]Sheet1'!A:A", cellWithFormula, ws);
+		assert.ok(oParser.parse(true, null, parseResult), "'[" + fileName + "]Sheet1'!A:A. isLocal = true. Link to A:A range");
+		elemInStack = oParser.outStack && oParser.outStack[0];
+		assert.strictEqual(elemInStack && elemInStack.type, AscCommonExcel.cElementType.cellsRange3D, "Type of single elem in outstack");
+		if (elemInStack && (elemInStack.type === AscCommonExcel.cElementType.cellsRange3D)) {
+			assert.strictEqual(elemInStack.value, "A:A");
+			assert.ok(elemInStack.wsFrom);
+			assert.ok(elemInStack.externalLink == null);
+			assert.strictEqual(elemInStack.wsFrom && elemInStack.wsFrom.sName, "Sheet1", "Location for WS in cArea3D");
+		}
+
+		oParser = new parserFormula("'[" + fileName + "]Sheet1'!$A:$A", cellWithFormula, ws);
+		assert.ok(oParser.parse(true, null, parseResult), "'[" + fileName + "]Sheet1'!$A:$A. isLocal = true. Link to A:A range");
+		elemInStack = oParser.outStack && oParser.outStack[0];
+		assert.strictEqual(elemInStack && elemInStack.type, AscCommonExcel.cElementType.cellsRange3D, "Type of single elem in outstack");
+		if (elemInStack && (elemInStack.type === AscCommonExcel.cElementType.cellsRange3D)) {
+			assert.strictEqual(elemInStack.value, "$A:$A");
+			assert.ok(elemInStack.wsFrom);
+			assert.ok(elemInStack.externalLink == null);
+			assert.strictEqual(elemInStack.wsFrom && elemInStack.wsFrom.sName, "Sheet1", "Location for WS in cArea3D");
+		}
+		
+		oParser = new parserFormula("SUM('[" + fileName + "]Sheet1'!A:A,0)", cellWithFormula, ws);
+		assert.ok(oParser.parse(true, null, parseResult), "SUM('[" + fileName + "]Sheet1'!A:A,0). isLocal = true. Link to A:A range inside formula");
+		assert.strictEqual(oParser.calculate().getValue(), 0, "SUM('[" + fileName + "]Sheet1'!A:A,0)");
+
+		oParser = new parserFormula("SUM('[" + fileName + "]Sheet1'!$A:$A,0)", cellWithFormula, ws);
+		assert.ok(oParser.parse(true, null, parseResult), "SUM('[" + fileName + "]Sheet1'!$A:$A,0). isLocal = true. Link to $A:$A range inside formula");
+		assert.strictEqual(oParser.calculate().getValue(), 0, "SUM('[" + fileName + "]Sheet1'!$A:$A,0)");
+
+		// todo sheets with names like "S!he!et!25", ",;", ",; ,; !ds!'ds!" they will not parse with the current scheme with a link to the current file 
+		// for example: '[filename]S!he!et!25'!A1 or '[filename],; ,; !ds!'ds!'!A1. MS works correctly with such names.
 
 		oParser = new parserFormula("'[" + fileName + "]Sheet222'!currentDef", cellWithFormula, ws);
 		assert.ok(oParser.parse(true, null, parseResult) === false, "'[" + fileName + "]Sheet222'!currentDef. isLocal = true. Link to existing defname on a non-existent sheet");

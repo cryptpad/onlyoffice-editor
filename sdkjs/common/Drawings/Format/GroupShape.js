@@ -491,6 +491,54 @@
 				}
 			}
 		};
+		CGroupShape.prototype.resetInternalSelectionObject = function (oSelectedObject) {
+			if (this.selection.textSelection === oSelectedObject) {
+				if (this.selection.textSelection.getObjectType() === AscDFH.historyitem_type_GraphicFrame) {
+					if (this.selection.textSelection.graphicObject) {
+						this.selection.textSelection.graphicObject.RemoveSelection();
+					}
+				} else {
+					const oContent = this.selection.textSelection.getDocContent();
+					oContent && oContent.RemoveSelection();
+				}
+			}
+			if (this.selection.chartSelection === oSelectedObject) {
+				this.selection.chartSelection.resetSelection();
+				this.selection.chartSelection = null;
+			}
+		};
+		CGroupShape.prototype.deselectInternal = function(oController) {
+			const oMainGroup = this.getMainGroup();
+			if (oMainGroup.selectedObjects.length) {
+				const oSelectedObjects = {};
+				for (let i = oMainGroup.selectedObjects.length - 1; i >= 0; i -= 1) {
+					const oSelectedObject = oMainGroup.selectedObjects[i];
+					if (oSelectedObject.bDeleted) {
+						oMainGroup.deselectObject(oSelectedObject);
+						oMainGroup.resetInternalSelectionObject(oSelectedObject);
+					} else {
+						oSelectedObjects[oSelectedObject.Get_Id()] = oSelectedObject;
+					}
+				}
+
+				const arrGroups = [this];
+				while (arrGroups.length) {
+					const oGroup = arrGroups.pop();
+					for (let i = 0; i < oGroup.spTree.length; i += 1) {
+						const oShape = oGroup.spTree[i];
+						if (oShape.isGroup()) {
+							arrGroups.push(oShape);
+						} else if (oSelectedObjects[oShape.Get_Id()]) {
+							oMainGroup.deselectObject(oShape);
+							oMainGroup.resetInternalSelectionObject(oShape);
+						}
+					}
+				}
+				if (!oMainGroup.selectedObjects.length) {
+					oController.selection.groupSelection = null;
+				}
+			}
+		};
 
 
 		CGroupShape.prototype.getLocalTransform = function () {
@@ -1715,6 +1763,31 @@
 			for (let i = 0; i < this.spTree.length; i += 1) {
 				this.spTree[i].generateSmartArtDrawingPart();
 			}
+		};
+		CGroupShape.prototype.isHaveOnlyInks = function () {
+			if (!this.spTree.length) {
+				return false;
+			}
+			for (let i = 0; i < this.spTree.length; i++) {
+				const oDrawing = this.spTree[i];
+				if (!(oDrawing.isInk() || oDrawing.isHaveOnlyInks())) {
+					return false;
+				}
+			}
+			return true;
+		};
+
+		CGroupShape.prototype.getAllInks = function (arrInks) {
+			arrInks = arrInks || [];
+			for (let i = this.spTree.length - 1; i >= 0; i -= 1) {
+				const oDrawing = this.spTree[i];
+				if (oDrawing.isInk() || oDrawing.isHaveOnlyInks()) {
+					arrInks.push(oDrawing);
+				} else {
+					oDrawing.getAllInks(arrInks);
+				}
+			}
+			return arrInks;
 		};
 
 		//--------------------------------------------------------export----------------------------------------------------

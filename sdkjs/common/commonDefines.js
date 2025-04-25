@@ -707,9 +707,10 @@ window.AscCommon.g_cIsBeta = "false";
 		MailMerge         : 10,
 		ContentControl    : 11,
 		Animation         : 12,
-		Text              : 13, // viewer
-		Annot             : 14,
-		UnProtectedRegion : 15
+		UnProtectedRegion : 13,
+		Text              : 14, // viewer
+		Annot             : 15,
+		PdfPage           : 16
 	};
 
 	var c_oAscLineDrawingRule = {
@@ -3670,10 +3671,10 @@ window.AscCommon.g_cIsBeta = "false";
 	var availableIdeographLanguages = ['zh-CN', 'vi-VN', 'ko-KR', 'ja-JP', 'zh-Hans', 'zh-TW', 'zh-CN', 'zh-HK', 'zh-SG',
 		'zh-MO', 'zh-Hant', 'zh'];
 	var availableBidiLanguages = [];
-	var document_compatibility_mode_Word11 = 11;
+	var document_compatibility_mode_Word11 = 11; // 2003 (doc)
 	var document_compatibility_mode_Word12 = 12;
-	var document_compatibility_mode_Word14 = 14;
-	var document_compatibility_mode_Word15 = 15;
+	var document_compatibility_mode_Word14 = 14; // 2010
+	var document_compatibility_mode_Word15 = 15; // 2013/2015/2019
 
 	var document_compatibility_mode_Current = document_compatibility_mode_Word12;
 
@@ -4313,6 +4314,9 @@ window.AscCommon.g_cIsBeta = "false";
 		"dd.MM.yyyy",
 		"dddd, d MMMM yyyy 'г.'",
 		"d MMMM yyyy 'г.'",
+		"'«'d'»' MMMM yyyy 'года'",
+		"d MMMM yyyy 'года'",
+		"d MMMM yyyy",
 		"dd.MM.yy",
 		"yyyy-MM-dd",
 		"d-MMM-yy",
@@ -4748,9 +4752,10 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['MailMerge']         = prot.MailMerge;
 	prot['ContentControl']    = prot.ContentControl;
 	prot['Animation']         = prot.Animation;
+	prot['UnProtectedRegion'] = prot.UnProtectedRegion;
 	prot['Text']              = prot.Text;
 	prot['Annot']             = prot.Annot;
-	prot['UnProtectedRegion'] = prot.UnProtectedRegion;
+	prot['PdfPage']           = prot.PdfPage;
 	
 	window['Asc']['linerule_AtLeast'] = window['Asc'].linerule_AtLeast = linerule_AtLeast;
 	window['Asc']['linerule_Auto'] = window['Asc'].linerule_Auto = linerule_Auto;

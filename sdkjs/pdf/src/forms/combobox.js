@@ -580,7 +580,11 @@
      * @returns {number}
 	 */
     CComboBoxField.prototype.UpdateIndexies = function() {
-        let sValue = this.content.GetElement(0).GetText({ParaEndToSpace: false});
+        let sValue = this.content.GetElement(0).GetText({
+			ParaSeparator : "",
+			TableRowSeparator : "",
+			TableCellSeparator : ""
+		});
         let nIdx = -1;
         for (let i = 0; i < this._options.length; i++) {
             if (this._options[i][0] === sValue) {
@@ -658,7 +662,7 @@
         if (bApiValue)
             return this._currentValueIndices;
 
-        let sValue = this.content.GetElement(0).GetText({ParaEndToSpace: false});
+        let sValue = this.content.GetElement(0).GetText({ParaSeparator : ""});
         for (let i = 0; i < this._options.length; i++) {
             if (Array.isArray(this._options[i])) {
                 if (this._options[i][0] == sValue)

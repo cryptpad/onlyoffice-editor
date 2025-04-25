@@ -179,13 +179,7 @@
 		{
 			for (let i = 0, len = arr.length; i < len; i++)
 			{
-				try
-				{
-					AscCommon.safePluginEval(arr[i]["value"]);
-				}
-				catch (err)
-				{
-				}
+				AscCommon.safePluginEval(arr[i]["value"]);
 			}
 		}
 

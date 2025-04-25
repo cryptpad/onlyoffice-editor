@@ -2680,6 +2680,7 @@ function (window, undefined) {
 	function asc_CParagraphProperty(obj) {
 
 		if (obj) {
+			this.Bidi = undefined !== obj.Bidi ? obj.Bidi : undefined;
 			this.ContextualSpacing = (undefined != obj.ContextualSpacing) ? obj.ContextualSpacing : null;
 			this.Ind = (undefined != obj.Ind && null != obj.Ind) ? new asc_CParagraphInd(obj.Ind) : null;
 			this.KeepLines = (undefined != obj.KeepLines) ? obj.KeepLines : null;
@@ -2741,6 +2742,7 @@ function (window, undefined) {
 			//
 			//    PageBreakBefore : false,              // начинать параграф с новой страницы
 
+			this.Bidi = undefined;
 			this.ContextualSpacing = undefined;
 			this.Ind = new asc_CParagraphInd();
 			this.KeepLines = undefined;
@@ -2776,7 +2778,13 @@ function (window, undefined) {
 			this.CanEditInlineCC = true;
 		}
 	}
-
+	
+	asc_CParagraphProperty.prototype.asc_getRtlDirection = function() {
+		return this.Bidi;
+	};
+	asc_CParagraphProperty.prototype.asc_putRtlDirection = function(v) {
+		this.Bidi = v;
+	};
 	asc_CParagraphProperty.prototype.asc_getContextualSpacing = function () {
 		return this.ContextualSpacing;
 	};
@@ -3429,6 +3437,33 @@ function (window, undefined) {
 	};
 	asc_CAnnotProperty.prototype.asc_setCanEditText = function (v) {
 		this.canEditText = v;
+	};
+
+	/** @constructor */
+	function asc_CPdfPageProperty() {
+		this.deleteLock	= false;
+		this.rotateLock	= false;
+		this.editLock	= false;
+	}
+
+	asc_CPdfPageProperty.prototype.constructor = asc_CPdfPageProperty;
+	asc_CPdfPageProperty.prototype.asc_getDeleteLock = function () {
+		return this.deleteLock;
+	};
+	asc_CPdfPageProperty.prototype.asc_putDeleteLock = function (v) {
+		this.deleteLock = v;
+	};
+	asc_CPdfPageProperty.prototype.asc_getRotateLock = function () {
+		return this.rotateLock;
+	};
+	asc_CPdfPageProperty.prototype.asc_putRotateLock = function (v) {
+		this.rotateLock = v;
+	};
+	asc_CPdfPageProperty.prototype.asc_getEditLock = function () {
+		return this.editLock;
+	};
+	asc_CPdfPageProperty.prototype.asc_putEditLock = function (v) {
+		this.editLock = v;
 	};
 
 	/** @constructor */
@@ -4721,6 +4756,9 @@ function (window, undefined) {
 
 		//for external reference
 		this.ReferenceData = null;
+
+		this.showVerticalScroll = null;
+		this.showHorizontalScroll = null;
 	}
 
 	prot = asc_CDocInfo.prototype;
@@ -4953,6 +4991,18 @@ function (window, undefined) {
 	};
 	prot.get_Shardkey = prot.asc_getShardkey = function () {
 		return this.shardkey;
+	};
+	prot.put_ShowVerticalScroll = prot.asc_putShowVerticalScroll = function (v) {
+		this.showVerticalScroll = v;
+	};
+	prot.get_ShowVerticalScroll = prot.asc_getShowVerticalScroll = function () {
+		return this.showVerticalScroll;
+	};
+	prot.put_ShowHorizontalScroll = prot.asc_putShowHorizontalScroll = function (v) {
+		this.showHorizontalScroll = v;
+	};
+	prot.get_ShowHorizontalScroll = prot.asc_getShowHorizontalScroll = function () {
+		return this.showHorizontalScroll;
 	};
 
 	function COpenProgress() {
@@ -5271,6 +5321,11 @@ function (window, undefined) {
 						oShape.setWorksheet(oApi.wb.getWorksheet().model);
 						break;
 					}
+					case AscCommon.c_oEditorId.Visio: {
+						oShape.setWordShape(false);
+						oShape.setParent(oApi.WordControl.m_oLogicDocument);
+						break;
+					}
 				}
 
 				let _oldTrackRevision = false;
@@ -5517,7 +5572,8 @@ function (window, undefined) {
 
 					break;
 				}
-				case AscCommon.c_oEditorId.Presentation: {
+				case AscCommon.c_oEditorId.Presentation:
+				case AscCommon.c_oEditorId.Visio: {
 					if (oApi.WordControl) {
 						if (oApi.watermarkDraw) {
 							oApi.watermarkDraw.zoom = oApi.WordControl.m_nZoomValue / 100;
@@ -5659,6 +5715,8 @@ function (window, undefined) {
 		this.isCustomWindow = false;	// используется только если this.type === PluginType.Window
 		this.isModal = true;     // используется только если this.type === PluginType.Window
 
+		this.isCanDocked = false;
+
 		this.initDataType = EPluginDataType.none;
 		this.initData = "";
 
@@ -5714,6 +5772,10 @@ function (window, undefined) {
 		return this.isCustomWindow;
 	};
 
+	CPluginVariation.prototype["get_IsCanDocked"] = function () {
+		return this.isCanDocked;
+	};
+
 	CPluginVariation.prototype["get_Buttons"] = function () {
 		return this.buttons;
 	};
@@ -5752,6 +5814,8 @@ function (window, undefined) {
 		_object["isCustomWindow"] = this.isCustomWindow;
 		_object["isModal"] = this.isModal;
 
+		_object["isCanDocked"] = this.isCanDocked;
+
 		_object["initDataType"] = this.initDataType;
 		_object["initData"] = this.initData;
 
@@ -5763,6 +5827,9 @@ function (window, undefined) {
 		_object["initOnSelectionChanged"] = this.initOnSelectionChanged;
 
 		_object["store"] = this.store;
+
+		if (this.events)
+			_object["events"] = this.events.slice(0, this.events.length);
 
 		return _object;
 	};
@@ -5798,6 +5865,8 @@ function (window, undefined) {
 
 		this.isCustomWindow = (_object["isCustomWindow"] != null) ? _object["isCustomWindow"] : this.isCustomWindow;
 		this.isModal = (_object["isModal"] != null) ? _object["isModal"] : this.isModal;
+
+		this.isCanDocked = (_object["isCanDocked"] != null) ? _object["isCanDocked"] : this.isCanDocked;
 
 		this.initDataType = (_object["initDataType"] != null) ? _object["initDataType"] : this.initDataType;
 		this.initData = (_object["initData"] != null) ? _object["initData"] : this.initData;
@@ -6032,6 +6101,34 @@ function (window, undefined) {
 	};
 	RangePermProp.prototype.get_canInsObject = function() {
 		return this.insertObject;
+	};
+
+
+	function CButtonData(oData) {
+		this["obj"] = oData["obj"];
+		this["type"] = oData["type"];
+		this["button"] = oData["button"];
+		this["isForm"] = oData["isForm"];
+		this["pr"] = oData["pr"];
+	}
+	CButtonData.prototype.get_Obj = function() {
+		return this["obj"];
+	};
+	CButtonData.prototype.get_ObjId = function() {
+		if(!this["obj"]) return null;
+		return this["obj"].Id;
+	};
+	CButtonData.prototype.get_Type = function() {
+		return this["type"];
+	};
+	CButtonData.prototype.get_Button = function() {
+		return this["button"];
+	};
+	CButtonData.prototype.get_IsForm = function() {
+		return this["isForm"];
+	};
+	CButtonData.prototype.get_Properties = function() {
+		return this["pr"];
 	};
 
 	/*
@@ -6494,6 +6591,8 @@ function (window, undefined) {
 
 	window["Asc"]["asc_CParagraphProperty"] = window["Asc"].asc_CParagraphProperty = asc_CParagraphProperty;
 	prot = asc_CParagraphProperty.prototype;
+	prot["get_RtlDirection"] = prot["asc_getRtlDirection"] = prot.asc_getRtlDirection;
+	prot["put_RtlDirection"] = prot["asc_putRtlDirection"] = prot.asc_putRtlDirection;
 	prot["get_ContextualSpacing"] = prot["asc_getContextualSpacing"] = prot.asc_getContextualSpacing;
 	prot["put_ContextualSpacing"] = prot["asc_putContextualSpacing"] = prot.asc_putContextualSpacing;
 	prot["get_Ind"] = prot["asc_getInd"] = prot.asc_getInd;
@@ -6685,6 +6784,14 @@ function (window, undefined) {
 	prot["asc_getCanEditText"]		= prot.asc_getCanEditText;
 	prot["asc_setCanEditText"]		= prot.asc_setCanEditText;
 
+	window["Asc"]["asc_CPdfPageProperty"] = window["Asc"].asc_CPdfPageProperty = asc_CPdfPageProperty;
+	prot = asc_CPdfPageProperty.prototype;
+	prot["asc_getDeleteLock"]	= prot.asc_getDeleteLock;
+	prot["asc_putDeleteLock"]	= prot.asc_putDeleteLock;
+	prot["asc_getRotateLock"]	= prot.asc_getRotateLock;
+	prot["asc_putRotateLock"]	= prot.asc_putRotateLock;
+	prot["asc_getEditLock"]		= prot.asc_getEditLock;
+	prot["asc_putEditLock"]		= prot.asc_putEditLock;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -7000,6 +7107,10 @@ function (window, undefined) {
 	prot["get_Wopi"] = prot["asc_getWopi"] = prot.asc_getWopi;
 	prot["put_Shardkey"] = prot["asc_putShardkey"] = prot.asc_putShardkey;
 	prot["get_Shardkey"] = prot["asc_getShardkey"] = prot.asc_getShardkey;
+	prot["put_ShowVerticalScroll"] = prot["asc_putShowVerticalScroll"] = prot.asc_putShowVerticalScroll;
+	prot["get_ShowVerticalScroll"] = prot["get_getShowVerticalScroll"] = prot.get_getShowVerticalScroll;
+	prot["put_ShowHorizontalScroll"] = prot["asc_putShowHorizontalScroll"] = prot.asc_putShowHorizontalScroll;
+	prot["get_ShowHorizontalScroll"] = prot["get_getShowHorizontalScroll"] = prot.get_getShowHorizontalScroll;
 
 	window["AscCommon"].COpenProgress = COpenProgress;
 	prot = COpenProgress.prototype;
@@ -7067,7 +7178,16 @@ function (window, undefined) {
 	prot["get_canEditText"] = prot.get_canEditText;
 	prot["get_canEditPara"] = prot.get_canEditPara;
 	prot["get_canInsObject"] = prot.get_canInsObject;
-	
+
+	window["Asc"]["CButtonData"] = window["Asc"].CButtonData = CButtonData;
+	prot = CButtonData.prototype;
+
+	prot["get_Obj"] = prot.get_Obj;
+	prot["get_Type"] = prot.get_Type;
+	prot["get_Button"] = prot.get_Button;
+	prot["get_IsForm"] = prot.get_IsForm;
+	prot["get_Properties"] = prot.get_Properties;
+
 	window["AscCommon"]["pix2mm"] = window["AscCommon"].pix2mm = function(pix)
 	{
 		return pix * AscCommon.g_dKoef_pix_to_mm;

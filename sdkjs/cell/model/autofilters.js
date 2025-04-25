@@ -6225,19 +6225,29 @@
 			},
 
 			bIsExcludeHiddenRows: function (range, activeCell, checkHiddenRows) {
-				var worksheet = this.worksheet;
-				var result = false;
+				let worksheet = this.worksheet;
+				let result = false;
 
-				//если есть общий фильтр со скрытыми строками, чтобы мы не удаляли на странице, данные в скрытых строках не трогаем
-				if (worksheet.AutoFilter && worksheet.AutoFilter.isApplyAutoFilter()) {
-					result = true;
-				} else if (this._getTableIntersectionWithActiveCell(activeCell, true))//если activeCell лежит внутри таблицы c примененным фильтром
-				{
-					result = true;
+				let activeNamedSheetView = worksheet.getActiveNamedSheetViewId();
+
+				//if all filter or intersection activeCell with tables
+				if (activeNamedSheetView) {
+					let _table = this._getTableIntersectionWithActiveCell(activeCell);
+					let _obj = this.getAutoFilter(_table ? _table : worksheet.AutoFilter, activeNamedSheetView);
+					if (_obj && _obj.isApplyAutoFilter && _obj.isApplyAutoFilter()) {
+						result = true;
+					}
+				} else {
+					if (worksheet.AutoFilter && worksheet.AutoFilter.isApplyAutoFilter()) {
+						result = true;
+					} else if (this._getTableIntersectionWithActiveCell(activeCell, true))//activeCell inside table with applyed filter
+					{
+						result = true;
+					}
 				}
 
 				if (result && checkHiddenRows) {
-					var range3 = range && range.bbox ? range : worksheet.getRange3(range.r1, range.c1, range.r2, range.c2);
+					let range3 = range && range.bbox ? range : worksheet.getRange3(range.r1, range.c1, range.r2, range.c2);
 					result = false;
 					range3._foreachRow(function (row) {
 						if (row.getHidden()) {
@@ -6260,7 +6270,7 @@
 							ref = new Asc.Range(ref.c1, ref.r1 + 1, ref.c2, ref.r2);
 						}
 						if (ref.contains(activeCell.col, activeCell.row)) {
-							if (checkApplyFiltering && worksheet.TableParts[i].isApplyAutoFilter()) {
+							if ((checkApplyFiltering && worksheet.TableParts[i].isApplyAutoFilter()) || !checkApplyFiltering) {
 								result = worksheet.TableParts[i];
 								break;
 							}

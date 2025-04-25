@@ -3434,6 +3434,13 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cBaseFunction.prototype.Calculate = function () {
 		return new cError(cErrorType.wrong_name);
 	};
+	cBaseFunction.prototype.getArrayIndex = function (index) {
+		let res = false;
+		if (this.arrayIndexes) {
+			res = this.arrayIndexes[index];
+		}
+		return res;
+	};
 	cBaseFunction.prototype.Assemble2 = function (arg, start, count) {
 
 		var str = "", c = start + count - 1;
@@ -3867,7 +3874,6 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			}
 		}
 
-		var arrayIndexes = this.arrayIndexes;
 		var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 		var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
 		//добавлен специальный тип для функции сT, она использует из области всегда первый аргумент
@@ -3876,13 +3882,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		// Проверка должен ли элемент поступать в формулу без изменени?
 		const checkArrayIndex = function(index) {
 			let res = false;
-			if(arrayIndexes) {
-				if(arrayIndexes[index] === arrayIndexesType.any) {
+			let arrayIndex = t.getArrayIndex(index);
+			if(arrayIndex) {
+				if(arrayIndex === arrayIndexesType.any) {
 					res = true;
-				} else if(typeof arrayIndexes[index] === "object") {
+				} else if(typeof arrayIndex === "object") {
 					//для данной проверки запрашиваем у объекта 0 индекс, там хранится значение индекса аргумента
 					//от которого зависит стоит ли вопринимать данный аргумент как массив или нет
-					let tempsArgIndex = arrayIndexes[index][0];
+					let tempsArgIndex = arrayIndex[0];
 					if(undefined !== tempsArgIndex && arg[tempsArgIndex]) {
 						if(cElementType.cellsRange === arg[tempsArgIndex].type || cElementType.cellsRange3D === arg[tempsArgIndex].type || cElementType.array === arg[tempsArgIndex].type) {
 							res = true;
@@ -3896,7 +3903,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		const checkArayIndexType = function(index, argType) {
 			// check for type of argument - whether array and range can be processed or just one of them
 			let res = false;
-			if(arrayIndexes && argType === arrayIndexes[index]) {
+			let arrayIndex = t.getArrayIndex(index);
+			if(argType === arrayIndex) {
 				res = true;
 			}
 			return res;
@@ -3920,7 +3928,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		//bIsSpecialFunction - сделано только для для функции sumproduct
 		//необходимо, чтобы все внутренние функции возвращали массив, те обрабатывались как формулы массива
 
-		if((true === this.bArrayFormula || bIsSpecialFunction) && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes || replaceOnlyArray)) {
+		if((true === this.bArrayFormula || bIsSpecialFunction) && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || this.arrayIndexes || replaceOnlyArray)) {
 
 			if (functionsCanReturnArray.indexOf(this.name.toLowerCase()) !== -1) {
 				var _tmp = this.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
@@ -4086,12 +4094,13 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			const checkArrayIndex = function(index) {
 				let res = false;
 				if(arrayIndexes) {
-					if(1 === arrayIndexes[index]) {
+					let arrayIndex = t.getArrayIndex(index);
+					if(1 === arrayIndex) {
 						res = true;
-					} else if(typeof arrayIndexes[index] === "object") {
+					} else if(typeof arrayIndex === "object") {
 						// for this situation check object 0 for an index, the value of the argument index is stored there
 						// which determines whether a given argument should be treated as an array or not
-						let tempsArgIndex = arrayIndexes[index][0];
+						let tempsArgIndex = arrayIndex[0];
 						if(undefined !== tempsArgIndex && arg[tempsArgIndex]) {
 							if(cElementType.cellsRange === arg[tempsArgIndex].type || cElementType.cellsRange3D === arg[tempsArgIndex].type || cElementType.array === arg[tempsArgIndex].type) {
 								res = true;
@@ -4139,7 +4148,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 		let width = 1, height = 1;
 		for (let i = 0; i < arg.length; i++) {
-			if (!this.arrayIndexes || !this.arrayIndexes[i]) {
+			if (!this.arrayIndexes || !this.getArrayIndex(i)) {
 				let objSize = arg[i].getDimensions();
 				if (objSize) {
 					height = Math.max(objSize.row, height);
@@ -6399,8 +6408,16 @@ function parserFormula( formula, parent, _ws ) {
 		var eventData = {notifyData: data, assemble: null, formula: this};
 		let sFunctionName = this.getFunctionName();
 
-		if (this._isConditionalFormula(sFunctionName) && data.areaData) {
-			this.ca = this.isRecursiveCondFormula(sFunctionName);
+		if (this._isConditionalFormula(sFunctionName) && data.areaData && g_cCalcRecursion.getIsCellEdited()) {
+			let oCell = null;
+			if (this.parent && null != this.parent.nRow && null != this.parent.nCol) {
+				this.ws._getCell(this.parent.nRow, this.parent.nCol, function (oElem) {
+					oCell = oElem;
+				});
+			}
+			if (oCell && oCell.containInFormula()) {
+				this.ca = this.isRecursiveCondFormula(sFunctionName);
+			}
 		}
 		if (AscCommon.c_oNotifyType.Dirty === data.type) {
 				if (this.parent && this.parent.onFormulaEvent) {
@@ -6593,11 +6610,16 @@ function parserFormula( formula, parent, _ws ) {
 	function _getNewOutStack(aOutStack) {
 		const aNewOutStack = [];
 		const nMainFuncIndex = _findLastOperandId(aOutStack, function (oElement) {
-			return oElement.type === cElementType.func || oElement.type === cElementType.operator;
+			return oElement.type && (oElement.type === cElementType.func || oElement.type === cElementType.operator);
 		});
-
+		if (!~nMainFuncIndex) {
+			return aNewOutStack;
+		}
 		for (let i = 0; i < aOutStack.length; i++) {
 			if (!(aOutStack[i] instanceof cBaseOperator) && aOutStack[i].type === cElementType.operator) {
+				continue;
+			}
+			if (aOutStack[i].type === cElementType.specialFunctionStart || aOutStack[i].type === cElementType.specialFunctionEnd) {
 				continue;
 			}
 			if (typeof aOutStack[i] === 'number') {
@@ -6623,7 +6645,13 @@ function parserFormula( formula, parent, _ws ) {
 				let nPrevIndex = i - 1;
 				let nEndIndexArg = i - aOutStack[i].argumentsCurrent;
 				for (let j = nPrevIndex; j >= nEndIndexArg; j--) {
+					if (j < 0) { // over reaching minimum edge
+						break;
+					}
 					aArgsOfOperator.unshift(aNewOutStack.pop());
+				}
+				if (aArgsOfOperator.length < aOperatorData[1]) {
+					break;
 				}
 				aOperatorData.push(aArgsOfOperator);
 				aNewOutStack.push(aOperatorData);
@@ -6766,7 +6794,13 @@ function parserFormula( formula, parent, _ws ) {
 		let nOperandType = found_operand.type;
 		let oRange = null;
 
+		if (!oParentCell) {
+			return false;
+		}
 		if (!(oParentCell instanceof AscCommonExcel.CCellWithFormula)) {
+			return false;
+		}
+		if (oParentCell.nRow == null && oParentCell.nCol == null) {
 			return false;
 		}
 		if (nOperandType === cElementType.name || nOperandType === cElementType.name3D) {
@@ -6807,13 +6841,16 @@ function parserFormula( formula, parent, _ws ) {
 		const oRange = oCriteriaRange.getRange();
 		const oBbox = oRange.bbox;
 		const oParentCell = this.getParent();
+		if (!oParentCell || (oParentCell && oParentCell.nRow == null && oParentCell.nCol == null)) {
+			return false;
+		}
 		let bHasFormula = false;
 		let bVertical = oBbox.c1 === oBbox.c2;
 		let nRow = bVertical ? oBbox.r1 + (oParentCell.nRow - oBbox.r1) : oBbox.r1;
 		let nCol = bVertical ? oBbox.c1 :  oBbox.c1 + (oParentCell.nCol - oBbox.c1);
 
 		oRange.worksheet._getCellNoEmpty(nRow, nCol, function (oCell) {
-			if (oCell.isFormula()) {
+			if (oCell && oCell.isFormula()) {
 				let oParsedFormula = oCell.getFormulaParsed();
 				if (oParsedFormula.Formula.replace(/\s+/g, '') === oThis.Formula.replace(/\s+/g, '')) {
 					bHasFormula = true;
@@ -6832,6 +6869,9 @@ function parserFormula( formula, parent, _ws ) {
 	 */
 	parserFormula.prototype._calculateMatch = function (oFormulaArgs) {
 		const oParentCell = this.getParent();
+		if (!oParentCell || (oParentCell && oParentCell.nRow == null && oParentCell.nCol == null)) {
+			return false;
+		}
 		const oCalcRange = oFormulaArgs.calcRange;
 		let oCriteriaRange = oFormulaArgs.criteriaRange;
 		let oCondition = oFormulaArgs.condition;
@@ -7093,6 +7133,9 @@ function parserFormula( formula, parent, _ws ) {
 	parserFormula.prototype.isRecursiveCondFormula = function (sFunctionName, aArgs) {
 		const aCellFormulas = ['IF', 'IFS', 'SWITCH'];
 		const aOutStack = aArgs && aArgs.length ? aArgs : _getNewOutStack(this.outStack);
+		if (!aOutStack.length) {
+			return false;
+		}
 		if (aOutStack.length === 1 && aOutStack[0][0].type === cElementType.operator) {
 			const aArgs = aOutStack[0][2];
 			let bHasRecursion = false;
@@ -8568,7 +8611,7 @@ function parserFormula( formula, parent, _ws ) {
 				this.outStack.push(operand);
 			}
 		}
-		if (bConditionalFormula && t.getParent() instanceof AscCommonExcel.CCellWithFormula && !t.ca) {
+		if (bConditionalFormula && t.getParent() && t.getParent() instanceof AscCommonExcel.CCellWithFormula && !t.ca && !ignoreErrors) {
 			t.ca = t.isRecursiveCondFormula(levelFuncMap[0].func.name);
 			t.outStack.forEach(function (oOperand) {
 				if (oOperand.type === cElementType.name || oOperand.type === cElementType.name3D) {
@@ -9951,7 +9994,7 @@ function parserFormula( formula, parent, _ws ) {
 
 	parserFormula.prototype.getFormulaHyperlink = function () {
 		for (var i = 0; i < this.outStack.length; i++) {
-			if (this.outStack[i] && this.outStack[i].name === "HYPERLINK") {
+			if (this.outStack[i] && (this.outStack[i].name === "HYPERLINK" || this.outStack[i].name === "IMPORTRANGE")) {
 				return true;
 			}
 		}
@@ -10097,6 +10140,7 @@ function parserFormula( formula, parent, _ws ) {
 		this.bShowCycleWarn = true;
 		this.oRecursionCells = null;
 		this.nCellPasteValue = null; // for paste recursive cell
+		this.bIsCellEdited = false;
 
 		this.bIsEnabledRecursion = null;
 		this.nMaxIterations = null; // Max iterations of recursion calculations. Default value: 100.
@@ -10767,6 +10811,24 @@ function parserFormula( formula, parent, _ws ) {
 	CalcRecursion.prototype.getCellPasteValue = function () {
 		return this.nCellPasteValue;
 	};
+	/**
+	 * Method sets flag that checks cell is in edited mode
+	 * * true - cell is editing. File in the editor already opened.
+	 * * false - cell isn't editing. File in the editor is opening.
+	 * @param {boolean} bIsCellEdited
+	 */
+	CalcRecursion.prototype.setIsCellEdited = function (bIsCellEdited) {
+		this.bIsCellEdited = bIsCellEdited;
+	};
+	/**
+	 * Method gets flag that checks cell is in edited mode
+	 * * true - cell is editing. File in the editor already opened.
+	 * * false - cell isn't editing. File in the editor is opening.
+	 * @returns {boolean}
+	 */
+	CalcRecursion.prototype.getIsCellEdited = function () {
+		return this.bIsCellEdited;
+	}
 
 	const g_cCalcRecursion = new CalcRecursion();
 
@@ -11164,11 +11226,27 @@ function parserFormula( formula, parent, _ws ) {
 
 	// ToDo use Array.prototype.max, but some like to use for..in without hasOwnProperty
 	function getArrayMax (array) {
-		return Math.max.apply(null, array);
+		//Math.min and Math.max crash on large arrays
+		let maxValue = array[0], i, length = array.length;
+		for (i = 1; i < length; i++) {
+			if (array[i] > maxValue) {
+				maxValue = array[i];
+			}
+		}
+
+		return maxValue;
 	}
 	// ToDo use Array.prototype.min, but some like to use for..in without hasOwnProperty
 	function getArrayMin (array) {
-		return Math.min.apply(null, array);
+		//Math.min and Math.max crash on large arrays
+		let minValue = array[0], i, length = array.length;
+		for (i = 1; i < length; i++) {
+			if (array[i] < minValue) {
+				minValue = array[i];
+			}
+		}
+
+		return minValue;
 	}
 
 	function compareFormula(formula1, refPos1, formula2, offsetRow) {

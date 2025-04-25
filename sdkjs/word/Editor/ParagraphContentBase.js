@@ -1275,10 +1275,6 @@ CParagraphContentWithContentBase.prototype.IsSolid = function()
 {
 	return false;
 };
-CParagraphContentWithContentBase.prototype.ConvertParaContentPosToRangePos = function(oContentPos, nDepth)
-{
-	return 0;
-};
 CParagraphContentWithContentBase.prototype.ProcessNotInlineObjectCheck = function(oChecker)
 {
 	oChecker.Result = false;
@@ -3268,12 +3264,20 @@ CParagraphContentWithParagraphLikeContent.prototype.ConvertParaContentPosToRange
 	var nCurPos = oContentPos ? Math.max(0, Math.min(this.Content.length - 1, oContentPos.Get(nDepth))) : this.Content.length - 1;
 	for (var nPos = 0; nPos < nCurPos; ++nPos)
 	{
+		if (this.Content[nPos] instanceof ParaRun)
+			nRangePos++;
+
 		nRangePos += this.Content[nPos].ConvertParaContentPosToRangePos(null);
 	}
 
 	if (this.Content[nCurPos])
-		nRangePos += this.Content[nCurPos].ConvertParaContentPosToRangePos(oContentPos, nDepth + 1);
+	{
+		if (this.Content[nPos] instanceof ParaRun)
+			nRangePos++;
 
+		nRangePos += this.Content[nCurPos].ConvertParaContentPosToRangePos(oContentPos, nDepth + 1);
+	}
+		
 	return nRangePos;
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetPosByDrawing = function(Id, ContentPos, Depth)

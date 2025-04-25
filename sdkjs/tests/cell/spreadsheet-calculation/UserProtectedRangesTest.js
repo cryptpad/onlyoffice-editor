@@ -369,8 +369,8 @@ $(function () {
 				assert.strictEqual(ws.userProtectedRanges[2].asc_getRef(), "=Sheet1!$D$10:$E$13", desc + "_val_3");
 			}, "move_2");
 
-			AscCommon.History.Undo();
-			AscCommon.History.Undo();
+			api.asc_deleteUserProtectedRange([ws.userProtectedRanges[0]]);
+			api.asc_deleteUserProtectedRange([ws.userProtectedRanges[0]]);
 		});
 	}
 

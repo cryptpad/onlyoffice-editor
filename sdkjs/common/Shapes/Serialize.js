@@ -6757,8 +6757,16 @@ function BinaryPPTYLoader()
                             continue;
 
                         _object = this.ReadSpTreeElement();
+
                         if(_object)
                         {
+                            const objectId = _object.getFormatId();
+                            const objectCNvProps = _object.getCNvProps();
+                            if (objectId !== null && objectCNvProps !== null) {
+                                if (this.map_shapes_by_id[objectCNvProps.id]) {
+                                    objectCNvProps.setId(AscCommon.CreateDurableId());
+                                }
+                            }
                             shapes[shapes.length] = _object;
                         }
                     }
@@ -10703,6 +10711,7 @@ function BinaryPPTYLoader()
                         oThis.bcr.Read1(nDocLength, function(t,l){
                             return oBinary_DocumentTableReader.ReadDocumentContent(t,l, content_arr);
                         });
+	                    oThis.oReadResult.checkDocumentContentReviewType(content_arr);
                         this.ParaDrawing = oCurParaDrawing;
                         for(var i = 0, length = content_arr.length; i < length; ++i){
                             if(i == length - 1)

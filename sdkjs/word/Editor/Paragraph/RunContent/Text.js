@@ -359,7 +359,7 @@
 
 		return (nWidth > 0 ? nWidth / (((this.Flags >> 16) & 0xFFFF) / 64) : 0);
 	};
-	CRunText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
+	CRunText.prototype.Draw = function(X, Y, Context, PDSE, oTextPr, forceGrapheme)
 	{
 		if (Context.m_bIsTextDrawer === true)
 		{
@@ -387,7 +387,7 @@
 		}
 		else if (AscFonts.NO_GRAPHEME !== this.Grapheme)
 		{
-			AscFonts.DrawGrapheme(this.Grapheme, Context, X, Y, nFontSize);
+			AscFonts.DrawGrapheme(forceGrapheme ? forceGrapheme : this.Grapheme, Context, X, Y, nFontSize);
 		}
 		
 		if (this.Flags & FLAGS_TEMPORARY_HYPHEN_AFTER)

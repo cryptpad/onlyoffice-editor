@@ -36,9 +36,9 @@
 	 * Class representing a base highlight annotation.
 	 * @constructor
     */
-    function CAnnotationTextMarkup(sName, nType, nPage, aRect, oDoc)
+    function CAnnotationTextMarkup(sName, nType, aRect, oDoc)
     {
-        AscPDF.CAnnotationBase.call(this, sName, nType, nPage, aRect, oDoc);
+        AscPDF.CAnnotationBase.call(this, sName, nType, aRect, oDoc);
 
         this._quads         = [];
         this._richContents  = undefined;

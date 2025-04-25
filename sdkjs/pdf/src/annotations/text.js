@@ -75,9 +75,9 @@
 	 * Class representing a text annotation.
 	 * @constructor
     */
-    function CAnnotationText(sName, nPage, aOrigRect, oDoc)
+    function CAnnotationText(sName, aOrigRect, oDoc)
     {
-        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.Text, nPage, aOrigRect, oDoc);
+        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.Text, aOrigRect, oDoc);
 
         this._noteIcon      = NOTE_ICONS_TYPES.Comment;
         this._point         = undefined;
@@ -131,7 +131,7 @@
         this._replies = [];
     };
     CAnnotationText.prototype.AddReply = function(CommentData, nPos) {
-        let oReply = new CAnnotationText(AscCommon.CreateGUID(), this.GetPage(), this.GetOrigRect().slice(), this.GetDocument());
+        let oReply = new CAnnotationText(AscCommon.CreateGUID(), this.GetOrigRect().slice(), this.GetDocument());
 
         oReply.SetCreationDate(CommentData.m_sOOTime);
         oReply.SetModDate(CommentData.m_sOOTime);
@@ -141,7 +141,8 @@
         oReply.SetReplyTo(this.GetReplyTo() || this);
         CommentData.SetUserData(oReply.GetId());
         oReply.SetContents(CommentData.m_sText);
-
+        oReply._wasChanged = true;
+        
         if (!nPos) {
             nPos = this._replies.length;
         }
@@ -226,7 +227,7 @@
         let oDoc = this.GetDocument();
         oDoc.StartNoHistoryMode();
 
-        let oNewAnnot = new CAnnotationText(AscCommon.CreateGUID(), this.GetPage(), this.GetOrigRect().slice(), oDoc);
+        let oNewAnnot = new CAnnotationText(AscCommon.CreateGUID(), this.GetOrigRect().slice(), oDoc);
 
         oNewAnnot.lazyCopy = true;
         oNewAnnot._originView = this._originView;
@@ -262,15 +263,15 @@
         
         let nX          = aOrigRect[0];
         let nY          = aOrigRect[1];
-        let nWidth      = 21 / oDoc.Viewer.zoom;
-        let nHeight     = 21 / oDoc.Viewer.zoom;
+        let nWidth      = 21 / (oGraphics.isThumbnails ? 1 : oDoc.Viewer.zoom);
+        let nHeight     = 21 / (oGraphics.isThumbnails ? 1 : oDoc.Viewer.zoom);
         
         let oCtx = oGraphics.GetContext();
         oCtx.save();
         oGraphics.EnableTransform();
         oCtx.iconFill = "rgb(" + oRGB.r + "," + oRGB.g + "," + oRGB.b + ")";
 
-        let nScale = 1 / oDoc.Viewer.zoom;
+        let nScale = 1 / (oGraphics.isThumbnails ? 1 : oDoc.Viewer.zoom);
         let drawFunc = this.GetIconDrawFunc();
         drawFunc(oCtx, nX , nY, nScale, nScale, -nRotAngle * Math.PI / 180);
 

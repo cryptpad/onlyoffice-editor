@@ -62,7 +62,7 @@ QUnit.config.autostart = false;
 
 	function GetParagraphText(paragraph)
 	{
-		return paragraph.GetText({ParaEndToSpace: false});
+		return paragraph.GetText({ParaSeparator : ""});
 	}
 
 	function ClearShapeAndAddParagraph(sText)
@@ -880,7 +880,7 @@ QUnit.config.autostart = false;
 		SelectDrawings([drawing2]);
 
 		ExecuteGraphicHotkey(graphicHotkeyTypes.selectAllAfterEnter);
-		assert.strictEqual(GetDrawingObjects().GetSelectedText(), 'Hello', 'Check select non empty content');
+		assert.strictEqual(GetDrawingObjects().GetSelectedText(), 'Hello\r\n', 'Check select non empty content');
 
 		ExecuteGraphicHotkey(graphicHotkeyTypes.resetTextSelection);
 		assert.true(GetDrawingObjects().selectedObjects[0] === drawing2, 'Check reset text selection');
@@ -1041,12 +1041,12 @@ QUnit.config.autostart = false;
 		CheckSelectedText('Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello Hello World Hello Hello World Hello Hello World Hello World Hello World', 'Select to start content');
 
 		ExecuteGraphicHotkey(graphicHotkeyTypes.selectToEndDocument);
-		CheckSelectedText('', 'Select to end content');
+		CheckSelectedText('\r\n', 'Select to end content');
 
 		GetDrawingObjects().cursorMoveToStartPos();
 
 		ExecuteGraphicHotkey(graphicHotkeyTypes.selectToEndDocument);
-		CheckSelectedText('Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello Hello World Hello Hello World Hello Hello World Hello World Hello World', 'Select to end content');
+		CheckSelectedText('Hello World Hello World Hello World Hello World Hello World Hello World Hello World Hello Hello World Hello Hello World Hello Hello World Hello World Hello World\r\n', 'Select to end content');
 	});
 
 	QUnit.test('Check paragraph property change', (assert) =>
@@ -1147,7 +1147,7 @@ QUnit.config.autostart = false;
 
 		assert.true(shape.txBody.content.IsSelectionUse(), 'Check content selection');
 		assert.true(paragraph.IsSelectedAll(), 'Check paragraph selection');
-		assert.strictEqual(GetDrawingObjects().GetSelectedText(), 'Hello', 'Check selected text');
+		assert.strictEqual(GetDrawingObjects().GetSelectedText(), 'Hello\r\n', 'Check selected text');
 
 		const drawing2 = AddShape();
 
@@ -1167,7 +1167,7 @@ QUnit.config.autostart = false;
 		controller.selection.chartSelection = chart;
 		chart.selectTitle(titles[0], 0);
 		ExecuteGraphicHotkey(graphicHotkeyTypes.selectAllTitleAfterEnter);
-		assert.strictEqual(GetDrawingObjects().GetSelectedText(), 'Diagram Title', 'Check select all content in chart title');
+		assert.strictEqual(GetDrawingObjects().GetSelectedText(), 'Diagram Title\r\n', 'Check select all content in chart title');
 	});
 
 	QUnit.test('Check add tab symbol', (assert) =>

@@ -6146,7 +6146,7 @@ StyleManager.prototype =
 	};
 	Hyperlink.prototype.getProperty = function (nType) {
 		switch (nType) {
-			case this.Properties.Ref: return parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName());
+			case this.Properties.Ref: return this.Ref && parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName()) || null;
 			case this.Properties.Location: return this.getLocation();
 			case this.Properties.Hyperlink: return this.Hyperlink;
 			case this.Properties.Tooltip: return this.Tooltip;
@@ -13324,10 +13324,10 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 
-	asc_CPageSetup.prototype.asc_setScale = function (newVal) {
+	asc_CPageSetup.prototype.asc_setScale = function (newVal, isNotHistory) {
 		var oldVal = this.scale;
 		this.scale = newVal;
-		if (this.ws && AscCommon.History.Is_On() && oldVal !== this.scale) {
+		if (!isNotHistory && this.ws && AscCommon.History.Is_On() && oldVal !== this.scale) {
 			AscCommon.History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Scale, this.ws.getId(),
 				null, new UndoRedoData_Layout(oldVal, newVal));
 		}
@@ -16077,7 +16077,7 @@ function RangeDataManagerElem(bbox, data)
 				});
 			}
 
-			let newVal = noData ? "#REF" : cell.getValue();
+			let newVal = noData ? "#REF!" : cell.getValue();
 			if (this.CellValue !== newVal) {
 				isChanged = true;
 				this.CellValue = newVal;
@@ -18240,6 +18240,12 @@ function RangeDataManagerElem(bbox, data)
 			"boolean[][]": 1,
 			"any[][]": 1
 		};
+		let supportedArrTypes = {
+			"number[][]": 1,
+			"string[][]": 1,
+			"boolean[][]": 1,
+			"any[][]": 1
+		};
 		if (argsInfo) {
 			let optionalCount = 0;
 			for (let i = 0; i < argsInfo.length; i++) {
@@ -18258,9 +18264,11 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 		let returnInfo = options.returnInfo;
-		if (options.returnInfo && !supportedTypes[options.returnInfo.type]) {
+		if (options.returnInfo && !supportedTypes[returnInfo.type]) {
 			console.log("Registration custom function \"" +  funcName + "\" warning. Invalid return type. The following types must be used: number, string, boolean, any, number[][], string[][], boolean[][], any[][].");
 		}
+
+		let returnValueType = supportedArrTypes[returnInfo.type] ? AscCommonExcel.cReturnFormulaType.array : null;
 
 		/**
 		 * @constructor
@@ -18277,6 +18285,7 @@ function RangeDataManagerElem(bbox, data)
 		//newFunc.prototype.argumentsMax = argumentsMax;
 		//argumentsType - other arguments type, need convert
 		newFunc.prototype.argumentsType = argumentsType;
+		newFunc.prototype.returnValueType = returnValueType;
 		newFunc.prototype.Calculate = function (arg) {
 			try {
 

@@ -51,10 +51,10 @@
 	 * Class representing a free text annotation.
 	 * @constructor
     */
-    function CAnnotationFreeText(sName, nPage, aRect, oDoc)
+    function CAnnotationFreeText(sName, aRect, oDoc)
     {
         AscFormat.CGroupShape.call(this);
-        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.FreeText, nPage, aRect, oDoc);
+        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.FreeText, aRect, oDoc);
         
         initGroupShape(this);
         
@@ -483,7 +483,7 @@
         let oDoc = this.GetDocument();
         oDoc.StartNoHistoryMode();
 
-        let oFreeText = new CAnnotationFreeText(AscCommon.CreateGUID(), this.GetPage(), this.GetOrigRect().slice(), oDoc);
+        let oFreeText = new CAnnotationFreeText(AscCommon.CreateGUID(), this.GetOrigRect().slice(), oDoc);
 
         oFreeText.lazyCopy = true;
 
@@ -967,7 +967,7 @@
             else if (this.selectedObjects.length <= this.spTree.length - 1) {
                 let _t = this;
                 // селектим все фигуры в группе (кроме перпендикулярной линии) если до сих пор не заселекчены
-                this.select(oController, this.selectStartPage);
+                this.select(oController, this.GetPage());
                 oController.selection.groupSelection = this;
                 this.selectedObjects.length = 0;
 
@@ -1152,7 +1152,7 @@
         let oContent    = this.GetDocContent();
 
         oContent.SetApplyToAll(true);
-		let sText = oContent.GetSelectedText(false, {NewLineParagraph: true, ParaSeparator: '\r'}).replace('\r', '');
+		let sText = oContent.GetSelectedText(false, {ParaSeparator: '\r'}).replace('\r', '');
 		oContent.SetApplyToAll(false);
 
         let isNeedUpdateRC = this.IsNeedUpdateRC();
@@ -1222,10 +1222,10 @@
             // расширяем рект на ширину линии (или на радиус cloud бордера)
             let nLineWidth = this.GetWidth();
             if (this.GetBorderEffectStyle() === AscPDF.BORDER_EFFECT_STYLES.Cloud) {
-                aNewTextBoxRect[0] -= this.GetBorderEffectIntensity() * 1.5;
-                aNewTextBoxRect[1] -= this.GetBorderEffectIntensity() * 1.5;
-                aNewTextBoxRect[2] += this.GetBorderEffectIntensity() * 1.5;
-                aNewTextBoxRect[3] += this.GetBorderEffectIntensity() * 1.5;
+                aNewTextBoxRect[0] -= this.GetBorderEffectIntensity() * 12;
+                aNewTextBoxRect[1] -= this.GetBorderEffectIntensity() * 12;
+                aNewTextBoxRect[2] += this.GetBorderEffectIntensity() * 12;
+                aNewTextBoxRect[3] += this.GetBorderEffectIntensity() * 12;
             } else {
                 aNewTextBoxRect[0] -= nLineWidth;
                 aNewTextBoxRect[1] -= nLineWidth;
@@ -1324,6 +1324,7 @@
 
         let oViewer         = editor.getDocumentRenderer();
         let oDoc            = this.GetDocument();
+        let oController     = oDoc.GetController();
         let oDrDoc          = oDoc.GetDrawingDocument();
 
         this.selectStartPage = this.GetPage();
@@ -1345,6 +1346,9 @@
                 let xContent    = oTransform.TransformPointX(X, 0);
                 let yContent    = oTransform.TransformPointY(0, Y);
 
+                oController.resetSelection();
+                oController.selection.groupSelection = this;
+                
                 if (this.IsInTextBox() == false && false == this.Lock.Is_Locked()) {
                     oDoc.SetGlobalHistory();
                     oDoc.DoAction(function() {

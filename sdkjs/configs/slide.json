@@ -134,6 +134,7 @@
 			"common/Drawings/HatchPattern.js",
 			
 			"common/bidi/bidi-common.js",
+			"common/bidi/bidi-brackets.js",
 			"common/bidi/bidi-types.js",
 			"common/bidi/unicode-data.js",
 			
@@ -198,6 +199,7 @@
 			"word/Drawing/ShapeDrawer.js",
 			"word/Drawing/buttons.js",
 
+			"slide/Editor/SlideShowAnnotations.js",
 			"slide/Drawing/Transitions.js",
 			"slide/Drawing/MorphTransition.js",
 			"word/Drawing/cachemanager.js",

@@ -49,6 +49,8 @@ AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_ConsecutiveHyphenLimi
 AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_DoNotHyphenateCaps]     = CChangesDocumentSettingsDoNotHyphenateCaps;
 AscDFH.changesFactory[AscDFH.historyitem_Document_Settings_HyphenationZone]        = CChangesDocumentSettingsHyphenationZone;
 AscDFH.changesFactory[AscDFH.historyitem_Document_PageColor]                       = CChangesDocumentPageColor;
+
+AscDFH.changesFactory[AscDFH.historyitem_Document_DisconnectEveryone]              = CChangesDocumentDisconnectEveryone;
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
 //----------------------------------------------------------------------------------------------------------------------
@@ -69,6 +71,7 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Document_Settings_GutterAtTop]     
 AscDFH.changesRelationMap[AscDFH.historyitem_Document_Settings_MirrorMargins]     = [AscDFH.historyitem_Document_Settings_MirrorMargins];
 AscDFH.changesRelationMap[AscDFH.historyitem_Document_SpecialFormsGlobalSettings] = [AscDFH.historyitem_Document_SpecialFormsGlobalSettings];
 AscDFH.changesRelationMap[AscDFH.historyitem_Document_Settings_TrackRevisions]    = [AscDFH.historyitem_Document_Settings_TrackRevisions];
+AscDFH.changesRelationMap[AscDFH.historyitem_Document_DisconnectEveryone]         = [AscDFH.historyitem_Document_DisconnectEveryone];
 //----------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -1198,3 +1201,29 @@ CChangesDocumentPageColor.prototype.CreateReverseChange = function()
 {
 	return new CChangesDocumentPageColor(this.Class, this.New, this.Old);
 };
+
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBase}
+ */
+function CChangesDocumentDisconnectEveryone(Class)
+{
+	AscDFH.CChangesBase.call(this, Class);
+}
+CChangesDocumentDisconnectEveryone.prototype = Object.create(AscDFH.CChangesBase.prototype);
+CChangesDocumentDisconnectEveryone.prototype.constructor = CChangesDocumentDisconnectEveryone;
+CChangesDocumentDisconnectEveryone.prototype.Type = AscDFH.historyitem_Document_DisconnectEveryone;
+CChangesDocumentDisconnectEveryone.prototype.Undo = function()
+{
+};
+CChangesDocumentDisconnectEveryone.prototype.Redo = function()
+{
+	let logicDocument = this.Class;
+	
+	logicDocument.sendEvent("asc_onDisconnectEveryone");
+	let editorApi = logicDocument.GetApi();
+	
+	editorApi.setViewModeDisconnect(true);
+	editorApi.asc_coAuthoringDisconnect();
+};
+AscDFH.CChangesDocumentDisconnectEveryone = CChangesDocumentDisconnectEveryone;

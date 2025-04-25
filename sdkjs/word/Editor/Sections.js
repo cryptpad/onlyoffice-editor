@@ -1942,10 +1942,8 @@ CFootnotePr.prototype.ReadFromBinary = function(Reader)
 
 function CSectionLnNumType(nCountBy, nDistance, nStart, nRestartType)
 {
-	// Если задан сам класс, но в нем не задан CountBy, считаем, что нумерация строк не задана. Поэтому
-	// по умолчанию задаем CountBy=0
-
-	this.CountBy  = undefined !== nCountBy ? nCountBy : 0;
+	// Если задан сам класс, но в нем не задан CountBy, считаем, что нумерация строк не задана
+	this.CountBy  = undefined !== nCountBy ? nCountBy : undefined;
 	this.Distance = undefined !== nDistance && null !== nDistance ? nDistance : undefined; // В твипсах
 	this.Start    = undefined !== nStart && 0 !== nStart ? nStart : undefined;
 	this.Restart  = undefined !== nRestartType && Asc.c_oAscLineNumberRestartType.NewPage !== nRestartType ? nRestartType : undefined;

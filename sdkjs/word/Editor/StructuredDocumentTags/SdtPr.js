@@ -72,6 +72,9 @@ function CSdtPr()
 	this.ComplexFormPr = undefined;
 
 	this.OForm         = undefined;
+	
+	this.BorderColor = undefined;
+	this.ShdColor    = undefined;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -85,6 +88,9 @@ CSdtPr.prototype.Copy = function()
 	oPr.Lock       = this.Lock;
 	oPr.Appearance = this.Appearance;
 	oPr.Color      = (this.Color ? this.Color.Copy() : undefined);
+	
+	oPr.BorderColor = this.BorderColor ? this.BorderColor.Copy() : undefined;
+	oPr.ShdColor    = this.ShdColor ? this.ShdColor.Copy() : undefined;
 
 	if (this.DataBinding)
 		oPr.DataBinding = this.DataBinding.copy();
@@ -274,6 +280,18 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 		this.DataBinding.toBinary(Writer);
 		Flags |= (1 << 23);
 	}
+	
+	if (this.BorderColor)
+	{
+		this.BorderColor.toBinary(Writer);
+		Flags |= (1 << 24);
+	}
+	
+	if (this.ShdColor)
+	{
+		this.ShdColor.toBinary(Writer);
+		Flags |= (1 << 25);
+	}
 
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
@@ -382,6 +400,12 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 	
 	if (Flags & (1 << 23))
 		this.DataBinding = AscWord.DataBinding.fromBinary(Reader);
+	
+	if (Flags & (1 << 24))
+		this.BorderColor = AscWord.CDocumentColorA.fromBinary(Reader);
+	
+	if (Flags & (1 << 25))
+		this.ShdColor = AscWord.CDocumentColorA.fromBinary(Reader);
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()
 {
@@ -393,7 +417,7 @@ CSdtPr.prototype.IsBuiltInDocPart = function()
 CSdtPr.prototype.GetDocPartGallery = function()
 {
 	return this.DocPartObj ? this.DocPartObj.Gallery : undefined;
-}
+};
 
 function CContentControlPr(nType)
 {
@@ -434,6 +458,9 @@ function CContentControlPr(nType)
 	this.PlaceholderText = undefined;
 	
 	this.FormPr = undefined;
+	
+	this.BorderColor = undefined;
+	this.ShdColor    = undefined;
 }
 CContentControlPr.prototype.GetEventObject = function()
 {
@@ -469,6 +496,12 @@ CContentControlPr.prototype.FillFromObject = function(oPr)
 
 	if (undefined !== oPr.PlaceholderText)
 		this.PlaceholderText = oPr.PlaceholderText;
+	
+	if (undefined !== oPr.ShdColor)
+		this.ShdColor = AscWord.CDocumentColorA.fromObjectRgba(oPr.ShdColor);
+	
+	if (undefined !== oPr.BorderColor)
+		this.BorderColor = AscWord.CDocumentColorA.fromObjectRgba(oPr.BorderColor);
 };
 CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
 {
@@ -528,6 +561,12 @@ CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
 		if (oContentControl.IsSignatureForm())
 			this.FormPr.SetRequired(true);
 	}
+	
+	if (oContentControl.getShdColor())
+		this.ShdColor = oContentControl.getShdColor().getAscColor();
+	
+	if (oContentControl.getBorderColor())
+		this.BorderColor = oContentControl.getBorderColor().getAscColor();
 };
 CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 {
@@ -641,6 +680,12 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 
 	if (undefined !== this.ComplexFormPr)
 		oContentControl.SetComplexFormPr(this.ComplexFormPr);
+	
+	if (this.ShdColor)
+		oContentControl.setShdColor(AscWord.CDocumentColorA.fromObjectRgba(this.ShdColor));
+	
+	if (this.BorderColor)
+		oContentControl.setBorderColor(AscWord.CDocumentColorA.fromObjectRgba(this.BorderColor));
 };
 CContentControlPr.prototype.SetFormPrToContentControl = function(contentControl)
 {

@@ -36,10 +36,10 @@
 	 * Class representing a Ink annotation.
 	 * @constructor
     */
-    function CAnnotationCircle(sName, nPage, aRect, oDoc)
+    function CAnnotationCircle(sName, aRect, oDoc)
     {
         AscPDF.CPdfShape.call(this);
-        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.Circle, nPage, aRect, oDoc);
+        AscPDF.CAnnotationBase.call(this, sName, AscPDF.ANNOTATIONS_TYPES.Circle, aRect, oDoc);
         
         AscPDF.initShape(this);
         this.spPr.setGeometry(AscFormat.CreateGeometry("ellipse"));
@@ -66,7 +66,7 @@
         let oDoc = this.GetDocument();
         oDoc.StartNoHistoryMode();
 
-        let oCircle = new CAnnotationCircle(AscCommon.CreateGUID(), this.GetPage(), this.GetOrigRect().slice(), oDoc);
+        let oCircle = new CAnnotationCircle(AscCommon.CreateGUID(), this.GetOrigRect().slice(), oDoc);
         oCircle.lazyCopy = true;
 
         this.fillObject(oCircle);

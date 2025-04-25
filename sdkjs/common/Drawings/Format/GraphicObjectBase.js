@@ -1249,6 +1249,9 @@
 	CGraphicObjectBase.prototype.isInk = function () {
 		return false;
 	};
+	CGraphicObjectBase.prototype.isHaveOnlyInks = function () {
+		return false;
+	};
 	CGraphicObjectBase.prototype.isPlaceholder = function () {
 		let oUniPr = this.getUniNvProps();
 		if (oUniPr) {
@@ -3799,6 +3802,7 @@
 	CGraphicObjectBase.prototype.generateLocalDrawingPart = function () {};
 	CGraphicObjectBase.prototype.generateSmartArtDrawingPart = function () {};
 	CGraphicObjectBase.prototype.checkDrawingPartWithHistory = function () {};
+	CGraphicObjectBase.prototype.getAllInks = function (arrInks) {return arrInks || []};
 	var ANIM_LABEL_WIDTH_PIX = 22;
 	var ANIM_LABEL_HEIGHT_PIX = 17;
 

@@ -1134,6 +1134,67 @@
 			}
 			return res;
 		};
+		/**
+		 * Adjusts range coordinates based on removed rows or columns
+		 * @param {Range} deleteRange Range being deleted
+		 * @param {Boolean} isRow True if deleting rows, false if deleting columns
+		 * @returns {Range|null} Adjusted range or null if range should be deleted
+		 */
+		Range.prototype.adjustRange = function(deleteRange, isRow) {
+			if (!deleteRange) {
+				return null;
+			}
+			// Clone range to avoid modifying original
+			let newRange = this.clone();
+
+			if (isRow) {
+				// Handle row deletion
+				let deleteCount = deleteRange.r2 - deleteRange.r1 + 1;
+
+				// Range is fully within deleted rows - return null
+				if (this.r1 >= deleteRange.r1 && this.r2 <= deleteRange.r2) {
+					return null;
+				}
+
+				// Adjust range start row if after deleted section
+				if (this.r1 > deleteRange.r2) {
+					newRange.r1 = Math.max(0, this.r1 - deleteCount);
+					newRange.r2 = Math.max(0, this.r2 - deleteCount);
+				}
+				// Adjust range end row if crosses deleted section
+				else if (this.r2 > deleteRange.r2) {
+					newRange.r2 = Math.max(0, this.r2 - deleteCount);
+				}
+				// Adjust range end row if includes deleted section
+				else if (this.r2 >= deleteRange.r1) {
+					newRange.r2 = deleteRange.r1 - 1;
+				}
+			} else {
+				// Handle column deletion
+				let deleteCount = deleteRange.c2 - deleteRange.c1 + 1;
+
+				// Range is fully within deleted columns - return null
+				if (this.c1 >= deleteRange.c1 && this.c2 <= deleteRange.c2) {
+					return null;
+				}
+
+				// Adjust range start column if after deleted section
+				if (this.c1 > deleteRange.c2) {
+					newRange.c1 = Math.max(0, this.c1 - deleteCount);
+					newRange.c2 = Math.max(0, this.c2 - deleteCount);
+				}
+				// Adjust range end column if crosses deleted section
+				else if (this.c2 > deleteRange.c2) {
+					newRange.c2 = Math.max(0, this.c2 - deleteCount);
+				}
+				// Adjust range end column if includes deleted section
+				else if (this.c2 >= deleteRange.c1) {
+					newRange.c2 = deleteRange.c1 - 1;
+				}
+			}
+
+			return newRange;
+		};
 
 
 		/**

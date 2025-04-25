@@ -40,6 +40,7 @@ if (pathnameParts.length > 1 && pathnameParts[pathnameParts.length - 2]) {
 const g_cacheNamePrefix = 'document_editor_static_';
 const g_cacheName = g_cacheNamePrefix + g_version;
 const patternPrefix = new RegExp(g_version + "/(web-apps|sdkjs|sdkjs-plugins|fonts|dictionaries)");
+const isDesktopEditor = navigator.userAgent.indexOf("AscDesktopEditor") !== -1;
 
 function putInCache(request, response) {
 	return caches.open(g_cacheName)
@@ -100,5 +101,11 @@ self.addEventListener('fetch', (event) => {
 	if (request.method !== "GET" || !patternPrefix.test(request.url)) {
 		return;
 	}
+
+	if (isDesktopEditor) {
+		if (-1 !== request.url.indexOf("/sdkjs/common/AllFonts.js"))
+			return;
+	}
+
 	event.respondWith(cacheFirst(event));
 });

@@ -6572,6 +6572,9 @@
 	}
 	ProceedTokens.prototype.ProceedBeforeDivide = function (oRuleLast)
 	{
+		if (undefined === oRuleLast)
+			return false;
+
 		let oMathContentTemp = AscFormat.ExecuteNoHistory(
 			this.private_ProceedBeforeDivide,
 			this,

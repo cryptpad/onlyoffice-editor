@@ -602,8 +602,18 @@
 						}
 					}
 				}
+			} else if (AscCommonExcel.cElementType.array === list.type) {
+				let seenValues = {};
+				aValue = [];
+				list.foreach(function (elem) {
+					let _val = elem.getValue && elem.getValue();
+					if (_val != null && !seenValues[_val]) {
+						aValue.push(_val);
+						seenValues[_val] = true;
+					}
+				});
 			} else {
-				list = list.getRange();
+				list = list.getRange && list.getRange();
 				if (list) {
 					aValue = [];
 					aData = [];

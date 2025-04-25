@@ -1118,7 +1118,7 @@
                 aValues = aValues.concat(fieldValue);
             }
             else {
-                aValues.push(fieldValue !== "Off" && fieldValue != "" ? fieldValue : "0");
+                aValues.push(fieldValue !== "Off" && fieldValue !== "" && fieldValue != undefined ? fieldValue : "0");
             }
         });
 

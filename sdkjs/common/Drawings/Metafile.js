@@ -2802,7 +2802,7 @@
 					this.Memory.WriteLong(oTextFormPr.MaxCharacters);
 				}
 
-				let sValue = oForm.GetSelectedText(true, false, {NewLine : true});
+				let sValue = oForm.GetSelectedText(true, false, {});
 				if (sValue)
 				{
 					nFlag |= (1 << 22);
@@ -2986,7 +2986,7 @@
 				this.Memory.WriteLong(6);
 				let dateTimePr = oForm.GetDatePickerPr();
 				
-				let value = oForm.GetSelectedText(true, false, {NewLine : true});
+				let value = oForm.GetSelectedText(true, false, {});
 				if (value)
 				{
 					nFlag |= (1 << 22);

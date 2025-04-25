@@ -1226,6 +1226,9 @@ function (window, undefined) {
 	// Rendering
 
 	CellEditor.prototype._draw = function () {
+		if (!this.options || !this.options.fragments) {
+			return;
+		}
 		this._expand();
 		this._cleanText();
 		this._cleanSelection();

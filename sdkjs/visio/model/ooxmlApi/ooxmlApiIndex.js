@@ -1085,7 +1085,7 @@
 			} else {
 				// compare with previous shape layer
 				for (const cellKey in layerInfo.getElements()) {
-					const cell = previousLayer.getCell(cellKey);
+					const cell = layerInfo.getCell(cellKey);
 					let previousLayerCell = previousLayer.getCell(cell.n);
 					if (previousLayerCell.v !== cell.v) {
 						unEqualProperties.add(cell.n);

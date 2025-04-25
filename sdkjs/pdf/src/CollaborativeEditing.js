@@ -107,6 +107,43 @@ CPDFCollaborativeEditing.prototype.Update_ForeignSelectedObjectsLabelsPositions 
         }
     }
 };
+CPDFCollaborativeEditing.prototype.Update_ForeignCursorPosition = function(UserId, Run, InRunPos, isRemoveLabel) {
+    let DrawingDocument = this.m_oLogicDocument.DrawingDocument;
+
+    if (!(Run instanceof AscCommonWord.ParaRun))
+        return;
+
+    let Paragraph = Run.GetParagraph();
+
+    if (!Paragraph) {
+        DrawingDocument.Collaborative_RemoveTarget(UserId);
+        return;
+    }
+
+    let ParaContentPos = Paragraph.Get_PosByElement(Run);
+    if (!ParaContentPos) {
+        DrawingDocument.Collaborative_RemoveTarget(UserId);
+        return;
+    }
+    ParaContentPos.Update(InRunPos, ParaContentPos.GetDepth() + 1);
+
+    let XY = Paragraph.Get_XYByContentPos(ParaContentPos);
+    if (XY && XY.Height > 0.001 && XY.PageNum >= 0) {
+        let ShortId = this.m_aForeignCursorsId[UserId] ? this.m_aForeignCursorsId[UserId] : UserId;
+        DrawingDocument.Collaborative_UpdateTarget(UserId, ShortId, XY.X, XY.Y, XY.Height, XY.PageNum, Paragraph.Get_ParentTextTransform());
+        this.Add_ForeignCursorXY(UserId, XY.X, XY.Y, XY.PageNum, XY.Height, Paragraph, isRemoveLabel);
+
+        if (true === this.m_aForeignCursorsToShow[UserId]) {
+            this.Show_ForeignCursorLabel(UserId);
+            this.Remove_ForeignCursorToShow(UserId);
+        }
+    }
+    else {
+        DrawingDocument.Collaborative_RemoveTarget(UserId);
+        this.Remove_ForeignCursorXY(UserId);
+        this.Remove_ForeignCursorToShow(UserId);
+    }
+};
 CPDFCollaborativeEditing.prototype.private_LockByMe = function() {
 	for (let nIndex = 0, nCount = this.m_aCheckLocks.length; nIndex < nCount; ++nIndex) {
 		let oItem = this.m_aCheckLocks[nIndex];
