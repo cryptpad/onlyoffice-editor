@@ -7,8 +7,8 @@ let DocEditorOrig: any;
 export class DocEditor implements DocEditorInterface {
     public waitForAppReady: Promise<void>;
     private origEditor?: OrigDocEditorInterface;
-    private fromOOHandler: EventHandler<FromOO> = new EventHandler("fromOO");
-    private toOOHandler: EventHandler<ToOO> = new EventHandler("toOO");
+    private fromOOHandler: EventHandler<FromOO> = new EventHandler();
+    private toOOHandler: EventHandler<ToOO> = new EventHandler();
     private placeholderId: string;
     private server: MockServer;
     private fromOOHandle?: HandlerHandle<FromOO>;
