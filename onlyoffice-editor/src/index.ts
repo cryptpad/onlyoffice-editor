@@ -306,7 +306,9 @@ async function loadAndPatchOOOrig() {
     console.log("XXX loadAndPatchOOOrig myScriptSrc", myScriptSrc);
     const script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
-    script.setAttribute("src", new URL("api-orig.js", myScriptSrc).href);
+    const newUrl = new URL("api-orig.js", myScriptSrc);
+    newUrl.search = new URL(myScriptSrc).search;
+    script.setAttribute("src", newUrl.href);
     const scriptLoadedPromise = waitForEvent(script, "load");
 
     myScriptElement.after(script);
