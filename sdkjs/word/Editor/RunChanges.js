@@ -356,7 +356,7 @@ CChangesRunAddItem.prototype.Load = function(Color)
 {
 	var oRun = this.Class;
 
-    if (!oRun.m_oContentChanges) { return; } // XXX CryptPad: Error after checkpoints
+	if (!oRun.m_oContentChanges || !oRun.CollaborativeMarks) { return; } // XXX CryptPad: Error after checkpoints
 
 	for (var Index = 0, Count = this.Items.length; Index < Count; Index++)
 	{
