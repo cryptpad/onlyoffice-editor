@@ -9686,7 +9686,8 @@ var editor;
     // XXX CryptPad: the check above does not see that BroadcastChannel is not available
     // in the TOR browser. Our code below checks that.
     try {
-      new BroadcastChannel('cp-test');
+      const bc = new BroadcastChannel('cp-test');
+			bc.close();
       return true;
     } catch(e) { return false; }
 	};
