@@ -9680,9 +9680,17 @@ var editor;
 			}
 		}
 	};
-	spreadsheet_api.prototype.asc_isSupportCopySheetsBetweenBooks = function() {
-		return typeof BroadcastChannel !== "undefined";
+
+	spreadsheet_api.prototype.asc_isSupportCopySheetsBetweenBooks=function(){
+    if (typeof BroadcastChannel==="undefined") { return false; }
+    // XXX CryptPad: the check above does not see that BroadcastChannel is not available
+    // in the TOR browser. Our code below checks that.
+    try {
+      new BroadcastChannel('cp-test');
+      return true;
+    } catch(e) { return false; }
 	};
+
 	spreadsheet_api.prototype.closeBroadcastChannel = function() {
 		if (this.broadcastChannel) {
 			this.broadcastChannel.close();
