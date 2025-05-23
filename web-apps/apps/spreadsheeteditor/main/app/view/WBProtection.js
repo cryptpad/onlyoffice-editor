@@ -71,8 +71,8 @@ define([
                     '<span class="btn-slot text" id="slot-chk-locked-text"></span>' +
                 '</div>' +
             '</div>' +
-            '<div class="separator long"></div>' +
-            '<div class="group">' +
+            '<div class="separator long" style="display:none"></div>' +
+            '<div class="group" style="display:none">' + // CryptPad: Hide password since we did not implement this feature
                 '<span id="slot-btn-protect-range" class="btn-slot text x-huge"></span>' +
             '</div>';
 
