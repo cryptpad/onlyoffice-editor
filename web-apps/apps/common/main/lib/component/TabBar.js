@@ -320,6 +320,7 @@ define([
                 this.tabs[this.tabs.length - 1].$el.removeClass('mousemove right');
             }, this));
             addEvent(this.$bar[0], 'drop', _.bind(function (event) {
+                this.preventCutTab = true;  // CryptPad: workaround for https://github.com/cryptpad/cryptpad/issues/1929
                 this.$el.find('.mousemove').removeClass('mousemove right');
                 if (this.isDrop === undefined) {
                     if (Common.Utils.isMac && event.altKey) { // don't show alt hints after copy by drag and drop
