@@ -4,7 +4,7 @@ const EditorUIController = () => {
 };
 
 EditorUIController.isSupportEditFeature = () => {
-    return false
+    return true // CryptPad ;)
 };
 
 EditorUIController.getToolbarOptions = () => {

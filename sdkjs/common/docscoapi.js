@@ -1732,7 +1732,7 @@
             // light: false,
             // trial: false,
             rights: 1,
-            buildVersion: "7.3.3",
+            buildVersion: "0.0.0",
             buildNumber: 8,
             // branding: false
         }
