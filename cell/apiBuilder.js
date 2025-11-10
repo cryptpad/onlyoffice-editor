@@ -594,7 +594,7 @@
 	/**
 	 * Creates a new custom function.
 	 * The description of the function parameters and result is specified using JSDoc. The <em>@customfunction</em> tag is required in JSDoc.
-	 * Parameters and results can be specified as the <em>number / string / boolean / any / number[][] / string[][] / bobooleanol[][] / any[][]</em> types.
+	 * Parameters and results can be specified as the <em>number / string / boolean / any / number[][] / string[][] / boolean[][] / any[][]</em> types.
 	 * Parameters can be required or optional. A user can also set a default value.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
@@ -7957,7 +7957,7 @@
 	 * <b>LastModifiedRaw</b> - the date and time when the file was last modified.
 	 * <b>LastModified</b> - the parsed date and time when the file was last modified.
 	 * <b>LastModifiedBy</b> - the name of the user who has made the latest change to the document.
-	 * <b>Autrors</b> - the persons who has created the file.
+	 * <b>Authors</b> - the persons who has created the file.
 	 * <b>Title</b> - this property allows you to simplify your documents classification.
 	 * <b>Tags</b> - this property allows you to simplify your documents classification.
 	 * <b>Subject</b> - this property allows you to simplify your documents classification.
@@ -7970,21 +7970,21 @@
 	Api.prototype.GetDocumentInfo = function()
 	{
 		const oDocInfo = {
-			Application: '',
-			CreatedRaw: null,
-			Created: '',
-			LastModifiedRaw: null,
-			LastModified: '',
-			LastModifiedBy: '',
-			Autrors: [],
-			Title: '',
-			Tags: '',
-			Subject: '',
-			Comment: ''
+			"Application": '',
+			"CreatedRaw": null,
+			"Created": '',
+			"LastModifiedRaw": null,
+			"LastModified": '',
+			"LastModifiedBy": '',
+			"Authors": [],
+			"Title": '',
+			"Tags": '',
+			"Subject": '',
+			"Comment": ''
 		};
 
 		let props = (this) ? this.asc_getAppProps() : null;
-		oDocInfo.Application = (props.asc_getApplication() || '') + (props.asc_getAppVersion() ? ' ' : '') + (props.asc_getAppVersion() || '');
+		oDocInfo["Application"] = (props.asc_getApplication() || '') + (props.asc_getAppVersion() ? ' ' : '') + (props.asc_getAppVersion() || '');
 
 		let langCode = 1033; // en-US
 		let langName = 'en-us';
@@ -7997,38 +7997,64 @@
 		}
 
 		props = this.asc_getCoreProps();
-		oDocInfo.CreatedRaw = props.asc_getCreated();
-		oDocInfo.LastModifiedRaw = props.asc_getModified();
+		oDocInfo["CreatedRaw"] = props.asc_getCreated();
+		oDocInfo["LastModifiedRaw"] = props.asc_getModified();
 
 		try {
-			if (oDocInfo.CreatedRaw)
-				oDocInfo.Created = (oDocInfo.CreatedRaw.toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' +oDocInfo. CreatedRaw.toLocaleString(langName, {timeStyle: 'short'}));
+			if (oDocInfo["CreatedRaw"])
+				oDocInfo["Created"] = (oDocInfo["CreatedRaw"].toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo["CreatedRaw"].toLocaleString(langName, {timeStyle: 'short'}));
 			
-			if (oDocInfo.LastModifiedRaw)
-				oDocInfo.LastModified = (oDocInfo.LastModifiedRaw.toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo.LastModifiedRaw.toLocaleString(langName, {timeStyle: 'short'}));
+			if (oDocInfo["LastModifiedRaw"])
+				oDocInfo["LastModified"] = (oDocInfo["LastModifiedRaw"].toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo["LastModifiedRaw"].toLocaleString(langName, {timeStyle: 'short'}));
 		} catch (e) {
 			langName = 'en';
-			if (oDocInfo.CreatedRaw)
-				oDocInfo.Created = (oDocInfo.CreatedRaw.toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo.CreatedRaw.toLocaleString(langName, {timeStyle: 'short'}));
+			if (oDocInfo["CreatedRaw"])
+				oDocInfo["Created"] = (oDocInfo["CreatedRaw"].toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo["CreatedRaw"].toLocaleString(langName, {timeStyle: 'short'}));
 
-			if (oDocInfo.LastModifiedRaw)
-				oDocInfo.LastModified = (oDocInfo.LastModifiedRaw.toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo.LastModifiedRaw.toLocaleString(langName, {timeStyle: 'short'}));
+			if (oDocInfo["LastModifiedRaw"])
+				oDocInfo["LastModified"] = (oDocInfo["LastModifiedRaw"].toLocaleString(langName, {year: 'numeric', month: '2-digit', day: '2-digit'}) + ' ' + oDocInfo["LastModifiedRaw"].toLocaleString(langName, {timeStyle: 'short'}));
 		}
 
 		const LastModifiedBy = props.asc_getLastModifiedBy();
-		oDocInfo.LastModifiedBy = AscCommon.UserInfoParser.getParsedName(LastModifiedBy);
-
-		oDocInfo.Title = (props.asc_getTitle() || '');
-		oDocInfo.Tags = (props.asc_getKeywords() || '');
-		oDocInfo.Subject = (props.asc_getSubject() || '');
-		oDocInfo.Comment = (props.asc_getDescription() || '');
+		oDocInfo["LastModifiedBy"] = AscCommon.UserInfoParser.getParsedName(LastModifiedBy);
+		
+		oDocInfo["Title"] = (props.asc_getTitle() || '');
+		oDocInfo["Tags"] = (props.asc_getKeywords() || '');
+		oDocInfo["Subject"] = (props.asc_getSubject() || '');
+		oDocInfo["Comment"] = (props.asc_getDescription() || '');
 
 		const authors = props.asc_getCreator();
 		if (authors)
-			oDocInfo.Autrors = authors.split(/\s*[,;]\s*/);
+			oDocInfo["Authors"] = authors.split(/\s*[,;]\s*/);
 
 		return oDocInfo;
 	};
+
+	/**
+	 * Returns the core properties interface for the workbook.
+	 * This method is used to view or modify standard metadata such as title, author, and keywords.
+	 * @memberof Api
+	 * @returns {ApiCore}
+	 * @typeofeditors ["CSE"]
+	 * @since 9.0.0
+	 * @see office-js-api/Examples/{Editor}/Api/Methods/GetCore.js
+	 */
+	Api.prototype.GetCore = function () {
+		return new AscBuilder.ApiCore(this.wbModel.Core);
+	};
+
+	/**
+	 * Returns the workbook custom properties.
+	 * @memberof Api
+	 * @returns {ApiCustomProperties}
+	 * @typeofeditors ["CSE"]
+	 * @since 9.0.0
+	 * @see office-js-api/Examples/{Editor}/Api/Methods/GetCustomProperties.js
+	 */
+	Api.prototype.GetCustomProperties = function () {
+		return new AscBuilder.ApiCustomProperties(this.wbModel.CustomProperties);
+	};
+
 	/**
 	 * Returns the state of sheet visibility.
 	 * @memberof ApiWorksheet
@@ -11840,6 +11866,105 @@
 		}
 	};
 
+	/**
+	 * Sets an array formula to the current range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @param {string | boolean | number} data - The general value for the cell or cell range.
+	 * @returns {boolean} - Returns false if such a range does not exist.
+	 * @since 9.0.0
+	 * @see office-js-api/Examples/{Editor}/ApiRange/Methods/SetFormulaArray.js
+	 */
+	ApiRange.prototype.SetFormulaArray = function (data) {
+		if (!this.range) {
+			return false;
+		}
+
+		let worksheet = this.range.worksheet;
+
+		if (data === undefined || data === null) {
+			data = AscCommon.cErrorLocal["na"];
+		}
+
+		data = checkFormat(data);
+		let range = this.range;
+		let merged = range.hasMerged();
+		if (merged) {
+			range = this.range.worksheet.getRange3(merged.r1, merged.c1, merged.r1, merged.c1);
+		}
+
+		range.setValue(data.toString(), null, null, range.bbox);
+
+		if (data.type === AscCommonExcel.cElementType.number) {
+			range.setNumFormat(AscCommon.getShortDateFormat());
+		}
+
+		worksheet.workbook.handlers.trigger("cleanCellCache", worksheet.getId(), [range.bbox], true);
+		worksheet.workbook.oApi.onWorksheetChange(range.bbox);
+		return true;
+	};
+
+	/**
+	 * Returns an array formula from the current range.
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * @returns {string | null}
+	 * @since 9.0.0
+	 * @see office-js-api/Examples/{Editor}/ApiRange/Methods/GetFormulaArray.js
+	 */
+	ApiRange.prototype.GetFormulaArray = function () {
+		let bbox = this.range.bbox;
+		let nCol = bbox.c2 - bbox.c1 + 1;
+		let nRow = bbox.r2 - bbox.r1 + 1;
+		let res;
+		//returns:
+		//1) duplicated formulas
+		//2) duplicated values
+		//3) cells with 1 array formulas
+
+		let formulaRef, sFormula, sValue;
+		this.range.worksheet.getCell3(bbox.r1, bbox.c1)._foreachNoEmpty(function (cell) {
+			if (cell.isFormula()) {
+				let formulaParsed = cell.getFormulaParsed();
+				if (formulaParsed) {
+					formulaRef = formulaParsed.ref;
+					sFormula = cell.getValueForEdit();
+				}
+			} else {
+				sValue = cell.getValue();
+			}
+		});
+		if (!sFormula && !sValue) {
+			sValue = "";
+		}
+		if (formulaRef && formulaRef.containsRange(bbox)) {
+			res = sFormula;
+		} else {
+			res = sFormula ? sFormula : sValue;
+			for (let i = 0; i < nRow; i++) {
+				for (let k = 0; k < nCol; k++) {
+					let cell = this.range.worksheet.getRange3((bbox.r1 + i), (bbox.c1 + k), (bbox.r1 + i), (bbox.c1 + k));
+					if (sFormula && cell.getFormula() !== sFormula) {
+						return null;
+					} else if (cell.getValue() !== sValue) {
+						return null;
+					}
+				}
+			}
+		}
+
+		return res;
+	};
+
+	Object.defineProperty(ApiRange.prototype, "FormulaArray", {
+		get: function () {
+			return this.GetValue();
+		},
+		set: function (sValue) {
+			this.SetFormulaArray(sValue);
+		}
+	});
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing
@@ -11999,9 +12124,10 @@
 	/**
      * Sets the rotation angle to the current drawing object.
      * @memberof ApiDrawing
-     * @param {number} nRotAngle - new drawing rot angle
+     * @param {number} nRotAngle - New drawing rotation angle.
      * @typeofeditors ["CSE"]
      * @returns {boolean}
+	 * @since 9.0.0
      * @see office-js-api/Examples/{Editor}/ApiDrawing/Methods/SetRotation.js
 	 */
 	ApiDrawing.prototype.SetRotation = function(nRotAngle)
@@ -12015,10 +12141,11 @@
 		return true;
 	};
 	/**
-     * Gets the rotation angle of the current drawing object.
+     * Returns the rotation angle of the current drawing object.
      * @memberof ApiDrawing
      * @typeofeditors ["CSE"]
      * @returns {number}
+	 * @since 9.0.0
      * @see office-js-api/Examples/{Editor}/ApiDrawing/Methods/GetRotation.js
 	 */
 	ApiDrawing.prototype.GetRotation = function()
@@ -17630,6 +17757,8 @@
 	Api.prototype["SetFreezePanesType"] = Api.prototype.SetFreezePanesType;
 	Api.prototype["GetFreezePanesType"] = Api.prototype.GetFreezePanesType;
 	Api.prototype["GetDocumentInfo"] = Api.prototype.GetDocumentInfo;
+	Api.prototype["GetCore"] = Api.prototype.GetCore;
+	Api.prototype["GetCustomProperties"] = Api.prototype.GetCustomProperties;
 
 	Api.prototype["AddCustomFunction"] = Api.prototype.AddCustomFunction;
 	Api.prototype["RemoveCustomFunction"] = Api.prototype.RemoveCustomFunction;
@@ -17771,6 +17900,8 @@
 	ApiRange.prototype["PasteSpecial"] = ApiRange.prototype.PasteSpecial;
 	ApiRange.prototype["GetPivotTable"] = ApiRange.prototype.GetPivotTable;
 	ApiRange.prototype["SetAutoFilter"] = ApiRange.prototype.SetAutoFilter;
+	ApiRange.prototype["SetFormulaArray"] = ApiRange.prototype.SetFormulaArray;
+	ApiRange.prototype["GetFormulaArray"] = ApiRange.prototype.GetFormulaArray;
 
 
 

@@ -701,7 +701,7 @@
                 oRFonts.SetAll(oRCInfo["actual"], -1);
             }
             else if (oRCInfo["name"]) {
-                oRFonts.SetAll(AscFonts.getEmbeddedFontPrefix() + oRCInfo["name"], -1);
+                oRFonts.SetAll(/*AscFonts.getEmbeddedFontPrefix() +*/ oRCInfo["name"], -1);
             }
             else {
                 oRFonts.SetAll(AscPDF.DEFAULT_FIELD_FONT, -1);
@@ -859,7 +859,7 @@
                 fontName = aRCInfo[i]["actual"];
             }
             else if (aRCInfo[i]["name"]) {
-                fontName = AscFonts.getEmbeddedFontPrefix() + aRCInfo[i]["name"];
+                fontName = /*AscFonts.getEmbeddedFontPrefix() +*/ aRCInfo[i]["name"];
             }
             fontMap[fontName] = true;
         }
@@ -980,6 +980,16 @@
             }
         }
         else {
+            let pageObject = oDoc.Viewer.getPageByCoords2(x, y);
+            if (!pageObject)
+                return false;
+
+            let oTextBoxShape = this.GetTextBoxShape();
+            if (false == oTextBoxShape.hitInTextRect(pageObject.x, pageObject.y)) {
+                this.Blur();
+                return;
+            }
+
             if (e.ShiftKey) {
                 this.GetDocContent().StartSelectionFromCurPos();
                 oDoc.SelectionSetEnd(x, y, e);
@@ -1052,8 +1062,12 @@
             this._prevCallout = undefined;
         }
 
-        if (false == this.IsChanged()) {
-            this.SetDrawFromStream(!isIn);
+        if (this.IsNeedDrawFromStream()) {
+            this.SetDrawFromStream(false);
+            this.AddToRedraw();
+        }
+        else if (this.IsChanged() == false && !isIn) {
+            this.SetDrawFromStream(true);
             this.AddToRedraw();
         }
         
@@ -1097,17 +1111,6 @@
         };
 
 		let result = docContent.EnterText(correctCodePoints(codePoints));
-		this.OnChangeTextContent();
-		return result;
-	};
-	CAnnotationFreeText.prototype.CorrectEnterText = function(oldValue, newValue) {
-		let doc = this.GetDocument();
-		let docContent = this.GetDocContent();
-		
-		// TODO: Нужно реализовать метод checkAsYouType, чтобы он проверял что иммено сейчас происходил ввод в данном месте
-		let result = docContent.CorrectEnterText(oldValue, newValue, function(run, inRunPos, codePoint){
-			return true;
-		});
 		this.OnChangeTextContent();
 		return result;
 	};

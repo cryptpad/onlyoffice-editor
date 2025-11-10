@@ -532,7 +532,8 @@
             oGeometry1, oDrawData1.brush, oDrawData1.pen, oDrawData1.transform,
             oGeometry2, oDrawData2.brush, oDrawData2.pen, oDrawData2.transform, !!(oDrawData1.animParams || oDrawData2.animParams || oShape1.group || oShape2.group));
         if(oGeometryMorph.isValid()) {
-            this.addMorphObject(oGeometryMorph);
+					this.checkShadowMorph();
+					this.addMorphObject(oGeometryMorph);
         }
         else {
             this.addMorphObject(new CStretchTextureTransform(oTexturesCache, nRelH1, nRelH2, this.shape1, this.shape2, true));
@@ -561,6 +562,44 @@
         }
     }
     AscFormat.InitClassWithoutType(CShapeComplexMorph, CComplexMorphObject);
+	CShapeComplexMorph.prototype.getDrawingParamsWithoutRotate = function(shadowShape, nMainShapeRot) {
+		const oTransform = shadowShape.transform.CreateDublicate();
+		const oOldTransform = shadowShape.transform;
+		const oOldBounds = shadowShape.bounds;
+		const hc = shadowShape.extY / 2;
+		const wc = shadowShape.extX / 2;
+		AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, -wc, -hc);
+		AscCommon.global_MatrixTransformer.RotateRadAppend(oTransform, nMainShapeRot);
+		AscCommon.global_MatrixTransformer.TranslateAppend(oTransform, wc, hc);
+		shadowShape.transform = oTransform;
+		shadowShape.recalculateBounds();
+		const oBounds = shadowShape.bounds.copy();
+		shadowShape.transform = oOldTransform;
+		shadowShape.bounds = oOldBounds;
+		return {bounds: oBounds, transform: oTransform};
+	};
+	CShapeComplexMorph.prototype.checkShadowMorph = function() {
+		const oFirstShdwSp = this.shape1.shdwSp;
+		if (oFirstShdwSp) {
+			const oOuterShdw = this.shape1.getOuterShdw();
+			if (oOuterShdw) {
+				const oStartTransform = oFirstShdwSp.getShdwTransform(oOuterShdw, this.shape1);
+				const oEndTransform = oFirstShdwSp.getShdwTransform(oOuterShdw, this.shape2);
+				oFirstShdwSp.transform = oStartTransform;
+				this.addMorphObject(new CMorphedTransformDisappearObject(this.cache, oFirstShdwSp, this.relHeight1, oStartTransform, oEndTransform, this.getDrawingParamsWithoutRotate(oFirstShdwSp, this.shape1.rot)));
+			}
+		}
+		const oSecondShdwSp = this.shape2.shdwSp;
+		if (oSecondShdwSp) {
+			const oOuterShdw = this.shape2.getOuterShdw();
+			if (oOuterShdw) {
+				const oStartTransform = oSecondShdwSp.getShdwTransform(oOuterShdw, this.shape1);
+				const oEndTransform = oSecondShdwSp.getShdwTransform(oOuterShdw, this.shape2);
+				oSecondShdwSp.transform = oEndTransform;
+				this.addMorphObject(new CMorphedTransformAppearObject(this.cache, oSecondShdwSp, this.relHeight2, oStartTransform, oEndTransform, this.getDrawingParamsWithoutRotate(oSecondShdwSp, this.shape2.rot)));
+			}
+		}
+	};
     CShapeComplexMorph.prototype.getDrawingData = function(oDrawing, oAnimPlayer) {
 
 
@@ -873,8 +912,10 @@
                         oBrush.fill.srcRect.b = this.getValBetween(b1, b2);
                     }
 
-                    const dTransparent1 = isN(oBrush1.transparent) ? oBrush1.transparent : 255;
-                    const dTransparent2 = isN(oBrush2.transparent) ? oBrush2.transparent : 255;
+                    let dTransparent1 = oBrush1.fill.getTransparent();
+										dTransparent1 = dTransparent1 === null ? 255 : dTransparent1;
+                    let dTransparent2 = oBrush2.fill.getTransparent();
+	                dTransparent2 = dTransparent2 === null ? 255 : dTransparent2;
                     const dTransparent = this.getValBetween(dTransparent1, dTransparent2);
                     oBrush.transparent = dTransparent;
                     return oBrush;
@@ -894,7 +935,7 @@
         this.textureShape1.bounds.reset(0, 0, dBoundsW, dBoundsH);
         this.textureShape1.extX = dBoundsW;
         this.textureShape1.extY = dBoundsH;
-        const oTexture1 = this.cache.checkMorphTexture(this.textureShape1.Id, dScale, oBrush1 && oBrush1.isBlipFill());
+        const oTexture1 = this.cache.checkMorphTexture(this.textureShape1, dScale, oBrush1 && oBrush1.isBlipFill());
         if(!oTexture1) {
             return null;
         }
@@ -905,7 +946,7 @@
         this.textureShape2.bounds.reset(0, 0, dBoundsW, dBoundsH);
         this.textureShape2.extX = dBoundsW;
         this.textureShape2.extY = dBoundsH;
-        const oTexture2 = this.cache.checkMorphTexture(this.textureShape2.Id, dScale, oBrush2 && oBrush2.isBlipFill());
+        const oTexture2 = this.cache.checkMorphTexture(this.textureShape2, dScale, oBrush2 && oBrush2.isBlipFill());
         if(!oTexture2) {
             return null;
         }
@@ -981,11 +1022,11 @@
     };
     CGeometryTextureMorph.prototype.draw = function (oGraphics) {
         const dScale = oGraphics.m_oCoordTransform.sx;
-        const oTexture1 = this.cache.checkMorphTexture(this.shape1.GetId(), dScale);
+        const oTexture1 = this.cache.checkMorphTexture(this.shape1, dScale);
         if(!oTexture1) {
             return;
         }
-        const oTexture2 = this.cache.checkMorphTexture(this.shape2.GetId(), dScale);
+        const oTexture2 = this.cache.checkMorphTexture(this.shape2, dScale);
         if(!oTexture2) {
             return;
         }
@@ -1161,16 +1202,9 @@
     CMorphedFadeObject.prototype.morph = function(dRelTime) {
         CMorphObjectBase.prototype.morph.call(this, dRelTime);
     };
-    CMorphedFadeObject.prototype.drawWithAlpha = function(oGraphics, dAlpha) {
+    CMorphedFadeObject.prototype.drawWithAlpha = function(oGraphics, dAlpha, oTransform) {
         const dScale = oGraphics.m_oCoordTransform.sx;
-        const oOldTxBody = this.drawing.txBody;
-        if(this.bNoText) {
-            this.drawing.txBody = null;
-        }
-        const oTexture = this.cache.checkMorphTexture(this.drawing.GetId(), dScale);
-        if(this.bNoText) {
-            this.drawing.txBody = oOldTxBody;
-        }
+        const oTexture = this.cache.checkMorphTexture(this.drawing, dScale, undefined, undefined, this.bNoText);
         if(!oTexture) {
             return;
         }
@@ -1178,7 +1212,7 @@
         if(!oFadeTexture) {
             return;
         }
-        oFadeTexture.drawWithoutSaveState(oGraphics, null);
+        oFadeTexture.drawWithoutSaveState(oGraphics, oTransform);
     };
 
     function CMorphedAppearObject(oTexturesCache, oDrawing, nRelH, bNoText) {
@@ -1210,6 +1244,47 @@
         this.drawWithAlpha(oGraphics, dAlpha);
     };
 
+		function CMorphedTransformFadeObject(oTexturesCache, oDrawing, nRelH, oTransform1, oTransform2, oDrawingParams, bNoText) {
+			CMorphedFadeObject.call(this, oTexturesCache, oDrawing, nRelH, bNoText);
+			this.transform1 = oTransform1;
+			this.transform2 = oTransform2;
+			this.drawingParams = oDrawingParams;
+		}
+	AscFormat.InitClassWithoutType(CMorphedTransformFadeObject, CMorphedFadeObject);
+	CMorphedTransformFadeObject.prototype.draw = function(oGraphics) {
+		let oTransform = new AscCommon.CMatrix();
+		oTransform.tx = this.getValBetween(this.transform1.tx, this.transform2.tx);
+		oTransform.ty = this.getValBetween(this.transform1.ty, this.transform2.ty);
+		oTransform.sx = this.getValBetween(this.transform1.sx, this.transform2.sx);
+		oTransform.sy = this.getValBetween(this.transform1.sy, this.transform2.sy);
+		oTransform.shx = this.getValBetween(this.transform1.shx, this.transform2.shx);
+		oTransform.shy = this.getValBetween(this.transform1.shy, this.transform2.shy);
+
+		const oOldTransform = this.drawing.transform;
+		const oOldBounds = this.drawing.bounds;
+		this.drawing.transform = this.drawingParams.transform;
+		this.drawing.bounds = this.drawingParams.bounds;
+		this.drawWithAlpha(oGraphics, this.getAlpha(), oTransform);
+		this.drawing.transform = oOldTransform;
+		this.drawing.bounds = oOldBounds;
+	};
+	CMorphedTransformFadeObject.prototype.getAlpha = function() {
+		return 0;
+	};
+	function CMorphedTransformAppearObject(oTexturesCache, oDrawing, nRelH, oTransform1, oTransform2, oDrawingParams, bNoText) {
+		CMorphedTransformFadeObject.call(this, oTexturesCache, oDrawing, nRelH, oTransform1, oTransform2, oDrawingParams, bNoText);
+	}
+	AscFormat.InitClassWithoutType(CMorphedTransformAppearObject, CMorphedTransformFadeObject);
+	CMorphedTransformAppearObject.prototype.getAlpha = function() {
+		return this.relTime;
+	};
+	function CMorphedTransformDisappearObject(oTexturesCache, oDrawing, nRelH, oTransform1, oTransform2, oDrawingParams, bNoText) {
+		CMorphedTransformFadeObject.call(this, oTexturesCache, oDrawing, nRelH, oTransform1, oTransform2, oDrawingParams, bNoText);
+	}
+	AscFormat.InitClassWithoutType(CMorphedTransformDisappearObject, CMorphedTransformFadeObject);
+	CMorphedTransformDisappearObject.prototype.getAlpha = function() {
+		return 1 - this.relTime;
+	};
 
     function CStretchTextureTransform(oTexturesCache, nRelH1, nRelH2, oDrawing1, oDrawing2, bNoText) {
         CMorphObjectBase.call(this, oTexturesCache, nRelH1, nRelH2)
@@ -1242,7 +1317,7 @@
         let oAnimParams = oAnimPlayer.getDrawingParams(sFormatId, true);
         let oTexture, oBounds, dOpacity;
         if(!oAnimParams) {
-            oTexture = this.cache.checkMorphTexture(sId, dScale);
+            oTexture = this.cache.checkMorphTexture(oDrawing, dScale);
             oBounds = oDrawing.getBoundsByDrawing(true);
         }
         else {
@@ -1250,7 +1325,7 @@
             dOpacity = oAnimParams.opacity;
             oBounds = oDrawing.getBoundsByDrawing(true);
             oBounds.transformRect(oAnimParams.transform);
-            oTexture = this.cache.checkMorphTexture(sId, dScale, undefined, oAnimParams);
+            oTexture = this.cache.checkMorphTexture(oDrawing, dScale, undefined, oAnimParams);
         }
 
         if(this.bNoText) {

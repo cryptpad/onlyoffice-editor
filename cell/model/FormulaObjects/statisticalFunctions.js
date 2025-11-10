@@ -5061,7 +5061,7 @@ function (window, undefined) {
 				}
 			} else if (cElementType.array === _arg.type) {
 				_arg.foreach(function (elem) {
-					if (cElementType.number === elem.tocNumber().type) {
+					if (cElementType.number === elem.type) {
 						count++;
 					}
 				})

@@ -1753,7 +1753,7 @@ function readPermStart(length, bcr, oReadResult, paragraphContent) {
 	let permPr = {};
 	let res = readPermPr(length, bcr, permPr);
 	let permStart = AscWord.ParagraphPermStart.fromObject(permPr);
-	oReadResult.addPermStart(paragraphContent, permStart);
+	oReadResult.addPermStart(paragraphContent, permStart, true);
 	return res;
 }
 function readPermEnd(length, bcr, oReadResult, paragraphContent) {
@@ -1763,7 +1763,7 @@ function readPermEnd(length, bcr, oReadResult, paragraphContent) {
 	let permPr = {};
 	let res = readPermPr(length, bcr, permPr);
 	let permEnd = AscWord.ParagraphPermEnd.fromObject(permPr);
-	oReadResult.addPermEnd(paragraphContent, permEnd);
+	oReadResult.addPermEnd(paragraphContent, permEnd, true);
 	return res;
 }
 function readPermPr(length, bcr, permPr) {
@@ -6859,9 +6859,6 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		}
 		if (undefined !== val.storeItemCheckSum)
 		{
-			//let strCustomXmlContent = this.Document.customXml.getContentByDataBinding(val);
-			//val.recalculateCheckSum(strCustomXmlContent);
-
 			this.memory.WriteByte(c_oSerSdt.StoreItemCheckSum);
 			this.memory.WriteString2(val.storeItemCheckSum);
 		}
@@ -7753,9 +7750,10 @@ function BinaryCustomsTableWriter(memory, doc, customXmlManager)
 	};
 	this.WriteCustomXml = function(customXml) {
 		var oThis = this;
-		for(var i = 0; i < customXml.uri.length; ++i){
+		let namespaces = customXml.getAllNamespaces();
+		for(var i = 0; i < namespaces.length; ++i){
 			this.bs.WriteItem(c_oSerCustoms.Uri, function () {
-				oThis.memory.WriteString3(customXml.uri[i]);
+				oThis.memory.WriteString3(namespaces[i]);
 			});
 		}
 		if (null !== customXml.itemId) {
@@ -16299,7 +16297,7 @@ function Binary_CustomsTableReader(doc, oReadResult, stream) {
 	this.ReadCustomContent = function(type, length, custom) {
 		var res = c_oSerConstants.ReadOk;
 		if (c_oSerCustoms.Uri === type) {
-			custom.uri.push(this.stream.GetString2LE(length));
+			custom.setNamespaceUri(this.stream.GetString2LE(length));
 		} else if (c_oSerCustoms.ItemId === type) {
 			custom.itemId = this.stream.GetString2LE(length);
 		} else if (c_oSerCustoms.ContentA === type) {
@@ -17608,10 +17606,10 @@ DocReadResult.prototype = {
 						}
 						break;
 					case para_PermStart:
-						this.addPermStart(par, elem.elem, false);
+						this.addPermStart(par, elem, false);
 						break;
 					case para_PermEnd:
-						this.addPermEnd(par, elem.elem, false);
+						this.addPermEnd(par, elem, false);
 						break;
 				}
 			}

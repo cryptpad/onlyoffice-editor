@@ -116,7 +116,7 @@
 	 * @typeofeditors ["PDF"]
 	 */
     CRadioButtonField.prototype.Commit2 = function() {
-        let aFields = this.GetDocument().GetAllWidgets(this.GetFullName());
+        let aFields = this.GetAllWidgets();
         let oThis = this;
 
         if (false == this.IsRadiosInUnison()) {
@@ -124,7 +124,7 @@
                 if (field == oThis)
                     return;
 
-                if (field.IsChecked() == true && oThis.IsChecked()) {
+                if (field.IsChecked() == true) {
                     field.SetChecked(false);
                     field.SetNeedRecalc(true);
                 }
@@ -156,7 +156,7 @@
     
     CRadioButtonField.prototype.SetRadiosInUnison = function(bValue) {
         let oParent = this.GetParent();
-        if (oParent && oParent.GetType() === this.GetType())
+        if (oParent && oParent.IsAllKidsWidgets())
             return oParent.SetRadiosInUnison(bValue);
 
         if (this._radiosInUnison === bValue) {
@@ -173,7 +173,7 @@
     };
     CRadioButtonField.prototype.IsRadiosInUnison = function(bInherit) {
         let oParent = this.GetParent();
-        if (bInherit !== false && oParent && oParent.GetType() === this.GetType())
+        if (bInherit !== false && oParent && oParent.IsAllKidsWidgets())
             return oParent.IsRadiosInUnison();
 
         return this._radiosInUnison;

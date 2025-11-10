@@ -317,6 +317,7 @@
         this.textAlign = null;
         this.ctrlKey = null;
         this.shiftKey = null;
+        this.ReadingOrder = null;
     }
 
     CellFlags.prototype.clone = function () {
@@ -326,6 +327,7 @@
         oRes.merged = this.merged ? this.merged.clone() : null;
         oRes.textAlign = this.textAlign;
         oRes.verticalText = this.verticalText;
+        oRes.ReadingOrder = this.ReadingOrder;
         return oRes;
     };
     CellFlags.prototype.isMerged = function () {
@@ -333,6 +335,9 @@
     };
 	CellFlags.prototype.getMergeType = function () {
 	    return getMergeType(this.merged);
+	};
+	CellFlags.prototype.getReadingOrder = function () {
+		return this.ReadingOrder;
 	};
 
     function CellBorderObject(borders, mergeInfo, col, row) {
@@ -3637,10 +3642,30 @@
 		let curRow = -1;
 		let rowCache;
 
+		let checkRightSideCell = function (_ct, _col, _row) {
+			let rightSide = 0;
+			if (_ct && _ct.flags && !_ct.flags.isMerged() && !_ct.flags.wrapText) {
+				rightSide = _ct.sideR;
+			}
+
+			maxCol = Math.max(maxCol, _col + rightSide);
+			maxRow = Math.max(maxRow, _row);
+		};
+
 		// Helper function to check if cell content requires printing
-		function checkCellForPrinting(cell) {
-			let col = cell.nCol;
-			let row = cell.nRow;
+		let lastNoEmptyCell = null;
+		function checkCellForPrinting(c) {
+			let col = c.nCol;
+			let row = c.nRow;
+
+			if (lastNoEmptyCell && lastNoEmptyCell.row !== row) {
+				//we must check last cell(string type) in row. inside string can be more then column width. expand if text do not fits in cell
+				if (lastNoEmptyCell) {
+					let ct = self._addCellTextToCache(lastNoEmptyCell.col, lastNoEmptyCell.row, true);
+					checkRightSideCell(ct, lastNoEmptyCell.col, lastNoEmptyCell.row);
+					lastNoEmptyCell = null;
+				}
+			}
 
 			// Skip hidden rows and columns
 			let hiddenRow = false;
@@ -3652,44 +3677,45 @@
 			if (hiddenRow || 0 === self._getColumnWidth(col)) {
 				return;
 			}
+			
+			if (!c.isEmptyTextString()) {
+				maxCol = Math.max(maxCol, col);
+				maxRow = Math.max(maxRow, row);
+
+				let ct = self._getCellTextCache(col, row);
+				if (ct !== undefined) {
+					checkRightSideCell(ct, col, row);
+					lastNoEmptyCell = null;
+				} else {
+					let align = c.getAlign();
+					let angle = align.getAngle();
+					let cellType = c.getType();
+					let isNumberFormat = (null === cellType || CellValueType.String !== cellType);
+					let verticalText = angle === AscCommonExcel.g_nVerticalTextAngle;
+					let isWrapped = align.getWrap() || align.hor === AscCommon.align_Distributed;
+
+					if (isNumberFormat || verticalText || isWrapped) {
+						lastNoEmptyCell = null;
+					} else {
+						if (!lastNoEmptyCell) {
+							lastNoEmptyCell = {};
+						}
+						lastNoEmptyCell.col = col;
+						lastNoEmptyCell.row = row;
+					}
+				}
+				return;
+			}
 
 			// Check cell style (fills and borders)
-			let style = cell.getStyle();
+			let style = c.getStyle();
 			if (style && ((style.fill && style.fill.notEmpty()) || (style.border && style.border.notEmpty()))) {
 				maxCol = Math.max(maxCol, col);
 				maxRow = Math.max(maxRow, row);
 			}
 
-			// Skip empty cells
-			if (cell.isEmptyTextString()) {
-				return;
-			}
-
-			// Get cell properties
-			let align = cell.getAlign();
-			let angle = align.getAngle();
-			let cellType = cell.getType();
-			let verticalText = angle === AscCommonExcel.g_nVerticalTextAngle;
-			let isNumberFormat = (null === cellType || CellValueType.String !== cellType);
-
-			// Check text wrapping and distribution
-			let isWrapped = align.getWrap() || align.hor === AscCommon.align_Distributed;
-
-			// Check indent
-			let indent = align.getIndent();
-			if (indent && indent > 0) {
-				maxCol = Math.max(maxCol, col);
-				maxRow = Math.max(maxRow, row);
-			}
-
-			// Always include cells with special formatting
-			if (angle || verticalText || isNumberFormat || isWrapped) {
-				maxCol = Math.max(maxCol, col);
-				maxRow = Math.max(maxRow, row);
-			}
-
 			// Check formulas
-			if (cell.isFormula()) {
+			if (c.isFormula()) {
 				maxCol = Math.max(maxCol, col);
 				maxRow = Math.max(maxRow, row);
 			}
@@ -4616,10 +4642,10 @@
 
 				let rowsCount = this.model.getRowsCount();
 				let colsCount = this.model.getColsCount();
-				if (rowsCount > nMaxPrintRows) {
+				/*if (rowsCount > nMaxPrintRows) {
 					maxCol = colsCount - 1;
 					maxRow = rowsCount - 1;
-				} else {
+				} else {*/
 					var range = new asc_Range(0, 0, colsCount - 1, rowsCount - 1);
 					var maxCell = this._calculateMaxPrintRange(range);
 					var maxCol = maxCell.col;
@@ -4638,7 +4664,7 @@
 						maxCol = Math.max(maxCol, maxCell.col);
 						maxRow = Math.max(maxRow, maxCell.row);
 					}
-				}
+				//}
 
 				//TODO print area
 				wScale = doCalcScaleWidth(0, maxCol);
@@ -6289,7 +6315,7 @@
 		if (this.getRightToLeft()) {
 			rect._x = this.getCtxWidth(ctx) - rect._x - rect._width;
 		}
-		rect._x = this._calcTextHorizPos(rect._x, rect._x + rect._width, tm, cellHA);
+		rect._x = this._calcTextHorizPos(rect._x, rect._x + rect._width, tm, cellHA, true);
 		rect._y = this._calcTextVertPos(rect._y, rect._height, bl, tm, align.getAlignVertical());
 		var dScale = asc_getcvt(0, 3, this._getPPIX());
 		rect._x *= dScale;
@@ -9299,7 +9325,7 @@
         }
     };
 
-    WorksheetView.prototype._addCellTextToCache = function (col, row) {
+    WorksheetView.prototype._addCellTextToCache = function (col, row, opt_GenerateCacheObj) {
         let self = this;
 
         function makeFnIsGoodNumFormat(flags, width, isWidth) {
@@ -9588,7 +9614,7 @@
             textBound.dy -= 1.5;
         }
 
-        let cache = this._fetchCellCache(col, row);
+        let cache = opt_GenerateCacheObj ? new CacheElementText() : this._fetchCellCache(col, row);
 		cache.state = this.stringRender.getInternalState();
 		cache.flags = fl;
 		cache.metrics = tm;
@@ -9602,6 +9628,10 @@
 		cache.angle = angle;
 		cache.textBound = textBound;
 		cache.indent = indent;
+
+		if (opt_GenerateCacheObj) {
+			return cache;
+		}
 
         this._fetchCellCacheText(col, row);
         //this._checkCacheInitSector(row);
@@ -9656,7 +9686,7 @@
 		}
 
 		rowInfo.height = this.workbook.printPreviewState.isStart() ? th * this.getZoom() : Asc.round(th * this.getZoom());
-		rowInfo._heightForPrint = this.updateRowHeightValuePx ? this.updateRowHeightValuePx : this._getRowHeightReal(cell.nRow);
+		rowInfo._heightForPrint = this.updateRowHeightValuePx ? AscCommonExcel.convertPxToPt(this.updateRowHeightValuePx) : this._getRowHeightReal(cell.nRow);
 		rowInfo.descender = d;
 		return th;
 	};
@@ -10323,8 +10353,8 @@
         return tm;
     };
 
-    WorksheetView.prototype._calcTextHorizPos = function (x1, x2, tm, align) {
-        if (this.getRightToLeft()) {
+    WorksheetView.prototype._calcTextHorizPos = function (x1, x2, tm, align, skipRtl) {
+        if (this.getRightToLeft() && !skipRtl) {
 			if (align === AscCommon.align_Right) {
 				align = AscCommon.align_Left;
 			} else if (align === AscCommon.align_Left) {
@@ -10493,13 +10523,14 @@
         return this.drawingCtx.getHeight() - visibleHeight;
     };
 
-    WorksheetView.prototype._updateVisibleRowsCount = function (skipScrollReinit) {
+    WorksheetView.prototype._updateVisibleRowsCount = function (skipScrollReinit, fChangeRowsCount) {
         this._calcVisibleRows();
         if (gc_nMaxRow !== this.nRowsCount && !this.model.isDefaultHeightHidden()) {
 			var missingHeight = this._getMissingHeight();
 			if (0 < missingHeight) {
 				var rowHeight = Asc.round(this.defaultRowHeightPx * this.getZoom());
 				this.nRowsCount = Math.min(this.nRowsCount + Asc.ceil(missingHeight / rowHeight), gc_nMaxRow);
+				fChangeRowsCount && fChangeRowsCount();
 				this._calcVisibleRows();
 				if (!skipScrollReinit) {
 					this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical);
@@ -10509,13 +10540,14 @@
         this._updateDrawingArea();
     };
 
-    WorksheetView.prototype._updateVisibleColsCount = function (skipScrollReinit) {
+    WorksheetView.prototype._updateVisibleColsCount = function (skipScrollReinit, fChangeRowsCount) {
         this._calcVisibleColumns();
 		if (gc_nMaxCol !== this.nColsCount && !this.model.isDefaultWidthHidden()) {
 			var missingWidth = this._getMissingWidth();
 			if (0 < missingWidth) {
 				var colWidth = Asc.round(this.defaultColWidthPx * this.getZoom(true) * this.getRetinaPixelRatio());
 				this.setColsCount(Math.min(this.nColsCount + Asc.ceil(missingWidth / colWidth), gc_nMaxCol));
+				fChangeRowsCount && fChangeRowsCount();
 				this._calcVisibleColumns();
 				if (!skipScrollReinit) {
 					this.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
@@ -10662,7 +10694,21 @@
 
         // ToDo стоит тут переделать весь scroll
         vr.r1 = start;
-        this._updateVisibleRowsCount();
+		let _beforeRowsCount = this.nRowsCount;
+        this._updateVisibleRowsCount(undefined, function () {
+			if (!t.workbook.getSmoothScrolling()) {
+				return;
+			}
+			let _expandRowsHeight = 30 * t.defaultRowHeightPx;
+			let nRowsHeightDiff = t._getRowTop(t.nRowsCount) - t._getRowTop(_beforeRowsCount);
+
+			if (nRowsHeightDiff > 0 && nRowsHeightDiff < _expandRowsHeight) {
+				while (nRowsHeightDiff < _expandRowsHeight) {
+					nRowsHeightDiff += t._getRowHeight(t.nRowsCount);
+					t.nRowsCount++;
+				}
+			}
+		});
         // Это необходимо для того, чтобы строки, у которых высота по тексту, рассчитались
         if (!oldVR.intersectionSimple(vr)) {
             // Полностью обновилась область
@@ -10924,6 +10970,7 @@
         var vr = this.visibleRange;
         var fixStartCol = new asc_Range(vr.c1, vr.r1, vr.c1, vr.r2);
 
+		let t = this;
 		let isReverse = delta < 0;
 		let unitDeltaStep = Asc.round(this.getHScrollStep());
 
@@ -11063,7 +11110,21 @@
 
         // ToDo стоит тут переделать весь scroll
         vr.c1 = start;
-        this._updateVisibleColsCount();
+		let _beforeColsCount = this.nColsCount;
+		this._updateVisibleColsCount(undefined, function () {
+			if (!t.workbook.getSmoothScrolling()) {
+				return;
+			}
+			let _expandColsWidth = 30 * t.defaultColWidthPx;
+			let nColsWidthDiff = t._getColLeft(t.nColsCount) - t._getColLeft(_beforeColsCount);
+
+			if (nColsWidthDiff > 0 && nColsWidthDiff < _expandColsWidth) {
+				while (nColsWidthDiff < _expandColsWidth) {
+					nColsWidthDiff += t._getColumnWidth(t.nColsCount);
+					t.nColsCount++;
+				}
+			}
+		});
         // Это необходимо для того, чтобы строки, у которых высота по тексту, рассчитались
         if (!oldVR.intersectionSimple(vr)) {
             // Полностью обновилась область
@@ -13096,8 +13157,19 @@
 
     WorksheetView.prototype.getSelectionName = function (bRangeText) {
         if (this.isSelectOnShape) {
+					const oController = this.objectRender.controller;
+					if (oController && oController.selectedObjects.length === 1) {
+							const oGroupSelection = oController.selection.groupSelection;
+							if (oGroupSelection) {
+								if (oGroupSelection.selectedObjects.length === 1) {
+									return oGroupSelection.selectedObjects[0].getObjectName();
+								}
+							} else {
+								return oController.selectedObjects[0].getObjectName();
+							}
+					}
             return " ";
-        }	// Пока отправим пустое имя(с пробелом, пустое не воспринимаем в меню..) ToDo
+        }
 
         var selection = this.model.selectionRange || this.model.copySelection;
         var ar = selection.getLast();
@@ -13311,8 +13383,20 @@
 				let exPath = "";
 				if (addBook) {
 					let api = this.getApi();
-					let titleName = api.DocInfo.Title;
-					exPath = "[" + titleName + "]"
+					let isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"]() && window["AscDesktopEditor"]["LocalFileGetSaved"]();
+					let externalSelectionController = this.workbook.externalSelectionController;
+					let fromPath = isLocalDesktop && externalSelectionController && externalSelectionController.activeTabFormula && externalSelectionController.activeTabFormula.path;
+					let thisPath = isLocalDesktop && window["AscDesktopEditor"]["LocalFileGetSourcePath"]();
+					let titleName;
+					if (fromPath && thisPath) {
+						titleName = buildRelativePath(thisPath, fromPath);
+						exPath = "[" + titleName + "]"
+						name = "'" + exPath + this.model.getName() + "'!" + name;
+						addSheet = false;
+					} else {
+						titleName = api.DocInfo.Title;
+						exPath = "[" + titleName + "]";
+					}
 				}
 				if (addSheet) {
 					name = parserHelp.get3DRef(exPath + this.model.getName(), name);
@@ -18657,12 +18741,20 @@
 		if (!isFormula && canConverToFormula) {
 			newFP = new AscCommonExcel.parserFormula(valText, cellWithFormula, this.model);
 			parseResult = new AscCommonExcel.ParseResult();
-			// todo добавить подсветку при выборе ref/range. Одно число не должно превращаться в формулу (+5) 
-			if (newFP.parse(AscCommonExcel.oFormulaLocaleInfo.Parse, AscCommonExcel.oFormulaLocaleInfo.DigitSep, parseResult)) {
-				valText = "=" + valText;
-				val[0].setFragmentText(valText);
-				isFormulaFromVal = true;
-				isFormula = true;
+			// todo add backlight when choosing Ref/Range
+			if (newFP.parse(AscCommonExcel.oFormulaLocaleInfo.Parse, AscCommonExcel.oFormulaLocaleInfo.DigitSep, parseResult)
+				|| !(parseResult.error !== c_oAscError.ID.FrmlParenthesesCorrectCount)) {
+				if ((newFP.outStack.length === 1 && newFP.outStack[0].type === AscCommonExcel.cElementType.number) 
+					|| (newFP.outStack.length === 2 && newFP.outStack[0].type === AscCommonExcel.cElementType.number && 
+						newFP.outStack[1].type === AscCommonExcel.cElementType.operator && newFP.outStack[1].name === "un_minus")) {
+					isFormulaFromVal = false;
+					isFormula = false;
+				} else {
+					valText = "=" + valText;
+					val[0].setFragmentText(valText);
+					isFormulaFromVal = true;
+					isFormula = true;
+				}
 			}
 		}
 
@@ -18679,7 +18771,8 @@
 					endTransaction();
 					return;
 				}
-			} else {
+			}
+
 				// we check for new links to external data
 				if (parseResult.externalReferenesNeedAdd) {
 					t.model.workbook.addExternalReferencesAfterParseFormulas(parseResult.externalReferenesNeedAdd);
@@ -18722,8 +18815,18 @@
 					// TODO ctrlKey+enter used to fills the selected cell range with the current entry. Dynamic arrays will have to work the same
 					// refInfo = {cannoChangeFormulaArray: true|false, applyByArray: true|false, ctrlKey: true|false, dynamicRange: range}
 
-					let canAutoExpand = newFP.findRefByOutStack(true);
-					let refInfo = canAutoExpand ? ws.getRefDynamicInfo(newFP, calculateResult) : false;
+					let canAutoExpand, refInfo;
+					if (parseResult.error === c_oAscError.ID.FrmlParenthesesCorrectCount) {
+						// parse again with correct amount of parentheses
+						newFP = new AscCommonExcel.parserFormula(newFP.getFormula(), cellWithFormula, this.model);
+						if (!newFP.parse(AscCommonExcel.oFormulaLocaleInfo.Parse, AscCommonExcel.oFormulaLocaleInfo.DigitSep, parseResult)) {
+							this.model.workbook.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
+							endTransaction();
+							return;
+						}
+					}
+					canAutoExpand = newFP.findRefByOutStack(true);
+					refInfo = canAutoExpand ? ws.getRefDynamicInfo(newFP, calculateResult) : false;
 					if (refInfo) {
 						if (refInfo.cannotChangeFormulaArray) {
 							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray,
@@ -18745,7 +18848,7 @@
 					endTransaction();
 					return false;
 				}
-			}
+
 		}
 
 		const pivotTable = c.worksheet.getPivotTable(c.bbox.c1, c.bbox.r1);
@@ -18811,13 +18914,6 @@
 				endTransaction();
 				//t.model.workbook.dependencyFormulas.unlockRecal();
 				return false;
-			}
-
-			// todo Add to history UndoRedo DynamicArray and add to AscCH historyitem_DynamicArrayFormula_AddFormula 
-			//***array-formula***
-			if(applyByArray) {
-				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
-					new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, "=" + c.getFormula()));
 			}
 
 			isFormula = c.isFormula();
@@ -19067,7 +19163,7 @@
 					let afterExternalReferences = t.getExternalReferencesByCell(c, true, true);
 					if (afterExternalReferences) {
 						//t.model.workbook.handlers.trigger("asc_onNeedUpdateExternalReference");
-						t.updateExternalReferenceByCell(c, true);
+						t.updateExternalReferenceByCell(c, true, null, true);
 					}
 
 					if (callback) {
@@ -22087,10 +22183,10 @@
 			//если тело колоки заполнено УФ, тогда расширяем его диапазон на ячейки ниже
 			//ms ещё изменяет УФ при уменьшении ф/т, что мне кажется может мешать работе, пока не реализую
 			if (tablePart && newRange.containsRange(oldRange)) {
-				var aRules = t.model.aConditionalFormattingRules;
-				if (aRules && aRules.length) {
+				var aRules = t.model.getConditionalFormattingRules();
+				if (aRules) {
 
-					for (var j = 0; j < aRules.length; j++) {
+					for (var j in aRules) {
 						var oRule = aRules[j];
 						var ranges = oRule && oRule.ranges;
 						if (ranges) {
@@ -23339,7 +23435,8 @@
 
 
 			//фон для группировки
-			ctx.setFillStyle(this.settings.header.style[kHeaderDefault].background).fillRect(x1, y1, x2 - x1, y2 - y1);
+			ctx.setFillStyle(this.settings.header.style[kHeaderDefault].background);
+			this._fillRect(ctx, x1 + (this.getRightToLeft() ? 1 : 0), y1, x2 - x1 + (this.getRightToLeft() ? 1 : 0), y2 - y1);
 			ctx.setStrokeStyle(this.settings.header.editorBorder).setLineWidth(1).beginPath();
 			this._lineHorPrevPx(ctx, x1, y2, x2);
 			ctx.stroke();
@@ -23495,9 +23592,10 @@
 			x2 = this.groupWidth;
 			y2 = this._getRowTop(range.r2 + 1) - offsetY;
 
-			ctx.setFillStyle(this.settings.header.style[kHeaderDefault].background).fillRect(x1, y1, x2 - x1, y2 - y1);
+			ctx.setFillStyle(this.settings.header.style[kHeaderDefault].background);
+			t._fillRect(ctx, x1, y1, x2 - x1, y2 - y1);
 			ctx.setStrokeStyle(this.settings.header.editorBorder).setLineWidth(1).beginPath();
-			t._lineVerPrevPx(ctx, x2, y1, y2);
+			t._lineVerPrevPx(ctx, x2 - (this.getRightToLeft() ? 1 : 0), y1, y2);
 			ctx.stroke();
 
 			groupData = this.arrRowGroups ? this.arrRowGroups : this.getGroupDataArray(null, range.r1, range.r2);
@@ -23757,7 +23855,7 @@
 			x = x - offsetX;
 			y = y - offsetY;
 
-			ctx.AddClipRect(bCol ? pos.pos - offsetX : x, bCol ? y : pos.pos - offsetY, bCol ? pos.size : w, bCol ? h : pos.size);
+			this._AddClipRect(ctx, bCol ? pos.pos - offsetX : x, bCol ? y : pos.pos - offsetY, bCol ? pos.size : w, bCol ? h : pos.size);
 			ctx.beginPath();
 
 			var paddingLine = Math.floor((w - sizeLine - borderSize) / 2);
@@ -23868,9 +23966,11 @@
 			y2 = this.headersTop + this.headersHeight;
 		}
 
-		ctx.setFillStyle(st.background).fillRect(x1, y1, x2 - x1, y2 - y1);
+		ctx.setFillStyle(st.background);
+		this._fillRect(ctx, x1, y1, x2 - x1, y2 - y1);
 		//угол до кнопок
-		ctx.setFillStyle(st.background).fillRect(0, 0, this.headersLeft, this.headersTop);
+		ctx.setFillStyle(st.background);
+		this._fillRect(ctx, 0, 0, this.headersLeft, this.headersTop);
 
 		ctx.setStrokeStyle(this.settings.header.editorBorder).setLineWidth(1).beginPath();
 		this._lineHorPrevPx(ctx, x1, y2, x2);
@@ -25445,13 +25545,6 @@
 		var selection = t.model.selectionRange.getLast();
 		var activeCell = t.model.selectionRange.activeCell.clone();
 
-		/*var temp = this.model.aConditionalFormattingRules[0].clone();
-		temp.id = this.model.aConditionalFormattingRules[0].id;
-		//temp.ranges.push(Asc.Range(1,1,1,1));
-
-		this.deleteCF([temp]);
-		return;*/
-
 		var revertSelection = function() {
 			t.cleanSelection();
 			t.model.selectionRange.getLast().assign2(props.selection.clone());
@@ -25719,7 +25812,7 @@
 			const table = tableInfo.table;
 			var res = [];
 			for (var j = 0; j < table.TableColumns.length; j++) {
-				res.push(table.TableColumns[j].Name);
+				res.push(table.TableColumns[j].getTableColumnName());
 			}
 			return res;
 		}
@@ -26213,8 +26306,8 @@
 				for (j = 0; j < deleteIdArr.length; j++) {
 					var _oRule = t.model.getCFRuleById(deleteIdArr[j]);
 					var _ranges;
-					if (_oRule && _oRule.val) {
-						_ranges = _oRule.val.ranges;
+					if (_oRule) {
+						_ranges = _oRule.ranges;
 					}
 					t.model.deleteCFRule(deleteIdArr[j], true);
 
@@ -26256,14 +26349,14 @@
 				if (_rule.priority === null) {
 					_rule.priority = 1;
 					//двигаем приоритет у всех остальных и добавляем их в список измененных
-					if (t.model.aConditionalFormattingRules) {
-						for (i = 0; i < t.model.aConditionalFormattingRules.length; i++) {
-							var _id = t.model.aConditionalFormattingRules[i].id;
-							var oRule = t.model.aConditionalFormattingRules[i].clone();
+					if (t.model.isConditionalFormattingRules()) {
+						t.model.forEachConditionalFormattingRules(function (val) {
+							var _id = val.id;
+							var oRule = val.clone();
 							oRule.id = _id;
 							oRule.priority++;
 							arr[nActive].push(oRule);
-						}
+						})
 					}
 				}
 				if (_rule.ranges === null) {
@@ -26627,9 +26720,9 @@
 	WorksheetView.prototype.getMaxRowColWithData = function (doNotRecalc) {
 		let modelRowsCount = this.model.getRowsCount();
 		let modelColsCount = this.model.getColsCount();
-		if (modelRowsCount > nMaxPrintRows) {
+		/*if (modelRowsCount > nMaxPrintRows) {
 			return null;
-		}
+		}*/
 		let range = new asc_Range(0, 0, modelColsCount - 1, modelRowsCount - 1);
 		let maxCell = this._calculateMaxPrintRange(range, doNotRecalc/*, modelRowsCount > nMaxPrintRows*/);
 		/*if (!maxCell) {
@@ -26657,10 +26750,10 @@
 	};
 
 
-	WorksheetView.prototype.updateExternalReferenceByCell = function (c, initStructure, callback) {
+	WorksheetView.prototype.updateExternalReferenceByCell = function (c, initStructure, callback, forceUpdate) {
 		var t = this;
 		var externalReferences = this.getExternalReferencesByCell(c, initStructure);
-		this.workbook.doUpdateExternalReference(externalReferences, callback);
+		this.workbook.doUpdateExternalReference(externalReferences, callback, forceUpdate);
 	};
 
 	WorksheetView.prototype.getExternalReferencesByCell = function (c, initStructure, opt_get_only_ids) {
@@ -27321,13 +27414,13 @@
 		return ctx;
 	};
 
-	WorksheetView.prototype._dashLineCleverHor = function (ctx, x, y1, y2) {
-		ctx.dashLineCleverHor(this.getRightToLeft() ? (this.getCtxWidth(ctx) - x) : x, y1, y2)
+	WorksheetView.prototype._dashLineCleverHor = function (ctx, x1, y, x2) {
+		ctx.dashLineCleverHor(this.getRightToLeft() ? (this.getCtxWidth(ctx) - x2) : x1, y, this.getRightToLeft() ? (this.getCtxWidth(ctx) - x1) : x2);
 		return ctx;
 	};
 
-	WorksheetView.prototype._dashLineCleverVer = function (ctx, x1, y, x2) {
-		ctx.dashLineCleverVer(this.getRightToLeft() ? (this.getCtxWidth(ctx) - x1) : x1, y, this.getRightToLeft() ? (this.getCtxWidth(ctx) - x2) : x2)
+	WorksheetView.prototype._dashLineCleverVer = function (ctx, x, y1, y2) {
+		ctx.dashLineCleverVer(this.getRightToLeft() ? (this.getCtxWidth(ctx) - x) : x, y1, y2);
 		return ctx;
 	};
 
@@ -27583,11 +27676,11 @@
 						ws._cleanCache(updateRanges);
 					}
 
-					if (pastedRangeMaxCol < maxCol && pastedRangeMaxCol > ws.visibleRange.c2) {
-						maxCol = pastedRangeMaxCol;
+					if (pastedRangeMaxCol < maxCol) {
+						maxCol = Math.max(ws.visibleRange.c2, pastedRangeMaxCol);
 					}
-					if (pastedRangeMaxRow < maxRow && pastedRangeMaxRow > ws.visibleRange.r2) {
-						maxRow = pastedRangeMaxRow;
+					if (pastedRangeMaxRow < maxRow) {
+						maxRow = Math.max(ws.visibleRange.r2, pastedRangeMaxRow);
 					}
 					//update only max defined previous data
 					ws._updateRange(Asc.Range(0, 0, maxCol, maxRow));

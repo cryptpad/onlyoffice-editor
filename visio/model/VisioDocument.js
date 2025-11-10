@@ -95,6 +95,9 @@ AscDFH.historyitem_type_VisioWindow = 328;
 		 * @type {CFont[]}
 		 */
 		this.loadedFonts = [];
+		/**
+		 * @type {StyleSheet_Type[]} styles
+		 */
 		this.styleSheets = [];
 		this.documentSheet = null;
 		this.eventList = [];
@@ -115,12 +118,12 @@ AscDFH.historyitem_type_VisioWindow = 328;
 		this.windows = null;
 		/**
 		 * with rId resolved as content
-		 * @type {Master_Type[]}
+		 * @type {CMasters}
 		 */
 		this.masters = null;
 		/**
 		 * with rId resolved as content
-		 * @type {Page_Type[]}
+		 * @type {CPages}
 		 */
 		this.pages = null;
 		this.themes = [];
@@ -186,6 +189,19 @@ AscDFH.historyitem_type_VisioWindow = 328;
 		AscCommon.mockLogicDoc(CVisioDocument.prototype);
 	}
 	AscFormat.InitClass(CVisioDocument, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
+	CVisioDocument.prototype.IsDocumentEditor = function() {
+		return false;
+	};
+	CVisioDocument.prototype.IsPresentationEditor = function() {
+		//todo add new editor func
+		return true;
+	};
+	CVisioDocument.prototype.IsSpreadSheetEditor = function() {
+		return false;
+	};
+	CVisioDocument.prototype.IsPdfEditor = function() {
+		return false;
+	};
 	/**
 	 * TODO Check thumbnail parse in fromZip and setData in toZip
 	 * @memberOf CVisioDocument
@@ -863,11 +879,14 @@ AscDFH.historyitem_type_VisioWindow = 328;
 
 			// inherit styles
 			let stylesWithRealizedInheritance = new Set();
+
 			shape.realizeStyleInheritanceRecursively(this.styleSheets, stylesWithRealizedInheritance);
+
 			// inherit master and links to master styles
 			if (this.masters) {
 				shape.realizeMasterInheritanceRecursively(this.masters.master);
 			}
+
 			// inherit master styles
 			// TODO performance: realize style inheritance only if style is inherited from master
 			shape.realizeStyleInheritanceRecursively(this.styleSheets, stylesWithRealizedInheritance);
@@ -893,7 +912,7 @@ AscDFH.historyitem_type_VisioWindow = 328;
 	CVisioDocument.prototype.getCurrentPage = function() {
 		return this.pageIndex;
 	}
-	CVisioDocument.prototype.setCurrentPage = function(pageIndex) {
+	CVisioDocument.prototype.Set_CurPage = CVisioDocument.prototype.setCurrentPage = function(pageIndex) {
 		return this.pageIndex = pageIndex;
 	}
 	CVisioDocument.prototype.getFirstSlideNumber = function() {
@@ -1085,6 +1104,8 @@ AscDFH.historyitem_type_VisioWindow = 328;
 
 		this.api.sendEvent("asc_onKeyDown", e);
 		return bRetValue;
+	};
+	CVisioDocument.prototype.Viewer_OnChangePosition = function () {
 	};
 	// CVisioDocument.prototype.getMasterByID = function(ID) {
 	// 	// join Master_Type and MasterContents_Type
@@ -1403,6 +1424,12 @@ AscDFH.historyitem_type_VisioWindow = 328;
 		this.pageSheet = null;
 		this.rel = null;
 		this.icon = null;
+
+		/**
+		 *
+		 * @type {CMasterContents}
+		 */
+		this.content = null;
 	}
 	AscFormat.InitClass(Master_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_VisioMaster);
 
@@ -1428,6 +1455,12 @@ AscDFH.historyitem_type_VisioWindow = 328;
 		this.alignName = null;
 		this.masterType = null;
 		this.icon = null;
+
+		/**
+		 *
+		 * @type {CMasterContents}
+		 */
+		this.content = null;
 	}
 	AscFormat.InitClass(MasterShortcut_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_VisioMasterShortcut);
 

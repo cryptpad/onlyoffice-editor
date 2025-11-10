@@ -381,6 +381,7 @@
 		let run = CreateRun();
 		p.AddToContentToEnd(run);
 		run.AddText(text);
+		return run;
 	}
 	function EnterText(text)
 	{

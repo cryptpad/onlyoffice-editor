@@ -155,6 +155,13 @@
     SeparatorStyle["NO_SEPARATOR_COMMA"] = SeparatorStyle.NO_SEPARATOR_COMMA;
     SeparatorStyle["APOSTROPHE_DOT"] = SeparatorStyle.APOSTROPHE_DOT;
 
+    const TimeFormatType = {
+        "HH:MM":        0,
+        "h:MM tt":      1,
+        "HH:MM:ss":     2,
+        "h:MM:ss tt":   3
+    }
+
     const NegativeStyle = {
         BLACK_MINUS: 0,   // black minus
         RED_MINUS: 1,     // red minus
@@ -251,6 +258,7 @@
     asc["FormatType"]               = asc.FormatType                = FormatType;
     asc["SpecialFormatType"]        = asc.SpecialFormatType         = SpecialFormatType;
     asc["SeparatorStyle"]           = asc.SeparatorStyle            = SeparatorStyle;
+    asc["TimeFormatType"]           = asc.TimeFormatType            = TimeFormatType;
     asc["NegativeStyle"]            = asc.NegativeStyle             = NegativeStyle;
     asc["CalculateType"]            = asc.CalculateType             = CalculateType;
     asc["ValidateType"]             = asc.ValidateType              = ValidateType;

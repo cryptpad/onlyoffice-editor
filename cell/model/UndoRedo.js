@@ -2008,16 +2008,17 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_DefinedNames(name, ref, sheetId, type, isXLNM) {
+	function UndoRedoData_DefinedNames(name, ref, sheetId, type, isXLNM, hidden) {
 		this.name = name;
 		this.ref = ref;
 		this.sheetId = sheetId;
 		this.type = type;
 		this.isXLNM = isXLNM;
+		this.hidden = hidden === undefined ? false : hidden;
 	}
 
 	UndoRedoData_DefinedNames.prototype.Properties = {
-		name: 0, ref: 1, sheetId: 2, type: 4, isXLNM: 5
+		name: 0, ref: 1, sheetId: 2, type: 4, isXLNM: 5, hidden: 6
 	};
 	UndoRedoData_DefinedNames.prototype.getType = function () {
 		return UndoRedoDataTypes.DefinedName;
@@ -2037,6 +2038,8 @@ function (window, undefined) {
 				return this.type;
 			case this.Properties.isXLNM:
 				return this.isXLNM;
+			case this.Properties.hidden:
+				return this.hidden;
 		}
 		return null;
 	};
@@ -2056,6 +2059,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.isXLNM:
 				this.isXLNM = value;
+				break;
+			case this.Properties.hidden:
+				this.hidden = value;
 				break;
 		}
 	};
@@ -3077,6 +3083,21 @@ function (window, undefined) {
 				}
 
 				if (externalReferenceIndex !== null) {
+					for (let ws in to.worksheets) {
+						let externalSheet = to.worksheets[ws];
+						if (externalSheet) {
+							let externalSheetId = externalSheet.getId();
+							wb.dependencyFormulas.forEachSheetListeners(externalSheetId, function (parsed) {
+								let cell = parsed && parsed.parent;
+								if (cell && cell && cell.nCol != null && cell.nRow != null) {
+									// endListeningRange for previous external source
+									let bbox = new Asc.Range(cell.nCol, cell.nRow, cell.nCol, cell.nRow);
+									parsed._buildDependenciesRef(externalSheetId, bbox, null, null);
+								}
+							});
+						}
+					}
+
 					from.worksheets = wb.externalReferences[externalReferenceIndex - 1].worksheets;
 					from.initWorksheetsFromSheetDataSet();
 					from.putToChangedCells();
@@ -5813,10 +5834,9 @@ function (window, undefined) {
 		}
 
 		var collaborativeEditing = this.wb.oApi.collaborativeEditing;
-		var cfRule = oModel.getCFRuleById(Data.id);
-		if (cfRule && cfRule.val) {
+		let cfRule = oModel.getCFRuleById(Data.id, true)
+		if (cfRule) {
 			var value = bUndo ? Data.from : Data.to;
-			cfRule = cfRule.val;
 
 			switch (Type) {
 				case AscCH.historyitem_CFRule_SetAboveAverage: {

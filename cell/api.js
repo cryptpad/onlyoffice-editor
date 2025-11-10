@@ -3575,7 +3575,8 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_getWorksheetName = function(index) {
-    return this.wbModel.getWorksheet(index).getName();
+	  let name = this.wbModel.getWorksheet(index).getName();
+    return AscCommon.getLTRString(name);
   };
 
   spreadsheet_api.prototype.asc_getWorksheetTabColor = function(index) {
@@ -3870,6 +3871,7 @@ var editor;
       return false;
     }
 
+	let newName = AscCommon.stripDirectionMarks(name);
     var i = this.wbModel.getActive();
     var sheetId = this.wbModel.getWorksheet(i).getId();
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
@@ -3877,16 +3879,16 @@ var editor;
     var t = this;
     var renameCallback = function(res) {
       if (res) {
-        AscFonts.FontPickerByCharacter.getFontsByString(name);
+        AscFonts.FontPickerByCharacter.getFontsByString(newName);
         t._loadFonts([], function() {
             var oWorkbook = t.wbModel;
             var oWorksheet = oWorkbook.getWorksheet(i);
             var sOldName = oWorksheet.getName();
-            oWorksheet.setName(name);
+            oWorksheet.setName(newName);
             t.sheetsChanged();
             if(t.wb) {
                 //change sheet name in chart references
-                t.wb.handleChartsOnChangeSheetName(oWorksheet, sOldName, name);
+                t.wb.handleChartsOnChangeSheetName(oWorksheet, sOldName, newName);
             }
         });
       } else {
@@ -5527,6 +5529,9 @@ var editor;
   };
   spreadsheet_api.prototype.putImageToSelection = function(sImageSrc, nWidth, nHeight, replaceMode) {
       var ws = this.wb.getWorksheet();
+	  if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+		  return false;
+	  }
       return ws.objectRender.controller.putImageToSelection(sImageSrc, nWidth, nHeight, replaceMode);
   };
 
@@ -7967,8 +7972,7 @@ var editor;
 			if (wsModel) {
 				var wsIndex = wsModel.getIndex();
 				var cFRule = wsModel.getCFRuleById(lockElem.Element["rangeOrObjectId"]);
-				if (cFRule && cFRule.val) {
-					cFRule = cFRule.val;
+				if (cFRule) {
 					cFRule.isLock = lockElem.UserId;
 					this.handlers.trigger("asc_onLockCFRule", wsIndex, cFRule.id, lockElem.UserId);
 				} else {
@@ -7990,8 +7994,8 @@ var editor;
 				//TODO необходимо добавить инофрмацию о локе нового добавленного правила!!!
 
 				var isLockedRules = false;
-				if (wsModel.aConditionalFormattingRules && wsModel.aConditionalFormattingRules.length) {
-					wsModel.aConditionalFormattingRules.forEach(function (_rule) {
+				if (wsModel.isConditionalFormattingRules()) {
+					wsModel.forEachConditionalFormattingRules(function (_rule) {
 						if (_rule.isLock) {
 							isLockedRules = true;
 						}
@@ -8046,8 +8050,8 @@ var editor;
 					var wsView = this.wb.getWorksheetById(sheetId);
 					var cFRule = wsModel.getCFRuleById(lockElem["rangeOrObjectId"]);
 					if (cFRule) {
-						if (cFRule.val.isLock) {
-							cFRule.val.isLock = null;
+						if (cFRule.isLock) {
+							cFRule.isLock = null;
 						} else {
 							wsView._lockAddNewRule = null;
 						}
@@ -8505,7 +8509,7 @@ var editor;
 				checkPassword([AscCommonExcel.getPasswordHash(props.temporaryPassword, true)]);
 			} else {
 				var checkHash = {password: props.temporaryPassword, salt: props.workbookSaltValue, spinCount: props.workbookSpinCount,
-					alg: AscCommon.fromModelAlgorithmName(props.algorithmName)};
+					alg: AscCommon.fromModelAlgorithmName(props.workbookAlgorithmName)};
 				AscCommon.calculateProtectHash([checkHash], checkPassword);
 			}
 		} else {
@@ -9357,35 +9361,97 @@ var editor;
 		if (!this.wb) {
 			return;
 		}
-		return this.wb.startGoalSeek(sFormulaCell, nExpectedValue, sChangingCell);
+		this.wb.startGoalSeek(sFormulaCell, nExpectedValue, sChangingCell);
 	};
 
 	spreadsheet_api.prototype.asc_CloseGoalClose = function (bSave) {
 		if (!this.wb) {
 			return;
 		}
-		return this.wb.closeGoalSeek(bSave);
+		this.wb.closeGoalSeek(bSave);
 	};
 
 	spreadsheet_api.prototype.asc_PauseGoalSeek = function () {
 		if (!this.wb) {
 			return;
 		}
-		return this.wb.pauseGoalSeek();
+		this.wb.pauseGoalSeek();
 	};
 
 	spreadsheet_api.prototype.asc_ContinueGoalSeek = function () {
 		if (!this.wb) {
 			return;
 		}
-		return this.wb.continueGoalSeek();
+		this.wb.continueGoalSeek();
 	};
 
 	spreadsheet_api.prototype.asc_StepGoalSeek = function () {
 		if (!this.wb) {
 			return;
 		}
-		return this.wb.stepGoalSeek();
+		this.wb.stepGoalSeek();
+	};
+
+	// Solver
+	/**
+	 *  Starts solver logic.
+	 *  Calls after click "Solver" button.
+	 * @memberof spreadsheet_api
+	 * @param {asc_CSolverParams} solverParams
+	 */
+	spreadsheet_api.prototype.asc_StartSolver = function (solverParams) {
+		if (!this.wb) {
+			return;
+		}
+
+		this.wb.startSolver(solverParams);
+	};
+
+	/**
+	 * @memberof spreadsheet_api
+	 * @param {boolean} isSave - true - save result of calculation, false - discard changes.
+	 * @param {asc_CSolverParams} solverParams
+	 */
+	spreadsheet_api.prototype.asc_CloseSolver = function (isSave, solverParams) {
+		if (!this.wb) {
+			return;
+		}
+
+		this.wb.closeSolver(isSave, solverParams);
+	};
+
+	/**
+	 * Start solver logic in "Show iteration results" mode.
+	 * @memberof spreadsheet_api
+	 */
+	spreadsheet_api.prototype.asc_StepSolver = function () {
+		if (!this.wb) {
+			return;
+		}
+
+		this.wb.stepSolver();
+	};
+
+	/**
+	 * Returns solver parameters object.
+	 * @memberof spreadsheet_api
+	 * @returns {asc_CSolverParams|null}
+	 */
+	spreadsheet_api.prototype.asc_GetSolverParams = function () {
+		if (!this.wb) {
+			return null;
+		}
+
+		return this.wb.getSolverParams();
+	};
+
+	/**
+	 * Returns solver results object.
+	 * @memberof spreadsheet_api
+	 * @returns {asc_CSolverResults}
+	 */
+	spreadsheet_api.prototype.asc_GetSolverResults = function () {
+		return new AscCommonExcel.asc_CSolverResults();
 	};
 
 	spreadsheet_api.prototype.asc_TracePrecedents = function() {

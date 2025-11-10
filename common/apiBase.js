@@ -215,6 +215,8 @@
 
 		this.SaveAfterMacros = false;
 
+		this.evalCommand = false;
+
 		// Spell Checking
 		this.SpellCheckApi = new AscCommon.CSpellCheckApi();
 		this.isSpellCheckEnable = true;
@@ -1787,6 +1789,13 @@
 			oResult.setLicenseType(licenseType);
 			t.sendEvent('asc_onLicenseChanged', oResult);
 		};
+		this.CoAuthoringApi.onAiPluginSettings = function(data)
+		{
+			if (data) {
+				data.proxy = AscCommon.getBaseUrl() + "../../../../ai-proxy";
+				t.aiPluginSettings = JSON.stringify(data);
+			}
+		};
 		this.CoAuthoringApi.onWarning                 = function(code)
 		{
 			t.sendEvent('asc_onError', code || c_oAscError.ID.Warning, c_oAscError.Level.NoCritical);
@@ -2599,7 +2608,7 @@
 		});
 	};
 
-	baseEditorsApi.prototype.asc_addOleObject = function(oPluginData)
+	baseEditorsApi.prototype.asc_addOleObject = function(oPluginData, bPlugin)
 	{
 		if(this.isViewMode || this.isPdfEditor())
 		{
@@ -2614,7 +2623,6 @@
 		let sData      = oPluginData["data"];
 		let sGuid      = oPluginData["guid"];
 		let bSelect    = (oPluginData["select"] === true || oPluginData["select"] === false) ? oPluginData["select"] : true;
-		let bPlugin    = oPluginData["plugin"] === true && !!window.g_asc_plugins;
 		if (typeof sImgSrc === "string" && sImgSrc.length > 0 && typeof sData === "string"
 			&& typeof sGuid === "string" && sGuid.length > 0
 			/*&& AscFormat.isRealNumber(nWidthPix) && AscFormat.isRealNumber(nHeightPix)*/
@@ -2734,7 +2742,7 @@
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
 	{
-		if (!newObj.docId) {
+		if (!newObj.docId || !this.isDocumentLoadComplete) {
 			return;
 		}
 		if (this.isCoAuthoringEnable) {
@@ -4262,7 +4270,8 @@
 
 	baseEditorsApi.prototype._beforeEvalCommand = function()
 	{
-		var oApi = this;
+		let oApi = this;
+		this.evalCommand = true;
 		switch (this.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:
@@ -4288,6 +4297,7 @@
 	baseEditorsApi.prototype._afterEvalCommand = function(endAction)
 	{
 		var oApi = this;
+		this.evalCommand = false;
 		switch (this.editorId)
 		{
 			case AscCommon.c_oEditorId.Word:

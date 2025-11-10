@@ -609,6 +609,10 @@ function (window, undefined) {
 		this.gridlines = null;
 		this.numFmt = null;
 		this.isRadar = false;
+		this.majorUnit = null;
+		this.minorUnit = null;
+		this.majorUnitRule = false;
+		this.minorUnitRule = false;
 	}
 
 	asc_ValAxisSettings.prototype.isEqual = function (oPr) {
@@ -680,6 +684,18 @@ function (window, undefined) {
 			bEqualNumFmt = (this.numFmt === oPr.numFmt);
 		}
 		if (!bEqualNumFmt) {
+			return false;
+		}
+		if (this.minorUnit !== oPr.minorUnit) {
+			return false;
+		}
+		if (this.majorUnit !== oPr.majorUnit) {
+			return false;
+		}
+		if (this.minorUnitRule !== oPr.minorUnitRule) {
+			return false;
+		}
+		if (this.majorUnitRule !== oPr.majorUnitRule) {
 			return false;
 		}
 		return true;
@@ -783,6 +799,8 @@ function (window, undefined) {
 	asc_ValAxisSettings.prototype.setDefault = function () {
 		this.putMinValRule(Asc.c_oAscValAxisRule.auto);
 		this.putMaxValRule(Asc.c_oAscValAxisRule.auto);
+		this.putMajorUnitRule(Asc.c_oAscValAxisRule.auto);
+		this.putMinorUnitRule(Asc.c_oAscValAxisRule.auto);
 		this.putTickLabelsPos(Asc.c_oAscTickLabelsPos.TICK_LABEL_POSITION_NEXT_TO);
 		this.putInvertValOrder(false);
 		this.putDispUnitsRule(Asc.c_oAscValAxUnits.none);
@@ -820,6 +838,30 @@ function (window, undefined) {
 	};
 	asc_ValAxisSettings.prototype.putIsRadarAxis = function (v) {
 		this.isRadar = v;
+	};
+	asc_ValAxisSettings.prototype.getMajorUnit = function () {
+		return this.majorUnit;
+	};
+	asc_ValAxisSettings.prototype.getMinorUnit = function () {
+		return this.minorUnit;
+	};
+	asc_ValAxisSettings.prototype.putMajorUnit = function (v) {
+		this.majorUnit = v;
+	};
+	asc_ValAxisSettings.prototype.putMinorUnit = function (v) {
+		this.minorUnit = v;
+	};
+	asc_ValAxisSettings.prototype.getMajorUnitRule = function () {
+		return this.majorUnitRule;
+	};
+	asc_ValAxisSettings.prototype.getMinorUnitRule = function () {
+		return this.minorUnitRule;
+	};
+	asc_ValAxisSettings.prototype.putMajorUnitRule = function (v) {
+		this.majorUnitRule = v;
+	};
+	asc_ValAxisSettings.prototype.putMinorUnitRule = function (v) {
+		this.minorUnitRule = v;
 	};
 
 	/** @constructor */
@@ -3465,7 +3507,7 @@ function (window, undefined) {
 		this.stroke				= null;
 		this.strokeWidth		= undefined;
 		this.strokeStyle		= undefined;
-		this.Locked				= false;
+		this.locked				= false;
 
 		this.fieldProps	= null;
 	}
@@ -3528,6 +3570,18 @@ function (window, undefined) {
 	};
 	asc_CBaseFieldProperty.prototype.asc_putStrokeStyle = function (v) {
 		this.strokeStyle = v;
+	};
+	asc_CBaseFieldProperty.prototype.asc_getPropLocked = function () {
+		return this.locked;
+	};
+	asc_CBaseFieldProperty.prototype.asc_putPropLocked = function (v) {
+		this.locked = v;
+	};
+	asc_CBaseFieldProperty.prototype.get_Locked = function () {
+		return this.coEditLocked;
+	};
+	asc_CBaseFieldProperty.prototype.put_Locked = function (v) {
+		this.coEditLocked = v;
 	};
 	asc_CBaseFieldProperty.prototype.asc_getFieldProps = function () {
 		return this.fieldProps;
@@ -7060,6 +7114,14 @@ function (window, undefined) {
 	prot["putNumFmt"] = prot.putNumFmt;
 	prot["getNumFmt"] = prot.getNumFmt;
 	prot["isRadarAxis"] = prot.isRadarAxis;
+	prot["getMajorUnit"] = prot.getMajorUnit;
+	prot["getMinorUnit"] = prot.getMinorUnit;
+	prot["putMajorUnit"] = prot.putMajorUnit;
+	prot["putMinorUnit"] = prot.putMinorUnit;
+	prot["getMajorUnitRule"] = prot.getMajorUnitRule;
+	prot["getMinorUnitRule"] = prot.getMinorUnitRule;
+	prot["putMajorUnitRule"] = prot.putMajorUnitRule;
+	prot["putMinorUnitRule"] = prot.putMinorUnitRule;
 
 	window["AscCommon"].asc_CatAxisSettings = asc_CatAxisSettings;
 	prot = asc_CatAxisSettings.prototype;
@@ -7581,6 +7643,10 @@ function (window, undefined) {
 	prot["asc_putStrokeWidth"]	= prot.asc_putStrokeWidth;
 	prot["asc_getStrokeStyle"]	= prot.asc_getStrokeStyle;
 	prot["asc_putStrokeStyle"]	= prot.asc_putStrokeStyle;
+	prot["asc_getPropLocked"]	= prot.asc_getPropLocked;
+	prot["asc_putPropLocked"]	= prot.asc_putPropLocked;
+	prot["get_Locked"]			= prot.get_Locked;
+	prot["put_Locked"]			= prot.put_Locked;
 	prot["asc_getFieldProps"]	= prot.asc_getFieldProps;
 	prot["asc_putFieldProps"]	= prot.asc_putFieldProps;
 
