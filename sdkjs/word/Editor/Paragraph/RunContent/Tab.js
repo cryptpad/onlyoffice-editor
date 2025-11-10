@@ -95,7 +95,7 @@ let tab_Symbol_Rtl = 0x0021;
 
 		if(Context.m_bIsTextDrawer)
 		{
-			Context.CheckSpaceDraw();
+			Context.CheckSpaceDraw(this);
 		}
 		
 		if (editor && editor.ShowParaMarks)

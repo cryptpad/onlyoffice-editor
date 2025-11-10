@@ -412,7 +412,7 @@
 		 * @constructor
 		 */
 		function CFontProps() {
-			CBaseNoIdObject.call(this);
+			CBaseFormatNoIdObject.call(this);
 
 			/**
 			 * number read as string
@@ -431,7 +431,7 @@
 				color: null
 			};
 		}
-		InitClass(CFontProps, CBaseNoIdObject, 0);
+		InitClass(CFontProps, CBaseFormatNoIdObject, 0);
 		/**
 		 * @param [bSaveFormatting = false] - made by example false is set in other cases by default
 		 * @return {CFontProps}
@@ -455,6 +455,56 @@
 
 			return duplicate;
 		};
+		/**
+		 * Read attributes from stream for CFontProps
+		 *
+		 * @param {number} attrType - The attribute type
+		 * @param {CBinaryFileReader} pReader - The binary reader
+		 * @return {boolean} true if the attribute was read, false otherwise
+		 */
+		CFontProps.prototype.readAttribute = function(attrType, pReader) {
+			if (attrType === 0) {
+				this.style = pReader.stream.GetULong().toString();
+			} else {
+				return false;
+			}
+			return true;
+		};
+		/**
+		 * Read children from stream for CFontProps
+		 *
+		 * @param {number} elementType - The element type
+		 * @param {CBinaryFileReader} pReader - The binary reader
+		 * @return {boolean} true if the child was read, false otherwise
+		 */
+		CFontProps.prototype.readChild = function(elementType, pReader) {
+			let handled = true;
+			switch (elementType) {
+				case 0:
+					this.fontPropsObject.color = pReader.ReadUniColor();
+					break;
+				default:
+					handled = false;
+			}
+			return handled;
+		}
+		/**
+		 * Write attributes to stream for CFontProps
+		 * 
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CFontProps.prototype.privateWriteAttributes = function(pWriter) {
+			pWriter._WriteUInt2(0, parseInt(this.style));
+		};
+
+		/**
+		 * Write children to stream for CFontProps
+		 *
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CFontProps.prototype.writeChildren = function(pWriter) {
+			pWriter.WriteRecord1(0, this.fontPropsObject.color, pWriter.WriteUniColor);
+		};
 
 		/**
 		 * line props container class. child element of fmtConnectorSchemeLineStyles or fmtSchemeLineStyles.
@@ -462,7 +512,7 @@
 		 * @constructor
 		 */
 		function CLineStyle() {
-			CBaseNoIdObject.call(this);
+			CBaseFormatNoIdObject.call(this);
 
 			/**
 			 * 2.3.4.2.19	CT_LineEx.
@@ -478,7 +528,7 @@
 			 */
 			this.sketch = {};
 		}
-		InitClass(CLineStyle, CBaseNoIdObject, 0);
+		InitClass(CLineStyle, CBaseFormatNoIdObject, 0);
 		/**
 		 * @param [bSaveFormatting = false] - made by example false is set in other cases by default
 		 * @return {CLineStyle}
@@ -511,9 +561,99 @@
 
 			return duplicate;
 		};
+		CLineStyle.prototype.readAttribute = undefined;
+		/**
+		 * Read children from stream for CLineStyle
+		 *
+		 * @param {number} elementType - The type of the element to read
+		 * @param {CBinaryFileReader} pReader - The binary reader
+		 * @return {boolean} True if the element was read, false otherwise
+		 */
+		CLineStyle.prototype.readChild = function(elementType, pReader) {
+			const t = this;
+			let handled = true;
+			switch (elementType) {
+				case 0:
+					AscFormat.CBaseFormatNoIdObject.prototype.fromPPTY.call({
+						readChildren: AscFormat.CBaseFormatNoIdObject.prototype.readChildren,
+						readAttributes: AscFormat.CBaseFormatNoIdObject.prototype.readAttributes,
+						readAttribute: function(attrType, pReader) {
+							if (attrType === 0) {
+								t.lineEx.rndg = pReader.stream.GetULong();
+							} else if (attrType === 1) {
+								t.lineEx.start = pReader.stream.GetULong();
+							} else if (attrType === 2) {
+								t.lineEx.startSize = pReader.stream.GetULong();
+							} else if (attrType === 3) {
+								t.lineEx.end = pReader.stream.GetULong();
+							} else if (attrType === 4) {
+								t.lineEx.endSize = pReader.stream.GetULong();
+							} else if (attrType === 5) {
+								t.lineEx.pattern = pReader.stream.GetULong();
+							} else {
+								return false;
+							}
+							return true;
+						}
+					}, pReader);
+					break;
+				case 1:
+					AscFormat.CBaseFormatNoIdObject.prototype.fromPPTY.call({
+						readChildren: AscFormat.CBaseFormatNoIdObject.prototype.readChildren,
+						readAttributes: AscFormat.CBaseFormatNoIdObject.prototype.readAttributes,
+						readAttribute: function(attrType, pReader) {
+							if (attrType === 0) {
+								t.sketch.lnAmp = pReader.stream.GetULong();
+							} else if (attrType === 1) {
+								t.lineEx.fillAmp = pReader.stream.GetULong();
+							} else if (attrType === 2) {
+								t.lineEx.lnWeight = pReader.stream.GetULong();
+							} else if (attrType === 3) {
+								t.lineEx.numPts = pReader.stream.GetULong();
+							} else {
+								return false;
+							}
+							return true;
+						}
+					}, pReader);
+					break;
+				default:
+					handled = false;
+					break;
+			}
+			return handled;
+		}
+		CLineStyle.prototype.privateWriteAttributes = undefined;
+		/**
+		 * Write children to stream for CLineStyle
+		 *
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CLineStyle.prototype.writeChildren = function(pWriter) {
+			pWriter.StartRecord(0);
+			pWriter.WriteUChar(AscCommon.g_nodeAttributeStart);
+			pWriter._WriteUInt2(0, this.lineEx.rndg);
+			pWriter._WriteUInt2(1, this.lineEx.start);
+			pWriter._WriteUInt2(2, this.lineEx.startSize);
+			pWriter._WriteUInt2(3, this.lineEx.end);
+			pWriter._WriteUInt2(4, this.lineEx.endSize);
+			pWriter._WriteUInt2(5, this.lineEx.pattern);
+			pWriter.WriteUChar(AscCommon.g_nodeAttributeEnd);
+			pWriter.EndRecord();
+			if (Object.keys(this.sketch).length > 0) {
+				pWriter.StartRecord(1);
+				pWriter.WriteUChar(AscCommon.g_nodeAttributeStart);
+				pWriter._WriteUInt2(0, this.sketch.lnAmp);
+				pWriter._WriteUInt2(1, this.sketch.fillAmp);
+				pWriter._WriteUInt2(2, this.sketch.lnWeight);
+				pWriter._WriteUInt2(3, this.sketch.numPts);
+				pWriter.WriteUChar(AscCommon.g_nodeAttributeEnd);
+				pWriter.EndRecord();
+			}
+		};
 
 		function CVariationClrScheme() {
-			CBaseNoIdObject.call(this);
+			CBaseFormatNoIdObject.call(this);
 			/**
 			 *
 			 * @type {*}
@@ -525,7 +665,40 @@
 			 */
 			this.varColor = [];
 		}
-		InitClass(CVariationClrScheme, CBaseNoIdObject, 0);
+		InitClass(CVariationClrScheme, CBaseFormatNoIdObject, 0);
+		CVariationClrScheme.prototype.readAttribute = undefined;
+		/**
+		 * Read children from stream for CVariationClrScheme
+		 *
+		 * @param {number} elementType - The type of the element to read
+		 * @param {CBinaryFileReader} pReader - The binary reader
+		 * @return {boolean} True if the element was read, false otherwise
+		 */
+		CVariationClrScheme.prototype.readChild = function(elementType, pReader) {
+			let handled = true;
+			if (0 <= elementType && elementType < 7) {
+				let varColor = new CVarColor();
+				varColor.unicolor = pReader.ReadUniColor();
+				this.varColor[elementType] = varColor;
+			} else {
+				handled = false;
+			}
+			return handled;
+		}
+		CVariationClrScheme.prototype.privateWriteAttributes = undefined;
+		/**
+		 * Write children to stream for CLineStyle
+		 *
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CVariationClrScheme.prototype.writeChildren = function(pWriter) {
+			for (let i = 0; i < this.varColor.length; i++) {
+				if (!this.varColor[i] || !this.varColor[i].unicolor) {
+					continue;
+				}
+				pWriter.WriteRecord1(i, this.varColor[i].unicolor, pWriter.WriteUniColor);
+			}
+		};
 
 		function CVarColor() {
 			CBaseNoIdObject.call(this);
@@ -592,7 +765,7 @@
 		InitClass(CThemeExt, CBaseNoIdObject, 0);
 
 		function CVariationStyleScheme() {
-			CBaseNoIdObject.call(this);
+			CBaseFormatNoIdObject.call(this);
 
 			this.embellishment = null;
 			/**
@@ -600,17 +773,104 @@
 			 */
 			this.varStyle = [];
 		}
-		InitClass(CVariationStyleScheme, CBaseNoIdObject, 0);
+		InitClass(CVariationStyleScheme, CBaseFormatNoIdObject, 0);
+		/**
+		 * Read attributes from stream for DocumentSettings_Type
+		 * 
+		 * @param  {number} attrType - The type of attribute
+		 * @param {BinaryVSDYLoader} pReader - The binary reader
+		 * @returns {boolean} - True if attribute was handled, false otherwise
+		 */
+		CVariationStyleScheme.prototype.readAttribute = function(attrType, pReader) {
+			if (attrType === 0) {
+				this.embellishment = pReader.stream.GetULong();
+			} else {
+				return false;
+			}
+			return true;
+		}
+		/**
+		 * Read child elements from stream for CVariationStyleScheme
+		 *
+		 * @param {number} elementType - The type of child element
+		 * @param {BinaryVSDYLoader} pReader - The binary reader
+		 * @returns {boolean} - True if element was handled, false otherwise
+		 */
+		CVariationStyleScheme.prototype.readChild = function(elementType, pReader) {
+			switch (elementType) {
+				case 0: {
+					const varStyle = new CVarStyle();
+					varStyle.fromPPTY(pReader);
+					this.varStyle.push(varStyle);
+					break;
+				}
+				default:
+					return false;
+			}
+
+			return true;
+		};
+		/**
+		 * Write attributes to stream for CVariationStyleScheme
+		 * 
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CVariationStyleScheme.prototype.privateWriteAttributes = function(pWriter) {
+			pWriter._WriteUInt2(0, this.embellishment);
+		};
+
+		/**
+		 * Write children to stream for CVariationStyleScheme
+		 *
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CVariationStyleScheme.prototype.writeChildren = function(pWriter) {
+			for (let i = 0; i < this.varStyle.length; i++) {
+				pWriter.WriteRecordPPTY(0, this.varStyle[i]);
+			}
+		};
 
 		function CVarStyle() {
-			CBaseNoIdObject.call(this);
+			CBaseFormatNoIdObject.call(this);
 
 			this.fillIdx = null;
 			this.lineIdx = null;
 			this.effectIdx = null;
 			this.fontIdx = null;
 		}
-		InitClass(CVarStyle, CBaseNoIdObject, 0);
+		InitClass(CVarStyle, CBaseFormatNoIdObject, 0);
+		/**
+		 * Read attributes from stream for DocumentSettings_Type
+		 * 
+		 * @param  {number} attrType - The type of attribute
+		 * @param {BinaryVSDYLoader} pReader - The binary reader
+		 * @returns {boolean} - True if attribute was handled, false otherwise
+		 */
+		CVarStyle.prototype.readAttribute = function(attrType, pReader) {
+			if (attrType === 0) {
+				this.fillIdx = pReader.stream.GetULong();
+			} else if (attrType === 1) {
+				this.lineIdx = pReader.stream.GetULong();
+			} else if (attrType === 2) {
+				this.effectIdx = pReader.stream.GetULong();
+			} else if (attrType === 3) {
+				this.fontIdx = pReader.stream.GetULong();
+			} else {
+				return false;
+			}
+			return true;
+		}
+		/**
+		 * Write attributes to stream for CVarStyle
+		 * 
+		 * @param {CBinaryFileWriter} pWriter - The binary writer
+		 */
+		CVarStyle.prototype.privateWriteAttributes = function(pWriter) {
+			pWriter._WriteUInt2(0, this.fillIdx);
+			pWriter._WriteUInt2(1, this.lineIdx);
+			pWriter._WriteUInt2(2, this.effectIdx);
+			pWriter._WriteUInt2(3, this.fontIdx);
+		};				
 		// Theme visio extensions end
 
 
@@ -6833,7 +7093,7 @@
 		CLn.prototype.IsIdentical = function (ln) {
 			return ln && (this.Fill == null ? ln.Fill == null : this.Fill.IsIdentical(ln.Fill)) && (this.Join == null ? ln.Join == null : this.Join.IsIdentical(ln.Join))
 				&& (this.headEnd == null ? ln.headEnd == null : this.headEnd.IsIdentical(ln.headEnd))
-				&& (this.tailEnd == null ? ln.tailEnd == null : this.tailEnd.IsIdentical(ln.headEnd)) &&
+				&& (this.tailEnd == null ? ln.tailEnd == null : this.tailEnd.IsIdentical(ln.tailEnd)) &&
 				this.algn == ln.algn && this.cap == ln.cap && this.cmpd == ln.cmpd && this.w == ln.w && this.prstDash === ln.prstDash;
 		};
 		CLn.prototype.isEqual = function (ln) {
@@ -9375,31 +9635,81 @@
 		};
 		
 		function CEffectStyle() {
-			CBaseNoIdObject.call(this);
+			CBaseFormatNoIdObject.call(this);
 			this.effectProperties = null;
-			//todo
 			this.scene3d = null;
 			this.sp3d = null;
 		}
-		InitClass(CEffectStyle, CBaseNoIdObject, AscDFH.historyitem_type_Unknown);
+		InitClass(CEffectStyle, CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 
 		CEffectStyle.prototype.Write_ToBinary = function (w) {
 			writeObjectNoId(w, this.effectProperties);
+			writeObjectNoId(w, this.scene3d);
+			writeObjectNoId(w, this.sp3d);
 		};
 		CEffectStyle.prototype.Read_FromBinary = function (r) {
-			this.setEffectPr(readObjectNoId(r, CEffectProperties));
+			this.setEffectPr(readObjectNoId(r));
+			this.setScene3d(readObjectNoId(r));
+			this.setSp3d(readObjectNoId(r));
 		};
 		CEffectStyle.prototype.setEffectPr = function (pr) {
 			this.effectProperties = pr;
+		};
+		CEffectStyle.prototype.setScene3d = function (pr) {
+			this.scene3d = pr;
+		};
+		CEffectStyle.prototype.setSp3d = function (pr) {
+			this.sp3d = pr;
 		};
 		CEffectStyle.prototype.createDuplicate = function () {
 			const copy = new CEffectStyle();
 			if (this.effectProperties) {
 				copy.setEffectPr(this.effectProperties.createDuplicate());
 			}
+			if (this.scene3d) {
+				copy.setScene3d(this.scene3d.createDuplicate());
+			}
+			if (this.sp3d) {
+				copy.setSp3d(this.sp3d.createDuplicate());
+			}
 			return copy;
 		};
-
+		CEffectStyle.prototype.readAttribute = null;
+		CEffectStyle.prototype.privateWriteAttributes = null;
+		CEffectStyle.prototype.readChild = function(nType, pReader) {
+			switch (nType) {
+				case 0:
+					this.setEffectPr(pReader.ReadEffectProperties());
+					break;
+				case 1:
+					this.setScene3d(new AscFormat.Scene3d());
+					this.scene3d.fromPPTY(pReader);
+					break;
+				case 2:
+					this.setSp3d(new AscFormat.Sp3d());
+					this.sp3d.fromPPTY(pReader);
+					break;
+				default:
+					return false;
+			}
+			return true;
+		};
+		CEffectStyle.prototype.writeChildren = function(pWriter) {
+			var oEffectPr = this.effectProperties;
+			if(oEffectPr)
+			{
+				if(oEffectPr.EffectLst)
+				{
+					pWriter.WriteRecord1(0, oEffectPr.EffectLst, pWriter.WriteEffectLst);
+				}
+				else if(oEffectPr.EffectDag)
+				{
+					pWriter.WriteRecord1(0, oEffectPr.EffectDag, pWriter.WriteEffectDag)
+				}
+			}
+			this.writeRecord2(pWriter, 1, this.scene3d);
+			this.writeRecord2(pWriter, 2, this.sp3d);
+		};
 
 		function ThemeElements(oTheme) {
 			CBaseNoIdObject.call(this);

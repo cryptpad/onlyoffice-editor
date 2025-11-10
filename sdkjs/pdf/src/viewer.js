@@ -356,7 +356,7 @@
 		let oFile       = oDoc.Viewer.file;
 		let nIndex		= this.GetIndex();
 
-		return oFile.pages[nIndex].Rotate;
+		return oFile.pages[nIndex].isRecognized;
 	};
 	CPageInfo.prototype.SetPosition = function(nNewPos) {
 		let nCurPos = this.GetIndex();
@@ -2553,10 +2553,27 @@
 				isUseMaximumDelta : true
 			});
 			
-			if (0 !== values.x)
-				oThis.m_oScrollHorApi.scrollBy(values.x, 0, false);
-			if (0 !== values.y)
-				oThis.m_oScrollVerApi.scrollBy(0, values.y, false);
+			let oField = oThis.getPageFieldByMouse();
+			let isFieldScrollable = oField && [AscPDF.FIELD_TYPES.listbox, AscPDF.FIELD_TYPES.text].includes(oField.GetType());
+			let scrollField = false;
+
+			if (isFieldScrollable) {
+				let oScrollInfo = oField.GetScrollInfo();
+				let isVisible = oScrollInfo && oScrollInfo.docElem.style.display !== 'none';
+
+				if (isVisible) {
+					let isLandscape = oThis.isLandscapePage(oField.GetPage());
+					let nStep = isLandscape ? oScrollInfo.scroll.settings.hscrollStep * (e.deltaX < 0 ? -1 : 1) : oScrollInfo.scroll.settings.vscrollStep * (e.deltaY < 0 ? -1 : 1);
+					
+					isLandscape ? oScrollInfo.scroll.scrollByX(nStep) : oScrollInfo.scroll.scrollByY(nStep);
+					scrollField = true;
+				}
+			}
+
+			if (!scrollField) {
+				if (values.x) oThis.m_oScrollHorApi.scrollBy(values.x, 0, false);
+				if (values.y) oThis.m_oScrollVerApi.scrollBy(0, values.y, false);
+			}
 
 			// здесь - имитируем моус мув ---------------------------
 			var _e   = {};

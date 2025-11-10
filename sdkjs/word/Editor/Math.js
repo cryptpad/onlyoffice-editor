@@ -2518,7 +2518,9 @@ ParaMath.prototype.Draw_Elements = function(PDSE)
     this.Root.Draw_Elements(PDSE);
 
     PDSE.X = X + this.Root.GetWidth(PDSE.Line, PDSE.Range);
-
+		if (PDSE.Graphics.m_bIsTextDrawer) {
+			PDSE.Graphics.CheckSpaceDraw(null, true);
+		}
     /*PDSE.Graphics.p_color(255,0,0, 255);
      PDSE.Graphics.drawHorLine(0, PDSE.Y - this.Ascent + this.Height, PDSE.X - 30, PDSE.X + this.Width + 30 , 1);*/
 };
@@ -2572,8 +2574,10 @@ ParaMath.prototype.Draw_Lines = function(PDSL)
         var Bound = this.Root.Get_LineBound(PDSL.Line, PDSL.Range),
             Width = Bound.W;
 
-        if ( true === FirstRPrp.Underline )
-            aUnderline.Add( UnderlineY, UnderlineY, X, X + Width, LineW, CurColor.r, CurColor.g, CurColor.b );
+        if ( true === FirstRPrp.Underline ) {
+					aUnderline.set(UnderlineY, LineW);
+	        aUnderline.Add(X, X + Width, CurColor);
+        }
 
 
         this.Root.Draw_Lines(PDSL);

@@ -828,7 +828,7 @@
 			this.setMouseMode(this.m_oApi.mouseMode);
 			window.addEventListener && window.addEventListener(
 				"beforeunload",
-				function (e) { window.editor.EndDemonstration(); }
+				function (e) {window.editor.DemonstrationReporterEnd();}
 			);
 
 			this.m_oBody.HtmlElement.oncontextmenu = function (e) {

@@ -1519,6 +1519,81 @@ function CBinaryFileWriter()
         oThis.WriteRecord1(0, themeElements.clrScheme, oThis.WriteClrScheme);
         oThis.WriteRecord1(1, themeElements.fontScheme, oThis.WriteFontScheme);
         oThis.WriteRecord1(2, themeElements.fmtScheme, oThis.WriteFmtScheme);
+        if(themeElements.themeExt)
+        {
+            const themeExt = themeElements.themeExt;
+            oThis.WriteRecord1(3, themeExt.fmtConnectorScheme, oThis.WriteFmtScheme);
+            if (themeExt.fillStyles.length) {
+                oThis.StartRecord(4);
+                for (let i = 0; i < themeExt.fillStyles.length; ++i)
+                {
+                    oThis.StartRecord(0);
+                    oThis.WriteUChar(AscCommon.g_nodeAttributeStart);
+                    oThis._WriteUInt2(0, themeExt.fillStyles[i].pattern);
+                    oThis.WriteUChar(AscCommon.g_nodeAttributeEnd);
+                    oThis.EndRecord();
+                }
+                oThis.EndRecord();
+            }
+            const lineStyles = themeExt.lineStyles
+            if (lineStyles.fmtConnectorSchemeLineStyles.length > 0 || lineStyles.fmtSchemeLineStyles.length > 0)
+            {
+                oThis.StartRecord(5);
+                if(lineStyles.fmtConnectorSchemeLineStyles.length > 0)
+                {
+                    oThis.StartRecord(0);
+                    for (let i = 0; i < lineStyles.fmtConnectorSchemeLineStyles.length; ++i)
+                    {
+                        oThis.WriteRecordPPTY(0, lineStyles.fmtConnectorSchemeLineStyles[i]);   
+                    }
+                    oThis.EndRecord();
+                }
+                if(lineStyles.fmtSchemeLineStyles.length > 0)
+                {
+                    oThis.StartRecord(1);
+                    for (let i = 0; i < lineStyles.fmtSchemeLineStyles.length; ++i)
+                    {
+                        oThis.WriteRecordPPTY(0, lineStyles.fmtSchemeLineStyles[i]);
+                    }
+                    oThis.EndRecord();
+                }
+                oThis.EndRecord();
+            }
+            const fontStylesGroup = themeExt.fontStylesGroup;
+            if (fontStylesGroup.connectorFontStyles.length > 0 || fontStylesGroup.fontStyles.length > 0)
+            {
+                oThis.StartRecord(6);
+                if(fontStylesGroup.connectorFontStyles.length > 0)
+                {
+                    oThis.StartRecord(0);
+                    for (let i = 0; i < fontStylesGroup.connectorFontStyles.length; ++i)
+                    {
+                        oThis.WriteRecordPPTY(0, fontStylesGroup.connectorFontStyles[i]);
+                    }
+                    oThis.EndRecord();
+                }
+                if(fontStylesGroup.fontStyles.length > 0)
+                {
+                    oThis.StartRecord(1);
+                    for (let i = 0; i < fontStylesGroup.fontStyles.length; ++i)
+                    {
+                        oThis.WriteRecordPPTY(0, fontStylesGroup.fontStyles[i]);
+                    }
+                    oThis.EndRecord();
+                }
+                oThis.EndRecord();
+            }
+            const variationStyleSchemeLst = themeExt.variationStyleSchemeLst
+            if (variationStyleSchemeLst.length > 0)
+            {
+                oThis.StartRecord(7);
+                for (let i = 0; i < variationStyleSchemeLst.length; ++i)
+                {
+                    oThis.WriteRecordPPTY(0, variationStyleSchemeLst[i]);
+                }
+                oThis.EndRecord();
+            }
+        }
     };
     this.WriteFontScheme = function(fontScheme)
     {
@@ -1543,6 +1618,7 @@ function CBinaryFileWriter()
 
         oThis.WriteRecordArray(0, 0, fmt.fillStyleLst, oThis.WriteUniFill);
         oThis.WriteRecordArray(1, 0, fmt.lnStyleLst, oThis.WriteLn);
+        oThis.WriteRecordArray(2, 0, fmt.effectStyleLst, function(oChild) {oChild.toPPTY(oThis)});
         oThis.WriteRecordArray(3, 0, fmt.bgFillStyleLst, oThis.WriteUniFill);
     };
 
@@ -1674,6 +1750,24 @@ function CBinaryFileWriter()
             if (null != scheme.colors[i])
             {
                 oThis.WriteRecord1(i, scheme.colors[i], oThis.WriteUniColor);
+            }
+        }
+        if (scheme.clrSchemeExtLst)
+        {
+            if (scheme.clrSchemeExtLst.background && scheme.clrSchemeExtLst.background.unicolor)
+            {
+                oThis.StartRecord(20);
+                oThis.WriteRecord1(0, scheme.clrSchemeExtLst.background.unicolor, oThis.WriteUniColor);
+                oThis.EndRecord();
+            }
+            if (scheme.clrSchemeExtLst.variationClrSchemeLst.length > 0)
+            {
+                oThis.StartRecord(21);
+                for (let i = 0; i < scheme.clrSchemeExtLst.variationClrSchemeLst.length; i++)
+                {
+                    oThis.WriteRecordPPTY(0, scheme.clrSchemeExtLst.variationClrSchemeLst[i]);
+                }
+                oThis.EndRecord();
             }
         }
     };
