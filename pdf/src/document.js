@@ -1222,7 +1222,7 @@ var CPresentation = CPresentation || function(){};
         let oMouseDownField     = oViewer.getPageFieldByMouse();
         let oMouseDownAnnot     = oViewer.getPageAnnotByMouse();
         let oMouseDownDrawing   = oViewer.getPageDrawingByMouse();
-        let oFloatObject        = oMouseDownAnnot || oMouseDownDrawing || (this.IsEditFieldsMode() && oMouseDownField);
+        let oFloatObject        = (this.IsEditFieldsMode() && oMouseDownField) || oMouseDownAnnot || oMouseDownDrawing;
         let oCurObject          = this.GetMouseDownObject();
 
         // координаты клика на странице в MM
@@ -2307,8 +2307,7 @@ var CPresentation = CPresentation || function(){};
                 let oSourceObj = aSourceObjects[i];
 
                 if (oSourceObj.IsForm()) {
-                    // в глобальной истории должен срабатывать commit
-                    if (AscCommon.History == this.History) {
+                    if (AscCommon.History == this.History && false == this.IsEditFieldsMode()) {
                         oDrDoc.TargetEnd(); // убираем курсор
                         
                         if (this.activeForm) {
@@ -2360,7 +2359,7 @@ var CPresentation = CPresentation || function(){};
                 let oSourceObj = aSourceObjects[i];
 
                 if (oSourceObj.IsForm()) {
-                    if (AscCommon.History == this.History) {
+                    if (AscCommon.History == this.History && false == this.IsEditFieldsMode()) {
                         oDrDoc.TargetEnd(); // убираем курсор
                             
                         if (this.activeForm) {
@@ -4045,6 +4044,7 @@ var CPresentation = CPresentation || function(){};
         let oDrawingPr  = oController.getDrawingProps();
         let oCurObject  = this.GetActiveObject();
         let nCurPage    = this.GetCurPage();
+        let oCurPage    = this.GetPageInfo(nCurPage);
         
         if (oCurObject) {
             if (oCurObject.IsDrawing()) {
@@ -4100,8 +4100,9 @@ var CPresentation = CPresentation || function(){};
         if (oTargetTextObject && (!oTargetTextObject.group || !oTargetTextObject.group.IsAnnot())) {
             oTargetDocContent && oTargetDocContent.Document_UpdateInterfaceState();
         }
-        this.Api.sync_pagePropCallback(this.GetPageInfo(nCurPage));
+        this.Api.sync_pagePropCallback(oCurPage);
         this.Api.sync_EndCatchSelectedElements();
+        this.Api.sendEvent('asc_onCanEditPage', oCurPage.IsRecognized());
     };
     CPDFDoc.prototype.UpdateInterfaceTracks = function() {
         this.UpdateCommentPos();
@@ -5099,7 +5100,7 @@ var CPresentation = CPresentation || function(){};
         let nCurPage    = this.GetCurPage();
         let oPageInfo   = this.GetPageInfo(nCurPage);
 
-        if (true == this.Api.isRestrictionView() || oPageInfo.IsDeleteLock()) {
+        if (true == this.Api.isRestrictionView() || (oPageInfo.IsDeleteLock() && !aSelContent[nIndex].MergePagesInfo && !aSelContent[nIndex].MergePagesInfo.binaryData)) {
             return false;
         }
 

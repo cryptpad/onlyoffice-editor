@@ -1001,7 +1001,11 @@
         if (!this.content)
             return;
 
-        let aRect       = this.GetOrigRect();
+        let aRect = this.GetOrigRect();
+        if (!aRect) {
+            return;
+        }
+
         let X           = aRect[0];
         let Y           = aRect[1];
         let nWidth      = aRect[2] - aRect[0];
@@ -1191,7 +1195,13 @@
         else
             nImgType = undefined;
 
-        let originView      = this.GetOriginView(nImgType, oGraphicsPDF.GetDrawingPageW(), oGraphicsPDF.GetDrawingPageH());
+        let originView = this.GetOriginView(nImgType, oGraphicsPDF.GetDrawingPageW(), oGraphicsPDF.GetDrawingPageH());
+        if (!originView) {
+            this.DrawLocks(oGraphicsPDF);
+            this.DrawEdit(oGraphicsWord);
+            return;
+        }
+
         let oTr             = oGraphicsPDF.GetTransform();
         let highlightType   = this.GetHighlight();
 

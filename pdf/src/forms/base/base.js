@@ -1692,6 +1692,10 @@
         return this._required;
     };
     CBaseField.prototype.SetBorderColor = function(aColor) {
+        if (aColor && aColor.length == 0) {
+            return false;
+        }
+
         AscCommon.History.Add(new CChangesPDFFormBorderColor(this, this.GetBorderColor(), aColor));
 
         this._strokeColor = this._borderColor = aColor;
@@ -1702,6 +1706,10 @@
         return this._strokeColor;
     };
     CBaseField.prototype.SetBackgroundColor = function(aColor) {
+        if (aColor && aColor.length == 0) {
+            return false;
+        }
+        
         AscCommon.History.Add(new CChangesPDFFormBGrColor(this, this.GetBackgroundColor(), aColor));
 
         this._fillColor = this._bgColor = aColor;

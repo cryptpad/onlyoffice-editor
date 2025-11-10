@@ -11574,25 +11574,20 @@ drawPieChart.prototype = {
 		//todo use getNumCache
 		var numCache;
 		for (var i = 0; i < series.length; i++) {
+			numCache = series[i].getNumLit();
 			if(returnCache) {
-				numCache = series[i].val.numRef && series[i].val.numRef.numCache ? series[i].val.numRef.numCache : series[i].val.numLit;
 				if (numCache) {
 					return numCache;
 				}
 			} else {
-				numCache = series[i].val.numRef && series[i].val.numRef.numCache ? series[i].val.numRef.numCache.pts : series[i].val.numLit.pts;
-				if (numCache && numCache.length) {
-					return numCache;
+				if (numCache && numCache.pts && numCache.pts.length) {
+					return numCache.pts;
 				}
 			}
 		}
 
-		if(returnCache) {
-			numCache = series[0].val.numRef && series[0].val.numRef.numCache ? series[0].val.numRef.numCache : series[0].val.numLit;
-		} else {
-			numCache = series[0].val.numRef && series[0].val.numRef.numCache ? series[0].val.numRef.numCache.pts : series[0].val.numLit.pts;
-		}
-		return numCache;
+		numCache = series[0] && series[0].getNumLit();
+		return returnCache ? numCache : (numCache && numCache.pts);
 	},
 
 	_calculateSegment: function (angle, radius, xCenter, yCenter) {
@@ -11796,7 +11791,7 @@ drawPieChart.prototype = {
 			radius = getEllipseRadius(oCommand2.hR, oCommand2.wR, -1 * stAng - swAng / 2 - Math.PI / 2);
 		}
 
-		var _numCache = this.chart.series[0].val.numRef ? this.chart.series[0].val.numRef.numCache : this.chart.series[0].val.numLit;
+		var _numCache = this.chart.series[0].getNumLit();
 		var point = _numCache ? _numCache.getPtByIndex(val) : null;
 
 		if (!point || !point.compiledDlb) {
@@ -11922,7 +11917,7 @@ drawPieChart.prototype = {
 		var x = oCommand0.X + (oCommand1.X - oCommand0.X) / 2;
 		var y = oCommand0.Y + (oCommand1.Y - oCommand0.Y) / 2;
 
-		var _numCache = this.chart.series[0].val.numRef ? this.chart.series[0].val.numRef.numCache : this.chart.series[0].val.numLit;
+		var _numCache = this.chart.series[0].getNumLit();
 		var point = _numCache ? _numCache.getPtByIndex(val) : null;
 
 		if (!point || !point.compiledDlb) {
@@ -14548,7 +14543,8 @@ drawStockChart.prototype = {
 		var koffX = this.chartProp.trueWidth / numCache.pts.length;
 		var koffY = this.chartProp.trueHeight / digHeight;
 
-		var point = this.chart.series[ser].val.numRef ? this.chart.series[ser].val.numRef.numCache.pts[val] : this.chart.series[ser].val.numLit.pts[val];
+		let _numCache = this.chart.series[ser].getNumLit();
+		var point = _numCache && _numCache.pts[val];
 
 		var x = this.chartProp.chartGutter._left + (val) * koffX + koffX / 2;
 		var y = this.chartProp.trueHeight - (point.val - min) * koffY + this.chartProp.chartGutter._top;

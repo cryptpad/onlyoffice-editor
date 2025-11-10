@@ -4829,7 +4829,7 @@
 			}
 
 			if(ws) {
-				ws.copyCutRange = null;
+				ws.setCutRange(null);
 			}
 			this.cutIdSheet = null;
 
@@ -4849,16 +4849,16 @@
 		if(this.cutIdSheet == null) {
 			var activeWs = this.wsViews[this.wsActive];
 
-			var needUpdateSelection = bDrawSelection && activeWs && activeWs.copyCutRange;
+			var needUpdateSelection = bDrawSelection && activeWs && activeWs.getCutRange();
 			if(needUpdateSelection) {
 				activeWs.cleanSelection();
 			}
 
 			var isCopyHighlighted = false;
 			for(var i in this.wsViews) {
-				if (this.wsViews[i].copyCutRange != null) {
+				if (this.wsViews[i].getCutRange() != null) {
 					isCopyHighlighted = true;
-					this.wsViews[i].copyCutRange = null;
+					this.wsViews[i].setCutRange(null);
 				}
 			}
 

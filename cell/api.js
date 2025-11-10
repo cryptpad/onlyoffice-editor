@@ -3411,8 +3411,6 @@ var editor;
 		//раньше вызов был закомментирован, потому при при открытии вызывается в Viewport.js(asc_Resize) и Main.js(asc_showComments)
 		//но рассчитывать на внешние вызовы ненадежно и вызовов нет при VersionHistory и refreshFile
 		this.asc_Resize();
-
-		this.initBroadcastChannel();
 		this.initBroadcastChannelListeners();
 	};
 
@@ -9693,13 +9691,6 @@ var editor;
 			})
 		}
 	};
-	spreadsheet_api.prototype.initBroadcastChannel = function() {
-		if (!this.broadcastChannel) {
-			if (this.asc_isSupportCopySheetsBetweenBooks()) {
-				this.broadcastChannel = new BroadcastChannel("onlyofficeChannel");
-			}
-		}
-	};
 	spreadsheet_api.prototype.asc_isSupportCopySheetsBetweenBooks = function() {
 		return typeof BroadcastChannel !== "undefined";
 	};
@@ -9749,7 +9740,11 @@ var editor;
 				} else if ("SetFormulaEditMode" === event.data.type) {
 					oThis.wb && oThis.wb.externalSelectionController.onExternalSetFormulaMode(event.data);
 				} else if ("CloseTab" === event.data.type) {
-					console.log("closeTab")
+					//console.log("closeTab")
+				} else if ("ClipboardChange" === event.data.type) {
+					if (event.data.editor === oThis.getEditorId()) {
+						AscCommon.g_clipboardBase.ChangeLastCopy(event.data.data);
+					}
 				}
 			}
 		}

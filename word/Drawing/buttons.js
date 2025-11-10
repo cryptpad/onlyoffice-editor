@@ -1883,6 +1883,7 @@
 	{
 		let newCCTrack = new CContentControlTrack(this.parent, this.base, this.state, this.geom);
 		newCCTrack.pluginButtons = this.pluginButtons.slice();
+		newCCTrack.visualState   = this.visualState;
 		return newCCTrack;
 	};
 
@@ -2967,7 +2968,7 @@
 				if (AscCommon.ContentControlTrack.Hover === ccTrack.state)
 					this.lastHover = ccTrack;
 				
-				if (-1 !== ccTrack.visualState)
+				if (1 === ccTrack.visualState)
 				{
 					this.lastInline = ccTrack;
 					this.ContentControlObjects.length = i + 1;
@@ -3189,7 +3190,6 @@
 				
 				if (_object.isHitInMoveRect(xPos, yPos, koefX, koefY))
 				{
-					oWordControl.m_oLogicDocument.SelectContentControl(_object.base.GetId());
 					_object.visualState = 1;
 					this.ContentControlSmallChangesCheck.X = pos.X;
 					this.ContentControlSmallChangesCheck.Y = pos.Y;
@@ -3204,6 +3204,8 @@
 					oWordControl.EndUpdateOverlay();
 
 					this.document.LockCursorType("default");
+					// Важно селектить контрол после всех действий, т.к. селект вызывает перерисовку треков и текущий стек измениться
+					oWordControl.m_oLogicDocument.SelectContentControl(_object.base.GetId());
 					return true;
 				}
 				
@@ -3520,6 +3522,7 @@
 						this.document.InlineTextTrackEnabled = false;
 					}
 				}
+				this.onPointerMove(pos);
 				result = true;
 				updateOverlay = true;
 			}

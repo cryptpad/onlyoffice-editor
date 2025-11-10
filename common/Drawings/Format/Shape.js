@@ -7293,6 +7293,27 @@
 			return  oCurCandidate;
 		};
 		CShape.prototype.checkDrawingPartWithHistory = function () {};
+		CShape.prototype.getDocStructure = function (oParagraphSplitOptions, oIdGenerator) {
+			return AscFormat.ExecuteNoHistory(function () {
+				oParagraphSplitOptions = oParagraphSplitOptions || {};
+				const oDocContent = this.getDocContent();
+				if (oDocContent) {
+					const oTheme = oDocContent.Get_Theme();
+					const oColorMap = oDocContent.Get_ColorMap();
+					const oTransform = this.transformText;
+					const oTextDrawer = new AscFormat.CTextDrawer(oDocContent.XLimit, oDocContent.YLimit, false, oDocContent.Get_Theme(), true, oParagraphSplitOptions, oIdGenerator);
+					oDocContent.Draw(oDocContent.StartPage, oTextDrawer);
+					const oDocStructure = oTextDrawer.m_oDocContentStructure;
+					for (let i = 0; i < oDocStructure.m_aContent.length; i += 1) {
+						const oParagraph = oDocStructure.m_aContent[i];
+						oParagraph.generateWrappersBySplit(oParagraphSplitOptions[i], oTransform, oTheme, oColorMap, this);
+					}
+					oTextDrawer.clearTextElements();
+					return oDocStructure;
+				}
+				return null;
+			}, this, []);
+		};
 
 		function CreateBinaryReader(szSrc, offset, srcLen) {
 			var memoryData = AscCommon.Base64.decode(szSrc, true, srcLen, offset);

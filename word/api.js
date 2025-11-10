@@ -8234,6 +8234,8 @@ background-repeat: no-repeat;\
 
 		// Меняем тип состояния (на никакое)
 		this.advancedOptionsAction = c_oAscAdvancedOptionsAction.None;
+
+		this.initBroadcastChannelListeners();
 	};
 
 	asc_docs_api.prototype.UpdateInterfaceState = function()
@@ -9527,11 +9529,52 @@ background-repeat: no-repeat;\
 			});
 		}
 	};
-	asc_docs_api.prototype.asc_StartMailMergeByList        = function(aList)
-	{
+	function trimMailMergeList(aList) {
+		// Handle empty or invalid lists
 		if (!aList || !aList.length || aList.length <= 0)
 			aList = [[]];
 
+		const isEmptyRow = function(row) {
+			if (!row || row.length === 0) {
+				return true;
+			}
+			for (let i = 0; i < row.length; i++) {
+				if (row[i] !== "") {
+					return false;
+				}
+			}
+			return true;
+		};
+
+		// Find first non-empty row index (from start)
+		let startIndex = 0;
+		while (startIndex < aList.length && isEmptyRow(aList[startIndex])) {
+			startIndex++;
+		}
+
+		if (startIndex >= aList.length) {
+			aList = [[]];
+		} else {
+			// Find last non-empty row index (from end)
+			let endIndex = aList.length - 1;
+			while (endIndex > startIndex && isEmptyRow(aList[endIndex])) {
+				endIndex--;
+			}
+			
+			// Only create new array if we're actually trimming
+			if (startIndex > 0 || endIndex < aList.length - 1) {
+				aList = aList.slice(startIndex, endIndex + 1);
+			}
+		}
+		return aList;
+	}
+	/**
+	 * Starts mail merge using a provided list.
+	 * @param {Array<Array<string>>} aList - The list of data for mail merge. The first row should contain the field names (headers). Example: [["Field1", "Field2"], ["Value1", "Value2"]]
+	 */
+	asc_docs_api.prototype.asc_StartMailMergeByList        = function(aList)
+	{
+		aList = trimMailMergeList(aList);
 		var aFields = aList[0];
 		if (!aFields || !aFields.length || aFields.length <= 0)
 			aFields = [];
@@ -14388,6 +14431,21 @@ background-repeat: no-repeat;\
 			&& this.WordControl
 			&& this.WordControl.m_oDrawingDocument)
 			this.WordControl.m_oDrawingDocument.contentControls.onAttachPluginEvent(guid);
+	};
+	asc_docs_api.prototype.initBroadcastChannelListeners = function() {
+		let oThis = this;
+		let docInfo = this.DocInfo;
+		let wb = oThis.wbModel;
+		let broadcastChannel = this.broadcastChannel;
+		if (broadcastChannel) {
+			broadcastChannel.onmessage = function(event) {
+				if ("ClipboardChange" === event.data.type) {
+					if (event.data.editor === oThis.getEditorId()) {
+						AscCommon.g_clipboardBase.ChangeLastCopy(event.data.data);
+					}
+				}
+			}
+		}
 	};
 	
 	//-------------------------------------------------------------export---------------------------------------------------

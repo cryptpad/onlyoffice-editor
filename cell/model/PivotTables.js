@@ -4645,7 +4645,7 @@ CT_pivotTableDefinition.prototype.getPivotFieldButtonCompact = function(range, b
 	let res = null;
 	let i = 0;
 	const pivotRange = this.getRange();
-	if (pivotRange.containsRange(range)) {
+	if (pivotRange.containsRange(range) && this.worksheet.selectionRange) {
 		const activeCell = this.worksheet.selectionRange.activeCell;
 		const pivotIndex = this.rangeMapper.getPivotIndexByCell(activeCell, row, col);
 		if (pivotIndex !== null) {

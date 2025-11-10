@@ -1558,6 +1558,9 @@ CDocumentContent.prototype.GetAllFloatElements = function(FloatObjs)
 };
 CDocumentContent.prototype.Shift = function(CurPage, Dx, Dy, keepClip)
 {
+	if (!this.IsRecalculated())
+		return;
+	
 	this.Pages[CurPage].Shift(Dx, Dy);
 
 	if (this.ClipInfo[CurPage] && true !== keepClip)
@@ -1574,18 +1577,12 @@ CDocumentContent.prototype.Shift = function(CurPage, Dx, Dy, keepClip)
 };
 CDocumentContent.prototype.ShiftView = function(nDx, nDy)
 {
-	if (this.Pages.length <= 0)
-		return;
-
 	this.Shift(0, nDx, nDy);
 	this.ShiftViewX += nDx;
 	this.ShiftViewY += nDy;
 };
 CDocumentContent.prototype.ResetShiftView = function()
 {
-	if (this.Pages.length <= 0)
-		return;
-
 	this.Shift(0, -this.ShiftViewX, -this.ShiftViewY);
 	this.ShiftViewX = 0;
 	this.ShiftViewY = 0;

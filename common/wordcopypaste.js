@@ -1492,6 +1492,11 @@ CopyProcessor.prototype =
 		};
 
 		let copyPages = function() {
+			if (oDomTarget) {
+				let oPages = new CopyElement("img");
+				oDomTarget.addChild(oPages);
+			}
+
 			let selected_pages = elementsContent.Pages;
 
 			oThis.oPDFWriter.WriteString2("Pages");

@@ -2466,7 +2466,7 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 				&& oShdColor
 				&& !oShdColor.IsAuto())
 			{
-				pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, 4)
+				pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, AscFormat.CLineStructure_DrawType_ParagraphBackgrounds)
 
 				var TempTop    = this.Lines[CurLine].Top;
 				var TempBottom = this.Lines[CurLine].Bottom;
@@ -2551,29 +2551,29 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 							TempBottom -= paraPr.Spacing.After;
 					}
 				}
-				
+
 				let isRtl = Pr.ParaPr.Bidi;
-				
+
 				let x0 = this.Lines[CurLine].Ranges[CurRange].X;
 				let x1 = this.Lines[CurLine].Ranges[CurRange].getXEndOrigin();
 				let rangeCount = this.Lines[CurLine].Ranges.length;
-				
+
 				if ((0 === CurRange && isRtl) || (rangeCount - 1 === CurRange && !isRtl))
 				{
 					let x_right = this.Pages[CurPage].XLimit - (isRtl ? Math.min(Pr.ParaPr.Ind.Left, Pr.ParaPr.Ind.Left + Pr.ParaPr.Ind.FirstLine) : Pr.ParaPr.Ind.Right);
 					x1 = Math.max(x1, x_right);
-					
+
 					if (Pr.ParaPr.Brd.Right.Value === border_Single)
 						x1 += 0.5 + Pr.ParaPr.Brd.Right.Size + Pr.ParaPr.Brd.Right.Space;
 					else
 						x1 += 0.5;
 				}
-				
+
 				if ((0 === CurRange && !isRtl) || (rangeCount - 1 === CurRange && isRtl))
 				{
 					let x_left = this.Pages[CurPage].X + (isRtl ? Pr.ParaPr.Ind.Right : Math.min(Pr.ParaPr.Ind.Left, Pr.ParaPr.Ind.Left + Pr.ParaPr.Ind.FirstLine));
 					x0 = Math.min(x0, x_left);
-					
+
 					if (Pr.ParaPr.Brd.Left.Value === border_Single)
 						x0 -= 0.5 + Pr.ParaPr.Brd.Left.Size + Pr.ParaPr.Brd.Left.Space;
 					else
@@ -2709,7 +2709,7 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 			// Рисуем заливку текста
 			//----------------------------------------------------------------------------------------------------------
 
-			pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, 2);
+			pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, AscFormat.CLineStructure_DrawType_Backgrounds);
 
 			var aShd    = PDSH.Shd;
 			var Element = aShd.Get_Next();
@@ -2746,10 +2746,12 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 				pGraphics.drawMailMergeField(Element.x0, Element.y0, Element.x1 - Element.x0, Element.y1 - Element.y0, Element);
 				Element = aCFields.Get_Next();
 			}
-
+			pGraphics.End_Command();
 			//----------------------------------------------------------------------------------------------------------
 			// Рисуем выделение текста
 			//----------------------------------------------------------------------------------------------------------
+			pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, AscFormat.CLineStructure_DrawType_Highlights);
+
 			var aHigh   = PDSH.High;
 			var Element = aHigh.Get_Next();
 			while (null != Element)
@@ -2764,8 +2766,14 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 				}
 				pGraphics.rect(Element.x0, Element.y0, Element.x1 - Element.x0, Element.y1 - Element.y0, Element.Additional2);
 				pGraphics.df();
+				if (pGraphics.m_bIsTextDrawer)
+				{
+					pGraphics.addGroundElement(Element);
+				}
 				Element = aHigh.Get_Next();
 			}
+			pGraphics.End_Command();
+			pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, AscFormat.CLineStructure_DrawType_Backgrounds);
 			//----------------------------------------------------------------------------------------------------------
 			// Рисуем выделение разрешенных областей
 			//----------------------------------------------------------------------------------------------------------
@@ -2956,7 +2964,7 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 			}
 		}
 
-		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, 1);
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[CurLine], CurLine, AscFormat.CLineStructure_DrawType_Borders);
 
 		//----------------------------------------------------------------------------------------------------------
 		// Рисуем боковые линии границы параграфа
@@ -2965,7 +2973,7 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 		{
 			let x0 = this.Lines[CurLine].Ranges[0].X;
 			let x1 = this.Lines[CurLine].Ranges[this.Lines[CurLine].Ranges.length - 1].getXEndOrigin();
-			
+
 			if (Pr.ParaPr.Bidi)
 			{
 				x0 = Math.min(x0, this.Pages[CurPage].X + Pr.ParaPr.Ind.Right);
@@ -2979,7 +2987,7 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 
 			if (this.Is_LineDropCap())
 				x1 = x0 + this.Get_LineDropCapWidth();
-			
+
 			let TempTop    = this.Lines[CurLine].Top;
 			let TempBottom = this.Lines[CurLine].Bottom;
 
@@ -3024,7 +3032,6 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 				pGraphics.drawVerLine(c_oAscLineDrawingRule.Left, x0 - 0.5 - Pr.ParaPr.Brd.Left.Size - Pr.ParaPr.Brd.Left.Space, this.Pages[CurPage].Y + TempTop, this.Pages[CurPage].Y + TempBottom, Pr.ParaPr.Brd.Left.Size);
 			}
 		}
-
 		pGraphics.End_Command();
 	}
 };
@@ -3045,7 +3052,7 @@ Paragraph.prototype.drawRunContentElements = function(CurPage, pGraphics, drawSt
 		var Line        = this.Lines[CurLine];
 		var RangesCount = Line.Ranges.length;
 
-		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, 0);
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, AscFormat.CLineStructure_DrawType_Content);
 
 		var Y = this.Pages[CurPage].Y + this.Lines[CurLine].Y;
 		var X = this.Pages[CurPage].X;
@@ -3111,8 +3118,6 @@ Paragraph.prototype.drawRunContentLines = function(CurPage, pGraphics, drawState
 		var Line  = this.Lines[CurLine];
 		var LineM = Line.Metrics;
 
-		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, 3)
-
 		var Baseline        = Page.Y + Line.Y;
 		var UnderlineOffset = LineM.TextDescent * 0.4;
 
@@ -3159,59 +3164,86 @@ Paragraph.prototype.drawRunContentLines = function(CurPage, pGraphics, drawState
 		var aFormBorder = PDSL.FormBorder;
 
 		// Рисуем зачеркивание
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, AscFormat.CLineStructure_DrawType_Strikeouts);
 		var Element = aStrikeout.Get_Next();
 		while (null != Element)
 		{
-			if (pGraphics.SetAdditionalProps)
+			if (pGraphics.m_bIsTextDrawer)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+
 			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
+			if (pGraphics.m_bIsTextDrawer)
+			{
+				pGraphics.addGroundElement(Element);
+			}
 			Element = aStrikeout.Get_Next();
 		}
+		pGraphics.End_Command();
 
 		// Рисуем двойное зачеркивание
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, AscFormat.CLineStructure_DrawType_DStrikeouts);
 		Element = aDStrikeout.Get_Next();
 		while (null != Element)
 		{
-			if (pGraphics.SetAdditionalProps)
+			if (pGraphics.m_bIsTextDrawer)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+
 			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
-
+			if (pGraphics.m_bIsTextDrawer)
+			{
+				pGraphics.addGroundElement(Element);
+			}
 			Element = aDStrikeout.Get_Next();
 		}
+		pGraphics.End_Command();
 
 		// Рисуем подчеркивание
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, AscFormat.CLineStructure_DrawType_Underlines);
 		aUnderline.Correct_w_ForUnderline();
 		Element = aUnderline.Get_Next();
 		while (null != Element)
 		{
-			if (pGraphics.SetAdditionalProps)
+			if (pGraphics.m_bIsTextDrawer)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+
 			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine(0, Element.y0, Element.x0, Element.x1, Element.w);
+			if (pGraphics.m_bIsTextDrawer)
+			{
+				pGraphics.addGroundElement(Element);
+			}
 			Element = aUnderline.Get_Next();
 		}
+		pGraphics.End_Command();
 
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, AscFormat.CLineStructure_DrawType_DUnderlines);
 		Element = aDUnderline.Get_Next();
 		while (null != Element)
 		{
-			if (pGraphics.SetAdditionalProps)
+			if (pGraphics.m_bIsTextDrawer)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+
 			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
-
+			if (pGraphics.m_bIsTextDrawer)
+			{
+				pGraphics.addGroundElement(Element);
+			}
 			Element = aDUnderline.Get_Next();
 		}
+		pGraphics.End_Command();
 
+		pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, AscFormat.CLineStructure_DrawType_Foregrounds)
 		if (drawRunPrReview)
 		{
 			// Рисуем красный рект вокруг измененных ранов
@@ -3390,7 +3422,6 @@ Paragraph.prototype.drawRunContentLines = function(CurPage, pGraphics, drawState
 					arrFormRects.push(arrFormRectsLine);
 			}
 		}
-
 		pGraphics.End_Command();
 	}
 	
@@ -3411,57 +3442,57 @@ Paragraph.prototype.drawHorizontalBorder = function(graphics, curLine, border, l
 	let RGBA = border.Get_Color(this);
 	graphics.p_color(RGBA.r, RGBA.g, RGBA.b, 255);
 	graphics.SetBorder(border);
-	
-	graphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[curLine], curLine, 1);
-	
+
+	graphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, this.Lines[curLine], curLine, AscFormat.CLineStructure_DrawType_Borders);
+
 	for (let curRange = 0, rangeCount = this.Lines[curLine].Ranges.length; curRange < rangeCount; ++curRange)
 	{
 		let lMW = 0;
 		let rMW = 0;
 		let x0 = this.Lines[curLine].Ranges[curRange].X;
 		let x1 = this.Lines[curLine].Ranges[curRange].XEnd;
-		
+
 		if ((0 === curRange && isRtl) || (rangeCount - 1 === curRange && !isRtl))
 		{
 			x1  = X_right;
 			rMW = rightMW;
 		}
-		
+
 		if ((0 === curRange && !isRtl) || (rangeCount - 1 === curRange && isRtl))
 		{
 			x0  = X_left;
 			lMW = leftMW;
 		}
-		
+
 		if (!this.IsEmptyRange(curLine, curRange) || (isEmptyPara && 1 === rangeCount))
 			graphics.drawHorLineExt(lineAlign, y, x0, x1, border.Size, lMW, rMW);
 	}
-	
+
 	graphics.End_Command();
 }
 Paragraph.prototype.Internal_Draw_6 = function(CurPage, pGraphics, Pr)
 {
 	if (true !== this.Is_NeedDrawBorders())
 		return;
-	
+
 	let paraPr = Pr.ParaPr;
-	
+
 	let leftInd  = paraPr.Ind.Left;
 	let rightInd = paraPr.Ind.Right;
 	let firstInd = paraPr.Ind.FirstLine;
 
 	var bEmpty  = this.IsEmpty();
-	
+
 	let X_left  = this.Pages[CurPage].X + Math.min(leftInd, leftInd + firstInd);
 	let X_right = this.Pages[CurPage].XLimit - rightInd;
-	
+
 	let isRtl = this.isRtlDirection();
 	if (isRtl)
 	{
 		X_left  = this.Pages[CurPage].X + rightInd;
 		X_right = this.Pages[CurPage].XLimit - Math.min(leftInd, leftInd + firstInd);
 	}
-	
+
 	if (true === this.Is_LineDropCap())
 		X_right = X_left + this.Get_LineDropCapWidth();
 
@@ -3538,7 +3569,7 @@ Paragraph.prototype.Internal_Draw_6 = function(CurPage, pGraphics, Pr)
 
 		if (this.private_CheckNeedBeforeSpacing(CurPage, this.Parent, this.GetAbsolutePage(CurPage), paraPr))
 			y += paraPr.Spacing.Before;
-		
+
 		let startLine = this.Pages[CurPage].StartLine;
 		this.drawHorizontalBorder(pGraphics, startLine, paraPr.Brd.Top, c_oAscLineDrawingRule.Top, y, bEmpty, X_left, X_right, leftMW, rightMW);
 	}
@@ -3583,7 +3614,7 @@ Paragraph.prototype.Internal_Draw_6 = function(CurPage, pGraphics, Pr)
 			y = this.Pages[CurPage].Y + this.Lines[CurLine].Bottom - paraPr.Spacing.After;
 			lineAlign = c_oAscLineDrawingRule.Bottom;
 		}
-		
+
 		let endLine = this.Pages[CurPage].EndLine;
 		this.drawHorizontalBorder(pGraphics, endLine, paraPr.Brd.Bottom, lineAlign, y, bEmpty, X_left, X_right, leftMW, rightMW);
 	}
@@ -7350,9 +7381,12 @@ Paragraph.prototype.Correct_Content = function(_StartPos, _EndPos, preserveEmpty
 			continue;
 		
 		var CurElement = this.Content[CurPos];
-
+		
 		if (CurElement.CorrectContent)
 			CurElement.CorrectContent();
+		
+		if (para_InlineLevelSdt === CurElement.Type && !CurElement.CanBeDeleted())
+			continue;
 		
 		if ((para_Hyperlink === CurElement.Type
 				|| para_Math === CurElement.Type
@@ -7367,17 +7401,11 @@ Paragraph.prototype.Correct_Content = function(_StartPos, _EndPos, preserveEmpty
 		else if (para_Run !== CurElement.Type)
 		{
 			if (CurPos === this.Content.length - 1 || para_Run !== this.Content[CurPos + 1].Type || CurPos === this.Content.length - 2)
-			{
-				var NewRun = new ParaRun(this);
-				this.Internal_Content_Add(CurPos + 1, NewRun);
-			}
+				this.Internal_Content_Add(CurPos + 1, new AscWord.Run());
 
 			// Для начального элемента проверим еще и предыдущий
 			if (StartPos === CurPos && ( 0 === CurPos || para_Run !== this.Content[CurPos - 1].Type  ))
-			{
-				var NewRun = new ParaRun(this);
-				this.Internal_Content_Add(CurPos, NewRun);
-			}
+				this.Internal_Content_Add(CurPos, new AscWord.Run());
 		}
 		else
 		{
@@ -7393,9 +7421,9 @@ Paragraph.prototype.Correct_Content = function(_StartPos, _EndPos, preserveEmpty
 	// Проверим, чтобы предпоследний элемент был Run
 	if (1 === this.Content.length || para_Run !== this.Content[this.Content.length - 2].Type)
 	{
-		var NewRun = new ParaRun(this);
-		NewRun.Set_Pr(this.TextPr.Value.Copy());
-		this.Internal_Content_Add(this.Content.length - 1, NewRun);
+		let run = new AscWord.Run();
+		run.Set_Pr(this.TextPr.Value.Copy());
+		this.Internal_Content_Add(this.Content.length - 1, run);
 	}
 
 	this.Correct_ContentPos2();
@@ -16124,10 +16152,10 @@ Paragraph.prototype.private_CompareBorderSettings = function(paraPr1, paraPr2)
 {
 	let l_1 = paraPr1.Bidi ? paraPr1.Ind.Right : Math.min(paraPr1.Ind.Left, paraPr1.Ind.Left + paraPr1.Ind.FirstLine);
 	let r_1 = paraPr1.Bidi ? Math.min(paraPr1.Ind.Left, paraPr1.Ind.Left + paraPr1.Ind.FirstLine) : paraPr1.Ind.Right;
-	
+
 	let l_2 = paraPr2.Bidi ? paraPr2.Ind.Right : Math.min(paraPr2.Ind.Left, paraPr2.Ind.Left + paraPr2.Ind.FirstLine);
 	let r_2 = paraPr2.Bidi ? Math.min(paraPr2.Ind.Left, paraPr2.Ind.Left + paraPr2.Ind.FirstLine) : paraPr2.Ind.Right;
-	
+
 	// Почему то Word не сравнивает границы между параграфами.
 	return (Math.abs(l_1 - l_2) < AscWord.EPSILON
 		&& Math.abs(r_1 - r_2) < AscWord.EPSILON
@@ -19154,7 +19182,6 @@ function CParaDrawingRangeLinesElement(y0, y1, x0, x1, w, r, g, b, a, Additional
     this.Intermediate = [];
 }
 
-
 function CParaDrawingRangeLines()
 {
     this.Elements = [];
@@ -19289,6 +19316,19 @@ CParaDrawingRangeLines.prototype =
 					&& Math.abs(PrevEl.Additional.Y - Element.Additional.Y) < 0.001
 					&& Math.abs(PrevEl.Additional.H - Element.Additional.H) < 0.001
 					&& PrevEl.Additional.Form === Element.Additional.Form);
+			} else if (PrevEl.Additional.TextDrawer && Element.Additional.TextDrawer) {
+				const oPrevTextInfo = PrevEl.Additional.TextDrawer;
+				if (oPrevTextInfo.SplitType === null) {
+					return true;
+				}
+				const oCurTextInfo = Element.Additional.TextDrawer;
+				const bIsSplitByWords = oPrevTextInfo.SplitType === AscFormat.ITERATEDATA_TYPE_WORD;
+				const bPrevText = !oPrevTextInfo.TextElement || oPrevTextInfo.TextElement.IsText() || oPrevTextInfo.TextElement.IsMathText();
+				const bNextText = !oCurTextInfo.TextElement || oCurTextInfo.TextElement.IsText() || oCurTextInfo.TextElement.IsMathText();
+				if (bIsSplitByWords) {
+					return bPrevText === bNextText;
+				}
+				return !(bPrevText || bNextText);
 			}
 
 			return false;
@@ -19315,7 +19355,7 @@ CParaDrawingRangeLines.prototype =
             {
                 var PrevEl = CurElements[CurCount - 1];
 
-                if ( Math.abs( PrevEl.y0 - Element.y0 ) < 0.001 && Math.abs( PrevEl.y1 - Element.y1 ) < 0.001 && Math.abs( PrevEl.x1 - Element.x0 ) < 0.001 )
+                if ( Math.abs( PrevEl.y0 - Element.y0 ) < 0.001 && Math.abs( PrevEl.y1 - Element.y1 ) < 0.001 && Math.abs( PrevEl.x1 - Element.x0 ) < 0.001)
                 {
                     // Сравниваем толщины линий
                     if ( Element.w > PrevEl.w )

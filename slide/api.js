@@ -6270,6 +6270,7 @@ background-repeat: no-repeat;\
 		// Меняем тип состояния (на никакое)
 		this.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
 		this.goTo();
+		this.initBroadcastChannelListeners();
 	};
 	asc_docs_api.prototype.asc_IsStartDemonstrationOnOpen = function()
 	{
@@ -8165,7 +8166,7 @@ background-repeat: no-repeat;\
 			}
 			else if (undefined !== _obj["mouseUp"])
 			{
-				_this.WordControl.DemonstrationManager.onMouseUp({}, true, true);
+				_this.WordControl.DemonstrationManager.onMouseUp({}, true, true, !!_obj["isMainMouseDown"]);
 			}
 			else if (undefined !== _obj["mouseWhell"])
 			{
@@ -9618,7 +9619,9 @@ background-repeat: no-repeat;\
 		this.demoBackgroundColor = sColor;
 		if(this.isSlideShow())
 		{
-			this.WordControl.DemonstrationManager.CheckBackgroundColor();
+			const oDemonstrationManager = this.WordControl.DemonstrationManager;
+			oDemonstrationManager.CheckBackgroundColor();
+			oDemonstrationManager.Resize(true);
 		}
 	};
 
@@ -9673,6 +9676,21 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.onChangeRTLInterface = function () {
 		this.onUpdateThumbnailsPosition();
+	};
+	asc_docs_api.prototype.initBroadcastChannelListeners = function() {
+		let oThis = this;
+		let docInfo = this.DocInfo;
+		let wb = oThis.wbModel;
+		let broadcastChannel = this.broadcastChannel;
+		if (broadcastChannel) {
+			broadcastChannel.onmessage = function(event) {
+				if ("ClipboardChange" === event.data.type) {
+					if (event.data.editor === oThis.getEditorId()) {
+						AscCommon.g_clipboardBase.ChangeLastCopy(event.data.data);
+					}
+				}
+			}
+		}
 	};
 
 	//-------------------------------------------------------------export---------------------------------------------------

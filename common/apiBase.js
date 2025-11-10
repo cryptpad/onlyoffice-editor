@@ -245,6 +245,7 @@
 		this.inkDrawer = new AscCommon.CInkDrawer(this);
 		this._correctEmbeddedWork();
 
+		this.broadcastChannel = null;
 
 		return this;
 	}
@@ -360,6 +361,8 @@
 				return false;
 			};
 		}
+
+		this.initBroadcastChannel();
 	};
 	baseEditorsApi.prototype._correctEmbeddedWork = function()
 	{
@@ -5556,6 +5559,17 @@
 
 	baseEditorsApi.prototype.onAttachPluginEvent = function(guid, name)
 	{
+	};
+
+	baseEditorsApi.prototype.initBroadcastChannel = function() {
+		if (!this.broadcastChannel) {
+			if (typeof BroadcastChannel !== "undefined") {
+				this.broadcastChannel = new BroadcastChannel("onlyofficeChannel");
+			}
+		}
+	};
+
+	baseEditorsApi.prototype.initBroadcastChannelListeners = function() {
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------
