@@ -6223,12 +6223,12 @@ Because of this, the display is sometimes not correct.
       return [this.scene3d, this.sp3d, this.style, this.txPr];
     };
     function Point3D() {
-      AscFormat.CBaseNoIdObject.call(this);
+      AscFormat.CBaseFormatNoIdObject.call(this);
       this.x = null;
       this.y = null;
       this.z = null;
     }
-    InitClass(Point3D, AscFormat.CBaseNoIdObject, 0);
+    InitClass(Point3D, AscFormat.CBaseFormatNoIdObject, 0);
     Point3D.prototype.Write_ToBinary = function(w) {
       AscFormat.writeLong(w, this.x);
       AscFormat.writeLong(w, this.y);
@@ -6263,12 +6263,12 @@ Because of this, the display is sometimes not correct.
       return [this.x, this.y, this.z];
     };
     function Vector3D() {
-      AscFormat.CBaseNoIdObject.call(this);
+      AscFormat.CBaseFormatNoIdObject.call(this);
       this.dx = null;
       this.dy = null;
       this.dz = null;
     }
-    InitClass(Vector3D, AscFormat.CBaseNoIdObject, 0);
+    InitClass(Vector3D, AscFormat.CBaseFormatNoIdObject, 0);
     Vector3D.prototype.Write_ToBinary = function(w) {
       AscFormat.writeLong(w, this.dx);
       AscFormat.writeLong(w, this.dy);

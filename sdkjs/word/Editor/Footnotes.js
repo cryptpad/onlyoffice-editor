@@ -2650,7 +2650,7 @@ CFootnotesController.prototype.SelectAll = function(nDirection)
 		{
 			StartFootnote = arrFootnotes[0];
 			EndFootnote   = arrFootnotes[arrFootnotes.length - 1];
-			this.Selection.Direction = -1;
+			this.Selection.Direction = 1;
 		}
 
 		this.Selection.Use            = true;

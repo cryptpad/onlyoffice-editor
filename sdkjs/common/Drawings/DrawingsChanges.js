@@ -316,6 +316,144 @@
     };
 
 
+    /**
+     * @constructor
+     * @extends {AscDFH.CChangesBase}
+     */
+    function CChangesImageIdStart(Class)
+    {
+        AscDFH.CChangesBase.call(this, Class);
+    }
+    CChangesImageIdStart.prototype = Object.create(AscDFH.CChangesBase.prototype);
+    CChangesImageIdStart.prototype.constructor = CChangesImageIdStart;
+    CChangesImageIdStart.prototype.Type = AscDFH.historyitem_type_ImageBlipStart;
+    CChangesImageIdStart.prototype.Undo = function()
+    {
+        let value = this.Class.blipFill;
+        if(!value) return;
+        let chunks = this.Class._chunkedRaster;
+        if(!Array.isArray(chunks) || chunks.length === 0) return;
+        chunks.reverse();
+        const fullVal = chunks.join("");
+        value.RasterImageId = fullVal;
+        delete this.Class._chunkedRaster;
+    };
+    CChangesImageIdStart.prototype.Redo = function()
+    {
+    };
+    CChangesImageIdStart.prototype.WriteToBinary = function(writer)
+    {
+    };
+    CChangesImageIdStart.prototype.ReadFromBinary = function(reader)
+    {
+    };
+    CChangesImageIdStart.prototype.CreateReverseChange = function()
+    {
+        return new CChangesImageIdEnd(this.Class);
+    };
+    AscDFH.changesFactory[AscDFH.historyitem_type_ImageBlipStart] = CChangesImageIdStart;
+    window['AscDFH'].CChangesImageIdStart = CChangesImageIdStart;
+    /**
+     * @constructor
+     * @extends {AscDFH.CChangesBase}
+     */
+    function CChangesImageIdEnd(Class)
+    {
+        AscDFH.CChangesBase.call(this, Class);
+    }
+    CChangesImageIdEnd.prototype = Object.create(AscDFH.CChangesBase.prototype);
+    CChangesImageIdEnd.prototype.constructor = CChangesImageIdEnd;
+    CChangesImageIdEnd.prototype.Type = AscDFH.historyitem_type_ImageBlipEnd;
+    CChangesImageIdEnd.prototype.Undo = function()
+    {
+    };
+    CChangesImageIdEnd.prototype.Redo = function()
+    {
+        let value = this.Class.blipFill;
+        if(!value) return;
+        let chunks = this.Class._chunkedRaster;
+        if(!Array.isArray(chunks) || chunks.length === 0) return;
+
+
+        const fullVal = chunks.join("");
+        value.RasterImageId = fullVal;
+        delete this.Class._chunkedRaster;
+
+        let _correct_id = AscCommon.getImageFromChanges(value.RasterImageId);
+        if (null != _correct_id)
+            value.RasterImageId = _correct_id;
+        if (value && (typeof value.RasterImageId === "string") && value.RasterImageId.length > 0) {
+            AscCommon.CollaborativeEditing.Add_NewImage(value.RasterImageId);
+        }
+    };
+    CChangesImageIdEnd.prototype.WriteToBinary = function(writer)
+    {
+    };
+    CChangesImageIdEnd.prototype.ReadFromBinary = function(reader)
+    {
+    };
+    CChangesImageIdEnd.prototype.CreateReverseChange = function()
+    {
+        return new CChangesImageIdStart(this.Class);
+    };
+    AscDFH.changesFactory[AscDFH.historyitem_type_ImageBlipEnd] = CChangesImageIdEnd;
+    window['AscDFH'].CChangesImageIdEnd = CChangesImageIdEnd;
+
+
+    function CChangesDrawingsImageRasterImageIdPart(Class, NewChunk, OldChunk) {
+		this.NewChunk = NewChunk;
+		this.OldChunk = OldChunk;
+		AscDFH.CChangesBaseStringProperty.call(this, Class, undefined, undefined);
+	}
+
+	CChangesDrawingsImageRasterImageIdPart.prototype = Object.create(AscDFH.CChangesBaseStringProperty.prototype);
+	CChangesDrawingsImageRasterImageIdPart.prototype.constructor = CChangesDrawingsImageRasterImageIdPart;
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.Type = AscDFH.historyitem_type_ImageBlipFillPart;
+	window['AscDFH'].CChangesDrawingsImageRasterImageIdPart = CChangesDrawingsImageRasterImageIdPart;
+	AscDFH.changesFactory[AscDFH.historyitem_type_ImageBlipFillPart]			= CChangesDrawingsImageRasterImageIdPart;
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.CreateReverseChange = function () {
+		return new this.constructor(this.Class, this.OldChunk, this.NewChunk);
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.ReadFromBinary = function (reader) {
+		this.NewChunk = reader.GetString2();
+		this.OldChunk = reader.GetString2();
+		AscDFH.CChangesBaseStringProperty.prototype.ReadFromBinary.call(this, reader);
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.WriteToBinary = function (writer) {
+		writer.WriteString2(this.NewChunk);
+		writer.WriteString2(this.OldChunk);
+		AscDFH.CChangesBaseStringProperty.prototype.WriteToBinary.call(this, writer);
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.Redo = function () {
+		this._applyChunk(this.NewChunk);
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.Undo = function () {
+		this._applyChunk(this.OldChunk);
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype._applyChunk = function (chunk) {
+		if (!this.Class._chunkedRaster) {
+			this.Class._chunkedRaster = [];
+		}
+		this.Class._chunkedRaster.push(chunk);
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.Load = function () {
+		this.Redo();
+		this.RefreshRecalcData();
+	};
+
+	CChangesDrawingsImageRasterImageIdPart.prototype.CheckCorrect = function () {
+		return true;
+	};
+
+
     function CChangesDrawingsObject(Class, Type, OldPr, NewPr) {
         this.Type = Type;
         var _OldPr = OldPr && OldPr.Get_Id ? OldPr.Get_Id() : undefined;

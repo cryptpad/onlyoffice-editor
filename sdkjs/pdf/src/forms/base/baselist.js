@@ -78,7 +78,7 @@
     CBaseListField.prototype.SetTopIndex = function() {};
     CBaseListField.prototype.SetCommitOnSelChange = function(bValue) {
         let oParent = this.GetParent();
-        if (oParent && oParent.GetType() === this.GetType()) {
+        if (oParent && oParent.IsAllKidsWidgets()) {
             oParent.SetCommitOnSelChange(bValue);
             return;
         }
@@ -91,7 +91,7 @@
     };
     CBaseListField.prototype.IsCommitOnSelChange = function(bInherit) {
         let oParent = this.GetParent();
-        if (bInherit !== false && oParent && oParent.GetType() === this.GetType())
+        if (bInherit !== false && oParent && oParent.IsAllKidsWidgets())
             return oParent.IsCommitOnSelChange();
 
         return this._commitOnSelChange;

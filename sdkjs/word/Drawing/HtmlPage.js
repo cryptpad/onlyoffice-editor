@@ -2036,7 +2036,13 @@ function CEditorPage(api)
 		oWordControl.StartUpdateOverlay();
 		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos, e === undefined ? true : false);
 		if (is_drawing === true)
+		{
+			// Нужно вызвать UpdateCursorType у документа для обновления ховеров над формами, но там же вызывается
+			// обновление типа курсора, поэтому вызываем его еще раз для DrawingDocument
+			oWordControl.m_oLogicDocument.UpdateCursorType(pos.X, pos.Y, pos.Page, global_mouseEvent);
+			oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos, e === undefined);
 			return;
+		}
 
 		oWordControl.m_oDrawingDocument.TableOutlineDr.bIsNoTable = true;
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);

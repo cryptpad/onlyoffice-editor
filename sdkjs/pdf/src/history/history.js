@@ -71,10 +71,11 @@
         AscCommon.g_oTableId.TurnOn();
     };
 	History.prototype.Add = function(_Class, Data) {
+		AscCommon.CHistory.prototype.Add.call(this, _Class, Data);
+		
 		if (!this.CanAddChanges())
 			return;
-
-		AscCommon.CHistory.prototype.Add.call(this, _Class, Data);
+		
 		if (_Class.Class && _Class.Class.SetNeedRecalc) {
 			if (!this.Points[this.Index].Additional.Pdf) {
 				this.Points[this.Index].Additional.Pdf = [];
@@ -252,6 +253,18 @@
                     };
 
                     oClass.Lock.Check(check_obj);
+                }
+                // lock merge
+                else if (oClass instanceof AscPDF.CPDFDoc && point.Items[changeIndex].Data instanceof CChangesPDFDocumentStartMergePages) {
+                    const oLocker = oClass.locks.merge; 
+                    let sId = oLocker.GetId();
+                    let oCheckData = {
+                        "type":     AscPDF.AscLockTypeElemPDF.Document,
+                        "objId":    sId,
+                        "guid":     sId
+                    };
+                        
+                    oLocker.Lock.Check(oCheckData);
                 }
  			}
 		}

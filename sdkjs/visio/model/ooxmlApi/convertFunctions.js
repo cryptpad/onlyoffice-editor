@@ -1525,6 +1525,24 @@
 			}
 		}
 
+		function createEmptyShape() {
+			let emptyCShape = new AscFormat.CShape();
+			emptyCShape.setWordShape(false);
+			emptyCShape.setBDeleted(false);
+
+			var oSpPr = new AscFormat.CSpPr();
+			var oXfrm = new AscFormat.CXfrm();
+
+			oSpPr.setXfrm(oXfrm);
+			oXfrm.setParent(oSpPr);
+
+			emptyCShape.setSpPr(oSpPr);
+			oSpPr.setParent(emptyCShape);
+			emptyCShape.setParent2(visioDocument);
+
+			return emptyCShape;
+		}
+
 		// Method start
 
 		// Refact:
@@ -1587,21 +1605,7 @@
 			// AscCommon.consoleLog('pinX_inch or pinY_inch is NaN for Shape or areShapeLayersInvisible. Its ok sometimes. ' +
 				// 'Empty CShape is returned. See original shape: ', this);
 			// let's use empty shape
-			let emptyCShape = new AscFormat.CShape();
-			emptyCShape.setWordShape(false);
-			emptyCShape.setBDeleted(false);
-
-			var oSpPr = new AscFormat.CSpPr();
-			var oXfrm = new AscFormat.CXfrm();
-
-			oSpPr.setXfrm(oXfrm);
-			oXfrm.setParent(oSpPr);
-
-			emptyCShape.setSpPr(oSpPr);
-			oSpPr.setParent(emptyCShape);
-			emptyCShape.setParent2(visioDocument);
-
-			return emptyCShape;
+			return createEmptyShape();
 		}
 
 		let shapeAngle = this.getCellNumberValue("Angle");
@@ -1626,13 +1630,6 @@
 		let turquoiseVector = {x: -shapeWidth_inch/2, y: -shapeHeight_inch/2};
 		let x_inch = rotatedCenter.x + turquoiseVector.x;
 		let y_inch = rotatedCenter.y + turquoiseVector.y;
-
-		let x_mm = x_inch * g_dKoef_in_to_mm;
-		let y_mm = y_inch * g_dKoef_in_to_mm;
-
-		let shapeWidth_mm = shapeWidth_inch * g_dKoef_in_to_mm;
-		let shapeHeight_mm = shapeHeight_inch * g_dKoef_in_to_mm;
-
 
 		/**
 		 * Fill without pattern applied.
@@ -1802,17 +1799,19 @@
 				uniFillBkgnd = fillBkgndCell.calculateValue(this, pageInfo,
 					visioDocument.themes, themeValWasUsedFor);
 
-				let fillBkgndTransValue = this.getCellNumberValue("FillBkgndTrans");
-				if (!isNaN(fillBkgndTransValue)) {
-					let fillObj = uniFillBkgnd.fill;
-					if (fillObj.type === Asc.c_oAscFill.FILL_TYPE_PATT) {
-						// pattern fill
-						fillObj.bgClr.color.RGBA.A = fillObj.fgClr.color.RGBA.A * (1 - fillBkgndTransValue);
+				if (!(uniFillBkgnd.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD)) {
+					let fillBkgndTransValue = this.getCellNumberValue("FillBkgndTrans");
+					if (!isNaN(fillBkgndTransValue)) {
+						let fillObj = uniFillBkgnd.fill;
+						if (fillObj.type === Asc.c_oAscFill.FILL_TYPE_PATT) {
+							// pattern fill
+							fillObj.bgClr.color.RGBA.A = fillObj.fgClr.color.RGBA.A * (1 - fillBkgndTransValue);
+						} else {
+							fillObj.color.color.RGBA.A = fillObj.color.color.RGBA.A * (1 - fillBkgndTransValue);
+						}
 					} else {
-						fillObj.color.color.RGBA.A = fillObj.color.color.RGBA.A * (1 - fillBkgndTransValue);
+						// AscCommon.consoleLog("fillBkgndTrans value is themed or something. Not calculated for", this);
 					}
-				} else {
-					// AscCommon.consoleLog("fillBkgndTrans value is themed or something. Not calculated for", this);
 				}
 			}
 
@@ -1821,6 +1820,13 @@
 				// AscCommon.consoleLog("LineColor was found for shape", lineColorCell);
 				lineUniFill = lineColorCell.calculateValue(this, pageInfo,
 					visioDocument.themes, themeValWasUsedFor);
+
+				let lineTransValue = this.getCellNumberValue("LineColorTrans");
+				if (!isNaN(lineTransValue)) {
+					// lineUniFill.transparent is opacity in fact
+					// setting RGBA.A doesn't work
+					lineUniFill.transparent = 255 - lineTransValue * 255;
+				}
 			} else {
 				AscCommon.consoleLog("LineColor cell for line stroke (border) was not found painting red");
 				lineUniFill = AscFormat.CreateUnfilFromRGB(255,0,0);
@@ -2098,28 +2104,47 @@
 			}
 		}
 
-		let endArrowTypeCell = this.getCell("EndArrow");
-		let endArrowSizeCell = this.getCell("EndArrowSize");
-		let endArrowType = endArrowTypeCell ? endArrowTypeCell.calculateValue(this, pageInfo,
-			visioDocument.themes) : 0;
-		let endArrowSize = endArrowSizeCell ? endArrowSizeCell.calculateValue(this, pageInfo,
-			visioDocument.themes) : 1;
-		let endArrow = getEndArrow(endArrowType, endArrowSize);
-		oStroke.setTailEnd(endArrow);
+		// Each geometry section may have arrows
+		// Arrow are displayed only if that geometry section has NoFill cell equal to 1
+		// For now as we set arrow for all the shape let's check first geometry only
+		let firstGeometrySection = this.getSection("Geometry_0");
+		if (firstGeometrySection && firstGeometrySection.getCellNumberValue("NoFill") === 1) {
+			let endArrowTypeCell = this.getCell("EndArrow");
+			let endArrowSizeCell = this.getCell("EndArrowSize");
+			let endArrowType = endArrowTypeCell ? endArrowTypeCell.calculateValue(this, pageInfo,
+				visioDocument.themes) : 0;
+			let endArrowSize = endArrowSizeCell ? endArrowSizeCell.calculateValue(this, pageInfo,
+				visioDocument.themes) : 1;
+			let endArrow = getEndArrow(endArrowType, endArrowSize);
+			oStroke.setTailEnd(endArrow);
 
-		let beginArrowTypeCell = this.getCell("BeginArrow");
-		let beginArrowSizeCell = this.getCell("BeginArrowSize");
-		let beginArrowType = beginArrowTypeCell ? beginArrowTypeCell.calculateValue(this, pageInfo,
-			visioDocument.themes) : 0;
-		let beginArrowSize = beginArrowSizeCell ? beginArrowSizeCell.calculateValue(this, pageInfo,
-			visioDocument.themes) : 1;
-		let beginArrow = getEndArrow(beginArrowType, beginArrowSize);
-		oStroke.setHeadEnd(beginArrow);
+			let beginArrowTypeCell = this.getCell("BeginArrow");
+			let beginArrowSizeCell = this.getCell("BeginArrowSize");
+			let beginArrowType = beginArrowTypeCell ? beginArrowTypeCell.calculateValue(this, pageInfo,
+				visioDocument.themes) : 0;
+			let beginArrowSize = beginArrowSizeCell ? beginArrowSizeCell.calculateValue(this, pageInfo,
+				visioDocument.themes) : 1;
+			let beginArrow = getEndArrow(beginArrowType, beginArrowSize);
+			oStroke.setHeadEnd(beginArrow);
+		}
 
 
 		let flipHorizontally = this.getCellNumberValue("FlipX") === 1;
+		if (flipHorizontally) {
+			x_inch = x_inch + 2 * (locPinX_inch - shapeWidth_inch / 2);
+		}
 
 		let flipVertically = this.getCellNumberValue("FlipY") === 1;
+		if (flipVertically) {
+			y_inch = y_inch + 2 * (locPinY_inch - shapeHeight_inch / 2);
+		}
+
+		let x_mm = x_inch * g_dKoef_in_to_mm;
+		let y_mm = y_inch * g_dKoef_in_to_mm;
+
+		let shapeWidth_mm = shapeWidth_inch * g_dKoef_in_to_mm;
+		let shapeHeight_mm = shapeHeight_inch * g_dKoef_in_to_mm;
+
 
 		let cShape = this.convertToCShapeUsingParamsObj({
 			x_mm: x_mm, y_mm: y_mm,
@@ -2130,14 +2155,91 @@
 			pageInfo: pageInfo,
 			cVisioDocument: visioDocument,
 			drawingPageScale : drawingPageScale,
-			isInvertCoords: isInvertCoords
+			isInvertCoords: isInvertCoords,
+			isShapeDeleted: isShapeDeleted,
+			id: this.id
 		});
 
-		if (isShapeDeleted) {
-			cShape.setBDeleted(true);
+
+		// set shadow
+		// ShdwPattern = 1 means shadow is visible
+		let shadowPatternCell = this.getCell("ShdwPattern");
+		let shadowPattern = shadowPatternCell ? shadowPatternCell.calculateValue(this, pageInfo,
+				visioDocument.themes, undefined, false) : 0;
+		let isShadowVisible = shadowPattern === 1;
+
+		let shapeShadowTypeCell = this.getCell("ShapeShdwType");
+		let isShadowTypeSupported = shapeShadowTypeCell ? (shapeShadowTypeCell.getNumberValue("ShapeShdwType") === 1 ||
+				shapeShadowTypeCell.getNumberValue("ShapeShdwType") === 2 ||
+				shapeShadowTypeCell.getStringValue() === "Themed") : false;
+		if (isShadowVisible && isShadowTypeSupported) {
+			let shadow = new AscFormat.COuterShdw();
+
+			// get color for shadow
+			let shadowForegndCell = this.getCell("ShdwForegnd");
+			let shadowColor;
+			if (shadowForegndCell) {
+				// AscCommon.consoleLog("FillForegnd was found:", fillForegndCell);
+				shadowColor = shadowForegndCell.calculateValue(this, pageInfo,
+						visioDocument.themes, undefined, false);;
+
+				let mainFillAlphaCoef = 1;
+				let fillForegndTransValue = this.getCellNumberValue("FillForegndTrans");
+				if (!isNaN(fillForegndTransValue)) {
+					mainFillAlphaCoef = 1 - fillForegndTransValue;
+				}
+
+				let shadowTransValue = 0;
+				let shadowTransCell = this.getCell("ShdwForegndTrans");
+				// if themed alpha is included in shadowColor already
+				if (shadowTransCell.getStringValue() !== "Themed") {
+					shadowTransValue = shadowTransCell.getNumberValue("ShdwForegndTrans");
+
+					let shadowAlpha = (1 - shadowTransValue) * mainFillAlphaCoef;
+					if (shadowAlpha !== 1) {
+						let oMod = new AscFormat.CColorMod("alpha", shadowAlpha  * 100 * 1000 + 0.5 >> 0);
+						shadowColor.addColorMod(oMod);
+					}
+				} else {
+					// check if alpha is set already
+					let alphaMod = shadowColor.Mods && shadowColor.Mods.Mods.find(function (mod) {
+						return mod.name === "alpha";
+					});
+					if (alphaMod) {
+						alphaMod.val = alphaMod.val * mainFillAlphaCoef;
+					} else {
+						let oMod = new AscFormat.CColorMod("alpha", mainFillAlphaCoef  * 100 * 1000 + 0.5 >> 0);
+						shadowColor.addColorMod(oMod);
+					}
+				}
+
+			} else {
+				AscCommon.consoleLog("shadow foreground cell not found for", this);
+			}
+			// shadow.color = AscFormat.CreateUniColorRGB(100,100,100);
+			// shadow.color.color = new AscFormat.CPrstColor();
+			// shadow.color.color.id = "black";
+			// shadow.putTransparency(60);
+			shadow.color = shadowColor;
+
+			let shadowOffsetX_inch = this.getCellNumberValue("ShapeShdwOffsetX");
+			let shadowOffsetY_inch = this.getCellNumberValue("ShapeShdwOffsetY");
+			let shadowOffsetX = shadowOffsetX_inch === undefined ? 0 : shadowOffsetX_inch * g_dKoef_in_to_mm;
+			let shadowOffsetY = shadowOffsetY_inch === undefined ? 0 : shadowOffsetY_inch * g_dKoef_in_to_mm;
+			let atan = Math.atan2(shadowOffsetY, shadowOffsetX);
+			shadow.dist = Math.hypot(shadowOffsetX, shadowOffsetY) * 36000;
+			shadow.dir =  -atan * AscFormat.radToDeg * AscFormat.degToC;
+
+			shadow.rotWithShape = true;
+			// cShape.spPr.changeShadow(shadow);
+			cShape.spPr.effectProps = new AscFormat.CEffectProperties();
+			cShape.spPr.effectProps.EffectLst = new AscFormat.CEffectLst();
+			cShape.spPr.effectProps.EffectLst.outerShdw = shadow;
+
+			// cShape.spPr.effectProps.EffectLst.prstShdw = new AscFormat.CPrstShdw();
+			// cShape.spPr.effectProps.EffectLst.prstShdw.dir = 300 * 3600;
 		}
 
-		cShape.Id = String(this.id); // it was string in cShape
 
 		// not scaling fontSize
 		let textCShape = getTextCShape(visioDocument.themes[0], this, cShape,
@@ -2321,13 +2423,16 @@
 				groupShape.Id = cShapeOrCGroupShape.Id + "_Group";
 
 
-				// add group geometry to bottom
-				if (cShapeOrCGroupShape instanceof CGroupShape) {
-					groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape.spTree[0]);
-				} else {
-					groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape);
+				// if DisplayMode is 1 add group geometry to bottom layer
+				if (this.getCellNumberValue("DisplayMode") === 1) {
+					// if it is group so there is geometry and text in it. We take geometry
+					if (cShapeOrCGroupShape instanceof CGroupShape) {
+						groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape.spTree[0]);
+					} else {
+						groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape);
+					}
+					groupShape.spTree[groupShape.spTree.length - 1].setGroup(groupShape);
 				}
-				groupShape.spTree[groupShape.spTree.length - 1].setGroup(groupShape);
 
 
 				cShapeOrCGroupShape.spPr.xfrm.setOffX(0);
@@ -2349,6 +2454,17 @@
 				for (let i = 0; i < subShapes.length; i++) {
 					const subShape = subShapes[i];
 					subShape.convertGroup(visioDocument, pageInfo, drawingPageScale, currentGroupHandling);
+				}
+
+				// it group geometry should be on the top layer
+				if (this.getCellNumberValue("DisplayMode") === 2) {
+					if (cShapeOrCGroupShape instanceof CGroupShape) {
+						// if it is group so there is geometry and text in it. We take geometry
+						groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape.spTree[0]);
+					} else {
+						groupShape.addToSpTree(groupShape.spTree.length, cShapeOrCGroupShape);
+					}
+					groupShape.spTree[groupShape.spTree.length - 1].setGroup(groupShape);
 				}
 
 				// add group text to top
@@ -2375,7 +2491,8 @@
 
 	/**
 	 * @memberOf Shape_Type
-	 * @param {{x_mm, y_mm, w_mm, h_mm, rot, oFill, oStroke, flipHorizontally, flipVertically, cVisioDocument, drawingPageScale, isInvertCoords}} paramsObj
+	 * @param {{x_mm, y_mm, w_mm, h_mm, rot, oFill, oStroke, flipHorizontally, flipVertically, cVisioDocument,
+	 * drawingPageScale, isInvertCoords, isShapeDeleted, id}} paramsObj
 	 * @return {CShape} CShape
 	 */
 	Shape_Type.prototype.convertToCShapeUsingParamsObj = function(paramsObj) {
@@ -2391,6 +2508,8 @@
 		let flipVertically = paramsObj.flipVertically;
 		let drawingPageScale = paramsObj.drawingPageScale;
 		let isInvertCoords = paramsObj.isInvertCoords;
+		let isShapeDeleted = paramsObj.isShapeDeleted;
+		let id = paramsObj.id;
 
 		let shapeGeom = AscVisio.getGeometryFromShape(this, drawingPageScale, isInvertCoords);
 
@@ -2407,6 +2526,13 @@
 		shape.spPr.xfrm.setFlipV(flipVertically);
 
 		shape.spPr.setGeometry(shapeGeom);
+
+		if (isShapeDeleted) {
+			shape.setBDeleted(true);
+		}
+
+		shape.Id = String(id); // it was string in cShape
+
 		return shape;
 	};
 

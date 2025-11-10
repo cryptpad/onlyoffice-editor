@@ -75,7 +75,12 @@ function (window, undefined) {
 	var arrayFunctionsMap = {"SUMPRODUCT": 1, "FILTER": 1, "SUM": 1, "LOOKUP": 1, "AGGREGATE": 1};
 
 	var importRangeLinksState = {importRangeLinks: null, startBuildImportRangeLinks: null};
-	const aExcludeRecursiveFormulas = ['ISFORMULA', 'SHEETS', 'AREAS', 'COLUMN', 'COLUMNS', 'ROW', 'ROWS', 'CELL', 'INDIRECT'];
+	const aExcludeRecursiveFormulas = ['ISFORMULA', 'SHEETS', 'AREAS', 'COLUMN', 'COLUMNS', 'ROW', 'ROWS', 'CELL', 'OFFSET'];
+
+	const cReplaceFormulaType = {
+		val: 1,
+		formula: 2
+	};
 
 	function getArrayCopy(arr) {
 		var newArray = [];
@@ -2742,7 +2747,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			to = this.hdtcendIndex.index;
 		}
 		for (var i = from; i <= to; ++i) {
-			res.push(table.TableColumns[i].Name);
+			res.push(table.TableColumns[i].getTableColumnName());
 		}
 		return res;
 	};
@@ -3105,10 +3110,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 			 ir++, ret += digitDelim ? FormulaSeparators.arrayRowSeparator : FormulaSeparators.arrayRowSeparatorDef) {
 			for (var ic = 0; ic < this.countElementInRow[ir]; ic++, ret +=
 				digitDelim ? FormulaSeparators.arrayColSeparator : FormulaSeparators.arrayColSeparatorDef) {
-				if (this.array[ir][ic] instanceof cString) {
-					ret += '"' + this.array[ir][ic].toLocaleString(digitDelim) + '"';
-				} else {
-					ret += this.array[ir][ic].toLocaleString(digitDelim) + "";
+			if (this.array[ir] && this.array[ir][ic]) {
+					if (this.array[ir][ic] instanceof cString) {
+						ret += '"' + this.array[ir][ic].toLocaleString(digitDelim) + '"';
+					} else {
+						ret += this.array[ir][ic].toLocaleString(digitDelim) + "";
+					}
 				}
 			}
 			if (ret[ret.length - 1] === digitDelim ? FormulaSeparators.arrayColSeparator :
@@ -3158,6 +3165,22 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 
 		return this.array;
+	};
+	cArray.prototype.getMatrixCopy = function () {
+		let retArrCopy = [];
+		for (let ir = 0; ir < this.array.length; ir++) {
+			retArrCopy[ir] = [];
+			for (let ic = 0; ic < this.array[ir].length; ic++) {
+				// let elem = this.array[ir][ic];
+				retArrCopy[ir].push(this.array[ir][ic]);
+			}
+			if (ir === this.rowCount - 1) {
+				break;
+			}
+		}
+
+		return retArrCopy;
+
 	};
 	cArray.prototype.fillFromArray = function (arr, fChangeElems) {
 		if (arr && arr.length !== undefined) {
@@ -6418,9 +6441,10 @@ function parserFormula( formula, parent, _ws ) {
 	this.ref = null;
 
 	this.promiseResult = null;
+	this.replaceFormulaAfterCalc = null;
 
 	//mark function, when need reparse and recalculate on custom function change
-	this.bUnknownOrCustomFunction = null;
+	this.unknownOrCustomFunction = null;
 
 	if (AscFonts.IsCheckSymbols) {
 		AscFonts.FontPickerByCharacter.getFontsByString(this.Formula);
@@ -8140,6 +8164,7 @@ function parserFormula( formula, parent, _ws ) {
 			found_operand = null;
 
 			let needSplitString = true;
+			let removeUnarOperator = false;
 			let _doSplitString = function(str) {
 				// Cache concatenation operator to avoid repeated lookups
 				const concatOperator = cFormulaOperators["&"].prototype;
@@ -8536,6 +8561,12 @@ function parserFormula( formula, parent, _ws ) {
 						return false;
 					}
 					found_operand = new cNumber(_number);
+					if (local) {
+						let lastElem = elemArr[elemArr.length-1];
+						if (lastElem && lastElem.name && lastElem.name === "un_plus") {
+							removeUnarOperator = true;
+						}
+					}
 				} else {
 					parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
 					if (!ignoreErrors) {
@@ -8566,13 +8597,13 @@ function parserFormula( formula, parent, _ws ) {
 					found_operator.isXLFN = (ph.operand_str.indexOf(xlfnFrefix) === 0);
 					found_operator.isXLWS = found_operator.isXLFN && xlfnFrefix.length === ph.operand_str.indexOf(xlwsFrefix);
 
-					t.bUnknownOrCustomFunction = true;
+					t.unknownOrCustomFunction = operandStr;
 				}
 
 				//mark function, when need reparse and recalculate on custom function change
 				let wb = Asc["editor"] && Asc["editor"].wb;
 				if (wb && wb.customFunctionEngine && wb.customFunctionEngine.getFunc(operandStr)) {
-					t.bUnknownOrCustomFunction = true;
+					t.unknownOrCustomFunction = operandStr;
 				}
 
 				if (found_operator !== null) {
@@ -8625,6 +8656,10 @@ function parserFormula( formula, parent, _ws ) {
 			}
 
 			if (null !== found_operand) {
+				if (removeUnarOperator) {
+					elemArr.pop();
+				}
+
 				t.outStack.push(found_operand);
 				parseResult.addElem(found_operand);
 				parseResult.operand_expected = false;
@@ -8918,7 +8953,7 @@ function parserFormula( formula, parent, _ws ) {
 								isRef = true;
 							} else {
 								/* results of SEQUENCE, RANDARRAY etc... can return an array when using regular values ​​in arguments */
-								if (this.bUnknownOrCustomFunction && currentElement.returnValueType !== AscCommonExcel.cReturnFormulaType.array) {
+								if (this.unknownOrCustomFunction && currentElement.returnValueType !== AscCommonExcel.cReturnFormulaType.array) {
 									return false;
 								}
 								_tmp = currentElement.Calculate(arg, opt_bbox, null, this.ws, bIsSpecialFunction);
@@ -8958,7 +8993,7 @@ function parserFormula( formula, parent, _ws ) {
 		}
 	};
 	parserFormula.prototype.calculate = function (opt_defName, opt_bbox, opt_offset, checkMultiSelect, opt_oCalculateResult, opt_pivotCallback) {
-		if (AscCommonExcel.g_LockCustomFunctionRecalculate && this.bUnknownOrCustomFunction) {
+		if (AscCommonExcel.g_LockCustomFunctionRecalculate && this.unknownOrCustomFunction) {
 			return;
 		}
 		if (this.outStack.length < 1) {
@@ -9051,7 +9086,7 @@ function parserFormula( formula, parent, _ws ) {
 							this._endCalculate();
 							opt_oCalculateResult.setError(c_oAscError.ID.FrmlOperandExpected);
 							return this.value;
-						} else {
+						} else if (!(this.promiseResult && this.promiseResult[i])) {
 							formulaArray = cBaseFunction.prototype.checkFormulaArray.call(currentElement, arg, opt_bbox, opt_defName, this, bIsSpecialFunction, argumentsCount);
 						}
 
@@ -9064,7 +9099,7 @@ function parserFormula( formula, parent, _ws ) {
 					} else if(formulaArray) {
 						_tmp = formulaArray;
 					} else {
-						//if recursion - we must rewrite promise, because arguments can changed
+						//if recursion - we must rewrite promise, because arguments can change
 						_tmp = !g_cCalcRecursion.getIsEnabledRecursion() && this.wb.asyncFormulasManager.getPromiseByIndex(this._index, i);
 						if (!_tmp) {
 							_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
@@ -9081,6 +9116,34 @@ function parserFormula( formula, parent, _ws ) {
 							this.wb.asyncFormulasManager.addPromise(_tmp, true);
 						}
 						promiseCounter++;
+					}
+
+					if (this.unknownOrCustomFunction) {
+						/*
+						  \@\@\ - perceive it as text, remove the \. do not delete the first formula. The result of the calculation will be ("\@\@\text" -> "@@...text").
+
+						  @@ - special case. delete the first formula and add the result to the cell without @@. ("@@text" -> "text")
+
+						  @@\= - special case. remove the \. delete the first formula and add the result to the cell without @@. ("@@\=text" -> "=text")
+
+						  @@= - special case. delete the formula and add a new formula(result cell) to the cell without @@. ("@@=formula" -> "=formula")
+
+						  For other combinations \@@=, @\@,\@\@\=,@\@\= do not react. Just text result, do not change formula
+						*/
+						if (_tmp && _tmp.type === cElementType.string) {
+							if (0 === _tmp.value.indexOf("@@\\=")) {
+								_tmp.value = _tmp.value.slice(3);
+								this.replaceFormulaAfterCalc = cReplaceFormulaType.val;
+							} else if (0 === _tmp.value.indexOf("\\@\\@")) {
+								_tmp.value = "@@" + _tmp.value.slice(4);
+							} else if (0 === _tmp.value.indexOf("@@=")) {
+								_tmp.value = _tmp.value.slice(2);
+								this.replaceFormulaAfterCalc = cReplaceFormulaType.formula;
+							} else if (0 === _tmp.value.indexOf("@@")) {
+								_tmp.value = _tmp.value.slice(2);
+								this.replaceFormulaAfterCalc = cReplaceFormulaType.val;
+							}
+						}
 					}
 
 					//_tmp = currentElement.Calculate(arg, opt_bbox, opt_defName, this.ws, bIsSpecialFunction);
@@ -9157,6 +9220,26 @@ function parserFormula( formula, parent, _ws ) {
 			this._endCalculate();
 		} else {
 			let res = elemArr.pop();
+
+			if (this.replaceFormulaAfterCalc === cReplaceFormulaType.formula) {
+				if (res && res.type === cElementType.string) {
+					if (0 === res.value.indexOf("=")) {
+						this.Formula = _tmp.value.slice(1);
+						this.isParsed = false;
+						this.outStack = [];
+						this.unknownOrCustomFunction = null;
+						this.parse();
+						this.isInDependencies = false;
+						this.buildDependencies();
+						this.wb.asyncFormulasManager.addReplacedFormula(this);
+					} else {
+						this.replaceFormulaAfterCalc = null;
+					}
+				} else {
+					this.replaceFormulaAfterCalc = null;
+				}
+			}
+
 			if (cElementType.error === res.type && res.errorType === cErrorType.busy) {
 				this._endCalculate();
 				return;
@@ -9877,8 +9960,14 @@ function parserFormula( formula, parent, _ws ) {
 				let externalLink = this.wb.getExternalLinkByName(i);
 				if (externalLink) {
 					for (let j in this.importFunctionsRangeLinks[i]) {
+						let firstSheet;
 						let _rangeInfo = this.importFunctionsRangeLinks[i][j];
-						let _ws = externalLink.worksheets[_rangeInfo.sheet];
+						if (!_rangeInfo.sheet) {
+							// get first sheet if we haven't sheet name in rangeInfo object
+							firstSheet = externalLink.SheetNames && externalLink.SheetNames[0];
+						}
+
+						let _ws = externalLink.worksheets[firstSheet ? firstSheet : _rangeInfo.sheet];
 						if (_ws) {
 							this._buildDependenciesRef(_ws.getId(), AscCommonExcel.g_oRangeCache.getRangesFromSqRef(_rangeInfo.range)[0], null, true);
 						}
@@ -9947,8 +10036,14 @@ function parserFormula( formula, parent, _ws ) {
 				let externalLink = this.wb.getExternalLinkByName(i);
 				if (externalLink) {
 					for (let j in this.importFunctionsRangeLinks[i]) {
+						let firstSheet;
 						let _rangeInfo = this.importFunctionsRangeLinks[i][j];
-						let _ws = externalLink.worksheets[_rangeInfo.sheet];
+						if (!_rangeInfo.sheet) {
+							// get first sheet if we haven't sheet name in rangeInfo object
+							firstSheet = externalLink.SheetNames && externalLink.SheetNames[0];
+						}
+
+						let _ws = externalLink.worksheets[firstSheet ? firstSheet : _rangeInfo.sheet];
 						if (_ws) {
 							this._buildDependenciesRef(_ws.getId(), AscCommonExcel.g_oRangeCache.getRangesFromSqRef(_rangeInfo.range)[0], null, false);
 						}
@@ -10367,6 +10462,10 @@ function parserFormula( formula, parent, _ws ) {
 		this.nCellPasteValue = null; // for paste recursive cell
 		this.bIsCellEdited = false;
 		this.bIsSheetCreating = false;
+		this.oIndirectFuncResult = null;
+		this.oOffsetFuncResult = null;
+		this.oCellContentFuncRes = null;
+		this.aCycleCell = [];
 
 		this.bIsEnabledRecursion = null;
 		this.nMaxIterations = null; // Max iterations of recursion calculations. Default value: 100.
@@ -11074,6 +11173,88 @@ function parserFormula( formula, parent, _ws ) {
 	 */
 	CalcRecursion.prototype.setIsSheetCreating = function (bIsSheetCreating) {
 		this.bIsSheetCreating = bIsSheetCreating;
+	};
+	/**
+	 * Method saves the result of the formula, which needs to be checked for cycle after being calculated.
+	 * @memberof CalcRecursion
+	 * @param {string}sFuncName
+	 * @param {cRef|cRef3D|cArea|cArea3D|cName|cName3D}oResult
+	 */
+	CalcRecursion.prototype.saveFunctionResult = function (sFuncName, oResult) {
+		if (oResult.type === cElementType.error) {
+			return;
+		}
+		switch (sFuncName) {
+			case 'INDIRECT':
+				this.oIndirectFuncResult = oResult;
+				break;
+			case 'OFFSET':
+				this.oOffsetFuncResult = oResult;
+				break;
+			case 'CELL':
+				this.oCellContentFuncRes = oResult;
+				break;
+		}
+	};
+	/**
+	 * Method returns the array of result of functions, which need to be checked for cycle after being calculated.
+	 * @memberof CalcRecursion
+	 * @returns {[]}
+	 */
+	CalcRecursion.prototype.getFunctionsResult = function () {
+		const aFunctionResults = [];
+
+		if (this.oIndirectFuncResult) {
+			aFunctionResults.push(this.oIndirectFuncResult);
+		}
+		if (this.oOffsetFuncResult) {
+			aFunctionResults.push(this.oOffsetFuncResult);
+		}
+		if (this.oCellContentFuncRes) {
+			aFunctionResults.push(this.oCellContentFuncRes);
+		}
+
+		return aFunctionResults;
+	};
+	/**
+	 * Method clears result of formulas, which need to be checked for cycle after being calculated.
+	 *  @memberof CalcRecursion
+	 */
+	CalcRecursion.prototype.clearFunctionsResult = function () {
+		this.oIndirectFuncResult = null;
+		this.oOffsetFuncResult = null;
+		this.oCellContentFuncRes = null;
+	};
+	/**
+	 * Method returns array of cycle cells.
+	 * Uses when "Iteration calculation" setting is disabled.
+	 * @memberof CalcRecursion
+	 * @returns {Cell[]}
+	 */
+	CalcRecursion.prototype.getCycleCells = function () {
+		return this.aCycleCell;
+	};
+	/**
+	 * Method adds cycle cell to array.
+	 * Uses when "Iteration calculation" setting is disabled.
+	 * @memberof CalcRecursion
+	 * @param {Cell} oCell
+	 */
+	CalcRecursion.prototype.addCycleCell = function (oCell) {
+		let bDuplicateElem = this.aCycleCell.some(function (oElem) {
+			return oElem.nRow === oCell.nRow && oElem.nCol === oCell.nCol && oElem.ws.getName() === oCell.ws.getName();
+		});
+		if (bDuplicateElem) {
+			return;
+		}
+		this.aCycleCell.push(oCell);
+	};
+	/**
+	 * Method clears array of cycle cells.
+	 * @memberof CalcRecursion
+	 */
+	CalcRecursion.prototype.clearCycleCells = function () {
+		this.aCycleCell = [];
 	};
 
 	const g_cCalcRecursion = new CalcRecursion();
@@ -11815,6 +11996,9 @@ function parserFormula( formula, parent, _ws ) {
 	window['AscCommonExcel'].bIsSupportDynamicArrays = bIsSupportDynamicArrays;
 
 	window['AscCommonExcel'].aExcludeRecursiveFormulas = aExcludeRecursiveFormulas;
+
+	window['AscCommonExcel'].cReplaceFormulaType = cReplaceFormulaType;
+
 
 	window['AscCommonExcel'].cNumber = cNumber;
 	window['AscCommonExcel'].cString = cString;

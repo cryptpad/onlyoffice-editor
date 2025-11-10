@@ -413,7 +413,17 @@
 			style.innerHTML = styleContent;
 			_head.appendChild(style);
 
-			this.reporterTranslates = [ "Reset", "Slide {0} of {1}", "End slideshow", "The end of slide preview. Click to exit.", "Pen", "Highlighter", "Ink color", "Eraser", "Erase screen" ];
+			this.reporterTranslates = [
+				"Reset",
+				"Slide {0} of {1}",
+				"End slideshow",
+				"The end of slide preview. Click to exit.",
+				"Pen",
+				"Highlighter",
+				"Ink color",
+				"Eraser",
+				"Erase screen"
+			];
 			var _translates = this.m_oApi.reporterTranslates;
 			if (_translates) {
 				this.reporterTranslates[0] = _translates[0];
@@ -457,17 +467,17 @@
 
 			_buttonsContent += [
 				"<ul id=\"dem_id_draw_menu\" class=\"dem_menu\">",
-				"<li><a data-ratio data-tool=\"pen\"><span class=\"menu-item-icon btn-pen back_image_buttons\"></span>" + this.reporterTranslates[3] + "</a></li>",
-				"<li><a data-ratio data-tool=\"highlighter\"><span class=\"menu-item-icon btn-highlighter back_image_buttons\"></span>" + this.reporterTranslates[4] + "</a></li>",
+				"<li><a data-ratio data-tool=\"pen\"><span class=\"menu-item-icon btn-pen back_image_buttons\"></span>" + this.reporterTranslates[4] + "</a></li>",
+				"<li><a data-ratio data-tool=\"highlighter\"><span class=\"menu-item-icon btn-highlighter back_image_buttons\"></span>" + this.reporterTranslates[5] + "</a></li>",
 				"<li class=\"dem_draw_menu_divider\"></li>",
-				"<li id=\"dem_id_draw_color_menu_trigger\" class=\"submenu\"><a style=\"padding-left:28px;\">" + this.reporterTranslates[5] + "</a>",
+				"<li id=\"dem_id_draw_color_menu_trigger\" class=\"submenu\"><a style=\"padding-left:28px;\">" + this.reporterTranslates[6] + "</a>",
 				"<ul id=\"dem_id_draw_color_menu\" class=\"dem_menu\" style=\"width: 162px;\">",
 				colorList,
 				"</ul>",
 				"</li>",
 				"<li class=\"dem_draw_menu_divider\"></li>",
-				"<li><a data-ratio data-tool=\"eraser\"><span class=\"menu-item-icon btn-eraser back_image_buttons\"></span>" + this.reporterTranslates[6] + "</a></li>",
-				"<li><a data-tool=\"erase-all\"><span class=\"menu-item-icon btn-erase-all back_image_buttons\"></span>" + this.reporterTranslates[7] + "</a></li>",
+				"<li><a data-ratio data-tool=\"eraser\"><span class=\"menu-item-icon btn-eraser back_image_buttons\"></span>" + this.reporterTranslates[7] + "</a></li>",
+				"<li><a data-tool=\"erase-all\"><span class=\"menu-item-icon btn-erase-all back_image_buttons\"></span>" + this.reporterTranslates[8] + "</a></li>",
 				"</ul>"
 			].join("");
 

@@ -97,8 +97,16 @@
 		L : TYPE.L,
 		R : TYPE.R
 	};
+	
+	const DIRECTION_FLAG = {
+		None  : 0x00,
+		LTR   : 0x01,
+		RTL   : 0x02,
+		Other : 0x04
+	};
 	//--------------------------------------------------------export----------------------------------------------------
-	AscBidi.FLAG      = FLAG;
-	AscBidi.TYPE      = TYPE;
-	AscBidi.DIRECTION = DIRECTION;
+	AscBidi.FLAG           = FLAG;
+	AscBidi.TYPE           = TYPE;
+	AscBidi.DIRECTION      = DIRECTION;
+	AscBidi.DIRECTION_FLAG = DIRECTION_FLAG;
 })();

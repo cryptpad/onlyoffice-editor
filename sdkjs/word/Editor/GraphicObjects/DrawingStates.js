@@ -960,23 +960,51 @@ RotateState.prototype =
                                     (bounds.posX + bounds.extX) * g_dKoef_mm_to_pt,
                                     (bounds.posY + bounds.extY) * g_dKoef_mm_to_pt
                                 ];
-                            
+
                                 if (isMoveShapeImageTrack && oTrack.pageIndex !== oTrack.originalObject.GetPage()) {
-                                    if (isEditFieldShape) {
-                                        let oField = oTrack.originalObject.GetEditField();
-                                        oField.SetRect(aRect);
-                                        oField.SetPage(oTrack.pageIndex);
-                                    }
-                                    else {
+                                    if (!isEditFieldShape) {
                                         oTrack.originalObject.SetPage(oTrack.pageIndex);
                                     }
                                 }
-                                else if (isEditFieldShape) {
+
+                                if (isEditFieldShape) {
+                                    function rotateRect(rect, angle) {
+                                        let x1 = rect[0];
+                                        let y1 = rect[1];
+                                        let x2 = rect[2];
+                                        let y2 = rect[3];
+
+                                        const cx = (x1 + x2) / 2;
+                                        const cy = (y1 + y2) / 2;
+                                        let w = Math.abs(x2 - x1);
+                                        let h = Math.abs(y2 - y1);
+
+                                        if (angle === 90 || angle === 270) {
+                                            let tmp = w;
+                                            w = h;
+                                            h = tmp;
+                                        } else if (angle !== 180) {
+                                            return rect;
+                                        }
+
+                                        return [
+                                            cx - w / 2, cy - h / 2,
+                                            cx + w / 2, cy + h / 2
+                                        ];
+                                    }
+                                    
                                     let oField = oTrack.originalObject.GetEditField();
-                                    oField.SetRect(aRect);
+                                    let oDoc = oField.GetDocument();
+                                    let nPage = oField.GetPage();
+                                    let nPageRotate = oDoc.Viewer.getPageRotate(nPage);
+
+                                    oField.SetRect(rotateRect(aRect, nPageRotate));
+                                    if (isMoveShapeImageTrack && oTrack.pageIndex !== oField.GetPage()) {
+                                        oField.SetPage(oTrack.pageIndex);
+                                    }
                                 }
                             }
-                            
+
                             oTrack.originalObject.SetNeedRecalc(true);
                         }
                 }, AscDFH.historydescription_CommonDrawings_EndTrack, this, pageIndex);
@@ -1102,9 +1130,12 @@ RotateState.prototype =
                         if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}, bNoNeedCheck))
                         {
                             this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateFlowDrawingNoCtrl);
-                            if(bMoveState && !this.drawingObjects.selection.cropSelection){
+                            if(bMoveState && !this.drawingObjects.selection.cropSelection)
+                            {
                                 this.drawingObjects.resetSelection();
                             }
+
+                            let aDrawingsToSelect = [];
                             for(i = 0; i < aDrawings.length; ++i)
                             {
                                 bounds = aBounds[i];
@@ -1152,7 +1183,7 @@ RotateState.prototype =
                                         this.drawingObjects.resetSelection();
                                         this.drawingObjects.selection.cropSelection = originalCopy.GraphicObj;
                                     }
-                                    this.drawingObjects.selectObject(originalCopy.GraphicObj, pageIndex);
+                                    aDrawingsToSelect.push({drawing: originalCopy.GraphicObj, pageIndex: pageIndex});
                                 }
                                 else
                                 {
@@ -1162,10 +1193,15 @@ RotateState.prototype =
                                     }
                                     if(bMoveState)
                                     {
-                                        this.drawingObjects.selectObject(original.GraphicObj, pageIndex);
+                                        aDrawingsToSelect.push({drawing: original.GraphicObj, pageIndex: pageIndex});
                                     }
                                 }
                                 this.drawingObjects.document.Recalculate();
+                            }
+                            for(let drawingIdx = 0; drawingIdx < aDrawingsToSelect.length; ++drawingIdx)
+                            {
+                                let oSelectInfo = aDrawingsToSelect[drawingIdx];
+                                this.drawingObjects.selectObject(oSelectInfo.drawing, oSelectInfo.pageIndex);
                             }
                             this.drawingObjects.document.FinalizeAction();
                         }

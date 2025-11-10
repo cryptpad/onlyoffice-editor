@@ -4600,6 +4600,9 @@ CT_pivotTableDefinition.prototype.getDataFieldIndexByCell = function (row, col, 
 	if (dataFields) {
 		let indexes = this.getItemsIndexesByActiveCell(row, col);
 		if (indexes !== null) {
+			if (!rowItems || !colItems) {
+				return null;
+			}
 			let rowItem = rowItems[indexes.rowItemIndex];
 			let colItem = colItems[indexes.colItemIndex];
 			let dataIndex = Math.max(rowItem.i, colItem.i);
@@ -8199,6 +8202,9 @@ CT_pivotTableDefinition.prototype.getCellByDataFieldOnly = function(name) {
 	if (dataIndex !== -1) {
 		const rowItems = this.getRowItems();
 		const colItems = this.getColItems();
+		if (!rowItems && !colItems) {
+			return null;
+		}
 		const rowFields = this.asc_getRowFields();
 		const colFields = this.asc_getColumnFields();
 		const rowIndex = this.getIndexWithOnlyDataIndex(rowItems, dataIndex, rowFields);
@@ -8562,6 +8568,9 @@ CT_pivotTableDefinition.prototype.getGetPivotParamsByActiveCell = function(activ
 	const pivotFields = this.asc_getPivotFields();
 	const cacheFields = this.asc_getCacheFields();
 	const indexes = this.getItemsIndexesByActiveCell(row, col);
+	if (!rowItems || !colItems) {
+		return null;
+	}
 	const dataIndex = Math.max(rowItems[indexes.rowItemIndex].i, colItems[indexes.colItemIndex].i);
 	const dataFieldName = dataFields.length === 1 ? cacheFields[dataFields[dataIndex].fld].asc_getName() : dataFields[dataIndex].asc_getName();
 	const itemMapArray = this.getNoFilterItemFieldsMapArray(indexes.rowItemIndex, indexes.colItemIndex);
@@ -8750,7 +8759,9 @@ CT_pivotTableDefinition.prototype.getItemsIndexesByItemFieldsMap = function(rowI
 	const colFields = this.asc_getColumnFields();
 	const rowItems = this.getRowItems();
 	const colItems = this.getColItems();
-
+	if (!rowItems || !colItems) {
+		return null;
+	}
 	let rowItemIndex = null;
 	if (rowItems[rowItems.length - 1].t === Asc.c_oAscItemType.Grand || !this.asc_getRowFields()) {
 		rowItemIndex = rowItems.length - 1;
@@ -8873,6 +8884,9 @@ CT_pivotTableDefinition.prototype.getItemFieldsMapByGetPivotDataParams = functio
 CT_pivotTableDefinition.prototype.getNoFilterItemFieldsMapArray = function(rowItemIndex, colItemIndex) {
 	const rowItems = this.getRowItems();
 	const colItems = this.getColItems();
+	if (!rowItems || !colItems) {
+		return null;
+	}
 	const rowFields = this.asc_getRowFields();
 	const colFields = this.asc_getColumnFields();
 	const searchRowItem = rowItems && rowItems[rowItemIndex];
@@ -9465,6 +9479,9 @@ PivotRangeMapper.prototype.getEditRowLabelCellFunction = function(bbox) {
 	const t = this;
 	const range = this.pivot.getRange();
 	const rowItems = this.pivot.getRowItems();
+	if (!rowItems) {
+		return null;
+	}
 	const rowFields = this.pivot.asc_getRowFields();
 	const pivotFields = this.pivot.asc_getPivotFields();
 	const location = this.pivot.location;
@@ -9529,6 +9546,9 @@ PivotRangeMapper.prototype.getEditColLabelCellFunction = function(bbox) {
 	const t = this;
 	const range = this.pivot.getRange();
 	const colItems = this.pivot.getColItems();
+	if (!colItems) {
+		return null;
+	}
 	const colFields = this.pivot.asc_getColumnFields();
 	const pivotFields = this.pivot.asc_getPivotFields();
 	const location = this.pivot.location;
@@ -11474,6 +11494,9 @@ PivotDataManager.prototype.save = function(rowItemIndex, colItemIndex, cellValue
  * @return {CCellValue | null}
  */
 PivotDataManager.prototype.checkBaseFieldShowAs = function(options) {
+	if (!this.pivot.getRowItems() || !this.pivot.getColItems()) {
+		return null;
+	}
 	const rowItem = this.pivot.getRowItems()[options.rowItemIndex];
 	const colItem = this.pivot.getColItems()[options.colItemIndex];
 	const dataFields = this.pivot.asc_getDataFields();
@@ -13724,6 +13747,15 @@ CT_Location.prototype.clone = function() {
 	res.rowPageCount = this.rowPageCount;
 	res.colPageCount = this.colPageCount;
 	return res;
+};
+CT_Location.prototype.isEqual = function(location) {
+	return (null === this.ref && null === location.ref ||
+		this.ref && location.ref && this.ref.isEqual(location.ref)) &&
+		this.firstHeaderRow === location.firstHeaderRow &&
+		this.firstDataRow === location.firstDataRow &&
+		this.firstDataCol === location.firstDataCol &&
+		this.rowPageCount === location.rowPageCount &&
+		this.colPageCount === location.colPageCount;
 };
 CT_Location.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {

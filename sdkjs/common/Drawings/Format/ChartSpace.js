@@ -513,25 +513,28 @@ function(window, undefined) {
 
 	function CPathMemory() {
 		this.size = 1000;
-		this.ArrPathCommand = new Float64Array(1000);
+		this.ArrPathCommand = new Float64Array(this.size);
 		this.curPos = -1;
 
 		this.path = new AscFormat.Path2(this);
 	}
 
-	CPathMemory.prototype.AllocPath = function () {
-
-		if (this.curPos + 1 >= this.ArrPathCommand.length) {
-			var aNewArray = new Float64Array((((3 / 2) * (this.curPos + 1)) >> 0) + 1);
-			for (var i = 0; i < this.ArrPathCommand.length; ++i) {
+	CPathMemory.prototype.CheckMemory = function(nSize) {
+		if (this.curPos + nSize >= this.ArrPathCommand.length) {
+			this.size = (((3 / 2) * (this.curPos + nSize)) >> 0) + 1;
+			let aNewArray = new Float64Array(this.size);
+			for (let i = 0; i < this.ArrPathCommand.length; ++i) {
 				aNewArray[i] = this.ArrPathCommand[i];
 			}
 			this.ArrPathCommand = aNewArray;
-			this.path.ArrPathCommand = aNewArray;
 		}
+		return this.ArrPathCommand;
+	};
+	CPathMemory.prototype.AllocPath = function () {
+
+		this.CheckMemory(1);
 
 		this.path.startPos = ++this.curPos;
-		this.path.curLen = 0;
 		this.ArrPathCommand[this.curPos] = 0;
 		return this.path;
 	};
@@ -541,8 +544,30 @@ function(window, undefined) {
 	};
 	CPathMemory.prototype.GetPath = function (index) {
 		this.path.startPos = index;
-		this.path.curLen = 0;
 		return this.path;
+	};
+	CPathMemory.prototype.WriteNumber = function (dValue) {
+		this.CheckMemory(1);
+		this.ArrPathCommand[++this.curPos] = dValue;
+	};
+	CPathMemory.prototype.IncrementNumberInPos = function (nPos) {
+		this.ArrPathCommand[nPos] += 1;
+	};
+	CPathMemory.prototype.Write_ToBinary = function(writer) {
+		writer.WriteLong(this.size);
+		writer.WriteLong(this.curPos);
+		let aNewArray = new Float64Array(this.size);
+		for (let i = 0; i < this.ArrPathCommand.length; ++i) {
+			writer.WriteDouble2(this.ArrPathCommand[i]);
+		}
+	};
+	CPathMemory.prototype.Read_FromBinary = function(reader) {
+		this.size = reader.GetLong();
+		this.curPos = reader.GetLong();
+		this.ArrPathCommand = new Float64Array(this.size);
+		for (let i = 0; i < this.ArrPathCommand.length; ++i) {
+			this.ArrPathCommand[i] = reader.GetDoubleLE();
+		}
 	};
 
 	drawingsChangesMap[AscDFH.historyitem_ChartSpace_SetNvGrFrProps] = function (oClass, value) {
@@ -4179,7 +4204,7 @@ function(window, undefined) {
 			chart.floor && chart.floor.spPr && chart.floor.spPr.checkBlipFillRasterImage(images);
 			chart.legend && chart.legend.spPr && chart.legend.spPr.checkBlipFillRasterImage(images);
 			chart.sideWall && chart.sideWall.spPr && chart.sideWall.spPr.checkBlipFillRasterImage(images);
-			chart.title && chart.title.spPr && chart.title.spPr.checkBlipFillRasterImage(images);
+			chart.title && chart.title.checkBlipFillRasterImage(images);
 			//plotArea
 			var plot_area = this.chart.plotArea;
 			if (plot_area) {
@@ -4189,7 +4214,7 @@ function(window, undefined) {
 					var axis = plot_area.axId[i];
 					if (axis) {
 						axis.spPr && axis.spPr.checkBlipFillRasterImage(images);
-						axis.title && axis.title && axis.title.spPr && axis.title.spPr.checkBlipFillRasterImage(images);
+						axis.title && axis.title.checkBlipFillRasterImage(images);
 					}
 				}
 				for (i = 0; i < plot_area.charts.length; ++i) {
@@ -11916,6 +11941,7 @@ function(window, undefined) {
 		// fSpaceBetweenLabels stands for the amount of additional space that label should have, other than the width of its content;
 		// left space + right space = this.fSpaceBetweenLabels
 		this.fSpaceBetweenLabels = this.getSpaceBetweenLabels();
+		this.minLabelWidth = 6.48;
 		// the max width default is 20000;
 		this.maxLabelWidth = 20000;
 	}
@@ -11926,7 +11952,7 @@ function(window, undefined) {
 			case (AscDFH.historyitem_type_DateAx):
 				return 1.939;
 			case (AscDFH.historyitem_type_ValAx):
-				return 3.8;
+				return 1;
 			default:
 				return 0;
 		}
@@ -11972,7 +11998,8 @@ function(window, undefined) {
 		if (this.nLblTickSkip && this.nLabelsCount !== 0) {
 			// valAxis has additional space between labels, therefore its calculations are different
 			if (this.nAxisType === AscDFH.historyitem_type_ValAx) {
-				return this.bCalculated = Math.ceil(this.nLabelsCount / this.nLblTickSkip) * (this.fLabelWidth + this.fSpaceBetweenLabels) >= (fAxisLength + this.fSpaceBetweenLabels);
+				const fNewLabelWidth = Math.max(this.fLabelWidth, this.maxLabelWidth);
+				return this.bCalculated = Math.ceil(this.nLabelsCount / this.nLblTickSkip) * fNewLabelWidth >= fAxisLength;
 			} else {
 				return this.bCalculated = Math.ceil(this.nLabelsCount / this.nLblTickSkip) * this.fLabelWidth >= fAxisLength;
 			}
@@ -12126,8 +12153,8 @@ function(window, undefined) {
 		}
 
 		const createNewScale = function (newStep, oLabelsBox, nMultiplicator) {
-			const axisMin = oLabelsBox.axis.min;
-			const axisMax = oLabelsBox.axis.max;
+			let axisMin = oLabelsBox.axis.min;
+			let axisMax = oLabelsBox.axis.max;
 			let manualMin = oLabelsBox.axis.scaling && oLabelsBox.axis.scaling.min !== null ? oLabelsBox.axis.scaling.min : null;
 			let manualMax = oLabelsBox.axis.scaling && oLabelsBox.axis.scaling.max !== null ? oLabelsBox.axis.scaling.max : null;
 
@@ -12135,6 +12162,30 @@ function(window, undefined) {
 				// find max that is higher than axis max
 				const newMax = Math.ceil(oLabelsBox.axis.scale[oLabelsBox.axis.scale.length - 1] / (nMultiplicator)) * nMultiplicator;
 				return [oLabelsBox.axis.scale[0], newMax]
+			} else if (oLabelsBox.chartSpace.chart.plotArea.charts) {
+				let grouping, isStackedType, isScatterType, isCombinationChartTypes;
+				const axisCharts = oLabelsBox.chartSpace.chart.plotArea.charts;
+				const oChartsDrawer = oLabelsBox.chartSpace.chartObj;
+				for (let i = 0; i < axisCharts.length; i++) {
+					grouping = oChartsDrawer.getChartGrouping(axisCharts[i]);
+					if (AscDFH.historyitem_type_ScatterChart === axisCharts[i].getObjectType()) {
+						isScatterType = true;
+					}
+					if ("stackedPer" === grouping && !isStackedType) {
+						isStackedType = true;
+					}
+				}
+				for (let i = 0; i < axisCharts.length; i++) {
+					grouping = oChartsDrawer.getChartGrouping(axisCharts[i]);
+
+					if (grouping === "stacked" && isStackedType) {
+						isStackedType = false;
+					}
+				}
+				const minMaxResult = oChartsDrawer._getTrueMinMax(axisMin, axisMax, isStackedType, isScatterType, manualMax);
+				axisMax = manualMax !== null && manualMax !== undefined ? manualMax : minMaxResult.max;
+				axisMin = manualMin !== null && manualMin !== undefined ? manualMin : minMaxResult.min;
+				return oChartsDrawer._getArrayDataValues(newStep, axisMin, axisMax, manualMin, manualMax, false);
 			} else {
 				return oLabelsBox.chartSpace.chartObj._getArrayDataValues(newStep, axisMin, axisMax, manualMin, manualMax, false);
 			}
@@ -12145,11 +12196,11 @@ function(window, undefined) {
 		const nMultiplicator = getMultiplicator(nStep);
 
 		// adjust labelWidth and fAxisLength by alpha
-		const labelWidth = oLabelsBox.maxMinWidth + this.fSpaceBetweenLabels;
-		const fNewAxisLength = (fAxisLength + this.fSpaceBetweenLabels);
+		const labelWidth = Math.max(oLabelsBox.maxMinWidth, this.minLabelWidth);
+
 
 		// find nLabelCount
-		const nLabelCount = fAxisLength > 0 && fAxisLength >= labelWidth ? Math.floor( fNewAxisLength/ labelWidth) : 1;
+		const nLabelCount = fAxisLength > 0 && fAxisLength >= labelWidth ? Math.floor( fAxisLength/ labelWidth) : 1;
 
 		// find minimum tick skip
 		const lastNum = oLabelsBox.axis.scale[oLabelsBox.axis.scale.length - 1];
@@ -12162,7 +12213,8 @@ function(window, undefined) {
 		const newStep = getNewStep(nMultiplicator, nLabelCount, nLblTickSkip);
 
 		// create new labels for valAx
-		const fPrecision = 0.01;
+		// precision should be small, or relatively small compared to new step
+		const fPrecision = Math.max(0.01, newStep / 1000);
 
 		let isSingleLabel = false
 		// check if axis is not logarithmic and if newStep is different than the previous;
@@ -12203,7 +12255,8 @@ function(window, undefined) {
 
 				// crossAxis should also be affected by restructured valAx
 				if (oCrossAx) {
-					oCrossAx.posX = (((startingPoint - oLabelsBox.axis.scale[0]) / newStep) * oGrid.fStride + oGrid.fStart);
+					const stepBetween = newStep ? newStep : oLabelsBox.axis.scale.length > 1 ? oLabelsBox.axis.scale[1] - oLabelsBox.axis.scale[0] : 1;
+					oCrossAx.posX = (((startingPoint - oLabelsBox.axis.scale[0]) / stepBetween) * oGrid.fStride + oGrid.fStart);
 					if (oCrossAx.labels && oCrossAx.labels.extX) {
 						oCrossAx.labels.setX(oCrossAx.posX - startingPointForAxis);
 					}

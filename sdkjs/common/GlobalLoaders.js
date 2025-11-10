@@ -396,12 +396,9 @@
         // loading
         this.Api = null;
         this.ThemeLoader = null;
-        this.images_loading = null;
 
         this.bIsLoadDocumentFirst = false;
         this.bIsAsyncLoadDocumentImages = true;
-
-        this.nNoByOrderCounter = 0;
 
         this.isBlockchainSupport = false;
         var oThis = this;
@@ -470,44 +467,99 @@
            else
                this.ThemeLoader.asyncImagesEndLoaded();
         }
-        
-        this.LoadDocumentImages = function(images, isCheckExists)
-        {
-            if (isCheckExists)
-            {
-                for (let i = images.length - 1; i >= 0; i--)
-                {
-                    let id = AscCommon.getFullImageSrc2(images[i]);
-                    if (this.map_image_index[id] && (this.map_image_index[id].Status === ImageLoadStatus.Complete))
-                    {
-                        images.splice(i, 1);
-                    }
-                }
 
-                if (0 === images.length)
-                    return;
-            }
+	    this.LoadDocumentImages = function (images, isCheckExists, syncImages) {
+		    if (isCheckExists) {
+			    for (let i = images.length - 1; i >= 0; i--) {
+				    let id = AscCommon.getFullImageSrc2(images[i]);
+				    if (this.map_image_index[id] && (this.map_image_index[id].Status === ImageLoadStatus.Complete)) {
+					    images.splice(i, 1);
+				    }
+			    }
 
-            // сначала заполним массив
+			    if (0 === images.length)
+				    return;
+		    }
 
-            this.images_loading = [];
-            for (let id in images)
-            {
-                this.images_loading[this.images_loading.length] = AscCommon.getFullImageSrc2(images[id]);
-            }
-            if (this.ThemeLoader == null)
-                this.Api.asyncImagesDocumentStartLoaded(this.images_loading);
-            else
-                this.ThemeLoader.asyncImagesStartLoaded(this.images_loading);
+		    // сначала заполним массив
+
+		    const oRequiredSyncImages = {};
+		    const arrImagesLoading = [];
+		    for (let id in images) {
+			    const sFullImageSrc = AscCommon.getFullImageSrc2(images[id]);
+			    arrImagesLoading.push(sFullImageSrc);
+			    if (syncImages && syncImages[images[id]]) {
+				    oRequiredSyncImages[sFullImageSrc] = true;
+			    }
+		    }
+		    if (syncImages) {
+			    for (let id in syncImages) {
+				    const sFullImageSrc = AscCommon.getFullImageSrc2(id);
+				    if (!oRequiredSyncImages[sFullImageSrc]) {
+					    arrImagesLoading.push(sFullImageSrc);
+					    oRequiredSyncImages[sFullImageSrc] = true;
+				    }
+			    }
+		    }
+		    if (this.ThemeLoader == null)
+			    this.Api.asyncImagesDocumentStartLoaded(arrImagesLoading);
+		    else
+			    this.ThemeLoader.asyncImagesStartLoaded(arrImagesLoading);
 
             if (!this.bIsAsyncLoadDocumentImages)
             {
-				this.nNoByOrderCounter = 0;
-                this._LoadImages();
+				this._LoadImages(arrImagesLoading);
             }
             else
             {
-                let _len = this.images_loading.length;
+                let len = this.images_loading.length;
+                for (let i = 0; i < len; i++)
+                    this.LoadImageAsync(i);
+
+                this.images_loading.splice(0, len);
+
+                if (this.ThemeLoader == null)
+                    this.Api.asyncImagesDocumentEndLoaded();
+                else
+                    this.ThemeLoader.asyncImagesEndLoaded();
+            }
+        };
+
+	    this._LoadImages = function (arrImages) {
+		    let fOnEachImageLoadCallback;
+		    if (oThis.bIsLoadDocumentFirst === true) {
+			    fOnEachImageLoadCallback = function () {
+				    oThis.Api.OpenDocumentProgress.CurrentImage++;
+				    oThis.Api.SendOpenProgress();
+			    };
+		    }
+		    this.LoadImagesWithCallback(arrImages, function () {
+			    if (oThis.ThemeLoader == null)
+				    oThis.Api.asyncImagesDocumentEndLoaded();
+			    else
+				    oThis.ThemeLoader.asyncImagesEndLoaded();
+		    }, [], false, fOnEachImageLoadCallback);
+	    };
+
+	    this._LoadImagesAsync = function (arrImages, oRequiredSyncImages) {
+		    const arrAsyncImages = [];
+		    const arrSyncImages = [];
+		    for (let i = 0; i < arrImages.length; i += 1) {
+			    if (oRequiredSyncImages[arrImages[i]]) {
+				    arrSyncImages.push(arrImages[i]);
+			    } else {
+				    arrAsyncImages.push(arrImages[i]);
+			    }
+		    }
+		    let fOnEachImageLoadCallback;
+		    if (oThis.bIsLoadDocumentFirst === true) {
+			    fOnEachImageLoadCallback = function () {
+				    oThis.Api.OpenDocumentProgress.CurrentImage++;
+				    oThis.Api.SendOpenProgress();
+			    };
+		    }
+		    this.LoadImagesWithCallback(arrSyncImages, function () {
+                let _len = arrAsyncImages.length;
                 if (_len === 0) {
                     return void this.LoadDocumentImagesCallback();
                 }
@@ -523,97 +575,21 @@
                         done = function () {};
                     }
                 };
-                for (let i = 0; i < _len; i++)
-                    this.LoadImageAsync(i, done);
+			    for (let i = 0; i < _len; i += 1) {
+				    oThis.LoadImageAsync(arrAsyncImages[i], done);
+			    }
 
                 return;
-
-                this.images_loading.splice(0, len);
 
                 var that = this;
                 setTimeout(function() { that.LoadDocumentImagesCallback() }, 3000);
 
-                if (this.ThemeLoader == null)
-                    this.Api.asyncImagesDocumentEndLoaded();
-                else
-                    this.ThemeLoader.asyncImagesEndLoaded();
-            }
-        };
-
-        this._LoadImages = function()
-        {
-			for (let i = 0; i < this.images_loading.length; i++)
-            {
-				let id = this.images_loading[i];
-				if (this.map_image_index[id] && (this.map_image_index[id].Status === ImageLoadStatus.Complete))
-                {
-                    this.images_loading.splice(i, 1);
-                }
-            }
-			let count_images = this.images_loading.length;
-
-            if (0 === count_images)
-            {
-				this.nNoByOrderCounter = 0;
-
-                if (this.ThemeLoader == null)
-                    this.Api.asyncImagesDocumentEndLoaded();
-                else
-                    this.ThemeLoader.asyncImagesEndLoaded();
-
-                return;
-            }
-
-            for (let i = 0; i < count_images; i++)
-			{
-				var _id = this.images_loading[i];
-				var oImage = new CImage(_id);
-				oImage.Status = ImageLoadStatus.Loading;
-				oImage.Image = new Image();
-				oThis.map_image_index[oImage.src] = oImage;
-				oImage.Image.parentImage = oImage;
-				oImage.Image.onload = function ()
-				{
-					this.parentImage.Status = ImageLoadStatus.Complete;
-					oThis.nNoByOrderCounter++;
-
-					if (oThis.bIsLoadDocumentFirst === true)
-					{
-						oThis.Api.OpenDocumentProgress.CurrentImage++;
-						oThis.Api.SendOpenProgress();
-					}
-
-					if (oThis.nNoByOrderCounter === oThis.images_loading.length)
-                    {
-						oThis.images_loading = [];
-						oThis._LoadImages();
-                    }
-				};
-				oImage.Image.onerror = function ()
-				{
-					this.parentImage.Status = ImageLoadStatus.Complete;
-					this.parentImage.Image = null;
-					oThis.nNoByOrderCounter++;
-
-					if (oThis.bIsLoadDocumentFirst === true)
-					{
-						oThis.Api.OpenDocumentProgress.CurrentImage++;
-						oThis.Api.SendOpenProgress();
-					}
-
-					if (oThis.nNoByOrderCounter === oThis.images_loading.length)
-					{
-						oThis.images_loading = [];
-						oThis._LoadImages();
-					}
-				};
-				AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
-					oThis.loadImageByUrl(img, img.src);
-				});
-				//oImage.Image.crossOrigin = 'anonymous';
-				oThis.loadImageByUrl(oImage.Image, oImage.src);
-			}
-        };
+			    if (oThis.ThemeLoader == null)
+				    oThis.Api.asyncImagesDocumentEndLoaded();
+			    else
+				    oThis.ThemeLoader.asyncImagesEndLoaded();
+		    }, [], false, fOnEachImageLoadCallback);
+	    };
 
         this.LoadImage = function(src, type)
         {
@@ -651,7 +627,7 @@
 
         this.LoadImageAsync = function(i, cb)
         {
-            var oImage = new CImage(this.images_loading[i]);
+            var oImage = new CImage(imgSrc);
 
             oImage.Status = ImageLoadStatus.Loading;
             oImage.Image = new Image();
@@ -686,13 +662,15 @@
           });
         };
 
-        this.LoadImagesWithCallback = function(arr, loadImageCallBack, loadImageCallBackArgs, isDisableCrypto)
+        this.LoadImagesWithCallback = function(arr, loadImageCallBack, loadImageCallBackArgs, isDisableCrypto, onEachImageLoadCallback)
         {
             let arrAsync = [];
             for (let i = 0; i < arr.length; i++)
             {
-                if (this.map_image_index[arr[i]] === undefined)
-                    arrAsync.push(arr[i]);
+                if (this.map_image_index[arr[i]] && (this.map_image_index[arr[i]].Status === ImageLoadStatus.Complete))
+									continue;
+
+								arrAsync.push(arr[i]);
             }
 
             if (arrAsync.length == 0)
@@ -716,7 +694,7 @@
 				{
 					this.parentImage.Status = ImageLoadStatus.Complete;
                     asyncImageCounter--;
-
+					onEachImageLoadCallback && onEachImageLoadCallback();
 					if (asyncImageCounter === 0)
 					    callback();
 				};
@@ -725,7 +703,7 @@
 					this.parentImage.Image = null;
 					this.parentImage.Status = ImageLoadStatus.Complete;
                     asyncImageCounter--;
-
+					onEachImageLoadCallback && onEachImageLoadCallback();
 					if (asyncImageCounter === 0)
 						callback();
 				};

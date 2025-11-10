@@ -228,6 +228,10 @@ ParaDrawing.prototype.Get_Height = function()
 {
 	return this.Height * this.GetScaleCoefficient();
 };
+ParaDrawing.prototype.GetHeight = function()
+{
+	return this.Get_Height();
+};
 ParaDrawing.prototype.getHeight = function()
 {
 	return this.Get_Height();
@@ -1828,6 +1832,9 @@ ParaDrawing.prototype.Get_DrawingType = function()
 };
 ParaDrawing.prototype.Is_Inline = function()
 {
+	if (Asc.editor.isPdfEditor()) {
+		return drawing_Inline === this.DrawingType;
+	}
 
 	if(this.Parent &&
 		this.Parent.Get_ParentTextTransform &&
@@ -1847,11 +1854,25 @@ ParaDrawing.prototype.Is_Inline = function()
 		return true;
 	}
 
-	return ( drawing_Inline === this.DrawingType ? true : false );
+	return drawing_Inline === this.DrawingType;
 };
 ParaDrawing.prototype.IsInline = function()
 {
 	return this.Is_Inline();
+};
+ParaDrawing.prototype.MakeInline = function()
+{
+	if (drawing_Inline === this.Get_DrawingType())
+		return;
+	
+	this.Set_DrawingType(drawing_Inline);
+	
+	if (AscCommon.isRealObject(this.GraphicObj.bounds)
+		&& AscFormat.isRealNumber(this.GraphicObj.bounds.w)
+		&& AscFormat.isRealNumber(this.GraphicObj.bounds.h))
+	{
+		this.CheckWH();
+	}
 };
 ParaDrawing.prototype.IsForm = function()
 {
@@ -1862,6 +1883,21 @@ ParaDrawing.prototype.SetForm = function(isForm)
 	History.Add(new CChangesParaDrawingForm(this, this.DrawingType, isForm));
 	this.Form = isForm;
 }
+ParaDrawing.prototype.IsInForm = function()
+{
+	let run = this.GetRun();
+	if (!run)
+		return false;
+	
+	let parentCCs = run.GetParentContentControls();
+	for (let i = 0; i < parentCCs.length; ++i)
+	{
+		if (parentCCs[i].IsForm())
+			return true;
+	}
+	
+	return false;
+};
 ParaDrawing.prototype.GetInnerForm = function()
 {
 	return this.GraphicObj ? this.GraphicObj.getInnerForm() : null;

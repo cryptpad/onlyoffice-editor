@@ -4017,6 +4017,14 @@
 					}
 				}
 			}
+			
+			if (oDocContent
+				&& !this.isForm()
+				&& oDocContent.GetLogicDocument()
+				&& !oDocContent.GetLogicDocument().IsPresentationEditor()) {
+				oDocContent.Set_ClipInfo(0, oRect.l - l_ins, oRect.r - l_ins, oRect.t - t_ins, oRect.b - t_ins);
+			}
+			
 			return oRet;
 		};
 
@@ -5517,9 +5525,10 @@
 				} else {
 					var oTheme = this.getParentObjects().theme;
 					var oColorMap = this.Get_ColorMap();
+					var bEditTextArt = isRealObject(oController) && (AscFormat.getTargetTextObject(oController) === this);
 					if (!this.bWordShape && (!this.txBody.content || this.txBody.content.Is_Empty()) && !AscCommon.IsShapeToImageConverter && this.txBody.content2 != null && !this.txBody.checkCurrentPlaceholder() && (this.isEmptyPlaceholder ? this.isEmptyPlaceholder() : false)) {
 						if (graphics.IsNoDrawingEmptyPlaceholder !== true && graphics.IsNoDrawingEmptyPlaceholderText !== true && !graphics.isPdf()) {
-							if (editor && editor.ShowParaMarks) {
+							if (isShowParaMarksInTextArt(this, bEditTextArt)) {
 								this.txWarpStructParamarks2.draw(graphics, this.transformTextWordArt2, oTheme, oColorMap);
 							} else {
 								if (this.txWarpStruct2)
@@ -5532,7 +5541,6 @@
 						var result_page_index = AscFormat.isRealNumber(graphics.shapePageIndex) ? graphics.shapePageIndex : (oContent ? oContent.Get_StartPage_Relative() : 0);
 						graphics.PageNum = result_page_index;
 						var bNeedRestoreState = false;
-						var bEditTextArt = isRealObject(oController) && (AscFormat.getTargetTextObject(oController) === this);
 						if (this.bWordShape && this.clipRect /*&& (!this.bodyPr.prstTxWarp || this.bodyPr.prstTxWarp.preset === "textNoShape" || bEditTextArt)*/) {
 							bNeedRestoreState = true;
 							var clip_rect = this.clipRect;
@@ -5550,7 +5558,7 @@
 						}
 
 						var oTransform = this.transformTextWordArt;
-						if (editor && editor.ShowParaMarks) {
+						if (isShowParaMarksInTextArt(this, bEditTextArt)) {
 							if (bEditTextArt && this.txWarpStructParamarksNoTransform) {
 								this.txWarpStructParamarksNoTransform.draw(graphics, this.transformText, oTheme, oColorMap);
 							} else if (this.txWarpStructParamarks) {
@@ -5878,8 +5886,12 @@
 				}
 			}
 			var oContent = this.getDocContent();
+			fCheckContentImages(images, oContent, this.bWordShape);
+		};
+
+		function fCheckContentImages(images, oContent, bWord) {
 			if (oContent) {
-				if (this.bWordShape) {
+				if (bWord) {
 					var drawings = oContent.GetAllDrawingObjects();
 					for (var i = 0; i < drawings.length; ++i) {
 						drawings[i].GraphicObj && drawings[i].GraphicObj.getAllRasterImages && drawings[i].GraphicObj.getAllRasterImages(images);
@@ -5897,7 +5909,7 @@
 
 				oContent.CheckRunContent(fCallback);
 			}
-		};
+		}
 		CShape.prototype.getAllDocContents = function (aDocContents) {
 			if (this.textBoxContent) {
 				aDocContents.push(this.textBoxContent);
@@ -7446,6 +7458,13 @@
 					AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(AscFormat.pHText[i]));
 			}
 		};
+
+		function isShowParaMarksInTextArt(shape, bCurrentEditText) {
+			if(!Asc.editor.ShowParaMarks) return false;
+			if(bCurrentEditText) return true;
+			if(shape.chekBodyPrTransform(shape.getBodyPr())) return false;
+			return true;
+		}
 		//--------------------------------------------------------export----------------------------------------------------
 		window['AscFormat'] = window['AscFormat'] || {};
 		window['AscFormat'].CheckObjectLine = CheckObjectLine;
@@ -7467,4 +7486,5 @@
 		window['AscFormat'].hitToHandles = hitToHandles;
 		window['AscFormat'].pHText = pHText;
 		window['AscFormat'].fitSmartArtShapes = fitSmartArtShapes;
+		window['AscFormat'].fCheckContentImages = fCheckContentImages;
 	})(window);
