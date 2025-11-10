@@ -338,7 +338,7 @@ define([], function () {
                     '<td colspan="2"><div id="fms-chb-resolved-comment"></div></td>',
                 '</tr>',
                 '<tr class ="collaboration divider-group"></tr>',
-                '<tr>',
+                '<tr class="appearance">',
                     '<td colspan="2" class="group-name"><label><%= scope.txtAppearance %></label></td>',
                 '</tr>',
                 '<tr class="themes">',
@@ -582,7 +582,7 @@ define([], function () {
             var itemsTemplate =
                 _.template([
                     '<% _.each(items, function(item) { %>',
-                    '<li id="<%= item.id %>" data-value="<%= item.value %>" <% if (item.value === "custom") { %> class="border-top" style="margin-top: 5px;padding-top: 5px;" <% } %> ><a tabindex="-1" type="menuitem" <% if (typeof(item.checked) !== "undefined" && item.checked) { %> class="checked" <% } %> ><%= scope.getDisplayValue(item) %></a></li>',
+                    '<li id="<%= item.id %>" data-value="<%= item.value %>" <% if (item.value === "custom") { %> class="border-top" <% } %> ><a tabindex="-1" type="menuitem" <% if (typeof(item.checked) !== "undefined" && item.checked) { %> class="checked" <% } %> ><%= scope.getDisplayValue(item) %></a></li>',
                     '<% }); %>'
                 ].join(''));
             this.cmbFontRender = new Common.UI.ComboBox({
@@ -760,12 +760,12 @@ define([], function () {
             $('tr.comments', this.el)[mode.canCoAuthoring && mode.isEdit ? 'show' : 'hide']();
             /** coauthoring end **/
             $('tr.tab-background', this.el)[!Common.Utils.isIE && Common.UI.FeaturesManager.canChange('tabBackground', true) ? 'show' : 'hide']();
-            $('tr.tab-style', this.el)[Common.UI.FeaturesManager.canChange('tabStyle', true) ? 'show' : 'hide']();
+            $('tr.tab-style', this.el)[!Common.Utils.isIE && !Common.Controllers.Desktop.isWinXp() && Common.UI.FeaturesManager.canChange('tabStyle', true) ? 'show' : 'hide']();
             $('tr.quick-print', this.el)[mode.canQuickPrint && !(mode.compactHeader && mode.isEdit) ? 'show' : 'hide']();
             if ( !Common.UI.Themes.available() ) {
                 $('tr.themes, tr.themes + tr.divider', this.el).hide();
             }
-
+            $('tr.appearance', this.el)[!Common.Utils.isIE ? 'show' : 'hide']();
             if (mode.compactHeader) {
                 $('tr.quick-access', this.el).hide();
             }
@@ -884,7 +884,7 @@ define([], function () {
             if (!Common.Utils.isIE && Common.UI.FeaturesManager.canChange('tabBackground', true)) {
                 Common.UI.TabStyler.setBackground(this.chTabBack.isChecked() ? 'toolbar' : 'header');
             }
-            if (Common.UI.FeaturesManager.canChange('tabStyle', true)) {
+            if (!Common.Utils.isIE && Common.UI.FeaturesManager.canChange('tabStyle', true)) {
                 Common.UI.TabStyler.setStyle(this.cmbTabStyle.getValue());
             }
             Common.localStorage.save();
@@ -2391,6 +2391,7 @@ define([], function () {
             ];
 
             this._initSettings = true;
+            this._originalPageSize = undefined;
         },
 
         render: function(node) {
@@ -2400,7 +2401,7 @@ define([], function () {
 
             this.cmbPrinter = new Common.UI.ComboBox({
                 el: $markup.findById('#print-combo-printer'),
-                menuStyle: 'min-width: 248px;max-height: 280px;',
+                menuStyle: 'width: 248px; max-height: 280px;',
                 editable: false,
                 takeFocusOnClose: true,
                 cls: 'input-group-nr',
@@ -2529,7 +2530,7 @@ define([], function () {
 
             this.cmbPaperSize = new Common.UI.ComboBoxCustom({
                 el: $markup.findById('#print-combo-pages'),
-                menuStyle: 'max-height: 280px; min-width: 248px;',
+                menuStyle: 'max-height: 280px; width: 248px;',
                 editable: false,
                 takeFocusOnClose: true,
                 template: paperSizeTemplate,
@@ -2783,10 +2784,26 @@ define([], function () {
                         ]
                     }
                 } else {
+                    const _w = this._originalPageSize ? this._originalPageSize.w : 210,
+                        _h = this._originalPageSize ? this._originalPageSize.h : 297;
+
                     // If no matching option is found, look for the default size 210x297 (A4)
                     if (!newSelectedOption) {
-                        newSelectedOption = findOptionBySize(resultList, 210, 297);
+                        newSelectedOption = findOptionBySize(resultList, _w, _h);
                     }
+
+                    if (!newSelectedOption) {
+                        newSelectedOption = {
+                            custom: true,
+                            value: [
+                                this.txtCustom,
+                                parseFloat(Common.Utils.Metric.fnRecalcFromMM(_w).toFixed(2)),
+                                parseFloat(Common.Utils.Metric.fnRecalcFromMM(_h).toFixed(2)),
+                                Common.Utils.Metric.getCurrentMetricName()
+                            ]
+                        };
+                    }
+
                     if (!newSelectedOption && resultList[0]) {
                         newSelectedOption = resultList[0];
                     } 
@@ -2873,6 +2890,10 @@ define([], function () {
 
         updateCurrentPage: function (index) {
             this.txtNumberPage.setValue(index + 1);
+        },
+
+        setOriginalPageSize: function (w, h) {
+            this._originalPageSize = {w: w, h: h};
         },
 
         txtPrint: 'Print',
