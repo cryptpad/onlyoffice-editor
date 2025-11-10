@@ -417,6 +417,10 @@ if (window.Common === undefined) {
                 });
             },
 
+            switchEditorType:  function (value, restart) {
+                _postMessage({event:'onSwitchEditorType', data: {type: value, restart: restart}});
+            },
+
             startFilling:  function () {
                 _postMessage({event:'onStartFilling'});
             },
@@ -426,10 +430,6 @@ if (window.Common === undefined) {
                     event:'onRequestFillingStatus',
                     data: role
                 });
-            },
-
-            switchEditorType:  function (value, restart) {
-                _postMessage({event:'onSwitchEditorType', data: {type: value, restart: restart}});
             },
 
             pluginsReady: function() {
