@@ -1128,24 +1128,24 @@ define([
             }
         },
 
-        onPreview: function(slidenum, presenter) {
-            Common.NotificationCenter.trigger('preview:start', _.isNumber(slidenum) ? slidenum : 0, presenter);
+        onPreview: function(slidenum, presenter, isCurrent) {
+            Common.NotificationCenter.trigger('preview:start', _.isNumber(slidenum) ? slidenum : 0, presenter, false, isCurrent);
         },
 
         onPreviewBtnClick: function(btn, e) {
-            this.onPreview(this.api.getCurrentPage());
+            this.onPreview(this.api.getCurrentPage(), false, true);
         },
 
         onPreviewItemClick: function(menu, item) {
             switch (item.value) {
                 case 0:
-                    this.onPreview(0);
+                    this.onPreview(0, false, false);
                 break;
                 case 1:
-                    this.onPreview(this.api.getCurrentPage());
+                    this.onPreview(this.api.getCurrentPage(), false, true);
                 break;
                 case 2:
-                    this.onPreview(0, true);
+                    this.onPreview(0, true, false);
                 break;
                 case 3:
                     var win,
@@ -2821,6 +2821,8 @@ define([
                             me.toolbar.addTab(tab, $panel, 6);
                     }
                 }
+            } else {
+                me.getApplication().getController('Common.Controllers.Draw').setApi(me.api).setMode(config);
             }
 
             tab = {caption: me.toolbar.textTabView, action: 'view', extcls: config.isEdit ? 'canedit' : '', layoutname: 'toolbar-view', dataHintTitle: 'W'};

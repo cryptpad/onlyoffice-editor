@@ -198,6 +198,22 @@ define([
                 if (/file:print/.test(cmd)) {
                     webapp.getController('Main').onPrint();
                 } else
+                if (/printer:config/.test(cmd)) {
+                    var currentPrinter = null;
+                    var printers = [];
+                    var paramParse;
+                    try {
+                        paramParse = JSON.parse(param);
+                    } catch (e) {
+                        console.warn('printers info is broken');
+                    }
+                    
+                    if(paramParse){
+                        paramParse.printers && (printers = paramParse.printers);
+                        paramParse.current_printer && (currentPrinter = paramParse.current_printer);
+                    }
+                    webapp.getController('Print').setPrinterInfo(currentPrinter, printers);
+                } else
                 if (/file:saveas/.test(cmd)) {
                     webapp.getController('Main').api.asc_DownloadAs();
                 } else
@@ -807,6 +823,7 @@ define([
         FILE_PRESENTATION_POTM: FILE_PRESENTATION + 0x0008,
         FILE_PRESENTATION_ODP_FLAT: FILE_PRESENTATION + 0x0009,
         FILE_PRESENTATION_OTP:  FILE_PRESENTATION + 0x000a,
+        FILE_PRESENTATION_ODG:  FILE_PRESENTATION + 0x000c,
         FILE_PRESENTATION_KEY:  FILE_PRESENTATION + 0x000d,
 
         FILE_SPREADSHEET:       FILE_SPREADSHEET,
@@ -884,6 +901,7 @@ define([
             case utils.defines.FileFormat.FILE_PRESENTATION_PPSM:   return 'ppsm';
             case utils.defines.FileFormat.FILE_PRESENTATION_POTM:   return 'potm';
             case utils.defines.FileFormat.FILE_PRESENTATION_ODP_FLAT: return 'fodp';
+            case utils.defines.FileFormat.FILE_PRESENTATION_ODG:    return 'odg';
             case utils.defines.FileFormat.FILE_PRESENTATION_KEY:    return 'key';
 
             case utils.defines.FileFormat.FILE_CROSSPLATFORM_PDFA:
