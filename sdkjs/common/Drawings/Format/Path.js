@@ -777,7 +777,7 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                     if ( Math.round(triangleSquare * accuracy) === 0 || Math.round(triangleSquare * accuracy) === -0) {
                         AscCommon.consoleLog("tranform ellipticalArcTo to line. 2 catch. Triangle square:",
                             triangleSquare);
-                        this.ArrPathCommand[i] ={id: lineTo, X:x, Y:y};
+                        this.ArrPathCommand.push({id: lineTo, X:x, Y:y});
                     } else {
                         // change ellipticalArcTo params to draw arc easy
                         this.ArrPathCommand.push({id: ellipticalArcTo,
@@ -805,7 +805,7 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                      * @param {Number[]} weights
                      * @param {Number[]} knots
                      * @param {Number} multiplicity
-                     * @returns {{controlPoints: {x: Number, y: Number, z? :Number}[], weights: Number[], knots: Number[]}} new bezier data
+                     * @returns {{controlPoints: {x: Number, y: Number, z? :Number}[], weights: Number[], knots: Number[]} || null} new bezier data
                      */
                     function duplicateKnots(controlPoints, weights, knots, multiplicity) {
                         /**
@@ -815,7 +815,7 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                          * @param {Number[]} weights
                          * @param {Number[]} knots
                          * @param {Number} tNew
-                         * @return {{controlPoints: {x: Number, y: Number, z? :Number}[], weights: Number[], knots: Number[]}} new bezier data
+                         * @return {{controlPoints: {x: Number, y: Number, z? :Number}[], weights: Number[], knots: Number[]} || null} new bezier data
                          */
                         function insertKnot(controlPoints, weights, knots, tNew) {
                             let n = controlPoints.length;
@@ -839,7 +839,8 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
 
                             // insert tNew
                             if (i === -1) {
-                                throw new Error("Not found position to insert new knot");
+                                AscCommon.consoleLog("Not found position to insert new knot");
+                                return null;
                             } else {
                                 // Copy knots to new array.
                                 for (let j = 0; j < n + k + 1; j++) {
@@ -895,8 +896,33 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                             };
                         }
 
+                        /**
+                         * Checks if all numbers in an array are in increasing order (allows duplicates)
+                         * @param {number[]} arr - The array to check
+                         * @returns {boolean} - True if array is in increasing order, false otherwise
+                         */
+                        function isIncreasingOrder(arr) {
+                            if (arr.length < 2) {
+                                return true; // An empty array or array with one element is considered in order
+                            }
+
+                            for (let i = 0; i < arr.length - 1; i++) {
+                                if (arr[i] > arr[i + 1]) {
+                                    return false; // Found an element that's decreasing
+                                }
+                            }
+
+                            return true;
+                        }
+
                         if (multiplicity === undefined) {
-                            throw new Error('multiplicity is undefined');
+                            AscCommon.consoleLog("Error: multiplicity is undefined");
+                            return null;
+                        }
+
+                        if (!isIncreasingOrder(knots)) {
+                            AscCommon.consoleLog("Error: Knots with decreasing elements is not supported. Knots: " + knots);
+                            return null;
                         }
 
                         let knotValue = knots[0];
@@ -911,12 +937,12 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                             let insertCount = multiplicity - knotsCount;
                             insertCount = insertCount < 0 ? 0 : insertCount;
                             for (let i = 0; i < insertCount; i++) {
-                                let newNURBSdata;
-                                try {
-                                    newNURBSdata = insertKnot(controlPoints, weights, knots, knotValue);
-                                } catch (e) {
+                                let newNURBSdata = insertKnot(controlPoints, weights, knots, knotValue);
+                                if (newNURBSdata == null) {
                                     AscCommon.consoleLog('Unknown error. unexpected t');
+                                    return null;
                                 }
+
                                 controlPoints = newNURBSdata.controlPoints;
                                 weights = newNURBSdata.weights;
                                 knots = newNURBSdata.knots;
@@ -978,6 +1004,15 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
                         controlPoints[j].y = this.calculateCommandCoord(gdLst, controlPoints[j].y, ch, dCustomPathCoeffH);
                     }
 
+                    // if degree === 0 just draw line to SplineStart like visio does
+                    if (degree === 0) {
+                        AscCommon.consoleLog("transform nurbsTo to line because degree is 0");
+                        this.ArrPathCommand.push({id: lineTo, X:controlPoints[1].x, Y:controlPoints[1].y});
+                        lastX = controlPoints[1].x;
+                        lastY = controlPoints[1].y;
+                        break;
+                    }
+
                     if (degree + 1 + controlPoints.length !== knots.length) {
                         AscCommon.consoleLog("Wrong arguments format.", "Degree + 1 + controlPoints.length !== knots.length",
                           degree + 1 + controlPoints.length, "!==", knots.length);
@@ -1003,6 +1038,10 @@ AscFormat.InitClass(Path, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_P
 
                     // Convert to Bezier
                     let newNURBSform = duplicateKnots(controlPoints, weights, knots, degree);
+                    if (newNURBSform === null) {
+                        AscCommon.consoleLog("duplicateKnots() error");
+                        break;
+                    }
                     let bezierArray = NURBSnormalizedToBezier(newNURBSform.controlPoints, degree);
 
                     // change nurbsTo params to draw using bezier

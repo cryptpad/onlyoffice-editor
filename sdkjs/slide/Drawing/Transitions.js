@@ -2998,7 +2998,7 @@ function CDemonstrationManager(htmlpage)
 
         this.Mode = true;
         this.Canvas = document.createElement('canvas');
-        this.Canvas.setAttribute("style", "position:absolute;margin:0;padding:0;left:0px;top:0px;width:100%;height:100%;zIndex:2;background-color:#000000;");
+        this.Canvas.setAttribute("style", "touch-action:none;position:absolute;margin:0;padding:0;left:0px;top:0px;width:100%;height:100%;zIndex:2;background-color:#000000;");
         this.CheckBackgroundColor();
 
 
@@ -3242,7 +3242,7 @@ function CDemonstrationManager(htmlpage)
         if (null == oThis.Overlay)
         {
             oThis.Overlay = document.createElement('canvas');
-            oThis.Overlay.setAttribute("style", "position:absolute;margin:0;padding:0;left:0px;top:0px;width:100%;height:100%;zIndex:3;");
+            oThis.Overlay.setAttribute("style", "touch-action:none;position:absolute;margin:0;padding:0;left:0px;top:0px;width:100%;height:100%;zIndex:3;");
             oThis.Overlay.width = oThis.Canvas.width;
             oThis.Overlay.height = oThis.Canvas.height;
 
@@ -4033,7 +4033,7 @@ function CDemonstrationManager(htmlpage)
             oThis.HtmlPage.m_oApi.disableReporterEvents = false;
         }
         oThis.isMouseDown = true;
-        e.preventDefault();
+        AscCommon.stopEvent(e);
         return false;
     };
 
@@ -4061,7 +4061,10 @@ function CDemonstrationManager(htmlpage)
         }
 
 		if (!oThis.HtmlPage.reporterPointer)
-			return;
+        {
+            AscCommon.stopEvent(e);
+            return;
+        }
 
         var _x = 0;
         var _y = 0;
@@ -4093,7 +4096,8 @@ function CDemonstrationManager(htmlpage)
 
 		oThis.PointerMove(_x, _y);
 
-        e.preventDefault();
+
+        AscCommon.stopEvent(e);
         return false;
     };
 

@@ -7248,7 +7248,8 @@ function CStyles(bCreateDefault)
 			Caption           : null,
 			EndnoteText       : null,
 			EndnoteTextChar   : null,
-			EndnoteReference  : null
+			EndnoteReference  : null,
+			PlaceholderText   : null
 		};
 
         // Заполняем значения по умолчанию
@@ -9033,6 +9034,9 @@ CStyles.prototype.UpdateDefaultStyleLinks = function()
 			case "tableoffigures":
 				this.Default.TOF = styleId;
 				break;
+			case "placeholdertext":
+				this.Default.PlaceholderText = styleId;
+				break;
 		}
 	}
 };
@@ -9100,6 +9104,10 @@ CStyles.prototype.GetDefaultFollowedHyperlink = function()
 CStyles.prototype.GetDefaultHeading = function(nLvl)
 {
 	return this.Default.Headings[Math.max(Math.min(nLvl, 8), 0)];
+};
+CStyles.prototype.GetDefaultPlaceholderText = function()
+{
+	return this.Default.PlaceholderText;
 };
 CStyles.prototype.HaveHeadingsNum = function()
 {
@@ -12626,6 +12634,22 @@ CRFonts.prototype.IsEqual = function(oRFonts)
 		&& this.EastAsiaTheme === oRFonts.EastAsiaTheme
 		&& this.HAnsiTheme === oRFonts.HAnsiTheme
 		&& this.CSTheme === oRFonts.CSTheme);
+};
+CRFonts.prototype.IsEqualSlot = function(rFonts, fontSlot)
+{
+	switch (fontSlot)
+	{
+		case AscWord.fontslot_ASCII:
+			return (this.private_IsEqual(this.Ascii, rFonts.Ascii) && this.AsciiTheme === rFonts.AsciiTheme);
+		case AscWord.fontslot_EastAsia:
+			return (this.private_IsEqual(this.EastAsia, rFonts.EastAsia) && this.EastAsiaTheme === rFonts.EastAsiaTheme);
+		case AscWord.fontslot_HAnsi:
+			return (this.private_IsEqual(this.HAnsi, rFonts.HAnsi) && this.HAnsiTheme === rFonts.HAnsiTheme);
+		case AscWord.fontslot_CS:
+			return (this.private_IsEqual(this.CS, rFonts.CS) && this.CSTheme === rFonts.CSTheme);
+	}
+	
+	return this.IsEqual(rFonts);
 };
 CRFonts.prototype.private_IsEqual = function(oFont1, oFont2)
 {

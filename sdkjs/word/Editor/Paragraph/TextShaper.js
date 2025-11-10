@@ -277,7 +277,7 @@
 			&& t.RTL === oTextPr.RTL
 			&& t.Vanish === oTextPr.Vanish
 			&& t.Ligatures === oTextPr.Ligatures
-			&& t.RFonts.IsEqual(oTextPr.RFonts));
+			&& t.RFonts.IsEqualSlot(oTextPr.RFonts, this.FontSlot));
 	};
 	CParagraphTextShaper.prototype.GetTextScript = function(nUnicode)
 	{

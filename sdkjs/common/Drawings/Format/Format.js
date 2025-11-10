@@ -241,16 +241,21 @@
 				var nType = oStream.GetUChar();
 				if (nType == g_nodeAttributeEnd)
 					break;
-				this.readAttribute(nType, pReader)
+				if (this.readAttribute) {
+					this.readAttribute(nType, pReader);
+				}
 			}
 		};
-		CBaseFormatNoIdObject.prototype.readAttribute = function (nType, pReader) {
+		CBaseFormatNoIdObject.prototype.readAttribute = function (nType, pReader) {//todo return undefined by default(check pptx)
 		};
 		CBaseFormatNoIdObject.prototype.readChildren = function (nEnd, pReader) {
 			var oStream = pReader.stream;
 			while (oStream.cur < nEnd) {
 				var nType = oStream.GetUChar();
-				this.readChild(nType, pReader);
+				const res = this.readChild(nType, pReader);
+				if (false === res) {
+					oStream.SkipRecord();
+				}
 			}
 		};
 		CBaseFormatNoIdObject.prototype.readChild = function (nType, pReader) {
@@ -264,10 +269,12 @@
 		};
 		CBaseFormatNoIdObject.prototype.writeAttributes = function (pWriter) {
 			pWriter.WriteUChar(g_nodeAttributeStart);
-			this.privateWriteAttributes(pWriter);
+			if (this.privateWriteAttributes) {
+				this.privateWriteAttributes(pWriter);
+			}
 			pWriter.WriteUChar(g_nodeAttributeEnd);
 		};
-		CBaseFormatNoIdObject.prototype.privateWriteAttributes = function (pWriter) {
+		CBaseFormatNoIdObject.prototype.privateWriteAttributes = function (pWriter) {//todo return undefined by default(check pptx)
 		};
 		CBaseFormatNoIdObject.prototype.writeChildren = function (pWriter) {
 		};
@@ -9774,6 +9781,7 @@
 					else {
 						let oPresentation = this.GetPresentation();
 						if(oPresentation) {
+							oPresentation.bNeedUpdateThemes = true;
 							let oThemedObjects = oPresentation.GetSlideObjectsWithTheme(this);
 							for(let nIdx = 0; nIdx < oThemedObjects.masters.length; ++nIdx) {
 								oThemedObjects.masters[nIdx].checkSlideTheme();
@@ -15238,7 +15246,7 @@
 			master.Theme = theme;
 
 			master.sldLayoutLst[0] = GenerateDefaultSlideLayout(master);
-
+			master.setPreserve(true);
 			return master;
 		}
 
@@ -15246,6 +15254,7 @@
 			var layout = new SlideLayout();
 			layout.Theme = master.Theme;
 			layout.Master = master;
+			layout.setPreserve(true);
 			return layout;
 		}
 

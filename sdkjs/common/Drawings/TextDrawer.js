@@ -122,6 +122,7 @@ CDocContentStructure.prototype.drawComments = function(graphics, transform)
         this.m_aComments[i].drawComment2(graphics, undefined, transform);
     }
 };
+
 CDocContentStructure.prototype.checkByWarpStruct = function(oWarpStruct, dWidth, dHeight, oTheme, oColorMap, oShape, dOneLineWidth, XLimit, dContentHeight, dKoeff)
 {
     var i, j, t, aByPaths,  aWarpedObjects = [];
@@ -194,9 +195,6 @@ CDocContentStructure.prototype.checkByWarpStruct = function(oWarpStruct, dWidth,
     }
     this.checkUnionPaths(aWarpedObjects2);
 };
-
-
-
 CDocContentStructure.prototype.checkContentReduct = function(oWarpStruct, dWidth, dHeight, oTheme, oColorMap, oShape, dOneLineWidth, XLimit, dContentHeight, dKoeff)
 {
     var i, j, t, aByPaths,  aWarpedObjects = [];
@@ -275,7 +273,53 @@ CDocContentStructure.prototype.getAllBackgroundsBorders = function(aParaBackgrou
     {
         this.m_aContent[i].getAllBackgroundsBorders(aParaBackgrounds, aBackgrounds, aBorders, aComments);
     }
-}
+};
+CDocContentStructure.prototype.getCombinedGeometry = function (transformMatrix) {
+    const paragraphStructures = this.m_aContent;
+    const lineStructures = paragraphStructures.reduce(function (acc, paragraphStructure) { return acc.concat(paragraphStructure.m_aContent) }, []);
+    const objectsToDraw = lineStructures.reduce(function (acc, lineStructure) { return acc.concat(lineStructure.m_aContent) }, []);
+
+    // allPaths - array of Path2 instances
+    const allPaths = objectsToDraw.reduce(function (acc, objectToDraw) { return acc.concat(objectToDraw.geometry.pathLst) }, []);
+
+    // allFormatPaths - array of Path instances
+    const allFormatPaths = allPaths.map(function (path) {
+        const formatPath = new AscFormat.Path();
+        path.convertToBezierCurves(formatPath, transformMatrix || new AscCommon.CMatrix());
+
+        formatPath.ArrPathCommandInfo = formatPath.ArrPathCommand.map(function (pathCommand) {
+            switch (pathCommand.id) {
+                case AscFormat.moveTo:
+                case AscFormat.lineTo:
+                    return { id: pathCommand.id, X: '' + pathCommand.X * 36000, Y: '' + pathCommand.Y * 36000 };
+                case AscFormat.bezier4:
+                    return {
+                        id: pathCommand.id,
+                        X0: '' + pathCommand.X0 * 36000, X1: '' + pathCommand.X1 * 36000, X2: '' + pathCommand.X2 * 36000,
+                        Y0: '' + pathCommand.Y0 * 36000, Y1: '' + pathCommand.Y1 * 36000, Y2: '' + pathCommand.Y2 * 36000
+                    };
+                default:
+                    return { id: pathCommand.id };
+            }
+        });
+
+        const properties = ['extrusionOk', 'fill', 'parent', 'pathH', 'pathW', 'stroke'];
+        properties.forEach(function (property) {
+            formatPath[property] = path[property];
+        });
+
+        return formatPath;
+    });
+
+    const combinedGeometry = new AscFormat.Geometry();
+    allFormatPaths.forEach(function (path) {
+        if (path.ArrPathCommand.length > 0) {
+            combinedGeometry.AddPath(path);
+        }
+    });
+
+    return combinedGeometry;
+};
 
 function CheckIntervalIntersection(X1, Y1, X2, Y2, X3, Y3, X4, Y4)
 {

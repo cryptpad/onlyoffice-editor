@@ -969,6 +969,10 @@
 
 		const TEXT_RECT_ERROR = 0.01;
 
+		/**
+		 * @extends CGraphicObjectBase
+		 * @constructor
+		 */
 		function CShape() {
 			AscFormat.CGraphicObjectBase.call(this);
 			this.nvSpPr = null;
@@ -4026,7 +4030,6 @@
 		}
 		CShape.prototype.recalculateContent2 = function () {
 			if (this.txBody) {
-				var pointContent = this.getSmartArtPointContent();
 				if (this.isPlaceholder() || this.isPlaceholderInSmartArt()) {
 					if (!this.isEmptyPlaceholder()) {
 						return;
@@ -4047,7 +4050,13 @@
 						if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body) {
 							text = AscCommon.translateManager.getValue("Click to add notes");
 						} else if (this.isObjectInSmartArt()) {
-							text = AscCommon.translateManager.getValue(pointContent[0].point.prSet.phldrT || '');
+							const pointContent = this.getSmartArtPointContent();
+							const point = pointContent && pointContent[0] && pointContent[0].point;
+							if (point) {
+								text = AscCommon.translateManager.getValue(point.prSet.phldrT || '');
+							} else {
+								text = '';
+							}
 						} else {
 							text = this.getPlaceholderName();
 						}
@@ -4240,7 +4249,7 @@
 				const pointContent = this.getSmartArtPointContent();
 				if (oBodyPr && pointContent) {
 					const paddings = {};
-					const point = pointContent && pointContent[0].point;
+					const point = pointContent[0] && pointContent[0].point;
 					if (point) {
 						const isRecalculateInsets = point.isRecalculateInsets();
 						const smartArt = this.group && this.group.group;
@@ -4376,7 +4385,7 @@
 				const pointContent = this.getSmartArtPointContent();
 				if (oBodyPr && pointContent) {
 					const paddings = {};
-					const point = pointContent && pointContent[0].point;
+					const point = pointContent[0] && pointContent[0].point;
 					if (point) {
 						const isRecalculateInsets = point.isRecalculateInsets();
 						const shapeInfo = this.getSmartArtInfo();
@@ -4714,7 +4723,9 @@
 			for (let i = 0; i < arrShapes.length; i += 1) {
 				const oShape = arrShapes[i];
 				var contentPoints = oShape.getSmartArtPointContent();
-
+				if (!contentPoints) {
+					continue;
+				}
 				const isNotPlaceholder = contentPoints.every(function (node) {
 					const point = node.point;
 					return point && point.prSet && !point.prSet.custT;
@@ -4870,7 +4881,6 @@
 			} else {
 				var oBodyPr = this.getBodyPr && this.getBodyPr();
 				var oContent = this.getDocContent && this.getDocContent();
-				var pointContent = this.getSmartArtPointContent();
 				if (oBodyPr && oContent && this.clipRect) {
 					var oTextFit = oBodyPr.textFit;
 					if (oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto) {
@@ -4991,7 +5001,8 @@
 						var isNotEmptyShape = oContent.Content.some(function (paragraph) {
 							return !paragraph.Is_Empty({SkipEnd: true, SkipPlcHldr: false});
 						});
-						if (isNotEmptyShape) {
+						const pointContent = this.getSmartArtPointContent();
+						if (isNotEmptyShape && pointContent) {
 							pointContent.forEach(function (node) {
 								const point = node.point;
 								point.prSet.setPhldr(false);
@@ -5348,6 +5359,7 @@
 		};
 
 		/**
+		 * note: sometimes call to recalculate bounds
 		 * @memberOf CShape
 		 */
 		CShape.prototype.draw = function (graphics, transform, transformText, pageIndex, opt) {

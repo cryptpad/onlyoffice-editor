@@ -683,7 +683,7 @@
 		};
 
 		CImageShape.prototype.hasCrop = function () {
-			if(this.blipFill && this.blipFill.srcRect) {
+			if(this.blipFill && this.blipFill.srcRect || this.isShapeCrop()) {
 				return true;
 			}
 			return false;
@@ -905,6 +905,30 @@
 			return null;
 		};
 		CImageShape.prototype.canFill = function () {
+			return true;
+		};
+		CImageShape.prototype.getCropHeightCoefficient = function() {
+			const oSrcRect = this.blipFill && this.blipFill.srcRect;
+			if (oSrcRect) {
+				return (oSrcRect.b - oSrcRect.t) / 100;
+			}
+			return 1;
+		};
+		CImageShape.prototype.getCropWidthCoefficient = function() {
+			const oSrcRect = this.blipFill && this.blipFill.srcRect;
+			if (oSrcRect) {
+				return (oSrcRect.r - oSrcRect.l) / 100;
+			}
+			return 1;
+		};
+
+		CImageShape.prototype.isShapeCrop = function() {
+			if (this.spPr && this.spPr.geometry) {
+				const sPresetType = this.spPr.geometry.preset;
+				if (sPresetType === 'rect') {
+					return false;
+				}
+			}
 			return true;
 		};
 

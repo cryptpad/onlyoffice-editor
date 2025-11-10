@@ -256,6 +256,10 @@
  			}
 		}
 	};
+
+    History.prototype.GetAllMergedPagesBase64 = function() {
+        
+    };
 	//----------------------------------------------------------export--------------------------------------------------
 	window['AscPDF'] = window['AscPDF'] || {};
 	window['AscPDF'].History = History;

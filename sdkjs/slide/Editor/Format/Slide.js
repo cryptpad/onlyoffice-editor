@@ -2127,6 +2127,9 @@ AscFormat.InitClass(Slide, AscFormat.CBaseFormatObject, AscDFH.historyitem_type_
         }
         return false;
     };
+Slide.prototype.IsUseInSlides = function() {
+	return this.IsUseInDocument();
+};
 Slide.prototype.removeAllInks = function () {
 	this.cSld.removeAllInks();
 };
@@ -2134,6 +2137,9 @@ Slide.prototype.getAllInks = function (arrInks) {
 	arrInks = arrInks || [];
 	this.cSld.getAllInks(arrInks);
 	return arrInks;
+};
+Slide.prototype.isPreserve = function() {
+	return false;
 };
 
 function fLoadComments(oObject, authors)

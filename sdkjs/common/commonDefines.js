@@ -534,6 +534,9 @@ window.AscCommon.g_cIsBeta = "false";
 		VSSM : 0x4005,
 		VSTM : 0x4006,
 
+		VSDY : 0x1004,
+		CANVAS_DIAGRAM : 0x2005,
+
 		//image
 		IMG  : 0x0400,
 		JPG  : 0x0401,
@@ -708,9 +711,11 @@ window.AscCommon.g_cIsBeta = "false";
 		ContentControl    : 11,
 		Animation         : 12,
 		UnProtectedRegion : 13,
-		Text              : 14, // viewer
+		// viewer
+		Text              : 14,
 		Annot             : 15,
-		PdfPage           : 16
+		Field			  : 16,
+		PdfPage           : 17
 	};
 
 	var c_oAscLineDrawingRule = {
@@ -3714,6 +3719,12 @@ window.AscCommon.g_cIsBeta = "false";
 			SzWidescreen: 16
 	};
 
+	const thumbnailsPositionMap = {
+		left: 0,
+		right: 1,
+		bottom: 2,
+	};
+
 	var c_oAscPictureFormScaleFlag = {
 		Always  : 0,
 		Bigger  : 1,
@@ -4755,6 +4766,7 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['UnProtectedRegion'] = prot.UnProtectedRegion;
 	prot['Text']              = prot.Text;
 	prot['Annot']             = prot.Annot;
+	prot['Field']             = prot.Field;
 	prot['PdfPage']           = prot.PdfPage;
 	
 	window['Asc']['linerule_AtLeast'] = window['Asc'].linerule_AtLeast = linerule_AtLeast;
@@ -5890,6 +5902,11 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['SzScreen16x9'] = prot.SzScreen16x9;
 	prot['SzScreen4x3'] = prot.SzScreen4x3;
 	prot['SzWidescreen'] = prot.SzWidescreen;
+
+	prot = window['AscCommon']['thumbnailsPositionMap'] = window['AscCommon'].thumbnailsPositionMap = thumbnailsPositionMap;
+	prot['left']   = prot.left;
+	prot['right']  = prot.right;
+	prot['bottom'] = prot.bottom;
 
 	prot = window['Asc']['c_oAscPictureFormScaleFlag'] = window['Asc'].c_oAscPictureFormScaleFlag = c_oAscPictureFormScaleFlag;
 	prot['Always']  = prot.Always;

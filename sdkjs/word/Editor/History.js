@@ -1634,10 +1634,10 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 	CHistory.prototype.checkAsYouTypeEnterText = function(run, inRunPos, codePoint)
 	{
 		this.CheckUnionLastPoints();
-
+		
 		if (this.Points.length <= 0 || this.Index !== this.Points.length - 1)
 			return false;
-
+		
 		let point = this.Points[this.Index];
 		let description = point.Description;
 		if (AscDFH.historydescription_Document_AddLetter !== description
@@ -1648,13 +1648,18 @@ CHistory.prototype.private_PostProcessingRecalcData = function()
 			&& AscDFH.historydescription_Document_CompositeInputReplace !== description
 			&& AscDFH.historydescription_Presentation_ParagraphAdd !== description)
 			return false;
-
+		
 		let changes = point.Items;
-		if (!changes.length)
-			return false;
-
-		let lastChange = changes[changes.length - 1].Data;
-		return (AscDFH.historyitem_ParaRun_AddItem === lastChange.Type
+		let lastChange = null;
+		for (let i = changes.length - 1; i >= 0; --i)
+		{
+			lastChange = changes[i].Data;
+			if (lastChange.IsContentChange())
+				break;
+		}
+		
+		return (lastChange
+			&& AscDFH.historyitem_ParaRun_AddItem === lastChange.Type
 			&& lastChange.Class === run
 			&& lastChange.Pos === inRunPos - 1
 			&& lastChange.Items.length

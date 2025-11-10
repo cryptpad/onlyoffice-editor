@@ -3435,20 +3435,48 @@
 		function splitCompoundPath(compoundPath) {
 			const split = [];
 			const paths = compoundPath.getChildren().slice();
-			const hasIntersection = function (p1, p2) { return !p1.intersect(p2).isEmpty(); };
+			const visited = new Set();
+
 			paths.forEach(function (path) {
-				const intersects = paths.some(function (p1) {
-					return p1 !== path && hasIntersection(p1, path);
-				});
-				if (!intersects) {
-					split.push(path);
-					path.remove();
+				if (visited.has(path))
+					return;
+
+				const group = findConnectedGroup(path);
+				if (group.length === 1) {
+					split.push(group[0]);
+				} else {
+					let compound = new CompoundPath();
+					compound.addChildren(group);
+					compound = compound.reduce();
+					compound.copyAttributes(group[0]);
+					split.push(compound);
 				}
 			});
 
-			if (compoundPath.getChildren().length) {
-				split.push(compoundPath);
+			function findConnectedGroup(startPath) {
+				const queue = [startPath];
+				const group = [];
+
+				while (queue.length) {
+					const path = queue.pop();
+					if (visited.has(path)) continue;
+
+					visited.add(path);
+					group.push(path);
+
+					paths.forEach(function (otherPath) {
+						if (!visited.has(otherPath) && hasIntersection(path, otherPath)) {
+							queue.push(otherPath);
+						}
+					});
+				}
+				return group;
 			}
+
+			function hasIntersection(p1, p2) {
+				return !p1.intersect(p2).isEmpty();
+			};
+
 			return split;
 		}
 

@@ -4030,25 +4030,30 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         }
     };
 
+		_this._getOriginalImageSize = function(isCrop) {
+			const selectedObjects = _this.controller.selectedObjects;
+			if ( (selectedObjects.length === 1) ) {
+				const oShape = selectedObjects[0];
+				if(oShape.isImage()){
+					const imageUrl = oShape.getImageUrl();
+
+					const oImagePr = new Asc.asc_CImgProperty();
+					oImagePr.asc_putImageUrl(imageUrl);
+					oImagePr.cropWidthCoefficient = oShape.getCropWidthCoefficient();
+					oImagePr.cropHeightCoefficient = oShape.getCropHeightCoefficient();
+					return isCrop ? oImagePr.asc_getCropOriginSize(api) : oImagePr.asc_getOriginSize(api);
+
+				}
+			}
+			return new AscCommon.asc_CImageSize( 50, 50, false );
+		};
     _this.getOriginalImageSize = function() {
-
-        var selectedObjects = _this.controller.selectedObjects;
-        if ( (selectedObjects.length == 1) ) {
-
-
-            if(selectedObjects[0].isImage()){
-                var imageUrl = selectedObjects[0].getImageUrl();
-
-                var oImagePr = new Asc.asc_CImgProperty();
-                oImagePr.asc_putImageUrl(imageUrl);
-                var oSize = oImagePr.asc_getOriginSize(api);
-                if(oSize.IsCorrect) {
-                    return oSize;
-                }
-            }
-        }
-        return new AscCommon.asc_CImageSize( 50, 50, false );
+			return this._getOriginalImageSize();
     };
+
+			_this.getCropOriginalImageSize = function() {
+				return this._getOriginalImageSize(true);
+			};
 
     _this.getSelectionImg = function() {
         return _this.controller.getSelectionImage().asc_getImageUrl();
@@ -4296,27 +4301,13 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
         Asc.editor.sendEvent("asc_onSelectionEnd");
     };
     _this.graphicObjectKeyDown = function(e) {
-        Asc.editor.sendEvent("asc_onBeforeKeyDown", e);
-        let nHistoryIndex = AscCommon.History.Index;
-        let ret = _this.controller.onKeyDown( e );
-        // if(nHistoryIndex === AscCommon.History.Index) {
-        //     _this.private_UpdateCursorXY();
-        // }
-        Asc.editor.sendEvent("asc_onKeyDown", e);
-        return ret;
+	    return _this.controller.onKeyDown(e);
     };
     _this.graphicObjectKeyUp = function(e) {
         return _this.controller.onKeyUp( e );
     };
 
     _this.graphicObjectKeyPress = function(e) {
-
-        e.KeyCode = e.keyCode;
-        e.CtrlKey = e.metaKey || e.ctrlKey;
-        e.AltKey = e.altKey;
-        e.ShiftKey = e.shiftKey;
-        e.Which = e.which;
-
         this.onStartUserAction();
         let ret = _this.controller.onKeyPress( e );
         this.onEndUserAction();

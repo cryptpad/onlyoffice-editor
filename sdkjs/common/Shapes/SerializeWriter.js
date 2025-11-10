@@ -301,6 +301,64 @@ function CBinaryFileWriter()
             this.data[this.pos++] = (c >>> 8)&0xFF;
         }
     };
+    this.WriteString2Utf8 = function(text)
+    {
+        if ("string" != typeof text)
+            text = text + "";
+        let count = text.length & 0x7FFFFFFF;
+        let seekOld = this.pos;
+        this.WriteULong(0);
+        for (let i = 0; i < count; i++)
+        {
+            let code = text.charCodeAt(i);
+            if (code >= 0xD800 && code <= 0xDFFF)
+            {
+                code = 0x10000 + (((code & 0x3FF) << 10) | (0x03FF & text.charCodeAt(i++)));
+            }
+            this.WriteUtf8Char(code);
+        }
+        let seek = this.pos;
+        this.pos = seekOld;
+        this.WriteULong(seek - seekOld - 4);
+        this.pos = seek;
+    };
+    this.WriteUtf8Char = function(code)
+    {
+        this.CheckSize(6);
+        if (code < 0x80) {
+            this.data[this.pos++] = code;
+        }
+        else if (code < 0x0800) {
+            this.data[this.pos++] = (0xC0 | (code >> 6));
+            this.data[this.pos++] = (0x80 | (code & 0x3F));
+        }
+        else if (code < 0x10000) {
+            this.data[this.pos++] = (0xE0 | (code >> 12));
+            this.data[this.pos++] = (0x80 | ((code >> 6) & 0x3F));
+            this.data[this.pos++] = (0x80 | (code & 0x3F));
+        }
+        else if (code < 0x1FFFFF) {
+            this.data[this.pos++] = (0xF0 | (code >> 18));
+            this.data[this.pos++] = (0x80 | ((code >> 12) & 0x3F));
+            this.data[this.pos++] = (0x80 | ((code >> 6) & 0x3F));
+            this.data[this.pos++] = (0x80 | (code & 0x3F));
+        }
+        else if (code < 0x3FFFFFF) {
+            this.data[this.pos++] = (0xF8 | (code >> 24));
+            this.data[this.pos++] = (0x80 | ((code >> 18) & 0x3F));
+            this.data[this.pos++] = (0x80 | ((code >> 12) & 0x3F));
+            this.data[this.pos++] = (0x80 | ((code >> 6) & 0x3F));
+            this.data[this.pos++] = (0x80 | (code & 0x3F));
+        }
+        else if (code < 0x7FFFFFFF) {
+            this.data[this.pos++] = (0xFC | (code >> 30));
+            this.data[this.pos++] = (0x80 | ((code >> 24) & 0x3F));
+            this.data[this.pos++] = (0x80 | ((code >> 18) & 0x3F));
+            this.data[this.pos++] = (0x80 | ((code >> 12) & 0x3F));
+            this.data[this.pos++] = (0x80 | ((code >> 6) & 0x3F));
+            this.data[this.pos++] = (0x80 | (code & 0x3F));
+        }
+    };
     this.WriteBuffer = function(data, _pos, count)
     {
         this.CheckSize(count);
@@ -374,10 +432,20 @@ function CBinaryFileWriter()
         this.WriteUChar(type);
         this.WriteString2(val);
     };
+    this._WriteString1Utf8 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteString2Utf8(val);
+    };
     this._WriteString2 = function(type, val)
     {
         if (val != null)
             this._WriteString1(type, val);
+    };
+    this._WriteString2Utf8 = function(type, val)
+    {
+        if (val != null)
+            this._WriteString1Utf8(type, val);
     };
 
     this._WriteUChar1 = function(type, val)
@@ -515,6 +583,16 @@ function CBinaryFileWriter()
         {
             this.StartRecord(type);
             val.toStream(this);
+            this.EndRecord();
+        }
+    };
+
+    this.WriteRecordPPTY = function(type, val)
+    {
+        if (null != val)
+        {
+            this.StartRecord(type);
+            val.toPPTY(this);
             this.EndRecord();
         }
     };
@@ -970,19 +1048,26 @@ function CBinaryFileWriter()
         return ret + this.GetBase64Memory();
     };
 
-	this.WriteDocument3 = function(presentation, base64) {
-		var _memory = new AscCommon.CMemory(true);
+	this.WriteDocument3 = function(presentation, base64, opt_prefix, opt_callback) {
+        if (!opt_prefix) {
+            opt_prefix = "PPTY;v" + Asc.c_nVersionNoBase64 + ";";
+        }
+        var _memory = new AscCommon.CMemory(true);
 		_memory.data = this.data;
 		_memory.len = this.len;
 		_memory.pos = this.pos;
 
-		_memory.WriteXmlString("PPTY;v" + Asc.c_nVersionNoBase64 + ";0;");
+		_memory.WriteXmlString(opt_prefix + "0;");
 
 		this.data = _memory.data;
 		this.len = _memory.len;
 		this.pos = _memory.pos;
 
-		this.WriteDocument2(presentation);
+        if (opt_callback) {
+            opt_callback(this);
+        } else {
+            this.WriteDocument2(presentation);
+        }
 
 		_memory.data = this.data;
 		_memory.len = this.len;

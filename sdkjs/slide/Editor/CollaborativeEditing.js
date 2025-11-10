@@ -121,18 +121,6 @@ CCollaborativeEditing.prototype.Send_Changes = function(IsUserSave, AdditionalIn
 		{
 			let Class = this.m_aNeedUnlock2[Index];
 			Class.Lock.Set_Type( AscCommon.c_oAscLockTypes.kLockTypeNone, false);
-			if(AscFormat.isSlideLikeObject(Class))
-			{
-				this.UnlockSlide(Class);
-			}
-			if(Class instanceof AscCommonSlide.PropLocker)
-			{
-				let Class2 = AscCommon.g_oTableId.Get_ById(Class.objectId);
-				if(AscFormat.isSlideLikeObject(Class2))
-				{
-					this.UnlockSlide(Class2);
-				}
-			}
             if(Class instanceof AscCommon.CCore)
             {
 				Asc.editor.sendEvent("asc_onLockCore", false);
@@ -298,10 +286,6 @@ CCollaborativeEditing.prototype.Release_Locks = function()
 						Asc.editor.sendEvent("asc_onUnLockSlideHdrFtrApplyToAll");
                     }
                 }
-				if(AscFormat.isSlideLikeObject(object))
-				{
-					this.UnlockSlide(object);
-				}
             }
             if(Class instanceof AscCommon.CComment)
             {
@@ -319,10 +303,6 @@ CCollaborativeEditing.prototype.Release_Locks = function()
         else if ( AscCommon.c_oAscLockTypes.kLockTypeOther3 === CurLockType )
         {
 			Class.Lock.Set_Type( AscCommon.c_oAscLockTypes.kLockTypeOther, false);
-            if(AscFormat.isSlideLikeObject(Class))
-			{
-				this.LockSlide(Class);
-			}
         }
 		if(Class.isDrawing)
 		{
@@ -347,17 +327,9 @@ CCollaborativeEditing.prototype.OnEnd_Load_Objects = function()
     // Запускаем полный пересчет документа
     let LogicDocument = this.GetPresentation();
 
-    let RecalculateData =
-    {
-        Drawings: {
-            All: true
-        },
-        Map: {
-
-        }
-    };
-
-    LogicDocument.Recalculate(RecalculateData);
+		const arrChanges = this.CoHistory.GetAllChanges();
+		const oRecalcData = LogicDocument.History.Get_RecalcData(null, arrChanges, this.m_nRecalcIndexStart, this.m_nRecalcIndexEnd);
+    LogicDocument.Recalculate(oRecalcData);
     LogicDocument.Document_UpdateSelectionState();
     LogicDocument.Document_UpdateInterfaceState();
 
@@ -429,10 +401,6 @@ CCollaborativeEditing.prototype.OnEnd_CheckLock = function(DontLockInFastMode)
                         if ( null != Class )
                         {
                             Class.Lock.Set_Type( AscCommon.c_oAscLockTypes.kLockTypeMine, false );
-							if(AscFormat.isSlideLikeObject(Class))
-							{
-								this.UnlockSlide(Class);
-							}
                             this.Add_Unlock2( Class );
                         }
                     }
@@ -444,34 +412,6 @@ CCollaborativeEditing.prototype.OnEnd_CheckLock = function(DontLockInFastMode)
     }
 
     return false;
-};
-CCollaborativeEditing.prototype.UnlockSlide = function(oSlide)
-{
-	this.ChangeSlideLock(oSlide, false);
-};
-CCollaborativeEditing.prototype.LockSlide = function(oSlide)
-{
-	this.ChangeSlideLock(oSlide, true);
-};
-CCollaborativeEditing.prototype.ChangeSlideLock = function(oSlide, bLock)
-{
-	if(!AscFormat.isSlideLikeObject(oSlide)) {
-		return;
-	}
-	let presentation = this.GetPresentation();
-	let nIdx = presentation.GetSlideIndex(oSlide);
-	if(nIdx === -1) {
-		return;
-	}
-	let drawingDocument = this.GetDrawingDocument();
-	if(bLock)
-	{
-		drawingDocument.LockSlide(nIdx);
-	}
-	else
-	{
-		drawingDocument.UnLockSlide(nIdx);
-	}
 };
 CCollaborativeEditing.prototype.OnCallback_AskLock = function(result)
 {
@@ -516,10 +456,6 @@ CCollaborativeEditing.prototype.OnCallback_AskLock = function(result)
                     if ( null != Class )
                     {
                         Class.Lock.Set_Type( AscCommon.c_oAscLockTypes.kLockTypeMine );
-						if(AscFormat.isSlideLikeObject(Class))
-						{
-							this.UnlockSlide(Class);
-						}
                         AscCommon.CollaborativeEditing.Add_Unlock2( Class );
                     }
                 }

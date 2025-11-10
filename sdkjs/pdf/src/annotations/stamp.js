@@ -499,6 +499,25 @@
             this._bDrawFromStream = true;
         }
     };
+    CAnnotationStamp.prototype.GetAllFonts = function(fontMap) {
+        if (this.IsNeedDrawFromStream() || this.fontsChecked) {
+            return fontMap;
+        }
+
+        let oContent = this.getDocContent();
+        if (!oContent) {
+            return fontMap;
+        }
+        
+        oContent.SetApplyToAll(true);
+        AscFonts.FontPickerByCharacter.getFontsByString(oContent.GetSelectedText());
+        oContent.SetApplyToAll(false);
+        this.fontsChecked = true;
+        this.renderStructure = null;
+        this.AddToRedraw()
+
+        return fontMap;
+    };
     CAnnotationStamp.prototype.WriteRenderToBinary = function(memory) {
         // пока только для основанных на фигурах
         if (this.IsNeedDrawFromStream()) {

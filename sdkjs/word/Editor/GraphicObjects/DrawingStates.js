@@ -452,11 +452,20 @@ NullState.prototype =
         }
         else {
             let oViewer = Asc.editor.getDocumentRenderer();
+            let oDoc    = Asc.editor.getPDFDoc();
 
             let aDrawings = [];
 
             aDrawings = aDrawings.concat(oViewer.pagesInfo.pages[pageIndex].drawings);
             aDrawings = aDrawings.concat(oViewer.pagesInfo.pages[pageIndex].annots);
+
+            if (oDoc.IsEditFieldsMode()) {
+                if (this.drawingObjects.selectedObjects.find(function(obj) {
+                    return obj.IsDrawing() && obj.IsEditFieldShape();
+                })) {
+                    aDrawings = aDrawings.concat(this.drawingObjects.selectedObjects);
+                }
+            }
 
             ret = AscFormat.handleFloatObjects(this.drawingObjects, aDrawings, e, x, y, null, pageIndex, true);
 
@@ -942,9 +951,29 @@ RotateState.prototype =
                                     oAnnot.SetRect(aRect);
                                 }
                             }
-                            if (oTrack.originalObject.IsDrawing() && oTrack instanceof AscFormat.MoveShapeImageTrack) {
-                                if (oTrack.pageIndex != oTrack.originalObject.GetPage()) {
-                                    oTrack.originalObject.SetPage(oTrack.pageIndex);
+                            if (oTrack.originalObject.IsDrawing()) {
+                                let isMoveShapeImageTrack = oTrack instanceof AscFormat.MoveShapeImageTrack;
+                                let isEditFieldShape = oTrack.originalObject.IsEditFieldShape();
+                                let aRect = [
+                                    bounds.posX * g_dKoef_mm_to_pt,
+                                    bounds.posY * g_dKoef_mm_to_pt,
+                                    (bounds.posX + bounds.extX) * g_dKoef_mm_to_pt,
+                                    (bounds.posY + bounds.extY) * g_dKoef_mm_to_pt
+                                ];
+                            
+                                if (isMoveShapeImageTrack && oTrack.pageIndex !== oTrack.originalObject.GetPage()) {
+                                    if (isEditFieldShape) {
+                                        let oField = oTrack.originalObject.GetEditField();
+                                        oField.SetRect(aRect);
+                                        oField.SetPage(oTrack.pageIndex);
+                                    }
+                                    else {
+                                        oTrack.originalObject.SetPage(oTrack.pageIndex);
+                                    }
+                                }
+                                else if (isEditFieldShape) {
+                                    let oField = oTrack.originalObject.GetEditField();
+                                    oField.SetRect(aRect);
                                 }
                             }
                             
