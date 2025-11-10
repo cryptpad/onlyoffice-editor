@@ -1886,7 +1886,6 @@
 		if (items["items"]) correctItemsWithData(items["items"], baseUrl);
 		this.onPluginAddContextMenuItem(items);
 	};
-
 	/**
 	 * Updates an item in the context menu with the specified items.
 	 * @undocumented
@@ -1903,7 +1902,25 @@
 		if (items["items"]) correctItemsWithData(items["items"], baseUrl);
 		this.onPluginUpdateContextMenuItem([items]);
 	};
-
+	
+	/**
+	 * Add button to the specified content controls track
+	 * @undocumented
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias AddContentControlButtons
+	 * @param buttons
+	 * @since 9.0.0
+	 */
+	Api.prototype["pluginMethod_AddContentControlButtons"] = function(buttons)
+	{
+		if (AscCommon.c_oEditorId.Word !== this.getEditorId() || !buttons)
+			return;
+		
+		buttons["baseUrl"] = this.pluginsManager.pluginsMap[buttons["guid"]].baseUrl;
+		this.WordControl.m_oLogicDocument.DrawingDocument.contentControls.addPluginButtons(buttons);
+	};
+	
 	/**
 	 * The possible values of the base which the relative vertical position of the toolbar menu item will be calculated from.
 	 * @typedef {("button" | "...")} ToolbarMenuItemType
@@ -2120,6 +2137,26 @@
 			window.g_asc_plugins.dockCallbacks[key]();
 			delete window.g_asc_plugins.dockCallbacks[key];
 		}
+	};
+
+	/**
+	 * Catch AI event from plugin
+	 * @memberof Api
+	 * @undocumented
+	 * @typeofeditors ["CDE", "CSE", "CPE", "PDF"]
+	 * @alias onAIRequest
+	 * @param {object} data - Data.
+	 * @since 9.0.0
+	 */
+	Api.prototype["pluginMethod_onAIRequest"] = function(data)
+	{
+		let curItem = this.aiResolvers[0];
+		this.aiResolvers.shift();
+
+		if (this.aiResolvers.length > 0)
+			this._AI();
+
+		curItem.resolve(data);
 	};
 
 })(window);

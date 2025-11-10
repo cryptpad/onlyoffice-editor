@@ -235,7 +235,7 @@ module.exports = function(grunt) {
 			cwd: '../pdf/',
 			src: [
 				'src/engine/*',
-				'src/annotations/stamps.json'
+				'src/annotations/stamps/*.json'
 			],
 			dest: path.join(deploy, 'pdf'),
 			name: 'pdf'
@@ -365,22 +365,22 @@ module.exports = function(grunt) {
 						}
 					]
 				},
-				// visio: {
-					// files: [
-						// {
-							// expand: true,
-							// cwd: visio,
-							// src: [
-								// 'sdk-all-min.js.map',
-								// 'sdk-all.js.map',
-							// ],
-							// dest: 'maps',
-							// rename: function (dest, src) {
-								// return path.join(dest , src.replace('sdk', 'visio'));
-							// }
-						// }
-					// ]
-				// }
+				visio: {
+					files: [
+						{
+							expand: true,
+							cwd: visio,
+							src: [
+								'sdk-all-min.js.map',
+								'sdk-all.js.map',
+							],
+							dest: 'maps',
+							rename: function (dest, src) {
+								return path.join(dest , src.replace('sdk', 'visio'));
+							}
+						}
+					]
+				}
 			},
 			clean: {
 				deploy: {
@@ -394,15 +394,15 @@ module.exports = function(grunt) {
 						path.join(cell, 'sdk-all.js.map'),
 						path.join(slide, 'sdk-all-min.js.map'),
 						path.join(slide, 'sdk-all.js.map'),
-						// path.join(visio, 'sdk-all-min.js.map'),
-						// path.join(visio, 'sdk-all.js.map'),
+						path.join(visio, 'sdk-all-min.js.map'),
+						path.join(visio, 'sdk-all.js.map'),
 					]
 				}
 			}
 		});
 		grunt.task.run('copy', 'clean');
 	});
-	grunt.registerTask('compile-sdk', ['compile-word', 'compile-cell', 'compile-slide'/* , 'compile-visio' */]);
+	grunt.registerTask('compile-sdk', ['compile-word', 'compile-cell', 'compile-slide', 'compile-visio']);
 	grunt.registerTask('clean-deploy', 'Clean deploy folder before deploying', function () {
 		grunt.initConfig({
 			clean: {
@@ -521,7 +521,7 @@ module.exports = function(grunt) {
 		writeScripts(configs.word['sdk'], 'word');
 		writeScripts(configs.cell['sdk'], 'cell');
 		writeScripts(configs.slide['sdk'], 'slide');
-		// writeScripts(configs.visio['sdk'], 'visio');
+		writeScripts(configs.visio['sdk'], 'visio');
 	});
 	const defaultTasks = ['clean-deploy', 'compile-sdk', 'copy-other'];
 	if (grunt.option('map')) {

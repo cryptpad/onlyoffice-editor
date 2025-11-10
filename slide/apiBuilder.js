@@ -434,6 +434,7 @@
         var oThemeCopy = oTheme.ThemeInfo.Theme.createDuplicate();
         var oMaster = new ApiMaster(new AscCommonSlide.MasterSlide());
         oMaster.Master.setTheme(oThemeCopy);
+				oMaster.Master.setPreserve(true);
 
         return oMaster;
     };
@@ -449,6 +450,7 @@
     Api.prototype.CreateLayout = function(oMaster){
         var oLayout = new ApiLayout(new AscCommonSlide.SlideLayout());
 
+				oLayout.Layout.setPreserve(true);
         if (oMaster && oMaster.GetClassType && oMaster.GetClassType() === "master")
             oMaster.AddLayout(undefined, oLayout);
         

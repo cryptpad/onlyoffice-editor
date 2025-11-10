@@ -3101,6 +3101,9 @@ CParaLineRange.prototype =
 		this.XEnd        += Dx;
 		this.XVisible    += Dx;
 		this.XEndVisible += Dx;
+		
+		if (this.XEndOrigin)
+			this.XEndOrigin += Dx;
     },
 
     Copy : function()
@@ -3115,6 +3118,9 @@ CParaLineRange.prototype =
         NewRange.EndPos      = this.EndPos;
         NewRange.W           = this.W;
         NewRange.Spaces      = this.Spaces;
+		
+		if (this.XEndOrigin)
+			NewRange.XEndOrigin = this.XEndOrigin;
 
         return NewRange;
     }

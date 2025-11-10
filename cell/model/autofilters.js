@@ -885,7 +885,7 @@
 								wsView.shiftCellWatches(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
 								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
-							worksheet._moveRange(rangeWithoutDiff, moveToRange);
+							worksheet._moveRange(rangeWithoutDiff, moveToRange, null, null, true/* table created */);
 							wsView.cellCommentator.moveRangeComments(rangeWithoutDiff, moveToRange);
 							wsView.moveCellWatches(rangeWithoutDiff, moveToRange);
 						} else if (!addNameColumn && styleName) {
@@ -1555,6 +1555,12 @@
 
 				if (userRange) {
 					activeCells = AscCommonExcel.g_oRangeCache.getAscRange(userRange);
+					if (!activeCells) {
+						let aRanges = AscCommonExcel.getRangeByName(userRange, this.worksheet);
+						if (aRanges && aRanges.length === 1) {
+							activeCells = aRanges[0] && aRanges[0].bbox;
+						}
+					}
 				}
 
 				//данная функция возвращает false в двух случаях - при смене стиля ф/т или при поптыке добавить ф/т к части а/ф
@@ -1772,7 +1778,7 @@
 						if (!_doAdd)//добавляем фильтр
 						{
 							if (cloneData.TableStyleInfo) {
-								worksheet.addTablePart.push(cloneData);
+								worksheet.addTablePart(cloneData);
 								t._setColorStyleTable(cloneData.Ref, cloneData, null, true);
 								t.updateSlicer(cloneData.DisplayName);
 							} else {
@@ -4471,7 +4477,7 @@
 				return range;
 			},
 
-			expandRange: function (activeRange, ignoreFilter, doNotCheckEmpty) {
+			expandRange: function (activeRange, ignoreFilter, doNotCheckEmpty, checkLastEmpty) {
 				var ws = this.worksheet;
 
 				//если вдруг встретили мерженную ячейку в диапазоне, расширяем
@@ -4708,6 +4714,14 @@
 					rangeAfterTableCrop = range.clone();
 					range = activeRange.clone();
 					doExpand();
+				}
+
+
+				if (checkLastEmpty) {
+					let _cropRange = this.checkEmptyAreas(range, rangeAfterTableCrop);
+					if (_cropRange.r2 !== range.r2 || _cropRange.c2 !== range.c2) {
+						return activeRange;
+					}
 				}
 
 				//проверяем на наличие пустых колонок/строк

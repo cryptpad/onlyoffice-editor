@@ -50,9 +50,10 @@
 	 * @constructor
 	 */
 	function Text_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		/**
-		 * if text is inherited so we consider that text fields in it have wrong values,
-		 * and we recalculate values them
+		 * if text is inherited (for calculate presentation field)
 		 */
 		this.isInherited = false;
 
@@ -76,6 +77,7 @@
 		// if you want to see \r\n set proper settings in your editor
 		return this;
 	}
+	AscFormat.InitClass(Text_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Text_Type.prototype.kind = c_oVsdxSheetStorageKind.Text_Type;
 
 	/**
@@ -84,11 +86,14 @@
 	 * @constructor
 	 */
 	function Data_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		this.value = null;
 		// to serialize in function writeShapeSheetElementsXml
 		this.tagName = null;
 		return this;
 	}
+	AscFormat.InitClass(Data_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Data_Type.prototype.kind = c_oVsdxSheetStorageKind.Data_Type;
 
 	/**
@@ -99,6 +104,8 @@
 	 * @constructor
 	 */
 	function ForeignData_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		this.foreignType = null;
 		this.objectType = null;
 		this.showAsIcon = null;
@@ -110,18 +117,25 @@
 		this.compressionType = null;
 		this.compressionLevel = null;
 		this.rel = null;
+		this.mediaFilename = null;
+		this.oleFilename = null;
 		return this;
 	}
+	AscFormat.InitClass(ForeignData_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	ForeignData_Type.prototype.kind = c_oVsdxSheetStorageKind.ForeignData_Type;
+
 
 	/**
 	 *    // https://learn.microsoft.com/ru-ru/office/client-developer/visio/trigger_type-complextypevisio-xml
 	 * @constructor
 	 */
 	function Trigger_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		this.refBy = [];
 		this.n = null;
 	}
+	AscFormat.InitClass(Trigger_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Trigger_Type.prototype.kind = c_oVsdxSheetStorageKind.Trigger_Type;
 	/**
 	 * Abstract class. For all Cell containers: ShapeSheet_Type (Sheet_Type) descendents and
@@ -129,7 +143,8 @@
 	 * @constructor
 	 */
 	function SheetStorage() {
-		// for ooxml classes
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 
 		// setSheetClassMembers
 
@@ -155,6 +170,7 @@
 		// this.data3 = null;
 		// this.foreignData = null;
 	}
+	AscFormat.InitClass(SheetStorage, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 
 	/**
 	 * Abstract class for ShapeSheet_Type (Sheet_Type) descendents only.
@@ -208,7 +224,7 @@
 	// When the IX attribute is not present, the index of the element is calculated implicitly
 	// by counting the number of  preceding Section_Type elements with the same N attribute in the containing
 	// Sheet_Type.
-
+	let lastIx = 0;
 	function createKeyFromSheetObject(object) {
 		let key;
 		if (object.kind === c_oVsdxSheetStorageKind.Cell_Type) {
@@ -216,16 +232,19 @@
 		} else if (object.kind === c_oVsdxSheetStorageKind.Row_Type) {
 			if (object.n !== null) {
 				key = object.n;
-			} else if (object.iX !== null) {
-				key = object.iX;
+			} else if (object.ix !== null) {
+				key = object.ix;
+				lastIx = object.ix;
 			} else {
-				AscCommon.consoleLog("Cant calculate key to store object", object);
+				key = lastIx;
+				lastIx++;
+				AscCommon.consoleLog("Ix key is generated to store object", object);
 			}
 		} else if (object.kind === c_oVsdxSheetStorageKind.Section_Type)	{
 			if (object.n === "Geometry") {
-				key = "Geometry_" + object.iX;
-			} else if (object.iX !== null) {
-				key = object.iX;
+				key = "Geometry_" + object.ix;
+			} else if (object.ix !== null) {
+				key = object.ix;
 			} else if (object.n !== null) {
 				key = object.n;
 			} else {
@@ -531,12 +550,12 @@
 			let resultArr = [];
 			for (const key in this.elements) {
 				const element = this.elements[key];
-				if (element.kind === c_oVsdxSheetStorageKind.Section_Type && String(element.iX) === formula) {
+				if (element.kind === c_oVsdxSheetStorageKind.Section_Type && String(element.ix) === formula) {
 					resultArr.push(element);
 				}
 			}
 			return resultArr;
-			// return findObjects(this.elements, "Section_Type", "iX", formula);
+			// return findObjects(this.elements, "Section_Type", "ix", formula);
 		}
 		let resultArr = [];
 		for (const key in this.elements) {
@@ -546,7 +565,7 @@
 			}
 		}
 		resultArr.sort(function (a, b) {
-				return a.iX - b.iX;
+				return a.ix - b.ix;
 		});
 		return resultArr;
 		// return findObjects(this.elements, "Section_Type", "n", formula);
@@ -568,9 +587,9 @@
 				resultArr.push(element);
 			}
 		}
-		resultArr.sort(function (a, b) {
-			return a.iX - b.iX;
-		});
+		// resultArr.sort(function (a, b) {
+		// 	return a.ix - b.ix;
+		// });
 		return resultArr;
 	}
 
@@ -595,7 +614,7 @@
 	function Section_Type() {
 		this.n = null;
 		this.del = null;
-		this.iX = null;
+		this.ix = null;
 
 		// always use getter setter methods
 		// Always use it see Shape_Type.prototype.realizeMasterToShapeInheritanceRecursive js docs for explanation.
@@ -621,7 +640,7 @@
 	function Row_Type() {
 		this.n = null;
 		this.localName = null;
-		this.iX = null;
+		this.ix = null;
 		this.t = null;
 		this.del = null;
 
@@ -647,6 +666,8 @@
 	 * @constructor
 	 */
 	function Cell_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		// read all as strings
 		/**
 		 * read as string
@@ -683,6 +704,7 @@
 		// left separate attributes refBy  and textContent and dont replace both by elements
 		return this;
 	}
+	AscFormat.InitClass(Cell_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Cell_Type.prototype.kind = c_oVsdxSheetStorageKind.Cell_Type;
 	/**
 	 * get String(cell.v)
@@ -742,7 +764,8 @@
 	 * @param {Shape_Type} shape
 	 * @param {Page_Type} pageInfo
 	 * @param {CTheme[]} themes
-	 * @param {{fontColor?: boolean, lineUniFill?: boolean, uniFillForegnd?: boolean}} themeValWasUsedFor - changes during function
+	 * @param {{fontColor?: boolean, lineUniFill?: boolean, uniFillForegnd?: boolean}?} themeValWasUsedFor - changes
+	 * during function. use only for font Color LineColor and FillColor cells otherwise undefined
 	 * @param {boolean?} gradientEnabled
 	 * @param {number?}  themedColorsRow
 	 * @return {(CUniFill | CUniColor | boolean | *)}
@@ -761,7 +784,7 @@
 		let fillColorResultCells = ["Color", "GradientStopColor"];
 		let numberResultCells = ["LinePattern", "LineWeight", "GradientStopColorTrans", "GradientStopPosition",
 		"FillGradientAngle", "EndArrowSize", "BeginArrowSize", "FillPattern", "LineCap"];
-		let stringResultCells = ["EndArrow", "BeginArrow"];
+		let stringResultCells = ["EndArrow", "BeginArrow", "Font"];
 		let booleanResultCells = ["FillGradientEnabled"];
 
 		// TODO handle 2.2.7.5	Fixed Theme
@@ -772,13 +795,15 @@
 			returnValue = AscVisio.themeval(this, shape, pageInfo, themes, undefined,
 				undefined, gradientEnabled, themedColorsRow);
 
-			if (cellName === "LineColor") {
-				themeValWasUsedFor.lineUniFill = true;
-			} else if (cellName === "FillForegnd") {
-				themeValWasUsedFor.uniFillForegnd = true;
-			} else if (cellName === "Color") {
-				// for text color
-				themeValWasUsedFor.fontColor = true;
+			if (themeValWasUsedFor) {
+				if (cellName === "LineColor") {
+					themeValWasUsedFor.lineUniFill = true;
+				} else if (cellName === "FillForegnd") {
+					themeValWasUsedFor.uniFillForegnd = true;
+				} else if (cellName === "Color") {
+					// for text color
+					themeValWasUsedFor.fontColor = true;
+				}
 			}
 		} else if (fillResultCells.includes(cellName) || fillColorResultCells.includes(cellName)) {
 			let rgba = null;
@@ -893,7 +918,7 @@
 					// This simple type represents an angle in 60,000ths of a degree. Positive angles are clockwise (i.e., towards the
 					// positive y axis); negative angles are counter-clockwise (i.e., towards the negative y axis)
 					// direction is considered in global transform
-					let stAngle = angleRads / Math.PI * 180 * 60000;
+					let stAngle = angleRads / Math.PI * 180 * AscFormat.degToC;
 					if (!isNaN(stAngle)) {
 						angle = stAngle;
 					} else {
@@ -946,45 +971,45 @@
 	}
 
 
-	/**
-	 * @memberOf Cell_Type
-	 * @return {number}
-	 */
-	Cell_Type.prototype.getValueInMM = function () {
-		let res;
-		//todo all units
-		switch (this.u) {
-			case "DL":
-			case "IN":
-			case "IN_F":
-				res = parseFloat(this.v) * g_dKoef_in_to_mm;
-				break;
-			case "FT":
-				res = parseFloat(this.v) * 12 * g_dKoef_in_to_mm;
-				break;
-			case "F_I":
-				res = parseFloat(this.v);
-				let intPart = Math.floor(res);
-				res = (intPart * 12 + (res - intPart)) * g_dKoef_in_to_mm;
-				break;
-			case "KM":
-				res = parseFloat(this.v) * 1000000;
-				break;
-			case "M":
-				res = parseFloat(this.v) * 1000;
-				break;
-			case "CM":
-				res = parseFloat(this.v) * 10;
-				break;
-			case "MM":
-				res = parseFloat(this.v);
-				break;
-			default:
-				res = parseFloat(this.v) * g_dKoef_in_to_mm;
-				break;
-		}
-		return res;
-	};
+	// /**
+	//  * @memberOf Cell_Type
+	//  * @return {number}
+	//  */
+	// Cell_Type.prototype.getValueInMM = function () {
+	// 	let res;
+	// 	//todo all units
+	// 	switch (this.u) {
+	// 		case "DL":
+	// 		case "IN":
+	// 		case "IN_F":
+	// 			res = parseFloat(this.v) * g_dKoef_in_to_mm;
+	// 			break;
+	// 		case "FT":
+	// 			res = parseFloat(this.v) * 12 * g_dKoef_in_to_mm;
+	// 			break;
+	// 		case "F_I":
+	// 			res = parseFloat(this.v);
+	// 			let intPart = Math.floor(res);
+	// 			res = (intPart * 12 + (res - intPart)) * g_dKoef_in_to_mm;
+	// 			break;
+	// 		case "KM":
+	// 			res = parseFloat(this.v) * 1000000;
+	// 			break;
+	// 		case "M":
+	// 			res = parseFloat(this.v) * 1000;
+	// 			break;
+	// 		case "CM":
+	// 			res = parseFloat(this.v) * 10;
+	// 			break;
+	// 		case "MM":
+	// 			res = parseFloat(this.v);
+	// 			break;
+	// 		default:
+	// 			res = parseFloat(this.v) * g_dKoef_in_to_mm;
+	// 			break;
+	// 	}
+	// 	return res;
+	// };
 
 	// /**
 	//  * @memberOf Cell_Type
@@ -1005,7 +1030,7 @@
 	 * @extends SheetStorageAndStyles
 	 */
 	function Shape_Type() {
-		this.iD = null;
+		this.id = null;
 		this.originalID = null;
 		this.del = null;
 		this.masterShape = null;
@@ -1062,7 +1087,7 @@
 	 * if shape has multiple layers attached only equal layer properties applied (and added to object).
 	 * @memberOf Shape_Type
 	 * @param {Page_Type} pageInfo
-	 * @return {*}
+	 * @return {{ [key: string]: Cell_Type }} An object mapping string identifiers to Cell_Type instances
 	 */
 	Shape_Type.prototype.getLayerProperties = function getLayerProperties(pageInfo) {
 		let layerMemberString = this.getCellStringValue("LayerMember");
@@ -1074,36 +1099,55 @@
 		if (layersInfo === undefined) {
 			return {};
 		}
-		let previousLayer = undefined;
+		let previousLayerElements = undefined;
 		/** @type {Set<string>} */
 		let unEqualProperties = new Set();
 		layersArray.forEach(function (layerIndexString) {
 			let layerIndex = Number(layerIndexString);
 			let layerInfo = layersInfo.getRow(layerIndex);
-			if (previousLayer === undefined) {
-				previousLayer = layerInfo;
+			let layerElements = layerInfo.getElements();
+
+			// Unlink original array
+			let layerElementsCopy= {};
+			for (const key in layerElements) {
+				if (layerElements.hasOwnProperty(key)) {
+					layerElementsCopy[key] = layerElements[key];
+				}
+			}
+
+			// Set default color
+			if (layerElementsCopy["Color"] === undefined) {
+				let defaultColorCell = new Cell_Type();
+				defaultColorCell.n = "Color";
+				defaultColorCell.v = "0";
+				layerElementsCopy["Color"] = defaultColorCell;
+			}
+
+			if (previousLayerElements === undefined) {
+				previousLayerElements = layerElementsCopy;
 			} else {
 				// compare with previous shape layer
-				for (const cellKey in layerInfo.getElements()) {
-					const cell = layerInfo.getCell(cellKey);
-					let previousLayerCell = previousLayer.getCell(cell.n);
+				for (const cellKey in layerElementsCopy) {
+					const cell = layerElementsCopy[cellKey];
+					let previousLayerCell = previousLayerElements[cell.n];
 					if (previousLayerCell.v !== cell.v) {
 						unEqualProperties.add(cell.n);
 					}
 				}
-				previousLayer = layerInfo;
+				previousLayerElements = layerElementsCopy;
 			}
 		});
 		// layers have the same set of properties so lets take any of them
 		// and remove unEqualProperties
+		/** @type {{ [key: string]: Cell_Type }} */
 		let resultObject = {};
-		if (previousLayer === undefined) {
+		if (previousLayerElements === undefined) {
 			return resultObject;
 		}
-		for (const cellKey in previousLayer.getElements()) {
-			const cell = previousLayer.getCell(cellKey);
+		for (const cellKey in previousLayerElements) {
+			const cell = previousLayerElements[cellKey];
 			if (!unEqualProperties.has(cell.n)) {
-				resultObject[cell.n] = cell.v;
+				resultObject[cell.n] = cell;
 			}
 		}
 		return resultObject;
@@ -1271,15 +1315,17 @@
 		let topShapeMasterId = this.getMasterID();
 		if (topShapeMasterId !== null && topShapeMasterId !== undefined) {
 			let topShapeMasterIndex = masters.findIndex(function(masterObject) {
-				return masterObject.iD === topShapeMasterId;
+				return masterObject.id === topShapeMasterId;
 			});
 			let topShapeMaster = masters[topShapeMasterIndex];
 
-			let masterShapes = topShapeMaster.content.shapes;
-			masterShapesToInheritFrom = masterShapes;
+			if (topShapeMaster) {
+				let masterShapes = topShapeMaster.content.shapes;
+				masterShapesToInheritFrom = masterShapes;
 
-			// all descendant shapes will inherit from that master
-			ancestorMasterShapes = masterShapesToInheritFrom;
+				// all descendant shapes will inherit from that master
+				ancestorMasterShapes = masterShapesToInheritFrom;
+			}
 		}
 
 		// check MasterShape attribute and set shapes/shape
@@ -1294,7 +1340,7 @@
 					// if master has one top level shape
 					let masterSubshapes = ancestorMasterShapes[0].collectSubshapesRecursive();
 					masterIndex = masterSubshapes.findIndex(function (masterSubshape) {
-						return masterShapeId === masterSubshape.iD;
+						return masterShapeId === masterSubshape.id;
 					});
 					let masterShape = masterSubshapes[masterIndex];
 					masterShapesToInheritFrom = [masterShape];
@@ -1305,7 +1351,7 @@
 						masterSubshapes = masterSubshapes.concat(masterSubshapesNth);
 					})
 					masterIndex = masterSubshapes.findIndex(function (masterSubshape) {
-						return masterShapeId === masterSubshape.iD;
+						return masterShapeId === masterSubshape.id;
 					});
 					let masterShape = masterSubshapes[masterIndex];
 					masterShapesToInheritFrom = [masterShape];
@@ -1410,7 +1456,7 @@
 
 		function findIndexComparingByMasterShapeAttribute(shapeSubshapes, masterSubshape) {
 			return shapeSubshapes.findIndex(function (element) {
-				return element.masterShape === masterSubshape.iD;
+				return element.masterShape === masterSubshape.id;
 			});
 		}
 	}
@@ -1495,7 +1541,7 @@
 			if (thisArgument.lineStyle !== null) {
 				let styleId = Number(thisArgument.lineStyle);
 				let styleSheet = styles.find(function(style) {
-					return style.iD === styleId;
+					return style.id === styleId;
 				});
 				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
@@ -1505,7 +1551,7 @@
 			if (thisArgument.fillStyle !== null) {
 				let styleId = Number(thisArgument.fillStyle);
 				let styleSheet = styles.find(function(style) {
-					return style.iD === styleId;
+					return style.id === styleId;
 				});
 				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
@@ -1515,7 +1561,7 @@
 			if (thisArgument.textStyle !== null) {
 				let styleId = Number(thisArgument.textStyle);
 				let styleSheet = styles.find(function(style) {
-					return style.iD === styleId;
+					return style.id === styleId;
 				});
 				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
@@ -1537,7 +1583,7 @@
 		// if lineStyle === textStyle === fillStyle so let's take lineStyle
 		let styleId = Number(thisArgument.lineStyle);
 		let styleSheet = styles.find(function(style) {
-			return style.iD === styleId;
+			return style.id === styleId;
 		});
 		setIsConnectorStyleInherited(thisArgument, styleSheet);
 
@@ -1701,7 +1747,7 @@
 	 * @constructor
 	 */
 	function Page_Type() {
-		this.iD = null;
+		this.id = null;
 		this.name = null;
 		this.nameU = null;
 		this.isCustomName = null;
@@ -1715,8 +1761,12 @@
 		this.associatedPage = null;
 		this.pageSheet = null;
 		this.rel = null;
+
+		//todo objectId
+		this.deleteLock = new AscVisio.PropLocker(undefined);
 		return this;
 	}
+	AscFormat.InitClass(Page_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 
 	/**
 	 * // Docs old:
@@ -1773,7 +1823,7 @@
 	 * @extends SheetStorageAndStyles
 	 */
 	function StyleSheet_Type() {
-		this.iD = null;
+		this.id = null;
 		this.name = null;
 		this.nameU = null;
 		this.isCustomName = null;
@@ -1804,7 +1854,7 @@
 	 * @extends SheetStorageAndStyles
 	 */
 	function ShapeSheet_Type() {
-		this.iD = null;
+		this.id = null;
 		this.originalID = null;
 		this.del = null;
 		this.masterShape = null;
@@ -1831,7 +1881,63 @@
 	ShapeSheet_Type.prototype = Object.create(SheetStorageAndStyles.prototype);
 	ShapeSheet_Type.prototype.constructor = ShapeSheet_Type;
 
+	// Docs old:
+// Icon_Type complexType: https://learn.microsoft.com/ru-ru/office/client-developer/visio/icon_type-complextypevisio-xml
+	function Icon_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
 
+		this.value = null;
+		return this;
+	}
+	AscFormat.InitClass(Icon_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
+
+
+	//todo move to commons
+	function PropLocker(objectId)
+	{
+		this.objectId = null;
+		this.Lock = new AscCommon.CLock();
+		this.Id = AscCommon.g_oIdCounter.Get_NewId();
+		g_oTableId.Add(this, this.Id);
+
+		if(typeof  objectId === "string")
+		{
+			this.setObjectId(objectId);
+		}
+
+	}
+
+	PropLocker.prototype = {
+
+		getObjectType: function()
+		{
+			return AscDFH.historyitem_type_PropLocker;
+		},
+		setObjectId: function(id)
+		{
+			//todo
+			//History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PropLockerSetId, this.objectId, id));
+			this.objectId = id;
+		},
+		Get_Id: function()
+		{
+			return this.Id;
+		},
+		Write_ToBinary2: function(w)
+		{
+			w.WriteLong(AscDFH.historyitem_type_PropLocker);
+			w.WriteString2(this.Id);
+		},
+
+		Read_FromBinary2: function(r)
+		{
+			this.Id = r.GetString2();
+		},
+
+		Refresh_RecalcData: function()
+		{}
+
+	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']            = window['Asc'] || {};
@@ -1845,6 +1951,7 @@
 
 
 	window['AscVisio'].c_oVsdxSheetStorageKind = c_oVsdxSheetStorageKind;
+	window['AscVisio'].SheetStorageAndStyles = SheetStorageAndStyles;
 	window['AscVisio'].Text_Type = Text_Type;
 	window['AscVisio'].Data_Type = Data_Type;
 	window['AscVisio'].ForeignData_Type = ForeignData_Type;
@@ -1858,6 +1965,8 @@
 	window['AscVisio'].DocumentSheet_Type = DocumentSheet_Type;
 	window['AscVisio'].StyleSheet_Type = StyleSheet_Type;
 	window['AscVisio'].ShapeSheet_Type = ShapeSheet_Type;
+	window['AscVisio'].Icon_Type = Icon_Type;
+	window['AscVisio'].PropLocker = PropLocker;
 	window['AscVisio'].createKeyFromSheetObject = createKeyFromSheetObject;
 
 })(window, window.document);

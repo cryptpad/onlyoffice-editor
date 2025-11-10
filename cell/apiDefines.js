@@ -640,85 +640,51 @@ var c_oAscPopUpSelectorType = {
     changeSeries : 1  // fill right click mouse - series menu
   };
 
+	var c_oAscSpreadsheetShortcutType = {
+		RefreshAllPivots         : 1,
+		RefreshSelectedPivots    : 2,
+		EditSelectAll            : 3,
+		RecalculateAll           : 4,
+		RecalculateActiveSheet   : 5,
+		CellInsertDate           : 6,
+		CellInsertTime           : 7,
+		CellInsertSumFunction    : 8,
+		NextWorksheet            : 9,
+		PreviousWorksheet        : 10,
+		Strikeout                : 11,
+		Italic                   : 12,
+		Bold                     : 13,
+		Underline                : 14,
+		EditUndo                 : 15,
+		EditRedo                 : 16,
+		SpeechWorker             : 17,
+		Print                    : 18,
+		EditOpenCellEditor       : 19,
+		CellAddSeparator         : 20,
+		CellNumberFormat         : 21,
+		CellTimeFormat           : 22,
+		CellDateFormat           : 23,
+		CellCurrencyFormat       : 24,
+		CellPercentFormat        : 25,
+		CellExponentialFormat    : 26,
+		CellGeneralFormat        : 27,
+		ShowFormulas             : 28,
+		IncreaseFontSize         : 29,
+		DecreaseFontSize         : 31,
+		DrawingSubscript         : 32,
+		DrawingSuperscript       : 33,
+		DrawingCenterPara        : 34,
+		DrawingJustifyPara       : 35,
+		DrawingLeftPara          : 36,
+		DrawingRightPara         : 37,
+		CellEditorSwitchReference: 38,
+		DrawingEnDash            : 39
+	};
+
   var c_oAscCalcMode = {
     auto: 0,
     autoNoTable: 1,
     manual: 2
-  };
-
-  const c_oAscCellShortcutType = {
-    refreshAllConnections     : 0,
-    refreshSelectedConnections: 1,
-    changeFormatTableInfo     : 2,
-    calculateAll              : 3,
-    calculateActiveSheet      : 5,
-    focusOnCellEditor         : 7,
-    addDate                   : 8,
-    addTime                   : 9,
-    removeActiveCell          : 10,
-    emptyRange                : 11,
-    moveActiveCellToLeft      : 12,
-    moveActiveCellToRight     : 13,
-    moveActiveCellToDown      : 14,
-    moveActiveCellToUp        : 15,
-    reset                     : 16,
-    disableNumLock            : 17,
-    disableScrollLock         : 18,
-    selectColumn              : 19,
-    selectRow                 : 20,
-    selectSheet               : 21,
-    addSeparator              : 22,
-    goToPreviousSheet         : 23,
-    moveToTopCell             : 24,
-    moveToNextSheet           : 25,
-    moveToLeftEdgeCell        : 26,
-    selectToLeftEdgeCell      : 27,
-    moveToLeftCell            : 28,
-    selectToLeftCell          : 29,
-    moveToRightEdgeCell       : 30,
-    selectToRightEdgeCell     : 31,
-    moveToRightCell           : 32,
-    selectToRightCell         : 33,
-    selectToTopCell           : 34,
-    moveToUpCell              : 35,
-    selectToUpCell            : 36,
-    moveToBottomCell          : 37,
-    selectToBottomCell        : 38,
-    moveToDownCell            : 39,
-    selectToDownCell          : 40,
-    moveToFirstColumn         : 41,
-    selectToFirstColumn       : 42,
-    moveToLeftEdgeTop         : 43,
-    selectToLeftEdgeTop       : 44,
-    moveToRightBottomEdge     : 45,
-    selectToRightBottomEdge   : 46,
-    setNumberFormat           : 47,
-    setTimeFormat             : 48,
-    setDateFormat             : 49,
-    setCurrencyFormat         : 50,
-    setPercentFormat          : 51,
-    setStrikethrough          : 52,
-    setExponentialFormat      : 53,
-    setBold                   : 54,
-    setItalic                 : 55,
-    setUnderline              : 56,
-    setGeneralFormat          : 57,
-    redo                      : 58,
-    undo                      : 59,
-    print                     : 60,
-    addSum                    : 61,
-    moveToUpperCell           : 62,
-    contextMenu               : 63,
-    moveToLowerCell           : 64,
-    selectToLowerCell         : 65,
-    selectToUpperCell         : 66,
-    showFilterOptions         : 67,
-    showAutoComplete          : 68,
-    showDataValidation        : 69,
-    increaseFontSize          : 70,
-    decreaseFontSize          : 71,
-    selectAll                 : 72,
-    save                      : 73
   };
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -1177,86 +1143,51 @@ var c_oAscPopUpSelectorType = {
   prot['common'] = prot.common;
   prot['changeSeries'] = prot.changeSeries;
 
+	window['Asc']['c_oAscSpreadsheetShortcutType'] = window['Asc'].c_oAscSpreadsheetShortcutType = c_oAscSpreadsheetShortcutType;
+	prot = c_oAscSpreadsheetShortcutType;
+	prot["RefreshAllPivots"] = prot.RefreshAllPivots;
+	prot["RefreshSelectedPivots"] = prot.RefreshSelectedPivots;
+	prot["EditSelectAll"] = prot.EditSelectAll;
+	prot["RecalculateAll"] = prot.RecalculateAll;
+	prot["RecalculateActiveSheet"] = prot.RecalculateActiveSheet;
+	prot["CellInsertDate"] = prot.CellInsertDate;
+	prot["CellInsertTime"] = prot.CellInsertTime;
+	prot["CellInsertSumFunction"] = prot.CellInsertSumFunction;
+	prot["NextWorksheet"] = prot.NextWorksheet;
+	prot["PreviousWorksheet"] = prot.PreviousWorksheet;
+	prot["Strikeout"] = prot.Strikeout;
+	prot["Italic"] = prot.Italic;
+	prot["Bold"] = prot.Bold;
+	prot["Underline"] = prot.Underline;
+	prot["EditUndo"] = prot.EditUndo;
+	prot["EditRedo"] = prot.EditRedo;
+	prot["SpeechWorker"] = prot.SpeechWorker;
+	prot["Print"] = prot.Print;
+	prot["EditOpenCellEditor"] = prot.EditOpenCellEditor;
+	prot["CellAddSeparator"] = prot.CellAddSeparator;
+	prot["CellNumberFormat"] = prot.CellNumberFormat;
+	prot["CellTimeFormat"] = prot.CellTimeFormat;
+	prot["CellDateFormat"] = prot.CellDateFormat;
+	prot["CellCurrencyFormat"] = prot.CellCurrencyFormat;
+	prot["CellPercentFormat"] = prot.CellPercentFormat;
+	prot["CellExponentialFormat"] = prot.CellExponentialFormat;
+	prot["CellGeneralFormat"] = prot.CellGeneralFormat;
+	prot["ShowFormulas"] = prot.ShowFormulas;
+	prot["IncreaseFontSize"] = prot.IncreaseFontSize;
+	prot["DecreaseFontSize"] = prot.DecreaseFontSize;
+	prot["DrawingSubscript"] = prot.DrawingSubscript;
+	prot["DrawingSuperscript"] = prot.DrawingSuperscript;
+	prot["DrawingCenterPara"] = prot.DrawingCenterPara;
+	prot["DrawingJustifyPara"] = prot.DrawingJustifyPara;
+	prot["DrawingLeftPara"] = prot.DrawingLeftPara;
+	prot["DrawingRightPara"] = prot.DrawingRightPara;
+	prot["DrawingEnDash"] = prot.DrawingEnDash;
+	prot["CellEditorSwitchReference"] = prot.CellEditorSwitchReference;
+
   window['Asc']['c_oAscCalcMode'] = window['Asc'].c_oAscCalcMode = c_oAscCalcMode;
   prot = c_oAscCalcMode;
   prot['auto'] = prot.auto;
   prot['autoNoTable'] = prot.autoNoTable;
   prot['manual'] = prot.manual;
-
-
-  window['Asc']['c_oAscCellShortcutType'] = window['Asc'].c_oAscCellShortcutType = c_oAscCellShortcutType;
-  prot = c_oAscCellShortcutType;
-  prot['refreshAllConnections']       = c_oAscCellShortcutType.refreshAllConnections;
-  prot['refreshSelectedConnections']  = c_oAscCellShortcutType.refreshSelectedConnections;
-  prot['changeFormatTableInfo']       = c_oAscCellShortcutType.changeFormatTableInfo;
-  prot['calculateAll']                = c_oAscCellShortcutType.calculateAll;
-  prot['calculateActiveSheet']        = c_oAscCellShortcutType.calculateActiveSheet;
-  prot['focusOnCellEditor']           = c_oAscCellShortcutType.focusOnCellEditor;
-  prot['addDate']                     = c_oAscCellShortcutType.addDate;
-  prot['addTime']                     = c_oAscCellShortcutType.addTime;
-  prot['removeActiveCell']            = c_oAscCellShortcutType.removeActiveCell;
-  prot['emptyRange']                  = c_oAscCellShortcutType.emptyRange;
-  prot['moveActiveCellToLeft']        = c_oAscCellShortcutType.moveActiveCellToLeft;
-  prot['moveActiveCellToRight']       = c_oAscCellShortcutType.moveActiveCellToRight;
-  prot['moveActiveCellToDown']        = c_oAscCellShortcutType.moveActiveCellToDown;
-  prot['moveActiveCellToUp']          = c_oAscCellShortcutType.moveActiveCellToUp;
-  prot['reset']                       = c_oAscCellShortcutType.reset;
-  prot['disableNumLock']              = c_oAscCellShortcutType.disableNumLock;
-  prot['disableScrollLock']           = c_oAscCellShortcutType.disableScrollLock;
-  prot['selectColumn']                = c_oAscCellShortcutType.selectColumn;
-  prot['selectRow']                   = c_oAscCellShortcutType.selectRow;
-  prot['selectSheet']                 = c_oAscCellShortcutType.selectSheet;
-  prot['addSeparator']                = c_oAscCellShortcutType.addSeparator;
-  prot['goToPreviousSheet']           = c_oAscCellShortcutType.goToPreviousSheet;
-  prot['moveToTopCell']               = c_oAscCellShortcutType.moveToTopCell;
-  prot['moveToNextSheet']             = c_oAscCellShortcutType.moveToNextSheet;
-  prot['moveToLeftEdgeCell']          = c_oAscCellShortcutType.moveToLeftEdgeCell;
-  prot['selectToLeftEdgeCell']        = c_oAscCellShortcutType.selectToLeftEdgeCell;
-  prot['moveToLeftCell']              = c_oAscCellShortcutType.moveToLeftCell;
-  prot['selectToLeftCell']            = c_oAscCellShortcutType.selectToLeftCell;
-  prot['moveToRightEdgeCell']         = c_oAscCellShortcutType.moveToRightEdgeCell;
-  prot['selectToRightEdgeCell']       = c_oAscCellShortcutType.selectToRightEdgeCell;
-  prot['moveToRightCell']             = c_oAscCellShortcutType.moveToRightCell;
-  prot['selectToRightCell']           = c_oAscCellShortcutType.selectToRightCell;
-  prot['selectToTopCell']             = c_oAscCellShortcutType.selectToTopCell;
-  prot['moveToUpCell']                = c_oAscCellShortcutType.moveToUpCell;
-  prot['selectToUpCell']              = c_oAscCellShortcutType.selectToUpCell;
-  prot['moveToBottomCell']            = c_oAscCellShortcutType.moveToBottomCell;
-  prot['selectToBottomCell']          = c_oAscCellShortcutType.selectToBottomCell;
-  prot['moveToDownCell']              = c_oAscCellShortcutType.moveToDownCell;
-  prot['selectToDownCell']            = c_oAscCellShortcutType.selectToDownCell;
-  prot['moveToFirstColumn']           = c_oAscCellShortcutType.moveToFirstColumn;
-  prot['selectToFirstColumn']         = c_oAscCellShortcutType.selectToFirstColumn;
-  prot['moveToLeftEdgeTop']           = c_oAscCellShortcutType.moveToLeftEdgeTop;
-  prot['selectToLeftEdgeTop']         = c_oAscCellShortcutType.selectToLeftEdgeTop;
-  prot['moveToRightBottomEdge']       = c_oAscCellShortcutType.moveToRightBottomEdge;
-  prot['selectToRightBottomEdge']     = c_oAscCellShortcutType.selectToRightBottomEdge;
-  prot['setNumberFormat']             = c_oAscCellShortcutType.setNumberFormat;
-  prot['setTimeFormat']               = c_oAscCellShortcutType.setTimeFormat;
-  prot['setDateFormat']               = c_oAscCellShortcutType.setDateFormat;
-  prot['setCurrencyFormat']           = c_oAscCellShortcutType.setCurrencyFormat;
-  prot['setPercentFormat']            = c_oAscCellShortcutType.setPercentFormat;
-  prot['setStrikethrough']            = c_oAscCellShortcutType.setStrikethrough;
-  prot['setExponentialFormat']        = c_oAscCellShortcutType.setExponentialFormat;
-  prot['setBold']                     = c_oAscCellShortcutType.setBold;
-  prot['setItalic']                   = c_oAscCellShortcutType.setItalic;
-  prot['setUnderline']                = c_oAscCellShortcutType.setUnderline;
-  prot['setGeneralFormat']            = c_oAscCellShortcutType.setGeneralFormat;
-  prot['redo']                        = c_oAscCellShortcutType.redo;
-  prot['undo']                        = c_oAscCellShortcutType.undo;
-  prot['print']                       = c_oAscCellShortcutType.print;
-  prot['addSum']                      = c_oAscCellShortcutType.addSum;
-  prot['moveToUpperCell']             = c_oAscCellShortcutType.moveToUpperCell;
-  prot['contextMenu']                 = c_oAscCellShortcutType.contextMenu;
-  prot['moveToLowerCell']             = c_oAscCellShortcutType.moveToLowerCell;
-  prot['selectToLowerCell']           = c_oAscCellShortcutType.selectToLowerCell;
-  prot['selectToUpper Cell']          = c_oAscCellShortcutType.selectToUpperCell;
-  prot['showFilterOptions']           = c_oAscCellShortcutType.showFilterOptions;
-  prot['showAutoComplete']            = c_oAscCellShortcutType.showAutoComplete;
-  prot['showDataValidation']          = c_oAscCellShortcutType.showDataValidation;
-  prot['increaseFontSize']            = c_oAscCellShortcutType.increaseFontSize;
-  prot['decreaseFontSize']            = c_oAscCellShortcutType.decreaseFontSize;
-  prot['selectAll']                   = c_oAscCellShortcutType.selectAll;
-  prot['save']                        = c_oAscCellShortcutType.save;
 
 })(window);

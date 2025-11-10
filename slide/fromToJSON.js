@@ -1811,7 +1811,7 @@
 		//txStyles
 		oParsedMaster["txStyles"] && oMasterSlide.setTxStyles(this.TxStylesFromJSON(oParsedMaster["txStyles"]));
 
-		oMasterSlide.preserve    = oParsedMaster["preserve"];
+		oMasterSlide.setPreserve(oParsedMaster["preserve"]);
 		oMasterSlide.ImageBase64 = oParsedMaster["imgBase64"];
 
 		if (!oPres)
@@ -2118,7 +2118,7 @@
 		oParsedLayout["transition"] && oLayout.applyTransition(this.TransitionFromJSON(oParsedLayout["transition"]));
 
 		oParsedLayout["matchingName"] && oLayout.setMatchingName(oParsedLayout["matchingName"]);
-		oLayout.preserve = oParsedLayout["preserve"];	
+		oLayout.setPreserve(oParsedLayout["preserve"]);
 		oParsedLayout["showMasterPhAnim"] && oLayout.setShowPhAnim(oParsedLayout["showMasterPhAnim"]);
 		oParsedLayout["showMasterSp"] && oLayout.setShowMasterSp(oParsedLayout["showMasterSp"]);
 		oLayout.userDrawn = oParsedLayout["userDrawn"];

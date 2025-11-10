@@ -796,6 +796,8 @@
 					return AscCommon.c_oEditorId.Spreadsheet;
 				case "PPTY":
 					return AscCommon.c_oEditorId.Presentation;
+				case "VSDY":
+					return AscCommon.c_oEditorId.Visio;
 			}
 		}
 		return null;
@@ -1470,6 +1472,7 @@
 		"uf": "#UNSUPPORTED_FUNCTION!",
 		"calc": "#CALC!",
 		"spill": "#SPILL!",
+		"busy": "#BUSY!",
 	};
 	var cErrorLocal = {};
 	let cCellFunctionLocal = {};
@@ -1496,14 +1499,14 @@
 
 	function build_rx_table_cur()
 	{
-		var loc_all                          = cStrucTableLocalColumns['a'],
+		let loc_all                          = cStrucTableLocalColumns['a'],
 			loc_headers                      = cStrucTableLocalColumns['h'],
 			loc_data                         = cStrucTableLocalColumns['d'],
 			loc_totals                       = cStrucTableLocalColumns['t'],
 			loc_this_row                     = cStrucTableLocalColumns['tr'],
 			structured_tables_headata        = new XRegExp('(?:\\[\\#' + loc_headers + '\\]\\' + FormulaSeparators.functionArgumentSeparator + '\\[\\#' + loc_data + '\\])'),
 			structured_tables_datals         = new XRegExp('(?:\\[\\#' + loc_data + '\\]\\' + FormulaSeparators.functionArgumentSeparator + '\\[\\#' + loc_totals + '\\])'),
-			structured_tables_userColumn     = new XRegExp('(?:\'\\[|\'\\]|[^[\\]])+'),
+			structured_tables_userColumn     = new XRegExp('\\s*\\[{0,1}(?:\'\\[|\'\\]|[^[\\]])+\\]{0,1}\\s*'),
 			structured_tables_reservedColumn = new XRegExp('\\#(?:' + loc_all + '|' + loc_headers + '|' + loc_totals + '|' + loc_data + /*'|' + loc_this_row + */')'),
 			structured_tables_thisRow        = new XRegExp('(?:\\#(?:' + loc_this_row +')|(?:\\@))');
 
@@ -1529,7 +1532,7 @@
 		let argsSeparator = FormulaSeparators.functionArgumentSeparator;
 		return XRegExp.build('^(?<tableName>{{tableName}})\\[(?<columnName1>{{columnName}})?\\]', {
 			"tableName":  new XRegExp("^(:?[" + str_namedRanges + "][" + str_namedRanges + "\\d.]*)"),
-			"columnName": XRegExp.build('(?<reservedColumn>{{reservedColumn}}|{{thisRow}})|(?<oneColumn>{{userColumn}})|(?<columnRange>{{userColumnRange}})|(?<hdtcc>{{hdtcc}})', {
+			"columnName": XRegExp.build('(?<hdtcc>{{hdtcc}})|(?<reservedColumn>{{reservedColumn}}|{{thisRow}})|(?<columnRange>{{userColumnRange}})|(?<oneColumn>{{userColumn}})', {
 				"userColumn":      structured_tables_userColumn,
 				"reservedColumn":  structured_tables_reservedColumn,
 				"thisRow": structured_tables_thisRow,
@@ -1577,7 +1580,8 @@
 			"getdata": "#GETTING_DATA",
 			"uf":      "#UNSUPPORTED_FUNCTION!",
 			"calc":    "#CALC!",
-			"spill":   "#SPILL!"
+			"spill":   "#SPILL!",
+			"busy":    "#BUSY!"
 		};
 		cErrorLocal['nil'] = local['nil'];
 		cErrorLocal['div'] = local['div'];
@@ -1590,6 +1594,7 @@
 		cErrorLocal['uf'] = local['uf'];
 		cErrorLocal['calc'] = local['calc'];
 		cErrorLocal['spill'] = local['spill'];
+		cErrorLocal['busy'] = local['busy'];
 
 		return new RegExp("^(" + cErrorLocal["nil"] + "|" +
 			cErrorLocal["div"] + "|" +
@@ -1601,7 +1606,8 @@
 			cErrorLocal["getdata"] + "|" +
 			cErrorLocal["uf"] + "|" +
 			cErrorLocal["calc"] + "|" +
-			cErrorLocal["spill"] + ")", "i")
+			cErrorLocal["spill"] + "|" +
+			cErrorLocal["busy"] + ")", "i")
 	}
 
 	function build_rx_cell_func(local)
@@ -2122,6 +2128,8 @@
 				return c_oAscFileType.XLSY;
 			case 'pptt':
 				return c_oAscFileType.PPTY;
+			case 'vsdt':
+				return c_oAscFileType.VSDY;
 		}
 		return c_oAscFileType.UNKNOWN;
 	}
@@ -3877,19 +3885,44 @@
 			return true;
 		}
 	};
-	parserHelper.prototype.isTable = function (formula, start_pos, local)
+	parserHelper.prototype.isTable = function (formula, start_pos, local, parserFormula)
 	{
 		if (this instanceof parserHelper)
 		{
 			this._reset();
 		}
-		let subSTR = formula.substring(start_pos),
-		match = XRegExp.exec(subSTR, local ? rx_table_local : rx_table);
+		let subSTR = formula.substring(start_pos);
+		/*
+			short notation can be used inside table cells
+			short entry - an entry without table name, but with the same syntax 
+		*/
+		let tableIntersection;
+		if (local && subSTR[0] === "[" && parserFormula.parent && parserFormula.ws && parserFormula.ws.TableParts) {
+			let col = parserFormula.parent.nCol;
+			let row = parserFormula.parent.nRow;
+			// go through each existing table and check intersection by col row
+			for (let i = 0; i < parserFormula.ws.TableParts.length; i++) {
+				let table = parserFormula.ws.TableParts[i];
+				let tableRef = table.Ref;
+				if (!tableRef.contains(col, row)) {
+					continue;
+				}
+				tableIntersection = table;
+				break;
+			}
+
+			if (tableIntersection) {
+				// add the table name to the beginning of the line for correct checking further  
+				subSTR = tableIntersection.DisplayName + subSTR;
+			}
+		}
+
+		const match = XRegExp.exec(subSTR, local ? rx_table_local : rx_table);
 
 		if (match != null && match["tableName"])
 		{
-			this.operand_str = match[0];
-			this.pCurrPos += match[0].length;
+			this.operand_str = tableIntersection ? "[" + match.columnName1 + "]" : match[0];
+			this.pCurrPos += tableIntersection ? match.columnName1.length + 2 : match[0].length;
 			return match;
 		}
 
@@ -4082,6 +4115,12 @@
 		else
 		{
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
+			if (!range && model && cDialogType.FormatTable === dialogType && AscCommon.rx_defName.test(dataRange)) {
+				let aRanges = AscCommonExcel.getRangeByName(dataRange, model.getActiveWs());
+				if (aRanges && aRanges.length === 1) {
+					range = aRanges[0] && aRanges[0].bbox;
+				}
+			}
 		}
 
 		if (!range && cDialogType.DataValidation !== dialogType && cDialogType.ConditionalFormattingRule !== dialogType && cDialogType.GoalSeek_Cell !== dialogType &&
@@ -4468,6 +4507,8 @@
 		this.m_nOFormLoadCounter = 0;
 		this.m_nOFormEditCounter = 0;
 		
+		this.m_nPdfNewFormCounter = 0;
+
 		this.m_nTurnOffCounter = 0;
 	}
 
@@ -4504,6 +4545,8 @@
 
 		this.m_nOFormLoadCounter = 0;
 		this.m_nOFormEditCounter = 0;
+
+		this.m_nPdfNewFormCounter = 0;
 	};
 	CIdCounter.prototype.GetNewIdForOForm = function()
 	{
@@ -4511,6 +4554,10 @@
 			return ("_oform_" + (++this.m_nOFormLoadCounter));
 		else
 			return ("" + this.m_sUserId + "_oform_" + (++this.m_nOFormEditCounter));
+	};
+	CIdCounter.prototype.GetNewIdForPdfForm = function()
+	{
+		return ++this.m_nPdfNewFormCounter;
 	};
 
 	function CLock()
@@ -10805,8 +10852,12 @@
 	
 	function ExecuteNoHistory(f, oLogicDocument, oThis, args)
 	{
+		// TODO: Заменить на нормальное обращение Asc.editor.getLogicDocument
+		if (!oLogicDocument && editor && editor.WordControl)
+			oLogicDocument = editor.WordControl.m_oLogicDocument;
+		
+		
 		// TODO: Надо перевести все редакторы на StartNoHistoryMode/EndNoHistoryMode
-
 		let oState = null, isTableId = false;
 		if (oLogicDocument && oLogicDocument.IsDocumentEditor && oLogicDocument.IsDocumentEditor())
 		{
@@ -10851,6 +10902,20 @@
 		logicDocument.SetLocalTrackRevisions(false);
 		let result = f.apply(t, args);
 		logicDocument.SetLocalTrackRevisions(localFlag);
+		return result;
+	}
+	
+	function executeNoPreDelete(f, logicDocument, t, args)
+	{
+		if (!logicDocument
+			|| !logicDocument.IsDocumentEditor
+			|| !logicDocument.IsDocumentEditor())
+			return f.apply(t, args);
+		
+		let preventPreDelete = logicDocument.PreventPreDelete;
+		logicDocument.PreventPreDelete = true;
+		let result = f.apply(t, args);
+		logicDocument.PreventPreDelete = preventPreDelete;
 		return result;
 	}
 	
@@ -14982,6 +15047,7 @@
 	window["AscCommon"].IsAscFontSupport = IsAscFontSupport;
 	window["AscCommon"].ExecuteNoHistory = ExecuteNoHistory;
 	window["AscCommon"].executeNoRevisions = executeNoRevisions;
+	window["AscCommon"].executeNoPreDelete = executeNoPreDelete;
 	window["AscCommon"].ExecuteEditorAction = ExecuteEditorAction;
 	window["AscCommon"].AddAndExecuteChange = AddAndExecuteChange;
 	window["AscCommon"].CompareStrings = CompareStrings;

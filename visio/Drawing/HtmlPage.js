@@ -3584,14 +3584,8 @@ function CEditorPage(api)
 	this.SaveDocument = function(noBase64)
 	{
 		var writer = new AscCommon.CBinaryFileWriter();
-		this.m_oLogicDocument.CalculateComments();
-		if (noBase64) {
-			return writer.WriteDocument3(this.m_oLogicDocument);;
-		} else {
-			var str = writer.WriteDocument(this.m_oLogicDocument);
-			return str;
-			//console.log(str);
-		}
+		let ser = new AscVisio.BinaryVSDYWriter();
+		return ser.Write(this.m_oLogicDocument, writer);
 	};
 
 	this.UpdateViewMode = function ()

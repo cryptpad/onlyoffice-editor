@@ -3352,6 +3352,9 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	var nCombWidth  = null;
 	var oTextForm   = this.GetTextForm();
 	let oTextFormPDF = this.GetFormPDF();
+	if (oTextFormPDF && oTextFormPDF.GetType() !== AscPDF.FIELD_TYPES.text)
+		oTextFormPDF = null;
+	
 	let isKeepWidth = false;
 	if (oTextForm && oTextForm.IsComb())
 	{
@@ -3389,10 +3392,10 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 
 	}
 	// for pdf text forms
-	else if (oTextFormPDF && oTextFormPDF._comb == true)
+	else if (oTextFormPDF && oTextFormPDF.IsComb() == true)
 	{
 		isKeepWidth = true;
-		nMaxComb = oTextFormPDF._charLimit;
+		nMaxComb = oTextFormPDF.GetCharLimit();
 		nCombWidth = oTextFormPDF.getFormRelRect().W / nMaxComb;
 	}
 
@@ -5624,7 +5627,19 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     // У нас Flow-объект. Если он с обтеканием, тогда мы останавливаем пересчет и
                     // запоминаем текущий объект. В функции Internal_Recalculate_2 пересчитываем
                     // его позицию и сообщаем ее внешнему классу.
-
+					
+					// Не учитываем обтекание, если у нас на странице больше 100 объектов с обтеканием (баг 73462)
+					if (isUseWrap
+						&& DrawingObjects && DrawingObjects.graphicPages
+						&& DrawingObjects.graphicPages[PageAbs]
+						&& DrawingObjects.graphicPages[PageAbs].beforeTextObjects.length >= 100)
+					{
+						isUseWrap = false;
+						let LDRecalcInfo  = Para.Parent.RecalcInfo;
+						if (LDRecalcInfo.FlowObject)
+							LDRecalcInfo.Reset();
+					}
+					
                     if (isUseWrap)
                     {
                         var LogicDocument = Para.Parent;
@@ -11402,6 +11417,9 @@ ParaRun.prototype.GetLineByPosition = function(nPos)
  */
 ParaRun.prototype.PreDelete = function(isDeep)
 {
+	if (this.Paragraph && this.Paragraph.isPreventedPreDelete())
+		return;
+	
 	// TODO: Перенести это, когда удаляется непосредственно элемент из класса
 	//       Сейчас работает не совсем корректно, потому что при большой вложенности у элементов чистится Parent,
 	//       хотя по факту он должен чистится только у первого уровня элементов, с которых начинается удаление

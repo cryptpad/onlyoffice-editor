@@ -2086,7 +2086,7 @@ CShapeDrawer.prototype =
 
         var rgba = this.StrokeUniColor;
         let nAlpha = 0xFF;
-        if(!isArrowsPresent && !this.IsArrowsDrawing || Asc.editor.isPdfEditor())
+        if(!isArrowsPresent && !this.IsArrowsDrawing || Asc.editor.isPdfEditor() || this.Shape.isShadowSp)
         {
             if (this.Ln && this.Ln.Fill != null && this.Ln.Fill.transparent != null)
                 nAlpha = this.Ln.Fill.transparent;

@@ -2387,7 +2387,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 	this.oBinaryHeaderFooterTableWriter = oBinaryHeaderFooterTableWriter;
     this.bs = new BinaryCommonWriter(this.memory);
     this.brPrs = new Binary_rPrWriter(this.memory, saveParams);
-    this.Write_pPr = function(pPr, pPr_rPr, EndRun, SectPr, oDocument)
+    this.Write_pPr = function(pPr, pPr_rPr, EndRun, paragraph, oDocument)
     {
         var oThis = this;
         //Стили надо писать первыми, потому что применение стиля при открытии уничтажаются настройки параграфа
@@ -2507,11 +2507,14 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
             this.bs.WriteItemWithLength(function(){oThis.WriteFramePr(pPr.FramePr);});
         }
         //SectPr
-        if(null != SectPr && null != oDocument)
+        if(paragraph
+			&& paragraph.Get_SectionPr()
+			&& !paragraph.IsTableCellContent()
+			&& oDocument)
         {
             this.memory.WriteByte(c_oSerProp_pPrType.SectPr);
             this.memory.WriteByte(c_oSerPropLenType.Variable);
-            this.bs.WriteItemWithLength(function(){oThis.WriteSectPr(SectPr, oDocument);});
+            this.bs.WriteItemWithLength(function(){oThis.WriteSectPr(paragraph.Get_SectionPr(), oDocument);});
         }
 
         if(null != pPr.PrChange && pPr.ReviewInfo)
@@ -2961,7 +2964,7 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 		if (undefined !== sectPr.GetPageNumChapStyle())
 			this.bs.WriteItem(c_oSerProp_secPrPageNumType.chapStyle, function(){oThis.memory.WriteLong(sectPr.GetPageNumChapStyle());});
 		if (undefined !== sectPr.GetPageNumChapSep())
-			this.bs.WriteItem(c_oSerProp_secPrPageNumType.chapSep, function(){oThis.memory.WriteLong(sectPr.GetPageNumChapSep());});
+			this.bs.WriteItem(c_oSerProp_secPrPageNumType.chapSep, function(){oThis.memory.WriteByte(sectPr.GetPageNumChapSep());});
 	}
 	this.WriteLineNumType = function(lineNum)
 	{
@@ -5393,7 +5396,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                 pPr = {};
             var EndRun = par.GetParaEndRun();
             this.memory.WriteByte(c_oSerParType.pPr);
-            this.bs.WriteItemWithLength(function(){oThis.bpPrs.Write_pPr(pPr, par.TextPr.Value, EndRun, par.Get_SectionPr(), oThis.Document);});
+            this.bs.WriteItemWithLength(function(){oThis.bpPrs.Write_pPr(pPr, par.TextPr.Value, EndRun, par, oThis.Document);});
         }
         //Content
         if(null != par.Content)
@@ -8273,6 +8276,9 @@ function BinaryFileReader(doc, openParams)
 		{
 			this.PostLoadPrepareCheckStylesRecursion(stId, aStylesGrey, styles);
 		}
+		
+		this.Document.GetGlossaryDocument().UpdateStyleLinks(oIdRenameMap);
+		
 		//DefpPr, DefrPr
 		//важно чтобы со списками разобрались выше чем этот код
 		if(null != this.oReadResult.DefpPr)
@@ -15190,36 +15196,19 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
             res = c_oSerConstants.ReadUnknown;
         return res;
     };
-	this.ReadMathText = function(type, length, oMRun)
-    {
-        var res = c_oSerConstants.ReadOk;
-        var oThis = this;
-		if (c_oSer_OMathBottomNodesValType.Val === type)
-        {
-			var aUnicodes = [];
-            if (length > 0)
-                aUnicodes = AscCommon.convertUTF16toUnicode(this.stream.GetString2LE(length));
-
-			for (var nPos = 0, nCount = aUnicodes.length; nPos < nCount; ++nPos)
-            {
-                var nUnicode = aUnicodes[nPos];
-
-                var oText = null;
-                if (0x0026 == nUnicode)
-                    oText = new CMathAmp();
-                else
-                {
-                    oText = new CMathText(false);
-                    oText.add(nUnicode);
-                }
-                if (oText)
-                    oMRun.Add_ToContent(nPos, oText, false, true);
-            }
-        }
-		else
-            res = c_oSerConstants.ReadUnknown;
-        return res;
-    };
+	this.ReadMathText = function(type, length, mathRun)
+	{
+		if (c_oSer_OMathBottomNodesValType.Val !== type)
+			return c_oSerConstants.ReadUnknown;
+		
+		let text = this.stream.GetString2LE(length);
+		AscWord.TextToMathRunElements(text, function(item)
+		{
+			mathRun.AddToContentToEnd(item);
+		});
+		
+		return c_oSerConstants.ReadOk;
+	};
 	this.ReadMathMRun = function(type, length, oMRun, props, oParent, paragraphContent)
     {
 		//todo

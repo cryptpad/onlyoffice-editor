@@ -1687,8 +1687,10 @@ CDocumentContent.prototype.CheckFormViewWindow = function()
 
 	if (oPageBounds.Bottom - oPageBounds.Top > oFormBounds.H)
 	{
-		if (nCursorH > oFormBounds.H - nPad || nCursorT < oFormBounds.Y + nPad)
+		if (nCursorH > oFormBounds.H - nPad)
 			nDy = oFormBounds.Y + nPad - nCursorT - (nCursorH - oFormBounds.H - nPad);
+		else if (nCursorT < oFormBounds.Y + nPad)
+			nDy = oFormBounds.Y + nPad - nCursorT;
 		else if (nCursorT + nCursorH > oFormBounds.H - nPad)
 			nDy = oFormBounds.H - nPad - nCursorT - nCursorH;
 	}
@@ -2791,6 +2793,9 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
 								NewParagraph.Style_Remove();
 							else
 								NewParagraph.Style_Add(NextId, true);
+							
+							let bidi = Item.GetDirectParaPr(false).Bidi;
+							NewParagraph.SetParagraphBidi(bidi);
 						}
 
 						var LastRun = Item.Content[Item.Content.length - 1];
@@ -7434,6 +7439,11 @@ CDocumentContent.prototype.GetSelectionState = function()
 		Flag     : this.Selection.Flag,
 		Data     : this.Selection.Data
 	};
+	
+	DocState.ShiftView = {
+		X : this.ShiftViewX,
+		Y : this.ShiftViewY
+	};
 
 	DocState.CurPage = this.CurPage;
 
@@ -7533,6 +7543,10 @@ CDocumentContent.prototype.SetSelectionState = function(State, StateIndex)
 		Flag     : DocState.Selection.Flag,
 		Data     : DocState.Selection.Data
 	};
+	
+	this.ResetShiftView();
+	if (DocState.ShiftView)
+		this.ShiftView(DocState.ShiftView.X, DocState.ShiftView.Y);
 
 	this.CurPage = DocState.CurPage;
 

@@ -1322,7 +1322,7 @@ CopyProcessor.prototype =
 		//DocContent/ Drawings
 
 		if (elementsContent && elementsContent.length) {
-			if (elementsContent[0].DocContent || (elementsContent[0].Drawings && elementsContent[0].Drawings.length)) {
+			if (elementsContent[0].DocContent || (elementsContent[0].Drawings && elementsContent[0].Drawings.length) || elementsContent[0].Pages.length) {
 				this.oPDFWriter.WriteString2(this.api.documentId);
 				//флаг о том, что множественный контент в буфере
 				this.oPDFWriter.WriteBool(true);
@@ -1417,6 +1417,8 @@ CopyProcessor.prototype =
 	_writePDFSelectedContent: function(elementsContent, oDomTarget){
 
 		let oThis = this;
+		let oDoc = Asc.editor.getPDFDoc();
+		
 		let copyDocContent = function(){
 			let docContent = elementsContent.DocContent;
 
@@ -1449,9 +1451,7 @@ CopyProcessor.prototype =
 			}
 		};
 
-		let copyDrawings = function(){
-			let elements = elementsContent.Drawings;
-
+		let copyDrawings = function(elements){
 			//пишем метку и длины
 			oThis.oPDFWriter.WriteString2("Drawings");
 			oThis.oPDFWriter.WriteULong(elements.length);
@@ -1491,6 +1491,29 @@ CopyProcessor.prototype =
 
 		};
 
+		let copyPages = function() {
+			let selected_pages = elementsContent.Pages;
+
+			oThis.oPDFWriter.WriteString2("Pages");
+			let aIndexes = selected_pages.map(function(page) {
+				return page.GetIndex();
+			});
+
+			// writing pages binary
+			let aUint8Array = oDoc.GetPagesBinary(aIndexes, false);
+			oThis.oPDFWriter.WriteULong(aUint8Array.length);
+			oThis.oPDFWriter.WriteBuffer(aUint8Array, 0, aUint8Array.length);
+			// pages count
+			oThis.oPDFWriter.WriteULong(selected_pages.length);
+
+			// write pages drawings
+			for (let i = 0; i < selected_pages.length; i++) {
+				copyDrawings(selected_pages[i].drawings.map(function(drawing) {
+					return new AscPDF.DrawingCopyObject(drawing, drawing.x, drawing.y, drawing.extX, drawing.extY, drawing.getBase64Img())
+				}));
+			}
+		};
+
 		// пишем количество
 		let contentCount = 0;
 		for(let i in elementsContent){
@@ -1503,13 +1526,18 @@ CopyProcessor.prototype =
 		oThis.oPDFWriter.WriteString2("SelectedContent");
 		oThis.oPDFWriter.WriteULong(contentCount);
 
+
+		//Pages
+		if (elementsContent.Pages.length > 0) {
+			copyPages();
+		}
 		//DocContent
-		if (elementsContent.DocContent) {//пишем контент
+		if (elementsContent.DocContent) {
 			copyDocContent();
 		}
 		//Drawings
-		if (elementsContent.Drawings && elementsContent.Drawings.length) {
-			copyDrawings();
+		if (elementsContent.Drawings) {
+			copyDrawings(elementsContent.Drawings);
 		}
 	},
 
@@ -1917,7 +1945,8 @@ CopyProcessor.prototype =
 		} else if (PasteElementsId.g_bIsPDFCopyPaste) {
 			selectedContent = oDocument.GetSelectedContent2();
 			if (!selectedContent[0].DocContent && (!selectedContent[0].Drawings ||
-				(selectedContent[0].Drawings && !selectedContent[0].Drawings.length))) {
+				(selectedContent[0].Drawings && !selectedContent[0].Drawings.length))
+				&& selectedContent[0].Pages.length == 0) {
 				return false;
 			}
 
@@ -5319,10 +5348,11 @@ PasteProcessor.prototype =
 			content = pasteObj.content;
 		}
 
-		if (null === content) {
+		// if page copy -> skip
+		if (null === content || content.MergePagesInfo.binaryData) {
 			return null;
 		}
-
+		
 		if (content && content.DocContent) {
 			let aElements = content.DocContent.Elements;
 			let aContent = [];
@@ -5339,7 +5369,7 @@ PasteProcessor.prototype =
 			this.aContent = aContent;
 			oThis.api.pre_Paste(fonts, arr_Images, fPrepasteCallback);
 
-		} else if (content && content.Drawings) {
+		} else if (content && content.Drawings.length > 0) {
 
 			var arr_shapes = content.Drawings;
 			var arrImages = pasteObj.images;
@@ -5723,6 +5753,49 @@ PasteProcessor.prototype =
 			arr_Images = arr_Images.concat(objects.arrImages);
 		};
 
+		let readPageDrawings = function () {
+			stream.GetString2(); // drawings
+
+			if (PasteElementsId.g_bIsDocumentCopyPaste) {
+				History.TurnOff();
+			}
+			// шейпы из презентаций, поэтому чтение то же самое
+			let objects = oThis.ReadPresentationShapes(stream);
+			if (PasteElementsId.g_bIsDocumentCopyPaste) {
+				History.TurnOn();
+			}
+
+			oPDFSelContent.MergePagesInfo.pagesDrawings.push(objects.arrShapes);
+
+			let arr_shapes = objects.arrShapes;
+			for (let i = 0; i < arr_shapes.length; ++i) {
+				if (arr_shapes[i].Drawing.getAllFonts) {
+					arr_shapes[i].Drawing.getAllFonts(oFontMap);
+				}
+			}
+
+			arr_Images = arr_Images.concat(objects.arrImages);
+		};
+
+		let readPages = function () {
+			// skip for slide editor
+			if (!oPDFSelContent.MergePagesInfo) {
+				return;
+			}
+
+			let nBinaryLength	= stream.GetULong();
+			let nCurPos			= stream.GetCurPos();
+			let aUint8Array		= stream.data.subarray(nCurPos, nCurPos + nBinaryLength);
+
+			oPDFSelContent.MergePagesInfo.binaryData = aUint8Array;
+			stream.Seek2(nCurPos + nBinaryLength);
+			
+			let nPagesCount = stream.GetULong();
+			for (let i = 0; i < nPagesCount; i++) {
+				readPageDrawings();
+			}
+		};
+
 		var bIsEmptyContent = true;
 		var first_content = stream.GetString2();
 		if (first_content === "SelectedContent") {
@@ -5737,6 +5810,10 @@ PasteProcessor.prototype =
 				}
 
 				switch (first_string) {
+					case "Pages": {
+						readPages();
+						break;
+					}
 					case "DocContent": {
 						readContent();
 						break;

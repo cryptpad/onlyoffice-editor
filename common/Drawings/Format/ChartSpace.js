@@ -492,6 +492,24 @@ function(window, undefined) {
 		}
 	}
 
+	// function that increases the step between the labels
+	function getScaler(scale, logBase, max) {
+		let size = scale.length;
+		let scaler = null;
+		if (max && max < scale[size - 1]) {
+			if (logBase) {
+				let normalMin = scale && scale.length > 1 ? scale[size - 2] : 0;
+				let logMin = normalMin > 0 ? normalMin : 1;
+				let logScaleMax = Math.log(scale[size - 1]) / Math.log(logBase);
+				let logScaleMin = Math.log(normalMin) / Math.log(logBase);
+				let logMaxMin = (Math.log(max / logMin) / Math.log(logBase));
+				scaler = logScaleMax / (logScaleMin + logMaxMin);
+			} else {
+				scaler = scale[size - 1] / max;
+			}
+		}
+		return scaler;
+	}
 
 	function CPathMemory() {
 		this.size = 1000;
@@ -594,45 +612,80 @@ function(window, undefined) {
 		this.y = 0.0;
 		this.extX = 0.0;
 		this.extY = 0.0;
-		this.aLabels = [];
-		this.maxMinWidth = -1.0;
 
 		this.bRotated = false;
 		this.align = true;
 
 		this.chartSpace = oChartSpace;
 		this.axis = oAxis;
-		this.count = 0;
 
-		var oStyle = null, oLbl, fMinW;
-		var oFirstTextPr = null;
-		for (var i = 0; i < aStrings.length; ++i) {
-			if (typeof aStrings[i] === "string") {
-				oLbl = fCreateLabel(aStrings[i], i, oAxis, oChartSpace, oAxis.txPr, oAxis.spPr, oChartSpace.getDrawingDocument());
-				if (oStyle) {
-					oLbl.lastStyleObject = oStyle;
+		this.initializeLabels(aStrings, oAxis, oChartSpace);
+	}
+
+	CLabelsBox.prototype.setX = function (val) {
+		this.x = val;
+		if (this.aLabels) {
+			for (let i=0; i<this.aLabels.length; ++i) {
+				if (this.aLabels[i]) {
+					this.aLabels[i].localTransformText.tx = val;
 				}
+			}
+		}
+	};
+
+	CLabelsBox.prototype.initializeLabels = function (aStrings, oAxis, oChartSpace) {
+		this.aLabels = [];
+		this.count = 0;
+		this.maxMinWidth = -1.0;
+
+		if (!aStrings || !oAxis || !oChartSpace) {
+			return;
+		}
+
+		let oStyle = null, oLbl, fMinW;
+		let oFirstTextPr = null;
+
+		// set text properties for the label
+		const setTextProperties = function (oLbl) {
+			if (!oLbl) {
+				return;
+			}
+			const oContent = oLbl.tx && oLbl.tx.rich && oLbl.tx.rich.content && oLbl.tx.rich.content.Content && Array.isArray(oLbl.tx.rich.content.Content) && oLbl.tx.rich.content.Content.length > 0 ? oLbl.tx.rich.content.Content[0] : null;
+			if (oContent) {
 				if (oFirstTextPr) {
-					var aRuns = oLbl.tx.rich.content.Content[0] && oLbl.tx.rich.content.Content[0].Content;
+					const aRuns = oContent.Content;
 					if (aRuns) {
-						for (var j = 0; j < aRuns.length; ++j) {
-							var oRun = aRuns[j];
-							if (oRun.RecalcInfo && true === oRun.RecalcInfo.TextPr) {
+						for (let j = 0; j < aRuns.length; ++j) {
+							const oRun = aRuns[j];
+							if (oRun.RecalcInfo && oRun.RecalcInfo.TextPr) {
 								oRun.RecalcInfo.TextPr = false;
 								oRun.CompiledPr = oFirstTextPr;
 							}
 						}
 					}
+				} else {
+					oFirstTextPr = oContent.Get_FirstTextPr2();
 				}
-				fMinW = oLbl.tx.rich.content.RecalculateMinMaxContentWidth().Min;
-				if (!oFirstTextPr) {
-					if (oLbl.tx.rich.content.Content[0]) {
-						oFirstTextPr = oLbl.tx.rich.content.Content[0].Get_FirstTextPr2();
-					}
+			}
+		};
+
+		// calculate max width of the label
+		let t = this;
+		const recalculateMinWidth = function (oLbl) {
+			const minWidth = oLbl.tx && oLbl.tx.rich && oLbl.tx.rich.content && oLbl.tx.rich.content.RecalculateMinMaxContentWidth ? oLbl.tx.rich.content.RecalculateMinMaxContentWidth().Min : 0;
+			if (minWidth > t.maxMinWidth) {
+				t.maxMinWidth = minWidth;
+			}
+		};
+
+		for (let i = 0; i < aStrings.length; ++i) {
+			if (typeof aStrings[i] === "string") {
+				oLbl = fCreateLabel(aStrings[i], i, oAxis, oChartSpace, oAxis.txPr, oAxis.spPr, oChartSpace.getDrawingDocument());
+				if (oStyle) {
+					oLbl.lastStyleObject = oStyle;
 				}
-				if (fMinW > this.maxMinWidth) {
-					this.maxMinWidth = fMinW;
-				}
+				setTextProperties(oLbl);
+				recalculateMinWidth(oLbl);
 				this.aLabels.push(oLbl);
 				if (!oStyle) {
 					oStyle = oLbl.lastStyleObject;
@@ -642,8 +695,7 @@ function(window, undefined) {
 				this.aLabels.push(null);
 			}
 		}
-
-	}
+	};
 
 	CLabelsBox.prototype.draw = function (graphics) {
 		for (var i = 0; i < this.aLabels.length; ++i) {
@@ -710,7 +762,7 @@ function(window, undefined) {
 				this.aLabels[i].updatePosition(x, y);
 		}
 	};
-	CLabelsBox.prototype.layoutHorNormal = function (fAxisY, fDistance, fXStart, fInterval, bOnTickMark, fForceContentWidth, oLabelParams) {
+	CLabelsBox.prototype.layoutHorNormal = function (fAxisY, fDistance, fXStart, fInterval, bOnTickMark, fForceContentWidth, oLabelParams, scaler) {
 		this.bRotated = false;
 		this.align = (fDistance >= 0);
 		let fMaxHeight = 0.0;
@@ -729,7 +781,8 @@ function(window, undefined) {
 		if (Array.isArray(this.aLabels) && this.aLabels.length > 0) {
 			let loopsCount = 0;
 			let jump = 0;
-			for (let i = 0; i < this.aLabels.length; i += jump) {
+			const end = this.aLabels.length > 0 && scaler ? this.aLabels.length - 1 : this.aLabels.length;
+			for (let i = 0; i < end; i += jump) {
 				if (this.aLabels[i]) {
 					var oLabel = this.aLabels[i];
 					var oContent = oLabel.tx.rich.content;
@@ -752,34 +805,42 @@ function(window, undefined) {
 					oTransform = oLabel.localTransformText;
 					oTransform.Reset();
 					global_MatrixTransformer.TranslateAppend(oTransform, fX, fY);
-	
-	
-					if (oFirstLabel === null) {
+
+					// find the first and last labels positions
+					if (oFirstLabel !== null) {
+						oLastLabel = oLabel;
+						fLastLabelCenterX = fCurX + Math.abs(fInterval) / 2.0;
+					} else {
 						oFirstLabel = oLabel;
 						fFirstLabelCenterX = fCurX + Math.abs(fInterval) / 2.0;
 					}
-					oLastLabel = oLabel;
-					fLastLabelCenterX = fCurX + Math.abs(fInterval) / 2.0;
 
 					if(bNeedMaxWidth) {
-						fMaxContentWidth = Math.max(fMaxContentWidth, oLabel.tx.rich.getMaxContentWidth(fContentWidth));
+						fMaxContentWidth = Math.max(fMaxContentWidth, oLabel.getMaxContentWidth(fContentWidth));
 					}
 				}
 
 				jump = skipCond(oLabelParams, loopsCount);
-				fCurX += (jump * fInterval);
+				fCurX += (jump * (fInterval * (scaler ? scaler : 1)));
 				loopsCount++;
 			}
 		}
 
+		// create two points that will indicate the start and end of the label
 		let x0, x1;
-		if (bOnTickMark && oFirstLabel && oLastLabel) {
-			let fFirstLabelContentWidth = oFirstLabel.tx.rich.getMaxContentWidth(fContentWidth);
-			let fLastLabelContentWidth = oLastLabel.tx.rich.getMaxContentWidth(fContentWidth);
-			x0 = Math.min(fFirstLabelCenterX - fFirstLabelContentWidth / 2.0,
-				fLastLabelCenterX - fLastLabelContentWidth / 2.0, fXStart, fXStart + fInterval * (this.aLabels.length - 1));
-			x1 = Math.max(fFirstLabelCenterX + fFirstLabelContentWidth / 2.0,
-				fLastLabelCenterX + fLastLabelContentWidth / 2.0, fXStart, fXStart + fInterval * (this.aLabels.length - 1));
+		if (bOnTickMark && oFirstLabel) {
+			let fFirstLabelContentWidth = oFirstLabel.getMaxContentWidth(fContentWidth);
+
+			if (oLastLabel) {
+				let fLastLabelContentWidth = oLastLabel.getMaxContentWidth(fContentWidth);
+				x0 = Math.min(fFirstLabelCenterX - fFirstLabelContentWidth / 2.0,
+					fLastLabelCenterX - fLastLabelContentWidth / 2.0, fXStart, fXStart + fInterval * (this.aLabels.length - 1));
+				x1 = Math.max(fFirstLabelCenterX + fFirstLabelContentWidth / 2.0,
+					fLastLabelCenterX + fLastLabelContentWidth / 2.0, fXStart, fXStart + fInterval * (this.aLabels.length - 1));
+			} else {
+				x0 = Math.min(fFirstLabelCenterX - fFirstLabelContentWidth / 2.0, fXStart, fXStart + fInterval * (this.aLabels.length - 1));
+				x1 = Math.max(fXStart, fXStart + fInterval * (scaler && this.aLabels.length > 0 ? this.aLabels.length - 1 : this.aLabels.length));
+			}
 		} else {
 			x0 = Math.min(fXStart, fXStart + fInterval * (this.aLabels.length));
 			x1 = Math.max(fXStart, fXStart + fInterval * (this.aLabels.length));
@@ -1593,23 +1654,37 @@ function(window, undefined) {
 			const nAxisType = oLabelsBox && oLabelsBox.axis ? oLabelsBox.axis.getObjectType() : null;
 			const sDataType = oLabelsBox.getLabelsDataType();
 
-			// oLabelParams indecates necessary stuff such as label rotation, label skip, label format
+			// if axis type is valAx change the fAxisLength, based on the width of the first and last label
+			if (nAxisType === AscDFH.historyitem_type_ValAx) {
+				const aLabels = oLabelsBox.aLabels;
+				// maxLabelWidth is a big number to get the max width of the label
+				const maxLabelWidth = 20000;
+				const fFirstLabelContentWidth = aLabels && Array.isArray(aLabels) && aLabels.length > 0 && aLabels[0] ? aLabels[0].getMaxContentWidth(maxLabelWidth) : 0;
+				const fLastLabelContentWidth = aLabels && Array.isArray(aLabels) && aLabels.length > 0 && aLabels[aLabels.length - 1] ? aLabels[aLabels.length - 1].getMaxContentWidth(maxLabelWidth) : 0;
+				fAxisLength = fAxisLength + ((fFirstLabelContentWidth + fLastLabelContentWidth) / 2);
+			}
+
+			// oLabelParams indicates necessary stuff such as label rotation, label skip, label format
 			const oLabelParams = oLabelsBox && oLabelsBox.axis && oLabelsBox.axis.params ? oLabelsBox.axis.params : new CLabelsParameters(nAxisType, sDataType);
 			oLabelParams.calculate(oLabelsBox, fAxisLength, fRectHeight,  nIndex);
 
 			//check whether rotation is applied or not
 			let statement = oLabelParams.valid ? oLabelParams.isRotated() : fMaxMinWidth > fCheckInterval;
-			if (oLabelParams.valid) {
-				// if oLabelParams is valid then one label = axis lenght / (number of labels); number of labels = allLabels / labelsTickSkip
 
+			const scaler = getScaler(oLabelsBox.axis.scale, oLabelsBox.axis.scaling.logBase, oLabelsBox.axis.scaling.max);
+			if (oLabelParams.valid) {
+				// if oLabelParams is valid then one label = axis length / (number of labels); number of labels = allLabels / labelsTickSkip
 				const fLabelWidth =  fAxisLength / Math.ceil(oLabelParams.nLabelsCount / oLabelParams.nLblTickSkip);
 				// if userDefinedTickSkip then each label has same width as axislength
 				fForceContentWidth_ = oLabelParams.isUserDefinedTickSkip ? fAxisLength : fLabelWidth;
+
+				// val axis changes the labels therefore update start and interval
+				fInterval = (nAxisType === AscDFH.historyitem_type_ValAx) && oLabelsBox.axis && oLabelsBox.axis.grid ? oLabelsBox.axis.grid.fStride : fInterval;
 			}
 			if (statement) {
 				oLabelsBox.layoutHorRotated(fY, fDistance, fXStart, fXEnd, fInterval, bOnTickMark_, oLabelParams);
 			} else {
-				oLabelsBox.layoutHorNormal(fY, fDistance, fXStart, fInterval, bOnTickMark_, fForceContentWidth_, oLabelParams);
+				oLabelsBox.layoutHorNormal(fY, fDistance, fXStart, fInterval, bOnTickMark_, fForceContentWidth_, oLabelParams, scaler);
 			}
 		}
 	}
@@ -1737,7 +1812,7 @@ function(window, undefined) {
 		this.aStrings = [];
 	}
 
-	CAxisGrid.prototype.calculatePoints = function(aPoints, bOnTickMark, aScale) {
+	CAxisGrid.prototype.calculatePoints = function(aPoints, bOnTickMark, aScale, scaler) {
 		if(!Array.isArray(aPoints)) {
 			return;
 		}
@@ -1745,10 +1820,12 @@ function(window, undefined) {
 		if(!this.bOnTickMark) {
 			fStartSeriesPos = this.fStride / 2.0;
 		}
+		let lastIndex= aScale.length - 1;
+		let jump = scaler ? this.fStride * scaler : this.fStride;
 		for(let j = 0; j < this.aStrings.length; ++j) {
 			aPoints.push({
 				val: aScale[j],
-				pos: this.fStart + j * this.fStride + fStartSeriesPos
+				pos: this.fStart + j * jump + fStartSeriesPos
 			})
 		}
 	};
@@ -4450,8 +4527,8 @@ function(window, undefined) {
 				var series = chart_type.series;
 				var nChartType = chart_type.getObjectType();
 				var nSeriesLength = (nChartType === AscDFH.historyitem_type_PieChart || nChartType === AscDFH.historyitem_type_DoughnutChart) && this.chart.plotArea.charts.length === 1 ? Math.min(1, series.length) : series.length;
-				if (this.isEmptySeries(series, nSeriesLength)) {
-					return true;
+				if (!this.isEmptySeries(series, nSeriesLength)) {
+					return false;
 				}
 			}
 			return t < 1;
@@ -5196,6 +5273,9 @@ function(window, undefined) {
 		const oPlotArea = this.getPlotArea();
 		const bWithoutLabels = isLayoutSizes && this.chart.plotArea.layout.layoutTarget === AscFormat.LAYOUT_TARGET_INNER;
 		let bCorrected = false;
+		// width and height of rect can not be negative!
+		oRect.w = Math.max(0, oRect.w);
+		oRect.h = Math.max(0, oRect.h);
 		let fL = oRect.x, fT = oRect.y, fR = oRect.x + oRect.w, fB = oRect.y + oRect.h;
 		const isChartEx = this.isChartEx();
 		let fHorPadding = 0.0;
@@ -5427,7 +5507,8 @@ function(window, undefined) {
 				}
 
 				if (null !== aPoints) {
-					oCurAxis.grid.calculatePoints(aPoints, bOnTickMark, oCurAxis.scale);
+					const scaler = getScaler(oCurAxis.scale, oCurAxis.scaling.logBase, oCurAxis.scaling.max);
+					oCurAxis.grid.calculatePoints(aPoints, bOnTickMark, oCurAxis.scale, scaler);
 				}
 			}
 			else {//vertical axis
@@ -11825,23 +11906,38 @@ function(window, undefined) {
 		this.nAxisType = nAxisType;
 		this.sDataType = sDataType;
 		this.oStartingDate = null;
-		this.valid = AscFormat.isRealNumber(nAxisType) && (this.nAxisType === AscDFH.historyitem_type_CatAx || this.nAxisType === AscDFH.historyitem_type_DateAx);
+		this.valid = AscFormat.isRealNumber(nAxisType) && (this.nAxisType === AscDFH.historyitem_type_CatAx || this.nAxisType === AscDFH.historyitem_type_DateAx || this.nAxisType === AscDFH.historyitem_type_ValAx);
 		this.nLabelsCount = 0;
 		this.bCalculated = false;
 		this.fLabelHeight = null;
 		this.fLabelWidth = null;
-		//decisionBoundary states a threshold for the diagonal label width;
+		//fAutoRotationThreshold states a threshold for the diagonal label width; for some strange reason DateAx has higher threshold value
 		this.fAutoRotationThreshold = (this.nAxisType === AscDFH.historyitem_type_DateAx) ? 2.5 : 2;
 		// fSpaceBetweenLabels stands for the amount of additional space that label should have, other than the width of its content;
 		// left space + right space = this.fSpaceBetweenLabels
-		this.fSpaceBetweenLabels = (this.nAxisType === AscDFH.historyitem_type_DateAx) ? 1.939 : 0;
+		this.fSpaceBetweenLabels = this.getSpaceBetweenLabels();
+		// the max width default is 20000;
+		this.maxLabelWidth = 20000;
 	}
+
+	// the values are obtain by experimenting with tons of the diagrams for each type of axis.
+	CLabelsParameters.prototype.getSpaceBetweenLabels = function () {
+		switch (this.nAxisType){
+			case (AscDFH.historyitem_type_DateAx):
+				return 1.939;
+			case (AscDFH.historyitem_type_ValAx):
+				return 3.8;
+			default:
+				return 0;
+		}
+	};
 
 	CLabelsParameters.prototype.calculate = function (oLabelsBox, fAxisLength, fRectHeight, nIndex) {
 		// get height of label
 		this.bCalculated = !!nIndex;
 
-		if (this.valid && this.isCorrectlyCalculated(oLabelsBox, fAxisLength)) {
+		// check if current settings are applicable for new axisLength, if yes then no need for calculating new settings
+		if (this.valid && this.isIncorrectlyCalculated(oLabelsBox, fAxisLength, nIndex)) {
 
 			// get labelHeight
 			this.fLabelHeight = AscFormat.isRealNumber(this.fLabelHeight) ? this.fLabelHeight : this.getSingleLineHeight(oLabelsBox.aLabels);
@@ -11849,8 +11945,8 @@ function(window, undefined) {
 			// check whether user has defined some parameters
 			this.getUserDefinedSettings(oLabelsBox);
 
-			// calculate number of labels
-			this.calculateLabelsNumber(oLabelsBox);
+			// retrieve labels count from oLabelsBox
+			this.nLabelsCount = oLabelsBox.count;
 
 			// automatically calculate remaining parameters
 			this.calculateParams(oLabelsBox, fAxisLength, fRectHeight);
@@ -11862,8 +11958,7 @@ function(window, undefined) {
 		}
 	};
 
-	// function to check whether new Label axis will handle old parameters
-	CLabelsParameters.prototype.isCorrectlyCalculated = function (oLabelsBox, fAxisLength) {
+	CLabelsParameters.prototype.isIncorrectlyCalculated = function (oLabelsBox, fAxisLength, nIndex) {
 		if (!this.bCalculated) {
 			return true;
 		}
@@ -11874,19 +11969,15 @@ function(window, undefined) {
 		}
 
 		// sometimes it is possible that new fAxisLength is enough for current nLabelsCount
-		if (this.bCalculated && this.nLblTickSkip !== null && this.nLabelsCount !== 0 && this.nLblTickSkip !== 0) {
-			return this.bCalculated = Math.ceil(this.nLabelsCount / this.nLblTickSkip) * this.fLabelWidth >= fAxisLength;
+		if (this.nLblTickSkip && this.nLabelsCount !== 0) {
+			// valAxis has additional space between labels, therefore its calculations are different
+			if (this.nAxisType === AscDFH.historyitem_type_ValAx) {
+				return this.bCalculated = Math.ceil(this.nLabelsCount / this.nLblTickSkip) * (this.fLabelWidth + this.fSpaceBetweenLabels) >= (fAxisLength + this.fSpaceBetweenLabels);
+			} else {
+				return this.bCalculated = Math.ceil(this.nLabelsCount / this.nLblTickSkip) * this.fLabelWidth >= fAxisLength;
+			}
 		}
 		return false;
-	}
-
-	CLabelsParameters.prototype.calculateLabelsNumber = function (oLabelsBox) {
-		this.nLabelsCount = 0;
-			for (let i = 0; i < oLabelsBox.aLabels.length; i++) {
-				if (oLabelsBox.aLabels[i]) {
-					this.nLabelsCount++;
-				}
-			}
 	};
 
 	CLabelsParameters.prototype.getUserDefinedSettings = function (oLabelsBox) {
@@ -11974,6 +12065,154 @@ function(window, undefined) {
 		}
 	};
 
+	CLabelsParameters.prototype.recalculateLabels = function (oLabelsBox, fAxisLength) {
+		if (!oLabelsBox && !oLabelsBox.axis || !oLabelsBox.axis.scale || !Array.isArray(oLabelsBox.axis.scale)) {
+			return;
+		}
+
+		if (oLabelsBox.axis.majorUnit !== null) {
+			this.isUserDefinedTickSkip = true;
+			return;
+		}
+		const getStep = function (axis) {
+			let prevVal = axis.scale.length > 0 ? axis.scale[0] : null; 
+			let curVal = axis.scale.length > 1 ? axis.scale[1] : null; 
+
+			// get general step. Examples: 2, 20, 200, 0.2 tc.
+			let step = 0;
+			if (prevVal !== null && curVal !== null) {
+				const high = Math.max(prevVal, curVal);
+				const low = Math.min(prevVal, curVal);
+				step = high - low;
+			}
+			
+			return step
+		}
+
+		const getMultiplicator = function (step) {
+			// Calculate the power of ten that brings the number between 1 and 10
+			const exponent = step ? Math.floor(Math.log10(step)) : 0;
+			return Math.pow(10, exponent);
+		}
+
+		const getNewStep = function (nMultiplicator, nLabelCount ,nLblTickSkip) {
+			if (nLblTickSkip === null) {
+				// means only 1 label will be shown
+				return null;
+			}
+
+			if (nLabelCount === 2) {
+				// means only 2 labels will be shown
+				return 0;
+			}
+
+			// find the new step
+			// while loop can be used, however no practical example of greater than 100 * nMultiplicator was found
+			if (nLblTickSkip <= nMultiplicator) {
+				return nMultiplicator;
+			} else if (nLblTickSkip <= 2 * nMultiplicator) {
+				return 2 * nMultiplicator;
+			} else if (nLblTickSkip <= 5 * nMultiplicator) {
+				return 5 * nMultiplicator;
+			} else if (nLblTickSkip <= 10 * nMultiplicator) {
+				return 10 * nMultiplicator;
+			} else if (nLblTickSkip <= 20 * nMultiplicator) {
+				return 20 * nMultiplicator;
+			} else if (nLblTickSkip <= 50 * nMultiplicator) {
+				return 50 * nMultiplicator;
+			} else if (nLblTickSkip <= 100 * nMultiplicator) {
+				return 100 * nMultiplicator;
+			}
+		}
+
+		const createNewScale = function (newStep, oLabelsBox, nMultiplicator) {
+			const axisMin = oLabelsBox.axis.min;
+			const axisMax = oLabelsBox.axis.max;
+			let manualMin = oLabelsBox.axis.scaling && oLabelsBox.axis.scaling.min !== null ? oLabelsBox.axis.scaling.min : null;
+			let manualMax = oLabelsBox.axis.scaling && oLabelsBox.axis.scaling.max !== null ? oLabelsBox.axis.scaling.max : null;
+
+			if (!newStep) {
+				// find max that is higher than axis max
+				const newMax = Math.ceil(oLabelsBox.axis.scale[oLabelsBox.axis.scale.length - 1] / (nMultiplicator)) * nMultiplicator;
+				return [oLabelsBox.axis.scale[0], newMax]
+			} else {
+				return oLabelsBox.chartSpace.chartObj._getArrayDataValues(newStep, axisMin, axisMax, manualMin, manualMax, false);
+			}
+		}
+
+		// find current step info
+		const nStep = getStep(oLabelsBox.axis);
+		const nMultiplicator = getMultiplicator(nStep);
+
+		// adjust labelWidth and fAxisLength by alpha
+		const labelWidth = oLabelsBox.maxMinWidth + this.fSpaceBetweenLabels;
+		const fNewAxisLength = (fAxisLength + this.fSpaceBetweenLabels);
+
+		// find nLabelCount
+		const nLabelCount = fAxisLength > 0 && fAxisLength >= labelWidth ? Math.floor( fNewAxisLength/ labelWidth) : 1;
+
+		// find minimum tick skip
+		const lastNum = oLabelsBox.axis.scale[oLabelsBox.axis.scale.length - 1];
+		const firstNum = oLabelsBox.axis.scale[0];
+		const nLblTickSkip = nLabelCount > 1 ? (lastNum - firstNum) / (nLabelCount - 1) : null;
+
+		// find new step
+		// if null then 0 labels
+		// if 0 then 1 label
+		const newStep = getNewStep(nMultiplicator, nLabelCount, nLblTickSkip);
+
+		// create new labels for valAx
+		const fPrecision = 0.01;
+
+		let isSingleLabel = false
+		// check if axis is not logarithmic and if newStep is different than the previous;
+		if (!(oLabelsBox.axis.scaling && oLabelsBox.axis.scaling.logBase) && (!newStep || newStep > (nStep + fPrecision))) {
+			// scale is an array of size at least 2
+			oLabelsBox.axis.scale = createNewScale(newStep, oLabelsBox, nMultiplicator);
+			let aStrings = oLabelsBox.chartSpace ? oLabelsBox.chartSpace.getLabelsForAxis(oLabelsBox.axis) : null;
+			if (aStrings) {
+				isSingleLabel = (newStep === null);
+				// aStrings should be of size 1 if isSingleLabel is true
+				if (isSingleLabel) {
+					aStrings = [aStrings[0]];
+				}
+				// rebuild labels and grid
+				oLabelsBox.initializeLabels(aStrings, oLabelsBox.axis, oLabelsBox.chartSpace);
+
+				// find cross starting at point
+				const oCrossAx = oLabelsBox.axis.crossAx;
+				let startingPoint = 0;
+				let startingPointForAxis = 0;
+
+				//restructure grid
+				const oGrid = oLabelsBox.axis.grid;
+				if (oGrid && aStrings.length > 1) {
+
+					// find previous startingPoint for crossAx
+					if (oCrossAx && AscFormat.isRealNumber(oCrossAx.posX)) {
+						startingPointForAxis = oCrossAx.labels && oCrossAx.labels.x ? oCrossAx.posX - oCrossAx.labels.x : oCrossAx.posX;
+						startingPoint = (((oCrossAx.posX - oGrid.fStart) * nStep) / oGrid.fStride) + oLabelsBox.axis.scale[0];
+					}
+
+					const nNewCount = aStrings.length - 1;
+					oGrid.aStrings = aStrings;
+					oGrid.fStride = (oGrid.nCount * oGrid.fStride) / nNewCount;
+					oGrid.nCount = nNewCount;
+				}
+				this.nLabelsCount = oLabelsBox.count;
+
+				// crossAxis should also be affected by restructured valAx
+				if (oCrossAx) {
+					oCrossAx.posX = (((startingPoint - oLabelsBox.axis.scale[0]) / newStep) * oGrid.fStride + oGrid.fStart);
+					if (oCrossAx.labels && oCrossAx.labels.extX) {
+						oCrossAx.labels.setX(oCrossAx.posX - startingPointForAxis);
+					}
+				}
+			}
+		}
+		return isSingleLabel;
+	}
+
 	CLabelsParameters.prototype.calculateNLblTickSkip = function (oLabelsBox, fAxisLength) {
 		//default nLblTickSkip should be 1!
 		if (!oLabelsBox || !Array.isArray(oLabelsBox.aLabels) || this.nLabelsCount === 0 || !fAxisLength) {
@@ -11981,6 +12220,15 @@ function(window, undefined) {
 			return;
 		}
 
+		// valAx recalcutes the labels, rather than skipping a portion of them as other labels
+		if (this.nAxisType === AscDFH.historyitem_type_ValAx){
+			const isSingleLabel = this.recalculateLabels(oLabelsBox, fAxisLength);
+			this.nLblTickSkip = isSingleLabel ? 2 : 1;
+			this.fLabelWidth = oLabelsBox.maxMinWidth;
+			return;
+		}
+
+		// all other labels simply skips some of the labels that can not be placed inside the axisLength
 		if (!this.isUserDefinedTickSkip) {
 			this.nLblTickSkip = this.manuallyCalculateNLblTickSkip(oLabelsBox, fAxisLength);
 		} 
@@ -12020,8 +12268,8 @@ function(window, undefined) {
 		
 		if (this.fLabelWidth) {
 			// toDo test configurations for different number labels on excel: finalTestCatAxis
-			const labelCount = fAxisLength > 0 && fAxisLength >= this.fLabelWidth ? Math.floor((fAxisLength + this.fSpaceBetweenLabels) / (this.fLabelWidth + this.fSpaceBetweenLabels)) : 1;
-			nLblTickSkip = Math.ceil(this.nLabelsCount / labelCount);
+			const nLabelCount = fAxisLength > 0 && fAxisLength >= this.fLabelWidth ? Math.floor((fAxisLength + this.fSpaceBetweenLabels) / (this.fLabelWidth + this.fSpaceBetweenLabels)) : 1;
+			nLblTickSkip = Math.ceil(this.nLabelsCount / nLabelCount);
 
 			// date ax skips labels by significant days 
 			// two days, week or weeks, mounths, years
@@ -12050,7 +12298,8 @@ function(window, undefined) {
 			return;
 		}
 
-		if (this.isUserDefinedRot) {
+		// val axis has huge spaces between labels therefore can not be autorotated
+		if (this.isUserDefinedRot || this.nAxisType === AscDFH.historyitem_type_ValAx) {
 			return;
 		}
 

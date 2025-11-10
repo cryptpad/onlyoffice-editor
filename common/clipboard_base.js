@@ -55,7 +55,8 @@
 		Html        : 2,
 		Internal    : 4,
 		HtmlElement : 8,
-		Rtf         : 16
+		Rtf         : 16,
+		Image       : 32
 	};
 	var c_oClipboardPastedFrom       = {
 		Word        : 0,
@@ -538,7 +539,7 @@
 						var _cut                    = false;
 						if (isCtrl && !isShift && (keyCode == 67 || keyCode == 88)) // copy
 							bIsBeforeCopyCutEmulate = true;
-						if (!isCtrl && isShift && keyCode == 45) // cut
+						if (!isCtrl && isShift && (keyCode == 45 || keyCode == 46)) // cut
 						{
 							bIsBeforeCopyCutEmulate = true;
 							_cut                    = true;
@@ -565,7 +566,7 @@
 					if (g_clipboardBase.IsPasteOnlyInEditable)
 					{
 						var bIsBeforePasteEmulate = false;
-						if (isCtrl && !isShift && keyCode == 86)
+						if (isCtrl && keyCode == 86)
 							bIsBeforePasteEmulate = true;
 						if (!isCtrl && isShift && keyCode == 45)
 							bIsBeforePasteEmulate = true;
@@ -962,6 +963,7 @@
 					const data = [new ClipboardItem({
 						"text/plain"        : new Blob([copy_data.data[c_oAscClipboardDataFormat.Text]], {type: "text/plain"}),
 						"text/html"         : new Blob([copy_data.data[c_oAscClipboardDataFormat.Html]], {type: "text/html"}),
+						/*"image/png"         : new Blob(copy_data.data[c_oAscClipboardDataFormat.Image], {type: "image/png"}),*/
 						"web text/x-custom" : new Blob(["asc_internalData2;" + copy_data.data[c_oAscClipboardDataFormat.Internal]], {type: "web text/x-custom"})
 					})];
 

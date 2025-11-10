@@ -8737,29 +8737,43 @@
 	 * @typeofeditors ["CSE"]
 	 * @param {string} sRange - The range where the hyperlink will be added to.
 	 * @param {string} sAddress - The link address.
-	 * @param {string} subAddress - The link subaddress to insert internal sheet hyperlinks.
-	 * @param {string} sScreenTip - The screen tip text.
-	 * @param {string} sTextToDisplay - The link text that will be displayed on the sheet.
+	 * @param {string} [subAddress] - The link subaddress to insert internal sheet hyperlinks.
+	 * @param {string} [sScreenTip] - The screen tip text.
+	 * @param {string} [sTextToDisplay] - The link text that will be displayed on the sheet.
 	 * @see office-js-api/Examples/{Editor}/ApiWorksheet/Methods/SetHyperlink.js
 	 */
 	ApiWorksheet.prototype.SetHyperlink = function (sRange, sAddress, subAddress, sScreenTip, sTextToDisplay) {
+		// Validate required parameters
+		if (!sRange || !sAddress) {
+			throwException(new Error('Incorrect required parameters'));
+			return false;
+		}
+
 		var range = new ApiRange(this.worksheet.getRange2(sRange));
 		var address;
-		if (range && range.range.isOneCell() && (sAddress || subAddress)) {
+		if (range && range.range.isOneCell()) {
 			var externalLink = sAddress ? AscCommon.rx_allowedProtocols.test(sAddress) : false;
 			if (externalLink && AscCommonExcel.getFullHyperlinkLength(sAddress) > Asc.c_nMaxHyperlinkLength) {
 				throwException(new Error('Incorrect "sAddress".'));
+				return false;
 			}
 			if (!externalLink) {
-				address = subAddress.split("!");
-				if (address.length == 1)
-					address.unshift(this.GetName());
-				else if (this.worksheet.workbook.getWorksheetByName(address[0]) === null) {
+				if (!subAddress) {
 					throwException(new Error('Invalid "subAddress".'));
+					return false;
+				}
+
+				address = subAddress.split("!");
+				if (address.length === 1) {
+					address.unshift(this.GetName());
+				} else if (this.worksheet.workbook.getWorksheetByName(address[0]) === null) {
+					throwException(new Error('Invalid "subAddress".'));
+					return false;
 				}
 				var res = this.worksheet.workbook.oApi.asc_checkDataRange(Asc.c_oAscSelectionDialogType.FormatTable, address[1], false);
 				if (res === Asc.c_oAscError.ID.DataRangeError) {
 					throwException(new Error('Invalid "subAddress".'));
+					return false;
 				}
 			}
 			this.worksheet.selectionRange.assign2(range.range.bbox);

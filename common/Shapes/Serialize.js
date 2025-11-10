@@ -3934,7 +3934,7 @@ function BinaryPPTYLoader()
             {
                 case 0:
                 {
-                    master.preserve = s.GetBool();
+                    master.setPreserve(s.GetBool());
                     break;
                 }
                 default:
@@ -4076,7 +4076,7 @@ function BinaryPPTYLoader()
                 }
                 case 1:
                 {
-                    layout.preserve = s.GetBool();
+                    layout.setPreserve(s.GetBool());
                     break;
                 }
                 case 2:

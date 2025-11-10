@@ -1161,15 +1161,54 @@
 				if (align !== AscCommon.align_Justify || n === self.lines.length - 1) {
 					return 0;
 				}
-				for (var i = l.beg, c = 0; i <= l.end; ++i) {
-					var p = self.charProps[i];
-					if (p && p.wrd) {
-						++c;
+
+				if (align === AscCommon.align_Justify) {
+					let wordCount = 0;
+					let isLastWordSpace = false;
+					let lastSpacesWidth = 0;
+					let lastSymbolWidth = 0;
+
+					for (let i = l.beg; i <= l.end; ++i) {
+						let p = self.charProps[i];
+						let isSpace = self.codesHypSp[self.chars[i]];
+
+
+						if (p && p.wrd && isLastWordSpace) {
+							++wordCount;
+							if (i !== l.end) {
+								lastSpacesWidth = 0;
+							} else if (!isSpace) {
+								lastSymbolWidth = self.charWidths[i];
+							}
+						} else if (i === l.end) {
+							++wordCount;
+						}
+
+						if (isSpace) {
+							lastSpacesWidth += self.charWidths[i];
+						}
+
+						isLastWordSpace = isSpace;
 					}
+
+					if (wordCount <= 1) {
+						return 0;
+					}
+
+					let rightDiff = 1;
+					let availableWidth = maxWidth - rightDiff - (l.tw - lastSymbolWidth - lastSpacesWidth);
+					return (availableWidth) / (wordCount - 1);
+				} else {
+					for (var i = l.beg, c = 0; i <= l.end; ++i) {
+						var p = self.charProps[i];
+						if (p && p.wrd) {
+							++c;
+						}
+					}
+					return c > 1 ? (maxWidth - l.tw) / (c - 1) : 0;
 				}
-				return c > 1 ? (maxWidth - l.tw) / (c - 1) : 0;
 			}
-			
+
 			function renderGraphemes(begin, end, x, y, fontSize) {
 				
 				for (let charPos = begin; charPos < end; ++charPos) {

@@ -1190,6 +1190,7 @@
 				}
 				shape.recalculate();
 				this.shdwSp = shape;
+				shape.isShadowSp = true;
 			}, this, []);
 		}
 	};
@@ -3803,6 +3804,7 @@
 	CGraphicObjectBase.prototype.generateSmartArtDrawingPart = function () {};
 	CGraphicObjectBase.prototype.checkDrawingPartWithHistory = function () {};
 	CGraphicObjectBase.prototype.getAllInks = function (arrInks) {return arrInks || []};
+	CGraphicObjectBase.prototype.isShapeCrop = function () {return false};
 	var ANIM_LABEL_WIDTH_PIX = 22;
 	var ANIM_LABEL_HEIGHT_PIX = 17;
 

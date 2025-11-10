@@ -955,9 +955,9 @@ function (window, undefined) {
 		if (this.formula != val.formula) {
 			return false;
 		}
-		if ((this.formulaRef &&
-			!(this.formulaRef.r1 === val.r1 && this.formulaRef.c1 === val.c1 && this.formulaRef.r2 === val.r2 &&
-				this.formulaRef.c2 === val.c2)) || (this.formulaRef !== val)) {
+		if ((this.formulaRef && val.formulaRef &&
+			!(this.formulaRef.r1 === val.formulaRef.r1 && this.formulaRef.c1 === val.formulaRef.c1 && this.formulaRef.r2 === val.formulaRef.r2 &&
+				this.formulaRef.c2 === val.formulaRef.c2)) || (this.formulaRef !== val.formulaRef)) {
 			return false;
 		}
 		if (this.value.isEqual(val.value)) {

@@ -1152,7 +1152,7 @@
         let oContent    = this.GetDocContent();
 
         oContent.SetApplyToAll(true);
-		let sText = oContent.GetSelectedText(false, {ParaSeparator: '\r'}).replace('\r', '');
+		let sText = oContent.GetSelectedText(false, {ParaSeparator: ''});
 		oContent.SetApplyToAll(false);
 
         let isNeedUpdateRC = this.IsNeedUpdateRC();

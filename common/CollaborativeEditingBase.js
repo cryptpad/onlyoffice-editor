@@ -755,10 +755,6 @@
             {
                 var Lock = Class.Lock;
                 Lock.Set_Type( AscCommon.c_oAscLockTypes.kLockTypeOther, false );
-                if(Class.getObjectType && Class.getObjectType() === AscDFH.historyitem_type_Slide)
-                {
-                    (Asc.editor || editor).WordControl.m_oLogicDocument.DrawingDocument.UnLockSlide && editor.WordControl.m_oLogicDocument.DrawingDocument.UnLockSlide(Class.num);
-                }
                 Lock.Set_UserId( this.m_aNeedLock[Id] );
             }
         }

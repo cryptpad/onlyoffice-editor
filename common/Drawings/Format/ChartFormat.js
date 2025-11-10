@@ -2438,6 +2438,22 @@
 	CDLbl.prototype.notAllowedWithoutId = function() {
 		return false;
 	};
+
+    // function to get label content width without accessing inner fields of CDLbl
+    CDLbl.prototype.getContentWidth = function() {
+        if (!this.tx || !this.tx.rich || !this.getContentWidth) {
+            return 0;
+        }
+        return this.tx.rich.getContentWidth();
+    };
+
+    // function to get label max content width without accessing inner fields of CDLbl
+    CDLbl.prototype.getMaxContentWidth = function(maxWidth, bLeft) {
+        if (!this.tx || !this.tx.rich || !this.getMaxContentWidth) {
+            return 0;
+        }
+        return this.tx.rich.getMaxContentWidth(maxWidth, bLeft);
+    };
     CDLbl.prototype.Check_AutoFit = function() {
         return true;
     };
@@ -3381,7 +3397,12 @@
                     break;
                 }
             }
+            var oTextWarpContent = AscFormat.CShape.prototype.checkTextWarp.call(this, content, bodyPr, max_content_width, 20000, true, false);
+            this.txWarpStructParamarks = oTextWarpContent.oTxWarpStructParamarksNoTransform;
+            this.txWarpStruct = oTextWarpContent.oTxWarpStructNoTransform;
 
+            this.txWarpStructParamarksNoTransform = oTextWarpContent.oTxWarpStructParamarksNoTransform;
+            this.txWarpStructNoTransform = oTextWarpContent.oTxWarpStructNoTransform;
         }
     };
     CDLbl.prototype.recalculateTxBody = function() {
@@ -3517,7 +3538,25 @@
             this.txPr.setParent(this);
         }
     };
-    CDLbl.prototype.draw = CShape.prototype.draw;
+    CDLbl.prototype.draw = function () {
+
+        if(this.txWarpStructNoTransform === undefined) {
+
+            if(this.txBody && this.txBody.content) {
+                var bodyPr = this.getBodyPr();
+                var oTextWarpContent = AscFormat.CShape.prototype.checkTextWarp.call(this, this.txBody.content, bodyPr, this.txBody.content.XLimit, 20000, true, false);
+                this.txWarpStructParamarks = oTextWarpContent.oTxWarpStructParamarksNoTransform;
+                this.txWarpStruct = oTextWarpContent.oTxWarpStructNoTransform;
+
+                this.txWarpStructParamarksNoTransform = oTextWarpContent.oTxWarpStructParamarksNoTransform;
+                this.txWarpStructNoTransform = oTextWarpContent.oTxWarpStructNoTransform;
+            }
+        }
+        AscFormat.CShape.prototype.draw.apply(this, arguments);
+    };
+    CDLbl.prototype.checkContentWordArt = CShape.prototype.checkContentWordArt;
+    CDLbl.prototype.chekBodyPrTransform = function () {return false;};
+    CDLbl.prototype.checkNeedRecalcDocContentForTxWarp = function () {return false;};
     CDLbl.prototype.isEmptyPlaceholder = function() {
         return false;
     };
@@ -13874,6 +13913,9 @@
     CTitle.prototype.recalculateTransform = CDLbl.prototype.recalculateTransform;
     CTitle.prototype.recalculateTransformText = CDLbl.prototype.recalculateTransformText;
     CTitle.prototype.recalculateContent = CDLbl.prototype.recalculateContent;
+    CTitle.prototype.chekBodyPrTransform = CDLbl.prototype.chekBodyPrTransform;
+    CTitle.prototype.checkContentWordArt = CDLbl.prototype.checkContentWordArt;
+    CTitle.prototype.checkNeedRecalcDocContentForTxWarp = CDLbl.prototype.checkNeedRecalcDocContentForTxWarp;
     CTitle.prototype.setPosition = CDLbl.prototype.setPosition;
     CTitle.prototype.checkHitToBounds = CDLbl.prototype.checkHitToBounds;
     CTitle.prototype.getBodyPr = CDLbl.prototype.getBodyPr;
@@ -13890,9 +13932,6 @@
         this.Refresh_RecalcData2();
     };
     CTitle.prototype.chekBodyPrTransform = function() {
-        return false;
-    };
-    CTitle.prototype.checkContentWordArt = function() {
         return false;
     };
     CTitle.prototype.Get_AbsolutePage = function() {
@@ -16170,11 +16209,21 @@
     CalcLegendEntry.prototype.Get_Styles = CDLbl.prototype.Get_Styles;
     CalcLegendEntry.prototype.Get_Theme = CDLbl.prototype.Get_Theme;
     CalcLegendEntry.prototype.Get_ColorMap = CDLbl.prototype.Get_ColorMap;
+    CalcLegendEntry.prototype.getBodyPr = function () {
+        let oBodyPr = CDLbl.prototype.getBodyPr.call(this);
+        oBodyPr.resetInsets(0, 0, 0, 0);
+        return oBodyPr;
+    };
+    CalcLegendEntry.prototype.chekBodyPrTransform = CDLbl.prototype.chekBodyPrTransform;
+    CalcLegendEntry.prototype.checkContentWordArt = CDLbl.prototype.checkContentWordArt;
+    CalcLegendEntry.prototype.checkNeedRecalcDocContentForTxWarp = CDLbl.prototype.checkNeedRecalcDocContentForTxWarp;
+    CalcLegendEntry.prototype.getParentObjects = CDLbl.prototype.getParentObjects;
+    CalcLegendEntry.prototype.getDocContent = CDLbl.prototype.getDocContent;
     CalcLegendEntry.prototype.recalculate = function() {
     };
     CalcLegendEntry.prototype.draw = function(g) {
 
-        CShape.prototype.draw.call(this, g);
+        CDLbl.prototype.draw.call(this, g);
         if(this.calcMarkerUnion)
             this.calcMarkerUnion.draw(g);
     };
@@ -16258,6 +16307,8 @@
     }
 
     CompiledMarker.prototype.draw = CShape.prototype.draw;
+
+    CompiledMarker.prototype.chekBodyPrTransform = function () {return false;};
     CompiledMarker.prototype.getGeometry = CShape.prototype.getGeometry;
     CompiledMarker.prototype.check_bounds = CShape.prototype.check_bounds;
     CompiledMarker.prototype.isEmptyPlaceholder = function() {

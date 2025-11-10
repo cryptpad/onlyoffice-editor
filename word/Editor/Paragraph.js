@@ -2555,7 +2555,7 @@ Paragraph.prototype.drawRunHighlight = function(CurPage, pGraphics, Pr, drawStat
 				let isRtl = Pr.ParaPr.Bidi;
 				
 				let x0 = this.Lines[CurLine].Ranges[CurRange].X;
-				let x1 = this.Lines[CurLine].Ranges[CurRange].getXEndOrigin();;
+				let x1 = this.Lines[CurLine].Ranges[CurRange].getXEndOrigin();
 				let rangeCount = this.Lines[CurLine].Ranges.length;
 				
 				if ((0 === CurRange && isRtl) || (rangeCount - 1 === CurRange && !isRtl))
@@ -3274,7 +3274,7 @@ Paragraph.prototype.drawRunContentLines = function(CurPage, pGraphics, drawState
 		Element = aFormBorder.Get_NextForward();
 		if (Element)
 		{
-			if (this.IsInFixedForm() && this.GetInnerForm() && !this.GetInnerForm().IsComplexForm())
+			if (this.IsInFixedForm() && this.GetInnerForm())
 			{
 				pGraphics.RemoveLastClip && pGraphics.RemoveLastClip();
 
@@ -13477,6 +13477,13 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 		localTrack = oLogicDocument.GetLocalTrackRevisions();
 		oLogicDocument.SetLocalTrackRevisions(false);
 	}
+	
+	let clearNotesOnPreDelete = true;
+	if (oLogicDocument && oLogicDocument.IsDocumentEditor())
+	{
+		clearNotesOnPreDelete = oLogicDocument.ClearNotesOnPreDelete;
+		oLogicDocument.ClearNotesOnPreDelete = false;
+	}
 
 	var nCurPos = oContentPos.Get(0);
 	if (true === isNoDuplicate)
@@ -13542,6 +13549,9 @@ Paragraph.prototype.Split = function(oNewParagraph, oContentPos, isNoDuplicate)
 
 	this.MoveCursorToEndPos(false, false);
 	oNewParagraph.MoveCursorToStartPos(false);
+	
+	if (oLogicDocument && oLogicDocument.IsDocumentEditor())
+		oLogicDocument.ClearNotesOnPreDelete = clearNotesOnPreDelete;
 
 	oNewParagraph.DeleteCommentOnRemove = true;
 	this.DeleteCommentOnRemove          = true;

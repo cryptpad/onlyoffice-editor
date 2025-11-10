@@ -94,7 +94,7 @@
 	function CleanPresentation()
 	{
 		editor.WordControl.Thumbnails.SelectAll();
-		logicDocument.deleteSlides(logicDocument.GetSelectedSlides());
+		logicDocument.deleteSlides(logicDocument.GetSelectedSlideObjects());
 	}
 
 	function AddShape(x, y, height, width)
