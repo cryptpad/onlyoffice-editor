@@ -597,9 +597,12 @@
                 oThis.Api.asyncImageEndLoaded(oImage);
             };
             AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+                // Remove crossOrigin on retry to maximize display success
+                img.crossOrigin = null;
                 oThis.loadImageByUrl(img, img.src);
             });
-            //oImage.Image.crossOrigin = 'anonymous';
+            // Enable CORS for cross-origin images to allow canvas manipulation
+            oImage.Image.crossOrigin = 'anonymous';
             this.loadImageByUrl(oImage.Image, oImage.src);
             return null;
         };
@@ -623,9 +626,12 @@
                 oThat.Api.asyncImageEndLoadedBackground(oImage);
             };
             AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+                // Remove crossOrigin on retry to maximize display success
+                img.crossOrigin = null;
                 oThis.loadImageByUrl(img, img.src);
             });
-            //oImage.Image.crossOrigin = 'anonymous';
+            // Enable CORS for cross-origin images to allow canvas manipulation
+            oImage.Image.crossOrigin = 'anonymous';
             // console.log("Loading image " + imgSrc + oImage.src);
             // console.log(oImage);
             // CRYPTPAD: if we find an image URL with #channel= in it
@@ -687,9 +693,12 @@
 						callback();
 				};
 				AscCommon.backoffOnErrorImg(oImage.Image, function(img) {
+					// Remove crossOrigin on retry to maximize display success
+					img.crossOrigin = null;
 					oThis.loadImageByUrl(img, img.src);
 				});
-				//oImage.Image.crossOrigin = 'anonymous';
+				// Enable CORS for cross-origin images to allow canvas manipulation
+				oImage.Image.crossOrigin = 'anonymous';
                 this.loadImageByUrl(oImage.Image, oImage.src, isDisableCrypto);
 			}
         };

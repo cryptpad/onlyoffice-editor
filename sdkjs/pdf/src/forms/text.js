@@ -488,7 +488,7 @@
 	};
         
     CTextField.prototype.Draw = function(oGraphicsPDF, oGraphicsWord) {
-        if (this.IsHidden() && !this.IsEditMode())
+        if (this.IsHidden() && !Asc.editor.IsEditFieldsMode())
             return;
 
         let oDoc = this.GetDocument();
@@ -1157,6 +1157,10 @@
         if (this.IsNeedRecalc() == false)
             return;
 
+        if (!this.contentClipRect) {
+            this.RecalculateContentRect();
+        }
+
         if (this.IsPassword()) {
             AscWord.ParagraphTextShaper.SetMaskSymbol("*");
             this.private_NeedShapeText();
@@ -1299,8 +1303,6 @@
         oDoc.activeForm = this;
 
         if (oDoc.IsEditFieldsMode()) {
-            let oController = oDoc.GetController();
-            this.editShape.select(oController, this.GetPage());
             if (false == this.IsLocked()) {
                 this.editShape.onMouseDown(x, y, e)
             }
@@ -1391,7 +1393,7 @@
         this._scrollInfo = oInfo;
     };
     CTextField.prototype.UpdateScroll = function(bShow) {
-        if (bShow && this.IsEditMode()) {
+        if (bShow && Asc.editor.IsEditFieldsMode()) {
             return;
         }
 
