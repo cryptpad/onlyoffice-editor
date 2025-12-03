@@ -44,6 +44,19 @@ define([], function () {
     if (window.DE && window.DE.Controllers && window.DE.Controllers.DocumentHolder) {
         let dh = window.DE.Controllers.DocumentHolder.prototype;
 
+        dh.checkEditorOffsets = function() {
+            if (_.isUndefined(this._XY)) {
+                let cmpEl = this.documentHolder.cmpEl;
+                this._XY = [
+                    Common.Utils.getOffset(cmpEl).left - $(window).scrollLeft(),
+                    Common.Utils.getOffset(cmpEl).top - $(window).scrollTop()
+                ];
+                this._Width       = cmpEl.width();
+                this._Height      = cmpEl.height();
+                this._BodyWidth   = $('body').width();
+            }
+        };
+
         dh.setEvents = function() {
             this.addListeners({
                 'DocumentHolder': {
@@ -53,7 +66,6 @@ define([], function () {
             });
 
             if (this.api) {
-                this.api.asc_registerCallback('asc_onSingleChartSelectionChanged',  _.bind(this.onSingleChartSelectionChanged, this));
                 this.api.asc_registerCallback('asc_onContextMenu',                  _.bind(this.onContextMenu, this));
                 this.api.asc_registerCallback('asc_onMouseMoveStart',               _.bind(this.onMouseMoveStart, this));
                 this.api.asc_registerCallback('asc_onMouseMoveEnd',                 _.bind(this.onMouseMoveEnd, this));
@@ -76,6 +88,7 @@ define([], function () {
                     this.api.asc_registerPlaceholderCallback(AscCommon.PlaceholderButtonType.ImageUrl, _.bind(this.onInsertImageUrl, this));
                     this.api.asc_registerCallback('asc_onHideEyedropper',           _.bind(this.hideEyedropper, this));
                     this.api.asc_SetMathInputType(Common.localStorage.getBool("de-equation-input-latex") ? Asc.c_oAscMathInputType.LaTeX : Asc.c_oAscMathInputType.Unicode);
+                    this.api.asc_registerCallback('asc_onSingleChartSelectionChanged',  _.bind(this.onSingleChartSelectionChanged, this));
                 }
                 this.api.asc_registerCallback('asc_onShowForeignCursorLabel',       _.bind(this.onShowForeignCursorLabel, this));
                 this.api.asc_registerCallback('asc_onHideForeignCursorLabel',       _.bind(this.onHideForeignCursorLabel, this));
@@ -298,7 +311,11 @@ define([], function () {
             view.menuChartElement.on('item:click',               _.bind(me.onChartElement, me));
             view.menuChartElement.menu.items.forEach(item => {
                 if (item.menu) {
-                    item.menu.on('item:click',                   _.bind(me.onChartElement, me));
+                    item.menu.items.forEach(item => {
+                        item.on('click', function() {
+                            me.onChartElement(item.menu, item);
+                        });
+                    });
                 }
             });
             me.onChangeProtectDocument();
@@ -464,9 +481,10 @@ define([], function () {
                     var me = this;
                     setTimeout(function() {
                         Common.UI.warning({
-                            msg: me.documentHolder.txtWarnUrl,
-                            buttons: ['yes', 'no'],
-                            primary: 'yes',
+                            maxwidth: 500,
+                            msg: Common.Utils.String.format(me.documentHolder.txtWarnUrl, url),
+                            buttons: ['no', 'yes'],
+                            primary: 'no',
                             callback: function(btn) {
                                 try {
                                     (btn == 'yes') && window.open(url);
@@ -578,15 +596,8 @@ define([], function () {
             var me = this,
                 cmpEl = me.documentHolder.cmpEl,
                 screenTip = me.screenTip;
-            if (me._XY === undefined) {
-                me._XY = [
-                    Common.Utils.getOffset(cmpEl).left - $(window).scrollLeft(),
-                    Common.Utils.getOffset(cmpEl).top - $(window).scrollTop()
-                ];
-                me._Height = cmpEl.height();
-                me._Width = cmpEl.width();
-                me._BodyWidth = $('body').width();
-            }
+
+            me.checkEditorOffsets();
 
             if (moveData) {
                 var showPoint, ToolTip,
@@ -853,7 +864,8 @@ define([], function () {
                 type = chartProps.getType(),
                 RadarChart = [_set.radar, _set.radarMarker, _set.radarFilled].includes(type),
                 hBarChart = [_set.hBarNormal, _set.hBarStacked, _set.hBarStackedPer, _set.hBarNormal3d, _set.hBarStacked3d, _set.hBarStackedPer3d].includes(type),
-                scatterChart = [_set.scatter, _set.scatterLine, _set.scatterLineMarker, _set.scatterMarker, _set.scatterNone, _set.scatterSmooth, _set.scatterSmoothMarker, _set.surfaceNormal].includes(type);
+                scatterChart = [_set.scatter, _set.scatterLine, _set.scatterLineMarker, _set.scatterMarker, _set.scatterNone, _set.scatterSmooth, _set.scatterSmoothMarker, _set.surfaceNormal].includes(type),
+                comboCustom = [_set.comboCustom].includes(type);
             
             switch (value) {
                 case 'bShowHorAxis':
@@ -861,7 +873,7 @@ define([], function () {
                         chartProps.setDisplayAxes(VertAxis && VertAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), item.checked, SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else if (scatterChart) {
                         chartProps.setDisplayAxes(SecVertAxis && SecVertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), item.checked, VertAxis && VertAxis.getShow(), DepthAxis && DepthAxis.getShow());
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxes(item.checked, SecVertAxis && SecVertAxis.getShow(), VertAxis && VertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(item.checked, SecHorAxis && SecHorAxis.getShow(), VertAxis && VertAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), DepthAxis && DepthAxis.getShow());
@@ -872,21 +884,21 @@ define([], function () {
                         chartProps.setDisplayAxes(item.checked, SecVertAxis && SecVertAxis.getShow(), HorAxis && HorAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else if (scatterChart) {
                         chartProps.setDisplayAxes(SecVertAxis && SecVertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), HorAxis && HorAxis.getShow(), item.checked, DepthAxis && DepthAxis.getShow());
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), item.checked, SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), item.checked, SecVertAxis && SecVertAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     }
                     break;
                 case 'bShowHorAxSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), VertAxis && VertAxis.getShow(), item.checked, DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), item.checked, VertAxis && VertAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     }
                     break;          
                 case 'bShowVertAxSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), item.checked, VertAxis && VertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), VertAxis && VertAxis.getShow(), item.checked, DepthAxis && DepthAxis.getShow());
@@ -900,7 +912,7 @@ define([], function () {
                         chartProps.setDisplayAxisTitles((VertAxis && VertAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), item.checked,  (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else if (scatterChart) {
                         chartProps.setDisplayAxisTitles((SecHorAxis && SecHorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), item.checked, (VertAxis && VertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxisTitles(item.checked, (SecVertAxis && SecVertAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else {
                         chartProps.setDisplayAxisTitles(item.checked, (SecHorAxis && SecHorAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
@@ -911,21 +923,21 @@ define([], function () {
                         chartProps.setDisplayAxisTitles(item.checked, (SecVertAxis && SecVertAxis.getLabel() === 1), (HorAxis && HorAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else if (scatterChart) {
                         chartProps.setDisplayAxisTitles((SecHorAxis && SecHorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (HorAxis && HorAxis.getLabel() === 1), item.checked, (DepthAxis && DepthAxis.getLabel() === 1));
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), item.checked, (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), item.checked, (SecVertAxis && SecVertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     }
                     break;
                 case 'bShowHorAxTitleSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), item.checked, (DepthAxis && DepthAxis.getLabel() === 1));
                     } else {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), item.checked, (VertAxis && VertAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     }
                     break;
                 case 'bShowVertAxisTitleSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), item.checked, (VertAxis && VertAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else { 
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), item.checked, (DepthAxis && DepthAxis.getLabel() === 1));
@@ -1202,10 +1214,13 @@ define([], function () {
         };
 
          dh.onSingleChartSelectionChanged = function(asc_CRect) {
+             if (this.mode && !this.mode.isEdit) return;
+
             var me = this,
                 documentHolderView = me.documentHolder,
                 chartContainer = documentHolderView.cmpEl.find('#chart-element-container');
-            
+            me._state.currentChartRect = asc_CRect;
+
             me.getCurrentChartProps = function() {
                 var selectedObjects = this.api.getSelectedElements();
                 for (var i = 0; i < selectedObjects.length; i++) {
@@ -1254,7 +1269,8 @@ define([], function () {
                         parentEl: $('#id-document-holder-btn-chart-element'),
                         cls: 'btn-toolbar',
                         iconCls: 'toolbar__icon btn-chart-elements',
-                        menu: this.documentHolder.menuChartElement.menu
+                        hint: me.documentHolder.btnChart,
+                        menu: me.documentHolder.menuChartElement.menu
                     });
         
                     me.btnChartElement.on('click', function() {
@@ -1264,8 +1280,27 @@ define([], function () {
                         }
                     });
                 }
+                me.disableChartElementButton();
             } else {
                 chartContainer.hide();
+            }
+        };
+
+        dh.onHideChartElementButton = function() {
+            if (!this.documentHolder || !this.documentHolder.cmpEl) return;
+            var chartContainer = this.documentHolder.cmpEl.find('#chart-element-container');
+            if (chartContainer.is(':visible')) {
+                chartContainer.hide();
+            }
+        };
+
+        dh.disableChartElementButton = function() {
+            var chartContainer = this.documentHolder.cmpEl.find('#chart-element-container'),
+                docProtection = this.documentHolder._docProtection,
+                disabled = this._isDisabled  || this._state.chartLocked || docProtection.isReadOnly || docProtection.isFormsOnly || docProtection.isCommentsOnly;
+
+            if (chartContainer.length>0 && chartContainer.is(':visible')) {
+                this.btnChartElement.setDisabled(!!disabled);
             }
         };
 
@@ -1419,8 +1454,31 @@ define([], function () {
             if (this.mode.isEdit && !(this._isDisabled || docProtection.isReadOnly || docProtection.isFormsOnly || docProtection.isCommentsOnly)) {
                 var diagramEditor = this.getApplication().getController('Common.Controllers.ExternalDiagramEditor').getView('Common.Views.ExternalDiagramEditor');
                 if (diagramEditor && chart) {
+                    let x, y;
+                    if (this._state.currentChartRect) {
+                        this.checkEditorOffsets();
+
+                        diagramEditor.setSize(diagramEditor.initConfig.initwidth, diagramEditor.initConfig.initheight);
+
+                        let dlgW = diagramEditor.getWidth() || diagramEditor.initConfig.initwidth,
+                            dlgH = diagramEditor.getHeight() || diagramEditor.initConfig.initheight,
+                            rect_x = this._state.currentChartRect.asc_getX(),
+                            rect_y = this._state.currentChartRect.asc_getY(),
+                            w = this._state.currentChartRect.asc_getWidth(),
+                            h = this._state.currentChartRect.asc_getHeight();
+                        y = this._XY[1] + rect_y + h;
+                        if (y + dlgH > Common.Utils.innerHeight()) {
+                            y = this._XY[1] + rect_y - dlgH;
+                            if (y<0) {
+                                y = Common.Utils.innerHeight() - dlgH;
+                            }
+                        }
+                        x = this._XY[0] + rect_x - (dlgW - w)/2;
+                        if (x + dlgW > Common.Utils.innerWidth())
+                            x = Common.Utils.innerWidth() - dlgW;
+                    }
                     diagramEditor.setEditMode(true);
-                    diagramEditor.show();
+                    diagramEditor.show(x, y);
                     diagramEditor.setChartData(chart);
                 }
             }
@@ -2426,6 +2484,7 @@ define([], function () {
                                 imageProps  : elValue,
                                 sizeOriginal: imgsizeOriginal,
                                 api         : me.api,
+                                chartSettings: me.api.asc_getChartSettings(),
                                 sectionProps: me.api.asc_GetSectionProps(),
                                 handler     : function(result, value) {
                                     if (result == 'ok') {
@@ -2737,15 +2796,7 @@ define([], function () {
             showPoint[1] = Math.min(me._Height - eqContainer.outerHeight(), Math.max(0, showPoint[1]));
             eqContainer.css({left: showPoint[0], top : showPoint[1]});
 
-            if (me._XY === undefined) {
-                me._XY = [
-                    Common.Utils.getOffset(documentHolder.cmpEl).left - $(window).scrollLeft(),
-                    Common.Utils.getOffset(documentHolder.cmpEl).top - $(window).scrollTop()
-                ];
-                me._Height = documentHolder.cmpEl.height();
-                me._Width = documentHolder.cmpEl.width();
-                me._BodyWidth = $('body').width();
-            }
+            me.checkEditorOffsets();
 
             var diffDown = me._Height - showPoint[1] - eqContainer.outerHeight(),
                 diffUp = me._XY[1] + (!Common.Utils.InternalSettings.get("de-hidden-rulers") ? 26 : 0) + showPoint[1],

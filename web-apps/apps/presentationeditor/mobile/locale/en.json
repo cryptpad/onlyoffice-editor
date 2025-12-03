@@ -83,7 +83,7 @@
     "textDoNotShowAgain": "Don't show again",
     "textOk": "Ok",
     "textRows": "Rows",
-    "txtWarnUrl": "Clicking this link can be harmful to your device and data.<br>Are you sure you want to continue?"
+    "txtWarnUrl": "Clicking this link can be harmful to your device and data. This location may be unsafe:<br>{0}<br>Are you sure you want to continue?"
   },
   "Controller": {
     "Main": {
@@ -93,7 +93,7 @@
       "criticalErrorTitle": "Error",
       "errorAccessDeny": "You are trying to perform an action you do not have rights for.<br>Please, contact your admin.",
       "errorOpensource": "Using the free Community version, you can open documents for viewing only. To access mobile web editors, a commercial license is required.",
-      "errorProcessSaveResult": "Saving failed.",
+      "del_errorProcessSaveResult": "Saving failed.",
       "errorServerVersion": "The editor version has been updated. The page will be reloaded to apply the changes.",
       "errorUpdateVersion": "The file version has been changed. The page will be reloaded.",
       "leavePageText": "You have unsaved changes in this document. Click 'Stay on this Page' to wait for autosave. Click 'Leave this Page' to discard all the unsaved changes.",
@@ -356,6 +356,7 @@
       "textBack": "Back",
       "textBandedColumn": "Banded Column",
       "textBandedRow": "Banded Row",
+      "textBaseline": "Baseline",
       "textBefore": "Before",
       "textBlack": "Through Black",
       "textBorder": "Border",
@@ -366,8 +367,10 @@
       "textBullets": "Bullets",
       "textBulletsAndNumbers": "Bullets & Numbers",
       "textCancel": "Cancel",
+      "textCapitalization": "Capitalization",
       "textCaseSensitive": "Case Sensitive",
       "textCellMargins": "Cell Margins",
+      "textCellSize": "Cell size",
       "textChangeShape": "Change Shape",
       "textChart": "Chart",
       "textClock": "Clock",
@@ -423,9 +426,6 @@
       "textLayout": "Layout",
       "textLeft": "Left",
       "textLetterSpacing": "Letter spacing",
-      "txtWidth": "Width",
-      "txtHeight": "Height",
-      "textCellSize": "Cell size",
       "textLineSpacing": "Line Spacing",
       "textLink": "Link",
       "textLinkSettings": "Link Settings",
@@ -477,8 +477,6 @@
       "textSplit": "Split",
       "textStartOnClick": "Start on click",
       "textStrikethrough": "Strikethrough",
-      "textBaseline": "Baseline",
-      "textCapitalization": "Capitalization",
       "textStyle": "Style",
       "textStyleOptions": "Style Options",
       "textSubscript": "Subscript",
@@ -501,7 +499,9 @@
       "textZoom": "Zoom",
       "textZoomIn": "Zoom In",
       "textZoomOut": "Zoom Out",
-      "textZoomRotate": "Zoom and Rotate"
+      "textZoomRotate": "Zoom and Rotate",
+      "txtHeight": "Height",
+      "txtWidth": "Width"
     },
     "Settings": {
       "mniSlideStandard": "Standard (4:3)",

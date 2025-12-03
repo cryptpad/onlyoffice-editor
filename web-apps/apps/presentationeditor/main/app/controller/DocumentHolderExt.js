@@ -44,6 +44,19 @@ define([], function () {
     if (window.PE && window.PE.Controllers && window.PE.Controllers.DocumentHolder) {
         let dh = window.PE.Controllers.DocumentHolder.prototype;
 
+        dh.checkEditorOffsets = function() {
+            if (_.isUndefined(this._XY)) {
+                let cmpEl = this.documentHolder.cmpEl;
+                this._XY = [
+                    Common.Utils.getOffset(cmpEl).left - $(window).scrollLeft(),
+                    Common.Utils.getOffset(cmpEl).top - $(window).scrollTop()
+                ];
+                this._Width       = cmpEl.width();
+                this._Height      = cmpEl.height();
+                this._BodyWidth   = $('body').width();
+            }
+        };
+
         dh.setEvents = function() {
             var me = this;
             this.addListeners({
@@ -56,7 +69,6 @@ define([], function () {
             });
 
             if (me.api) {
-                me.api.asc_registerCallback('asc_onSingleChartSelectionChanged',  _.bind(this.onSingleChartSelectionChanged, this));
                 me.api.asc_registerCallback('asc_onContextMenu',        _.bind(me.onContextMenu, me));
                 me.api.asc_registerCallback('asc_onMouseMoveStart',     _.bind(me.onMouseMoveStart, me));
                 me.api.asc_registerCallback('asc_onMouseMoveEnd',       _.bind(me.onMouseMoveEnd, me));
@@ -93,6 +105,7 @@ define([], function () {
                     me.api.asc_registerCallback('asc_onHideEyedropper',         _.bind(me.hideEyedropper, me));
                     me.api.asc_SetMathInputType(Common.localStorage.getBool("pe-equation-input-latex") ? Asc.c_oAscMathInputType.LaTeX : Asc.c_oAscMathInputType.Unicode);
                     me.api.asc_registerCallback('asc_onRemoveUnpreserveMasters', _.bind(me.onRemoveUnpreserveMasters, me));
+                    me.api.asc_registerCallback('asc_onSingleChartSelectionChanged',  _.bind(this.onSingleChartSelectionChanged, this));
                 }
                 me.api.asc_registerCallback('asc_onShowForeignCursorLabel', _.bind(me.onShowForeignCursorLabel, me));
                 me.api.asc_registerCallback('asc_onHideForeignCursorLabel', _.bind(me.onHideForeignCursorLabel, me));
@@ -254,7 +267,11 @@ define([], function () {
             view.menuChartElement.on('item:click',               _.bind(me.onChartElement, me));
             view.menuChartElement.menu.items.forEach(item => {
                 if (item.menu) {
-                    item.menu.on('item:click',                   _.bind(me.onChartElement, me));
+                    item.menu.items.forEach(item => {
+                        item.on('click', function() {
+                            me.onChartElement(item.menu, item);
+                        });
+                    });
                 }
             });
         };
@@ -367,9 +384,10 @@ define([], function () {
                     var me = this;
                     setTimeout(function() {
                         Common.UI.warning({
-                            msg: me.documentHolder.txtWarnUrl,
-                            buttons: ['yes', 'no'],
-                            primary: 'yes',
+                            maxwidth: 500,
+                            msg: Common.Utils.String.format(me.documentHolder.txtWarnUrl, url),
+                            buttons: ['no', 'yes'],
+                            primary: 'no',
                             callback: function(btn) {
                                 try {
                                     (btn == 'yes') && window.open(url);
@@ -387,15 +405,8 @@ define([], function () {
             var me = this,
                 cmpEl = me.documentHolder.cmpEl,
                 screenTip = me.screenTip;
-            if (_.isUndefined(me._XY)) {
-                me._XY = [
-                    Common.Utils.getOffset(cmpEl).left - $(window).scrollLeft(),
-                    Common.Utils.getOffset(cmpEl).top - $(window).scrollTop()
-                ];
-                me._Width       = cmpEl.width();
-                me._Height      = cmpEl.height();
-                me._BodyWidth   = $('body').width();
-            }
+
+            this.checkEditorOffsets();
 
             if (moveData) {
                 var showPoint, ToolTip = '',
@@ -682,15 +693,7 @@ define([], function () {
 
         dh.onPaintSlideNum = function (slideNum) {
             var me = this;
-            if (_.isUndefined(me._XY)) {
-                me._XY = [
-                    Common.Utils.getOffset(me.documentHolder.cmpEl).left - $(window).scrollLeft(),
-                    Common.Utils.getOffset(me.documentHolder.cmpEl).top - $(window).scrollTop()
-                ];
-                me._Width       = me.documentHolder.cmpEl.width();
-                me._Height      = me.documentHolder.cmpEl.height();
-                me._BodyWidth   = $('body').width();
-            }
+            me.checkEditorOffsets();
 
             if (_.isUndefined(me.slideNumDiv)) {
                 me.slideNumDiv = $(document.createElement("div"));
@@ -816,7 +819,8 @@ define([], function () {
                 type = chartProps.getType(),
                 RadarChart = [_set.radar, _set.radarMarker, _set.radarFilled].includes(type),
                 hBarChart = [_set.hBarNormal, _set.hBarStacked, _set.hBarStackedPer, _set.hBarNormal3d, _set.hBarStacked3d, _set.hBarStackedPer3d].includes(type),
-                scatterChart = [_set.scatter, _set.scatterLine, _set.scatterLineMarker, _set.scatterMarker, _set.scatterNone, _set.scatterSmooth, _set.scatterSmoothMarker, _set.surfaceNormal].includes(type);
+                scatterChart = [_set.scatter, _set.scatterLine, _set.scatterLineMarker, _set.scatterMarker, _set.scatterNone, _set.scatterSmooth, _set.scatterSmoothMarker, _set.surfaceNormal].includes(type),
+                comboCustom = [_set.comboCustom].includes(type);
             
             switch (value) {
                 case 'bShowHorAxis':
@@ -824,7 +828,7 @@ define([], function () {
                         chartProps.setDisplayAxes(VertAxis && VertAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), item.checked, SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else if (scatterChart) {
                         chartProps.setDisplayAxes(SecVertAxis && SecVertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), item.checked, VertAxis && VertAxis.getShow(), DepthAxis && DepthAxis.getShow());
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxes(item.checked, SecVertAxis && SecVertAxis.getShow(), VertAxis && VertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(item.checked, SecHorAxis && SecHorAxis.getShow(), VertAxis && VertAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), DepthAxis && DepthAxis.getShow());
@@ -835,21 +839,21 @@ define([], function () {
                         chartProps.setDisplayAxes(item.checked, SecVertAxis && SecVertAxis.getShow(), HorAxis && HorAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else if (scatterChart) {
                         chartProps.setDisplayAxes(SecVertAxis && SecVertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), HorAxis && HorAxis.getShow(), item.checked, DepthAxis && DepthAxis.getShow());
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), item.checked, SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), item.checked, SecVertAxis && SecVertAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     }
                     break;
                 case 'bShowHorAxSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), VertAxis && VertAxis.getShow(), item.checked, DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), item.checked, VertAxis && VertAxis.getShow(), SecVertAxis && SecVertAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     }
                     break;          
                 case 'bShowVertAxSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), item.checked, VertAxis && VertAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), DepthAxis && DepthAxis.getShow());
                     } else {
                         chartProps.setDisplayAxes(HorAxis && HorAxis.getShow(), SecHorAxis && SecHorAxis.getShow(), VertAxis && VertAxis.getShow(), item.checked, DepthAxis && DepthAxis.getShow());
@@ -863,7 +867,7 @@ define([], function () {
                         chartProps.setDisplayAxisTitles((VertAxis && VertAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), item.checked,  (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else if (scatterChart) {
                         chartProps.setDisplayAxisTitles((SecHorAxis && SecHorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), item.checked, (VertAxis && VertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxisTitles(item.checked, (SecVertAxis && SecVertAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else {
                         chartProps.setDisplayAxisTitles(item.checked, (SecHorAxis && SecHorAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
@@ -874,21 +878,21 @@ define([], function () {
                         chartProps.setDisplayAxisTitles(item.checked, (SecVertAxis && SecVertAxis.getLabel() === 1), (HorAxis && HorAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else if (scatterChart) {
                         chartProps.setDisplayAxisTitles((SecHorAxis && SecHorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (HorAxis && HorAxis.getLabel() === 1), item.checked, (DepthAxis && DepthAxis.getLabel() === 1));
-                    } else if (type === 38) {
+                    } else if (comboCustom) {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), item.checked, (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), item.checked, (SecVertAxis && SecVertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     }
                     break;
                 case 'bShowHorAxTitleSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), item.checked, (DepthAxis && DepthAxis.getLabel() === 1));
                     } else {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), item.checked, (VertAxis && VertAxis.getLabel() === 1), (SecVertAxis && SecVertAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     }
                     break;
                 case 'bShowVertAxisTitleSec':
-                    if (type === 38) {
+                    if (comboCustom) {
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), item.checked, (VertAxis && VertAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (DepthAxis && DepthAxis.getLabel() === 1));
                     } else { 
                         chartProps.setDisplayAxisTitles((HorAxis && HorAxis.getLabel() === 1), (SecHorAxis && SecHorAxis.getLabel() === 1), (VertAxis && VertAxis.getLabel() === 1), item.checked, (DepthAxis && DepthAxis.getLabel() === 1));
@@ -1165,10 +1169,13 @@ define([], function () {
         };
 
         dh.onSingleChartSelectionChanged = function(asc_CRect) {
+            if (this.mode && !this.mode.isEdit) return;
+
             var me = this,
                 documentHolderView = me.documentHolder,
                 chartContainer = documentHolderView.cmpEl.find('#chart-element-container');
-            
+            me._state.currentChartRect = asc_CRect;
+
             me.getCurrentChartProps = function () {
                 var selectedElements = me.api.getSelectedElements();
                 if (selectedElements && selectedElements.length > 0) {
@@ -1220,7 +1227,8 @@ define([], function () {
                         parentEl: $('#id-document-holder-btn-chart-element'),
                         cls: 'btn-toolbar',
                         iconCls: 'toolbar__icon btn-chart-elements',
-                        menu: this.documentHolder.menuChartElement.menu
+                        hint: me.documentHolder.btnChart,
+                        menu: me.documentHolder.menuChartElement.menu
                     });
         
                     me.btnChartElement.on('click', function() {
@@ -1230,8 +1238,26 @@ define([], function () {
                         }
                     });
                 }
+                 me.disableChartElementButton();
             } else {
                 chartContainer.hide();
+            }
+        };
+
+        dh.onHideChartElementButton = function() {
+            if (!this.documentHolder || !this.documentHolder.cmpEl) return;
+            var chartContainer = this.documentHolder.cmpEl.find('#chart-element-container');
+            if (chartContainer.is(':visible')) {
+                chartContainer.hide();
+            }
+        };
+
+        dh.disableChartElementButton = function() {
+            var chartContainer = this.documentHolder.cmpEl.find('#chart-element-container'),
+                disabled = this._isDisabled  || this._state.chartLocked;
+
+            if (chartContainer.length>0 && chartContainer.is(':visible')) {
+                this.btnChartElement.setDisabled(!!disabled);
             }
         };
 
@@ -1470,8 +1496,31 @@ define([], function () {
             if (this.mode.isEdit && !this._isDisabled) {
                 var diagramEditor = this.getApplication().getController('Common.Controllers.ExternalDiagramEditor').getView('Common.Views.ExternalDiagramEditor');
                 if (diagramEditor && chart) {
+                    let x, y;
+                    if (this._state.currentChartRect) {
+                        this.checkEditorOffsets();
+
+                        diagramEditor.setSize(diagramEditor.initConfig.initwidth, diagramEditor.initConfig.initheight);
+
+                        let dlgW = diagramEditor.getWidth() || diagramEditor.initConfig.initwidth,
+                            dlgH = diagramEditor.getHeight() || diagramEditor.initConfig.initheight,
+                            rect_x = this._state.currentChartRect.asc_getX(),
+                            rect_y = this._state.currentChartRect.asc_getY(),
+                            w = this._state.currentChartRect.asc_getWidth(),
+                            h = this._state.currentChartRect.asc_getHeight();
+                        y = this._XY[1] + rect_y + h;
+                        if (y + dlgH > Common.Utils.innerHeight()) {
+                            y = this._XY[1] + rect_y - dlgH;
+                            if (y<0) {
+                                y = Common.Utils.innerHeight() - dlgH;
+                            }
+                        }
+                        x = this._XY[0] + rect_x - (dlgW - w)/2;
+                        if (x + dlgW > Common.Utils.innerWidth())
+                            x = Common.Utils.innerWidth() - dlgW;
+                    }
                     diagramEditor.setEditMode(true);
-                    diagramEditor.show();
+                    diagramEditor.show(x, y);
                     diagramEditor.setChartData(chart);
                 }
             }
@@ -2210,6 +2259,7 @@ define([], function () {
                                 {
                                     chartProps: elValue,
                                     slideSize: PE.getController('Toolbar').currentPageSize,
+                                    chartSettings: me.api.asc_getChartSettings(),
                                     handler: function(result, value) {
                                         if (result == 'ok') {
                                             if (me.api) {
@@ -2423,16 +2473,7 @@ define([], function () {
                     tip.isHidden = true;
                 }
             } else {
-                if (_.isUndefined(this._XY)) {
-                    this._XY = [
-                        Common.Utils.getOffset(this.documentHolder.cmpEl).left - $(window).scrollLeft(),
-                        Common.Utils.getOffset(this.documentHolder.cmpEl).top - $(window).scrollTop()
-                    ];
-                    this._Width       = this.documentHolder.cmpEl.width();
-                    this._Height      = this.documentHolder.cmpEl.height();
-                    this._BodyWidth   = $('body').width();
-                }
-
+                this.checkEditorOffsets();
                 if (!tip.parentEl) {
                     tip.parentEl = $('<div id="tip-container-guide" style="position: absolute; z-index: 10000;"></div>');
                     this.documentHolder.cmpEl.append(tip.parentEl);
@@ -2589,15 +2630,7 @@ define([], function () {
             showPoint[1] = Math.min(me._Height - eqContainer.outerHeight(), Math.max(0, showPoint[1]));
             eqContainer.css({left: showPoint[0], top : showPoint[1]});
 
-            if (_.isUndefined(me._XY)) {
-                me._XY = [
-                    Common.Utils.getOffset(documentHolder.cmpEl).left - $(window).scrollLeft(),
-                    Common.Utils.getOffset(documentHolder.cmpEl).top - $(window).scrollTop()
-                ];
-                me._Width       = documentHolder.cmpEl.width();
-                me._Height      = documentHolder.cmpEl.height();
-                me._BodyWidth   = $('body').width();
-            }
+            this.checkEditorOffsets();
 
             var diffDown = me._Height - showPoint[1] - eqContainer.outerHeight(),
                 diffUp = me._XY[1] + showPoint[1],
