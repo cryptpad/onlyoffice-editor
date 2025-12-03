@@ -839,8 +839,8 @@
                 (arg.startsWith("'") && arg.endsWith("'")) ||
                 (arg.startsWith('`') && arg.endsWith('`'))) {
                 const body = arg.slice(1, -1);
-                return body.replace(/\\([\\'"`nrvtbf])/g, (_, c) =>
-                    ({
+                return body.replace(/\\([\\'"`nrvtbf])/g, function(_, c) {
+                    var map = {
                         n: '\n',
                         r: '\r',
                         t: '\t',
@@ -851,8 +851,9 @@
                         '"': '"',
                         '`': '`',
                         '\\': '\\'
-                    } [c] ?? c)
-                );
+                    };
+                    return map.hasOwnProperty(c) ? map[c] : c;
+                });
             }
 
             return arg;
@@ -1303,9 +1304,7 @@
         oDoc.activeForm = this;
 
         if (oDoc.IsEditFieldsMode()) {
-            if (false == this.IsLocked()) {
-                this.editShape.onMouseDown(x, y, e)
-            }
+            this.editShape.onMouseDown(x, y, e);
             return;
         }
 
