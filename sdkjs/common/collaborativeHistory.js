@@ -366,10 +366,16 @@
 		for (let index = 0, count = historyPoint.Items.length; index < count; ++index)
 		{
 			let historyItem   = historyPoint.Items[index];
-			let historyChange = historyItem.Data;
+			let historyChange;
 			let historyClass  = historyItem.Class;
 
-			//todo заполнить Class и Data в изменениях автофигур spreadsheet
+			//todo: Refactor Class and Data in spreadsheet to follow other editors design
+			if (AscCommon.History.Item_ToSerializable) {
+				historyChange = AscCommon.History.Item_ToSerializable(historyItem);
+			} else {
+				historyChange = historyItem.Data;
+			}
+
 			if (!historyClass || !(historyClass.Get_Id || historyClass.Class && historyClass.Class.Get_Id))
 				continue;
 
@@ -457,17 +463,20 @@
 			if (oChange.IsContentChange())
 			{
 				let _oChange = oChange.Copy();
-
-				if (this.CommuteContentChange(_oChange, nPosition + nCount))
+				let simpleChanges = _oChange.ConvertToSimpleChanges();
+				for (let simpleIndex = simpleChanges.length - 1; simpleIndex >= 0; --simpleIndex)
 				{
-					let oReverseChange = _oChange.CreateReverseChange();
-					if (oReverseChange)
+					let simpleChange = simpleChanges[simpleIndex];
+					if (this.CommuteContentChange(simpleChange, nPosition + nCount))
 					{
-						arrReverseChanges.push(oReverseChange);
-						oReverseChange.SetReverted(true);
+						let oReverseChange = simpleChange.CreateReverseChange();
+						if (oReverseChange)
+						{
+							arrReverseChanges.push(oReverseChange);
+							oReverseChange.SetReverted(true);
+						}
 					}
 				}
-
 				oChange.SetReverted(true);
 			}
 			else if (oChange.IsSpreadsheetChange())
@@ -572,12 +581,11 @@
 			if (null !== oResult)
 				arrCommutateActions.push(oResult);
 		}
-
-		if (arrCommutateActions.length > 0)
-			oChange.ConvertFromSimpleActions(arrCommutateActions);
-		else
+		
+		if (arrCommutateActions.length <= 0)
 			return false;
 
+		oChange.ConvertFromSimpleActions(arrCommutateActions, true);
 		return true;
 	};
 	CCollaborativeHistory.prototype.CommuteContentChangeActions = function(oActionL, oActionR)

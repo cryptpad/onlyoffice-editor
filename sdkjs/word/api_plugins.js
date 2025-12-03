@@ -1298,6 +1298,27 @@
 	{
 		return this.asc_getCanRedo();
 	};
+	/**
+	 * Returns the current bookmark.
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias GetCurrentBookmark
+	 * @returns {string | null} - The current bookmarks name or null.
+	 * @since 9.0.3
+	 * @see office-js-api/Examples/Plugins/{Editor}/Api/Methods/GetCurrentBookmark.js
+	 */
+	Api.prototype["pluginMethod_GetCurrentBookmark"] = function()
+	{
+		let logicDocument = this.private_GetLogicDocument();
+		if (!logicDocument)
+			return null;
+		
+		let bookmarks = logicDocument.GetBookmarksManager();
+		let para = logicDocument.GetCurrentParagraph();
+		let topDocument = para ? para.GetTopDocumentContent() : null;
+		let docPos = topDocument && topDocument.GetContentPosition ? topDocument.GetContentPosition(false) : null;
+		return bookmarks.GetBookmarkByDocPos(docPos);
+	};
 
 	function private_ReadContentControlCommonPr(commonPr)
 	{

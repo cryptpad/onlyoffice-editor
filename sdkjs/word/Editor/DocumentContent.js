@@ -1450,7 +1450,13 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
         return;
 
     pGraphics.Start_Command(AscFormat.DRAW_COMMAND_CONTENT);
-
+	
+	if (this.transform)
+	{
+		pGraphics.SaveGrState();
+		pGraphics.transform3(this.Get_ParentTextTransform());
+	}
+	
 	var nPixelError = this.DrawingDocument && this.DrawingDocument.GetMMPerDot(1);
 	
 	let clipInfo = this.ClipInfo[CurPage];
@@ -1465,14 +1471,8 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
 		let clipY1 = undefined !== clipInfo.Y1 ? clipInfo.Y1 : pageBounds.Bottom;
 		pGraphics.AddClipRect(clipX0, clipY0, Math.abs(clipX1 - clipX0), Math.abs(clipY1 - clipY0));
 	}
-	
-	if (this.transform)
-	{
-		pGraphics.SaveGrState();
-		pGraphics.transform3(this.Get_ParentTextTransform());
-	}
 
-    var oPage = this.Pages[CurPage];
+	var oPage = this.Pages[CurPage];
     for (var nIndex = oPage.Pos; nIndex <= oPage.EndPos; ++nIndex)
     {
     	var oElement = this.Content[nIndex];
@@ -1513,12 +1513,12 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
 		pGraphics.RestoreGrState();
 	}
 	
+	if (clipInfo)
+		pGraphics.RestoreGrState();
+	
 	if (this.transform)
 		pGraphics.RestoreGrState();
 	
-	if (clipInfo)
-		pGraphics.RestoreGrState();
-
     pGraphics.End_Command();
 };
 CDocumentContent.prototype.GetAllComments = function(AllComments)
@@ -2831,18 +2831,19 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
 				let firstPara, secondPara;
 				if (Item.IsCursorAtBegin())
 				{
-					Item.Split(NewParagraph);
+					Item.SplitContent(NewParagraph, false);
 					Item.Continue(NewParagraph);
-
+					
 					NewParagraph.Correct_Content();
-					NewParagraph.MoveCursorToStartPos();
-
+					NewParagraph.MoveCursorToEndPos();
+					Item.MoveCursorToStartPos();
+					
 					var nContentPos = this.CurPos.ContentPos;
-					this.AddToContent(nContentPos + 1, NewParagraph);
+					this.AddToContent(nContentPos, NewParagraph);
 					this.CurPos.ContentPos = nContentPos + 1;
 					
-					firstPara  = Item;
-					secondPara = NewParagraph;
+					firstPara  = NewParagraph;
+					secondPara = Item;
 				}
 				else
 				{
@@ -2864,7 +2865,7 @@ CDocumentContent.prototype.AddNewParagraph = function(bForceAdd)
 								NextId = StyleId;
 						}
 						
-						Item.Split(NewParagraph);
+						Item.SplitContent(NewParagraph, true);
 						if (StyleId === NextId)
 						{
 							// Продолжаем (в плане настроек) новый параграф
@@ -3093,10 +3094,9 @@ CDocumentContent.prototype.AddInlineImage = function(W, H, Img, GraphicObject, b
 			else
 			{
 				Drawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
-				var Image = this.DrawingObjects.getChartSpace2(GraphicObject, null);
-				Image.setParent(Drawing);
-				Drawing.Set_GraphicObject(Image);
-				Drawing.setExtent(Image.spPr.xfrm.extX, Image.spPr.xfrm.extY);
+				GraphicObject.setParent(Drawing);
+				Drawing.Set_GraphicObject(GraphicObject);
+				Drawing.setExtent(GraphicObject.spPr.xfrm.extX, GraphicObject.spPr.xfrm.extY);
 			}
 			if (true === bFlow)
 			{
@@ -3258,11 +3258,53 @@ CDocumentContent.prototype.AddSignatureLine = function(oSignatureDrawing)
         }
 	}
 };
+CDocumentContent.prototype.LoadChartData = function(bNeedRecalculate)
+{
+	if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.loadChartData(bNeedRecalculate);
+	}
+};
 CDocumentContent.prototype.EditChart = function(Chart)
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
 		return this.LogicDocument.DrawingObjects.editChart(Chart);
+	}
+};
+CDocumentContent.prototype.UpdateChart = function(Chart)
+{
+	if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.updateChart(Chart);
+	}
+};
+CDocumentContent.prototype.OpenChartEditor = function()
+{
+	if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.openChartEditor();
+	}
+};
+CDocumentContent.prototype.OpenOleEditor = function()
+{
+	if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.openOleEditor();
+	}
+};
+CDocumentContent.prototype.ApplyChartSettings = function(oChartSettings)
+{
+	if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.ApplyChartSettings(oChartSettings);
+	}
+};
+CDocumentContent.prototype.GetChartSettings = function()
+{
+	if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		return this.LogicDocument.DrawingObjects.getChartSettings();
 	}
 };
 CDocumentContent.prototype.AddInlineTable = function(nCols, nRows, nMode)

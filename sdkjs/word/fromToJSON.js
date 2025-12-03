@@ -3106,7 +3106,7 @@
 			"tcPr":      this.SerTableCellPr(oPr.TableCellPr),
 			"trPr":      this.SerTableRowPr(oPr.TableRowPr),
 			"styleType": sStyleType,
-			"type":      "tableStyle"
+			"type":      "tableStylePr"
 		}
 	};
 	WriterToJSON.prototype.SerTableMeasurement = function(oMeasurement)
@@ -3645,7 +3645,7 @@
 			return undefined;
 
 		var sReviewType = undefined;
-		switch (oRow.ReviewType)
+		switch (oRow.GetReviewType())
 		{
 			case reviewtype_Common:
 				sReviewType = "common";
@@ -4929,7 +4929,7 @@
 			bFromDocument = oParent.bFromDocument;
 
 		var sReviewType = undefined;
-		switch (oRun.ReviewType)
+		switch (oRun.GetReviewType())
 		{
 			case reviewtype_Common:
 				sReviewType = "common";
@@ -10544,7 +10544,7 @@
 	ReaderFromJSON.prototype.AbstractNumFromJSON = function(oParsedAbstrNum)
 	{
 		var oDocument = private_GetLogicDocument();
-		var oAbstractNum = new AscCommonWord.CAbstractNum();
+		var oAbstractNum = new AscWord.CAbstractNum();
 		var oTempLvl;
 
 		for (var nLvl = 0; nLvl < oParsedAbstrNum["lvl"].length; nLvl++)

@@ -136,6 +136,7 @@
 			UserDrop : -100,
 			Warning  : -101,
 			UpdateVersion : -102,
+			ForcedViewMode : -103,
 
 			PrintMaxPagesCount : -110,
 

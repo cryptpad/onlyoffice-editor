@@ -156,7 +156,7 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_TableCell]              = AscCommonWord.CTableCell;
 		this.m_oFactoryClass[AscDFH.historyitem_type_DocumentContent]        = AscCommonWord.CDocumentContent;
 		this.m_oFactoryClass[AscDFH.historyitem_type_HdrFtr]                 = AscCommonWord.CHeaderFooter;
-		this.m_oFactoryClass[AscDFH.historyitem_type_AbstractNum]            = AscCommonWord.CAbstractNum;
+		this.m_oFactoryClass[AscDFH.historyitem_type_AbstractNum]            = AscWord.CAbstractNum;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Comment]                = AscCommon.CComment;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Style]                  = AscCommonWord.CStyle;
 		this.m_oFactoryClass[AscDFH.historyitem_type_CommentMark]            = AscCommon.ParaComment;
@@ -458,10 +458,17 @@
 			// annots
 			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Text]		= AscPDF.CAnnotationText;
 			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Ink]			= AscPDF.CAnnotationInk;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Circle]		= AscPDF.CAnnotationCircle;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_FreeText]	= AscPDF.CAnnotationFreeText;
+
 			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Highlight]	= AscPDF.CAnnotationHighlight;
 			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Underline]	= AscPDF.CAnnotationUnderline;
 			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Strikeout]	= AscPDF.CAnnotationStrikeout;
-			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_FreeText]	= AscPDF.CAnnotationFreeText;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Ink]			= AscPDF.CAnnotationInk;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Line]		= AscPDF.CAnnotationLine;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Polygon]		= AscPDF.CAnnotationPolygon;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Polyline]	= AscPDF.CAnnotationPolyLine;
+			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Square]		= AscPDF.CAnnotationSquare;
 			this.m_oFactoryClass[AscDFH.historyitem_type_Pdf_Annot_Stamp]		= AscPDF.CAnnotationStamp;
 
 			//forms

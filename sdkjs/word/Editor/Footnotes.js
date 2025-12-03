@@ -1481,12 +1481,54 @@ CFootnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightP
 
 	return this.CurFootnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId, bSelect, arrImagesForAddToHistory);
 };
+CFootnotesController.prototype.LoadChartData = function(bNeedRecalculate)
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	this.CurFootnote.LoadChartData(bNeedRecalculate);
+};
 CFootnotesController.prototype.EditChart = function(Chart)
 {
 	if (false === this.private_CheckFootnotesSelectionBeforeAction())
 		return;
 
 	this.CurFootnote.EditChart(Chart);
+};
+CFootnotesController.prototype.UpdateChart = function(Chart)
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	this.CurFootnote.UpdateChart(Chart);
+};
+CFootnotesController.prototype.OpenChartEditor = function()
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	this.CurFootnote.OpenChartEditor();
+};
+CFootnotesController.prototype.ApplyChartSettings = function(oChartSettings)
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	return this.CurFootnote.ApplyChartSettings(oChartSettings);
+};
+CFootnotesController.prototype.GetChartSettings = function()
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	return this.CurFootnote.GetChartSettings();
+};
+CFootnotesController.prototype.OpenOleEditor = function()
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	this.CurFootnote.OpenOleEditor();
 };
 CFootnotesController.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {
@@ -3510,6 +3552,20 @@ CFootnotesController.prototype.CollectSelectedReviewChanges = function(oTrackMan
 	{
 		this.CurFootnote.CollectSelectedReviewChanges(oTrackManager);
 	}
+};
+CFootnotesController.prototype.GetCurrentTopDocContent = function()
+{
+	if (this.Selection.Use)
+	{
+		for (let id in this.Selection.Footnotes)
+		{
+			return this.Selection.Footnotes[id];
+		}
+	}
+	else if (this.CurFootnote)
+		return this.CurFootnote;
+	
+	return this.LogicDocument;
 };
 
 function CFootEndnotePageColumn()

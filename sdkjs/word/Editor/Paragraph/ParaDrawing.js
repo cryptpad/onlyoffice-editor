@@ -347,6 +347,7 @@ ParaDrawing.prototype.Get_Props = function(OtherProps)
 	var Props    = {};
 	Props.Width  = this.GraphicObj.extX;
 	Props.Height = this.GraphicObj.extY;
+	Props.Form   = this.IsForm();
 	if (drawing_Inline === this.DrawingType)
 		Props.WrappingStyle = c_oAscWrapStyle2.Inline;
 	else if (WRAPPING_TYPE_NONE === this.wrappingType)
@@ -536,6 +537,9 @@ ParaDrawing.prototype.Get_Props = function(OtherProps)
 		if(undefined === OtherProps.description || Props.description !== OtherProps.description){
 			Props.description = undefined;
 		}
+		
+		if (OtherProps.Form || Props.Form)
+			Props.Form = true;
 	}
 
 	return Props;

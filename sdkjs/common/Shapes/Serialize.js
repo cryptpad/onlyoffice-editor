@@ -377,17 +377,8 @@ function BinaryPPTYLoader()
                 let nCustomPos = _main_tables["8"];
                 s.Seek2(nCustomPos);
 
-                //let nCustomType = s.GetUChar();
-                let nCustomCount = s.GetULong();
-                if(nCustomCount > 0) {
-                    for(let nRecord = 0; nRecord < nCustomCount; ++nRecord) {
-
-                        let nCustomType = s.GetUChar();
-                        s.SkipRecord();
-                    }
-                }
-                this.presentation.CustomXmlData = s.data.slice(nCustomPos, s.cur);
-                s.Seek2(nCustomPos);
+                let customXmlManager = this.presentation.getCustomXmlManager();
+				(new AscCommon.BinaryCustomsTableReader(customXmlManager, s)).ReadPPTY();
             }
 
             if (undefined != _main_tables["48"])
@@ -640,7 +631,6 @@ function BinaryPPTYLoader()
 
                     var indexL = s.GetULong();
                     this.presentation.Slides[_slideNum].setLayout(this.aSlideLayouts[indexL]);
-                    this.presentation.Slides[_slideNum].Master = this.aSlideLayouts[indexL].Master;
                     _slideNum++;
                 }
             }
@@ -1823,18 +1813,18 @@ function BinaryPPTYLoader()
 
     this.ReadRect = function(bIsMain)
     {
-        var _ret = {};
+        let _ret = {};
 
-        var s = this.stream;
+        let s = this.stream;
 
-        var _rec_start = s.cur;
-        var _end_rec = _rec_start + s.GetLong() + 4;
+        let _rec_start = s.cur;
+        let _end_rec = _rec_start + s.GetLong() + 4;
 
         s.Skip2(1); // start attributes
 
         while (true)
         {
-            var _at = s.GetUChar();
+            let _at = s.GetUChar();
             if (_at == g_nodeAttributeEnd)
                 break;
 
@@ -1895,19 +1885,17 @@ function BinaryPPTYLoader()
 
         if (_ret.l > _ret.r)
         {
-            var tmp = _ret.l;
+            let tmp = _ret.l;
             _ret.l = _ret.r;
             _ret.r = tmp;
         }
         if (_ret.t > _ret.b)
         {
-            var tmp = _ret.t;
+            let tmp = _ret.t;
             _ret.t = _ret.b;
             _ret.b = tmp;
         }
-        var ret = new AscFormat.CSrcRect();
-        ret.setLTRB(_ret.l, _ret.t, _ret.r, _ret.b);
-        return ret;
+        return new AscFormat.CSrcRect(_ret.l, _ret.t, _ret.r, _ret.b);
     };
 
     this.ReadGradLin = function()
@@ -3230,7 +3218,7 @@ function BinaryPPTYLoader()
                                 s.Skip2(4); // dpi
                                 break;
                             case 1:
-                                s.Skip2(1); // rotWithShape
+                                uni_fill.fill.rotWithShape = s.GetBool();
                                 break;
                             default:
                                 break;
@@ -3315,8 +3303,10 @@ function BinaryPPTYLoader()
                             }
                             case 3:
                             {
-                                var _e2 = s.cur + s.GetLong() + 4;
+                                const stretch = new AscFormat.CBlipFillStretch();
+                                uni_fill.fill.setStretch(stretch);
 
+                                var _e2 = s.cur + s.GetLong() + 4;
                                 while (s.cur < _e2)
                                 {
                                     var _t = s.GetUChar();
@@ -3325,9 +3315,9 @@ function BinaryPPTYLoader()
                                     {
                                         case 0:
                                         {
-                                            var _srcRect = this.ReadRect(false);
-                                            if (_srcRect != null)
-                                                uni_fill.fill.setSrcRect(_srcRect);
+                                            const fillRect = this.ReadRect(true);
+                                            if (fillRect != null)
+                                                stretch.setFillRect(fillRect);
                                             break;
                                         }
                                         default:
