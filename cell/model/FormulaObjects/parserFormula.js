@@ -6792,9 +6792,11 @@ function parserFormula( formula, parent, _ws ) {
 		let oDefaultResult = null;
 
 		if (sFunctionName === "IF") {
-			aLogicalTests.push(aOutStack.shift());
-			aTrueResults.push(aOutStack.shift());
-			oFalseResult = aOutStack.shift();
+			aLogicalTests.push(aOutStack[0]);
+			aTrueResults.push(aOutStack[1]);
+			oFalseResult = aOutStack[2];
+			// Remove processed arguments from stack
+			aOutStack.splice(0, 3);
 
 			return [aLogicalTests, aTrueResults, oFalseResult];
 		}

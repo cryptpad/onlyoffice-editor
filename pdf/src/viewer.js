@@ -795,7 +795,8 @@
 						left: x,
 						top: y,
 						right: x + w,
-						bottom: y + h
+						bottom: y + h,
+						pageIndex: index
 					}
 				}
 			});
@@ -1672,7 +1673,7 @@
 						if (bGetHidden) {
 							return oField;
 						}
-						else if (oField.IsHidden() == false || oField.IsEditMode()) {
+						else if (oField.IsHidden() == false || Asc.editor.IsEditFieldsMode()) {
 							return oField;
 						}
 					}
@@ -1825,6 +1826,8 @@
 		this.onMouseDown = function(e)
 		{
 			let oDoc = oThis.getPDFDoc();
+			let oDrDoc = oDoc.GetDrawingDocument();
+
 			if (oThis.thumbnails && oThis.thumbnails.isInFocus) {
 				oThis.thumbnails.isInFocus = false;
 				Asc.editor.sendEvent('asc_onCanPastePage', true);
@@ -1851,6 +1854,16 @@
 
 			var mouseButton = AscCommon.getMouseButton(e || {});
 			AscCommon.check_MouseDownEvent(e, true);
+
+			// down inside drawing (placeholders)
+			if (Asc.editor.canEdit()) {
+				let pos = oDrDoc.ConvertCoordsFromCursor2(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+				
+				let is_drawing = oDrDoc.checkMouseDown_Drawing(pos, e === undefined ? true : false);
+				if (is_drawing === true) {
+					return;
+				}
+			}
 
 			if (mouseButton !== 0)
 			{
@@ -1995,6 +2008,17 @@
 			AscCommon.check_MouseUpEvent(e);
 
 			let oDoc = oThis.getPDFDoc();
+			let oDrDoc = oDoc.GetDrawingDocument();
+
+			// up inside drawing (placeholders)
+			if (Asc.editor.canEdit()) {
+				let pos = oDrDoc.ConvertCoordsFromCursor2(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+				
+				let is_drawing = oDrDoc.checkMouseUp_Drawing(pos);
+				if (is_drawing === true)
+					return;
+			}
+
 			oDoc.OnMouseUp(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y, AscCommon.global_mouseEvent);
 
 			if (oThis.canSelectPageText() && !oThis.MouseHandObject && !oDoc.mouseDownAnnot && !oDoc.mouseDownField)
@@ -2039,10 +2063,23 @@
 				return;
 
 			let oDoc = oThis.getPDFDoc();
+			let oDrDoc = oDoc.GetDrawingDocument();
 			AscCommon.check_MouseMoveEvent(e);
 
 			if (e && e.preventDefault)
 				e.preventDefault();
+
+			// move inside drawing (placeholders)
+			if (Asc.editor.canEdit()) {
+				let pos = oDrDoc.ConvertCoordsFromCursor2(AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+				
+				let is_drawing = oDrDoc.checkMouseMove_Drawing(pos, e === undefined ? true : false);
+				if (is_drawing === true) {
+					oDoc.UpdateCursorType(pos.X, pos.Y, pos.Page, global_mouseEvent);
+					oDrDoc.checkMouseMove_Drawing(pos, e === undefined);
+					return;
+				}
+			}
 
 			if (oThis.MouseHandObject)
 			{
@@ -2413,6 +2450,8 @@
 			oDrDoc.private_StartDrawSelection(this.overlay);
 			this.drawSelection(ctx, oDoc, oDrDoc);
 			
+	        this.drawPlaceholders();
+
 			if (oDoc.activeForm && oDoc.activeForm.content && oDoc.activeForm.content.IsSelectionUse() && !oDoc.activeForm.content.IsSelectionEmpty()) {
 				ctx.beginPath();
 				oDoc.activeForm.content.DrawSelectionOnPage(0);
@@ -2429,6 +2468,22 @@
 			this.drawForeignSelections(oDoc, oDrDoc, ctx);
 		};
 		
+		this.drawPlaceholders = function() {
+			const oDoc = this.getPDFDoc();
+			const oDrDoc = oDoc.GetDrawingDocument();
+
+			if (oDrDoc.placeholders.objects.length > 0) {
+				for (let indP = oDrDoc.m_lDrawingFirst; indP <= oDrDoc.m_lDrawingEnd; indP++) {
+					const oPage = oDrDoc.m_arrPages[indP];
+					const oPixelRect = {};
+					oPixelRect.left = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.left, true);
+					oPixelRect.right = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.right, true);
+					oPixelRect.top = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.top, true);
+					oPixelRect.bottom = AscCommon.AscBrowser.convertToRetinaValue(oPage.drawingPage.bottom, true);
+					oDrDoc.placeholders.draw(this.overlay, indP, oPixelRect, oPage.width_mm, oPage.height_mm);
+				}
+			}
+		};
 		this.drawSearchHighlights = function(ctx, oDoc, oDrDoc) {
 			if (!oDoc.SearchEngine.Show) return;
 			ctx.globalAlpha = 0.5;
@@ -3275,9 +3330,9 @@
 				}
 				else if (this.Api.isStartAddShape)
 				{
+					this.DrawingObjects.endTrackNewShape();
 					this.Api.sync_StartAddShapeCallback(false);
 					this.Api.sync_EndAddShape();
-					this.DrawingObjects.endTrackNewShape();
 				}
 				else {
 					const oController = oDoc.GetController();
@@ -3440,6 +3495,12 @@
 				}
 
 				bRetValue = true;
+			}
+			else if (e.KeyCode === 113) {
+				Asc.editor.StartAddAnnot(AscPDF.ANNOTATIONS_TYPES.Line, true);
+			}
+			else if (e.KeyCode === 114) {
+				Asc.editor.StartAddAnnot(AscPDF.ANNOTATIONS_TYPES.PolyLine, true);
 			}
 			
 			oDoc.UpdateCopyCutState();
@@ -4450,6 +4511,9 @@
 			if (oPageInfo.annots) {
 				for (let nAnnot = 0; nAnnot < oPageInfo.annots.length; nAnnot++) {
 					oPageInfo.annots[nAnnot].IsChanged() && oPageInfo.annots[nAnnot].WriteToBinary(oMemory);
+					oPageInfo.annots[nAnnot].GetReplies().forEach(function(reply) {
+						(reply.IsChanged() || !oMemory.docRenderer) && reply.WriteToBinary(oMemory);
+					});
 				}
 			}
 
@@ -4600,6 +4664,10 @@
 
 			let bNeedEdit = false;
 
+			if (nOriginIndex == undefined) {
+				return false;
+			}
+
 			if (nRotAngle != nOrigRotAngle) bNeedEdit = true;
 			if (aDrawings.length != 0) bNeedEdit = true;
 			if (aAnnots.find(function(annot) {
@@ -4612,7 +4680,6 @@
 				return form.IsChanged();
 			})) bNeedEdit = true;
 			if (aDeletedObj.length != 0) bNeedEdit = true;
-			if (bNeedEdit && nOriginIndex !== undefined) bNeedEdit = true;
 
 			return bNeedEdit;
 		}
@@ -4845,7 +4912,7 @@
 				for (let nAnnot = 0; nAnnot < oPageInfo.annots.length; nAnnot++) {
 					oPageInfo.annots[nAnnot].IsChanged() && oPageInfo.annots[nAnnot].WriteToBinary(oMemory);
 					oPageInfo.annots[nAnnot].GetReplies().forEach(function(reply) {
-						reply.IsChanged() && reply.WriteToBinary(oMemory); 
+						(reply.IsChanged() || !oMemory.docRenderer) && reply.WriteToBinary(oMemory);
 					});
 				}
 			}
@@ -4942,6 +5009,10 @@
 
 			let bNeedEdit = false;
 
+			if (nOriginIndex == undefined) {
+				return false;
+			}
+
 			if (nRotAngle != nOrigRotAngle) bNeedEdit = true;
 			if (aDrawings.length != 0) bNeedEdit = true;
 			if (aAnnots.some(function(annot) {
@@ -4954,8 +5025,6 @@
 				return form.IsChanged();
 			})) bNeedEdit = true;
 			if (aDeletedObj.length != 0) bNeedEdit = true;
-
-			if (bNeedEdit && nOriginIndex === undefined) bNeedEdit = false;
 
 			return bNeedEdit;
 		}

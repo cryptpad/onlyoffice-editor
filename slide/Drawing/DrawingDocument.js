@@ -1572,7 +1572,11 @@ function CDrawingDocument()
 	{
 
 		let thpages = this.m_oWordControl.Thumbnails.m_arrPages;
-		if(index < 0 || index >= thpages.length) return;
+		if (thpages.length > index)
+		{
+			thpages[index].IsRecalc = true;
+		}
+
 
 		if (this.m_oWordControl && this.m_oWordControl.MobileTouchManager)
 		{
@@ -1591,10 +1595,6 @@ function CDrawingDocument()
 			this.SendChangeDocumentToApi(true);
 		}
 
-		if (thpages.length > index)
-		{
-			thpages[index].IsRecalc = true;
-		}
 
 		if (index === this.SlideCurrent)
 		{
@@ -3533,6 +3533,7 @@ function DrawBackground(graphics, unifill, w, h)
 	_shape.TransformMatrix = new AscCommon.CMatrix();
 	_shape.extX            = w;
 	_shape.extY            = h;
+	_shape.bounds.reset(0, 0, w, h);
 	_shape.check_bounds    = function(checker)
 	{
 		checker._s();
