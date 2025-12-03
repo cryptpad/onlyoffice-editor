@@ -548,16 +548,16 @@
             let that = this;
 		    this.LoadImagesWithCallback(arrSyncImages, function () {
                 let _len = arrAsyncImages.length;
-                // if (_len === 0) {
-                //     return void that.LoadDocumentImagesCallback();
-                // }
+                if (_len === 0) {
+                    return void that.LoadDocumentImagesCallback();
+                }
                 var todo = _len;
                 
                 var done = function () {
                     console.log("IN DONE")
                     todo--;
                     if (todo === 0) {
-                        arrAsyncImages.splice(0, _len);
+                        
                         setTimeout(function () {
                             that.LoadDocumentImagesCallback();
                         }, 100);
@@ -567,15 +567,6 @@
 			    for (let i = 0; i < _len; i += 1) {
 				    oThis.LoadImageAsync(arrAsyncImages[i], done);
 			    }
-                //return;
-                arrAsyncImages.splice(0, _len);
-
-                setTimeout(function() { that.LoadDocumentImagesCallback() }, 3000);
-
-			    // if (oThis.ThemeLoader == null)
-				//     oThis.Api.asyncImagesDocumentEndLoaded();
-			    // else
-				//     oThis.ThemeLoader.asyncImagesEndLoaded();
 		    }, [], false, fOnEachImageLoadCallback);
 	    };
 
@@ -621,7 +612,7 @@
             oImage.Image = new Image();
             oThis.map_image_index[oImage.src] = oImage;
             var oThat = oThis;
-            // modify THIS NEXT
+            
             oImage.Image.onload = function() {
                 oImage.Status = ImageLoadStatus.Complete;
                 oThat.Api.asyncImageEndLoadedBackground(oImage);
@@ -635,8 +626,8 @@
                 oThis.loadImageByUrl(img, img.src);
             });
             //oImage.Image.crossOrigin = 'anonymous';
-            //console.log("Loading image " + i);
-            //console.log(oImage);
+            // console.log("Loading image " + imgSrc + oImage.src);
+            // console.log(oImage);
             // CRYPTPAD: if we find an image URL with #channel= in it
             // then we need to ask cryptpad to get the blob
             window.parent.APP.getImageURL(oImage.src, function(url) {
