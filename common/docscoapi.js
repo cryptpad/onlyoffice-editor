@@ -144,6 +144,9 @@
       this._CoAuthoringApi.onAiPluginSettings = function(res) {
         t.callback_OnAiPluginSettings(res);
       };
+      this._CoAuthoringApi.onMiscEvent = function(res) {
+        t.callback_OnMiscEvent(res);
+      };
 
       this._CoAuthoringApi.init(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo, shardKey, wopiSrc, userSessionId, headingsColor, openCmd);
       this._onlineWork = true;
@@ -557,6 +560,11 @@
       this.onAiPluginSettings(res);
     }
   };
+  CDocsCoApi.prototype.callback_OnMiscEvent = function(res) {
+    if (this.onMiscEvent) {
+      this.onMiscEvent(res);
+    }
+  };
 
   function LockBufferElement(arrayBlockId, callback) {
     this._arrayBlockId = arrayBlockId ? arrayBlockId.slice() : null;
@@ -953,6 +961,9 @@
       callback(isTimeout, response);
     }
   };
+  DocsCoApi.prototype._onUpdateVersion = function() {
+    this._send({'type': 'updateVersion'});
+  };
 
   DocsCoApi.prototype.openDocument = function(data) {
     this._send({"type": "openDocument", "message": data});
@@ -1091,7 +1102,7 @@
         } else if (code === c_oAscServerCommandErrors.NotModified) {
             this.onForceSave({type: c_oAscForceSaveTypes.Button, refuse: true});
 		} else {
-			this.onWarning(Asc.c_oAscError.ID.Unknown);
+			this.onWarning(AscCommon.c_oAscServerError.Unknown);
 		}
 	};
 	DocsCoApi.prototype._onForceSave = function(data) {
@@ -1501,7 +1512,7 @@
   };
 
   DocsCoApi.prototype._onWarning = function(data) {
-    this.onWarning(Asc.c_oAscError.ID.Warning);
+    this.onWarning(data.code);
   };
 
   DocsCoApi.prototype._onLicense = function(data) {
@@ -1839,9 +1850,9 @@
         }
       });
       socket.io.on("reconnect_failed", function () {
-        //cases: connection restore, wrong socketio_url
+        //Fired when couldn't reconnect within reconnectionAttempts.
         t._onServerClose(true);
-        t.onDisconnect("reconnect_failed", c_oCloseCode.restore);
+        t.onDisconnect("reconnect_failed", c_oCloseCode.reconnectFailed);
       });
       socket.on("message", function (data) {
         t._onServerMessage(data);
@@ -1932,6 +1943,9 @@
 				break;
 			case 'rpc' :
 				this._onPRC(dataObject["responseKey"], false, dataObject["data"]);
+				break;
+			case 'updateVersion' :
+				this.onMiscEvent(dataObject);
 				break;
 		}
 	};

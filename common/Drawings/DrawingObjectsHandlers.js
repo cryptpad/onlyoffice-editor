@@ -186,6 +186,10 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     {
         for(var i = selected_objects.length - 1; i > -1; --i)
         {
+					if (selected_objects[i].isFrameChart)
+					{
+						continue;
+					}
             if(bWord && pageIndex !== selected_objects[i].selectStartPage)
             {
                 t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, selected_objects[i].selectStartPage);
@@ -241,6 +245,10 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
     {
         for(i = selected_objects.length - 1; i > -1; --i)
         {
+	        if (selected_objects[i].isFrameChart)
+	        {
+		        continue;
+	        }
             if(bWord && pageIndex !== selected_objects[i].selectStartPage)
             {
                 t = drawingObjectsController.drawingDocument.ConvertCoordsToAnotherPage(x, y, pageIndex, selected_objects[i].selectStartPage);
@@ -477,6 +485,12 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
     let hit_in_text_rect = drawing.hitInTextRect && drawing.hitInTextRect(x, y);
     if (drawing.group && drawing.group.IsFreeText && drawing.group.IsFreeText() && drawing.group.IsInTextBox() == false) {
         hit_in_text_rect = false;
+    }
+    else if (drawing.IsLine && drawing.IsLine()) {
+        let oDoc = Asc.editor.getPDFDoc();
+        if (oDoc.GetActiveObject() != drawing) {
+            hit_in_text_rect = false;
+        }
     }
 
     if(hit_in_inner_area || hit_in_path || hit_in_text_rect)

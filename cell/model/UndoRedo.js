@@ -1815,7 +1815,7 @@ function (window, undefined) {
 	UndoRedoData_BinaryWrapper.prototype.Read_FromBinary2 = function (reader) {
 		this.Id = reader.GetString2();
 		this.len = reader.GetLong();
-		this.binary = reader.GetBuffer(this.len);
+		this.binary = reader.GetBufferUint8(this.len);
 	};
 	UndoRedoData_BinaryWrapper.prototype.getData = function () {
 		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
@@ -1850,7 +1850,7 @@ function (window, undefined) {
 	};
 	UndoRedoData_BinaryWrapper2.prototype.Read_FromBinary2 = function (reader) {
 		this.len = reader.GetLong();
-		this.binary = reader.GetBuffer(this.len);
+		this.binary = reader.GetBufferUint8(this.len);
 	};
 	UndoRedoData_BinaryWrapper2.prototype.initObject = function (data) {
 		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
@@ -3026,7 +3026,7 @@ function (window, undefined) {
 					wb.delDefinesNamesUndoRedo(oldName);
 					wb.handlers.trigger("asc_onDelDefName")
 				} else {
-					wb.editDefinesNamesUndoRedo(oldName, newName);
+					wb.editDefinesNamesUndoRedo(oldName, newName, true);
 					wb.handlers.trigger("asc_onEditDefName", oldName, newName);
 				}
 				// clear traces
@@ -3052,7 +3052,7 @@ function (window, undefined) {
 			var externalReferenceIndex;
 
 			if (from && !to) {//удаление
-				from.initWorksheetsFromSheetDataSet();
+				from.initExternalReference();
 				/* the first call is a search by referenceData, if we get null, we make a second call to search by Id below and then add or re-assign the link */
 				externalReferenceIndex = wb.getExternalReferenceByReferenceData(from.referenceData, true);
 				if (!externalReferenceIndex) {
@@ -3099,7 +3099,7 @@ function (window, undefined) {
 					}
 
 					from.worksheets = wb.externalReferences[externalReferenceIndex - 1].worksheets;
-					from.initWorksheetsFromSheetDataSet();
+					from.initExternalReference();
 					from.putToChangedCells();
 					wb.externalReferences[externalReferenceIndex - 1] = from;
 				}
@@ -3127,6 +3127,8 @@ function (window, undefined) {
 			wb.setShowVerticalScroll(bUndo ? Data.from : Data.to);
 		} else if (AscCH.historyitem_Workbook_ShowHorizontalScroll === Type) {
 			wb.setShowHorizontalScroll(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Workbook_SetCustomFunctions === Type) {
+			wb.oApi["pluginMethod_SetCustomFunctions"] && wb.oApi["pluginMethod_SetCustomFunctions"](bUndo ? Data.from : Data.to);
 		}
 	};
 	UndoRedoWorkbook.prototype.forwardTransformationIsAffect = function (Type) {
@@ -3229,6 +3231,8 @@ function (window, undefined) {
 				cell.setAlignVertical(Val);
 			} else if (AscCH.historyitem_Cell_AlignHorizontal == Type) {
 				cell.setAlignHorizontal(Val);
+			} else if (AscCH.historyitem_Cell_ReadingOrder == Type) {
+				cell.setReadingOrder(Val);
 			} else if (AscCH.historyitem_Cell_Fill == Type) {
 				cell.setFill(Val);
 			} else if (AscCH.historyitem_Cell_Border == Type) {
@@ -4691,6 +4695,8 @@ function (window, undefined) {
 				row.setAlignVertical(Val);
 			} else if (AscCH.historyitem_RowCol_AlignHorizontal == Type) {
 				row.setAlignHorizontal(Val);
+			} else if (AscCH.historyitem_RowCol_ReadingOrder == Type) {
+				row.setReadingOrder(Val);
 			} else if (AscCH.historyitem_RowCol_Fill == Type) {
 				row.setFill(Val);
 			} else if (AscCH.historyitem_RowCol_Border == Type) {

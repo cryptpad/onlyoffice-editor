@@ -90,7 +90,7 @@
         let bSelection      = false;
         let bEmptySelection = true;
 
-        let bShowTrack = oAnnot && oAnnot.IsFreeText() && oAnnot.IsInTextBox();
+        let bShowTrack = oAnnot && (oAnnot.IsFreeText() && oAnnot.IsInTextBox() || oAnnot.IsLine() && oAnnot.IsDoCaption());
 
         oAnnotTextPrTrackHandler.SetTrackObject(IsShowAnnotTrack && bShowTrack ? oAnnot : null, 0, false === bSelection || true === bEmptySelection);
     };
@@ -349,6 +349,57 @@
         }
     };
 
+    CGraphicObjects.prototype.cursorMoveEndOfLine = function (AddToSelect) {
+        let oViewer = Asc.editor.getDocumentRenderer();
+        let oDoc = Asc.editor.getPDFDoc();
+
+        let content = this.getTargetDocContent(undefined, true);
+        if (content) {
+            content.MoveCursorToEndOfLine(AddToSelect);
+            
+            oViewer.onUpdateOverlay();
+            oDoc.UpdateInterface();
+        }
+    };
+
+    CGraphicObjects.prototype.cursorMoveStartOfLine = function (AddToSelect) {
+        let oViewer = Asc.editor.getDocumentRenderer();
+        let oDoc = Asc.editor.getPDFDoc();
+
+        let content = this.getTargetDocContent(undefined, true);
+        if (content) {
+            content.MoveCursorToStartOfLine(AddToSelect);
+            
+            oViewer.onUpdateOverlay();
+            oDoc.UpdateInterface();
+        }
+    };
+
+    CGraphicObjects.prototype.cursorMoveToEndPos = function (AddToSelect) {
+        let oViewer = Asc.editor.getDocumentRenderer();
+        let oDoc = Asc.editor.getPDFDoc();
+
+        let content = this.getTargetDocContent(undefined, true);
+        if (content) {
+            content.MoveCursorToEndPos(AddToSelect);
+            
+            oViewer.onUpdateOverlay();
+            oDoc.UpdateInterface();
+        }
+    };
+
+    CGraphicObjects.prototype.cursorMoveToStartPos = function (AddToSelect) {
+        let oViewer = Asc.editor.getDocumentRenderer();
+        let oDoc = Asc.editor.getPDFDoc();
+
+        let content = this.getTargetDocContent(undefined, true);
+        if (content) {
+            content.MoveCursorToStartPos(AddToSelect);
+            
+            oViewer.onUpdateOverlay();
+            oDoc.UpdateInterface();
+        }
+    };
     CGraphicObjects.prototype.getDrawingProps = function () {
         return this.getDrawingPropsFromArray(this.getSelectedArray());
     };
@@ -1168,12 +1219,6 @@
         const nSelectedCount = this.selectedObjects;
         const oFirstSelected = this.selectedObjects[0];
 
-        if (nSelectedCount === 1
-            && oFirstSelected.isForm()
-            && oFirstSelected.getInnerForm()
-            && oFirstSelected.getInnerForm().IsFormLocked())
-            isDrawHandles = false;
-
         var i;
         const oTx           = this.selection.textSelection;
         const oCrop         = this.selection.cropSelection;
@@ -1236,8 +1281,10 @@
         } else if (oTx) {
             if (oTx.selectStartPage === pageIndex) {
                 if (!oTx.isForm()) {
+                    let isLineAnnot = oTx.IsAnnot() && oTx.IsLine();
+
                     drawingDocument.DrawTrack(
-                        AscFormat.TYPE_TRACK.TEXT,
+                        !isLineAnnot ? AscFormat.TYPE_TRACK.TEXT : AscFormat.TYPE_TRACK.SHAPE,
                         oTx.getTransformMatrix(),
                         0,
                         0,
@@ -1246,7 +1293,7 @@
                         AscFormat.CheckObjectLine(oTx),
                         oTx.canRotate(),
                         undefined,
-                        isDrawHandles && oTx.canEdit()
+                        (isDrawHandles || this.document.IsViewerObject(oTx)) && oTx.canEdit()
                     );
                     oTx.drawAdjustments(drawingDocument);
                 }
@@ -1644,6 +1691,9 @@
                                 oTextPr.SetFontSize(nCurFontSize);
                                 oField.SetTextSize(oTextPr.GetIncDecFontSize(args[0]));
                             }
+                            else if (f == CDocumentContent.prototype.SetParagraphBidi) {
+                                oField.SetRTL(args[0]);
+                            }
                         }
                         else {
                             let content = drawing.getDocContent();
@@ -1746,6 +1796,113 @@
         if (this.document) {
             this.document.Recalculate();
         }
+    };
+
+    CGraphicObjects.prototype.checkRedrawOnChangeCursorPosition = function (oStartContent, oStartPara) {
+        let bRedraw = false;
+
+        let oDocContent = this.getTargetDocContent();
+        
+        let oEndContent = AscFormat.checkEmptyPlaceholderContent(oDocContent);
+        let oEndPara = null;
+        if (oStartContent || oEndContent) {
+            if (oStartContent !== oEndContent) {
+                bRedraw = true;
+            } else {
+                if (oEndContent) {
+                    oEndPara = oEndContent.GetCurrentParagraph();
+                }
+                if (oEndPara !== oStartPara &&
+                    (oStartPara && oStartPara.IsEmptyWithBullet() || oEndPara && oEndPara.IsEmptyWithBullet())) {
+                    bRedraw = true;
+                }
+            }
+        }
+        
+        if (bRedraw) {
+            function redraw(oContent) {
+                let oObject = oContent.GetParent();
+                while (!oObject.AddToRedraw && oObject.GetParent) {
+                    oObject = oObject.GetParent();
+                }
+                
+                oObject.IsDrawing() && oObject.AddToRedraw();
+            }
+
+            oStartContent && redraw(oStartContent);
+            oEndContent && redraw(oEndContent);
+            oDocContent && redraw(oDocContent);
+        }
+    };
+
+    CGraphicObjects.prototype.getSelectionImageData = function () {
+        let sImageUrl;
+        let aSelectedObjects = this.getSelectedArray();
+        if (this.selectedObjects.length > 0) {
+            let _bounds_cheker = new AscFormat.CSlideBoundsChecker();
+            let dKoef = AscCommon.g_dKoef_mm_to_pix;
+            let w_mm = 210;
+            let h_mm = 297;
+            let w_px = (w_mm * dKoef + 0.5) >> 0;
+            let h_px = (h_mm * dKoef + 0.5) >> 0;
+
+            _bounds_cheker.init(w_px, h_px, w_mm, h_mm);
+            _bounds_cheker.transform(1, 0, 0, 1, 0, 0);
+
+            _bounds_cheker.AutoCheckLineWidth = true;
+            for (let i = 0; i < aSelectedObjects.length; ++i) {
+                !aSelectedObjects[i].IsAnnot() && aSelectedObjects[i].draw(_bounds_cheker);
+            }
+
+            var _need_pix_width = _bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1;
+            var _need_pix_height = _bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1;
+
+            if (_need_pix_width > 0 && _need_pix_height > 0) {
+
+                var _canvas = document.createElement('canvas');
+                _canvas.width = _need_pix_width;
+                _canvas.height = _need_pix_height;
+
+                var _ctx = _canvas.getContext('2d');
+                if (!window["NATIVE_EDITOR_ENJINE"]) {
+                    var g = new AscCommon.CGraphics();
+                    g.init(_ctx, w_px, h_px, w_mm, h_mm);
+                    g.m_oFontManager = AscCommon.g_fontManager;
+
+                    g.m_oCoordTransform.tx = -_bounds_cheker.Bounds.min_x;
+                    g.m_oCoordTransform.ty = -_bounds_cheker.Bounds.min_y;
+                    g.transform(1, 0, 0, 1, 0, 0);
+
+
+                    AscCommon.IsShapeToImageConverter = true;
+                    for (let i = 0; i < aSelectedObjects.length; ++i) {
+                        aSelectedObjects[i].draw(g);
+                    }
+                    if (AscCommon.g_fontManager) {
+                        AscCommon.g_fontManager.m_pFont = null;
+                    }
+                    if (AscCommon.g_fontManager2) {
+                        AscCommon.g_fontManager2.m_pFont = null;
+                    }
+                    AscCommon.IsShapeToImageConverter = false;
+
+                    try {
+                        sImageUrl = _canvas.toDataURL("image/png");
+                    } catch (err) {
+                        sImageUrl = "";
+                    }
+                } else {
+                    sImageUrl = "";
+                }
+                return {
+                    src: sImageUrl,
+                    width: _need_pix_width,
+                    height: _need_pix_height,
+                    bounds: _bounds_cheker.Bounds
+                };
+            }
+        }
+        return null;
     }
 
     // import

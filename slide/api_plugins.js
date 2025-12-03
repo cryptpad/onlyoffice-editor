@@ -43,6 +43,14 @@
 
     var Api = window["asc_docs_api"];
 
+	/**
+	 * @typedef {Object} comment
+	 * Comment object.
+	 * @property {string} Id - The comment ID.
+	 * @property {CommentData} Data - An object which contains the comment data.
+	 * @see office-js-api/Examples/Plugins/{Editor}/Enumeration/comment.js
+	 */
+	
     /**
 	 * @typedef {Object} CommentData
 	 * The comment data.
@@ -152,6 +160,22 @@
 		}
 
 		return arrResult;
+	};
+
+	/**
+	 * Removes the OLE object from the presentation by its internal ID.
+	 * @memberof Api
+	 * @typeofeditors ["CPE"]
+	 * @alias RemoveOleObject
+	 * @param {string} internalId - The OLE object identifier which is used to work with OLE object added to the presentation.
+	 * @since 9.1.0
+	 * @see office-js-api/Examples/Plugins/{Editor}/Api/Methods/RemoveOleObject.js
+	 */
+	Api.prototype["pluginMethod_RemoveOleObject"] = function (internalId) {
+		let logicDocument = this.WordControl.m_oLogicDocument;
+		if (logicDocument) {
+			logicDocument.RemoveDrawingObjectById(internalId);
+		}
 	};
 
 	/**

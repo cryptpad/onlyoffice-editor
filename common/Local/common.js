@@ -103,6 +103,24 @@
 	{
 		this.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
 	};
+
+	AscCommon.baseEditorsApi.prototype._changeDesktopChartExternalReference = function (eR) {
+		const chartCollector = this.externalChartCollector;
+		if (!chartCollector) {
+			return;
+		}
+		window["AscDesktopEditor"]["OpenFilenameDialog"]("cell", false, function(_file) {
+			let file = _file;
+			if (Array.isArray(file))
+				file = file[0];
+			if (!file)
+				return;
+
+			let obj = {};
+			obj["path"] = file;
+			chartCollector.changeExternalReference(eR, obj);
+		});
+	};
 })(window);
 
 /////////////////////////////////////////////////////////
@@ -425,6 +443,11 @@ window["UpdateInstallPlugins"] = function()
 			//_pluginsCur["pluginsData"][i]["isSystemInstall"] = (k == 0) ? true : false;
 			_pluginsCur["pluginsData"][i]["baseUrl"] = _pluginsCur["url"] + _pluginsCur["pluginsData"][i]["guid"].substring(4) + "/";
 			_plugins["pluginsData"].push(_pluginsCur["pluginsData"][i]);
+
+			if (_pluginsCur["pluginsData"][i]["onlyofficeScheme"])
+			{
+				_pluginsCur["pluginsData"][i]["baseUrl"] = "onlyoffice://plugin/" + _pluginsCur["pluginsData"][i]["baseUrl"];
+			}
 		}
 	}
 
@@ -590,34 +613,6 @@ window["DesktopOfflineAppDocumentSignatures"] = function(_json)
 
 		_images_loading.push(_add_sign.image);
 	}
-
-	if (!window.FirstSignaturesCall)
-	{
-		_editor.asc_registerCallback("asc_onAddSignature", function (guid)
-		{
-
-			var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-			_api.sendEvent("asc_onUpdateSignatures", _api.asc_getSignatures(), _api.asc_getRequestSignatures());
-
-		});
-		_editor.asc_registerCallback("asc_onRemoveSignature", function (guid)
-		{
-
-			var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-			_api.sendEvent("asc_onUpdateSignatures", _api.asc_getSignatures(), _api.asc_getRequestSignatures());
-
-		});
-		_editor.asc_registerCallback("asc_onUpdateSignatures", function (signatures, requested)
-		{
-			var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-
-			if (0 === signatures.length)
-				_api.asc_removeRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
-			else
-				_api.asc_addRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
-		});
-	}
-	window.FirstSignaturesCall = true;
 
 	_editor.ImageLoader.LoadImagesWithCallback(_images_loading, function() {
 		if (this.WordControl)

@@ -192,7 +192,15 @@
 				case 36: 	// home
 				case 27:	// escape
 				{
-					window.g_asc_plugins.onPluginEvent2("onKeyDown", { "keyCode" : e.keyCode }, this.isInputHelpers);
+					window.g_asc_plugins.onPluginEvent2("onKeyDown", {
+						"keyCode" : e.keyCode,
+						"key" : e.key,
+						"code" : e.code,
+						"altKey" : e.altKey,
+						"ctrlKey" : e.ctrlKey,
+						"metaKey" : e.metaKey,
+						"shiftKey" : e.shiftKey
+					}, this.isInputHelpers);
 
 					AscCommon.stopEvent(e);
 					return false;
@@ -200,6 +208,18 @@
 				default:
 					break;
 			}
+		}
+		else
+		{
+			window.g_asc_plugins.onPluginEvent("onKeyDown", {
+				"keyCode" : e.keyCode,
+				"key" : e.key,
+				"code" : e.code,
+				"altKey" : e.altKey,
+				"ctrlKey" : e.ctrlKey,
+				"metaKey" : e.metaKey,
+				"shiftKey" : e.shiftKey
+			});
 		}
 
 		if (null != this.nativeFocusElement)

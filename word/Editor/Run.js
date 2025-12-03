@@ -5390,8 +5390,7 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 
                 PRSC.SpacesCount = 0;
                 PRSC.Word        = false;
-
-                PRSC.Range.WBreak = Item.GetWidthVisible();
+				PRSC.LineBreak   = true;
 
                 break;
             }
@@ -5399,8 +5398,8 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             {
                 if ( true === PRSC.Word )
                     PRSC.Spaces += PRSC.SpacesCount;
-
-				PRSC.Range.WEnd = Item.GetWidthVisible();
+	
+				PRSC.ParaEnd = true;
 
                 break;
             }
@@ -5831,17 +5830,21 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             }
             case para_End:
             {
-				Item.CheckMark(PRSA.Paragraph, PRSA.XEnd - PRSA.X);
-                PRSA.X += Item.GetWidthVisible();
+				Item.CheckMark(PRSA.Paragraph, PRSA.RTL ? PRSA.LeftSpace : PRSA.XEnd - PRSA.X);
+				let paraEndW = Item.GetWidthVisible();
+				PRSA.Range.WEnd = paraEndW;
+                PRSA.X += paraEndW;
 
                 break;
             }
             case para_NewLine:
             {
 				if (Item.IsPageBreak() || Item.IsColumnBreak())
-					Item.Update_String(PRSA.XEnd - PRSA.X);
-
-                PRSA.X += Item.WidthVisible;
+					Item.Update_String(PRSA.RTL ? PRSA.LeftSpace : PRSA.XEnd - PRSA.X);
+	
+				let breakW = Item.GetWidthVisible();
+				PRSA.Range.WBreak = breakW;
+                PRSA.X += breakW;
 
                 break;
             }
@@ -5979,9 +5982,8 @@ ParaRun.prototype.private_CheckInstrText = function(oItem)
 
 ParaRun.prototype.Refresh_RecalcData = function(oData)
 {
-	var oPara = this.Paragraph;
-
-	if (this.Type == para_Math_Run)
+	let oPara = this.GetParagraph();
+	if (this.IsMathRun())
 	{
 		if (this.Parent !== null && this.Parent !== undefined)
 		{
@@ -6029,6 +6031,10 @@ ParaRun.prototype.Refresh_RecalcData = function(oData)
 		}
 
 		oPara.Refresh_RecalcData2(0);
+	}
+	else if (oPara)
+	{
+		oPara.Refresh_RecalcData2();
 	}
 };
 ParaRun.prototype.Refresh_RecalcData2 = function()
@@ -8515,18 +8521,26 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 	{
 		let lcid = TextPr.Lang.Val;
 		let dirFlag = this.GetDirectionFlagInRange(0, this.Content.length);
-		if (AscBidi.DIRECTION_FLAG.LTR & dirFlag)
-			this.Set_Lang_Val(lcid);
-		if (AscBidi.DIRECTION_FLAG.RTL & dirFlag)
-			this.Set_Lang_Bidi(lcid);
-		
-		let paragraph = this.GetParagraph();
-		if (AscBidi.DIRECTION_FLAG.Other === dirFlag && paragraph)
+		if (AscBidi.DIRECTION_FLAG.None === dirFlag)
 		{
-			if (paragraph.isRtlDirection())
-				this.Set_Lang_Bidi(lcid);
-			else
+			this.Set_Lang_Bidi(lcid);
+			this.Set_Lang_Val(lcid);
+		}
+		else
+		{
+			if (AscBidi.DIRECTION_FLAG.LTR & dirFlag)
 				this.Set_Lang_Val(lcid);
+			if (AscBidi.DIRECTION_FLAG.RTL & dirFlag)
+				this.Set_Lang_Bidi(lcid);
+			
+			let paragraph = this.GetParagraph();
+			if (AscBidi.DIRECTION_FLAG.Other === dirFlag && paragraph)
+			{
+				if (paragraph.isRtlDirection())
+					this.Set_Lang_Bidi(lcid);
+				else
+					this.Set_Lang_Val(lcid);
+			}
 		}
 	}
 
@@ -11518,6 +11532,37 @@ ParaRun.prototype.PreDelete = function(isDeep)
 	}
 
 	this.RemoveSelection();
+};
+ParaRun.prototype.CorrectPosToPermRanges = function(state, paraPos, depth, isCurrent)
+{
+	if (!isCurrent && state.inPermRange())
+	{
+		state.setPos(state.isForward() ? 0 : this.Content.length, depth);
+		state.stop(true);
+		return;
+	}
+	
+	let start, end;
+	if (state.isForward())
+	{
+		start = isCurrent ? paraPos.Get(depth) : 0;
+		end   = this.Content.length;
+	}
+	else
+	{
+		start = 0;
+		end   = isCurrent ? Math.min(this.Content.length, paraPos.Get(depth)) : this.Content.length;
+	}
+	
+	
+	for (let i = start; i < end; ++i)
+	{
+		if (!this.Content[i].IsDrawing() || this.Content[i].IsInline())
+		{
+			state.stop(false);
+			return;
+		}
+	}
 };
 ParaRun.prototype.GetCurrentComplexFields = function(arrComplexFields, isCurrent, isFieldPos)
 {
