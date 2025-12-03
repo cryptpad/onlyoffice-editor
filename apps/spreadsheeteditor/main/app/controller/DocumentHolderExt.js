@@ -2681,7 +2681,8 @@ define([], function () {
                 documentHolder.pmiEntriesList.setVisible(!iscelledit && !inPivot);
 
                 documentHolder.pmiNumFormat.setVisible(!iscelledit);
-                documentHolder.pmiCellFormat.setVisible(!iscelledit && !(this.permissions.canBrandingExt && this.permissions.customization && this.permissions.customization.rightMenu === false || !Common.UI.LayoutManager.isElementVisible('rightMenu')));
+                documentHolder.pmiCellFormat.setVisible(!iscelledit && !(this.permissions.canBrandingExt && this.permissions.customization && this.permissions.customization.rightMenu === false || !Common.UI.LayoutManager.isElementVisible('rightMenu')) &&
+                                                        !this.permissions.isEditMailMerge && !this.permissions.isEditDiagram && !this.permissions.isEditOle);
                 documentHolder.pmiAdvancedNumFormat.options.numformatinfo = documentHolder.pmiNumFormat.menu.options.numformatinfo = xfs.asc_getNumFormatInfo();
                 documentHolder.pmiAdvancedNumFormat.options.numformat = xfs.asc_getNumFormat();
 
@@ -3162,7 +3163,68 @@ define([], function () {
             }
         };
 
-        dh.onFormulaInfo = function(name) {
+        dh.parseArgsDesc = function(args) {
+            if (args.charAt(0)=='(')
+                args = args.substring(1);
+            if (args.charAt(args.length-1)==')')
+                args = args.substring(0, args.length-1);
+            var arr = args.split(this.api.asc_getFunctionArgumentSeparator());
+            arr.forEach(function(item, index){
+                var str = item.trim();
+                if (str.charAt(0)=='[')
+                    str = str.substring(1);
+                if (str.charAt(str.length-1)==']')
+                    str = str.substring(0, str.length-1);
+                arr[index] = str.trim();
+            });
+            return arr;
+        };
+
+        dh.fillRepeatedNames = function(argsNames, repeatedArg) {
+            var repeatedIdx = 1;
+            if (argsNames.length>=1) {
+                if (repeatedArg && repeatedArg.length>0 && argsNames[argsNames.length-1]==='...') {
+                    var req = argsNames.length-1 - repeatedArg.length; // required/no-repeated
+                    for (var i=0; i<repeatedArg.length; i++) {
+                        var str = argsNames[argsNames.length-2-i],
+                            ch = str.charAt(str.length-1);
+                        if ('123456789'.indexOf(ch)>-1) {
+                            repeatedIdx = parseInt(ch);
+                            argsNames[argsNames.length-2-i] = str.substring(0, str.length-1);
+                        }
+                    }
+                }
+            }
+            return repeatedIdx;
+        };
+
+        dh.getArgumentName = function(argcount, argsNames, repeatedArg, minArgCount, maxArgCount, repeatedIdx) {
+            var name = '',
+                namesLen = argsNames.length,
+                idxInRepeatedArr = -1;
+            if ((!repeatedArg || repeatedArg.length<1) && argcount<namesLen && argsNames[argcount]!=='...') { // no repeated args
+                name = argsNames[argcount];
+                (name==='') && (name = this.textArgument + (maxArgCount>1 ? (' ' + (argcount+1)) : ''));
+            } else if (repeatedArg && repeatedArg.length>0 && argsNames[namesLen-1]==='...') {
+                var repeatedLen = repeatedArg.length;
+                var req = namesLen-1 - repeatedLen; // required/no-repeated
+                if (argcount<req) // get required args as is
+                    name = argsNames[argcount];
+                else {
+                    var idx = repeatedLen - (argcount - req)%repeatedLen,
+                        num = Math.floor((argcount - req)/repeatedLen) + repeatedIdx;
+                    idxInRepeatedArr = repeatedLen - idx;
+                    name = argsNames[namesLen-1-idx] + num;
+                }
+            } else
+                name = this.textArgument + (maxArgCount>1 ? (' ' + (argcount+1)) : '');
+            if (maxArgCount>0 && argcount>=minArgCount)
+                name = (idxInRepeatedArr<=0 ? '[' : '') + name + (idxInRepeatedArr<0 || repeatedArg && idxInRepeatedArr===repeatedArg.length-1 ? ']' : '');
+
+            return name;
+        };
+
+        dh.onFormulaInfo = function(name, shiftpos, funcInfo) {
             if(!Common.Utils.InternalSettings.get("sse-settings-function-tooltip")) return;
 
             var functip = this.tooltips.func_arg;
@@ -3173,14 +3235,70 @@ define([], function () {
                     this.documentHolder.cmpEl.append(functip.parentEl);
                 }
                 var funcdesc = this.getApplication().getController('FormulaDialog').getDescription(Common.Utils.InternalSettings.get("sse-settings-func-locale")),
-                    hint = '';
-                if (funcdesc && funcdesc[name]) {
-                    hint = this.api.asc_getFormulaLocaleName(name) + funcdesc[name].a;
-                    hint = hint.replace(/[,;]/g, this.api.asc_getFunctionArgumentSeparator());
+                    hint = '',
+                    argstype = funcInfo ? funcInfo.asc_getArgumentsType() : null,
+                    activeArg = funcInfo ? funcInfo.asc_getActiveArgPos() : null,
+                    activeArgsCount = funcInfo ? funcInfo.asc_getActiveArgsCount() : null;
+
+                if (argstype && activeArgsCount) {
+                    var args = '';
+                    if (funcdesc && funcdesc[name]) {
+                        args = funcdesc[name].a.replace(/[,;]/g, this.api.asc_getFunctionArgumentSeparator());
+                    } else {
+                        var custom = this.api.asc_getCustomFunctionInfo(name),
+                            arr_args = custom ? custom.asc_getArg() || [] : [];
+                        args = '(' + arr_args.map(function (item) { return item.asc_getIsOptional() ? '[' + item.asc_getName() + ']' : item.asc_getName(); }).join(this.api.asc_getFunctionArgumentSeparator() + ' ') + ')';
+                    }
+
+                    var argsNames = this.parseArgsDesc(args),
+                        minArgCount = funcInfo.asc_getArgumentMin(),
+                        maxArgCount = funcInfo.asc_getArgumentMax(),
+                        repeatedArg = undefined,
+                        repeatedIdx = 1,
+                        arr = [],
+                        me = this;
+
+                    function fillArgs(types) {
+                        let argcount = arr.length;
+                        for (var j = 0; j < types.length; j++) {
+                            var str = me.getArgumentName(argcount, argsNames, repeatedArg, minArgCount, maxArgCount, repeatedIdx);
+                            activeArg && (argcount===activeArg-1) && (str = '<span class="contrast">' + str + '</span>');
+                            arr.push(str);
+                            argcount++;
+                        }
+                    }
+
+                    for (var i=0; i<argstype.length; i++) {
+                        var type = argstype[i],
+                            types = [];
+
+                        if (typeof type == 'object') {
+                            repeatedArg = type;
+                            repeatedIdx = this.fillRepeatedNames(argsNames, repeatedArg);
+                            types = type;
+                        } else
+                            types.push(type);
+
+                        fillArgs(types);
+                    }
+                    if (arr.length<=activeArgsCount && repeatedArg) { // add repeated
+                        while (arr.length<=activeArgsCount) {
+                            fillArgs(repeatedArg);
+                        }
+                    }
+                    repeatedArg && arr.push('...');
+                    hint = this.api.asc_getFormulaLocaleName(name);
+                    !activeArg && (hint = '<span class="contrast">' + hint + '</span>');
+                    hint += '(' + arr.join(this.api.asc_getFunctionArgumentSeparator() + ' ') + ')';
                 } else {
-                    var custom = this.api.asc_getCustomFunctionInfo(name),
-                        arr_args = custom ? custom.asc_getArg() || [] : [];
-                    hint = this.api.asc_getFormulaLocaleName(name) + '(' + arr_args.map(function (item) { return item.asc_getIsOptional() ? '[' + item.asc_getName() + ']' : item.asc_getName(); }).join(this.api.asc_getFunctionArgumentSeparator() + ' ') + ')';
+                    if (funcdesc && funcdesc[name]) {
+                        hint = this.api.asc_getFormulaLocaleName(name) + funcdesc[name].a;
+                        hint = hint.replace(/[,;]/g, this.api.asc_getFunctionArgumentSeparator());
+                    } else {
+                        var custom = this.api.asc_getCustomFunctionInfo(name),
+                            arr_args = custom ? custom.asc_getArg() || [] : [];
+                        hint = this.api.asc_getFormulaLocaleName(name) + '(' + arr_args.map(function (item) { return item.asc_getIsOptional() ? '[' + item.asc_getName() + ']' : item.asc_getName(); }).join(this.api.asc_getFunctionArgumentSeparator() + ' ') + ')';
+                    }
                 }
 
                 if (functip.ref && functip.ref.isVisible()) {
@@ -3200,7 +3318,8 @@ define([], function () {
                         owner   : functip.parentEl,
                         html    : true,
                         title   : hint,
-                        cls: 'auto-tooltip'
+                        cls: 'auto-tooltip',
+                        animation: false
                     });
 
                     functip.ref.show([-10000, -10000]);
@@ -3223,6 +3342,10 @@ define([], function () {
                 var tipwidth = functip.ref.getBSTip().$tip.width();
                 if (showPoint[0] + tipwidth > this.tooltips.coauth.bodyWidth )
                     showPoint[0] = this.tooltips.coauth.bodyWidth - tipwidth;
+                if (showPoint[0]<0) {
+                    showPoint[0] = 0;
+                    functip.ref.getBSTip().$tip.find('.tooltip-inner').css('max-width', this.tooltips.coauth.bodyWidth);
+                }
 
                 functip.ref.getBSTip().$tip.css({
                     top : showPoint[1] + 'px',
@@ -3542,47 +3665,26 @@ define([], function () {
                     }else 
                         chartProps.setDisplayGridlines(VertMajorGridlines, HorMajorGridlines, VertMinorGridlines, item.checked);
                     break;
+                case 'NoneLegend':
+                        chartProps.setDisplayLegend(false, Asc.c_oAscChartLegendShowSettings.none);
+                    break;
                 case 'LeftLegend':
-                    if (chartProps.getLegendPos() === 1) {
-                        chartProps.setDisplayLegend(false, 0);
-                    } else {
-                        chartProps.setDisplayLegend(true, 1);
-                    }
+                        chartProps.setDisplayLegend(true, Asc.c_oAscChartLegendShowSettings.left);
                     break;
                 case 'TopLegend':
-                    if (chartProps.getLegendPos() === 2) {
-                        chartProps.setDisplayLegend(false, 0);
-                    } else {
-                        chartProps.setDisplayLegend(true, 2);
-                    }
+                        chartProps.setDisplayLegend(true, Asc.c_oAscChartLegendShowSettings.top);
                     break;
                 case 'RightLegend':
-                    if (chartProps.getLegendPos() === 3) {
-                        chartProps.setDisplayLegend(false, 0);
-                    } else {
-                        chartProps.setDisplayLegend(true, 3);
-                    }
+                        chartProps.setDisplayLegend(true, Asc.c_oAscChartLegendShowSettings.right);
                     break;
                 case 'BottomLegend':
-                    if (chartProps.getLegendPos() === 4) {
-                        chartProps.setDisplayLegend(false, 0);
-                    } else {
-                        chartProps.setDisplayLegend(true, 4);
-                    }
+                        chartProps.setDisplayLegend(true, Asc.c_oAscChartLegendShowSettings.bottom);
                     break;
                 case 'LeftOverlay':
-                    if (chartProps.getLegendPos() === 5) {
-                        chartProps.setDisplayLegend(false, 0);
-                    } else {
-                        chartProps.setDisplayLegend(true,5);
-                    }
+                        chartProps.setDisplayLegend(true, Asc.c_oAscChartLegendShowSettings.leftOverlay);
                     break;
                 case 'RightOverlay':
-                    if (chartProps.getLegendPos() === 6) {
-                        chartProps.setDisplayLegend(false, 0);
-                    } else {
-                        chartProps.setDisplayLegend(true, 6);
-                    }
+                        chartProps.setDisplayLegend(true, Asc.c_oAscChartLegendShowSettings.rightOverlay);
                     break;
                 case 'trendLineNone':
                     chartProps.setDisplayTrendlines(false, false, 0, 0);
@@ -3721,10 +3823,9 @@ define([], function () {
             legendMenu.items[4].setChecked(legendPos === Asc.c_oAscChartLegendShowSettings.leftOverlay);
             legendMenu.items[5].setChecked(legendPos === Asc.c_oAscChartLegendShowSettings.rightOverlay);
 
-            const supportedElements = chartElementMap[type] || chartElementMap[45] || [];
-            
+            const supportedElements = chartElementMap[type] || [];
             menu.items.forEach(function(item) {
-                item.setDisabled(supportedElements.indexOf(item.value) === -1);
+                item.setVisible(supportedElements.includes(item.value));
             });
         };
 
@@ -3751,7 +3852,7 @@ define([], function () {
             me.chartProps = me.getCurrentChartProps();
         
             if (chartContainer.length < 1) {
-                chartContainer = $('<div id="chart-element-container" style="position: absolute; z-index: 1000;"><div id="id-document-holder-btn-chart-element"></div></div>');
+                chartContainer = $('<div id="chart-element-container" style="position: absolute; z-index: 990;"><div id="id-document-holder-btn-chart-element"></div></div>');
                 documentHolderView.cmpEl.find('#ws-canvas-outer').append(chartContainer);
             }
 
@@ -3759,36 +3860,7 @@ define([], function () {
             me.isRtlSheet = me.api.asc_getSheetViewSettings().asc_getRightToLeft();
 
             if (me.chartProps) {
-                var x = asc_CRect.asc_getX(),
-                    y = asc_CRect.asc_getY(),
-                    width = asc_CRect.asc_getWidth(),
-                    btnLeft,
-                    btnTop = y,
-                    windowWidth = documentHolderView.cmpEl.width(),
-                    windowHeight = documentHolderView.cmpEl.height();
-
-                if (me.isRtlSheet) {
-                    btnLeft = x + width - 45;
-                } else if (me.isRtl) {
-                    btnLeft = x - 40;
-                } else {
-                    btnLeft = x + width + 7;
-                }
-
-                if (btnLeft < 25 || btnLeft + 50 > windowWidth || btnTop + 30 > windowHeight) {
-                    chartContainer.hide();
-                    return;
-                }
-
-                if (btnTop < 20) {
-                    btnTop = 20
-                }
-
-                chartContainer.css({
-                    left: btnLeft + 'px',
-                    top: btnTop + 'px'
-                }).show();
-        
+                
                 if (!me.btnChartElement) {
                     me.btnChartElement = new Common.UI.Button({
                         parentEl: $('#id-document-holder-btn-chart-element'),
@@ -3803,11 +3875,80 @@ define([], function () {
                         if (me.chartProps) {
                             me.updateChartElementMenu(me.documentHolder.menuChartElement.menu, me.chartProps);
                         }
+                        Common.UI.TooltipManager.closeTip('chartElements');
                     });
                 }
+
+                me.tooltips.coauth.XY = undefined
+                me.onDocumentResize();
+                var x = asc_CRect.asc_getX(),
+                    y = asc_CRect.asc_getY(),
+                    width = asc_CRect.asc_getWidth(),
+                    height = asc_CRect.asc_getHeight(),
+                    btnLeft,
+                    btnTop = y,
+                    btnWidth = 50,
+                    offsetLeft = chartContainer.width() === 40 ? 18 : 10, 
+                    leftSide = x - btnWidth - offsetLeft,
+                    rightSide = x + width + 7,
+                    rtlSheet = x + width - 45; 
+
+                if (me.isRtlSheet) {
+                    if (rtlSheet >= 0 && rtlSheet + btnWidth <= me.tooltips.coauth.apiWidth) {
+                        btnLeft = rtlSheet;
+                    } else if (leftSide >= 0) {
+                        btnLeft = leftSide - 32; 
+                    } else {
+                        chartContainer.hide();
+                        Common.UI.TooltipManager.closeTip('chartElements');
+                        return;
+                    }
+                } else if (me.isRtl) {
+                    if (leftSide >= 0) {
+                        btnLeft = leftSide + 18;
+                    } else if (rightSide + btnWidth <= me.tooltips.coauth.apiWidth) {
+                        btnLeft = rightSide; 
+                    } else {
+                        chartContainer.hide();
+                        Common.UI.TooltipManager.closeTip('chartElements');
+                        return;
+                    }
+                } else {
+                    if (rightSide + btnWidth <= me.tooltips.coauth.apiWidth + 5) {
+                        btnLeft = rightSide;
+                    } else if (leftSide >= 0) {
+                        btnLeft = leftSide + 18; 
+                    } else {
+                        chartContainer.hide();
+                        Common.UI.TooltipManager.closeTip('chartElements');
+                        return;
+                    }
+                }
+
+                if (btnTop < 20) btnTop = 20;
+
+                if (y < 0) {
+                    var chartBottom = y + height;
+                    if (chartBottom < 40) { 
+                        chartContainer.hide();
+                        Common.UI.TooltipManager.closeTip('chartElements');
+                        return;
+                    }
+                }
+
+                chartContainer.css({
+                    left: btnLeft + 'px',
+                    top: btnTop + 'px'
+                }).show();
+                setTimeout(function (){
+                    Common.UI.TooltipManager.showTip('chartElements');
+                    Common.UI.TooltipManager.applyPlacement('chartElements');
+                }, 100);
+        
                 me.disableChartElementButton();
             } else {
                 chartContainer.hide();
+                Common.UI.TooltipManager.closeTip('chartElements');
             }
         };
 
@@ -4346,7 +4487,7 @@ define([], function () {
                 value = me.api.asc_getLocale();
             (!value) && (value = ((me.permissions.lang) ? parseInt(Common.util.LanguageInfo.getLocalLanguageCode(me.permissions.lang)) : 0x0409));
 
-            (new SSE.Views.FormatSettingsDialog({
+            (new Common.Views.FormatSettingsDialog({
                 api: me.api,
                 handler: function(result, settings) {
                     if (settings) {
