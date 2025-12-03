@@ -130,6 +130,7 @@ require([
             'LeftMenu',
             'Main',
             'ViewTab',
+            'SlideMasterTab',
             'Search',
             'Print',
             'Common.Controllers.Fonts',
@@ -139,6 +140,7 @@ require([
             ,'Common.Controllers.Comments'
             ,'Common.Controllers.Draw'
             /** coauthoring end **/
+            ,'Common.Controllers.ExternalLinks'
             ,'Common.Controllers.Plugins'
             ,'Common.Controllers.ExternalDiagramEditor'
             ,'Common.Controllers.ExternalOleEditor'
@@ -166,6 +168,7 @@ require([
             'presentationeditor/main/app/controller/LeftMenu',
             'presentationeditor/main/app/controller/Main',
             'presentationeditor/main/app/controller/ViewTab',
+            'presentationeditor/main/app/controller/SlideMasterTab',
             'presentationeditor/main/app/controller/Search',
             'presentationeditor/main/app/controller/Print',
             // 'presentationeditor/main/app/view/ParagraphSettings',
@@ -182,6 +185,7 @@ require([
             ,'common/main/lib/controller/Comments',
             'common/main/lib/controller/Chat',
             /** coauthoring end **/
+            'common/main/lib/controller/ExternalLinks',
             'common/main/lib/controller/Plugins',
             'presentationeditor/main/app/view/ChartSettings',
             'common/main/lib/controller/ExternalDiagramEditor'
@@ -219,6 +223,8 @@ require([
                 'common/main/lib/util/define',
                 'common/main/lib/view/SignDialog',
                 'common/main/lib/view/ListSettingsDialog',
+                'common/main/lib/view/ExternalLinksDlg',
+                'common/main/lib/view/FormatSettingsDialog',
                 'common/main/lib/view/DocumentPropertyDialog',
                 'common/main/lib/view/MacrosDialog',
                 'common/main/lib/view/MacrosAiDialog',

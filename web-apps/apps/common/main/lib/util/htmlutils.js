@@ -32,7 +32,8 @@
 
 var checkLocalStorage = (function () {
     try {
-        var storage = window['localStorage'];
+        localStorage.setItem('test', 1);   // for WebView checking !!window.localStorage not enough
+        localStorage.removeItem('test');
         return true;
     }
     catch(e) {
@@ -172,6 +173,7 @@ if ( !window.uitheme.id && !!params.uitheme ) {
         window.uitheme.adapt_to_system_theme();
     } else {
         window.uitheme.id = params.uitheme;
+        window.uitheme.type = params.uithemetype;
     }
 }
 

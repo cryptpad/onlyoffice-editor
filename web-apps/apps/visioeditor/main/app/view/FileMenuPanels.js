@@ -437,6 +437,8 @@ define([], function () {
                 dataHint: '2',
                 dataHintDirection: 'bottom',
                 dataHintOffset: 'big'
+            }).on('selected', function(combo, record) {
+                me._isTabStyleChanged = true;
             });
 
             this.chTabBack = new Common.UI.CheckBox({
@@ -588,8 +590,10 @@ define([], function () {
             if (!Common.Utils.isIE && Common.UI.FeaturesManager.canChange('tabBackground', true)) {
                 Common.UI.TabStyler.setBackground(this.chTabBack.isChecked() ? 'toolbar' : 'header');
             }
-            if (!Common.Utils.isIE && Common.UI.FeaturesManager.canChange('tabStyle', true)) {
+            if (!Common.Utils.isIE && Common.UI.FeaturesManager.canChange('tabStyle', true) && this._isTabStyleChanged) {
                 Common.UI.TabStyler.setStyle(this.cmbTabStyle.getValue());
+                Common.localStorage.setBool("settings-tab-style-newtheme", true); // use tab style from lc for all themes
+                this._isTabStyleChanged = false;
             }
             Common.localStorage.save();
 
@@ -1083,6 +1087,8 @@ define([], function () {
                 value = value ? this.txtYes : this.txtNo;
             } else if (type === AscCommon.c_oVariantTypes.vtFiletime) {
                 value = this.dateToString(new Date(value), true);
+            } else {
+                value = Common.Utils.String.htmlEncode(value);
             }
 
             return '<tr data-custom-property>' +

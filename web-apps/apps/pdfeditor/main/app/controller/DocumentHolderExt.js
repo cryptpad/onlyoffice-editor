@@ -129,7 +129,7 @@ define([], function () {
                  }, this));
                  diagramEditor.on('hide', _.bind(function(cmp, message) {
                  if (this.api) {
-                 this.api.asc_onCloseChartFrame();
+                 this.api.asc_onCloseFrameEditor();
                  this.api.asc_enableKeyEvents(true);
                  }
                  var me = this;
@@ -153,7 +153,7 @@ define([], function () {
                  oleEditor.on('hide', _.bind(function(cmp, message) {
                  if (this.api) {
                  this.api.asc_enableKeyEvents(true);
-                 this.api.asc_onCloseChartFrame();
+                 this.api.asc_onCloseFrameEditor();
                  }
                  var me = this;
                  setTimeout(function(){
@@ -1189,6 +1189,16 @@ define([], function () {
                             me.eyedropperTip.toolTip.hide();
                         }
 
+                        if (!me.eyedropperTip.toolTip) {
+                            var tipEl = $('<div id="tip-container-eyedroppertip" style="position: absolute; z-index: 10000;"></div>');
+                            me.documentHolder.cmpEl.append(tipEl);
+                            me.eyedropperTip.toolTip = new Common.UI.Tooltip({
+                                owner: tipEl,
+                                html: true,
+                                cls: 'eyedropper-tooltip'
+                            });
+                        }
+
                         var color = moveData.get_EyedropperColor().asc_getColor(),
                             r = color.get_r(),
                             g = color.get_g(),
@@ -1214,7 +1224,7 @@ define([], function () {
                         me.eyedropperTip.tipInterval = setInterval(function () {
                             clearInterval(me.eyedropperTip.tipInterval);
                             if (me.eyedropperTip.isVisible) {
-                                ToolTip = '<div>RGB(' + r + ',' + g + ',' + b + ')</div>' +
+                                ToolTip = '<div>RGB (' + r + ',' + g + ',' + b + ')</div>' +
                                     '<div>' + moveData.get_EyedropperColor().asc_getName() + '</div>';
                                 me.eyedropperTip.toolTip.setTitle(ToolTip);
                                 me.eyedropperTip.isTipVisible = true;
@@ -1281,7 +1291,7 @@ define([], function () {
                     if (me.usertipcount >= me.usertips.length) {
                         src = $(document.createElement("div"));
                         src.addClass('username-tip');
-                        src.css({height: me._TtHeight + 'px', position: 'absolute', zIndex: '900', visibility: 'visible'});
+                        src.css({height: me._TtHeight + 'px', 'line-height': me._TtHeight + 'px', position: 'absolute', zIndex: '900', visibility: 'visible'});
                         $(document.body).append(src);
                         if (me.userTooltip) {
                             src.on('mouseover', me.wrapEvents.userTipMousover);
@@ -2495,7 +2505,7 @@ define([], function () {
                 src = $(document.createElement("div"));
                 src.addClass('username-tip');
                 src.attr('userid', UserId);
-                src.css({height: me._TtHeight + 'px', position: 'absolute', zIndex: '900', display: 'none', 'pointer-events': 'none',
+                src.css({height: me._TtHeight + 'px', 'line-height': me._TtHeight + 'px', position: 'absolute', zIndex: '900', display: 'none', 'pointer-events': 'none',
                     'background-color': '#'+Common.Utils.ThemeColor.getHexColor(color.get_r(), color.get_g(), color.get_b())});
                 src.text(me.getUserName(UserId));
                 me.documentHolder.cmpEl.append(src);
