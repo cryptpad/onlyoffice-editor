@@ -21,9 +21,12 @@ require([
     'common/main/lib/view/TextInputDialog',
     'common/main/lib/view/DocumentHolderExt',
     'common/main/lib/view/ListSettingsDialog',
+    'common/main/lib/view/ExternalLinksDlg',
     'common/main/lib/view/CustomizeQuickAccessDialog',
     'common/main/lib/view/PasswordDialog',
     'common/main/lib/component/TextareaField',
+    // 'common/main/lib/view/ShortcutsDialog',
+    // 'common/main/lib/view/ShortcutsEditDialog',
 
     'pdfeditor/main/app/controller/DocumentHolderExt',
     'pdfeditor/main/app/view/FileMenuPanels',

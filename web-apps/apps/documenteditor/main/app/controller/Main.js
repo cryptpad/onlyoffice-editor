@@ -617,7 +617,7 @@ define([
                     Common.NotificationCenter.trigger('collaboration:sharingdeny');
                     Common.NotificationCenter.trigger('api:disconnect');
                     !old_rights && Common.UI.TooltipManager.showTip({ step: 'changeRights', text: _.isEmpty(data.message) ? this.warnProcessRightsChange : data.message,
-                        target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, multiple: true,
+                        target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, noArrow: true, multiple: true,
                         callback: function() {
                             me._state.lostEditingRights = false;
                         }});
@@ -1459,6 +1459,8 @@ define([
 
                 documentHolderController.getView().on('editcomplete', _.bind(me.onEditComplete, me));
 
+                DE.getController('Common.Controllers.Shortcuts').setApi(me.api);
+                
                 if (me.appOptions.isEdit) {
                     if (me.appOptions.canForcesave) {// use asc_setIsForceSaveOnUserSave only when customization->forcesave = true
                         me.appOptions.forcesave = Common.localStorage.getBool("de-settings-forcesave", me.appOptions.canForcesave);
@@ -1616,7 +1618,7 @@ define([
                     }
 
                     !modal ? Common.UI.TooltipManager.showTip({ step: 'licenseError', text: license, header: title, target: '#toolbar', maxwidth: 430,
-                                                                      automove: true, noHighlight: true, textButton: this.textContinue}) :
+                                                                      automove: true, noHighlight: true, noArrow: true, textButton: this.textContinue}) :
                     Common.UI.info({
                         maxwidth: 500,
                         title: title,
@@ -1961,7 +1963,7 @@ define([
 
                     if (mode==='view-form' || !!this.stackDisableActions.get({type: 'forms'})) {
                         var forms = this.getApplication().getController('FormsTab');
-                        forms && forms.changeViewFormMode(mode==='view-form');
+                        forms && forms.changeViewFormMode(mode==='view-form', true);
                     }
 
                     if (mode==='edit') {
@@ -1969,7 +1971,7 @@ define([
                     } else if (mode==='review') {
                         Common.NotificationCenter.trigger('reviewchanges:turn', true);
                     }
-                    this.api.asc_setRestriction(mode==='view' ? Asc.c_oAscRestrictionType.View : mode==='view-form' ? Asc.c_oAscRestrictionType.OnlyForms : Asc.c_oAscRestrictionType.None);
+                    this.api.asc_setRestriction(mode==='view' ? Asc.c_oAscRestrictionType.View : mode==='view-form' ? Asc.c_oAscRestrictionType.OnlyForms : Asc.c_oAscRestrictionType.None, this.api.asc_getRestrictionSettings());
                 }
                 (!inViewMode || force) && Common.NotificationCenter.trigger('doc:mode-changed', mode);
             },
@@ -2149,7 +2151,7 @@ define([
                         Common.NotificationCenter.trigger('collaboration:sharingdeny');
                         var me = this;
                         Common.UI.TooltipManager.showTip({ step: 'userDrop', text: this.errorUserDrop,
-                            target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, multiple: true,
+                            target: '#toolbar', maxwidth: 600, showButton: false, automove: true, noHighlight: true, noArrow: true, multiple: true,
                             callback: function() {
                                 me._state.lostEditingRights = false;
                             }});
@@ -2637,7 +2639,7 @@ define([
                 me.needToUpdateVersion = true;
                 me.onLongActionEnd(Asc.c_oAscAsyncActionType['BlockInteraction'], LoadingDocument);
                 Common.UI.TooltipManager.showTip({ step: 'updateVersionReload', text: this.errorUpdateVersion, header: this.titleUpdateVersion,
-                                                    target: '#toolbar', maxwidth: 'none', closable: false, automove: true, noHighlight: true,
+                                                    target: '#toolbar', maxwidth: 'none', closable: false, automove: true, noHighlight: true, noArrow: true,
                                                     callback: function() {
                                                         _.defer(function() {
                                                             Common.Gateway.updateVersion();
@@ -3447,7 +3449,7 @@ define([
                     docInfo.put_Format(this.document.fileType);
                     docInfo.put_Lang(this.editorConfig.lang);
                     docInfo.put_Mode(this.editorConfig.mode);
-                    docInfo.put_Permissions(this.permissions);
+                    docInfo.put_Permissions(this.document.permissions);
                     docInfo.put_DirectUrl(data.document && data.document.directUrl ? data.document.directUrl : this.document.directUrl);
                     docInfo.put_VKey(data.document && data.document.vkey ?  data.document.vkey : this.document.vkey);
                     docInfo.put_EncryptedInfo(data.editorConfig && data.editorConfig.encryptionKeys ? data.editorConfig.encryptionKeys : this.editorConfig.encryptionKeys);
