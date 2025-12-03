@@ -501,10 +501,7 @@
 		    if (!this.bIsAsyncLoadDocumentImages) {
 			    this._LoadImages(arrImagesLoading);
 		    } else {
-                // add here
 			    this._LoadImagesAsync(arrImagesLoading, oRequiredSyncImages);
-
-                return;
 		    }
 	    };
 
@@ -570,12 +567,15 @@
 			    for (let i = 0; i < _len; i += 1) {
 				    oThis.LoadImageAsync(arrAsyncImages[i], done);
 			    }
-                return;
+                //return;
+                arrAsyncImages.splice(0, _len);
 
-			    if (oThis.ThemeLoader == null)
-				    oThis.Api.asyncImagesDocumentEndLoaded();
-			    else
-				    oThis.ThemeLoader.asyncImagesEndLoaded();
+                setTimeout(function() { that.LoadDocumentImagesCallback() }, 3000);
+
+			    // if (oThis.ThemeLoader == null)
+				//     oThis.Api.asyncImagesDocumentEndLoaded();
+			    // else
+				//     oThis.ThemeLoader.asyncImagesEndLoaded();
 		    }, [], false, fOnEachImageLoadCallback);
 	    };
 
@@ -621,7 +621,7 @@
             oImage.Image = new Image();
             oThis.map_image_index[oImage.src] = oImage;
             var oThat = oThis;
-
+            // modify THIS NEXT
             oImage.Image.onload = function() {
                 oImage.Status = ImageLoadStatus.Complete;
                 oThat.Api.asyncImageEndLoadedBackground(oImage);
