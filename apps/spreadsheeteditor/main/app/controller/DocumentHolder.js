@@ -216,6 +216,15 @@ define([
             return this;
         },
 
+        resetApi: function(api) {
+            /** coauthoring begin **/
+            this.api.asc_unregisterCallback('asc_onHideComment',    this.wrapEvents.apiHideComment);
+//            this.api.asc_unregisterCallback('asc_onShowComment',    this.wrapEvents.apiShowComment);
+            this.api.asc_registerCallback('asc_onHideComment',      this.wrapEvents.apiHideComment);
+//            this.api.asc_registerCallback('asc_onShowComment',      this.wrapEvents.apiShowComment);
+            /** coauthoring end **/
+        },
+
         onAddComment: function(item) {
             if (this._state.wsProps['Objects']) return;
             
@@ -317,8 +326,8 @@ define([
                 me.tooltips.coauth.apiWidth = me.documentHolder.cmpEl.width();
                 var rightMenu = $('#right-menu');
                 me.tooltips.coauth.rightMenuWidth = rightMenu.is(':visible') ? rightMenu.width() : 0;
-                me.tooltips.coauth.bodyWidth = $(window).width();
-                me.tooltips.coauth.bodyHeight = $(window).height();
+                me.tooltips.coauth.bodyWidth = Common.Utils.innerWidth();
+                me.tooltips.coauth.bodyHeight = Common.Utils.innerHeight();
             }
         },
 
@@ -522,7 +531,6 @@ define([
             this._handleZoomWheel = false;
             this._needShowSpecPasteMenu = false;
         },
-
 
         onChangeProtectSheet: function(props) {
             if (!props) {

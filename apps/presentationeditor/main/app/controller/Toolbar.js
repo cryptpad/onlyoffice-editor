@@ -118,6 +118,12 @@ define([
             this.flg = {};
             this.diagramEditor = null;
             this.editMode = true;
+            this.externalData = {
+                stackRequests: [],
+                stackResponse: [],
+                callback: undefined,
+                linkStatus: {}
+            };
 
             this.addListeners({
                 'Toolbar': {
@@ -135,12 +141,6 @@ define([
                     'insert:smartart'   : this.onInsertSmartArt,
                     'smartart:mouseenter': this.mouseenterSmartArt,
                     'smartart:mouseleave': this.mouseleaveSmartArt,
-                    'insert:slide-master': this.onInsertSlideMaster.bind(this),
-                    'insert:layout'      : this.onInsertLayout.bind(this),
-                    'insert:placeholder-btn': this.onBtnInsertPlaceholder.bind(this),
-                    'insert:placeholder-menu': this.onMenuInsertPlaceholder.bind(this),
-                    'title:hide'         : this.onTitleHide.bind(this),
-                    'footers:hide'       : this.onFootersHide.bind(this),
                     'tab:active'         : this.onActiveTab.bind(this),
                     'tab:active:before'  : this.onBeforeActiveTab.bind(this),
                     'tab:collapse'       : this.onTabCollapse.bind(this)
@@ -226,8 +226,7 @@ define([
                     if ( me.toolbar.btnsInsertText.pressed() && !me.toolbar.btnsInsertText.contains(btn_id) ||
                         me.toolbar.cmbsInsertShape.some(function(cmb) {
                             return cmb.isComboViewRecActive() && cmb.id !== btn_id;
-                        }) ||
-                        me.toolbar.btnInsertPlaceholder.pressed && me.toolbar.btnInsertPlaceholder.id !== btn_id)
+                        }))
                     {
                         me._isAddingShape         = false;
 
@@ -236,7 +235,6 @@ define([
                         me.toolbar.cmbsInsertShape.forEach(function(cmb) {
                             cmb.deactivateRecords();
                         });
-                        me.toolbar.btnInsertPlaceholder.toggle(false, true);
                         Common.NotificationCenter.trigger('edit:complete', me.toolbar);
                     }
                 }
@@ -257,9 +255,6 @@ define([
                         cmb.deactivateRecords();
                 });
 
-                if (this.toolbar.btnInsertPlaceholder.pressed)
-                    this.toolbar.btnInsertPlaceholder.toggle(false, true);
-
                 $(document.body).off('mouseup', checkInsertAutoshape);
             };
 
@@ -274,18 +269,6 @@ define([
                     }
                 }
             };
-
-            this._addPlaceHolder = function (isstart, type, isVertical) {
-                if (this.api) {
-                    if (isstart) {
-                        this.api.asc_StartAddPlaceholder(type, isVertical, true);
-                        $(document.body).on('mouseup', checkInsertAutoshape);
-                    } else {
-                        this.api.asc_StartAddPlaceholder('', undefined, false);
-                        $(document.body).off('mouseup', checkInsertAutoshape);
-                    }
-                }
-            }
         },
 
         onLaunch: function() {
@@ -500,8 +483,6 @@ define([
                 this.api.asc_registerCallback('asc_onLockSlideHdrFtrApplyToAll', _.bind(this.onApiLockSlideHdrFtrApplyToAll, this, true));
                 this.api.asc_registerCallback('asc_onUnLockSlideHdrFtrApplyToAll', _.bind(this.onApiLockSlideHdrFtrApplyToAll, this, false));
 
-                this.api.asc_registerCallback('asc_onLayoutTitle',          _.bind(this.onApiLayoutTitle, this));
-                this.api.asc_registerCallback('asc_onLayoutFooter',         _.bind(this.onApiLayoutFooter, this));
                 this.api.asc_registerCallback('asc_onTextDirection',        _.bind(this.onApiTextDirection, this));
             } else if (this.mode.isRestrictedEdit) {
                 this.api.asc_registerCallback('asc_onCountPages',           _.bind(this.onApiCountPagesRestricted, this));
@@ -1016,11 +997,6 @@ define([
                 this.toolbar.mnuArrangeBack.setDisabled(in_smartart_internal);
                 this.toolbar.mnuArrangeForward.setDisabled(in_smartart_internal);
                 this.toolbar.mnuArrangeBackward.setDisabled(in_smartart_internal);
-            }
-
-            if (this._state.in_slide_master !== in_slide_master) {
-                this.toolbar.lockToolbar(Common.enumLock.inSlideMaster, in_slide_master, {array: [me.toolbar.btnInsertPlaceholder, me.toolbar.chTitle, me.toolbar.chFooters]});
-                this._state.in_slide_master = in_slide_master;
             }
 
             if (!this.toolbar.btnTextDir.isDisabled() && this.toolbar.isTabActive('home'))
@@ -2221,19 +2197,9 @@ define([
                     chart.changeType(type);
                 Common.NotificationCenter.trigger('edit:complete', this.toolbar);
             } else {
-                if (!this.diagramEditor)
-                    this.diagramEditor = this.getApplication().getController('Common.Controllers.ExternalDiagramEditor').getView('Common.Views.ExternalDiagramEditor');
-
-                if (this.diagramEditor && me.api) {
-                    this.diagramEditor.setEditMode(false);
-                    this.diagramEditor.show();
-
-                    chart = me.api.asc_getChartObject(type);
-                    if (chart) {
-                        this.diagramEditor.setChartData(new Asc.asc_CChartBinary(chart));
-                    }
-                    me.toolbar.fireEvent('insertchart', me.toolbar);
-                }
+                me.api.asc_addChartDrawingObject(type);
+                me.api.asc_editChartInFrameEditor();
+                me.toolbar.fireEvent('insertchart', me.toolbar);
             }
         },
 
@@ -2848,6 +2814,19 @@ define([
                 animationController.setApi(me.api).setConfig({toolbar: me,mode:config}).createToolbarPanel();
                 Array.prototype.push.apply(me.toolbar.slideOnlyControls,animationController.getView().getButtons());
 
+                tab = {caption: me.toolbar.textTabSlideMaster, action: 'slideMaster', extcls: config.isEdit ? 'canedit' : '', layoutname: 'toolbar-slidemaster', dataHintTitle: 'M'};
+                var slideMasterTab = me.getApplication().getController('SlideMasterTab');
+                slideMasterTab.setApi(me.api).setConfig({toolbar: me, mode: config});
+                $panel = slideMasterTab.createToolbarPanel();
+                if ($panel) {
+                    var visible = Common.UI.LayoutManager.isElementVisible('toolbar-slidemaster');
+                    me.toolbar.addTab(tab, $panel, 6);
+                    me.toolbar.setVisible('slideMaster', !visible);
+                    !editmode && !compactview && visible && Common.Utils.InternalSettings.set('toolbar-active-tab', 'view'); // need to activate later
+                    Array.prototype.push.apply(me.toolbar.lockControls, slideMasterTab.getView('SlideMasterTab').getButtons());
+                    Array.prototype.push.apply(me.toolbar.slideOnlyControls, slideMasterTab.getView('SlideMasterTab').getButtons());
+                }
+
                 me.toolbar.btnSave.on('disabled', _.bind(me.onBtnChangeState, me, 'save:disabled'));
 
                 if (!config.compactHeader) {
@@ -2864,14 +2843,18 @@ define([
                     me.toolbar.processPanelVisible(null, true);
                 }
 
-                if ( config.isDesktopApp ) {
+                if ( config.canProtect && config.isDesktopApp ) {
                     if (config.isSignatureSupport || config.isPasswordSupport) { // don't add protect panel to toolbar
                         tab = {action: 'protect', caption: me.toolbar.textTabProtect, layoutname: 'toolbar-protect', dataHintTitle: 'T'};
                         $panel = me.getApplication().getController('Common.Controllers.Protection').createToolbarPanel();
-                        if ($panel)
-                            me.toolbar.addTab(tab, $panel, 6);
+                        if ($panel) {
+                            me.toolbar.addTab(tab, $panel, 8);
+                            me.toolbar.setVisible('protect', Common.UI.LayoutManager.isElementVisible('toolbar-protect'));
+                        }
                     }
                 }
+
+                me.getApplication().getController('Common.Controllers.ExternalLinks').setConfig({toolbar: me}).setApi(me.api);
             } else {
                 me.getApplication().getController('Common.Controllers.Draw').setApi(me.api).setMode(config);
             }
@@ -2882,7 +2865,7 @@ define([
             $panel = viewtab.createToolbarPanel();
             if ($panel) {
                 var visible = Common.UI.LayoutManager.isElementVisible('toolbar-view');
-                me.toolbar.addTab(tab, $panel, 7);
+                me.toolbar.addTab(tab, $panel, 9);
                 me.toolbar.setVisible('view', visible);
                 !editmode && !compactview && visible && Common.Utils.InternalSettings.set('toolbar-active-tab', 'view'); // need to activate later
             }
@@ -3082,102 +3065,17 @@ define([
             this.toolbar.lockToolbar(Common.enumLock.slideMasterMode, isMaster, { array:  this.btnsComment.concat([this.toolbar.btnInsertHyperlink]) });
 
             this._state.viewMode = mode;
-
-            if(isMaster) this.toolbar.setTab('ins');
-            else this.showStaticElements();
+            if (isMaster) {
+                Common.NotificationCenter.trigger('tab:visible', 'slideMaster', true);
+                this.toolbar.setTab('slideMaster');
+            } else {
+                Common.NotificationCenter.trigger('tab:visible', 'slideMaster', false);
+                this.toolbar.setTab('home');
+                this.showStaticElements();
+            }
 
             Common.NotificationCenter.trigger('tab:visible', 'transit', !isMaster);
             Common.NotificationCenter.trigger('tab:visible', 'animate', !isMaster);
-        },
-
-        onInsertSlideMaster: function () {
-            this.api.asc_AddMasterSlide();
-        },
-
-        onInsertLayout: function () {
-            this.api.asc_AddSlideLayout();
-        },
-
-        onBtnInsertPlaceholder: function (btn, e) {
-            btn.menu.getItems(true).forEach(function(item) {
-                if(item.value == btn.options.currentType)
-                    item.setChecked(true);
-            });
-            if(!btn.pressed) {
-                btn.menu.clearAll(true);
-            }
-            this.onInsertPlaceholder(btn.options.currentType, btn, e);
-        },
-
-        onMenuInsertPlaceholder: function (btn, e) {
-            var oldType = btn.options.currentType;
-            var newType = e.value;
-
-            if(newType != oldType){
-                btn.updateHint([e.options.hintForMainBtn, this.views.Toolbar.prototype.tipInsertPlaceholder]);
-                btn.changeIcon({
-                    next: e.options.iconClsForMainBtn,
-                    curr: btn.menu.getItems(true).filter(function(item){return item.value == oldType})[0].options.iconClsForMainBtn
-                });
-                btn.options.currentType = newType;
-            }
-            this.onInsertPlaceholder(newType, btn, e);
-        },
-
-        onInsertPlaceholder: function (type, btn, e) {
-            var value,
-                isVertical;
-            switch (type) {
-                case 1:
-                    value = null;
-                    break;
-                case 2:
-                    value = null;
-                    isVertical = true;
-                    break;
-                case 3:
-                    value = AscFormat.phType_body;
-                    break;
-                case 4:
-                    value = AscFormat.phType_body;
-                    isVertical = true;
-                    break;
-                case 5:
-                    value = AscFormat.phType_pic;
-                    break;
-                case 6:
-                    value = AscFormat.phType_chart;
-                    break;
-                case 7:
-                    value = AscFormat.phType_tbl;
-                    break;
-                case 8:
-                    value = AscFormat.phType_dgm;
-                    break;
-            }
-
-            this._addPlaceHolder(btn.pressed, value, isVertical);
-
-            Common.NotificationCenter.trigger('edit:complete', this.toolbar);
-            Common.component.Analytics.trackEvent('ToolBar', 'Add Placeholder');
-        },
-
-        onTitleHide: function (view, status) {
-            this.api.asc_setLayoutTitle(status);
-        },
-
-        onFootersHide: function (view, status) {
-            this.api.asc_setLayoutFooter(status);
-        },
-
-        onApiLayoutTitle: function (status) {
-            if ((this.toolbar.chTitle.getValue() === 'checked') !== status)
-                this.toolbar.chTitle.setValue(status, true);
-        },
-
-        onApiLayoutFooter: function (status) {
-            if ((this.toolbar.chFooters.getValue() === 'checked') !== status)
-                this.toolbar.chFooters.setValue(status, true);
         },
 
         onActiveTab: function(tab) {

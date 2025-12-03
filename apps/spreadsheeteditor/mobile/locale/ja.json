@@ -232,17 +232,18 @@
       "textUpdate": "更新",
       "textWarnUpdateExternalData": "このワークブックには、安全でない可能性のある1つまたは複数の外部リンクが含まれています。リンクを信頼する場合は、最新のデータを取得するためにそれらを更新してください。",
       "textYes": "はい",
+      "tipLicenseExceeded": "このドキュメントは、ライセンスによって許可される同時接続の最大数に達したため、閲覧専用モードで開かれています。<br><br>後ほど再試行するか、編集アクセスが必要な場合はドキュメント所有者までご連絡ください。",
+      "tipLicenseUsersExceeded": "ライセンスで許可されている編集可能なユーザー数の上限に達したため、ドキュメントは閲覧専用モードで開かれています。<br><br>後ほど再度お試しいただくか、編集アクセスが必要な場合はドキュメントの所有者にお問い合わせください。",
       "titleLicenseExp": "ライセンスの有効期限が切れています",
       "titleLicenseNotActive": "ライセンスが無効になっています",
+      "titleReadOnly": "閲覧専用モード",
       "titleServerVersion": "編集者が更新された",
       "titleUpdateVersion": "バージョンが変更されました",
       "warnLicenseAnonymous": "匿名ユーザーのアクセスは拒否されます。<br>このドキュメントは閲覧専用に開かれます。",
       "warnLicenseBefore": "ライセンスが無効になっています。<br>管理者までご連絡ください。",
-      "warnLicenseExceeded": "％１エディター　時接続数の制限に達しました。この文書が見るだけのために開かれる。詳細についてはアドミニストレータを連絡してください。",
       "warnLicenseExp": "ライセンスの有効期限が切れています。ライセンスを更新してページを再読み込みしてください。",
       "warnLicenseLimitedNoAccess": "ライセンスの有効期限が切れています。ドキュメント編集機能にアクセスできません。管理者にご連絡ください。",
       "warnLicenseLimitedRenewed": "ライセンスを書き換えが必要です。編集の汎関数にアクセスの制限があります。<br> フル アクセスを受けてようにアドミニストレータを連絡してください。",
-      "warnLicenseUsersExceeded": "％1エディターのユーザー制限に達しました。 詳細についてはアドミニストレータを連絡してください。",
       "warnNoLicense": "％１エディター　時接続数の制限に達しました。この文書が見るだけのために開かれる。個人的なアップグレード条件については、％1営業チームを連絡してください。",
       "warnNoLicenseUsers": "％1エディターのユーザー制限に達しました。 個人的なアップグレード条件については、％1営業チームを連絡してください。",
       "warnProcessRightsChange": "ファイルを編集する権限がありません！"
@@ -257,6 +258,7 @@
   "Error": {
     "convertationTimeoutText": "変換のタイムアウトを超過しました。",
     "criticalErrorExtText": "文書のリストに帰るために「OK」ボタンをクリックしてください。",
+    "criticalErrorExtTextClose": "［OK］を押すとエディターが閉じます。",
     "criticalErrorTitle": "エラー",
     "downloadErrorText": "ダウンロード失敗",
     "errNoDuplicates": "重複した値はありません",
@@ -377,8 +379,7 @@
     "uploadDocSizeMessage": "文書の最大サイズ制限を超えています。",
     "uploadImageExtMessage": "不明なイメージ形式",
     "uploadImageFileCountMessage": "アップロードしたイメージがない",
-    "uploadImageSizeMessage": "イメージのサイズの上限が超えさせました。サイズの上限が２５MB。",
-    "criticalErrorExtTextClose": "Press 'OK' to close the editor."
+    "uploadImageSizeMessage": "イメージのサイズの上限が超えさせました。サイズの上限が２５MB。"
   },
   "LongActions": {
     "advDRMPassword": "パスワード",
@@ -718,7 +719,18 @@
       "textYen": "円",
       "txtNotUrl": "このフィールドは、「http://www.example.com」の形式のURLである必要があります。",
       "txtSortHigh2Low": " 大きい順に並べ替えます",
-      "txtSortLow2High": "小さい順に並べ替えます。"
+      "txtSortLow2High": "小さい順に並べ替えます。",
+      "textAdditional": "Additional",
+      "textAdditionalFormatting": "Additional formatting",
+      "textStrikethrough": "Strikethrough",
+      "textDoubleStrikethrough": "Double Strikethrough",
+      "textBaseline": "Baseline",
+      "textCapitalization": "Capitalization",
+      "textSubscript": "Subscript",
+      "textSuperscript": "Superscript",
+      "textSmallCaps": "Small Caps",
+      "textAllCaps": "All Caps",
+      "textLetterSpacing": "Letter spacing"
     },
     "Settings": {
       "advCSVOptions": "CSVオプションを選択する",
