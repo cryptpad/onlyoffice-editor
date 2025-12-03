@@ -460,14 +460,6 @@
                 image.src = url;
         };
 
-        this.LoadDocumentImagesCallback = function() {
-
-            if (this.ThemeLoader == null)
-               this.Api.asyncImagesDocumentEndLoaded();
-           else
-               this.ThemeLoader.asyncImagesEndLoaded();
-        }
-
 	    this.LoadDocumentImages = function (images, isCheckExists, syncImages) {
 		    if (isCheckExists) {
 			    for (let i = images.length - 1; i >= 0; i--) {
@@ -506,24 +498,15 @@
 		    else
 			    this.ThemeLoader.asyncImagesStartLoaded(arrImagesLoading);
 
-            if (!this.bIsAsyncLoadDocumentImages)
-            {
-				this._LoadImages(arrImagesLoading);
-            }
-            else
-            {
-                let len = this.images_loading.length;
-                for (let i = 0; i < len; i++)
-                    this.LoadImageAsync(i);
+		    if (!this.bIsAsyncLoadDocumentImages) {
+			    this._LoadImages(arrImagesLoading);
+		    } else {
+                // add here
+			    this._LoadImagesAsync(arrImagesLoading, oRequiredSyncImages);
 
-                this.images_loading.splice(0, len);
-
-                if (this.ThemeLoader == null)
-                    this.Api.asyncImagesDocumentEndLoaded();
-                else
-                    this.ThemeLoader.asyncImagesEndLoaded();
-            }
-        };
+                return;
+		    }
+	    };
 
 	    this._LoadImages = function (arrImages) {
 		    let fOnEachImageLoadCallback;
@@ -540,6 +523,13 @@
 				    oThis.ThemeLoader.asyncImagesEndLoaded();
 		    }, [], false, fOnEachImageLoadCallback);
 	    };
+
+        this.LoadDocumentImagesCallback = function() {
+            if (this.ThemeLoader == null)
+               this.Api.asyncImagesDocumentEndLoaded();
+           else
+               this.ThemeLoader.asyncImagesEndLoaded();
+        }
 
 	    this._LoadImagesAsync = function (arrImages, oRequiredSyncImages) {
 		    const arrAsyncImages = [];
@@ -558,17 +548,19 @@
 				    oThis.Api.SendOpenProgress();
 			    };
 		    }
+            let that = this;
 		    this.LoadImagesWithCallback(arrSyncImages, function () {
                 let _len = arrAsyncImages.length;
-                if (_len === 0) {
-                    return void this.LoadDocumentImagesCallback();
-                }
+                // if (_len === 0) {
+                //     return void that.LoadDocumentImagesCallback();
+                // }
                 var todo = _len;
-                var that = this;
+                
                 var done = function () {
+                    console.log("IN DONE")
                     todo--;
                     if (todo === 0) {
-                        that.images_loading.splice(0, _len);
+                        arrAsyncImages.splice(0, _len);
                         setTimeout(function () {
                             that.LoadDocumentImagesCallback();
                         }, 100);
@@ -578,11 +570,7 @@
 			    for (let i = 0; i < _len; i += 1) {
 				    oThis.LoadImageAsync(arrAsyncImages[i], done);
 			    }
-
                 return;
-
-                var that = this;
-                setTimeout(function() { that.LoadDocumentImagesCallback() }, 3000);
 
 			    if (oThis.ThemeLoader == null)
 				    oThis.Api.asyncImagesDocumentEndLoaded();
@@ -625,7 +613,7 @@
             return null;
         };
 
-        this.LoadImageAsync = function(i, cb)
+        this.LoadImageAsync = function(imgSrc, cb)
         {
             var oImage = new CImage(imgSrc);
 
@@ -659,7 +647,7 @@
                   oThis.map_image_index[url] = oImage;
                 }
                 if (typeof(cb) === "function") { cb(); }
-          });
+            });
         };
 
         this.LoadImagesWithCallback = function(arr, loadImageCallBack, loadImageCallBackArgs, isDisableCrypto, onEachImageLoadCallback)
