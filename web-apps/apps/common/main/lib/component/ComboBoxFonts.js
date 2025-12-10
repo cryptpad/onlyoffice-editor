@@ -94,7 +94,7 @@ define([
 
         function CThumbnailLoader() {
             this.supportBinaryFormat = !(Common.Controllers.Desktop.isActive() && !Common.Controllers.Desktop.isFeatureAvailable('isSupportBinaryFontsSprite'));
-            // наш формат - альфамаска с сжатием типа rle для полностью прозрачных пикселов
+            // Our format is an alpha mask with rle compression for fully transparent pixels
 
             // XXX CryptPad: We do not support the binary image format
             this.supportBinaryFormat = false;
@@ -420,7 +420,7 @@ define([
                                 if (me.rendered)  {
                                     if (document.selection) { // IE
                                         document.selection.createRange().text = text;
-                                    } else if (input.selectionStart || input.selectionStart == '0') { //FF и Webkit
+                                    } else if (input.selectionStart || input.selectionStart == '0') { //FF and Webkit
                                         input.value = text;
                                         input.selectionStart = inputVal.length;
                                         input.selectionEnd = text.length;
