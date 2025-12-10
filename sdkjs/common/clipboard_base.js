@@ -1379,7 +1379,7 @@
 		},
 
 		SendCopyEvent : function () {
-			if (this.Api && this.Api.broadcastChannel) {
+			if (this.Api && this.Api.broadcastChannel && this.isCopyOutEnabled()) {
 				let obj = {
 					type: "ClipboardChange",
 					data: this.LastCopyBinary,

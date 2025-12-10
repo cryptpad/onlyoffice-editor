@@ -323,6 +323,10 @@ CSdtBase.prototype.IsComplexForm = function()
 {
 	return (undefined !== this.Pr.ComplexFormPr);
 };
+CSdtBase.prototype.IsSpecialComplexForm = function()
+{
+	return this.IsComplexForm() && this.Pr.ComplexFormPr.IsLabeledCheckBox();
+};
 /**
  * @returns {boolean}
  */
@@ -389,6 +393,57 @@ CSdtBase.prototype.SetFormKey = function(key)
 CSdtBase.prototype.IsCheckBox = function()
 {
 	return false;
+};
+/**
+ * Чекбокс с текстом
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsLabeledCheckBox = function()
+{
+	return this.IsComplexForm() && this.Pr.ComplexFormPr.IsLabeledCheckBox();
+};
+/**
+ * @returns {?CSdtBase}
+ */
+CSdtBase.prototype.GetInnerCheckBox = function()
+{
+	if (!this.IsLabeledCheckBox())
+		return null;
+	
+	let subForms = this.GetAllSubForms();
+	if (!subForms || !subForms.length || !subForms[0].IsCheckBox())
+		return null;
+	
+	return subForms[0];
+};
+CSdtBase.prototype.GetCheckBoxLabel = function()
+{
+	if (!this.IsLabeledCheckBox())
+		return "";
+	
+	let _t = this;
+	function Visitor()
+	{
+		AscWord.DocumentVisitor.call(this);
+		this._text = "";
+	}
+	Visitor.prototype = Object.create(AscWord.DocumentVisitor.prototype);
+	Visitor.prototype.superclass = Visitor;
+	Visitor.prototype.oform = function(contentControl, isStart)
+	{
+		return _t !== contentControl;
+	};
+	Visitor.prototype.run = function(run, isStart)
+	{
+		if (!isStart)
+			return;
+		
+		this._text += run.GetText();
+	};
+	
+	let visitor = new Visitor();
+	this.visit(visitor);
+	return visitor._text;
 };
 /**
  * Проверяем, является ли заданный контрол радио-кнопкой
@@ -1033,6 +1088,10 @@ CSdtBase.prototype.MoveCursorOutsideForm = function(isBefore)
 };
 CSdtBase.prototype.GetFieldMaster = function()
 {
+	let mainForm = this.GetMainForm();
+	if (mainForm && mainForm !== this)
+		return mainForm.GetFieldMaster();
+	
 	let formPr = this.GetFormPr();
 	if (!formPr)
 		return null;
@@ -1131,6 +1190,10 @@ CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 		
 		formPr = mainForm.GetFormPr();
 	}
+	else if (this.IsLabeledCheckBox())
+	{
+		return null;
+	}
 	
 	if (!formPr)
 		return defaultColor;
@@ -1213,6 +1276,8 @@ CSdtBase.prototype.checkDataBinding = function()
 	else
 		content = content.getText();
 
+	if (content === "")
+		return false;
 
 	if (this.IsPicture())
 	{

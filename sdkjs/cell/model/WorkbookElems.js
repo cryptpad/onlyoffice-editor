@@ -1,4 +1,4 @@
-﻿/*
+/*
  * (c) Copyright Ascensio System SIA 2010-2024
  *
  * This program is a free software product. You can redistribute it and/or
@@ -15035,7 +15035,6 @@ function RangeDataManagerElem(bbox, data)
 
 		//temp for update
 		this.sKey = null;
-
 	}
 	ExternalReferenceBase.prototype.getKey = function() {
 		return this.sKey;
@@ -15246,6 +15245,8 @@ function RangeDataManagerElem(bbox, data)
 		this.SheetNames = [];
 
 		this.worksheets = {};
+
+		this._id = AscCommon.g_oIdCounter.Get_NewId();
 	}
 	AscFormat.InitClassWithoutType(ExternalReference, ExternalReferenceBase);
 
@@ -15303,6 +15304,10 @@ function RangeDataManagerElem(bbox, data)
 				this.referenceData["instanceId"] = r.GetString2();
 			}
 		}
+
+		if (r.GetBool()) {
+			this._id = r.GetString2();
+		}
 	};
 	ExternalReference.prototype.Write_ToBinary2 = function(w) {
 		var i;
@@ -15358,6 +15363,13 @@ function RangeDataManagerElem(bbox, data)
 		} else {
 			w.WriteBool(false);
 		}
+
+		if (null != this._id) {
+			w.WriteBool(true);
+			w.WriteString2(this._id);
+		} else {
+			w.WriteBool(false);
+		}
 	};
 
 	ExternalReference.prototype.clone = function (needCloneSheets) {
@@ -15394,6 +15406,8 @@ function RangeDataManagerElem(bbox, data)
 				newObj.worksheets[i] = this.worksheets[i];
 			}
 		}
+
+		newObj._id = this._id;
 
 		return newObj;
 	};
@@ -17966,6 +17980,7 @@ function RangeDataManagerElem(bbox, data)
 		this.HidePivotFieldList = null;
 		this.ShowPivotChartFilter = null;
 		this.UpdateLinks = null;
+		this.CodeName = null;
 	}
 	/**
 	 * Method clones calculation options
@@ -17980,6 +17995,7 @@ function RangeDataManagerElem(bbox, data)
 		res.HidePivotFieldList = this.HidePivotFieldList;
 		res.ShowPivotChartFilter = this.ShowPivotChartFilter;
 		res.UpdateLinks = this.UpdateLinks;
+		res.CodeName = this.CodeName;
 
 		return res;
 	};
@@ -18069,6 +18085,22 @@ function RangeDataManagerElem(bbox, data)
 			val = Asc.EUpdateLinksType.updatelinksNever;
 		}
 		this.UpdateLinks = val;
+	};
+	/**
+	 * Method returns "CodeName" value
+	 * @memberof CWorkbookPr
+	 * @returns {string|null}
+	 */
+	CWorkbookPr.prototype.getCodeName = function () {
+		return this.CodeName;
+	};
+	/**
+	 * Method set "CodeName" value
+	 * @memberof CWorkbookPr
+	 * @param {string} val - CodeName value
+	 */
+	CWorkbookPr.prototype.setCodeName = function (val) {
+		this.CodeName = val;
 	};
 
 
