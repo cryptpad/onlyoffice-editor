@@ -167,7 +167,9 @@ function Paragraph(Parent, bFromPresentation)
 
     this.CollPrChange = false;
 
-	this.ParaId = null;//for comment xml serialization
+	// На загрузке мы не должны генерить ID, иначе они будут разные у разных пользователей
+	this.ParaId = !AscCommon.g_oIdCounter.IsLoad() ? AscCommon.CreateDurableId() : undefined;
+	this.TextId = undefined;
 
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     AscCommon.g_oTableId.Add( this, this.Id );
@@ -202,6 +204,30 @@ Paragraph.prototype.UseLimit = function()
 Paragraph.prototype.Set_Pr = function(oNewPr)
 {
 	return this.SetDirectParaPr(oNewPr);
+};
+Paragraph.prototype.SetParaId = function(paraId)
+{
+	if (this.ParaId === paraId)
+		return;
+	
+	AscCommon.History.Add(new AscDFH.CChangesParagraphParaId(this, this.ParaId, paraId));
+	this.ParaId = paraId;
+};
+Paragraph.prototype.GetParaId = function()
+{
+	return this.ParaId;
+};
+Paragraph.prototype.SetTextId = function(textId)
+{
+	if (this.TextId === textId)
+		return;
+	
+	AscCommon.History.Add(new AscDFH.CChangesParagraphTextId(this, this.TextId, textId));
+	this.TextId = textId;
+};
+Paragraph.prototype.GetTextId = function()
+{
+	return this.TextId;
 };
 /**
  * @param paraPr {AscWord.CParaPr}
@@ -1928,7 +1954,7 @@ Paragraph.prototype.GetNumberingText = function(bWithoutLvlText)
  * Получаем рассчитанное значение нумерации для данного параграфа вместе с суффиксом
  * @returns {string}
  */
-Paragraph.prototype.GetNumberingTextWithSuffix = function()
+Paragraph.prototype.GetNumberingTextWithSuffix = function(pr)
 {
 	let numText = this.GetNumberingText(false);
 	if (!numText)
@@ -1939,7 +1965,7 @@ Paragraph.prototype.GetNumberingTextWithSuffix = function()
 	
 	let suff = parent.GetNumbering().GetNum(numPr.NumId).GetLvl(numPr.Lvl).GetSuff();
 	if (Asc.c_oAscNumberingSuff.Tab === suff)
-		numText += "	";
+		numText += pr && undefined !== pr.TabSymbol ? pr.TabSymbol : "\t";
 	else if (Asc.c_oAscNumberingSuff.Space === suff)
 		numText += " ";
 	
@@ -3460,6 +3486,9 @@ Paragraph.prototype.drawRunContentLines = function(CurPage, pGraphics, drawState
 					arrFormRects.push(arrFormRectsLine);
 			}
 		}
+		
+		PDSL.drawCustomMarks(pGraphics, Page.Y + Line.Y - Line.Metrics.TextAscent, Line.Metrics.TextDescent + Line.Metrics.TextAscent + Line.Metrics.LineGap, Page.Y + Line.Y);
+		
 		pGraphics.End_Command();
 	}
 	
@@ -4725,6 +4754,7 @@ Paragraph.prototype.Add = function(Item)
 					this.AddToContent(CurPos + 1, paraMath);
 					this.CurPos.ContentPos = CurPos + 1;
 					this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
+
 				}
 			}
 			else
@@ -9370,7 +9400,7 @@ Paragraph.prototype.GetSelectedText = function(bClearText, oPr)
 	{
 		var oNumPr = this.GetNumPr();
 		if (oNumPr && oNumPr.IsValid() && this.IsSelectionFromStart(false))
-			Str += this.GetNumberingTextWithSuffix();
+			Str += this.GetNumberingTextWithSuffix(oPr);
 	}
 
 	var Count = this.Content.length;
@@ -12402,6 +12432,7 @@ Paragraph.prototype.Get_ParentTextInvertTransform = function()
 };
 Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 {
+	let logicDocument   = this.GetLogicDocument();
 	let drawingDocument = this.getDrawingDocument();
 	if (!this.IsRecalculated() || !drawingDocument)
 		return;
@@ -12440,7 +12471,8 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 	if (oContentControl)
 	{
 		oContentControl.DrawContentControlsTrack(AscCommon.ContentControlTrack.Hover, X, Y, CurPage);
-		isCheckBox = oContentControl.IsCheckBox() && oContentControl.CheckHitInContentControlByXY(X, Y, this.GetAbsolutePage(CurPage), false);
+		isCheckBox = (oContentControl.CheckHitInContentControlByXY(X, Y, this.GetAbsolutePage(CurPage), false)
+			&& (oContentControl.IsCheckBox() || (logicDocument && oContentControl.IsLabeledCheckBox() && logicDocument.IsFillingOFormMode())));
 	}
 
 	var Footnote      = this.CheckFootnote(X, Y, CurPage);
@@ -12822,22 +12854,30 @@ Paragraph.prototype.PreDelete = function()
 //----------------------------------------------------------------------------------------------------------------------
 Paragraph.prototype.Document_SetThisElementCurrent = function(bUpdateStates)
 {
-	this.Parent.Update_ContentIndexing();
-	this.Parent.Set_CurrentElement(this.Index, bUpdateStates);
+	let parent = this.GetParent();
+	if (!parent)
+		return;
+	
+	parent.Update_ContentIndexing();
+	parent.Set_CurrentElement(this.Index, bUpdateStates);
 };
 Paragraph.prototype.IsThisElementCurrent = function()
 {
-	let oParent = this.Parent;
-	let nIndex  = this.GetIndex();
-	if (-1 === nIndex || docpostype_Content !== oParent.GetDocPosType())
+	let parent = this.GetParent();
+	if (!parent)
+		return false;
+	
+	let nIndex = this.GetIndex();
+	if (-1 === nIndex || docpostype_Content !== parent.GetDocPosType())
+		return false;
+	
+	if ((parent.IsSelectionUse()
+			&& (parent.Selection.StartPos !== parent.Selection.EndPos
+				|| nIndex !== parent.Selection.StartPos))
+		|| (!parent.IsSelectionUse() && nIndex !== parent.CurPos.ContentPos))
 		return false;
 
-	if ((oParent.IsSelectionUse() && (oParent.Selection.StartPos !== oParent.Selection.EndPos
-			|| nIndex !== oParent.Selection.StartPos))
-		|| (!oParent.IsSelectionUse() && nIndex !== oParent.CurPos.ContentPos))
-		return false;
-
-	return oParent.IsThisElementCurrent();
+	return parent.IsThisElementCurrent();
 };
 Paragraph.prototype.Is_Inline = function()
 {
@@ -14237,7 +14277,7 @@ Paragraph.prototype.Write_ToBinary2 = function(Writer)
 	// String2   : Id TextPr
 	// Long      : количество элементов
 	// Array of String2 : массив с Id элементами
-	// Bool     : bFromDocument
+	// Flags     : 0 - bFromDocument, 1 - paraId -> Long, 2 - textId -> Long
 
 	Writer.WriteString2("" + this.Id);
 
@@ -14266,8 +14306,31 @@ Paragraph.prototype.Write_ToBinary2 = function(Writer)
 	{
 		Writer.WriteString2("" + ContentForWrite[Index].Get_Id());
 	}
-
-	Writer.WriteBool(this.bFromDocument);
+	
+	let startPos = Writer.GetCurPosition();
+	Writer.Skip(4);
+	
+	let flags = 0;
+	if (this.bFromDocument)
+		flags |= 1;
+	
+	if (this.ParaId)
+	{
+		Writer.WriteLong(this.ParaId);
+		flags |= 2;
+	}
+	
+	if (this.TextId)
+	{
+		Writer.WriteLong(this.TextId);
+		flags |= 4;
+	}
+	
+	let endPos = Writer.GetCurPosition();
+	Writer.Seek(startPos);
+	Writer.WriteLong(flags);
+	Writer.Seek(endPos);
+	
 };
 Paragraph.prototype.Read_FromBinary2 = function(Reader)
 {
@@ -14276,7 +14339,7 @@ Paragraph.prototype.Read_FromBinary2 = function(Reader)
 	// String2   : Id TextPr
 	// Long      : количество элементов
 	// Array of String2 : массив с Id элементами
-	// Bool     : bFromDocument
+	// Flags     : 0 - bFromDocument, 1 - paraId -> Long, 2 - textId -> Long
 
 	this.Id = Reader.GetString2();
 
@@ -14300,12 +14363,16 @@ Paragraph.prototype.Read_FromBinary2 = function(Reader)
 				Element.SetParagraph(this);
 		}
 	}
-
-	this.bFromDocument = Reader.GetBool();
+	
+	let flags = Reader.GetLong();
+	
+	this.bFromDocument = !!(flags & 1);
+	
+	this.ParaId = (flags & 2 ? Reader.GetLong() : undefined);
+	this.TextId = (flags & 4 ? Reader.GetLong() : undefined);
+	
 	if (!this.bFromDocument)
-	{
 		this.Numbering = new ParaPresentationNumbering();
-	}
 	
 	this.PageNum = 0;
 };
@@ -14762,6 +14829,10 @@ Paragraph.prototype.RequestSpellCheck = function()
 		{
 			oSpelling.AddParagraphToCheck(this);
 		}
+		
+		let textAnnotator = this.getCustomTextAnnotator();
+		if (textAnnotator)
+			textAnnotator.addParagraphToCheck(this);
 	}
 };
 /**
@@ -16491,7 +16562,7 @@ Paragraph.prototype.GetText = function(oPr)
 	{
 		var oNumPr = this.GetNumPr();
 		if (oNumPr && oNumPr.IsValid())
-			oText.Text += this.GetNumberingTextWithSuffix();
+			oText.Text += this.GetNumberingTextWithSuffix(oPr);
 	}
 
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)

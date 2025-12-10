@@ -498,7 +498,7 @@ ParaRun.prototype.Get_Text = function(Text)
 			}
 			case para_NewLine:
 			{
-				Text.Text += undefined !== Text.NewLineSeparator ? Text.NewLineSeparator : " ";
+				Text.Text += undefined !== Text.NewLineSeparator ? Text.NewLineSeparator : "\r";
 				break;
 			}
 			case para_Tab:
@@ -1959,25 +1959,9 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
         if ( ContentPos.Data[Depth] >= Pos )
             ContentPos.Data[Depth]++;
     }
-
-	// Обновляем позиции в поиске
-	var SearchMarksCount = this.SearchMarks.length;
-	for (var Index = 0; Index < SearchMarksCount; Index++)
-	{
-		var Mark       = this.SearchMarks[Index];
-		var ContentPos = ( true === Mark.Start ? Mark.SearchResult.StartPos : Mark.SearchResult.EndPos );
-		var Depth      = Mark.Depth;
-
-		if (ContentPos.Data[Depth] > Pos || (ContentPos.Data[Depth] === Pos && true === Mark.Start))
-			ContentPos.Data[Depth]++;
-	}
-
-    // Обновляем позиции для орфографии
-	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
-	{
-		this.SpellingMarks[iMark].onAdd(Pos);
-	}
-
+	
+	this.private_UpdateMarksOnAdd(Pos, 1);
+	
 	this.private_UpdateDocumentOutline();
     this.private_UpdateTrackRevisionOnChangeContent(true);
 
@@ -2029,25 +2013,7 @@ ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
             ContentPos.Data[Depth] = Math.max( 0 , Pos );
     }
 
-    // Обновляем позиции в поиске
-    var SearchMarksCount = this.SearchMarks.length;
-    for ( var Index = 0; Index < SearchMarksCount; Index++ )
-    {
-        var Mark       = this.SearchMarks[Index];
-        var ContentPos = ( true === Mark.Start ? Mark.SearchResult.StartPos : Mark.SearchResult.EndPos );
-        var Depth      = Mark.Depth;
-
-        if ( ContentPos.Data[Depth] > Pos + Count )
-            ContentPos.Data[Depth] -= Count;
-        else if ( ContentPos.Data[Depth] > Pos )
-            ContentPos.Data[Depth] = Math.max( 0 , Pos );
-    }
-	
-	// Обновляем позиции для орфографии
-	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
-	{
-		this.SpellingMarks[iMark].onRemove(Pos, Count);
-	}
+	this.private_UpdateMarksOnRemove(Pos, Count);
 
 	this.private_UpdateDocumentOutline();
 	this.private_UpdateTrackRevisionOnChangeContent(true);
@@ -2258,7 +2224,7 @@ ParaRun.prototype.Get_ParaPosByContentPos = function(ContentPos, Depth)
         }
     }
 
-    return new CParaPos((LinesCount === 1 ? this.protected_GetRangesCount(0) - 1 + this.StartRange : this.protected_GetRangesCount(0) - 1), LinesCount - 1 + this.StartLine, 0, 0);
+    return new CParaPos((LinesCount === 1 ? this.protected_GetRangesCount(0) - 1 + this.StartRange : this.protected_GetRangesCount(LinesCount - 1) - 1), LinesCount - 1 + this.StartLine, 0, 0);
 };
 
 ParaRun.prototype.recalculateCursorPosition = function(positionCalculator, isCurrent)
@@ -2603,9 +2569,6 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
 	// 2 Переносим все метки, попадающие после точки разделения, в новый ран
 	// 3 Удаляем из текущего рана элементы после точки разделения
 
-   AscCommon.History.Add(new CChangesRunOnStartSplit(this, CurPos));
-    AscCommon.CollaborativeEditing.OnStart_SplitRun(this, CurPos);
-
     // Если задается Parent и ParentPos, тогда ран автоматически добавляется в родительский класс
     var UpdateParent    = (undefined !== Parent && undefined !== ParentPos && this === Parent.Content[ParentPos] ? true : false);
     var UpdateSelection = (true === UpdateParent && true === Parent.IsSelectionUse() && true === this.IsSelectionUse() ? true : false);
@@ -2613,7 +2576,10 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
     // Создаем новый ран
     var bMathRun = this.Type == para_Math_Run;
     var NewRun = new ParaRun(this.Paragraph, bMathRun);
-
+	
+	AscCommon.History.Add(new CChangesRunOnStartSplit(this, CurPos, NewRun));
+	AscCommon.CollaborativeEditing.OnStart_SplitRun(this, CurPos);
+	
     // Копируем настройки
     NewRun.SetPr(this.Pr.Copy(true));
 
@@ -2746,20 +2712,8 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
 		}
 	}
 
-	// Если были точки орфографии, тогда переместим их в новый ран
-	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
-	{
-		let mark = this.SpellingMarks[iMark];
-		if (mark.getPos() >= CurPos)
-		{
-			mark.movePos(-CurPos);
-			NewRun.SpellingMarks.push(mark);
-			this.SpellingMarks.splice(iMark, 1);
-			--nMarks;
-			--iMark;
-		}
-	}
-
+	this.private_UpdateMarksOnSplit(CurPos, NewRun);
+	
 	this.RemoveFromContent(CurPos, this.Content.length - CurPos, true);
 
     if (true === UpdateSelection)
@@ -2784,10 +2738,10 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
             NewRun.Selection.StartPos = OldSelectionStartPos - CurPos;
         }
     }
-
-   AscCommon.History.Add(new CChangesRunOnEndSplit(this, NewRun));
-    AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
-    return NewRun;
+	
+	AscCommon.History.Add(new CChangesRunOnEndSplit(this, CurPos, NewRun));
+	AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
+	return NewRun;
 };
 ParaRun.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph)
 {
@@ -2806,11 +2760,12 @@ ParaRun.prototype.SplitNoDuplicate = function(oContentPos, nDepth, oNewParagraph
 };
 ParaRun.prototype.SplitForSpreadCollaborativeMark = function(CurPos) // переносим сами объекты, а не копии
 {
-	AscCommon.History.Add(new CChangesRunOnStartSplit(this, CurPos));
-	AscCommon.CollaborativeEditing.OnStart_SplitRun(this, CurPos);
-
 	var bMathRun = this.Type == para_Math_Run;
 	var NewRun = new ParaRun(this.Paragraph, false);
+	
+	AscCommon.History.Add(new CChangesRunOnStartSplit(this, CurPos, NewRun));
+	AscCommon.CollaborativeEditing.OnStart_SplitRun(this, CurPos);
+	
 	NewRun.SetReviewTypeWithInfo(this.GetReviewType(), this.ReviewInfo ? this.ReviewInfo.Copy() : undefined);
 	if(bMathRun)
 		NewRun.Set_MathPr(this.MathPrp.Copy());
@@ -2832,7 +2787,7 @@ ParaRun.prototype.SplitForSpreadCollaborativeMark = function(CurPos) // пере
 
 	this.RemoveFromContent(CurPos, this.Content.length - CurPos, true);
 
-	AscCommon.History.Add(new CChangesRunOnEndSplit(this, NewRun));
+	AscCommon.History.Add(new CChangesRunOnEndSplit(this, CurPos, NewRun));
 	AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
 
 	return NewRun;
@@ -3482,7 +3437,7 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	this.RecalcInfo.Recalc = true;
 	this.RecalcInfo.ResetMeasure();
 };
-ParaRun.prototype.getTextMetrics = function()
+ParaRun.prototype.getTextMetrics = function(isForceEmpty)
 {
 	let textPr = this.Get_CompiledPr(false);
 	if (this.IsUseAscFont(textPr))
@@ -3498,7 +3453,7 @@ ParaRun.prototype.getTextMetrics = function()
 		fontSlot |= this.Content[nPos].GetFontSlot(textPr);
 	}
 	
-	if (AscWord.fontslot_Unknown === fontSlot)
+	if ((AscWord.fontslot_Unknown === fontSlot) || (AscWord.fontslot_None === fontSlot && isForceEmpty))
 		fontSlot = textPr.CS || textPr.RTL ? AscWord.fontslot_CS : AscWord.fontslot_ASCII;
 	
 	return textPr.GetTextMetrics(fontSlot, this.Paragraph.GetTheme());
@@ -4462,9 +4417,9 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                         {
                             LDRecalcInfo.Reset();
 
+							let continueCalc = false;
                             // Добавляем разрыв страницы. Если это первая страница, тогда ставим разрыв страницы в начале параграфа,
                             // если нет, тогда в начале текущей строки.
-
                             if (null != Para.Get_DocumentPrev() && true != Para.IsTableCellContent() && 0 === CurPage)
                             {
                                 Para.Recalculate_Drawing_AddPageBreak(0, 0, true);
@@ -4481,17 +4436,25 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                                     PRS.NewRange = true;
                                     return;
                                 }
-                                else
-                                {
-                                    RangeEndPos = Pos;
-                                    NewRange = true;
-                                    ForceNewPage = true;
-                                }
+                                else if (Para.IsStartFromNewPage())
+								{
+									// Делаем как MSWord перестаем учитывать обтекание данного объекта
+									continueCalc = true;
+									LDRecalcInfo.Set_FlowObject(Item, 0, recalcresult_NextElement, -1);
+									LDRecalcInfo.Set_PageBreakBefore(false);
+									LDRecalcInfo.SetForceNoWrap(true);
+									PRS.ForceNewPageAfter = true;
+								}
+								else
+								{
+									RangeEndPos  = Pos;
+									NewRange     = true;
+									ForceNewPage = true;
+								}
                             }
-
-
+							
                             // Если до этого было слово, тогда не надо проверять убирается ли оно
-                            if (true === Word || WordLen > 0)
+                            if (!continueCalc && (true === Word || WordLen > 0))
                             {
                                 // Добавляем длину пробелов до слова + длина самого слова. Не надо проверять
                                 // убирается ли слово, мы это проверяем при добавленнии букв.
@@ -5552,6 +5515,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             }
             case para_Drawing:
             {
+				Item.SetForceNoWrap(false);
+				
                 var Para = PRSA.Paragraph;
                 var isInHdrFtr = Para.Parent.IsHdrFtr();
 
@@ -5639,6 +5604,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     ColumnStartX = PageFieldsOrigin.X;
                     ColumnEndX   = PageFieldsOrigin.XLimit;
                 }
+				
+				let isInTable = isTableCellContent && isLayoutInCell;
 
                 if (!isUseWrap)
                 {
@@ -5663,7 +5630,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 					else
 						Item.SetVerticalClip(null, null);
 
-                    Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine);
+                    Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine, isInTable);
                     Item.Reset_SavedPosition();
 
                     PRSA.X    += Item.WidthVisible;
@@ -5684,7 +5651,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     {
                         // Тут мы должны сравнить положение картинок
                         var oRecalcObj = Item.SaveRecalculateObject();
-                        Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine);
+                        Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine, isInTable);
 
                         if (Math.abs(Item.X - oRecalcObj.X) > 0.001 || Math.abs(Item.Y - oRecalcObj.Y) > 0.001 || Item.PageNum !== oRecalcObj.PageNum)
                         {
@@ -5719,12 +5686,13 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                         if ( true === LDRecalcInfo.Can_RecalcObject() )
                         {
 							// Обновляем позицию объекта
-							Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[_CurLine].Y - Para.Lines[_CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine);
+							Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[_CurLine].Y - Para.Lines[_CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine, isInTable);
 							
 							// For headers we do not check for exceeding lower bound in this case
 							if (!isInHdrFtr
 								&& PRSA.getCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15
 								&& 0 === CurPage
+								&& !PRSA.isParagraphStartFromNewPage()
 								&& Item.Get_Bounds().Bottom >= Y_Bottom_Field
 								&& Item.IsMoveWithTextVertically())
 							{
@@ -5758,6 +5726,12 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                             // учета колонок, так делает и Word).
                             if ( Item.PageNum === PageAbs )
                             {
+								if (LDRecalcInfo.IsForceNoWrap())
+								{
+									Item.SetForceNoWrap(true);
+									Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y , PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[_CurLine].Y - Para.Lines[_CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine, isInTable);
+								}
+								
                                 // Все нормально, можно продолжить пересчет
                                 LDRecalcInfo.Reset();
                                 Item.Reset_SavedPosition();
@@ -5768,7 +5742,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                                 // мы пересчитываем заново текущую страницу, а не предыдущую
 
                                 // Обновляем позицию объекта
-                                Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y, PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine);
+                                Item.Update_Position(PRSA.Paragraph, new CParagraphLayout( PRSA.X, PRSA.Y, PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent, Para.Pages[_CurPage].Y), PageLimits, PageLimitsOrigin, _CurLine, isInTable);
 
                                 LDRecalcInfo.Set_FlowObject( Item, 0, recalcresult_NextElement, -1 );
                                 LDRecalcInfo.Set_PageBreakBefore( false );
@@ -5816,7 +5790,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 						}
 						
 						// Картинка ложится на или под текст, в данном случае пересчет можно спокойно продолжать
-						Item.Update_Position(PRSA.Paragraph, new CParagraphLayout(PRSA.X, PRSA.Y, PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, nLineTop, nParaTop), PageLimits, PageLimitsOrigin, _CurLine);
+						Item.Update_Position(PRSA.Paragraph, new CParagraphLayout(PRSA.X, PRSA.Y, PageAbs, PRSA.LastW, ColumnStartX, ColumnEndX, X_Left_Margin, X_Right_Margin, Page_Width, Top_Margin, Bottom_Margin, Page_H, PageFields.X, PageFields.Y, nLineTop, nParaTop), PageLimits, PageLimitsOrigin, _CurLine, isInTable);
 						Item.Reset_SavedPosition();
 					}
                 }
@@ -6606,6 +6580,7 @@ ParaRun.prototype.Draw_Lines = function(lineDrawState)
 			SpellData[markPos] -= 1;
 	}
 	
+	lineDrawState.initCustomMarks(this, startPos);
 	for (let pos = startPos; pos < endPos; ++pos)
 	{
 		if (SpellData[pos])
@@ -8237,13 +8212,13 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 
 ParaRun.prototype.Split_Run = function(Pos)
 {
-   AscCommon.History.Add(new CChangesRunOnStartSplit(this, Pos));
-    AscCommon.CollaborativeEditing.OnStart_SplitRun(this, Pos);
-
     // Создаем новый ран
     var bMathRun = this.Type == para_Math_Run;
     var NewRun = new ParaRun(this.Paragraph, bMathRun);
-
+	
+	AscCommon.History.Add(new CChangesRunOnStartSplit(this, Pos, NewRun));
+	AscCommon.CollaborativeEditing.OnStart_SplitRun(this, Pos);
+	
     // Копируем настройки
     NewRun.Set_Pr(this.Pr.Copy(true));
 
@@ -8257,6 +8232,22 @@ ParaRun.prototype.Split_Run = function(Pos)
 
     // Разделяем содержимое по ранам
     NewRun.ConcatToContent( this.Content.slice(Pos) );
+	
+	// Если были точки орфографии, тогда переместим их в новый ран
+	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
+	{
+		let mark = this.SpellingMarks[iMark];
+		if (mark.getPos() >= Pos)
+		{
+			mark.movePos(-Pos);
+			NewRun.SpellingMarks.push(mark);
+			this.SpellingMarks.splice(iMark, 1);
+			--nMarks;
+			--iMark;
+		}
+	}
+	this.private_UpdateCustomMarksOnSplit(Pos, NewRun);
+	
     this.Remove_FromContent( Pos, this.Content.length - Pos, true );
 
     // Подправим точки селекта и текущей позиции
@@ -8290,23 +8281,9 @@ ParaRun.prototype.Split_Run = function(Pos)
         NewRun.State.Selection.EndPos = 0;
     }
 	
-	// Если были точки орфографии, тогда переместим их в новый ран
-	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
-	{
-		let mark = this.SpellingMarks[iMark];
-		if (mark.getPos() >= Pos)
-		{
-			mark.movePos(-Pos);
-			NewRun.SpellingMarks.push(mark);
-			this.SpellingMarks.splice(iMark, 1);
-			--nMarks;
-			--iMark;
-		}
-	}
-
-   AscCommon.History.Add(new CChangesRunOnEndSplit(this, NewRun));
-    AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
-    return NewRun;
+	AscCommon.History.Add(new CChangesRunOnEndSplit(this, Pos, NewRun));
+	AscCommon.CollaborativeEditing.OnEnd_SplitRun(NewRun);
+	return NewRun;
 };
 
 ParaRun.prototype.Clear_TextPr = function()
@@ -12775,6 +12752,114 @@ ParaRun.prototype.SetIsRecalculated = function(isRecalculated)
 {
 	if (!isRecalculated && this.Paragraph)
 		this.Paragraph.SetIsRecalculated(false);
+};
+ParaRun.prototype.private_UpdateMarksOnAdd = function(pos, count)
+{
+	if (AscCommon.CollaborativeEditing.IsSplitConcatRun())
+		return;
+	
+	for (let iMark = 0, nMarks = this.SearchMarks.length; iMark < nMarks; ++iMark)
+	{
+		var Mark       = this.SearchMarks[iMark];
+		var ContentPos = ( true === Mark.Start ? Mark.SearchResult.StartPos : Mark.SearchResult.EndPos );
+		var Depth      = Mark.Depth;
+		
+		if (ContentPos.Data[Depth] > pos || (ContentPos.Data[Depth] === pos && true === Mark.Start))
+			ContentPos.Data[Depth] += count;
+	}
+	
+	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
+	{
+		this.SpellingMarks[iMark].onAdd(pos, count);
+	}
+	
+	this.private_UpdateCustomMarksOnAdd(pos, count);
+};
+ParaRun.prototype.private_UpdateMarksOnRemove = function(pos, count)
+{
+	if (AscCommon.CollaborativeEditing.IsSplitConcatRun())
+		return;
+	
+	for (let iMark = 0, nMarks = this.SearchMarks.length; iMark < nMarks; ++iMark)
+	{
+		var Mark       = this.SearchMarks[iMark];
+		var ContentPos = (true === Mark.Start ? Mark.SearchResult.StartPos : Mark.SearchResult.EndPos);
+		var Depth      = Mark.Depth;
+		
+		if (ContentPos.Data[Depth] > pos + count)
+			ContentPos.Data[Depth] -= count;
+		else if (ContentPos.Data[Depth] > pos)
+			ContentPos.Data[Depth] = Math.max(0, pos);
+	}
+	
+	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
+	{
+		this.SpellingMarks[iMark].onRemove(pos, count);
+	}
+	this.private_UpdateCustomMarksOnRemove(pos, count);
+};
+ParaRun.prototype.private_UpdateMarksOnSplit = function(pos, nextRun)
+{
+	if (!nextRun)
+		return;
+	
+	for (let iMark = 0, nMarks = this.SpellingMarks.length; iMark < nMarks; ++iMark)
+	{
+		let mark = this.SpellingMarks[iMark];
+		if (mark.getPos() >= pos)
+		{
+			mark.movePos(-pos);
+			nextRun.SpellingMarks.push(mark);
+			this.SpellingMarks.splice(iMark, 1);
+			--nMarks;
+			--iMark;
+		}
+	}
+	this.private_UpdateCustomMarksOnSplit(pos, nextRun);
+};
+ParaRun.prototype.private_UpdateMarksOnConcat = function(pos, run)
+{
+	if (!run)
+		return;
+	
+	// Присылаем сюда позицию pos не потому что в любой позции соединяем, а чтобы данный вызов не контролировать
+	// относительно времени соединения ранов (т.е. на данный момент соединение уже может быть, а может и не быть)
+	// Мы, в любом случае считаем, что когда раны соединялись, то длина первого рана равнялась pos
+	for (let iMark = 0, nMarks = run.SpellingMarks.length; iMark < nMarks; ++iMark)
+	{
+		let mark = run.SpellingMarks[iMark];
+		mark.movePos(pos);
+		this.SpellingMarks.push(mark);
+	}
+	this.private_UpdateCustomMarksOnConcat(pos, run);
+};
+ParaRun.prototype.private_UpdateCustomMarksOnAdd = function(pos, count)
+{
+	let logicDocument = this.GetLogicDocument();
+	let customMarks   = logicDocument && logicDocument.IsDocumentEditor() ? logicDocument.GetCustomMarks() : null;
+	if (customMarks)
+		customMarks.onAddToRun(this.GetId(), pos, count);
+};
+ParaRun.prototype.private_UpdateCustomMarksOnRemove = function(pos, count)
+{
+	let logicDocument = this.GetLogicDocument();
+	let customMarks   = logicDocument && logicDocument.IsDocumentEditor() ? logicDocument.GetCustomMarks() : null;
+	if (customMarks)
+		customMarks.onRemoveFromRun(this.GetId(), pos, count);
+};
+ParaRun.prototype.private_UpdateCustomMarksOnSplit = function(pos, nextRun)
+{
+	let logicDocument = this.GetLogicDocument();
+	let customMarks   = logicDocument && logicDocument.IsDocumentEditor() ? logicDocument.GetCustomMarks() : null;
+	if (customMarks)
+		customMarks.onSplitRun(this.GetId(), pos, nextRun.GetId());
+};
+ParaRun.prototype.private_UpdateCustomMarksOnConcat = function(pos, run)
+{
+	let logicDocument = this.GetLogicDocument();
+	let customMarks   = logicDocument && logicDocument.IsDocumentEditor() ? logicDocument.GetCustomMarks() : null;
+	if (customMarks)
+		customMarks.onConcatRun(this.GetId(), pos, run.GetId());
 };
 
 function CParaRunStartState(Run)

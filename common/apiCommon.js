@@ -116,6 +116,8 @@ function (window, undefined) {
 				uuid[d2 & 0x3f | 0x80] + uuid[d2 >> 8 & 0xff] + "-" + uuid[d2 >> 16 & 0xff] + uuid[d2 >> 24 & 0xff] +
 				uuid[d3 & 0xff] + uuid[d3 >> 8 & 0xff] + uuid[d3 >> 16 & 0xff] + uuid[d3 >> 24 & 0xff];
 	}
+	
+	
 
 	function CreateGUID() {
 		function s4() {
@@ -6100,6 +6102,7 @@ function (window, undefined) {
 			this.Class = (undefined !== obj.Class) ? obj.Class : null;
 			this.Anchor = (undefined !== obj.Anchor) ? obj.Anchor : null;
 			this.Heading = (obj.Heading ? obj.Heading : null);
+			this.NoCtrl = (obj.NoCtrl ? obj.NoCtrl : false);
 		}
 		else {
 			this.Text = null;
@@ -6108,6 +6111,7 @@ function (window, undefined) {
 			this.Class = null;
 			this.Anchor = null;
 			this.Heading = null;
+			this.NoCtrl = false;
 		}
 	}
 
@@ -6156,6 +6160,12 @@ function (window, undefined) {
 	CHyperlinkProperty.prototype.get_Heading = function () {
 		return this.Heading;
 	};
+	CHyperlinkProperty.prototype.put_NoCtrl = function (bNoCtrl) {
+		this.NoCtrl = bNoCtrl;
+	};
+	CHyperlinkProperty.prototype.get_NoCtrl = function () {
+		return this.NoCtrl;
+	};
 
 	window['Asc']['CHyperlinkProperty'] = window['Asc'].CHyperlinkProperty = CHyperlinkProperty;
 	CHyperlinkProperty.prototype['get_Value'] = CHyperlinkProperty.prototype.get_Value;
@@ -6173,6 +6183,8 @@ function (window, undefined) {
 	CHyperlinkProperty.prototype['is_Heading'] = CHyperlinkProperty.prototype.is_Heading;
 	CHyperlinkProperty.prototype['put_Heading'] = CHyperlinkProperty.prototype.put_Heading;
 	CHyperlinkProperty.prototype['get_Heading'] = CHyperlinkProperty.prototype.get_Heading;
+	CHyperlinkProperty.prototype['put_NoCtrl'] = CHyperlinkProperty.prototype.put_NoCtrl;
+	CHyperlinkProperty.prototype['get_NoCtrl'] = CHyperlinkProperty.prototype.get_NoCtrl;
 
 
 	/**
@@ -6884,7 +6896,9 @@ function (window, undefined) {
 				}
 				else if (this.imageBackground) {
 					oApi.ImageLoader.map_image_index[this.imageBackgroundUrl] = {
-						Image: this.imageBackground, Status: AscFonts.ImageLoadStatus.Complete
+						Image: this.imageBackground,
+						Status: AscFonts.ImageLoadStatus.Complete,
+						src: this.imageBackground.src
 					};
 					oShape.spPr.setFill(AscFormat.builder_CreateBlipFill(this.imageBackgroundUrl, "stretch"));
 				}
