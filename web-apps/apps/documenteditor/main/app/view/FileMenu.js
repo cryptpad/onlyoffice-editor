@@ -454,7 +454,9 @@ define([
             isVisible = this.mode.canHelp;
             this.miHelp[isVisible ?'show':'hide']();
             isVisible = this.mode.canSuggest;
-            this.miSuggest[isVisible ?'show':'hide']();
+            // CRYPTPAD
+            // we don't want this button
+            this.miSuggest['hide']();
 
             // 5: Close button
             isVisible = this.mode.canBack;

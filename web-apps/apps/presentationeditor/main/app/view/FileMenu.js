@@ -448,7 +448,9 @@ define([
             this.miBack[isVisible ?'show':'hide']();
 
             isVisible = this.mode.canSuggest;
-            this.miSuggest[isVisible ?'show':'hide']();
+            // CRYPTPAD
+            // we don't want this button
+            this.miSuggest['hide']();
 
             if (!this.customizationDone) {
                 this.customizationDone = true;
