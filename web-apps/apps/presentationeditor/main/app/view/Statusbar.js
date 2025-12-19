@@ -262,7 +262,9 @@ define([
                         items: [
                             {caption: this.textShowBegin, value: 0},
                             {caption: this.textShowCurrent, value: 1},
-                            {caption: this.textShowPresenterView, value: 2}
+                            // CRYPTPAD
+                            // disable it for now because it doesn't work well and might corrupt documents
+                            // {caption: this.textShowPresenterView, value: 2} 
                         ]
                     }),
                     dataHint: '0',

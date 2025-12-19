@@ -1667,11 +1667,13 @@ define([
                         items: [
                             {caption: me.textShowBegin, value: 0},
                             {caption: me.textShowCurrent, value: 1},
-                            {caption: me.textShowPresenterView, value: 2},
+                            // CRYPTPAD
+                            // disable it for now because it doesn't work well and might corrupt documents
+                            // {caption: me.textShowPresenterView, value: 2},
                             {caption: '--'},
                             me.mnuShowSettings = new Common.UI.MenuItem({
                                 caption: me.textShowSettings,
-                                value: 3,
+                                value: 2,
                                 lock: [Common.enumLock.lostConnect]
                             })
                         ]
