@@ -359,10 +359,10 @@ CWordCollaborativeEditing.prototype.private_LockByMe = function()
 			var oClass = AscCommon.g_oTableId.Get_ById(oItem);
 			if (oClass)
 			{
-				if (oClass.Lock) {  // XXX CryptPad: Lock seems to be unset sometimes
-                    oClass.Lock.Set_Type(AscCommon.locktype_Mine);
+				// if (oClass.Lock) {  // XXX CryptPad: Lock seems to be unset sometimes
+                    oClass.Lock.Set_Type(AscCommon.c_oAscLockTypes.kLockTypeMine);
                     this.Add_Unlock2(oClass);
-                }
+                // }
 			}
 		}
 	}
