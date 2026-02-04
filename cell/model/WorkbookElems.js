@@ -13058,9 +13058,25 @@ function RangeDataManagerElem(bbox, data)
 	};
 	/**
 	 * Initialize with sharedStrings from file. rely on uniqines
+	 * Adds new shared strings to existing ones without removing existing data
 	 * @param {Array<string | Array<{text: string, format: CellXfs}>>} sharedStrings
 	 */
-	CSharedStrings.prototype.initWithSharedStrings = function(sharedStrings) {
+	CSharedStrings.prototype.initWithSharedStrings = function(sharedStrings, opt_sharedStringIndexMap) {
+		if (this.all.length > 0) {
+			for (let i = 0; i < sharedStrings.length; i++) {
+				const item = sharedStrings[i];
+				let index;
+				if (typeof item === 'string') {
+					index = this.addText(item);
+				} else {
+					index = this.addMultiText(item);
+				}
+				if (opt_sharedStringIndexMap) {
+					opt_sharedStringIndexMap[i] = index;
+				}
+			}
+			return;
+		}
 		this.all = sharedStrings.slice(); //copy
 		this.text = Object.create(null);
 		this.multiTextMap = Object.create(null);

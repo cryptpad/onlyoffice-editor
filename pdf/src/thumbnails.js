@@ -673,7 +673,7 @@
 
     // rendering
     CDocument.prototype._paint= function() {
-        if (!this.canvas || !this.viewer.canInteract()) return;
+        if (!this.canvas) return;
         if (this.isNeedResize()) {
             this.resize();
         }
@@ -879,6 +879,10 @@
     };
     CDocument.prototype.calculateVisibleBlocks = function()
     {
+        let element = document.getElementById(this.id);
+        if (0 === element.offsetWidth || !this.canvas || this.isNeedResize())
+            return;
+
         this.startBlock = -1;
         this.endBlock = -1;
         var blocksCount = this.blocks.length;

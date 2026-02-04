@@ -1065,7 +1065,8 @@
 		oCurData && oCurData.Read_FromAscCommentData(oCurAscCommData);
 
         AscCommon.History.Add(new CChangesPDFAnnotCommentData(this, oCurData, oCommentData));
-
+        this.SetWasChanged(true, false);
+        
         if (oCommentData == null) {
             this._replies.length = 0;
             Asc.editor.sync_RemoveComment(this.GetId());
@@ -1095,6 +1096,7 @@
             oFirstCommToEdit.SetContents(oCommentData.m_sText);
         }
 
+        let aRepliesToBeChanged = [];
         let aReplyToDel = [];
         let oReply, oReplyCommentData;
         for (let i = 0; i < this._replies.length; i++) {
@@ -1108,6 +1110,7 @@
 
             if (oReplyCommentData) {
                 oReply.EditCommentData(oReplyCommentData);
+                aRepliesToBeChanged.push(oReply);
             }
             else {
                 aReplyToDel.push(oReply);
@@ -1146,6 +1149,10 @@
             }
         }
 
+        aRepliesToBeChanged.forEach(function(reply) {
+            reply.SetWasChanged(true, false);
+        });
+        
         Asc.editor.sync_ChangeCommentData(this.GetId(), oCommentData);
     };
     CAnnotationBase.prototype.GetAscCommentData = function() {
