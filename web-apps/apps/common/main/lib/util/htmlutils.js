@@ -111,6 +111,7 @@ let svg_icons = window.uitheme.svg_icons || [
 window.Common = {
     Utils: {
         injectSvgIcons: function (svg_icons_array, force) {
+            return; // XXX: this does not work inside CryptPad
             if ( window.isIEBrowser === true ) return;
 
             window.svgiconsrunonce;
