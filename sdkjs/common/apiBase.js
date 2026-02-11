@@ -6042,7 +6042,11 @@
 	baseEditorsApi.prototype.initBroadcastChannel = function() {
 		if (!this.broadcastChannel) {
 			if (typeof BroadcastChannel !== "undefined") {
-				this.broadcastChannel = new BroadcastChannel("onlyofficeChannel");
+                try {
+                    this.broadcastChannel = new BroadcastChannel("onlyofficeChannel");
+                } catch(e) {
+                    // CryptPad: In Tor Browser new BroeadcastChannel() throws an error
+                }
 			}
 		}
 	};
