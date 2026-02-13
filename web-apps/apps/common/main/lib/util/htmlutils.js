@@ -111,7 +111,6 @@ let svg_icons = window.uitheme.svg_icons || [
 window.Common = {
     Utils: {
         injectSvgIcons: function (svg_icons_array, force) {
-            return; // XXX: this does not work inside CryptPad
             if ( window.isIEBrowser === true ) return;
 
             window.svgiconsrunonce;
@@ -136,6 +135,7 @@ window.Common = {
                                     if (r.ok) return r.text();
                                     else {/* error */}
                                 }).then(function (text) {
+                                    if (!text) return;  // CryptPad: Some SVGs can not be loaded in the CryptPad build
                                     const btnMatch = /icons(\w+)(?:@2\.5x)\.svg$/.exec(url);
                                     const formatMatch = /doc-formats\/(\w+)(?:@2\.5x)\.svg$/.exec(url);
                                     const type = btnMatch ? btnMatch[1] : (formatMatch ? formatMatch[1] : null);
