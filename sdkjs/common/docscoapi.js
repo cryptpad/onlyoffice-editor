@@ -140,7 +140,13 @@
       };
       this._CoAuthoringApi.onLicenseChanged = function(res) {
         t.callback_OnLicenseChanged(res);
-	  };
+      };
+      this._CoAuthoringApi.onAiPluginSettings = function(res) {
+        t.callback_OnAiPluginSettings(res);
+      };
+      this._CoAuthoringApi.onMiscEvent = function(res) {
+        t.callback_OnMiscEvent(res);
+      };
 
       this._CoAuthoringApi.init(user, docid, documentCallbackUrl, token, editorType, documentFormatSave, docInfo, shardKey, wopiSrc, userSessionId, headingsColor, openCmd);
       this._onlineWork = true;
@@ -549,6 +555,16 @@
       this.onLicenseChanged(res);
     }
   };
+  CDocsCoApi.prototype.callback_OnAiPluginSettings = function(res) {
+    if (this.onAiPluginSettings) {
+      this.onAiPluginSettings(res);
+    }
+  };
+  CDocsCoApi.prototype.callback_OnMiscEvent = function(res) {
+    if (this.onMiscEvent) {
+      this.onMiscEvent(res);
+    }
+  };
 
   function LockBufferElement(arrayBlockId, callback) {
     this._arrayBlockId = arrayBlockId ? arrayBlockId.slice() : null;
@@ -945,6 +961,9 @@
       callback(isTimeout, response);
     }
   };
+  DocsCoApi.prototype._onUpdateVersion = function() {
+    this._send({'type': 'updateVersion'});
+  };
 
   DocsCoApi.prototype.openDocument = function(data) {
     this._send({"type": "openDocument", "message": data});
@@ -1083,7 +1102,7 @@
         } else if (code === c_oAscServerCommandErrors.NotModified) {
             this.onForceSave({type: c_oAscForceSaveTypes.Button, refuse: true});
 		} else {
-			this.onWarning(Asc.c_oAscError.ID.Unknown);
+			this.onWarning(AscCommon.c_oAscServerError.Unknown);
 		}
 	};
 	DocsCoApi.prototype._onForceSave = function(data) {
@@ -1494,13 +1513,16 @@
   };
 
   DocsCoApi.prototype._onWarning = function(data) {
-    this.onWarning(Asc.c_oAscError.ID.Warning);
+    this.onWarning(data.code);
   };
 
   DocsCoApi.prototype._onLicense = function(data) {
     if (!this.isLicenseInit) {
       this.isLicenseInit = true;
       this.onLicense(data['license']);
+      if (this.onAiPluginSettings) {
+        this.onAiPluginSettings(data['aiPluginSettings']);
+      }
     }
   };
 
@@ -1864,6 +1886,9 @@
 				break;
 			case 'rpc' :
 				this._onPRC(dataObject["responseKey"], false, dataObject["data"]);
+				break;
+			case 'updateVersion' :
+				this.onMiscEvent(dataObject);
 				break;
 		}
 	};

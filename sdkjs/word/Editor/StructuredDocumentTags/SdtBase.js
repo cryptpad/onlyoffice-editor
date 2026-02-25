@@ -109,6 +109,13 @@ CSdtBase.prototype.SetPlaceholderText = function(sText)
 	else
 		oDocPart.AddText(sText);
 
+	if (this.Pr && this.Pr.TextPr)
+	{
+		oDocPart.SelectAll();
+		oParagraph = oDocPart.GetFirstParagraph();
+		oParagraph.ApplyTextPr(this.Pr.TextPr.Copy());
+	}
+	
 	oDocPart.RemoveSelection();
 
 	var isPlaceHolder = this.IsPlaceHolder();
@@ -215,6 +222,7 @@ CSdtBase.prototype.SetFormPr = function(oFormPr)
 		change.Redo();
 
 		this.private_OnAddFormPr();
+		this.OnChangePr();
 	}
 };
 CSdtBase.prototype.private_CheckKeyValueBeforeSet = function(formPr)
@@ -315,6 +323,10 @@ CSdtBase.prototype.IsComplexForm = function()
 {
 	return (undefined !== this.Pr.ComplexFormPr);
 };
+CSdtBase.prototype.IsSpecialComplexForm = function()
+{
+	return this.IsComplexForm() && this.Pr.ComplexFormPr.IsLabeledCheckBox();
+};
 /**
  * @returns {boolean}
  */
@@ -381,6 +393,57 @@ CSdtBase.prototype.SetFormKey = function(key)
 CSdtBase.prototype.IsCheckBox = function()
 {
 	return false;
+};
+/**
+ * Чекбокс с текстом
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsLabeledCheckBox = function()
+{
+	return this.IsComplexForm() && this.Pr.ComplexFormPr.IsLabeledCheckBox();
+};
+/**
+ * @returns {?CSdtBase}
+ */
+CSdtBase.prototype.GetInnerCheckBox = function()
+{
+	if (!this.IsLabeledCheckBox())
+		return null;
+	
+	let subForms = this.GetAllSubForms();
+	if (!subForms || !subForms.length || !subForms[0].IsCheckBox())
+		return null;
+	
+	return subForms[0];
+};
+CSdtBase.prototype.GetCheckBoxLabel = function()
+{
+	if (!this.IsLabeledCheckBox())
+		return "";
+	
+	let _t = this;
+	function Visitor()
+	{
+		AscWord.DocumentVisitor.call(this);
+		this._text = "";
+	}
+	Visitor.prototype = Object.create(AscWord.DocumentVisitor.prototype);
+	Visitor.prototype.superclass = Visitor;
+	Visitor.prototype.oform = function(contentControl, isStart)
+	{
+		return _t !== contentControl;
+	};
+	Visitor.prototype.run = function(run, isStart)
+	{
+		if (!isStart)
+			return;
+		
+		this._text += run.GetText();
+	};
+	
+	let visitor = new Visitor();
+	this.visit(visitor);
+	return visitor._text;
 };
 /**
  * Проверяем, является ли заданный контрол радио-кнопкой
@@ -1025,6 +1088,10 @@ CSdtBase.prototype.MoveCursorOutsideForm = function(isBefore)
 };
 CSdtBase.prototype.GetFieldMaster = function()
 {
+	let mainForm = this.GetMainForm();
+	if (mainForm && mainForm !== this)
+		return mainForm.GetFieldMaster();
+	
 	let formPr = this.GetFormPr();
 	if (!formPr)
 		return null;
@@ -1037,7 +1104,11 @@ CSdtBase.prototype.GetFieldMaster = function()
  */
 CSdtBase.prototype.GetFormRole = function()
 {
-	let fieldMaster = this.GetFieldMaster();
+	let mainForm = this.GetMainForm();
+	if (!mainForm)
+		mainForm = this;
+	
+	let fieldMaster = mainForm.GetFieldMaster();
 	let userMaster  = fieldMaster ? fieldMaster.getFirstUser() : null;
 	return userMaster ? userMaster.getRole() : "";
 };
@@ -1119,6 +1190,10 @@ CSdtBase.prototype.GetFormHighlightColor = function(defaultColor)
 		
 		formPr = mainForm.GetFormPr();
 	}
+	else if (this.IsLabeledCheckBox())
+	{
+		return null;
+	}
 	
 	if (!formPr)
 		return defaultColor;
@@ -1186,24 +1261,33 @@ CSdtBase.prototype.checkDataBinding = function()
 {
 	let logicDocument = this.GetLogicDocument();
 	if (!logicDocument || !this.Pr.DataBinding)
-		return;
+		return false;
 	
 	let customXmlManager = logicDocument.getCustomXmlManager();
 	if (!customXmlManager || !customXmlManager.isSupported())
-		return;
+		return false;
 	
 	let content = customXmlManager.getContentByDataBinding(this.Pr.DataBinding, this);
 	if (!content)
-		return;
-	
+		return false
+
+	if (content.attribute)
+		content = content.content.attributes[content.attribute]
+	else
+		content = content.getText();
+
+	if (content === "")
+		return false;
+
 	if (this.IsPicture())
 	{
 		let allDrawings = this.GetAllDrawingObjects();
 		if (!allDrawings.length)
-			return;
+			return false;
 
 		let drawing = allDrawings[0];
-		let imageData = "data:image/jpeg;base64," + content;
+
+		let imageData = !content.startsWith("data:image/png;base64,") ? "data:image/jpeg;base64," + content : content;
 		let editor = logicDocument.GetApi();
 		editor.ImageLoader.LoadImagesWithCallback([imageData], function(){}, 0, true);
 		
@@ -1221,12 +1305,14 @@ CSdtBase.prototype.checkDataBinding = function()
 			let checkBoxPr = this.Pr.CheckBox.Copy();
 			checkBoxPr.SetChecked(true);
 			this.SetCheckBoxPr(checkBoxPr)
+			this.private_UpdateCheckBoxContent();
 		}
 		else if (content === "false" || content === "0")
 		{
 			let checkBoxPr = this.Pr.CheckBox.Copy();
 			checkBoxPr.SetChecked(false);
 			this.SetCheckBoxPr(checkBoxPr)
+			this.private_UpdateCheckBoxContent()
 		}
 	}
 	else if (this.IsDatePicker())
@@ -1245,17 +1331,27 @@ CSdtBase.prototype.checkDataBinding = function()
 			this.private_UpdateDatePickerContent();
 		}
 	}
-	else if (this.IsDropDownList() || this.IsComboBox() || this.Pr.Text === true)
+	else if (this.IsDropDownList() || this.IsComboBox() || ((this instanceof CBlockLevelSdt && this.Pr.Text === true) || (this instanceof CInlineLevelSdt)))
 	{
 		if (typeof content === "string")
 			this.SetInnerText(content);
 	}
 	else if (this.canFillWithComplexDataBindingContent())
 	{
-		let customXmlManager = logicDocument.getCustomXmlManager();
-		let arrContent       = customXmlManager.proceedLinearXMl(content);
-		this.fillContentWithDataBinding(arrContent);
+		let customXmlManager	= logicDocument.getCustomXmlManager();
+		let arrContent			= customXmlManager.proceedLinearXMl(content);
+		let str					= "";
+
+		arrContent.forEach(function(content){str += content.GetText()})
+		let strContent			= str.trim();
+
+		if (strContent === "" && content.length > 0)
+			this.SetInnerText(content);
+		else
+			this.fillContentWithDataBinding(arrContent);
 	}
+
+	return true;
 };
 CSdtBase.prototype.canFillWithComplexDataBindingContent = function()
 {
@@ -1321,4 +1417,13 @@ CSdtBase.prototype.setBorderColor = function(color)
 CSdtBase.prototype.drawContentControlsTrackIn = function(padding)
 {
 	return this.DrawContentControlsTrack(AscCommon.ContentControlTrack.In, undefined, undefined, undefined, undefined, padding);
+};
+CSdtBase.prototype.OnChangePr = function()
+{
+	if (this.IsForm())
+	{
+		let logicDocument = this.GetLogicDocument();
+		if (logicDocument && logicDocument.IsDocumentEditor())
+			logicDocument.OnChangeFormPr(this);
+	}
 };

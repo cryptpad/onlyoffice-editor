@@ -336,6 +336,11 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.brush = originalObject.brush;
             }
             this.pen = originalObject.pen;
+
+            if (originalObject.GetEditField && originalObject.GetEditField()) {
+                this.brush = null;
+                this.pen = null;
+            }
         }
 
 
@@ -961,13 +966,18 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 this.resizedflipV = false;
             }
             
-            if (Asc.editor.isPdfEditor() && this.originalObject.IsAnnot()) {
-                let xMin = this.resizedPosX;
-                let xMax = this.resizedPosX + this.resizedExtX;
-                let yMin = this.resizedPosY;
-                let yMax = this.resizedPosY + this.resizedExtY;
-                
-                this.originalObject.RefillGeometry(this.geometry, [xMin, yMin, xMax, yMax]);
+            if (Asc.editor.isPdfEditor() && this.originalObject.IsAnnot && this.originalObject.IsAnnot()) {
+                if (this.originalObject.IsLine()) {
+                    this.geometry.Recalculate(this.resizedExtX, this.resizedExtY);
+                }
+                else {
+                    let xMin = this.resizedPosX;
+                    let xMax = this.resizedPosX + this.resizedExtX;
+                    let yMin = this.resizedPosY;
+                    let yMax = this.resizedPosY + this.resizedExtY;
+                    
+                    this.originalObject.RefillGeometry(this.geometry, [xMin, yMin, xMax, yMax]);
+                }
             }
             else {
                 this.geometry.Recalculate(this.resizedExtX, this.resizedExtY);
@@ -1097,8 +1107,8 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             global_MatrixTransformer.TranslateAppend(_transform, -_horizontal_center, -_vertical_center);
 
             // no flip inside FreeText annot
-            let isInFreeTextAnnot = this.originalObject.group && this.originalObject.group.IsFreeText && this.originalObject.group.IsFreeText();
-            if (!isInFreeTextAnnot)
+            let isInFreeTextBody = this.originalObject.group && this.originalObject.group.IsFreeText && this.originalObject.group.IsFreeText() && this.originalObject.group.GetTextBoxShape() == this.originalObject;
+            if (!isInFreeTextBody)
             {
                 if(this.resizedflipH)
                 {

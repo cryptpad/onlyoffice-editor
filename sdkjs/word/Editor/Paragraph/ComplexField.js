@@ -424,13 +424,6 @@ ParaFieldChar.prototype.IsValid = function()
 	var oRun = this.GetRun();
 	return (oRun && oRun.IsUseInDocument() && -1 !== oRun.GetElementPosition(this));
 };
-ParaFieldChar.prototype.RemoveThisFromDocument = function()
-{
-	var oRun = this.GetRun();
-	var nInRunPos = oRun.GetElementPosition(this);
-	if (-1 !== nInRunPos)
-		oRun.RemoveFromContent(nInRunPos, 1);
-};
 ParaFieldChar.prototype.PreDelete = function()
 {
 	if (this.LogicDocument && this.ComplexField)
@@ -570,6 +563,7 @@ ParaInstrText.prototype.GetReplacementItem = function()
 {
 	return this.Replacement;
 };
+AscWord.ParaInstrText = ParaInstrText;
 
 function CComplexField(logicDocument)
 {
@@ -584,6 +578,7 @@ function CComplexField(logicDocument)
 
 	this.InstructionLineSrc = "";
 	this.InstructionCF      = [];
+	this.InstructionItems   = [];
 
 	this.StartUpdate = false;
 }
@@ -616,6 +611,7 @@ CComplexField.prototype.SetInstruction = function(oParaInstr)
 {
 	this.InstructionLine += oParaInstr.GetValue();
 	this.InstructionLineSrc += oParaInstr.GetValue();
+	this.InstructionItems.push(oParaInstr);
 };
 CComplexField.prototype.SetInstructionCF = function(oCF)
 {
@@ -654,6 +650,7 @@ CComplexField.prototype.SetBeginChar = function(oChar)
 
 	this.InstructionLineSrc = "";
 	this.InstructionCF      = [];
+	this.InstructionItems   = [];
 };
 CComplexField.prototype.SetEndChar = function(oChar)
 {
@@ -891,18 +888,16 @@ CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
 	this.Instruction.Calculate(this.LogicDocument);
-	if(this.Instruction.ErrStr !== null)
+	if (this.Instruction.ErrStr !== null)
 	{
 		var oTextPr = new CTextPr();
-		oTextPr.Set_FromObject({Bold: true});
+		oTextPr.Set_FromObject({Bold : true});
 		this.private_InsertMessage(this.Instruction.ErrStr, oTextPr);
 	}
-	else
+	else if (null !== this.Instruction.ResultStr)
 	{
-		if(this.Instruction.ResultStr !== null)
-		{
-			this.private_InsertMessage(this.Instruction.ResultStr, null);
-		}
+		
+		this.private_InsertMessage(this.Instruction.GetResultString(), null);
 	}
 };
 CComplexField.prototype.private_CalculateFORMULA = function()
@@ -926,7 +921,7 @@ CComplexField.prototype.private_CalculatePAGE = function()
 	var nPage      = oParagraph.getPageByLine(nLine);
 
 	var oLogicDocument = oParagraph.LogicDocument;
-	return oLogicDocument.Get_SectionPageNumInfo2(oParagraph.Get_AbsolutePage(nPage)).CurPage;
+	return oLogicDocument.Get_SectionPageNumInfo2(oParagraph.GetAbsolutePage(nPage)).CurPage;
 };
 CComplexField.prototype.private_UpdateTOC = function()
 {
@@ -936,7 +931,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 	var oSectPr = this.LogicDocument.GetCurrentSectionPr();
 	if (oSectPr)
 	{
-		if (oSectPr.Get_ColumnsCount() > 1)
+		if (oSectPr.GetColumnCount() > 1)
 		{
 			// TODO: Сейчас забирается ширина текущей колонки. По правильному надо читать поля от текущего места
 			nTabPos = Math.max(0, Math.min(oSectPr.GetColumnWidth(0), oSectPr.GetPageWidth(), oSectPr.GetContentFrameWidth()));
@@ -1997,6 +1992,11 @@ CComplexField.prototype.RemoveFieldChars = function()
 
 	if (this.SeparateChar)
 		this.SeparateChar.RemoveThisFromDocument();
+	
+	for (let i = this.InstructionItems.length - 1; i >= 0; --i)
+	{
+		this.InstructionItems[i].RemoveThisFromDocument();
+	}
 };
 /**
  * Выставляем свойства для данного поля
@@ -2023,7 +2023,8 @@ CComplexField.prototype.SetPr = function(oPr)
 
 	var oRun      = this.BeginChar.GetRun();
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
-	oRun.AddInstrText(sNewInstruction, nInRunPos);
+	
+	this.InstructionItems = oRun.AddInstrText(sNewInstruction, nInRunPos);
 };
 /**
  * Изменяем строку инструкции у поля
@@ -2043,12 +2044,13 @@ CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
 
 	var oRun      = this.BeginChar.GetRun();
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
-	oRun.AddInstrText(sNewInstruction, nInRunPos);
+	let items     = oRun.AddInstrText(sNewInstruction, nInRunPos);
 
 	this.Instruction        = null;
 	this.InstructionLine    = sNewInstruction;
 	this.InstructionLineSrc = sNewInstruction;
 	this.InstructionCF      = [];
+	this.InstructionItems   = items;
 	this.private_UpdateInstruction();
 };
 CComplexField.prototype.CheckType = function(type)
@@ -2091,7 +2093,12 @@ CComplexField.prototype.IsFormFieldEnabled = function()
 };
 CComplexField.prototype.IsFormCheckBox = function()
 {
-	return this.CheckType(AscWord.fieldtype_FORMCHECKBOX);
+	if (!this.CheckType(AscWord.fieldtype_FORMCHECKBOX))
+		return false;
+	
+	let beginChar = this.GetBeginChar();
+	let ffData    = beginChar ? beginChar.GetFFData() : null;
+	return ffData && ffData.isCheckBox();
 };
 CComplexField.prototype.ToggleFormCheckBox = function()
 {

@@ -71,10 +71,11 @@
         "thick":  3
     }
 
-    const highlight     = AscPDF.Api.Objects.highlight;
-    const style         = AscPDF.Api.Objects.style;
-    const display       = AscPDF.Api.Objects.display;
-    const border        = AscPDF.Api.Objects.border;
+    const highlight     = AscPDF.Api.Types.highlight;
+    const style         = AscPDF.Api.Types.style;
+    const display       = AscPDF.Api.Types.display;
+    const border        = AscPDF.Api.Types.border;
+    const color         = AscPDF.Api.Types.color;
 
     /**
 	 * A string that sets the trigger for the action. Values are:
@@ -102,6 +103,17 @@
 
         return null;        
     };
+
+    /**
+     * The base file name, with extension, of the document referenced by the Doc
+     * @memberof ApiDocument
+     * @typeofeditors ["PDF"]
+     */
+    Object.defineProperty(ApiDocument.prototype, "documentFileName", {
+        get: function() {
+            return Asc.editor.documentTitle;
+        }
+    });
 
     // base form class with attributes and method for all types of forms
 	function ApiBaseField(oField)
@@ -421,9 +433,9 @@
         // },
         get: function() {
             if (this.field.IsWidget())
-                return this.field.GetOrigRect();
+                return this.field.GetRect();
             else if (this.field.IsAllKidsWidgets())
-                return this.field.GetKid(0).GetOrigRect();
+                return this.field.GetKid(0).GetRect();
             else
                 throw Error("InvalidGetError: Field is not a widget");
         }
@@ -524,7 +536,7 @@
             if (Array.isArray(aColor)) {
                 let aFields = this.field.GetDocument().GetAllWidgets(this.field.GetFullName());
                 aFields.forEach(function(field) {
-                    field.SetApiTextColor(aColor);
+                    field.SetTextColor(aColor.slice(1));
                 });
             }
         },
@@ -1245,14 +1257,12 @@
                             return;
 
                         let oWidget = this.field.GetKid(0);
-                        let isValid = oWidget.DoValidateAction(value);
-                        if (isValid) {
+                        let isCanCommit = oWidget.IsCanCommit(value);
+                        if (isCanCommit) {
                             oWidget.SetValue(value);
-
-                            oWidget.needValidate = false; 
                             oWidget.Commit();
                             if (oCalcInfo.IsInProgress() == false) {
-                                if (oDoc.event["rc"] !== false && oDoc.IsNeedDoCalculate()) {
+                                if (oDoc.IsNeedDoCalculate()) {
                                     oDoc.DoCalculateFields(this.field);
                                     oDoc.AddFieldToCommit(oWidget);
                                     oDoc.CommitFields();
@@ -1444,14 +1454,13 @@
                         return;
 
                     let sDisplayValue = this.getItemAt(nIdx, false);
-                    let isValid = oWidget.DoValidateAction(sDisplayValue);
+                    let isCanCommit = oWidget.IsCanCommit(sDisplayValue);
 
-                    if (isValid) {
+                    if (isCanCommit) {
                         oWidget.SetCurIdxs([nIdx]);
-                        oWidget.needValidate = false; 
                         oWidget.Commit();
                         if (oCalcInfo.IsInProgress() == false) {
-                            if (oDoc.event["rc"] !== false && oDoc.IsNeedDoCalculate()) {
+                            if (oDoc.IsNeedDoCalculate()) {
                                 oDoc.DoCalculateFields(this.field);
                                 oDoc.AddFieldToCommit(oWidget);
                                 oDoc.CommitFields();
@@ -1532,14 +1541,31 @@
                             return;
                         
                         let oWidget = this.field.GetKid(0);
-                        let isValid = oWidget.DoValidateAction(value);
+                        let aOptions = oWidget.GetOptions();
+                        let sDisplayValue;
 
-                        if (isValid) {
+                        aOptions.forEach(function(option) {
+                            if (Array.isArray(option)) {
+                                if (option[1] == value) {
+                                    sDisplayValue = option[0];
+                                }
+                            }
+                            else if (option == value) {
+                                sDisplayValue = value;
+                            }
+                        });
+
+                        if (sDisplayValue == undefined) {
+                            sDisplayValue = value;
+                        }
+
+                        let isCanCommit = oWidget.IsCanCommit(value);
+
+                        if (isCanCommit) {
                             oWidget.SetValue(value);
-                            oWidget.needValidate = false; 
                             oWidget.Commit();
                             if (oCalcInfo.IsInProgress() == false) {
-                                if (oDoc.event["rc"] !== false && oDoc.IsNeedDoCalculate()) {
+                                if (oDoc.IsNeedDoCalculate()) {
                                     oDoc.DoCalculateFields(this.field);
                                     oDoc.AddFieldToCommit(oWidget);
                                     oDoc.CommitFields();
@@ -1664,7 +1690,7 @@
 
                 oWidget.Commit();
                 if (oCalcInfo.IsInProgress() == false) {
-                    if (oDoc.event["rc"] !== false && oDoc.IsNeedDoCalculate()) {
+                    if (oDoc.IsNeedDoCalculate()) {
                         oDoc.DoCalculateFields(this.field);
                         oDoc.AddFieldToCommit(oWidget);
                         oDoc.CommitFields();

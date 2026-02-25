@@ -58,6 +58,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Workbook_UpdateLinks = 17;
 	window['AscCH'].historyitem_Workbook_ShowVerticalScroll = 18;
 	window['AscCH'].historyitem_Workbook_ShowHorizontalScroll = 19;
+	window['AscCH'].historyitem_Workbook_SetCustomFunctions = 20;
 
 	window['AscCH'].historyitem_Worksheet_RemoveCell = 1;
 	window['AscCH'].historyitem_Worksheet_RemoveRows = 2;
@@ -154,6 +155,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_RowCol_ApplyProtection = 22;
 	window['AscCH'].historyitem_RowCol_Locked = 23;
 	window['AscCH'].historyitem_RowCol_HiddenFormulas = 24;
+	window['AscCH'].historyitem_RowCol_ReadingOrder = 25;
 
 	window['AscCH'].historyitem_Cell_Fontname = 1;
 	window['AscCH'].historyitem_Cell_Fontsize = 2;
@@ -184,6 +186,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Cell_SetApplyProtection = 28;
 	window['AscCH'].historyitem_Cell_SetHidden = 29;
 	window['AscCH'].historyitem_Cell_SetLocked = 30;
+	window['AscCH'].historyitem_Cell_ReadingOrder = 31;
 
 	window['AscCH'].historyitem_Comment_Add = 1;
 	window['AscCH'].historyitem_Comment_Remove = 2;
@@ -530,9 +533,27 @@ CHistory.prototype.Undo = function(Options)
 	var oRedoObjectParam = this.oRedoObjectParam = new AscCommonExcel.RedoObjectParam();
 	this.UndoRedoPrepare(oRedoObjectParam, true);
 
-	var t = this;
-	var doUndo = function () {
-		for ( var Index = Point.Items.length - 1; Index >= 0; Index-- )
+	// Откатываем все действия в обратном порядке (относительно их выполенения)
+	var Point = null;
+	if (undefined !== Options && null !== Options && true === Options.All)
+	{
+		while (this.Index >= 0)
+		{
+			Point = this.Points[this.Index--];
+			this.private_UndoPoint(Point, oRedoObjectParam);
+		}
+	}
+	else
+	{
+		Point = this.Points[this.Index--];
+		this.private_UndoPoint(Point, oRedoObjectParam);
+	}
+
+	this.UndoRedoEnd(Point, oRedoObjectParam, true);
+  return true;
+};
+CHistory.prototype.private_UndoPoint = function(Point, oRedoObjectParam) {
+	for ( var Index = Point.Items.length - 1; Index >= 0; Index-- )
 		{
 			var Item = Point.Items[Index];
 
@@ -547,29 +568,9 @@ CHistory.prototype.Undo = function(Options)
 				}
 			}
 
-			t._addRedoObjectParam(oRedoObjectParam, Item);
+			this._addRedoObjectParam(oRedoObjectParam, Item);
 		}
-	};
-
-	// Откатываем все действия в обратном порядке (относительно их выполенения)
-	var Point = null;
-	if (undefined !== Options && null !== Options && true === Options.All)
-	{
-		while (this.Index >= 0)
-		{
-			Point = this.Points[this.Index--];
-			doUndo();
-		}
-	}
-	else
-	{
-		Point = this.Points[this.Index--];
-		doUndo();
-	}
-
-	this.UndoRedoEnd(Point, oRedoObjectParam, true);
-  return true;
-};
+}
 CHistory.prototype.UndoRedoPrepare = function (oRedoObjectParam, bUndo, bKeepTurn) {
 	if (this.Is_On() && !bKeepTurn) {
 		oRedoObjectParam.bIsOn = true;
@@ -583,7 +584,7 @@ CHistory.prototype.UndoRedoPrepare = function (oRedoObjectParam, bUndo, bKeepTur
 	else
 		this.workbook.bRedoChanges = true;
 
-	if (!window["NATIVE_EDITOR_ENJINE"]) {
+	if (!window["NATIVE_EDITOR_ENJINE"] || window["IS_NATIVE_EDITOR"]) {
 		if(Asc["editor"].wb) {
 			var wsViews = Asc["editor"].wb.wsViews;
 			for (var i = 0; i < wsViews.length; ++i) {
@@ -709,6 +710,11 @@ CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 };
 CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 	var wsViews, i, oState = null, bCoaut = false, t = this;
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		AscCommonExcel.lockCustomFunctionRecalculate(true, function () {
+			t.workbook.dependencyFormulas.unlockRecal();
+		});
+	});
 	if (!bUndo && null == Point) {
 		Point = this.Points[this.Index];
 		AscCommon.CollaborativeEditing.Apply_LinkData();
@@ -717,10 +723,6 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			Asc["editor"].wb.recalculateDrawingObjects(Point, true);
         }
 	}
-
-	AscCommonExcel.executeInR1C1Mode(false, function () {
-		t.workbook.dependencyFormulas.unlockRecal();
-	});
 
 	if (null != Point) {
 		if (oRedoObjectParam.bChangeColorScheme) {
@@ -747,10 +749,16 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.onSlicerUpdate(i);
 		}
 
+		if (!AscCommon.isRealObject(Point.SelectionState)) {
+			Point.SelectionState = null;
+		}
 		if(!bCoaut)
 		{
 			oState = bUndo ? Point.SelectionState : ((this.Index === this.Points.length - 1) ?
 				this.LastState : this.Points[this.Index + 1].SelectionState);
+			if (!AscCommon.isRealObject(oState)) {
+				oState = null;
+			}
 		}
 
 		if (this.workbook.bCollaborativeChanges) {
@@ -898,7 +906,7 @@ CHistory.prototype._addRedoObjectParam = function (oRedoObjectParam, Point) {
 		AscCH.historyitem_Worksheet_SetDisplayHeadings === Point.Type)) {
 		oRedoObjectParam.oOnUpdateSheetViewSettings[Point.SheetId] = Point.SheetId;
 	}
-	else if (AscCommonExcel.g_oUndoRedoWorksheet === Point.Class && (AscCH.historyitem_Worksheet_RowProp == Point.Type || AscCH.historyitem_Worksheet_ColProp == Point.Type || AscCH.historyitem_Worksheet_RowHide == Point.Type))
+	else if (AscCommonExcel.g_oUndoRedoWorksheet === Point.Class && (AscCH.historyitem_Worksheet_RowProp === Point.Type || AscCH.historyitem_Worksheet_ColProp === Point.Type || AscCH.historyitem_Worksheet_RowHide === Point.Type || AscCH.historyitem_Worksheet_AddCols === Point.Type || AscCH.historyitem_Worksheet_RemoveCols === Point.Type))
 		oRedoObjectParam.oChangeWorksheetUpdate[Point.SheetId] = Point.SheetId;
 	else if (AscCommonExcel.g_oUndoRedoWorkbook === Point.Class && (AscCH.historyitem_Workbook_SheetAdd === Point.Type || AscCH.historyitem_Workbook_SheetRemove === Point.Type)) {
 		oRedoObjectParam.bUpdateWorksheetByModel = true;
@@ -1107,7 +1115,7 @@ CHistory.prototype.CheckUnionLastPoints = function()
 CHistory.prototype.Add_RecalcTableGrid = function()
 {};
 
-CHistory.prototype.Create_NewPoint = function()
+CHistory.prototype.Create_NewPoint = function(nDescription)
 {
 	if ( 0 !== this.TurnOffHistory || 0 !== this.Transaction )
 		return false;
@@ -1138,7 +1146,8 @@ CHistory.prototype.Create_NewPoint = function()
 		SelectRange : oSelectRange,
 		SelectRangeRedo : oSelectRange,
 		Time  : Time,   // Текущее время
-		SelectionState : oSelectionState
+		SelectionState : oSelectionState,
+			Description : nDescription
     };
 
     // Удаляем ненужные точки
@@ -1392,30 +1401,45 @@ CHistory.prototype.StartTransaction = function()
 };
 CHistory.prototype.EndTransaction = function(checkLockLastAction)
 {
-	if (1 === this.Transaction && !this.Is_LastPointEmpty()) {
-		var api = this.workbook && this.workbook.oApi;
-		var wsView = api && api.wb && api.wb.getWorksheet();
-		if (wsView) {
-			wsView.updateTopLeftCell();
+	let t = this;
+	let doEndTransaction = function (skipRecal) {
+		if (1 === t.Transaction && !t.Is_LastPointEmpty()) {
+			var api = t.workbook && t.workbook.oApi;
+			var wsView = api && api.wb && api.wb.getWorksheet();
+			if (wsView) {
+				wsView.updateTopLeftCell();
+			}
+			t.workbook && t.workbook.handlers.trigger("EndTransactionCheckSize");
 		}
-		this.workbook && this.workbook.handlers.trigger("EndTransactionCheckSize");
+		t.Transaction--;
+		if(t.Transaction < 0)
+			t.Transaction = 0;
+		if (t.IsEndTransaction() && t.workbook) {
+			if (!skipRecal && AscCommonExcel.g_cCalcRecursion) {
+				AscCommonExcel.g_cCalcRecursion.setIsCellEdited(true);
+			}
+			!skipRecal && t.workbook.dependencyFormulas.unlockRecal();
+			t.workbook.handlers.trigger("updateCellWatches");
+			t.workbook.oApi.sendEvent("asc_onUserActionEnd");
+
+			if (t.Is_LastPointEmpty()) {
+				t.Remove_LastPoint();
+			} else if (checkLockLastAction && t.isActionLock()) {
+				t.Undo();
+			}
+		}
 	}
-	this.Transaction--;
-	if(this.Transaction < 0)
-		this.Transaction = 0;
-	if (this.IsEndTransaction() && this.workbook) {
+
+	//for custom function - add value in history
+	if (1 === this.Transaction) {
 		if (AscCommonExcel.g_cCalcRecursion) {
 			AscCommonExcel.g_cCalcRecursion.setIsCellEdited(true);
 		}
-		this.workbook.dependencyFormulas.unlockRecal();
-		this.workbook.handlers.trigger("updateCellWatches");
-		this.workbook.oApi.sendEvent("asc_onUserActionEnd");
-
-		if (this.Is_LastPointEmpty()) {
-			this.Remove_LastPoint();
-		} else if (checkLockLastAction && this.isActionLock()) {
-			this.Undo();
-		}
+		this.workbook.dependencyFormulas.unlockRecal(null, function () {
+			doEndTransaction(true);
+		});
+	} else {
+		doEndTransaction();
 	}
 };
 /** @returns {boolean} */
@@ -1525,6 +1549,7 @@ CHistory.prototype.GetSerializeArray = function()
 	CHistory.prototype._CheckCanNotAddChanges = function() {
 		try {
 			if (this.CanNotAddChanges && !this.CollectChanges) {
+				this.CanNotAddChanges = false;
 				var tmpErr = new Error();
 				if (tmpErr.stack) {
 					AscCommon.sendClientLog("error", "changesError: " + tmpErr.stack, this.workbook.oApi);
@@ -1620,11 +1645,101 @@ CHistory.prototype.GetSerializeArray = function()
 		}
 		return false;
 	};
+	CHistory.prototype.checkAsYouTypeEnterText = function(run, inRunPos, codePoint)
+	{
+		this.CheckUnionLastPoints();
+
+		if (this.Points.length <= 0 || this.Index !== this.Points.length - 1)
+			return false;
+
+		let point = this.Points[this.Index];
+		let description = point.Description;
+		if (AscDFH.historydescription_Document_AddLetter !== description
+			&& AscDFH.historydescription_Document_AddLetterUnion !== description
+			&& AscDFH.historydescription_Document_SpaceButton !== description
+			&& AscDFH.historydescription_Document_CorrectEnterText !== description
+			&& AscDFH.historydescription_Document_CompositeInput !== description
+			&& AscDFH.historydescription_Document_CompositeInputReplace !== description
+			&& AscDFH.historydescription_Presentation_ParagraphAdd !== description)
+			return false;
+
+		let changes = point.Items;
+		let lastChange = null;
+		for (let i = changes.length - 1; i >= 0; --i)
+		{
+			lastChange = changes[i].Class;
+			if (lastChange && lastChange.IsContentChange && lastChange.IsContentChange())
+				break;
+		}
+
+		return (lastChange
+			&& AscDFH.historyitem_ParaRun_AddItem === lastChange.Type
+			&& lastChange.Class === run
+			&& lastChange.Pos === inRunPos - 1
+			&& lastChange.Items.length
+			&& (undefined === codePoint || lastChange.Items[0].GetCodePoint() === codePoint));
+	};
 	CHistory.prototype.Update_PointInfoItem = function()
 	{
 	};
 	CHistory.prototype.ConvertPointItemsToSimpleChanges = function(pointIndex) {
 	}
+	CHistory.prototype.cancelGroupPoints = function()
+	{
+		let startIndex = this._getLongPointIndex();
+		if (-1 === startIndex)
+			return;
+		var oRedoObjectParam = this.oRedoObjectParam = new AscCommonExcel.RedoObjectParam();
+		let point;
+		for (let i = this.Index; i >= startIndex; --i)
+		{
+			point = this.Points[i];
+			this.private_UndoPoint(point, oRedoObjectParam);
+		}
+		if (AscCommon.isRealObject(point.SelectionState)) {
+			this.workbook.handlers.trigger("setSelectionState", point.SelectionState);
+		}
+
+		if (!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
+			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide(true);
+
+		this.Points.length = startIndex + 1;
+		this.Index = startIndex - 1;
+		return oRedoObjectParam;
+	};
+	CHistory.prototype.endGroupPoints = function()
+	{
+		this.Points.length = this.Index + 1;
+
+		let startIndex = this._getLongPointIndex();
+		if (-1 === startIndex)
+			return;
+
+		let point = this.Points[startIndex];
+		point.Description = AscDFH.historydescription_GroupPoints;
+
+		for (let i = startIndex + 1; i < this.Points.length; ++i)
+		{
+			let currentPoint = this.Points[i];
+			
+			point.Items = point.Items.concat(currentPoint.Items);
+			
+			for (let sheetId in currentPoint.UpdateRigions)
+			{
+				let currentRange = currentPoint.UpdateRigions[sheetId];
+				let existingRange = point.UpdateRigions[sheetId];
+				
+				if (existingRange) {
+					existingRange.union2(currentRange);
+				} else {
+					point.UpdateRigions[sheetId] = currentRange.clone();
+				}
+			}
+		}
+
+		this.Points.length = startIndex + 1;
+		this.Index = startIndex;
+	};
 	//------------------------------------------------------------export--------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window['AscCommon'].CHistory = CHistory;

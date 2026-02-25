@@ -63,6 +63,7 @@
 	AscCommonExcel.WorksheetView.prototype._fixVisibleRange = function () {};
 	AscCommonExcel.WorksheetView.prototype.getCursorTypeFromXY = function () {return {};};
 	AscCommonExcel.WorksheetView.prototype._calcActiveCellOffset = function () {return {};};
+	AscCommonExcel.WorksheetView.prototype._initCellsArea = function () {};
 	AscCommonExcel.WorksheetView.prototype._prepareDrawingObjects = function ()
 	{
 		this.objectRender = new AscFormat.DrawingObjects();
@@ -134,6 +135,13 @@
 	Asc.spreadsheet_api.prototype._loadFonts = function (fonts, callback) {callback();};
 	Asc.spreadsheet_api.prototype.onEndLoadFile = function (fonts, callback) {OpenDocument();};
 	AscCommon.baseEditorsApi.prototype._onEndLoadSdk = function () {this.ImageLoader = AscCommon.g_image_loader;};
+	AscCommon.baseEditorsApi.prototype.getShortcut = function (e)
+	{
+		if (AscFormat.isRealNumber(e.nShortcutType))
+		{
+			return e.nShortcutType;
+		}
+	};
 
 	let editor;
 	function InitEditor(Callback)
@@ -163,8 +171,7 @@
 		editor._onEndLoadSdk();
 		AscFormat.initStyleManager();
 		editor.isOpenOOXInBrowser = false;
-		editor._openDocument(AscCommon.getEmpty());
-		editor._openOnClient();
+		editor.OpenDocumentFromBin(null, AscCommon.getEmpty());
 		editor.initCollaborativeEditing({});
 		editor.wb = new AscCommonExcel.WorkbookView(editor.wbModel, editor.controller, editor.handlers, editor.HtmlElement,
 			editor.topLineEditorElement, editor, editor.collaborativeEditing, editor.fontRenderingMode);

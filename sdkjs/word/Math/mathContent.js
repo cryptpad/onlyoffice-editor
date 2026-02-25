@@ -2659,7 +2659,7 @@ CMathContent.prototype.Load_FromMenu = function(Type, Paragraph, TextPr, oSelect
         this.private_LoadFromMenuOperator(Type, Pr, oSelectedContent);
     else if (MainType === c_oAscMathMainType.Matrix)
         this.private_LoadFromMenuMatrix(Type, Pr, oSelectedContent);
-    else if(MainType == c_oAscMathMainType.Empty_Content)
+    else if (MainType === c_oAscMathMainType.Empty_Content)
 		this.private_LoadFromMenuDefaultText(Type, Pr, oSelectedContent);
 };
 CMathContent.prototype.private_LoadFromMenuSymbol = function(Type, Pr)
@@ -3547,9 +3547,9 @@ CMathContent.prototype.private_LoadFromMenuMatrix = function(Type, Pr, oSelected
 CMathContent.prototype.private_LoadFromMenuDefaultText = function(Type, Pr, oSelectedContent)
 {
 	if (oSelectedContent)
-		this.private_FillSelectedContent(oSelectedContent);
+		this.private_FillSelectedContent(oSelectedContent, Pr);
 };
-CMathContent.prototype.private_FillSelectedContent = function(oSelectedContent)
+CMathContent.prototype.private_FillSelectedContent = function(oSelectedContent, Pr)
 {
 	if (oSelectedContent instanceof ParaMath)
 	{
@@ -3558,6 +3558,8 @@ CMathContent.prototype.private_FillSelectedContent = function(oSelectedContent)
 	else if (oSelectedContent)
 	{
 		this.Add_Text(oSelectedContent, this.Paragraph);
+		if (Pr && Pr.ctrPrp)
+			this.Apply_TextPr(Pr.ctrPrp, undefined, true);
 	}
 };
 CMathContent.prototype.Add_Element = function(Element)
@@ -3609,33 +3611,20 @@ CMathContent.prototype.Add_Text = function(text, paragraph, mathStyle, oAddition
 		return;
 
 	let oMathRun = this.Content[this.Content.length - 1];
-
 	if (oMathRun && oMathRun.Content.length === 0 && this.Content.length > 1)
 	{
 		this.Content.splice(this.Content.length - 1, 1);
 		oMathRun = this.Content[this.Content.length - 1];
 	}
 
-	let isEscapedSlash = oAdditionalData
-		?  oAdditionalData.GetMathMetaData().getIsEscapedSlash()
-		: false;
-	let oLastContent = oMathRun
-		? oMathRun.GetTextOfElement().GetLastContent()
-		: false;
-	let isPrevEscapedSlash = oLastContent
-		? oLastContent.GetAdditionalData().GetMathMetaData().getIsEscapedSlash()
-		: false;
-
-	if (isEscapedSlash
-		|| isPrevEscapedSlash
-		|| !oMathRun
-		|| !(oMathRun instanceof AscWord.Run)
-		|| (oAdditionalData	&& !oAdditionalData.IsStyleEqual(oMathRun)))
+	if (!oMathRun || !(oMathRun instanceof AscWord.Run) || (oAdditionalData	&& !oAdditionalData.IsStyleEqual(oMathRun)))
 		oMathRun = new AscWord.Run(undefined, true);
 
 	AscWord.TextToMathRunElements(text, function(item)
 	{
 		oMathRun.private_AddItemToRun(oMathRun.State.ContentPos, item);
+		if (oAdditionalData)
+            oMathRun.SetMathMetaData(oAdditionalData.metaData);
 	});
 
 	if (this.Content[this.Content.length - 1] === oMathRun)
@@ -6288,20 +6277,22 @@ CMathContent.prototype.GetTextOfElement = function(oMathText, isDefaultText)
 
 		for (let i = 0; i < symbol.length; i++)
 		{
-			isNotOperatorOrBracket = !AscMath.MathLiterals.operator.SearchU(symbol[i]) // если не содержит оператор, скобки
+			isNotOperatorOrBracket = !AscMath.MathLiterals.operator.SearchU(symbol[i])
 				&& !AscMath.MathLiterals.lrBrackets.SearchU(symbol[i])
 				&& !AscMath.MathLiterals.rBrackets.SearchU(symbol[i])
 				&& !AscMath.MathLiterals.lBrackets.SearchU(symbol[i])
+                && !AscMath.MathLiterals.space.SearchU(symbol[i])
 
 			if (!isNotOperatorOrBracket)
 				return false;
 		}
+
+        return isNotOperatorOrBracket;
 	}
 	// refactor this to normal methods
 	for (let i = 0; i < this.Content.length; i++)
 	{
 		oMathText.Add(this.Content[i], false);
-
 		if (!oMathText.IsLaTeX())
 		{
 			if (!(this.Content[i] instanceof ParaRun)) // если текущий элемент математический объект
@@ -6316,7 +6307,10 @@ CMathContent.prototype.GetTextOfElement = function(oMathText, isDefaultText)
 					if (checkIsNotOperatorOrBracket(strText[0]))
 						oMathText.AddText(new AscMath.MathText(" ", this.Content[i]));
 				}
-				else if (this.Content[i + 1] && this.Content[i + 1] instanceof ParaRun) // если след элемент текстовый блок
+				else if (this.Content[i + 1]
+                    && this.Content[i + 1] instanceof ParaRun
+                    && !(this.Content[i] instanceof CDelimiter)
+                ) // если след элемент текстовый блок
 				{
 					let strText = this.Content[i + 1].GetTextOfElement().GetText();
 					if (!this.Content[i + 1].Is_Empty() && checkIsNotOperatorOrBracket(strText[0]))
@@ -6325,8 +6319,9 @@ CMathContent.prototype.GetTextOfElement = function(oMathText, isDefaultText)
 			}
 			else if (this.Content[i] instanceof ParaRun)
 			{
-				if (this.Content[i + 1] && !(this.Content[i+1] instanceof ParaRun)
-					&& !(this.Content[i+1] instanceof CDelimiter || this.Content[i+1] instanceof CMathFunc))
+				if (this.Content[i + 1] 
+                    && !(this.Content[i+1] instanceof ParaRun)
+					&& !(this.Content[i+1] instanceof CDelimiter || this.Content[i+1] instanceof CMathFunc || this.Content[i+1] instanceof CEqArray))
 				{
 					let strText = this.Content[i].GetTextOfElement().GetText();
 					if (checkIsNotOperatorOrBracket(strText) && !this.Content[i].Is_Empty())
@@ -6366,6 +6361,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText, isLaTeX)
 	let strContent = oMathText.GetText();
 	return {str: strContent, content: oMathText};
 };
+
 
 var g_DefaultAutoCorrectMathFuncs =
 [

@@ -1083,7 +1083,7 @@ function CEditorPage(api)
 				this.m_nZoomType = 1;
 				this.m_oDrawingDocument.m_bUpdateAllPagesOnFirstRecalculate = true;
 			}
-			let sectPr = this.m_oLogicDocument.GetSectionsInfo().Get(0).SectPr;
+			let sectPr = this.m_oLogicDocument.GetSections().GetSectPrByIndex(0);
 			const nPageW = sectPr.GetPageWidth() / AscCommon.AscBrowser.retinaPixelRatio;
 			const nPageH = sectPr.GetPageHeight() / AscCommon.AscBrowser.retinaPixelRatio;
 			const nScale = this.ReaderFontSizes[this.ReaderFontSizeCur] / 16;
@@ -2036,7 +2036,13 @@ function CEditorPage(api)
 		oWordControl.StartUpdateOverlay();
 		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos, e === undefined ? true : false);
 		if (is_drawing === true)
+		{
+			// Нужно вызвать UpdateCursorType у документа для обновления ховеров над формами, но там же вызывается
+			// обновление типа курсора, поэтому вызываем его еще раз для DrawingDocument
+			oWordControl.m_oLogicDocument.UpdateCursorType(pos.X, pos.Y, pos.Page, global_mouseEvent);
+			oWordControl.m_oDrawingDocument.checkMouseMove_Drawing(pos, e === undefined);
 			return;
+		}
 
 		oWordControl.m_oDrawingDocument.TableOutlineDr.bIsNoTable = true;
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
@@ -2909,7 +2915,7 @@ function CEditorPage(api)
 			return;
 		}
 
-		var context       = canvas.getContext("2d");
+		var context       = AscCommon.AscBrowser.getContext2D(canvas);
 		context.fillStyle = GlobalSkin.BackgroundColor;
 
 		if (AscCommon.AscBrowser.isSailfish)
@@ -3223,6 +3229,9 @@ function CEditorPage(api)
 
 		if (this.m_bDocumentPlaceChangedEnabled)
 			this.m_oApi.sendEvent("asc_onDocumentPlaceChanged");
+
+		// update position of toggle-chart-elements button
+		Asc.editor.toggleChartElementsCallback();
 	};
 
 	this.OnResize = function(isAttack)

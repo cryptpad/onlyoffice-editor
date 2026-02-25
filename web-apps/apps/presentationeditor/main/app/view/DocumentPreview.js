@@ -72,11 +72,11 @@ define([
 
             this.template = [
                 '<div id="presentation-preview" style="width:100%; height:100%"></div>',
-                '<div id="preview-controls-panel" class="preview-controls"">',
+                '<div id="preview-controls-panel" class="preview-controls">',
                     '<div class="preview-group" style="">',
-                        !Common.UI.isRTL() ? '<button id="btn-preview-prev" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-previtem">&nbsp;</i></button>' : '<button id="btn-preview-next" type="button" class="btn small btn-toolbar"><span class="icon toolbar__icon btn-nextitem">&nbsp;</span></button>',
+                        '<button id="btn-preview-prev" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-previtem icon-rtl">&nbsp;</i></button>',
                         '<button id="btn-preview-play" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-play">&nbsp;</i></button>',
-                        !Common.UI.isRTL() ? '<button id="btn-preview-next" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-nextitem">&nbsp;</i></button>' : '<button id="btn-preview-prev" type="button" class="btn small btn-toolbar"><span class="icon toolbar__icon btn-previtem">&nbsp;</span></button>',
+                        '<button id="btn-preview-next" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-nextitem icon-rtl">&nbsp;</i></button>',
                         '<div class="separator"></div>',
                     '</div>',
                     '<div class="preview-group dropup">',
@@ -142,7 +142,6 @@ define([
                     iconCls: 'toolbar__icon btn-pen-tool',
                     onlyIcon: true,
                     stopPropagation: true,
-                    takeFocusOnClose: true,
                     hint: this.txtDraw,
                     hintAnchor: 'top',
                     hintContainer: '#pe-preview',
@@ -244,8 +243,9 @@ define([
                 hintAnchor: 'top',
                 hintContainer: '#pe-preview'
             });
-            this.btnPrev.on('click', _.bind(function() {
+            this.btnPrev.on('click', _.bind(function(btn) {
                 if (this.api) this.api.DemonstrationPrevSlide();
+                btn.cmpEl && btn.cmpEl.blur();
                 this.editComplete();
             }, this));
 
@@ -255,8 +255,9 @@ define([
                 hintAnchor: 'top',
                 hintContainer: '#pe-preview'
             });
-            this.btnNext.on('click', _.bind(function() {
+            this.btnNext.on('click', _.bind(function(btn) {
                 if (this.api) this.api.DemonstrationNextSlide();
+                btn.cmpEl && btn.cmpEl.blur();
                 this.editComplete();
             }, this));
 
@@ -279,6 +280,7 @@ define([
                     if (this.api)
                         this.api.DemonstrationPlay ();
                 }
+                btn.cmpEl && btn.cmpEl.blur();
                 this.editComplete();
             }, this));
 
@@ -290,11 +292,6 @@ define([
             });
             this.btnClose.on('click', _.bind(function() {
                 if (this.api) this.api.EndDemonstration();
-                if (this.btnDraw) {
-                    this.btnDraw.menu.clearAll();
-                    this.btnDraw.toggle(false);
-                    this.currentDrawTool = undefined;
-                }
             }, this));
 
             this.btnFullScreen = new Common.UI.Button({
@@ -526,6 +523,11 @@ define([
         },
 
         onEndDemonstration: function( ) {
+            if (this.btnDraw) {
+                this.btnDraw.menu.clearAll();
+                this.btnDraw.toggle(false);
+                this.currentDrawTool = undefined;
+            }
             this.hide();
             Common.Utils.cancelFullscreen();
         },
@@ -553,11 +555,7 @@ define([
         },
 
         editComplete: function() {
-            var me = this;
-            setTimeout(function() {
-                $(me.el).focus();
-                me.api && me.api.asc_enableKeyEvents(true);
-            }, 10);
+            this.api && this.api.asc_enableKeyEvents(true);
         },
 
         txtDraw: 'Draw',
@@ -566,6 +564,7 @@ define([
         txtEraser: 'Eraser',
         txtEraseScreen: 'Erase screen',
         txtInkColor: 'Ink color',
+        txtPointer: 'Laser pointer',
         txtPrev: 'Previous Slide',
         txtNext: 'Next Slide',
         txtClose: 'Close Slideshow',

@@ -147,14 +147,9 @@ define([
             this.btnEditObject.on('click', _.bind(function(btn){
                 if (!Common.Controllers.LaunchController.isScriptLoaded()) return;
                 if (this.api) {
-                    var oleobj = this.api.asc_canEditTableOleObject(true);
+                    var oleobj = this.api.asc_canEditTableOleObject();
                     if (oleobj) {
-                        var oleEditor = PDFE.getController('Common.Controllers.ExternalOleEditor').getView('Common.Views.ExternalOleEditor');
-                        if (oleEditor) {
-                            oleEditor.setEditMode(true);
-                            oleEditor.show();
-                            oleEditor.setOleData(Asc.asc_putBinaryDataToFrameFromTableOleObject(oleobj));
-                        }
+                        this.api.asc_editOleTableInFrameEditor();
                     } else
                         this.api.asc_startEditCurrentOleObject();
                 }
@@ -429,7 +424,7 @@ define([
 
         setOriginalSize:  function() {
             if (this.api) {
-                var imgsize = this.api.get_OriginalSizeImage();
+                var imgsize = this.api.asc_getCropOriginalImageSize();
                 var w = imgsize.get_ImageWidth();
                 var h = imgsize.get_ImageHeight();
 
@@ -439,7 +434,6 @@ define([
                 var properties = new Asc.asc_CImgProperty();
                 properties.put_Width(w);
                 properties.put_Height(h);
-                properties.put_ResetCrop(true);
                 properties.put_Rot(0);
                 this.api.ImgApply(properties);
                 this.fireEvent('editcomplete', this);
@@ -499,7 +493,7 @@ define([
                         if (Asc.c_oAscTypeSelectElement.Image == elType) {
                             var imgsizeOriginal;
                             if (!me.btnOriginalSize.isDisabled()) {
-                                imgsizeOriginal = me.api.get_OriginalSizeImage();
+                                imgsizeOriginal = me.api.asc_getCropOriginalImageSize();
                                 if (imgsizeOriginal)
                                     imgsizeOriginal = {width:imgsizeOriginal.get_ImageWidth(), height:imgsizeOriginal.get_ImageHeight()};
                             }

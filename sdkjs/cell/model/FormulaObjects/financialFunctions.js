@@ -2909,7 +2909,7 @@ function (window, undefined) {
 					arr.push(v);
 				}
 			});
-		} else if (arg0 instanceof cArea) {
+		} else if (arg0.type === cElementType.cellsRange || arg0.type === cElementType.cellsRange3D) {
 			arg0.foreach2(function (v) {
 				if (v instanceof cNumber) {
 					arr.push(v);
@@ -3391,6 +3391,12 @@ function (window, undefined) {
 	cNPV.prototype.argumentsType = [argType.number, [argType.number]];
 	//TODO нужен новый тип - все элементы приходят в виде массива, кроме первого
 	cNPV.prototype.arrayIndexes = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1};
+	cNPV.prototype.getArrayIndex = function (index) {
+		if (index === 0) {
+			return undefined;
+		}
+		return 1;
+	};
 	cNPV.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], iStart = 1, res = 0, rate;
 

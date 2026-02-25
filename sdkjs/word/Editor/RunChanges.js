@@ -86,6 +86,7 @@ AscDFH.changesFactory[AscDFH.historyitem_ParaRun_FontSizeCS]            = CChang
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_Ligatures]             = CChangesRunLigatures;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_CS]                    = CChangesRunCS;
 AscDFH.changesFactory[AscDFH.historyitem_ParaRun_RTL]                   = CChangesRunRTL;
+AscDFH.changesFactory[AscDFH.historyitem_ParaRun_MathMetaData]          = CChangesRunMathMetaData;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -243,6 +244,7 @@ AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_RTL] = [
 	AscDFH.historyitem_ParaRun_TextPr,
 	AscDFH.historyitem_ParaRun_RTL
 ];
+AscDFH.changesRelationMap[AscDFH.historyitem_ParaRun_MathMetaData] = [AscDFH.historyitem_ParaRun_MathMetaData];
 
 /**
  * Общая функция для загрузки измнения настроек текста
@@ -325,6 +327,7 @@ CChangesRunAddItem.prototype.Undo = function()
 
 	oRun.RecalcInfo.Measure = true;
 	oRun.OnContentChange();
+	oRun.private_UpdateMarksOnRemove(this.Pos, this.Items.length);
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 	oRun.private_UpdatePositionsOnRemove(this.Pos, this.Items.length);
 };
@@ -340,6 +343,7 @@ CChangesRunAddItem.prototype.Redo = function()
 	oRun.RecalcInfo.Measure = true;
 	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
+	oRun.private_UpdateMarksOnAdd(this.Pos, this.Items.length);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
@@ -376,6 +380,7 @@ CChangesRunAddItem.prototype.Load = function(Color)
 			}
 
 			oRun.Content.splice(Pos, 0, Element);
+			oRun.private_UpdateMarksOnAdd(Pos, 1);
 			oRun.private_UpdatePositionsOnAdd(Pos);
 			oRun.private_UpdateCompositeInputPositionsOnAdd(Pos);
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(oRun, Pos);
@@ -425,6 +430,7 @@ CChangesRunRemoveItem.prototype.Undo = function()
 	oRun.RecalcInfo.Measure = true;
 	oRun.OnContentChange();
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
+	oRun.private_UpdateMarksOnAdd(this.Pos, this.Items.length);
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
@@ -440,6 +446,7 @@ CChangesRunRemoveItem.prototype.Redo = function()
 
 	oRun.RecalcInfo.Measure = true;
 	oRun.OnContentChange();
+	oRun.private_UpdateMarksOnRemove(this.Pos, this.Items.length);
 	oRun.private_UpdateTrackRevisionOnChangeContent(false);
 	oRun.private_UpdatePositionsOnRemove(this.Pos, this.Items.length);
 };
@@ -482,6 +489,7 @@ CChangesRunRemoveItem.prototype.Load = function()
 		{
 			oRun.CollaborativeMarks.Update_OnRemove(nLastChangesPos, nChangesCount);
 			oRun.Content.splice(nLastChangesPos, nChangesCount);
+			oRun.private_UpdateMarksOnRemove(nLastChangesPos, nChangesCount);
 			oRun.private_UpdatePositionsOnRemove(nLastChangesPos, nChangesCount);
 			oRun.private_UpdateCompositeInputPositionsOnRemove(nLastChangesPos, nChangesCount);
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oRun, nLastChangesPos, nChangesCount);
@@ -495,6 +503,7 @@ CChangesRunRemoveItem.prototype.Load = function()
 	{
 		oRun.CollaborativeMarks.Update_OnRemove(nLastChangesPos, nChangesCount);
 		oRun.Content.splice(nLastChangesPos, nChangesCount);
+		oRun.private_UpdateMarksOnRemove(nLastChangesPos, nChangesCount);
 		oRun.private_UpdatePositionsOnRemove(nLastChangesPos, nChangesCount);
 		oRun.private_UpdateCompositeInputPositionsOnRemove(nLastChangesPos, nChangesCount);
 		AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oRun, nLastChangesPos, nChangesCount);
@@ -2224,8 +2233,9 @@ CChangesRunPrReviewInfo.prototype.private_CreateObject = function()
 };
 CChangesRunPrReviewInfo.prototype.private_SetValue = function(Value)
 {
-	var oRun = this.Class;
-	oRun.Pr.ReviewInfo = Value;
+	let run = this.Class;
+	run.Pr.ReviewInfo = Value;
+	run.updateTrackRevisions()
 };
 CChangesRunPrReviewInfo.prototype.Merge = function(oChange)
 {
@@ -2258,8 +2268,9 @@ CChangesRunContentReviewInfo.prototype.private_IsCreateEmptyObject = function()
 };
 CChangesRunContentReviewInfo.prototype.private_SetValue = function(Value)
 {
-	var oRun = this.Class;
-	oRun.ReviewInfo = Value;
+	let run = this.Class;
+	run.ReviewInfo = Value;
+	run.updateTrackRevisions()
 };
 CChangesRunContentReviewInfo.prototype.Merge = function(oChange)
 {
@@ -2275,27 +2286,33 @@ CChangesRunContentReviewInfo.prototype.Merge = function(oChange)
  * @constructor
  * @extends {AscDFH.CChangesBase}
  */
-function CChangesRunOnStartSplit(Class, Pos)
+function CChangesRunOnStartSplit(Class, pos, nextRun)
 {
 	AscDFH.CChangesBase.call(this, Class);
-	this.Pos = Pos;
+	this.Pos     = pos;
+	this.NextRun = nextRun;
 }
 CChangesRunOnStartSplit.prototype = Object.create(AscDFH.CChangesBase.prototype);
 CChangesRunOnStartSplit.prototype.constructor = CChangesRunOnStartSplit;
 CChangesRunOnStartSplit.prototype.Type = AscDFH.historyitem_ParaRun_OnStartSplit;
 CChangesRunOnStartSplit.prototype.Undo = function()
 {
+	AscCommon.CollaborativeEditing.OnEndConcatRun();
+	this.Class.private_UpdateMarksOnConcat(this.Pos, this.NextRun);
 };
 CChangesRunOnStartSplit.prototype.Redo = function()
 {
+	AscCommon.CollaborativeEditing.OnStart_SplitRun(this.Class, this.Pos);
 };
-CChangesRunOnStartSplit.prototype.WriteToBinary = function(Writer)
+CChangesRunOnStartSplit.prototype.WriteToBinary = function(writer)
 {
-	Writer.WriteLong(this.Pos);
+	writer.WriteLong(this.Pos);
+	writer.WriteString2(this.NextRun.GetId());
 };
-CChangesRunOnStartSplit.prototype.ReadFromBinary = function(Reader)
+CChangesRunOnStartSplit.prototype.ReadFromBinary = function(reader)
 {
-	this.Pos = Reader.GetLong();
+	this.Pos     = reader.GetLong();
+	this.NextRun = g_oTableId.Get_ById(reader.GetString2());
 };
 CChangesRunOnStartSplit.prototype.Load = function()
 {
@@ -2306,7 +2323,7 @@ CChangesRunOnStartSplit.prototype.CreateReverseChange = function()
 {
 	return null;
 };
-CChangesRunOnStartSplit.prototype.Merge = function(oChange)
+CChangesRunOnStartSplit.prototype.Merge = function(change)
 {
 	return true;
 };
@@ -2314,33 +2331,44 @@ CChangesRunOnStartSplit.prototype.Merge = function(oChange)
  * @constructor
  * @extends {AscDFH.CChangesBase}
  */
-function CChangesRunOnEndSplit(Class, NewRun)
+function CChangesRunOnEndSplit(Class, pos, nextRun)
 {
 	AscDFH.CChangesBase.call(this, Class);
-	this.NewRun = NewRun;
+	this.Pos     = pos;
+	this.NextRun = nextRun;
 }
 CChangesRunOnEndSplit.prototype = Object.create(AscDFH.CChangesBase.prototype);
 CChangesRunOnEndSplit.prototype.constructor = CChangesRunOnEndSplit;
 CChangesRunOnEndSplit.prototype.Type = AscDFH.historyitem_ParaRun_OnEndSplit;
 CChangesRunOnEndSplit.prototype.Undo = function()
 {
+	AscCommon.CollaborativeEditing.OnStartConcatRun();
 };
 CChangesRunOnEndSplit.prototype.Redo = function()
 {
+	AscCommon.CollaborativeEditing.OnEnd_SplitRun(this.NextRun);
+	this.Class.private_UpdateMarksOnSplit(this.Pos, this.NextRun);
 };
-CChangesRunOnEndSplit.prototype.WriteToBinary = function(Writer)
+CChangesRunOnEndSplit.prototype.WriteToBinary = function(writer)
 {
-	Writer.WriteString2(this.NewRun.Get_Id());
+	writer.WriteLong(this.Pos);
+	writer.WriteString2(this.NextRun.GetId());
 };
-CChangesRunOnEndSplit.prototype.ReadFromBinary = function(Reader)
+CChangesRunOnEndSplit.prototype.ReadFromBinary = function(reader)
 {
-	var RunId = Reader.GetString2();
-	this.NewRun = g_oTableId.Get_ById(RunId);
+	this.Pos     = reader.GetLong();
+	this.NextRun = g_oTableId.Get_ById(reader.GetString2());
 };
 CChangesRunOnEndSplit.prototype.Load = function()
 {
 	if (AscCommon.CollaborativeEditing)
-		AscCommon.CollaborativeEditing.OnEnd_SplitRun(this.NewRun);
+		AscCommon.CollaborativeEditing.OnEnd_SplitRun(this.NextRun);
+	
+	// TODO: На самом деле метки могут обновиться неправильно, если ран, который разделил другой пользователь
+	//       был изменен текущим пользователем. Для правильной работы нужно при прогоне этого изменения через
+	//       CChangesRunAddItem/CChangesRunRemoveItem обновлялась позиция тут. Пока оставляем так, потому что
+	//       ситуация крайне редкая, да и метки после любого изменения должны через время обновится сами.
+	this.Class.private_UpdateMarksOnSplit(this.Pos, this.NextRun);
 };
 CChangesRunOnEndSplit.prototype.CreateReverseChange = function()
 {
@@ -2764,3 +2792,75 @@ CChangesRunRTL.prototype.private_SetValue = function(Value)
 CChangesRunRTL.prototype.Load = private_ParaRunChangesLoadTextPr;
 CChangesRunRTL.prototype.Merge = private_ParaRunChangesOnMergeTextPr;
 CChangesRunRTL.prototype.CheckLock = private_ParagraphContentChangesCheckLock;
+
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseProperty}
+ */
+function CChangesRunMathMetaData(Class, Old, New)
+{
+	AscDFH.CChangesBaseProperty.call(this, Class, Old, New);
+}
+CChangesRunMathMetaData.prototype = Object.create(AscDFH.CChangesBaseProperty.prototype);
+CChangesRunMathMetaData.prototype.constructor = CChangesRunMathMetaData;
+CChangesRunMathMetaData.prototype.Type = AscDFH.historyitem_ParaRun_MathMetaData;
+CChangesRunMathMetaData.prototype.Undo = function()
+{
+	var oRun = this.Class;
+	oRun.math_autocorrection = this.Old;
+};
+CChangesRunMathMetaData.prototype.Redo = function()
+{
+	var oRun = this.Class;
+	oRun.math_autocorrection = this.New;
+};
+CChangesRunMathMetaData.prototype.WriteToBinary = function(Writer)
+{
+	if (this.New)
+	{
+		Writer.WriteBool(false);
+		this.New.Write_ToBinary(Writer);
+	}
+	else
+	{
+		Writer.WriteBool(true);
+	}
+
+	if (this.Old)
+	{
+		Writer.WriteBool(false);
+		this.Old.Write_ToBinary(Writer);
+	}
+	else
+	{
+		Writer.WriteBool(true);
+	}
+};
+CChangesRunMathMetaData.prototype.ReadFromBinary = function(Reader)
+{
+	if (!Reader.GetBool())
+	{
+		let oMetaData = new AscMath.MathMetaData();
+		oMetaData.Read_FromBinary(Reader);
+		this.New = oMetaData;
+	}
+
+	if (!Reader.GetBool())
+	{
+		let oOldMetaData = new AscMath.MathMetaData();
+		oOldMetaData.Read_FromBinary(Reader);
+		this.Old = oOldMetaData;
+	}
+};
+CChangesRunMathMetaData.prototype.Load = function(Color)
+{
+	this.Redo();
+};
+CChangesRunMathMetaData.prototype.IsRelated = function(oChanges)
+{
+};
+CChangesRunMathMetaData.prototype.CreateReverseChange = function()
+{
+	return new CChangesRunMathMetaData(this.Class, this.New, this.Old);
+};
+CChangesRunMathMetaData.prototype.CheckLock = private_ParagraphContentChangesCheckLock;

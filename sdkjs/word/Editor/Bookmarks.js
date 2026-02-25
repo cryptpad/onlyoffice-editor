@@ -108,7 +108,7 @@ CParagraphBookmark.prototype.IsStart = function()
 };
 CParagraphBookmark.prototype.Recalculate_Range = function(PRS, ParaPr)
 {
-	this.PageAbs = PRS.Paragraph.Get_AbsolutePage(PRS.Page);
+	this.PageAbs = PRS.Paragraph.GetAbsolutePage(PRS.Page);
 
 	this.X = PRS.X;
 	this.Y = PRS.Y;
@@ -360,6 +360,32 @@ CBookmarksManager.prototype.GetBookmarkByName = function(sName)
 			return this.Bookmarks[nIndex];
 	}
 
+	return null;
+};
+CBookmarksManager.prototype.GetBookmarkByDocPos = function(docPos)
+{
+	if (!docPos)
+		return null;
+	
+	this.Update();
+	
+	for (let i = 0, count = this.Bookmarks.length; i < count; ++i)
+	{
+		let mark = this.Bookmarks[i][0];
+		let bookmarkName = mark.GetBookmarkName();
+		if (this.IsHiddenBookmark(bookmarkName))
+			continue;
+		
+		let markPos = mark.GetDocumentPositionFromObject();
+		if (!AscWord.isInSameTopDocContent(docPos, markPos) || AscWord.CompareDocumentPositions(markPos, docPos) > 0)
+			continue;
+		
+		mark = this.Bookmarks[i][1];
+		markPos = mark.GetDocumentPositionFromObject();
+		if (AscWord.isInSameTopDocContent(docPos, markPos) && AscWord.CompareDocumentPositions(markPos, docPos) > 0)
+			return bookmarkName;
+	}
+	
 	return null;
 };
 CBookmarksManager.prototype.HaveBookmark = function(sName)

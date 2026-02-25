@@ -46,13 +46,14 @@
 	/**
 	 *    // Docs old:
 	 * // Text_Type complexType: https://learn.microsoft.com/ru-ru/office/client-developer/visio/text_type-complextypevisio-xml
-	 * @returns {Text_Type}
 	 * @constructor
+	 * @extends CBaseFormatNoIdObject
 	 */
 	function Text_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		/**
-		 * if text is inherited so we consider that text fields in it have wrong values,
-		 * and we recalculate values them
+		 * if text is inherited (for calculate presentation field)
 		 */
 		this.isInherited = false;
 
@@ -76,6 +77,7 @@
 		// if you want to see \r\n set proper settings in your editor
 		return this;
 	}
+	AscFormat.InitClass(Text_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Text_Type.prototype.kind = c_oVsdxSheetStorageKind.Text_Type;
 
 	/**
@@ -84,11 +86,14 @@
 	 * @constructor
 	 */
 	function Data_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		this.value = null;
 		// to serialize in function writeShapeSheetElementsXml
 		this.tagName = null;
 		return this;
 	}
+	AscFormat.InitClass(Data_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Data_Type.prototype.kind = c_oVsdxSheetStorageKind.Data_Type;
 
 	/**
@@ -99,6 +104,8 @@
 	 * @constructor
 	 */
 	function ForeignData_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		this.foreignType = null;
 		this.objectType = null;
 		this.showAsIcon = null;
@@ -110,18 +117,25 @@
 		this.compressionType = null;
 		this.compressionLevel = null;
 		this.rel = null;
+		this.mediaFilename = null;
+		this.oleFilename = null;
 		return this;
 	}
+	AscFormat.InitClass(ForeignData_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	ForeignData_Type.prototype.kind = c_oVsdxSheetStorageKind.ForeignData_Type;
+
 
 	/**
 	 *    // https://learn.microsoft.com/ru-ru/office/client-developer/visio/trigger_type-complextypevisio-xml
 	 * @constructor
 	 */
 	function Trigger_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		this.refBy = [];
 		this.n = null;
 	}
+	AscFormat.InitClass(Trigger_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Trigger_Type.prototype.kind = c_oVsdxSheetStorageKind.Trigger_Type;
 	/**
 	 * Abstract class. For all Cell containers: ShapeSheet_Type (Sheet_Type) descendents and
@@ -129,7 +143,8 @@
 	 * @constructor
 	 */
 	function SheetStorage() {
-		// for ooxml classes
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 
 		// setSheetClassMembers
 
@@ -140,6 +155,12 @@
 		 * @type {{}}
 		 */
 		this.elements = {};
+
+		/**
+		 * @type {{}}
+		 */
+		this.inheritedElements = {};
+
 		// elements below are stored in elements to support new schema
 
 		// // 3 arrays below inherited from Sheet_Type
@@ -155,6 +176,84 @@
 		// this.data3 = null;
 		// this.foreignData = null;
 	}
+	AscFormat.InitClass(SheetStorage, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
+
+	/**
+	 * clone master elements (sections, rows, cells) to shapeElements.
+	 * For Sections and Rows merge is recursive: we compare inner cells by their names
+	 * @memberof SheetStorage
+	 * @param masterElements - cells rows sections
+	 * @param {string[]?} elementsToMerge - cells rows sections list we can merge
+	 * @param {boolean?} isParentInList
+	 */
+	SheetStorage.prototype.mergeElementArrays = function mergeElementArrays(masterElements, elementsToMerge, isParentInList) {
+		/**
+		 * find index of cell row or section
+		 * @param {SheetStorage} elementsObject
+		 * @param elementToFind
+		 * @returns {*}
+		 */
+		function findObjectIn(elementsObject, elementToFind) {
+			let objKey = AscVisio.createKeyFromSheetObject(elementToFind);
+			let element = elementsObject.getElement(objKey);
+			return element;
+		}
+
+		/**
+		 * if text is inherited so we consider that text fields in it have wrong values
+		 * and we recalculate values them
+		 * @param masterElement
+		 */
+		function setIsInheritedForText(masterElement) {
+			if (masterElement.kind === c_oVsdxSheetStorageKind.Text_Type) {
+				masterElement.isInherited = true;
+			}
+		}
+
+		let mergeAll = false;
+
+		if (elementsToMerge === undefined) {
+			mergeAll = true;
+		}
+
+		for (const key in masterElements) {
+			const masterElement = masterElements[key];
+
+			let overrideObject = findObjectIn(this, masterElement);
+			let elementExistsAlready = overrideObject !== undefined;
+
+			let isElementInList = elementsToMerge !== undefined && elementsToMerge.includes(masterElement.n);
+			let listCheck = mergeAll || isParentInList || isElementInList;
+
+			if (!elementExistsAlready) {
+				if (listCheck) {
+					// TODO fix order
+					// now Section sort is realized in getSections,
+					// rowsSort is not needed see getRow findObject call
+
+					// mb lets not add cell after section
+					// let elementCopy = clone(masterElement);
+					setIsInheritedForText(masterElement);
+
+					let elementLink = masterElement;
+					this.inheritedElements[key] = elementLink;
+				}
+			} else {
+				// merge inner elements recursive if not cell
+				if (masterElement.kind !== c_oVsdxSheetStorageKind.Cell_Type) {
+					// if Section or Row
+					let shapeElement = overrideObject;
+					if (masterElement.kind === c_oVsdxSheetStorageKind.Section_Type || masterElement.kind === c_oVsdxSheetStorageKind.Row_Type) {
+						// for future checks
+						isParentInList = isElementInList || isParentInList;
+						// recursive calls
+						overrideObject.mergeElementArrays(masterElement.getElements(), elementsToMerge, isParentInList);
+					}
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Abstract class for ShapeSheet_Type (Sheet_Type) descendents only.
@@ -172,6 +271,19 @@
 		this.fillStyle = null;
 		this.textStyle = null;
 
+		/**
+		 * @type {string | number | null}
+		 */
+		this.inheritedLineStyle = null;
+		/**
+		 * @type {string | number | null}
+		 */
+		this.inheritedFillStyle = null;
+		/**
+		 * @type {string | number | null}
+		 */
+		this.inheritedTextStyle = null;
+
 		// call parent class constructor
 		let parentClassConstructor = SheetStorage;
 		parentClassConstructor.call(this);
@@ -180,6 +292,39 @@
 	// https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/Object/create#%D0%BF%D1%80%D0%B8%D0%BC%D0%B5%D1%80_%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D0%BD%D0%B0%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5_%D1%81_object.create
 	SheetStorageAndStyles.prototype = Object.create(SheetStorage.prototype);
 	SheetStorageAndStyles.prototype.constructor = SheetStorageAndStyles;
+
+	/**
+	 * @memberof SheetStorageAndStyles
+	 * @return {*|string|number|null}
+	 */
+	SheetStorageAndStyles.prototype.getLineStyle = function getLineStyle() {
+		if (this.lineStyle === null || this.lineStyle === undefined) {
+			return this.inheritedLineStyle;
+		}
+		return this.lineStyle;
+	}
+
+	/**
+	 * @memberof SheetStorageAndStyles
+	 * @return {*|string|number|null}
+	 */
+	SheetStorageAndStyles.prototype.getFillStyle = function getFillStyle() {
+		if (this.fillStyle === null || this.fillStyle === undefined) {
+			return this.inheritedFillStyle;
+		}
+		return this.fillStyle;
+	}
+
+	/**
+	 * @memberof SheetStorageAndStyles
+	 * @return {*|string|number|null}
+	 */
+	SheetStorageAndStyles.prototype.getTextStyle = function getTextStyle() {
+		if (this.textStyle === null || this.textStyle === undefined) {
+			return this.inheritedTextStyle;
+		}
+		return this.textStyle;
+	}
 
 
 	// inheritance from ShapeSheetType for
@@ -208,7 +353,7 @@
 	// When the IX attribute is not present, the index of the element is calculated implicitly
 	// by counting the number of  preceding Section_Type elements with the same N attribute in the containing
 	// Sheet_Type.
-
+	let lastIx = 0;
 	function createKeyFromSheetObject(object) {
 		let key;
 		if (object.kind === c_oVsdxSheetStorageKind.Cell_Type) {
@@ -216,16 +361,19 @@
 		} else if (object.kind === c_oVsdxSheetStorageKind.Row_Type) {
 			if (object.n !== null) {
 				key = object.n;
-			} else if (object.iX !== null) {
-				key = object.iX;
+			} else if (object.ix !== null) {
+				key = object.ix;
+				lastIx = object.ix;
 			} else {
-				AscCommon.consoleLog("Cant calculate key to store object", object);
+				key = lastIx;
+				lastIx++;
+				AscCommon.consoleLog("Ix key is generated to store object", object);
 			}
 		} else if (object.kind === c_oVsdxSheetStorageKind.Section_Type)	{
 			if (object.n === "Geometry") {
-				key = "Geometry_" + object.iX;
-			} else if (object.iX !== null) {
-				key = object.iX;
+				key = "Geometry_" + object.ix;
+			} else if (object.ix !== null) {
+				key = object.ix;
 			} else if (object.n !== null) {
 				key = object.n;
 			} else {
@@ -247,6 +395,7 @@
 	}
 
 	/**
+	 * for ooxml read
 	 * @memberOf SheetStorage
 	 * @param tagName
 	 * @param reader
@@ -417,10 +566,14 @@
 	 * Finds shape section by formula. Compares N with string argument. For Geometry use find sections.
 	 * @param {String} formula
 	 * @memberof SheetStorage
-	 * @returns {Section_Type | null}
+	 * @returns {Section_Type | undefined}
 	 */
 	SheetStorage.prototype.getSection = function getSection(formula) {
-		return this.elements[formula];
+		let section = this.inheritedElements[formula];
+		if (section === undefined) {
+			section = this.elements[formula];
+		}
+		return section;
 	}
 
 	/**
@@ -428,10 +581,14 @@
 	 * Returns link to object not copy.
 	 * @param {String} formula
 	 * @memberof SheetStorage
-	 * @returns {Row_Type | null}
+	 * @returns {Row_Type | undefined}
 	 */
 	SheetStorage.prototype.getRow = function getRow(formula) {
-		return this.elements[formula];
+		let row = this.inheritedElements[formula];
+		if (row === undefined) {
+			row = this.elements[formula];
+		}
+		return row;
 	}
 
 	/**
@@ -456,11 +613,14 @@
 	 * Let's search cells only directly in Section for now (if called on Section).
 	 * @param {String} formula
 	 * @memberof SheetStorage
-	 * @returns {Cell_Type|null}
+	 * @returns {Cell_Type | undefined}
 	 */
 	SheetStorage.prototype.getCell = function getCell(formula) {
 		// Cells can have N only no IX
-		let cell = this.elements[formula];
+		let cell = this.inheritedElements[formula];
+		if (cell === undefined) {
+			cell = this.elements[formula];
+		}
 		if (cell !== undefined && !(cell instanceof Cell_Type)) {
 			AscCommon.consoleLog("ERR: Tried to get cell but got other object!");
 		}
@@ -476,7 +636,7 @@
 	SheetStorage.prototype.getCellNumberValue = function (formula, defaultValue) {
 		let cell = this.getCell(formula);
 		let result;
-		if (cell !== undefined) {
+		if (cell !== undefined && cell.v !== "Themed") {
 			result = Number(cell.v);
 		} else {
 			result = undefined;
@@ -494,7 +654,7 @@
 	 */
 	SheetStorage.prototype.getCellNumberValueWithScale = function (formula, pageScale) {
 		let cell = this.getCell(formula);
-		if (cell !== undefined) {
+		if (cell !== undefined && cell.v !== "Themed") {
 			return Number(cell.v) / pageScale;
 		} else {
 			return undefined;
@@ -508,7 +668,7 @@
 	 */
 	SheetStorage.prototype.getCellStringValue = function (formula) {
 		let cell = this.getCell(formula);
-		if (cell !== undefined) {
+		if (cell !== undefined && cell.v !== "Themed") {
 			return String(cell.v);
 		} else {
 			return undefined;
@@ -519,69 +679,100 @@
 	 * Always use it see Shape_Type.prototype.realizeMasterToShapeInheritanceRecursive js docs for explanation.
 	 * if in formula we have both ix and n we should use findSection instead.
 	 * or if we use it with number in formula
+	 * low performance function! use if can't use get section
 	 * @param {String} formula
 	 * @memberof SheetStorage
-	 * @returns {Section_Type[] | null}
+	 * @returns {Section_Type[]}
 	 */
 	SheetStorage.prototype.getSections = function(formula) {
 		// TODO check may be optimized. maybe use getGeometrySections
-		if (/^\d+$/.test(formula)) {
-			// if number
-			AscCommon.consoleLog('strange findSections use (with number)');
-			let resultArr = [];
-			for (const key in this.elements) {
-				const element = this.elements[key];
-				if (element.kind === c_oVsdxSheetStorageKind.Section_Type && String(element.iX) === formula) {
-					resultArr.push(element);
+
+		function getSections(elements, resultArr) {
+			if (/^\d+$/.test(formula)) {
+				// if number
+				AscCommon.consoleLog('strange findSections use (with number)');
+				for (const key in elements) {
+					const element = elements[key];
+					if (element.kind === c_oVsdxSheetStorageKind.Section_Type && String(element.ix) === formula) {
+						resultArr.push(element);
+					}
+				}
+			} else {
+				for (const key in elements) {
+					const element = elements[key];
+					if (element.kind === c_oVsdxSheetStorageKind.Section_Type && element.n === formula) {
+						resultArr.push(element);
+					}
 				}
 			}
-			return resultArr;
-			// return findObjects(this.elements, "Section_Type", "iX", formula);
 		}
+
 		let resultArr = [];
-		for (const key in this.elements) {
-			const element = this.elements[key];
-			if (element.kind === c_oVsdxSheetStorageKind.Section_Type && element.n === formula) {
-				resultArr.push(element);
-			}
-		}
+
+		getSections(this.elements, resultArr);
+		getSections(this.inheritedElements, resultArr);
+
 		resultArr.sort(function (a, b) {
-				return a.iX - b.iX;
+			return a.ix - b.ix;
 		});
+
 		return resultArr;
-		// return findObjects(this.elements, "Section_Type", "n", formula);
 	}
 
 	/**
 	 * Always use it see Shape_Type.prototype.realizeMasterToShapeInheritanceRecursive js docs for explanation.
 	 * Used with no argument to get all rows
+	 * low performance function! use if can't use get row
 	 * @memberof SheetStorage
 	 * @returns {Row_Type[]}
 	 */
 	SheetStorage.prototype.getRows = function() {
 		// TODO check may be optimized. maybe use binary search for elements with maximum number as index bcs geometry
-		// rows have Row.ix as index and it is number.
+		//  rows have Row.ix as index and it is number.
 		let resultArr = [];
-		for (const key in this.elements) {
-			const element = this.elements[key];
-			if (element.kind === c_oVsdxSheetStorageKind.Row_Type) {
-				resultArr.push(element);
+
+		function getRows(elements, resultArr) {
+			for (const key in elements) {
+				const element = elements[key];
+				if (element.kind === c_oVsdxSheetStorageKind.Row_Type) {
+					resultArr.push(element);
+				}
 			}
 		}
+
+		getRows(this.elements, resultArr);
+		getRows(this.inheritedElements, resultArr);
+
 		resultArr.sort(function (a, b) {
-			return a.iX - b.iX;
+			return a.ix - b.ix;
 		});
 		return resultArr;
 	}
 
 	/**
 	 * Always use it see Shape_Type.prototype.realizeMasterToShapeInheritanceRecursive js docs for explanation.
-	 * get elements inherited from shape sheet type
+	 * get elements inherited from shape sheet type and own.
+	 * low performance function! use if can't use getElement
 	 * @memberOf SheetStorage
-	 * @return {{*}}
+	 * @return {{}}
 	 */
 	SheetStorage.prototype.getElements = function () {
-		return this.elements;
+		return Object.assign({}, this.elements, this.inheritedElements);
+	}
+
+	/**
+	 * Always use it see Shape_Type.prototype.realizeMasterToShapeInheritanceRecursive js docs for explanation.
+	 * @memberOf SheetStorage
+	 * @param {string} formula
+	 * @return {*}
+	 */
+	SheetStorage.prototype.getElement = function (formula) {
+		// Cells can have N only no IX
+		let element = this.inheritedElements[formula];
+		if (element === undefined) {
+			element = this.elements[formula];
+		}
+		return element;
 	}
 
 
@@ -595,7 +786,7 @@
 	function Section_Type() {
 		this.n = null;
 		this.del = null;
-		this.iX = null;
+		this.ix = null;
 
 		// always use getter setter methods
 		// Always use it see Shape_Type.prototype.realizeMasterToShapeInheritanceRecursive js docs for explanation.
@@ -621,7 +812,7 @@
 	function Row_Type() {
 		this.n = null;
 		this.localName = null;
-		this.iX = null;
+		this.ix = null;
 		this.t = null;
 		this.del = null;
 
@@ -647,6 +838,8 @@
 	 * @constructor
 	 */
 	function Cell_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
+
 		// read all as strings
 		/**
 		 * read as string
@@ -683,6 +876,7 @@
 		// left separate attributes refBy  and textContent and dont replace both by elements
 		return this;
 	}
+	AscFormat.InitClass(Cell_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 	Cell_Type.prototype.kind = c_oVsdxSheetStorageKind.Cell_Type;
 	/**
 	 * get String(cell.v)
@@ -742,14 +936,18 @@
 	 * @param {Shape_Type} shape
 	 * @param {Page_Type} pageInfo
 	 * @param {CTheme[]} themes
-	 * @param {{fontColor?: boolean, lineUniFill?: boolean, uniFillForegnd?: boolean}} themeValWasUsedFor - changes during function
-	 * @param {boolean?} gradientEnabled
+	 * @param {{fontColor?: boolean, lineUniFill?: boolean, uniFillForegnd?: boolean}?} themeValWasUsedFor - changes
+	 * during function. use only for font Color LineColor and FillColor cells otherwise undefined
+	 * @param {boolean?} gradientEnabled - true by default
 	 * @param {number?}  themedColorsRow
 	 * @return {(CUniFill | CUniColor | boolean | *)}
 	 */
 	Cell_Type.prototype.calculateValue = function calculateCellValue(shape, pageInfo,
 																		 themes, themeValWasUsedFor,
 																		 gradientEnabled, themedColorsRow) {
+		if (this === null || this === undefined) {
+			return undefined;
+		}
 		let cellValue = this.v;
 		let cellName = this.n;
 		let cellFunction = this.f;
@@ -758,11 +956,12 @@
 
 		// supported cells
 		let fillResultCells = ["LineColor", "FillForegnd", "FillBkgnd"];
-		let fillColorResultCells = ["Color", "GradientStopColor"];
+		let fillColorResultCells = ["Color", "GradientStopColor", "ShdwForegnd"];
 		let numberResultCells = ["LinePattern", "LineWeight", "GradientStopColorTrans", "GradientStopPosition",
-		"FillGradientAngle", "EndArrowSize", "BeginArrowSize", "FillPattern", "LineCap"];
-		let stringResultCells = ["EndArrow", "BeginArrow"];
-		let booleanResultCells = ["FillGradientEnabled"];
+		"FillGradientAngle", "EndArrowSize", "BeginArrowSize", "FillPattern", "LineCap", "ShdwPattern",
+		"ShapeShdwOffsetX", "ShapeShdwOffsetY", "ShapeShdwShow", "ShapeShdwType", "ShapeShdwScaleFactor"];
+		let stringResultCells = ["EndArrow", "BeginArrow", "Font"];
+		let booleanResultCells = ["FillGradientEnabled", "LineGradientEnabled"];
 
 		// TODO handle 2.2.7.5	Fixed Theme
 
@@ -772,13 +971,15 @@
 			returnValue = AscVisio.themeval(this, shape, pageInfo, themes, undefined,
 				undefined, gradientEnabled, themedColorsRow);
 
-			if (cellName === "LineColor") {
-				themeValWasUsedFor.lineUniFill = true;
-			} else if (cellName === "FillForegnd") {
-				themeValWasUsedFor.uniFillForegnd = true;
-			} else if (cellName === "Color") {
-				// for text color
-				themeValWasUsedFor.fontColor = true;
+			if (themeValWasUsedFor) {
+				if (cellName === "LineColor") {
+					themeValWasUsedFor.lineUniFill = true;
+				} else if (cellName === "FillForegnd") {
+					themeValWasUsedFor.uniFillForegnd = true;
+				} else if (cellName === "Color") {
+					// for text color
+					themeValWasUsedFor.fontColor = true;
+				}
 			}
 		} else if (fillResultCells.includes(cellName) || fillColorResultCells.includes(cellName)) {
 			let rgba = null;
@@ -893,7 +1094,7 @@
 					// This simple type represents an angle in 60,000ths of a degree. Positive angles are clockwise (i.e., towards the
 					// positive y axis); negative angles are counter-clockwise (i.e., towards the negative y axis)
 					// direction is considered in global transform
-					let stAngle = angleRads / Math.PI * 180 * 60000;
+					let stAngle = angleRads / Math.PI * 180 * AscFormat.degToC;
 					if (!isNaN(stAngle)) {
 						angle = stAngle;
 					} else {
@@ -946,45 +1147,45 @@
 	}
 
 
-	/**
-	 * @memberOf Cell_Type
-	 * @return {number}
-	 */
-	Cell_Type.prototype.getValueInMM = function () {
-		let res;
-		//todo all units
-		switch (this.u) {
-			case "DL":
-			case "IN":
-			case "IN_F":
-				res = parseFloat(this.v) * g_dKoef_in_to_mm;
-				break;
-			case "FT":
-				res = parseFloat(this.v) * 12 * g_dKoef_in_to_mm;
-				break;
-			case "F_I":
-				res = parseFloat(this.v);
-				let intPart = Math.floor(res);
-				res = (intPart * 12 + (res - intPart)) * g_dKoef_in_to_mm;
-				break;
-			case "KM":
-				res = parseFloat(this.v) * 1000000;
-				break;
-			case "M":
-				res = parseFloat(this.v) * 1000;
-				break;
-			case "CM":
-				res = parseFloat(this.v) * 10;
-				break;
-			case "MM":
-				res = parseFloat(this.v);
-				break;
-			default:
-				res = parseFloat(this.v) * g_dKoef_in_to_mm;
-				break;
-		}
-		return res;
-	};
+	// /**
+	//  * @memberOf Cell_Type
+	//  * @return {number}
+	//  */
+	// Cell_Type.prototype.getValueInMM = function () {
+	// 	let res;
+	// 	//todo all units
+	// 	switch (this.u) {
+	// 		case "DL":
+	// 		case "IN":
+	// 		case "IN_F":
+	// 			res = parseFloat(this.v) * g_dKoef_in_to_mm;
+	// 			break;
+	// 		case "FT":
+	// 			res = parseFloat(this.v) * 12 * g_dKoef_in_to_mm;
+	// 			break;
+	// 		case "F_I":
+	// 			res = parseFloat(this.v);
+	// 			let intPart = Math.floor(res);
+	// 			res = (intPart * 12 + (res - intPart)) * g_dKoef_in_to_mm;
+	// 			break;
+	// 		case "KM":
+	// 			res = parseFloat(this.v) * 1000000;
+	// 			break;
+	// 		case "M":
+	// 			res = parseFloat(this.v) * 1000;
+	// 			break;
+	// 		case "CM":
+	// 			res = parseFloat(this.v) * 10;
+	// 			break;
+	// 		case "MM":
+	// 			res = parseFloat(this.v);
+	// 			break;
+	// 		default:
+	// 			res = parseFloat(this.v) * g_dKoef_in_to_mm;
+	// 			break;
+	// 	}
+	// 	return res;
+	// };
 
 	// /**
 	//  * @memberOf Cell_Type
@@ -1005,7 +1206,7 @@
 	 * @extends SheetStorageAndStyles
 	 */
 	function Shape_Type() {
-		this.iD = null;
+		this.id = null;
 		this.originalID = null;
 		this.del = null;
 		this.masterShape = null;
@@ -1022,6 +1223,12 @@
 		 * @type {Shape_Type[]}
 		 */
 		this.shapes = [];
+
+		/**
+		 *	Own shapes and inherited
+		 * @type {Shape_Type[]}
+		 */
+		this.inheritedShapes = [];
 
 		/**
 		 * Shape_Type.prototype.toGeometryAndTextCShapes creates CShape from Shape_Type but for image as an
@@ -1062,7 +1269,7 @@
 	 * if shape has multiple layers attached only equal layer properties applied (and added to object).
 	 * @memberOf Shape_Type
 	 * @param {Page_Type} pageInfo
-	 * @return {*}
+	 * @return {{ [key: string]: Cell_Type }} An object mapping string identifiers to Cell_Type instances
 	 */
 	Shape_Type.prototype.getLayerProperties = function getLayerProperties(pageInfo) {
 		let layerMemberString = this.getCellStringValue("LayerMember");
@@ -1074,36 +1281,58 @@
 		if (layersInfo === undefined) {
 			return {};
 		}
-		let previousLayer = undefined;
+		let previousLayerElements = undefined;
 		/** @type {Set<string>} */
 		let unEqualProperties = new Set();
 		layersArray.forEach(function (layerIndexString) {
 			let layerIndex = Number(layerIndexString);
 			let layerInfo = layersInfo.getRow(layerIndex);
-			if (previousLayer === undefined) {
-				previousLayer = layerInfo;
+			if (layerInfo === undefined) {
+				return; // go to next iteration
+			}
+			let layerElements = layerInfo.getElements();
+
+			// Unlink original array
+			let layerElementsCopy= {};
+			for (const key in layerElements) {
+				if (layerElements.hasOwnProperty(key)) {
+					layerElementsCopy[key] = layerElements[key];
+				}
+			}
+
+			// Set default color
+			if (layerElementsCopy["Color"] === undefined) {
+				let defaultColorCell = new Cell_Type();
+				defaultColorCell.n = "Color";
+				defaultColorCell.v = "0";
+				layerElementsCopy["Color"] = defaultColorCell;
+			}
+
+			if (previousLayerElements === undefined) {
+				previousLayerElements = layerElementsCopy;
 			} else {
 				// compare with previous shape layer
-				for (const cellKey in layerInfo.getElements()) {
-					const cell = layerInfo.getCell(cellKey);
-					let previousLayerCell = previousLayer.getCell(cell.n);
+				for (const cellKey in layerElementsCopy) {
+					const cell = layerElementsCopy[cellKey];
+					let previousLayerCell = previousLayerElements[cell.n];
 					if (previousLayerCell.v !== cell.v) {
 						unEqualProperties.add(cell.n);
 					}
 				}
-				previousLayer = layerInfo;
+				previousLayerElements = layerElementsCopy;
 			}
 		});
 		// layers have the same set of properties so lets take any of them
 		// and remove unEqualProperties
+		/** @type {{ [key: string]: Cell_Type }} */
 		let resultObject = {};
-		if (previousLayer === undefined) {
+		if (previousLayerElements === undefined) {
 			return resultObject;
 		}
-		for (const cellKey in previousLayer.getElements()) {
-			const cell = previousLayer.getCell(cellKey);
+		for (const cellKey in previousLayerElements) {
+			const cell = previousLayerElements[cellKey];
 			if (!unEqualProperties.has(cell.n)) {
-				resultObject[cell.n] = cell.v;
+				resultObject[cell.n] = cell;
 			}
 		}
 		return resultObject;
@@ -1115,7 +1344,7 @@
 	 * @return {Shape_Type[]}
 	 */
 	Shape_Type.prototype.getSubshapes = function () {
-		return this.shapes;
+		return this.shapes.concat(this.inheritedShapes);
 	}
 
 	/**
@@ -1125,11 +1354,14 @@
 	 * Returns object of shape not copy!
 	 *
 	 * @memberof Shape_Type
-	 * @returns {Text_Type | null}
+	 * @returns {Text_Type | undefined}
 	 */
 	Shape_Type.prototype.getTextElement = function getTextElement() {
-		return this.elements["Text"];
-		// return findObject(this.elements, "Text_Type");
+		let text = this.inheritedElements["Text"];
+		if (text === undefined) {
+			text = this.elements["Text"];
+		}
+		return text;
 	}
 
 	/**
@@ -1156,6 +1388,58 @@
 
 		return resultArray;
 	}
+
+	/**
+	 * clones masters shapes to given shape.
+	 * Uses MasterShapeAttributes to find shapes to insert.
+	 * @param {Shape_Type[]} masterSubshapes
+	 * @param masters - result from joinMastersInfoAndContents()
+	 */
+	Shape_Type.prototype.cloneSubshapes = function cloneSubshapes(masterSubshapes, masters) {
+		function findIndexComparingByMasterShapeAttribute(shapeSubshapes, masterSubshape) {
+			return shapeSubshapes.findIndex(function (element) {
+				return element.masterShape === masterSubshape.id;
+			});
+		}
+
+		// If subshape has Master attribute with id of any master: call realizeMasterToShapeInheritance
+		// If subshape has MasterShape attribute with id of any parents shape masters subshapes:
+		// 	call mergeElementArrays NO RECURSION HERE
+		// If there is a shape in master but there is no such local subshape then it should be inherited (copied)
+		// If there is a shape in master but there is no such local subshape then it should be inherited (copied)
+		// lets check if it exists locally only by MasterShape attribute
+		// examples it the bottom of the function
+
+		// handle subshapes MasterShape attribute
+		let thisContext = this;
+		masterSubshapes.forEach(function(masterSubshape) {
+			let mergeElementIndex = findIndexComparingByMasterShapeAttribute(thisContext.getSubshapes(),
+					masterSubshape);
+			let elementExistsAlready = mergeElementIndex !== -1;
+
+			// 2.2.5.4.1	Master-to-Shape Inheritance
+			// "subshapes not specified in the instance are inherited from the master." (from its master)
+			if (!elementExistsAlready) {
+				// maybe add masterShape attribute to new shape - lets dont do it because:
+				// of recursive iterations of inheritance we will try to inherit because we will se masterShape but
+				// there is no need because it is copy pasted element no need in inheritance
+				// maybe consider id to insert in ascending order
+				thisContext.inheritedShapes.push(clone(masterSubshape));
+			} else {
+				// 2.2.5.4.1	Master-to-Shape Inheritance
+				// "if an instance contains a subshape whose ShapeSheet_Type element has a MasterShape attribute that matches
+				// the ID attribute of a subshape of the master, the local properties specified in this subshape will
+				// override those of the corresponding subshape in the master."
+
+				// let masterElements = masterSubshape.elements;
+				// let shapeElements = shapeSubshapes[mergeElementIndex].elements;
+				// mergeElementArrays(masterElements);
+
+				// it is done in realizeMasterToShapeInheritanceRecursive with subshapes handle
+			}
+		});
+	}
+
 
 	/**
 	 * Realizes Master-To-Shape inheritance.
@@ -1271,15 +1555,17 @@
 		let topShapeMasterId = this.getMasterID();
 		if (topShapeMasterId !== null && topShapeMasterId !== undefined) {
 			let topShapeMasterIndex = masters.findIndex(function(masterObject) {
-				return masterObject.iD === topShapeMasterId;
+				return masterObject.id === topShapeMasterId;
 			});
 			let topShapeMaster = masters[topShapeMasterIndex];
 
-			let masterShapes = topShapeMaster.content.shapes;
-			masterShapesToInheritFrom = masterShapes;
+			if (topShapeMaster) {
+				let masterShapes = topShapeMaster.content.shapes;
+				masterShapesToInheritFrom = masterShapes;
 
-			// all descendant shapes will inherit from that master
-			ancestorMasterShapes = masterShapesToInheritFrom;
+				// all descendant shapes will inherit from that master
+				ancestorMasterShapes = masterShapesToInheritFrom;
+			}
 		}
 
 		// check MasterShape attribute and set shapes/shape
@@ -1294,7 +1580,7 @@
 					// if master has one top level shape
 					let masterSubshapes = ancestorMasterShapes[0].collectSubshapesRecursive();
 					masterIndex = masterSubshapes.findIndex(function (masterSubshape) {
-						return masterShapeId === masterSubshape.iD;
+						return masterShapeId === masterSubshape.id;
 					});
 					let masterShape = masterSubshapes[masterIndex];
 					masterShapesToInheritFrom = [masterShape];
@@ -1305,7 +1591,7 @@
 						masterSubshapes = masterSubshapes.concat(masterSubshapesNth);
 					})
 					masterIndex = masterSubshapes.findIndex(function (masterSubshape) {
-						return masterShapeId === masterSubshape.iD;
+						return masterShapeId === masterSubshape.id;
 					});
 					let masterShape = masterSubshapes[masterIndex];
 					masterShapesToInheritFrom = [masterShape];
@@ -1322,97 +1608,40 @@
 			let masterShapeToInheritFrom = masterShapesToInheritFrom[0];
 
 			// inherit link to styles
-			if (!this.lineStyle) {
-				this.lineStyle = masterShapeToInheritFrom.lineStyle;
+			if (!this.inheritedLineStyle) {
+				this.inheritedLineStyle = masterShapeToInheritFrom.lineStyle;
 			}
-			if (!this.fillStyle) {
-				this.fillStyle = masterShapeToInheritFrom.fillStyle;
+			if (!this.inheritedFillStyle) {
+				this.inheritedFillStyle = masterShapeToInheritFrom.fillStyle;
 			}
-			if (!this.textStyle) {
-				this.textStyle = masterShapeToInheritFrom.textStyle;
+			if (!this.inheritedTextStyle) {
+				this.inheritedTextStyle = masterShapeToInheritFrom.textStyle;
 			}
 
-			let shapeElements = this.elements;
-			let masterElements = masterShapeToInheritFrom.elements;
-			mergeElementArrays(shapeElements, masterElements);
-			if (masterShapeToInheritFrom.type === "Foreign") {
+			let masterElements = masterShapeToInheritFrom.getElements();
+			this.mergeElementArrays(masterElements);
+			if (masterShapeToInheritFrom.type === AscVisio.SHAPE_TYPES_FOREIGN) {
 				if (masterShapeToInheritFrom.cImageShape) {
 					this.cImageShape = clone(masterShapeToInheritFrom.cImageShape);
 				}
 			}
 
-			let shapeSubshapes = this.shapes;
-			let masterSubshapes = masterShapeToInheritFrom.shapes;
-			cloneSubshapes(shapeSubshapes, masterSubshapes, masters);
+			let masterSubshapes = masterShapeToInheritFrom.getSubshapes();
+			this.cloneSubshapes(masterSubshapes, masters);
 		} else if (masterShapesToInheritFrom.length > 1) {
 			// does it ever happens?
 			// what about style inheritance?
-			cloneSubshapes(this.shapes, masterShapesToInheritFrom, masters);
+			this.cloneSubshapes(masterShapesToInheritFrom, masters);
 		}
 
 		// call recursive on all subshapes
-		let subshapes = this.shapes;
+		let subshapes = this.getSubshapes();
 		subshapes.forEach(function(shape) {
 			shape.realizeMasterInheritanceRecursively(masters, ancestorMasterShapes);
 		});
 
 		// return thisShapeCopy;
 		// end of method
-
-		/**
-		 * clones masters shapes to given shape.
-		 * Uses MasterShapeAttributes to find shapes to insert.
-		 * @param {Shape_Type[]} shapeSubshapes
-		 * @param {Shape_Type[]} masterSubshapes
-		 * @param masters - result from joinMastersInfoAndContents()
-		 */
-		function cloneSubshapes(shapeSubshapes, masterSubshapes, masters) {
-			// If subshape has Master attribute with id of any master: call realizeMasterToShapeInheritance
-			// If subshape has MasterShape attribute with id of any parents shape masters subshapes:
-			// 	call mergeElementArrays NO RECURSION HERE
-			// If there is a shape in master but there is no such local subshape then it should be inherited (copied)
-			// lets check if it exists locally only by MasterShape attribute
-			// examples it the bottom of the function
-
-			// handle subshapes MasterShape attribute
-			masterSubshapes.forEach(function(masterSubshape) {
-				let mergeElementIndex = findIndexComparingByMasterShapeAttribute(shapeSubshapes, masterSubshape);
-				let elementExistsAlready = mergeElementIndex !== -1;
-
-				// 2.2.5.4.1	Master-to-Shape Inheritance
-				// "subshapes not specified in the instance are inherited from the master." (from its master)
-				if (!elementExistsAlready) {
-					// maybe add masterShape attribute to new shape - lets dont do it because:
-					// of recursive iterations of inheritance we will try to inherit because we will se masterShape but
-					// there is no need because it is copy pasted element no need in inheritance
-					// maybe consider id to insert in ascending order
-					shapeSubshapes.push(clone(masterSubshape));
-				} else {
-					// 2.2.5.4.1	Master-to-Shape Inheritance
-					// "if an instance contains a subshape whose ShapeSheet_Type element has a MasterShape attribute that matches
-					// the ID attribute of a subshape of the master, the local properties specified in this subshape will
-					// override those of the corresponding subshape in the master."
-
-					// let masterElements = masterSubshape.elements;
-					// let shapeElements = shapeSubshapes[mergeElementIndex].elements;
-					// mergeElementArrays(shapeElements, masterElements);
-
-					// it is done in realizeMasterToShapeInheritanceRecursive with subshapes handle
-				}
-			});
-
-			// handle subshapes Master attributes
-			// shapeSubshapes.forEach(function(subShape) {
-			// 	subShape.realizeMasterToShapeInheritanceRecursive(masters);
-			// });
-			// UPD: in realizeMasterToShapeInheritanceRecursive
-		}
-
-		function findIndexComparingByMasterShapeAttribute(shapeSubshapes, masterSubshape) {
-			return shapeSubshapes.findIndex(function (element) {
-				return element.masterShape === masterSubshape.iD;
-			});
-		}
 	}
 
 	/**
@@ -1438,7 +1667,8 @@
 			object.isConnectorStyleIherited = object.isConnectorStyleIherited ? true : style.nameU === "Connector";
 		}
 
-		if (!(thisArgument.lineStyle === thisArgument.fillStyle && thisArgument.lineStyle === thisArgument.textStyle)) {
+		if (!(thisArgument.getLineStyle() === thisArgument.getFillStyle()
+				&& thisArgument.getLineStyle() === thisArgument.getTextStyle())) {
 			// Attribute	Cell_Type elements
 
 			// LineStyle	Specifies Cell_Type elements related to line properties except for Cell_Type child elements
@@ -1492,34 +1722,34 @@
 			fillStyleElements = fillStyleElements.concat(commonElements);
 			textStyleElements = textStyleElements.concat(commonElements);
 
-			if (thisArgument.lineStyle !== null) {
-				let styleId = Number(thisArgument.lineStyle);
+			if (thisArgument.getLineStyle() !== null) {
+				let styleId = Number(thisArgument.getLineStyle());
 				let styleSheet = styles.find(function(style) {
-					return style.iD === styleId;
+					return style.id === styleId;
 				});
 				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
-				mergeElementArrays(thisArgument.elements, styleSheet.elements, lineStyleElements);
+				thisArgument.mergeElementArrays(styleSheet.getElements(), lineStyleElements);
 			}
 
-			if (thisArgument.fillStyle !== null) {
-				let styleId = Number(thisArgument.fillStyle);
+			if (thisArgument.getFillStyle() !== null) {
+				let styleId = Number(thisArgument.getFillStyle());
 				let styleSheet = styles.find(function(style) {
-					return style.iD === styleId;
+					return style.id === styleId;
 				});
 				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
-				mergeElementArrays(thisArgument.elements, styleSheet.elements, fillStyleElements);
+				thisArgument.mergeElementArrays(styleSheet.getElements(), fillStyleElements);
 			}
 
-			if (thisArgument.textStyle !== null) {
-				let styleId = Number(thisArgument.textStyle);
+			if (thisArgument.getTextStyle() !== null) {
+				let styleId = Number(thisArgument.getTextStyle());
 				let styleSheet = styles.find(function(style) {
-					return style.iD === styleId;
+					return style.id === styleId;
 				});
 				setIsConnectorStyleInherited(thisArgument, styleSheet);
 				realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
-				mergeElementArrays(thisArgument.elements, styleSheet.elements, textStyleElements);
+				thisArgument.mergeElementArrays(styleSheet.getElements(), textStyleElements);
 			}
 			if (thisArgument.constructor === AscVisio.StyleSheet_Type) {
 				// memorize: that style has realized inheritance
@@ -1529,20 +1759,21 @@
 			return;
 		}
 
-		if (thisArgument.lineStyle === null && thisArgument.fillStyle === null && thisArgument.textStyle === null) {
+		if (thisArgument.getLineStyle() === null && thisArgument.getFillStyle() === null
+				&& thisArgument.getTextStyle() === null) {
 			// AscCommon.consoleLog('Top parent style');
 			return;
 		}
 
 		// if lineStyle === textStyle === fillStyle so let's take lineStyle
-		let styleId = Number(thisArgument.lineStyle);
+		let styleId = Number(thisArgument.getLineStyle());
 		let styleSheet = styles.find(function(style) {
-			return style.iD === styleId;
+			return style.id === styleId;
 		});
 		setIsConnectorStyleInherited(thisArgument, styleSheet);
 
 		realizeStyleToSheetObjInheritanceRecursive(styleSheet, styles, stylesWithRealizedInheritance);
-		mergeElementArrays(thisArgument.elements, styleSheet.elements)
+		thisArgument.mergeElementArrays(styleSheet.getElements());
 		if (thisArgument.constructor === AscVisio.StyleSheet_Type) {
 			// memorize: that style has realized inheritance
 			stylesWithRealizedInheritance.add(thisArgument);
@@ -1567,86 +1798,10 @@
 		realizeStyleToSheetObjInheritanceRecursive(this, styles, stylesWithRealizedInheritance);
 
 		// call recursive on all subshapes
-		let subshapes = this.shapes;
+		let subshapes = this.getSubshapes();
 		subshapes.forEach(function(shape) {
 			shape.realizeStyleInheritanceRecursively(styles, stylesWithRealizedInheritance);
 		});
-	}
-
-	/**
-	 * clone master elements (sections, rows, cells) to shapeElements.
-	 * For Sections and Rows merge is recursive: we compare inner cells by their names
-	 * @param shapeElements - cells rows sections
-	 * @param masterElements - cells rows sections
-	 * @param {string[]?} elementsToMerge - cells rows sections list we can merge
-	 * @param {boolean?} isParentInList
-	 */
-	function mergeElementArrays(shapeElements, masterElements, elementsToMerge, isParentInList) {
-		/**
-		 * find index of cell row or section
-		 * @param elementsObject
-		 * @param elementToFind
-		 * @returns {*}
-		 */
-		function findObjectIn(elementsObject, elementToFind) {
-			let objKey = AscVisio.createKeyFromSheetObject(elementToFind);
-			return elementsObject[objKey];
-		}
-
-		/**
-		 * if text is inherited so we consider that text fields in it have wrong values
-		 * and we recalculate values them
-		 * @param masterElement
-		 */
-		function setIsInheritedForText(masterElement) {
-			if (masterElement.kind === c_oVsdxSheetStorageKind.Text_Type) {
-				masterElement.isInherited = true;
-			}
-		}
-
-		let mergeAll = false;
-
-		if (elementsToMerge === undefined) {
-			mergeAll = true;
-		}
-
-		for (const key in masterElements) {
-			const masterElement = masterElements[key];
-
-			let overrideObject = findObjectIn(shapeElements, masterElement);
-			let elementExistsAlready = overrideObject !== undefined;
-
-			let isElementInList = elementsToMerge !== undefined && elementsToMerge.includes(masterElement.n);
-			let listCheck = mergeAll || isParentInList || isElementInList;
-
-			if (!elementExistsAlready) {
-				if (listCheck) {
-					// TODO fix order
-					// now Section sort is realized in getSections,
-					// rowsSort is not needed see getRow findObject call
-
-					// mb lets not add cell after section
-					// let elementCopy = clone(masterElement);
-					setIsInheritedForText(masterElement);
-
-					let elementLink = masterElement;
-					shapeElements[key] = elementLink;
-
-				}
-			} else {
-				// merge inner elements recursive if not cell
-				if (masterElement.kind !== c_oVsdxSheetStorageKind.Cell_Type) {
-					// if Section or Row
-					let shapeElement = overrideObject;
-					if (masterElement.kind === c_oVsdxSheetStorageKind.Section_Type || masterElement.kind === c_oVsdxSheetStorageKind.Row_Type) {
-						// for future checks
-						isParentInList = isElementInList || isParentInList;
-						// recursive calls
-						mergeElementArrays(shapeElement.elements, masterElement.elements, elementsToMerge, isParentInList);
-					}
-				}
-			}
-		}
 	}
 
 	/**
@@ -1654,10 +1809,80 @@
 	 * @return {ForeignData_Type | undefined}
 	 */
 	Shape_Type.prototype.getForeignDataObject = function getForeignDataObject() {
-		return this.elements["ForeignData"];
+		let result = this.elements["ForeignData"];
+		if (result === undefined) {
+			result = this.inheritedElements["ForeignData"];
+		}
+		return result;
 		// return this.elements.find(function findForeignData(element) {
 		// 	return element.constructor.name === "ForeignData_Type";
 		// });
+	}
+
+	/**
+	 * @memberof Shape_Type
+	 * returns index of color shape theme
+	 */
+	Shape_Type.prototype.calculateColorThemeIndex = function calculateColorThemeIndex(pageInfo) {
+		let themeIndex = 0; // zero index means no theme - use default values
+		let themeScopeCellName = this.isConnectorStyleIherited ? "ConnectorSchemeIndex" : "ColorSchemeIndex";
+		let shapeColorSchemeThemeIndex = this.getCellNumberValue(themeScopeCellName);
+		if (isNaN(shapeColorSchemeThemeIndex)) {
+			// if not found or smth
+			// shapeColorSchemeThemeIndex = 0; // zero index means no theme
+			themeIndex = 0; // zero index means no theme
+		} else if (shapeColorSchemeThemeIndex === 65534) {
+			let pageThemeIndex = pageInfo.pageSheet.getCellNumberValue(themeScopeCellName);
+			if (!isNaN(pageThemeIndex)) {
+				themeIndex = pageThemeIndex;
+			} else {
+				// it's ok sometimes
+				// AscCommon.consoleLog("pageThemeIndexCell not found");
+				themeIndex = 0;
+			}
+		} else {
+			themeIndex = shapeColorSchemeThemeIndex;
+		}
+		return themeIndex;
+	}
+
+	/**
+	 * calculate color theme index and get theme from themes.
+	 * Todo for proper cell select proper themeIndex ConnectorSchemeIndex / EffectSchemeIndex / FontSchemeIndex ...
+	 * @param {Page_Type} pageInfo
+	 * @param {CTheme[]} themes
+	 * @return {*}
+	 */
+	Shape_Type.prototype.getTheme = function getTheme(pageInfo, themes) {
+		let isConnectorShape = this.isConnectorStyleIherited;
+
+		let themeIndex = this.calculateColorThemeIndex(pageInfo);
+
+		// find theme by themeIndex
+		let theme = themes.find(function (theme) {
+			// if search by theme index - theme.themeElements.themeExt.themeSchemeSchemeEnum
+			let findThemeByElement;
+			if (isConnectorShape && theme.themeElements.themeExt) {
+				findThemeByElement = theme.themeElements.themeExt.themeSchemeSchemeEnum;
+			} else if (!isConnectorShape && theme.themeElements.clrScheme.clrSchemeExtLst) {
+				findThemeByElement = theme.themeElements.clrScheme.clrSchemeExtLst.schemeEnum;
+			}
+
+			if (!findThemeByElement) {
+				return false;
+			}
+
+			let themeEnum = Number(findThemeByElement);
+			return themeEnum === themeIndex;
+		});
+
+		// themes.find didn't find anything
+		if (theme === undefined) {
+			AscCommon.consoleLog("Theme was not found by theme enum in themes. using themes[0]");
+			theme = themes[0];
+		}
+
+		return theme;
 	}
 
 	/**
@@ -1701,7 +1926,7 @@
 	 * @constructor
 	 */
 	function Page_Type() {
-		this.iD = null;
+		this.id = null;
 		this.name = null;
 		this.nameU = null;
 		this.isCustomName = null;
@@ -1715,8 +1940,12 @@
 		this.associatedPage = null;
 		this.pageSheet = null;
 		this.rel = null;
+
+		//todo objectId
+		this.deleteLock = new AscVisio.PropLocker(undefined);
 		return this;
 	}
+	AscFormat.InitClass(Page_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
 
 	/**
 	 * // Docs old:
@@ -1773,7 +2002,7 @@
 	 * @extends SheetStorageAndStyles
 	 */
 	function StyleSheet_Type() {
-		this.iD = null;
+		this.id = null;
 		this.name = null;
 		this.nameU = null;
 		this.isCustomName = null;
@@ -1804,7 +2033,7 @@
 	 * @extends SheetStorageAndStyles
 	 */
 	function ShapeSheet_Type() {
-		this.iD = null;
+		this.id = null;
 		this.originalID = null;
 		this.del = null;
 		this.masterShape = null;
@@ -1817,6 +2046,7 @@
 		this.type = null;
 
 		this.shapes = [];
+		this.inheritedShapes = [];
 
 		this.items = null;
 		this.anyAttr = null;
@@ -1831,7 +2061,63 @@
 	ShapeSheet_Type.prototype = Object.create(SheetStorageAndStyles.prototype);
 	ShapeSheet_Type.prototype.constructor = ShapeSheet_Type;
 
+	// Docs old:
+// Icon_Type complexType: https://learn.microsoft.com/ru-ru/office/client-developer/visio/icon_type-complextypevisio-xml
+	function Icon_Type() {
+		AscFormat.CBaseFormatNoIdObject.call(this);
 
+		this.value = null;
+		return this;
+	}
+	AscFormat.InitClass(Icon_Type, AscFormat.CBaseFormatNoIdObject, AscDFH.historyitem_type_Unknown);
+
+
+	//todo move to commons
+	function PropLocker(objectId)
+	{
+		this.objectId = null;
+		this.Lock = new AscCommon.CLock();
+		this.Id = AscCommon.g_oIdCounter.Get_NewId();
+		g_oTableId.Add(this, this.Id);
+
+		if(typeof  objectId === "string")
+		{
+			this.setObjectId(objectId);
+		}
+
+	}
+
+	PropLocker.prototype = {
+
+		getObjectType: function()
+		{
+			return AscDFH.historyitem_type_PropLocker;
+		},
+		setObjectId: function(id)
+		{
+			//todo
+			//History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PropLockerSetId, this.objectId, id));
+			this.objectId = id;
+		},
+		Get_Id: function()
+		{
+			return this.Id;
+		},
+		Write_ToBinary2: function(w)
+		{
+			w.WriteLong(AscDFH.historyitem_type_PropLocker);
+			w.WriteString2(this.Id);
+		},
+
+		Read_FromBinary2: function(r)
+		{
+			this.Id = r.GetString2();
+		},
+
+		Refresh_RecalcData: function()
+		{}
+
+	};
 
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']            = window['Asc'] || {};
@@ -1845,6 +2131,7 @@
 
 
 	window['AscVisio'].c_oVsdxSheetStorageKind = c_oVsdxSheetStorageKind;
+	window['AscVisio'].SheetStorageAndStyles = SheetStorageAndStyles;
 	window['AscVisio'].Text_Type = Text_Type;
 	window['AscVisio'].Data_Type = Data_Type;
 	window['AscVisio'].ForeignData_Type = ForeignData_Type;
@@ -1858,6 +2145,8 @@
 	window['AscVisio'].DocumentSheet_Type = DocumentSheet_Type;
 	window['AscVisio'].StyleSheet_Type = StyleSheet_Type;
 	window['AscVisio'].ShapeSheet_Type = ShapeSheet_Type;
+	window['AscVisio'].Icon_Type = Icon_Type;
+	window['AscVisio'].PropLocker = PropLocker;
 	window['AscVisio'].createKeyFromSheetObject = createKeyFromSheetObject;
 
 })(window, window.document);

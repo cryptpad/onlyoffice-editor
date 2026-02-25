@@ -235,6 +235,14 @@
 	{
 		return (this.CtrlKey || (this.AltKey && this.AltGr));
 	};
+	CKeyboardEvent.prototype.IsShortcutCtrl = function()
+	{
+		return (this.CtrlKey && !this.MacCmdKey || (this.AltKey && this.AltGr));
+	};
+	CKeyboardEvent.prototype.IsCmd = function()
+	{
+		return this.MacCmdKey;
+	};
 	CKeyboardEvent.prototype.IsShift = function()
 	{
 		return this.ShiftKey;

@@ -197,8 +197,7 @@ var wb, ws, wsData, pivotStyle, tableName, defNameName, defNameLocalName, report
 		AscCommon.g_oTableId.init();
 		api._onEndLoadSdk();
 		api.isOpenOOXInBrowser = false;
-		api._openDocument(AscCommon.getEmpty());
-		api._openOnClient();
+		api.OpenDocumentFromBin(null, AscCommon.getEmpty());
 		api.initCollaborativeEditing({});
 		api.wb = new AscCommonExcel.WorkbookView(api.wbModel, api.controller, api.handlers, api.HtmlElement,
 			api.topLineEditorElement, api, api.collaborativeEditing, api.fontRenderingMode);
@@ -6028,6 +6027,10 @@ var wb, ws, wsData, pivotStyle, tableName, defNameName, defNameLocalName, report
 			AscCommon.History.Clear();
 			pivot = testPivotCellForDetails(assert, pivot, 4, 3, standardFilterEastGT, 'filter 1 (ship date) East | GT');
 			pivot = testPivotCellForDetails(assert, pivot, 17, 3, standardFilterGTGT, 'filter 1 (ship date) GTGT');
+
+			//var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(api.wbModel);
+			//var data = oBinaryFileWriter.Write(true);
+			//AscCommon.DownloadFileFromBytes(data, "Editor.bin", "application/octet-stream");
 
 			const group = new PivotLayoutGroup();
 			group.fld = 4;

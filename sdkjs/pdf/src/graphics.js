@@ -85,7 +85,7 @@
         }
 
         if (this.m_oContext)
-            this.m_oContext.strokeStyle = "rgb(" + r + "," + g + "," + b + "," + a / 255 +")";
+            this.m_oContext.strokeStyle = "rgba(" + r + "," + g + "," + b + "," + a / 255 +")";
 
         this.strokeStyle = {
             r: r,
@@ -383,7 +383,7 @@
         ctx.lineTo(nLineOffsetX + _x, _y2);
     };
     CPDFGraphics.prototype.DrawLockObjectRect = function(lock_type, aRegions) {
-        if (Asc.editor.isViewMode || this.IsThumbnail || this.IsDemonstrationMode || lock_type === AscCommon.c_oAscLockTypes.kLockTypeNone)
+        if (!aRegions || Asc.editor.isViewMode || this.IsThumbnail || this.IsDemonstrationMode || lock_type === AscCommon.c_oAscLockTypes.kLockTypeNone)
             return;
     
         if (Asc.editor.WordControl) {

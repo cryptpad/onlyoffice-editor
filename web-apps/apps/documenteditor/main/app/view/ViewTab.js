@@ -46,6 +46,11 @@ define([
     DE.Views.ViewTab = Common.UI.BaseView.extend(_.extend((function(){
         var template =
         '<section class="panel" data-tab="view" role="tabpanel" aria-labelledby="view">' +
+            '<div class="group">' +
+                '<span class="btn-slot text x-huge" id="slot-btn-hand-tool-view"></span>' +
+                '<span class="btn-slot text x-huge" id="slot-btn-select-tool-view"></span>' +
+            '</div>' +
+            '<div class="separator long"></div>' +
             '<div class="group" data-layout-name="toolbar-view-navigation">' +
                 '<span class="btn-slot text x-huge" id="slot-btn-navigation"></span>' +
             '</div>' +
@@ -95,9 +100,17 @@ define([
                 '</div>' +
                 '<div class="elset"></div>' +
             '</div>' +
-            '<div class="separator long" style="display: none"></div>' + // CryptPad: Hide Macros because there are broken because of CryptPads security
-            '<div class="group" style="display: none">' + // CryptPad: Hide Macros because there are broken because of CryptPads security
+            '<div class="separator long macro" style="display: none"></div>' +
+            '<div class="group macro" style="display: none">' +
                 '<span class="btn-slot text x-huge" id="slot-btn-macros"></span>' +
+            '</div>' +
+            '<div class="group small macro">' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-btn-macro-start" style="text-align: center;"></span>' +
+                '</div>' +
+                '<div class="elset">' +
+                    '<span class="btn-slot text" id="slot-btn-macro-pause" style="text-align: center;"></span>' +
+                '</div>' +
             '</div>' +
         '</section>';
 
@@ -144,6 +157,19 @@ define([
                 me.btnMacros && me.btnMacros.on('click', function () {
                     me.fireEvent('macros:click');
                 });
+                me.btnRecMacro && me.btnRecMacro.on('click', function () {
+                    me.fireEvent('macros:record');
+                });
+                me.btnPauseMacro && me.btnPauseMacro.on('click', function () {
+                    me.fireEvent('macros:pause');
+                });
+
+                me.btnSelectTool && me.btnSelectTool.on('toggle', _.bind(function(btn, state) {
+                    state && me.fireEvent('pointer:select');
+                }, me));
+                me.btnHandTool && me.btnHandTool.on('toggle', _.bind(function(btn, state) {
+                    state && me.fireEvent('pointer:hand');
+                }, me));
             },
 
             initialize: function (options) {
@@ -267,7 +293,11 @@ define([
                 });
                 this.lockedControls.push(this.chRulers);
 
-                if (this.appConfig.isEdit) {
+                if (
+                    this.appConfig.isEdit && 
+                    !(this.appConfig.customization && this.appConfig.customization.macros===false) && 
+                    !(Common.Controllers.Desktop && Common.Controllers.Desktop.isWinXp())
+                ) {
                     this.btnMacros = new Common.UI.Button({
                         cls: 'btn-toolbar x-huge icon-top',
                         iconCls: 'toolbar__icon btn-macros',
@@ -278,6 +308,56 @@ define([
                         dataHintOffset: 'small'
                     });
                     this.lockedControls.push(this.btnMacros);
+
+                    this.btnRecMacro = new Common.UI.Button({
+                        cls: 'btn-toolbar',
+                        iconCls: 'toolbar__icon btn-macros-record',
+                        lock: [_set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.docLockView, _set.docLockForms, _set.docLockComments, _set.lostConnect, _set.disableOnStart],
+                        caption: this.textRecMacro,
+                        dataHint: '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'medium'
+                    });
+                    this.lockedControls.push(this.btnRecMacro);
+
+                    this.btnPauseMacro = new Common.UI.Button({
+                        cls: 'btn-toolbar',
+                        iconCls: 'toolbar__icon btn-macros-pause',
+                        lock: [_set.macrosStopped, _set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.docLockView, _set.docLockForms, _set.docLockComments, _set.lostConnect, _set.disableOnStart],
+                        caption: this.textPauseMacro,
+                        dataHint: '1',
+                        dataHintDirection: 'left',
+                        dataHintOffset: 'medium'
+                    });
+                    this.lockedControls.push(this.btnPauseMacro);
+                } else if (!this.appConfig.isRestrictedEdit) {
+                    this.btnSelectTool = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        iconCls: 'toolbar__icon btn-select',
+                        lock: [_set.disableOnStart],
+                        caption: this.toolbar.capBtnSelect,
+                        toggleGroup: 'select-tools-tb',
+                        enableToggle: true,
+                        allowDepress: false,
+                        dataHint: '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.btnSelectTool);
+
+                    this.btnHandTool = new Common.UI.Button({
+                        cls: 'btn-toolbar x-huge icon-top',
+                        iconCls: 'toolbar__icon btn-big-hand-tool',
+                        lock: [_set.disableOnStart],
+                        caption: this.toolbar.capBtnHand,
+                        toggleGroup: 'select-tools-tb',
+                        enableToggle: true,
+                        allowDepress: false,
+                        dataHint: '1',
+                        dataHintDirection: 'bottom',
+                        dataHintOffset: 'small'
+                    });
+                    this.lockedControls.push(this.btnHandTool);
                 }
 
                 Common.Utils.lockControls(_set.disableOnStart, true, {array: this.lockedControls});
@@ -334,6 +414,10 @@ define([
                 this.btnMacros && this.btnMacros.render($host.find('#slot-btn-macros'));
                 this.chLeftMenu.render($host.find('#slot-chk-leftmenu'));
                 this.chRightMenu.render($host.find('#slot-chk-rightmenu'));
+                this.btnSelectTool && this.btnSelectTool.render($host.find('#slot-btn-select-tool-view'));
+                this.btnHandTool && this.btnHandTool.render($host.find('#slot-btn-hand-tool-view'));
+                this.btnRecMacro && this.btnRecMacro.render($host.find('#slot-btn-macro-start'));
+                this.btnPauseMacro && this.btnPauseMacro.render($host.find('#slot-btn-macro-pause'));
 
                 if (this.toolbar && this.toolbar.$el) {
                     this.btnsFitToPage = Common.Utils.injectButtons(this.toolbar.$el.find('.slot-btn-ftp'), 'tlbtn-btn-ftp-', 'toolbar__icon btn-ic-zoomtopage', this.textFitToPage,
@@ -349,10 +433,11 @@ define([
                 Common.Utils.lockControls(Common.enumLock.disableOnStart, true, {array: created});
                 Array.prototype.push.apply(this.lockedControls, created);
                 Common.UI.LayoutManager.addControls(created);
+                Common.Utils.lockControls(Common.enumLock.macrosStopped, true, {array: [this.btnPauseMacro]});
                 return this.$el;
             },
 
-            onAppReady: function () {
+            onAppReady: function (config) {
                 var me = this;
                 this.btnNavigation.updateHint(this.tipHeadings);
                 this.btnInterfaceTheme.updateHint(this.tipInterfaceTheme);
@@ -364,6 +449,8 @@ define([
                     btn.updateHint(me.tipFitToWidth);
                 });
                 this.btnMacros && this.btnMacros.updateHint(this.tipMacros);
+                this.btnRecMacro && this.btnRecMacro.updateHint(this.tipRecMacro);
+                this.btnPauseMacro && this.btnPauseMacro.updateHint(this.tipPauseMacro);
 
                 var value = Common.UI.LayoutManager.getInitValue('leftMenu');
                 value = (value!==undefined) ? !value : false;
@@ -372,6 +459,13 @@ define([
                 value = Common.UI.LayoutManager.getInitValue('rightMenu');
                 value = (value!==undefined) ? !value : false;
                 this.chRightMenu.setValue(!Common.localStorage.getBool("de-hidden-rightmenu", value));
+
+                if (config.isEdit || config.isRestrictedEdit) {
+                    this.$el.find('#slot-btn-hand-tool-view').closest('.group').next().addBack().remove();
+                } else {
+                    this.btnSelectTool && this.btnSelectTool.updateHint(this.toolbar.tipSelectTool);
+                    this.btnHandTool && this.btnHandTool.updateHint(this.toolbar.tipHandTool);
+                }
             },
 
             show: function () {

@@ -108,7 +108,7 @@ define([
             /** coauthoring begin **/
             this.btnComments = new Common.UI.Button({
                 el: $markup.elementById('#left-btn-comments'),
-                hint: this.tipComments +  Common.Utils.String.platformKey('Ctrl+Shift+H'),
+                hint: this.tipComments,
                 enableToggle: true,
                 disabled: true,
                 iconCls: 'btn-menu-comments',
@@ -116,16 +116,28 @@ define([
             });
             this.btnComments.on('toggle',       this.onBtnCommentsToggle.bind(this));
             this.btnComments.on('click',        this.onBtnMenuClick.bind(this));
+            SSE.getController('Common.Controllers.Shortcuts').updateShortcutHints({
+                OpenCommentsPanel: {
+                    btn: this.btnComments,
+                    label: this.tipComments
+                }
+            });
 
             this.btnChat = new Common.UI.Button({
                 el: $markup.elementById('#left-btn-chat'),
-                hint: this.tipChat + Common.Utils.String.platformKey('Alt+Q', ' (' + (Common.Utils.isMac ? Common.Utils.String.textCtrl + '+' : '') + '{0})'),
+                hint: this.tipChat,
                 enableToggle: true,
                 disabled: true,
                 iconCls: 'btn-menu-chat',
                 toggleGroup: 'leftMenuGroup'
             });
             this.btnChat.on('click',            this.onBtnMenuClick.bind(this));
+            SSE.getController('Common.Controllers.Shortcuts').updateShortcutHints({
+                OpenChatPanel: {
+                    btn: this.btnChat,
+                    label: this.tipChat
+                }
+            });
 
             this.btnComments.hide();
             this.btnChat.hide();
@@ -181,6 +193,7 @@ define([
             }
             this.onCoauthOptions();
             btn.pressed && btn.options.action == 'advancedsearch' && this.fireEvent('search:aftershow', this);
+            btn.options.type !== 'plugin' && $('.left-panel .plugin-panel').toggleClass('active', false);
             Common.NotificationCenter.trigger('layout:changed', 'leftmenu');
         },
 
@@ -285,6 +298,7 @@ define([
                 this.btnSearchBar.toggle(false, true);
             }
             this.toggleActivePluginButton(false);
+            Common.NotificationCenter.trigger('layout:changed', 'leftmenu');
         },
 
         isOpened: function() {

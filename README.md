@@ -21,14 +21,14 @@ make test
 ## sdkjs
 
 ```sh
-git fetch --depth=1 https://github.com/ONLYOFFICE/sdkjs.git v8.3.0.83
+git fetch --depth=1 https://github.com/ONLYOFFICE/sdkjs.git v9.2.0.119
 git diff FETCH_HEAD HEAD:sdkjs
 ```
 
 ## web-apps
 
 ```sh
-git fetch --depth=1 https://github.com/ONLYOFFICE/web-apps.git v8.3.0.83
+git fetch --depth=1 https://github.com/ONLYOFFICE/web-apps.git v9.2.0.119
 git diff FETCH_HEAD HEAD:web-apps
 ```
 

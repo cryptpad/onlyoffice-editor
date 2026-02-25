@@ -111,7 +111,8 @@ var c_oAscSelectionDialogType = {
   ConditionalFormattingRule: 11,
   ImportXml: 12,
   GoalSeek_Cell: 13,
-  GoalSeek_ChangingCell: 14
+  GoalSeek_ChangingCell: 14,
+  Solver_ObjectiveCell: 15
 };
 
 var c_oAscScrollType = {
@@ -284,11 +285,6 @@ var c_oAscMergeType = {
   rows: 2  // Замержены ли строки (если да, то автоподбор высоты не должен работать)
 };
 
-var c_oAscPaneState = {
-  Frozen: "frozen",
-  FrozenSplit: "frozenSplit",
-  Split: "split"
-};
 
 var c_oAscFindLookIn = {
   Formulas: 1,
@@ -441,55 +437,6 @@ var c_oAscPopUpSelectorType = {
       change: 3
   };
 
-  //поля header/footer
-  var c_oAscHeaderFooterField = {
-      pageNumber: 0,
-      pageCount: 1,
-      sheetName: 2,
-      fileName: 3,
-      filePath: 4,
-      date: 5,
-      time: 6,
-      lineBreak: 7,
-	  picture: 8,
-	  text: 9
-  };
-
-  var c_oAscPageHFType = {
-      firstHeader: 0,
-      oddHeader: 1,
-      evenHeader: 2,
-      firstFooter: 3,
-      oddFooter: 4,
-      evenFooter: 5
-  };
-
-  var c_oAscHeaderFooterType = {
-      first: 0,
-      odd: 1,
-      even: 2
-  };
-
-  var c_oAscHeaderFooterPresets = {
-      none: 0,
-      page: 1,
-      pageOfQuestion: 2,
-      sheet: 3,
-      confidential: 4,
-      bookName: 5,
-      //bookPath: 5
-      sheetPage: 6,
-      sheetConfidentialPage: 7,
-      bookNamePage: 8,
-      pageSheet: 9,
-      pageBook: 10,
-      //bookPathPage: 11;
-      pageBookName: 11,
-      userPageDate: 12,
-      //bookPathPagePathFile: 12;
-      preparedUserDatePage: 13,
-      custom: 14
-  };
 
   var c_oAscPrintTitlesRangeType = {
       first: 0,
@@ -576,11 +523,7 @@ var c_oAscPopUpSelectorType = {
   };
 
   var c_nAscMaxAddCellWatchesCount = 10000;
-  var c_oAscExternalReferenceType = {
-    referenceData: 0,
-    link: 1,
-    path: 2
-  };
+
 
   var c_oAscPageBreaksDisableType = {
     none: 0,
@@ -640,85 +583,194 @@ var c_oAscPopUpSelectorType = {
     changeSeries : 1  // fill right click mouse - series menu
   };
 
+	const c_oAscSpreadsheetShortcutType = {
+		OpenFilePanel:              1,
+		OpenFindDialog:             2,
+		OpenFindAndReplaceMenu:     3,
+		OpenCommentsPanel:          4,
+		OpenCommentField:           5,
+		OpenChatPanel:              6,
+		Save:                       7,
+		PrintPreviewAndPrint:       8,
+		DownloadAs:                 9,
+		OpenHelpMenu:               10,
+		OpenExistingFile:           11,
+		NextFileTab:                12,
+		PreviousFileTab:            13,
+		CloseFile:                  14,
+		OpenContextMenu:            15,
+		CloseMenu:                  16,
+		Zoom100:                    17,
+		CellMoveUp:                 18,
+		CellMoveDown:               19,
+		CellMoveLeft:               20,
+		CellMoveRight:              21,
+		CellMoveActiveCellDown:     22,
+		CellMoveActiveCellUp:       23,
+		CellMoveActiveCellRight:    24,
+		CellMoveActiveCellLeft:     25,
+		CellMoveLeftNonBlank:       26,
+		CellMoveFirstColumn:        27,
+		CellMoveRightNonBlank:      28,
+		CellMoveBottomNonBlank:     29,
+		CellMoveBottomEdge:         30,
+		CellMoveTopNonBlank:        31,
+		CellMoveTopEdge:            32,
+		CellMoveFirstCell:          33,
+		CellMoveEndSpreadsheet:     34,
+		PreviousWorksheet:          35,
+		NextWorksheet:              36,
+		ZoomIn:                     37,
+		ZoomOut:                    38,
+		NavigatePreviousControl:    39,
+		NavigateNextControl:        40,
+		SelectColumn:               41,
+		SelectRow:                  42,
+		SelectOneCellRight:         43,
+		SelectOneCellLeft:          44,
+		SelectOneCellUp:            45,
+		SelectOneCellDown:          46,
+		SelectCursorBeginningRow:   47,
+		SelectCursorEndRow:         48,
+		SelectNextNonblankRight:    49,
+		SelectNextNonblankLeft:     50,
+		SelectNextNonblankUp:       51,
+		SelectNextNonblankDown:     52,
+		SelectBeginningWorksheet:   53,
+		SelectLastUsedCell:         54,
+		SelectNearestNonblankRight: 55,
+		SelectNonblankLeft:         56,
+		SelectFirstColumn:          57,
+		SelectNearestNonblankDown:  58,
+		SelectNearestNonblankUp:    59,
+		SelectDownOneScreen:        60,
+		SelectUpOneScreen:          61,
+		EditUndo:                   62,
+		EditRedo:                   63,
+		Cut:                        64,
+		Copy:                       65,
+		Paste:                      66,
+		PasteOnlyFormula:           67,
+		PasteFormulaNumberFormat:   68,
+		PasteFormulaAllFormatting:  69,
+		PasteFormulaNoBorders:      70,
+		PasteFormulaColumnWidth:    71,
+		Transpose:                  72,
+		PasteOnlyValue:             73,
+		PasteValueNumberFormat:     74,
+		PasteValueAllFormatting:    75,
+		PasteOnlyFormatting:        76,
+		PasteLink:                  77,
+		InsertHyperlink:            78,
+		VisitHyperlink:             79,
+		Bold:                       80,
+		Italic:                     81,
+		Underline:                  82,
+		Strikeout:                  83,
+		EditOpenCellEditor:         84,
+		ToggleAutoFilter:           85,
+		OpenFilterWindow:           86,
+		FormatAsTableTemplate:      87,
+		CompleteCellEntryMoveDown:  88,
+		CompleteCellEntryMoveUp:    89,
+		CompleteCellEntryMoveRight: 90,
+		CompleteCellEntryMoveLeft:  91,
+		CompleteCellEntryStay:      92,
+		FillSelectedCellRange:      93,
+		CellStartNewLine:           94,
+		EquationAddPlaceholder:     95,
+		CellEntryCancel:            96,
+		DeleteLeftChar:             97,
+		DeleteRightChar:            98,
+		ClearActiveCellContent:     99,
+		ClearSelectedCellsContent:  100,
+		OpenInsertCellsWindow:      101,
+		OpenDeleteCellsWindow:      102,
+		CellInsertDate:             103,
+		CellInsertTime:             104,
+		CellAddSeparator:           105,
+		AutoFill:                   106,
+		DeleteLeftWord:             107,
+		DeleteRightWord:            108,
+		EditSelectAll:              109,
+		MoveCharacterLeft:          110,
+		MoveCharacterRight:         111,
+		MoveCursorLineUp:           112,
+		MoveCursorLineDown:         113,
+		SelectCharacterRight:       114,
+		SelectCharacterLeft:        115,
+		MoveWordLeft:               116,
+		MoveWordRight:              117,
+		SelectWordLeft:             118,
+		SelectWordRight:            119,
+		MoveBeginningText:          120,
+		MoveEndText:                121,
+		SelectBeginningText:        122,
+		SelectEndText:              123,
+		MoveBeginningLine:          124,
+		MoveEndLine:                125,
+		SelectBeginningLine:        126,
+		SelectEndLine:              127,
+		SelectLineUp:               128,
+		SelectLineDown:             129,
+		RefreshSelectedPivots:      130,
+		RefreshAllPivots:           131,
+		SlicerClearSelectedValues:  132,
+		SlicerSwitchMultiSelect:    133,
+		FormatTableAddSummaryRow:   134,
+		OpenInsertFunctionDialog:   135,
+		CellInsertSumFunction:      136,
+		RecalculateAll:             137,
+		RecalculateActiveSheet:     138,
+		ShowFormulas:               139,
+		CellEditorSwitchReference:  140,
+		OpenNumberFormatDialog:     141,
+		CellGeneralFormat:          142,
+		CellCurrencyFormat:         143,
+		CellPercentFormat:          144,
+		CellExponentialFormat:      145,
+		CellDateFormat:             146,
+		CellTimeFormat:             147,
+		CellNumberFormat:           148,
+		EditShape:                  149,
+		EditChart:                  150,
+		MoveShapeLittleStepRight:   151,
+		MoveShapeLittleStepLeft:    152,
+		MoveShapeLittleStepUp:      153,
+		MoveShapeLittleStepBottom:  154,
+		MoveShapeBigStepLeft:       155,
+		MoveShapeBigStepRight:      156,
+		MoveShapeBigStepUp:         157,
+		MoveShapeBigStepBottom:     158,
+		MoveFocusNextObject:        159,
+		MoveFocusPreviousObject:    160,
+		DrawingAddTab:              161,
+		Subscript:                  162,
+		Superscript:                163,
+		IncreaseFontSize:           164,
+		DecreaseFontSize:           165,
+		CenterPara:                 166,
+		JustifyPara:                167,
+		RightPara:                  168,
+		LeftPara:                   169,
+		EndParagraph:               170,
+		AddLineBreak:               171,
+		RemoveGraphicalObject:      172,
+		ExitAddingShapesMode:       173,
+		SpeechWorker:               174,
+		EnDash:                     175
+	};
+
   var c_oAscCalcMode = {
     auto: 0,
     autoNoTable: 1,
     manual: 2
   };
 
-  const c_oAscCellShortcutType = {
-    refreshAllConnections     : 0,
-    refreshSelectedConnections: 1,
-    changeFormatTableInfo     : 2,
-    calculateAll              : 3,
-    calculateActiveSheet      : 5,
-    focusOnCellEditor         : 7,
-    addDate                   : 8,
-    addTime                   : 9,
-    removeActiveCell          : 10,
-    emptyRange                : 11,
-    moveActiveCellToLeft      : 12,
-    moveActiveCellToRight     : 13,
-    moveActiveCellToDown      : 14,
-    moveActiveCellToUp        : 15,
-    reset                     : 16,
-    disableNumLock            : 17,
-    disableScrollLock         : 18,
-    selectColumn              : 19,
-    selectRow                 : 20,
-    selectSheet               : 21,
-    addSeparator              : 22,
-    goToPreviousSheet         : 23,
-    moveToTopCell             : 24,
-    moveToNextSheet           : 25,
-    moveToLeftEdgeCell        : 26,
-    selectToLeftEdgeCell      : 27,
-    moveToLeftCell            : 28,
-    selectToLeftCell          : 29,
-    moveToRightEdgeCell       : 30,
-    selectToRightEdgeCell     : 31,
-    moveToRightCell           : 32,
-    selectToRightCell         : 33,
-    selectToTopCell           : 34,
-    moveToUpCell              : 35,
-    selectToUpCell            : 36,
-    moveToBottomCell          : 37,
-    selectToBottomCell        : 38,
-    moveToDownCell            : 39,
-    selectToDownCell          : 40,
-    moveToFirstColumn         : 41,
-    selectToFirstColumn       : 42,
-    moveToLeftEdgeTop         : 43,
-    selectToLeftEdgeTop       : 44,
-    moveToRightBottomEdge     : 45,
-    selectToRightBottomEdge   : 46,
-    setNumberFormat           : 47,
-    setTimeFormat             : 48,
-    setDateFormat             : 49,
-    setCurrencyFormat         : 50,
-    setPercentFormat          : 51,
-    setStrikethrough          : 52,
-    setExponentialFormat      : 53,
-    setBold                   : 54,
-    setItalic                 : 55,
-    setUnderline              : 56,
-    setGeneralFormat          : 57,
-    redo                      : 58,
-    undo                      : 59,
-    print                     : 60,
-    addSum                    : 61,
-    moveToUpperCell           : 62,
-    contextMenu               : 63,
-    moveToLowerCell           : 64,
-    selectToLowerCell         : 65,
-    selectToUpperCell         : 66,
-    showFilterOptions         : 67,
-    showAutoComplete          : 68,
-    showDataValidation        : 69,
-    increaseFontSize          : 70,
-    decreaseFontSize          : 71,
-    selectAll                 : 72,
-    save                      : 73
+  const c_oReadingOrderTypes = {
+    Context: 0,
+    LTR: 1,
+    RTL: 2
   };
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -731,7 +783,6 @@ var c_oAscPopUpSelectorType = {
   window['AscCommonExcel'].c_oAscCellEditorSelectState = c_oAscCellEditorSelectState;
   window['AscCommonExcel'].c_oAscCanChangeColWidth = c_oAscCanChangeColWidth;
   window['AscCommonExcel'].c_oAscMergeType = c_oAscMergeType;
-  window['AscCommonExcel'].c_oAscPaneState = c_oAscPaneState;
   window['AscCommonExcel'].c_oTargetType = c_oTargetType;
   window['AscCommonExcel'].c_oAscCoAuthoringMeBorderColor = c_oAscCoAuthoringMeBorderColor;
   window['AscCommonExcel'].c_oAscCoAuthoringOtherBorderColor = c_oAscCoAuthoringOtherBorderColor;
@@ -992,50 +1043,6 @@ var c_oAscPopUpSelectorType = {
   prot['set'] = prot.set;
   prot['clear'] = prot.clear;
   prot['add'] = prot.add;
-  window['Asc']['c_oAscHeaderFooterField'] = window['Asc'].c_oAscHeaderFooterField = c_oAscHeaderFooterField;
-  prot = c_oAscHeaderFooterField;
-  prot['pageNumber'] = prot.pageNumber;
-  prot['pageCount'] = prot.pageCount;
-  prot['sheetName'] = prot.sheetName;
-  prot['fileName'] = prot.fileName;
-  prot['filePath'] = prot.filePath;
-  prot['date'] = prot.date;
-  prot['time'] = prot.time;
-  prot['lineBreak'] = prot.lineBreak;
-  prot['picture'] = prot.picture;
-  prot['text'] = prot.text;
-  window['Asc']['c_oAscPageHFType'] = window['Asc'].c_oAscPageHFType = c_oAscPageHFType;
-  prot = c_oAscPageHFType;
-  prot['firstHeader'] = prot.firstHeader;
-  prot['oddHeader'] = prot.oddHeader;
-  prot['evenHeader'] = prot.evenHeader;
-  prot['firstFooter'] = prot.firstFooter;
-  prot['oddFooter'] = prot.oddFooter;
-  prot['evenFooter'] = prot.evenFooter;
-
-  window['Asc']['c_oAscHeaderFooterType'] = window['Asc'].c_oAscHeaderFooterType = c_oAscHeaderFooterType;
-  prot = c_oAscHeaderFooterType;
-  prot['first'] = prot.first;
-  prot['odd'] = prot.odd;
-  prot['even'] = prot.even;
-
-  window['Asc']['c_oAscHeaderFooterPresets'] = window['Asc'].c_oAscHeaderFooterPresets = c_oAscHeaderFooterPresets;
-  prot = c_oAscHeaderFooterPresets;
-  prot['none'] = prot.none;
-  prot['page'] = prot.page;
-  prot['pageOfQuestion'] = prot.pageOfQuestion;
-  prot['sheet'] = prot.sheet;
-  prot['confidential'] = prot.confidential;
-  prot['bookName'] = prot.bookName;
-  prot['sheetPage'] = prot.sheetPage;
-  prot['sheetConfidentialPage'] = prot.sheetConfidentialPage;
-  prot['bookNamePage'] = prot.bookNamePage;
-  prot['pageSheet'] = prot.pageSheet;
-  prot['pageBook'] = prot.pageBook;
-  prot['pageBookName'] = prot.pageBookName;
-  prot['userPageDate'] = prot.userPageDate;
-  prot['preparedUserDatePage'] = prot.preparedUserDatePage;
-  prot['custom'] = prot.custom;
 
   window['Asc']['c_oAscPrintTitlesRangeType'] = window['Asc'].c_oAscPrintTitlesRangeType = c_oAscPrintTitlesRangeType;
   prot = c_oAscPrintTitlesRangeType;
@@ -1115,11 +1122,6 @@ var c_oAscPopUpSelectorType = {
   prot['Range'] = prot.Range;
 
   window['Asc']['c_nAscMaxAddCellWatchesCount'] = window['Asc'].c_nAscMaxAddCellWatchesCount = c_nAscMaxAddCellWatchesCount;
-  window['Asc']['c_oAscExternalReferenceType'] = window['Asc'].c_oAscExternalReferenceType = c_oAscExternalReferenceType;
-  prot = c_oAscExternalReferenceType;
-  prot['referenceData'] = prot.referenceData;
-  prot['link'] = prot.link;
-  prot['path'] = prot.path;
 
   window['Asc']['c_oAscPageBreaksDisableType'] = window['Asc'].c_oAscPageBreaksDisableType = c_oAscPageBreaksDisableType;
   prot = c_oAscPageBreaksDisableType;
@@ -1177,86 +1179,194 @@ var c_oAscPopUpSelectorType = {
   prot['common'] = prot.common;
   prot['changeSeries'] = prot.changeSeries;
 
+	window['Asc']['c_oAscSpreadsheetShortcutType'] = window['Asc'].c_oAscSpreadsheetShortcutType = c_oAscSpreadsheetShortcutType;
+	prot = c_oAscSpreadsheetShortcutType;
+	prot["OpenFilePanel"] = prot.OpenFilePanel;
+	prot["OpenFindDialog"] = prot.OpenFindDialog;
+	prot["OpenFindAndReplaceMenu"] = prot.OpenFindAndReplaceMenu;
+	prot["OpenCommentsPanel"] = prot.OpenCommentsPanel;
+	prot["OpenCommentField"] = prot.OpenCommentField;
+	prot["OpenChatPanel"] = prot.OpenChatPanel;
+	prot["Save"] = prot.Save;
+	prot["PrintPreviewAndPrint"] = prot.PrintPreviewAndPrint;
+	prot["DownloadAs"] = prot.DownloadAs;
+	prot["OpenHelpMenu"] = prot.OpenHelpMenu;
+	prot["OpenExistingFile"] = prot.OpenExistingFile;
+	prot["NextFileTab"] = prot.NextFileTab;
+	prot["PreviousFileTab"] = prot.PreviousFileTab;
+	prot["CloseFile"] = prot.CloseFile;
+	prot["OpenContextMenu"] = prot.OpenContextMenu;
+	prot["CloseMenu"] = prot.CloseMenu;
+	prot["Zoom100"] = prot.Zoom100;
+	prot["CellMoveUp"] = prot.CellMoveUp;
+	prot["CellMoveDown"] = prot.CellMoveDown;
+	prot["CellMoveLeft"] = prot.CellMoveLeft;
+	prot["CellMoveRight"] = prot.CellMoveRight;
+	prot["CellMoveActiveCellDown"] = prot.CellMoveActiveCellDown;
+	prot["CellMoveActiveCellUp"] = prot.CellMoveActiveCellUp;
+	prot["CellMoveActiveCellRight"] = prot.CellMoveActiveCellRight;
+	prot["CellMoveActiveCellLeft"] = prot.CellMoveActiveCellLeft;
+	prot["CellMoveLeftNonBlank"] = prot.CellMoveLeftNonBlank;
+	prot["CellMoveFirstColumn"] = prot.CellMoveFirstColumn;
+	prot["CellMoveRightNonBlank"] = prot.CellMoveRightNonBlank;
+	prot["CellMoveBottomNonBlank"] = prot.CellMoveBottomNonBlank;
+	prot["CellMoveBottomEdge"] = prot.CellMoveBottomEdge;
+	prot["CellMoveTopNonBlank"] = prot.CellMoveTopNonBlank;
+	prot["CellMoveTopEdge"] = prot.CellMoveTopEdge;
+	prot["CellMoveFirstCell"] = prot.CellMoveFirstCell;
+	prot["CellMoveEndSpreadsheet"] = prot.CellMoveEndSpreadsheet;
+	prot["PreviousWorksheet"] = prot.PreviousWorksheet;
+	prot["NextWorksheet"] = prot.NextWorksheet;
+	prot["ZoomIn"] = prot.ZoomIn;
+	prot["ZoomOut"] = prot.ZoomOut;
+	prot["NavigatePreviousControl"] = prot.NavigatePreviousControl;
+	prot["NavigateNextControl"] = prot.NavigateNextControl;
+	prot["SelectColumn"] = prot.SelectColumn;
+	prot["SelectRow"] = prot.SelectRow;
+	prot["SelectOneCellRight"] = prot.SelectOneCellRight;
+	prot["SelectOneCellLeft"] = prot.SelectOneCellLeft;
+	prot["SelectOneCellUp"] = prot.SelectOneCellUp;
+	prot["SelectOneCellDown"] = prot.SelectOneCellDown;
+	prot["SelectCursorBeginningRow"] = prot.SelectCursorBeginningRow;
+	prot["SelectCursorEndRow"] = prot.SelectCursorEndRow;
+	prot["SelectNextNonblankRight"] = prot.SelectNextNonblankRight;
+	prot["SelectNextNonblankLeft"] = prot.SelectNextNonblankLeft;
+	prot["SelectNextNonblankUp"] = prot.SelectNextNonblankUp;
+	prot["SelectNextNonblankDown"] = prot.SelectNextNonblankDown;
+	prot["SelectBeginningWorksheet"] = prot.SelectBeginningWorksheet;
+	prot["SelectLastUsedCell"] = prot.SelectLastUsedCell;
+	prot["SelectNearestNonblankRight"] = prot.SelectNearestNonblankRight;
+	prot["SelectNonblankLeft"] = prot.SelectNonblankLeft;
+	prot["SelectFirstColumn"] = prot.SelectFirstColumn;
+	prot["SelectNearestNonblankDown"] = prot.SelectNearestNonblankDown;
+	prot["SelectNearestNonblankUp"] = prot.SelectNearestNonblankUp;
+	prot["SelectDownOneScreen"] = prot.SelectDownOneScreen;
+	prot["SelectUpOneScreen"] = prot.SelectUpOneScreen;
+	prot["EditUndo"] = prot.EditUndo;
+	prot["EditRedo"] = prot.EditRedo;
+	prot["Cut"] = prot.Cut;
+	prot["Copy"] = prot.Copy;
+	prot["Paste"] = prot.Paste;
+	prot["PasteOnlyFormula"] = prot.PasteOnlyFormula;
+	prot["PasteFormulaNumberFormat"] = prot.PasteFormulaNumberFormat;
+	prot["PasteFormulaAllFormatting"] = prot.PasteFormulaAllFormatting;
+	prot["PasteFormulaNoBorders"] = prot.PasteFormulaNoBorders;
+	prot["PasteFormulaColumnWidth"] = prot.PasteFormulaColumnWidth;
+	prot["Transpose"] = prot.Transpose;
+	prot["PasteOnlyValue"] = prot.PasteOnlyValue;
+	prot["PasteValueNumberFormat"] = prot.PasteValueNumberFormat;
+	prot["PasteValueAllFormatting"] = prot.PasteValueAllFormatting;
+	prot["PasteOnlyFormatting"] = prot.PasteOnlyFormatting;
+	prot["PasteLink"] = prot.PasteLink;
+	prot["InsertHyperlink"] = prot.InsertHyperlink;
+	prot["VisitHyperlink"] = prot.VisitHyperlink;
+	prot["Bold"] = prot.Bold;
+	prot["Italic"] = prot.Italic;
+	prot["Underline"] = prot.Underline;
+	prot["Strikeout"] = prot.Strikeout;
+	prot["EditOpenCellEditor"] = prot.EditOpenCellEditor;
+	prot["ToggleAutoFilter"] = prot.ToggleAutoFilter;
+	prot["OpenFilterWindow"] = prot.OpenFilterWindow;
+	prot["FormatAsTableTemplate"] = prot.FormatAsTableTemplate;
+	prot["CompleteCellEntryMoveDown"] = prot.CompleteCellEntryMoveDown;
+	prot["CompleteCellEntryMoveUp"] = prot.CompleteCellEntryMoveUp;
+	prot["CompleteCellEntryMoveRight"] = prot.CompleteCellEntryMoveRight;
+	prot["CompleteCellEntryMoveLeft"] = prot.CompleteCellEntryMoveLeft;
+	prot["CompleteCellEntryStay"] = prot.CompleteCellEntryStay;
+	prot["FillSelectedCellRange"] = prot.FillSelectedCellRange;
+	prot["CellStartNewLine"] = prot.CellStartNewLine;
+	prot["EquationAddPlaceholder"] = prot.EquationAddPlaceholder;
+	prot["CellEntryCancel"] = prot.CellEntryCancel;
+	prot["DeleteLeftChar"] = prot.DeleteLeftChar;
+	prot["DeleteRightChar"] = prot.DeleteRightChar;
+	prot["ClearActiveCellContent"] = prot.ClearActiveCellContent;
+	prot["ClearSelectedCellsContent"] = prot.ClearSelectedCellsContent;
+	prot["OpenInsertCellsWindow"] = prot.OpenInsertCellsWindow;
+	prot["OpenDeleteCellsWindow"] = prot.OpenDeleteCellsWindow;
+	prot["CellInsertDate"] = prot.CellInsertDate;
+	prot["CellInsertTime"] = prot.CellInsertTime;
+	prot["CellAddSeparator"] = prot.CellAddSeparator;
+	prot["AutoFill"] = prot.AutoFill;
+	prot["DeleteLeftWord"] = prot.DeleteLeftWord;
+	prot["DeleteRightWord"] = prot.DeleteRightWord;
+	prot["EditSelectAll"] = prot.EditSelectAll;
+	prot["MoveCharacterLeft"] = prot.MoveCharacterLeft;
+	prot["MoveCharacterRight"] = prot.MoveCharacterRight;
+	prot["MoveCursorLineUp"] = prot.MoveCursorLineUp;
+	prot["MoveCursorLineDown"] = prot.MoveCursorLineDown;
+	prot["SelectCharacterRight"] = prot.SelectCharacterRight;
+	prot["SelectCharacterLeft"] = prot.SelectCharacterLeft;
+	prot["MoveWordLeft"] = prot.MoveWordLeft;
+	prot["MoveWordRight"] = prot.MoveWordRight;
+	prot["SelectWordLeft"] = prot.SelectWordLeft;
+	prot["SelectWordRight"] = prot.SelectWordRight;
+	prot["MoveBeginningText"] = prot.MoveBeginningText;
+	prot["MoveEndText"] = prot.MoveEndText;
+	prot["SelectBeginningText"] = prot.SelectBeginningText;
+	prot["SelectEndText"] = prot.SelectEndText;
+	prot["MoveBeginningLine"] = prot.MoveBeginningLine;
+	prot["MoveEndLine"] = prot.MoveEndLine;
+	prot["SelectBeginningLine"] = prot.SelectBeginningLine;
+	prot["SelectEndLine"] = prot.SelectEndLine;
+	prot["SelectLineUp"] = prot.SelectLineUp;
+	prot["SelectLineDown"] = prot.SelectLineDown;
+	prot["RefreshSelectedPivots"] = prot.RefreshSelectedPivots;
+	prot["RefreshAllPivots"] = prot.RefreshAllPivots;
+	prot["SlicerClearSelectedValues"] = prot.SlicerClearSelectedValues;
+	prot["SlicerSwitchMultiSelect"] = prot.SlicerSwitchMultiSelect;
+	prot["FormatTableAddSummaryRow"] = prot.FormatTableAddSummaryRow;
+	prot["OpenInsertFunctionDialog"] = prot.OpenInsertFunctionDialog;
+	prot["CellInsertSumFunction"] = prot.CellInsertSumFunction;
+	prot["RecalculateAll"] = prot.RecalculateAll;
+	prot["RecalculateActiveSheet"] = prot.RecalculateActiveSheet;
+	prot["ShowFormulas"] = prot.ShowFormulas;
+	prot["CellEditorSwitchReference"] = prot.CellEditorSwitchReference;
+	prot["OpenNumberFormatDialog"] = prot.OpenNumberFormatDialog;
+	prot["CellGeneralFormat"] = prot.CellGeneralFormat;
+	prot["CellCurrencyFormat"] = prot.CellCurrencyFormat;
+	prot["CellPercentFormat"] = prot.CellPercentFormat;
+	prot["CellExponentialFormat"] = prot.CellExponentialFormat;
+	prot["CellDateFormat"] = prot.CellDateFormat;
+	prot["CellTimeFormat"] = prot.CellTimeFormat;
+	prot["CellNumberFormat"] = prot.CellNumberFormat;
+	prot["EditShape"] = prot.EditShape;
+	prot["EditChart"] = prot.EditChart;
+	prot["MoveShapeLittleStepRight"] = prot.MoveShapeLittleStepRight;
+	prot["MoveShapeLittleStepLeft"] = prot.MoveShapeLittleStepLeft;
+	prot["MoveShapeLittleStepUp"] = prot.MoveShapeLittleStepUp;
+	prot["MoveShapeLittleStepBottom"] = prot.MoveShapeLittleStepBottom;
+	prot["MoveShapeBigStepLeft"] = prot.MoveShapeBigStepLeft;
+	prot["MoveShapeBigStepRight"] = prot.MoveShapeBigStepRight;
+	prot["MoveShapeBigStepUp"] = prot.MoveShapeBigStepUp;
+	prot["MoveShapeBigStepBottom"] = prot.MoveShapeBigStepBottom;
+	prot["MoveFocusNextObject"] = prot.MoveFocusNextObject;
+	prot["MoveFocusPreviousObject"] = prot.MoveFocusPreviousObject;
+	prot["DrawingAddTab"] = prot.DrawingAddTab;
+	prot["Subscript"] = prot.Subscript;
+	prot["Superscript"] = prot.Superscript;
+	prot["IncreaseFontSize"] = prot.IncreaseFontSize;
+	prot["DecreaseFontSize"] = prot.DecreaseFontSize;
+	prot["CenterPara"] = prot.CenterPara;
+	prot["JustifyPara"] = prot.JustifyPara;
+	prot["RightPara"] = prot.RightPara;
+	prot["LeftPara"] = prot.LeftPara;
+	prot["EndParagraph"] = prot.EndParagraph;
+	prot["AddLineBreak"] = prot.AddLineBreak;
+	prot["RemoveGraphicalObject"] = prot.RemoveGraphicalObject;
+	prot["ExitAddingShapesMode"] = prot.ExitAddingShapesMode;
+	prot["SpeechWorker"] = prot.SpeechWorker;
+	prot["EnDash"] = prot.EnDash;
+
   window['Asc']['c_oAscCalcMode'] = window['Asc'].c_oAscCalcMode = c_oAscCalcMode;
   prot = c_oAscCalcMode;
   prot['auto'] = prot.auto;
   prot['autoNoTable'] = prot.autoNoTable;
   prot['manual'] = prot.manual;
 
-
-  window['Asc']['c_oAscCellShortcutType'] = window['Asc'].c_oAscCellShortcutType = c_oAscCellShortcutType;
-  prot = c_oAscCellShortcutType;
-  prot['refreshAllConnections']       = c_oAscCellShortcutType.refreshAllConnections;
-  prot['refreshSelectedConnections']  = c_oAscCellShortcutType.refreshSelectedConnections;
-  prot['changeFormatTableInfo']       = c_oAscCellShortcutType.changeFormatTableInfo;
-  prot['calculateAll']                = c_oAscCellShortcutType.calculateAll;
-  prot['calculateActiveSheet']        = c_oAscCellShortcutType.calculateActiveSheet;
-  prot['focusOnCellEditor']           = c_oAscCellShortcutType.focusOnCellEditor;
-  prot['addDate']                     = c_oAscCellShortcutType.addDate;
-  prot['addTime']                     = c_oAscCellShortcutType.addTime;
-  prot['removeActiveCell']            = c_oAscCellShortcutType.removeActiveCell;
-  prot['emptyRange']                  = c_oAscCellShortcutType.emptyRange;
-  prot['moveActiveCellToLeft']        = c_oAscCellShortcutType.moveActiveCellToLeft;
-  prot['moveActiveCellToRight']       = c_oAscCellShortcutType.moveActiveCellToRight;
-  prot['moveActiveCellToDown']        = c_oAscCellShortcutType.moveActiveCellToDown;
-  prot['moveActiveCellToUp']          = c_oAscCellShortcutType.moveActiveCellToUp;
-  prot['reset']                       = c_oAscCellShortcutType.reset;
-  prot['disableNumLock']              = c_oAscCellShortcutType.disableNumLock;
-  prot['disableScrollLock']           = c_oAscCellShortcutType.disableScrollLock;
-  prot['selectColumn']                = c_oAscCellShortcutType.selectColumn;
-  prot['selectRow']                   = c_oAscCellShortcutType.selectRow;
-  prot['selectSheet']                 = c_oAscCellShortcutType.selectSheet;
-  prot['addSeparator']                = c_oAscCellShortcutType.addSeparator;
-  prot['goToPreviousSheet']           = c_oAscCellShortcutType.goToPreviousSheet;
-  prot['moveToTopCell']               = c_oAscCellShortcutType.moveToTopCell;
-  prot['moveToNextSheet']             = c_oAscCellShortcutType.moveToNextSheet;
-  prot['moveToLeftEdgeCell']          = c_oAscCellShortcutType.moveToLeftEdgeCell;
-  prot['selectToLeftEdgeCell']        = c_oAscCellShortcutType.selectToLeftEdgeCell;
-  prot['moveToLeftCell']              = c_oAscCellShortcutType.moveToLeftCell;
-  prot['selectToLeftCell']            = c_oAscCellShortcutType.selectToLeftCell;
-  prot['moveToRightEdgeCell']         = c_oAscCellShortcutType.moveToRightEdgeCell;
-  prot['selectToRightEdgeCell']       = c_oAscCellShortcutType.selectToRightEdgeCell;
-  prot['moveToRightCell']             = c_oAscCellShortcutType.moveToRightCell;
-  prot['selectToRightCell']           = c_oAscCellShortcutType.selectToRightCell;
-  prot['selectToTopCell']             = c_oAscCellShortcutType.selectToTopCell;
-  prot['moveToUpCell']                = c_oAscCellShortcutType.moveToUpCell;
-  prot['selectToUpCell']              = c_oAscCellShortcutType.selectToUpCell;
-  prot['moveToBottomCell']            = c_oAscCellShortcutType.moveToBottomCell;
-  prot['selectToBottomCell']          = c_oAscCellShortcutType.selectToBottomCell;
-  prot['moveToDownCell']              = c_oAscCellShortcutType.moveToDownCell;
-  prot['selectToDownCell']            = c_oAscCellShortcutType.selectToDownCell;
-  prot['moveToFirstColumn']           = c_oAscCellShortcutType.moveToFirstColumn;
-  prot['selectToFirstColumn']         = c_oAscCellShortcutType.selectToFirstColumn;
-  prot['moveToLeftEdgeTop']           = c_oAscCellShortcutType.moveToLeftEdgeTop;
-  prot['selectToLeftEdgeTop']         = c_oAscCellShortcutType.selectToLeftEdgeTop;
-  prot['moveToRightBottomEdge']       = c_oAscCellShortcutType.moveToRightBottomEdge;
-  prot['selectToRightBottomEdge']     = c_oAscCellShortcutType.selectToRightBottomEdge;
-  prot['setNumberFormat']             = c_oAscCellShortcutType.setNumberFormat;
-  prot['setTimeFormat']               = c_oAscCellShortcutType.setTimeFormat;
-  prot['setDateFormat']               = c_oAscCellShortcutType.setDateFormat;
-  prot['setCurrencyFormat']           = c_oAscCellShortcutType.setCurrencyFormat;
-  prot['setPercentFormat']            = c_oAscCellShortcutType.setPercentFormat;
-  prot['setStrikethrough']            = c_oAscCellShortcutType.setStrikethrough;
-  prot['setExponentialFormat']        = c_oAscCellShortcutType.setExponentialFormat;
-  prot['setBold']                     = c_oAscCellShortcutType.setBold;
-  prot['setItalic']                   = c_oAscCellShortcutType.setItalic;
-  prot['setUnderline']                = c_oAscCellShortcutType.setUnderline;
-  prot['setGeneralFormat']            = c_oAscCellShortcutType.setGeneralFormat;
-  prot['redo']                        = c_oAscCellShortcutType.redo;
-  prot['undo']                        = c_oAscCellShortcutType.undo;
-  prot['print']                       = c_oAscCellShortcutType.print;
-  prot['addSum']                      = c_oAscCellShortcutType.addSum;
-  prot['moveToUpperCell']             = c_oAscCellShortcutType.moveToUpperCell;
-  prot['contextMenu']                 = c_oAscCellShortcutType.contextMenu;
-  prot['moveToLowerCell']             = c_oAscCellShortcutType.moveToLowerCell;
-  prot['selectToLowerCell']           = c_oAscCellShortcutType.selectToLowerCell;
-  prot['selectToUpper Cell']          = c_oAscCellShortcutType.selectToUpperCell;
-  prot['showFilterOptions']           = c_oAscCellShortcutType.showFilterOptions;
-  prot['showAutoComplete']            = c_oAscCellShortcutType.showAutoComplete;
-  prot['showDataValidation']          = c_oAscCellShortcutType.showDataValidation;
-  prot['increaseFontSize']            = c_oAscCellShortcutType.increaseFontSize;
-  prot['decreaseFontSize']            = c_oAscCellShortcutType.decreaseFontSize;
-  prot['selectAll']                   = c_oAscCellShortcutType.selectAll;
-  prot['save']                        = c_oAscCellShortcutType.save;
+  window['Asc']['c_oReadingOrderTypes'] = window['Asc'].c_oReadingOrderTypes = c_oReadingOrderTypes;
+  prot = c_oReadingOrderTypes;
+  prot['Context'] = prot.Context;
+  prot['LTR'] = prot.LTR;
+  prot['RTL'] = prot.RTL;
 
 })(window);

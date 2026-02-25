@@ -68,7 +68,7 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
 	}
 
     // Если изменения происходят в специальном пустом параграфе-конце секции, тогда запускаем обычный пересчет
-    if (this.bFromDocument && this.LogicDocument && (!this.LogicDocument.Pages[this.Get_StartPage_Absolute()] || true === this.LogicDocument.Pages[this.Get_StartPage_Absolute()].Check_EndSectionPara(this)))
+    if (this.bFromDocument && this.LogicDocument && (!this.LogicDocument.Pages[this.GetAbsoluteStartPage()] || true === this.LogicDocument.Pages[this.GetAbsoluteStartPage()].Check_EndSectionPara(this)))
         return [];
 
     // Если параграф - рамка с автошириной, надо пересчитывать по обычному
@@ -107,7 +107,7 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
             && isPageBreakLastLine2 === (this.Lines[this.Lines.length - 1].Info & paralineinfo_BreakRealPage))
         {
             //console.log("Recalc Fast WholeParagraph 1 page");
-            return [this.Get_AbsolutePage(0)];
+            return [this.GetAbsolutePage(0)];
         }
     }
     else if (2 === this.Pages.length)
@@ -182,12 +182,12 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
 
         if (true === StartFromNewPage)
         {
-            return [this.Get_AbsolutePage(1)];
+            return [this.GetAbsolutePage(1)];
         }
         else
         {
-            var PageAbs0 = this.Get_AbsolutePage(0);
-            var PageAbs1 = this.Get_AbsolutePage(1);
+            var PageAbs0 = this.GetAbsolutePage(0);
+            var PageAbs1 = this.GetAbsolutePage(1);
             if (PageAbs0 !== PageAbs1)
                 return [PageAbs0, PageAbs1];
             else
@@ -413,7 +413,7 @@ Paragraph.prototype.RecalculateFastRunRange = function(oParaPos)
 
 	//console.log("Recalc Fast Range");
 
-    return this.Get_AbsolutePage(Result);
+    return this.GetAbsolutePage(Result);
 };
 
 /**
@@ -450,14 +450,21 @@ Paragraph.prototype.Recalculate_Page = function(CurPage, isStart, isFast)
     this.private_CheckColumnBreak(CurPage);
 
     this.Parent.RecalcInfo.Reset_WidowControl();
-
-    if (RecalcResult & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
-		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
-
-    if (RecalcResult & recalcresult_NextElement)
+	
+	if (RecalcResult & recalcresult_NextElement)
+	{
+		if (window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
+			window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+		
 		this.UpdateLineNumbersInfo();
-
-    return RecalcResult;
+		
+		if (this.Get_SectionPr())
+			RecalcResult = recalcresult_NextSection;
+	}
+	
+	this.Sections[this.Sections.length - 1].endPage = CurPage;
+	
+	return RecalcResult;
 };
 
 /**
@@ -549,8 +556,6 @@ Paragraph.prototype.recalculateRangeFast = function(iRange, iLine)
 };
 Paragraph.prototype.private_RecalculateFastRange       = function(PRS, CurRange, CurLine)
 {
-    var XStart, YStart, XLimit, YLimit;
-
     // Определим номер страницы
     var CurPage  = 0;
     var PagesLen = this.Pages.length;
@@ -568,23 +573,13 @@ Paragraph.prototype.private_RecalculateFastRange       = function(PRS, CurRange,
         return -1;
 
     var ParaPr = this.Get_CompiledPr2(false).ParaPr;
-
-    if ( 0 === CurPage )//|| ( undefined != this.Get_FramePr() && this.Parent instanceof CDocument ) )
-    {
-        XStart = this.X;
-        YStart = this.Y;
-        XLimit = this.XLimit;
-        YLimit = this.YLimit;
-    }
-    else
-    {
-        var PageStart = this.Parent.Get_PageContentStartPos2(this.PageNum, this.ColumnNum, CurPage, this.Index);
-
-        XStart = PageStart.X;
-        YStart = PageStart.Y;
-        XLimit = PageStart.XLimit;
-        YLimit = PageStart.YLimit;
-    }
+	
+	let contentFrame = this.GetPageContentFrame(CurPage);
+	
+	let XStart = contentFrame.X;
+	let YStart = contentFrame.Y;
+	let XLimit = contentFrame.XLimit;
+	let YLimit = contentFrame.YLimit;
 
     PRS.XStart = XStart;
     PRS.YStart = YStart;
@@ -819,7 +814,7 @@ Paragraph.prototype.private_RecalculatePageXY          = function(CurLine, CurPa
     }
     else
     {
-        var PageStart = this.Parent.Get_PageContentStartPos2(this.PageNum, this.ColumnNum, CurPage, this.Index);
+        var PageStart = this.GetPageContentFrame(CurPage);
 
         XStart = PageStart.X;
         YStart = PageStart.Y;
@@ -843,6 +838,8 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
 	if (undefined !== this.Get_SectionPr() && true === this.IsEmpty())
 		return true;
 
+	let logicDocument = this.GetLogicDocument();
+	
 	var isParentDocument = this.Parent instanceof CDocument;
 	var isParentBlockSdt = this.Parent instanceof CDocumentContent
 		&& this.Parent.Parent instanceof CBlockLevelSdt
@@ -852,7 +849,7 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
     if (isParentDocument || isParentBlockSdt)
     {
         // Начинаем параграф с новой страницы
-        var PageRelative = this.private_GetRelativePageIndex(CurPage) - this.Get_StartPage_Relative();
+        var PageRelative = this.GetRelativePage(CurPage) - this.GetRelativeStartPage();
         if (0 === PageRelative && true === ParaPr.PageBreakBefore)
         {
             // Если это первый элемент документа или секции, тогда не надо начинать его с новой страницы.
@@ -887,9 +884,9 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
             }
             else if (this.Parent === this.LogicDocument && type_Paragraph === Prev.GetType() && undefined !== Prev.Get_SectionPr())
             {
-                var PrevSectPr = Prev.Get_SectionPr();
-                var CurSectPr = this.LogicDocument.SectionsInfo.Get_SectPr(this.Index).SectPr;
-                if (c_oAscSectionBreakType.Continuous !== CurSectPr.Get_Type() || true !== CurSectPr.Compare_PageSize(PrevSectPr))
+				let prevSectPr = Prev.Get_SectionPr();
+				let curSectPr  = logicDocument.GetSections().GetNextSectPr(prevSectPr);
+                if (c_oAscSectionBreakType.Continuous !== curSectPr.Get_Type() || true !== curSectPr.Compare_PageSize(prevSectPr))
                     bNeedPageBreak = false;
             }
 
@@ -943,9 +940,9 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
 			var oFootnotes = this.LogicDocument ? this.LogicDocument.Footnotes : null;
 			if (null !== PrevElement && type_Paragraph === PrevElement.Get_Type() && true === PrevElement.Is_Empty() && undefined !== PrevElement.Get_SectionPr())
 			{
-				var PrevSectPr = PrevElement.Get_SectionPr();
-				var CurSectPr  = this.LogicDocument.SectionsInfo.Get_SectPr(this.Index).SectPr;
-				if (c_oAscSectionBreakType.Continuous === CurSectPr.Get_Type() && true === CurSectPr.Compare_PageSize(PrevSectPr) && oFootnotes && oFootnotes.IsEmptyPage(PrevElement.GetAbsolutePage(PrevElement.GetPagesCount() - 1)))
+				let prevSectPr = PrevElement.Get_SectionPr();
+				let curSectPr  = logicDocument.GetSections().GetNextSectPr(prevSectPr);
+				if (c_oAscSectionBreakType.Continuous === curSectPr.Get_Type() && true === curSectPr.Compare_PageSize(prevSectPr) && oFootnotes && oFootnotes.IsEmptyPage(PrevElement.GetAbsolutePage(PrevElement.GetPagesCount() - 1)))
 					PrevElement = PrevElement.Get_DocumentPrev();
 			}
 
@@ -960,9 +957,9 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
 				var bNeedPageBreak = true;
 				if (type_Paragraph === PrevElement.GetType() && undefined !== PrevElement.Get_SectionPr())
 				{
-					var PrevSectPr = PrevElement.Get_SectionPr();
-					var CurSectPr  = this.LogicDocument.SectionsInfo.Get_SectPr(this.Index).SectPr;
-					if (c_oAscSectionBreakType.Continuous !== CurSectPr.Get_Type() || true !== CurSectPr.Compare_PageSize(PrevSectPr) || (oFootnotes && !oFootnotes.IsEmptyPage(PrevElement.GetAbsolutePage(PrevElement.GetPagesCount() - 1))))
+					let prevSectPr = PrevElement.Get_SectionPr();
+					let curSectPr  = logicDocument.GetSections().GetNextSectPr(prevSectPr);
+					if (c_oAscSectionBreakType.Continuous !== curSectPr.Get_Type() || true !== curSectPr.Compare_PageSize(prevSectPr) || (oFootnotes && !oFootnotes.IsEmptyPage(PrevElement.GetAbsolutePage(PrevElement.GetPagesCount() - 1))))
 						bNeedPageBreak = false;
 				}
 
@@ -1283,13 +1280,43 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 
     // Строка пустая, у нее надо выставить ненулевую высоту. Делаем как Word, выставляем высоту по размеру
     // текста, на котором закончилась данная строка.
-    if ( true === PRS.EmptyLine || PRS.LineAscent < 0.001 || (true === PRS.End && true !== PRS.TextOnLine))
+    if ( true === PRS.EmptyLine || (PRS.LineAscent < 0.001 && PRS.LineDescent < 0.001) || (true === PRS.End && true !== PRS.TextOnLine))
 	{
-		var LastItem = (true === PRS.End ? this.Content[this.Content.length - 1] : this.Content[this.Lines[CurLine].Ranges[this.Lines[CurLine].Ranges.length - 1].EndPos]);
-
-		if (true === PRS.End)
+		let useParaEnd = true;
+		if (true !== PRS.End)
 		{
-			// TODO: Как только переделаем para_End переделать тут
+			let lastRange = this.Lines[CurLine].Ranges.length - 1;
+			let lastItem  = this.Content[this.Lines[CurLine].Ranges[lastRange].EndPos];
+			let lastRun   = lastItem.Get_LastRunInRange(CurLine, lastRange);
+			if (lastRun && lastRun instanceof AscWord.CRun)
+			{
+				let metrics = lastRun.getTextMetrics(true);
+				
+				let textDescent = metrics.Descent;
+				let textAscent  = metrics.Ascent + metrics.LineGap;
+				let textAscent2 = metrics.Ascent;
+				
+				if (PRS.LineTextAscent < textAscent)
+					PRS.LineTextAscent = textAscent;
+				
+				if (PRS.LineTextAscent2 < textAscent2)
+					PRS.LineTextAscent2 = textAscent2;
+				
+				if (PRS.LineTextDescent < textDescent)
+					PRS.LineTextDescent = textDescent;
+				
+				if (PRS.LineAscent < textAscent)
+					PRS.LineAscent = textAscent;
+				
+				if (PRS.LineDescent < textDescent)
+					PRS.LineDescent = textDescent;
+				
+				useParaEnd = false;
+			}
+		}
+		
+		if (useParaEnd || (PRS.LineAscent < 0.001 && PRS.LineDescent < 0.001))
+		{
 			let oTextPr  = this.GetParaEndCompiledPr();
 			let oMetrics = oTextPr.GetTextMetrics(oTextPr.CS || oTextPr.RTL ? AscWord.fontslot_CS : AscWord.fontslot_ASCII, this.GetTheme());
 
@@ -1306,33 +1333,6 @@ Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPa
 
 			if (PRS.LineDescent < EndTextDescent)
 				PRS.LineDescent = EndTextDescent;
-		}
-		else if (undefined !== LastItem)
-		{
-			let lastRun = LastItem.Get_LastRunInRange(PRS.Line, PRS.Range);
-			if (lastRun && lastRun instanceof AscWord.CRun)
-			{
-				let metrics = lastRun.getTextMetrics();
-				
-				let textDescent = metrics.Descent;
-				let textAscent  = metrics.Ascent + metrics.LineGap;
-				let textAscent2 = metrics.Ascent;
-				
-				if (PRS.LineTextAscent < textAscent)
-					PRS.LineTextAscent = textAscent;
-
-				if (PRS.LineTextAscent2 < textAscent2)
-					PRS.LineTextAscent2 = textAscent2;
-
-				if (PRS.LineTextDescent < textDescent)
-					PRS.LineTextDescent = textDescent;
-
-				if (PRS.LineAscent < textAscent)
-					PRS.LineAscent = textAscent;
-
-				if (PRS.LineDescent < textDescent)
-					PRS.LineDescent = textDescent;
-			}
 		}
 	}
 
@@ -1601,7 +1601,7 @@ Paragraph.prototype.private_RecalculateLineBottomBound = function(CurLine, CurPa
     var BreakPageLineEmpty = (LineInfo & paralineinfo_BreakPage && LineInfo & paralineinfo_Empty && !(LineInfo & paralineinfo_End) ? true : false);
     PRS.BreakPageLineEmpty = BreakPageLineEmpty;
 
-    var RealCurPage = this.private_GetRelativePageIndex(CurPage) - this.Get_StartPage_Relative();
+    var RealCurPage = this.GetRelativePage(CurPage) - this.GetRelativeStartPage();
 
     var YLimit = PRS.YLimit;
     var oTopDocument = PRS.TopDocument;
@@ -1673,11 +1673,11 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
     if (this.bFromDocument && PRS.GetTopDocument() === this.LogicDocument && !PRS.IsInTable())
 	{
 		// Заглушка для случая, когда параграф лежит в CBlockLevelSdt
-		PageFields = this.LogicDocument.Get_ColumnFields(PRS.GetTopIndex(), this.Get_AbsoluteColumn(CurPage), this.GetAbsolutePage(CurPage));
+		PageFields = this.LogicDocument.GetColumnFields(this.GetAbsolutePage(CurPage), this.GetAbsoluteColumn(CurPage), this.GetAbsoluteSection(CurPage));
 	}
 	else
 	{
-		PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(CurPage), this.GetAbsolutePage(CurPage)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(CurPage), this.Parent.IsHdrFtr());
+		PageFields = this.Parent.GetColumnFields ? this.Parent.GetColumnFields(this.GetAbsolutePage(CurPage), this.GetAbsoluteColumn(CurPage), this.GetAbsoluteSection(CurPage)) : this.Parent.Get_PageFields(this.GetRelativePage(CurPage), this.Parent.IsHdrFtr());
 	}
 
     var Ranges = PRS.Ranges;
@@ -1695,7 +1695,7 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
 	}
 
     if ( true === this.Use_Wrap() )
-        Ranges2 = this.Parent.CheckRange(Left, Top, Right, Bottom, Top2, Bottom2, PageFields.X, PageFields.XLimit, this.private_GetRelativePageIndex(CurPage), true, PRS.MathNotInline);
+        Ranges2 = this.Parent.CheckRange(Left, Top, Right, Bottom, Top2, Bottom2, PageFields.X, PageFields.XLimit, this.GetRelativePage(CurPage), true, PRS.MathNotInline);
     else
         Ranges2 = [];
 
@@ -1815,7 +1815,14 @@ Paragraph.prototype.private_RecalculateLineEnd         = function(CurLine, CurPa
 
     if (true !== PRS.End)
     {
-        if ( true === PRS.ForceNewPage )
+		if (PRS.ForceNewPageAfter)
+		{
+			this.Pages[CurPage].Set_EndLine(CurLine);
+			this.Pages[CurPage].Bounds.Bottom = AscWord.MAX_MM_VALUE;
+			PRS.RecalcResult = recalcresult_NextPage;
+			return false;
+		}
+        else if (PRS.ForceNewPage)
         {
             this.Pages[CurPage].Set_EndLine( CurLine - 1 );
 
@@ -1828,6 +1835,9 @@ Paragraph.prototype.private_RecalculateLineEnd         = function(CurLine, CurPa
     }
     else
     {
+		if (PRS.ForceNewPageAfter)
+			this.Pages[CurPage].Bounds.Bottom = AscWord.MAX_MM_VALUE;
+		
         // В последней строке могут быть заполнены не все отрезки обтекания. Удаляем лишние.
         if (PRS.Range < PRS.RangesCount)
             this.Lines[CurLine].Ranges.length = PRS.Range + 1;
@@ -1951,15 +1961,24 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
             Item.Recalculate_Range_Width( PRSC, CurLine, CurRange );
         }
 		
-		
-		let jc = ParaPr.Jc;
+
         var JustifyWord  = 0;
         var JustifySpace = 0;
         var RangeWidth   = Range.XEnd - Range.X;
 
         var X = 0;
 		
-		let rtlShift = PRSC.SpaceLen + Range.WBreak + PRSC.Range.WEnd;
+		let rtlShift = PRSC.SpaceLen;
+		let bRtlAlign = ParaPr.Bidi;
+		let jc = ParaPr.Jc;
+	
+		if (!this.bFromDocument && !PRS.isDocumentEditor() && bRtlAlign)
+		{
+			if (jc === AscCommon.align_Left)
+				jc = AscCommon.align_Right;
+			else if (jc === AscCommon.align_Right)
+				jc = AscCommon.align_Left;
+		}
 
         // Если данный отрезок содержит только формулу, тогда прилегание данного отрезка определяется формулой
         var ParaMath = this.Check_Range_OnlyMath(CurRange, CurLine);
@@ -1974,7 +1993,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
         {
 			if (this.Lines[CurLine].Info & paralineinfo_BadLeftTab)
 			{
-				if (ParaPr.Bidi)
+				if (bRtlAlign)
 					X = Range.X + RangeWidth - Range.W - rtlShift;
 				else
 					X = Range.X;
@@ -1989,7 +2008,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 				{
 					case AscCommon.align_Left :
 					{
-						if (ParaPr.Bidi)
+						if (bRtlAlign)
 						{
 							X = Range.X + RangeWidth - Range.W - rtlShift;
 							if (this.IsUseXLimit())
@@ -2003,7 +2022,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 					}
 					case AscCommon.align_Right:
 					{
-						if (ParaPr.Bidi)
+						if (bRtlAlign)
 						{
 							X = Range.X - rtlShift;
 							if (this.IsUseXLimit())
@@ -2020,7 +2039,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 					}
 					case AscCommon.align_Center:
 					{
-						if (ParaPr.Bidi)
+						if (bRtlAlign)
 						{
 							X = Range.X + (RangeWidth - Range.W) / 2 - rtlShift;
 							if (this.IsUseXLimit())
@@ -2036,9 +2055,9 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 					}
 					case AscCommon.align_Justify:
 					{
-						if (Range.WEnd > AscWord.EPSILON || (Range.WBreak > AscWord.EPSILON && isDoNotExpandShiftReturn))
+						if (PRSC.ParaEnd || (PRSC.LineBreak && isDoNotExpandShiftReturn))
 						{
-							if (ParaPr.Bidi)
+							if (bRtlAlign)
 								X = Range.X + RangeWidth - Range.W - rtlShift;
 							else
 								X = Range.X;
@@ -2050,7 +2069,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
                         {
 							// Проверяем по количеству пробелов, т.к., например, в китайском языке пробелов нет, но
 							// каждый иероглиф как отдельное слово идет.
-                            if (1 === RangesCount && !(Line.Info & paralineinfo_End) && !ParaPr.Bidi)
+                            if (1 === RangesCount && !(Line.Info & paralineinfo_End) && !bRtlAlign)
                             {
 								X = Range.X;
                                 // Либо слово целиком занимает строку, либо не целиком, но разница очень мала
@@ -2063,21 +2082,21 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
                                 // TODO: Здесь нужно улучшить проверку, т.к. отключено выравнивание по центру для всей
                                 //       последней строки, а нужно отключить для последнего отрезка, в котором идет
                                 //       конец параграфа.
-								if (ParaPr.Bidi)
+								if (bRtlAlign)
 									X = Range.X + RangeWidth - Range.W - rtlShift;
 								else
 									X = Range.X;
 							}
 							else if (CurRange === RangesCount - 1)
 							{
-								if (ParaPr.Bidi)
+								if (bRtlAlign)
 									X = Range.X - rtlShift;
 								else
 									X = Range.X + RangeWidth - Range.W;
 							}
 							else
 							{
-								if (ParaPr.Bidi)
+								if (bRtlAlign)
 									X = Range.X + (RangeWidth - Range.W) / 2 - rtlShift;
 								else
 									X = Range.X + (RangeWidth - Range.W) / 2;
@@ -2090,7 +2109,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 							// Последний промежуток последней строки не надо растягивать по ширине.
 							if (PRSC.Spaces > 0 && (!(Line.Info & paralineinfo_End) || CurRange !== Line.Ranges.length - 1))
 							{
-								if (ParaPr.Bidi)
+								if (bRtlAlign)
 									X = Range.X - rtlShift;
 								else
 									X = Range.X;
@@ -2099,7 +2118,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 							}
 							else
 							{
-								if (ParaPr.Bidi)
+								if (bRtlAlign)
 									X = Range.X + RangeWidth - Range.W - rtlShift;
 								else
 									X = Range.X;
@@ -2111,7 +2130,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 					}
 					default:
 					{
-						if (ParaPr.Bidi)
+						if (bRtlAlign)
 							X = Range.X + RangeWidth - Range.W - rtlShift;
 						else
 							X = Range.X;
@@ -2123,6 +2142,10 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
 		
         Range.Spaces = PRSC.Spaces + PRSC.SpacesSkip;
 
+		PRSA.Range = Range;
+		PRSA.LeftSpace = X - Range.X;
+		PRSA.RTL = bRtlAlign;
+		
         PRSA.X    = X;
         PRSA.Y    = this.Pages[CurPage].Y + this.Lines[CurLine].Y;
         PRSA.XEnd = Range.XEnd;
@@ -2160,6 +2183,12 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
         }
 		
 		Range.XEndVisible = PRSA.X;
+		
+		if (bRtlAlign)
+		{
+			Range.XVisible -= Range.WBreak + Range.WEnd;
+			Range.XEndVisible -= Range.WBreak + Range.WEnd;
+		}
     }
 
     return PRSA.RecalcResult;
@@ -2323,7 +2352,7 @@ Paragraph.prototype.private_RecalculateRangeEndPos     = function(PRS, PRP, Dept
 
 Paragraph.prototype.private_RecalculateGetTabPos = function(PRS, X, ParaPr, CurPage, NumTab)
 {
-	let contentFrame = this.Parent.Get_PageContentStartPos2(this.PageNum, this.ColumnNum, CurPage, this.Index);
+	let contentFrame = this.GetPageContentFrame(CurPage);
 	
 	let startX = contentFrame.X;
 	let endX   = contentFrame.XLimit;
@@ -2340,7 +2369,7 @@ Paragraph.prototype.private_RecalculateGetTabPos = function(PRS, X, ParaPr, CurP
 	
 	if (this.isRtlDirection())
 	{
-		let pageRel = this.private_GetRelativePageIndex(CurPage);
+		let pageRel = this.GetRelativePage(CurPage);
 		let pageLimits = this.Parent.Get_PageLimits(pageRel);
 		
 		let range = this.Lines[PRS.Line].Ranges[PRS.Range];
@@ -2565,6 +2594,7 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 
 		return (!oPrevElement
 			|| oPrevElement.GetAbsolutePage(oPrevElement.GetPagesCount() - 1) >= PageAbs
+			|| !oPrevElement.IsParagraph()
 			|| oPrevElement.Get_SectionPr());
 	}
 
@@ -2597,14 +2627,11 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 	// тогда добавляем расстояние, а если нет - нет. Но подсчет первой страницы здесь не совпадает с тем, как она
 	// считается для нумерации. Если разрыв секции идет на текущей странице, то первой считается сразу данная страница.
 
-	var LogicDocument = topDocument;
-	var SectionIndex  = LogicDocument.GetSectionIndexByElementIndex(this.Get_Index());
-	var FirstElement  = LogicDocument.GetFirstElementInSection(SectionIndex);
-
-	if (0 !== SectionIndex && (!FirstElement || FirstElement.Get_AbsolutePage(0) === PageAbs))
-		return true;
-
-	return false;
+	let documentSections = topDocument.GetSections();
+	let sectionIndex     = documentSections.GetIndexByElement(this);
+	let firstParagraph   = -1 !== sectionIndex ? documentSections.GetFirstParagraph(sectionIndex) : null;
+	
+	return (0 !== sectionIndex && (!firstParagraph || firstParagraph.GetAbsolutePage(0) === PageAbs));
 };
 
 Paragraph.prototype.ShapeText = function()
@@ -3101,6 +3128,9 @@ CParaLineRange.prototype =
 		this.XEnd        += Dx;
 		this.XVisible    += Dx;
 		this.XEndVisible += Dx;
+		
+		if (this.XEndOrigin)
+			this.XEndOrigin += Dx;
     },
 
     Copy : function()
@@ -3115,6 +3145,9 @@ CParaLineRange.prototype =
         NewRange.EndPos      = this.EndPos;
         NewRange.W           = this.W;
         NewRange.Spaces      = this.Spaces;
+		
+		if (this.XEndOrigin)
+			NewRange.XEndOrigin = this.XEndOrigin;
 
         return NewRange;
     }
@@ -3468,8 +3501,8 @@ CParagraphRecalculateStateWrap.prototype.Reset_Page = function(Paragraph, CurPag
 	this.Paragraph   = Paragraph;
 	this.Parent      = Paragraph.Parent;
 	this.TopDocument = Paragraph.Parent.GetTopDocumentContent();
-	this.PageAbs     = Paragraph.Get_AbsolutePage(CurPage);
-	this.ColumnAbs   = Paragraph.Get_AbsoluteColumn(CurPage);
+	this.PageAbs     = Paragraph.GetAbsolutePage(CurPage);
+	this.ColumnAbs   = Paragraph.GetAbsoluteColumn(CurPage);
 	this.InTable     = Paragraph.IsTableCellContent();
 	this.SectPr      = null;
 	this.TopIndex    = -1;
@@ -3516,6 +3549,7 @@ CParagraphRecalculateStateWrap.prototype.Reset_Line = function()
 	this.NewPage      = false;
 	this.ForceNewPage = false;
 	this.ForceNewLine = false;
+	this.ForceNewPageAfter = false;
 	
 	this.bMath_OneLine    = false;
 	this.bMathWordLarge   = false;
@@ -3601,6 +3635,11 @@ CParagraphRecalculateStateWrap.prototype.getDocumentSettings = function()
 		return logicDocument.getDocumentSettings();
 	
 	return AscWord.DEFAULT_DOCUMENT_SETTINGS;
+};
+CParagraphRecalculateStateWrap.prototype.isDocumentEditor = function()
+{
+	let logicDocument = this.Paragraph.GetLogicDocument();
+	return (logicDocument && logicDocument.IsDocumentEditor());
 };
 CParagraphRecalculateStateWrap.prototype.getCompatibilityMode = function()
 {
@@ -3718,15 +3757,22 @@ CParagraphRecalculateStateWrap.prototype.Recalculate_Numbering = function(Item, 
 			
 			var oNumbering = Para.Parent.GetNumbering();
 			
-			var oNumLvl = null;
+			var oNumLvl  = null;
+			let nNumSuff = Asc.c_oAscNumberingSuff.None;
 			
 			if (NumPr)
-				oNumLvl = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+			{
+				oNumLvl  = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+				nNumSuff = oNumLvl.GetSuff();
+			}
 			else if (oPrevNumPr)
-				oNumLvl = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+			{
+				// MSWord uses tab instead of suff from PrevNum (74525)
+				oNumLvl  = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+				nNumSuff = Asc.c_oAscNumberingSuff.Tab;
+			}
 			
 			var oNumTextPr = Para.GetNumberingTextPr();
-			var nNumSuff   = oNumLvl.GetSuff();
 			var nNumJc     = oNumLvl.GetJc();
 			
 			// Здесь измеряется только ширина символов нумерации, без суффикса
@@ -4297,6 +4343,7 @@ CParagraphRecalculateStateWrap.prototype.getAutoHyphenWidth = function(item, run
 CParagraphRecalculateStateWrap.prototype.isForceLineBreak = function()
 {
 	return (this.ForceNewPage
+		|| this.ForceNewPageAfter
 		|| this.NewPage
 		|| this.ForceNewLine
 		|| this.LastHyphenItem);
@@ -4373,6 +4420,9 @@ CParagraphRecalculateStateCounter.prototype.Reset = function(Paragraph, Range)
 	this.Letters     = 0;
 	this.SpacesSkip  = 0;
 	this.LettersSkip = 0;
+	
+	this.ParaEnd   = false;
+	this.LineBreak = false;
 };
 CParagraphRecalculateStateCounter.prototype.isFastRecalculation = function()
 {
@@ -4435,6 +4485,10 @@ CParagraphRecalculateStateAlign.prototype.getLineBottom = function()
 {
 	let p = this.Paragraph;
 	return p.Pages[this.wrapState.Page].Y + p.Lines[this.wrapState.Line].Bottom;
+};
+CParagraphRecalculateStateAlign.prototype.isParagraphStartFromNewPage = function()
+{
+	return this.Paragraph.IsStartFromNewPage();
 };
 
 

@@ -571,14 +571,18 @@
 			if (x < range.XVisible)
 			{
 				this.setDiff(range.XVisible - x);
-				this.pos       = para.Get_EndRangePos2(this.line, this.range, false);
+				let pos = para.Get_EndRangePos2(this.line, this.range, false);
+				
+				this.pos       = para.GetCursorPlaceablePos(pos);
 				this.inTextPos = this.pos.Copy();
 				this.inTextX   = false;
 			}
 			else if (x > range.XEndVisible)
 			{
 				this.setDiff(range.XEndVisible - x);
-				this.pos       = para.Get_StartRangePos2(this.line, this.range);
+				let pos = para.Get_StartRangePos2(this.line, this.range);
+				
+				this.pos       = para.GetCursorPlaceablePos(pos);
 				this.inTextPos = this.pos.Copy();
 				this.inTextX   = false;
 			}
@@ -588,14 +592,18 @@
 			if (x < range.XVisible)
 			{
 				this.setDiff(range.XVisible - x);
-				this.pos       = para.Get_StartRangePos2(this.line, this.range);
+				let pos = para.Get_StartRangePos2(this.line, this.range);
+				
+				this.pos       = para.GetCursorPlaceablePos(pos);
 				this.inTextPos = this.pos.Copy();
 				this.inTextX   = false;
 			}
 			else if (x > range.XEndVisible)
 			{
 				this.setDiff(range.XEndVisible - x);
-				this.pos       = para.Get_EndRangePos2(this.line, this.range, false);
+				let pos = para.Get_EndRangePos2(this.line, this.range, false);
+				
+				this.pos       = para.GetCursorPlaceablePos(pos);
 				this.inTextPos = this.pos.Copy();
 				this.inTextX   = false;
 			}

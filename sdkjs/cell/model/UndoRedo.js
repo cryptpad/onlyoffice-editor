@@ -408,6 +408,17 @@ function (window, undefined) {
 		var arrActions = [];
 		return arrActions;
 	};
+	UndoRedoItemSerializable.prototype.ConvertToSimpleChanges = function()
+	{
+		if (this.oClass) {
+			if (this.oClass.ConvertToSimpleChanges) {
+				return this.oClass.ConvertToSimpleChanges();
+			} else if (this.oClass.ConvertToSimpleChangesSpreadsheet) {
+				return this.oClass.ConvertToSimpleChangesSpreadsheet(this);
+			}
+		}
+		return [];
+	};
 	UndoRedoItemSerializable.prototype.ConvertFromSimpleActions = function(arrActions)
 	{
 		if (this.oClass) {
@@ -955,9 +966,9 @@ function (window, undefined) {
 		if (this.formula != val.formula) {
 			return false;
 		}
-		if ((this.formulaRef &&
-			!(this.formulaRef.r1 === val.r1 && this.formulaRef.c1 === val.c1 && this.formulaRef.r2 === val.r2 &&
-				this.formulaRef.c2 === val.c2)) || (this.formulaRef !== val)) {
+		if ((this.formulaRef && val.formulaRef &&
+			!(this.formulaRef.r1 === val.formulaRef.r1 && this.formulaRef.c1 === val.formulaRef.c1 && this.formulaRef.r2 === val.formulaRef.r2 &&
+				this.formulaRef.c2 === val.formulaRef.c2)) || (this.formulaRef !== val.formulaRef)) {
 			return false;
 		}
 		if (this.value.isEqual(val.value)) {
@@ -1815,7 +1826,7 @@ function (window, undefined) {
 	UndoRedoData_BinaryWrapper.prototype.Read_FromBinary2 = function (reader) {
 		this.Id = reader.GetString2();
 		this.len = reader.GetLong();
-		this.binary = reader.GetBuffer(this.len);
+		this.binary = reader.GetBufferUint8(this.len);
 	};
 	UndoRedoData_BinaryWrapper.prototype.getData = function () {
 		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
@@ -1850,7 +1861,7 @@ function (window, undefined) {
 	};
 	UndoRedoData_BinaryWrapper2.prototype.Read_FromBinary2 = function (reader) {
 		this.len = reader.GetLong();
-		this.binary = reader.GetBuffer(this.len);
+		this.binary = reader.GetBufferUint8(this.len);
 	};
 	UndoRedoData_BinaryWrapper2.prototype.initObject = function (data) {
 		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
@@ -2008,16 +2019,17 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_DefinedNames(name, ref, sheetId, type, isXLNM) {
+	function UndoRedoData_DefinedNames(name, ref, sheetId, type, isXLNM, hidden) {
 		this.name = name;
 		this.ref = ref;
 		this.sheetId = sheetId;
 		this.type = type;
 		this.isXLNM = isXLNM;
+		this.hidden = hidden === undefined ? false : hidden;
 	}
 
 	UndoRedoData_DefinedNames.prototype.Properties = {
-		name: 0, ref: 1, sheetId: 2, type: 4, isXLNM: 5
+		name: 0, ref: 1, sheetId: 2, type: 4, isXLNM: 5, hidden: 6
 	};
 	UndoRedoData_DefinedNames.prototype.getType = function () {
 		return UndoRedoDataTypes.DefinedName;
@@ -2037,6 +2049,8 @@ function (window, undefined) {
 				return this.type;
 			case this.Properties.isXLNM:
 				return this.isXLNM;
+			case this.Properties.hidden:
+				return this.hidden;
 		}
 		return null;
 	};
@@ -2056,6 +2070,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.isXLNM:
 				this.isXLNM = value;
+				break;
+			case this.Properties.hidden:
+				this.hidden = value;
 				break;
 		}
 	};
@@ -2830,16 +2847,21 @@ function (window, undefined) {
 	//для применения изменений
 	var UndoRedoClassTypes = new function () {
 		this.aTypes = [];
+		this.offset = 0;
 		this.Add = function (fCreate) {
 			var nRes = this.aTypes.length;
 			this.aTypes.push(fCreate);
-			return nRes;
+			return nRes + this.offset;
 		};
 		this.Create = function (nType) {
-			if (nType < this.aTypes.length) {
-				return this.aTypes[nType]();
+			const nTypeIndex = nType - this.offset;
+			if (0 <= nTypeIndex && nTypeIndex < this.aTypes.length) {
+				return this.aTypes[nTypeIndex]();
 			}
 			return null;
+		};
+		this.SetOffset = function (offset) {
+			this.offset = offset || 0;
 		};
 		this.Clean = function () {
 			this.aTypes = [];
@@ -2890,6 +2912,11 @@ function (window, undefined) {
 			Pos  : index,
 			Add  : isAdd
 		}];
+	};
+	UndoRedoWorkbook.prototype.ConvertToSimpleChangesSpreadsheet = function(SerializableItem)
+	{
+		const oItem = new UndoRedoItemSerializable(SerializableItem.oClass, SerializableItem.nActionType, SerializableItem.nSheetId, SerializableItem.oRange, SerializableItem.oData, SerializableItem.LocalChange);
+		return [oItem];
 	};
 	UndoRedoWorkbook.prototype.ConvertFromSimpleActionsSpreadsheet = function(arrActions, Data)
 	{
@@ -3020,7 +3047,7 @@ function (window, undefined) {
 					wb.delDefinesNamesUndoRedo(oldName);
 					wb.handlers.trigger("asc_onDelDefName")
 				} else {
-					wb.editDefinesNamesUndoRedo(oldName, newName);
+					wb.editDefinesNamesUndoRedo(oldName, newName, true);
 					wb.handlers.trigger("asc_onEditDefName", oldName, newName);
 				}
 				// clear traces
@@ -3046,11 +3073,11 @@ function (window, undefined) {
 			var externalReferenceIndex;
 
 			if (from && !to) {//удаление
-				from.initWorksheetsFromSheetDataSet();
+				from.initExternalReference();
 				/* the first call is a search by referenceData, if we get null, we make a second call to search by Id below and then add or re-assign the link */
 				externalReferenceIndex = wb.getExternalReferenceByReferenceData(from.referenceData, true);
 				if (!externalReferenceIndex) {
-					externalReferenceIndex = wb.getExternalLinkIndexByName(from.Id);
+					externalReferenceIndex = wb.getExternalLinkIndexById(from._id);
 				}
 
 				if (externalReferenceIndex !== null) {
@@ -3062,7 +3089,7 @@ function (window, undefined) {
 				/* the first call is a search by referenceData, if we get null, we make a second call to search by Id below and then delete the link */
 				externalReferenceIndex = wb.getExternalReferenceByReferenceData(to.referenceData, true);
 				if (!externalReferenceIndex) {
-					externalReferenceIndex = wb.getExternalLinkIndexByName(to.Id);
+					externalReferenceIndex = wb.getExternalLinkIndexById(to._id);
 				}
 
 				if (externalReferenceIndex !== null) {
@@ -3073,12 +3100,27 @@ function (window, undefined) {
 				/* the first call is a search by referenceData, if we get null, we make a second call to search by Id below and then change the link */
 				externalReferenceIndex = wb.getExternalReferenceByReferenceData(to.referenceData, true);
 				if (!externalReferenceIndex) {
-					externalReferenceIndex = wb.getExternalLinkIndexByName(to.Id);
+					externalReferenceIndex = wb.getExternalLinkIndexById(to._id);
 				}
 
 				if (externalReferenceIndex !== null) {
+					for (let ws in to.worksheets) {
+						let externalSheet = to.worksheets[ws];
+						if (externalSheet) {
+							let externalSheetId = externalSheet.getId();
+							wb.dependencyFormulas.forEachSheetListeners(externalSheetId, function (parsed) {
+								let cell = parsed && parsed.parent;
+								if (cell && cell && cell.nCol != null && cell.nRow != null) {
+									// endListeningRange for previous external source
+									let bbox = new Asc.Range(cell.nCol, cell.nRow, cell.nCol, cell.nRow);
+									parsed._buildDependenciesRef(externalSheetId, bbox, null, null);
+								}
+							});
+						}
+					}
+
 					from.worksheets = wb.externalReferences[externalReferenceIndex - 1].worksheets;
-					from.initWorksheetsFromSheetDataSet();
+					from.initExternalReference();
 					from.putToChangedCells();
 					wb.externalReferences[externalReferenceIndex - 1] = from;
 				}
@@ -3106,6 +3148,8 @@ function (window, undefined) {
 			wb.setShowVerticalScroll(bUndo ? Data.from : Data.to);
 		} else if (AscCH.historyitem_Workbook_ShowHorizontalScroll === Type) {
 			wb.setShowHorizontalScroll(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Workbook_SetCustomFunctions === Type) {
+			wb.oApi["pluginMethod_SetCustomFunctions"] && wb.oApi["pluginMethod_SetCustomFunctions"](bUndo ? Data.from : Data.to);
 		}
 	};
 	UndoRedoWorkbook.prototype.forwardTransformationIsAffect = function (Type) {
@@ -3208,6 +3252,8 @@ function (window, undefined) {
 				cell.setAlignVertical(Val);
 			} else if (AscCH.historyitem_Cell_AlignHorizontal == Type) {
 				cell.setAlignHorizontal(Val);
+			} else if (AscCH.historyitem_Cell_ReadingOrder == Type) {
+				cell.setReadingOrder(Val);
 			} else if (AscCH.historyitem_Cell_Fill == Type) {
 				cell.setFill(Val);
 			} else if (AscCH.historyitem_Cell_Border == Type) {
@@ -4670,6 +4716,8 @@ function (window, undefined) {
 				row.setAlignVertical(Val);
 			} else if (AscCH.historyitem_RowCol_AlignHorizontal == Type) {
 				row.setAlignHorizontal(Val);
+			} else if (AscCH.historyitem_RowCol_ReadingOrder == Type) {
+				row.setReadingOrder(Val);
 			} else if (AscCH.historyitem_RowCol_Fill == Type) {
 				row.setFill(Val);
 			} else if (AscCH.historyitem_RowCol_Border == Type) {
@@ -5813,10 +5861,9 @@ function (window, undefined) {
 		}
 
 		var collaborativeEditing = this.wb.oApi.collaborativeEditing;
-		var cfRule = oModel.getCFRuleById(Data.id);
-		if (cfRule && cfRule.val) {
+		let cfRule = oModel.getCFRuleById(Data.id, true)
+		if (cfRule) {
 			var value = bUndo ? Data.from : Data.to;
-			cfRule = cfRule.val;
 
 			switch (Type) {
 				case AscCH.historyitem_CFRule_SetAboveAverage: {

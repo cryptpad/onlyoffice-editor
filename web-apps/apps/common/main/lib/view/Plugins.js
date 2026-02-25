@@ -265,6 +265,7 @@ define([
         createBackgroundPluginsButton: function () {
             var _set = Common.enumLock;
             var btn = new Common.UI.Button({
+                id: 'id-toolbar-btn-background-plugin',
                 cls: 'btn-toolbar x-huge icon-top',
                 iconCls: 'toolbar__icon btn-background-plugins',
                 caption: this.textBackgroundPlugins,
@@ -319,7 +320,7 @@ define([
                 cls: 'btn-toolbar x-huge icon-top',
                 iconCls: icon_cls,
                 iconsSet: this.iconsStr2IconsObj(icons),
-                baseUrl: model.get('baseUrl'), // icons have a relative path, so need to use the base url
+                baseUrl: model.get('baseUrl').replace(/\(/g, '%28').replace(/\)/g, '%29'), // icons have a relative path, so need to use the base url
                 caption: Common.Utils.String.htmlEncode(model.get('name')),
                 menu: _menu_items.length > 1,
                 split: _menu_items.length > 1,
@@ -329,7 +330,8 @@ define([
                 lock: model.get('isDisplayedInViewer') ? [_set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.selRangeEdit, _set.editFormula] : [_set.viewMode, _set.previewReviewMode, _set.viewFormMode, _set.docLockView, _set.docLockForms, _set.docLockComments, _set.selRangeEdit, _set.editFormula ],
                 dataHint: '1',
                 dataHintDirection: 'bottom',
-                dataHintOffset: 'small'
+                dataHintOffset: 'small',
+                customAttributes: {'data-plugin-guid': guid}
             });
 
             if ( btn.split ) {

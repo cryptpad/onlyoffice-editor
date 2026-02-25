@@ -38,6 +38,7 @@
 
 var SCALE_MIN = 40;
 var MENU_SCALE_PART = 260;
+var MENU_BASE_WIDTH = 220;
 
 define([
     'text!spreadsheeteditor/main/app/template/RightMenu.template',
@@ -184,11 +185,21 @@ define([
             this.defaultHideRightMenu = !(mode.customization && (mode.customization.hideRightMenu===false));
             var open = !Common.localStorage.getBool("sse-hide-right-settings", this.defaultHideRightMenu);
             Common.Utils.InternalSettings.set("sse-hide-right-settings", !open);
-            el.css('width', ((open) ? MENU_SCALE_PART : SCALE_MIN) + 'px');
-            el.css('z-index', 101);
-            el.show();
+
+            Common.NotificationCenter.on('app:repaint', function() {
+                el.css('width', ((open) ? MENU_SCALE_PART : SCALE_MIN) + 'px');
+            });
+
+            Common.NotificationCenter.on('uitheme:changed', _.bind(function() {
+                this.updateWidth();
+                Common.NotificationCenter.trigger('layout:changed', 'rightmenu');
+            }, this));
 
             el.html(this.template({scope: this}));
+
+            this.updateWidth();
+            el.css('z-index', 101);
+            el.show();
 
             this.btnMoreContainer = $('#slot-right-menu-more');
             Common.UI.SideMenu.prototype.render.call(this);
@@ -219,7 +230,7 @@ define([
             this.chartSettings = new SSE.Views.ChartSettings();
             this.shapeSettings = new SSE.Views.ShapeSettings();
             this.textartSettings = new SSE.Views.TextArtSettings();
-            this.tableSettings = new SSE.Views.TableSettings();
+            // this.tableSettings = new SSE.Views.TableSettings();
             this.pivotSettings = new SSE.Views.PivotSettings();
             this.cellSettings = new SSE.Views.CellSettings();
             this.slicerSettings = new SSE.Views.SlicerSettings();
@@ -243,14 +254,14 @@ define([
 
             if (_.isUndefined(this.scroller)) {
                 this.scroller = new Common.UI.Scroller({
-                    el: $(this.el).find('.right-panel'),
+                    el: $(this.el).find('.right-panel > .content-box'),
                     suppressScrollX: true,
                     useKeyboard: false
                 });
             }
 
             if (open) {
-                $('#id-cell-settings').parent().css("display", "inline-block" );
+                $('#id-cell-settings').closest('.right-panel').css("display", "inline-block" );
                 $('#id-cell-settings').addClass("active");
             }
 
@@ -269,7 +280,7 @@ define([
             this.chartSettings.setApi(api).on('updatescroller', _updateScroller);
             this.shapeSettings.setApi(api).on('eyedropper', _.bind(_isEyedropperStart, this)).on('updatescroller', _updateScroller);
             this.textartSettings.setApi(api).on('eyedropper', _.bind(_isEyedropperStart, this)).on('updatescroller', _updateScroller);
-            this.tableSettings.setApi(api);
+            // this.tableSettings.setApi(api);
             this.pivotSettings.setApi(api);
             this.cellSettings.setApi(api).on('eyedropper', _.bind(_isEyedropperStart, this));
             this.slicerSettings.setApi(api);
@@ -281,7 +292,7 @@ define([
             this.mode = mode;
             this.imageSettings && this.imageSettings.setMode(mode);
             this.shapeSettings && this.shapeSettings.setMode(mode);
-            this.tableSettings && this.tableSettings.setMode(mode);
+            // this.tableSettings && this.tableSettings.setMode(mode);
             return this;
         },
 
@@ -301,7 +312,7 @@ define([
                     Common.localStorage.setItem("sse-hide-right-settings", 0);
                     Common.Utils.InternalSettings.set("sse-hide-right-settings", false);
                 }
-                target_pane_parent.find('> .active').removeClass('active');
+                target_pane_parent.find('.content-box > .active').removeClass('active');
                 target_pane && target_pane.addClass("active");
 
                 if (this.scroller) {
@@ -346,7 +357,7 @@ define([
 
         clearSelection: function() {
             var target_pane = $(".right-panel");
-            target_pane.find('> .active').removeClass('active');
+            target_pane.find('.content-box > .active').removeClass('active');
             this._settings.forEach(function(item){
                 if (item.btn.isActive())
                     item.btn.toggle(false, true);
@@ -367,6 +378,18 @@ define([
         setButtons: function () {
             var allButtons = [this.btnCell, this.btnTable, this.btnShape, this.btnImage, this.btnChart, this.btnText, this.btnTextArt, this.btnSlicer, this.btnSignature, this.btnPivot];
             Common.UI.SideMenu.prototype.setButtons.apply(this, [allButtons]);
+        },
+
+        insertPanel: function ($panel) {
+            this.$el.find('.side-panel .content-box').append($panel);
+        },
+
+        updateWidth: function() {
+            var pane = $(this.el).find('.right-panel'),
+                paddings = parseInt(pane.css('padding-left')) + parseInt(pane.css('padding-right'));
+            pane.css('width', MENU_BASE_WIDTH + paddings + 'px');
+            MENU_SCALE_PART = SCALE_MIN + MENU_BASE_WIDTH + paddings;
+            this.$el.css('width', (!Common.Utils.InternalSettings.get("sse-hide-right-settings") ? MENU_SCALE_PART : SCALE_MIN) + 'px');
         },
 
         txtParagraphSettings:       'Paragraph Settings',

@@ -67,6 +67,10 @@ define([
             if (api) {
                 this.api = api;
                 this.api.asc_registerCallback('asc_onZoomChange', _.bind(this.onZoomChange, this));
+                this.api.asc_registerCallback('asc_onMacroRecordingStart', _.bind(this.updateMacroState, this, true, false));
+                this.api.asc_registerCallback('asc_onMacroRecordingStop', _.bind(this.updateMacroState, this, false));
+                this.api.asc_registerCallback('asc_onMacroRecordingPause', _.bind(this.updateMacroState, this, true, true));
+                this.api.asc_registerCallback('asc_onMacroRecordingResume', _.bind(this.updateMacroState, this, true, false));
                 this.api.asc_registerCallback('asc_onCoAuthoringDisconnect', _.bind(this.onCoAuthoringDisconnect, this));
                 Common.NotificationCenter.on('api:disconnect', _.bind(this.onCoAuthoringDisconnect, this));
             }
@@ -87,7 +91,11 @@ define([
                     'zoom:towidth': _.bind(this.onBtnZoomTo, this, 'towidth'),
                     'rulers:change': _.bind(this.onChangeRulers, this),
                     'darkmode:change': _.bind(this.onChangeDarkMode, this),
-                    'macros:click':  _.bind(this.onClickMacros, this)
+                    'macros:click':  _.bind(this.onClickMacros, this),
+                    'macros:record':  _.bind(this.onClickMacrosRec, this),
+                    'macros:pause':  _.bind(this.onClickMacrosPause, this),
+                    'pointer:select': _.bind(this.onPointerType, this, 'select'),
+                    'pointer:hand': _.bind(this.onPointerType, this, 'hand')
                 },
                 'Toolbar': {
                     'view:compact': _.bind(function (toolbar, state) {
@@ -171,7 +179,14 @@ define([
                         me.view.chRulers.$el.closest('.group').remove();
                         me.view.chRulers.$el.remove();
                         me.view.$el.find('.separator-rulers').remove();
-                        me.view.$el.find('#slot-btn-macros').closest('.group').prev().addBack().remove();
+                    }
+
+                    if (
+                        !config.isEdit || 
+                        config.customization && config.customization.macros===false ||
+                        (Common.Controllers.Desktop && Common.Controllers.Desktop.isWinXp())
+                    ) {
+                        me.view.$el.find('.macro').remove();
                     }
 
                     me.view.cmbsZoom.forEach(function (cmb) {
@@ -185,6 +200,12 @@ define([
                         if (state !== me.view.btnNavigation.pressed)
                             me.view.turnNavigation(state);
                     });
+
+                    if (me.view.btnHandTool) {
+                        var hand = config && config.customization && config.customization.pointerMode==='hand';
+                        me.api && me.api.asc_setViewerTargetType(hand ? 'hand' : 'select');
+                        me.view[hand ? 'btnHandTool' : 'btnSelectTool'].toggle(true, true);
+                    }
 
                     if (Common.UI.Themes.available()) {
                         function _add_tab_styles() {
@@ -338,6 +359,39 @@ define([
             macrosWindow.show();
         },
 
+        onClickMacrosRec: function() {
+            var recorder = this.api.getMacroRecorder();
+            recorder.isInProgress() ? recorder.stop() : recorder.start();
+            Common.NotificationCenter.trigger('edit:complete', this.view);
+        },
+
+        onClickMacrosPause: function() {
+            var recorder = this.api.getMacroRecorder();
+            if (recorder.isInProgress()) {
+                recorder.isPaused() ? recorder.resume() : recorder.pause();
+            }
+            Common.NotificationCenter.trigger('edit:complete', this.view);
+        },
+
+        updateMacroState: function(inProgress, paused) {
+            if (this.view) {
+                this.view.btnRecMacro.changeIcon({
+                    next: inProgress ? 'btn-macros-stop' : 'btn-macros-record',
+                    curr: inProgress ? 'btn-macros-record' : 'btn-macros-stop'
+                });
+                this.view.btnRecMacro.setCaption(inProgress ? this.view.textStopMacro : this.view.textRecMacro);
+                this.view.btnRecMacro.updateHint(inProgress ? this.view.tipStopMacro : this.view.tipRecMacro);
+                Common.Utils.lockControls(Common.enumLock.macrosStopped, !inProgress, {array: [this.view.btnPauseMacro]});
+                if (!inProgress) {
+                    this.view.btnPauseMacro.setCaption(this.view.textPauseMacro);
+                    this.view.btnPauseMacro.updateHint(this.view.tipPauseMacro);
+                } else {
+                    this.view.btnPauseMacro.setCaption(paused ? this.view.textResumeMacro : this.view.textPauseMacro);
+                    this.view.btnPauseMacro.updateHint(paused ? this.view.tipResumeMacro : this.view.tipPauseMacro);
+                }
+            }
+        },
+
         onChangeDarkMode: function (isdarkmode) {
             if (!this._darkModeTimer) {
                 var me = this;
@@ -354,7 +408,7 @@ define([
         },
 
         onThemeChanged: function () {
-            if (this.view && Common.UI.Themes.available()) {
+            if (this.view && Common.UI.Themes.available() && this.view.btnInterfaceTheme.menu && (typeof (this.view.btnInterfaceTheme.menu) === 'object')) {
                 var current_theme = Common.UI.Themes.currentThemeId() || Common.UI.Themes.defaultThemeId(),
                     menu_item = _.findWhere(this.view.btnInterfaceTheme.menu.getItems(true), {value: current_theme});
                 if ( menu_item ) {
@@ -375,6 +429,13 @@ define([
 
         onComboBlur: function() {
             Common.NotificationCenter.trigger('edit:complete', this.view);
+        },
+
+        onPointerType: function (type) {
+            if (this.api) {
+                this.api.asc_setViewerTargetType(type);
+                Common.NotificationCenter.trigger('edit:complete', this.view);
+            }
         }
 
     }, DE.Controllers.ViewTab || {}));

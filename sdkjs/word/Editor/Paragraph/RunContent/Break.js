@@ -82,7 +82,7 @@
 
 		if(Context.m_bIsTextDrawer)
 		{
-			Context.CheckSpaceDraw();
+			Context.CheckSpaceDraw(this);
 		}
 		if (undefined !== editor && editor.ShowParaMarks)
 		{

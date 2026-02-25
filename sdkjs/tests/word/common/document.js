@@ -381,6 +381,7 @@
 		let run = CreateRun();
 		p.AddToContentToEnd(run);
 		run.AddText(text);
+		return run;
 	}
 	function EnterText(text)
 	{
@@ -505,6 +506,14 @@
 		paragraph.SetSelectionContentPos(startPos, endPos, false);
 		paragraph.Document_SetThisElementCurrent();
 	}
+	function SelectParagraph(paragraph)
+	{
+		if (logicDocument)
+			logicDocument.RemoveSelection();
+		
+		paragraph.SelectAll();
+		paragraph.Document_SetThisElementCurrent();
+	}
 	function GetFinalSection()
 	{
 		if (!logicDocument)
@@ -543,6 +552,22 @@
 	function StopTextSpeaker()
 	{
 		AscCommon.EditorActionSpeaker.stop();
+	}
+	function SelectTableCells(table, startCell, startRow, endCell, endRow)
+	{
+		if (!logicDocument)
+			return;
+		
+		logicDocument.RemoveSelection();
+		// TODO: Get rid of double SelectRange
+		table.SelectRange(startCell, startRow, endCell, endRow);
+		table.Document_SetThisElementCurrent();
+		table.SelectRange(startCell, startRow, endCell, endRow);
+	}
+	function MergeTableCells(table, startCell, startRow, endCell, endRow)
+	{
+		SelectTableCells(table, startCell, startRow, endCell, endRow);
+		table.MergeTableCells(true);
 	}
 	
 	//--------------------------------------------------------export----------------------------------------------------
@@ -596,8 +621,11 @@
 	AscTest.SyncCollaboration                = SyncCollaboration;
 	AscTest.EndCollaboration                 = EndCollaboration;
 	AscTest.SelectParagraphRange             = SelectParagraphRange;
+	AscTest.SelectParagraph                  = SelectParagraph;
 	AscTest.StartTextSpeaker                 = StartTextSpeaker;
 	AscTest.StopTextSpeaker                  = StopTextSpeaker;
+	AscTest.SelectTableCells                 = SelectTableCells;
+	AscTest.MergeTableCells                  = MergeTableCells;
 
 })(window);
 

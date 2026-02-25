@@ -969,6 +969,10 @@
 
 		const TEXT_RECT_ERROR = 0.01;
 
+		/**
+		 * @extends CGraphicObjectBase
+		 * @constructor
+		 */
 		function CShape() {
 			AscFormat.CGraphicObjectBase.call(this);
 			this.nvSpPr = null;
@@ -1305,6 +1309,17 @@
 			this.useBgFill = pr;
 		};
 
+		CShape.prototype.createTextBodyOnEdit = function () {
+			let txBody = this.createTextBody();
+			if (Asc.editor.isPresentationEditor) {
+				let firstParagraph = txBody.content.Content[0];
+				firstParagraph.SetParagraphAlign(AscCommon.align_Center);
+				let newBodyPr = txBody.bodyPr.createDuplicate();
+				newBodyPr.setAnchor(AscFormat.VERTICAL_ANCHOR_TYPE_CENTER);
+				txBody.setBodyPr(newBodyPr);
+			}
+		};
+
 		CShape.prototype.createTextBody = function () {
 			var tx_body = new AscFormat.CTextBody();
 			tx_body.setParent(this);
@@ -1314,10 +1329,12 @@
 				oBodyPr.vertOverflow = AscFormat.nVOTClip;
 				oBodyPr.horzOverflow = AscFormat.nHOTClip;
 			}
+
 			tx_body.setBodyPr(oBodyPr);
 			tx_body.content.Content[0].Set_DocumentIndex(0);
 			tx_body.content.MoveCursorToStartPos(false);
 			this.setTxBody(tx_body);
+			return tx_body;
 		};
 
 		CShape.prototype.createTextBoxContent = function () {
@@ -1350,7 +1367,7 @@
 					if (this.bWordShape) {
 						this.createTextBoxContent();
 					} else {
-						this.createTextBody();
+						this.createTextBodyOnEdit();
 					}
 					content_to_add = this.getDocContent();
 				}
@@ -1368,7 +1385,7 @@
 					if (this.bWordShape) {
 						this.createTextBoxContent();
 					} else {
-						this.createTextBody();
+						this.createTextBodyOnEdit();
 					}
 					content_to_add = this.getDocContent();
 					content_to_add.MoveCursorToStartPos();
@@ -1794,6 +1811,10 @@
 			return this.compiledFill;
 		};
 
+        CShape.prototype.getBounds = function () {
+            return this.bounds;
+        };
+
 		CShape.prototype.getMargins = function () {
 			if (this.txBody) {
 				return this.txBody.getMargins()
@@ -1904,7 +1925,7 @@
 					if (this.bWordShape) {
 						this.createTextBoxContent();
 					} else {
-						this.createTextBody();
+						this.createTextBodyOnEdit();
 					}
 				}
 			}
@@ -1931,7 +1952,7 @@
 					if (this.bWordShape) {
 						this.createTextBoxContent();
 					} else {
-						this.createTextBody();
+						this.createTextBodyOnEdit();
 					}
 				}
 			}
@@ -2143,7 +2164,7 @@
 				var diffX = 0;
 				var diffY = 0;
 				if (oSmartArt.group) {
-					if (bForceSlideTransform || (AscFormat.isSlideLikeObject(this.parent) || this.worksheet)) {
+					if (bForceSlideTransform || (AscFormat.isSlideLikeObject(this.parent) || this.worksheet) || Asc.editor.isPdfEditor()) {
 						const oMainGroupRelativePosition = oSmartArt.group.getRelativePosition();
 						diffX = oMainGroupRelativePosition.x;
 						diffY = oMainGroupRelativePosition.y;
@@ -2186,7 +2207,7 @@
 				var extX = (oRect.r - oRect.l) / 2;
 				var extY = (oRect.b - oRect.t) / 2;
 				var deltaTranslateX = 0, deltaTranslateY = 0;
-				if (bForceSlideTransform || (AscFormat.isSlideLikeObject(deltaShape.parent) || this.worksheet)) {
+				if (bForceSlideTransform || (AscFormat.isSlideLikeObject(deltaShape.parent) || this.worksheet) || Asc.editor.isPdfEditor()) {
 					deltaTranslateX = deltaShape.group.group.x;
 					deltaTranslateY = deltaShape.group.group.y;
 				}
@@ -3420,7 +3441,7 @@
 											}
 											this.extY *= oParaDrawing.SizeRelV.Percent;
 										}
-										this.m_oSectPr = new CSectionPr();
+										this.m_oSectPr = new AscWord.SectPr();
 										this.m_oSectPr.Copy(oSectPr);
 									}
 								}
@@ -3812,7 +3833,7 @@
 					if (oParentParagraph) {
 						var oSectPr = oParentParagraph.Get_SectPr();
 						if (oSectPr) {
-							this.m_oSectPr = new CSectionPr();
+							this.m_oSectPr = new AscWord.SectPr();
 							this.m_oSectPr.Copy(oSectPr);
 						}
 					}
@@ -3868,8 +3889,26 @@
 		};
 
 
+		CShape.prototype._isTextRotated = function(bodyPr) {
+			if (!bodyPr) {
+				return false;
+			}
+			
+			let isRotated = (bodyPr.vert === AscFormat.nVertTTvert
+				|| bodyPr.vert === AscFormat.nVertTTvert270
+				|| bodyPr.vert === AscFormat.nVertTTeaVert
+			);
+			
+			if (bodyPr.wrap !== AscFormat.nTWTNone
+				&& bodyPr.upright
+				&& !checkNormalRotate(this.getFullRotate())) {
+				isRotated = !isRotated;
+			}
+			
+			return isRotated;
+		};
 		CShape.prototype.recalculateDocContent = function (oDocContent, oBodyPr) {
-			let nStartPage = this.Get_AbsolutePage ? this.Get_AbsolutePage() : 0;
+			let nStartPage = this.GetAbsolutePage ? this.GetAbsolutePage() : 0;
 			let oRet = {w: 0, h: 0, contentH: 0};
 			let oInsets = this.getInsets({bIgnoreInsets: false, bodyPr: oBodyPr});
 			const oForm = this.isForm && this.isForm() ? this.getInnerForm() : null;
@@ -3896,7 +3935,7 @@
 								} else {
 									dMaxWidth = oSectPr.GetContentFrameHeight();
 								}
-								this.m_oSectPr = new CSectionPr();
+								this.m_oSectPr = new AscWord.SectPr();
 								this.m_oSectPr.Copy(oSectPr);
 							}
 						}
@@ -4006,13 +4045,35 @@
 						if (oParentParagraph) {
 							var oSectPr = oParentParagraph.Get_SectPr();
 							if (oSectPr) {
-								this.m_oSectPr = new CSectionPr();
+								this.m_oSectPr = new AscWord.SectPr();
 								this.m_oSectPr.Copy(oSectPr);
 							}
 						}
 					}
 				}
 			}
+			
+			if ((oDocContent && !oDocContent.bPresentation) && !this.isForm()) {
+				
+				let shift = 0;
+				let drDoc = this.getDrawingDocument();
+				if (drDoc) {
+					shift = drDoc.GetMMPerDot(1);
+				}
+				
+				let x = -l_ins - shift;
+				let y = -t_ins - shift;
+				
+				let _w = oRect.r - oRect.l + 2 * shift;
+				let _h = oRect.b - oRect.t + 2 * shift;
+				
+				if (this._isTextRotated(oBodyPr)) {
+					oDocContent.Set_ClipInfo(0, y, y + _h, x, x + _w);
+				} else {
+					oDocContent.Set_ClipInfo(0, x, x + _w, y, y + _h);
+				}
+			}
+			
 			return oRet;
 		};
 
@@ -4026,7 +4087,6 @@
 		}
 		CShape.prototype.recalculateContent2 = function () {
 			if (this.txBody) {
-				var pointContent = this.getSmartArtPointContent();
 				if (this.isPlaceholder() || this.isPlaceholderInSmartArt()) {
 					if (!this.isEmptyPlaceholder()) {
 						return;
@@ -4047,7 +4107,13 @@
 						if (typeof AscCommonSlide !== "undefined" && AscCommonSlide.CNotes && this.parent instanceof AscCommonSlide.CNotes && this.nvSpPr.nvPr.ph.type === AscFormat.phType_body) {
 							text = AscCommon.translateManager.getValue("Click to add notes");
 						} else if (this.isObjectInSmartArt()) {
-							text = AscCommon.translateManager.getValue(pointContent[0].point.prSet.phldrT || '');
+							const pointContent = this.getSmartArtPointContent();
+							const point = pointContent && pointContent[0] && pointContent[0].point;
+							if (point) {
+								text = AscCommon.translateManager.getValue(point.prSet.phldrT || '');
+							} else {
+								text = '';
+							}
 						} else {
 							text = this.getPlaceholderName();
 						}
@@ -4240,7 +4306,7 @@
 				const pointContent = this.getSmartArtPointContent();
 				if (oBodyPr && pointContent) {
 					const paddings = {};
-					const point = pointContent && pointContent[0].point;
+					const point = pointContent[0] && pointContent[0].point;
 					if (point) {
 						const isRecalculateInsets = point.isRecalculateInsets();
 						const smartArt = this.group && this.group.group;
@@ -4376,7 +4442,7 @@
 				const pointContent = this.getSmartArtPointContent();
 				if (oBodyPr && pointContent) {
 					const paddings = {};
-					const point = pointContent && pointContent[0].point;
+					const point = pointContent[0] && pointContent[0].point;
 					if (point) {
 						const isRecalculateInsets = point.isRecalculateInsets();
 						const shapeInfo = this.getSmartArtInfo();
@@ -4714,7 +4780,9 @@
 			for (let i = 0; i < arrShapes.length; i += 1) {
 				const oShape = arrShapes[i];
 				var contentPoints = oShape.getSmartArtPointContent();
-
+				if (!contentPoints) {
+					continue;
+				}
 				const isNotPlaceholder = contentPoints.every(function (node) {
 					const point = node.point;
 					return point && point.prSet && !point.prSet.custT;
@@ -4870,7 +4938,6 @@
 			} else {
 				var oBodyPr = this.getBodyPr && this.getBodyPr();
 				var oContent = this.getDocContent && this.getDocContent();
-				var pointContent = this.getSmartArtPointContent();
 				if (oBodyPr && oContent && this.clipRect) {
 					var oTextFit = oBodyPr.textFit;
 					if (oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto) {
@@ -4991,7 +5058,8 @@
 						var isNotEmptyShape = oContent.Content.some(function (paragraph) {
 							return !paragraph.Is_Empty({SkipEnd: true, SkipPlcHldr: false});
 						});
-						if (isNotEmptyShape) {
+						const pointContent = this.getSmartArtPointContent();
+						if (isNotEmptyShape && pointContent) {
 							pointContent.forEach(function (node) {
 								const point = node.point;
 								point.prSet.setPhldr(false);
@@ -5180,12 +5248,12 @@
 					}
 				}
 				if (!(/*content.IsTextSelectionUse() && */e.ShiftKey))
-					content.Selection_SetStart(tx, ty, slideIndex - content.Get_StartPage_Relative(), e);
+					content.Selection_SetStart(tx, ty, slideIndex - content.GetRelativeStartPage(), e);
 				else {
 					if (!content.IsTextSelectionUse()) {
 						content.StartSelectionFromCurPos();
 					}
-					content.Selection_SetEnd(tx, ty, slideIndex - content.Get_StartPage_Relative(), e);
+					content.Selection_SetEnd(tx, ty, slideIndex - content.GetRelativeStartPage(), e);
 				}
 			}
 		};
@@ -5200,7 +5268,7 @@
 				tx = this.invertTransformText.TransformPointX(x, y);
 				ty = this.invertTransformText.TransformPointY(x, y);
 				if (!(e.Type === AscCommon.g_mouse_event_type_up && this.rightButtonFlag)) {
-					content.Selection_SetEnd(tx, ty, slideIndex - content.Get_StartPage_Relative(), e);
+					content.Selection_SetEnd(tx, ty, slideIndex - content.GetRelativeStartPage(), e);
 				}
 			}
 			delete this.rightButtonFlag;
@@ -5211,6 +5279,10 @@
 		};
 
 		CShape.prototype.updateSelectionState = function () {
+			if (Asc.editor.isPdfEditor()) {
+				return AscPDF.CPdfShape.prototype.updateSelectionState.call(this);
+			}
+			
 			var drawing_document = this.getDrawingDocument();
 			if (drawing_document) {
 				var content = this.getDocContent();
@@ -5346,8 +5418,40 @@
 				}
 			}
 		};
+		CShape.prototype.drawTxBody = function (graphics, transform, transformText, pageIndex) {
+			if (this.txBody) {
+				var oController = this.getDrawingObjectsController && this.getDrawingObjectsController();
+				graphics.SaveGrState();
+				graphics.SetIntegerGrid(false);
+				var _transformText;
+				if ((!this.txBody.content || this.txBody.content.Is_Empty()) && !AscCommon.IsShapeToImageConverter && this.txBody.content2 != null && !this.txBody.checkCurrentPlaceholder() && (this.isEmptyPlaceholder ? this.isEmptyPlaceholder() : false) && this.transformText2) {
+					_transformText = this.transformText2;
+				} else if (this.txBody.content) {
+					_transformText = transformText;
+				}
+				let isPdfAnnot = false;
+				if (Asc.editor.isPdfEditor()) {
+					if (this.IsAnnot && this.IsAnnot()) {
+						isPdfAnnot = true;
+					}
+				}
+				if (this instanceof CShape) {
+					if (!(oController && (AscFormat.getTargetTextObject(oController) === this)) && !isPdfAnnot)
+						this.clipTextRect(graphics, transform, transformText, pageIndex);
+				}
+				graphics.transform3(_transformText, true);
+				if (graphics.CheckUseFonts2 !== undefined)
+					graphics.CheckUseFonts2(_transformText);
 
+				graphics.SetIntegerGrid(true);
+				this.txBody.draw(graphics);
+				if (graphics.UncheckUseFonts2 !== undefined)
+					graphics.UncheckUseFonts2(_transformText);
+				graphics.RestoreGrState();
+			}
+		};
 		/**
+		 * note: sometimes call to recalculate bounds
 		 * @memberOf CShape
 		 */
 		CShape.prototype.draw = function (graphics, transform, transformText, pageIndex, opt) {
@@ -5450,33 +5554,10 @@
 
 			if (!this.cropObject) {
 				if (!this.txWarpStruct && !this.txWarpStructParamarksNoTransform || (!this.txWarpStructParamarksNoTransform && oController && (AscFormat.getTargetTextObject(oController) === this) || (!this.txBody && !this.textBoxContent)) /*|| this.haveSelectedDrawingInContent()*/) {
-					if (this.txBody) {
-						graphics.SaveGrState();
-						graphics.SetIntegerGrid(false);
-						var transform_text;
-						if ((!this.txBody.content || this.txBody.content.Is_Empty()) && !AscCommon.IsShapeToImageConverter && this.txBody.content2 != null && !this.txBody.checkCurrentPlaceholder() && (this.isEmptyPlaceholder ? this.isEmptyPlaceholder() : false) && this.transformText2) {
-							transform_text = this.transformText2;
-						} else if (this.txBody.content) {
-							transform_text = _transform_text;
-						}
-
-						if (this instanceof CShape) {
-							if (!(oController && (AscFormat.getTargetTextObject(oController) === this)))
-								this.clipTextRect(graphics, transform, transformText, pageIndex);
-						}
-						graphics.transform3(transform_text, true);
-						if (graphics.CheckUseFonts2 !== undefined)
-							graphics.CheckUseFonts2(transform_text);
-
-						graphics.SetIntegerGrid(true);
-						this.txBody.draw(graphics);
-						if (graphics.UncheckUseFonts2 !== undefined)
-							graphics.UncheckUseFonts2(transform_text);
-						graphics.RestoreGrState();
-					}
+					this.drawTxBody(graphics, transform, _transform_text, pageIndex);
 
 					if (this.textBoxContent && graphics.isSupportTextDraw() && this.transformText) {
-						var old_start_page = this.textBoxContent.Get_StartPage_Relative();
+						var old_start_page = this.textBoxContent.GetRelativeStartPage();
 						this.textBoxContent.Set_StartPage(pageIndex);
 
 						graphics.SaveGrState();
@@ -5505,9 +5586,10 @@
 				} else {
 					var oTheme = this.getParentObjects().theme;
 					var oColorMap = this.Get_ColorMap();
+					var bEditTextArt = isRealObject(oController) && (AscFormat.getTargetTextObject(oController) === this);
 					if (!this.bWordShape && (!this.txBody.content || this.txBody.content.Is_Empty()) && !AscCommon.IsShapeToImageConverter && this.txBody.content2 != null && !this.txBody.checkCurrentPlaceholder() && (this.isEmptyPlaceholder ? this.isEmptyPlaceholder() : false)) {
 						if (graphics.IsNoDrawingEmptyPlaceholder !== true && graphics.IsNoDrawingEmptyPlaceholderText !== true && !graphics.isPdf()) {
-							if (editor && editor.ShowParaMarks) {
+							if (isShowParaMarksInTextArt(this, bEditTextArt)) {
 								this.txWarpStructParamarks2.draw(graphics, this.transformTextWordArt2, oTheme, oColorMap);
 							} else {
 								if (this.txWarpStruct2)
@@ -5517,10 +5599,9 @@
 					} else {
 
 						var oContent = this.getDocContent();
-						var result_page_index = AscFormat.isRealNumber(graphics.shapePageIndex) ? graphics.shapePageIndex : (oContent ? oContent.Get_StartPage_Relative() : 0);
+						var result_page_index = AscFormat.isRealNumber(graphics.shapePageIndex) ? graphics.shapePageIndex : (oContent ? oContent.GetRelativeStartPage() : 0);
 						graphics.PageNum = result_page_index;
 						var bNeedRestoreState = false;
-						var bEditTextArt = isRealObject(oController) && (AscFormat.getTargetTextObject(oController) === this);
 						if (this.bWordShape && this.clipRect /*&& (!this.bodyPr.prstTxWarp || this.bodyPr.prstTxWarp.preset === "textNoShape" || bEditTextArt)*/) {
 							bNeedRestoreState = true;
 							var clip_rect = this.clipRect;
@@ -5538,7 +5619,7 @@
 						}
 
 						var oTransform = this.transformTextWordArt;
-						if (editor && editor.ShowParaMarks) {
+						if (isShowParaMarksInTextArt(this, bEditTextArt)) {
 							if (bEditTextArt && this.txWarpStructParamarksNoTransform) {
 								this.txWarpStructParamarksNoTransform.draw(graphics, this.transformText, oTheme, oColorMap);
 							} else if (this.txWarpStructParamarks) {
@@ -5866,8 +5947,12 @@
 				}
 			}
 			var oContent = this.getDocContent();
+			fCheckContentImages(images, oContent, this.bWordShape);
+		};
+
+		function fCheckContentImages(images, oContent, bWord) {
 			if (oContent) {
-				if (this.bWordShape) {
+				if (bWord) {
 					var drawings = oContent.GetAllDrawingObjects();
 					for (var i = 0; i < drawings.length; ++i) {
 						drawings[i].GraphicObj && drawings[i].GraphicObj.getAllRasterImages && drawings[i].GraphicObj.getAllRasterImages(images);
@@ -5885,7 +5970,7 @@
 
 				oContent.CheckRunContent(fCallback);
 			}
-		};
+		}
 		CShape.prototype.getAllDocContents = function (aDocContents) {
 			if (this.textBoxContent) {
 				aDocContents.push(this.textBoxContent);
@@ -6476,7 +6561,6 @@
 				case AscDFH.historyitem_AutoShapes_RemoveFromDrawingObjects: {
 					break;
 				}
-
 				case AscDFH.historyitem_AutoShapes_AddToDrawingObjects: {
 					break;
 				}
@@ -6538,8 +6622,12 @@
 				}
 			}
 		};
-
-		CShape.prototype.Get_PageContentStartPos = function (pageNum) {
+		
+		CShape.prototype.GetPageContentFrame = function(page, sectPr){
+			return this.GetColumnContentFrame(page, 0, sectPr);
+		};
+		
+		CShape.prototype.GetColumnContentFrame = function(page, column, sectPr){
 			if (this.textBoxContent) {
 				if (this.getTextRect) {
 					var rect = this.getTextRect();
@@ -6590,7 +6678,7 @@
 				warpGeometry && warpGeometry.Recalculate(dWidth, dHeight);
 				this.recalcInfo.warpGeometry = warpGeometry;
 				var bCheckWordArtContent = this.checkContentWordArt(oContent);
-				var bColumns = oContent.Get_ColumnsCount() > 1;
+				var bColumns = oContent.GetColumnCount() > 1;
 				var bContentRecalculated = false;
 				if (bTransform || bCheckWordArtContent) {
 					var bNeedRecalc = this.checkNeedRecalcDocContentForTxWarp(oBodyPr), dOneLineWidth,
@@ -6779,7 +6867,7 @@
 					new_body_pr.numCol = (num >> 0);
 
 					if (!this.txBody) {
-						this.createTextBody();
+						this.createTextBodyOnEdit();
 					}
 					if (this.txBody) {
 						this.txBody.setBodyPr(new_body_pr);
@@ -6797,7 +6885,7 @@
 					new_body_pr = new_body_pr.createDuplicate();
 					new_body_pr.spcCol = spcCol;
 					if (!this.txBody) {
-						this.createTextBody();
+						this.createTextBodyOnEdit();
 					}
 					if (this.txBody) {
 						this.txBody.setBodyPr(new_body_pr);
@@ -7281,6 +7369,27 @@
 			return  oCurCandidate;
 		};
 		CShape.prototype.checkDrawingPartWithHistory = function () {};
+		CShape.prototype.getDocStructure = function (oParagraphSplitOptions, oIdGenerator) {
+			return AscFormat.ExecuteNoHistory(function () {
+				oParagraphSplitOptions = oParagraphSplitOptions || {};
+				const oDocContent = this.getDocContent();
+				if (oDocContent) {
+					const oTheme = oDocContent.Get_Theme();
+					const oColorMap = oDocContent.Get_ColorMap();
+					const oTransform = this.transformText;
+					const oTextDrawer = new AscFormat.CTextDrawer(oDocContent.XLimit, oDocContent.YLimit, false, oDocContent.Get_Theme(), true, oParagraphSplitOptions, oIdGenerator);
+					oDocContent.Draw(oDocContent.StartPage, oTextDrawer);
+					const oDocStructure = oTextDrawer.m_oDocContentStructure;
+					for (let i = 0; i < oDocStructure.m_aContent.length; i += 1) {
+						const oParagraph = oDocStructure.m_aContent[i];
+						oParagraph.generateWrappersBySplit(oParagraphSplitOptions[i], oTransform, oTheme, oColorMap, this);
+					}
+					oTextDrawer.clearTextElements();
+					return oDocStructure;
+				}
+				return null;
+			}, this, []);
+		};
 
 		function CreateBinaryReader(szSrc, offset, srcLen) {
 			var memoryData = AscCommon.Base64.decode(szSrc, true, srcLen, offset);
@@ -7413,6 +7522,13 @@
 					AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(AscFormat.pHText[i]));
 			}
 		};
+
+		function isShowParaMarksInTextArt(shape, bCurrentEditText) {
+			if(!Asc.editor.ShowParaMarks) return false;
+			if(bCurrentEditText) return true;
+			if(shape.chekBodyPrTransform(shape.getBodyPr())) return false;
+			return true;
+		}
 		//--------------------------------------------------------export----------------------------------------------------
 		window['AscFormat'] = window['AscFormat'] || {};
 		window['AscFormat'].CheckObjectLine = CheckObjectLine;
@@ -7434,4 +7550,5 @@
 		window['AscFormat'].hitToHandles = hitToHandles;
 		window['AscFormat'].pHText = pHText;
 		window['AscFormat'].fitSmartArtShapes = fitSmartArtShapes;
+		window['AscFormat'].fCheckContentImages = fCheckContentImages;
 	})(window);

@@ -103,11 +103,6 @@ define([
                 isVisible: false
             };
             me.eyedropperTip = {
-                toolTip: new Common.UI.Tooltip({
-                    owner: this,
-                    html: true,
-                    cls: 'eyedropper-tooltip'
-                }),
                 isHidden: true,
                 isVisible: false,
                 eyedropperColor: null,
@@ -263,7 +258,10 @@ define([
             var me = this;
             _.delay(function(){
                 if (event.get_Type() == Asc.c_oAscPdfContextMenuTypes.Thumbnails) {
-                    me.mode && me.mode.isEdit && me.mode.isPDFEdit && me.showPopupMenu.call(me, me.documentHolder.pageMenu, {isPageSelect: event.get_IsPageSelect(), pageNum: event.get_PageNum()}, event);
+                    if (me.mode && me.mode.isEdit) {
+                        !me.mode.isPDFEdit && !me.documentHolder.viewPDFModeMenu && me.documentHolder.createDelayedElementsPDFViewer();
+                        me.showPopupMenu.call(me, me.mode.isPDFEdit ? me.documentHolder.pageMenu : me.documentHolder.viewPageMenu, {isPageSelect: event.get_IsPageSelect(), pageNum: event.get_PageNum()}, event);
+                    }
                 } else
                     me.showObjectMenu.call(me, event);
             },10);
@@ -274,9 +272,12 @@ define([
                 currentMenu = me.documentHolder.currentMenu;
             if (currentMenu && currentMenu.isVisible()){
                 var obj = me.mode && me.mode.isRestrictedEdit ? me.fillFormsMenuProps(selectedElements) : (me.mode && me.mode.isEdit && me.mode.isPDFEdit ? me.fillPDFEditMenuProps(selectedElements) : me.fillViewMenuProps(selectedElements));
-                if (obj) {
-                    if (obj.menu_to_show===currentMenu) {
-                        currentMenu.options.initMenu(obj.menu_props);
+                if (obj && obj.menu_to_show===currentMenu) {
+                    currentMenu.options.initMenu(obj.menu_props);
+                    currentMenu.alignPosition();
+                } else {
+                    if (currentMenu===(me.mode.isPDFEdit ? me.documentHolder.pageMenu : me.documentHolder.viewPageMenu)){
+                        currentMenu.options.initMenu();
                         currentMenu.alignPosition();
                     }
                 }
@@ -284,6 +285,7 @@ define([
             if (this.mode && this.mode.isEdit && this.mode.isPDFEdit) {
                 var i = -1,
                     in_equation = false,
+                    in_chart = false,
                     locked = false;
                 while (++i < selectedElements.length) {
                     var type = selectedElements[i].get_ObjectType();
@@ -292,33 +294,53 @@ define([
                     } else if (type === Asc.c_oAscTypeSelectElement.Paragraph) {
                         var value = selectedElements[i].get_ObjectValue();
                         value && (locked = locked || value.get_Locked());
+                    } else if (type === Asc.c_oAscTypeSelectElement.Shape) { // shape
+                        var value = selectedElements[i].get_ObjectValue();
+                        if (value && value.get_FromChart()) {
+                            in_chart = true;
+                            locked = locked || value.get_Locked();
+                        }
                     }
                 }
                 if (in_equation) {
                     this._state.equationLocked = locked;
                     this.disableEquationBar();
                 }
+                if (in_chart) {
+                    this._state.chartLocked = locked;
+                    this.disableChartElementButton();
+                }
             }
         },
 
         handleDocumentWheel: function(event) {
             var me = this;
-            if (me.api) {
-                var delta = (_.isUndefined(event.originalEvent)) ? event.wheelDelta : event.originalEvent.wheelDelta;
-                if (_.isUndefined(delta)) {
-                    delta = event.deltaY;
+            if (!me.api) return;
+
+            if (!me._isScrolling) {
+                me._isScrolling = true;
+                me._ctrlPressedAtScrollStart = event.ctrlKey;
+            }
+
+            clearTimeout(me._scrollEndTimeout);
+            me._scrollEndTimeout = setTimeout(function () {
+                me._isScrolling = false;
+            }, 100);
+
+            var delta = (_.isUndefined(event.originalEvent)) ? event.wheelDelta : event.originalEvent.wheelDelta;
+            if (_.isUndefined(delta)) {
+                delta = event.deltaY;
+            }
+
+            if (me._ctrlPressedAtScrollStart && !event.altKey) {
+                if (delta < 0) {
+                    me.api.zoomOut();
+                } else if (delta > 0) {
+                    me.api.zoomIn();
                 }
 
-                if (event.ctrlKey && !event.altKey) {
-                    if (delta < 0) {
-                        me.api.zoomOut();
-                    } else if (delta > 0) {
-                        me.api.zoomIn();
-                    }
-
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
+                event.preventDefault();
+                event.stopPropagation();
             }
         },
 
@@ -382,8 +404,11 @@ define([
                     if (e.target.localName == 'canvas') {
                         if (me._preventClick)
                             me._preventClick = false;
-                        else
+                        else {
+                            if (e.target.getAttribute && e.target.getAttribute("oo_no_focused"))
+                                return;
                             meEl.focus();
+                        }
                     }
                 });
                 meEl.on('mousedown', function(e){
@@ -533,6 +558,8 @@ define([
         SetDisabled: function(state, canProtect, fillFormMode) {
             this._isDisabled = state;
             this.documentHolder.SetDisabled(state, canProtect, fillFormMode);
+            this.disableEquationBar();
+            this.disableChartElementButton();
         },
 
         changePosition: function() {
@@ -570,9 +597,13 @@ define([
 
         onHideMathTrack: function() {},
 
+        onHideChartElementButton: function() {},
+
         onHideTextBar: function() {},
 
         disableEquationBar: function() {},
+
+        disableChartElementButton: function() {},
 
         onHideAnnotBar: function() {},
 
@@ -588,6 +619,7 @@ define([
             this.onHideTextBar();
             this.onHideAnnotBar();
             this.onHideAnnotSelectBar();
+            this.onHideChartElementButton();
         },
 
         editComplete: function() {
