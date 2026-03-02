@@ -4882,7 +4882,13 @@
                     if (firstChar.toUpperCase() === firstChar
                         && p !== "Class"
                         && typeof this[p] !== "function") {
-                        properties[p] = ""+this[p];
+                        let pStr;
+                        try {
+                            pStr = JSON.stringify(this[p]);
+                        } catch(e) {
+                            pStr = ""+this[p];
+                        }
+                        properties[p] = pStr;
                     }
                 }
                 console.log("Load", this.constructor.name, Class.constructor.name, Class.Id, properties);
