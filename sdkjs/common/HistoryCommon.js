@@ -4866,6 +4866,35 @@
 		this.Class = Class;
 
 		this.Reverted = false;
+
+        // CryptPad: Add parser debug logging
+        if (localStorage.CryptPad_dev != "1") {
+            return;
+        }
+        if (this.Load) {
+            const origLoad = this.Load;
+            this.Load = function () {
+                const properties = {};
+                const keys = Object.keys(this);
+                for (let i = 0; i < keys.length; i++) {
+                    const p = keys[i];
+                    const firstChar = p.charAt(0);
+                    if (firstChar.toUpperCase() === firstChar
+                        && p !== "Class"
+                        && typeof this[p] !== "function") {
+                        let pStr;
+                        try {
+                            pStr = JSON.stringify(this[p]);
+                        } catch(e) {
+                            pStr = ""+this[p];
+                        }
+                        properties[p] = pStr;
+                    }
+                }
+                console.log("Load", this.constructor.name, Class.constructor.name, Class.Id, properties);
+                return Reflect.apply(origLoad, this, arguments);
+            };
+        }
 	}
 	CChangesBase.prototype.Type = window['AscDFH'].historyitem_Unknown_Unknown;
 	CChangesBase.prototype.GetType = function()
