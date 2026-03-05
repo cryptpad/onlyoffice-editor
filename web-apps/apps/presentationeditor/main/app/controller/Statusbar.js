@@ -278,7 +278,10 @@ define([
              this.statusbar.showSlideMasterStatus(isSlideMaster);
              if (this.statusbar.btnPreview) {
                 this.statusbar.btnPreview.menu.items[1].setDisabled(isSlideMaster);
-                this.statusbar.btnPreview.menu.items[2].setDisabled(isSlideMaster);
+                // CRYPTPAD this menu item was removed by us in app/view/Statusbar.js
+                if (this.statusbar.btnPreview.menu.items[2]) {
+                    this.statusbar.btnPreview.menu.items[2].setDisabled(isSlideMaster);
+                }
              }
         },
 
