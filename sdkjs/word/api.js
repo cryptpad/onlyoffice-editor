@@ -2453,23 +2453,13 @@ background-repeat: no-repeat;\
 		}
 		_logicDoc.FinalizeAction();
 	};
-<<<<<<< HEAD
-
-	asc_docs_api.prototype.asc_SpecialPaste = function(props)
-=======
 	
 	asc_docs_api.prototype.asc_SpecialPaste = function(props, isPasteOptions)
->>>>>>> d813ba3196dd6b20b8cf636de852dcb6609ff9aa
 	{
 		return AscCommon.g_specialPasteHelper.Special_Paste(props, isPasteOptions);
 	};
-<<<<<<< HEAD
-
-	asc_docs_api.prototype.asc_SpecialPasteData = function(props)
-=======
 	
 	asc_docs_api.prototype.asc_SpecialPasteData = function(props, isPasteOptions)
->>>>>>> d813ba3196dd6b20b8cf636de852dcb6609ff9aa
 	{
 		if (AscCommon.CollaborativeEditing.Get_GlobalLock())
 	        return;
