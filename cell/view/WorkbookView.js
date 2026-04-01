@@ -341,6 +341,8 @@
 
 	this.externalReferenceUpdateTimer = null;
 
+	this.isPartialReading = null;
+
 	return this;
   }
 
@@ -1300,8 +1302,11 @@
       }
 	  AscCommon.applyElementDirection(this.input);
     }
-    this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
-    this.handlers.trigger("asc_onSelectionEnd");
+	//TODO need review -> it may be enough to add a condition to _setEditorFocus
+	if (!(window["NATIVE_EDITOR_ENJINE"] && this.SearchEngine && this.SearchEngine.changingSelection)) {
+		this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
+		this.handlers.trigger("asc_onSelectionEnd");
+	}
     //если меняется выделенный диапазон
     this.SearchEngine && this.SearchEngine.ResetCurrent(true);
 
@@ -1442,12 +1447,36 @@
 			return;
 		}
 		if (ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.selectLockedCells)) {
-			//TODO _getRangeByXY ?
-			var newRange = isCoord ? ws._getRangeByXY(dc, dr) :
-				ws._calcSelectionEndPointByOffset(dc, dr);
-			var lockedCell = ws.model.getLockedCell(newRange.c2, newRange.r2);
-			if (lockedCell || lockedCell === null) {
-				return;
+			var newRange, checkCol, checkRow;
+			if (isStartPoint) {
+				if (isCoord) {
+					newRange = ws._getRangeByXY(dc, dr);
+					checkCol = newRange.c1;
+					checkRow = newRange.r1;
+				} else {
+					var activeCell = ws._getSelection().activeCell;
+					var mc = ws.model.getMergedByCell(activeCell.row, activeCell.col);
+					var c = mc ? (dc < 0 ? mc.c1 : dc > 0 ? Math.min(mc.c2, ws.nColsCount - 1 - dc) : activeCell.col) :
+						activeCell.col;
+					var r = mc ? (dr < 0 ? mc.r1 : dr > 0 ? Math.min(mc.r2, ws.nRowsCount - 1 - dr) : activeCell.row) :
+						activeCell.row;
+					var p = ws._calcCellPosition(c, r, dc, dr);
+					checkCol = p.col;
+					checkRow = p.row;
+				}
+				var lockedCell = ws.model.getLockedCell(checkCol, checkRow);
+				if (lockedCell || lockedCell === null) {
+					return;
+				}
+			} else {
+				if (isCoord) {
+					newRange = ws._calcSelectionEndPointByXY(dc, dr, isCoord && this.keepType);
+				} else {
+					newRange = ws._calcSelectionEndPointByOffset(dc, dr);
+				}
+				if (ws.model.isLockedRange(newRange)) {
+					return;
+				}
 			}
 		}
 
@@ -1628,7 +1657,10 @@
 		const nPage = this.model.nActive;
 		const oContext = this.trackOverlay.m_oContext;
 		const oRect = {};
-		const nLeft = 2 * oWS.cellsLeft - oWS._getColLeft(oWS.visibleRange.c1);
+		let nLeft = 2 * oWS.cellsLeft - oWS._getColLeft(oWS.visibleRange.c1);
+		if (oWS.getRightToLeft()) {
+			nLeft = -nLeft;
+		}
 		const nTop = 2 * oWS.cellsTop - oWS._getRowTop(oWS.visibleRange.r1);
 		oRect.left   = nLeft;
 		oRect.right  = nLeft + AscCommon.AscBrowser.convertToRetinaValue(oContext.canvas.width);
@@ -2294,8 +2326,9 @@
       return this.closeCellEditor();
   };
 
-  WorkbookView.prototype._onCloseCellEditor = function() {
+  WorkbookView.prototype._onCloseCellEditor = function(saveValue) {
     var isCellEditMode = this.getCellEditMode();
+    var isFormulaEditMode = this.isFormulaEditMode;
     this.setCellEditMode(false);
 
     if (isCellEditMode) {
@@ -2324,7 +2357,9 @@
     this.updateTargetForCollaboration();
     this.sendCursor();
 
-	this.externalSelectionController.sendExternalCloseEditor();
+	if (isFormulaEditMode) {
+		this.externalSelectionController.sendExternalCloseEditor(saveValue);
+	}
   };
 
   WorkbookView.prototype._onEmpty = function() {
@@ -2373,8 +2408,7 @@
     return false;
   };
 
-  WorkbookView.prototype._onSetFontAttributes = function(prop) {
-    var val;
+  WorkbookView.prototype._onSetFontAttributes = function(prop, val) {
     var xfs = this.getSelectionInfo().asc_getXfs();
     switch (prop) {
       case "b":
@@ -2391,6 +2425,11 @@
       case "s":
         val = !(xfs.asc_getFontStrikeout());
         break;
+			case "fa":
+				if (val === xfs.asc_getFontVerticalAlign()) {
+					val = null;
+				}
+				break;
     }
     return this.setFontAttributes(prop, val);
   };
@@ -2902,7 +2941,7 @@
 
 	// Останавливаем ввод данных в редакторе ввода
 	WorkbookView.prototype.closeCellEditor = function (cancel) {
-		this.externalSelectionController.sendExternalCloseEditor();
+		this.isFormulaEditMode && this.externalSelectionController.sendExternalCloseEditor(!cancel);
 		return this.getCellEditMode() ? this.cellEditor.close(!cancel) : true;
 	};
 
@@ -3389,9 +3428,9 @@
     g_clipboardExcel.pasteData(ws, _format, data1, data2, text_data, null, doNotShowButton, null, callback);
   };
 
-  WorkbookView.prototype.specialPasteData = function(props) {
+  WorkbookView.prototype.specialPasteData = function(props, isPasteOptions) {
     if (!this.getCellEditMode()) {
-		this.getWorksheet().specialPaste(props);
+		this.getWorksheet().specialPaste(props, isPasteOptions);
 	}
   };
 
@@ -4206,46 +4245,49 @@
       }
   };
     WorkbookView.prototype.handleDrawingsOnWorkbookChange = function (aRanges) {
-        if(!Array.isArray(aRanges) || aRanges.length === 0) {
-            return;
-        }
-        var aChartRefsToChange = [];
-        var aCharts = [];
-				let bHandled = false;
-        this.model.handleDrawings(function(oDrawing) {
-					switch (oDrawing.getObjectType()) {
-						case AscDFH.historyitem_type_ChartSpace: {
-							const nPrevLength = aChartRefsToChange.length;
-							oDrawing.collectIntersectionRefs(aRanges, aChartRefsToChange);
-							if(aChartRefsToChange.length > nPrevLength) {
-								aCharts.push(oDrawing);
-								bHandled = true;
-							}
-							break;
-						}
-						case AscDFH.historyitem_type_Control: {
-							bHandled |= oDrawing.handleChangeRanges(aRanges);
-							break;
-						}
-						default: {
-							break;
-						}
-					}
-        });
-        if(aChartRefsToChange.length > 0) {
-            for(var nRef = 0; nRef < aChartRefsToChange.length; ++nRef) {
-                aChartRefsToChange[nRef].updateCacheAndCat();
-            }
-            for(var nChart = 0; nChart < aCharts.length; ++nChart) {
-                aCharts[nChart].recalculate();
-            }
-            this.onShowDrawingObjects();
-        }
+				const bHandled = this.model.handleDrawingsOnWorkbookChange(aRanges);
 				if (bHandled) {
 					this.onShowDrawingObjects();
 				}
-				this.Api.frameManager.updateGeneralDiagramCache(aRanges);
     };
+	WorkbookView.prototype.handleDrawingsOnWorkbookOpening = function (aRanges) {
+		if(!Array.isArray(aRanges) || aRanges.length === 0) {
+			return;
+		}
+		var aChartRefsToChange = [];
+		var aCharts = [];
+		let bHandled = false;
+		const fDrawingCallback = function(oDrawing) {
+			switch (oDrawing.getObjectType()) {
+				case AscDFH.historyitem_type_ChartSpace: {
+					const nPrevLength = aChartRefsToChange.length;
+					oDrawing.collectInsideAndIntersectionRefs(aRanges, aChartRefsToChange);
+					if(aChartRefsToChange.length > nPrevLength) {
+						aCharts.push(oDrawing);
+						bHandled = true;
+					}
+					break;
+				}
+				default: {
+					break;
+				}
+			}
+		};
+		this.model.handleDrawings(fDrawingCallback);
+		this.Api.frameManager.handleMainDiagram(fDrawingCallback);
+		if(aChartRefsToChange.length > 0) {
+			for(var nRef = 0; nRef < aChartRefsToChange.length; ++nRef) {
+				aChartRefsToChange[nRef].updateCacheAndCat();
+			}
+			for(var nChart = 0; nChart < aCharts.length; ++nChart) {
+				aCharts[nChart].recalculate();
+			}
+			this.onShowDrawingObjects();
+		}
+		if (bHandled) {
+			this.onShowDrawingObjects();
+		}
+	};
     WorkbookView.prototype.handleChartsOnChangeSheetName = function (oWorksheet, sOldName, sNewName) {
         //change sheet name in chart references
         var oWorkbook = this.model;
@@ -5404,7 +5446,6 @@
 	};
 	WorkbookView.prototype.Remove_ForeignCursor = function (UserId) {
 		this.model.DrawingDocument.Collaborative_RemoveTarget(UserId);
-		AscCommon.CollaborativeEditing.Remove_ForeignCursor(UserId);
 
 		this.getWorksheet().cleanSelection();
 		this.collaborativeEditing.Remove_ForeignCursor(UserId);
@@ -5724,6 +5765,14 @@
 			return this.EnterText(newValue);
 		}
 
+		let oWSView = this.getWorksheet();
+		if (oWSView && oWSView.isSelectOnShape) {
+			if (oWSView.objectRender) {
+				return oWSView.objectRender.CorrectEnterText(oldValue, newValue);
+			}
+			return;
+		}
+
 		if (!this.isCellEditMode || !this.cellEditor) {
 			return;
 		}
@@ -5948,7 +5997,17 @@
 							if (editor !== AscCommon.c_oEditorId.Spreadsheet) {
 								continue;
 							}
-							const oMockWb = wb ? wb : t.model;
+							const oMockWb = wb;
+							if (!wb) {
+								wb = new AscCommonExcel.Workbook(null, window["Asc"]["editor"], false);
+								wb.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
+							}
+
+							wb.sharedStrings.all = [];
+							wb.sharedStrings.text = Object.create(null);
+							wb.sharedStrings.multiTextMap = Object.create(null);
+							wb.sharedStrings.bssr = null;
+
 							let updatedData = oMockWb.getExternalReferenceSheetsFromZip(stream);
 							_updateData(updatedData, _arrAfterPromise[i].data, t.model /* working file workbook */);
 						}
@@ -6293,7 +6352,15 @@
 		History.StartTransaction();
 
 		const solverParams = new AscCommonExcel.asc_CSolverParams();
-		solverParams.getDefNames(this.model);
+		/**@type {Workbook}*/
+		const wbModel = this.model;
+		solverParams.getDefNames(wbModel);
+		if (!solverParams.hasSolverDefNames(wbModel)) {
+			const wsView = this.getWorksheet();
+			const activeCell = wsView.getActiveCell(0, 0, false).getName(AscCommonExcel.referenceType.A);
+			solverParams.asc_setObjectiveFunction(activeCell);
+		}
+		wbModel.setSolverParams(solverParams);
 
 		return solverParams;
 	}
@@ -6308,9 +6375,14 @@
 		}
 
 		const CSolver = AscCommonExcel.CSolver;
+		const c_oAscResultStatus = AscCommonExcel.c_oAscResultStatus;
+		/**@type {Workbook} */
 		const wbModel = this.model;
 		const ws = wbModel.getActiveWs();
 		const t = this;
+		const api = Asc.editor;
+		const trialSolutionStatuses = [c_oAscResultStatus.maxIterationsReached, c_oAscResultStatus.maxTimeReached,
+			c_oAscResultStatus.maxFeasibleSolutionReached, c_oAscResultStatus.maxSubproblemSolutionReached];
 		let oSolver;
 
 		const callback = function (isSuccess) {
@@ -6318,39 +6390,43 @@
 				t.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellSolver, c_oAscError.Level.NoCritical);
 				return;
 			}
-			//open history point
+			//create history point
 			History.Create_NewPoint();
-			History.StartTransaction();
 			// Init CSolver object
 			wbModel.setSolver(new CSolver(oSolverParams, ws))
 			oSolver = wbModel.getSolver();
+			if (!oSolver.checkModel()) {
+				return;
+			}
 			oSolver.prepare();
 			// Run solver
-			if (oSolverParams.getOptions().getShowIterResults()) {
+			if (oSolverParams.asc_getOptions().asc_getShowIterResults()) {
 				oSolver.step();
 			} else {
-				oSolver.setIntervalId(setInterval(function () {
-					let bIsFinish = oSolver.calculate();
+				oSolver.setStartTime(Date.now());
+				api.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.SolverLookingSolution);
+				while (true) {
+					let bIsFinish = oSolver.calculate(false);
 					if (bIsFinish) {
-						clearInterval(oSolver.getIntervalId());
+						break;
 					}
-				}, oSolver.getDelay()));
+				}
 			}
 		};
 
 		//need lock
 		const aLocksInfo = [];
 		//cells locks info
-		const wsChangingCell = AscCommonExcel.actualWsByRef(oSolverParams.getChangingCells(), ws);
-		const sChangingCell = AscCommonExcel.convertToAbsoluteRef(oSolverParams.getChangingCells());
+		const wsChangingCell = AscCommonExcel.actualWsByRef(oSolverParams.asc_getChangingCells(), ws);
+		const sChangingCell = AscCommonExcel.convertToAbsoluteRef(oSolverParams.asc_getChangingCells());
 		const oChangingCell = wsChangingCell && wsChangingCell.getRange2(sChangingCell);
 		if (oChangingCell) {
 			aLocksInfo.push(this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Range, null, wsChangingCell.getId(),
 				new AscCommonExcel.asc_CCollaborativeRange(oChangingCell.bbox.c1, oChangingCell.bbox.r1, oChangingCell.bbox.c2, oChangingCell.bbox.r2)));
 		}
 
-		const wsFormula = AscCommonExcel.actualWsByRef(oSolverParams.getObjectiveFunction(), ws);
-		const sFormulaCell = AscCommonExcel.convertToAbsoluteRef(oSolverParams.getObjectiveFunction());
+		const wsFormula = AscCommonExcel.actualWsByRef(oSolverParams.asc_getObjectiveFunction(), ws);
+		const sFormulaCell = AscCommonExcel.convertToAbsoluteRef(oSolverParams.asc_getObjectiveFunction());
 		const oFormulaCell = wsFormula && wsFormula.getRange2(sFormulaCell);
 		if (oFormulaCell) {
 			aLocksInfo.push(this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Range, null, wsFormula.getId(),
@@ -6360,37 +6436,52 @@
 		this.collaborativeEditing.lock(aLocksInfo, callback);
 
 		const oChangedCell = oSolver && oSolver.getChangingCell();
+		wbModel.setSolverParams(oSolverParams);
 		if (oChangedCell) {
 			// update worksheet field
 			let ws = this.getWorksheetById(oChangedCell.worksheet.Id);
 			ws._updateRange(oChangedCell.bbox);
+			wbModel.dependencyFormulas.unlockRecal();
 			ws.draw();
+		}
+		api.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.SolverLookingSolution);
+		if (trialSolutionStatuses.includes(oSolver.getResultStatus())) {
+			api.sendEvent("asc_onSolverTrialDlgOpen", oSolver.getResultStatus());
+		} else {
+
+			api.sendEvent("asc_onSolverResultDlgOpen", oSolver.getResultStatus());
 		}
 	};
 
 	/**
+	 * Calls logic for closing Solver window.
 	 * @memberof WorkbookView
 	 * @param {boolean} bSave true - save result of calculation, false - discard changes.
-	 * @param {asc_CSolverParams} oSolverParams - uses for saving Solver parameters.
 	 */
-	WorkbookView.prototype.closeSolver = function(bSave, oSolverParams) {
+	WorkbookView.prototype.closeSolver = function(bSave) {
 		if (!this.model) {
 			return;
 		}
 
-		const oSolver = this.model.getSolver();
+		/**@type {Workbook}*/
+		const wbModel = this.model;
+		const oSolver = wbModel.getSolver();
+		const oSolverParams = wbModel.getSolverParams();
 		const oChangedCells = oSolver && oSolver.getChangingCell();
+		const oStartChangedCells = oSolver && oSolver.getStartChangingCells();
 
-		if (!bSave) {
-			const oStartChangedCells = oSolver && oSolver.getStartChangingCells();
+		if (!bSave && oStartChangedCells) {
 			oChangedCells && oChangedCells._foreachNoEmpty(function (oCell) {
 				const sOriginalValue = oStartChangedCells[oCell.getName()];
 				oCell.setValue(sOriginalValue);
 			});
 		}
-		oSolverParams.createDefNames(this.model);
+		oSolverParams.createDefNames(wbModel, this);
 		if (oSolver) {
-			this.model.setSolver(null);
+			wbModel.setSolver(null);
+		}
+		if (oSolverParams) {
+			wbModel.setSolverParams(null);
 		}
 
 		// close history point
@@ -6405,24 +6496,60 @@
 	};
 
 	/**
-	 * Runs only one iteration of solver calculation.
-	 * Uses when "Show iteration results" option is enabled.
+	 * Continues solver after pause.
+	 * Uses when "Show iteration results" option is enabled and after reaching maximum limits.
 	 * @memberof WorkbookView
 	 */
-	WorkbookView.prototype.stepSolver = function() {
+	WorkbookView.prototype.continueSolver = function() {
+		function updateCells () {
+			if (oChangedCells) {
+				// update worksheet field
+				let ws = wsView.getWorksheetById(oChangedCells.worksheet.Id);
+				ws._updateRange(oChangedCells.bbox);
+				ws.draw();
+			}
+		}
 		if (!this.model) {
 			return;
 		}
 
-		const oSolver = this.model.getSolver();
+		/** @type {Workbook} */
+		const oModel = this.model;
+		const oSolver = oModel.getSolver();
 		const oChangedCells = oSolver && oSolver.getChangingCell();
+		const oApi = Asc.editor;
+		const wsView = this;
 
-		oSolver && oSolver.step();
-		if (oChangedCells) {
-			// update worksheet field
-			let ws = this.getWorksheetById(oChangedCells.worksheet.Id);
-			ws._updateRange(oChangedCells.bbox);
-			ws.draw();
+		if (oSolver && oSolver.getOptions().asc_getShowIterResults()) {
+			oSolver.step();
+			updateCells();
+			oApi.sendEvent("asc_onSolverTrialSolutionOpen", oSolver.getResultStatus());
+		} else {
+			oSolver.continueCalculating();
+			updateCells();
+			oApi.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.SolverLookingSolution);
+			oApi.sendEvent("asc_onSolverResultDlgOpen", oSolver.getResultStatus());
+		}
+	};
+
+	/**
+	 * Stops solver calculation by user's request.
+	 * Uses for "Stop" button or closing window of "Show Trial Solution" dialogue window.
+	 * @memberof WorkbookView
+	 */
+	WorkbookView.prototype.stopSolver = function() {
+		if (!this.model) {
+			return;
+		}
+
+		/**@type {Workbook} */
+		const wbModel = this.model;
+		const oSolver = wbModel.getSolver();
+		const oApi = Asc.editor;
+
+		if (oSolver) {
+			oSolver.setResultStatus(AscCommonExcel.c_oAscResultStatus.stoppedByUser);
+			oApi.sendEvent("asc_onSolverResultDlgOpen", oSolver.getResultStatus());
 		}
 	};
 
@@ -6729,7 +6856,7 @@
 	WorkbookView.prototype.StartAction = function(nDescription, additional)
 	{
 		this.Api.sendEvent("asc_onUserActionStart");
-		this.Api.getMacroRecorder().onAction(nDescription, additional);
+		this.Api.getMacroRecorder().addStepData(nDescription, additional);
 	};
 	WorkbookView.prototype.MacrosAddData = function(nDescription, additional)
 	{
@@ -6738,7 +6865,15 @@
 	WorkbookView.prototype.FinalizeAction = function(nDescription, additional)
 	{
 		this.Api.sendEvent("asc_onUserActionEnd");
-		this.Api.getMacroRecorder().onAction(nDescription, additional);
+		this.Api.getMacroRecorder().addStepData(nDescription, additional);
+	};
+	WorkbookView.prototype.setIsPartialReading = function(val)
+	{
+		this.isPartialReading = val;
+	};
+	WorkbookView.prototype.getIsPartialReading = function()
+	{
+		return this.isPartialReading;
 	};
 
 
@@ -7505,7 +7640,7 @@
 		});
 
 		window.addEventListener && window.addEventListener('unload', function() {
-			if (isClosing) {
+			if (isClosing && oThis.wb.isFormulaEditMode) {
 				oThis.sendExternalCloseEditor();
 			}
 		});
@@ -7564,6 +7699,10 @@
 			return;
 		}
 
+		if (!this.wb.isFormulaEditMode && !this.getExternalFormulaEditMode()) {
+			return;
+		}
+
 		this.lockSendChangeSelection = true;
 		if ((!this.getExternalFormulaEditMode() && !this._isEqualEditorState(data)) || !this.supportVisibilityChangeOption) {
 			this.wb.setFormulaEditMode(true);
@@ -7589,10 +7728,16 @@
 			return;
 		}
 		const isExternalFormulaEditMode = this.getExternalFormulaEditMode();
+
+		if (!data.isClose && this.wb.isCellEditMode) {
+			return;
+		}
+
 		this.setExternalFormulaEditMode(!data.isClose ? {id: data.id} : null);
 
-		if (this.wb.getCellEditMode() && data.isClose && (isExternalFormulaEditMode || !this.supportVisibilityChangeOption)) {
-			this.wb.closeCellEditor(!data.saveValue);
+		if (this.wb.getCellEditMode() && data.isClose && (isExternalFormulaEditMode || this.wb.isFormulaEditMode)) {
+			var cancelClose = isExternalFormulaEditMode ? true : !data.saveValue;
+			this.wb.closeCellEditor(cancelClose);
 			this.clean();
 		} else if (!this.supportVisibilityChangeOption && !this.wb.getCellEditMode() && !data.isClose) {
 			this.onOpenCellEditor();

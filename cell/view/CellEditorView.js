@@ -368,6 +368,9 @@ function (window, undefined) {
 
 		AscCommon.StartIntervalDrawText(true);
 		this.openAction();
+
+		let externalSelectionController = this.handlers.trigger("getExternalSelectionController");
+		externalSelectionController && externalSelectionController.sendExternalChangeSelection();
 	};
 
 	CellEditor.prototype.close = function (saveValue, callback) {
@@ -426,7 +429,7 @@ function (window, undefined) {
 
 			// Reset editor state
 			t._setEditorState(c_oAscCellEditorState.editEnd);
-			t.handlers.trigger("closed");
+			t.handlers.trigger("closed", saveValue);
 			t.closeAction();
 
 			if (callback) {
@@ -483,7 +486,7 @@ function (window, undefined) {
 
 		// Reset editor state
 		this._setEditorState(c_oAscCellEditorState.editEnd);
-		this.handlers.trigger("closed");
+		this.handlers.trigger("closed", saveValue);
 		t.closeAction();
 
 		if (callback) {
@@ -497,7 +500,7 @@ function (window, undefined) {
 		this.handlers.trigger("doEditorFocus");
 	};
 
-	CellEditor.prototype.setTextStyle = function (prop, val) {
+	CellEditor.prototype.setTextStyle = function (prop, val, isToggle) {
 		if (this.isFormula()) {
 			return;
 		}
@@ -527,7 +530,7 @@ function (window, undefined) {
 
 			if (first && last) {
 				for (i = first.index; i <= last.index; ++i) {
-					var valTmp = t._setFormatProperty(opt.fragments[i].format, prop, val);
+					var valTmp = t._setFormatProperty(opt.fragments[i].format, prop, val, isToggle);
 					// For hotkeys only
 					if (null === val) {
 						val = valTmp;
@@ -552,7 +555,7 @@ function (window, undefined) {
 				if (!t.newTextFormat) {
 					t.newTextFormat = opt.fragments[first.index].format.clone();
 				}
-				t._setFormatProperty(t.newTextFormat, prop, val);
+				t._setFormatProperty(t.newTextFormat, prop, val, isToggle);
 				t._update();
 			}
 		}
@@ -1864,12 +1867,33 @@ function (window, undefined) {
 		this.newTextFormat = null;
 		var t = this;
 		this.sAutoComplete = null;
+
+		let getLineIndex = function (_curPos) {
+			if (!t.textRender || !t.textRender.lines) {
+				return;
+			}
+			for (var i = 0; i < t.textRender.lines.length; i++) {
+				var line = t.textRender.lines[i];
+				if (_curPos >= line.beg && _curPos <= line.end) {
+					return i;
+				}
+			}
+		};
+		let oldCursorPos = t.cursorPos, _lineIndex;
 		switch (kind) {
 			case kPrevChar:
+				_lineIndex = getLineIndex(oldCursorPos);
 				t.cursorPos = t.textRender.getPrevChar(t.cursorPos);
+				if (_lineIndex != null && oldCursorPos - 1 === t.cursorPos && t.textRender.lines[_lineIndex] && t.textRender.lines[_lineIndex].beg === t.cursorPos) {
+					lineIndex = _lineIndex;
+				}
 				break;
 			case kNextChar:
+				_lineIndex = getLineIndex(oldCursorPos);
 				t.cursorPos = t.textRender.getNextChar(t.cursorPos);
+				if (_lineIndex != null && oldCursorPos + 1 === t.cursorPos && t.textRender.lines[_lineIndex + 1] && t.textRender.lines[_lineIndex + 1].beg === t.cursorPos) {
+					lineIndex = _lineIndex + 1;
+				}
 				break;
 			case kPrevWord:
 				t.cursorPos = t.textRender.getPrevWord(t.cursorPos);
@@ -2446,7 +2470,7 @@ function (window, undefined) {
 		}
 	};
 
-	CellEditor.prototype._setFormatProperty = function (format, prop, val) {
+	CellEditor.prototype._setFormatProperty = function (format, prop, val, isToggle) {
 		switch (prop) {
 			case "fn":
 				format.setName(val);
@@ -2477,6 +2501,12 @@ function (window, undefined) {
 				format.setStrikeout(val);
 				break;
 			case "fa":
+				if (isToggle) {
+					const vertAlign = format.getVerticalAlign();
+					if (vertAlign === val) {
+						val = null;
+					}
+				}
 				format.setVerticalAlign(val);
 				break;
 			case "c":
@@ -2625,6 +2655,20 @@ function (window, undefined) {
 					this._syncEditors();
 				}
 				this.setTextStyle("u", null);
+				break;
+			}
+			case Asc.c_oAscSpreadsheetShortcutType.Subscript: {
+				if (bHieroglyph) {
+					this._syncEditors();
+				}
+				this.setTextStyle("fa", AscCommon.vertalign_SubScript, true);
+				break;
+			}
+			case Asc.c_oAscSpreadsheetShortcutType.Superscript: {
+				if (bHieroglyph) {
+					this._syncEditors();
+				}
+				this.setTextStyle("fa", AscCommon.vertalign_SuperScript, true);
 				break;
 			}
 			case Asc.c_oAscSpreadsheetShortcutType.EditSelectAll: {

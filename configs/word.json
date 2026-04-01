@@ -167,6 +167,7 @@
 			
 			"word/Editor/Paragraph/RunContent/Types.js",
 			"word/Math/mathTypes.js",
+			"word/Editor/Styles/para-spacing.js",
 			"word/Editor/Styles.js",
 			"word/Math/math-settings.js",
 			"word/Editor/StructuredDocumentTags/sdt-settings.js",
@@ -403,6 +404,7 @@
 			"pdf/src/annotations/circle.js",
 			"pdf/src/annotations/polygon.js",
 			"pdf/src/annotations/line.js",
+			"pdf/src/annotations/link.js",
 			"pdf/src/annotations/freeText.js",
 			"pdf/src/annotations/stamp.js",
 			"pdf/src/annotations/polyLine.js",
@@ -422,11 +424,11 @@
 			"pdf/src/apiPDF.js",
 			"pdf/src/document.js",
 			"word/document/empty.js",
+			"word/Math/mathText.js",
+			"word/Math/mathContent.js",
 			"word/Math/NamesOfLiterals.js",
 			"word/Math/LaTeXParser.js",
 			"word/Math/UnicodeParser.js",
-			"word/Math/mathText.js",
-			"word/Math/mathContent.js",
 			"word/Math/base.js",
 			"word/Math/fraction.js",
 			"word/Math/degree.js",
@@ -462,6 +464,7 @@
 			
 			"word/apiBuilder.js",
 			"word/fromToJSON.js",
+			"pdf/apiBuilder.js",
 
 			"vendor/easysax.js",
 			"common/openxml.js"

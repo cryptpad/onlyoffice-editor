@@ -307,7 +307,10 @@
         TimelineCaches: 27,
         TimelineCache: 28,
         Metadata: 29,
-        XmlMap: 30
+        XmlMap: 30,
+        RdRichValue: 31,
+        RdRichValueStructure: 32,
+        RdRichValueTypes: 33
     };
     /** @enum */
     var c_oSerWorkbookPrTypes =
@@ -1228,6 +1231,41 @@
 		RevisionsSpinCount: 10,
 		LockRevision: 11
 	};
+
+    /** @enum */
+    var c_oSer_RichValue = {
+        RichValue: 0,
+        StructureIdx: 1,
+        Value: 2,
+        Fallback: 3,
+        FallbackValue: 4,
+        FallbackType: 5
+    };
+
+    /** @enum */
+    var c_oSer_RichStructures = {
+        Structure: 0,
+        Type: 1,
+        ValueKey: 2,
+        ValueKeyType: 3,
+        ValueKeyName: 4
+    };
+
+    /** @enum */
+    var c_oSer_RichValueTypesInfo = {
+        Global: 0,
+        KeyFlags: 1,
+        Types: 2,
+        Type: 3,
+        Name: 4,
+        KeyFlagName: 5,
+        ReservedKey: 6,
+        ReservedKeyName: 7,
+        ReservedKeyFlags: 8,
+        FlagName: 9,
+        FlagValue: 10
+    };
+
 	var c_oSerFileSharing = {
 		AlgorithmName: 0,
 		SpinCount: 1,
@@ -1800,6 +1838,72 @@
         updatelinksUserSet:  2
     };
 
+	var EDataValidationType = {
+		None: 0,
+		Custom: 1,
+		Date: 2,
+		Decimal: 3,
+		List: 4,
+		TextLength: 5,
+		Time: 6,
+		Whole: 7
+	};
+	var EDataValidationErrorStyle = {
+		Stop: 0,
+		Warning: 1,
+		Information: 2
+	};
+	var EDataValidationImeMode = {
+		NoControl: 0,
+		Off: 1,
+		On: 2,
+		Disabled: 3,
+		Hiragana: 4,
+		FullKatakana: 5,
+		HalfKatakana: 6,
+		FullAlpha: 7,
+		HalfAlpha: 8,
+		FullHangul: 9,
+		HalfHangul: 10
+	};
+	var EDataValidationOperator = {
+		Between: 0,
+		NotBetween: 1,
+		Equal: 2,
+		NotEqual: 3,
+		LessThan: 4,
+		LessThanOrEqual: 5,
+		GreaterThan: 6,
+		GreaterThanOrEqual: 7
+	};
+
+	var ST_olapSlicerCacheSortOrder = {
+		Natural: 0,
+		Ascending: 1,
+		Descending: 2
+	};
+	var ST_tabularSlicerCacheSortOrder = {
+		Ascending: 0,
+		Descending: 1
+	};
+
+	var ST_slicerCacheCrossFilter = {
+		None: 0,
+		ShowItemsWithDataAtTop: 1,
+		ShowItemsWithNoData: 2
+	};
+
+	var ST_slicerStyleType = {
+		unselectedItemWithData: 0,
+		selectedItemWithData: 1,
+		unselectedItemWithNoData: 2,
+		selectedItemWithNoData: 3,
+		hoveredUnselectedItemWithData: 4,
+		hoveredSelectedItemWithData: 5,
+		hoveredUnselectedItemWithNoData: 6,
+		hoveredSelectedItemWithNoData: 7
+	};
+
 		 const c_oSerControlTypes = {
 			 Control: 10,
 			 ControlAnchor: 11,
@@ -1967,6 +2071,9 @@
 		this.si = null;
 		this.t = null;
 		this.v = null;
+
+		this.cm = null;
+		this.vm = null;
 	}
 	OpenFormula.prototype.clean = function(){
 		this.aca = null;
@@ -1982,6 +2089,9 @@
 		this.si = null;
 		this.t = null;
 		this.v = null;
+
+		this.cm = null;
+		this.vm = null;
 	};
 	function OpenColumnFormula(nRow, formula, parsed, refPos, base) {
 		this.nRow = nRow;
@@ -3803,7 +3913,15 @@
                     });
                 }
             }
-
+			if (this.wb.richValueData && AscCommonExcel.bIsSupportDynamicArrays) {
+				this.bs.WriteItem(c_oSerWorkbookTypes.RdRichValue, function () {oThis.WriteRichValueData(oThis.wb.richValueData.pData);});
+			}
+			if (this.wb.richValueStructures && AscCommonExcel.bIsSupportDynamicArrays) {
+				this.bs.WriteItem(c_oSerWorkbookTypes.RdRichValueStructure, function () {oThis.WriteRichValueStructures(oThis.wb.richValueStructures.children);});
+			}
+			if (this.wb.richValueTypesInfo && AscCommonExcel.bIsSupportDynamicArrays) {
+				this.bs.WriteItem(c_oSerWorkbookTypes.RdRichValueTypes, function () {oThis.WriteRichValueTypes(oThis.wb.richValueTypesInfo);});
+			}
         };
         this.WriteWorkbookPr = function()
         {
@@ -4771,12 +4889,12 @@
 			}
 
 			var oThis = this;
-			if (pMetadataRecord.t) {
+			if (pMetadataRecord.t != null) {
 				this.bs.WriteItem(c_oSer_MetadataBlock.MetadataRecordType, function () {
 					oThis.memory.WriteLong(pMetadataRecord.t);
 				});
 			}
-			if (pMetadataRecord.v) {
+			if (pMetadataRecord.v != null) {
 				this.bs.WriteItem(c_oSer_MetadataBlock.MetadataRecordValue, function () {
 					oThis.memory.WriteLong(pMetadataRecord.v);
 				});
@@ -4797,13 +4915,13 @@
 
 					this.bs.WriteItem(c_oSer_FutureMetadataBlock.DynamicArrayProperties, function () {
 
-						if (pFutureMetadataBlock.extLst[i].dynamicArrayProperties.fDynamic) {
+						if (pFutureMetadataBlock.extLst[i].dynamicArrayProperties.fDynamic != null) {
 							oThis.bs.WriteItem(c_oSer_FutureMetadataBlock.DynamicArray, function () {
 								oThis.memory.WriteBool(pFutureMetadataBlock.extLst[i].dynamicArrayProperties.fDynamic);
 							});
 
 						}
-						if (pFutureMetadataBlock.extLst[i].dynamicArrayProperties.fCollapsed) {
+						if (pFutureMetadataBlock.extLst[i].dynamicArrayProperties.fCollapsed != null) {
 							oThis.bs.WriteItem(c_oSer_FutureMetadataBlock.CollapsedArray, function () {
 								oThis.memory.WriteBool(pFutureMetadataBlock.extLst[i].dynamicArrayProperties.fCollapsed);
 							});
@@ -4811,7 +4929,7 @@
 					});
 				}
 
-				if ((pFutureMetadataBlock.extLst[i].richValueBlock) && (pFutureMetadataBlock.extLst[i].richValueBlock.i)) {
+				if ((pFutureMetadataBlock.extLst[i].richValueBlock) && (pFutureMetadataBlock.extLst[i].richValueBlock.i != null)) {
 					oThis.bs.WriteItem(c_oSer_FutureMetadataBlock.RichValueBlock, function () {
 						oThis.memory.WriteLong(pFutureMetadataBlock.extLst[i].richValueBlock.i);
 					});
@@ -4915,6 +5033,182 @@
 			}
 
 		};
+
+        this.WriteRichValueData = function(pData) {
+            if (!pData) {
+                return;
+            }
+
+            let oThis = this;
+            for (let i = 0; i < pData.length; ++i) {
+                this.bs.WriteItem(c_oSer_RichValue.RichValue, function(){oThis.WriteRichValue(pData[i]);});
+            }
+        };
+
+        this.WriteRichValue = function(pValues) {
+            if (!pValues) return;
+
+            let oThis = this;
+
+            if (pValues.s != null) {
+                this.bs.WriteItem(c_oSer_RichValue.StructureIdx, function() {
+                    oThis.memory.WriteULong(pValues.s);
+                });
+            }
+
+            for (let i = 0; i < pValues.arrV.length; ++i) {
+                this.bs.WriteItem(c_oSer_RichValue.Value, function() {
+                    oThis.memory.WriteString3(pValues.arrV[i]);
+                });
+            }
+
+            if (pValues.fb != null) {
+                this.bs.WriteItem(c_oSer_RichValue.Fallback, function() {
+                    oThis.WriteRichValueFallback(pValues.fb);
+                });
+            }
+        };
+
+        this.WriteRichValueFallback = function(pFallback) {
+            if (!pFallback) return;
+
+            let oThis = this;
+
+            this.bs.WriteItem(c_oSer_RichValue.FallbackValue, function() {
+                oThis.memory.WriteString3(pFallback.content);
+            });
+
+            if (pFallback.t != null) {
+                this.bs.WriteItem(c_oSer_RichValue.FallbackType, function() {
+                    oThis.memory.WriteByte(pFallback.t);
+                });
+            }
+        };
+
+        this.WriteRichValueStructures = function(pStructures) {
+            if (!pStructures) return;
+
+            let oThis = this;
+            for (let i = 0; i < pStructures.length; ++i) {
+                this.bs.WriteItem(c_oSer_RichStructures.Structure, function() {
+                    oThis.WriteRichValueStructure(pStructures[i]);
+                });
+            }
+        };
+
+        this.WriteRichValueStructure = function(pStructure) {
+            if (!pStructure) return;
+
+            let oThis = this;
+
+            if (pStructure.t != null) {
+                this.bs.WriteItem(c_oSer_RichStructures.Type, function() {
+                    oThis.memory.WriteString3(pStructure.t);
+                });
+            }
+
+            for (let i = 0; i < pStructure.children.length; ++i) {
+                if (!pStructure.children[i]) {
+                    continue;
+                }
+
+                this.bs.WriteItem(c_oSer_RichStructures.ValueKey, function() {
+                    if (pStructure.children[i].t != null) {
+                        oThis.memory.WriteByte(c_oSer_RichStructures.ValueKeyType);
+                        oThis.memory.WriteByte(c_oSerPropLenType.Byte);
+                        oThis.memory.WriteByte(pStructure.children[i].t);
+                    }
+                    if (pStructure.children[i].n != null) {
+                        oThis.memory.WriteByte(c_oSer_RichStructures.ValueKeyName);
+                        oThis.memory.WriteByte(c_oSerPropLenType.Variable);
+                        oThis.memory.WriteString2(pStructure.children[i].n);
+                    }
+                });
+            }
+        };
+
+        this.WriteRichValueTypes = function(pTypesInfo) {
+            if (!pTypesInfo) return;
+
+            let oThis = this;
+
+            if (pTypesInfo.global != null && pTypesInfo.global.keyFlags != null) {
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.Global, function() {
+                    oThis.bs.WriteItem(c_oSer_RichValueTypesInfo.KeyFlags, function() {
+                        oThis.WriteRichValueTypeKeyFlags(pTypesInfo.global.keyFlags);
+                    });
+                });
+            }
+
+            if (pTypesInfo.types != null) {
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.Types, function() {
+                    for (let i = 0; i < pTypesInfo.types.arrItems.length; ++i) {
+                        oThis.bs.WriteItem(c_oSer_RichValueTypesInfo.Type, function() {
+                            oThis.WriteRichValueType(pTypesInfo.types.arrItems[i]);
+                        });
+                    }
+                });
+            }
+        };
+
+        this.WriteRichValueTypeKeyFlags = function(pKeyFlags) {
+            if (!pKeyFlags) return;
+
+            let oThis = this;
+            for (let i = 0; i < pKeyFlags.arrItems.length; ++i) {
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.ReservedKey, function() {
+                    oThis.WriteRichValueTypeReservedKey(pKeyFlags.arrItems[i]);
+                });
+            }
+        };
+
+        this.WriteRichValueTypeReservedKey = function(pReservedKey) {
+            if (!pReservedKey) return;
+
+            let oThis = this;
+
+            if (pReservedKey.name != null) {
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.ReservedKeyName, function() {
+                    oThis.memory.WriteString3(pReservedKey.name);
+                });
+            }
+
+            for (let i = 0; i < pReservedKey.arrItems.length; ++i) {
+                if (!pReservedKey.arrItems[i]) continue;
+
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.ReservedKeyFlags, function() {
+                    if (pReservedKey.arrItems[i].name != null) {
+                        oThis.memory.WriteByte(c_oSer_RichValueTypesInfo.FlagName);
+                        oThis.memory.WriteByte(c_oSerPropLenType.Variable);
+                        oThis.memory.WriteString2(pReservedKey.arrItems[i].name);
+                    }
+                    if (pReservedKey.arrItems[i].value != null) {
+                        oThis.memory.WriteByte(c_oSer_RichValueTypesInfo.FlagValue);
+                        oThis.memory.WriteByte(c_oSerPropLenType.Byte);
+                        oThis.memory.WriteBool(pReservedKey.arrItems[i].value);
+                    }
+                });
+            }
+        };
+
+        this.WriteRichValueType = function(pTypeInfo) {
+            if (!pTypeInfo) return;
+
+            let oThis = this;
+
+            if (pTypeInfo.name != null) {
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.Name, function() {
+                    oThis.memory.WriteString3(pTypeInfo.name);
+                });
+            }
+
+            if (pTypeInfo.keyFlags != null) {
+                this.bs.WriteItem(c_oSer_RichValueTypesInfo.KeyFlags, function() {
+                    oThis.WriteRichValueTypeKeyFlags(pTypeInfo.keyFlags);
+                });
+            }
+        };
+
 		this.WriteFileSharing = function(fileSharing)
 		{
 			if (null != fileSharing.algorithmName) {
@@ -9420,13 +9714,13 @@
                     return oThis.ReadTimelineCaches(t, l, oThis.oWorkbook.timelineCaches);
                 });
             }
-            /*else if (c_oSerWorkbookTypes.Metadata === type)
+            else if (c_oSerWorkbookTypes.Metadata === type)
             {
                 this.oWorkbook.metadata = new AscCommonExcel.CMetadata();
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadMetadata(t, l, oThis.oWorkbook.metadata);
                 });
-            }*/
+            }
             else if (c_oSerWorkbookTypes.XmlMap === type) {
                 //this.stream.Skip(1); //skip type
 
@@ -9484,6 +9778,21 @@
                     this.oWorkbook.xmlMaps = [];
                 }
                 this.oWorkbook.xmlMaps.push(oXmlMap);
+            } else if (c_oSerWorkbookTypes.RdRichValue === type && AscCommonExcel.bIsSupportDynamicArrays) {
+                this.oWorkbook.richValueData = new AscCommonExcel.CRichValueData();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueData(t, l, oThis.oWorkbook.richValueData);
+                });
+            } else if (c_oSerWorkbookTypes.RdRichValueStructure === type && AscCommonExcel.bIsSupportDynamicArrays) {
+                this.oWorkbook.richValueStructures = new AscCommonExcel.CRichValueStructures();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueStructures(t, l, oThis.oWorkbook.richValueStructures);
+                });
+            } else if (c_oSerWorkbookTypes.RdRichValueTypes === type && AscCommonExcel.bIsSupportDynamicArrays) {
+                this.oWorkbook.richValueTypesInfo = new AscCommonExcel.CRichValueTypesInfo();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueTypesInfo(t, l, oThis.oWorkbook.richValueTypesInfo);
+                });
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -9678,6 +9987,249 @@
             return res;
         };
 
+        this.ReadRichValueData = function (type, length, richValueData)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+            if (c_oSer_RichValue.RichValue === type) {
+                if (!richValueData.pData) {
+                    richValueData.pData = [];
+                }
+                let richValue = new AscCommonExcel.CRichValue();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValue(t, l, richValue);
+                });
+                richValueData.pData.push(richValue);
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        }
+
+        this.ReadRichValueFallback = function (type, length, poResult)
+        {
+            let res = c_oSerConstants.ReadOk;
+            return res;
+        };
+
+        this.ReadRichValue = function (type, length, pValue)
+        {
+            let res = c_oSerConstants.ReadOk;
+
+            if (c_oSer_RichValue.StructureIdx === type) {
+                pValue.s = this.stream.GetULong();
+            }
+            else if (c_oSer_RichValue.Value === type) {
+                let s = this.stream.GetString2LE(length);
+                pValue.arrV.push(s);
+            }
+            else if (c_oSer_RichValue.Fallback === type) {
+                pValue.fb = {};
+                let oThis = this;
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueFallback(t, l, pValue.fb);
+                });
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueStructures = function (type, length, pStructures)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichStructures.Structure === type) {
+                let pStructure = new AscCommonExcel.CRichValueStructure();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueStructure(t, l, pStructure);
+                });
+                pStructures.children.push(pStructure);
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueStructure = function (type, length, pStructure)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichStructures.Type === type) {
+                pStructure.t = this.stream.GetString2LE(length);
+            }
+            else if (c_oSer_RichStructures.ValueKey === type) {
+                let pValueKey = new AscCommonExcel.CRichValueKey();
+                res = this.bcr.Read2Spreadsheet(length, function (t, l) {
+                    return oThis.ReadRichValueStructureValueKey(t, l, pValueKey);
+                });
+                pStructure.children.push(pValueKey);
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueStructureValueKey = function (type, length, pValueKey)
+        {
+            let res = c_oSerConstants.ReadOk;
+
+            if (c_oSer_RichStructures.ValueKeyName === type) {
+                pValueKey.n = this.stream.GetString2LE(length);
+            } else if (c_oSer_RichStructures.ValueKeyType === type) {
+                pValueKey.t = this.stream.GetUChar();
+            }
+            return res;
+        };
+
+        this.ReadRichValueTypesInfo = function (type, length, pTypesInfo)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichValueTypesInfo.Global === type) {
+                pTypesInfo.global = new AscCommonExcel.CRichValueGlobalType();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueGlobal(t, l, pTypesInfo.global);
+                });
+            }
+            else if (c_oSer_RichValueTypesInfo.Types === type) {
+                pTypesInfo.types = new AscCommonExcel.CRichValueTypes();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueTypes(t, l, pTypesInfo.types);
+                });
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueGlobal = function (type, length, pGlobalType)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichValueTypesInfo.KeyFlags === type) {
+                pGlobalType.keyFlags = new AscCommonExcel.CRichValueTypeKeyFlags();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueTypeKeyFlags(t, l, pGlobalType.keyFlags);
+                });
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueTypes = function (type, length, pTypes)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichValueTypesInfo.Type === type) {
+                let pType = new AscCommonExcel.CRichValueType();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueType(t, l, pType);
+                });
+                if (!pTypes.arrItems) {
+                    pTypes.arrItems = [];
+                }
+                pTypes.arrItems.push(pType);
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueType = function (type, length, pType)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichValueTypesInfo.Name === type) {
+                pType.name = this.stream.GetString2LE(length);
+            }
+            else if (c_oSer_RichValueTypesInfo.KeyFlags === type) {
+                pType.keyFlags = {};
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueTypeKeyFlags(t, l, pType.keyFlags);
+                });
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueTypeKeyFlags = function (type, length, pKeyFlags)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichValueTypesInfo.ReservedKey === type) {
+                let pKey = new AscCommonExcel.CRichValueTypeReservedKey();
+                res = this.bcr.Read1(length, function (t, l) {
+                    return oThis.ReadRichValueReservedKey(t, l, pKey);
+                });
+                if (!pKeyFlags.arrItems) {
+                    pKeyFlags.arrItems = [];
+                }
+                pKeyFlags.arrItems.push(pKey);
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueReservedKey = function (type, length, pReservedKey)
+        {
+            let res = c_oSerConstants.ReadOk;
+            let oThis = this;
+
+            if (c_oSer_RichValueTypesInfo.ReservedKeyName === type) {
+                pReservedKey.name = this.stream.GetString2LE(length);
+            }
+            else if (c_oSer_RichValueTypesInfo.ReservedKeyFlags === type) {
+                let pFlag = new AscCommonExcel.CRichValueTypeReservedKeyFlag();
+                res = this.bcr.Read2Spreadsheet(length, function (t, l) {
+                    return oThis.ReadRichValueReservedKeyFlags(t, l, pFlag);
+                });
+                if (!pReservedKey.arrItems) {
+                    pReservedKey.arrItems = [];
+                }
+                pReservedKey.arrItems.push(pFlag);
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
+        this.ReadRichValueReservedKeyFlags = function (type, length, pFlag)
+        {
+            let res = c_oSerConstants.ReadOk;
+
+            if (c_oSer_RichValueTypesInfo.FlagName === type) {
+                pFlag.name = this.stream.GetString2LE(length);
+            }
+            else if (c_oSer_RichValueTypesInfo.FlagValue === type) {
+                pFlag.value = this.stream.GetBool();
+            }
+            else {
+                res = c_oSerConstants.ReadUnknown;
+            }
+            return res;
+        };
+
         //****metadata****
         this.ReadMetadata = function (type, length, pMetadata) {
             var oThis = this;
@@ -9843,22 +10395,34 @@
                 pMdx.f = this.stream.GetUChar();
             } else if (c_oSer_MdxMetadata.MdxTuple === type) {
                 //READ1_DEF(length, res, this.ReadMdxTuple, pMdx.MdxTuple.GetPovarer());
+                if (!pMdx.mdxTuple) {
+                    pMdx.mdxTuple = new AscCommonExcel.CMdxTuple();
+                }
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadMdx(t, l, pMdx.mdxTuple);
+                    return oThis.ReadMdxTuple(t, l, pMdx.mdxTuple);
                 });
             } else if (c_oSer_MdxMetadata.MdxSet === type) {
                 //READ1_DEF(length, res, this.ReadMdxSet, pMdx.MdxSet.GetPovarer());
+                if (!pMdx.mdxSet) {
+                    pMdx.mdxSet = new AscCommonExcel.CMdxSet();
+                }
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadMdx(t, l, pMdx.mdxSet);
+                    return oThis.ReadMdxSet(t, l, pMdx.mdxSet);
                 });
             } else if (c_oSer_MdxMetadata.MdxKPI === type) {
+                if (!pMdx.mdxKPI) {
+                    pMdx.mdxKPI = new AscCommonExcel.CMdxKPI();
+                }
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadMdx(t, l, pMdx.mdxKPI);
+                    return oThis.ReadMdxKPI(t, l, pMdx.mdxKPI);
                 });
             } else if (c_oSer_MdxMetadata.MdxMemeberProp === type) {
                 //READ1_DEF(length, res, this.ReadMdxMemeberProp, pMdx.MdxMemeberProp.GetPovarer());
+                if (!pMdx.mdxMemeberProp) {
+                    pMdx.mdxMemeberProp = new AscCommonExcel.CMdxMemeberProp();
+                }
                 res = this.bcr.Read1(length, function (t, l) {
-                    return oThis.ReadMdx(t, l, pMdx.mdxMemeberProp);
+                    return oThis.ReadMdxMemeberProp(t, l, pMdx.mdxMemeberProp);
                 });
             } else {
                 res = c_oSerConstants.ReadUnknown;
@@ -9971,7 +10535,10 @@
             }
             else if (c_oSer_MetadataMdxSet.MetadataStringIndex === type)
             {
-               let pMetadataStringIndex = new AscCommonExcel.CMetadataStringIndex();
+                if (!pMdxSet.metadataStringIndexes) {
+                    pMdxSet.metadataStringIndexes = [];
+                }
+                let pMetadataStringIndex = new AscCommonExcel.CMetadataStringIndex();
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadMetadataStringIndex(t, l, pMetadataStringIndex);
                 });
@@ -10005,6 +10572,9 @@
             } else if (c_oSer_MetadataMdxTuple.Strike === type) {
                 pMdxTuple.st = this.stream.GetBool();
             } else if (c_oSer_MetadataMdxTuple.MetadataStringIndex === type) {
+                if (!pMdxTuple.metadataStringIndexes) {
+                    pMdxTuple.metadataStringIndexes = [];
+                }
                 let pMetadataStringIndex = new AscCommonExcel.CMetadataStringIndex();
                 res = this.bcr.Read1(length, function (t, l) {
                     return oThis.ReadMetadataStringIndex(t, l, pMetadataStringIndex);
@@ -10471,8 +11041,10 @@
 						var ref = curFormula.ref;
 						if(ref) {
 							var rangeFormulaArray = tmp.ws.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
-							rangeFormulaArray._foreach(function(cell){
-								cell.setFormulaInternal(curFormula);
+							rangeFormulaArray._foreach(function(cell, row, col){
+								if (!(row === ref.r1 && col === ref.c1 && cell.formulaParsed)) {
+									cell.setFormulaInternal(curFormula);
+								}
 								if (curFormula.ca || cell.isNullTextString()) {
 									tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
 								}
@@ -11637,9 +12209,10 @@
                 oHyperlink.Ref = ws.getRange2(this.stream.GetString2LE(length));
             else if ( c_oSerHyperlinkTypes.Hyperlink == type )
                 oHyperlink.Hyperlink = this.stream.GetString2LE(length);
-            else if ( c_oSerHyperlinkTypes.Location == type )
+            else if ( c_oSerHyperlinkTypes.Location == type ) {
                 oHyperlink.setLocation(this.stream.GetString2LE(length));
-            else if ( c_oSerHyperlinkTypes.Tooltip == type )
+                oHyperlink.checkAfterOpen();
+            } else if ( c_oSerHyperlinkTypes.Tooltip == type )
                 oHyperlink.Tooltip = this.stream.GetString2LE(length);
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -11832,30 +12405,26 @@
 					} else {
 						oCell.textIndex = val + 1;// 1-based indexing
 					}
-				} else {
+                } else {
 					oCell.setValueNumberInternal(val);
-				}
-			}   /*else if (c_oSerCellTypes.CellMetadata === type)
-			{
-				oCell.cm = this.stream.GetULong();
-			}
-			else if (c_oSerCellTypes.ValueMetadata === type)
-			{
-				oCell.vm = this.stream.GetULong();
-			}*/
-			else
-				res = c_oSerConstants.ReadUnknown;
-			return res;
-		};
-		this.ReadFormula = function(type, length, oFormula)
-		{
-			var res = c_oSerConstants.ReadOk;
-			if ( c_oSerFormulaTypes.Aca === type )
-				oFormula.aca = this.stream.GetBool();
-			else if ( c_oSerFormulaTypes.Bx === type )
-				oFormula.bx = this.stream.GetBool();
-			else if ( c_oSerFormulaTypes.Ca === type )
-				oFormula.ca = this.stream.GetBool();
+                }
+            } else if (c_oSerCellTypes.CellMetadata === type && AscCommonExcel.bIsSupportDynamicArrays) {
+                oCell.cm = this.stream.GetULong();
+            } else if (c_oSerCellTypes.ValueMetadata === type && AscCommonExcel.bIsSupportDynamicArrays) {
+                oCell.vm = this.stream.GetULong();
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadFormula = function(type, length, oFormula)
+        {
+            var res = c_oSerConstants.ReadOk;
+            if ( c_oSerFormulaTypes.Aca === type )
+                oFormula.aca = this.stream.GetBool();
+            else if ( c_oSerFormulaTypes.Bx === type )
+                oFormula.bx = this.stream.GetBool();
+            else if ( c_oSerFormulaTypes.Ca === type )
+                oFormula.ca = this.stream.GetBool();
 			else if ( c_oSerFormulaTypes.Del1 === type )
 				oFormula.del1 = this.stream.GetBool();
 			else if ( c_oSerFormulaTypes.Del2 === type )
@@ -14427,7 +14996,13 @@
                 var newFormulaParent = new AscCommonExcel.CCellWithFormula(cell.ws, cell.nRow, cell.nCol);
                 var parsed = new AscCommonExcel.parserFormula(formula.v, newFormulaParent, cell.ws);
                 parsed.ca = formula.ca;
+                parsed.cm = formula.cm;
+                parsed.vm = formula.vm;
+                parseResult.needCorrect = true;
                 parsed.parse(undefined, undefined, parseResult);
+                if (parseResult.needAssemble) {
+                    parsed.Formula = parsed.assemble(true);
+                }
                 if (parseResult.error === Asc.c_oAscError.ID.FrmlMaxReference) {
                     tmp.ws.workbook.openErrors.push(cell.getName());
                     return;
@@ -14474,6 +15049,9 @@
         }
         if (curFormula) {
             cell.setFormulaInternal(curFormula.parsed);
+            if (curFormula.parsed && curFormula.parsed.cm != null) {
+                tmp.ws.dynamicArrayManager && tmp.ws.dynamicArrayManager.addDynamicFormula(curFormula.parsed.cm);
+            }
             if (curFormula.parsed.ca || cell.isNullTextString()) {
                 tmp.ws.workbook.dependencyFormulas.addToChangedCell(cell);
             }
@@ -14895,7 +15473,7 @@
     };
     InitOpenManager.prototype.prepareConditionalFormatting = function (oWorksheet, oConditionalFormatting) {
         if (oConditionalFormatting && oConditionalFormatting.isValid()) {
-            oConditionalFormatting.initRules();
+            oConditionalFormatting.initRules(oWorksheet);
             for (let i = 0; i < oConditionalFormatting.aRules.length; i++) {
                 oWorksheet.addConditionalFormattingRule(oConditionalFormatting.aRules[i]);
             }
@@ -15327,7 +15905,7 @@
         if (formula && parsed && parsed.importFunctionsRangeLinks) {
             formula = "IFERROR(__xludf.DUMMYFUNCTION(\"" + formula.replace(/\"/g,"\"\"") + "\")" + "," + cell.getValue() + ")";
         }
-        return {formula: formula, si: si, ref: ref, type: type, ca: parsed.ca};
+        return {formula: formula, si: si, ref: ref, type: type, ca: parsed.ca, cm: ref ? parsed.cm : null, vm: ref ? parsed.vm : null};
     };
 
     function ReadWbComments (wb, contentWorkbookComment, InitOpenManager) {
@@ -15719,4 +16297,61 @@
     prot['updatelinksNever'] = prot.updatelinksNever;
     prot['updatelinksUserSet'] = prot.updatelinksUserSet;
 
+	window['Asc']['c_oAscEDataValidationType'] = window['Asc'].EDataValidationType = EDataValidationType;
+	prot = EDataValidationType;
+	prot['None'] = prot.None;
+	prot['Custom'] = prot.Custom;
+	prot['Date'] = prot.Date;
+	prot['Decimal'] = prot.Decimal;
+	prot['List'] = prot.List;
+	prot['TextLength'] = prot.TextLength;
+	prot['Time'] = prot.Time;
+	prot['Whole'] = prot.Whole;
+
+	window['Asc']['c_oAscEDataValidationErrorStyle'] = window['Asc'].EDataValidationErrorStyle = EDataValidationErrorStyle;
+	prot = EDataValidationErrorStyle;
+	prot['Stop'] = prot.Stop;
+	prot['Warning'] = prot.Warning;
+	prot['Information'] = prot.Information;
+
+	window['Asc'].EDataValidationImeMode = EDataValidationImeMode;
+
+	window['Asc']['EDataValidationOperator'] = window['Asc'].EDataValidationOperator = EDataValidationOperator;
+	prot = EDataValidationOperator;
+	prot['Between'] = prot.Between;
+	prot['NotBetween'] = prot.NotBetween;
+	prot['Equal'] = prot.Equal;
+	prot['NotEqual'] = prot.NotEqual;
+	prot['LessThan'] = prot.LessThan;
+	prot['LessThanOrEqual'] = prot.LessThanOrEqual;
+	prot['GreaterThan'] = prot.GreaterThan;
+	prot['GreaterThanOrEqual'] = prot.GreaterThanOrEqual;
+
+	window['Asc']['ST_olapSlicerCacheSortOrder'] = window['Asc'].ST_olapSlicerCacheSortOrder = ST_olapSlicerCacheSortOrder;
+	prot = ST_olapSlicerCacheSortOrder;
+	prot['Natural'] = prot.Natural;
+	prot['Ascending'] = prot.Ascending;
+	prot['Descending'] = prot.Descending;
+
+	window['Asc']['ST_tabularSlicerCacheSortOrder'] = window['Asc'].ST_tabularSlicerCacheSortOrder = ST_tabularSlicerCacheSortOrder;
+	prot = ST_tabularSlicerCacheSortOrder;
+	prot['Ascending'] = prot.Ascending;
+	prot['Descending'] = prot.Descending;
+
+	window['Asc']['ST_slicerCacheCrossFilter'] = window['Asc'].ST_slicerCacheCrossFilter = ST_slicerCacheCrossFilter;
+	prot = ST_slicerCacheCrossFilter;
+	prot['None'] = prot.None;
+	prot['ShowItemsWithDataAtTop'] = prot.ShowItemsWithDataAtTop;
+	prot['ShowItemsWithNoData'] = prot.ShowItemsWithNoData;
+
+	window['Asc']['ST_slicerStyleType'] = window['Asc'].ST_slicerStyleType = ST_slicerStyleType;
+	prot = ST_slicerStyleType;
+	prot['unselectedItemWithData'] = prot.unselectedItemWithData;
+	prot['selectedItemWithData'] = prot.selectedItemWithData;
+	prot['unselectedItemWithNoData'] = prot.unselectedItemWithNoData;
+	prot['selectedItemWithNoData'] = prot.selectedItemWithNoData;
+	prot['hoveredUnselectedItemWithData'] = prot.hoveredUnselectedItemWithData;
+	prot['hoveredSelectedItemWithData'] = prot.hoveredSelectedItemWithData;
+	prot['hoveredUnselectedItemWithNoData'] = prot.hoveredUnselectedItemWithNoData;
+	prot['hoveredSelectedItemWithNoData'] = prot.hoveredSelectedItemWithNoData;
 })(window);

@@ -114,6 +114,8 @@
 		this.clearBufferTimerId = -1;
 
 		this.needClearBuffer = false;
+
+		this.canUseNewCopy = null;
 	}
 
 	CClipboardBase.prototype =
@@ -155,6 +157,11 @@
 		{
 			this._console_log("oncopy");
 
+			if (!this.isCopyEnabled()) {
+				this.SendCopyDisabledEvent();
+				return;
+			}
+
 			if (!this.Api.asc_IsFocus(true))
 				return;
 
@@ -182,6 +189,11 @@
 		_private_oncut : function(e)
 		{
 			this._console_log("oncut");
+
+			if (!this.isCopyEnabled()) {
+				this.SendCopyDisabledEvent();
+				return;
+			}
 
 			if (!this.Api.asc_IsFocus(true))
 				return;
@@ -458,6 +470,7 @@
 
 		Init : function(_api)
 		{
+			let t = this;
 			this.Api = _api;
 
 			window['AscCommon'].g_specialPasteHelper.Init(_api);
@@ -645,6 +658,10 @@
 				};
 			}
 
+			this.Check_Copy_New(function (success) {
+				t.canUseNewCopy = success;
+			});
+
 			if (AscBrowser.isSafari && false)
 			{
 				this.CommonDiv = this.CommonDiv_Check();
@@ -724,14 +741,14 @@
 				ElemToSelect.style["-o-user-select"]      = "text";
 				ElemToSelect.style["user-select"]         = "text";
 				ElemToSelect.style["-webkit-user-select"] = "text";
-				ElemToSelect.setAttribute("contentEditable", this.isCopyOutEnabled());
+				ElemToSelect.setAttribute("contentEditable", this.isCopyOutEnabled() && this.isCopyEnabled());
 
 				var _parent = ("" == this.CommonDivIdParent) ? document.body : document.getElementById(this.CommonDivIdParent);
 				_parent.appendChild(ElemToSelect);
 			}
 			else
 			{
-				ElemToSelect.setAttribute("contentEditable", this.isCopyOutEnabled());
+				ElemToSelect.setAttribute("contentEditable", this.isCopyOutEnabled() && this.isCopyEnabled());
 			}
 			return ElemToSelect;
 		},
@@ -900,7 +917,7 @@
 					ifr.style.display = "block";
 					if (getHtmlElemCallback)
 					{
-						getHtmlElemCallback(frameWindow.document.body);
+						getHtmlElemCallback(frameWindow.document.body, text_data, ifr);
 						getHtmlElemCallback = null;
 					}
 					else
@@ -944,7 +961,7 @@
 
 			if (this.ClosureParams.isDivCopy === true)
 			{
-				if (!this.isCopyOutEnabled())
+				if (!this.isCopyOutEnabled() || !this.isCopyEnabled())
 					return;
 
 				if (_format == AscCommon.c_oAscClipboardDataFormat.Html)
@@ -975,7 +992,7 @@
 					break;
 			}
 
-			if (_data_format != "" && _data !== null && this.isCopyOutEnabled())
+			if (_data_format != "" && _data !== null && this.isCopyOutEnabled() && this.isCopyEnabled())
 			{
 				if (_data_format == "text/x-custom")
 					this.ClosureParams.setData(_data_format, "asc_internalData2;" + _data);
@@ -993,7 +1010,7 @@
 
 		isUseNewCopy : function()
 		{
-			if (navigator.clipboard) {
+			if (navigator.clipboard && this.canUseNewCopy) {
 
 				if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["getEngineVersion"])
 				{
@@ -1023,19 +1040,23 @@
 
 		isUseNewPaste : function()
 		{
-			return false;
+			return window["TestUseNewPaste"];
 		},
 
 		Button_Copy_New : function(isCut)
 		{
-			return this.Copy_New(isCut);
+			return this.Copy_New(isCut, true);
 		},
 
-		Copy_New : function(isCut)
+		Copy_New : function(isCut, isButtonCopy)
 		{
 			let oThis = this;
+			if (!this.isCopyEnabled()) {
+				this.SendCopyDisabledEvent();
+				return true;
+			}
 			//todo add check on mobile version, because before all work without focus check
-			if (!this.Api.asc_IsFocus(true) && !this._isUseMobileNewCopy()) {
+			if (!this.Api.asc_IsFocus(true) && !isButtonCopy && !this._isUseMobileNewCopy()) {
 				return;
 			}
 			if (navigator.clipboard)
@@ -1087,6 +1108,69 @@
 				{
 				}
 			}
+			return false;
+		},
+
+		Check_Paste_New : function(callback)
+		{
+			if (navigator.clipboard)
+			{
+				if (navigator.permissions && navigator.permissions.query)
+				{
+					navigator.permissions.query({ name: 'clipboard-read' })
+						.then(function(result) {
+							if (result.state === 'denied')
+							{
+								console.warn('Clipboard read permission denied');
+								return false;
+							}
+
+							callback(true);
+						})
+						.catch(function(error) {
+							console.error('Failed to query clipboard permissions:', error);
+							callback(false);
+						});
+
+					return true;
+				}
+				else
+				{
+					callback(false);
+					return true;
+				}
+			}
+			return false;
+		},
+
+		Check_Copy_New : function(callback)
+		{
+			if (navigator.clipboard)
+			{
+				if (navigator.permissions && navigator.permissions.query)
+				{
+					navigator.permissions.query({ name: 'clipboard-write' })
+						.then(function(result) {
+							if (result.state === 'denied')
+							{
+								callback && callback(false);
+								return false;
+							}
+							callback && callback(true);
+						})
+						.catch(function() {
+							callback && callback(false);
+						});
+
+					return true;
+				}
+				else
+				{
+					callback && callback(true);
+					return true;
+				}
+			}
+			callback && callback(false);
 			return false;
 		},
 
@@ -1151,6 +1235,7 @@
 
 								})
 								.catch(function(){});
+						}).catch(function(e){
 						});
 
 					return true;
@@ -1162,8 +1247,130 @@
 			return false;
 		},
 
+		Get_Clipboard_Data : function(callback)
+		{
+			if (!navigator.clipboard) {
+				callback && callback(null);
+				return false;
+			}
+
+			this.Check_Paste_New(function (success) {
+				if (!success) {
+					return false;
+				}
+
+				try {
+					navigator.clipboard.read()
+						.then(function(items){
+							if (!items || items.length === 0)
+							{
+								return;
+							}
+
+							var item = items[0];
+							var paste_data = {};
+
+							function getData(item, type, notGetText) {
+								if (item.types.includes(type))
+								{
+									return item.getType(type).then(function(blob){
+										return notGetText ? blob : blob.text();
+									});
+								}
+								return Promise.resolve(undefined);
+							}
+
+							getData(item, "web text/x-custom")
+								.then(function(value){
+									paste_data[c_oAscClipboardDataFormat.Internal] = value;
+									return getData(item, 'image/png', true);
+								})
+								.then(function(value){
+									if (value) {
+										paste_data[c_oAscClipboardDataFormat.Image] = new File([value], "image.png");
+									}
+									return getData(item, "text/html");
+								})
+								.then(function(value){
+									paste_data[c_oAscClipboardDataFormat.Html] = value;
+									return getData(item, "text/plain");
+								})
+								.then(function(value){
+									paste_data[c_oAscClipboardDataFormat.Text] = value;
+								})
+								.then(function(){
+									callback && callback(paste_data);
+								})
+								.catch(function(e){
+									callback && callback(null);
+								});
+						})
+						.catch(function(e){
+							callback && callback(null);
+						});
+
+					return true;
+				} catch (e) {
+					callback && callback(null);
+					return false;
+				}
+			});
+		},
+
+		initSpecialPasteData: function (callback) {
+			AscCommon.g_specialPasteHelper.Clean_SpecialPasteObj();
+
+			this.Get_Clipboard_Data(function (paste_data) {
+				let _format, data1, data2;
+				let _callback = function (_data1, _text_data, _data2) {
+					AscCommon.g_specialPasteHelper.specialPasteData._format = _format;
+					AscCommon.g_specialPasteHelper.specialPasteData.data1 = _data1 ? _data1 : data1;
+					AscCommon.g_specialPasteHelper.specialPasteData.data2 = _data2 ? _data2 : data2;
+					AscCommon.g_specialPasteHelper.specialPasteData.text_data = _text_data;
+					callback();
+				};
+
+				if (!paste_data) {
+					_callback();
+				}
+
+				if (undefined !== paste_data[AscCommon.c_oAscClipboardDataFormat.Image]) {
+					AscCommon.g_specialPasteHelper.specialPasteData.images = [paste_data[AscCommon.c_oAscClipboardDataFormat.Image]];
+				}
+
+				if (undefined !== paste_data[AscCommon.c_oAscClipboardDataFormat.Internal])
+				{
+					_format = AscCommon.c_oAscClipboardDataFormat.Internal;
+					data1 = paste_data[AscCommon.c_oAscClipboardDataFormat.Internal].substr("asc_internalData2;".length);
+					data2 = paste_data[AscCommon.c_oAscClipboardDataFormat.Text] || "";
+					_callback();
+					return;
+				}
+
+				if (undefined !== paste_data[AscCommon.c_oAscClipboardDataFormat.Html])
+				{
+					_format = AscCommon.c_oAscClipboardDataFormat.HtmlElement;
+					AscCommon.g_clipboardBase.CommonIframe_PasteStart(paste_data[AscCommon.c_oAscClipboardDataFormat.Html],
+						paste_data[AscCommon.c_oAscClipboardDataFormat.Text] || "", _callback);
+					return;
+				}
+
+				if (undefined !== paste_data[AscCommon.c_oAscClipboardDataFormat.Text])
+				{
+					_format = AscCommon.c_oAscClipboardDataFormat.Text;
+					data1 = paste_data[AscCommon.c_oAscClipboardDataFormat.Text];
+					_callback();
+				}
+
+			});
+		},
+
 		Button_Copy : function(oldCopy)
 		{
+			if (!this.isCopyEnabled()) {
+				this.SendCopyDisabledEvent();
+				return;
+			}
 			if (window["AscDesktopEditor"])
 			{
 				window["asc_desktop_copypaste"](this.Api, "Copy");
@@ -1269,60 +1476,72 @@
 
 			if (window["NATIVE_EDITOR_ENJINE"])
 				return false;
-			
+
+			let oThis = this;
 			if (this.isUseNewPaste())
 			{
-				if (this.Button_Paste_New())
-					return true;
-			}
-
-			if (this.inputContext)
-			{
-				if (this.inputContext.isHardCheckKeyboard)
-					this.inputContext.enableVirtualKeyboard_Hard();
-
-                this.inputContext.HtmlArea.focus();
-            }
-			this.Api.asc_enableKeyEvents(true, true);
-
-			var _ret = false;
-			try
-			{
-				if (this.isSupportExecCommand("paste"))
-					_ret = document.execCommand("paste");
-			}
-			catch (err)
-			{
-				_ret = false;
-			}
-
-			if (!_ret && null != this.LastCopyBinary)
-			{
-				var _isInternal = false;
-				var _internal_data = null;
-				var _text_data = null;
-				for (var i = 0; i < this.LastCopyBinary.length; i++)
-				{
-					if (c_oAscClipboardDataFormat.Internal === this.LastCopyBinary[i].type)
-					{
-						_internal_data = this.LastCopyBinary[i].data;
-						_isInternal = true;
+				this.Check_Paste_New(function (success) {
+					if (success) {
+						if (!oThis.Button_Paste_New()) {
+							return doPaste();
+						}
+					} else {
+						return doPaste();
 					}
-					else if (c_oAscClipboardDataFormat.Text === this.LastCopyBinary[i].type)
+				})
+			} else {
+				return doPaste();
+			}
+
+			function doPaste() {
+				if (oThis.inputContext)
+				{
+					if (oThis.inputContext.isHardCheckKeyboard)
+						oThis.inputContext.enableVirtualKeyboard_Hard();
+
+					oThis.inputContext.HtmlArea.focus();
+				}
+				oThis.Api.asc_enableKeyEvents(true, true);
+
+				var _ret = false;
+				try
+				{
+					if (oThis.isSupportExecCommand("paste"))
+						_ret = document.execCommand("paste");
+				}
+				catch (err)
+				{
+					_ret = false;
+				}
+
+				if (!_ret && null != oThis.LastCopyBinary)
+				{
+					var _isInternal = false;
+					var _internal_data = null;
+					var _text_data = null;
+					for (var i = 0; i < oThis.LastCopyBinary.length; i++)
 					{
-						_text_data = this.LastCopyBinary[i].data;
+						if (c_oAscClipboardDataFormat.Internal === oThis.LastCopyBinary[i].type)
+						{
+							_internal_data = oThis.LastCopyBinary[i].data;
+							_isInternal = true;
+						}
+						else if (c_oAscClipboardDataFormat.Text === oThis.LastCopyBinary[i].type)
+						{
+							_text_data = oThis.LastCopyBinary[i].data;
+						}
+					}
+					if (_isInternal)
+					{
+						oThis.Api.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Internal, _internal_data, null, _text_data);
+					}
+					else if (oThis.LastCopyBinary.length > 0)
+					{
+						oThis.Api.asc_PasteData(oThis.LastCopyBinary[0].type, oThis.LastCopyBinary[0].data, null, _text_data);
 					}
 				}
-				if (_isInternal)
-				{
-					this.Api.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Internal, _internal_data, null, _text_data);
-				}
-				else if (this.LastCopyBinary.length > 0)
-				{
-					this.Api.asc_PasteData(this.LastCopyBinary[0].type, this.LastCopyBinary[0].data, null, _text_data);
-				}
+				return _ret;
 			}
-			return _ret;
 		},
 
 		ClearBuffer: function() {
@@ -1360,6 +1579,14 @@
 			return true;
 		},
 
+		isCopyEnabled : function()
+		{
+			if (this.Api && this.Api.isCopyEnabled)
+				return this.Api.isCopyEnabled();
+			return true;
+		},
+
+
 		ChangeLastCopy : function(arr)
 		{
 			if (arr) {
@@ -1385,7 +1612,13 @@
 			if (null == this.LastCopyBinary)
 				this.LastCopyBinary = [];
 			this.LastCopyBinary.push({ type: _format, data : _data });
-		}
+		},
+
+		SendCopyDisabledEvent : function () {
+			if (this.Api) {
+				this.Api.sendEvent("asc_onError", c_oAscError.ID.CopyDisabled, c_oAscError.Level.NoCritical);
+			}
+		},
 	};
 
 	function definePastedFrom(doc)
@@ -1463,9 +1696,9 @@
 			this.Api = _api;
 		},
 
-		Special_Paste : function(props)
+		Special_Paste : function(props, isPasteOptions)
 		{
-			this.Api.asc_SpecialPasteData(props);
+			this.Api.asc_SpecialPasteData(props, isPasteOptions);
 			return true;
 		},
 		
@@ -1532,7 +1765,9 @@
 			{
 				this.Special_Paste_End();
 				//TODO только для презентаций! проверить на остальных редакторах!
-				if(!this.buttonInfo.isClean()){
+				if (this.isPasteOptions) {
+					this.SpecialPasteButton_Show();
+				} else if(!this.buttonInfo.isClean()){
 					this.buttonInfo.asc_setOptions(null);
 					this.Api.asc_ShowSpecialPasteButton(this.buttonInfo);
 				}
@@ -1541,6 +1776,8 @@
 			{
 				this.SpecialPasteButton_Show();
 			}
+
+			this.isPasteOptions = null;
 
 			if(!checkEnd || (checkEnd && this.endRecalcDocument)) {
 				this.doNotShowButton = false;

@@ -286,6 +286,7 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl, oPr)
 		else
 		{
 			formPr.SetFieldMaster(undefined);
+			formPr.SetRole(this.GetFormRole());
 		}
 		
 		oContentControl.SetFormPr(formPr);
@@ -614,7 +615,7 @@ CInlineLevelSdt.prototype.Draw_Lines = function(PDSL)
 CInlineLevelSdt.prototype.DrawSignatureSign = function(graphics)
 {
 	let logicDocument = this.GetLogicDocument();
-	if (!this.IsSignatureForm() || !logicDocument || !this.IsPlaceHolder())
+	if (!this.IsSignatureForm() || !logicDocument || !this.IsPlaceHolder() || graphics.isPrintMode)
 		return;
 	
 	let _t = this;
@@ -709,7 +710,11 @@ CInlineLevelSdt.prototype.DrawSignatureSign = function(graphics)
 CInlineLevelSdt.prototype.DrawPictureSign = function(graphics)
 {
 	let logicDocument = this.GetLogicDocument();
-	if (!this.IsPictureForm() || !logicDocument)
+	if (!this.IsPictureForm() || !logicDocument || graphics.isPrintMode)
+		return;
+	
+	let oform = logicDocument.IsDocumentEditor() ? logicDocument.GetOFormDocument() : null;
+	if (oform && oform.isAllRolesFilled())
 		return;
 	
 	let _t = this;
@@ -1461,46 +1466,59 @@ CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 	if (-1 === nElementPos)
 		return {Parent : null, Pos : -1, Count : 0};
 
-	var nParentCurPos            = oParent instanceof Paragraph ? oParent.CurPos.ContentPos : oParent.State.ContentPos;
+	var nParentCurPos            = oParent instanceof AscWord.Paragraph ? oParent.CurPos.ContentPos : oParent.State.ContentPos;
 	var nParentSelectionStartPos = oParent.Selection.StartPos;
 	var nParentSelectionEndPos   = oParent.Selection.EndPos;
-
-	var nCount = this.Content.length;
-	oParent.Remove_FromContent(nElementPos, 1);
-	for (var nIndex = 0; nIndex < nCount; ++nIndex)
-	{
-		oParent.Add_ToContent(nElementPos + nIndex, this.Content[nIndex]);
-	}
-
+	
+	let curPos            = this.State.ContentPos;
+	let selectionStartPos = this.Selection.StartPos;
+	let selectionEndPos   = this.Selection.EndPos;
+	
+	let items = this.Content.slice();
+	let itemCount = items.length;
+	
+	let _t = this;
+	AscCommon.executeNoPreDelete(function(){
+		_t.RemoveFromContent(0, _t.Content.length);
+		oParent.RemoveFromContent(nElementPos, 1);
+		
+		for (var nIndex = 0; nIndex < itemCount; ++nIndex)
+		{
+			oParent.AddToContent(nElementPos + nIndex, items[nIndex]);
+		}
+	}, this.GetLogicDocument());
+	
 	if (nParentCurPos === nElementPos)
 	{
-		if (oParent instanceof Paragraph)
-			oParent.CurPos.ContentPos = nParentCurPos + this.State.ContentPos;
+		if (oParent instanceof AscWord.Paragraph)
+			oParent.CurPos.ContentPos = nParentCurPos + curPos;
 		else
-			oParent.State.ContentPos = nParentCurPos + this.State.ContentPos;
+			oParent.State.ContentPos = nParentCurPos + curPos;
 
 	}
 	else if (nParentCurPos > nElementPos)
 	{
-		if (oParent instanceof Paragraph)
-			oParent.CurPos.ContentPos = nParentCurPos + nCount - 1;
+		if (oParent instanceof AscWord.Paragraph)
+			oParent.CurPos.ContentPos = nParentCurPos + itemCount - 1;
 		else
-			oParent.State.ContentPos = nParentCurPos + nCount - 1;
+			oParent.State.ContentPos = nParentCurPos + itemCount - 1;
 	}
 
 	if (nParentSelectionStartPos === nElementPos)
-		oParent.Selection.StartPos = nParentSelectionStartPos + this.Selection.StartPos;
+		oParent.Selection.StartPos = nParentSelectionStartPos + selectionStartPos;
 	else if (nParentSelectionStartPos > nElementPos)
-		oParent.Selection.StartPos = nParentSelectionStartPos + nCount - 1;
+		oParent.Selection.StartPos = nParentSelectionStartPos + itemCount - 1;
 
 	if (nParentSelectionEndPos === nElementPos)
-		oParent.Selection.EndPos = nParentSelectionEndPos + this.Selection.EndPos;
+		oParent.Selection.EndPos = nParentSelectionEndPos + selectionEndPos;
 	else if (nParentSelectionEndPos > nElementPos)
-		oParent.Selection.EndPos = nParentSelectionEndPos + nCount - 1;
-
-	this.Remove_FromContent(0, this.Content.length);
-
-	return {Parent : oParent, Pos : nElementPos, Count : nCount};
+		oParent.Selection.EndPos = nParentSelectionEndPos + itemCount - 1;
+	
+	return {
+		Parent : oParent,
+		Pos    : nElementPos,
+		Count  : itemCount
+	};
 };
 CInlineLevelSdt.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 {
@@ -3696,6 +3714,65 @@ CInlineLevelSdt.prototype.ConvertFormToInline = function()
 	}
 
 	return this;
+};
+CInlineLevelSdt.prototype.StretchFormToCell = function()
+{
+	if (!this.IsForm())
+		return false;
+	
+	if (!this.IsFixedForm())
+	{
+		let parentParagraph = this.GetParagraph();
+		if (!parentParagraph)
+			return false;
+		
+		let docContent = parentParagraph.GetParent();
+		if (!docContent || !docContent.IsTableCellContent())
+			return null;
+		
+		this.ConvertFormToFixed();
+	}
+	
+	let drawing;
+	let parentShape = this.GetParagraph().GetParentShape();
+	if (parentShape)
+		drawing = parentShape.GetParaDrawing();
+	
+	if (!drawing)
+		return false;
+	
+	let drawingParagraph = drawing.GetParagraph();
+	if (!drawingParagraph)
+		return false;
+
+	let docContent = drawingParagraph.GetParent();
+	if (!docContent || !docContent.IsTableCellContent())
+		return null;
+
+	if (!docContent.Pages || !docContent.Pages.length)
+		return null;
+
+	let cellBounds = docContent.GetParent().GetPageBounds(0);
+	let h = cellBounds.Bottom - cellBounds.Top;
+	let w = cellBounds.Right - cellBounds.Left;
+	
+	drawing.Set_PositionH(Asc.c_oAscRelativeFromH.Page, false, 0, false);
+	drawing.Set_PositionV(Asc.c_oAscRelativeFromV.Page, false, 0, false);
+	drawing.Set_Distance(0, 0, 0, 0);
+	drawing.Set_DrawingType(drawing_Anchor);
+	drawing.Set_WrappingType(WRAPPING_TYPE_NONE);
+	drawing.Set_BehindDoc(false);
+	drawing.Set_LayoutInCell(true);
+	
+	let xfrm = drawing.GraphicObj.getXfrm();
+	xfrm.setOffX(0);
+	xfrm.setOffY(0);
+	xfrm.setExtX(w);
+	xfrm.setExtY(h);
+	
+	drawing.CheckWH();
+
+	return true;
 };
 CInlineLevelSdt.prototype.IsMultiLineForm = function()
 {

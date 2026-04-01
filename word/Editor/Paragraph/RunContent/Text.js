@@ -770,5 +770,103 @@
 	window['AscWord'].CRunText = CRunText;
 	window['AscWord'].CreateNonBreakingHyphen = CreateNonBreakingHyphen;
 	window['AscWord'].isCombiningMark = isCombiningMark;
+	
+	/**
+	 * @param {number} gid
+	 * @param {number} codePoint
+	 * @param {number} width
+	 * @param {number} fontSize
+	 * @constructor
+	 */
+	function CPdfRunText(gid, codePoint, width, fontSize)
+	{
+		CRunText.call(this, codePoint);
+		
+		this.charGid     = gid ? gid | 0 : 0;
+		this.originWidth = width ? width : 0;
+		this.originSize  = fontSize ? fontSize : 0;
+		this.originCoeff = 1;
+		this.fontSize    = this.originSize;
+		this.spacing     = 0;
+	}
+	CPdfRunText.prototype = Object.create(CRunText.prototype);
+	CPdfRunText.prototype.constructor = CPdfRunText;
+
+	CPdfRunText.prototype.IsPdfText = function()
+	{
+		return true;
+	};
+	CPdfRunText.prototype.GetGid = function()
+	{
+		return this.charGid;
+	};
+	CPdfRunText.prototype.GetOriginWidth = function(fontSize)
+	{
+		return this.originWidth * fontSize / this.originSize;
+	};
+	CPdfRunText.prototype.GetWidth = function()
+	{
+		return (this.originSize && this.originWidth ? this.originWidth * this.originCoeff : this.Width / AscWord.TEXTWIDTH_DIVIDER) + this.spacing;
+	};
+	CPdfRunText.prototype.GetWidthVisible = function()
+	{
+		return (this.originSize && this.originWidth ? this.originWidth * this.originCoeff : this.Width / AscWord.TEXTWIDTH_DIVIDER) + this.spacing;
+	};
+	CPdfRunText.prototype.SetWidthVisible = function()
+	{
+	
+	};
+	CPdfRunText.prototype.SetMetrics = function(fontSize, fontSlot, textPr)
+	{
+		let fontCoeff = 1;
+		
+		if (!textPr.Caps
+			&& textPr.SmallCaps
+			&& this.Value
+			&& this.Value !== (String.fromCharCode(this.Value).toUpperCase()).charCodeAt(0))
+		{
+			fontCoeff *= smallcaps_Koef;
+		}
+		
+		if (textPr.VertAlign !== AscCommon.vertalign_Baseline)
+			fontCoeff *= AscCommon.vaKSize;
+		
+		let _fontSize = fontSize * fontCoeff;
+		
+	 	this.fontSize = _fontSize;
+		
+		fontCoeff *= this.originSize ? fontSize / this.originSize : 1;
+		
+		this.originCoeff = fontCoeff;
+		
+		this.Flags = (this.Flags & 0xFFFF) | (((_fontSize * 64) & 0xFFFF) << 16);
+
+		this.spacing = textPr.Spacing;
+	};
+	CPdfRunText.prototype.Write_ToBinary = function(Writer)
+	{
+		// Long : Type
+		// Long : Value
+		// Bool : SpaceAfter
+
+		Writer.WriteLong(para_PdfText);
+		Writer.WriteLong(this.Value);
+		Writer.WriteBool(this.IsSpaceAfter());
+		Writer.WriteLong(this.charGid);
+		Writer.WriteDouble(this.originWidth);
+		Writer.WriteDouble(this.originSize);
+
+	};
+	CPdfRunText.prototype.Read_FromBinary = function(Reader)
+	{
+		this.SetCharCode(Reader.GetLong());
+		this.SetSpaceAfter(Reader.GetBool());
+		
+		this.charGid     = Reader.GetLong();
+		this.originWidth = Reader.GetDouble();
+		this.originSize  = Reader.GetDouble();
+	};
+	AscWord.CPdfRunText = CPdfRunText;
+	
 
 })(window);

@@ -491,6 +491,7 @@ window.AscCommon.g_cIsBeta = "false";
 		DOCX_PACKAGE  : 0x0054,
 		OFORM  : 0x0055,
 		DOCXF  : 0x0056,
+		MD   : 0x005c,
 		DOCY : 0x1001,
 		CANVAS_WORD : 0x2001,
 		JSON : 0x0808,	// Для mail-merge
@@ -584,7 +585,9 @@ window.AscCommon.g_cIsBeta = "false";
 		Waiting	: 18,
 		Submit : 19,
 		Disconnect :20,
-		RefreshFile: 21
+		RefreshFile: 21,
+		SolverLookingSolution: 22,
+		BackgroundOpen: 23
 	};
 
 	var c_oAscAdvancedOptionsID = {
@@ -1763,6 +1766,14 @@ window.AscCommon.g_cIsBeta = "false";
 		stackedPer : "stackedPer"
 	};
 
+	const c_oAscPathFillMode = {
+		DARKEN: 0,
+		DARKEN_LESS: 1,
+		LIGHTEN: 2,
+		LIGHTEN_LESS: 3,
+		NONE: 4,
+		NORM: 5
+	};
 	var c_oAscFillGradType = {
 		GRAD_LINEAR : 1,
 		GRAD_PATH   : 2
@@ -4801,6 +4812,89 @@ window.AscCommon.g_cIsBeta = "false";
 		Split: "split"
 	};
 
+	/** @enum */
+	var c_oAscCustomAutoFilter = {
+		equals: 1,
+		isGreaterThan: 2,
+		isGreaterThanOrEqualTo: 3,
+		isLessThan: 4,
+		isLessThanOrEqualTo: 5,
+		doesNotEqual: 6,
+		beginsWith: 7,
+		doesNotBeginWith: 8,
+		endsWith: 9,
+		doesNotEndWith: 10,
+		contains: 11,
+		doesNotContain: 12
+	};
+
+	/** @enum */
+	var c_oAscDynamicAutoFilter = {
+		aboveAverage: 1,
+		belowAverage: 2,
+		lastMonth: 3,
+		lastQuarter: 4,
+		lastWeek: 5,
+		lastYear: 6,
+		m1: 7,
+		m10: 8,
+		m11: 9,
+		m12: 10,
+		m2: 11,
+		m3: 12,
+		m4: 13,
+		m5: 14,
+		m6: 15,
+		m7: 16,
+		m8: 17,
+		m9: 18,
+		nextMonth: 19,
+		nextQuarter: 20,
+		nextWeek: 21,
+		nextYear: 22,
+		nullType: 23,
+		q1: 24,
+		q2: 25,
+		q3: 26,
+		q4: 27,
+		thisMonth: 28,
+		thisQuarter: 29,
+		thisWeek: 30,
+		thisYear: 31,
+		today: 32,
+		tomorrow: 33,
+		yearToDate: 34,
+		yesterday: 35
+	};
+	var c_oAscSparklineType = {
+		Line: 0,
+		Column: 1,
+		Stacked: 2
+	};
+	var c_oAscEDispBlanksAs = {
+		Span: 0,
+		Gap: 1,
+		Zero: 2
+	};
+	var c_oAscSparklineAxisMinMax = {
+		Individual: 0,
+		Group: 1,
+		Custom: 2
+	};
+	var c_oAscSortOptions = {
+		Ascending: 1,
+		Descending: 2,
+		ByColorFill: 3,
+		ByColorFont: 4,
+		ByIcon: 5,
+		ByValue: 6
+	};
+
+	var c_oAscHyperlinkType = {
+		WebLink: 1,
+		RangeLink: 2,
+		FileLink: 3
+	};
 
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
@@ -4849,7 +4943,9 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['DOCX_PACKAGE']         = prot.DOCX_PACKAGE;
 	prot['OFORM']                = prot.OFORM;
 	prot['DOCXF']                = prot.DOCXF;
+	prot['MD']                   = prot.MD;
 	prot['DOCY']                 = prot.DOCY;
+	prot['CANVAS_WORD']          = prot.CANVAS_WORD;
 	prot['JSON']                 = prot.JSON;
 	prot['XLSX']                 = prot.XLSX;
 	prot['XLS']                  = prot.XLS;
@@ -4876,14 +4972,20 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['FODP']                 = prot.FODP;
 	prot['OTP']                  = prot.OTP;
 	prot['PPTX_PACKAGE']         = prot.PPTX_PACKAGE;
+	prot['PPTY']                 = prot.PPTY;
 	prot['CANVAS_PRESENTATION']  = prot.CANVAS_PRESENTATION;
 
 	prot['VSDX']        		 = prot.VSDX;
 	prot['VSSX']        		 = prot.VSSX;
 	prot['VSTX']        		 = prot.VSTX;
 	prot['VSDM']        		 = prot.VSDM;
+	prot['VSSM']        		 = prot.VSSM;
 	prot['VSTM']        		 = prot.VSTM;
 
+	prot['VSDY']        		 = prot.VSDY;
+	prot['CANVAS_DIAGRAM']  	 = prot.CANVAS_DIAGRAM;
+
+	prot['IMG']                  = prot.IMG;
 	prot['JPG']                  = prot.JPG;
 	prot['TIFF']                 = prot.TIFF;
 	prot['TGA']                  = prot.TGA;
@@ -4929,6 +5031,8 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['Submit']                           = prot.Submit;
 	prot['Disconnect']                       = prot.Disconnect;
 	prot['RefreshFile']                      = prot.RefreshFile;
+	prot['SolverLookingSolution']            = prot.SolverLookingSolution;
+	prot['BackgroundOpen']                   = prot.BackgroundOpen;
 	window['Asc']['c_oAscAdvancedOptionsID'] = window['Asc'].c_oAscAdvancedOptionsID = c_oAscAdvancedOptionsID;
 	prot                                         = c_oAscAdvancedOptionsID;
 	prot['CSV']                                  = prot.CSV;
@@ -5262,6 +5366,16 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['FILL_TYPE_GRAD']              = prot.FILL_TYPE_GRAD;
 	prot['FILL_TYPE_PATT']              = prot.FILL_TYPE_PATT;
 	prot['FILL_TYPE_GRP']               = prot.FILL_TYPE_GRP;
+
+	window['Asc']['c_oAscPathFillMode'] = window['Asc'].c_oAscPathFillMode = c_oAscPathFillMode;
+	prot = c_oAscPathFillMode;
+	prot['DARKEN']       = prot.DARKEN;
+	prot['DARKEN_LESS']  = prot.DARKEN_LESS;
+	prot['LIGHTEN']      = prot.LIGHTEN;
+	prot['LIGHTEN_LESS'] = prot.LIGHTEN_LESS;
+	prot['NONE']         = prot.NONE;
+	prot['NORM']         = prot.NORM;
+
 	window['Asc']['c_oAscFillGradType'] = window['Asc'].c_oAscFillGradType = c_oAscFillGradType;
 	prot                                = c_oAscFillGradType;
 	prot['GRAD_LINEAR']                 = prot.GRAD_LINEAR;
@@ -6253,6 +6367,7 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['ConfirmMaxChangesSize'] = prot.ConfirmMaxChangesSize;
 	prot['ConfirmAddCellWatches'] = prot.ConfirmAddCellWatches;
 	prot['ConfirmReplaceHeaderFooterPicture'] = prot.ConfirmReplaceHeaderFooterPicture;
+	prot['ConfirmReplaceFormulaInTable'] = prot.ConfirmReplaceFormulaInTable;
 
 	window['Asc']['c_oAscSmartArtSections'] = window['Asc'].c_oAscSmartArtSections = c_oAscSmartArtSections;
 
@@ -6421,6 +6536,91 @@ window.AscCommon.g_cIsBeta = "false";
 	prot['userPageDate'] = prot.userPageDate;
 	prot['preparedUserDatePage'] = prot.preparedUserDatePage;
 	prot['custom'] = prot.custom;
+
+	window['Asc']['c_oAscCustomAutoFilter'] = window['Asc'].c_oAscCustomAutoFilter = c_oAscCustomAutoFilter;
+	prot = c_oAscCustomAutoFilter;
+	prot['equals'] = prot.equals;
+	prot['isGreaterThan'] = prot.isGreaterThan;
+	prot['isGreaterThanOrEqualTo'] = prot.isGreaterThanOrEqualTo;
+	prot['isLessThan'] = prot.isLessThan;
+	prot['isLessThanOrEqualTo'] = prot.isLessThanOrEqualTo;
+	prot['doesNotEqual'] = prot.doesNotEqual;
+	prot['beginsWith'] = prot.beginsWith;
+	prot['doesNotBeginWith'] = prot.doesNotBeginWith;
+	prot['endsWith'] = prot.endsWith;
+	prot['doesNotEndWith'] = prot.doesNotEndWith;
+	prot['contains'] = prot.contains;
+	prot['doesNotContain'] = prot.doesNotContain;
+
+	window['Asc']['c_oAscDynamicAutoFilter'] = window['Asc'].c_oAscDynamicAutoFilter = c_oAscDynamicAutoFilter;
+	prot = c_oAscDynamicAutoFilter;
+	prot['aboveAverage'] = prot.aboveAverage;
+	prot['belowAverage'] = prot.belowAverage;
+	prot['lastMonth']    = prot.lastMonth;
+	prot['lastQuarter']  = prot.lastQuarter;
+	prot['lastWeek']     = prot.lastWeek;
+	prot['lastYear']     = prot.lastYear;
+	prot['m1']           = prot.m1;
+	prot['m11']          = prot.m11;
+	prot['m12']          = prot.m12;
+	prot['m2']           = prot.m2;
+	prot['m3']           = prot.m3;
+	prot['m4']           = prot.m4;
+	prot['m5']           = prot.m5;
+	prot['m6']           = prot.m6;
+	prot['m7']           = prot.m7;
+	prot['m8']           = prot.m8;
+	prot['m9']           = prot.m9;
+	prot['nextMonth']    = prot.nextMonth;
+	prot['nextQuarter']  = prot.nextQuarter;
+	prot['nextWeek']     = prot.nextWeek;
+	prot['nextYear']     = prot.nextYear;
+	prot['nullType']     = prot.nullType;
+	prot['q1']           = prot.q1;
+	prot['q2']           = prot.q2;
+	prot['q3']           = prot.q3;
+	prot['q4']           = prot.q4;
+	prot['thisMonth']    = prot.thisMonth;
+	prot['thisQuarter']  = prot.thisQuarter;
+	prot['thisWeek']     = prot.thisWeek;
+	prot['thisYear']     = prot.thisYear;
+	prot['today']        = prot.today;
+	prot['tomorrow']     = prot.tomorrow;
+	prot['yearToDate']   = prot.yearToDate;
+	prot['yesterday']    = prot.yesterday;
+
+	window['Asc']['c_oAscSparklineType'] = window['Asc'].c_oAscSparklineType = c_oAscSparklineType;
+	prot = c_oAscSparklineType;
+	prot['Line'] = prot.Line;
+	prot['Column'] = prot.Column;
+	prot['Stacked'] = prot.Stacked;
+
+	window['Asc']['c_oAscEDispBlanksAs'] = window['Asc'].c_oAscEDispBlanksAs = c_oAscEDispBlanksAs;
+	prot = c_oAscEDispBlanksAs;
+	prot['Span'] = prot.Span;
+	prot['Gap'] = prot.Gap;
+	prot['Zero'] = prot.Zero;
+
+	window['Asc']['c_oAscSparklineAxisMinMax'] = window['Asc'].c_oAscSparklineAxisMinMax = c_oAscSparklineAxisMinMax;
+	prot = c_oAscSparklineAxisMinMax;
+	prot['Individual'] = prot.Individual;
+	prot['Group'] = prot.Group;
+	prot['Custom'] = prot.Custom;
+
+	window['Asc']['c_oAscSortOptions'] = window['Asc'].c_oAscSortOptions = c_oAscSortOptions;
+	prot = c_oAscSortOptions;
+	prot['Ascending'] = prot.Ascending;
+	prot['Descending'] = prot.Descending;
+	prot['ByColorFill'] = prot.ByColorFill;
+	prot['ByColorFont'] = prot.ByColorFont;
+	prot['ByIcon'] = prot.ByIcon;
+	prot['ByValue'] = prot.ByValue;
+
+	window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
+	prot = c_oAscHyperlinkType;
+	prot['WebLink'] = prot.WebLink;
+	prot['RangeLink'] = prot.RangeLink;
+	prot['FileLink'] = prot.FileLink;
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].c_oAscPaneState = c_oAscPaneState;

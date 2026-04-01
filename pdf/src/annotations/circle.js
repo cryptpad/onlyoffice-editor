@@ -45,15 +45,7 @@
         this.spPr.setGeometry(AscFormat.CreateGeometry("ellipse"));
         this.setStyle(AscFormat.CreateDefaultShapeStyle("ellipse"));
 
-        this._point         = undefined;
-        this._popupOpen     = false;
-        this._popupRect     = undefined;
-        this._richContents  = undefined;
-        this._rotate        = undefined;
-        this._state         = undefined;
-        this._stateModel    = undefined;
-        this._width         = undefined;
-        this._rectDiff      = [0, 0, 0, 0];
+        this._rectDiff = [0, 0, 0, 0];
     }
 	CAnnotationCircle.prototype.constructor = CAnnotationCircle;
     AscFormat.InitClass(CAnnotationCircle, AscPDF.CPdfShape, AscDFH.historyitem_type_Pdf_Annot_Circle);
@@ -63,6 +55,9 @@
         return true;
     };
     CAnnotationCircle.prototype.RefillGeometry = function(oGeometry, aShapeRectInMM) {
+        if (this.GetBorderEffectStyle() !== AscPDF.BORDER_EFFECT_STYLES.cloud)
+            return;
+
         let aRD         = this.GetRectangleDiff() || [0, 0, 0, 0];
         let aOrigRect   = this.GetRect();
 
@@ -77,12 +72,12 @@
         }
         
         AscCommon.History.StartNoHistoryMode();
-        if (this.GetBorderEffectStyle() === AscPDF.BORDER_EFFECT_STYLES.Cloud) {
-            generateCloudyGeometry(undefined, aShapeRectInMM, oGeometry, this.GetBorderEffectIntensity());
-        }
-        else {
-            oGeometry.Recalculate(aShapeRectInMM[2] - aShapeRectInMM[0], aShapeRectInMM[3] - aShapeRectInMM[1]);
-        }
+        generateCloudyGeometry(undefined, aShapeRectInMM, oGeometry, this.GetBorderEffectIntensity());
+        AscCommon.History.EndNoHistoryMode();
+    };
+    CAnnotationCircle.prototype.SetDefaultGeometry = function() {
+        AscCommon.History.StartNoHistoryMode();
+        this.spPr.setGeometry(AscFormat.CreateGeometry("ellipse"));
         AscCommon.History.EndNoHistoryMode();
     };
     CAnnotationCircle.prototype.WriteToBinary = function(memory) {
@@ -122,6 +117,10 @@
     };
     
     function generateCloudyGeometry(arrPoints, aBounds, oGeometry, nIntensity) {
+		if (nIntensity == undefined) {
+			return;
+		}
+		
         let xMin = aBounds[0];
         let yMin = aBounds[1];
         let xMax = aBounds[2];
