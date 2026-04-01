@@ -130,10 +130,10 @@
         this.recalculateShdw();
         this.SetNeedRecalc(false);
     };
-    CPdfShape.prototype.recalculateBounds = function(bLine) {
+    CPdfShape.prototype.recalculateBounds = function(bNoLine) {
         let boundsChecker = new AscFormat.CSlideBoundsChecker();
         
-        bLine && boundsChecker.CheckLineWidth(this);
+        !bNoLine && boundsChecker.CheckLineWidth(this);
         boundsChecker.DO_NOT_DRAW_ANIM_LABEL = true;
         this.draw(boundsChecker);
         boundsChecker.CorrectBounds();
@@ -333,13 +333,13 @@
 
 		return AscFormat.CGraphicObjectBase.prototype.canResize.call(this);
 	};
-    CPdfShape.prototype.ConvertToAnnot = function() {
+    CPdfShape.prototype.ConvertToAnnot = function(nAnnotType) {
         let oDoc = Asc.editor.getPDFDoc();
         let oXfrm = this.getXfrm();
 
         let oAnnot;
         let aRect = [oXfrm.offX * g_dKoef_mm_to_pt, oXfrm.offY * g_dKoef_mm_to_pt, (oXfrm.offX + oXfrm.extX) * g_dKoef_mm_to_pt, (oXfrm.offY + oXfrm.extY) * g_dKoef_mm_to_pt];
-        let sCreationDate = (new Date().getTime()).toString();
+        let sCreationDate = new Date().getTime();
         let nLineW = this.pen.w / 36000.0 * g_dKoef_mm_to_pt;
         let oRGAStroke = this.pen.Fill.fill.color.RGBA;
         let aStrokeColor = [oRGAStroke.R / 255, oRGAStroke.G / 255, oRGAStroke.B / 255];
@@ -347,7 +347,11 @@
         let aFillColor = oRGBAFill ? [oRGBAFill.R / 255, oRGBAFill.G / 255, oRGBAFill.B / 255] : null;
 
         function rotateRect(rect, rad) {
-            const [x1, y1, x2, y2] = rect;
+			const x1 = rect[0];
+			const y1 = rect[1];
+			const x2 = rect[2];
+			const y2 = rect[3];
+
             const cx = (x1 + x2) * 0.5, cy = (y1 + y2) * 0.5;
             const hw = (x2 - x1) * 0.5, hh = (y2 - y1) * 0.5;
 
@@ -363,84 +367,87 @@
             contents:       null,
             creationDate:   sCreationDate,
             modDate:        sCreationDate,
-            hidden:         false
+            hidden:         false,
+            type:           nAnnotType
         }
 
         let oGeometry = this.getGeometry();
-        switch (oGeometry.preset) {
-            case "rect":
-                oProps.type = AscPDF.ANNOTATIONS_TYPES.Square;
-                break;
-            case "ellipse":
-                oProps.type = AscPDF.ANNOTATIONS_TYPES.Circle;
-                break;
-            case "line":
-                oProps.type = AscPDF.ANNOTATIONS_TYPES.Line;
-                break;
-            default: {
-                let aCommands = oGeometry.pathLst[0].ArrPathCommand;
-                
-                function isPolyLine(commands) {
-                    let count0 = 0;
+        if (!nAnnotType) {
+            switch (oGeometry.preset) {
+                case "rect":
+                    oProps.type = AscPDF.ANNOTATIONS_TYPES.Square;
+                    break;
+                case "ellipse":
+                    oProps.type = AscPDF.ANNOTATIONS_TYPES.Circle;
+                    break;
+                case "line":
+                    oProps.type = AscPDF.ANNOTATIONS_TYPES.Line;
+                    break;
+                default: {
+                    let aCommands = oGeometry.pathLst[0].ArrPathCommand;
+                    
+                    function isPolyLine(commands) {
+                        let count0 = 0;
 
-                    for (let i = 0; i < commands.length; i++) {
-                        if (commands[i].id === AscFormat.moveTo) {
-                            count0++;
+                        for (let i = 0; i < commands.length; i++) {
+                            if (commands[i].id === AscFormat.moveTo) {
+                                count0++;
 
-                            if (count0 > 1) {
+                                if (count0 > 1) {
+                                    return false;
+                                }
+                            }
+                            else if (commands[i].id !== AscFormat.lineTo) {
                                 return false;
                             }
                         }
-                        else if (commands[i].id !== AscFormat.lineTo) {
-                            return false;
-                        }
-                    }
 
-                    return count0 === 1;
-                };
+                        return count0 === 1;
+                    };
 
-                function isPolygon(commands) {
-                    let count0 = 0;
+                    function isPolygon(commands) {
+                        let count0 = 0;
 
-                    for (let i = 0; i < commands.length; i++) {
-                        if (commands[i].id === AscFormat.moveTo) {
-                            count0++;
+                        for (let i = 0; i < commands.length; i++) {
+                            if (commands[i].id === AscFormat.moveTo) {
+                                count0++;
 
-                            if (count0 > 1) {
+                                if (count0 > 1) {
+                                    return false;
+                                }
+                            }
+                            else if (commands[i].id !== AscFormat.lineTo && commands[i].id !== AscFormat.close) {
                                 return false;
                             }
                         }
-                        else if (commands[i].id !== AscFormat.lineTo && commands[i].id !== AscFormat.close) {
-                            return false;
-                        }
+
+                        return count0 === 1;
+                    };
+
+                    let isCanConvert = oGeometry.pathLst.length == 1;
+                    if (!isCanConvert) {
+                        return null;
                     }
-
-                    return count0 === 1;
-                };
-
-                let isCanConvert = oGeometry.pathLst.length == 1;
-                if (!isCanConvert) {
-                    return null;
+                    else if (isPolyLine(aCommands)) {
+                        oProps.type = AscPDF.ANNOTATIONS_TYPES.PolyLine;
+                    }
+                    else if (isPolygon(aCommands)) {
+                        oProps.type = AscPDF.ANNOTATIONS_TYPES.Polygon;
+                    }
+                    break;
                 }
-                else if (isPolyLine(aCommands)) {
-                    oProps.type = AscPDF.ANNOTATIONS_TYPES.PolyLine;
-                }
-                else if (isPolygon(aCommands)) {
-                    oProps.type = AscPDF.ANNOTATIONS_TYPES.Polygon;
-                }
-                break;
             }
         }
 
         oAnnot = AscPDF.CreateAnnotByProps(oProps, oDoc);
-        oAnnot.SetWidth(nLineW);
-        oAnnot.SetStrokeColor(aStrokeColor);
+        oAnnot.SetBorderWidth(nLineW);
+        oAnnot.SetBorderColor(aStrokeColor);
         aFillColor && oAnnot.SetFillColor(aFillColor);
 
         switch (oAnnot.GetType()) {
             case AscPDF.ANNOTATIONS_TYPES.Square:
             case AscPDF.ANNOTATIONS_TYPES.Circle: {
-                let nLineW = oAnnot.GetWidth() * g_dKoef_pt_to_mm;
+                let nLineW = oAnnot.GetBorderWidth() * g_dKoef_pt_to_mm;
                 oAnnot.recalcBounds();
                 oAnnot.recalcGeometry();
                 oAnnot.Recalculate(true);
@@ -463,7 +470,7 @@
                 break;
             }
             case AscPDF.ANNOTATIONS_TYPES.Line: {
-                oAnnot.SetLineEnd(AscPDF.LINE_END_TYPE.OpenArrow);
+                oAnnot.SetLineEnd(AscPDF.LINE_END_TYPE.openArrow);
                 let aCommands = oGeometry.pathLst[0].ArrPathCommand;
                 let oPt1 = { X: aCommands[0].X, Y: aCommands[0].Y };
                 let oPt2 = { X: aCommands[1].X, Y: aCommands[1].Y };
@@ -588,16 +595,6 @@
                 drawing_document.TargetEnd();
             }
         }
-    };
-    CPdfShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex) {
-        let oDoc = this.GetDocument();
-        let oController = oDoc.GetController();
-
-        this.SetControllerTextSelection(oController, this.GetPage());
-
-        let oGroup = this.getMainGroup();
-        if (!oGroup)
-            oDoc.SetMouseDownObject(this);
     };
     CPdfShape.prototype.setRecalculateInfo = function() {
         this.recalcInfo =

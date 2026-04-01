@@ -73,6 +73,9 @@
 		ConvertCoordsToCursorWR : function() {return {X : 0, Y : 0};},
 		Set_RulerState_Table : function() {},
 		scrollToTarget : function() {},
+		GetVisibleRegion : function() {return [{Page : 0, Y : 0}, {Page : 0, Y : 0}]},
+		IsFreezePage : function() {return false;},
+		Set_RulerState_HdrFtr : function() {},
 	};
 
 	drawingDocument.CanvasHit = document.createElement('canvas');
@@ -159,6 +162,10 @@
 	{
 		callback(true);
 	};
+	editor.getCurrentTheme = function()
+	{
+		return AscTest.GetLogicDocument().Get_Theme();
+	};
 	editor._addRemoveSpaceBeforeAfterParagraph = AscCommon.DocumentEditorApi.prototype._addRemoveSpaceBeforeAfterParagraph.bind(editor);
 	editor.asc_addSpaceBeforeParagraph = AscCommon.DocumentEditorApi.prototype.asc_addSpaceBeforeParagraph.bind(editor);
 	editor.asc_addSpaceAfterParagraph = AscCommon.DocumentEditorApi.prototype.asc_addSpaceAfterParagraph.bind(editor);
@@ -168,6 +175,7 @@
 	editor.asc_haveSpaceAfterParagraph = AscCommon.DocumentEditorApi.prototype.asc_haveSpaceAfterParagraph.bind(editor);
 	editor.initCollaborativeEditing = AscCommon.DocumentEditorApi.prototype.initCollaborativeEditing.bind(editor);
 	editor.asc_PasteData = AscCommon.DocumentEditorApi.prototype.asc_PasteData.bind(editor);
+	editor.GoToHeader = AscCommon.DocumentEditorApi.prototype.GoToHeader.bind(editor);
 	
 	editor.externalChartCollector = {
 		onUpdateExternalList: function () {},

@@ -1733,21 +1733,10 @@
 
 	CTextDrawer.prototype.SetShd = function (oShd) {
 		if (oShd) {
-			if (oShd.Value !== Asc.c_oAscShdNil) {
-				if (oShd.Unifill) {
-					this.m_oFill = oShd.Unifill;
-				}
-				else {
-					if (oShd.Color) {
-						this.m_oFill = this.CreateUnfilFromRGB(oShd.Color.r, oShd.Color.g, oShd.Color.b);
-					}
-					else {
-						this.m_oFill = null;
-					}
-				}
-			}
-			else {
-				this.m_oFill = null;
+			this.m_oFill = null;
+			let shdColor = !oShd.IsNil() ? oShd.GetSimpleColor(this.m_oTheme, AscFormat.GetDefaultColorMap()) : null;
+			if (shdColor) {
+				this.m_oFill = this.CreateUnfilFromRGB(shdColor.r, shdColor.g, shdColor.b);
 			}
 		}
 		else {
@@ -2520,11 +2509,15 @@
 		}
 	};
 
-	CTextDrawer.prototype.DrawTextArtComment = function (Element) {
-		this.m_oCurComment = Element;
-		this.rect(Element.x0, Element.y0, Element.x1 - Element.x0, Element.y1 - Element.y0);
+	CTextDrawer.prototype.drawCommentArea = function (x, y, w, h) {
+		this.m_oCurComment = null;
+		this.rect(x, y, w, h);
 		this.df();
 		this.m_oCurComment = null;
+	};
+	CTextDrawer.prototype.drawCommentMark = function(x, y, h, isStart)
+	{
+		this.drawVerLine(0, x, y, y + h, 2, false);
 	};
 
 	CTextDrawer.prototype.rect = function (x, y, w, h) {

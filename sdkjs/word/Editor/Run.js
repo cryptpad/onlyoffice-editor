@@ -490,10 +490,12 @@ ParaRun.prototype.Get_Text = function(Text)
 
 				break;
 			}
-
-			case para_Text :
+			case para_Text:
+			case para_Space:
+			case para_Math_Text:
+			case para_Math_BreakOperator:
 			{
-				Text.Text += String.fromCharCode(Item.Value);
+				Text.Text += String.fromCharCode(Item.GetCodePoint());
 				break;
 			}
 			case para_NewLine:
@@ -504,11 +506,6 @@ ParaRun.prototype.Get_Text = function(Text)
 			case para_Tab:
 			{
 				Text.Text += undefined !== Text.TabSymbol ? Text.TabSymbol : " ";
-				break;
-			}
-			case para_Space:
-			{
-				Text.Text += " ";
 				break;
 			}
 		}
@@ -2127,6 +2124,41 @@ ParaRun.prototype.AddText = function(sString, nPos)
 	}
 	return nCharPos;
 };
+ParaRun.prototype.AddPdfOriginText = function(aGids, sString, aWidths, nFontSize, nPos)
+{
+	let nCharPos = undefined !== nPos && null !== nPos && -1 !== nPos ? nPos : this.Content.length;
+
+	if (this.IsMathRun())
+	{
+		for (let oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+		{
+			let nCharCode = oIterator.value();
+
+			let oMathText = new CMathText();
+			oMathText.add(nCharCode);
+			this.AddToContent(nCharPos++, oMathText);
+		}
+	}
+	else
+	{
+		for (let oIterator = sString.getUnicodeIterator(); oIterator.check(); oIterator.next())
+		{
+			let nCharCode = oIterator.value();
+
+			if (9 === nCharCode) // \t
+				this.AddToContent(nCharPos++, new AscWord.CRunTab(), true);
+			else if (10 === nCharCode) // \n
+				this.AddToContent(nCharPos++, new AscWord.CRunBreak(AscWord.break_Line), true);
+			else if (13 === nCharCode) // \r
+				continue;
+			else if (AscCommon.IsSpace(nCharCode)) // space
+				this.AddToContent(nCharPos++, new AscWord.CPdfRunSpace(aGids[oIterator.position()], nCharCode, aWidths[oIterator.position()], nFontSize), true);
+			else
+				this.AddToContent(nCharPos++, new AscWord.CPdfRunText(aGids[oIterator.position()], nCharCode, aWidths[oIterator.position()], nFontSize), true);
+		}
+	}
+	return nCharPos;
+};
 /**
  * Добавляем в конец рана заданную инструкцию для сложного поля
  * @param {string} sString
@@ -3151,15 +3183,12 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 
                 break;
             }
-
-            case para_Text :
-            {
-                Str += AscCommon.encodeSurrogateChar(Item.Value);
-                break;
-            }
+			case para_Text :
 			case para_Space:
+			case para_Math_Text:
+			case para_Math_BreakOperator:
 			{
-				Str += " ";
+				Str += AscCommon.encodeSurrogateChar(Item.GetCodePoint());
 				break;
 			}
 			case para_Tab:
@@ -3167,12 +3196,6 @@ ParaRun.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 				Str += oPr && undefined !== oPr.TabSymbol ? oPr.TabSymbol : ' ';
 				break;
 			}
-            case para_Math_Text:
-            case para_Math_BreakOperator:
-            {
-                Str += AscCommon.encodeSurrogateChar(Item.value);
-                break;
-            }
 			case para_NewLine:
 			{
 				Str += oPr && undefined !== oPr.NewLineSeparator ? oPr.NewLineSeparator : '\r';
@@ -3392,7 +3415,10 @@ ParaRun.prototype.Recalculate_MeasureContent = function()
 	{
 		isKeepWidth = true;
 		nMaxComb = oTextFormPDF.GetCharLimit();
-		nCombWidth = oTextFormPDF.getFormRelRect().W / nMaxComb;
+		let formRelRect = oTextFormPDF.getFormRelRect();
+		if (formRelRect) {
+			nCombWidth = formRelRect.W / nMaxComb;
+		}
 	}
 
 	if (nCombWidth && nMaxComb > 1)
@@ -6279,7 +6305,7 @@ ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)
                     nWordLen = 0;
                 }
 
-                if ((true === Item.Is_Inline() || true === this.Paragraph.Parent.Is_DrawingShape()) && Item.Width > nMinWidth)
+                if ((true === Item.Is_Inline() || true === this.Paragraph.Parent.Is_DrawingShape() || Item.IsForm()) && Item.Width > nMinWidth)
                 {
                     nMinWidth = Item.Width;
                 }
@@ -7507,11 +7533,12 @@ ParaRun.prototype.SkipAnchorsAtSelectionStart = function(Direction)
 	return true;
 };
 
-ParaRun.prototype.RemoveSelection = function()
+ParaRun.prototype.RemoveSelection = function(preserveCursorPosition)
 {
-	if (this.Selection.Use)
+	// TODO: По-хорошему, надо убрать выставление позиции здесь и проверить, что при отмене селекта она выставляется
+	if (this.Selection.Use && !preserveCursorPosition)
 		this.State.ContentPos = Math.min(this.Content.length, Math.max(0, this.Selection.EndPos));
-
+	
 	this.Selection.Use      = false;
 	this.Selection.StartPos = 0;
 	this.Selection.EndPos   = 0;
@@ -8003,7 +8030,12 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
             this.AddPrChange();
 
 		if (undefined === IncFontSize)
+		{
+			if (Asc.editor.isPdfEditor() && !AscCommon.g_oIdCounter.IsLoad())
+				checkRunPdf(this, TextPr);
+
 			this.Apply_Pr(TextPr);
+		}
 		else
 			this.IncreaseDecreaseFontSize(IncFontSize);
 
@@ -8106,7 +8138,12 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 					CRun.AddPrChange();
 
 				if (undefined === IncFontSize)
+				{
+					if (Asc.editor.isPdfEditor() && !AscCommon.g_oIdCounter.IsLoad())
+						checkRunPdf(CRun, TextPr);
+
 					CRun.Apply_Pr(TextPr);
+				}
 				else
 					CRun.IncreaseDecreaseFontSize(IncFontSize);
 
@@ -8192,7 +8229,12 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
                 CRun.AddPrChange();
 
 			if (undefined === IncFontSize)
+			{
+				if (Asc.editor.isPdfEditor() && !AscCommon.g_oIdCounter.IsLoad())
+					checkRunPdf(CRun, TextPr);
+
 				CRun.Apply_Pr(TextPr);
+			}
 			else
 				CRun.IncreaseDecreaseFontSize(IncFontSize);
 
@@ -8208,6 +8250,54 @@ ParaRun.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 		this.OnTextPrChange();
         return Result;
     }
+
+	function checkRunPdf(run, newTextPr)
+	{
+		let fontName = run.Pr.GetFontFamily();
+		let prefix = AscFonts.getEmbeddedFontPrefix();
+		if (!fontName || !fontName.startsWith(prefix))
+			return;
+
+		if (!!run.Pr.Bold !== !!newTextPr.Bold || !!run.Pr.Italic !== !!newTextPr.Italic || (newTextPr.GetFontFamily() && fontName != newTextPr.GetFontFamily()))
+		{
+			for (let i = 0; i < run.Content.length; i++)
+			{
+				let oItem = run.Content[i];
+				if (oItem.IsPdfText())
+				{
+					run.Remove_FromContent(i, 1);
+					run.Add_ToContent(i, oItem.IsSpace() ? new AscWord.CRunSpace(oItem.Value) : new AscWord.CRunText(oItem.Value));
+				}
+			}
+			
+			let subFontName = Asc.editor.embeddedFontsMap[fontName];
+			newTextPr.RFonts.SetAll(subFontName);
+			newTextPr.SetSpacing(0);
+			
+			let paragraph = run.GetParagraph();
+			let shape     = paragraph ? paragraph.GetParentShape() : null;
+			let pdfDoc    = run.GetLogicDocument();
+			if (pdfDoc && shape
+				&& subFontName
+				&& shape.GetId
+				&& shape.recalcText
+				&& shape.recalculate)
+			{
+				pdfDoc.needRecalcShape[shape.GetId()] = true;
+
+				pdfDoc.checkFonts([subFontName], function(){
+					if (!pdfDoc.needRecalcShape[shape.GetId()])
+						return;
+					
+					delete pdfDoc.needRecalcShape[shape.GetId()];
+					paragraph.RecalcInfo.NeedShapeText();
+					shape.recalcText();
+					shape.recalculate();
+					shape.AddToRedraw();
+				});
+			}
+		}
+	}
 };
 
 ParaRun.prototype.Split_Run = function(Pos)
@@ -11893,7 +11983,7 @@ ParaRun.prototype.CollectTextToUnicode = function(ListForUnicode, oSettings)
 				break;
 		}
 	}
-	else
+	else if (startPos < endPos)
 	{
 		oSettings.nDirection = 1;
 		for (let pos = startPos; pos < endPos; ++pos)

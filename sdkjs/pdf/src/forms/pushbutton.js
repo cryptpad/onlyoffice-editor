@@ -49,9 +49,9 @@
 	 * @constructor
      * @extends {CBaseField}
 	 */
-    function CPushButtonField(sName, aRect)
+    function CPushButtonField(sName, aRect, oDoc)
     {
-        AscPDF.CBaseField.call(this, sName, AscPDF.FIELD_TYPES.button, aRect);
+        AscPDF.CBaseField.call(this, sName, AscPDF.FIELD_TYPES.button, aRect, oDoc);
 
         this._buttonAlignX      = 0.5; // must be integer
         this._buttonAlignY      = 0.5; // must be integer
@@ -70,7 +70,7 @@
         this._hovered = false;
 
         AscCommon.History.StartNoHistoryMode();
-        this.content = new AscPDF.CTextBoxContent(this, Asc.editor.getPDFDoc());
+        this.content = new AscPDF.CTextBoxContent(this, oDoc);
 		this.content.SetAlign(AscPDF.ALIGN_TYPE.center);
         AscCommon.History.EndNoHistoryMode();
 
@@ -102,7 +102,7 @@
 
         let oIconPos = this.GetIconPosition();
         oCopy.SetIconPosition(oIconPos.X, oIconPos.Y);
-        oCopy.SetButtonFitBounds(this.IsButtonFitBounds());
+        oCopy.SetFitBounds(this.IsButtonFitBounds());
         oCopy.SetLayout(this.GetLayout());
         oCopy.SetScaleHow(this.GetScaleHow());
         oCopy.SetScaleWhen(this.GetScaleWhen());
@@ -728,7 +728,7 @@
                 oDrawing.GraphicObj.draw(oGraphicsWord);
         }
 
-        this.content.Draw(0, oGraphicsWord);
+        this.content.Draw(this.content.GetAbsolutePage(), oGraphicsWord);
         oGraphicsWord.RemoveLastClip();
 
         if (this.IsPressed()) {
@@ -815,6 +815,10 @@
         this.DrawEdit(oGraphicsWord);
     };
     CPushButtonField.prototype.SetImageRasterId = function(sRasterId, nAPType) {
+		if (sRasterId == undefined) {
+			sRasterId = "";
+		}
+
         let sPrevRasterId;
 
         if (undefined == nAPType) {
@@ -823,17 +827,29 @@
 
         switch (nAPType) {
             case AscPDF.APPEARANCE_TYPES.rollover:
-                sPrevRasterId           = this._imgData.rollover;
+				sPrevRasterId           = this._imgData.rollover;
+				if (sRasterId == sPrevRasterId) {
+					return;
+				}
+
                 this._imgData.rollover  = sRasterId;
                 this._imgData.changedInfo.rollover = true;
                 break;
             case AscPDF.APPEARANCE_TYPES.mouseDown:
                 sPrevRasterId           = this._imgData.mouseDown;
+				if (sRasterId == sPrevRasterId) {
+					return;
+				}
+
                 this._imgData.mouseDown = sRasterId;
                 this._imgData.changedInfo.mouseDown = true;
                 break;
             case AscPDF.APPEARANCE_TYPES.normal:
                 sPrevRasterId           = this._imgData.normal;
+				if (sRasterId == sPrevRasterId) {
+					return;
+				}
+				
                 this._imgData.normal    = sRasterId;
                 this._imgData.changedInfo.normal = true;
                 break;
@@ -847,6 +863,20 @@
 
         this.SetNeedUpdateImage(true);
         this.SetWasChanged(true);
+    };
+    CPushButtonField.prototype.Reassign_ImageUrls = function(oImages) {
+        let _t = this;
+
+        Object.values(AscPDF.APPEARANCE_TYPES).forEach(function(type) {
+            let sRasterId = _t.GetImageRasterId(type);
+            if (oImages[sRasterId]) {
+				if (_t._rasterId == sRasterId) {
+					_t._rasterId = oImages[sRasterId];
+				}
+
+                _t.SetImageRasterId(oImages[sRasterId], type);
+            }
+        });
     };
     CPushButtonField.prototype.DrawPressed = function() {
         if (this.IsReadOnly()) {
@@ -1179,7 +1209,7 @@
 		}
 
         if (contentX != this.content.X || contentY != this.content.Y ||
-            contentXLimit != this.content.XLimit) {
+            contentXLimit != this.content.XLimit || !this.getFormRelRect()) {
             this.content.X      = contentX;
             this.content.Y      = contentY;
             this.content.XLimit = contentXLimit;
@@ -1214,10 +1244,13 @@
 			if (!this.content)
 				return;
 			
-			let oPara       = oCaptionRun.Paragraph;
-			let oApiPara    = editor.private_CreateApiParagraph(oPara);
-			
-			oApiPara.SetColor(oRGB.r, oRGB.g, oRGB.b, false);
+			let oPara = oCaptionRun.Paragraph;
+			oPara.SetApplyToAll(true);
+			oPara.Add(new AscCommonWord.ParaTextPr({
+				Color: { Auto: false, r: oRGB.r, g: oRGB.g, b: oRGB.b },
+				Unifill: undefined
+			}));
+			oPara.SetApplyToAll(false);
 			oPara.RecalcCompiledPr(true);
 		}, undefined, this);
 	};
@@ -1232,12 +1265,45 @@
 			let oStyle = this.GetFontStyle();
 			this.content.SetBold(oStyle.bold);
 			this.content.SetItalic(oStyle.italic);
-            this.UpdateMEOptions();
+            this.private_UpdateMEOptions();
             if (this.GetTextSize()) {
                 this.content.SetFontSize(this.GetTextSize());
             }
         }, undefined, this);
     };
+	CPushButtonField.prototype.private_UpdateMEOptions = function(isRtlChanged) {
+		AscCommon.History.StartNoHistoryMode();
+
+		if (isRtlChanged) {
+			AscCommon.History.EndNoHistoryMode();
+
+			if (false == Asc.editor.getDocumentRenderer().IsOpenFormsInProgress) {
+				if (this.IsRTL()) {
+					this.SetAlign(AscPDF.ALIGN_TYPE.right);
+				}
+				else {
+					this.SetAlign(AscPDF.ALIGN_TYPE.left);
+				}
+			}
+			else {
+				this.SetNeedCheckAlign(true);
+			}
+
+			AscCommon.History.StartNoHistoryMode();
+		}
+
+		if (this.content) {
+			this.content.SetApplyToAll(true);
+			this.content.SetParagraphBidi(this.IsRTL());
+			this.content.SetApplyToAll(false);
+			this.private_NeedShapeText();
+		}
+
+		this.SetWasChanged(true);
+		this.SetNeedRecalc(true);
+
+		AscCommon.History.EndNoHistoryMode();
+	};
     CPushButtonField.prototype.GetCaptionRun = function() {
         return this._captionRun;
     };
@@ -1405,7 +1471,7 @@
         
         this.DrawPressed();
         
-        let oOnFocus = this.GetTrigger(AscPDF.FORMS_TRIGGERS_TYPES.OnFocus);
+        let oOnFocus = this.GetTrigger(AscPDF.PDF_TRIGGERS_TYPES.OnFocus);
         // вызываем выставление курсора после onFocus. Если уже в фокусе, тогда сразу.
         if (false == isInFocus && oOnFocus && oOnFocus.Actions.length > 0)
             oActionsQueue.callbackAfterFocus = callbackAfterFocus.bind(this);
@@ -1413,10 +1479,10 @@
             callbackAfterFocus.bind(this)();
 
         if (isInFocus) {
-            this.AddActionsToQueue(AscPDF.FORMS_TRIGGERS_TYPES.MouseDown);
+            this.AddActionsToQueue(AscPDF.PDF_TRIGGERS_TYPES.MouseDown);
         }
         else {
-            this.AddActionsToQueue(AscPDF.FORMS_TRIGGERS_TYPES.MouseDown, AscPDF.FORMS_TRIGGERS_TYPES.OnFocus);
+            this.AddActionsToQueue(AscPDF.PDF_TRIGGERS_TYPES.MouseDown, AscPDF.PDF_TRIGGERS_TYPES.OnFocus);
         }
     };
     CPushButtonField.prototype.onMouseUp = function() {
@@ -1426,15 +1492,15 @@
             this.DrawUnpressed();
         }
 
-        this.AddActionsToQueue(AscPDF.FORMS_TRIGGERS_TYPES.MouseUp);
+        this.AddActionsToQueue(AscPDF.PDF_TRIGGERS_TYPES.MouseUp);
     };
     CPushButtonField.prototype.onMouseEnter = function() {
-        this.AddActionsToQueue(AscPDF.FORMS_TRIGGERS_TYPES.MouseEnter);
+        this.AddActionsToQueue(AscPDF.PDF_TRIGGERS_TYPES.MouseEnter);
         this.DrawRollover();
     };
 
     CPushButtonField.prototype.onMouseExit = function() {
-        this.AddActionsToQueue(AscPDF.FORMS_TRIGGERS_TYPES.MouseExit);
+        this.AddActionsToQueue(AscPDF.PDF_TRIGGERS_TYPES.MouseExit);
         this.OnEndRollover();
     };
     CPushButtonField.prototype.buttonImportIcon = function() {
@@ -1496,7 +1562,7 @@
     CPushButtonField.prototype.GetDrawing = function() {
         return this.content.GetAllDrawingObjects()[0];
     };
-    CPushButtonField.prototype.SetButtonFitBounds = function(bValue) {
+    CPushButtonField.prototype.SetFitBounds = function(bValue) {
         if (this._buttonFitBounds != bValue) {
             AscCommon.History.Add(new CChangesPDFPushbuttonFitBounds(this, this._buttonFitBounds, bValue));
 
@@ -2038,34 +2104,6 @@
      * @typeofeditors ["PDF"]
      */
     CPushButtonField.prototype.Commit = function() {
-        let aFields = this.GetDocument().GetAllWidgets(this.GetFullName());
-        let oThisPara = this.content.GetElement(0);
-        
-        AscCommon.History.StartNoHistoryMode();
-
-        if (aFields.length == 1)
-            this.SetNeedCommit(false);
-
-        for (let i = 0; i < aFields.length; i++) {
-            if (aFields[i] == this)
-                continue;
-
-            let oFieldPara = aFields[i].content.GetElement(0);
-            let oThisRun, oFieldRun;
-            for (let nItem = 0; nItem < oThisPara.Content.length - 1; nItem++) {
-                oThisRun = oThisPara.Content[nItem];
-                oFieldRun = oFieldPara.Content[nItem];
-                oFieldRun.ClearContent();
-
-                for (let nRunPos = 0; nRunPos < oThisRun.Content.length; nRunPos++) {
-                    oFieldRun.AddToContent(nRunPos, AscCommon.IsSpace(oThisRun.Content[nRunPos].Value) ? new AscWord.CRunSpace(oThisRun.Content[nRunPos].Value) : new AscWord.CRunText(oThisRun.Content[nRunPos].Value));
-                }
-            }
-
-            aFields[i].SetNeedRecalc(true);
-        }
-
-        AscCommon.History.EndNoHistoryMode();
     };
 
     CPushButtonField.prototype.Reset = function() {
@@ -2161,6 +2199,9 @@
                     let oImageElm = mapItem.Image;
                     sPathToImg = getBase64FromImage(oImageElm);
                 }
+				else {
+					sPathToImg = "";
+				}
             }
             
             if (nExistIdx === -1) {

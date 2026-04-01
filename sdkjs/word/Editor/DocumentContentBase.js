@@ -890,7 +890,11 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 						}
 						else if (this.Content.length === 1 && true === this.Content[0].IsEmpty())
 						{
-							if (Count > 0)
+							if (this.ParentPDF)
+							{
+								bRetValue = false;
+							}
+							else if (Count > 0)
 							{
 								this.Internal_Content_Add(0, this.private_CreateNewParagraph());
 								this.Internal_Content_Remove(1, this.Content.length - 1);
@@ -1672,6 +1676,14 @@ CDocumentContentBase.prototype.IsFootnote = function(bReturnFootnote)
 	if (bReturnFootnote)
 		return null;
 
+	return false;
+};
+/**
+ * Находимся ли мы в концевой сноске
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.IsEndnote = function()
+{
 	return false;
 };
 /**
@@ -2580,6 +2592,10 @@ CDocumentContentBase.prototype.CountElementsInFrame = function(nStartIndex)
 		let oElement = this.Content[nIndex];
 
 		let oTempFramePr = oElement.GetFramePr();
+		
+		if (oElement.IsParagraph() && oElement.Get_CompiledPr2().ParaPr.PageBreakBefore)
+			break;
+		
 		if (oTempFramePr && oFramePr.IsEqual(oTempFramePr) && (!oElement.IsParagraph() || !oElement.IsInline()))
 			nFlowsCount++;
 		else
