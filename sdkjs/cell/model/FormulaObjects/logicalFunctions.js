@@ -88,6 +88,9 @@ function (window, undefined) {
 					}
 				}
 			} else {
+				if (arg[i].type === cElementType.cell || arg[i].type === cElementType.cell3D) {
+					arg[i] = arg[i].getValue();
+				}
 				if (arg[i] instanceof cString) {
 					return new cError(cErrorType.wrong_value_type);
 				} else if (arg[i] instanceof cError) {
@@ -160,6 +163,23 @@ function (window, undefined) {
 	cIF.prototype.argumentsMax = 3;
 	cIF.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cIF.prototype.argumentsType = [argType.logical, argType.any, argType.any];
+	cIF.prototype.arrayIndexes = {1: 1, 2: 1};
+	cIF.prototype.getArrayIndex = function (index, type, args) {
+		let res = false;
+
+		//TODO need recheck
+		if (args && args[0].type === cElementType.array) {
+			return false;
+		}
+
+		if (type === cElementType.array) {
+			return false;
+		}
+		if (this.arrayIndexes) {
+			res = this.arrayIndexes[index];
+		}
+		return res;
+	};
 	cIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 

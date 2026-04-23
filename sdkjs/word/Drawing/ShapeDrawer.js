@@ -37,6 +37,10 @@
 // Import
 var getFullImageSrc2 = AscCommon.getFullImageSrc2;
 
+var getSourceImageSize = AscCommon.getSourceImageSize;
+
+var getFillRect = AscCommon.getFillRect;
+
 var CShapeColor = AscFormat.CShapeColor;
 
 var c_oAscFill = Asc.c_oAscFill;
@@ -1245,10 +1249,10 @@ CShapeDrawer.prototype =
     {
         if (Asc.editor.isPdfEditor()) {
             let aDash;
-            if (this.Shape.GetDash)
-                aDash = this.Shape.GetDash();
-            else if (this.Shape.group && this.Shape.group.GetDash)
-                aDash = this.Shape.group.GetDash();
+            if (this.Shape.GetDashPattern)
+                aDash = this.Shape.GetDashPattern();
+            else if (this.Shape.group && this.Shape.group.GetDashPattern)
+                aDash = this.Shape.group.GetDashPattern();
             else if (this.Shape.IsDrawing && this.Shape.IsDrawing()) {
                 if (AscCommon.DashPatternPresets[this.Ln.prstDash]) {
                     aDash = AscCommon.DashPatternPresets[this.Ln.prstDash].slice();
@@ -1631,7 +1635,6 @@ CShapeDrawer.prototype =
 			? this.Graphics.Graphics
 			: this.Graphics;
 
-
 		const fullTransform = bIsSaveToPdfMode
 			? (this.isPdf() ? this.Graphics.GetTransform() : this.Graphics.m_oFullTransform)
 			: graphicsCtx.m_oFullTransform;
@@ -1646,23 +1649,32 @@ CShapeDrawer.prototype =
 			: graphicsCtx.m_oContext.lineWidth;
 
 		const penWidth = lineSize * transformScaleFactor;
-		const maxWidth = bIsSaveToPdfMode
+		const minArrowSize = bIsSaveToPdfMode
 			? 2.5 / AscCommon.g_dKoef_mm_to_pix
-			: (graphicsCtx.IsThumbnail === true ? 2 : undefined);
+			: null;
 
 		const arrCoef = bIsSaveToPdfMode
 			? 1
 			: this.isArrPix ? (1 / AscCommon.g_dKoef_mm_to_pix) : 1;
 
 		const geometry = this.Shape.getGeometry();
-		const paths = geometry.getContinuousSubpaths ? geometry.getContinuousSubpaths() : [];
+		const unclosedPaths = geometry.pathLst.filter(function (path) {
+			return !path.isEmpty() && !path.isClosed();
+		});
 
 		if (this.Ln.headEnd != null) {
-			const arrowLength = this.Ln.headEnd.GetLen(penWidth, maxWidth) / transformScaleFactor;
+			const arrowLength = this.Ln.headEnd.GetLen(penWidth, minArrowSize);
+			const arrowWidth = this.Ln.headEnd.GetWidth(penWidth, minArrowSize);
 
-			for (let i = 0; i < paths.length; i++) {
-				const path = paths[i];
-				const headAngle = path.getHeadArrowAngle(arrowLength);
+			const firstUnclosedPath = unclosedPaths[0];
+			const subPaths = firstUnclosedPath && firstUnclosedPath.stroke ? firstUnclosedPath.getContinuousSubpaths() : [];
+			const unclosedSubPaths = subPaths.filter(function (path) {
+				return !path.isClosed(0);
+			});
+
+			for (let i = 0; i < unclosedSubPaths.length; i++) {
+				const path = unclosedSubPaths[i];
+				const headAngle = path.getHeadArrowAngle(arrowLength / transformScaleFactor);
 
 				if (AscFormat.isRealNumber(headAngle)) {
 					// Each continuous subpath starts with a moveTo command
@@ -1681,8 +1693,8 @@ CShapeDrawer.prototype =
 						arrowEndPoint.x, arrowEndPoint.y,
 						arrowStartPoint.x, arrowStartPoint.y,
 						this.Ln.headEnd.type,
-						arrCoef * this.Ln.headEnd.GetWidth(penWidth, maxWidth),
-						arrCoef * this.Ln.headEnd.GetLen(penWidth, maxWidth),
+						arrCoef * arrowWidth,
+						arrCoef * arrowLength,
 						this, inverseTransform
 					);
 				}
@@ -1690,15 +1702,20 @@ CShapeDrawer.prototype =
 		}
 
 		if (this.Ln.tailEnd != null) {
-			const arrowLength = this.Ln.tailEnd.GetLen(penWidth, maxWidth) / transformScaleFactor;
+			const arrowLength = this.Ln.tailEnd.GetLen(penWidth, minArrowSize);
+			const arrowWidth = this.Ln.tailEnd.GetWidth(penWidth, minArrowSize);
 
-			for (let i = 0; i < paths.length; i++) {
-				const path = paths[i];
-				const tailAngle = path.getTailArrowAngle(arrowLength);
+			const lastUnclosedPath = unclosedPaths[unclosedPaths.length - 1];
+			const subPaths = lastUnclosedPath && lastUnclosedPath.stroke ? lastUnclosedPath.getContinuousSubpaths() : [];
+			const unclosedSubPaths = subPaths.filter(function (path) {
+				return !path.isClosed(0);
+			});
+
+			for (let i = 0; i < unclosedSubPaths.length; i++) {
+				const path = unclosedSubPaths[i];
+				const tailAngle = path.getTailArrowAngle(arrowLength / transformScaleFactor);
 
 				if (AscFormat.isRealNumber(tailAngle)) {
-					// Each continuous subpath starts with a moveTo command
-					// so we can use the first point of the path as the arrow tip point
 
 					function getPathEndPoint(commands) {
 						for (let i = commands.length - 1; i >= 0; i--) {
@@ -1731,8 +1748,8 @@ CShapeDrawer.prototype =
 						arrowEndPoint.x, arrowEndPoint.y,
 						arrowStartPoint.x, arrowStartPoint.y,
 						this.Ln.tailEnd.type,
-						arrCoef * this.Ln.tailEnd.GetWidth(penWidth, maxWidth),
-						arrCoef * this.Ln.tailEnd.GetLen(penWidth, maxWidth),
+						arrCoef * arrowWidth,
+						arrCoef * arrowLength,
 						this, inverseTransform
 					);
 				}
@@ -1853,7 +1870,8 @@ CShapeDrawer.prototype =
 			scaleY * scaleCoefY,
 			offsetX + alignOffsetX,
 			offsetY + alignOffsetY,
-			flipH, flipV
+			flipH, flipV,
+			this.UniFill.fill.canvas
 		);
 
 		graphics.m_bPenColorInit = false;
@@ -2299,6 +2317,7 @@ CShapeDrawer.prototype =
             {
                 if (this.bIsTexture)
                 {
+					const rotWithShape = this.UniFill.fill.rotWithShape || this.UniFill.fill.rotWithShape === null;
                     if (null == this.UniFill.fill.tile)
                     {
                         if (null == this.UniFill.fill.srcRect)
@@ -2335,21 +2354,31 @@ CShapeDrawer.prototype =
                                 // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
                                 this.Graphics.put_brushTexture(this.UniFill.fill.RasterImageId, 0);
                             }
+                            this.Graphics.put_TextureBounds(x, y, r - x, b - y);
                         }
                     }
                     else
                     {
+                        const type = this.UniFill.fill.tile.flip + 1;
+                        let imageUrl;
                         if (this.UniFill.fill.canvas)
                         {
-                            this.Graphics.put_brushTexture(this.UniFill.fill.canvas.toDataURL("image/png"), 1);
+                            imageUrl = this.UniFill.fill.canvas.toDataURL("image/png");
                         }
                         else
                         {
                             // CryptPad: Workaround to make OO8 pdf.bin compatible with x2t 7.x
                             this.Graphics.put_brushTexture(this.UniFill.fill.RasterImageId, 1);
                         }
+
+                        const tx = this.UniFill.fill.tile.tx ? this.UniFill.fill.tile.tx * AscCommonWord.g_dKoef_emu_to_mm : 0;
+                        const ty = this.UniFill.fill.tile.ty ? this.UniFill.fill.tile.ty * AscCommonWord.g_dKoef_emu_to_mm : 0;
+                        this.Graphics.put_PathOffset(tx + alignOffsetX, ty + alignOffsetY);
+                        this.Graphics.put_PathScale(sx, sy);
                     }
                     this.Graphics.put_BrushTextureAlpha(this.UniFill.transparent);
+                    if (!rotWithShape)
+                        this.Graphics.ResetRotation();
                 }
                 else
                 {

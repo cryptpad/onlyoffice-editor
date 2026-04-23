@@ -1891,6 +1891,8 @@
 	window['AscDFH'].historyitem_type_Pdf_Signature_Field	= 2237 << 16;
 	window['AscDFH'].historyitem_type_Pdf_Text_Field		= 2238 << 16;
 	window['AscDFH'].historyitem_type_Pdf_Annot_Redact		= 2239 << 16;
+	window['AscDFH'].historyitem_type_Pdf_Annot_Link		= 2240 << 16;
+	
 
 	window['AscDFH'].historyitem_type_CustomProperties      = 2301 << 16;
 
@@ -1982,6 +1984,8 @@
 	window['AscDFH'].historyitem_Paragraph_Bidi                      = window['AscDFH'].historyitem_type_Paragraph | 42;
 	window['AscDFH'].historyitem_Paragraph_ParaId                    = window['AscDFH'].historyitem_type_Paragraph | 43;
 	window['AscDFH'].historyitem_Paragraph_TextId                    = window['AscDFH'].historyitem_type_Paragraph | 44;
+	window['AscDFH'].historyitem_Paragraph_Spacing_BeforeLines      = window['AscDFH'].historyitem_type_Paragraph | 45;
+	window['AscDFH'].historyitem_Paragraph_Spacing_AfterLines       = window['AscDFH'].historyitem_type_Paragraph | 46;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaTextPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -2340,34 +2344,36 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_SdtPr_Alias            = window['AscDFH'].historyitem_type_SdtPr | 1;
-	window['AscDFH'].historyitem_SdtPr_Id               = window['AscDFH'].historyitem_type_SdtPr | 2;
-	window['AscDFH'].historyitem_SdtPr_Tag              = window['AscDFH'].historyitem_type_SdtPr | 3;
-	window['AscDFH'].historyitem_SdtPr_Label            = window['AscDFH'].historyitem_type_SdtPr | 4;
-	window['AscDFH'].historyitem_SdtPr_Lock             = window['AscDFH'].historyitem_type_SdtPr | 5;
-	window['AscDFH'].historyitem_SdtPr_DocPartObj       = window['AscDFH'].historyitem_type_SdtPr | 6;
-	window['AscDFH'].historyitem_SdtPr_Appearance       = window['AscDFH'].historyitem_type_SdtPr | 7;
-	window['AscDFH'].historyitem_SdtPr_Color            = window['AscDFH'].historyitem_type_SdtPr | 8;
-	window['AscDFH'].historyitem_SdtPr_CheckBox         = window['AscDFH'].historyitem_type_SdtPr | 9;
-	window['AscDFH'].historyitem_SdtPr_CheckBox_Checked = window['AscDFH'].historyitem_type_SdtPr | 10;
-	window['AscDFH'].historyitem_SdtPr_Picture          = window['AscDFH'].historyitem_type_SdtPr | 11;
-	window['AscDFH'].historyitem_SdtPr_ComboBox         = window['AscDFH'].historyitem_type_SdtPr | 12;
-	window['AscDFH'].historyitem_SdtPr_DropDownList     = window['AscDFH'].historyitem_type_SdtPr | 13;
-	window['AscDFH'].historyitem_SdtPr_DatePicker       = window['AscDFH'].historyitem_type_SdtPr | 14;
-	window['AscDFH'].historyitem_SdtPr_TextPr           = window['AscDFH'].historyitem_type_SdtPr | 15;
-	window['AscDFH'].historyitem_SdtPr_Placeholder      = window['AscDFH'].historyitem_type_SdtPr | 16;
-	window['AscDFH'].historyitem_SdtPr_ShowingPlcHdr    = window['AscDFH'].historyitem_type_SdtPr | 17;
-	window['AscDFH'].historyitem_SdtPr_Equation         = window['AscDFH'].historyitem_type_SdtPr | 18;
-	window['AscDFH'].historyitem_SdtPr_Text             = window['AscDFH'].historyitem_type_SdtPr | 19;
-	window['AscDFH'].historyitem_SdtPr_Temporary        = window['AscDFH'].historyitem_type_SdtPr | 20;
-	window['AscDFH'].historyitem_SdtPr_TextForm         = window['AscDFH'].historyitem_type_SdtPr | 21;
-	window['AscDFH'].historyitem_SdtPr_FormPr           = window['AscDFH'].historyitem_type_SdtPr | 22;
-	window['AscDFH'].historyitem_SdtPr_PictureFormPr    = window['AscDFH'].historyitem_type_SdtPr | 23;
-	window['AscDFH'].historyitem_SdtPr_ComplexFormPr    = window['AscDFH'].historyitem_type_SdtPr | 24;
-	window['AscDFH'].historyitem_SdtPr_OForm            = window['AscDFH'].historyitem_type_SdtPr | 25;
-	window['AscDFH'].historyitem_SdtPr_DataBinding      = window['AscDFH'].historyitem_type_SdtPr | 26;
-	window['AscDFH'].historyitem_SdtPr_ShdColor         = window['AscDFH'].historyitem_type_SdtPr | 27;
-	window['AscDFH'].historyitem_SdtPr_BorderColor      = window['AscDFH'].historyitem_type_SdtPr | 28;
+	window['AscDFH'].historyitem_SdtPr_Alias                = window['AscDFH'].historyitem_type_SdtPr | 1;
+	window['AscDFH'].historyitem_SdtPr_Id                   = window['AscDFH'].historyitem_type_SdtPr | 2;
+	window['AscDFH'].historyitem_SdtPr_Tag                  = window['AscDFH'].historyitem_type_SdtPr | 3;
+	window['AscDFH'].historyitem_SdtPr_Label                = window['AscDFH'].historyitem_type_SdtPr | 4;
+	window['AscDFH'].historyitem_SdtPr_Lock                 = window['AscDFH'].historyitem_type_SdtPr | 5;
+	window['AscDFH'].historyitem_SdtPr_DocPartObj           = window['AscDFH'].historyitem_type_SdtPr | 6;
+	window['AscDFH'].historyitem_SdtPr_Appearance           = window['AscDFH'].historyitem_type_SdtPr | 7;
+	window['AscDFH'].historyitem_SdtPr_Color                = window['AscDFH'].historyitem_type_SdtPr | 8;
+	window['AscDFH'].historyitem_SdtPr_CheckBox             = window['AscDFH'].historyitem_type_SdtPr | 9;
+	window['AscDFH'].historyitem_SdtPr_CheckBox_Checked     = window['AscDFH'].historyitem_type_SdtPr | 10;
+	window['AscDFH'].historyitem_SdtPr_Picture              = window['AscDFH'].historyitem_type_SdtPr | 11;
+	window['AscDFH'].historyitem_SdtPr_ComboBox             = window['AscDFH'].historyitem_type_SdtPr | 12;
+	window['AscDFH'].historyitem_SdtPr_DropDownList         = window['AscDFH'].historyitem_type_SdtPr | 13;
+	window['AscDFH'].historyitem_SdtPr_DatePicker           = window['AscDFH'].historyitem_type_SdtPr | 14;
+	window['AscDFH'].historyitem_SdtPr_TextPr               = window['AscDFH'].historyitem_type_SdtPr | 15;
+	window['AscDFH'].historyitem_SdtPr_Placeholder          = window['AscDFH'].historyitem_type_SdtPr | 16;
+	window['AscDFH'].historyitem_SdtPr_ShowingPlcHdr        = window['AscDFH'].historyitem_type_SdtPr | 17;
+	window['AscDFH'].historyitem_SdtPr_Equation             = window['AscDFH'].historyitem_type_SdtPr | 18;
+	window['AscDFH'].historyitem_SdtPr_Text                 = window['AscDFH'].historyitem_type_SdtPr | 19;
+	window['AscDFH'].historyitem_SdtPr_Temporary            = window['AscDFH'].historyitem_type_SdtPr | 20;
+	window['AscDFH'].historyitem_SdtPr_TextForm             = window['AscDFH'].historyitem_type_SdtPr | 21;
+	window['AscDFH'].historyitem_SdtPr_FormPr               = window['AscDFH'].historyitem_type_SdtPr | 22;
+	window['AscDFH'].historyitem_SdtPr_PictureFormPr        = window['AscDFH'].historyitem_type_SdtPr | 23;
+	window['AscDFH'].historyitem_SdtPr_ComplexFormPr        = window['AscDFH'].historyitem_type_SdtPr | 24;
+	window['AscDFH'].historyitem_SdtPr_OForm                = window['AscDFH'].historyitem_type_SdtPr | 25;
+	window['AscDFH'].historyitem_SdtPr_DataBinding          = window['AscDFH'].historyitem_type_SdtPr | 26;
+	window['AscDFH'].historyitem_SdtPr_ShdColor             = window['AscDFH'].historyitem_type_SdtPr | 27;
+	window['AscDFH'].historyitem_SdtPr_BorderColor          = window['AscDFH'].historyitem_type_SdtPr | 28;
+	window['AscDFH'].historyitem_SdtPr_RepeatingSection     = window['AscDFH'].historyitem_type_SdtPr | 29;
+	window['AscDFH'].historyitem_SdtPr_RepeatingSectionItem = window['AscDFH'].historyitem_type_SdtPr | 30;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -3112,6 +3118,7 @@
 	window['AscDFH'].historyitem_PathSetPathH       = window['AscDFH'].historyitem_type_Path | 4;
 	window['AscDFH'].historyitem_PathSetPathW       = window['AscDFH'].historyitem_type_Path | 5;
 	window['AscDFH'].historyitem_PathAddPathCommand = window['AscDFH'].historyitem_type_Path | 6;
+	window['AscDFH'].historyitem_PathSetParent      = window['AscDFH'].historyitem_type_Path | 7;
 
 	window['AscDFH'].historyitem_TextBodySetBodyPr   = window['AscDFH'].historyitem_type_TextBody | 1;
 	window['AscDFH'].historyitem_TextBodySetLstStyle = window['AscDFH'].historyitem_type_TextBody | 2;
@@ -4221,6 +4228,7 @@
 	AscDFH.historyitem_Pdf_Annot_Comment_Data		= AscDFH.historyitem_type_Pdf_Annot | 32;
 	AscDFH.historyitem_type_Pdf_Annot_Reply			= AscDFH.historyitem_type_Pdf_Annot | 33;
 	AscDFH.historyitem_Pdf_Annot_Ap_Idx				= AscDFH.historyitem_type_Pdf_Annot | 34;
+	AscDFH.historyitem_Pdf_Annot_Actions			= AscDFH.historyitem_type_Pdf_Annot | 35;
 
 	// Sticky
 	AscDFH.historyitem_Pdf_Text_Annot_Icon			= AscDFH.historyitem_type_Pdf_Comment | 1;
@@ -4251,6 +4259,9 @@
 
 	// annot redact
 	AscDFH.historyitem_Pdf_Redact_Annot_Redact_Id = AscDFH.historyitem_type_Pdf_Annot_Redact | 1;
+	
+	// annot link
+	AscDFH.historyitem_Pdf_Link_Annot_Highlight_Type = AscDFH.historyitem_type_Pdf_Annot_Link | 1;
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в PDF drawing prototype
@@ -4258,6 +4269,7 @@
 
 	AscDFH.historyitem_type_Pdf_Drawing_Page		= AscDFH.historyitem_type_Pdf_Drawing | 1;
 	AscDFH.historyitem_type_Pdf_Drawing_Redacts		= AscDFH.historyitem_type_Pdf_Drawing | 2;
+	AscDFH.historyitem_type_Pdf_Drawing_From_Scan	= AscDFH.historyitem_type_Pdf_Drawing | 3;
 
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CPDFDoc
@@ -4279,6 +4291,7 @@
 	window['AscDFH'].historyitem_Pdf_Document_Start_Redact		= window['AscDFH'].historyitem_type_PDF_Document | 15;
 	window['AscDFH'].historyitem_Pdf_Document_Part_Redact		= window['AscDFH'].historyitem_type_PDF_Document | 16;
 	window['AscDFH'].historyitem_Pdf_Document_End_Redact		= window['AscDFH'].historyitem_type_PDF_Document | 17;
+	window['AscDFH'].historyitem_Pdf_Embed_Fonts_Map			= window['AscDFH'].historyitem_type_PDF_Document | 18;
 
 
 	AscDFH.historyitem_CustomPropertiesAddProperty = AscDFH.historyitem_type_CustomProperties | 0;
@@ -4799,6 +4812,7 @@
 	window['AscDFH'].historydescription_Spreadsheet_SelectRange						= 0x01fa;
 	window['AscDFH'].historydescription_Spreadsheet_SetCellFormula					= 0x01fb;
 	window['AscDFH'].historydescription_Document_AddCheckBoxLabel                   = 0x01fc;
+	window['AscDFH'].historydescription_Document_StretchFormToCell                  = 0x01fd;
 
 	// pdf
 	window['AscDFH'].historydescription_Pdf_AddAnnot			= 0x29a;

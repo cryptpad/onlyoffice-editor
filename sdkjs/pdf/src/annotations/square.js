@@ -51,7 +51,6 @@
         this._rotate        = undefined;
         this._state         = undefined;
         this._stateModel    = undefined;
-        this._width         = undefined;
         this._rectDiff      = [0, 0, 0, 0];
     }
     CAnnotationSquare.prototype.constructor = CAnnotationSquare;
@@ -59,7 +58,7 @@
     Object.assign(CAnnotationSquare.prototype, AscPDF.CAnnotationBase.prototype);
 
     CAnnotationSquare.prototype.RefillGeometry = function(oGeometry, aShapeRectInMM) {
-        if (this.GetBorderEffectStyle() !== AscPDF.BORDER_EFFECT_STYLES.Cloud)
+        if (this.GetBorderEffectStyle() !== AscPDF.BORDER_EFFECT_STYLES.cloud)
             return;
 
         let aOrigRect   = this.GetRect();
@@ -95,6 +94,11 @@
         AscCommon.History.EndNoHistoryMode();
 
         oGeometry.preset = undefined;
+    };
+    CAnnotationSquare.prototype.SetDefaultGeometry = function() {
+        AscCommon.History.StartNoHistoryMode();
+        this.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
+        AscCommon.History.EndNoHistoryMode();
     };
     CAnnotationSquare.prototype.IsSquare = function() {
         return true;

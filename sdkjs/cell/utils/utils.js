@@ -808,9 +808,11 @@
 			if (0 === this.r1 && gc_nMaxRow0 === this.r2) {
 				//full sheet is 1:1048576 but row is valid for it
 				row = 0;
-			} else if (0 === this.c1 && gc_nMaxCol0 === this.c2) {
+			}
+			if (0 === this.c1 && gc_nMaxCol0 === this.c2) {
 				col = 0;
 			}
+			
 			var isAbsRow1 = this.isAbsRow(this.refType1);
 			var isAbsCol1 = this.isAbsCol(this.refType1);
 			var isAbsRow2 = this.isAbsRow(this.refType2);
@@ -3080,7 +3082,33 @@
 			return this.hyperlinkModel.getHyperlinkType();
 		};
 		asc_CHyperlink.prototype.asc_getHyperlinkUrl = function () {
-			return this.hyperlinkModel.Hyperlink;
+			let location = this.hyperlinkModel.Location;
+			let res;
+			if (location && this.hyperlinkModel.Hyperlink) {
+				let _baseLink;
+				let hashIndex = this.hyperlinkModel.Hyperlink.indexOf("#");
+				if (hashIndex !== -1) {
+					_baseLink = this.hyperlinkModel.Hyperlink.substring(0, hashIndex);
+				} else {
+					_baseLink = this.hyperlinkModel.Hyperlink;
+				}
+
+				if (_baseLink.length > 0) {
+					let protocolIndex = _baseLink.indexOf("://");
+					if (protocolIndex !== -1) {
+						let afterProtocol = _baseLink.substring(protocolIndex + 3);
+						let slashIndex = afterProtocol.indexOf("/");
+						if (slashIndex === -1) {
+							_baseLink = _baseLink + "/";
+						}
+					}
+				}
+
+				res = _baseLink + "#" + location;
+			} else if (this.hyperlinkModel.Hyperlink) {
+				res = this.hyperlinkModel.Hyperlink;
+			}
+			return res;
 		};
 		asc_CHyperlink.prototype.asc_getTooltip = function () {
 			return this.hyperlinkModel.Tooltip;
@@ -3265,6 +3293,12 @@
 		};
 		asc_CAdjustPrint.prototype.asc_setEndPageIndex = function (val) {
 			this.endPageIndex = val;
+		};
+		asc_CAdjustPrint.prototype.asc_getPdfContent = function () {
+			return this.pdfContent;
+		};
+		asc_CAdjustPrint.prototype.asc_setPdfContent = function (val) {
+			this.pdfContent = val;
 		};
 
 		/** @constructor */
@@ -4234,6 +4268,8 @@
 		prot["asc_setStartPageIndex"] = prot.asc_setStartPageIndex;
 		prot["asc_getEndPageIndex"] = prot.asc_getEndPageIndex;
 		prot["asc_setEndPageIndex"] = prot.asc_setEndPageIndex;
+		prot["asc_getPdfContent"] = prot.asc_getPdfContent;
+		prot["asc_setPdfContent"] = prot.asc_setPdfContent;
 
 		window["AscCommonExcel"].asc_CLockInfo = asc_CLockInfo;
 

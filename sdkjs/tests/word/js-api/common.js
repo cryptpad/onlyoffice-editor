@@ -32,12 +32,32 @@
 
 $(function()
 {
-	AscTest.Editor.GetDocument = AscCommon.DocumentEditorApi.prototype.GetDocument.bind(AscTest.Editor);
-	AscTest.Editor.ReplaceTextSmart = AscCommon.DocumentEditorApi.prototype.ReplaceTextSmart.bind(AscTest.Editor);
-	AscTest.Editor.CreateRun = AscCommon.DocumentEditorApi.prototype.CreateRun.bind(AscTest.Editor);
-	AscTest.Editor.CreateParagraph = AscCommon.DocumentEditorApi.prototype.CreateParagraph.bind(AscTest.Editor);
-	AscTest.Editor.CreateInlineLvlSdt = AscCommon.DocumentEditorApi.prototype.CreateInlineLvlSdt.bind(AscTest.Editor);
+	AscTest.Editor.GetDocument = AscBuilder.Word.Api.GetDocument.bind(AscTest.Editor);
+	AscTest.JsApi = {};
 	
+	AscTest.JsApi.GetDocument = AscBuilder.Word.Api.GetDocument.bind(AscTest.Editor);
+	AscTest.JsApi.ReplaceTextSmart = AscBuilder.Word.Api.ReplaceTextSmart.bind(AscTest.Editor);
+	AscTest.JsApi.CreateRun = AscBuilder.Word.Api.CreateRun.bind(AscTest.Editor);
+	AscTest.JsApi.CreateParagraph = AscBuilder.Word.Api.CreateParagraph.bind(AscTest.Editor);
+	AscTest.JsApi.CreateInlineLvlSdt = AscBuilder.Word.Api.CreateInlineLvlSdt.bind(AscTest.Editor);
+	AscTest.JsApi.CreateTable = AscBuilder.Word.Api.CreateTable.bind(AscTest.Editor);
+	AscTest.JsApi.CreateShape = AscBuilder.Word.Api.CreateShape.bind(AscTest.Editor);
+	AscTest.JsApi.CreateSolidFill = AscBuilder.Word.Api.CreateSolidFill.bind(AscTest.Editor);
+	AscTest.JsApi.CreateStroke = AscBuilder.Word.Api.CreateStroke.bind(AscTest.Editor);
+	AscTest.JsApi.CreateNoFill = AscBuilder.Word.Api.CreateNoFill.bind(AscTest.Editor);
+	AscTest.JsApi.HexColor = AscBuilder.Word.Api.HexColor.bind(AscTest.Editor);
+	AscTest.JsApi.ThemeColor = AscBuilder.Word.Api.ThemeColor.bind(AscTest.Editor);
+	AscTest.JsApi.AutoColor = AscBuilder.Word.Api.AutoColor.bind(AscTest.Editor);
+	AscTest.JsApi.RGBA = AscBuilder.Word.Api.RGBA.bind(AscTest.Editor);
+	AscTest.JsApi.RGB = AscBuilder.Word.Api.RGB.bind(AscTest.Editor);
+	AscTest.JsApi.FromJSON = AscBuilder.Word.Api.FromJSON.bind(AscTest.Editor);
+	
+	AscTest.JsApi.CreateDocContent = function()
+	{
+		let docContent = new AscWord.CDocumentContent();
+		return new AscBuilder.ApiDocumentContent(docContent);
+	};
+
 	QUnit.testStart(function()
 	{
 		AscTest.CreateLogicDocument();

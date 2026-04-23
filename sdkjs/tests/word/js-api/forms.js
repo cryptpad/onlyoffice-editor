@@ -32,5 +32,5 @@
 
 $(function()
 {
-	AscTest.Editor.CreateTextForm = AscCommon.DocumentEditorApi.prototype.CreateTextForm.bind(AscTest.Editor);
+	AscTest.JsApi.CreateTextForm = AscBuilder.Word.Api.CreateTextForm.bind(AscTest.Editor);
 });

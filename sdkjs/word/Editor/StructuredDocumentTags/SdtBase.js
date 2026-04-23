@@ -252,9 +252,10 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 	
 	// Настройки formPr могут прийти в интерфейс с заполненным fieldMaster, если в интерфейсе меняется роль, значит
 	// она будет здесь выставлена и имеет больший приоритет, чем выставленный fieldMaster
+	// Если данное поле не копируется вместе с FieldMaster, то имя роли мы у него не сбрасываем, чтобы
+	// его можно было сохранить и выставить на вставке
 	
 	formPr.SetFieldMaster(null);
-	formPr.SetRole(null);
 	
 	let logicDocument = this.GetLogicDocument();
 	let oform;
@@ -264,6 +265,8 @@ CSdtBase.prototype.private_CheckFieldMasterBeforeSet = function(formPr)
 		|| !(oform = logicDocument.GetOFormDocument())
 		|| !logicDocument.IsActionStarted())
 		return;
+	
+	formPr.SetRole(null);
 	
 	let role = oform.getRole(roleName);
 	let userMaster;
@@ -418,6 +421,10 @@ CSdtBase.prototype.GetInnerCheckBox = function()
 };
 CSdtBase.prototype.GetCheckBoxLabel = function()
 {
+	let mainForm = this.GetMainForm();
+	if (mainForm !== this)
+		return mainForm.GetCheckBoxLabel();
+	
 	if (!this.IsLabeledCheckBox())
 		return "";
 	
@@ -1427,3 +1434,23 @@ CSdtBase.prototype.OnChangePr = function()
 			logicDocument.OnChangeFormPr(this);
 	}
 };
+CSdtBase.prototype.SetRepeatingSection = function(isRepeatingSection)
+{
+};
+CSdtBase.prototype.IsRepeatingSection = function()
+{
+	return false;
+};
+CSdtBase.prototype.SetRepeatingSectionItem = function(isRepeatingSectionItem)
+{
+	if (this.Pr.RepeatingSectionItem !== isRepeatingSectionItem)
+	{
+		History.Add(new CChangesSdtPrRepeatingSectionItem(this, this.Pr.RepeatingSectionItem, isRepeatingSectionItem));
+		this.Pr.RepeatingSectionItem = isRepeatingSectionItem;
+	}
+};
+CSdtBase.prototype.IsRepeatingSectionItem = function()
+{
+	return !!(this.Pr.RepeatingSectionItem);
+};
+

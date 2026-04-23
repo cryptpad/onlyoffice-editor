@@ -407,7 +407,7 @@ function (window, undefined) {
 			return argError;
 		}
 
-		let nFunc = argClone[0].getValue();
+		let nFunc = Math.floor(argClone[0].getValue());
 		let f = null;
 		switch (nFunc) {
 			case AGGREGATE_FUNC_AVE:
@@ -487,7 +487,7 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		let nOption = argClone[1].getValue();
+		let nOption = Math.floor(argClone[1].getValue());
 		let ignoreHiddenRows = false;
 		let ignoreErrorsVal = false;
 		let ignoreNestedStAg = false;
@@ -1836,38 +1836,43 @@ function (window, undefined) {
 	cFACTDOUBLE.prototype.argumentsType = [argType.any];
 	cFACTDOUBLE.prototype.Calculate = function (arg) {
 		function factDouble(n) {
-			if (n == 0) {
-				return 0;
+			n = Math.floor(n);
+
+			if (n === 0) {
+				return 1;
 			} else if (n < 0) {
 				return Number.NaN;
 			} else if (n > 300) {
 				return Number.Infinity;
 			}
-			n = Math.floor(n);
-			var res = n, _n = n, ost = -(_n & 1);
+			
+			let res = n, _n = n, ost = -(_n & 1);
 			n -= 2;
 
 			while (n != ost) {
 				res *= n;
 				n -= 2;
+				if (n <= 0) break;
 			}
 			return res;
 		}
 
-		var arg0 = arg[0];
-		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
+		let arg0 = arg[0];
+		if (arg0.type === cElementType.cellsRange || arg0.type === cElementType.cellsRange3D) {
 			arg0 = arg0.cross(arguments[1]);
 		}
+		
 		arg0 = arg0.tocNumber();
-		if (arg0 instanceof cError) {
+
+		if (arg0.type === cElementType.error) {
 			return arg0;
-		} else if (arg0 instanceof cArray) {
+		} else if (arg0.type === cElementType.array) {
 			arg0.foreach(function (elem, r, c) {
-				if (elem instanceof cNumber) {
+				if (elem.type && elem.type === cElementType.number) {
 					if (elem.getValue() < 0) {
 						this.array[r][c] = new cError(cErrorType.not_numeric);
 					} else {
-						var a = factDouble(elem.getValue());
+						let a = factDouble(elem.getValue());
 						this.array[r][c] = isNaN(a) ? new cError(cErrorType.not_numeric) : new cNumber(a);
 					}
 				} else {
@@ -1878,7 +1883,7 @@ function (window, undefined) {
 			if (arg0.getValue() < 0) {
 				return new cError(cErrorType.not_numeric);
 			}
-			var a = factDouble(arg0.getValue());
+			let a = factDouble(arg0.getValue());
 			return isNaN(a) || a == Infinity ? new cError(cErrorType.not_numeric) : new cNumber(a);
 		}
 		return arg0;
@@ -2090,78 +2095,88 @@ function (window, undefined) {
 	cGCD.prototype.argumentsMin = 1;
 	cGCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cGCD.prototype.argumentsType = [[argType.any]];
+	/**
+	 * GCD - Returns the greatest common divisor of two or more integers
+	 * The greatest common divisor is the largest integer that divides all numbers without a remainder
+	 * GCD using Euclidean algorithm
+	 * @param {...number} numbers - 1 to 255 numbers
+	 * @returns {number} Greatest common divisor
+	 */
 	cGCD.prototype.Calculate = function (arg) {
 
-		var _gcd = 0, argArr;
+		const MAX_USED_VALUE = Math.pow(2,53);
+		let _gcd = 0, argArr;
 
 		function gcd(a, b) {
-			var _a = parseInt(a), _b = parseInt(b);
-			while (_b != 0)
+			let _a = Math.floor(a), _b = Math.floor(b);
+			while (_b !== 0)
 				_b = _a % (_a = _b);
 			return _a;
 		}
 
-		for (var i = 0; i < arg.length; i++) {
-			var argI = arg[i];
+		const checkElemType = function (elem) {
+			let res;
+			if (elem.type === cElementType.empty) {
+				return new cError(cErrorType.not_available);
+			} else if (elem.type === cElementType.bool) {
+				return new cError(cErrorType.wrong_value_type);
+			} else {
+				res = elem.tocNumber();
+			}
 
-			if (argI instanceof cArea || argI instanceof cArea3D) {
+			return res;
+		}
+
+
+		for (let i = 0; i < arg.length; i++) {
+			let argI = arg[i];
+
+			if (argI.type === cElementType.cellsRange || argI.type === cElementType.cellsRange3D) {
 				argArr = argI.getValue();
-				for (var j = 0; j < argArr.length; j++) {
 
-					if (argArr[j] instanceof cError) {
-						return argArr[j];
+				for (let j = 0; j < argArr.length; j++) {
+					let elemValue = checkElemType(argArr[j]);
+
+					if (elemValue.type === cElementType.error) {
+						return elemValue;
 					}
 
-					if (argArr[j] instanceof cString) {
-						continue;
-					}
-
-					if (argArr[j] instanceof cBool) {
-						argArr[j] = argArr[j].tocNumber();
-					}
-
-					if (argArr[j].getValue() < 0) {
+					elemValue = elemValue.getValue();
+					if (elemValue < 0 || elemValue > MAX_USED_VALUE) {
 						return new cError(cErrorType.not_numeric);
 					}
 
-					_gcd = gcd(_gcd, argArr[j].getValue());
+					_gcd = gcd(_gcd, elemValue);
 				}
-			} else if (argI instanceof cArray) {
-				argArr = argI.tocNumber();
+			} else if (argI.type === cElementType.array) {
 
-				if (argArr.foreach(function (arrElem) {
+				if (argI.foreach(function (arrElem, row, col) {
+					let arrElemValue = checkElemType(arrElem);
 
-					if (arrElem instanceof cError) {
-						_gcd = arrElem;
+					if (arrElemValue.type === cElementType.error) {
+						_gcd = arrElemValue;
 						return true;
 					}
 
-					if (arrElem instanceof cBool) {
-						arrElem = arrElem.tocNumber();
-					}
-
-					if (arrElem instanceof cString) {
-						return;
-					}
-
-					if (arrElem.getValue() < 0) {
+					arrElemValue = arrElemValue.getValue();
+					if (arrElemValue < 0 || arrElemValue >= MAX_USED_VALUE) {
 						_gcd = new cError(cErrorType.not_numeric);
 						return true;
 					}
-					_gcd = gcd(_gcd, arrElem.getValue());
+					_gcd = gcd(_gcd, arrElemValue);
 
 				})) {
 					return _gcd;
 				}
 			} else {
-				argI = argI.tocNumber();
+				argI = checkElemType(argI);
 
-				if (argI.getValue() < 0) {
-					return new cError(cErrorType.not_numeric);
+				if (argI.type === cElementType.error) {
+					return argI;
 				}
 
-				if (argI instanceof cError) {
-					return argI;
+				if (argI.getValue() < 0 || argI.getValue() >= MAX_USED_VALUE) {
+					return new cError(cErrorType.not_numeric);
 				}
 
 				_gcd = gcd(_gcd, argI.getValue())
@@ -2271,14 +2286,26 @@ function (window, undefined) {
 	cLCM.prototype.argumentsMin = 1;
 	cLCM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cLCM.prototype.argumentsType = [[argType.any]];
+	/**
+	 * The least common multiple is the smallest positive integer that is a multiple of all integer arguments number1, number2, and so on. 
+	 * Use LCM to add fractions with different denominators.
+	 * @param {number} Number1, Number2, NumberN - Number1 is required. 1 to 255 values for which you want the least common multiple. If value is not an integer, it is truncated.
+	 * @return {number} Returns the least common multiple of integers.
+	 */
 	cLCM.prototype.Calculate = function (arg) {
 
-		var _lcm = 1, argArr;
+		const EMPTY_VAL = 1;
+		const INT_LIMIT = Math.pow(2,53) + 1; // max num used in this function
+		let _lcm = 1, argArr;
 
 		function gcd(a, b) {
-			var _a = parseInt(a), _b = parseInt(b);
-			while (_b != 0)
+			let _a = parseInt(a), _b = parseInt(b);
+			while (_b != 0) {
 				_b = _a % (_a = _b);
+				if(isNaN(b)) {
+					break;
+				}
+			}
 			return _a;
 		}
 
@@ -2286,70 +2313,123 @@ function (window, undefined) {
 			return Math.abs(parseInt(a) * parseInt(b)) / gcd(a, b);
 		}
 
-		for (var i = 0; i < arg.length; i++) {
-			var argI = arg[i];
-
-			if (argI instanceof cArea || argI instanceof cArea3D) {
+		for (let i = 0; i < arg.length; i++) {
+			let argI = arg[i];
+			if (argI.type === cElementType.cellsRange || argI.type === cElementType.cellsRange3D) {
 				argArr = argI.getValue();
-				for (var j = 0; j < argArr.length; j++) {
+				for (let j = 0; j < argArr.length; j++) {
 
-					if (argArr[j] instanceof cError) {
-						return argArr[j];
-					}
-
-					if (argArr[j] instanceof cString) {
-						continue;
-					}
-
-					if (argArr[j] instanceof cBool) {
+					if (argArr[j].type === cElementType.string) {
 						argArr[j] = argArr[j].tocNumber();
 					}
 
-					if (argArr[j].getValue() <= 0) {
+					if (argArr[j].type === cElementType.error) {
+						return argArr[j];
+					}
+
+					let argValue = argArr[j].getValue();
+					if (argArr[j].type === cElementType.bool) {
+						return new cError(cErrorType.wrong_value_type);
+					}
+
+					if (argArr[j].type === cElementType.empty) {
+						argValue = EMPTY_VAL;
+					}
+
+					if (argValue < 0) {
+						return new cError(cErrorType.not_numeric);
+					} else if (argValue < 1) {
+						argValue = 0;
+					} else if (argValue > INT_LIMIT) {
 						return new cError(cErrorType.not_numeric);
 					}
 
-					_lcm = lcm(_lcm, argArr[j].getValue());
+					if (_lcm.type &&_lcm.type === cElementType.error) {
+						return _lcm;
+					} else {
+						_lcm = lcm(_lcm, argValue);
+					}
 				}
-			} else if (argI instanceof cArray) {
-				argArr = argI.tocNumber();
+			} else if (argI.type === cElementType.array) {
+				argArr = argI;
 
-				if (argArr.foreach(function (arrElem) {
+				if (argI.foreach(function (arrElem) {
 
-					if (arrElem instanceof cError) {
+					let argValue = arrElem && arrElem.getValue();
+					if (arrElem.type === cElementType.error) {
 						_lcm = arrElem;
 						return true;
 					}
 
-					if (arrElem instanceof cBool) {
-						arrElem = arrElem.tocNumber();
-					}
-
-					if (arrElem instanceof cString) {
+					if (arrElem.type === cElementType.bool) {
+						_lcm = new cError(cErrorType.wrong_value_type);
 						return;
 					}
 
-					if (arrElem.getValue() <= 0) {
+					if (arrElem.type === cElementType.string) {
+						arrElem = arrElem.tocNumber();
+						if (arrElem.type === cElementType.error) {
+							_lcm = new cError(cErrorType.wrong_value_type);
+							return;
+						}
+						argValue = arrElem.getValue();
+					}
+
+					if (arrElem.type === cElementType.empty) {
+						argValue = EMPTY_VAL;
+					}
+
+					if (argValue < 0) {
+						_lcm = new cError(cErrorType.not_numeric);
+						return true;
+					} else if (argValue < 1) {
+						_lcm = new cNumber(0);
+						return true;
+					} else if (argValue > INT_LIMIT) {
 						_lcm = new cError(cErrorType.not_numeric);
 						return true;
 					}
-					_lcm = lcm(_lcm, arrElem.getValue());
+
+					if (_lcm.type && _lcm.type === cElementType.error) {
+						return _lcm;
+					} else {
+						_lcm = lcm(_lcm, argValue);
+					}
 
 				})) {
 					return _lcm;
 				}
 			} else {
-				argI = argI.tocNumber();
+				let isEmptyArg = (argI.type === cElementType.empty);
 
-				if (argI.getValue() <= 0) {
-					return new cError(cErrorType.not_numeric);
+				if (argI.type === cElementType.bool) {
+					return new cError(cErrorType.wrong_value_type);
 				}
 
-				if (argI instanceof cError) {
+				argI = argI.tocNumber();
+
+				if (argI.type === cElementType.error) {
 					return argI;
 				}
 
-				_lcm = lcm(_lcm, argI.getValue())
+				let argValue = argI.getValue();
+				if (isEmptyArg) {
+					argValue = EMPTY_VAL;
+				}
+
+				if (argValue < 0) {
+					return new cError(cErrorType.not_numeric);
+				} else if (argValue < 1) {
+					return new cNumber(0);
+				} else if (argValue > INT_LIMIT) {
+					return new cError(cErrorType.not_numeric);
+				}
+
+				if (_lcm.type && _lcm.type === cElementType.error) {
+					return _lcm;
+				} else {
+					_lcm = lcm(_lcm, argValue);
+				}
 			}
 		}
 
@@ -3198,42 +3278,60 @@ function (window, undefined) {
 	cMUNIT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cMUNIT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cMUNIT.prototype.Calculate = function (arg) {
-		var arg0 = arg[0];
-		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]);
-		}
-		arg0 = arg0.tocNumber();
-		if (arg0 instanceof cError) {
-			return arg0;
-		} else if (arg0 instanceof cArray) {
-			//по обработке массива есть вопросы
-			//в случае если аргуметт функции должен вернуть массив - берётся первый элемента массива
-			//в случае формулы массива возвращается результат от каждого значения массива
-			//реализовываю второй вариант
-			arg0.foreach(function (elem, r, c) {
-				if (elem instanceof cNumber) {
-					this.array[r][c] = parseInt(elem.getValue()) > 0 ? new cNumber(1) : new cError(cErrorType.wrong_value_type);
-				} else {
-					this.array[r][c] = new cError(cErrorType.wrong_value_type);
+
+		let arg0 = arg[0];
+		let numZero = new cNumber(0);
+		let numOne = new cNumber(1);
+
+		if (arg0.type === cElementType.array || arg0.type === cElementType.cellsRange || arg0.type === cElementType.cellsRange3D) {
+			// if the argument is an array or range, then we return an array of the size of the received argument
+			// which is filled with numbers(1) or errors depending on the values inside the argument
+			let dimensions = arg0.getDimensions();
+			let res = new cArray();
+
+			for (let row = 0; row < dimensions.row; row++) {
+				res.addRow();
+				for (let col = 0; col < dimensions.col; col++) {
+					let arg0Elem = arg0.getElementRowCol ? arg0.getElementRowCol(row, col) : arg0.getValueByRowCol(row, col, true);
+					let elemToAdd = new cError(cErrorType.wrong_value_type);
+
+					arg0Elem = arg0Elem.tocNumber();
+					if (arg0Elem.type === cElementType.number) {
+						elemToAdd = arg0Elem.getValue() > 0 ? new cNumber(1) : elemToAdd;
+						res.addElement(elemToAdd);
+					} else if (arg0Elem.type === cElementType.error) {
+						res.addElement(arg0Elem);
+					} else {
+						res.addElement(elemToAdd);
+					}
 				}
-			});
+			}
+
+			return res;
+		}
+
+
+		arg0 = arg0.tocNumber();
+		if (arg0.type === cElementType.error) {
 			return arg0;
 		} else {
-			var num = parseInt(arg0);
+			let num = parseInt(arg0);
 			if (num <= 0) {
 				return new cError(cErrorType.wrong_value_type);
 			}
-			var _arr = [];
-			for (var i = 0; i < num; i++) {
-				for (var j = 0; j < num; j++) {
-					if (!_arr[i]) {
-						_arr[i] = [];
+
+			let res = new cArray();
+			for (let row = 0; row < num; row++) {
+				res.addRow();
+				for (let col = 0; col < num; col++) {
+					if (row !== col) {
+						res.addElement(numZero);
+					} else {
+						res.addElement(numOne);
 					}
-					_arr[i][j] = i === j ? new cNumber(1) : new cNumber(0);
 				}
 			}
-			var res = new cArray();
-			res.fillFromArray(_arr);
+
 			return res;
 		}
 	};
@@ -3470,45 +3568,74 @@ function (window, undefined) {
 	cPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cPRODUCT.prototype.argumentsType = [[argType.number]];
 	cPRODUCT.prototype.Calculate = function (arg) {
-		var element, arg0 = new cNumber(1);
-		for (var i = 0; i < arg.length; i++) {
+
+		let element, arg0 = new cNumber(1), isFoundValue;
+		for (let i = 0; i < arg.length; i++) {
 			element = arg[i];
-			if (cElementType.cellsRange === element.type || cElementType.cellsRange3D === element.type) {
-				var _arrVal = element.getValue(this.checkExclude, this.excludeHiddenRows, this.excludeErrorsVal,
-					this.excludeNestedStAg);
-				for (var j = 0; j < _arrVal.length; j++) {
-					if (_arrVal[j].type !== cElementType.string) {
-						arg0 = _func[arg0.type][_arrVal[j].type](arg0, _arrVal[j], "*");
-						if (cElementType.error === arg0.type) {
-							return arg0;
+
+			let is3DArea = cElementType.cellsRange3D === element.type;
+
+			if (cElementType.cellsRange === element.type || is3DArea || cElementType.array === element.type) {
+				let dimensions = element.getDimensions();
+				for (let row = 0; row < dimensions.row; row++) {
+					for (let col = 0; col < dimensions.col; col++) {
+						let elem = is3DArea ? element.getValueByRowCol(row, col) : element.getValue2(row, col);
+						if(!elem || elem.type === cElementType.empty || elem.type === cElementType.bool) {
+							continue;
 						}
+
+						if (elem.type === cElementType.error) {
+							return elem;
+						}
+
+						elem = elem.tocNumber();
+						if (elem.type === cElementType.number) {
+							isFoundValue = true;
+							arg0 = _func[arg0.type][elem.type](arg0, elem, "*");
+						}
+						
 					}
 				}
 			} else if (cElementType.cell === element.type || cElementType.cell3D === element.type) {
 				if (!this.checkExclude || !element.isHidden(this.excludeHiddenRows)) {
-					var _arg = element.getValue();
-					if (_arg.type !== cElementType.string) {
+					let _arg = element.getValue();
+					if (_arg.type === cElementType.empty || _arg.type === cElementType.bool) {
+						continue;
+					}
+
+					if (_arg.type === cElementType.error) {
+						return _arg;
+					}
+
+					_arg = _arg.tocNumber();
+					if (_arg.type === cElementType.number) {
+						isFoundValue = true;
 						arg0 = _func[arg0.type][_arg.type](arg0, _arg, "*");
 					}
 				}
-			} else if (cElementType.array === element.type) {
-				element.foreach(function (elem) {
-					if (cElementType.string === elem.type || cElementType.bool === elem.type ||
-						cElementType.empty === elem.type) {
-						return;
-					}
-
-					arg0 = _func[arg0.type][elem.type](arg0, elem, "*");
-				})
 			} else {
-				arg0 = _func[arg0.type][element.type](arg0, element, "*");
+				if (element.type === cElementType.empty) {
+					continue;
+				}
+
+				if (element.type === cElementType.error) {
+					return element;
+				}
+
+				element = element.tocNumber();
+				if (element.type === cElementType.number) {
+					isFoundValue = true;
+					arg0 = _func[arg0.type][element.type](arg0, element, "*");
+				} else if (element.type === cElementType.error) {
+					return element;
+				}
 			}
 			if (cElementType.error === arg0.type) {
 				return arg0;
 			}
 
 		}
-		return arg0;
+		return isFoundValue ? arg0 : new cNumber(0);
 	};
 
 	/**
@@ -4567,58 +4694,140 @@ function (window, undefined) {
 	cSERIESSUM.prototype.argumentsType = [argType.any, argType.any, argType.any, argType.any];
 	cSERIESSUM.prototype.Calculate = function (arg) {
 
-		function SERIESSUM(x, n, m, a) {
+		function Seriessum_SingleVal(x, n, m, a) {
+			let sum = 0;
+
+			x = x.getValue();
+			n = n.getValue();
+			m = m.getValue();
+			a = a.getValue();
+			
+			sum += a * Math.pow(x, n + (0 * m));
+
+			return new cNumber(sum);
+		}
+
+		function Seriessum_Arr(x, n, m, arr) {
 
 			x = x.getValue();
 			n = n.getValue();
 			m = m.getValue();
 
-			for (var i = 0; i < a.length; i++) {
-				if (!(a[i] instanceof cNumber)) {
-					return new cError(cErrorType.wrong_value_type);
+			let sum = 0;
+			let dimensions = arr.getDimensions();
+			let index = 0;
+
+			for (let row = 0; row < dimensions.row; row++) {
+				for (let col = 0; col < dimensions.col; col++) {
+					let elem = arr.getValueByRowCol ? arr.getValueByRowCol(row, col) : arr.getElementRowCol(row, col);
+					if (elem) {
+						if (elem.type === cElementType.error) {
+							return elem;
+						} else if (elem.type === cElementType.empty) {
+							return new cError(cErrorType.not_available);
+						} else if (elem.type === cElementType.bool) {
+							return new cError(cErrorType.wrong_value_type);
+						}
+
+						elem = elem.tocNumber();
+						if (elem.type === cElementType.number) {
+							let power = Math.pow(x, n + (index * m));
+							if (Number.isNaN(power)) {
+								power = 0;
+							}
+							sum += elem.getValue() * power;
+						} else {
+							return new cError(cErrorType.wrong_value_type);
+						}
+					}
+					index++;
 				}
-				a[i] = a[i].getValue();
 			}
 
-			function sumSeries(x, n, m, a) {
-				var sum = 0;
-				for (var i = 0; i < a.length; i++) {
-					sum += a[i] * Math.pow(x, n + i * m)
-				}
-				return sum;
-			}
-
-			return new cNumber(sumSeries(x, n, m, a));
+			return new cNumber(sum);
 		}
 
-		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], arg3 = arg[3];
-		if (arg0 instanceof cNumber || arg0 instanceof cRef || arg0 instanceof cRef3D) {
-			arg0 = arg0.tocNumber();
-		} else {
-			return new cError(cErrorType.wrong_value_type);
+		let arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], arg3 = arg[3];
+		if (arg0.type === cElementType.cell || arg0.type === cElementType.cell3D) {
+			arg0 = arg0.getValue();
 		}
-
-		if (arg1 instanceof cNumber || arg1 instanceof cRef || arg1 instanceof cRef3D) {
-			arg1 = arg1.tocNumber();
-		} else {
-			return new cError(cErrorType.wrong_value_type);
+		if (arg1.type === cElementType.cell || arg1.type === cElementType.cell3D) {
+			arg1 = arg1.getValue();
 		}
-
-		if (arg2 instanceof cNumber || arg2 instanceof cRef || arg2 instanceof cRef3D) {
-			arg2 = arg2.tocNumber();
-		} else {
-			return new cError(cErrorType.wrong_value_type);
+		if (arg2.type === cElementType.cell || arg2.type === cElementType.cell3D) {
+			arg2 = arg2.getValue();
 		}
-
-		if (arg3 instanceof cNumber || arg3 instanceof cRef || arg3 instanceof cRef3D) {
-			arg3 = [arg3.tocNumber()];
-		} else if (arg3 instanceof cArea || arg3 instanceof cArea3D) {
+		if (arg3.type === cElementType.cell || arg3.type === cElementType.cell3D) {
 			arg3 = arg3.getValue();
+		}
+		
+		// in this function empty - returns N/A, boolean and text return - #VALUE!
+		if (arg0.type === cElementType.empty) {
+			return new cError(cErrorType.not_available);
+		}
+		if (arg0.type === cElementType.bool) {
+			return new cError(cErrorType.wrong_value_type);
+		}
+		if (arg0.type === cElementType.cellsRange || arg0.type === cElementType.cellsRange3D) {
+			arg0 = arg0.isOneElement() ? arg0.getFirstElement() : new cError(cErrorType.wrong_value_type);
+		}
+		if (arg0.type !== cElementType.number) {
+			arg0 = arg0.tocNumber();
+		}
+		if (arg0.type === cElementType.error) {
+			return arg0;
+		}
+
+
+		if (arg1.type === cElementType.empty) {
+			return new cError(cErrorType.not_available);
+		}
+		if (arg1.type === cElementType.bool) {
+			return new cError(cErrorType.wrong_value_type);
+		}
+		if (arg1.type === cElementType.cellsRange || arg1.type === cElementType.cellsRange3D) {
+			arg1 = arg1.isOneElement() ? arg1.getFirstElement() : new cError(cErrorType.wrong_value_type);
+		}
+		if (arg1.type !== cElementType.number) {
+			arg1 = arg1.tocNumber();
+		}
+		if (arg1.type === cElementType.error) {
+			return arg1;
+		}
+
+
+		if (arg2.type === cElementType.empty) {
+			return new cError(cErrorType.not_available);
+		}
+		if (arg2.type === cElementType.bool) {
+			return new cError(cErrorType.wrong_value_type);
+		}
+		if (arg2.type === cElementType.cellsRange || arg2.type === cElementType.cellsRange3D) {
+			arg2 = arg2.isOneElement() ? arg2.getFirstElement() : new cError(cErrorType.wrong_value_type);
+		}
+		if (arg2.type !== cElementType.number) {
+			arg2 = arg2.tocNumber();
+		}
+		if (arg2.type === cElementType.error) {
+			return arg2;
+		}
+
+
+		if (arg3.type === cElementType.empty) {
+			return new cError(cErrorType.not_available);
+		}
+		if (arg3.type === cElementType.bool) {
+			return new cError(cErrorType.wrong_value_type);
+		}
+		if (arg3.type === cElementType.number || arg3.type === cElementType.cell || arg3.type === cElementType.cell3D) {
+			arg3 = arg3.tocNumber();
+		} else if (arg3.type === cElementType.cellsRange || arg3.type === cElementType.cellsRange3D || arg3.type === cElementType.array) {
+			return Seriessum_Arr(arg0, arg1, arg2, arg3);
 		} else {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		return SERIESSUM(arg0, arg1, arg2, arg3);
+		return Seriessum_SingleVal(arg0, arg1, arg2, arg3);
 
 	};
 
