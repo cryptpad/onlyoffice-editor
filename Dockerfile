@@ -1,5 +1,9 @@
 # Use this (large) base image in every build below, to reduce the overall docker cache size
-FROM ubuntu:24.04 AS base
+FROM ubuntu:26.04 AS base
+
+# Workaround for slow archive.ubuntu.com
+RUN sed -i 's|archive.ubuntu.com|ftp.halifax.rwth-aachen.de|g' /etc/apt/sources.list.d/ubuntu.sources
+
 RUN apt-get update && apt-get install -y openjdk-21-jdk npm wget zip brotli
 RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
 ENV PNPM_HOME="/root/.local/share/pnpm"
