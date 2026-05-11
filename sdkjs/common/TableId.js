@@ -53,7 +53,17 @@
 	};
 	CTableId.prototype.init = function(editor)
 	{
-		this.m_aPairs        = {};
+		this.m_aPairs_orig   = {};
+        // CryptPad: detect duplicate IDs, which cause corruption of the document.
+		this.m_aPairs        = new Proxy(this.m_aPairs_orig, {
+            set(target, property, value) {
+                if (target[property]) {
+                    window.Common.Gateway.cryptPadCorruptionWarningHandler(property);
+                }
+                Reflect.set(...arguments);
+            },
+        });
+
 		this.m_bTurnOff      = false;
 		this.m_oFactoryClass = {};
 		this.Id              = AscCommon.g_oIdCounter.Get_NewId();

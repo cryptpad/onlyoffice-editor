@@ -455,6 +455,10 @@ if (window.Common === undefined) {
                 _postMessage({ event: 'cryptPadSendMessageFromOO', data: {msg: msg}});
             },
 
+            cryptPadCorruptionWarningHandler: function(duplicateId) {
+                _postMessage({ event: 'cryptPadCorruptionWarningHandler', data: {duplicateId, duplicateId}});
+            },
+
             on: function(event, handler){
                 var localHandler = function(event, data){
                     handler.call(me, data)
