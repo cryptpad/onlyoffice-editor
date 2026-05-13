@@ -7,8 +7,8 @@ RUN sed -i 's|archive.ubuntu.com|ftp.halifax.rwth-aachen.de|g' /etc/apt/sources.
 RUN apt-get update && apt-get install -y openjdk-21-jdk npm wget zip brotli
 RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(which bash)" bash -
 ENV PNPM_HOME="/root/.local/share/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN pnpm env use --global lts
+ENV PATH="$PNPM_HOME/bin:$PATH"
+RUN pnpm env use --global 20
 RUN pnpm install -g grunt
 
 ###################### onlyoffice-editor-build ################################
@@ -16,7 +16,7 @@ FROM base AS onlyoffice-editor-build
 WORKDIR /app
 COPY onlyoffice-editor/package.json /app
 COPY onlyoffice-editor/pnpm-lock.yaml /app
-RUN pnpm install
+RUN pnpm install --dangerously-allow-all-builds
 COPY onlyoffice-editor/tsconfig.json /app
 COPY onlyoffice-editor/webpack.config.mjs /app
 COPY onlyoffice-editor/src/ /app/src
