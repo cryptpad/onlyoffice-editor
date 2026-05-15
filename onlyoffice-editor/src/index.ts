@@ -12,7 +12,7 @@ export class DocEditor implements DocEditorInterface {
     private placeholderId: string;
     private server: MockServer;
     private fromOOHandle?: HandlerHandle<FromOO>;
-    private corruptionWarningHandler: EventHandler<String> = new EventHandler();
+    private corruptionWarningHandler: EventHandler<string> = new EventHandler();
 
     constructor(placeholderId: string, config: any) {
         this.placeholderId = placeholderId;
@@ -41,7 +41,9 @@ export class DocEditor implements DocEditorInterface {
                 cryptPadSendMessageFromOO: (msg: { data: { msg: FromOO } }) => {
                     this.fromOOHandler.fire(msg.data.msg);
                 },
-                cryptPadCorruptionWarningHandler: (msg: { data: { duplicateId: String } }) => {
+                cryptPadCorruptionWarningHandler: (msg: {
+                    data: { duplicateId: string };
+                }) => {
                     this.corruptionWarningHandler.fire(msg.data.duplicateId);
                 },
             },
@@ -117,9 +119,10 @@ export class DocEditor implements DocEditorInterface {
         });
 
         if (server.onCorruptionWarning) {
-            this.corruptionWarningHandler.addHandler(server.onCorruptionWarning);
+            this.corruptionWarningHandler.addHandler(
+                server.onCorruptionWarning,
+            );
         }
-
     }
 
     private handleAuth(authMsg: FromOO) {
@@ -279,7 +282,7 @@ interface MockServer {
     getImageURL?: (name: string) => Promise<string>;
     onAuth?: () => void;
     onMessage: (msg: FromOO) => void;
-    onCorruptionWarning?: (duplicateId: String) => void;
+    onCorruptionWarning?: (duplicateId: string) => void;
 }
 
 interface Participants {
