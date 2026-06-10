@@ -113,9 +113,6 @@ define([
                     '<span id="slot-btn-history" class="btn-slot text x-huge"></span>' +
                 '</div>' +
                 '<div class="separator long history"></div>' +
-                '<div class="group">' +
-                    '<span id="slot-btn-mailrecepients" class="btn-slot text x-huge" data-layout-name="toolbar-collaboration-mailmerge"></span>' +
-                '</div>' +
             '</section>';
 
         function setEvents() {
@@ -829,7 +826,6 @@ define([
                 this.btnChat && this.btnChat.render(this.$el.find('#slot-btn-chat'));
                 this.btnCommentRemove && this.btnCommentRemove.render(this.$el.find('#slot-comment-remove'));
                 this.btnCommentResolve && this.btnCommentResolve.render(this.$el.find('#slot-comment-resolve'));
-                this.btnMailRecepients && this.btnMailRecepients.render(this.$el.find('#slot-btn-mailrecepients'));
 
                 return this.$el;
             },
