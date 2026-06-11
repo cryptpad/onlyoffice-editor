@@ -40,7 +40,7 @@ RUN make
 RUN mv deploy/web-apps/apps/api/documents/api.js deploy/web-apps/apps/api/documents/api-orig.js
 
 
-FROM base AS zip-build
+FROM base AS files-build
 COPY --from=sdkjs-build /app/sdkjs/deploy/web-apps /app/web-apps
 COPY --from=sdkjs-build /app/sdkjs/deploy/sdkjs /app/sdkjs
 COPY vendor /app/web-apps/vendor
@@ -49,6 +49,9 @@ COPY fonts/*.otf /app/fonts/fonts/
 COPY dictionaries /app/dictionaries
 COPY --from=onlyoffice-editor-build /app/dist/api.js /app/web-apps/apps/api/documents/api.js
 WORKDIR /app
+
+
+FROM files-build AS zip-build
 RUN find . -name "*.wasm" \
     -o -name "*.js" \
     -o -name "*.html" \
@@ -71,3 +74,7 @@ RUN grep ' fonts/fonts/calibri.ttf' zip.content
 FROM scratch AS build
 COPY --from=zip-build /app/onlyoffice-editor.zip /
 COPY --from=zip-build /app/onlyoffice-editor.zip.sha512 /
+
+
+FROM scratch AS files
+COPY --from=files-build /app/ /

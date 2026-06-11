@@ -3,3 +3,4 @@ node_modules
 e2etests/test-results
 styles
 output
+output-files

@@ -2,6 +2,10 @@
 build:
 	docker build --target build -o output .
 
+.PHONY: files
+files:
+	docker build --target files -o output-files .
+
 .PHONY: onlyoffice-editor-test
 onlyoffice-editor-test:
 	docker build --target onlyoffice-editor-test .

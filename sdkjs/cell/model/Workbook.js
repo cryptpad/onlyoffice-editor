@@ -16709,6 +16709,10 @@
 			});
 			if (oTableStructOperand) {
 				let oTableOpRange = oTableStructOperand.getRange();
+                if (!oTableOpRange) { // CryptPad: Added null check, when oTableStructOperand has no range
+                    return;
+                }
+                
 				if (oTableOpRange.worksheet.getName() !== this.ws.getName() || (oTableOpRange.bbox && !oTableOpRange.bbox.contains(this.nCol, this.nRow))) {
 					return;
 				}
