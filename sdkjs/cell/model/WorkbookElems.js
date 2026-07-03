@@ -4539,6 +4539,9 @@ var g_oFontProperties = {
         if (!this._hash) {
             this._hash = (this.border ? this.border.getIndexNumber() : '') + '|';
             this._hash += (this.fill ? this.fill.getIndexNumber() : '') + '|';
+            if (this.font && !this.font.getIndexNumber) {
+                debugger;
+            }
             this._hash += (this.font ? this.font.getIndexNumber() : '') + '|';
             this._hash += (this.num ? this.num.getIndexNumber() : '') + '|';
             this._hash += (this.align ? this.align.getIndexNumber() : '') + '|';
@@ -6442,6 +6445,7 @@ StyleManager.prototype =
 		}
 	};
 	Col.prototype.setStyle = function (xfs) {
+	    console.log('XXX Col.prototype.setStyle', xfs, this);
 		var oldVal = this.xfs;
 		this.setStyleInternal(xfs);
 		if (AscCommon.History.Is_On() && oldVal !== this.xfs) {

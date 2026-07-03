@@ -2168,6 +2168,7 @@
 			}
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
+		    console.log('XXX this.CoAuthoringApi.onDocumentOpen', inputWrap);
 			if (t.isOpenedFrameEditor) {
 				const oSentInformation = {
 					"type": c_oAscFrameDataType.GetLoadedImages,
@@ -3275,6 +3276,8 @@
 	{
 		if (result)
 		{
+		    console.trace('XXX baseEditorsApi.prototype.onEndLoadFile set result');
+		    // debugger;
 			this.openResult = result;
 		}
 		if (this.isLoadFullApi && this.DocInfo && this.openResult && this._isLoadedModules())

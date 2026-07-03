@@ -53,7 +53,7 @@
                     console.error("XXX CTableId: Id " + property + " already exists", target[property], value);
                     window.Common.Gateway.cryptPadCorruptionWarningHandler(property);
                 } else {
-                    console.log("XXX CTableId: Adding Id " + property);
+                    // console.log("XXX CTableId: Adding Id " + property);
                 }
                 Reflect.set(...arguments);
             },

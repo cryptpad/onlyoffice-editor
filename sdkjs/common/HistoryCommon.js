@@ -4875,7 +4875,7 @@
 		this.Reverted = false;
 
         // CryptPad: Add parser debug logging
-        if (localStorage.CryptPad_dev != "1") {
+        if (localStorage.CryptPad_dev != "1") {  // Remember to set this in the correct iframe
             return;
         }
         if (this.Load) {
@@ -4893,7 +4893,7 @@
                         try {
                             pStr = JSON.stringify(this[p]);
                         } catch(e) {
-                            pStr = ""+this[p];
+                            pStr = this[p].constructor.name + ": " + this[p];
                         }
                         properties[p] = pStr;
                     }

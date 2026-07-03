@@ -214,9 +214,12 @@
 	 */
 	CNumbering.prototype.GetNum = function(sId)
 	{
-		if (this.Num[sId])
+		if (this.Num[sId]) {
+		    // console.log('XXX CNumbering.prototype.GetNum found', sId, this.Num[sId]);
 			return this.Num[sId];
+		}
 
+	    // console.log('XXX CNumbering.prototype.GetNum not found', sId);
 		return null;
 	};
 	/**
