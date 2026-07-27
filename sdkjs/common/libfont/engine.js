@@ -928,7 +928,7 @@ function onLoadFontsModule(window, undefined)
 			this._loadDictionaryAttemt(_langKey, _langObj["name"], callback);
 		};
 
-		this._loadDictionaryAttemt = function(langKey, langName, callback, currentAttempt)
+		this._loadDictionaryAttemt = function(langKey, langName, callback, currentAttempt, useNewNaming)
 		{
 			var xhr = new XMLHttpRequest();
 			let urlDictionaries = "../../../../dictionaries/";
@@ -939,7 +939,8 @@ function onLoadFontsModule(window, undefined)
 					urlDictionaries = urlDesktop;
 			}
 			
-			let url = urlDictionaries + langName + "/hyph_" + langName + ".dic";
+			let url = urlDictionaries + langName + "/" +
+				(useNewNaming ? (langName + "_hyph.dic") : ("hyph_" + langName + ".dic"));
 
 			xhr.open('GET', url, true);
 			xhr.responseType = 'arraybuffer';
@@ -958,7 +959,17 @@ function onLoadFontsModule(window, undefined)
 					_t._dictionaries[langKey] = true;
 					AscFonts.Hyphen_LoadDictionary(parseInt(langKey), this.response);
 					callback();
+					return;
 				}
+
+				if (this.status === 404 && !useNewNaming)
+				{
+					_t._loadDictionaryAttemt(langKey, langName, callback, 0, true);
+					return;
+				}
+
+				_t._dictionaries[langKey] = false;
+				callback();
 			};
 			xhr.onerror = function()
 			{
