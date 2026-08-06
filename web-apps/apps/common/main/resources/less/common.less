@@ -420,6 +420,9 @@ label {
     .padding-small {
         padding-bottom: 8px;
     }
+    .padding-top-small {
+        padding-top: 4px;
+    }
 
     .padding-medium {
         padding-bottom: 12px;
@@ -713,6 +716,13 @@ body {
     :focus {
         outline: 1px solid red !important;
     }
+}
+
+// SVG icon default colors
+// v2 icons use stroke="currentColor", so we set color for inheritance
+svg.icon {
+    color: var(--icon-gray-primary, #383838);
+    fill: none;  // v2 icons use stroke, not fill
 }
 
 // for colored svg icons

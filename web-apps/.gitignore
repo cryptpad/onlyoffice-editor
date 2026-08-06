@@ -22,7 +22,7 @@ apps/**/main/resources/**/iconsbig*.less
 apps/**/main/resources/**/iconshuge*.png
 apps/**/main/resources/**/iconshuge*.less
 apps/**/main/resources/**/iconshuge*.svg
-apps/**/mobile/dist/*.*
+apps/**/mobile/dist/**
 apps/**/mobile/hot/*.*
 apps/**/mobile/css/*.*
 
@@ -39,3 +39,6 @@ apps/spreadsheeteditor/mobile/offlinedocs
 selenium-debug.log
 **/test/bin
 **/test/reports
+
+# generated at build time by theme.config.mjs
+apps/common/mobile/resources/less/_theme-mobile-overrides.less

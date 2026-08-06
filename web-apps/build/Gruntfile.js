@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -30,6 +23,8 @@
  *
  */
 module.exports = function(grunt) {
+    require('time-grunt')(grunt);
+
     var _ = require('lodash'),
         defaultConfig,
         packageFile;
@@ -64,55 +59,69 @@ module.exports = function(grunt) {
         return !!string && !!iconv_lite ? iconv_lite.encode(string,encoding) : string;
     };
 
+    // Helper: resolve a brand value with priority: env var > theme config.json > ''
+    // Empty strings from config are respected (row will be hidden in templates).
+    let _themVal = (envVal, configKey) => {
+        return function() {
+            if (envVal != null && envVal !== '') return _encode(envVal);
+            var configVal = configKey && global.themeMeta && global.themeMeta[configKey];
+            if (configVal != null) return _encode(configVal);
+            return '';
+        };
+    };
+
     global.jsreplacements = [
                 {
                     from: /\{\{SUPPORT_EMAIL\}\}/g,
-                    to: _encode(process.env.SUPPORT_EMAIL) || 'support@onlyoffice.com'
+                    to: _themVal(process.env.SUPPORT_EMAIL, 'support_email')
                 },{
                     from: /\{\{SUPPORT_URL\}\}/g,
-                    to: _encode(process.env.SUPPORT_URL) || 'https://support.onlyoffice.com'
+                    to: _themVal(process.env.SUPPORT_URL, 'support_url')
                 },{
                     from: /\{\{SALES_EMAIL\}\}/g,
-                    to: _encode(process.env.SALES_EMAIL) || 'sales@onlyoffice.com'
+                    to: _themVal(process.env.SALES_EMAIL, 'sales_email')
                 },{
                     from: /\{\{PUBLISHER_URL\}\}/g,
-                    to: _encode(process.env.PUBLISHER_URL) || 'https://www.onlyoffice.com'
+                    to: _themVal(process.env.PUBLISHER_URL, 'publisher_url')
                 },{
                     from: /\{\{PUBLISHER_PHONE\}\}/,
-                    to: process.env['PUBLISHER_PHONE'] || '+371 633-99867'
+                    to: _themVal(process.env.PUBLISHER_PHONE, 'publisher_phone')
                 },{
                     from: /\{\{PUBLISHER_NAME\}\}/g,
-                    to: _encode(process.env.PUBLISHER_NAME) || 'Ascensio System SIA'
+                    to: _themVal(process.env.PUBLISHER_NAME, 'publisher_name')
                 },{
                     from: /\{\{PUBLISHER_ADDRESS\}\}/,
-                    to: _encode(process.env.PUBLISHER_ADDRESS) || '20A-12 Ernesta Birznieka-Upisha street, Riga, Latvia, EU, LV-1050'
+                    to: _themVal(process.env.PUBLISHER_ADDRESS, 'publisher_address')
+                },{
+                    from: /\{\{ATTRIBUTION\}\}/g,
+                    to: _themVal(process.env.ATTRIBUTION, 'attribution')
                 },{
                     from: /\{\{API_URL_EDITING_CALLBACK\}\}/,
-                    to: _encode(process.env.API_URL_EDITING_CALLBACK) || 'https://api.onlyoffice.com/editors/callback'
+                    to: _themVal(process.env.API_URL_EDITING_CALLBACK, 'api_url_editing_callback')
                 },{
                     from: /\{\{COMPANY_NAME\}\}/g,
-                    to: _encode(process.env.COMPANY_NAME) || 'ONLYOFFICE'
+                    to: _themVal(process.env.COMPANY_NAME, 'company_name')
                 }, {
                     from: /\{\{APP_TITLE_TEXT\}\}/g,
-                    to: _encode(process.env.APP_TITLE_TEXT) || 'ONLYOFFICE'
+                    to: _themVal(process.env.APP_TITLE_TEXT, 'app_title')
                 }, {
                     from: /\{\{HELP_URL\}\}/g,
-                    to: _encode(process.env.HELP_URL) || 'https://helpcenter.onlyoffice.com'
+                    to: _themVal(process.env.HELP_URL, 'help_url')
                 }, {
                     from: /\{\{HELP_CENTER_WEB_DE\}\}/g,
-                    to: _encode(process.env.HELP_CENTER_WEB_DE) || _encode(process.env.HELP_CENTER_WEB_EDITORS) || 'https://helpcenter.onlyoffice.com/userguides/docs-de.aspx'
+                    to: _themVal(process.env.HELP_CENTER_WEB_DE, 'help_center_web_de')
                 }, {
                     from: /\{\{HELP_CENTER_WEB_SSE\}\}/g,
-                    to: _encode(process.env.HELP_CENTER_WEB_SSE) || _encode(process.env.HELP_CENTER_WEB_EDITORS) || 'https://helpcenter.onlyoffice.com/userguides/docs-se.aspx'
+                    to: _themVal(process.env.HELP_CENTER_WEB_SSE, 'help_center_web_sse')
                 }, {
                     from: /\{\{HELP_CENTER_WEB_PE\}\}/g,
-                    to: _encode(process.env.HELP_CENTER_WEB_PE) || _encode(process.env.HELP_CENTER_WEB_EDITORS) || 'https://helpcenter.onlyoffice.com/userguides/docs-pe.aspx'
+                    to: _themVal(process.env.HELP_CENTER_WEB_PE, 'help_center_web_pe')
                 }, {
                     from: /\{\{DEFAULT_LANG\}\}/g,
-                    to: _encode(process.env.DEFAULT_LANG) || 'en'
+                    to: function() { return _themVal(process.env.DEFAULT_LANG, 'default_lang')() || 'en'; }
                 }, {
                     from: /\{\{SUGGEST_URL\}\}/g,
-                    to: _encode(process.env.SUGGEST_URL) || 'https://feedback.onlyoffice.com/forums/966080-your-voice-matters?category_id=519084'
+                    to: _themVal(process.env.SUGGEST_URL, 'suggest_url')
                 }];
 
     var helpreplacements = [
@@ -135,7 +144,129 @@ module.exports = function(grunt) {
     addons.forEach((element,index,self) => self[index] = path.join('../..', element, '/build'));
     addons = addons.filter(element => grunt.file.isDir(element));
 
-    require('./appforms')(grunt);
+    // Theme support — load theme.less directly from theme/ folder (no copy to source tree)
+    const defaultTheme = 'euro-office';
+    const theme = process.env.THEME || defaultTheme;
+    grunt.log.writeln('theme: ' + theme.green);
+    const themeEntry = path.join('..', 'theme', theme, 'assets', 'less', 'theme.less');
+    let themeFiles = null; // null = not yet resolved
+
+    // Helper to append theme files to a LESS source array (resolves lazily)
+    global.appendThemeFiles = function(src) {
+        if (themeFiles === null) {
+            if (grunt.file.exists(themeEntry)) {
+                themeFiles = [themeEntry];
+                grunt.log.writeln('Theme: ' + theme.green);
+            } else {
+                themeFiles = [];
+                if (theme !== defaultTheme) {
+                    grunt.log.warn('Theme not found: ' + themeEntry);
+                }
+            }
+        }
+        let srcArray = Array.isArray(src) ? src : [src];
+        if (themeFiles.length > 0) {
+            return srcArray.concat(themeFiles);
+        }
+        return srcArray;
+    };
+
+    // Initialize themeMeta for config.json values (populated by deploy-theme task)
+    global.themeMeta = {};
+
+    // deploy-theme: load config.json from theme folder.
+    // LESS files are referenced directly from theme/ via appendThemeFiles — no copy needed.
+    grunt.registerTask('deploy-theme', 'Load theme config', function() {
+        const themeRoot = path.join('..', 'theme', theme);
+
+        global.themeMeta = {};
+
+        const configPath = path.join(themeRoot, 'meta', 'config.json');
+        if (grunt.file.exists(configPath)) {
+            global.themeMeta = grunt.file.readJSON(configPath);
+            grunt.log.writeln('Theme config loaded: ' + configPath);
+        }
+
+        // Populate forms logo vars from theme config
+        global.themeFormVars = {};
+        if (global.themeMeta.forms_logo_light) {
+            var relPath = '../../../../theme/' + theme + '/assets/img/header';
+            global.themeFormVars['theme-forms-logo-light-path'] = "'" + relPath + '/' + global.themeMeta.forms_logo_light + "'";
+            global.themeFormVars['theme-forms-logo-dark-path'] = "'" + relPath + '/' + (global.themeMeta.forms_logo_dark || global.themeMeta.forms_logo_light) + "'";
+            grunt.log.writeln('Theme forms logo vars set');
+        }
+
+        if (!grunt.file.isDir(themeRoot) && theme !== 'default') {
+            grunt.log.warn('Theme directory not found: ' + themeRoot);
+        }
+    });
+
+    // deploy-theme-images: copy theme images to BUILD_ROOT.
+    // Runs after all editor deploys so that theme images overwrite stock versions.
+    grunt.registerTask('deploy-theme-images', 'Copy theme images to build output', function() {
+        const themeRoot = path.join('..', 'theme', theme);
+        const imgSrc = path.join(themeRoot, 'assets', 'img');
+
+        if (grunt.file.isDir(imgSrc)) {
+            const editors = ['documenteditor', 'spreadsheeteditor', 'presentationeditor', 'visioeditor'];
+
+            // Desktop + mobile common dirs, plus each editor's mobile dir.
+            // The editor/mobile copy is required because mobile production URLs
+            // resolve to apps/<editor>/mobile/resources/img/ (copy:images-app
+            // flattens common/mobile into each editor's mobile dir from SOURCE,
+            // which never sees theme files — so we deploy them directly here).
+            const imgDests = [
+                path.join(BUILD_ROOT, 'web-apps', 'apps', 'common', 'main', 'resources', 'img'),
+                path.join(BUILD_ROOT, 'web-apps', 'apps', 'common', 'mobile', 'resources', 'img'),
+                ...editors.map(e => path.join(BUILD_ROOT, 'web-apps', 'apps', e, 'mobile', 'resources', 'img'))
+            ];
+            imgDests.forEach(function(imgDest) {
+                grunt.file.expandMapping('**/*', imgDest, { cwd: imgSrc, flatten: false, filter: 'isFile' })
+                    .forEach(function(f) {
+                        grunt.file.copy(f.src[0], f.dest);
+                    });
+            });
+
+            // Embed logo — copy to each editor's embed img dir
+            var embedLogo = path.join(imgSrc, 'embed', 'logo.svg');
+            if (grunt.file.exists(embedLogo)) {
+                editors.forEach(function(editor) {
+                    var dest = path.join(BUILD_ROOT, 'web-apps', 'apps', editor, 'embed', 'resources', 'img', 'logo.svg');
+                    grunt.file.copy(embedLogo, dest);
+                });
+                grunt.log.writeln('Theme embed logo deployed');
+            }
+
+            grunt.log.writeln('Theme images deployed to ' + BUILD_ROOT);
+        }
+    });
+
+    const BUILD_ROOT = path.resolve(process.env.BUILD_ROOT || path.join('..', 'deploy'));
+
+    const SRC_ROOT = path.resolve(__dirname, "..")
+
+    function replaceDeployPaths(obj) {
+        const deployRoot = BUILD_ROOT.replace(/\\/g, '/');
+
+        if (typeof obj === 'string') {
+            return obj.replace(/\$BUILD_ROOT/g, deployRoot);
+        }
+        if (Array.isArray(obj)) {
+            return obj.map(replaceDeployPaths);
+        }
+        if (typeof obj === 'object' && obj !== null) {
+            const out = {};
+            for (const k in obj) {
+                const newKey = k.replace(/\$BUILD_ROOT/g, deployRoot);
+                out[newKey] = replaceDeployPaths(obj[k]);
+            }
+            return out;
+        }
+        return obj;
+    }
+
+    require('./appforms')(grunt, replaceDeployPaths);
+
 
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
@@ -219,6 +350,9 @@ module.exports = function(grunt) {
         return grunt.registerTask('init-build-' + name, 'Initialize build ' + appName, function(){
             defaultConfig = configFile;
             packageFile = require('./' + defaultConfig);
+
+            packageFile.version = (process.env['PRODUCT_VERSION'] || packageFile.version);
+            packageFile = replaceDeployPaths(packageFile);
 
             if (packageFile) {
                 grunt.log.ok(appName + ' config loaded successfully'.green);
@@ -317,10 +451,37 @@ module.exports = function(grunt) {
                     files: packageFile['apps-common']['imagemin']['images-common']
                 }
             },
+            copy: {
+                ...packageFile['apps-common'].copy,
+                'images-app': {
+                    files: packageFile['apps-common']['imagemin']['images-common']
+                }
+            },
             svgmin: {
                 options: {...svgmin_opts},
                 dist: {
                     files: packageFile['apps-common'].svgicons.common
+                },
+                toolbar: {
+                    files: packageFile['apps-common'].svgicons['toolbar-icons-flat']
+                }
+            },
+            replace: {
+                dist: {
+                    src: packageFile['apps-common'].copy.indexhtml.dest + '/*.html',
+                    overwrite: true,
+                    replacements: [{
+                        from: /\@\@SRC_ROOT\@\@/g,
+                        to: SRC_ROOT
+                    }]
+                },
+                cachescripts: {
+                    src: packageFile['api'].copy.script.dest + 'documents/*.html',
+                    overwrite: true,
+                    replacements: [{
+                        from: /\@\@SRC_ROOT\@\@/g,
+                        to: SRC_ROOT
+                    }]
                 }
             },
             inline: {
@@ -349,6 +510,7 @@ module.exports = function(grunt) {
         return {
             terser: {
                 options: {
+                    mangle: false,
                     format: {
                         preamble: '/** vim: et:ts=4:sw=4:sts=4\n' +
                             ' * @license RequireJS 2.1.2 Copyright (c) 2010-2012, The Dojo Foundation All Rights Reserved.\n' +
@@ -365,9 +527,9 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.registerTask('prebuild-icons-sprite', function() {
+    grunt.registerTask('prebuild-svg-sprites', function() {
         require('./sprites/Gruntfile.js')(grunt, '../');
-        grunt.task.run('all-icons-sprite');
+        grunt.task.run('all-svg');
     });
 
     grunt.registerTask('main-app-init', function() {
@@ -397,7 +559,7 @@ module.exports = function(grunt) {
                         ]
                     },
                     files: {
-                        "<%= pkg.main.less.files.dest %>": packageFile['main']['less']['files']['src']
+                        "<%= pkg.main.less.files.dest %>": global.appendThemeFiles(packageFile['main']['less']['files']['src'])
                     }
                 }
             },
@@ -416,8 +578,10 @@ module.exports = function(grunt) {
 
             replace: {
                 writeVersion: {
-                    src: ['<%= pkg.main.js.requirejs.options.out %>', '<%= pkg.main.js.postload.options.out %>',
-                                packageFile.main.js.babel.files[0].dest],
+                    // When --skip-babel is used, don't include ie/ directory (it won't exist)
+                    src: grunt.option('skip-babel')
+                        ? ['<%= pkg.main.js.requirejs.options.out %>', '<%= pkg.main.js.postload.options.out %>']
+                        : ['<%= pkg.main.js.requirejs.options.out %>', '<%= pkg.main.js.postload.options.out %>', packageFile.main.js.babel.files[0].dest],
                     overwrite: true,
                     replacements: [{
                         from: /\{\{PRODUCT_VERSION\}\}/g,
@@ -428,6 +592,14 @@ module.exports = function(grunt) {
                     src: ['<%= pkg.main.copy.help[0].dest %>/ru/**/*.htm*'],
                     overwrite: true,
                     replacements: [...helpreplacements]
+                },
+                indexhtml: {
+                    src: ['<%= pkg.main.copy.indexhtml[0].dest %>/*.html'],
+                    overwrite: true,
+                    replacements: [{
+                        from: /\@\@SRC_ROOT\@\@/g,
+                        to: SRC_ROOT
+                    }]
                 }
             },
 
@@ -468,6 +640,9 @@ module.exports = function(grunt) {
                 },
                 indexhtml: {
                     files: packageFile['main']['copy']['indexhtml']
+                },
+                'images-app': {
+                    files: packageFile['main']['imagemin']['images-app']
                 }
             },
 
@@ -487,8 +662,13 @@ module.exports = function(grunt) {
                 }
             },
 
+            // Terser tasks are broken out separately (build, postload, iecompat) rather than
+            // using a single 'terser' task. This allows deploy-app-main to run only the tasks
+            // it needs (terser:build, terser:postload) and skip terser:iecompat, which handles
+            // IE compatibility for babel-transpiled files - unnecessary overhead for modern builds.
             terser: {
                 options: {
+                    mangle: false,
                     format: {
                         comments: false,
                         preamble: "/* minified by terser */",
@@ -538,6 +718,7 @@ module.exports = function(grunt) {
             pkg: packageFile,
             terser: {
                 options: {
+                    mangle: false,
                     format: {
                         comments: false,
                         preamble: copyright,
@@ -705,6 +886,7 @@ module.exports = function(grunt) {
 
             terser: {
                 options: {
+                    mangle: false,
                     format: {
                         comments: false,
                         preamble: copyright,
@@ -741,6 +923,17 @@ module.exports = function(grunt) {
                 }
             },
 
+            replace: {
+                indexhtml: {
+                    src: ['<%= pkg.embed.copy.indexhtml[0].dest %>/*.html'],
+                    overwrite: true,
+                    replacements: [{
+                        from: /\@\@SRC_ROOT\@\@/g,
+                        to: SRC_ROOT
+                    }, ...global.jsreplacements]
+                }
+            },
+
             inline: {
                 options:{
                     uglify: true,
@@ -765,6 +958,7 @@ module.exports = function(grunt) {
 
             terser: {
                 options: {
+                    mangle: false,
                     format: {
                         comments: false,
                         preamble: copyright,
@@ -807,9 +1001,14 @@ module.exports = function(grunt) {
 
     //quick workaround for build desktop version
     var copyTask = grunt.option('desktop')? "copy": "copy:script";
+    var imageminTask = grunt.option('skip-imagemin') ? ['copy:images-app'] : ['imagemin'];
+    var spritesTask = grunt.option('skip-sprites') ? [] : ['prebuild-svg-sprites'];
+    // Skip babel ES5 transpilation for modern-only builds (use --skip-babel flag)
+    // When skipped, no ie/ directory is created - only ES6 output is produced
+    var babelTask = grunt.option('skip-babel') ? [] : ['babel'];
 
     grunt.registerTask('deploy-api',                    ['api-init', 'clean', copyTask, 'replace:writeVersion']);
-    grunt.registerTask('deploy-apps-common',            ['apps-common-init', 'clean', 'copy', 'inline', 'imagemin', 'svgmin']);
+    grunt.registerTask('deploy-apps-common',            ['apps-common-init', 'clean', 'copy', 'replace', 'inline', ...imageminTask, 'svgmin']);
     grunt.registerTask('deploy-sdk',                    ['sdk-init', 'clean', copyTask]);
 
     grunt.registerTask('deploy-socketio',               ['socketio-init', 'clean', 'copy']);
@@ -825,8 +1024,8 @@ module.exports = function(grunt) {
     grunt.registerTask('deploy-monaco',                 ['monaco-init', 'clean', 'copy']);
     grunt.registerTask('deploy-common-embed',           ['common-embed-init', 'clean', 'copy']);
 
-    grunt.registerTask('deploy-app-main',               ['prebuild-icons-sprite', 'main-app-init', 'clean:prebuild', 'imagemin', 'less',
-                                                            'requirejs', 'babel', 'terser', 'concat', 'copy', 'svgmin', 'inline', 'json-minify',
+    grunt.registerTask('deploy-app-main',               [...spritesTask, 'main-app-init', 'clean:prebuild', ...imageminTask, 'less',
+                                                            'requirejs', ...babelTask, 'terser:build', 'terser:postload', 'concat', 'copy', 'svgmin', 'replace:indexhtml', 'inline', 'json-minify',
                                                             'replace:writeVersion', 'replace:prepareHelp', 'clean:postbuild']);
 
     grunt.registerTask('deploy-app-mobile',             []);
@@ -874,10 +1073,24 @@ module.exports = function(grunt) {
     grunt.registerTask('deploy-testpresentationeditor', ['init-build-testpresentationeditor', 'deploy-app']);
     grunt.registerTask('deploy-testspreadsheeteditor', ['init-build-testspreadsheeteditor', 'deploy-app']);
 
-    grunt.registerTask('default', ['deploy-common-component',
+    // Build LESS only for all editors
+    // Note: common styles are imported into each editor's app.less, no separate common build needed
+    grunt.registerTask('less-all', [
+        'deploy-theme',
+        'init-build-documenteditor', 'main-app-init', 'less',
+        'init-build-spreadsheeteditor', 'main-app-init', 'less',
+        'init-build-presentationeditor', 'main-app-init', 'less',
+        'init-build-pdfeditor', 'main-app-init', 'less',
+        'init-build-visioeditor', 'main-app-init', 'less'
+    ]);
+
+    grunt.registerTask('default', ['deploy-theme',
+                                    ...spritesTask,
+                                   'deploy-common-component',
                                    'deploy-documenteditor-component',
                                    'deploy-spreadsheeteditor-component',
                                    'deploy-presentationeditor-component',
                                    'deploy-pdfeditor-component',
-                                   'deploy-visioeditor-component']);
+                                   'deploy-visioeditor-component',
+                                   'deploy-theme-images']);
 };

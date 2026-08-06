@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -390,6 +383,7 @@ define([
             toolbar.btnShapesMerge.menu.on('item:click',                _.bind(this.onClickMenuShapesMerge, this));
             toolbar.btnShapesMerge.menu.on('show:before',               _.bind(this.onBeforeShapesMerge, this));
             toolbar.btnInsertHyperlink.on('click',                      _.bind(this.onHyperlinkClick, this));
+            toolbar.btnSmartPicker.on('click',                          _.bind(this.onSmartPickerClick, this));
             toolbar.mnuTablePicker.on('select',                         _.bind(this.onTablePickerSelect, this));
             toolbar.btnInsertTable.menu.on('item:click',                _.bind(this.onInsertTableClick, this));
             toolbar.btnClearStyle.on('click',                           _.bind(this.onClearStyleClick, this));
@@ -405,6 +399,8 @@ define([
             toolbar.btnInsDateTime.on('click',                          _.bind(this.onEditHeaderClick, this, 'datetime'));
             toolbar.btnInsSlideNum.on('click',                          _.bind(this.onEditHeaderClick, this, 'slidenum'));
             Common.Gateway.on('insertimage',                            _.bind(this.insertImage, this));
+            Common.Gateway.on('insertlink',                             _.bind(this.insertLink, this));
+            Common.Gateway.on('insertplaintext',                        _.bind(this.insertPlainText, this));
             toolbar.btnInsAudio && toolbar.btnInsAudio.on('click',      _.bind(this.onAddAudio, this));
             toolbar.btnInsVideo && toolbar.btnInsVideo.on('click',      _.bind(this.onAddVideo, this));
 
@@ -1850,6 +1846,12 @@ define([
             Common.component.Analytics.trackEvent('ToolBar', 'Add Hyperlink');
         },
 
+        onSmartPickerClick: function() {
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                Common.Gateway.requestSmartPicker(this.api['asc_GetSelectedText']() || '', 'toolbar');
+            }
+        },
+
         onTablePickerSelect: function(picker, columns, rows, e) {
             if (this.api) {
                 this.toolbar.fireEvent('inserttable', this.toolbar);
@@ -1958,6 +1960,30 @@ define([
                 data._urls = arr;
             }
             Common.NotificationCenter.trigger('storage:image-insert', data);
+        },
+
+        insertLink: function(data) { // gateway
+            
+            var props   = new Asc.CHyperlinkProperty();
+            props.put_Value(data);
+            props.put_Bookmark(null);
+            props.put_Text(data);
+            this.api.add_Hyperlink(props);
+            
+            Common.NotificationCenter.trigger('storage:link-insert', data);
+        },
+
+        insertPlainText: function(data) {
+            // pluginMethod_PasteText is the cross-editor (CDE/CSE/CPE) plain-text
+            // paste entry registered via Api.prototype[...] in
+            // sdkjs/common/apiBase_plugins.js. Bracket-registered so it survives
+            // the Closure Compiler advanced-mode minifier; internally wraps
+            // asc_PasteData(Text, text, ...) with proper undo grouping. This is
+            // the same path OnlyOffice's AI plugin uses for text insertion.
+            if (typeof this.api["pluginMethod_PasteText"] === 'function') {
+                this.api["pluginMethod_PasteText"](data);
+            }
+            Common.NotificationCenter.trigger('storage:plain-text-insert', data);
         },
 
         onBtnInsertTextClick: function(btn, e) {
@@ -2764,6 +2790,11 @@ define([
             Common.Utils.InternalSettings.set('toolbar-active-tab', !editmode && !compactview);
 
             me.toolbar.render(_.extend({compactview: editmode ? compactview : true}, config));
+
+            // Smart Picker button visibility: show only when assistant is available.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                me.toolbar.btnSmartPicker && me.toolbar.btnSmartPicker.setVisible(!!available);
+            });
 
             var tab = {action: 'review', caption: me.toolbar.textTabCollaboration, layoutname: 'toolbar-collaboration', dataHintTitle: 'U'};
             var $panel = me.getApplication().getController('Common.Controllers.ReviewChanges').createToolbarPanel();

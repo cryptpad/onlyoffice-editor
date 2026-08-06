@@ -1,0 +1,53 @@
+name: "Build"
+
+on:
+    workflow_dispatch:
+    push:
+
+jobs:
+    build-apps:
+        name: "Build web-apps"
+        runs-on: self-hosted
+        env:
+            NODE_VERSION: 16
+        steps:
+
+          - name: Checkout web-apps
+            uses: actions/checkout@v3
+            with:
+                repository: euro-office/web-apps
+                ref: ${{github.ref}}
+                path: 'web-apps'
+
+          - name: Checkout SDKJS
+            uses: actions/checkout@v3
+            with:
+                repository: euro-office/sdkjs
+                ref: ${{env.REF}}
+                path: 'sdkjs'
+                fetch-depth: '1'
+
+          - name: Use Node.js ${{ env.NODE_VERSION }}
+            uses: actions/setup-node@v3
+            with:
+                node-version: ${{ env.NODE_VERSION }}
+
+          - name: Build sprites
+            run: |
+              cd web-apps/build
+              ./sprites.sh
+
+          - name: Install dependencies
+            run: |
+              cd web-apps/build
+              npm install
+        
+          - name: Merge missing translations keys
+            run: |
+              cd web-apps/translation
+              python3 merge_and_check.py
+
+          - name: Run grunt
+            run: |
+              cd web-apps/build
+              grunt

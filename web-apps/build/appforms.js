@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -30,18 +23,22 @@
  *
  */
 
-module.exports = (grunt) => {
+module.exports = (grunt, replaceDeployPaths) => {
     grunt.registerTask('forms-app-init', function() {
         const packageFile = global.packageFile;
         if ( !global.packageFile )
             grunt.log.ok('no package file'.red);
         else {
-            const config = require('./appforms.json');
+            config = require('./appforms.json');
             if ( config ) {
                 //packageFile.tasks.deploy.push(...config.tasks.deploy);
+                config = replaceDeployPaths(config)
                 packageFile.forms = config.forms;
             }
         }
+
+        let path = require('path');
+        const SRC_ROOT = path.resolve(__dirname, "..")
 
         grunt.initConfig({
             pkg: packageFile,
@@ -71,7 +68,7 @@ module.exports = (grunt) => {
                     options: {
                         compress: true,
                         ieCompat: false,
-                        modifyVars: packageFile.forms.less.vars,
+                        modifyVars: Object.assign({}, packageFile.forms.less.vars, global.themeFormVars || {}),
                         plugins: [
                             new (require('less-plugin-clean-css'))()
                         ]
@@ -111,6 +108,14 @@ module.exports = (grunt) => {
                         to: packageFile.version
                     }, ...global.jsreplacements]
                 },
+                indexhtml: {
+                    src: packageFile.forms.copy.indexhtml[0].dest + '/*.html',
+                    overwrite: true,
+                    replacements: [{
+                        from: /\@\@SRC_ROOT\@\@/g,
+                        to: SRC_ROOT
+                    }]
+                }
             },
 
             inline: {
@@ -159,7 +164,9 @@ module.exports = (grunt) => {
         });
     });
 
+    var babelTask = grunt.option('skip-babel') ? [] : ['babel', 'terser:iecompat'];
+
     grunt.registerTask('deploy-app-forms', ['forms-app-init', 'clean:prebuild', /*'imagemin',*/ 'less',
-                                                            'requirejs', 'babel', 'terser', 'concat', 'copy', 'inline', /*'json-minify',*/
+                                                            'requirejs', ...babelTask, 'terser:build', 'terser:postload', 'concat', 'copy','replace:indexhtml', 'inline', /*'json-minify',*/
                                                             'replace:varsEnviroment', /*'replace:prepareHelp',*/ 'clean:postbuild']);
 }

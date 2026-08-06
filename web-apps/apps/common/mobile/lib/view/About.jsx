@@ -81,8 +81,8 @@ const PageAbout = props => {
                             )}
                             {urlCustomer?.length && (
                                 <p className="about__text">
-                                    <Link id="settings-about-url" external={true} target="_blank" 
-                                        href={!/^https?:\/{2}/i.test(urlCustomer) ? "http:\/\/" : '' + urlCustomer}>
+                                    <Link id="settings-about-url" external={true} target="_blank"
+                                        href={(!/^https?:\/{2}/i.test(urlCustomer) ? 'http://' : '') + urlCustomer}>
                                         {urlCustomer}
                                     </Link>
                                 </p>
@@ -120,6 +120,11 @@ const PageAbout = props => {
                         </p>
                     </div>
                 </Fragment>
+            )}
+            {__ATTRIBUTION__ && (
+                <div className="about__attribution">
+                    <p className="about__text">{__ATTRIBUTION__}</p>
+                </div>
             )}
         </Page>
     );

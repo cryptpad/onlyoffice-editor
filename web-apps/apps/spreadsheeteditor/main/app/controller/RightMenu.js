@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -200,8 +193,12 @@ define([
                         settingsType = Common.Utils.documentSettingsType.Chart;
                         this._settings[settingsType].btn.updateHint(this.rightmenu.txtChartSettings);
                     } else if (value.asc_getShapeProperties() !== null) {
+                        var shProps = value.asc_getShapeProperties();
+                        if (shProps.asc_getIsControl && shProps.asc_getIsControl()) {
+                            continue; // no right-panel for form controls
+                        }
                         settingsType = Common.Utils.documentSettingsType.Shape;
-                        if (value.asc_getShapeProperties().asc_getTextArtProperties()) {
+                        if (shProps.asc_getTextArtProperties()) {
                             this._settings[Common.Utils.documentSettingsType.TextArt].props = value;
                             this._settings[Common.Utils.documentSettingsType.TextArt].hidden = 0;
                             this._settings[Common.Utils.documentSettingsType.TextArt].locked = value.asc_getLocked() || this._state.wsProps['Objects'] && value.asc_getProtectionLockText();
