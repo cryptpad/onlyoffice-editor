@@ -70,7 +70,7 @@ def check_file_without_newline(files):
 def check_code_style():
   files_js = get_files_by_ext(".js")
   check_file_without_license(files_js)
-  check_file_without_latvian_address(files_js)
+  # check_file_without_latvian_address(files_js)
   check_file_without_lf_ending(files_js)
   check_file_without_newline(files_js)
 

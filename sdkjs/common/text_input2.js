@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -78,7 +71,16 @@
 		this.TargetId = null; // id caret
 		this.HtmlDiv  = null; // для незаметной реализации одной textarea недостаточно. parent для HtmlArea
 		this.HtmlArea = null; // HtmlArea - элемент для ввода
-		this.ElementType = InputTextElementType.TextArea;
+		// On iOS (word editor only), a full-canvas contenteditable is required so that
+		// every tap lands on a text input element — iOS only keeps keyboard when the tap
+		// target IS a text input. opacity:0 excludes elements from iOS hit-testing; we
+		// use color:transparent so the element is UIKit-visible but invisible to the user.
+		// Gated to Word: cell/slide use different canvas z-index layouts and forwarding
+		// targets that have not been validated.
+		this.ElementType = AscCommon.AscBrowser.isSafariMobile &&
+		                   this.Api.editorId === AscCommon.c_oEditorId.Word
+			? InputTextElementType.ContentEditableDiv
+			: InputTextElementType.TextArea;
 
 		// ---------------------------------------------------------------
 		// chrome element for left/top
@@ -887,10 +889,34 @@
 	};
 	CTextInputPrototype.setReadOnlyWrapper = function(val)
 	{
-		this.HtmlArea.readOnly = this.isDisableKeyboard ? true : val;
+		if (this.ElementType === InputTextElementType.TextArea)
+		{
+			this.HtmlArea.readOnly = this.isDisableKeyboard ? true : val;
+		}
+		else
+		{
+			var _disabled = this.isDisableKeyboard || val;
+			this.HtmlArea.contentEditable = _disabled ? 'false' : 'true';
+			var _scrollable = document.getElementById('area_id_main');
+			if (_scrollable)
+				_scrollable.style.pointerEvents = _disabled ? 'none' : 'auto';
+			if (_disabled && document.activeElement === this.HtmlArea)
+				this.HtmlArea.blur();
+		}
 	};
 	CTextInputPrototype.setInterfaceEnableKeyEvents = function(value)
 	{
+		// On iOS with ContentEditableDiv: ignore false calls while the overlay has focus.
+		// These come from Framework7 sheet/popover open events and must not disrupt the
+		// active keyboard session. The real exit-edit-mode path goes through
+		// setReadOnlyWrapper(true) which explicitly calls blur().
+		if (!value && AscCommon.AscBrowser.isSafariMobile &&
+			this.ElementType === InputTextElementType.ContentEditableDiv &&
+			document.activeElement === this.HtmlArea)
+		{
+			return;
+		}
+
 		this.InterfaceEnableKeyEvents = value;
 		if (true === this.InterfaceEnableKeyEvents)
 		{
@@ -963,21 +989,38 @@
 		var _style = "";
 		if (!TEXT_INPUT_DEBUG)
 		{
-			_style = ("left:-" + (this.HtmlAreaWidth >> 1) + "px;top:" + (-this.HtmlAreaOffset) + "px;");
-			_style += "color:transparent;caret-color:transparent;background:transparent;";
-
-			if (this.Api.isUseOldMobileVersion())
-				_style += (AscCommon.AscBrowser.isAppleDevices && !AscCommon.AscBrowser.isTelegramWebView && (AscCommon.AscBrowser.maxTouchPoints > 0)) ? "font-size:0px;" : "font-size:8px;";
+			if (this.ElementType === InputTextElementType.ContentEditableDiv && AscCommon.AscBrowser.isSafariMobile)
+			{
+				// Full-canvas coverage. MUST use color:transparent not opacity:0 —
+				// iOS excludes opacity:0 elements from hit-testing so keyboard is dismissed.
+				// With color:transparent the element is UIKit-visible at the tap location.
+				_style = "left:0;top:0;width:100%;height:100%;color:transparent;caret-color:transparent;background:transparent;outline:none;";
+			}
 			else
-				_style += "font-size:8px;";
+			{
+				_style = ("left:-" + (this.HtmlAreaWidth >> 1) + "px;top:" + (-this.HtmlAreaOffset) + "px;");
+				_style += "color:transparent;caret-color:transparent;background:transparent;";
+
+				if (this.Api.isUseOldMobileVersion())
+					_style += (AscCommon.AscBrowser.isAppleDevices && !AscCommon.AscBrowser.isTelegramWebView && (AscCommon.AscBrowser.maxTouchPoints > 0)) ? "font-size:0px;" : "font-size:8px;";
+				else
+					_style += "font-size:8px;";
+			}
 		}
 		else
 		{
 			_style = "left:0px;top:0px;color:black;caret-color:black;font-size:16px;background:transparent;";
 		}
-		_style += ("border:none;position:absolute;text-shadow:0 0 0 #000;outline:none;width:" + this.HtmlAreaWidth + "px;height:50px;");
-		_style += "overflow:hidden;padding:0px;margin:0px;font-family:arial;resize:none;font-weight:normal;box-sizing:content-box;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;";
-		_style += "touch-action: none;-webkit-touch-callout: none;";
+		if (this.ElementType === InputTextElementType.ContentEditableDiv && AscCommon.AscBrowser.isSafariMobile)
+		{
+			_style += "border:none;position:absolute;padding:0px;margin:0px;";
+		}
+		else
+		{
+			_style += ("border:none;position:absolute;text-shadow:0 0 0 #000;outline:none;width:" + this.HtmlAreaWidth + "px;height:50px;");
+			_style += "overflow:hidden;padding:0px;margin:0px;font-family:arial;resize:none;font-weight:normal;box-sizing:content-box;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;";
+			_style += "touch-action: none;-webkit-touch-callout: none;";
+		}
 
 		this.HtmlArea.setAttribute("style", _style);
 		this.HtmlArea.setAttribute("spellcheck", false);
@@ -1065,7 +1108,59 @@
 		oHtmlDivScrollable.style.height = parentStyle.height;
 		oHtmlDivScrollable.style.overflow = "hidden";
 		oHtmlDivScrollable.appendChild(this.HtmlDiv);
-		oHtmlParent.parentNode.appendChild(oHtmlDivScrollable);
+		// On iOS ContentEditableDiv: append inside oHtmlParent (e.g. id_main_view) so our
+		// overlay is a direct sibling of id_viewer_overlay (z-index:2) and id_target_cursor
+		// (z-index:4). Touch events are forwarded as PointerEvents to id_viewer_overlay where
+		// the mobile touch manager's cursor-placement handlers are registered.
+		if (this.ElementType === InputTextElementType.ContentEditableDiv && AscCommon.AscBrowser.isSafariMobile)
+			oHtmlParent.appendChild(oHtmlDivScrollable);
+		else
+			oHtmlParent.parentNode.appendChild(oHtmlDivScrollable);
+
+		if (this.ElementType === InputTextElementType.ContentEditableDiv && AscCommon.AscBrowser.isSafariMobile)
+		{
+			// Container and div cover canvas fully. z-index:3 exceeds canvas overlay (z-index:2).
+			// pointer-events stays none until showKeyboard() activates the overlay.
+			oHtmlDivScrollable.style.zIndex = '3';
+			this.HtmlDiv.style.left   = '0px';
+			this.HtmlDiv.style.top    = '0px';
+			this.HtmlDiv.style.width  = '100%';
+			this.HtmlDiv.style.height = '100%';
+
+			// Forward touch events to id_viewer_overlay — the mobile touch manager's
+			// mainOnTouchStart/End handlers are registered there, not on area_id.
+			// Lazy lookup: id_viewer_overlay may not exist at init time.
+			var _fwdTarget = null;
+			var _getFwdTarget = function()
+			{
+				if (!_fwdTarget)
+					_fwdTarget = document.getElementById('id_viewer_overlay');
+				return _fwdTarget;
+			};
+			// The touch manager registers pointerdown/move/up on id_viewer_overlay.
+			// Dispatch PointerEvent so those handlers fire for cursor placement.
+			var _fwdPointer = function(e, type)
+			{
+				var _target = _getFwdTarget();
+				if (!_target) return;
+				var _t = (e.changedTouches || e.touches)[0];
+				if (!_t) return;
+				try {
+					_target.dispatchEvent(new PointerEvent(type, {
+						bubbles: true, cancelable: true,
+						clientX: _t.clientX, clientY: _t.clientY,
+						pageX: _t.pageX, pageY: _t.pageY,
+						screenX: _t.screenX, screenY: _t.screenY,
+						pointerId: 1, pointerType: 'touch', isPrimary: true,
+						pressure: type === 'pointerup' ? 0 : 0.5
+					}));
+				} catch(_e) {}
+			};
+			this.HtmlArea.addEventListener('touchstart',  function(e) { _fwdPointer(e, 'pointerdown'); }, {passive: true});
+			this.HtmlArea.addEventListener('touchmove',   function(e) { _fwdPointer(e, 'pointermove'); }, {passive: true});
+			this.HtmlArea.addEventListener('touchend',    function(e) { _fwdPointer(e, 'pointerup');   }, {passive: true});
+			this.HtmlArea.addEventListener('touchcancel', function(e) { _fwdPointer(e, 'pointercancel'); }, {passive: true});
+		}
 	};
 	CTextInputPrototype.onResize = function(editorContainerId)
 	{
@@ -1180,8 +1275,12 @@
 		var xPos = x ? x : parseInt(oTarget.style.left);
 		var yPos = (y ? y : parseInt(oTarget.style.top)) + parseInt(oTarget.style.height);
 
-		if (AscCommon.AscBrowser.isSafari && AscCommon.AscBrowser.isMobile)
+		if (AscCommon.AscBrowser.isSafariMobile)
+		{
+			if (this.ElementType === InputTextElementType.ContentEditableDiv)
+				return; // full-canvas overlay — no repositioning needed
 			xPos = -100;
+		}
 
 		if (this.Api.editorId === AscCommon.c_oEditorId.Presentation)
 		{
@@ -1253,10 +1352,14 @@
 	{
 		if (this.virtualKeyboardReadOnly_ShowKeyboard)
 		{
-			if (this.HtmlArea.readOnly === true)
-			{
+			if (this.ElementType === InputTextElementType.TextArea && this.HtmlArea.readOnly === true)
 				this.setReadOnlyWrapper(false);
-			}
+		}
+
+		if (AscCommon.AscBrowser.isSafariMobile && this.ElementType === InputTextElementType.ContentEditableDiv)
+		{
+			this.setReadOnlyWrapper(false);
+			return;
 		}
 
 		if (!this.Api.asc_IsFocus())

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -4145,6 +4138,25 @@
 						range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 					}
 				}
+			}
+		}
+		else if (cDialogType.CheckBox === dialogType)
+		{
+			if (!dataRange || dataRange === '') {
+				return Asc.c_oAscError.ID.No;
+			}
+			// Accept sheet-qualified refs ("Sheet1!$A$1") or plain refs ("$A$1")
+			var oRef3D = parserHelp.parse3DRef(dataRange);
+			if (oRef3D) {
+				sheetModel = model.getWorksheetByName(oRef3D.sheet);
+				if (!sheetModel) {
+					return Asc.c_oAscError.ID.DataRangeError;
+				}
+				if (sheetModel) {
+					range = AscCommonExcel.g_oRangeCache.getAscRange(oRef3D.range);
+				}
+			} else {
+				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 		}
 		else
@@ -11126,20 +11138,23 @@
 	}
 
 	var g_oUserColorById = {}, g_oUserNextColorIndex = 0;
-	
+	let g_oDefaultUserColor = null; // steel blue for anonymous/unknown user
 	function _getUserColorById(userId, userName, isDark, isNumericValue)
 	{
-		if (window.parent.APP && window.parent.APP.getUserColor) {
-            try {
-                var CPColor = window.parent.APP.getUserColor(userId);
-                if (CPColor) {
-                    return true === isNumericValue ? ((CPColor.r << 16) & 0xFF0000) | ((CPColor.g << 8) & 0xFF00) | (CPColor.b & 0xFF)
-                                        : new CColor(CPColor.r, CPColor.g, CPColor.b, CPColor.a);
-                }
-            } catch (e) {} // CRYPTPAD XXX
-        }
+		function defaultColor()
+		{
+			if (g_oDefaultUserColor)
+				return g_oDefaultUserColor;
+			
+			g_oDefaultUserColor = new CUserCacheColor(0x4A90D9);
+			return g_oDefaultUserColor;
+		}
+		
 		if ((!userId || "" === userId) && (!userName || "" === userName))
-			return new CColor(0, 0, 0, 255);
+		{
+			let res = defaultColor();
+			return -1 === isDark ? res.Light : true === isDark || 1 === isDark ? res.Dark : res.Normal;
+		}
 
 		var res;
 		if (g_oUserColorById.hasOwnProperty(userId))
@@ -11159,7 +11174,7 @@
 		}
 
 		if (!res)
-			return new CColor(0, 0, 0, 255);
+			res = defaultColor();
 
 		return -1 === isDark ? res.Light : true === isDark || 1 === isDark ? res.Dark : res.Normal;
 	}

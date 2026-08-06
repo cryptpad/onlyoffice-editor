@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -1215,6 +1208,37 @@
 						const bIsSelectColumns = oEvent.IsShortcutCtrl() || oEvent.IsCmd();
 						if (bIsSelectColumns && bIsSelect && bIsMacOs) {
 							break;
+						}
+						// Toggle focused checkbox(es) with plain Space (no modifiers)
+						if (!bIsSelectColumns && !bIsSelect) {
+						
+						    const oApi = oThis.view.model && oThis.view.model.Api;
+    					    if (oApi && !oApi.canEdit()) break;
+    					    const wsModel = oThis.view.getWorksheet().model;
+    					    if (wsModel && wsModel.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) break;
+
+							const oDrawCtrl = oThis.view.getWorksheet().objectRender.controller;
+							if (oDrawCtrl && oDrawCtrl.selectedObjects && oDrawCtrl.selectedObjects.length >= 1) {
+								const aCheckBoxes = oDrawCtrl.selectedObjects.filter(function (oObj) {
+									return oObj && oObj.isControl && oObj.isControl() && oObj.isCheckBox && oObj.isCheckBox() && !oObj.controller.isExternalCheckBox();
+								});
+								if (aCheckBoxes.length > 0) {
+									oDrawCtrl.checkObjectsAndCallback(function () {
+										aCheckBoxes.forEach(function (oObj) {
+											const oFormControlPr = oObj.controller.getFormControlPr();
+											if (!oObj.controller.isEmpty()) {
+												oFormControlPr.setChecked(AscFormat.CFormControlPr_checked_unchecked);
+											} else {
+												oFormControlPr.setChecked(AscFormat.CFormControlPr_checked_checked);
+											}
+											oObj.controller.updateCellFromControl();
+											oObj.controller.checkNeedUpdate();
+										});
+									}, [], false, AscDFH.historydescription_Spreadsheet_SwitchCheckbox, aCheckBoxes);
+									nRetValue = keydownresult_PreventAll;
+									break;
+								}
+							}
 						}
 						// Disable the browser's standard click handling
 						// Ctrl+Shift+Spacebar, Ctrl+Spacebar, Shift+Spacebar

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -82,7 +75,7 @@
  * @memberof Plugin
  * @typeofeditors ["CDE"]
  * @alias onAddComment
- * @description The function called when a comment is added to the document with the {@link /docs/plugins/text-document-api/Methods/AddComment AddComment} method.
+ * @description The function called when a comment is added to the document with the {@link /docs/plugin-and-macros/interacting-with-editors/text-document-api/Methods/AddComment AddComment} method.
  * @param {comment} comment - Defines the comment object containing the comment data.
  * @see office-js-api/Examples/Plugins/{Editor}/Plugin/Events/onAddComment.js
  */
@@ -93,7 +86,7 @@
  * @memberof Plugin
  * @typeofeditors ["CDE"]
  * @alias onChangeCommentData
- * @description The function called when the specified comment is changed with the {@link /docs/plugins/text-document-api/Methods/ChangeComment ChangeComment} method.
+ * @description The function called when the specified comment is changed with the {@link /docs/plugin-and-macros/interacting-with-editors/text-document-api/Methods/ChangeComment ChangeComment} method.
  * @param {comment} comment - Defines the comment object containing the comment data.
  * @see office-js-api/Examples/Plugins/{Editor}/Plugin/Events/onChangeCommentData.js
  */
@@ -115,7 +108,7 @@
  * @memberof Plugin
  * @typeofeditors ["CDE"]
  * @alias onRemoveComment
- * @description The function called when the specified comment is removed with the {@link /docs/plugins/text-document-api/Methods/RemoveComments RemoveComments} method.
+ * @description The function called when the specified comment is removed with the {@link /docs/plugin-and-macros/interacting-with-editors/text-document-api/Methods/RemoveComments RemoveComments} method.
  * @param {comment} comment - Defines the comment object containing the comment data.
  * @see office-js-api/Examples/Plugins/{Editor}/Plugin/Events/onRemoveComment.js
  */

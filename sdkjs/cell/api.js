@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -5323,6 +5316,60 @@ var editor;
         }
     };
 
+  spreadsheet_api.prototype.asc_addCheckBoxOnSheet = function() {
+    if (!this.wb) return;
+    var ws = this.wb.getWorksheet();
+    if (ws && ws.model && ws.model.getSheetProtection(Asc.c_oAscSheetProtectType.objects)) {
+      return false;
+    }
+    if (ws && ws.objectRender) {
+      ws.objectRender.addCheckBoxOnSheet();
+    }
+  };
+
+  spreadsheet_api.prototype.asc_getCheckBoxProps = function() {
+    if (!this.wb) return null;
+    var ws = this.wb.getWorksheet();
+    if (!ws || !ws.objectRender || !ws.objectRender.controller) return null;
+    var ctrl = ws.objectRender.controller;
+    if (!ctrl.selectedObjects || ctrl.selectedObjects.length !== 1) return null;
+    var obj = ctrl.selectedObjects[0];
+    if (!obj || !obj.isControl || !obj.isControl() || !obj.isCheckBox || !obj.isCheckBox()) return null;
+    var fmlaLink = obj.formControlPr ? (obj.formControlPr.fmlaLink || '') : '';
+    var checked  = obj.formControlPr ? (obj.formControlPr.checked  || 0)  : 0;
+    var result = {};
+    result['checked'] = checked;
+    result['fmlaLink'] = fmlaLink;
+    return result;
+  };
+
+  spreadsheet_api.prototype.asc_setCheckBoxProps = function(props) {
+    if (!this.wb || !props || !this.canEdit()) return;
+    var ws = this.wb.getWorksheet();
+    if (!ws || !ws.objectRender || !ws.objectRender.controller) return;
+    var ctrl = ws.objectRender.controller;
+    if (!ctrl.selectedObjects || ctrl.selectedObjects.length !== 1) return;
+    var obj = ctrl.selectedObjects[0];
+    if (!obj || !obj.isControl || !obj.isControl() || !obj.isCheckBox || !obj.isCheckBox()) return;
+    var fmlaLink = props['fmlaLink'];
+    var checked  = props['checked'];
+    if (typeof fmlaLink !== 'undefined' && fmlaLink !== '') {
+      var linkCheck = parserHelp.checkDataRange(this.wbModel, this.wb, Asc.c_oAscSelectionDialogType.CheckBox, fmlaLink, true);
+      if (linkCheck !== Asc.c_oAscError.ID.No) return;
+    }
+    ctrl.checkObjectsAndCallback(function() {
+      if (obj.formControlPr) {
+        if (typeof checked !== 'undefined') {
+          obj.formControlPr.setChecked(checked);
+        }
+        if (typeof fmlaLink !== 'undefined') {
+          obj.formControlPr.setFmlaLink(fmlaLink);
+        }
+        obj.controller.updateCellFromControl();
+      }
+    }, [], false, AscDFH.historydescription_Spreadsheet_SwitchCheckbox, [obj]);
+  };
+
   spreadsheet_api.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight, nWidthPix, nHeightPix, bSelect, arrImagesForAddToHistory)
   {
     var _image = this.ImageLoader.LoadImage(AscCommon.getFullImageSrc2(sLocalUrl), 1);
@@ -10312,6 +10359,9 @@ var editor;
   prot["asc_startAddShape"] = prot.asc_startAddShape;
   prot["asc_endAddShape"] = prot.asc_endAddShape;
   prot["asc_addShapeOnSheet"] = prot.asc_addShapeOnSheet;
+  prot["asc_addCheckBoxOnSheet"] = prot.asc_addCheckBoxOnSheet;
+  prot["asc_getCheckBoxProps"] = prot.asc_getCheckBoxProps;
+  prot["asc_setCheckBoxProps"] = prot.asc_setCheckBoxProps;
   prot["asc_canEditGeometry"] = prot.asc_canEditGeometry;
   prot["asc_editPointsGeometry"] = prot.asc_editPointsGeometry;
   prot["asc_isAddAutoshape"] = prot.asc_isAddAutoshape;
