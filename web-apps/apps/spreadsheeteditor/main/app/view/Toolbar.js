@@ -1353,7 +1353,6 @@ define([
                     dataHint    : '1',
                     dataHintDirection: 'top'
                 });
-
                 me.btnInsertImage = new Common.UI.Button({
                     id          : 'tlbtn-insertimage',
                     cls         : 'btn-toolbar x-huge icon-top',
