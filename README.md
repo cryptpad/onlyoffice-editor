@@ -21,14 +21,14 @@ make test
 ## sdkjs
 
 ```sh
-git fetch --depth=1 https://github.com/ONLYOFFICE/sdkjs.git v9.3.0.140
+git fetch --depth=1 https://github.com/Euro-Office/sdkjs.git v9.3.2
 git diff FETCH_HEAD HEAD:sdkjs
 ```
 
 ## web-apps
 
 ```sh
-git fetch --depth=1 https://github.com/ONLYOFFICE/web-apps.git v9.3.0.140
+git fetch --depth=1 https://github.com/Euro-Office/web-apps.git v9.3.2
 git diff FETCH_HEAD HEAD:web-apps
 ```
 
@@ -38,6 +38,6 @@ Instead of calling `git diff ...`, you can use `git difftool --dir-diff ...` wit
 
 # Pull OnlyOffice upstream changes
 ```shell
-git subtree pull --prefix sdkjs https://github.com/ONLYOFFICE/sdkjs.git <TAG> --squash
-git subtree pull --prefix web-apps https://github.com/ONLYOFFICE/web-apps.git <TAG> --squash
+git subtree pull --prefix sdkjs https://github.com/Euro-Office/sdkjs.git <TAG> --squash
+git subtree pull --prefix web-apps https://github.com/Euro-Office/web-apps.git <TAG> --squash
 ```
