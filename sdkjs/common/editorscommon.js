@@ -1705,9 +1705,10 @@
 	};
 
 	//todo get from server config
+	// CryptPad: removed .svg from supported formats to display the relevant error modal when user attempts .svg file import
 	var c_oAscImageUploadProp = {//Не все браузеры позволяют получить информацию о файле до загрузки(например ie9), меняя параметры здесь надо поменять аналогичные параметры в web.common
 		MaxFileSize:      25000000, //25 mb
-		SupportedFormats: ["jpg", "jpeg", "jpe", "png", "gif", "bmp", "svg", "tiff", "tif"]
+		SupportedFormats: ["jpg", "jpeg", "jpe", "png", "gif", "bmp", "tiff", "tif"]
 	};
 
 	var c_oAscDocumentUploadProp = {
