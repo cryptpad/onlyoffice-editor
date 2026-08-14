@@ -35,6 +35,8 @@ COPY sdkjs /app/sdkjs
 COPY web-apps /app/web-apps
 COPY fonts/*.png /app/sdkjs/common/Images
 COPY fonts/*.js /app/sdkjs/common
+WORKDIR /app/web-apps/translation
+RUN python3 merge_and_check.py
 WORKDIR /app/sdkjs
 RUN make
 RUN mv deploy/web-apps/apps/api/documents/api.js deploy/web-apps/apps/api/documents/api-orig.js
