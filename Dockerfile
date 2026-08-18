@@ -53,7 +53,7 @@ COPY --from=onlyoffice-editor-build /app/dist/api.js /app/web-apps/apps/api/docu
 WORKDIR /app
 
 
-FROM files-build AS zip-build
+FROM files-build AS brotli-build
 RUN find . -name "*.wasm" \
     -o -name "*.js" \
     -o -name "*.html" \
@@ -61,6 +61,10 @@ RUN find . -name "*.wasm" \
     -o -name "*.aff" \
     -o -name "*.dic" \
     | xargs -P 8 -n 16 -- brotli
+
+
+
+FROM brotli-build AS zip-build
 RUN zip -r onlyoffice-editor.zip .
 RUN sha512sum onlyoffice-editor.zip > onlyoffice-editor.zip.sha512
 
@@ -80,3 +84,8 @@ COPY --from=zip-build /app/onlyoffice-editor.zip.sha512 /
 
 FROM scratch AS files
 COPY --from=files-build /app/ /
+
+
+
+FROM scratch AS files-brotli
+COPY --from=brotli-build /app/ /

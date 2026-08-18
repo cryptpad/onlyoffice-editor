@@ -6,6 +6,10 @@ build:
 files:
 	docker build --target files -o output-files .
 
+.PHONY: files-brotli
+files-brotli:
+	docker build --target files-brotli -o output-files .
+
 .PHONY: onlyoffice-editor-test
 onlyoffice-editor-test:
 	docker build --target onlyoffice-editor-test .
