@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -158,6 +151,17 @@ define([
             this.documentHolder = this.createView('DocumentHolder').render();
             this.documentHolder.el.tabIndex = -1;
             this.onAfterRender();
+
+            // Host (Nextcloud) tells us whether the Assistant app is loaded.
+            // Register early — Common.Gateway.appReady() fires before
+            // setApi() runs, so the host's response postMessage can arrive
+            // before this listener exists and be dropped.
+            Common.Gateway.on('setassistantavailable', function(available) {
+                var view = DE.getController('DocumentHolder').documentHolder;
+                if (view) {
+                    view.ncAssistantAvailable = !!available;
+                }
+            });
 
             var me = this;
             Common.NotificationCenter.on({
@@ -377,10 +381,7 @@ define([
                 me._isScrolling = false;
             }, 100);
 
-            var delta = (_.isUndefined(event.originalEvent)) ? event.wheelDelta : event.originalEvent.wheelDelta;
-            if (_.isUndefined(delta)) {
-                delta = event.deltaY;
-            }
+            var delta = event.deltaY !== undefined ? -event.deltaY : event.wheelDelta;
 
             if (me._ctrlPressedAtScrollStart && !event.altKey) {
                 if (delta < 0) {
@@ -481,12 +482,11 @@ define([
                     elem.addEventListener ? elem.addEventListener( type, fn, false ) : elem.attachEvent( "on" + type, fn );
                 };
 
-                var eventname=(/Firefox/i.test(navigator.userAgent))? 'DOMMouseScroll' : 'mousewheel';
+                var eventname='wheel';
                 addEvent(me.documentHolder.el, eventname, _.bind(me.handleDocumentWheel, me));
             }
 
-            !Common.Utils.isChrome ? $(document).on('mousewheel', _.bind(me.handleDocumentWheel, me)) :
-                document.addEventListener('mousewheel', _.bind(me.handleDocumentWheel, me), {passive: false});
+            document.addEventListener('wheel', _.bind(me.handleDocumentWheel, me), {passive: false});
             $(document).on('keydown', _.bind(me.handleDocumentKeyDown, me));
 
             $(window).on('resize', _.bind(me.onDocumentHolderResize, me));
@@ -684,6 +684,18 @@ define([
                     controller.addDummyComment();
                 }
             }
+        },
+
+        // Right-click "Ask Nextcloud Assistant" — capture the current selection
+        // (if any) and forward it to the host (Nextcloud) over the gateway.
+        // The host opens the Assistant text-processing form with the text
+        // pre-filled, or empty when nothing is selected.
+        onAskNcAssistant: function() {
+            var selectedText = '';
+            if (this.api && typeof this.api['asc_GetSelectedText'] === 'function') {
+                selectedText = this.api['asc_GetSelectedText']() || '';
+            }
+            Common.Gateway.requestSmartPicker(selectedText, 'contextmenu');
         },
 
         onHideMathTrack: function() {},

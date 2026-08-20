@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -180,13 +173,16 @@ define([
         return _out_array;
     };
 
+    // SVG sprite approach - uses <svg><use href="#id"> for dark mode support
+    // Sprite is injected into DOM via svg-injector, so we use fragment-only references
     var templateBtnIcon =
             '<% if ( iconImg ) { %>' +
                 '<img src="<%= iconImg %>">' +
             '<% } else { %>' +
-                '<% if (/svgicon/.test(iconCls)) {' +
-                    'print(\'<svg class=\"icon uni-scale\"><use class=\"zoom-int\" xlink:href=\"#\' + /svgicon\\s(\\S+)/.exec(iconCls)[1] + \'\"></use></svg>\');' +
-            '} else ' +
+                '<% var iconMatch = /btn-[^\\s]+/.exec(iconCls); ' +
+                'if (iconMatch) {' +
+                    'print(\'<svg class=\"icon uni-scale\"><use href=\"#\' + iconMatch[0] + \'\"></use></svg>\');' +
+                '} else ' +
                     'print(\'<i class=\"icon \' + iconCls + \'\">&nbsp;</i>\'); %>' +
             '<% } %>';
 
@@ -285,10 +281,11 @@ define([
         template: _.template([
             '<% var applyicon = function() { %>',
                 '<% if (iconImg) { print(\'<img src=\"\' + iconImg + \'\">\'); } else { %>',
-                // '<% if (iconCls != "") { print(\'<i class=\"icon \' + iconCls + \'\">&nbsp;</i>\'); }} %>',
+                // SVG sprite approach - uses <svg><use href="#id"> for dark mode support
                 '<% if (iconCls != "") { ' +
-                    ' if (/svgicon/.test(iconCls)) {' +
-                        'print(\'<svg class=\"icon uni-scale\"><use class=\"zoom-int\" xlink:href=\"#\' + /svgicon\\s(\\S+)/.exec(iconCls)[1] + \'\"></use></svg>\');' +
+                    'var iconMatch = /btn-[^\\s]+/.exec(iconCls); ' +
+                    'if (iconMatch) {' +
+                        'print(\'<svg class=\"icon uni-scale\"><use href=\"#\' + iconMatch[0] + \'\"></use></svg>\');' +
                     '} else ' +
                         'print(\'<i class=\"icon \' + iconCls + \'\">&nbsp;</i>\'); ' +
                 '}} %>',
@@ -769,7 +766,7 @@ define([
             this.iconCls = cls;
             if (/svgicon/.test(this.iconCls)) {
                 var icon = /svgicon\s(\S+)/.exec(this.iconCls);
-                svgIcon.attr('xlink:href', icon && icon.length > 1 ? '#' + icon[1] : '');
+                svgIcon.attr('href', icon && icon.length > 1 ? '#' + icon[1] : '');
             } else {
                 if (svgIcon.length) {
                     var icon = /btn-[^\s]+/.exec(this.iconCls);
@@ -798,6 +795,11 @@ define([
                     (me.iconCls.indexOf(opts.next)<0) && (me.iconCls += ' ' + opts.next);
                 }
                 svgIcon.length && !!opts.next && svgIcon.attr('href', '#' + opts.next);
+
+                if (!svgIcon.length && opts.next) {
+                    var svgUse = $(this.el).find('svg.icon use');
+                    svgUse.length && svgUse.attr('href', '#' + opts.next);
+                }
 
                 if ( !!me.options.signals ) {
                     if ( !(me.options.signals.indexOf('icon:changed') < 0) ) {
@@ -1010,12 +1012,12 @@ define([
                         const re_icon_name = /btn-[^\s]+/.exec(iconCls);
                         const icon_name = re_icon_name ? re_icon_name[0] : "null";
                         const rtlCls = (iconCls ? iconCls.indexOf('icon-rtl') : -1) > -1 ? 'icon-rtl' : '';
-                        const svg_icon = '<svg class="icon %rtlCls"><use class="zoom-int" href="#%iconname"></use></svg>'.replace('%iconname', icon_name).replace('%rtlCls', rtlCls);
+                        const svg_icon = '<svg class="icon uni-scale %rtlCls"><use href="#%iconname"></use></svg>'.replace('%iconname', icon_name).replace('%rtlCls', rtlCls);
                         $el.find('i.icon').after(svg_icon);
                     }
                 } else {
                     if (!me.$el.find('i.icon')) {
-                        const png_icon = '<i class="icon %cls">&nbsp;</i>'.replace('%cls', me.iconCls);
+                        const png_icon = '<i class="icon %cls" dummy-attr>&nbsp;</i>'.replace('%cls', me.iconCls);
                         me.$el.find('svg.icon').after(png_icon);
                     }
                 }

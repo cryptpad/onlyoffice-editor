@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -2292,6 +2285,23 @@ define([], function () {
                 caption     : '--'
             });
 
+            // Nextcloud Assistant context menu entry — host (NC) toggles
+            // visibility via setAssistantAvailable. Construct with default
+            // visible:true; the textMenu's initMenu callback below sets the
+            // actual visibility on each open based on me.ncAssistantAvailable.
+            // Constructing with visible:false hits a broken path in
+            // Common.UI.MenuItem.render (setVisible -> this.hide() which
+            // doesn't exist on MenuItem) so the item never reacts to later
+            // setVisible calls.
+            var menuParaAssistantSeparator = new Common.UI.MenuItem({
+                caption     : '--'
+            });
+            me.menuParaAssistant = new Common.UI.MenuItem({
+                iconCls     : 'menu__icon btn-nc-assistant',
+                caption     : me.txtNcAssistant || 'Ask Nextcloud Assistant'
+            });
+            me.menuParaAssistant.assistantSeparator = menuParaAssistantSeparator;
+
             this.textMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
                 restoreHeightAndTop: true,
@@ -2306,8 +2316,8 @@ define([], function () {
                         block_control_lock = (value.paraProps) ? !value.paraProps.value.can_EditBlockContentControl() : false,
                         is_form = control_props && control_props.get_FormPr();
 
-                    me.menuParagraphVAlign.setVisible(isInShape && !isInChart && !isEquation && !(is_form && control_props.get_FormPr().get_Fixed())); // после того, как заголовок можно будет растягивать по вертикали, вернуть "|| isInChart" !!
-                    me.menuParagraphDirection.setVisible(isInShape && !isInChart && !isEquation && !(is_form && control_props.get_FormPr().get_Fixed())); // после того, как заголовок можно будет растягивать по вертикали, вернуть "|| isInChart" !!
+                    me.menuParagraphVAlign.setVisible(isInShape && !isInChart && !isEquation && !(is_form && control_props.get_FormPr().get_Fixed())); // restore "|| isInChart" once the title can be stretched vertically !!
+                    me.menuParagraphDirection.setVisible(isInShape && !isInChart && !isEquation && !(is_form && control_props.get_FormPr().get_Fixed())); // restore "|| isInChart" once the title can be stretched vertically !!
                     if ( isInShape || isInChart ) {
                         var align = value.imgProps.value.get_VerticalTextAlign();
                         var halign = value.paraProps.value.get_Jc();
@@ -2491,6 +2501,15 @@ define([], function () {
                     me.menuAddCommentPara.setDisabled(value.paraProps && value.paraProps.locked === true);
                     /** coauthoring end **/
 
+                    // Nextcloud Assistant entry — show only when the host has
+                    // announced the Assistant app is available AND the
+                    // document allows copying out (restricted/secure view
+                    // disables copy, and the Assistant reads the selected
+                    // text via asc_GetSelectedText to forward it to the host).
+                    var assistantVisible = !!me.ncAssistantAvailable && cancopy;
+                    menuParaAssistantSeparator.setVisible(assistantVisible);
+                    me.menuParaAssistant.setVisible(assistantVisible);
+
                     var in_field = me.api.asc_HaveFields(true);
                     me.menuParaRefreshField.setVisible(!!in_field);
                     me.menuParaRefreshField.setDisabled(disabled);
@@ -2574,7 +2593,9 @@ define([], function () {
                     me.menuParaContinueNumbering,
                     me.menuParaListIndents,
                     menuStyleSeparator,
-                    menuStyle
+                    menuStyle,
+                    menuParaAssistantSeparator,
+                    me.menuParaAssistant
                 ]
             }).on('hide:after', function(menu, e, isFromInputControl) {
                 me.clearCustomItems(menu);

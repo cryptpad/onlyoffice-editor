@@ -6,6 +6,7 @@ import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage.mjs';
 import ContextMenuController from '../../../../common/mobile/lib/controller/ContextMenu';
 import { idContextMenuElement } from '../../../../common/mobile/lib/view/ContextMenu';
 import EditorUIController from '../lib/patch';
+import { icons } from '../../../../common/mobile/lib/editor';
 
 @inject(stores => ({
     isEdit: stores.storeAppOptions.isEdit,
@@ -324,7 +325,7 @@ class ContextMenu extends ContextMenuController {
             if (canCopy) {
                 itemsIcon.push({
                     event: 'copy',
-                    icon: 'icon-copy'
+                    icon: icons.copy.id
                 });
             }
 
@@ -332,14 +333,14 @@ class ContextMenu extends ContextMenuController {
                 if (canFillForms && canCopy && !locked && (!isViewer || isForm) && isAllowedEditing) {
                     itemsIcon.push({
                         event: 'cut',
-                        icon: 'icon-cut'
+                        icon: icons.cut.id
                     });
                 }
 
                 if (canFillForms && canCopy && !locked && (!isViewer || isForm) && isAllowedEditing) {
                     itemsIcon.push({
                         event: 'paste',
-                        icon: 'icon-paste'
+                        icon: icons.paste.id
                     });
                 }
 

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -302,12 +295,7 @@ define([
                 elem.addEventListener ? elem.addEventListener( type, fn, false ) : elem.attachEvent( "on" + type, fn );
             };
 
-            if (Common.Utils.isMac) {
-                this.$bar[0].addEventListener('wheel', _.bind(this._onMouseWheelThrottled, this));
-            } else {
-                var eventname=(/Firefox/i.test(navigator.userAgent))? 'DOMMouseScroll' : 'mousewheel';
-                addEvent(this.$bar[0], eventname, _.bind(this._onMouseWheel,this));
-            }
+            this.$bar[0].addEventListener('wheel', _.bind(this._onMouseWheelThrottled, this));
             addEvent(this.$bar[0], 'dragstart', _.bind(function (event) {
                 event.dataTransfer.effectAllowed = 'copyMove';
             }, this));
@@ -355,25 +343,13 @@ define([
             return this;
         },
 
-        _onMouseWheel: function(e) {
-            var hidden  = this.checkInvisible(true),
-                forward = ((e.detail && -e.detail) || e.wheelDelta) < 0;
-
-            if (forward) {
-                if (hidden.last) {
-                    this.setTabVisible('forward');
-                }
-            } else {
-                if (hidden.first) {
-                    this.setTabVisible('backward');
-                }
-            }
-            Common.NotificationCenter.trigger('hints:clear');
-        },
-
         _onMouseWheelThrottled: function(e) {
-            var delta = (e.detail && -e.detail) || e.wheelDelta;
-            if (Math.abs(delta) < 10) {
+            var rawDelta = e.deltaY !== undefined
+                ? -(e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY)
+                : ((e.detail && -e.detail) || e.wheelDelta);
+
+            this._wheelAccum = (this._wheelAccum || 0) + rawDelta;
+            if (Math.abs(this._wheelAccum) < 10) {
                 return;
             }
 
@@ -382,6 +358,9 @@ define([
                 return;
             }
             this._lastWheelTime = now;
+
+            var delta = this._wheelAccum;
+            this._wheelAccum = 0;
 
             var hidden = this.checkInvisible(true);
 

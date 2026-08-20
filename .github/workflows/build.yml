@@ -1,0 +1,51 @@
+name: "Build"
+
+on:
+    workflow_dispatch:
+    push:
+
+jobs:
+    build-apps:
+        name: "Build web-apps"
+        runs-on: self-hosted
+        env:
+            NODE_VERSION: 20
+            PRODUCT_VERSION: 9.2.1
+        steps:
+
+          - name: Checkout web-apps
+            uses: actions/checkout@v3
+            with:
+                repository: euro-office/web-apps
+                ref: ${{github.ref}}
+                path: 'web-apps'
+
+          - name: Checkout SDKJS
+            uses: actions/checkout@v3
+            with:
+                repository: euro-office/sdkjs
+                ref: ${{env.REF}}
+                path: 'sdkjs'
+                fetch-depth: '1'
+
+          - name: Use Node.js ${{ env.NODE_VERSION }}
+            uses: actions/setup-node@v3
+            with:
+                node-version: ${{ env.NODE_VERSION }}
+
+          - name: Install dependencies
+            run: |
+              cd web-apps/build
+              npm install
+
+          - name: Merge translations
+            run: |
+              cd web-apps/translation
+              python3 merge_and_check.py
+
+          - name: Build web-apps
+            working-directory: web-apps/build
+            env:
+                BUILD_ROOT: ${{ github.workspace }}/web-apps/deploy
+                THEME: euro-office
+            run: node scripts/build-pipeline.js

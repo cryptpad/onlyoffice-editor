@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -74,9 +67,9 @@ define([
                 '<div id="presentation-preview" style="width:100%; height:100%"></div>',
                 '<div id="preview-controls-panel" class="preview-controls">',
                     '<div class="preview-group" style="">',
-                        '<button id="btn-preview-prev" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-previtem icon-rtl">&nbsp;</i></button>',
-                        '<button id="btn-preview-play" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-play">&nbsp;</i></button>',
-                        '<button id="btn-preview-next" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-nextitem icon-rtl">&nbsp;</i></button>',
+                        '<button id="btn-preview-prev" type="button" class="btn small btn-toolbar"><svg class="icon uni-scale icon-rtl"><use href="#btn-previtem"></use></svg></button>',
+                        '<button id="btn-preview-play" type="button" class="btn small btn-toolbar"><svg class="icon uni-scale"><use href="#btn-play"></use></svg></button>',
+                        '<button id="btn-preview-next" type="button" class="btn small btn-toolbar"><svg class="icon uni-scale icon-rtl"><use href="#btn-nextitem"></use></svg></button>',
                         '<div class="separator"></div>',
                     '</div>',
                     '<div class="preview-group dropup">',
@@ -92,9 +85,9 @@ define([
                     '</div>',
                     '<div class="preview-group" style="">',
                         '<div class="separator"></div>',
-                        '<button id="btn-preview-fullscreen" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-fullscreen">&nbsp;</i></button>',
+                        '<button id="btn-preview-fullscreen" type="button" class="btn small btn-toolbar"><svg class="icon uni-scale"><use href="#btn-fullscreen"></use></svg></button>',
                         '<div class="separator fullscreen"></div>',
-                        '<button id="btn-preview-close" type="button" class="btn small btn-toolbar"><i class="icon toolbar__icon btn-close">&nbsp;</i></button>',
+                        '<button id="btn-preview-close" type="button" class="btn small btn-toolbar"><svg class="icon uni-scale"><use href="#btn-close"></use></svg></button>',
                     '</div>',
                 '</div>'
             ].join('');

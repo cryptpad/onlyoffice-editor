@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -48,6 +41,35 @@ define([
             alias: 'Common.Views.About'
         },
 
+        renderRow: function(type, label, value) {
+            if (!value || !value.trim()) return '';
+            var td = '<td colspan="3" align="center" class="padding-small">';
+            switch(type) {
+                case 'heading':
+                    return '<tr><td colspan="3" align="center" style="padding: 20px 0 10px 0;">' +
+                        '<label class="asc-about-companyname">' + value + '</label></td></tr>';
+                case 'email':
+                    return '<tr>' + td +
+                        '<label class="asc-about-desc-name">' + label + '</label>' +
+                        '<a href="mailto:' + value + '">' + value + '</a></td></tr>';
+                case 'link':
+                    return '<tr><td colspan="3" align="center">' +
+                        '<a href="' + value + '" target="_blank">' +
+                        value.replace(/https?:\/\//, '').replace(/\/$/, '') + '</a></td></tr>';
+                case 'phone':
+                    return '<tr>' + td +
+                        '<label class="asc-about-desc-name">' + label + '</label>' +
+                        '<label class="asc-about-desc" dir="ltr">' + value + '</label></td></tr>';
+                case 'attribution':
+                    return '<tr><td colspan="3" align="center" style="padding: 20px 0 10px 0;">' +
+                        '<label class="asc-about-desc">' + value + '</label></td></tr>';
+                default:
+                    return '<tr>' + td +
+                        '<label class="asc-about-desc-name">' + label + '</label>' +
+                        '<label class="asc-about-desc">' + value + '</label></td></tr>';
+            }
+        },
+
         initialize: function(options) {
             Common.UI.BaseView.prototype.initialize.call(this,arguments);
 
@@ -58,6 +80,7 @@ define([
             !(/\s$/.test(this.txtTel)) && (this.txtTel += " ");
             !(/\s$/.test(this.txtVersion)) && (this.txtVersion += " ");
 
+            var self = this;
             this.template = _.template([
                 '<table id="id-about-licensor-logo" cols="1" style="width: 100%; margin-top: 20px;">',
                     '<tr>',
@@ -71,32 +94,11 @@ define([
                     '</tr>',
                 '</table>',
                 '<table id="id-about-licensor-info" cols="3" style="width: 100%;" class="margin-bottom">',
-                    '<tr>',
-                        '<td colspan="3" align="center" style="padding: 20px 0 10px 0;"><label class="asc-about-companyname"><%= publishername %></label></td>',
-                    '</tr>',
-                    '<tr>',
-                        '<td colspan="3" align="center" class="padding-small">',
-                        '<label class="asc-about-desc-name">' + this.txtAddress + '</label>',
-                        '<label class="asc-about-desc"><%= publisheraddr %></label>',
-                        '</td>',
-                    '</tr>',
-                    '<tr>',
-                        '<td colspan="3" align="center" class="padding-small">',
-                        '<label class="asc-about-desc-name">' + this.txtMail + '</label>',
-                        '<a href="mailto:<%= supportemail %>"><%= supportemail %></a>',
-                        '</td>',
-                    '</tr>',
-                    '<tr>',
-                        '<td colspan="3" align="center" class="padding-small">',
-                        '<label class="asc-about-desc-name">' + this.txtTel + '</label>',
-                        '<label class="asc-about-desc" dir="ltr"><%= phonenum %></label>',
-                        '</td>',
-                    '</tr>',
-                    '<tr>',
-                        '<td colspan="3" align="center">',
-                        '<a href="<%= publisherurl %>" target="_blank"><% print(publisherurl.replace(/https?:\\/{2}/, "").replace(/\\/$/,"")) %></a>',
-                        '</td>',
-                    '</tr>',
+                    '<%= scope.renderRow("heading", "", publishername) %>',
+                    '<%= scope.renderRow("text", scope.txtAddress, publisheraddr) %>',
+                    '<%= scope.renderRow("email", scope.txtMail, supportemail) %>',
+                    '<%= scope.renderRow("phone", scope.txtTel, phonenum) %>',
+                    '<%= scope.renderRow("link", "", publisherurl) %>',
                 '</table>',
                 '<table id="id-about-licensee-info" cols="1" style="width: 100%; margin-top: 20px;" class="hidden margin-bottom"><tbody>',
                     '<tr>',
@@ -148,14 +150,11 @@ define([
                         '<td align="center"><label class="asc-about-header">' + this.txtPoweredBy + '</label></td>',
                         '<td style="width:50%;"><div class="separator horizontal short"></div></td>',
                     '</tr>',
-                    '<tr>',
-                        '<td colspan="3" align="center" style="padding: 9px 0 10px;"><label class="asc-about-companyname"><%= publishername %></label></td>',
-                    '</tr>',
-                    '<tr>',
-                        '<td colspan="3" align="center">',
-                            '<a href="<%= publisherurl %>" target="_blank"><% print(publisherurl.replace(/https?:\\/{2}/, "").replace(/\\/$/,"")) %></a>',
-                        '</td>',
-                    '</tr>',
+                    '<%= scope.renderRow("heading", "", publishername) %>',
+                    '<%= scope.renderRow("link", "", publisherurl) %>',
+                '</table>',
+                '<table id="id-about-attribution" cols="1" style="width: 100%;">',
+                    '<%= scope.renderRow("attribution", "", attribution) %>',
                 '</table>'
             ].join(''));
             this.menu = options.menu;
@@ -171,6 +170,7 @@ define([
                     publisherurl: '{{PUBLISHER_URL}}',
                     supportemail: '{{SUPPORT_EMAIL}}',
                     phonenum: '{{PUBLISHER_PHONE}}',
+                    attribution: '{{ATTRIBUTION}}',
                     scope: this
                 }));
 

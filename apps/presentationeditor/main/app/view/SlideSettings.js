@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -98,7 +91,7 @@ define([
             };
 
             this.OriginalFillType = undefined;
-            this.SlideColor = {Value: 1, Color: 'ffffff'};  // value=1 - цвет определен - прозрачный или другой, value=0 - цвет не определен, рисуем прозрачным
+            this.SlideColor = {Value: 1, Color: 'ffffff'};  // value=1 - color is defined: transparent or another color, value=0 - color is not defined, draw as transparent
             this.BlipFillType = Asc.c_oAscFillBlipType.STRETCH;
             this.Effect = Asc.c_oAscSlideTransitionTypes.None;
             this.EffectType = undefined;
@@ -107,8 +100,8 @@ define([
             this.GradRadialDirectionIdx = 0;
             this.GradLinearDirectionType = 0;
             this.PatternFillType = 0;
-            this.FGColor = {Value: 1, Color: '000000'};  // value=1 - цвет определен - прозрачный или другой, value=0 - цвет не определен, рисуем прозрачным
-            this.BGColor = {Value: 1, Color: 'ffffff'};  // value=1 - цвет определен - прозрачный или другой, value=0 - цвет не определен, рисуем прозрачным
+            this.FGColor = {Value: 1, Color: '000000'};  // value=1 - color is defined: transparent or another color, value=0 - color is not defined, draw as transparent
+            this.BGColor = {Value: 1, Color: 'ffffff'};  // value=1 - color is defined: transparent or another color, value=0 - color is not defined, draw as transparent
 
             this.textureNames = [this.txtCanvas, this.txtCarton, this.txtDarkFabric, this.txtGrain, this.txtGranite, this.txtGreyPaper,
                 this.txtKnit, this.txtLeather, this.txtBrownPaper, this.txtPapyrus, this.txtWood];
@@ -1232,7 +1225,7 @@ define([
                     this._state.Transparency=transparency;
                 }
 
-                if (fill===null || fill_type===null || fill_type==Asc.c_oAscFill.FILL_TYPE_NOFILL) { // заливки нет или не совпадает у неск. фигур
+                if (fill===null || fill_type===null || fill_type==Asc.c_oAscFill.FILL_TYPE_NOFILL) { // no fill, or fills differ across several shapes
                     this.OriginalFillType = null;
                 } else if (fill_type==Asc.c_oAscFill.FILL_TYPE_SOLID) {
                     fill = fill.get_fill();
@@ -1253,7 +1246,7 @@ define([
                     this.GradColor.colors[this.GradColor.colors.length-1] = 'ffffff';
                 }  else if (fill_type==Asc.c_oAscFill.FILL_TYPE_BLIP) {
                     fill = fill.get_fill();
-                    this.BlipFillType = fill.get_type(); // null - не совпадают у нескольких фигур
+                    this.BlipFillType = fill.get_type(); // null when values differ across several shapes
                     if (this._state.BlipFillType !== this.BlipFillType) {
                         if (this.BlipFillType == Asc.c_oAscFillBlipType.STRETCH || this.BlipFillType == Asc.c_oAscFillBlipType.TILE) {
                             this.cmbFillType.setValue(this.BlipFillType);
@@ -1264,7 +1257,7 @@ define([
                     this.OriginalFillType = Asc.c_oAscFill.FILL_TYPE_BLIP;
                 } else if (fill_type==Asc.c_oAscFill.FILL_TYPE_PATT) {
                     fill = fill.get_fill();
-                    this.PatternFillType = fill.get_pattern_type(); // null - не совпадают у нескольких фигур
+                    this.PatternFillType = fill.get_pattern_type(); // null when values differ across several shapes
                     if (this._state.PatternFillType !== this.PatternFillType) {
                         this.cmbPattern.suspendEvents();
                         var rec = this.cmbPattern.menuPicker.store.findWhere({
@@ -1301,7 +1294,7 @@ define([
                     this.GradColor.colors[this.GradColor.colors.length-1] = 'ffffff';
                 } else if (fill_type==Asc.c_oAscFill.FILL_TYPE_GRAD) {
                     fill = fill.get_fill();
-                    var gradfilltype = fill.get_grad_type();  // null - не совпадают у нескольких фигур
+                    var gradfilltype = fill.get_grad_type();  // null when values differ across several shapes
                     if (this._state.GradFillType !== gradfilltype || this.GradFillType !== gradfilltype) {
                         this.GradFillType = gradfilltype;
                         rec = undefined;

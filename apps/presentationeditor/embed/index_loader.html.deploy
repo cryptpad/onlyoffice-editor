@@ -182,8 +182,8 @@
   </head>
 
   <body class="embed-body">
-      <script src="../../../../../apps/common/embed/lib/util/htmlutils.js?__inline=true"></script>
-      <script src="../../../../../apps/common/main/lib/util/docserviceworker.js?__inline=true"></script>
+      <script src="@@SRC_ROOT@@/apps/common/embed/lib/util/htmlutils.js?__inline=true"></script>
+      <script src="@@SRC_ROOT@@/apps/common/main/lib/util/docserviceworker.js?__inline=true"></script>
       <script>
          var  userAgent = navigator.userAgent.toLowerCase(),
               check = function(regex){ return regex.test(userAgent); };
@@ -284,7 +284,7 @@
 
       <div class="toolbar" id="toolbar">
           <div class="group left">
-              <div class="margin-right-large"><a id="header-logo" class="brand-logo" href="http://www.onlyoffice.com/" target="_blank"></a></div>
+              <div class="margin-right-large"><a id="header-logo" class="brand-logo" href="{{PUBLISHER_URL}}" target="_blank"></a></div>
           </div>
           <div class="group center">
               <span id="title-doc-name"></span>

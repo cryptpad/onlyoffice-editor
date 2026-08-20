@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ONLYOFFICE Document Editor</title>
+    <title>{{APP_TITLE_TEXT}} Spreadsheet Editor</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=IE8"/>
     <meta name="description" content="" />
@@ -380,13 +380,13 @@
     </script>
 
     <link rel="stylesheet" type="text/css" href="../../../../sdkjs/cell/css/main.css"/>
-    <script src="../../../../../apps/common/main/lib/util/desktopinit.js?__inline=true"></script>
-    <script src="../../../../../apps/common/main/lib/util/themeinit.js?__inline=true"></script>
+    <script src="@@SRC_ROOT@@/apps/common/main/lib/util/desktopinit.js?__inline=true"></script>
+    <script src="@@SRC_ROOT@@/apps/common/main/lib/util/themeinit.js?__inline=true"></script>
 </head>
-<body role="application">
+<body role="application" data-editor-type="spreadsheet">
     <div class="inlined-svg"></div>
-    <script src="../../../../../apps/common/main/lib/util/htmlutils.js?__inline=true"></script>
-    <script src="../../../../../apps/common/main/lib/util/docserviceworker.js?__inline=true"></script>
+    <script src="@@SRC_ROOT@@/apps/common/main/lib/util/htmlutils.js?__inline=true"></script>
+    <script src="@@SRC_ROOT@@/apps/common/main/lib/util/docserviceworker.js?__inline=true"></script>
     <div id="loading-mask" class="loadmask">
         <div class="brendpanel" style="display: none;"><div>
             <div class="spacer"></div></div><div><span class="rect"></span><span class="rect"></span><span class="rect"></span><span class="rect"></span><span class="rect"></span><span class="rect"></span><span class="rect"></span><span class="rect"></span><div class="spacer"></div></div>
@@ -493,6 +493,20 @@
 
         var require = {
             waitSeconds: 30,
+            baseUrl: window.customBaseUrl || "../../",
+            paths: {
+                app:           "spreadsheeteditor/main/app",
+                sdk:           "../../sdkjs/cell/sdk-all-min",
+                jquery:        "../vendor/jquery/jquery.min",
+                socketio:      "../vendor/socketio/socket.io.min",
+                xregexp:       "../vendor/xregexp/xregexp-all-min",
+                allfonts:      "../../sdkjs/common/AllFonts",
+                coapisettings: "coapisettings",
+                api:           "api/documents/api"
+            },
+            shim: {
+                sdk: { deps: ["jquery", "allfonts", "xregexp", "socketio"] }
+            },
             callback: function(){
                 clearTimeout(requireTimeoutID);
             }
@@ -500,6 +514,7 @@
     </script>
 
     <inline src="../../common/main/resources/img/header/icons.svg" />
+    <inline src="resources/img/toolbar/icons.svg" />
     <inline src="../../common/main/resources/img/toolbar/shapetypes.svg" />
     <inline src="../../common/main/resources/img/toolbar/charttypes.svg" />
     <inline src="../../common/main/resources/img/toolbar/equationicons.svg" />
@@ -509,15 +524,10 @@
     <inline src="resources/img/cf-icons.svg" />
     <script src="../../../../../../sdkjs/common/device_scale.js?__inline=true"></script>
 
-    <script>
-        isIEBrowser === true &&
-            (document.write('<script src="../../common/main/lib/util/fix-ie-compat.js"><\/script>'),
-            document.write('<script src="../../../../sdkjs/vendor/string.js"><\/script>'));
-    </script>
     <script src="../../../vendor/requirejs/require.js"></script>
     <script>
-        isIEBrowser === true ? require(['ie/app']) : require(['app']);
+        require(['app']);
     </script>
-    <link rel="stylesheet" href="../../../apps/spreadsheeteditor/main/resources/css/app.css" media="print" onload="this.media='all'">    
+    <link rel="stylesheet" href="../../../apps/spreadsheeteditor/main/app.css" media="print" onload="this.media='all'">    
 </body>
 </html>

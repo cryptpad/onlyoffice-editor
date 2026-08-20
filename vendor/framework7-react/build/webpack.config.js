@@ -2,9 +2,10 @@ import webpack from 'webpack';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
-import TerserPlugin from "terser-webpack-plugin";
+import { EsbuildPlugin } from 'esbuild-loader';
 // import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import { themeGlobalVars, themeDefines } from '../../../build/theme.config.mjs';
+import { ESBUILD_TARGET } from '../../../build/browser-floor.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
@@ -50,7 +51,9 @@ const config = {
     },
     modules: [path.resolve(__dirname, '..', 'node_modules'), 'node_modules'],
   },
-  watch: env === 'development',
+  // Watch is opt-in (WATCH=1), decoupled from NODE_ENV — so a dev-mode build can
+  // be a one-shot (debuggable, exits) instead of hanging the pipeline in watch.
+  watch: process.env.WATCH === '1',
   watchOptions: {
     aggregateTimeout: 600,
     poll: 1000,
@@ -81,21 +84,7 @@ const config = {
     //   }
     // },
     minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          compress: {
-            drop_console: env === 'production',
-          },
-        },
-      }),
-      new CssMinimizerPlugin({
-        minimizerOptions: {
-          preset: ['default', {
-            discardComments: { removeAll: true },
-            colormin: false,
-          }],
-        },
-      }),
+      new EsbuildPlugin({ target: ESBUILD_TARGET, css: true, drop: env === 'production' ? ['console', 'debugger'] : [] }),
     ],
     moduleIds: 'deterministic',
   },
@@ -176,6 +165,7 @@ const config = {
                 globalVars: {
                   "common-image-path": env === 'production' ? `../../../${editor}/mobile/resources/img` : '../../common/mobile/resources/img',
                   "app-image-path": env === 'production' ? '../resources/img' : './resources/img',
+                  ...themeGlobalVars(env, editor),
                 }
               }
             }
@@ -215,28 +205,12 @@ const config = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(env),
       'process.env.TARGET': JSON.stringify(target),
-      __PRODUCT_VERSION__: JSON.stringify(process.env.PRODUCT_VERSION ? `${process.env.PRODUCT_VERSION}.${process.env.BUILD_NUMBER}` : '6.2.0.123d'),
-      __PUBLISHER_ADDRESS__: JSON.stringify(process.env.PUBLISHER_ADDRESS || '20A-12 Ernesta Birznieka-Upisha street, Riga, Latvia, EU, LV-1050'),
-      __SUPPORT_EMAIL__: JSON.stringify(process.env.SUPPORT_EMAIL || 'support@onlyoffice.com'),
-      __SUPPORT_URL__: JSON.stringify(process.env.SUPPORT_URL || 'https://support.onlyoffice.com'),
-      __PUBLISHER_PHONE__: JSON.stringify(process.env.PUBLISHER_PHONE || '+371 633-99867'),
-      __PUBLISHER_URL__: JSON.stringify(process.env.PUBLISHER_URL || 'https://www.onlyoffice.com'),
-      __PUBLISHER_NAME__: JSON.stringify(process.env.PUBLISHER_NAME || 'Ascensio System SIA'),
-      __APP_TITLE_TEXT__: JSON.stringify(process.env.APP_TITLE_TEXT ? process.env.APP_TITLE_TEXT : 'ONLYOFFICE'),
-      __COMPANY_NAME__: JSON.stringify(process.env.COMPANY_NAME ? process.env.COMPANY_NAME : 'ONLYOFFICE'),
-      __HELP_URL__: JSON.stringify(process.env.HELP_URL || 'https://helpcenter.onlyoffice.com'),
-      __SALES_EMAIL__: JSON.stringify(process.env.SALES_EMAIL || 'sales@onlyoffice.com'),
+      __PRODUCT_VERSION__: JSON.stringify(process.env.PRODUCT_VERSION ? (process.env.BUILD_NUMBER ? `${process.env.PRODUCT_VERSION}.${process.env.BUILD_NUMBER}` : process.env.PRODUCT_VERSION) : '6.2.0.123d'),
+      ...themeDefines(),
     }),
     new webpack.BannerPlugin(`\n* Version: ${process.env.PRODUCT_VERSION} (build: ${process.env.BUILD_NUMBER})\n`),
 
     ...(env === 'production' ? [
-      new CssMinimizerPlugin({
-        minimizerOptions: {
-          preset: ['default', {
-            discardComments: { removeAll: true },
-          }],
-        },
-      }),
       new webpack.optimize.ModuleConcatenationPlugin(),
     ] : [
       new webpack.HotModuleReplacementPlugin(),

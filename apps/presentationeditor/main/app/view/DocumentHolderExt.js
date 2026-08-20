@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -1841,6 +1834,22 @@ define([], function () {
                 caption: me.textEditPoints
             });
 
+            // Nextcloud Assistant context menu entry — host (NC) toggles
+            // visibility via setAssistantAvailable. We construct with default
+            // visible:true; the textMenu's initMenu callback sets the actual
+            // visibility on each open based on me.ncAssistantAvailable.
+            // Constructing with visible:false hits a broken path in
+            // Common.UI.MenuItem.render (setVisible -> this.hide() which
+            // doesn't exist on MenuItem) and leaves the item in a state
+            // where later setVisible calls have no effect.
+            me.menuParaAssistantSeparator = new Common.UI.MenuItem({
+                caption     : '--'
+            });
+            me.menuParaAssistant = new Common.UI.MenuItem({
+                iconCls     : 'menu__icon btn-nc-assistant',
+                caption     : me.txtNcAssistant || 'Ask Nextcloud Assistant'
+            });
+
             me.textMenu = new Common.UI.Menu({
                 cls: 'shifted-right',
                 scrollToCheckedItem: false,
@@ -1854,8 +1863,8 @@ define([], function () {
                     var isEquation= (value.mathProps && value.mathProps.value);
                     me._currentParaObjDisabled = disabled;
 
-                    me.menuParagraphVAlign.setVisible(isInShape && !isInChart && !isEquation); // после того, как заголовок можно будет растягивать по вертикали, вернуть "|| isInChart" !!
-                    me.menuParagraphDirection.setVisible(isInShape && !isInChart && !isEquation); // после того, как заголовок можно будет растягивать по вертикали, вернуть "|| isInChart" !!
+                    me.menuParagraphVAlign.setVisible(isInShape && !isInChart && !isEquation); // restore "|| isInChart" once the title can be stretched vertically !!
+                    me.menuParagraphDirection.setVisible(isInShape && !isInChart && !isEquation); // restore "|| isInChart" once the title can be stretched vertically !!
                     if (isInShape || isInChart) {
                         var align = value.shapeProps.value.get_VerticalTextAlign();
                         var halign = value.paraProps.value.get_Jc();
@@ -1968,6 +1977,15 @@ define([], function () {
                         me.menuParagraphEquation.menu.items[8].options.isToolbarHide = isEqToolbarHide;
                         me.menuParagraphEquation.menu.items[8].setCaption(isEqToolbarHide ? me.showEqToolbar : me.hideEqToolbar);
                     }
+
+                    // Nextcloud Assistant entry — show only when the host has
+                    // announced the Assistant app is available AND the
+                    // document allows copying out (restricted/secure view
+                    // disables copy, and the Assistant reads the selected
+                    // text via asc_GetSelectedText to forward it to the host).
+                    var assistantVisible = !!me.ncAssistantAvailable && cancopy;
+                    me.menuParaAssistantSeparator.setVisible(assistantVisible);
+                    me.menuParaAssistant.setVisible(assistantVisible);
                 },
                 items: [
                     me.menuSpellPara,
@@ -1992,7 +2010,9 @@ define([], function () {
                     me.menuAddCommentPara,
                     /** coauthoring end **/
                     me.menuAddHyperlinkPara,
-                    menuHyperlinkPara
+                    menuHyperlinkPara,
+                    me.menuParaAssistantSeparator,
+                    me.menuParaAssistant
                 ]
             }).on('hide:after', function(menu, e, isFromInputControl) {
                 me.clearCustomItems(menu);

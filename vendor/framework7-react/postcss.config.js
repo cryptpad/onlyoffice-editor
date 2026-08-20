@@ -1,9 +1,10 @@
 import postcssPresetEnv from 'postcss-preset-env';
 import { purgeCSSPlugin } from '@fullhuman/postcss-purgecss';
+import { BROWSERSLIST } from '../../build/browser-floor.mjs';
 
 const config = (ctx) => ({
 	plugins: [
-		postcssPresetEnv(),
+		postcssPresetEnv({ browsers: BROWSERSLIST }),
 		ctx.env === 'production' ? purgeCSSPlugin({
 			content: [
 				'./src/**/*.html',
