@@ -253,13 +253,12 @@ define([], function () {
                 });
 
                 //NOTE: set mouse wheel handler
-                var eventname=(/Firefox/i.test(navigator.userAgent))? 'DOMMouseScroll' : 'mousewheel';
+                var eventname='wheel';
                 addEvent(view.el, eventname, _.bind(this.onDocumentWheel,this), false);
 
                 me.cellEditor = $('#ce-cell-content');
             }
-            Common.Utils.isChrome ? addEvent(document, 'mousewheel', _.bind(this.onDocumentWheel,this), { passive: false } ) :
-                $(document).on('mousewheel',    _.bind(this.onDocumentWheel, this));
+            document.addEventListener('wheel', _.bind(this.onDocumentWheel,this), { passive: false });
             this.onChangeProtectSheet();
         };
 

@@ -43,7 +43,7 @@ define([
             !app.postLaunchScripts && (app.postLaunchScripts = []);
             // console.log('on_app_ready', app.postLaunchScripts);
 
-            require({waitSeconds: 0}, app.postLaunchScripts, () => {
+            window.require({waitSeconds: 0}, app.postLaunchScripts, () => {
                 if (!!Common.UI.ScreenReaderFocusManager) {
                     Common.UI.ScreenReaderFocusManager.init(me.api);
                 }

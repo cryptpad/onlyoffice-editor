@@ -2,10 +2,10 @@ import webpack from 'webpack';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
-import TerserPlugin from "terser-webpack-plugin";
+import { EsbuildPlugin } from 'esbuild-loader';
 // import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import { themeGlobalVars, themeDefines } from '../../../build/theme.config.mjs';
+import { ESBUILD_TARGET } from '../../../build/browser-floor.mjs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from "url";
@@ -51,7 +51,9 @@ const config = {
     },
     modules: [path.resolve(__dirname, '..', 'node_modules'), 'node_modules'],
   },
-  watch: env === 'development',
+  // Watch is opt-in (WATCH=1), decoupled from NODE_ENV — so a dev-mode build can
+  // be a one-shot (debuggable, exits) instead of hanging the pipeline in watch.
+  watch: process.env.WATCH === '1',
   watchOptions: {
     aggregateTimeout: 600,
     poll: 1000,
@@ -82,21 +84,7 @@ const config = {
     //   }
     // },
     minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          compress: {
-            drop_console: env === 'production',
-          },
-        },
-      }),
-      new CssMinimizerPlugin({
-        minimizerOptions: {
-          preset: ['default', {
-            discardComments: { removeAll: true },
-            colormin: false,
-          }],
-        },
-      }),
+      new EsbuildPlugin({ target: ESBUILD_TARGET, css: true, drop: env === 'production' ? ['console', 'debugger'] : [] }),
     ],
     moduleIds: 'deterministic',
   },
@@ -223,13 +211,6 @@ const config = {
     new webpack.BannerPlugin(`\n* Version: ${process.env.PRODUCT_VERSION} (build: ${process.env.BUILD_NUMBER})\n`),
 
     ...(env === 'production' ? [
-      new CssMinimizerPlugin({
-        minimizerOptions: {
-          preset: ['default', {
-            discardComments: { removeAll: true },
-          }],
-        },
-      }),
       new webpack.optimize.ModuleConcatenationPlugin(),
     ] : [
       new webpack.HotModuleReplacementPlugin(),

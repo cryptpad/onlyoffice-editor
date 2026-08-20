@@ -14,7 +14,7 @@ export class storeAppOptions {
 
             lostEditingRights: observable,
             changeEditingRights: action,
-            
+
             canBranding: observable,
             canBrandingExt: observable,
 
@@ -22,6 +22,8 @@ export class storeAppOptions {
             changeDocReady: action,
 
             customization: observable,
+
+            canRequestInsertImage: observable,
         });
     }
 
@@ -52,6 +54,8 @@ export class storeAppOptions {
         this.isDocReady = value;
     }
 
+    canRequestInsertImage = false;
+
     setConfigOptions (config, _t) {
         this.config = config;
         this.customization = config.customization;
@@ -64,7 +68,7 @@ export class storeAppOptions {
         this.canRename = this.config.canRename;
         this.user = Common.Utils.fillUserInfo(config.user, config.lang, value ? (value + ' (' + this.guestName + ')' ) : _t.textAnonymous, LocalStorage.getItem("guest-id") || ('uid-' + Date.now()));
         this.user.anonymous && LocalStorage.setItem("guest-id", this.user.id);
-        
+
         config.user = this.user;
         this.isDesktopApp = config.targetApp == 'desktop';
         this.canCreateNew = !!config.createUrl && !this.isDesktopApp;
@@ -82,6 +86,7 @@ export class storeAppOptions {
         this.mergeFolderUrl = config.mergeFolderUrl;
         this.canAnalytics = false;
         this.canRequestClose = config.canRequestClose;
+        this.canRequestInsertImage = config.canRequestInsertImage === true;
         this.canCloseEditor = false;
         
         let canBack = false;
@@ -116,7 +121,7 @@ export class storeAppOptions {
         if (params.asc_getRights() !== Asc.c_oRights.Edit)
             permissions.edit = false;
         this.canBranding = params.asc_getCustomization();
-        this.canBrandingExt = params.asc_getCanBranding() && (typeof this.customization == 'object' || this.config.plugins);
+        this.canBrandingExt = (typeof this.customization == 'object' || this.config.plugins);
         this.canModifyFilter = permissions.modifyFilter !== false;
         this.canAutosave = true;
         this.canAnalytics = params.asc_getIsAnalyticsEnable();
@@ -149,12 +154,12 @@ export class storeAppOptions {
         const type = /^(?:(pdf|djvu|xps|oxps))$/.exec(document.fileType);
         this.canDownloadOrigin = permissions.download !== false && (type && typeof type[1] === 'string');
         this.canDownload = permissions.download !== false && (!type || typeof type[1] !== 'string');
-        this.canUseReviewPermissions = this.canLicense && (!!permissions.reviewGroups || this.customization 
+        this.canUseReviewPermissions = this.canLicense && (!!permissions.reviewGroups || this.customization
             && this.customization.reviewPermissions && (typeof (this.customization.reviewPermissions) == 'object'));
         this.canUseCommentPermissions = this.canLicense && !!permissions.commentGroups;
         this.canUseUserInfoPermissions = this.canLicense && !!permissions.userInfoGroups;
         this.canUseReviewPermissions && AscCommon.UserInfoParser.setReviewPermissions(permissions.reviewGroups, this.customization.reviewPermissions);
-        this.canUseCommentPermissions && AscCommon.UserInfoParser.setCommentPermissions(permissions.commentGroups);  
+        this.canUseCommentPermissions && AscCommon.UserInfoParser.setCommentPermissions(permissions.commentGroups);
         this.canUseUserInfoPermissions && AscCommon.UserInfoParser.setUserInfoPermissions(permissions.userInfoGroups);
 
         this.canUseHistory = this.canLicense && this.config.canUseHistory && this.canCoAuthoring && !this.isDesktopApp && !this.isOffline;

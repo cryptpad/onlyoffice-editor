@@ -6,6 +6,7 @@ import { LocalStorage } from '../../../../common/mobile/utils/LocalStorage.mjs';
 import ContextMenuController from '../../../../common/mobile/lib/controller/ContextMenu';
 import { idContextMenuElement } from '../../../../common/mobile/lib/view/ContextMenu';
 import EditorUIController from '../lib/patch';
+import { icons } from '../../../../common/mobile/lib/editor';
 
 @inject(stores => ({
     isEdit: stores.storeAppOptions.isEdit,
@@ -283,7 +284,7 @@ class ContextMenu extends ContextMenuController {
 
                 itemsIcon.push({
                     event: 'copy',
-                    icon: 'icon-copy'
+                    icon: icons.copy.id
                 });
     
                 if (iscellmenu && cellinfo.asc_getHyperlink()) {

@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <link href="../../../apps/documenteditor/forms/resources/css/app-all.css" rel="stylesheet">
+    <link href="../../../apps/documenteditor/forms/app.css" rel="stylesheet">
 
     <!-- splash -->
 
@@ -259,6 +259,20 @@
 
           var require = {
               waitSeconds: 30,
+              baseUrl: window.customBaseUrl || "../../",
+              paths: {
+                  app:           "documenteditor/forms/app",
+                  sdk:           "../../sdkjs/word/sdk-all-min",
+                  jquery:        "../vendor/jquery/jquery.min",
+                  socketio:      "../vendor/socketio/socket.io.min",
+                  xregexp:       "../vendor/xregexp/xregexp-all-min",
+                  allfonts:      "../../sdkjs/common/AllFonts",
+                  coapisettings: "coapisettings",
+                  api:           "api/documents/api"
+              },
+              shim: {
+                  sdk: { deps: ["jquery", "allfonts", "xregexp", "socketio"] }
+              },
               callback: function(){
                   clearTimeout(requireTimeoutID);
               }
@@ -266,14 +280,9 @@
       </script>
       <!--application-->
       <script src="../../../../../../sdkjs/common/device_scale.js?__inline=true"></script>
-      <script>
-          isIEBrowser === true &&
-                (document.write('<script src="../../common/main/lib/util/fix-ie-compat.js"><\/script>'),
-                document.write('<script src="../../../../sdkjs/vendor/string.js"><\/script>'));
-      </script>
       <script src="../../../vendor/requirejs/require.js"></script>
       <script>
-          isIEBrowser === true ? require(['ie/app']) : require(['app']);
+          require(['app']);
       </script>
   </body>
 </html>

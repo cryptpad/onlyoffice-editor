@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ONLYOFFICE Document Editor</title>
+    <title>{{APP_TITLE_TEXT}} Spreadsheet Editor</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=IE8"/>
     <meta name="description" content="" />
@@ -493,6 +493,20 @@
 
         var require = {
             waitSeconds: 30,
+            baseUrl: window.customBaseUrl || "../../",
+            paths: {
+                app:           "spreadsheeteditor/main/app",
+                sdk:           "../../sdkjs/cell/sdk-all-min",
+                jquery:        "../vendor/jquery/jquery.min",
+                socketio:      "../vendor/socketio/socket.io.min",
+                xregexp:       "../vendor/xregexp/xregexp-all-min",
+                allfonts:      "../../sdkjs/common/AllFonts",
+                coapisettings: "coapisettings",
+                api:           "api/documents/api"
+            },
+            shim: {
+                sdk: { deps: ["jquery", "allfonts", "xregexp", "socketio"] }
+            },
             callback: function(){
                 clearTimeout(requireTimeoutID);
             }
@@ -510,21 +524,10 @@
     <inline src="resources/img/cf-icons.svg" />
     <script src="../../../../../../sdkjs/common/device_scale.js?__inline=true"></script>
 
-    <script>
-        isIEBrowser === true &&
-            (document.write('<script src="../../common/main/lib/util/fix-ie-compat.js"><\/script>'),
-            document.write('<script src="../../../../sdkjs/vendor/string.js"><\/script>'));
-    </script>
     <script src="../../../vendor/requirejs/require.js"></script>
     <script>
-        isIEBrowser === true ? require(['ie/app']) : require(['app']);
+        require(['app']);
     </script>
-    <link rel="stylesheet" href="../../../apps/spreadsheeteditor/main/resources/css/app.css" media="print" onload="this.media='all'">    
-    <script>
-    window.CP_urlArgs = (window.parent && window.parent.APP && window.parent.APP.urlArgs) || '';
-    require.config({
-        urlArgs: window.CP_urlArgs,
-    });
-    </script>
+    <link rel="stylesheet" href="../../../apps/spreadsheeteditor/main/app.css" media="print" onload="this.media='all'">    
 </body>
 </html>

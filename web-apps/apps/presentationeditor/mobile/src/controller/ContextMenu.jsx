@@ -8,6 +8,7 @@ import ContextMenuController from '../../../../common/mobile/lib/controller/Cont
 import { idContextMenuElement } from '../../../../common/mobile/lib/view/ContextMenu';
 // import { Device } from '../../../../common/mobile/utils/device';
 import EditorUIController from '../lib/patch';
+import { icons } from '../../../../common/mobile/lib/editor';
 
 @inject(stores => ({
     isEdit: stores.storeAppOptions.isEdit,
@@ -294,7 +295,7 @@ class ContextMenu extends ContextMenuController {
             if (canCopy && isObject) {
                 itemsIcon.push({
                     event: 'copy',
-                    icon: 'icon-copy'
+                    icon: icons.copy.id
                 });
             }
             if(!isDisconnected && !isVersionHistoryMode) {

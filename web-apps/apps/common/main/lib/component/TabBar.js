@@ -295,12 +295,7 @@ define([
                 elem.addEventListener ? elem.addEventListener( type, fn, false ) : elem.attachEvent( "on" + type, fn );
             };
 
-            if (Common.Utils.isMac) {
-                this.$bar[0].addEventListener('wheel', _.bind(this._onMouseWheelThrottled, this));
-            } else {
-                var eventname=(/Firefox/i.test(navigator.userAgent))? 'DOMMouseScroll' : 'mousewheel';
-                addEvent(this.$bar[0], eventname, _.bind(this._onMouseWheel,this));
-            }
+            this.$bar[0].addEventListener('wheel', _.bind(this._onMouseWheelThrottled, this));
             addEvent(this.$bar[0], 'dragstart', _.bind(function (event) {
                 event.dataTransfer.effectAllowed = 'copyMove';
             }, this));
@@ -349,25 +344,13 @@ define([
             return this;
         },
 
-        _onMouseWheel: function(e) {
-            var hidden  = this.checkInvisible(true),
-                forward = ((e.detail && -e.detail) || e.wheelDelta) < 0;
-
-            if (forward) {
-                if (hidden.last) {
-                    this.setTabVisible('forward');
-                }
-            } else {
-                if (hidden.first) {
-                    this.setTabVisible('backward');
-                }
-            }
-            Common.NotificationCenter.trigger('hints:clear');
-        },
-
         _onMouseWheelThrottled: function(e) {
-            var delta = (e.detail && -e.detail) || e.wheelDelta;
-            if (Math.abs(delta) < 10) {
+            var rawDelta = e.deltaY !== undefined
+                ? -(e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY)
+                : ((e.detail && -e.detail) || e.wheelDelta);
+
+            this._wheelAccum = (this._wheelAccum || 0) + rawDelta;
+            if (Math.abs(this._wheelAccum) < 10) {
                 return;
             }
 
@@ -376,6 +359,9 @@ define([
                 return;
             }
             this._lastWheelTime = now;
+
+            var delta = this._wheelAccum;
+            this._wheelAccum = 0;
 
             var hidden = this.checkInvisible(true);
 

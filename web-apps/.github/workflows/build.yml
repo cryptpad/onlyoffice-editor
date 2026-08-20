@@ -9,7 +9,8 @@ jobs:
         name: "Build web-apps"
         runs-on: self-hosted
         env:
-            NODE_VERSION: 16
+            NODE_VERSION: 20
+            PRODUCT_VERSION: 9.2.1
         steps:
 
           - name: Checkout web-apps
@@ -32,22 +33,19 @@ jobs:
             with:
                 node-version: ${{ env.NODE_VERSION }}
 
-          - name: Build sprites
-            run: |
-              cd web-apps/build
-              ./sprites.sh
-
           - name: Install dependencies
             run: |
               cd web-apps/build
               npm install
-        
-          - name: Merge missing translations keys
+
+          - name: Merge translations
             run: |
               cd web-apps/translation
               python3 merge_and_check.py
 
-          - name: Run grunt
-            run: |
-              cd web-apps/build
-              grunt
+          - name: Build web-apps
+            working-directory: web-apps/build
+            env:
+                BUILD_ROOT: ${{ github.workspace }}/web-apps/deploy
+                THEME: euro-office
+            run: node scripts/build-pipeline.js

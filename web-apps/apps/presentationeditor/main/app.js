@@ -200,7 +200,7 @@ require([
             ,'presentationeditor/main/app/controller/Transitions'
             ,'presentationeditor/main/app/controller/Animation'
         ], function() {
-            const code_path = !window.isIEBrowser ? 'presentationeditor/main/code' : 'presentationeditor/main/ie/code';            
+            const code_path = 'presentationeditor/main/code';
             app.postLaunchScripts = [
                 code_path,
             ];

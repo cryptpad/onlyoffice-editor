@@ -348,10 +348,7 @@ define([
 
         onDocumentWheel: function(e) {
             if (this.api && !this.isEditCell) {
-                var delta = (_.isUndefined(e.originalEvent)) ?  e.wheelDelta : e.originalEvent.wheelDelta;
-                if (_.isUndefined(delta)) {
-                    delta = e.deltaY;
-                }
+                var delta = e.deltaY !== undefined ? -e.deltaY : e.wheelDelta;
 
                 if (e.ctrlKey && !e.altKey) {
                     var factor = this.api.asc_getZoom();

@@ -9,12 +9,18 @@ import IconUndoIos from '@common-ios-icons/icon-undo.svg?ios';
 import IconUndoAndroid from '@common-android-icons/icon-undo.svg';
 import IconRedoIos from '@common-ios-icons/icon-redo.svg?ios';
 import IconRedoAndroid from '@common-android-icons/icon-redo.svg';
+import IconCopy from '@common-icons/icon-copy.svg';
+import IconCut from '@common-icons/icon-cut.svg';
+import IconPaste from '@common-icons/icon-paste.svg';
 
 export const icons = {
     edit: { ios: IconEditSettingsIos, android: IconEditSettingsAndroid },
     add: { ios: IconAddOtherIos, android: IconAddOtherAndroid },
     undo: { ios: IconUndoIos, android: IconUndoAndroid },
     redo: { ios: IconRedoIos, android: IconRedoAndroid },
+    copy: IconCopy,
+    cut: IconCut,
+    paste: IconPaste,
 };
 
 /**

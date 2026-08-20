@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import { Link } from 'framework7-react';
 import { Device } from '../../../../common/mobile/utils/device';
-import { CommentsController, ViewCommentsController } from '../../../../common/mobile/lib/controller/collaboration/Comments';
+import { AddCommentController, EditCommentController } from '../../../../common/mobile/lib/controller/collaboration/Comments';
 import {
     PlatformIcon,
     buildFocusObjectGetters,
@@ -228,12 +228,12 @@ export const updateChartStyles = (storeChartSettings, storeFocusObjects) => {
 
 /**
  * Renders comment controller components for editing mode
- * @returns {JSX.Element} Fragment containing CommentsController and ViewCommentsController
+ * @returns {JSX.Element} Fragment containing AddCommentController and EditCommentController
  */
 export const getEditCommentControllers = () => (
     <Fragment>
-        <CommentsController />
-        <ViewCommentsController />
+        <AddCommentController />
+        <EditCommentController />
     </Fragment>
 );
 
@@ -288,7 +288,7 @@ export const ContextMenu = {
         const isObject = isText || isImage || isChart || isShape || isTable;
 
         if (canCopy && isObject) {
-            itemsIcon.push({ event: 'copy', icon: 'icon-copy' });
+            itemsIcon.push({ event: 'copy', icon: icons.copy.id });
         }
 
         if (stack.length > 0) {
@@ -301,7 +301,7 @@ export const ContextMenu = {
 
             if (!locked && !isDisconnected && !isVersionHistoryMode) {
                 if (canCopy && isObject) {
-                    itemsIcon.push({ event: 'cut', icon: 'icon-cut' });
+                    itemsIcon.push({ event: 'cut', icon: icons.cut.id });
                     // Move cut before copy
                     if (itemsIcon.length === 2) {
                         let tmp = itemsIcon[0];
@@ -309,7 +309,7 @@ export const ContextMenu = {
                         itemsIcon[1] = tmp;
                     }
                 }
-                itemsIcon.push({ event: 'paste', icon: 'icon-paste' });
+                itemsIcon.push({ event: 'paste', icon: icons.paste.id });
 
                 if (isTable && api.CheckBeforeMergeCells()) {
                     itemsText.push({ caption: _t.menuMerge, event: 'merge' });

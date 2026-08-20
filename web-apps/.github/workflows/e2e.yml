@@ -55,6 +55,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            web-apps/build/package-lock.json
+            web-apps/vendor/framework7-react/npm-shrinkwrap.json
 
       # Mirrors web-apps.bake.Dockerfile so the overlay matches the shipped build.
       - name: Install build prerequisites
@@ -89,10 +93,9 @@ jobs:
           THEME: euro-office
           PRODUCT_VERSION: ${{ steps.ver.outputs.product_version }}
         run: |
-          npm install -g grunt-cli
           npm install
           ( cd ../translation && python3 merge_and_check.py )
-          grunt
+          node scripts/build-pipeline.js
 
       - name: Build overlay image with fresh web-apps
         run: |

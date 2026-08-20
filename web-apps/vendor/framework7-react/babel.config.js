@@ -1,10 +1,12 @@
+import { BROWSERSLIST } from '../../build/browser-floor.mjs';
+
 const config = {
   presets: [
     [
       '@babel/preset-env',
       {
         useBuiltIns: false,
-        targets: '> 0.25%, not dead',
+        targets: BROWSERSLIST,
       }
     ],
     '@babel/preset-react'

@@ -98,15 +98,8 @@ Run `docker compose` from the `euro-office/fork/build` directory:
 docker compose exec eo bash
 
 # Then inside the container:
-export BUILD_NUMBER=0 THEME=euro-office && cd /var/www/onlyoffice/web-apps-develop/build && grunt --skip-imagemin --skip-babel
+export BUILD_NUMBER=0 PRODUCT_VERSION=9.3.2 THEME=euro-office && cd /var/www/onlyoffice/web-apps-develop/build && node scripts/build-pipeline.js
 ```
-
-### Build Flags
-
-| Flag | Description |
-|------|-------------|
-| `--skip-imagemin` | Skip image optimization (faster builds) |
-| `--skip-babel` | Skip ES5 transpilation for IE compatibility (modern browsers only, no `ie/` directory created) |
 
 ### Environment Variables
 
@@ -114,6 +107,8 @@ export BUILD_NUMBER=0 THEME=euro-office && cd /var/www/onlyoffice/web-apps-devel
 |----------|-------------|
 | `THEME` | Theme name to use (e.g., `euro-office`, `default`) |
 | `BUILD_NUMBER` | Build number for versioning |
+| `PRODUCT_VERSION` | Must match the SDK version (e.g., `9.3.2`) — mismatches cause a blank editor |
+| `BUILD_ROOT` | Output directory (default: `../deploy`) |
 
 ## Style modifications
 ## Building
@@ -123,15 +118,15 @@ To build this project execute the following commands
 ```shell
 cd build
 npm install
-grunt [optional grunt command]
+PRODUCT_VERSION=9.3.2 BUILD_ROOT=/path/to/output THEME=euro-office node scripts/build-pipeline.js
 ```
 
 ### Building to specified directory
 
-A build directory can be specified by using an env variable
+A build directory can be specified via `BUILD_ROOT`:
 
 ```shell
-BUILD_ROOT=/path/to/build grunt [optional grunt command]
+BUILD_ROOT=/path/to/build PRODUCT_VERSION=9.3.2 THEME=euro-office node scripts/build-pipeline.js
 ```
 
 
@@ -186,7 +181,7 @@ theme/euro-office/
 
 Single source of truth for brand values used by **both desktop and mobile** editors. Contains company/publisher strings, logo filenames, help/support URLs, and the attribution line shown in the About dialog. Values flow into the built output two ways, depending on target:
 
-- **Desktop (Grunt):** `deploy-theme` loads the file into `global.themeMeta`, then Grunt's `replace` task substitutes `{{PLACEHOLDER}}` tokens (e.g. `{{PUBLISHER_NAME}}`, `{{ATTRIBUTION}}`) in the built JS.
+- **Desktop (webpack pipeline):** `build/theme.config.mjs` reads `config.json` into `themeMeta` and exposes values via `themeReplacements()` (token substitution of `{{PLACEHOLDER}}` strings e.g. `{{PUBLISHER_NAME}}`, `{{ATTRIBUTION}}`) and `themeDefines()` (webpack `DefinePlugin` constants).
 - **Mobile (webpack):** `build/theme.config.mjs` reads the file directly and exposes values as LESS `globalVars` (logo paths) and `DefinePlugin` constants (e.g. `__PUBLISHER_NAME__`) for the mobile webpack builds.
 
 Resolution priority for every field is: **environment variable > config.json > hardcoded default**. Unset or empty string values fall back to the default (desktop) or cause the row to be hidden in templates that guard on empty strings (e.g. the About dialog).
@@ -211,20 +206,20 @@ Resolution priority for every field is: **environment variable > config.json > h
 }
 ```
 
-To add a new field: add the key here, wire it in `build/Gruntfile.js` (`jsreplacements` for desktop) and/or `build/theme.config.mjs` (`themeDefines`/`themeGlobalVars` for mobile), then reference the resulting `{{TOKEN}}` or `__TOKEN__` from the view code.
+To add a new field: add the key here, wire it in `build/theme.config.mjs` (`themeReplacements`/`themeDefines`/`themeGlobalVars`), then reference the resulting `{{TOKEN}}` or `__TOKEN__` from the view code.
 
 #### Build
 
 ```shell
-THEME=euro-office grunt
+THEME=euro-office PRODUCT_VERSION=9.3.2 BUILD_ROOT=/path/to/output node scripts/build-pipeline.js
 ```
 
-The `deploy-theme` task runs first and:
-1. Reads `config.json` into `global.themeMeta` for brand replacements
+The pipeline's `deploy-theme-images` step:
+1. Reads `config.json` via `build/theme.config.mjs` for brand token substitution
 2. Copies images to `apps/common/main/resources/img/` (desktop) and `apps/common/mobile/resources/img/` (mobile)
-3. Copies LESS to `apps/common/main/resources/less/themes/{THEME}/`
+3. LESS variable overrides are picked up from `assets/less/` at webpack compile time via `themeGlobalVars()`
 
-LESS compilation and JS replacements then proceed as normal with theme files in place.
+Token substitution (`{{PUBLISHER_NAME}}` etc.) and webpack `DefinePlugin` constants (`__PUBLISHER_NAME__`) are injected during the webpack build step.
 
 #### Creating a new theme
 
@@ -232,7 +227,7 @@ LESS compilation and JS replacements then proceed as normal with theme files in 
 2. Edit `meta/config.json` with your brand values
 3. Replace logo SVGs in `assets/img/header/`
 4. Adjust LESS variables in `assets/less/theme.less`
-5. Build with `THEME=yourtheme`
+5. Build with `THEME=yourtheme PRODUCT_VERSION=9.3.2 BUILD_ROOT=/path/to/output node scripts/build-pipeline.js`
 
 #### LESS guidelines
 

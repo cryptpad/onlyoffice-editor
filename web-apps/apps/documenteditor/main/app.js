@@ -202,8 +202,7 @@ require([
                 ,'common/main/lib/controller/Shortcuts'
                 ,'common/main/lib/controller/Draw'
             ], function() {
-                const code_path = !window.isIEBrowser ?
-                        'documenteditor/main/code' : 'documenteditor/main/ie/code';
+                const code_path = 'documenteditor/main/code';
                 app.postLaunchScripts = [
                     code_path,
                 ];

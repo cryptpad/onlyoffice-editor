@@ -338,10 +338,7 @@ define([
                 me._isScrolling = false;
             }, 100);
 
-            var delta = (_.isUndefined(event.originalEvent)) ? event.wheelDelta : event.originalEvent.wheelDelta;
-            if (_.isUndefined(delta)) {
-                delta = event.deltaY;
-            }
+            var delta = event.deltaY !== undefined ? -event.deltaY : event.wheelDelta;
 
             if (me._ctrlPressedAtScrollStart && !event.altKey) {
                 if (delta < 0) {
@@ -433,12 +430,11 @@ define([
                     elem.addEventListener ? elem.addEventListener( type, fn, false ) : elem.attachEvent( "on" + type, fn );
                 };
 
-                var eventname=(/Firefox/i.test(navigator.userAgent))? 'DOMMouseScroll' : 'mousewheel';
+                var eventname='wheel';
                 addEvent(me.documentHolder.el, eventname, _.bind(me.handleDocumentWheel, me));
             }
 
-            !Common.Utils.isChrome ? $(document).on('mousewheel', _.bind(me.handleDocumentWheel, me)) :
-                document.addEventListener('mousewheel', _.bind(me.handleDocumentWheel, me), {passive: false});
+            document.addEventListener('wheel', _.bind(me.handleDocumentWheel, me), {passive: false});
             $(document).on('keydown', _.bind(me.handleDocumentKeyDown, me));
 
             $(window).on('resize', _.bind(me.onDocumentHolderResize, me));

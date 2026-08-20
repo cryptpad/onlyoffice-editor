@@ -154,7 +154,7 @@ require([
                 'common/main/lib/controller/Shortcuts',
                 'common/forms/lib/view/modals'
             ], function() {
-                const code_path = !window.isIEBrowser ? 'documenteditor/forms/code' : 'documenteditor/forms/ie/code';
+                const code_path = 'documenteditor/forms/code';
                 app.postLaunchScripts = [code_path];
 
                 app.start();

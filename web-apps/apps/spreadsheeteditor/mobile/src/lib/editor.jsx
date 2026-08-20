@@ -285,11 +285,11 @@ export const ContextMenu = {
         }
 
         if (locked || api.isCellEdited || isDisconnected) {
-            itemsIcon.push({ event: 'copy', icon: 'icon-copy' });
+            itemsIcon.push({ event: 'copy', icon: icons.copy.id });
         } else if (!isVersionHistoryMode) {
-            itemsIcon.push({ event: 'cut', icon: 'icon-cut' });
-            itemsIcon.push({ event: 'copy', icon: 'icon-copy' });
-            itemsIcon.push({ event: 'paste', icon: 'icon-paste' });
+            itemsIcon.push({ event: 'cut', icon: icons.cut.id });
+            itemsIcon.push({ event: 'copy', icon: icons.copy.id });
+            itemsIcon.push({ event: 'paste', icon: icons.paste.id });
 
             if (isImage || isShape || isChart || isShapeText || isChartText) {
                 itemsText.push({ caption: _t.menuEdit, event: 'edit' });

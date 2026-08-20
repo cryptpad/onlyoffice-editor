@@ -196,7 +196,7 @@ require([
                 'common/main/lib/controller/Shortcuts',
                 'common/main/lib/controller/ReviewChanges'
             ], function() {
-                const code_path = !window.isIEBrowser ? 'pdfeditor/main/code' : 'pdfeditor/main/ie/code';
+                const code_path = 'pdfeditor/main/code';
                 app.postLaunchScripts = [
                     code_path,
                 ];

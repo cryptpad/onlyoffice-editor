@@ -164,7 +164,7 @@ require([
                 'common/main/lib/controller/Plugins',
                 'common/main/lib/controller/Shortcuts'
             ], function() {
-                const code_path = !window.isIEBrowser ? 'visioeditor/main/code' : 'visioeditor/main/ie/code';            
+                const code_path = 'visioeditor/main/code';
                 app.postLaunchScripts = [
                     code_path,
                 ];

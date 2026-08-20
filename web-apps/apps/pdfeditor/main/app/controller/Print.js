@@ -137,8 +137,7 @@ define([
             }, this));
             Common.NotificationCenter.on('margins:update', _.bind(this.onUpdateLastCustomMargins, this));
 
-            var eventname = (/Firefox/i.test(navigator.userAgent))? 'DOMMouseScroll' : 'mousewheel';
-            this.printSettings.$previewBox.on(eventname, _.bind(this.onPreviewWheel, this));
+            this.printSettings.$previewBox[0].addEventListener('wheel', _.bind(this.onPreviewWheel, this), {passive: false});
         },
 
         setMode: function (mode) {
@@ -524,7 +523,7 @@ define([
                 e.preventDefault();
                 e.stopImmediatePropagation();
             }
-            var forward = (e.deltaY || (e.detail && -e.detail) || e.wheelDelta) < 0;
+            var forward = e.deltaY > 0;
             this.onChangePreviewPage(forward);
         },
 
