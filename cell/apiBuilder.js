@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -153,6 +146,7 @@
 	 * @property {number} ColumnsCount - Returns a number of columns in the current range.
 	 * @property {number} RowsCount - Returns a number of rows in the current range.
 	 * @property {ApiFormatConditions} FormatConditions - Returns the collection of conditional formatting rules for the current range.
+     * @property {ApiValidation} Validation - Returns the ApiValidation class instance associated with this range. If no validation instance exists yet, it will be created.
 	 */
 	function ApiRange(range, areas) {
 		this.range = range;
@@ -7585,7 +7579,7 @@
 	 * Recalculates all formulas in the active workbook.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
-	 * @param {Function} fLogger - A function which specifies the logger object for checking recalculation of formulas.
+	 * @param {Function} [fLogger] - A function which specifies the logger object for checking recalculation of formulas.
 	 * @returns {boolean}
 	 * @see office-js-api/Examples/{Editor}/Api/Methods/RecalculateAllFormulas.js
 	 */
@@ -9340,7 +9334,7 @@
 	 * @memberof ApiWorksheet
 	 * @typeofeditors ["CSE"]
 	 * @returns {Drawing[]}.
-	 * @see office-js-api/Examples/{Editor}/ApiWorksheet/Methods/GetAllDrawings.js
+	 * @see office-js-api/Examples/{Editor}/ApiWorksheet/Methods/GetSelectedDrawings.js
 	 */
 	ApiWorksheet.prototype.GetSelectedDrawings = function () {
 		var allDrawings = this.worksheet.Drawings;
@@ -12792,7 +12786,7 @@
 		}
 	});
 	/**
-	 * Returns a collection of the ranges.
+	 * Returns the data validation object associated with this range. If no validation object exists yet, it will be created.
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @returns {ApiValidation}
@@ -16950,7 +16944,7 @@
 	};
 
 	/**
-	 * Returns the setting which specifies whether to display field headers for rows and columns.
+	 * Sets whether to display field headers for rows and columns.
 	 * @memberof ApiPivotTable
 	 * @typeofeditors ["CSE"]
 	 * @param {boolean} show - Specifies whether to display field headers for rows and columns.
@@ -19865,8 +19859,8 @@
 	/**
 	 * Class representing data validation.
 	 * @constructor
-	 * @property {ValidationType} Type - Returns or sets the validation type.
-	 * @property {ValidationAlertStyle} AlertStyle - Returns or sets the validation alert style.
+	 * @property {ValidationType} Type - Returns the validation type.
+	 * @property {ValidationAlertStyle} AlertStyle - Returns the validation alert style.
 	 * @property {boolean} IgnoreBlank - Returns or sets a Boolean value that specifies whether blank values are permitted by the range data validation.
 	 * @property {boolean} InCellDropdown - Returns or sets a Boolean value indicating whether data validation displays a drop-down list that contains acceptable values.
 	 * @property {boolean} ShowInput - Returns or sets a Boolean value indicating whether the data validation input message will be displayed whenever the user selects a cell in the data validation range.
@@ -19875,11 +19869,11 @@
 	 * @property {string} InputMessage - Returns or sets the data validation input message.
 	 * @property {string} ErrorTitle - Returns or sets the title of the data-validation error dialog box.
 	 * @property {string} ErrorMessage - Returns or sets the data validation error message.
-	 * @property {string} Formula1 - Returns or sets the value or expression associated with the conditional format or data validation.
-	 * @property {string} Formula2 - Returns or sets the value or expression associated with the second part of a conditional format or data validation.
-	 * @property {ValidationOperator} Operator - Returns or sets the data validation operator.
+	 * @property {string} Formula1 - Returns the value or expression associated with the conditional format or data validation.
+	 * @property {string} Formula2 - Returns the value or expression associated with the second part of a conditional format or data validation.
+	 * @property {ValidationOperator} Operator - Returns the data validation operator.
 	 * @property {ApiRange} Parent - Returns the parent range object.
-	 * @property {string} Value - Returns or sets the validation value.
+	 * @property {string} Value - Returns the validation value.
 	 */
 	function ApiValidation(validations, range) {
         if (!validations || !Array.isArray(validations) || !validations.length ) {
@@ -27717,7 +27711,7 @@
      * @memberof ApiFilter
      * @typeofeditors ["CSE"]
      * @returns {ApiAutoFilter} The parent filters collection.
-     * @see office-js-api/Examples/{Editor}/ApiFilter/Methods/Parent.js
+     * @see office-js-api/Examples/{Editor}/ApiFilter/Methods/GetParent.js
      */
     ApiFilter.prototype.GetParent = function () {
         return this.parent;
@@ -27906,7 +27900,7 @@
 	ApiRange.prototype["SetUnderline"] = ApiRange.prototype.SetUnderline;
 	ApiRange.prototype["SetStrikeout"] = ApiRange.prototype.SetStrikeout;
 	ApiRange.prototype["SetWrap"] = ApiRange.prototype.SetWrap;
-	ApiRange.prototype["SetWrapText"] = ApiRange.prototype.SetWrap;	
+	ApiRange.prototype["SetWrapText"] = ApiRange.prototype.SetWrap;
 	ApiRange.prototype["GetWrapText"] = ApiRange.prototype.GetWrapText;
 	ApiRange.prototype["SetFillColor"] = ApiRange.prototype.SetFillColor;
 	ApiRange.prototype["GetFillColor"] = ApiRange.prototype.GetFillColor;

@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -74,12 +67,17 @@ module.exports = function(grunt) {
 		return configs;
 	}
 	function writeScripts(config, name) {
-		const develop = '../develop/sdkjs/';
+		const develop = process.env.BUILD_ROOT
+			? path.join(process.env.BUILD_ROOT, 'sdkjs', 'develop', 'sdkjs') + '/'
+			: '../develop/sdkjs/';
 		const fileName = 'scripts.js';
 		let files = ['../vendor/polyfill.js', '../common/AllFonts.js'];
 		if (grunt.option('compiled')) {
-			//todo set window['AscNotLoadAllScript'] = false; (in applyDocumentChanges.js)
-			files.push(deploy + name + '/sdk-all-min.js');
+			if (process.env.BUILD_ROOT) {
+				files.push(path.join('..', name, 'sdk-all-min.js'));
+			} else {
+				files.push(path.join(deploy, name, 'sdk-all-min.js'));
+			}
 		} else {
 			files = files.concat(['../common/applyDocumentChanges.js'], getFilesMin(config), getFilesAll(config));
 		}
@@ -100,35 +98,35 @@ module.exports = function(grunt) {
 
 	CConfig.prototype.append = function (basePath = '') {
 		const pathConfigs = path.join(basePath, 'configs');
-		
+
 		function appendOption(name) {
 			const option = loadConfig(pathConfigs, name);
 			if (!option)
 				return;
-			
+
 			fixPath(option, basePath);
-			
+
 			if (!this[name]) {
 				this[name] = option;
 				return;
 			}
-			
+
 			function mergeProps(base, addon) {
 				for (let prop in addon)
 				{
 					if (Array.isArray(addon[prop])) {
 						base[prop] = Array.isArray(base[prop]) ? base[prop].concat(addon[prop]) : addon[prop];
 					} else {
-						if (!base[prop]) 
+						if (!base[prop])
 							base[prop] = {};
-						mergeProps(base[prop], addon[prop]);						
+						mergeProps(base[prop], addon[prop]);
 					}
 				}
 			}
-			
-			mergeProps(this[name], option);			
+
+			mergeProps(this[name], option);
 		}
-		
+
 		appendOption.call(this, 'externs');
 		appendOption.call(this, 'word');
 		appendOption.call(this, 'cell');
@@ -174,17 +172,22 @@ module.exports = function(grunt) {
 		return result;
 	}
 	const path = require('path');
-	const deploy = '../deploy/sdkjs/';
+	const deploy = process.env.BUILD_ROOT
+		? path.join(process.env.BUILD_ROOT, 'sdkjs')
+		: path.join('..', 'deploy', 'sdkjs');
 	const word = path.join(deploy, 'word');
 	const cell = path.join(deploy, 'cell');
 	const slide = path.join(deploy, 'slide');
 	const visio = path.join(deploy, 'visio');
 
-	const level = grunt.option('level') || 'ADVANCED';
+	const level = grunt.option('level') || 'WHITESPACE_ONLY';
 	const formatting = grunt.option('formatting') || '';
 
+	const ccPlatform = process.env.CC_PLATFORM
+		? process.env.CC_PLATFORM.split(',')
+		: ['native', 'java'];
 	require('google-closure-compiler').grunt(grunt, {
-		platform: ['native', 'java'],
+		platform: ccPlatform,
 		extraArguments: ['-Xms2048m']
 	});
 
@@ -197,8 +200,15 @@ module.exports = function(grunt) {
 	}
 	const otherFiles = [
 		{
+			cwd: '../vendor/',
+			src: ['polyfill.js'],
+			dest: path.join(deploy, 'vendor'),
+			name: 'vendor'
+		},
+		{
 			cwd: '../common/',
 			src: [
+				'device_scale.js',
 				'Drawings/Format/path-boolean-min.js',
 				'Charts/ChartStyles.js',
 				'SmartArts/SmartArtData/*',
@@ -250,9 +260,9 @@ module.exports = function(grunt) {
 	if (formatting) {
 		compilerArgs.push('--formatting=' + formatting);
 	}
-	const appCopyright = process.env['APP_COPYRIGHT'] || "Copyright (C) Ascensio System SIA 2012-" + grunt.template.today('yyyy') +". All rights reserved";
-	const publisherUrl = process.env['PUBLISHER_URL'] || "https://www.onlyoffice.com/";
-	const companyName = process.env['COMPANY_NAME'] || 'onlyoffice';
+	const appCopyright = process.env['APP_COPYRIGHT'] || "Copyright (C) Ascensio System SIA 2012-2025. All rights reserved; Euro-Office contributors 2026 - " + grunt.template.today('yyyy');
+	const publisherUrl = process.env['PUBLISHER_URL'] || "https://github.com/Euro-Office/";
+	const companyName = process.env['COMPANY_NAME'] || 'Euro-Office';
 	const version = process.env['PRODUCT_VERSION'] || '0.0.0';
 	const buildNumber = process.env['BUILD_NUMBER'] || '0';
 	const beta = grunt.option('beta') || 'false';
@@ -265,21 +275,21 @@ module.exports = function(grunt) {
 
 	function getCompileConfig(sdkmin, sdkall, outmin, outall, name, pathPrefix) {
 		const args = compilerArgs.concat (
-		`--define=window.AscCommon.g_cCompanyName='${companyName}'`,
-		`--define=window.AscCommon.g_cProductVersion='${version}'`,
-		`--define=window.AscCommon.g_cBuildNumber='${buildNumber}'`,
-		`--define=window.AscCommon.g_cIsBeta='${beta}'`,
-		'--rewrite_polyfills=true',
-		'--warning_level=QUIET',
-		'--language_out=ECMASCRIPT5',
-		'--compilation_level=' + level,
-		...sdkmin.map((file) => ('--js=' + file)),
-		`--chunk=${outmin}:${sdkmin.length}`,
-		`--chunk_wrapper=${outmin}:${license}\n%s`,
-		...sdkall.map((file) => ('--js=' + file)),
-		`--chunk=${outall}:${sdkall.length}:${outmin}`,
-		`--chunk_wrapper=${outall}:${license}\n(function(window, undefined) {%s})(window);`,
-		`--chunk_output_path_prefix=${pathPrefix}`);
+			`--define=window.AscCommon.g_cCompanyName='${companyName}'`,
+			`--define=window.AscCommon.g_cProductVersion='${version}'`,
+			`--define=window.AscCommon.g_cBuildNumber='${buildNumber}'`,
+			`--define=window.AscCommon.g_cIsBeta='${beta}'`,
+			'--rewrite_polyfills=true',
+			'--warning_level=QUIET',
+			'--language_out=ECMASCRIPT5',
+			'--compilation_level=' + level,
+			...sdkmin.map((file) => ('--js=' + file)),
+			`--chunk=${outmin}:${sdkmin.length}`,
+			`--chunk_wrapper=${outmin}:${license}\n%s`,
+			...sdkall.map((file) => ('--js=' + file)),
+			`--chunk=${outall}:${sdkall.length}:${outmin}`,
+			`--chunk_wrapper=${outall}:${license}\n(function(window, undefined) {%s})(window);`,
+			`--chunk_output_path_prefix=${pathPrefix}`);
 		if (grunt.option('map')) {
 			grunt.file.mkdir(path.join('./maps'));
 			args.push('--property_renaming_report=' + path.join(`maps/${name}.props.js.map`));
@@ -500,7 +510,9 @@ module.exports = function(grunt) {
 		grunt.task.run(copyTasks);
 	});
 	grunt.registerTask('clean-develop', 'Clean develop scripts', function () {
-		const develop = '../develop/sdkjs/';
+		const develop = process.env.BUILD_ROOT
+			? path.join(process.env.BUILD_ROOT, 'sdkjs', 'develop', 'sdkjs') + '/'
+			: '../develop/sdkjs/';
 		grunt.initConfig({
 			clean: {
 				tmp: {
@@ -528,5 +540,22 @@ module.exports = function(grunt) {
 		defaultTasks.push('copy-maps');
 	}
 	grunt.registerTask('default', defaultTasks);
-	grunt.registerTask('develop', ['clean-develop', 'build-develop']);
+	// this file, device_scale is used in html templates and needs to be copied
+	// it is basically it's own thing, but processed like this to be consistent and not hacky
+	grunt.registerTask('copy-standalone', 'Copy standalone scripts needed by HTML templates', function () {
+		grunt.initConfig({
+			copy: {
+				standalone: {
+					files: [{
+						expand: true,
+						cwd: '../common/',
+						src: ['device_scale.js'],
+						dest: path.join(deploy, 'common')
+					}]
+				}
+			}
+		});
+		grunt.task.run('copy');
+	});
+	grunt.registerTask('develop', ['clean-develop', 'build-develop', 'copy-standalone']);
 };

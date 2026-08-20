@@ -12,16 +12,9 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html
  *
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish
- * street, Riga, Latvia, EU, LV-1050.
- *
  * The  interactive user interfaces in modified source and object code versions
  * of the Program must display Appropriate Legal Notices, as required under
  * Section 5 of the GNU AGPL version 3.
- *
- * Pursuant to Section 7(b) of the License you must retain the original Product
- * logo when distributing the program. Pursuant to Section 7(e) we decline to
- * grant you any rights under trademark law for use of our trademarks.
  *
  * All the Product's GUI elements, including illustrations and icon sets, as
  * well as technical writing content are licensed under the terms of the
@@ -12526,7 +12519,6 @@
                     return oThis.ReadPic(t,l, oDrawing);
                 });
             }
-            /** proprietary begin **/
             else if ( c_oSer_DrawingType.GraphicFrame == type )
             {
                 //todo удалить
@@ -12534,7 +12526,6 @@
                     return oThis.ReadGraphicFrame(t, l, oDrawing);
                 });
             }
-            /** proprietary end **/
             else if ( c_oSer_DrawingType.pptxDrawing == type )
             {
                 oDrawing.graphicObject = this.ReadPptxDrawing();
@@ -13498,7 +13489,8 @@
                 if(!isNaN(dateMs))
                     oCommentData.asc_putOnlyOfficeTime(dateMs + "");
             } else if ( c_oSer_ThreadedComment.personId === type ) {
-                var person = this.personList[this.stream.GetString2LE(length)];
+                let personGuid = this.stream.GetString2LE(length);
+                var person = this.personList[personGuid.toUpperCase()];
                 if (person) {
                     oCommentData.asc_putUserName(person.displayName);
                     oCommentData.asc_putUserId(person.userId);
@@ -13723,7 +13715,8 @@
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
             if ( c_oSer_Person.id === type ) {
-                this.personList[this.stream.GetString2LE(length)] = person;
+                let personGuid = this.stream.GetString2LE(length);
+                this.personList[personGuid.toUpperCase()] = person;
             } else if (c_oSer_Person.providerId === type) {
                 person.providerId = this.stream.GetString2LE(length);
             } else if (c_oSer_Person.userId === type) {

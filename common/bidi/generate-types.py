@@ -21,16 +21,11 @@ header = "/*\n\
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR  PURPOSE. For\n\
  * details, see the GNU AGPL at: http://www.gnu.org/licenses/agpl-3.0.html\n\
  *\n\
- * You can contact Ascensio System SIA at 20A-6 Ernesta Birznieka-Upish\n\
- * street, Riga, Latvia, EU, LV-1050.\n\
  *\n\
  * The  interactive user interfaces in modified source and object code versions\n\
  * of the Program must display Appropriate Legal Notices, as required under\n\
  * Section 5 of the GNU AGPL version 3.\n\
  *\n\
- * Pursuant to Section 7(b) of the License you must retain the original Product\n\
- * logo when distributing the program. Pursuant to Section 7(e) we decline to\n\
- * grant you any rights under trademark law for use of our trademarks.\n\
  *\n\
  * All the Product's GUI elements, including illustrations and icon sets, as\n\
  * well as technical writing content are licensed under the terms of the\n\
