@@ -35,16 +35,21 @@ COPY sdkjs /app/sdkjs
 COPY web-apps /app/web-apps
 COPY fonts/*.png /app/sdkjs/common/Images
 COPY fonts/*.js /app/sdkjs/common
+WORKDIR /app/web-apps/build
+RUN npm install
 WORKDIR /app/web-apps/translation
 RUN python3 merge_and_check.py
-WORKDIR /app/sdkjs
-RUN make
+WORKDIR /app/web-apps/build
+RUN THEME=euro-office node scripts/build-pipeline.js
+# WORKDIR /app/web-apps/deploy/web-apps
+# RUN pwd ; ls -laR ; exit 1
+WORKDIR /app/web-apps/
 RUN mv deploy/web-apps/apps/api/documents/api.js deploy/web-apps/apps/api/documents/api-orig.js
 
 
 FROM base AS files-build
-COPY --from=sdkjs-build /app/sdkjs/deploy/web-apps /app/web-apps
-COPY --from=sdkjs-build /app/sdkjs/deploy/sdkjs /app/sdkjs
+COPY --from=sdkjs-build /app/web-apps/deploy/web-apps /app/web-apps
+# COPY --from=sdkjs-build /app/web-apps/deploy/sdkjs /app/sdkjs
 COPY vendor /app/web-apps/vendor
 COPY fonts/*.ttf /app/fonts/fonts/
 COPY fonts/*.otf /app/fonts/fonts/
