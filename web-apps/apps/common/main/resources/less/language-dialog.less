@@ -27,6 +27,24 @@ li {
 
 .dropdown-menu.lang-menu {
   > li {
+
+    // CryptPad: Workaround for https://github.com/Euro-Office/web-apps/issues/165
+    .icon {
+      margin: -1px 4px 0 calc(-1*@x-small-btn-icon-size-ie - 4px);
+      margin: -1px 4px 0 calc(-1*@x-small-btn-icon-size - 4px);
+      .rtl & {
+        margin: -1px calc(-1*@x-small-btn-icon-size-ie - 4px) 0 4px;
+        margin: -1px calc(-1*@x-small-btn-icon-size - 4px) 0 4px;
+      }
+    }
+    .icon {
+      width: @x-small-btn-icon-size-ie;
+      width: @x-small-btn-icon-size;
+      height: @x-small-btn-icon-size-ie;
+      height: @x-small-btn-icon-size;
+      position: absolute;
+    }
+
     a.checked {
       &:before {
         display: none;
