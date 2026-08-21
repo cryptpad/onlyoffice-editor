@@ -17,7 +17,7 @@ PUBLISHER_NAME ?= Ascensio System SIA
 
 APP_COPYRIGHT ?= Copyright (C) $(PUBLISHER_NAME) 2012-$(shell date +%Y). All rights reserved
 
-PUBLISHER_URL ?= https://www.onlyoffice.com/
+PUBLISHER_URL ?= https://github.com/Euro-Office
 
 GRUNT_ENV += PRODUCT_VERSION=$(PRODUCT_VERSION)
 GRUNT_ENV += BUILD_NUMBER=$(BUILD_NUMBER)
