@@ -316,15 +316,17 @@ define([
                         new Common.UI.Menu({
                             items: [
                                 {caption: me.mniImageFromFile, value: 'file'},
-                                {caption: me.mniImageFromUrl, value: 'url'},
-                                {caption: me.mniImageFromStorage, value: 'storage'}
+                                // CRYPTPAD XXX
+                                // we don't support adding images from URL
+                                // {caption: me.mniImageFromUrl, value: 'url'},
+                                // {caption: me.mniImageFromStorage, value: 'storage'}
                             ]
                         }).on('item:click', function (menu, item, e) {
                             me.fireEvent('headerfooter:insimage', [menu, item, e]);
                         })
                     );
 
-                    button.menu && button.menu.items[2].setVisible(config.canRequestInsertImage || config.fileChoiceUrl && config.fileChoiceUrl.indexOf("{documentType}")>-1);
+                    // button.menu && button.menu.items[2].setVisible(config.canRequestInsertImage || config.fileChoiceUrl && config.fileChoiceUrl.indexOf("{documentType}")>-1);
                 });
 
                 this.btnsHeaderFooter.forEach(function (button) {

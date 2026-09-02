@@ -1894,8 +1894,10 @@ define([], function () {
                     menuAlign: 'tl-bl',
                     items: [
                         {caption: this.documentHolder.mniImageFromFile, value: 0},
-                        {caption: this.documentHolder.mniImageFromUrl, value: 1},
-                        {caption: this.documentHolder.mniImageFromStorage, value: 2, visible: this.mode.canRequestInsertImage || this.mode.fileChoiceUrl && this.mode.fileChoiceUrl.indexOf("{documentType}")>-1}
+                        // CRYPTPAD XXX
+                        // we don't support adding images from URL
+                        // {caption: this.documentHolder.mniImageFromUrl, value: 1},
+                        // {caption: this.documentHolder.mniImageFromStorage, value: 2, visible: this.mode.canRequestInsertImage || this.mode.fileChoiceUrl && this.mode.fileChoiceUrl.indexOf("{documentType}")>-1}
                     ]
                 });
                 menu.on('item:click', function(menu, item) {

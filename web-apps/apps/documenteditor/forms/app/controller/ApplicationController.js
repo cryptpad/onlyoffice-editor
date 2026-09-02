@@ -1343,8 +1343,10 @@ define([
                     menuAlign: 'tl-bl',
                     items: [
                         {caption: this.mniImageFromFile, value: 'file'},
-                        {caption: this.mniImageFromUrl, value: 'url'},
-                        {caption: this.mniImageFromStorage, value: 'storage', visible: this.appOptions.canRequestInsertImage || this.appOptions.fileChoiceUrl && this.appOptions.fileChoiceUrl.indexOf("{documentType}")>-1}
+                        // CRYPTPAD XXX
+                        // we don't support adding images from URL
+                        // {caption: this.mniImageFromUrl, value: 'url'},
+                        // {caption: this.mniImageFromStorage, value: 'storage', visible: this.appOptions.canRequestInsertImage || this.appOptions.fileChoiceUrl && this.appOptions.fileChoiceUrl.indexOf("{documentType}")>-1}
                     ]
                 });
                 menu.on('item:click', function(menu, item) {
