@@ -2646,7 +2646,8 @@ define([
             _injectComponent('#slot-btn-text-orient',    this.btnTextOrient);
             _injectComponent('#slot-btn-insimage',       this.btnInsertImage);
             _injectComponent('#slot-btn-instable',       this.btnInsertTable);
-            _injectComponent('#slot-btn-smartpicker',    this.btnSmartPicker);
+            // CRYPTPAD we want this button to be hidden
+            // _injectComponent('#slot-btn-smartpicker',    this.btnSmartPicker);
             _injectComponent('#slot-btn-inshyperlink',   this.btnInsertHyperlink);
             _injectComponent('#slot-btn-insshape',       this.btnInsertShape);
             _injectComponent('#slot-btn-inscheckbox',    this.btnInsertCheckBox);

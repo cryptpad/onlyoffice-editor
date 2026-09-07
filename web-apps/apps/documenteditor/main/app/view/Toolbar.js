@@ -2224,8 +2224,8 @@ define([
                 _injectComponent('#slot-btn-inssmartart', this.btnInsertSmartArt);
                 _injectComponent('#slot-btn-insequation', this.btnInsertEquation);
                 _injectComponent('#slot-btn-inssymbol', this.btnInsertSymbol);
-
-                _injectComponent('#slot-btn-smartpicker', this.btnSmartPicker);
+                // CRYPTPAD we want this button to be hidden
+                // _injectComponent('#slot-btn-smartpicker', this.btnSmartPicker);
 
                 _injectComponent('#slot-btn-pageorient', this.btnPageOrient);
                 _injectComponent('#slot-btn-pagemargins', this.btnPageMargins);
