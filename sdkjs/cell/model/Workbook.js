@@ -4771,6 +4771,7 @@
 						// TODO if(g_oUndoRedoGraphicObjects == item.oClass && item.oData.drawingData)
 						//     item.oData.drawingData.bCollaborativeChanges = true;
 						AscCommonExcel.executeInR1C1Mode(false, function () {
+						    console.log('XXX AscCommonExcel.executeInR1C1Mode', item.oClass?.constructor?.name, item.oData?.constructor?.name);
 							history.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData, false, item);
 						});
 						if (oThis.oApi.VersionHistory && item.nSheetId && item.GetChangedRange) {
@@ -21074,6 +21075,7 @@
 		History.EndTransaction();
 	};
 	Range.prototype.cleanAll=function(ignoreNoEmpty){
+	    console.log('XXX Range.prototype.cleanAll start', ignoreNoEmpty);
 		AscCommon.History.Create_NewPoint();
 		AscCommon.History.StartTransaction();
 		this.unmerge();
@@ -21097,6 +21099,7 @@
 
 		this.worksheet.workbook.dependencyFormulas.calcTree();
 		AscCommon.History.EndTransaction();
+	    console.log('XXX Range.prototype.cleanAll end');
 	};
 	Range.prototype.cleanHyperlinks=function(){
 		AscCommon.History.Create_NewPoint();

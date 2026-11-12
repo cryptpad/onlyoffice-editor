@@ -244,6 +244,7 @@ function (window, undefined) {
 		if (bNoDrawing) {
 			var nClassType = oBinaryReader.GetUChar();
 			this.oClass = UndoRedoClassTypes.Create(nClassType);
+			console.log('XXX UndoRedoItemSerializable.prototype.Deserialize', this.oClass?.name, nClassType);
 			this.nActionType = oBinaryReader.GetUChar();
 			var bSheetId = oBinaryReader.GetBool();
 			if (bSheetId) {
@@ -275,6 +276,7 @@ function (window, undefined) {
 		var nLength = oBinaryReader.GetULongLE();
 		var oDataObject = UndoRedoDataTypes.Create(nDataClassType);
 		if (null != oDataObject) {
+    		console.log('XXX UndoRedoItemSerializable.prototype.DeserializeData', oDataObject.constructor.name, nDataClassType);
 			if (null != oDataObject.Read_FromBinary2) {
 				oDataObject.Read_FromBinary2(oBinaryReader);
 			} else if (null != oDataObject.Read_FromBinary2AndReplace) {
@@ -2910,17 +2912,22 @@ function (window, undefined) {
 		this.offset = 0;
 		this.Add = function (fCreate) {
 			var nRes = this.aTypes.length;
+		    console.trace('XXX UndoRedoClassTypes.Add', nRes);
 			this.aTypes.push(fCreate);
 			return nRes + this.offset;
 		};
 		this.Create = function (nType) {
 			const nTypeIndex = nType - this.offset;
 			if (0 <= nTypeIndex && nTypeIndex < this.aTypes.length) {
-				return this.aTypes[nTypeIndex]();
+			    const result = this.aTypes[nTypeIndex]();
+    		    console.log('XXX UndoRedoClassTypes.Create', nType, this.offset, nTypeIndex, result, this.aTypes);
+				return result;
 			}
+		    console.log('XXX UndoRedoClassTypes.Create', nType, this.offset, nTypeIndex, this.aTypes);
 			return null;
 		};
 		this.SetOffset = function (offset) {
+		    console.trace('XXX UndoRedoClassTypes.SetOffset', offset);
 			this.offset = offset || 0;
 		};
 		this.Clean = function () {
@@ -5568,6 +5575,7 @@ function (window, undefined) {
 	};
 	function UndoRedoPivotCache(wb) {
 		UndoRedoClassBase.call(this);
+		console.trace('XXX UndoRedoPivotCache');
 		this.wb = wb;
 		this.nType = UndoRedoClassTypes.Add(function () {
 			return AscCommonExcel.g_oUndoRedoPivotCache;
@@ -5584,6 +5592,8 @@ function (window, undefined) {
 		this.UndoRedo(Type, Data, nSheetId, false);
 	};
 	UndoRedoPivotCache.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+	    console.trace('XXX UndoRedoPivotCache.prototype.UndoRedo', Data.constructor.name, Data, Data.pivot, this.wb.getPivotTableById(Data.pivot));
+	    // if (!Data.pivot) debugger;
 		const cacheDefinition = this.wb.getPivotTableById(Data.pivot).cacheDefinition;
 		switch (Type) {
 			case AscCH.historyitem_PivotCache_SetCalculatedItems:

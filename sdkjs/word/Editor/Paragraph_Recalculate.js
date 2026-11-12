@@ -3702,6 +3702,7 @@ CParagraphRecalculateStateWrap.prototype.Recalculate_Numbering = function(Item, 
 	var CurPage = this.Page, CurLine = this.Line, CurRange = this.Range;
 	var Para    = this.Paragraph;
 	var X       = _X, LineAscent = this.LineAscent;
+	console.log('XXX StateWrap.prototype.Recalculate_Numbering', CurPage, CurLine, CurRange);
 	
 	// Если нужно добавить нумерацию и на текущем элементе ее можно добавить, тогда добавляем её
 	var NumberingItem = Para.Numbering;
@@ -3755,7 +3756,14 @@ CParagraphRecalculateStateWrap.prototype.Recalculate_Numbering = function(Item, 
 			
 			if (NumPr)
 			{
+			    console.log('XXX oNumbering.GetNum 1', NumPr.NumId, oNumbering.constructor.name, {
+			        // oNumbering,
+			        // NumPr,
+			        oNumbering_GetNum: oNumbering.GetNum(NumPr.NumId),
+			        // oNumbering_GetNum_GetLvl: oNumbering.GetNum(NumPr.NumId).GetLvl,
+			    });
 				oNumLvl  = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
+			    // console.log('XXX oNumbering.GetNum 1 worked');
 				nNumSuff = oNumLvl.GetSuff();
 			}
 			else if (oPrevNumPr)
@@ -3842,6 +3850,7 @@ CParagraphRecalculateStateWrap.prototype.Recalculate_Numbering = function(Item, 
 				if (arrNumInfo[0][NumPr.Lvl] === arrNumInfo[1][oPrevNumPr.Lvl])
 				{
 					var oSourceNumLvl = oNumbering.GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
+    			    console.log('XXX oNumbering.GetNum 2');
 					var oFinalNumLvl  = oNumbering.GetNum(NumPr.NumId).GetLvl(NumPr.Lvl);
 					
 					isEqual = oSourceNumLvl.IsSimilar(oFinalNumLvl);

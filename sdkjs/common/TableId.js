@@ -47,11 +47,13 @@
 	CTableId.prototype.init = function(editor)
 	{
 		this.m_aPairs_orig   = {};
-        // CryptPad: detect duplicate IDs, which cause corruption of the document.
 		this.m_aPairs        = new Proxy(this.m_aPairs_orig, {
             set(target, property, value) {
                 if (target[property]) {
+                    console.error("XXX CTableId: Id " + property + " already exists", target[property], value);
                     window.Common.Gateway.cryptPadCorruptionWarningHandler(property);
+                } else {
+                    // console.log("XXX CTableId: Adding Id " + property);
                 }
                 Reflect.set(...arguments);
             },

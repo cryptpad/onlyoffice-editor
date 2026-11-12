@@ -1169,6 +1169,8 @@ CHistory.prototype.Add = function(Class, Type, sheetid, range, Data, LocalChange
 	if (!this.CanAddChanges())
 		return;
 
+	console.log('XXX CHistory.prototype.Add', Class?.constructor?.name, Type, Data?.constructor?.name);
+
 	this.executeWaitingList();
 
 	if (Class instanceof AscCommonExcel.UndoRedoItemSerializable) {
